@@ -1,8 +1,9 @@
 ;;; cyrillic.el --- support for Cyrillic -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001, 2002, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2001, 2002, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 1999, 2000, 2002, 2003, 2004
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: Kenichi Handa <handa@etl.go.jp>
 ;; Keywords: multilingual, Cyrillic, i18n
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -186,6 +187,13 @@ This works whether or not the table is Unicode-based or
 (define-coding-system-alias 'koi8 'cyrillic-koi8)
 (define-coding-system-alias 'cp878 'cyrillic-koi8)
 
+(let ((elt `("koi8-r" koi8-r 1
+	     ,(get 'cyrillic-koi8-r-encode-table 'translation-table)))
+      (slot (assoc "koi8-r" ctext-non-standard-encodings-alist)))
+  (if slot
+      (setcdr slot (cdr elt))
+    (push elt ctext-non-standard-encodings-alist)))
+
 ;; Allow displaying some of KOI & al with an 8859-5-encoded font.  We
 ;; won't bother about the exceptions when encoding the font, since
 ;; NBSP will fall through below and work anyhow, and we'll have
@@ -204,6 +212,9 @@ This works whether or not the table is Unicode-based or
 ;; The table is set up later to encode both Unicode and 8859-5.
 (define-ccl-program ccl-encode-koi8-font
   `(0
+    (if (r2 >= 0)
+	((r1 <<= 7)
+	 (r1 += r2)))
     (translate-character cyrillic-koi8-r-encode-table r0 r1))
   "CCL program to encode Cyrillic chars to KOI font.")
 
@@ -216,6 +227,7 @@ This works whether or not the table is Unicode-based or
 			    'translation-table))
 		   (coding-system cyrillic-koi8)
 		   (coding-priority cyrillic-koi8 cyrillic-iso-8bit)
+		   (ctext-non-standard-encodings "koi8-r")
 		   (input-method . "russian-typewriter")
 		   (features cyril-util)
 		   (unibyte-display . cyrillic-koi8)
@@ -329,7 +341,6 @@ Support for Russian using koi8-r and the russian-computer input method.")
 		. ,(get 'cyrillic-koi8-u-nonascii-translation-table
 			'translation-table))
 	       (input-method . "ukrainian-computer")
-	       (features code-pages)
 	       (documentation
 		. "Support for Ukrainian with KOI8-U character set."))
  '("Cyrillic"))
@@ -441,16 +452,6 @@ Support for Russian using koi8-r and the russian-computer input method.")
  '("Cyrillic"))
 
 (set-language-info-alist
- "Windows-1251" `((coding-system windows-1251)
-		  (coding-priority windows-1251)
-		  (nonascii-translation
-		   . ,(get 'decode-windows-1252 'translation-table))
-		  (input-method . "russian-typewriter") ; fixme?
-		  (features code-pages)
-		  (documentation . "Support for windows-1251 character set."))
- '("Cyrillic"))
-
-(set-language-info-alist
  "Tajik" `((coding-system cyrillic-koi8-t)
 	   (coding-priority cyrillic-koi8-t)
 	   (nonascii-translation
@@ -460,13 +461,68 @@ Support for Russian using koi8-r and the russian-computer input method.")
 	   (documentation . "Support for Tajik using KOI8-T."))
  '("Cyrillic"))
 
+(eval-and-compile
+  (setq
+   non-iso-charset-alist
+   (cp-make-coding-system
+    windows-1251
+    [?\$,1("(B ?\$,1(#(B ?\$,1rz(B ?\$,1(s(B ?\$,1r~(B ?\$,1s&(B ?\$,1s (B ?\$,1s!(B ?\$,1tL(B ?\$,1s0(B ?\$,1()(B ?\$,1s9(B ?\$,1(*(B ?\$,1(,(B ?\$,1(+(B ?\$,1(/(B ?\$,1(r(B
+	 ?\$,1rx(B ?\$,1ry(B ?\$,1r|(B ?\$,1r}(B ?\$,1s"(B ?\$,1rs(B ?\$,1rt(B nil ?\$,1ub(B ?\$,1(y(B ?\$,1s:(B ?\$,1(z(B ?\$,1(|(B ?\$,1({(B ?\$,1((B ?\,A (B ?\$,1(.(B
+	 ?\$,1(~(B ?\$,1(((B ?\,A$(B ?\$,1)P(B ?\,A&(B ?\,A'(B ?\$,1(!(B ?\,A)(B ?\$,1($(B ?\,A+(B ?\,A,(B ?\,A-(B ?\,A.(B ?\$,1('(B ?\,A0(B ?\,A1(B ?\$,1(&(B
+	 ?\$,1(v(B ?\$,1)Q(B ?\,A5(B ?\,A6(B ?\,A7(B ?\$,1(q(B ?\$,1uV(B ?\$,1(t(B ?\,A;(B ?\$,1(x(B ?\$,1(%(B ?\$,1(u(B ?\$,1(w(B ?\$,1(0(B ?\$,1(1(B ?\$,1(2(B ?\$,1(3(B
+	 ?\$,1(4(B ?\$,1(5(B ?\$,1(6(B ?\$,1(7(B ?\$,1(8(B ?\$,1(9(B ?\$,1(:(B ?\$,1(;(B ?\$,1(<(B ?\$,1(=(B ?\$,1(>(B ?\$,1(?(B ?\$,1(@(B ?\$,1(A(B ?\$,1(B(B ?\$,1(C(B ?\$,1(D(B
+	 ?\$,1(E(B ?\$,1(F(B ?\$,1(G(B ?\$,1(H(B ?\$,1(I(B ?\$,1(J(B ?\$,1(K(B ?\$,1(L(B ?\$,1(M(B ?\$,1(N(B ?\$,1(O(B ?\$,1(P(B ?\$,1(Q(B ?\$,1(R(B ?\$,1(S(B ?\$,1(T(B ?\$,1(U(B
+	 ?\$,1(V(B ?\$,1(W(B ?\$,1(X(B ?\$,1(Y(B ?\$,1(Z(B ?\$,1([(B ?\$,1(\(B ?\$,1(](B ?\$,1(^(B ?\$,1(_(B ?\$,1(`(B ?\$,1(a(B ?\$,1(b(B ?\$,1(c(B ?\$,1(d(B ?\$,1(e(B ?\$,1(f(B
+	 ?\$,1(g(B ?\$,1(h(B ?\$,1(i(B ?\$,1(j(B ?\$,1(k(B ?\$,1(l(B ?\$,1(m(B ?\$,1(n(B ?\$,1(o(B] nil ?b)))
+
+;; Register cyrillic-iso8859-5 characters in the encode table of
+;; windows-1251.
+(let ((table (get 'encode-windows-1251 'translation-table))
+      ;; Nth element is a cyrillic-iso8859-5 character encoded to a
+      ;; code (128 + N), or nil.
+      (vec [?\,L"(B ?\,L#(B nil ?\,Ls(B nil nil nil nil nil nil ?\,L)(B nil ?\,L*(B ?\,L,(B ?\,L+(B ?\,L/(B
+	    ?\,Lr(B nil nil nil nil nil nil nil nil nil ?\,Ly(B nil ?\,Lz(B ?\,L|(B ?\,L{(B ?\,L(B
+	    nil ?\,L.(B ?\,L~(B ?\,L((B nil nil nil nil ?\,L!(B nil ?\,L$(B nil nil nil nil ?\,L'(B
+	    nil nil ?\,L&(B ?\,Lv(B nil nil nil nil ?\,Lq(B ?\,Lp(B ?\,Lt(B nil ?\,Lx(B ?\,L%(B ?\,Lu(B ?\,Lw(B
+	    ?\,L0(B ?\,L1(B ?\,L2(B ?\,L3(B ?\,L4(B ?\,L5(B ?\,L6(B ?\,L7(B ?\,L8(B ?\,L9(B ?\,L:(B ?\,L;(B ?\,L<(B ?\,L=(B ?\,L>(B ?\,L?(B
+	    ?\,L@(B ?\,LA(B ?\,LB(B ?\,LC(B ?\,LD(B ?\,LE(B ?\,LF(B ?\,LG(B ?\,LH(B ?\,LI(B ?\,LJ(B ?\,LK(B ?\,LL(B ?\,LM(B ?\,LN(B ?\,LO(B
+	    ?\,LP(B ?\,LQ(B ?\,LR(B ?\,LS(B ?\,LT(B ?\,LU(B ?\,LV(B ?\,LW(B ?\,LX(B ?\,LY(B ?\,LZ(B ?\,L[(B ?\,L\(B ?\,L](B ?\,L^(B ?\,L_(B
+	    ?\,L`(B ?\,La(B ?\,Lb(B ?\,Lc(B ?\,Ld(B ?\,Le(B ?\,Lf(B ?\,Lg(B ?\,Lh(B ?\,Li(B ?\,Lj(B ?\,Lk(B ?\,Ll(B ?\,Lm(B ?\,Ln(B ?\,Lo(B]))
+  (dotimes (i (length vec))
+    (if (aref vec i)
+	(aset table (aref vec i) (+ 128 i)))))
+
+(define-coding-system-alias 'cp1251 'windows-1251)
+
+(let ((elt `("microsoft-cp1251" windows-1251 1
+	     ,(get 'encode-windows-1251 'translation-table)))
+      (slot (assoc "microsoft-cp1251" ctext-non-standard-encodings-alist)))
+  (if slot
+      (setcdr slot (cdr elt))
+    (push elt ctext-non-standard-encodings-alist)))
+
+(define-ccl-program ccl-encode-windows-1251-font
+  `(0
+    ((if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
+	 ((r1 <<= 7)
+	  (r1 += r2)))
+     (translate-character encode-windows-1251 r0 r1))))
+
+(add-to-list 'font-ccl-encoder-alist
+	     '("microsoft-cp1251" . ccl-encode-windows-1251-font))
+
 (set-language-info-alist
  "Bulgarian" `((coding-system windows-1251)
-		  (coding-priority windows-1251)
+	       (coding-priority windows-1251)
+	       (ctext-non-standard-encodings "microsoft-cp1251")
+	       (overriding-fontspec
+		(,(get 'encode-windows-1251 'translation-table)
+		 . (nil . "microsoft-cp1251"))
+		(,(get 'cyrillic-koi8-r-encode-table 'translation-table)
+		 . (nil . "koi8-r")))
 	       (nonascii-translation
 		. ,(get 'decode-windows-1251 'translation-table))
 	       (input-method . "bulgarian-bds")
-		  (features code-pages)
 	       (documentation
 		. "Support for Bulgarian with windows-1251 character set.")
 	       (tutorial . "TUTORIAL.bg"))
@@ -475,10 +531,15 @@ Support for Russian using koi8-r and the russian-computer input method.")
 (set-language-info-alist
  "Belarusian" `((coding-system windows-1251)
 		(coding-priority windows-1251)
+		(ctext-non-standard-encodings "microsoft-cp1251")
+		(overriding-fontspec
+		 (,(get 'encode-windows-1251 'translation-table)
+		  . (nil . "microsoft-cp1251"))
+		 (,(get 'cyrillic-koi8-r-encode-table 'translation-table)
+		  . (nil . "koi8-r")))
 		(nonascii-translation
 		 . ,(get 'decode-windows-1251 'translation-table))
 		(input-method . "belarusian")
-		(features code-pages)
 		(documentation
 		 . "Support for Belarusian with windows-1251 character set.
 \(The name Belarusian replaced Byelorussian in the early 1990s.)"))
@@ -486,4 +547,5 @@ Support for Russian using koi8-r and the russian-computer input method.")
 
 (provide 'cyrillic)
 
+;;; arch-tag: bda71ae0-ba41-4cb6-a6e0-1dff542313d3
 ;;; cyrillic.el ends here

@@ -1,7 +1,9 @@
 ;;; titdic-cnv.el --- convert cxterm dictionary (TIT format) to Quail package -*- coding:iso-2022-7bit; -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 1998, 2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 2000, 2001, 2002
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: Quail, TIT, cxterm
 
@@ -19,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -206,7 +208,7 @@ SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy
 
 ;; Return a value of the key in the current line.
 (defsubst tit-read-key-value ()
-  (if (looking-at "[^ \t\n]+")
+  (if (looking-at "[^ \t\r\n]+")
       (car (read-from-string (concat "\"" (match-string 0) "\"")))))
 
 ;; Return an appropriate quail-package filename from FILENAME (TIT
@@ -639,7 +641,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;;
 ;; You should have received a copy of the GNU General Public License along with
 ;; CCE; see the file COPYING.  If not, write to the Free Software Foundation,
-;; 675 Mass Ave, Cambridge, MA 02139, USA.")
+;; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
 
     ("chinese-ziranma" "$AWTH;(B"
      "ziranma.cin" cn-gb-2312 "ZIRANMA.el"
@@ -668,7 +670,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;;
 ;; You should have received a copy of the GNU General Public License along with
 ;; CCE; see the file COPYING.  If not, write to the Free Software Foundation,
-;; 675 Mass Ave, Cambridge, MA 02139, USA.")
+;; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
 
     ("chinese-ctlau" "$AAuTA(B"
      "CTLau.html" cn-gb-2312 "CTLau.el"
@@ -694,7 +696,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; #
 ;; # You should have received a copy of the GNU General Public License
 ;; # along with this program; if not, write to the Free Software Foundation,
-;; # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.")
+;; # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
 
     ("chinese-ctlaub" "$(0N,Gn(B"
      "CTLau-b5.html" big5 "CTLau-b5.el"
@@ -720,7 +722,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; #
 ;; # You should have received a copy of the GNU General Public License
 ;; # along with this program; if not, write to the Free Software Foundation,
-;; # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.")
+;; # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
     ))
 
 ;; Generate a code of a Quail package in the current buffer from Tsang
@@ -768,6 +770,11 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
     (insert "(quail-define-rules\n")
     (save-excursion
       (set-buffer dicbuf)
+      ;; Handle double CR line ends, which result when checking out of
+      ;; CVS on MS-Windows.
+      (goto-char (point-min))
+      (while (re-search-forward "\r\r$" nil t)
+	(replace-match ""))
       (goto-char (point-min))
       (search-forward "A440")
       (beginning-of-line)
@@ -1108,21 +1115,25 @@ the generated Quail package is saved."
 	name title dicfile coding quailfile converter copyright
 	dicbuf)
     (while tail
-      (when (or (string-match (nth 2 (car tail)) filename)
-		;; MS-DOS filesystem truncates file names to 8+3
-		;; limits, so "cangjie-table.cns" becomes
-		;; "cangjie-.cns", and the above string-match fails.
-		;; Give DOS users a chance...
-		(and (fboundp 'msdos-long-file-names)
-		     (not (msdos-long-file-names))
-		     (string-match (dos-8+3-filename (nth 2 (car tail)))
-				   filename)))
-	(setq slot (car tail)
-	      name (car slot)
+      (setq slot (car tail)
+	    dicfile (nth 2 slot)
+	    quailfile (nth 4 slot))
+      (when (and (or (string-match dicfile filename)
+		     ;; MS-DOS filesystem truncates file names to 8+3
+		     ;; limits, so "cangjie-table.cns" becomes
+		     ;; "cangjie-.cns", and the above string-match
+		     ;; fails.  Give DOS users a chance...
+		     (and (fboundp 'msdos-long-file-names)
+			  (not (msdos-long-file-names))
+			  (string-match (dos-8+3-filename dicfile) filename)))
+		 (if (file-newer-than-file-p
+		      filename (expand-file-name quailfile dirname))
+		     t
+		   (message "%s is up to date" quailfile)
+		   nil))
+	(setq name (car slot)
 	      title (nth 1 slot)
-	      dicfile (nth 2 slot)
 	      coding (nth 3 slot)
-	      quailfile (nth 4 slot)
 	      converter (nth 5 slot)
 	      copyright (nth 6 slot))
 	(message "Converting %s to %s..." dicfile quailfile)
@@ -1178,4 +1189,5 @@ to store generated Quail packages."
 ;; coding: iso-2022-7bit
 ;; End:
 
+;;; arch-tag: 8ad478b2-a985-4da2-b47f-d8ee5d7c24a3
 ;;; titdic-cnv.el ends here

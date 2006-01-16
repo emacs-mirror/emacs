@@ -1,6 +1,5 @@
 /* Definitions and headers for GTK widgets.
-   Copyright (C) 2003
-   Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #ifndef GTKUTIL_H
 #define GTKUTIL_H
@@ -30,8 +29,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Minimum and maximum values used for GTK scroll bars  */
 
-#define XG_SB_MIN 0
+#define XG_SB_MIN 1
 #define XG_SB_MAX 10000000
+#define XG_SB_RANGE (XG_SB_MAX-XG_SB_MIN)
 
 /* Key for data that is valid for menus in a frame  */
 #define XG_FRAME_DATA "emacs_frame"
@@ -95,10 +95,12 @@ typedef struct xg_menu_item_cb_data_
 typedef struct _widget_value
 {
   /* name of widget */
+  Lisp_Object   lname;
   char		*name;
   /* value (meaning depend on widget type) */
   char		*value;
   /* keyboard equivalent. no implications for XtTranslations */
+  Lisp_Object   lkey;
   char		*key;
   /* Help string or nil if none.
      GC finds this string through the frame's menu_bar_vector
@@ -123,13 +125,20 @@ typedef struct _widget_value
   struct _widget_value *free_list;
 } widget_value;
 
+#ifdef HAVE_GTK_FILE_BOTH
+extern int use_old_gtk_file_dialog;
+#endif
+
 extern widget_value *malloc_widget_value P_ ((void));
 extern void free_widget_value P_ ((widget_value *));
+
+extern int xg_uses_old_file_dialog P_ ((void));
 
 extern char *xg_get_file_name P_ ((FRAME_PTR f,
                                    char *prompt,
                                    char *default_filename,
-                                   int mustmatch_p));
+                                   int mustmatch_p,
+                                   int only_dir_p));
 
 extern GtkWidget *xg_create_widget P_ ((char *type,
                                         char *name,
@@ -149,7 +158,9 @@ extern void xg_modify_menubar_widgets P_ ((GtkWidget *menubar,
 
 extern int xg_update_frame_menubar P_ ((FRAME_PTR f));
 
-extern void xg_keep_popup P_ ((GtkWidget *menu, GtkWidget *submenu));
+extern int xg_have_tear_offs P_ ((void));
+
+extern int xg_get_scroll_id_for_window P_ ((Display *dpy, Window wid));
 
 extern void xg_create_scroll_bar P_ ((FRAME_PTR f,
                                       struct scroll_bar *bar,
@@ -178,12 +189,21 @@ extern void xg_resize_widgets P_ ((FRAME_PTR f,
                                    int pixelwidth,
                                    int pixelheight));
 extern void xg_frame_set_char_size P_ ((FRAME_PTR f, int cols, int rows));
-extern GtkWidget * xg_win_to_widget P_ ((Window));
+extern GtkWidget * xg_win_to_widget P_ ((Display *dpy, Window wdesc));
+
+extern int xg_display_open P_ ((char *display_name, Display **dpy));
+extern void xg_display_close P_ ((Display *dpy));
+extern GdkCursor * xg_create_default_cursor P_ ((Display *dpy));
+
 extern int xg_create_frame_widgets P_ ((FRAME_PTR f));
 extern void x_wm_set_size_hint P_ ((FRAME_PTR f,
                                     long flags,
                                     int user_position));
 extern void xg_set_background_color P_ ((FRAME_PTR f, unsigned long bg));
+
+extern void xg_set_frame_icon P_ ((FRAME_PTR f,
+                                   Pixmap icon_pixmap,
+                                   Pixmap icon_mask));
 
 /* Mark all callback data that are Lisp_object:s during GC.  */
 extern void xg_mark_data P_ ((void));
@@ -195,16 +215,8 @@ extern void xg_initialize P_ ((void));
    to indicate that the callback should do nothing.  */
 extern int xg_ignore_gtk_scrollbar;
 
-/* After we send a scroll bar event,  x_set_toolkit_scroll_bar_thumb will
-   be called.  For some reason that needs to be debugged, it gets called
-   with bad values.  Thus, we set this variable to ignore those calls.  */
-extern int xg_ignore_next_thumb;
-
-/* If a detach of a menu is done, this is the menu widget that got
-   detached.  Must be set to NULL before popping up popup menus.
-   Used with xg_keep_popup to delay deleting popup menus when they
-   have been detached.  */
-extern GtkWidget *xg_did_tearoff;
-
 #endif /* USE_GTK */
 #endif /* GTKUTIL_H */
+
+/* arch-tag: 0757f3dc-00c7-4cee-9e4c-282cf1d34c72
+   (do not change this comment) */

@@ -1,10 +1,10 @@
 ;;; calc-lang.el --- calc language functions
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -27,20 +27,17 @@
 
 ;;; Code:
 
-
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-lang () nil)
-
 
 ;;; Alternate entry/display languages.
 
 (defun calc-set-language (lang &optional option no-refresh)
   (setq math-expr-opers (or (get lang 'math-oper-table) math-standard-opers)
 	math-expr-function-mapping (get lang 'math-function-table)
+	math-expr-special-function-mapping (get lang 'math-special-function-table)
 	math-expr-variable-mapping (get lang 'math-variable-table)
 	calc-language-input-filter (get lang 'math-input-filter)
 	calc-language-output-filter (get lang 'math-output-filter)
@@ -258,20 +255,27 @@
 (put 'fortran 'math-input-filter 'calc-input-case-filter)
 (put 'fortran 'math-output-filter 'calc-output-case-filter)
 
+;; The next few variables are local to math-read-exprs in calc-aent.el 
+;; and math-read-expr in calc-ext.el, but are set in functions they call.
+
+(defvar math-exp-token)
+(defvar math-expr-data)
+(defvar math-exp-old-pos)
+
 (defvar math-parsing-fortran-vector nil)
 (defun math-parse-fortran-vector (op)
   (let ((math-parsing-fortran-vector '(end . "\000")))
     (prog1
 	(math-read-brackets t "]")
-      (setq exp-token (car math-parsing-fortran-vector)
-	    exp-data (cdr math-parsing-fortran-vector)))))
+      (setq math-exp-token (car math-parsing-fortran-vector)
+	    math-expr-data (cdr math-parsing-fortran-vector)))))
 
 (defun math-parse-fortran-vector-end (x op)
   (if math-parsing-fortran-vector
       (progn
-	(setq math-parsing-fortran-vector (cons exp-token exp-data)
-	      exp-token 'end
-	      exp-data "\000")
+	(setq math-parsing-fortran-vector (cons math-exp-token math-expr-data)
+	      math-exp-token 'end
+	      math-expr-data "\000")
 	x)
     (throw 'syntax "Unmatched closing `/'")))
 
@@ -288,11 +292,40 @@
   (calc-wrapper
    (and n (setq n (prefix-numeric-value n)))
    (calc-set-language 'tex n)
-   (message (if (and n (/= n 0))
-		(if (> n 0)
-		    "TeX language mode with \\hbox{func}(\\hbox{var})"
-		  "TeX language mode with \\func{\\hbox{var}}")
-	      "TeX language mode"))))
+   (cond ((not n)
+          (message "TeX language mode"))
+         ((= n 0)
+          (message "TeX language mode with multiline matrices"))
+         ((= n 1)
+          (message "TeX language mode with \\hbox{func}(\\hbox{var})"))
+         ((> n 1)
+          (message 
+           "TeX language mode with \\hbox{func}(\\hbox{var}) and multiline matrices"))
+         ((= n -1)
+          (message "TeX language mode with \\func(\\hbox{var})"))
+         ((< n -1)
+          (message 
+           "TeX language mode with \\func(\\hbox{var}) and multiline matrices")))))
+
+(defun calc-latex-language (n)
+  (interactive "P")
+  (calc-wrapper
+   (and n (setq n (prefix-numeric-value n)))
+   (calc-set-language 'latex n)
+   (cond ((not n)
+          (message "LaTeX language mode"))
+         ((= n 0)
+          (message "LaTeX language mode with multiline matrices"))
+         ((= n 1)
+          (message "LaTeX language mode with \\text{func}(\\text{var})"))
+         ((> n 1)
+          (message 
+           "LaTeX language mode with \\text{func}(\\text{var}) and multiline matrices"))
+         ((= n -1)
+          (message "LaTeX language mode with \\func(\\text{var})"))
+         ((< n -1)
+          (message 
+           "LaTeX language mode with \\func(\\text{var}) and multiline matrices")))))
 
 (put 'tex 'math-oper-table
   '( ( "u+"       ident		   -1 1000 )
@@ -321,10 +354,10 @@
      ( "\\times"  *		   191 190 )
      ( "*"        *		   191 190 )
      ( "2x"	  *		   191 190 )
+     ( "/"	  /		   185 186 )
      ( "+"	  +		   180 181 )
      ( "-"	  -		   180 181 )
      ( "\\over"	  /		   170 171 )
-     ( "/"	  /		   170 171 )
      ( "\\choose" calcFunc-choose  170 171 )
      ( "\\mod"	  %		   170 171 )
      ( "<"	  calcFunc-lt	   160 161 )
@@ -356,6 +389,9 @@
      ( \\arg	   . calcFunc-arg )
      ( \\cos	   . calcFunc-cos )
      ( \\cosh	   . calcFunc-cosh )
+     ( \\cot	   . calcFunc-cot )
+     ( \\coth	   . calcFunc-coth )
+     ( \\csc	   . calcFunc-csc )
      ( \\det	   . calcFunc-det )
      ( \\exp	   . calcFunc-exp )
      ( \\gcd	   . calcFunc-gcd )
@@ -363,10 +399,11 @@
      ( \\log	   . calcFunc-log10 )
      ( \\max	   . calcFunc-max )
      ( \\min	   . calcFunc-min )
-     ( \\tan	   . calcFunc-tan )
+     ( \\sec	   . calcFunc-sec )
      ( \\sin	   . calcFunc-sin )
      ( \\sinh	   . calcFunc-sinh )
      ( \\sqrt	   . calcFunc-sqrt )
+     ( \\tan	   . calcFunc-tan )
      ( \\tanh	   . calcFunc-tanh )
      ( \\phi	   . calcFunc-totient )
      ( \\mu	   . calcFunc-moebius )))
@@ -384,15 +421,15 @@
 
 (defun math-parse-tex-sum (f val)
   (let (low high save)
-    (or (equal exp-data "_") (throw 'syntax "Expected `_'"))
+    (or (equal math-expr-data "_") (throw 'syntax "Expected `_'"))
     (math-read-token)
-    (setq save exp-old-pos)
+    (setq save math-exp-old-pos)
     (setq low (math-read-factor))
     (or (eq (car-safe low) 'calcFunc-eq)
 	(progn
-	  (setq exp-old-pos (1+ save))
+	  (setq math-exp-old-pos (1+ save))
 	  (throw 'syntax "Expected equation")))
-    (or (equal exp-data "^") (throw 'syntax "Expected `^'"))
+    (or (equal math-expr-data "^") (throw 'syntax "Expected `^'"))
     (math-read-token)
     (setq high (math-read-factor))
     (list (nth 2 f) (math-read-factor) (nth 1 low) (nth 2 low) high)))
@@ -404,6 +441,91 @@
   str)
 (put 'tex 'math-input-filter 'math-tex-input-filter)
 
+(put 'latex 'math-oper-table
+     (append (get 'tex 'math-oper-table)
+             '(( "\\Hat"    calcFunc-Hat     -1  950 )
+               ( "\\Check"  calcFunc-Check   -1  950 )
+               ( "\\Tilde"  calcFunc-Tilde   -1  950 )
+               ( "\\Acute"  calcFunc-Acute   -1  950 )
+               ( "\\Grave"  calcFunc-Grave   -1  950 )
+               ( "\\Dot"    calcFunc-Dot     -1  950 )
+               ( "\\Ddot"   calcFunc-Dotdot  -1  950 )
+               ( "\\Breve"  calcFunc-Breve   -1  950 )
+               ( "\\Bar"    calcFunc-Bar     -1  950 )
+               ( "\\Vec"    calcFunc-VEC     -1  950 )
+               ( "\\dddot"  calcFunc-dddot   -1  950 )
+               ( "\\ddddot" calcFunc-ddddot  -1  950 )
+               ( "\div"     /                170 171 )
+               ( "\\le"     calcFunc-leq     160 161 )
+               ( "\\leqq"   calcFunc-leq     160 161 )
+               ( "\\leqsland" calcFunc-leq   160 161 )
+               ( "\\ge"	    calcFunc-geq     160 161 )
+               ( "\\geqq"   calcFunc-geq     160 161 )
+               ( "\\geqslant" calcFunc-geq   160 161 )
+               ( "="	    calcFunc-eq	     160 161 )
+               ( "\\neq"    calcFunc-neq     160 161 )
+               ( "\\ne"	    calcFunc-neq     160 161 )
+               ( "\\lnot"   calcFunc-lnot     -1 121 )
+               ( "\\land"   calcFunc-land    110 111 )
+               ( "\\lor"    calcFunc-lor     100 101 )
+               ( "?"	    (math-read-if)    91  90 )
+               ( "!!!"	    calcFunc-pnot     -1  85 )
+               ( "&&&"	    calcFunc-pand     80  81 )
+               ( "|||"	    calcFunc-por      75  76 )
+               ( "\\gets"   calcFunc-assign   51  50 )
+               ( ":="	    calcFunc-assign   51  50 )
+               ( "::"       calcFunc-condition 45 46 )
+               ( "\\to"	    calcFunc-evalto   40  41 )
+               ( "\\to"	    calcFunc-evalto   40  -1 )
+               ( "=>" 	    calcFunc-evalto   40  41 )
+               ( "=>" 	    calcFunc-evalto   40  -1 ))))
+
+(put 'latex 'math-function-table
+     (append
+      (get 'tex 'math-function-table)
+      '(( \\frac      . (math-latex-parse-frac))
+        ( \\tfrac     . (math-latex-parse-frac))
+        ( \\dfrac     . (math-latex-parse-frac))
+        ( \\binom     . (math-latex-parse-two-args calcFunc-choose))
+        ( \\tbinom    . (math-latex-parse-two-args calcFunc-choose))
+        ( \\dbinom    . (math-latex-parse-two-args calcFunc-choose))
+        ( \\phi	      . calcFunc-totient )
+        ( \\mu	      . calcFunc-moebius ))))
+
+(put 'latex 'math-special-function-table
+     '((/               . (math-latex-print-frac "\\frac"))
+       (calcFunc-choose . (math-latex-print-frac "\\binom"))))
+
+(put 'latex 'math-variable-table
+     (get 'tex 'math-variable-table))
+
+(put 'latex 'math-complex-format 'i)
+
+
+(defun math-latex-parse-frac (f val)
+  (let (numer denom)
+    (setq numer (car (math-read-expr-list)))
+    (math-read-token)
+    (setq denom (math-read-factor))
+    (if (and (Math-num-integerp numer)
+             (Math-num-integerp denom))
+        (list 'frac numer denom)
+      (list '/ numer denom))))
+
+(defun math-latex-parse-two-args (f val)
+  (let (first second)
+    (setq first (car (math-read-expr-list)))
+    (math-read-token)
+    (setq second (math-read-factor))
+    (list (nth 2 f) first second)))
+
+(defun math-latex-print-frac (a fn)
+  (list 'horiz (nth 1 fn) "{" (math-compose-expr (nth 1 a) -1)
+               "}{"
+               (math-compose-expr (nth 2 a) -1)
+               "}"))
+
+(put 'latex 'math-input-filter 'math-tex-input-filter)
 
 (defun calc-eqn-language (n)
   (interactive "P")
@@ -484,31 +606,31 @@
 
 (defun math-parse-eqn-matrix (f sym)
   (let ((vec nil))
-    (while (assoc exp-data '(("ccol") ("lcol") ("rcol")))
+    (while (assoc math-expr-data '(("ccol") ("lcol") ("rcol")))
       (math-read-token)
-      (or (equal exp-data calc-function-open)
+      (or (equal math-expr-data calc-function-open)
 	  (throw 'syntax "Expected `{'"))
       (math-read-token)
       (setq vec (cons (cons 'vec (math-read-expr-list)) vec))
-      (or (equal exp-data calc-function-close)
+      (or (equal math-expr-data calc-function-close)
 	  (throw 'syntax "Expected `}'"))
       (math-read-token))
-    (or (equal exp-data calc-function-close)
+    (or (equal math-expr-data calc-function-close)
 	(throw 'syntax "Expected `}'"))
     (math-read-token)
     (math-transpose (cons 'vec (nreverse vec)))))
 
 (defun math-parse-eqn-prime (x sym)
   (if (eq (car-safe x) 'var)
-      (if (equal exp-data calc-function-open)
+      (if (equal math-expr-data calc-function-open)
 	  (progn
 	    (math-read-token)
-	    (let ((args (if (or (equal exp-data calc-function-close)
-				(eq exp-token 'end))
+	    (let ((args (if (or (equal math-expr-data calc-function-close)
+				(eq math-exp-token 'end))
 			    nil
 			  (math-read-expr-list))))
-	      (if (not (or (equal exp-data calc-function-close)
-			   (eq exp-token 'end)))
+	      (if (not (or (equal math-expr-data calc-function-close)
+			   (eq math-exp-token 'end)))
 		  (throw 'syntax "Expected `)'"))
 	      (math-read-token)
 	      (cons (intern (format "calcFunc-%s'" (nth 1 x))) args)))
@@ -569,6 +691,10 @@
      ( Conjugate   . calcFunc-conj )
      ( Cos	   . calcFunc-cos )
      ( Cosh	   . calcFunc-cosh )
+     ( Cot	   . calcFunc-cot )
+     ( Coth	   . calcFunc-coth )
+     ( Csc	   . calcFunc-csc )
+     ( Csch	   . calcFunc-csch )
      ( D	   . calcFunc-deriv )
      ( Dt	   . calcFunc-tderiv )
      ( Det	   . calcFunc-det )
@@ -591,6 +717,8 @@
      ( Random	   . calcFunc-random )
      ( Round	   . calcFunc-round )
      ( Re	   . calcFunc-re )
+     ( Sec	   . calcFunc-sec )
+     ( Sech	   . calcFunc-sech )
      ( Sign	   . calcFunc-sign )
      ( Sin	   . calcFunc-sin )
      ( Sinh	   . calcFunc-sinh )
@@ -622,10 +750,10 @@
 
 (defun math-read-math-subscr (x op)
   (let ((idx (math-read-expr-level 0)))
-    (or (and (equal exp-data "]")
+    (or (and (equal math-expr-data "]")
 	     (progn
 	       (math-read-token)
-	       (equal exp-data "]")))
+	       (equal math-expr-data "]")))
 	(throw 'syntax "Expected ']]'"))
     (math-read-token)
     (list 'calcFunc-subscr x idx)))
@@ -708,134 +836,168 @@
   (list 'intv 3 x (math-read-expr-level (nth 3 op))))
 
 
+;; The variable math-read-big-lines is local to math-read-big-expr in
+;; calc-ext.el, but is used by math-read-big-rec, math-read-big-char,
+;; math-read-big-emptyp, math-read-big-error and math-read-big-balance,
+;; which are called (directly and indirectly) by math-read-big-expr.
+;; It is also local to math-read-big-bigp in calc-ext.el, which calls
+;; math-read-big-balance.
+(defvar math-read-big-lines)
 
+;; The variables math-read-big-baseline and math-read-big-h2 are
+;; local to math-read-big-expr in calc-ext.el, but used by
+;; math-read-big-rec.
+(defvar math-read-big-baseline)
+(defvar math-read-big-h2)
 
+;; The variables math-rb-h1, math-rb-h2, math-rb-v1 and math-rb-v2 
+;; are local to math-read-big-rec, but are used by math-read-big-char, 
+;; math-read-big-emptyp and math-read-big-balance which are called by 
+;; math-read-big-rec.
+;; math-rb-h2 is also local to math-read-big-bigp in calc-ext.el,
+;; which calls math-read-big-balance.
+(defvar math-rb-h1)
+(defvar math-rb-h2)
+(defvar math-rb-v1)
+(defvar math-rb-v2)
 
-(defun math-read-big-rec (h1 v1 h2 v2 &optional baseline prec short)
+(defun math-read-big-rec (math-rb-h1 math-rb-v1 math-rb-h2 math-rb-v2 
+                                     &optional baseline prec short)
   (or prec (setq prec 0))
 
   ;; Clip whitespace above or below.
-  (while (and (< v1 v2) (math-read-big-emptyp h1 v1 h2 (1+ v1)))
-    (setq v1 (1+ v1)))
-  (while (and (< v1 v2) (math-read-big-emptyp h1 (1- v2) h2 v2))
-    (setq v2 (1- v2)))
+  (while (and (< math-rb-v1 math-rb-v2) 
+              (math-read-big-emptyp math-rb-h1 math-rb-v1 math-rb-h2 (1+ math-rb-v1)))
+    (setq math-rb-v1 (1+ math-rb-v1)))
+  (while (and (< math-rb-v1 math-rb-v2) 
+              (math-read-big-emptyp math-rb-h1 (1- math-rb-v2) math-rb-h2 math-rb-v2))
+    (setq math-rb-v2 (1- math-rb-v2)))
 
   ;; If formula is a single line high, normal parser can handle it.
-  (if (<= v2 (1+ v1))
-      (if (or (<= v2 v1)
-	      (> h1 (length (setq v2 (nth v1 lines)))))
-	  (math-read-big-error h1 v1)
-	(setq the-baseline v1
-	      the-h2 h2
-	      v2 (nth v1 lines)
-	      h2 (math-read-expr (substring v2 h1 (min h2 (length v2)))))
-	(if (eq (car-safe h2) 'error)
-	    (math-read-big-error (+ h1 (nth 1 h2)) v1 (nth 2 h2))
-	  h2))
+  (if (<= math-rb-v2 (1+ math-rb-v1))
+      (if (or (<= math-rb-v2 math-rb-v1)
+	      (> math-rb-h1 (length (setq math-rb-v2 
+                                          (nth math-rb-v1 math-read-big-lines)))))
+	  (math-read-big-error math-rb-h1 math-rb-v1)
+	(setq math-read-big-baseline math-rb-v1
+	      math-read-big-h2 math-rb-h2
+	      math-rb-v2 (nth math-rb-v1 math-read-big-lines)
+	      math-rb-h2 (math-read-expr 
+                          (substring math-rb-v2 math-rb-h1 
+                                     (min math-rb-h2 (length math-rb-v2)))))
+	(if (eq (car-safe math-rb-h2) 'error)
+	    (math-read-big-error (+ math-rb-h1 (nth 1 math-rb-h2)) 
+                                 math-rb-v1 (nth 2 math-rb-h2))
+	  math-rb-h2))
 
     ;; Clip whitespace at left or right.
-    (while (and (< h1 h2) (math-read-big-emptyp h1 v1 (1+ h1) v2))
-      (setq h1 (1+ h1)))
-    (while (and (< h1 h2) (math-read-big-emptyp (1- h2) v1 h2 v2))
-      (setq h2 (1- h2)))
+    (while (and (< math-rb-h1 math-rb-h2) 
+                (math-read-big-emptyp math-rb-h1 math-rb-v1 (1+ math-rb-h1) math-rb-v2))
+      (setq math-rb-h1 (1+ math-rb-h1)))
+    (while (and (< math-rb-h1 math-rb-h2) 
+                (math-read-big-emptyp (1- math-rb-h2) math-rb-v1 math-rb-h2 math-rb-v2))
+      (setq math-rb-h2 (1- math-rb-h2)))
 
     ;; Scan to find widest left-justified "----" in the region.
     (let* ((widest nil)
 	   (widest-h2 0)
-	   (lines-v1 (nthcdr v1 lines))
+	   (lines-v1 (nthcdr math-rb-v1 math-read-big-lines))
 	   (p lines-v1)
-	   (v v1)
+	   (v math-rb-v1)
 	   (other-v nil)
 	   other-char line len h)
-      (while (< v v2)
+      (while (< v math-rb-v2)
 	(setq line (car p)
-	      len (min h2 (length line)))
-	(and (< h1 len)
-	     (/= (aref line h1) ?\ )
-	     (if (and (= (aref line h1) ?\-)
+	      len (min math-rb-h2 (length line)))
+	(and (< math-rb-h1 len)
+	     (/= (aref line math-rb-h1) ?\ )
+	     (if (and (= (aref line math-rb-h1) ?\-)
 		      ;; Make sure it's not a minus sign.
-		      (or (and (< (1+ h1) len) (= (aref line (1+ h1)) ?\-))
-			  (/= (math-read-big-char h1 (1- v)) ?\ )
-			  (/= (math-read-big-char h1 (1+ v)) ?\ )))
+		      (or (and (< (1+ math-rb-h1) len) 
+                               (= (aref line (1+ math-rb-h1)) ?\-))
+			  (/= (math-read-big-char math-rb-h1 (1- v)) ?\ )
+			  (/= (math-read-big-char math-rb-h1 (1+ v)) ?\ )))
 		 (progn
-		   (setq h h1)
+		   (setq h math-rb-h1)
 		   (while (and (< (setq h (1+ h)) len)
 			       (= (aref line h) ?\-)))
 		   (if (> h widest-h2)
 		       (setq widest v
 			     widest-h2 h)))
-	       (or other-v (setq other-v v other-char (aref line h1)))))
+	       (or other-v (setq other-v v other-char (aref line math-rb-h1)))))
 	(setq v (1+ v)
 	      p (cdr p)))
 
       (cond ((not (setq v other-v))
-	     (math-read-big-error h1 v1))   ; Should never happen!
+	     (math-read-big-error math-rb-h1 math-rb-v1))   ; Should never happen!
 
 	    ;; Quotient.
 	    (widest
 	     (setq h widest-h2
 		   v widest)
-	     (let ((num (math-read-big-rec h1 v1 h v))
-		   (den (math-read-big-rec h1 (1+ v) h v2)))
+	     (let ((num (math-read-big-rec math-rb-h1 math-rb-v1 h v))
+		   (den (math-read-big-rec math-rb-h1 (1+ v) h math-rb-v2)))
 	       (setq p (if (and (math-integerp num) (math-integerp den))
 			   (math-make-frac num den)
 			 (list '/ num den)))))
 
 	    ;; Big radical sign.
 	    ((= other-char ?\\)
-	     (or (= (math-read-big-char (1+ h1) v) ?\|)
-		 (math-read-big-error (1+ h1) v "Malformed root sign"))
-	     (math-read-big-emptyp h1 v1 (1+ h1) v nil t)
-	     (while (= (math-read-big-char (1+ h1) (setq v (1- v))) ?\|))
-	     (or (= (math-read-big-char (setq h (+ h1 2)) v) ?\_)
+	     (or (= (math-read-big-char (1+ math-rb-h1) v) ?\|)
+		 (math-read-big-error (1+ math-rb-h1) v "Malformed root sign"))
+	     (math-read-big-emptyp math-rb-h1 math-rb-v1 (1+ math-rb-h1) v nil t)
+	     (while (= (math-read-big-char (1+ math-rb-h1) (setq v (1- v))) ?\|))
+	     (or (= (math-read-big-char (setq h (+ math-rb-h1 2)) v) ?\_)
 		 (math-read-big-error h v "Malformed root sign"))
 	     (while (= (math-read-big-char (setq h (1+ h)) v) ?\_))
-	     (math-read-big-emptyp h1 v1 (1+ h1) v nil t)
-	     (math-read-big-emptyp h1 (1+ other-v) h v2 nil t)
+	     (math-read-big-emptyp math-rb-h1 math-rb-v1 (1+ math-rb-h1) v nil t)
+	     (math-read-big-emptyp math-rb-h1 (1+ other-v) h math-rb-v2 nil t)
 	     (setq p (list 'calcFunc-sqrt (math-read-big-rec
-					   (+ h1 2) (1+ v)
+					   (+ math-rb-h1 2) (1+ v)
 					   h (1+ other-v) baseline))
-		   v the-baseline))
+		   v math-read-big-baseline))
 
 	    ;; Small radical sign.
 	    ((and (= other-char ?V)
-		  (= (math-read-big-char (1+ h1) (1- v)) ?\_))
-	     (setq h (1+ h1))
-	     (math-read-big-emptyp h1 v1 h (1- v) nil t)
-	     (math-read-big-emptyp h1 (1+ v) h v2 nil t)
-	     (math-read-big-emptyp h1 v1 (1+ h1) v nil t)
+		  (= (math-read-big-char (1+ math-rb-h1) (1- v)) ?\_))
+	     (setq h (1+ math-rb-h1))
+	     (math-read-big-emptyp math-rb-h1 math-rb-v1 h (1- v) nil t)
+	     (math-read-big-emptyp math-rb-h1 (1+ v) h math-rb-v2 nil t)
+	     (math-read-big-emptyp math-rb-h1 math-rb-v1 (1+ math-rb-h1) v nil t)
 	     (while (= (math-read-big-char (setq h (1+ h)) (1- v)) ?\_))
 	     (setq p (list 'calcFunc-sqrt (math-read-big-rec
-					   (1+ h1) v h (1+ v) t))
-		   v the-baseline))
+					   (1+ math-rb-h1) v h (1+ v) t))
+		   v math-read-big-baseline))
 
 	    ;; Binomial coefficient.
 	    ((and (= other-char ?\()
-		  (= (math-read-big-char (1+ h1) v) ?\ )
-		  (= (string-match "( *)" (nth v lines) h1) h1))
+		  (= (math-read-big-char (1+ math-rb-h1) v) ?\ )
+		  (= (string-match "( *)" (nth v math-read-big-lines) 
+                                   math-rb-h1) math-rb-h1))
 	     (setq h (match-end 0))
-	     (math-read-big-emptyp h1 v1 (1+ h1) v nil t)
-	     (math-read-big-emptyp h1 (1+ v) (1+ h1) v2 nil t)
-	     (math-read-big-emptyp (1- h) v1 h v nil t)
-	     (math-read-big-emptyp (1- h) (1+ v) h v2 nil t)
+	     (math-read-big-emptyp math-rb-h1 math-rb-v1 (1+ math-rb-h1) v nil t)
+	     (math-read-big-emptyp math-rb-h1 (1+ v) (1+ math-rb-h1) math-rb-v2 nil t)
+	     (math-read-big-emptyp (1- h) math-rb-v1 h v nil t)
+	     (math-read-big-emptyp (1- h) (1+ v) h math-rb-v2 nil t)
 	     (setq p (list 'calcFunc-choose
-			   (math-read-big-rec (1+ h1) v1 (1- h) v)
-			   (math-read-big-rec (1+ h1) (1+ v)
-					      (1- h) v2))))
+			   (math-read-big-rec (1+ math-rb-h1) math-rb-v1 (1- h) v)
+			   (math-read-big-rec (1+ math-rb-h1) (1+ v)
+					      (1- h) math-rb-v2))))
 
 	    ;; Minus sign.
 	    ((= other-char ?\-)
-	     (setq p (list 'neg (math-read-big-rec (1+ h1) v1 h2 v2 v 250 t))
-		   v the-baseline
-		   h the-h2))
+	     (setq p (list 'neg (math-read-big-rec (1+ math-rb-h1) math-rb-v1 
+                                                   math-rb-h2 math-rb-v2 v 250 t))
+		   v math-read-big-baseline
+		   h math-read-big-h2))
 
 	    ;; Parentheses.
 	    ((= other-char ?\()
-	     (math-read-big-emptyp h1 v1 (1+ h1) v nil t)
-	     (math-read-big-emptyp h1 (1+ v) (1+ h1) v2 nil t)
-	     (setq h (math-read-big-balance (1+ h1) v "(" t))
-	     (math-read-big-emptyp (1- h) v1 h v nil t)
-	     (math-read-big-emptyp (1- h) (1+ v) h v2 nil t)
+	     (math-read-big-emptyp math-rb-h1 math-rb-v1 (1+ math-rb-h1) v nil t)
+	     (math-read-big-emptyp math-rb-h1 (1+ v) (1+ math-rb-h1) math-rb-v2 nil t)
+	     (setq h (math-read-big-balance (1+ math-rb-h1) v "(" t))
+	     (math-read-big-emptyp (1- h) math-rb-v1 h v nil t)
+	     (math-read-big-emptyp (1- h) (1+ v) h math-rb-v2 nil t)
 	     (let ((sep (math-read-big-char (1- h) v))
 		   hmid)
 	       (if (= sep ?\.)
@@ -843,9 +1005,11 @@
 	       (if (= sep ?\])
 		   (math-read-big-error (1- h) v "Expected `)'"))
 	       (if (= sep ?\))
-		   (setq p (math-read-big-rec (1+ h1) v1 (1- h) v2 v))
+		   (setq p (math-read-big-rec 
+                            (1+ math-rb-h1) math-rb-v1 (1- h) math-rb-v2 v))
 		 (setq hmid (math-read-big-balance h v "(")
-		       p (list p (math-read-big-rec h v1 (1- hmid) v2 v))
+		       p (list p 
+                               (math-read-big-rec h math-rb-v1 (1- hmid) math-rb-v2 v))
 		       h hmid)
 		 (cond ((= sep ?\.)
 			(setq p (cons 'intv (cons (if (= (math-read-big-char
@@ -858,22 +1022,22 @@
 		       ((= sep ?\,)
 			(or (and (math-realp (car p)) (math-realp (nth 1 p)))
 			    (math-read-big-error
-			     h1 v "Complex components must be real"))
+			     math-rb-h1 v "Complex components must be real"))
 			(setq p (cons 'cplx p)))
 		       ((= sep ?\;)
 			(or (and (math-realp (car p)) (math-anglep (nth 1 p)))
 			    (math-read-big-error
-			     h1 v "Complex components must be real"))
+			     math-rb-h1 v "Complex components must be real"))
 			(setq p (cons 'polar p)))))))
 
 	    ;; Matrix.
 	    ((and (= other-char ?\[)
-		  (or (= (math-read-big-char (setq h h1) (1+ v)) ?\[)
+		  (or (= (math-read-big-char (setq h math-rb-h1) (1+ v)) ?\[)
 		      (= (math-read-big-char (setq h (1+ h)) v) ?\[)
 		      (and (= (math-read-big-char h v) ?\ )
 			   (= (math-read-big-char (setq h (1+ h)) v) ?\[)))
 		  (= (math-read-big-char h (1+ v)) ?\[))
-	     (math-read-big-emptyp h1 v1 h v nil t)
+	     (math-read-big-emptyp math-rb-h1 math-rb-v1 h v nil t)
 	     (let ((vtop v)
 		   (hleft h)
 		   (hright nil))
@@ -889,7 +1053,7 @@
 			(and (memq (math-read-big-char h v) '(?\  ?\,))
 			     (= (math-read-big-char hleft (1+ v)) ?\[)))
 		 (setq v (1+ v)))
-	       (or (= hleft h1)
+	       (or (= hleft math-rb-h1)
 		   (progn
 		     (if (= (math-read-big-char h v) ?\ )
 			 (setq h (1+ h)))
@@ -898,22 +1062,22 @@
 		   (math-read-big-error (1- h) v "Expected `]'"))
 	       (if (= (math-read-big-char h vtop) ?\,)
 		   (setq h (1+ h)))
-	       (math-read-big-emptyp h1 (1+ v) (1- h) v2 nil t)
+	       (math-read-big-emptyp math-rb-h1 (1+ v) (1- h) math-rb-v2 nil t)
 	       (setq v (+ vtop (/ (- v vtop) 2))
 		     p (cons 'vec (nreverse p)))))
 
 	    ;; Square brackets.
 	    ((= other-char ?\[)
-	     (math-read-big-emptyp h1 v1 (1+ h1) v nil t)
-	     (math-read-big-emptyp h1 (1+ v) (1+ h1) v2 nil t)
+	     (math-read-big-emptyp math-rb-h1 math-rb-v1 (1+ math-rb-h1) v nil t)
+	     (math-read-big-emptyp math-rb-h1 (1+ v) (1+ math-rb-h1) math-rb-v2 nil t)
 	     (setq p nil
-		   h (1+ h1))
+		   h (1+ math-rb-h1))
 	     (while (progn
 		      (setq widest (math-read-big-balance h v "[" t))
-		      (math-read-big-emptyp (1- h) v1 h v nil t)
-		      (math-read-big-emptyp (1- h) (1+ v) h v2 nil t)
+		      (math-read-big-emptyp (1- h) math-rb-v1 h v nil t)
+		      (math-read-big-emptyp (1- h) (1+ v) h math-rb-v2 nil t)
 		      (setq p (cons (math-read-big-rec
-				     h v1 (1- widest) v2 v) p)
+				     h math-rb-v1 (1- widest) math-rb-v2 v) p)
 			    h widest)
 		      (= (math-read-big-char (1- h) v) ?\,)))
 	     (setq widest (math-read-big-char (1- h) v))
@@ -923,8 +1087,8 @@
 	     (if (= widest ?\.)
 		 (setq h (1+ h)
 		       widest (math-read-big-balance h v "[")
-		       p (nconc p (list (math-read-big-big-rec
-					 h v1 (1- widest) v2 v)))
+		       p (nconc p (list (math-read-big-rec
+					 h math-rb-v1 (1- widest) math-rb-v2 v)))
 		       h widest
 		       p (cons 'intv (cons (if (= (math-read-big-char (1- h) v)
 						  ?\])
@@ -934,23 +1098,23 @@
 
 	    ;; Date form.
 	    ((= other-char ?\<)
-	     (setq line (nth v lines))
-	     (string-match ">" line h1)
+	     (setq line (nth v math-read-big-lines))
+	     (string-match ">" line math-rb-h1)
 	     (setq h (match-end 0))
-	     (math-read-big-emptyp h1 v1 h v nil t)
-	     (math-read-big-emptyp h1 (1+ v) h v2 nil t)
-	     (setq p (math-read-big-rec h1 v h (1+ v) v)))
+	     (math-read-big-emptyp math-rb-h1 math-rb-v1 h v nil t)
+	     (math-read-big-emptyp math-rb-h1 (1+ v) h math-rb-v2 nil t)
+	     (setq p (math-read-big-rec math-rb-h1 v h (1+ v) v)))
 
 	    ;; Variable name or function call.
 	    ((or (and (>= other-char ?a) (<= other-char ?z))
 		 (and (>= other-char ?A) (<= other-char ?Z)))
-	     (setq line (nth v lines))
-	     (string-match "\\([a-zA-Z'_]+\\) *" line h1)
+	     (setq line (nth v math-read-big-lines))
+	     (string-match "\\([a-zA-Z'_]+\\) *" line math-rb-h1)
 	     (setq h (match-end 1)
 		   widest (match-end 0)
 		   p (math-match-substring line 1))
-	     (math-read-big-emptyp h1 v1 h v nil t)
-	     (math-read-big-emptyp h1 (1+ v) h v2 nil t)
+	     (math-read-big-emptyp math-rb-h1 math-rb-v1 h v nil t)
+	     (math-read-big-emptyp math-rb-h1 (1+ v) h math-rb-v2 nil t)
 	     (if (= (math-read-big-char widest v) ?\()
 		 (progn
 		   (setq line (if (string-match "-" p)
@@ -958,14 +1122,14 @@
 				(intern (concat "calcFunc-" p)))
 			 h (1+ widest)
 			 p nil)
-		   (math-read-big-emptyp widest v1 h v nil t)
-		   (math-read-big-emptyp widest (1+ v) h v2 nil t)
+		   (math-read-big-emptyp widest math-rb-v1 h v nil t)
+		   (math-read-big-emptyp widest (1+ v) h math-rb-v2 nil t)
 		   (while (progn
 			    (setq widest (math-read-big-balance h v "(" t))
-			    (math-read-big-emptyp (1- h) v1 h v nil t)
-			    (math-read-big-emptyp (1- h) (1+ v) h v2 nil t)
+			    (math-read-big-emptyp (1- h) math-rb-v1 h v nil t)
+			    (math-read-big-emptyp (1- h) (1+ v) h math-rb-v2 nil t)
 			    (setq p (cons (math-read-big-rec
-					   h v1 (1- widest) v2 v) p)
+					   h math-rb-v1 (1- widest) math-rb-v2 v) p)
 				  h widest)
 			    (= (math-read-big-char (1- h) v) ?\,)))
 		   (or (= (math-read-big-char (1- h) v) ?\))
@@ -979,44 +1143,45 @@
 
 	    ;; Number.
 	    (t
-	     (setq line (nth v lines))
-	     (or (= (string-match "_?\\([0-9]+.?0*@ *\\)?\\([0-9]+.?0*' *\\)?\\([0-9]+\\(#\\|\\^\\^\\)[0-9a-zA-Z:]+\\|[0-9]+:[0-9:]+\\|[0-9.]+\\([eE][-+_]?[0-9]+\\)?\"?\\)?" line h1) h1)
+	     (setq line (nth v math-read-big-lines))
+	     (or (= (string-match "_?\\([0-9]+.?0*@ *\\)?\\([0-9]+.?0*' *\\)?\\([0-9]+\\(#\\|\\^\\^\\)[0-9a-zA-Z:]+\\|[0-9]+:[0-9:]+\\|[0-9.]+\\([eE][-+_]?[0-9]+\\)?\"?\\)?" line math-rb-h1) math-rb-h1)
 		 (math-read-big-error h v "Expected a number"))
 	     (setq h (match-end 0)
 		   p (math-read-number (math-match-substring line 0)))
-	     (math-read-big-emptyp h1 v1 h v nil t)
-	     (math-read-big-emptyp h1 (1+ v) h v2 nil t)))
+	     (math-read-big-emptyp math-rb-h1 math-rb-v1 h v nil t)
+	     (math-read-big-emptyp math-rb-h1 (1+ v) h math-rb-v2 nil t)))
 
-      ;; Now left term is bounded by h1, v1, h, v2; baseline = v.
+      ;; Now left term is bounded by math-rb-h1, math-rb-v1, h, math-rb-v2; 
+      ;; baseline = v.
       (if baseline
 	  (or (= v baseline)
-	      (math-read-big-error h1 v "Inconsistent baseline in formula"))
+	      (math-read-big-error math-rb-h1 v "Inconsistent baseline in formula"))
 	(setq baseline v))
 
       ;; Look for superscripts or subscripts.
-      (setq line (nth baseline lines)
-	    len (min h2 (length line))
+      (setq line (nth baseline math-read-big-lines)
+	    len (min math-rb-h2 (length line))
 	    widest h)
       (while (and (< widest len)
 		  (= (aref line widest) ?\ ))
 	(setq widest (1+ widest)))
-      (and (>= widest len) (setq widest h2))
-      (if (math-read-big-emptyp h v widest v2)
-	  (if (math-read-big-emptyp h v1 widest v)
+      (and (>= widest len) (setq widest math-rb-h2))
+      (if (math-read-big-emptyp h v widest math-rb-v2)
+	  (if (math-read-big-emptyp h math-rb-v1 widest v)
 	      (setq h widest)
-	    (setq p (list '^ p (math-read-big-rec h v1 widest v))
+	    (setq p (list '^ p (math-read-big-rec h math-rb-v1 widest v))
 		  h widest))
-	  (if (math-read-big-emptyp h v1 widest v)
+	  (if (math-read-big-emptyp h math-rb-v1 widest v)
 	      (setq p (list 'calcFunc-subscr p
-			    (math-read-big-rec h v widest v2))
+			    (math-read-big-rec h v widest math-rb-v2))
 		    h widest)))
 
       ;; Look for an operator name and grab additional terms.
       (while (and (< h len)
 		  (if (setq widest (and (math-read-big-emptyp
-					 h v1 (1+ h) v)
+					 h math-rb-v1 (1+ h) v)
 					(math-read-big-emptyp
-					 h (1+ v) (1+ h) v2)
+					 h (1+ v) (1+ h) math-rb-v2)
 					(string-match "<=\\|>=\\|\\+/-\\|!=\\|&&\\|||\\|:=\\|=>\\|." line h)
 					(assoc (math-match-substring line 0)
 					       math-standard-opers)))
@@ -1028,44 +1193,46 @@
 	(cond ((eq (nth 3 widest) -1)
 	       (setq p (list (nth 1 widest) p)))
 	      ((equal (car widest) "?")
-	       (let ((y (math-read-big-rec h v1 h2 v2 baseline nil t)))
-		 (or (= (math-read-big-char the-h2 baseline) ?\:)
-		     (math-read-big-error the-h2 baseline "Expected `:'"))
+	       (let ((y (math-read-big-rec h math-rb-v1 math-rb-h2 
+                                           math-rb-v2 baseline nil t)))
+		 (or (= (math-read-big-char math-read-big-h2 baseline) ?\:)
+		     (math-read-big-error math-read-big-h2 baseline "Expected `:'"))
 		 (setq p (list (nth 1 widest) p y
-			       (math-read-big-rec (1+ the-h2) v1 h2 v2
-						  baseline (nth 3 widest) t))
-		       h the-h2)))
+			       (math-read-big-rec 
+                                (1+ math-read-big-h2) math-rb-v1 math-rb-h2 math-rb-v2
+                                baseline (nth 3 widest) t))
+		       h math-read-big-h2)))
 	      (t
 	       (setq p (list (nth 1 widest) p
-			     (math-read-big-rec h v1 h2 v2
+			     (math-read-big-rec h math-rb-v1 math-rb-h2 math-rb-v2
 						baseline (nth 3 widest) t))
-		     h the-h2))))
+		     h math-read-big-h2))))
 
       ;; Return all relevant information to caller.
-      (setq the-baseline baseline
-	    the-h2 h)
-      (or short (= the-h2 h2)
+      (setq math-read-big-baseline baseline
+	    math-read-big-h2 h)
+      (or short (= math-read-big-h2 math-rb-h2)
 	  (math-read-big-error h baseline))
       p)))
 
 (defun math-read-big-char (h v)
-  (or (and (>= h h1)
-	   (< h h2)
-	   (>= v v1)
-	   (< v v2)
-	   (let ((line (nth v lines)))
+  (or (and (>= h math-rb-h1)
+	   (< h math-rb-h2)
+	   (>= v math-rb-v1)
+	   (< v math-rb-v2)
+	   (let ((line (nth v math-read-big-lines)))
 	     (and line
 		  (< h (length line))
 		  (aref line h))))
       ?\ ))
 
 (defun math-read-big-emptyp (eh1 ev1 eh2 ev2 &optional what error)
-  (and (< ev1 v1) (setq ev1 v1))
-  (and (< eh1 h1) (setq eh1 h1))
-  (and (> ev2 v2) (setq ev2 v2))
-  (and (> eh2 h2) (setq eh2 h2))
+  (and (< ev1 math-rb-v1) (setq ev1 math-rb-v1))
+  (and (< eh1 math-rb-h1) (setq eh1 math-rb-h1))
+  (and (> ev2 math-rb-v2) (setq ev2 math-rb-v2))
+  (and (> eh2 math-rb-h2) (setq eh2 math-rb-h2))
   (or what (setq what ?\ ))
-  (let ((p (nthcdr ev1 lines))
+  (let ((p (nthcdr ev1 math-read-big-lines))
 	h)
     (while (and (< ev1 ev2)
 		(progn
@@ -1081,25 +1248,30 @@
 	    p (cdr p)))
     (>= ev1 ev2)))
 
+;; math-read-big-err-msg is local to math-read-big-expr in calc-ext.el,
+;; but is used by math-read-big-error which is called (indirectly) by
+;; math-read-big-expr.
+(defvar math-read-big-err-msg)
+
 (defun math-read-big-error (h v &optional msg)
   (let ((pos 0)
-	(p lines))
+	(p math-read-big-lines))
     (while (> v 0)
       (setq pos (+ pos 1 (length (car p)))
 	    p (cdr p)
 	    v (1- v)))
     (setq h (+ pos (min h (length (car p))))
-	  err-msg (list 'error h (or msg "Syntax error")))
+	  math-read-big-err-msg (list 'error h (or msg "Syntax error")))
     (throw 'syntax nil)))
 
 (defun math-read-big-balance (h v what &optional commas)
-  (let* ((line (nth v lines))
-	 (len (min h2 (length line)))
+  (let* ((line (nth v math-read-big-lines))
+	 (len (min math-rb-h2 (length line)))
 	 (count 1))
     (while (> count 0)
       (if (>= h len)
 	  (if what
-	      (math-read-big-error h1 v (format "Unmatched `%s'" what))
+	      (math-read-big-error nil v (format "Unmatched `%s'" what))
 	    (setq count 0))
 	(if (memq (aref line h) '(?\( ?\[))
 	    (setq count (1+ count))
@@ -1113,4 +1285,7 @@
 	(setq h (1+ h))))
     h))
 
+(provide 'calc-lang)
+
+;;; arch-tag: 483bfe15-f290-4fef-bb7d-ce65be687f2e
 ;;; calc-lang.el ends here

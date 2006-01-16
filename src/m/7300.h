@@ -1,5 +1,5 @@
 /* machine description file for AT&T UNIX PC model 7300
-   Copyright (C) 1986, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1986, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
    Modified for this machine by mtxinu!rtech!gonzo!daveb
 
 This file is part of GNU Emacs.
@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The following line tells the configuration script what sort of
@@ -92,3 +92,6 @@ Boston, MA 02111-1307, USA.  */
 /* Insist on using cc when compiling this.  GCC may have been
    configured to use GAS syntax, which causes problems.  */
 #define CRT0_COMPILE cc -c -O -Demacs
+
+/* arch-tag: 66219dc7-ef45-4f0c-bb98-f35421f39c8d
+   (do not change this comment) */

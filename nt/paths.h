@@ -1,5 +1,5 @@
-/* Copyright (C) 1993, 1995, 1997, 1999, 2001
-   Free Software Foundation, Inc.
+/* Copyright (C) 1993, 1995, 1997, 1999, 2001, 2002, 2003, 2004,
+      2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The default search path for Lisp function "load".
@@ -44,19 +44,19 @@ Boston, MA 02111-1307, USA.  */
 /* #define PATH_DATA "/usr/local/lib/emacs/data" */
 #define PATH_DATA "C:/emacs/data"
 
+/* Where Emacs should look for X bitmap files.
+   The lisp variable x-bitmap-file-path is set based on this value.  */
+#define PATH_BITMAPS ""
+
 /* Where Emacs should look for its docstring file.  The lisp variable
    doc-directory is set to this value.  */
 #define PATH_DOC "C:/emacs/etc"
-
-/* The name of the directory that contains lock files with which we
-   record what files are being modified in Emacs.  This directory
-   should be writable by everyone.  THE STRING MUST END WITH A
-   SLASH!!!  */
-/* #define PATH_LOCK "/usr/local/lib/emacs/lock/" */
-#define PATH_LOCK "C:/emacs/lock/"
 
 /* Where the configuration process believes the info tree lives.  The
    lisp variable configure-info-directory gets its value from this
    macro, and is then used to set the Info-default-directory-list.  */
 /* #define PATH_INFO "/usr/local/info" */
 #define PATH_INFO "C:/emacs/info"
+
+/* arch-tag: f6d46f3c-e1e9-436b-8629-edcaf6597973
+   (do not change this comment) */

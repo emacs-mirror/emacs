@@ -1,6 +1,8 @@
 /* GNU Emacs routines to deal with category tables.
-   Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
-   Licensed to the Free Software Foundation.
+   Copyright (C) 1998, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1997, 1998, 1999
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H14PRO021
 
 This file is part of GNU Emacs.
 
@@ -16,8 +18,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* Here we handle three objects: category, category set, and category
@@ -67,7 +69,7 @@ those categories.  */)
   val = MAKE_CATEGORY_SET;
 
   if (STRING_MULTIBYTE (categories))
-    error ("Multibyte string in make-category-set");
+    error ("Multibyte string in `make-category-set'");
 
   len = SCHARS (categories);
   while (--len >= 0)
@@ -87,11 +89,11 @@ those categories.  */)
 Lisp_Object check_category_table ();
 
 DEFUN ("define-category", Fdefine_category, Sdefine_category, 2, 3, 0,
-       doc: /* Define CHAR as a category which is described by DOCSTRING.
-CHAR should be an ASCII printing character in the range ` ' to `~'.
-DOCSTRING is a documentation string of the category.
+       doc: /* Define CATEGORY as a category which is described by DOCSTRING.
+CATEGORY should be an ASCII printing character in the range ` ' to `~'.
+DOCSTRING is the documentation string of the category.
 The category is defined only in category table TABLE, which defaults to
- the current buffer's category table.  */)
+the current buffer's category table.  */)
      (category, docstring, table)
      Lisp_Object category, docstring, table;
 {
@@ -107,7 +109,9 @@ The category is defined only in category table TABLE, which defaults to
 }
 
 DEFUN ("category-docstring", Fcategory_docstring, Scategory_docstring, 1, 2, 0,
-       doc: /* Return the documentation string of CATEGORY, as defined in CATEGORY-TABLE.  */)
+       doc: /* Return the documentation string of CATEGORY, as defined in TABLE.
+TABLE should be a category table and defaults to the current buffer's
+category table.  */)
      (category, table)
      Lisp_Object category, table;
 {
@@ -119,10 +123,9 @@ DEFUN ("category-docstring", Fcategory_docstring, Scategory_docstring, 1, 2, 0,
 
 DEFUN ("get-unused-category", Fget_unused_category, Sget_unused_category,
        0, 1, 0,
-       doc: /* Return a category which is not yet defined in CATEGORY-TABLE.
+       doc: /* Return a category which is not yet defined in TABLE.
 If no category remains available, return nil.
-The optional argument CATEGORY-TABLE
-specifies which category table to modify;
+The optional argument TABLE specifies which category table to modify;
 it defaults to the current buffer's category table.  */)
      (table)
      Lisp_Object table;
@@ -267,7 +270,8 @@ DEFUN ("make-category-table", Fmake_category_table, Smake_category_table,
 }
 
 DEFUN ("set-category-table", Fset_category_table, Sset_category_table, 1, 1, 0,
-       doc: /* Specify TABLE as the category table for the current buffer.  */)
+       doc: /* Specify TABLE as the category table for the current buffer.
+Return TABLE.  */)
      (table)
      Lisp_Object table;
 {
@@ -294,7 +298,7 @@ DEFUN ("category-set-mnemonics", Fcategory_set_mnemonics,
        Scategory_set_mnemonics, 1, 1, 0,
        doc: /* Return a string containing mnemonics of the categories in CATEGORY-SET.
 CATEGORY-SET is a bool-vector, and the categories \"in\" it are those
-that are indexes where t occurs the bool-vector.
+that are indexes where t occurs in the bool-vector.
 The return value is a string containing those same categories.  */)
      (category_set)
      Lisp_Object category_set;
@@ -609,3 +613,6 @@ See the documentation of the variable `word-combining-categories'.  */);
 
   category_table_version = 0;
 }
+
+/* arch-tag: 74ebf524-121b-4d9c-bd68-07f8d708b211
+   (do not change this comment) */

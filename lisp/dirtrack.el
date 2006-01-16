@@ -1,11 +1,10 @@
 ;;; dirtrack.el --- Directory Tracking by watching the prompt
 
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 17 1996
 ;; Keywords: processes
-;; Time-stamp: <2003-01-31 16:15:05 jbarranquero>
 
 ;; This file is part of GNU Emacs.
 
@@ -21,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -134,8 +133,8 @@
 (defcustom dirtrack-list (list "^emacs \\([a-zA-Z]:.*\\)>" 1)
   "*List for directory tracking.
 First item is a regexp that describes where to find the path in a prompt.
-Second is a number, the regexp group to match. Optional third item is
-whether the prompt is multi-line. If nil or omitted, prompt is assumed to
+Second is a number, the regexp group to match.  Optional third item is
+whether the prompt is multi-line.  If nil or omitted, prompt is assumed to
 be on a single line."
   :group 'dirtrack
   :type  '(sexp (regexp  :tag "Prompt Expression")
@@ -211,6 +210,12 @@ and ends with a forward slash."
     (if (not (char-equal ?/ (string-to-char (substring directory -1))))
 	(concat directory "/")
       directory)))
+
+(defun dirtrack-cygwin-directory-function (dir)
+  "Return a canonical directory taken from a Cygwin path for comparison purposes."
+  (if (string-match "/cygdrive/\\([A-Z]\\)\\(.*\\)" dir)
+      (concat (match-string 1 dir) ":" (match-string 2 dir))
+    dir))
 
 (defconst dirtrack-forward-slash  (regexp-quote "/"))
 (defconst dirtrack-backward-slash (regexp-quote "\\"))
@@ -329,4 +334,5 @@ You can enable directory tracking by adding this function to
 
 (provide 'dirtrack)
 
+;;; arch-tag: 168de071-be88-4937-aff6-2aba9f328d5a
 ;;; dirtrack.el ends here

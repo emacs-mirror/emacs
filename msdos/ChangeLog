@@ -1,3 +1,91 @@
+2005-09-10  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+
+	* sed3v2.inp (GETOPT_H, GETOPTOBJS): Define to use getopt.h,
+	getopt.o and getopt1.o.
+
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
+2004-11-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1.inp: Revert last change.
+
+2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* sed1v2.inp: Use djecho for buildobj.lst.
+
+	* sed1.inp: Ditto.
+
+2004-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlisp.inp (bootstrap-clean): Copy ldefs-boot.el onto
+	loaddefs.el, unless the latter exists and is newer.
+
+	* mainmake.v2 (mostlyclean, distclean, maintainer-clean)
+	(extraclean, bootfast): New targets.
+	(top_distclean): New macro, used by distclean, maintainer-clean,
+	and extraclean.
+	(.PHONY): Add bootfast.
+	(bootstrap): Make bootstrap-after in lisp.
+	(bootstrap-clean-before): Clean in man, lispref, and lispintro as
+	well.
+
+	* sed2v2.inp (HAVE_BZERO): Define for GCC v3.x and later.
+
+2004-10-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (LC_ALL=C): Fix src/Makefile breakage caused by
+	recent (2004-09-24) changes in src/Makefile.in.
+
+2004-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedleim.inp: Remove the lines which say "<TAB>@true", to avoid
+	running a Unixy shell and to reincarnate the "Nothing to be done
+	for `all'" message from Make when there's nothing to be done.
+
+2004-05-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedleim.inp (distclean): Remove stamp-subdirs.
+	(SUBDIRS): Don't use `touch', use `djecho' instead.
+	(changed.tit, changed.misc): Use `djecho' instead of `echo'.
+
+2004-05-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed2v2.inp (HAVE_GETRUSAGE): Define.
+
+2003-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (man lispref lispintro): Specify an explicit target
+	`info', like Makefile.in does.
+
+2003-08-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed3v2.inp (srcdir): Use "command.com /c cd" to produce an
+	absolute file name of the current working directory.  This avoids
+	the warning from Make about circular dependencies.
+
+2003-08-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlisp.inp: Set FNCASE=y for all targets in the lisp directory,
+	so that CVS etc. file names are filtered out of the list of
+	subdirectories.
+
+2003-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed6.inp (elisp.dvi, index.texi): Replace Unix shell commands
+	with equivalent COMMAND.COM commands.
+
+2003-08-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed3v2.inp (EXEEXT): Define to an empty string.
+
+	* sed1v2.inp (EXEEXT): Define to an empty string.
+	Remove src/emacs after producing b-emacs.exe.
+
+	* sed2v2.inp (HAVE_DIFFTIME, HAVE_MEMCMP, HAVE_MEMMOVE)
+	(HAVE_SIZE_T): Define.
+
 2002-04-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sed2v2.inp: New file.
@@ -526,7 +614,9 @@
 ;; coding: iso-2022-7bit-unix
 ;; End:
 
-    Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001
-	Free Software Foundation, Inc.
+    Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003,
+       2004, 2005 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: b602fbb5-3776-4053-8de2-03da33c29d44

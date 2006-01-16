@@ -1,6 +1,7 @@
 ;;; blackbox.el --- blackbox game in Emacs Lisp
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: F. Thomas May <uw-nsr!uw-warp!tom@beaver.cs.washington.edu>
 ;; Adapted-By: ESR
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -50,11 +51,11 @@
 ;; 		   2   H 4       H
 ;;
 ;; Rays which enter and exit are numbered.  You can see that rays 1 & 5 pass
-;; thru the box undisturbed. Ray 2 is deflected by the northwesternmost
+;; thru the box undisturbed.  Ray 2 is deflected by the northwesternmost
 ;; ball.  Likewise rays 3 and 4. Rays which hit balls and are absorbed are
 ;; marked with H.  The bottom of the left and the right of the bottom hit
 ;; the southeastern ball directly.  Rays may also hit balls after being
-;; reflected. Consider the H on the bottom next to the 4.  It bounces off
+;; reflected.  Consider the H on the bottom next to the 4.  It bounces off
 ;; the NW-ern most ball and hits the central ball.  A ray shot from above
 ;; the right side 5 would hit the SE-ern most ball.  The R beneath the 5
 ;; is because the ball is returned instantly.  It is not allowed into
@@ -67,8 +68,6 @@
 ;; `x' is an incorrect guess of yours; `o' is the true location of a ball.
 
 ;;; Code:
-
-(defvar blackbox-mode-map nil "")
 
 (defvar bb-board nil
   "Blackbox board.")
@@ -88,23 +87,28 @@
 (defvar bb-balls-placed nil
   "List of already placed balls.")
 
-(unless blackbox-mode-map
-  (setq blackbox-mode-map (make-keymap))
-  (suppress-keymap blackbox-mode-map t)
-  (define-key blackbox-mode-map "\C-f" 'bb-right)
-  (define-key blackbox-mode-map [right] 'bb-right)
-  (define-key blackbox-mode-map "\C-b" 'bb-left)
-  (define-key blackbox-mode-map [left] 'bb-left)
-  (define-key blackbox-mode-map "\C-p" 'bb-up)
-  (define-key blackbox-mode-map [up] 'bb-up)
-  (define-key blackbox-mode-map "\C-n" 'bb-down)
-  (define-key blackbox-mode-map [down] 'bb-down)
-  (define-key blackbox-mode-map "\C-e" 'bb-eol)
-  (define-key blackbox-mode-map "\C-a" 'bb-bol)
-  (define-key blackbox-mode-map " " 'bb-romp)
-  (define-key blackbox-mode-map [insert] 'bb-romp)
-  (define-key blackbox-mode-map "\C-m" 'bb-done)
-  (define-key blackbox-mode-map [kp-enter] 'bb-done))
+;; This is used below to remap existing bindings for cursor motion to
+;; blackbox-specific bindings in blackbox-mode-map.  This is so that
+;; users who prefer non-default key bindings for cursor motion don't
+;; lose that when they play Blackbox.
+(defun blackbox-redefine-key (map oldfun newfun)
+  "Redefine keys that run the function OLDFUN to run NEWFUN instead."
+  (define-key map (vector 'remap oldfun) newfun))
+
+
+(defvar blackbox-mode-map 
+  (let ((map (make-keymap)))
+    (suppress-keymap map t)
+    (blackbox-redefine-key map 'backward-char 'bb-left)
+    (blackbox-redefine-key map 'forward-char 'bb-right)
+    (blackbox-redefine-key map 'previous-line 'bb-up)
+    (blackbox-redefine-key map 'next-line 'bb-down)
+    (blackbox-redefine-key map 'move-end-of-line 'bb-eol)
+    (blackbox-redefine-key map 'move-beginning-of-line 'bb-bol)
+    (define-key map " " 'bb-romp)
+    (define-key map [insert] 'bb-romp)
+    (blackbox-redefine-key map 'newline 'bb-done)
+    map))
 
 ;; Blackbox mode is suitable only for specially formatted data.
 (put 'blackbox-mode 'mode-class 'special)
@@ -117,14 +121,14 @@ The usual mnemonic keys move the cursor around the box.
 \\<blackbox-mode-map>\\[bb-bol] and \\[bb-eol] move to the beginning and end of line, respectively.
 
 \\[bb-romp] -- send in a ray from point, or toggle a ball at point
-\\[bb-done] -- end game and get score
-"
+\\[bb-done] -- end game and get score"
   (interactive)
   (kill-all-local-variables)
   (use-local-map blackbox-mode-map)
   (setq truncate-lines t)
   (setq major-mode 'blackbox-mode)
-  (setq mode-name "Blackbox"))
+  (setq mode-name "Blackbox")
+  (run-mode-hooks 'blackbox-mode-hook))
 
 ;;;###autoload
 (defun blackbox (num)
@@ -335,34 +339,35 @@ a reflection."
       (bb-update-board (propertize "O" 'help-echo "Placed ball"))))))
 
 (defun bb-trace-ray (x y)
-  (let ((result (bb-trace-ray-2
-		 t
-		 x
-		 (cond
-		  ((= x -1) 1)
-		  ((= x 8) -1)
-		  (t 0))
-		 y
-		 (cond
-		  ((= y -1) 1)
-		  ((= y 8) -1)
-		  (t 0)))))
-    (cond
-     ((eq result 'hit)
-      (bb-update-board (propertize "H" 'help-echo "Hit"))
-      (setq bb-score (1+ bb-score)))
-     ((equal result (cons x y))
-      (bb-update-board (propertize "R" 'help-echo "Reflection"))
-      (setq bb-score (1+ bb-score)))
-     (t
-      (setq bb-detour-count (1+ bb-detour-count))
-      (bb-update-board (propertize (format "%d" bb-detour-count)
-				   'help-echo "Detour"))
-      (save-excursion
-	(bb-goto result)
-	(bb-update-board (propertize (format "%d" bb-detour-count)
-				     'help-echo "Detour")))
-      (setq bb-score (+ bb-score 2))))))
+  (when (= (following-char) 32)
+    (let ((result (bb-trace-ray-2
+                   t
+                   x
+                   (cond
+                    ((= x -1) 1)
+                    ((= x 8) -1)
+                    (t 0))
+                   y
+                   (cond
+                    ((= y -1) 1)
+                    ((= y 8) -1)
+                    (t 0)))))
+      (cond
+       ((eq result 'hit)
+        (bb-update-board (propertize "H" 'help-echo "Hit"))
+        (setq bb-score (1+ bb-score)))
+       ((equal result (cons x y))
+        (bb-update-board (propertize "R" 'help-echo "Reflection"))
+        (setq bb-score (1+ bb-score)))
+       (t
+        (setq bb-detour-count (1+ bb-detour-count))
+        (bb-update-board (propertize (format "%d" bb-detour-count)
+                                     'help-echo "Detour"))
+        (save-excursion
+          (bb-goto result)
+          (bb-update-board (propertize (format "%d" bb-detour-count)
+                                       'help-echo "Detour")))
+        (setq bb-score (+ bb-score 2)))))))
 
 (defun bb-trace-ray-2 (first x dx y dy)
   (cond
@@ -429,4 +434,5 @@ a reflection."
 
 (provide 'blackbox)
 
+;; arch-tag: 6c474c62-5617-4b10-9b44-ac430168c0e2
 ;;; blackbox.el ends here

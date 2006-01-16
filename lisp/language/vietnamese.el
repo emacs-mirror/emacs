@@ -1,7 +1,9 @@
 ;;; vietnamese.el --- support for Vietnamese -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1998, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 2000
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, Vietnamese
 
@@ -19,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -264,6 +266,7 @@
    (valid-codes (0 . 255))))
 
 (define-coding-system-alias 'tcvn 'vietnamese-tcvn)
+(define-coding-system-alias 'tcvn-5712 'vietnamese-tcvn)
 
 ;; (make-coding-system
 ;;  'vietnamese-vps 4 ?p
@@ -321,4 +324,5 @@ default setting.")
 
 (provide 'vietnamese)
 
+;;; arch-tag: 5bd4f1aa-2d4e-4f33-b7d8-0679c6a19ee6
 ;;; vietnamese.el ends here

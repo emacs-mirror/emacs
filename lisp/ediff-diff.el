@@ -1,6 +1,7 @@
 ;;; ediff-diff.el --- diff-related utilities
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+;;   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -30,6 +31,7 @@
 ;; compiler pacifier
 (defvar ediff-default-variant)
 (defvar null-device)
+(defvar longlines-mode)
 
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
@@ -43,7 +45,7 @@
 (require 'ediff-init)
 
 (defgroup ediff-diff nil
-  "Diff related utilities"
+  "Diff related utilities."
   :prefix "ediff-"
   :group 'ediff)
 
@@ -64,8 +66,8 @@ Must produce output compatible with Unix's diff3 program."
 ;; The following functions needed for setting diff/diff3 options
 ;; test if diff supports the --binary option
 (defsubst ediff-test-utility (diff-util option &optional files)
-  (zerop (apply 'call-process
-		(append (list diff-util nil nil nil option) files))))
+  (eq 0 (apply 'call-process
+	       (append (list diff-util nil nil nil option) files))))
 
 (defun ediff-diff-mandatory-option (diff-util)
   (let ((file (if (boundp 'null-device) null-device "/dev/null")))
@@ -393,20 +395,20 @@ one optional arguments, diff-number to refine.")
     (ediff-with-current-buffer diff-buffer
       (goto-char (point-min))
       (while (re-search-forward ediff-match-diff-line nil t)
-       (let* ((a-begin (string-to-int (buffer-substring (match-beginning 1)
-							(match-end 1))))
+       (let* ((a-begin (string-to-number (buffer-substring (match-beginning 1)
+                                                           (match-end 1))))
 	      (a-end  (let ((b (match-beginning 3))
 			    (e (match-end 3)))
 			(if b
-			    (string-to-int (buffer-substring b e))
+			    (string-to-number (buffer-substring b e))
 			  a-begin)))
 	      (diff-type (buffer-substring (match-beginning 4) (match-end 4)))
-	      (b-begin (string-to-int (buffer-substring (match-beginning 5)
-							(match-end 5))))
+	      (b-begin (string-to-number (buffer-substring (match-beginning 5)
+                                                           (match-end 5))))
 	      (b-end (let ((b (match-beginning 7))
 			   (e (match-end 7)))
 		       (if b
-			   (string-to-int (buffer-substring b e))
+			   (string-to-number (buffer-substring b e))
 			 b-begin)))
 	      a-begin-pt a-end-pt b-begin-pt b-end-pt
 	      c-begin c-end c-begin-pt c-end-pt)
@@ -459,24 +461,46 @@ one optional arguments, diff-number to refine.")
 		   c-prev c-end)
 	   ;; else convert lines to points
 	   (ediff-with-current-buffer A-buffer
-	     (forward-line (- a-begin a-prev))
-	     (setq a-begin-pt (point))
-	     (forward-line (- a-end a-begin))
-	     (setq a-end-pt (point)
-		   a-prev a-end))
+	     (let ((longlines-mode-val
+		    (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
+	       ;; we must disable and then restore longlines-mode
+	       (if (eq longlines-mode-val 1)
+		   (longlines-mode 0))
+	       (forward-line (- a-begin a-prev))
+	       (setq a-begin-pt (point))
+	       (forward-line (- a-end a-begin))
+	       (setq a-end-pt (point)
+		     a-prev a-end)
+	       (if (eq longlines-mode-val 1)
+		   (longlines-mode longlines-mode-val))
+	       ))
 	   (ediff-with-current-buffer B-buffer
-	     (forward-line (- b-begin b-prev))
-	     (setq b-begin-pt (point))
-	     (forward-line (- b-end b-begin))
-	     (setq b-end-pt (point)
-		   b-prev b-end))
+	     (let ((longlines-mode-val
+		    (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
+	       (if (eq longlines-mode-val 1)
+		   (longlines-mode 0))
+	       (forward-line (- b-begin b-prev))
+	       (setq b-begin-pt (point))
+	       (forward-line (- b-end b-begin))
+	       (setq b-end-pt (point)
+		     b-prev b-end)
+	       (if (eq longlines-mode-val 1)
+		   (longlines-mode longlines-mode-val))
+	       ))
 	   (if (ediff-buffer-live-p C-buffer)
 	       (ediff-with-current-buffer C-buffer
-		 (forward-line (- c-begin c-prev))
-		 (setq c-begin-pt (point))
-		 (forward-line (- c-end c-begin))
-		 (setq c-end-pt (point)
-		       c-prev c-end)))
+		 (let ((longlines-mode-val
+			(if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
+		   (if (eq longlines-mode-val 1)
+		       (longlines-mode 0))
+		   (forward-line (- c-begin c-prev))
+		   (setq c-begin-pt (point))
+		   (forward-line (- c-end c-begin))
+		   (setq c-end-pt (point)
+			 c-prev c-end)
+		   (if (eq longlines-mode-val 1)
+		       (longlines-mode longlines-mode-val))
+		 )))
 	   (setq diff-list
 		 (nconc
 		  diff-list
@@ -534,6 +558,7 @@ one optional arguments, diff-number to refine.")
 (defun ediff-set-diff-overlays-in-one-buffer (buf-type diff-list)
   (let* ((current-diff -1)
 	 (buff (ediff-get-buffer buf-type))
+	 (ctl-buf ediff-control-buffer)
 	 ;; ediff-extract-diffs puts the type of diff-list as the first elt
 	 ;; of this list. The type is either 'points or 'words
 	 (diff-list-type (car diff-list))
@@ -580,8 +605,9 @@ one optional arguments, diff-number to refine.")
       (if (eq diff-list-type 'words)
 	  (progn
 	    (ediff-with-current-buffer buff (goto-char pt-saved))
-	    (setq begin (ediff-goto-word (1+ begin) buff)
-		  end (ediff-goto-word end buff 'end))
+	    (ediff-with-current-buffer ctl-buf
+	      (setq begin (ediff-goto-word (1+ begin) buff)
+		    end (ediff-goto-word end buff 'end)))
 	    (if (> end limit) (setq end limit))
 	    (if (> begin end) (setq begin end))
 	    (setq pt-saved (ediff-with-current-buffer buff (point)))))
@@ -864,6 +890,7 @@ delimiter regions"))
   (let* ((current-diff -1)
 	 (reg-start (ediff-get-diff-posn buf-type 'beg region-num))
 	 (buff (ediff-get-buffer buf-type))
+	 (ctl-buf ediff-control-buffer)
 	 combined-merge-diff-list
 	 diff-overlay-list list-element
 	 begin end overlay)
@@ -892,8 +919,9 @@ delimiter regions"))
 	    () ; skip this diff
 	  ;; Put overlays at appropriate places in buffers
 	  ;; convert lines to points, if necessary
-	  (setq begin (ediff-goto-word (1+ begin) buff)
-		end (ediff-goto-word end buff 'end))
+	  (ediff-with-current-buffer ctl-buf
+	    (setq begin (ediff-goto-word (1+ begin) buff)
+		  end (ediff-goto-word end buff 'end)))
 	  (setq overlay (ediff-make-bullet-proof-overlay begin end buff))
 	  ;; record all overlays for this difference region
 	  (setq diff-overlay-list (nconc diff-overlay-list (list overlay))))
@@ -930,16 +958,16 @@ delimiter regions"))
 	;; it is a "c" group
 	(if (match-beginning 2)
 	    ;; it has two numbers
-	    (list (string-to-int
+	    (list (string-to-number
 		   (buffer-substring (match-beginning 1) (match-end 1)))
-		  (1+ (string-to-int
+		  (1+ (string-to-number
 		       (buffer-substring (match-beginning 3) (match-end 3)))))
 	  ;; it has one number
-	  (let ((x (string-to-int
+	  (let ((x (string-to-number
 		    (buffer-substring (match-beginning 1) (match-end 1)))))
 	    (list x (1+ x))))
       ;; it is an "a" group
-      (let ((x (1+ (string-to-int
+      (let ((x (1+ (string-to-number
 		    (buffer-substring (match-beginning 1) (match-end 1))))))
 	(list x x)))))
 
@@ -1056,30 +1084,59 @@ delimiter regions"))
 			 c-prev c-end)
 		 ;; else convert lines to points
 		 (ediff-with-current-buffer A-buffer
-		   (forward-line (- a-begin a-prev))
-		   (setq a-begin-pt (point))
-		   (forward-line (- a-end a-begin))
-		   (setq a-end-pt (point)
-			 a-prev a-end))
+		   (let ((longlines-mode-val
+			  (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
+		     ;; we must disable and then restore longlines-mode
+		     (if (eq longlines-mode-val 1)
+			 (longlines-mode 0))
+		     (forward-line (- a-begin a-prev))
+		     (setq a-begin-pt (point))
+		     (forward-line (- a-end a-begin))
+		     (setq a-end-pt (point)
+			   a-prev a-end)
+		     (if (eq longlines-mode-val 1)
+			 (longlines-mode longlines-mode-val))
+		     ))
 		 (ediff-with-current-buffer B-buffer
-		   (forward-line (- b-begin b-prev))
-		   (setq b-begin-pt (point))
-		   (forward-line (- b-end b-begin))
-		   (setq b-end-pt (point)
-			 b-prev b-end))
+		   (let ((longlines-mode-val
+			  (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
+		     (if (eq longlines-mode-val 1)
+			 (longlines-mode 0))
+		     (forward-line (- b-begin b-prev))
+		     (setq b-begin-pt (point))
+		     (forward-line (- b-end b-begin))
+		     (setq b-end-pt (point)
+			   b-prev b-end)
+		     (if (eq longlines-mode-val 1)
+			 (longlines-mode longlines-mode-val))
+		     ))
 		 (ediff-with-current-buffer C-buffer
-		   (forward-line (- c-begin c-prev))
-		   (setq c-begin-pt (point))
-		   (forward-line (- c-end c-begin))
-		   (setq c-end-pt (point)
-			 c-prev c-end))
+		   (let ((longlines-mode-val
+			  (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
+		     (if (eq longlines-mode-val 1)
+			 (longlines-mode 0))
+		     (forward-line (- c-begin c-prev))
+		     (setq c-begin-pt (point))
+		     (forward-line (- c-end c-begin))
+		     (setq c-end-pt (point)
+			   c-prev c-end)
+		     (if (eq longlines-mode-val 1)
+			 (longlines-mode longlines-mode-val))
+		     ))
 		 (if (ediff-buffer-live-p anc-buffer)
 		     (ediff-with-current-buffer anc-buffer
-		       (forward-line (- c-or-anc-begin anc-prev))
-		       (setq anc-begin-pt (point))
-		       (forward-line (- c-or-anc-end c-or-anc-begin))
-		       (setq anc-end-pt (point)
-			     anc-prev c-or-anc-end)))
+		       (let ((longlines-mode-val
+			      (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
+			 (if (eq longlines-mode-val 1)
+			     (longlines-mode 0))
+			 (forward-line (- c-or-anc-begin anc-prev))
+			 (setq anc-begin-pt (point))
+			 (forward-line (- c-or-anc-end c-or-anc-begin))
+			 (setq anc-end-pt (point)
+			       anc-prev c-or-anc-end)
+			 (if (eq longlines-mode-val 1)
+			     (longlines-mode longlines-mode-val))
+			 )))
 		 (setq diff-list
 		       (nconc
 			diff-list
@@ -1326,17 +1383,93 @@ arguments to `skip-chars-forward'."
 	(while (> n 1)
 	  (funcall fwd-word-fun)
 	  (skip-chars-forward ediff-whitespace)
-	  (setq n (1- n))))
-      (if (and flag (> n 0))
-	  (funcall fwd-word-fun))
+	  (setq n (1- n)))
+	(if (and flag (> n 0))
+	    (funcall fwd-word-fun)))
       (point))))
 
 (defun ediff-same-file-contents (f1 f2)
-  "Return t if F1 and F2 have identical contents."
-  (let ((res
-	 (apply 'call-process ediff-cmp-program nil nil nil
- 		(append ediff-cmp-options (list f1 f2)))))
-    (and (numberp res) (eq res 0))))
+  "Return t if files F1 and F2 have identical contents."
+  (if (and (not (file-directory-p f1))
+           (not (file-directory-p f2)))
+      (let ((res
+	     (apply 'call-process ediff-cmp-program nil nil nil
+		    (append ediff-cmp-options (list f1 f2)))))
+	(and (numberp res) (eq res 0))))
+  )
+
+
+(defun ediff-same-contents (d1 d2 &optional filter-re)
+  "Returns t iff D1 and D2 have the same content.
+D1 and D2 can either be both directories or both regular files.
+Symlinks and the likes are not handled.
+If FILTER-RE is non-nil, recursive checking in directories
+affects only files whose names match the expression."
+  ;; Normalize empty filter RE to nil.
+  (unless (> (length filter-re) 0) (setq filter-re nil))
+  ;; Indicate progress
+  (message "Comparing '%s' and '%s' modulo '%s'" d1 d2 filter-re)
+  (cond
+   ;; D1 & D2 directories => recurse
+   ((and (file-directory-p d1)
+         (file-directory-p d2))
+    (if (null ediff-recurse-to-subdirectories)
+	(if (y-or-n-p "Compare subdirectories recursively? ")
+	    (setq ediff-recurse-to-subdirectories 'yes)
+	  (setq ediff-recurse-to-subdirectories 'no)))
+    (if (eq ediff-recurse-to-subdirectories 'yes)
+	(let* ((all-entries-1 (directory-files d1 t filter-re))
+	       (all-entries-2 (directory-files d2 t filter-re))
+	       (entries-1 (ediff-delete-all-matches "^\\.\\.?$" all-entries-1))
+	       (entries-2 (ediff-delete-all-matches "^\\.\\.?$" all-entries-2))
+	       )
+
+	  (ediff-same-file-contents-lists entries-1 entries-2 filter-re)
+	  ))
+    ) ; end of the directories case
+   ;; D1 & D2 are both files => compare directly
+   ((and (file-regular-p d1)
+         (file-regular-p d2))
+    (ediff-same-file-contents d1 d2))
+   ;; Otherwise => false: unequal contents
+   )
+  )
+
+;; If lists have the same length and names of files are pairwise equal
+;; (removing the directories) then compare contents pairwise.
+;; True if all contents are the same; false otherwise
+(defun ediff-same-file-contents-lists (entries-1 entries-2 filter-re)
+  ;; First, check only the names (works quickly and ensures a
+  ;; precondition for subsequent code)
+  (if (and (= (length entries-1) (length entries-2))
+	   (equal (mapcar 'file-name-nondirectory entries-1)
+		  (mapcar 'file-name-nondirectory entries-2)))
+      ;; With name equality established, compare the entries
+      ;; through recursion.
+      (let ((continue t))
+	(while (and entries-1 continue)
+	  (if (ediff-same-contents
+	       (car entries-1) (car entries-2) filter-re)
+	      (setq entries-1 (cdr entries-1)
+		    entries-2 (cdr entries-2))
+	    (setq continue nil))
+	  )
+	;; if reached the end then lists are equal
+	(null entries-1))
+    )
+  )
+
+
+;; ARG1 is a regexp, ARG2 is a list of full-filenames
+;; Delete all entries that match the regexp
+(defun ediff-delete-all-matches (regex file-list-list)
+  (let (result elt)
+    (while file-list-list
+      (setq elt (car file-list-list))
+      (or (string-match regex (file-name-nondirectory elt))
+	  (setq result (cons elt result)))
+      (setq file-list-list (cdr file-list-list)))
+    (reverse result)))
 
 
 ;;; Local Variables:
@@ -1345,5 +1478,5 @@ arguments to `skip-chars-forward'."
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-
+;;; arch-tag: a86d448e-58d7-4572-a1d9-fdedfa22f648
 ;;; ediff-diff.el ends here

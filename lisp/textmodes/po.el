@@ -1,6 +1,7 @@
 ;;; po.el --- basic support of PO translation files -*- coding: latin-1; -*-
 
-;; Copyright (C) 1995-1998, 2000-2002 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Authors: François Pinard <pinard@iro.umontreal.ca>,
 ;;          Greg McGary <gkm@magilla.cichlid.com>,
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -42,7 +43,7 @@ Contains canonical charset names that don't correspond to coding systems.")
 (defun po-find-charset (filename)
   "Return PO charset value for FILENAME."
   (let ((charset-regexp
-	 "^\"Content-Type: text/plain;[ \t]*charset=\\(.*\\)\\\\n\"")
+	 "^\"Content-Type:[ \t]*text/plain;[ \t]*charset=\\(.*\\)\\\\n\"")
 	(short-read nil))
     ;; Try the first 4096 bytes.  In case we cannot find the charset value
     ;; within the first 4096 bytes (the PO file might start with a long
@@ -80,14 +81,15 @@ Do so according to FILENAME's declared charset."
 	    assoc)
        (list (cond
 	      ((setq assoc
-		     (assoc-ignore-case charset
-					po-content-type-charset-alist))
+		     (assoc-string charset
+                                   po-content-type-charset-alist
+                                   t))
 	       (cdr assoc))
-	      ((or (setq assoc (assoc-ignore-case charset coding-system-alist))
+	      ((or (setq assoc (assoc-string charset coding-system-alist t))
 		   (setq assoc
-			 (assoc-ignore-case (subst-char-in-string ?_ ?-
-								  charset)
-					    coding-system-alist)))
+			 (assoc-string (subst-char-in-string ?_ ?-
+                                                             charset)
+                                       coding-system-alist t)))
 	       (intern (car assoc)))
 	      ;; In principle we should also check the `mime-charset'
 	      ;; property of everything in the base coding system
@@ -101,10 +103,10 @@ Do so according to FILENAME's declared charset."
 	       ;; to require it initially?
 	       (require 'code-pages nil t)
 	       (if (or
-		    (setq assoc (assoc-ignore-case charset coding-system-alist))
-		    (setq assoc (assoc-ignore-case (subst-char-in-string
-						    ?_ ?- charset)
-						   coding-system-alist)))
+		    (setq assoc (assoc-string charset coding-system-alist t))
+		    (setq assoc (assoc-string (subst-char-in-string
+                                               ?_ ?- charset)
+                                              coding-system-alist t)))
 		   (intern (car assoc))
 		 'raw-text))))))))
 
@@ -122,4 +124,5 @@ Called through `file-coding-system-alist', before the file is visited for real."
 
 (provide 'po)
 
+;;; arch-tag: 56748a57-d64c-4200-8f6b-c3a70496eb8c
 ;;; po.el ends here

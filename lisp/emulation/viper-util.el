@@ -1,6 +1,7 @@
 ;;; viper-util.el --- Utilities used by viper.el
 
-;; Copyright (C) 1994, 95, 96, 97, 99, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -41,7 +42,6 @@
 (defvar viper-syntax-preference)
 (defvar viper-saved-mark)
 
-(require 'cl)
 (require 'ring)
 
 (if noninteractive
@@ -360,7 +360,7 @@
 	(setq lis2 (delq elt lis2)))
       (setq temp (cdr temp)))
 
-    (nconc lis1 lis2)))
+    (append lis1 lis2)))
 
 
 
@@ -394,17 +394,17 @@
 			    command)))
       (goto-char (point-min))
       ;; Issue an error, if no match.
-      (if (> status 0)
-	  (save-excursion
-	    (skip-chars-forward " \t\n\j")
-	    (if (looking-at "ls:")
-		(viper-forward-Word 1))
-	    (error "%s: %s"
-		   (if (stringp  gshell)
-		       gshell
-		     "shell")
-		   (buffer-substring (point) (viper-line-pos 'end)))
-	    ))
+      (unless (eq 0 status)
+	(save-excursion
+	  (skip-chars-forward " \t\n\j")
+	  (if (looking-at "ls:")
+	      (viper-forward-Word 1))
+	  (error "%s: %s"
+		 (if (stringp  gshell)
+		     gshell
+		   "shell")
+		 (buffer-substring (point) (viper-line-pos 'end)))
+	  ))
       (goto-char (point-min))
       (viper-get-filenames-from-buffer 'one-per-line))
     ))
@@ -662,14 +662,8 @@
 
 
 ;; define remote file test
-(or (fboundp 'viper-file-remote-p) ; user supplied his own function: use it
-    (defun viper-file-remote-p (file-name)
-      (car (cond ((featurep 'efs-auto) (efs-ftp-path file-name))
-		 ((fboundp 'file-remote-p) (file-remote-p file-name))
-		 (t (require 'ange-ftp)
-		    ;; Can happen only in Emacs, since XEmacs has file-remote-p
-		    (ange-ftp-ftp-name file-name))))))
-
+(defun viper-file-remote-p (file-name)
+  (file-remote-p file-name))
 
 
 ;; This is a simple-minded check for whether a file is under version control.
@@ -1074,7 +1068,7 @@
 		 (t key)))
 
 	  ((listp key)
-	   (setq modifiers (subseq key 0 (1- (length key)))
+	   (setq modifiers (viper-subseq key 0 (1- (length key)))
 		 base-key (viper-seq-last-elt key)
 		 base-key-name (symbol-name base-key)
 		 char-p (= (length base-key-name) 1))
@@ -1248,8 +1242,12 @@ the `Local variables' section of a file."
 
 ;; Characters that should not be considered as part of the word, in reformed-vi
 ;; syntax mode.
+;; Note: \\ (quoted \) must appear before `-' because this string is listified
+;; into characters at some point and then put back to string. The result is
+;; used in skip-chars-forward, which treats - specially. Here we achieve the
+;; effect of quoting - and preventing it from being special.
 (defconst viper-non-word-characters-reformed-vi
-  "!@#$%^&*()-+=|\\~`{}[];:'\",<.>/?")
+  "!@#$%^&*()\\-+=|\\~`{}[];:'\",<.>/?")
 ;; These are characters that are not to be considered as parts of a word in
 ;; Viper.
 ;; Set each time state changes and at loading time
@@ -1411,6 +1409,7 @@ This option is appropriate if you like Emacs-style words."
 		       viper-SEP-char-class
 		       (or within-line "\n")
 		       (if within-line (viper-line-pos 'end)))))
+
 (defsubst viper-skip-all-separators-backward (&optional within-line)
   (if (eq viper-syntax-preference 'strict-vi)
       (if within-line
@@ -1439,6 +1438,7 @@ This option is appropriate if you like Emacs-style words."
      ;; Emacs may consider some of these as words, but we don't want them
      viper-non-word-characters
      (viper-line-pos 'end))))
+
 (defun viper-skip-nonalphasep-backward ()
   (if (eq viper-syntax-preference 'strict-vi)
       (skip-chars-backward
@@ -1508,6 +1508,39 @@ This option is appropriate if you like Emacs-style words."
     total
     ))
 
+;; tells when point is at the beginning of field
+(defun viper-beginning-of-field ()
+  (or (bobp)
+      (not (eq (get-char-property (point) 'field)
+	       (get-char-property (1- (point)) 'field)))))
+
+
+;; this is copied from cl-extra.el
+;; Return the subsequence of SEQ from START to END.
+;; If END is omitted, it defaults to the length of the sequence.
+;; If START or END is negative, it counts from the end.
+(defun viper-subseq (seq start &optional end)
+  (if (stringp seq) (substring seq start end)
+    (let (len)
+      (and end (< end 0) (setq end (+ end (setq len (length seq)))))
+      (if (< start 0) (setq start (+ start (or len (setq len (length seq))))))
+      (cond ((listp seq)
+	     (if (> start 0) (setq seq (nthcdr start seq)))
+	     (if end
+		 (let ((res nil))
+		   (while (>= (setq end (1- end)) start)
+		     (push (pop seq) res))
+		   (nreverse res))
+	       (copy-sequence seq)))
+	    (t
+	     (or end (setq end (or len (length seq))))
+	     (let ((res (make-vector (max (- end start) 0) nil))
+		   (i 0))
+	       (while (< start end)
+		 (aset res i (aref seq start))
+		 (setq i (1+ i) start (1+ start)))
+	       res))))))
+
 
 
 (provide 'viper-util)
@@ -1517,4 +1550,5 @@ This option is appropriate if you like Emacs-style words."
 ;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
 ;;; End:
 
+;;; arch-tag: 7f023fd5-dd9e-4378-a397-9c179553b0e3
 ;;; viper-util.el ends here

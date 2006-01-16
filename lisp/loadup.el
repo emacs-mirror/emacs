@@ -1,6 +1,7 @@
 ;;; loadup.el --- load up standardly loaded Lisp files for Emacs
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1994, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -46,9 +47,10 @@
 (message "Using load-path %s" load-path)
 
 ;; We don't want to have any undo records in the dumped Emacs.
-(buffer-disable-undo "*scratch*")
+(set-buffer "*scratch*")
+(setq buffer-undo-list t)
 
-(load "byte-run")
+(load "emacs-lisp/byte-run")
 (load "emacs-lisp/backquote")
 (load "subr")
 
@@ -57,7 +59,7 @@
 
 (load "widget")
 (load "custom")
-(load "map-ynp")
+(load "emacs-lisp/map-ynp")
 (load "env")
 (load "cus-start")
 (load "international/mule")
@@ -102,6 +104,7 @@
 (load "language/devanagari")	 ; This should be loaded after indian.
 (load "language/malayalam")	 ; This should be loaded after indian.
 (load "language/tamil")		 ; This should be loaded after indian.
+(load "language/kannada")	 ; This should be loaded after indian.
 (load "language/english")
 (load "language/ethiopic")
 (load "language/european")
@@ -129,18 +132,22 @@
 (load "frame")
 (load "term/tty-colors")
 (load "font-core")
+;; facemenu must be loaded before font-lock, because `facemenu-keymap'
+;; needs to be defined when font-lock is loaded.
+(load "facemenu")
+(load "emacs-lisp/syntax")
+(load "font-lock")
+(load "jit-lock")
 
-(if (fboundp 'frame-face-alist)
-    (progn
-      (load "facemenu")))
 (if (fboundp 'track-mouse)
     (progn
       (load "mouse")
       (and (boundp 'x-toolkit-scroll-bars)
 	   (load "scroll-bar"))
       (load "select")))
-(load "timer")
+(load "emacs-lisp/timer")
 (load "isearch")
+(load "rfn-eshadow")
 
 (message "%s" (garbage-collect))
 (load "menu-bar")
@@ -161,6 +168,18 @@
       (load "vmsproc")))
 (load "abbrev")
 (load "buff-menu")
+
+(if (fboundp 'x-create-frame)
+    (progn
+      (load "image")
+      (load "international/fontset")
+      (load "dnd")
+      (load "mwheel")
+      (load "tool-bar")))
+(if (featurep 'x)
+    (load "x-dnd"))
+(message "%s" (garbage-collect))
+
 (if (eq system-type 'vax-vms)
     (progn
       (load "vms-patch")))
@@ -185,11 +204,14 @@
       (load "ls-lisp")))
 (if (fboundp 'atan)	; preload some constants and
     (progn		; floating pt. functions if we have float support.
-      (load "float-sup")))
+      (load "emacs-lisp/float-sup")))
 (message "%s" (garbage-collect))
 
 (load "vc-hooks")
+(load "jka-cmpr-hook")
 (load "ediff-hook")
+(if (fboundp 'x-show-tip) (load "tooltip"))
+
 (message "%s" (garbage-collect))
 
 ;If you want additional libraries to be preloaded and their
@@ -301,6 +323,9 @@
 ;;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
 
+(if (null (garbage-collect))
+    (setq pure-space-overflow t))
+
 (if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
 	(member (nth 4 command-line-args) '("dump" "bootstrap")))
     (if (eq system-type 'vax-vms)
@@ -313,7 +338,7 @@
 	  (setq name (concat (downcase (substring name 0 (match-beginning 0)))
 			     "-"
 			     (substring name (match-end 0)))))
-	(if (eq system-type 'ms-dos)
+	(if (memq system-type '(ms-dos windows-nt cygwin))
 	    (message "Dumping under the name emacs")
 	  (message "Dumping under names emacs and %s" name)))
       (condition-case ()
@@ -326,7 +351,7 @@
       (dump-emacs "emacs" "temacs")
       (message "%d pure bytes used" pure-bytes-used)
       ;; Recompute NAME now, so that it isn't set when we dump.
-      (if (not (memq system-type '(ms-dos windows-nt)))
+      (if (not (memq system-type '(ms-dos windows-nt cygwin)))
 	  (let ((name (concat "emacs-" emacs-version)))
 	    (while (string-match "[^-+_.a-zA-Z0-9]+" name)
 	      (setq name (concat (downcase (substring name 0 (match-beginning 0)))
@@ -353,4 +378,6 @@
 ;;; no-byte-compile: t
 ;;; no-update-autoloads: t
 ;;; End:
+
+;;; arch-tag: 121e1dd4-36e1-45ac-860e-239f577a6335
 ;;; loadup.el ends here

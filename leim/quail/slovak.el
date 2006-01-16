@@ -1,6 +1,6 @@
 ;;; slovak.el --- Quail package for inputting Slovak  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1998, 2001 Free Software Foundation.
+;; Copyright (C) 1998, 2001 Free Software Foundation, Inc.
 
 ;; Authors: Tibor ,B)(Bimko <tibor.simko@fmph.uniba.sk>
 ;;	Milan Zamazal <pdm@zamazal.org>
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -478,4 +478,5 @@ All other keys are the same as on standard US keyboard."
  ([kp-0] ?0)
  ([kp-add] ?+))
 
+;;; arch-tag: 8aedb992-e191-4eec-ad0d-71a352e02a3d
 ;;; slovak.el ends here

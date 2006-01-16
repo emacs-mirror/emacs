@@ -1,6 +1,6 @@
 /* Lisp functions for making directory listings.
-   Copyright (C) 1985, 1986, 1993, 1994, 1999, 2000, 2001
-     Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1994, 1999, 2000, 2001, 2002, 2003,
+                 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #include <config.h>
@@ -26,7 +26,13 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "systime.h"
+#ifdef HAVE_PWD_H
+#include <pwd.h>
+#endif
+#ifndef VMS
+#include <grp.h>
+#endif
+
 #include <errno.h>
 
 #ifdef VMS
@@ -86,6 +92,7 @@ extern struct direct *readdir ();
 #endif
 
 #include "lisp.h"
+#include "systime.h"
 #include "buffer.h"
 #include "commands.h"
 #include "charset.h"
@@ -107,7 +114,6 @@ extern void filemodestring P_ ((struct stat *, char *));
 
 extern int completion_ignore_case;
 extern Lisp_Object Vcompletion_regexp_list;
-extern Lisp_Object Vfile_name_coding_system, Vdefault_file_name_coding_system;
 
 Lisp_Object Vcompletion_ignored_extensions;
 Lisp_Object Qcompletion_ignore_case;
@@ -125,19 +131,21 @@ Lisp_Object
 directory_files_internal_unwind (dh)
      Lisp_Object dh;
 {
-  DIR *d = (DIR *) ((XINT (XCAR (dh)) << 16) + XINT (XCDR (dh)));
+  DIR *d = (DIR *) XSAVE_VALUE (dh)->pointer;
   closedir (d);
   return Qnil;
 }
 
 /* Function shared by Fdirectory_files and Fdirectory_files_and_attributes.
    When ATTRS is zero, return a list of directory filenames; when
-   non-zero, return a list of directory filenames and their attributes.  */
+   non-zero, return a list of directory filenames and their attributes.
+   In the latter case, ID_FORMAT is passed to Ffile_attributes.  */
 
 Lisp_Object
-directory_files_internal (directory, full, match, nosort, attrs)
+directory_files_internal (directory, full, match, nosort, attrs, id_format)
      Lisp_Object directory, full, match, nosort;
      int attrs;
+     Lisp_Object id_format;
 {
   DIR *d;
   int directory_nbytes;
@@ -147,13 +155,11 @@ directory_files_internal (directory, full, match, nosort, attrs)
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   DIRENTRY *dp;
-  int retry_p;
 
   /* Because of file name handlers, these functions might call
      Ffuncall, and cause a GC.  */
   list = encoded_directory = dirfilename = Qnil;
   GCPRO5 (match, directory, list, dirfilename, encoded_directory);
-  directory = Fexpand_file_name (directory, Qnil);
   dirfilename = Fdirectory_file_name (directory);
 
   if (!NILP (match))
@@ -182,12 +188,6 @@ directory_files_internal (directory, full, match, nosort, attrs)
   /* Now *bufp is the compiled form of MATCH; don't call anything
      which might compile a new regexp until we're done with the loop!  */
 
-  /* Do this opendir after anything which might signal an error; if
-     an error is signaled while the directory stream is open, we
-     have to make sure it gets closed, and setting up an
-     unwind_protect to do so would be a pain.  */
- retry:
-
   d = opendir (SDATA (dirfilename));
   if (d == NULL)
     report_file_error ("Opening directory", Fcons (directory, Qnil));
@@ -196,8 +196,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
      file-attributes on filenames, both of which can throw, so we must
      do a proper unwind-protect.  */
   record_unwind_protect (directory_files_internal_unwind,
-			 Fcons (make_number (((unsigned long) d) >> 16),
-				make_number (((unsigned long) d) & 0xffff)));
+			 make_save_value (d, 0));
 
   directory_nbytes = SBYTES (directory);
   re_match_object = Qt;
@@ -215,10 +214,15 @@ directory_files_internal (directory, full, match, nosort, attrs)
       errno = 0;
       dp = readdir (d);
 
+      if (dp == NULL && (0
 #ifdef EAGAIN
-      if (dp == NULL && errno == EAGAIN)
-	continue;
+			 || errno == EAGAIN
 #endif
+#ifdef EINTR
+			 || errno == EINTR
+#endif
+			 ))
+	{ QUIT; continue; }
 
       if (dp == NULL)
 	break;
@@ -296,7 +300,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
 
 		  /* Both Fexpand_file_name and Ffile_attributes can GC.  */
 		  decoded_fullname = Fexpand_file_name (name, directory);
-		  fileattrs = Ffile_attributes (decoded_fullname);
+		  fileattrs = Ffile_attributes (decoded_fullname, id_format);
 
 		  list = Fcons (Fcons (finalname, fileattrs), list);
 		  UNGCPRO;
@@ -309,21 +313,10 @@ directory_files_internal (directory, full, match, nosort, attrs)
 	}
     }
 
-  retry_p = 0;
-#ifdef EINTR
-  retry_p |= errno == EINTR;
-#endif
-
   closedir (d);
 
   /* Discard the unwind protect.  */
   specpdl_ptr = specpdl + count;
-
-  if (retry_p)
-    {
-      list = Qnil;
-      goto retry;
-    }
 
   if (NILP (nosort))
     list = Fsort (Fnreverse (list),
@@ -345,57 +338,43 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
      Lisp_Object directory, full, match, nosort;
 {
   Lisp_Object handler;
+  directory = Fexpand_file_name (directory, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (directory, Qdirectory_files);
   if (!NILP (handler))
-    {
-      Lisp_Object args[6];
+    return call5 (handler, Qdirectory_files, directory,
+                  full, match, nosort);
 
-      args[0] = handler;
-      args[1] = Qdirectory_files;
-      args[2] = directory;
-      args[3] = full;
-      args[4] = match;
-      args[5] = nosort;
-      return Ffuncall (6, args);
-    }
-
-  return directory_files_internal (directory, full, match, nosort, 0);
+  return directory_files_internal (directory, full, match, nosort, 0, Qnil);
 }
 
 DEFUN ("directory-files-and-attributes", Fdirectory_files_and_attributes,
-       Sdirectory_files_and_attributes, 1, 4, 0,
+       Sdirectory_files_and_attributes, 1, 5, 0,
        doc: /* Return a list of names of files and their attributes in DIRECTORY.
-There are three optional arguments:
+There are four optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
 If MATCH is non-nil, mention only file names that match the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
- NOSORT is useful if you plan to sort the result yourself.  */)
-     (directory, full, match, nosort)
-     Lisp_Object directory, full, match, nosort;
+ NOSORT is useful if you plan to sort the result yourself.
+ID-FORMAT specifies the preferred format of attributes uid and gid, see
+`file-attributes' for further documentation. */)
+     (directory, full, match, nosort, id_format)
+     Lisp_Object directory, full, match, nosort, id_format;
 {
   Lisp_Object handler;
+  directory = Fexpand_file_name (directory, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (directory, Qdirectory_files_and_attributes);
   if (!NILP (handler))
-    {
-      Lisp_Object args[6];
+    return call6 (handler, Qdirectory_files_and_attributes,
+                  directory, full, match, nosort, id_format);
 
-      args[0] = handler;
-      args[1] = Qdirectory_files_and_attributes;
-      args[2] = directory;
-      args[3] = full;
-      args[4] = match;
-      args[5] = nosort;
-      return Ffuncall (6, args);
-    }
-
-  return directory_files_internal (directory, full, match, nosort, 1);
+  return directory_files_internal (directory, full, match, nosort, 1, id_format);
 }
 
 
@@ -407,7 +386,7 @@ DEFUN ("file-name-completion", Ffile_name_completion, Sfile_name_completion,
 Returns the longest string
 common to all file names in DIRECTORY that start with FILE.
 If there is only one and FILE matches it exactly, returns t.
-Returns nil if DIR contains no name starting with FILE.
+Returns nil if DIRECTORY contains no name starting with FILE.
 
 This function ignores some of the possible completions as
 determined by the variable `completion-ignored-extensions', which see.  */)
@@ -526,8 +505,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 	report_file_error ("Opening directory", Fcons (dirname, Qnil));
 
       record_unwind_protect (directory_files_internal_unwind,
-                             Fcons (make_number (((unsigned long) d) >> 16),
-                                    make_number (((unsigned long) d) & 0xffff)));
+                             make_save_value (d, 0));
 
       /* Loop reading blocks */
       /* (att3b compiler bug requires do a null comparison this way) */
@@ -539,8 +517,19 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 #ifdef VMS
 	  dp = (*readfunc) (d);
 #else
+	  errno = 0;
 	  dp = readdir (d);
+	  if (dp == NULL && (0
+# ifdef EAGAIN
+			     || errno == EAGAIN
+# endif
+# ifdef EINTR
+			     || errno == EINTR
+# endif
+			     ))
+	    { QUIT; continue; }
 #endif
+
 	  if (!dp) break;
 
 	  len = NAMLEN (dp);
@@ -871,14 +860,21 @@ make_time (time)
 		Fcons (make_number (time & 0177777), Qnil));
 }
 
-DEFUN ("file-attributes", Ffile_attributes, Sfile_attributes, 1, 1, 0,
+DEFUN ("file-attributes", Ffile_attributes, Sfile_attributes, 1, 2, 0,
        doc: /* Return a list of attributes of file FILENAME.
 Value is nil if specified file cannot be opened.
-Otherwise, list elements are:
+
+ID-FORMAT specifies the preferred format of attributes uid and gid (see
+below) - valid values are 'string and 'integer. The latter is the default,
+but we plan to change that, so you should specify a non-nil value for
+ID-FORMAT if you use the returned uid or gid.
+
+Elements of the attribute list are:
  0. t for directory, string (name linked to) for symbolic link, or nil.
  1. Number of links to file.
- 2. File uid.
- 3. File gid.
+ 2. File uid as a string or an integer.  If a string value cannot be
+  looked up, the integer value is returned.
+ 3. File gid, likewise.
  4. Last access time, as a list of two integers.
   First integer has high-order 16 bits of time, second has low 16 bits.
  5. Last modification time, likewise.
@@ -891,21 +887,22 @@ Otherwise, list elements are:
   this is a cons cell containing two integers: first the high part,
   then the low 16 bits.
 11. Device number.  If it is larger than the Emacs integer, this is
-  a cons cell, similar to the inode number.
-
-If file does not exist, returns nil.  */)
-     (filename)
-     Lisp_Object filename;
+  a cons cell, similar to the inode number.  */)
+     (filename, id_format)
+     Lisp_Object filename, id_format;
 {
   Lisp_Object values[12];
   Lisp_Object encoded;
   struct stat s;
+  struct passwd *pw;
+  struct group *gr;
 #if defined (BSD4_2) || defined (BSD4_3)
   Lisp_Object dirname;
   struct stat sdir;
 #endif
   char modes[10];
   Lisp_Object handler;
+  struct gcpro gcpro1;
 
   filename = Fexpand_file_name (filename, Qnil);
 
@@ -913,9 +910,17 @@ If file does not exist, returns nil.  */)
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename, Qfile_attributes);
   if (!NILP (handler))
-    return call2 (handler, Qfile_attributes, filename);
+    { /* Only pass the extra arg if it is used to help backward compatibility
+	 with old file handlers which do not implement the new arg.  --Stef  */
+      if (NILP (id_format))
+	return call2 (handler, Qfile_attributes, filename);
+      else
+	return call3 (handler, Qfile_attributes, filename, id_format);
+    }
 
+  GCPRO1 (filename);
   encoded = ENCODE_FILE (filename);
+  UNGCPRO;
 
   if (lstat (SDATA (encoded), &s) < 0)
     return Qnil;
@@ -932,8 +937,18 @@ If file does not exist, returns nil.  */)
 #endif
     }
   values[1] = make_number (s.st_nlink);
-  values[2] = make_number (s.st_uid);
-  values[3] = make_number (s.st_gid);
+  if (NILP (id_format) || EQ (id_format, Qinteger))
+    {
+      values[2] = make_number (s.st_uid);
+      values[3] = make_number (s.st_gid);
+    }
+  else
+    {
+      pw = (struct passwd *) getpwuid (s.st_uid);
+      values[2] = (pw ? build_string (pw->pw_name) : make_number (s.st_uid));
+      gr = (struct group *) getgrgid (s.st_gid);
+      values[3] = (gr ? build_string (gr->gr_name) : make_number (s.st_gid));
+    }
   values[4] = make_time (s.st_atime);
   values[5] = make_time (s.st_mtime);
   values[6] = make_time (s.st_ctime);
@@ -1028,3 +1043,6 @@ This variable does not affect lists of possible completions,
 but does affect the commands that actually do completions.  */);
   Vcompletion_ignored_extensions = Qnil;
 }
+
+/* arch-tag: 1ac8deca-4d8f-4d41-ade9-089154d98c03
+   (do not change this comment) */

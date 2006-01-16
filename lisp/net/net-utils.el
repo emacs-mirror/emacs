@@ -1,6 +1,7 @@
 ;;; net-utils.el --- network functions
 
-;; Copyright (C) 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Mar 16 1997
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -160,7 +161,7 @@ These options can be used to limit how many ICMP packets are emitted."
   "Regexp to match the nslookup prompt.
 
 This variable is only used if the variable
-`comint-use-prompt-regexp-instead-of-fields' is non-nil."
+`comint-use-prompt-regexp' is non-nil."
   :group 'net-utils
   :type  'regexp)
 
@@ -183,7 +184,7 @@ This variable is only used if the variable
   "Regexp which matches the FTP program's prompt.
 
 This variable is only used if the variable
-`comint-use-prompt-regexp-instead-of-fields' is non-nil."
+`comint-use-prompt-regexp' is non-nil."
   :group 'net-utils
   :type  'regexp)
 
@@ -201,9 +202,21 @@ This variable is only used if the variable
   "Regexp which matches the smbclient program's prompt.
 
 This variable is only used if the variable
-`comint-use-prompt-regexp-instead-of-fields' is non-nil."
+`comint-use-prompt-regexp' is non-nil."
   :group 'net-utils
   :type  'regexp)
+
+(defcustom dns-lookup-program  "host"
+  "Program to interactively query DNS information."
+  :group 'net-utils
+  :type  'string
+  )
+
+(defcustom dns-lookup-program-options  nil
+  "List of options to pass to the dns-lookup program."
+  :group 'net-utils
+  :type  '(repeat string)
+  )
 
 ;; Internal variables
 (defvar network-connection-service nil)
@@ -429,7 +442,26 @@ If your system's ping continues until interrupted, you can try setting
 (define-key nslookup-mode-map "\t" 'comint-dynamic-complete)
 
 ;;;###autoload
-(defun dig (host)
+(defun dns-lookup-host (host)
+  "Lookup the DNS information for HOST (name or IP address)."
+  (interactive
+   (list (read-from-minibuffer "Lookup host: " (net-utils-machine-at-point))))
+  (let ((options
+	 (if dns-lookup-program-options
+	     (append dns-lookup-program-options (list host))
+	   (list host))))
+    (net-utils-run-program
+     (concat "DNS Lookup [" host "]")
+     (concat "** "
+      (mapconcat 'identity
+		(list "DNS Lookup" host dns-lookup-program)
+		" ** "))
+     dns-lookup-program
+     options
+     )))
+
+;;;###autoload
+(defun run-dig (host)
   "Run dig program."
   (interactive
    (list
@@ -437,7 +469,8 @@ If your system's ping continues until interrupted, you can try setting
       (require 'ffap)
       (read-from-minibuffer
        "Lookup host: "
-       (or (ffap-string-at-point 'machine) "")))))
+       (with-no-warnings
+	 (or (ffap-string-at-point 'machine) ""))))))
   (net-utils-run-program
    "Dig"
    (concat "** "
@@ -536,7 +569,7 @@ If your system's ping continues until interrupted, you can try setting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Full list is available at:
-;; ftp://ftp.isi.edu/in-notes/iana/assignments/port-numbers
+;; http://www.iana.org/assignments/port-numbers
 (defvar network-connection-service-alist
   (list
     (cons 'echo          7)
@@ -622,10 +655,11 @@ queries of the form USER@HOST, and wants a query containing USER only."
 	 (process-name (concat "Finger [" user-and-host "]"))
 	 (regexps finger-X.500-host-regexps)
 	 found)
-    (while (and regexps (not (string-match (car regexps) host)))
-      (setq regexps (cdr regexps)))
-    (when regexps
-      (setq user-and-host user))
+    (and regexps
+	 (while (not (string-match (car regexps) host))
+	   (setq regexps (cdr regexps)))
+	 (when regexps
+	   (setq user-and-host user)))
     (run-network-program
      process-name
      host
@@ -796,4 +830,5 @@ from SEARCH-STRING.  With argument, prompt for whois server."
 
 (provide 'net-utils)
 
+;;; arch-tag: 97119e91-9edb-4376-838b-bf7058fa1314
 ;;; net-utils.el ends here

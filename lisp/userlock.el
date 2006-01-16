@@ -1,6 +1,7 @@
 ;;; userlock.el --- handle file access contention between multiple users
 
-;; Copyright (C) 1985, 1986 Free Software Foundation, inc.
+;; Copyright (C) 1985, 1986, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -160,4 +161,5 @@ to get the latest version of the file, then make the change again.")
       (set-buffer standard-output)
       (help-mode))))
 
+;;; arch-tag: a61c5b60-e1c8-44fd-894a-c617f4dfc639
 ;;; userlock.el ends here

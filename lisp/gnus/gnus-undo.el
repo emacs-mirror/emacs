@@ -1,7 +1,7 @@
 ;;; gnus-undo.el --- minor mode for undoing in Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000
-;;	Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -114,7 +114,7 @@
     (when (gnus-visual-p 'undo-menu 'menu)
       (gnus-undo-make-menu-bar))
     (gnus-add-minor-mode 'gnus-undo-mode "" gnus-undo-mode-map)
-    (make-local-hook 'post-command-hook)
+    (gnus-make-local-hook 'post-command-hook)
     (add-hook 'post-command-hook 'gnus-undo-boundary nil t)
     (gnus-run-hooks 'gnus-undo-mode-hook)))
 
@@ -192,4 +192,5 @@ A numeric argument serves as a repeat count."
 
 (provide 'gnus-undo)
 
+;;; arch-tag: 0d787bc7-787d-499a-837f-211d2cb07f2e
 ;;; gnus-undo.el ends here

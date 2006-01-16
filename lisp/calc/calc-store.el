@@ -1,10 +1,10 @@
 ;;; calc-store.el --- value storage functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +28,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-store () nil)
-
 
 ;;; Memory commands.
 
@@ -44,6 +41,8 @@
     (calc-store-into var)))
 
 (defvar calc-given-value-flag nil)
+(defvar calc-given-value)
+
 (defun calc-store-into (&optional var)
   (interactive)
   (calc-wrapper
@@ -59,15 +58,20 @@
 				   ( | . calc-store-concat ) ))))
 	   (if found
 	       (funcall (cdr found))
-	     (calc-store-value var (or calc-given-value (calc-top 1))
-			       "" calc-given-value-flag)
-	     (message "Stored to variable \"%s\"" (calc-var-name var))))
+             (let ((msg
+                    (calc-store-value var (or calc-given-value (calc-top 1))
+                                      "" calc-given-value-flag)))
+               (message (concat "Stored to variable \"%s\"" msg)
+                        (calc-var-name var)))))
        (setq var (calc-is-assignments (calc-top 1)))
        (if var
 	   (while var
-	     (calc-store-value (car (car var)) (cdr (car var))
-			       (if (not (cdr var)) "")
-			       (if (not (cdr var)) 1))
+	     (let ((msg
+                    (calc-store-value (car (car var)) (cdr (car var))
+                                      (if (not (cdr var)) "")
+                                      (if (not (cdr var)) 1))))
+               (message (concat "Stored to variable \"%s\"" msg)
+                        (calc-var-name (car (car var)))))
 	     (setq var (cdr var))))))))
 
 (defun calc-store-plus (&optional var)
@@ -111,22 +115,26 @@
   (calc-store-binary var "n" '- n))
 
 (defun calc-store-value (var value tag &optional pop)
-  (if var
-      (let ((old (calc-var-value var)))
-	(set var value)
-	(if pop (or calc-store-keep (calc-pop-stack pop)))
-	(calc-record-undo (list 'store (symbol-name var) old))
-	(if tag
-	    (let ((calc-full-trail-vectors nil))
-	      (calc-record value (format ">%s%s" tag (calc-var-name var)))))
-	(and (memq var '(var-e var-i var-pi var-phi var-gamma))
-	     (eq (car-safe old) 'special-const)
-	     (message "(Note: Built-in definition of %s has been lost)" var))
-	(and (memq var '(var-inf var-uinf var-nan))
-	     (null old)
-	     (message "(Note: %s has built-in meanings which may interfere)"
-		      var))
-	(calc-refresh-evaltos var))))
+  (let ((msg ""))
+    (if var
+        (let ((old (calc-var-value var)))
+          (set var value)
+          (if pop (or calc-store-keep (calc-pop-stack pop)))
+          (calc-record-undo (list 'store (symbol-name var) old))
+          (if tag
+              (let ((calc-full-trail-vectors nil))
+                (calc-record value (format ">%s%s" tag (calc-var-name var)))))
+          (cond
+           ((and (memq var '(var-e var-i var-pi var-phi var-gamma))
+                 (eq (car-safe old) 'special-const))
+            (setq msg (format " (Note: Built-in definition of %s has been lost)" 
+                              (calc-var-name var))))
+           ((and (memq var '(var-inf var-uinf var-nan))
+                 (null old))
+            (setq msg (format " (Note: %s has built-in meanings which may interfere)"
+                              (calc-var-name var)))))
+          (calc-refresh-evaltos var)))
+    msg))
 
 (defun calc-var-name (var)
   (if (symbolp var) (setq var (symbol-name var)))
@@ -142,8 +150,12 @@
      (or var (setq var (calc-read-var-name (format "Store %s: " tag))))
      (if var
 	 (let ((old (calc-var-value var)))
-	   (or old
-	       (error "No such variable: \"%s\"" (calc-var-name var)))
+	   (if (eq (car-safe old) 'special-const)
+	       (error "\"%s\" is a special constant" (calc-var-name var)))
+	   (if (not old)
+               (if (memq var '(var-inf var-uinf var-nan))
+                   (error "\"%s\" is a special variable" (calc-var-name var))
+                 (error "No such variable: \"%s\"" (calc-var-name var))))
 	   (if (stringp old)
 	       (setq old (math-read-expr old)))
 	   (if (eq (car-safe old) 'error)
@@ -153,30 +165,7 @@
 						 (list func value old)
 					       (list func old value)))
 			     tag (and (not val) 1))
-	   (message "Stored to variable \"%s\"" (calc-var-name var)))))))
-
-(defun calc-read-var-name (prompt &optional calc-store-opers)
-  (setq calc-given-value nil
-	calc-aborted-prefix nil)
-  (let ((var (let ((minibuffer-completion-table obarray)
-		   (minibuffer-completion-predicate 'boundp)
-		   (minibuffer-completion-confirm t))
-	       (read-from-minibuffer prompt "var-" calc-var-name-map nil))))
-    (setq calc-aborted-prefix "")
-    (and (not (equal var ""))
-	 (not (equal var "var-"))
-	 (if (string-match "\\`\\([-a-zA-Z0-9]+\\) *:?=" var)
-	     (if (null calc-given-value-flag)
-		 (error "Assignment is not allowed in this command")
-	       (let ((svar (intern (substring var 0 (match-end 1)))))
-		 (setq calc-given-value-flag 0
-		       calc-given-value (math-read-expr
-					 (substring var (match-end 0))))
-		 (if (eq (car-safe calc-given-value) 'error)
-		     (error "Bad format: %s" (nth 2 calc-given-value)))
-		 (setq calc-given-value (math-evaluate-expr calc-given-value))
-		 svar))
-	   (intern var)))))
+	   (message "Variable \"%s\" changed" (calc-var-name var)))))))
 
 (defvar calc-var-name-map nil "Keymap for reading Calc variable names.")
 (if calc-var-name-map
@@ -194,9 +183,38 @@
 	       'calcVar-oper)))
 	  "+-*/^|"))
 
+(defvar calc-store-opers)
+
+(defun calc-read-var-name (prompt &optional calc-store-opers)
+  (setq calc-given-value nil
+	calc-aborted-prefix nil)
+  (let ((var (concat 
+              "var-"
+              (let ((minibuffer-completion-table
+                     (mapcar (lambda (x) (substring x 4)) 
+                             (all-completions "var-" obarray)))
+                    (minibuffer-completion-predicate 
+                     (lambda (x) (boundp (intern (concat "var-" x)))))
+                    (minibuffer-completion-confirm t))
+                (read-from-minibuffer prompt nil calc-var-name-map nil)))))
+    (setq calc-aborted-prefix "")
+    (and (not (equal var "var-"))
+	 (if (string-match "\\`\\([-a-zA-Z0-9]+\\) *:?=" var)
+	     (if (null calc-given-value-flag)
+		 (error "Assignment is not allowed in this command")
+	       (let ((svar (intern (substring var 0 (match-end 1)))))
+		 (setq calc-given-value-flag 0
+		       calc-given-value (math-read-expr
+					 (substring var (match-end 0))))
+		 (if (eq (car-safe calc-given-value) 'error)
+		     (error "Bad format: %s" (nth 2 calc-given-value)))
+		 (setq calc-given-value (math-evaluate-expr calc-given-value))
+		 svar))
+	   (intern var)))))
+
 (defun calcVar-digit ()
   (interactive)
-  (if (calc-minibuffer-contains "var-\\'")
+  (if (calc-minibuffer-contains "\\'")
       (if (eq calc-store-opers 0)
 	  (beep)
 	(insert "q")
@@ -206,7 +224,7 @@
 (defun calcVar-oper ()
   (interactive)
   (if (and (eq calc-store-opers t)
-	   (calc-minibuffer-contains "var-\\'"))
+	   (calc-minibuffer-contains "\\'"))
       (progn
 	(erase-buffer)
 	(self-insert-and-exit))
@@ -224,26 +242,32 @@
      (or var (setq var (calc-read-var-name (format "Store Mapping %s: "
 						   (nth 2 oper)))))
      (if var
-	 (let ((old (or (calc-var-value var)
-			(error "No such variable: \"%s\""
-			       (calc-var-name var))))
-	       (calc-simplify-mode (if (eq calc-simplify-mode 'none)
-				       'num calc-simplify-mode))
-	       (values (and (> nargs 1)
-			    (calc-top-list (1- nargs) (1+ calc-dollar-used)))))
-	   (message "Working...")
-	   (calc-set-command-flag 'clear-message)
-	   (if (stringp old)
-	       (setq old (math-read-expr old)))
-	   (if (eq (car-safe old) 'error)
-	       (error "Bad format in variable contents: %s" (nth 2 old)))
-	   (setq values (if (calc-is-inverse)
-			    (append values (list old))
-			  (append (list old) values)))
-	   (calc-store-value var
-			     (calc-normalize (cons (nth 1 oper) values))
-			     (nth 2 oper)
-			     (+ calc-dollar-used (1- nargs))))))))
+	 (let ((old (calc-var-value var)))
+	   (if (eq (car-safe old) 'special-const)
+	       (error "\"%s\" is a special constant" (calc-var-name var)))
+	   (if (not old)
+               (if (memq var '(var-inf var-uinf var-nan))
+                   (error "\"%s\" is a special variable" (calc-var-name var))
+                 (error "No such variable: \"%s\"" (calc-var-name var))))
+           (let ((calc-simplify-mode (if (eq calc-simplify-mode 'none)
+                                         'num calc-simplify-mode))
+                 (values (and (> nargs 1)
+                              (calc-top-list (1- nargs) (1+ calc-dollar-used)))))
+             (message "Working...")
+             (calc-set-command-flag 'clear-message)
+             (if (stringp old)
+                 (setq old (math-read-expr old)))
+             (if (eq (car-safe old) 'error)
+                 (error "Bad format in variable contents: %s" (nth 2 old)))
+             (setq values (if (calc-is-inverse)
+                              (append values (list old))
+                            (append (list old) values)))
+             (calc-store-value var
+                               (calc-normalize (cons (nth 1 oper) values))
+                               (nth 2 oper)
+                               (+ calc-dollar-used (1- nargs)))
+             (message "Variable \"%s\" changed" (calc-var-name var))))))))
+
 
 (defun calc-store-exchange (&optional var)
   (interactive)
@@ -254,10 +278,12 @@
      (or var (setq var (calc-read-var-name "Exchange with: ")))
      (if var
 	 (let ((value (calc-var-value var)))
-	   (or value
-	       (error "No such variable: \"%s\"" (calc-var-name var)))
 	   (if (eq (car-safe value) 'special-const)
-	       (error "%s is a special constant" var))
+	       (error "\"%s\" is a special constant" (calc-var-name var)))
+	   (if (not value)
+               (if (memq var '(var-inf var-uinf var-nan))
+                   (error "\"%s\" is a special variable" (calc-var-name var))
+                 (error "No such variable: \"%s\"" (calc-var-name var))))
 	   (setq top (or calc-given-value (calc-top 1)))
 	   (calc-store-value var top nil)
 	   (calc-pop-push-record calc-given-value-flag
@@ -362,6 +388,26 @@
   (interactive)
   (calc-recall (intern (format "var-q%c" last-command-char))))
 
+(defun calc-copy-special-constant (&optional sconst var)
+  (interactive)
+  (let ((sc '(("")
+              ("e" . (special-const (math-e)))
+              ("pi" . (special-const (math-pi)))
+              ("i" . (special-const (math-imaginary 1)))
+              ("phi" . (special-const (math-phi)))
+              ("gamma" . (special-const (math-gamma-const))))))
+  (calc-wrapper
+   (or sconst (setq sconst (completing-read "Special constant: " sc nil t)))
+   (unless (string= sconst "")
+     (let ((value (cdr (assoc sconst sc))))
+       (or var (setq var (calc-read-var-name
+                            (format "Copy special constant %s, to: " 
+                                    sconst))))
+       (if var
+           (let ((msg (calc-store-value var value "")))
+             (message (concat "Special constant \"%s\" copied to \"%s\"" msg)
+                      sconst (calc-var-name var)))))))))
+
 (defun calc-copy-variable (&optional var1 var2)
   (interactive)
   (calc-wrapper
@@ -369,11 +415,14 @@
    (if var1
        (let ((value (calc-var-value var1)))
 	 (or value
-	     (error "No such variable: \"%s\"" (calc-var-name var)))
+	     (error "No such variable: \"%s\"" (calc-var-name var1)))
 	 (or var2 (setq var2 (calc-read-var-name
-			      (format "Copy variable: %s, to: " var1))))
+			      (format "Copy variable: %s, to: " 
+                                      (calc-var-name var1)))))
 	 (if var2
-	     (calc-store-value var2 value ""))))))
+	     (let ((msg (calc-store-value var2 value "")))
+               (message (concat "Variable \"%s\" copied to \"%s\"" msg)
+                        (calc-var-name var1) (calc-var-name var2))))))))
 
 (defvar calc-last-edited-variable nil)
 (defun calc-edit-variable (&optional var)
@@ -381,7 +430,7 @@
   (calc-wrapper
    (or var (setq var (calc-read-var-name
 		      (if calc-last-edited-variable
-			  (format "Edit: (default %s) "
+			  (format "Edit (default %s): "
 				  (calc-var-name calc-last-edited-variable))
 			"Edit: "))))
    (or var (setq var calc-last-edited-variable))
@@ -392,7 +441,7 @@
 	 (setq calc-last-edited-variable var)
 	 (calc-edit-mode (list 'calc-finish-stack-edit (list 'quote var))
 			 t
-			 (concat "Editing " (calc-var-name var)))
+			 (concat "Editing variable `" (calc-var-name var) "'. "))
 	 (and value
 	      (insert (math-format-nice-expr value (frame-width)) "\n")))))
   (calc-show-edit-buffer))
@@ -477,7 +526,7 @@
 			     (setq rp nil)))
 		       (not rp)))))
      (calc-unread-command ?\C-a)
-     (setq decl (read-string (format "Declare: %s  to be: " var)
+     (setq decl (read-string (format "Declare: %s  to be: " (calc-var-name var))
 			     (and rp
 				  (math-format-flat-expr (nth 2 (car dp)) 0))))
      (setq decl (and (string-match "[^ \t]" decl)
@@ -530,11 +579,16 @@
 				     var-PlotData5 var-PlotData6
 				     var-DUMMY))
 
+;; The variable calc-pv-pos is local to calc-permanent-variable, but
+;; used by calc-insert-permanent-variable, which is called by
+;; calc-permanent-variable.
+(defvar calc-pv-pos)
+
 (defun calc-permanent-variable (&optional var)
   (interactive)
   (calc-wrapper
-   (or var (setq var (calc-read-var-name "Save variable (default=all): ")))
-   (let (pos)
+   (or var (setq var (calc-read-var-name "Save variable (default all): ")))
+   (let (calc-pv-pos)
      (and var (or (and (boundp var) (symbol-value var))
 		  (error "No such variable")))
      (set-buffer (find-file-noselect (substitute-in-file-name
@@ -556,16 +610,16 @@
   (goto-char (point-min))
   (if (search-forward (concat "(setq " (symbol-name var) " '") nil t)
       (progn
-	(setq pos (point-marker))
+	(setq calc-pv-pos (point-marker))
 	(forward-line -1)
 	(if (looking-at ";;; Variable .* stored by Calc on ")
 	    (progn
 	      (delete-region (match-end 0) (progn (end-of-line) (point)))
 	      (insert (current-time-string))))
-	(goto-char (- pos 8 (length (symbol-name var))))
+	(goto-char (- calc-pv-pos 8 (length (symbol-name var))))
 	(forward-sexp 1)
 	(backward-char 1)
-	(delete-region pos (point)))
+	(delete-region calc-pv-pos (point)))
     (goto-char (point-max))
     (insert "\n;;; Variable \""
 	    (symbol-name var)
@@ -619,4 +673,7 @@
   (calc-slow-wrapper
    (calc-binary-op "sub" 'calcFunc-subscr arg)))
 
+(provide 'calc-store)
+
+;;; arch-tag: 2fbfec82-a521-42ca-bcd8-4f254ae6313e
 ;;; calc-store.el ends here

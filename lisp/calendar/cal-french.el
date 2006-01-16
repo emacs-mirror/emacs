@@ -1,8 +1,10 @@
 ;;; cal-french.el --- calendar functions for the French Revolutionary calendar
 
-;; Copyright (C) 1988, 89, 92, 94, 95, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1989, 1992, 1994, 1995, 1997, 2001, 2002, 2003,
+;;   2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: French Revolutionary calendar, calendar, diary
 
@@ -20,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -29,8 +31,8 @@
 ;; diary.el that deal with the French Revolutionary calendar.
 
 ;; Technical details of the French Revolutionary calendar can be found in
-;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
-;; Cambridge University Press (1997), and in
+;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
+;; and Nachum Dershowitz, Cambridge University Press (2001), and in
 ;; ``Calendrical Calculations, Part II: Three Historical Calendars'' by
 ;; E. M. Reingold, N. Dershowitz, and S. M. Clamen, Software--Practice and
 ;; Experience, Volume 23, Number 4 (April, 1993), pages 383-404.
@@ -42,6 +44,8 @@
 ;;                                   Urbana, Illinois 61801
 
 ;;; Code:
+
+(defvar date)
 
 (require 'calendar)
 
@@ -228,12 +232,12 @@ Echo French Revolutionary date unless NOECHO is t."
 				      (concat "Jour " x))
 				   special-days))))))))
 	    (completion-ignore-case t)
-	    (month (cdr (assoc-ignore-case
+	    (month (cdr (assoc-string
                          (completing-read
                           "Mois ou Sansculottide: "
                           month-list
                           nil t)
-			 (calendar-make-alist month-list 1 'car))))
+			 (calendar-make-alist month-list 1 'car) t)))
 	    (day (if (> month 12)
 		     (- month 12)
 		   (calendar-read
@@ -254,4 +258,5 @@ Echo French Revolutionary date unless NOECHO is t."
 
 (provide 'cal-french)
 
+;;; arch-tag: 7e8045a3-8609-46b5-9cde-cf40ce541cf9
 ;;; cal-french.el ends here

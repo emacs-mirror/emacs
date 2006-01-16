@@ -1,3 +1,4 @@
+0,T$Yh10AW1M!RCc0*i10MU1aA!0Jl1(B. ,Tb;C40HV1!IR0Jh1G907i1RB"M'0$Yh10AW1MJSK0CQ1:`0'Wh1M9d"c9!RC7SJS`9R(B.
 ,TJ'G90ET1"0JT1708Tl1(B ,T>(B.,TH(B. 2528 ,Tb4B:0CT10IQ17?0CU1+M?05l1aG0Cl1?RG09l1`40*Q19(B (Free Software
 Foundation, Inc); ,T!0CX13R0HV1!IR`0'Wh1M9d"5M907i1RB:7(B.
 0,T7h1R9!S0EQ1'0HV1!IR0$Yh10AW1M!RCc0*i10MU1aA!0Jl1(B (Emacs tutorial) ,TM0BYh1c9"3P09Ui1(B.
@@ -969,7 +970,8 @@ starting with the one written by Stuart Cracraft for the original Emacs.
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
 
-Copyright (c) 1985, 1996 Free Software Foundation
+Copyright (C) 1985, 1996, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
@@ -1005,3 +1007,8 @@ virach@nectec.or.th
 
 Translate - January 1999 by Virach Sornlertlamvanich
 
+;;; Local Variables:
+;;;   sentence-end-double-space: nil
+;;; End:
+
+;;; arch-tag: 79ad252a-448a-4dc9-a4cb-2097dd1ec014

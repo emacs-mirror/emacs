@@ -1,6 +1,6 @@
 ;;; animate.el --- make text dance
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: Richard Stallman <rms@gnu.org>
 ;; Keywords: games
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -80,9 +80,11 @@
 ;;; Place the character CHAR at position VPOS, HPOS in the current buffer.
 (defun animate-place-char (char vpos hpos)
   (goto-char (window-start))
-  (let ((next-line-add-newlines t))
+  (let (abbrev-mode)
     (dotimes (i vpos)
-      (next-line 1)))
+      (end-of-line)
+      (if (= (forward-line 1) 1)
+	  (insert "\n"))))
   (beginning-of-line)
   (move-to-column (floor hpos) t)
   (unless (eolp) (delete-char 1))
@@ -151,11 +153,13 @@ Strings will be separated from each other by SPACE lines."
       (setq list-of-strings (cdr list-of-strings)))))
 
 ;;;###autoload
-(defun animate-birthday-present ()
-  "Display Sarah's birthday present in a new buffer."
-  (interactive)
+(defun animate-birthday-present (&optional name)
+  "Display one's birthday present in a new buffer.
+You can specify the one's name by NAME; the default value is \"Sarah\"."
+  (interactive (list (read-string "Name (default Sarah): "
+				  nil nil "Sarah")))
   ;; Make a suitable buffer to display the birthday present in.
-  (switch-to-buffer (get-buffer-create "*Sarah*"))
+  (switch-to-buffer (get-buffer-create (format "*%s*" name)))
   (erase-buffer)
   ;; Display the empty buffer.
   (sit-for 0)
@@ -164,7 +168,7 @@ Strings will be separated from each other by SPACE lines."
   (setq indent-tabs-mode nil)
 
   (animate-string "Happy Birthday," 6)
-  (animate-string "Sarah" 7)
+  (animate-string (format "%s" name) 7)
 
   (sit-for 1)
 
@@ -184,4 +188,5 @@ Strings will be separated from each other by SPACE lines."
   (animate-string "my sunshine" 18 34)
   (animate-string "to stay!" 19 34))
 
+;;; arch-tag: 275289a3-6ac4-41da-b527-a1147045392f
 ;;; animate.el ends here

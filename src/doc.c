@@ -1,5 +1,6 @@
 /* Record indices of function doc strings stored in a file.
-   Copyright (C) 1985, 86,93,94,95,97,98,99, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
+                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,16 +16,17 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #include <config.h>
 
 #include <sys/types.h>
 #include <sys/file.h>	/* Must be after sys/types.h for USG and BSD4_1*/
+#include <ctype.h>
 
-#ifdef USG5
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
 
@@ -50,29 +52,32 @@ Lisp_Object Vdoc_file_name;
 
 Lisp_Object Qfunction_documentation;
 
+/* A list of files used to build this Emacs binary.  */
+static Lisp_Object Vbuild_files;
+
 extern Lisp_Object Voverriding_local_map;
 
+extern Lisp_Object Qremap;
+
 /* For VMS versions with limited file name syntax,
-   convert the name to something VMS will allow. */
+   convert the name to something VMS will allow.  */
 static void
 munge_doc_file_name (name)
      char *name;
 {
 #ifdef VMS
-#ifndef VMS4_4
-  /* For VMS versions with limited file name syntax,
-     convert the name to something VMS will allow.  */
-  p = name;
+#ifndef NO_HYPHENS_IN_FILENAMES
+  extern char * sys_translate_unix (char *ufile);
+  strcpy (name, sys_translate_unix (name));
+#else /* NO_HYPHENS_IN_FILENAMES */
+  char *p = name;
   while (*p)
     {
       if (*p == '-')
 	*p = '_';
       p++;
     }
-#endif /* not VMS4_4 */
-#ifdef VMS4_4
-  strcpy (name, sys_translate_unix (name));
-#endif /* VMS4_4 */
+#endif /* NO_HYPHENS_IN_FILENAMES */
 #endif /* VMS */
 }
 
@@ -569,7 +574,7 @@ records them in function and variable definitions.
 The function takes one argument, FILENAME, a string;
 it specifies the file name (without a directory) of the DOC file.
 That file is found in `../etc' now; later, when the dumped Emacs is run,
-the same file name is found in the `data-directory'.  */)
+the same file name is found in the `doc-directory'.  */)
      (filename)
      Lisp_Object filename;
 {
@@ -580,6 +585,7 @@ the same file name is found in the `data-directory'.  */)
   register char *p, *end;
   Lisp_Object sym;
   char *name;
+  int skip_file = 0;
 
   CHECK_STRING (filename);
 
@@ -601,22 +607,55 @@ the same file name is found in the `data-directory'.  */)
       strcpy (name, SDATA (Vdoc_directory));
     }
   strcat (name, SDATA (filename)); 	/*** Add this line ***/
-#ifdef VMS
-#ifndef VMS4_4
-  /* For VMS versions with limited file name syntax,
-     convert the name to something VMS will allow.  */
-  p = name;
-  while (*p)
-    {
-      if (*p == '-')
-	*p = '_';
-      p++;
-    }
-#endif /* not VMS4_4 */
-#ifdef VMS4_4
-  strcpy (name, sys_translate_unix (name));
-#endif /* VMS4_4 */
-#endif /* VMS */
+  munge_doc_file_name (name);
+
+  /* Vbuild_files is nil when temacs is run, and non-nil after that.  */
+  if (NILP (Vbuild_files))
+  {
+    size_t cp_size = 0;
+    size_t to_read;
+    int nr_read;
+    char *cp = NULL;
+    char *beg, *end;
+
+    fd = emacs_open ("buildobj.lst", O_RDONLY, 0);
+    if (fd < 0)
+      report_file_error ("Opening file buildobj.lst", Qnil);
+
+    filled = 0;
+    for (;;)
+      {
+        cp_size += 1024;
+        to_read = cp_size - 1 - filled;
+        cp = xrealloc (cp, cp_size);
+        nr_read = emacs_read (fd, &cp[filled], to_read);
+        filled += nr_read;
+        if (nr_read < to_read)
+          break;
+      }
+
+    emacs_close (fd);
+    cp[filled] = 0;
+
+    for (beg = cp; *beg; beg = end)
+      {
+        int len;
+
+        while (*beg && isspace (*beg)) ++beg;
+
+        for (end = beg; *end && ! isspace (*end); ++end)
+          if (*end == '/') beg = end+1;  /* skip directory part  */
+
+        len = end - beg;
+        if (len > 4 && end[-4] == '.' && end[-3] == 'o')
+          len -= 2;  /* Just take .o if it ends in .obj  */
+
+        if (len > 0)
+          Vbuild_files = Fcons (make_string (beg, len), Vbuild_files);
+      }
+
+    xfree (cp);
+  }
 
   fd = emacs_open (name, O_RDONLY, 0);
   if (fd < 0)
@@ -640,10 +679,28 @@ the same file name is found in the `data-directory'.  */)
       if (p != end)
 	{
 	  end = (char *) index (p, '\n');
+
+          /* See if this is a file name, and if it is a file in build-files.  */
+          if (p[1] == 'S' && end - p > 4 && end[-2] == '.'
+              && (end[-1] == 'o' || end[-1] == 'c'))
+            {
+              int len = end - p - 2;
+              char *fromfile = alloca (len + 1);
+              strncpy (fromfile, &p[2], len);
+              fromfile[len] = 0;
+              if (fromfile[len-1] == 'c')
+                fromfile[len-1] = 'o';
+
+              if (EQ (Fmember (build_string (fromfile), Vbuild_files), Qnil))
+                skip_file = 1;
+              else
+                skip_file = 0;
+            }
+
 	  sym = oblookup (Vobarray, p + 2,
 			  multibyte_chars_in_text (p + 2, end - p - 2),
 			  end - p - 2);
-	  if (SYMBOLP (sym))
+	  if (! skip_file && SYMBOLP (sym))
 	    {
 	      /* Attach a docstring to a variable?  */
 	      if (p[1] == 'V')
@@ -660,6 +717,9 @@ the same file name is found in the `data-directory'.  */)
 	      else if (p[1] == 'F')
 		store_function_docstring (sym, pos + end + 1 - buf);
 
+	      else if (p[1] == 'S')
+		; /* Just a source file name boundary marker.  Ignore it.  */
+
 	      else
 		error ("DOC file invalid at position %d", pos);
 	    }
@@ -675,15 +735,18 @@ the same file name is found in the `data-directory'.  */)
 DEFUN ("substitute-command-keys", Fsubstitute_command_keys,
        Ssubstitute_command_keys, 1, 1, 0,
        doc: /* Substitute key descriptions for command names in STRING.
-Return a new string which is STRING with substrings of the form \\=\\[COMMAND]
-replaced by either:  a keystroke sequence that will invoke COMMAND,
-or "M-x COMMAND" if COMMAND is not on any keys.
+Substrings of the form \\=\\[COMMAND] replaced by either: a keystroke
+sequence that will invoke COMMAND, or "M-x COMMAND" if COMMAND is not
+on any keys.
 Substrings of the form \\=\\{MAPVAR} are replaced by summaries
 \(made by describe-bindings) of the value of MAPVAR, taken as a keymap.
 Substrings of the form \\=\\<MAPVAR> specify to use the value of MAPVAR
 as the keymap for future \\=\\[COMMAND] substrings.
 \\=\\= quotes the following character and is discarded;
-thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ into the output.  */)
+thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ into the output.
+
+Returns original STRING if no substitutions were made.  Othwerwise,
+a new string, without any text properties, is returned.  */)
      (string)
      Lisp_Object string;
 {
@@ -725,7 +788,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
   bsize = SBYTES (string);
   bufp = buf = (unsigned char *) xmalloc (bsize);
 
-  strp = (unsigned char *) SDATA (string);
+  strp = SDATA (string);
   while (strp < SDATA (string) + SBYTES (string))
     {
       if (strp[0] == '\\' && strp[1] == '=')
@@ -753,15 +816,15 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	}
       else if (strp[0] == '\\' && strp[1] == '[')
 	{
-	  Lisp_Object firstkey;
 	  int start_idx;
+	  int follow_remap = 1;
 
 	  changed = 1;
 	  strp += 2;		/* skip \[ */
 	  start = strp;
 	  start_idx = start - SDATA (string);
 
-	  while ((strp - (unsigned char *) SDATA (string)
+	  while ((strp - SDATA (string)
 		  < SBYTES (string))
 		 && *strp != ']')
 	    strp++;
@@ -770,24 +833,28 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  strp++;		/* skip ] */
 
 	  /* Save STRP in IDX.  */
-	  idx = strp - (unsigned char *) SDATA (string);
-	  tem = Fintern (make_string (start, length_byte), Qnil);
+	  idx = strp - SDATA (string);
+	  name = Fintern (make_string (start, length_byte), Qnil);
+
+	do_remap:
+	  /* Ignore remappings unless there are no ordinary bindings. */
+ 	  tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qt);
+ 	  if (NILP (tem))
+	    tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qnil);
+
+	  if (VECTORP (tem) && XVECTOR (tem)->size > 1
+	      && EQ (AREF (tem, 0), Qremap) && SYMBOLP (AREF (tem, 1))
+	      && follow_remap)
+	    {
+	      name = AREF (tem, 1);
+	      follow_remap = 0;
+	      goto do_remap;
+	    }
 
 	  /* Note the Fwhere_is_internal can GC, so we have to take
 	     relocation of string contents into account.  */
-	  tem = Fwhere_is_internal (tem, keymap, Qt, Qnil, Qnil);
 	  strp = SDATA (string) + idx;
 	  start = SDATA (string) + start_idx;
-
-	  /* Disregard menu bar bindings; it is positively annoying to
-	     mention them when there's no menu bar, and it isn't terribly
-	     useful even when there is a menu bar.  */
-	  if (!NILP (tem))
-	    {
-	      firstkey = Faref (tem, make_number (0));
-	      if (EQ (firstkey, Qmenu_bar))
-		tem = Qnil;
-	    }
 
 	  if (NILP (tem))	/* but not on any keys */
 	    {
@@ -805,7 +872,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	    }
 	  else
 	    {			/* function is on a key */
-	      tem = Fkey_description (tem);
+	      tem = Fkey_description (tem, Qnil);
 	      goto subst_string;
 	    }
 	}
@@ -815,14 +882,16 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	{
 	  struct buffer *oldbuf;
 	  int start_idx;
+	  /* This is for computing the SHADOWS arg for describe_map_tree.  */
+	  Lisp_Object active_maps = Fcurrent_active_maps (Qnil);
+	  Lisp_Object earlier_maps;
 
 	  changed = 1;
 	  strp += 2;		/* skip \{ or \< */
 	  start = strp;
 	  start_idx = start - SDATA (string);
 
-	  while ((strp - (unsigned char *) SDATA (string)
-		  < SCHARS (string))
+	  while ((strp - SDATA (string) < SBYTES (string))
 		 && *strp != '}' && *strp != '>')
 	    strp++;
 
@@ -830,7 +899,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  strp++;			/* skip } or > */
 
 	  /* Save STRP in IDX.  */
-	  idx = strp - (unsigned char *) SDATA (string);
+	  idx = strp - SDATA (string);
 
 	  /* Get the value of the keymap in TEM, or nil if undefined.
 	     Do this while still in the user's current buffer
@@ -866,7 +935,13 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  else if (start[-1] == '<')
 	    keymap = tem;
 	  else
-	    describe_map_tree (tem, 1, Qnil, Qnil, (char *)0, 1, 0, 0);
+	    {
+	      /* Get the list of active keymaps that precede this one.
+		 If this one's not active, get nil.  */
+	      earlier_maps = Fcdr (Fmemq (tem, Freverse (active_maps)));
+	      describe_map_tree (tem, 1, Fnreverse (earlier_maps),
+				 Qnil, (char *)0, 1, 0, 0, 1);
+	    }
 	  tem = Fbuffer_string ();
 	  Ferase_buffer ();
 	  set_buffer_internal (oldbuf);
@@ -923,8 +998,15 @@ syms_of_doc ()
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);
   Vdoc_file_name = Qnil;
 
+  DEFVAR_LISP ("build-files", &Vbuild_files,
+               doc: /* A list of files used to build this Emacs binary.  */);
+  Vbuild_files = Qnil;
+
   defsubr (&Sdocumentation);
   defsubr (&Sdocumentation_property);
   defsubr (&Ssnarf_documentation);
   defsubr (&Ssubstitute_command_keys);
 }
+
+/* arch-tag: 56281d4d-6949-43e2-be2e-f6517de744ba
+   (do not change this comment) */

@@ -1,5 +1,6 @@
 /* sound.c -- sound support.
-   Copyright (C) 1998, 1999, 2001 Free Software Foundation.
+   Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Written by Gerd Moellmann <gerd@gnu.org>.  Tested with Luigi's
    driver on FreeBSD 2.2.7 with a SoundBlaster 16.  */
@@ -1143,3 +1144,6 @@ init_sound ()
 }
 
 #endif /* HAVE_SOUND */
+
+/* arch-tag: dd850ad8-0433-4e2c-9cba-b7aeeccc0dbd
+   (do not change this comment) */

@@ -1,6 +1,7 @@
 ;;; fortune.el --- use fortune to create signatures
 
-;; Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Holger Schauer <Holger.Schauer@gmx.de>
 ;; Keywords: games utils mail
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;; This utility allows you to automatically cut regions to a fortune
@@ -271,7 +272,7 @@ and choose the directory as the fortune-file."
 	 (fortune-ask-file)
        fortune-file)))
    (save-excursion
-    (fortune-in-buffer (interactive-p) file)
+    (fortune-in-buffer t file)
     (set-buffer fortune-buffer-name)
     (let* ((fortune (buffer-string))
 	   (signature (concat fortune-sigstart fortune fortune-sigend)))
@@ -285,7 +286,7 @@ and choose the directory as the fortune-file."
 (defun fortune-in-buffer (interactive &optional file)
   "Put a fortune cookie in the *fortune* buffer.
 
-When INTERACTIVE is nil, don't display it.  Optional argument FILE,
+INTERACTIVE is ignored.  Optional argument FILE,
 when supplied, specifies the file to choose the fortune from."
   (let ((fortune-buffer (or (get-buffer fortune-buffer-name)
 			    (generate-new-buffer fortune-buffer-name)))
@@ -327,4 +328,5 @@ and choose the directory as the fortune-file."
 ;;; Provide ourselves.
 (provide 'fortune)
 
+;;; arch-tag: a1e4cb8a-3792-40e7-86a7-fc75ce094bcc
 ;;; fortune.el ends here

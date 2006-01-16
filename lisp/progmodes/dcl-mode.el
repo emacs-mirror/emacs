@@ -1,6 +1,7 @@
 ;;; dcl-mode.el --- major mode for editing DCL command files
 
-;; Copyright (c) 1997 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Odd Gripenstam <gripenstamol@decus.se>
 ;; Maintainer: Odd Gripenstam <gripenstamol@decus.se>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -51,6 +52,7 @@
 ;;
 ;;
 ;; Ideas for improvement:
+;; * Better font-lock support.
 ;; * Change meaning of `left margin' when dcl-tab-always-indent is nil.
 ;;   Consider the following line (`_' is the cursor):
 ;;     $ label: _ command
@@ -71,8 +73,29 @@
 
 ;;; *** Customization *****************************************************
 
+
+;; First, font lock.  This is a minimal approach, please improve!
+
+(defvar dcl-font-lock-keywords
+  '(("\\<\\(if\\|then\\|else\\|endif\\)\\>"
+     1 font-lock-keyword-face)
+    ("\\<f[$][a-z_]+\\>"
+     0 font-lock-builtin-face)
+    ("[.]\\(eq\\|not\\|or\\|and\\|lt\\|gt\\|le\\|ge\\|eqs\\|nes\\)[.]"
+     0 font-lock-builtin-face))
+  "Font lock keyword specification for DCL mode.
+Presently this includes some syntax, .OP.erators, and \"f$\" lexicals.")
+
+(defvar dcl-font-lock-defaults
+  '(dcl-font-lock-keywords nil)
+  "Font lock specification for DCL mode.")
+
+
+;; Now the rest.
+
 (defgroup dcl nil
   "Major mode for editing DCL command files."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 (defcustom dcl-basic-offset 4
@@ -263,13 +286,13 @@ See `imenu-generic-expression' for details."
 
 (defvar dcl-mode-syntax-table nil
   "Syntax table used in DCL-buffers.")
-(if dcl-mode-syntax-table
-    ()
+(unless dcl-mode-syntax-table
   (setq dcl-mode-syntax-table (make-syntax-table))
   (modify-syntax-entry ?!  "<" dcl-mode-syntax-table) ; comment start
   (modify-syntax-entry ?\n ">" dcl-mode-syntax-table) ; comment end
   (modify-syntax-entry ?< "(>" dcl-mode-syntax-table) ; < and ...
   (modify-syntax-entry ?> ")<" dcl-mode-syntax-table) ; > is a matching pair
+  (modify-syntax-entry ?\\ "_" dcl-mode-syntax-table) ; not an escape
 )
 
 
@@ -566,7 +589,10 @@ Data lines are not indented at all.
 $           endloop1: ! This matches dcl-block-end-regexp
 $       endif
 $
-"
+
+
+There is some minimal font-lock support (see vars
+`dcl-font-lock-defaults' and `dcl-font-lock-keywords')."
   (interactive)
   (kill-all-local-variables)
   (set-syntax-table dcl-mode-syntax-table)
@@ -609,11 +635,15 @@ $
   (make-local-variable 'dcl-calc-cont-indent-function)
   (make-local-variable 'dcl-electric-reindent-regexps)
 
+  ;; font lock
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults dcl-font-lock-defaults)
+
   (setq major-mode 'dcl-mode)
   (setq mode-name "DCL")
   (use-local-map dcl-mode-map)
   (tempo-use-tag-list 'dcl-tempo-tags)
-  (run-hooks 'dcl-mode-hook))
+  (run-mode-hooks 'dcl-mode-hook))
 
 
 ;;; *** Movement commands ***************************************************
@@ -2187,4 +2217,5 @@ otherwise return nil."
 
 (run-hooks 'dcl-mode-load-hook)		; for your customizations
 
+;;; arch-tag: e00d421b-f26c-483e-a8bd-af412ea7764a
 ;;; dcl-mode.el ends here

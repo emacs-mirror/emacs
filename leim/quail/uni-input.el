@@ -1,6 +1,9 @@
 ;;; uni-input.el --- Hex Unicode input method
 
-;; Copyright (C) 2001  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 2004
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -19,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -66,14 +69,16 @@
 	       (write (((r0 >> 6) & ?\x3F) | ?\x80))
 	       (write ((r0 & ?\x3F) | ?\x80))))))))))
 
+(defun ucs-input-insert-char (char)
+  (insert char)
+  (move-overlay quail-overlay (overlay-start quail-overlay) (point)))
+
 (defun ucs-input-method (key)
   (if (or buffer-read-only
 	  (and (/= key ?U) (/= key ?u)))
       (list key)
     (quail-setup-overlays nil)
-    (let ((current-prefix-arg)
-	  (last-command-char key))
-      (call-interactively 'self-insert-command))
+    (ucs-input-insert-char key)
     (let ((modified-p (buffer-modified-p))
 	  (buffer-undo-list t)
 	  (input-method-function nil)
@@ -94,13 +99,12 @@
 				       ?b ?c ?d ?e ?f ?A ?B ?C ?D ?E ?F)))
 		      (progn
 			(push key events)
-			(let ((last-command-char key)
-			      (current-prefix-arg))
-			  (call-interactively 'self-insert-command)))
+			(ucs-input-insert-char key))
 		    (let ((last-command-char key)
 			  (current-prefix-arg))
-		      (condition-case nil
-			  (call-interactively (key-binding seq))))
+		      (condition-case err
+			  (call-interactively (key-binding seq))
+			(quail-error (message "%s" (cdr err)) (beep))))
 		    (quail-delete-region)
 		    (throw 'non-digit (append (reverse events)
 					      (listify-key-sequence seq))))))
@@ -109,7 +113,7 @@
 						 (cdr (nreverse events)))
 					  16))
 		     (c (decode-char 'ucs n))
-		    (status (make-vector 9 nil)))
+		     (status (make-vector 9 nil)))
 		(if c
 		    (list c)
 		  (aset status 0 n)
@@ -129,7 +133,7 @@ While this input method is active, the variable
 	  (< (prefix-numeric-value arg) 0))
       (unwind-protect
 	  (progn
-	    (quail-hide-guidance-buf)
+	    (quail-hide-guidance)
 	    (quail-delete-overlays)
 	    (setq describe-current-input-method-function nil))
 	(kill-local-variable 'input-method-function))
@@ -138,7 +142,6 @@ While this input method is active, the variable
     (quail-delete-overlays)
     (if (eq (selected-window) (minibuffer-window))
 	(add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer))
-    (add-hook 'kill-buffer-hook 'quail-kill-guidance-buf nil t)
     (set (make-local-variable 'input-method-function)
 	 'ucs-input-method)))
 
@@ -155,9 +158,11 @@ Input method: ucs (mode line indicator:U)
 
 Input as Unicode: U<hex> or u<hex>, where <hex> is a four-digit hex number.")))
 
-(register-input-method "ucs" "UTF-8" 'ucs-input-activate "U+"
-		       "Unicode input as hex in the form Uxxxx.")
+;; The file ../leim-ext.el contains the following call.
+;; (register-input-method "ucs" "UTF-8" 'ucs-input-activate "U+"
+;; 		       "Unicode input as hex in the form Uxxxx.")
 
 (provide 'uni-input)
 
+;;; arch-tag: e0d91c7c-19a1-43d3-8f2b-28c0e031efaa
 ;;; uni-input.el ends here

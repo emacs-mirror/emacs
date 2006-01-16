@@ -1,5 +1,5 @@
-/* $XConsortium: XLookAssoc.c,v 10.16 91/01/06 12:09:24 rws Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
 Permission to use, copy, modify, distribute, and sell this software and its
@@ -66,3 +66,5 @@ caddr_t XLookUpAssoc(dpy, table, x_id)
 	return(NULL);
 }
 
+/* arch-tag: d5075d0c-4b71-467d-b33c-3f5c4c4afcf2
+   (do not change this comment) */

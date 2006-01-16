@@ -2,8 +2,8 @@
 # Configuration script for src/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1996, 1997, 1999, 2000, 2002
-#   Free Software Foundation, Inc.
+# Copyright (C) 1996, 1997, 1999, 2000, 2002, 2003, 2004,
+#   2005 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -20,9 +20,9 @@ s/^#.*//
 s/^[ \f\t][ \f\t]*$//
 s/^ /	/
 s/\.h\.in/.h-in/
-/^	LC_ALL=C \.\/temacs/i\
+/^	LC_ALL=C \$(RUN_TEMACS)/i\
 	stubedit temacs.exe minstack=100k
-/^	LC_ALL=C.*temacs/s/LC_ALL=C/set &;/
+/^	LC_ALL=C.*\$(RUN_TEMACS)/s/LC_ALL=C/set &;/
 /^MAKE *=/s/^/# /
 /^SHELL *=/s/^/# /
 /^srcdir *=/s/@[^@\n]*@/./
@@ -36,6 +36,7 @@ s/\.h\.in/.h-in/
 /^LIBOBJS *=/s/@[^@\n]*@/getloadavg.o/
 /^GETLOADAVG_LIBS *=/s/@[^@\n]*@//
 /^LIBSOUND *=/s/@LIBSOUND@//
+/^EXEEXT *=/s/@EXEEXT@//
 /^LN_S *=/s/@[^@\n]*@/ln -s/
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
@@ -57,8 +58,11 @@ s/bootstrap-doc/b-doc/
 /rm -f bootstrap-emacs/s/b-emacs/b-emacs b-emacs.exe/
 /^	els=/c\
 	${libsrc}make-docfile -o ${etc}DOC -d ${srcdir} ${SOME_MACHINE_LISP:.elc=.el} ${shortlisp:.elc=.el} ${SOME_MACHINE_OBJECTS} ${obj}
+s/echo.*buildobj.lst/dj&/
 /^	mv -f emacs/a\
 	stubify b-emacs\
 	stubedit b-emacs.exe minstack=1024k\
-	rm -f emacs.exe temacs.exe
+	rm -f emacs.exe temacs.exe emacs
 /^	rm -f/s/\\#/#/
+
+# arch-tag: c7e3aacb-4162-460e-99f9-4252bca68d2c

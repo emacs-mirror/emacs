@@ -1,5 +1,5 @@
-/* $XConsortium: XDestAssoc.c,v 10.17 91/02/08 13:11:50 rws Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
 Permission to use, copy, modify, distribute, and sell this software and its
@@ -47,3 +47,5 @@ XDestroyAssocTable(table)
 	free((char *)table);
 }
 
+/* arch-tag: a536bf02-8d63-45f2-8c1a-c7f9fd4da2cf
+   (do not change this comment) */

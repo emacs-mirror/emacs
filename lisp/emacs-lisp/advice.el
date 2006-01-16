@@ -1,6 +1,7 @@
 ;;; advice.el --- an overloading mechanism for Emacs Lisp functions
 
-;; Copyright (C) 1993,1994,2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2000, 2001, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: FSF
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;; LCD Archive Entry:
 ;; advice|Hans Chalupsky|hans@cs.buffalo.edu|
@@ -2116,7 +2117,7 @@ Redefining advices affect the construction of an advised definition."
   (let (enabled-advices)
     (ad-dolist (advice (ad-get-advice-info-field function class))
       (if (ad-advice-enabled advice)
-	  (setq enabled-advices (cons advice enabled-advices))))
+	  (push advice enabled-advices)))
     (reverse enabled-advices)))
 
 
@@ -2173,7 +2174,7 @@ Redefining advices affect the construction of an advised definition."
 ;; ============================================
 ;; The advice-info of an advised function contains its `origname' which is
 ;; a symbol that is fbound to the original definition available at the first
-;; proper activation of the function after a legal re/definition.  If the
+;; proper activation of the function after a valid re/definition.  If the
 ;; original was defined via fcell indirection then `origname' will be defined
 ;; just so.  Hence, to get hold of the actual original definition of a function
 ;; we need to use `ad-real-orig-definition'.
@@ -2217,7 +2218,7 @@ which PREDICATE returns non-nil)."
   (let* ((ad-pReDiCaTe predicate)
 	 (function
 	  (completing-read
-	   (format "%s(default %s) " (or prompt "Function: ") default)
+	   (format "%s (default %s): " (or prompt "Function") default)
 	   ad-advised-functions
 	   (if predicate
 	       (function
@@ -2238,7 +2239,7 @@ which PREDICATE returns non-nil)."
 	  ad-advice-classes))
 
 (defun ad-read-advice-class (function &optional prompt default)
-  "Read a legal advice class with completion from the minibuffer.
+  "Read a valid advice class with completion from the minibuffer.
 An optional PROMPT will be used to prompt for the class.  DEFAULT will
 be returned on empty input (defaults to the first non-empty advice
 class of FUNCTION)."
@@ -2249,7 +2250,7 @@ class of FUNCTION)."
 		  (ad-do-return class)))
 	    (error "ad-read-advice-class: `%s' has no advices" function)))
   (let ((class (completing-read
-		(format "%s(default %s) " (or prompt "Class: ") default)
+		(format "%s (default %s): " (or prompt "Class") default)
 		ad-advice-class-completion-table nil t)))
     (if (equal class "")
 	default
@@ -2267,7 +2268,7 @@ An optional PROMPT is used to prompt for the name."
 	       (error "ad-read-advice-name: `%s' has no %s advice"
 		      function class)
 	     (car (car name-completion-table))))
-	 (prompt (format "%s(default %s) " (or prompt "Name: ") default))
+	 (prompt (format "%s (default %s): " (or prompt "Name") default))
 	 (name (completing-read prompt name-completion-table nil t)))
     (if (equal name "")
 	(intern default)
@@ -2288,9 +2289,9 @@ be used to prompt for the function."
 (defun ad-read-regexp (&optional prompt)
   "Read a regular expression from the minibuffer."
   (let ((regexp (read-from-minibuffer
-		 (concat (or prompt "Regular expression: ")
-			 (if (equal ad-last-regexp "") ""
-			   (format "(default \"%s\") " ad-last-regexp))))))
+		 (concat (or prompt "Regular expression")
+			 (if (equal ad-last-regexp "") ": "
+			   (format " (default %s): " ad-last-regexp))))))
     (setq ad-last-regexp
 	  (if (equal regexp "") ad-last-regexp regexp))))
 
@@ -2312,7 +2313,7 @@ be used to prompt for the function."
 (defun ad-find-some-advice (function class name)
   "Find the first of FUNCTION's advices in CLASS matching NAME.
 NAME can be a symbol or a regular expression matching part of an advice name.
-If CLASS is `any' all legal advice classes will be checked."
+If CLASS is `any' all valid advice classes will be checked."
   (if (ad-is-advised function)
       (let (found-advice)
 	(ad-dolist (advice-class ad-advice-classes)
@@ -2332,7 +2333,7 @@ If CLASS is `any' all legal advice classes will be checked."
   "Set enable FLAG of FUNCTION's advices in CLASS matching NAME.
 If NAME is a string rather than a symbol then it's interpreted as a regular
 expression and all advices whose name contain a match for it will be
-affected.  If CLASS is `any' advices in all legal advice classes will be
+affected.  If CLASS is `any' advices in all valid advice classes will be
 considered.  The number of changed advices will be returned (or nil if
 FUNCTION was not advised)."
   (if (ad-is-advised function)
@@ -2351,7 +2352,7 @@ FUNCTION was not advised)."
 
 (defun ad-enable-advice (function class name)
   "Enables the advice of FUNCTION with CLASS and NAME."
-  (interactive (ad-read-advice-specification "Enable advice of: "))
+  (interactive (ad-read-advice-specification "Enable advice of"))
   (if (ad-is-advised function)
       (if (eq (ad-enable-advice-internal function class name t) 0)
 	  (error "ad-enable-advice: `%s' has no %s advice matching `%s'"
@@ -2360,7 +2361,7 @@ FUNCTION was not advised)."
 
 (defun ad-disable-advice (function class name)
   "Disable the advice of FUNCTION with CLASS and NAME."
-  (interactive (ad-read-advice-specification "Disable advice of: "))
+  (interactive (ad-read-advice-specification "Disable advice of"))
   (if (ad-is-advised function)
       (if (eq (ad-enable-advice-internal function class name nil) 0)
 	  (error "ad-disable-advice: `%s' has no %s advice matching `%s'"
@@ -2369,7 +2370,7 @@ FUNCTION was not advised)."
 
 (defun ad-enable-regexp-internal (regexp class flag)
   "Set enable FLAGs of all CLASS advices whose name contains a REGEXP match.
-If CLASS is `any' all legal advice classes are considered.  The number of
+If CLASS is `any' all valid advice classes are considered.  The number of
 affected advices will be returned."
   (let ((matched-advices 0))
     (ad-do-advised-functions (advised-function)
@@ -2384,7 +2385,7 @@ affected advices will be returned."
   "Enables all advices with names that contain a match for REGEXP.
 All currently advised functions will be considered."
   (interactive
-   (list (ad-read-regexp "Enable advices via regexp: ")))
+   (list (ad-read-regexp "Enable advices via regexp")))
   (let ((matched-advices (ad-enable-regexp-internal regexp 'any t)))
     (if (interactive-p)
 	(message "%d matching advices enabled" matched-advices))
@@ -2394,7 +2395,7 @@ All currently advised functions will be considered."
   "Disable all advices with names that contain a match for REGEXP.
 All currently advised functions will be considered."
   (interactive
-   (list (ad-read-regexp "Disable advices via regexp: ")))
+   (list (ad-read-regexp "Disable advices via regexp")))
   (let ((matched-advices (ad-enable-regexp-internal regexp 'any nil)))
     (if (interactive-p)
 	(message "%d matching advices disabled" matched-advices))
@@ -2404,7 +2405,7 @@ All currently advised functions will be considered."
   "Remove FUNCTION's advice with NAME from its advices in CLASS.
 If such an advice was found it will be removed from the list of advices
 in that CLASS."
-  (interactive (ad-read-advice-specification "Remove advice of: "))
+  (interactive (ad-read-advice-specification "Remove advice of"))
   (if (ad-is-advised function)
       (let* ((advice-to-remove (ad-find-advice function class name)))
 	(if advice-to-remove
@@ -2475,7 +2476,7 @@ will clear the cache."
 		   with-output-to-temp-buffer)))
     ;; track-mouse could be void in some configurations.
     (if (fboundp 'track-mouse)
-	(setq tem (cons 'track-mouse tem)))
+	(push 'track-mouse tem))
     (mapcar 'symbol-function tem)))
 
 (defmacro ad-special-form-p (definition)
@@ -2545,8 +2546,7 @@ supplied to make subr arglist lookup more efficient."
 	   ;; otherwise get it from its printed representation:
 	   (setq name (format "%s" definition))
 	   (string-match "^#<subr \\([^>]+\\)>$" name)
-	   (ad-subr-arglist
-	    (intern (substring name (match-beginning 1) (match-end 1))))))))
+	   (ad-subr-arglist (intern (match-string 1 name)))))))
 
 ;; Store subr-args as `((arg1 arg2 ...))' so I can distinguish
 ;; a defined empty arglist `(nil)' from an undefined arglist:
@@ -2564,39 +2564,31 @@ supplied to make subr arglist lookup more efficient."
 Either use the one stored under the `ad-subr-arglist' property,
 or try to retrieve it from the docstring and cache it under
 that property, or otherwise use `(&rest ad-subr-args)'."
-  (cond ((ad-subr-args-defined-p subr-name)
-	 (ad-get-subr-args subr-name))
-	;; says jwz: Should use this for Lemacs 19.8 and above:
-	;;((fboundp 'subr-min-args)
-	;;  ...)
-	;; says hans: I guess what Jamie means is that I should use the values
-	;; of `subr-min-args' and `subr-max-args' to construct the subr arglist
-	;; without having to look it up via parsing the docstring, e.g.,
-	;; values 1 and 2 would suggest `(arg1 &optional arg2)' as an
-	;; argument list.  However, that won't work because there is no
-	;; way to distinguish a subr with args `(a &optional b &rest c)' from
-	;; one with args `(a &rest c)' using that mechanism. Also, the argument
-	;; names from the docstring are more meaningful. Hence, I'll stick with
-	;; the old way of doing things.
-	(t (let ((doc (or (ad-real-documentation subr-name t) "")))
-	     (cond ((string-match "^\\(([^\)]+)\\)\n?\\'" doc)
-		    (ad-define-subr-args
-		     subr-name
-		     (cdr (car (read-from-string
-				(downcase
-				 (substring doc
-					    (match-beginning 1)
-					    (match-end 1)))))))
-		    (ad-get-subr-args subr-name))
-		   ;; this is the old format used before Emacs 19.24:
-		   ((string-match
-		     "[\n\t ]*\narguments: ?\\((.*)\\)\n?\\'" doc)
-		    (ad-define-subr-args
-		     subr-name
-		     (car (read-from-string
-			   doc (match-beginning 1) (match-end 1))))
-		    (ad-get-subr-args subr-name))
-		   (t '(&rest ad-subr-args)))))))
+  (if (ad-subr-args-defined-p subr-name)
+      (ad-get-subr-args subr-name)
+    ;; says jwz: Should use this for Lemacs 19.8 and above:
+    ;;((fboundp 'subr-min-args)
+    ;;  ...)
+    ;; says hans: I guess what Jamie means is that I should use the values
+    ;; of `subr-min-args' and `subr-max-args' to construct the subr arglist
+    ;; without having to look it up via parsing the docstring, e.g.,
+    ;; values 1 and 2 would suggest `(arg1 &optional arg2)' as an
+    ;; argument list.  However, that won't work because there is no
+    ;; way to distinguish a subr with args `(a &optional b &rest c)' from
+    ;; one with args `(a &rest c)' using that mechanism. Also, the argument
+    ;; names from the docstring are more meaningful. Hence, I'll stick with
+    ;; the old way of doing things.
+    (let ((doc (or (ad-real-documentation subr-name t) "")))
+      (if (not (string-match "\n\n\\((.+)\\)\\'" doc))
+	  ;; Signalling an error leads to bugs during bootstrapping because
+	  ;; the DOC file is not yet built (which is an error, BTW).
+	  ;; (error "The usage info is missing from the subr %s" subr-name)
+	  '(&rest ad-subr-args)
+	(ad-define-subr-args
+	 subr-name
+	 (cdr (car (read-from-string
+		    (downcase (match-string 1 doc))))))
+	(ad-get-subr-args subr-name)))))
 
 (defun ad-docstring (definition)
   "Return the unexpanded docstring of DEFINITION."
@@ -2999,33 +2991,37 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 		       (capitalize (symbol-name class))
 		       (ad-advice-name advice)))))))
 
+(require 'help-fns)	    ;For help-split-fundoc and help-add-fundoc-usage.
+
 (defun ad-make-advised-docstring (function &optional style)
-  ;;"Constructs a documentation string for the advised FUNCTION.
-  ;;It concatenates the original documentation with the documentation
-  ;;strings of the individual pieces of advice which will be formatted
-  ;;according to STYLE.  STYLE can be `plain' or `freeze', everything else
-  ;;will be interpreted as `default'.  The order of the advice documentation
-  ;;strings corresponds to before/around/after and the individual ordering
-  ;;in any of these classes."
+  "Construct a documentation string for the advised FUNCTION.
+It concatenates the original documentation with the documentation
+strings of the individual pieces of advice which will be formatted
+according to STYLE.  STYLE can be `plain' or `freeze', everything else
+will be interpreted as `default'.  The order of the advice documentation
+strings corresponds to before/around/after and the individual ordering
+in any of these classes."
   (let* ((origdef (ad-real-orig-definition function))
 	 (origtype (symbol-name (ad-definition-type origdef)))
 	 (origdoc
 	  ;; Retrieve raw doc, key substitution will be taken care of later:
 	  (ad-real-documentation origdef t))
-	 paragraphs advice-docstring)
+	 (usage (help-split-fundoc origdoc function))
+	 paragraphs advice-docstring ad-usage)
+    (setq usage (if (null usage) t (setq origdoc (cdr usage)) (car usage)))
     (if origdoc (setq paragraphs (list origdoc)))
-    (if (not (eq style 'plain))
-	(setq paragraphs (cons (concat "This " origtype " is advised.")
-			       paragraphs)))
+    (unless (eq style 'plain)
+      (push (concat "This " origtype " is advised.") paragraphs))
     (ad-dolist (class ad-advice-classes)
       (ad-dolist (advice (ad-get-enabled-advices function class))
 	(setq advice-docstring
 	      (ad-make-single-advice-docstring advice class style))
 	(if advice-docstring
-	    (setq paragraphs (cons advice-docstring paragraphs)))))
-    (if paragraphs
-	;; separate paragraphs with blank lines:
-	(mapconcat 'identity (nreverse paragraphs) "\n\n"))))
+	    (push advice-docstring paragraphs))))
+    (setq origdoc (if paragraphs
+		      ;; separate paragraphs with blank lines:
+		      (mapconcat 'identity (nreverse paragraphs) "\n\n")))
+    (help-add-fundoc-usage origdoc usage)))
 
 (defun ad-make-plain-docstring (function)
   (ad-make-advised-docstring function 'plain))
@@ -3111,10 +3107,10 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 			  (not advised-interactive-form))
 		     ;; Check whether we were called interactively
 		     ;; in order to do proper prompting:
-		     `(if (interactive-p)
+		     `(if (called-interactively-p)
 			  (call-interactively ',origname)
-			,(ad-make-mapped-call orig-arglist
-					      advised-arglist
+			,(ad-make-mapped-call advised-arglist
+					      orig-arglist
 					      origname)))
 		    ;; And now for normal functions and non-interactive subrs
 	            ;; (or subrs whose interactive behavior was advised):
@@ -3289,7 +3285,7 @@ should be modified.  The assembled function will be returned."
 Clear the cache if you want to force `ad-activate' to construct a new
 advised definition from scratch."
   (interactive
-   (list (ad-read-advised-function "Clear cached definition of: ")))
+   (list (ad-read-advised-function "Clear cached definition of")))
   (ad-set-advice-info-field function 'cache nil))
 
 (defun ad-make-cache-id (function)
@@ -3606,7 +3602,7 @@ an advised function that has actual pieces of advice but none of them are
 enabled is equivalent to a call to `ad-deactivate'.  The current advised
 definition will always be cached for later usage."
   (interactive
-   (list (ad-read-advised-function "Activate advice of: ")
+   (list (ad-read-advised-function "Activate advice of")
 	 current-prefix-arg))
   (if ad-activate-on-top-level
       ;; avoid recursive calls to `ad-activate':
@@ -3636,7 +3632,7 @@ definition of FUNCTION will be replaced with it.  All the advice
 information will still be available so it can be activated again with
 a call to `ad-activate'."
   (interactive
-   (list (ad-read-advised-function "Deactivate advice of: " 'ad-is-active)))
+   (list (ad-read-advised-function "Deactivate advice of" 'ad-is-active)))
   (if (not (ad-is-advised function))
       (error "ad-deactivate: `%s' is not advised" function)
     (cond ((ad-is-active function)
@@ -3654,7 +3650,7 @@ a call to `ad-activate'."
 See `ad-activate' for documentation on the optional COMPILE argument."
   (interactive
    (list (ad-read-advised-function
-	  "Update advised definition of: " 'ad-is-active)))
+	  "Update advised definition of" 'ad-is-active)))
   (if (ad-is-active function)
       (ad-activate function compile)))
 
@@ -3662,7 +3658,7 @@ See `ad-activate' for documentation on the optional COMPILE argument."
   "Deactivate FUNCTION and then remove all its advice information.
 If FUNCTION was not advised this will be a noop."
   (interactive
-   (list (ad-read-advised-function "Unadvise function: ")))
+   (list (ad-read-advised-function "Unadvise function")))
   (cond ((ad-is-advised function)
 	 (if (ad-is-active function)
 	     (ad-deactivate function))
@@ -3693,7 +3689,7 @@ This activates the advice for each function
 that has at least one piece of advice whose name includes a match for REGEXP.
 See `ad-activate' for documentation on the optional COMPILE argument."
   (interactive
-   (list (ad-read-regexp "Activate via advice regexp: ")
+   (list (ad-read-regexp "Activate via advice regexp")
 	 current-prefix-arg))
   (ad-do-advised-functions (function)
     (if (ad-find-some-advice function 'any regexp)
@@ -3704,7 +3700,7 @@ See `ad-activate' for documentation on the optional COMPILE argument."
 This deactivates the advice for each function
 that has at least one piece of advice whose name includes a match for REGEXP."
   (interactive
-   (list (ad-read-regexp "Deactivate via advice regexp: ")))
+   (list (ad-read-regexp "Deactivate via advice regexp")))
   (ad-do-advised-functions (function)
     (if (ad-find-some-advice function 'any regexp)
 	(ad-deactivate function))))
@@ -3715,7 +3711,7 @@ This reactivates the advice for each function
 that has at least one piece of advice whose name includes a match for REGEXP.
 See `ad-activate' for documentation on the optional COMPILE argument."
   (interactive
-   (list (ad-read-regexp "Update via advice regexp: ")
+   (list (ad-read-regexp "Update via advice regexp")
 	 current-prefix-arg))
   (ad-do-advised-functions (function)
     (if (ad-find-some-advice function 'any regexp)
@@ -3760,7 +3756,7 @@ deactivation, which might run hooks and get into other trouble."
       (error nil))))
 
 
-;; Completion alist of legal `defadvice' flags
+;; Completion alist of valid `defadvice' flags
 (defvar ad-defadvice-flags
   '(("protect") ("disable") ("activate")
     ("compile") ("preactivate") ("freeze")))
@@ -3816,6 +3812,7 @@ documentation of the advised function can be dumped onto the `DOC' file
 during preloading.
 
 See Info node `(elisp)Advising Functions' for comprehensive documentation."
+  (declare (doc-string 3))
   (if (not (ad-name-p function))
       (error "defadvice: Invalid function name: %s" function))
   (let* ((class (car args))
@@ -3990,4 +3987,5 @@ Use only in REAL emergencies."
 
 (provide 'advice)
 
+;; arch-tag: 29f8c9a1-8c88-471f-95d7-e28541c6b7c0
 ;;; advice.el ends here

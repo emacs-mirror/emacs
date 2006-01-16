@@ -1,6 +1,7 @@
 ;;; esh-module.el --- Eshell modules
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'esh-module)
 
@@ -41,32 +42,33 @@ customizing the variable `eshell-modules-list'."
 
 (defun eshell-load-defgroups (&optional directory)
   "Load `defgroup' statements from Eshell's module files."
-  (with-current-buffer
-      (find-file-noselect (expand-file-name "esh-groups.el" directory))
-    (erase-buffer)
-    (insert ";;; do not modify this file; it is auto-generated -*- no-byte-compile: t -*-\n\n")
-    (let ((files (directory-files (or directory
-				      (car command-line-args-left))
-				  nil "\\`em-.*\\.el\\'")))
-      (while files
-	(message "Loading defgroup from `%s'" (car files))
-	(let (defgroup)
-	  (catch 'handled
-	    (with-current-buffer (find-file-noselect (car files))
-	      (goto-char (point-min))
-	      (while t
-		(forward-sexp)
-		(if (eobp) (throw 'handled t))
-		(backward-sexp)
-		(let ((begin (point))
-		      (defg (looking-at "(defgroup")))
+  (let ((vc-handled-backends nil)) ; avoid VC fucking things up
+    (with-current-buffer
+	(find-file-noselect (expand-file-name "esh-groups.el" directory))
+      (erase-buffer)
+      (insert ";;; do not modify this file; it is auto-generated -*- no-byte-compile: t -*-\n\n")
+      (let ((files (directory-files (or directory
+					(car command-line-args-left))
+				    nil "\\`em-.*\\.el\\'")))
+	(while files
+	  (message "Loading defgroup from `%s'" (car files))
+	  (let (defgroup)
+	    (catch 'handled
+	      (with-current-buffer (find-file-noselect (car files))
+		(goto-char (point-min))
+		(while t
 		  (forward-sexp)
-		  (if defg
-		      (setq defgroup (buffer-substring begin (point))))))))
-	  (if defgroup
-	      (insert defgroup "\n\n")))
-	(setq files (cdr files))))
-    (save-buffer)))
+		  (if (eobp) (throw 'handled t))
+		  (backward-sexp)
+		  (let ((begin (point))
+			(defg (looking-at "(defgroup")))
+		    (forward-sexp)
+		    (if defg
+			(setq defgroup (buffer-substring begin (point))))))))
+	    (if defgroup
+		(insert defgroup "\n\n")))
+	  (setq files (cdr files))))
+      (save-buffer))))
 
 ;; load the defgroup's for the standard extension modules, so that
 ;; documentation can be provided when the user customize's
@@ -153,4 +155,5 @@ customization group.  Example: `eshell-cmpl' for that module."
 	  (unload-feature module)
 	  (message "Unloading %s...done" (symbol-name module))))))
 
+;;; arch-tag: 97a3fa16-9d08-40e6-bc2c-36bd70986507
 ;;; esh-module.el ends here

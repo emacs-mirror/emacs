@@ -1,4 +1,5 @@
-/* Copyright (C) 1985, 1994 Free Software Foundation
+/* Copyright (C) 1985, 1994, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -14,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* cvtmail:
  * Program to convert oldstyle goslings emacs mail directories into
@@ -40,11 +41,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 
 #ifndef HAVE_STDLIB_H
-char *malloc ();
-char *realloc ();
 char *getenv ();
-#else
-#include <stdlib.h>
 #endif
 
 char *xmalloc __P ((unsigned));
@@ -123,7 +120,7 @@ main (argc, argv)
     }
   fclose (mddf);
   fclose (mfilef);
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 void
@@ -152,7 +149,7 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 void
@@ -161,14 +158,14 @@ sysfail (s)
 {
   fprintf (stderr, "cvtmail: ");
   perror (s);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 char *
 xmalloc (size)
      unsigned size;
 {
-  char *result = malloc (size);
+  char *result = (char *) malloc (size);
   if (!result)
     fatal ("virtual memory exhausted", 0);
   return result;
@@ -179,8 +176,13 @@ xrealloc (ptr, size)
      char *ptr;
      unsigned size;
 {
-  char *result = realloc (ptr, size);
+  char *result = (char *) realloc (ptr, size);
   if (!result)
     fatal ("virtual memory exhausted", 0);
   return result;
 }
+
+/* arch-tag: b93c25a9-9012-44f1-b78b-9cc7aed44a7a
+   (do not change this comment) */
+
+/* cvtmail.c ends here */

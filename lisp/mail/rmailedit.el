@@ -1,6 +1,7 @@
 ;;; rmailedit.el --- "RMAIL edit mode"  Edit the current message
 
-;; Copyright (C) 1985, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -19,14 +20,12 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
 ;;; Code:
-
-(provide 'rmailedit)
 
 (eval-when-compile
   (require 'rmail)
@@ -62,7 +61,7 @@ to return to regular RMAIL:
   *  \\[rmail-cease-edit] makes them permanent.
 This functions runs the normal hook `rmail-edit-mode-hook'.
 \\{rmail-edit-map}"
-  (text-mode)
+  (delay-mode-hooks (text-mode))
   (use-local-map rmail-edit-map)
   (setq major-mode 'rmail-edit-mode)
   (setq mode-name "RMAIL Edit")
@@ -73,7 +72,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
       (save-excursion
 	(set-buffer rmail-summary-buffer)
 	(rmail-summary-disable)))
-  (run-hooks 'rmail-edit-mode-hook))
+  (run-mode-hooks 'rmail-edit-mode-hook))
 
 (defvar rmail-old-pruned nil)
 (put 'rmail-old-pruned 'permanent-local t)
@@ -149,4 +148,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
   (rmail-cease-edit)
   (rmail-highlight-headers))
 
+(provide 'rmailedit)
+
+;;; arch-tag: 93c22709-a14a-46c1-ab91-52c3f5a0ec12
 ;;; rmailedit.el ends here

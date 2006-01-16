@@ -1,6 +1,6 @@
 ;;; midnight.el --- run something every midnight, e.g., kill old buffers
 
-;;; Copyright (C) 1998 Free Software Foundation, Inc.
+;;; Copyright (C) 1998, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Sam Steingold <sds@usa.net>
 ;; Maintainer: Sam Steingold <sds@usa.net>
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -47,6 +47,11 @@
   "Run something every day at midnight."
   :group 'calendar
   :version "20.3")
+
+(defvar midnight-timer nil
+  "Timer running the `midnight-hook' `midnight-delay' seconds after midnight.
+Use `cancel-timer' to stop it and `midnight-delay-set' to change
+the time when it is run.")
 
 (defcustom midnight-mode nil
   "*Non-nil means run `midnight-hook' at midnight.
@@ -204,18 +209,13 @@ The default value is `clean-buffer-list'."
   (multiple-value-bind (sec min hrs) (decode-time)
     (- (* 24 60 60) (* 60 60 hrs) (* 60 min) sec)))
 
-(defvar midnight-timer nil
-  "Timer running the `midnight-hook' `midnight-delay' seconds after midnight.
-Use `cancel-timer' to stop it and `midnight-delay-set' to change
-the time when it is run.")
-
 ;;;###autoload
 (defun midnight-delay-set (symb tm)
   "Modify `midnight-timer' according to `midnight-delay'.
 Sets the first argument SYMB (which must be symbol `midnight-delay')
 to its second argument TM."
   (assert (eq symb 'midnight-delay) t
-          "Illegal argument to `midnight-delay-set': `%s'" symb)
+          "Invalid argument to `midnight-delay-set': `%s'")
   (set symb tm)
   (when (timerp midnight-timer) (cancel-timer midnight-timer))
   (setq midnight-timer
@@ -234,4 +234,5 @@ first argument to `run-at-time'."
 
 (provide 'midnight)
 
+;;; arch-tag: a5979be9-2890-46a3-ba84-791f0a4a6e80
 ;;; midnight.el ends here

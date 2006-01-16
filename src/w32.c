@@ -1,5 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1994, 1995, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,13 +16,11 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.
 
    Geoff Voelker (voelker@cs.washington.edu)                         7-29-94
 */
-
-
 #include <stddef.h> /* for offsetof */
 #include <stdlib.h>
 #include <stdio.h>
@@ -66,12 +65,14 @@ Boston, MA 02111-1307, USA.
 #include "lisp.h"
 
 #include <pwd.h>
+#include <grp.h>
 
 #ifdef __GNUC__
 #define _ANONYMOUS_UNION
 #define _ANONYMOUS_STRUCT
 #endif
 #include <windows.h>
+#include <shlobj.h>
 
 #ifdef HAVE_SOCKETS	/* TCP connection support, if kernel can do it */
 #include <sys/socket.h>
@@ -99,12 +100,15 @@ Boston, MA 02111-1307, USA.
 #include "w32heap.h"
 #include "systime.h"
 
+typedef HRESULT (WINAPI * ShGetFolderPath_fn)
+  (IN HWND, IN int, IN HANDLE, IN DWORD, OUT char *);
+
 void globals_of_w32 ();
 
 extern Lisp_Object Vw32_downcase_file_names;
 extern Lisp_Object Vw32_generate_fake_inodes;
 extern Lisp_Object Vw32_get_true_file_attributes;
-extern Lisp_Object Vw32_num_mouse_buttons;
+extern int w32_num_mouse_buttons;
 
 
 /*
@@ -385,6 +389,13 @@ static struct passwd the_passwd =
   the_passwd_shell,
 };
 
+static struct group the_group =
+{
+  /* There are no groups on NT, so we just return "root" as the
+     group name.  */
+  "root",
+};
+
 int
 getuid ()
 {
@@ -418,6 +429,12 @@ getpwuid (int uid)
   if (uid == the_passwd.pw_uid)
     return &the_passwd;
   return NULL;
+}
+
+struct group *
+getgrgid (gid_t gid)
+{
+  return &the_group;
 }
 
 struct passwd *
@@ -889,7 +906,9 @@ init_environment (char ** argv)
   static const char * const tempdirs[] = {
     "$TMPDIR", "$TEMP", "$TMP", "c:/"
   };
+
   int i;
+
   const int imax = sizeof (tempdirs) / sizeof (tempdirs[0]);
 
   /* Make sure they have a usable $TMPDIR.  Many Emacs functions use
@@ -928,6 +947,8 @@ init_environment (char ** argv)
     LPBYTE lpval;
     DWORD dwType;
     char locale_name[32];
+    struct stat ignored;
+    char default_home[MAX_PATH];
 
     static struct env_entry
     {
@@ -949,6 +970,35 @@ init_environment (char ** argv)
       {"TERM", "cmd"},
       {"LANG", NULL},
     };
+
+    /* For backwards compatibility, check if a .emacs file exists in C:/
+       If not, then we can try to default to the appdata directory under the
+       user's profile, which is more likely to be writable.   */
+    if (stat ("C:/.emacs", &ignored) < 0)
+    {
+      HRESULT profile_result;
+      /* Dynamically load ShGetFolderPath, as it won't exist on versions
+	 of Windows 95 and NT4 that have not been updated to include
+	 MSIE 5.  Also we don't link with shell32.dll by default.  */
+      HMODULE shell32_dll;
+      ShGetFolderPath_fn get_folder_path;
+      shell32_dll = GetModuleHandle ("shell32.dll");
+      get_folder_path = (ShGetFolderPath_fn)
+	GetProcAddress (shell32_dll, "SHGetFolderPathA");
+
+      if (get_folder_path != NULL)
+	{
+	  profile_result = get_folder_path (NULL, CSIDL_APPDATA, NULL,
+					    0, default_home);
+
+	  /* If we can't get the appdata dir, revert to old behaviour.  */
+	  if (profile_result == S_OK)
+	    env_vars[0].def_value = default_home;
+	}
+
+      /* Unload shell32.dll, it is not needed anymore.  */
+      FreeLibrary (shell32_dll);
+    }
 
   /* Get default locale info and use it for LANG.  */
   if (GetLocaleInfo (LOCALE_USER_DEFAULT,
@@ -990,6 +1040,32 @@ init_environment (char ** argv)
 
 	  _snprintf (buf, sizeof(buf)-1, "emacs_dir=%s", modname);
 	  _putenv (strdup (buf));
+	}
+      /* Handle running emacs from the build directory: src/oo-spd/i386/  */
+
+      /* FIXME: should use substring of get_emacs_configuration ().
+	 But I don't think the Windows build supports alpha, mips etc
+         anymore, so have taken the easy option for now.  */
+      else if (p && stricmp (p, "\\i386") == 0)
+	{
+	  *p = 0;
+	  p = strrchr (modname, '\\');
+	  if (p != NULL)
+	    {
+	      *p = 0;
+	      p = strrchr (modname, '\\');
+	      if (p && stricmp (p, "\\src") == 0)
+		{
+		  char buf[SET_ENV_BUF_SIZE];
+
+		  *p = 0;
+		  for (p = modname; *p; p++)
+		    if (*p == '\\') *p = '/';
+
+		  _snprintf (buf, sizeof(buf)-1, "emacs_dir=%s", modname);
+		  _putenv (strdup (buf));
+		}
+	    }
 	}
     }
 
@@ -1080,7 +1156,7 @@ init_environment (char ** argv)
   /* Determine if there is a middle mouse button, to allow parse_button
      to decide whether right mouse events should be mouse-2 or
      mouse-3. */
-  XSETINT (Vw32_num_mouse_buttons, GetSystemMetrics (SM_CMOUSEBUTTONS));
+  w32_num_mouse_buttons = GetSystemMetrics (SM_CMOUSEBUTTONS);
 
   init_user_info ();
 }
@@ -1233,7 +1309,7 @@ get_emacs_configuration_options (void)
 void
 gettimeofday (struct timeval *tv, struct timezone *tz)
 {
-  struct timeb tb;
+  struct _timeb tb;
   _ftime (&tb);
 
   tv->tv_sec = tb.time;
@@ -1613,7 +1689,7 @@ static WIN32_FIND_DATA dir_find_data;
 /* Support shares on a network resource as subdirectories of a read-only
    root directory. */
 static HANDLE wnet_enum_handle = INVALID_HANDLE_VALUE;
-HANDLE open_unc_volume (char *);
+HANDLE open_unc_volume (const char *);
 char  *read_unc_volume (HANDLE, char *, int);
 void   close_unc_volume (HANDLE);
 
@@ -1726,7 +1802,7 @@ readdir (DIR *dirp)
 }
 
 HANDLE
-open_unc_volume (char *path)
+open_unc_volume (const char *path)
 {
   NETRESOURCE nr;
   HANDLE henum;
@@ -1737,7 +1813,7 @@ open_unc_volume (char *path)
   nr.dwDisplayType = RESOURCEDISPLAYTYPE_SERVER;
   nr.dwUsage = RESOURCEUSAGE_CONTAINER;
   nr.lpLocalName = NULL;
-  nr.lpRemoteName = map_w32_filename (path, NULL);
+  nr.lpRemoteName = (LPSTR)map_w32_filename (path, NULL);
   nr.lpComment = NULL;
   nr.lpProvider = NULL;
 
@@ -1783,7 +1859,7 @@ close_unc_volume (HANDLE henum)
 }
 
 DWORD
-unc_volume_file_attributes (char *path)
+unc_volume_file_attributes (const char *path)
 {
   HANDLE henum;
   DWORD attrs;
@@ -1855,6 +1931,14 @@ int
 sys_chmod (const char * path, int mode)
 {
   return _chmod (map_w32_filename (path, NULL), mode);
+}
+
+int
+sys_chown (const char *path, uid_t owner, gid_t group)
+{
+  if (sys_chmod (path, _S_IREAD) == -1) /* check if file exists */
+    return -1;
+  return 0;
 }
 
 int
@@ -3167,7 +3251,7 @@ sys_shutdown (int s, int how)
 }
 
 int
-sys_setsockopt (int s, int level, int optname, const char * optval, int optlen)
+sys_setsockopt (int s, int level, int optname, const void * optval, int optlen)
 {
   if (winsock_lib == NULL)
     {
@@ -3179,7 +3263,7 @@ sys_setsockopt (int s, int level, int optname, const char * optval, int optlen)
   if (fd_info[s].flags & FILE_SOCKET)
     {
       int rc = pfn_setsockopt (SOCK_HANDLE (s), level, optname,
-			       optval, optlen);
+			       (const char *)optval, optlen);
       if (rc == SOCKET_ERROR)
 	set_errno ();
       return rc;
@@ -3450,18 +3534,29 @@ sys_pipe (int * phandles)
 
   if (rc == 0)
     {
-      flags = FILE_PIPE | FILE_READ | FILE_BINARY;
-      fd_info[phandles[0]].flags = flags;
+      /* Protect against overflow, since Windows can open more handles than
+	 our fd_info array has room for.  */
+      if (phandles[0] >= MAXDESC || phandles[1] >= MAXDESC)
+	{
+	  _close (phandles[0]);
+	  _close (phandles[1]);
+	  rc = -1;
+	}
+      else
+	{
+	  flags = FILE_PIPE | FILE_READ | FILE_BINARY;
+	  fd_info[phandles[0]].flags = flags;
 
-      flags = FILE_PIPE | FILE_WRITE | FILE_BINARY;
-      fd_info[phandles[1]].flags = flags;
+	  flags = FILE_PIPE | FILE_WRITE | FILE_BINARY;
+	  fd_info[phandles[1]].flags = flags;
+	}
     }
 
   return rc;
 }
 
 /* From ntproc.c */
-extern Lisp_Object Vw32_pipe_read_delay;
+extern int w32_pipe_read_delay;
 
 /* Function to do blocking read of one byte, needed to implement
    select.  It is only allowed on sockets and pipes. */
@@ -3501,7 +3596,7 @@ _sys_read_ahead (int fd)
 	 shell on NT is very slow if we don't do this. */
       if (rc > 0)
 	{
-	  int wait = XINT (Vw32_pipe_read_delay);
+	  int wait = w32_pipe_read_delay;
 
 	  if (wait > 0)
 	    Sleep (wait);
@@ -3799,7 +3894,9 @@ check_windows_init_file ()
 	  Lisp_Object load_path_print = Fprin1_to_string (full_load_path, Qnil);
 	  char *init_file_name = SDATA (init_file);
 	  char *load_path = SDATA (load_path_print);
-	  char *buffer = alloca (1024);
+	  char *buffer = alloca (1024
+				 + strlen (init_file_name)
+				 + strlen (load_path));
 
 	  sprintf (buffer,
 		   "The Emacs Windows initialization file \"%s.el\" "
@@ -3833,6 +3930,8 @@ term_ntproc ()
   /* shutdown the socket interface if necessary */
   term_winsock ();
 #endif
+
+  term_w32select ();
 }
 
 void
@@ -3955,3 +4054,6 @@ void globals_of_w32 ()
 }
 
 /* end of nt.c */
+
+/* arch-tag: 90442dd3-37be-482b-b272-ac752e3049f1
+   (do not change this comment) */

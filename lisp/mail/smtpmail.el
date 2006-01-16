@@ -1,6 +1,7 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995, 1996, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004, 2005, 2006
+;;   Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>
@@ -25,8 +26,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -44,6 +45,8 @@
 ;;      '(("YOUR SMTP HOST" 25 "username" "password")))
 ;;(setq smtpmail-starttls-credentials
 ;;      '(("YOUR SMTP HOST" 25 "~/.my_smtp_tls.key" "~/.my_smtp_tls.cert")))
+;; Where the 25 equals the value of `smtpmail-smtp-service', it can be an
+;; integer or a string, just as long as they match (eq).
 
 ;; To queue mail, set smtpmail-queue-mail to t and use
 ;; smtpmail-send-queued-mail to send.
@@ -167,7 +170,7 @@ looks like `user@realm'."
 		       (string  :tag "Username")
 		       (choice (const :tag "Query when needed" nil)
 				       (string  :tag "Password")))))
-  :version "21.4"
+  :version "22.1"
   :group 'smtpmail)
 
 (defcustom smtpmail-starttls-credentials '(("" 25 "" ""))
@@ -204,7 +207,7 @@ This is relative to `smtpmail-queue-dir'.")
 (defvar smtpmail-queue-index (concat smtpmail-queue-dir
 				     smtpmail-queue-index-file))
 
-(defconst smtpmail-auth-supported '(cram-md5 login)
+(defconst smtpmail-auth-supported '(cram-md5 plain login)
   "List of supported SMTP AUTH mechanisms.")
 
 ;;;
@@ -212,7 +215,7 @@ This is relative to `smtpmail-queue-dir'.")
 ;;;
 
 (defvar smtpmail-mail-address nil
-  "Value of `user-mail-address' in ambient buffer.")
+  "Value to use for envelope-from address for mail from ambient buffer.")
 
 ;;;###autoload
 (defun smtpmail-send-it ()
@@ -223,7 +226,11 @@ This is relative to `smtpmail-queue-dir'.")
 	(case-fold-search nil)
 	delimline
 	(mailbuf (current-buffer))
-	(smtpmail-mail-address user-mail-address)
+        ;; Examine this variable now, so that
+	;; local binding in the mail buffer will take effect.
+	(smtpmail-mail-address
+         (or (and mail-specify-envelope-from (mail-envelope-from))
+             user-mail-address))
 	(smtpmail-code-conv-from
 	 (if enable-multibyte-characters
 	     (let ((sendmail-coding-system smtpmail-code-conv-from))
@@ -354,9 +361,11 @@ This is relative to `smtpmail-queue-dir'.")
 		   (buffer-data (create-file-buffer file-data))
 		   (buffer-elisp (create-file-buffer file-elisp))
 		   (buffer-scratch "*queue-mail*"))
+	      (unless (file-exists-p smtpmail-queue-dir)
+		(make-directory smtpmail-queue-dir t))
 	      (with-current-buffer buffer-data
 		(erase-buffer)
-		(insert-buffer tembuf)
+		(insert-buffer-contents tembuf)
 		(write-file file-data)
 		(set-buffer buffer-elisp)
 		(erase-buffer)
@@ -387,7 +396,7 @@ This is relative to `smtpmail-queue-dir'.")
     ;;; mail, send it, etc...
     (let ((file-msg ""))
       (insert-file-contents smtpmail-queue-index)
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (while (not (eobp))
 	(setq file-msg (buffer-substring (point) (line-end-position)))
 	(load file-msg)
@@ -397,14 +406,17 @@ This is relative to `smtpmail-queue-dir'.")
 	(with-temp-buffer
 	  (let ((coding-system-for-read 'no-conversion))
 	    (insert-file-contents file-msg))
-	  (if (not (null smtpmail-recipient-address-list))
-	      (if (not (smtpmail-via-smtp smtpmail-recipient-address-list
-					  (current-buffer)))
-		  (error "Sending failed; SMTP protocol error"))
-	    (error "Sending failed; no recipients")))
+          (let ((smtpmail-mail-address
+                 (or (and mail-specify-envelope-from (mail-envelope-from))
+                     user-mail-address)))
+            (if (not (null smtpmail-recipient-address-list))
+                (if (not (smtpmail-via-smtp smtpmail-recipient-address-list
+                                            (current-buffer)))
+                    (error "Sending failed; SMTP protocol error"))
+              (error "Sending failed; no recipients"))))
 	(delete-file file-msg)
 	(delete-file (concat file-msg ".el"))
-	(kill-line 1))
+	(delete-region (point-at-bol) (point-at-bol 2)))
       (write-region (point-min) (point-max) smtpmail-queue-index))))
 
 ;(defun smtpmail-via-smtp (host,port,sender,destination,smtpmail-text-buffer)
@@ -453,23 +465,41 @@ This is relative to `smtpmail-queue-dir'.")
 	(push el2 result)))
     (nreverse result)))
 
+(defvar starttls-extra-args)
+(defvar starttls-extra-arguments)
+
 (defun smtpmail-open-stream (process-buffer host port)
   (let ((cred (smtpmail-find-credentials
 	       smtpmail-starttls-credentials host port)))
     (if (null (and cred (condition-case ()
-			    (call-process "starttls")
+			    (with-no-warnings
+			      (require 'starttls)
+			      (call-process (if starttls-use-gnutls
+						starttls-gnutls-program
+					      starttls-program)))
 			  (error nil))))
 	;; The normal case.
 	(open-network-stream "SMTP" process-buffer host port)
       (let* ((cred-key (smtpmail-cred-key cred))
 	     (cred-cert (smtpmail-cred-cert cred))
 	     (starttls-extra-args
-	      (when (and (stringp cred-key) (stringp cred-cert)
-			 (file-regular-p
-			  (setq cred-key (expand-file-name cred-key)))
-			 (file-regular-p
-			  (setq cred-cert (expand-file-name cred-cert))))
-		(list "--key-file" cred-key "--cert-file" cred-cert))))
+	      (append
+	       starttls-extra-args
+	       (when (and (stringp cred-key) (stringp cred-cert)
+			  (file-regular-p
+			   (setq cred-key (expand-file-name cred-key)))
+			  (file-regular-p
+			   (setq cred-cert (expand-file-name cred-cert))))
+		 (list "--key-file" cred-key "--cert-file" cred-cert))))
+	     (starttls-extra-arguments
+	      (append
+	       starttls-extra-arguments
+	       (when (and (stringp cred-key) (stringp cred-cert)
+			  (file-regular-p
+			   (setq cred-key (expand-file-name cred-key)))
+			  (file-regular-p
+			   (setq cred-cert (expand-file-name cred-cert))))
+		 (list "--x509keyfile" cred-key "--x509certfile" cred-cert)))))
 	(starttls-open-stream "SMTP" process-buffer host port)))))
 
 (defun smtpmail-try-auth-methods (process supported-extensions host port)
@@ -477,9 +507,9 @@ This is relative to `smtpmail-queue-dir'.")
 	 (mech (car (smtpmail-intersection smtpmail-auth-supported mechs)))
 	 (cred (if (stringp smtpmail-auth-credentials)
 		   (let* ((netrc (netrc-parse smtpmail-auth-credentials))
-			  (hostentry (netrc-machine
-				      netrc host (format "%s" (or port "smtp"))
-				      "smtp")))
+                          (port-name (format "%s" (or port "smtp")))
+			  (hostentry (netrc-machine netrc host port-name
+                                                    port-name)))
                      (when hostentry
                        (list host port
                              (netrc-get hostentry "login")
@@ -493,10 +523,10 @@ This is relative to `smtpmail-queue-dir'.")
 				(smtpmail-cred-server cred)
 				(smtpmail-cred-port cred))))))
 	 ret)
-    (when cred
+    (when (and cred mech)
       (cond
        ((eq mech 'cram-md5)
-	(smtpmail-send-command process (format "AUTH %s" mech))
+	(smtpmail-send-command process (upcase (format "AUTH %s" mech)))
 	(if (or (null (car (setq ret (smtpmail-read-response process))))
 		(not (integerp (car ret)))
 		(>= (car ret) 400))
@@ -529,8 +559,26 @@ This is relative to `smtpmail-queue-dir'.")
 		(not (integerp (car ret)))
 		(>= (car ret) 400))
 	    (throw 'done nil)))
+       ((eq mech 'plain)
+	;; We used to send an empty initial request, and wait for an
+	;; empty response, and then send the password, but this
+	;; violate a SHOULD in RFC 2222 paragraph 5.1.  Note that this
+	;; is not sent if the server did not advertise AUTH PLAIN in
+	;; the EHLO response.  See RFC 2554 for more info.
+	(smtpmail-send-command process
+			       (concat "AUTH PLAIN "
+				       (base64-encode-string
+					(concat "\0"
+						(smtpmail-cred-user cred)
+						"\0"
+						passwd))))
+	(if (or (null (car (setq ret (smtpmail-read-response process))))
+		(not (integerp (car ret)))
+		(not (equal (car ret) 235)))
+	    (throw 'done nil)))
+
        (t
-        (error "Mechanism %s not implemented" mech)))
+	(error "Mechanism %s not implemented" mech)))
       ;; Remember the password.
       (when (and (not (stringp smtpmail-auth-credentials))
 		 (null (smtpmail-cred-passwd cred)))
@@ -541,9 +589,12 @@ This is relative to `smtpmail-queue-dir'.")
 	(host (or smtpmail-smtp-server
 		  (error "`smtpmail-smtp-server' not defined")))
 	(port smtpmail-smtp-service)
-	(envelope-from (or (mail-envelope-from)
-			   smtpmail-mail-address
-			   user-mail-address))
+        ;; smtpmail-mail-address should be set to the appropriate
+        ;; buffer-local value by the caller, but in case not:
+        (envelope-from (or smtpmail-mail-address
+                           (and mail-specify-envelope-from
+                                (mail-envelope-from))
+                           user-mail-address))
 	response-code
 	greeting
 	process-buffer
@@ -556,6 +607,7 @@ This is relative to `smtpmail-queue-dir'.")
 
 	  ;; clear the trace buffer of old output
 	  (with-current-buffer process-buffer
+	    (setq buffer-undo-list t)
 	    (erase-buffer))
 
 	  ;; open the connection to the server
@@ -657,7 +709,7 @@ This is relative to `smtpmail-queue-dir'.")
 			  (>= (car response-code) 400))
 		      (throw 'done nil))))
 
-	    ;; MAIL FROM: <sender>
+	    ;; MAIL FROM:<sender>
 	    (let ((size-part
 		   (if (or (member 'size supported-extensions)
 			   (assoc 'size supported-extensions))
@@ -666,13 +718,8 @@ This is relative to `smtpmail-queue-dir'.")
 				 ;; size estimate:
 				 (+ (- (point-max) (point-min))
 				    ;; Add one byte for each change-of-line
-				    ;; because or CR-LF representation:
-				    (count-lines (point-min) (point-max))
-				    ;; For some reason, an empty line is
-				    ;; added to the message.  Maybe this
-				    ;; is a bug, but it can't hurt to add
-				    ;; those two bytes anyway:
-				    2)))
+				    ;; because of CR-LF representation:
+				    (count-lines (point-min) (point-max)))))
 		     ""))
 		  (body-part
 		   (if (member '8bitmime supported-extensions)
@@ -692,8 +739,8 @@ This is relative to `smtpmail-queue-dir'.")
 			 "")
 		     "")))
 ;	      (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
-	      (smtpmail-send-command process (format "MAIL FROM: <%s>%s%s"
-						     envelope-from
+	      (smtpmail-send-command process (format "MAIL FROM:<%s>%s%s"
+                                                     envelope-from
 						     size-part
 						     body-part))
 
@@ -703,10 +750,10 @@ This is relative to `smtpmail-queue-dir'.")
 		  (throw 'done nil)
 		))
 
-	    ;; RCPT TO: <recipient>
+	    ;; RCPT TO:<recipient>
 	    (let ((n 0))
 	      (while (not (null (nth n recipient)))
-		(smtpmail-send-command process (format "RCPT TO: <%s>" (smtpmail-maybe-append-domain (nth n recipient))))
+		(smtpmail-send-command process (format "RCPT TO:<%s>" (smtpmail-maybe-append-domain (nth n recipient))))
 		(setq n (1+ n))
 
 		(setq response-code (smtpmail-read-response process))
@@ -769,49 +816,49 @@ This is relative to `smtpmail-queue-dir'.")
 	(response-continue t)
 	(return-value '(nil ()))
 	match-end)
+    (catch 'done
+      (while response-continue
+	(goto-char smtpmail-read-point)
+	(while (not (search-forward "\r\n" nil t))
+	  (unless (memq (process-status process) '(open run))
+	    (throw 'done nil))
+	  (accept-process-output process)
+	  (goto-char smtpmail-read-point))
 
-    (while response-continue
-      (goto-char smtpmail-read-point)
-      (while (not (search-forward "\r\n" nil t))
-	(accept-process-output process)
-	(goto-char smtpmail-read-point))
+	(setq match-end (point))
+	(setq response-strings
+	      (cons (buffer-substring smtpmail-read-point (- match-end 2))
+		    response-strings))
 
-      (setq match-end (point))
-      (setq response-strings
-	    (cons (buffer-substring smtpmail-read-point (- match-end 2))
-		  response-strings))
+	(goto-char smtpmail-read-point)
+	(if (looking-at "[0-9]+ ")
+	    (let ((begin (match-beginning 0))
+		  (end (match-end 0)))
+	      (if smtpmail-debug-info
+		  (message "%s" (car response-strings)))
 
-      (goto-char smtpmail-read-point)
-      (if (looking-at "[0-9]+ ")
-	  (let ((begin (match-beginning 0))
-		(end (match-end 0)))
-	    (if smtpmail-debug-info
-		(message "%s" (car response-strings)))
+	      (setq smtpmail-read-point match-end)
 
-	    (setq smtpmail-read-point match-end)
+	      ;; ignore lines that start with "0"
+	      (if (looking-at "0[0-9]+ ")
+		  nil
+		(setq response-continue nil)
+		(setq return-value
+		      (cons (string-to-number
+			     (buffer-substring begin end))
+			    (nreverse response-strings)))))
 
-	    ;; ignore lines that start with "0"
-	    (if (looking-at "0[0-9]+ ")
-		nil
+	  (if (looking-at "[0-9]+-")
+	      (progn (if smtpmail-debug-info
+			 (message "%s" (car response-strings)))
+		     (setq smtpmail-read-point match-end)
+		     (setq response-continue t))
+	    (progn
+	      (setq smtpmail-read-point match-end)
 	      (setq response-continue nil)
 	      (setq return-value
-		    (cons (string-to-int
-			   (buffer-substring begin end))
-			  (nreverse response-strings)))))
-
-	(if (looking-at "[0-9]+-")
-	    (progn (if smtpmail-debug-info
-		     (message "%s" (car response-strings)))
-		   (setq smtpmail-read-point match-end)
-		   (setq response-continue t))
-	  (progn
-	    (setq smtpmail-read-point match-end)
-	    (setq response-continue nil)
-	    (setq return-value
-		  (cons nil (nreverse response-strings)))
-	    )
-	  )))
-    (setq smtpmail-read-point match-end)
+		    (cons nil (nreverse response-strings)))))))
+      (setq smtpmail-read-point match-end))
     return-value))
 
 
@@ -844,31 +891,15 @@ This is relative to `smtpmail-queue-dir'.")
   )
 
 (defun smtpmail-send-data (process buffer)
-  (let
-      ((data-continue t)
-       (sending-data nil)
-       this-line
-       this-line-end)
-
+  (let ((data-continue t) sending-data)
     (with-current-buffer buffer
       (goto-char (point-min)))
-
     (while data-continue
       (with-current-buffer buffer
-	(beginning-of-line)
-	(setq this-line (point))
-	(end-of-line)
-	(setq this-line-end (point))
-	(setq sending-data nil)
-	(setq sending-data (buffer-substring this-line this-line-end))
-	(if (/= (forward-line 1) 0)
-	    (setq data-continue nil)))
-
-      (smtpmail-send-data-1 process sending-data)
-      )
-    )
-  )
-
+        (setq sending-data (buffer-substring (point-at-bol) (point-at-eol)))
+	(end-of-line 2)
+        (setq data-continue (not (eobp))))
+      (smtpmail-send-data-1 process sending-data))))
 
 (defun smtpmail-deduce-address-list (smtpmail-text-buffer header-start header-end)
   "Get address list suitable for smtp RCPT TO: <address>."
@@ -946,4 +977,5 @@ many continuation lines."
 
 (provide 'smtpmail)
 
+;;; arch-tag: a76992df-6d71-43b7-9e72-4bacc6c05466
 ;;; smtpmail.el ends here

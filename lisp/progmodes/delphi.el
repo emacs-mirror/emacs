@@ -1,8 +1,10 @@
 ;;; delphi.el --- major mode for editing Delphi source (Object Pascal) in Emacs
 
-;; Copyright (C) 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Ray Blaak <blaak@infomatch.com>
+;; Maintainer: FSF  (Blaak's email addr bounces, Aug 2005)
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -19,7 +21,7 @@
 
 ;; You should have received a copy of the GNU General Public License along with
 ;; GNU Emacs; see the file COPYING.  If not, write to the Free Software
-;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -64,12 +66,6 @@
 
 (provide 'delphi)
 
-(defconst delphi-version
-  (let ((revision "$Revision: 3.8 $"))
-    (string-match ": \\([^ ]+\\)" revision)
-    (match-string 1 revision))
-  "Version of this delphi mode.")
-
 (eval-and-compile
   ;; Allow execution on pre Emacs 20 versions.
   (or (fboundp 'when)
@@ -94,7 +90,7 @@
   )
 
 (defgroup delphi nil
-  "Major mode for editing Delphi source in Emacs"
+  "Major mode for editing Delphi source in Emacs."
   :version "21.1"
   :group 'languages)
 
@@ -158,8 +154,8 @@ regardless of where in the line point is when the TAB command is used."
 (defcustom delphi-newline-always-indents t
   "*Non-nil means NEWLINE in Delphi mode should always reindent the current
 line, insert a blank line and move to the default indent column of the blank
-line. If nil, then no indentation occurs, and NEWLINE does the usual
-behaviour. This is useful when one needs to do customized indentation that
+line.  If nil, then no indentation occurs, and NEWLINE does the usual
+behavior.  This is useful when one needs to do customized indentation that
 differs from the default."
   :type 'boolean
   :group 'delphi)
@@ -181,7 +177,7 @@ differs from the default."
 
 (defcustom delphi-other-face nil
   "*Face used to color everything else."
-  :type 'face
+  :type '(choice (const :tag "None" nil) face)
   :group 'delphi)
 
 (defconst delphi-directives
@@ -742,7 +738,7 @@ routine.")
         (delphi-step-progress p "Fontifying" delphi-fontifying-progress-step))
       (delphi-progress-done)))))
 
-(defconst delphi-ignore-changes t
+(defvar delphi-ignore-changes t
   "Internal flag to control if the delphi-mode responds to buffer changes.
 Defaults to t in case the delphi-after-change function is called on a
 non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
@@ -1516,7 +1512,7 @@ before the indent, the point is moved to the indent."
      (set-marker-insertion-type marked-point t)
      (when (/= old-indent new-indent)
            (delete-region line-start (point))
-           (insert (make-string new-indent ?\ )))
+           (insert (make-string new-indent ?\s)))
      (goto-char marked-point)
      (set-marker marked-point nil))))
 
@@ -1536,7 +1532,7 @@ before the indent, the point is moved to the indent."
     (save-selected-window
       (switch-to-buffer-other-window to-buffer)
       (goto-char (point-max))
-      (set-window-dot (get-buffer-window to-buffer) (point))
+      (set-window-point (get-buffer-window to-buffer) (point))
       (insert the-msg))))
 
 ;; Debugging helpers:
@@ -1781,7 +1777,7 @@ An error is raised if not in a comment."
                (comment-end (delphi-token-end end-comment))
                (content-start (delphi-comment-content-start start-comment))
                (content-indent (delphi-column-of content-start))
-               (content-prefix (make-string content-indent ?\ ))
+               (content-prefix (make-string content-indent ?\s))
                (content-prefix-re delphi-leading-spaces-re)
                (p nil)
                (marked-point (point-marker))) ; Maintain our position reliably.
@@ -1789,9 +1785,9 @@ An error is raised if not in a comment."
             ;; // style comments need more work.
             (setq content-prefix
                   (let ((comment-indent (delphi-column-of comment-start)))
-                    (concat (make-string comment-indent ?\ ) "//"
+                    (concat (make-string comment-indent ?\s) "//"
                             (make-string (- content-indent comment-indent 2)
-                                         ?\ )))
+                                         ?\s)))
                   content-prefix-re (concat delphi-leading-spaces-re
                                             "//"
                                             delphi-spaces-re)
@@ -1863,8 +1859,8 @@ comment block. If not in a // comment, just does a normal newline."
              (comment-start (delphi-token-start start-comment))
              (content-start (delphi-comment-content-start start-comment))
              (prefix
-              (concat (make-string (delphi-column-of comment-start) ?\ ) "//"
-                      (make-string (- content-start comment-start 2) ?\ ))))
+              (concat (make-string (delphi-column-of comment-start) ?\s) "//"
+                      (make-string (- content-start comment-start 2) ?\s))))
         (delete-horizontal-space)
         (newline)
         (insert prefix)))))
@@ -2008,6 +2004,7 @@ no args, if that value is non-nil."
        (delphi-parse-region (point-min) (point-max))
        (delphi-progress-done))))
 
-  (run-hooks 'delphi-mode-hook))
+  (run-mode-hooks 'delphi-mode-hook))
 
+;;; arch-tag: 410e192d-e9b5-4397-ad62-12340fc3fa41
 ;;; delphi.el ends here

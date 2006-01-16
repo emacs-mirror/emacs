@@ -22,5 +22,5 @@ not part of the Emacs distribution.)
 (3) By hand.  Do
     cat info/emacs* | more "+/^File: emacs,  Node: Bugs,"
 
-Please first check the file etc/PROBLEMS (e.g. with C-h P in Emacs) to
+Please first check the file etc/PROBLEMS (e.g. with C-h C-e in Emacs) to
 make sure it isn't a known issue.

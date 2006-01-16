@@ -1,5 +1,5 @@
-/* $XConsortium: XCrAssoc.c,v 10.17 91/01/06 12:04:57 rws Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
 Permission to use, copy, modify, distribute, and sell this software and its
@@ -66,3 +66,6 @@ XAssocTable *XCreateAssocTable(size)
 
 	return(table);
 }
+
+/* arch-tag: 5df3237d-ada0-4345-a3ab-282cafb397aa
+   (do not change this comment) */

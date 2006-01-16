@@ -1,7 +1,7 @@
 ;;; pop3.el --- Post Office Protocol (RFC 1460) interface
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002
-;;        Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Richard L. Pieri <ratinox@peorth.gweep.net>
 ;; Maintainer: FSF
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -37,22 +37,63 @@
 
 (require 'mail-utils)
 
-(defvar pop3-maildrop (or (user-login-name) (getenv "LOGNAME") (getenv "USER") nil)
-  "*POP3 maildrop.")
-(defvar pop3-mailhost (or (getenv "MAILHOST") nil)
-  "*POP3 mailhost.")
-(defvar pop3-port 110
-  "*POP3 port.")
+(defgroup pop3 nil
+  "Post Office Protocol."
+  :group 'mail
+  :group 'mail-source)
 
-(defvar pop3-password-required t
-  "*Non-nil if a password is required when connecting to POP server.")
+(defcustom pop3-maildrop (or (user-login-name)
+			     (getenv "LOGNAME")
+			     (getenv "USER"))
+  "*POP3 maildrop."
+  :version "22.1" ;; Oort Gnus
+  :type 'string
+  :group 'pop3)
+
+(defcustom pop3-mailhost (or (getenv "MAILHOST") ;; nil -> mismatch
+			     "pop3")
+  "*POP3 mailhost."
+  :version "22.1" ;; Oort Gnus
+  :type 'string
+  :group 'pop3)
+
+(defcustom pop3-port 110
+  "*POP3 port."
+  :version "22.1" ;; Oort Gnus
+  :type 'number
+  :group 'pop3)
+
+(defcustom pop3-password-required t
+  "*Non-nil if a password is required when connecting to POP server."
+  :version "22.1" ;; Oort Gnus
+  :type 'boolean
+  :group 'pop3)
+
+;; Should this be customizable?
 (defvar pop3-password nil
   "*Password to use when connecting to POP server.")
 
-(defvar pop3-authentication-scheme 'pass
+(defcustom pop3-authentication-scheme 'pass
   "*POP3 authentication scheme.
 Defaults to 'pass, for the standard USER/PASS authentication.  Other valid
-values are 'apop.")
+values are 'apop."
+  :version "22.1" ;; Oort Gnus
+  :type '(choice (const :tag "USER/PASS" pass)
+		 (const :tag "APOP" apop))
+  :group 'pop3)
+
+(defcustom pop3-leave-mail-on-server nil
+  "*Non-nil if the mail is to be left on the POP server after fetching.
+
+If the `pop3-leave-mail-on-server' is non-`nil' the mail is to be
+left on the POP server after fetching.  Note that POP servers
+maintain no state information between sessions, so what the
+client believes is there and what is actually there may not match
+up.  If they do not, then the whole thing can fall apart and
+leave you with a corrupt mailbox."
+  :version "22.1" ;; Oort Gnus
+  :type 'boolean
+  :group 'pop3)
 
 (defvar pop3-timestamp nil
   "Timestamp returned when initially connected to the POP server.
@@ -61,6 +102,32 @@ Used for APOP authentication.")
 (defvar pop3-read-point nil)
 (defvar pop3-debug nil)
 
+;; Borrowed from nnheader-accept-process-output in nnheader.el.
+(defvar pop3-read-timeout
+  (if (string-match "windows-nt\\|os/2\\|emx\\|cygwin"
+		    (symbol-name system-type))
+      ;; http://thread.gmane.org/v9655t3pjo.fsf@marauder.physik.uni-ulm.de
+      ;;
+      ;; IIRC, values lower than 1.0 didn't/don't work on Windows/DOS.
+      ;;
+      ;; There should probably be a runtime test to determine the timing
+      ;; resolution, or a primitive to report it.  I don't know off-hand
+      ;; what's possible.  Perhaps better, maybe the Windows/DOS primitive
+      ;; could round up non-zero timeouts to a minimum of 1.0?
+      1.0
+    0.1)
+  "How long pop3 should wait between checking for the end of output.
+Shorter values mean quicker response, but are more CPU intensive.")
+
+;; Borrowed from nnheader-accept-process-output in nnheader.el.
+(defun pop3-accept-process-output (process)
+  (accept-process-output
+   process
+   (truncate pop3-read-timeout)
+   (truncate (* (- pop3-read-timeout
+		   (truncate pop3-read-timeout))
+		1000))))
+
 (defun pop3-movemail (&optional crashbox)
   "Transfer contents of a maildrop to the specified CRASHBOX."
   (or crashbox (setq crashbox (expand-file-name "~/.crashbox")))
@@ -68,14 +135,13 @@ Used for APOP authentication.")
 	 (crashbuf (get-buffer-create " *pop3-retr*"))
 	 (n 1)
 	 message-count
-	 (pop3-password pop3-password)
-	 )
+	 (pop3-password pop3-password))
     ;; for debugging only
     (if pop3-debug (switch-to-buffer (process-buffer process)))
     ;; query for password
     (if (and pop3-password-required (not pop3-password))
 	(setq pop3-password
-	      (pop3-read-passwd (format "Password for %s: " pop3-maildrop))))
+	      (read-passwd (format "Password for %s: " pop3-maildrop))))
     (cond ((equal 'apop pop3-authentication-scheme)
 	   (pop3-apop process pop3-maildrop))
 	  ((equal 'pass pop3-authentication-scheme)
@@ -85,8 +151,8 @@ Used for APOP authentication.")
     (setq message-count (car (pop3-stat process)))
     (unwind-protect
 	(while (<= n message-count)
-	  (message (format "Retrieving message %d of %d from %s..."
-			   n message-count pop3-mailhost))
+	  (message "Retrieving message %d of %d from %s..."
+		   n message-count pop3-mailhost)
 	  (pop3-retr process n crashbuf)
 	  (save-excursion
 	    (set-buffer crashbuf)
@@ -97,7 +163,8 @@ Used for APOP authentication.")
 	      (goto-char (point-min))
 	      (forward-line 50)
 	      (delete-region (point-min) (point))))
-	  (pop3-dele process n)
+          (unless pop3-leave-mail-on-server
+            (pop3-dele process n))
 	  (setq n (+ 1 n))
 	  (if pop3-debug (sit-for 1) (sit-for 0.1))
 	  )
@@ -110,14 +177,13 @@ Used for APOP authentication.")
   "Return the number of messages in the maildrop."
   (let* ((process (pop3-open-server pop3-mailhost pop3-port))
 	 message-count
-	 (pop3-password pop3-password)
-	 )
+	 (pop3-password pop3-password))
     ;; for debugging only
     (if pop3-debug (switch-to-buffer (process-buffer process)))
     ;; query for password
     (if (and pop3-password-required (not pop3-password))
 	(setq pop3-password
-	      (pop3-read-passwd (format "Password for %s: " pop3-maildrop))))
+	      (read-passwd (format "Password for %s: " pop3-maildrop))))
     (cond ((equal 'apop pop3-authentication-scheme)
 	   (pop3-apop process pop3-maildrop))
 	  ((equal 'pass pop3-authentication-scheme)
@@ -155,15 +221,14 @@ Returns the process associated with the connection."
     (insert output)))
 
 (defun pop3-send-command (process command)
-    (set-buffer (process-buffer process))
-    (goto-char (point-max))
-;;    (if (= (aref command 0) ?P)
-;;	(insert "PASS <omitted>\r\n")
-;;      (insert command "\r\n"))
-    (setq pop3-read-point (point))
-    (goto-char (point-max))
-    (process-send-string process (concat command "\r\n"))
-    )
+  (set-buffer (process-buffer process))
+  (goto-char (point-max))
+  ;; (if (= (aref command 0) ?P)
+  ;;     (insert "PASS <omitted>\r\n")
+  ;;   (insert command "\r\n"))
+  (setq pop3-read-point (point))
+  (goto-char (point-max))
+  (process-send-string process (concat command "\r\n")))
 
 (defun pop3-read-response (process &optional return)
   "Read the response from the server.
@@ -173,8 +238,9 @@ Return the response string if optional second argument is non-nil."
     (save-excursion
       (set-buffer (process-buffer process))
       (goto-char pop3-read-point)
-      (while (not (search-forward "\r\n" nil t))
-	(accept-process-output process 3)
+      (while (and (memq (process-status process) '(open run))
+		  (not (search-forward "\r\n" nil t)))
+	(pop3-accept-process-output process)
 	(goto-char pop3-read-point))
       (setq match-end (point))
       (goto-char pop3-read-point)
@@ -187,17 +253,6 @@ Return the response string if optional second argument is non-nil."
 	      (buffer-substring (point) match-end)
 	    t)
 	  )))))
-
-(defvar pop3-read-passwd nil)
-(defun pop3-read-passwd (prompt)
-  (if (not pop3-read-passwd)
-      (if (fboundp 'read-passwd)
-	  (setq pop3-read-passwd 'read-passwd)
-	(if (load "passwd" t)
-	    (setq pop3-read-passwd 'read-passwd)
-	  (autoload 'ange-ftp-read-passwd "ange-ftp")
-	  (setq pop3-read-passwd 'ange-ftp-read-passwd))))
-  (funcall pop3-read-passwd prompt))
 
 (defun pop3-clean-region (start end)
   (setq end (set-marker (make-marker) end))
@@ -259,7 +314,7 @@ If NOW, use that time instead."
 	    ;; Tue Jul 9 09:04:21 1996
 	    (setq date
 		  (cond ((not date)
-                        "Tue Jan 1 00:00:0 1900")
+			 "Tue Jan 1 00:00:0 1900")
 			((string-match "[A-Z]" (nth 0 date))
 			 (format "%s %s %s %s %s"
 				 (nth 0 date) (nth 2 date) (nth 1 date)
@@ -293,12 +348,43 @@ If NOW, use that time instead."
 
 ;; AUTHORIZATION STATE
 
+(eval-when-compile
+  (if (not (fboundp 'md5)) ;; Emacs 20
+      (defalias 'md5 'ignore)))
+
+(eval-and-compile
+  (if (and (fboundp 'md5)
+	   ;; There might be an incompatible implementation.
+	   (condition-case nil
+	       (md5 "Check whether the 4th argument is allowed"
+		    nil nil 'binary)
+	     (error nil)))
+      (defun pop3-md5 (string)
+	(md5 string nil nil 'binary))
+    (defvar pop3-md5-program "md5"
+      "*Program to encode its input in MD5.
+\"openssl\" is a popular alternative; set `pop3-md5-program-args' to
+'(\"md5\") if you use it.")
+    (defvar pop3-md5-program-args nil
+      "*List of arguments passed to `pop3-md5-program'.")
+    (defun pop3-md5 (string)
+      (let ((default-enable-multibyte-characters t)
+	    (coding-system-for-write 'binary))
+	(with-temp-buffer
+	  (insert string)
+	  (apply 'call-process-region (point-min) (point-max)
+		 pop3-md5-program t (current-buffer) nil
+		 pop3-md5-program-args)
+	  ;; The meaningful output is the first 32 characters.
+	  ;; Don't return the newline that follows them!
+	  (buffer-substring (point-min) (+ 32 (point-min))))))))
+
 (defun pop3-user (process user)
   "Send USER information to POP3 server."
   (pop3-send-command process (format "USER %s" user))
   (let ((response (pop3-read-response process t)))
     (if (not (and response (string-match "+OK" response)))
-	(error (format "USER %s not valid" user)))))
+	(error "USER %s not valid" user))))
 
 (defun pop3-pass (process)
   "Send authentication information to the server."
@@ -312,7 +398,7 @@ If NOW, use that time instead."
   (let ((pass pop3-password))
     (if (and pop3-password-required (not pass))
 	(setq pass
-	      (pop3-read-passwd (format "Password for %s: " pop3-maildrop))))
+	      (read-passwd (format "Password for %s: " pop3-maildrop))))
     (if pass
 	(let ((hash (pop3-md5 (concat pop3-timestamp pass))))
 	  (pop3-send-command process (format "APOP %s %s" user hash))
@@ -323,28 +409,12 @@ If NOW, use that time instead."
 
 ;; TRANSACTION STATE
 
-(eval-and-compile
-  (if (fboundp 'md5)
-      (defalias 'pop3-md5 'md5)
-    (defvar pop3-md5-program "md5"
-      "*Program to encode its input in MD5.")
-
-    (defun pop3-md5 (string)
-      (with-temp-buffer
-	(insert string)
-	(call-process-region (point-min) (point-max)
-			     pop3-md5-program
-			     t (current-buffer) nil)
-	;; The meaningful output is the first 32 characters.
-	;; Don't return the newline that follows them!
-	(buffer-substring (point-min) (+ 32 (point-min)))))))
-
 (defun pop3-stat (process)
   "Return the number of messages in the maildrop and the maildrop's size."
   (pop3-send-command process "STAT")
   (let ((response (pop3-read-response process t)))
-    (list (string-to-int (nth 1 (split-string response " ")))
-	  (string-to-int (nth 2 (split-string response " "))))
+    (list (string-to-number (nth 1 (split-string response " ")))
+	  (string-to-number (nth 2 (split-string response " "))))
     ))
 
 (defun pop3-list (process &optional msg)
@@ -359,28 +429,16 @@ This function currently does nothing.")
     (save-excursion
       (set-buffer (process-buffer process))
       (while (not (re-search-forward "^\\.\r\n" nil t))
-	(accept-process-output process 3)
-	;; bill@att.com ... to save wear and tear on the heap
-	;; uncommented because the condensed version below is a problem for
-	;; some.
-	(if (> (buffer-size)  20000) (sleep-for 1))
-	(if (> (buffer-size)  50000) (sleep-for 1))
-	(if (> (buffer-size) 100000) (sleep-for 1))
-	(if (> (buffer-size) 200000) (sleep-for 1))
-	(if (> (buffer-size) 500000) (sleep-for 1))
-	;; bill@att.com
-	;; condensed into:
-	;; (sometimes causes problems for really large messages.)
-;	(if (> (buffer-size) 20000) (sleep-for (/ (buffer-size) 20000)))
+	(pop3-accept-process-output process)
 	(goto-char start))
       (setq pop3-read-point (point-marker))
-;; this code does not seem to work for some POP servers...
-;; and I cannot figure out why not.
-;      (goto-char (match-beginning 0))
-;      (backward-char 2)
-;      (if (not (looking-at "\r\n"))
-;	  (insert "\r\n"))
-;      (re-search-forward "\\.\r\n")
+      ;; this code does not seem to work for some POP servers...
+      ;; and I cannot figure out why not.
+      ;;      (goto-char (match-beginning 0))
+      ;;      (backward-char 2)
+      ;;      (if (not (looking-at "\r\n"))
+      ;;	  (insert "\r\n"))
+      ;;      (re-search-forward "\\.\r\n")
       (goto-char (match-beginning 0))
       (setq end (point-marker))
       (pop3-clean-region start end)
@@ -406,7 +464,7 @@ This function currently does nothing.")
   "Return highest accessed message-id number for the session."
   (pop3-send-command process "LAST")
   (let ((response (pop3-read-response process t)))
-    (string-to-int (nth 1 (split-string response " ")))
+    (string-to-number (nth 1 (split-string response " ")))
     ))
 
 (defun pop3-rset (process)
@@ -510,4 +568,5 @@ and close the connection."
 
 (provide 'pop3)
 
+;;; arch-tag: 2facc142-1d74-498e-82af-4659b64cac12
 ;;; pop3.el ends here

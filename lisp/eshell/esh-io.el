@@ -1,6 +1,7 @@
 ;;; esh-io.el --- I/O management
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'esh-io)
 
@@ -192,7 +193,7 @@ not be added to this variable."
 	  (eshell-finish-arg
 	   (prog1
 	       (list 'eshell-set-output-handle
-		     (or (and sh (string-to-int sh)) 1)
+		     (or (and sh (string-to-number sh)) 1)
 		     (list 'quote
 			   (aref [overwrite append insert]
 				 (1- (length oper)))))
@@ -333,26 +334,28 @@ it defaults to `insert'."
   (cond
    ((stringp target)
     (let ((redir (assoc target eshell-virtual-targets)))
-     (if redir
-	 (if (nth 2 redir)
-	     (funcall (nth 1 redir) mode)
-	   (nth 1 redir))
-       (let* ((exists (get-file-buffer target))
-	      (buf (find-file-noselect target t)))
-	 (with-current-buffer buf
-	   (if buffer-read-only
-	       (error "Cannot write to read-only file `%s'" target))
-	   (set (make-local-variable 'eshell-output-file-buffer)
-		(if (eq exists buf) 0 t))
-	   (cond ((eq mode 'overwrite)
-		  (erase-buffer))
-		 ((eq mode 'append)
-		  (goto-char (point-max))))
-	   (point-marker))))))
+      (if redir
+	  (if (nth 2 redir)
+	      (funcall (nth 1 redir) mode)
+	    (nth 1 redir))
+	(let* ((exists (get-file-buffer target))
+	       (buf (find-file-noselect target t)))
+	  (with-current-buffer buf
+	    (if buffer-read-only
+		(error "Cannot write to read-only file `%s'" target))
+	    (set (make-local-variable 'eshell-output-file-buffer)
+		 (if (eq exists buf) 0 t))
+	    (cond ((eq mode 'overwrite)
+		   (erase-buffer))
+		  ((eq mode 'append)
+		   (goto-char (point-max))))
+	    (point-marker))))))
+
    ((or (bufferp target)
 	(and (boundp 'eshell-buffer-shorthand)
 	     (symbol-value 'eshell-buffer-shorthand)
-	     (symbolp target)))
+	     (symbolp target)
+	     (not (memq target '(t nil)))))
     (let ((buf (if (bufferp target)
 		   target
 		 (get-buffer-create
@@ -363,17 +366,20 @@ it defaults to `insert'."
 	      ((eq mode 'append)
 	       (goto-char (point-max))))
 	(point-marker))))
-   ((functionp target)
-    nil)
+
+   ((functionp target) nil)
+
    ((symbolp target)
     (if (eq mode 'overwrite)
 	(set target nil))
     target)
+
    ((or (eshell-processp target)
 	(markerp target))
     target)
+
    (t
-    (error "Illegal redirection target: %s"
+    (error "Invalid redirection target: %s"
 	   (eshell-stringify target)))))
 
 (eval-when-compile
@@ -481,7 +487,8 @@ Returns what was actually sent, or nil if nothing was sent."
 	  (let ((moving (= (point) target)))
 	    (save-excursion
 	      (goto-char target)
-	      (setq object (eshell-stringify object))
+	      (unless (stringp object)
+		(setq object (eshell-stringify object)))
 	      (insert-and-inherit object)
 	      (set-marker target (point-marker)))
 	    (if moving
@@ -489,7 +496,8 @@ Returns what was actually sent, or nil if nothing was sent."
 
    ((eshell-processp target)
     (when (eq (process-status target) 'run)
-      (setq object (eshell-stringify object))
+      (unless (stringp object)
+	(setq object (eshell-stringify object)))
       (process-send-string target object)))
 
    ((consp target)
@@ -508,4 +516,5 @@ Returns what was actually sent, or nil if nothing was sent."
 
 ;;; Code:
 
+;;; arch-tag: 9ca2080f-d5e0-4b26-aa0b-d59194a905a2
 ;;; esh-io.el ends here

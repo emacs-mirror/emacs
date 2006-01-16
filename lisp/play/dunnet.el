@@ -1,6 +1,7 @@
 ;;; dunnet.el --- text adventure for Emacs
 
-;; Copyright (C) 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Ron Schnell <ronnie@driver-aces.com>
 ;; Created: 25 Jul 1992
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -53,15 +54,10 @@
 
 ;;;; Mode definitions for interactive mode
 
-(defun dun-mode ()
+(define-derived-mode dun-mode text-mode "Dungeon"
   "Major mode for running dunnet."
-  (interactive)
-  (text-mode)
   (make-local-variable 'scroll-step)
-  (setq scroll-step 2)
-  (use-local-map dungeon-mode-map)
-  (setq major-mode 'dun-mode)
-  (setq mode-name "Dungeon"))
+  (setq scroll-step 2))
 
 (defun dun-parse (arg)
   "Function called when return is pressed in interactive mode to parse line."
@@ -1366,9 +1362,8 @@ for a moment, then straighten yourself up.
 (setq dun-current-room 1)
 (setq dun-exitf nil)
 (setq dun-badcd nil)
-(defvar dungeon-mode-map nil)
-(setq dungeon-mode-map (make-sparse-keymap))
-(define-key dungeon-mode-map "\r" 'dun-parse)
+(define-obsolete-variable-alias 'dungeon-mode-map 'dun-mode-map "22.1")
+(define-key dun-mode-map "\r" 'dun-parse)
 (defvar dungeon-batch-map (make-keymap))
 (if (string= (substring emacs-version 0 2) "18")
     (let (n)
@@ -2594,7 +2589,7 @@ treasures for points?" "4" "four")
   (if dun-logged-in
       (progn
 	(setq dungeon-mode 'unix)
-	(define-key dungeon-mode-map "\r" 'dun-unix-parse)
+	(define-key dun-mode-map "\r" 'dun-unix-parse)
 	(dun-mprinc "$ "))))
 
 (defun dun-login ()
@@ -2860,7 +2855,7 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 (defun dun-uexit (args)
   (setq dungeon-mode 'dungeon)
   (dun-mprincl "\nYou step back from the console.")
-  (define-key dungeon-mode-map "\r" 'dun-parse)
+  (define-key dun-mode-map "\r" 'dun-parse)
   (if (not dun-batch-mode)
       (dun-messages)))
 
@@ -3059,7 +3054,7 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 (defun dun-dos-interface ()
   (dun-dos-boot-msg)
   (setq dungeon-mode 'dos)
-  (define-key dungeon-mode-map "\r" 'dun-dos-parse)
+  (define-key dun-mode-map "\r" 'dun-dos-parse)
   (dun-dos-prompt))
 
 (defun dun-dos-type (args)
@@ -3117,7 +3112,7 @@ File not found")))
 (defun dun-dos-exit (args)
   (setq dungeon-mode 'dungeon)
   (dun-mprincl "\nYou power down the machine and step back.")
-  (define-key dungeon-mode-map "\r" 'dun-parse)
+  (define-key dun-mode-map "\r" 'dun-parse)
   (if (not dun-batch-mode)
       (dun-messages)))
 
@@ -3369,4 +3364,5 @@ File not found")))
 
 (provide 'dunnet)
 
+;;; arch-tag: 4cc8e47c-d9e1-4ef4-936b-578e7f529558
 ;;; dunnet.el ends here

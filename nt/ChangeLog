@@ -1,3 +1,194 @@
+2005-12-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs (TEMACS_EXTRA_LINK): Remove redundant -g.
+	(DEBUG_FLAG, DEBUG_LINK): Upgrade to "-gstabs+ -g3".
+
+2005-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Add explanation of how to debug with GDB starting from
+	the Emacs Abort dialog.
+
+2005-11-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.rc: Use new icons.
+
+2005-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs21.ico: Renamed from emacs.ico.
+	* emacs.ico: New icons from Andrew Zhilin
+	<andrew_zhilin@yahoo.com>.
+
+2005-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_GET_CURRENT_DIR_NAME): Undefine.
+
+2005-08-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Add `obj' and `oo' for in-place installations.
+
+2005-07-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt: (HAVE_GETOPT_H, HAVE_GETOPT_LONG_ONLY): Undefine.
+
+2005-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Don't create lisp/Makefile.unix.
+
+2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Add `makefile' and `config.log'.
+
+2005-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge gnulib getopt implementation into Emacs.
+
+	* inc/gettext.h: Remove; no longer needed now that
+	lib-src/gettext.h exists.
+
+2005-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Finish config.log with a line that indicates that
+	the configure step was successful.
+
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
+2005-06-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: If their fc.exe returns a meaningful exit status,
+	don't overwrite src/config.h and src/epaths.h with identical
+	copies.
+
+	* INSTALL: Warn about using "cvs up -kb" if one intends to commit
+	changes.  Add a pointer to another site with detailed configure
+	and build instructions.  Suggest to look at config.log when
+	configure fails.  Add MinGW Make 3.80 to the list of successful
+	combinations.
+
+	* gmake.defs (ARCH_CFLAGS): Use $(MCPU_FLAG) instead of a literal
+	"-mcpu=i686".
+
+	* configure.bat: Update copyright years.
+	Delete config.log before doing anything else.
+	Write additional diagnostics to config.log in case of failures to
+	compile test programs, including the failed test program itself.
+	Add a test for support of -mtune=pentium4 switch to GCC; if it is
+	supported, set up MCPU_FLAG variable on the various Makefiles to
+	use that switch during compilations.  (This avoids GCC warning
+	about -mcpu being deprecated.)
+
+2005-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* addsection.c (copy_executable_and_add_section): Pass non-zero
+	`verbose' arg to COPY_CHUNK only if DEBUG_DUMP is defined in the
+	environment.  Print section names with %.8s.
+	(COPY_CHUNK): New 4th arg `verbose'; print diagnostic messages
+	only if non-zero.  All callers changed.
+
+2005-06-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/socket.h: Change arg 4 of sys_setsockopt to
+	`const void *', for consistency with Posix.
+
+2005-06-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/pwd.h (getpwnam, getpwuid): Add prototypes.
+
+2005-05-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Add more pointers to ports of Unix tools to Windows,
+	and to the Emacs Wiki (which contains building instructions for
+	Windows).  Reword image library instructions and remove obsolete
+	incompatibility information.
+
+2005-04-23  David Hunter  <hunterd42@comcast.net>  (tiny change)
+
+	* config.nt (HAVE_PWD_H): Undef.
+
+2004-06-07  Juanma Barranquero  <lektu@terra.es>
+
+	* INSTALL: Clarify paragraph about compatibility between image
+	libraries and builds of Emacs with several compilers.
+
+2004-06-06  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (bootstrap-nmake): When nmake'ing bootstrap on
+	the lisp/ directory, set SHELL to $(SHELLTYPE); this avoids
+	calling non-existent cmdproxy.exe on boostrappings after a
+	previous install followed by realclean.
+
+	* nmake.defs: Add quote in comment to resync font-locking.
+
+2004-06-04  Juanma Barranquero  <lektu@terra.es>
+
+	* INSTALL: Reword the section on image support.  Add reference to
+	GnuWin32.  Mention problems when mixing binaries from different
+	compilers.
+
+2004-05-06  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Use -mno-cygwin to check for image libraries
+	when needed.
+
+2004-05-03  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.nt, ebuild.bat, install.bat, fast-install.bat:
+	* makefile.def: Remove.
+
+	* nmake.defs (SYS_LDFLAGS): Add -nologo.
+
+	* makefile.w32-in (info-gmake, info-nmake): New targets.
+	(info): Use them.
+
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* nmake.defs:
+	* gmake.defs:
+	* makefile.w32-in:
+	* makefile.def:
+	* makefile.nt: Add "-*- makefile -*-" mode tag.
+
+2004-04-10  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>
+
+	* runemacs.c (WinMain): Let Emacs environment default to parent.
+
+2004-03-11  Jason Rumney  <jasonr@gnu.org>
+
+	* paths.h: Remove PATH_LOCK, add PATH_BITMAPS.
+
+2004-03-10  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (install): Don't try to copy
+	../lib-src/fns-*.el, as it isn't used anymore.
+
+2004-01-28  Peter Runestig  <peter@runestig.com>
+
+	* gmake.defs, nmake.defs: Add linking to ``winspool.lib''.
+
+2003-12-24  Miles Bader  <miles@gnu.ai.mit.edu>
+
+	* .cvsignore: Add `.arch-inventory'.
+
+2003-11-22  Lars Hansen  <larsh@math.ku.dk>
+
+	* inc/grp.h: New file.
+
+2003-09-03  Peter Runestig  <peter@runestig.com>
+
+	* configure.bat: Create ``makefile'' in directories man, lispref
+	and lispintro.
+
+	* makefile.w32-in (force-info, info): New targets.
+
+	* envadd.bat: New file.
+
+	* multi-install-info.bat: New file.
+
+2003-06-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* config.nt (my_strftime): New define.
+
 2003-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* configure.bat: Automatically detect libXpm.
@@ -117,7 +308,7 @@
 	* INSTALL: Update table of versions of make that are suitable
 	for building Emacs, based on recent feedback.
 
-	* TODO, _emacs, emacs.bat.in, debug.bat.in: Removed.
+	* TODO, _emacs, emacs.bat.in, debug.bat.in: Remove.
 
 2001-11-19  Andrew Innes  <andrewi@gnu.org>
 
@@ -574,7 +765,7 @@
 1999-01-22  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* icons: New directory with Davenport's icons.
-	icons/sink.ico: Renamed from emacs.ico.
+	* icons/sink.ico: Renamed from emacs.ico.
 
 	* makefile.nt (install, fast_install): Install Windows icons
 	into etc/icons.
@@ -898,8 +1089,8 @@
 
 1995-06-09  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* emacs.bat.in: Renamed from emacs.bat
-	(emacs_dir): Renamed from emacs_path
+	* emacs.bat.in: Renamed from emacs.bat.
+	(emacs_dir): Renamed from emacs_path.
 	Definition removed.
 
 	* addpm.c: New file.
@@ -1012,7 +1203,9 @@
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001
-	Free Software Foundation, Inc.
+    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
+       2005 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: b3d2c29c-04a0-45d0-b52d-57354711c414

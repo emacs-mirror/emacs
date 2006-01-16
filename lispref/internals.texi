@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1998, 1999
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1998, 1999, 2002, 2003, 2004,
+@c   2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/internals
 @node GNU Emacs Internals, Standard Errors, Tips, Top
@@ -13,7 +13,7 @@ the preloaded Lisp libraries in it, how storage is allocated, and some
 internal aspects of GNU Emacs that may be of interest to C programmers.
 
 @menu
-* Building Emacs::      How to the dumped Emacs is made.
+* Building Emacs::      How the dumped Emacs is made.
 * Pure Storage::        A kludge to make preloaded Lisp functions sharable.
 * Garbage Collection::  Reclaiming space for Lisp objects no longer used.
 * Memory Usage::        Info about total size of Lisp objects made so far.
@@ -81,8 +81,9 @@ faster.  On modern machines, it is usually not advisable.
 
   After @file{loadup.el} reads @file{site-load.el}, it finds the
 documentation strings for primitive and preloaded functions (and
-variables) in the file @file{etc/DOC} where they are stored, by calling
-@code{Snarf-documentation} (@pxref{Accessing Documentation}).
+variables) in the file @file{etc/DOC} where they are stored, by
+calling @code{Snarf-documentation} (@pxref{Definition of
+Snarf-documentation,, Accessing Documentation}).
 
 @cindex @file{site-init.el}
   You can specify other Lisp expressions to execute just before dumping
@@ -115,6 +116,18 @@ documentation strings take up space in Emacs all the time.)
 expect in an ordinary unmodified Emacs.  If you feel you must override
 normal features for your site, do it with @file{default.el}, so that
 users can override your changes if they wish.  @xref{Startup Summary}.
+
+  In a package that can be preloaded, it is sometimes useful to
+specify a computation to be done when Emacs subsequently starts up.
+For this, use @code{eval-at-startup}:
+
+@defmac eval-at-startup body@dots{}
+This evaluates the @var{body} forms, either immediately if running in
+an Emacs that has already started up, or later when Emacs does start
+up.  Since the value of the @var{body} forms is not necessarily
+available when the @code{eval-at-startup} form is run, that form
+always returns @code{nil}.
+@end defmac
 
 @defun dump-emacs to-file from-file
 @cindex unexec
@@ -151,10 +164,10 @@ preload additional libraries or add features to the standard ones.
 @defun purecopy object
 This function makes a copy in pure storage of @var{object}, and returns
 it.  It copies a string by simply making a new string with the same
-characters in pure storage.  It recursively copies the contents of
-vectors and cons cells.  It does not make copies of other objects such
-as symbols, but just returns them unchanged.  It signals an error if
-asked to copy markers.
+characters, but without text properties, in pure storage.  It
+recursively copies the contents of vectors and cons cells.  It does
+not make copies of other objects such as symbols, but just returns
+them unchanged.  It signals an error if asked to copy markers.
 
 This function is a no-op except while Emacs is being built and dumped;
 it is usually called only in the file @file{emacs/lisp/loaddefs.el}, but
@@ -339,6 +352,12 @@ beginning and end of garbage collection.  The default value is
 @code{nil}, meaning there are no such messages.
 @end defopt
 
+@defvar post-gc-hook
+This is a normal hook that is run at the end of garbage collection.
+Garbage collection is inhibited while the hook functions run, so be
+careful writing them.
+@end defvar
+
 @defopt gc-cons-threshold
 The value of this variable is the number of bytes of storage that must
 be allocated for Lisp objects after one garbage collection in order to
@@ -361,7 +380,18 @@ until the subsequent garbage collection, at which time
 @code{garbage-collect} will set the threshold back to 10,000.
 @end defopt
 
-  The value return by @code{garbage-collect} describes the amount of
+@defopt gc-cons-percentage
+The value of this variable specifies the amount of consing before a
+garbage collection occurs, as a fraction of the current heap size.
+This criterion and @code{gc-cons-threshold} apply in parallel, and
+garbage collection occurs only when both criteria are satisfied.
+
+As the heap size increases, the time to perform a garbage collection
+increases.  Thus, it can be desirable to do them less frequently in
+proportion.
+@end defopt
+
+  The value returned by @code{garbage-collect} describes the amount of
 memory used by Lisp data, broken down by data type.  By contrast, the
 function @code{memory-limit} provides information on the total amount of
 memory Emacs is currently using.
@@ -375,6 +405,28 @@ Lisp integer.
 You can use this to get a general idea of how your actions affect the
 memory usage.
 @end defun
+
+@defvar memory-full
+This variable is @code{t} if Emacs is close to out of memory for Lisp
+objects, and @code{nil} otherwise.
+@end defvar
+
+@defun memory-use-counts
+This returns a list of numbers that count the number of objects
+created in this Emacs session.  Each of these counters increments for
+a certain kind of object.  See the documentation string for details.
+@end defun
+
+@defvar gcs-done
+This variable contains the total number of garbage collections
+done so far in this Emacs session.
+@end defvar
+
+@defvar gc-elapsed
+This variable contains the total number of seconds of elapsed time
+during garbage collection so far in this Emacs session, as a floating
+point number.
+@end defvar
 
 @node Memory Usage
 @section Memory Usage
@@ -453,28 +505,22 @@ usage: (or CONDITIONS ...)  */)
   (args)
      Lisp_Object args;
 @{
-  register Lisp_Object val;
-  Lisp_Object args_left;
+  register Lisp_Object val = Qnil;
   struct gcpro gcpro1;
 @end group
 
 @group
-  if (NILP (args))
-    return Qnil;
-
-  args_left = args;
-  GCPRO1 (args_left);
+  GCPRO1 (args);
 @end group
 
 @group
-  do
+  while (CONSP (args))
     @{
-      val = Feval (Fcar (args_left));
+      val = Feval (XCAR (args));
       if (!NILP (val))
-        break;
-      args_left = Fcdr (args_left);
+	break;
+      args = XCDR (args);
     @}
-  while (!NILP (args_left));
 @end group
 
 @group
@@ -525,7 +571,7 @@ indicating a special form that receives unevaluated arguments, or
 @code{MANY}, indicating an unlimited number of evaluated arguments (the
 equivalent of @code{&rest}).  Both @code{UNEVALLED} and @code{MANY} are
 macros.  If @var{max} is a number, it may not be less than @var{min} and
-it may not be greater than seven.
+it may not be greater than eight.
 
 @item interactive
 This is an interactive specification, a string such as might be used as
@@ -546,6 +592,8 @@ If the last line of the documentation string begins with the keyword
 @samp{usage:}, the rest of the line is treated as the argument list
 for documentation purposes.  This way, you can use different argument
 names in the documentation string from the ones used in the C code.
+@samp{usage:} is required if the function has an unlimited number of
+arguments.
 
 All the usual rules for documentation strings in Lisp code
 (@pxref{Documentation Tips}) apply to C code documentation strings
@@ -572,22 +620,30 @@ Lisp object that you intend to refer to again must be protected somehow.
 @code{UNGCPRO} cancels the protection of the variables that are
 protected in the current function.  It is necessary to do this explicitly.
 
-  For most data types, it suffices to protect at least one pointer to
-the object; as long as the object is not recycled, all pointers to it
-remain valid.  This is not so for strings, because the garbage collector
-can move them.  When the garbage collector moves a string, it relocates
-all the pointers it knows about; any other pointers become invalid.
-Therefore, you must protect all pointers to strings across any point
-where garbage collection may be possible.
+  It suffices to ensure that at least one pointer to each object is
+GC-protected; as long as the object is not recycled, all pointers to
+it remain valid.  So if you are sure that a local variable points to
+an object that will be preserved by some other pointer, that local
+variable does not need a @code{GCPRO}.  (Formerly, strings were an
+exception to this rule; in older Emacs versions, every pointer to a
+string needed to be marked by GC.)
 
-  The macro @code{GCPRO1} protects just one local variable.  If you want
-to protect two, use @code{GCPRO2} instead; repeating @code{GCPRO1} will
-not work.  Macros @code{GCPRO3} and @code{GCPRO4} also exist.
-
-  These macros implicitly use local variables such as @code{gcpro1}; you
-must declare these explicitly, with type @code{struct gcpro}.  Thus, if
-you use @code{GCPRO2}, you must declare @code{gcpro1} and @code{gcpro2}.
+  The macro @code{GCPRO1} protects just one local variable.  If you
+want to protect two, use @code{GCPRO2} instead; repeating
+@code{GCPRO1} will not work.  Macros, @code{GCPRO3}, @code{GCPRO4},
+@code{GCPRO5}, and @code{GCPRO6} also exist.  These macros implicitly
+use local variables such as @code{gcpro1}; you must declare these
+explicitly, with type @code{struct gcpro}.  Thus, if you use
+@code{GCPRO2}, you must declare @code{gcpro1} and @code{gcpro2}.
 Alas, we can't explain all the tricky details here.
+
+  Built-in functions that take a variable number of arguments actually
+accept two arguments at the C level: the number of Lisp arguments, and
+a @code{Lisp_Object *} pointer to a C vector containing those Lisp
+arguments.  This C vector may be part of a Lisp vector, but it need
+not be.  The responsibility for using @code{GCPRO} to protect the Lisp
+arguments from GC if necessary rests with the caller in this case,
+since the caller allocated or found the storage for them.
 
   You must not use C initializers for static or global variables unless
 the variables are never written once Emacs is dumped.  These variables
@@ -624,6 +680,7 @@ file, add to it a @code{syms_of_@var{filename}} (e.g.,
 of these functions are called, and add a call to
 @code{syms_of_@var{filename}} there.
 
+@anchor{Defining Lisp variables in C}
 @vindex byte-boolean-vars
   The function @code{syms_of_@var{filename}} is also the place to define
 any C variables that are to be visible as Lisp variables.
@@ -721,10 +778,10 @@ number of arguments.  They work by calling @code{Ffuncall}.
 @file{lisp.h} contains the definitions for some important macros and
 functions.
 
-  If you define a function which is side-effect free, update the code in
-@file{byte-opt.el} which binds @code{side-effect-free-fns} and
-@code{side-effect-and-error-free-fns} to include it.  This will help the
-optimizer.
+  If you define a function which is side-effect free, update the code
+in @file{byte-opt.el} which binds @code{side-effect-free-fns} and
+@code{side-effect-and-error-free-fns} so that the compiler optimizer
+knows about it.
 
 @node Object Internals
 @appendixsec Object Internals
@@ -734,9 +791,9 @@ optimizer.
 data are stored in a heap and the only access that programs have to it
 is through pointers.  Pointers are thirty-two bits wide in most
 implementations.  Depending on the operating system and type of machine
-for which you compile Emacs, twenty-eight bits are used to address the
-object, and the remaining four bits are used for a GC mark bit and the
-tag that identifies the object's type.
+for which you compile Emacs, twenty-nine bits are used to address the
+object, and the remaining three bits are used for the tag that
+identifies the object's type.
 
   Because Lisp objects are represented as tagged pointers, it is always
 possible to determine the Lisp data type of any object.  The C data type
@@ -1059,6 +1116,9 @@ The value of @code{buffer-file-coding-system} in this buffer.
 @item file_format
 The value of @code{buffer-file-format} in this buffer.
 
+@item auto_save_file_format
+The value of @code{buffer-auto-save-file-format} in this buffer.
+
 @item pt_marker
 In an indirect buffer, or a buffer that is the base of an indirect
 buffer, this holds a marker that records point for this buffer when the
@@ -1262,7 +1322,7 @@ onto the screen.
 
 @item redisplay_end_trigger
 If redisplay in this window goes beyond this buffer position, it runs
-run the @code{redisplay-end-trigger-hook}.
+the @code{redisplay-end-trigger-hook}.
 
 @ignore
 @item orig_height
@@ -1361,7 +1421,7 @@ A function called whenever the process receives a signal, or @code{nil}.
 The associated buffer of the process.
 
 @item pid
-An integer, the Unix process @sc{id}.
+An integer, the operating system's process @acronym{ID}.
 
 @item childp
 A flag, non-@code{nil} if this is really a child process.
@@ -1391,7 +1451,7 @@ needs to be reported, either by running the sentinel or by inserting a
 message in the process buffer.
 
 @item pty_flag
-Non-@code{nil} if communication with the subprocess uses a @sc{pty};
+Non-@code{nil} if communication with the subprocess uses a @acronym{PTY};
 @code{nil} if it uses a pipe.
 
 @item infd
@@ -1431,3 +1491,7 @@ Size of carryover in encoding.
 Flag to set @code{coding-system} of the process buffer from the
 coding system used to decode process output.
 @end table
+
+@ignore
+   arch-tag: 4b2c33bc-d7e4-43f5-bc20-27c0db52a53e
+@end ignore

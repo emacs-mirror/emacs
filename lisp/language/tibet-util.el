@@ -1,7 +1,9 @@
 ;;; tibet-util.el --- utilities for Tibetan   -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 2000
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, Tibetan
 
@@ -19,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;; Author: Toru TOMABECHI, <Toru.Tomabechi@orient.unil.ch>
 
@@ -427,4 +429,5 @@ before writing buffer in Unicode.  See also
 
 (provide 'tibet-util)
 
+;;; arch-tag: 7a7333e8-1584-446c-b39c-a02b9def265d
 ;;; tibet-util.el ends here

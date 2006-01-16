@@ -1,5 +1,6 @@
 /* Definitions and headers for communication on the Mac OS.
-   Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,61 +16,138 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Contributed by Andrew Choi (akochoi@mac.com).  */
 
 #ifndef EMACS_MACGUI_H
 #define EMACS_MACGUI_H
 
-typedef int Pixmap;
-typedef int Bitmap;
-
 typedef int Display;  /* fix later */
+
+typedef Lisp_Object XrmDatabase;
 
 typedef unsigned long Time;
 
-#if MAC_OSX
-typedef struct OpaqueWindowPtr* Window;
-#else
-#include <QuickDraw.h>
-typedef WindowPtr Window;
+#ifdef HAVE_CARBON
+#undef Z
+#ifdef MAC_OSX
+#if ! HAVE_MKTIME || BROKEN_MKTIME
+#undef mktime
 #endif
+#undef DEBUG
+#undef free
+#undef malloc
+#undef realloc
+/* Macros max and min defined in lisp.h conflict with those in
+   precompiled header Carbon.h.  */
+#undef max
+#undef min
+#undef init_process
+#include <Carbon/Carbon.h>
+#if ! HAVE_MKTIME || BROKEN_MKTIME
+#undef mktime
+#define mktime emacs_mktime
+#endif
+#undef free
+#define free unexec_free
+#undef malloc
+#define malloc unexec_malloc
+#undef realloc
+#define realloc unexec_realloc
+#undef min
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#undef max
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#undef init_process
+#define init_process emacs_init_process
+#undef INFINITY
+#else  /* not MAC_OSX */
+#undef SIGHUP
+#define OLDP2C 1
+#include <Carbon.h>
+#endif  /* not MAC_OSX */
+#undef Z
+#define Z (current_buffer->text->z)
+#else /* not HAVE_CARBON */
+#include <QuickDraw.h>		/* for WindowPtr */
+#include <QDOffscreen.h>	/* for GWorldPtr */
+#include <Appearance.h>		/* for ThemeCursor */
+#include <Windows.h>
+#include <Controls.h>
+#include <Gestalt.h>
+#endif /* not HAVE_CARBON */
+
+typedef WindowPtr Window;
+typedef GWorldPtr Pixmap;
+
+#define Cursor ThemeCursor
+#define No_Cursor (-1)
 
 #define FACE_DEFAULT (~0)
 
+#if !TARGET_API_MAC_CARBON
+#define GetPixDepth(pmh) ((*(pmh))->pixelSize)
+#endif
+
+
+#ifndef USE_CG_TEXT_DRAWING
+#if USE_ATSUI && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#define USE_CG_TEXT_DRAWING 1
+#endif
+#endif
 
 /* Emulate XCharStruct.  */
 typedef struct _XCharStruct
 {
-  int rbearing;
-  int lbearing;
-  int width;
-  int ascent;
-  int descent;
+  short	lbearing;		/* origin to left edge of raster */
+  short	rbearing;		/* origin to right edge of raster */
+  short	width;			/* advance to next char's origin */
+  short	ascent;			/* baseline to top edge of raster */
+  short	descent;		/* baseline to bottom edge of raster */
+#if 0
+  unsigned short attributes;	/* per char flags (not predefined) */
+#endif
 } XCharStruct;
 
+#define STORE_XCHARSTRUCT(xcs, w, bds)			\
+  ((xcs).width = (w),					\
+   (xcs).lbearing = (bds).left,				\
+   (xcs).rbearing = (bds).right,			\
+   (xcs).ascent = -(bds).top,				\
+   (xcs).descent = (bds).bottom)
+
+typedef struct
+{
+  char valid_bits[0x100 / 8];
+  XCharStruct per_char[0x100];
+} XCharStructRow;
+
+#define XCHARSTRUCTROW_CHAR_VALID_P(row, byte2) \
+  ((row)->valid_bits[(byte2) / 8] & (1 << (byte2) % 8))
+
+#define XCHARSTRUCTROW_SET_CHAR_VALID(row, byte2) \
+  ((row)->valid_bits[(byte2) / 8] |= (1 << (byte2) % 8))
+
 struct MacFontStruct {
-  char *fontname;
+  char *full_name;
 
   short mac_fontnum;  /* font number of font used in this window */
   int mac_fontsize;  /* size of font */
   short mac_fontface;  /* plain, bold, italics, etc. */
+#if TARGET_API_MAC_CARBON
+  int mac_scriptcode;  /* Mac OS script code for font used */
+#else
   short mac_scriptcode;  /* Mac OS script code for font used */
-
-#if 0
-  SInt16 mFontNum;  /* font number of font used in this window */
-  short mScriptCode;  /* Mac OS script code for font used */
-  int mFontSize;  /* size of font */
-  Style mFontFace;  /* plain, bold, italics, etc. */
-  int mHeight;  /* height of one line of text in pixels */
-  int mWidth;  /* width of one character in pixels */
-  int mAscent;
-  int mDescent;
-  int mLeading;
-  char mTwoByte;  /* true for two-byte font */
-#endif /* 0 */
+#endif
+#if USE_ATSUI
+  ATSUStyle mac_style;		/* NULL if QuickDraw Text is used */
+#if USE_CG_TEXT_DRAWING
+  CGFontRef cg_font;		/* NULL if ATSUI text drawing is used */
+  CGGlyph *cg_glyphs;		/* Likewise  */
+#endif
+#endif
 
 /* from Xlib.h */
 #if 0
@@ -89,13 +167,32 @@ struct MacFontStruct {
 #endif /* 0 */
   XCharStruct min_bounds;  /* minimum bounds over all existing char */
   XCharStruct max_bounds;  /* maximum bounds over all existing char */
-  XCharStruct *per_char;   /* first_char to last_char information */
+  union {
+    XCharStruct *per_char; /* first_char to last_char information */
+    XCharStructRow **rows; /* first row to last row information */
+  } bounds;
   int ascent;              /* logical extent above baseline for spacing */
   int descent;             /* logical decent below baseline for spacing */
 };
 
 typedef struct MacFontStruct MacFontStruct;
 typedef struct MacFontStruct XFontStruct;
+
+/* Structure borrowed from Xlib.h to represent two-byte characters.  */
+
+typedef struct {
+  unsigned char byte1;
+  unsigned char byte2;
+} XChar2b;
+
+#define STORE_XCHAR2B(chp, b1, b2) \
+  ((chp)->byte1 = (b1), (chp)->byte2 = (b2))
+
+#define XCHAR2B_BYTE1(chp) \
+  ((chp)->byte1)
+
+#define XCHAR2B_BYTE2(chp) \
+  ((chp)->byte2)
 
 
 /* Emulate X GC's by keeping color and font info in a structure.  */
@@ -106,15 +203,37 @@ typedef struct _XGCValues
   XFontStruct *font;
 } XGCValues;
 
-typedef XGCValues *GC;
+typedef struct _XGC
+{
+  /* Original value.  */
+  XGCValues xgcv;
 
-extern XGCValues *
-XCreateGC (void *, Window, unsigned long, XGCValues *);
+  /* Cached data members follow.  */
 
-#define GCForeground 0x01
-#define GCBackground 0x02
-#define GCFont 0x03
-#define GCGraphicsExposures 0
+  /* QuickDraw foreground color.  */
+  RGBColor fore_color;
+
+  /* QuickDraw background color.  */
+  RGBColor back_color;
+
+#define MAX_CLIP_RECTS 2
+  /* QuickDraw clipping region.  */
+  RgnHandle clip_region;
+
+#if defined (MAC_OSX) && USE_ATSUI
+  /* Number of clipping rectangles used in Quartz 2D drawing.  */
+  int n_clip_rects;
+
+  /* Clipping rectangles used in Quartz 2D drawing.  The y-coordinate
+     is in QuickDraw's.  */
+  CGRect clip_rects[MAX_CLIP_RECTS];
+#endif
+} *GC;
+
+#define GCForeground            (1L<<2)
+#define GCBackground            (1L<<3)
+#define GCFont 			(1L<<14)
+#define GCGraphicsExposures	0
 
 /* Bit Gravity */
 
@@ -139,6 +258,29 @@ XCreateGC (void *, Window, unsigned long, XGCValues *);
 #define XNegative 	0x0010
 #define YNegative 	0x0020
 
+typedef struct {
+    	long flags;	/* marks which fields in this structure are defined */
+#if 0
+	int x, y;		/* obsolete for new window mgrs, but clients */
+	int width, height;	/* should set so old wm's don't mess up */
+#endif
+	int min_width, min_height;
+#if 0
+	int max_width, max_height;
+#endif
+    	int width_inc, height_inc;
+#if 0
+	struct {
+		int x;	/* numerator */
+		int y;	/* denominator */
+	} min_aspect, max_aspect;
+#endif
+	int base_width, base_height;		/* added by ICCCM version 1 */
+#if 0
+	int win_gravity;			/* added by ICCCM version 1 */
+#endif
+} XSizeHints;
+
 #define USPosition	(1L << 0) /* user specified x, y */
 #define USSize		(1L << 1) /* user specified width, height */
 
@@ -151,7 +293,32 @@ XCreateGC (void *, Window, unsigned long, XGCValues *);
 #define PBaseSize	(1L << 8) /* program specified base for incrementing */
 #define PWinGravity	(1L << 9) /* program specified window gravity */
 
-extern int XParseGeometry ();
+typedef struct {
+    int x, y;
+    unsigned width, height;
+} XRectangle;
+
+#define NativeRectangle Rect
+
+#define CONVERT_TO_XRECT(xr,nr)			\
+  ((xr).x = (nr).left,				\
+   (xr).y = (nr).top,				\
+   (xr).width = ((nr).right - (nr).left),	\
+   (xr).height = ((nr).bottom - (nr).top))
+
+#define CONVERT_FROM_XRECT(xr,nr)		\
+  ((nr).left = (xr).x,				\
+   (nr).top = (xr).y,				\
+   (nr).right = ((xr).x + (xr).width),		\
+   (nr).bottom = ((xr).y + (xr).height))
+
+#define STORE_NATIVE_RECT(nr,x,y,width,height)	\
+  ((nr).left = (x),				\
+   (nr).top = (y),				\
+   (nr).right = ((nr).left + (width)),		\
+   (nr).bottom = ((nr).top + (height)))
 
 #endif /* EMACS_MACGUI_H */
 
+/* arch-tag: 5a0da49a-35e2-418b-a58c-8a55778ae849
+   (do not change this comment) */

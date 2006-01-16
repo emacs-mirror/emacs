@@ -1,5 +1,5 @@
 /* update-game-score.c --- Update a score file
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* This program is allows a game to securely and atomically update a
    score file.  It should be installed setuid, owned by an appropriate
@@ -68,6 +68,11 @@ extern int optind, opterr;
 #define P_(proto) ()
 #endif
 
+#ifndef HAVE_DIFFTIME
+/* OK on POSIX (time_t is arithmetic type) modulo overflow in subtraction.  */
+#define difftime(t1, t0) (double)((t1) - (t0))
+#endif
+
 int
 usage (err)
      int err;
@@ -106,17 +111,34 @@ lose (msg)
      const char *msg;
 {
   fprintf (stderr, "%s\n", msg);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 void lose_syserr P_ ((const char *msg)) NO_RETURN;
+
+/* Taken from sysdep.c.  */
+#ifndef HAVE_STRERROR
+#ifndef WINDOWSNT
+char *
+strerror (errnum)
+     int errnum;
+{
+  extern char *sys_errlist[];
+  extern int sys_nerr;
+
+  if (errnum >= 0 && errnum < sys_nerr)
+    return sys_errlist[errnum];
+  return (char *) "Unknown error";
+}
+#endif /* not WINDOWSNT */
+#endif /* ! HAVE_STRERROR */
 
 void
 lose_syserr (msg)
      const char *msg;
 {
   fprintf (stderr, "%s: %s\n", msg, strerror (errno));
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 char *
@@ -177,7 +199,7 @@ main (argc, argv)
     switch (c)
       {
       case 'h':
-	usage (0);
+	usage (EXIT_SUCCESS);
 	break;
       case 'd':
 	user_prefix = optarg;
@@ -191,11 +213,11 @@ main (argc, argv)
 	  max = MAX_SCORES;
 	break;
       default:
-	usage (1);
+	usage (EXIT_FAILURE);
       }
 
   if (optind+3 != argc)
-    usage (1);
+    usage (EXIT_FAILURE);
 
   running_suid = (getuid () != geteuid ());
 
@@ -244,7 +266,7 @@ main (argc, argv)
       lose_syserr ("Failed to write scores file");
     }
   unlock_file (scorefile, lockstate);
-  exit (0);
+  exit (EXIT_SUCCESS);
 }
 
 int
@@ -357,7 +379,9 @@ read_scores (filename, scores, count)
       scorecount++;
       if (scorecount >= cursize)
 	{
-	  ret = (struct score_entry *) realloc (ret, cursize *= 2);
+	  cursize *= 2;
+	  ret = (struct score_entry *)
+	    realloc (ret, (sizeof (struct score_entry) * cursize));
 	  if (!ret)
 	    return -1;
 	}
@@ -504,3 +528,8 @@ unlock_file (filename, state)
   errno = saved_errno;
   return ret;
 }
+
+/* arch-tag: 2bf5c52e-4beb-463a-954e-c58b9c64736b
+   (do not change this comment) */
+
+/* update-game-score.c ends here */

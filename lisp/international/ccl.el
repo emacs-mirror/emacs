@@ -1,8 +1,9 @@
 ;;; ccl.el --- CCL (Code Conversion Language) compiler
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2001, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 1999, 2000
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: CCL, mule, multilingual, character set, coding-system
 
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -774,7 +775,8 @@
 	       (ccl-check-register right rrr)
 	       (ccl-embed-code 'write-expr-register 0
 			       (logior (ash op 3)
-				       (get right 'ccl-register-number))))))
+				       (get right 'ccl-register-number))
+			       left))))
 
 	  (t
 	   (error "CCL: Invalid argument: %s" cmd))))
@@ -1119,7 +1121,8 @@
   (insert (format "write r%d (%d remaining)\n" rrr cc)))
 
 (defun ccl-dump-call (ignore cc)
-  (insert (format "call subroutine #%d\n" cc)))
+  (let ((subroutine (car (ccl-get-next-code))))
+    (insert (format "call subroutine `%s'\n" subroutine))))
 
 (defun ccl-dump-write-const-string (rrr cc)
   (if (= rrr 0)
@@ -1303,7 +1306,9 @@ CCL-PROGRAM has this form:
 
 BUFFER_MAGNIFICATION is an integer value specifying the approximate
 output buffer magnification size compared with the bytes of input data
-text.  If the value is zero, the CCL program can't execute `read' and
+text.  It is assured that the actual output buffer has 256 bytes
+more than the size calculated by BUFFER_MAGNIFICATION.
+If the value is zero, the CCL program can't execute `read' and
 `write' commands.
 
 CCL_MAIN_CODE and CCL_EOF_CODE are CCL program codes.  CCL_MAIN_CODE
@@ -1493,7 +1498,7 @@ TRANSLATE :=
 LOOKUP :=
 	(lookup-character SYMBOL REG(charset) REG(codepoint))
 	| (lookup-integer SYMBOL REG(integer))
-        ;; SYMBOL refers to a table defined by `define-hash-translation-table'.
+        ;; SYMBOL refers to a table defined by `define-translation-hash-table'.
 MAP :=
      (iterate-multiple-map REG REG MAP-IDs)
      | (map-multiple REG REG (MAP-SET))
@@ -1539,4 +1544,5 @@ See the documentation of `define-ccl-program' for the detail of CCL program."
 
 (provide 'ccl)
 
+;;; arch-tag: 836bcd27-63a1-4a56-b232-1145ecf823fb
 ;;; ccl.el ends here

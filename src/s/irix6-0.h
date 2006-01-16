@@ -35,3 +35,6 @@
 /* Tested on Irix 6.5.  SCM worked on earlier versions.  */
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
+
+/* arch-tag: a775e465-a619-4655-a58f-5982aad0c624
+   (do not change this comment) */

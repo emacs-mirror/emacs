@@ -1,7 +1,7 @@
 % === BEGIN ps-print prologue 1
 % version: 6.0
 
-% Copyright (C) 2000, 2001  Free Software Foundation, Inc.
+% Copyright (C) 2000, 2001, 2002, 2003, 2004  Free Software Foundation, Inc.
 %
 % This file is part of GNU Emacs.
 %
@@ -17,8 +17,8 @@
 %
 % You should have received a copy of the GNU General Public License
 % along with GNU Emacs; see the file COPYING.  If not, write to the
-% Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-% Boston, MA 02111-1307, USA.
+% Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+% Boston, MA 02110-1301, USA.
 
 % As a special exception, the copyright holders of this module give
 % you permission to include the module in a Postscript file generated
@@ -751,6 +751,9 @@ StandardEncoding 46 82 getinterval aload pop
   FooterLineHeight FooterLines 1 sub mul add
 }def
 
+/HeaderClip{HeaderFrameStart moveto HeaderFramePath clip}def
+/FooterClip{FooterFrameStart moveto FooterFramePath clip}def
+
 /strcat{
   dup length 3 -1 roll dup length dup 4 -1 roll add string dup
   0 5 -1 roll putinterval
@@ -803,17 +806,21 @@ StandardEncoding 46 82 getinterval aload pop
 }def
 
 /HeaderText{
+  gsave HeaderClip
   HeaderLinesRight HeaderLinesLeft
   /HeaderStart HeaderLineHeight HeaderPad
   HeaderFrameProperties 0 get
   HeaderOrFooterText
+  grestore
 }def
 
 /FooterText{
+  gsave FooterClip
   FooterLinesRight FooterLinesLeft
   /FooterStart FooterLineHeight FooterPad
   FooterFrameProperties 0 get
   HeaderOrFooterText
+  grestore
 }def
 
 /ReportFontInfo{

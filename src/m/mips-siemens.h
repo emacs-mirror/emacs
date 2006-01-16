@@ -1,5 +1,6 @@
 /* m- file for Mips machines.
-   Copyright (C) 1987, 1992, 1993, 1995, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1992, 1993, 1995, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
    This file contains some changes for our SVR4 based SINIX-Mips 5.4.
    I hope this is helpful to port the emacs to our RM?00 series and
@@ -20,8 +21,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The following line tells the configuration script what sort of
@@ -158,8 +159,5 @@ NOTE-END  */
    ((int)(type) << VALBITS)						\
    + (((unsigned) (ptr) << (BITS_PER_INT-VALBITS)) >> (BITS_PER_INT-VALBITS)))
 
-#define XUNMARK(a)							\
-  ((a) =								\
-   (((unsigned)(a) << (BITS_PER_INT-GCTYPEBITS-VALBITS))		\
-    >> (BITS_PER_INT-GCTYPEBITS-VALBITS)))
-
+/* arch-tag: a4f5c090-0bd5-48f0-9724-b7d531f9b6c8
+   (do not change this comment) */

@@ -1,6 +1,8 @@
 /* Header for coding system handler.
-   Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
-   Licensed to the Free Software Foundation.
+   Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1997, 1998, 2000
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H14PRO021
 
 This file is part of GNU Emacs.
 
@@ -16,8 +18,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #ifndef EMACS_CODING_H
 #define EMACS_CODING_H
@@ -144,8 +146,9 @@ enum iso_code_class_type
 #define CODING_FLAG_ISO_DESIGNATION	0x10000
 
 /* A character to be produced on output if encoding of the original
-   character is prohibited by CODING_FLAG_ISO_SAFE.  */
-#define CODING_INHIBIT_CHARACTER_SUBSTITUTION  077 /* 077 == `?' */
+   character is inhibitted by CODING_MODE_INHIBIT_UNENCODABLE_CHAR.
+   It must be an ASCII character.  */
+#define CODING_REPLACEMENT_CHARACTER '?'
 
 /* Structure of the field `spec.iso2022' in the structure `coding_system'.  */
 struct iso2022_spec
@@ -337,9 +340,12 @@ struct composition_data
    enables selective display.  */
 #define CODING_MODE_SELECTIVE_DISPLAY		0x04
 
+/* If set, replace unencodabae characters by `?' on encoding.  */
+#define CODING_MODE_INHIBIT_UNENCODABLE_CHAR	0x08
+
 /* This flag is used by the decoding/encoding routines on the fly.  If
    set, it means that right-to-left text is being processed.  */
-#define CODING_MODE_DIRECTION			0x08
+#define CODING_MODE_DIRECTION			0x10
 
 struct coding_system
 {
@@ -568,10 +574,10 @@ struct coding_system
    for file names, if any.  */
 #define ENCODE_FILE(name)						   \
   (! NILP (Vfile_name_coding_system)					   \
-   && XFASTINT (Vfile_name_coding_system) != 0				   \
+   && !EQ (Vfile_name_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (name, Vfile_name_coding_system, 1)	   \
    : (! NILP (Vdefault_file_name_coding_system)				   \
-      && XFASTINT (Vdefault_file_name_coding_system) != 0		   \
+      && !EQ (Vdefault_file_name_coding_system, make_number (0))	   \
       ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 1) \
       : name))
 
@@ -579,36 +585,30 @@ struct coding_system
    for file names, if any.  */
 #define DECODE_FILE(name)						   \
   (! NILP (Vfile_name_coding_system)					   \
-   && XFASTINT (Vfile_name_coding_system) != 0				   \
+   && !EQ (Vfile_name_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (name, Vfile_name_coding_system, 0)	   \
    : (! NILP (Vdefault_file_name_coding_system)				   \
-      && XFASTINT (Vdefault_file_name_coding_system) != 0		   \
+      && !EQ (Vdefault_file_name_coding_system, make_number (0))	   \
       ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 0) \
       : name))
 
-#ifdef WINDOWSNT
 /* Encode the string STR using the specified coding system
-   for w32 system functions, if any.  */
+   for system functions, if any.  */
 #define ENCODE_SYSTEM(str)						   \
   (! NILP (Vlocale_coding_system)					   \
-   && XFASTINT (Vlocale_coding_system) != 0				   \
+   && !EQ (Vlocale_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (str, Vlocale_coding_system, 1)	   \
    : str)
 
 /* Decode the string STR using the specified coding system
-   for w32 system functions, if any.  */
-#define DECODE_SYSTEM(name)						   \
+   for system functions, if any.  */
+#define DECODE_SYSTEM(str)						   \
   (! NILP (Vlocale_coding_system)					   \
-   && XFASTINT (Vlocale_coding_system) != 0				   \
+   && !EQ (Vlocale_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (str, Vlocale_coding_system, 0)	   \
    : str)
 
-#else /* WINDOWSNT */
-
-#define ENCODE_SYSTEM(str) string_make_unibyte(str)
-#define DECODE_SYSTEM(name) name
-
-#endif /* !WINDOWSNT */
+#define ENCODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 1)
 
 /* Extern declarations.  */
 extern int decode_coding P_ ((struct coding_system *, const unsigned char *,
@@ -629,6 +629,10 @@ extern int code_convert_region P_ ((int, int, int, int, struct coding_system *,
 extern Lisp_Object run_pre_post_conversion_on_str P_ ((Lisp_Object,
 						       struct coding_system *,
 						       int));
+extern void run_pre_write_conversin_on_c_str P_ ((unsigned char **, int *,
+						  int, int,
+						  struct coding_system *));
+
 extern int decoding_buffer_size P_ ((struct coding_system *, int));
 extern int encoding_buffer_size P_ ((struct coding_system *, int));
 extern void detect_coding P_ ((struct coding_system *, const unsigned char *,
@@ -651,6 +655,7 @@ extern Lisp_Object Qcoding_system, Qeol_type, Qcoding_category_index;
 extern Lisp_Object Qraw_text, Qemacs_mule;
 extern Lisp_Object Qbuffer_file_coding_system;
 extern Lisp_Object Vcoding_category_list;
+extern Lisp_Object Qutf_8;
 
 extern Lisp_Object Qtranslation_table;
 extern Lisp_Object Qtranslation_table_id;
@@ -662,7 +667,7 @@ extern Lisp_Object eol_mnemonic_undecided;
 
 #ifdef emacs
 extern Lisp_Object Qfile_coding_system;
-extern Lisp_Object Qcall_process, Qcall_process_region, Qprocess_argument;
+extern Lisp_Object Qcall_process, Qcall_process_region;
 extern Lisp_Object Qstart_process, Qopen_network_stream;
 extern Lisp_Object Qwrite_region;
 
@@ -722,3 +727,6 @@ extern Lisp_Object Vdefault_file_name_coding_system;
 extern Lisp_Object Qcoding_system_error;
 
 #endif /* EMACS_CODING_H */
+
+/* arch-tag: 2bc3b4fa-6870-4f64-8135-b962b2d290e4
+   (do not change this comment) */

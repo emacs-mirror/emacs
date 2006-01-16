@@ -1,7 +1,7 @@
 #include "copyright.h"
 
-/* $Header: /cvs/emacs/oldXMenu/DelSel.c,v 1.1 1999/10/03 19:34:58 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
  * XMenu:	MIT Project Athena, X Window system menu package
@@ -70,3 +70,6 @@ XMenuDeleteSelection(display, menu, p_num, s_num)
     _XMErrorCode = XME_NO_ERROR;
     return(s_num);
 }
+
+/* arch-tag: 24ca2bc7-8a37-471a-8095-e6363fc1ed10
+   (do not change this comment) */

@@ -1,6 +1,7 @@
 ;;; tpu-extras.el --- scroll margins and free cursor mode for TPU-edt
 
-;; Copyright (C) 1993, 1994, 1995, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -144,9 +145,9 @@ the previous line when starting from a line beginning."
   "Eliminate whitespace at ends of lines, if the cursor is free."
   (if (and (buffer-modified-p) tpu-cursor-free) (tpu-trim-line-ends)))
 
-(or (memq 'tpu-write-file-hook write-file-hooks)
-    (setq write-file-hooks
-	  (cons 'tpu-write-file-hook write-file-hooks)))
+(or (memq 'tpu-write-file-hook write-file-functions)
+    (setq write-file-functions
+	  (cons 'tpu-write-file-hook write-file-functions)))
 
 
 ;;;  Utility routines for implementing scroll margins
@@ -440,16 +441,16 @@ version that respects the bottom scroll margin."
   ;; set top scroll margin
   (or (string= top "")
       (if (string= "%" (substring top -1))
-	  (setq tpu-top-scroll-margin (string-to-int top))
+	  (setq tpu-top-scroll-margin (string-to-number top))
 	(setq tpu-top-scroll-margin
-	      (/ (1- (+ (* (string-to-int top) 100) (window-height)))
+	      (/ (1- (+ (* (string-to-number top) 100) (window-height)))
 		 (window-height)))))
   ;; set bottom scroll margin
   (or (string= bottom "")
       (if (string= "%" (substring bottom -1))
-	  (setq tpu-bottom-scroll-margin (string-to-int bottom))
+	  (setq tpu-bottom-scroll-margin (string-to-number bottom))
 	(setq tpu-bottom-scroll-margin
-	      (/ (1- (+ (* (string-to-int bottom) 100) (window-height)))
+	      (/ (1- (+ (* (string-to-number bottom) 100) (window-height)))
 		 (window-height)))))
   ;; report scroll margin settings if running interactively
   (and (interactive-p)
@@ -480,4 +481,5 @@ version that respects the bottom scroll margin."
 			     GOLD-map)
   (message "The cursor is now bound to the flow of your text."))
 
+;;; arch-tag: 89676fa4-33ec-48cb-9135-6f3bf230ab1a
 ;;; tpu-extras.el ends here

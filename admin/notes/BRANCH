@@ -1,0 +1,18 @@
+This file describes the CVS branch in which it is maintained.
+Everything below the line is branch-specific.
+________________________________________________________________________
+
+This is the "HEAD" branch, otherwise known as the "trunk".  Its primary
+purpose is to accumulate changes that are not yet partitioned into a
+specific (versioned) release.  When people say "use CVS emacs", this is
+the branch they are talking about.  Likewise, a "cvs checkout" without
+the "-r" option results in this branch.
+
+The plans for this branch are not specified; Emacs hackers add to it
+relatively free of constraint (aside from proper legal / accounting
+practices), although sometimes there is related discussion on the
+emacs-devel mailing list.
+
+The closure process for this branch is undocumented; concepts such as
+"freeze", "release", or "integration with the trunk" are not applicable
+to this branch.

@@ -1,7 +1,7 @@
 /* Configuration file for the Tektronix XD88 running UTekV 3.2e,
    contributed by Kaveh Ghazi  (ghazi@caip.rutgers.edu)  1/15/93.
    You probably need to use gnu make (version 3.63 or higher.)
-   Copyright (C) 1993, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,8 +17,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
@@ -111,3 +111,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* We need this to get dumping to work */
 #define KEEP_OLD_TEXT_SCNPTR
+
+/* arch-tag: fd3cebc3-2aed-4f8c-be9b-f37331c6e0ff
+   (do not change this comment) */

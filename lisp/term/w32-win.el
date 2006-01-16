@@ -1,6 +1,7 @@
 ;;; w32-win.el --- parse switches controlling interface with W32 window system
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallo
 ;; Keywords: terminals
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -76,6 +77,11 @@
 (require 'faces)
 (require 'select)
 (require 'menu-bar)
+(require 'dnd)
+(require 'code-pages)
+
+(defvar xlfd-regexp-registry-subnum)
+
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
     (require 'fontset))
@@ -84,13 +90,7 @@
 ;(defun w32-handle-scroll-bar-event (event) (interactive "e") (princ event))
 
 ;; Handle mouse-wheel events with mwheel.
-;; Normally only mouse-wheel-mode and mwheel-install are autoloaded,
-;; but binding mouse-wheel must be done directly, since those functions
-;; do not recognize mouse-wheel as a valid button.
-(autoload 'mwheel-scroll "mwheel")
-(global-set-key [mouse-wheel] 'mwheel-scroll)
-(global-set-key [C-mouse-wheel] 'mwheel-scroll)
-(global-set-key [S-mouse-wheel] 'mwheel-scroll)
+(mouse-wheel-mode 1)
 
 (defun w32-drag-n-drop-debug (event)
   "Print the drag-n-drop EVENT in a readable form."
@@ -111,7 +111,10 @@ Switch to a buffer editing the last file dropped."
 	   (y (cdr coords)))
       (if (and (> x 0) (> y 0))
 	  (set-frame-selected-window nil window))
-    (mapcar 'find-file (car (cdr (cdr event)))))
+      (mapcar (lambda (file-name)
+		(dnd-handle-one-url window 'private
+				    (concat "file:" file-name)))
+		(car (cdr (cdr event)))))
   (raise-frame)))
 
 (defun w32-drag-n-drop-other-frame (event)
@@ -139,50 +142,26 @@ the last file dropped is selected."
   "Handle SWITCH of the form \"-switch value\" or \"-switch\"."
   (let ((aelt (assoc switch command-line-x-option-alist)))
     (if aelt
-	(let ((param (nth 3 aelt))
-	      (value (nth 4 aelt)))
-	  (if value
-	      (setq default-frame-alist
-		    (cons (cons param value)
-			  default-frame-alist))
-	    (setq default-frame-alist
-		  (cons (cons param
-			      (car x-invocation-args))
-			default-frame-alist)
- 	          x-invocation-args (cdr x-invocation-args)))))))
+	(push (cons (nth 3 aelt) (or (nth 4 aelt) (pop x-invocation-args)))
+	      default-frame-alist))))
 
 (defun x-handle-numeric-switch (switch)
   "Handle SWITCH of the form \"-switch n\"."
   (let ((aelt (assoc switch command-line-x-option-alist)))
     (if aelt
-	(let ((param (nth 3 aelt)))
-	(setq default-frame-alist
-	      (cons (cons param
-			  (string-to-int (car x-invocation-args)))
-		    default-frame-alist)
-	      x-invocation-args
-	      (cdr x-invocation-args))))))
+	(push (cons (nth 3 aelt) (string-to-number (pop x-invocation-args)))
+	      default-frame-alist))))
 
 ;; Handle options that apply to initial frame only
 (defun x-handle-initial-switch (switch)
   (let ((aelt (assoc switch command-line-x-option-alist)))
     (if aelt
-	(let ((param (nth 3 aelt))
-	      (value (nth 4 aelt)))
-	  (if value
-	      (setq initial-frame-alist
-		    (cons (cons param value)
-			  initial-frame-alist))
-	    (setq initial-frame-alist
-		  (cons (cons param
-			      (car x-invocation-args))
-			initial-frame-alist)
-		  x-invocation-args (cdr x-invocation-args)))))))
+	(push (cons (nth 3 aelt) (or (nth 4 aelt) (pop x-invocation-args)))
+	      initial-frame-alist))))
 
 (defun x-handle-iconic (switch)
   "Make \"-iconic\" SWITCH apply only to the initial frame."
-  (setq initial-frame-alist
-	(cons '(visibility . icon) initial-frame-alist)))
+  (push '(visibility . icon) initial-frame-alist))
 
 (defun x-handle-xrm-switch (switch)
   "Handle the \"-xrm\" SWITCH."
@@ -206,6 +185,11 @@ the last file dropped is selected."
 	      (append default-frame-alist
 		      '((user-size . t))
 		      (if height (list height))
+		      (if width (list width)))
+	      initial-frame-alist
+	      (append initial-frame-alist
+		      '((user-size . t))
+		      (if height (list height))
 		      (if width (list width)))))
     (if (or left top)
 	(setq initial-frame-alist
@@ -221,18 +205,15 @@ the last file dropped is selected."
 ;; to the option's operand; set the name of the initial frame, too.
   (or (consp x-invocation-args)
       (error "%s: missing argument to `%s' option" (invocation-name) switch))
-  (setq x-resource-name (car x-invocation-args)
-	x-invocation-args (cdr x-invocation-args))
-  (setq initial-frame-alist (cons (cons 'name x-resource-name)
-				  initial-frame-alist)))
+  (setq x-resource-name (pop x-invocation-args))
+  (push (cons 'name x-resource-name) initial-frame-alist))
 
 (defvar x-display-name nil
   "The display name specifying server and frame.")
 
 (defun x-handle-display (switch)
   "Handle the \"-display\" SWITCH."
-  (setq x-display-name (car x-invocation-args)
-	x-invocation-args (cdr x-invocation-args)))
+  (setq x-display-name (pop x-invocation-args)))
 
 (defun x-handle-args (args)
   "Process the X-related command line options in ARGS.
@@ -276,7 +257,7 @@ This returns ARGS with the arguments that have been processed removed."
 		     (cons argval x-invocation-args)))
 		(funcall handler this-switch))
 	    (funcall handler this-switch))
-	(setq args (cons orig-this-switch args)))))
+	(push orig-this-switch args))))
   (nconc (nreverse args) x-invocation-args))
 
 ;;
@@ -1041,16 +1022,10 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (defun xw-defined-colors (&optional frame)
   "Internal function called by `defined-colors', which see."
   (or frame (setq frame (selected-frame)))
-  (let* ((color-map-colors (mapcar (lambda (clr) (car clr)) w32-color-map))
-	 (all-colors (or color-map-colors x-colors))
-	 (this-color nil)
-	 (defined-colors nil))
-    (message "Defining colors...")
-    (while all-colors
-      (setq this-color (car all-colors)
-	    all-colors (cdr all-colors))
+  (let ((defined-colors nil))
+    (dolist (this-color (or (mapcar 'car w32-color-map) x-colors))
       (and (color-supported-p this-color frame t)
-	   (setq defined-colors (cons this-color defined-colors))))
+	   (push this-color defined-colors)))
     defined-colors))
 
 
@@ -1061,15 +1036,10 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (global-set-key [f10] (lambda ()
 			(interactive) (w32-send-sys-command ?\xf100)))
 
-(defun iconify-or-deiconify-frame ()
-  "Iconify the selected frame, or deiconify if it's currently an icon."
-  (interactive)
-  (if (eq (cdr (assq 'visibility (frame-parameters))) t)
-      (iconify-frame)
-    (make-frame-visible)))
-
 (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
 			   global-map)
+
+(define-key function-key-map [S-tab] [backtab])
 
 
 ;;; Do the actual Windows setup here; the above code just defines
@@ -1079,13 +1049,10 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 ;;; Make sure we have a valid resource name.
 (or (stringp x-resource-name)
-    (let (i)
-      (setq x-resource-name (invocation-name))
-
-      ;; Change any . or * characters in x-resource-name to hyphens,
-      ;; so as not to choke when we use it in X resource queries.
-      (while (setq i (string-match "[.*]" x-resource-name))
-	(aset x-resource-name i ?-))))
+    (setq x-resource-name
+	  ;; Change any . or * characters in x-resource-name to hyphens,
+	  ;; so as not to choke when we use it in X resource queries.
+	  (replace-regexp-in-string "[.*]" "-" (invocation-name))))
 
 ;; For the benefit of older Emacses (19.27 and earlier) that are sharing
 ;; the same lisp directory, don't pass the third argument unless we seem
@@ -1169,21 +1136,17 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 	(setq initial-frame-alist (append initial-frame-alist parsed))
 	;; The size parms apply to all frames.
 	(if (assq 'height parsed)
-	    (setq default-frame-alist
-		  (cons (cons 'height (cdr (assq 'height parsed)))
-			default-frame-alist)))
+	    (push (cons 'height (cdr (assq 'height parsed)))
+		  default-frame-alist))
 	(if (assq 'width parsed)
-	    (setq default-frame-alist
-		  (cons (cons 'width (cdr (assq 'width parsed)))
-			default-frame-alist))))))
+	    (push (cons 'width (cdr (assq 'width parsed)))
+		  default-frame-alist)))))
 
 ;; Check the reverseVideo resource.
 (let ((case-fold-search t))
   (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
-    (if (and rv
-	     (string-match "^\\(true\\|yes\\|on\\)$" rv))
-	(setq default-frame-alist
-	      (cons '(reverse . t) default-frame-alist)))))
+    (if (and rv (string-match "^\\(true\\|yes\\|on\\)$" rv))
+	(push '(reverse . t) default-frame-alist))))
 
 (defun x-win-suspend-error ()
   "Report an error when a suspend is attempted."
@@ -1229,10 +1192,10 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
     (list face (if (equal value "") nil value))))
 
 ;;; Enable Japanese fonts on Windows to be used by default.
-(set-fontset-font t (make-char 'katakana-jisx0201) '("*" . "JISX0208-SJIS"))
-(set-fontset-font t (make-char 'latin-jisx0201) '("*" . "JISX0208-SJIS"))
-(set-fontset-font t (make-char 'japanese-jisx0208) '("*" . "JISX0208-SJIS"))
-(set-fontset-font t (make-char 'japanese-jisx0208-1978) '("*" . "JISX0208-SJIS"))
+(set-fontset-font nil (make-char 'katakana-jisx0201) '("*" . "JISX0208-SJIS"))
+(set-fontset-font nil (make-char 'latin-jisx0201) '("*" . "JISX0208-SJIS"))
+(set-fontset-font nil (make-char 'japanese-jisx0208) '("*" . "JISX0208-SJIS"))
+(set-fontset-font nil (make-char 'japanese-jisx0208-1978) '("*" . "JISX0208-SJIS"))
 
 (defun mouse-set-font (&rest fonts)
   "Select a font.
@@ -1247,7 +1210,7 @@ font dialog to get the matching FONTS. Otherwise use a pop-up menu
 	 (and chosen-font (list chosen-font)))
      (x-popup-menu
       last-nonmenu-event
-    ;; Append list of fontsets currently defined.
+      ;; Append list of fontsets currently defined.
       ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
       (if (fboundp 'new-fontset)
       (append w32-fixed-font-alist (list (generate-fontset-menu)))))))
@@ -1263,4 +1226,13 @@ font dialog to get the matching FONTS. Otherwise use a pop-up menu
 	(if (null font)
 	    (error "Font not found")))))
 
+;;; Set default known names for image libraries
+(setq image-library-alist
+      '((xpm "xpm4.dll" "libXpm-nox4.dll" "libxpm.dll")
+        (png "libpng13d.dll" "libpng13.dll" "libpng12d.dll" "libpng12.dll" "libpng.dll")
+        (jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
+        (tiff "libtiff3.dll" "libtiff.dll")
+        (gif "libungif.dll")))
+
+;; arch-tag: 69fb1701-28c2-4890-b351-3d1fe4b4f166
 ;;; w32-win.el ends here

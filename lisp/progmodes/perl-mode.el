@@ -1,6 +1,7 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs
 
-;; Copyright (C) 1990, 1994  Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: FSF
@@ -24,8 +25,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -106,8 +107,13 @@
 
 (eval-when-compile (require 'cl))
 
+(defvar font-lock-comment-face)
+(defvar font-lock-doc-face)
+(defvar font-lock-string-face)
+
 (defgroup perl nil
   "Major mode for editing Perl code."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :prefix "perl-"
   :group 'languages)
 
@@ -161,10 +167,11 @@ The expansion is entirely correct because it uses the C preprocessor."
 
 (defvar perl-imenu-generic-expression
   '(;; Functions
-    (nil "^sub\\s-+\\([-A-Za-z0-9+_:]+\\)\\(\\s-\\|\n\\)*{" 1 )
+    (nil "^sub\\s-+\\([-A-Za-z0-9+_:]+\\)" 1)
     ;;Variables
-    ("Variables" "^\\([$@%][-A-Za-z0-9+_:]+\\)\\s-*=" 1 )
-    ("Packages" "^package\\s-+\\([-A-Za-z0-9+_:]+\\);" 1 ))
+    ("Variables" "^\\([$@%][-A-Za-z0-9+_:]+\\)\\s-*=" 1)
+    ("Packages" "^package\\s-+\\([-A-Za-z0-9+_:]+\\);" 1)
+    ("Doc sections" "^=head[0-9][ \t]+\\(.*\\)" 1))
   "Imenu generic expression for Perl mode.  See `imenu-generic-expression'.")
 
 ;; Regexps updated with help from Tom Tromey <tromey@cambric.colorado.edu> and
@@ -206,11 +213,11 @@ The expansion is entirely correct because it uses the C preprocessor."
     '("\\<\\(local\\|my\\)\\>" . font-lock-type-face)
     ;;
     ;; Fontify function, variable and file name references.
-    '("&\\(\\sw+\\)" 1 font-lock-function-name-face)
+    '("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
     ;; Additionally underline non-scalar variables.  Maybe this is a bad idea.
     ;;'("[$@%*][#{]?\\(\\sw+\\)" 1 font-lock-variable-name-face)
-    '("[$*]{?\\(\\sw+\\)" 1 font-lock-variable-name-face)
-    '("\\([@%]\\|\\$#\\)\\(\\sw+\\)"
+    '("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
+    '("\\([@%]\\|\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
       (2 (cons font-lock-variable-name-face '(underline))))
     '("<\\(\\sw+\\)>" 1 font-lock-constant-face)
     ;;
@@ -246,8 +253,9 @@ The expansion is entirely correct because it uses the C preprocessor."
 ;;
 ;; <file*glob>
 (defvar perl-font-lock-syntactic-keywords
-  ;; Turn POD into b-style comments
-  '(("^\\(=\\)\\sw" (1 "< b"))
+  ;; TODO: here-documents ("<<\\(\\sw\\|['\"]\\)")
+  '(;; Turn POD into b-style comments
+    ("^\\(=\\)\\sw" (1 "< b"))
     ("^=cut[ \t]*\\(\n\\)" (1 "> b"))
     ;; Catch ${ so that ${var} doesn't screw up indentation.
     ;; This also catches $' to handle 'foo$', although it should really
@@ -260,15 +268,18 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;; Funny things in sub arg specifications like `sub myfunc ($$)'
     ("\\<sub\\s-+\\S-+\\s-*(\\([^)]+\\))" 1 '(1))
     ;; regexp and funny quotes
-    ("[;(=!~{][ \t\n]*\\(/\\)" (1 '(7)))
-    ("[;( =!~{\t\n]\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
+    ("[?:.,;=!~({[][ \t\n]*\\(/\\)" (1 '(7)))
+    ("\\(^\\|[?:.,;=!~({[ \t]\\)\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
      ;; Nasty cases:
      ;; /foo/m  $a->m  $#m $m @m %m
      ;; \s (appears often in regexps).
      ;; -s file
-     (2 (if (assoc (char-after (match-beginning 2))
+     (3 (if (assoc (char-after (match-beginning 3))
 		   perl-quote-like-pairs)
-	    '(15) '(7))))))
+	    '(15) '(7))))
+    ;; Find and mark the end of funny quotes and format statements.
+    (perl-font-lock-special-syntactic-constructs)
+    ))
 
 (defvar perl-empty-syntax-table
   (let ((st (copy-syntax-table)))
@@ -287,84 +298,93 @@ The expansion is entirely correct because it uses the C preprocessor."
       (modify-syntax-entry close ")" st))
     st))
 
-(defun perl-font-lock-syntactic-face-function (state)
-  (let ((char (nth 3 state)))
-    (cond
-     ((not char)
-      ;; Comment or docstring.
-      (if (nth 7 state) font-lock-doc-face font-lock-comment-face))
-     ((and (char-valid-p char) (eq (char-syntax (nth 3 state)) ?\"))
-      ;; Normal string.
-      font-lock-string-face)
-     ((eq (nth 3 state) ?\n)
-      ;; A `format' command.
-      (save-excursion
-	(when (and (re-search-forward "^\\s *\\.\\s *$" nil t)
-		   (not (eobp)))
-	  (put-text-property (point) (1+ (point)) 'syntax-table '(7)))
-	font-lock-string-face))
-     (t
-      ;; This is regexp like quote thingy.
-      (setq char (char-after (nth 8 state)))
-      (save-excursion
-	(let ((twoargs (save-excursion
-			 (goto-char (nth 8 state))
-			 (skip-syntax-backward " ")
-			 (skip-syntax-backward "w")
-			 (member (buffer-substring
-				  (point) (progn (forward-word 1) (point)))
-				 '("tr" "s" "y"))))
-	      (close (cdr (assq char perl-quote-like-pairs)))
-	      (pos (point))
-	      (st (perl-quote-syntax-table char)))
-	  (if (not close)
-	      ;; The closing char is the same as the opening char.
-	      (with-syntax-table st
-		(parse-partial-sexp (point) (point-max)
-				    nil nil state 'syntax-table)
-		(when twoargs
-		  (parse-partial-sexp (point) (point-max)
-				      nil nil state 'syntax-table)))
-	    ;; The open/close chars are matched like () [] {} and <>.
-	    (let ((parse-sexp-lookup-properties nil))
-	      (ignore-errors
-		(with-syntax-table st
-		  (goto-char (nth 8 state)) (forward-sexp 1))
-		(when twoargs
-		  (save-excursion
-		    ;; Skip whitespace and make sure that font-lock will
-		    ;; refontify the second part in the proper context.
-		    (put-text-property
-		     (point) (progn (forward-comment (point-max)) (point))
-		     'font-lock-multiline t)
-		    ;;
-		    (unless
-			(save-excursion
-			  (let* ((char2 (char-after))
-				 (st2 (perl-quote-syntax-table char2)))
-			    (with-syntax-table st2 (forward-sexp 1))
-			    (put-text-property pos (line-end-position)
-					       'jit-lock-defer-multiline t)
-			    (looking-at "\\s-*\\sw*e")))
-		      (put-text-property (point) (1+ (point))
-					 'syntax-table
-					 (if (assoc (char-after)
-						    perl-quote-like-pairs)
-					     '(15) '(7)))))))))
-	  ;; Erase any syntactic marks within the quoted text.
-	  (put-text-property pos (1- (point)) 'syntax-table nil)
-	  (when (eq (char-before (1- (point))) ?$)
-	    (put-text-property (- (point) 2) (1- (point))
-			       'syntax-table '(1)))
-	  (put-text-property (1- (point)) (point)
-			     'syntax-table (if close '(15) '(7)))
-	  font-lock-string-face))))))
-	    ;; (if (or twoargs (not (looking-at "\\s-*\\sw*e")))
-	    ;; 	font-lock-string-face
-	    ;;   (font-lock-fontify-syntactically-region
-	    ;;    ;; FIXME: `end' is accessed via dyn-scoping.
-	    ;;    pos (min end (1- (point))) nil '(nil))
-	    ;;   nil)))))))
+(defun perl-font-lock-special-syntactic-constructs (limit)
+  ;; We used to do all this in a font-lock-syntactic-face-function, which
+  ;; did not work correctly because sometimes some parts of the buffer are
+  ;; treated with font-lock-syntactic-keywords but not with
+  ;; font-lock-syntactic-face-function (mostly because of
+  ;; font-lock-syntactically-fontified).  That meant that some syntax-table
+  ;; properties were missing.  So now we do the parse-partial-sexp loop
+  ;; ourselves directly from font-lock-syntactic-keywords, so we're sure
+  ;; it's done when necessary.
+  (let ((state (syntax-ppss))
+        char)
+    (while (< (point) limit)
+      (cond
+       ((or (null (setq char (nth 3 state)))
+            (and (char-valid-p char) (eq (char-syntax (nth 3 state)) ?\")))
+        ;; Normal text, or comment, or docstring, or normal string.
+        nil)
+       ((eq (nth 3 state) ?\n)
+        ;; A `format' command.
+        (save-excursion
+          (when (and (re-search-forward "^\\s *\\.\\s *$" nil t)
+                     (not (eobp)))
+            (put-text-property (point) (1+ (point)) 'syntax-table '(7)))))
+       (t
+        ;; This is regexp like quote thingy.
+        (setq char (char-after (nth 8 state)))
+        (save-excursion
+          (let ((twoargs (save-excursion
+                           (goto-char (nth 8 state))
+                           (skip-syntax-backward " ")
+                           (skip-syntax-backward "w")
+                           (member (buffer-substring
+                                    (point) (progn (forward-word 1) (point)))
+                                   '("tr" "s" "y"))))
+                (close (cdr (assq char perl-quote-like-pairs)))
+                (pos (point))
+                (st (perl-quote-syntax-table char)))
+            (if (not close)
+                ;; The closing char is the same as the opening char.
+                (with-syntax-table st
+                  (parse-partial-sexp (point) (point-max)
+                                      nil nil state 'syntax-table)
+                  (when twoargs
+                    (parse-partial-sexp (point) (point-max)
+                                        nil nil state 'syntax-table)))
+              ;; The open/close chars are matched like () [] {} and <>.
+              (let ((parse-sexp-lookup-properties nil))
+                (condition-case err
+                    (progn
+                      (with-syntax-table st
+                        (goto-char (nth 8 state)) (forward-sexp 1))
+                      (when twoargs
+                        (save-excursion
+                          ;; Skip whitespace and make sure that font-lock will
+                          ;; refontify the second part in the proper context.
+                          (put-text-property
+                           (point) (progn (forward-comment (point-max)) (point))
+                           'font-lock-multiline t)
+                          ;;
+                          (unless
+                              (save-excursion
+                                (with-syntax-table
+                                    (perl-quote-syntax-table (char-after))
+                                  (forward-sexp 1))
+                                (put-text-property pos (line-end-position)
+                                                   'jit-lock-defer-multiline t)
+                                (looking-at "\\s-*\\sw*e"))
+                            (put-text-property (point) (1+ (point))
+                                               'syntax-table
+                                               (if (assoc (char-after)
+                                                          perl-quote-like-pairs)
+                                                   '(15) '(7)))))))
+                  ;; The arg(s) is not terminated, so it extends until EOB.
+                  (scan-error (goto-char (point-max))))))
+            ;; Point is now right after the arg(s).
+            ;; Erase any syntactic marks within the quoted text.
+            (put-text-property pos (1- (point)) 'syntax-table nil)
+            (when (eq (char-before (1- (point))) ?$)
+              (put-text-property (- (point) 2) (1- (point))
+                                 'syntax-table '(1)))
+            (put-text-property (1- (point)) (point)
+                               'syntax-table (if close '(15) '(7)))))))
+
+      (setq state (parse-partial-sexp (point) limit nil nil state
+				      'syntax-table))))
+  ;; Tell font-lock that this needs not further processing.
+  nil)
 
 
 (defcustom perl-indent-level 4
@@ -398,8 +418,8 @@ If nil, continued arguments are aligned with the first argument."
   :type '(choice integer (const nil))
   :group 'perl)
 
-(defcustom perl-tab-always-indent t
-  "*Non-nil means TAB in Perl mode always indents the current line.
+(defcustom perl-tab-always-indent tab-always-indent
+  "Non-nil means TAB in Perl mode always indents the current line.
 Otherwise it inserts a tab character if you type it past the first
 nonwhite character on the line."
   :type 'boolean
@@ -415,11 +435,28 @@ create a new comment."
   :type 'boolean
   :group 'perl)
 
-(defcustom perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:"
+(defcustom perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:[^:]"
   "*Lines starting with this regular expression are not auto-indented."
   :type 'regexp
   :group 'perl)
+
+;; Outline support
+
+(defvar perl-outline-regexp
+  (concat (mapconcat 'cadr perl-imenu-generic-expression "\\|")
+	  "\\|^=cut\\>"))
+
+(defun perl-outline-level ()
+  (cond
+   ((looking-at "package\\s-") 0)
+   ((looking-at "sub\\s-") 1)
+   ((looking-at "=head[0-9]") (- (char-before (match-end 0)) ?0))
+   ((looking-at "=cut") 1)
+   (t 3)))
 
+(defvar perl-mode-hook nil
+  "Normal hook to run when entering Perl mode.")
+
 ;;;###autoload
 (defun perl-mode ()
   "Major mode for editing Perl code.
@@ -484,7 +521,7 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'perl-indent-line)
   (make-local-variable 'require-final-newline)
-  (setq require-final-newline t)
+  (setq require-final-newline mode-require-final-newline)
   (make-local-variable 'comment-start)
   (setq comment-start "# ")
   (make-local-variable 'comment-end)
@@ -502,14 +539,15 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
 			     nil nil ((?\_ . "w")) nil
 			     (font-lock-syntactic-keywords
 			      . perl-font-lock-syntactic-keywords)
-			     (font-lock-syntactic-face-function
-			      . perl-font-lock-syntactic-face-function)
 			     (parse-sexp-lookup-properties . t)))
   ;; Tell imenu how to handle Perl.
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression perl-imenu-generic-expression)
+  (set (make-local-variable 'imenu-generic-expression)
+       perl-imenu-generic-expression)
   (setq imenu-case-fold-search nil)
-  (run-hooks 'perl-mode-hook))
+  ;; Setup outline-minor-mode.
+  (set (make-local-variable 'outline-regexp) perl-outline-regexp)
+  (set (make-local-variable 'outline-level) 'perl-outline-level)
+  (run-mode-hooks 'perl-mode-hook))
 
 ;; This is used by indent-for-comment
 ;; to decide how much to indent a comment in Perl code
@@ -636,20 +674,7 @@ changed by, or (parse-state) if line starts in a quoted string."
 		((looking-at (or nochange perl-nochange)) 0)
 		(t
 		 (skip-chars-forward " \t\f")
-		 (cond ((looking-at "\\(\\w\\|\\s_\\)+:[^:]")
-			(setq indent (max 1 (+ indent perl-label-offset))))
-		       ((= (char-syntax (following-char)) ?\))
-			(setq indent
-			      (save-excursion
-				(forward-char 1)
-				(forward-sexp -1)
-				(forward-char 1)
-				(if (perl-hanging-paren-p)
-				    (- indent perl-indent-level)
-				  (forward-char -1)
-				  (current-column)))))
-		       ((= (following-char) ?{)
-			(setq indent (+ indent perl-brace-offset))))
+		 (setq indent (perl-indent-new-calculate nil indent bof))
 		 (- indent (current-column)))))
     (skip-chars-forward " \t\f")
     (if (and (numberp shift-amt) (/= 0 shift-amt))
@@ -685,13 +710,30 @@ changed by, or (parse-state) if line starts in a quoted string."
        (save-excursion
 	 (skip-syntax-backward " (") (not (bolp)))))
 
+(defun perl-indent-new-calculate (&optional virtual default parse-start)
+  (or
+   (and virtual (save-excursion (skip-chars-backward " \t") (bolp))
+	(current-column))
+   (and (looking-at "\\(\\w\\|\\s_\\)+:[^:]")
+	(max 1 (+ (or default (perl-calculate-indent parse-start))
+		  perl-label-offset)))
+   (and (= (char-syntax (following-char)) ?\))
+	(save-excursion
+	  (forward-char 1)
+	  (forward-sexp -1)
+	  (perl-indent-new-calculate 'virtual nil parse-start)))
+   (and (and (= (following-char) ?{)
+	     (save-excursion (forward-char) (perl-hanging-paren-p)))
+	(+ (or default (perl-calculate-indent parse-start))
+	   perl-brace-offset))
+   (or default (perl-calculate-indent parse-start))))
+
 (defun perl-calculate-indent (&optional parse-start)
   "Return appropriate indentation for current line as Perl code.
 In usual case returns an integer: the column to indent to.
 Returns (parse-state) if line starts inside a string.
 Optional argument PARSE-START should be the position of `beginning-of-defun'."
   (save-excursion
-    (beginning-of-line)
     (let ((indent-point (point))
 	  (case-fold-search nil)
 	  (colon-line-end 0)
@@ -777,7 +819,7 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
 			   (skip-chars-forward " \t\f\n")
 			   (cond ((looking-at ";?#")
 				  (forward-line 1) t)
-				 ((looking-at "\\(\\w\\|\\s_\\)+:")
+				 ((looking-at "\\(\\w\\|\\s_\\)+:[^:]")
 				  (save-excursion
 				    (end-of-line)
 				    (setq colon-line-end (point)))
@@ -893,7 +935,7 @@ With argument, repeat that many times; negative args move backward."
   (or arg (setq arg 1))
   (let ((first t))
     (while (and (> arg 0) (< (point) (point-max)))
-      (let ((pos (point)) npos)
+      (let ((pos (point)))
 	(while (progn
 		(if (and first
 			 (progn
@@ -937,4 +979,5 @@ With argument, repeat that many times; negative args move backward."
 
 (provide 'perl-mode)
 
+;; arch-tag: 8c7ff68d-15f3-46a2-ade2-b7c41f176826
 ;;; perl-mode.el ends here

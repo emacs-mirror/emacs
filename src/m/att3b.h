@@ -1,5 +1,5 @@
 /* Machine-dependent configuration for GNU Emacs for AT&T 3b machines.
-   Copyright (C) 1986, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1986, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    Modified by David Robinson (daver@csvax.caltech.edu) 6/6/86
 
@@ -17,8 +17,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The following line tells the configuration script what sort of
@@ -144,3 +144,6 @@ extern int sign_extend_temp;
 
 /* This affects filemode.c.  */
 #define NO_MODE_T
+
+/* arch-tag: 07441a37-d630-447f-94fa-7da19645c97a
+   (do not change this comment) */

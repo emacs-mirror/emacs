@@ -1,9 +1,11 @@
 ;;; cal-x.el --- calendar windows in dedicated frames in X
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;;      Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: calendar, dedicated frames, X Window System
 
@@ -21,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -69,7 +71,9 @@ Location and color should be set in .Xdefaults.")
 Can be used to change frame parameters, such as font, color, location, etc.")
 
 (defun calendar-one-frame-setup (&optional arg)
-  "Start calendar and display it in a dedicated frame together with the diary."
+  "Start calendar and display it in a dedicated frame together with the diary.
+This function requires a display capable of multiple frames, else
+`calendar-basic-setup' is used instead."
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
@@ -86,7 +90,7 @@ Can be used to change frame parameters, such as font, color, location, etc.")
                                      (frame-parameters calendar-frame))))
               (iconify-or-deiconify-frame))
           (calendar-basic-setup arg)
-          (set-window-dedicated-p (selected-window) 'calendar)
+          (set-window-dedicated-p (selected-window) t)
           (set-window-dedicated-p
            (display-buffer
             (if (not (memq 'fancy-diary-display diary-display-hook))
@@ -94,10 +98,12 @@ Can be used to change frame parameters, such as font, color, location, etc.")
               (if (not (bufferp (get-buffer fancy-diary-buffer)))
                   (make-fancy-diary-buffer))
               fancy-diary-buffer))
-           'diary))))))
+           t))))))
 
 (defun calendar-only-one-frame-setup (&optional arg)
-  "Start calendar and display it in a dedicated frame."
+  "Start calendar and display it in a dedicated frame.
+This function requires a display capable of multiple frames, else
+`calendar-basic-setup' is used instead."
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
@@ -113,10 +119,12 @@ Can be used to change frame parameters, such as font, color, location, etc.")
                                      (frame-parameters calendar-frame))))
               (iconify-or-deiconify-frame))
           (calendar-basic-setup arg)
-          (set-window-dedicated-p (selected-window) 'calendar))))))
+          (set-window-dedicated-p (selected-window) t))))))
 
 (defun calendar-two-frame-setup (&optional arg)
-  "Start calendar and diary in separate, dedicated frames."
+  "Start calendar and diary in separate, dedicated frames.
+This function requires a display capable of multiple frames, else
+`calendar-basic-setup' is used instead."
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
@@ -133,7 +141,7 @@ Can be used to change frame parameters, such as font, color, location, etc.")
                                   (frame-parameters calendar-frame))))
             (iconify-or-deiconify-frame))
         (display-buffer calendar-buffer)
-        (set-window-dedicated-p (selected-window) 'calendar)
+        (set-window-dedicated-p (selected-window) t)
         (setq diary-frame (make-frame diary-frame-parameters))
         (run-hooks 'calendar-after-frame-setup-hooks)
         (select-frame diary-frame)
@@ -148,7 +156,7 @@ Can be used to change frame parameters, such as font, color, location, etc.")
             (if (not (bufferp (get-buffer fancy-diary-buffer)))
                 (make-fancy-diary-buffer))
             fancy-diary-buffer))
-         'diary)))))
+         t)))))
 
 ;; Formerly (get-file-buffer diary-file) was added to the list here,
 ;; but that isn't clean, and the value could even be nil.
@@ -162,4 +170,5 @@ Can be used to change frame parameters, such as font, color, location, etc.")
 
 (provide 'cal-x)
 
+;;; arch-tag: c6dbddca-ae84-442d-87fc-244b76e38e17
 ;;; cal-x.el ends here

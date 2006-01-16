@@ -1,8 +1,9 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997, 1998, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
-;; Author: Morten Welinder <terra@diku.dk>
+;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: archives msdog editing major-mode
 ;; Favourite-brand-of-beer: None, I hate beer.
 
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -131,7 +132,7 @@
   (make-temp-name
    (expand-file-name (if (eq system-type 'ms-dos) "ar" "archive.tmp")
 		     temporary-file-directory))
-  "*Directory for temporary files made by arc-mode.el"
+  "Directory for temporary files made by `arc-mode.el'."
   :type 'directory
   :group 'archive)
 
@@ -218,15 +219,13 @@ Archive and member name will be added."
 ;; Zip archive configuration
 
 (defcustom archive-zip-extract
-  (if (locate-file "unzip" nil 'file-executable-p)
-      '("unzip" "-qq" "-c")
-    (if (locate-file "pkunzip" nil 'file-executable-p)
-	'("pkunzip" "-e" "-o-")
-      '("unzip" "-qq" "-c")))
+  (if (and (not (executable-find "unzip"))
+           (executable-find "pkunzip"))
+      '("pkunzip" "-e" "-o-")
+    '("unzip" "-qq" "-c"))
   "*Program and its options to run in order to extract a zip file member.
 Extraction should happen to standard output.  Archive and member name will
-be added.  If `archive-zip-use-pkzip' is non-nil then this program is
-expected to extract to a file junking the directory part of the name."
+be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
 			:inline t
@@ -239,11 +238,10 @@ expected to extract to a file junking the directory part of the name."
 ;; names.
 
 (defcustom archive-zip-expunge
-  (if (locate-file "zip" nil 'file-executable-p)
-      '("zip" "-d" "-q")
-    (if (locate-file "pkzip" nil 'file-executable-p)
-	 '("pkzip" "-d")
-      '("zip" "-d" "-q")))
+  (if (and (not (executable-find "zip"))
+           (executable-find "pkzip"))
+      '("pkzip" "-d")
+    '("zip" "-d" "-q"))
   "*Program and its options to run in order to delete zip file members.
 Archive and member names will be added."
   :type '(list (string :tag "Program")
@@ -253,11 +251,10 @@ Archive and member names will be added."
   :group 'archive-zip)
 
 (defcustom archive-zip-update
-  (if (locate-file "zip" nil 'file-executable-p)
-      '("zip" "-q")
-    (if (locate-file "pkzip" nil 'file-executable-p)
-	 '("pkzip" "-u" "-P")
-      '("zip" "-q")))
+  (if (and (not (executable-find "zip"))
+           (executable-find "pkzip"))
+      '("pkzip" "-u" "-P")
+    '("zip" "-q"))
   "*Program and its options to run in order to update a zip file member.
 Options should ensure that specified directory will be put into the zip
 file.  Archive and member name will be added."
@@ -268,11 +265,10 @@ file.  Archive and member name will be added."
   :group 'archive-zip)
 
 (defcustom archive-zip-update-case
-  (if (locate-file "zip" nil 'file-executable-p)
-      '("zip" "-q" "-k")
-    (if (locate-file "pkzip" nil 'file-executable-p)
-	 '("pkzip" "-u" "-P")
-      '("zip" "-q" "-k")))
+  (if (and (not (executable-find "zip"))
+           (executable-find "pkzip"))
+      '("pkzip" "-u" "-P")
+    '("zip" "-q" "-k"))
   "*Program and its options to run in order to update a case fiddled zip member.
 Options should ensure that specified directory will be put into the zip file.
 Archive and member name will be added."
@@ -324,16 +320,120 @@ Archive and member name will be added."
 ;; -------------------------------------------------------------------------
 ;; Section: Variables
 
-(defvar archive-subtype nil "*Symbol describing archive type.")
-(defvar archive-file-list-start nil "*Position of first contents line.")
-(defvar archive-file-list-end nil "*Position just after last contents line.")
-(defvar archive-proper-file-start nil "*Position of real archive's start.")
-(defvar archive-read-only nil "*Non-nil if the archive is read-only on disk.")
-(defvar archive-local-name nil "*Name of local copy of remote archive.")
-(defvar archive-mode-map nil "*Local keymap for archive mode listings.")
-(defvar archive-file-name-indent nil "*Column where file names start.")
+(defvar archive-subtype nil "Symbol describing archive type.")
+(defvar archive-file-list-start nil "Position of first contents line.")
+(defvar archive-file-list-end nil "Position just after last contents line.")
+(defvar archive-proper-file-start nil "Position of real archive's start.")
+(defvar archive-read-only nil "Non-nil if the archive is read-only on disk.")
+(defvar archive-local-name nil "Name of local copy of remote archive.")
+(defvar archive-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (define-key map " " 'archive-next-line)
+    (define-key map "a" 'archive-alternate-display)
+    ;;(define-key map "c" 'archive-copy)
+    (define-key map "d" 'archive-flag-deleted)
+    (define-key map "\C-d" 'archive-flag-deleted)
+    (define-key map "e" 'archive-extract)
+    (define-key map "f" 'archive-extract)
+    (define-key map "\C-m" 'archive-extract)
+    (define-key map "g" 'revert-buffer)
+    (define-key map "h" 'describe-mode)
+    (define-key map "m" 'archive-mark)
+    (define-key map "n" 'archive-next-line)
+    (define-key map "\C-n" 'archive-next-line)
+    (define-key map [down] 'archive-next-line)
+    (define-key map "o" 'archive-extract-other-window)
+    (define-key map "p" 'archive-previous-line)
+    (define-key map "q" 'quit-window)
+    (define-key map "\C-p" 'archive-previous-line)
+    (define-key map [up] 'archive-previous-line)
+    (define-key map "r" 'archive-rename-entry)
+    (define-key map "u" 'archive-unflag)
+    (define-key map "\M-\C-?" 'archive-unmark-all-files)
+    (define-key map "v" 'archive-view)
+    (define-key map "x" 'archive-expunge)
+    (define-key map "\177" 'archive-unflag-backwards)
+    (define-key map "E" 'archive-extract-other-window)
+    (define-key map "M" 'archive-chmod-entry)
+    (define-key map "G" 'archive-chgrp-entry)
+    (define-key map "O" 'archive-chown-entry)
 
-(defvar archive-remote nil "*Non-nil if the archive is outside file system.")
+    (if (fboundp 'command-remapping)
+        (progn
+          (define-key map [remap advertised-undo] 'archive-undo)
+          (define-key map [remap undo] 'archive-undo))
+      (substitute-key-definition 'advertised-undo 'archive-undo map global-map)
+      (substitute-key-definition 'undo 'archive-undo map global-map))
+
+    (define-key map
+      (if (featurep 'xemacs) 'button2 [mouse-2]) 'archive-extract)
+
+    (if (featurep 'xemacs)
+        ()				; out of luck
+
+      (define-key map [menu-bar immediate]
+        (cons "Immediate" (make-sparse-keymap "Immediate")))
+      (define-key map [menu-bar immediate alternate]
+        '(menu-item "Alternate Display" archive-alternate-display
+          :enable (boundp (archive-name "alternate-display"))
+          :help "Toggle alternate file info display"))
+      (define-key map [menu-bar immediate view]
+        '(menu-item "View This File" archive-view
+          :help "Display file at cursor in View Mode"))
+      (define-key map [menu-bar immediate display]
+        '(menu-item "Display in Other Window" archive-display-other-window
+          :help "Display file at cursor in another window"))
+      (define-key map [menu-bar immediate find-file-other-window]
+        '(menu-item "Find in Other Window" archive-extract-other-window
+          :help "Edit file at cursor in another window"))
+      (define-key map [menu-bar immediate find-file]
+        '(menu-item "Find This File" archive-extract
+          :help "Extract file at cursor and edit it"))
+
+      (define-key map [menu-bar mark]
+        (cons "Mark" (make-sparse-keymap "Mark")))
+      (define-key map [menu-bar mark unmark-all]
+        '(menu-item "Unmark All" archive-unmark-all-files
+          :help "Unmark all marked files"))
+      (define-key map [menu-bar mark deletion]
+        '(menu-item "Flag" archive-flag-deleted
+          :help "Flag file at cursor for deletion"))
+      (define-key map [menu-bar mark unmark]
+        '(menu-item "Unflag" archive-unflag
+          :help "Unmark file at cursor"))
+      (define-key map [menu-bar mark mark]
+        '(menu-item "Mark" archive-mark
+          :help "Mark file at cursor"))
+
+      (define-key map [menu-bar operate]
+        (cons "Operate" (make-sparse-keymap "Operate")))
+      (define-key map [menu-bar operate chown]
+        '(menu-item "Change Owner..." archive-chown-entry
+          :enable (fboundp (archive-name "chown-entry"))
+          :help "Change owner of marked files"))
+      (define-key map [menu-bar operate chgrp]
+        '(menu-item "Change Group..." archive-chgrp-entry
+          :enable (fboundp (archive-name "chgrp-entry"))
+          :help "Change group ownership of marked files"))
+      (define-key map [menu-bar operate chmod]
+        '(menu-item "Change Mode..." archive-chmod-entry
+          :enable (fboundp (archive-name "chmod-entry"))
+          :help "Change mode (permissions) of marked files"))
+      (define-key map [menu-bar operate rename]
+        '(menu-item "Rename to..." archive-rename-entry
+          :enable (fboundp (archive-name "rename-entry"))
+          :help "Rename marked files"))
+      ;;(define-key map [menu-bar operate copy]
+      ;;  '(menu-item "Copy to..." archive-copy))
+      (define-key map [menu-bar operate expunge]
+        '(menu-item "Expunge Marked Files" archive-expunge
+          :help "Delete all flagged files from archive"))
+      map))
+  "Local keymap for archive mode listings.")
+(defvar archive-file-name-indent nil "Column where file names start.")
+
+(defvar archive-remote nil "Non-nil if the archive is outside file system.")
 (make-variable-buffer-local 'archive-remote)
 (put 'archive-remote 'permanent-local t)
 
@@ -341,14 +441,14 @@ Archive and member name will be added."
 (make-variable-buffer-local 'archive-member-coding-system)
 
 (defvar archive-alternate-display nil
-  "*Non-nil when alternate information is shown.")
+  "Non-nil when alternate information is shown.")
 (make-variable-buffer-local 'archive-alternate-display)
 (put 'archive-alternate-display 'permanent-local t)
 
-(defvar archive-superior-buffer nil "*In archive members, points to archive.")
+(defvar archive-superior-buffer nil "In archive members, points to archive.")
 (put 'archive-superior-buffer 'permanent-local t)
 
-(defvar archive-subfile-mode nil "*Non-nil in archive member buffers.")
+(defvar archive-subfile-mode nil "Non-nil in archive member buffers.")
 (make-variable-buffer-local 'archive-subfile-mode)
 (put 'archive-subfile-mode 'permanent-local t)
 
@@ -358,9 +458,6 @@ Each descriptor is a vector of the form
  [EXT-FILE-NAME INT-FILE-NAME CASE-FIDDLED MODE ...]")
 (make-variable-buffer-local 'archive-files)
 
-(defvar archive-lemacs
-  (string-match "\\(Lucid\\|Xemacs\\)" emacs-version)
-  "*Non-nil when running under under Lucid Emacs or Xemacs.")
 ;; -------------------------------------------------------------------------
 ;; Section: Support functions.
 
@@ -368,9 +465,9 @@ Each descriptor is a vector of the form
   (intern (concat "archive-" (symbol-name archive-subtype) "-" suffix)))
 
 (defun archive-l-e (str &optional len)
-  "Convert little endian string/vector to integer.
-Alternatively, first argument may be a buffer position in the current buffer
-in which case a second argument, length, should be supplied."
+  "Convert little endian string/vector STR to integer.
+Alternatively, STR may be a buffer position in the current buffer
+in which case a second argument, length LEN, should be supplied."
   (if (stringp str)
       (setq len (length str))
     (setq str (buffer-substring str (+ str len))))
@@ -470,7 +567,7 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
     (format "%02d:%02d:%02d" hour minute second)))
 
 (defun archive-unixdate (low high)
-  "Stringify unix (LOW HIGH) date."
+  "Stringify Unix (LOW HIGH) date."
   (let ((str (current-time-string (cons high low))))
     (format "%s-%s-%s"
 	    (substring str 8 10)
@@ -478,7 +575,7 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
 	    (substring str 20 24))))
 
 (defun archive-unixtime (low high)
-  "Stringify unix (LOW HIGH) time."
+  "Stringify Unix (LOW HIGH) time."
   (let ((str (current-time-string (cons high low))))
     (substring str 11 19)))
 
@@ -490,7 +587,7 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
 
 (defun archive-get-descr (&optional noerror)
   "Return the descriptor vector for file at point.
-Does not signal an error if optional second argument NOERROR is non-nil."
+Does not signal an error if optional argument NOERROR is non-nil."
   (let ((no (archive-get-lineno)))
     (if (and (>= (point) archive-file-list-start)
              (< no (length archive-files)))
@@ -536,8 +633,7 @@ archive.
 
 	;; Remote archives are not written by a hook.
 	(if archive-remote nil
-	  (make-local-variable 'write-contents-hooks)
-	  (add-hook 'write-contents-hooks 'archive-write-file))
+	  (add-hook 'write-contents-functions 'archive-write-file nil t))
 
 	(make-local-variable 'require-final-newline)
 	(setq require-final-newline nil)
@@ -571,7 +667,7 @@ archive.
 	(setq major-mode 'archive-mode)
 	(setq mode-name (concat typename "-Archive"))
 	;; Run archive-foo-mode-hook and archive-mode-hook
-	(run-hooks (archive-name "mode-hook") 'archive-mode-hook)
+	(run-mode-hooks (archive-name "mode-hook") 'archive-mode-hook)
 	(use-local-map archive-mode-map))
 
       (make-local-variable 'archive-proper-file-start)
@@ -583,119 +679,10 @@ archive.
 
 ;; Archive mode is suitable only for specially formatted data.
 (put 'archive-mode 'mode-class 'special)
-;; -------------------------------------------------------------------------
-;; Section: Key maps
 
-(if archive-mode-map nil
-  (setq archive-mode-map (make-keymap))
-  (suppress-keymap archive-mode-map)
-  (define-key archive-mode-map " " 'archive-next-line)
-  (define-key archive-mode-map "a" 'archive-alternate-display)
-  ;;(define-key archive-mode-map "c" 'archive-copy)
-  (define-key archive-mode-map "d" 'archive-flag-deleted)
-  (define-key archive-mode-map "\C-d" 'archive-flag-deleted)
-  (define-key archive-mode-map "e" 'archive-extract)
-  (define-key archive-mode-map "f" 'archive-extract)
-  (define-key archive-mode-map "\C-m" 'archive-extract)
-  (define-key archive-mode-map "g" 'revert-buffer)
-  (define-key archive-mode-map "h" 'describe-mode)
-  (define-key archive-mode-map "m" 'archive-mark)
-  (define-key archive-mode-map "n" 'archive-next-line)
-  (define-key archive-mode-map "\C-n" 'archive-next-line)
-  (define-key archive-mode-map [down] 'archive-next-line)
-  (define-key archive-mode-map "o" 'archive-extract-other-window)
-  (define-key archive-mode-map "p" 'archive-previous-line)
-  (define-key archive-mode-map "q" 'quit-window)
-  (define-key archive-mode-map "\C-p" 'archive-previous-line)
-  (define-key archive-mode-map [up] 'archive-previous-line)
-  (define-key archive-mode-map "r" 'archive-rename-entry)
-  (define-key archive-mode-map "u" 'archive-unflag)
-  (define-key archive-mode-map "\M-\C-?" 'archive-unmark-all-files)
-  (define-key archive-mode-map "v" 'archive-view)
-  (define-key archive-mode-map "x" 'archive-expunge)
-  (define-key archive-mode-map "\177" 'archive-unflag-backwards)
-  (define-key archive-mode-map "E" 'archive-extract-other-window)
-  (define-key archive-mode-map "M" 'archive-chmod-entry)
-  (define-key archive-mode-map "G" 'archive-chgrp-entry)
-  (define-key archive-mode-map "O" 'archive-chown-entry)
-
-  (if archive-lemacs
-      (progn
-	;; Not a nice "solution" but it'll have to do
-	(define-key archive-mode-map "\C-xu" 'archive-undo)
-	(define-key archive-mode-map "\C-_" 'archive-undo))
-    (define-key archive-mode-map [remap advertised-undo] 'archive-undo)
-    (define-key archive-mode-map [remap undo] 'archive-undo))
-
-  (define-key archive-mode-map
-    (if archive-lemacs 'button2 [mouse-2]) 'archive-mouse-extract)
-
-  (if archive-lemacs
-      ()				; out of luck
-
-    (define-key archive-mode-map [menu-bar immediate]
-      (cons "Immediate" (make-sparse-keymap "Immediate")))
-    (define-key archive-mode-map [menu-bar immediate alternate]
-      '(menu-item "Alternate Display" archive-alternate-display
-		  :enable (boundp (archive-name "alternate-display"))
-		  :help "Toggle alternate file info display"))
-    (define-key archive-mode-map [menu-bar immediate view]
-      '(menu-item "View This File" archive-view
-		  :help "Display file at cursor in View Mode"))
-    (define-key archive-mode-map [menu-bar immediate display]
-      '(menu-item "Display in Other Window" archive-display-other-window
-		  :help "Display file at cursor in another window"))
-    (define-key archive-mode-map [menu-bar immediate find-file-other-window]
-      '(menu-item "Find in Other Window" archive-extract-other-window
-		  :help "Edit file at cursor in another window"))
-    (define-key archive-mode-map [menu-bar immediate find-file]
-      '(menu-item "Find This File" archive-extract
-		  :help "Extract file at cursor and edit it"))
-
-    (define-key archive-mode-map [menu-bar mark]
-      (cons "Mark" (make-sparse-keymap "Mark")))
-    (define-key archive-mode-map [menu-bar mark unmark-all]
-      '(menu-item "Unmark All" archive-unmark-all-files
-		  :help "Unmark all marked files"))
-    (define-key archive-mode-map [menu-bar mark deletion]
-      '(menu-item "Flag" archive-flag-deleted
-		  :help "Flag file at cursor for deletion"))
-    (define-key archive-mode-map [menu-bar mark unmark]
-      '(menu-item "Unflag" archive-unflag
-		  :help "Unmark file at cursor"))
-    (define-key archive-mode-map [menu-bar mark mark]
-      '(menu-item "Mark" archive-mark
-		  :help "Mark file at cursor"))
-
-    (define-key archive-mode-map [menu-bar operate]
-      (cons "Operate" (make-sparse-keymap "Operate")))
-    (define-key archive-mode-map [menu-bar operate chown]
-      '(menu-item "Change Owner..." archive-chown-entry
-		  :enable (fboundp (archive-name "chown-entry"))
-		  :help "Change owner of marked files"))
-    (define-key archive-mode-map [menu-bar operate chgrp]
-      '(menu-item "Change Group..." archive-chgrp-entry
-		  :enable (fboundp (archive-name "chgrp-entry"))
-		  :help "Change group ownership of marked files"))
-    (define-key archive-mode-map [menu-bar operate chmod]
-      '(menu-item "Change Mode..." archive-chmod-entry
-		  :enable (fboundp (archive-name "chmod-entry"))
-		  :help "Change mode (permissions) of marked files"))
-    (define-key archive-mode-map [menu-bar operate rename]
-      '(menu-item "Rename to..." archive-rename-entry
-		  :enable (fboundp (archive-name "rename-entry"))
-		  :help "Rename marked files"))
-    ;;(define-key archive-mode-map [menu-bar operate copy]
-    ;;  '(menu-item "Copy to..." archive-copy))
-    (define-key archive-mode-map [menu-bar operate expunge]
-      '(menu-item "Expunge Marked Files" archive-expunge
-		  :help "Delete all flagged files from archive"))
-  ))
-
-(let* ((item1 '(archive-subfile-mode " Archive"))
-       (items (list item1)))
+(let ((item1 '(archive-subfile-mode " Archive")))
   (or (member item1 minor-mode-alist)
-      (setq minor-mode-alist (append items minor-mode-alist))))
+      (setq minor-mode-alist (cons item1 minor-mode-alist))))
 ;; -------------------------------------------------------------------------
 (defun archive-find-type ()
   (widen)
@@ -721,7 +708,7 @@ Optional argument SHUT-UP, if non-nil, means don't print messages
 when parsing the archive."
   (widen)
   (set-buffer-multibyte nil)
-  (let (buffer-read-only)
+  (let ((inhibit-read-only t))
     (or shut-up
 	(message "Parsing archive file..."))
     (buffer-disable-undo (current-buffer))
@@ -739,11 +726,11 @@ when parsing the archive."
   "Recreate the contents listing of an archive."
   (let ((modified (buffer-modified-p))
 	(no (archive-get-lineno))
-	buffer-read-only)
+	(inhibit-read-only t))
     (widen)
     (delete-region (point-min) archive-proper-file-start)
     (archive-summarize t)
-    (set-buffer-modified-p modified)
+    (restore-buffer-modified-p modified)
     (goto-char archive-file-list-start)
     (archive-next-line no)))
 
@@ -757,25 +744,24 @@ when parsing the archive."
    (apply
     (function concat)
     (mapcar
-     (function
-      (lambda (fil)
-	;; Using `concat' here copies the text also, so we can add
-	;; properties without problems.
-	(let ((text (concat (aref fil 0) "\n")))
-	  (if archive-lemacs
-	      ()			; out of luck
-	    (add-text-properties
-	     (aref fil 1) (aref fil 2)
-	     '(mouse-face highlight
-	       help-echo "mouse-2: extract this file into a buffer")
-	     text))
-	  text)))
+     (lambda (fil)
+       ;; Using `concat' here copies the text also, so we can add
+       ;; properties without problems.
+       (let ((text (concat (aref fil 0) "\n")))
+         (if (featurep 'xemacs)
+             ()                         ; out of luck
+           (add-text-properties
+            (aref fil 1) (aref fil 2)
+            '(mouse-face highlight
+              help-echo "mouse-2: extract this file into a buffer")
+            text))
+         text))
      files)))
   (setq archive-file-list-end (point-marker)))
 
 (defun archive-alternate-display ()
   "Toggle alternative display.
-To avoid very long lines some archive mode don't show all information.
+To avoid very long lines archive mode does not show all information.
 This function changes the set of information shown for each files."
   (interactive)
   (setq archive-alternate-display (not archive-alternate-display))
@@ -815,6 +801,14 @@ using `make-temp-file', and the generated name is returned."
 	       (or (and archive-subfile-mode (aref archive-subfile-mode 0))
 		   archive)))
 	  (make-directory archive-tmpdir t)
+	  ;; If ARCHIVE includes leading directories, make sure they
+	  ;; exist under archive-tmpdir.
+	  (let ((arch-dir (file-name-directory archive)))
+	    (if arch-dir
+		(make-directory (concat
+				 (file-name-as-directory archive-tmpdir)
+				 arch-dir)
+				t)))
 	  (setq archive-local-name
 		(archive-unique-fname archive-name archive-tmpdir))
 	  (save-restriction
@@ -830,7 +824,7 @@ using `make-temp-file', and the generated name is returned."
 	    (modified (buffer-modified-p))
 	    (coding-system-for-read 'no-conversion)
 	    (lno (archive-get-lineno))
-	    buffer-read-only)
+	    (inhibit-read-only t))
 	(if unchanged nil
 	  (setq archive-files nil)
 	  (erase-buffer)
@@ -894,21 +888,14 @@ using `make-temp-file', and the generated name is returned."
 	(setq last-coding-system-used coding))
       (set-buffer-modified-p nil)
       (kill-local-variable 'buffer-file-coding-system)
-      (after-insert-file-set-buffer-file-coding-system (- (point-max)
-							  (point-min))))))
+      (after-insert-file-set-coding (- (point-max) (point-min))))))
 
-(defun archive-mouse-extract (event)
-  "Extract a file whose name you click on."
-  (interactive "e")
-  (mouse-set-point event)
-  (switch-to-buffer
-   (save-excursion
-     (archive-extract)
-     (current-buffer))))
+(define-obsolete-function-alias 'archive-mouse-extract 'archive-extract "22.1")
 
-(defun archive-extract (&optional other-window-p)
+(defun archive-extract (&optional other-window-p event)
   "In archive mode, extract this entry of the archive into its own buffer."
-  (interactive)
+  (interactive (list nil last-input-event))
+  (if event (posn-set-point (event-end event)))
   (let* ((view-p (eq other-window-p 'view))
 	 (descr (archive-get-descr))
          (ename (aref descr 0))
@@ -931,8 +918,7 @@ using `make-temp-file', and the generated name is returned."
 	(setq archive (archive-maybe-copy archive))
         (setq buffer (get-buffer-create bufname))
         (setq just-created t)
-        (save-excursion
-          (set-buffer buffer)
+        (with-current-buffer buffer
           (setq buffer-file-name
                 (expand-file-name (concat arcname ":" iname)))
           (setq buffer-file-truename
@@ -941,8 +927,7 @@ using `make-temp-file', and the generated name is returned."
           (setq default-directory arcdir)
           (make-local-variable 'archive-superior-buffer)
           (setq archive-superior-buffer archive-buffer)
-          (make-local-variable 'local-write-file-hooks)
-          (add-hook 'local-write-file-hooks 'archive-write-file-member)
+          (add-hook 'write-file-functions 'archive-write-file-member nil t)
           (setq archive-subfile-mode descr)
 	  (if (and
 	       (null
@@ -976,26 +961,22 @@ using `make-temp-file', and the generated name is returned."
 	    (setq buffer-saved-size (buffer-size))
 	    (normal-mode)
 	    ;; Just in case an archive occurs inside another archive.
-	    (if (eq major-mode 'archive-mode)
-		(progn
-		  (setq archive-remote t)
-		  (if read-only-p (setq archive-read-only t))
-		  ;; We will write out the archive ourselves if it is
-		  ;; part of another archive.
-		  (remove-hook 'write-contents-hooks 'archive-write-file t)))
-	    (run-hooks 'archive-extract-hooks)
+	    (when (derived-mode-p 'archive-mode)
+              (setq archive-remote t)
+              (if read-only-p (setq archive-read-only t))
+              ;; We will write out the archive ourselves if it is
+              ;; part of another archive.
+              (remove-hook 'write-contents-functions 'archive-write-file t))
+            (run-hooks 'archive-extract-hooks)
 	    (if archive-read-only
 		(message "Note: altering this archive is not implemented."))))
 	(archive-maybe-update t))
       (or (not (buffer-name buffer))
-	  (progn
-	    (if view-p
-		(view-buffer buffer (and just-created 'kill-buffer))
-	      (if (eq other-window-p 'display)
-		  (display-buffer buffer)
-		(if other-window-p
-		    (switch-to-buffer-other-window buffer)
-		  (switch-to-buffer buffer))))))))
+          (cond
+           (view-p (view-buffer buffer (and just-created 'kill-buffer)))
+           ((eq other-window-p 'display) (display-buffer buffer))
+           (other-window-p (switch-to-buffer-other-window buffer))
+           (t (switch-to-buffer buffer))))))
 
 (defun archive-*-extract (archive name command)
   (let* ((default-directory (file-name-as-directory archive-tmpdir))
@@ -1055,11 +1036,10 @@ using `make-temp-file', and the generated name is returned."
 	  (read-buffer "Buffer containing archive: "
 		       ;; Find first archive buffer and suggest that
 		       (let ((bufs (buffer-list)))
-			 (while (and bufs (not (eq (save-excursion
-						     (set-buffer (car bufs))
-						     major-mode)
-						   'archive-mode)))
-			   (setq bufs (cdr bufs)))
+			 (while (and bufs
+                                     (not (with-current-buffer (car bufs)
+                                            (derived-mode-p 'archive-mode))))
+                           (setq bufs (cdr bufs)))
 			 (if bufs
 			     (car bufs)
 			   (error "There are no archive buffers")))
@@ -1068,8 +1048,7 @@ using `make-temp-file', and the generated name is returned."
 		      (if buffer-file-name
 			  (file-name-nondirectory buffer-file-name)
 			""))))
-  (save-excursion
-    (set-buffer arcbuf)
+  (with-current-buffer arcbuf
     (or (eq major-mode 'archive-mode)
 	(error "Buffer is not an archive buffer"))
     (if archive-read-only
@@ -1078,12 +1057,11 @@ using `make-temp-file', and the generated name is returned."
       (error "An archive buffer cannot be added to itself"))
   (if (string= name "")
       (error "Archive members may not be given empty names"))
-  (let ((func (save-excursion (set-buffer arcbuf)
-			      (archive-name "add-new-member")))
+  (let ((func (with-current-buffer arcbuf
+                (archive-name "add-new-member")))
 	(membuf (current-buffer)))
     (if (fboundp func)
-	(save-excursion
-	  (set-buffer arcbuf)
+	(with-current-buffer arcbuf
 	  (funcall func buffer-file-name membuf name))
       (error "Adding a new member is not supported for this archive type"))))
 ;; -------------------------------------------------------------------------
@@ -1094,10 +1072,10 @@ using `make-temp-file', and the generated name is returned."
     (save-restriction
       (message "Updating archive...")
       (widen)
-      (let ((writer  (save-excursion (set-buffer archive-superior-buffer)
-				     (archive-name "write-file-member")))
-	    (archive (save-excursion (set-buffer archive-superior-buffer)
-				     (archive-maybe-copy (buffer-file-name)))))
+      (let ((writer  (with-current-buffer archive-superior-buffer
+                       (archive-name "write-file-member")))
+	    (archive (with-current-buffer archive-superior-buffer
+                       (archive-maybe-copy (buffer-file-name)))))
 	(if (fboundp writer)
 	    (funcall writer archive archive-subfile-mode)
 	  (archive-*-write-file-member archive
@@ -1166,7 +1144,7 @@ With a prefix argument, mark that many files."
   (beginning-of-line)
   (let ((sign (if (>= p 0) +1 -1))
 	(modified (buffer-modified-p))
-        buffer-read-only)
+        (inhibit-read-only t))
     (while (not (zerop p))
       (if (archive-get-descr t)
           (progn
@@ -1174,33 +1152,33 @@ With a prefix argument, mark that many files."
             (insert type)))
       (forward-line sign)
       (setq p (- p sign)))
-    (set-buffer-modified-p modified))
+    (restore-buffer-modified-p modified))
   (archive-next-line 0))
 
 (defun archive-unflag (p)
   "In archive mode, un-mark this member if it is marked to be deleted.
 With a prefix argument, un-mark that many files forward."
   (interactive "p")
-  (archive-flag-deleted p ? ))
+  (archive-flag-deleted p ?\s))
 
 (defun archive-unflag-backwards (p)
   "In archive mode, un-mark this member if it is marked to be deleted.
 With a prefix argument, un-mark that many members backward."
   (interactive "p")
-  (archive-flag-deleted (- p) ? ))
+  (archive-flag-deleted (- p) ?\s))
 
 (defun archive-unmark-all-files ()
   "Remove all marks."
   (interactive)
   (let ((modified (buffer-modified-p))
-	buffer-read-only)
+	(inhibit-read-only t))
     (save-excursion
       (goto-char archive-file-list-start)
       (while (< (point) archive-file-list-end)
-        (or (= (following-char) ? )
-            (progn (delete-char 1) (insert ? )))
+        (or (= (following-char) ?\s)
+            (progn (delete-char 1) (insert ?\s)))
         (forward-line 1)))
-    (set-buffer-modified-p modified)))
+    (restore-buffer-modified-p modified)))
 
 (defun archive-mark (p)
   "In archive mode, mark this member for group operations.
@@ -1236,7 +1214,7 @@ Use \\[archive-unmark-all-files] to remove all marks."
 (defun archive-chmod-entry (new-mode)
   "Change the protection bits associated with all marked or this member.
 The new protection bits can either be specified as an octal number or
-as a relative change like \"g+rw\" as for chmod(2)"
+as a relative change like \"g+rw\" as for chmod(2)."
   (interactive "sNew mode (octal or relative): ")
   (if archive-read-only (error "Archive is read-only"))
   (let ((func (archive-name "chmod-entry")))
@@ -1305,7 +1283,7 @@ as a relative change like \"g+rw\" as for chmod(2)"
 	 (append (cdr command) (cons archive files))))
 
 (defun archive-rename-entry (newname)
-  "Change the name associated with this entry in the tar file."
+  "Change the name associated with this entry in the archive file."
   (interactive "sNew name: ")
   (if archive-read-only (error "Archive is read-only"))
   (if (string= newname "")
@@ -1314,7 +1292,7 @@ as a relative change like \"g+rw\" as for chmod(2)"
 	(descr (archive-get-descr)))
     (if (fboundp func)
         (progn
-	  (funcall func (buffer-file-name)
+	  (funcall func
 		   (if enable-multibyte-characters
 		       (encode-coding-string newname file-name-coding-system)
 		     newname)
@@ -1338,7 +1316,7 @@ as a relative change like \"g+rw\" as for chmod(2)"
   "Undo in an archive buffer.
 This doesn't recover lost files, it just undoes changes in the buffer itself."
   (interactive)
-  (let (buffer-read-only)
+  (let ((inhibit-read-only t))
     (undo)))
 ;; -------------------------------------------------------------------------
 ;; Section: Arc Archives
@@ -1390,14 +1368,14 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	      "\n"))
     (apply 'vector (nreverse files))))
 
-(defun archive-arc-rename-entry (archive newname descr)
+(defun archive-arc-rename-entry (newname descr)
   (if (string-match "[:\\\\/]" newname)
       (error "File names in arc files must not contain a directory component"))
   (if (> (length newname) 12)
       (error "File names in arc files are limited to 12 characters"))
   (let ((name (concat newname (substring "\0\0\0\0\0\0\0\0\0\0\0\0\0"
 					 (length newname))))
-	buffer-read-only)
+	(inhibit-read-only t))
     (save-restriction
       (save-excursion
 	(widen)
@@ -1417,13 +1395,14 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (while (progn (goto-char p)		;beginning of a base header.
 		  (looking-at "\\(.\\|\n\\)\\(.\\|\n\\)-l[hz][0-9ds]-"))
       (let* ((hsize   (char-after p))	;size of the base header (level 0 and 1)
-             (csize   (archive-l-e (+ p 7) 4)) ;size of a compressed file to follow.
+	     (csize   (archive-l-e (+ p 7) 4)) ;size of a compressed file to follow (level 0 and 2),
+					;size of extended headers + the compressed file to follow (level 1).
              (ucsize  (archive-l-e (+ p 11) 4))	;size of an uncompressed file.
 	     (time1   (archive-l-e (+ p 15) 2))	;date/time (MSDOS format in level 0, 1 headers
 	     (time2   (archive-l-e (+ p 17) 2))	;and UNIX format in level 2 header.)
 	     (hdrlvl  (char-after (+ p 20))) ;header level
 	     thsize		;total header size (base + extensions)
-	     fnlen efnname fiddle ifnname width p2 creator
+	     fnlen efnname fiddle ifnname width p2
 	     neh	;beginning of next extension header (level 1 and 2)
 	     mode modestr uid gid text dir prname
 	     gname uname modtime moddate)
@@ -1436,13 +1415,9 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			  (string-as-multibyte str))))
 	  (setq p2      (+ p 22 fnlen))) ;
 	(if (= hdrlvl 1)
-	    (progn		;specific to level 1 header
-	      (setq creator (if (>= (- hsize fnlen) 24) (char-after (+ p2 2)) 0))
-	      (setq neh (+ p2 3)))
+            (setq neh (+ p2 3))         ;specific to level 1 header
 	  (if (= hdrlvl 2)
-	      (progn		;specific to level 2 header
-		(setq creator (char-after (+ p 23)) )
-		(setq neh (+ p 24)))))
+              (setq neh (+ p 24))))     ;specific to level 2 header
 	(if neh		;if level 1 or 2 we expect extension headers to follow
 	    (let* ((ehsize (archive-l-e neh 2))	;size of the extension header
 		   (etype (char-after (+ neh 2)))) ;extension type
@@ -1516,8 +1491,12 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 				   (length text))
 			   visual)
 	      files (cons (vector prname ifnname fiddle mode (1- p))
-                          files)
-              p (+ p thsize 2 csize))))
+                          files))
+	(cond ((= hdrlvl 1)
+	       (setq p (+ p hsize 2 csize)))
+	      ((or (= hdrlvl 2) (= hdrlvl 0))
+	       (setq p (+ p thsize 2 csize))))
+	))
     (goto-char (point-min))
     (set-buffer-multibyte default-enable-multibyte-characters)
     (let ((dash (concat (if archive-alternate-display
@@ -1554,7 +1533,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	    p (1+ p)))
     (logand sum 255)))
 
-(defun archive-lzh-rename-entry (archive newname descr)
+(defun archive-lzh-rename-entry (newname descr)
   (save-restriction
     (save-excursion
       (widen)
@@ -1564,7 +1543,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (oldfnlen (char-after (+ p 21)))
 	     (newfnlen (length newname))
 	     (newhsize (+ oldhsize newfnlen (- oldfnlen)))
-	     buffer-read-only)
+	     (inhibit-read-only t))
 	(if (> newhsize 255)
 	    (error "The file name is too long"))
 	(goto-char (+ p 21))
@@ -1575,18 +1554,17 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	(insert newhsize (archive-lzh-resum p newhsize))))))
 
 (defun archive-lzh-ogm (newval files errtxt ofs)
-  (save-restriction
-    (save-excursion
+  (save-excursion
+    (save-restriction
       (widen)
       (set-buffer-multibyte nil)
-      (while files
-	(let* ((fil (car files))
-	       (p (+ archive-proper-file-start (aref fil 4)))
+      (dolist (fil files)
+	(let* ((p (+ archive-proper-file-start (aref fil 4)))
 	       (hsize   (char-after p))
 	       (fnlen   (char-after (+ p 21)))
 	       (p2      (+ p 22 fnlen))
 	       (creator (if (>= (- hsize fnlen) 24) (char-after (+ p2 2)) 0))
-	       buffer-read-only)
+	       (inhibit-read-only t))
 	  (if (= creator ?U)
 	      (progn
 		(or (numberp newval)
@@ -1598,8 +1576,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		(delete-char 1)
 		(insert (archive-lzh-resum (1+ p) hsize)))
 	    (message "Member %s does not have %s field"
-		     (aref fil 1) errtxt)))
-	(setq files (cdr files))))))
+		     (aref fil 1) errtxt)))))))
 
 (defun archive-lzh-chown-entry (newuid files)
   (archive-lzh-ogm newuid files "an uid" 10))
@@ -1610,7 +1587,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 (defun archive-lzh-chmod-entry (newmode files)
   (archive-lzh-ogm
    ;; This should work even though newmode will be dynamically accessed.
-   (function (lambda (old) (archive-calc-mode old newmode t)))
+   (lambda (old) (archive-calc-mode old newmode t))
    files "a unix-style mode" 8))
 ;; -------------------------------------------------------------------------
 ;; Section: Zip Archives
@@ -1625,7 +1602,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	visual)
     (while (string= "PK\001\002" (buffer-substring p (+ p 4)))
       (let* ((creator (char-after (+ p 5)))
-	     (method  (archive-l-e (+ p 10) 2))
+	     ;; (method  (archive-l-e (+ p 10) 2))
              (modtime (archive-l-e (+ p 12) 2))
              (moddate (archive-l-e (+ p 14) 2))
              (ucsize  (archive-l-e (+ p 24) 4))
@@ -1703,13 +1680,12 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (save-excursion
       (widen)
       (set-buffer-multibyte nil)
-      (while files
-	(let* ((fil (car files))
-	       (p (+ archive-proper-file-start (car (aref fil 4))))
+      (dolist (fil files)
+	(let* ((p (+ archive-proper-file-start (car (aref fil 4))))
 	       (creator (char-after (+ p 5)))
 	       (oldmode (aref fil 3))
 	       (newval  (archive-calc-mode oldmode newmode t))
-	       buffer-read-only)
+	       (inhibit-read-only t))
 	  (cond ((memq creator '(2 3)) ; Unix + VMS
 		 (goto-char (+ p 40))
 		 (delete-char 2)
@@ -1720,7 +1696,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 				 (logand (logxor 1 (lsh newval -7)) 1)))
 		 (delete-char 1))
 		(t (message "Don't know how to change mode for this member"))))
-	(setq files (cdr files))))))
+        ))))
 ;; -------------------------------------------------------------------------
 ;; Section: Zoo Archives
 
@@ -1797,4 +1773,5 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 
 (provide 'arc-mode)
 
+;; arch-tag: e5966a01-35ec-4f27-8095-a043a79b457b
 ;;; arc-mode.el ends here

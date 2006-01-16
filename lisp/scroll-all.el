@@ -1,6 +1,6 @@
 ;;; scroll-all.el --- scroll all buffers together minor mode
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@corp.sun.com>
 ;; Keywords: scroll crisp brief lock
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;    This mode allows multiple buffers to be 'locked' so that scrolling
@@ -117,4 +117,5 @@ apply to all visible windows in the same frame."
 
 (provide 'scroll-all)
 
+;;; arch-tag: db20089a-b157-45df-b5d4-2430e60acdd8
 ;;; scroll-all.el ends here

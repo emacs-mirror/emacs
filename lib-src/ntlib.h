@@ -1,5 +1,5 @@
 /* Utility and Unix shadow routines for GNU Emacs support programs on NT.
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Emacs; see the file COPYING.  If not, write to the
-   Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.
 
 */
 
@@ -90,7 +90,9 @@ int fchown (int fd, int uid, int gid);
 #define fcloseall _fcloseall
 #define fdopen	  _fdopen
 #define fgetchar  _fgetchar
+#ifndef fileno
 #define fileno	  _fileno
+#endif
 #define flushall  _flushall
 #define fputchar  _fputchar
 #define getcwd	  _getcwd
@@ -114,3 +116,6 @@ int fchown (int fd, int uid, int gid);
 #undef _WINSOCK_H
 
 /* end of ntlib.h */
+
+/* arch-tag: 93444f66-7b98-4aa5-a5cd-01444094af28
+   (do not change this comment) */

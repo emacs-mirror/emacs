@@ -1,6 +1,7 @@
 ;;; tpu-mapper.el --- create a TPU-edt X-windows keymap file
 
-;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -375,7 +376,7 @@
 ;;;
 ;;;  Load the newly defined keys and clean up
 ;;;
-(eval-current-buffer)
+(eval-buffer)
 (kill-buffer (current-buffer))
 (kill-buffer "*scratch*")
 (kill-buffer "Gold-Keys")
@@ -392,4 +393,5 @@
 ")
 (goto-char (point-min))
 
+;;; arch-tag: bab5872f-cd3a-4c1c-aedb-047b67646f6c
 ;;; tpu-mapper.el ends here

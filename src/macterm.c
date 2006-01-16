@@ -1,5 +1,6 @@
 /* Implementation of GUI terminal on the Mac OS.
-   Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,17 +16,17 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Contributed by Andrew Choi (akochoi@mac.com).  */
 
 #include <config.h>
 #include <signal.h>
+
 #include <stdio.h>
-#include <stdlib.h>
+
 #include "lisp.h"
-#include "charset.h"
 #include "blockinput.h"
 
 #include "macterm.h"
@@ -34,35 +35,12 @@ Boston, MA 02111-1307, USA.  */
 #include <alloca.h>
 #endif
 
-#ifdef MAC_OSX
-#undef mktime
-#undef DEBUG
-#undef free
-#undef malloc
-#undef realloc
-/* Macros max and min defined in lisp.h conflict with those in
-   precompiled header Carbon.h.  */
-#undef max
-#undef min
-#undef init_process
-#include <Carbon/Carbon.h>
-#undef free
-#define free unexec_free
-#undef malloc
-#define malloc unexec_malloc
-#undef realloc
-#define realloc unexec_realloc
-#undef min
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#undef max
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#undef init_process
-#define init_process emacs_init_process
+#if TARGET_API_MAC_CARBON
 /* USE_CARBON_EVENTS determines if the Carbon Event Manager is used to
    obtain events from the event queue.  If set to 0, WaitNextEvent is
    used instead.  */
 #define USE_CARBON_EVENTS 1
-#else /* not MAC_OSX */
+#else /* not TARGET_API_MAC_CARBON */
 #include <Quickdraw.h>
 #include <ToolUtils.h>
 #include <Sound.h>
@@ -73,27 +51,26 @@ Boston, MA 02111-1307, USA.  */
 #include <TextUtils.h>
 #include <LowMem.h>
 #include <Controls.h>
+#include <Windows.h>
 #if defined (__MRC__) || (__MSL__ >= 0x6000)
 #include <ControlDefinitions.h>
 #endif
-#include <Gestalt.h>
 
 #if __profile__
 #include <profiler.h>
 #endif
-#endif /* not MAC_OSX */
+#endif /* not TARGET_API_MAC_CARBON */
 
 #include "systty.h"
 #include "systime.h"
-#include "atimer.h"
-#include "keymap.h"
 
 #include <ctype.h>
 #include <errno.h>
 #include <setjmp.h>
 #include <sys/stat.h>
 
-#include "keyboard.h"
+#include "charset.h"
+#include "coding.h"
 #include "frame.h"
 #include "dispextern.h"
 #include "fontset.h"
@@ -104,131 +81,32 @@ Boston, MA 02111-1307, USA.  */
 #include "disptab.h"
 #include "buffer.h"
 #include "window.h"
+#include "keyboard.h"
 #include "intervals.h"
-#include "composite.h"
-#include "coding.h"
-
-#define BETWEEN(X, LOWER, UPPER)  ((X) >= (LOWER) && (X) < (UPPER))
-
-/* Set of macros that handle mapping of Mac modifier keys to emacs.  */
-#define macCtrlKey     (NILP (Vmac_reverse_ctrl_meta) ? controlKey :	\
-			(NILP (Vmac_command_key_is_meta) ? optionKey : cmdKey))
-#define macShiftKey    (shiftKey)
-#define macMetaKey     (NILP (Vmac_reverse_ctrl_meta) ?			\
-			(NILP (Vmac_command_key_is_meta) ? optionKey : cmdKey) \
-			: controlKey)
-#define macAltKey      (NILP (Vmac_command_key_is_meta) ? cmdKey : optionKey)
+#include "atimer.h"
+#include "keymap.h"
 
 
-/* Fringe bitmaps.  */
 
-enum fringe_bitmap_type
-{
-  NO_FRINGE_BITMAP,
-  LEFT_TRUNCATION_BITMAP,
-  RIGHT_TRUNCATION_BITMAP,
-  OVERLAY_ARROW_BITMAP,
-  CONTINUED_LINE_BITMAP,
-  CONTINUATION_LINE_BITMAP,
-  ZV_LINE_BITMAP
-};
-
-/* Bitmap drawn to indicate lines not displaying text if
-   `indicate-empty-lines' is non-nil.  */
-
-#define zv_width 8
-#define zv_height 72
-#define zv_period 3
-static unsigned char zv_bits[] = {
-  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
-  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
-  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
-  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
-  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
-  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
-  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
-  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00};
-
-/* An arrow like this: `<-'.  */
-
-#define left_width 8
-#define left_height 8
-static unsigned char left_bits[] = {
-   0x18, 0x30, 0x60, 0xfc, 0xfc, 0x60, 0x30, 0x18};
-
-/* Right truncation arrow bitmap `->'.  */
-
-#define right_width 8
-#define right_height 8
-static unsigned char right_bits[] = {
-   0x18, 0x0c, 0x06, 0x3f, 0x3f, 0x06, 0x0c, 0x18};
-
-/* Marker for continued lines.  */
-
-#define continued_width 8
-#define continued_height 8
-static unsigned char continued_bits[] = {
-   0x3c, 0x3e, 0x03, 0x27, 0x3f, 0x3e, 0x3c, 0x3e};
-
-/* Marker for continuation lines.  */
-
-#define continuation_width 8
-#define continuation_height 8
-static unsigned char continuation_bits[] = {
-   0x3c, 0x7c, 0xc0, 0xe4, 0xfc, 0x7c, 0x3c, 0x7c};
-
-/* Overlay arrow bitmap.  */
-
-#if 0
-/* A bomb.  */
-#define ov_width 8
-#define ov_height 8
-static unsigned char ov_bits[] = {
-   0x0c, 0x10, 0x3c, 0x7e, 0x5e, 0x5e, 0x46, 0x3c};
-#else
-/* A triangular arrow.  */
-#define ov_width 8
-#define ov_height 8
-static unsigned char ov_bits[] = {
-   0xc0, 0xf0, 0xf8, 0xfc, 0xfc, 0xf8, 0xf0, 0xc0};
-#endif
-
-extern Lisp_Object Qhelp_echo;
-
-
 /* Non-nil means Emacs uses toolkit scroll bars.  */
 
 Lisp_Object Vx_toolkit_scroll_bars;
 
-/* If a string, XTread_socket generates an event to display that string.
-   (The display is done in read_char.)  */
+/* If non-zero, the text will be rendered using Core Graphics text
+   rendering which may anti-alias the text.  */
+int mac_use_core_graphics;
 
-static Lisp_Object help_echo;
-static Lisp_Object help_echo_window;
-static Lisp_Object help_echo_object;
-static int help_echo_pos;
-
-/* Temporary variable for XTread_socket.  */
-
-static Lisp_Object previous_help_echo;
 
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
 
 static int any_help_event_p;
 
-/* Non-zero means autoselect window with the mouse cursor.  */
+/* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
+static Lisp_Object last_window;
 
-int x_autoselect_window_p;
-
-/* Non-zero means draw block and hollow cursor as wide as the glyph
-   under it.  For example, if a block cursor is over a tab, it will be
-   drawn as wide as that tab on the display.  */
-
-int x_stretch_cursor_p;
-
-/* Non-zero means make use of UNDERLINE_POSITION font properties.  */
-
+/* Non-zero means make use of UNDERLINE_POSITION font properties.
+   (Not yet supported.)  */
 int x_use_underline_position_properties;
 
 /* This is a chain of structures for all the X displays currently in
@@ -237,9 +115,12 @@ int x_use_underline_position_properties;
 struct x_display_info *x_display_list;
 
 /* This is a list of cons cells, each of the form (NAME
-   . FONT-LIST-CACHE), one for each element of x_display_list and in
-   the same order.  NAME is the name of the frame.  FONT-LIST-CACHE
-   records previous values returned by x-list-fonts.  */
+   FONT-LIST-CACHE . RESOURCE-DATABASE), one for each element of
+   x_display_list and in the same order.  NAME is the name of the
+   frame.  FONT-LIST-CACHE records previous values returned by
+   x-list-fonts.  RESOURCE-DATABASE preserves the X Resource Database
+   equivalent, which is implemented with a Lisp object, for the
+   display. */
 
 Lisp_Object x_display_name_list;
 
@@ -253,21 +134,9 @@ struct mac_display_info one_mac_display_info;
 
 extern struct frame *updating_frame;
 
-extern int waiting_for_input;
-
 /* This is a frame waiting to be auto-raised, within XTread_socket.  */
 
 struct frame *pending_autoraise_frame;
-
-/* Nominal cursor position -- where to draw output.
-   HPOS and VPOS are window relative glyph matrix coordinates.
-   X and Y are window relative pixel coordinates.  */
-
-struct cursor_pos output_cursor;
-
-/* Non-zero means user is interacting with a toolkit scroll bar.  */
-
-static int toolkit_scroll_bar_interaction;
 
 /* Mouse movement.
 
@@ -291,9 +160,8 @@ static int toolkit_scroll_bar_interaction;
 
 /* Where the mouse was last time we reported a mouse event.  */
 
-FRAME_PTR last_mouse_frame;
 static Rect last_mouse_glyph;
-static Lisp_Object last_mouse_press_frame;
+static FRAME_PTR last_mouse_glyph_frame;
 
 /* The scroll bar in which the last X motion event occurred.
 
@@ -316,14 +184,6 @@ static Lisp_Object last_mouse_scroll_bar;
 
 static Time last_mouse_movement_time;
 
-enum mouse_tracking_type {
-  mouse_tracking_none,
-  mouse_tracking_mouse_movement,
-  mouse_tracking_scroll_bar
-};
-
-enum mouse_tracking_type mouse_tracking_in_progress = mouse_tracking_none;
-
 struct scroll_bar *tracked_scroll_bar = NULL;
 
 /* Incremented by XTread_socket whenever it really tries to read
@@ -335,76 +195,26 @@ static int volatile input_signal_count;
 static int input_signal_count;
 #endif
 
-/* Used locally within XTread_socket.  */
-
-static int x_noop_count;
-
-/* Initial values of argv and argc.  */
-
-extern char **initial_argv;
-extern int initial_argc;
-
-extern Lisp_Object Vcommand_line_args, Vsystem_name;
-
-/* Tells if a window manager is present or not.  */
-
-extern Lisp_Object Vx_no_window_manager;
-
-extern Lisp_Object Qface, Qmouse_face;
-
-extern int errno;
+extern Lisp_Object Vsystem_name;
 
 /* A mask of extra modifier bits to put into every keyboard char.  */
 
-extern int extra_keyboard_modifiers;
+extern EMACS_INT extra_keyboard_modifiers;
 
-static Lisp_Object Qvendor_specific_keysyms;
+/* The keysyms to use for the various modifiers.  */
 
-#if 0
-extern XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
-#endif
-
-extern Lisp_Object x_icon_type P_ ((struct frame *));
+static Lisp_Object Qalt, Qhyper, Qsuper, Qcontrol, Qmeta, Qmodifier_value;
 
 extern int inhibit_window_system;
 
-#if __MRC__
+#if __MRC__ && !TARGET_API_MAC_CARBON
 QDGlobals qd;  /* QuickDraw global information structure.  */
 #endif
 
+#define mac_window_to_frame(wp) (((mac_output *) GetWRefCon (wp))->mFP)
 
-/* Enumeration for overriding/changing the face to use for drawing
-   glyphs in x_draw_glyphs.  */
-
-enum draw_glyphs_face
-{
-  DRAW_NORMAL_TEXT,
-  DRAW_INVERSE_VIDEO,
-  DRAW_CURSOR,
-  DRAW_MOUSE_FACE,
-  DRAW_IMAGE_RAISED,
-  DRAW_IMAGE_SUNKEN
-};
-
-struct frame * x_window_to_frame (struct mac_display_info *, WindowPtr);
 struct mac_display_info *mac_display_info_for_display (Display *);
 static void x_update_window_end P_ ((struct window *, int, int));
-static void frame_to_window_pixel_xy P_ ((struct window *, int *, int *));
-static int fast_find_position P_ ((struct window *, int, int *, int *,
-				   int *, int *, Lisp_Object));
-static int fast_find_string_pos P_ ((struct window *, int, Lisp_Object,
-				     int *, int *, int *, int *, int));
-static void set_output_cursor P_ ((struct cursor_pos *));
-static struct glyph *x_y_to_hpos_vpos P_ ((struct window *, int, int,
-					   int *, int *, int *, int));
-static void note_mode_line_highlight P_ ((struct window *, int, int));
-static void note_mouse_highlight P_ ((struct frame *, int, int));
-static void note_tool_bar_highlight P_ ((struct frame *f, int, int));
-static void x_handle_tool_bar_click P_ ((struct frame *, EventRecord *));
-static void show_mouse_face P_ ((struct x_display_info *,
-				 enum draw_glyphs_face));
-static int cursor_in_mouse_face_p P_ ((struct window *));
-static int clear_mouse_face P_ ((struct mac_display_info *));
 static int x_io_error_quitter P_ ((Display *));
 int x_catch_errors P_ ((Display *));
 void x_uncatch_errors P_ ((Display *, int));
@@ -419,219 +229,182 @@ void x_wm_set_icon_pixmap P_ ((struct frame *, int));
 void mac_initialize P_ ((void));
 static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
 static int x_compute_min_glyph_bounds P_ ((struct frame *));
-static void x_draw_phys_cursor_glyph P_ ((struct window *,
-					  struct glyph_row *,
-					  enum draw_glyphs_face));
 static void x_update_end P_ ((struct frame *));
 static void XTframe_up_to_date P_ ((struct frame *));
-static void XTreassert_line_highlight P_ ((int, int));
-static void x_change_line_highlight P_ ((int, int, int, int));
 static void XTset_terminal_modes P_ ((void));
 static void XTreset_terminal_modes P_ ((void));
-static void XTcursor_to P_ ((int, int, int, int));
-static void x_write_glyphs P_ ((struct glyph *, int));
-static void x_clear_end_of_line P_ ((int));
 static void x_clear_frame P_ ((void));
-static void x_clear_cursor P_ ((struct window *));
 static void frame_highlight P_ ((struct frame *));
 static void frame_unhighlight P_ ((struct frame *));
 static void x_new_focus_frame P_ ((struct x_display_info *, struct frame *));
+static void mac_focus_changed P_ ((int, struct mac_display_info *,
+				   struct frame *, struct input_event *));
+static void x_detect_focus_change P_ ((struct mac_display_info *,
+				       EventRecord *, struct input_event *));
 static void XTframe_rehighlight P_ ((struct frame *));
 static void x_frame_rehighlight P_ ((struct x_display_info *));
 static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
-static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int));
-static int x_intersect_rectangles P_ ((Rect *, Rect *, Rect *));
-static void expose_frame P_ ((struct frame *, int, int, int, int));
-static int expose_window_tree P_ ((struct window *, Rect *));
-static void expose_overlaps P_ ((struct window *, struct glyph_row *,
-				 struct glyph_row *));
-static int expose_window P_ ((struct window *, Rect *));
-static void expose_area P_ ((struct window *, struct glyph_row *,
-			     Rect *, enum glyph_row_area));
-static int expose_line P_ ((struct window *, struct glyph_row *,
-			    Rect *));
-void x_display_cursor (struct window *, int, int, int, int, int);
-void x_update_cursor P_ ((struct frame *, int));
-static void x_update_cursor_in_window_tree P_ ((struct window *, int));
-static void x_update_window_cursor P_ ((struct window *, int));
-static void x_erase_phys_cursor P_ ((struct window *));
-void x_display_and_set_cursor P_ ((struct window *, int, int, int, int, int));
-static void x_draw_fringe_bitmap P_ ((struct window *, struct glyph_row *,
-				      enum fringe_bitmap_type, int left_p));
-static void x_clip_to_row P_ ((struct window *, struct glyph_row *,
-			       GC, int));
-static int x_phys_cursor_in_rect_p P_ ((struct window *, Rect *));
-static void x_draw_row_fringe_bitmaps P_ ((struct window *, struct glyph_row *));
-static void notice_overwritten_cursor P_ ((struct window *,
-					   enum glyph_row_area,
-					   int, int, int, int));
+static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int,
+				   enum text_cursor_kinds));
+
+static void x_clip_to_row P_ ((struct window *, struct glyph_row *, int, GC));
 static void x_flush P_ ((struct frame *f));
 static void x_update_begin P_ ((struct frame *));
 static void x_update_window_begin P_ ((struct window *));
-static void x_draw_vertical_border P_ ((struct window *));
 static void x_after_update_window_line P_ ((struct glyph_row *));
-static INLINE void take_vertical_position_into_account P_ ((struct it *));
-static void x_produce_stretch_glyph P_ ((struct it *));
+static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
+					    enum scroll_bar_part *,
+					    Lisp_Object *, Lisp_Object *,
+					    unsigned long *));
 
-static void activate_scroll_bars (FRAME_PTR);
-static void deactivate_scroll_bars (FRAME_PTR);
-
-static int is_emacs_window (WindowPtr);
-
-extern int image_ascent (struct image *, struct face *);
-void x_set_offset (struct frame *, int, int, int);
-int x_bitmap_icon (struct frame *, Lisp_Object);
-void x_make_frame_visible (struct frame *);
-
-extern void window_scroll (Lisp_Object, int, int, int);
+static int is_emacs_window P_ ((WindowPtr));
+static XCharStruct *mac_per_char_metric P_ ((XFontStruct *, XChar2b *, int));
+static void XSetFont P_ ((Display *, GC, XFontStruct *));
 
 /* Defined in macmenu.h.  */
 extern void menubar_selection_callback (FRAME_PTR, int);
-extern void set_frame_menubar (FRAME_PTR, int, int);
+
+#define GC_FORE_COLOR(gc)	(&(gc)->fore_color)
+#define GC_BACK_COLOR(gc)	(&(gc)->back_color)
+#define GC_FONT(gc)		((gc)->xgcv.font)
+#define GC_CLIP_REGION(gc)	((gc)->clip_region)
+#define FRAME_NORMAL_GC(f)	((f)->output_data.mac->normal_gc)
+
+static RgnHandle saved_port_clip_region = NULL;
+
+static void
+mac_begin_clip (region)
+     RgnHandle region;
+{
+  static RgnHandle new_region = NULL;
+
+  if (saved_port_clip_region == NULL)
+    saved_port_clip_region = NewRgn ();
+  if (new_region == NULL)
+    new_region = NewRgn ();
+
+  if (region)
+    {
+      GetClip (saved_port_clip_region);
+      SectRgn (saved_port_clip_region, region, new_region);
+      SetClip (new_region);
+    }
+}
+
+static void
+mac_end_clip (region)
+     RgnHandle region;
+{
+  if (region)
+    SetClip (saved_port_clip_region);
+}
+
 
 /* X display function emulation */
 
-/* Structure borrowed from Xlib.h to represent two-byte characters in
-   dumpglyphs.  */
-
-typedef struct {
-  unsigned char byte1;
-  unsigned char byte2;
-} XChar2b;
-
-static void
+void
 XFreePixmap (display, pixmap)
-     Display *display;
+     Display *display;		/* not used */
      Pixmap pixmap;
 {
-  PixMap *p = (PixMap *) pixmap;
-
-  xfree (p->baseAddr);
-  xfree (p);
+  DisposeGWorld (pixmap);
 }
 
-
-/* Set foreground color for subsequent QuickDraw commands.  Assume
-   graphic port has already been set.  */
-
-static void
-mac_set_forecolor (unsigned long color)
-{
-  RGBColor fg_color;
-
-  fg_color.red = RED_FROM_ULONG (color) * 256;
-  fg_color.green = GREEN_FROM_ULONG (color) * 256;
-  fg_color.blue = BLUE_FROM_ULONG (color) * 256;
-
-  RGBForeColor (&fg_color);
-}
-
-
-/* Set background color for subsequent QuickDraw commands.  Assume
-   graphic port has already been set.  */
-
-static void
-mac_set_backcolor (unsigned long color)
-{
-  RGBColor bg_color;
-
-  bg_color.red = RED_FROM_ULONG (color) * 256;
-  bg_color.green = GREEN_FROM_ULONG (color) * 256;
-  bg_color.blue = BLUE_FROM_ULONG (color) * 256;
-
-  RGBBackColor (&bg_color);
-}
-
-/* Set foreground and background color for subsequent QuickDraw
-   commands.  Assume that the graphic port has already been set.  */
-
-static void
-mac_set_colors (GC gc)
-{
-  mac_set_forecolor (gc->foreground);
-  mac_set_backcolor (gc->background);
-}
 
 /* Mac version of XDrawLine.  */
 
 static void
-XDrawLine (display, w, gc, x1, y1, x2, y2)
-     Display *display;
-     WindowPtr w;
+mac_draw_line (f, gc, x1, y1, x2, y2)
+     struct frame *f;
      GC gc;
      int x1, y1, x2, y2;
 {
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (w));
-#else
-  SetPort (w);
-#endif
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
-  mac_set_colors (gc);
+  RGBForeColor (GC_FORE_COLOR (gc));
 
+  mac_begin_clip (GC_CLIP_REGION (gc));
   MoveTo (x1, y1);
   LineTo (x2, y2);
+  mac_end_clip (GC_CLIP_REGION (gc));
 }
+
+void
+mac_draw_line_to_pixmap (display, p, gc, x1, y1, x2, y2)
+     Display *display;
+     Pixmap p;
+     GC gc;
+     int x1, y1, x2, y2;
+{
+  CGrafPtr old_port;
+  GDHandle old_gdh;
+
+  GetGWorld (&old_port, &old_gdh);
+  SetGWorld (p, NULL);
+
+  RGBForeColor (GC_FORE_COLOR (gc));
+
+  LockPixels (GetGWorldPixMap (p));
+  MoveTo (x1, y1);
+  LineTo (x2, y2);
+  UnlockPixels (GetGWorldPixMap (p));
+
+  SetGWorld (old_port, old_gdh);
+}
+
+
+static void
+mac_erase_rectangle (f, gc, x, y, width, height)
+     struct frame *f;
+     GC gc;
+     int x, y;
+     unsigned int width, height;
+{
+  Rect r;
+
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
+
+  RGBBackColor (GC_BACK_COLOR (gc));
+  SetRect (&r, x, y, x + width, y + height);
+
+  mac_begin_clip (GC_CLIP_REGION (gc));
+  EraseRect (&r);
+  mac_end_clip (GC_CLIP_REGION (gc));
+
+  RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
+}
+
 
 /* Mac version of XClearArea.  */
 
 void
-XClearArea (display, w, x, y, width, height, exposures)
-     Display *display;
-     WindowPtr w;
+mac_clear_area (f, x, y, width, height)
+     struct frame *f;
      int x, y;
      unsigned int width, height;
-     int exposures;
 {
-  struct mac_output *mwp = (mac_output *) GetWRefCon (w);
-  Rect r;
-  XGCValues xgc;
-
-  xgc.foreground = mwp->x_compatible.foreground_pixel;
-  xgc.background = mwp->x_compatible.background_pixel;
-
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (w));
-#else
-  SetPort (w);
-#endif
-
-  mac_set_colors (&xgc);
-  SetRect (&r, x, y, x + width, y + height);
-
-  EraseRect (&r);
+  mac_erase_rectangle (f, FRAME_NORMAL_GC (f), x, y, width, height);
 }
 
 /* Mac version of XClearWindow.  */
 
 static void
-XClearWindow (display, w)
-     Display *display;
-     WindowPtr w;
+mac_clear_window (f)
+     struct frame *f;
 {
-  struct mac_output *mwp = (mac_output *) GetWRefCon (w);
-  XGCValues xgc;
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
-  xgc.foreground = mwp->x_compatible.foreground_pixel;
-  xgc.background = mwp->x_compatible.background_pixel;
-
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (w));
-#else
-  SetPort (w);
-#endif
-
-  mac_set_colors (&xgc);
+  RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 
 #if TARGET_API_MAC_CARBON
   {
     Rect r;
 
-    GetWindowPortBounds (w, &r);
+    GetWindowPortBounds (FRAME_MAC_WINDOW (f), &r);
     EraseRect (&r);
   }
 #else /* not TARGET_API_MAC_CARBON */
-  EraseRect (&(w->portRect));
+  EraseRect (&(FRAME_MAC_WINDOW (f)->portRect));
 #endif /* not TARGET_API_MAC_CARBON */
 }
 
@@ -639,74 +412,44 @@ XClearWindow (display, w)
 /* Mac replacement for XCopyArea.  */
 
 static void
-mac_draw_bitmap (display, w, gc, x, y, bitmap)
-     Display *display;
-     WindowPtr w;
+mac_draw_bitmap (f, gc, x, y, width, height, bits, overlay_p)
+     struct frame *f;
      GC gc;
-     int x, y;
-     BitMap *bitmap;
+     int x, y, width, height;
+     unsigned short *bits;
+     int overlay_p;
 {
+  BitMap bitmap;
   Rect r;
 
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (w));
-#else
-  SetPort (w);
-#endif
+  bitmap.rowBytes = sizeof(unsigned short);
+  bitmap.baseAddr = (char *)bits;
+  SetRect (&(bitmap.bounds), 0, 0, width, height);
 
-  mac_set_colors (gc);
-  SetRect (&r, x, y, x + bitmap->bounds.right, y + bitmap->bounds.bottom);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
+  RGBForeColor (GC_FORE_COLOR (gc));
+  RGBBackColor (GC_BACK_COLOR (gc));
+  SetRect (&r, x, y, x + width, y + height);
+
+  mac_begin_clip (GC_CLIP_REGION (gc));
 #if TARGET_API_MAC_CARBON
   {
-    PixMapHandle pmh;
+    CGrafPtr port;
 
-    LockPortBits (GetWindowPort (w));
-    pmh = GetPortPixMap (GetWindowPort (w));
-    CopyBits (bitmap, (BitMap *) *pmh, &(bitmap->bounds), &r, srcCopy, 0);
-    UnlockPortBits (GetWindowPort (w));
+    GetPort (&port);
+    LockPortBits (port);
+    CopyBits (&bitmap, GetPortBitMapForCopyBits (port),
+	      &(bitmap.bounds), &r, overlay_p ? srcOr : srcCopy, 0);
+    UnlockPortBits (port);
   }
 #else /* not TARGET_API_MAC_CARBON */
-  CopyBits (bitmap, &(w->portBits), &(bitmap->bounds), &r, srcCopy, 0);
+  CopyBits (&bitmap, &(FRAME_MAC_WINDOW (f)->portBits), &(bitmap.bounds), &r,
+	    overlay_p ? srcOr : srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
-}
+  mac_end_clip (GC_CLIP_REGION (gc));
 
-
-/* Mac replacement for XSetClipRectangles.  */
-
-static void
-mac_set_clip_rectangle (display, w, r)
-     Display *display;
-     WindowPtr w;
-     Rect *r;
-{
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (w));
-#else
-  SetPort (w);
-#endif
-
-  ClipRect (r);
-}
-
-
-/* Mac replacement for XSetClipMask.  */
-
-static void
-mac_reset_clipping (display, w)
-     Display *display;
-     WindowPtr w;
-{
-  Rect r;
-
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (w));
-#else
-  SetPort (w);
-#endif
-
-  SetRect (&r, -32767, -32767, 32767, 32767);
-  ClipRect (&r);
+  RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 }
 
 
@@ -718,18 +461,29 @@ mac_create_bitmap_from_bitmap_data (bitmap, bits, w, h)
      char *bits;
      int w, h;
 {
-  int bytes_per_row, i, j;
+  static unsigned char swap_nibble[16]
+    = { 0x0, 0x8, 0x4, 0xc,    /* 0000 1000 0100 1100 */
+	0x2, 0xa, 0x6, 0xe,    /* 0010 1010 0110 1110 */
+	0x1, 0x9, 0x5, 0xd,    /* 0001 1001 0101 1101 */
+	0x3, 0xb, 0x7, 0xf };  /* 0011 1011 0111 1111 */
+  int i, j, w1;
+  char *p;
 
-  bitmap->rowBytes = (w + 15) / 16 * 2;  /* must be on word boundary */
+  w1 = (w + 7) / 8;         /* nb of 8bits elt in X bitmap */
+  bitmap->rowBytes = ((w + 15) / 16) * 2; /* nb of 16bits elt in Mac bitmap */
   bitmap->baseAddr = xmalloc (bitmap->rowBytes * h);
-  if (!bitmap->baseAddr)
-    abort ();
-
   bzero (bitmap->baseAddr, bitmap->rowBytes * h);
   for (i = 0; i < h; i++)
-    for (j = 0; j < w; j++)
-      if (BitTst (bits, i * w + j))
-        BitSet (bitmap->baseAddr, i * bitmap->rowBytes * 8 + j);
+    {
+      p = bitmap->baseAddr + i * bitmap->rowBytes;
+      for (j = 0; j < w1; j++)
+	{
+	  /* Bitswap XBM bytes to match how Mac does things.  */
+	  unsigned char c = *bits++;
+	  *p++ = (unsigned char)((swap_nibble[c & 0xf] << 4)
+				 | (swap_nibble[(c>>4) & 0xf]));;
+	}
+    }
 
   SetRect (&(bitmap->bounds), 0, 0, w, h);
 }
@@ -742,181 +496,622 @@ mac_free_bitmap (bitmap)
   xfree (bitmap->baseAddr);
 }
 
+
+Pixmap
+XCreatePixmap (display, w, width, height, depth)
+     Display *display;		/* not used */
+     WindowPtr w;
+     unsigned int width, height;
+     unsigned int depth;
+{
+  Pixmap pixmap;
+  Rect r;
+  QDErr err;
+
+  SetPortWindowPort (w);
+
+  SetRect (&r, 0, 0, width, height);
+  err = NewGWorld (&pixmap, depth, &r, NULL, NULL, 0);
+  if (err != noErr)
+    return NULL;
+  return pixmap;
+}
+
+
+Pixmap
+XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
+     Display *display;		/* not used */
+     WindowPtr w;
+     char *data;
+     unsigned int width, height;
+     unsigned long fg, bg;
+     unsigned int depth;
+{
+  Pixmap pixmap;
+  BitMap bitmap;
+  CGrafPtr old_port;
+  GDHandle old_gdh;
+  static GC gc = NULL;		/* not reentrant */
+
+  if (gc == NULL)
+    gc = XCreateGC (display, w, 0, NULL);
+
+  pixmap = XCreatePixmap (display, w, width, height, depth);
+  if (pixmap == NULL)
+    return NULL;
+
+  GetGWorld (&old_port, &old_gdh);
+  SetGWorld (pixmap, NULL);
+  mac_create_bitmap_from_bitmap_data (&bitmap, data, width, height);
+  XSetForeground (display, gc, fg);
+  XSetBackground (display, gc, bg);
+  RGBForeColor (GC_FORE_COLOR (gc));
+  RGBBackColor (GC_BACK_COLOR (gc));
+  LockPixels (GetGWorldPixMap (pixmap));
+#if TARGET_API_MAC_CARBON
+  CopyBits (&bitmap, GetPortBitMapForCopyBits (pixmap),
+	    &bitmap.bounds, &bitmap.bounds, srcCopy, 0);
+#else /* not TARGET_API_MAC_CARBON */
+  CopyBits (&bitmap, &(((GrafPtr)pixmap)->portBits),
+	    &bitmap.bounds, &bitmap.bounds, srcCopy, 0);
+#endif /* not TARGET_API_MAC_CARBON */
+  UnlockPixels (GetGWorldPixMap (pixmap));
+  SetGWorld (old_port, old_gdh);
+  mac_free_bitmap (&bitmap);
+
+  return pixmap;
+}
+
+
 /* Mac replacement for XFillRectangle.  */
 
 static void
-XFillRectangle (display, w, gc, x, y, width, height)
-     Display *display;
-     WindowPtr w;
+mac_fill_rectangle (f, gc, x, y, width, height)
+     struct frame *f;
      GC gc;
      int x, y;
      unsigned int width, height;
 {
   Rect r;
 
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (w));
-#else
-  SetPort (w);
-#endif
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
-  mac_set_colors (gc);
+  RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
 
+  mac_begin_clip (GC_CLIP_REGION (gc));
   PaintRect (&r); /* using foreground color of gc */
+  mac_end_clip (GC_CLIP_REGION (gc));
 }
 
 
 /* Mac replacement for XDrawRectangle: dest is a window.  */
 
 static void
-mac_draw_rectangle (display, w, gc, x, y, width, height)
-     Display *display;
-     WindowPtr w;
+mac_draw_rectangle (f, gc, x, y, width, height)
+     struct frame *f;
      GC gc;
      int x, y;
      unsigned int width, height;
 {
   Rect r;
 
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (w));
-#else
-  SetPort (w);
-#endif
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
-  mac_set_colors (gc);
+  RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width + 1, y + height + 1);
 
+  mac_begin_clip (GC_CLIP_REGION (gc));
   FrameRect (&r); /* using foreground color of gc */
+  mac_end_clip (GC_CLIP_REGION (gc));
 }
 
 
-/* Mac replacement for XDrawRectangle: dest is a Pixmap.  */
+#if USE_ATSUI
+static OSStatus
+atsu_get_text_layout_with_text_ptr (text, text_length, style, text_layout)
+     ConstUniCharArrayPtr text;
+     UniCharCount text_length;
+     ATSUStyle style;
+     ATSUTextLayout *text_layout;
+{
+  OSStatus err;
+  static ATSUTextLayout saved_text_layout = NULL; /* not reentrant */
+
+  if (saved_text_layout == NULL)
+    {
+      UniCharCount lengths[] = {kATSUToTextEnd};
+      ATSUAttributeTag tags[] = {kATSULineLayoutOptionsTag};
+      ByteCount sizes[] = {sizeof (ATSLineLayoutOptions)};
+      static ATSLineLayoutOptions line_layout =
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+	kATSLineDisableAllLayoutOperations | kATSLineUseDeviceMetrics
+	| kATSLineUseQDRendering
+#else
+	kATSLineIsDisplayOnly | kATSLineFractDisable
+#endif
+	;
+      ATSUAttributeValuePtr values[] = {&line_layout};
+
+      err = ATSUCreateTextLayoutWithTextPtr (text,
+					     kATSUFromTextBeginning,
+					     kATSUToTextEnd,
+					     text_length,
+					     1, lengths, &style,
+					     &saved_text_layout);
+      if (err == noErr)
+	err = ATSUSetLayoutControls (saved_text_layout,
+				     sizeof (tags) / sizeof (tags[0]),
+				     tags, sizes, values);
+      /* XXX: Should we do this? */
+      if (err == noErr)
+	err = ATSUSetTransientFontMatching (saved_text_layout, true);
+    }
+  else
+    {
+      err = ATSUSetRunStyle (saved_text_layout, style,
+			     kATSUFromTextBeginning, kATSUToTextEnd);
+      if (err == noErr)
+	err = ATSUSetTextPointerLocation (saved_text_layout, text,
+					  kATSUFromTextBeginning,
+					  kATSUToTextEnd,
+					  text_length);
+    }
+
+  if (err == noErr)
+    *text_layout = saved_text_layout;
+  return err;
+}
+#endif
+
 
 static void
-mac_draw_rectangle_to_pixmap (display, p, gc, x, y, width, height)
-     Display *display;
-     Pixmap p;
-     GC gc;
+mac_invert_rectangle (f, x, y, width, height)
+     struct frame *f;
      int x, y;
      unsigned int width, height;
 {
-#if 0 /* MAC_TODO: draw a rectangle in a PixMap */
   Rect r;
 
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (w));
-#else
-  SetPort (w);
-#endif
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
-  mac_set_colors (gc);
   SetRect (&r, x, y, x + width, y + height);
 
-  FrameRect (&r); /* using foreground color of gc */
-#endif /* 0 */
+  InvertRect (&r);
 }
 
 
 static void
-mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
-			bytes_per_char)
-     Display *display;
-     WindowPtr w;
+mac_draw_string_common (f, gc, x, y, buf, nchars, mode, bytes_per_char)
+     struct frame *f;
      GC gc;
      int x, y;
      char *buf;
      int nchars, mode, bytes_per_char;
 {
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (w));
-#else
-  SetPort (w);
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+  UInt32 textFlags, savedFlags;
+  if (mac_use_core_graphics) {
+    textFlags = kQDUseCGTextRendering;
+    savedFlags = SwapQDTextFlags(textFlags);
+  }
 #endif
 
-  mac_set_colors (gc);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
-  TextFont (gc->font->mac_fontnum);
-  TextSize (gc->font->mac_fontsize);
-  TextFace (gc->font->mac_fontface);
+  RGBForeColor (GC_FORE_COLOR (gc));
+  if (mode != srcOr)
+    RGBBackColor (GC_BACK_COLOR (gc));
+
+#if USE_ATSUI
+  if (GC_FONT (gc)->mac_style)
+    {
+      OSErr err;
+      ATSUTextLayout text_layout;
+
+      xassert (bytes_per_char == 2);
+
+#ifndef WORDS_BIG_ENDIAN
+      {
+	int i;
+	UniChar *text = (UniChar *)buf;
+
+	for (i = 0; i < nchars; i++)
+	  text[i] = EndianU16_BtoN (text[i]);
+      }
+#endif
+      err = atsu_get_text_layout_with_text_ptr ((ConstUniCharArrayPtr)buf,
+						nchars,
+						GC_FONT (gc)->mac_style,
+						&text_layout);
+      if (err == noErr)
+	{
+#ifdef MAC_OSX
+	  if (!mac_use_core_graphics)
+	    {
+#endif
+	      mac_begin_clip (GC_CLIP_REGION (gc));
+	      MoveTo (x, y);
+	      ATSUDrawText (text_layout,
+			    kATSUFromTextBeginning, kATSUToTextEnd,
+			    kATSUUseGrafPortPenLoc, kATSUUseGrafPortPenLoc);
+	      mac_end_clip (GC_CLIP_REGION (gc));
+#ifdef MAC_OSX
+	    }
+	  else
+	    {
+	      CGrafPtr port;
+	      CGContextRef context;
+	      float port_height = FRAME_PIXEL_HEIGHT (f);
+	      ATSUAttributeTag tags[] = {kATSUCGContextTag};
+	      ByteCount sizes[] = {sizeof (CGContextRef)};
+	      ATSUAttributeValuePtr values[] = {&context};
+
+	      GetPort (&port);
+	      QDBeginCGContext (port, &context);
+	      if (gc->n_clip_rects)
+		{
+		  CGContextTranslateCTM (context, 0, port_height);
+		  CGContextScaleCTM (context, 1, -1);
+		  CGContextClipToRects (context, gc->clip_rects,
+					gc->n_clip_rects);
+		  CGContextScaleCTM (context, 1, -1);
+		  CGContextTranslateCTM (context, 0, -port_height);
+		}
+	      CGContextSetRGBFillColor
+		(context,
+		 RED_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+		 GREEN_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+		 BLUE_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+		 1.0);
+	      err = ATSUSetLayoutControls (text_layout,
+					   sizeof (tags) / sizeof (tags[0]),
+					   tags, sizes, values);
+	      if (err == noErr)
+		ATSUDrawText (text_layout,
+			      kATSUFromTextBeginning, kATSUToTextEnd,
+			      Long2Fix (x), Long2Fix (port_height - y));
+	      CGContextSynchronize (context);
+	      QDEndCGContext (port, &context);
+#if 0
+	      /* This doesn't work on Mac OS X 10.1.  */
+	      ATSUClearLayoutControls (text_layout,
+				       sizeof (tags) / sizeof (tags[0]),
+				       tags);
+#else
+	      ATSUSetLayoutControls (text_layout,
+				     sizeof (tags) / sizeof (tags[0]),
+				     tags, sizes, values);
+#endif
+	    }
+#endif
+	}
+    }
+  else
+    {
+#endif
+  TextFont (GC_FONT (gc)->mac_fontnum);
+  TextSize (GC_FONT (gc)->mac_fontsize);
+  TextFace (GC_FONT (gc)->mac_fontface);
   TextMode (mode);
 
+  mac_begin_clip (GC_CLIP_REGION (gc));
   MoveTo (x, y);
   DrawText (buf, 0, nchars * bytes_per_char);
+  mac_end_clip (GC_CLIP_REGION (gc));
+#if USE_ATSUI
+    }
+#endif
+
+  if (mode != srcOr)
+    RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+  if (mac_use_core_graphics)
+    SwapQDTextFlags(savedFlags);
+#endif
 }
 
 
 /* Mac replacement for XDrawString.  */
 
 static void
-XDrawString (display, w, gc, x, y, buf, nchars)
-     Display *display;
-     WindowPtr w;
+mac_draw_string (f, gc, x, y, buf, nchars)
+     struct frame *f;
      GC gc;
      int x, y;
      char *buf;
      int nchars;
 {
-  mac_draw_string_common (display, w, gc, x, y, buf, nchars, srcOr, 1);
+  mac_draw_string_common (f, gc, x, y, buf, nchars, srcOr, 1);
 }
 
 
 /* Mac replacement for XDrawString16. */
 
 static void
-XDrawString16 (display, w, gc, x, y, buf, nchars)
-     Display *display;
-     WindowPtr w;
+mac_draw_string_16 (f, gc, x, y, buf, nchars)
+     struct frame *f;
      GC gc;
      int x, y;
      XChar2b *buf;
      int nchars;
 {
-  mac_draw_string_common (display, w, gc, x, y, (char *) buf, nchars, srcOr,
-			  2);
+  mac_draw_string_common (f, gc, x, y, (char *) buf, nchars, srcOr, 2);
 }
 
 
 /* Mac replacement for XDrawImageString.  */
 
 static void
-XDrawImageString (display, w, gc, x, y, buf, nchars)
-     Display *display;
-     WindowPtr w;
+mac_draw_image_string (f, gc, x, y, buf, nchars)
+     struct frame *f;
      GC gc;
      int x, y;
      char *buf;
      int nchars;
 {
-  mac_draw_string_common (display, w, gc, x, y, buf, nchars, srcCopy, 1);
+  mac_draw_string_common (f, gc, x, y, buf, nchars, srcCopy, 1);
 }
 
 
 /* Mac replacement for XDrawString16.  */
 
 static void
-XDrawImageString16 (display, w, gc, x, y, buf, nchars)
-     Display *display;
-     WindowPtr w;
+mac_draw_image_string_16 (f, gc, x, y, buf, nchars)
+     struct frame *f;
      GC gc;
      int x, y;
      XChar2b *buf;
      int nchars;
 {
-  mac_draw_string_common (display, w, gc, x, y, (char *) buf, nchars, srcCopy,
-			  2);
+  mac_draw_string_common (f, gc, x, y, (char *) buf, nchars, srcCopy, 2);
 }
+
+
+/* Mac replacement for XQueryTextExtents, but takes a character.  If
+   STYLE is NULL, measurement is done by QuickDraw Text routines for
+   the font of the current graphics port.  If CG_GLYPH is not NULL,
+   *CG_GLYPH is set to the glyph ID or 0 if it cannot be obtained.  */
+
+static OSErr
+mac_query_char_extents (style, c,
+			font_ascent_return, font_descent_return,
+			overall_return, cg_glyph)
+#if USE_ATSUI
+     ATSUStyle style;
+#else
+     void *style;
+#endif
+     int c;
+     int *font_ascent_return, *font_descent_return;
+     XCharStruct *overall_return;
+#if USE_CG_TEXT_DRAWING
+     CGGlyph *cg_glyph;
+#else
+     void *cg_glyph;
+#endif
+{
+  OSErr err = noErr;
+  int width;
+  Rect char_bounds;
+
+#if USE_ATSUI
+  if (style)
+    {
+      ATSUTextLayout text_layout;
+      UniChar ch = c;
+
+      err = atsu_get_text_layout_with_text_ptr (&ch, 1, style, &text_layout);
+      if (err == noErr)
+	{
+	  ATSTrapezoid glyph_bounds;
+
+	  err = ATSUGetGlyphBounds (text_layout, 0, 0,
+				    kATSUFromTextBeginning, kATSUToTextEnd,
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+				    kATSUseFractionalOrigins,
+#else
+				    kATSUseDeviceOrigins,
+#endif
+				    1, &glyph_bounds, NULL);
+	  if (err == noErr)
+	    {
+	      xassert (glyph_bounds.lowerRight.x - glyph_bounds.lowerLeft.x
+		       == glyph_bounds.upperRight.x - glyph_bounds.upperLeft.x);
+
+	      width = Fix2Long (glyph_bounds.upperRight.x
+				- glyph_bounds.upperLeft.x);
+	      if (font_ascent_return)
+		*font_ascent_return = -Fix2Long (glyph_bounds.upperLeft.y);
+	      if (font_descent_return)
+		*font_descent_return = Fix2Long (glyph_bounds.lowerLeft.y);
+	    }
+	}
+      if (err == noErr && overall_return)
+	{
+	  err = ATSUMeasureTextImage (text_layout,
+				      kATSUFromTextBeginning, kATSUToTextEnd,
+				      0, 0, &char_bounds);
+	  if (err == noErr)
+	    STORE_XCHARSTRUCT (*overall_return, width, char_bounds);
+#if USE_CG_TEXT_DRAWING
+	  if (err == noErr && cg_glyph)
+	    {
+	      OSErr err1;
+	      ATSUGlyphInfoArray glyph_info_array;
+	      ByteCount count = sizeof (ATSUGlyphInfoArray);
+
+	      err1 = ATSUMatchFontsToText (text_layout, kATSUFromTextBeginning,
+					   kATSUToTextEnd, NULL, NULL, NULL);
+	      if (err1 == noErr)
+		err1 = ATSUGetGlyphInfo (text_layout, kATSUFromTextBeginning,
+					 kATSUToTextEnd, &count,
+					 &glyph_info_array);
+	      if (err1 == noErr)
+		{
+		  xassert (glyph_info_array.glyphs[0].glyphID);
+		  *cg_glyph = glyph_info_array.glyphs[0].glyphID;
+		}
+	      else
+		*cg_glyph = 0;
+	    }
+#endif
+	}
+    }
+  else
+#endif
+    {
+      if (font_ascent_return || font_descent_return)
+	{
+	  FontInfo font_info;
+
+	  GetFontInfo (&font_info);
+	  if (font_ascent_return)
+	    *font_ascent_return = font_info.ascent;
+	  if (font_descent_return)
+	    *font_descent_return = font_info.descent;
+	}
+      if (overall_return)
+	{
+	  char ch = c;
+
+	  width = CharWidth (ch);
+	  QDTextBounds (1, &ch, &char_bounds);
+	  STORE_XCHARSTRUCT (*overall_return, width, char_bounds);
+	}
+    }
+
+  return err;
+}
+
+
+/* Mac replacement for XTextExtents16.  Only sets horizontal metrics.  */
+
+static int
+mac_text_extents_16 (font_struct, string, nchars, overall_return)
+     XFontStruct *font_struct;
+     XChar2b *string;
+     int nchars;
+     XCharStruct *overall_return;
+{
+  int i;
+  short width = 0, lbearing = 0, rbearing = 0;
+  XCharStruct *pcm;
+
+  for (i = 0; i < nchars; i++)
+    {
+      pcm = mac_per_char_metric (font_struct, string, 0);
+      if (pcm == NULL)
+	width += FONT_WIDTH (font_struct);
+      else
+	{
+	  lbearing = min (lbearing, width + pcm->lbearing);
+	  rbearing = max (rbearing, width + pcm->rbearing);
+	  width += pcm->width;
+	}
+      string++;
+    }
+
+  overall_return->lbearing = lbearing;
+  overall_return->rbearing = rbearing;
+  overall_return->width = width;
+
+  /* What's the meaning of the return value of XTextExtents16?  */
+}
+
+
+#if USE_CG_TEXT_DRAWING
+static int cg_text_anti_aliasing_threshold = 8;
+
+static void
+init_cg_text_anti_aliasing_threshold ()
+{
+  Lisp_Object val =
+    Fmac_get_preference (build_string ("AppleAntiAliasingThreshold"),
+			 Qnil, Qnil, Qnil);
+
+  if (INTEGERP (val))
+    cg_text_anti_aliasing_threshold = XINT (val);
+}
+
+static int
+mac_draw_string_cg (f, gc, x, y, buf, nchars)
+     struct frame *f;
+     GC gc;
+     int x, y;
+     XChar2b *buf;
+     int nchars;
+{
+  CGrafPtr port;
+  float port_height, gx, gy;
+  int i;
+  CGContextRef context;
+  CGGlyph *glyphs;
+  CGSize *advances;
+
+  if (!mac_use_core_graphics || GC_FONT (gc)->cg_font == NULL)
+    return 0;
+
+  port = GetWindowPort (FRAME_MAC_WINDOW (f));
+  port_height = FRAME_PIXEL_HEIGHT (f);
+  gx = x;
+  gy = port_height - y;
+  glyphs = (CGGlyph *)buf;
+  advances = xmalloc (sizeof (CGSize) * nchars);
+  for (i = 0; i < nchars; i++)
+    {
+      XCharStruct *pcm = mac_per_char_metric (GC_FONT (gc), buf, 0);
+
+      advances[i].width = pcm->width;
+      advances[i].height = 0;
+      glyphs[i] = GC_FONT (gc)->cg_glyphs[buf->byte2];
+      buf++;
+    }
+
+  QDBeginCGContext (port, &context);
+  if (gc->n_clip_rects)
+    {
+      CGContextTranslateCTM (context, 0, port_height);
+      CGContextScaleCTM (context, 1, -1);
+      CGContextClipToRects (context, gc->clip_rects, gc->n_clip_rects);
+      CGContextScaleCTM (context, 1, -1);
+      CGContextTranslateCTM (context, 0, -port_height);
+    }
+  CGContextSetRGBFillColor (context,
+			    RED_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+			    GREEN_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+			    BLUE_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+			    1.0);
+  CGContextSetFont (context, GC_FONT (gc)->cg_font);
+  CGContextSetFontSize (context, GC_FONT (gc)->mac_fontsize);
+  if (GC_FONT (gc)->mac_fontsize <= cg_text_anti_aliasing_threshold)
+    CGContextSetShouldAntialias (context, false);
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+  CGContextSetTextPosition (context, gx, gy);
+  CGContextShowGlyphsWithAdvances (context, glyphs, advances, nchars);
+#else
+  for (i = 0; i < nchars; i++)
+    {
+      CGContextShowGlyphsAtPoint (context, gx, gy, glyphs + i, 1);
+      gx += advances[i].width;
+    }
+#endif
+  CGContextSynchronize (context);
+  QDEndCGContext (port, &context);
+
+  xfree (advances);
+
+  return 1;
+}
+#endif
 
 
 /* Mac replacement for XCopyArea: dest must be window.  */
 
 static void
-mac_copy_area (display, src, dest, gc, src_x, src_y, width, height, dest_x,
-	       dest_y)
-     Display *display;
+mac_copy_area (src, f, gc, src_x, src_y, width, height, dest_x, dest_y)
      Pixmap src;
-     WindowPtr dest;
+     struct frame *f;
      GC gc;
      int src_x, src_y;
      unsigned int width, height;
@@ -924,165 +1119,159 @@ mac_copy_area (display, src, dest, gc, src_x, src_y, width, height, dest_x,
 {
   Rect src_r, dest_r;
 
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (dest));
-#else
-  SetPort (dest);
-#endif
-
-  mac_set_colors (gc);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
   SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
 
+  ForeColor (blackColor);
+  BackColor (whiteColor);
+
+  mac_begin_clip (GC_CLIP_REGION (gc));
+  LockPixels (GetGWorldPixMap (src));
 #if TARGET_API_MAC_CARBON
   {
-    PixMapHandle pmh;
+    CGrafPtr port;
 
-    LockPortBits (GetWindowPort (dest));
-    pmh = GetPortPixMap (GetWindowPort (dest));
-    CopyBits ((BitMap *) &src, (BitMap *) *pmh, &src_r, &dest_r, srcCopy, 0);
-    UnlockPortBits (GetWindowPort (dest));
+    GetPort (&port);
+    LockPortBits (port);
+    CopyBits (GetPortBitMapForCopyBits (src),
+	      GetPortBitMapForCopyBits (port),
+	      &src_r, &dest_r, srcCopy, 0);
+    UnlockPortBits (port);
   }
 #else /* not TARGET_API_MAC_CARBON */
-  CopyBits ((BitMap *) &src, &(dest->portBits), &src_r, &dest_r, srcCopy, 0);
+  CopyBits (&(((GrafPtr)src)->portBits), &(FRAME_MAC_WINDOW (f)->portBits),
+	    &src_r, &dest_r, srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
+  UnlockPixels (GetGWorldPixMap (src));
+  mac_end_clip (GC_CLIP_REGION (gc));
+
+  RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 }
 
 
-#if 0
-/* Convert a pair of local coordinates to global (screen) coordinates.
-   Assume graphic port has been properly set.  */
 static void
-local_to_global_coord (short *h, short *v)
+mac_copy_area_with_mask (src, mask, f, gc, src_x, src_y,
+			 width, height, dest_x, dest_y)
+     Pixmap src, mask;
+     struct frame *f;
+     GC gc;
+     int src_x, src_y;
+     unsigned int width, height;
+     int dest_x, dest_y;
 {
-  Point p;
+  Rect src_r, dest_r;
 
-  p.h = *h;
-  p.v = *v;
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
-  LocalToGlobal (&p);
+  SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
+  SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
 
-  *h = p.h;
-  *v = p.v;
+  ForeColor (blackColor);
+  BackColor (whiteColor);
+
+  mac_begin_clip (GC_CLIP_REGION (gc));
+  LockPixels (GetGWorldPixMap (src));
+  LockPixels (GetGWorldPixMap (mask));
+#if TARGET_API_MAC_CARBON
+  {
+    CGrafPtr port;
+
+    GetPort (&port);
+    LockPortBits (port);
+    CopyMask (GetPortBitMapForCopyBits (src), GetPortBitMapForCopyBits (mask),
+	      GetPortBitMapForCopyBits (port),
+	      &src_r, &src_r, &dest_r);
+    UnlockPortBits (port);
+  }
+#else /* not TARGET_API_MAC_CARBON */
+  CopyMask (&(((GrafPtr)src)->portBits), &(((GrafPtr)mask)->portBits),
+	    &(FRAME_MAC_WINDOW (f)->portBits), &src_r, &src_r, &dest_r);
+#endif /* not TARGET_API_MAC_CARBON */
+  UnlockPixels (GetGWorldPixMap (mask));
+  UnlockPixels (GetGWorldPixMap (src));
+  mac_end_clip (GC_CLIP_REGION (gc));
+
+  RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 }
-#endif
+
 
 /* Mac replacement for XCopyArea: used only for scrolling.  */
 
 static void
-mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
-     Display *display;
-     WindowPtr w;
+mac_scroll_area (f, gc, src_x, src_y, width, height, dest_x, dest_y)
+     struct frame *f;
      GC gc;
      int src_x, src_y;
      unsigned int width, height;
      int dest_x, dest_y;
 {
 #if TARGET_API_MAC_CARBON
-  Rect gw_r, src_r, dest_r;
-  PixMapHandle pmh;
+  Rect src_r;
+  RgnHandle dummy = NewRgn ();	/* For avoiding update events.  */
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
-  SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
-
-  SetPort (GetWindowPort (w));
-
-  ForeColor (blackColor);
-  BackColor (whiteColor);
-
-  LockPortBits (GetWindowPort (w));
-  pmh = GetPortPixMap (GetWindowPort (w));
-  CopyBits ((BitMap *) *pmh, (BitMap *) *pmh, &src_r, &dest_r, srcCopy, 0);
-  UnlockPortBits (GetWindowPort (w));
-
-  mac_set_colors (gc);
+  ScrollWindowRect (FRAME_MAC_WINDOW (f),
+		    &src_r, dest_x - src_x, dest_y - src_y,
+		    kScrollWindowNoOptions, dummy);
+  DisposeRgn (dummy);
 #else /* not TARGET_API_MAC_CARBON */
   Rect src_r, dest_r;
+  WindowPtr w = FRAME_MAC_WINDOW (f);
 
   SetPort (w);
-#if 0
-  mac_set_colors (gc);
-#endif
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
   SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
 
-#if 0
-  /* Need to use global coordinates and screenBits since src and dest
-     areas overlap in general.  */
-  local_to_global_coord (&src_r.left, &src_r.top);
-  local_to_global_coord (&src_r.right, &src_r.bottom);
-  local_to_global_coord (&dest_r.left, &dest_r.top);
-  local_to_global_coord (&dest_r.right, &dest_r.bottom);
-
-  CopyBits (&qd.screenBits, &qd.screenBits, &src_r, &dest_r, srcCopy, 0);
-#else
   /* In Color QuickDraw, set ForeColor and BackColor as follows to avoid
      color mapping in CopyBits.  Otherwise, it will be slow.  */
   ForeColor (blackColor);
   BackColor (whiteColor);
+  mac_begin_clip (GC_CLIP_REGION (gc));
   CopyBits (&(w->portBits), &(w->portBits), &src_r, &dest_r, srcCopy, 0);
+  mac_end_clip (GC_CLIP_REGION (gc));
 
-  mac_set_colors (gc);
-#endif
+  RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 #endif /* not TARGET_API_MAC_CARBON */
-}
-
-
-/* Mac replacement for XCopyArea: dest must be Pixmap.  */
-
-static void
-mac_copy_area_to_pixmap (display, src, dest, gc, src_x, src_y, width, height,
-                     dest_x, dest_y)
-     Display *display;
-     Pixmap src;
-     Pixmap dest;
-     GC gc;
-     int src_x, src_y;
-     unsigned int width, height;
-     int dest_x, dest_y;
-{
-  Rect src_r, dest_r;
-  int src_right = ((PixMap *) src)->bounds.right;
-  int src_bottom = ((PixMap *) src)->bounds.bottom;
-  int w = src_right - src_x;
-  int h = src_bottom - src_y;
-
-  mac_set_colors (gc);
-
-  SetRect (&src_r, src_x, src_y, src_right, src_bottom);
-  SetRect (&dest_r, dest_x, dest_y, dest_x + w, dest_y + h);
-
-  CopyBits ((BitMap *) &src, (BitMap *) &dest, &src_r, &dest_r, srcCopy, 0);
 }
 
 
 /* Mac replacement for XChangeGC.  */
 
 static void
-XChangeGC (void * ignore, XGCValues* gc, unsigned long mask,
-                XGCValues *xgcv)
+XChangeGC (display, gc, mask, xgcv)
+     Display *display;
+     GC gc;
+     unsigned long mask;
+     XGCValues *xgcv;
 {
   if (mask & GCForeground)
-    gc->foreground = xgcv->foreground;
+    XSetForeground (display, gc, xgcv->foreground);
   if (mask & GCBackground)
-    gc->background = xgcv->background;
+    XSetBackground (display, gc, xgcv->background);
   if (mask & GCFont)
-    gc->font = xgcv->font;
+    XSetFont (display, gc, xgcv->font);
 }
 
 
 /* Mac replacement for XCreateGC.  */
 
-XGCValues *
-XCreateGC (void * ignore, Window window, unsigned long mask,
-                      XGCValues *xgcv)
+GC
+XCreateGC (display, window, mask, xgcv)
+     Display *display;
+     Window window;
+     unsigned long mask;
+     XGCValues *xgcv;
 {
-  XGCValues *gc = (XGCValues *) xmalloc (sizeof (XGCValues));
-  bzero (gc, sizeof (XGCValues));
+  GC gc = xmalloc (sizeof (*gc));
 
-  XChangeGC (ignore, gc, mask, xgcv);
+  if (gc)
+    {
+      bzero (gc, sizeof (*gc));
+      XChangeGC (display, gc, mask, xgcv);
+    }
 
   return gc;
 }
@@ -1095,6 +1284,8 @@ XFreeGC (display, gc)
      Display *display;
      GC gc;
 {
+  if (gc->clip_region)
+    DisposeRgn (gc->clip_region);
   xfree (gc);
 }
 
@@ -1102,22 +1293,54 @@ XFreeGC (display, gc)
 /* Mac replacement for XGetGCValues.  */
 
 static void
-XGetGCValues (void* ignore, XGCValues *gc,
-                   unsigned long mask, XGCValues *xgcv)
+XGetGCValues (display, gc, mask, xgcv)
+     Display *display;
+     GC gc;
+     unsigned long mask;
+     XGCValues *xgcv;
 {
-  XChangeGC (ignore, xgcv, mask, gc);
+  if (mask & GCForeground)
+    xgcv->foreground = gc->xgcv.foreground;
+  if (mask & GCBackground)
+    xgcv->background = gc->xgcv.background;
+  if (mask & GCFont)
+    xgcv->font = gc->xgcv.font;
 }
 
 
 /* Mac replacement for XSetForeground.  */
 
-static void
+void
 XSetForeground (display, gc, color)
      Display *display;
      GC gc;
      unsigned long color;
 {
-  gc->foreground = color;
+  if (gc->xgcv.foreground != color)
+    {
+      gc->xgcv.foreground = color;
+      gc->fore_color.red = RED16_FROM_ULONG (color);
+      gc->fore_color.green = GREEN16_FROM_ULONG (color);
+      gc->fore_color.blue = BLUE16_FROM_ULONG (color);
+    }
+}
+
+
+/* Mac replacement for XSetBackground.  */
+
+void
+XSetBackground (display, gc, color)
+     Display *display;
+     GC gc;
+     unsigned long color;
+{
+  if (gc->xgcv.background != color)
+    {
+      gc->xgcv.background = color;
+      gc->back_color.red = RED16_FROM_ULONG (color);
+      gc->back_color.green = GREEN16_FROM_ULONG (color);
+      gc->back_color.blue = BLUE16_FROM_ULONG (color);
+    }
 }
 
 
@@ -1129,24 +1352,139 @@ XSetFont (display, gc, font)
      GC gc;
      XFontStruct *font;
 {
-  gc->font = font;
+  gc->xgcv.font = font;
 }
 
+
+/* Mac replacement for XSetClipRectangles.  */
 
 static void
-XTextExtents16 (XFontStruct *font, XChar2b *text, int nchars,
-                     int *direction,int *font_ascent,
-                     int *font_descent, XCharStruct *cs)
+mac_set_clip_rectangles (display, gc, rectangles, n)
+     Display *display;
+     GC gc;
+     Rect *rectangles;
+     int n;
 {
-  /* MAC_TODO: Use GetTextMetrics to do this and inline it below. */
+  int i;
+
+  if (n < 0 || n > MAX_CLIP_RECTS)
+    abort ();
+  if (n == 0)
+    {
+      if (gc->clip_region)
+	{
+	  DisposeRgn (gc->clip_region);
+	  gc->clip_region = NULL;
+	}
+    }
+  else
+    {
+      if (gc->clip_region == NULL)
+	gc->clip_region = NewRgn ();
+      RectRgn (gc->clip_region, rectangles);
+      if (n > 1)
+	{
+	  RgnHandle region = NewRgn ();
+
+	  for (i = 1; i < n; i++)
+	    {
+	      RectRgn (region, rectangles + i);
+	      UnionRgn (gc->clip_region, region, gc->clip_region);
+	    }
+	  DisposeRgn (region);
+	}
+    }
+#if defined (MAC_OSX) && USE_ATSUI
+  gc->n_clip_rects = n;
+
+  for (i = 0; i < n; i++)
+    {
+      Rect *rect = rectangles + i;
+
+      gc->clip_rects[i] = CGRectMake (rect->left, rect->top,
+				      rect->right - rect->left,
+				      rect->bottom - rect->top);
+    }
+#endif
 }
 
+
+/* Mac replacement for XSetClipMask.  */
+
+static INLINE void
+mac_reset_clip_rectangles (display, gc)
+     Display *display;
+     GC gc;
+{
+  mac_set_clip_rectangles (display, gc, NULL, 0);
+}
+
+
+/* Mac replacement for XSetWindowBackground.  */
+
+void
+XSetWindowBackground (display, w, color)
+     Display *display;
+     WindowPtr w;
+     unsigned long color;
+{
+#if !TARGET_API_MAC_CARBON
+  AuxWinHandle aw_handle;
+  CTabHandle ctab_handle;
+  ColorSpecPtr ct_table;
+  short ct_size;
+#endif
+  RGBColor bg_color;
+
+  bg_color.red = RED16_FROM_ULONG (color);
+  bg_color.green = GREEN16_FROM_ULONG (color);
+  bg_color.blue = BLUE16_FROM_ULONG (color);
+
+#if TARGET_API_MAC_CARBON
+  SetWindowContentColor (w, &bg_color);
+#else
+  if (GetAuxWin (w, &aw_handle))
+    {
+      ctab_handle = (*aw_handle)->awCTable;
+      HandToHand ((Handle *) &ctab_handle);
+      ct_table = (*ctab_handle)->ctTable;
+      ct_size = (*ctab_handle)->ctSize;
+      while (ct_size > -1)
+	{
+	  if (ct_table->value == 0)
+	    {
+	      ct_table->rgb = bg_color;
+	      CTabChanged (ctab_handle);
+	      SetWinColor (w, (WCTabHandle) ctab_handle);
+	    }
+	  ct_size--;
+	}
+    }
+#endif
+}
 
 /* x_sync is a no-op on Mac.  */
 void
 x_sync (f)
      void *f;
 {
+}
+
+
+/* Flush display of frame F, or of all frames if F is null.  */
+
+static void
+x_flush (f)
+     struct frame *f;
+{
+#if TARGET_API_MAC_CARBON
+  BLOCK_INPUT;
+  if (f)
+    QDFlushPortBuffer (GetWindowPort (FRAME_MAC_WINDOW (f)), NULL);
+  else
+    QDFlushPortBuffer (GetQDGlobalsThePort (), NULL);
+  UNBLOCK_INPUT;
+#endif
 }
 
 
@@ -1157,32 +1495,7 @@ x_sync (f)
    XTread_socket calls XPending.  Removing XFlush improves
    performance.  */
 
-#if TARGET_API_MAC_CARBON
-#define XFlush(DISPLAY) QDFlushPortBuffer (GetQDGlobalsThePort (), NULL)
-#else
 #define XFlush(DISPLAY)	(void) 0
-#endif
-
-/* Flush display of frame F, or of all frames if F is null.  */
-
-void
-x_flush (f)
-     struct frame *f;
-{
-#if TARGET_API_MAC_CARBON
-  BLOCK_INPUT;
-  if (f == NULL)
-    {
-      Lisp_Object rest, frame;
-      FOR_EACH_FRAME (rest, frame)
-	x_flush (XFRAME (frame));
-    }
-  else if (FRAME_X_P (f))
-    XFlush (FRAME_MAC_DISPLAY (f));
-  UNBLOCK_INPUT;
-#endif /* TARGET_API_MAC_CARBON */
-}
-
 
 
 /* Return the struct mac_display_info corresponding to DPY.  There's
@@ -1210,7 +1523,17 @@ static void
 x_update_begin (f)
      struct frame *f;
 {
-  /* Nothing to do.  */
+#if TARGET_API_MAC_CARBON
+  /* During update of a frame, availability of input events is
+     periodically checked with ReceiveNextEvent if
+     redisplay-dont-pause is nil.  That normally flushes window buffer
+     changes for every check, and thus screen update looks waving even
+     if no input is available.  So we disable screen updates during
+     update of a frame.  */
+  BLOCK_INPUT;
+  DisableScreenUpdates ();
+  UNBLOCK_INPUT;
+#endif
 }
 
 
@@ -1257,7 +1580,7 @@ x_update_window_begin (w)
 	{
 	  int i;
 
-          for (i = 0; i < w->desired_matrix->nrows; ++i)
+	  for (i = 0; i < w->desired_matrix->nrows; ++i)
 	    if (MATRIX_ROW_ENABLED_P (w->desired_matrix, i))
 	      break;
 
@@ -1271,33 +1594,23 @@ x_update_window_begin (w)
 }
 
 
-/* Draw a vertical window border to the right of window W if W doesn't
-   have vertical scroll bars.  */
+/* Draw a vertical window border from (x,y0) to (x,y1)  */
 
 static void
-x_draw_vertical_border (w)
+mac_draw_vertical_window_border (w, x, y0, y1)
      struct window *w;
+     int x, y0, y1;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
+  struct face *face;
 
-  /* Redraw borders between horizontally adjacent windows.  Don't
-     do it for frames with vertical scroll bars because either the
-     right scroll bar of a window, or the left scroll bar of its
-     neighbor will suffice as a border.  */
-  if (!WINDOW_RIGHTMOST_P (w)
-      && !FRAME_HAS_VERTICAL_SCROLL_BARS (f))
-    {
-      int x0, x1, y0, y1;
+  face = FACE_FROM_ID (f, VERTICAL_BORDER_FACE_ID);
+  if (face)
+    XSetForeground (FRAME_MAC_DISPLAY (f), f->output_data.mac->normal_gc,
+		    face->foreground);
 
-      window_box_edges (w, -1, &x0, &y0, &x1, &y1);
-      x1 += FRAME_X_RIGHT_FRINGE_WIDTH (f);
-      y1 -= 1;
-
-      XDrawLine (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		 f->output_data.mac->normal_gc, x1, y0, x1, y1);
-    }
+  mac_draw_line (f, f->output_data.mac->normal_gc, x, y0, x, y1);
 }
-
 
 /* End update of window W (which is equal to updated_window).
 
@@ -1309,27 +1622,28 @@ x_draw_vertical_border (w)
    make sure that the mouse-highlight is properly redrawn.
 
    W may be a menu bar pseudo-window in case we don't have X toolkit
-   support. Such windows don't have a cursor, so don't display it
-   here. */
+   support.  Such windows don't have a cursor, so don't display it
+   here.  */
 
 static void
 x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
      struct window *w;
      int cursor_on_p, mouse_face_overwritten_p;
 {
-  struct mac_display_info *dpyinfo
-    = FRAME_MAC_DISPLAY_INFO (XFRAME (w->frame));
+  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (XFRAME (w->frame));
 
   if (!w->pseudo_window_p)
     {
       BLOCK_INPUT;
 
       if (cursor_on_p)
-	x_display_and_set_cursor (w, 1, output_cursor.hpos,
-				  output_cursor.vpos,
-				  output_cursor.x, output_cursor.y);
+	display_and_set_cursor (w, 1, output_cursor.hpos,
+				output_cursor.vpos,
+				output_cursor.x, output_cursor.y);
 
-      x_draw_vertical_border (w);
+      if (draw_window_fringes (w, 1))
+	x_draw_vertical_border (w);
+
       UNBLOCK_INPUT;
     }
 
@@ -1342,14 +1656,6 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
       dpyinfo->mouse_face_window = Qnil;
     }
 
-#if 0
-  /* Unhide the caret.  This won't actually show the cursor, unless it
-     was visible before the corresponding call to HideCaret in
-     x_update_window_begin.  */
-  if (w32_use_visible_system_caret)
-    SendMessage (w32_system_caret_hwnd, WM_EMACS_SHOW_CARET, 0, 0);
-#endif
-
   updated_window = NULL;
 }
 
@@ -1361,21 +1667,13 @@ static void
 x_update_end (f)
      struct frame *f;
 {
-  /* Reset the background color of Mac OS Window to that of the frame after
-     update so that it is used by Mac Toolbox to clear the update region before
-     an update event is generated.  */
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (FRAME_MAC_WINDOW (f)));
-#else
-  SetPort (FRAME_MAC_WINDOW (f));
-#endif
-
-  mac_set_backcolor (FRAME_BACKGROUND_PIXEL (f));
-
   /* Mouse highlight may be displayed again.  */
   FRAME_MAC_DISPLAY_INFO (f)->mouse_face_defer = 0;
 
   BLOCK_INPUT;
+#if TARGET_API_MAC_CARBON
+  EnableScreenUpdates ();
+#endif
   XFlush (FRAME_MAC_DISPLAY (f));
   UNBLOCK_INPUT;
 }
@@ -1389,7 +1687,7 @@ static void
 XTframe_up_to_date (f)
      struct frame *f;
 {
-  if (FRAME_X_P (f))
+  if (FRAME_MAC_P (f))
     {
       struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
 
@@ -1426,11 +1724,7 @@ x_after_update_window_line (desired_row)
   xassert (w);
 
   if (!desired_row->mode_line_p && !w->pseudo_window_p)
-    {
-      BLOCK_INPUT;
-      x_draw_row_fringe_bitmaps (w, desired_row);
-      UNBLOCK_INPUT;
-    }
+    desired_row->redraw_fringe_bitmaps_p = 1;
 
   /* When a window has disappeared, make sure that no rest of
      full-width rows stays visible in the internal border.  Could
@@ -1447,19 +1741,15 @@ x_after_update_window_line (desired_row)
 	  height > 0))
     {
       int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
+
       /* Internal border is drawn below the tool bar.  */
       if (WINDOWP (f->tool_bar_window)
 	  && w == XWINDOW (f->tool_bar_window))
 	y -= width;
 
       BLOCK_INPUT;
-
-      XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		  0, y, width, height, 0);
-      XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		  f->output_data.mac->pixel_width - width, y,
-		  width, height, 0);
-
+      mac_clear_area (f, 0, y, width, height);
+      mac_clear_area (f, FRAME_PIXEL_WIDTH (f) - width, y, width, height);
       UNBLOCK_INPUT;
     }
 }
@@ -1471,130 +1761,35 @@ x_after_update_window_line (desired_row)
    drawn.  */
 
 static void
-x_draw_fringe_bitmap (w, row, which, left_p)
+x_draw_fringe_bitmap (w, row, p)
      struct window *w;
      struct glyph_row *row;
-     enum fringe_bitmap_type which;
-     int left_p;
+     struct draw_fringe_bitmap_params *p;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Display *display = FRAME_MAC_DISPLAY (f);
-  WindowPtr window = FRAME_MAC_WINDOW (f);
-  int x, y, wd, h, dy;
-  int b1, b2;
-  unsigned char *bits;
-  BitMap bitmap;
-  XGCValues gcv;
-  GC gc = f->output_data.mac->normal_gc;
-  struct face *face;
+  struct face *face = p->face;
+  int rowY;
 
   /* Must clip because of partially visible lines.  */
-  x_clip_to_row (w, row, gc, 1);
-
-  /* Convert row to frame coordinates.  */
-  y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
-
-  switch (which)
+  rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
+  if (p->y < rowY)
     {
-    case NO_FRINGE_BITMAP:
-      wd = 0;
-      h = 0;
-      break;
-
-    case LEFT_TRUNCATION_BITMAP:
-      wd = left_width;
-      h = left_height;
-      bits = left_bits;
-      break;
-
-    case OVERLAY_ARROW_BITMAP:
-      wd = ov_width;
-      h = ov_height;
-      bits = ov_bits;
-      break;
-
-    case RIGHT_TRUNCATION_BITMAP:
-      wd = right_width;
-      h = right_height;
-      bits = right_bits;
-      break;
-
-    case CONTINUED_LINE_BITMAP:
-      wd = continued_width;
-      h = continued_height;
-      bits = continued_bits;
-      break;
-
-    case CONTINUATION_LINE_BITMAP:
-      wd = continuation_width;
-      h = continuation_height;
-      bits = continuation_bits;
-      break;
-
-    case ZV_LINE_BITMAP:
-      wd = zv_width;
-      h = zv_height - (y % zv_period);
-      bits = zv_bits + (y % zv_period);
-      break;
-
-    default:
-      abort ();
-    }
-
-  /* Clip bitmap if too high.  */
-  if (h > row->height)
-    h = row->height;
-
-  /* Set dy to the offset in the row to start drawing the bitmap.  */
-  dy = (row->height - h) / 2;
-
-  /* Draw the bitmap.  */
-  face = FACE_FROM_ID (f, FRINGE_FACE_ID);
-  PREPARE_FACE_FOR_DISPLAY (f, face);
-
-  /* Clear left fringe if no bitmap to draw or if bitmap doesn't fill
-     the fringe.  */
-  b1 = -1;
-  if (left_p)
-    {
-      if (wd > FRAME_X_LEFT_FRINGE_WIDTH (f))
-	wd = FRAME_X_LEFT_FRINGE_WIDTH (f);
-      x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
-	   - wd
-	   - (FRAME_X_LEFT_FRINGE_WIDTH (f) - wd) / 2);
-      if (wd < FRAME_X_LEFT_FRINGE_WIDTH (f) || row->height > h)
-	{
-	  /* If W has a vertical border to its left, don't draw over it.  */
-	  int border = ((XFASTINT (w->left) > 0
-			 && !FRAME_HAS_VERTICAL_SCROLL_BARS (f))
-			? 1 : 0);
-	  b1 = (window_box_left (w, -1)
-		- FRAME_X_LEFT_FRINGE_WIDTH (f)
-		+ border);
-	  b2 = (FRAME_X_LEFT_FRINGE_WIDTH (f) - border);
-	}
+      /* Adjust position of "bottom aligned" bitmap on partially
+	 visible last row.  */
+      int oldY = row->y;
+      int oldVH = row->visible_height;
+      row->visible_height = p->h;
+      row->y -= rowY - p->y;
+      x_clip_to_row (w, row, -1, face->gc);
+      row->y = oldY;
+      row->visible_height = oldVH;
     }
   else
-    {
-      if (wd > FRAME_X_RIGHT_FRINGE_WIDTH (f))
-	wd = FRAME_X_RIGHT_FRINGE_WIDTH (f);
-      x = (window_box_right (w, -1)
-	   + (FRAME_X_RIGHT_FRINGE_WIDTH (f) - wd) / 2);
-      /* Clear right fringe if no bitmap to draw of if bitmap doesn't fill
-	 the fringe.  */
-      if (wd < FRAME_X_RIGHT_FRINGE_WIDTH (f) || row->height > h)
-	{
-	  b1 = window_box_right (w, -1);
-	  b2 = FRAME_X_RIGHT_FRINGE_WIDTH (f);
-	}
-    }
+    x_clip_to_row (w, row, -1, face->gc);
 
-  if (b1 >= 0)
+  if (p->bx >= 0 && !p->overlay_p)
     {
-      int header_line_height = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
-      XGCValues gcv;
-      gcv.foreground = face->background;
-
 #if 0  /* MAC_TODO: stipple */
       /* In case the same realized face is used for fringes and
 	 for something displayed in the text (e.g. face `region' on
@@ -1606,13 +1801,7 @@ x_draw_fringe_bitmap (w, row, which, left_p)
 	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->background);
 #endif
 
-      XFillRectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		      &gcv,
-		      b1,
-		      WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
-						       row->y)),
-		      b2,
-		      row->visible_height);
+      mac_erase_rectangle (f, face->gc, p->bx, p->by, p->nx, p->ny);
 
 #if 0  /* MAC_TODO: stipple */
       if (!face->stipple)
@@ -1620,75 +1809,27 @@ x_draw_fringe_bitmap (w, row, which, left_p)
 #endif
     }
 
-  if (which == NO_FRINGE_BITMAP)
+  if (p->which)
     {
-      mac_reset_clipping (display, window);
-      return;
+      unsigned short *bits = p->bits + p->dh;
+      XGCValues gcv;
+
+      XGetGCValues (display, face->gc, GCForeground, &gcv);
+      XSetForeground (display, face->gc,
+		      (p->cursor_p
+		       ? (p->overlay_p ? face->background
+			  : f->output_data.mac->cursor_pixel)
+		       : face->foreground));
+      mac_draw_bitmap (f, face->gc, p->x, p->y,
+		       p->wd, p->h, bits, p->overlay_p);
+      XSetForeground (display, face->gc, gcv.foreground);
     }
 
-  mac_create_bitmap_from_bitmap_data (&bitmap, bits, wd, h);
-  gcv.foreground = face->foreground;
-  gcv.background = face->background;
-
-  mac_draw_bitmap (display, window, &gcv, x, y + dy, &bitmap);
-
-  mac_free_bitmap (&bitmap);
-  mac_reset_clipping (display, window);
-}
-
-
-/* Draw fringe bitmaps for glyph row ROW on window W.  Call this
-   function with input blocked.  */
-
-static void
-x_draw_row_fringe_bitmaps (w, row)
-     struct window *w;
-     struct glyph_row *row;
-{
-  struct frame *f = XFRAME (w->frame);
-  enum fringe_bitmap_type bitmap;
-
-  xassert (interrupt_input_blocked);
-
-  /* If row is completely invisible, because of vscrolling, we
-     don't have to draw anything.  */
-  if (row->visible_height <= 0)
-    return;
-
-  if (FRAME_X_LEFT_FRINGE_WIDTH (f) != 0)
-    {
-      /* Decide which bitmap to draw in the left fringe.  */
-      if (row->overlay_arrow_p)
-	bitmap = OVERLAY_ARROW_BITMAP;
-      else if (row->truncated_on_left_p)
-	bitmap = LEFT_TRUNCATION_BITMAP;
-      else if (MATRIX_ROW_CONTINUATION_LINE_P (row))
-	bitmap = CONTINUATION_LINE_BITMAP;
-      else if (row->indicate_empty_line_p)
-	bitmap = ZV_LINE_BITMAP;
-      else
-	bitmap = NO_FRINGE_BITMAP;
-
-      x_draw_fringe_bitmap (w, row, bitmap, 1);
-    }
-
-  if (FRAME_X_RIGHT_FRINGE_WIDTH (f) != 0)
-    {
-      /* Decide which bitmap to draw in the right fringe.  */
-      if (row->truncated_on_right_p)
-	bitmap = RIGHT_TRUNCATION_BITMAP;
-      else if (row->continued_p)
-	bitmap = CONTINUED_LINE_BITMAP;
-      else if (row->indicate_empty_line_p && FRAME_X_LEFT_FRINGE_WIDTH (f) == 0)
-	bitmap = ZV_LINE_BITMAP;
-      else
-	bitmap = NO_FRINGE_BITMAP;
-
-      x_draw_fringe_bitmap (w, row, bitmap, 0);
-    }
+  mac_reset_clip_rectangles (display, face->gc);
 }
 
 
+
 /* This is called when starting Emacs and when restarting after
    suspend.  When starting Emacs, no window is mapped.  And nothing
    must be done to Emacs's own window if it is suspended (though that
@@ -1710,97 +1851,13 @@ XTreset_terminal_modes ()
 
 
 /***********************************************************************
-			    Output Cursor
- ***********************************************************************/
-
-/* Set the global variable output_cursor to CURSOR.  All cursor
-   positions are relative to updated_window.  */
-
-static void
-set_output_cursor (cursor)
-    struct cursor_pos *cursor;
-{
-  output_cursor.hpos = cursor->hpos;
-  output_cursor.vpos = cursor->vpos;
-  output_cursor.x = cursor->x;
-  output_cursor.y = cursor->y;
-}
-
-
-/* Set a nominal cursor position.
-
-   HPOS and VPOS are column/row positions in a window glyph matrix.  X
-   and Y are window text area relative pixel positions.
-
-   If this is done during an update, updated_window will contain the
-   window that is being updated and the position is the future output
-   cursor position for that window.  If updated_window is null, use
-   selected_window and display the cursor at the given position.  */
-
-static void
-XTcursor_to (vpos, hpos, y, x)
-     int vpos, hpos, y, x;
-{
-  struct window *w;
-
-  /* If updated_window is not set, work on selected_window.  */
-  if (updated_window)
-    w = updated_window;
-  else
-    w = XWINDOW (selected_window);
-
-  /* Set the output cursor.  */
-  output_cursor.hpos = hpos;
-  output_cursor.vpos = vpos;
-  output_cursor.x = x;
-  output_cursor.y = y;
-
-  /* If not called as part of an update, really display the cursor.
-     This will also set the cursor position of W.  */
-  if (updated_window == NULL)
-    {
-      BLOCK_INPUT;
-      x_display_cursor (w, 1, hpos, vpos, x, y);
-      XFlush (FRAME_X_DISPLAY (SELECTED_FRAME ()));
-      UNBLOCK_INPUT;
-    }
-}
-
-
-
-/***********************************************************************
 			   Display Iterator
  ***********************************************************************/
 
 /* Function prototypes of this page.  */
 
-static struct face *x_get_glyph_face_and_encoding P_ ((struct frame *,
-						       struct glyph *,
-						       XChar2b *,
-						       int *));
-static struct face *x_get_char_face_and_encoding P_ ((struct frame *, int,
-						      int, XChar2b *, int));
 static XCharStruct *x_per_char_metric P_ ((XFontStruct *, XChar2b *));
-static void x_encode_char P_ ((int, XChar2b *, struct font_info *));
-static void x_append_glyph P_ ((struct it *));
-static void x_append_composite_glyph P_ ((struct it *));
-static void x_append_stretch_glyph P_ ((struct it *it, Lisp_Object,
-					int, int, double));
-static void x_produce_glyphs P_ ((struct it *));
-static void x_produce_image_glyph P_ ((struct it *it));
-
-
-/* Return a pointer to per-char metric information in FONT of a
-   character pointed by B which is a pointer to an XChar2b.  */
-
-#define PER_CHAR_METRIC(font, b)					   \
-  ((font)->per_char							   \
-   ? ((font)->per_char + (b)->byte2 - (font)->min_char_or_byte2		   \
-      + (((font)->min_byte1 || (font)->max_byte1)			   \
-	 ? (((b)->byte1 - (font)->min_byte1)				   \
-	    * ((font)->max_char_or_byte2 - (font)->min_char_or_byte2 + 1)) \
-	 : 0))								   \
-   : &((font)->max_bounds))
+static int mac_encode_char P_ ((int, XChar2b *, struct font_info *, int *));
 
 
 /* Get metrics of character CHAR2B in FONT.  Value is null if CHAR2B
@@ -1816,7 +1873,35 @@ x_per_char_metric (font, char2b)
 
   xassert (font && char2b);
 
-  if (font->per_char != NULL)
+#if USE_ATSUI
+  if (font->mac_style)
+    {
+      XCharStructRow **row = font->bounds.rows + char2b->byte1;
+
+      if (*row == NULL)
+	{
+	  *row = xmalloc (sizeof (XCharStructRow));
+	  if (*row)
+	    bzero (*row, sizeof (XCharStructRow));
+	}
+      if (*row)
+	{
+	  pcm = (*row)->per_char + char2b->byte2;
+	  if (!XCHARSTRUCTROW_CHAR_VALID_P (*row, char2b->byte2))
+	    {
+	      BLOCK_INPUT;
+	      mac_query_char_extents (font->mac_style,
+				      (char2b->byte1 << 8) + char2b->byte2,
+				      NULL, NULL, pcm, NULL);
+	      UNBLOCK_INPUT;
+	      XCHARSTRUCTROW_SET_CHAR_VALID (*row, char2b->byte2);
+	    }
+	}
+    }
+  else
+    {
+#endif
+  if (font->bounds.per_char != NULL)
     {
       if (font->min_byte1 == 0 && font->max_byte1 == 0)
 	{
@@ -1829,7 +1914,8 @@ x_per_char_metric (font, char2b)
 	  if (char2b->byte1 == 0
 	      && char2b->byte2 >= font->min_char_or_byte2
 	      && char2b->byte2 <= font->max_char_or_byte2)
-	    pcm = font->per_char + char2b->byte2 - font->min_char_or_byte2;
+	    pcm = font->bounds.per_char
+	      + (char2b->byte2 - font->min_char_or_byte2);
 	}
       else
 	{
@@ -1851,7 +1937,7 @@ x_per_char_metric (font, char2b)
 	      && char2b->byte2 >= font->min_char_or_byte2
 	      && char2b->byte2 <= font->max_char_or_byte2)
 	    {
-	      pcm = (font->per_char
+	      pcm = (font->bounds.per_char
 		     + ((font->max_char_or_byte2 - font->min_char_or_byte2 + 1)
 			* (char2b->byte1 - font->min_byte1))
 		     + (char2b->byte2 - font->min_char_or_byte2));
@@ -1867,21 +1953,37 @@ x_per_char_metric (font, char2b)
 	  && char2b->byte2 <= font->max_char_or_byte2)
 	pcm = &font->max_bounds;
     }
+#if USE_ATSUI
+    }
+#endif
 
   return ((pcm == NULL
 	   || (pcm->width == 0 && (pcm->rbearing - pcm->lbearing) == 0))
 	  ? NULL : pcm);
 }
 
+/* RIF:
+ */
 
-/* Encode CHAR2B using encoding information from FONT_INFO.  CHAR2B is
+static XCharStruct *
+mac_per_char_metric (font, char2b, font_type)
+     XFontStruct *font;
+     XChar2b *char2b;
+     int font_type;
+{
+  return x_per_char_metric (font, char2b);
+}
+
+/* RIF:
+   Encode CHAR2B using encoding information from FONT_INFO.  CHAR2B is
    the two-byte form of C.  Encoding is returned in *CHAR2B.  */
 
-static INLINE void
-x_encode_char (c, char2b, font_info)
+static int
+mac_encode_char (c, char2b, font_info, two_byte_p)
      int c;
      XChar2b *char2b;
      struct font_info *font_info;
+     int *two_byte_p;
 {
   int charset = CHAR_CHARSET (c);
   XFontStruct *font = font_info->font;
@@ -1894,10 +1996,12 @@ x_encode_char (c, char2b, font_info)
       /* It's a program.  */
       struct ccl_program *ccl = font_info->font_encoder;
 
+      check_ccl_update (ccl);
       if (CHARSET_DIMENSION (charset) == 1)
 	{
 	  ccl->reg[0] = charset;
 	  ccl->reg[1] = char2b->byte2;
+	  ccl->reg[2] = -1;
 	}
       else
 	{
@@ -1937,1268 +2041,21 @@ x_encode_char (c, char2b, font_info)
           char2b->byte2 = sjis2;
         }
     }
-}
-
-
-/* Get face and two-byte form of character C in face FACE_ID on frame
-   F.  The encoding of C is returned in *CHAR2B.  MULTIBYTE_P non-zero
-   means we want to display multibyte text.  Value is a pointer to a
-   realized face that is ready for display.  */
-
-static INLINE struct face *
-x_get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p)
-     struct frame *f;
-     int c, face_id;
-     XChar2b *char2b;
-     int multibyte_p;
-{
-  struct face *face = FACE_FROM_ID (f, face_id);
-
-  if (!multibyte_p)
-    {
-      /* Unibyte case.  We don't have to encode, but we have to make
-	 sure to use a face suitable for unibyte.  */
-      char2b->byte1 = 0;
-      char2b->byte2 = c;
-      face_id = FACE_FOR_CHAR (f, face, c);
-      face = FACE_FROM_ID (f, face_id);
-    }
-  else if (c < 128 && face_id < BASIC_FACE_ID_SENTINEL)
-    {
-      /* Case of ASCII in a face known to fit ASCII.  */
-      char2b->byte1 = 0;
-      char2b->byte2 = c;
-    }
-  else
-    {
-      int c1, c2, charset;
-
-      /* Split characters into bytes.  If c2 is -1 afterwards, C is
-	 really a one-byte character so that byte1 is zero.  */
-      SPLIT_CHAR (c, charset, c1, c2);
-      if (c2 > 0)
-	char2b->byte1 = c1, char2b->byte2 = c2;
-      else
-	char2b->byte1 = 0, char2b->byte2 = c1;
-
-      /* Maybe encode the character in *CHAR2B.  */
-      if (face->font != NULL)
-	{
-	  struct font_info *font_info
-	    = FONT_INFO_FROM_ID (f, face->font_info_id);
-	  if (font_info)
-	    x_encode_char (c, char2b, font_info);
-	}
-    }
-
-  /* Make sure X resources of the face are allocated.  */
-  xassert (face != NULL);
-  PREPARE_FACE_FOR_DISPLAY (f, face);
-
-  return face;
-}
-
-
-/* Get face and two-byte form of character glyph GLYPH on frame F.
-   The encoding of GLYPH->u.ch is returned in *CHAR2B.  Value is
-   a pointer to a realized face that is ready for display.  */
-
-static INLINE struct face *
-x_get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
-     struct frame *f;
-     struct glyph *glyph;
-     XChar2b *char2b;
-     int *two_byte_p;
-{
-  struct face *face;
-
-  xassert (glyph->type == CHAR_GLYPH);
-  face = FACE_FROM_ID (f, glyph->face_id);
 
   if (two_byte_p)
-    *two_byte_p = 0;
+    *two_byte_p = ((XFontStruct *) (font_info->font))->max_byte1 > 0;
 
-  if (!glyph->multibyte_p)
-    {
-      /* Unibyte case.  We don't have to encode, but we have to make
-	 sure to use a face suitable for unibyte.  */
-      char2b->byte1 = 0;
-      char2b->byte2 = glyph->u.ch;
-    }
-  else if (glyph->u.ch < 128
-	   && glyph->face_id < BASIC_FACE_ID_SENTINEL)
-    {
-      /* Case of ASCII in a face known to fit ASCII.  */
-      char2b->byte1 = 0;
-      char2b->byte2 = glyph->u.ch;
-    }
-  else
-    {
-      int c1, c2, charset;
-
-      /* Split characters into bytes.  If c2 is -1 afterwards, C is
-	 really a one-byte character so that byte1 is zero.  */
-      SPLIT_CHAR (glyph->u.ch, charset, c1, c2);
-      if (c2 > 0)
-	char2b->byte1 = c1, char2b->byte2 = c2;
-      else
-	char2b->byte1 = 0, char2b->byte2 = c1;
-
-      /* Maybe encode the character in *CHAR2B.  */
-      if (charset != CHARSET_ASCII)
-	{
-	  struct font_info *font_info
-	    = FONT_INFO_FROM_ID (f, face->font_info_id);
-	  if (font_info)
-	    {
-	      x_encode_char (glyph->u.ch, char2b, font_info);
-	      if (two_byte_p)
-		*two_byte_p
-		  = ((XFontStruct *) (font_info->font))->max_byte1 > 0;
-	    }
-	}
-    }
-
-  /* Make sure X resources of the face are allocated.  */
-  xassert (face != NULL);
-  PREPARE_FACE_FOR_DISPLAY (f, face);
-  return face;
+  return FONT_TYPE_UNKNOWN;
 }
 
-
-/* Store one glyph for IT->char_to_display in IT->glyph_row.
-   Called from x_produce_glyphs when IT->glyph_row is non-null.  */
-
-static INLINE void
-x_append_glyph (it)
-     struct it *it;
-{
-  struct glyph *glyph;
-  enum glyph_row_area area = it->area;
-
-  xassert (it->glyph_row);
-  xassert (it->char_to_display != '\n' && it->char_to_display != '\t');
-
-  glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
-  if (glyph < it->glyph_row->glyphs[area + 1])
-    {
-      glyph->charpos = CHARPOS (it->position);
-      glyph->object = it->object;
-      glyph->pixel_width = it->pixel_width;
-      glyph->voffset = it->voffset;
-      glyph->type = CHAR_GLYPH;
-      glyph->multibyte_p = it->multibyte_p;
-      glyph->left_box_line_p = it->start_of_box_run_p;
-      glyph->right_box_line_p = it->end_of_box_run_p;
-      glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
-				      || it->phys_descent > it->descent);
-      glyph->padding_p = 0;
-      glyph->glyph_not_available_p = it->glyph_not_available_p;
-      glyph->face_id = it->face_id;
-      glyph->u.ch = it->char_to_display;
-      ++it->glyph_row->used[area];
-    }
-}
-
-/* Store one glyph for the composition IT->cmp_id in IT->glyph_row.
-   Called from x_produce_glyphs when IT->glyph_row is non-null.  */
-
-static INLINE void
-x_append_composite_glyph (it)
-     struct it *it;
-{
-  struct glyph *glyph;
-  enum glyph_row_area area = it->area;
-
-  xassert (it->glyph_row);
-
-  glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
-  if (glyph < it->glyph_row->glyphs[area + 1])
-    {
-      glyph->charpos = CHARPOS (it->position);
-      glyph->object = it->object;
-      glyph->pixel_width = it->pixel_width;
-      glyph->voffset = it->voffset;
-      glyph->type = COMPOSITE_GLYPH;
-      glyph->multibyte_p = it->multibyte_p;
-      glyph->left_box_line_p = it->start_of_box_run_p;
-      glyph->right_box_line_p = it->end_of_box_run_p;
-      glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
-				      || it->phys_descent > it->descent);
-      glyph->padding_p = 0;
-      glyph->glyph_not_available_p = 0;
-      glyph->face_id = it->face_id;
-      glyph->u.cmp_id = it->cmp_id;
-      ++it->glyph_row->used[area];
-    }
-}
-
-
-/* Change IT->ascent and IT->height according to the setting of
-   IT->voffset.  */
-
-static INLINE void
-take_vertical_position_into_account (it)
-     struct it *it;
-{
-  if (it->voffset)
-    {
-      if (it->voffset < 0)
-	/* Increase the ascent so that we can display the text higher
-	   in the line.  */
-	it->ascent += abs (it->voffset);
-      else
-	/* Increase the descent so that we can display the text lower
-	   in the line.  */
-	it->descent += it->voffset;
-    }
-}
-
-
-/* Produce glyphs/get display metrics for the image IT is loaded with.
-   See the description of struct display_iterator in dispextern.h for
-   an overview of struct display_iterator.  */
-
-static void
-x_produce_image_glyph (it)
-     struct it *it;
-{
-  struct image *img;
-  struct face *face;
-
-  xassert (it->what == IT_IMAGE);
-
-  face = FACE_FROM_ID (it->f, it->face_id);
-  img = IMAGE_FROM_ID (it->f, it->image_id);
-  xassert (img);
-
-  /* Make sure X resources of the face and image are loaded.  */
-  PREPARE_FACE_FOR_DISPLAY (it->f, face);
-  prepare_image_for_display (it->f, img);
-
-  it->ascent = it->phys_ascent = image_ascent (img, face);
-  it->descent = it->phys_descent = img->height + 2 * img->vmargin - it->ascent;
-  it->pixel_width = img->width + 2 * img->hmargin;
-
-  it->nglyphs = 1;
-
-  if (face->box != FACE_NO_BOX)
-    {
-      if (face->box_line_width > 0)
-	{
-	  it->ascent += face->box_line_width;
-	  it->descent += face->box_line_width;
-	}
-
-      if (it->start_of_box_run_p)
-	it->pixel_width += abs (face->box_line_width);
-      if (it->end_of_box_run_p)
-	it->pixel_width += abs (face->box_line_width);
-    }
-
-  take_vertical_position_into_account (it);
-
-  if (it->glyph_row)
-    {
-      struct glyph *glyph;
-      enum glyph_row_area area = it->area;
-
-      glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
-      if (glyph < it->glyph_row->glyphs[area + 1])
-	{
-	  glyph->charpos = CHARPOS (it->position);
-	  glyph->object = it->object;
-	  glyph->pixel_width = it->pixel_width;
-	  glyph->voffset = it->voffset;
-	  glyph->type = IMAGE_GLYPH;
-	  glyph->multibyte_p = it->multibyte_p;
-	  glyph->left_box_line_p = it->start_of_box_run_p;
-	  glyph->right_box_line_p = it->end_of_box_run_p;
-	  glyph->overlaps_vertically_p = 0;
-          glyph->padding_p = 0;
-	  glyph->glyph_not_available_p = 0;
-	  glyph->face_id = it->face_id;
-	  glyph->u.img_id = img->id;
-	  ++it->glyph_row->used[area];
-	}
-    }
-}
-
-
-/* Append a stretch glyph to IT->glyph_row.  OBJECT is the source
-   of the glyph, WIDTH and HEIGHT are the width and height of the
-   stretch.  ASCENT is the percentage/100 of HEIGHT to use for the
-   ascent of the glyph (0 <= ASCENT <= 1).  */
-
-static void
-x_append_stretch_glyph (it, object, width, height, ascent)
-     struct it *it;
-     Lisp_Object object;
-     int width, height;
-     double ascent;
-{
-  struct glyph *glyph;
-  enum glyph_row_area area = it->area;
-
-  xassert (ascent >= 0 && ascent <= 1);
-
-  glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
-  if (glyph < it->glyph_row->glyphs[area + 1])
-    {
-      glyph->charpos = CHARPOS (it->position);
-      glyph->object = object;
-      glyph->pixel_width = width;
-      glyph->voffset = it->voffset;
-      glyph->type = STRETCH_GLYPH;
-      glyph->multibyte_p = it->multibyte_p;
-      glyph->left_box_line_p = it->start_of_box_run_p;
-      glyph->right_box_line_p = it->end_of_box_run_p;
-      glyph->overlaps_vertically_p = 0;
-      glyph->padding_p = 0;
-      glyph->glyph_not_available_p = 0;
-      glyph->face_id = it->face_id;
-      glyph->u.stretch.ascent = height * ascent;
-      glyph->u.stretch.height = height;
-      ++it->glyph_row->used[area];
-    }
-}
-
-
-/* Produce a stretch glyph for iterator IT.  IT->object is the value
-   of the glyph property displayed.  The value must be a list
-   `(space KEYWORD VALUE ...)' with the following KEYWORD/VALUE pairs
-   being recognized:
-
-   1. `:width WIDTH' specifies that the space should be WIDTH *
-   canonical char width wide.  WIDTH may be an integer or floating
-   point number.
-
-   2. `:relative-width FACTOR' specifies that the width of the stretch
-   should be computed from the width of the first character having the
-   `glyph' property, and should be FACTOR times that width.
-
-   3. `:align-to HPOS' specifies that the space should be wide enough
-   to reach HPOS, a value in canonical character units.
-
-   Exactly one of the above pairs must be present.
-
-   4. `:height HEIGHT' specifies that the height of the stretch produced
-   should be HEIGHT, measured in canonical character units.
-
-   5. `:relative-height FACTOR' specifies that the height of the
-   stretch should be FACTOR times the height of the characters having
-   the glyph property.
-
-   Either none or exactly one of 4 or 5 must be present.
-
-   6. `:ascent ASCENT'  specifies that ASCENT percent of the height
-   of the stretch should be used for the ascent of the stretch.
-   ASCENT must be in the range 0 <= ASCENT <= 100.  */
-
-#define NUMVAL(X)				\
-     ((INTEGERP (X) || FLOATP (X))		\
-      ? XFLOATINT (X)				\
-      : - 1)
-
-
-static void
-x_produce_stretch_glyph (it)
-     struct it *it;
-{
-  /* (space :width WIDTH :height HEIGHT.  */
-#if GLYPH_DEBUG
-  extern Lisp_Object Qspace;
-#endif
-  extern Lisp_Object QCwidth, QCheight, QCascent;
-  extern Lisp_Object QCrelative_width, QCrelative_height;
-  extern Lisp_Object QCalign_to;
-  Lisp_Object prop, plist;
-  double width = 0, height = 0, ascent = 0;
-  struct face *face = FACE_FROM_ID (it->f, it->face_id);
-  XFontStruct *font = face->font ? face->font : FRAME_FONT (it->f);
-
-  PREPARE_FACE_FOR_DISPLAY (it->f, face);
-
-  /* List should start with `space'.  */
-  xassert (CONSP (it->object) && EQ (XCAR (it->object), Qspace));
-  plist = XCDR (it->object);
-
-  /* Compute the width of the stretch.  */
-  if (prop = Fplist_get (plist, QCwidth),
-      NUMVAL (prop) > 0)
-    /* Absolute width `:width WIDTH' specified and valid.  */
-    width = NUMVAL (prop) * CANON_X_UNIT (it->f);
-  else if (prop = Fplist_get (plist, QCrelative_width),
-	   NUMVAL (prop) > 0)
-    {
-      /* Relative width `:relative-width FACTOR' specified and valid.
-	 Compute the width of the characters having the `glyph'
-	 property.  */
-      struct it it2;
-      unsigned char *p = BYTE_POS_ADDR (IT_BYTEPOS (*it));
-
-      it2 = *it;
-      if (it->multibyte_p)
-	{
-	  int maxlen = ((IT_BYTEPOS (*it) >= GPT ? ZV : GPT)
-			- IT_BYTEPOS (*it));
-	  it2.c = STRING_CHAR_AND_LENGTH (p, maxlen, it2.len);
-	}
-      else
-	it2.c = *p, it2.len = 1;
-
-      it2.glyph_row = NULL;
-      it2.what = IT_CHARACTER;
-      x_produce_glyphs (&it2);
-      width = NUMVAL (prop) * it2.pixel_width;
-    }
-  else if (prop = Fplist_get (plist, QCalign_to),
-	   NUMVAL (prop) > 0)
-    width = NUMVAL (prop) * CANON_X_UNIT (it->f) - it->current_x;
-  else
-    /* Nothing specified -> width defaults to canonical char width.  */
-    width = CANON_X_UNIT (it->f);
-
-  /* Compute height.  */
-  if (prop = Fplist_get (plist, QCheight),
-      NUMVAL (prop) > 0)
-    height = NUMVAL (prop) * CANON_Y_UNIT (it->f);
-  else if (prop = Fplist_get (plist, QCrelative_height),
-	   NUMVAL (prop) > 0)
-    height = FONT_HEIGHT (font) * NUMVAL (prop);
-  else
-    height = FONT_HEIGHT (font);
-
-  /* Compute percentage of height used for ascent.  If
-     `:ascent ASCENT' is present and valid, use that.  Otherwise,
-     derive the ascent from the font in use.  */
-  if (prop = Fplist_get (plist, QCascent),
-      NUMVAL (prop) > 0 && NUMVAL (prop) <= 100)
-    ascent = NUMVAL (prop) / 100.0;
-  else
-    ascent = (double) FONT_BASE (font) / FONT_HEIGHT (font);
-
-  if (width <= 0)
-    width = 1;
-  if (height <= 0)
-    height = 1;
-
-  if (it->glyph_row)
-    {
-      Lisp_Object object = it->stack[it->sp - 1].string;
-      if (!STRINGP (object))
-	object = it->w->buffer;
-      x_append_stretch_glyph (it, object, width, height, ascent);
-    }
-
-  it->pixel_width = width;
-  it->ascent = it->phys_ascent = height * ascent;
-  it->descent = it->phys_descent = height - it->ascent;
-  it->nglyphs = 1;
-
-  if (face->box != FACE_NO_BOX)
-    {
-      if (face->box_line_width > 0)
-	{
-	  it->ascent += face->box_line_width;
-	  it->descent += face->box_line_width;
-	}
-
-      if (it->start_of_box_run_p)
-	it->pixel_width += abs (face->box_line_width);
-      if (it->end_of_box_run_p)
-	it->pixel_width += abs (face->box_line_width);
-    }
-
-  take_vertical_position_into_account (it);
-}
-
-/* Return proper value to be used as baseline offset of font that has
-   ASCENT and DESCENT to draw characters by the font at the vertical
-   center of the line of frame F.
-
-   Here, out task is to find the value of BOFF in the following figure;
-
-	-------------------------+-----------+-
-	 -+-+---------+-+        |           |
-	  | |         | |        |           |
-	  | |         | |        F_ASCENT    F_HEIGHT
-	  | |         | ASCENT   |           |
-     HEIGHT |         | |        |           |
-	  | |         |-|-+------+-----------|------- baseline
-	  | |         | | BOFF   |           |
-	  | |---------|-+-+      |           |
-	  | |         | DESCENT  |           |
-	 -+-+---------+-+        F_DESCENT   |
-	-------------------------+-----------+-
-
-	-BOFF + DESCENT + (F_HEIGHT - HEIGHT) / 2 = F_DESCENT
-	BOFF = DESCENT +  (F_HEIGHT - HEIGHT) / 2 - F_DESCENT
-	DESCENT = FONT->descent
-	HEIGHT = FONT_HEIGHT (FONT)
-	F_DESCENT = (F->output_data.x->font->descent
-		     - F->output_data.x->baseline_offset)
-	F_HEIGHT = FRAME_LINE_HEIGHT (F)
-*/
-
-#define VCENTER_BASELINE_OFFSET(FONT, F)			\
-  (FONT_DESCENT (FONT)						\
-   + (FRAME_LINE_HEIGHT ((F)) - FONT_HEIGHT ((FONT))		\
-      + (FRAME_LINE_HEIGHT ((F)) > FONT_HEIGHT ((FONT)))) / 2	\
-   - (FONT_DESCENT (FRAME_FONT (F)) - FRAME_BASELINE_OFFSET (F)))
-
-/* Produce glyphs/get display metrics for the display element IT is
-   loaded with.  See the description of struct display_iterator in
-   dispextern.h for an overview of struct display_iterator.  */
-
-static void
-x_produce_glyphs (it)
-     struct it *it;
-{
-  it->glyph_not_available_p = 0;
-
-  if (it->what == IT_CHARACTER)
-    {
-      XChar2b char2b;
-      XFontStruct *font;
-      struct face *face = FACE_FROM_ID (it->f, it->face_id);
-      XCharStruct *pcm;
-      int font_not_found_p;
-      struct font_info *font_info;
-      int boff;                 /* baseline offset */
-      /* We may change it->multibyte_p upon unibyte<->multibyte
-	 conversion.  So, save the current value now and restore it
-	 later.
-
-	 Note: It seems that we don't have to record multibyte_p in
-	 struct glyph because the character code itself tells if or
-	 not the character is multibyte.  Thus, in the future, we must
-	 consider eliminating the field `multibyte_p' in the struct
-	 glyph.
-      */
-      int saved_multibyte_p = it->multibyte_p;
-
-      /* Maybe translate single-byte characters to multibyte, or the
-         other way.  */
-      it->char_to_display = it->c;
-      if (!ASCII_BYTE_P (it->c))
-        {
-          if (unibyte_display_via_language_environment
-              && SINGLE_BYTE_CHAR_P (it->c)
-              && (it->c >= 0240
-                  || !NILP (Vnonascii_translation_table)))
-            {
-              it->char_to_display = unibyte_char_to_multibyte (it->c);
-              it->multibyte_p = 1;
-	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
-	      face = FACE_FROM_ID (it->f, it->face_id);
-	    }
-	  else if (!SINGLE_BYTE_CHAR_P (it->c)
-		   && !it->multibyte_p)
-	    {
-              it->multibyte_p = 1;
-	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
-	      face = FACE_FROM_ID (it->f, it->face_id);
-	    }
-        }
-
-      /* Get font to use.  Encode IT->char_to_display.  */
-      x_get_char_face_and_encoding (it->f, it->char_to_display,
-                                    it->face_id, &char2b,
-                                    it->multibyte_p);
-      font = face->font;
-
-      /* When no suitable font found, use the default font.  */
-      font_not_found_p = font == NULL;
-      if (font_not_found_p)
-	{
-	  font = FRAME_FONT (it->f);
-	  boff = it->f->output_data.mac->baseline_offset;
-	  font_info = NULL;
-	}
-      else
-	{
-	  font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
-	  boff = font_info->baseline_offset;
-	  if (font_info->vertical_centering)
-	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
-	}
-
-      if (it->char_to_display >= ' '
-	  && (!it->multibyte_p || it->char_to_display < 128))
-	{
-	  /* Either unibyte or ASCII.  */
-	  int stretched_p;
-
-	  it->nglyphs = 1;
-
-          pcm = x_per_char_metric (font, &char2b);
-	  it->ascent = FONT_BASE (font) + boff;
-	  it->descent = FONT_DESCENT (font) - boff;
-
-          if (pcm)
-            {
-              it->phys_ascent = pcm->ascent + boff;
-              it->phys_descent = pcm->descent - boff;
-              it->pixel_width = pcm->width;
-            }
-          else
-            {
-              it->glyph_not_available_p = 1;
-              it->phys_ascent = FONT_BASE (font) + boff;
-              it->phys_descent = FONT_DESCENT (font) - boff;
-              it->pixel_width = FONT_WIDTH (font);
-            }
-
-	  /* If this is a space inside a region of text with
-	     `space-width' property, change its width.  */
-	  stretched_p = it->char_to_display == ' ' && !NILP (it->space_width);
-	  if (stretched_p)
-	    it->pixel_width *= XFLOATINT (it->space_width);
-
-	  /* If face has a box, add the box thickness to the character
-	     height.  If character has a box line to the left and/or
-	     right, add the box line width to the character's width.  */
-	  if (face->box != FACE_NO_BOX)
-	    {
-	      int thick = face->box_line_width;
-
-	      if (thick > 0)
-		{
-		  it->ascent += thick;
-		  it->descent += thick;
-		}
-	      else
-		thick = -thick;
-
-	      if (it->start_of_box_run_p)
-		it->pixel_width += thick;
-	      if (it->end_of_box_run_p)
-		it->pixel_width += thick;
-	    }
-
-	  /* If face has an overline, add the height of the overline
-	     (1 pixel) and a 1 pixel margin to the character height.  */
-	  if (face->overline_p)
-	    it->ascent += 2;
-
-	  take_vertical_position_into_account (it);
-
-	  /* If we have to actually produce glyphs, do it.  */
-	  if (it->glyph_row)
-	    {
-	      if (stretched_p)
-		{
-		  /* Translate a space with a `space-width' property
-		     into a stretch glyph.  */
-		  double ascent = (double) FONT_BASE (font)
-                                / FONT_HEIGHT (font);
-		  x_append_stretch_glyph (it, it->object, it->pixel_width,
-					  it->ascent + it->descent, ascent);
-		}
-	      else
-		x_append_glyph (it);
-
-	      /* If characters with lbearing or rbearing are displayed
-		 in this line, record that fact in a flag of the
-		 glyph row.  This is used to optimize X output code.  */
-	      if (pcm && (pcm->lbearing < 0 || pcm->rbearing > pcm->width))
-		it->glyph_row->contains_overlapping_glyphs_p = 1;
-	    }
-	}
-      else if (it->char_to_display == '\n')
-	{
-	  /* A newline has no width but we need the height of the line.  */
-	  it->pixel_width = 0;
-	  it->nglyphs = 0;
-	  it->ascent = it->phys_ascent = FONT_BASE (font) + boff;
-	  it->descent = it->phys_descent = FONT_DESCENT (font) - boff;
-
-	  if (face->box != FACE_NO_BOX
-	      && face->box_line_width > 0)
-	    {
-	      it->ascent += face->box_line_width;
-	      it->descent += face->box_line_width;
-	    }
-	}
-      else if (it->char_to_display == '\t')
-	{
-	  int tab_width = it->tab_width * CANON_X_UNIT (it->f);
-	  int x = it->current_x + it->continuation_lines_width;
-	  int next_tab_x = ((1 + x + tab_width - 1) / tab_width) * tab_width;
-
-	  /* If the distance from the current position to the next tab
-	     stop is less than a canonical character width, use the
-	     tab stop after that.  */
-	  if (next_tab_x - x < CANON_X_UNIT (it->f))
-	    next_tab_x += tab_width;
-
-	  it->pixel_width = next_tab_x - x;
-	  it->nglyphs = 1;
-	  it->ascent = it->phys_ascent = FONT_BASE (font) + boff;
-	  it->descent = it->phys_descent = FONT_DESCENT (font) - boff;
-
-	  if (it->glyph_row)
-	    {
-	      double ascent = (double) it->ascent / (it->ascent + it->descent);
-	      x_append_stretch_glyph (it, it->object, it->pixel_width,
-				      it->ascent + it->descent, ascent);
-	    }
-	}
-      else
-	{
-	  /* A multi-byte character.  Assume that the display width of the
-	     character is the width of the character multiplied by the
-	     width of the font.  */
-
-	  /* If we found a font, this font should give us the right
-	     metrics.  If we didn't find a font, use the frame's
-	     default font and calculate the width of the character
-	     from the charset width; this is what old redisplay code
-	     did.  */
-	  pcm = x_per_char_metric (font, &char2b);
-	  if (font_not_found_p || !pcm)
-	    {
-	      int charset = CHAR_CHARSET (it->char_to_display);
-
-	      it->glyph_not_available_p = 1;
-	      it->pixel_width = (FONT_WIDTH (FRAME_FONT (it->f))
-				 * CHARSET_WIDTH (charset));
-	      it->phys_ascent = FONT_BASE (font) + boff;
-	      it->phys_descent = FONT_DESCENT (font) - boff;
-	    }
-	  else
-	    {
-	      it->pixel_width = pcm->width;
-              it->phys_ascent = pcm->ascent + boff;
-              it->phys_descent = pcm->descent - boff;
-              if (it->glyph_row
-                  && (pcm->lbearing < 0
-                      || pcm->rbearing > pcm->width))
-                it->glyph_row->contains_overlapping_glyphs_p = 1;
-            }
-          it->nglyphs = 1;
-          it->ascent = FONT_BASE (font) + boff;
-          it->descent = FONT_DESCENT (font) - boff;
-	  if (face->box != FACE_NO_BOX)
-	    {
-	      int thick = face->box_line_width;
-
-	      if (thick > 0)
-		{
-		  it->ascent += thick;
-		  it->descent += thick;
-		}
-	      else
-		thick = - thick;
-
-	      if (it->start_of_box_run_p)
-		it->pixel_width += thick;
-	      if (it->end_of_box_run_p)
-		it->pixel_width += thick;
-	    }
-
-	  /* If face has an overline, add the height of the overline
-	     (1 pixel) and a 1 pixel margin to the character height.  */
-	  if (face->overline_p)
-	    it->ascent += 2;
-
-	  take_vertical_position_into_account (it);
-
-	  if (it->glyph_row)
-	    x_append_glyph (it);
-	}
-      it->multibyte_p = saved_multibyte_p;
-    }
-  else if (it->what == IT_COMPOSITION)
-    {
-      /* Note: A composition is represented as one glyph in the
-	 glyph matrix.  There are no padding glyphs.  */
-      XChar2b char2b;
-      XFontStruct *font;
-      struct face *face = FACE_FROM_ID (it->f, it->face_id);
-      XCharStruct *pcm;
-      int font_not_found_p;
-      struct font_info *font_info;
-      int boff;			/* baseline offset */
-      struct composition *cmp = composition_table[it->cmp_id];
-
-      /* Maybe translate single-byte characters to multibyte.  */
-      it->char_to_display = it->c;
-      if (unibyte_display_via_language_environment
-	  && SINGLE_BYTE_CHAR_P (it->c)
-	  && (it->c >= 0240
-	      || (it->c >= 0200
-		  && !NILP (Vnonascii_translation_table))))
-	{
-	  it->char_to_display = unibyte_char_to_multibyte (it->c);
-	}
-
-      /* Get face and font to use.  Encode IT->char_to_display.  */
-      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
-      face = FACE_FROM_ID (it->f, it->face_id);
-      x_get_char_face_and_encoding (it->f, it->char_to_display,
-				    it->face_id, &char2b, it->multibyte_p);
-      font = face->font;
-
-      /* When no suitable font found, use the default font.  */
-      font_not_found_p = font == NULL;
-      if (font_not_found_p)
-	{
-	  font = FRAME_FONT (it->f);
-	  boff = it->f->output_data.mac->baseline_offset;
-	  font_info = NULL;
-	}
-      else
-	{
-	  font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
-	  boff = font_info->baseline_offset;
-	  if (font_info->vertical_centering)
-	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
-	}
-
-      /* There are no padding glyphs, so there is only one glyph to
-	 produce for the composition.  Important is that pixel_width,
-	 ascent and descent are the values of what is drawn by
-	 draw_glyphs (i.e. the values of the overall glyphs composed).  */
-      it->nglyphs = 1;
-
-      /* If we have not yet calculated pixel size data of glyphs of
-	 the composition for the current face font, calculate them
-	 now.  Theoretically, we have to check all fonts for the
-	 glyphs, but that requires much time and memory space.  So,
-	 here we check only the font of the first glyph.  This leads
-	 to incorrect display very rarely, and C-l (recenter) can
-	 correct the display anyway.  */
-      if (cmp->font != (void *) font)
-	{
-	  /* Ascent and descent of the font of the first character of
-	     this composition (adjusted by baseline offset).  Ascent
-	     and descent of overall glyphs should not be less than
-	     them respectively.  */
-	  int font_ascent = FONT_BASE (font) + boff;
-	  int font_descent = FONT_DESCENT (font) - boff;
-	  /* Bounding box of the overall glyphs.  */
-	  int leftmost, rightmost, lowest, highest;
-	  int i, width, ascent, descent;
-
-	  cmp->font = (void *) font;
-
-	  /* Initialize the bounding box.  */
-	  pcm = x_per_char_metric (font, &char2b);
-	  if (pcm)
-	    {
-	      width = pcm->width;
-	      ascent = pcm->ascent;
-	      descent = pcm->descent;
-	    }
-	  else
-	    {
-	      width = FONT_WIDTH (font);
-	      ascent = FONT_BASE (font);
-	      descent = FONT_DESCENT (font);
-	    }
-
-	  rightmost = width;
-	  lowest = - descent + boff;
-	  highest = ascent + boff;
-	  leftmost = 0;
-
-	  if (font_info
-	      && font_info->default_ascent
-	      && CHAR_TABLE_P (Vuse_default_ascent)
-	      && !NILP (Faref (Vuse_default_ascent,
-			       make_number (it->char_to_display))))
-	    highest = font_info->default_ascent + boff;
-
-	  /* Draw the first glyph at the normal position.  It may be
-	     shifted to right later if some other glyphs are drawn at
-	     the left.  */
-	  cmp->offsets[0] = 0;
-	  cmp->offsets[1] = boff;
-
-	  /* Set cmp->offsets for the remaining glyphs.  */
-	  for (i = 1; i < cmp->glyph_len; i++)
-	    {
-	      int left, right, btm, top;
-	      int ch = COMPOSITION_GLYPH (cmp, i);
-	      int face_id = FACE_FOR_CHAR (it->f, face, ch);
-
-	      face = FACE_FROM_ID (it->f, face_id);
-	      x_get_char_face_and_encoding (it->f, ch, face->id, &char2b,
-					    it->multibyte_p);
-	      font = face->font;
-	      if (font == NULL)
-		{
-		  font = FRAME_FONT (it->f);
-		  boff = it->f->output_data.mac->baseline_offset;
-		  font_info = NULL;
-		}
-	      else
-		{
-		  font_info
-		    = FONT_INFO_FROM_ID (it->f, face->font_info_id);
-		  boff = font_info->baseline_offset;
-		  if (font_info->vertical_centering)
-		    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
-		}
-
-	      pcm = x_per_char_metric (font, &char2b);
-	      if (pcm)
-		{
-		  width = pcm->width;
-		  ascent = pcm->ascent;
-		  descent = pcm->descent;
-		}
-	      else
-		{
-		  width = FONT_WIDTH (font);
-		  ascent = 1;
-		  descent = 0;
-		}
-
-	      if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
-		{
-		  /* Relative composition with or without
-		     alternate chars.  */
-		  left = (leftmost + rightmost - width) / 2;
-		  btm = - descent + boff;
-		  if (font_info && font_info->relative_compose
-		      && (! CHAR_TABLE_P (Vignore_relative_composition)
-			  || NILP (Faref (Vignore_relative_composition,
-					  make_number (ch)))))
-		    {
-
-		      if (- descent >= font_info->relative_compose)
-			/* One extra pixel between two glyphs.  */
-			btm = highest + 1;
-		      else if (ascent <= 0)
-			/* One extra pixel between two glyphs.  */
-			btm = lowest - 1 - ascent - descent;
-		    }
-		}
-	      else
-		{
-		  /* A composition rule is specified by an integer
-		     value that encodes global and new reference
-		     points (GREF and NREF).  GREF and NREF are
-		     specified by numbers as below:
-
-			0---1---2 -- ascent
-			|       |
-			|       |
-			|       |
-			9--10--11 -- center
-			|       |
-		     ---3---4---5--- baseline
-			|       |
-			6---7---8 -- descent
-		  */
-		  int rule = COMPOSITION_RULE (cmp, i);
-		  int gref, nref, grefx, grefy, nrefx, nrefy;
-
-		  COMPOSITION_DECODE_RULE (rule, gref, nref);
-		  grefx = gref % 3, nrefx = nref % 3;
-		  grefy = gref / 3, nrefy = nref / 3;
-
-		  left = (leftmost
-			  + grefx * (rightmost - leftmost) / 2
-			  - nrefx * width / 2);
-		  btm = ((grefy == 0 ? highest
-			  : grefy == 1 ? 0
-			  : grefy == 2 ? lowest
-			  : (highest + lowest) / 2)
-			 - (nrefy == 0 ? ascent + descent
-			    : nrefy == 1 ? descent - boff
-			    : nrefy == 2 ? 0
-			    : (ascent + descent) / 2));
-		}
-
-	      cmp->offsets[i * 2] = left;
-	      cmp->offsets[i * 2 + 1] = btm + descent;
-
-	      /* Update the bounding box of the overall glyphs. */
-	      right = left + width;
-	      top = btm + descent + ascent;
-	      if (left < leftmost)
-		leftmost = left;
-	      if (right > rightmost)
-		rightmost = right;
-	      if (top > highest)
-		highest = top;
-	      if (btm < lowest)
-		lowest = btm;
-	    }
-
-	  /* If there are glyphs whose x-offsets are negative,
-	     shift all glyphs to the right and make all x-offsets
-	     non-negative.  */
-	  if (leftmost < 0)
-	    {
-	      for (i = 0; i < cmp->glyph_len; i++)
-		cmp->offsets[i * 2] -= leftmost;
-	      rightmost -= leftmost;
-	    }
-
-	  cmp->pixel_width = rightmost;
-	  cmp->ascent = highest;
-	  cmp->descent = - lowest;
-	  if (cmp->ascent < font_ascent)
-	    cmp->ascent = font_ascent;
-	  if (cmp->descent < font_descent)
-	    cmp->descent = font_descent;
-	}
-
-      it->pixel_width = cmp->pixel_width;
-      it->ascent = it->phys_ascent = cmp->ascent;
-      it->descent = it->phys_descent = cmp->descent;
-
-      if (face->box != FACE_NO_BOX)
-	{
-	  int thick = face->box_line_width;
-
-	  if (thick > 0)
-	    {
-	      it->ascent += thick;
-	      it->descent += thick;
-	    }
-	  else
-	    thick = - thick;
-
-	  if (it->start_of_box_run_p)
-	    it->pixel_width += thick;
-	  if (it->end_of_box_run_p)
-	    it->pixel_width += thick;
-	}
-
-      /* If face has an overline, add the height of the overline
-	 (1 pixel) and a 1 pixel margin to the character height.  */
-      if (face->overline_p)
-	it->ascent += 2;
-
-      take_vertical_position_into_account (it);
-
-      if (it->glyph_row)
-	x_append_composite_glyph (it);
-    }
-  else if (it->what == IT_IMAGE)
-    x_produce_image_glyph (it);
-  else if (it->what == IT_STRETCH)
-    x_produce_stretch_glyph (it);
-
-  /* Accumulate dimensions.  Note: can't assume that it->descent > 0
-     because this isn't true for images with `:ascent 100'.  */
-  xassert (it->ascent >= 0 && it->descent >= 0);
-  if (it->area == TEXT_AREA)
-    it->current_x += it->pixel_width;
-
-  it->descent += it->extra_line_spacing;
-
-  it->max_ascent = max (it->max_ascent, it->ascent);
-  it->max_descent = max (it->max_descent, it->descent);
-  it->max_phys_ascent = max (it->max_phys_ascent, it->phys_ascent);
-  it->max_phys_descent = max (it->max_phys_descent, it->phys_descent);
-}
-
-
-/* Estimate the pixel height of the mode or top line on frame F.
-   FACE_ID specifies what line's height to estimate.  */
-
-int
-x_estimate_mode_line_height (f, face_id)
-     struct frame *f;
-     enum face_id face_id;
-{
-  int height = FONT_HEIGHT (FRAME_FONT (f));
-
-  /* This function is called so early when Emacs starts that the face
-     cache and mode line face are not yet initialized.  */
-  if (FRAME_FACE_CACHE (f))
-      {
-	struct face *face = FACE_FROM_ID (f, face_id);
-	if (face)
-          {
-            if (face->font)
-              height = FONT_HEIGHT (face->font);
-	    if (face->box_line_width > 0)
-	      height += 2 * face->box_line_width;
-          }
-      }
-
-  return height;
-}
 
 
 /***********************************************************************
 			    Glyph display
  ***********************************************************************/
 
-/* A sequence of glyphs to be drawn in the same face.
-
-   This data structure is not really completely X specific, so it
-   could possibly, at least partially, be useful for other systems.  It
-   is currently not part of the external redisplay interface because
-   it's not clear what other systems will need.  */
-
-struct glyph_string
-{
-  /* X-origin of the string.  */
-  int x;
-
-  /* Y-origin and y-position of the base line of this string.  */
-  int y, ybase;
-
-  /* The width of the string, not including a face extension.  */
-  int width;
-
-  /* The width of the string, including a face extension.  */
-  int background_width;
-
-  /* The height of this string.  This is the height of the line this
-     string is drawn in, and can be different from the height of the
-     font the string is drawn in.  */
-  int height;
-
-  /* Number of pixels this string overwrites in front of its x-origin.
-     This number is zero if the string has an lbearing >= 0; it is
-     -lbearing, if the string has an lbearing < 0.  */
-  int left_overhang;
-
-  /* Number of pixels this string overwrites past its right-most
-     nominal x-position, i.e. x + width.  Zero if the string's
-     rbearing is <= its nominal width, rbearing - width otherwise.  */
-  int right_overhang;
-
-  /* The frame on which the glyph string is drawn.  */
-  struct frame *f;
-
-  /* The window on which the glyph string is drawn.  */
-  struct window *w;
-
-  /* X display and window for convenience.  */
-  Display *display;
-  Window window;
-
-  /* The glyph row for which this string was built.  It determines the
-     y-origin and height of the string.  */
-  struct glyph_row *row;
-
-  /* The area within row.  */
-  enum glyph_row_area area;
-
-  /* Characters to be drawn, and number of characters.  */
-  XChar2b *char2b;
-  int nchars;
-
-  /* A face-override for drawing cursors, mouse face and similar.  */
-  enum draw_glyphs_face hl;
-
-  /* Face in which this string is to be drawn.  */
-  struct face *face;
-
-  /* Font in which this string is to be drawn.  */
-  XFontStruct *font;
-
-  /* Font info for this string.  */
-  struct font_info *font_info;
-
-  /* Non-null means this string describes (part of) a composition.
-     All characters from char2b are drawn composed.  */
-  struct composition *cmp;
-
-  /* Index of this glyph string's first character in the glyph
-     definition of CMP.  If this is zero, this glyph string describes
-     the first character of a composition.  */
-  int gidx;
-
-  /* 1 means this glyph strings face has to be drawn to the right end
-     of the window's drawing area.  */
-  unsigned extends_to_end_of_line_p : 1;
-
-  /* 1 means the background of this string has been drawn.  */
-  unsigned background_filled_p : 1;
-
-  /* 1 means glyph string must be drawn with 16-bit functions.  */
-  unsigned two_byte_p : 1;
-
-  /* 1 means that the original font determined for drawing this glyph
-     string could not be loaded.  The member `font' has been set to
-     the frame's default font in this case.  */
-  unsigned font_not_found_p : 1;
-
-  /* 1 means that the face in which this glyph string is drawn has a
-     stipple pattern.  */
-  unsigned stippled_p : 1;
-
-  /* 1 means only the foreground of this glyph string must be drawn,
-     and we should use the physical height of the line this glyph
-     string appears in as clip rect.  */
-  unsigned for_overlaps_p : 1;
-
-  /* The GC to use for drawing this glyph string.  */
-  GC gc;
-
-  /* A pointer to the first glyph in the string.  This glyph
-     corresponds to char2b[0].  Needed to draw rectangles if
-     font_not_found_p is 1.  */
-  struct glyph *first_glyph;
-
-  /* Image, if any.  */
-  struct image *img;
-
-  struct glyph_string *next, *prev;
-};
 
 
-#if 0
-
-static void
-x_dump_glyph_string (s)
-     struct glyph_string *s;
-{
-  fprintf (stderr, "glyph string\n");
-  fprintf (stderr, "  x, y, w, h = %d, %d, %d, %d\n",
-	   s->x, s->y, s->width, s->height);
-  fprintf (stderr, "  ybase = %d\n", s->ybase);
-  fprintf (stderr, "  hl = %d\n", s->hl);
-  fprintf (stderr, "  left overhang = %d, right = %d\n",
-	   s->left_overhang, s->right_overhang);
-  fprintf (stderr, "  nchars = %d\n", s->nchars);
-  fprintf (stderr, "  extends to end of line = %d\n",
-	   s->extends_to_end_of_line_p);
-  fprintf (stderr, "  font height = %d\n", FONT_HEIGHT (s->font));
-  fprintf (stderr, "  bg width = %d\n", s->background_width);
-}
-
-#endif /* GLYPH_DEBUG */
-
-
-
-static void x_append_glyph_string_lists P_ ((struct glyph_string **,
-					     struct glyph_string **,
-					     struct glyph_string *,
-					     struct glyph_string *));
-static void x_prepend_glyph_string_lists P_ ((struct glyph_string **,
-					      struct glyph_string **,
-					      struct glyph_string *,
-					      struct glyph_string *));
-static void x_append_glyph_string P_ ((struct glyph_string **,
-				       struct glyph_string **,
-				       struct glyph_string *));
-static int x_left_overwritten P_ ((struct glyph_string *));
-static int x_left_overwriting P_ ((struct glyph_string *));
-static int x_right_overwritten P_ ((struct glyph_string *));
-static int x_right_overwriting P_ ((struct glyph_string *));
-static int x_fill_glyph_string P_ ((struct glyph_string *, int, int, int,
-				    int));
-static void x_init_glyph_string P_ ((struct glyph_string *,
-					XChar2b *, struct window *,
-					struct glyph_row *,
-					enum glyph_row_area, int,
-					enum draw_glyphs_face));
-static int x_draw_glyphs P_ ((struct window *, int , struct glyph_row *,
-			      enum glyph_row_area, int, int,
-			      enum draw_glyphs_face, int));
 static void x_set_glyph_string_clipping P_ ((struct glyph_string *));
 static void x_set_glyph_string_gc P_ ((struct glyph_string *));
 static void x_draw_glyph_string_background P_ ((struct glyph_string *,
@@ -3207,13 +2064,10 @@ static void x_draw_glyph_string_foreground P_ ((struct glyph_string *));
 static void x_draw_composite_glyph_string_foreground P_ ((struct glyph_string *));
 static void x_draw_glyph_string_box P_ ((struct glyph_string *));
 static void x_draw_glyph_string  P_ ((struct glyph_string *));
-static void x_compute_glyph_string_overhangs P_ ((struct glyph_string *));
+static void mac_compute_glyph_string_overhangs P_ ((struct glyph_string *));
 static void x_set_cursor_gc P_ ((struct glyph_string *));
 static void x_set_mode_line_face_gc P_ ((struct glyph_string *));
 static void x_set_mouse_face_gc P_ ((struct glyph_string *));
-static void x_get_glyph_overhangs P_ ((struct glyph *, struct frame *,
-				       int *, int *));
-static void x_compute_overhangs_and_x P_ ((struct glyph_string *, int, int));
 /*static int x_alloc_lighter_color P_ ((struct frame *, Display *, Colormap,
   unsigned long *, double, int));*/
 static void x_setup_relief_color P_ ((struct frame *, struct relief *,
@@ -3223,76 +2077,17 @@ static void x_draw_image_glyph_string P_ ((struct glyph_string *));
 static void x_draw_image_relief P_ ((struct glyph_string *));
 static void x_draw_image_foreground P_ ((struct glyph_string *));
 static void x_draw_image_foreground_1 P_ ((struct glyph_string *, Pixmap));
-static void x_fill_image_glyph_string P_ ((struct glyph_string *));
 static void x_clear_glyph_string_rect P_ ((struct glyph_string *, int,
 					   int, int, int));
 static void x_draw_relief_rect P_ ((struct frame *, int, int, int, int,
-				    int, int, int, int, Rect *));
+				    int, int, int, int, int, int,
+				    Rect *));
 static void x_draw_box_rect P_ ((struct glyph_string *, int, int, int, int,
 				 int, int, int, Rect *));
-static void x_fix_overlapping_area P_ ((struct window *, struct glyph_row *,
-					enum glyph_row_area));
-static int x_fill_stretch_glyph_string P_ ((struct glyph_string *,
-					    struct glyph_row *,
-					    enum glyph_row_area, int, int));
 
 #if GLYPH_DEBUG
 static void x_check_font P_ ((struct frame *, XFontStruct *));
 #endif
-
-
-/* Append the list of glyph strings with head H and tail T to the list
-   with head *HEAD and tail *TAIL.  Set *HEAD and *TAIL to the result.  */
-
-static INLINE void
-x_append_glyph_string_lists (head, tail, h, t)
-     struct glyph_string **head, **tail;
-     struct glyph_string *h, *t;
-{
-  if (h)
-    {
-      if (*head)
-	(*tail)->next = h;
-      else
-	*head = h;
-      h->prev = *tail;
-      *tail = t;
-    }
-}
-
-
-/* Prepend the list of glyph strings with head H and tail T to the
-   list with head *HEAD and tail *TAIL.  Set *HEAD and *TAIL to the
-   result.  */
-
-static INLINE void
-x_prepend_glyph_string_lists (head, tail, h, t)
-     struct glyph_string **head, **tail;
-     struct glyph_string *h, *t;
-{
-  if (h)
-    {
-      if (*head)
-	(*head)->prev = t;
-      else
-	*tail = t;
-      t->next = *head;
-      *head = h;
-    }
-}
-
-
-/* Append glyph string S to the list with head *HEAD and tail *TAIL.
-   Set *HEAD and *TAIL to the resulting list.  */
-
-static INLINE void
-x_append_glyph_string (head, tail, s)
-     struct glyph_string **head, **tail;
-     struct glyph_string *s;
-{
-  s->next = s->prev = NULL;
-  x_append_glyph_string_lists (head, tail, s, s);
-}
 
 
 /* Set S->gc to a suitable GC for drawing glyph string S in cursor
@@ -3459,79 +2254,6 @@ x_set_glyph_string_gc (s)
 }
 
 
-/* Return in *R the clipping rectangle for glyph string S.  */
-
-static void
-x_get_glyph_string_clip_rect (s, r)
-     struct glyph_string *s;
-     Rect *r;
-{
-  int r_height, r_width;
-
-  if (s->row->full_width_p)
-    {
-      /* Draw full-width.  X coordinates are relative to S->w->left.  */
-      int canon_x = CANON_X_UNIT (s->f);
-
-      r->left = WINDOW_LEFT_MARGIN (s->w) * canon_x;
-      r_width = XFASTINT (s->w->width) * canon_x;
-
-      if (FRAME_HAS_VERTICAL_SCROLL_BARS (s->f))
-	{
-	  int width = FRAME_SCROLL_BAR_WIDTH (s->f) * canon_x;
-	  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (s->f))
-	    r->left -= width;
-	}
-
-      r->left += FRAME_INTERNAL_BORDER_WIDTH (s->f);
-
-      /* Unless displaying a mode or menu bar line, which are always
-	 fully visible, clip to the visible part of the row.  */
-      if (s->w->pseudo_window_p)
-	r_height = s->row->visible_height;
-      else
-	r_height = s->height;
-    }
-  else
-    {
-      /* This is a text line that may be partially visible.  */
-      r->left = WINDOW_AREA_TO_FRAME_PIXEL_X (s->w, s->area, 0);
-      r_width = window_box_width (s->w, s->area);
-      r_height = s->row->visible_height;
-    }
-
-  /* If S draws overlapping rows, it's sufficient to use the top and
-     bottom of the window for clipping because this glyph string
-     intentionally draws over other lines.  */
-  if (s->for_overlaps_p)
-    {
-      r->top = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (s->w);
-      r_height = window_text_bottom_y (s->w) - r->top;
-    }
-  else
-    {
-      /* Don't use S->y for clipping because it doesn't take partially
-	 visible lines into account.  For example, it can be negative for
-	 partially visible lines at the top of a window.  */
-      if (!s->row->full_width_p
-	  && MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (s->w, s->row))
-	r->top = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (s->w);
-      else
-	r->top = max (0, s->row->y);
-
-      /* If drawing a tool-bar window, draw it over the internal border
-	 at the top of the window.  */
-      if (s->w == XWINDOW (s->f->tool_bar_window))
-	r->top -= s->f->output_data.mac->internal_border_width;
-    }
-
-  r->top = WINDOW_TO_FRAME_PIXEL_Y (s->w, r->top);
-
-  r->bottom = r->top + r_height;
-  r->right = r->left + r_width;
-}
-
-
 /* Set clipping for output of glyph string S.  S may be part of a mode
    line or menu if we don't have X toolkit support.  */
 
@@ -3539,207 +2261,50 @@ static INLINE void
 x_set_glyph_string_clipping (s)
      struct glyph_string *s;
 {
-  Rect r;
-  x_get_glyph_string_clip_rect (s, &r);
-  mac_set_clip_rectangle (s->display, s->window, &r);
+  Rect rects[MAX_CLIP_RECTS];
+  int n;
+
+  n = get_glyph_string_clip_rects (s, rects, MAX_CLIP_RECTS);
+  mac_set_clip_rectangles (s->display, s->gc, rects, n);
 }
 
 
-/* Compute left and right overhang of glyph string S.  If S is a glyph
+/* RIF:
+   Compute left and right overhang of glyph string S.  If S is a glyph
    string for a composition, assume overhangs don't exist.  */
 
-static INLINE void
-x_compute_glyph_string_overhangs (s)
+static void
+mac_compute_glyph_string_overhangs (s)
      struct glyph_string *s;
 {
   if (s->cmp == NULL
       && s->first_glyph->type == CHAR_GLYPH)
-    {
-      XCharStruct cs;
-      int direction, font_ascent, font_descent;
-      XTextExtents16 (s->font, s->char2b, s->nchars, &direction,
-		      &font_ascent, &font_descent, &cs);
-      s->right_overhang = cs.rbearing > cs.width ? cs.rbearing - cs.width : 0;
-      s->left_overhang = cs.lbearing < 0 ? -cs.lbearing : 0;
-    }
-}
+    if (!s->two_byte_p
+#if USE_ATSUI
+	|| s->font->mac_style
+#endif
+	)
+      {
+	XCharStruct cs;
 
+	mac_text_extents_16 (s->font, s->char2b, s->nchars, &cs);
+	s->right_overhang = cs.rbearing > cs.width ? cs.rbearing - cs.width : 0;
+	s->left_overhang = cs.lbearing < 0 ? -cs.lbearing : 0;
+      }
+    else
+      {
+	Rect r;
+	MacFontStruct *font = s->font;
 
-/* Compute overhangs and x-positions for glyph string S and its
-   predecessors, or successors.  X is the starting x-position for S.
-   BACKWARD_P non-zero means process predecessors.  */
+	TextFont (font->mac_fontnum);
+	TextSize (font->mac_fontsize);
+	TextFace (font->mac_fontface);
 
-static void
-x_compute_overhangs_and_x (s, x, backward_p)
-     struct glyph_string *s;
-     int x;
-     int backward_p;
-{
-  if (backward_p)
-    {
-      while (s)
-	{
-	  x_compute_glyph_string_overhangs (s);
-	  x -= s->width;
-	  s->x = x;
-	  s = s->prev;
-	}
-    }
-  else
-    {
-      while (s)
-	{
-	  x_compute_glyph_string_overhangs (s);
-	  s->x = x;
-	  x += s->width;
-	  s = s->next;
-	}
-    }
-}
+	QDTextBounds (s->nchars * 2, (char *)s->char2b, &r);
 
-
-/* Set *LEFT and *RIGHT to the left and right overhang of GLYPH on
-   frame F.  Overhangs of glyphs other than type CHAR_GLYPH are
-   assumed to be zero.  */
-
-void
-x_get_glyph_overhangs (glyph, f, left, right)
-     struct glyph *glyph;
-     struct frame *f;
-     int *left, *right;
-{
-  *left = *right = 0;
-
-  if (glyph->type == CHAR_GLYPH)
-    {
-      XFontStruct *font;
-      struct face *face;
-      struct font_info *font_info;
-      XChar2b char2b;
-      XCharStruct *pcm;
-
-      face = x_get_glyph_face_and_encoding (f, glyph, &char2b, NULL);
-      font = face->font;
-      font_info = FONT_INFO_FROM_ID (f, face->font_info_id);
-      if (font
-	  && (pcm = x_per_char_metric (font, &char2b)))
-	{
-	  if (pcm->rbearing > pcm->width)
-	    *right = pcm->rbearing - pcm->width;
-	  if (pcm->lbearing < 0)
-	    *left = -pcm->lbearing;
-	}
-    }
-}
-
-
-/* Return the index of the first glyph preceding glyph string S that
-   is overwritten by S because of S's left overhang.  Value is -1
-   if no glyphs are overwritten.  */
-
-static int
-x_left_overwritten (s)
-     struct glyph_string *s;
-{
-  int k;
-
-  if (s->left_overhang)
-    {
-      int x = 0, i;
-      struct glyph *glyphs = s->row->glyphs[s->area];
-      int first = s->first_glyph - glyphs;
-
-      for (i = first - 1; i >= 0 && x > -s->left_overhang; --i)
-	x -= glyphs[i].pixel_width;
-
-      k = i + 1;
-    }
-  else
-    k = -1;
-
-  return k;
-}
-
-
-/* Return the index of the first glyph preceding glyph string S that
-   is overwriting S because of its right overhang.  Value is -1 if no
-   glyph in front of S overwrites S.  */
-
-static int
-x_left_overwriting (s)
-     struct glyph_string *s;
-{
-  int i, k, x;
-  struct glyph *glyphs = s->row->glyphs[s->area];
-  int first = s->first_glyph - glyphs;
-
-  k = -1;
-  x = 0;
-  for (i = first - 1; i >= 0; --i)
-    {
-      int left, right;
-      x_get_glyph_overhangs (glyphs + i, s->f, &left, &right);
-      if (x + right > 0)
-	k = i;
-      x -= glyphs[i].pixel_width;
-    }
-
-  return k;
-}
-
-
-/* Return the index of the last glyph following glyph string S that is
-   not overwritten by S because of S's right overhang.  Value is -1 if
-   no such glyph is found.  */
-
-static int
-x_right_overwritten (s)
-     struct glyph_string *s;
-{
-  int k = -1;
-
-  if (s->right_overhang)
-    {
-      int x = 0, i;
-      struct glyph *glyphs = s->row->glyphs[s->area];
-      int first = (s->first_glyph - glyphs) + (s->cmp ? 1 : s->nchars);
-      int end = s->row->used[s->area];
-
-      for (i = first; i < end && s->right_overhang > x; ++i)
-	x += glyphs[i].pixel_width;
-
-      k = i;
-    }
-
-  return k;
-}
-
-
-/* Return the index of the last glyph following glyph string S that
-   overwrites S because of its left overhang.  Value is negative
-   if no such glyph is found.  */
-
-static int
-x_right_overwriting (s)
-     struct glyph_string *s;
-{
-  int i, k, x;
-  int end = s->row->used[s->area];
-  struct glyph *glyphs = s->row->glyphs[s->area];
-  int first = (s->first_glyph - glyphs) + (s->cmp ? 1 : s->nchars);
-
-  k = -1;
-  x = 0;
-  for (i = first; i < end; ++i)
-    {
-      int left, right;
-      x_get_glyph_overhangs (glyphs + i, s->f, &left, &right);
-      if (x - left < 0)
-	k = i;
-      x += glyphs[i].pixel_width;
-    }
-
-  return k;
+	s->right_overhang = r.right > s->width ? r.right - s->width : 0;
+	s->left_overhang = r.left < 0 ? -r.left : 0;
+      }
 }
 
 
@@ -3750,12 +2315,17 @@ x_clear_glyph_string_rect (s, x, y, w, h)
      struct glyph_string *s;
      int x, y, w, h;
 {
-  XGCValues xgcv;
-
-  xgcv.foreground = s->gc->background;
-  XFillRectangle (s->display, s->window, &xgcv, x, y, w, h);
+  mac_erase_rectangle (s->f, s->gc, x, y, w, h);
 }
 
+
+/* We prefer not to use XDrawImageString (srcCopy text transfer mode)
+   on Mac OS X because:
+   - Screen is double-buffered.  (In srcCopy mode, a text is drawn
+     into an offscreen graphics world first.  So performance gain
+     cannot be expected.)
+   - It lowers rendering quality.
+   - Some fonts leave garbage on cursor movement.  */
 
 /* Draw the background of glyph_string S.  If S->background_filled_p
    is non-zero don't draw it.  FORCE_P non-zero means draw the
@@ -3788,10 +2358,12 @@ x_draw_glyph_string_background (s, force_p)
 	}
       else
 #endif
+#if defined (MAC_OS8) && !USE_ATSUI
         if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
 	       || force_p)
+#endif
 	{
 	  x_clear_glyph_string_rect (s, s->x, s->y + box_line_width,
 				     s->background_width,
@@ -3825,9 +2397,8 @@ x_draw_glyph_string_foreground (s)
       for (i = 0; i < s->nchars; ++i)
 	{
 	  struct glyph *g = s->first_glyph + i;
-	  mac_draw_rectangle (s->display, s->window,
-			    s->gc, x, s->y, g->pixel_width - 1,
-			    s->height - 1);
+	  mac_draw_rectangle (s->f, s->gc, x, s->y,
+			      g->pixel_width - 1, s->height - 1);
 	  x += g->pixel_width;
 	}
     }
@@ -3840,35 +2411,54 @@ x_draw_glyph_string_foreground (s)
 	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
 
       /* If we can use 8-bit functions, condense S->char2b.  */
-      if (!s->two_byte_p)
+      if (!s->two_byte_p
+#if USE_ATSUI
+	  && GC_FONT (s->gc)->mac_style == NULL
+#endif
+	  )
 	for (i = 0; i < s->nchars; ++i)
 	  char1b[i] = s->char2b[i].byte2;
 
+#if defined (MAC_OS8) && !USE_ATSUI
       /* Draw text with XDrawString if background has already been
 	 filled.  Otherwise, use XDrawImageString.  (Note that
 	 XDrawImageString is usually faster than XDrawString.)  Always
 	 use XDrawImageString when drawing the cursor so that there is
 	 no chance that characters under a box cursor are invisible.  */
-      if (s->for_overlaps_p
+      if (s->for_overlaps
 	  || (s->background_filled_p && s->hl != DRAW_CURSOR))
+#endif
 	{
 	  /* Draw characters with 16-bit or 8-bit functions.  */
-	  if (s->two_byte_p)
-	    XDrawString16 (s->display, s->window, s->gc, x,
-			   s->ybase - boff, s->char2b, s->nchars);
+	  if (s->two_byte_p
+#if USE_ATSUI
+	      || GC_FONT (s->gc)->mac_style
+#endif
+	      )
+#if USE_CG_TEXT_DRAWING
+	    if (!s->two_byte_p
+		&& mac_draw_string_cg (s->f, s->gc, x, s->ybase - boff,
+				       s->char2b, s->nchars))
+	      ;
+	    else
+#endif
+	    mac_draw_string_16 (s->f, s->gc, x,	s->ybase - boff,
+				s->char2b, s->nchars);
 	  else
-	    XDrawString (s->display, s->window, s->gc, x,
-			 s->ybase - boff, char1b, s->nchars);
+	    mac_draw_string (s->f, s->gc, x, s->ybase - boff,
+			     char1b, s->nchars);
 	}
+#if defined (MAC_OS8) && !USE_ATSUI
       else
 	{
 	  if (s->two_byte_p)
-	    XDrawImageString16 (s->display, s->window, s->gc, x,
-			        s->ybase - boff, s->char2b, s->nchars);
+	    mac_draw_image_string_16 (s->f, s->gc, x, s->ybase - boff,
+				      s->char2b, s->nchars);
 	  else
-	    XDrawImageString (s->display, s->window, s->gc, x,
-			      s->ybase - boff, char1b, s->nchars);
+	    mac_draw_image_string (s->f, s->gc, x, s->ybase - boff,
+				   char1b, s->nchars);
 	}
+#endif
     }
 }
 
@@ -3898,16 +2488,16 @@ x_draw_composite_glyph_string_foreground (s)
   if (s->font_not_found_p)
     {
       if (s->gidx == 0)
-	mac_draw_rectangle (s->display, s->window, s->gc, x, s->y,
-			  s->width - 1, s->height - 1);
+	mac_draw_rectangle (s->f, s->gc, x, s->y,
+			    s->width - 1, s->height - 1);
     }
   else
     {
       for (i = 0; i < s->nchars; i++, ++s->gidx)
-	XDrawString16 (s->display, s->window, s->gc,
-		       x + s->cmp->offsets[s->gidx * 2],
-		       s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-		       s->char2b + i, 1);
+	mac_draw_string_16 (s->f, s->gc,
+			    x + s->cmp->offsets[s->gidx * 2],
+			    s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
+			    s->char2b + i, 1);
     }
 }
 
@@ -4080,6 +2670,21 @@ x_copy_dpy_color (dpy, cmap, pixel)
 
 #endif /* MAC_TODO */
 
+
+/* Brightness beyond which a color won't have its highlight brightness
+   boosted.
+
+   Nominally, highlight colors for `3d' faces are calculated by
+   brightening an object's color by a constant scale factor, but this
+   doesn't yield good results for dark colors, so for colors who's
+   brightness is less than this value (on a scale of 0-255) have to
+   use an additional additive factor.
+
+   The value here is set so that the default menu-bar/mode-line color
+   (grey75) will not have its highlights changed at all.  */
+#define HIGHLIGHT_COLOR_DARK_BOOST_LIMIT 187
+
+
 /* Allocate a color which is lighter or darker than *COLOR by FACTOR
    or DELTA.  Try a color with RGB values multiplied by FACTOR first.
    If this produces the same color as COLOR, try a color where all RGB
@@ -4095,12 +2700,42 @@ mac_alloc_lighter_color (f, color, factor, delta)
      int delta;
 {
   unsigned long new;
+  long bright;
+
+  /* On Mac, RGB values are 0-255, not 0-65535, so scale delta. */
+  delta /= 256;
 
   /* Change RGB values by specified FACTOR.  Avoid overflow!  */
   xassert (factor >= 0);
   new = RGB_TO_ULONG (min (0xff, (int) (factor * RED_FROM_ULONG (*color))),
                     min (0xff, (int) (factor * GREEN_FROM_ULONG (*color))),
                     min (0xff, (int) (factor * BLUE_FROM_ULONG (*color))));
+
+  /* Calculate brightness of COLOR.  */
+  bright = (2 * RED_FROM_ULONG (*color) + 3 * GREEN_FROM_ULONG (*color)
+            + BLUE_FROM_ULONG (*color)) / 6;
+
+  /* We only boost colors that are darker than
+     HIGHLIGHT_COLOR_DARK_BOOST_LIMIT.  */
+  if (bright < HIGHLIGHT_COLOR_DARK_BOOST_LIMIT)
+    /* Make an additive adjustment to NEW, because it's dark enough so
+       that scaling by FACTOR alone isn't enough.  */
+    {
+      /* How far below the limit this color is (0 - 1, 1 being darker).  */
+      double dimness = 1 - (double)bright / HIGHLIGHT_COLOR_DARK_BOOST_LIMIT;
+      /* The additive adjustment.  */
+      int min_delta = delta * dimness * factor / 2;
+
+      if (factor < 1)
+        new = RGB_TO_ULONG (max (0, min (0xff, (int) (RED_FROM_ULONG (*color)) - min_delta)),
+			    max (0, min (0xff, (int) (GREEN_FROM_ULONG (*color)) - min_delta)),
+			    max (0, min (0xff, (int) (BLUE_FROM_ULONG (*color)) - min_delta)));
+      else
+        new = RGB_TO_ULONG (max (0, min (0xff, (int) (min_delta + RED_FROM_ULONG (*color)))),
+			    max (0, min (0xff, (int) (min_delta + GREEN_FROM_ULONG (*color)))),
+			    max (0, min (0xff, (int) (min_delta + BLUE_FROM_ULONG (*color)))));
+    }
+
   if (new == *color)
     new = RGB_TO_ULONG (max (0, min (0xff, (int) (delta + RED_FROM_ULONG (*color)))),
                       max (0, min (0xff, (int) (delta + GREEN_FROM_ULONG (*color)))),
@@ -4145,7 +2780,8 @@ x_setup_relief_color (f, relief, factor, delta, default_pixel)
   /* Allocate new color.  */
   xgcv.foreground = default_pixel;
   pixel = background;
-  if (mac_alloc_lighter_color (f, &pixel, factor, delta))
+  if (dpyinfo->n_planes != 1
+      && mac_alloc_lighter_color (f, &pixel, factor, delta))
     {
       relief->allocated_p = 1;
       xgcv.foreground = relief->pixel = pixel;
@@ -4175,6 +2811,10 @@ x_setup_relief_colors (s)
 
   if (s->face->use_box_color_for_shadows_p)
     color = s->face->box_color;
+  else if (s->first_glyph->type == IMAGE_GLYPH
+	   && s->img->pixmap
+	   && !IMAGE_BACKGROUND_TRANSPARENT (s->img, s->f, 0))
+    color = IMAGE_BACKGROUND (s->img, s->f, 0);
   else
     {
       XGCValues xgcv;
@@ -4206,11 +2846,13 @@ x_setup_relief_colors (s)
 
 static void
 x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
-		    raised_p, left_p, right_p, clip_rect)
+		    raised_p, top_p, bot_p, left_p, right_p, clip_rect)
      struct frame *f;
-     int left_x, top_y, right_x, bottom_y, left_p, right_p, raised_p;
+     int left_x, top_y, right_x, bottom_y, width;
+     int top_p, bot_p, left_p, right_p, raised_p;
      Rect *clip_rect;
 {
+  Display *dpy = FRAME_MAC_DISPLAY (f);
   int i;
   GC gc;
 
@@ -4218,41 +2860,42 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
     gc = f->output_data.mac->white_relief.gc;
   else
     gc = f->output_data.mac->black_relief.gc;
-  mac_set_clip_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), clip_rect);
+  mac_set_clip_rectangles (dpy, gc, clip_rect, 1);
 
   /* Top.  */
-  for (i = 0; i < width; ++i)
-    XDrawLine (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), gc,
-	       left_x + i * left_p, top_y + i,
-	       right_x + 1 - i * right_p, top_y + i);
+  if (top_p)
+    for (i = 0; i < width; ++i)
+      mac_draw_line (f, gc,
+		     left_x + i * left_p, top_y + i,
+		     right_x - i * right_p, top_y + i);
 
   /* Left.  */
   if (left_p)
     for (i = 0; i < width; ++i)
-      XDrawLine (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), gc,
-		 left_x + i, top_y + i, left_x + i, bottom_y - i);
+      mac_draw_line (f, gc,
+		     left_x + i, top_y + i, left_x + i, bottom_y - i);
 
-  mac_reset_clipping (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f));
+  mac_reset_clip_rectangles (dpy, gc);
   if (raised_p)
     gc = f->output_data.mac->black_relief.gc;
   else
     gc = f->output_data.mac->white_relief.gc;
-  mac_set_clip_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-			  clip_rect);
+  mac_set_clip_rectangles (dpy, gc, clip_rect, 1);
 
   /* Bottom.  */
-  for (i = 0; i < width; ++i)
-    XDrawLine (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), gc,
-	       left_x + i * left_p, bottom_y - i,
-	       right_x + 1 - i * right_p, bottom_y - i);
+  if (bot_p)
+    for (i = 0; i < width; ++i)
+      mac_draw_line (f, gc,
+		     left_x + i * left_p, bottom_y - i,
+		     right_x - i * right_p, bottom_y - i);
 
   /* Right.  */
   if (right_p)
     for (i = 0; i < width; ++i)
-      XDrawLine (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), gc,
-		 right_x - i, top_y + i + 1, right_x - i, bottom_y - i);
+      mac_draw_line (f, gc,
+		     right_x - i, top_y + i + 1, right_x - i, bottom_y - i - 1);
 
-  mac_reset_clipping (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f));
+  mac_reset_clip_rectangles (dpy, gc);
 }
 
 
@@ -4267,33 +2910,35 @@ static void
 x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
 		 left_p, right_p, clip_rect)
      struct glyph_string *s;
-     int left_x, top_y, right_x, bottom_y, left_p, right_p;
+     int left_x, top_y, right_x, bottom_y, width, left_p, right_p;
      Rect *clip_rect;
 {
   XGCValues xgcv;
 
-  xgcv.foreground = s->face->box_color;
-  mac_set_clip_rectangle (s->display, s->window, clip_rect);
+  XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
+  XSetForeground (s->display, s->gc, s->face->box_color);
+  mac_set_clip_rectangles (s->display, s->gc, clip_rect, 1);
 
   /* Top.  */
-  XFillRectangle (s->display, s->window, &xgcv,
-		  left_x, top_y, right_x - left_x, width);
+  mac_fill_rectangle (s->f, s->gc, left_x, top_y,
+		      right_x - left_x + 1, width);
 
   /* Left.  */
   if (left_p)
-    XFillRectangle (s->display, s->window, &xgcv,
-		    left_x, top_y, width, bottom_y - top_y);
+    mac_fill_rectangle (s->f, s->gc, left_x, top_y,
+			width, bottom_y - top_y + 1);
 
   /* Bottom.  */
-  XFillRectangle (s->display, s->window, &xgcv,
-		  left_x, bottom_y - width, right_x - left_x, width);
+  mac_fill_rectangle (s->f, s->gc, left_x, bottom_y - width + 1,
+		      right_x - left_x + 1, width);
 
   /* Right.  */
   if (right_p)
-    XFillRectangle (s->display, s->window, &xgcv,
-		    right_x - width, top_y, width, bottom_y - top_y);
+    mac_fill_rectangle (s->f, s->gc, right_x - width + 1,
+			top_y, width, bottom_y - top_y + 1);
 
-  mac_reset_clipping (s->display, s->window);
+  XSetForeground (s->display, s->gc, xgcv.foreground);
+  mac_reset_clip_rectangles (s->display, s->gc);
 }
 
 
@@ -4308,14 +2953,9 @@ x_draw_glyph_string_box (s)
   struct glyph *last_glyph;
   Rect clip_rect;
 
-  last_x = window_box_right (s->w, s->area);
-  if (s->row->full_width_p
-      && !s->w->pseudo_window_p)
-    {
-      last_x += FRAME_X_RIGHT_FRINGE_WIDTH (s->f);
-      if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (s->f))
-	last_x += FRAME_SCROLL_BAR_WIDTH (s->f) * CANON_X_UNIT (s->f);
-    }
+  last_x = ((s->row->full_width_p && !s->w->pseudo_window_p)
+	    ? WINDOW_RIGHT_EDGE_X (s->w)
+	    : window_box_right (s->w, s->area));
 
   /* The glyph that may have a right box line.  */
   last_glyph = (s->cmp || s->img
@@ -4325,9 +2965,9 @@ x_draw_glyph_string_box (s)
   width = abs (s->face->box_line_width);
   raised_p = s->face->box == FACE_RAISED_BOX;
   left_x = s->x;
-  right_x = ((s->row->full_width_p && s->extends_to_end_of_line_p
-	      ? last_x - 1
-	      : min (last_x, s->x + s->background_width) - 1));
+  right_x = (s->row->full_width_p && s->extends_to_end_of_line_p
+	     ? last_x - 1
+	     : min (last_x, s->x + s->background_width) - 1);
   top_y = s->y;
   bottom_y = top_y + s->height - 1;
 
@@ -4340,7 +2980,7 @@ x_draw_glyph_string_box (s)
 		 && (s->next == NULL
 		     || s->next->hl != s->hl)));
 
-  x_get_glyph_string_clip_rect (s, &clip_rect);
+  get_glyph_string_clip_rect (s, &clip_rect);
 
   if (s->face->box == FACE_SIMPLE_BOX)
     x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
@@ -4349,7 +2989,7 @@ x_draw_glyph_string_box (s)
     {
       x_setup_relief_colors (s);
       x_draw_relief_rect (s->f, left_x, top_y, right_x, bottom_y,
-			  width, raised_p, left_p, right_p, &clip_rect);
+			  width, raised_p, 1, 1, left_p, right_p, &clip_rect);
     }
 }
 
@@ -4360,57 +3000,36 @@ static void
 x_draw_image_foreground (s)
      struct glyph_string *s;
 {
-  int x;
-  int y = s->ybase - image_ascent (s->img, s->face);
+  int x = s->x;
+  int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
 
   /* If first glyph of S has a left box line, start drawing it to the
      right of that line.  */
   if (s->face->box != FACE_NO_BOX
-      && s->first_glyph->left_box_line_p)
-    x = s->x + abs (s->face->box_line_width);
-  else
-    x = s->x;
+      && s->first_glyph->left_box_line_p
+      && s->slice.x == 0)
+    x += abs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  x += s->img->hmargin;
-  y += s->img->vmargin;
+  if (s->slice.x == 0)
+    x += s->img->hmargin;
+  if (s->slice.y == 0)
+    y += s->img->vmargin;
 
   if (s->img->pixmap)
     {
-#if 0 /* MAC_TODO: image mask */
+      x_set_glyph_string_clipping (s);
+
       if (s->img->mask)
-	{
-	  /* We can't set both a clip mask and use XSetClipRectangles
-	     because the latter also sets a clip mask.  We also can't
-	     trust on the shape extension to be available
-	     (XShapeCombineRegion).  So, compute the rectangle to draw
-	     manually.  */
-	  unsigned long mask = (GCClipMask | GCClipXOrigin | GCClipYOrigin
-				| GCFunction);
-	  XGCValues xgcv;
-	  XRectangle clip_rect, image_rect, r;
-
-	  xgcv.clip_mask = s->img->mask;
-	  xgcv.clip_x_origin = x;
-	  xgcv.clip_y_origin = y;
-	  xgcv.function = GXcopy;
-	  XChangeGC (s->display, s->gc, mask, &xgcv);
-
-	  x_get_glyph_string_clip_rect (s, &clip_rect);
-	  image_rect.x = x;
-	  image_rect.y = y;
-	  image_rect.width = s->img->width;
-	  image_rect.height = s->img->height;
-	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
-	    XCopyArea (s->display, s->img->pixmap, s->window, s->gc,
-		       r.x - x, r.y - y, r.width, r.height, r.x, r.y);
-	}
+	mac_copy_area_with_mask (s->img->pixmap, s->img->mask,
+				 s->f, s->gc, s->slice.x, s->slice.y,
+				 s->slice.width, s->slice.height, x, y);
       else
-#endif /* MAC_TODO */
 	{
-	  mac_copy_area (s->display, s->img->pixmap, s->window, s->gc,
-		       0, 0, s->img->width, s->img->height, x, y);
+	  mac_copy_area (s->img->pixmap,
+			 s->f, s->gc, s->slice.x, s->slice.y,
+			 s->slice.width, s->slice.height, x, y);
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
@@ -4422,17 +3041,17 @@ x_draw_image_foreground (s)
 	    {
 	      int r = s->img->relief;
 	      if (r < 0) r = -r;
-	      mac_draw_rectangle (s->display, s->window, s->gc, x - r, y - r,
-				  s->img->width + r*2 - 1, s->img->height + r*2 - 1);
+	      mac_draw_rectangle (s->f, s->gc, x - r, y - r,
+				  s->slice.width + r*2 - 1,
+				  s->slice.height + r*2 - 1);
 	    }
 	}
     }
   else
     /* Draw a rectangle if image could not be loaded.  */
-    mac_draw_rectangle (s->display, s->window, s->gc, x, y,
-		      s->img->width - 1, s->img->height - 1);
+    mac_draw_rectangle (s->f, s->gc, x, y,
+			s->slice.width - 1, s->slice.height - 1);
 }
-
 
 
 /* Draw a relief around the image glyph string S.  */
@@ -4443,21 +3062,22 @@ x_draw_image_relief (s)
 {
   int x0, y0, x1, y1, thick, raised_p;
   Rect r;
-  int x;
-  int y = s->ybase - image_ascent (s->img, s->face);
+  int x = s->x;
+  int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
 
   /* If first glyph of S has a left box line, start drawing it to the
      right of that line.  */
   if (s->face->box != FACE_NO_BOX
-      && s->first_glyph->left_box_line_p)
-    x = s->x + abs (s->face->box_line_width);
-  else
-    x = s->x;
+      && s->first_glyph->left_box_line_p
+      && s->slice.x == 0)
+    x += abs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  x += s->img->hmargin;
-  y += s->img->vmargin;
+  if (s->slice.x == 0)
+    x += s->img->hmargin;
+  if (s->slice.y == 0)
+    y += s->img->vmargin;
 
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
@@ -4473,87 +3093,17 @@ x_draw_image_relief (s)
 
   x0 = x - thick;
   y0 = y - thick;
-  x1 = x + s->img->width + thick - 1;
-  y1 = y + s->img->height + thick - 1;
+  x1 = x + s->slice.width + thick - 1;
+  y1 = y + s->slice.height + thick - 1;
 
   x_setup_relief_colors (s);
-  x_get_glyph_string_clip_rect (s, &r);
-  x_draw_relief_rect (s->f, x0, y0, x1, y1, thick, raised_p, 1, 1, &r);
-}
-
-
-/* Draw the foreground of image glyph string S to PIXMAP.  */
-
-static void
-x_draw_image_foreground_1 (s, pixmap)
-     struct glyph_string *s;
-     Pixmap pixmap;
-{
-  int x;
-  int y = s->ybase - s->y - image_ascent (s->img, s->face);
-
-  /* If first glyph of S has a left box line, start drawing it to the
-     right of that line.  */
-  if (s->face->box != FACE_NO_BOX
-      && s->first_glyph->left_box_line_p)
-    x = abs (s->face->box_line_width);
-  else
-    x = 0;
-
-  /* If there is a margin around the image, adjust x- and y-position
-     by that margin.  */
-  x += s->img->hmargin;
-  y += s->img->vmargin;
-
-  if (s->img->pixmap)
-    {
-#if 0 /* MAC_TODO: image mask */
-      if (s->img->mask)
-	{
-	  /* We can't set both a clip mask and use XSetClipRectangles
-	     because the latter also sets a clip mask.  We also can't
-	     trust on the shape extension to be available
-	     (XShapeCombineRegion).  So, compute the rectangle to draw
-	     manually.  */
-	  unsigned long mask = (GCClipMask | GCClipXOrigin | GCClipYOrigin
-				| GCFunction);
-	  XGCValues xgcv;
-
-	  xgcv.clip_mask = s->img->mask;
-	  xgcv.clip_x_origin = x;
-	  xgcv.clip_y_origin = y;
-	  xgcv.function = GXcopy;
-	  XChangeGC (s->display, s->gc, mask, &xgcv);
-
-	  XCopyArea (s->display, s->img->pixmap, pixmap, s->gc,
-		     0, 0, s->img->width, s->img->height, x, y);
-	  XSetClipMask (s->display, s->gc, None);
-	}
-      else
-#endif /* MAC_TODO */
-	{
-	  mac_copy_area_to_pixmap (s->display, s->img->pixmap, pixmap, s->gc,
-		               0, 0, s->img->width, s->img->height, x, y);
-
-	  /* When the image has a mask, we can expect that at
-	     least part of a mouse highlight or a block cursor will
-	     be visible.  If the image doesn't have a mask, make
-	     a block cursor visible by drawing a rectangle around
-	     the image.  I believe it's looking better if we do
-	     nothing here for mouse-face.  */
-	  if (s->hl == DRAW_CURSOR)
-	    {
-	      int r = s->img->relief;
-	      if (r < 0) r = -r;
-	      mac_draw_rectangle_to_pixmap (s->display, pixmap, s->gc, x - r, y - r,
-				  s->img->width + r*2 - 1, s->img->height + r*2 - 1);
-	    }
-	}
-    }
-  else
-    /* Draw a rectangle if image could not be loaded.  */
-    mac_draw_rectangle_to_pixmap (s->display, pixmap, s->gc, x, y,
-		              s->img->width - 1, s->img->height - 1);
+  get_glyph_string_clip_rect (s, &r);
+  x_draw_relief_rect (s->f, x0, y0, x1, y1, thick, raised_p,
+		      s->slice.y == 0,
+		      s->slice.y + s->slice.height == s->img->height,
+		      s->slice.x == 0,
+		      s->slice.x + s->slice.width == s->img->width,
+		      &r);
 }
 
 
@@ -4586,7 +3136,7 @@ x_draw_glyph_string_bg_rect (s, x, y, w, h)
 	     |   s->face->box
 	     |
 	     |     +-------------------------
-	     |     |  s->img->vmargin
+	     |     |  s->img->margin
 	     |     |
 	     |     |       +-------------------
 	     |     |       |  the image
@@ -4605,82 +3155,34 @@ x_draw_image_glyph_string (s)
 
   height = s->height - 2 * box_line_vwidth;
 
+
   /* Fill background with face under the image.  Do it only if row is
      taller than image or if image has a clip mask to reduce
      flickering.  */
   s->stippled_p = s->face->stipple != 0;
-  if (height > s->img->height
+  if (height > s->slice.height
       || s->img->hmargin
       || s->img->vmargin
-#if 0 /* TODO: image mask */
       || s->img->mask
-#endif
       || s->img->pixmap == 0
       || s->width != s->background_width)
     {
-      if (box_line_hwidth && s->first_glyph->left_box_line_p)
-	x = s->x + box_line_hwidth;
-      else
-	x = s->x;
+      x = s->x;
+      if (s->first_glyph->left_box_line_p
+	  && s->slice.x == 0)
+	x += box_line_hwidth;
 
-      y = s->y + box_line_vwidth;
-#if 0 /* TODO: image mask */
-      if (s->img->mask)
-	{
-	  /* Create a pixmap as large as the glyph string.  Fill it
-	     with the background color.  Copy the image to it, using
-	     its mask.  Copy the temporary pixmap to the display.  */
-	  Screen *screen = FRAME_X_SCREEN (s->f);
-	  int depth = DefaultDepthOfScreen (screen);
+      y = s->y;
+      if (s->slice.y == 0)
+	y += box_line_vwidth;
 
-	  /* Create a pixmap as large as the glyph string.  */
- 	  pixmap = XCreatePixmap (s->display, s->window,
-				  s->background_width,
-				  s->height, depth);
-
-	  /* Don't clip in the following because we're working on the
-	     pixmap.  */
-	  XSetClipMask (s->display, s->gc, None);
-
-	  /* Fill the pixmap with the background color/stipple.  */
-	  if (s->stippled_p)
-	    {
-	      /* Fill background with a stipple pattern.  */
-	      XSetFillStyle (s->display, s->gc, FillOpaqueStippled);
-	      XFillRectangle (s->display, pixmap, s->gc,
-			      0, 0, s->background_width, s->height);
-	      XSetFillStyle (s->display, s->gc, FillSolid);
-	    }
-	  else
-	    {
-	      XGCValues xgcv;
-	      XGetGCValues (s->display, s->gc, GCForeground | GCBackground,
-			    &xgcv);
-	      XSetForeground (s->display, s->gc, xgcv.background);
-	      XFillRectangle (s->display, pixmap, s->gc,
-			      0, 0, s->background_width, s->height);
-	      XSetForeground (s->display, s->gc, xgcv.foreground);
-	    }
-	}
-      else
-#endif
-	x_draw_glyph_string_bg_rect (s, x, y, s->background_width, height);
+      x_draw_glyph_string_bg_rect (s, x, y, s->background_width, height);
 
       s->background_filled_p = 1;
     }
 
   /* Draw the foreground.  */
-  if (pixmap != 0)
-    {
-      x_draw_image_foreground_1 (s, pixmap);
-      x_set_glyph_string_clipping (s);
-      mac_copy_area (s->display, pixmap, s->window, s->gc,
-		   0, 0, s->background_width, s->height, s->x, s->y);
-      mac_reset_clipping (s->display, s->window);
-      XFreePixmap (s->display, pixmap);
-    }
-  else
-    x_draw_image_foreground (s);
+  x_draw_image_foreground (s);
 
   /* If we must draw a relief around the image, do it.  */
   if (s->img->relief
@@ -4704,7 +3206,7 @@ x_draw_stretch_glyph_string (s)
     {
       /* If `x-stretch-block-cursor' is nil, don't draw a block cursor
 	 as wide as the stretch glyph.  */
-      int width = min (CANON_X_UNIT (s->f), s->background_width);
+      int width = min (FRAME_COLUMN_WIDTH (s->f), s->background_width);
 
       /* Draw cursor.  */
       x_draw_glyph_string_bg_rect (s, s->x, s->y, width, s->height);
@@ -4712,10 +3214,10 @@ x_draw_stretch_glyph_string (s)
       /* Clear rest using the GC of the original non-cursor face.  */
       if (width < s->background_width)
 	{
-	  GC gc = s->face->gc;
 	  int x = s->x + width, y = s->y;
 	  int w = s->background_width - width, h = s->height;
 	  Rect r;
+	  GC gc;
 
 	  if (s->row->mouse_face_p
 	      && cursor_in_mouse_face_p (s->w))
@@ -4726,8 +3228,8 @@ x_draw_stretch_glyph_string (s)
 	  else
 	    gc = s->face->gc;
 
-	  x_get_glyph_string_clip_rect (s, &r);
-	  mac_set_clip_rectangle (s->display, s->window, &r);
+	  get_glyph_string_clip_rect (s, &r);
+	  mac_set_clip_rectangles (s->display, gc, &r, 1);
 
 #if 0 /* MAC_TODO: stipple */
 	  if (s->face->stipple)
@@ -4739,15 +3241,7 @@ x_draw_stretch_glyph_string (s)
 	    }
 	  else
 #endif /* MAC_TODO */
-	    {
-	      XGCValues xgcv;
-	      XGetGCValues (s->display, gc, GCForeground | GCBackground, &xgcv);
-	      XSetForeground (s->display, gc, xgcv.background);
-	      XFillRectangle (s->display, s->window, gc, x, y, w, h);
-	      XSetForeground (s->display, gc, xgcv.foreground);
-	    }
-
-	  mac_reset_clipping (s->display, s->window);
+	    mac_erase_rectangle (s->f, gc, x, y, w, h);
 	}
     }
   else if (!s->background_filled_p)
@@ -4766,16 +3260,17 @@ x_draw_glyph_string (s)
 {
   int relief_drawn_p = 0;
 
-  /* If S draws into the background of its successor, draw the
-     background of the successor first so that S can draw into it.
-     This makes S->next use XDrawString instead of XDrawImageString.  */
-  if (s->next && s->right_overhang && !s->for_overlaps_p)
+  /* If S draws into the background of its successor that does not
+     draw a cursor, draw the background of the successor first so that
+     S can draw into it.  This makes S->next use XDrawString instead
+     of XDrawImageString.  */
+  if (s->next && s->right_overhang && !s->for_overlaps
+      && s->next->hl != DRAW_CURSOR)
     {
       xassert (s->next->img == NULL);
       x_set_glyph_string_gc (s->next);
       x_set_glyph_string_clipping (s->next);
       x_draw_glyph_string_background (s->next, 1);
-
     }
 
   /* Set up S->gc, set clipping and draw S.  */
@@ -4783,7 +3278,7 @@ x_draw_glyph_string (s)
 
   /* Draw relief (if any) in advance for char/composition so that the
      glyph string can be drawn over it.  */
-  if (!s->for_overlaps_p
+  if (!s->for_overlaps
       && s->face->box != FACE_NO_BOX
       && (s->first_glyph->type == CHAR_GLYPH
 	  || s->first_glyph->type == COMPOSITE_GLYPH))
@@ -4809,15 +3304,15 @@ x_draw_glyph_string (s)
       break;
 
     case CHAR_GLYPH:
-      if (s->for_overlaps_p)
+      if (s->for_overlaps)
 	s->background_filled_p = 1;
       else
-        x_draw_glyph_string_background (s, 0);
+	x_draw_glyph_string_background (s, 0);
       x_draw_glyph_string_foreground (s);
       break;
 
     case COMPOSITE_GLYPH:
-      if (s->for_overlaps_p || s->gidx > 0)
+      if (s->for_overlaps || s->gidx > 0)
 	s->background_filled_p = 1;
       else
 	x_draw_glyph_string_background (s, 1);
@@ -4828,7 +3323,7 @@ x_draw_glyph_string (s)
       abort ();
     }
 
-  if (!s->for_overlaps_p)
+  if (!s->for_overlaps)
     {
       /* Draw underline.  */
       if (s->face->underline_p)
@@ -4837,15 +3332,15 @@ x_draw_glyph_string (s)
           unsigned long dy = s->height - h;
 
 	  if (s->face->underline_defaulted_p)
-	    XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			    s->width, h);
+	    mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+				s->width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->underline_color);
-	      XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			      s->width, h);
+	      mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+				  s->width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}
@@ -4856,15 +3351,15 @@ x_draw_glyph_string (s)
 	  unsigned long dy = 0, h = 1;
 
 	  if (s->face->overline_color_defaulted_p)
-	    XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			    s->width, h);
+	    mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+				s->width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->overline_color);
-	      XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			      s->width, h);
+	      mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+				  s->width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}
@@ -4876,818 +3371,39 @@ x_draw_glyph_string (s)
 	  unsigned long dy = (s->height - h) / 2;
 
 	  if (s->face->strike_through_color_defaulted_p)
-	    XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			    s->width, h);
+	    mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+				s->width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->strike_through_color);
-	      XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			      s->width, h);
+	      mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+				  s->width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}
 
-      /* Draw relief.  */
+      /* Draw relief if not yet drawn.  */
       if (!relief_drawn_p && s->face->box != FACE_NO_BOX)
-        x_draw_glyph_string_box (s);
+	x_draw_glyph_string_box (s);
     }
 
   /* Reset clipping.  */
-  mac_reset_clipping (s->display, s->window);
+  mac_reset_clip_rectangles (s->display, s->gc);
 }
 
+/* Shift display to make room for inserted glyphs.   */
 
-static int x_fill_composite_glyph_string P_ ((struct glyph_string *,
-					      struct face **, int));
-
-
-/* Fill glyph string S with composition components specified by S->cmp.
-
-   FACES is an array of faces for all components of this composition.
-   S->gidx is the index of the first component for S.
-   OVERLAPS_P non-zero means S should draw the foreground only, and
-   use its physical height for clipping.
-
-   Value is the index of a component not in S.  */
-
-static int
-x_fill_composite_glyph_string (s, faces, overlaps_p)
-     struct glyph_string *s;
-     struct face **faces;
-     int overlaps_p;
+void
+mac_shift_glyphs_for_insert (f, x, y, width, height, shift_by)
+     struct frame *f;
+     int x, y, width, height, shift_by;
 {
-  int i;
-
-  xassert (s);
-
-  s->for_overlaps_p = overlaps_p;
-
-  s->face = faces[s->gidx];
-  s->font = s->face->font;
-  s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
-
-  /* For all glyphs of this composition, starting at the offset
-     S->gidx, until we reach the end of the definition or encounter a
-     glyph that requires the different face, add it to S.  */
-  ++s->nchars;
-  for (i = s->gidx + 1; i < s->cmp->glyph_len && faces[i] == s->face; ++i)
-    ++s->nchars;
-
-  /* All glyph strings for the same composition has the same width,
-     i.e. the width set for the first component of the composition.  */
-
-  s->width = s->first_glyph->pixel_width;
-
-  /* If the specified font could not be loaded, use the frame's
-     default font, but record the fact that we couldn't load it in
-     the glyph string so that we can draw rectangles for the
-     characters of the glyph string.  */
-  if (s->font == NULL)
-    {
-      s->font_not_found_p = 1;
-      s->font = FRAME_FONT (s->f);
-    }
-
-  /* Adjust base line for subscript/superscript text.  */
-  s->ybase += s->first_glyph->voffset;
-
-  xassert (s->face && s->face->gc);
-
-  /* This glyph string must always be drawn with 16-bit functions.  */
-  s->two_byte_p = 1;
-
-  return s->gidx + s->nchars;
+  mac_scroll_area (f, f->output_data.mac->normal_gc,
+		   x, y, width, height,
+		   x + shift_by, y);
 }
-
-
-/* Fill glyph string S from a sequence of character glyphs.
-
-   FACE_ID is the face id of the string.  START is the index of the
-   first glyph to consider, END is the index of the last + 1.
-   OVERLAPS_P non-zero means S should draw the foreground only, and
-   use its physical height for clipping.
-
-   Value is the index of the first glyph not in S.  */
-
-static int
-x_fill_glyph_string (s, face_id, start, end, overlaps_p)
-     struct glyph_string *s;
-     int face_id;
-     int start, end, overlaps_p;
-{
-  struct glyph *glyph, *last;
-  int voffset;
-  int glyph_not_available_p;
-
-  xassert (s->f == XFRAME (s->w->frame));
-  xassert (s->nchars == 0);
-  xassert (start >= 0 && end > start);
-
-  s->for_overlaps_p = overlaps_p;
-  glyph = s->row->glyphs[s->area] + start;
-  last = s->row->glyphs[s->area] + end;
-  voffset = glyph->voffset;
-
-  glyph_not_available_p = glyph->glyph_not_available_p;
-
-  while (glyph < last
-	 && glyph->type == CHAR_GLYPH
-	 && glyph->voffset == voffset
-	 /* Same face id implies same font, nowadays.  */
-	 && glyph->face_id == face_id
-         && glyph->glyph_not_available_p == glyph_not_available_p)
-    {
-      int two_byte_p;
-
-      s->face = x_get_glyph_face_and_encoding (s->f, glyph,
-					       s->char2b + s->nchars,
-                                               &two_byte_p);
-      s->two_byte_p = two_byte_p;
-      ++s->nchars;
-      xassert (s->nchars <= end - start);
-      s->width += glyph->pixel_width;
-      ++glyph;
-    }
-
-  s->font = s->face->font;
-  s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
-
-  /* If the specified font could not be loaded, use the frame's font,
-     but record the fact that we couldn't load it in
-     S->font_not_found_p so that we can draw rectangles for the
-     characters of the glyph string.  */
-  if (s->font == NULL || glyph_not_available_p)
-    {
-      s->font_not_found_p = 1;
-      s->font = FRAME_FONT (s->f);
-    }
-
-  /* Adjust base line for subscript/superscript text.  */
-  s->ybase += voffset;
-
-  xassert (s->face && s->face->gc);
-  return glyph - s->row->glyphs[s->area];
-}
-
-
-/* Fill glyph string S from image glyph S->first_glyph.  */
-
-static void
-x_fill_image_glyph_string (s)
-     struct glyph_string *s;
-{
-  xassert (s->first_glyph->type == IMAGE_GLYPH);
-  s->img = IMAGE_FROM_ID (s->f, s->first_glyph->u.img_id);
-  xassert (s->img);
-  s->face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
-  s->font = s->face->font;
-  s->width = s->first_glyph->pixel_width;
-
-  /* Adjust base line for subscript/superscript text.  */
-  s->ybase += s->first_glyph->voffset;
-}
-
-
-/* Fill glyph string S from a sequence of stretch glyphs.
-
-   ROW is the glyph row in which the glyphs are found, AREA is the
-   area within the row.  START is the index of the first glyph to
-   consider, END is the index of the last + 1.
-
-   Value is the index of the first glyph not in S.  */
-
-static int
-x_fill_stretch_glyph_string (s, row, area, start, end)
-     struct glyph_string *s;
-     struct glyph_row *row;
-     enum glyph_row_area area;
-     int start, end;
-{
-  struct glyph *glyph, *last;
-  int voffset, face_id;
-
-  xassert (s->first_glyph->type == STRETCH_GLYPH);
-
-  glyph = s->row->glyphs[s->area] + start;
-  last = s->row->glyphs[s->area] + end;
-  face_id = glyph->face_id;
-  s->face = FACE_FROM_ID (s->f, face_id);
-  s->font = s->face->font;
-  s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
-  s->width = glyph->pixel_width;
-  voffset = glyph->voffset;
-
-  for (++glyph;
-       (glyph < last
-	&& glyph->type == STRETCH_GLYPH
-	&& glyph->voffset == voffset
-	&& glyph->face_id == face_id);
-       ++glyph)
-    s->width += glyph->pixel_width;
-
-  /* Adjust base line for subscript/superscript text.  */
-  s->ybase += voffset;
-
-  xassert (s->face);
-  return glyph - s->row->glyphs[s->area];
-}
-
-
-/* Initialize glyph string S.  CHAR2B is a suitably allocated vector
-   of XChar2b structures for S; it can't be allocated in
-   x_init_glyph_string because it must be allocated via `alloca'.  W
-   is the window on which S is drawn.  ROW and AREA are the glyph row
-   and area within the row from which S is constructed.  START is the
-   index of the first glyph structure covered by S.  HL is a
-   face-override for drawing S.  */
-
-static void
-x_init_glyph_string (s, char2b, w, row, area, start, hl)
-     struct glyph_string *s;
-     XChar2b *char2b;
-     struct window *w;
-     struct glyph_row *row;
-     enum glyph_row_area area;
-     int start;
-     enum draw_glyphs_face hl;
-{
-  bzero (s, sizeof *s);
-  s->w = w;
-  s->f = XFRAME (w->frame);
-  s->display = FRAME_MAC_DISPLAY (s->f);
-  s->window = FRAME_MAC_WINDOW (s->f);
-  s->char2b = char2b;
-  s->hl = hl;
-  s->row = row;
-  s->area = area;
-  s->first_glyph = row->glyphs[area] + start;
-  s->height = row->height;
-  s->y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
-
-  /* Display the internal border below the tool-bar window.  */
-  if (s->w == XWINDOW (s->f->tool_bar_window))
-    s->y -= s->f->output_data.mac->internal_border_width;
-
-  s->ybase = s->y + row->ascent;
-}
-
-
-/* Set background width of glyph string S.  START is the index of the
-   first glyph following S.  LAST_X is the right-most x-position + 1
-   in the drawing area.  */
-
-static INLINE void
-x_set_glyph_string_background_width (s, start, last_x)
-     struct glyph_string *s;
-     int start;
-     int last_x;
-{
-  /* If the face of this glyph string has to be drawn to the end of
-     the drawing area, set S->extends_to_end_of_line_p.  */
-  struct face *default_face = FACE_FROM_ID (s->f, DEFAULT_FACE_ID);
-
-  if (start == s->row->used[s->area]
-      && s->area == TEXT_AREA
-      && ((s->hl == DRAW_NORMAL_TEXT
-	   && (s->row->fill_line_p
-	       || s->face->background != default_face->background
-	       || s->face->stipple != default_face->stipple
-	       || s->row->mouse_face_p))
-	  || s->hl == DRAW_MOUSE_FACE
-	  || ((s->hl == DRAW_IMAGE_RAISED || s->hl == DRAW_IMAGE_SUNKEN)
-	      && s->row->fill_line_p)))
-    s->extends_to_end_of_line_p = 1;
-
-  /* If S extends its face to the end of the line, set its
-     background_width to the distance to the right edge of the drawing
-     area.  */
-  if (s->extends_to_end_of_line_p)
-    s->background_width = last_x - s->x + 1;
-  else
-    s->background_width = s->width;
-}
-
-
-/* Add a glyph string for a stretch glyph to the list of strings
-   between HEAD and TAIL.  START is the index of the stretch glyph in
-   row area AREA of glyph row ROW.  END is the index of the last glyph
-   in that glyph row area.  X is the current output position assigned
-   to the new glyph string constructed.  HL overrides that face of the
-   glyph; e.g. it is DRAW_CURSOR if a cursor has to be drawn.  LAST_X
-   is the right-most x-position of the drawing area.  */
-
-/* SunOS 4 bundled cc, barfed on continuations in the arg lists here
-   and below -- keep them on one line.  */
-#define BUILD_STRETCH_GLYPH_STRING(W, ROW, AREA, START, END, HEAD, TAIL, HL, X, LAST_X) \
-     do									    \
-       {								    \
-	 s = (struct glyph_string *) alloca (sizeof *s);		    \
-	 x_init_glyph_string (s, NULL, W, ROW, AREA, START, HL);	    \
-	 START = x_fill_stretch_glyph_string (s, ROW, AREA, START, END);    \
-	 x_append_glyph_string (&HEAD, &TAIL, s);			    \
-         s->x = (X);							    \
-       }								    \
-     while (0)
-
-
-/* Add a glyph string for an image glyph to the list of strings
-   between HEAD and TAIL.  START is the index of the image glyph in
-   row area AREA of glyph row ROW.  END is the index of the last glyph
-   in that glyph row area.  X is the current output position assigned
-   to the new glyph string constructed.  HL overrides that face of the
-   glyph; e.g. it is DRAW_CURSOR if a cursor has to be drawn.  LAST_X
-   is the right-most x-position of the drawing area.  */
-
-#define BUILD_IMAGE_GLYPH_STRING(W, ROW, AREA, START, END, HEAD, TAIL, HL, X, LAST_X) \
-     do									\
-       {								\
-	 s = (struct glyph_string *) alloca (sizeof *s);		\
-	 x_init_glyph_string (s, NULL, W, ROW, AREA, START, HL);        \
-	 x_fill_image_glyph_string (s);					\
-	 x_append_glyph_string (&HEAD, &TAIL, s);			\
-	 ++START;							\
-         s->x = (X);							\
-       }								\
-     while (0)
-
-
-/* Add a glyph string for a sequence of character glyphs to the list
-   of strings between HEAD and TAIL.  START is the index of the first
-   glyph in row area AREA of glyph row ROW that is part of the new
-   glyph string.  END is the index of the last glyph in that glyph row
-   area.  X is the current output position assigned to the new glyph
-   string constructed.  HL overrides that face of the glyph; e.g. it
-   is DRAW_CURSOR if a cursor has to be drawn.  LAST_X is the
-   right-most x-position of the drawing area.  */
-
-#define BUILD_CHAR_GLYPH_STRINGS(W, ROW, AREA, START, END, HEAD, TAIL, HL, X, LAST_X, OVERLAPS_P) \
-     do									   \
-       {								   \
-	 int c, face_id;						   \
-	 XChar2b *char2b;						   \
-									   \
-	 c = (ROW)->glyphs[AREA][START].u.ch;				   \
-	 face_id = (ROW)->glyphs[AREA][START].face_id;			   \
-									   \
-	 s = (struct glyph_string *) alloca (sizeof *s);		   \
-	 char2b = (XChar2b *) alloca ((END - START) * sizeof *char2b);	   \
-	 x_init_glyph_string (s, char2b, W, ROW, AREA, START, HL);	   \
-	 x_append_glyph_string (&HEAD, &TAIL, s);			   \
-	 s->x = (X);							   \
-	 START = x_fill_glyph_string (s, face_id, START, END,		   \
-                                          OVERLAPS_P);			   \
-       }								   \
-     while (0)
-
-
-/* Add a glyph string for a composite sequence to the list of strings
-   between HEAD and TAIL.  START is the index of the first glyph in
-   row area AREA of glyph row ROW that is part of the new glyph
-   string.  END is the index of the last glyph in that glyph row area.
-   X is the current output position assigned to the new glyph string
-   constructed.  HL overrides that face of the glyph; e.g. it is
-   DRAW_CURSOR if a cursor has to be drawn.  LAST_X is the right-most
-   x-position of the drawing area.  */
-
-#define BUILD_COMPOSITE_GLYPH_STRING(W, ROW, AREA, START, END, HEAD, TAIL, HL, X, LAST_X, OVERLAPS_P)	  \
-  do {									  \
-    int cmp_id = (ROW)->glyphs[AREA][START].u.cmp_id;			  \
-    int face_id = (ROW)->glyphs[AREA][START].face_id;			  \
-    struct face *base_face = FACE_FROM_ID (XFRAME (w->frame), face_id);	  \
-    struct composition *cmp = composition_table[cmp_id];		  \
-    int glyph_len = cmp->glyph_len;					  \
-    XChar2b *char2b;							  \
-    struct face **faces;						  \
-    struct glyph_string *first_s = NULL;				  \
-    int n;								  \
-    									  \
-    base_face = base_face->ascii_face;					  \
-    char2b = (XChar2b *) alloca ((sizeof *char2b) * glyph_len);		  \
-    faces = (struct face **) alloca ((sizeof *faces) * glyph_len);	  \
-    /* At first, fill in `char2b' and `faces'.  */			  \
-    for (n = 0; n < glyph_len; n++)					  \
-      {									  \
-	int c = COMPOSITION_GLYPH (cmp, n);				  \
-	int this_face_id = FACE_FOR_CHAR (XFRAME (w->frame), base_face, c); \
-	faces[n] = FACE_FROM_ID (XFRAME (w->frame), this_face_id);	  \
-	x_get_char_face_and_encoding (XFRAME (w->frame), c,		  \
-				      this_face_id, char2b + n, 1);	  \
-      }									  \
-    									  \
-    /* Make glyph_strings for each glyph sequence that is drawable by	  \
-       the same face, and append them to HEAD/TAIL.  */			  \
-    for (n = 0; n < cmp->glyph_len;)					  \
-      {									  \
-	s = (struct glyph_string *) alloca (sizeof *s);			  \
-	x_init_glyph_string (s, char2b + n, W, ROW, AREA, START, HL);	  \
-	x_append_glyph_string (&(HEAD), &(TAIL), s);			  \
-	s->cmp = cmp;							  \
-	s->gidx = n;							  \
-	s->x = (X);							  \
-									  \
-	if (n == 0)							  \
-	  first_s = s;							  \
-									  \
-	n = x_fill_composite_glyph_string (s, faces, OVERLAPS_P);	  \
-      }									  \
-    									  \
-    ++START;								  \
-    s = first_s;							  \
-  } while (0)
-
-
-/* Build a list of glyph strings between HEAD and TAIL for the glyphs
-   of AREA of glyph row ROW on window W between indices START and END.
-   HL overrides the face for drawing glyph strings, e.g. it is
-   DRAW_CURSOR to draw a cursor.  X and LAST_X are start and end
-   x-positions of the drawing area.
-
-   This is an ugly monster macro construct because we must use alloca
-   to allocate glyph strings (because x_draw_glyphs can be called
-   asynchronously).  */
-
-#define BUILD_GLYPH_STRINGS(W, ROW, AREA, START, END, HEAD, TAIL, HL, X, LAST_X, OVERLAPS_P) \
-     do									   \
-       {								   \
-	 HEAD = TAIL = NULL;						   \
-	 while (START < END)						   \
-	   {								   \
-             struct glyph *first_glyph = (ROW)->glyphs[AREA] + START;	   \
-             switch (first_glyph->type)					   \
-	       {							   \
-	       case CHAR_GLYPH:						   \
-                 BUILD_CHAR_GLYPH_STRINGS (W, ROW, AREA, START, END, HEAD, \
-		                           TAIL, HL, X, LAST_X,		   \
-                                           OVERLAPS_P);	                   \
-		 break;							   \
-									   \
-	       case COMPOSITE_GLYPH:					   \
-                 BUILD_COMPOSITE_GLYPH_STRING (W, ROW, AREA, START, END,   \
-						 HEAD, TAIL, HL, X, LAST_X,\
-						 OVERLAPS_P);		   \
-		 break;							   \
-									   \
-	       case STRETCH_GLYPH:					   \
-		 BUILD_STRETCH_GLYPH_STRING (W, ROW, AREA, START, END,	   \
-					     HEAD, TAIL, HL, X, LAST_X);   \
-		 break;							   \
-									   \
-	       case IMAGE_GLYPH:					   \
-		 BUILD_IMAGE_GLYPH_STRING (W, ROW, AREA, START, END, HEAD, \
-					   TAIL, HL, X, LAST_X);	   \
-		 break;							   \
-									   \
-	       default:							   \
-		 abort ();						   \
-	       }							   \
-									   \
-             x_set_glyph_string_background_width (s, START, LAST_X);	   \
-	     (X) += s->width;						   \
-            }								   \
-       }								   \
-     while (0)
-
-
-/* Draw glyphs between START and END in AREA of ROW on window W,
-   starting at x-position X.  X is relative to AREA in W.  HL is a
-   face-override with the following meaning:
-
-   DRAW_NORMAL_TEXT	draw normally
-   DRAW_CURSOR		draw in cursor face
-   DRAW_MOUSE_FACE	draw in mouse face.
-   DRAW_INVERSE_VIDEO	draw in mode line face
-   DRAW_IMAGE_SUNKEN	draw an image with a sunken relief around it
-   DRAW_IMAGE_RAISED	draw an image with a raised relief around it
-
-   If OVERLAPS_P is non-zero, draw only the foreground of characters
-   and clip to the physical height of ROW.
-
-   Value is the x-position reached, relative to AREA of W.  */
-
-static int
-x_draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
-     struct window *w;
-     int x;
-     struct glyph_row *row;
-     enum glyph_row_area area;
-     int start, end;
-     enum draw_glyphs_face hl;
-     int overlaps_p;
-{
-  struct glyph_string *head, *tail;
-  struct glyph_string *s;
-  int last_x, area_width;
-  int x_reached;
-  int i, j;
-
-  /* Let's rather be paranoid than getting a SEGV.  */
-  end = min (end, row->used[area]);
-  start = max (0, start);
-  start = min (end, start);
-
-  /* Translate X to frame coordinates.  Set last_x to the right
-     end of the drawing area.  */
-  if (row->full_width_p)
-    {
-      /* X is relative to the left edge of W, without scroll bars
-	 or fringes.  */
-      struct frame *f = XFRAME (WINDOW_FRAME (w));
-      int window_left_x = WINDOW_LEFT_MARGIN (w) * CANON_X_UNIT (f);
-
-      x += window_left_x;
-      area_width = XFASTINT (w->width) * CANON_X_UNIT (f);
-      last_x = window_left_x + area_width;
-
-      if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
-	{
-	  int width = FRAME_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f);
-	  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
-	    last_x += width;
-	  else
-	    x -= width;
-	}
-
-      x += FRAME_INTERNAL_BORDER_WIDTH (f);
-      last_x -= FRAME_INTERNAL_BORDER_WIDTH (f);
-    }
-  else
-    {
-      x = WINDOW_AREA_TO_FRAME_PIXEL_X (w, area, x);
-      area_width = window_box_width (w, area);
-      last_x = WINDOW_AREA_TO_FRAME_PIXEL_X (w, area, area_width);
-    }
-
-  /* Build a doubly-linked list of glyph_string structures between
-     head and tail from what we have to draw.  Note that the macro
-     BUILD_GLYPH_STRINGS will modify its start parameter.  That's
-     the reason we use a separate variable `i'.  */
-  i = start;
-  BUILD_GLYPH_STRINGS (w, row, area, i, end, head, tail, hl, x, last_x,
-                       overlaps_p);
-  if (tail)
-    x_reached = tail->x + tail->background_width;
-  else
-    x_reached = x;
-
-  /* If there are any glyphs with lbearing < 0 or rbearing > width in
-     the row, redraw some glyphs in front or following the glyph
-     strings built above.  */
-  if (head && !overlaps_p && row->contains_overlapping_glyphs_p)
-    {
-      int dummy_x = 0;
-      struct glyph_string *h, *t;
-
-      /* Compute overhangs for all glyph strings.  */
-      for (s = head; s; s = s->next)
-	x_compute_glyph_string_overhangs (s);
-
-      /* Prepend glyph strings for glyphs in front of the first glyph
-	 string that are overwritten because of the first glyph
-	 string's left overhang.  The background of all strings
-	 prepended must be drawn because the first glyph string
-	 draws over it.  */
-      i = x_left_overwritten (head);
-      if (i >= 0)
-	{
-	  j = i;
-	  BUILD_GLYPH_STRINGS (w, row, area, j, start, h, t,
-			       DRAW_NORMAL_TEXT, dummy_x, last_x,
-                               overlaps_p);
-	  start = i;
-	  x_compute_overhangs_and_x (t, head->x, 1);
-	  x_prepend_glyph_string_lists (&head, &tail, h, t);
-	}
-
-      /* Prepend glyph strings for glyphs in front of the first glyph
-	 string that overwrite that glyph string because of their
-	 right overhang.  For these strings, only the foreground must
-	 be drawn, because it draws over the glyph string at `head'.
-	 The background must not be drawn because this would overwrite
-	 right overhangs of preceding glyphs for which no glyph
-	 strings exist.  */
-      i = x_left_overwriting (head);
-      if (i >= 0)
-	{
-	  BUILD_GLYPH_STRINGS (w, row, area, i, start, h, t,
-			       DRAW_NORMAL_TEXT, dummy_x, last_x,
-                               overlaps_p);
-	  for (s = h; s; s = s->next)
-	    s->background_filled_p = 1;
-	  x_compute_overhangs_and_x (t, head->x, 1);
-	  x_prepend_glyph_string_lists (&head, &tail, h, t);
-	}
-
-      /* Append glyphs strings for glyphs following the last glyph
-	 string tail that are overwritten by tail.  The background of
-	 these strings has to be drawn because tail's foreground draws
-	 over it.  */
-      i = x_right_overwritten (tail);
-      if (i >= 0)
-	{
-	  BUILD_GLYPH_STRINGS (w, row, area, end, i, h, t,
-			       DRAW_NORMAL_TEXT, x, last_x,
-                               overlaps_p);
-	  x_compute_overhangs_and_x (h, tail->x + tail->width, 0);
-	  x_append_glyph_string_lists (&head, &tail, h, t);
-	}
-
-      /* Append glyph strings for glyphs following the last glyph
-	 string tail that overwrite tail.  The foreground of such
-	 glyphs has to be drawn because it writes into the background
-	 of tail.  The background must not be drawn because it could
-	 paint over the foreground of following glyphs.  */
-      i = x_right_overwriting (tail);
-      if (i >= 0)
-	{
-	  BUILD_GLYPH_STRINGS (w, row, area, end, i, h, t,
-			       DRAW_NORMAL_TEXT, x, last_x,
-                               overlaps_p);
-	  for (s = h; s; s = s->next)
-	    s->background_filled_p = 1;
-	  x_compute_overhangs_and_x (h, tail->x + tail->width, 0);
-	  x_append_glyph_string_lists (&head, &tail, h, t);
-	}
-    }
-
-  /* Draw all strings.  */
-  for (s = head; s; s = s->next)
-    x_draw_glyph_string (s);
-
-  if (area == TEXT_AREA
-      && !row->full_width_p
-      /* When drawing overlapping rows, only the glyph strings'
-	 foreground is drawn, which doesn't erase a cursor
-	 completely. */
-      && !overlaps_p)
-    {
-      int x0 = head ? head->x : x;
-      int x1 = tail ? tail->x + tail->background_width : x;
-
-      x0 = FRAME_TO_WINDOW_PIXEL_X (w, x0);
-      x1 = FRAME_TO_WINDOW_PIXEL_X (w, x1);
-
-      if (!row->full_width_p && XFASTINT (w->left_margin_width) != 0)
-	{
-	  int left_area_width = window_box_width (w, LEFT_MARGIN_AREA);
-	  x0 -= left_area_width;
-	  x1 -= left_area_width;
-	}
-
-      notice_overwritten_cursor (w, area, x0, x1,
-				 row->y, MATRIX_ROW_BOTTOM_Y (row));
-    }
-
-  /* Value is the x-position up to which drawn, relative to AREA of W.
-     This doesn't include parts drawn because of overhangs.  */
-  x_reached = FRAME_TO_WINDOW_PIXEL_X (w, x_reached);
-  if (!row->full_width_p)
-    {
-      if (area > LEFT_MARGIN_AREA)
-	x_reached -= window_box_width (w, LEFT_MARGIN_AREA);
-      if (area > TEXT_AREA)
-	x_reached -= window_box_width (w, TEXT_AREA);
-    }
-
-  return x_reached;
-}
-
-
-/* Fix the display of area AREA of overlapping row ROW in window W.  */
-
-static void
-x_fix_overlapping_area (w, row, area)
-     struct window *w;
-     struct glyph_row *row;
-     enum glyph_row_area area;
-{
-  int i, x;
-
-  BLOCK_INPUT;
-
-  if (area == LEFT_MARGIN_AREA)
-    x = 0;
-  else if (area == TEXT_AREA)
-    x = row->x + window_box_width (w, LEFT_MARGIN_AREA);
-  else
-    x = (window_box_width (w, LEFT_MARGIN_AREA)
-	 + window_box_width (w, TEXT_AREA));
-
-  for (i = 0; i < row->used[area];)
-    {
-      if (row->glyphs[area][i].overlaps_vertically_p)
-	{
-	  int start = i, start_x = x;
-
-	  do
-	    {
-	      x += row->glyphs[area][i].pixel_width;
-	      ++i;
-	    }
-	  while (i < row->used[area]
-		 && row->glyphs[area][i].overlaps_vertically_p);
-
-	  x_draw_glyphs (w, start_x, row, area, start, i,
-			 DRAW_NORMAL_TEXT, 1);
-	}
-      else
-	{
-	  x += row->glyphs[area][i].pixel_width;
-	  ++i;
-	}
-    }
-
-  UNBLOCK_INPUT;
-}
-
-
-/* Output LEN glyphs starting at START at the nominal cursor position.
-   Advance the nominal cursor over the text.  The global variable
-   updated_window contains the window being updated, updated_row is
-   the glyph row being updated, and updated_area is the area of that
-   row being updated.  */
-
-static void
-x_write_glyphs (start, len)
-     struct glyph *start;
-     int len;
-{
-  int x, hpos;
-
-  xassert (updated_window && updated_row);
-  BLOCK_INPUT;
-
-  /* Write glyphs.  */
-
-  hpos = start - updated_row->glyphs[updated_area];
-  x = x_draw_glyphs (updated_window, output_cursor.x,
-		     updated_row, updated_area,
-		     hpos, hpos + len,
-		     DRAW_NORMAL_TEXT, 0);
-
-  UNBLOCK_INPUT;
-
-  /* Advance the output cursor.  */
-  output_cursor.hpos += len;
-  output_cursor.x = x;
-}
-
-
-/* Insert LEN glyphs from START at the nominal cursor position.   */
-
-static void
-x_insert_glyphs (start, len)
-     struct glyph *start;
-     register int len;
-{
-  struct frame *f;
-  struct window *w;
-  int line_height, shift_by_width, shifted_region_width;
-  struct glyph_row *row;
-  struct glyph *glyph;
-  int frame_x, frame_y, hpos;
-
-  xassert (updated_window && updated_row);
-  BLOCK_INPUT;
-  w = updated_window;
-  f = XFRAME (WINDOW_FRAME (w));
-
-  /* Get the height of the line we are in.  */
-  row = updated_row;
-  line_height = row->height;
-
-  /* Get the width of the glyphs to insert.  */
-  shift_by_width = 0;
-  for (glyph = start; glyph < start + len; ++glyph)
-    shift_by_width += glyph->pixel_width;
-
-  /* Get the width of the region to shift right.  */
-  shifted_region_width = (window_box_width (w, updated_area)
-			  - output_cursor.x
-			  - shift_by_width);
-
-  /* Shift right.  */
-  frame_x = window_box_left (w, updated_area) + output_cursor.x;
-  frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, output_cursor.y);
-
-  mac_scroll_area (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-	         f->output_data.mac->normal_gc,
-	         frame_x, frame_y,
-	         shifted_region_width, line_height,
-	         frame_x + shift_by_width, frame_y);
-
-  /* Write the glyphs.  */
-  hpos = start - row->glyphs[updated_area];
-  x_draw_glyphs (w, output_cursor.x, row, updated_area, hpos, hpos + len,
-		 DRAW_NORMAL_TEXT, 0);
-
-  /* Advance the output cursor.  */
-  output_cursor.hpos += len;
-  output_cursor.x += shift_by_width;
-  UNBLOCK_INPUT;
-}
-
 
 /* Delete N glyphs at the nominal cursor position.  Not implemented
    for X frames.  */
@@ -5697,84 +3413,6 @@ x_delete_glyphs (n)
      register int n;
 {
   abort ();
-}
-
-
-/* Erase the current text line from the nominal cursor position
-   (inclusive) to pixel column TO_X (exclusive).  The idea is that
-   everything from TO_X onward is already erased.
-
-   TO_X is a pixel position relative to updated_area of
-   updated_window.  TO_X == -1 means clear to the end of this area.  */
-
-static void
-x_clear_end_of_line (to_x)
-     int to_x;
-{
-  struct frame *f;
-  struct window *w = updated_window;
-  int max_x, min_y, max_y;
-  int from_x, from_y, to_y;
-
-  xassert (updated_window && updated_row);
-  f = XFRAME (w->frame);
-
-  if (updated_row->full_width_p)
-    {
-      max_x = XFASTINT (w->width) * CANON_X_UNIT (f);
-      if (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
-	  && !w->pseudo_window_p)
-	max_x += FRAME_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f);
-    }
-  else
-    max_x = window_box_width (w, updated_area);
-  max_y = window_text_bottom_y (w);
-
-  /* TO_X == 0 means don't do anything.  TO_X < 0 means clear to end
-     of window.  For TO_X > 0, truncate to end of drawing area.  */
-  if (to_x == 0)
-    return;
-  else if (to_x < 0)
-    to_x = max_x;
-  else
-    to_x = min (to_x, max_x);
-
-  to_y = min (max_y, output_cursor.y + updated_row->height);
-
-  /* Notice if the cursor will be cleared by this operation.  */
-  if (!updated_row->full_width_p)
-    notice_overwritten_cursor (w, updated_area,
-			       output_cursor.x, -1,
-			       updated_row->y,
-			       MATRIX_ROW_BOTTOM_Y (updated_row));
-
-  from_x = output_cursor.x;
-
-  /* Translate to frame coordinates.  */
-  if (updated_row->full_width_p)
-    {
-      from_x = WINDOW_TO_FRAME_PIXEL_X (w, from_x);
-      to_x = WINDOW_TO_FRAME_PIXEL_X (w, to_x);
-    }
-  else
-    {
-      from_x = WINDOW_AREA_TO_FRAME_PIXEL_X (w, updated_area, from_x);
-      to_x = WINDOW_AREA_TO_FRAME_PIXEL_X (w, updated_area, to_x);
-    }
-
-  min_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
-  from_y = WINDOW_TO_FRAME_PIXEL_Y (w, max (min_y, output_cursor.y));
-  to_y = WINDOW_TO_FRAME_PIXEL_Y (w, to_y);
-
-  /* Prevent inadvertently clearing to end of the X window.  */
-  if (to_x > from_x && to_y > from_y)
-    {
-      BLOCK_INPUT;
-      XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		  from_x, from_y, to_x - from_x, to_y - from_y,
-		  0);
-      UNBLOCK_INPUT;
-    }
 }
 
 
@@ -5800,13 +3438,11 @@ x_clear_frame ()
   /* We don't set the output cursor here because there will always
      follow an explicit cursor_to.  */
   BLOCK_INPUT;
-  XClearWindow (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f));
+  mac_clear_window (f);
 
-#if 0  /* Clearing frame on Mac OS clears scroll bars.  */
   /* We have to clear the scroll bars, too.  If we have changed
      colors or something like that, then they should be notified.  */
   x_scroll_bar_clear (f);
-#endif
 
   XFlush (FRAME_MAC_DISPLAY (f));
   UNBLOCK_INPUT;
@@ -5820,6 +3456,7 @@ x_clear_frame ()
    sure it's available.  If it isn't, we just won't do visual bells.  */
 
 #if defined (HAVE_TIMEVAL) && defined (HAVE_SELECT)
+
 
 /* Subtract the `struct timeval' values X and Y, storing the result in
    *RESULT.  Return 1 if the difference is negative, otherwise 0.  */
@@ -5858,9 +3495,54 @@ void
 XTflash (f)
      struct frame *f;
 {
+  /* Get the height not including a menu bar widget.  */
+  int height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, FRAME_LINES (f));
+  /* Height of each line to flash.  */
+  int flash_height = FRAME_LINE_HEIGHT (f);
+  /* These will be the left and right margins of the rectangles.  */
+  int flash_left = FRAME_INTERNAL_BORDER_WIDTH (f);
+  int flash_right = FRAME_PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f);
+
+  int width;
+
+  /* Don't flash the area between a scroll bar and the frame
+     edge it is next to.  */
+  switch (FRAME_VERTICAL_SCROLL_BAR_TYPE (f))
+    {
+    case vertical_scroll_bar_left:
+      flash_left += VERTICAL_SCROLL_BAR_WIDTH_TRIM;
+      break;
+
+    case vertical_scroll_bar_right:
+      flash_right -= VERTICAL_SCROLL_BAR_WIDTH_TRIM;
+      break;
+
+    default:
+      break;
+    }
+
+  width = flash_right - flash_left;
+
   BLOCK_INPUT;
 
-  FlashMenuBar (0);
+  /* If window is tall, flash top and bottom line.  */
+  if (height > 3 * FRAME_LINE_HEIGHT (f))
+    {
+      mac_invert_rectangle (f, flash_left,
+			    (FRAME_INTERNAL_BORDER_WIDTH (f)
+			     + FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)),
+			    width, flash_height);
+      mac_invert_rectangle (f, flash_left,
+			    (height - flash_height
+			     - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			    width, flash_height);
+    }
+  else
+    /* If it is short, flash it all.  */
+    mac_invert_rectangle (f, flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+			  width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+
+  x_flush (f);
 
   {
     struct timeval wakeup;
@@ -5872,24 +3554,46 @@ XTflash (f)
     wakeup.tv_sec += (wakeup.tv_usec / 1000000);
     wakeup.tv_usec %= 1000000;
 
-    /* Keep waiting until past the time wakeup.  */
-    while (1)
+    /* Keep waiting until past the time wakeup or any input gets
+       available.  */
+    while (! detect_input_pending ())
       {
-        struct timeval timeout;
+	struct timeval current;
+	struct timeval timeout;
 
-        EMACS_GET_TIME (timeout);
+	EMACS_GET_TIME (current);
 
-        /* In effect, timeout = wakeup - timeout.
-           Break if result would be negative.  */
-        if (timeval_subtract (&timeout, wakeup, timeout))
-          break;
+	/* Break if result would be negative.  */
+	if (timeval_subtract (&current, wakeup, current))
+	  break;
 
-        /* Try to wait that long--but we might wake up sooner.  */
-        select (0, NULL, NULL, NULL, &timeout);
+	/* How long `select' should wait.  */
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 10000;
+
+	/* Try to wait that long--but we might wake up sooner.  */
+	select (0, NULL, NULL, NULL, &timeout);
       }
   }
 
-  FlashMenuBar (0);
+  /* If window is tall, flash top and bottom line.  */
+  if (height > 3 * FRAME_LINE_HEIGHT (f))
+    {
+      mac_invert_rectangle (f, flash_left,
+			    (FRAME_INTERNAL_BORDER_WIDTH (f)
+			     + FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)),
+			    width, flash_height);
+      mac_invert_rectangle (f, flash_left,
+			    (height - flash_height
+			     - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			    width, flash_height);
+    }
+  else
+    /* If it is short, flash it all.  */
+    mac_invert_rectangle (f, flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+			  width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+
+  x_flush (f);
 
   UNBLOCK_INPUT;
 }
@@ -5917,14 +3621,13 @@ XTring_bell ()
     }
 }
 
-
 
 /* Specify how many text lines, from the top of the window,
    should be affected by insert-lines and delete-lines operations.
    This, and those operations, are used only within an update
    that is bounded by calls to x_update_begin and x_update_end.  */
 
-void
+static void
 XTset_terminal_window (n)
      register int n;
 {
@@ -5960,10 +3663,8 @@ x_scroll_run (w, run)
 
   /* Get frame-relative bounding box of the text display area of W,
      without mode lines.  Include in this box the left and right
-     fringes of W.  */
+     fringe of W.  */
   window_box (w, -1, &x, &y, &width, &height);
-  width += FRAME_X_FRINGE_WIDTH (f);
-  x -= FRAME_X_LEFT_FRINGE_WIDTH (f);
 
   from_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->current_y);
   to_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->desired_y);
@@ -5994,11 +3695,10 @@ x_scroll_run (w, run)
   updated_window = w;
   x_clear_cursor (w);
 
-  mac_scroll_area (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-	         f->output_data.mac->normal_gc,
-	         x, from_y,
-	         width, height,
-	         x, to_y);
+  mac_scroll_area (f, f->output_data.mac->normal_gc,
+		   x, from_y,
+		   width, height,
+		   x, to_y);
 
   UNBLOCK_INPUT;
 }
@@ -6009,454 +3709,19 @@ x_scroll_run (w, run)
 			   Exposure Events
  ***********************************************************************/
 
-/* Redisplay an exposed area of frame F.  X and Y are the upper-left
-   corner of the exposed rectangle.  W and H are width and height of
-   the exposed area.  All are pixel values.  W or H zero means redraw
-   the entire frame.  */
-
-static void
-expose_frame (f, x, y, w, h)
-     struct frame *f;
-     int x, y, w, h;
-{
-  Rect r;
-  int mouse_face_overwritten_p = 0;
-
-  TRACE ((stderr, "expose_frame "));
-
-  /* No need to redraw if frame will be redrawn soon.  */
-  if (FRAME_GARBAGED_P (f))
-    {
-      TRACE ((stderr, " garbaged\n"));
-      return;
-    }
-
-  /* MAC_TODO: this is a kludge, but if scroll bars are not activated
-     or deactivated here, for unknown reasons, activated scroll bars
-     are shown in deactivated frames in some instances.  */
-  if (f == FRAME_MAC_DISPLAY_INFO (f)->x_focus_frame)
-    activate_scroll_bars (f);
-  else
-    deactivate_scroll_bars (f);
-
-  /* If basic faces haven't been realized yet, there is no point in
-     trying to redraw anything.  This can happen when we get an expose
-     event while Emacs is starting, e.g. by moving another window.  */
-  if (FRAME_FACE_CACHE (f) == NULL
-      || FRAME_FACE_CACHE (f)->used < BASIC_FACE_ID_SENTINEL)
-    {
-      TRACE ((stderr, " no faces\n"));
-      return;
-    }
-
-  if (w == 0 || h == 0)
-    {
-      r.left = r.top = 0;
-      r.right = CANON_X_UNIT (f) * f->width;
-      r.bottom = CANON_Y_UNIT (f) * f->height;
-    }
-  else
-    {
-      r.left = x;
-      r.top = y;
-      r.right = x + w;
-      r.bottom = y + h;
-    }
-
-  TRACE ((stderr, "(%d, %d, %d, %d)\n", r.left, r.top, r.right, r.bottom));
-  mouse_face_overwritten_p = expose_window_tree (XWINDOW (f->root_window), &r);
-
-  if (WINDOWP (f->tool_bar_window))
-    mouse_face_overwritten_p
-      |= expose_window (XWINDOW (f->tool_bar_window), &r);
-
-  /* Some window managers support a focus-follows-mouse style with
-     delayed raising of frames.  Imagine a partially obscured frame,
-     and moving the mouse into partially obscured mouse-face on that
-     frame.  The visible part of the mouse-face will be highlighted,
-     then the WM raises the obscured frame.  With at least one WM, KDE
-     2.1, Emacs is not getting any event for the raising of the frame
-     (even tried with SubstructureRedirectMask), only Expose events.
-     These expose events will draw text normally, i.e. not
-     highlighted.  Which means we must redo the highlight here.
-     Subsume it under ``we love X''.  --gerd 2001-08-15  */
-  /* Included in Windows version because Windows most likely does not
-     do the right thing if any third party tool offers
-     focus-follows-mouse with delayed raise.  --jason 2001-10-12  */
-  if (mouse_face_overwritten_p && !FRAME_GARBAGED_P (f))
-    {
-      struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-      if (f == dpyinfo->mouse_face_mouse_frame)
-	{
-	  int x = dpyinfo->mouse_face_mouse_x;
-	  int y = dpyinfo->mouse_face_mouse_y;
-	  clear_mouse_face (dpyinfo);
-	  note_mouse_highlight (f, x, y);
-	}
-    }
-}
-
-
-/* Redraw (parts) of all windows in the window tree rooted at W that
-   intersect R.  R contains frame pixel coordinates.  */
-
-static int
-expose_window_tree (w, r)
-     struct window *w;
-     Rect *r;
-{
-  struct frame *f = XFRAME (w->frame);
-  int mouse_face_overwritten_p = 0;
-
-  while (w && !FRAME_GARBAGED_P (f))
-    {
-      if (!NILP (w->hchild))
-	mouse_face_overwritten_p
-	  |= expose_window_tree (XWINDOW (w->hchild), r);
-      else if (!NILP (w->vchild))
-	mouse_face_overwritten_p
-	  |= expose_window_tree (XWINDOW (w->vchild), r);
-      else
-	mouse_face_overwritten_p |= expose_window (w, r);
-
-      w = NILP (w->next) ? NULL : XWINDOW (w->next);
-    }
-
-  return mouse_face_overwritten_p;
-}
-
-
-/* Redraw the part of glyph row area AREA of glyph row ROW on window W
-   which intersects rectangle R.  R is in window-relative coordinates.  */
-
-static void
-expose_area (w, row, r, area)
-     struct window *w;
-     struct glyph_row *row;
-     Rect *r;
-     enum glyph_row_area area;
-{
-  struct glyph *first = row->glyphs[area];
-  struct glyph *end = row->glyphs[area] + row->used[area];
-  struct glyph *last;
-  int first_x, start_x, x;
-
-  if (area == TEXT_AREA && row->fill_line_p)
-    /* If row extends face to end of line write the whole line.  */
-    x_draw_glyphs (w, 0, row, area,
-		   0, row->used[area],
-		   DRAW_NORMAL_TEXT, 0);
-  else
-    {
-      /* Set START_X to the window-relative start position for drawing glyphs of
-	 AREA.  The first glyph of the text area can be partially visible.
-	 The first glyphs of other areas cannot.  */
-      if (area == LEFT_MARGIN_AREA)
-	start_x = 0;
-      else if (area == TEXT_AREA)
-	start_x = row->x + window_box_width (w, LEFT_MARGIN_AREA);
-      else
-	start_x = (window_box_width (w, LEFT_MARGIN_AREA)
-		   + window_box_width (w, TEXT_AREA));
-      x = start_x;
-
-      /* Find the first glyph that must be redrawn.  */
-      while (first < end
-             && x + first->pixel_width < r->left)
-        {
-          x += first->pixel_width;
-          ++first;
-        }
-
-      /* Find the last one.  */
-      last = first;
-      first_x = x;
-      while (last < end
-             && x < r->right)
-        {
-          x += last->pixel_width;
-          ++last;
-        }
-
-      /* Repaint.  */
-      if (last > first)
-        x_draw_glyphs (w, first_x - start_x, row, area,
-                       first - row->glyphs[area],
-                       last - row->glyphs[area],
-                       DRAW_NORMAL_TEXT, 0);
-    }
-}
-
-
-/* Redraw the parts of the glyph row ROW on window W intersecting
-   rectangle R.  R is in window-relative coordinates.  Value is
-   non-zero if mouse face was overwritten.  */
-
-static int
-expose_line (w, row, r)
-     struct window *w;
-     struct glyph_row *row;
-     Rect *r;
-{
-  xassert (row->enabled_p);
-
-  if (row->mode_line_p || w->pseudo_window_p)
-    x_draw_glyphs (w, 0, row, TEXT_AREA, 0, row->used[TEXT_AREA],
-		   DRAW_NORMAL_TEXT, 0);
-  else
-    {
-      if (row->used[LEFT_MARGIN_AREA])
-	expose_area (w, row, r, LEFT_MARGIN_AREA);
-      if (row->used[TEXT_AREA])
-	expose_area (w, row, r, TEXT_AREA);
-      if (row->used[RIGHT_MARGIN_AREA])
-	expose_area (w, row, r, RIGHT_MARGIN_AREA);
-      x_draw_row_fringe_bitmaps (w, row);
-    }
-
-  return row->mouse_face_p;
-}
-
-
-/* Return non-zero if W's cursor intersects rectangle R.  */
-
-static int
-x_phys_cursor_in_rect_p (w, r)
-     struct window *w;
-     Rect *r;
-{
-  Rect cr, result;
-  struct glyph *cursor_glyph;
-
-  cursor_glyph = get_phys_cursor_glyph (w);
-  if (cursor_glyph)
-    {
-      cr.left = w->phys_cursor.x;
-      cr.top = w->phys_cursor.y;
-      cr.right = cr.left + cursor_glyph->pixel_width;
-      cr.bottom = cr.top + w->phys_cursor_height;
-      return x_intersect_rectangles (&cr, r, &result);
-    }
-  else
-    return 0;
-}
-
-
-/* Redraw those parts of glyphs rows during expose event handling that
-   overlap other rows.  Redrawing of an exposed line writes over parts
-   of lines overlapping that exposed line; this function fixes that.
-
-   W is the window being exposed.  FIRST_OVERLAPPING_ROW is the first
-   row in W's current matrix that is exposed and overlaps other rows.
-   LAST_OVERLAPPING_ROW is the last such row.  */
-
-static void
-expose_overlaps (w, first_overlapping_row, last_overlapping_row)
-     struct window *w;
-     struct glyph_row *first_overlapping_row;
-     struct glyph_row *last_overlapping_row;
-{
-  struct glyph_row *row;
-
-  for (row = first_overlapping_row; row <= last_overlapping_row; ++row)
-    if (row->overlapping_p)
-      {
-	xassert (row->enabled_p && !row->mode_line_p);
-
-	if (row->used[LEFT_MARGIN_AREA])
-	  x_fix_overlapping_area (w, row, LEFT_MARGIN_AREA);
-
-	if (row->used[TEXT_AREA])
-	  x_fix_overlapping_area (w, row, TEXT_AREA);
-
-	if (row->used[RIGHT_MARGIN_AREA])
-	  x_fix_overlapping_area (w, row, RIGHT_MARGIN_AREA);
-      }
-}
-
-
-/* Redraw the part of window W intersection rectangle FR.  Pixel
-   coordinates in FR are frame-relative.  Call this function with
-   input blocked.  Value is non-zero if the exposure overwrites
-   mouse-face.  */
-
-static int
-expose_window (w, fr)
-     struct window *w;
-     Rect *fr;
-{
-  struct frame *f = XFRAME (w->frame);
-  Rect wr, r;
-  int mouse_face_overwritten_p = 0;
-
-  /* If window is not yet fully initialized, do nothing.  This can
-     happen when toolkit scroll bars are used and a window is split.
-     Reconfiguring the scroll bar will generate an expose for a newly
-     created window.  */
-  if (w->current_matrix == NULL)
-    return 0;
-
-  /* When we're currently updating the window, display and current
-     matrix usually don't agree.  Arrange for a thorough display
-     later.  */
-  if (w == updated_window)
-    {
-      SET_FRAME_GARBAGED (f);
-      return 0;
-    }
-
-  /* Frame-relative pixel rectangle of W.  */
-  wr.left = XFASTINT (w->left) * CANON_X_UNIT (f);
-  wr.top = XFASTINT (w->top) * CANON_Y_UNIT (f);
-  wr.right = wr.left + XFASTINT (w->width) * CANON_X_UNIT (f);
-  wr.bottom = wr.top + XFASTINT (w->height) * CANON_Y_UNIT (f);
-
-  if (x_intersect_rectangles (fr, &wr, &r))
-    {
-      int yb = window_text_bottom_y (w);
-      struct glyph_row *row;
-      int cursor_cleared_p;
-      struct glyph_row *first_overlapping_row, *last_overlapping_row;
-
-      TRACE ((stderr, "expose_window (%d, %d, %d, %d)\n",
-	      r.left, r.top, r.right, r.bottom));
-
-      /* Convert to window coordinates.  */
-      r.left = FRAME_TO_WINDOW_PIXEL_X (w, r.left);
-      r.right = FRAME_TO_WINDOW_PIXEL_X (w, r.right);
-      r.top = FRAME_TO_WINDOW_PIXEL_Y (w, r.top);
-      r.bottom = FRAME_TO_WINDOW_PIXEL_Y (w, r.bottom);
-
-      /* Turn off the cursor.  */
-      if (!w->pseudo_window_p
-	  && x_phys_cursor_in_rect_p (w, &r))
-	{
-	  x_clear_cursor (w);
-	  cursor_cleared_p = 1;
-	}
-      else
-	cursor_cleared_p = 0;
-
-      /* Update lines intersecting rectangle R.  */
-      first_overlapping_row = last_overlapping_row = NULL;
-      for (row = w->current_matrix->rows;
-	   row->enabled_p;
-	   ++row)
-	{
-	  int y0 = row->y;
-	  int y1 = MATRIX_ROW_BOTTOM_Y (row);
-
-	  if ((y0 >= r.top && y0 < r.bottom)
-	      || (y1 > r.top && y1 < r.bottom)
-	      || (r.top >= y0 && r.top < y1)
-	      || (r.bottom > y0 && r.bottom < y1))
-	    {
-	      if (row->overlapping_p)
-		{
-		  if (first_overlapping_row == NULL)
-		    first_overlapping_row = row;
-		  last_overlapping_row = row;
-		}
-
-	      if (expose_line (w, row, &r))
-		mouse_face_overwritten_p = 1;
-	    }
-
-	  if (y1 >= yb)
-	    break;
-	}
-
-      /* Display the mode line if there is one.  */
-      if (WINDOW_WANTS_MODELINE_P (w)
-	  && (row = MATRIX_MODE_LINE_ROW (w->current_matrix),
-	      row->enabled_p)
-	  && row->y < r.bottom)
-	{
-	  if (expose_line (w, row, &r))
-	    mouse_face_overwritten_p = 1;
-	}
-
-      if (!w->pseudo_window_p)
-	{
-	  /* Fix the display of overlapping rows.  */
-	  if (first_overlapping_row)
-	    expose_overlaps (w, first_overlapping_row, last_overlapping_row);
-
-	  /* Draw border between windows.  */
-	  x_draw_vertical_border (w);
-
-	  /* Turn the cursor on again.  */
-	  if (cursor_cleared_p)
-	    x_update_window_cursor (w, 1);
-	}
-    }
-
-  /* Display scroll bar for this window.  */
-  if (!NILP (w->vertical_scroll_bar))
-    {
-      ControlHandle ch
-	= SCROLL_BAR_CONTROL_HANDLE (XSCROLL_BAR (w->vertical_scroll_bar));
-
-      Draw1Control (ch);
-    }
-
-  return mouse_face_overwritten_p;
-}
-
-static int
-x_intersect_rectangles (r1, r2, result)
-     Rect *r1, *r2, *result;
-{
-  Rect *left, *right;
-  Rect *upper, *lower;
-  int intersection_p = 0;
-
-  /* Rerrange so that R1 is the left-most rectangle.  */
-  if (r1->left < r2->left)
-    left = r1, right = r2;
-  else
-    left = r2, right = r1;
-
-  /* X0 of the intersection is right.x0, if this is inside R1,
-     otherwise there is no intersection.  */
-  if (right->left <= left->right)
-    {
-      result->left = right->left;
-
-      /* The right end of the intersection is the minimum of the
-	 the right ends of left and right.  */
-      result->right = min (left->right, right->right);
-
-      /* Same game for Y.  */
-      if (r1->top < r2->top)
-	upper = r1, lower = r2;
-      else
-	upper = r2, lower = r1;
-
-      /* The upper end of the intersection is lower.y0, if this is inside
-	 of upper.  Otherwise, there is no intersection.  */
-      if (lower->top <= upper->bottom)
-	{
-	  result->top = lower->top;
-
-	  /* The lower end of the intersection is the minimum of the lower
-	     ends of upper and lower.  */
-	  result->bottom = min (lower->bottom, upper->bottom);
-	  intersection_p = 1;
-	}
-    }
-
-  return intersection_p;
-}
-
-
-
-
 
 static void
 frame_highlight (f)
      struct frame *f;
 {
+  OSErr err;
+  ControlRef root_control;
+
+  BLOCK_INPUT;
+  err = GetRootControl (FRAME_MAC_WINDOW (f), &root_control);
+  if (err == noErr)
+    ActivateControl (root_control);
+  UNBLOCK_INPUT;
   x_update_cursor (f, 1);
 }
 
@@ -6464,6 +3729,14 @@ static void
 frame_unhighlight (f)
      struct frame *f;
 {
+  OSErr err;
+  ControlRef root_control;
+
+  BLOCK_INPUT;
+  err = GetRootControl (FRAME_MAC_WINDOW (f), &root_control);
+  if (err == noErr)
+    DeactivateControl (root_control);
+  UNBLOCK_INPUT;
   x_update_cursor (f, 1);
 }
 
@@ -6493,7 +3766,7 @@ x_new_focus_frame (dpyinfo, frame)
       selected_frame = frame;
       XSETFRAME (XWINDOW (selected_frame->selected_window)->frame,
 		 selected_frame);
-      Fselect_window (selected_frame->selected_window);
+      Fselect_window (selected_frame->selected_window, Qnil);
       choose_minibuf_frame ();
 #endif /* ! 0 */
 
@@ -6505,6 +3778,68 @@ x_new_focus_frame (dpyinfo, frame)
 
   x_frame_rehighlight (dpyinfo);
 }
+
+/* Handle FocusIn and FocusOut state changes for FRAME.
+   If FRAME has focus and there exists more than one frame, puts
+   a FOCUS_IN_EVENT into *BUFP.  */
+
+static void
+mac_focus_changed (type, dpyinfo, frame, bufp)
+     int type;
+     struct mac_display_info *dpyinfo;
+     struct frame *frame;
+     struct input_event *bufp;
+{
+  if (type == activeFlag)
+    {
+      if (dpyinfo->x_focus_event_frame != frame)
+        {
+          x_new_focus_frame (dpyinfo, frame);
+          dpyinfo->x_focus_event_frame = frame;
+
+          /* Don't stop displaying the initial startup message
+             for a switch-frame event we don't need.  */
+          if (GC_NILP (Vterminal_frame)
+              && GC_CONSP (Vframe_list)
+              && !GC_NILP (XCDR (Vframe_list)))
+            {
+              bufp->kind = FOCUS_IN_EVENT;
+              XSETFRAME (bufp->frame_or_window, frame);
+            }
+        }
+    }
+  else
+    {
+      if (dpyinfo->x_focus_event_frame == frame)
+        {
+          dpyinfo->x_focus_event_frame = 0;
+          x_new_focus_frame (dpyinfo, 0);
+        }
+    }
+}
+
+/* The focus may have changed.  Figure out if it is a real focus change,
+   by checking both FocusIn/Out and Enter/LeaveNotify events.
+
+   Returns FOCUS_IN_EVENT event in *BUFP. */
+
+static void
+x_detect_focus_change (dpyinfo, event, bufp)
+     struct mac_display_info *dpyinfo;
+     EventRecord *event;
+     struct input_event *bufp;
+{
+  struct frame *frame;
+
+  frame = mac_window_to_frame ((WindowPtr) event->message);
+  if (! frame)
+    return;
+
+  /* On Mac, this is only called from focus events, so no switch needed.  */
+  mac_focus_changed ((event->modifiers & activeFlag),
+		     dpyinfo, frame, bufp);
+}
+
 
 /* Handle an event saying the mouse has moved out of an Emacs frame.  */
 
@@ -6719,146 +4054,6 @@ x_get_keysym_name (keysym)
 
 
 
-/* Mouse clicks and mouse movement.  Rah.  */
-
-/* Given a pixel position (PIX_X, PIX_Y) on frame F, return glyph
-   co-ordinates in (*X, *Y).  Set *BOUNDS to the rectangle that the
-   glyph at X, Y occupies, if BOUNDS != 0.  If NOCLIP is non-zero, do
-   not force the value into range.  */
-
-void
-pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
-     FRAME_PTR f;
-     register int pix_x, pix_y;
-     register int *x, *y;
-     Rect *bounds;
-     int noclip;
-{
-  /* Support tty mode: if Vwindow_system is nil, behave correctly. */
-  if (NILP (Vwindow_system))
-    {
-      *x = pix_x;
-      *y = pix_y;
-      return;
-    }
-
-  /* Arrange for the division in PIXEL_TO_CHAR_COL etc. to round down
-     even for negative values.  */
-  if (pix_x < 0)
-    pix_x -= FONT_WIDTH (FRAME_FONT (f)) - 1;
-  if (pix_y < 0)
-    pix_y -= (f)->output_data.mac->line_height - 1;
-
-  pix_x = PIXEL_TO_CHAR_COL (f, pix_x);
-  pix_y = PIXEL_TO_CHAR_ROW (f, pix_y);
-
-  if (bounds)
-    {
-      bounds->left = CHAR_TO_PIXEL_COL (f, pix_x);
-      bounds->top = CHAR_TO_PIXEL_ROW (f, pix_y);
-      bounds->right  = bounds->left + FONT_WIDTH  (FRAME_FONT (f)) - 1;
-      bounds->bottom = bounds->top + f->output_data.mac->line_height - 1;
-    }
-
-  if (!noclip)
-    {
-      if (pix_x < 0)
-	pix_x = 0;
-      else if (pix_x > FRAME_WINDOW_WIDTH (f))
-	pix_x = FRAME_WINDOW_WIDTH (f);
-
-      if (pix_y < 0)
-	pix_y = 0;
-      else if (pix_y > f->height)
-	pix_y = f->height;
-    }
-
-  *x = pix_x;
-  *y = pix_y;
-}
-
-
-/* Given HPOS/VPOS in the current matrix of W, return corresponding
-   frame-relative pixel positions in *FRAME_X and *FRAME_Y.  If we
-   can't tell the positions because W's display is not up to date,
-   return 0.  */
-
-int
-glyph_to_pixel_coords (w, hpos, vpos, frame_x, frame_y)
-     struct window *w;
-     int hpos, vpos;
-     int *frame_x, *frame_y;
-{
-  int success_p;
-
-  xassert (hpos >= 0 && hpos < w->current_matrix->matrix_w);
-  xassert (vpos >= 0 && vpos < w->current_matrix->matrix_h);
-
-  if (display_completed)
-    {
-      struct glyph_row *row = MATRIX_ROW (w->current_matrix, vpos);
-      struct glyph *glyph = row->glyphs[TEXT_AREA];
-      struct glyph *end = glyph + min (hpos, row->used[TEXT_AREA]);
-
-      *frame_y = row->y;
-      *frame_x = row->x;
-      while (glyph < end)
-	{
-	  *frame_x += glyph->pixel_width;
-	  ++glyph;
-	}
-
-      success_p = 1;
-    }
-  else
-    {
-      *frame_y = *frame_x = 0;
-      success_p = 0;
-    }
-
-  *frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, *frame_y);
-  *frame_x = WINDOW_TO_FRAME_PIXEL_X (w, *frame_x);
-  return success_p;
-}
-
-
-/* Prepare a mouse-event in *RESULT for placement in the input queue.
-
-   If the event is a button press, then note that we have grabbed
-   the mouse.  */
-
-static Lisp_Object
-construct_mouse_click (result, event, f)
-     struct input_event *result;
-     EventRecord *event;
-     struct frame *f;
-{
-  Point mouseLoc;
-
-  result->kind = MOUSE_CLICK_EVENT;
-  result->code = 0;  /* only one mouse button */
-  result->timestamp = event->when;
-  result->modifiers = event->what == mouseDown ? down_modifier : up_modifier;
-
-  mouseLoc = event->where;
-
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (FRAME_MAC_WINDOW (f)));
-#else
-  SetPort (FRAME_MAC_WINDOW (f));
-#endif
-
-  GlobalToLocal (&mouseLoc);
-  XSETINT (result->x, mouseLoc.h);
-  XSETINT (result->y, mouseLoc.v);
-
-  XSETFRAME (result->frame_or_window, f);
-
-  result->arg = Qnil;
-  return Qnil;
-}
-
-
 /* Function to report a mouse movement to the mainstream Emacs code.
    The input handler calls this.
 
@@ -6870,11 +4065,12 @@ construct_mouse_click (result, event, f)
 static Point last_mouse_motion_position;
 static Lisp_Object last_mouse_motion_frame;
 
-static void
+static int
 note_mouse_movement (frame, pos)
      FRAME_PTR frame;
      Point *pos;
 {
+  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (frame);
 #if TARGET_API_MAC_CARBON
   Rect r;
 #endif
@@ -6889,658 +4085,41 @@ note_mouse_movement (frame, pos)
   if (!PtInRect (*pos, &FRAME_MAC_WINDOW (frame)->portRect))
 #endif
     {
-      frame->mouse_moved = 1;
-      last_mouse_scroll_bar = Qnil;
-      note_mouse_highlight (frame, -1, -1);
+      if (frame == dpyinfo->mouse_face_mouse_frame)
+	/* This case corresponds to LeaveNotify in X11.  */
+	{
+	  /* If we move outside the frame, then we're certainly no
+	     longer on any text in the frame.  */
+	  clear_mouse_face (dpyinfo);
+	  dpyinfo->mouse_face_mouse_frame = 0;
+	  if (!dpyinfo->grabbed)
+	    rif->define_frame_cursor (frame,
+				      frame->output_data.mac->nontext_cursor);
+	}
+      return 1;
     }
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  else if (pos->h < last_mouse_glyph.left
-	   || pos->h >= last_mouse_glyph.right
-	   || pos->v < last_mouse_glyph.top
-	   || pos->v >= last_mouse_glyph.bottom)
+  if (frame != last_mouse_glyph_frame
+      || !PtInRect (*pos, &last_mouse_glyph))
     {
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
       note_mouse_highlight (frame, pos->h, pos->v);
+      /* Remember which glyph we're now on.  */
+      remember_mouse_glyph (frame, pos->h, pos->v, &last_mouse_glyph);
+      last_mouse_glyph_frame = frame;
+      return 1;
     }
+
+  return 0;
 }
-
-/* This is used for debugging, to turn off note_mouse_highlight.  */
-
-int disable_mouse_highlight;
-
 
 
 /************************************************************************
 			      Mouse Face
  ************************************************************************/
 
-/* Find the glyph under window-relative coordinates X/Y in window W.
-   Consider only glyphs from buffer text, i.e. no glyphs from overlay
-   strings.  Return in *HPOS and *VPOS the row and column number of
-   the glyph found.  Return in *AREA the glyph area containing X.
-   Value is a pointer to the glyph found or null if X/Y is not on
-   text, or we can't tell because W's current matrix is not up to
-   date.  */
-
-static struct glyph *
-x_y_to_hpos_vpos (w, x, y, hpos, vpos, area, buffer_only_p)
-     struct window *w;
-     int x, y;
-     int *hpos, *vpos, *area;
-     int buffer_only_p;
-{
-  struct glyph *glyph, *end;
-  struct glyph_row *row = NULL;
-  int x0, i, left_area_width;
-
-  /* Find row containing Y.  Give up if some row is not enabled.  */
-  for (i = 0; i < w->current_matrix->nrows; ++i)
-    {
-      row = MATRIX_ROW (w->current_matrix, i);
-      if (!row->enabled_p)
-	return NULL;
-      if (y >= row->y && y < MATRIX_ROW_BOTTOM_Y (row))
-	break;
-    }
-
-  *vpos = i;
-  *hpos = 0;
-
-  /* Give up if Y is not in the window.  */
-  if (i == w->current_matrix->nrows)
-    return NULL;
-
-  /* Get the glyph area containing X.  */
-  if (w->pseudo_window_p)
-    {
-      *area = TEXT_AREA;
-      x0 = 0;
-    }
-  else
-    {
-      left_area_width = window_box_width (w, LEFT_MARGIN_AREA);
-      if (x < left_area_width)
-	{
-	  *area = LEFT_MARGIN_AREA;
-	  x0 = 0;
-	}
-      else if (x < left_area_width + window_box_width (w, TEXT_AREA))
-	{
-	  *area = TEXT_AREA;
-	  x0 = row->x + left_area_width;
-	}
-      else
-	{
-	  *area = RIGHT_MARGIN_AREA;
-	  x0 = left_area_width + window_box_width (w, TEXT_AREA);
-	}
-    }
-
-  /* Find glyph containing X.  */
-  glyph = row->glyphs[*area];
-  end = glyph + row->used[*area];
-  while (glyph < end)
-    {
-      if (x < x0 + glyph->pixel_width)
-	{
-	  if (w->pseudo_window_p)
-	    break;
-	  else if (!buffer_only_p || BUFFERP (glyph->object))
-	    break;
-	}
-
-      x0 += glyph->pixel_width;
-      ++glyph;
-    }
-
-  if (glyph == end)
-    return NULL;
-
-  *hpos = glyph - row->glyphs[*area];
-  return glyph;
-}
-
-
-/* Convert frame-relative x/y to coordinates relative to window W.
-   Takes pseudo-windows into account.  */
-
-static void
-frame_to_window_pixel_xy (w, x, y)
-     struct window *w;
-     int *x, *y;
-{
-  if (w->pseudo_window_p)
-    {
-      /* A pseudo-window is always full-width, and starts at the
-	 left edge of the frame, plus a frame border.  */
-      struct frame *f = XFRAME (w->frame);
-      *x -= FRAME_INTERNAL_BORDER_WIDTH_SAFE (f);
-      *y = FRAME_TO_WINDOW_PIXEL_Y (w, *y);
-    }
-  else
-    {
-      *x = FRAME_TO_WINDOW_PIXEL_X (w, *x);
-      *y = FRAME_TO_WINDOW_PIXEL_Y (w, *y);
-    }
-}
-
-
-/* Take proper action when mouse has moved to the mode or header line of
-   window W, x-position X.  MODE_LINE_P non-zero means mouse is on the
-   mode line.  X is relative to the start of the text display area of
-   W, so the width of fringes and scroll bars must be subtracted
-   to get a position relative to the start of the mode line.  */
-
-static void
-note_mode_line_highlight (w, x, mode_line_p)
-     struct window *w;
-     int x, mode_line_p;
-{
-  struct frame *f = XFRAME (w->frame);
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-  struct Cursor *cursor = dpyinfo->vertical_scroll_bar_cursor;
-  struct glyph_row *row;
-
-  if (mode_line_p)
-    row = MATRIX_MODE_LINE_ROW (w->current_matrix);
-  else
-    row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
-
-  if (row->enabled_p)
-    {
-      struct glyph *glyph, *end;
-      Lisp_Object help, map;
-      int x0;
-
-      /* Find the glyph under X.  */
-      glyph = row->glyphs[TEXT_AREA];
-      end = glyph + row->used[TEXT_AREA];
-      x0 = - (FRAME_LEFT_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f)
-	      + FRAME_X_LEFT_FRINGE_WIDTH (f));
-
-      while (glyph < end
-	     && x >= x0 + glyph->pixel_width)
-	{
-	  x0 += glyph->pixel_width;
-	  ++glyph;
-	}
-
-      if (glyph < end
-	  && STRINGP (glyph->object)
-	  && STRING_INTERVALS (glyph->object)
-	  && glyph->charpos >= 0
-	  && glyph->charpos < SCHARS (glyph->object))
-	{
-	  /* If we're on a string with `help-echo' text property,
-	     arrange for the help to be displayed.  This is done by
-	     setting the global variable help_echo to the help string.  */
-	  help = Fget_text_property (make_number (glyph->charpos),
-				     Qhelp_echo, glyph->object);
-	  if (!NILP (help))
-            {
-              help_echo = help;
-              XSETWINDOW (help_echo_window, w);
-              help_echo_object = glyph->object;
-              help_echo_pos = glyph->charpos;
-            }
-
-	  /* Change the mouse pointer according to what is under X/Y.  */
-	  map = Fget_text_property (make_number (glyph->charpos),
-				    Qlocal_map, glyph->object);
-	  if (KEYMAPP (map))
-	    cursor = f->output_data.mac->nontext_cursor;
-	  else
-	    {
-	      map = Fget_text_property (make_number (glyph->charpos),
-					Qkeymap, glyph->object);
-	      if (KEYMAPP (map))
-		cursor = f->output_data.mac->nontext_cursor;
-	    }
-	}
-    }
-
-#if 0 /* MAC_TODO: mouse cursor */
-  XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), cursor);
-#endif
-}
-
-
-/* Take proper action when the mouse has moved to position X, Y on
-   frame F as regards highlighting characters that have mouse-face
-   properties.  Also de-highlighting chars where the mouse was before.
-   X and Y can be negative or out of range.  */
-
-static void
-note_mouse_highlight (f, x, y)
-     struct frame *f;
-     int x, y;
-{
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-  int portion;
-  Lisp_Object window;
-  struct window *w;
-  struct buffer *b;
-
-#if 0
-  /* When a menu is active, don't highlight because this looks odd. */
-  if (popup_activated ())
-    return;
-#endif
-
-  if (NILP (Vmouse_highlight)
-      || !f->glyphs_initialized_p)
-    return;
-
-  dpyinfo->mouse_face_mouse_x = x;
-  dpyinfo->mouse_face_mouse_y = y;
-  dpyinfo->mouse_face_mouse_frame = f;
-
-  if (dpyinfo->mouse_face_defer)
-    return;
-
-  if (gc_in_progress)
-    {
-      dpyinfo->mouse_face_deferred_gc = 1;
-      return;
-    }
-
-  /* Which window is that in?  */
-  window = window_from_coordinates (f, x, y, &portion, 1);
-
-  /* If we were displaying active text in another window, clear that.  */
-  if (! EQ (window, dpyinfo->mouse_face_window))
-    clear_mouse_face (dpyinfo);
-
-  /* Not on a window -> return.  */
-  if (!WINDOWP (window))
-    return;
-
-  /* Reset help_echo. It will get recomputed below.  */
-  help_echo = Qnil;
-
-  /* Convert to window-relative pixel coordinates.  */
-  w = XWINDOW (window);
-  frame_to_window_pixel_xy (w, &x, &y);
-
-  /* Handle tool-bar window differently since it doesn't display a
-     buffer.  */
-  if (EQ (window, f->tool_bar_window))
-    {
-      note_tool_bar_highlight (f, x, y);
-      return;
-    }
-
-  /* Mouse is on the mode or header line?  */
-  if (portion == 1 || portion == 3)
-    {
-      note_mode_line_highlight (w, x, portion == 1);
-      return;
-    }
-#if 0 /* TODO: mouse cursor */
-  if (portion == 2)
-    cursor = f->output_data.x->horizontal_drag_cursor;
-  else
-    cursor = f->output_data.x->text_cursor;
-#endif
-  /* Are we in a window whose display is up to date?
-     And verify the buffer's text has not changed.  */
-  b = XBUFFER (w->buffer);
-  if (/* Within text portion of the window.  */
-      portion == 0
-      && EQ (w->window_end_valid, w->buffer)
-      && XFASTINT (w->last_modified) == BUF_MODIFF (b)
-      && XFASTINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b))
-    {
-      int hpos, vpos, pos, i, area;
-      struct glyph *glyph;
-      Lisp_Object object;
-      Lisp_Object mouse_face = Qnil, overlay = Qnil, position;
-      Lisp_Object *overlay_vec = NULL;
-      int len, noverlays;
-      struct buffer *obuf;
-      int obegv, ozv, same_region;
-
-      /* Find the glyph under X/Y.  */
-      glyph = x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, &area, 0);
-
-      /* Clear mouse face if X/Y not over text.  */
-      if (glyph == NULL
-	  || area != TEXT_AREA
-	  || !MATRIX_ROW (w->current_matrix, vpos)->displays_text_p)
-	{
-	  clear_mouse_face (dpyinfo);
-	  /* TODO: mouse cursor */
-	  goto set_cursor;
-	}
-
-      pos = glyph->charpos;
-      object = glyph->object;
-      if (!STRINGP (object) && !BUFFERP (object))
-	goto set_cursor;
-
-      /* If we get an out-of-range value, return now; avoid an error.  */
-      if (BUFFERP (object) && pos > BUF_Z (b))
-	goto set_cursor;
-
-      /* Make the window's buffer temporarily current for
-	 overlays_at and compute_char_face.  */
-      obuf = current_buffer;
-      current_buffer = b;
-      obegv = BEGV;
-      ozv = ZV;
-      BEGV = BEG;
-      ZV = Z;
-
-      /* Is this char mouse-active or does it have help-echo?  */
-      position = make_number (pos);
-
-      if (BUFFERP (object))
-	{
-	  /* Put all the overlays we want in a vector in overlay_vec.
-	     Store the length in len.  If there are more than 10, make
-	     enough space for all, and try again.  */
-	  len = 10;
-	  overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	  noverlays =  overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL, 0);
-	  if (noverlays > len)
-	    {
-	      len = noverlays;
-	      overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	      noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL,0);
-	    }
-
-	  /* Sort overlays into increasing priority order.  */
-	  noverlays = sort_overlays (overlay_vec, noverlays, w);
-	}
-      else
-	noverlays = 0;
-
-      same_region = (EQ (window, dpyinfo->mouse_face_window)
-		     && vpos >= dpyinfo->mouse_face_beg_row
-		     && vpos <= dpyinfo->mouse_face_end_row
-		     && (vpos > dpyinfo->mouse_face_beg_row
-			 || hpos >= dpyinfo->mouse_face_beg_col)
-		     && (vpos < dpyinfo->mouse_face_end_row
-			 || hpos < dpyinfo->mouse_face_end_col
-			 || dpyinfo->mouse_face_past_end));
-
-      /* TODO: if (same_region)
-	 mouse cursor */
-
-      /* Check mouse-face highlighting.  */
-      if (! same_region
-	  /* If there exists an overlay with mouse-face overlapping
-	     the one we are currently highlighting, we have to
-	     check if we enter the overlapping overlay, and then
-	     highlight that.  */
-	  || (OVERLAYP (dpyinfo->mouse_face_overlay)
-	      && mouse_face_overlay_overlaps (dpyinfo->mouse_face_overlay)))
-	{
-	  /* Find the highest priority overlay that has a mouse-face
-	     property.  */
-	  overlay = Qnil;
-	  for (i = noverlays - 1; i >= 0 && NILP (overlay); --i)
-	    {
-	      mouse_face = Foverlay_get (overlay_vec[i], Qmouse_face);
-	      if (!NILP (mouse_face))
-		overlay = overlay_vec[i];
-	    }
-
-	  /* If we're actually highlighting the same overlay as
-	     before, there's no need to do that again.  */
-	  if (!NILP (overlay)
-	      && EQ (overlay, dpyinfo->mouse_face_overlay))
-	    goto check_help_echo;
-
-	  dpyinfo->mouse_face_overlay = overlay;
-
-	  /* Clear the display of the old active region, if any.  */
-	  clear_mouse_face (dpyinfo);
-	  /* TODO: mouse cursor changes.  */
-
-	  /* If no overlay applies, get a text property.  */
-	  if (NILP (overlay))
-	    mouse_face = Fget_text_property (position, Qmouse_face, object);
-
-	  /* Handle the overlay case.  */
-	  if (!NILP (overlay))
-	    {
-	      /* Find the range of text around this char that
-		 should be active.  */
-	      Lisp_Object before, after;
-	      int ignore;
-
-	      before = Foverlay_start (overlay);
-	      after = Foverlay_end (overlay);
-	      /* Record this as the current active region.  */
-	      fast_find_position (w, XFASTINT (before),
-				  &dpyinfo->mouse_face_beg_col,
-				  &dpyinfo->mouse_face_beg_row,
-				  &dpyinfo->mouse_face_beg_x,
-				  &dpyinfo->mouse_face_beg_y, Qnil);
-
-	      dpyinfo->mouse_face_past_end
-		= !fast_find_position (w, XFASTINT (after),
-				       &dpyinfo->mouse_face_end_col,
-				       &dpyinfo->mouse_face_end_row,
-				       &dpyinfo->mouse_face_end_x,
-				       &dpyinfo->mouse_face_end_y, Qnil);
-	      dpyinfo->mouse_face_window = window;
-
-	      dpyinfo->mouse_face_face_id
-		= face_at_buffer_position (w, pos, 0, 0,
-					   &ignore, pos + 1,
-					   !dpyinfo->mouse_face_hidden);
-
-	      /* Display it as active.  */
-	      show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
-	      /* TODO: mouse cursor changes.  */
-	    }
-	  /* Handle the text property case.  */
-	  else if (! NILP (mouse_face) && BUFFERP (object))
-	    {
-	      /* Find the range of text around this char that
-		 should be active.  */
-	      Lisp_Object before, after, beginning, end;
-	      int ignore;
-
-	      beginning = Fmarker_position (w->start);
-	      end = make_number (BUF_Z (XBUFFER (object))
-				 - XFASTINT (w->window_end_pos));
-	      before
-		= Fprevious_single_property_change (make_number (pos + 1),
-						    Qmouse_face,
-						    object, beginning);
-	      after
-		= Fnext_single_property_change (position, Qmouse_face,
-						object, end);
-
-	      /* Record this as the current active region.  */
-	      fast_find_position (w, XFASTINT (before),
-				  &dpyinfo->mouse_face_beg_col,
-				  &dpyinfo->mouse_face_beg_row,
-				  &dpyinfo->mouse_face_beg_x,
-				  &dpyinfo->mouse_face_beg_y, Qnil);
-	      dpyinfo->mouse_face_past_end
-		= !fast_find_position (w, XFASTINT (after),
-				       &dpyinfo->mouse_face_end_col,
-				       &dpyinfo->mouse_face_end_row,
-				       &dpyinfo->mouse_face_end_x,
-				       &dpyinfo->mouse_face_end_y, Qnil);
-	      dpyinfo->mouse_face_window = window;
-
-	      if (BUFFERP (object))
-		dpyinfo->mouse_face_face_id
-		  = face_at_buffer_position (w, pos, 0, 0,
-					     &ignore, pos + 1,
-					     !dpyinfo->mouse_face_hidden);
-
-	      /* Display it as active.  */
-	      show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
-	      /* TODO: mouse cursor changes.  */
-	    }
-	  else if (!NILP (mouse_face) && STRINGP (object))
-	    {
-	      Lisp_Object b, e;
-	      int ignore;
-
-	      b = Fprevious_single_property_change (make_number (pos + 1),
-						    Qmouse_face,
-						    object, Qnil);
-	      e = Fnext_single_property_change (position, Qmouse_face,
-						object, Qnil);
-	      if (NILP (b))
-		b = make_number (0);
-	      if (NILP (e))
-		e = make_number (SCHARS (object) - 1);
-	      fast_find_string_pos (w, XINT (b), object,
-				    &dpyinfo->mouse_face_beg_col,
-				    &dpyinfo->mouse_face_beg_row,
-				    &dpyinfo->mouse_face_beg_x,
-				    &dpyinfo->mouse_face_beg_y, 0);
-	      fast_find_string_pos (w, XINT (e), object,
-				    &dpyinfo->mouse_face_end_col,
-				    &dpyinfo->mouse_face_end_row,
-				    &dpyinfo->mouse_face_end_x,
-				    &dpyinfo->mouse_face_end_y, 1);
-	      dpyinfo->mouse_face_past_end = 0;
-	      dpyinfo->mouse_face_window = window;
-	      dpyinfo->mouse_face_face_id
-		= face_at_string_position (w, object, pos, 0, 0, 0, &ignore,
-					   glyph->face_id, 1);
-	      show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
-	      /* TODO: mouse cursor changes.  */
-	    }
-	  else if (STRINGP (object) && NILP (mouse_face))
-	    {
-	      /* A string which doesn't have mouse-face, but
-		 the text ``under'' it might have.  */
-	      struct glyph_row *r = MATRIX_ROW (w->current_matrix, vpos);
-	      int start = MATRIX_ROW_START_CHARPOS (r);
-
-	      pos = string_buffer_position (w, object, start);
-	      if (pos > 0)
-		mouse_face = get_char_property_and_overlay (make_number (pos),
-							    Qmouse_face,
-							    w->buffer,
-							    &overlay);
-	      if (!NILP (mouse_face) && !NILP (overlay))
-		{
-		  Lisp_Object before = Foverlay_start (overlay);
-		  Lisp_Object after = Foverlay_end (overlay);
-		  int ignore;
-
-		  /* Note that we might not be able to find position
-		     BEFORE in the glyph matrix if the overlay is
-		     entirely covered by a `display' property.  In
-		     this case, we overshoot.  So let's stop in
-		     the glyph matrix before glyphs for OBJECT.  */
-		  fast_find_position (w, XFASTINT (before),
-				      &dpyinfo->mouse_face_beg_col,
-				      &dpyinfo->mouse_face_beg_row,
-				      &dpyinfo->mouse_face_beg_x,
-				      &dpyinfo->mouse_face_beg_y,
-				      object);
-
-		  dpyinfo->mouse_face_past_end
-		    = !fast_find_position (w, XFASTINT (after),
-					   &dpyinfo->mouse_face_end_col,
-					   &dpyinfo->mouse_face_end_row,
-					   &dpyinfo->mouse_face_end_x,
-					   &dpyinfo->mouse_face_end_y,
-					   Qnil);
-		  dpyinfo->mouse_face_window = window;
-		  dpyinfo->mouse_face_face_id
-		    = face_at_buffer_position (w, pos, 0, 0,
-					       &ignore, pos + 1,
-					       !dpyinfo->mouse_face_hidden);
-
-		  /* Display it as active.  */
-		  show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
-		  /* TODO: mouse cursor changes.  */
-		}
-	    }
-	}
-
-    check_help_echo:
-
-      /* Look for a `help-echo' property.  */
-      {
-	Lisp_Object help, overlay;
-
-	/* Check overlays first.  */
-	help = overlay = Qnil;
-	for (i = noverlays - 1; i >= 0 && NILP (help); --i)
-	  {
-	    overlay = overlay_vec[i];
-	    help = Foverlay_get (overlay, Qhelp_echo);
-	  }
-
-	if (!NILP (help))
-	  {
-	    help_echo = help;
-	    help_echo_window = window;
-	    help_echo_object = overlay;
-	    help_echo_pos = pos;
-	  }
-	else
-	  {
-	    Lisp_Object object = glyph->object;
-	    int charpos = glyph->charpos;
-
-	    /* Try text properties.  */
-	    if (STRINGP (object)
-		&& charpos >= 0
-		&& charpos < SCHARS (object))
-	      {
-		help = Fget_text_property (make_number (charpos),
-					   Qhelp_echo, object);
-		if (NILP (help))
-		  {
-		    /* If the string itself doesn't specify a help-echo,
-		       see if the buffer text ``under'' it does.  */
-		    struct glyph_row *r
-		      = MATRIX_ROW (w->current_matrix, vpos);
-		    int start = MATRIX_ROW_START_CHARPOS (r);
-		    int pos = string_buffer_position (w, object, start);
-		    if (pos > 0)
-		      {
-			help = Fget_char_property (make_number (pos),
-						   Qhelp_echo, w->buffer);
-			if (!NILP (help))
-			  {
-			    charpos = pos;
-			    object = w->buffer;
-			  }
-		      }
-		  }
-	      }
-	    else if (BUFFERP (object)
-		     && charpos >= BEGV
-		     && charpos < ZV)
-	      help = Fget_text_property (make_number (charpos), Qhelp_echo,
-					 object);
-
-	    if (!NILP (help))
-	      {
-		help_echo = help;
-		help_echo_window = window;
-		help_echo_object = object;
-		help_echo_pos = charpos;
-	      }
-	  }
-      }
-
-      BEGV = obegv;
-      ZV = ozv;
-      current_buffer = obuf;
-    }
-
- set_cursor:
-  /* TODO: mouse cursor changes. */
-  ;
-}
+/* MAC TODO:  This should be called from somewhere (or removed)  ++KFS */
 
 static void
 redo_mouse_highlight ()
@@ -7553,737 +4132,33 @@ redo_mouse_highlight ()
 }
 
 
-
-/***********************************************************************
-			       Tool-bars
- ***********************************************************************/
-
-static int x_tool_bar_item P_ ((struct frame *, int, int,
-				struct glyph **, int *, int *, int *));
-
-/* Tool-bar item index of the item on which a mouse button was pressed
-   or -1.  */
-
-static int last_tool_bar_item;
-
-
-/* Get information about the tool-bar item at position X/Y on frame F.
-   Return in *GLYPH a pointer to the glyph of the tool-bar item in
-   the current matrix of the tool-bar window of F, or NULL if not
-   on a tool-bar item.  Return in *PROP_IDX the index of the tool-bar
-   item in F->current_tool_bar_items.  Value is
-
-   -1	if X/Y is not on a tool-bar item
-   0	if X/Y is on the same item that was highlighted before.
-   1	otherwise.  */
-
-static int
-x_tool_bar_item (f, x, y, glyph, hpos, vpos, prop_idx)
-     struct frame *f;
-     int x, y;
-     struct glyph **glyph;
-     int *hpos, *vpos, *prop_idx;
-{
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-  struct window *w = XWINDOW (f->tool_bar_window);
-  int area;
-
-  /* Find the glyph under X/Y.  */
-  *glyph = x_y_to_hpos_vpos (w, x, y, hpos, vpos, &area, 0);
-  if (*glyph == NULL)
-    return -1;
-
-  /* Get the start of this tool-bar item's properties in
-     f->current_tool_bar_items.  */
-  if (!tool_bar_item_info (f, *glyph, prop_idx))
-    return -1;
-
-  /* Is mouse on the highlighted item?  */
-  if (EQ (f->tool_bar_window, dpyinfo->mouse_face_window)
-      && *vpos >= dpyinfo->mouse_face_beg_row
-      && *vpos <= dpyinfo->mouse_face_end_row
-      && (*vpos > dpyinfo->mouse_face_beg_row
-	  || *hpos >= dpyinfo->mouse_face_beg_col)
-      && (*vpos < dpyinfo->mouse_face_end_row
-	  || *hpos < dpyinfo->mouse_face_end_col
-	  || dpyinfo->mouse_face_past_end))
-    return 0;
-
-  return 1;
-}
-
-
-/* Handle mouse button event on the tool-bar of frame F, at
-   frame-relative coordinates X/Y.  EVENT_TYPE is either ButtionPress
-   or ButtonRelase.  */
-
-static void
-x_handle_tool_bar_click (f, button_event)
-     struct frame *f;
-     EventRecord *button_event;
-{
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-  struct window *w = XWINDOW (f->tool_bar_window);
-  int hpos, vpos, prop_idx;
-  struct glyph *glyph;
-  Lisp_Object enabled_p;
-  int x = button_event->where.h;
-  int y = button_event->where.v;
-
-  /* If not on the highlighted tool-bar item, return.  */
-  frame_to_window_pixel_xy (w, &x, &y);
-  if (x_tool_bar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx) != 0)
-    return;
-
-  /* If item is disabled, do nothing.  */
-  enabled_p = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_ENABLED_P);
-  if (NILP (enabled_p))
-    return;
-
-  if (button_event->what == mouseDown)
-    {
-      /* Show item in pressed state.  */
-      show_mouse_face (dpyinfo, DRAW_IMAGE_SUNKEN);
-      dpyinfo->mouse_face_image_state = DRAW_IMAGE_SUNKEN;
-      last_tool_bar_item = prop_idx;
-    }
-  else
-    {
-      Lisp_Object key, frame;
-      struct input_event event;
-
-      /* Show item in released state.  */
-      show_mouse_face (dpyinfo, DRAW_IMAGE_RAISED);
-      dpyinfo->mouse_face_image_state = DRAW_IMAGE_RAISED;
-
-      key = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_KEY);
-
-      XSETFRAME (frame, f);
-      event.kind = TOOL_BAR_EVENT;
-      event.frame_or_window = frame;
-      event.arg = frame;
-      kbd_buffer_store_event (&event);
-
-      event.kind = TOOL_BAR_EVENT;
-      event.frame_or_window = frame;
-      event.arg = key;
-      event.modifiers = x_mac_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
-						  button_event->modifiers);
-      kbd_buffer_store_event (&event);
-      last_tool_bar_item = -1;
-    }
-}
-
-
-/* Possibly highlight a tool-bar item on frame F when mouse moves to
-   tool-bar window-relative coordinates X/Y.  Called from
-   note_mouse_highlight.  */
-
-static void
-note_tool_bar_highlight (f, x, y)
-     struct frame *f;
-     int x, y;
-{
-  Lisp_Object window = f->tool_bar_window;
-  struct window *w = XWINDOW (window);
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-  int hpos, vpos;
-  struct glyph *glyph;
-  struct glyph_row *row;
-  int i;
-  Lisp_Object enabled_p;
-  int prop_idx;
-  enum draw_glyphs_face draw = DRAW_IMAGE_RAISED;
-  int mouse_down_p, rc;
-
-  /* Function note_mouse_highlight is called with negative x(y
-     values when mouse moves outside of the frame.  */
-  if (x <= 0 || y <= 0)
-    {
-      clear_mouse_face (dpyinfo);
-      return;
-    }
-
-  rc = x_tool_bar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx);
-  if (rc < 0)
-    {
-      /* Not on tool-bar item.  */
-      clear_mouse_face (dpyinfo);
-      return;
-    }
-  else if (rc == 0)
-    /* On same tool-bar item as before.  */
-    goto set_help_echo;
-
-  clear_mouse_face (dpyinfo);
-
-  /* Mouse is down, but on different tool-bar item?  */
-  mouse_down_p = (dpyinfo->grabbed
-		  && f == last_mouse_frame
-		  && FRAME_LIVE_P (f));
-  if (mouse_down_p
-      && last_tool_bar_item != prop_idx)
-    return;
-
-  dpyinfo->mouse_face_image_state = DRAW_NORMAL_TEXT;
-  draw = mouse_down_p ? DRAW_IMAGE_SUNKEN : DRAW_IMAGE_RAISED;
-
-  /* If tool-bar item is not enabled, don't highlight it.  */
-  enabled_p = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_ENABLED_P);
-  if (!NILP (enabled_p))
-    {
-      /* Compute the x-position of the glyph.  In front and past the
-	 image is a space.  We include this is the highlighted area.  */
-      row = MATRIX_ROW (w->current_matrix, vpos);
-      for (i = x = 0; i < hpos; ++i)
-	x += row->glyphs[TEXT_AREA][i].pixel_width;
-
-      /* Record this as the current active region.  */
-      dpyinfo->mouse_face_beg_col = hpos;
-      dpyinfo->mouse_face_beg_row = vpos;
-      dpyinfo->mouse_face_beg_x = x;
-      dpyinfo->mouse_face_beg_y = row->y;
-      dpyinfo->mouse_face_past_end = 0;
-
-      dpyinfo->mouse_face_end_col = hpos + 1;
-      dpyinfo->mouse_face_end_row = vpos;
-      dpyinfo->mouse_face_end_x = x + glyph->pixel_width;
-      dpyinfo->mouse_face_end_y = row->y;
-      dpyinfo->mouse_face_window = window;
-      dpyinfo->mouse_face_face_id = TOOL_BAR_FACE_ID;
-
-      /* Display it as active.  */
-      show_mouse_face (dpyinfo, draw);
-      dpyinfo->mouse_face_image_state = draw;
-    }
-
- set_help_echo:
-
-  /* Set help_echo to a help string.to display for this tool-bar item.
-     XTread_socket does the rest.  */
-  help_echo_object = help_echo_window = Qnil;
-  help_echo_pos = -1;
-  help_echo = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_HELP);
-  if (NILP (help_echo))
-    help_echo = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_CAPTION);
-}
-
-
-
-/* Find the glyph matrix position of buffer position CHARPOS in window
-   *W.  HPOS, *VPOS, *X, and *Y are set to the positions found.  W's
-   current glyphs must be up to date.  If CHARPOS is above window
-   start return (0, 0, 0, 0).  If CHARPOS is after end of W, return end
-   of last line in W.  In the row containing CHARPOS, stop before glyphs
-   having STOP as object.  */
-
-#if 0 /* This is a version of fast_find_position that's more correct
-	 in the presence of hscrolling, for example.  I didn't install
-	 it right away because the problem fixed is minor, it failed
-	 in 20.x as well, and I think it's too risky to install
-	 so near the release of 21.1.  2001-09-25 gerd.  */
-
-static int
-fast_find_position (w, charpos, hpos, vpos, x, y, stop)
-     struct window *w;
-     int charpos;
-     int *hpos, *vpos, *x, *y;
-     Lisp_Object stop;
-{
-  struct glyph_row *row, *first;
-  struct glyph *glyph, *end;
-  int i, past_end = 0;
-
-  first = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-  row = row_containing_pos (w, charpos, first, NULL, 0);
-  if (row == NULL)
-    {
-      if (charpos < MATRIX_ROW_START_CHARPOS (first))
-	{
-	  *x = *y = *hpos = *vpos = 0;
-	  return 0;
-	}
-      else
-	{
-	  row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
-	  past_end = 1;
-	}
-    }
-
-  *x = row->x;
-  *y = row->y;
-  *vpos = MATRIX_ROW_VPOS (row, w->current_matrix);
-
-  glyph = row->glyphs[TEXT_AREA];
-  end = glyph + row->used[TEXT_AREA];
-
-  /* Skip over glyphs not having an object at the start of the row.
-     These are special glyphs like truncation marks on terminal
-     frames.  */
-  if (row->displays_text_p)
-    while (glyph < end
-	   && INTEGERP (glyph->object)
-	   && !EQ (stop, glyph->object)
-	   && glyph->charpos < 0)
-      {
-	*x += glyph->pixel_width;
-	++glyph;
-      }
-
-  while (glyph < end
-	 && !INTEGERP (glyph->object)
-	 && !EQ (stop, glyph->object)
-	 && (!BUFFERP (glyph->object)
-	     || glyph->charpos < charpos))
-    {
-      *x += glyph->pixel_width;
-      ++glyph;
-    }
-
-  *hpos = glyph - row->glyphs[TEXT_AREA];
-  return past_end;
-}
-
-#else /* not 0 */
-
-static int
-fast_find_position (w, pos, hpos, vpos, x, y, stop)
-     struct window *w;
-     int pos;
-     int *hpos, *vpos, *x, *y;
-     Lisp_Object stop;
-{
-  int i;
-  int lastcol;
-  int maybe_next_line_p = 0;
-  int line_start_position;
-  int yb = window_text_bottom_y (w);
-  struct glyph_row *row, *best_row;
-  int row_vpos, best_row_vpos;
-  int current_x;
-
-  row = best_row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-  row_vpos = best_row_vpos = MATRIX_ROW_VPOS (row, w->current_matrix);
-
-  while (row->y < yb)
-    {
-      if (row->used[TEXT_AREA])
-	line_start_position = row->glyphs[TEXT_AREA]->charpos;
-      else
-	line_start_position = 0;
-
-      if (line_start_position > pos)
-	break;
-      /* If the position sought is the end of the buffer,
-	 don't include the blank lines at the bottom of the window.  */
-      else if (line_start_position == pos
-               && pos == BUF_ZV (XBUFFER (w->buffer)))
-	{
-	  maybe_next_line_p = 1;
-	  break;
-	}
-      else if (line_start_position > 0)
-        {
-          best_row = row;
-          best_row_vpos = row_vpos;
-        }
-
-      if (row->y + row->height >= yb)
-        break;
-
-      ++row;
-      ++row_vpos;
-    }
-
-  /* Find the right column within BEST_ROW.  */
-  lastcol = 0;
-  current_x = best_row->x;
-  for (i = 0; i < best_row->used[TEXT_AREA]; i++)
-    {
-      struct glyph *glyph = best_row->glyphs[TEXT_AREA] + i;
-      int charpos = glyph->charpos;
-
-      if (BUFFERP (glyph->object))
-	{
-	  if (charpos == pos)
-	    {
-	      *hpos = i;
-	      *vpos = best_row_vpos;
-	      *x = current_x;
-	      *y = best_row->y;
-	      return 1;
-	    }
-	  else if (charpos > pos)
-	    break;
-	}
-      else if (EQ (glyph->object, stop))
-	break;
-
-      if (charpos > 0)
-	lastcol = i;
-      current_x += glyph->pixel_width;
-    }
-
-  /* If we're looking for the end of the buffer,
-     and we didn't find it in the line we scanned,
-     use the start of the following line.  */
-  if (maybe_next_line_p)
-    {
-      ++best_row;
-      ++best_row_vpos;
-      lastcol = 0;
-      current_x = best_row->x;
-    }
-
-  *vpos = best_row_vpos;
-  *hpos = lastcol + 1;
-  *x = current_x;
-  *y = best_row->y;
-  return 0;
-}
-
-#endif /* not 0 */
-
-
-/* Find the position of the glyph for position POS in OBJECT in
-   window W's current matrix, and return in *X/*Y the pixel
-   coordinates, and return in *HPOS/*VPOS the column/row of the glyph.
-
-   RIGHT_P non-zero means return the position of the right edge of the
-   glyph, RIGHT_P zero means return the left edge position.
-
-   If no glyph for POS exists in the matrix, return the position of
-   the glyph with the next smaller position that is in the matrix, if
-   RIGHT_P is zero.  If RIGHT_P is non-zero, and no glyph for POS
-   exists in the matrix, return the position of the glyph with the
-   next larger position in OBJECT.
-
-   Value is non-zero if a glyph was found.  */
-
-static int
-fast_find_string_pos (w, pos, object, hpos, vpos, x, y, right_p)
-     struct window *w;
-     int pos;
-     Lisp_Object object;
-     int *hpos, *vpos, *x, *y;
-     int right_p;
-{
-  int yb = window_text_bottom_y (w);
-  struct glyph_row *r;
-  struct glyph *best_glyph = NULL;
-  struct glyph_row *best_row = NULL;
-  int best_x = 0;
-
-  for (r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-       r->enabled_p && r->y < yb;
-       ++r)
-    {
-      struct glyph *g = r->glyphs[TEXT_AREA];
-      struct glyph *e = g + r->used[TEXT_AREA];
-      int gx;
-
-      for (gx = r->x; g < e; gx += g->pixel_width, ++g)
-	if (EQ (g->object, object))
-	  {
-	    if (g->charpos == pos)
-	      {
-		best_glyph = g;
-		best_x = gx;
-		best_row = r;
-		goto found;
-	      }
-	    else if (best_glyph == NULL
-		     || ((abs (g->charpos - pos)
-			 < abs (best_glyph->charpos - pos))
-			 && (right_p
-			     ? g->charpos < pos
-			     : g->charpos > pos)))
-	      {
-		best_glyph = g;
-		best_x = gx;
-		best_row = r;
-	      }
-	  }
-    }
-
- found:
-
-  if (best_glyph)
-    {
-      *x = best_x;
-      *hpos = best_glyph - best_row->glyphs[TEXT_AREA];
-
-      if (right_p)
-	{
-	  *x += best_glyph->pixel_width;
-	  ++*hpos;
-	}
-
-      *y = best_row->y;
-      *vpos = best_row - w->current_matrix->rows;
-    }
-
-  return best_glyph != NULL;
-}
-
-
-/* Display the active region described by mouse_face_*
-   in its mouse-face if HL > 0, in its normal face if HL = 0.  */
-
-static void
-show_mouse_face (dpyinfo, draw)
-     struct mac_display_info *dpyinfo;
-     enum draw_glyphs_face draw;
-{
-  struct window *w = XWINDOW (dpyinfo->mouse_face_window);
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
-
-  if (/* If window is in the process of being destroyed, don't bother
-	 to do anything.  */
-      w->current_matrix != NULL
-      /* Don't update mouse highlight if hidden */
-      && (draw != DRAW_MOUSE_FACE || !dpyinfo->mouse_face_hidden)
-      /* Recognize when we are called to operate on rows that don't exist
-	 anymore.  This can happen when a window is split.  */
-      && dpyinfo->mouse_face_end_row < w->current_matrix->nrows)
-    {
-      int phys_cursor_on_p = w->phys_cursor_on_p;
-      struct glyph_row *row, *first, *last;
-
-      first = MATRIX_ROW (w->current_matrix, dpyinfo->mouse_face_beg_row);
-      last = MATRIX_ROW (w->current_matrix, dpyinfo->mouse_face_end_row);
-
-      for (row = first; row <= last && row->enabled_p; ++row)
-	{
-	  int start_hpos, end_hpos, start_x;
-
-	  /* For all but the first row, the highlight starts at column 0.  */
-	  if (row == first)
-	    {
-	      start_hpos = dpyinfo->mouse_face_beg_col;
-	      start_x = dpyinfo->mouse_face_beg_x;
-	    }
-	  else
-	    {
-	      start_hpos = 0;
-	      start_x = 0;
-	    }
-
-	  if (row == last)
-	    end_hpos = dpyinfo->mouse_face_end_col;
-	  else
-	    end_hpos = row->used[TEXT_AREA];
-
-	  if (end_hpos > start_hpos)
-	    {
-	      x_draw_glyphs (w, start_x, row, TEXT_AREA,
-			     start_hpos, end_hpos, draw, 0);
-
-	      row->mouse_face_p
-		= draw == DRAW_MOUSE_FACE || draw == DRAW_IMAGE_RAISED;
-	    }
-	}
-
-      /* When we've written over the cursor, arrange for it to
-	 be displayed again.  */
-      if (phys_cursor_on_p && !w->phys_cursor_on_p)
-	x_display_cursor (w, 1,
-			  w->phys_cursor.hpos, w->phys_cursor.vpos,
-			  w->phys_cursor.x, w->phys_cursor.y);
-    }
-
-#if 0 /* MAC_TODO: mouse cursor */
-  /* Change the mouse cursor.  */
-  if (draw == DRAW_NORMAL_TEXT)
-    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		   f->output_data.x->text_cursor);
-  else if (draw == DRAW_MOUSE_FACE)
-    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		   f->output_data.x->cross_cursor);
-  else
-    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		   f->output_data.x->nontext_cursor);
-#endif
-}
-
-/* Clear out the mouse-highlighted active region.
-   Redraw it un-highlighted first.  */
-
-static int
-clear_mouse_face (dpyinfo)
+static struct frame *
+mac_focus_frame (dpyinfo)
      struct mac_display_info *dpyinfo;
 {
-  int cleared = 0;
-
-  if (! NILP (dpyinfo->mouse_face_window))
-    {
-      show_mouse_face (dpyinfo, DRAW_NORMAL_TEXT);
-      cleared = 1;
-    }
-
-  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-  dpyinfo->mouse_face_window = Qnil;
-  dpyinfo->mouse_face_overlay = Qnil;
-  return cleared;
+  if (dpyinfo->x_focus_frame)
+    return dpyinfo->x_focus_frame;
+  else
+    /* Mac version may get events, such as a menu bar click, even when
+       all the frames are invisible.  In this case, we regard the
+       event came to the selected frame.  */
+    return SELECTED_FRAME ();
 }
 
-
-/* Clear any mouse-face on window W.  This function is part of the
-   redisplay interface, and is called from try_window_id and similar
-   functions to ensure the mouse-highlight is off.  */
-
-static void
-x_clear_mouse_face (w)
-     struct window *w;
-{
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (XFRAME (w->frame));
-  Lisp_Object window;
-
-  BLOCK_INPUT;
-  XSETWINDOW (window, w);
-  if (EQ (window, dpyinfo->mouse_face_window))
-    clear_mouse_face (dpyinfo);
-  UNBLOCK_INPUT;
-}
-
-
-/* Just discard the mouse face information for frame F, if any.
-   This is used when the size of F is changed.  */
-
-void
-cancel_mouse_face (f)
-     FRAME_PTR f;
-{
-  Lisp_Object window;
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-
-  window = dpyinfo->mouse_face_window;
-  if (! NILP (window) && XFRAME (XWINDOW (window)->frame) == f)
-    {
-      dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-      dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-      dpyinfo->mouse_face_window = Qnil;
-    }
-}
-
-static struct scroll_bar *x_window_to_scroll_bar ();
-static void x_scroll_bar_report_motion ();
-static void x_check_fullscreen P_ ((struct frame *));
-static void x_check_fullscreen_move P_ ((struct frame *));
-static int glyph_rect P_ ((struct frame *f, int, int, Rect *));
-
-
-/* Try to determine frame pixel position and size of the glyph under
-   frame pixel coordinates X/Y on frame F .  Return the position and
-   size in *RECT.  Value is non-zero if we could compute these
-   values.  */
-
-static int
-glyph_rect (f, x, y, rect)
-     struct frame *f;
-     int x, y;
-     Rect *rect;
-{
-  Lisp_Object window;
-  int part;
-
-  window = window_from_coordinates (f, x, y, &part, 0);
-  if (!NILP (window))
-    {
-      struct window *w = XWINDOW (window);
-      struct glyph_row *r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-      struct glyph_row *end = r + w->current_matrix->nrows - 1;
-
-      frame_to_window_pixel_xy (w, &x, &y);
-
-      for (; r < end && r->enabled_p; ++r)
-	if (r->y <= y && r->y + r->height > y)
-	  {
-	    /* Found the row at y.  */
-	    struct glyph *g = r->glyphs[TEXT_AREA];
-	    struct glyph *end = g + r->used[TEXT_AREA];
-	    int gx;
-
-	    rect->top = WINDOW_TO_FRAME_PIXEL_Y (w, r->y);
-	    rect->bottom = rect->top + r->height;
-
-	    if (x < r->x)
-	      {
-		/* x is to the left of the first glyph in the row.  */
-		rect->left = XINT (w->left);
-		rect->right = WINDOW_TO_FRAME_PIXEL_X (w, r->x);
-		return 1;
-	      }
-
-	    for (gx = r->x; g < end; gx += g->pixel_width, ++g)
-	      if (gx <= x && gx + g->pixel_width > x)
-		{
-		  /* x is on a glyph.  */
-		  rect->left = WINDOW_TO_FRAME_PIXEL_X (w, gx);
-		  rect->right = rect->left + g->pixel_width;
-		  return 1;
-		}
-
-	    /* x is to the right of the last glyph in the row.  */
-	    rect->left = WINDOW_TO_FRAME_PIXEL_X (w, gx);
-	    rect->right = XINT (w->left) + XINT (w->width);
-	    return 1;
-	  }
-    }
-
-  /* The y is not on any row.  */
-  return 0;
-}
-
-/* Record the position of the mouse in last_mouse_glyph.  */
-static void
-remember_mouse_glyph (f1, gx, gy)
-     struct frame * f1;
-     int gx, gy;
-{
-  if (!glyph_rect (f1, gx, gy, &last_mouse_glyph))
-    {
-      int width = FRAME_SMALLEST_CHAR_WIDTH (f1);
-      int height = FRAME_SMALLEST_FONT_HEIGHT (f1);
-
-      /* Arrange for the division in PIXEL_TO_CHAR_COL etc. to
-	 round down even for negative values.  */
-      if (gx < 0)
-	gx -= width - 1;
-      if (gy < 0)
-	gy -= height - 1;
-#if 0
-      /* This was the original code from XTmouse_position, but it seems
-	 to give the position of the glyph diagonally next to the one
-	 the mouse is over.  */
-      gx = (gx + width - 1) / width * width;
-      gy = (gy + height - 1) / height * height;
-#else
-      gx = gx / width * width;
-      gy = gy / height * height;
-#endif
-
-      last_mouse_glyph.left = gx;
-      last_mouse_glyph.top = gy;
-      last_mouse_glyph.right  = gx + width;
-      last_mouse_glyph.bottom = gy + height;
-    }
-}
 
 /* Return the current position of the mouse.
-   *fp should be a frame which indicates which display to ask about.
+   *FP should be a frame which indicates which display to ask about.
 
-   If the mouse movement started in a scroll bar, set *fp, *bar_window,
-   and *part to the frame, window, and scroll bar part that the mouse
-   is over.  Set *x and *y to the portion and whole of the mouse's
+   If the mouse movement started in a scroll bar, set *FP, *BAR_WINDOW,
+   and *PART to the frame, window, and scroll bar part that the mouse
+   is over.  Set *X and *Y to the portion and whole of the mouse's
    position on the scroll bar.
 
-   If the mouse movement started elsewhere, set *fp to the frame the
-   mouse is on, *bar_window to nil, and *x and *y to the character cell
+   If the mouse movement started elsewhere, set *FP to the frame the
+   mouse is on, *BAR_WINDOW to nil, and *X and *Y to the character cell
    the mouse is over.
 
-   Set *time to the server time-stamp for the time at which the mouse
+   Set *TIME to the server time-stamp for the time at which the mouse
    was at this position.
 
    Don't store anything if we don't have a valid set of values to report.
@@ -8300,14 +4175,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
      Lisp_Object *x, *y;
      unsigned long *time;
 {
-  Point mouse_pos;
-  int ignore1, ignore2;
-  WindowPtr wp = FrontWindow ();
-  struct frame *f;
-  Lisp_Object frame, tail;
-
-  if (is_emacs_window(wp))
-    f = ((mac_output *) GetWRefCon (wp))->mFP;
+  FRAME_PTR f1;
 
   BLOCK_INPUT;
 
@@ -8315,33 +4183,350 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
     x_scroll_bar_report_motion (fp, bar_window, part, x, y, time);
   else
     {
+      Lisp_Object frame, tail;
+
       /* Clear the mouse-moved flag for every frame on this display.  */
       FOR_EACH_FRAME (tail, frame)
-        XFRAME (frame)->mouse_moved = 0;
+	XFRAME (frame)->mouse_moved = 0;
 
       last_mouse_scroll_bar = Qnil;
 
-#if TARGET_API_MAC_CARBON
-      SetPort (GetWindowPort (wp));
-#else
-      SetPort (wp);
-#endif
+      if (FRAME_MAC_DISPLAY_INFO (*fp)->grabbed && last_mouse_frame
+	  && FRAME_LIVE_P (last_mouse_frame))
+	f1 = last_mouse_frame;
+      else
+	f1 = mac_focus_frame (FRAME_MAC_DISPLAY_INFO (*fp));
 
-      GetMouse (&mouse_pos);
+      if (f1)
+	{
+	  /* Ok, we found a frame.  Store all the values.
+	     last_mouse_glyph is a rectangle used to reduce the
+	     generation of mouse events.  To not miss any motion
+	     events, we must divide the frame into rectangles of the
+	     size of the smallest character that could be displayed
+	     on it, i.e. into the same rectangles that matrices on
+	     the frame are divided into.  */
+	  Point mouse_pos;
 
-      pixel_to_glyph_coords (f, mouse_pos.h, mouse_pos.v, &ignore1, &ignore2,
-                             &last_mouse_glyph, insist);
+	  SetPortWindowPort (FRAME_MAC_WINDOW (f1));
+	  GetMouse (&mouse_pos);
+	  remember_mouse_glyph (f1, mouse_pos.h, mouse_pos.v,
+				&last_mouse_glyph);
+	  last_mouse_glyph_frame = f1;
 
-      *bar_window = Qnil;
-      *part = scroll_bar_handle;
-      *fp = f;
-      XSETINT (*x, mouse_pos.h);
-      XSETINT (*y, mouse_pos.v);
-      *time = last_mouse_movement_time;
+	  *bar_window = Qnil;
+	  *part = 0;
+	  *fp = f1;
+	  XSETINT (*x, mouse_pos.h);
+	  XSETINT (*y, mouse_pos.v);
+	  *time = last_mouse_movement_time;
+	}
     }
 
   UNBLOCK_INPUT;
 }
+
+
+/************************************************************************
+			 Toolkit scroll bars
+ ************************************************************************/
+
+#ifdef USE_TOOLKIT_SCROLL_BARS
+
+static pascal void scroll_bar_timer_callback P_ ((EventLoopTimerRef, void *));
+static OSStatus install_scroll_bar_timer P_ ((void));
+static OSStatus set_scroll_bar_timer P_ ((EventTimerInterval));
+static int control_part_code_to_scroll_bar_part P_ ((ControlPartCode));
+static void construct_scroll_bar_click P_ ((struct scroll_bar *, int,
+					    struct input_event *));
+static OSErr get_control_part_bounds P_ ((ControlHandle, ControlPartCode,
+					  Rect *));
+static void x_scroll_bar_handle_press P_ ((struct scroll_bar *,
+					   ControlPartCode,
+					   struct input_event *));
+static void x_scroll_bar_handle_release P_ ((struct scroll_bar *,
+					     struct input_event *));
+static void x_scroll_bar_handle_drag P_ ((WindowPtr, struct scroll_bar *,
+					  Point, struct input_event *));
+static void x_set_toolkit_scroll_bar_thumb P_ ((struct scroll_bar *,
+						int, int, int));
+
+/* Last scroll bar part sent in x_scroll_bar_handle_*.  */
+
+static int last_scroll_bar_part;
+
+static EventLoopTimerRef scroll_bar_timer;
+
+static int scroll_bar_timer_event_posted_p;
+
+#define SCROLL_BAR_FIRST_DELAY 0.5
+#define SCROLL_BAR_CONTINUOUS_DELAY (1.0 / 15)
+
+static pascal void
+scroll_bar_timer_callback (timer, data)
+     EventLoopTimerRef timer;
+     void *data;
+{
+  EventRef event = NULL;
+  OSErr err;
+
+  err = CreateEvent (NULL, kEventClassMouse, kEventMouseMoved, 0,
+		     kEventAttributeNone, &event);
+  if (err == noErr)
+    {
+      Point mouse_pos;
+
+      GetMouse (&mouse_pos);
+      LocalToGlobal (&mouse_pos);
+      err = SetEventParameter (event, kEventParamMouseLocation, typeQDPoint,
+			       sizeof (Point), &mouse_pos);
+    }
+  if (err == noErr)
+    {
+      UInt32 modifiers = GetCurrentKeyModifiers ();
+
+      err = SetEventParameter (event, kEventParamKeyModifiers, typeUInt32,
+			       sizeof (UInt32), &modifiers);
+    }
+  if (err == noErr)
+    err = PostEventToQueue (GetCurrentEventQueue (), event,
+			    kEventPriorityStandard);
+  if (err == noErr)
+    scroll_bar_timer_event_posted_p = 1;
+
+  if (event)
+    ReleaseEvent (event);
+}
+
+static OSStatus
+install_scroll_bar_timer ()
+{
+  static EventLoopTimerUPP scroll_bar_timer_callbackUPP = NULL;
+
+  if (scroll_bar_timer_callbackUPP == NULL)
+    scroll_bar_timer_callbackUPP =
+      NewEventLoopTimerUPP (scroll_bar_timer_callback);
+
+  if (scroll_bar_timer == NULL)
+    /* Mac OS X and CarbonLib 1.5 and later allow us to specify
+       kEventDurationForever as delays.  */
+    return
+      InstallEventLoopTimer (GetCurrentEventLoop (),
+			     kEventDurationForever, kEventDurationForever,
+			     scroll_bar_timer_callbackUPP, NULL,
+			     &scroll_bar_timer);
+}
+
+static OSStatus
+set_scroll_bar_timer (delay)
+     EventTimerInterval delay;
+{
+  if (scroll_bar_timer == NULL)
+    install_scroll_bar_timer ();
+
+  scroll_bar_timer_event_posted_p = 0;
+
+  return SetEventLoopTimerNextFireTime (scroll_bar_timer, delay);
+}
+
+static int
+control_part_code_to_scroll_bar_part (part_code)
+     ControlPartCode part_code;
+{
+  switch (part_code)
+    {
+    case kControlUpButtonPart:		return scroll_bar_up_arrow;
+    case kControlDownButtonPart:	return scroll_bar_down_arrow;
+    case kControlPageUpPart:		return scroll_bar_above_handle;
+    case kControlPageDownPart:		return scroll_bar_below_handle;
+    case kControlIndicatorPart:		return scroll_bar_handle;
+    }
+
+  return -1;
+}
+
+static void
+construct_scroll_bar_click (bar, part, bufp)
+     struct scroll_bar *bar;
+     int part;
+     struct input_event *bufp;
+{
+  bufp->kind = SCROLL_BAR_CLICK_EVENT;
+  bufp->frame_or_window = bar->window;
+  bufp->arg = Qnil;
+  bufp->part = part;
+  bufp->code = 0;
+  XSETINT (bufp->x, 0);
+  XSETINT (bufp->y, 0);
+  bufp->modifiers = 0;
+}
+
+static OSErr
+get_control_part_bounds (ch, part_code, rect)
+     ControlHandle ch;
+     ControlPartCode part_code;
+     Rect *rect;
+{
+  RgnHandle region = NewRgn ();
+  OSStatus err;
+
+  err = GetControlRegion (ch, part_code, region);
+  if (err == noErr)
+    GetRegionBounds (region, rect);
+  DisposeRgn (region);
+
+  return err;
+}
+
+static void
+x_scroll_bar_handle_press (bar, part_code, bufp)
+     struct scroll_bar *bar;
+     ControlPartCode part_code;
+     struct input_event *bufp;
+{
+  int part = control_part_code_to_scroll_bar_part (part_code);
+
+  if (part < 0)
+    return;
+
+  if (part != scroll_bar_handle)
+    {
+      construct_scroll_bar_click (bar, part, bufp);
+      HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), part_code);
+      set_scroll_bar_timer (SCROLL_BAR_FIRST_DELAY);
+    }
+
+  last_scroll_bar_part = part;
+  bar->dragging = Qnil;
+  tracked_scroll_bar = bar;
+}
+
+static void
+x_scroll_bar_handle_release (bar, bufp)
+     struct scroll_bar *bar;
+     struct input_event *bufp;
+{
+  if (last_scroll_bar_part != scroll_bar_handle
+      || !GC_NILP (bar->dragging))
+    construct_scroll_bar_click (bar, scroll_bar_end_scroll, bufp);
+
+  HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), 0);
+  set_scroll_bar_timer (kEventDurationForever);
+
+  last_scroll_bar_part = -1;
+  bar->dragging = Qnil;
+  tracked_scroll_bar = NULL;
+}
+
+static void
+x_scroll_bar_handle_drag (win, bar, mouse_pos, bufp)
+     WindowPtr win;
+     struct scroll_bar *bar;
+     Point mouse_pos;
+     struct input_event *bufp;
+{
+  ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+
+  if (last_scroll_bar_part == scroll_bar_handle)
+    {
+      int top, top_range;
+      Rect r;
+
+      get_control_part_bounds (SCROLL_BAR_CONTROL_HANDLE (bar),
+			       kControlIndicatorPart, &r);
+
+      if (GC_NILP (bar->dragging))
+	XSETINT (bar->dragging, mouse_pos.v - r.top);
+
+      top = mouse_pos.v - XINT (bar->dragging) - XINT (bar->track_top);
+      top_range = (XINT (bar->track_height) - (r.bottom - r.top)) *
+	(1.0 + (float) GetControlViewSize (ch) / GetControl32BitMaximum (ch))
+	+ .5;
+
+      if (top < 0)
+	top = 0;
+      if (top > top_range)
+	top = top_range;
+
+      construct_scroll_bar_click (bar, scroll_bar_handle, bufp);
+      XSETINT (bufp->x, top);
+      XSETINT (bufp->y, top_range);
+    }
+  else
+    {
+      ControlPartCode part_code;
+      int unhilite_p = 0, part;
+
+      if (ch != FindControlUnderMouse (mouse_pos, win, &part_code))
+	unhilite_p = 1;
+      else
+	{
+	  part = control_part_code_to_scroll_bar_part (part_code);
+
+	  switch (last_scroll_bar_part)
+	    {
+	    case scroll_bar_above_handle:
+	    case scroll_bar_below_handle:
+	      if (part != scroll_bar_above_handle
+		  && part != scroll_bar_below_handle)
+		unhilite_p = 1;
+	      break;
+
+	    case scroll_bar_up_arrow:
+	    case scroll_bar_down_arrow:
+	      if (part != scroll_bar_up_arrow
+		  && part != scroll_bar_down_arrow)
+		unhilite_p = 1;
+	      break;
+	    }
+	}
+
+      if (unhilite_p)
+	HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), 0);
+      else if (part != last_scroll_bar_part
+	       || scroll_bar_timer_event_posted_p)
+	{
+	  construct_scroll_bar_click (bar, part, bufp);
+	  last_scroll_bar_part = part;
+	  HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), part_code);
+	  set_scroll_bar_timer (SCROLL_BAR_CONTINUOUS_DELAY);
+	}
+    }
+}
+
+/* Set the thumb size and position of scroll bar BAR.  We are currently
+   displaying PORTION out of a whole WHOLE, and our position POSITION.  */
+
+static void
+x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
+     struct scroll_bar *bar;
+     int portion, position, whole;
+{
+  ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+
+  int value, viewsize, maximum;
+
+  if (whole == 0 || XINT (bar->track_height) == 0)
+    value = 0, viewsize = 1, maximum = 0;
+  else
+    {
+      value = position;
+      viewsize = portion;
+      maximum = max (0, whole - portion);
+    }
+
+  BLOCK_INPUT;
+
+  SetControl32BitMinimum (ch, 0);
+  SetControl32BitMaximum (ch, maximum);
+  SetControl32BitValue (ch, value);
+  SetControlViewSize (ch, viewsize);
+
+  UNBLOCK_INPUT;
+}
+
+#endif /* USE_TOOLKIT_SCROLL_BARS */
+
 
 
 /************************************************************************
@@ -8371,15 +4556,14 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
   r.right = left + width;
   r.bottom = disp_top + disp_height;
 
-#ifdef TARGET_API_MAC_CARBON
-  ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", 1, 0, 0, 0,
-		   kControlScrollBarProc, 0L);
+#if TARGET_API_MAC_CARBON
+  ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", width < disp_height,
+		   0, 0, 0, kControlScrollBarProc, (long) bar);
 #else
-  ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", 1, 0, 0, 0, scrollBarProc,
-		   0L);
+  ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", width < disp_height,
+		   0, 0, 0, scrollBarProc, (long) bar);
 #endif
   SET_SCROLL_BAR_CONTROL_HANDLE (bar, ch);
-  SetControlReference (ch, (long) bar);
 
   XSETWINDOW (bar->window, w);
   XSETINT (bar->top, top);
@@ -8389,6 +4573,10 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
   XSETINT (bar->start, 0);
   XSETINT (bar->end, 0);
   bar->dragging = Qnil;
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  bar->track_top = Qnil;
+  bar->track_height = Qnil;
+#endif
 
   /* Add bar to its frame's list of scroll bars.  */
   bar->next = FRAME_SCROLL_BARS (f);
@@ -8414,6 +4602,8 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
    bar handle, we want to let them drag it down all the way, so that
    the bar's top is as far down as it goes; otherwise, there's no way
    to move to the very end of the buffer.  */
+
+#ifndef USE_TOOLKIT_SCROLL_BARS
 
 static void
 x_scroll_bar_set_handle (bar, start, end, rebuild)
@@ -8474,6 +4664,7 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
   UNBLOCK_INPUT;
 }
 
+#endif /* !USE_TOOLKIT_SCROLL_BARS */
 
 /* Destroy scroll bar BAR, and set its Emacs window's scroll bar to
    nil.  */
@@ -8495,10 +4686,12 @@ x_scroll_bar_remove (bar)
   UNBLOCK_INPUT;
 }
 
+
 /* Set the handle of the vertical scroll bar for WINDOW to indicate
    that we are displaying PORTION characters out of a total of WHOLE
    characters, starting at POSITION.  If WINDOW has no scroll bar,
    create one.  */
+
 static void
 XTset_vertical_scroll_bar (w, portion, whole, position)
      struct window *w;
@@ -8507,38 +4700,29 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   struct frame *f = XFRAME (w->frame);
   struct scroll_bar *bar;
   int top, height, left, sb_left, width, sb_width, disp_top, disp_height;
-  int window_x, window_y, window_width, window_height;
+  int window_y, window_height;
 
   /* Get window dimensions.  */
-  window_box (w, -1, &window_x, &window_y, &window_width, &window_height);
+  window_box (w, -1, 0, &window_y, 0, &window_height);
   top = window_y;
-#ifdef MAC_OSX
-  width = 16;
-#else
-  width = FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f);
-#endif
+  width = WINDOW_CONFIG_SCROLL_BAR_COLS (w) * FRAME_COLUMN_WIDTH (f);
   height = window_height;
 
   /* Compute the left edge of the scroll bar area.  */
-  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
-    left = XINT (w->left) + XINT (w->width) - FRAME_SCROLL_BAR_COLS (f);
-  else
-    left = XFASTINT (w->left);
-  left *= CANON_X_UNIT (f);
-  left += FRAME_INTERNAL_BORDER_WIDTH (f);
+  left = WINDOW_SCROLL_BAR_AREA_X (w);
 
   /* Compute the width of the scroll bar which might be less than
      the width of the area reserved for the scroll bar.  */
-  if (FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0)
-    sb_width = FRAME_SCROLL_BAR_PIXEL_WIDTH (f);
+  if (WINDOW_CONFIG_SCROLL_BAR_WIDTH (w) > 0)
+    sb_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
   else
     sb_width = width;
 
   /* Compute the left edge of the scroll bar.  */
-  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
-    sb_left = left + width - sb_width - (width - sb_width) / 2;
+  if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w))
+    sb_left = left;
   else
-    sb_left = left + (width - sb_width) / 2;
+    sb_left = left + width - sb_width;
 
   /* Adjustments according to Inside Macintosh to make it look nice */
   disp_top = top;
@@ -8548,21 +4732,20 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
       disp_top = -1;
       disp_height++;
     }
-  else if (disp_top == PIXEL_HEIGHT (f) - 16)
+  else if (disp_top == FRAME_PIXEL_HEIGHT (f) - 16)
     {
       disp_top++;
       disp_height--;
     }
 
-  if (sb_left + sb_width == PIXEL_WIDTH (f))
+  if (sb_left + sb_width == FRAME_PIXEL_WIDTH (f))
     sb_left++;
 
   /* Does the scroll bar exist yet?  */
   if (NILP (w->vertical_scroll_bar))
     {
       BLOCK_INPUT;
-      XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		  left, top, width, height, 0);
+      mac_clear_area (f, left, top, width, height);
       UNBLOCK_INPUT;
       bar = x_scroll_bar_create (w, top, sb_left, sb_width, height, disp_top,
 				 disp_height);
@@ -8579,43 +4762,65 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
       BLOCK_INPUT;
 
       /* If already correctly positioned, do nothing.  */
-      if (XINT (bar->left) == sb_left
-          && XINT (bar->top) == top
-          && XINT (bar->width) == sb_width
-          && XINT (bar->height) == height)
-        Draw1Control (ch);
-      else
-        {
-	  /* Clear areas not covered by the scroll bar because it's not as
-	     wide as the area reserved for it .  This makes sure a
-	     previous mode line display is cleared after C-x 2 C-x 1, for
-	     example.  */
-	  int area_width = FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f);
-	  XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		      left, top, area_width, height, 0);
-
-#if 0
-          if (sb_left + sb_width >= PIXEL_WIDTH (f))
-            XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		        sb_left - 1, top, 1, height, 0);
-#endif
+      if (!(XINT (bar->left) == sb_left
+	    && XINT (bar->top) == top
+	    && XINT (bar->width) == sb_width
+	    && XINT (bar->height) == height))
+	{
+	  /* Since toolkit scroll bars are smaller than the space reserved
+	     for them on the frame, we have to clear "under" them.  */
+	  mac_clear_area (f, left, top, width, height);
 
           HideControl (ch);
           MoveControl (ch, sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM, disp_top);
           SizeControl (ch, sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
 		       disp_height);
-          ShowControl (ch);
+	  if (sb_width < disp_height)
+	    ShowControl (ch);
 
           /* Remember new settings.  */
           XSETINT (bar->left, sb_left);
           XSETINT (bar->top, top);
           XSETINT (bar->width, sb_width);
           XSETINT (bar->height, height);
+#ifdef USE_TOOLKIT_SCROLL_BARS
+	  bar->track_top = Qnil;
+	  bar->track_height = Qnil;
+#endif
         }
 
       UNBLOCK_INPUT;
     }
 
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  if (NILP (bar->track_top))
+    {
+      ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+      Rect r0, r1;
+
+      BLOCK_INPUT;
+
+      SetControl32BitMinimum (ch, 0);
+      SetControl32BitMaximum (ch, 1);
+      SetControlViewSize (ch, 1);
+
+      /* Move the scroll bar thumb to the top.  */
+      SetControl32BitValue (ch, 0);
+      get_control_part_bounds (ch, kControlIndicatorPart, &r0);
+
+      /* Move the scroll bar thumb to the bottom.  */
+      SetControl32BitValue (ch, 1);
+      get_control_part_bounds (ch, kControlIndicatorPart, &r1);
+
+      UnionRect (&r0, &r1, &r0);
+      XSETINT (bar->track_top, r0.top);
+      XSETINT (bar->track_height, r0.bottom - r0.top);
+
+      UNBLOCK_INPUT;
+    }
+
+  x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole);
+#else /* not USE_TOOLKIT_SCROLL_BARS */
   /* Set the scroll bar's current state, unless we're currently being
      dragged.  */
   if (NILP (bar->dragging))
@@ -8631,6 +4836,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	  x_scroll_bar_set_handle (bar, start, end, 0);
 	}
     }
+#endif /* not USE_TOOLKIT_SCROLL_BARS */
 }
 
 
@@ -8673,6 +4879,7 @@ XTredeem_scroll_bar (window)
      struct window *window;
 {
   struct scroll_bar *bar;
+  struct frame *f;
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
   if (NILP (window->vertical_scroll_bar))
@@ -8681,36 +4888,33 @@ XTredeem_scroll_bar (window)
   bar = XSCROLL_BAR (window->vertical_scroll_bar);
 
   /* Unlink it from the condemned list.  */
-  {
-    FRAME_PTR f = XFRAME (WINDOW_FRAME (window));
+  f = XFRAME (WINDOW_FRAME (window));
+  if (NILP (bar->prev))
+    {
+      /* If the prev pointer is nil, it must be the first in one of
+	 the lists.  */
+      if (EQ (FRAME_SCROLL_BARS (f), window->vertical_scroll_bar))
+	/* It's not condemned.  Everything's fine.  */
+	return;
+      else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
+		   window->vertical_scroll_bar))
+	FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
+      else
+	/* If its prev pointer is nil, it must be at the front of
+	   one or the other!  */
+	abort ();
+    }
+  else
+    XSCROLL_BAR (bar->prev)->next = bar->next;
 
-    if (NILP (bar->prev))
-      {
-	/* If the prev pointer is nil, it must be the first in one of
-           the lists.  */
-	if (EQ (FRAME_SCROLL_BARS (f), window->vertical_scroll_bar))
-	  /* It's not condemned.  Everything's fine.  */
-	  return;
-	else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
-		     window->vertical_scroll_bar))
-	  FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
-	else
-	  /* If its prev pointer is nil, it must be at the front of
-             one or the other!  */
-	  abort ();
-      }
-    else
-      XSCROLL_BAR (bar->prev)->next = bar->next;
+  if (! NILP (bar->next))
+    XSCROLL_BAR (bar->next)->prev = bar->prev;
 
-    if (! NILP (bar->next))
-      XSCROLL_BAR (bar->next)->prev = bar->prev;
-
-    bar->next = FRAME_SCROLL_BARS (f);
-    bar->prev = Qnil;
-    XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
-    if (! NILP (bar->next))
-      XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
-  }
+  bar->next = FRAME_SCROLL_BARS (f);
+  bar->prev = Qnil;
+  XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+  if (! NILP (bar->next))
+    XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 }
 
 /* Remove all scroll bars on FRAME that haven't been saved since the
@@ -8743,50 +4947,6 @@ XTjudge_scroll_bars (f)
 }
 
 
-static void
-activate_scroll_bars (frame)
-     FRAME_PTR frame;
-{
-  Lisp_Object bar;
-  ControlHandle ch;
-
-  bar = FRAME_SCROLL_BARS (frame);
-  while (! NILP (bar))
-    {
-      ch = SCROLL_BAR_CONTROL_HANDLE (XSCROLL_BAR (bar));
-#ifdef TARGET_API_MAC_CARBON
-      ActivateControl (ch);
-#else
-      SetControlMaximum (ch,
-			 VERTICAL_SCROLL_BAR_TOP_RANGE (frame,
-							XINT (XSCROLL_BAR (bar)
-							      ->height)) - 1);
-#endif
-      bar = XSCROLL_BAR (bar)->next;
-    }
-}
-
-
-static void
-deactivate_scroll_bars (frame)
-     FRAME_PTR frame;
-{
-  Lisp_Object bar;
-  ControlHandle ch;
-
-  bar = FRAME_SCROLL_BARS (frame);
-  while (! NILP (bar))
-    {
-      ch = SCROLL_BAR_CONTROL_HANDLE (XSCROLL_BAR (bar));
-#ifdef TARGET_API_MAC_CARBON
-      DeactivateControl (ch);
-#else
-      SetControlMaximum (ch, XINT (-1));
-#endif
-      bar = XSCROLL_BAR (bar)->next;
-    }
-}
-
 /* Handle a mouse click on the scroll bar BAR.  If *EMACS_EVENT's kind
    is set to something other than NO_EVENT, it is enqueued.
 
@@ -8796,10 +4956,12 @@ deactivate_scroll_bars (frame)
 static void
 x_scroll_bar_handle_click (bar, part_code, er, bufp)
      struct scroll_bar *bar;
-     int part_code;
+     ControlPartCode part_code;
      EventRecord *er;
      struct input_event *bufp;
 {
+  int win_y, top_range;
+
   if (! GC_WINDOWP (bar->window))
     abort ();
 
@@ -8823,7 +4985,7 @@ x_scroll_bar_handle_click (bar, part_code, er, bufp)
     case kControlPageDownPart:
       bufp->part = scroll_bar_below_handle;
       break;
-#ifdef TARGET_API_MAC_CARBON
+#if TARGET_API_MAC_CARBON
     default:
 #else
     case kControlIndicatorPart:
@@ -8834,8 +4996,27 @@ x_scroll_bar_handle_click (bar, part_code, er, bufp)
       bufp->part = scroll_bar_handle;
       break;
     }
+
+  win_y = XINT (bufp->y) - XINT (bar->top);
+  top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (0/*dummy*/, XINT (bar->height));
+
+  win_y -= VERTICAL_SCROLL_BAR_TOP_BORDER;
+
+  win_y -= 24;
+
+  if (! NILP (bar->dragging))
+    win_y -= XINT (bar->dragging);
+
+  if (win_y < 0)
+    win_y = 0;
+  if (win_y > top_range)
+    win_y = top_range;
+
+  XSETINT (bufp->x, win_y);
+  XSETINT (bufp->y, top_range);
 }
 
+#ifndef USE_TOOLKIT_SCROLL_BARS
 
 /* Handle some mouse motion while someone is dragging the scroll bar.
 
@@ -8870,9 +5051,10 @@ x_scroll_bar_note_movement (bar, y_pos, t)
     }
 }
 
+#endif /* !USE_TOOLKIT_SCROLL_BARS */
 
-/* Return information to the user about the current position of the
-   mouse on the scroll bar.  */
+/* Return information to the user about the current position of the mouse
+   on the scroll bar.  */
 
 static void
 x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
@@ -8883,16 +5065,17 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
      unsigned long *time;
 {
   struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
-  WindowPtr wp = FrontWindow ();
+  ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+#if TARGET_API_MAC_CARBON
+  WindowPtr wp = GetControlOwner (ch);
+#else
+  WindowPtr wp = (*ch)->contrlOwner;
+#endif
   Point mouse_pos;
-  struct frame *f = ((mac_output *) GetWRefCon (wp))->mFP;
+  struct frame *f = mac_window_to_frame (wp);
   int win_y, top_range;
 
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (wp));
-#else
-  SetPort (wp);
-#endif
+  SetPortWindowPort (wp);
 
   GetMouse (&mouse_pos);
 
@@ -8931,70 +5114,53 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
 
   *time = last_mouse_movement_time;
 }
+
+
+/* The screen has been cleared so we may have changed foreground or
+   background colors, and the scroll bars may need to be redrawn.
+   Clear out the scroll bars, and ask for expose events, so we can
+   redraw them.  */
+
+void
+x_scroll_bar_clear (f)
+     FRAME_PTR f;
+{
+  XTcondemn_scroll_bars (f);
+  XTjudge_scroll_bars (f);
+}
+
 
 /***********************************************************************
 			     Text Cursor
  ***********************************************************************/
 
-/* Notice if the text cursor of window W has been overwritten by a
-   drawing operation that outputs glyphs starting at START_X and
-   ending at END_X in the line given by output_cursor.vpos.
-   Coordinates are area-relative.  END_X < 0 means all the rest
-   of the line after START_X has been written.  */
-
-static void
-notice_overwritten_cursor (w, area, x0, x1, y0, y1)
-     struct window *w;
-     enum glyph_row_area area;
-     int x0, x1, y0, y1;
-{
-  if (area == TEXT_AREA
-      && w->phys_cursor_on_p
-      && y0 <= w->phys_cursor.y
-      && y1 >= w->phys_cursor.y + w->phys_cursor_height
-      && x0 <= w->phys_cursor.x
-      && (x1 < 0 || x1 > w->phys_cursor.x))
-    w->phys_cursor_on_p = 0;
-}
-
-
 /* Set clipping for output in glyph row ROW.  W is the window in which
    we operate.  GC is the graphics context to set clipping in.
-   WHOLE_LINE_P non-zero means include the areas used for truncation
-   mark display and alike in the clipping rectangle.
 
    ROW may be a text row or, e.g., a mode line.  Text rows must be
    clipped to the interior of the window dedicated to text display,
    mode lines must be clipped to the whole window.  */
 
 static void
-x_clip_to_row (w, row, gc, whole_line_p)
+x_clip_to_row (w, row, area, gc)
      struct window *w;
      struct glyph_row *row;
+     int area;
      GC gc;
-     int whole_line_p;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Rect clip_rect;
-  int window_x, window_y, window_width, window_height;
+  int window_x, window_y, window_width;
 
-  window_box (w, -1, &window_x, &window_y, &window_width, &window_height);
+  window_box (w, area, &window_x, &window_y, &window_width, 0);
 
-  clip_rect.left = WINDOW_TO_FRAME_PIXEL_X (w, 0);
+  clip_rect.left = window_x;
   clip_rect.top = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
   clip_rect.top = max (clip_rect.top, window_y);
   clip_rect.right = clip_rect.left + window_width;
   clip_rect.bottom = clip_rect.top + row->visible_height;
 
-  /* If clipping to the whole line, including trunc marks, extend
-     the rectangle to the left and increase its width.  */
-  if (whole_line_p)
-    {
-      clip_rect.left -= FRAME_X_LEFT_FRINGE_WIDTH (f);
-      clip_rect.right += FRAME_X_FRINGE_WIDTH (f);
-    }
-
-  mac_set_clip_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), &clip_rect);
+  mac_set_clip_rectangles (FRAME_MAC_DISPLAY (f), gc, &clip_rect, 1);
 }
 
 
@@ -9013,27 +5179,16 @@ x_draw_hollow_cursor (w, row)
   struct glyph *cursor_glyph;
   GC gc;
 
-  /* Compute frame-relative coordinates from window-relative
-     coordinates.  */
-  x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-  y = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
-       + row->ascent - w->phys_cursor_ascent);
-  h = row->height - 1;
-
   /* Get the glyph the cursor is on.  If we can't tell because
      the current matrix is invalid or such, give up.  */
   cursor_glyph = get_phys_cursor_glyph (w);
   if (cursor_glyph == NULL)
     return;
 
-  /* Compute the width of the rectangle to draw.  If on a stretch
-     glyph, and `x-stretch-block-cursor' is nil, don't draw a
-     rectangle as wide as the glyph, but use a canonical character
-     width instead.  */
-  wd = cursor_glyph->pixel_width - 1;
-  if (cursor_glyph->type == STRETCH_GLYPH
-      && !x_stretch_cursor_p)
-    wd = min (CANON_X_UNIT (f), wd);
+  /* Compute frame-relative coordinates for phys cursor.  */
+  x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+  y = get_phys_cursor_geometry (w, row, cursor_glyph, &h);
+  wd = w->phys_cursor_width;
 
   /* The foreground of cursor_gc is typically the same as the normal
      background color, which can cause the cursor box to be invisible.  */
@@ -9046,9 +5201,9 @@ x_draw_hollow_cursor (w, row)
   gc = dpyinfo->scratch_cursor_gc;
 
   /* Set clipping, draw the rectangle, and reset clipping again.  */
-  x_clip_to_row (w, row, gc, 0);
-  mac_draw_rectangle (dpy, FRAME_MAC_WINDOW (f), gc, x, y, wd, h);
-  mac_reset_clipping (dpy, FRAME_MAC_WINDOW (f));
+  x_clip_to_row (w, row, TEXT_AREA, gc);
+  mac_draw_rectangle (f, gc, x, y, wd, h);
+  mac_reset_clip_rectangles (dpy, gc);
 }
 
 
@@ -9060,35 +5215,49 @@ x_draw_hollow_cursor (w, row)
    --gerd.  */
 
 static void
-x_draw_bar_cursor (w, row, width)
+x_draw_bar_cursor (w, row, width, kind)
      struct window *w;
      struct glyph_row *row;
      int width;
+     enum text_cursor_kinds kind;
 {
-  /* If cursor hpos is out of bounds, don't draw garbage.  This can
-     happen in mini-buffer windows when switching between echo area
-     glyphs and mini-buffer.  */
-  if (w->phys_cursor.hpos < row->used[TEXT_AREA])
+  struct frame *f = XFRAME (w->frame);
+  struct glyph *cursor_glyph;
+
+  /* If cursor is out of bounds, don't draw garbage.  This can happen
+     in mini-buffer windows when switching between echo area glyphs
+     and mini-buffer.  */
+  cursor_glyph = get_phys_cursor_glyph (w);
+  if (cursor_glyph == NULL)
+    return;
+
+  /* If on an image, draw like a normal cursor.  That's usually better
+     visible than drawing a bar, esp. if the image is large so that
+     the bar might not be in the window.  */
+  if (cursor_glyph->type == IMAGE_GLYPH)
     {
-      struct frame *f = XFRAME (w->frame);
-      struct glyph *cursor_glyph;
-      GC gc;
-      int x;
-      unsigned long mask;
+      struct glyph_row *row;
+      row = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos);
+      draw_phys_cursor_glyph (w, row, DRAW_CURSOR);
+    }
+  else
+    {
+      Display *dpy = FRAME_MAC_DISPLAY (f);
+      Window window = FRAME_MAC_WINDOW (f);
+      GC gc = FRAME_MAC_DISPLAY_INFO (f)->scratch_cursor_gc;
+      unsigned long mask = GCForeground | GCBackground;
+      struct face *face = FACE_FROM_ID (f, cursor_glyph->face_id);
       XGCValues xgcv;
-      Display *dpy;
-      Window window;
 
-      cursor_glyph = get_phys_cursor_glyph (w);
-      if (cursor_glyph == NULL)
-	return;
-
-      xgcv.background = f->output_data.mac->cursor_pixel;
-      xgcv.foreground = f->output_data.mac->cursor_pixel;
-      mask = GCForeground | GCBackground;
-      dpy = FRAME_MAC_DISPLAY (f);
-      window = FRAME_MAC_WINDOW (f);
-      gc = FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc;
+      /* If the glyph's background equals the color we normally draw
+	 the bar cursor in, the bar cursor in its normal color is
+	 invisible.  Use the glyph's foreground color instead in this
+	 case, on the assumption that the glyph's colors are chosen so
+	 that the glyph is legible.  */
+      if (face->background == f->output_data.mac->cursor_pixel)
+	xgcv.background = xgcv.foreground = face->foreground;
+      else
+	xgcv.background = xgcv.foreground = f->output_data.mac->cursor_pixel;
 
       if (gc)
 	XChangeGC (dpy, gc, mask, &xgcv);
@@ -9100,290 +5269,93 @@ x_draw_bar_cursor (w, row, width)
 
       if (width < 0)
 	width = FRAME_CURSOR_WIDTH (f);
+      width = min (cursor_glyph->pixel_width, width);
 
-      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-      x_clip_to_row (w, row, gc, 0);
-      XFillRectangle (dpy, window, gc,
-		      x,
-		      WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
-		      min (cursor_glyph->pixel_width, width),
-		      row->height);
-      mac_reset_clipping (dpy, FRAME_MAC_WINDOW (f));
+      w->phys_cursor_width = width;
+      x_clip_to_row (w, row, TEXT_AREA, gc);
+
+      if (kind == BAR_CURSOR)
+	mac_fill_rectangle (f, gc,
+			    WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
+			    WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
+			    width, row->height);
+      else
+	mac_fill_rectangle (f, gc,
+			    WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
+			    WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
+						     row->height - width),
+			    cursor_glyph->pixel_width,
+			    width);
+
+      mac_reset_clip_rectangles (dpy, gc);
     }
 }
 
 
-/* Clear the cursor of window W to background color, and mark the
-   cursor as not shown.  This is used when the text where the cursor
-   is is about to be rewritten.  */
+/* RIF: Define cursor CURSOR on frame F.  */
 
 static void
-x_clear_cursor (w)
-     struct window *w;
+mac_define_frame_cursor (f, cursor)
+     struct frame *f;
+     Cursor cursor;
 {
-  if (FRAME_VISIBLE_P (XFRAME (w->frame)) && w->phys_cursor_on_p)
-    x_update_window_cursor (w, 0);
+  SetThemeCursor (cursor);
 }
 
 
-/* Draw the cursor glyph of window W in glyph row ROW.  See the
-   comment of x_draw_glyphs for the meaning of HL.  */
+/* RIF: Clear area on frame F.  */
 
 static void
-x_draw_phys_cursor_glyph (w, row, hl)
-     struct window *w;
-     struct glyph_row *row;
-     enum draw_glyphs_face hl;
+mac_clear_frame_area (f, x, y, width, height)
+     struct frame *f;
+     int x, y, width, height;
 {
-  /* If cursor hpos is out of bounds, don't draw garbage.  This can
-     happen in mini-buffer windows when switching between echo area
-     glyphs and mini-buffer.  */
-  if (w->phys_cursor.hpos < row->used[TEXT_AREA])
-    {
-      int on_p = w->phys_cursor_on_p;
-      x_draw_glyphs (w, w->phys_cursor.x, row, TEXT_AREA,
-                     w->phys_cursor.hpos, w->phys_cursor.hpos + 1,
-                     hl, 0);
-      w->phys_cursor_on_p = on_p;
-
-      /* When we erase the cursor, and ROW is overlapped by other
-	 rows, make sure that these overlapping parts of other rows
-	 are redrawn.  */
-      if (hl == DRAW_NORMAL_TEXT && row->overlapped_p)
-	{
-	  if (row > w->current_matrix->rows
-	      && MATRIX_ROW_OVERLAPS_SUCC_P (row - 1))
-	    x_fix_overlapping_area (w, row - 1, TEXT_AREA);
-
-	  if (MATRIX_ROW_BOTTOM_Y (row) < window_text_bottom_y (w)
-	      && MATRIX_ROW_OVERLAPS_PRED_P (row + 1))
-	    x_fix_overlapping_area (w, row + 1, TEXT_AREA);
-	}
-    }
+  mac_clear_area (f, x, y, width, height);
 }
 
 
-/* Erase the image of a cursor of window W from the screen.  */
+/* RIF: Draw cursor on window W.  */
 
 static void
-x_erase_phys_cursor (w)
+mac_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, active_p)
      struct window *w;
+     struct glyph_row *glyph_row;
+     int x, y;
+     int cursor_type, cursor_width;
+     int on_p, active_p;
 {
-  struct frame *f = XFRAME (w->frame);
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  int hpos = w->phys_cursor.hpos;
-  int vpos = w->phys_cursor.vpos;
-  int mouse_face_here_p = 0;
-  struct glyph_matrix *active_glyphs = w->current_matrix;
-  struct glyph_row *cursor_row;
-  struct glyph *cursor_glyph;
-  enum draw_glyphs_face hl;
-
-  /* No cursor displayed or row invalidated => nothing to do on the
-     screen.  */
-  if (w->phys_cursor_type == NO_CURSOR)
-    goto mark_cursor_off;
-
-  /* VPOS >= active_glyphs->nrows means that window has been resized.
-     Don't bother to erase the cursor.  */
-  if (vpos >= active_glyphs->nrows)
-    goto mark_cursor_off;
-
-  /* If row containing cursor is marked invalid, there is nothing we
-     can do.  */
-  cursor_row = MATRIX_ROW (active_glyphs, vpos);
-  if (!cursor_row->enabled_p)
-    goto mark_cursor_off;
-
-  /* If row is completely invisible, don't attempt to delete a cursor which
-     isn't there.  This may happen if cursor is at top of window, and
-     we switch to a buffer with a header line in that window.  */
-  if (cursor_row->visible_height <= 0)
-    goto mark_cursor_off;
-
-  /* This can happen when the new row is shorter than the old one.
-     In this case, either x_draw_glyphs or clear_end_of_line
-     should have cleared the cursor.  Note that we wouldn't be
-     able to erase the cursor in this case because we don't have a
-     cursor glyph at hand.  */
-  if (w->phys_cursor.hpos >= cursor_row->used[TEXT_AREA])
-    goto mark_cursor_off;
-
-  /* If the cursor is in the mouse face area, redisplay that when
-     we clear the cursor.  */
-  if (! NILP (dpyinfo->mouse_face_window)
-      && w == XWINDOW (dpyinfo->mouse_face_window)
-      && (vpos > dpyinfo->mouse_face_beg_row
-	  || (vpos == dpyinfo->mouse_face_beg_row
-	      && hpos >= dpyinfo->mouse_face_beg_col))
-      && (vpos < dpyinfo->mouse_face_end_row
-	  || (vpos == dpyinfo->mouse_face_end_row
-	      && hpos < dpyinfo->mouse_face_end_col))
-      /* Don't redraw the cursor's spot in mouse face if it is at the
-	 end of a line (on a newline).  The cursor appears there, but
-	 mouse highlighting does not.  */
-      && cursor_row->used[TEXT_AREA] > hpos)
-    mouse_face_here_p = 1;
-
-  /* Maybe clear the display under the cursor.  */
-  if (w->phys_cursor_type == HOLLOW_BOX_CURSOR)
+  if (on_p)
     {
-      int x;
-      int header_line_height = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
-
-      cursor_glyph = get_phys_cursor_glyph (w);
-      if (cursor_glyph == NULL)
-	goto mark_cursor_off;
-
-      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
-
-      XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		  x,
-		  WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
-						   cursor_row->y)),
-		  cursor_glyph->pixel_width,
-		  cursor_row->visible_height,
-		  0);
-    }
-
-  /* Erase the cursor by redrawing the character underneath it.  */
-  if (mouse_face_here_p)
-    hl = DRAW_MOUSE_FACE;
-  else
-    hl = DRAW_NORMAL_TEXT;
-  x_draw_phys_cursor_glyph (w, cursor_row, hl);
-
- mark_cursor_off:
-  w->phys_cursor_on_p = 0;
-  w->phys_cursor_type = NO_CURSOR;
-}
-
-
-/* Non-zero if physical cursor of window W is within mouse face.  */
-
-static int
-cursor_in_mouse_face_p (w)
-     struct window *w;
-{
-  struct mac_display_info *dpyinfo
-    = FRAME_MAC_DISPLAY_INFO (XFRAME (w->frame));
-  int in_mouse_face = 0;
-
-  if (WINDOWP (dpyinfo->mouse_face_window)
-      && XWINDOW (dpyinfo->mouse_face_window) == w)
-    {
-      int hpos = w->phys_cursor.hpos;
-      int vpos = w->phys_cursor.vpos;
-
-      if (vpos >= dpyinfo->mouse_face_beg_row
-	  && vpos <= dpyinfo->mouse_face_end_row
-	  && (vpos > dpyinfo->mouse_face_beg_row
-	      || hpos >= dpyinfo->mouse_face_beg_col)
-	  && (vpos < dpyinfo->mouse_face_end_row
-	      || hpos < dpyinfo->mouse_face_end_col
-	      || dpyinfo->mouse_face_past_end))
-	in_mouse_face = 1;
-    }
-
-  return in_mouse_face;
-}
-
-
-/* Display or clear cursor of window W.  If ON is zero, clear the
-   cursor.  If it is non-zero, display the cursor.  If ON is nonzero,
-   where to put the cursor is specified by HPOS, VPOS, X and Y.  */
-
-void
-x_display_and_set_cursor (w, on, hpos, vpos, x, y)
-     struct window *w;
-     int on, hpos, vpos, x, y;
-{
-  struct frame *f = XFRAME (w->frame);
-  int new_cursor_type;
-  int new_cursor_width;
-  int active_cursor;
-  struct glyph_matrix *current_glyphs;
-  struct glyph_row *glyph_row;
-  struct glyph *glyph;
-
-  /* This is pointless on invisible frames, and dangerous on garbaged
-     windows and frames; in the latter case, the frame or window may
-     be in the midst of changing its size, and x and y may be off the
-     window.  */
-  if (! FRAME_VISIBLE_P (f)
-      || FRAME_GARBAGED_P (f)
-      || vpos >= w->current_matrix->nrows
-      || hpos >= w->current_matrix->matrix_w)
-    return;
-
-  /* If cursor is off and we want it off, return quickly.  */
-  if (!on && !w->phys_cursor_on_p)
-    return;
-
-  current_glyphs = w->current_matrix;
-  glyph_row = MATRIX_ROW (current_glyphs, vpos);
-  glyph = glyph_row->glyphs[TEXT_AREA] + hpos;
-
-  /* If cursor row is not enabled, we don't really know where to
-     display the cursor.  */
-  if (!glyph_row->enabled_p)
-    {
-      w->phys_cursor_on_p = 0;
-      return;
-    }
-
-  xassert (interrupt_input_blocked);
-
-  /* Set new_cursor_type to the cursor we want to be displayed.  */
-  new_cursor_type = get_window_cursor_type (w, &new_cursor_width, &active_cursor);
-
-
-  /* If cursor is currently being shown and we don't want it to be or
-     it is in the wrong place, or the cursor type is not what we want,
-     erase it.  */
-  if (w->phys_cursor_on_p
-      && (!on
-	  || w->phys_cursor.x != x
-	  || w->phys_cursor.y != y
-	  || new_cursor_type != w->phys_cursor_type
-	  || ((new_cursor_type == BAR_CURSOR || new_cursor_type == HBAR_CURSOR)
-	      && new_cursor_width != w->phys_cursor_width)))
-    x_erase_phys_cursor (w);
-
-  /* If the cursor is now invisible and we want it to be visible,
-     display it.  */
-  if (on && !w->phys_cursor_on_p)
-    {
-      w->phys_cursor_ascent = glyph_row->ascent;
-      w->phys_cursor_height = glyph_row->height;
-
-      /* Set phys_cursor_.* before x_draw_.* is called because some
-	 of them may need the information.  */
-      w->phys_cursor.x = x;
-      w->phys_cursor.y = glyph_row->y;
-      w->phys_cursor.hpos = hpos;
-      w->phys_cursor.vpos = vpos;
-      w->phys_cursor_type = new_cursor_type;
-      w->phys_cursor_width = new_cursor_width;
+      w->phys_cursor_type = cursor_type;
       w->phys_cursor_on_p = 1;
 
-      switch (new_cursor_type)
+      if (glyph_row->exact_window_width_line_p
+	  && w->phys_cursor.hpos >= glyph_row->used[TEXT_AREA])
+	{
+	  glyph_row->cursor_in_fringe_p = 1;
+	  draw_fringe_bitmap (w, glyph_row, 0);
+	}
+      else
+      switch (cursor_type)
 	{
 	case HOLLOW_BOX_CURSOR:
 	  x_draw_hollow_cursor (w, glyph_row);
 	  break;
 
 	case FILLED_BOX_CURSOR:
-	  x_draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
+	  draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
+	  break;
+
+	case BAR_CURSOR:
+	  x_draw_bar_cursor (w, glyph_row, cursor_width, BAR_CURSOR);
 	  break;
 
 	case HBAR_CURSOR:
-	  /* TODO.  For now, just draw bar cursor. */
-	case BAR_CURSOR:
-	  x_draw_bar_cursor (w, glyph_row, new_cursor_width);
+	  x_draw_bar_cursor (w, glyph_row, cursor_width, HBAR_CURSOR);
 	  break;
 
 	case NO_CURSOR:
+	  w->phys_cursor_width = 0;
 	  break;
 
 	default:
@@ -9391,80 +5363,6 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	}
     }
 }
-
-
-/* Display the cursor on window W, or clear it.  X and Y are window
-   relative pixel coordinates.  HPOS and VPOS are glyph matrix
-   positions.  If W is not the selected window, display a hollow
-   cursor.  ON non-zero means display the cursor at X, Y which
-   correspond to HPOS, VPOS, otherwise it is cleared.  */
-
-void
-x_display_cursor (w, on, hpos, vpos, x, y)
-     struct window *w;
-     int on, hpos, vpos, x, y;
-{
-  BLOCK_INPUT;
-  x_display_and_set_cursor (w, on, hpos, vpos, x, y);
-  UNBLOCK_INPUT;
-}
-
-
-/* Display the cursor on window W, or clear it, according to ON_P.
-   Don't change the cursor's position.  */
-
-void
-x_update_cursor (f, on_p)
-     struct frame *f;
-     int on_p;
-{
-  x_update_cursor_in_window_tree (XWINDOW (f->root_window), on_p);
-}
-
-
-/* Call x_update_window_cursor with parameter ON_P on all leaf windows
-   in the window tree rooted at W.  */
-
-static void
-x_update_cursor_in_window_tree (w, on_p)
-     struct window *w;
-     int on_p;
-{
-  while (w)
-    {
-      if (!NILP (w->hchild))
-	x_update_cursor_in_window_tree (XWINDOW (w->hchild), on_p);
-      else if (!NILP (w->vchild))
-	x_update_cursor_in_window_tree (XWINDOW (w->vchild), on_p);
-      else
-	x_update_window_cursor (w, on_p);
-
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
-    }
-}
-
-
-/* Switch the display of W's cursor on or off, according to the value
-   of ON.  */
-
-static void
-x_update_window_cursor (w, on)
-     struct window *w;
-     int on;
-{
-  /* Don't update cursor in windows whose frame is in the process
-     of being deleted.  */
-  if (w->current_matrix)
-    {
-      BLOCK_INPUT;
-      x_display_and_set_cursor (w, on, w->phys_cursor.hpos,
-                                w->phys_cursor.vpos, w->phys_cursor.x,
-                                w->phys_cursor.y);
-      UNBLOCK_INPUT;
-    }
-}
-
-
 
 
 /* Icons.  */
@@ -9565,40 +5463,45 @@ x_new_font (f, fontname)
   FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
   FRAME_FONTSET (f) = -1;
 
+  FRAME_COLUMN_WIDTH (f) = fontp->average_width;
+  FRAME_SPACE_WIDTH (f) = fontp->space_width;
+  FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (FRAME_FONT (f));
+
+  compute_fringe_widths (f, 1);
+
   /* Compute the scroll bar width in character columns.  */
-  if (f->scroll_bar_pixel_width > 0)
+  if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
     {
-      int wid = FONT_WIDTH (FRAME_FONT (f));
-      f->scroll_bar_cols = (f->scroll_bar_pixel_width + wid-1) / wid;
+      int wid = FRAME_COLUMN_WIDTH (f);
+      FRAME_CONFIG_SCROLL_BAR_COLS (f)
+	= (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + wid-1) / wid;
     }
   else
     {
-      int wid = FONT_WIDTH (FRAME_FONT (f));
-      f->scroll_bar_cols = (14 + wid - 1) / wid;
+      int wid = FRAME_COLUMN_WIDTH (f);
+      FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
     }
 
   /* Now make the frame display the given font.  */
   if (FRAME_MAC_WINDOW (f) != 0)
     {
       XSetFont (FRAME_MAC_DISPLAY (f), f->output_data.mac->normal_gc,
-		f->output_data.mac->font);
+		FRAME_FONT (f));
       XSetFont (FRAME_MAC_DISPLAY (f), f->output_data.mac->reverse_gc,
-		f->output_data.mac->font);
+		FRAME_FONT (f));
       XSetFont (FRAME_MAC_DISPLAY (f), f->output_data.mac->cursor_gc,
-		f->output_data.mac->font);
+		FRAME_FONT (f));
 
-      frame_update_line_height (f);
+      /* Don't change the size of a tip frame; there's no point in
+	 doing it because it's done in Fx_show_tip, and it leads to
+	 problems because the tip frame has no widget.  */
       if (NILP (tip_frame) || XFRAME (tip_frame) != f)
-        x_set_window_size (f, 0, f->width, f->height);
+        x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
     }
-  else
-    /* If we are setting a new frame's font for the first time,
-       there are no faces yet, so this font's height is the line height.  */
-    f->output_data.mac->line_height = FONT_HEIGHT (FRAME_FONT (f));
 
   return build_string (fontp->full_name);
 }
-
+
 /* Give frame F the fontset named FONTSETNAME as its default font, and
    return the full name of that fontset.  FONTSETNAME may be a wildcard
    pattern; in that case, we choose some fontset that fits the pattern.
@@ -9627,95 +5530,11 @@ x_new_fontset (f, fontsetname)
     return Qnil;
 
   /* Since x_new_font doesn't update any fontset information, do it now.  */
-  FRAME_FONTSET(f) = fontset;
+  FRAME_FONTSET (f) = fontset;
 
   return build_string (fontsetname);
 }
 
-/* Compute actual fringe widths */
-
-void
-x_compute_fringe_widths (f, redraw)
-     struct frame *f;
-     int redraw;
-{
-  int o_left = f->output_data.mac->left_fringe_width;
-  int o_right = f->output_data.mac->right_fringe_width;
-  int o_cols = f->output_data.mac->fringe_cols;
-
-  Lisp_Object left_fringe = Fassq (Qleft_fringe, f->param_alist);
-  Lisp_Object right_fringe = Fassq (Qright_fringe, f->param_alist);
-  int left_fringe_width, right_fringe_width;
-
-  if (!NILP (left_fringe))
-    left_fringe = Fcdr (left_fringe);
-  if (!NILP (right_fringe))
-    right_fringe = Fcdr (right_fringe);
-
-  left_fringe_width = ((NILP (left_fringe) || !INTEGERP (left_fringe)) ? 8 :
-		       XINT (left_fringe));
-  right_fringe_width = ((NILP (right_fringe) || !INTEGERP (right_fringe)) ? 8 :
-			XINT (right_fringe));
-
-  if (left_fringe_width || right_fringe_width)
-    {
-      int left_wid = left_fringe_width >= 0 ? left_fringe_width : -left_fringe_width;
-      int right_wid = right_fringe_width >= 0 ? right_fringe_width : -right_fringe_width;
-      int conf_wid = left_wid + right_wid;
-      int font_wid = FONT_WIDTH (f->output_data.mac->font);
-      int cols = (left_wid + right_wid + font_wid-1) / font_wid;
-      int real_wid = cols * font_wid;
-      if (left_wid && right_wid)
-	{
-	  if (left_fringe_width < 0)
-	    {
-	      /* Left fringe width is fixed, adjust right fringe if necessary */
-	      f->output_data.mac->left_fringe_width = left_wid;
-	      f->output_data.mac->right_fringe_width = real_wid - left_wid;
-	    }
-	  else if (right_fringe_width < 0)
-	    {
-	      /* Right fringe width is fixed, adjust left fringe if necessary */
-	      f->output_data.mac->left_fringe_width = real_wid - right_wid;
-	      f->output_data.mac->right_fringe_width = right_wid;
-	    }
-	  else
-	    {
-	      /* Adjust both fringes with an equal amount.
-		 Note that we are doing integer arithmetic here, so don't
-		 lose a pixel if the total width is an odd number.  */
-	      int fill = real_wid - conf_wid;
-	      f->output_data.mac->left_fringe_width = left_wid + fill/2;
-	      f->output_data.mac->right_fringe_width = right_wid + fill - fill/2;
-	    }
-	}
-      else if (left_fringe_width)
-	{
-	  f->output_data.mac->left_fringe_width = real_wid;
-	  f->output_data.mac->right_fringe_width = 0;
-	}
-      else
-	{
-	  f->output_data.mac->left_fringe_width = 0;
-	  f->output_data.mac->right_fringe_width = real_wid;
-	}
-      f->output_data.mac->fringe_cols = cols;
-      f->output_data.mac->fringes_extra = real_wid;
-    }
-  else
-    {
-      f->output_data.mac->left_fringe_width = 0;
-      f->output_data.mac->right_fringe_width = 0;
-      f->output_data.mac->fringe_cols = 0;
-      f->output_data.mac->fringes_extra = 0;
-    }
-
-  if (redraw && FRAME_VISIBLE_P (f))
-    if (o_left != f->output_data.mac->left_fringe_width ||
-	o_right != f->output_data.mac->right_fringe_width ||
-	o_cols != f->output_data.mac->fringe_cols)
-      redraw_frame (f);
-}
 
 /***********************************************************************
 	TODO: W32 Input Methods
@@ -9732,6 +5551,27 @@ xim_close_dpy (dpyinfo)
  */
 
 
+void
+mac_get_window_bounds (f, inner, outer)
+     struct frame *f;
+     Rect *inner, *outer;
+{
+#if TARGET_API_MAC_CARBON
+  GetWindowBounds (FRAME_MAC_WINDOW (f), kWindowContentRgn, inner);
+  GetWindowBounds (FRAME_MAC_WINDOW (f), kWindowStructureRgn, outer);
+#else /* not TARGET_API_MAC_CARBON */
+  RgnHandle region = NewRgn ();
+
+  GetWindowRegion (FRAME_MAC_WINDOW (f), kWindowContentRgn, region);
+  *inner = (*region)->rgnBBox;
+  GetWindowRegion (FRAME_MAC_WINDOW (f), kWindowStructureRgn, region);
+  *outer = (*region)->rgnBBox;
+  DisposeRgn (region);
+#endif /* not TARGET_API_MAC_CARBON */
+}
+
+
+
 /* Calculate the absolute position in frame F
    from its current recorded position values and gravity.  */
 
@@ -9739,55 +5579,40 @@ void
 x_calc_absolute_position (f)
      struct frame *f;
 {
-  Point pt;
-  int flags = f->output_data.mac->size_hint_flags;
+  int width_diff = 0, height_diff = 0;
+  int flags = f->size_hint_flags;
+  Rect inner, outer;
 
-  pt.h = pt.v = 0;
+  /* We have nothing to do if the current position
+     is already for the top-left corner.  */
+  if (! ((flags & XNegative) || (flags & YNegative)))
+    return;
 
-  /* Find the position of the outside upper-left corner of
+  /* Find the offsets of the outside upper-left corner of
      the inner window, with respect to the outer window.  */
-  if (f->output_data.mac->parent_desc != FRAME_MAC_DISPLAY_INFO (f)->root_window)
-    {
-      GrafPtr savePort;
-      GetPort (&savePort);
+  mac_get_window_bounds (f, &inner, &outer);
 
-#if TARGET_API_MAC_CARBON
-      SetPort (GetWindowPort (FRAME_MAC_WINDOW (f)));
-#else
-      SetPort (FRAME_MAC_WINDOW (f));
-#endif
-
-#if TARGET_API_MAC_CARBON
-      {
-        Rect r;
-
-        GetWindowPortBounds (FRAME_MAC_WINDOW (f), &r);
-        SetPt(&pt, r.left,  r.top);
-      }
-#else /* not TARGET_API_MAC_CARBON */
-      SetPt(&pt, FRAME_MAC_WINDOW (f)->portRect.left,  FRAME_MAC_WINDOW (f)->portRect.top);
-#endif /* not TARGET_API_MAC_CARBON */
-      LocalToGlobal (&pt);
-      SetPort (savePort);
-    }
+  width_diff = (outer.right - outer.left) - (inner.right - inner.left);
+  height_diff = (outer.bottom - outer.top) - (inner.bottom - inner.top);
 
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
-    f->output_data.mac->left_pos = (FRAME_MAC_DISPLAY_INFO (f)->width
-			      - 2 * f->output_data.mac->border_width - pt.h
-			      - PIXEL_WIDTH (f)
-			      + f->output_data.mac->left_pos);
-  /* NTEMACS_TODO: Subtract menubar height?  */
+    f->left_pos = (FRAME_MAC_DISPLAY_INFO (f)->width
+                   - width_diff
+		   - FRAME_PIXEL_WIDTH (f)
+		   + f->left_pos);
+
   if (flags & YNegative)
-    f->output_data.mac->top_pos = (FRAME_MAC_DISPLAY_INFO (f)->height
-			     - 2 * f->output_data.mac->border_width - pt.v
-			     - PIXEL_HEIGHT (f)
-			     + f->output_data.mac->top_pos);
+    f->top_pos = (FRAME_MAC_DISPLAY_INFO (f)->height
+		  - height_diff
+		  - FRAME_PIXEL_HEIGHT (f)
+		  + f->top_pos);
+
   /* The left_pos and top_pos
      are now relative to the top and left screen edges,
      so the flags should correspond.  */
-  f->output_data.mac->size_hint_flags &= ~ (XNegative | YNegative);
+  f->size_hint_flags &= ~ (XNegative | YNegative);
 }
 
 /* CHANGE_GRAVITY is 1 when calling from Fset_frame_position,
@@ -9802,29 +5627,71 @@ x_set_offset (f, xoff, yoff, change_gravity)
      register int xoff, yoff;
      int change_gravity;
 {
-  int modified_top, modified_left;
-
   if (change_gravity > 0)
     {
-      f->output_data.mac->top_pos = yoff;
-      f->output_data.mac->left_pos = xoff;
-      f->output_data.mac->size_hint_flags &= ~ (XNegative | YNegative);
+      f->top_pos = yoff;
+      f->left_pos = xoff;
+      f->size_hint_flags &= ~ (XNegative | YNegative);
       if (xoff < 0)
-	f->output_data.mac->size_hint_flags |= XNegative;
+	f->size_hint_flags |= XNegative;
       if (yoff < 0)
-	f->output_data.mac->size_hint_flags |= YNegative;
-      f->output_data.mac->win_gravity = NorthWestGravity;
+	f->size_hint_flags |= YNegative;
+      f->win_gravity = NorthWestGravity;
     }
   x_calc_absolute_position (f);
 
   BLOCK_INPUT;
   x_wm_set_size_hint (f, (long) 0, 0);
 
-  modified_left = f->output_data.mac->left_pos;
-  modified_top = f->output_data.mac->top_pos;
+#if TARGET_API_MAC_CARBON
+  MoveWindowStructure (FRAME_MAC_WINDOW (f), f->left_pos, f->top_pos);
+  /* If the title bar is completely outside the screen, adjust the
+     position. */
+  ConstrainWindowToScreen (FRAME_MAC_WINDOW (f), kWindowTitleBarRgn,
+			   kWindowConstrainMoveRegardlessOfFit
+			   | kWindowConstrainAllowPartial, NULL, NULL);
+  x_real_positions (f, &f->left_pos, &f->top_pos);
+#else
+  {
+    Rect inner, outer, screen_rect, dummy;
+    RgnHandle region = NewRgn ();
 
-  MoveWindow (f->output_data.mac->mWP, modified_left + 6,
-	      modified_top + 42, false);
+    mac_get_window_bounds (f, &inner, &outer);
+    f->x_pixels_diff = inner.left - outer.left;
+    f->y_pixels_diff = inner.top - outer.top;
+    MoveWindow (FRAME_MAC_WINDOW (f), f->left_pos + f->x_pixels_diff,
+		f->top_pos + f->y_pixels_diff, false);
+
+    /* If the title bar is completely outside the screen, adjust the
+       position.  The variable `outer' holds the title bar rectangle.
+       The variable `inner' holds slightly smaller one than `outer',
+       so that the calculation of overlapping may not become too
+       strict.  */
+    GetWindowRegion (FRAME_MAC_WINDOW (f), kWindowTitleBarRgn, region);
+    outer = (*region)->rgnBBox;
+    DisposeRgn (region);
+    inner = outer;
+    InsetRect (&inner, 8, 8);
+    screen_rect = qd.screenBits.bounds;
+    screen_rect.top += GetMBarHeight ();
+
+    if (!SectRect (&inner, &screen_rect, &dummy))
+      {
+	if (inner.right <= screen_rect.left)
+	  f->left_pos = screen_rect.left;
+	else if (inner.left >= screen_rect.right)
+	  f->left_pos = screen_rect.right - (outer.right - outer.left);
+
+	if (inner.bottom <= screen_rect.top)
+	  f->top_pos = screen_rect.top;
+	else if (inner.top >= screen_rect.bottom)
+	  f->top_pos = screen_rect.bottom - (outer.bottom - outer.top);
+
+	MoveWindow (FRAME_MAC_WINDOW (f), f->left_pos + f->x_pixels_diff,
+		    f->top_pos + f->y_pixels_diff, false);
+      }
+  }
+#endif
 
   UNBLOCK_INPUT;
 }
@@ -9845,20 +5712,23 @@ x_set_window_size (f, change_gravity, cols, rows)
   BLOCK_INPUT;
 
   check_frame_size (f, &rows, &cols);
-  f->output_data.mac->vertical_scroll_bar_extra
-    = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
-       ? 0
-       : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.mac->font)));
+  f->scroll_bar_actual_width
+    = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
 
-  x_compute_fringe_widths (f, 0);
+  compute_fringe_widths (f, 0);
 
-  pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
-  pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
+  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols);
+  pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
 
-  f->output_data.mac->win_gravity = NorthWestGravity;
+  f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, (long) 0, 0);
 
   SizeWindow (FRAME_MAC_WINDOW (f), pixelwidth, pixelheight, 0);
+#if TARGET_API_MAC_CARBON
+  if (f->output_data.mac->hourglass_control)
+    MoveControl (f->output_data.mac->hourglass_control,
+		 pixelwidth - HOURGLASS_WIDTH, 0);
+#endif
 
   /* Now, strictly speaking, we can't be sure that this is accurate,
      but the window manager will get around to dealing with the size
@@ -9874,8 +5744,8 @@ x_set_window_size (f, change_gravity, cols, rows)
      We pass 1 for DELAY since we can't run Lisp code inside of
      a BLOCK_INPUT.  */
   change_frame_size (f, rows, cols, 0, 1, 0);
-  PIXEL_WIDTH (f) = pixelwidth;
-  PIXEL_HEIGHT (f) = pixelheight;
+  FRAME_PIXEL_WIDTH (f) = pixelwidth;
+  FRAME_PIXEL_HEIGHT (f) = pixelheight;
 
   /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
      receive in the ConfigureNotify event; if we get what we asked
@@ -9908,14 +5778,14 @@ x_set_mouse_position (f, x, y)
 {
   int pix_x, pix_y;
 
-  pix_x = CHAR_TO_PIXEL_COL (f, x) + FONT_WIDTH  (f->output_data.mac->font) / 2;
-  pix_y = CHAR_TO_PIXEL_ROW (f, y) + f->output_data.mac->line_height / 2;
+  pix_x = FRAME_COL_TO_PIXEL_X (f, x) + FRAME_COLUMN_WIDTH (f) / 2;
+  pix_y = FRAME_LINE_TO_PIXEL_Y (f, y) + FRAME_LINE_HEIGHT (f) / 2;
 
   if (pix_x < 0) pix_x = 0;
-  if (pix_x > PIXEL_WIDTH (f)) pix_x = PIXEL_WIDTH (f);
+  if (pix_x > FRAME_PIXEL_WIDTH (f)) pix_x = FRAME_PIXEL_WIDTH (f);
 
   if (pix_y < 0) pix_y = 0;
-  if (pix_y > PIXEL_HEIGHT (f)) pix_y = PIXEL_HEIGHT (f);
+  if (pix_y > FRAME_PIXEL_HEIGHT (f)) pix_y = FRAME_PIXEL_HEIGHT (f);
 
   x_set_mouse_pixel_position (f, pix_x, pix_y);
 }
@@ -9933,7 +5803,6 @@ x_set_mouse_pixel_position (f, pix_x, pix_y)
   UNBLOCK_INPUT;
 #endif
 }
-
 
 /* focus shifting, raising and lowering.  */
 
@@ -9960,21 +5829,31 @@ x_unfocus_frame (f)
 }
 
 /* Raise frame F.  */
+
 void
 x_raise_frame (f)
      struct frame *f;
 {
   if (f->async_visible)
-    SelectWindow (FRAME_MAC_WINDOW (f));
+    {
+      BLOCK_INPUT;
+      SelectWindow (FRAME_MAC_WINDOW (f));
+      UNBLOCK_INPUT;
+    }
 }
 
 /* Lower frame F.  */
+
 void
 x_lower_frame (f)
      struct frame *f;
 {
   if (f->async_visible)
-    SendBehind (FRAME_MAC_WINDOW (f), nil);
+    {
+      BLOCK_INPUT;
+      SendBehind (FRAME_MAC_WINDOW (f), nil);
+      UNBLOCK_INPUT;
+    }
 }
 
 static void
@@ -9989,6 +5868,53 @@ XTframe_raise_lower (f, raise_flag)
 }
 
 /* Change of visibility.  */
+
+static void
+mac_handle_visibility_change (f)
+     struct frame *f;
+{
+  WindowPtr wp = FRAME_MAC_WINDOW (f);
+  int visible = 0, iconified = 0;
+  struct input_event buf;
+
+  if (IsWindowVisible (wp))
+    if (IsWindowCollapsed (wp))
+      iconified = 1;
+    else
+      visible = 1;
+
+  if (!f->async_visible && visible)
+    {
+      if (f->iconified)
+	{
+	  /* wait_reading_process_output will notice this and update
+	     the frame's display structures.  If we were made
+	     invisible, we should not set garbaged, because that stops
+	     redrawing on Update events.  */
+	  SET_FRAME_GARBAGED (f);
+
+	  EVENT_INIT (buf);
+	  buf.kind = DEICONIFY_EVENT;
+	  XSETFRAME (buf.frame_or_window, f);
+	  kbd_buffer_store_event (&buf);
+	}
+      else if (! NILP (Vframe_list) && ! NILP (XCDR (Vframe_list)))
+	/* Force a redisplay sooner or later to update the
+	   frame titles in case this is the second frame.  */
+	record_asynch_buffer_change ();
+    }
+  else if (f->async_visible && !visible)
+    if (iconified)
+      {
+	EVENT_INIT (buf);
+	buf.kind = ICONIFY_EVENT;
+	XSETFRAME (buf.frame_or_window, f);
+	kbd_buffer_store_event (&buf);
+      }
+
+  f->async_visible = visible;
+  f->async_iconified = iconified;
+}
 
 /* This tries to wait until the frame is really visible.
    However, if the window manager asks the user where to position
@@ -10014,17 +5940,37 @@ x_make_frame_visible (f)
 	 before the window gets really visible.  */
       if (! FRAME_ICONIFIED_P (f)
 	  && ! f->output_data.mac->asked_for_visible)
-	x_set_offset (f, f->output_data.mac->left_pos,
-		      f->output_data.mac->top_pos, 0);
+#if TARGET_API_MAC_CARBON
+	if (!(FRAME_SIZE_HINTS (f)->flags & (USPosition | PPosition)))
+	  {
+	    struct frame *sf = SELECTED_FRAME ();
+	    if (!FRAME_MAC_P (sf))
+	      RepositionWindow (FRAME_MAC_WINDOW (f), NULL,
+				kWindowCenterOnMainScreen);
+	    else
+	      RepositionWindow (FRAME_MAC_WINDOW (f),
+				FRAME_MAC_WINDOW (sf),
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+				kWindowCascadeStartAtParentWindowScreen
+#else
+				kWindowCascadeOnParentWindowScreen
+#endif
+				);
+	    x_real_positions (f, &f->left_pos, &f->top_pos);
+	  }
+	else
+#endif
+	  x_set_offset (f, f->left_pos, f->top_pos, 0);
 
       f->output_data.mac->asked_for_visible = 1;
 
+      SelectWindow (FRAME_MAC_WINDOW (f));
+      CollapseWindow (FRAME_MAC_WINDOW (f), false);
       ShowWindow (FRAME_MAC_WINDOW (f));
     }
 
   XFlush (FRAME_MAC_DISPLAY (f));
 
-#if 0 /* MAC_TODO */
   /* Synchronize to ensure Emacs knows the frame is visible
      before we do anything else.  We do this loop with input not blocked
      so that incoming events are handled.  */
@@ -10068,7 +6014,6 @@ x_make_frame_visible (f)
 	FRAME_SAMPLE_VISIBILITY (f);
       }
   }
-#endif /* MAC_TODO */
 }
 
 /* Change from mapped state to withdrawn state.  */
@@ -10079,25 +6024,31 @@ void
 x_make_frame_invisible (f)
      struct frame *f;
 {
+  /* A deactivate event does not occur when the last visible frame is
+     made invisible.  So if we clear the highlight here, it will not
+     be rehighlighted when it is made visible.  */
+#if 0
   /* Don't keep the highlight on an invisible frame.  */
   if (FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame == f)
     FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame = 0;
+#endif
 
   BLOCK_INPUT;
 
+  /* Before unmapping the window, update the WM_SIZE_HINTS property to claim
+     that the current position of the window is user-specified, rather than
+     program-specified, so that when the window is mapped again, it will be
+     placed at the same location, without forcing the user to position it
+     by hand again (they have already done that once for this window.)  */
+  x_wm_set_size_hint (f, (long) 0, 1);
+
   HideWindow (FRAME_MAC_WINDOW (f));
 
-  /* We can't distinguish this from iconification
-     just by the event that we get from the server.
-     So we can't win using the usual strategy of letting
-     FRAME_SAMPLE_VISIBILITY set this.  So do it by hand,
-     and synchronize with the server to make sure we agree.  */
-  f->visible = 0;
-  FRAME_ICONIFIED_P (f) = 0;
-  f->async_visible = 0;
-  f->async_iconified = 0;
-
   UNBLOCK_INPUT;
+
+#if !USE_CARBON_EVENTS
+  mac_handle_visibility_change (f);
+#endif
 }
 
 /* Change window state from mapped to iconified.  */
@@ -10106,49 +6057,79 @@ void
 x_iconify_frame (f)
      struct frame *f;
 {
+  OSErr err;
+
+  /* A deactivate event does not occur when the last visible frame is
+     iconified.  So if we clear the highlight here, it will not be
+     rehighlighted when it is deiconified.  */
+#if 0
   /* Don't keep the highlight on an invisible frame.  */
   if (FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame == f)
     FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame = 0;
+#endif
 
-#if 0
-  /* Review:  Since window is still visible in dock, still allow updates? */
   if (f->async_iconified)
     return;
-#endif
 
   BLOCK_INPUT;
 
-  CollapseWindow (FRAME_MAC_WINDOW (f), true);
+  FRAME_SAMPLE_VISIBILITY (f);
+
+  if (! FRAME_VISIBLE_P (f))
+    ShowWindow (FRAME_MAC_WINDOW (f));
+
+  err = CollapseWindow (FRAME_MAC_WINDOW (f), true);
 
   UNBLOCK_INPUT;
+
+  if (err != noErr)
+    error ("Can't notify window manager of iconification");
+
+#if !USE_CARBON_EVENTS
+  mac_handle_visibility_change (f);
+#endif
 }
 
 
-/* Destroy the X window of frame F.  */
+/* Free X resources of frame F.  */
 
 void
-x_destroy_window (f)
+x_free_frame_resources (f)
      struct frame *f;
 {
   struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
+  WindowPtr wp = FRAME_MAC_WINDOW (f);
 
   BLOCK_INPUT;
 
-  DisposeWindow (FRAME_MAC_WINDOW (f));
+  if (wp != tip_window)
+    remove_window_handler (wp);
+
+  DisposeWindow (wp);
+  if (wp == tip_window)
+    /* Neither WaitNextEvent nor ReceiveNextEvent receives `window
+       closed' event.  So we reset tip_window here.  */
+    tip_window = NULL;
 
   free_frame_menubar (f);
-  free_frame_faces (f);
+
+  if (FRAME_FACE_CACHE (f))
+    free_frame_faces (f);
+
+  x_free_gcs (f);
+
+  if (FRAME_SIZE_HINTS (f))
+    xfree (FRAME_SIZE_HINTS (f));
 
   xfree (f->output_data.mac);
-  f->output_data.mac = 0;
+  f->output_data.mac = NULL;
+
   if (f == dpyinfo->x_focus_frame)
     dpyinfo->x_focus_frame = 0;
   if (f == dpyinfo->x_focus_event_frame)
     dpyinfo->x_focus_event_frame = 0;
   if (f == dpyinfo->x_highlight_frame)
     dpyinfo->x_highlight_frame = 0;
-
-  dpyinfo->reference_count--;
 
   if (f == dpyinfo->mouse_face_mouse_frame)
     {
@@ -10163,6 +6144,21 @@ x_destroy_window (f)
 
   UNBLOCK_INPUT;
 }
+
+
+/* Destroy the X window of frame F.  */
+
+void
+x_destroy_window (f)
+     struct frame *f;
+{
+  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
+
+  x_free_frame_resources (f);
+
+  dpyinfo->reference_count--;
+}
+
 
 /* Setting window manager hints.  */
 
@@ -10177,143 +6173,39 @@ x_wm_set_size_hint (f, flags, user_position)
      long flags;
      int user_position;
 {
-#if 0 /* MAC_TODO: connect this to the Appearance Manager */
-  XSizeHints size_hints;
+  int base_width, base_height, width_inc, height_inc;
+  int min_rows = 0, min_cols = 0;
+  XSizeHints *size_hints;
 
-#ifdef USE_X_TOOLKIT
-  Arg al[2];
-  int ac = 0;
-  Dimension widget_width, widget_height;
-  Window window = XtWindow (f->output_data.x->widget);
-#else /* not USE_X_TOOLKIT */
-  Window window = FRAME_X_WINDOW (f);
-#endif /* not USE_X_TOOLKIT */
+  base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
+  base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
+  width_inc = FRAME_COLUMN_WIDTH (f);
+  height_inc = FRAME_LINE_HEIGHT (f);
 
-  /* Setting PMaxSize caused various problems.  */
-  size_hints.flags = PResizeInc | PMinSize /* | PMaxSize */;
+  check_frame_size (f, &min_rows, &min_cols);
 
-  size_hints.x = f->output_data.x->left_pos;
-  size_hints.y = f->output_data.x->top_pos;
+  size_hints = FRAME_SIZE_HINTS (f);
+  if (size_hints == NULL)
+    {
+      size_hints = FRAME_SIZE_HINTS (f) = xmalloc (sizeof (XSizeHints));
+      bzero (size_hints, sizeof (XSizeHints));
+    }
 
-#ifdef USE_X_TOOLKIT
-  XtSetArg (al[ac], XtNwidth, &widget_width); ac++;
-  XtSetArg (al[ac], XtNheight, &widget_height); ac++;
-  XtGetValues (f->output_data.x->widget, al, ac);
-  size_hints.height = widget_height;
-  size_hints.width = widget_width;
-#else /* not USE_X_TOOLKIT */
-  size_hints.height = PIXEL_HEIGHT (f);
-  size_hints.width = PIXEL_WIDTH (f);
-#endif /* not USE_X_TOOLKIT */
+  size_hints->flags |= PResizeInc | PMinSize | PBaseSize ;
+  size_hints->width_inc  = width_inc;
+  size_hints->height_inc = height_inc;
+  size_hints->min_width  = base_width + min_cols * width_inc;
+  size_hints->min_height = base_height + min_rows * height_inc;
+  size_hints->base_width  = base_width;
+  size_hints->base_height = base_height;
 
-  size_hints.width_inc = FONT_WIDTH (f->output_data.x->font);
-  size_hints.height_inc = f->output_data.x->line_height;
-  size_hints.max_width
-    = FRAME_X_DISPLAY_INFO (f)->width - CHAR_TO_PIXEL_WIDTH (f, 0);
-  size_hints.max_height
-    = FRAME_X_DISPLAY_INFO (f)->height - CHAR_TO_PIXEL_HEIGHT (f, 0);
-
-  /* Calculate the base and minimum sizes.
-
-     (When we use the X toolkit, we don't do it here.
-     Instead we copy the values that the widgets are using, below.)  */
-#ifndef USE_X_TOOLKIT
-  {
-    int base_width, base_height;
-    int min_rows = 0, min_cols = 0;
-
-    base_width = CHAR_TO_PIXEL_WIDTH (f, 0);
-    base_height = CHAR_TO_PIXEL_HEIGHT (f, 0);
-
-    check_frame_size (f, &min_rows, &min_cols);
-
-    /* The window manager uses the base width hints to calculate the
-       current number of rows and columns in the frame while
-       resizing; min_width and min_height aren't useful for this
-       purpose, since they might not give the dimensions for a
-       zero-row, zero-column frame.
-
-       We use the base_width and base_height members if we have
-       them; otherwise, we set the min_width and min_height members
-       to the size for a zero x zero frame.  */
-
-#ifdef HAVE_X11R4
-    size_hints.flags |= PBaseSize;
-    size_hints.base_width = base_width;
-    size_hints.base_height = base_height;
-    size_hints.min_width  = base_width + min_cols * size_hints.width_inc;
-    size_hints.min_height = base_height + min_rows * size_hints.height_inc;
-#else
-    size_hints.min_width = base_width;
-    size_hints.min_height = base_height;
-#endif
-  }
-
-  /* If we don't need the old flags, we don't need the old hint at all.  */
   if (flags)
+    size_hints->flags = flags;
+  else if (user_position)
     {
-      size_hints.flags |= flags;
-      goto no_read;
+      size_hints->flags &= ~ PPosition;
+      size_hints->flags |= USPosition;
     }
-#endif /* not USE_X_TOOLKIT */
-
-  {
-    XSizeHints hints;		/* Sometimes I hate X Windows... */
-    long supplied_return;
-    int value;
-
-#ifdef HAVE_X11R4
-    value = XGetWMNormalHints (FRAME_X_DISPLAY (f), window, &hints,
-			       &supplied_return);
-#else
-    value = XGetNormalHints (FRAME_X_DISPLAY (f), window, &hints);
-#endif
-
-#ifdef USE_X_TOOLKIT
-    size_hints.base_height = hints.base_height;
-    size_hints.base_width = hints.base_width;
-    size_hints.min_height = hints.min_height;
-    size_hints.min_width = hints.min_width;
-#endif
-
-    if (flags)
-      size_hints.flags |= flags;
-    else
-      {
-	if (value == 0)
-	  hints.flags = 0;
-	if (hints.flags & PSize)
-	  size_hints.flags |= PSize;
-	if (hints.flags & PPosition)
-	  size_hints.flags |= PPosition;
-	if (hints.flags & USPosition)
-	  size_hints.flags |= USPosition;
-	if (hints.flags & USSize)
-	  size_hints.flags |= USSize;
-      }
-  }
-
-#ifndef USE_X_TOOLKIT
- no_read:
-#endif
-
-#ifdef PWinGravity
-  size_hints.win_gravity = f->output_data.x->win_gravity;
-  size_hints.flags |= PWinGravity;
-
-  if (user_position)
-    {
-      size_hints.flags &= ~ PPosition;
-      size_hints.flags |= USPosition;
-    }
-#endif /* PWinGravity */
-
-#ifdef HAVE_X11R4
-  XSetWMNormalHints (FRAME_X_DISPLAY (f), window, &size_hints);
-#else
-  XSetNormalHints (FRAME_X_DISPLAY (f), window, &size_hints);
-#endif
-#endif /* MAC_TODO */
 }
 
 #if 0 /* MAC_TODO: hide application instead of iconify? */
@@ -10411,6 +6303,335 @@ x_wm_set_icon_position (f, icon_x, icon_y)
 
 
 /***********************************************************************
+			  XLFD Pattern Match
+ ***********************************************************************/
+
+/* An XLFD pattern is divided into blocks delimited by '*'.  This
+   structure holds information for each block.  */
+struct xlfdpat_block
+{
+  /* Length of the pattern string in this block.  Non-zero except for
+     the first and the last blocks.  */
+  int len;
+
+  /* Pattern string except the last character in this block.  The last
+     character is replaced with NUL in order to use it as a
+     sentinel.  */
+  unsigned char *pattern;
+
+  /* Last character of the pattern string.  Must not be '?'.  */
+  unsigned char last_char;
+
+  /* One of the tables for the Boyer-Moore string search.  It
+     specifies the number of positions to proceed for each character
+     with which the match fails.  */
+  int skip[256];
+
+  /* The skip value for the last character in the above `skip' is
+     assigned to `infinity' in order to simplify a loop condition.
+     The original value is saved here.  */
+  int last_char_skip;
+};
+
+struct xlfdpat
+{
+  /* Normalized pattern string.  "Normalized" means that capital
+     letters are lowered, blocks are not empty except the first and
+     the last ones, and trailing '?'s in a block that is not the last
+     one are moved to the next one.  The last character in each block
+     is replaced with NUL.  */
+  unsigned char *buf;
+
+  /* Number of characters except '*'s and trailing '?'s in the
+     normalized pattern string.  */
+  int nchars;
+
+  /* Number of trailing '?'s in the normalized pattern string.  */
+  int trailing_anychars;
+
+  /* Number of blocks and information for each block.  The latter is
+     NULL if the pattern is exact (no '*' or '?' in it).  */
+  int nblocks;
+  struct xlfdpat_block *blocks;
+};
+
+static void
+xlfdpat_destroy (pat)
+     struct xlfdpat *pat;
+{
+  if (pat)
+    {
+      if (pat->buf)
+	{
+	  if (pat->blocks)
+	    xfree (pat->blocks);
+	  xfree (pat->buf);
+	}
+      xfree (pat);
+    }
+}
+
+static struct xlfdpat *
+xlfdpat_create (pattern)
+     char *pattern;
+{
+  struct xlfdpat *pat;
+  int nblocks, i, skip;
+  unsigned char last_char, *p, *q, *anychar_head;
+  struct xlfdpat_block *blk;
+
+  pat = xmalloc (sizeof (struct xlfdpat));
+  if (pat == NULL)
+    goto error;
+
+  pat->buf = xmalloc (strlen (pattern) + 1);
+  if (pat->buf == NULL)
+    goto error;
+
+  /* Normalize the pattern string and store it to `pat->buf'.  */
+  nblocks = 0;
+  anychar_head = NULL;
+  q = pat->buf;
+  last_char = '\0';
+  for (p = pattern; *p; p++)
+    {
+      unsigned char c = *p;
+
+      if (c == '*')
+	if (last_char == '*')
+	  /*  ...a** -> ...a*  */
+	  continue;
+	else
+	  {
+	    if (last_char == '?')
+	      if (anychar_head > pat->buf && *(anychar_head - 1) == '*')
+		/*  ...*??* -> ...*??  */
+		continue;
+	      else
+		/*  ...a??* -> ...a*??  */
+		{
+		  *anychar_head++ = '*';
+		  c = '?';
+		}
+	    nblocks++;
+	  }
+      else if (c == '?')
+	{
+	  if (last_char != '?')
+	    anychar_head = q;
+	}
+      else
+	/* On Mac OS X 10.3, tolower also converts non-ASCII
+	   characters for some locales.  */
+	if (isascii (c))
+	  c = tolower (c);
+
+      *q++ = last_char = c;
+    }
+  *q = '\0';
+  nblocks++;
+  pat->nblocks = nblocks;
+  if (last_char != '?')
+    pat->trailing_anychars = 0;
+  else
+    {
+      pat->trailing_anychars = q - anychar_head;
+      q = anychar_head;
+    }
+  pat->nchars = q - pat->buf - (nblocks - 1);
+
+  if (anychar_head == NULL && nblocks == 1)
+    {
+      /* The pattern is exact.  */
+      pat->blocks = NULL;
+      return pat;
+    }
+
+  pat->blocks = xmalloc (sizeof (struct xlfdpat_block) * nblocks);
+  if (pat->blocks == NULL)
+    goto error;
+
+  /* Divide the normalized pattern into blocks.  */
+  p = pat->buf;
+  for (blk = pat->blocks; blk < pat->blocks + nblocks - 1; blk++)
+    {
+      blk->pattern = p;
+      while (*p != '*')
+	p++;
+      blk->len = p - blk->pattern;
+      p++;
+    }
+  blk->pattern = p;
+  blk->len = q - blk->pattern;
+
+  /* Setup a table for the Boyer-Moore string search.  */
+  for (blk = pat->blocks; blk < pat->blocks + nblocks; blk++)
+    if (blk->len != 0)
+      {
+	blk->last_char = blk->pattern[blk->len - 1];
+	blk->pattern[blk->len - 1] = '\0';
+
+	for (skip = 1; skip < blk->len; skip++)
+	  if (blk->pattern[blk->len - skip - 1] == '?')
+	    break;
+
+	for (i = 0; i < 256; i++)
+	  blk->skip[i] = skip;
+
+	p = blk->pattern + (blk->len - skip);
+	while (--skip > 0)
+	  blk->skip[*p++] = skip;
+
+	blk->last_char_skip = blk->skip[blk->last_char];
+      }
+
+  return pat;
+
+ error:
+  xlfdpat_destroy (pat);
+  return NULL;
+}
+
+static INLINE int
+xlfdpat_exact_p (pat)
+     struct xlfdpat *pat;
+{
+  return pat->blocks == NULL;
+}
+
+/* Return the first string in STRING + 0, ..., STRING + START_MAX such
+   that the pattern in *BLK matches with its prefix.  Return NULL
+   there is no such strings.  STRING must be lowered in advance.  */
+
+static char *
+xlfdpat_block_match_1 (blk, string, start_max)
+     struct xlfdpat_block *blk;
+     unsigned char *string;
+     int start_max;
+{
+  int start, infinity;
+  unsigned char *p, *s;
+
+  xassert (blk->len > 0);
+  xassert (start_max + blk->len <= strlen (string));
+  xassert (blk->last_char != '?');
+
+  /* See the comments in the function `boyer_moore' (search.c) for the
+     use of `infinity'.  */
+  infinity = start_max + blk->len + 1;
+  blk->skip[blk->last_char] = infinity;
+
+  start = 0;
+  do
+    {
+      /* Check the last character of the pattern. */
+      s = string + blk->len - 1;
+      do
+	{
+	  start += blk->skip[*(s + start)];
+	}
+      while (start <= start_max);
+
+      if (start < infinity)
+	/* Couldn't find the last character.  */
+	return NULL;
+
+      /* No less than `infinity' means we could find the last
+	 character at `s[start - infinity]'.  */
+      start -= infinity;
+
+      /* Check the remaining characters.  We prefer making no-'?'
+	 cases faster because the use of '?' is really rare.  */
+      p = blk->pattern;
+      s = string + start;
+      do
+	{
+	  while (*p++ == *s++)
+	    ;
+	}
+      while (*(p - 1) == '?');
+
+      if (*(p - 1) == '\0')
+	/* Matched.  */
+	return string + start;
+
+      /* Didn't match.  */
+      start += blk->last_char_skip;
+    }
+  while (start <= start_max);
+
+  return NULL;
+}
+
+#define xlfdpat_block_match(b, s, m) \
+  ((b)->len == 1 ? memchr ((s), (b)->last_char, (m) + 1) \
+   : xlfdpat_block_match_1 (b, s, m))
+
+/* Check if XLFD pattern PAT, which is generated by `xfldpat_create',
+   matches with STRING.  STRING must be lowered in advance.  */
+
+static int
+xlfdpat_match (pat, string)
+     struct xlfdpat *pat;
+     unsigned char *string;
+{
+  int str_len, nblocks, i, start_max;
+  struct xlfdpat_block *blk;
+  unsigned char *s;
+
+  xassert (pat->nblocks > 0);
+
+  if (xlfdpat_exact_p (pat))
+    return strcmp (pat->buf, string) == 0;
+
+  /* The number of the characters in the string must not be smaller
+     than that in the pattern.  */
+  str_len = strlen (string);
+  if (str_len < pat->nchars + pat->trailing_anychars)
+    return 0;
+
+  /* Chop off the trailing '?'s.  */
+  str_len -= pat->trailing_anychars;
+
+  /* The last block.  When it is non-empty, it must match at the end
+     of the string.  */
+  nblocks = pat->nblocks;
+  blk = pat->blocks + (nblocks - 1);
+  if (nblocks == 1)
+    /* The last block is also the first one.  */
+    return (str_len == blk->len
+	    && (blk->len == 0 || xlfdpat_block_match (blk, string, 0)));
+  else if (blk->len != 0)
+    if (!xlfdpat_block_match (blk, string + (str_len - blk->len), 0))
+      return 0;
+
+  /* The first block.  When it is non-empty, it must match at the
+     beginning of the string.  */
+  blk = pat->blocks;
+  if (blk->len != 0)
+    {
+      s = xlfdpat_block_match (blk, string, 0);
+      if (s == NULL)
+	return 0;
+      string = s + blk->len;
+    }
+
+  /* The rest of the blocks.  */
+  start_max = str_len - pat->nchars;
+  for (i = 1, blk++; i < nblocks - 1; i++, blk++)
+    {
+      s = xlfdpat_block_match (blk, string, start_max);
+      if (s == NULL)
+	return 0;
+      start_max -= s - string;
+      string = s + blk->len;
+    }
+
+  return 1;
+}
+
+
+/***********************************************************************
 				Fonts
  ***********************************************************************/
 
@@ -10425,170 +6646,209 @@ x_get_font_info (f, font_idx)
 }
 
 /* the global font name table */
-char **font_name_table = NULL;
-int font_name_table_size = 0;
-int font_name_count = 0;
+static char **font_name_table = NULL;
+static int font_name_table_size = 0;
+static int font_name_count = 0;
 
-/* compare two strings ignoring case */
-static int
-stricmp (const char *s, const char *t)
+/* Alist linking font family names to Font Manager font family
+   references (which can also be used as QuickDraw font IDs).  We use
+   an alist because hash tables are not ready when the terminal frame
+   for Mac OS Classic is created.  */
+static Lisp_Object fm_font_family_alist;
+#if USE_ATSUI
+/* Hash table linking font family names to ATSU font IDs.  */
+static Lisp_Object atsu_font_id_hash;
+#endif
+
+/* Alist linking character set strings to Mac text encoding and Emacs
+   coding system. */
+static Lisp_Object Vmac_charset_info_alist;
+
+static Lisp_Object
+create_text_encoding_info_alist ()
 {
-  for ( ; tolower (*s) == tolower (*t); s++, t++)
-    if (*s == '\0')
-      return 0;
-  return tolower (*s) - tolower (*t);
-}
+  Lisp_Object result = Qnil, rest;
 
-/* compare two strings ignoring case and handling wildcard */
-static int
-wildstrieq (char *s1, char *s2)
-{
-  if (strcmp (s1, "*") == 0 || strcmp (s2, "*") == 0)
-    return true;
-
-  return stricmp (s1, s2) == 0;
-}
-
-/* Assume parameter 1 is fully qualified, no wildcards. */
-static int
-mac_font_pattern_match (fontname, pattern)
-    char * fontname;
-    char * pattern;
-{
-  char *regex = (char *) alloca (strlen (pattern) * 2 + 3);
-  char *font_name_copy = (char *) alloca (strlen (fontname) + 1);
-  char *ptr;
-
-  /* Copy fontname so we can modify it during comparison.  */
-  strcpy (font_name_copy, fontname);
-
-  ptr = regex;
-  *ptr++ = '^';
-
-  /* Turn pattern into a regexp and do a regexp match.  */
-  for (; *pattern; pattern++)
+  for (rest = Vmac_charset_info_alist; CONSP (rest); rest = XCDR (rest))
     {
-      if (*pattern == '?')
-        *ptr++ = '.';
-      else if (*pattern == '*')
-        {
-          *ptr++ = '.';
-          *ptr++ = '*';
-        }
+      Lisp_Object charset_info = XCAR (rest);
+      Lisp_Object charset, coding_system, text_encoding;
+      Lisp_Object existing_info;
+
+      if (!(CONSP (charset_info)
+	    && STRINGP (charset = XCAR (charset_info))
+	    && CONSP (XCDR (charset_info))
+	    && INTEGERP (text_encoding = XCAR (XCDR (charset_info)))
+	    && CONSP (XCDR (XCDR (charset_info)))
+	    && SYMBOLP (coding_system = XCAR (XCDR (XCDR (charset_info))))))
+	continue;
+
+      existing_info = assq_no_quit (text_encoding, result);
+      if (NILP (existing_info))
+	result = Fcons (list3 (text_encoding, coding_system, charset),
+			result);
       else
-        *ptr++ = *pattern;
-    }
-  *ptr = '$';
-  *(ptr + 1) = '\0';
-
-  return (fast_c_string_match_ignore_case (build_string (regex),
-                                           font_name_copy) >= 0);
-}
-
-/* Two font specs are considered to match if their foundry, family,
-   weight, slant, and charset match.  */
-static int
-mac_font_match (char *mf, char *xf)
-{
-  char m_foundry[50], m_family[50], m_weight[20], m_slant[2], m_charset[20];
-  char x_foundry[50], x_family[50], x_weight[20], x_slant[2], x_charset[20];
-
-  if (sscanf (mf, "-%49[^-]-%49[^-]-%19[^-]-%1[^-]-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%19s",
-              m_foundry, m_family, m_weight, m_slant, m_charset) != 5)
-    return mac_font_pattern_match (mf, xf);
-
-  if (sscanf (xf, "-%49[^-]-%49[^-]-%19[^-]-%1[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%19s",
-              x_foundry, x_family, x_weight, x_slant, x_charset) != 5)
-    return mac_font_pattern_match (mf, xf);
-
-  return (wildstrieq (m_foundry, x_foundry)
-          && wildstrieq (m_family, x_family)
-          && wildstrieq (m_weight, x_weight)
-          && wildstrieq (m_slant, x_slant)
-          && wildstrieq (m_charset, x_charset))
-         || mac_font_pattern_match (mf, xf);
-}
-
-
-static char *
-mac_to_x_fontname (char *name, int size, Style style, short scriptcode)
-{
-  char foundry[32], family[32], cs[32];
-  char xf[255], *result, *p;
-
-  if (sscanf (name, "%31[^-]-%31[^-]-%31s", foundry, family, cs) != 3)
-    {
-      strcpy(foundry, "Apple");
-      strcpy(family, name);
-
-      switch (scriptcode)
-      {
-      case smTradChinese:
-        strcpy(cs, "big5-0");
-        break;
-      case smSimpChinese:
-        strcpy(cs, "gb2312.1980-0");
-        break;
-      case smJapanese:
-        strcpy(cs, "jisx0208.1983-sjis");
-        break;
-      case -smJapanese:
-	/* Each Apple Japanese font is entered into the font table
-	   twice: once as a jisx0208.1983-sjis font and once as a
-	   jisx0201.1976-0 font.  The latter can be used to display
-	   the ascii charset and katakana-jisx0201 charset.  A
-	   negative script code signals that the name of this latter
-	   font is being built.  */
-	strcpy(cs, "jisx0201.1976-0");
-	break;
-      case smKorean:
-        strcpy(cs, "ksc5601.1989-0");
-        break;
-      default:
-        strcpy(cs, "mac-roman");
-        break;
-      }
+	if (NILP (Fmember (charset, XCDR (XCDR (existing_info)))))
+	  XSETCDR (XCDR (existing_info),
+		   Fcons (charset, XCDR (XCDR (existing_info))));
     }
 
-  sprintf(xf, "-%s-%s-%s-%c-normal--%d-%d-75-75-m-%d-%s",
-          foundry, family, style & bold ? "bold" : "medium",
-	  style & italic ? 'i' : 'r', size, size * 10, size * 10, cs);
-
-  result = (char *) xmalloc (strlen (xf) + 1);
-  strcpy (result, xf);
-  for (p = result; *p; p++)
-    *p = tolower(*p);
   return result;
 }
 
 
-/* Convert an X font spec to the corresponding mac font name, which
-   can then be passed to GetFNum after conversion to a Pascal string.
-   For ordinary Mac fonts, this should just be their names, like
-   "monaco", "Taipei", etc.  Fonts converted from the GNU intlfonts
-   collection contain their charset designation in their names, like
-   "ETL-Fixed-iso8859-1", "ETL-Fixed-koi8-r", etc.  Both types of font
-   names are handled accordingly.  */
 static void
-x_font_name_to_mac_font_name (char *xf, char *mf)
+decode_mac_font_name (name, size, coding_system)
+     char *name;
+     int size;
+     Lisp_Object coding_system;
 {
-  char foundry[32], family[32], weight[20], slant[2], cs[32];
+  struct coding_system coding;
+  char *buf, *p;
 
-  strcpy (mf, "");
+  if (!NILP (coding_system) && !NILP (Fcoding_system_p (coding_system)))
+    {
+      for (p = name; *p; p++)
+	if (!isascii (*p) || iscntrl (*p))
+	  break;
 
-  if (sscanf (xf, "-%31[^-]-%31[^-]-%19[^-]-%1[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%31s",
-              foundry, family, weight, slant, cs) != 5 &&
-      sscanf (xf, "-%31[^-]-%31[^-]-%19[^-]-%1[^-]-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%31s",
-              foundry, family, weight, slant, cs) != 5)
-    return;
+      if (*p)
+	{
+	  setup_coding_system (coding_system, &coding);
+	  coding.src_multibyte = 0;
+	  coding.dst_multibyte = 1;
+	  coding.mode |= CODING_MODE_LAST_BLOCK;
+	  coding.composing = COMPOSITION_DISABLED;
+	  buf = (char *) alloca (size);
 
-  if (strcmp (cs, "big5-0") == 0 || strcmp (cs, "gb2312.1980-0") == 0
-      || strcmp (cs, "jisx0208.1983-sjis") == 0
-      || strcmp (cs, "jisx0201.1976-0") == 0
-      || strcmp (cs, "ksc5601.1989-0") == 0 || strcmp (cs, "mac-roman") == 0)
-    strcpy(mf, family);
+	  decode_coding (&coding, name, buf, strlen (name), size - 1);
+	  bcopy (buf, name, coding.produced);
+	  name[coding.produced] = '\0';
+	}
+    }
+
+  /* If there's just one occurrence of '-' in the family name, it is
+     replaced with '_'.  (More than one occurrence of '-' means a
+     "FOUNDRY-FAMILY-CHARSET"-style name.)  */
+  p = strchr (name, '-');
+  if (p && strchr (p + 1, '-') == NULL)
+    *p = '_';
+
+  for (p = name; *p; p++)
+    /* On Mac OS X 10.3, tolower also converts non-ASCII characters
+       for some locales.  */
+    if (isascii (*p))
+      *p = tolower (*p);
+}
+
+
+static char *
+mac_to_x_fontname (name, size, style, charset)
+     char *name;
+     int size;
+     Style style;
+     char *charset;
+{
+  Str31 foundry, cs;
+  Str255 family;
+  char xf[256], *result;
+  unsigned char *p;
+
+  if (sscanf (name, "%31[^-]-%255[^-]-%31s", foundry, family, cs) == 3)
+    charset = cs;
   else
-    sprintf(mf, "%s-%s-%s", foundry, family, cs);
+    {
+      strcpy(foundry, "Apple");
+      strcpy(family, name);
+    }
+
+  sprintf (xf, "%s-%c-normal--%d-%d-%d-%d-m-%d-%s",
+	   style & bold ? "bold" : "medium", style & italic ? 'i' : 'r',
+	   size, size * 10, size ? 72 : 0, size ? 72 : 0, size * 10, charset);
+
+  result = xmalloc (strlen (foundry) + strlen (family) + strlen (xf) + 3 + 1);
+  sprintf (result, "-%s-%s-%s", foundry, family, xf);
+  for (p = result; *p; p++)
+    /* On Mac OS X 10.3, tolower also converts non-ASCII characters
+       for some locales.  */
+    if (isascii (*p))
+      *p = tolower (*p);
+  return result;
+}
+
+
+/* Parse fully-specified and instantiated X11 font spec XF, and store
+   the results to FAMILY, *SIZE, *STYLE, and CHARSET.  Return 1 if the
+   parsing succeeded, and 0 otherwise.  For FAMILY and CHARSET, the
+   caller must allocate at least 256 and 32 bytes respectively.  For
+   ordinary Mac fonts, the value stored to FAMILY should just be their
+   names, like "monaco", "Taipei", etc.  Fonts converted from the GNU
+   intlfonts collection contain their charset designation in their
+   names, like "ETL-Fixed-iso8859-1", "ETL-Fixed-koi8-r", etc.  Both
+   types of font names are handled accordingly.  */
+
+const int kDefaultFontSize = 12;
+
+static int
+parse_x_font_name (xf, family, size, style, charset)
+     char *xf, *family;
+     int *size;
+     Style *style;
+     char *charset;
+{
+  Str31 foundry, weight;
+  int point_size, avgwidth;
+  char slant[2], *p;
+
+  if (sscanf (xf, "-%31[^-]-%255[^-]-%31[^-]-%1[^-]-%*[^-]-%*[^-]-%d-%d-%*[^-]-%*[^-]-%*c-%d-%31s",
+              foundry, family, weight, slant, size,
+	      &point_size, &avgwidth, charset) != 8
+      && sscanf (xf, "-%31[^-]-%255[^-]-%31[^-]-%1[^-]-%*[^-]--%d-%d-%*[^-]-%*[^-]-%*c-%d-%31s",
+		 foundry, family, weight, slant, size,
+		 &point_size, &avgwidth, charset) != 8)
+    return 0;
+
+  if (*size == 0)
+    {
+      if (point_size > 0)
+	*size = point_size / 10;
+      else if (avgwidth > 0)
+	*size = avgwidth / 10;
+    }
+  if (*size == 0)
+    *size = kDefaultFontSize;
+
+  *style = normal;
+  if (strcmp (weight, "bold") == 0)
+    *style |= bold;
+  if (*slant == 'i')
+    *style |= italic;
+
+  if (NILP (Fassoc (build_string (charset), Vmac_charset_info_alist)))
+    {
+      int foundry_len = strlen (foundry), family_len = strlen (family);
+
+      if (foundry_len + family_len + strlen (charset) + 2 < sizeof (Str255))
+	{
+	  /* Like sprintf (family, "%s-%s-%s", foundry, family, charset),
+	     but take overlap into account.  */
+	  memmove (family + foundry_len + 1, family, family_len);
+	  memcpy (family, foundry, foundry_len);
+	  family[foundry_len] = '-';
+	  family[foundry_len + 1 + family_len] = '-';
+	  strcpy (family + foundry_len + 1 + family_len + 1, charset);
+	}
+      else
+	return 0;
+    }
+
+  for (p = family; *p; p++)
+    /* On Mac OS X 10.3, tolower also converts non-ASCII characters
+       for some locales.  */
+    if (isascii (*p))
+      *p = tolower (*p);
+
+  return 1;
 }
 
 
@@ -10597,13 +6857,13 @@ add_font_name_table_entry (char *font_name)
 {
   if (font_name_table_size == 0)
     {
-      font_name_table_size = 16;
+      font_name_table_size = 256;
       font_name_table = (char **)
 	xmalloc (font_name_table_size * sizeof (char *));
     }
   else if (font_name_count + 1 >= font_name_table_size)
     {
-      font_name_table_size += 16;
+      font_name_table_size *= 2;
       font_name_table = (char **)
 	xrealloc (font_name_table,
 		  font_name_table_size * sizeof (char *));
@@ -10621,235 +6881,460 @@ static void
 init_font_name_table ()
 {
 #if TARGET_API_MAC_CARBON
-  SInt32 sv;
+  FMFontFamilyIterator ffi;
+  FMFontFamilyInstanceIterator ffii;
+  FMFontFamily ff;
+  Lisp_Object text_encoding_info_alist;
+  struct gcpro gcpro1;
 
-  if (Gestalt (gestaltSystemVersion, &sv) == noErr && sv >= 0x1000)
+  text_encoding_info_alist = create_text_encoding_info_alist ();
+
+#if USE_ATSUI
+#if USE_CG_TEXT_DRAWING
+  init_cg_text_anti_aliasing_threshold ();
+#endif
+  if (!NILP (assq_no_quit (make_number (kTextEncodingMacUnicode),
+			   text_encoding_info_alist)))
     {
-      FMFontFamilyIterator ffi;
-      FMFontFamilyInstanceIterator ffii;
-      FMFontFamily ff;
+      OSErr err;
+      ItemCount nfonts, i;
+      ATSUFontID *font_ids = NULL;
+      Ptr name, prev_name = NULL;
+      ByteCount name_len;
 
-      /* Create a dummy instance iterator here to avoid creating and
-	 destroying it in the loop.  */
-      if (FMCreateFontFamilyInstanceIterator (0, &ffii) != noErr)
-	return;
-      /* Create an iterator to enumerate the font families.  */
-      if (FMCreateFontFamilyIterator (NULL, NULL, kFMDefaultOptions, &ffi)
-	  != noErr)
-	{
-	  FMDisposeFontFamilyInstanceIterator (&ffii);
-	  return;
-	}
-
-      while (FMGetNextFontFamily (&ffi, &ff) == noErr)
-	{
-	  Str255 name;
-	  FMFont font;
-	  FMFontStyle style;
-	  FMFontSize size;
-	  SInt16 sc;
-
-	  if (FMGetFontFamilyName (ff, name) != noErr)
-	    break;
-	  p2cstr (name);
-
-	  sc = FontToScript (ff);
-
-	  /* Point the instance iterator at the current font family.  */
-	  if (FMResetFontFamilyInstanceIterator(ff, &ffii) != noErr)
-	    break;
-
-	  while (FMGetNextFontFamilyInstance (&ffii, &font, &style, &size)
-		 == noErr)
-	    if (size == 0)
+      atsu_font_id_hash =
+	make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+			 make_float (DEFAULT_REHASH_SIZE),
+			 make_float (DEFAULT_REHASH_THRESHOLD),
+			 Qnil, Qnil, Qnil);;
+      err = ATSUFontCount (&nfonts);
+      if (err == noErr)
+	font_ids = xmalloc (sizeof (ATSUFontID) * nfonts);
+      if (font_ids)
+	err = ATSUGetFontIDs (font_ids, nfonts, NULL);
+      if (err == noErr)
+	for (i = 0; i < nfonts; i++)
+	  {
+	    err = ATSUFindFontName (font_ids[i], kFontFamilyName,
+				    kFontMacintoshPlatform, kFontNoScript,
+				    kFontNoLanguage, 0, NULL, &name_len, NULL);
+	    if (err != noErr)
+	      continue;
+	    name = xmalloc (name_len + 1);
+	    if (name == NULL)
+	      continue;
+	    name[name_len] = '\0';
+	    err = ATSUFindFontName (font_ids[i], kFontFamilyName,
+				    kFontMacintoshPlatform, kFontNoScript,
+				    kFontNoLanguage, name_len, name,
+				    NULL, NULL);
+	    if (err == noErr)
+	      decode_mac_font_name (name, name_len + 1, Qnil);
+	    if (err == noErr
+		&& *name != '.'
+		&& (prev_name == NULL
+		    || strcmp (name, prev_name) != 0))
 	      {
-		add_font_name_table_entry (mac_to_x_fontname (name, size,
-							      style, sc));
-		add_font_name_table_entry (mac_to_x_fontname (name, size,
-							      italic, sc));
-		add_font_name_table_entry (mac_to_x_fontname (name, size,
-							      bold, sc));
-		add_font_name_table_entry (mac_to_x_fontname (name, size,
-							      italic | bold,
-							      sc));
+		static char *cs = "iso10646-1";
+
+		add_font_name_table_entry (mac_to_x_fontname (name, 0,
+							      normal, cs));
+		add_font_name_table_entry (mac_to_x_fontname (name, 0,
+							      italic, cs));
+		add_font_name_table_entry (mac_to_x_fontname (name, 0,
+							      bold, cs));
+		add_font_name_table_entry (mac_to_x_fontname (name, 0,
+							      italic | bold, cs));
+		Fputhash (make_unibyte_string (name, name_len),
+			  long_to_cons (font_ids[i]), atsu_font_id_hash);
+		xfree (prev_name);
+		prev_name = name;
 	      }
 	    else
-	      {
-		add_font_name_table_entry (mac_to_x_fontname (name, size,
-							      style, sc));
-		if (smJapanese == sc)
-		  add_font_name_table_entry (mac_to_x_fontname (name, size,
-								style,
-								-smJapanese));
-	      }
-	}
-
-      /* Dispose of the iterators.  */
-      FMDisposeFontFamilyIterator (&ffi);
-      FMDisposeFontFamilyInstanceIterator (&ffii);
+	      xfree (name);
+	  }
+      if (prev_name)
+	xfree (prev_name);
+      if (font_ids)
+	xfree (font_ids);
     }
-  else
-    {
-#endif  /* TARGET_API_MAC_CARBON */
-      GrafPtr port;
-      SInt16 fontnum, old_fontnum;
-      int num_mac_fonts = CountResources('FOND');
-      int i, j;
-      Handle font_handle, font_handle_2;
-      short id, scriptcode;
-      ResType type;
-      Str32 name;
-      struct FontAssoc *fat;
-      struct AsscEntry *assc_entry;
-
-      GetPort (&port);  /* save the current font number used */
-#if TARGET_API_MAC_CARBON
-      old_fontnum = GetPortTextFont (port);
-#else
-      old_fontnum = port->txFont;
 #endif
 
-      for (i = 1; i <= num_mac_fonts; i++)  /* get all available fonts */
+  /* Create a dummy instance iterator here to avoid creating and
+     destroying it in the loop.  */
+  if (FMCreateFontFamilyInstanceIterator (0, &ffii) != noErr)
+    return;
+  /* Create an iterator to enumerate the font families.  */
+  if (FMCreateFontFamilyIterator (NULL, NULL, kFMDefaultOptions, &ffi)
+      != noErr)
+    {
+      FMDisposeFontFamilyInstanceIterator (&ffii);
+      return;
+    }
+
+  GCPRO1 (text_encoding_info_alist);
+
+  while (FMGetNextFontFamily (&ffi, &ff) == noErr)
+    {
+      Str255 name;
+      FMFont font;
+      FMFontStyle style;
+      FMFontSize size;
+      TextEncoding encoding;
+      TextEncodingBase sc;
+      Lisp_Object text_encoding_info;
+
+      if (FMGetFontFamilyName (ff, name) != noErr)
+	break;
+      p2cstr (name);
+      if (*name == '.')
+	continue;
+
+      if (FMGetFontFamilyTextEncoding (ff, &encoding) != noErr)
+	break;
+      sc = GetTextEncodingBase (encoding);
+      text_encoding_info = assq_no_quit (make_number (sc),
+					 text_encoding_info_alist);
+      if (NILP (text_encoding_info))
+	text_encoding_info = assq_no_quit (make_number (kTextEncodingMacRoman),
+					   text_encoding_info_alist);
+      decode_mac_font_name (name, sizeof (name),
+			    XCAR (XCDR (text_encoding_info)));
+      fm_font_family_alist = Fcons (Fcons (build_string (name),
+					   make_number (ff)),
+				    fm_font_family_alist);
+
+      /* Point the instance iterator at the current font family.  */
+      if (FMResetFontFamilyInstanceIterator (ff, &ffii) != noErr)
+	break;
+
+      while (FMGetNextFontFamilyInstance (&ffii, &font, &style, &size)
+	     == noErr)
 	{
-	  font_handle = GetIndResource ('FOND', i);
-	  if (!font_handle)
-	    continue;
+	  Lisp_Object rest = XCDR (XCDR (text_encoding_info));
 
-	  GetResInfo (font_handle, &id, &type, name);
-	  GetFNum (name, &fontnum);
-	  p2cstr (name);
-	  if (fontnum == 0)
-	    continue;
+	  if (size > 0 || style == normal)
+	    for (; !NILP (rest); rest = XCDR (rest))
+	      {
+		char *cs = SDATA (XCAR (rest));
 
-	  TextFont (fontnum);
-	  scriptcode = FontToScript (fontnum);
-	  do
+		if (size == 0)
+		  {
+		    add_font_name_table_entry (mac_to_x_fontname (name, size,
+								  style, cs));
+		    add_font_name_table_entry (mac_to_x_fontname (name, size,
+								  italic, cs));
+		    add_font_name_table_entry (mac_to_x_fontname (name, size,
+								  bold, cs));
+		    add_font_name_table_entry (mac_to_x_fontname (name, size,
+								  italic | bold,
+								  cs));
+		  }
+		else
+		  {
+		    add_font_name_table_entry (mac_to_x_fontname (name, size,
+								  style, cs));
+		  }
+	      }
+	}
+    }
+
+  UNGCPRO;
+
+  /* Dispose of the iterators.  */
+  FMDisposeFontFamilyIterator (&ffi);
+  FMDisposeFontFamilyInstanceIterator (&ffii);
+#else  /* !TARGET_API_MAC_CARBON */
+  GrafPtr port;
+  SInt16 fontnum, old_fontnum;
+  int num_mac_fonts = CountResources('FOND');
+  int i, j;
+  Handle font_handle, font_handle_2;
+  short id, scriptcode;
+  ResType type;
+  Str255 name;
+  struct FontAssoc *fat;
+  struct AsscEntry *assc_entry;
+  Lisp_Object text_encoding_info_alist, text_encoding_info;
+  struct gcpro gcpro1;
+
+  GetPort (&port);  /* save the current font number used */
+  old_fontnum = port->txFont;
+
+  text_encoding_info_alist = create_text_encoding_info_alist ();
+
+  GCPRO1 (text_encoding_info_alist);
+
+  for (i = 1; i <= num_mac_fonts; i++)  /* get all available fonts */
+    {
+      font_handle = GetIndResource ('FOND', i);
+      if (!font_handle)
+	continue;
+
+      GetResInfo (font_handle, &id, &type, name);
+      GetFNum (name, &fontnum);
+      p2cstr (name);
+      if (fontnum == 0)
+	continue;
+
+      TextFont (fontnum);
+      scriptcode = FontToScript (fontnum);
+      text_encoding_info = assq_no_quit (make_number (scriptcode),
+					 text_encoding_info_alist);
+      if (NILP (text_encoding_info))
+	text_encoding_info = assq_no_quit (make_number (smRoman),
+					   text_encoding_info_alist);
+      decode_mac_font_name (name, sizeof (name),
+			    XCAR (XCDR (text_encoding_info)));
+      fm_font_family_alist = Fcons (Fcons (build_string (name),
+					   make_number (fontnum)),
+				    fm_font_family_alist);
+      do
+	{
+	  HLock (font_handle);
+
+	  if (GetResourceSizeOnDisk (font_handle)
+	      >= sizeof (struct FamRec))
 	    {
-	      HLock (font_handle);
+	      fat = (struct FontAssoc *) (*font_handle
+					  + sizeof (struct FamRec));
+	      assc_entry
+		= (struct AsscEntry *) (*font_handle
+					+ sizeof (struct FamRec)
+					+ sizeof (struct FontAssoc));
 
-	      if (GetResourceSizeOnDisk (font_handle)
-		  >= sizeof (struct FamRec))
+	      for (j = 0; j <= fat->numAssoc; j++, assc_entry++)
 		{
-		  fat = (struct FontAssoc *) (*font_handle
-					      + sizeof (struct FamRec));
-		  assc_entry
-		    = (struct AsscEntry *) (*font_handle
-					    + sizeof (struct FamRec)
-					    + sizeof (struct FontAssoc));
+		  Lisp_Object rest = XCDR (XCDR (text_encoding_info));
 
-		  for (j = 0; j <= fat->numAssoc; j++, assc_entry++)
+		  for (; !NILP (rest); rest = XCDR (rest))
 		    {
-		      if (font_name_table_size == 0)
-			{
-			  font_name_table_size = 16;
-			  font_name_table = (char **)
-			    xmalloc (font_name_table_size * sizeof (char *));
-			}
-		      else if (font_name_count >= font_name_table_size)
-			{
-			  font_name_table_size += 16;
-			  font_name_table = (char **)
-			    xrealloc (font_name_table,
-				      font_name_table_size * sizeof (char *));
-			}
-		      font_name_table[font_name_count++]
-			= mac_to_x_fontname (name,
-					     assc_entry->fontSize,
-					     assc_entry->fontStyle,
-					     scriptcode);
-		      /* Both jisx0208.1983-sjis and
-			 jisx0201.1976-sjis parts are contained in
-			 Apple Japanese (SJIS) font.  */
-		      if (smJapanese == scriptcode)
-			{
-			  font_name_table[font_name_count++]
-			    = mac_to_x_fontname (name,
-						 assc_entry->fontSize,
-						 assc_entry->fontStyle,
-						 -smJapanese);
-			}
+		      char *cs = SDATA (XCAR (rest));
+
+		      add_font_name_table_entry (mac_to_x_fontname (name,
+								    assc_entry->fontSize,
+								    assc_entry->fontStyle,
+								    cs));
 		    }
 		}
-
-	      HUnlock (font_handle);
-	      font_handle_2 = GetNextFOND (font_handle);
-	      ReleaseResource (font_handle);
-	      font_handle = font_handle_2;
 	    }
-	  while (ResError () == noErr && font_handle);
-	}
 
-      TextFont (old_fontnum);
-#if TARGET_API_MAC_CARBON
+	  HUnlock (font_handle);
+	  font_handle_2 = GetNextFOND (font_handle);
+	  ReleaseResource (font_handle);
+	  font_handle = font_handle_2;
+	}
+      while (ResError () == noErr && font_handle);
     }
-#endif  /* TARGET_API_MAC_CARBON */
+
+  UNGCPRO;
+
+  TextFont (old_fontnum);
+#endif  /* !TARGET_API_MAC_CARBON */
 }
 
 
-/* Return a list of at most MAXNAMES font specs matching the one in
-   PATTERN.  Cache matching fonts for patterns in
-   dpyinfo->name_list_element to avoid looking them up again by
-   calling mac_font_pattern_match (slow).  */
-
-Lisp_Object
-x_list_fonts (struct frame *f,
-              Lisp_Object pattern,
-              int size,
-              int maxnames)
+void
+mac_clear_font_name_table ()
 {
-  char *ptnstr;
-  Lisp_Object newlist = Qnil, tem, key;
-  int n_fonts = 0;
   int i;
-  struct gcpro gcpro1, gcpro2;
-  struct mac_display_info *dpyinfo = f ? FRAME_MAC_DISPLAY_INFO (f) : NULL;
+
+  for (i = 0; i < font_name_count; i++)
+    xfree (font_name_table[i]);
+  xfree (font_name_table);
+  font_name_table = NULL;
+  font_name_table_size = font_name_count = 0;
+  fm_font_family_alist = Qnil;
+}
+
+
+enum xlfd_scalable_field_index
+  {
+    XLFD_SCL_PIXEL_SIZE,
+    XLFD_SCL_POINT_SIZE,
+    XLFD_SCL_AVGWIDTH,
+    XLFD_SCL_LAST
+  };
+
+static int xlfd_scalable_fields[] =
+  {
+    6,				/* PIXEL_SIZE */
+    7,				/* POINT_SIZE */
+    11,				/* AVGWIDTH */
+    -1
+  };
+
+static Lisp_Object
+mac_do_list_fonts (pattern, maxnames)
+     char *pattern;
+     int maxnames;
+{
+  int i, n_fonts = 0;
+  Lisp_Object font_list = Qnil;
+  struct xlfdpat *pat;
+  char *scaled, *ptr;
+  int scl_val[XLFD_SCL_LAST], *field, *val;
+  int exact;
 
   if (font_name_table == NULL)  /* Initialize when first used.  */
     init_font_name_table ();
 
-  if (dpyinfo)
-    {
-      tem = XCDR (dpyinfo->name_list_element);
-      key = Fcons (pattern, make_number (maxnames));
+  for (i = 0; i < XLFD_SCL_LAST; i++)
+    scl_val[i] = -1;
 
-      newlist = Fassoc (key, tem);
-      if (!NILP (newlist))
+  /* If the pattern contains 14 dashes and one of PIXEL_SIZE,
+     POINT_SIZE, and AVGWIDTH fields is explicitly specified, scalable
+     fonts are scaled according to the specified size.  */
+  ptr = pattern;
+  i = 0;
+  field = xlfd_scalable_fields;
+  val = scl_val;
+  if (*ptr == '-')
+    do
+      {
+	ptr++;
+	if (i == *field)
+	  {
+	    if ('0' <= *ptr && *ptr <= '9')
+	      {
+		*val = *ptr++ - '0';
+		while ('0' <= *ptr && *ptr <= '9' && *val < 10000)
+		  *val = *val * 10 + *ptr++ - '0';
+		if (*ptr != '-')
+		  *val = -1;
+	      }
+	    field++;
+	    val++;
+	  }
+	ptr = strchr (ptr, '-');
+	i++;
+      }
+    while (ptr && i < 14);
+
+  if (i == 14 && ptr == NULL)
+    {
+      if (scl_val[XLFD_SCL_PIXEL_SIZE] < 0)
+	scl_val[XLFD_SCL_PIXEL_SIZE] =
+	  (scl_val[XLFD_SCL_POINT_SIZE] > 0 ? scl_val[XLFD_SCL_POINT_SIZE] / 10
+	   : (scl_val[XLFD_SCL_AVGWIDTH] > 0 ? scl_val[XLFD_SCL_AVGWIDTH] / 10
+	      : -1));
+      if (scl_val[XLFD_SCL_POINT_SIZE] < 0)
+	scl_val[XLFD_SCL_POINT_SIZE] =
+	  (scl_val[XLFD_SCL_PIXEL_SIZE] > 0 ? scl_val[XLFD_SCL_PIXEL_SIZE] * 10
+	   : (scl_val[XLFD_SCL_AVGWIDTH] > 0 ? scl_val[XLFD_SCL_AVGWIDTH]
+	      : -1));
+      if (scl_val[XLFD_SCL_AVGWIDTH] < 0)
+	scl_val[XLFD_SCL_AVGWIDTH] =
+	  (scl_val[XLFD_SCL_PIXEL_SIZE] > 0 ? scl_val[XLFD_SCL_PIXEL_SIZE] * 10
+	   : (scl_val[XLFD_SCL_POINT_SIZE] > 0 ? scl_val[XLFD_SCL_POINT_SIZE]
+	      : -1));
+    }
+  else
+    scl_val[XLFD_SCL_PIXEL_SIZE] = -1;
+
+  pat = xlfdpat_create (pattern);
+  if (pat == NULL)
+    return Qnil;
+
+  exact = xlfdpat_exact_p (pat);
+
+  for (i = 0; i < font_name_count; i++)
+    {
+      if (xlfdpat_match (pat, font_name_table[i]))
 	{
-	  newlist = Fcdr_safe (newlist);
-	  goto label_cached;
+	  font_list = Fcons (build_string (font_name_table[i]), font_list);
+	  if (exact || maxnames > 0 && ++n_fonts >= maxnames)
+	    break;
+	}
+      else if (scl_val[XLFD_SCL_PIXEL_SIZE] > 0
+	       && (ptr = strstr (font_name_table[i], "-0-0-0-0-m-0-")))
+	{
+	  int former_len = ptr - font_name_table[i];
+
+	  scaled = xmalloc (strlen (font_name_table[i]) + 20 + 1);
+	  if (scaled == NULL)
+	    continue;
+	  memcpy (scaled, font_name_table[i], former_len);
+	  sprintf (scaled + former_len,
+		   "-%d-%d-72-72-m-%d-%s",
+		   scl_val[XLFD_SCL_PIXEL_SIZE],
+		   scl_val[XLFD_SCL_POINT_SIZE],
+		   scl_val[XLFD_SCL_AVGWIDTH],
+		   ptr + sizeof ("-0-0-0-0-m-0-") - 1);
+
+	  if (xlfdpat_match (pat, scaled))
+	    {
+	      font_list = Fcons (build_string (scaled), font_list);
+	      xfree (scaled);
+	      if (exact || maxnames > 0 && ++n_fonts >= maxnames)
+		  break;
+	    }
+	  else
+	    xfree (scaled);
 	}
     }
 
-  ptnstr = SDATA (pattern);
+  xlfdpat_destroy (pat);
 
-  GCPRO2 (pattern, newlist);
+  return font_list;
+}
 
-  /* Scan and matching bitmap fonts.  */
-  for (i = 0; i < font_name_count; i++)
+/* Return a list of names of available fonts matching PATTERN on frame F.
+
+   Frame F null means we have not yet created any frame on Mac, and
+   consult the first display in x_display_list.  MAXNAMES sets a limit
+   on how many fonts to match.  */
+
+Lisp_Object
+x_list_fonts (f, pattern, size, maxnames)
+     struct frame *f;
+     Lisp_Object pattern;
+     int size, maxnames;
+{
+  Lisp_Object list = Qnil, patterns, tem, key;
+  struct mac_display_info *dpyinfo
+    = f ? FRAME_MAC_DISPLAY_INFO (f) : x_display_list;
+
+  xassert (size <= 0);
+
+  patterns = Fassoc (pattern, Valternate_fontname_alist);
+  if (NILP (patterns))
+    patterns = Fcons (pattern, Qnil);
+
+  for (; CONSP (patterns); patterns = XCDR (patterns))
     {
-      if (mac_font_pattern_match (font_name_table[i], ptnstr))
-        {
-          newlist = Fcons (build_string (font_name_table[i]), newlist);
+      pattern = XCAR (patterns);
 
-          n_fonts++;
-          if (n_fonts >= maxnames)
-            break;
-        }
+      if (!STRINGP (pattern))
+        continue;
+
+      tem = XCAR (XCDR (dpyinfo->name_list_element));
+      key = Fcons (pattern, make_number (maxnames));
+
+      list = Fassoc (key, tem);
+      if (!NILP (list))
+	{
+	  list = Fcdr_safe (list);
+	  /* We have a cashed list.  Don't have to get the list again.  */
+	  goto label_cached;
+	}
+
+      BLOCK_INPUT;
+      list = mac_do_list_fonts (SDATA (pattern), maxnames);
+      UNBLOCK_INPUT;
+
+      /* MAC_TODO: add code for matching outline fonts here */
+
+      /* Now store the result in the cache.  */
+      XSETCAR (XCDR (dpyinfo->name_list_element),
+	       Fcons (Fcons (key, list),
+		      XCAR (XCDR (dpyinfo->name_list_element))));
+
+    label_cached:
+      if (NILP (list)) continue; /* Try the remaining alternatives.  */
     }
 
-  /* MAC_TODO: add code for matching outline fonts here */
-
-  UNGCPRO;
-
-  if (dpyinfo)
-    {
-      XSETCDR (dpyinfo->name_list_element,
-	       Fcons (Fcons (key, newlist),
-		      XCDR (dpyinfo->name_list_element)));
-    }
- label_cached:
-
-  return newlist;
+  return list;
 }
 
 
@@ -10889,12 +7374,8 @@ x_font_min_bounds (font, w, h)
      MacFontStruct *font;
      int *w, *h;
 {
-  /*
-   * TODO: Windows does not appear to offer min bound, only
-   * average and maximum width, and maximum height.
-   */
   *h = FONT_HEIGHT (font);
-  *w = FONT_WIDTH (font);
+  *w = font->min_bounds.width;
 }
 
 
@@ -10904,7 +7385,7 @@ x_font_min_bounds (font, w, h)
    the values computed.  Value is non-zero if smallest_font_height or
    smallest_char_width become smaller than they were before.  */
 
-int
+static int
 x_compute_min_glyph_bounds (f)
      struct frame *f;
 {
@@ -10972,9 +7453,6 @@ is_fully_specified_xlfd (char *p)
 }
 
 
-const int kDefaultFontSize = 9;
-
-
 /* XLoadQueryFont creates and returns an internal representation for a
    font in a MacFontStruct struct.  There is really no concept
    corresponding to "loading" a font on the Mac.  But we check its
@@ -10984,161 +7462,414 @@ const int kDefaultFontSize = 9;
 static MacFontStruct *
 XLoadQueryFont (Display *dpy, char *fontname)
 {
-  int i, size, is_two_byte_font, char_width;
+  int size;
   char *name;
-  GrafPtr port;
-  SInt16 old_fontnum, old_fontsize;
-  Style old_fontface;
-  Str32 mfontname;
+  Str255 family;
+  Str31 charset;
   SInt16 fontnum;
-  Style fontface = normal;
+#if USE_ATSUI
+  static ATSUFontID font_id;
+  ATSUStyle mac_style = NULL;
+#endif
+  Style fontface;
+#if TARGET_API_MAC_CARBON
+  TextEncoding encoding;
+  int scriptcode;
+#else
+  short scriptcode;
+#endif
   MacFontStruct *font;
-  FontInfo the_fontinfo;
-  char s_weight[7], c_slant;
+  XCharStruct *space_bounds = NULL, *pcm;
 
   if (is_fully_specified_xlfd (fontname))
     name = fontname;
   else
     {
-      for (i = 0; i < font_name_count; i++)
-        if (mac_font_pattern_match (font_name_table[i], fontname))
-          break;
+      Lisp_Object matched_fonts;
 
-      if (i >= font_name_count)
-        return NULL;
-
-      name = font_name_table[i];
+      matched_fonts = mac_do_list_fonts (fontname, 1);
+      if (NILP (matched_fonts))
+	return NULL;
+      name = SDATA (XCAR (matched_fonts));
     }
 
-  GetPort (&port);  /* save the current font number used */
-#if TARGET_API_MAC_CARBON
-  old_fontnum = GetPortTextFont (port);
-  old_fontsize = GetPortTextSize (port);
-  old_fontface = GetPortTextFace (port);
-#else
-  old_fontnum = port->txFont;
-  old_fontsize = port->txSize;
-  old_fontface = port->txFace;
-#endif
-
-  if (sscanf (name, "-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]--%d-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%*s", &size) != 1)
-    size = kDefaultFontSize;
-
-  if (sscanf (name, "-%*[^-]-%*[^-]-%6[^-]-%*c-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%*s", s_weight) == 1)
-    if (strcmp (s_weight, "bold") == 0)
-      fontface |= bold;
-
-  if (sscanf (name, "-%*[^-]-%*[^-]-%*[^-]-%c-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%*s", &c_slant) == 1)
-    if (c_slant == 'i')
-      fontface |= italic;
-
-  x_font_name_to_mac_font_name (name, mfontname);
-  c2pstr (mfontname);
-  GetFNum (mfontname, &fontnum);
-  if (fontnum == 0)
+  if (parse_x_font_name (name, family, &size, &fontface, charset) == 0)
     return NULL;
 
-  font = (MacFontStruct *) xmalloc (sizeof (struct MacFontStruct));
+#if USE_ATSUI
+  if (strcmp (charset, "iso10646-1") == 0) /* XXX */
+    {
+      OSErr err;
+      ATSUAttributeTag tags[] = {kATSUFontTag, kATSUSizeTag,
+				 kATSUQDBoldfaceTag, kATSUQDItalicTag};
+      ByteCount sizes[] = {sizeof (ATSUFontID), sizeof (Fixed),
+			   sizeof (Boolean), sizeof (Boolean)};
+      static Fixed size_fixed;
+      static Boolean bold_p, italic_p;
+      ATSUAttributeValuePtr values[] = {&font_id, &size_fixed,
+					&bold_p, &italic_p};
+      ATSUFontFeatureType types[] = {kAllTypographicFeaturesType,
+				     kDiacriticsType};
+      ATSUFontFeatureSelector selectors[] = {kAllTypeFeaturesOffSelector,
+					     kDecomposeDiacriticsSelector};
+      Lisp_Object font_id_cons;
 
-  font->fontname = (char *) xmalloc (strlen (name) + 1);
-  bcopy (name, font->fontname, strlen (name) + 1);
+      font_id_cons = Fgethash (make_unibyte_string (family, strlen (family)),
+			       atsu_font_id_hash, Qnil);
+      if (NILP (font_id_cons))
+	return NULL;
+      font_id = cons_to_long (font_id_cons);
+      size_fixed = Long2Fix (size);
+      bold_p = (fontface & bold) != 0;
+      italic_p = (fontface & italic) != 0;
+      err = ATSUCreateStyle (&mac_style);
+      if (err != noErr)
+	return NULL;
+      err = ATSUSetFontFeatures (mac_style, sizeof (types) / sizeof (types[0]),
+      				 types, selectors);
+      if (err != noErr)
+	return NULL;
+      err = ATSUSetAttributes (mac_style, sizeof (tags) / sizeof (tags[0]),
+			       tags, sizes, values);
+      fontnum = -1;
+      scriptcode = kTextEncodingMacUnicode;
+    }
+  else
+#endif
+    {
+      Lisp_Object tmp = Fassoc (build_string (family), fm_font_family_alist);
+
+      if (NILP (tmp))
+	return NULL;
+      fontnum = XINT (XCDR (tmp));
+#if TARGET_API_MAC_CARBON
+      if (FMGetFontFamilyTextEncoding (fontnum, &encoding) != noErr)
+	return NULL;
+      scriptcode = GetTextEncodingBase (encoding);
+#else
+      scriptcode = FontToScript (fontnum);
+#endif
+    }
+
+  font = (MacFontStruct *) xmalloc (sizeof (struct MacFontStruct));
 
   font->mac_fontnum = fontnum;
   font->mac_fontsize = size;
   font->mac_fontface = fontface;
-  font->mac_scriptcode = FontToScript (fontnum);
+  font->mac_scriptcode = scriptcode;
+#if USE_ATSUI
+  font->mac_style = mac_style;
+#if USE_CG_TEXT_DRAWING
+  font->cg_font = NULL;
+  font->cg_glyphs = NULL;
+#endif
+#endif
 
   /* Apple Japanese (SJIS) font is listed as both
      "*-jisx0208.1983-sjis" (Japanese script) and "*-jisx0201.1976-0"
      (Roman script) in init_font_name_table ().  The latter should be
      treated as a one-byte font.  */
-  {
-    char cs[32];
+  if (scriptcode == smJapanese && strcmp (charset, "jisx0201.1976-0") == 0)
+    font->mac_scriptcode = smRoman;
 
-    if (sscanf (name,
-		"-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%31s",
-		cs) == 1
-	&& 0 == strcmp (cs, "jisx0201.1976-0"))
-      font->mac_scriptcode = smRoman;
-  }
+  font->full_name = mac_to_x_fontname (family, size, fontface, charset);
 
-  is_two_byte_font = font->mac_scriptcode == smJapanese ||
-                     font->mac_scriptcode == smTradChinese ||
-                     font->mac_scriptcode == smSimpChinese ||
-                     font->mac_scriptcode == smKorean;
-
-  TextFont (fontnum);
-  TextSize (size);
-  TextFace (fontface);
-
-  GetFontInfo (&the_fontinfo);
-
-  font->ascent = the_fontinfo.ascent;
-  font->descent = the_fontinfo.descent;
-
-  font->min_byte1 = 0;
-  if (is_two_byte_font)
-    font->max_byte1 = 1;
-  else
-    font->max_byte1 = 0;
-  font->min_char_or_byte2 = 0x20;
-  font->max_char_or_byte2 = 0xff;
-
-  if (is_two_byte_font)
+#if USE_ATSUI
+  if (font->mac_style)
     {
-      /* Use the width of an "ideographic space" of that font because
-         the_fontinfo.widMax returns the wrong width for some fonts.  */
-      switch (font->mac_scriptcode)
-        {
-        case smJapanese:
-          char_width = StringWidth("\p\x81\x40");
-          break;
-        case smTradChinese:
-          char_width = StringWidth("\p\xa1\x40");
-          break;
-        case smSimpChinese:
-          char_width = StringWidth("\p\xa1\xa1");
-          break;
-        case smKorean:
-          char_width = StringWidth("\p\xa1\xa1");
-          break;
-        }
-    }
-  else
-    /* Do this instead of use the_fontinfo.widMax, which incorrectly
-       returns 15 for 12-point Monaco! */
-    char_width = CharWidth ('m');
+      OSErr err;
+      UniChar c;
 
-  font->max_bounds.rbearing = char_width;
-  font->max_bounds.lbearing = 0;
-  font->max_bounds.width = char_width;
-  font->max_bounds.ascent = the_fontinfo.ascent;
-  font->max_bounds.descent = the_fontinfo.descent;
+      font->min_byte1 = 0;
+      font->max_byte1 = 0xff;
+      font->min_char_or_byte2 = 0;
+      font->max_char_or_byte2 = 0xff;
 
-  font->min_bounds = font->max_bounds;
+      font->bounds.rows = xmalloc (sizeof (XCharStructRow *) * 0x100);
+      if (font->bounds.rows == NULL)
+	{
+	  mac_unload_font (&one_mac_display_info, font);
+	  return NULL;
+	}
+      bzero (font->bounds.rows, sizeof (XCharStructRow *) * 0x100);
+      font->bounds.rows[0] = xmalloc (sizeof (XCharStructRow));
+      if (font->bounds.rows[0] == NULL)
+	{
+	  mac_unload_font (&one_mac_display_info, font);
+	  return NULL;
+	}
+      bzero (font->bounds.rows[0], sizeof (XCharStructRow));
 
-  if (is_two_byte_font || CharWidth ('m') == CharWidth ('i'))
-    font->per_char = NULL;
-  else
-    {
-      font->per_char = (XCharStruct *)
-	xmalloc (sizeof (XCharStruct) * (0xff - 0x20 + 1));
+#if USE_CG_TEXT_DRAWING
       {
-        int c;
+	FMFontFamily font_family;
+	FMFontStyle style;
+	ATSFontRef ats_font;
 
-        for (c = 0x20; c <= 0xff; c++)
-          {
-            font->per_char[c - 0x20] = font->max_bounds;
-            font->per_char[c - 0x20].width = CharWidth (c);
-          }
+	err = FMGetFontFamilyInstanceFromFont (font_id, &font_family, &style);
+	if (err == noErr)
+	  err = FMGetFontFromFontFamilyInstance (font_family, fontface,
+						 &font_id, &style);
+	/* Use CG text drawing if italic/bold is not synthesized.  */
+	if (err == noErr && style == fontface)
+	  {
+	    ats_font = FMGetATSFontRefFromFont (font_id);
+	    font->cg_font = CGFontCreateWithPlatformFont (&ats_font);
+	  }
       }
+
+      if (font->cg_font)
+	font->cg_glyphs = xmalloc (sizeof (CGGlyph) * 0x100);
+      if (font->cg_glyphs)
+	bzero (font->cg_glyphs, sizeof (CGGlyph) * 0x100);
+#endif
+      space_bounds = font->bounds.rows[0]->per_char + 0x20;
+      err = mac_query_char_extents (font->mac_style, 0x20,
+				    &font->ascent, &font->descent,
+				    space_bounds,
+#if USE_CG_TEXT_DRAWING
+				    (font->cg_glyphs ? font->cg_glyphs + 0x20
+				     : NULL)
+#else
+				    NULL
+#endif
+				    );
+      if (err != noErr)
+	{
+	  mac_unload_font (&one_mac_display_info, font);
+	  return NULL;
+	}
+      XCHARSTRUCTROW_SET_CHAR_VALID (font->bounds.rows[0], 0x20);
+
+      pcm = font->bounds.rows[0]->per_char;
+      for (c = 0x21; c <= 0xff; c++)
+	{
+	  if (c == 0xad)
+	    /* Soft hyphen is not supported in ATSUI.  */
+	    continue;
+	  else if (c == 0x7f)
+	    {
+	      c = 0x9f;
+	      continue;
+	    }
+
+	  mac_query_char_extents (font->mac_style, c, NULL, NULL, pcm + c,
+#if USE_CG_TEXT_DRAWING
+				  (font->cg_glyphs ? font->cg_glyphs + c
+				   : NULL)
+#else
+				    NULL
+#endif
+				  );
+	  XCHARSTRUCTROW_SET_CHAR_VALID (font->bounds.rows[0], c);
+
+#if USE_CG_TEXT_DRAWING
+	  if (font->cg_glyphs && font->cg_glyphs[c] == 0)
+	    {
+	      /* Don't use CG text drawing if font substitution occurs in
+		 ASCII or Latin-1 characters.  */
+	      CGFontRelease (font->cg_font);
+	      font->cg_font = NULL;
+	      xfree (font->cg_glyphs);
+	      font->cg_glyphs = NULL;
+	    }
+#endif
+	}
+    }
+  else
+#endif
+    {
+      GrafPtr port;
+      SInt16 old_fontnum, old_fontsize;
+      Style old_fontface;
+      FontInfo the_fontinfo;
+      int is_two_byte_font;
+
+      /* Save the current font number used.  */
+      GetPort (&port);
+#if TARGET_API_MAC_CARBON
+      old_fontnum = GetPortTextFont (port);
+      old_fontsize = GetPortTextSize (port);
+      old_fontface = GetPortTextFace (port);
+#else
+      old_fontnum = port->txFont;
+      old_fontsize = port->txSize;
+      old_fontface = port->txFace;
+#endif
+
+      TextFont (fontnum);
+      TextSize (size);
+      TextFace (fontface);
+
+      GetFontInfo (&the_fontinfo);
+
+      font->ascent = the_fontinfo.ascent;
+      font->descent = the_fontinfo.descent;
+
+      is_two_byte_font = (font->mac_scriptcode == smJapanese
+			  || font->mac_scriptcode == smTradChinese
+			  || font->mac_scriptcode == smSimpChinese
+			  || font->mac_scriptcode == smKorean);
+
+      if (is_two_byte_font)
+	{
+	  int char_width;
+
+	  font->min_byte1 = 0xa1;
+	  font->max_byte1 = 0xfe;
+	  font->min_char_or_byte2 = 0xa1;
+	  font->max_char_or_byte2 = 0xfe;
+
+	  /* Use the width of an "ideographic space" of that font
+	     because the_fontinfo.widMax returns the wrong width for
+	     some fonts.  */
+	  switch (font->mac_scriptcode)
+	    {
+	    case smJapanese:
+	      font->min_byte1 = 0x81;
+	      font->max_byte1 = 0xfc;
+	      font->min_char_or_byte2 = 0x40;
+	      font->max_char_or_byte2 = 0xfc;
+	      char_width = StringWidth("\p\x81\x40");
+	      break;
+	    case smTradChinese:
+	      font->min_char_or_byte2 = 0x40;
+	      char_width = StringWidth("\p\xa1\x40");
+	      break;
+	    case smSimpChinese:
+	      char_width = StringWidth("\p\xa1\xa1");
+	      break;
+	    case smKorean:
+	      char_width = StringWidth("\p\xa1\xa1");
+	      break;
+	    }
+
+	  font->bounds.per_char = NULL;
+
+	  if (fontface & italic)
+	    font->max_bounds.rbearing = char_width + 1;
+	  else
+	    font->max_bounds.rbearing = char_width;
+	  font->max_bounds.lbearing = 0;
+	  font->max_bounds.width = char_width;
+	  font->max_bounds.ascent = the_fontinfo.ascent;
+	  font->max_bounds.descent = the_fontinfo.descent;
+
+	  font->min_bounds = font->max_bounds;
+	}
+      else
+	{
+	  int c;
+
+	  font->min_byte1 = font->max_byte1 = 0;
+	  font->min_char_or_byte2 = 0x20;
+	  font->max_char_or_byte2 = 0xff;
+
+	  font->bounds.per_char =
+	    xmalloc (sizeof (XCharStruct) * (0xff - 0x20 + 1));
+	  if (font->bounds.per_char == NULL)
+	    {
+	      mac_unload_font (&one_mac_display_info, font);
+	      return NULL;
+	    }
+	  bzero (font->bounds.per_char,
+		 sizeof (XCharStruct) * (0xff - 0x20 + 1));
+
+	  space_bounds = font->bounds.per_char;
+	  mac_query_char_extents (NULL, 0x20, &font->ascent, &font->descent,
+				  space_bounds, NULL);
+
+	  for (c = 0x21, pcm = space_bounds + 1; c <= 0xff; c++, pcm++)
+	    mac_query_char_extents (NULL, c, NULL, NULL, pcm, NULL);
+	}
+
+      /* Restore previous font number, size and face.  */
+      TextFont (old_fontnum);
+      TextSize (old_fontsize);
+      TextFace (old_fontface);
     }
 
-  TextFont (old_fontnum);  /* restore previous font number, size and face */
-  TextSize (old_fontsize);
-  TextFace (old_fontface);
+  if (space_bounds)
+    {
+      int c;
+
+      font->min_bounds = font->max_bounds = *space_bounds;
+      for (c = 0x21, pcm = space_bounds + 1; c <= 0x7f; c++, pcm++)
+	if (pcm->width > 0)
+	  {
+	    font->min_bounds.lbearing = min (font->min_bounds.lbearing,
+					     pcm->lbearing);
+	    font->min_bounds.rbearing = min (font->min_bounds.rbearing,
+					     pcm->rbearing);
+	    font->min_bounds.width    = min (font->min_bounds.width,
+					     pcm->width);
+	    font->min_bounds.ascent   = min (font->min_bounds.ascent,
+					     pcm->ascent);
+
+	    font->max_bounds.lbearing = max (font->max_bounds.lbearing,
+					     pcm->lbearing);
+	    font->max_bounds.rbearing = max (font->max_bounds.rbearing,
+					     pcm->rbearing);
+	    font->max_bounds.width    = max (font->max_bounds.width,
+					     pcm->width);
+	    font->max_bounds.ascent   = max (font->max_bounds.ascent,
+					     pcm->ascent);
+	  }
+      if (
+#if USE_ATSUI
+	  font->mac_style == NULL &&
+#endif
+	  font->max_bounds.width == font->min_bounds.width
+	  && font->min_bounds.lbearing >= 0
+	  && font->max_bounds.rbearing <= font->max_bounds.width)
+	{
+	  /* Fixed width and no overhangs.  */
+	  xfree (font->bounds.per_char);
+	  font->bounds.per_char = NULL;
+	}
+    }
+
+#if !defined (MAC_OS8) || USE_ATSUI
+  /* AppKit and WebKit do some adjustment to the heights of Courier,
+     Helvetica, and Times.  This only works on the environments where
+     the XDrawImageString counterpart is never used.  */
+  if (strcmp (family, "courier") == 0 || strcmp (family, "helvetica") == 0
+      || strcmp (family, "times") == 0)
+    font->ascent += (font->ascent + font->descent) * .15 + 0.5;
+#endif
 
   return font;
+}
+
+
+void
+mac_unload_font (dpyinfo, font)
+     struct mac_display_info *dpyinfo;
+     XFontStruct *font;
+{
+  xfree (font->full_name);
+#if USE_ATSUI
+  if (font->mac_style)
+    {
+      int i;
+
+      for (i = font->min_byte1; i <= font->max_byte1; i++)
+	if (font->bounds.rows[i])
+	  xfree (font->bounds.rows[i]);
+      xfree (font->bounds.rows);
+      ATSUDisposeStyle (font->mac_style);
+    }
+  else
+#endif
+    if (font->bounds.per_char)
+      xfree (font->bounds.per_char);
+#if USE_CG_TEXT_DRAWING
+  if (font->cg_font)
+    CGFontRelease (font->cg_font);
+  if (font->cg_glyphs)
+    xfree (font->cg_glyphs);
+#endif
+  xfree (font);
 }
 
 
@@ -11175,6 +7906,8 @@ x_load_font (f, fontname, size)
 			      SDATA (XCAR (tail)))))
 	    return (dpyinfo->font_table + i);
     }
+  else
+    return NULL;
 
   /* Load the font and add it to the table.  */
   {
@@ -11184,15 +7917,11 @@ x_load_font (f, fontname, size)
     unsigned long value;
     int i;
 
-    /* If we have found fonts by x_list_font, load one of them.  If
-       not, we still try to load a font by the name given as FONTNAME
-       because XListFonts (called in x_list_font) of some X server has
-       a bug of not finding a font even if the font surely exists and
-       is loadable by XLoadQueryFont.  */
-    if (size > 0 && !NILP (font_names))
-      fontname = (char *) SDATA (XCAR (font_names));
+    fontname = (char *) SDATA (XCAR (font_names));
 
+    BLOCK_INPUT;
     font = (MacFontStruct *) XLoadQueryFont (FRAME_MAC_DISPLAY (f), fontname);
+    UNBLOCK_INPUT;
     if (!font)
       return NULL;
 
@@ -11218,12 +7947,43 @@ x_load_font (f, fontname, size)
 
     /* Now fill in the slots of *FONTP.  */
     BLOCK_INPUT;
+    bzero (fontp, sizeof (*fontp));
     fontp->font = font;
     fontp->font_idx = i;
-    fontp->name = (char *) xmalloc (strlen (font->fontname) + 1);
-    bcopy (font->fontname, fontp->name, strlen (font->fontname) + 1);
+    fontp->name = (char *) xmalloc (strlen (fontname) + 1);
+    bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
-    fontp->full_name = fontp->name;
+    if (font->min_bounds.width == font->max_bounds.width)
+      {
+	/* Fixed width font.  */
+	fontp->average_width = fontp->space_width = font->min_bounds.width;
+      }
+    else
+      {
+	XChar2b char2b;
+	XCharStruct *pcm;
+
+	char2b.byte1 = 0x00, char2b.byte2 = 0x20;
+	pcm = mac_per_char_metric (font, &char2b, 0);
+	if (pcm)
+	  fontp->space_width = pcm->width;
+	else
+	  fontp->space_width = FONT_WIDTH (font);
+
+	if (pcm)
+	  {
+	    int width = pcm->width;
+	    for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
+	      if ((pcm = mac_per_char_metric (font, &char2b, 0)) != NULL)
+		width += pcm->width;
+	    fontp->average_width = width / 95;
+	  }
+	else
+	  fontp->average_width = FONT_WIDTH (font);
+      }
+
+    fontp->full_name = (char *) xmalloc (strlen (font->full_name) + 1);
+    bcopy (font->full_name, fontp->full_name, strlen (font->full_name) + 1);
 
     fontp->size = font->max_bounds.width;
     fontp->height = FONT_HEIGHT (font);
@@ -11289,10 +8049,10 @@ x_load_font (f, fontname, size)
 
     /* Set global flag fonts_changed_p to non-zero if the font loaded
        has a character with a smaller width than any other character
-       before, or if the font loaded has a smalle>r height than any
+       before, or if the font loaded has a smaller height than any
        other font loaded before.  If this happens, it will make a
        glyph matrix reallocation necessary.  */
-    fonts_changed_p = x_compute_min_glyph_bounds (f);
+    fonts_changed_p |= x_compute_min_glyph_bounds (f);
     UNBLOCK_INPUT;
     return fontp;
   }
@@ -11351,84 +8111,9 @@ x_find_ccl_program (fontp)
 
 
 
-/***********************************************************************
-			    Initialization
- ***********************************************************************/
-
-#ifdef USE_X_TOOLKIT
-static XrmOptionDescRec emacs_options[] = {
-  {"-geometry",	".geometry", XrmoptionSepArg, NULL},
-  {"-iconic",	".iconic", XrmoptionNoArg, (XtPointer) "yes"},
-
-  {"-internal-border-width", "*EmacsScreen.internalBorderWidth",
-     XrmoptionSepArg, NULL},
-  {"-ib",	"*EmacsScreen.internalBorderWidth", XrmoptionSepArg, NULL},
-
-  {"-T",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-wn",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-title",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-iconname",	"*EmacsShell.iconName", XrmoptionSepArg, (XtPointer) NULL},
-  {"-in",	"*EmacsShell.iconName", XrmoptionSepArg, (XtPointer) NULL},
-  {"-mc",	"*pointerColor", XrmoptionSepArg, (XtPointer) NULL},
-  {"-cr",	"*cursorColor", XrmoptionSepArg, (XtPointer) NULL}
-};
-#endif /* USE_X_TOOLKIT */
-
-static int x_initialized;
-
-#ifdef MULTI_KBOARD
-/* Test whether two display-name strings agree up to the dot that separates
-   the screen number from the server number.  */
-static int
-same_x_server (name1, name2)
-     char *name1, *name2;
-{
-  int seen_colon = 0;
-  unsigned char *system_name = SDATA (Vsystem_name);
-  int system_name_length = strlen (system_name);
-  int length_until_period = 0;
-
-  while (system_name[length_until_period] != 0
-	 && system_name[length_until_period] != '.')
-    length_until_period++;
-
-  /* Treat `unix' like an empty host name.  */
-  if (! strncmp (name1, "unix:", 5))
-    name1 += 4;
-  if (! strncmp (name2, "unix:", 5))
-    name2 += 4;
-  /* Treat this host's name like an empty host name.  */
-  if (! strncmp (name1, system_name, system_name_length)
-      && name1[system_name_length] == ':')
-    name1 += system_name_length;
-  if (! strncmp (name2, system_name, system_name_length)
-      && name2[system_name_length] == ':')
-    name2 += system_name_length;
-  /* Treat this host's domainless name like an empty host name.  */
-  if (! strncmp (name1, system_name, length_until_period)
-      && name1[length_until_period] == ':')
-    name1 += length_until_period;
-  if (! strncmp (name2, system_name, length_until_period)
-      && name2[length_until_period] == ':')
-    name2 += length_until_period;
-
-  for (; *name1 != '\0' && *name1 == *name2; name1++, name2++)
-    {
-      if (*name1 == ':')
-	seen_colon++;
-      if (seen_colon && *name1 == '.')
-	return 1;
-    }
-  return (seen_colon
-	  && (*name1 == '.' || *name1 == '\0')
-	  && (*name2 == '.' || *name2 == '\0'));
-}
-#endif
-
-
 /* The Mac Event loop code */
 
-#ifndef MAC_OSX
+#if !TARGET_API_MAC_CARBON
 #include <Events.h>
 #include <Quickdraw.h>
 #include <Balloons.h>
@@ -11443,13 +8128,12 @@ same_x_server (name1, name2)
 #include <Dialogs.h>
 #include <Script.h>
 #include <Types.h>
-#include <TextEncodingConverter.h>
 #include <Resources.h>
 
 #if __MWERKS__
 #include <unix.h>
 #endif
-#endif /* ! MAC_OSX */
+#endif /* ! TARGET_API_MAC_CARBON */
 
 #define M_APPLE 128
 #define I_ABOUT 1
@@ -11462,86 +8146,86 @@ same_x_server (name1, name2)
 #define MIN_DOC_SIZE 64
 #define MAX_DOC_SIZE 32767
 
-/* sleep time for WaitNextEvent */
-#define WNE_SLEEP_AT_SUSPEND 10
-#define WNE_SLEEP_AT_RESUME  1
-
-/* true when cannot handle any Mac OS events */
-static int handling_window_update = 0;
-
-/* the flag appl_is_suspended is used both for determining the sleep
-   time to be passed to WaitNextEvent and whether the cursor should be
-   drawn when updating the display.  The cursor is turned off when
-   Emacs is suspended.  Redrawing it is unnecessary and what needs to
-   be done depends on whether the cursor lies inside or outside the
-   redraw region.  So we might as well skip drawing it when Emacs is
-   suspended.  */
-static Boolean app_is_suspended = false;
-static long app_sleep_time = WNE_SLEEP_AT_RESUME;
-
 #define EXTRA_STACK_ALLOC (256 * 1024)
 
 #define ARGV_STRING_LIST_ID 129
 #define ABOUT_ALERT_ID	128
 #define RAM_TOO_LARGE_ALERT_ID 129
 
-Boolean	terminate_flag = false;
+/* Contains the string "reverse", which is a constant for mouse button emu.*/
+Lisp_Object Qreverse;
 
-/* True if using command key as meta key.  */
-Lisp_Object Vmac_command_key_is_meta;
 
-/* True if the ctrl and meta keys should be reversed.  */
-Lisp_Object Vmac_reverse_ctrl_meta;
+/* Modifier associated with the control key, or nil to ignore. */
+Lisp_Object Vmac_control_modifier;
+
+/* Modifier associated with the option key, or nil to ignore. */
+Lisp_Object Vmac_option_modifier;
+
+/* Modifier associated with the command key, or nil to ignore. */
+Lisp_Object Vmac_command_modifier;
+
+/* Modifier associated with the function key, or nil to ignore. */
+Lisp_Object Vmac_function_modifier;
+
+/* True if the option and command modifiers should be used to emulate
+   a three button mouse */
+Lisp_Object Vmac_emulate_three_button_mouse;
 
 #if USE_CARBON_EVENTS
-/* True if the mouse wheel button (i.e. button 4) should map to
+/* Non-zero if the mouse wheel button (i.e. button 4) should map to
    mouse-2, instead of mouse-3.  */
-Lisp_Object Vmac_wheel_button_is_mouse_2;
+int mac_wheel_button_is_mouse_2;
 
-/* If Non-nil, the Mac "Command" key is passed on to the Mac Toolbox
+/* If non-zero, the Mac "Command" key is passed on to the Mac Toolbox
    for processing before Emacs sees it.  */
-Lisp_Object Vmac_pass_command_to_system;
+int mac_pass_command_to_system;
 
-/* If Non-nil, the Mac "Control" key is passed on to the Mac Toolbox
+/* If non-zero, the Mac "Control" key is passed on to the Mac Toolbox
    for processing before Emacs sees it.  */
-Lisp_Object Vmac_pass_control_to_system;
+int mac_pass_control_to_system;
 #endif
 
-/* convert input from Mac keyboard (assumed to be in Mac Roman coding)
-   to this text encoding */
-int mac_keyboard_text_encoding;
-int current_mac_keyboard_text_encoding = kTextEncodingMacRoman;
-
-/* Set in term/mac-win.el to indicate that event loop can now generate
-   drag and drop events.  */
-Lisp_Object Qmac_ready_for_drag_n_drop;
-
-Lisp_Object drag_and_drop_file_list;
+/* Points to the variable `inev' in the function XTread_socket.  It is
+   used for passing an input event to the function back from
+   Carbon/Apple event handlers.  */
+static struct input_event *read_socket_inev = NULL;
 
 Point saved_menu_event_location;
 
 /* Apple Events */
-static void init_required_apple_events (void);
-static pascal OSErr
-do_ae_open_application (const AppleEvent *, AppleEvent *, long);
-static pascal OSErr
-do_ae_print_documents (const AppleEvent *, AppleEvent *, long);
-static pascal OSErr do_ae_open_documents (AppleEvent *, AppleEvent *, long);
-static pascal OSErr do_ae_quit_application (AppleEvent *, AppleEvent *, long);
+#if USE_CARBON_EVENTS
+static Lisp_Object Qhicommand;
+#endif
+extern int mac_ready_for_apple_events;
+extern Lisp_Object Qundefined;
+extern void init_apple_event_handler P_ ((void));
+extern void mac_find_apple_event_spec P_ ((AEEventClass, AEEventID,
+					   Lisp_Object *, Lisp_Object *,
+					   Lisp_Object *));
+extern OSErr init_coercion_handler P_ ((void));
 
+#if TARGET_API_MAC_CARBON
 /* Drag and Drop */
-static OSErr init_mac_drag_n_drop ();
+static pascal OSErr mac_do_track_drag (DragTrackingMessage, WindowPtr, void*, DragReference);
 static pascal OSErr mac_do_receive_drag (WindowPtr, void*, DragReference);
+static DragTrackingHandlerUPP mac_do_track_dragUPP = NULL;
+static DragReceiveHandlerUPP mac_do_receive_dragUPP = NULL;
+#endif
 
 #if USE_CARBON_EVENTS
-/* Preliminary Support for the OSX Services Menu */
-static OSStatus mac_handle_service_event (EventHandlerCallRef,EventRef,void*);
-static void init_service_handler ();
+#ifdef MAC_OSX
+extern void init_service_handler ();
+static Lisp_Object Qservices, Qpaste, Qperform;
 #endif
+/* Window Event Handler */
+static pascal OSStatus mac_handle_window_event (EventHandlerCallRef,
+						EventRef, void *);
+#endif
+OSErr install_window_handler (WindowPtr);
 
 extern void init_emacs_passwd_dir ();
 extern int emacs_main (int, char **, char **);
-extern void check_alarm ();
 
 extern void initialize_applescript();
 extern void terminate_applescript();
@@ -11554,26 +8238,73 @@ mac_to_emacs_modifiers (EventModifiers mods)
 #endif
 {
   unsigned int result = 0;
-  if (mods & macShiftKey)
+  if (mods & shiftKey)
     result |= shift_modifier;
-  if (mods & macCtrlKey)
-    result |= ctrl_modifier;
-  if (mods & macMetaKey)
-    result |= meta_modifier;
-  if (NILP (Vmac_command_key_is_meta) && (mods & macAltKey))
-    result |= alt_modifier;
+
+  /* Deactivated to simplify configuration:
+     if Vmac_option_modifier is non-NIL, we fully process the Option
+     key. Otherwise, we only process it if an additional Ctrl or Command
+     is pressed. That way the system may convert the character to a
+     composed one.
+     if ((mods & optionKey) &&
+      (( !NILP(Vmac_option_modifier) ||
+      ((mods & cmdKey) || (mods & controlKey))))) */
+
+  if (!NILP (Vmac_option_modifier) && (mods & optionKey)) {
+    Lisp_Object val = Fget(Vmac_option_modifier, Qmodifier_value);
+    if (INTEGERP(val))
+      result |= XUINT(val);
+  }
+  if (!NILP (Vmac_command_modifier) && (mods & cmdKey)) {
+    Lisp_Object val = Fget(Vmac_command_modifier, Qmodifier_value);
+    if (INTEGERP(val))
+      result |= XUINT(val);
+  }
+  if (!NILP (Vmac_control_modifier) && (mods & controlKey)) {
+    Lisp_Object val = Fget(Vmac_control_modifier, Qmodifier_value);
+    if (INTEGERP(val))
+      result |= XUINT(val);
+  }
+
+#ifdef MAC_OSX
+  if (!NILP (Vmac_function_modifier) && (mods & kEventKeyModifierFnMask)) {
+    Lisp_Object val = Fget(Vmac_function_modifier, Qmodifier_value);
+    if (INTEGERP(val))
+      result |= XUINT(val);
+  }
+#endif
+
+  return result;
+}
+
+static int
+mac_get_emulated_btn ( UInt32 modifiers )
+{
+  int result = 0;
+  if (!NILP (Vmac_emulate_three_button_mouse)) {
+    int cmdIs3 = !EQ (Vmac_emulate_three_button_mouse, Qreverse);
+    if (modifiers & cmdKey)
+      result = cmdIs3 ? 2 : 1;
+    else if (modifiers & optionKey)
+      result = cmdIs3 ? 1 : 2;
+  }
   return result;
 }
 
 #if USE_CARBON_EVENTS
 /* Obtains the event modifiers from the event ref and then calls
    mac_to_emacs_modifiers.  */
-static int
+static UInt32
 mac_event_to_emacs_modifiers (EventRef eventRef)
 {
   UInt32 mods = 0;
   GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32, NULL,
 		    sizeof (UInt32), NULL, &mods);
+  if (!NILP (Vmac_emulate_three_button_mouse) &&
+      GetEventClass(eventRef) == kEventClassMouse)
+    {
+      mods &= ~(optionKey | cmdKey);
+    }
   return mac_to_emacs_modifiers (mods);
 }
 
@@ -11588,12 +8319,19 @@ mac_get_mouse_btn (EventRef ref)
   switch (result)
     {
     case kEventMouseButtonPrimary:
-      return 0;
+      if (NILP (Vmac_emulate_three_button_mouse))
+	return 0;
+      else {
+	UInt32 mods = 0;
+	GetEventParameter (ref, kEventParamKeyModifiers, typeUInt32, NULL,
+			   sizeof (UInt32), NULL, &mods);
+	return mac_get_emulated_btn(mods);
+      }
     case kEventMouseButtonSecondary:
-      return NILP (Vmac_wheel_button_is_mouse_2) ? 1 : 2;
+      return mac_wheel_button_is_mouse_2 ? 2 : 1;
     case kEventMouseButtonTertiary:
     case 4:  /* 4 is the number for the mouse wheel button */
-      return NILP (Vmac_wheel_button_is_mouse_2) ? 2 : 1;
+      return mac_wheel_button_is_mouse_2 ? 1 : 2;
     default:
       return 0;
     }
@@ -11601,45 +8339,81 @@ mac_get_mouse_btn (EventRef ref)
 
 /* Normally, ConvertEventRefToEventRecord will correctly handle all
    events.  However the click of the mouse wheel is not converted to a
-   mouseDown or mouseUp event.  This calls ConvertEventRef, but then
-   checks to see if it is a mouse up or down carbon event that has not
-   been converted, and if so, converts it by hand (to be picked up in
-   the XTread_socket loop).  */
+   mouseDown or mouseUp event.  Likewise for dead key down events.
+   This calls ConvertEventRef, but then checks to see if it is a mouse
+   up/down, or a dead key down carbon event that has not been
+   converted, and if so, converts it by hand (to be picked up in the
+   XTread_socket loop).  */
 static Boolean mac_convert_event_ref (EventRef eventRef, EventRecord *eventRec)
 {
   Boolean result = ConvertEventRefToEventRecord (eventRef, eventRec);
-  /* Do special case for mouse wheel button.  */
-  if (!result && GetEventClass (eventRef) == kEventClassMouse)
-    {
-      UInt32 kind = GetEventKind (eventRef);
-      if (kind == kEventMouseDown && !(eventRec->what == mouseDown))
-	{
-	  eventRec->what = mouseDown;
-	  result=1;
-	}
-      if (kind == kEventMouseUp && !(eventRec->what == mouseUp))
-	{
-	  eventRec->what = mouseUp;
-	  result=1;
-	}
-      if (result)
-	{
-	  /* Need where and when.  */
-	  UInt32 mods;
-	  GetEventParameter (eventRef, kEventParamMouseLocation,
-			     typeQDPoint, NULL, sizeof (Point),
-			     NULL, &eventRec->where);
-	  /* Use two step process because new event modifiers are
-	     32-bit and old are 16-bit.  Currently, only loss is
-	     NumLock & Fn. */
-	  GetEventParameter (eventRef, kEventParamKeyModifiers,
-			     typeUInt32, NULL, sizeof (UInt32),
-			     NULL, &mods);
-	  eventRec->modifiers = mods;
 
-	  eventRec->when = EventTimeToTicks (GetEventTime (eventRef));
+  if (result)
+    return result;
+
+  switch (GetEventClass (eventRef))
+    {
+    case kEventClassMouse:
+      switch (GetEventKind (eventRef))
+	{
+	case kEventMouseDown:
+	  eventRec->what = mouseDown;
+	  result = 1;
+	  break;
+
+	case kEventMouseUp:
+	  eventRec->what = mouseUp;
+	  result = 1;
+	  break;
+
+	default:
+	  break;
 	}
+      break;
+
+    case kEventClassKeyboard:
+      switch (GetEventKind (eventRef))
+	{
+	case kEventRawKeyDown:
+	  {
+	    unsigned char char_codes;
+	    UInt32 key_code;
+
+	    eventRec->what = keyDown;
+	    GetEventParameter (eventRef, kEventParamKeyMacCharCodes, typeChar,
+			       NULL, sizeof (char), NULL, &char_codes);
+	    GetEventParameter (eventRef, kEventParamKeyCode, typeUInt32,
+			       NULL, sizeof (UInt32), NULL, &key_code);
+	    eventRec->message = char_codes | ((key_code & 0xff) << 8);
+	    result = 1;
+	  }
+	  break;
+
+	default:
+	  break;
+	}
+      break;
+
+    default:
+      break;
     }
+
+  if (result)
+    {
+      /* Need where and when.  */
+      UInt32 mods;
+
+      GetEventParameter (eventRef, kEventParamMouseLocation, typeQDPoint,
+			 NULL, sizeof (Point), NULL, &eventRec->where);
+      /* Use two step process because new event modifiers are 32-bit
+	 and old are 16-bit.  Currently, only loss is NumLock & Fn. */
+      GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32,
+			 NULL, sizeof (UInt32), NULL, &mods);
+      eventRec->modifiers = mods;
+
+      eventRec->when = EventTimeToTicks (GetEventTime (eventRef));
+    }
+
   return result;
 }
 
@@ -11657,11 +8431,13 @@ do_get_menus (void)
   SetMenuBar (menubar_handle);
   DrawMenuBar ();
 
+#if !TARGET_API_MAC_CARBON
   menu_handle = GetMenuHandle (M_APPLE);
   if(menu_handle != NULL)
     AppendResMenu (menu_handle,'DRVR');
   else
     abort ();
+#endif
 }
 
 
@@ -11697,8 +8473,8 @@ do_check_ram_size (void)
 
   if (Gestalt (gestaltPhysicalRAMSize, &physical_ram_size) != noErr
       || Gestalt (gestaltLogicalRAMSize, &logical_ram_size) != noErr
-      || physical_ram_size > 256 * 1024 * 1024
-      || logical_ram_size > 256 * 1024 * 1024)
+      || physical_ram_size > (1 << VALBITS)
+      || logical_ram_size > (1 << VALBITS))
     {
       StopAlert (RAM_TOO_LARGE_ALERT_ID, NULL);
       exit (1);
@@ -11708,37 +8484,43 @@ do_check_ram_size (void)
 static void
 do_window_update (WindowPtr win)
 {
-  struct mac_output *mwp = (mac_output *) GetWRefCon (win);
-  struct frame *f = mwp->mFP;
+  struct frame *f = mac_window_to_frame (win);
 
-  if (f)
+  BeginUpdate (win);
+
+  /* The tooltip has been drawn already.  Avoid the SET_FRAME_GARBAGED
+     below.  */
+  if (win != tip_window)
     {
       if (f->async_visible == 0)
         {
+	  /* Update events may occur when a frame gets iconified.  */
+#if 0
           f->async_visible = 1;
           f->async_iconified = 0;
           SET_FRAME_GARBAGED (f);
-
-          /* An update event is equivalent to MapNotify on X, so report
-             visibility changes properly.  */
-          if (! NILP(Vframe_list) && ! NILP (XCDR (Vframe_list)))
-            /* Force a redisplay sooner or later to update the
-               frame titles in case this is the second frame.  */
-            record_asynch_buffer_change ();
+#endif
         }
       else
-        {
-          BeginUpdate (win);
-          handling_window_update = 1;
+	{
+	  Rect r;
+#if TARGET_API_MAC_CARBON
+	  RgnHandle region = NewRgn ();
 
-	  XClearWindow (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f));
-
-          expose_frame (f, 0, 0, 0, 0);
-
-          handling_window_update = 0;
-          EndUpdate (win);
-        }
+	  GetPortVisibleRegion (GetWindowPort (win), region);
+	  GetRegionBounds (region, &r);
+	  expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
+	  UpdateControls (win, region);
+	  DisposeRgn (region);
+#else
+	  r = (*win->visRgn)->rgnBBox;
+	  expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
+	  UpdateControls (win, win->visRgn);
+#endif
+	}
     }
+
+  EndUpdate (win);
 }
 
 static int
@@ -11758,154 +8540,17 @@ is_emacs_window (WindowPtr win)
 }
 
 static void
-do_window_activate (WindowPtr win)
-{
-  mac_output *mwp;
-  struct frame *f;
-
-  if (is_emacs_window (win))
-    {
-      mwp = (mac_output *) GetWRefCon (win);
-      f = mwp->mFP;
-
-      if (f)
-	{
-	  x_new_focus_frame (FRAME_MAC_DISPLAY_INFO (f), f);
-	  activate_scroll_bars (f);
-	}
-    }
-}
-
-static void
-do_window_deactivate (WindowPtr win)
-{
-  mac_output *mwp;
-  struct frame *f;
-
-  if (is_emacs_window (win))
-    {
-      mwp = (mac_output *) GetWRefCon (win);
-      f = mwp->mFP;
-
-      if (f == FRAME_MAC_DISPLAY_INFO (f)->x_focus_frame)
-	{
-	  x_new_focus_frame (FRAME_MAC_DISPLAY_INFO (f), 0);
-	  deactivate_scroll_bars (f);
-	}
-    }
-}
-
-static void
 do_app_resume ()
 {
-  WindowPtr wp;
-  mac_output *mwp;
-  struct frame *f;
-
-  wp = FrontWindow();
-  if (is_emacs_window (wp))
-    {
-      mwp = (mac_output *) GetWRefCon (wp);
-      f = mwp->mFP;
-
-      if (f)
-	{
-	  x_new_focus_frame (FRAME_MAC_DISPLAY_INFO (f), f);
-	  activate_scroll_bars (f);
-	}
-    }
-
-  app_is_suspended = false;
-  app_sleep_time = WNE_SLEEP_AT_RESUME;
+  /* Window-activate events will do the job. */
 }
 
 static void
 do_app_suspend ()
 {
-  WindowPtr wp;
-  mac_output *mwp;
-  struct frame *f;
-
-  wp = FrontWindow();
-  if (is_emacs_window (wp))
-    {
-      mwp = (mac_output *) GetWRefCon (wp);
-      f = mwp->mFP;
-
-      if (f == FRAME_MAC_DISPLAY_INFO (f)->x_focus_frame)
-	{
-	  x_new_focus_frame (FRAME_MAC_DISPLAY_INFO (f), 0);
-	  deactivate_scroll_bars (f);
-	}
-    }
-
-  app_is_suspended = true;
-  app_sleep_time = WNE_SLEEP_AT_SUSPEND;
+  /* Window-deactivate events will do the job. */
 }
 
-
-static void
-do_mouse_moved (Point mouse_pos)
-{
-  WindowPtr wp = FrontWindow ();
-  struct frame *f;
-
-  if (is_emacs_window (wp))
-    {
-      f = ((mac_output *) GetWRefCon (wp))->mFP;
-
-#if TARGET_API_MAC_CARBON
-      SetPort (GetWindowPort (wp));
-#else
-      SetPort (wp);
-#endif
-
-      GlobalToLocal (&mouse_pos);
-
-      note_mouse_movement (f, &mouse_pos);
-    }
-}
-
-
-static void
-do_os_event (EventRecord *erp)
-{
-  switch((erp->message >> 24) & 0x000000FF)
-    {
-    case suspendResumeMessage:
-      if((erp->message & resumeFlag) == 1)
-	do_app_resume ();
-      else
-	do_app_suspend ();
-      break;
-
-    case mouseMovedMessage:
-      do_mouse_moved (erp->where);
-      break;
-    }
-}
-
-static void
-do_events (EventRecord *erp)
-{
-  switch (erp->what)
-    {
-    case updateEvt:
-      do_window_update ((WindowPtr) erp->message);
-      break;
-
-    case osEvt:
-      do_os_event (erp);
-      break;
-
-    case activateEvt:
-      if ((erp->modifiers & activeFlag) != 0)
-	do_window_activate ((WindowPtr) erp->message);
-      else
-	do_window_deactivate ((WindowPtr) erp->message);
-      break;
-    }
-}
 
 static void
 do_apple_menu (SInt16 menu_item)
@@ -11932,19 +8577,18 @@ do_menu_choice (SInt32 menu_choice)
   menu_id = HiWord (menu_choice);
   menu_item = LoWord (menu_choice);
 
-  if (menu_id == 0)
-    return;
-
   switch (menu_id)
     {
+    case 0:
+      break;
+
     case M_APPLE:
       do_apple_menu (menu_item);
       break;
 
     default:
       {
-        WindowPtr wp = FrontWindow ();
-        struct frame *f = ((mac_output *) GetWRefCon (wp))->mFP;
+        struct frame *f = mac_focus_frame (&one_mac_display_info);
         MenuHandle menu = GetMenuHandle (menu_id);
         if (menu)
           {
@@ -11966,21 +8610,43 @@ do_menu_choice (SInt32 menu_choice)
 static void
 do_grow_window (WindowPtr w, EventRecord *e)
 {
-  long grow_size;
   Rect limit_rect;
-  int rows, columns;
-  mac_output *mwp = (mac_output *) GetWRefCon (w);
-  struct frame *f = mwp->mFP;
+  int rows, columns, width, height;
+  struct frame *f = mac_window_to_frame (w);
+  XSizeHints *size_hints = FRAME_SIZE_HINTS (f);
+  int min_width = MIN_DOC_SIZE, min_height = MIN_DOC_SIZE;
+#if TARGET_API_MAC_CARBON
+  Rect new_rect;
+#else
+  long grow_size;
+#endif
 
-  SetRect(&limit_rect, MIN_DOC_SIZE, MIN_DOC_SIZE, MAX_DOC_SIZE, MAX_DOC_SIZE);
-
-  grow_size = GrowWindow (w, e->where, &limit_rect);
-
-  /* see if it really changed size */
-  if (grow_size != 0)
+  if (size_hints->flags & PMinSize)
     {
-      rows = PIXEL_TO_CHAR_HEIGHT (f, HiWord (grow_size));
-      columns = PIXEL_TO_CHAR_WIDTH (f, LoWord (grow_size));
+      min_width  = size_hints->min_width;
+      min_height = size_hints->min_height;
+    }
+  SetRect (&limit_rect, min_width, min_height, MAX_DOC_SIZE, MAX_DOC_SIZE);
+
+#if TARGET_API_MAC_CARBON
+  if (!ResizeWindow (w, e->where, &limit_rect, &new_rect))
+    return;
+  height = new_rect.bottom - new_rect.top;
+  width = new_rect.right - new_rect.left;
+#else
+  grow_size = GrowWindow (w, e->where, &limit_rect);
+  /* see if it really changed size */
+  if (grow_size == 0)
+    return;
+  height = HiWord (grow_size);
+  width = LoWord (grow_size);
+#endif
+
+  if (width != FRAME_PIXEL_WIDTH (f)
+      || height != FRAME_PIXEL_HEIGHT (f))
+    {
+      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height);
+      columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width);
 
       x_set_window_size (f, 0, columns, rows);
     }
@@ -11998,46 +8664,44 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
   GrafPtr save_port;
   Rect zoom_rect, port_rect;
   Point top_left;
-  int w_title_height, columns, rows, width, height, dummy, x, y;
-  mac_output *mwp = (mac_output *) GetWRefCon (w);
-  struct frame *f = mwp->mFP;
+  int w_title_height, columns, rows, width, height;
+  struct frame *f = mac_window_to_frame (w);
+  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
 
-  GetPort (&save_port);
-
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (w));
-#else
-  SetPort (w);
-#endif
-
-  /* Clear window to avoid flicker.  */
 #if TARGET_API_MAC_CARBON
   {
-    Rect r;
-    BitMap bm;
+    Point standard_size;
 
-    GetWindowPortBounds (w, &r);
-    EraseRect (&r);
+    standard_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
+    standard_size.v = dpyinfo->height;
 
-    if (zoom_in_or_out == inZoomOut)
+    if (IsWindowInStandardState (w, &standard_size, &zoom_rect))
+      zoom_in_or_out = inZoomIn;
+    else
       {
-        /* calculate height of window's title bar (hard card it for now).  */
-        w_title_height = 20 + GetMBarHeight ();
+	/* Adjust the standard size according to character boundaries.  */
 
-        /* get maximum height of window into zoom_rect.bottom -
-	   zoom_rect.top */
-        GetQDGlobalsScreenBits (&bm);
-        zoom_rect = bm.bounds;
-        zoom_rect.top += w_title_height;
-        InsetRect (&zoom_rect, 8, 4);  /* not too tight */
-
-        zoom_rect.right = zoom_rect.left
-	  + CHAR_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
-
-        SetWindowStandardState (w, &zoom_rect);
+	columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, zoom_rect.right - zoom_rect.left);
+	rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, zoom_rect.bottom - zoom_rect.top);
+	standard_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, columns);
+	standard_size.v = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
+	GetWindowBounds (w, kWindowContentRgn, &port_rect);
+	if (IsWindowInStandardState (w, &standard_size, &zoom_rect)
+	    && port_rect.left == zoom_rect.left
+	    && port_rect.top == zoom_rect.top)
+	  zoom_in_or_out = inZoomIn;
+	else
+	  zoom_in_or_out = inZoomOut;
       }
+
+    ZoomWindowIdeal (w, zoom_in_or_out, &standard_size);
   }
 #else /* not TARGET_API_MAC_CARBON */
+  GetPort (&save_port);
+
+  SetPortWindowPort (w);
+
+  /* Clear window to avoid flicker.  */
   EraseRect (&(w->portRect));
   if (zoom_in_or_out == inZoomOut)
     {
@@ -12054,14 +8718,21 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
       InsetRect (&zoom_rect, 8, 4);  /* not too tight */
 
       zoom_rect.right = zoom_rect.left
-	+ CHAR_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
+	+ FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
+
+      /* Adjust the standard size according to character boundaries.  */
+      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, zoom_rect.bottom - zoom_rect.top);
+      zoom_rect.bottom =
+	zoom_rect.top + FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
 
       (**((WStateDataHandle) ((WindowPeek) w)->dataHandle)).stdState
 	= zoom_rect;
     }
-#endif /* not TARGET_API_MAC_CARBON */
 
-  ZoomWindow (w, zoom_in_or_out, w == FrontWindow ());
+  ZoomWindow (w, zoom_in_or_out, f == mac_focus_frame (dpyinfo));
+
+  SetPort (save_port);
+#endif /* not TARGET_API_MAC_CARBON */
 
   /* retrieve window size and update application values */
 #if TARGET_API_MAC_CARBON
@@ -12069,285 +8740,448 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
 #else
   port_rect = w->portRect;
 #endif
-  rows = PIXEL_TO_CHAR_HEIGHT (f, port_rect.bottom - port_rect.top);
-  columns = PIXEL_TO_CHAR_WIDTH (f, port_rect.right - port_rect.left);
-  x_set_window_size (mwp->mFP, 0, columns, rows);
+  height = port_rect.bottom - port_rect.top;
+  width = port_rect.right - port_rect.left;
 
-  SetPort (save_port);
+  if (width != FRAME_PIXEL_WIDTH (f)
+      || height != FRAME_PIXEL_HEIGHT (f))
+    {
+      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height);
+      columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width);
+
+      change_frame_size (f, rows, columns, 0, 1, 0);
+      SET_FRAME_GARBAGED (f);
+      cancel_mouse_face (f);
+
+      FRAME_PIXEL_WIDTH (f) = width;
+      FRAME_PIXEL_HEIGHT (f) = height;
+    }
+  x_real_positions (f, &f->left_pos, &f->top_pos);
 }
 
-/* Initialize Drag And Drop to allow files to be dropped onto emacs frames */
-static OSErr
-init_mac_drag_n_drop ()
+OSErr
+mac_store_apple_event (class, id, desc)
+     Lisp_Object class, id;
+     const AEDesc *desc;
 {
-  OSErr result = InstallReceiveHandler (mac_do_receive_drag, 0L, NULL);
-  return result;
+  OSErr err = noErr;
+  struct input_event buf;
+  AEDesc *desc_copy;
+
+  desc_copy = xmalloc (sizeof (AEDesc));
+  if (desc_copy == NULL)
+    err = memFullErr;
+  else
+    err = AEDuplicateDesc (desc, desc_copy);
+  if (err == noErr)
+    {
+      EVENT_INIT (buf);
+
+      buf.kind = MAC_APPLE_EVENT;
+      buf.x = class;
+      buf.y = id;
+      buf.code = (int)desc_copy;
+      XSETFRAME (buf.frame_or_window,
+		 mac_focus_frame (&one_mac_display_info));
+      buf.arg = Qnil;
+      kbd_buffer_store_event (&buf);
+    }
+
+  return err;
 }
 
-/* Intialize AppleEvent dispatcher table for the required events.  */
-void
-init_required_apple_events ()
+Lisp_Object
+mac_make_lispy_event_code (code)
+     int code;
 {
-  OSErr err;
-  long result;
+  AEDesc *desc = (AEDesc *)code;
+  Lisp_Object obj;
 
-  /* Make sure we have apple events before starting.  */
-  err = Gestalt (gestaltAppleEventsAttr, &result);
-  if (err != noErr)
-    abort ();
+  obj = mac_aedesc_to_lisp (desc);
+  AEDisposeDesc (desc);
+  xfree (desc);
 
-  if (!(result & (1 << gestaltAppleEventsPresent)))
-    abort ();
-
-#if TARGET_API_MAC_CARBON
-  err = AEInstallEventHandler(kCoreEventClass, kAEOpenApplication,
-			      NewAEEventHandlerUPP
-			      ((AEEventHandlerProcPtr) do_ae_open_application),
-                              0L, false);
-#else
-  err = AEInstallEventHandler(kCoreEventClass, kAEOpenApplication,
-			      NewAEEventHandlerProc
-			      ((AEEventHandlerProcPtr) do_ae_open_application),
-                              0L, false);
-#endif
-  if (err != noErr)
-    abort ();
-
-#if TARGET_API_MAC_CARBON
-  err = AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments,
-                              NewAEEventHandlerUPP
-			      ((AEEventHandlerProcPtr) do_ae_open_documents),
-                              0L, false);
-#else
-  err = AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments,
-                              NewAEEventHandlerProc
-			      ((AEEventHandlerProcPtr) do_ae_open_documents),
-                              0L, false);
-#endif
-  if (err != noErr)
-    abort ();
-
-#if TARGET_API_MAC_CARBON
-  err = AEInstallEventHandler(kCoreEventClass, kAEPrintDocuments,
-                              NewAEEventHandlerUPP
-			      ((AEEventHandlerProcPtr) do_ae_print_documents),
-                              0L, false);
-#else
-  err = AEInstallEventHandler(kCoreEventClass, kAEPrintDocuments,
-                              NewAEEventHandlerProc
-			      ((AEEventHandlerProcPtr) do_ae_print_documents),
-                              0L, false);
-#endif
-  if (err != noErr)
-    abort ();
-
-#if TARGET_API_MAC_CARBON
-  err = AEInstallEventHandler(kCoreEventClass, kAEQuitApplication,
-                              NewAEEventHandlerUPP
-			      ((AEEventHandlerProcPtr) do_ae_quit_application),
-                              0L, false);
-#else
-  err = AEInstallEventHandler(kCoreEventClass, kAEQuitApplication,
-                              NewAEEventHandlerProc
-			      ((AEEventHandlerProcPtr) do_ae_quit_application),
-                              0L, false);
-#endif
-  if (err != noErr)
-    abort ();
+  return obj;
 }
 
 #if USE_CARBON_EVENTS
-
-void
-init_service_handler ()
+static pascal OSStatus
+mac_handle_command_event (next_handler, event, data)
+     EventHandlerCallRef next_handler;
+     EventRef event;
+     void *data;
 {
-  EventTypeSpec specs[] = {{kEventClassService, kEventServiceGetTypes},
-			   {kEventClassService, kEventServiceCopy},
-			   {kEventClassService, kEventServicePaste}};
-  InstallApplicationEventHandler (NewEventHandlerUPP (mac_handle_service_event),
-				  3, specs, NULL, NULL);
-}
+  OSStatus result;
+  OSErr err;
+  HICommand command;
+  Lisp_Object class_key, id_key, binding;
 
-/*
-   MAC_TODO: Check to see if this is called by AEProcessDesc...
- */
-OSStatus
-mac_handle_service_event (EventHandlerCallRef callRef,
-			  EventRef event, void *data)
-{
-  OSStatus err = noErr;
-  switch (GetEventKind (event))
-    {
-    case kEventServiceGetTypes:
+  result = CallNextEventHandler (next_handler, event);
+  if (result != eventNotHandledErr)
+    return result;
+
+  GetEventParameter (event, kEventParamDirectObject, typeHICommand, NULL,
+		     sizeof (HICommand), NULL, &command);
+
+  if (command.commandID == 0)
+    return eventNotHandledErr;
+
+  /* A HICommand event is mapped to an Apple event whose event class
+     symbol is `hicommand' and event ID is its command ID.  */
+  class_key = Qhicommand;
+  mac_find_apple_event_spec (0, command.commandID,
+			     &class_key, &id_key, &binding);
+  if (!NILP (binding) && !EQ (binding, Qundefined))
+    if (INTEGERP (binding))
+      return XINT (binding);
+    else
       {
-	CFMutableArrayRef copyTypes, pasteTypes;
-	CFStringRef type;
-	Boolean selection = true;
-	/*
-	  GetEventParameter(event, kEventParamServicePasteTypes,
-	  typeCFMutableArrayRef, NULL,
-	  sizeof (CFMutableArrayRef), NULL, &pasteTypes);
-	*/
-	GetEventParameter(event, kEventParamServiceCopyTypes,
-			  typeCFMutableArrayRef, NULL,
-			  sizeof (CFMutableArrayRef), NULL, &copyTypes);
-	type = CreateTypeStringWithOSType (kScrapFlavorTypeText);
-	if (type) {
-	  CFArrayAppendValue (copyTypes, type);
-	  //CFArrayAppendValue (pasteTypes, type);
-	  CFRelease (type);
-	}
-      }
-    case kEventServiceCopy:
-      {
-	ScrapRef currentScrap, specificScrap;
-	char * buf = "";
-	Size byteCount = 0;
-
-	GetCurrentScrap (&currentScrap);
-
-	err = GetScrapFlavorSize (currentScrap, kScrapFlavorTypeText, &byteCount);
+	AppleEvent apple_event;
+	UInt32 modifiers;
+	static EventParamName names[] = {kEventParamDirectObject,
+					 kEventParamKeyModifiers};
+	static EventParamType types[] = {typeHICommand,
+					 typeUInt32};
+	err = create_apple_event_from_event_ref (event, 2, names, types,
+						 &apple_event);
 	if (err == noErr)
 	  {
-	    void *buffer = xmalloc (byteCount);
-	    if (buffer != NULL)
-	      {
-		GetEventParameter (event, kEventParamScrapRef, typeScrapRef, NULL,
-				   sizeof (ScrapRef), NULL, &specificScrap);
+	    err = mac_store_apple_event (class_key, id_key, &apple_event);
+	    AEDisposeDesc (&apple_event);
+	  }
+	if (err == noErr)
+	  return noErr;
+      }
 
-		err = GetScrapFlavorData (currentScrap, kScrapFlavorTypeText,
-					  &byteCount, buffer);
-		if (err == noErr)
-		  PutScrapFlavor (specificScrap, kScrapFlavorTypeText,
-				  kScrapFlavorMaskNone, byteCount, buffer);
-		xfree (buffer);
-	      }
-	  }
-	err = noErr;
-      }
-    case kEventServicePaste:
-      {
-	/*
-	// Get the current location
-        Size     byteCount;
-        ScrapRef specificScrap;
-        GetEventParameter(event, kEventParamScrapRef, typeScrapRef, NULL,
-			  sizeof(ScrapRef), NULL, &specificScrap);
-        err = GetScrapFlavorSize(specificScrap, kScrapFlavorTypeText, &byteCount);
-        if (err == noErr) {
-	  void * buffer = xmalloc(byteCount);
-	  if (buffer != NULL ) {
-	    err = GetScrapFlavorData(specificScrap, kScrapFlavorTypeText,
-				     &byteCount, buffer);
-	    if (err == noErr) {
-	      // Actually place in the buffer
-	      BLOCK_INPUT;
-	      // Get the current "selection" string here
-	      UNBLOCK_INPUT;
-	    }
-	  }
-	  xfree(buffer);
-        }
-        */
-      }
+  return eventNotHandledErr;
+}
+
+static OSErr
+init_command_handler ()
+{
+  OSErr err = noErr;
+  EventTypeSpec specs[] = {{kEventClassCommand, kEventCommandProcess}};
+  static EventHandlerUPP handle_command_eventUPP = NULL;
+
+  if (handle_command_eventUPP == NULL)
+    handle_command_eventUPP = NewEventHandlerUPP (mac_handle_command_event);
+  return InstallApplicationEventHandler (handle_command_eventUPP,
+					 GetEventTypeCount (specs), specs,
+					 NULL, NULL);
+}
+
+static pascal OSStatus
+mac_handle_window_event (next_handler, event, data)
+     EventHandlerCallRef next_handler;
+     EventRef event;
+     void *data;
+{
+  WindowPtr wp;
+  OSStatus result;
+  UInt32 attributes;
+  XSizeHints *size_hints;
+
+  GetEventParameter (event, kEventParamDirectObject, typeWindowRef,
+		     NULL, sizeof (WindowPtr), NULL, &wp);
+
+  switch (GetEventKind (event))
+    {
+    case kEventWindowUpdate:
+      result = CallNextEventHandler (next_handler, event);
+      if (result != eventNotHandledErr)
+	return result;
+
+      do_window_update (wp);
+      return noErr;
+
+    case kEventWindowBoundsChanging:
+      result = CallNextEventHandler (next_handler, event);
+      if (result != eventNotHandledErr)
+	return result;
+
+      GetEventParameter (event, kEventParamAttributes, typeUInt32,
+			 NULL, sizeof (UInt32), NULL, &attributes);
+      size_hints = FRAME_SIZE_HINTS (mac_window_to_frame (wp));
+      if ((attributes & kWindowBoundsChangeUserResize)
+	  && ((size_hints->flags & (PResizeInc | PBaseSize | PMinSize))
+	      == (PResizeInc | PBaseSize | PMinSize)))
+	{
+	  Rect bounds;
+	  int width, height;
+
+	  GetEventParameter (event, kEventParamCurrentBounds,
+			     typeQDRectangle,
+			     NULL, sizeof (Rect), NULL, &bounds);
+	  width = bounds.right - bounds.left;
+	  height = bounds.bottom - bounds.top;
+
+	  if (width < size_hints->min_width)
+	    width = size_hints->min_width;
+	  else
+	    width = size_hints->base_width
+	      + (int) ((width - size_hints->base_width)
+		       / (float) size_hints->width_inc + .5)
+	      * size_hints->width_inc;
+
+	  if (height < size_hints->min_height)
+	    height = size_hints->min_height;
+	  else
+	    height = size_hints->base_height
+	      + (int) ((height - size_hints->base_height)
+		       / (float) size_hints->height_inc + .5)
+	      * size_hints->height_inc;
+
+	  bounds.right = bounds.left + width;
+	  bounds.bottom = bounds.top + height;
+	  SetEventParameter (event, kEventParamCurrentBounds,
+			     typeQDRectangle, sizeof (Rect), &bounds);
+	  return noErr;
+	}
+      break;
+
+    case kEventWindowShown:
+    case kEventWindowHidden:
+    case kEventWindowExpanded:
+    case kEventWindowCollapsed:
+      result = CallNextEventHandler (next_handler, event);
+
+      mac_handle_visibility_change (mac_window_to_frame (wp));
+      return noErr;
+
+      break;
     }
+
+  return eventNotHandledErr;
+}
+
+static pascal OSStatus
+mac_handle_mouse_event (next_handler, event, data)
+     EventHandlerCallRef next_handler;
+     EventRef event;
+     void *data;
+{
+  OSStatus result;
+
+  switch (GetEventKind (event))
+    {
+    case kEventMouseWheelMoved:
+      {
+	WindowPtr wp;
+	struct frame *f;
+	EventMouseWheelAxis axis;
+	SInt32 delta;
+	Point point;
+
+	result = CallNextEventHandler (next_handler, event);
+	if (result != eventNotHandledErr || read_socket_inev == NULL)
+	  return result;
+
+	GetEventParameter (event, kEventParamWindowRef, typeWindowRef,
+			   NULL, sizeof (WindowRef), NULL, &wp);
+	f = mac_window_to_frame (wp);
+	if (f != mac_focus_frame (&one_mac_display_info))
+	  break;
+
+	GetEventParameter (event, kEventParamMouseWheelAxis,
+			   typeMouseWheelAxis, NULL,
+			   sizeof (EventMouseWheelAxis), NULL, &axis);
+	if (axis != kEventMouseWheelAxisY)
+	  break;
+
+	GetEventParameter (event, kEventParamMouseWheelDelta, typeSInt32,
+			   NULL, sizeof (SInt32), NULL, &delta);
+	GetEventParameter (event, kEventParamMouseLocation, typeQDPoint,
+			   NULL, sizeof (Point), NULL, &point);
+	read_socket_inev->kind = WHEEL_EVENT;
+	read_socket_inev->code = 0;
+	read_socket_inev->modifiers =
+	  (mac_event_to_emacs_modifiers (event)
+	   | ((delta < 0) ? down_modifier : up_modifier));
+	SetPortWindowPort (wp);
+	GlobalToLocal (&point);
+	XSETINT (read_socket_inev->x, point.h);
+	XSETINT (read_socket_inev->y, point.v);
+	XSETFRAME (read_socket_inev->frame_or_window, f);
+
+	return noErr;
+      }
+      break;
+
+    default:
+      break;
+    }
+
+  return eventNotHandledErr;
+}
+
+#ifdef MAC_OSX
+OSErr
+mac_store_services_event (event)
+     EventRef event;
+{
+  OSErr err;
+  AppleEvent apple_event;
+  Lisp_Object id_key;
+
+  switch (GetEventKind (event))
+    {
+    case kEventServicePaste:
+      id_key = Qpaste;
+      err = create_apple_event_from_event_ref (event, 0, NULL, NULL,
+					       &apple_event);
+      break;
+
+    case kEventServicePerform:
+      {
+	static EventParamName names[] = {kEventParamServiceMessageName,
+					 kEventParamServiceUserData};
+	static EventParamType types[] = {typeCFStringRef,
+					 typeCFStringRef};
+
+	id_key = Qperform;
+	err = create_apple_event_from_event_ref (event, 2, names, types,
+						 &apple_event);
+      }
+      break;
+
+    default:
+      abort ();
+    }
+
+  if (err == noErr)
+    {
+      err = mac_store_apple_event (Qservices, id_key, &apple_event);
+      AEDisposeDesc (&apple_event);
+    }
+
   return err;
 }
-#endif
+#endif	/* MAC_OSX */
+#endif	/* USE_CARBON_EVENTS */
 
-/* Open Application Apple Event */
-static pascal OSErr
-do_ae_open_application(const AppleEvent *pae, AppleEvent *preply, long prefcon)
+
+OSErr
+install_window_handler (window)
+     WindowPtr window;
 {
+  OSErr err = noErr;
+#if USE_CARBON_EVENTS
+  EventTypeSpec specs_window[] =
+    {{kEventClassWindow, kEventWindowUpdate},
+     {kEventClassWindow, kEventWindowBoundsChanging},
+     {kEventClassWindow, kEventWindowShown},
+     {kEventClassWindow, kEventWindowHidden},
+     {kEventClassWindow, kEventWindowExpanded},
+     {kEventClassWindow, kEventWindowCollapsed}};
+  EventTypeSpec specs_mouse[] = {{kEventClassMouse, kEventMouseWheelMoved}};
+  static EventHandlerUPP handle_window_eventUPP = NULL;
+  static EventHandlerUPP handle_mouse_eventUPP = NULL;
+
+  if (handle_window_eventUPP == NULL)
+    handle_window_eventUPP = NewEventHandlerUPP (mac_handle_window_event);
+  if (handle_mouse_eventUPP == NULL)
+    handle_mouse_eventUPP = NewEventHandlerUPP (mac_handle_mouse_event);
+  err = InstallWindowEventHandler (window, handle_window_eventUPP,
+				   GetEventTypeCount (specs_window),
+				   specs_window, NULL, NULL);
+  if (err == noErr)
+    err = InstallWindowEventHandler (window, handle_mouse_eventUPP,
+				     GetEventTypeCount (specs_mouse),
+				     specs_mouse, NULL, NULL);
+#endif
+#if TARGET_API_MAC_CARBON
+  if (mac_do_track_dragUPP == NULL)
+    mac_do_track_dragUPP = NewDragTrackingHandlerUPP (mac_do_track_drag);
+  if (mac_do_receive_dragUPP == NULL)
+    mac_do_receive_dragUPP = NewDragReceiveHandlerUPP (mac_do_receive_drag);
+
+  if (err == noErr)
+    err = InstallTrackingHandler (mac_do_track_dragUPP, window, NULL);
+  if (err == noErr)
+    err = InstallReceiveHandler (mac_do_receive_dragUPP, window, NULL);
+#endif
+  return err;
+}
+
+void
+remove_window_handler (window)
+     WindowPtr window;
+{
+#if TARGET_API_MAC_CARBON
+  if (mac_do_track_dragUPP)
+    RemoveTrackingHandler (mac_do_track_dragUPP, window);
+  if (mac_do_receive_dragUPP)
+    RemoveReceiveHandler (mac_do_receive_dragUPP, window);
+#endif
+}
+
+#if TARGET_API_MAC_CARBON
+static pascal OSErr
+mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
+		   void *handlerRefCon, DragReference theDrag)
+{
+  static int can_accept;
+  short items;
+  short index;
+  ItemReference theItem;
+  FlavorFlags theFlags;
+  OSErr result;
+
+  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
+    return dragNotAcceptedErr;
+
+  switch (message)
+    {
+    case kDragTrackingEnterHandler:
+      CountDragItems (theDrag, &items);
+      can_accept = 0;
+      for (index = 1; index <= items; index++)
+	{
+	  GetDragItemReferenceNumber (theDrag, index, &theItem);
+	  result = GetFlavorFlags (theDrag, theItem, flavorTypeHFS, &theFlags);
+	  if (result == noErr)
+	    {
+	      can_accept = 1;
+	      break;
+	    }
+	}
+      break;
+
+    case kDragTrackingEnterWindow:
+      if (can_accept)
+	{
+	  RgnHandle hilite_rgn = NewRgn ();
+	  Rect r;
+	  struct frame *f = mac_window_to_frame (window);
+
+	  GetWindowPortBounds (window, &r);
+	  OffsetRect (&r, -r.left, -r.top);
+	  RectRgn (hilite_rgn, &r);
+	  ShowDragHilite (theDrag, hilite_rgn, true);
+	  DisposeRgn (hilite_rgn);
+	  SetThemeCursor (kThemeCopyArrowCursor);
+	}
+      break;
+
+    case kDragTrackingInWindow:
+      break;
+
+    case kDragTrackingLeaveWindow:
+      if (can_accept)
+	{
+	  struct frame *f = mac_window_to_frame (window);
+
+	  HideDragHilite (theDrag);
+	  SetThemeCursor (kThemeArrowCursor);
+	}
+      break;
+
+    case kDragTrackingLeaveHandler:
+      break;
+    }
+
   return noErr;
 }
-
-
-/* Defined in mac.c.  */
-extern int
-path_from_vol_dir_name (char *, int, short, long, char *);
-
-
-/* Called when we receive an AppleEvent with an ID of
-   "kAEOpenDocuments".  This routine gets the direct parameter,
-   extracts the FSSpecs in it, and puts their names on a list.  */
-static pascal OSErr
-do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
-{
-  OSErr err, err2;
-  AEDesc the_desc;
-  AEKeyword keyword;
-  DescType actual_type;
-  Size actual_size;
-
-  err = AEGetParamDesc (message, keyDirectObject, typeAEList, &the_desc);
-  if (err != noErr)
-    goto descriptor_error_exit;
-
-  /* Check to see that we got all of the required parameters from the
-     event descriptor.  For an 'odoc' event this should just be the
-     file list.  */
-  err = AEGetAttributePtr(message, keyMissedKeywordAttr, typeWildCard,
-			  &actual_type, (Ptr) &keyword,
-                          sizeof (keyword), &actual_size);
-  /* No error means that we found some unused parameters.
-     errAEDescNotFound means that there are no more parameters.  If we
-     get an error code other than that, flag it.  */
-  if ((err == noErr) || (err != errAEDescNotFound))
-    {
-      err = errAEEventNotHandled;
-      goto error_exit;
-    }
-  err = noErr;
-
-  /* Got all the parameters we need.  Now, go through the direct
-     object list and parse it up.  */
-  {
-    long num_files_to_open;
-
-    err = AECountItems (&the_desc, &num_files_to_open);
-    if (err == noErr)
-      {
-        int i;
-
-        /* AE file list is one based so just use that for indexing here.  */
-        for (i = 1; (err == noErr) && (i <= num_files_to_open); i++)
-	  {
-	    FSSpec fs;
-	    Str255 path_name, unix_path_name;
-#ifdef MAC_OSX
-	    FSRef fref;
-#endif
-
-	    err = AEGetNthPtr(&the_desc, i, typeFSS, &keyword, &actual_type,
-			      (Ptr) &fs, sizeof (fs), &actual_size);
-	    if (err != noErr) break;
-
-#ifdef MAC_OSX
-	    err = FSpMakeFSRef (&fs, &fref);
-	    if (err != noErr) break;
-
-	    if (FSRefMakePath (&fref, unix_path_name, 255) == noErr)
-#else
-	    if (path_from_vol_dir_name (path_name, 255, fs.vRefNum, fs.parID,
-					fs.name) &&
-		mac_to_posix_pathname (path_name, unix_path_name, 255))
-#endif
-	      drag_and_drop_file_list = Fcons (build_string (unix_path_name),
-					       drag_and_drop_file_list);
-	  }
-      }
-  }
-
-error_exit:
-  /* Nuke the coerced file list in any case */
-  err2 = AEDisposeDesc(&the_desc);
-
-descriptor_error_exit:
-  /* InvalRect(&(gFrontMacWindowP->mWP->portRect)); */
-  return err;
-}
-
 
 static pascal OSErr
 mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
@@ -12360,10 +9194,13 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
   OSErr result;
   ItemReference theItem;
   HFSFlavor data;
-  FSRef fref;
   Size size = sizeof (HFSFlavor);
+  Lisp_Object file_list;
 
-  drag_and_drop_file_list = Qnil;
+  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
+    return dragNotAcceptedErr;
+
+  file_list = Qnil;
   GetDragMouse (theDrag, &mouse, 0L);
   CountDragItems (theDrag, &items);
   for (index = 1; index <= items; index++)
@@ -12373,48 +9210,48 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
       result = GetFlavorFlags (theDrag, theItem, flavorTypeHFS, &theFlags);
       if (result == noErr)
 	{
-#ifdef MAC_OSX
-	  FSRef frref;
-#else
-	  Str255 path_name;
-#endif
-	  Str255 unix_path_name;
-	  GetFlavorData (theDrag, theItem, flavorTypeHFS, &data, &size, 0L);
-#ifdef MAC_OSX
-	  /* Use Carbon routines, otherwise it converts the file name
-	     to /Macintosh HD/..., which is not correct. */
-	  FSpMakeFSRef (&data.fileSpec, &fref);
-	  if (! FSRefMakePath (&fref, unix_path_name, sizeof (unix_path_name)));
-#else
-	  if (path_from_vol_dir_name (path_name, 255, data.fileSpec.vRefNum,
-				      data.fileSpec.parID, data.fileSpec.name) &&
-	      mac_to_posix_pathname (path_name, unix_path_name, 255))
-#endif
-            drag_and_drop_file_list = Fcons (build_string (unix_path_name),
-					     drag_and_drop_file_list);
+	  OSErr err;
+	  AEDesc desc;
+
+	  err = GetFlavorData (theDrag, theItem, flavorTypeHFS,
+			       &data, &size, 0L);
+	  if (err == noErr)
+	    err = AECoercePtr (typeFSS, &data.fileSpec, sizeof (FSSpec),
+			       TYPE_FILE_NAME, &desc);
+	  if (err == noErr)
+	    {
+	      Lisp_Object file;
+
+	      /* x-dnd functions expect undecoded filenames.  */
+	      file = make_uninit_string (AEGetDescDataSize (&desc));
+	      err = AEGetDescData (&desc, SDATA (file), SBYTES (file));
+	      if (err == noErr)
+		file_list = Fcons (file, file_list);
+	      AEDisposeDesc (&desc);
+	    }
 	}
-      else
-	return;
     }
   /* If there are items in the list, construct an event and post it to
      the queue like an interrupt using kbd_buffer_store_event.  */
-  if (!NILP (drag_and_drop_file_list))
+  if (!NILP (file_list))
     {
       struct input_event event;
       Lisp_Object frame;
-      struct frame *f = ((mac_output *) GetWRefCon(window))->mFP;
-      SetPort (GetWindowPort (window));
+      struct frame *f = mac_window_to_frame (window);
+      SInt16 modifiers;
+
       GlobalToLocal (&mouse);
+      GetDragModifiers (theDrag, NULL, NULL, &modifiers);
 
       event.kind = DRAG_N_DROP_EVENT;
       event.code = 0;
-      event.modifiers = 0;
+      event.modifiers = mac_to_emacs_modifiers (modifiers);
       event.timestamp = TickCount () * (1000 / 60);
       XSETINT (event.x, mouse.h);
       XSETINT (event.y, mouse.v);
       XSETFRAME (frame, f);
-      event.frame_or_window = Fcons (frame, drag_and_drop_file_list);
-      event.arg = Qnil;
+      event.frame_or_window = frame;
+      event.arg = file_list;
       /* Post to the interrupt queue */
       kbd_buffer_store_event (&event);
       /* MAC_TODO: Mimic behavior of windows by switching contexts to Emacs */
@@ -12423,30 +9260,13 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
 	GetCurrentProcess (&psn);
 	SetFrontProcess (&psn);
       }
+
+      return noErr;
     }
+  else
+    return dragNotAcceptedErr;
 }
-
-
-/* Print Document Apple Event */
-static pascal OSErr
-do_ae_print_documents (const AppleEvent *pAE, AppleEvent *reply, long refcon)
-{
-  return errAEEventNotHandled;
-}
-
-
-static pascal OSErr
-do_ae_quit_application (AppleEvent* message, AppleEvent *reply, long refcon)
-{
-  /* FixMe: Do we need an unwind-protect or something here?  And what
-     do we do about unsaved files. Currently just forces quit rather
-     than doing recursive callback to get user input.  */
-
-  terminate_flag = true;
-
-  /* Fkill_emacs doesn't return.  We have to return. (TI) */
-  return noErr;
-}
+#endif
 
 
 #if __profile__
@@ -12459,25 +9279,20 @@ profiler_exit_proc ()
 #endif
 
 /* These few functions implement Emacs as a normal Mac application
-   (almost): set up the heap and the Toolbox, handle necessary
-   system events plus a few simple menu events.  They also set up
-   Emacs's access to functions defined in the rest of this file.
-   Emacs uses function hooks to perform all its terminal I/O.  A
-   complete list of these functions appear in termhooks.h.  For what
-   they do, read the comments there and see also w32term.c and
-   xterm.c.  What's noticeably missing here is the event loop, which
-   is normally present in most Mac application.  After performing the
-   necessary Mac initializations, main passes off control to
-   emacs_main (corresponding to main in emacs.c).  Emacs_main calls
-   mac_read_socket (defined further below) to read input.  This is
-   where WaitNextEvent is called to process Mac events.  This is also
-   where check_alarm in sysdep.c is called to simulate alarm signals.
-   This makes the cursor jump back to its correct position after
-   briefly jumping to that of the matching parenthesis, print useful
-   hints and prompts in the minibuffer after the user stops typing for
-   a wait, etc.  */
+   (almost): set up the heap and the Toolbox, handle necessary system
+   events plus a few simple menu events.  They also set up Emacs's
+   access to functions defined in the rest of this file.  Emacs uses
+   function hooks to perform all its terminal I/O.  A complete list of
+   these functions appear in termhooks.h.  For what they do, read the
+   comments there and see also w32term.c and xterm.c.  What's
+   noticeably missing here is the event loop, which is normally
+   present in most Mac application.  After performing the necessary
+   Mac initializations, main passes off control to emacs_main
+   (corresponding to main in emacs.c).  Emacs_main calls XTread_socket
+   (defined further below) to read input.  This is where
+   WaitNextEvent/ReceiveNextEvent is called to process Mac events.  */
 
-#if !TARGET_API_MAC_CARBON
+#ifdef MAC_OS8
 #undef main
 int
 main (void)
@@ -12497,15 +9312,19 @@ main (void)
 
   do_get_menus ();
 
+#ifndef USE_LSB_TAG
   do_check_ram_size ();
+#endif
 
   init_emacs_passwd_dir ();
 
   init_environ ();
 
+  init_coercion_handler ();
+
   initialize_applescript ();
 
-  init_required_apple_events ();
+  init_apple_event_handler ();
 
   {
     char **argv;
@@ -12533,19 +9352,23 @@ main (void)
 #endif
 
 /* Table for translating Mac keycode to X keysym values.  Contributed
-   by Sudhir Shenoy.  */
+   by Sudhir Shenoy.
+   Mapping for special keys is now identical to that in Apple X11
+   except `clear' (-> <clear>) on the KeyPad, `enter' (-> <kp-enter>)
+   on the right of the Cmd key on laptops, and fn + `enter' (->
+   <linefeed>). */
 static unsigned char keycode_to_xkeysym_table[] = {
   /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x20*/ 0, 0, 0, 0, 0x0d /*return*/, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
   /*0x30*/ 0x09 /*tab*/, 0 /*0x0020 space*/, 0, 0x08 /*backspace*/,
-  /*0x34*/ 0, 0x1b /*escape*/, 0, 0,
+  /*0x34*/ 0x8d /*enter on laptops*/, 0x1b /*escape*/, 0, 0,
   /*0x38*/ 0, 0, 0, 0,
   /*0x3C*/ 0, 0, 0, 0,
 
   /*0x40*/ 0, 0xae /*kp-.*/, 0, 0xaa /*kp-**/,
-  /*0x44*/ 0, 0xab /*kp-+*/, 0, 0x7f /*kp-clear*/,
+  /*0x44*/ 0, 0xab /*kp-+*/, 0, 0x0b /*clear*/,
   /*0x48*/ 0, 0, 0, 0xaf /*kp-/*/,
   /*0x4C*/ 0x8d /*kp-enter*/, 0, 0xad /*kp--*/, 0,
 
@@ -12557,13 +9380,14 @@ static unsigned char keycode_to_xkeysym_table[] = {
   /*0x60*/ 0xc2 /*f5*/, 0xc3 /*f6*/, 0xc4 /*f7*/, 0xc0 /*f3*/,
   /*0x64*/ 0xc5 /*f8*/, 0xc6 /*f9*/, 0, 0xc8 /*f11*/,
   /*0x68*/ 0, 0xca /*f13*/, 0, 0xcb /*f14*/,
-  /*0x6C*/ 0, 0xc7 /*f10*/, 0, 0xc9 /*f12*/,
+  /*0x6C*/ 0, 0xc7 /*f10*/, 0x0a /*fn+enter on laptops*/, 0xc9 /*f12*/,
 
-  /*0x70*/ 0, 0xcc /*f15*/, 0x9e /*insert (or 0x6a==help)*/, 0x95 /*home*/,
-  /*0x74*/ 0x9a /*pgup*/, 0x9f /*delete*/, 0xc1 /*f4*/, 0x9c /*end*/,
-  /*0x78*/ 0xbf /*f2*/, 0x9b /*pgdown*/, 0xbe /*f1*/, 0x51 /*left*/,
+  /*0x70*/ 0, 0xcc /*f15*/, 0x6a /*help*/, 0x50 /*home*/,
+  /*0x74*/ 0x55 /*pgup*/, 0xff /*delete*/, 0xc1 /*f4*/, 0x57 /*end*/,
+  /*0x78*/ 0xbf /*f2*/, 0x56 /*pgdown*/, 0xbe /*f1*/, 0x51 /*left*/,
   /*0x7C*/ 0x53 /*right*/, 0x54 /*down*/, 0x52 /*up*/, 0
 };
+
 
 static int
 keycode_to_xkeysym (int keyCode, int *xKeySym)
@@ -12572,28 +9396,184 @@ keycode_to_xkeysym (int keyCode, int *xKeySym)
   return *xKeySym != 0;
 }
 
+static unsigned char fn_keycode_to_xkeysym_table[] = {
+  /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  /*0x20*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+  /*0x30*/ 0, 0, 0, 0,
+  /*0x34*/ 0, 0, 0, 0,
+  /*0x38*/ 0, 0, 0, 0,
+  /*0x3C*/ 0, 0, 0, 0,
+
+  /*0x40*/ 0, 0x2e /*kp-. = .*/, 0, 0x50 /*kp-* = 'p'*/,
+  /*0x44*/ 0, '/' /*kp-+*/, 0, 0,
+  /*0x48*/ 0, 0, 0, 0x30 /*kp-/ = '0'*/,
+  /*0x4C*/ 0, 0, 0x3b /*kp-- = ';'*/, 0,
+
+  /*0x50*/ 0, 0x2d /*kp-= = '-'*/, 0x6d /*kp-0 = 'm'*/, 0x6a /*kp-1 = 'j'*/,
+  /*0x54*/ 0x6b /*kp-2 = 'k'*/, 0x6c /*kp-3 = 'l'*/, 'u' /*kp-4*/, 'i' /*kp-5*/,
+  /*0x58*/ 'o' /*kp-6*/, '7' /*kp-7*/, 0, '8' /*kp-8*/,
+  /*0x5C*/ '9' /*kp-9*/, 0, 0, 0,
+
+  /*0x60*/ 0, 0, 0, 0,
+  /*0x64*/ 0, 0, 0, 0,
+  /*0x68*/ 0, 0, 0, 0,
+  /*0x6C*/ 0, 0, 0, 0,
+
+  /*0x70*/ 0, 0, 0, 0,
+  /*0x74*/ 0, 0, 0, 0,
+  /*0x78*/ 0, 0, 0, 0,
+  /*0x7C*/ 0, 0, 0, 0
+};
+static int
+convert_fn_keycode (EventRef eventRef, int keyCode, int *newCode)
+{
+#ifdef MAC_OSX
+  /* Use the special map to translate keys when function modifier is
+     to be caught. KeyTranslate can't be used in that case.
+     We can't detect the function key using the input_event.modifiers,
+     because this uses the high word of an UInt32. Therefore,
+     we'll just read it out of the original eventRef.
+  */
+
+
+  /* TODO / known issues
+
+  - Fn-Shift-j is regonized as Fn-j and not Fn-J.
+  The above table always translates to lower characters. We need to use
+  the KCHR keyboard resource (KeyTranslate() ) to map k->K and 8->*.
+
+  - The table is meant for English language keyboards, and it will work
+  for many others with the exception of key combinations like Fn-ö on
+  a German keyboard, which is currently mapped to Fn-;.
+  How to solve this without keeping separate tables for all keyboards
+  around? KeyTranslate isn't of much help here, as it only takes a 16-bit
+  value for keycode with the modifiers in he high byte, i.e. no room for the
+  Fn modifier. That's why we need the table.
+
+  */
+
+  UInt32 mods = 0;
+  if (!NILP(Vmac_function_modifier))
+    {
+      GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32, NULL,
+			 sizeof (UInt32), NULL, &mods);
+      if (mods & kEventKeyModifierFnMask)
+	{  *newCode = fn_keycode_to_xkeysym_table [keyCode & 0x7f];
+
+	  return (*newCode != 0);
+	}
+    }
+#endif
+  return false;
+}
+
+static int
+backtranslate_modified_keycode(int mods, int keycode, int def)
+{
+  EventModifiers mapped_modifiers =
+    (NILP (Vmac_control_modifier) ? 0 : controlKey)
+    | (NILP (Vmac_option_modifier) ? 0 : optionKey)
+    | (NILP (Vmac_command_modifier) ? 0 : cmdKey);
+
+  if (mods & mapped_modifiers)
+    {
+      /* This code comes from Keyboard Resource,
+	 Appendix C of IM - Text.  This is necessary
+	 since shift is ignored in KCHR table
+	 translation when option or command is pressed.
+	 It also does not translate correctly
+	 control-shift chars like C-% so mask off shift
+	 here also.
+
+	 Not done for combinations with the option key (alt)
+	 unless it is to be caught by Emacs:  this is
+	 to preserve key combinations translated by the OS
+	 such as Alt-3.
+      */
+      /* Mask off modifier keys that are mapped to some Emacs
+	 modifiers.  */
+      int new_modifiers = mods & ~mapped_modifiers;
+      /* set high byte of keycode to modifier high byte*/
+      int new_keycode = keycode | new_modifiers;
+      Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
+      unsigned long some_state = 0;
+      return (int) KeyTranslate (kchr_ptr, new_keycode,
+				 &some_state) & 0xff;
+      /* TO DO: Recognize two separate resulting characters, "for
+	 example, when the user presses Option-E followed by N, you
+	 can map this through the KeyTranslate function using the
+	 U.S. 'KCHR' resource to produce ´n, which KeyTranslate
+	 returns as two characters in the bytes labeled Character code
+	 1 and Character code 2." (from Carbon API doc) */
+
+    }
+  else
+    return def;
+}
+
+
+#if !USE_CARBON_EVENTS
+static RgnHandle mouse_region = NULL;
+
+Boolean
+mac_wait_next_event (er, sleep_time, dequeue)
+     EventRecord *er;
+     UInt32 sleep_time;
+     Boolean dequeue;
+{
+  static EventRecord er_buf = {nullEvent};
+  UInt32 target_tick, current_tick;
+  EventMask event_mask;
+
+  if (mouse_region == NULL)
+    mouse_region = NewRgn ();
+
+  event_mask = everyEvent;
+  if (!mac_ready_for_apple_events)
+    event_mask -= highLevelEventMask;
+
+  current_tick = TickCount ();
+  target_tick = current_tick + sleep_time;
+
+  if (er_buf.what == nullEvent)
+    while (!WaitNextEvent (event_mask, &er_buf,
+			   target_tick - current_tick, mouse_region))
+      {
+	current_tick = TickCount ();
+	if (target_tick <= current_tick)
+	  return false;
+      }
+
+  *er = er_buf;
+  if (dequeue)
+    er_buf.what = nullEvent;
+  return true;
+}
+#endif /* not USE_CARBON_EVENTS */
+
 /* Emacs calls this whenever it wants to read an input event from the
    user. */
 int
-XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
+XTread_socket (sd, expected, hold_quit)
+     int sd, expected;
+     struct input_event *hold_quit;
 {
+  struct input_event inev;
   int count = 0;
 #if USE_CARBON_EVENTS
-  OSStatus rneResult;
   EventRef eventRef;
-  EventMouseButton mouseBtn;
+  EventTargetRef toolbox_dispatcher;
 #endif
   EventRecord er;
-  int the_modifiers;
-  EventMask event_mask;
+  struct mac_display_info *dpyinfo = &one_mac_display_info;
 
-#if 0
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
       return -1;
     }
-#endif
 
   interrupt_input_pending = 0;
   BLOCK_INPUT;
@@ -12601,501 +9581,613 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
   /* So people can tell when we have read the available input.  */
   input_signal_count++;
 
-  if (numchars <= 0)
-    abort ();
+#if USE_CARBON_EVENTS
+  toolbox_dispatcher = GetEventDispatcherTarget ();
 
-  /* Don't poll for events to process (specifically updateEvt) if
-     window update currently already in progress.  A call to redisplay
-     (in do_window_update) can be preempted by another call to
-     redisplay, causing blank regions to be left on the screen and the
-     cursor to be left at strange places.  */
-  if (handling_window_update)
+  while (!ReceiveNextEvent (0, NULL, kEventDurationNoWait,
+			    kEventRemoveFromQueue, &eventRef))
+#else /* !USE_CARBON_EVENTS */
+  while (mac_wait_next_event (&er, 0, true))
+#endif /* !USE_CARBON_EVENTS */
     {
-      UNBLOCK_INPUT;
-      return 0;
-    }
+      int do_help = 0;
+      struct frame *f;
+      unsigned long timestamp;
 
-  if (terminate_flag)
-    Fkill_emacs (make_number (1));
-
-  /* It is necessary to set this (additional) argument slot of an
-     event to nil because keyboard.c protects incompletely processed
-     event from being garbage collected by placing them in the
-     kbd_buffer_gcpro vector.  */
-  bufp->arg = Qnil;
-
-  event_mask = everyEvent;
-  if (NILP (Fboundp (Qmac_ready_for_drag_n_drop)))
-    event_mask -= highLevelEventMask;
+      /* It is necessary to set this (additional) argument slot of an
+	 event to nil because keyboard.c protects incompletely
+	 processed event from being garbage collected by placing them
+	 in the kbd_buffer_gcpro vector.  */
+      EVENT_INIT (inev);
+      inev.kind = NO_EVENT;
+      inev.arg = Qnil;
 
 #if USE_CARBON_EVENTS
-  rneResult = ReceiveNextEvent (0, NULL,
-				expected
-				? TicksToEventTime (app_sleep_time)
-				: 0,
-				kEventRemoveFromQueue, &eventRef);
-  if (!rneResult)
-    {
+      timestamp = GetEventTime (eventRef) / kEventDurationMillisecond;
+#else
+      timestamp = er.when * (1000 / 60); /* ticks to milliseconds */
+#endif
+
+#if USE_CARBON_EVENTS
       /* Handle new events */
       if (!mac_convert_event_ref (eventRef, &er))
-	switch (GetEventClass (eventRef))
+	{
+	  /* There used to be a handler for the kEventMouseWheelMoved
+	     event here.  But as of Mac OS X 10.4, this kind of event
+	     is not directly posted to the main event queue by
+	     two-finger scrolling on the trackpad.  Instead, some
+	     private event is posted and it is converted to a wheel
+	     event by the default handler for the application target.
+	     The converted one can be received by a Carbon event
+	     handler installed on a window target.  */
+	  read_socket_inev = &inev;
+	  SendEventToEventTarget (eventRef, toolbox_dispatcher);
+	  read_socket_inev = NULL;
+	}
+      else
+#endif /* USE_CARBON_EVENTS */
+      switch (er.what)
+	{
+	case mouseDown:
+	case mouseUp:
 	  {
-	  case kEventClassMouse:
-	    if (GetEventKind (eventRef) == kEventMouseWheelMoved)
-	      {
-		SInt32 delta;
-		Point point;
-		WindowPtr window_ptr = FrontNonFloatingWindow ();
-		struct mac_output *mwp = (mac_output *) GetWRefCon (window_ptr);
-		if (!IsValidWindowPtr (window_ptr))
-		  {
-		    SysBeep(1);
-		    UNBLOCK_INPUT;
-		    return 0;
-		  }
+	    WindowPtr window_ptr;
+	    ControlPartCode part_code;
+	    int tool_bar_p = 0;
 
-		GetEventParameter(eventRef, kEventParamMouseWheelDelta,
-				  typeSInt32, NULL, sizeof (SInt32),
-				  NULL, &delta);
-		GetEventParameter(eventRef, kEventParamMouseLocation,
-				  typeQDPoint, NULL, sizeof (Point),
-				  NULL, &point);
-		bufp->kind = MOUSE_WHEEL_EVENT;
-		bufp->code = delta;
-		bufp->modifiers = mac_event_to_emacs_modifiers(eventRef);
-		SetPort (GetWindowPort (window_ptr));
-		GlobalToLocal (&point);
-		XSETINT (bufp->x, point.h);
-		XSETINT (bufp->y, point.v);
-		XSETFRAME (bufp->frame_or_window, mwp->mFP);
-		bufp->timestamp = EventTimeToTicks (GetEventTime (eventRef))*(1000/60);
-		count++;
+#if USE_CARBON_EVENTS
+	    /* This is needed to send mouse events like aqua window
+	       buttons to the correct handler.  */
+	    if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
+		!= eventNotHandledErr)
+	      break;
+#endif
+	    last_mouse_glyph_frame = 0;
+
+	    if (dpyinfo->grabbed && last_mouse_frame
+		&& FRAME_LIVE_P (last_mouse_frame))
+	      {
+		window_ptr = FRAME_MAC_WINDOW (last_mouse_frame);
+		part_code = inContent;
 	      }
 	    else
-	      SendEventToEventTarget (eventRef, GetEventDispatcherTarget ());
-
-	    break;
-	  default:
-	    /* Send the event to the appropriate receiver.  */
-	    SendEventToEventTarget (eventRef, GetEventDispatcherTarget ());
-	  }
-      else
-#else
-  if (WaitNextEvent (event_mask, &er, (expected ? app_sleep_time : 0L), NULL))
-#endif /* USE_CARBON_EVENTS */
-    switch (er.what)
-      {
-      case mouseDown:
-      case mouseUp:
-	{
-	  WindowPtr window_ptr = FrontWindow ();
-	  SInt16 part_code;
-
-#if USE_CARBON_EVENTS
-	  /* This is needed to send mouse events like aqua window buttons
-	     to the correct handler.  */
-	  if (eventNotHandledErr != SendEventToEventTarget (eventRef, GetEventDispatcherTarget ())) {
-	    break;
-	  }
-
-	  if (!is_emacs_window(window_ptr))
-	    break;
-#endif
-
-          if (mouse_tracking_in_progress == mouse_tracking_scroll_bar
-	      && er.what == mouseUp)
-            {
-	      struct mac_output *mwp = (mac_output *) GetWRefCon (window_ptr);
-	      Point mouse_loc = er.where;
-
-	      /* Convert to local coordinates of new window.  */
-#if TARGET_API_MAC_CARBON
-              SetPort (GetWindowPort (window_ptr));
-#else
-              SetPort (window_ptr);
-#endif
-
-	      GlobalToLocal (&mouse_loc);
-
-#if USE_CARBON_EVENTS
-	      bufp->code = mac_get_mouse_btn (eventRef);
-#else
-	      bufp->code = 0;  /* only one mouse button */
-#endif
-              bufp->kind = SCROLL_BAR_CLICK_EVENT;
-              bufp->frame_or_window = tracked_scroll_bar->window;
-              bufp->part = scroll_bar_handle;
-#if USE_CARBON_EVENTS
-	      bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
-#else
-	      bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
-#endif
-              bufp->modifiers |= up_modifier;
-	      bufp->timestamp = er.when * (1000 / 60);
-	        /* ticks to milliseconds */
-
-              XSETINT (bufp->x, tracked_scroll_bar->left + 2);
-              XSETINT (bufp->y, mouse_loc.v - 24);
-              tracked_scroll_bar->dragging = Qnil;
-              mouse_tracking_in_progress = mouse_tracking_none;
-              tracked_scroll_bar = NULL;
-              count++;
-              break;
-            }
-
-	  part_code = FindWindow (er.where, &window_ptr);
-
-	  switch (part_code)
-	    {
-	    case inMenuBar:
-              {
-                struct frame *f = ((mac_output *)
-				   GetWRefCon (FrontWindow ()))->mFP;
-                saved_menu_event_location = er.where;
-                bufp->kind = MENU_BAR_ACTIVATE_EVENT;
-                XSETFRAME (bufp->frame_or_window, f);
-                count++;
-              }
-	      break;
-
-	    case inContent:
-	      if (window_ptr != FrontWindow ())
-		SelectWindow (window_ptr);
-	      else
-	        {
-		  SInt16 control_part_code;
-		  ControlHandle ch;
-		  struct mac_output *mwp = (mac_output *)
-		    GetWRefCon (window_ptr);
-		  Point mouse_loc = er.where;
-
-		  /* convert to local coordinates of new window */
-#if TARGET_API_MAC_CARBON
-                  SetPort (GetWindowPort (window_ptr));
-#else
-                  SetPort (window_ptr);
-#endif
-
-		  GlobalToLocal (&mouse_loc);
-#if TARGET_API_MAC_CARBON
-		  ch = FindControlUnderMouse (mouse_loc, window_ptr,
-					      &control_part_code);
-#else
-		  control_part_code = FindControl (mouse_loc, window_ptr, &ch);
-#endif
-
-#if USE_CARBON_EVENTS
-		  bufp->code = mac_get_mouse_btn (eventRef);
-#else
-	          bufp->code = 0;  /* only one mouse button */
-#endif
-		  XSETINT (bufp->x, mouse_loc.h);
-		  XSETINT (bufp->y, mouse_loc.v);
-		  bufp->timestamp = er.when * (1000 / 60);
-		    /* ticks to milliseconds */
-
-#if TARGET_API_MAC_CARBON
-		  if (ch != 0)
-#else
-		  if (control_part_code != 0)
-#endif
-		    {
-		      struct scroll_bar *bar = (struct scroll_bar *)
-			GetControlReference (ch);
-		      x_scroll_bar_handle_click (bar, control_part_code, &er,
-						 bufp);
-		      if (er.what == mouseDown
-			  && control_part_code == kControlIndicatorPart)
-		        {
-		          mouse_tracking_in_progress
-			    = mouse_tracking_scroll_bar;
-		          tracked_scroll_bar = bar;
-		        }
-		      else
-		        {
-		          mouse_tracking_in_progress = mouse_tracking_none;
-		          tracked_scroll_bar = NULL;
-		        }
-		    }
-		  else
-	            {
-	              bufp->kind = MOUSE_CLICK_EVENT;
-		      XSETFRAME (bufp->frame_or_window, mwp->mFP);
-		      if (er.what == mouseDown)
-		        mouse_tracking_in_progress
-			  = mouse_tracking_mouse_movement;
-		      else
-		        mouse_tracking_in_progress = mouse_tracking_none;
-	            }
-
-#if USE_CARBON_EVENTS
-		  bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
-#else
-		  bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
-#endif
-
-	          switch (er.what)
-		    {
-		    case mouseDown:
-		      bufp->modifiers |= down_modifier;
-		      break;
-		    case mouseUp:
-		      bufp->modifiers |= up_modifier;
-		      break;
-		    }
-
-	          count++;
-	        }
-	      break;
-
-	    case inDrag:
-#if TARGET_API_MAC_CARBON
 	      {
-	        BitMap bm;
-
-	        GetQDGlobalsScreenBits (&bm);
-	        DragWindow (window_ptr, er.where, &bm.bounds);
+		part_code = FindWindow (er.where, &window_ptr);
+		if (tip_window && window_ptr == tip_window)
+		  {
+		    HideWindow (tip_window);
+		    part_code = FindWindow (er.where, &window_ptr);
+		  }
 	      }
-#else /* not TARGET_API_MAC_CARBON */
-	      DragWindow (window_ptr, er.where, &qd.screenBits.bounds);
-#endif /* not TARGET_API_MAC_CARBON */
+
+	    if (er.what != mouseDown &&
+		(part_code != inContent	|| dpyinfo->grabbed == 0))
 	      break;
 
-	    case inGoAway:
-	      if (TrackGoAway (window_ptr, er.where))
-	        {
-	          bufp->kind = DELETE_WINDOW_EVENT;
-	          XSETFRAME (bufp->frame_or_window,
-			     ((mac_output *) GetWRefCon (window_ptr))->mFP);
- 	          count++;
-	        }
-	      break;
-
-	    /* window resize handling added --ben */
-	    case inGrow:
-	      do_grow_window(window_ptr, &er);
-	      break;
-
-	    /* window zoom handling added --ben */
-	    case inZoomIn:
-	    case inZoomOut:
-	      if (TrackBox (window_ptr, er.where, part_code))
-	        do_zoom_window (window_ptr, part_code);
-	      break;
-
-	    default:
-	      break;
-	    }
-	}
-	break;
-
-      case updateEvt:
-      case osEvt:
-      case activateEvt:
-#if USE_CARBON_EVENTS
-	if (eventNotHandledErr == SendEventToEventTarget (eventRef, GetEventDispatcherTarget ()))
-#endif
-    	do_events (&er);
-	break;
-
-      case keyDown:
-      case autoKey:
-	{
-	  int keycode = (er.message & keyCodeMask) >> 8;
-	  int xkeysym;
-
-#if USE_CARBON_EVENTS
-	  /* When using Carbon Events, we need to pass raw keyboard events
-	     to the TSM ourselves.  If TSM handles it, it will pass back
-	     noErr, otherwise it will pass back "eventNotHandledErr" and
-	     we can process it normally.   */
-	  if ((!NILP (Vmac_pass_command_to_system)
-	       || !(er.modifiers & cmdKey))
-	      && (!NILP (Vmac_pass_control_to_system)
-		  || !(er.modifiers & controlKey)))
-	    {
-	      OSStatus err;
-	      err = SendEventToEventTarget (eventRef,
-					    GetEventDispatcherTarget ());
-	      if (err != eventNotHandledErr)
+	    switch (part_code)
+	      {
+	      case inMenuBar:
+		f = mac_focus_frame (dpyinfo);
+		saved_menu_event_location = er.where;
+		inev.kind = MENU_BAR_ACTIVATE_EVENT;
+		XSETFRAME (inev.frame_or_window, f);
 		break;
-	    }
+
+	      case inContent:
+		if (window_ptr != FRAME_MAC_WINDOW (mac_focus_frame (dpyinfo)))
+		  SelectWindow (window_ptr);
+		else
+		  {
+		    ControlPartCode control_part_code;
+		    ControlHandle ch;
+		    Point mouse_loc = er.where;
+#ifdef MAC_OSX
+		    ControlKind control_kind;
 #endif
 
-	  if (!IsValidWindowPtr (FrontNonFloatingWindow ()))
+		    f = mac_window_to_frame (window_ptr);
+		    /* convert to local coordinates of new window */
+		    SetPortWindowPort (window_ptr);
+
+		    GlobalToLocal (&mouse_loc);
+#if TARGET_API_MAC_CARBON
+		    ch = FindControlUnderMouse (mouse_loc, window_ptr,
+						&control_part_code);
+#ifdef MAC_OSX
+		    if (ch)
+		      GetControlKind (ch, &control_kind);
+#endif
+#else
+		    control_part_code = FindControl (mouse_loc, window_ptr,
+						     &ch);
+#endif
+
+#if USE_CARBON_EVENTS
+		    inev.code = mac_get_mouse_btn (eventRef);
+		    inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
+#else
+		    inev.code = mac_get_emulated_btn (er.modifiers);
+		    inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
+#endif
+		    XSETINT (inev.x, mouse_loc.h);
+		    XSETINT (inev.y, mouse_loc.v);
+
+		    if (dpyinfo->grabbed && tracked_scroll_bar
+			|| ch != 0
+#ifndef USE_TOOLKIT_SCROLL_BARS
+			/* control_part_code becomes kControlNoPart if
+ 			   a progress indicator is clicked.  */
+			&& control_part_code != kControlNoPart
+#else  /* USE_TOOLKIT_SCROLL_BARS */
+#ifdef MAC_OSX
+			&& control_kind.kind == kControlKindScrollBar
+#endif	/* MAC_OSX */
+#endif	/* USE_TOOLKIT_SCROLL_BARS */
+			)
+		      {
+			struct scroll_bar *bar;
+
+			if (dpyinfo->grabbed && tracked_scroll_bar)
+			  {
+			    bar = tracked_scroll_bar;
+#ifndef USE_TOOLKIT_SCROLL_BARS
+			    control_part_code = kControlIndicatorPart;
+#endif
+			  }
+			else
+			  bar = (struct scroll_bar *) GetControlReference (ch);
+#ifdef USE_TOOLKIT_SCROLL_BARS
+			/* Make the "Ctrl-Mouse-2 splits window" work
+			   for toolkit scroll bars.  */
+			if (er.modifiers & controlKey)
+			  x_scroll_bar_handle_click (bar, control_part_code,
+						     &er, &inev);
+			else if (er.what == mouseDown)
+			  x_scroll_bar_handle_press (bar, control_part_code,
+						     &inev);
+			else
+			  x_scroll_bar_handle_release (bar, &inev);
+#else  /* not USE_TOOLKIT_SCROLL_BARS */
+			x_scroll_bar_handle_click (bar, control_part_code,
+						   &er, &inev);
+			if (er.what == mouseDown
+			    && control_part_code == kControlIndicatorPart)
+			  tracked_scroll_bar = bar;
+			else
+			  tracked_scroll_bar = NULL;
+#endif  /* not USE_TOOLKIT_SCROLL_BARS */
+		      }
+		    else
+		      {
+			Lisp_Object window;
+			int x = mouse_loc.h;
+			int y = mouse_loc.v;
+
+			window = window_from_coordinates (f, x, y, 0, 0, 0, 1);
+			if (EQ (window, f->tool_bar_window))
+			  {
+			    if (er.what == mouseDown)
+			      handle_tool_bar_click (f, x, y, 1, 0);
+			    else
+			      handle_tool_bar_click (f, x, y, 0,
+						     inev.modifiers);
+			    tool_bar_p = 1;
+			  }
+			else
+			  {
+			    XSETFRAME (inev.frame_or_window, f);
+			    inev.kind = MOUSE_CLICK_EVENT;
+			  }
+		      }
+
+		    if (er.what == mouseDown)
+		      {
+			dpyinfo->grabbed |= (1 << inev.code);
+			last_mouse_frame = f;
+
+			if (!tool_bar_p)
+			  last_tool_bar_item = -1;
+		      }
+		    else
+		      {
+			if ((dpyinfo->grabbed & (1 << inev.code)) == 0)
+			  /* If a button is released though it was not
+			     previously pressed, that would be because
+			     of multi-button emulation.  */
+			  dpyinfo->grabbed = 0;
+			else
+			  dpyinfo->grabbed &= ~(1 << inev.code);
+		      }
+
+		    /* Ignore any mouse motion that happened before
+		       this event; any subsequent mouse-movement Emacs
+		       events should reflect only motion after the
+		       ButtonPress.  */
+		    if (f != 0)
+		      f->mouse_moved = 0;
+
+#ifdef USE_TOOLKIT_SCROLL_BARS
+		    if (inev.kind == MOUSE_CLICK_EVENT)
+#endif
+		      switch (er.what)
+			{
+			case mouseDown:
+			  inev.modifiers |= down_modifier;
+			  break;
+			case mouseUp:
+			  inev.modifiers |= up_modifier;
+			  break;
+			}
+		  }
+		break;
+
+	      case inDrag:
+#if TARGET_API_MAC_CARBON
+		DragWindow (window_ptr, er.where, NULL);
+#else /* not TARGET_API_MAC_CARBON */
+		DragWindow (window_ptr, er.where, &qd.screenBits.bounds);
+#endif /* not TARGET_API_MAC_CARBON */
+		/* Update the frame parameters.  */
+		{
+		  struct frame *f = mac_window_to_frame (window_ptr);
+
+		  if (f && !f->async_iconified)
+		    x_real_positions (f, &f->left_pos, &f->top_pos);
+		}
+		break;
+
+	      case inGoAway:
+		if (TrackGoAway (window_ptr, er.where))
+		  {
+		    inev.kind = DELETE_WINDOW_EVENT;
+		    XSETFRAME (inev.frame_or_window,
+			       mac_window_to_frame (window_ptr));
+		  }
+		break;
+
+		/* window resize handling added --ben */
+	      case inGrow:
+		do_grow_window (window_ptr, &er);
+		break;
+
+		/* window zoom handling added --ben */
+	      case inZoomIn:
+	      case inZoomOut:
+		if (TrackBox (window_ptr, er.where, part_code))
+		  do_zoom_window (window_ptr, part_code);
+		break;
+
+	      default:
+		break;
+	      }
+	  }
+	  break;
+
+	case updateEvt:
+#if USE_CARBON_EVENTS
+	  if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
+	      != eventNotHandledErr)
+	    break;
+#else
+	  do_window_update ((WindowPtr) er.message);
+#endif
+	  break;
+
+	case osEvt:
+#if USE_CARBON_EVENTS
+	  if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
+	      != eventNotHandledErr)
+	    break;
+#endif
+	  switch ((er.message >> 24) & 0x000000FF)
 	    {
-	      SysBeep (1);
-	      UNBLOCK_INPUT;
-	      return 0;
+	    case suspendResumeMessage:
+	      if ((er.message & resumeFlag) == 1)
+		do_app_resume ();
+	      else
+		do_app_suspend ();
+	      break;
+
+	    case mouseMovedMessage:
+#if !USE_CARBON_EVENTS
+	      SetRectRgn (mouse_region, er.where.h, er.where.v,
+			  er.where.h + 1, er.where.v + 1);
+#endif
+	      previous_help_echo_string = help_echo_string;
+	      help_echo_string = Qnil;
+
+	      if (dpyinfo->grabbed && last_mouse_frame
+		  && FRAME_LIVE_P (last_mouse_frame))
+		f = last_mouse_frame;
+	      else
+		f = dpyinfo->x_focus_frame;
+
+	      if (dpyinfo->mouse_face_hidden)
+		{
+		  dpyinfo->mouse_face_hidden = 0;
+		  clear_mouse_face (dpyinfo);
+		}
+
+	      if (f)
+		{
+		  WindowPtr wp = FRAME_MAC_WINDOW (f);
+		  Point mouse_pos = er.where;
+
+		  SetPortWindowPort (wp);
+
+		  GlobalToLocal (&mouse_pos);
+
+		  if (dpyinfo->grabbed && tracked_scroll_bar)
+#ifdef USE_TOOLKIT_SCROLL_BARS
+		    x_scroll_bar_handle_drag (wp, tracked_scroll_bar,
+					      mouse_pos, &inev);
+#else /* not USE_TOOLKIT_SCROLL_BARS */
+		    x_scroll_bar_note_movement (tracked_scroll_bar,
+						mouse_pos.v
+						- XINT (tracked_scroll_bar->top),
+						er.when * (1000 / 60));
+#endif /* not USE_TOOLKIT_SCROLL_BARS */
+		  else
+		    {
+		      /* Generate SELECT_WINDOW_EVENTs when needed.  */
+		      if (mouse_autoselect_window)
+			{
+			  Lisp_Object window;
+
+			  window = window_from_coordinates (f,
+							    mouse_pos.h,
+							    mouse_pos.v,
+							    0, 0, 0, 0);
+
+			  /* Window will be selected only when it is
+			     not selected now and last mouse movement
+			     event was not in it.  Minibuffer window
+			     will be selected iff it is active.  */
+			  if (WINDOWP (window)
+			      && !EQ (window, last_window)
+			      && !EQ (window, selected_window))
+			    {
+			      inev.kind = SELECT_WINDOW_EVENT;
+			      inev.frame_or_window = window;
+			    }
+
+			  last_window=window;
+			}
+		      if (!note_mouse_movement (f, &mouse_pos))
+			help_echo_string = previous_help_echo_string;
+		    }
+		}
+
+	      /* If the contents of the global variable
+		 help_echo_string has changed, generate a
+		 HELP_EVENT.  */
+	      if (!NILP (help_echo_string) || !NILP (previous_help_echo_string))
+		do_help = 1;
+	      break;
+	    }
+	  break;
+
+	case activateEvt:
+	  {
+	    WindowPtr window_ptr = (WindowPtr) er.message;
+
+#if USE_CARBON_EVENTS
+	    if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
+		!= eventNotHandledErr)
+	      break;
+#endif
+	    if (window_ptr == tip_window)
+	      {
+		HideWindow (tip_window);
+		break;
+	      }
+
+	    if (!is_emacs_window (window_ptr))
+	      break;
+
+	    if ((er.modifiers & activeFlag) != 0)
+	      {
+		/* A window has been activated */
+		Point mouse_loc = er.where;
+
+		x_detect_focus_change (dpyinfo, &er, &inev);
+
+		SetPortWindowPort (window_ptr);
+		GlobalToLocal (&mouse_loc);
+		/* Window-activated event counts as mouse movement,
+		   so update things that depend on mouse position.  */
+		note_mouse_movement (mac_window_to_frame (window_ptr),
+				     &mouse_loc);
+	      }
+	    else
+	      {
+		/* A window has been deactivated */
+#if USE_TOOLKIT_SCROLL_BARS
+		if (dpyinfo->grabbed && tracked_scroll_bar)
+		  {
+		    struct input_event event;
+
+		    EVENT_INIT (event);
+		    event.kind = NO_EVENT;
+		    x_scroll_bar_handle_release (tracked_scroll_bar, &event);
+		    if (event.kind != NO_EVENT)
+		      {
+			event.timestamp = timestamp;
+			kbd_buffer_store_event_hold (&event, hold_quit);
+			count++;
+		      }
+		  }
+#endif
+		dpyinfo->grabbed = 0;
+
+		x_detect_focus_change (dpyinfo, &er, &inev);
+
+		f = mac_window_to_frame (window_ptr);
+		if (f == dpyinfo->mouse_face_mouse_frame)
+		  {
+		    /* If we move outside the frame, then we're
+		       certainly no longer on any text in the
+		       frame.  */
+		    clear_mouse_face (dpyinfo);
+		    dpyinfo->mouse_face_mouse_frame = 0;
+		  }
+
+		/* Generate a nil HELP_EVENT to cancel a help-echo.
+		   Do it only if there's something to cancel.
+		   Otherwise, the startup message is cleared when the
+		   mouse leaves the frame.  */
+		if (any_help_event_p)
+		  do_help = -1;
+	      }
+	  }
+	  break;
+
+	case keyDown:
+	case autoKey:
+	  {
+	    int keycode = (er.message & keyCodeMask) >> 8;
+	    int xkeysym;
+
+#if USE_CARBON_EVENTS && defined (MAC_OSX)
+	    /* When using Carbon Events, we need to pass raw keyboard
+	       events to the TSM ourselves.  If TSM handles it, it
+	       will pass back noErr, otherwise it will pass back
+	       "eventNotHandledErr" and we can process it
+	       normally.  */
+	    if ((mac_pass_command_to_system
+		 || !(er.modifiers & cmdKey))
+		&& (mac_pass_control_to_system
+		    || !(er.modifiers & controlKey))
+		&& (NILP (Vmac_option_modifier)
+		    || !(er.modifiers & optionKey)))
+	      if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
+		  != eventNotHandledErr)
+		break;
+#endif
+
+#if 0
+	    if (dpyinfo->x_focus_frame == NULL)
+	      {
+		/* Beep if keyboard input occurs when all the frames
+		   are invisible.  */
+		SysBeep (1);
+		break;
+	      }
+#endif
+
+	    {
+	      static SInt16 last_key_script = -1;
+	      SInt16 current_key_script = GetScriptManagerVariable (smKeyScript);
+
+	      if (last_key_script != current_key_script)
+		{
+		  struct input_event event;
+
+		  EVENT_INIT (event);
+		  event.kind = LANGUAGE_CHANGE_EVENT;
+		  event.arg = Qnil;
+		  event.code = current_key_script;
+		  event.timestamp = timestamp;
+		  kbd_buffer_store_event (&event);
+		  count++;
+		}
+	      last_key_script = current_key_script;
 	    }
 
-	  ObscureCursor ();
+	    ObscureCursor ();
 
-	  if (keycode_to_xkeysym (keycode, &xkeysym))
+	    if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
+	      {
+		clear_mouse_face (dpyinfo);
+		dpyinfo->mouse_face_hidden = 1;
+	      }
+
+	    /* translate the keycode back to determine the original key */
+	    /* Convert key code if function key is pressed.
+	       Otherwise, if non-ASCII-event, take care of that
+	       without re-translating the key code. */
+#if USE_CARBON_EVENTS
+	    if (convert_fn_keycode (eventRef, keycode, &xkeysym))
+	      {
+		inev.code = xkeysym;
+		/* this doesn't work - tried to add shift modifiers */
+		  inev.code =
+		    backtranslate_modified_keycode(er.modifiers & (~0x2200),
+						   xkeysym | 0x80,  xkeysym);
+		inev.kind = ASCII_KEYSTROKE_EVENT;
+	      }
+	    else
+#endif
+	      if (keycode_to_xkeysym (keycode, &xkeysym))
+		{
+		  inev.code = 0xff00 | xkeysym;
+		  inev.kind = NON_ASCII_KEYSTROKE_EVENT;
+		}
+	      else
+		{
+		  inev.code =
+		    backtranslate_modified_keycode(er.modifiers, keycode,
+						   er.message & charCodeMask);
+		  inev.kind = ASCII_KEYSTROKE_EVENT;
+		}
+	  }
+
+#if USE_CARBON_EVENTS
+	  inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
+#else
+	  inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
+#endif
+	  inev.modifiers |= (extra_keyboard_modifiers
+			     & (meta_modifier | alt_modifier
+				| hyper_modifier | super_modifier));
+	  XSETFRAME (inev.frame_or_window, mac_focus_frame (dpyinfo));
+	  break;
+
+	case kHighLevelEvent:
+	  read_socket_inev = &inev;
+	  AEProcessAppleEvent (&er);
+	  read_socket_inev = NULL;
+	  break;
+
+	default:
+	  break;
+	}
+#if USE_CARBON_EVENTS
+      ReleaseEvent (eventRef);
+#endif
+
+      if (inev.kind != NO_EVENT)
+	{
+	  inev.timestamp = timestamp;
+	  kbd_buffer_store_event_hold (&inev, hold_quit);
+	  count++;
+	}
+
+      if (do_help
+	  && !(hold_quit && hold_quit->kind != NO_EVENT))
+	{
+	  Lisp_Object frame;
+
+	  if (f)
+	    XSETFRAME (frame, f);
+	  else
+	    frame = Qnil;
+
+	  if (do_help > 0)
 	    {
-	      bufp->code = 0xff00 | xkeysym;
-	      bufp->kind = NON_ASCII_KEYSTROKE_EVENT;
+	      any_help_event_p = 1;
+	      gen_help_event (help_echo_string, frame, help_echo_window,
+			      help_echo_object, help_echo_pos);
 	    }
 	  else
 	    {
-	      if (er.modifiers & (controlKey |
-				  (NILP (Vmac_command_key_is_meta) ? optionKey
-				   : cmdKey)))
-		{
-		  /* This code comes from Keyboard Resource, Appendix
-		     C of IM - Text.  This is necessary since shift is
-		     ignored in KCHR table translation when option or
-		     command is pressed.  It also does not translate
-		     correctly control-shift chars like C-% so mask off
-		     shift here also */
-		  int new_modifiers = er.modifiers & 0xe600;
-		  /* mask off option and command */
-		  int new_keycode = keycode | new_modifiers;
-		  Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
-		  unsigned long some_state = 0;
-		  bufp->code = KeyTranslate (kchr_ptr, new_keycode,
-					     &some_state) & 0xff;
-		}
-	      else
-		bufp->code = er.message & charCodeMask;
-	      bufp->kind = ASCII_KEYSTROKE_EVENT;
+	      help_echo_string = Qnil;
+	      gen_help_event (Qnil, frame, Qnil, Qnil, 0);
 	    }
+	  count++;
 	}
 
-	/* If variable mac-convert-keyboard-input-to-latin-1 is non-nil,
-	   convert non-ASCII characters typed at the Mac keyboard
-	   (presumed to be in the Mac Roman encoding) to iso-latin-1
-	   encoding before they are passed to Emacs.  This enables the
-	   Mac keyboard to be used to enter non-ASCII iso-latin-1
-	   characters directly.  */
-	if (mac_keyboard_text_encoding != kTextEncodingMacRoman
-	    && bufp->kind == ASCII_KEYSTROKE_EVENT && bufp->code >= 128)
-	  {
-	    static TECObjectRef converter = NULL;
-	    OSStatus the_err = noErr;
-	    OSStatus convert_status = noErr;
-
-	    if (converter ==  NULL)
-	      {
-		the_err = TECCreateConverter (&converter,
-					      kTextEncodingMacRoman,
-					      mac_keyboard_text_encoding);
-		current_mac_keyboard_text_encoding
-		  = mac_keyboard_text_encoding;
-	      }
-	    else if (mac_keyboard_text_encoding
-		     != current_mac_keyboard_text_encoding)
-	      {
-		/* Free the converter for the current encoding before
-		   creating a new one.  */
-		TECDisposeConverter (converter);
-		the_err = TECCreateConverter (&converter,
-					      kTextEncodingMacRoman,
-					      mac_keyboard_text_encoding);
-		current_mac_keyboard_text_encoding
-		  = mac_keyboard_text_encoding;
-	      }
-
-	    if (the_err == noErr)
-	      {
-		unsigned char ch = bufp->code;
-		ByteCount actual_input_length, actual_output_length;
-		unsigned char outch;
-
-		convert_status = TECConvertText (converter, &ch, 1,
-						 &actual_input_length,
-						 &outch, 1,
-						 &actual_output_length);
-		if (convert_status == noErr
-		    && actual_input_length == 1
-		    && actual_output_length == 1)
-		  bufp->code = outch;
-	      }
-	  }
-
-#if USE_CARBON_EVENTS
-	bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
-#else
-	bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
-#endif
-
-	{
-	  mac_output *mwp
-	    = (mac_output *) GetWRefCon (FrontNonFloatingWindow ());
-	  XSETFRAME (bufp->frame_or_window, mwp->mFP);
-	}
-
-	bufp->timestamp = er.when * (1000 / 60);  /* ticks to milliseconds */
-
-	count++;
-	break;
-
-      case kHighLevelEvent:
-        drag_and_drop_file_list = Qnil;
-
-        AEProcessAppleEvent(&er);
-
-        /* Build a DRAG_N_DROP_EVENT type event as is done in
-           constuct_drag_n_drop in w32term.c.  */
-        if (!NILP (drag_and_drop_file_list))
-          {
-            struct frame *f = NULL;
-            WindowPtr wp;
-            Lisp_Object frame;
-
-            wp = FrontNonFloatingWindow ();
-
-	    if (!wp)
-	      {
-		struct frame *f = XFRAME (XCAR (Vframe_list));
-		CollapseWindow (FRAME_MAC_WINDOW (f), false);
-		wp = FrontNonFloatingWindow ();
-	      }
-
-            if (wp && is_emacs_window(wp))
-	        f = ((mac_output *) GetWRefCon (wp))->mFP;
-
-            bufp->kind = DRAG_N_DROP_EVENT;
-            bufp->code = 0;
-            bufp->timestamp = er.when * (1000 / 60);
-	      /* ticks to milliseconds */
-#if USE_CARBON_EVENTS
-	    bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
-#else
-	    bufp->modifiers = mac_to_emacs_modifiers (er.modifiers);
-#endif
-
-            XSETINT (bufp->x, 0);
-            XSETINT (bufp->y, 0);
-
-            XSETFRAME (frame, f);
-            bufp->frame_or_window = Fcons (frame, drag_and_drop_file_list);
-
-            /* Regardless of whether Emacs was suspended or in the
-               foreground, ask it to redraw its entire screen.
-               Otherwise parts of the screen can be left in an
-               inconsistent state.  */
-            if (wp)
-#if TARGET_API_MAC_CARBON
-	      {
-	        Rect r;
-
-	        GetWindowPortBounds (wp, &r);
-	        InvalWindowRect (wp, &r);
-	      }
-#else /* not TARGET_API_MAC_CARBON */
-              InvalRect (&(wp->portRect));
-#endif /* not TARGET_API_MAC_CARBON */
-
-            count++;
-          }
-      default:
-	break;
-      }
-#if USE_CARBON_EVENTS
-      ReleaseEvent (eventRef);
     }
-#endif
 
   /* If the focus was just given to an autoraising frame,
      raise it now.  */
@@ -13106,58 +10198,30 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
       pending_autoraise_frame = 0;
     }
 
-#if !TARGET_API_MAC_CARBON
-  check_alarm ();  /* simulate the handling of a SIGALRM */
-#endif
-
+#if !USE_CARBON_EVENTS
+  /* Check which frames are still visible.  We do this here because
+     there doesn't seem to be any direct notification from the Window
+     Manager that the visibility of a window has changed (at least,
+     not in all cases).  */
   {
-    static Point old_mouse_pos = { -1, -1 };
+    Lisp_Object tail, frame;
 
-    if (app_is_suspended)
+    FOR_EACH_FRAME (tail, frame)
       {
-        old_mouse_pos.h = -1;
-        old_mouse_pos.v = -1;
-      }
-    else
-      {
-        Point mouse_pos;
-        WindowPtr wp;
-        struct frame *f;
-        Lisp_Object bar;
-        struct scroll_bar *sb;
+	struct frame *f = XFRAME (frame);
 
-        wp = FrontWindow ();
-	if (is_emacs_window (wp))
-	  {
-	    f = ((mac_output *) GetWRefCon (wp))->mFP;
+	/* The tooltip has been drawn already.  Avoid the
+	   SET_FRAME_GARBAGED in mac_handle_visibility_change.  */
+	if (EQ (frame, tip_frame))
+	  continue;
 
-#if TARGET_API_MAC_CARBON
-	    SetPort (GetWindowPort (wp));
-#else
-	    SetPort (wp);
-#endif
-
-	    GetMouse (&mouse_pos);
-
-	    if (!EqualPt (mouse_pos, old_mouse_pos))
-	      {
-		if (mouse_tracking_in_progress == mouse_tracking_scroll_bar
-		    && tracked_scroll_bar)
-		  x_scroll_bar_note_movement (tracked_scroll_bar,
-					      mouse_pos.v
-					      - XINT (tracked_scroll_bar->top),
-					      TickCount() * (1000 / 60));
-		else
-		  note_mouse_movement (f, &mouse_pos);
-
-		old_mouse_pos = mouse_pos;
-	      }
-	  }
+	if (FRAME_MAC_P (f))
+	  mac_handle_visibility_change (f);
       }
   }
+#endif
 
   UNBLOCK_INPUT;
-
   return count;
 }
 
@@ -13180,89 +10244,12 @@ __convert_from_newlines (unsigned char * p, size_t * n)
 }
 #endif
 
-
-/* Initialize the struct pointed to by MW to represent a new COLS x
-   ROWS Macintosh window, using font with name FONTNAME and size
-   FONTSIZE.  */
-void
-NewMacWindow (FRAME_PTR fp)
-{
-  mac_output *mwp;
-#if TARGET_API_MAC_CARBON
-  static int making_terminal_window = 0;
-#else
-  static int making_terminal_window = 1;
-#endif
-
-  mwp = fp->output_data.mac;
-
-  if (making_terminal_window)
-    {
-      if (!(mwp->mWP = GetNewCWindow (TERM_WINDOW_RESOURCE, NULL,
-				      (WindowPtr) -1)))
-        abort ();
-      making_terminal_window = 0;
-    }
-  else
-    if (!(mwp->mWP = GetNewCWindow (WINDOW_RESOURCE, NULL, (WindowPtr) -1)))
-      abort ();
-
-  SetWRefCon (mwp->mWP, (long) mwp);
-    /* so that update events can find this mac_output struct */
-  mwp->mFP = fp;  /* point back to emacs frame */
-
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (mwp->mWP));
-#else
-  SetPort (mwp->mWP);
-#endif
-
-  mwp->fontset = -1;
-
-  SizeWindow (mwp->mWP, mwp->pixel_width, mwp->pixel_height, false);
-  ShowWindow (mwp->mWP);
-
-}
-
-
-void
-make_mac_frame (struct frame *f)
-{
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
-  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_right;
-
-  FRAME_DESIRED_CURSOR (f) = FILLED_BOX_CURSOR;
-
-  NewMacWindow(f);
-
-  f->output_data.mac->cursor_pixel = 0;
-  f->output_data.mac->border_pixel = 0x00ff00;
-  f->output_data.mac->mouse_pixel = 0xff00ff;
-  f->output_data.mac->cursor_foreground_pixel = 0x0000ff;
-
-  f->output_data.mac->fontset = -1;
-  f->output_data.mac->scroll_bar_foreground_pixel = -1;
-  f->output_data.mac->scroll_bar_background_pixel = -1;
-  f->output_data.mac->left_pos = 4;
-  f->output_data.mac->top_pos = 4;
-  f->output_data.mac->border_width = 0;
-  f->output_data.mac->explicit_parent = 0;
-
-  f->output_data.mac->internal_border_width = 0;
-
-  f->output_method = output_mac;
-
-  f->auto_raise = 1;
-  f->auto_lower = 1;
-
-  f->new_width = 0;
-  f->new_height = 0;
-}
-
+#ifdef MAC_OS8
 void
 make_mac_terminal_frame (struct frame *f)
 {
   Lisp_Object frame;
+  Rect r;
 
   XSETFRAME (frame, f);
 
@@ -13270,16 +10257,57 @@ make_mac_terminal_frame (struct frame *f)
   f->output_data.mac = (struct mac_output *)
     xmalloc (sizeof (struct mac_output));
   bzero (f->output_data.mac, sizeof (struct mac_output));
-  f->output_data.mac->fontset = -1;
-  f->output_data.mac->scroll_bar_foreground_pixel = -1;
-  f->output_data.mac->scroll_bar_background_pixel = -1;
 
   XSETFRAME (FRAME_KBOARD (f)->Vdefault_minibuffer_frame, f);
 
-  f->width = 96;
-  f->height = 4;
+  FRAME_COLS (f) = 96;
+  FRAME_LINES (f) = 4;
 
-  make_mac_frame (f);
+  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
+  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_right;
+
+  FRAME_DESIRED_CURSOR (f) = FILLED_BOX_CURSOR;
+
+  f->output_data.mac->cursor_pixel = 0;
+  f->output_data.mac->border_pixel = 0x00ff00;
+  f->output_data.mac->mouse_pixel = 0xff00ff;
+  f->output_data.mac->cursor_foreground_pixel = 0x0000ff;
+
+  f->output_data.mac->text_cursor = kThemeIBeamCursor;
+  f->output_data.mac->nontext_cursor = kThemeArrowCursor;
+  f->output_data.mac->modeline_cursor = kThemeArrowCursor;
+  f->output_data.mac->hand_cursor = kThemePointingHandCursor;
+  f->output_data.mac->hourglass_cursor = kThemeWatchCursor;
+  f->output_data.mac->horizontal_drag_cursor = kThemeResizeLeftRightCursor;
+
+  FRAME_FONTSET (f) = -1;
+  f->output_data.mac->explicit_parent = 0;
+  f->left_pos = 8;
+  f->top_pos = 32;
+  f->border_width = 0;
+
+  f->internal_border_width = 0;
+
+  f->auto_raise = 1;
+  f->auto_lower = 1;
+
+  f->new_text_cols = 0;
+  f->new_text_lines = 0;
+
+  SetRect (&r, f->left_pos, f->top_pos,
+           f->left_pos + FRAME_PIXEL_WIDTH (f),
+           f->top_pos + FRAME_PIXEL_HEIGHT (f));
+
+  BLOCK_INPUT;
+
+  if (!(FRAME_MAC_WINDOW (f) =
+	NewCWindow (NULL, &r, "\p", true, dBoxProc,
+		    (WindowPtr) -1, 1, (long) f->output_data.mac)))
+    abort ();
+  /* so that update events can find this mac_output struct */
+  f->output_data.mac->mFP = f;  /* point back to emacs frame */
+
+  UNBLOCK_INPUT;
 
   x_make_gc (f);
 
@@ -13296,79 +10324,12 @@ make_mac_terminal_frame (struct frame *f)
                             Fcons (Fcons (Qbackground_color,
                                           build_string ("white")), Qnil));
 }
+#endif
 
 
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
-
-#ifdef USE_X_TOOLKIT
-static XrmOptionDescRec emacs_options[] = {
-  {"-geometry",	".geometry", XrmoptionSepArg, NULL},
-  {"-iconic",	".iconic", XrmoptionNoArg, (XtPointer) "yes"},
-
-  {"-internal-border-width", "*EmacsScreen.internalBorderWidth",
-     XrmoptionSepArg, NULL},
-  {"-ib",	"*EmacsScreen.internalBorderWidth", XrmoptionSepArg, NULL},
-
-  {"-T",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-wn",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-title",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-iconname",	"*EmacsShell.iconName", XrmoptionSepArg, (XtPointer) NULL},
-  {"-in",	"*EmacsShell.iconName", XrmoptionSepArg, (XtPointer) NULL},
-  {"-mc",	"*pointerColor", XrmoptionSepArg, (XtPointer) NULL},
-  {"-cr",	"*cursorColor", XrmoptionSepArg, (XtPointer) NULL}
-};
-#endif /* USE_X_TOOLKIT */
-
-#ifdef MULTI_KBOARD
-/* Test whether two display-name strings agree up to the dot that separates
-   the screen number from the server number.  */
-static int
-same_x_server (name1, name2)
-     char *name1, *name2;
-{
-  int seen_colon = 0;
-  unsigned char *system_name = SDATA (Vsystem_name);
-  int system_name_length = strlen (system_name);
-  int length_until_period = 0;
-
-  while (system_name[length_until_period] != 0
-	 && system_name[length_until_period] != '.')
-    length_until_period++;
-
-  /* Treat `unix' like an empty host name.  */
-  if (! strncmp (name1, "unix:", 5))
-    name1 += 4;
-  if (! strncmp (name2, "unix:", 5))
-    name2 += 4;
-  /* Treat this host's name like an empty host name.  */
-  if (! strncmp (name1, system_name, system_name_length)
-      && name1[system_name_length] == ':')
-    name1 += system_name_length;
-  if (! strncmp (name2, system_name, system_name_length)
-      && name2[system_name_length] == ':')
-    name2 += system_name_length;
-  /* Treat this host's domainless name like an empty host name.  */
-  if (! strncmp (name1, system_name, length_until_period)
-      && name1[length_until_period] == ':')
-    name1 += length_until_period;
-  if (! strncmp (name2, system_name, length_until_period)
-      && name2[length_until_period] == ':')
-    name2 += length_until_period;
-
-  for (; *name1 != '\0' && *name1 == *name2; name1++, name2++)
-    {
-      if (*name1 == ':')
-	seen_colon++;
-      if (seen_colon && *name1 == '.')
-	return 1;
-    }
-  return (seen_colon
-	  && (*name1 == '.' || *name1 == '\0')
-	  && (*name2 == '.' || *name2 == '\0'));
-}
-#endif
 
 int mac_initialized = 0;
 
@@ -13380,12 +10341,7 @@ mac_initialize_display_info ()
 
   bzero (dpyinfo, sizeof (*dpyinfo));
 
-  /* Put it on x_display_name_list.  */
-  x_display_name_list = Fcons (Fcons (build_string ("Mac"), Qnil),
-                               x_display_name_list);
-  dpyinfo->name_list_element = XCAR (x_display_name_list);
-
-#if 0
+#ifdef MAC_OSX
   dpyinfo->mac_id_name
     = (char *) xmalloc (SCHARS (Vinvocation_name)
 			+ SCHARS (Vsystem_name)
@@ -13400,19 +10356,58 @@ mac_initialize_display_info ()
   main_device_handle = LMGetMainDevice();
 
   dpyinfo->reference_count = 0;
-  dpyinfo->resx = 75.0;
-  dpyinfo->resy = 75.0;
-  dpyinfo->n_planes = 1;
-  dpyinfo->n_cbits = 16;
+  dpyinfo->resx = 72.0;
+  dpyinfo->resy = 72.0;
+  dpyinfo->color_p = TestDeviceAttribute (main_device_handle, gdDevType);
+#ifdef MAC_OSX
+  /* HasDepth returns true if it is possible to have a 32 bit display,
+     but this may not be what is actually used.  Mac OSX can do better.
+     CGMainDisplayID is only available on OSX 10.2 and higher, but the
+     header for CGGetActiveDisplayList says that the first display returned
+     is the active one, so we use that.  */
+  {
+    CGDirectDisplayID disp_id[1];
+    CGDisplayCount disp_count;
+    CGDisplayErr error_code;
+
+    error_code = CGGetActiveDisplayList (1, disp_id, &disp_count);
+    if (error_code != 0)
+      error ("No display found, CGGetActiveDisplayList error %d", error_code);
+
+    dpyinfo->n_planes = CGDisplayBitsPerPixel (disp_id[0]);
+  }
+#else
+  for (dpyinfo->n_planes = 32; dpyinfo->n_planes > 0; dpyinfo->n_planes >>= 1)
+    if (HasDepth (main_device_handle, dpyinfo->n_planes,
+		  gdDevType, dpyinfo->color_p))
+      break;
+#endif
   dpyinfo->height = (**main_device_handle).gdRect.bottom;
   dpyinfo->width = (**main_device_handle).gdRect.right;
   dpyinfo->grabbed = 0;
   dpyinfo->root_window = NULL;
+  dpyinfo->image_cache = make_image_cache ();
 
   dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
   dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
   dpyinfo->mouse_face_face_id = DEFAULT_FACE_ID;
   dpyinfo->mouse_face_window = Qnil;
+  dpyinfo->mouse_face_overlay = Qnil;
+  dpyinfo->mouse_face_hidden = 0;
+}
+
+
+static XrmDatabase
+mac_make_rdb (xrm_option)
+     char *xrm_option;
+{
+  XrmDatabase database;
+
+  database = xrm_get_preference_database (NULL);
+  if (xrm_option)
+    xrm_merge_string_database (database, xrm_option);
+
+  return database;
 }
 
 struct mac_display_info *
@@ -13422,7 +10417,8 @@ mac_term_init (display_name, xrm_option, resource_name)
      char *resource_name;
 {
   struct mac_display_info *dpyinfo;
-  GDHandle main_device_handle;
+
+  BLOCK_INPUT;
 
   if (!mac_initialized)
     {
@@ -13430,17 +10426,91 @@ mac_term_init (display_name, xrm_option, resource_name)
       mac_initialized = 1;
     }
 
-  mac_initialize_display_info (display_name);
+  if (x_display_list)
+    error ("Sorry, this version can only handle one display");
+
+  mac_initialize_display_info ();
 
   dpyinfo = &one_mac_display_info;
 
-  main_device_handle = LMGetMainDevice();
+  dpyinfo->xrdb = mac_make_rdb (xrm_option);
 
-  dpyinfo->height = (**main_device_handle).gdRect.bottom;
-  dpyinfo->width = (**main_device_handle).gdRect.right;
+  /* Put this display on the chain.  */
+  dpyinfo->next = x_display_list;
+  x_display_list = dpyinfo;
+
+  /* Put it on x_display_name_list.  */
+  x_display_name_list = Fcons (Fcons (display_name,
+				      Fcons (Qnil, dpyinfo->xrdb)),
+                               x_display_name_list);
+  dpyinfo->name_list_element = XCAR (x_display_name_list);
+
+  UNBLOCK_INPUT;
 
   return dpyinfo;
 }
+/* Get rid of display DPYINFO, assuming all frames are already gone.  */
+
+void
+x_delete_display (dpyinfo)
+     struct mac_display_info *dpyinfo;
+{
+  int i;
+
+  /* Discard this display from x_display_name_list and x_display_list.
+     We can't use Fdelq because that can quit.  */
+  if (! NILP (x_display_name_list)
+      && EQ (XCAR (x_display_name_list), dpyinfo->name_list_element))
+    x_display_name_list = XCDR (x_display_name_list);
+  else
+    {
+      Lisp_Object tail;
+
+      tail = x_display_name_list;
+      while (CONSP (tail) && CONSP (XCDR (tail)))
+	{
+	  if (EQ (XCAR (XCDR (tail)), dpyinfo->name_list_element))
+	    {
+	      XSETCDR (tail, XCDR (XCDR (tail)));
+	      break;
+	    }
+	  tail = XCDR (tail);
+	}
+    }
+
+  if (x_display_list == dpyinfo)
+    x_display_list = dpyinfo->next;
+  else
+    {
+      struct x_display_info *tail;
+
+      for (tail = x_display_list; tail; tail = tail->next)
+	if (tail->next == dpyinfo)
+	  tail->next = tail->next->next;
+    }
+
+  /* Free the font names in the font table.  */
+  for (i = 0; i < dpyinfo->n_fonts; i++)
+    if (dpyinfo->font_table[i].name)
+      {
+	if (dpyinfo->font_table[i].name != dpyinfo->font_table[i].full_name)
+	  xfree (dpyinfo->font_table[i].full_name);
+	xfree (dpyinfo->font_table[i].name);
+      }
+
+  if (dpyinfo->font_table->font_encoder)
+    xfree (dpyinfo->font_table->font_encoder);
+
+  xfree (dpyinfo->font_table);
+  xfree (dpyinfo->mac_id_name);
+
+  if (x_display_list == 0)
+    {
+      mac_clear_font_name_table ();
+      bzero (dpyinfo, sizeof (*dpyinfo));
+    }
+}
+
 
 #ifdef MAC_OSX
 void
@@ -13487,8 +10557,8 @@ MakeMeTheFrontProcess ()
 /***** Code to handle C-g testing  *****/
 
 /* Contains the Mac modifier formed from quit_char */
-static mac_quit_char_modifiers = 0;
-static mac_quit_char_keycode;
+int mac_quit_char_modifiers = 0;
+int mac_quit_char_keycode;
 extern int quit_char;
 
 static void
@@ -13499,10 +10569,9 @@ mac_determine_quit_char_modifiers()
 
   /* Map modifiers */
   mac_quit_char_modifiers = 0;
-  if (qc_modifiers & ctrl_modifier)  mac_quit_char_modifiers |= macCtrlKey;
-  if (qc_modifiers & shift_modifier) mac_quit_char_modifiers |= macShiftKey;
-  if (qc_modifiers & meta_modifier)  mac_quit_char_modifiers |= macMetaKey;
-  if (qc_modifiers & alt_modifier)   mac_quit_char_modifiers |= macAltKey;
+  if (qc_modifiers & ctrl_modifier)  mac_quit_char_modifiers |= controlKey;
+  if (qc_modifiers & shift_modifier) mac_quit_char_modifiers |= shiftKey;
+  if (qc_modifiers & alt_modifier)   mac_quit_char_modifiers |= optionKey;
 }
 
 static void
@@ -13515,67 +10584,48 @@ init_quit_char_handler ()
 
   mac_determine_quit_char_modifiers();
 }
+#endif	/* MAC_OSX */
 
-static Boolean
-quit_char_comp (EventRef inEvent, void *inCompData)
+static void
+init_menu_bar ()
 {
-  if (GetEventClass(inEvent) != kEventClassKeyboard)
-    return false;
-  if (GetEventKind(inEvent) != kEventRawKeyDown)
-    return false;
-  {
-    UInt32 keyCode;
-    UInt32 keyModifiers;
-    GetEventParameter(inEvent, kEventParamKeyCode,
-		      typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode);
-    if (keyCode != mac_quit_char_keycode)
-      return false;
-    GetEventParameter(inEvent, kEventParamKeyModifiers,
-		      typeUInt32, NULL, sizeof(UInt32), NULL, &keyModifiers);
-    if (keyModifiers != mac_quit_char_modifiers)
-      return false;
-  }
-  return true;
-}
+#ifdef MAC_OSX
+  OSErr err;
+  MenuRef menu;
+  MenuItemIndex menu_index;
 
-void
-mac_check_for_quit_char()
-{
-  EventRef event;
-  /* If windows are not initialized, return immediately (keep it bouncin')*/
-  if (!mac_quit_char_modifiers)
-    return;
-
-  /* Redetermine modifiers because they are based on lisp variables */
-  mac_determine_quit_char_modifiers();
-
-  /* Fill the queue with events */
-  ReceiveNextEvent (0, NULL, kEventDurationNoWait, false, &event);
-  event = FindSpecificEventInQueue (GetMainEventQueue(), quit_char_comp, NULL);
-  if (event)
+  err = GetIndMenuItemWithCommandID (NULL, kHICommandQuit, 1,
+				     &menu, &menu_index);
+  if (err == noErr)
+    SetMenuItemCommandKey (menu, menu_index, false, 0);
+#if USE_CARBON_EVENTS
+  EnableMenuCommand (NULL, kHICommandPreferences);
+  err = GetIndMenuItemWithCommandID (NULL, kHICommandPreferences, 1,
+				     &menu, &menu_index);
+  if (err == noErr)
     {
-      struct input_event e;
-      struct mac_output *mwp = (mac_output*) GetWRefCon (FrontNonFloatingWindow ());
-      /* Use an input_event to emulate what the interrupt handler does. */
-      e.kind = ASCII_KEYSTROKE_EVENT;
-      e.code = quit_char;
-      e.arg = NULL;
-      e.modifiers = NULL;
-      e.timestamp = EventTimeToTicks(GetEventTime(event))*(1000/60);
-      XSETFRAME(e.frame_or_window, mwp->mFP);
-      /* Remove event from queue to prevent looping. */
-      RemoveEventFromQueue(GetMainEventQueue(), event);
-      ReleaseEvent(event);
-      kbd_buffer_store_event(&e);
+      SetMenuItemCommandKey (menu, menu_index, false, 0);
+      InsertMenuItemTextWithCFString (menu, NULL,
+				      0, kMenuItemAttrSeparator, 0);
+      InsertMenuItemTextWithCFString (menu, CFSTR ("About Emacs"),
+				      0, 0, kHICommandAbout);
     }
+#endif	/* USE_CARBON_EVENTS */
+#else	/* !MAC_OSX */
+#if USE_CARBON_EVENTS
+  SetMenuItemCommandID (GetMenuHandle (M_APPLE), I_ABOUT, kHICommandAbout);
+#endif
+#endif
 }
 
-#endif /* MAC_OSX */
 
 /* Set up use of X before we make the first connection.  */
 
+extern frame_parm_handler mac_frame_parm_handlers[];
+
 static struct redisplay_interface x_redisplay_interface =
 {
+  mac_frame_parm_handlers,
   x_produce_glyphs,
   x_write_glyphs,
   x_insert_glyphs,
@@ -13584,11 +10634,24 @@ static struct redisplay_interface x_redisplay_interface =
   x_after_update_window_line,
   x_update_window_begin,
   x_update_window_end,
-  XTcursor_to,
+  x_cursor_to,
   x_flush,
-  x_clear_mouse_face,
+  0, /* flush_display_optional */
+  x_clear_window_mouse_face,
   x_get_glyph_overhangs,
-  x_fix_overlapping_area
+  x_fix_overlapping_area,
+  x_draw_fringe_bitmap,
+  0, /* define_fringe_bitmap */
+  0, /* destroy_fringe_bitmap */
+  mac_per_char_metric,
+  mac_encode_char,
+  mac_compute_glyph_string_overhangs,
+  x_draw_glyph_string,
+  mac_define_frame_cursor,
+  mac_clear_frame_area,
+  mac_draw_window_cursor,
+  mac_draw_vertical_window_border,
+  mac_shift_glyphs_for_insert
 };
 
 void
@@ -13616,8 +10679,6 @@ mac_initialize ()
   redeem_scroll_bar_hook = XTredeem_scroll_bar;
   judge_scroll_bars_hook = XTjudge_scroll_bars;
 
-  estimate_mode_line_height_hook = x_estimate_mode_line_height;
-
   scroll_region_ok = 1;         /* we'll scroll partial frames */
   char_ins_del_ok = 1;
   line_ins_del_ok = 1;          /* we'll just blt 'em */
@@ -13626,67 +10687,38 @@ mac_initialize ()
 				   off the bottom */
   baud_rate = 19200;
 
-  x_noop_count = 0;
   last_tool_bar_item = -1;
   any_help_event_p = 0;
 
   /* Try to use interrupt input; if we can't, then start polling.  */
   Fset_input_mode (Qt, Qnil, Qt, Qnil);
 
-#ifdef USE_X_TOOLKIT
-  XtToolkitInitialize ();
-  Xt_app_con = XtCreateApplicationContext ();
-  XtAppSetFallbackResources (Xt_app_con, Xt_default_resources);
-
-  /* Install an asynchronous timer that processes Xt timeout events
-     every 0.1s.  This is necessary because some widget sets use
-     timeouts internally, for example the LessTif menu bar, or the
-     Xaw3d scroll bar.  When Xt timouts aren't processed, these
-     widgets don't behave normally.  */
-  {
-    EMACS_TIME interval;
-    EMACS_SET_SECS_USECS (interval, 0, 100000);
-    start_atimer (ATIMER_CONTINUOUS, interval, x_process_timeouts, 0);
-  }
-#endif
-
-#if USE_TOOLKIT_SCROLL_BARS
-  xaw3d_arrow_scroll = False;
-  xaw3d_pick_top = True;
-#endif
-
-#if 0
-  /* Note that there is no real way portable across R3/R4 to get the
-     original error handler.  */
-  XSetErrorHandler (x_error_handler);
-  XSetIOErrorHandler (x_io_error_quitter);
-
-  /* Disable Window Change signals;  they are handled by X events.  */
-#ifdef SIGWINCH
-  signal (SIGWINCH, SIG_DFL);
-#endif /* ! defined (SIGWINCH) */
-
-  signal (SIGPIPE, x_connection_signal);
-#endif
-
-  mac_initialize_display_info ();
+  BLOCK_INPUT;
 
 #if TARGET_API_MAC_CARBON
-  init_required_apple_events ();
-
-  init_mac_drag_n_drop ();
 
 #if USE_CARBON_EVENTS
+#ifdef MAC_OSX
   init_service_handler ();
 
   init_quit_char_handler ();
-#endif
+#endif	/* MAC_OSX */
 
-  DisableMenuCommand (NULL, kHICommandQuit);
+  init_command_handler ();
+
+  init_menu_bar ();
+#endif	/* USE_CARBON_EVENTS */
+
+#ifdef MAC_OSX
+  init_coercion_handler ();
+
+  init_apple_event_handler ();
 
   if (!inhibit_window_system)
     MakeMeTheFrontProcess ();
 #endif
+#endif
+  UNBLOCK_INPUT;
 }
 
 
@@ -13698,7 +10730,35 @@ syms_of_macterm ()
   x_error_message_string = Qnil;
 #endif
 
+  Qcontrol = intern ("control");	staticpro (&Qcontrol);
+  Qmeta    = intern ("meta");		staticpro (&Qmeta);
+  Qalt     = intern ("alt");		staticpro (&Qalt);
+  Qhyper   = intern ("hyper");		staticpro (&Qhyper);
+  Qsuper   = intern ("super");		staticpro (&Qsuper);
+  Qmodifier_value = intern ("modifier-value");
+  staticpro (&Qmodifier_value);
+
+  Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
+  Fput (Qmeta,    Qmodifier_value, make_number (meta_modifier));
+  Fput (Qalt,     Qmodifier_value, make_number (alt_modifier));
+  Fput (Qhyper,   Qmodifier_value, make_number (hyper_modifier));
+  Fput (Qsuper,   Qmodifier_value, make_number (super_modifier));
+
+#if USE_CARBON_EVENTS
+  Qhicommand   = intern ("hicommand");    staticpro (&Qhicommand);
+#ifdef MAC_OSX
+  Qservices    = intern ("services");	  staticpro (&Qservices);
+  Qpaste       = intern ("paste");	  staticpro (&Qpaste);
+  Qperform     = intern ("perform");	  staticpro (&Qperform);
+#endif
+#endif
+
+#ifdef MAC_OSX
   Fprovide (intern ("mac-carbon"), Qnil);
+#endif
+
+  staticpro (&Qreverse);
+  Qreverse = intern ("reverse");
 
   staticpro (&x_display_name_list);
   x_display_name_list = Qnil;
@@ -13706,92 +10766,118 @@ syms_of_macterm ()
   staticpro (&last_mouse_scroll_bar);
   last_mouse_scroll_bar = Qnil;
 
-  staticpro (&Qvendor_specific_keysyms);
-  Qvendor_specific_keysyms = intern ("vendor-specific-keysyms");
+  staticpro (&fm_font_family_alist);
+  fm_font_family_alist = Qnil;
 
-  staticpro (&last_mouse_press_frame);
-  last_mouse_press_frame = Qnil;
+#if USE_ATSUI
+  staticpro (&atsu_font_id_hash);
+  atsu_font_id_hash = Qnil;
+#endif
 
-  Qmac_ready_for_drag_n_drop = intern ("mac-ready-for-drag-n-drop");
-  staticpro (&Qmac_ready_for_drag_n_drop);
-
-  help_echo = Qnil;
-  staticpro (&help_echo);
-  help_echo_object = Qnil;
-  staticpro (&help_echo_object);
-  help_echo_window = Qnil;
-  staticpro (&help_echo_window);
-  previous_help_echo = Qnil;
-  staticpro (&previous_help_echo);
-  help_echo_pos = -1;
-
-  DEFVAR_BOOL ("x-autoselect-window", &x_autoselect_window_p,
-    doc: /* *Non-nil means autoselect window with mouse pointer.  */);
-  x_autoselect_window_p = 0;
-
-  DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
-    doc: /* *Non-nil means draw block cursor as wide as the glyph under it.
-For example, if a block cursor is over a tab, it will be drawn as
-wide as that tab on the display.  */);
-  x_stretch_cursor_p = 0;
-
-#if 0 /* TODO: Setting underline position from font properties.  */
+  /* We don't yet support this, but defining this here avoids whining
+     from cus-start.el and other places, like "M-x set-variable".  */
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       &x_use_underline_position_properties,
-    doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
+     doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
 nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
-to 4.1, set this to nil.  */);
-  x_use_underline_position_properties = 1;
-#endif
+to 4.1, set this to nil.
+
+NOTE: Not supported on Mac yet.  */);
+  x_use_underline_position_properties = 0;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
+#ifdef USE_TOOLKIT_SCROLL_BARS
   Vx_toolkit_scroll_bars = Qt;
+#else
+  Vx_toolkit_scroll_bars = Qnil;
+#endif
 
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 
-  DEFVAR_LISP ("mac-command-key-is-meta", &Vmac_command_key_is_meta,
-    doc: /* Non-nil means that the command key is used as the Emacs meta key.
-Otherwise the option key is used.  */);
-  Vmac_command_key_is_meta = Qt;
+/* Variables to configure modifier key assignment.  */
 
-  DEFVAR_LISP ("mac-reverse-ctrl-meta", &Vmac_reverse_ctrl_meta,
-    doc: /* Non-nil means that the control and meta keys are reversed.  This is
-	    useful for non-standard keyboard layouts.  */);
-  Vmac_reverse_ctrl_meta = Qnil;
+  DEFVAR_LISP ("mac-control-modifier", &Vmac_control_modifier,
+    doc: /* *Modifier key assumed when the Mac control key is pressed.
+The value can be `control', `meta', `alt', `hyper', or `super' for the
+respective modifier.  The default is `control'.  */);
+  Vmac_control_modifier = Qcontrol;
+
+  DEFVAR_LISP ("mac-option-modifier", &Vmac_option_modifier,
+    doc: /* *Modifier key assumed when the Mac alt/option key is pressed.
+The value can be `control', `meta', `alt', `hyper', or `super' for the
+respective modifier.  If the value is nil then the key will act as the
+normal Mac control modifier, and the option key can be used to compose
+characters depending on the chosen Mac keyboard setting.  */);
+  Vmac_option_modifier = Qnil;
+
+  DEFVAR_LISP ("mac-command-modifier", &Vmac_command_modifier,
+    doc: /* *Modifier key assumed when the Mac command key is pressed.
+The value can be `control', `meta', `alt', `hyper', or `super' for the
+respective modifier.  The default is `meta'.  */);
+  Vmac_command_modifier = Qmeta;
+
+  DEFVAR_LISP ("mac-function-modifier", &Vmac_function_modifier,
+    doc: /* *Modifier key assumed when the Mac function key is pressed.
+The value can be `control', `meta', `alt', `hyper', or `super' for the
+respective modifier.  Note that remapping the function key may lead to
+unexpected results for some keys on non-US/GB keyboards.  */);
+  Vmac_function_modifier = Qnil;
+
+  DEFVAR_LISP ("mac-emulate-three-button-mouse",
+	       &Vmac_emulate_three_button_mouse,
+    doc: /* *Specify a way of three button mouse emulation.
+The value can be nil, t, or the symbol `reverse'.
+nil means that no emulation should be done and the modifiers should be
+placed on the mouse-1 event.
+t means that when the option-key is held down while pressing the mouse
+button, the click will register as mouse-2 and while the command-key
+is held down, the click will register as mouse-3.
+The symbol `reverse' means that the option-key will register for
+mouse-3 and the command-key will register for mouse-2.  */);
+  Vmac_emulate_three_button_mouse = Qnil;
 
 #if USE_CARBON_EVENTS
-  DEFVAR_LISP ("mac-wheel-button-is-mouse-2", &Vmac_wheel_button_is_mouse_2,
-   doc: /* Non-nil means that the wheel button will be treated as mouse-2 and
-the right click will be mouse-3.
-Otherwise, the right click will be mouse-2 and the wheel button mouse-3.*/);
-  Vmac_wheel_button_is_mouse_2 = Qt;
+  DEFVAR_BOOL ("mac-wheel-button-is-mouse-2", &mac_wheel_button_is_mouse_2,
+   doc: /* *Non-nil if the wheel button is mouse-2 and the right click mouse-3.
+Otherwise, the right click will be treated as mouse-2 and the wheel
+button will be mouse-3.  */);
+  mac_wheel_button_is_mouse_2 = 1;
 
-  DEFVAR_LISP ("mac-pass-command-to-system", &Vmac_pass_command_to_system,
-   doc: /* If non-nil, the Mac \"Command\" key is passed on to the Mac
-Toolbox for processing before Emacs sees it.  */);
-  Vmac_pass_command_to_system = Qt;
+  DEFVAR_BOOL ("mac-pass-command-to-system", &mac_pass_command_to_system,
+   doc: /* *Non-nil if command key presses are passed on to the Mac Toolbox.  */);
+  mac_pass_command_to_system = 1;
 
-  DEFVAR_LISP ("mac-pass-control-to-system", &Vmac_pass_control_to_system,
-   doc: /* If non-nil, the Mac \"Control\" key is passed on to the Mac
-Toolbox for processing before Emacs sees it.  */);
-  Vmac_pass_control_to_system = Qt;
+  DEFVAR_BOOL ("mac-pass-control-to-system", &mac_pass_control_to_system,
+   doc: /* *Non-nil if control key presses are passed on to the Mac Toolbox.  */);
+  mac_pass_control_to_system = 1;
+
 #endif
 
-  DEFVAR_INT ("mac-keyboard-text-encoding", &mac_keyboard_text_encoding,
-    doc: /* One of the Text Encoding Base constant values defined in the
-Basic Text Constants section of Inside Macintosh - Text Encoding
-Conversion Manager.  Its value determines the encoding characters
-typed at the Mac keyboard (presumed to be in the MacRoman encoding)
-will convert into.  E.g., if it is set to kTextEncodingMacRoman (0),
-its default value, no conversion takes place.  If it is set to
-kTextEncodingISOLatin1 (0x201) or kTextEncodingISOLatin2 (0x202),
-characters typed on Mac keyboard are first converted into the
-ISO Latin-1 or ISO Latin-2 encoding, respectively before being
-passed to Emacs.  Together with Emacs's set-keyboard-coding-system
-command, this enables the Mac keyboard to be used to enter non-ASCII
-characters directly.  */);
-  mac_keyboard_text_encoding = kTextEncodingMacRoman;
+  DEFVAR_BOOL ("mac-allow-anti-aliasing", &mac_use_core_graphics,
+   doc: /* *If non-nil, allow anti-aliasing.
+The text will be rendered using Core Graphics text rendering which
+may anti-alias the text.  */);
+  mac_use_core_graphics = 0;
+
+  /* Register an entry for `mac-roman' so that it can be used when
+     creating the terminal frame on Mac OS 9 before loading
+     term/mac-win.elc.  */
+  DEFVAR_LISP ("mac-charset-info-alist", &Vmac_charset_info_alist,
+               doc: /* Alist of Emacs character sets vs text encodings and coding systems.
+Each entry should be of the form:
+
+   (CHARSET-NAME TEXT-ENCODING CODING-SYSTEM)
+
+where CHARSET-NAME is a string used in font names to identify the
+charset, TEXT-ENCODING is a TextEncodingBase value in Mac, and
+CODING_SYSTEM is a coding system corresponding to TEXT-ENCODING.  */);
+  Vmac_charset_info_alist =
+    Fcons (list3 (build_string ("mac-roman"),
+		  make_number (smRoman), Qnil), Qnil);
 }
+
+/* arch-tag: f2259165-4454-4c04-a029-a133c8af7b5b
+   (do not change this comment) */

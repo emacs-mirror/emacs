@@ -1,5 +1,5 @@
 /* alliant-2800.h - Alliant FX/2800 machine running Concentrix 2800.
-   Copyright (C) 1990, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1990, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The following line tells the configuration script what sort of
@@ -124,3 +124,6 @@ unexec_text_start = hdr.a_text_addr;}
 
 /* Use the K&R version of the DEFUN macro.  */
 #define USE_NONANSI_DEFUN
+
+/* arch-tag: 8ba70b15-d082-40f6-931d-14adfd7f9dbd
+   (do not change this comment) */

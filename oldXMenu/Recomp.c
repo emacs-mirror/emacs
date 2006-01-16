@@ -1,7 +1,7 @@
 #include "copyright.h"
 
-/* $Header: /cvs/emacs/oldXMenu/Recomp.c,v 1.1 1999/10/03 19:35:11 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
  * XMenu:	MIT Project Athena, X Window system menu package
@@ -102,3 +102,6 @@ XMenuRecompute(display, menu)
     _XMErrorCode = XME_NO_ERROR;
     return(XM_SUCCESS);
 }
+
+/* arch-tag: 1fe99b82-3873-4aab-b2b3-f277c93e00d9
+   (do not change this comment) */

@@ -1,7 +1,7 @@
 ;;; msb.el --- customizable buffer-selection with multiple menus
 
-;; Copyright (C) 1993, 94, 95, 97, 98, 99, 2000, 2001, 2003
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Lindberg <lars.lindberg@home.se>
 ;; Maintainer: FSF
@@ -23,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -185,7 +185,7 @@
      "Elisp Files (%d)")
     ((eq major-mode 'latex-mode)
      3030
-     "LaTex Files (%d)")
+     "LaTeX Files (%d)")
     ('no-multi
      3099
      "Other files (%d)")))
@@ -489,7 +489,7 @@ See the function `mouse-select-buffer' and the variable
   "Return t if optional BUFFER is an \"invisible\" buffer.
 If the argument is left out or nil, then the current buffer is considered."
   (and (> (length (buffer-name buffer)) 0)
-       (eq ?\ (aref (buffer-name buffer) 0))))
+       (eq ?\s (aref (buffer-name buffer) 0))))
 
 (defun msb--strip-dir (dir)
   "Strip one hierarchy level from the end of DIR."
@@ -1141,7 +1141,7 @@ variable `msb-menu-cond'."
 With arg, turn Msb mode on if and only if arg is positive.
 This mode overrides the binding(s) of `mouse-buffer-menu' to provide a
 different buffer menu using the function `msb'."
-  :global t
+  :global t :group 'msb
   (if msb-mode
       (progn
 	(add-hook 'menu-bar-update-hook 'msb-menu-bar-update-buffers)
@@ -1153,8 +1153,10 @@ different buffer menu using the function `msb'."
 
 (defun msb-unload-hook ()
   (msb-mode 0))
+(add-hook 'msb-unload-hook 'msb-unload-hook)
 
 (provide 'msb)
 (eval-after-load "msb" '(run-hooks 'msb-after-load-hook 'msb-after-load-hooks))
 
+;;; arch-tag: 403f9e82-b92e-4e7a-a797-5d6d9b76da36
 ;;; msb.el ends here

@@ -1,5 +1,6 @@
 /* machine description file for Convex (all models).
-   Copyright (C) 1987, 1994, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1994, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The following line tells the configuration script what sort of
@@ -183,3 +184,6 @@ Boston, MA 02111-1307, USA.  */
 /* There is some indication that the convex has sys/wait.h
    but it does not work right.  */
 #undef HAVE_SYS_WAIT_H
+
+/* arch-tag: 127e5ae1-4f03-40c0-a87e-d2cb02c59de8
+   (do not change this comment) */

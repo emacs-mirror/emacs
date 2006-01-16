@@ -1,6 +1,7 @@
 ;;; goto-addr.el --- click to browse URL or to send to e-mail address
 
-;; Copyright (C) 1995, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Eric Ding <ericding@alum.mit.edu>
 ;; Maintainer: FSF
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -46,7 +47,7 @@
 ;;
 ;; (setq goto-address-highlight-keymap
 ;;   (let ((m (make-sparse-keymap)))
-;;     (define-key m [S-mouse-2] 'goto-address-at-mouse)
+;;     (define-key m [S-mouse-2] 'goto-address-at-point)
 ;;     m))
 ;;
 
@@ -93,22 +94,29 @@ But only if `goto-address-highlight-p' is also non-nil."
   :group 'goto-address)
 
 (defcustom goto-address-fontify-maximum-size 30000
-  "*Maximum size of file in which to fontify and/or highlight URLs."
-  :type 'integer
+  "*Maximum size of file in which to fontify and/or highlight URLs.
+A value of t means there is no limit--fontify regardless of the size."
+  :type '(choice (integer :tag "Maximum size") (const :tag "No limit" t))
   :group 'goto-address)
 
 (defvar goto-address-mail-regexp
   ;; Actually pretty much any char could appear in the username part.  -stef
-  "[-a-zA-Z0-9._+]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
+  "[-a-zA-Z0-9=._+]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
   "A regular expression probably matching an e-mail address.")
 
 (defvar goto-address-url-regexp
-  (concat "\\<\\("
-	  (mapconcat 'identity
-		     (delete "mailto:" (copy-sequence thing-at-point-uri-schemes))
-		     "\\|")
-	  "\\)"
-          thing-at-point-url-path-regexp)
+  (concat
+   "\\<\\("
+   (mapconcat 'identity
+              (delete "mailto:"
+		      ;; Remove `data:', as it's not terribly useful to follow
+		      ;; those.  Leaving them causes `use Data::Dumper;' to be
+		      ;; fontified oddly in Perl files.
+                      (delete "data:"
+                              (copy-sequence thing-at-point-uri-schemes)))
+              "\\|")
+   "\\)"
+   thing-at-point-url-path-regexp)
   ;; (concat "\\b\\(s?https?\\|ftp\\|file\\|gopher\\|news\\|"
   ;; 	  "telnet\\|wais\\):\\(//[-a-zA-Z0-9_.]+:"
   ;; 	  "[0-9]*\\)?[-a-zA-Z0-9_=?#$@~`%&*+|\\/.,]*"
@@ -117,12 +125,11 @@ But only if `goto-address-highlight-p' is also non-nil."
 
 (defvar goto-address-highlight-keymap
   (let ((m (make-sparse-keymap)))
-    (if (featurep 'xemacs)
-	(define-key m (kbd "<button2>") 'goto-address-at-mouse)
-      (define-key m (kbd "<mouse-2>") 'goto-address-at-mouse))
+    (define-key m (if (featurep 'xemacs) (kbd "<button2>") (kbd "<mouse-2>"))
+      'goto-address-at-point)
     (define-key m (kbd "C-c RET") 'goto-address-at-point)
     m)
-  "keymap to hold goto-addr's mouse key defs under highlighted URLs.")
+  "Keymap to hold goto-addr's mouse key defs under highlighted URLs.")
 
 (defcustom goto-address-url-face 'bold
   "Face to use for URLs."
@@ -155,7 +162,8 @@ and `goto-address-fontify-p'."
   (save-excursion
     (let ((inhibit-point-motion-hooks t))
       (goto-char (point-min))
-      (if (< (- (point-max) (point)) goto-address-fontify-maximum-size)
+      (if (or (eq t goto-address-fontify-maximum-size)
+	      (< (- (point-max) (point)) goto-address-fontify-maximum-size))
 	  (progn
 	    (while (re-search-forward goto-address-url-regexp nil t)
               (let* ((s (match-beginning 0))
@@ -163,10 +171,12 @@ and `goto-address-fontify-p'."
                      (this-overlay (make-overlay s e)))
 		(and goto-address-fontify-p
                      (overlay-put this-overlay 'face goto-address-url-face))
+                (overlay-put this-overlay 'evaporate t)
 		(overlay-put this-overlay
                              'mouse-face goto-address-url-mouse-face)
+		(overlay-put this-overlay 'follow-link t)
 		(overlay-put this-overlay
-			     'help-echo "mouse-2: follow URL")
+			     'help-echo "mouse-2, C-c RET: follow URL")
 		(overlay-put this-overlay
                              'keymap goto-address-highlight-keymap)
 		(overlay-put this-overlay 'goto-address t)))
@@ -177,10 +187,12 @@ and `goto-address-fontify-p'."
                      (this-overlay (make-overlay s e)))
 		(and goto-address-fontify-p
                      (overlay-put this-overlay 'face goto-address-mail-face))
+                (overlay-put this-overlay 'evaporate t)
                 (overlay-put this-overlay 'mouse-face
                              goto-address-mail-mouse-face)
+		(overlay-put this-overlay 'follow-link t)
 		(overlay-put this-overlay
-			     'help-echo "mouse-2: mail this address")
+			     'help-echo "mouse-2, C-c RET: mail this address")
                 (overlay-put this-overlay
                              'keymap goto-address-highlight-keymap)
 		(overlay-put this-overlay 'goto-address t))))))))
@@ -189,24 +201,18 @@ and `goto-address-fontify-p'."
 ;; snarfed from browse-url.el
 
 ;;;###autoload
-(defun goto-address-at-mouse (event)
-  "Send to the e-mail address or load the URL clicked with the mouse.
-Send mail to address at position of mouse click.  See documentation for
-`goto-address-find-address-at-point'.  If no address is found
-there, then load the URL at or before the position of the mouse click."
-  (interactive "e")
-  (save-excursion
-    (mouse-set-point event)
-    (goto-address-at-point)))
+(define-obsolete-function-alias
+  'goto-address-at-mouse 'goto-address-at-point "22.1")
 
 ;;;###autoload
-(defun goto-address-at-point ()
+(defun goto-address-at-point (&optional event)
   "Send to the e-mail address or load the URL at point.
 Send mail to address at point.  See documentation for
 `goto-address-find-address-at-point'.  If no address is found
 there, then load the URL at or before point."
-  (interactive)
+  (interactive (list last-input-event))
   (save-excursion
+    (if event (posn-set-point (event-end event)))
     (let ((address (save-excursion (goto-address-find-address-at-point))))
       (if (and address
 	       (save-excursion
@@ -236,7 +242,8 @@ address.  If no e-mail address found, return nil."
   "Sets up goto-address functionality in the current buffer.
 Allows user to use mouse/keyboard command to click to go to a URL
 or to send e-mail.
-By default, goto-address binds to mouse-2 and C-c RET.
+By default, goto-address binds `goto-address-at-point' to mouse-2 and C-c RET
+only on URLs and e-mail addresses.
 
 Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 `goto-address-highlight-p' for more information)."
@@ -246,4 +253,5 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 (provide 'goto-addr)
 
+;; arch-tag: ca47c505-5661-425d-a471-62bc6e75cf0a
 ;;; goto-addr.el ends here

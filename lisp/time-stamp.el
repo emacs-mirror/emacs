@@ -1,11 +1,11 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
 
-;; Copyright 1989, 1993, 1994, 1995, 1997, 2000, 2001
-;;;	Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 1994, 1995, 1997, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
-;; Maintainer's Time-stamp: <2003-02-01 09:26:25 gildea>
+;; Maintainer's Time-stamp: <2004-09-25 20:55:35 gildea>
 ;; Maintainer: Stephen Gildea <gildea@stop.mail-abuse.org>
 ;; Keywords: tools
 
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -32,7 +32,7 @@
 ;; See the top of `time-stamp.el' for another example.
 
 ;; To use time-stamping, add this line to your .emacs file:
-;;     (add-hook 'write-file-hooks 'time-stamp)
+;;     (add-hook 'before-save-hook 'time-stamp)
 ;; Now any time-stamp templates in your files will be updated automatically.
 
 ;; See the documentation for the functions `time-stamp'
@@ -143,20 +143,26 @@ the first (last) `time-stamp-line-limit' lines of the file for the
 file to be time-stamped by \\[time-stamp].  A value of 0 searches the
 entire buffer (use with care).
 
-Do not change `time-stamp-line-limit', `time-stamp-start', or
-`time-stamp-end' for yourself or you will be incompatible
-with other people's files!  If you must change them for some application,
-do so in the local variables section of the time-stamped file itself.")
+This value can also be set with the variable `time-stamp-pattern'.
+
+Do not change `time-stamp-line-limit', `time-stamp-start',
+`time-stamp-end', or `time-stamp-pattern' for yourself or you will be
+incompatible with other people's files!  If you must change them for some
+application, do so in the local variables section of the time-stamped file
+itself.")
 
 
 (defvar time-stamp-start "Time-stamp:[ \t]+\\\\?[\"<]+"    ;Do not change!
   "Regexp after which the time stamp is written by \\[time-stamp].
 See also the variables `time-stamp-end' and `time-stamp-line-limit'.
 
-Do not change `time-stamp-line-limit', `time-stamp-start', or
-`time-stamp-end' for yourself or you will be incompatible
-with other people's files!  If you must change them for some application,
-do so in the local variables section of the time-stamped file itself.")
+This value can also be set with the variable `time-stamp-pattern'.
+
+Do not change `time-stamp-line-limit', `time-stamp-start',
+`time-stamp-end', or `time-stamp-pattern' for yourself or you will be
+incompatible with other people's files!  If you must change them for some
+application, do so in the local variables section of the time-stamped file
+itself.")
 
 
 (defvar time-stamp-end "\\\\?[\">]"    ;Do not change!
@@ -165,13 +171,15 @@ do so in the local variables section of the time-stamped file itself.")
 and the following match of `time-stamp-end', then writes the
 time stamp specified by `time-stamp-format' between them.
 
+This value can also be set with the variable `time-stamp-pattern'.
+
 The end text normally starts on the same line as the start text ends,
 but if there are any newlines in `time-stamp-format', the same number
 of newlines must separate the start and end.  \\[time-stamp] tries
 to not change the number of lines in the buffer.  `time-stamp-inserts-lines'
 controls this behavior.
 
-Do not change `time-stamp-line-limit', `time-stamp-start', `time-stamp-end',
+Do not change `time-stamp-start', `time-stamp-end', `time-stamp-pattern',
 or `time-stamp-inserts-lines' for yourself or you will be incompatible
 with other people's files!  If you must change them for some application,
 do so in the local variables section of the time-stamped file itself.")
@@ -231,9 +239,11 @@ Examples:
 \"@set Time-stamp: %:b %:d, %:y$\"
 \"newcommand{\\\\\\\\timestamp}{%%}\"
 
-Do not change `time-stamp-pattern' for yourself or you will be incompatible
-with other people's files!  Set it only in the local variables section
-of the time-stamped file itself.")
+Do not change `time-stamp-pattern' `time-stamp-line-limit',
+`time-stamp-start', or `time-stamp-end' for yourself or you will be
+incompatible with other people's files!  If you must change them for
+some application, do so only in the local variables section of the
+time-stamped file itself.")
 
 
 
@@ -242,7 +252,8 @@ of the time-stamped file itself.")
   "Update the time stamp string(s) in the buffer.
 A template in a file can be automatically updated with a new time stamp
 every time you save the file.  Add this line to your .emacs file:
-    (add-hook 'write-file-hooks 'time-stamp)
+    (add-hook 'before-save-hook 'time-stamp)
+or customize `before-save-hook' through Custom.
 Normally the template must appear in the first 8 lines of a file and
 look like one of the following:
       Time-stamp: <>
@@ -250,10 +261,11 @@ look like one of the following:
 The time stamp is written between the brackets or quotes:
       Time-stamp: <2001-02-18 10:20:51 gildea>
 The time stamp is updated only if the variable `time-stamp-active' is non-nil.
-The format of the time stamp is set by the variable `time-stamp-format'.
-The variables `time-stamp-line-limit', `time-stamp-start', `time-stamp-end',
-`time-stamp-count', and `time-stamp-inserts-lines' control finding the
-template."
+The format of the time stamp is set by the variable `time-stamp-pattern' or
+`time-stamp-format'.  The variables `time-stamp-pattern',
+`time-stamp-line-limit', `time-stamp-start', `time-stamp-end',
+`time-stamp-count', and `time-stamp-inserts-lines' control finding 
+the template."
   (interactive)
   (let ((line-limit time-stamp-line-limit)
 	(ts-start time-stamp-start)
@@ -269,7 +281,7 @@ template."
 	  (string-match "\\`\\(\\(-?[0-9]+\\)/\\)?\\([^%]+\\)?\\(\\(%[-.,:@+_ #^()0-9]*[A-Za-z%][^%]*\\)*%[-.,:@+_ #^()0-9]*[A-Za-z%]\\)?\\([^%]+\\)?\\'" time-stamp-pattern)
 	  (and (match-beginning 2)
 	       (setq line-limit
-		     (string-to-int (match-string 2 time-stamp-pattern))))
+		     (string-to-number (match-string 2 time-stamp-pattern))))
 	  (and (match-beginning 3)
 	       (setq ts-start (match-string 3 time-stamp-pattern)))
 	  (and (match-beginning 4)
@@ -318,7 +330,6 @@ template."
       (setq start (time-stamp-once start search-limit ts-start ts-end
 				   ts-format format-lines end-lines))
       (setq ts-count (1- ts-count))))
-  ;; be sure to return nil so can be used on write-file-hooks
   nil)
 
 (defun time-stamp-once (start search-limit ts-start ts-end
@@ -558,9 +569,9 @@ and all `time-stamp-format' compatibility."
 	 ((eq cur-char ?y)		;year
 	  (or alt-form (not (string-equal field-width ""))
 	      (time-stamp-conv-warn "%y" "%:y"))
-	  (string-to-int (format-time-string "%Y" time)))
+	  (string-to-number (format-time-string "%Y" time)))
 	 ((eq cur-char ?Y)		;4-digit year, new style
-	  (string-to-int (format-time-string "%Y" time)))
+	  (string-to-number (format-time-string "%Y" time)))
 	 ((eq cur-char ?z)		;time zone lower case
 	  (if change-case
 	      ""			;discourage %z variations
@@ -588,6 +599,13 @@ and all `time-stamp-format' compatibility."
 	  (user-full-name))
 	 ((eq cur-char ?h)		;mail host name
 	  (time-stamp-mail-host-name))
+	 ((eq cur-char ?q)		;(undocumented unqual hostname)
+	  (let ((qualname (system-name)))
+	    (if (string-match "\\." qualname)
+		(substring qualname 0 (match-beginning 0))
+	      qualname)))
+	 ((eq cur-char ?Q)		;(undocumented fully-qualified host)
+	  (system-name))
 	 ))
 	(let ((padded-result
 	       (format (format "%%%s%c"
@@ -597,7 +615,7 @@ and all `time-stamp-format' compatibility."
 	  (let* ((initial-length (length padded-result))
 		 (desired-length (if (string-equal field-width "")
 				     initial-length
-				   (string-to-int field-width))))
+				   (string-to-number field-width))))
 	    (if (> initial-length desired-length)
 		;; truncate strings on right, years on left
 		(if (stringp field-result)
@@ -621,7 +639,7 @@ width specification or \"\".  TIME is the time to convert."
 			       (format "%%:%c" format-char)))
     (if (and alt-form (not (string-equal field-width "")))
 	""				;discourage "%:2d" and the like
-      (string-to-int (format-time-string format-string time)))))
+      (string-to-number (format-time-string format-string time)))))
 
 (defvar time-stamp-conversion-warn t
   "Warn about soon-to-be-unsupported forms in `time-stamp-format'.
@@ -760,4 +778,5 @@ The first character of DD is space if the value is less than 10."
 
 (provide 'time-stamp)
 
+;;; arch-tag: 8a12c5c3-25d6-4a71-adc5-24b0e025a1e7
 ;;; time-stamp.el ends here

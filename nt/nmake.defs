@@ -1,6 +1,6 @@
-#
-#  Makefile definition file for building GNU Emacs on the Microsoft W32 API.
-#  Copyright (c) 2000-2001 Free Software Foundation, Inc.
+#  -*- Makefile -*- definition file for building GNU Emacs on Windows NT.
+#  Copyright (C) 2000, 2001, 2002, 2003, 2004,
+#    2005 Free Software Foundation, Inc.
 #
 #  GNU Emacs is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,8 +14,8 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with GNU Emacs; see the file COPYING.  If not, write to
-#  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-#  Boston, MA 02111-1307, USA.
+#  the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#  Boston, MA 02110-1301, USA.
 
 # Ensure 'all' is the default target
 all:
@@ -124,6 +124,7 @@ SHELL32		= shell32.lib
 USER32		= user32.lib
 WSOCK32		= wsock32.lib
 WINMM     = winmm.lib
+WINSPOOL	= winspool.lib
 
 !ifdef NOOPT
 DEBUG_CFLAGS	= -DEMACSDEBUG
@@ -134,7 +135,7 @@ CFLAGS          = -I. -DWIN32_LEAN_AND_MEAN -D_WIN32_WINNT=0x0400 $(ARCH_CFLAGS)
 		  -D_CRTAPI1=_cdecl $(DEBUG_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
 EMACS_EXTRA_C_FLAGS =
 
-SYS_LDFLAGS	= -release -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
+SYS_LDFLAGS	= -nologo -release -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
 
 # see comments in allocate_heap in w32heap.c before changing any of the
 # -stack, -heap, or -base settings.
@@ -161,6 +162,7 @@ FORVAR		= %%f
 FORDO		= ) do
 ENDFOR		=
 ARGQUOTE	= "
+# "
 DQUOTE		= \"
 DEL		= rm
 DEL_TREE	= rm -r
@@ -230,3 +232,5 @@ EXTRA_LINK      = -profile
 .c{$(BLD)}.obj::
 		$(CC) $(CFLAGS) -Fo$(BLD)\ $<
 !ENDIF
+
+# arch-tag: fefa49b0-c23c-46c7-9094-cab2a405058e

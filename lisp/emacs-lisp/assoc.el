@@ -1,6 +1,6 @@
 ;;; assoc.el --- insert/delete/sort functions on association lists
 
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Keywords: extensions
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -137,4 +137,5 @@ extra values are ignored.  Returns the created alist."
 
 (provide 'assoc)
 
+;;; arch-tag: 3e58bd89-d912-4b74-a0dc-6ed9735922bc
 ;;; assoc.el ends here

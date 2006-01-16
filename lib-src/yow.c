@@ -50,10 +50,6 @@
     &res;})
 #endif
 
-#ifndef HAVE_STDLIB_H
-char *malloc __P ((size_t size))), *realloc __P ((POINTER_TYPE *ptr, size_t size));
-#endif
-
 void yow();
 void setup_yow();
 
@@ -77,7 +73,7 @@ main (argc, argv)
   if ((fp = fopen(file, "r")) == NULL) {
     fprintf(stderr, "yow: ");
     perror(file);
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   /* initialize random seed */
@@ -86,7 +82,7 @@ main (argc, argv)
   setup_yow(fp);
   yow(fp);
   fclose(fp);
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 static long len = -1;
@@ -108,7 +104,7 @@ setup_yow(fp)
   while ((c = getc(fp)) != SEP) {
     if (c == EOF) {
       fprintf(stderr, "yow: file contains no separators\n");
-      exit(2);
+      exit(EXIT_FAILURE);
     }
   }
   header_len = ftell(fp);
@@ -117,7 +113,7 @@ setup_yow(fp)
 
   if (fseek(fp, 0L, 2) == -1) {
     perror("yow");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   len = ftell(fp) - header_len;
 }
@@ -136,7 +132,7 @@ yow (fp)
   offset = rand() % len + header_len;
   if (fseek(fp, offset, 0) == -1) {
     perror("yow");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   /* Read until SEP, read next line, print it.
@@ -158,10 +154,10 @@ yow (fp)
   }
 
   bufsize = BUFSIZE;
-  buf = malloc(bufsize);
+  buf = (char *) malloc(bufsize);
   if (buf == (char *)0) {
     fprintf(stderr, "yow: virtual memory exhausted\n");
-    exit (3);
+    exit (EXIT_FAILURE);
   }
 
   buf[i++] = c;
@@ -171,10 +167,10 @@ yow (fp)
     if (i == bufsize-1) {
       /* Yow! Is this quotation too long yet? */
       bufsize *= 2;
-      buf = realloc(buf, bufsize);
+      buf = (char *) realloc(buf, bufsize);
       if (buf == (char *)0) {
 	fprintf(stderr, "yow: virtual memory exhausted\n");
-	exit (3);
+	exit (EXIT_FAILURE);
       }
     }
   }
@@ -182,3 +178,7 @@ yow (fp)
   printf("%s\n", buf);
 }
 
+/* arch-tag: e40fc0df-bafb-4001-af24-5c883d1c685e
+   (do not change this comment) */
+
+/* yow.c ends here */

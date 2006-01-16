@@ -1,5 +1,6 @@
 /* Definitions file for GNU Emacs running SCO Xenix 386 Release 2.2
-   Copyright (C) 1988, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /*
  *	Define symbols to identify the version of Unix this is.
@@ -206,3 +207,6 @@ Boston, MA 02111-1307, USA.  */
    are not declared.  */
 
 #define BROKEN_TIOCGETC
+
+/* arch-tag: 71d3985d-4e53-4572-8276-5dce26bbd076
+   (do not change this comment) */

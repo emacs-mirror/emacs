@@ -1,5 +1,6 @@
 /* Includes for memory limit warnings.
-   Copyright (C) 1990, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993, 1994, 1995, 1996, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #ifdef MSDOS
 #include <dpmi.h>
@@ -37,9 +38,13 @@ extern int etext, __data_start; weak_extern (__data_start)
 
 #else /* not _LIBC */
 
-#if defined (__osf__) && (defined (__mips) || defined (mips) || defined(__alpha))
-#include <sys/time.h>
-#include <sys/resource.h>
+#ifdef HAVE_SYS_RESOURCE_H
+# include <sys/time.h>
+# include <sys/resource.h>
+#else
+# if HAVE_SYS_VLIMIT_H
+#  include <sys/vlimit.h>	/* Obsolete, says glibc */
+# endif
 #endif
 
 #ifdef __bsdi__
@@ -77,7 +82,9 @@ typedef unsigned long SIZE;
 #define NULL ((POINTER) 0)
 
 extern POINTER start_of_data ();
-#ifdef DATA_SEG_BITS
+#if defined USE_LSB_TAG
+#define EXCEEDS_LISP_PTR(ptr) 0
+#elif defined DATA_SEG_BITS
 #define EXCEEDS_LISP_PTR(ptr) \
   (((EMACS_UINT) (ptr) & ~DATA_SEG_BITS) >> VALBITS)
 #else
@@ -190,3 +197,6 @@ get_lim_data ()
 #endif /* not WINDOWSNT */
 #endif /* not USG */
 #endif /* not NO_LIM_DATA */
+
+/* arch-tag: fe39244e-e54f-4208-b7aa-02556f7841c5
+   (do not change this comment) */

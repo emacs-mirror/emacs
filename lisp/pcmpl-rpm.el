@@ -1,6 +1,7 @@
 ;;; pcmpl-rpm.el --- functions for dealing with rpm completions
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -16,8 +17,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -30,7 +31,7 @@
 (require 'pcomplete)
 
 (defgroup pcmpl-rpm nil
-  "Functions for dealing with CVS completions"
+  "Functions for dealing with CVS completions."
   :group 'pcomplete)
 
 ;; Functions:
@@ -326,4 +327,5 @@ You can use \\[eshell-report-bug] to do so."
        (t
 	(error "You must select a mode: -q, -i, -U, --verify, etc"))))))
 
+;;; arch-tag: 4e64b490-fecf-430e-b2b9-70a8ad64b8c1
 ;;; pcmpl-rpm.el ends here

@@ -1,6 +1,7 @@
 ;;; em-smart.el --- smart display of output
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'em-smart)
 
@@ -33,7 +34,7 @@ some of the edit/review concepts inherent in the design of Plan 9's
 Most likely you will have to turn this option on and play around with
 it to get a real sense of how it works."
   :tag "Smart display of output"
-  :link '(info-link "(eshell)Smart display of output")
+  ;; :link '(info-link "(eshell)Smart display of output")
   :group 'eshell-module)
 
 ;;; Commentary:
@@ -242,7 +243,7 @@ The options are `begin', `after' or `end'."
 
 (defun eshell-smart-maybe-jump-to-end ()
   "Jump to the end of the input buffer.
-This is done whenever a command exits sucessfully and both the command
+This is done whenever a command exits successfully and both the command
 and the end of the buffer are still visible."
   (when (and (= eshell-last-command-status 0)
 	     (if (eq eshell-review-quick-commands 'not-even-short-output)
@@ -323,4 +324,5 @@ and the end of the buffer are still visible."
 
 ;;; Code:
 
+;;; arch-tag: 8c0112c7-379c-4d54-9a1c-204d68786a4b
 ;;; em-smart.el ends here

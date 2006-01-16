@@ -1,6 +1,7 @@
 ;;; cmacexp.el --- expand C macros in a region
 
-;; Copyright (C) 1992, 1994, 1996, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996, 2000, 2001, 2002, 2003, 2004
+;; Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@gnu.org>
 ;; Adapted-By: ESR
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -92,6 +93,9 @@
 
 (provide 'cmacexp)
 
+(defvar msdos-shells)
+
+
 (defgroup c-macro nil
   "Expand C macros in a region."
   :group 'c)
@@ -108,17 +112,23 @@
   :group 'c-macro)
 
 (defcustom c-macro-preprocessor
-  ;; Cannot rely on standard directory on MS-DOS to find CPP.  In
-  ;; fact, cannot rely on having cpp.exe, either, in latest GCC
-  ;; versions.
-  (cond ((eq system-type 'ms-dos) "gcc -E -C -o - -")
-	;; Solaris has it in an unusual place.
+  (cond ;; Solaris has it in an unusual place.
 	((and (string-match "^[^-]*-[^-]*-\\(solaris\\|sunos5\\)"
 			    system-configuration)
 	      (file-exists-p "/opt/SUNWspro/SC3.0.1/bin/acomp"))
 	 "/opt/SUNWspro/SC3.0.1/bin/acomp -C -E")
-        ((file-exists-p "/usr/ccs/lib/cpp") "/usr/ccs/lib/cpp -C")
-	(t "/lib/cpp -C"))
+        ((locate-file "/usr/ccs/lib/cpp"
+		      '("/") exec-suffixes 'file-executable-p)
+	 "/usr/ccs/lib/cpp -C")
+	((locate-file "/lib/cpp"
+		      '("/") exec-suffixes 'file-executable-p)
+	 "/lib/cpp -C")
+	;; On some systems, we cannot rely on standard directories to
+	;; find CPP.  In fact, we cannot rely on having cpp, either,
+	;; in some GCC versions.
+	((locate-file "cpp" exec-path exec-suffixes 'file-executable-p)
+	 "cpp -C")
+	(t "gcc -E -C -o - -"))
   "The preprocessor used by the cmacexp package.
 
 If you change this, be sure to preserve the `-C' (don't strip comments)
@@ -140,8 +150,9 @@ Normally display output in temp buffer, but
 prefix arg means replace the region with it.
 
 `c-macro-preprocessor' specifies the preprocessor to use.
-Prompt for arguments to the preprocessor \(e.g. `-DDEBUG -I ./include')
-if the user option `c-macro-prompt-flag' is non-nil.
+Tf the user option `c-macro-prompt-flag' is non-nil
+prompt for arguments to the preprocessor \(e.g. `-DDEBUG -I ./include'),
+otherwise use `c-macro-cppflags'.
 
 Noninteractive args are START, END, SUBST.
 For use inside Lisp programs, see also `c-macro-expansion'."
@@ -335,13 +346,13 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 		    (format "\n#line %d \"%s\"\n" startlinenum filename)))
 
 	  ;; Call the preprocessor.
-	  (if display (message mymsg))
+	  (if display (message "%s" mymsg))
 	  (setq exit-status
 		(call-process-region 1 (point-max)
 				     shell-file-name
 				     t (list t tempname) nil "-c"
 				     cppcommand))
-	  (if display (message (concat mymsg "done")))
+	  (if display (message "%s" (concat mymsg "done")))
 	  (if (= (buffer-size) 0)
 	      ;; Empty output is normal after a fatal error.
 	      (insert "\nPreprocessor produced no output\n")
@@ -387,4 +398,5 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
       ;; Cleanup.
       (kill-buffer outbuf))))
 
+;;; arch-tag: 4f20253c-71ef-4e6d-a774-19087060910e
 ;;; cmacexp.el ends here

@@ -1,7 +1,7 @@
 #include "copyright.h"
 
-/* $Header: /cvs/emacs/oldXMenu/DelPane.c,v 1.1 1999/10/03 19:34:57 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
  * XMenu:	MIT Project Athena, X Window system menu package
@@ -86,3 +86,6 @@ XMenuDeletePane(display, menu, p_num)
     _XMErrorCode = XME_NO_ERROR;
     return(p_num);
 }
+
+/* arch-tag: 32a5bfd4-4bac-4090-bb53-844110f4908e
+   (do not change this comment) */

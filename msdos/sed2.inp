@@ -2,8 +2,8 @@
 # Configuration script for src/config.h
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2000, 2002
-#   Free Software Foundation, Inc.
+# Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2000, 2002, 2003,
+#   2004, 2005 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -52,3 +52,5 @@ s!^#undef config_opsysfile *$!#define config_opsysfile "s/msdos.h"!
 s!^#undef config_machfile *$!#define config_machfile "m/intel386.h"!
 s/^#undef PROTOTYPES *$/#define PROTOTYPES 1/
 s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
+
+# arch-tag: 31840234-109a-41ab-a675-7a3844978299

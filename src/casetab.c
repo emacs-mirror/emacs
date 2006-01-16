@@ -1,5 +1,6 @@
 /* GNU Emacs routines to deal with case tables.
-   Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 2002, 2003, 2004, 
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,10 +16,10 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
-/* Written by Howard Gayle.  See chartab.c for details. */
+/* Written by Howard Gayle.  */
 
 #include <config.h>
 #include "lisp.h"
@@ -96,8 +97,9 @@ A case table is a char-table which maps characters
 to their lower-case equivalents.  It also has three \"extra\" slots
 which may be additional char-tables or nil.
 These slots are called UPCASE, CANONICALIZE and EQUIVALENCES.
-UPCASE maps each character to its upper-case equivalent;
- if lower and upper case characters are in 1-1 correspondence,
+UPCASE maps each non-upper-case character to its upper-case equivalent.
+ (The value in UPCASE for an upper-case character is never used.)
+ If lower and upper case characters are in 1-1 correspondence,
  you may use nil and the upcase table will be deduced from DOWNCASE.
 CANONICALIZE maps each character to a canonical equivalent;
  any two characters that are related by case-conversion have the same
@@ -138,8 +140,8 @@ set_case_table (table, standard)
   if (NILP (up))
     {
       up = Fmake_char_table (Qcase_table, Qnil);
-      map_char_table (set_identity, Qnil, table, up, 0, indices);
-      map_char_table (shuffle, Qnil, table, up, 0, indices);
+      map_char_table (set_identity, Qnil, table, table, up, 0, indices);
+      map_char_table (shuffle, Qnil, table, table, up, 0, indices);
       XCHAR_TABLE (table)->extras[0] = up;
     }
 
@@ -147,14 +149,14 @@ set_case_table (table, standard)
     {
       canon = Fmake_char_table (Qcase_table, Qnil);
       XCHAR_TABLE (table)->extras[1] = canon;
-      map_char_table (set_canon, Qnil, table, table, 0, indices);
+      map_char_table (set_canon, Qnil, table, table, table, 0, indices);
     }
 
   if (NILP (eqv))
     {
       eqv = Fmake_char_table (Qcase_table, Qnil);
-      map_char_table (set_identity, Qnil, canon, eqv, 0, indices);
-      map_char_table (shuffle, Qnil, canon, eqv, 0, indices);
+      map_char_table (set_identity, Qnil, canon, canon, eqv, 0, indices);
+      map_char_table (shuffle, Qnil, canon, canon, eqv, 0, indices);
       XCHAR_TABLE (table)->extras[2] = eqv;
     }
 
@@ -162,7 +164,12 @@ set_case_table (table, standard)
   XCHAR_TABLE (canon)->extras[2] = eqv;
 
   if (standard)
-    Vascii_downcase_table = table;
+    {
+      Vascii_downcase_table = table;
+      Vascii_upcase_table = up;
+      Vascii_canon_table = canon;
+      Vascii_eqv_table = eqv;
+    }
   else
     {
       current_buffer->downcase_table = table;
@@ -277,3 +284,6 @@ syms_of_casetab ()
   defsubr (&Sset_case_table);
   defsubr (&Sset_standard_case_table);
 }
+
+/* arch-tag: e06388ad-99fe-40ec-ba67-9d010fcc4916
+   (do not change this comment) */

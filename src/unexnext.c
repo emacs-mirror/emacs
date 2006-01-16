@@ -1,5 +1,6 @@
 /* Dump Emacs in macho format.
-   Copyright (C) 1990, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
    Written by Bradley Taylor (btaylor@next.com).
 
 This file is part of GNU Emacs.
@@ -16,8 +17,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #undef __STRICT_BSD__
@@ -510,3 +511,6 @@ unexec(
 		exit(1);
 	}
 }
+
+/* arch-tag: 9796bdc3-c050-417a-b2f5-4cfd31032634
+   (do not change this comment) */

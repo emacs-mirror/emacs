@@ -1,3 +1,5 @@
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
+
 /* This file implements the emacs_insque and emacs_remque functions,
    copies of the insque and remque functions of BSD.  They and all
    their callers have been renamed to emacs_mumble to allow us to
@@ -36,3 +38,6 @@ emacs_remque (elem)
   if (prev)
     prev->q_forw = next;
 }
+
+/* arch-tag: a8719d1a-5c3f-4bce-b36b-173106d36165
+   (do not change this comment) */

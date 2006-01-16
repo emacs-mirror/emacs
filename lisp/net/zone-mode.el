@@ -1,6 +1,6 @@
 ;;; zone-mode.el --- major mode for editing DNS zone files
 
-;; Copyright (C) 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: John Heidemann <johnh@isi.edu>
 ;; Keywords: DNS, languages
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -60,7 +60,7 @@
 	     (old-serial (concat old-date old-seq))
 	     (new-serial (concat cur-date new-seq)))
 	(if (string-lessp new-serial old-serial)
-	    (error (format "Serial numbers want to move backwards from %s to %s" old-serial new-serial))
+	    (error "Serial numbers want to move backwards from %s to %s" old-serial new-serial)
 	  (replace-match (concat cur-date new-seq old-flag) t t))))))
 
 ;;;###autoload
@@ -76,7 +76,7 @@
   "Zone-mode's syntax table.")
 
 (defun zone-mode-load-time-setup ()
-  "Initialise `zone-mode' stuff."
+  "Initialize `zone-mode' stuff."
   (setq zone-mode-syntax-table (make-syntax-table))
   (modify-syntax-entry ?\; "<" zone-mode-syntax-table)
   (modify-syntax-entry ?\n ">" zone-mode-syntax-table))
@@ -92,7 +92,7 @@ Zone-mode does two things:
 
 	- fontification"
 
-  (add-hook 'write-file-hooks 'zone-mode-update-serial-hook nil t)
+  (add-hook 'write-file-functions 'zone-mode-update-serial-hook nil t)
 
   (if (null zone-mode-syntax-table)
       (zone-mode-load-time-setup)) ;; should have been run at load-time
@@ -115,4 +115,5 @@ Zone-mode does two things:
 
 (provide 'zone-mode)
 
+;;; arch-tag: 6a2940ef-fd4f-4de7-b979-b027b09821fe
 ;;; zone-mode.el ends here

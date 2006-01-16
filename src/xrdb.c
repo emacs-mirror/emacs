@@ -1,5 +1,6 @@
 /* Deal with the X Resource Manager.
-   Copyright (C) 1990, 1993, 1994, 2000, 2001 Free Software Foundation.
+   Copyright (C) 1990, 1993, 1994, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Written by jla, 4/90 */
 
@@ -53,9 +54,7 @@ Boston, MA 02111-1307, USA.  */
 #include <X11/X.h>
 #include <X11/Xutil.h>
 #include <X11/Xresource.h>
-#ifdef VMS
-#include "vms-pwd.h"
-#else
+#ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
 #include <sys/stat.h>
@@ -527,7 +526,9 @@ x_load_resources (display, xrm_string, myname, myclass)
   XrmDatabase rdb;
   XrmDatabase db;
   char line[256];
+
   char *helv = "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1";
+
 #ifdef USE_MOTIF
   char *courier = "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1";
   extern Lisp_Object Vdouble_click_time;
@@ -812,3 +813,6 @@ main (argc, argv)
   XCloseDisplay (display);
 }
 #endif /* TESTRM */
+
+/* arch-tag: 37e6fbab-ed05-4363-9e76-6c4109ed511f
+   (do not change this comment) */

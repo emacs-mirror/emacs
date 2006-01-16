@@ -17,3 +17,6 @@
 #endif
 
 #undef  m88k                       /* It sure is NOT a Motorola machine */
+
+/* arch-tag: 7cbf89ef-237c-4da5-bdd0-8d569ae5f3ce
+   (do not change this comment) */

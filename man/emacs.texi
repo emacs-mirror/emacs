@@ -5,18 +5,18 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Fourteenth
-@set EMACSVER  21.3.50
+@set EMACSVER  22.0.50
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
 updated for Emacs version @value{EMACSVER}.
 
-Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998,
-1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+  2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with the
 Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
 ``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
@@ -65,8 +65,8 @@ Software Foundation raise funds for GNU development.''
 @sp 2
 ISBN 1-882114-06-X @*
 Published by the Free Software Foundation @*
-59 Temple Place, Suite 330 @*
-Boston, MA  02111-1307 USA
+51 Franklin Street, Fifth Floor @*
+Boston, MA 02110-1301 USA
 
 @sp 2
 Cover art by Etienne Suvasa.
@@ -121,7 +121,7 @@ and Sending Mail and Registers and Minibuffer.
 * GNU Free Documentation License:: The license for this documentation.
 * Intro::	        An introduction to Emacs concepts.
 * Glossary::	        The glossary.
-* Antinews::	        Information about Emacs version 20.
+* Antinews::	        Information about Emacs version 21.
 * Mac OS::              Using Emacs in the Mac.
 * MS-DOS::              Using Emacs on MS-DOS (otherwise known as "MS-DOG").
 * Manifesto::	        What's GNU?  Gnu's Not Unix!
@@ -129,13 +129,10 @@ and Sending Mail and Registers and Minibuffer.
 
 Indexes (nodes containing large menus)
 * Key Index::	        An item for each standard Emacs key sequence.
+* Option Index::        An item for every command-line option.
 * Command Index::       An item for each command name.
 * Variable Index::      An item for each documented variable.
 * Concept Index::       An item for each concept.
-@c This is last because @ifnottex leaves an empty line.
-@ifnottex
-* Option Index::        An item for every command-line option.
-@end ifnottex
 
 Important General Concepts
 * Screen::	        How to interpret what you see on the screen.
@@ -148,7 +145,7 @@ Important General Concepts
 			  and strings).
 * Entering Emacs::      Starting Emacs from the shell.
 * Exiting::	        Stopping or killing Emacs.
-* Command Arguments::   Hairy startup options.
+* Emacs Invocation::    Hairy startup options.
 
 Fundamental Editing Commands
 * Basic::	        The most basic editing commands.
@@ -158,21 +155,23 @@ Fundamental Editing Commands
 
 Important Text-Changing Commands
 * Mark::	        The mark: how to delimit a ``region'' of text.
-* Killing::	        Killing text.
-* Yanking::	        Recovering killed text.  Moving text.
+* Killing::	        Killing (cutting) text.
+* Yanking::	        Recovering killed text.  Moving text. (Pasting.)
 * Accumulating Text::   Other ways of copying text.
 * Rectangles::	        Operating on the text inside a rectangle on the screen.
 * Registers::	        Saving a text string or a location in the buffer.
 * Display::	        Controlling what text is displayed.
 * Search::	        Finding or replacing occurrences of a string.
 * Fixit::	        Commands especially useful for fixing typos.
+* Keyboard Macros::	A keyboard macro records a sequence of
+			  keystrokes to be replayed with a single command.
 
 Major Structures of Emacs
 * Files::	        All about handling files.
 * Buffers::	        Multiple buffers; editing several files at once.
 * Windows::	        Viewing two pieces of text at once.
 * Frames::	        Running the same Emacs session in multiple X windows.
-* International::       Using non-ASCII character sets (the MULE features).
+* International::       Using non-@acronym{ASCII} character sets (the MULE features).
 
 Advanced Features
 * Major Modes::	        Text mode vs. Lisp mode vs. C mode ...
@@ -192,19 +191,14 @@ Advanced Features
 * Gnus::	        How to read netnews with Emacs.
 * Shell::	        Executing shell commands from Emacs.
 * Emacs Server::        Using Emacs as an editing server for @code{mail}, etc.
-* Hardcopy::	        Printing buffers or regions.
-* PostScript::	        Printing buffers or regions as PostScript.
-* PostScript Variables::
-                        Customizing the PostScript printing commands.
+* Printing::	        Printing hardcopies of buffers or regions.
 * Sorting::	        Sorting lines, paragraphs or pages within Emacs.
 * Narrowing::	        Restricting display and editing to a portion
 		          of the buffer.
 * Two-Column::	        Splitting apart columns to edit them
 		          in side-by-side windows.
-* Editing Binary Files::
-                        Using Hexl mode to edit binary files.
-* Saving Emacs Sessions::
-                        Saving Emacs state from one session to the next.
+* Editing Binary Files::Using Hexl mode to edit binary files.
+* Saving Emacs Sessions:: Saving Emacs state from one session to the next.
 * Recursive Edit::      A command can allow you to do editing
 			  "within the command".  This is called a
 			  "recursive editing level".
@@ -222,10 +216,11 @@ Recovery from Problems
 * Contributing::        How to contribute improvements to Emacs.
 * Service::	        How to get help for your own Emacs needs.
 
+Detailed Node Listing
+---------------------
+
 Here are some other nodes which are really inferiors of the ones
 already listed, mentioned here so you can get to them in one step:
-
- --- The Detailed Node Listing ---
 
 The Organization of the Screen
 
@@ -241,12 +236,13 @@ Basic Editing Commands
 			  change something.
 * Erasing::	        Deleting and killing text.
 * Undo::	        Undoing recent changes in the text.
-* Files: Basic Files.   Visiting, creating, and saving files.
-* Help: Basic Help.     Asking what a character does.
+* Basic Files::         Visiting, creating, and saving files.
+* Basic Help::          Asking what a character does.
 * Blank Lines::	        Commands to make or delete blank lines.
 * Continuation Lines::  Lines too wide for the screen.
 * Position Info::       What page, line, row, or column is point on?
 * Arguments::	        Numeric arguments for repeating a command.
+* Repeating::           A short-cut for repeating the previous command.
 
 The Minibuffer
 
@@ -264,25 +260,33 @@ Help
 * Apropos::		Asking what pertains to a given topic.
 * Library Keywords::	Finding Lisp libraries by keywords (topics).
 * Language Help::       Help relating to international language support.
+* Help Mode::           Special features of Help mode and Help buffers.
 * Misc Help::		Other help commands.
+* Help Files::          Commands to display pre-written help files.
+* Help Echo::           Help on active text and tooltips (`balloon help')
 
 The Mark and the Region
 
 * Setting Mark::	Commands to set the mark.
 * Transient Mark::	How to make Emacs highlight the region--
 			  when there is one.
+* Momentary Mark::      Enabling Transient Mark mode momentarily.
 * Using Region::	Summary of ways to operate on contents of the region.
 * Marking Objects::	Commands to put region around textual units.
 * Mark Ring::		Previous mark positions saved so you can go back there.
 * Global Mark Ring::	Previous mark positions in various buffers.
 
-Deletion and Killing
+Killing and Moving Text
 
 * Deletion::		Commands for deleting small amounts of text and
 			  blank areas.
 * Killing by Lines::	How to kill entire lines of text at one time.
 * Other Kill Commands:: Commands to kill large regions of text and
 			  syntactic units such as words and sentences.
+* Graphical Kill::      The kill ring on graphical terminals:
+                          yanking between applications.
+* CUA Bindings::        Using @kbd{C-x}, @kbd{C-c}, @kbd{C-v} for copy
+                          and paste, with enhanced rectangle support.
 
 Yanking
 
@@ -296,17 +300,26 @@ Registers
 * RegText::     	Saving text in registers.
 * RegRect::     	Saving rectangles in registers.
 * RegConfig::           Saving window configurations in registers.
+* RegNumbers::          Numbers in registers.
 * RegFiles::    	File names in registers.
 * Bookmarks::           Bookmarks are like registers, but persistent.
 
 Controlling the Display
 
+* Faces::	           How to change the display style using faces.
+* Standard Faces::         Emacs' predefined faces.
+* Font Lock::              Minor mode for syntactic highlighting using faces.
+* Highlight Interactively:: Tell Emacs what text to highlight.
+* Highlight Changes::      Using colors to show where you changed the buffer.
 * Scrolling::	           Moving text up and down in a window.
 * Horizontal Scrolling::   Moving text left and right in a window.
+* Fringes::                Enabling or disabling window fringes.
+* Useless Whitespace::     Showing possibly-spurious trailing whitespace.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Selective Display::      Hiding lines with lots of indentation.
 * Optional Mode Line::     Optional mode line display features.
-* Text Display::           How text is normally displayed.
+* Text Display::           How text characters are normally displayed.
+* Cursor Display::         Features for displaying the cursor.
 * Display Custom::         Information on variables for customizing display.
 
 Searching and Replacement
@@ -334,6 +347,17 @@ Commands for Fixing Typos
 * Fixing Case::         Correcting case of last word entered.
 * Spelling::	        Apply spelling checker to a word or a whole buffer.
 
+Keyboard Macros
+
+* Basic Keyboard Macro::     Defining and running keyboard macros.
+* Keyboard Macro Ring::      Where previous keyboard macros are saved.
+* Keyboard Macro Counter::   Inserting incrementing numbers in macros.
+* Keyboard Macro Query::     Making keyboard macros do different things each time.
+* Save Keyboard Macro::      Giving keyboard macros names; saving them in files.
+* Edit Keyboard Macro::      Editing keyboard macros.
+* Keyboard Macro Step-Edit:: Interactively executing and editing a keyboard
+                                macro.
+
 File Handling
 
 * File Names::          How to type and edit file-name arguments.
@@ -347,23 +371,32 @@ File Handling
 * Comparing Files::     Finding where two files differ.
 * Misc File Ops::       Other things you can do on files.
 * Compressed Files::    Accessing compressed files.
+* File Archives::       Operating on tar, zip, jar etc. archive files.
 * Remote Files::        Accessing files on other sites.
 * Quoted File Names::   Quoting special characters in file names.
+* File Name Cache::     Completion against a list of files you often use.
+* File Conveniences::   Convenience Features for Finding Files.
+* Filesets::            Handling sets of files.
 
 Saving Files
 
+* Save Commands::       Commands for saving files.
 * Backup::              How Emacs saves the old version of your file.
+* Customize Save::      Customizing the saving of files.
 * Interlocking::        How Emacs protects against simultaneous editing
                           of one file by two users.
+* File Shadowing::      Copying files to "shadows" automatically.
+* Time Stamps::         Emacs can update time stamps on saved files.
 
 Version Control
 
 * Introduction to VC::  How version control works in general.
-* VC Mode Line::     How the mode line shows version control status.
+* VC Mode Line::        How the mode line shows version control status.
 * Basic VC Editing::    How to edit a file under version control.
 * Old Versions::        Examining and comparing old versions.
-* Secondary VC Commands::    The commands used a little less frequently.
+* Secondary VC Commands:: The commands used a little less frequently.
 * Branches::            Multiple lines of development.
+* Remote Repositories:: Efficient access to remote CVS servers.
 * Snapshots::           Sets of file versions treated as a unit.
 * Miscellaneous VC::    Various other commands and features of VC.
 * Customizing VC::      Variables that change VC's behavior.
@@ -377,6 +410,8 @@ Using Multiple Buffers
 * Several Buffers::     How to go through the list of all buffers
 			  and operate variously on several of them.
 * Indirect Buffers::    An indirect buffer shares the text of another buffer.
+* Buffer Convenience::  Convenience and customization features for
+                          buffer handling.
 
 Multiple Windows
 
@@ -387,6 +422,7 @@ Multiple Windows
 * Force Same Window::   Forcing certain buffers to appear in the selected
                           window rather than in another window.
 * Change Window::       Deleting windows and changing their sizes.
+* Window Convenience::  Convenience functions for window handling.
 
 Frames and X Windows
 
@@ -404,15 +440,11 @@ Frames and X Windows
 * Frame Parameters::    Changing the colors and other modes of frames.
 * Scroll Bars::	        How to enable and disable scroll bars; how to use them.
 * Wheeled Mice::        Using mouse wheels for scrolling.
+* Drag and Drop::       Using drag and drop to open files and insert text.
 * Menu Bars::	        Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
 * Dialog Boxes::        Controlling use of dialog boxes.
-* Faces::	        How to change the display style using faces.
-* Font Lock::           Minor mode for syntactic highlighting using faces.
-* Highlight Changes::   Using colors to show where you changed the buffer.
-* Highlight Interactively:: Tell Emacs what text to highlight.
-* Useless Whitespace::  Showing possibly-spurious trailing whitespace.
-* Tooltips::            Showing "tooltips", AKA "ballon help" for active text.
+* Tooltips::            Showing "tooltips", AKA "balloon help" for active text.
 * Mouse Avoidance::     Moving the mouse pointer out of the way.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
 * XTerm Mouse::         Using the mouse in an XTerm terminal emulator.
@@ -424,6 +456,7 @@ International Character Set Support
 * Language Environments::   Setting things up for the language you use.
 * Input Methods::           Entering text characters not on your keyboard.
 * Select Input Method::     Specifying your choice of input methods.
+* Multibyte Conversion::    How single-byte characters convert to multibyte.
 * Coding Systems::          Character set conversion when you read and
                               write files, and so on.
 * Recognize Coding::        How Emacs figures out which conversion to use.
@@ -431,9 +464,10 @@ International Character Set Support
 * Fontsets::                Fontsets are collections of fonts
                               that cover the whole spectrum of characters.
 * Defining Fontsets::       Defining a new fontset.
-* Single-Byte Character Support::
-                            You can pick one European character set
-                            to use without multibyte characters.
+* Undisplayable Characters::When characters don't display.
+* Single-Byte Character Support:: You can pick one European character set
+                              to use without multibyte characters.
+* Charsets::                How Emacs groups its internal character codes.
 
 Major Modes
 
@@ -457,16 +491,20 @@ Commands for Human Languages
 * Text Mode::	        The major modes for editing text files.
 * Outline Mode::        Editing outlines.
 * TeX Mode::	        Editing input to the formatter TeX.
+* HTML Mode::           Editing HTML, SGML, and XML files.
 * Nroff Mode::	        Editing input to the formatter nroff.
 * Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
+* Text Based Tables::   Editing text-based tables in WYSIWYG fashion.
 
 Filling Text
 
 * Auto Fill::	        Auto Fill mode breaks long lines automatically.
+* Refill::              Keeping paragraphs filled.
 * Fill Commands::       Commands to refill paragraphs and center lines.
 * Fill Prefix::	        Filling paragraphs that are indented
                           or in a comment, etc.
 * Adaptive Fill::       How Emacs can determine the fill prefix automatically.
+* Longlines::           Editing text with very long lines.
 
 Editing Programs
 
@@ -474,8 +512,8 @@ Editing Programs
 * Defuns::              Commands to operate on major top-level parts
                           of a program.
 * Program Indent::      Adjusting indentation to show the nesting.
-* Comments::	        Inserting, killing, and aligning comments.
 * Parentheses::         Commands that operate on parentheses.
+* Comments::	        Inserting, killing, and aligning comments.
 * Documentation::       Getting documentation of functions you plan to call.
 * Hideshow::            Displaying blocks selectively.
 * Symbol Completion::   Completion on symbol names of your program or language.
@@ -529,16 +567,15 @@ C and Related Modes
 * Hungry Delete::       A more powerful DEL command.
 * Other C Commands::    Filling comments, viewing expansion of macros,
                           and other neat features.
-* Comments in C::       Options for customizing comment style.
 
 Fortran Mode
 
-* Motion: Fortran Motion.	 Moving point by statements or subprograms.
-* Indent: Fortran Indent.	 Indentation commands for Fortran.
-* Comments: Fortran Comments.	 Inserting and aligning comments.
-* Autofill: Fortran Autofill.	 Auto fill minor mode for Fortran.
-* Columns: Fortran Columns.	 Measuring columns for valid Fortran.
-* Abbrev: Fortran Abbrev.	 Built-in abbrevs for Fortran keywords.
+* Fortran Motion::	Moving point by statements or subprograms.
+* Fortran Indent::	Indentation commands for Fortran.
+* Fortran Comments::	Inserting and aligning comments.
+* Fortran Autofill::	Auto fill minor mode for Fortran.
+* Fortran Columns::	Measuring columns for valid Fortran.
+* Fortran Abbrev::	Built-in abbrevs for Fortran keywords.
 
 Compiling and Testing Programs
 
@@ -547,13 +584,15 @@ Compiling and Testing Programs
 * Compilation Mode::    The mode for visiting compiler errors.
 * Compilation Shell::   Customizing your shell properly
                           for use in the compilation buffer.
+* Grep Searching::      Searching with grep.
+* Flymake::             Finding syntax errors on the fly.
 * Debuggers::		Running symbolic debuggers for non-Lisp programs.
 * Executing Lisp::	Various modes for editing Lisp programs,
 			  with different facilities for running
 			  the Lisp programs.
 * Lisp Libraries::      Creating Lisp programs to run in Emacs.
-* Lisp Interaction::    Executing Lisp in an Emacs buffer.
 * Lisp Eval::		Executing a single Lisp expression in Emacs.
+* Lisp Interaction::    Executing Lisp in an Emacs buffer.
 * External Lisp::	Communicating through Emacs with a separate Lisp.
 
 Running Debuggers Under Emacs
@@ -562,6 +601,9 @@ Running Debuggers Under Emacs
 * Debugger Operation::	Connection between the debugger and source buffers.
 * Commands of GUD::	Key bindings for common commands.
 * GUD Customization::	Defining your own commands for GUD.
+* GDB Graphical Interface::  An enhanced mode that uses GDB features to
+                          implement a graphical debugging environment through
+                          Emacs.
 
 Maintaining Programs
 
@@ -577,6 +619,7 @@ Tags Tables
 
 * Tag Syntax::		Tag syntax for various types of code and text files.
 * Create Tags Table::	Creating a tags table with @code{etags}.
+* Etags Regexps::       Create arbitrary tags using regular expressions.
 * Select Tags Table::	How to visit a tags table.
 * Find Tag::		Commands to find the definition of a specific tag.
 * Tags Search::		Using a tags table for searching and replacing.
@@ -603,6 +646,7 @@ Abbrevs
 * Editing Abbrevs::     Viewing or editing the entire list of defined abbrevs.
 * Saving Abbrevs::      Saving the entire list of abbrevs for another session.
 * Dynamic Abbrevs::     Abbreviations for words already in the buffer.
+* Dabbrev Customization:: What is a word, for dynamic abbrevs.  Case handling.
 
 Editing Pictures
 
@@ -636,11 +680,15 @@ Reading Mail with Rmail
 * Rmail Summary::       Summaries show brief info on many messages.
 * Rmail Sorting::       Sorting messages in Rmail.
 * Rmail Display::       How Rmail displays a message; customization.
+* Rmail Coding::        How Rmail handles decoding character sets.
 * Rmail Editing::       Editing message text and headers in Rmail.
 * Rmail Digest::        Extracting the messages from a digest message.
 * Out of Rmail::	Converting an Rmail file to mailbox format.
 * Rmail Rot13::         Reading messages encoded in the rot13 code.
 * Movemail::            More details of fetching new mail.
+* Remote Mailboxes::    Retrieving Mail from Remote Mailboxes.
+* Other Mailbox Formats:: Retrieving Mail from Local Mailboxes in
+                          Various Formats
 
 Dired, the Directory Editor
 
@@ -660,6 +708,8 @@ Dired, the Directory Editor
 * Hiding Subdirectories::    Making subdirectories visible or invisible.
 * Dired Updating::           Discarding lines for files of no interest.
 * Dired and Find::	     Using `find' to choose the files for Dired.
+* Wdired::                   Operating on files by editing the Dired buffer.
+* Misc Dired Features::      Various other features.
 
 The Calendar and the Diary
 
@@ -667,14 +717,16 @@ The Calendar and the Diary
 * Scroll Calendar::     Bringing earlier or later months onto the screen.
 * Counting Days::       How many days are there between two dates?
 * General Calendar::    Exiting or recomputing the calendar.
-* LaTeX Calendar::        Print a calendar using LaTeX.
+* LaTeX Calendar::      Print a calendar using LaTeX.
 * Holidays::            Displaying dates of holidays.
 * Sunrise/Sunset::      Displaying local times of sunrise and sunset.
 * Lunar Phases::        Displaying phases of the moon.
 * Other Calendars::     Converting dates to other calendar systems.
 * Diary::               Displaying events from your diary.
 * Appointments::	Reminders when it's time to do something.
+* Importing Diary::     Converting diary events to/from other formats.
 * Daylight Savings::    How to specify when daylight savings time is active.
+* Time Intervals::      Keeping track of time intervals.
 
 Movement in the Calendar
 
@@ -693,13 +745,13 @@ Conversion To and From Other Calendars
 
 The Diary
 
-* Diary Commands::	   Viewing diary entries and associated calendar dates.
+* Displaying the Diary::   Viewing diary entries and associated calendar dates.
 * Format of Diary File::   Entering events in your diary.
 * Date Formats::	   Various ways you can specify dates.
 * Adding to Diary::	   Commands to create diary entries.
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
 
-@sc{Gnus}
+Gnus
 
 * Buffers of Gnus::	The group, summary, and article buffers.
 * Gnus Startup::	What you should know about starting Gnus.
@@ -710,45 +762,47 @@ Running Shell Commands from Emacs
 * Single Shell::	How to run one shell command and return.
 * Interactive Shell::	Permanent shell taking input via Emacs.
 * Shell Mode::		Special Emacs commands used with permanent shell.
+* Shell Prompts::       Two ways to recognize shell prompts.
 * Shell History::       Repeating previous commands in a shell buffer.
+* Directory Tracking::  Keeping track when the subshell changes directory.
 * Shell Options::       Options for customizing Shell mode.
+* Terminal emulator::   An Emacs window as a terminal emulator.
+* Term Mode::           Special Emacs commands used in Term mode.
+* Paging in Term::      Paging in the terminal emulator.
 * Remote Host::		Connecting to another computer.
+
+Using Emacs as a Server
+
+* Invoking emacsclient:: Emacs client startup options.
+
+Hyperlinking and Navigation Features
+
+* Browse-URL::          Following URLs.
+* Goto-address::        Activating URLs.
+* FFAP::                Finding files etc. at point.
 
 Customization
 
 * Minor Modes::		Each minor mode is one feature you can turn on
 			  independently of any others.
+* Easy Customization::  Convenient way to browse and change user options.
 * Variables::		Many Emacs commands examine Emacs variables
 			  to decide what to do; by setting variables,
 			  you can control their functioning.
-* Keyboard Macros::	A keyboard macro records a sequence of
-			  keystrokes to be replayed with a single command.
 * Key Bindings::	The keymaps say what command each key runs.
 			  By changing them, you can "redefine keys".
-* Keyboard Translations::
-                        If your keyboard passes an undesired code
-			   for a key, you can tell Emacs to
-			   substitute another code.
 * Syntax::		The syntax table controls how words and
-			   expressions are parsed.
+			  expressions are parsed.
 * Init File::		How to write common customizations in the
 			  @file{.emacs} file.
 
 Variables
 
 * Examining::	        Examining or setting one variable's value.
-* Easy Customization::
-                        Convenient and easy customization of variables.
 * Hooks::	        Hook variables let you specify programs for parts
 		          of Emacs to run on particular occasions.
 * Locals::	        Per-buffer values of variables.
 * File Variables::      How files can specify variable values.
-
-Keyboard Macros
-
-* Basic Kbd Macro::     Defining and running keyboard macros.
-* Save Kbd Macro::      Giving keyboard macros names; saving them in files.
-* Kbd Macro Query::     Making keyboard macros do different things each time.
 
 Customizing Key Bindings
 
@@ -760,6 +814,7 @@ Customizing Key Bindings
 * Init Rebinding::      Rebinding keys with your init file, @file{.emacs}.
 * Function Keys::       Rebinding terminal function keys.
 * Named ASCII Chars::   Distinguishing @key{TAB} from @kbd{C-i}, and so on.
+* Non-ASCII Rebinding:: Rebinding non-@acronym{ASCII} characters such as Latin-1.
 * Mouse Buttons::       Rebinding mouse buttons in Emacs.
 * Disabling::           Disabling a command means confirmation is required
                           before it can be executed.  This is done to protect
@@ -780,18 +835,19 @@ Dealing with Emacs Trouble
 * Text Garbled::        Garbage in the text.
 * Unasked-for Search::  Spontaneous entry to incremental search.
 * Memory Full::         How to cope when you run out of memory.
+* After a Crash::       Recovering editing in an Emacs session that crashed.
 * Emergency Escape::    Emergency escape---
                           What to do if Emacs stops responding.
 * Total Frustration::   When you are at your wits' end.
 
 Reporting Bugs
 
-* Criteria:  Bug Criteria.	 Have you really found a bug?
-* Understanding Bug Reporting::	 How to report a bug effectively.
-* Checklist::			 Steps to follow for a good bug report.
-* Sending Patches::		 How to send a patch for GNU Emacs.
+* Bug Criteria::        Have you really found a bug?
+* Understanding Bug Reporting::	How to report a bug effectively.
+* Checklist::		Steps to follow for a good bug report.
+* Sending Patches::	How to send a patch for GNU Emacs.
 
-Command Line Options and Arguments
+Command Line Arguments for Emacs Invocation
 
 * Action Arguments::	Arguments to visit files, load libraries,
 			  and call functions.
@@ -806,27 +862,41 @@ Command Line Options and Arguments
 * Borders X::	        Internal and external borders, under X.
 * Title X::             Specifying the initial frame's title.
 * Icons X::             Choosing what sort of icon to use, under X.
+* Misc X::              Other display options.
 
-X Resources
+Environment Variables
+
+* General Variables::	Environment variables that all versions of Emacs use.
+* Misc Variables::	Certain system specific variables.
+* MS-Windows Registry:: An alternative to the environment on MS-Windows.
+
+X Options and Resources
 
 * Resources::           Using X resources with Emacs (in general).
 * Table of Resources::  Table of specific X resources that affect Emacs.
 * Face Resources::      X resources for customizing faces.
 * Lucid Resources::     X resources for Lucid menus.
 * LessTif Resources::   X resources for LessTif and Motif menus.
+* GTK resources::       Resources for GTK widgets.
 
-Environment Variables
+Emacs and Mac OS
 
-* General Variables::	Environment variables that all versions of Emacs use.
-* Misc Variables::	Certain system specific variables.
+* Mac Input::           Keyboard and mouse input on Mac.
+* Mac International::   International character sets on Mac.
+* Mac Environment Variables::  Setting environment variables for Emacs.
+* Mac Directories::     Volumes and directories on Mac.
+* Mac Font Specs::      Specifying fonts on Mac.
+* Mac Functions::       Mac-specific Lisp functions.
 
 MS-DOS and Windows 95/98/NT
 
-* MS-DOS Input::        Keyboard and mouse usage on MS-DOS.
+* MS-DOS Keyboard::     Keyboard usage on MS-DOS.
+* MS-DOS Mouse::        Mouse usage on MS-DOS.
 * MS-DOS Display::      Fonts, frames and display size on MS-DOS.
 * MS-DOS File Names::   File-name conventions on MS-DOS.
 * Text and Binary::     Text files on MS-DOS use CRLF to separate lines.
 * MS-DOS Printing::     How to specify the printer on MS-DOS.
+* MS-DOS and MULE::     Support for internationalization on MS-DOS.
 * MS-DOS Processes::    Running subprocesses on MS-DOS.
 * Windows Processes::   Running subprocesses on Windows.
 * Windows System Menu:: Controlling what the ALT key does.
@@ -881,11 +951,11 @@ files, which are also distributed along with GNU Emacs.
   GNU Emacs is a member of the Emacs editor family.  There are many Emacs
 editors, all sharing common principles of organization.  For information on
 the underlying philosophy of Emacs and the lessons learned from its
-development, write for a copy of AI memo 519a, ``Emacs, the Extensible,
-Customizable Self-Documenting Display Editor,'' to Publications Department,
+development, write for a copy of AI memo 519a, @cite{Emacs, the Extensible,
+Customizable Self-Documenting Display Editor}, to Publications Department,
 Artificial Intelligence Lab, 545 Tech Square, Cambridge, MA 02139, USA@.  At
 last report they charge $2.25 per copy.  Another useful publication is LCS
-TM-165, ``A Cookbook for an Emacs,'' by Craig Finseth, available from
+TM-165, @cite{A Cookbook for an Emacs}, by Craig Finseth, available from
 Publications Department, Laboratory for Computer Science, 545 Tech Square,
 Cambridge, MA 02139, USA@.  The price today is $3.
 
@@ -897,24 +967,29 @@ all GNU Emacs features.  We don't try to describe VMS usage in this
 manual.  @xref{MS-DOS}, for information about using Emacs on MS-DOS.
 @end iftex
 
-@node Distrib, Copying, Top, Top
+@node Distrib, Intro, Top, Top
 @unnumbered Distribution
 
 GNU Emacs is @dfn{free software}; this means that everyone is free to
-use it and free to redistribute it on certain conditions.  GNU Emacs is
-not in the public domain; it is copyrighted and there are restrictions
-on its distribution, but these restrictions are designed to permit
-everything that a good cooperating citizen would want to do.  What is
-not allowed is to try to prevent others from further sharing any version
-of GNU Emacs that they might get from you.  The precise conditions are
-found in the GNU General Public License that comes with Emacs and also
-appears following this section.
+use it and free to redistribute it on certain conditions.  GNU Emacs
+is not in the public domain; it is copyrighted and there are
+restrictions on its distribution, but these restrictions are designed
+to permit everything that a good cooperating citizen would want to do.
+What is not allowed is to try to prevent others from further sharing
+any version of GNU Emacs that they might get from you.  The precise
+conditions are found in the GNU General Public License that comes with
+Emacs and also appears in this manual@footnote{This manual is itself
+covered by the GNU Free Documentation License.  This license is
+similar in spirit to the General Public License, but is more suitable
+for documentation.  @xref{GNU Free Documentation License}.}.
+@xref{Copying}.
 
-One way to get a copy of GNU Emacs is from someone else who has it.  You
-need not ask for our permission to do so, or tell any one else; just
-copy it.  If you have access to the Internet, you can get the latest
-distribution version of GNU Emacs by anonymous FTP; see the file
-@file{etc/FTP} in the Emacs distribution for more information.
+One way to get a copy of GNU Emacs is from someone else who has it.
+You need not ask for our permission to do so, or tell any one else;
+just copy it.  If you have access to the Internet, you can get the
+latest distribution version of GNU Emacs by anonymous FTP; see
+@url{http://www.gnu.org/software/emacs} on our website for more
+information.
 
 You may also receive GNU Emacs when you buy a computer.  Computer
 manufacturers are free to distribute copies on the same terms that apply to
@@ -924,18 +999,18 @@ redistribute the GNU Emacs received from them under the usual terms of the
 General Public License.  In other words, the program must be free for you
 when you get it, not just free for the manufacturer.
 
-You can also order copies of GNU Emacs from the Free Software Foundation
-on CD-ROM@.  This is a convenient and reliable way to get a copy; it is
-also a good way to help fund our work.  (The Foundation has always
-received most of its funds in this way.)  An order form is included in
-the file @file{etc/ORDERS} in the Emacs distribution, and on our web
-site in @url{http://www.gnu.org/order/order.html}.  For further
-information, write to
+You can also order copies of GNU Emacs from the Free Software
+Foundation.  This is a convenient and reliable way to get a copy; it is
+also a good way to help fund our work.  We also sell hardcopy versions
+of this manual and @cite{An Introduction to Programming in Emacs Lisp},
+by Robert J. Chassell.  You can find an order form on our web site at
+@url{http://www.gnu.org/order/order.html}.  For further information,
+write to
 
 @display
 Free Software Foundation
-59 Temple Place, Suite 330
-Boston, MA  02111-1307 USA
+51 Franklin Street, Fifth Floor
+Boston, MA 02110-1301
 USA
 @end display
 
@@ -952,56 +1027,173 @@ might instead suggest ordering a CD-ROM from the Foundation
 occasionally, or subscribing to periodic updates.
 
 @iftex
-Contributors to GNU Emacs include Per Abrahamsen, Jay K. Adams, Joe
-Arceneaux, Boaz Ben-Zvi, Jim Blandy, Terrence Brannon, Frank Bresz,
-Peter Breton, Kevin Broadey, Vincent Broman, David M. Brown, Bill
-Carpenter, Hans Chalupsky, Bob Chassell, James Clark, Mike Clarkson,
-Glynn Clements, Andrew Csillag, Doug Cutting, Michael DeCorte, Gary
-Delp, Matthieu Devin, Eri Ding, Carsten Dominik, Scott Draves, Viktor
-Dukhovni, John Eaton, Rolf Ebert, Stephen Eglen, Torbj@"orn Einarsson,
-Tsugutomo Enami, Hans Henrik Eriksen, Michael Ernst, Ata Etemadi,
-Frederick Farnbach, Fred Fish, Karl Fogel, Gary Foster, Noah Friedman,
-Keith Gabryelski, Kevin Gallagher, Kevin Gallo, Howard Gayle, Stephen
-Gildea, David Gillespie, Bob Glickstein, Boris Goldowsky, Michelangelo
-Grigni, Michael Gschwind, Henry Guillaume, Doug Gwyn, Ken'ichi Handa,
-Chris Hanson, K. Shane Hartman, John Heidemann, Markus Heritsch, Karl
-Heuer, Manabu Higashida, Anders Holst, Kurt Hornik, Tom Houlder, Lars
-Ingebrigtsen, Andrew Innes, Michael K. Johnson, Kyle Jones, Tomoji
-Kagatani, Brewster Kahle, David Kaufman, Henry Kautz, Howard Kaye,
-Michael Kifer, Richard King, Larry K. Kolodney, Robert Krawitz,
-Sebastian Kremer, Geoff Kuenning, David K@aa gedal, Daniel LaLiberte,
-Aaron Larson, James R. Larus, Frederic Lepied, Lars Lindberg, Eric
-Ludlam, Neil M. Mager, Ken Manheimer, Bill Mann, Brian Marick, Simon
+@node Acknowledgments, Intro, Distrib, Top
+@unnumberedsec Acknowledgments
+
+Contributors to GNU Emacs include Per Abrahamsen, Tomas Abrahamsson,
+Jay K.@: Adams, Joe Arceneaux, Miles Bader, David Bakhash, Eli
+Barzilay, Steven L.@: Baur, Boaz Ben-Zvi, Ray Blaak, Jim Blandy, Per
+Bothner, Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel Briot,
+Kevin Broadey, Vincent Broman, David M.@: Brown, Georges Brun-Cottan,
+W@l{}odek Bzyl, Bill Carpenter, Per Cederqvist, Hans Chalupsky, Chris
+Chase, Bob Chassell, Andrew Choi, James Clark, Mike Clarkson, Glynn
+Clements, Andrew Csillag, Doug Cutting, Michael DeCorte, Gary Delp,
+Matthieu Devin, Eri Ding, Jan Dj@"{a}rv, Carsten Dominik, Scott
+Draves, Benjamin Drieu, Viktor Dukhovni, John Eaton, Rolf Ebert,
+Stephen Eglen, Torbj@"orn Einarsson, Tsugutomo Enami, Hans Henrik
+Eriksen, Michael Ernst, Ata Etemadi, Frederick Farnbach, Oscar
+Figueiredo, Fred Fish, Karl Fogel, Gary Foster, Noah Friedman,
+Hallvard Furuseth, Keith Gabryelski, Kevin Gallagher, Kevin Gallo,
+Juan Le@'{o}n Lahoz Garc@'{i}a, Howard Gayle, Stephen Gildea, Julien
+Gilles, David Gillespie, Bob Glickstein, Boris Goldowsky, Michelangelo
+Grigni, Odd Gripenstam, Kai Gro@ss{}johann, Michael Gschwind, Henry
+Guillaume, Doug Gwyn, Ken'ichi Handa, Chris Hanson, K. Shane Hartman,
+John Heidemann, Jon K.@: Hellan, Markus Heritsch, Karl Heuer, Manabu
+Higashida, Anders Holst, Kurt Hornik, Tom Houlder, Denis Howe, Lars
+Ingebrigtsen, Andrew Innes, Seiichiro Inoue, Ulf Jasper, Michael
+K. Johnson, Kyle Jones, Terry Jones, Simon Josefsson, Tomoji Kagatani,
+Brewster Kahle, David Kaufman, Henry Kautz, Taichi Kawabata, Howard
+Kaye, Michael Kifer, Richard King, Peter Kleiweg, Larry K.@: Kolodney,
+Pavel Kobiakov, Larry K.@: Kolodney, David M.@: Koppelman, Koseki
+Yoshinori, Robert Krawitz, Sebastian Kremer, Ryszard Kubiak, Geoff
+Kuenning, David K@aa{}gedal, Daniel LaLiberte, Aaron Larson, James
+R.@: Larus, Vinicius Jose Latorre, Frederic Lepied, Peter Liljenberg,
+Lars Lindberg, Chris Lindblad, Anders Lindgren, Thomas Link, Dave
+Love, Eric Ludlam, Alan Mackenzie, Christopher J.@: Madsen,
+Neil M.@: Mager, Ken Manheimer, Bill Mann, Brian Marick, Simon
 Marshall, Bengt Martensson, Charlie Martin, Thomas May, Roland McGrath,
-David Megginson, Wayne Mesard, Richard Mlynarik, Keith Moore, Erik
-Naggum, Thomas Neumann, Mike Newton, Jurgen Nickelsen, Jeff Norden,
-Andrew Norman, Jeff Peck, Damon Anton Permezel, Tom Perrine, Jens
-Petersen, Daniel Pfeiffer, Fred Pierresteguy, Christian Plaunt,
-Francesco A. Potorti, Michael D. Prange, Ashwin Ram, Eric S. Raymond,
-Paul Reilly, Edward M. Reingold, Rob Riepel, Roland B. Roberts, John
-Robinson, Danny Roozendaal, William Rosenblatt, Guillermo J. Rozas, Ivar
-Rummelhoff, Wolfgang Rupprecht, James B. Salem, Masahiko Sato, William
-Schelter, Ralph Schleicher, Gregor Schmid, Michael Schmidt, Ronald
-S. Schnell, Philippe Schnoebelen, Stephen Schoef, Randal Schwartz,
-Manuel Serrano, Stanislav Shalunov, Mark Shapiro, Richard Sharman, Olin
-Shivers, Espen Skoglund, Rick Sladkey, Lynn Slater, Chris Smith, David
-Smith, Paul D. Smith, William Sommerfeld, Michael Staats, Sam Steingold,
-Ake Stenhoff, Peter Stephenson, Jonathan Stigelman, Steve Strassman,
-Jens T. Berger Thielemann, Spencer Thomas, Jim Thompson, Masanobu Umeda,
-Neil W. Van Dyke, Ulrik Vieth, Geoffrey Voelker, Johan Vromans, Barry
-Warsaw, Morten Welinder, Joseph Brian Wells, Rodney Whitby, Ed
-Wilkinson, Mike Williams, Steven A. Wood, Dale R. Worley, Felix
-S. T. Wu, Tom Wurgler, Eli Zaretskii, Jamie Zawinski, Ian T. Zimmermann,
-Reto Zimmermann, and Neal Ziring.
+Will Mengarini, David Megginson, Wayne Mesard, Brad Miller, Richard
+Mlynarik, Gerd Moellmann, Stefan Monnier, Morioka Tomohiko, Keith
+Moore, Sen Nagata, Erik Naggum, Thomas Neumann, Thien-Thi Nguyen, Mike
+Newton, Jurgen Nickelsen, Dan Nicolaescu, Jeff Norden, Andrew Norman,
+Alexandre Oliva, Bob Olson, Takaaki Ota, Pieter E.@: J.@: Pareit,
+David Pearson, Jeff Peck, Damon Anton Permezel, Tom Perrine, William
+M.@: Perry, Per Persson, Jens Petersen, Daniel Pfeiffer, Richard
+L.@: Pieri, Fred Pierresteguy, Christian Plaunt, David Ponce, Francesco
+A. Potorti, Michael D. Prange, Mukesh Prasad, Marko Rahamaa, Ashwin
+Ram, Eric S. Raymond, Paul Reilly, Edward M. Reingold, Alex Rezinsky,
+Rob Riepel, Nick Roberts, Roland B.@: Roberts, John Robinson, Danny
+Roozendaal, William Rosenblatt, Guillermo J.@: Rozas, Ivar Rummelhoff,
+Jason Rumney, Wolfgang Rupprecht, Kevin Ryde, James B. Salem, Masahiko
+Sato, Holger Schauer, William Schelter, Ralph Schleicher, Gregor
+Schmid, Michael Schmidt, Ronald S. Schnell, Philippe Schnoebelen, Jan
+Schormann, Alex Schroeder, Stephen Schoef, Randal Schwartz, Oliver
+Seidel, Manuel Serrano, Hovav Shacham, Stanislav Shalunov, Mark
+Shapiro, Richard Sharman, Olin Shivers, Espen Skoglund, Rick Sladkey,
+Lynn Slater, Chris Smith, David Smith, Paul D.@: Smith, Andre Spiegel,
+Michael Staats, William Sommerfeld, Michael Staats, Sam Steingold, Ake
+Stenhoff, Peter Stephenson, Ken Stevens, Jonathan Stigelman, Martin
+Stjernholm, Kim F.@: Storm, Steve Strassman, Olaf Sylvester, Naoto
+Takahashi, Jean-Philippe Theberge, Jens T.@: Berger Thielemann,
+Spencer Thomas, Jim Thompson, Tom Tromey, Daiki Ueno, Masanobu Umeda,
+Rajesh Vaidheeswarran, Neil W.@: Van Dyke, Didier Verna, Ulrik Vieth,
+Geoffrey Voelker, Johan Vromans, Inge Wallin, Colin Walters, Barry
+Warsaw, Morten Welinder, Joseph Brian Wells, Rodney Whitby, John
+Wiegley, Ed Wilkinson, Mike Williams, Bill Wohler, Steven A. Wood,
+Dale R.@: Worley, Francis J.@: Wright, Felix S. T. Wu, Tom Wurgler,
+Masatake Yamato, Jonathan Yavner, Ilya Zakharevich, Milan Zamazal,
+Victor Zandy, Eli Zaretskii, Jamie Zawinski, Shenghuo Zhu, Ian
+T.@: Zimmermann, Reto Zimmermann, Neal Ziring, and Detlev Zundel.
 @end iftex
 
-@node Copying, GNU Free Documentation License, Distrib, Top
-@unnumbered GNU GENERAL PUBLIC LICENSE
+@node Intro, Glossary, Distrib, Top
+@unnumbered Introduction
+
+  You are reading about GNU Emacs, the GNU incarnation of the advanced,
+self-documenting, customizable, extensible real-time display editor Emacs.
+(The `G' in `GNU' is not silent.)
+
+  We say that Emacs is a @dfn{display} editor because normally the text
+being edited is visible on the screen and is updated automatically as you
+type your commands.  @xref{Screen,Display}.
+
+  We call it a @dfn{real-time} editor because the display is updated very
+frequently, usually after each character or pair of characters you
+type.  This minimizes the amount of information you must keep in your
+head as you edit.  @xref{Basic,Real-time,Basic Editing}.
+
+  We call Emacs advanced because it provides facilities that go beyond
+simple insertion and deletion: controlling subprocesses; automatic
+indentation of programs; viewing two or more files at once; editing
+formatted text; and dealing in terms of characters, words, lines,
+sentences, paragraphs, and pages, as well as expressions and comments in
+several different programming languages.
+
+  @dfn{Self-documenting} means that at any time you can type a special
+character, @kbd{Control-h}, to find out what your options are.  You can
+also use it to find out what any command does, or to find all the commands
+that pertain to a topic.  @xref{Help}.
+
+  @dfn{Customizable} means that you can change the definitions of Emacs
+commands in little ways.  For example, if you use a programming language in
+which comments start with @samp{<**} and end with @samp{**>}, you can tell
+the Emacs comment manipulation commands to use those strings
+(@pxref{Comments}).  Another sort of customization is rearrangement of the
+command set.  For example, if you prefer the four basic cursor motion
+commands (up, down, left and right) on keys in a diamond pattern on the
+keyboard, you can rebind the keys that way.  @xref{Customization}.
+
+  @dfn{Extensible} means that you can go beyond simple customization and
+write entirely new commands, programs in the Lisp language to be run by
+Emacs's own Lisp interpreter.  Emacs is an ``on-line extensible''
+system, which means that it is divided into many functions that call
+each other, any of which can be redefined in the middle of an editing
+session.  Almost any part of Emacs can be replaced without making a
+separate copy of all of Emacs.  Most of the editing commands of Emacs
+are written in Lisp; the few exceptions could have been written
+in Lisp but are written in C for efficiency.  Although only a programmer
+can write an extension, anybody can use it afterward.  @xref{Top,
+Emacs Lisp Intro, Preface, eintr, An Introduction to Programming in
+Emacs Lisp}, if you want to learn Emacs Lisp programming.
+
+   When run under the X Window System, Emacs provides its own menus and
+convenient bindings to mouse buttons.  But Emacs can provide many of the
+benefits of a window system on a text-only terminal.  For instance, you
+can look at or edit several files at once, move text between files, and
+edit files while running shell commands.
+
+@include screen.texi
+@include commands.texi
+@include entering.texi
+@include basic.texi
+@include mini.texi
+@include m-x.texi
+@include help.texi
+@include mark.texi
+@include killing.texi
+@include regs.texi
+@include display.texi
+@include search.texi
+@include fixit.texi
+@include kmacro.texi
+@include files.texi
+@include buffers.texi
+@include windows.texi
+@include frames.texi
+@include mule.texi
+@include major.texi
+@include indent.texi
+@include text.texi
+@include programs.texi
+@include building.texi
+@include maintaining.texi
+@include abbrevs.texi
+@include picture.texi
+@include sending.texi
+@include rmail.texi
+@include dired.texi
+@include calendar.texi
+@include misc.texi
+@include custom.texi
+@include trouble.texi
+
+@node Copying, GNU Free Documentation License, Service, Top
+@appendix GNU GENERAL PUBLIC LICENSE
 @center Version 2, June 1991
 
 @display
 Copyright @copyright{} 1989, 1991 Free Software Foundation, Inc.
-59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
 Everyone is permitted to copy and distribute verbatim copies
 of this license document, but changing it is not allowed.
@@ -1347,7 +1539,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
-59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 @end smallexample
 
 Also add information on how to contact you by electronic and paper mail.
@@ -1392,97 +1584,6 @@ library.  If this is what you want to do, use the GNU Library General
 Public License instead of this License.
 
 @include doclicense.texi
-
-@node Intro, Glossary, GNU Free Documentation License, Top
-@unnumbered Introduction
-
-  You are reading about GNU Emacs, the GNU incarnation of the advanced,
-self-documenting, customizable, extensible real-time display editor Emacs.
-(The `G' in `GNU' is not silent.)
-
-  We say that Emacs is a @dfn{display} editor because normally the text
-being edited is visible on the screen and is updated automatically as you
-type your commands.  @xref{Screen,Display}.
-
-  We call it a @dfn{real-time} editor because the display is updated very
-frequently, usually after each character or pair of characters you
-type.  This minimizes the amount of information you must keep in your
-head as you edit.  @xref{Basic,Real-time,Basic Editing}.
-
-  We call Emacs advanced because it provides facilities that go beyond
-simple insertion and deletion: controlling subprocesses; automatic
-indentation of programs; viewing two or more files at once; editing
-formatted text; and dealing in terms of characters, words, lines,
-sentences, paragraphs, and pages, as well as expressions and comments in
-several different programming languages.
-
-  @dfn{Self-documenting} means that at any time you can type a special
-character, @kbd{Control-h}, to find out what your options are.  You can
-also use it to find out what any command does, or to find all the commands
-that pertain to a topic.  @xref{Help}.
-
-  @dfn{Customizable} means that you can change the definitions of Emacs
-commands in little ways.  For example, if you use a programming language in
-which comments start with @samp{<**} and end with @samp{**>}, you can tell
-the Emacs comment manipulation commands to use those strings
-(@pxref{Comments}).  Another sort of customization is rearrangement of the
-command set.  For example, if you prefer the four basic cursor motion
-commands (up, down, left and right) on keys in a diamond pattern on the
-keyboard, you can rebind the keys that way.  @xref{Customization}.
-
-  @dfn{Extensible} means that you can go beyond simple customization and
-write entirely new commands, programs in the Lisp language to be run by
-Emacs's own Lisp interpreter.  Emacs is an ``on-line extensible''
-system, which means that it is divided into many functions that call
-each other, any of which can be redefined in the middle of an editing
-session.  Almost any part of Emacs can be replaced without making a
-separate copy of all of Emacs.  Most of the editing commands of Emacs
-are written in Lisp; the few exceptions could have been written
-in Lisp but are written in C for efficiency.  Although only a programmer
-can write an extension, anybody can use it afterward.  If you want to
-learn Emacs Lisp programming, we recommend the @cite{Introduction to
-Emacs Lisp} by Robert J. Chassell, also published by the Free Software
-Foundation.
-
-   When run under the X Window System, Emacs provides its own menus and
-convenient bindings to mouse buttons.  But Emacs can provide many of the
-benefits of a window system on a text-only terminal.  For instance, you
-can look at or edit several files at once, move text between files, and
-edit files while running shell commands.
-
-@include screen.texi
-@include commands.texi
-@include entering.texi
-@include basic.texi
-@include mini.texi
-@include m-x.texi
-@include help.texi
-@include mark.texi
-@include killing.texi
-@include regs.texi
-@include display.texi
-@include search.texi
-@include fixit.texi
-@include files.texi
-@include buffers.texi
-@include windows.texi
-@include frames.texi
-@include mule.texi
-@include major.texi
-@include indent.texi
-@include text.texi
-@include programs.texi
-@include building.texi
-@include maintaining.texi
-@include abbrevs.texi
-@include picture.texi
-@include sending.texi
-@include rmail.texi
-@include dired.texi
-@include calendar.texi
-@include misc.texi
-@include custom.texi
-@include trouble.texi
 @include cmdargs.texi
 @include xresources.texi
 
@@ -1491,9 +1592,9 @@ edit files while running shell commands.
 @include msdog.texi
 @include gnu.texi
 @include glossary.texi
-@ifinfo
+@ifnottex
 @include ack.texi
-@end ifinfo
+@end ifnottex
 
 @c The Option Index is produced only in the on-line version,
 @c because the index entries related to command-line options
@@ -1542,3 +1643,6 @@ edit files while running shell commands.
 @contents
 @bye
 
+@ignore
+   arch-tag: ed48740a-410b-46ea-9387-c9a9252a3392
+@end ignore

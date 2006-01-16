@@ -1,6 +1,7 @@
-;;; mail-parse.el --- interface functions for parsing mail
-;; Copyright (C) 1998, 1999, 2000
-;;        Free Software Foundation, Inc.
+;;; mail-parse.el --- Interface functions for parsing mail
+
+;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -17,8 +18,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -43,10 +44,11 @@
 (require 'rfc2047)
 (require 'rfc2045)
 
-(defalias 'mail-header-parse-content-type 'rfc2231-parse-string)
-(defalias 'mail-header-parse-content-disposition 'rfc2231-parse-string)
+(defalias 'mail-header-parse-content-type 'rfc2231-parse-qp-string)
+(defalias 'mail-header-parse-content-disposition 'rfc2231-parse-qp-string)
 (defalias 'mail-content-type-get 'rfc2231-get-value)
-(defalias 'mail-header-encode-parameter 'rfc2045-encode-string)
+;(defalias 'mail-header-encode-parameter 'rfc2045-encode-string)
+(defalias 'mail-header-encode-parameter 'rfc2231-encode-string)
 
 (defalias 'mail-header-remove-comments 'ietf-drums-remove-comments)
 (defalias 'mail-header-remove-whitespace 'ietf-drums-remove-whitespace)
@@ -58,7 +60,11 @@
 (defalias 'mail-narrow-to-head 'ietf-drums-narrow-to-header)
 (defalias 'mail-quote-string 'ietf-drums-quote-string)
 
+(defalias 'mail-header-fold-field 'rfc2047-fold-field)
+(defalias 'mail-header-unfold-field 'rfc2047-unfold-field)
 (defalias 'mail-header-narrow-to-field 'rfc2047-narrow-to-field)
+(defalias 'mail-header-field-value 'rfc2047-field-value)
+
 (defalias 'mail-encode-encoded-word-region 'rfc2047-encode-region)
 (defalias 'mail-encode-encoded-word-buffer 'rfc2047-encode-message-header)
 (defalias 'mail-encode-encoded-word-string 'rfc2047-encode-string)
@@ -67,4 +73,5 @@
 
 (provide 'mail-parse)
 
+;;; arch-tag: 3e63d75c-c962-4784-ab01-7ba07ca9d2d4
 ;;; mail-parse.el ends here

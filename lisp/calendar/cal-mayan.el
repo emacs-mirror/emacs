@@ -1,9 +1,11 @@
 ;;; cal-mayan.el --- calendar functions for the Mayan calendars
 
-;; Copyright (C) 1992, 1993, 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1995, 1997, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Stewart M. Clamen <clamen@cs.cmu.edu>
 ;;	Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: Mayan calendar, Maya, calendar, diary
 
@@ -21,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -44,14 +46,16 @@
 ;; Comments, improvements, and bug reports should be sent to Reingold.
 
 ;; Technical details of the Mayan calendrical calculations can be found in
-;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
-;; Cambridge University Press (1997), and in
+;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
+;; and Nachum Dershowitz, Cambridge University Press (2001), and in
 ;; ``Calendrical Calculations, Part II: Three Historical Calendars''
 ;; by E. M. Reingold,  N. Dershowitz, and S. M. Clamen,
 ;; Software--Practice and Experience, Volume 23, Number 4 (April, 1993),
 ;; pages 383-404.
 
 ;;; Code:
+
+(defvar date)
 
 (require 'calendar)
 
@@ -256,11 +260,11 @@ Returns nil if such a tzolkin-haab combination is impossible."
          (haab-month-list (append calendar-mayan-haab-month-name-array
                                   (and (< haab-day 5) '("Uayeb"))))
          (haab-month (cdr
-                      (assoc-ignore-case
+                      (assoc-string
                        (completing-read "Haab uinal: "
                                         (mapcar 'list haab-month-list)
                                         nil t)
-                       (calendar-make-alist haab-month-list 1)))))
+                       (calendar-make-alist haab-month-list 1) t))))
     (cons haab-day haab-month)))
 
 (defun calendar-read-mayan-tzolkin-date ()
@@ -271,11 +275,11 @@ Returns nil if such a tzolkin-haab combination is impossible."
                          '(lambda (x) (and (> x 0) (< x 14)))))
          (tzolkin-name-list (append calendar-mayan-tzolkin-names-array nil))
          (tzolkin-name (cdr
-                        (assoc-ignore-case
+                        (assoc-string
                           (completing-read "Tzolkin uinal: "
                                            (mapcar 'list tzolkin-name-list)
                                            nil t)
-                         (calendar-make-alist tzolkin-name-list 1)))))
+                         (calendar-make-alist tzolkin-name-list 1) t))))
     (cons tzolkin-count tzolkin-name)))
 
 (defun calendar-next-calendar-round-date
@@ -376,4 +380,5 @@ Defaults to today's date if DATE is not given."
 
 (provide 'cal-mayan)
 
+;;; arch-tag: 54f35144-cd0f-4873-935a-a60129de07df
 ;;; cal-mayan.el ends here

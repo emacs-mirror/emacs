@@ -1,10 +1,10 @@
 ;;; calc-arith.el --- arithmetic functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,11 +28,77 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
-(require 'calc-ext)
 
+(require 'calc-ext)
 (require 'calc-macs)
 
-(defun calc-Need-calc-arith () nil)
+;;; The following lists are not exhaustive.
+(defvar math-scalar-functions '(calcFunc-det
+				calcFunc-cnorm calcFunc-rnorm
+				calcFunc-vlen calcFunc-vcount
+				calcFunc-vsum calcFunc-vprod
+				calcFunc-vmin calcFunc-vmax))
+
+(defvar math-nonscalar-functions '(vec calcFunc-idn calcFunc-diag
+				       calcFunc-cvec calcFunc-index
+				       calcFunc-trn
+				       | calcFunc-append
+				       calcFunc-cons calcFunc-rcons
+				       calcFunc-tail calcFunc-rhead))
+
+(defvar math-scalar-if-args-functions '(+ - * / neg))
+
+(defvar math-real-functions '(calcFunc-arg
+			      calcFunc-re calcFunc-im
+			      calcFunc-floor calcFunc-ceil
+			      calcFunc-trunc calcFunc-round
+			      calcFunc-rounde calcFunc-roundu
+			      calcFunc-ffloor calcFunc-fceil
+			      calcFunc-ftrunc calcFunc-fround
+			      calcFunc-frounde calcFunc-froundu))
+
+(defvar math-positive-functions '())
+
+(defvar math-nonnegative-functions '(calcFunc-cnorm calcFunc-rnorm
+				     calcFunc-vlen calcFunc-vcount))
+
+(defvar math-real-scalar-functions '(% calcFunc-idiv calcFunc-abs
+				       calcFunc-choose calcFunc-perm
+				       calcFunc-eq calcFunc-neq
+				       calcFunc-lt calcFunc-gt
+				       calcFunc-leq calcFunc-geq
+				       calcFunc-lnot
+				       calcFunc-max calcFunc-min))
+
+(defvar math-real-if-arg-functions '(calcFunc-sin calcFunc-cos
+				     calcFunc-tan calcFunc-sec
+                                     calcFunc-csc calcFunc-cot
+                                     calcFunc-arctan
+				     calcFunc-sinh calcFunc-cosh
+				     calcFunc-tanh calcFunc-sech
+                                     calcFunc-csch calcFunc-coth
+                                     calcFunc-exp
+				     calcFunc-gamma calcFunc-fact))
+
+(defvar math-integer-functions '(calcFunc-idiv
+				 calcFunc-isqrt calcFunc-ilog
+				 calcFunc-vlen calcFunc-vcount))
+
+(defvar math-num-integer-functions '())
+
+(defvar math-rounding-functions '(calcFunc-floor
+				  calcFunc-ceil
+				  calcFunc-round calcFunc-trunc
+				  calcFunc-rounde calcFunc-roundu))
+
+(defvar math-float-rounding-functions '(calcFunc-ffloor
+					calcFunc-fceil
+					calcFunc-fround calcFunc-ftrunc
+					calcFunc-frounde calcFunc-froundu))
+
+(defvar math-integer-if-args-functions '(+ - * % neg calcFunc-abs
+					   calcFunc-min calcFunc-max
+					   calcFunc-choose calcFunc-perm))
 
 
 ;;; Arithmetic.
@@ -164,6 +230,20 @@
 ;;;       TYPES is a list of type symbols (any, int, frac, ...)
 ;;;	  RANGE is a sorted vector of intervals describing the range.
 
+(defvar math-super-types
+  '((int numint rat real number)
+    (numint real number)
+    (frac rat real number)
+    (rat real number)
+    (float real number)
+    (real number)
+    (number)
+    (scalar)
+    (sqmatrix matrix vector)
+    (matrix vector)
+    (vector)
+    (const)))
+
 (defun math-setup-declarations ()
   (or (eq math-decls-cache-tag (calc-var-value 'var-Decls))
       (let ((p (calc-var-value 'var-Decls))
@@ -214,19 +294,6 @@
 		      (error nil)))))
 	(setq math-decls-all (assq 'var-All math-decls-cache)))))
 
-(defvar math-super-types
-  '((int numint rat real number)
-    (numint real number)
-    (frac rat real number)
-    (rat real number)
-    (float real number)
-    (real number)
-    (number)
-    (scalar)
-    (matrix vector)
-    (vector)
-    (const)))
-
 (defun math-known-scalarp (a &optional assume-scalar)
   (math-setup-declarations)
   (if (if calc-matrix-mode
@@ -238,6 +305,10 @@
 (defun math-known-matrixp (a)
   (and (not (Math-scalarp a))
        (not (math-known-scalarp a t))))
+
+(defun math-known-square-matrixp (a)
+  (and (math-known-matrixp a)
+       (math-check-known-square-matrixp a)))
 
 ;;; Try to prove that A is a scalar (i.e., a non-vector).
 (defun math-check-known-scalarp (a)
@@ -257,8 +328,17 @@
 	 (let ((decl (if (eq (car a) 'var)
 			 (or (assq (nth 2 a) math-decls-cache)
 			     math-decls-all)
-		       (assq (car a) math-decls-cache))))
-	   (memq 'scalar (nth 1 decl))))))
+		       (assq (car a) math-decls-cache)))
+               val)
+           (cond
+            ((memq 'scalar (nth 1 decl))
+             t)
+            ((and (eq (car a) 'var)
+                  (boundp (nth 2 a))
+                  (setq val (symbol-value (nth 2 a))))
+             (math-check-known-scalarp val))
+            (t
+             nil))))))
 
 ;;; Try to prove that A is *not* a scalar.
 (defun math-check-known-matrixp (a)
@@ -276,9 +356,53 @@
 	 (let ((decl (if (eq (car a) 'var)
 			 (or (assq (nth 2 a) math-decls-cache)
 			     math-decls-all)
-		       (assq (car a) math-decls-cache))))
-	   (memq 'vector (nth 1 decl))))))
+		       (assq (car a) math-decls-cache)))
+               val)
+           (cond
+            ((memq 'matrix (nth 1 decl))
+             t)
+            ((and (eq (car a) 'var)
+                  (boundp (nth 2 a))
+                  (setq val (symbol-value (nth 2 a))))
+             (math-check-known-matrixp val))
+            (t
+             nil))))))
 
+;;; Given that A is a matrix, try to prove that it is a square matrix.
+(defun math-check-known-square-matrixp (a)
+  (cond ((math-square-matrixp a)
+         t)
+        ((eq (car-safe a) '^)
+         (math-check-known-square-matrixp (nth 1 a)))
+        ((or
+          (eq (car-safe a) '*)
+          (eq (car-safe a) '+)
+          (eq (car-safe a) '-))
+         (and
+          (math-check-known-square-matrixp (nth 1 a))
+          (math-check-known-square-matrixp (nth 2 a))))
+        (t
+         (let ((decl (if (eq (car a) 'var)
+                         (or (assq (nth 2 a) math-decls-cache)
+                             math-decls-all)
+                       (assq (car a) math-decls-cache)))
+               val)
+           (cond
+            ((memq 'sqmatrix (nth 1 decl))
+             t)
+            ((and (eq (car a) 'var)
+                  (boundp (nth 2 a))
+                  (setq val (symbol-value (nth 2 a))))
+             (math-check-known-square-matrixp val))
+            ((and (or
+                   (integerp calc-matrix-mode)
+                   (eq calc-matrix-mode 'sqmatrix))
+                  (eq (car-safe a) 'var))
+             t)
+            ((memq 'matrix (nth 1 decl))
+             nil)
+            (t
+             nil))))))
 
 ;;; Try to prove that A is a real (i.e., not complex).
 (defun math-known-realp (a)
@@ -326,9 +450,12 @@
 	       ((Math-negp a) 1)
 	       ((Math-zerop a) 2)
 	       ((eq (car a) 'intv)
-		(cond ((Math-zerop (nth 2 a)) 6)
-		      ((Math-zerop (nth 3 a)) 3)
-		      (t 7)))
+		(cond 
+                 ((math-known-posp (nth 2 a)) 4)
+                 ((math-known-negp (nth 3 a)) 1)
+                 ((Math-zerop (nth 2 a)) 6)
+                 ((Math-zerop (nth 3 a)) 3)
+                 (t 7)))
 	       ((eq (car a) 'sdev)
 		(if (math-known-realp (nth 1 a)) 7 15))
 	       (t 8)))
@@ -819,71 +946,6 @@
       (math-reject-arg a 'objectp 'quiet))))
 
 
-;;; The following lists are not exhaustive.
-(defvar math-scalar-functions '(calcFunc-det
-				calcFunc-cnorm calcFunc-rnorm
-				calcFunc-vlen calcFunc-vcount
-				calcFunc-vsum calcFunc-vprod
-				calcFunc-vmin calcFunc-vmax))
-
-(defvar math-nonscalar-functions '(vec calcFunc-idn calcFunc-diag
-				       calcFunc-cvec calcFunc-index
-				       calcFunc-trn
-				       | calcFunc-append
-				       calcFunc-cons calcFunc-rcons
-				       calcFunc-tail calcFunc-rhead))
-
-(defvar math-scalar-if-args-functions '(+ - * / neg))
-
-(defvar math-real-functions '(calcFunc-arg
-			      calcFunc-re calcFunc-im
-			      calcFunc-floor calcFunc-ceil
-			      calcFunc-trunc calcFunc-round
-			      calcFunc-rounde calcFunc-roundu
-			      calcFunc-ffloor calcFunc-fceil
-			      calcFunc-ftrunc calcFunc-fround
-			      calcFunc-frounde calcFunc-froundu))
-
-(defvar math-positive-functions '())
-
-(defvar math-nonnegative-functions '(calcFunc-cnorm calcFunc-rnorm
-				     calcFunc-vlen calcFunc-vcount))
-
-(defvar math-real-scalar-functions '(% calcFunc-idiv calcFunc-abs
-				       calcFunc-choose calcFunc-perm
-				       calcFunc-eq calcFunc-neq
-				       calcFunc-lt calcFunc-gt
-				       calcFunc-leq calcFunc-geq
-				       calcFunc-lnot
-				       calcFunc-max calcFunc-min))
-
-(defvar math-real-if-arg-functions '(calcFunc-sin calcFunc-cos
-				     calcFunc-tan calcFunc-arctan
-				     calcFunc-sinh calcFunc-cosh
-				     calcFunc-tanh calcFunc-exp
-				     calcFunc-gamma calcFunc-fact))
-
-(defvar math-integer-functions '(calcFunc-idiv
-				 calcFunc-isqrt calcFunc-ilog
-				 calcFunc-vlen calcFunc-vcount))
-
-(defvar math-num-integer-functions '())
-
-(defvar math-rounding-functions '(calcFunc-floor
-				  calcFunc-ceil
-				  calcFunc-round calcFunc-trunc
-				  calcFunc-rounde calcFunc-roundu))
-
-(defvar math-float-rounding-functions '(calcFunc-ffloor
-					calcFunc-fceil
-					calcFunc-fround calcFunc-ftrunc
-					calcFunc-frounde calcFunc-froundu))
-
-(defvar math-integer-if-args-functions '(+ - * % neg calcFunc-abs
-					   calcFunc-min calcFunc-max
-					   calcFunc-choose calcFunc-perm))
-
-
 ;;;; Arithmetic.
 
 (defsubst calcFunc-neg (a)
@@ -1331,6 +1393,7 @@
       (and (eq (car-safe b) '^)
 	   (Math-looks-negp (nth 2 b))
 	   (not (and (eq (car-safe a) '^) (Math-looks-negp (nth 2 a))))
+           (not (math-known-matrixp (nth 1 b)))
 	   (math-div a (math-normalize
 			(list '^ (nth 1 b) (math-neg (nth 2 b))))))
       (and (eq (car-safe a) '/)
@@ -1372,6 +1435,30 @@
 		    (list 'calcFunc-idn (math-mul a (nth 1 b))))
 	       (and (math-known-matrixp a)
 		    (math-mul a (nth 1 b)))))
+      (and (math-identity-matrix-p a t)
+           (or (and (eq (car-safe b) 'calcFunc-idn)
+                    (= (length b) 2)
+                    (list 'calcFunc-idn (math-mul 
+                                         (nth 1 (nth 1 a))
+                                         (nth 1 b))
+                          (1- (length a))))
+               (and (math-known-scalarp b)
+                    (list 'calcFunc-idn (math-mul 
+                                         (nth 1 (nth 1 a)) b)
+                          (1- (length a))))
+               (and (math-known-matrixp b)
+                    (math-mul (nth 1 (nth 1 a)) b))))
+      (and (math-identity-matrix-p b t)
+           (or (and (eq (car-safe a) 'calcFunc-idn)
+                    (= (length a) 2)
+                    (list 'calcFunc-idn (math-mul (nth 1 a) 
+                                                  (nth 1 (nth 1 b)))
+                          (1- (length b))))
+               (and (math-known-scalarp a)
+                    (list 'calcFunc-idn (math-mul a (nth 1 (nth 1 b))) 
+                          (1- (length b))))
+               (and (math-known-matrixp a)
+                    (math-mul a (nth 1 (nth 1 b))))))
       (and (math-looks-negp b)
 	   (math-mul (math-neg a) (math-neg b)))
       (and (eq (car-safe b) '-)
@@ -1606,8 +1693,54 @@
 	    (math-reject-arg b "*Division by zero"))
 	a))))
 
+;; For math-div-symb-fancy
+(defvar math-trig-inverses
+  '((calcFunc-sin . calcFunc-csc)
+    (calcFunc-cos . calcFunc-sec)
+    (calcFunc-tan . calcFunc-cot)
+    (calcFunc-sec . calcFunc-cos)
+    (calcFunc-csc . calcFunc-sin)
+    (calcFunc-cot . calcFunc-tan)
+    (calcFunc-sinh . calcFunc-csch)
+    (calcFunc-cosh . calcFunc-sech)
+    (calcFunc-tanh . calcFunc-coth)
+    (calcFunc-sech . calcFunc-cosh)
+    (calcFunc-csch . calcFunc-sinh)
+    (calcFunc-coth . calcFunc-tanh)))
+
+(defvar math-div-trig)
+(defvar math-div-non-trig)
+
+(defun math-div-new-trig (tr)
+  (if math-div-trig
+      (setq math-div-trig
+            (list '* tr math-div-trig))
+    (setq math-div-trig tr)))
+
+(defun math-div-new-non-trig (ntr)
+  (if math-div-non-trig
+      (setq math-div-non-trig 
+            (list '* ntr math-div-non-trig))
+    (setq math-div-non-trig ntr)))
+
+(defun math-div-isolate-trig (expr)
+  (if (eq (car-safe expr) '*)
+      (progn
+        (math-div-isolate-trig-term (nth 1 expr))
+        (math-div-isolate-trig (nth 2 expr)))
+    (math-div-isolate-trig-term expr)))
+
+(defun math-div-isolate-trig-term (term)
+  (let ((fn (assoc (car-safe term) math-trig-inverses)))
+    (if fn
+        (math-div-new-trig
+         (cons (cdr fn) (cdr term)))
+      (math-div-new-non-trig term))))
+
 (defun math-div-symb-fancy (a b)
-  (or (and math-simplify-only
+  (or (and (math-known-matrixp b)
+           (math-mul a (math-pow b -1)))
+      (and math-simplify-only
 	   (not (equal a math-simplify-only))
 	   (list '/ a b))
       (and (Math-equal-int b 1) a)
@@ -1664,6 +1797,15 @@
 		    (list 'calcFunc-idn (math-div a (nth 1 b))))
 	       (and (math-known-matrixp a)
 		    (math-div a (nth 1 b)))))
+      (and math-simplifying
+           (let ((math-div-trig nil)
+                 (math-div-non-trig nil))
+             (math-div-isolate-trig b)
+             (if math-div-trig
+                 (if math-div-non-trig
+                     (math-div (math-mul a math-div-trig) math-div-non-trig)
+                   (math-mul a math-div-trig))
+               nil)))
       (if (and calc-matrix-mode
 	       (or (math-known-matrixp a) (math-known-matrixp b)))
 	  (math-combine-prod a b nil t nil)
@@ -1712,6 +1854,11 @@
 	       (math-mul-zero b a))))
       (list '/ a b)))
 
+;;; Division from the left.
+(defun calcFunc-ldiv (a b)
+  (if (math-known-scalarp a)
+      (math-div b a)
+    (math-mul (math-pow a -1) b)))
 
 (defun calcFunc-mod (a b)
   (math-normalize (list '% a b)))
@@ -1742,23 +1889,35 @@
   (math-normalize (list '^ a b)))
 
 (defun math-pow-of-zero (a b)
-  (if (Math-zerop b)
-      (if calc-infinite-mode
-	  '(var nan var-nan)
-	(math-reject-arg (list '^ a b) "*Indeterminate form"))
-    (if (math-floatp b) (setq a (math-float a)))
-    (if (math-posp b)
-	a
-      (if (math-negp b)
-	  (math-div 1 a)
-	(if (math-infinitep b)
-	    '(var nan var-nan)
-	  (if (and (eq (car b) 'intv) (math-intv-constp b)
-		   calc-infinite-mode)
-	      '(intv 3 (neg (var inf var-inf)) (var inf var-inf))
-	    (if (math-objectp b)
-		(list '^ a b)
-	      a)))))))
+  "Raise A to the power of B, where A is a form of zero."
+  (if (math-floatp b) (setq a (math-float a)))
+  (cond
+   ;; 0^0 = 1
+   ((eq b 0)
+    1)
+   ;; 0^0.0, etc., are undetermined
+   ((Math-zerop b)
+    (if calc-infinite-mode
+        '(var nan var-nan)
+      (math-reject-arg (list '^ a b) "*Indeterminate form")))
+   ;; 0^positive = 0
+   ((math-known-posp b)
+    a)
+   ;; 0^negative is undefined (let math-div handle it)
+   ((math-known-negp b)
+    (math-div 1 a))
+   ;; 0^infinity is undefined
+   ((math-infinitep b)
+    '(var nan var-nan))
+   ;; Some intervals
+   ((and (eq (car b) 'intv)
+         calc-infinite-mode
+         (math-negp (nth 2 b))
+         (math-posp (nth 3 b)))
+    '(intv 3 (neg (var inf var-inf)) (var inf var-inf)))
+   ;; If none of the above, leave it alone.
+   (t
+    (list '^ a b))))
 
 (defun math-pow-zero (a b)
   (if (eq (car-safe a) 'mod)
@@ -1800,6 +1959,22 @@
 	   (cond ((and math-simplify-only
 		       (not (equal a math-simplify-only)))
 		  (list '^ a b))
+                 ((and (eq (car-safe a) '*)
+                       (or 
+                        (and
+                         (math-known-matrixp (nth 1 a))
+                         (math-known-matrixp (nth 2 a)))
+                        (and
+                         calc-matrix-mode
+                         (not (eq calc-matrix-mode 'scalar))
+                         (and (not (math-known-scalarp (nth 1 a)))
+                              (not (math-known-scalarp (nth 2 a)))))))
+                  (if (and (= b -1)
+                           (math-known-square-matrixp (nth 1 a))
+                           (math-known-square-matrixp (nth 2 a)))
+                      (math-mul (math-pow-fancy (nth 2 a) -1) 
+                                (math-pow-fancy (nth 1 a) -1))
+                    (list '^ a b)))
 		 ((and (eq (car-safe a) '*)
 		       (or (math-known-num-integerp b)
 			   (math-known-nonnegp (nth 1 a))
@@ -2185,6 +2360,10 @@
 
 (defalias 'calcFunc-float 'math-float)
 
+;; The variable math-trunc-prec is local to math-trunc in calc-misc.el, 
+;; but used by math-trunc-fancy which is called by math-trunc.
+(defvar math-trunc-prec)
+
 (defun math-trunc-fancy (a)
   (cond ((eq (car a) 'frac) (math-quotient (nth 1 a) (nth 2 a)))
 	((eq (car a) 'cplx) (math-trunc (nth 1 a)))
@@ -2214,7 +2393,7 @@
 			   (math-trunc (nth 3 a)))))
 	((math-provably-integerp a) a)
 	((Math-vectorp a)
-	 (math-map-vec (function (lambda (x) (math-trunc x prec))) a))
+	 (math-map-vec (function (lambda (x) (math-trunc x math-trunc-prec))) a))
 	((math-infinitep a)
 	 (if (or (math-posp a) (math-negp a))
 	     a
@@ -2251,6 +2430,10 @@
       a
     (math-float (math-trunc a prec))))
 
+;; The variable math-floor-prec is local to math-floor in calc-misc.el,
+;; but used by math-floor-fancy which is called by math-floor.
+(defvar math-floor-prec)
+
 (defun math-floor-fancy (a)
   (cond ((math-provably-integerp a) a)
 	((eq (car a) 'hms)
@@ -2273,7 +2456,7 @@
 			     (math-add (math-floor (nth 3 a)) -1)
 			   (math-floor (nth 3 a)))))
 	((Math-vectorp a)
-	 (math-map-vec (function (lambda (x) (math-floor x prec))) a))
+	 (math-map-vec (function (lambda (x) (math-floor x math-floor-prec))) a))
 	((math-infinitep a)
 	 (if (or (math-posp a) (math-negp a))
 	     a
@@ -2629,6 +2812,11 @@
 (defvar math-combine-prod-e '(var e var-e))
 
 ;;; The following is expanded out four ways for speed.
+
+;; math-unit-prefixes is defined in calc-units.el,
+;; but used here.
+(defvar math-unit-prefixes)
+
 (defun math-combine-prod (a b inva invb scalar-okay)
   (cond
    ((or (and inva (Math-zerop a))
@@ -2646,6 +2834,8 @@
 	 invb
 	 (math-looks-negp (nth 2 b)))
     (math-mul a (math-pow (nth 1 b) (math-neg (nth 2 b)))))
+   ((and math-simplifying
+         (math-combine-prod-trig a b)))
    (t (let ((apow 1) (bpow 1))
 	(and (consp a)
 	     (cond ((and (eq (car a) '^)
@@ -2743,6 +2933,83 @@
 			    (math-pow a apow)
 			  (inexact-result (list '^ a apow)))))))))))
 
+(defun math-combine-prod-trig (a b)
+  (cond
+   ((and (eq (car-safe a) 'calcFunc-sin)
+         (eq (car-safe b) 'calcFunc-csc)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    1)
+   ((and (eq (car-safe a) 'calcFunc-sin)
+         (eq (car-safe b) 'calcFunc-sec)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-tan (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-sin)
+         (eq (car-safe b) 'calcFunc-cot)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-cos (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-cos)
+         (eq (car-safe b) 'calcFunc-sec)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    1)
+   ((and (eq (car-safe a) 'calcFunc-cos)
+         (eq (car-safe b) 'calcFunc-csc)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-cot (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-cos)
+         (eq (car-safe b) 'calcFunc-tan)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-sin (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-tan)
+         (eq (car-safe b) 'calcFunc-cot)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    1)
+   ((and (eq (car-safe a) 'calcFunc-tan)
+         (eq (car-safe b) 'calcFunc-csc)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-sec (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-sec)
+         (eq (car-safe b) 'calcFunc-cot)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-csc (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-sinh)
+         (eq (car-safe b) 'calcFunc-csch)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    1)
+   ((and (eq (car-safe a) 'calcFunc-sinh)
+         (eq (car-safe b) 'calcFunc-sech)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-tanh (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-sinh)
+         (eq (car-safe b) 'calcFunc-coth)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-cosh (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-cosh)
+         (eq (car-safe b) 'calcFunc-sech)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    1)
+   ((and (eq (car-safe a) 'calcFunc-cosh)
+         (eq (car-safe b) 'calcFunc-csch)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-coth (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-cosh)
+         (eq (car-safe b) 'calcFunc-tanh)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-sinh (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-tanh)
+         (eq (car-safe b) 'calcFunc-coth)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    1)
+   ((and (eq (car-safe a) 'calcFunc-tanh)
+         (eq (car-safe b) 'calcFunc-csch)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-sech (cdr a)))
+   ((and (eq (car-safe a) 'calcFunc-sech)
+         (eq (car-safe b) 'calcFunc-coth)
+         (= 0 (math-simplify (math-sub (cdr a) (cdr b)))))
+    (cons 'calcFunc-csch (cdr a)))
+   (t
+    nil)))
+
 (defun math-mul-or-div (a b ainv binv)
   (if (or (Math-vectorp a) (Math-vectorp b))
       (math-normalize
@@ -2761,23 +3028,28 @@
 	  (math-div a b)
 	(math-mul a b)))))
 
+;; The variable math-com-bterms is local to math-commutative-equal,
+;; but is used by math-commutative collect, which is called by
+;; math-commutative-equal.
+(defvar math-com-bterms)
+
 (defun math-commutative-equal (a b)
   (if (memq (car-safe a) '(+ -))
       (and (memq (car-safe b) '(+ -))
-	   (let ((bterms nil) aterms p)
+	   (let ((math-com-bterms nil) aterms p)
 	     (math-commutative-collect b nil)
-	     (setq aterms bterms bterms nil)
+	     (setq aterms math-com-bterms math-com-bterms nil)
 	     (math-commutative-collect a nil)
-	     (and (= (length aterms) (length bterms))
+	     (and (= (length aterms) (length math-com-bterms))
 		  (progn
 		    (while (and aterms
 				(progn
-				  (setq p bterms)
+				  (setq p math-com-bterms)
 				  (while (and p (not (equal (car aterms)
 							    (car p))))
 				    (setq p (cdr p)))
 				  p))
-		      (setq bterms (delq (car p) bterms)
+		      (setq math-com-bterms (delq (car p) math-com-bterms)
 			    aterms (cdr aterms)))
 		    (not aterms)))))
     (equal a b)))
@@ -2791,6 +3063,9 @@
 	(progn
 	  (math-commutative-collect (nth 1 b) neg)
 	  (math-commutative-collect (nth 2 b) (not neg)))
-      (setq bterms (cons (if neg (math-neg b) b) bterms)))))
+      (setq math-com-bterms (cons (if neg (math-neg b) b) math-com-bterms)))))
 
+(provide 'calc-arith)
+
+;;; arch-tag: 6c396b5b-14c6-40ed-bb2a-7cc2e8111465
 ;;; calc-arith.el ends here

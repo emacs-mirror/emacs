@@ -1,6 +1,7 @@
 ;;; sort.el --- commands to sort text in an Emacs buffer
 
-;; Copyright (C) 1986, 1987, 1994, 1995, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987, 1994, 1995, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Howie Kaye
 ;; Maintainer: FSF
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -40,7 +41,8 @@
   :type 'boolean)
 
 ;;;###autoload
-(defun sort-subr (reverse nextrecfun endrecfun &optional startkeyfun endkeyfun)
+(defun sort-subr (reverse nextrecfun endrecfun
+			  &optional startkeyfun endkeyfun predicate)
   "General text sorting routine to divide buffer into records and sort them.
 
 We divide the accessible portion of the buffer into disjoint pieces
@@ -74,7 +76,10 @@ starts at the beginning of the record.
 
 ENDKEYFUN moves from the start of the sort key to the end of the sort key.
 ENDKEYFUN may be nil if STARTKEYFUN returns a value or if it would be the
-same as ENDRECFUN."
+same as ENDRECFUN.
+
+PREDICATE is the function to use to compare keys.  If keys are numbers,
+it defaults to `<', otherwise it defaults to `string<'."
   ;; Heuristically try to avoid messages if sorting a small amt of text.
   (let ((messages (> (- (point-max) (point-min)) 50000)))
     (save-excursion
@@ -88,32 +93,18 @@ same as ENDRECFUN."
 	  (or reverse (setq sort-lists (nreverse sort-lists)))
 	  (if messages (message "Sorting records..."))
 	  (setq sort-lists
-		(if (fboundp 'sortcar)
-		    (sortcar sort-lists
-			     (cond ((numberp (car (car sort-lists)))
-				    ;; This handles both ints and floats.
-				    '<)
-				   ((consp (car (car sort-lists)))
-				    (function
-				     (lambda (a b)
-				       (> 0 (compare-buffer-substrings
-					     nil (car a) (cdr a)
-					     nil (car b) (cdr b))))))
-				   (t
-				    'string<)))
-		  (sort sort-lists
-			(cond ((numberp (car (car sort-lists)))
-			       'car-less-than-car)
-			      ((consp (car (car sort-lists)))
-			       (function
-				(lambda (a b)
-				  (> 0 (compare-buffer-substrings
-					nil (car (car a)) (cdr (car a))
-					nil (car (car b)) (cdr (car b)))))))
-			      (t
-			       (function
-				(lambda (a b)
-				  (string< (car a) (car b)))))))))
+		(sort sort-lists
+		      (cond (predicate
+			     `(lambda (a b) (,predicate (car a) (car b))))
+			    ((numberp (car (car sort-lists)))
+			     'car-less-than-car)
+			    ((consp (car (car sort-lists)))
+			     (lambda (a b)
+			       (> 0 (compare-buffer-substrings
+				     nil (car (car a)) (cdr (car a))
+				     nil (car (car b)) (cdr (car b))))))
+			    (t
+			     (lambda (a b) (string< (car a) (car b)))))))
 	  (if reverse (setq sort-lists (nreverse sort-lists)))
 	  (if messages (message "Reordering buffer..."))
 	  (sort-reorder-buffer sort-lists old)))
@@ -150,15 +141,14 @@ same as ENDRECFUN."
       (cond ((prog1 done (setq done nil)))
 	    (endrecfun (funcall endrecfun))
 	    (nextrecfun (funcall nextrecfun) (setq done t)))
-      (if key (setq sort-lists (cons
-				 ;; consing optimization in case in which key
-				 ;; is same as record.
-				 (if (and (consp key)
-					  (equal (car key) start-rec)
-					  (equal (cdr key) (point)))
-				     (cons key key)
-				   (cons key (cons start-rec (point))))
-				 sort-lists)))
+      (if key (push
+	       ;; consing optimization in case in which key is same as record.
+	       (if (and (consp key)
+			(equal (car key) start-rec)
+			(equal (cdr key) (point)))
+		   (cons key key)
+		 (cons key (cons start-rec (point))))
+	       sort-lists))
       (and (not done) nextrecfun (funcall nextrecfun)))
     sort-lists))
 
@@ -192,16 +182,13 @@ same as ENDRECFUN."
       (set-buffer old-buffer)
       (let ((inhibit-quit t))
 	;; Make sure insertions done for reordering
-	;; do not go after any markers at the end of the sorted region,
-	;; by inserting a space to separate them.
-	(goto-char max)
-	(insert-before-markers " ")
-	;; Delete the original copy of the text.
-	(delete-region min max)
-	;; Now replace the separator " " with the sorted text.
-	(goto-char (point-max))
+	;; saves any markers at the end of the sorted region,
+	;; by leaving the last character of the region.
+	(delete-region min (1- max))
+  	;; Now replace the one remaining old character with the sorted text.
+	(goto-char (point-min))
 	(insert-buffer-substring temp-buffer)
-	(delete-region min (1+ min))))))
+	(delete-region max (1+ max))))))
 
 ;;;###autoload
 (defun sort-lines (reverse beg end)
@@ -494,19 +481,30 @@ Use \\[untabify] to convert tabs to spaces before sorting."
       (setq col-end (max col-beg1 col-end1))
       (if (search-backward "\t" beg1 t)
 	  (error "sort-columns does not work with tabs -- use M-x untabify"))
-      (if (not (or (eq system-type 'vax-vms)
-		   (text-properties-at beg1)
-		   (< (next-property-change beg1 nil end1) end1)))
+      (if (not (or (memq system-type '(vax-vms windows-nt))
+		   (let ((pos beg1) plist fontified)
+		     (catch 'found
+		       (while (< pos end1)
+			 (setq plist (text-properties-at pos))
+			 (setq fontified (plist-get plist 'fontified))
+			 (while (consp plist)
+			   (unless (or (eq (car plist) 'fontified)
+				       (and (eq (car plist) 'face)
+					    fontified))
+			     (throw 'found t))
+			   (setq plist (cddr plist)))
+			 (setq pos (next-property-change pos nil end1)))))))
 	  ;; Use the sort utility if we can; it is 4 times as fast.
-	  ;; Do not use it if there are any properties in the region,
-	  ;; since the sort utility would lose the properties.
+	  ;; Do not use it if there are any non-font-lock properties
+	  ;; in the region, since the sort utility would lose the
+	  ;; properties.
 	  (let ((sort-args (list (if reverse "-rt\n" "-t\n")
 				 (concat "+0." (int-to-string col-start))
 				 (concat "-0." (int-to-string col-end)))))
 	    (when sort-fold-case
 	      (push "-f" sort-args))
 	    (apply #'call-process-region beg1 end1 "sort" t t nil sort-args))
-	;; On VMS, use Emacs's own facilities.
+	;; On VMS and ms-windows, use Emacs's own facilities.
 	(save-excursion
 	  (save-restriction
 	    (narrow-to-region beg1 end1)
@@ -549,4 +547,5 @@ From a program takes two point or marker arguments, BEG and END."
 
 (provide 'sort)
 
+;;; arch-tag: fbac12be-2a7b-4c8a-9665-264d61f70bd9
 ;;; sort.el ends here

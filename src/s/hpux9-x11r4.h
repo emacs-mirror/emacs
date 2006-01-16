@@ -8,3 +8,5 @@
 #undef  LD_SWITCH_X_DEFAULT
 #define LD_SWITCH_X_DEFAULT -L/usr/lib/Motif1.1
 
+/* arch-tag: 47664d7b-23ce-43e6-acdd-044a4be08da3
+   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; shadow.el --- locate Emacs Lisp file shadowings
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Terry Jones <terry@santafe.edu>
 ;; Keywords: lisp
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -104,7 +104,7 @@ See the documentation for `list-load-path-shadows' for further information."
 	(setq true-names (append true-names (list dir)))
 	(setq dir (directory-file-name (or (car path) ".")))
 	(setq curr-files (if (file-accessible-directory-p dir)
-			     (directory-files dir nil ".\\.elc?$" t)))
+			     (directory-files dir nil ".\\.elc?\\(\\.gz\\)?$" t)))
 	(and curr-files
 	     (not noninteractive)
 	     (message "Checking %d files in %s..." (length curr-files) dir))
@@ -114,6 +114,8 @@ See the documentation for `list-load-path-shadows' for further information."
 	(while curr-files
 
 	  (setq file (car curr-files))
+	  (if (string-match "\\.gz$" file)
+	      (setq file (substring file 0 -3)))
 	  (setq file (substring
 		      file 0 (if (string= (substring file -1) "c") -4 -3)))
 
@@ -161,7 +163,7 @@ See the documentation for `list-load-path-shadows' for further information."
 		 ;; sizes.
 		 (and (= (nth 7 (file-attributes f1))
 			 (nth 7 (file-attributes f2)))
-		      (zerop (call-process "cmp" nil nil nil "-s" f1 f2))))))))
+		      (eq 0 (call-process "cmp" nil nil nil "-s" f1 f2))))))))
 
 ;;;###autoload
 (defun list-load-path-shadows ()
@@ -209,7 +211,8 @@ buffer called `*Shadows*'.  Shadowings are located by calling the
 	toplevs)
     ;; If we can find simple.el in two places,
     (while tem
-      (if (file-exists-p (expand-file-name "simple.el" (car tem)))
+      (if (or (file-exists-p (expand-file-name "simple.el" (car tem)))
+	      (file-exists-p (expand-file-name "simple.el.gz" (car tem))))
 	  (setq toplevs (cons (car tem) toplevs)))
       (setq tem (cdr tem)))
     (if (> (length toplevs) 1)
@@ -257,4 +260,5 @@ version unless you know what you are doing.\n")
 
 (provide 'shadow)
 
+;;; arch-tag: 0480e8a7-62ed-4a12-a9f6-f44ded9b0830
 ;;; shadow.el ends here

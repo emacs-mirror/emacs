@@ -1,6 +1,6 @@
 ;;; ws-mode.el --- WordStar emulation mode for GNU Emacs
 
-;; Copyright (C) 1991 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Juergen Nickelsen <nickel@cs.tu-berlin.de>
 ;; Version: 0.7
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -294,7 +294,7 @@ The key bindings are:
   (use-local-map wordstar-mode-map)
   (setq mode-name "WordStar")
   (setq major-mode 'wordstar-mode)
-  (run-hooks 'wordstar-mode-hook))
+  (run-mode-hooks 'wordstar-mode-hook))
 
 
 (defun wordstar-center-paragraph ()
@@ -691,7 +691,7 @@ in ws-last-errormessage for recovery with C-q w."
 This will only work for errors raised by WordStar mode functions."
   (interactive)
   (if ws-last-errormessage
-      (message ws-last-errormessage)
+      (message "%s" ws-last-errormessage)
     (message "No WordStar error yet.")))
 
 (defun ws-kill-eol ()
@@ -755,4 +755,5 @@ sWith: " )
 
 (provide 'ws-mode)
 
+;;; arch-tag: 6dd864bf-2ccb-4d59-af6e-492eba2890a3
 ;;; ws-mode.el ends here

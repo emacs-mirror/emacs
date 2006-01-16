@@ -1,6 +1,7 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point
 
-;; Copyright (C) 1997, 1999, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Maintainer: petersen@kurims.kyoto-u.ac.jp
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;
@@ -62,13 +63,15 @@
   ;;  (define-derived-mode foo ...), (define-minor-mode foo)
   (concat
    "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
-\[^cgv\W]\\w+\\*?\\)\\|define-minor-mode\
-\\|easy-mmode-define-global-mode\\)" find-function-space-re
+ine\\(?:-global\\)?-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|\
+foo\\|[^cfgv]\\w+\\*?\\)\\|easy-mmode-define-[a-z-]+\\|easy-menu-define\\|\
+menu-bar-make-toggle\\)"
+   find-function-space-re
    "\\('\\|\(quote \\)?%s\\(\\s-\\|$\\|\(\\|\)\\)")
   "The regexp used by `find-function' to search for a function definition.
 Note it must contain a `%s' at the place where `format'
 should insert the function name.  The default value avoids `defconst',
-`defgroup', `defvar'.
+`defgroup', `defvar', `defface'.
 
 Please send improvements and fixes to the maintainer."
   :type 'regexp
@@ -76,15 +79,40 @@ Please send improvements and fixes to the maintainer."
   :version "21.1")
 
 (defcustom find-variable-regexp
-  (concat"^\\s-*(def[^umag]\\(\\w\\|\\s_\\)+\\*?" find-function-space-re "%s\\(\\s-\\|$\\)")
+  (concat
+   "^\\s-*(\\(def[^fumag]\\(\\w\\|\\s_\\)+\\*?\\|\
+easy-mmode-def\\(map\\|syntax\\)\\|easy-menu-define\\)"
+   find-function-space-re
+   "%s\\(\\s-\\|$\\)")
   "The regexp used by `find-variable' to search for a variable definition.
-It should match right up to the variable name.  The default value
-avoids `defun', `defmacro', `defalias', `defadvice', `defgroup'.
+Note it must contain a `%s' at the place where `format'
+should insert the variable name.  The default value
+avoids `defun', `defmacro', `defalias', `defadvice', `defgroup', `defface'.
 
 Please send improvements and fixes to the maintainer."
   :type 'regexp
   :group 'find-function
   :version "21.1")
+
+(defcustom find-face-regexp
+  (concat"^\\s-*(defface" find-function-space-re "%s\\(\\s-\\|$\\)")
+  "The regexp used by `find-face' to search for a face definition.
+Note it must contain a `%s' at the place where `format'
+should insert the face name.
+
+Please send improvements and fixes to the maintainer."
+  :type 'regexp
+  :group 'find-function
+  :version "22.1")
+
+(defvar find-function-regexp-alist
+  '((nil . find-function-regexp)
+    (defvar . find-variable-regexp)
+    (defface . find-face-regexp))
+  "Alist mapping definition types into regexp variables.
+Each regexp variable's value should actually be a format string
+to be used to substitute the desired symbol name into the regexp.")
+(put 'find-function-regexp-alist 'risky-local-variable t)
 
 (defcustom find-function-source-path nil
   "The default list of directories where `find-function' searches.
@@ -118,15 +146,49 @@ See the functions `find-function' and `find-variable'."
       (unless (string-match "elc" suffix) (push suffix suffixes)))))
 
 (defun find-library-name (library)
-  "Return the full name of the elisp source of LIBRARY."
-  ;; If the library is byte-compiled, try to find a source library by
-  ;; the same name.
-  (if (string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
+  "Return the absolute file name of the Lisp source of LIBRARY."
+  ;; Strip off the extension to take advantage of library suffixes in
+  ;; the call to `locate-file'.
+  (if (string-match "\\.el\\(c\\(\\..*\\)?\\)?\\'" library)
       (setq library (replace-match "" t t library)))
   (or (locate-file library
 		   (or find-function-source-path load-path)
 		   (append (find-library-suffixes) '("")))
       (error "Can't find library %s" library)))
+
+(defvar find-function-C-source-directory
+  (let ((dir (expand-file-name "src" source-directory)))
+    (when (and (file-directory-p dir) (file-readable-p dir))
+      dir))
+  "Directory where the C source files of Emacs can be found.
+If nil, do not try to find the source code of functions and variables
+defined in C.")
+
+(defun find-function-C-source (fun-or-var file type)
+  "Find the source location where SUBR-OR-VAR is defined in FILE.
+TYPE should be nil to find a function, or `defvar' to find a variable."
+  (unless find-function-C-source-directory
+    (setq find-function-C-source-directory
+	  (read-directory-name "Emacs C source dir: " nil nil t)))
+  (setq file (expand-file-name file find-function-C-source-directory))
+  (unless (file-readable-p file)
+    (error "The C source file %s is not available"
+	   (file-name-nondirectory file)))
+  (unless type
+    (setq fun-or-var (indirect-function fun-or-var)))
+  (with-current-buffer (find-file-noselect file)
+    (goto-char (point-min))
+    (unless (re-search-forward
+	     (if type
+		 (concat "DEFVAR[A-Z_]*[ \t\n]*([ \t\n]*\""
+			 (regexp-quote (symbol-name fun-or-var))
+			 "\"")
+	       (concat "DEFUN[ \t\n]*([ \t\n]*\""
+		       (regexp-quote (subr-name fun-or-var))
+		       "\""))
+	     nil t)
+      (error "Can't find source for %s" fun-or-var))
+    (cons (current-buffer) (match-beginning 0))))
 
 ;;;###autoload
 (defun find-library (library)
@@ -141,24 +203,26 @@ See the functions `find-function' and `find-variable'."
     (condition-case nil (switch-to-buffer buf) (error (pop-to-buffer buf)))))
 
 ;;;###autoload
-(defun find-function-search-for-symbol (symbol variable-p library)
-  "Search for SYMBOL.
-If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
-`find-variable-regexp' is used.  The search is done in library LIBRARY."
+(defun find-function-search-for-symbol (symbol type library)
+  "Search for SYMBOL's definition of type TYPE in LIBRARY.
+If TYPE is nil, look for a function definition.
+Otherwise, TYPE specifies the kind of definition,
+and it is interpreted via `find-function-regexp-alist'.
+The search is done in the source for library LIBRARY."
   (if (null library)
       (error "Don't know where `%s' is defined" symbol))
   ;; Some functions are defined as part of the construct
   ;; that defines something else.
-  (while (get symbol 'definition-name)
+  (while (and (symbolp symbol) (get symbol 'definition-name))
     (setq symbol (get symbol 'definition-name)))
-  (save-match-data
+  (if (string-match "\\`src/\\(.*\\.c\\)\\'" library)
+      (find-function-C-source symbol (match-string 1 library) type)
     (if (string-match "\\.el\\(c\\)\\'" library)
 	(setq library (substring library 0 (match-beginning 1))))
-    (let* ((filename (find-library-name library)))
+    (let* ((filename (find-library-name library))
+	   (regexp-symbol (cdr (assq type find-function-regexp-alist))))
       (with-current-buffer (find-file-noselect filename)
-	(let ((regexp (format (if variable-p
-				  find-variable-regexp
-				find-function-regexp)
+	(let ((regexp (format (symbol-value regexp-symbol)
 			      (regexp-quote (symbol-name symbol))))
 	      (case-fold-search))
 	  (with-syntax-table emacs-lisp-mode-syntax-table
@@ -167,7 +231,7 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 		    (re-search-forward
 		     (concat "^([^ ]+" find-function-space-re "['(]"
 			     (regexp-quote (symbol-name symbol))
-			     "\\>")
+			     "\\_>")
 		     nil t))
 		(progn
 		  (beginning-of-line)
@@ -188,8 +252,6 @@ searched for in `find-function-source-path' if non nil, otherwise
 in `load-path'."
   (if (not function)
       (error "You didn't specify a function"))
-  (and (subrp (symbol-function function))
-       (error "%s is a primitive function" function))
   (let ((def (symbol-function function))
 	aliases)
     (while (symbolp def)
@@ -203,62 +265,62 @@ in `load-path'."
       (setq function (symbol-function function)
 	    def (symbol-function function)))
     (if aliases
-	(message aliases))
+	(message "%s" aliases))
     (let ((library
 	   (cond ((eq (car-safe def) 'autoload)
 		  (nth 1 def))
-		 ((symbol-file function)))))
+		 ((subrp def)
+		  (help-C-file-name def 'subr))
+		 ((symbol-file function 'defun)))))
       (find-function-search-for-symbol function nil library))))
 
-(defalias 'function-at-point 'function-called-at-point)
-
-(defun find-function-read (&optional variable-p)
+(defun find-function-read (&optional type)
   "Read and return an interned symbol, defaulting to the one near point.
 
-If the optional VARIABLE-P is nil, then a function is gotten
-defaulting to the value of the function `function-at-point', otherwise
-a variable is asked for, with the default coming from
-`variable-at-point'."
-  (let ((symb (funcall (if variable-p
-			   'variable-at-point
-			 'function-at-point)))
+If TYPE is nil, insist on a symbol with a function definition.
+Otherwise TYPE should be `defvar' or `defface'.
+If TYPE is nil, defaults using `function-called-at-point',
+otherwise uses `variable-at-point'."
+  (let ((symb (if (null type)
+		  (function-called-at-point)
+		(if (eq type 'defvar)
+		    (variable-at-point)
+		  (variable-at-point t))))
+	(predicate (cdr (assq type '((nil . fboundp) (defvar . boundp)
+				     (defface . facep)))))
+	(prompt (cdr (assq type '((nil . "function") (defvar . "variable")
+				  (defface . "face")))))
 	(enable-recursive-minibuffers t)
 	val)
     (if (equal symb 0)
 	(setq symb nil))
-    (setq val (if variable-p
-		  (completing-read
-		   (concat "Find variable"
-			   (if symb
-			       (format " (default %s)" symb))
-			   ": ")
-		   obarray 'boundp t nil)
-		(completing-read
-		 (concat "Find function"
-			 (if symb
-			     (format " (default %s)" symb))
-			 ": ")
-		 obarray 'fboundp t nil)))
+    (setq val (completing-read
+	       (concat "Find "
+		       prompt
+		       (if symb
+			   (format " (default %s)" symb))
+		       ": ")
+	       obarray predicate t nil))
     (list (if (equal val "")
 	      symb
 	    (intern val)))))
 
-(defun find-function-do-it (symbol variable-p switch-fn)
+(defun find-function-do-it (symbol type switch-fn)
   "Find Emacs Lisp SYMBOL in a buffer and display it.
-If VARIABLE-P is nil, a function definition is searched for, otherwise
-a variable definition is searched for.  The start of a definition is
-centered according to the variable `find-function-recenter-line'.
-See also `find-function-after-hook'  It is displayed with function SWITCH-FN.
+TYPE is nil to search for a function definition,
+or else `defvar' or `defface'.
 
-Point is saved in the buffer if it is one of the current buffers."
+The variable `find-function-recenter-line' controls how
+to recenter the display.  SWITCH-FN is the function to call
+to display and select the buffer.
+See also `find-function-after-hook'.
+
+Set mark before moving, if the buffer already existed."
   (let* ((orig-point (point))
 	(orig-buf (window-buffer))
 	(orig-buffers (buffer-list))
 	(buffer-point (save-excursion
-			(funcall (if variable-p
-				      'find-variable-noselect
-				    'find-function-noselect)
-				  symbol)))
+			(find-definition-noselect symbol type)))
 	(new-buf (car buffer-point))
 	(new-point (cdr buffer-point)))
     (when buffer-point
@@ -274,9 +336,9 @@ Point is saved in the buffer if it is one of the current buffers."
   "Find the definition of the FUNCTION near point.
 
 Finds the Emacs Lisp library containing the definition of the function
-near point (selected by `function-at-point') in a buffer and
-places point before the definition.  Point is saved in the buffer if
-it is one of the current buffers.
+near point (selected by `function-called-at-point') in a buffer and
+places point before the definition.
+Set mark before moving, if the buffer already existed.
 
 The library where FUNCTION is defined is searched for in
 `find-function-source-path', if non nil, otherwise in `load-path'.
@@ -305,16 +367,15 @@ See `find-function' for more details."
   "Return a pair `(BUFFER . POINT)' pointing to the definition of SYMBOL.
 
 Finds the Emacs Lisp library containing the definition of SYMBOL
-in a buffer and the point of the definition.  The buffer is
-not selected.
+in a buffer, and the point of the definition.  It does not switch
+to the buffer or display it.
 
 The library where VARIABLE is defined is searched for in FILE or
 `find-function-source-path', if non nil, otherwise in `load-path'."
   (if (not variable)
       (error "You didn't specify a variable"))
-  ;; Fixme: I think `symbol-file' should be fixed instead.  -- fx
-  (let ((library (or file (symbol-file (cons 'defvar variable)))))
-    (find-function-search-for-symbol variable 'variable library)))
+  (let ((library (or file (symbol-file variable 'defvar))))
+    (find-function-search-for-symbol variable 'defvar library)))
 
 ;;;###autoload
 (defun find-variable (variable)
@@ -322,62 +383,98 @@ The library where VARIABLE is defined is searched for in FILE or
 
 Finds the Emacs Lisp library containing the definition of the variable
 near point (selected by `variable-at-point') in a buffer and
-places point before the definition.  Point is saved in the buffer if
-it is one of the current buffers.
+places point before the definition.
+
+Set mark before moving, if the buffer already existed.
 
 The library where VARIABLE is defined is searched for in
 `find-function-source-path', if non nil, otherwise in `load-path'.
 See also `find-function-recenter-line' and `find-function-after-hook'."
-  (interactive (find-function-read 'variable))
-  (find-function-do-it variable t 'switch-to-buffer))
+  (interactive (find-function-read 'defvar))
+  (find-function-do-it variable 'defvar 'switch-to-buffer))
 
 ;;;###autoload
 (defun find-variable-other-window (variable)
   "Find, in another window, the definition of VARIABLE near point.
 
 See `find-variable' for more details."
-  (interactive (find-function-read 'variable))
-  (find-function-do-it variable t 'switch-to-buffer-other-window))
+  (interactive (find-function-read 'defvar))
+  (find-function-do-it variable 'defvar 'switch-to-buffer-other-window))
 
 ;;;###autoload
 (defun find-variable-other-frame (variable)
   "Find, in annother frame, the definition of VARIABLE near point.
 
 See `find-variable' for more details."
-  (interactive (find-function-read 'variable))
-  (find-function-do-it variable t 'switch-to-buffer-other-frame))
+  (interactive (find-function-read 'defvar))
+  (find-function-do-it variable 'defvar 'switch-to-buffer-other-frame))
+
+;;;###autoload
+(defun find-definition-noselect (symbol type &optional file)
+  "Return a pair `(BUFFER . POINT)' pointing to the definition of SYMBOL.
+TYPE says what type of definition: nil for a function,
+`defvar' or `defface' for a variable or face.  This function
+does not switch to the buffer or display it.
+
+The library where SYMBOL is defined is searched for in FILE or
+`find-function-source-path', if non nil, otherwise in `load-path'."
+  (if (not symbol)
+      (error "You didn't specify a symbol"))
+  (if (null type)
+      (find-function-noselect symbol)
+    (let ((library (or file (symbol-file symbol type))))
+      (find-function-search-for-symbol symbol type library))))
+
+;; For symmetry, this should be called find-face; but some programs
+;; assume that, if that name is defined, it means something else.
+;;;###autoload
+(defun find-face-definition (face)
+  "Find the definition of FACE.  FACE defaults to the name near point.
+
+Finds the Emacs Lisp library containing the definition of the face
+near point (selected by `variable-at-point') in a buffer and
+places point before the definition.
+
+Set mark before moving, if the buffer already existed.
+
+The library where FACE is defined is searched for in
+`find-function-source-path', if non nil, otherwise in `load-path'.
+See also `find-function-recenter-line' and `find-function-after-hook'."
+  (interactive (find-function-read 'defface))
+  (find-function-do-it face 'defface 'switch-to-buffer))
 
 ;;;###autoload
 (defun find-function-on-key (key)
   "Find the function that KEY invokes.  KEY is a string.
-Point is saved if FUNCTION is in the current buffer."
+Set mark before moving, if the buffer already existed."
   (interactive "kFind function on key: ")
-  (save-excursion
-    (let* ((event (and (eventp key) (aref key 0))) ; Null event OK below.
-	   (start (event-start event))
-	   (modifiers (event-modifiers event))
-	   (window (and (or (memq 'click modifiers) (memq 'down modifiers)
-			    (memq 'drag modifiers))
-			(posn-window start))))
-      ;; For a mouse button event, go to the button it applies to
-      ;; to get the right key bindings.  And go to the right place
-      ;; in case the keymap depends on where you clicked.
-      (when (windowp window)
-	(set-buffer (window-buffer window))
-	(goto-char (posn-point start)))
-      (let ((defn (key-binding key))
-	    (key-desc (key-description key)))
-	(if (or (null defn) (integerp defn))
-	    (message "%s is unbound" key-desc)
-	  (if (consp defn)
-	      (message "%s runs %s" key-desc (prin1-to-string defn))
-	    (find-function-other-window defn)))))))
+  (let (defn)
+    (save-excursion
+      (let* ((event (and (eventp key) (aref key 0))) ; Null event OK below.
+	     (start (event-start event))
+	     (modifiers (event-modifiers event))
+	     (window (and (or (memq 'click modifiers) (memq 'down modifiers)
+			      (memq 'drag modifiers))
+			  (posn-window start))))
+	;; For a mouse button event, go to the button it applies to
+	;; to get the right key bindings.  And go to the right place
+	;; in case the keymap depends on where you clicked.
+	(when (windowp window)
+	  (set-buffer (window-buffer window))
+	  (goto-char (posn-point start)))
+	(setq defn (key-binding key))))
+    (let ((key-desc (key-description key)))
+      (if (or (null defn) (integerp defn))
+	  (message "%s is unbound" key-desc)
+	(if (consp defn)
+	    (message "%s runs %s" key-desc (prin1-to-string defn))
+	  (find-function-other-window defn))))))
 
 ;;;###autoload
 (defun find-function-at-point ()
   "Find directly the function at point in the other window."
   (interactive)
-  (let ((symb (function-at-point)))
+  (let ((symb (function-called-at-point)))
     (when symb
       (find-function-other-window symb))))
 
@@ -402,4 +499,5 @@ Point is saved if FUNCTION is in the current buffer."
 
 (provide 'find-func)
 
+;; arch-tag: 43ecd81c-74dc-4d9a-8f63-a61e55670d64
 ;;; find-func.el ends here

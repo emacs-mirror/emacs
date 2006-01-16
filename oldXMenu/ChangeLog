@@ -1,3 +1,15 @@
+2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* Activate.c (XMenuActivate): Return XM_NO_SELECT if Escape or C-g
+	was pressed.
+
+2004-11-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* XMenu.h (XMenuActivateSetWaitFunction): New function.
+
+	* Activate.c (XMenuActivateSetWaitFunction): New function.
+	(XMenuActivate): Call wait_func if set, before XNextEvent.
+
 2002-04-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* Activate.c: Add calls to GrabKeyboard to remove strange
@@ -431,7 +443,9 @@
 ;; coding: iso-2022-7bit-unix
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001
-	Free Software Foundation, Inc.
+    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001,
+	2002, 2003, 2004, 2005 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 8b17c869-6677-40ce-be86-e62cf34061cf

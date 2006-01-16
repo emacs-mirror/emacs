@@ -28,7 +28,8 @@
 This documents the ``extra'' features for Dired Mode for GNU Emacs found in
 the file @file{dired-x.el}.
 
-Copyright @copyright{} 1993, 1994, 2001, 2002 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 1994, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to make and distribute verbatim copies of this
@@ -270,7 +271,7 @@ initialization file @file{default.el} in the @file{site-lisp} directory, put
 (add-hook 'dired-mode-hook
           (lambda ()
             ;; Set dired-x buffer-local variables here.  For example:
-            ;; (setq dired-omit-files-p t)
+            ;; (dired-omit-mode 1)
             ))
 @end example
 
@@ -394,16 +395,19 @@ Marked files are never omitted.
 @table @kbd
 @item M-o
 @kindex M-o
-@findex dired-omit-toggle
-(@code{dired-omit-toggle}) Toggle between displaying and omitting
-``uninteresting'' files.  With a prefix argument, just mark
-the files, but don't actually omit them.
+@findex dired-omit-mode
+(@code{dired-omit-mode}) Toggle between displaying and omitting
+``uninteresting'' files.
+@item * O
+@kindex * O
+@findex dired-mark-omitted
+(@code{dired-mark-omitted}) Mark ``uninteresting'' files.
 @end table
 
 @noindent
 In order to make Dired Omit work you first need to load @file{dired-x.el}
-inside @code{dired-load-hook} (@pxref{Installation}) and then set
-@code{dired-omit-files-p} in some way (@pxref{Omitting Variables}).
+inside @code{dired-load-hook} (@pxref{Installation}) and then evaluate
+@code{(dired-omit-mode 1)} in some way (@pxref{Omitting Variables}).
 
 @ifinfo
 @menu
@@ -423,8 +427,8 @@ The following variables can be used to customize omitting.
 
 @table @code
 
-@vindex dired-omit-files-p
-@item dired-omit-files-p
+@vindex dired-omit-mode
+@item dired-omit-mode
 
 Default: @code{nil}
 
@@ -432,11 +436,11 @@ Default: @code{nil}
 If non-@code{nil}, ``uninteresting'' files are not listed.
 Uninteresting files are those whose files whose names match regexp
 @code{dired-omit-files}, plus those ending with extensions in
-@code{dired-omit-extensions}.  @kbd{M-o} (@code{dired-omit-toggle})
+@code{dired-omit-extensions}.  @kbd{M-o} (@code{dired-omit-mode})
 toggles its value, which is buffer-local.  Put
 
 @example
-(setq dired-omit-files-p t)
+(dired-omit-mode 1)
 @end example
 
 @noindent
@@ -449,7 +453,7 @@ Local Variables and put
 
 @example
 Local Variables:
-dired-omit-files-p: t
+dired-omit-mode: t
 End:
 @end example
 
@@ -473,7 +477,7 @@ the directory listing (@pxref{Local Variables}).
 Default: @code{"^#\\|\\.$"}
 
 Files whose names match this buffer-local regexp will not be displayed.
-This only has effect when @code{dired-omit-files-p}'s value is @code{t}.
+This only has effect when @code{dired-omit-mode}'s value is @code{t}.
 
 The default value omits the special directories @file{.} and @file{..}  and
 autosave files (plus other files ending in @file{.}) (@pxref{Omitting Examples}).
@@ -604,7 +608,7 @@ For example, if the user puts
 @example
 Local Variables:
 dired-actual-switches: "-lat"
-dired-omit-files-p: t
+dired-omit-mode: t
 End:
 @end example
 
@@ -696,9 +700,12 @@ Each element of the alist looks like
 @end example
 
 @noindent
-where each @var{command} can either be a string or a lisp expression
+where each @var{command} can either be a string or a Lisp expression
 that evaluates to a string.  If several commands are given, all of
 them will temporarily be pushed onto the history.
+
+If @samp{*} in the shell command, that means to substitute the file
+name.
 
 You can set this variable in your @file{~/.emacs}.  For example,
 to add rules for @samp{.foo} and @samp{.bar} file extensions, write
@@ -924,11 +931,11 @@ List of extensions of dispensable files created by Bib@TeX{}.
 @kindex M-(
 @findex dired-mark-sexp
 @cindex Lisp expression, marking files with in Dired
-@cindex Mark file by lisp expression
+@cindex Mark file by Lisp expression
 (@code{dired-mark-sexp}) Mark files for which @var{predicate} returns
 non-@code{nil}.  With a prefix argument, unflag those files instead.
 
-The @var{predicate} is a lisp expression that can refer to the following
+The @var{predicate} is a Lisp expression that can refer to the following
 symbols:
 @table @code
 @item inode
@@ -962,7 +969,7 @@ For example, use
 @end example
 to mark all zero length files.
 
-To find out all not yet compiled Emacs lisp files in a directory, Dired
+To find out all not yet compiled Emacs Lisp files in a directory, Dired
 all @file{.el} files in the lisp directory using the wildcard
 @samp{*.el}.  Then use @kbd{M-(} with
 @example
@@ -995,13 +1002,14 @@ directory in special major modes:
 Default: @code{((dired-mode . (dired-current-directory)))}
 
 Alist of major modes and their notion of @code{default-directory}, as a
-lisp expression to evaluate.  A resulting value of @code{nil} is ignored
+Lisp expression to evaluate.  A resulting value of @code{nil} is ignored
 in favor of @code{default-directory}.
 
-@item default-directory
-@findex default-directory
-Function with usage like variable @code{default-directory}, but knows about the
-special cases in variable @code{default-directory-alist}.
+@item dired-default-directory
+@findex dired-default-directory
+Use this function like you would use the variable
+@code{default-directory}, except that @code{dired-default-directory}
+also consults the variable @code{default-directory-alist}.
 @end table
 
 @node Find File At Point, Miscellaneous Commands, Multiple Dired Directories, Top
@@ -1105,54 +1113,12 @@ will toggle between those two.
 @end table
 
 @table @kbd
-@findex dired-goto-file
-@kindex M-g
-@item M-g
-(@code{dired-goto-file}) Go to the line of a file (or directory).
-
 @findex dired-goto-subdir
 @kindex M-G
 @item M-G
 (@code{dired-goto-subdir}) Go to the header line of an inserted directory.
 This command reads its argument, with completion derived from the names of the
 inserted subdirectories.
-@end table
-
-@table @kbd
-@item w
-@cindex Adding to the kill ring in Dired.
-@kindex w
-@findex dired-copy-filename-as-kill
-(@code{dired-copy-filename-as-kill}) The @kbd{w} command puts the names
-of the marked (or next @var{N}) files into the kill ring, as if you had
-killed them with @kbd{C-w}.  With a zero prefix argument @var{N}=0, use the
-complete pathname of each file.  With a raw (just @kbd{C-u}) prefix argument,
-use the relative pathname of each marked file.  As a special case, if no
-prefix argument is given and point is on a directory headerline, it
-gives you the name of that directory, without looking for marked files.
-
-@vindex dired-marked-files
-The list of names is also stored onto the variable @code{dired-marked-files}
-for use, e.g., in the @kbd{M-:} (@code{eval-expression}) command.
-
-As this command also displays what was pushed onto the kill ring, you can
-use it to display the list of currently marked files in the
-echo area (unless you happen to be on a subdirectory headerline).
-
-You can then feed the file name to other Emacs commands with @kbd{C-y}.
-For example, say you want to rename a file with a long name to a slightly
-different name.  First type @kbd{w} to push the old name onto the kill
-ring.  Then type @kbd{R} to rename it and use @kbd{C-y} inside @kbd{R}'s
-minibuffer prompt to insert the old name at a convenient place.
-
-@item T
-@kindex T
-@cindex Toggling marks.
-@findex dired-do-toggle
-(@code{dired-do-toggle}) Toggle marks.  That is, currently marked
-files become unmarked and vice versa.  Files marked with other flags
-(such as @samp{D}) are not affected.  The special directories @file{.}
-and @file{..} are never toggled.
 @end table
 
 @table @code
@@ -1189,8 +1155,8 @@ bound to @kbd{C-x C-j} and @code{dired-jump-other-window} will not be bound to
 @cindex Reading mail.
 @kindex V
 @findex dired-vm
-Bound to @kbd{V} if @code{dired-bind-vm} is t.  Run VM on this file (assumed
-to be a UNIX mail folder).
+Bound to @kbd{V} if @code{dired-bind-vm} is @code{t}.  Run VM on this
+file (assumed to be a UNIX mail folder).
 
 @vindex dired-vm-read-only-folders
 If you give this command a prefix argument, it will visit the folder
@@ -1203,8 +1169,8 @@ the symbol @code{if-file-read-only}, only files not writable by you are
 visited read-only.  This is the recommended value if you run VM 5.
 
 @vindex dired-bind-vm
-If the variable @code{dired-bind-vm} is t, @code{dired-vm} will be bound to
-@kbd{V}.  Otherwise, @code{dired-bind-rmail} will be bound.
+If the variable @code{dired-bind-vm} is @code{t}, @code{dired-vm} will be bound
+to @kbd{V}.  Otherwise, @code{dired-bind-rmail} will be bound.
 
 @item dired-rmail
 @cindex Reading mail.
@@ -1234,10 +1200,10 @@ format).
 If the variable @code{dired-bind-man} is @code{nil}, @code{dired-man} will not
 be bound to @kbd{N}.
 
-@item dired-do-relative-symlink
+@item dired-do-relsymlink
 @cindex Relative symbolic links.
 @kindex Y
-@findex dired-do-relative-symlink
+@findex dired-do-relsymlink
 Bound to @kbd{Y}.  Relative symlink all marked (or next ARG) files into a
 directory, or make a relative symbolic link to the current file.  This creates
 relative symbolic links like
@@ -1253,9 +1219,9 @@ not absolute ones like
     foo -> /ugly/path/that/may/change/any/day/bar/foo
 @end example
 
-@item dired-do-relative-symlink-regexp
+@item dired-do-relsymlink-regexp
 @kindex %Y
-@findex dired-do-relative-symlink-regexp
+@findex dired-do-relsymlink-regexp
 Bound to @kbd{%Y}.  Relative symlink all marked files containing
 @var{regexp} to @var{newname}.  See functions
 @code{dired-do-rename-regexp} and @code{dired-do-relsymlink} for more
@@ -1312,3 +1278,7 @@ Lawrence R. Dodd
 
 @bye
 @c dired-x.texi ends here.
+
+@ignore
+   arch-tag: 201727aa-9318-4c74-a0d7-4f51c550c4de
+@end ignore

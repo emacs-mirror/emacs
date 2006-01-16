@@ -7,12 +7,12 @@
 @setfilename ../info/viper
 
 @copying
-Copyright @copyright{} 1995, 1996, 1997, 2001, 2002 Free Software
-Foundation, Inc.
+Copyright @copyright{} 1995, 1996, 1997, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU
 Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
@@ -206,7 +206,7 @@ Emacs can edit several files at once.  A file in Emacs is placed in a
 @dfn{buffer} that usually has the same name as the file.  Buffers are also used
 for other purposes, such as shell interfaces, directory editing, etc.
 @xref{Dired,,Directory Editor,emacs,The
-Gnu Emacs Manual}, for an example.@refill
+GNU Emacs Manual}, for an example.@refill
 
 A buffer has a distinguished position called the @dfn{point}.
 A @dfn{point} is always between 2 characters, and is @dfn{looking at}
@@ -314,8 +314,8 @@ x}.  Viper uses @key{ESC} to switch from Insert state to Vi state.  Therefore
 Viper defines @kbd{C-\} as its Meta key in Vi state.  @xref{Vi State}, for
 more info.@refill
 
-Emacs is structured as a lisp interpreter around a C core.  Emacs keys
-cause lisp functions to be called.  It is possible to call these
+Emacs is structured as a Lisp interpreter around a C core.  Emacs keys
+cause Lisp functions to be called.  It is possible to call these
 functions directly, by typing @kbd{M-x function-name}.
 
 @node Loading Viper, States in Viper, Emacs Preliminaries, Overview
@@ -507,9 +507,8 @@ modes designed for editing files, such as cc-mode or latex-mode, use key
 sequences that begin with @kbd{C-x} and @kbd{C-c}.
 
 There is also a key that lets you temporarily escape to Vi command state
-from Emacs or Insert states: typing @kbd{C-c \} will let you execute a
-single Vi command while staying in Viper's Emacs or Insert state.
-In Insert state, the same can also be achieved by typing @kbd{C-z}.
+from the Insert state: typing @kbd{C-z} will let you execute a
+single Vi command while staying in Viper's Insert state.
 
 
 @node Vi State, Insert State, Emacs State, States in Viper
@@ -596,7 +595,7 @@ Most commands, @kbd{~}, @kbd{[[}, @kbd{p}, @kbd{/}, @dots{}, etc., take counts.
 Viper uses Emacs Regular Expressions for searches.  These are a superset of
 Vi regular
 expressions, excepting the change-of-case escapes @samp{\u}, @samp{\L},
-@dots{}, etc.  @xref{Regular Expressions,,Regular Expressions,emacs,The
+@dots{}, etc.  @xref{Regexps,,Syntax of Regular Expressions,emacs,The
 GNU Emacs Manual}, for details.
 Files specified to @kbd{:e} use @code{csh} regular expressions
 (globbing, wildcards, what have you).
@@ -1312,7 +1311,7 @@ These two keys invoke many important Emacs functions.  For example, if you
 hit @kbd{C-x} followed by @kbd{2}, then the current window will be split
 into 2.  Except for novice users, @kbd{C-c} is also set to execute an Emacs
 command from the current major mode.  @key{ESC} will do the same, if you
-configure @key{ESC} as Meta by setting @code{viper-no-multiple-ESC} to nil
+configure @key{ESC} as Meta by setting @code{viper-no-multiple-ESC} to @code{nil}
 in @file{.viper}.  @xref{Customization}.  @kbd{C-\} in Insert, Replace, or Vi
 states will make Emacs think @kbd{Meta} has been hit.@refill
 @item \
@@ -1742,7 +1741,7 @@ executed.  Otherwise, it is processed as an ordinary sequence of typed keys.
 
 Setting this variable too high may slow down your typing.  Setting it too
 low may make it hard to type macros quickly enough.
-@item viper-translate-all-ESC-keysequences t on tty, nil on windowing display
+@item viper-translate-all-ESC-keysequences @code{t} on tty, @code{nil} on windowing display
 Normally, Viper lets Emacs translate only those ESC key sequences that are
 defined in the low-level key-translation-map or function-key-map, such as those
 emitted by the arrow and function keys. Other sequences, e.g., @kbd{\\e/}, are
@@ -1753,7 +1752,7 @@ The default is to translate all sequences only when using a dumb terminal.
 This permits you to use @kbd{ESC} as a meta key in insert mode. For instance,
 hitting @kbd{ESC x} fast would have the effect of typing @kbd{M-x}.
 If your dumb terminal is not so dumb and understands the meta key, then you
-probably will be better off setting this variable to nil. Try and see which
+probably will be better off setting this variable to @code{nil}. Try and see which
 way suits you best.
 @item viper-ex-style-motion t
 Set this to @code{nil}, if you want @kbd{l,h} to cross
@@ -1764,8 +1763,8 @@ Set this to @code{nil}, if you want
 at the beginning of a line in Insert state, @key{X} and @key{x} to delete
 characters across lines in Vi command state, etc.
 @item viper-ESC-moves-cursor-back t
-It t, cursor moves back 1 character when switching from insert state to vi
-state.  If nil, the cursor stays where it was before the switch.
+It @code{t}, cursor moves back 1 character when switching from insert state to vi
+state.  If @code{nil}, the cursor stays where it was before the switch.
 @item viper-always t
 @code{t} means: leave it to Viper to decide when a buffer must be brought
 up in Vi state,
@@ -1873,17 +1872,17 @@ If set to a valid color, this will be the cursor color when Viper is in
 insert state.
 @item viper-replace-region-end-delimiter "$"
 A string used to mark the end of replacement regions.  It is used only on
-TTYs or if @code{viper-use-replace-region-delimiters} is non-nil.
+TTYs or if @code{viper-use-replace-region-delimiters} is non-@code{nil}.
 @item viper-replace-region-start-delimiter  ""
 A string used to mark the beginning of replacement regions.  It is used
-only on TTYs or if @code{viper-use-replace-region-delimiters} is non-nil.
+only on TTYs or if @code{viper-use-replace-region-delimiters} is non-@code{nil}.
 @item viper-use-replace-region-delimiters
-If non-nil, Viper will always use @code{viper-replace-region-end-delimiter} and
+If non-@code{nil}, Viper will always use @code{viper-replace-region-end-delimiter} and
 @code{viper-replace-region-start-delimiter} to delimit replacement regions,
 even on color displays (where this is unnecessary).  By default, this
-variable is non-nil only on TTYs or monochrome displays.
+variable is non-@code{nil} only on TTYs or monochrome displays.
 @item viper-allow-multiline-replace-regions t
-If non-nil, multi-line text replacement regions, such as those produced by
+If non-@code{nil}, multi-line text replacement regions, such as those produced by
 commands @kbd{c55w}, @kbd{3C}, etc., will stay around until the user exits
 the replacement mode.  In this variable is set to @code{nil}, Viper will
 emulate the standard Vi behavior, which supports only intra-line
@@ -2066,7 +2065,7 @@ To customize the binding for @kbd{C-h} in Insert state:
 @end example
 @noindent
 
-Each Emacs command key calls some lisp function.  If you have enabled the
+Each Emacs command key calls some Lisp function.  If you have enabled the
 Help, (@pxref{Rudimentary Changes}) @kbd{C-h k} will show you the function
 for each specific key; @kbd{C-h b} will show all bindings, and @kbd{C-h m}
 will provide information on the major mode in effect.  If Help is not
@@ -2285,7 +2284,7 @@ It is also possible to impose Vi on some major modes, even though they may
 bind common keys to specialized commands.  This might make sense for modes
 that bind only a small number of common keys.  For instance, Viper subverts
 the Shell mode by changing the bindings for @kbd{C-m} and @kbd{C-d} using
-@code{viper-add-local-keys} described in section on customization
+@code{viper-add-local-keys} described in the section on customization
 (@pxref{Customization}).
 
 In some cases, some @emph{minor} modes might override certain essential
@@ -2294,7 +2293,7 @@ can happen only in the beginning, when the minor mode kicks in.  Typing
 @code{M-x viper-mode} will correct the situation.  Viper knows about
 several such minor modes and takes care of them, so the above trick
 is usually not necessary.  If you find that some minor mode, e.g.,
-@code{nasty-mode.el} interferes with Viper, putting the following in
+@code{nasty-mode} interferes with Viper, putting the following in
 @file{.viper} should fix the problem:
 @lisp
 (viper-harness-minor-mode "nasty-mode")
@@ -2305,7 +2304,7 @@ offending minor mode with the suffixes @file{.el} and @file{.elc} removed.
 
 It may not be always obvious which minor mode is at fault.  The only
 guidance here is to look into the file that defines the minor mode you are
-suspecting, say @code{nasty-mode.el}, and see if it has a variable called
+suspecting, say @file{nasty-mode.el}, and see if it has a variable called
 @code{nasty-mode-map}.  Then check if there is a statement of the form
 @lisp
 (define-key nasty-mode-map key function)
@@ -2315,6 +2314,18 @@ that binds the misbehaving
 keys.  If so, use the above line to harness @code{nasty-mode}.  If your
 suspicion is wrong, no harm is done if you harness a minor mode that
 doesn't need to be harnessed.
+
+It is recommended to harness even those minor modes that don't override
+Viper keys, but still have their own keymaps. A general way to
+make a minor mode, @code{my-mode},
+compatible with Viper is to have the file @file{my-mode.el} include the following code:
+
+@lisp
+(when (fboundp 'viper-harness-minor-mode)
+  (let ((lib (file-name-sans-extension
+               (file-name-nondirectory load-file-name))))
+    (viper-harness-minor-mode lib)))
+@end lisp
 
 @vindex @code{viper-want-emacs-keys-in-vi}
 @vindex @code{viper-want-emacs-keys-in-insert}
@@ -2371,11 +2382,19 @@ this in @file{~/.viper}:
 @end example
 @findex @code{viper-set-searchstyle-toggling-macros}
 
+If you don't like this feature as a default, but would still like to have
+it in some major modes, you can do so by first unsetting it globally, as
+shown above, and then setting it in the desired major modes as follows:
+@example
+(viper-set-searchstyle-toggling-macros nil 'c-mode)
+(viper-set-searchstyle-toggling-macros nil 'lisp-mode)
+@end example
+
 @item Vi-isms in Emacs state
 Some people find it useful to use the Vi-style search key, `/', to invoke
 search in modes which Viper leaves in emacs-state.  These modes are:
-@code{dired-mode}, @code{mh-folder-mode}, @code{gnus-group-mode},
-@code{gnus-summary-mode}, @code{Info-mode}, and @code{Buffer-menu-mode}
+@code{dired-mode}, @code{mh-folder-mode},
+@code{Info-mode}, and @code{Buffer-menu-mode}
 (more may be added in the future).  So, in the above modes, Viper binds `/'
 so that it will behave Vi-style.  Furthermore, in those major modes, Viper
 binds `:' to invoke ex-style commands, like in vi-state.  And, as described
@@ -2390,7 +2409,7 @@ can unbind `/' and `:' in @code{viper-dired-modifier-map} (for Dired) or in
 
 To unbind the macros `//' and `///' for a major mode where you feel they
 are undesirable, execute @code{viper-set-emacs-state-searchstyle-macros} with a
-non-nil argument.  This can be done either interactively, by supplying a
+non-@code{nil} argument.  This can be done either interactively, by supplying a
 prefix argument, or by placing
 @example
 (viper-set-emacs-state-searchstyle-macros 'undefine)
@@ -2563,7 +2582,7 @@ above block should be commented out.
 Even though these commands are sometimes useful, they are no substitute for
 the powerful @emph{tag table} facility of Emacs.  Viper's @kbd{:tag} command
 in a primitive interface to Emacs tags.  @xref{Tags,Tags,Tags,emacs,
-The Gnu Emacs Manual}, for more information on tags.
+The GNU Emacs Manual}, for more information on tags.
 
 The following two commands are normally bound to a mouse click and are part
 of Viper.  They work only if Emacs runs as an application under X
@@ -2779,7 +2798,7 @@ As if all that is not enough, Viper (through its interface to Emacs
 macros) lets the user define keyboard macros that ask for confirmation or
 even prompt the user for input and then continue.  To do this, one should
 type @kbd{C-x q} (for confirmation) or @kbd{C-u C-x q} (for prompt).
-For details, @pxref{Kbd Macro Query,,Customization,emacs,The GNU Emacs
+For details, @pxref{Keyboard Macro Query,,Customization,emacs,The GNU Emacs
 Manual} @refill
 
 When the user finishes defining a macro (which is done by typing @kbd{C-x)} ---
@@ -3140,7 +3159,7 @@ Return, Enter
 
 We also use @samp{word} for alphanumeric/non-alphanumeric words, and
 @samp{WORD} for whitespace delimited words.  @samp{char} refers to any
-ASCII character, @samp{CHAR} to non-whitespace character.
+@acronym{ASCII} character, @samp{CHAR} to non-whitespace character.
 Brackets @samp{[]} indicate optional parameters; @samp{<count>} also
 optional, usually defaulting to 1.  Brackets are elided for
 @samp{<count>} to eschew obfuscation.
@@ -3360,7 +3379,7 @@ this function.
 Find the next bracket/parenthesis/brace and go to its match.
 By default, Viper ignores brackets/parentheses/braces that occur inside
 parentheses.  You can change this by setting
-@code{viper-parse-sexp-ignore-comments} to nil in your @file{.viper} file.
+@code{viper-parse-sexp-ignore-comments} to @code{nil} in your @file{.viper} file.
 This option can also be toggled interactively if you quickly hit @kbd{%%%}.
 
 This latter feature is implemented as a vi-style keyboard macro.  If you
@@ -4470,6 +4489,7 @@ gviswana@@cs.wisc.edu (Guhan Viswanathan),
 gvr@@halcyon.com (George V.@: Reilly),
 hatazaki@@bach.convex.com (Takao Hatazaki),
 hpz@@ibmhpz.aug.ipp-garching.mpg.de (Hans-Peter Zehrfeld),
+irie@@t.email.ne.jp (Irie Tetsuya),
 jackr@@dblues.engr.sgi.com (Jack Repenning),
 jamesm@@bga.com (D.J.@: Miller II),
 jjm@@hplb.hpl.hp.com (Jean-Jacques Moreau),
@@ -4481,6 +4501,7 @@ kin@@isi.com (Kin Cho),
 kwzh@@gnu.org (Karl Heuer),
 lindstro@@biostat.wisc.edu (Mary Lindstrom),
 lektu@@terra.es (Juanma Barranquero),
+lennart.borgman.073@@student.lu.se (Lennart Borgman),
 minakaji@@osaka.email.ne.jp (Mikio Nakajima),
 Mark.Bordas@@East.Sun.COM (Mark Bordas),
 meyering@@comco.com (Jim Meyering),
@@ -4498,6 +4519,7 @@ sawdey@@lcse.umn.edu (Aaron Sawdey),
 simonb@@prl.philips.co.uk (Simon Blanchard),
 spadgett1@@nc.rr.com (Samuel Padgett),
 stephen@@farrell.org (Stephen Farrell),
+storm@@cua.dk (Kim F. Storm),
 sudish@@MindSpring.COM (Sudish Joseph),
 schwab@@issan.informatik.uni-dortmund.de (Andreas Schwab)
 terra@@diku.dk (Morten Welinder),
@@ -4542,3 +4564,7 @@ zapman@@cc.gatech.edu (Jason Zapman II),
 @setchapternewpage odd
 @contents
 @bye
+
+@ignore
+   arch-tag: f53e866a-15cf-4b1e-aead-77da9da1e864
+@end ignore

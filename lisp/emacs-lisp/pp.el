@@ -1,6 +1,7 @@
 ;;; pp.el --- pretty printer for Emacs Lisp
 
-;; Copyright (C) 1989, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Randal Schwartz <merlyn@stonehenge.com>
 ;; Keywords: lisp
@@ -19,12 +20,14 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
 ;;; Code:
+
+(defvar font-lock-verbose)
 
 (defgroup pp nil
   "Pretty printer for Emacs Lisp."
@@ -50,33 +53,40 @@ to make output that `read' can handle, whenever this is possible."
 	  (let ((print-escape-newlines pp-escape-newlines)
 		(print-quoted t))
 	    (prin1 object (current-buffer)))
-	  (goto-char (point-min))
-	  (while (not (eobp))
-	    ;; (message "%06d" (- (point-max) (point)))
-	    (cond
-	     ((condition-case err-var
-		  (prog1 t (down-list 1))
-		(error nil))
-	      (save-excursion
-		(backward-char 1)
-		(skip-chars-backward "'`#^")
-		(when (and (not (bobp)) (= ?\ (char-before)))
-		  (delete-char -1)
-		  (insert "\n"))))
-	     ((condition-case err-var
-		  (prog1 t (up-list 1))
-		(error nil))
-	      (while (looking-at "\\s)")
-		(forward-char 1))
-	      (delete-region
-	       (point)
-	       (progn (skip-chars-forward " \t") (point)))
-	      (insert ?\n))
-	     (t (goto-char (point-max)))))
-	  (goto-char (point-min))
-	  (indent-sexp)
+          (pp-buffer)
 	  (buffer-string))
       (kill-buffer (current-buffer)))))
+
+;;;###autoload
+(defun pp-buffer ()
+  "Prettify the current buffer with printed representation of a Lisp object."
+  (goto-char (point-min))
+  (while (not (eobp))
+    ;; (message "%06d" (- (point-max) (point)))
+    (cond
+     ((condition-case err-var
+          (prog1 t (down-list 1))
+        (error nil))
+      (save-excursion
+        (backward-char 1)
+        (skip-chars-backward "'`#^")
+        (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
+          (delete-region
+           (point)
+           (progn (skip-chars-backward " \t\n") (point)))
+          (insert "\n"))))
+     ((condition-case err-var
+          (prog1 t (up-list 1))
+        (error nil))
+      (while (looking-at "\\s)")
+        (forward-char 1))
+      (delete-region
+       (point)
+       (progn (skip-chars-forward " \t\n") (point)))
+      (insert ?\n))
+     (t (goto-char (point-max)))))
+  (goto-char (point-min))
+  (indent-sexp))
 
 ;;;###autoload
 (defun pp (object &optional stream)
@@ -120,12 +130,10 @@ in the variable `values'."
 		 (message "%s" (buffer-substring (point-min) (point)))
 		 ))))))
     (with-output-to-temp-buffer "*Pp Eval Output*"
-      (pp (car values)))
-    (save-excursion
-      (set-buffer "*Pp Eval Output*")
-      (emacs-lisp-mode)
-      (make-local-variable 'font-lock-verbose)
-      (setq font-lock-verbose nil))))
+      (pp (car values))
+      (with-current-buffer standard-output
+	(emacs-lisp-mode)
+	(set (make-local-variable 'font-lock-verbose) nil)))))
 
 ;;;###autoload
 (defun pp-eval-last-sexp (arg)
@@ -167,4 +175,5 @@ Ignores leading comment characters."
 
 (provide 'pp)				; so (require 'pp) works
 
+;;; arch-tag: b0f7c65b-02c7-42bb-9ee3-508a59b8fbb9
 ;;; pp.el ends here

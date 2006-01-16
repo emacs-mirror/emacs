@@ -47,3 +47,6 @@
 
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
+
+/* arch-tag: 362f3bfc-810d-4f6e-9b83-5a32f8f1a926
+   (do not change this comment) */

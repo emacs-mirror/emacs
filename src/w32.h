@@ -2,7 +2,7 @@
 #define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,8 +18,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* File descriptor set emulation.  */
@@ -122,15 +122,20 @@ extern void reset_standard_handles (int in, int out,
 /* Return the string resource associated with KEY of type TYPE.  */
 extern LPBYTE w32_get_resource (char * key, LPDWORD type);
 
-extern void init_ntproc ();
-extern void term_ntproc ();
-extern void globals_of_w32 ();
-extern void syms_of_w32term ();
-extern void syms_of_w32fns ();
-extern void globals_of_w32fns ();
-extern void syms_of_w32select ();
-extern void syms_of_w32menu ();
-extern void globals_of_w32menu ();
-extern void syms_of_fontset ();
+extern void init_ntproc (void);
+extern void term_ntproc (void);
+extern void globals_of_w32 (void);
+extern void syms_of_w32term (void);
+extern void syms_of_w32fns (void);
+extern void globals_of_w32fns (void);
+extern void syms_of_w32select (void);
+extern void globals_of_w32select (void);
+extern void term_w32select (void);
+extern void syms_of_w32menu (void);
+extern void globals_of_w32menu (void);
+extern void syms_of_fontset (void);
 
 #endif /* EMACS_W32_H */
+
+/* arch-tag: 02c36b00-312b-4c4d-a1d9-f905c5e968f0
+   (do not change this comment) */

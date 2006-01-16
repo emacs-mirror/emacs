@@ -1,7 +1,7 @@
 #include "copyright.h"
 
-/* $Header: /cvs/emacs/oldXMenu/InsSel.c,v 1.1 1999/10/03 19:35:05 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
  * XMenu:	MIT Project Athena, X Window system menu package
@@ -114,3 +114,6 @@ XMenuInsertSelection(menu, p_num, s_num, data, label, active)
     _XMErrorCode = XME_NO_ERROR;
     return(s_num);
 }
+
+/* arch-tag: 8398626f-81cb-4e13-8ebc-aac1b9237663
+   (do not change this comment) */

@@ -1,7 +1,8 @@
 ;;; ebrowse.el --- Emacs C++ class browser & tags facility
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002
-;;  Free Software Foundation Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+;; 2002, 2003, 2004, 2005
+;; Free Software Foundation Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: FSF
@@ -21,7 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; the Free Software Foundation, 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -157,46 +159,64 @@ This space is used to display markers."
   :group 'ebrowse)
 
 
-(defface ebrowse-tree-mark-face
-  '((t (:foreground "red")))
+(defface ebrowse-tree-mark
+  '((((min-colors 88)) (:foreground "red1"))
+    (t (:foreground "red")))
   "*The face used for the mark character in the tree."
   :group 'ebrowse-faces)
+;; backward-compatibility alias
+(put 'ebrowse-tree-mark-face 'face-alias 'ebrowse-tree-mark)
 
 
-(defface ebrowse-root-class-face
-  '((t (:weight bold :foreground "blue")))
+(defface ebrowse-root-class
+  '((((min-colors 88)) (:weight bold :foreground "blue1"))
+    (t (:weight bold :foreground "blue")))
   "*The face used for root classes in the tree."
   :group 'ebrowse-faces)
+;; backward-compatibility alias
+(put 'ebrowse-root-class-face 'face-alias 'ebrowse-root-class)
 
 
-(defface ebrowse-file-name-face
+(defface ebrowse-file-name
   '((t (:italic t)))
   "*The face for filenames displayed in the tree."
   :group 'ebrowse-faces)
+;; backward-compatibility alias
+(put 'ebrowse-file-name-face 'face-alias 'ebrowse-file-name)
 
 
-(defface ebrowse-default-face
+(defface ebrowse-default
   '((t nil))
   "*Face for everything else in the tree not having other faces."
   :group 'ebrowse-faces)
+;; backward-compatibility alias
+(put 'ebrowse-default-face 'face-alias 'ebrowse-default)
 
 
-(defface ebrowse-member-attribute-face
-  '((t (:foreground "red")))
+(defface ebrowse-member-attribute
+  '((((min-colors 88)) (:foreground "red1"))
+    (t (:foreground "red")))
   "*Face used to display member attributes."
   :group 'ebrowse-faces)
+;; backward-compatibility alias
+(put 'ebrowse-member-attribute-face 'face-alias 'ebrowse-member-attribute)
 
 
-(defface ebrowse-member-class-face
+(defface ebrowse-member-class
   '((t (:foreground "purple")))
   "*Face used to display the class title in member buffers."
   :group 'ebrowse-faces)
+;; backward-compatibility alias
+(put 'ebrowse-member-class-face 'face-alias 'ebrowse-member-class)
 
 
-(defface ebrowse-progress-face
-  '((t (:background "blue")))
+(defface ebrowse-progress
+  '((((min-colors 88)) (:background "blue1"))
+    (t (:background "blue")))
   "*Face for progress indicator."
   :group 'ebrowse-faces)
+;; backward-compatibility alias
+(put 'ebrowse-progress-face 'face-alias 'ebrowse-progress)
 
 
 
@@ -258,7 +278,7 @@ This is a destructive operation."
 (defmacro ebrowse-output (&rest body)
   "Eval BODY with a writable current buffer.
 Preserve buffer's modified state."
-  (let ((modified (gensym "--ebrowse-output--")))
+  (let ((modified (make-symbol "--ebrowse-output--")))
     `(let (buffer-read-only (,modified (buffer-modified-p)))
        (unwind-protect
 	   (progn ,@body)
@@ -780,16 +800,16 @@ The class tree is found in the buffer-local variable `ebrowse--tree-obarray'."
 
 (defun ebrowse-class-in-tree (class tree)
   "Search for a class with name CLASS in TREE.
-Return the class found, if any.  This function is used during the load
-phase where classes appended to a file replace older class
-information."
+If CLASS is found, return the tail of TREE starting at CLASS.  This function
+is used during the load phase where classes appended to a file replace older
+class information."
   (let ((tclass (ebrowse-ts-class class))
 	found)
     (while (and tree (not found))
-      (let ((root (car tree)))
-	(when (string= (ebrowse-qualified-class-name (ebrowse-ts-class root))
+      (let ((root-ptr tree))
+	(when (string= (ebrowse-qualified-class-name (ebrowse-ts-class (car root-ptr)))
 		       (ebrowse-qualified-class-name tclass))
-	  (setq found root))
+	  (setq found root-ptr))
 	(setq tree (cdr tree))))
     found))
 
@@ -879,7 +899,7 @@ this is the first progress message displayed."
     (message (concat title ": "
 		     (propertize (make-string ebrowse-n-boxes
 					      (if (display-color-p) ?\  ?+))
-				 'face 'ebrowse-progress-face)))))
+				 'face 'ebrowse-progress)))))
 
 
 ;;; Reading a tree from disk
@@ -903,10 +923,10 @@ and TREE is a list of `ebrowse-ts' structures forming the class tree."
     (let ((gc-cons-threshold 2000000))
       (while (not (progn (skip-chars-forward " \t\n\r") (eobp)))
 	(let* ((root (read (current-buffer)))
-	       (old-root (ebrowse-class-in-tree root tree)))
+	       (old-root-ptr (ebrowse-class-in-tree root tree)))
 	  (ebrowse-show-progress "Reading data" (null tree))
-	  (if old-root
-	      (setf (car old-root) root)
+	  (if old-root-ptr
+	      (setcar old-root-ptr root)
 	    (push root tree)))))
     (garbage-collect)
     (list header tree)))
@@ -920,7 +940,8 @@ NOCONFIRM."
     (loop for member-buffer in (ebrowse-same-tree-member-buffer-list)
 	  do (kill-buffer member-buffer))
     (erase-buffer)
-    (insert-file (or buffer-file-name ebrowse--tags-file-name))
+    (with-no-warnings
+      (insert-file (or buffer-file-name ebrowse--tags-file-name)))
     (ebrowse-tree-mode)
     (current-buffer)))
 
@@ -1158,7 +1179,7 @@ Tree mode key bindings:
     (when tree
       (ebrowse-redraw-tree)
       (set-buffer-modified-p nil))
-    (run-hooks 'ebrowse-tree-mode-hook)))
+    (run-mode-hooks 'ebrowse-tree-mode-hook)))
 
 
 
@@ -1295,7 +1316,6 @@ With PREFIX, insert that many filenames."
 	(let ((tree (ebrowse-tree-at-point))
 	      start
 	      file-name-existing)
-	  (unless tree return)
 	  (beginning-of-line)
 	  (skip-chars-forward " \t*a-zA-Z0-9_")
 	  (setq start (point)
@@ -1307,7 +1327,7 @@ With PREFIX, insert that many filenames."
 			     (ebrowse-ts-class tree))
 			    "unknown")
 		    ")"))
-	  (ebrowse-set-face start (point) 'ebrowse-file-name-face)
+	  (ebrowse-set-face start (point) 'ebrowse-file-name)
 	  (beginning-of-line)
 	  (forward-line 1))))))
 
@@ -1445,10 +1465,10 @@ Pop to member buffer if no prefix ARG, to tree buffer otherwise."
 (defun ebrowse-set-tree-indentation ()
   "Set the indentation width of the tree display."
   (interactive)
-  (let ((width (string-to-int (read-from-minibuffer
-			       (concat "Indentation ("
-				       (int-to-string ebrowse--indentation)
-				       "): ")))))
+  (let ((width (string-to-number (read-from-minibuffer
+                                  (concat "Indentation ("
+                                          (int-to-string ebrowse--indentation)
+                                          "): ")))))
     (when (plusp width)
       (setf ebrowse--indentation width)
       (ebrowse-redraw-tree))))
@@ -1778,7 +1798,7 @@ INFO is a list (TREE-HEADER TREE-OR-MEMBER MEMBER-LIST)."
       ;; START will be 0.
       (when (and (boundp 'ebrowse-debug)
 		 (symbol-value 'ebrowse-debug))
-	(y-or-n-p (format "start = %d" start))
+	(y-or-n-p (format "start = %d? " start))
 	(y-or-n-p pattern))
       (setf found
 	    (loop do (goto-char (max (point-min) (- start offset)))
@@ -1825,7 +1845,7 @@ TREE denotes the class shown."
    start end
    `(mouse-face highlight ebrowse-what mark ebrowse-tree ,tree
 		help-echo "double-mouse-1: mark/unmark"))
-  (ebrowse-set-face start end 'ebrowse-tree-mark-face))
+  (ebrowse-set-face start end 'ebrowse-tree-mark))
 
 
 (defun* ebrowse-draw-tree-fn (&aux stack1 stack2 start)
@@ -1852,8 +1872,8 @@ This function may look weird, but this is faster than recursion."
 	  (when (ebrowse-template-p class)
 	    (insert "<>"))
 	  (ebrowse-set-face start (point) (if (zerop level)
-					      'ebrowse-root-class-face
-					    'ebrowse-default-face))
+					      'ebrowse-root-class
+					    'ebrowse-default))
 	  (setf start-of-class-name start
 		end-of-class-name (point))
 	  ;; If filenames are to be displayed...
@@ -1864,7 +1884,7 @@ This function may look weird, but this is faster than recursion."
 		    (or (ebrowse-cs-file class)
 			"unknown")
 		    ")")
-	    (ebrowse-set-face start (point) 'ebrowse-file-name-face))
+	    (ebrowse-set-face start (point) 'ebrowse-file-name))
 	  (ebrowse-set-mark-props start-of-line (1+ start-of-line) tree)
 	  (add-text-properties
 	   start-of-class-name end-of-class-name
@@ -2023,7 +2043,7 @@ COLLAPSE non-nil means collapse the branch."
 	truncate-lines t
 	buffer-read-only t
 	major-mode 'ebrowse-electric-list-mode)
-  (run-hooks 'ebrowse-electric-list-mode-hook))
+  (run-mode-hooks 'ebrowse-electric-list-mode-hook))
 
 
 (defun ebrowse-list-tree-buffers ()
@@ -2228,7 +2248,7 @@ See 'Electric-command-loop' for a description of STATE and CONDITION."
 
 ;;; Member mode
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-member-mode ()
   "Major mode for Ebrowse member buffers.
 
@@ -2274,7 +2294,7 @@ See 'Electric-command-loop' for a description of STATE and CONDITION."
 	ebrowse--const-display-flag nil
 	ebrowse--pure-display-flag nil)
   (modify-syntax-entry ?_ (char-to-string (char-syntax ?a)))
-  (run-hooks 'ebrowse-member-mode-hook))
+  (run-mode-hooks 'ebrowse-member-mode-hook))
 
 
 
@@ -2326,7 +2346,7 @@ With prefix ARG, switch to the tree buffer else pop to it."
   "Set the column width of the member display.
 The new width is read from the minibuffer."
   (interactive)
-  (let ((width (string-to-int
+  (let ((width (string-to-number
 		(read-from-minibuffer
 		 (concat "Column width ("
 			 (int-to-string (if ebrowse--long-display-flag
@@ -2691,7 +2711,7 @@ the class cursor is on."
       (insert "<>"))
     (setq class-name-end (point))
     (insert ":\n\n")
-    (ebrowse-set-face start (point) 'ebrowse-member-class-face)
+    (ebrowse-set-face start (point) 'ebrowse-member-class)
     (add-text-properties
      class-name-start class-name-end
      '(ebrowse-what class-name
@@ -2807,7 +2827,7 @@ TREE is the class tree of MEMBER-LIST."
 	    (ebrowse-draw-member-attributes member-struc)
 	    (insert ">")
 	    (ebrowse-set-face start (point)
-			      'ebrowse-member-attribute-face)))
+			      'ebrowse-member-attribute)))
 	(insert " ")
 	(ebrowse-draw-member-regexp member-struc))))
   (insert "\n")
@@ -2838,7 +2858,7 @@ TREE is the class tree in which the members are found."
 	    (ebrowse-draw-member-attributes member)
 	    (insert "> ")
 	    (ebrowse-set-face start-of-entry (point)
-			      'ebrowse-member-attribute-face))
+			      'ebrowse-member-attribute))
 	  ;; insert member name truncated to column width
 	  (setq start-of-name (point))
 	  (insert (substring name 0
@@ -3398,28 +3418,28 @@ definition."
       (ebrowse-push-position (point-marker) info t))))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-view-declaration ()
   "View declaration of member at point."
   (interactive)
   (ebrowse-tags-view/find-member-decl/defn 0 :view t :definition nil))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-find-declaration ()
   "Find declaration of member at point."
   (interactive)
   (ebrowse-tags-view/find-member-decl/defn 0 :view nil :definition nil))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-view-definition ()
   "View definition of member at point."
   (interactive)
   (ebrowse-tags-view/find-member-decl/defn 0 :view t :definition t))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-find-definition ()
   "Find definition of member at point."
   (interactive)
@@ -3432,21 +3452,21 @@ definition."
   (ebrowse-tags-view/find-member-decl/defn 4 :view t :definition nil))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-find-declaration-other-window ()
   "Find declaration of member at point in other window."
   (interactive)
   (ebrowse-tags-view/find-member-decl/defn 4 :view nil :definition nil))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-view-definition-other-window ()
   "View definition of member at point in other window."
   (interactive)
   (ebrowse-tags-view/find-member-decl/defn 4 :view t :definition t))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-find-definition-other-window ()
   "Find definition of member at point in other window."
   (interactive)
@@ -3459,21 +3479,21 @@ definition."
   (ebrowse-tags-view/find-member-decl/defn 5 :view t :definition nil))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-find-declaration-other-frame ()
   "Find definition of member at point in other frame."
   (interactive)
   (ebrowse-tags-view/find-member-decl/defn 5 :view nil :definition nil))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-view-definition-other-frame ()
   "View definition of member at point in other frame."
   (interactive)
   (ebrowse-tags-view/find-member-decl/defn 5 :view t :definition t))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-find-definition-other-frame ()
   "Find definition of member at point in other frame."
   (interactive)
@@ -3780,7 +3800,7 @@ TREE-BUFFER if indirectly specifies which files to loop over."
     (goto-char (point-min))))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-search (regexp)
   "Search for REGEXP in all files in a tree.
 If marked classes exist, process marked classes, only.
@@ -3934,7 +3954,7 @@ Prefix arg ARG says how much."
 
 
 (defvar ebrowse-electric-position-mode-hook nil
-  "If non-nil, its value is called by ebrowse-electric-position-mode.")
+  "If non-nil, its value is called by `ebrowse-electric-position-mode'.")
 
 
 (unless ebrowse-electric-position-mode-map
@@ -3984,7 +4004,7 @@ Runs the hook `ebrowse-electric-position-mode-hook'."
 	truncate-lines t
 	buffer-read-only t
 	major-mode 'ebrowse-electric-position-mode)
-  (run-hooks 'ebrowse-electric-position-mode-hook))
+  (run-mode-hooks 'ebrowse-electric-position-mode-hook))
 
 
 (defun ebrowse-draw-position-buffer ()
@@ -4182,7 +4202,7 @@ Otherwise, FILE-NAME specifies the file to save the tree in."
 
 (defun ebrowse-print-statistics-line (title value)
   "Print a line in the statistics buffer.
-TITLE is the title of the line, VALUE is number to be printed
+TITLE is the title of the line, VALUE is a number to be printed
 after that."
   (insert title)
   (indent-to 40)
@@ -4310,13 +4330,13 @@ NUMBER-OF-STATIC-VARIABLES:"
   "Select the nth entry in the list by the keys 1..9."
   (interactive)
   (let* ((maxlin (count-lines (point-min) (point-max)))
-	 (n (min maxlin (+ 2 (string-to-int (this-command-keys))))))
+	 (n (min maxlin (+ 2 (string-to-number (this-command-keys))))))
     (goto-line n)
     (throw 'electric-buffer-menu-select (point))))
 
 
 (defun ebrowse-install-1-to-9-keys ()
-  "Define keys 1..9 to select the 1st to 0nth entry in the list."
+  "Define keys 1..9 to select the 1st to 9nth entry in the list."
   (dotimes (i 9)
     (define-key (current-local-map) (char-to-string (+ i ?1))
       'ebrowse-select-1st-to-9nth)))
@@ -4493,4 +4513,5 @@ EVENT is the mouse event."
 ;;; eval:(put 'ebrowse-for-all-trees 'lisp-indent-hook 1)
 ;;; End:
 
+;;; arch-tag: 4fa3c8bf-1771-479b-bcd7-b029c7c9677b
 ;;; ebrowse.el ends here

@@ -1,8 +1,10 @@
 ;;; characters.el --- set syntax and category for multibyte characters
 
-;; Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2001, 2002, 2003, 2004
+;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multibyte character, character set, syntax, category
 
@@ -20,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -32,6 +34,11 @@
 ;; those are defined by the files latin-N.el.
 
 ;;; Code:
+
+;; We must set utf-translate-cjk-mode to nil while loading this file
+;; to avoid translating CJK characters in decode-char.
+(defvar saved-utf-translate-cjk-mode utf-translate-cjk-mode)
+(setq utf-translate-cjk-mode nil)
 
 ;;; Predefined categories.
 
@@ -140,6 +147,9 @@
 (modify-syntax-entry ?\$A!:(B "($A!;(B")
 (modify-syntax-entry ?\$A!<(B "($A!=(B")
 (modify-syntax-entry ?\$A!>(B "($A!?(B")
+(modify-syntax-entry ?\$A#((B "($A#)(B")
+(modify-syntax-entry ?\$A#{(B "($A#}(B")
+(modify-syntax-entry ?\$A#[(B "($A#](B")
 (modify-syntax-entry ?\$A!3(B ")$A!2(B")
 (modify-syntax-entry ?\$A!5(B ")$A!4(B")
 (modify-syntax-entry ?\$A!7(B ")$A!6(B")
@@ -147,21 +157,13 @@
 (modify-syntax-entry ?\$A!;(B ")$A!:(B")
 (modify-syntax-entry ?\$A!=(B ")$A!<(B")
 (modify-syntax-entry ?\$A!?(B ")$A!>(B")
-;; Unicode equivalents of above
-(modify-syntax-entry ?\$,2=T(B "($,2=U(B")
-(modify-syntax-entry ?\$,2=H(B "($,2=I(B")
-(modify-syntax-entry ?\$,2=J(B "($,2=K(B")
-(modify-syntax-entry ?\$,2=L(B "($,2=M(B")
-(modify-syntax-entry ?\$,2=N(B "($,2=O(B")
-(modify-syntax-entry ?\$,2=V(B "($,2=W(B")
-(modify-syntax-entry ?\$,2=P(B "($,2=Q(B")
-(modify-syntax-entry ?\$,2=U(B ")$,2=T(B")
-(modify-syntax-entry ?\$,2=I(B ")$,2=H(B")
-(modify-syntax-entry ?\$,2=K(B ")$,2=J(B")
-(modify-syntax-entry ?\$,2=M(B ")$,2=L(B")
-(modify-syntax-entry ?\$,2=O(B ")$,2=N(B")
-(modify-syntax-entry ?\$,2=W(B ")$,2=V(B")
-(modify-syntax-entry ?\$,2=Q(B ")$,2=P(B")
+(modify-syntax-entry ?\$A#)(B ")$A#((B")
+(modify-syntax-entry ?\$A#}(B ")$A#{(B")
+(modify-syntax-entry ?\$A#](B ")$A#[(B")
+
+(let ((chars "$A#,!"!##.!$#;#:#?#!!C!-!'#|#_!.!/!0!1#"!e#`!d(B"))
+  (dotimes (i (length chars))
+    (modify-syntax-entry (aref chars i) ".")))
 
 (modify-category-entry (make-char 'chinese-gb2312) ?c)
 (modify-category-entry (make-char 'chinese-gb2312) ?\|)
@@ -176,6 +178,30 @@
     (setq row (1+ row))))
 
 ;; Chinese character set (BIG5)
+
+(let ((from (decode-big5-char #xA141))
+      (to (decode-big5-char #xA15D)))
+  (while (< from to)
+    (modify-syntax-entry from ".")
+    (setq from (1+ from))))
+(let ((from (decode-big5-char #xA1A5))
+      (to (decode-big5-char #xA1AD)))
+  (while (< from to)
+    (modify-syntax-entry from ".")
+    (setq from (1+ from))))
+(let ((from (decode-big5-char #xA1AD))
+      (to (decode-big5-char #xA2AF)))
+  (while (< from to)
+    (modify-syntax-entry from "_")
+    (setq from (1+ from))))
+
+(let ((parens "$(0!>!?!@!A!B!C!D!E!F!G!H!I!J!K!L!M!N!O!P!Q!R!S!T!U!V!W!X!Y!Z![!\!]!^!_!`!a!b!c(B")
+      open close)
+  (dotimes (i (/ (length parens) 2))
+    (setq open (aref parens (* i 2))
+	  close (aref parens (1+ (* i 2))))
+    (modify-syntax-entry open (format "(%c" close))
+    (modify-syntax-entry close (format ")%c" open))))
 
 (let ((generic-big5-1-char (make-char 'chinese-big5-1))
       (generic-big5-2-char (make-char 'chinese-big5-2)))
@@ -209,6 +235,14 @@
     (modify-category-entry generic-char ?C)
     (modify-category-entry generic-char ?|)
     (setq cns-list (cdr cns-list))))
+
+(let ((parens "$(G!>!?!@!A!B!C!D!E!F!G!H!I!J!K!L!M!N!O!P!Q!R!S!T!U!V!W!X!Y!Z![!\!]!^!_!`!a!b!c(B")
+      open close)
+  (dotimes (i (/ (length parens) 2))
+    (setq open (aref parens (* i 2))
+	  close (aref parens (1+ (* i 2))))
+    (modify-syntax-entry open (format "(%c" close))
+    (modify-syntax-entry close (format ")%c" open))))
 
 ;; Cyrillic character set (ISO-8859-5)
 
@@ -415,6 +449,7 @@
   (set-case-syntax-pair ?,FO(B ?,Fo(B tbl)
   (set-case-syntax-pair ?,FP(B ?,Fp(B tbl)
   (set-case-syntax-pair ?,FQ(B ?,Fq(B tbl)
+  (set-upcase-syntax    ?,FS(B ?,Fr(B tbl)
   (set-case-syntax-pair ?,FS(B ?,Fs(B tbl)
   (set-case-syntax-pair ?,FT(B ?,Ft(B tbl)
   (set-case-syntax-pair ?,FU(B ?,Fu(B tbl)
@@ -449,6 +484,7 @@
   (set-case-syntax-pair ?$,1&(B ?$,1'?(B tbl)
   (set-case-syntax-pair ?$,1' (B ?$,1'@(B tbl)
   (set-case-syntax-pair ?$,1'!(B ?$,1'A(B tbl)
+  (set-upcase-syntax    ?$,1'#(B ?$,1'B(B tbl)
   (set-case-syntax-pair ?$,1'#(B ?$,1'C(B tbl)
   (set-case-syntax-pair ?$,1'$(B ?$,1'D(B tbl)
   (set-case-syntax-pair ?$,1'%(B ?$,1'E(B tbl)
@@ -499,38 +535,25 @@
     (modify-category-entry (decode-char 'ucs c) ?i)
     (setq c (1+ c))))
 
-;;; Commented out since the categories appear not to be used anywhere
-;;; and word syntax is the default.
-;; (let ((deflist				;
-;; 	'(;; chars	syntax	category
-;; 	  ("(5!"#(B"	"w"	?7) ; vowel-modifying diacritical mark
-;; 				    ; chandrabindu, anuswar, visarga
-;; 	  ("(5$(B-(52(B"	"w"	?1) ; base (independent) vowel
-;; 	  ("(53(B-(5X(B"	"w"	?0) ; consonant
-;; 	  ("(5Z(B-(5g(B"	"w"	?8) ; matra
-;; 	  ("(5q(B-(5z(B"	"w"	?6) ; digit
-;; 	  ))
-;;       elm chars len syntax category to ch i)
-;;   (while deflist
-;;     (setq elm (car deflist))
-;;     (setq chars (car elm)
-;; 	  len (length chars)
-;; 	  syntax (nth 1 elm)
-;; 	  category (nth 2 elm)
-;; 	  i 0)
-;;     (while (< i len)
-;;       (if (= (aref chars i) ?-)
-;; 	  (setq i (1+ i)
-;; 		to (aref chars i))
-;; 	(setq ch (aref chars i)
-;; 	      to ch))
-;;       (while (<= ch to)
-;; 	(modify-syntax-entry ch syntax)
-;; 	(modify-category-entry ch category)
-;; 	(setq ch (1+ ch)))
-;;       (setq i (1+ i)))
-;;     (setq deflist (cdr deflist))))
-
+(let ((l '(;; RANGE   CATEGORY		MEANINGS
+	   (#x01 #x03 ?7)		; vowel modifier
+	   (#x05 #x14 ?1)		; base vowel
+	   (#x15 #x39 ?0)		; consonants
+	   (#x3e #x4d ?8)		; vowel modifier
+	   (#x51 #x54 ?4)		; stress/tone mark
+	   (#x58 #x5f ?0)		; consonants
+	   (#x60 #x61 ?1)		; base vowel
+	   (#x62 #x63 ?8)		; vowel modifier
+	   (#x66 #x6f ?6)		; digits
+	   )))
+  (dolist (elt1 '(#x900 #x980 #xa00 #xa80 #xb00 #xb80 #xc00 #xc80 #xd00))
+    (dolist (elt2 l)
+      (let* ((from (car elt2))
+	     (counts (1+ (- (nth 1 elt2) from)))
+	     (category (nth 2 elt2)))
+	(dotimes (i counts)
+	  (modify-category-entry (decode-char 'ucs (+ elt1 from i)) 
+				 category))))))
 
 ;; Japanese character set (JISX0201-kana, JISX0201-roman, JISX0208, JISX0212)
 
@@ -578,16 +601,13 @@
   (while chars
     (modify-syntax-entry (car chars) "w")
     (setq chars (cdr chars))))
-(modify-syntax-entry ?\$B!J(B "($B!K(B")
-(modify-syntax-entry ?\$B!N(B "($B!O(B")
-(modify-syntax-entry ?\$B!P(B "($B!Q(B")
-(modify-syntax-entry ?\$B!V(B "($B!W(B")
-(modify-syntax-entry ?\$B!X(B "($B!Y(B")
-(modify-syntax-entry ?\$B!K(B ")$B!J(B")
-(modify-syntax-entry ?\$B!O(B ")$B!N(B")
-(modify-syntax-entry ?\$B!Q(B ")$B!P(B")
-(modify-syntax-entry ?\$B!W(B ")$B!V(B")
-(modify-syntax-entry ?\$B!Y(B ")$B!X(B")
+(let ((parens "$B!J!K!L!M!N!O!P!Q!R!S!T!U!V!W!X!Y!Z![(B" )
+      open close)
+  (dotimes (i (/ (length parens) 2))
+    (setq open (aref parens (* i 2))
+	  close (aref parens (1+ (* i 2))))
+    (modify-syntax-entry open (format "(%c" close))
+    (modify-syntax-entry close (format ")%c" open))))
 
 (modify-category-entry (make-char 'japanese-jisx0208 35) ?A)
 (modify-category-entry (make-char 'japanese-jisx0208 36) ?H)
@@ -645,6 +665,14 @@
 (modify-category-entry (make-char 'korean-ksc5601 42) ?H)
 (modify-category-entry (make-char 'korean-ksc5601 43) ?K)
 (modify-category-entry (make-char 'korean-ksc5601 44) ?Y)
+
+(let ((parens "$(C!2!3!4!5!6!7!8!9!:!;!<!=#(#)#[#]#{#}(B" )
+      open close)
+  (dotimes (i (/ (length parens) 2))
+    (setq open (aref parens (* i 2))
+	  close (aref parens (1+ (* i 2))))
+    (modify-syntax-entry open (format "(%c" close))
+    (modify-syntax-entry close (format ")%c" open))))
 
 ;; Latin character set (latin-1,2,3,4,5,8,9)
 
@@ -858,10 +886,12 @@
 	 (set-case-syntax-pair
 	  (decode-char 'ucs (1- c)) (decode-char 'ucs c) tbl))
     (setq c (1+ c)))
+  (set-downcase-syntax  ?$,1 P(B ?i tbl)
+  (set-upcase-syntax    ?I ?$,1 Q(B tbl)
   (set-case-syntax-pair ?$,1 R(B ?$,1 S(B tbl)
   (set-case-syntax-pair ?$,1 T(B ?$,1 U(B tbl)
   (set-case-syntax-pair ?$,1 V(B ?$,1 W(B tbl)
-;;;  (set-case-syntax-pair ?$,1!8(B ?,A(B tbl)	; these two have different length!
+  (set-case-syntax-pair ?$,1!8(B ?,A(B tbl)
   (set-case-syntax-pair ?$,1!9(B ?$,1!:(B tbl)
   (set-case-syntax-pair ?$,1!;(B ?$,1!<(B tbl)
   (set-case-syntax-pair ?$,1!=(B ?$,1!>(B tbl)
@@ -1066,11 +1096,18 @@
   (setq c #x2000)
   (while (<= c #x200b)
     (set-case-syntax (decode-char 'ucs c) " " tbl)
-    (setq c (decode-char 'ucs (1+ c))))
+    (setq c (1+ c)))
   (setq c #x2010)
+  (while (<= c #x2016)
+    (set-case-syntax (decode-char 'ucs c) "_" tbl)
+    (setq c (1+ c)))
+  ;; Punctuation syntax for quotation marks (like `)
+  (while (<= c #x201f)
+    (set-case-syntax (decode-char 'ucs c) "." tbl)
+    (setq c (1+ c)))
   (while (<= c #x2027)
     (set-case-syntax (decode-char 'ucs c) "_" tbl)
-    (setq c (decode-char 'ucs (1+ c))))
+    (setq c (1+ c)))
 
   ;; Roman numerals
   (setq c #x2160)
@@ -1111,6 +1148,65 @@
 
   ;; Fixme: syntax for symbols &c
   )
+
+(let ((pairs
+       '("$,1sEsF(B"				; U+2045 U+2046
+	 "$,1s}s~(B"				; U+207D U+207E
+	 "$,1t-t.(B"				; U+208D U+208E
+	 "$,1{){*(B"				; U+2329 U+232A
+	 "$,1|T|U(B"				; U+23B4 U+23B5
+	 "$,2&H&I(B"				; U+2768 U+2769
+	 "$,2&J&K(B"				; U+276A U+276B
+	 "$,2&L&M(B"				; U+276C U+276D
+	 "$,2&P&Q(B"				; U+2770 U+2771
+	 "$,2&R&S(B"				; U+2772 U+2773
+	 "$,2&T&U(B"				; U+2774 U+2775
+	 "$,2'f'g(B"				; U+27E6 U+27E7
+	 "$,2'h'i(B"				; U+27E8 U+27E9
+	 "$,2'j'k(B"				; U+27EA U+27EB
+	 "$,2,#,$(B"				; U+2983 U+2984
+	 "$,2,%,&(B"				; U+2985 U+2986
+	 "$,2,',((B"				; U+2987 U+2988
+	 "$,2,),*(B"				; U+2989 U+298A
+	 "$,2,+,,(B"				; U+298B U+298C
+	 "$,2,-,.(B"				; U+298D U+298E
+	 "$,2,/,0(B"				; U+298F U+2990
+	 "$,2,1,2(B"				; U+2991 U+2992
+	 "$,2,3,4(B"				; U+2993 U+2994
+	 "$,2,5,6(B"				; U+2995 U+2996
+	 "$,2,7,8(B"				; U+2997 U+2998
+	 "$,2-<-=(B"				; U+29FC U+29FD
+	 "$,2=H=I(B"				; U+3008 U+3009
+	 "$,2=J=K(B"				; U+300A U+300B
+	 "$,2=L=M(B"				; U+300C U+300D
+	 "$,2=N=O(B"				; U+300E U+300F
+	 "$,2=P=Q(B"				; U+3010 U+3011
+	 "$,2=T=U(B"				; U+3014 U+3015
+	 "$,2=V=W(B"				; U+3016 U+3017
+	 "$,2=X=Y(B"				; U+3018 U+3019
+	 "$,2=Z=[(B"				; U+301A U+301B
+	 "$,3m~m(B"				; U+FD3E U+FD3F
+	 "$,3pUpV(B"				; U+FE35 U+FE36
+	 "$,3pWpX(B"				; U+FE37 U+FE38
+	 "$,3pYpZ(B"				; U+FE39 U+FE3A
+	 "$,3p[p\(B"				; U+FE3B U+FE3C
+	 "$,3p]p^(B"				; U+FE3D U+FE3E
+	 "$,3p_p`(B"				; U+FE3F U+FE40
+	 "$,3papb(B"				; U+FE41 U+FE42
+	 "$,3pcpd(B"				; U+FE43 U+FE44
+	 "$,3pypz(B"				; U+FE59 U+FE5A
+	 "$,3p{p|(B"				; U+FE5B U+FE5C
+	 "$,3p}p~(B"				; U+FE5D U+FE5E
+	 "$,3rhri(B"				; U+FF08 U+FF09
+	 "$,3s;s=(B"				; U+FF3B U+FF3D
+	 "$,3s[s](B"				; U+FF5B U+FF5D
+	 "$,3s_s`(B"				; U+FF5F U+FF60
+	 "$,3sbsc(B"				; U+FF62 U+FF63
+	 )))
+  (dolist (elt pairs)
+    (modify-syntax-entry (aref elt 0) (string ?\( (aref elt 1)))
+    (modify-syntax-entry (aref elt 1) (string ?\) (aref elt 0)))))
+
 
 ;;; Setting word boundary.
 
@@ -1192,8 +1288,13 @@
     (put-charset-property (car l) 'nospace-between-words t)
     (setq l (cdr l))))
 
+
+(setq utf-translate-cjk-mode saved-utf-translate-cjk-mode)
+(makunbound 'saved-utf-translate-cjk-mode)
+
 ;;; Local Variables:
 ;;; coding: iso-2022-7bit
 ;;; End:
 
+;;; arch-tag: 85889c35-9f4d-4912-9bf5-82de31b0d42d
 ;;; characters.el ends here

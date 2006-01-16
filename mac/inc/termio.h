@@ -1,5 +1,6 @@
 /* Replacement termio.h file for building GNU Emacs on the Macintosh.
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2002, 2003, 2004,
+      2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Contributed by Andrew Choi (akochoi@mac.com).  */
 
@@ -66,3 +67,6 @@ struct termio {
 #define TCSETAF 5
 
 #endif /* _SYS_TERMIO_H */
+
+/* arch-tag: 0e7a100d-2ac0-412e-9dc4-52e39ef43e14
+   (do not change this comment) */

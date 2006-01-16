@@ -1,6 +1,6 @@
 ;;; solitaire.el --- game of solitaire in Emacs Lisp
 
-;; Copyright (C) 1994, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jan Schormann <Jan.Schormann@rechen-gilde.de>
 ;; Created: Fri afternoon, Jun  3,  1994
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -105,7 +105,7 @@ The usual mnemonic keys move the cursor around the board; in addition,
   (setq truncate-lines t)
   (setq major-mode 'solitaire-mode)
   (setq mode-name "Solitaire")
-  (run-hooks 'solitaire-mode-hook))
+  (run-mode-hooks 'solitaire-mode-hook))
 
 (defvar solitaire-stones 0
   "Counter for the stones that are still there.")
@@ -456,4 +456,5 @@ Seen in info on text lines."
 
 (provide 'solitaire)
 
+;;; arch-tag: 1b18ee1c-1e79-4a5b-8658-9560b82e63dd
 ;;; solitaire.el ends here

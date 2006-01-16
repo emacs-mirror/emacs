@@ -310,3 +310,5 @@ set key \2455 \khomscn
 set key \2463 \kendscn
 set key \2457 \kupscn
 set key \2465 \kdnscn
+
+;;; arch-tag: b066a884-e956-4f46-9d9c-13502f6cf7a6

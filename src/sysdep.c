@@ -1,6 +1,6 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985, 86,87,88,93,94,95, 1999, 2000, 2001
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001,
+                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,14 +16,15 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #include <signal.h>
+#include <stdio.h>
 #include <setjmp.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -46,13 +47,9 @@ extern void srandom P_ ((unsigned int));
 #endif
 
 #include "blockinput.h"
-#undef NULL
 
 #ifdef MAC_OS8
-/* It is essential to include stdlib.h so that this file picks up
-   the correct definitions of rand, srand, and RAND_MAX.
-   Otherwise random numbers will not work correctly.  */
-#include <stdlib.h>
+#include <sys/param.h>
 
 #ifndef subprocesses
 /* Nonzero means delete a process right away if it exits (process.c).  */
@@ -69,10 +66,6 @@ static int delete_exited_processes;
 #endif
 #endif /* not WINDOWSNT */
 
-#ifdef HAVE_CARBON
-#define read sys_read
-#endif
-
 /* Does anyone other than VMS need this? */
 #ifndef fwrite
 #define sys_fwrite fwrite
@@ -80,19 +73,9 @@ static int delete_exited_processes;
 #undef fwrite
 #endif
 
-#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-
-/* Get _POSIX_VDISABLE, if it is available.  */
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
 
 #ifdef HAVE_SETPGID
 #if !defined (USG) || defined (BSD_PGRPS)
@@ -200,6 +183,7 @@ extern int quit_char;
 #define _P_WAIT 0
 int _CRTAPI1 _spawnlp (int, const char *, const char *, ...);
 int _CRTAPI1 _getpid (void);
+extern char *getwd (char *);
 #endif
 
 #ifdef NONSYSTEM_DIR_LIBRARY
@@ -270,6 +254,81 @@ void hft_reset ();
 /* Temporary used by `sigblock' when defined in terms of signprocmask.  */
 
 SIGMASKTYPE sigprocmask_set;
+
+
+#if !defined (HAVE_GET_CURRENT_DIR_NAME) || defined (BROKEN_GET_CURRENT_DIR_NAME)
+
+/* Return the current working directory.  Returns NULL on errors.
+   Any other returned value must be freed with free. This is used
+   only when get_current_dir_name is not defined on the system.  */
+char*
+get_current_dir_name ()
+{
+  char *buf;
+  char *pwd;
+  struct stat dotstat, pwdstat;
+  /* If PWD is accurate, use it instead of calling getwd.  PWD is
+     sometimes a nicer name, and using it may avoid a fatal error if a
+     parent directory is searchable but not readable.  */
+    if ((pwd = getenv ("PWD")) != 0
+      && (IS_DIRECTORY_SEP (*pwd) || (*pwd && IS_DEVICE_SEP (pwd[1])))
+      && stat (pwd, &pwdstat) == 0
+      && stat (".", &dotstat) == 0
+      && dotstat.st_ino == pwdstat.st_ino
+      && dotstat.st_dev == pwdstat.st_dev
+#ifdef MAXPATHLEN
+      && strlen (pwd) < MAXPATHLEN
+#endif
+      )
+    {
+      buf = (char *) malloc (strlen (pwd) + 1);
+      if (!buf)
+        return NULL;
+      strcpy (buf, pwd);
+    }
+#ifdef HAVE_GETCWD
+  else
+    {
+      size_t buf_size = 1024;
+      buf = (char *) malloc (buf_size);
+      if (!buf)
+        return NULL;
+      for (;;)
+        {
+          if (getcwd (buf, buf_size) == buf)
+            break;
+          if (errno != ERANGE)
+            {
+              int tmp_errno = errno;
+              free (buf);
+              errno = tmp_errno;
+              return NULL;
+            }
+          buf_size *= 2;
+          buf = (char *) realloc (buf, buf_size);
+          if (!buf)
+            return NULL;
+        }
+    }
+#else
+  else
+    {
+      /* We need MAXPATHLEN here.  */
+      buf = (char *) malloc (MAXPATHLEN + 1);
+      if (!buf)
+        return NULL;
+      if (getwd (buf) == NULL)
+        {
+          int tmp_errno = errno;
+          free (buf);
+          errno = tmp_errno;
+          return NULL;
+        }
+    }
+#endif
+  return buf;
+}
+#endif
 
 
 /* Specify a different file descriptor for further input operations.  */
@@ -623,6 +682,15 @@ child_setup_tty (out)
   s.main.c_cflag = (s.main.c_cflag & ~CBAUD) | B9600; /* baud rate sanity */
 #endif /* HPUX */
 
+#ifdef SIGNALS_VIA_CHARACTERS
+  /* the QUIT and INTR character are used in process_send_signal
+     so set them here to something useful.  */
+  if (s.main.c_cc[VQUIT] == CDISABLE)
+    s.main.c_cc[VQUIT] = '\\'&037;	/* Control-\ */
+  if (s.main.c_cc[VINTR] == CDISABLE)
+    s.main.c_cc[VINTR] = 'C'&037;	/* Control-C */
+#endif /* not SIGNALS_VIA_CHARACTERS */
+
 #ifdef AIX
 /* AIX enhanced edit loses NULs, so disable it */
 #ifndef IBMR2AIX
@@ -633,22 +701,16 @@ child_setup_tty (out)
      don't ignore break, but don't signal either, so it looks like NUL.  */
   s.main.c_iflag &= ~IGNBRK;
   s.main.c_iflag &= ~BRKINT;
+  /* rms: Formerly it set s.main.c_cc[VINTR] to 0377 here
+     unconditionally.  Then a SIGNALS_VIA_CHARACTERS conditional
+     would force it to 0377.  That looks like duplicated code.  */
+#ifndef SIGNALS_VIA_CHARACTERS
   /* QUIT and INTR work better as signals, so disable character forms */
-  s.main.c_cc[VINTR] = 0377;
-#ifdef SIGNALS_VIA_CHARACTERS
-  /* the QUIT and INTR character are used in process_send_signal
-     so set them here to something useful.  */
-  if (s.main.c_cc[VQUIT] == 0377)
-    s.main.c_cc[VQUIT] = '\\'&037;	/* Control-\ */
-  if (s.main.c_cc[VINTR] == 0377)
-    s.main.c_cc[VINTR] = 'C'&037;	/* Control-C */
-#else /* no TIOCGPGRP or no TIOCGLTC or no TIOCGETC */
-  /* QUIT and INTR work better as signals, so disable character forms */
-  s.main.c_cc[VQUIT] = 0377;
-  s.main.c_cc[VINTR] = 0377;
+  s.main.c_cc[VQUIT] = CDISABLE;
+  s.main.c_cc[VINTR] = CDISABLE;
   s.main.c_lflag &= ~ISIG;
 #endif /* no TIOCGPGRP or no TIOCGLTC or no TIOCGETC */
-  s.main.c_cc[VEOL] = 0377;
+  s.main.c_cc[VEOL] = CDISABLE;
   s.main.c_cflag = (s.main.c_cflag & ~CBAUD) | B9600; /* baud rate sanity */
 #endif /* AIX */
 
@@ -879,7 +941,7 @@ sys_subshell ()
       if (pid == -1)
 	write (1, "Can't execute subshell", 22);
 #else   /* not WINDOWSNT */
-      execlp (sh, sh, 0);
+      execlp (sh, sh, (char *) 0);
       write (1, "Can't execute subshell", 22);
       _exit (1);
 #endif  /* not WINDOWSNT */
@@ -950,7 +1012,7 @@ reset_sigio ()
 void
 request_sigio ()
 {
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
 #ifdef SIGWINCH
@@ -964,7 +1026,7 @@ request_sigio ()
 void
 unrequest_sigio ()
 {
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
 #ifdef SIGWINCH
@@ -982,7 +1044,7 @@ request_sigio ()
 {
   int on = 1;
 
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   ioctl (input_fd, FIOASYNC, &on);
@@ -994,7 +1056,7 @@ unrequest_sigio ()
 {
   int off = 0;
 
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   ioctl (input_fd, FIOASYNC, &off);
@@ -1013,7 +1075,7 @@ request_sigio ()
   int on = 1;
   sigset_t st;
 
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   sigemptyset (&st);
@@ -1028,7 +1090,7 @@ unrequest_sigio ()
 {
   int off = 0;
 
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   ioctl (input_fd, FIOASYNC, &off);
@@ -1041,7 +1103,7 @@ unrequest_sigio ()
 void
 request_sigio ()
 {
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   croak ("request_sigio");
@@ -1050,7 +1112,7 @@ request_sigio ()
 void
 unrequest_sigio ()
 {
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   croak ("unrequest_sigio");
@@ -1489,10 +1551,10 @@ nil means don't delete them until `list-processes' is run.  */);
       tty.main.c_line = 0;
       tty.main.c_iflag &= ~ASCEDIT;
 #else
-      tty.main.c_cc[VSTRT] = 255;
-      tty.main.c_cc[VSTOP] = 255;
-      tty.main.c_cc[VSUSP] = 255;
-      tty.main.c_cc[VDSUSP] = 255;
+      tty.main.c_cc[VSTRT] = CDISABLE;
+      tty.main.c_cc[VSTOP] = CDISABLE;
+      tty.main.c_cc[VSUSP] = CDISABLE;
+      tty.main.c_cc[VDSUSP] = CDISABLE;
 #endif /* IBMR2AIX */
       if (flow_control)
 	{
@@ -1728,10 +1790,16 @@ get_frame_size (widthp, heightp)
 #else
 #ifdef VMS
 
+  /* Use a fresh channel since the current one may have stale info
+     (for example, from prior to a suspend); and to avoid a dependency
+     in the init sequence.  */
+  int chan;
   struct sensemode tty;
 
-  SYS$QIOW (0, input_fd, IO$_SENSEMODE, &tty, 0, 0,
-	    &tty.class, 12, 0, 0, 0, 0);
+  SYS$ASSIGN (&input_dsc, &chan, 0, 0);
+  SYS$QIOW (0, chan, IO$_SENSEMODE, &tty, 0, 0,
+            &tty.class, 12, 0, 0, 0, 0);
+  SYS$DASSGN (chan);
   *widthp = tty.scr_wid;
   *heightp = tty.scr_len;
 
@@ -1814,10 +1882,10 @@ reset_sys_modes ()
     return;
 #endif
   sf = SELECTED_FRAME ();
-  cursor_to (FRAME_HEIGHT (sf) - 1, 0);
-  clear_end_of_line (FRAME_WIDTH (sf));
+  cursor_to (FRAME_LINES (sf) - 1, 0);
+  clear_end_of_line (FRAME_COLS (sf));
   /* clear_end_of_line may move the cursor */
-  cursor_to (FRAME_HEIGHT (sf) - 1, 0);
+  cursor_to (FRAME_LINES (sf) - 1, 0);
 #if defined (IBMR2AIX) && defined (AIXHFT)
   {
     /* HFT devices normally use ^J as a LF/CR.  We forced it to
@@ -2017,6 +2085,8 @@ kbd_input_ast ()
   if (c >= 0)
     {
       struct input_event e;
+      EVENT_INIT (e);
+
       e.kind = ASCII_KEYSTROKE_EVENT;
       XSETINT (e.code, c);
       e.frame_or_window = selected_frame;
@@ -2165,12 +2235,16 @@ reset_sigio ()
 void
 request_sigio ()
 {
+  if (noninteractive)
+    return;
   croak ("request sigio");
 }
 
 void
 unrequest_sigio ()
 {
+  if (noninteractive)
+    return;
   croak ("unrequest sigio");
 }
 
@@ -2480,6 +2554,7 @@ select_alarm ()
 #else /* not BSD4_1 */
   signal (SIGALRM, SIG_IGN);
 #endif /* not BSD4_1 */
+  SIGNAL_THREAD_CHECK (SIGALRM);
   if (read_alarm_should_throw)
     longjmp (read_alarm_throw, 1);
 }
@@ -2621,45 +2696,34 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 /* Read keyboard input into the standard buffer,
    waiting for at least one character.  */
 
-/* Make all keyboard buffers much bigger when using a window system.  */
-#ifdef HAVE_WINDOW_SYSTEM
-#define BUFFER_SIZE_FACTOR 16
-#else
-#define BUFFER_SIZE_FACTOR 1
-#endif
-
 void
 read_input_waiting ()
 {
-  struct input_event e;
   int nread, i;
   extern int quit_char;
 
   if (read_socket_hook)
     {
-      struct input_event buf[256];
+      struct input_event hold_quit;
+
+      EVENT_INIT (hold_quit);
+      hold_quit.kind = NO_EVENT;
 
       read_alarm_should_throw = 0;
       if (! setjmp (read_alarm_throw))
-	nread = (*read_socket_hook) (0, buf, 256, 1);
+	nread = (*read_socket_hook) (0, 1, &hold_quit);
       else
 	nread = -1;
 
-      /* Scan the chars for C-g and store them in kbd_buffer.  */
-      for (i = 0; i < nread; i++)
-	{
-	  kbd_buffer_store_event (&buf[i]);
-	  /* Don't look at input that follows a C-g too closely.
-	     This reduces lossage due to autorepeat on C-g.  */
-	  if (buf[i].kind == ASCII_KEYSTROKE_EVENT
-	      && buf[i].code == quit_char)
-	    break;
-	}
+      if (hold_quit.kind != NO_EVENT)
+	kbd_buffer_store_event (&hold_quit);
     }
   else
     {
+      struct input_event e;
       char buf[3];
       nread = read (fileno (stdin), buf, 1);
+      EVENT_INIT (e);
 
       /* Scan the chars for C-g and store them in kbd_buffer.  */
       e.kind = ASCII_KEYSTROKE_EVENT;
@@ -2715,6 +2779,8 @@ reset_sigio ()
 void
 request_sigio ()
 {
+  if (noninteractive)
+    return;
   sigrelse (SIGTINT);
 
   interrupts_deferred = 0;
@@ -2723,6 +2789,8 @@ request_sigio ()
 void
 unrequest_sigio ()
 {
+  if (noninteractive)
+    return;
   sighold (SIGTINT);
 
   interrupts_deferred = 1;
@@ -2787,12 +2855,16 @@ sys_signal (int signal_number, signal_handler_t action)
   struct sigaction new_action, old_action;
   sigemptyset (&new_action.sa_mask);
   new_action.sa_handler = action;
-#if defined (SA_RESTART) && ! defined (BROKEN_SA_RESTART)
+#if defined (SA_RESTART) && ! defined (BROKEN_SA_RESTART) && !defined(SYNC_INPUT)
   /* Emacs mostly works better with restartable system services. If this
      flag exists, we probably want to turn it on here.
      However, on some systems this resets the timeout of `select'
      which means that `select' never finishes if it keeps getting signals.
      BROKEN_SA_RESTART is defined on those systems.  */
+  /* It's not clear why the comment above says "mostly works better".  --Stef
+     When SYNC_INPUT is set, we don't want SA_RESTART because we need to poll
+     for pending input so we need long-running syscalls to be interrupted
+     after a signal that sets the interrupt_input_pending flag.  */
   new_action.sa_flags = SA_RESTART;
 #else
   new_action.sa_flags = 0;
@@ -2845,7 +2917,7 @@ sys_sigsetmask (sigset_t new_mask)
 
 #endif /* POSIX_SIGNALS */
 
-#if !defined HAVE_STRSIGNAL && !defined SYS_SIGLIST_DECLARED
+#if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
 static char *my_sys_siglist[NSIG];
 # ifdef sys_siglist
 #  undef sys_siglist
@@ -2861,7 +2933,7 @@ init_signals ()
   sigfillset (&full_mask);
 #endif
 
-#if !defined HAVE_STRSIGNAL && !defined SYS_SIGLIST_DECLARED
+#if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
   if (! initialized)
     {
 # ifdef SIGABRT
@@ -3021,7 +3093,7 @@ init_signals ()
       sys_siglist[SIGXFSZ] = "File size limit exceeded";
 # endif
     }
-#endif /* !defined HAVE_STRSIGNAL && !defined SYS_SIGLIST_DECLARED */
+#endif /* !defined HAVE_STRSIGNAL && !defined HAVE_DECL_SYS_SIGLIST */
 }
 
 #ifndef HAVE_RANDOM
@@ -3244,7 +3316,8 @@ emacs_open (path, oflag, mode)
 #endif
 
   while ((rtnval = open (path, oflag, mode)) == -1
-	 && (errno == EINTR));
+	 && (errno == EINTR))
+    QUIT;
   return (rtnval);
 }
 
@@ -3277,7 +3350,8 @@ emacs_read (fildes, buf, nbyte)
   register int rtnval;
 
   while ((rtnval = read (fildes, buf, nbyte)) == -1
-	 && (errno == EINTR));
+	 && (errno == EINTR))
+    QUIT;
   return (rtnval);
 }
 
@@ -3298,7 +3372,15 @@ emacs_write (fildes, buf, nbyte)
       if (rtnval == -1)
 	{
 	  if (errno == EINTR)
-	    continue;
+	    {
+#ifdef SYNC_INPUT
+	      /* I originally used `QUIT' but that might causes files to
+		 be truncated if you hit C-g in the middle of it.  --Stef  */
+	      if (interrupt_input_pending)
+		handle_async_input ();
+#endif
+	      continue;
+	    }
 	  else
 	    return (bytes_written ? bytes_written : -1);
 	}
@@ -3745,7 +3827,8 @@ mkdir (dpath, dmode)
       wait_for_termination (cpid);
     }
 
-  if (synch_process_death != 0 || synch_process_retcode != 0)
+  if (synch_process_death != 0 || synch_process_retcode != 0
+      || synch_process_termsig != 0)
     {
       errno = EIO;		/* We don't know why, but */
       return -1;		/* /bin/mkdir failed */
@@ -3791,7 +3874,8 @@ rmdir (dpath)
       wait_for_termination (cpid);
     }
 
-  if (synch_process_death != 0 || synch_process_retcode != 0)
+  if (synch_process_death != 0 || synch_process_retcode != 0
+      || synch_process_termsig != 0)
     {
       errno = EIO;		/* We don't know why, but */
       return -1;		/* /bin/rmdir failed */
@@ -3805,7 +3889,6 @@ rmdir (dpath)
 
 /* Functions for VMS */
 #ifdef VMS
-#include "vms-pwd.h"
 #include <acldef.h>
 #include <chpdef.h>
 #include <jpidef.h>
@@ -5302,3 +5385,5 @@ strsignal (code)
 }
 #endif /* HAVE_STRSIGNAL */
 
+/* arch-tag: edb43589-4e09-4544-b325-978b5b121dcf
+   (do not change this comment) */

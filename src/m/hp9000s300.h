@@ -1,5 +1,5 @@
 /* machine description file for hp9000 series 200 or 300 on either HPUX or BSD.
-   Copyright (C) 1985, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The following line tells the configuration script what sort of
@@ -222,3 +222,6 @@ NOTE-END */
 #endif
 
 #endif /* not BSD4_3 */
+
+/* arch-tag: 6e0001a5-ed62-4258-9235-204348f6bdb9
+   (do not change this comment) */

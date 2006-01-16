@@ -1,9 +1,9 @@
 ;;;; unsafep.el -- Determine whether a Lisp form is safe to evaluate
 
-;; Copyright (C) Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
-;; Author: Jonathan Yavner <jyavner@engineer.com>
-;; Maintainer: Jonathan Yavner <jyavner@engineer.com>
+;; Author: Jonathan Yavner <jyavner@member.fsf.org>
+;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Keywords: safety lisp utility
 
 ;; This file is part of GNU Emacs.
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -259,4 +259,5 @@ is okay if GLOBAL-OKAY is non-nil."
 	     (local-variable-p sym)))
     `(global-variable ,sym))))
 
+;;; arch-tag: 6216f98b-eb8f-467a-9c33-7a7644f50658
 ;; unsafep.el ends here.

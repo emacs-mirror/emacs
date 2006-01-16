@@ -1,6 +1,7 @@
 ;;; vt100.el --- define VT100 function key sequences in function-key-map
 
-;; Copyright (C) 1989, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -36,7 +37,11 @@
 ;;; Code:
 
 ;; Set up function-key-map entries that termcap and terminfo don't know.
-(load "term/lk201" nil t)
+
+
+(defun terminal-init-vt100 ()
+  "Terminal initialization function for vt100."
+  (load "term/lk201" nil t))
 
 ;;; Controlling the screen width.
 (defvar vt100-wide-mode (= (frame-width) 132)
@@ -53,4 +58,5 @@ With negative argument, switch to 80-column mode."
  (send-string-to-terminal (if vt100-wide-mode "\e[?3h" "\e[?3l"))
  (set-frame-width terminal-frame (if vt100-wide-mode 132 80)))
 
+;;; arch-tag: 9ff41f24-a7c9-4dee-9cf2-fbaa951eb840
 ;;; vt100.el ends here

@@ -1,7 +1,8 @@
 ;;; ja-dic-cnv.el --- convert a Japanese dictionary (SKK-JISYO.L) to Emacs Lisp
 
-;; Copyright (C) 1995, 2000 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1995, 2000
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: mule, multilingual, Japanese
 
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -281,8 +282,8 @@
       (setq candidates (cdr candidates)))
     (nreverse l)))
 
-(defconst skkdic-okuri-nasi-entries (list nil))
-(defconst skkdic-okuri-nasi-entries-count 0)
+(defvar skkdic-okuri-nasi-entries (list nil))
+(defvar skkdic-okuri-nasi-entries-count 0)
 
 (defun skkdic-collect-okuri-nasi ()
   (message "Collecting OKURI-NASI entries ...")
@@ -568,4 +569,5 @@ To get complete usage, invoke:
 ;; coding: iso-2022-7bit
 ;; End:
 
+;;; arch-tag: dec06fb0-8118-45b1-80d7-dc360b6fd3b2
 ;;; ja-dic-cnv.el ends here

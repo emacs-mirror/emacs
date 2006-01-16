@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2002, 2003,
+@c   2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Abbrevs, Picture, Maintaining, Top
 @chapter Abbrevs
@@ -129,7 +130,7 @@ read with the minibuffer).
 @findex define-global-abbrev
   You can define an abbrev without inserting either the abbrev or its
 expansion in the buffer using the command @code{define-global-abbrev}.
-It reads two arguments--the abbrev, and its expansion.  The command
+It reads two arguments---the abbrev, and its expansion.  The command
 @code{define-mode-abbrev} does likewise for a mode-specific abbrev.
 
   To change the definition of an abbrev, just define a new definition.
@@ -153,14 +154,14 @@ point and you type a self-inserting whitespace or punctuation character
 (@key{SPC}, comma, etc.@:).  More precisely, any character that is not a
 word constituent expands an abbrev, and any word-constituent character
 can be part of an abbrev.  The most common way to use an abbrev is to
-insert it and then insert a punctuation character to expand it.
+insert it and then insert a punctuation or whitespace character to expand it.
 
 @vindex abbrev-all-caps
   Abbrev expansion preserves case; thus, @samp{foo} expands into @samp{find
 outer otter}; @samp{Foo} into @samp{Find outer otter}, and @samp{FOO} into
 @samp{FIND OUTER OTTER} or @samp{Find Outer Otter} according to the
-variable @code{abbrev-all-caps} (a non-@code{nil} value chooses the first
-of the two expansions).
+variable @code{abbrev-all-caps} (setting it non-@code{nil} specifies
+@samp{FIND OUTER OTTER}).
 
   These commands are used to control abbrev expansion:
 
@@ -319,7 +320,7 @@ variable @code{save-abbrevs} to @code{nil}.
 @findex define-abbrevs
   The commands @kbd{M-x insert-abbrevs} and @kbd{M-x define-abbrevs} are
 similar to the previous commands but work on text in an Emacs buffer.
-@kbd{M-x insert-abbrevs} inserts text into the current buffer before point,
+@kbd{M-x insert-abbrevs} inserts text into the current buffer after point,
 describing all current abbrev definitions; @kbd{M-x define-abbrevs} parses
 the entire current buffer and defines abbrevs accordingly.@refill
 
@@ -370,10 +371,12 @@ expressions.  If a buffer's name matches any of these regular
 expressions, dynamic abbrev expansion skips that buffer.
 
   A negative argument to @kbd{M-/}, as in @kbd{C-u - M-/}, says to
-search first for expansions after point, and second for expansions
-before point.  If you repeat the @kbd{M-/} to look for another
-expansion, do not specify an argument.  This tries all the expansions
-after point and then the expansions before point.
+search first for expansions after point, then other buffers, and
+consider expansions before point only as a last resort.
+
+  If you repeat the @kbd{M-/} to look for another expansion, do not
+specify an argument.  This tries all the expansions after point and
+then the expansions before point.
 
   After you have expanded a dynamic abbrev, you can copy additional
 words that follow the expansion in its original context.  Simply type
@@ -443,3 +446,7 @@ customize dynamic abbreviation to handle optional prefixes by setting
 the variable @code{dabbrev-abbrev-skip-leading-regexp}.  Its value
 should be a regular expression that matches the optional prefix that
 dynamic abbreviation should ignore.
+
+@ignore
+   arch-tag: 638e0079-9540-48ec-9166-414083e16445
+@end ignore

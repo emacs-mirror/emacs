@@ -1,6 +1,7 @@
 ;;; gamegrid.el --- library for implementing grid-based games on Emacs
 
-;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 1.02
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -179,9 +180,7 @@ static unsigned char gamegrid_bits[] = {
 
 (defun gamegrid-make-mono-tty-face ()
   (let ((face (make-face 'gamegrid-mono-tty-face)))
-    (condition-case nil
-	(set-face-property face 'reverse t)
-      (error nil))
+    (set-face-inverse-video-p face t)
     face))
 
 (defun gamegrid-make-color-tty-face (color)
@@ -298,7 +297,7 @@ static unsigned char gamegrid_bits[] = {
 	   'emacs-tty)))
 
 (defun gamegrid-set-display-table ()
-  (if (fboundp 'specifierp)
+  (if (featurep 'xemacs)
       (add-spec-to-specifier current-display-table
 			     gamegrid-display-table
 			     (current-buffer)
@@ -409,7 +408,7 @@ static unsigned char gamegrid_bits[] = {
 
 (defun gamegrid-set-timer (delay)
   (if gamegrid-timer
-      (if (featurep 'itimer)
+      (if (fboundp 'set-itimer-restart)
 	  (set-itimer-restart gamegrid-timer delay)
 	(timer-set-time gamegrid-timer
 			(list (aref gamegrid-timer 1)
@@ -427,56 +426,117 @@ static unsigned char gamegrid_bits[] = {
 ;; ;;;;;;;;;;;;;;; high score functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun gamegrid-add-score (file score)
-  "Add the current score to the high score file."
+  "Add the current score to the high score file.
+
+On POSIX systems there may be a shared game directory for all users in
+which the scorefiles are kept. On such systems Emacs doesn't create
+the score file FILE in this directory, if it doesn't already exist. In
+this case Emacs searches for FILE in the directory specified by
+`gamegrid-user-score-file-directory' and creates it there, if
+necessary.
+
+To add the score file for a game to the system wide shared game
+directory, create the file with the shell command \"touch\" in this
+directory and make sure that it is owned by the correct user and
+group. You probably need special user privileges to do this.
+
+On non-POSIX systems Emacs searches for FILE in the directory
+specified by the variable `temporary-file-directory'. If necessary,
+FILE is created there."
   (case system-type
     ((ms-dos windows-nt)
      (gamegrid-add-score-insecure file score))
     (t
      (gamegrid-add-score-with-update-game-score file score))))
 
+
+;; On POSIX systems there are four cases to distinguish:
+
+;;     1. FILE is an absolute filename.  Then it should be a file in
+;;        temporary file directory.  This is the way,
+;;        `gamegrid-add-score' was supposed to be used in the past and
+;;        is covered here for backward-compatibility.
+;;
+;;     2. The helper program "update-game-score" is setuid and the
+;;        file FILE does already exist in a system wide shared game
+;;        directory.  This should be the normal case on POSIX systems,
+;;        if the game was installed system wide.  Use
+;;        "update-game-score" to add the score to the file in the
+;;        shared game directory.
+;;
+;;     3. "update-game-score" is setuid, but the file FILE does *not*
+;;        exist in the system wide shared game directory.  Use
+;;        `gamegrid-add-score-insecure' to create--if necessary--and
+;;        update FILE.  This is for the case that a user has installed
+;;        a game on her own.
+;;
+;;     4. "update-game-score" is not setuid.  Use it to create/update
+;;        FILE in the user's home directory.  There is presumably no
+;;        shared game directory.
+
+(defvar gamegrid-shared-game-dir)
+
 (defun gamegrid-add-score-with-update-game-score (file score)
-  (let* ((result nil)
-	 (errbuf (generate-new-buffer " *update-game-score loss*"))
-	 (have-shared-game-dir
+  (let* ((result nil) ;; What is this good for? -- os
+	 (gamegrid-shared-game-dir
 	  (not (zerop (logand (file-modes
 			       (expand-file-name "update-game-score"
 						 exec-directory))
-			      #o4000))))
-	 (target (if have-shared-game-dir
-		     (expand-file-name file shared-game-score-directory)
-		   (let ((f (expand-file-name
-			     gamegrid-user-score-file-directory)))
-		     (when (file-writable-p f)
-		       (unless (eq (car-safe (file-attributes f))
-				   t)
-			 (make-directory f))
-		       (setq f (expand-file-name file f))
-		       (unless (file-exists-p f)
-			 (write-region "" nil f nil 'silent nil 'excl)))
-		     f))))
-    (let ((default-directory "/"))
-      (apply
-       'call-process
-       (append
-	(list
-	 (expand-file-name "update-game-score" exec-directory)
-	 nil errbuf nil
-	 "-m" (int-to-string gamegrid-score-file-length)
-	 "-d" (if have-shared-game-dir
-		  (expand-file-name shared-game-score-directory)
-		(file-name-directory target))
-	 file
-	 (int-to-string score)
-	 (concat
-	  (user-full-name)
-	  " <"
-	  (cond ((fboundp 'user-mail-address)
-		 (user-mail-address))
-		((boundp 'user-mail-address)
-		 user-mail-address)
-		(t ""))
-	  ">  "
-	  (current-time-string))))))
+			      #o4000)))))
+    (cond ((file-name-absolute-p file)
+	   (gamegrid-add-score-insecure file score))
+	  ((and gamegrid-shared-game-dir
+		(file-exists-p (expand-file-name file shared-game-score-directory)))
+	   ;; Use the setuid "update-game-score" program to update a
+	   ;; system-wide score file.
+	   (gamegrid-add-score-with-update-game-score-1 file
+	    (expand-file-name file shared-game-score-directory) score))
+	  ;; Else: Add the score to a score file in the user's home
+	  ;; directory.
+	  (gamegrid-shared-game-dir
+	   ;; If `gamegrid-shared-game-dir' is non-nil, then
+	   ;; "update-gamescore" program is setuid, so don't use it.
+	   (unless (file-exists-p
+		    (directory-file-name gamegrid-user-score-file-directory))
+	     (make-directory gamegrid-user-score-file-directory t))
+	   (gamegrid-add-score-insecure file score
+					gamegrid-user-score-file-directory))
+	  (t (let ((f (expand-file-name
+		       gamegrid-user-score-file-directory)))
+	       (when (file-writable-p f)
+		 (unless (eq (car-safe (file-attributes f))
+			     t)
+		   (make-directory f))
+		 (setq f (expand-file-name file f))
+		 (unless (file-exists-p f)
+		   (write-region "" nil f nil 'silent nil 'excl)))
+	       (gamegrid-add-score-with-update-game-score-1 file f score))))))
+
+(defun gamegrid-add-score-with-update-game-score-1 (file target score)
+  (let ((default-directory "/")
+	(errbuf (generate-new-buffer " *update-game-score loss*")))
+    (apply
+     'call-process
+     (append
+      (list
+       (expand-file-name "update-game-score" exec-directory)
+       nil errbuf nil
+       "-m" (int-to-string gamegrid-score-file-length)
+       "-d" (if gamegrid-shared-game-dir
+		(expand-file-name shared-game-score-directory)
+	      (file-name-directory target))
+       file
+       (int-to-string score)
+       (concat
+	(user-full-name)
+	" <"
+	(cond ((fboundp 'user-mail-address)
+	       (user-mail-address))
+	      ((boundp 'user-mail-address)
+	       user-mail-address)
+	      (t ""))
+	">  "
+	(current-time-string)))))
     (if (buffer-modified-p errbuf)
 	(progn
 	  (display-buffer errbuf)
@@ -491,9 +551,10 @@ static unsigned char gamegrid_bits[] = {
 	      (display-buffer buf))
 	  (find-file-read-only-other-window target))))))
 
-(defun gamegrid-add-score-insecure (file score)
+(defun gamegrid-add-score-insecure (file score &optional directory)
   (save-excursion
-    (setq file (expand-file-name file temporary-file-directory))
+    (setq file (expand-file-name file (or directory
+					  temporary-file-directory)))
     (find-file-other-window file)
     (setq buffer-read-only nil)
     (goto-char (point-max))
@@ -506,7 +567,7 @@ static unsigned char gamegrid_bits[] = {
 			  ((boundp 'user-mail-address)
 			   user-mail-address)
 			  (t ""))))
-    (sort-numeric-fields 1 (point-min) (point-max))
+    (sort-fields 1 (point-min) (point-max))
     (reverse-region (point-min) (point-max))
     (goto-line (1+ gamegrid-score-file-length))
     (delete-region (point) (point-max))
@@ -518,4 +579,5 @@ static unsigned char gamegrid_bits[] = {
 
 (provide 'gamegrid)
 
+;;; arch-tag: a96c2ff4-1c12-427e-bd3d-faeaf174cd46
 ;;; gamegrid.el ends here

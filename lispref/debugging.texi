@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999, 2002, 2003, 2004,
+@c   2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/debugging
 @node Debugging, Read and Print, Advising Functions, Top
@@ -14,7 +14,7 @@ depending on what you are doing with the program when the problem appears.
 @item
 If the problem occurs when you run the program, you can use a Lisp
 debugger to investigate what is happening during execution.  In addition
-to the ordinary debugger, Emacs comes with a source level debugger,
+to the ordinary debugger, Emacs comes with a source-level debugger,
 Edebug.  This chapter describes both of them.
 
 @item
@@ -30,6 +30,7 @@ compiler, you need to know how to examine the compiler's input buffer.
 * Debugger::            How the Emacs Lisp debugger is implemented.
 * Edebug::		A source-level Emacs Lisp debugger.
 * Syntax Errors::       How to find syntax errors.
+* Test Coverage::       Ensuring you have tested all branches in your code.
 * Compilation Errors::  How to find errors that show up in byte compilation.
 @end menu
 
@@ -116,6 +117,15 @@ the error.  The easiest way is usually to set
 @code{debug-ignored-errors} to @code{nil}.
 @end defopt
 
+@defopt eval-expression-debug-on-error
+If this variable has a non-@code{nil} value, then
+@code{debug-on-error} is set to @code{t} when evaluating with the
+command @code{eval-expression}.  If
+@code{eval-expression-debug-on-error} is @code{nil}, then the value of
+@code{debug-on-error} is not changed.  @xref{Lisp Eval,, Evaluating
+Emacs-Lisp Expressions, emacs, The GNU Emacs Manual}.
+@end defopt
+
 @defopt debug-on-signal
 Normally, errors that are caught by @code{condition-case} never run the
 debugger, even if @code{debug-on-error} is non-@code{nil}.  In other
@@ -200,25 +210,31 @@ called shortly before the problem, step quickly over the call to that
 function, and then step through its caller.
 
 @deffn Command debug-on-entry function-name
-This function requests @var{function-name} to invoke the debugger each time
-it is called.  It works by inserting the form @code{(debug 'debug)} into
-the function definition as the first form.
+This function requests @var{function-name} to invoke the debugger each
+time it is called.  It works by inserting the form
+@code{(implement-debug-on-entry)} into the function definition as the
+first form.
 
-Any function defined as Lisp code may be set to break on entry,
-regardless of whether it is interpreted code or compiled code.  If the
-function is a command, it will enter the debugger when called from Lisp
-and when called interactively (after the reading of the arguments).  You
-can't debug primitive functions (i.e., those written in C) this way.
+Any function or macro defined as Lisp code may be set to break on
+entry, regardless of whether it is interpreted code or compiled code.
+If the function is a command, it will enter the debugger when called
+from Lisp and when called interactively (after the reading of the
+arguments).  You can also set debug-on-entry for primitive functions
+(i.e., those written in C) this way, but it only takes effect when the
+primitive is called from Lisp code.  Debug-on-entry is not allowed for
+special forms.
 
 When @code{debug-on-entry} is called interactively, it prompts for
 @var{function-name} in the minibuffer.  If the function is already set
 up to invoke the debugger on entry, @code{debug-on-entry} does nothing.
 @code{debug-on-entry} always returns @var{function-name}.
 
-@strong{Note:} if you redefine a function after using
-@code{debug-on-entry} on it, the code to enter the debugger is discarded
-by the redefinition.  In effect, redefining the function cancels
-the break-on-entry feature for that function.
+@strong{Warning:} if you redefine a function after using
+@code{debug-on-entry} on it, the code to enter the debugger is
+discarded by the redefinition.  In effect, redefining the function
+cancels the break-on-entry feature for that function.
+
+Here's an example to illustrate use of this function:
 
 @example
 @group
@@ -237,14 +253,12 @@ the break-on-entry feature for that function.
 
 @group
 ------ Buffer: *Backtrace* ------
-Entering:
+Debugger entered--entering a function:
 * fact(3)
-  eval-region(4870 4878 t)
-  byte-code("...")
+  eval((fact 3))
+  eval-last-sexp-1(nil)
   eval-last-sexp(nil)
-  (let ...)
-  eval-insert-last-sexp(nil)
-* call-interactively(eval-insert-last-sexp)
+  call-interactively(eval-last-sexp)
 ------ Buffer: *Backtrace* ------
 @end group
 
@@ -257,16 +271,13 @@ Entering:
 @end example
 @end deffn
 
-@deffn Command cancel-debug-on-entry function-name
+@deffn Command cancel-debug-on-entry &optional function-name
 This function undoes the effect of @code{debug-on-entry} on
 @var{function-name}.  When called interactively, it prompts for
 @var{function-name} in the minibuffer.  If @var{function-name} is
-@code{nil} or the empty string, it cancels break-on-entry for all
-functions.
-
+omitted or @code{nil}, it cancels break-on-entry for all functions.
 Calling @code{cancel-debug-on-entry} does nothing to a function which is
-not currently set up to break on entry.  It always returns
-@var{function-name}.
+not currently set up to break on entry.
 @end deffn
 
 @node Explicit Debug
@@ -275,9 +286,9 @@ not currently set up to break on entry.  It always returns
   You can cause the debugger to be called at a certain point in your
 program by writing the expression @code{(debug)} at that point.  To do
 this, visit the source file, insert the text @samp{(debug)} at the
-proper place, and type @kbd{C-M-x}.  @strong{Warning:} if you do this
-for temporary debugging purposes, be sure to undo this insertion before
-you save the file!
+proper place, and type @kbd{C-M-x} (@code{eval-defun}, a Lisp mode key
+binding).  @strong{Warning:} if you do this for temporary debugging
+purposes, be sure to undo this insertion before you save the file!
 
   The place where you insert @samp{(debug)} must be a place where an
 additional form can be evaluated and its value ignored.  (If the value
@@ -314,7 +325,9 @@ moving point to the line describing that frame.  (A stack frame is the
 place where the Lisp interpreter records information about a particular
 invocation of a function.)  The frame whose line point is on is
 considered the @dfn{current frame}.  Some of the debugger commands
-operate on the current frame.
+operate on the current frame.  If a line starts with a star, that means
+that exiting that frame will call the debugger again.  This is useful
+for examining the return value of a function.
 
   If a function name is underlined, that means the debugger knows
 where its source code is located.  You can click @kbd{Mouse-2} on that
@@ -324,8 +337,6 @@ name, or move to it and type @key{RET}, to visit the source code.
 assumptions about how many stack frames are used for the debugger
 itself.  These assumptions are false if the debugger is running
 interpreted.
-
-@need 3000
 
 @node Debugger Commands
 @subsection Debugger Commands
@@ -339,7 +350,8 @@ structures of an interpreted function, but cannot do so in a
 byte-compiled function.  If you would like to step through a
 byte-compiled function, replace it with an interpreted definition of
 the same function.  (To do this, visit the source for the function and
-type @kbd{C-M-x} on its definition.)
+type @kbd{C-M-x} on its definition.)  You cannot use the Lisp debugger
+to step through a primitive function.
 
   Here is a list of Debugger mode commands:
 
@@ -375,6 +387,11 @@ Don't enter the debugger when the current frame is exited.  This
 cancels a @kbd{b} command on that frame.  The visible effect is to
 remove the star from the line in the backtrace buffer.
 
+@item j
+Flag the current frame like @kbd{b}.  Then continue execution like
+@kbd{c}, but temporarily disable break-on-entry for all functions that
+are set up to do so by @code{debug-on-entry}.
+
 @item e
 Read a Lisp expression in the minibuffer, evaluate it, and print the
 value in the echo area.  The debugger alters certain important
@@ -407,6 +424,13 @@ used as the value of that frame.  It is also useful if you call
 effect as @kbd{c}, and the specified return value does not matter.
 
 You can't use @kbd{r} when the debugger was entered due to an error.
+
+@item l
+Display a list of functions that will invoke the debugger when called.
+This is a list of functions that are set to break on entry by means of
+@code{debug-on-entry}.  @strong{Warning:} if you redefine such a
+function and thus cancel the effect of @code{debug-on-entry}, it may
+erroneously show up in this list.
 @end table
 
 @node Invoking the Debugger
@@ -422,10 +446,10 @@ recursive entry to the debugger, etc.), and fills it with information
 about the stack of Lisp function calls.  It then enters a recursive
 edit, showing the backtrace buffer in Debugger mode.
 
-The Debugger mode @kbd{c} and @kbd{r} commands exit the recursive edit;
-then @code{debug} switches back to the previous buffer and returns to
-whatever called @code{debug}.  This is the only way the function
-@code{debug} can return to its caller.
+The Debugger mode @kbd{c}, @kbd{d}, @kbd{j}, and @kbd{r} commands exit
+the recursive edit; then @code{debug} switches back to the previous
+buffer and returns to whatever called @code{debug}.  This is the only
+way the function @code{debug} can return to its caller.
 
 The use of the @var{debugger-args} is that @code{debug} displays the
 rest of its arguments at the top of the @samp{*Backtrace*} buffer, so
@@ -440,41 +464,41 @@ is a table of these special values:
 @table @code
 @item lambda
 @cindex @code{lambda} in debug
-A first argument of @code{lambda} means @code{debug} was called because
-of entry to a function when @code{debug-on-next-call} was
-non-@code{nil}.  The debugger displays @samp{Entering:} as a line of
-text at the top of the buffer.
+A first argument of @code{lambda} means @code{debug} was called
+because of entry to a function when @code{debug-on-next-call} was
+non-@code{nil}.  The debugger displays @samp{Debugger
+entered--entering a function:} as a line of text at the top of the
+buffer.
 
 @item debug
-@code{debug} as first argument indicates a call to @code{debug} because
+@code{debug} as first argument means @code{debug} was called because
 of entry to a function that was set to debug on entry.  The debugger
-displays @samp{Entering:}, just as in the @code{lambda} case.  It also
-marks the stack frame for that function so that it will invoke the
-debugger when exited.
+displays the string @samp{Debugger entered--entering a function:},
+just as in the @code{lambda} case.  It also marks the stack frame for
+that function so that it will invoke the debugger when exited.
 
 @item t
 When the first argument is @code{t}, this indicates a call to
-@code{debug} due to evaluation of a list form when
-@code{debug-on-next-call} is non-@code{nil}.  The debugger displays the
-following as the top line in the buffer:
-
-@smallexample
-Beginning evaluation of function call form:
-@end smallexample
+@code{debug} due to evaluation of a function call form when
+@code{debug-on-next-call} is non-@code{nil}.  The debugger displays
+@samp{Debugger entered--beginning evaluation of function call form:}
+as the top line in the buffer.
 
 @item exit
-When the first argument is @code{exit}, it indicates the exit of a stack
-frame previously marked to invoke the debugger on exit.  The second
-argument given to @code{debug} in this case is the value being returned
-from the frame.  The debugger displays @samp{Return value:} in the top
-line of the buffer, followed by the value being returned.
+When the first argument is @code{exit}, it indicates the exit of a
+stack frame previously marked to invoke the debugger on exit.  The
+second argument given to @code{debug} in this case is the value being
+returned from the frame.  The debugger displays @samp{Debugger
+entered--returning value:} in the top line of the buffer, followed by
+the value being returned.
 
 @item error
 @cindex @code{error} in debug
 When the first argument is @code{error}, the debugger indicates that
-it is being entered because an error or @code{quit} was signaled and not
-handled, by displaying @samp{Signaling:} followed by the error signaled
-and any arguments to @code{signal}.  For example,
+it is being entered because an error or @code{quit} was signaled and
+not handled, by displaying @samp{Debugger entered--Lisp error:}
+followed by the error signaled and any arguments to @code{signal}.
+For example,
 
 @example
 @group
@@ -484,7 +508,7 @@ and any arguments to @code{signal}.  For example,
 
 @group
 ------ Buffer: *Backtrace* ------
-Signaling: (arith-error)
+Debugger entered--Lisp error: (arith-error)
   /(1 0)
 ...
 ------ Buffer: *Backtrace* ------
@@ -519,7 +543,7 @@ some kind of debugger.  The default value of the variable is
 
 The first argument that Lisp hands to the function indicates why it
 was called.  The convention for arguments is detailed in the description
-of @code{debug}.
+of @code{debug} (@pxref{Invoking the Debugger}).
 @end defvar
 
 @deffn Command backtrace
@@ -550,7 +574,7 @@ forms are elided.
                          (1+ var)
                          (list 'testing (backtrace))))))))
 
-     @result{} nil
+     @result{} (testing nil)
 @end group
 
 @group
@@ -564,17 +588,14 @@ forms are elided.
   (save-excursion ...)
   (let ...)
   (with-output-to-temp-buffer ...)
-  eval-region(1973 2142 #<buffer *scratch*>)
-  byte-code("...  for eval-print-last-sexp ...")
+  eval((with-output-to-temp-buffer ...))
+  eval-last-sexp-1(nil)
 @group
-  eval-print-last-sexp(nil)
-* call-interactively(eval-print-last-sexp)
+  eval-last-sexp(nil)
+  call-interactively(eval-last-sexp)
 ----------- Buffer: backtrace-output ------------
 @end group
 @end smallexample
-
-The character @samp{*} indicates a frame whose debug-on-exit flag is
-set.
 @end deffn
 
 @ignore @c Not worth mentioning
@@ -684,8 +705,8 @@ find the mismatch.)
 
   The first step is to find the defun that is unbalanced.  If there is
 an excess open parenthesis, the way to do this is to go to the end of
-the file and type @kbd{C-u C-M-u}.  This will move you to the beginning
-of the defun that is unbalanced.
+the file and type @kbd{C-u C-M-u}.  This will move you to the
+beginning of the first defun that is unbalanced.
 
   The next step is to determine precisely what is wrong.  There is no
 way to be sure of this except by studying the program, but often the
@@ -716,9 +737,9 @@ anything.
 @node Excess Close
 @subsection Excess Close Parentheses
 
-  To deal with an excess close parenthesis, first go to the beginning of
-the file, then type @kbd{C-u -1 C-M-u} to find the end of the unbalanced
-defun.
+  To deal with an excess close parenthesis, first go to the beginning
+of the file, then type @kbd{C-u -1 C-M-u} to find the end of the first
+unbalanced defun.
 
   Then find the actual matching close parenthesis by typing @kbd{C-M-f}
 at the beginning of that defun.  This will leave you somewhere short of
@@ -737,6 +758,43 @@ old indentation is probably appropriate to the intended parentheses.
 the old indentation actually fits the intended nesting of parentheses,
 and you have put back those parentheses, @kbd{C-M-q} should not change
 anything.
+
+@node Test Coverage
+@section Test Coverage
+@cindex coverage testing
+
+@findex testcover-start
+@findex testcover-mark-all
+@findex testcover-next-mark
+  You can do coverage testing for a file of Lisp code by loading the
+@code{testcover} library and using the command @kbd{M-x
+testcover-start @key{RET} @var{file} @key{RET}} to instrument the
+code.  Then test your code by calling it one or more times.  Then use
+the command @kbd{M-x testcover-mark-all} to display colored highlights
+on the code to show where coverage is insufficient.  The command
+@kbd{M-x testcover-next-mark} will move point forward to the next
+highlighted spot.
+
+  Normally, a red highlight indicates the form was never completely
+evaluated; a brown highlight means it always evaluated to the same
+value (meaning there has been little testing of what is done with the
+result).  However, the red highlight is skipped for forms that can't
+possibly complete their evaluation, such as @code{error}.  The brown
+highlight is skipped for forms that are expected to always evaluate to
+the same value, such as @code{(setq x 14)}.
+
+  For difficult cases, you can add do-nothing macros to your code to
+give advice to the test coverage tool.
+
+@defmac 1value form
+Evaluate @var{form} and return its value, but inform coverage testing
+that @var{form}'s value should always be the same.
+@end defmac
+
+@defmac noreturn form
+Evaluate @var{form}, informing coverage testing that @var{form} should
+never return.  If it ever does return, you get a run-time error.
+@end defmac
 
 @node Compilation Errors
 @section Debugging Problems in Compilation
@@ -762,3 +820,7 @@ the error.
 successfully, then point is located at the end of the form.  In this
 case, this technique can't localize the error precisely, but can still
 show you which function to check.
+
+@ignore
+   arch-tag: ddc57378-b0e6-4195-b7b6-43f8777395a7
+@end ignore

@@ -1,5 +1,6 @@
 /* syssignal.h - System-dependent definitions for signals.
-   Copyright (C) 1993, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,15 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
+
+extern void init_signals P_ ((void));
+
+#ifdef HAVE_GTK_AND_PTHREAD
+#include <pthread.h>
+extern pthread_t main_thread;
+#endif
 
 #ifdef POSIX_SIGNALS
 
@@ -31,7 +39,6 @@ Boston, MA 02111-1307, USA.  */
 #define SIGEMPTYMASK (empty_mask)
 #define SIGFULLMASK (full_mask)
 extern sigset_t empty_mask, full_mask;
-extern void init_signals P_ ((void));
 
 /* POSIX pretty much destroys any possibility of writing sigmask as a
    macro in standard C.  We always define our own version because the
@@ -139,7 +146,10 @@ extern SIGMASKTYPE sigprocmask_set;
 #undef SIGINFO
 #endif
 #if defined (SIGIO) && defined (BROKEN_SIGIO)
-#undef SIGIO
+# undef SIGIO
+# if defined (__Lynx__)
+# undef SIGPOLL /* Defined as SIGIO on LynxOS */
+# endif
 #endif
 #if defined (SIGPOLL) && defined (BROKEN_SIGPOLL)
 #undef SIGPOLL
@@ -196,3 +206,28 @@ extern SIGMASKTYPE sigprocmask_set;
 /* strsignal is in sysdep.c */
 char *strsignal ();
 #endif
+
+#ifdef HAVE_GTK_AND_PTHREAD
+#define SIGNAL_THREAD_CHECK(signo)                                      \
+  do {                                                                  \
+    if (pthread_self () != main_thread)                                 \
+      {                                                                 \
+        /* POSIX says any thread can receive the signal.  On GNU/Linux  \
+           that is not true, but for other systems (FreeBSD at least)   \
+           it is.  So direct the signal to the correct thread and block \
+           it from this thread.  */                                     \
+        sigset_t new_mask;                                              \
+                                                                        \
+        sigemptyset (&new_mask);                                        \
+        sigaddset (&new_mask, signo);                                   \
+        pthread_sigmask (SIG_BLOCK, &new_mask, 0);                      \
+        pthread_kill (main_thread, signo);                              \
+        return;                                                         \
+      }                                                                 \
+   } while (0)
+
+#else /* not HAVE_GTK_AND_PTHREAD */
+#define SIGNAL_THREAD_CHECK(signo)
+#endif /* not HAVE_GTK_AND_PTHREAD */
+/* arch-tag: 4580e86a-340d-4574-9e11-a742b6e1a152
+   (do not change this comment) */

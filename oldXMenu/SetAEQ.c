@@ -1,7 +1,7 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/SetAEQ.c,v 1.1 1992/04/11 22:10:20 jimb Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
  * XMenu:	MIT Project Athena, X Window system menu package
@@ -27,3 +27,6 @@ XMenuSetAEQ(menu, aeq)
      */
     menu->aeq = aeq;
 }
+
+/* arch-tag: 48fc22b4-0722-4852-a044-788444e4a9dc
+   (do not change this comment) */

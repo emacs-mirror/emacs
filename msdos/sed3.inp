@@ -2,8 +2,8 @@
 # Configuration script for lib-src/makefile
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1993, 1994, 1995
-#   Free Software Foundation, Inc.
+# Copyright (C) 1993, 1994, 1995, 2002, 2003, 2004,
+#   2005 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -42,3 +42,5 @@ s!^	\./!	go32 ./!
 s!^	go32 ./test-distrib!	go32 ./test-dis!
 /-o make-docfile/a\
 	coff2exe make-docfile
+
+# arch-tag: cac6f5c7-3dbf-4e84-9d0c-44f0126f0ea8

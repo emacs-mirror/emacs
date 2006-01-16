@@ -1,10 +1,10 @@
 ;;; calc-undo.el --- undo functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +28,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-undo () nil)
-
 
 ;;; Undo.
 
@@ -81,7 +78,8 @@
 	   (let ((v (intern (nth 1 action))))
 	     (calc-record-undo (list 'store (nth 1 action)
 				     (and (boundp v) (symbol-value v))))
-	     (if (y-or-n-p (format "Un-store variable %s? " (nth 1 action)))
+	     (if (y-or-n-p (format "Un-store variable %s? " 
+                                   (calc-var-name (nth 1 action))))
 		 (progn
 		   (if (nth 2 action)
 		       (set v (nth 2 action))
@@ -150,4 +148,7 @@
        (or (eq (car (car list)) 'pop)
 	   (calc-undo-does-pushes (cdr list)))))
 
+(provide 'calc-undo)
+
+;;; arch-tag: eeb485d2-fb3d-454a-9d79-450af1f50d6c
 ;;; calc-undo.el ends here

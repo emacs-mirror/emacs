@@ -1,6 +1,7 @@
 ;;; gs.el --- interface to Ghostscript
 
-;; Copyright (C) 1998, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -39,12 +40,14 @@
 (defvar gs-options
   '("-q"
     ;"-dNOPAUSE"
+    "-dSAFER"
     "-dBATCH"
     "-sDEVICE=<device>"
     "<file>")
   "List of command line arguments to pass to Ghostscript.
 Arguments may contain place-holders `<file>' for the name of the
 input file, and `<device>' for the device to use.")
+(put 'gs-options 'risky-local-variable t)
 
 (defun gs-options (device file)
   "Return a list of command line options with place-holders replaced.
@@ -54,7 +57,6 @@ FILE is the value to substitute for the place-holder `<file>'."
 	      (setq option (replace-regexp-in-string "<device>" device option)
 		    option (replace-regexp-in-string "<file>" file option)))
 	  gs-options))
-
 
 ;; The GHOSTVIEW property (taken from gv 3.5.8).
 ;;
@@ -196,7 +198,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
 	(setenv "GHOSTVIEW" window-and-pixmap-id)
 	(setq gs (apply 'start-process "gs" "*GS*" gs-program
 			(gs-options gs-device file)))
-	(process-kill-without-query gs)
+	(set-process-query-on-exit-flag gs nil)
 	gs)
     nil))
 
@@ -212,4 +214,5 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
 
 (provide 'gs)
 
+;;; arch-tag: 06ab51b8-4932-4cfe-9f60-b924a8edb3f0
 ;;; gs.el ends here

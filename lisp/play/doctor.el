@@ -1,6 +1,7 @@
 ;;; doctor.el --- psychological help for frustrated users
 
-;; Copyright (C) 1985, 1987, 1994, 1996, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1994, 1996, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: games
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -45,6 +46,36 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (defvar **mad**)        (defvar *debug*)      (defvar *print-space*)
+  (defvar *print-upcase*) (defvar abuselst)     (defvar abusewords)
+  (defvar account)        (defvar afraidof)     (defvar arerelated)
+  (defvar areyou)         (defvar bak)          (defvar beclst)
+  (defvar bother)         (defvar bye)          (defvar canyou)
+  (defvar chatlst)        (defvar continue)     (defvar deathlst)
+  (defvar describe)       (defvar drnk)         (defvar drugs)
+  (defvar eliza-flag)     (defvar elizalst)     (defvar famlst)
+  (defvar feared)         (defvar fears)        (defvar feelings-about)
+  (defvar foullst)        (defvar found)        (defvar hello)
+  (defvar history)        (defvar howareyoulst) (defvar howdyflag)
+  (defvar huhlst)         (defvar ibelieve)     (defvar improve)
+  (defvar inter)          (defvar isee)         (defvar isrelated)
+  (defvar lincount)       (defvar longhuhlst)   (defvar lover)
+  (defvar machlst)        (defvar mathlst)      (defvar maybe)
+  (defvar moods)          (defvar neglst)       (defvar obj)
+  (defvar object)         (defvar owner)        (defvar please)
+  (defvar problems)       (defvar qlist)        (defvar random-adjective)
+  (defvar relation)       (defvar remlst)       (defvar repetitive-shortness)
+  (defvar replist)        (defvar rms-flag)     (defvar schoollst)
+  (defvar sent)           (defvar sexlst)       (defvar shortbeclst)
+  (defvar shortlst)       (defvar something)    (defvar sportslst)
+  (defvar stallmanlst)    (defvar states)       (defvar subj)
+  (defvar suicide-flag)   (defvar sure)         (defvar things)
+  (defvar thlst)          (defvar toklst)       (defvar typos)
+  (defvar verb)           (defvar want)         (defvar whatwhen)
+  (defvar whereoutp)      (defvar whysay)       (defvar whywant)
+  (defvar zippy-flag)     (defvar zippylst))
+
 (defun doc// (x) x)
 
 (defmacro doc$ (what)
@@ -59,29 +90,20 @@
     (set what ww)
     first))
 
-(defvar doctor-mode-map nil)
-(if doctor-mode-map
-    nil
-  (setq doctor-mode-map (make-sparse-keymap))
-  (define-key doctor-mode-map "\n" 'doctor-read-print)
-  (define-key doctor-mode-map "\r" 'doctor-ret-or-read))
-
-(defun doctor-mode ()
+(define-derived-mode doctor-mode text-mode "Doctor"
   "Major mode for running the Doctor (Eliza) program.
 Like Text mode with Auto Fill mode
 except that RET when point is after a newline, or LFD at any time,
 reads the sentence before point, and prints the Doctor's answer."
-  (interactive)
-  (text-mode)
   (make-doctor-variables)
-  (use-local-map doctor-mode-map)
-  (setq major-mode 'doctor-mode)
-  (setq mode-name "Doctor")
   (turn-on-auto-fill)
   (doctor-type '(i am the psychotherapist \.
 		 (doc$ please) (doc$ describe) your (doc$ problems) \.
 		 each time you are finished talking, type \R\E\T twice \.))
   (insert "\n"))
+
+(define-key doctor-mode-map "\n" 'doctor-read-print)
+(define-key doctor-mode-map "\r" 'doctor-ret-or-read)
 
 (defun make-doctor-variables ()
   (make-local-variable 'typos)
@@ -932,7 +954,7 @@ Otherwise call the Doctor to parse preceding sentence."
 		      (doctor-type '(are you (doc$ afraidof) that \?)))
 		     ((zerop (random 2))
 		      (doctor-type '(don\'t tell me what to do \. i am the
-					    psychiatrist here!))
+					    doctor here!))
 		      (doctor-rthing))
 		     (t
 		      (doctor-type '((doc$ whysay) that i shouldn\'t
@@ -1378,7 +1400,7 @@ Hack on previous word, setting global variable OWNER to correct result."
   (cond ((or (string-match "^[.,;:?! ]" word)
 	     (not *print-space*))
 	 (insert word))
-	(t (insert ?\  word)))
+	(t (insert ?\s word)))
   (and auto-fill-function
        (> (current-column) fill-column)
        (apply auto-fill-function nil))
@@ -1530,8 +1552,8 @@ Hack on previous word, setting global variable OWNER to correct result."
 	(t (doctor-type '((doc$ whysay)(list subj verb obj))))))
 
 (defun doctor-symptoms ()
-  (doctor-type '((doc$ maybe) you should consult a doctor of medicine\,
-		 i am a psychiatrist \.)))
+  (doctor-type '((doc$ maybe) you should consult a medical doctor\;
+		 i am a psychotherapist. \.)))
 
 (defun doctor-hates ()
   (doctor-svo sent found 1 t)
@@ -1634,4 +1656,5 @@ Hack on previous word, setting global variable OWNER to correct result."
 
 (provide 'doctor)
 
+;;; arch-tag: 579380f6-4902-4ea5-bccb-6339e30e1257
 ;;; doctor.el ends here

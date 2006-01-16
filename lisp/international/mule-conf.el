@@ -1,7 +1,10 @@
 ;;; mule-conf.el --- configure multilingual environment -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2005
+;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: mule, multilingual, character set, coding system
 
@@ -19,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -289,10 +292,6 @@
       (get 'oldjis-newjis-jisroman-ascii 'translation-table))
 
 (setq standard-translation-table-for-encode nil)
-
-(defvar translation-table-for-input nil
-  "If non-nil, a char table used to translate characters from input methods.
-\(Currently only used by Quail.)")
 
 ;;; Make fundamental coding systems.
 
@@ -306,13 +305,14 @@ When you visit a file with this coding, the file is read into a
 unibyte buffer as is, thus each byte of a file is treated as a
 character."
 	     (list 'coding-category 'coding-category-binary
-		   'alias-coding-systems '(no-conversion))
+		   'alias-coding-systems '(no-conversion)
+		   'safe-charsets t 'safe-chars t)
 	     nil))
 (put 'no-conversion 'eol-type 0)
 (put 'coding-category-binary 'coding-systems '(no-conversion))
 (setq coding-system-list '(no-conversion))
 (setq coding-system-alist '(("no-conversion")))
-(register-char-codings 'no-conversion t)
+(define-coding-system-internal 'no-conversion)
 
 (define-coding-system-alias 'binary 'no-conversion)
 
@@ -441,12 +441,16 @@ Like `compound-text', but does not produce escape sequences for compositions."
  '((safe-charsets . t)))
 
 (make-coding-system
- 'compound-text-with-extensions 5 ?x
+ 'compound-text-with-extensions 2 ?x
  "Compound text encoding with extended segments.
+
+See the variable `ctext-non-standard-encodings-alist' for the
+detail about how extended segments are handled.
 
 This coding system should be used only for X selections.  It is inappropriate
 for decoding and encoding files, process I/O, etc."
- nil
+ '((ascii t) (latin-iso8859-1 katakana-jisx0201 t) t t
+   nil ascii-eol ascii-cntl)
  '((post-read-conversion . ctext-post-read-conversion)
    (pre-write-conversion . ctext-pre-write-conversion)))
 
@@ -464,6 +468,17 @@ for decoding and encoding files, process I/O, etc."
 
 (define-coding-system-alias
   'us-ascii 'iso-safe)
+
+(make-coding-system
+ 'iso-latin-1 2 ?1
+ "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)."
+ '(ascii latin-iso8859-1 nil nil
+   nil nil nil nil nil nil nil nil nil nil nil t t)
+ '((safe-charsets ascii latin-iso8859-1)
+   (mime-charset . iso-8859-1)))
+
+(define-coding-system-alias 'iso-8859-1 'iso-latin-1)
+(define-coding-system-alias 'latin-1 'iso-latin-1)
 
 ;; Use iso-safe for terminal output if some other coding system is not
 ;; specified explicitly.
@@ -488,6 +503,7 @@ for decoding and encoding files, process I/O, etc."
 	("\\(\\`\\|/\\)loaddefs.el\\'" . (raw-text . raw-text-unix))
 	("\\.tar\\'" . (no-conversion . no-conversion))
 	( "\\.po[tx]?\\'\\|\\.po\\." . po-find-file-coding-system)
+	("\\.\\(tex\\|ltx\\|dtx\\|drv\\)\\'" . latexenc-find-file-coding-system)
 	("" . (undecided . nil))))
 
 
@@ -508,8 +524,8 @@ for decoding and encoding files, process I/O, etc."
       coding-category-iso-8-else	'iso-2022-8bit-ss2
       coding-category-ccl		nil
       coding-category-utf-8		'mule-utf-8
-      coding-category-utf-16-be         nil
-      coding-category-utf-16-le         nil
+      coding-category-utf-16-be         'mule-utf-16be-with-signature
+      coding-category-utf-16-le         'mule-utf-16le-with-signature
       coding-category-big5		'chinese-big5
       coding-category-raw-text		'raw-text
       coding-category-binary		'no-conversion)
@@ -517,6 +533,9 @@ for decoding and encoding files, process I/O, etc."
 (set-coding-priority
  '(coding-category-iso-8-1
    coding-category-iso-8-2
+   coding-category-utf-8
+   coding-category-utf-16-be
+   coding-category-utf-16-le
    coding-category-iso-7-tight
    coding-category-iso-7
    coding-category-iso-7-else
@@ -527,16 +546,18 @@ for decoding and encoding files, process I/O, etc."
    coding-category-big5
    coding-category-ccl
    coding-category-binary
-   coding-category-utf-8
-   coding-category-utf-16-be
-   coding-category-utf-16-le))
+   ))
 
 
 ;;; Miscellaneous settings.
+(aset latin-extra-code-table ?\221 t)
 (aset latin-extra-code-table ?\222 t)
 (aset latin-extra-code-table ?\223 t)
 (aset latin-extra-code-table ?\224 t)
+(aset latin-extra-code-table ?\225 t)
+(aset latin-extra-code-table ?\226 t)
 
 (update-coding-systems-internal)
 
+;; arch-tag: 7d5fed55-b6df-42f6-8d3d-0011190551f5
 ;;; mule-conf.el ends here

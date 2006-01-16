@@ -1,7 +1,8 @@
 ;;; ethiopic.el --- Quail package for inputting Ethiopic characters  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1997, 1998 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 1998, 1999, 2001
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, input method, ethiopic
 
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;; Author: TAKAHASHI Naoto <ntakahas@etl.go.jp>
 
@@ -1146,4 +1147,5 @@ C-' or `M-x ethio-gemination'
 		 (if (ethio-prefer-amharic-p) ?$(3"c(B ?$(3"f(B)
 		 "ethiopic"))
 
+;;; arch-tag: 66c182a8-d802-40fa-9c0d-d8ebe2f909d5
 ;;; ethiopic.el ends here

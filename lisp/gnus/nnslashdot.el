@@ -1,5 +1,7 @@
 ;;; nnslashdot.el --- interfacing with Slashdot
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -18,13 +20,10 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
-
-;; Note: You need to have `url' and `w3' installed for this
-;; backend to work.
 
 ;;; Code:
 
@@ -36,11 +35,7 @@
 (require 'gnus)
 (require 'nnmail)
 (require 'mm-util)
-(eval-when-compile
-  (ignore-errors
-    (require 'nnweb)))
-;; Report failure to find w3 at load time if appropriate.
-(eval '(require 'nnweb))
+(require 'mm-url)
 
 (nnoo-declare nnslashdot)
 
@@ -59,6 +54,9 @@
 
 (defvoo nnslashdot-backslash-url "http://slashdot.org/slashdot.xml"
   "Where nnslashdot will fetch the stories from.")
+
+(defvoo nnslashdot-use-front-page nil
+  "Use the front page in addition to the backslash page.")
 
 (defvoo nnslashdot-threshold -1
   "The article threshold.")
@@ -89,7 +87,7 @@
   (nnslashdot-possibly-change-server group server)
   (condition-case why
       (unless gnus-nov-is-evil
-	(nnslashdot-retrieve-headers-1 articles group))
+ 	(nnslashdot-retrieve-headers-1 articles group))
     (search-failed (nnslashdot-lose why))))
 
 (deffoo nnslashdot-retrieve-headers-1 (articles group)
@@ -105,12 +103,13 @@
       (let ((case-fold-search t))
 	(erase-buffer)
 	(when (= start 1)
-	  (nnweb-insert (format nnslashdot-article-url
-				(nnslashdot-sid-strip sid)) t)
+	  (mm-url-insert (format nnslashdot-article-url sid) t)
 	  (goto-char (point-min))
+	  (if (eobp)
+	      (error "Couldn't open connection to slashdot"))
 	  (re-search-forward "Posted by[ \t\r\n]+")
 	  (when (looking-at "\\(<a[^>]+>\\)?[ \t\r\n]*\\([^<\r\n]+\\)")
-	    (setq from (nnweb-decode-entities-string (match-string 2))))
+	    (setq from (mm-url-decode-entities-string (match-string 2))))
 	  (search-forward "on ")
 	  (setq date (nnslashdot-date-to-date
 		      (buffer-substring (point) (1- (search-forward "<")))))
@@ -122,15 +121,14 @@
 	    1
 	    (make-full-mail-header
 	     1 group from date
-	     (concat "<" (nnslashdot-sid-strip sid) "%1@slashdot>")
+	     (concat "<" sid "%1@slashdot>")
 	     "" 0 lines nil nil))
 	   headers)
 	  (setq start (if nnslashdot-threaded 2 (pop articles))))
 	(while (and start (<= start last))
 	  (setq point (goto-char (point-max)))
-	  (nnweb-insert
-	   (format nnslashdot-comments-url
-		   (nnslashdot-sid-strip sid)
+	  (mm-url-insert
+	   (format nnslashdot-comments-url sid
 		   nnslashdot-threshold 0 (- start 2))
 	   t)
 	  (when (and nnslashdot-threaded first-comments)
@@ -144,35 +142,30 @@
 	  (setq article (if (and article (< start article)) article start))
 	  (goto-char point)
 	  (while (re-search-forward
-		  "<a name=\"\\([0-9]+\\)\"><\\(b\\|H4\\)>\\([^<]+\\)</\\(b\\|H4\\)>.*score:\\([^)]+\\))"
+		  "<a name=\"\\([0-9]+\\)\">\\([^<]+\\)</a>.*\n.*score:\\([^)]+\\))"
 		  nil t)
 	    (setq cid (match-string 1)
-		  subject (match-string 3)
-		  score (match-string 5))
+		  subject (match-string 2)
+		  score (match-string 3))
 	    (unless (assq article (nth 4 entry))
 	      (setcar (nthcdr 4 entry) (cons (cons article cid) (nth 4 entry)))
 	      (setq changed t))
 	    (when (string-match "^Re: *" subject)
 	      (setq subject (concat "Re: " (substring subject (match-end 0)))))
-	    (setq subject (nnweb-decode-entities-string subject))
-	    (search-forward "<BR>")
-	    (if (looking-at
-		 "by[ \t\n]+<a[^>]+>\\([^<]+\\)</a>[ \t\n]*(\\(<[^>]+>\\)*\\([^<>)]+\\))")
-		(progn
-		  (goto-char (- (match-end 0) 5))
-		  (setq from (concat
-			      (nnweb-decode-entities-string (match-string 1))
-			      " <" (match-string 3) ">")))
-	      (setq from "")
-	      (when (looking-at "by \\([^<>]*\\) on ")
-		(goto-char (- (match-end 0) 5))
-		(setq from (nnweb-decode-entities-string (match-string 1)))))
-	    (search-forward " on ")
+	    (setq subject (mm-url-decode-entities-string subject)
+		  from "")
+	    (when (re-search-forward "by[ \t\n]+<[^>]+>\\([^<(]+\\)" nil t)
+	      (setq from
+		    (concat
+		     (mm-url-decode-entities-string (match-string 1))
+		     " <nobody@slashdot.org>")))
+	    (search-forward "on ")
 	    (setq date
 		  (nnslashdot-date-to-date
-		   (buffer-substring (point) (progn (skip-chars-forward "^()<>\n\r") (point)))))
-	    (setq lines (/ (abs (- (search-forward "<td")
-				   (search-forward "</td>")))
+		   (buffer-substring
+		    (point) (progn (skip-chars-forward "^()<>\n\r") (point)))))
+	    (setq lines (/ (abs (- (search-forward "<div")
+				   (search-forward "</div>")))
 			   70))
 	    (if (not
 		 (re-search-forward ".*cid=\\([0-9]+\\)\">Parent</A>" nil t))
@@ -187,10 +180,9 @@
 	       article
 	       (concat subject " (" score ")")
 	       from date
-	       (concat "<" (nnslashdot-sid-strip sid) "%" cid "@slashdot>")
+	       (concat "<" sid "%" cid "@slashdot>")
 	       (if parent
-		   (concat "<" (nnslashdot-sid-strip sid) "%"
-			   parent "@slashdot>")
+		   (concat "<" sid "%" parent "@slashdot>")
 		 "")
 	       0 lines nil nil))
 	     headers)
@@ -252,23 +244,21 @@
 	    (when (numberp article)
 	      (if (= article 1)
 		  (progn
-		    (re-search-forward
-		     "Posted by")
-		    (search-forward "<BR>")
+		    (search-forward "Posted by")
+		    (search-forward "<div class=\"intro\">")
 		    (setq contents
 			  (buffer-substring
 			   (point)
 			   (progn
-			     (re-search-forward
-			      "&lt;&nbsp;[ \t\r\n]*<A HREF=\"\\(\\(http:\\)?//slashdot\\.org\\)?/article")
+			     (search-forward "commentwrap")
 			     (match-beginning 0)))))
 		(setq cid (cdr (assq article
 				     (nth 4 (assoc group nnslashdot-groups)))))
 		(search-forward (format "<a name=\"%s\">" cid))
 		(setq contents
 		      (buffer-substring
-		       (re-search-forward "<td[^>]*>")
-		       (search-forward "</td>")))))))
+		       (search-forward "<div class=\"commentBody\">")
+		       (search-forward "</div>")))))))
       (search-failed (nnslashdot-lose why)))
 
     (when contents
@@ -300,19 +290,22 @@
 (deffoo nnslashdot-request-list (&optional server)
   (nnslashdot-possibly-change-server nil server)
   (let ((number 0)
+	(first nnslashdot-use-front-page)
 	sid elem description articles gname)
     (condition-case why
 	;; First we do the Ultramode to get info on all the latest groups.
 	(progn
 	  (mm-with-unibyte-buffer
-	    (nnweb-insert nnslashdot-backslash-url t)
+	    (mm-url-insert nnslashdot-backslash-url t)
 	    (goto-char (point-min))
+	    (if (eobp)
+		(error "Couldn't open connection to slashdot"))
 	    (while (search-forward "<story>" nil t)
 	      (narrow-to-region (point) (search-forward "</story>"))
 	      (goto-char (point-min))
 	      (re-search-forward "<title>\\([^<]+\\)</title>")
 	      (setq description
-		    (nnweb-decode-entities-string (match-string 1)))
+		    (mm-url-decode-entities-string (match-string 1)))
 	      (re-search-forward "<url>\\([^<]+\\)</url>")
 	      (setq sid (match-string 1))
 	      (string-match "sid=\\([0-9/]+\\)\\(.shtml\\|$\\)" sid)
@@ -327,20 +320,22 @@
 	      (goto-char (point-max))
 	      (widen)))
 	  ;; Then do the older groups.
-	  (while (> (- nnslashdot-group-number number) 0)
+	  (while (or first
+		     (> (- nnslashdot-group-number number) 0))
+  	    (setq first nil)
 	    (mm-with-unibyte-buffer
 	      (let ((case-fold-search t))
-		(nnweb-insert (format nnslashdot-active-url number) t)
+		(mm-url-insert (format nnslashdot-active-url number) t)
 		(goto-char (point-min))
 		(while (re-search-forward
-			"article.pl\\?sid=\\([^&]+\\).*<b>\\([^<]+\\)</b>"
+			"article.pl\\?sid=\\([^&]+\\).*>\\([^<]+\\)</a>"
 			nil t)
 		  (setq sid (match-string 1)
 			description
-			(nnweb-decode-entities-string (match-string 2)))
+			(mm-url-decode-entities-string (match-string 2)))
 		  (forward-line 1)
-		  (when (re-search-forward "<b>\\([0-9]+\\)</b>" nil t)
-		    (setq articles (string-to-number (match-string 1))))
+		  (when (re-search-forward "with \\([0-9]+\\) comment" nil t)
+		    (setq articles (1+ (string-to-number (match-string 1)))))
 		  (setq gname (concat description " (" sid ")"))
 		  (if (setq elem (assoc gname nnslashdot-groups))
 		      (setcar (cdr elem) articles)
@@ -359,7 +354,7 @@
 
 (deffoo nnslashdot-request-post (&optional server)
   (nnslashdot-possibly-change-server nil server)
-  (let ((sid (nnslashdot-sid-strip (message-fetch-field "newsgroups")))
+  (let ((sid (message-fetch-field "newsgroups"))
 	(subject (message-fetch-field "subject"))
 	(references (car (last (split-string
 				(message-fetch-field "references")))))
@@ -394,7 +389,7 @@
     (message-goto-body)
     (setq body (buffer-substring (point) (point-max)))
     (erase-buffer)
-    (nnweb-fetch-form
+    (mm-url-fetch-form
      "http://slashdot.org/comments.pl"
      `(("sid" . ,sid)
        ("pid" . ,pid)
@@ -499,14 +494,14 @@
     (set-buffer nntp-server-buffer)
     (erase-buffer)
     (dolist (elem nnslashdot-groups)
-      (insert (prin1-to-string (car elem))
-	      " " (number-to-string (cadr elem)) " 1 y\n"))))
+      (when (numberp (cadr elem))
+	(insert (prin1-to-string (car elem))
+		" " (number-to-string (cadr elem)) " 1 y\n")))))
 
 (defun nnslashdot-lose (why)
   (error "Slashdot HTML has changed; please get a new version of nnslashdot"))
 
-(defalias 'nnslashdot-sid-strip 'identity)
-
 (provide 'nnslashdot)
 
+;;; arch-tag: aa73df7a-f7e6-4eef-bdea-5ce2f8c691b3
 ;;; nnslashdot.el ends here

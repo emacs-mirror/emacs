@@ -1,7 +1,7 @@
-;;; autoload.el --- maintain autoloads in loaddefs.el
+;; autoload.el --- maintain autoloads in loaddefs.el
 
-;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -34,6 +34,7 @@
 
 (require 'lisp-mode)			;for `doc-string-elt' properties.
 (require 'help-fns)			;for help-add-fundoc-usage.
+(eval-when-compile (require 'cl))
 
 (defvar generated-autoload-file "loaddefs.el"
    "*File \\[update-file-autoloads] puts autoloads into.
@@ -71,7 +72,7 @@ or macro definition or a defcustom)."
   (let ((car (car-safe form)) expand)
     (cond
      ;; For complex cases, try again on the macro-expansion.
-     ((and (memq car '(easy-mmode-define-global-mode
+     ((and (memq car '(easy-mmode-define-global-mode define-global-minor-mode
 		       easy-mmode-define-minor-mode define-minor-mode))
 	   (setq expand (let ((load-file-name file)) (macroexpand form)))
 	   (eq (car expand) 'progn)
@@ -85,13 +86,18 @@ or macro definition or a defcustom)."
 
      ;; For special function-like operators, use the `autoload' function.
      ((memq car '(defun define-skeleton defmacro define-derived-mode
-		   define-generic-mode easy-mmode-define-minor-mode
-		   easy-mmode-define-global-mode
-		   define-minor-mode defun* defmacro*))
+                   define-compilation-mode define-generic-mode
+		   easy-mmode-define-global-mode define-global-minor-mode
+		   easy-mmode-define-minor-mode define-minor-mode
+		   defun* defmacro*))
       (let* ((macrop (memq car '(defmacro defmacro*)))
 	     (name (nth 1 form))
-	     (args (if (memq car '(defun defmacro defun* defmacro*))
-		       (nth 2 form) t))
+	     (args (case car
+		    ((defun defmacro defun* defmacro*) (nth 2 form))
+		    ((define-skeleton) '(&optional str arg))
+		    ((define-generic-mode define-derived-mode
+                       define-compilation-mode) nil)
+		    (t)))
 	     (body (nthcdr (get car 'doc-string-elt) form))
 	     (doc (if (stringp (car body)) (pop body))))
 	(when (listp args)
@@ -103,6 +109,7 @@ or macro definition or a defcustom)."
 	      (or (and (memq car '(define-skeleton define-derived-mode
 				    define-generic-mode
 				    easy-mmode-define-global-mode
+				    define-global-minor-mode
 				    easy-mmode-define-minor-mode
 				    define-minor-mode)) t)
 		  (eq (car-safe (car body)) 'interactive))
@@ -117,7 +124,26 @@ or macro definition or a defcustom)."
 	    )
 	`(progn
 	   (defvar ,varname ,init ,doc)
-	   (custom-autoload ',varname ,file))))
+	   (custom-autoload ',varname ,file)
+           ;; The use of :require in a defcustom can be annoying, especially
+           ;; when defcustoms are moved from one file to another between
+           ;; releases because the :require arg gets placed in the user's
+           ;; .emacs.  In order for autoloaded minor modes not to need the
+           ;; use of :require, we arrange to store their :setter.
+           ,(let ((setter (condition-case nil
+                              (cadr (memq :set form))
+                            (error nil))))
+              (if (equal setter ''custom-set-minor-mode)
+                  `(put ',varname 'custom-set 'custom-set-minor-mode))))))
+
+     ((eq car 'defgroup)
+      ;; In Emacs this is normally handled separately by cus-dep.el, but for
+      ;; third party packages, it can be convenient to explicitly autoload
+      ;; a group.
+      (let ((groupname (nth 1 form)))
+        `(let ((loads (get ',groupname 'custom-loads)))
+           (if (member ',file loads) nil
+             (put ',groupname 'custom-loads (cons ',file loads))))))
 
      ;; nil here indicates that this is not a special autoload form.
      (t nil))))
@@ -129,7 +155,7 @@ or macro definition or a defcustom)."
 
 
 (defun autoload-trim-file-name (file)
-  ;; Returns a relative pathname of FILE
+  ;; Returns a relative file path for FILE
   ;; starting from the directory that loaddefs.el is in.
   ;; That is normally a directory in load-path,
   ;; which means Emacs will be able to find FILE when it looks.
@@ -159,7 +185,8 @@ markers before we call `read'."
 	(goto-char (point-min))
 	(read (current-buffer))))))
 
-(defvar autoload-print-form-outbuf)
+(defvar autoload-print-form-outbuf nil
+  "Buffer which gets the output of `autoload-print-form'.")
 
 (defun autoload-print-form (form)
   "Print FORM such that `make-docfile' will find the docstrings.
@@ -267,7 +294,7 @@ are used."
 	output-end)
 
     ;; If the autoload section we create here uses an absolute
-    ;; pathname for FILE in its header, and then Emacs is installed
+    ;; file name for FILE in its header, and then Emacs is installed
     ;; under a different path on another system,
     ;; `update-autoloads-here' won't be able to find the files to be
     ;; autoloaded.  So, if FILE is in the same directory or a
@@ -354,11 +381,14 @@ are used."
     (message "Generating autoloads for %s...done" file)))
 
 ;;;###autoload
-(defun update-file-autoloads (file)
+(defun update-file-autoloads (file &optional save-after)
   "Update the autoloads for FILE in `generated-autoload-file'
 \(which FILE might bind in its local variables).
-Return FILE if there was no autoload cookie in it."
-  (interactive "fUpdate autoloads for file: ")
+If SAVE-AFTER is non-nil (which is always, when called interactively),
+save the buffer too.
+
+Return FILE if there was no autoload cookie in it, else nil."
+  (interactive "fUpdate autoloads for file: \np")
   (let ((load-name (let ((name (file-name-nondirectory file)))
 		     (if (string-match "\\.elc?\\(\\.\\|$\\)" name)
 			 (substring name 0 (match-beginning 0))
@@ -403,7 +433,7 @@ Return FILE if there was no autoload cookie in it."
 		       (if (and (or (null existing-buffer)
 				    (not (buffer-modified-p existing-buffer)))
 				(listp last-time) (= (length last-time) 2)
-				(not (autoload-before-p last-time file-time)))
+				(not (time-less-p last-time file-time)))
 			   (progn
 			     (if (interactive-p)
 				 (message "\
@@ -458,16 +488,11 @@ Autoload section for %s is up to date."
 			   (or existing-buffer
 			       (kill-buffer (current-buffer))))))))
 	      (generate-file-autoloads file))))
-      (and (interactive-p)
+      (and save-after
 	   (buffer-modified-p)
 	   (save-buffer))
 
       (if no-autoloads file))))
-
-(defun autoload-before-p (time1 time2)
-  (or (< (car time1) (car time2))
-      (and (= (car time1) (car time2))
-	   (< (nth 1 time1) (nth 1 time2)))))
 
 (defun autoload-remove-section (begin)
   (goto-char begin)
@@ -475,10 +500,16 @@ Autoload section for %s is up to date."
   (delete-region begin (point)))
 
 ;;;###autoload
-(defun update-autoloads-from-directories (&rest dirs)
+(defun update-directory-autoloads (&rest dirs)
   "\
 Update loaddefs.el with all the current autoloads from DIRS, and no old ones.
-This uses `update-file-autoloads' (which see) do its work."
+This uses `update-file-autoloads' (which see) to do its work.
+In an interactive call, you must give one argument, the name
+of a single directory.  In a call from Lisp, you can supply multiple
+directories as separate arguments, but this usage is discouraged.
+
+The function does NOT recursively descend into subdirectories of the
+directory or directories specified."
   (interactive "DUpdate autoloads from directory: ")
   (let* ((files-re (let ((tmp nil))
 		     (dolist (suf load-suffixes
@@ -517,8 +548,7 @@ This uses `update-file-autoloads' (which see) do its work."
 		     (dolist (file file)
 		       (let ((file-time (nth 5 (file-attributes file))))
 			 (when (and file-time
-				    (not (autoload-before-p last-time
-							    file-time)))
+				    (not (time-less-p last-time file-time)))
 			   ;; file unchanged
 			   (push file no-autoloads)
 			   (setq files (delete file files)))))))
@@ -548,13 +578,17 @@ This uses `update-file-autoloads' (which see) do its work."
 
       (save-buffer))))
 
+(define-obsolete-function-alias 'update-autoloads-from-directories
+    'update-directory-autoloads "22.1")
+
 ;;;###autoload
 (defun batch-update-autoloads ()
   "Update loaddefs.el autoloads in batch mode.
-Calls `update-autoloads-from-directories' on the command line arguments."
-  (apply 'update-autoloads-from-directories command-line-args-left)
+Calls `update-directory-autoloads' on the command line arguments."
+  (apply 'update-directory-autoloads command-line-args-left)
   (setq command-line-args-left nil))
 
 (provide 'autoload)
 
+;; arch-tag: 00244766-98f4-4767-bf42-8a22103441c6
 ;;; autoload.el ends here

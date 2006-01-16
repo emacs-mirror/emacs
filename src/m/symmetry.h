@@ -1,5 +1,6 @@
 /* machine description file for SEQUENT SYMMETRY machines
-   Copyright (C) 1985, 1986, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* CHANGE: [Eric H. Herrin II; eric@ms.uky.edu - 15 Sept 1988]
  * Modified the sequent.h file for the Sequent Symmetry machine.
@@ -89,3 +90,6 @@ Boston, MA 02111-1307, USA.  */
   sprintf (pty_name, "/dev/pty%c%c", PTY_MAJOR[ma], PTY_MINOR[mi]);
 #define PTY_TTY_NAME_SPRINTF \
   sprintf (pty_name, "/dev/tty%c%c", PTY_MAJOR[ma], PTY_MINOR[mi]);
+
+/* arch-tag: 4169a89e-3764-4147-98df-1ba3bdd45a5b
+   (do not change this comment) */

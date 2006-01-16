@@ -1,6 +1,6 @@
 /* Primitives for word-abbrev mode.
-   Copyright (C) 1985, 1986, 1993, 1996, 1998, 2001
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1996, 1998, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #include <config.h>
@@ -356,10 +356,13 @@ Returns the abbrev symbol, if expansion took place.  */)
     {
       SET_PT (wordstart);
 
-      del_range_both (wordstart, wordstart_byte, wordend, wordend_byte, 1);
-
       insert_from_string (expansion, 0, 0, SCHARS (expansion),
 			  SBYTES (expansion), 1);
+      del_range_both (PT, PT_BYTE,
+		      wordend + (PT - wordstart),
+		      wordend_byte + (PT_BYTE - wordstart_byte),
+		      1);
+
       SET_PT (PT + whitecnt);
 
       if (uccount && !lccount)
@@ -439,7 +442,7 @@ is not undone.  */)
 
       val = SYMBOL_VALUE (Vlast_abbrev);
       if (!STRINGP (val))
-	error ("value of abbrev-symbol must be a string");
+	error ("Value of `abbrev-symbol' must be a string");
       zv_before = ZV;
       del_range_byte (PT_BYTE, PT_BYTE + SBYTES (val), 1);
       /* Don't inherit properties here; just copy from old contents.  */
@@ -537,7 +540,8 @@ is inserted.  Otherwise the description is an expression,
 a call to `define-abbrev-table', which would
 define the abbrev table NAME exactly as it is currently defined.
 
-Abbrevs marked as "system abbrevs" are omitted.  */)
+Abbrevs marked as "system abbrevs" are normally omitted.  However, if
+READABLE is non-nil, they are listed.  */)
      (name, readable)
      Lisp_Object name, readable;
 {
@@ -592,9 +596,9 @@ of the form (ABBREVNAME EXPANSION HOOK USECOUNT SYSTEMFLAG).
     }
   CHECK_VECTOR (table);
 
-  for (; !NILP (definitions); definitions = Fcdr (definitions))
+  for (; CONSP (definitions); definitions = XCDR (definitions))
     {
-      elt = Fcar (definitions);
+      elt = XCAR (definitions);
       name  = Fcar (elt);	elt = Fcdr (elt);
       exp   = Fcar (elt);	elt = Fcdr (elt);
       hook  = Fcar (elt);	elt = Fcdr (elt);
@@ -690,3 +694,6 @@ the current abbrev table before abbrev lookup happens.  */);
   defsubr (&Sinsert_abbrev_table_description);
   defsubr (&Sdefine_abbrev_table);
 }
+
+/* arch-tag: b721db69-f633-44a8-a361-c275acbdad7d
+   (do not change this comment) */

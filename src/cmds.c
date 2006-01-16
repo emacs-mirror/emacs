@@ -1,5 +1,6 @@
 /* Simple built-in editing commands.
-   Copyright (C) 1985, 93, 94, 95, 96, 97, 1998, 2001, 02 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002,
+                 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #include <config.h>
@@ -180,7 +181,7 @@ DEFUN ("end-of-line", Fend_of_line, Send_of_line, 0, 1, "p",
        doc: /* Move point to end of current line.
 With argument N not nil or 1, move forward N - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
-To ignore intangibility, bind `inhibit-text-motion-hooks' to t.
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
 
 This command does not move point across a field boundary unless doing so
 would move beyond there to a different line; if N is nil or 1, and
@@ -368,12 +369,13 @@ Whichever character you type to run this command is inserted.  */)
    return 0.  A value of 1 indicates this *might* not have been simple.
    A value of 2 means this did things that call for an undo boundary.  */
 
+static Lisp_Object Qexpand_abbrev;
+
 int
 internal_self_insert (c, noautofill)
      int c;
      int noautofill;
 {
-  extern Lisp_Object Fexpand_abbrev ();
   int hairy = 0;
   Lisp_Object tem;
   register enum syntaxcode synt;
@@ -477,7 +479,7 @@ internal_self_insert (c, noautofill)
       int modiff = MODIFF;
       Lisp_Object sym;
 
-      sym = Fexpand_abbrev ();
+      sym = call0 (Qexpand_abbrev);
 
       /* If we expanded an abbrev which has a hook,
 	 and the hook has a non-nil `no-self-insert' property,
@@ -565,6 +567,9 @@ syms_of_cmds ()
   Qoverwrite_mode_binary = intern ("overwrite-mode-binary");
   staticpro (&Qoverwrite_mode_binary);
 
+  Qexpand_abbrev = intern ("expand-abbrev");
+  staticpro (&Qexpand_abbrev);
+
   DEFVAR_LISP ("self-insert-face", &Vself_insert_face,
 	       doc: /* If non-nil, set the face of the next self-inserting character to this.
 See also `self-insert-face-command'.  */);
@@ -615,3 +620,6 @@ keys_of_cmds ()
   initial_define_key (global_map, Ctl ('F'), "forward-char");
   initial_define_key (global_map, 0177, "delete-backward-char");
 }
+
+/* arch-tag: 022ba3cd-67f9-4978-9c5d-7d2b18d8644e
+   (do not change this comment) */

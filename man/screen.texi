@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,1997,2001 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
+@c   2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Screen, User Input, Acknowledgments, Top
 @chapter The Organization of the Screen
@@ -29,19 +30,23 @@ into multiple text windows, each of which can be used for a different
 file (@pxref{Windows}).  In this manual, the word ``window'' always
 refers to the subdivisions of a frame within Emacs.
 
-  At any time, one window is the @dfn{selected window}; the most
-prominent cursor indicates which window is selected.  Most Emacs
-commands implicitly apply to the text in the selected window (though
-mouse commands generally operate on whatever window you click them in,
-whether selected or not).  The other windows display text for
-reference only, unless/until you select them.  If you use multiple
-frames under the X Window System, then giving the input focus to a
-particular frame selects a window in that frame.
+  At any time, one window is the @dfn{selected window}.  On graphical
+terminals, the selected window normally shows a more prominent cursor
+(solid and blinking) while other windows show a weaker cursor (such as
+a hollow box).  On text terminals, which have just one cursor, that cursor
+appears in the selected window.
+
+  Most Emacs commands implicitly apply to the text in the selected
+window (though mouse commands generally operate on whatever window you
+click them in, whether selected or not).  The other windows display
+text for reference only, unless/until you select them.  If you use
+multiple frames under the X Window System, then giving the input focus
+to a particular frame selects a window in that frame.
 
   Each window's last line is a @dfn{mode line}, which describes what
-is going on in that window.  It appears in inverse video, if the
-terminal supports that; its contents normally begin with
-@w{@samp{--:-- @ *scratch*}} when Emacs starts.  The mode line
+is going on in that window.  It appears in different color and/or a
+``3D'' box, if the terminal supports that; its contents normally begin
+with @w{@samp{--:-- @ *scratch*}} when Emacs starts.  The mode line
 displays status information such as what buffer is being displayed
 above it in the window, what major and minor modes are in use, and
 whether the buffer contains unsaved changes.
@@ -58,7 +63,7 @@ whether the buffer contains unsaved changes.
 @cindex point
 @cindex cursor
 
-  Within Emacs, the terminal's cursor shows the location at which
+  Within Emacs, the active cursor shows the location at which
 editing commands will take effect.  This location is called @dfn{point}.
 Many Emacs commands move point through the text, so that you can edit at
 different places in it.  You can also place point by clicking mouse
@@ -93,11 +98,11 @@ though.  Once display updating finishes, Emacs puts the cursor where
 point is.
 
   On graphical terminals, Emacs shows a cursor in each window; the
-selected window's cursor is solid or blinking, and the other cursors
-are just hollow.  Thus, the most striking cursor always shows you
-the selected window, on all kinds of terminals.
+selected window's cursor is solid and blinking, and the other cursors
+are just hollow.  Thus, the most prominent cursor always shows you the
+selected window, on all kinds of terminals.
 
-  @xref{Cursor Display}, for customization options that control display
+  @xref{Cursor Display}, for customizable variables that control display
 of the cursor or cursors.
 
   The term ``point'' comes from the character @samp{.}, which was the
@@ -111,11 +116,11 @@ for accessing the value now called ``point.''
 
   The line at the bottom of the frame (below the mode line) is the
 @dfn{echo area}.  It is used to display small amounts of text for
-several purposes.
+various purposes.
 
-  @dfn{Echoing} means displaying the characters that you type.  Outside
-Emacs, the operating system normally echoes all your input.  Emacs
-handles echoing differently.
+  @dfn{Echoing} means displaying the characters that you type.  At the
+command line, the operating system normally echoes all your input.
+Emacs handles echoing differently.
 
   Single-character commands do not echo in Emacs, and multi-character
 commands echo only if you pause while typing them.  As soon as you pause
@@ -189,7 +194,7 @@ other windows; see @ref{Optional Mode Line}, for more about this.
   Normally, the mode line looks like this:
 
 @example
--@var{cs}:@var{ch}  @var{buf}      @var{line} @var{pos}   (@var{major} @var{minor})------
+-@var{cs}:@var{ch}  @var{buf}      @var{pos} @var{line}   (@var{major} @var{minor})------
 @end example
 
 @noindent
@@ -211,19 +216,20 @@ cursor is in) is also Emacs's current buffer, the one that editing
 takes place in.  When we speak of what some command does to ``the
 buffer,'' we are talking about the current buffer.
 
-  @var{line} is @samp{L} followed by the current line number of point.
-This is present when Line Number mode is enabled (which it normally is).
-You can optionally display the current column number too, by turning on
-Column Number mode (which is not enabled by default because it is
-somewhat slower).  @xref{Optional Mode Line}.
-
   @var{pos} tells you whether there is additional text above the top of
 the window, or below the bottom.  If your buffer is small and it is all
 visible in the window, @var{pos} is @samp{All}.  Otherwise, it is
 @samp{Top} if you are looking at the beginning of the buffer, @samp{Bot}
 if you are looking at the end of the buffer, or @samp{@var{nn}%}, where
-@var{nn} is the percentage of the buffer above the top of the
-window.@refill
+@var{nn} is the percentage of the buffer above the top of the window.
+With Size Indication mode, you can display the size of the buffer as
+well.  @xref{Optional Mode Line}.
+
+  @var{line} is @samp{L} followed by the current line number of point.
+This is present when Line Number mode is enabled (which it normally is).
+You can optionally display the current column number too, by turning on
+Column Number mode (which is not enabled by default because it is
+somewhat slower).  @xref{Optional Mode Line}.
 
   @var{major} is the name of the @dfn{major mode} in effect in the
 buffer.  At any time, each buffer is in one and only one of the possible
@@ -303,8 +309,9 @@ formats by setting each of the variables @code{eol-mnemonic-unix},
 @xref{Variables}, for an explanation of how to set variables.
 
   @xref{Optional Mode Line}, for features that add other handy
-information to the mode line, such as the current column number of
-point, the current time, and whether new mail for you has arrived.
+information to the mode line, such as the size of the buffer, the
+current column number of point, the current time, and whether new mail
+for you has arrived.
 
 The mode line is mouse-sensitive; when you move the mouse across
 various parts of it, Emacs displays help text to say what a click in
@@ -324,7 +331,7 @@ them here, as you can more easily see for yourself.
   When you are using a window system, you can use the mouse to choose a
 command from the menu bar.  An arrow pointing right, after the menu
 item, indicates that the item leads to a subsidiary menu; @samp{...} at
-the end means that the command will read arguments from the keyboard
+the end means that the command will read arguments (further input from you)
 before it actually does anything.
 
   To view the full command name and documentation for a menu item, type
@@ -335,7 +342,7 @@ way (@pxref{Key Help}).
 typing @kbd{M-`} or @key{F10} (these run the command
 @code{tmm-menubar}).  This command enters a mode in which you can select
 a menu item from the keyboard.  A provisional choice appears in the echo
-area.  You can use the left and right arrow keys to move through the
+area.  You can use the up and down arrow keys to move through the
 menu to different choices.  When you have found the choice you want,
 type @key{RET} to select it.
 
@@ -347,3 +354,7 @@ can type the item's letter or digit to select the item.
   Some of the commands in the menu bar have ordinary key bindings as
 well; if so, the menu lists one equivalent key binding in parentheses
 after the item itself.
+
+@ignore
+   arch-tag: 104ba40e-d972-4866-a542-a98be94bdf2f
+@end ignore

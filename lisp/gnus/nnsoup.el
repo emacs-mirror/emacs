@@ -1,10 +1,10 @@
 ;;; nnsoup.el --- SOUP access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2002
-;;	Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
-;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
+;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news, mail
 
 ;; This file is part of GNU Emacs.
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -337,7 +337,7 @@ backend for the messages.")
 		  (delete-file (nnsoup-file prefix t)))
 		t)
 	  (setcdr (cdr total-infolist) (delq info (cddr total-infolist)))
-	  (setq articles (gnus-sorted-complement articles range-list))))
+	  (setq articles (gnus-sorted-difference articles range-list))))
       (when (not mod-time)
 	(setcdr (cdr total-infolist) (delq info (cddr total-infolist)))))
     (if (cddr total-infolist)
@@ -656,20 +656,20 @@ backend for the messages.")
     (and areas (car areas))))
 
 (defvar nnsoup-old-functions
-  (list message-send-mail-function message-send-news-function))
+  (list message-send-mail-real-function message-send-news-function))
 
 ;;;###autoload
 (defun nnsoup-set-variables ()
   "Use the SOUP methods for posting news and mailing mail."
   (interactive)
   (setq message-send-news-function 'nnsoup-request-post)
-  (setq message-send-mail-function 'nnsoup-request-mail))
+  (setq message-send-mail-real-function 'nnsoup-request-mail))
 
 ;;;###autoload
 (defun nnsoup-revert-variables ()
   "Revert posting and mailing methods to the standard Emacs methods."
   (interactive)
-  (setq message-send-mail-function (car nnsoup-old-functions))
+  (setq message-send-mail-real-function (car nnsoup-old-functions))
   (setq message-send-news-function (cadr nnsoup-old-functions)))
 
 (defun nnsoup-store-reply (kind)
@@ -752,9 +752,9 @@ backend for the messages.")
   (let ((files (sort (directory-files nnsoup-directory t "IDX$")
 		     (lambda (f1 f2)
 		       (< (progn (string-match "/\\([0-9]+\\)\\." f1)
-				 (string-to-int (match-string 1 f1)))
+				 (string-to-number (match-string 1 f1)))
 			  (progn (string-match "/\\([0-9]+\\)\\." f2)
-				 (string-to-int (match-string 1 f2)))))))
+				 (string-to-number (match-string 1 f2)))))))
 	active group lines ident elem min)
     (set-buffer (get-buffer-create " *nnsoup work*"))
     (while files
@@ -814,4 +814,5 @@ backend for the messages.")
 
 (provide 'nnsoup)
 
+;;; arch-tag: b0451389-5703-4450-9425-f66f6b38c828
 ;;; nnsoup.el ends here

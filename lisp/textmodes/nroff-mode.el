@@ -1,6 +1,7 @@
 ;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source
 
-;; Copyright (C) 1985, 86, 94, 95, 97, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994, 1995, 1997, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -37,6 +38,7 @@
 
 (defgroup nroff nil
   "Nroff mode."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'wp
   :prefix "nroff-")
 
@@ -134,7 +136,7 @@ closing requests for requests that are used in matched pairs."
   (save-excursion
     (looking-at outline-regexp)
     (skip-chars-forward ".H ")
-    (string-to-int (buffer-substring (point) (+ 1 (point))))))
+    (string-to-number (buffer-substring (point) (+ 1 (point))))))
 
 ;;; Compute how much to indent a comment in nroff/troff source.
 ;;; By mit-erl!gildea April 86
@@ -272,4 +274,5 @@ turns it on iff arg is positive, otherwise off."
 
 (provide 'nroff-mode)
 
+;;; arch-tag: 6e276340-6c65-4f65-b4e3-0ca431ddfb6c
 ;;; nroff-mode.el ends here

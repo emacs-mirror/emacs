@@ -1,6 +1,7 @@
 ;;; ebuff-menu.el --- electric-buffer-list mode
 
-;; Copyright (C) 1985, 1986, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@ai.mit.edu>
 ;; Maintainer: FSF
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -38,9 +39,12 @@
 
 (defvar electric-buffer-menu-mode-map nil)
 
+(defvar electric-buffer-menu-mode-hook nil
+  "Normal hook run by `electric-buffer-list'.")
+
 ;;;###autoload
 (defun electric-buffer-list (arg)
-  "Pops up a buffer describing the set of Emacs buffers.
+  "Pop up a buffer describing the set of Emacs buffers.
 Vaguely like ITS lunar select buffer; combining typeoutoid buffer
 listing with menuoid buffer selection.
 
@@ -50,9 +54,9 @@ window, marking buffers to be selected, saved or deleted.
 
 To exit and select a new buffer, type a space when the cursor is on
 the appropriate line of the buffer-list window.  Other commands are
-much like those of buffer-menu-mode.
+much like those of `Buffer-menu-mode'.
 
-Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
+Run hooks in `electric-buffer-menu-mode-hook' on entry.
 
 \\{electric-buffer-menu-mode-map}"
   (interactive "P")
@@ -74,7 +78,8 @@ Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
 			       (throw 'electric-buffer-menu-select nil)))
 		    (let ((start-point (point))
 			  (first (progn (goto-char (point-min))
-					(forward-line 2)
+					(unless Buffer-menu-use-header-line
+					  (forward-line 2))
 					(point)))
 			  (last (progn (goto-char (point-max))
 				       (forward-line -1)
@@ -112,13 +117,16 @@ Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
 	 (signal (car condition) (cdr condition)))
 	((< (point) (car state))
 	 (goto-char (point-min))
-	 (forward-line 2))
+	 (unless Buffer-menu-use-header-line
+	   (forward-line 2)))
 	((> (point) (cdr state))
 	 (goto-char (point-max))
 	 (forward-line -1)
 	 (if (pos-visible-in-window-p (point-max))
 	     (recenter -1))))
   (electric-buffer-update-highlight))
+
+(defvar Helper-return-blurb)
 
 (put 'Electric-buffer-menu-mode 'mode-class 'special)
 (defun Electric-buffer-menu-mode ()
@@ -142,9 +150,11 @@ Letters do not insert themselves; instead, they are commands.
 
 \\{electric-buffer-menu-mode-map}
 
-Entry to this mode via command electric-buffer-list calls the value of
-electric-buffer-menu-mode-hook if it is non-nil."
-  (kill-all-local-variables)
+Entry to this mode via command `electric-buffer-list' calls the value of
+`electric-buffer-menu-mode-hook'."
+  (let ((saved header-line-format))
+    (kill-all-local-variables)
+    (setq header-line-format saved))
   (use-local-map electric-buffer-menu-mode-map)
   (setq mode-name "Electric Buffer Menu")
   (setq mode-line-buffer-identification "Electric Buffer List")
@@ -155,7 +165,7 @@ electric-buffer-menu-mode-hook if it is non-nil."
   (setq major-mode 'Electric-buffer-menu-mode)
   (goto-char (point-min))
   (if (search-forward "\n." nil t) (forward-char -1))
-  (run-hooks 'electric-buffer-menu-mode-hook))
+  (run-mode-hooks 'electric-buffer-menu-mode-hook))
 
 ;; generally the same as Buffer-menu-mode-map
 ;;  (except we don't indirect to global-map)
@@ -221,8 +231,8 @@ electric-buffer-menu-mode-hook if it is non-nil."
 
 (defun Electric-buffer-menu-select ()
   "Leave Electric Buffer Menu, selecting buffers and executing changes.
-Saves buffers marked \"S\".  Deletes buffers marked \"K\".
-Selects buffer at point and displays buffers marked \">\" in other windows."
+Save buffers marked \"S\".  Delete buffers marked \"K\".
+Select buffer at point and display buffers marked \">\" in other windows."
   (interactive)
   (throw 'electric-buffer-menu-select (point)))
 
@@ -235,7 +245,7 @@ Selects buffer at point and displays buffers marked \">\" in other windows."
 
 (defun Electric-buffer-menu-quit ()
   "Leave Electric Buffer Menu, restoring previous window configuration.
-Does not execute select, save, or delete commands."
+Skip execution of select, save, and delete commands."
   (interactive)
   (throw 'electric-buffer-menu-select nil))
 
@@ -256,7 +266,7 @@ Type \\[Electric-buffer-menu-quit] to exit, \
 
 (defun Electric-buffer-menu-mode-view-buffer ()
   "View buffer on current line in Electric Buffer Menu.
-Returns to Electric Buffer Menu when done."
+Return to Electric Buffer Menu when done."
   (interactive)
   (let ((bufnam (Buffer-menu-buffer nil)))
     (if bufnam
@@ -267,16 +277,18 @@ Returns to Electric Buffer Menu when done."
 
 (defvar electric-buffer-overlay nil)
 (defun electric-buffer-update-highlight ()
-  ;; Make sure we have an overlay to use.
-  (or electric-buffer-overlay
-      (progn
-        (make-local-variable 'electric-buffer-overlay)
-        (setq electric-buffer-overlay (make-overlay (point) (point)))))
-  (move-overlay electric-buffer-overlay
-                (save-excursion (beginning-of-line) (point))
-                (save-excursion (end-of-line) (point)))
-  (overlay-put electric-buffer-overlay 'face 'highlight))
+  (when (eq major-mode 'Electric-buffer-menu-mode)
+    ;; Make sure we have an overlay to use.
+    (or electric-buffer-overlay
+	(progn
+	  (make-local-variable 'electric-buffer-overlay)
+	  (setq electric-buffer-overlay (make-overlay (point) (point)))))
+    (move-overlay electric-buffer-overlay
+		  (save-excursion (beginning-of-line) (point))
+		  (save-excursion (end-of-line) (point)))
+    (overlay-put electric-buffer-overlay 'face 'highlight)))
 
 (provide 'ebuff-menu)
 
+;;; arch-tag: 1d4509b3-eece-4d4f-95ea-77c83eaf0275
 ;;; ebuff-menu.el ends here

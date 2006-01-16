@@ -2,37 +2,60 @@
 
 # RCS to ChangeLog generator
 
-# Generate a change log prefix from RCS files (perhaps in the CVS repository)
-# and the ChangeLog (if any).
-# Output the new prefix to standard output.
-# You can edit this prefix by hand, and then prepend it to ChangeLog.
+Help='
+Generate ChangeLog entries from RCS files (perhaps in a CVS repository)
+and the ChangeLog file (if any).  An RCS file typically has a name
+ending in ",v", and represents the entire history of a file that is
+under revision control.  The ChangeLog file logs entries for changes,
+in reverse chronological order.
 
-# Ignore log entries that start with `#'.
-# Clump together log entries that start with `{topic} ',
-# where `topic' contains neither white space nor `}'.
+Generate entries for changes entered into RCS (or CVS) more recently
+than the newest existing entry in the ChangeLog file.  You can then
+edit these entries by hand, and prepend them to the ChangeLog file.
 
-Help='The default FILEs are the files registered under the working directory.
+Output the resulting ChangeLog entries to standard output.
+Each entry looks something like this:
+
+2004-04-17  Paul Eggert  <eggert@gnu.org>
+
+	* rcs2log (Help): Clarify wording of the usage message.
+	Problem reported by Alan Mackenzie in
+	<http://mail.gnu.org/archive/html/bug-gnu-emacs/2004-04/msg00188.html>.
+
+ChangeLog entries contain the current date, full name, email address
+including hostname, the name of the affected file, and commentary.
+RCS and CVS logs lack full names and email addresses, so they are
+inferred from login names using a heuristic that can be overridden
+via the -u option.
+
+Ignore log entries that start with "#".
+Clump together log entries that start with "{topic} ",
+where "topic" contains neither white space nor "}".
+
+If no FILE is specified, use all files under the working directory
+that are maintained under version control.
+
 Options:
 
-  -c CHANGELOG  Output a change log prefix to CHANGELOG (default ChangeLog).
+  -c FILE  Output ChangeLog entries for FILE (default ChangeLog).
   -h HOSTNAME  Use HOSTNAME in change log entries (default current host).
   -i INDENT  Indent change log lines by INDENT spaces (default 8).
   -l LENGTH  Try to limit log lines to LENGTH characters (default 79).
-  -L FILE  Use rlog-format FILE for source of logs.
+  -L FILE  Use FILE (same format as "rlog") for source of logs.
   -R  If no FILEs are given and RCS is used, recurse through working directory.
-  -r OPTION  Pass OPTION to subsidiary log command.
+  -r OPTION  Pass OPTION to subsidiary command (either "rlog" or "cvs -q log").
   -t TABWIDTH  Tab stops are every TABWIDTH characters (default 8).
-  -u "LOGIN<tab>FULLNAME<tab>MAILADDR"  Assume LOGIN has FULLNAME and MAILADDR.
+  -u "LOGIN<tab>FULLNAME<tab>EMAILADDR"  LOGIN has FULLNAME and EMAILADDR.
   -v  Append RCS revision to file names in log lines.
   --help  Output help.
   --version  Output version number.
 
 Report bugs to <bug-gnu-emacs@gnu.org>.'
 
-Id='$Id: rcs2log,v 1.49 2001/11/28 23:55:08 eggert Exp eggert $'
+Id='$Id$'
 
-# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002
-#  Free Software Foundation, Inc.
+# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003,
+#               2004, 2005 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -46,10 +69,10 @@ Id='$Id: rcs2log,v 1.49 2001/11/28 23:55:08 eggert Exp eggert $'
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; see the file COPYING.  If not, write to the
-# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+# Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 
-Copyright='Copyright (C) 2002 Free Software Foundation, Inc.
+Copyright='Copyright (C) 2005 Free Software Foundation, Inc.
 This program comes with NO WARRANTY, to the extent permitted by law.
 You may redistribute copies of this program
 under the terms of the GNU General Public License.
@@ -195,8 +218,9 @@ case $rlogfile in
 
 	# If no rlog options are given,
 	# log the revisions checked in since the first ChangeLog entry.
-	# Since ChangeLog is only by date, some of these revisions may be duplicates of
-	# what's already in ChangeLog; it's the user's responsibility to remove them.
+	# Since ChangeLog is only by date, some of these revisions may be
+	# duplicates of what's already in ChangeLog; it's the user's
+	# responsibility to remove them.
 	case $rlog_options in
 	'')
 		if test -s "$changelog"
@@ -250,18 +274,24 @@ case $rlogfile in
 		rlog='cvs -q log'
 		repository=`sed 1q <CVS/Repository` || exit
 		test ! -f CVS/Root || CVSROOT=`cat <CVS/Root` || exit
+		pository=
 		case $CVSROOT in
-		*:/*:/*)
-			echo >&2 "$0: $CVSROOT: CVSROOT has multiple ':/'s"
-			exit 1;;
-		*:/*)
+		/* | :fork:* | :local:*) ;;
+		*/*)
 			# remote repository
-			pository=`expr "X$repository" : '.*:\(/.*\)'`;;
-		*)
+			pository=`expr "X$CVSROOT" : '[^/]*\(.*\)'`;;
+		esac
+		case $pository in
+		'')
 			# local repository
 			case $repository in
 			/*) ;;
-			*) repository=${CVSROOT?}/$repository;;
+			*)
+				repository=${CVSROOT?}/$repository
+				case $repository in
+				:fork:* | :local:*)
+					repository=`expr "$repository" : ':[^:]*:\(.*\)'`;;
+				esac;;
 			esac
 			if test ! -d "$repository"
 			then
@@ -281,6 +311,21 @@ case $rlogfile in
 			esac
 		done
 
+		# If no rlog options are given, and if we are in a tagged CVS branch,
+		# log only the changes in that branch.
+		case $rlog_options in
+		'')
+			if test -f CVS/Tag
+			then
+				CVSTAG=`cat <CVS/Tag` || exit
+				case $CVSTAG in
+				T?*)
+					rlog_options=-r`expr "$CVSTAG" : 'T\(.*\)'`;;
+				*)
+					echo >&2 "$0: invalid CVS/Tag"; exit 1;;
+				esac
+			fi;;
+		esac
 	fi
 
 	# Use $rlog's -zLT option, if $rlog supports it.
@@ -729,3 +774,5 @@ exec rm -fr $logdir
 # Local Variables:
 # tab-width:4
 # End:
+
+# arch-tag: cea067bd-a552-4254-ba17-078208933073

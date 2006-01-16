@@ -54,3 +54,6 @@
 /* ryanr@ellingtn.ftc.nrcs.usda.gov (Richard Anthony Ryan) says -lXimp
    is needed in UNIX_SV ... 4.2 1.1.2.  */
 #define LIB_MOTIF -lXm -lXimp
+
+/* arch-tag: 9bbfcfc1-19be-45a1-9699-af57b87da2c6
+   (do not change this comment) */

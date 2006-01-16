@@ -1,7 +1,7 @@
 #include "copyright.h"
 
-/* $Header: /cvs/emacs/oldXMenu/Post.c,v 1.2 2000/01/27 15:30:47 gerd Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
  * XMenu:	MIT Project Athena, X Window system menu package
@@ -83,3 +83,6 @@ XMenuPost(display, menu, p_num, s_num, x_pos, y_pos, event_mask)
 	    return(data);
     }
 }
+
+/* arch-tag: 7b6104e5-fa32-4342-aa17-05296a30dd70
+   (do not change this comment) */

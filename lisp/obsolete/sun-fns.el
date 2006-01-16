@@ -1,6 +1,6 @@
 ;;; sun-fns.el --- subroutines of Mouse handling for Sun windows
 
-;; Copyright (C) 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jeff Peck <peck@sun.com>
 ;; Maintainer: none
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -85,7 +85,7 @@
       (setq this-command 'mouse-yank-move))
   )
 
-(defun mouse-set-mark (window x y)
+(defun mouse-set-mark (&optional window x y)
   "Set mark at mouse cursor."
   (eval-in-window window	;; use this to get the unwind protect
     (let ((point (point)))
@@ -137,7 +137,7 @@ and put the region in the stuff buffer."
   "Select window if not selected, otherwise do mouse-drag-move-point."
   (if (eq (selected-window) window)
       (mouse-drag-move-point window x y)
-    (mouse-select-window window x y)))
+    (mouse-select-window window)))
 
 ;;;
 ;;; esoterica:
@@ -283,15 +283,15 @@ this command is insensitive to mouse location."
   "Split the window vertically at the mouse cursor."
   (eval-in-window window (split-window-vertically (1+ y))))
 
-(defun mouse-select-window (window x y)
+(defun mouse-select-window (&optional window x y)
   "Selects the window, restoring point."
   (select-window window))
 
-(defun mouse-delete-other-windows (window x y)
+(defun mouse-delete-other-windows (&optional window x y)
   "Deletes all windows except the one mouse is in."
   (delete-other-windows window))
 
-(defun mouse-delete-window (window x y)
+(defun mouse-delete-window (window &optional x y)
   "Deletes the window mouse is in."
   (delete-window window))
 
@@ -640,4 +640,5 @@ To unmark a buffer marked for deletion, select it with LEFT."
 
 (provide 'sun-fns)
 
+;;; arch-tag: 1c4c1192-f71d-4d5f-b883-ae659c28e132
 ;;; sun-fns.el ends here

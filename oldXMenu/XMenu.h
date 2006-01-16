@@ -1,7 +1,7 @@
 #include "copyright.h"
 
-/* $Header: /cvs/emacs/oldXMenu/XMenu.h,v 1.2 2000/01/27 15:29:38 gerd Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
  * XMenu:	MIT Project Athena, X Window system menu package
@@ -252,6 +252,7 @@ int XMenuRecompute();
 int XMenuEventHandler();	/* No value actually returned. */
 int XMenuLocate();
 int XMenuSetFreeze();		/* No value actually returned. */
+void XMenuActivateSetWaitFunction();
 int XMenuActivate();
 char *XMenuPost();
 int XMenuDeletePane();
@@ -261,3 +262,6 @@ char *XMenuError();
 
 #endif
 /* Don't add after this point. */
+
+/* arch-tag: 7e57b5ac-9355-4057-9385-afbe6912d60f
+   (do not change this comment) */

@@ -1,7 +1,9 @@
 ;;; japanese.el --- support for Japanese -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, Japanese
 
@@ -19,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -67,6 +69,7 @@
 
 (define-coding-system-alias 'shift_jis 'japanese-shift-jis)
 (define-coding-system-alias 'sjis 'japanese-shift-jis)
+(define-coding-system-alias 'cp932 'japanese-shift-jis)
 
 (make-coding-system
  'japanese-iso-7bit-1978-irv 2 ?j
@@ -94,7 +97,6 @@
 
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment-internal)
-	      (exit-function . exit-japanese-environment)
 	      (tutorial . "TUTORIAL.ja")
 	      (charset japanese-jisx0208 japanese-jisx0208-1978
 		       japanese-jisx0212 latin-jisx0201 katakana-jisx0201
@@ -110,4 +112,5 @@
 
 (provide 'japanese)
 
+;;; arch-tag: 450f5537-9d53-4d5e-b731-4cf116d8cbc9
 ;;; japanese.el ends here

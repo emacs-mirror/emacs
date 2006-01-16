@@ -1,8 +1,9 @@
 ;;; isearch-x.el --- extended isearch handling commands
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 2000
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, isearch
 
@@ -23,8 +24,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -97,9 +98,9 @@
 (defun isearch-process-search-multibyte-characters (last-char)
   (if (eq this-command 'isearch-printing-char)
       (let ((overriding-terminal-local-map nil)
-	    (prompt (concat (isearch-message-prefix) isearch-message))
+	    (prompt (isearch-message-prefix))
 	    (minibuffer-local-map isearch-minibuffer-local-map)
-	    str)
+	    str junk-hist)
 	(if isearch-input-method-function
 	    (let (;; Let input method work rather tersely.
 		  (input-method-verbose-flag nil))
@@ -107,11 +108,12 @@
 		    (cons 'with-input-method
 			  (cons last-char unread-command-events))
 		    ;; Inherit current-input-method in a minibuffer.
-		    str (read-string prompt nil nil nil t))
-	      (if (not str)
+		    str (read-string prompt isearch-message 'junk-hist nil t))
+	      (if (or (not str) (< (length str) (length isearch-message)))
 		  ;; All inputs were deleted while the input method
 		  ;; was working.
 		  (setq str "")
+		(setq str (substring str (length isearch-message)))
 		(if (and (= (length str) 1)
 			 (= (aref str 0) last-char)
 			 (>= last-char 128))
@@ -122,7 +124,7 @@
 	    (setq unread-command-events
 		  (cons 'with-keyboard-coding
 			(cons last-char unread-command-events))
-		  str (read-string prompt)))
+		  str (read-string prompt nil 'junk-hist)))
 
 	(if (and str (> (length str) 0))
 	    (let ((unread-command-events nil))
@@ -130,4 +132,5 @@
 	  (isearch-update)))
     (isearch-process-search-char last-char)))
 
+;;; arch-tag: 1a90a6cf-2cb2-477a-814a-9ff895852822
 ;;; isearch-x.el ends here

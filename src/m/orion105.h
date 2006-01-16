@@ -1,5 +1,5 @@
 /* machine description file for HLH Orion 1/05 (Clipper).
-   Copyright (C) 1985 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
    Lee McLoughlin <lmjm%doc.imperial.ac.uk@nss.cs.ucl.ac.uk>
 
 This file is part of GNU Emacs.
@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The following line tells the configuration script what sort of
@@ -66,3 +66,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* Arguments to ignore before argc in crt0.c.  */
 #define DUMMIES dummy1, dummy2,
+
+/* arch-tag: 32fed6e3-8cae-4882-b327-a68c2af6db7a
+   (do not change this comment) */

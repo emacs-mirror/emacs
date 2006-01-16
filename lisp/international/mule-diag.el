@@ -1,8 +1,10 @@
 ;;; mule-diag.el --- show diagnosis of multilingual environment (Mule)
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003
+;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1999, 2000, 2001, 2002, 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, charset, coding system, fontset, diagnosis, i18n
 
@@ -20,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -61,6 +63,7 @@
   'help-function #'list-charset-chars
   'help-echo "mouse-2, RET: show table of characters for this character set")
 
+;;;###autoload
 (defvar non-iso-charset-alist
   `((mac-roman
      (ascii latin-iso8859-1 mule-unicode-2500-33ff
@@ -349,27 +352,6 @@ coding system cpCODEPAGE."
     (string-to-char
      (decode-coding-string (char-to-string code) coding-system))))
 
-
-;; Add DOS codepages to `non-iso-charset-alist'.
-
-(let ((tail (cp-supported-codepages))
-      elt)
-  (while tail
-    (setq elt (car tail) tail (cdr tail))
-    ;; Now ELT is (CODEPAGE . CHARSET), where CODEPAGE is a string
-    ;; (e.g. "850"), CHARSET is a charset that characters in CODEPAGE
-    ;; are mapped to.
-    (unless (assq (intern (concat "cp" (car elt))) non-iso-charset-alist)
-      (setq non-iso-charset-alist
-	    (cons (list (intern (concat "cp" (car elt)))
-			(list 'ascii (cdr elt))
-			`(lambda (code)
-			   (decode-codepage-char ,(string-to-int (car elt))
-						 code))
-			(list (list 0 255)))
-		  non-iso-charset-alist)))))
-
-
 ;; A variable to hold charset input history.
 (defvar charset-history nil)
 
@@ -593,10 +575,10 @@ PC `codepages' and other coded character sets.  See `non-iso-charset-alist'."
 			     charset (charset-description charset)))
 		    ((listp charset)
 		     (if (charsetp (car charset))
-			 (format "%s:%s, and also used by the followings:"
+			 (format "%s:%s, and also used by the following:"
 				 (car charset)
 				 (charset-description (car charset)))
-		       "no initial designation, and used by the followings:"))
+		       "no initial designation, and used by the following:"))
 		    (t
 		     "invalid designation information"))))
       (when (listp charset)
@@ -616,7 +598,7 @@ PC `codepages' and other coded character sets.  See `non-iso-charset-alist'."
 ;;;###autoload
 (defun describe-coding-system (coding-system)
   "Display information about CODING-SYSTEM."
-  (interactive "zDescribe coding system (default, current choices): ")
+  (interactive "zDescribe coding system (default current choices): ")
   (if (null coding-system)
       (describe-current-coding-system)
     (help-setup-xref (list #'describe-coding-system coding-system)
@@ -627,7 +609,7 @@ PC `codepages' and other coded character sets.  See `non-iso-charset-alist'."
       (let ((vars (coding-system-get coding-system 'dependency)))
 	(when vars
 	  (princ "See also the documentation of these customizable variables
-which alter the behaviour of this coding system.\n")
+which alter the behavior of this coding system.\n")
 	  (dolist (v vars)
 	    (princ "  `")
 	    (princ v)
@@ -760,6 +742,10 @@ in place of `..':
      )))
 
 ;; Print symbol name and mnemonic letter of CODING-SYSTEM with `princ'.
+;; If DOC-STRING is non-nil, print also the docstring of CODING-SYSTEM.
+;; If DOC-STRING is `tightly', don't print an empty line before the
+;; docstring, and print only the first line of the docstring.
+
 (defun print-coding-system-briefly (coding-system &optional doc-string)
   (if (not coding-system)
       (princ "nil\n")
@@ -780,10 +766,16 @@ in place of `..':
 			(not (eq coding-system (aref base-eol-type eol-type))))
 		   (princ (format " (alias of %s)"
 				  (aref base-eol-type eol-type))))))))
-    (princ "\n\n")
-    (if (and doc-string
-	     (setq doc-string (coding-system-doc-string coding-system)))
-	(princ (format "%s\n" doc-string)))))
+    (princ "\n")
+    (or (eq doc-string 'tightly)
+	(princ "\n"))
+    (if doc-string
+	(let ((doc (or (coding-system-doc-string coding-system) "")))
+	  (when (eq doc-string 'tightly)
+	    (if (string-match "\n" doc)
+		(setq doc (substring doc 0 (match-beginning 0))))
+	    (setq doc (concat "  " doc)))
+	  (princ (format "%s\n" doc))))))
 
 ;;;###autoload
 (defun describe-current-coding-system ()
@@ -855,7 +847,7 @@ Priority order for recognizing coding systems when reading files:\n")
 		 (setq codings (cons x codings))))
 	   (get (car categories) 'coding-systems))
 	  (if codings
-	      (let ((max-col (frame-width))
+	      (let ((max-col (window-width))
 		    pos)
 		(princ (format "\
   The following are decoded correctly but recognized as %s:\n   "
@@ -976,7 +968,7 @@ but still contains full information about each coding system."
 ###############################################
 # List of coding systems in the following format:
 # MNEMONIC-LETTER -- CODING-SYSTEM-NAME
-#	DOC-STRING
+#   DOC-STRING
 ")
     (princ "\
 #########################
@@ -993,7 +985,7 @@ but still contains full information about each coding system."
 ##  EOL = 0 (LF), 1 (CRLF), 2 (CR), or 3 (Automatic detection)
 ##  FLAGS =
 ##    if TYPE = 2 then
-##      comma (`,') separated data of the followings:
+##      comma (`,') separated data of the following:
 ##        G0, G1, G2, G3, SHORT-FORM, ASCII-EOL, ASCII-CNTL, SEVEN,
 ##        LOCKING-SHIFT, SINGLE-SHIFT, USE-ROMAN, USE-OLDJIS, NO-ISO6429
 ##    else if TYPE = 4 then
@@ -1003,14 +995,21 @@ but still contains full information about each coding system."
 ##  POST-READ-CONVERSION, PRE-WRITE-CONVERSION = function name to be called
 ##
 "))
-  (let ((bases (coding-system-list 'base-only))
-	coding-system)
-    (while bases
-      (setq coding-system (car bases))
-      (if (null arg)
-	  (print-coding-system-briefly coding-system 'doc-string)
-	(print-coding-system coding-system))
-      (setq bases (cdr bases)))))
+  (dolist (coding-system (sort-coding-systems (coding-system-list 'base-only)))
+    (if (null arg)
+	(print-coding-system-briefly coding-system 'tightly)
+      (print-coding-system coding-system)))
+  (let ((first t))
+    (dolist (elt coding-system-alist)
+      (unless (memq (intern (car elt)) coding-system-list)
+	(when first
+	  (princ "\
+####################################################
+# The following coding systems are not yet loaded. #
+####################################################
+")
+	  (setq first nil))
+	(princ-list (car elt))))))
 
 ;;;###autoload
 (defun list-coding-categories ()
@@ -1041,7 +1040,7 @@ but still contains full information about each coding system."
 ;;;###autoload
 (defun describe-font (fontname)
   "Display information about fonts which partially match FONTNAME."
-  (interactive "sFontname (default, current choice for ASCII chars): ")
+  (interactive "sFontname (default current choice for ASCII chars): ")
   (or (and window-system (fboundp 'fontset-list))
       (error "No fontsets being used"))
   (when (or (not fontname) (= (length fontname) 0))
@@ -1057,9 +1056,12 @@ but still contains full information about each coding system."
 
 (defun print-fontset (fontset &optional print-fonts)
   "Print information about FONTSET.
+If FONTSET is nil, print information about the default fontset.
 If optional arg PRINT-FONTS is non-nil, also print names of all opened
 fonts for FONTSET.  This function actually inserts the information in
 the current buffer."
+  (or fontset
+      (setq fontset (query-fontset "fontset-default")))
   (let ((tail (aref (fontset-info fontset) 2))
 	elt chars font-spec opened prev-charset charset from to)
     (beginning-of-line)
@@ -1135,12 +1137,11 @@ This shows which font is used for which character(s)."
 			  (mapcar 'cdr fontset-alias-alist)))
 	   (completion-ignore-case t))
        (list (completing-read
-	      "Fontset (default, used by the current frame): "
+	      "Fontset (default used by the current frame): "
 	      fontset-list nil t)))))
   (if (= (length fontset) 0)
-      (setq fontset (cdr (assq 'font (frame-parameters)))))
-  (if (not (setq fontset (query-fontset fontset)))
-      (error "Current frame is using font, not fontset"))
+      (setq fontset (frame-parameter nil 'font)))
+  (setq fontset (query-fontset fontset))
   (help-setup-xref (list #'describe-fontset fontset) (interactive-p))
   (with-output-to-temp-buffer (help-buffer)
     (with-current-buffer standard-output
@@ -1182,9 +1183,7 @@ see the function `describe-fontset' for the format of the list."
 	(goto-char (point-min))
 	(while (re-search-forward
 		"^  \\([^ ]+\\) (`.*' in mode line)$" nil t)
-	  (help-xref-button 1 #'help-input-method
-				(match-string 1)
-				"mouse-2: describe this method"))))))
+	  (help-xref-button 1 'help-input-method (match-string 1)))))))
 
 (defun list-input-methods-1 ()
   (if (not input-method-alist)
@@ -1310,4 +1309,5 @@ system which uses fontsets)."
 
 (provide 'mule-diag)
 
+;;; arch-tag: cd3b607c-2893-45a0-a4fa-a6535754dbee
 ;;; mule-diag.el ends here

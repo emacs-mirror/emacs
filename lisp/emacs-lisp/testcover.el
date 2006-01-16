@@ -1,9 +1,9 @@
 ;;;; testcover.el -- Visual code-coverage tool
 
-;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
-;; Author: Jonathan Yavner <jyavner@engineer.com>
-;; Maintainer: Jonathan Yavner <jyavner@engineer.com>
+;; Author: Jonathan Yavner <jyavner@member.fsf.org>
+;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Keywords: lisp utility
 
 ;; This file is part of GNU Emacs.
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 
 ;;; Commentary:
@@ -38,9 +38,9 @@
 ;;   instrumentation callbacks, then replace edebug's callbacks with ours.
 ;; * To show good coverage, we want to see two values for every form, except
 ;;   functions that always return the same value and `defconst' variables
-;;   need show only value for good coverage.  To avoid the brown splotch, the
-;;   definitions for constants and 1-valued functions must precede the
-;;   references.
+;;   need show only one value for good coverage.  To avoid the brown
+;;   splotch, the definitions for constants and 1-valued functions must
+;;   precede the references.
 ;; * Use the macro `1value' in your Lisp code to mark spots where the local
 ;;   code environment causes a function or variable to always have the same
 ;;   value, but the function or variable is not intrinsically 1-valued.
@@ -55,12 +55,14 @@
 ;;   call has the same value!  Also, equal thinks two strings are the same
 ;;   if they differ only in properties.
 ;; * Because we have only a "1value" class and no "always nil" class, we have
-;;   to treat as 1-valued any `and' whose last term is 1-valued, in case the
-;;   last term is always nil.  Example:
+;;   to treat as potentially 1-valued any `and' whose last term is 1-valued,
+;;   in case the last term is always nil.  Example:
 ;;     (and (< (point) 1000) (forward-char 10))
-;;   This form always returns nil.  Similarly, `if' and `cond' are
-;;   treated as 1-valued if all clauses are, in case those values are
-;;   always nil.
+;;   This form always returns nil.  Similarly, `or', `if', and `cond' are
+;;   treated as potentially 1-valued if all clauses are, in case those
+;;   values are always nil.  Unlike truly 1-valued functions, it is not an
+;;   error if these "potentially" 1-valued forms actually return differing
+;;   values.
 
 (require 'edebug)
 (provide 'testcover)
@@ -71,7 +73,7 @@
 ;;;==========================================================================
 
 (defgroup testcover nil
-  "Code-coverage tester"
+  "Code-coverage tester."
   :group 'lisp
   :prefix "testcover-"
   :version "21.1")
@@ -86,12 +88,14 @@ these.  This list is quite incomplete!"
 
 (defcustom testcover-1value-functions
   '(backward-char barf-if-buffer-read-only beginning-of-line
-    buffer-disable-undo buffer-enable-undo current-global-map deactivate-mark
-    delete-char delete-region ding error forward-char insert insert-and-inherit
-    kill-all-local-variables lambda mapc narrow-to-region noreturn push-mark
-    put-text-property run-hooks set-text-properties signal
-    substitute-key-definition suppress-keymap throw undo use-local-map while
-    widen yank)
+    buffer-disable-undo buffer-enable-undo current-global-map
+    deactivate-mark delete-backward-char delete-char delete-region ding
+    forward-char function* insert insert-and-inherit kill-all-local-variables
+    kill-line kill-paragraph kill-region kill-sexp lambda
+    minibuffer-complete-and-exit narrow-to-region next-line push-mark
+    put-text-property run-hooks set-match-data signal
+    substitute-key-definition suppress-keymap undo use-local-map while widen
+    yank)
   "Functions that always return the same value.  No brown splotch is shown
 for these.  This list is quite incomplete!  Notes: Nobody ever changes the
 current global map.  The macro `lambda' is self-evaluating, hence always
@@ -108,9 +112,9 @@ them as having returned nil just before calling them."
   :type 'hook)
 
 (defcustom testcover-compose-functions
-  '(+ - * / length list make-keymap make-sparse-keymap message propertize
-    replace-regexp-in-string run-with-idle-timer
-    set-buffer-modified-p)
+  '(+ - * / = append length list make-keymap make-sparse-keymap
+    mapcar message propertize replace-regexp-in-string
+    run-with-idle-timer set-buffer-modified-p)
   "Functions that are 1-valued if all their args are either constants or
 calls to one of the `testcover-1value-functions', so if that's true then no
 brown splotch is shown for these.  This list is quite incomplete!  Most
@@ -119,16 +123,16 @@ side-effect-free functions should be here."
   :type 'hook)
 
 (defcustom testcover-progn-functions
-  '(define-key fset function goto-char or overlay-put progn save-current-buffer
-    save-excursion save-match-data save-restriction save-selected-window
-    save-window-excursion set set-default setq setq-default
-    with-output-to-temp-buffer with-syntax-table with-temp-buffer
-    with-temp-file with-temp-message with-timeout)
+  '(define-key fset function goto-char mapc overlay-put progn
+    save-current-buffer save-excursion save-match-data
+    save-restriction save-selected-window save-window-excursion
+    set set-default set-marker-insertion-type setq setq-default
+    with-current-buffer with-output-to-temp-buffer with-syntax-table
+    with-temp-buffer with-temp-file with-temp-message with-timeout)
   "Functions whose return value is the same as their last argument.  No
 brown splotch is shown for these if the last argument is a constant or a
 call to one of the `testcover-1value-functions'.  This list is probably
-incomplete!  Note: `or' is here in case the last argument is a function that
-always returns nil."
+incomplete!"
   :group 'testcover
   :type 'hook)
 
@@ -140,12 +144,18 @@ call to one of the `testcover-1value-functions'."
   :group 'testcover
   :type 'hook)
 
-(defface testcover-nohits-face
+(defcustom testcover-potentially-1value-functions
+  '(add-hook and beep or remove-hook unless when)
+  "Functions that are potentially 1-valued.  No brown splotch if actually
+1-valued, no error if actually multi-valued."
+  :group 'testcover)
+
+(defface testcover-nohits
   '((t (:background "DeepPink2")))
   "Face for forms that had no hits during coverage test"
   :group 'testcover)
 
-(defface testcover-1value-face
+(defface testcover-1value
   '((t (:background "Wheat2")))
   "Face for forms that always produced the same value during coverage test"
   :group 'testcover)
@@ -161,7 +171,11 @@ call to one of the `testcover-1value-functions'."
 
 (defvar testcover-module-1value-functions nil
   "Symbols declared with defun in the last file processed by
-`testcover-start', whose functions always return the same value.")
+`testcover-start', whose functions should always return the same value.")
+
+(defvar testcover-module-potentially-1value-functions nil
+  "Symbols declared with defun in the last file processed by
+`testcover-start', whose functions might always return the same value.")
 
 (defvar testcover-vector nil
   "Locally bound to coverage vector for function in progress.")
@@ -171,14 +185,13 @@ call to one of the `testcover-1value-functions'."
 ;;; Add instrumentation to your module
 ;;;=========================================================================
 
-;;;###autoload
 (defun testcover-start (filename &optional byte-compile)
   "Uses edebug to instrument all macros and functions in FILENAME, then
 changes the instrumentation from edebug to testcover--much faster, no
 problems with type-ahead or post-command-hook, etc.  If BYTE-COMPILE is
 non-nil, byte-compiles each function after instrumenting."
   (interactive "f")
-  (let ((buf             (find-file filename))
+  (let ((buf                (find-file filename))
 	(load-read-function 'testcover-read)
 	(edebug-all-defs t))
     (setq edebug-form-data                       nil
@@ -207,24 +220,32 @@ non-nil, byte-compiles each function after instrumenting."
     x))
 
 (defun testcover-reinstrument (form)
-  "Reinstruments FORM to use testcover instead of edebug.  This function
-modifies the list that FORM points to.  Result is non-nil if FORM will
-always return the same value."
-  (let ((fun (car-safe form)))
+  "Reinstruments FORM to use testcover instead of edebug.  This
+function modifies the list that FORM points to.  Result is nil if
+FORM should return multiple vlues, t if should always return same
+value, 'maybe if either is acceptable."
+  (let ((fun (car-safe form))
+	id val)
     (cond
-     ((not fun) ;Atom
-      (or (not (symbolp form))
-	  (memq form testcover-constants)
-	  (memq form testcover-module-constants)))
-     ((consp fun) ;Embedded list
+     ((not fun)				;Atom
+      (when (or (not (symbolp form))
+		(memq form testcover-constants)
+		(memq form testcover-module-constants))
+	t))
+     ((consp fun)			;Embedded list
       (testcover-reinstrument fun)
       (testcover-reinstrument-list (cdr form))
       nil)
      ((or (memq fun testcover-1value-functions)
 	  (memq fun testcover-module-1value-functions))
-      ;;Always return same value
+      ;;Should always return same value
       (testcover-reinstrument-list (cdr form))
       t)
+     ((or (memq fun testcover-potentially-1value-functions)
+	  (memq fun testcover-module-potentially-1value-functions))
+      ;;Might always return same value
+      (testcover-reinstrument-list (cdr form))
+      'maybe)
      ((memq fun testcover-progn-functions)
       ;;1-valued if last argument is
       (testcover-reinstrument-list (cdr form)))
@@ -233,11 +254,9 @@ always return the same value."
       (testcover-reinstrument-list (cddr form))
       (testcover-reinstrument (cadr form)))
      ((memq fun testcover-compose-functions)
-      ;;1-valued if all arguments are
-      (setq fun t)
-      (mapc #'(lambda (x) (setq fun (or (testcover-reinstrument x) fun)))
-	    (cdr form))
-      fun)
+      ;;1-valued if all arguments are.  Potentially 1-valued if all
+      ;;arguments are either definitely or potentially.
+      (testcover-reinstrument-compose (cdr form) 'testcover-reinstrument))
      ((eq fun 'edebug-enter)
       ;;(edebug-enter 'SYM ARGS #'(lambda nil FORMS))
       ;;  => (testcover-enter 'SYM #'(lambda nil FORMS))
@@ -250,30 +269,46 @@ always return the same value."
       ;; => (testcover-after YYY FORM), mark XXX as ok-coverage
       (unless (eq (cadr form) 0)
 	(aset testcover-vector (cadr (cadr form)) 'ok-coverage))
-      (setq fun (nth 2 form))
+      (setq id (nth 2 form))
       (setcdr form (nthcdr 2 form))
-      (if (not (memq (car-safe (nth 2 form)) testcover-noreturn-functions))
-	  (setcar form 'testcover-after)
+      (setq val (testcover-reinstrument (nth 2 form)))
+      (if (eq val t)
+	  (setcar form 'testcover-1value)
+	(setcar form 'testcover-after))
+      (when val
+	;;1-valued or potentially 1-valued
+	(aset testcover-vector id '1value))
+      (cond
+       ((memq (car-safe (nth 2 form)) testcover-noreturn-functions)
 	;;This function won't return, so set the value in advance
 	;;(edebug-after (edebug-before XXX) YYY FORM)
 	;;  => (progn (edebug-after YYY nil) FORM)
+	(setcar (cdr form) `(,(car form) ,id nil))
 	(setcar form 'progn)
-	(setcar (cdr form) `(testcover-after ,fun nil)))
-      (when (testcover-reinstrument (nth 2 form))
-	(aset testcover-vector fun '1value)))
+	(aset testcover-vector id '1value)
+	(setq val t))
+       ((eq (car-safe (nth 2 form)) '1value)
+	;;This function is always supposed to return the same value
+	(setq val t)
+	(aset testcover-vector id '1value)
+	(setcar form 'testcover-1value)))
+      val)
      ((eq fun 'defun)
-      (if (testcover-reinstrument-list (nthcdr 3 form))
-	  (push (cadr form) testcover-module-1value-functions)))
-     ((eq fun 'defconst)
+      (setq val (testcover-reinstrument-list (nthcdr 3 form)))
+      (when (eq val t)
+	(push (cadr form) testcover-module-1value-functions))
+      (when (eq val 'maybe)
+	(push (cadr form) testcover-module-potentially-1value-functions)))
+     ((memq fun '(defconst defcustom))
       ;;Define this symbol as 1-valued
       (push (cadr form) testcover-module-constants)
       (testcover-reinstrument-list (cddr form)))
      ((memq fun '(dotimes dolist))
       ;;Always returns third value from SPEC
       (testcover-reinstrument-list (cddr form))
-      (setq fun (testcover-reinstrument-list (cadr form)))
+      (setq val (testcover-reinstrument-list (cadr form)))
       (if (nth 2 (cadr form))
-	  fun
+	  val
 	;;No third value, always returns nil
 	t))
      ((memq fun '(let let*))
@@ -281,23 +316,23 @@ always return the same value."
       (mapc 'testcover-reinstrument-list (cadr form))
       (testcover-reinstrument-list (cddr form)))
      ((eq fun 'if)
-      ;;1-valued if both THEN and ELSE clauses are
+      ;;Potentially 1-valued if both THEN and ELSE clauses are
       (testcover-reinstrument (cadr form))
       (let ((then (testcover-reinstrument (nth 2 form)))
 	    (else (testcover-reinstrument-list (nthcdr 3 form))))
-	(and then else)))
-     ((memq fun '(when unless and))
-      ;;1-valued if last clause of BODY is
-      (testcover-reinstrument-list (cdr form)))
+	(and then else 'maybe)))
      ((eq fun 'cond)
-      ;;1-valued if all clauses are
-      (testcover-reinstrument-clauses (cdr form)))
+      ;;Potentially 1-valued if all clauses are
+      (when (testcover-reinstrument-compose (cdr form)
+					    'testcover-reinstrument-list)
+	'maybe))
      ((eq fun 'condition-case)
-      ;;1-valued if BODYFORM is and all HANDLERS are
+      ;;Potentially 1-valued if BODYFORM is and all HANDLERS are
       (let ((body (testcover-reinstrument (nth 2 form)))
-	    (errs (testcover-reinstrument-clauses (mapcar #'cdr
-							  (nthcdr 3 form)))))
-	(and body errs)))
+	    (errs (testcover-reinstrument-compose
+		   (mapcar #'cdr (nthcdr 3 form))
+		   'testcover-reinstrument-list)))
+	(and body errs 'maybe)))
      ((eq fun 'quote)
       ;;Don't reinstrument what's inside!
       ;;This doesn't apply within a backquote
@@ -312,13 +347,55 @@ always return the same value."
       (let ((testcover-1value-functions
 	     (remq 'quote testcover-1value-functions)))
 	(testcover-reinstrument (cadr form))))
-     ((memq fun '(1value noreturn))
+     ((eq fun '1value)
       ;;Hack - pretend the arg is 1-valued here
-      (if (symbolp (cadr form)) ;A pseudoconstant variable
-	  t
+      (cond
+       ((symbolp (cadr form))
+	;;A pseudoconstant variable
+	t)
+       ((and (eq (car (cadr form)) 'edebug-after)
+	     (symbolp (nth 3 (cadr form))))
+	;;Reference to pseudoconstant
+	(aset testcover-vector (nth 2 (cadr form)) '1value)
+	(setcar (cdr form) `(testcover-1value ,(nth 2 (cadr form))
+					      ,(nth 3 (cadr form))))
+	t)
+       (t
+	(if (eq (car (cadr form)) 'edebug-after)
+	    (setq id (car (nth 3 (cadr form))))
+	  (setq id (car (cadr form))))
 	(let ((testcover-1value-functions
-	       (cons (car (cadr form)) testcover-1value-functions)))
-	  (testcover-reinstrument (cadr form)))))
+	       (cons id testcover-1value-functions)))
+	  (testcover-reinstrument (cadr form))))))
+     ((eq fun 'noreturn)
+      ;;Hack - pretend the arg has no return
+      (cond
+       ((symbolp (cadr form))
+	;;A pseudoconstant variable
+	'maybe)
+       ((and (eq (car (cadr form)) 'edebug-after)
+	     (symbolp (nth 3 (cadr form))))
+	;;Reference to pseudoconstant
+	(aset testcover-vector (nth 2 (cadr form)) '1value)
+	(setcar (cdr form) `(progn (testcover-after ,(nth 2 (cadr form)) nil)
+				   ,(nth 3 (cadr form))))
+	'maybe)
+       (t
+	(if (eq (car (cadr form)) 'edebug-after)
+	    (setq id (car (nth 3 (cadr form))))
+	  (setq id (car (cadr form))))
+	(let ((testcover-noreturn-functions
+	       (cons id testcover-noreturn-functions)))
+	  (testcover-reinstrument (cadr form))))))
+     ((and (eq fun 'apply)
+	   (eq (car-safe (cadr form)) 'quote)
+	   (symbolp (cadr (cadr form))))
+      ;;Apply of a constant symbol.  Process as 1value or noreturn
+      ;;depending on symbol.
+      (setq fun (cons (cadr (cadr form)) (cddr form))
+	    val (testcover-reinstrument fun))
+      (setcdr (cdr form) (cdr fun))
+      val)
      (t ;Some other function or weird thing
       (testcover-reinstrument-list (cdr form))
       nil))))
@@ -333,13 +410,22 @@ always be nil, so we return t for 1-valued."
       (setq result (testcover-reinstrument (pop list))))
     result))
 
-(defun testcover-reinstrument-clauses (clauselist)
-  "Reinstruments each list in CLAUSELIST.  Result is t if every
-clause is 1-valued."
+(defun testcover-reinstrument-compose (list fun)
+  "For a compositional function, the result is 1-valued if all
+arguments are, potentially 1-valued if all arguments are either
+definitely or potentially 1-valued, and multi-valued otherwise.
+FUN should be `testcover-reinstrument' for compositional functions,
+  `testcover-reinstrument-list' for clauses in a `cond'."
   (let ((result t))
     (mapc #'(lambda (x)
-	      (setq result (and (testcover-reinstrument-list x) result)))
-	  clauselist)
+	      (setq x (funcall fun x))
+	      (cond
+	       ((eq result t)
+		(setq result x))
+	       ((eq result 'maybe)
+		(when (not x)
+		  (setq result nil)))))
+	  list)
     result))
 
 (defun testcover-end (buffer)
@@ -347,15 +433,6 @@ clause is 1-valued."
   (interactive "b")
   (let ((buf (find-file-noselect buffer)))
     (eval-buffer buf t)))
-
-(defmacro 1value (form)
-  "For code-coverage testing, indicate that FORM is expected to always have
-the same value."
-  form)
-
-(defmacro noreturn (form)
-  "For code-coverage testing, indicate that FORM will always signal an error."
-  form)
 
 
 ;;;=========================================================================
@@ -379,6 +456,19 @@ binding `testcover-vector' to the code-coverage vector for TESTCOVER-SYM
     (aset testcover-vector idx 'ok-coverage)))
   val)
 
+(defun testcover-1value (idx val)
+  "Internal function for coverage testing.  Returns VAL after installing it in
+`testcover-vector' at offset IDX.  Error if FORM does not always return the
+same value during coverage testing."
+  (cond
+   ((eq (aref testcover-vector idx) '1value)
+    (aset testcover-vector idx (cons '1value val)))
+   ((not (and (eq (car-safe (aref testcover-vector idx)) '1value)
+	      (equal (cdr (aref testcover-vector idx)) val)))
+    (error "Value of form marked with `1value' does vary: %s" val)))
+  val)
+
+
 
 ;;;=========================================================================
 ;;; Display the coverage data as color splotches on your code.
@@ -387,8 +477,8 @@ binding `testcover-vector' to the code-coverage vector for TESTCOVER-SYM
 (defun testcover-mark (def)
   "Marks one DEF (a function or macro symbol) to highlight its contained forms
 that did not get completely tested during coverage tests.
-  A marking of testcover-nohits-face (default = red) indicates that the
-form was never evaluated.  A marking of testcover-1value-face
+  A marking with the face `testcover-nohits' (default = red) indicates that the
+form was never evaluated.  A marking using the `testcover-1value' face
 \(default = tan) indicates that the form always evaluated to the same value.
   The forms throw, error, and signal are not marked.  They do not return and
 would always get a red mark.  Some forms that always return the same
@@ -403,31 +493,32 @@ eliminated by adding more test cases."
 	 ov j item)
     (or (and def-mark points coverage)
 	(error "Missing edebug data for function %s" def))
-    (set-buffer (marker-buffer def-mark))
-    (mapc 'delete-overlay (overlays-in def-mark
-				       (+ def-mark (aref points (1- len)) 1)))
-    (while (> len 0)
-      (setq len  (1- len)
-	    data (aref coverage len))
-      (when (and (not (eq data 'ok-coverage))
-		 (setq j (+ def-mark (aref points len))))
+    (when (> len 0)
+      (set-buffer (marker-buffer def-mark))
+      (mapc 'delete-overlay
+	    (overlays-in def-mark (+ def-mark (aref points (1- len)) 1)))
+      (while (> len 0)
+	(setq len  (1- len)
+	      data (aref coverage len))
+	(when (and (not (eq data 'ok-coverage))
+		   (not (eq (car-safe data) '1value))
+		   (setq j (+ def-mark (aref points len))))
 	  (setq ov (make-overlay (1- j) j))
 	  (overlay-put ov 'face
 		       (if (memq data '(unknown 1value))
-			   'testcover-nohits-face
-			 'testcover-1value-face))))
-    (set-buffer-modified-p changed)))
+			   'testcover-nohits
+			 'testcover-1value))))
+      (set-buffer-modified-p changed))))
 
 (defun testcover-mark-all (&optional buffer)
   "Mark all forms in BUFFER that did not get completley tested during
-coverage tests.  This function creates many overlays.  SKIPFUNCS is a list
-of function-symbols that should not be marked."
+coverage tests.  This function creates many overlays."
   (interactive "b")
   (if buffer
       (switch-to-buffer buffer))
   (goto-char 1)
   (dolist (x edebug-form-data)
-    (if (fboundp (car x))
+    (if (get (car x) 'edebug)
 	(testcover-mark (car x)))))
 
 (defun testcover-unmark-all (buffer)
@@ -445,4 +536,5 @@ of function-symbols that should not be marked."
   (goto-char (next-overlay-change (point)))
   (end-of-line))
 
+;;; arch-tag: 72324a4a-4a2e-4142-9249-cc56d6757588
 ;; testcover.el ends here.

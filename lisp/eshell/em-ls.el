@@ -1,6 +1,7 @@
 ;;; em-ls.el --- implementation of ls in Lisp
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'em-ls)
 
@@ -64,13 +65,13 @@ This is useful for enabling human-readable format (-h), for example."
   :group 'eshell-ls)
 
 (defcustom eshell-ls-dired-initial-args nil
-  "*If non-nil, args is included before any call to `ls' in dired.
+  "*If non-nil, args is included before any call to `ls' in Dired.
 This is useful for enabling human-readable format (-h), for example."
   :type '(repeat :tag "Arguments" string)
   :group 'eshell-ls)
 
 (defcustom eshell-ls-use-in-dired nil
-  "*If non-nil, use `eshell-ls' to read directories in dired."
+  "*If non-nil, use `eshell-ls' to read directories in Dired."
   :set (lambda (symbol value)
 	 (if value
 	     (unless (and (boundp 'eshell-ls-use-in-dired)
@@ -106,48 +107,62 @@ faster and conserves more memory."
   :type 'boolean
   :group 'eshell-ls)
 
-(defface eshell-ls-directory-face
+(defface eshell-ls-directory
   '((((class color) (background light)) (:foreground "Blue" :weight bold))
     (((class color) (background dark)) (:foreground "SkyBlue" :weight bold))
     (t (:weight bold)))
   "*The face used for highlight directories."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-directory-face 'face-alias 'eshell-ls-directory)
 
-(defface eshell-ls-symlink-face
+(defface eshell-ls-symlink
   '((((class color) (background light)) (:foreground "Dark Cyan" :weight bold))
     (((class color) (background dark)) (:foreground "Cyan" :weight bold)))
   "*The face used for highlight symbolic links."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-symlink-face 'face-alias 'eshell-ls-symlink)
 
-(defface eshell-ls-executable-face
+(defface eshell-ls-executable
   '((((class color) (background light)) (:foreground "ForestGreen" :weight bold))
     (((class color) (background dark)) (:foreground "Green" :weight bold)))
   "*The face used for highlighting executables (not directories, though)."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-executable-face 'face-alias 'eshell-ls-executable)
 
-(defface eshell-ls-readonly-face
+(defface eshell-ls-readonly
   '((((class color) (background light)) (:foreground "Brown"))
     (((class color) (background dark)) (:foreground "Pink")))
   "*The face used for highlighting read-only files."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-readonly-face 'face-alias 'eshell-ls-readonly)
 
-(defface eshell-ls-unreadable-face
+(defface eshell-ls-unreadable
   '((((class color) (background light)) (:foreground "Grey30"))
     (((class color) (background dark)) (:foreground "DarkGrey")))
   "*The face used for highlighting unreadable files."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-unreadable-face 'face-alias 'eshell-ls-unreadable)
 
-(defface eshell-ls-special-face
+(defface eshell-ls-special
   '((((class color) (background light)) (:foreground "Magenta" :weight bold))
     (((class color) (background dark)) (:foreground "Magenta" :weight bold)))
   "*The face used for highlighting non-regular files."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-special-face 'face-alias 'eshell-ls-special)
 
-(defface eshell-ls-missing-face
+(defface eshell-ls-missing
   '((((class color) (background light)) (:foreground "Red" :weight bold))
     (((class color) (background dark)) (:foreground "Red" :weight bold)))
-  "*The face used for highlighting non-existant file names."
+  "*The face used for highlighting non-existent file names."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-missing-face 'face-alias 'eshell-ls-missing)
 
 (defcustom eshell-ls-archive-regexp
   (concat "\\.\\(t\\(a[rz]\\|gz\\)\\|arj\\|lzh\\|"
@@ -158,11 +173,13 @@ files."
   :type 'regexp
   :group 'eshell-ls)
 
-(defface eshell-ls-archive-face
+(defface eshell-ls-archive
   '((((class color) (background light)) (:foreground "Orchid" :weight bold))
     (((class color) (background dark)) (:foreground "Orchid" :weight bold)))
   "*The face used for highlighting archived and compressed file names."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-archive-face 'face-alias 'eshell-ls-archive)
 
 (defcustom eshell-ls-backup-regexp
   "\\(\\`\\.?#\\|\\(\\.bak\\|~\\)\\'\\)"
@@ -170,11 +187,13 @@ files."
   :type 'regexp
   :group 'eshell-ls)
 
-(defface eshell-ls-backup-face
+(defface eshell-ls-backup
   '((((class color) (background light)) (:foreground "OrangeRed"))
     (((class color) (background dark)) (:foreground "LightSalmon")))
   "*The face used for highlighting backup file names."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-backup-face 'face-alias 'eshell-ls-backup)
 
 (defcustom eshell-ls-product-regexp
   "\\.\\(elc\\|o\\(bj\\)?\\|a\\|lib\\|res\\)\\'"
@@ -184,11 +203,13 @@ ought to be recreatable if they are deleted."
   :type 'regexp
   :group 'eshell-ls)
 
-(defface eshell-ls-product-face
+(defface eshell-ls-product
   '((((class color) (background light)) (:foreground "OrangeRed"))
     (((class color) (background dark)) (:foreground "LightSalmon")))
   "*The face used for highlighting files that are build products."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-product-face 'face-alias 'eshell-ls-product)
 
 (defcustom eshell-ls-clutter-regexp
   "\\(^texput\\.log\\|^core\\)\\'"
@@ -198,11 +219,13 @@ really need to stick around for very long."
   :type 'regexp
   :group 'eshell-ls)
 
-(defface eshell-ls-clutter-face
+(defface eshell-ls-clutter
   '((((class color) (background light)) (:foreground "OrangeRed" :weight bold))
     (((class color) (background dark)) (:foreground "OrangeRed" :weight bold)))
   "*The face used for highlighting junk file names."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-clutter-face 'face-alias 'eshell-ls-clutter)
 
 (defsubst eshell-ls-filetype-p (attrs type)
   "Test whether ATTRS specifies a directory."
@@ -256,7 +279,8 @@ instead."
       (if (stringp switches)
 	  (setq switches (split-string switches)))
       (let (eshell-current-handles
-	    eshell-current-subjob-p)
+	    eshell-current-subjob-p
+	    font-lock-mode)
 	;; use the fancy highlighting in `eshell-ls' rather than font-lock
 	(when (and eshell-ls-use-colors
 		   (featurep 'font-lock))
@@ -297,7 +321,8 @@ instead."
   (defvar show-recursive)
   (defvar show-size)
   (defvar sort-method)
-  (defvar ange-cache))
+  (defvar ange-cache)
+  (defvar dired-flag))
 
 (defun eshell-do-ls (&rest args)
   "Implementation of \"ls\" in Lisp, passing ARGS."
@@ -310,7 +335,7 @@ instead."
    `((?a "all" nil show-all
 	 "show all files in directory")
      (?c nil by-ctime sort-method
-	 "sort by modification time")
+	 "sort by last status change time")
      (?d "directory" nil dir-literal
 	 "list directory entries instead of contents")
      (?k "kilobytes" 1024 block-size
@@ -349,6 +374,8 @@ instead."
 	 "sort alphabetically by entry extension")
      (?1 nil single-column listing-style
 	 "list one file per line")
+     (nil "dired" nil dired-flag
+	  "Here for compatibility with GNU ls.")
      (nil "help" nil nil
 	  "show this usage display")
      :external "ls"
@@ -480,8 +507,8 @@ whose cdr is the list of file attributes."
 		     ""))
 		(let* ((str (eshell-ls-printable-size (nth 7 attrs)))
 		       (len (length str)))
-		  (if (< len 8)
-		      (concat (make-string (- 8 len) ? ) str)
+		  (if (< len (or size-width 4))
+		      (concat (make-string (- (or size-width 4) len) ? ) str)
 		    str))
 		" " (format-time-string
 		     (concat
@@ -841,47 +868,46 @@ to use, and each member of which is the width of that column
 	(cons col-widths newfiles)))))
 
 (defun eshell-ls-decorated-name (file)
-  "Return FILE, possibly decorated.
-Use TRUENAME for predicate tests, if passed."
+  "Return FILE, possibly decorated."
   (if eshell-ls-use-colors
       (let ((face
 	     (cond
 	      ((not (cdr file))
-	       'eshell-ls-missing-face)
+	       'eshell-ls-missing)
 
 	      ((stringp (cadr file))
-	       'eshell-ls-symlink-face)
+	       'eshell-ls-symlink)
 
 	      ((eq (cadr file) t)
-	       'eshell-ls-directory-face)
+	       'eshell-ls-directory)
 
 	      ((not (eshell-ls-filetype-p (cdr file) ?-))
-	       'eshell-ls-special-face)
+	       'eshell-ls-special)
 
 	      ((and (/= (user-uid) 0) ; root can execute anything
 		    (eshell-ls-applicable (cdr file) 3
 					  'file-executable-p (car file)))
-	       'eshell-ls-executable-face)
+	       'eshell-ls-executable)
 
 	      ((not (eshell-ls-applicable (cdr file) 1
 					  'file-readable-p (car file)))
-	       'eshell-ls-unreadable-face)
+	       'eshell-ls-unreadable)
 
 	      ((string-match eshell-ls-archive-regexp (car file))
-	       'eshell-ls-archive-face)
+	       'eshell-ls-archive)
 
 	      ((string-match eshell-ls-backup-regexp (car file))
-	       'eshell-ls-backup-face)
+	       'eshell-ls-backup)
 
 	      ((string-match eshell-ls-product-regexp (car file))
-	       'eshell-ls-product-face)
+	       'eshell-ls-product)
 
 	      ((string-match eshell-ls-clutter-regexp (car file))
-	       'eshell-ls-clutter-face)
+	       'eshell-ls-clutter)
 
 	      ((not (eshell-ls-applicable (cdr file) 2
 					  'file-writable-p (car file)))
-	       'eshell-ls-readonly-face)
+	       'eshell-ls-readonly)
 	      (eshell-ls-highlight-alist
 	       (let ((tests eshell-ls-highlight-alist)
 		     value)
@@ -898,4 +924,5 @@ Use TRUENAME for predicate tests, if passed."
 
 ;;; Code:
 
+;;; arch-tag: 9295181c-0cb2-499c-999b-89f5359842cb
 ;;; em-ls.el ends here

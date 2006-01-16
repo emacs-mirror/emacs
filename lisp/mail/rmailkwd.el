@@ -1,6 +1,7 @@
 ;;; rmailkwd.el --- part of the "RMAIL" mail reader for Emacs
 
-;; Copyright (C) 1985, 1988, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1988, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -28,6 +29,13 @@
 ;; variable `rmail-keywords'.
 
 ;;; Code:
+
+(defvar rmail-buffer)
+(defvar rmail-current-message)
+(defvar rmail-last-label)
+(defvar rmail-last-multi-labels)
+(defvar rmail-summary-vector)
+(defvar rmail-total-messages)
 
 ;; Global to all RMAIL buffers.  It exists primarily for the sake of
 ;; completion.  It is better to use strings with the label functions
@@ -229,4 +237,5 @@ With prefix argument N moves forward N messages with these labels."
     (if (> n 0)
 	(message "No following message with labels %s" labels))))
 
+;;; arch-tag: b26b3392-99ca-4e1d-933a-dab59b04e9a8
 ;;; rmailkwd.el ends here

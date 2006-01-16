@@ -1,6 +1,9 @@
 ;;; korea-util.el --- utilities for Korean
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: mule, multilingual, Korean
 
@@ -18,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -135,4 +138,5 @@
 ;;
 (provide 'korea-util)
 
+;;; arch-tag: b17d0981-05da-4577-99f8-1db87fff8b44
 ;;; korea-util.el ends here

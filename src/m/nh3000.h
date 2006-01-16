@@ -1,7 +1,7 @@
 /* machine description for Harris Night Hawk Series 1200 and Series 3000
    MC68030-based systems (FPP on these is custom).  These systems are
    also known as "ecx" and "gcx".
-   Copyright (C) 1994, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,8 +17,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* This file manually constructed for Harris Night Hawk 4000 (and 5000)
  * series Motorola 88100 and 88110 based machines.
@@ -103,3 +103,6 @@ Boston, MA 02111-1307, USA.  */
  */
 
 /* #define NO_SOCK_SIGIO */
+
+/* arch-tag: 1529f2bc-50d9-42e7-ae72-6f40afadf09e
+   (do not change this comment) */

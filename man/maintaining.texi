@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,99,00,2001 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
+@c   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining, Abbrevs, Building, Top
 @chapter Maintaining Programs
@@ -8,8 +9,8 @@
 @cindex program editing
 
   This chapter describes Emacs features for maintaining programs.  The
-version control features (@pxref{Version Control}) are also
-particularly useful for this purpose.
+version control features (@pxref{Version Control}) are also particularly
+useful for this purpose.
 
 @menu
 * Change Log::	        Maintaining a change history for your program.
@@ -51,13 +52,13 @@ permitted provided the copyright notice and this notice are preserved.
 @noindent
 Of course, you should substitute the proper years and copyright holder.
 
-  A change log entry starts with a header line that contains the
-current date, your name, and your email address (taken from the
-variable @code{user-mail-address}).  Aside from these header lines,
-every line in the change log starts with a space or a tab.  The bulk
-of the entry consists of @dfn{items}, each of which starts with a line
-starting with whitespace and a star.  Here are two entries, both dated
-in May 1993, each with two items:
+  A change log entry starts with a header line that contains the current
+date, your name, and your email address (taken from the variable
+@code{add-log-mailing-address}).  Aside from these header lines, every
+line in the change log starts with a space or a tab.  The bulk of the
+entry consists of @dfn{items}, each of which starts with a line starting
+with whitespace and a star.  Here are two entries, both dated in May
+1993, with two items and one item respectively.
 
 @iftex
 @medbreak
@@ -78,10 +79,10 @@ in May 1993, each with two items:
 @end smallexample
 
   One entry can describe several changes; each change should have its
-own item.  Normally there should be a blank line between items.  When
-items are related (parts of the same change, in different places), group
-them by leaving no blank line between them.  The second entry above
-contains two items grouped in this way.
+own item, or its own line in an item.  Normally there should be a
+blank line between items.  When items are related (parts of the same
+change, in different places), group them by leaving no blank line
+between them.
 
   @kbd{C-x 4 a} visits the change log file and creates a new entry
 unless the most recent entry is for today's date and your name.  It
@@ -90,9 +91,9 @@ can even guess the name of the function or other object that was
 changed.
 
 @vindex add-log-keep-changes-together
-  When the option @code{add-log-keep-changes-together} is
-non-@code{nil}, @kbd{C-x 4 a} adds to any existing entry for the file
-rather than starting a new entry.
+  When the variable @code{add-log-keep-changes-together} is
+non-@code{nil}, @kbd{C-x 4 a} adds to any existing item for the file
+rather than starting a new item.
 
 @vindex change-log-version-info-enabled
 @vindex change-log-version-number-regexp-list
@@ -343,6 +344,9 @@ In HTML input files, the tags are the @code{title} and the @code{h1},
 and all occurrences of @code{id=}.
 
 @item
+In Lua input files, all functions are tags.
+
+@item
 In makefiles, targets are tags; additionally, variables are tags
 unless you specify @samp{--no-globals}.
 
@@ -442,7 +446,8 @@ well as the files it directly contains.
 directory where the tags file was initially written.  This way, you can
 move an entire directory tree containing both the tags file and the
 source files, and the tags file will still refer correctly to the source
-files.
+files.  If the tags file is in @file{/dev}, however, the file names are
+made relative to the current working directory.
 
   If you specify absolute file names as arguments to @code{etags}, then
 the tags file will contain absolute file names.  This way, the tags file
@@ -844,7 +849,7 @@ continue to exist.
 Emacs and have Emacs show you the matching lines one by one.  This works
 much like running a compilation; finding the source locations of the
 @code{grep} matches works like finding the compilation errors.
-@xref{Compilation}.
+@xref{Grep Searching}.
 
 @node List Tags
 @subsection Tags Table Inquiries
@@ -958,10 +963,9 @@ variant B, and the common ancestor.
 
   After the comparison is done and the buffers are prepared, the
 interactive merging starts.  You control the merging by typing special
-@dfn{merge commands} in the merge buffer.  The merge buffer shows you a
-full merged text, not just differences.  For each run of differences
-between the input texts, you can choose which one of them to keep, or
-edit them both together.
+@dfn{merge commands} in the merge buffer (@pxref{Merge Commands}).
+For each run of differences between the input texts, you can choose
+which one of them to keep, or edit them both together.
 
   The merge buffer uses a special major mode, Emerge mode, with commands
 for making these choices.  But you can also edit the buffer with
@@ -1273,3 +1277,7 @@ commands.
 @vindex emerge-startup-hook
   After setting up the merge, Emerge runs the hook
 @code{emerge-startup-hook} (@pxref{Hooks}).
+
+@ignore
+   arch-tag: b9d83dfb-82ea-4ff6-bab5-05a3617091fb
+@end ignore

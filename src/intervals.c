@@ -1,5 +1,6 @@
 /* Code for doing intervals.
-   Copyright (C) 1993, 1994, 1995, 1997, 1998, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1997, 1998, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* NOTES:
@@ -75,12 +76,14 @@ create_root_interval (parent)
     {
       new->total_length = (BUF_Z (XBUFFER (parent))
 			   - BUF_BEG (XBUFFER (parent)));
+      CHECK_TOTAL_LENGTH (new);
       BUF_INTERVALS (XBUFFER (parent)) = new;
-      new->position = 1;
+      new->position = BEG;
     }
   else if (STRINGP (parent))
     {
       new->total_length = SCHARS (parent);
+      CHECK_TOTAL_LENGTH (new);
       STRING_SET_INTERVALS (parent, new);
       new->position = 0;
     }
@@ -119,20 +122,21 @@ merge_properties (source, target)
   MERGE_INTERVAL_CACHE (source, target);
 
   o = source->plist;
-  while (! EQ (o, Qnil))
+  while (CONSP (o))
     {
-      sym = Fcar (o);
+      sym = XCAR (o);
       val = Fmemq (sym, target->plist);
 
       if (NILP (val))
 	{
-	  o = Fcdr (o);
-	  val = Fcar (o);
+	  o = XCDR (o);
+	  CHECK_CONS (o);
+	  val = XCAR (o);
 	  target->plist = Fcons (sym, Fcons (val, target->plist));
-	  o = Fcdr (o);
+	  o = XCDR (o);
 	}
       else
-	o = Fcdr (Fcdr (o));
+	o = Fcdr (XCDR (o));
     }
 }
 
@@ -157,13 +161,13 @@ intervals_equal (i0, i1)
     abort ();
   i1_len /= 2;
   i0_cdr = i0->plist;
-  while (!NILP (i0_cdr))
+  while (CONSP (i0_cdr))
     {
       /* Lengths of the two plists were unequal.  */
       if (i1_len == 0)
 	return 0;
 
-      i0_sym = Fcar (i0_cdr);
+      i0_sym = XCAR (i0_cdr);
       i1_val = Fmemq (i0_sym, i1->plist);
 
       /* i0 has something i1 doesn't.  */
@@ -171,11 +175,12 @@ intervals_equal (i0, i1)
 	return 0;
 
       /* i0 and i1 both have sym, but it has different values in each.  */
-      i0_cdr = Fcdr (i0_cdr);
-      if (! EQ (Fcar (Fcdr (i1_val)), Fcar (i0_cdr)))
+      i0_cdr = XCDR (i0_cdr);
+      CHECK_CONS (i0_cdr);
+      if (!EQ (Fcar (Fcdr (i1_val)), XCAR (i0_cdr)))
 	return 0;
 
-      i0_cdr = Fcdr (i0_cdr);
+      i0_cdr = XCDR (i0_cdr);
       i1_len--;
     }
 
@@ -338,9 +343,11 @@ rotate_right (interval)
 
   /* A's total length is decreased by the length of B and its left child.  */
   interval->total_length -= B->total_length - LEFT_TOTAL_LENGTH (interval);
+  CHECK_TOTAL_LENGTH (interval);
 
   /* B must have the same total length of A.  */
   B->total_length = old_total;
+  CHECK_TOTAL_LENGTH (B);
 
   return B;
 }
@@ -384,9 +391,11 @@ rotate_left (interval)
 
   /* A's total length is decreased by the length of B and its right child.  */
   interval->total_length -= B->total_length - RIGHT_TOTAL_LENGTH (interval);
+  CHECK_TOTAL_LENGTH (interval);
 
   /* B must have the same total length of A.  */
   B->total_length = old_total;
+  CHECK_TOTAL_LENGTH (B);
 
   return B;
 }
@@ -405,6 +414,7 @@ balance_an_interval (i)
       old_diff = LEFT_TOTAL_LENGTH (i) - RIGHT_TOTAL_LENGTH (i);
       if (old_diff > 0)
 	{
+	  /* Since the left child is longer, there must be one.  */
 	  new_diff = i->total_length - i->left->total_length
 	    + RIGHT_TOTAL_LENGTH (i->left) - LEFT_TOTAL_LENGTH (i->left);
 	  if (abs (new_diff) >= old_diff)
@@ -414,6 +424,7 @@ balance_an_interval (i)
 	}
       else if (old_diff < 0)
 	{
+	  /* Since the right child is longer, there must be one.  */
 	  new_diff = i->total_length - i->right->total_length
 	    + LEFT_TOTAL_LENGTH (i->right) - RIGHT_TOTAL_LENGTH (i->right);
 	  if (abs (new_diff) >= -old_diff)
@@ -514,6 +525,7 @@ split_interval_right (interval, offset)
     {
       interval->right = new;
       new->total_length = new_length;
+      CHECK_TOTAL_LENGTH (new);
     }
   else
     {
@@ -522,6 +534,7 @@ split_interval_right (interval, offset)
       SET_INTERVAL_PARENT (interval->right, new);
       interval->right = new;
       new->total_length = new_length + new->right->total_length;
+      CHECK_TOTAL_LENGTH (new);
       balance_an_interval (new);
     }
 
@@ -559,6 +572,7 @@ split_interval_left (interval, offset)
     {
       interval->left = new;
       new->total_length = new_length;
+      CHECK_TOTAL_LENGTH (new);
     }
   else
     {
@@ -567,6 +581,7 @@ split_interval_left (interval, offset)
       SET_INTERVAL_PARENT (new->left, new);
       interval->left = new;
       new->total_length = new_length + new->left->total_length;
+      CHECK_TOTAL_LENGTH (new);
       balance_an_interval (new);
     }
 
@@ -654,8 +669,8 @@ find_interval (tree, position)
       else
 	{
 	  tree->position
-	    = (position - relative_position /* the left edge of *tree */
-	       + LEFT_TOTAL_LENGTH (tree)); /* the left edge of this interval */
+	    = (position - relative_position /* left edge of *tree.  */
+	       + LEFT_TOTAL_LENGTH (tree)); /* left edge of this interval.  */
 
 	  return tree;
 	}
@@ -776,14 +791,14 @@ update_interval (i, pos)
 	  /* Move right. */
 	  if (pos < INTERVAL_LAST_POS (i) + TOTAL_LENGTH (i->right))
 	    {
-	      i->right->position = INTERVAL_LAST_POS (i) +
-		LEFT_TOTAL_LENGTH (i->right);
+	      i->right->position = INTERVAL_LAST_POS (i)
+	        + LEFT_TOTAL_LENGTH (i->right);
 	      i = i->right;		/* Move to the right child */
 	    }
 	  else if (NULL_PARENT (i))
-	    error ("Point after end of properties");
+	    error ("Point %d after end of properties", pos);
 	  else
-	      i = INTERVAL_PARENT (i);
+            i = INTERVAL_PARENT (i);
 	  continue;
 	}
       else
@@ -828,6 +843,7 @@ adjust_intervals_for_insertion (tree, position, length)
       if (relative_position <= LEFT_TOTAL_LENGTH (this))
 	{
 	  this->total_length += length;
+	  CHECK_TOTAL_LENGTH (this);
 	  this = this->left;
 	}
       else if (relative_position > (TOTAL_LENGTH (this)
@@ -836,6 +852,7 @@ adjust_intervals_for_insertion (tree, position, length)
 	  relative_position -= (TOTAL_LENGTH (this)
 				- RIGHT_TOTAL_LENGTH (this));
 	  this->total_length += length;
+	  CHECK_TOTAL_LENGTH (this);
 	  this = this->right;
 	}
       else
@@ -843,6 +860,7 @@ adjust_intervals_for_insertion (tree, position, length)
 	  /* If we are to use zero-length intervals as buffer pointers,
 	     then this code will have to change.  */
 	  this->total_length += length;
+	  CHECK_TOTAL_LENGTH (this);
 	  this->position = LEFT_TOTAL_LENGTH (this)
 	                   + position - relative_position + 1;
 	  return tree;
@@ -987,6 +1005,7 @@ adjust_intervals_for_insertion (tree, position, length)
       for (temp = prev ? prev : i; temp; temp = INTERVAL_PARENT_OR_NULL (temp))
 	{
 	  temp->total_length += length;
+	  CHECK_TOTAL_LENGTH (temp);
 	  temp = balance_possible_root_interval (temp);
 	}
 
@@ -1043,6 +1062,7 @@ adjust_intervals_for_insertion (tree, position, length)
       for (temp = i; temp; temp = INTERVAL_PARENT_OR_NULL (temp))
 	{
 	  temp->total_length += length;
+	  CHECK_TOTAL_LENGTH (temp);
 	  temp = balance_possible_root_interval (temp);
 	}
     }
@@ -1108,19 +1128,19 @@ merge_properties_sticky (pleft, pright)
   rrear  = textget (pright, Qrear_nonsticky);
 
   /* Go through each element of PRIGHT.  */
-  for (tail1 = pright; CONSP (tail1); tail1 = Fcdr (Fcdr (tail1)))
+  for (tail1 = pright; CONSP (tail1); tail1 = Fcdr (XCDR (tail1)))
     {
       Lisp_Object tmp;
 
-      sym = Fcar (tail1);
+      sym = XCAR (tail1);
 
       /* Sticky properties get special treatment.  */
       if (EQ (sym, Qrear_nonsticky) || EQ (sym, Qfront_sticky))
 	continue;
 
-      rval = Fcar (Fcdr (tail1));
-      for (tail2 = pleft; CONSP (tail2); tail2 = Fcdr (Fcdr (tail2)))
-	if (EQ (sym, Fcar (tail2)))
+      rval = Fcar (XCDR (tail1));
+      for (tail2 = pleft; CONSP (tail2); tail2 = Fcdr (XCDR (tail2)))
+	if (EQ (sym, XCAR (tail2)))
 	  break;
 
       /* Indicate whether the property is explicitly defined on the left.
@@ -1166,24 +1186,24 @@ merge_properties_sticky (pleft, pright)
     }
 
   /* Now go through each element of PLEFT.  */
-  for (tail2 = pleft; CONSP (tail2); tail2 = Fcdr (Fcdr (tail2)))
+  for (tail2 = pleft; CONSP (tail2); tail2 = Fcdr (XCDR (tail2)))
     {
       Lisp_Object tmp;
 
-      sym = Fcar (tail2);
+      sym = XCAR (tail2);
 
       /* Sticky properties get special treatment.  */
       if (EQ (sym, Qrear_nonsticky) || EQ (sym, Qfront_sticky))
 	continue;
 
       /* If sym is in PRIGHT, we've already considered it.  */
-      for (tail1 = pright; CONSP (tail1); tail1 = Fcdr (Fcdr (tail1)))
-	if (EQ (sym, Fcar (tail1)))
+      for (tail1 = pright; CONSP (tail1); tail1 = Fcdr (XCDR (tail1)))
+	if (EQ (sym, XCAR (tail1)))
 	  break;
       if (! NILP (tail1))
 	continue;
 
-      lval = Fcar (Fcdr (tail2));
+      lval = Fcar (XCDR (tail2));
 
       /* Even if lrear or rfront say nothing about the stickiness of
 	 SYM, Vtext_property_default_nonsticky may give default
@@ -1247,6 +1267,7 @@ delete_node (i)
       this = this->left;
       this->total_length += migrate_amt;
     }
+  CHECK_TOTAL_LENGTH (this);
   this->left = migrate;
   SET_INTERVAL_PARENT (migrate, this);
 
@@ -1331,6 +1352,7 @@ interval_deletion_adjustment (tree, from, amount)
 						   relative_position,
 						   amount);
       tree->total_length -= subtract;
+      CHECK_TOTAL_LENGTH (tree);
       return subtract;
     }
   /* Right branch */
@@ -1345,6 +1367,7 @@ interval_deletion_adjustment (tree, from, amount)
 					       relative_position,
 					       amount);
       tree->total_length -= subtract;
+      CHECK_TOTAL_LENGTH (tree);
       return subtract;
     }
   /* Here -- this node.  */
@@ -1359,6 +1382,7 @@ interval_deletion_adjustment (tree, from, amount)
 	amount = my_amount;
 
       tree->total_length -= amount;
+      CHECK_TOTAL_LENGTH (tree);
       if (LENGTH (tree) == 0)
 	delete_interval (tree);
 
@@ -1402,6 +1426,7 @@ adjust_intervals_for_deletion (buffer, start, length)
   if (ONLY_INTERVAL_P (tree))
     {
       tree->total_length -= length;
+      CHECK_TOTAL_LENGTH (tree);
       return;
     }
 
@@ -1457,6 +1482,7 @@ merge_interval_right (i)
 
   /* Zero out this interval.  */
   i->total_length -= absorb;
+  CHECK_TOTAL_LENGTH (i);
 
   /* Find the succeeding interval.  */
   if (! NULL_RIGHT_CHILD (i))      /* It's below us.  Add absorb
@@ -1466,10 +1492,12 @@ merge_interval_right (i)
       while (! NULL_LEFT_CHILD (successor))
 	{
 	  successor->total_length += absorb;
+	  CHECK_TOTAL_LENGTH (successor);
 	  successor = successor->left;
 	}
 
       successor->total_length += absorb;
+      CHECK_TOTAL_LENGTH (successor);
       delete_interval (i);
       return successor;
     }
@@ -1487,6 +1515,7 @@ merge_interval_right (i)
 
       successor = INTERVAL_PARENT (successor);
       successor->total_length -= absorb;
+      CHECK_TOTAL_LENGTH (successor);
     }
 
   /* This must be the rightmost or last interval and cannot
@@ -1510,6 +1539,7 @@ merge_interval_left (i)
 
   /* Zero out this interval.  */
   i->total_length -= absorb;
+  CHECK_TOTAL_LENGTH (i);
 
   /* Find the preceding interval.  */
   if (! NULL_LEFT_CHILD (i))	/* It's below us. Go down,
@@ -1519,10 +1549,12 @@ merge_interval_left (i)
       while (! NULL_RIGHT_CHILD (predecessor))
 	{
 	  predecessor->total_length += absorb;
+	  CHECK_TOTAL_LENGTH (predecessor);
 	  predecessor = predecessor->right;
 	}
 
       predecessor->total_length += absorb;
+      CHECK_TOTAL_LENGTH (predecessor);
       delete_interval (i);
       return predecessor;
     }
@@ -1540,6 +1572,7 @@ merge_interval_left (i)
 
       predecessor = INTERVAL_PARENT (predecessor);
       predecessor->total_length -= absorb;
+      CHECK_TOTAL_LENGTH (predecessor);
     }
 
   /* This must be the leftmost or first interval and cannot
@@ -1680,6 +1713,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 {
   register INTERVAL under, over, this, prev;
   register INTERVAL tree;
+  int over_used;
 
   tree = BUF_INTERVALS (buffer);
 
@@ -1698,6 +1732,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 				 Qnil, buf, 0);
 	}
       if (! NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
+	/* Shouldn't be necessary.  -stef  */
 	BUF_INTERVALS (buffer) = balance_an_interval (BUF_INTERVALS (buffer));
       return;
     }
@@ -1711,7 +1746,8 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 	  Lisp_Object buf;
 	  XSETBUFFER (buf, buffer);
 	  BUF_INTERVALS (buffer) = reproduce_tree_obj (source, buf);
-	  BUF_INTERVALS (buffer)->position = 1;
+	  BUF_INTERVALS (buffer)->position = BEG;
+	  BUF_INTERVALS (buffer)->up_obj = 1;
 
 	  /* Explicitly free the old tree here?  */
 
@@ -1733,7 +1769,8 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
        about inserting properly.  For now, just waste the old intervals.  */
     {
       BUF_INTERVALS (buffer) = reproduce_tree (source, INTERVAL_PARENT (tree));
-      BUF_INTERVALS (buffer)->position = 1;
+      BUF_INTERVALS (buffer)->position = BEG;
+      BUF_INTERVALS (buffer)->up_obj = 1;
       /* Explicitly free the old tree here.  */
 
       return;
@@ -1781,21 +1818,42 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
      adjust_intervals_for_insertion, so stickiness has
      already been taken care of.  */
 
+  /* OVER is the interval we are copying from next.
+     OVER_USED says how many characters' worth of OVER
+     have already been copied into target intervals.
+     UNDER is the next interval in the target.  */
+  over_used = 0;
   while (! NULL_INTERVAL_P (over))
     {
-      if (LENGTH (over) < LENGTH (under))
+      /* If UNDER is longer than OVER, split it.  */
+      if (LENGTH (over) - over_used < LENGTH (under))
 	{
-	  this = split_interval_left (under, LENGTH (over));
+	  this = split_interval_left (under, LENGTH (over) - over_used);
 	  copy_properties (under, this);
 	}
       else
 	this = under;
-      copy_properties (over, this);
+
+      /* THIS is now the interval to copy or merge into.
+	 OVER covers all of it.  */
       if (inherit)
 	merge_properties (over, this);
       else
 	copy_properties (over, this);
-      over = next_interval (over);
+
+      /* If THIS and OVER end at the same place,
+	 advance OVER to a new source interval.  */
+      if (LENGTH (this) == LENGTH (over) - over_used)
+	{
+	  over = next_interval (over);
+	  over_used = 0;
+	}
+      else
+	/* Otherwise just record that more of OVER has been used.  */
+	over_used += LENGTH (this);
+
+      /* Always advance to a new target interval.  */
+      under = next_interval (this);
     }
 
   if (! NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
@@ -1842,11 +1900,13 @@ lookup_char_property (plist, prop, textprop)
     return fallback;
   /* Check for alternative properties */
   tail = Fassq (prop, Vchar_property_alias_alist);
-  if (NILP (tail))
-    return tail;
-  tail = XCDR (tail);
-  for (; NILP (fallback) && CONSP (tail); tail = XCDR (tail))
-    fallback = Fplist_get (plist, XCAR (tail));
+  if (! NILP (tail))
+    {
+      tail = XCDR (tail);
+      for (; NILP (fallback) && CONSP (tail); tail = XCDR (tail))
+	fallback = Fplist_get (plist, XCAR (tail));
+    }
+
   if (textprop && NILP (fallback) && CONSP (Vdefault_text_properties))
     fallback = Fplist_get (Vdefault_text_properties, prop);
   return fallback;
@@ -1933,7 +1993,7 @@ adjust_for_invis_intang (pos, test_offs, adj, test_intang)
 	 such that an insertion at POS would inherit it.  */
       && (NILP (invis_overlay)
 	  /* Invisible property is from a text-property.  */
-	  ? (text_property_stickiness (Qinvisible, make_number (pos))
+	  ? (text_property_stickiness (Qinvisible, make_number (pos), Qnil)
 	     == (test_offs == 0 ? 1 : -1))
 	  /* Invisible property is from an overlay.  */
 	  : (test_offs == 0
@@ -1976,8 +2036,7 @@ set_point_both (buffer, charpos, bytepos)
   if (charpos > BUF_ZV (buffer) || charpos < BUF_BEGV (buffer))
     abort ();
 
-  have_overlays = (! NILP (buffer->overlays_before)
-		   || ! NILP (buffer->overlays_after));
+  have_overlays = (buffer->overlays_before || buffer->overlays_after);
 
   /* If we have no text properties and overlays,
      then we can do it quickly.  */
@@ -2041,7 +2100,7 @@ set_point_both (buffer, charpos, bytepos)
 
       if (backwards)
 	{
-	  /* If the preceeding character is both intangible and invisible,
+	  /* If the preceding character is both intangible and invisible,
 	     and the invisible property is `rear-sticky', perturb it so
 	     that the search starts one character earlier -- this ensures
 	     that point can never move to the end of an invisible/
@@ -2217,6 +2276,10 @@ move_if_not_intangible (position)
 	  pos = Fnext_char_property_change (pos, Qnil);
 
     }
+  else if (position < BEGV)
+    position = BEGV;
+  else if (position > ZV)
+    position = ZV;
 
   /* If the whole stretch between PT and POSITION isn't intangible,
      try moving to POSITION (which means we actually move farther
@@ -2302,13 +2365,17 @@ get_local_map (position, buffer, type)
   BUF_BEGV_BYTE (buffer) = BUF_BEG_BYTE (buffer);
   BUF_ZV_BYTE (buffer) = BUF_Z_BYTE (buffer);
 
-  /* There are no properties at the end of the buffer, so in that case
-     check for a local map on the last character of the buffer instead.  */
-  if (position == BUF_Z (buffer) && BUF_Z (buffer) > BUF_BEG (buffer))
-    --position;
   XSETFASTINT (lispy_position, position);
   XSETBUFFER (lispy_buffer, buffer);
+  /* First check if the CHAR has any property.  This is because when
+     we click with the mouse, the mouse pointer is really pointing
+     to the CHAR after POS.  */
   prop = Fget_char_property (lispy_position, type, lispy_buffer);
+  /* If not, look at the POS's properties.  This is necessary because when
+     editing a field with a `local-map' property, we want insertion at the end
+     to obey the `local-map' property.  */
+  if (NILP (prop))
+    prop = get_pos_property (lispy_position, type, lispy_buffer);
 
   BUF_BEGV (buffer) = old_begv;
   BUF_ZV (buffer) = old_zv;
@@ -2354,6 +2421,7 @@ copy_intervals (tree, start, length)
   new->position = 0;
   got = (LENGTH (i) - (start - i->position));
   new->total_length = length;
+  CHECK_TOTAL_LENGTH (new);
   copy_properties (i, new);
 
   t = new;
@@ -2440,6 +2508,13 @@ set_intervals_multibyte_1 (i, multi_flag, start, start_byte, end, end_byte)
     i->total_length = end - start;
   else
     i->total_length = end_byte - start_byte;
+  CHECK_TOTAL_LENGTH (i);
+
+  if (TOTAL_LENGTH (i) == 0)
+    {
+      delete_interval (i);
+      return;
+    }
 
   /* Recursively fix the length of the subintervals.  */
   if (i->left)
@@ -2448,8 +2523,23 @@ set_intervals_multibyte_1 (i, multi_flag, start, start_byte, end, end_byte)
 
       if (multi_flag)
 	{
+	  int temp;
 	  left_end_byte = start_byte + LEFT_TOTAL_LENGTH (i);
 	  left_end = BYTE_TO_CHAR (left_end_byte);
+
+	  temp = CHAR_TO_BYTE (left_end);
+
+	  /* If LEFT_END_BYTE is in the middle of a character,
+	     adjust it and LEFT_END to a char boundary.  */ 
+	  if (left_end_byte > temp)
+	    {
+	      left_end_byte = temp;
+	    }
+	  if (left_end_byte < temp)
+	    {
+	      left_end--;
+	      left_end_byte = CHAR_TO_BYTE (left_end);
+	    }
 	}
       else
 	{
@@ -2466,8 +2556,24 @@ set_intervals_multibyte_1 (i, multi_flag, start, start_byte, end, end_byte)
 
       if (multi_flag)
 	{
+	  int temp;
+
 	  right_start_byte = end_byte - RIGHT_TOTAL_LENGTH (i);
 	  right_start = BYTE_TO_CHAR (right_start_byte);
+
+	  /* If RIGHT_START_BYTE is in the middle of a character,
+	     adjust it and RIGHT_START to a char boundary.  */ 
+	  temp = CHAR_TO_BYTE (right_start);
+
+	  if (right_start_byte < temp)
+	    {
+	      right_start_byte = temp;
+	    }
+	  if (right_start_byte > temp)
+	    {
+	      right_start++;
+	      right_start_byte = CHAR_TO_BYTE (right_start);
+	    }
 	}
       else
 	{
@@ -2478,6 +2584,25 @@ set_intervals_multibyte_1 (i, multi_flag, start, start_byte, end, end_byte)
       set_intervals_multibyte_1 (i->right, multi_flag,
 				 right_start, right_start_byte,
 				 end, end_byte);
+    }
+
+  /* Rounding to char boundaries can theoretically ake this interval
+     spurious.  If so, delete one child, and copy its property list
+     to this interval.  */
+  if (LEFT_TOTAL_LENGTH (i) + RIGHT_TOTAL_LENGTH (i) >= TOTAL_LENGTH (i))
+    {
+      if ((i)->left)
+	{
+	  (i)->plist = (i)->left->plist;
+	  (i)->left->total_length = 0;
+	  delete_interval ((i)->left);
+	}
+      else
+	{
+	  (i)->plist = (i)->right->plist;
+	  (i)->right->total_length = 0;
+	  delete_interval ((i)->right);
+	}
     }
 }
 
@@ -2493,3 +2618,6 @@ set_intervals_multibyte (multi_flag)
     set_intervals_multibyte_1 (BUF_INTERVALS (current_buffer), multi_flag,
 			       BEG, BEG_BYTE, Z, Z_BYTE);
 }
+
+/* arch-tag: 3d402b60-083c-4271-b4a3-ebd9a74bfe27
+   (do not change this comment) */

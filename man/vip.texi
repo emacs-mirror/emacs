@@ -4,11 +4,12 @@
 @settitle VIP
 
 @copying
-Copyright @copyright{} 1987, 2001, 2002 Free Software Foundation, Inc.
+Copyright @copyright{} 1987, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU
 Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
@@ -121,7 +122,7 @@ explained in more detail in the GNU Emacs Manual.
 @cindex end (of buffer)
 @cindex region
 
-Conceptually, a @dfn{buffer} is just a string of ASCII characters and two
+Conceptually, a @dfn{buffer} is just a string of @acronym{ASCII} characters and two
 special characters @key{PNT} (@dfn{point}) and @key{MRK} (@dfn{mark}) such
 that the character @key{PNT} occurs exactly once and @key{MRK} occurs at
 most once.  The @dfn{text} of a buffer is obtained by deleting the
@@ -1003,7 +1004,7 @@ The following commands are used to mark positions in the buffer.
 @item m @var{ch}
 @kindex 155 @kbd{m} (@code{vip-mark-point})
 Store current point in the register @var{ch}.  @var{ch} must be a
-lower-case ASCII letter.
+lower-case @acronym{ASCII} letter.
 @item m <
 Set mark at the beginning of current buffer.
 @item m >
@@ -1944,3 +1945,7 @@ file.
 @setchapternewpage odd
 @contents
 @bye
+
+@ignore
+   arch-tag: 7c5d17b9-1d21-4261-a88a-b9fdbbf1020b
+@end ignore

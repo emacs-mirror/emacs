@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001, 2002,
+@c   2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Sending Mail, Rmail, Picture, Top
 @chapter Sending Mail
@@ -45,7 +45,7 @@ switch to other buffers while in the middle of composing mail, and switch
 back later (or never).  If you use the @kbd{C-x m} command again when you
 have been composing another message but have not sent it, you are asked to
 confirm before the old message is erased.  If you answer @kbd{n}, the
-@samp{*mail*} buffer is left selected with its old contents, so you can
+@samp{*mail*} buffer remains selected with its old contents, so you can
 finish the old message and send it.  @kbd{C-u C-x m} is another way to do
 this.  Sending the message marks the @samp{*mail*} buffer ``unmodified,''
 which avoids the need for confirmation when @kbd{C-x m} is next used.
@@ -289,7 +289,21 @@ this line:@refill
 alias maingnu gnu@@gnu.org local-gnu
 @end example
 
-  Emacs also recognizes include commands in @samp{.mailrc} files.
+@noindent
+Addresses specified in this way should use doublequotes around an
+entire address when the address contains spaces.  But you need not
+include doublequotes around parts of the address, such as the person's
+full name.  Emacs puts them in if they are needed.  For example,
+
+@example
+alias chief-torturer "George W. Bush <bush@@whitehouse.gov>"
+@end example
+
+@noindent
+is correct.  Emacs will insert the address as @samp{"George W. Bush"
+<bush@@whitehouse.gov>}.
+
+  Emacs also recognizes ``include'' commands in @samp{.mailrc} files.
 They look like this:
 
 @example
@@ -363,12 +377,10 @@ expansion as well.  Here's how to do that:
 @smallexample
 (add-hook 'mail-mode-hook
           (lambda ()
-            (substitute-key-definition
-              'next-line 'mail-abbrev-next-line
-              mail-mode-map global-map)
-            (substitute-key-definition
-              'end-of-buffer 'mail-abbrev-end-of-buffer
-              mail-mode-map global-map)))
+            (define-key
+              mail-mode-map [remap next-line] 'mail-abbrev-next-line)
+            (define-key
+              mail-mode-map [remap end-of-buffer] 'mail-abbrev-end-of-buffer)))
 @end smallexample
 
 @node Mail Mode
@@ -427,7 +439,7 @@ twice.
 
 @c This is indexed in mule.texi, node "Recognize Coding".
 @c @vindex sendmail-coding-system
-  When you send a message that contains non-ASCII characters, they need
+  When you send a message that contains non-@acronym{ASCII} characters, they need
 to be encoded with a coding system (@pxref{Coding Systems}).  Usually
 the coding system is specified automatically by your chosen language
 environment (@pxref{Language Environments}).  You can explicitly specify
@@ -437,6 +449,19 @@ the coding system for outgoing mail by setting the variable
   If the coding system thus determined does not handle the characters in
 a particular message, Emacs asks you to select the coding system to use,
 showing a list of possible coding systems.
+
+@cindex SMTP
+@cindex Feedmail
+@cindex Sendmail
+@vindex send-mail-function
+  The variable @code{send-mail-function} controls how the default mail
+user agent sends mail.  It should be set to a function.  The default
+is @code{sendmail-send-it}, which delivers mail using the Sendmail
+installation on the local host.  To send mail through a SMTP server,
+set it to @code{smtpmail-send-it} and set up the Emacs SMTP library
+(@pxref{Top,, Sending mail via SMTP,smtpmail}).  A third option is
+@code{feedmail-send-it}, see the commentary section of the
+@file{feedmail.el} package for more information.
 
 @node Header Editing
 @subsection Mail Header Editing
@@ -483,19 +508,21 @@ edit.
 
 @findex mail-complete
 @kindex M-TAB @r{(Mail mode)}
-  While editing a header field that contains mailing addresses, such as
-@samp{To:}, @samp{CC:} and @samp{BCC:}, you can complete a mailing
-address by typing @kbd{M-@key{TAB}} (@code{mail-complete}).  It inserts
-the full name corresponding to the address, if it can determine the full
-name.  The variable @code{mail-complete-style} controls whether to insert
-the full name, and what style to use, as in @code{mail-from-style}
-(@pxref{Mail Headers}).
+  While editing a header field that contains mailing addresses, such
+as @samp{To:}, @samp{CC:} and @samp{BCC:}, you can complete a mailing
+address by typing @kbd{M-@key{TAB}} (@code{mail-complete}).  It
+inserts the full name corresponding to the address, if it can
+determine the full name.  The variable @code{mail-complete-style}
+controls whether to insert the full name, and what style to use, as in
+@code{mail-from-style} (@pxref{Mail Headers}).  (If your window
+manager defines @kbd{M-@key{TAB}} to switch windows, you can type
+@kbd{@key{ESC} @key{TAB}} or @kbd{C-M-i}.)
 
   For completion purposes, the valid mailing addresses are taken to be
 the local users' names plus your personal mail aliases.  You can
-specify additional sources of valid addresses; look at the customization
-group @samp{mailalias} to see the options for this
-(@pxref{Customization Groups}).
+specify additional sources of valid addresses; see the customization
+group @samp{mailalias} to see the variables for customizing this
+feature (@pxref{Customization Groups}).
 
   If you type @kbd{M-@key{TAB}} in the body of the message,
 @code{mail-complete} invokes @code{ispell-complete-word}, as in Text
@@ -611,7 +638,8 @@ the usual command to insert a file in the current buffer.  But it is
 often more convenient to use a special command, @kbd{C-c C-i}
 (@code{mail-attach-file}).  This command inserts the file contents at
 the end of the buffer, after your signature if any, with a delimiter
-line that includes the file name.
+line that includes the file name.  Note that this is not a MIME
+attachment.
 
 @vindex mail-mode-hook
 @vindex mail-setup-hook
@@ -674,7 +702,7 @@ message into outgoing mail.  To do this, add
 and sending mail---Mail mode.  Emacs has alternative facilities for
 editing and sending mail, including
 MH-E and Message mode, not documented in this manual.
-@xref{MH-E,,,mh-e, The Emacs Interface to MH}.  @xref{Message,,,message,
+@xref{Top,,MH-E,mh-e, The Emacs Interface to MH}.  @xref{Top,,Message,message,
 Message Manual}.  You can choose any of them as your preferred method.
 The commands @code{C-x m}, @code{C-x 4 m} and @code{C-x 5 m} use
 whichever agent you have specified, as do various other Emacs commands
@@ -691,3 +719,6 @@ in this chapter about the @samp{*mail*} buffer and Mail mode does not
 apply; the other methods use a different format of text in a different
 buffer, and their commands are different as well.
 
+@ignore
+   arch-tag: d8a3dfc3-5d87-45c5-a7f2-69871b8e4fd6
+@end ignore

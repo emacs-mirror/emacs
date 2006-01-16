@@ -1,5 +1,4 @@
 \input texinfo  @c -*-texinfo-*-
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.18 2002/12/07 13:38:26 pj Exp $"
 @c %**start of header
 @setfilename ../info/pcl-cvs
 @settitle PCL-CVS --- Emacs Front-End to CVS
@@ -8,11 +7,11 @@
 
 @copying
 Copyright @copyright{} 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-1999, 2000, 2002 Free Software Foundation, Inc.
+   1999, 2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with the
 Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
 ``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
@@ -78,7 +77,7 @@ of the various commands and major modes for further information.
 @end ifnottex
 
 @menu
-* About PCL-CVS::               Installation, credits, history, @dots{}
+* About PCL-CVS::               Credits, history, @dots{}
 
 * Getting started::             An introduction with a walk-through example.
 * Buffer contents::             An explanation of the buffer contents.
@@ -101,7 +100,6 @@ of the various commands and major modes for further information.
 About PCL-CVS
 
 * Contributors::                Contributors to PCL-CVS.
-* Installation::
 
 Commands
 
@@ -153,14 +151,11 @@ separate XEmacs version was slowly splitting away.  In late 1998,
 Stefan Monnier picked up development again, adding some major new
 functionality and taking over the maintenance.
 
-As of Emacs 21, PCL-CVS is part of the standard Emacs distribution.
-
 @menu
 * Contributors::                Contributors to PCL-CVS.
-* Installation::
 @end menu
 
-@node     Contributors, Installation, About PCL-CVS, About PCL-CVS
+@node     Contributors,, About PCL-CVS, About PCL-CVS
 @section Contributors to PCL-CVS
 @cindex Contributors
 @cindex Authors
@@ -235,39 +230,6 @@ superseded by the new @code{cvs-status-mode}.
 Apart from these, a lot of people have sent us suggestions, ideas,
 requests, bug reports and encouragement.  Thanks a lot!  Without you
 there would be no new releases of PCL-CVS.
-
-
-@node   Installation,  , Contributors, About PCL-CVS
-@section Installation
-@cindex Installation
-
-As mentioned above, PCL-CVS comes bundled with Emacs version 21.1 and
-later.  If you're using Emacs 20, you can download an older version of
-PCL-CVS from @uref{ftp://flint.cs.yale.edu/pub/monnier/pcl-cvs}.  That
-version also works on XEmacs.
-
-If you are running XEmacs 21.0 or later, PCL-CVS is available in
-pre-compiled package form.  Please refer to the XEmacs manual for
-instructions regarding package selection and installation.  Currently,
-that PCL-CVS package also requires you to have installed the
-@file{xemacs-base}, @file{elib}, and @file{dired} packages.
-
-If you have @TeX{} installed at your site, you can make a typeset manual
-from @file{pcl-cvs.texi}.
-
-@enumerate
-@item
-If PCL-CVS came with the Emacs distribution, type @kbd{make pcl-cvs.dvi}
-in the @file{man} subdirectory of the Emacs source tree.
-@item
-Alternatively, run @TeX{} by typing @kbd{texi2dvi pcl-cvs.texi}.
-@item
-Convert the resulting device independent file @file{pcl-cvs.dvi} to a
-form which your printer can output and print it.  If you have a
-PostScript printer, there is a program, @code{dvi2ps}, which does.  There
-is also a program which comes together with @TeX{}, @code{dvips}, which
-you can use.
-@end enumerate
 
 
 @node Getting started, Buffer contents, About PCL-CVS, Top
@@ -477,7 +439,7 @@ although it has not been @samp{cvs remove}d.
 
 Many of the commands work on the current set of @dfn{selected} files
 which can be either the set of marked files (if any file is marked and
-marks are no ignored) or whichever file or directory the cursor is on.
+marks are not ignored) or whichever file or directory the cursor is on.
 
 If a directory is selected but the command cannot be applied to a
 directory, then it will be applied to the set of files under this
@@ -1026,11 +988,15 @@ This runs @code{cvs-mode-ignore}.
 @kindex =@r{--run @samp{cvs diff}}
 @kindex db@r{--diff against base version}
 @kindex dh@r{--diff against head of repository}
+@kindex dr@r{--diff between base and head of repository}
 @kindex dv@r{--diff against vendor branch}
+@kindex dy@r{--diff against yesterday's head}
 @findex cvs-mode-diff
 @findex cvs-mode-diff-backup
 @findex cvs-mode-diff-head
+@findex cvs-mode-diff-repository
 @findex cvs-mode-diff-vendor
+@findex cvs-mode-diff-yesterday
 @vindex cvs-invert-ignore-marks@r{ (variable)}
 
 @table @kbd
@@ -1054,10 +1020,22 @@ Display a @samp{cvs diff} between the selected files and the head
 revision in the repository (the most recent version on the current
 branch) (@code{cvs-mode-diff-head}).@refill
 
+@item d r
+Display a @samp{cvs diff} between the base revision of the selected
+files and the head revision in the repository.  This displays the
+changes anyone has committed to the repository since you last executed
+"checkout", "update" or "commit".
+(@code{cvs-mode-diff-repository}).@refill
+
 @item d v
 Display a @samp{cvs diff} between the selected files and the head
 revision of the vendor branch in the repository.
 (@code{cvs-mode-diff-vendor}).@refill
+
+@item d y
+Display a @samp{cvs diff} between the selected files and yesterday's
+head revision in the repository.
+(@code{cvs-mode-diff-yesterday}).@refill
 @end table
 
 By default, @samp{diff} commands ignore the marks.  This can be changed
@@ -1088,7 +1066,7 @@ revision.
 This command use @code{ediff} (or @code{emerge}, see above) to allow you
 to do an interactive 3-way merge.
 
-@strong{Note:}  When the file status is @samp{Conflict},
+@strong{Please note:}  when the file status is @samp{Conflict},
 CVS has already performed a merge.  The resulting file is not used in
 any way if you use this command.  If you use the @kbd{q} command inside
 @samp{ediff} (to successfully terminate a merge) the file that CVS
@@ -1193,7 +1171,7 @@ kill the contents of the buffer with @kbd{C-w}.
 If you work by writing entries in the @file{ChangeLog}
 (@pxref{(emacs)Change Log}) and then commit the change under revision
 control, you can generate the Log Edit text from the ChangeLog using
-@kbd{C-a C-a} (@kbd{log-edit-insert-changelog}).  This looks for
+@kbd{C-c C-a} (@kbd{log-edit-insert-changelog}).  This looks for
 entries for the file(s) concerned in the top entry in the ChangeLog
 and uses those paragraphs as the log text.  This text is only inserted
 if the top entry was made under your user name on the current date.
@@ -1443,3 +1421,7 @@ this manual.
 @summarycontents
 @contents
 @bye
+
+@ignore
+   arch-tag: 5c7178ce-56fa-40b0-abd7-f4a09758b235
+@end ignore

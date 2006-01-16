@@ -2,8 +2,7 @@
 # Configuration script for oldxmenu/makefile for DesqView/X
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1994
-#   Free Software Foundation, Inc.
+# Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -24,3 +23,5 @@
 /^CFLAGS *=/s/@[^@\n]*@/-O2 -g/
 /^LN_S *=/s/@[^@\n]*@/ln -s/
 s/|| true//
+
+# arch-tag: 612a79be-2a02-4cb0-8dec-779aac0a2f4f

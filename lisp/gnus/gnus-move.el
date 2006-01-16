@@ -1,6 +1,7 @@
 ;;; gnus-move.el --- commands for moving Gnus from one server to another
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000
-;;        Free Software Foundation, Inc.
+
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -182,4 +183,5 @@ Update the .newsrc.eld file to reflect the change of nntp server."
 
 (provide 'gnus-move)
 
+;;; arch-tag: 503742b8-7d66-4d79-bb31-4a698070707b
 ;;; gnus-move.el ends here

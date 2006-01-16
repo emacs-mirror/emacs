@@ -1,6 +1,6 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001, 2002
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.
 
 hacked on by jwz@lucid.com 17-jun-91
   o  added a compile-time switch to turn on simple sanity checking;
@@ -39,6 +39,7 @@ by Hallvard:
 #include "buffer.h"
 #include "charset.h"
 #include "syntax.h"
+#include "window.h"
 
 #ifdef CHECK_FRAME_FONT
 #include "frame.h"
@@ -285,27 +286,13 @@ mark_byte_stack ()
 	 The culprit is found in the frame of Fbyte_code where the
 	 address of its local variable `stack' is equal to the
 	 recorded value of `stack' here.  */
-      if (!stack->top)
-	abort ();
+      eassert (stack->top);
 
       for (obj = stack->bottom; obj <= stack->top; ++obj)
-	if (!XMARKBIT (*obj))
-	  {
-	    mark_object (obj);
-	    XMARK (*obj);
-	  }
+	mark_object (*obj);
 
-      if (!XMARKBIT (stack->byte_string))
-	{
-          mark_object (&stack->byte_string);
-	  XMARK (stack->byte_string);
-	}
-
-      if (!XMARKBIT (stack->constants))
-	{
-	  mark_object (&stack->constants);
-	  XMARK (stack->constants);
-	}
+      mark_object (stack->byte_string);
+      mark_object (stack->constants);
     }
 }
 
@@ -317,16 +304,9 @@ void
 unmark_byte_stack ()
 {
   struct byte_stack *stack;
-  Lisp_Object *obj;
 
   for (stack = byte_stack_list; stack; stack = stack->next)
     {
-      for (obj = stack->bottom; obj <= stack->top; ++obj)
-	XUNMARK (*obj);
-
-      XUNMARK (stack->byte_string);
-      XUNMARK (stack->constants);
-
       if (stack->byte_string_start != SDATA (stack->byte_string))
 	{
 	  int offset = stack->pc - stack->byte_string_start;
@@ -375,13 +355,14 @@ unmark_byte_stack ()
 /* Garbage collect if we have consed enough since the last time.
    We do this at every branch, to avoid loops that never GC.  */
 
-#define MAYBE_GC()				\
-  if (consing_since_gc > gc_cons_threshold)	\
-    {						\
-      BEFORE_POTENTIAL_GC ();			\
-      Fgarbage_collect ();			\
-      AFTER_POTENTIAL_GC ();			\
-    }						\
+#define MAYBE_GC()					\
+  if (consing_since_gc > gc_cons_threshold		\
+      && consing_since_gc > gc_relative_threshold)	\
+    {							\
+      BEFORE_POTENTIAL_GC ();				\
+      Fgarbage_collect ();				\
+      AFTER_POTENTIAL_GC ();				\
+    }							\
   else
 
 /* Check for jumping out of range.  */
@@ -404,9 +385,13 @@ unmark_byte_stack ()
   do {							\
     if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\
       {							\
+        Lisp_Object flag = Vquit_flag;			\
 	Vquit_flag = Qnil;				\
         BEFORE_POTENTIAL_GC ();				\
+	if (EQ (Vthrow_on_input, flag))			\
+	  Fthrow (Vthrow_on_input, Qt);			\
 	Fsignal (Qquit, Qnil);				\
+	AFTER_POTENTIAL_GC ();				\
       }							\
   } while (0)
 
@@ -539,15 +524,19 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  }
 
 	case Bgotoifnil:
-	  MAYBE_GC ();
-	  op = FETCH2;
-	  if (NILP (POP))
-	    {
-	      BYTE_CODE_QUIT;
-	      CHECK_RANGE (op);
-	      stack.pc = stack.byte_string_start + op;
-	    }
-	  break;
+	  {
+	    Lisp_Object v1;
+	    MAYBE_GC ();
+	    op = FETCH2;
+	    v1 = POP;
+	    if (NILP (v1))
+	      {
+		BYTE_CODE_QUIT;
+		CHECK_RANGE (op);
+		stack.pc = stack.byte_string_start + op;
+	      }
+	    break;
+	  }
 
 	case Bcar:
 	  {
@@ -559,9 +548,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	      TOP = Qnil;
 	    else
 	      {
-		BEFORE_POTENTIAL_GC ();
-		Fcar (wrong_type_argument (Qlistp, v1));
-		AFTER_POTENTIAL_GC ();
+		wrong_type_argument (Qlistp, v1);
 	      }
 	    break;
 	  }
@@ -594,9 +581,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	      TOP = Qnil;
 	    else
 	      {
-		BEFORE_POTENTIAL_GC ();
-		Fcdr (wrong_type_argument (Qlistp, v1));
-		AFTER_POTENTIAL_GC ();
+		wrong_type_argument (Qlistp, v1);
 	      }
 	    break;
 	  }
@@ -637,7 +622,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 		AFTER_POTENTIAL_GC ();
 	      }
 	  }
-	  POP;
+	  (void) POP;
 	  break;
 
 	case Bdup:
@@ -749,15 +734,19 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  break;
 
 	case Bgotoifnonnil:
-	  MAYBE_GC ();
-	  op = FETCH2;
-	  if (!NILP (POP))
-	    {
-	      BYTE_CODE_QUIT;
-	      CHECK_RANGE (op);
-	      stack.pc = stack.byte_string_start + op;
-	    }
-	  break;
+	  {
+	    Lisp_Object v1;
+	    MAYBE_GC ();
+	    op = FETCH2;
+	    v1 = POP;
+	    if (!NILP (v1))
+	      {
+		BYTE_CODE_QUIT;
+		CHECK_RANGE (op);
+		stack.pc = stack.byte_string_start + op;
+	      }
+	    break;
+	  }
 
 	case Bgotoifnilelsepop:
 	  MAYBE_GC ();
@@ -790,24 +779,32 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  break;
 
 	case BRgotoifnil:
-	  MAYBE_GC ();
-	  if (NILP (POP))
-	    {
-	      BYTE_CODE_QUIT;
-	      stack.pc += (int) *stack.pc - 128;
-	    }
-	  stack.pc++;
-	  break;
+	  {
+	    Lisp_Object v1;
+	    MAYBE_GC ();
+	    v1 = POP;
+	    if (NILP (v1))
+	      {
+		BYTE_CODE_QUIT;
+		stack.pc += (int) *stack.pc - 128;
+	      }
+	    stack.pc++;
+	    break;
+	  }
 
 	case BRgotoifnonnil:
-	  MAYBE_GC ();
-	  if (!NILP (POP))
-	    {
-	      BYTE_CODE_QUIT;
-	      stack.pc += (int) *stack.pc - 128;
-	    }
-	  stack.pc++;
-	  break;
+	  {
+	    Lisp_Object v1;
+	    MAYBE_GC ();
+	    v1 = POP;
+	    if (!NILP (v1))
+	      {
+		BYTE_CODE_QUIT;
+		stack.pc += (int) *stack.pc - 128;
+	      }
+	    stack.pc++;
+	    break;
+	  }
 
 	case BRgotoifnilelsepop:
 	  MAYBE_GC ();
@@ -875,20 +872,16 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  }
 
 	case Bunwind_protect:
-	  /* The function record_unwind_protect can GC.  */
-	  BEFORE_POTENTIAL_GC ();
-	  record_unwind_protect (0, POP);
-	  AFTER_POTENTIAL_GC ();
-	  (specpdl_ptr - 1)->symbol = Qnil;
+	  record_unwind_protect (Fprogn, POP);
 	  break;
 
 	case Bcondition_case:
 	  {
-	    Lisp_Object v1;
-	    v1 = POP;
-	    v1 = Fcons (POP, v1);
+	    Lisp_Object handlers, body;
+	    handlers = POP;
+	    body = POP;
 	    BEFORE_POTENTIAL_GC ();
-	    TOP = Fcondition_case (Fcons (TOP, v1));
+	    TOP = internal_lisp_condition_case (TOP, body, handlers);
 	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
@@ -931,11 +924,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 		else if (!NILP (v1))
 		  {
 		    immediate_quit = 0;
-		    BEFORE_POTENTIAL_GC ();
-		    v1 = wrong_type_argument (Qlistp, v1);
-		    AFTER_POTENTIAL_GC ();
-		    immediate_quit = 1;
-		    op++;
+		    wrong_type_argument (Qlistp, v1);
 		  }
 	      }
 	    immediate_quit = 0;
@@ -944,11 +933,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    else if (NILP (v1))
 	      TOP = Qnil;
 	    else
-	      {
-		BEFORE_POTENTIAL_GC ();
-		Fcar (wrong_type_argument (Qlistp, v1));
-		AFTER_POTENTIAL_GC ();
-	      }
+	      wrong_type_argument (Qlistp, v1);
 	    break;
 	  }
 
@@ -1578,11 +1563,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 		    else if (!NILP (v1))
 		      {
 			immediate_quit = 0;
-			BEFORE_POTENTIAL_GC ();
-			v1 = wrong_type_argument (Qlistp, v1);
-			AFTER_POTENTIAL_GC ();
-			immediate_quit = 1;
-			op++;
+			wrong_type_argument (Qlistp, v1);
 		      }
 		  }
 		immediate_quit = 0;
@@ -1591,11 +1572,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 		else if (NILP (v1))
 		  TOP = Qnil;
 		else
-		  {
-		    BEFORE_POTENTIAL_GC ();
-		    Fcar (wrong_type_argument (Qlistp, v1));
-		    AFTER_POTENTIAL_GC ();
-		  }
+		  wrong_type_argument (Qlistp, v1);
 	      }
 	    else
 	      {
@@ -1775,3 +1752,6 @@ integer, it is incremented each time that symbol's function is called.  */);
   }
 #endif
 }
+
+/* arch-tag: b9803b6f-1ed6-4190-8adf-33fd3a9d10e9
+   (do not change this comment) */

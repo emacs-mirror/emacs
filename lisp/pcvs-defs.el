@@ -1,10 +1,10 @@
 ;;; pcvs-defs.el --- variable definitions for PCL-CVS
 
-;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-defs.el,v 1.20 2002/11/12 21:04:48 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -38,11 +38,14 @@
   "*Name or full path of the cvs executable.")
 
 (defvar cvs-version
+  ;; With the divergence of the CVSNT codebase and version numbers, this is
+  ;; not really good any more.
   (ignore-errors
     (with-temp-buffer
       (call-process cvs-program nil t nil "-v")
       (goto-char (point-min))
-      (when (re-search-forward "(CVS) \\([0-9]+\\)\\.\\([0-9]+\\)" nil t)
+      (when (re-search-forward "(CVS\\(NT\\)?) \\([0-9]+\\)\\.\\([0-9]+\\)"
+                               nil t)
 	(cons (string-to-number (match-string 1))
 	      (string-to-number (match-string 2))))))
   "*Version of `cvs' installed on your system.
@@ -249,9 +252,6 @@ Output from cvs is placed here for asynchronous commands.")
   :type '(choice (const :tag "Ediff" (cvs-ediff-diff . cvs-ediff-merge))
 		 (const :tag "Emerge" (cvs-emerge-diff . cvs-emerge-merge))))
 
-(defvar pcl-cvs-load-hook nil
-  "Run after loading pcl-cvs.")
-
 (defvar cvs-mode-hook nil
   "Run after `cvs-mode' was setup.")
 
@@ -305,6 +305,8 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("d" "diff" .	cvs-mode-diff)
     ("b" "backup" .	cvs-mode-diff-backup)
     ("h" "head" .	cvs-mode-diff-head)
+    ("r" "repository" .	cvs-mode-diff-repository)
+    ("y" "yesterday" .	cvs-mode-diff-yesterday)
     ("v" "vendor" .	cvs-mode-diff-vendor))
   "Keymap for diff-related operations in `cvs-mode'."
   :name "Diff")
@@ -375,12 +377,14 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("r" .	cvs-mode-remove)
     ("s" .	cvs-mode-status)
     ("t" .	cvs-mode-tag)
-    ;;("v" .	cvs-mode-diff-vendor)
+    ("v" .	cvs-mode-view-file)
     ("x" .	cvs-mode-remove-handled)
     ;; cvstree bindings
     ("+" .	cvs-mode-tree)
     ;; mouse bindings
     ([mouse-2] . cvs-mode-find-file)
+    ([follow-link] . (lambda (pos)
+		       (if (eq (get-char-property pos 'face) 'cvs-filename) t)))
     ([(down-mouse-3)] . cvs-menu)
     ;; dired-like bindings
     ("\C-o" .   cvs-mode-display-file)
@@ -413,15 +417,18 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ["Update"			cvs-mode-update		(cvs-enabledp 'update)]
     ["Re-examine"		cvs-mode-examine	t]
     ["Commit"			cvs-mode-commit-setup	(cvs-enabledp 'commit)]
+    ["Tag"			cvs-mode-tag		(cvs-enabledp (when cvs-force-dir-tag 'tag))]
     ["Undo changes"		cvs-mode-undo		(cvs-enabledp 'undo)]
     ["Add"			cvs-mode-add		(cvs-enabledp 'add)]
     ["Remove"			cvs-mode-remove		(cvs-enabledp 'remove)]
     ["Ignore"			cvs-mode-ignore		(cvs-enabledp 'ignore)]
     ["Add ChangeLog"		cvs-mode-add-change-log-entry-other-window t]
     "----"
+    ["Mark"                     cvs-mode-mark t]
     ["Mark all"			cvs-mode-mark-all-files	t]
     ["Mark by regexp..."        cvs-mode-mark-matching-files t]
     ["Mark by state..."         cvs-mode-mark-on-state t]
+    ["Unmark"                   cvs-mode-unmark	t]
     ["Unmark all"		cvs-mode-unmark-all-files t]
     ["Hide handled"		cvs-mode-remove-handled	t]
     "----"
@@ -480,14 +487,17 @@ It is expected to call the function.")
     (define-key m [examine]
       '(menu-item "Examine Directory" cvs-examine
 		  :help "Examine the current state of a workarea"))
-    m))
+    (fset 'cvs-global-menu m)))
 
 
 ;; cvs-1.10 and above can take file arguments in other directories
 ;; while others need to be executed once per directory
 (defvar cvs-execute-single-dir
-  (if (and (consp cvs-version)
-	    (or (>= (cdr cvs-version) 10) (> (car cvs-version) 1)))
+  (if (or (null cvs-version)
+          (or (>= (cdr cvs-version) 10) (> (car cvs-version) 1)))
+      ;; Supposedly some recent versions of CVS output some directory info
+      ;; as they recurse downthe tree, but it's not good enough in the case
+      ;; where we run "cvs status foo bar/foo".
       '("status")
     t)
   "Whether cvs commands should be executed a directory at a time.
@@ -502,9 +512,10 @@ Sadly, even with a new cvs executable, if you connect to an older cvs server
 a case the sanity check made by pcl-cvs fails and you will have to manually
 set this variable to t (until the cvs server is upgraded).
 When the above problem occurs, pcl-cvs should (hopefully) catch cvs' error
-message and replace it with a message tell you to change this variable.")
+message and replace it with a message telling you to change this variable.")
 
 ;;
 (provide 'pcvs-defs)
 
+;; arch-tag: c7c701d0-d1d4-4aa9-a302-007bb03aca5e
 ;;; pcvs-defs.el ends here

@@ -1,5 +1,5 @@
 /* Machine description file for Acorn RISCiX machines.
-   Copyright (C) 1994, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 
@@ -179,3 +179,6 @@ do
 this
 yet
 #endif
+
+/* arch-tag: acee2955-8c49-4b40-813c-579f76f4c0c3
+   (do not change this comment) */

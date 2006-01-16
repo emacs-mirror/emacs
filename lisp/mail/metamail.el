@@ -1,9 +1,9 @@
 ;;; metamail.el --- Metamail interface for GNU Emacs
 
-;; Copyright (C) 1993, 1996  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1996, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Id: metamail.el,v 1.14 2000/11/12 00:22:02 fx Exp $
 ;; Keywords: mail, news, mime, multimedia
 
 ;; This file is part of GNU Emacs.
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -35,6 +35,9 @@
 ;; gnus-mime.el by Spike <Spike@world.std.com>.
 
 ;;; Code:
+
+(defvar rmail-current-message)
+(defvar rmail-message-vector)
 
 (defgroup metamail nil
   "Metamail interface for Emacs."
@@ -190,4 +193,5 @@ redisplayed as output is inserted."
 
 (provide 'metamail)
 
+;;; arch-tag: 52c0cb6f-d800-4776-9789-f0275cb5490e
 ;;; metamail.el ends here

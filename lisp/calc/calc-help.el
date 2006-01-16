@@ -1,10 +1,10 @@
 ;;; calc-help.el --- help display functions for Calc,
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +28,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-help () nil)
-
 
 (defun calc-help-prefix (arg)
   "This key is the prefix for Calc help functions.  See calc-help-for-help."
@@ -93,18 +90,15 @@ C-w  Describe how there is no warranty for Calc."
 
 (defun calc-describe-copying ()
   (interactive)
-  (calc-info)
-  (Info-goto-node "Copying"))
+  (calc-info-goto-node "Copying"))
 
 (defun calc-describe-distribution ()
   (interactive)
-  (calc-info)
-  (Info-goto-node "Reporting Bugs"))
+  (calc-info-goto-node "Reporting Bugs"))
 
 (defun calc-describe-no-warranty ()
   (interactive)
-  (calc-info)
-  (Info-goto-node "Copying")
+  (calc-info-goto-node "Copying")
   (let ((case-fold-search nil))
     (search-forward "     NO WARRANTY"))
   (beginning-of-line)
@@ -115,38 +109,33 @@ C-w  Describe how there is no warranty for Calc."
   (describe-bindings)
   (save-excursion
     (set-buffer "*Help*")
-    (goto-char (point-min))
-    (if (search-forward "Global bindings:" nil t)
-	(delete-region (match-beginning 0) (point-max)))
-    (goto-char (point-min))
-    (while (re-search-forward "\n[a-z] ESC" nil t)
-      (end-of-line)
-      (delete-region (match-beginning 0) (point)))
-    (goto-char (point-min))
-    (while (re-search-forward "\nESC m" nil t)
-      (end-of-line)
-      (delete-region (match-beginning 0) (point)))
-    (goto-char (point-min))
-    (while (search-forward "\n\n\n" nil t)
-      (backward-delete-char 1)
-      (backward-char 2))
-    (goto-char (point-min))
-    (while
-	(re-search-forward
-	 "\n[a-z] [0-9]\\(\t\t.*\n\\)\\([a-z] [0-9]\\1\\)*[a-z] \\([0-9]\\)\\1"
-	 nil t)
-      (let ((dig1 (char-after (1- (match-beginning 1))))
-	    (dig2 (char-after (match-beginning 3))))
-	(delete-region (match-end 1) (match-end 0))
-	(goto-char (match-beginning 1))
-	(delete-backward-char 1)
-	(delete-char 1)
-	(insert (format "%c .. %c" (min dig1 dig2) (max dig1 dig2)))))
-    (goto-char (point-min))))
+    (let ((inhibit-read-only t))
+      (goto-char (point-min))
+      (when (search-forward "Major Mode Bindings:" nil t)
+        (delete-region (point-min) (point))
+        (insert "Calc Mode Bindings:"))
+      (when (search-forward "Global bindings:" nil t)
+        (forward-line -1)
+        (delete-region (point) (point-max)))
+      (goto-char (point-min))
+      (while
+          (re-search-forward
+           "\n[a-z] [0-9]\\( .*\n\\)\\([a-z] [0-9]\\1\\)*[a-z] \\([0-9]\\)\\1"
+           nil t)
+        (let ((dig1 (char-after (1- (match-beginning 1))))
+              (dig2 (char-after (match-beginning 3))))
+          (delete-region (match-end 1) (match-end 0))
+          (goto-char (match-beginning 1))
+          (delete-backward-char 1)
+          (delete-char 5)
+          (insert (format "%c .. %c" (min dig1 dig2) (max dig1 dig2)))))
+      (goto-char (point-min)))))
 
 (defun calc-describe-key-briefly (key)
   (interactive "kDescribe key briefly: ")
   (calc-describe-key key t))
+
+(defvar Info-history)
 
 (defun calc-describe-key (key &optional briefly)
   (interactive "kDescribe key: ")
@@ -166,7 +155,8 @@ C-w  Describe how there is no warranty for Calc."
 		      (lookup-key calc-help-map key2))
 		  (key-binding key))))
 	(inv nil)
-	(hyp nil))
+	(hyp nil)
+        calc-summary-indentation)
     (while (or (equal key "I") (equal key "H"))
       (if (equal key "I")
 	  (setq inv (not inv))
@@ -188,19 +178,20 @@ C-w  Describe how there is no warranty for Calc."
 		       (if (= (buffer-size) 0)
 			   (progn
 			     (message "Reading Calc summary from manual...")
-			     (save-window-excursion
-			       (save-excursion
-				 (calc-info)
-				 (Info-goto-node "Summary")
-				 (goto-char (point-min))
-				 (forward-line 1)
-				 (copy-to-buffer "*Calc Summary*"
-						 (point) (point-max))
-				 (Info-last)))
-			     (setq case-fold-search nil)
-			     (re-search-forward "^\\(.*\\)\\[\\.\\. a b")
-			     (setq calc-summary-indentation
-				   (- (match-end 1) (match-beginning 1)))))
+                             (require 'info nil t)
+                             (with-temp-buffer
+                               (Info-mode)
+                               (Info-goto-node "(Calc)Summary")
+                               (goto-char (point-min))
+                               (forward-line 1)
+                               (copy-to-buffer "*Calc Summary*"
+                                               (point) (point-max)))
+                             (setq buffer-read-only t)))
+                       (goto-char (point-min))
+                       (setq case-fold-search nil)
+                       (re-search-forward "^\\(.*\\)\\[\\.\\. a b")
+                       (setq calc-summary-indentation
+                             (- (match-end 1) (match-beginning 1)))
 		       (goto-char (point-min))
 		       (setq target (if (and (string-match "[0-9]\\'" desc)
 					     (not (string-match "[d#]" desc)))
@@ -299,35 +290,62 @@ C-w  Describe how there is no warranty for Calc."
 	(calc-describe-thing desc "Key Index" nil
 			     (string-match "[A-Z][A-Z][A-Z]" desc))))))
 
+(defvar calc-help-function-list nil
+  "List of functions provided by Calc.")
+
+(defvar calc-help-variable-list nil
+  "List of variables provided by Calc.")
+
+(defun calc-help-index-entries (&rest indices)
+  "Create a list of entries from the INDICES in the Calc info manual."
+  (let ((entrylist '())
+        entry)
+    (require 'info nil t)
+    (while indices
+      (condition-case nil
+          (with-temp-buffer
+            (Info-mode)
+            (Info-goto-node (concat "(Calc)" (car indices) " Index"))
+            (goto-char (point-min))
+            (while (re-search-forward "\n\\* \\(.*\\): " nil t)
+              (setq entry (match-string 1))
+              (if (and (not (string-match "<[1-9]+>" entry))
+                       (not (string-match "(.*)" entry))
+                       (not (string= entry "Menu")))
+                  (unless (assoc entry entrylist)
+                    (setq entrylist (cons entry entrylist))))))
+        (error nil))
+      (setq indices (cdr indices)))
+    entrylist))
+
 (defun calc-describe-function (&optional func)
   (interactive)
+  (unless calc-help-function-list
+    (setq calc-help-function-list 
+          (calc-help-index-entries "Function" "Command")))
   (or func
-      (setq func (intern (completing-read "Describe function: "
-					  obarray nil t "calcFunc-"))))
-  (setq func (symbol-name func))
+      (setq func (completing-read "Describe function: "
+                                  calc-help-function-list 
+                                  nil t)))
   (if (string-match "\\`calc-." func)
       (calc-describe-thing func "Command Index")
-    (calc-describe-thing (if (string-match "\\`calcFunc-." func)
-			     (substring func 9)
-			   func)
-			 "Function Index")))
+    (calc-describe-thing func "Function Index")))
 
 (defun calc-describe-variable (&optional var)
   (interactive)
+  (unless calc-help-variable-list
+    (setq calc-help-variable-list 
+          (calc-help-index-entries "Variable")))
   (or var
-      (setq var (intern (completing-read "Describe variable: "
-					 obarray nil t "var-"))))
-  (setq var (symbol-name var))
-  (calc-describe-thing var "Variable Index"
-		       (if (string-match "\\`var-." var)
-			   (substring var 4)
-			 var)))
+      (setq var (completing-read "Describe variable: "
+                                 calc-help-variable-list
+                                 nil t)))
+  (calc-describe-thing var "Variable Index"))
 
 (defun calc-describe-thing (thing where &optional target not-quoted)
   (message "Looking for `%s' in %s..." thing where)
   (let ((savewin (current-window-configuration)))
-    (calc-info)
-    (Info-goto-node where)
+    (calc-info-goto-node where)
     (or (let ((case-fold-search nil))
 	  (re-search-forward (format "\n\\* +%s: \\(.*\\)\\."
 				     (regexp-quote thing))
@@ -338,7 +356,8 @@ C-w  Describe how there is no warranty for Calc."
 				nil t)
 	     (setq thing (format "%s9" (substring thing 0 -1))))
 	(progn
-	  (Info-last)
+          (if Info-history
+              (Info-last))
 	  (set-window-configuration savewin)
 	  (error "Can't find `%s' in %s" thing where)))
     (let (Info-history)
@@ -374,20 +393,28 @@ C-w  Describe how there is no warranty for Calc."
 	(error "Can't locate Calc sources"))
     (calc-quit)
     (switch-to-buffer "*Help*")
-    (erase-buffer)
-    (insert-file-contents (expand-file-name "README" (car path)))
-    (search-forward "Summary of changes")
-    (forward-line -1)
-    (delete-region (point-min) (point))
-    (goto-char (point-min))))
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (insert-file-contents (expand-file-name "README" (car path)))
+      (search-forward "Summary of changes")
+      (forward-line -1)
+      (delete-region (point-min) (point))
+      (goto-char (point-min)))
+    (help-mode)))
+
+(defvar calc-help-long-names '((?b . "binary/business")
+			       (?g . "graphics")
+			       (?j . "selection")
+			       (?k . "combinatorics/statistics")
+			       (?u . "units/statistics")))
 
 (defun calc-full-help ()
   (interactive)
   (with-output-to-temp-buffer "*Help*"
-    (princ (format "GNU Emacs Calculator version %s of %s.\n"
-		   calc-version calc-version-date))
-    (princ "  By Dave Gillespie, daveg@synaptics.com.\n")
-    (princ "  Copyright (C) 1990, 1993 Free Software Foundation, Inc.\n\n")
+    (princ (format "GNU Emacs Calculator version %s.\n"
+		   calc-version))
+    (princ "  By Dave Gillespie.\n")
+    (princ "  Copyright (C) 2005 Free Software Foundation, Inc.\n\n")
     (princ "Type `h s' for a more detailed summary.\n")
     (princ "Or type `h i' to read the full Calc manual on-line.\n\n")
     (princ "Basic keys:\n")
@@ -436,12 +463,6 @@ C-w  Describe how there is no warranty for Calc."
 		calc-shift-Z-prefix-help
 		calc-z-prefix-help)))
     (print-help-return-message)))
-
-(defvar calc-help-long-names '((?b . "binary/business")
-			       (?g . "graphics")
-			       (?j . "selection")
-			       (?k . "combinatorics/statistics")
-			       (?u . "units/statistics")))
 
 (defun calc-h-prefix-help ()
   (interactive)
@@ -505,7 +526,7 @@ C-w  Describe how there is no warranty for Calc."
   (interactive)
   (calc-do-prefix-help
    '("Store, inTo, Xchg, Unstore; Recall, 0-9; : (:=); = (=>)"
-     "Let; Copy; Declare; Insert, Perm; Edit"
+     "Let; Copy, K=copy constant; Declare; Insert, Perm; Edit"
      "Negate, +, -, *, /, ^, &, |, [, ]; Map"
      "SHIFT + Decls, GenCount, TimeZone, Holidays; IntegLimit"
      "SHIFT + LineStyles, PointStyles, plotRejects; Units"
@@ -574,7 +595,7 @@ C-w  Describe how there is no warranty for Calc."
      "Why; Line-nums, line-Breaks; <, =, > (justify); Plain"
      "\" (strings); Truncate, [, ]; SPC (refresh), RET, @"
      "SHIFT + language: Normal, One-line, Big, Unformatted"
-     "SHIFT + language: C, Pascal, Fortran; TeX, Eqn"
+     "SHIFT + language: C, Pascal, Fortran; TeX, LaTeX, Eqn"
      "SHIFT + language: Mathematica, W=Maple")
    "display" ?d))
 
@@ -609,7 +630,7 @@ C-w  Describe how there is no warranty for Calc."
   (interactive)
   (calc-do-prefix-help
    '("Deg, Rad, HMS; Frac; Polar; Inf; Alg, Total; Symb; Vec/mat"
-     "Working; Xtensions; Mode-save"
+     "Working; Xtensions; Mode-save; preserve Embedded modes"
      "SHIFT + Shifted-prefixes, mode-Filename; Record; reCompute"
      "SHIFT + simplify: Off, Num, Default, Bin, Alg, Ext, Units")
    "mode" ?m))
@@ -655,4 +676,7 @@ C-w  Describe how there is no warranty for Calc."
      "} (matrix brackets); . (abbreviate); / (multi-lines)")
    "vec/mat" ?v))
 
+(provide 'calc-help)
+
+;; arch-tag: 2d347593-7591-449e-a64a-93dab5f2f686
 ;;; calc-help.el ends here

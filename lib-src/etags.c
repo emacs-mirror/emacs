@@ -1,6 +1,7 @@
 /* Tags file maker to go with GNU Emacs           -*- coding: latin-1 -*-
-   Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2001, 2002
-   Free Software Foundation, Inc. and Ken Arnold
+   Copyright (C) 1984, 1987, 1988, 1989, 1993, 1994, 1995,
+                 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc. and Ken Arnold
 
  This file is not considered part of GNU Emacs.
 
@@ -16,7 +17,7 @@
 
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software Foundation,
- Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
+ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 
 /*
  * Authors:
@@ -32,10 +33,15 @@
  * 2002 #line directives by Francesco Potortì.
  *
  * Francesco Potortì <pot@gnu.org> has maintained and improved it since 1993.
- *
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 16.56";
+/*
+ * If you want to add support for a new language, start by looking at the LUA
+ * language, which is the simplest.  Alternatively, consider shipping a
+ * configuration file containing regexp definitions for etags.
+ */
+
+char pot_etags_version[] = "@(#) pot revision number is 17.15";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -61,11 +67,11 @@ char pot_etags_version[] = "@(#) pot revision number is 16.56";
 # ifndef __P			/* for Xemacs */
 #   define __P(args) args
 # endif
-#else
+#else  /* no config.h */
 # if defined(__STDC__) && (__STDC__ || defined(__SUNPRO_C))
 #   define __P(args) args	/* use prototypes */
 #   define PTR void *		/* for generic pointers */
-# else
+# else /* not standard C */
 #   define __P(args) ()		/* no prototypes */
 #   define const		/* remove const for old compilers' sake */
 #   define PTR long *		/* don't use void* */
@@ -74,6 +80,13 @@ char pot_etags_version[] = "@(#) pot revision number is 16.56";
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE 1		/* enables some compiler checks on GNU */
+#endif
+
+#ifdef LONG_OPTIONS
+#  undef LONG_OPTIONS
+#  define LONG_OPTIONS TRUE
+#else
+#  define LONG_OPTIONS  FALSE
 #endif
 
 /* WIN32_NATIVE is for Xemacs.
@@ -111,12 +124,19 @@ char pot_etags_version[] = "@(#) pot revision number is 16.56";
 # ifndef HAVE_GETCWD
 #   define HAVE_GETCWD
 # endif /* undef HAVE_GETCWD */
-#else /* !WINDOWSNT */
+#else /* not WINDOWSNT */
 # ifdef STDC_HEADERS
 #  include <stdlib.h>
 #  include <string.h>
-# else
+# else /* no standard C headers */
     extern char *getenv ();
+#  ifdef VMS
+#   define EXIT_SUCCESS	1
+#   define EXIT_FAILURE	0
+#  else /* no VMS */
+#   define EXIT_SUCCESS	0
+#   define EXIT_FAILURE	1
+#  endif
 # endif
 #endif /* !WINDOWSNT */
 
@@ -147,7 +167,7 @@ char pot_etags_version[] = "@(#) pot revision number is 16.56";
 # define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)
 #endif
 
-#ifdef LONG_OPTIONS
+#if LONG_OPTIONS
 # include <getopt.h>
 #else
 # define getopt_long(argc,argv,optstr,lopts,lind) getopt (argc, argv, optstr)
@@ -175,15 +195,6 @@ If you want regular expression support, you should delete this notice and
 # define CTAGS TRUE
 #else
 # define CTAGS FALSE
-#endif
-
-/* Exit codes for success and failure.  */
-#ifdef VMS
-# define	GOOD	1
-# define	BAD	0
-#else
-# define	GOOD	0
-# define	BAD	1
 #endif
 
 #define streq(s,t)	(assert((s)!=NULL || (t)!=NULL), !strcmp (s, t))
@@ -332,9 +343,11 @@ static void Cobol_paragraphs __P((FILE *));
 static void Cplusplus_entries __P((FILE *));
 static void Cstar_entries __P((FILE *));
 static void Erlang_functions __P((FILE *));
+static void Forth_words __P((FILE *));
 static void Fortran_functions __P((FILE *));
 static void HTML_labels __P((FILE *));
 static void Lisp_functions __P((FILE *));
+static void Lua_functions __P((FILE *));
 static void Makefile_targets __P((FILE *));
 static void Pascal_functions __P((FILE *));
 static void Perl_functions __P((FILE *));
@@ -464,6 +477,11 @@ static bool cplusplus;		/* .[hc] means C++, not C */
 static bool ignoreindent;	/* -I: ignore indentation in C */
 static bool packages_only;	/* --packages-only: in Ada, only tag packages*/
 
+/* STDIN is defined in LynxOS system headers */
+#ifdef STDIN
+# undef STDIN
+#endif
+
 #define STDIN 0x1001		/* returned by getopt_long on --parse-stdin */
 static bool parsing_stdin;	/* --parse-stdin used */
 
@@ -474,9 +492,10 @@ static bool need_filebuf;	/* some regexes are multi-line */
 # define need_filebuf FALSE
 #endif /* ETAGS_REGEXPS */
 
-#ifdef LONG_OPTIONS
+#if LONG_OPTIONS
 static struct option longopts[] =
 {
+  { "append",		  no_argument,	     NULL,	     	 'a'   },
   { "packages-only",      no_argument,	     &packages_only, 	 TRUE  },
   { "c++",		  no_argument,	     NULL,	     	 'C'   },
   { "declarations",	  no_argument,	     &declarations,  	 TRUE  },
@@ -496,7 +515,7 @@ static struct option longopts[] =
   { "parse-stdin",        required_argument, NULL,               STDIN },
   { "version",		  no_argument,	     NULL,     	     	 'V'   },
 
-#if CTAGS /* Etags options */
+#if CTAGS /* Ctags options */
   { "backward-search",	  no_argument,	     NULL,	     	 'B'   },
   { "cxref",		  no_argument,	     NULL,	     	 'x'   },
   { "defines",		  no_argument,	     NULL,	     	 'd'   },
@@ -507,8 +526,7 @@ static struct option longopts[] =
   { "vgrind",		  no_argument,	     NULL,     	     	 'v'   },
   { "no-warn",		  no_argument,	     NULL,	     	 'w'   },
 
-#else /* Ctags options */
-  { "append",		  no_argument,	     NULL,	     	 'a'   },
+#else /* Etags options */
   { "no-defines",	  no_argument,	     NULL,	     	 'D'   },
   { "no-globals",	  no_argument,	     &globals, 	     	 FALSE },
   { "include",		  required_argument, NULL,     	     	 'i'   },
@@ -619,6 +637,12 @@ static char Erlang_help [] =
 "In Erlang code, the tags are the functions, records and macros\n\
 defined in the file.";
 
+char *Forth_suffixes [] =
+  { "fth", "tok", NULL };
+static char Forth_help [] =
+"In Forth code, tags are words defined by `:',\n\
+constant, code, create, defer, value, variable, buffer:, field.";
+
 static char *Fortran_suffixes [] =
   { "F", "f", "f90", "for", NULL };
 static char Fortran_help [] =
@@ -638,6 +662,11 @@ static char Lisp_help [] =
 defined with `defvar' or `defconst', and in general the first\n\
 argument of any expression that starts with `(def' in column zero\n\
 is a tag.";
+
+static char *Lua_suffixes [] =
+  { "lua", "LUA", NULL };
+static char Lua_help [] =
+"In Lua scripts, all functions are tags.";
 
 static char *Makefile_filenames [] =
   { "Makefile", "makefile", "GNUMakefile", "Makefile.in", "Makefile.am", NULL};
@@ -761,10 +790,12 @@ static language lang_names [] =
   { "c*",        no_lang_help,   Cstar_entries,     Cstar_suffixes     },
   { "cobol",     Cobol_help,     Cobol_paragraphs,  Cobol_suffixes     },
   { "erlang",    Erlang_help,    Erlang_functions,  Erlang_suffixes    },
+  { "forth",     Forth_help,     Forth_words,       Forth_suffixes     },
   { "fortran",   Fortran_help,   Fortran_functions, Fortran_suffixes   },
   { "html",      HTML_help,      HTML_labels,       HTML_suffixes      },
   { "java",      Cjava_help,     Cjava_entries,     Cjava_suffixes     },
   { "lisp",      Lisp_help,      Lisp_functions,    Lisp_suffixes      },
+  { "lua",       Lua_help,       Lua_functions,     Lua_suffixes       },
   { "makefile",  Makefile_help,Makefile_targets,NULL,Makefile_filenames},
   { "objc",      Objc_help,      plain_C_entries,   Objc_suffixes      },
   { "pascal",    Pascal_help,    Pascal_functions,  Pascal_suffixes    },
@@ -830,7 +861,7 @@ print_version ()
   puts ("Copyright (C) 2002 Free Software Foundation, Inc. and Ken Arnold");
   puts ("This program is distributed under the same terms as Emacs");
 
-  exit (GOOD);
+  exit (EXIT_SUCCESS);
 }
 
 static void
@@ -849,23 +880,21 @@ print_help (argbuffer)
       }
 
   if (help_for_lang)
-    exit (GOOD);
+    exit (EXIT_SUCCESS);
 
   printf ("Usage: %s [options] [[regex-option ...] file-name] ...\n\
 \n\
 These are the options accepted by %s.\n", progname, progname);
-#ifdef LONG_OPTIONS
-  puts ("You may use unambiguous abbreviations for the long option names.");
-#else
-  puts ("Long option names do not work with this executable, as it is not\n\
+  if (LONG_OPTIONS)
+    puts ("You may use unambiguous abbreviations for the long option names.");
+  else
+    puts ("Long option names do not work with this executable, as it is not\n\
 linked with GNU getopt.");
-#endif /* LONG_OPTIONS */
   puts ("  A - as file name means read names from stdin (one per line).\n\
 Absolute names are stored in the output file as they are.\n\
 Relative ones are stored relative to the output file's directory.\n");
 
-  if (!CTAGS)
-    puts ("-a, --append\n\
+  puts ("-a, --append\n\
         Append tag entries to existing tags file.");
 
   puts ("--packages-only\n\
@@ -965,9 +994,9 @@ Relative ones are stored relative to the output file's directory.\n");
   if (CTAGS)
     {
       puts ("-v, --vgrind\n\
-        Generates an index of items intended for human consumption,\n\
-        similar to the output of vgrind.  The index is sorted, and\n\
-        gives the page number of each item.");
+        Print on the standard output an index of items intended for\n\
+        human consumption, similar to the output of vgrind.  The index\n\
+        is sorted, and gives the page number of each item.");
       puts ("-w, --no-warn\n\
         Suppress warning messages about entries defined in multiple\n\
         files.");
@@ -990,7 +1019,7 @@ Relative ones are stored relative to the output file's directory.\n");
   puts ("");
   puts ("Report bugs to bug-gnu-emacs@gnu.org");
 
-  exit (GOOD);
+  exit (EXIT_SUCCESS);
 }
 
 
@@ -1163,18 +1192,19 @@ main (argc, argv)
       globals = TRUE;
     }
 
+  /* When the optstring begins with a '-' getopt_long does not rearrange the
+     non-options arguments to be at the end, but leaves them alone. */
   optstring = "-";
 #ifdef ETAGS_REGEXPS
   optstring = "-r:Rc:";
 #endif /* ETAGS_REGEXPS */
-#ifndef LONG_OPTIONS
-  optstring = optstring + 1;
-#endif /* LONG_OPTIONS */
+  if (!LONG_OPTIONS)
+    optstring += 1;		/* remove the initial '-' */
   optstring = concat (optstring,
-		      "Cf:Il:o:SVhH",
-		      (CTAGS) ? "BxdtTuvw" : "aDi:");
+		      "aCf:Il:o:SVhH",
+		      (CTAGS) ? "BxdtTuvw" : "Di:");
 
-  while ((opt = getopt_long (argc, argv, optstring, longopts, 0)) != EOF)
+  while ((opt = getopt_long (argc, argv, optstring, longopts, NULL)) != EOF)
     switch (opt)
       {
       case 0:
@@ -1202,6 +1232,7 @@ main (argc, argv)
 	break;
 
 	/* Common options. */
+      case 'a': append_to_tagfile = TRUE;	break;
       case 'C': cplusplus = TRUE;		break;
       case 'f':		/* for compatibility with old makefiles */
       case 'o':
@@ -1251,7 +1282,6 @@ main (argc, argv)
 	break;
 
 	/* Etags options */
-      case 'a': append_to_tagfile = TRUE;			break;
       case 'D': constantypedefs = FALSE;			break;
       case 'i': included_files[nincluded_files++] = optarg;	break;
 
@@ -1269,6 +1299,7 @@ main (argc, argv)
 	/* NOTREACHED */
       }
 
+  /* No more options.  Store the rest of arguments. */
   for (; optind < argc; optind++)
     {
       argbuffer[current_arg].arg_type = at_filename;
@@ -1299,7 +1330,9 @@ main (argc, argv)
       cwd = concat (oldcwd, "/", "");
       free (oldcwd);
     }
-  if (streq (tagfile, "-"))
+  /* Relative file names are made relative to the current directory. */
+  if (streq (tagfile, "-")
+      || strneq (tagfile, "/dev/", 5))
     tagfiledir = cwd;
   else
     tagfiledir = absolute_dirname (tagfile, cwd);
@@ -1395,7 +1428,8 @@ main (argc, argv)
 
   if (!CTAGS || cxref_style)
     {
-      put_entries (nodehead);	/* write the remainig tags (ETAGS) */
+      /* Write the remaining tags to tagf (ETAGS) or stdout (CXREF). */
+      put_entries (nodehead);
       free_tree (nodehead);
       nodehead = NULL;
       if (!CTAGS)
@@ -1409,11 +1443,12 @@ main (argc, argv)
 
 	  while (nincluded_files-- > 0)
 	    fprintf (tagf, "\f\n%s,include\n", *included_files++);
+
+	  if (fclose (tagf) == EOF)
+	    pfatal (tagfile);
 	}
 
-      if (fclose (tagf) == EOF)
-	pfatal (tagfile);
-      exit (GOOD);
+      exit (EXIT_SUCCESS);
     }
 
   if (update)
@@ -1432,7 +1467,7 @@ main (argc, argv)
 	  sprintf (cmd,
 		   "mv %s OTAGS;fgrep -v '\t%s\t' OTAGS >%s;rm OTAGS",
 		   tagfile, argbuffer[i].what, tagfile);
-	  if (system (cmd) != GOOD)
+	  if (system (cmd) != EXIT_SUCCESS)
 	    fatal ("failed to execute shell command", (char *)NULL);
 	}
       append_to_tagfile = TRUE;
@@ -1447,13 +1482,14 @@ main (argc, argv)
   if (fclose (tagf) == EOF)
     pfatal (tagfile);
 
-  if (update)
-    {
-      char cmd[2*BUFSIZ+10];
-      sprintf (cmd, "sort -o %.*s %.*s", BUFSIZ, tagfile, BUFSIZ, tagfile);
-      exit (system (cmd));
-    }
-  return GOOD;
+  if (CTAGS)
+    if (append_to_tagfile || update)
+      {
+	char cmd[2*BUFSIZ+10];
+	sprintf (cmd, "sort -o %.*s %.*s", BUFSIZ, tagfile, BUFSIZ, tagfile);
+	exit (system (cmd));
+      }
+  return EXIT_SUCCESS;
 }
 
 
@@ -2377,11 +2413,11 @@ enum sym_type
   st_none,
   st_C_objprot, st_C_objimpl, st_C_objend,
   st_C_gnumacro,
-  st_C_ignore,
+  st_C_ignore, st_C_attribute,
   st_C_javastruct,
   st_C_operator,
   st_C_class, st_C_template,
-  st_C_struct, st_C_extern, st_C_enum, st_C_define, st_C_typedef, st_C_typespec
+  st_C_struct, st_C_extern, st_C_enum, st_C_define, st_C_typedef
 };
 
 static unsigned int hash __P((const char *, unsigned int));
@@ -2389,79 +2425,67 @@ static struct C_stab_entry * in_word_set __P((const char *, unsigned int));
 static enum sym_type C_symtype __P((char *, int, int));
 
 /* Feed stuff between (but not including) %[ and %] lines to:
-      gperf -c -k 1,3 -o -p -r -t
+     gperf -m 5
 %[
+%compare-strncmp
+%enum
+%struct-type
 struct C_stab_entry { char *name; int c_ext; enum sym_type type; }
 %%
-if,		0,	st_C_ignore
-for,		0,	st_C_ignore
-while,		0,	st_C_ignore
-switch,		0,	st_C_ignore
-return,		0,	st_C_ignore
-@interface,	0,	st_C_objprot
-@protocol,	0,	st_C_objprot
-@implementation,0,	st_C_objimpl
-@end,		0,	st_C_objend
-import,		C_JAVA,	st_C_ignore
-package,	C_JAVA,	st_C_ignore
-friend,		C_PLPL,	st_C_ignore
-extends,  	C_JAVA,	st_C_javastruct
-implements,  	C_JAVA,	st_C_javastruct
-interface,	C_JAVA, st_C_struct
-class,  	0,	st_C_class
-namespace,	C_PLPL,	st_C_struct
-domain, 	C_STAR,	st_C_struct
-union,  	0,	st_C_struct
-struct, 	0,	st_C_struct
-extern,  	0,	st_C_extern
-enum,    	0,	st_C_enum
-typedef, 	0,	st_C_typedef
-define,  	0,	st_C_define
-operator,	C_PLPL, st_C_operator
-template,	0,	st_C_template
-bool,		C_PLPL,	st_C_typespec
-long,    	0,	st_C_typespec
-short,   	0,	st_C_typespec
-int,     	0,	st_C_typespec
-char,    	0,	st_C_typespec
-float,   	0,	st_C_typespec
-double,  	0,	st_C_typespec
-signed,  	0,	st_C_typespec
-unsigned,	0,	st_C_typespec
-auto,    	0,	st_C_typespec
-void,    	0,	st_C_typespec
-static,  	0,	st_C_typespec
-const,   	0,	st_C_typespec
-volatile,	0,	st_C_typespec
-explicit,	C_PLPL,	st_C_typespec
-mutable,	C_PLPL,	st_C_typespec
-typename,	C_PLPL,	st_C_typespec
+if,		0,			st_C_ignore
+for,		0,			st_C_ignore
+while,		0,			st_C_ignore
+switch,		0,			st_C_ignore
+return,		0,			st_C_ignore
+__attribute__,	0,			st_C_attribute
+@interface,	0,			st_C_objprot
+@protocol,	0,			st_C_objprot
+@implementation,0,			st_C_objimpl
+@end,		0,			st_C_objend
+import,		(C_JAVA & !C_PLPL),	st_C_ignore
+package,	(C_JAVA & !C_PLPL),	st_C_ignore
+friend,		C_PLPL,			st_C_ignore
+extends,	(C_JAVA & !C_PLPL),	st_C_javastruct
+implements,	(C_JAVA & !C_PLPL),	st_C_javastruct
+interface,	(C_JAVA & !C_PLPL),	st_C_struct
+class,		0,			st_C_class
+namespace,	C_PLPL,			st_C_struct
+domain,		C_STAR,			st_C_struct
+union,		0,			st_C_struct
+struct,		0,			st_C_struct
+extern,		0,			st_C_extern
+enum,		0,			st_C_enum
+typedef,	0,			st_C_typedef
+define,		0,			st_C_define
+operator,	C_PLPL,			st_C_operator
+template,	0,			st_C_template
 # DEFUN used in emacs, the next three used in glibc (SYSCALL only for mach).
-DEFUN,		0,	st_C_gnumacro
-SYSCALL,	0,	st_C_gnumacro
-ENTRY,		0,	st_C_gnumacro
-PSEUDO,		0,	st_C_gnumacro
+DEFUN,		0,			st_C_gnumacro
+SYSCALL,	0,			st_C_gnumacro
+ENTRY,		0,			st_C_gnumacro
+PSEUDO,		0,			st_C_gnumacro
 # These are defined inside C functions, so currently they are not met.
 # EXFUN used in glibc, DEFVAR_* in emacs.
-#EXFUN,		0,	st_C_gnumacro
-#DEFVAR_,	0,	st_C_gnumacro
+#EXFUN,		0,			st_C_gnumacro
+#DEFVAR_,	0,			st_C_gnumacro
 %]
-and replace lines between %< and %> with its output,
-then make in_word_set and C_stab_entry static. */
+and replace lines between %< and %> with its output, then:
+ - remove the #if characterset check
+ - make in_word_set static and not inline. */
 /*%<*/
-/* C code produced by gperf version 2.7.1 (19981006 egcs) */
-/* Command-line: gperf -c -k 1,3 -o -p -r -t  */
-struct C_stab_entry { char *name; int c_ext; enum sym_type type; };
+/* C code produced by gperf version 3.0.1 */
+/* Command-line: gperf -m 5  */
+/* Computed positions: -k'1-2' */
 
-#define TOTAL_KEYWORDS 47
-#define MIN_WORD_LENGTH 2
-#define MAX_WORD_LENGTH 15
-#define MIN_HASH_VALUE 18
-#define MAX_HASH_VALUE 138
-/* maximum key range = 121, duplicates = 0 */
+struct C_stab_entry { char *name; int c_ext; enum sym_type type; };
+/* maximum key range = 31, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
+#else
+#ifdef __cplusplus
+inline
+#endif
 #endif
 static unsigned int
 hash (str, len)
@@ -2470,132 +2494,84 @@ hash (str, len)
 {
   static unsigned char asso_values[] =
     {
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139,  63, 139, 139, 139,  33,  44,
-       62, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-       42, 139, 139,  12,  32, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139,  34,  59,  37,
-       24,  58,  33,   3, 139,  16, 139, 139,  42,  60,
-       18,  11,  39, 139,  23,  57,   4,  63,   6,  20,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
-      139, 139, 139, 139, 139, 139
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34,  1, 34, 34, 34, 14, 14,
+      34, 34, 34, 34, 34, 34, 34, 34, 13, 34,
+      13, 34, 34, 12, 34, 34, 34, 34, 34, 11,
+      34, 34, 34, 34, 34,  8, 34, 11, 34, 12,
+      11,  0,  1, 34,  7,  0, 34, 34, 11,  9,
+       0,  4,  0, 34,  7,  4, 14, 21, 34, 15,
+       0,  2, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+      34, 34, 34, 34, 34, 34
     };
-  register int hval = len;
-
-  switch (hval)
-    {
-      default:
-      case 3:
-        hval += asso_values[(unsigned char)str[2]];
-      case 2:
-      case 1:
-        hval += asso_values[(unsigned char)str[0]];
-        break;
-    }
-  return hval;
+  return len + asso_values[(unsigned char)str[1]] + asso_values[(unsigned char)str[0]];
 }
 
-#ifdef __GNUC__
-__inline
-#endif
 static struct C_stab_entry *
 in_word_set (str, len)
      register const char *str;
      register unsigned int len;
 {
+  enum
+    {
+      TOTAL_KEYWORDS = 31,
+      MIN_WORD_LENGTH = 2,
+      MAX_WORD_LENGTH = 15,
+      MIN_HASH_VALUE = 3,
+      MAX_HASH_VALUE = 33
+    };
+
   static struct C_stab_entry wordlist[] =
     {
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {"if",		0,	st_C_ignore},
-      {""}, {""}, {""}, {""},
-      {"int",     	0,	st_C_typespec},
-      {""}, {""},
-      {"void",    	0,	st_C_typespec},
-      {""}, {""},
-      {"interface",	C_JAVA, st_C_struct},
-      {""},
-      {"SYSCALL",	0,	st_C_gnumacro},
-      {""},
-      {"return",		0,	st_C_ignore},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {"while",		0,	st_C_ignore},
-      {"auto",    	0,	st_C_typespec},
-      {""}, {""}, {""}, {""}, {""}, {""},
-      {"float",   	0,	st_C_typespec},
-      {"typedef", 	0,	st_C_typedef},
-      {"typename",	C_PLPL,	st_C_typespec},
       {""}, {""}, {""},
-      {"friend",		C_PLPL,	st_C_ignore},
-      {"volatile",	0,	st_C_typespec},
-      {""}, {""},
-      {"for",		0,	st_C_ignore},
-      {"const",   	0,	st_C_typespec},
-      {"import",		C_JAVA,	st_C_ignore},
-      {""},
-      {"define",  	0,	st_C_define},
-      {"long",    	0,	st_C_typespec},
-      {"implements",  	C_JAVA,	st_C_javastruct},
-      {"signed",  	0,	st_C_typespec},
-      {""},
-      {"extern",  	0,	st_C_extern},
-      {"extends",  	C_JAVA,	st_C_javastruct},
-      {""},
-      {"mutable",	C_PLPL,	st_C_typespec},
-      {"template",	0,	st_C_template},
-      {"short",   	0,	st_C_typespec},
-      {"bool",		C_PLPL,	st_C_typespec},
-      {"char",    	0,	st_C_typespec},
-      {"class",  	0,	st_C_class},
-      {"operator",	C_PLPL, st_C_operator},
-      {""},
-      {"switch",		0,	st_C_ignore},
-      {""},
-      {"ENTRY",		0,	st_C_gnumacro},
-      {""},
-      {"package",	C_JAVA,	st_C_ignore},
-      {"union",  	0,	st_C_struct},
-      {"@end",		0,	st_C_objend},
-      {"struct", 	0,	st_C_struct},
-      {"namespace",	C_PLPL,	st_C_struct},
-      {""}, {""},
-      {"domain", 	C_STAR,	st_C_struct},
-      {"@interface",	0,	st_C_objprot},
-      {"PSEUDO",		0,	st_C_gnumacro},
-      {"double",  	0,	st_C_typespec},
-      {""},
-      {"@protocol",	0,	st_C_objprot},
-      {""},
-      {"static",  	0,	st_C_typespec},
-      {""}, {""},
-      {"DEFUN",		0,	st_C_gnumacro},
-      {""}, {""}, {""}, {""},
-      {"explicit",	C_PLPL,	st_C_typespec},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""},
-      {"enum",    	0,	st_C_enum},
-      {""}, {""},
-      {"unsigned",	0,	st_C_typespec},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {"@implementation",0,	st_C_objimpl}
+      {"if",		0,			st_C_ignore},
+      {"enum",		0,			st_C_enum},
+      {"@end",		0,			st_C_objend},
+      {"extern",		0,			st_C_extern},
+      {"extends",	(C_JAVA & !C_PLPL),	st_C_javastruct},
+      {"for",		0,			st_C_ignore},
+      {"interface",	(C_JAVA & !C_PLPL),	st_C_struct},
+      {"@protocol",	0,			st_C_objprot},
+      {"@interface",	0,			st_C_objprot},
+      {"operator",	C_PLPL,			st_C_operator},
+      {"return",		0,			st_C_ignore},
+      {"friend",		C_PLPL,			st_C_ignore},
+      {"import",		(C_JAVA & !C_PLPL),	st_C_ignore},
+      {"@implementation",0,			st_C_objimpl},
+      {"define",		0,			st_C_define},
+      {"package",	(C_JAVA & !C_PLPL),	st_C_ignore},
+      {"implements",	(C_JAVA & !C_PLPL),	st_C_javastruct},
+      {"namespace",	C_PLPL,			st_C_struct},
+      {"domain",		C_STAR,			st_C_struct},
+      {"template",	0,			st_C_template},
+      {"typedef",	0,			st_C_typedef},
+      {"struct",		0,			st_C_struct},
+      {"switch",		0,			st_C_ignore},
+      {"union",		0,			st_C_struct},
+      {"while",		0,			st_C_ignore},
+      {"class",		0,			st_C_class},
+      {"__attribute__",	0,			st_C_attribute},
+      {"SYSCALL",	0,			st_C_gnumacro},
+      {"PSEUDO",		0,			st_C_gnumacro},
+      {"ENTRY",		0,			st_C_gnumacro},
+      {"DEFUN",		0,			st_C_gnumacro}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -2606,7 +2582,7 @@ in_word_set (str, len)
         {
           register const char *s = wordlist[key].name;
 
-          if (*str == *s && !strncmp (str + 1, s + 1, len - 1))
+          if (*str == *s && !strncmp (str + 1, s + 1, len - 1) && s[len] == '\0')
             return &wordlist[key];
         }
     }
@@ -2628,6 +2604,11 @@ C_symtype (str, len, c_ext)
 }
 
 
+/*
+ * Ignoring __attribute__ ((list))
+ */
+static bool inattribute;	/* looking at an __attribute__ construct */
+
 /*
  * C functions and variables are recognized using a simple
  * finite automaton.  fvdef is its state variable.
@@ -2670,10 +2651,9 @@ static enum
 static enum
 {
   snone,			/* nothing seen yet,
-				   or in struct body if cblev > 0 */
+				   or in struct body if bracelev > 0 */
   skeyseen,			/* struct-like keyword seen */
   stagseen,			/* struct-like tag seen */
-  sintemplate,			/* inside template (ignore) */
   scolonseen			/* colon seen after struct-like tag */
 } structdef;
 
@@ -2747,7 +2727,7 @@ static void write_classname __P((linebuffer *, char *qualifier));
 
 static struct {
   char **cname;			/* nested class names */
-  int *cblev;			/* nested class curly brace level */
+  int *bracelev;		/* nested class brace level */
   int nl;			/* class nesting level (elements used) */
   int size;			/* length of the array */
 } cstack;			/* stack for nested declaration tags */
@@ -2755,38 +2735,38 @@ static struct {
 #define nestlev		(cstack.nl)
 /* After struct keyword or in struct body, not inside a nested function. */
 #define instruct	(structdef == snone && nestlev > 0			\
-			 && cblev == cstack.cblev[nestlev-1] + 1)
+			 && bracelev == cstack.bracelev[nestlev-1] + 1)
 
 static void
-pushclass_above (cblev, str, len)
-     int cblev;
+pushclass_above (bracelev, str, len)
+     int bracelev;
      char *str;
      int len;
 {
   int nl;
 
-  popclass_above (cblev);
+  popclass_above (bracelev);
   nl = cstack.nl;
   if (nl >= cstack.size)
     {
       int size = cstack.size *= 2;
       xrnew (cstack.cname, size, char *);
-      xrnew (cstack.cblev, size, int);
+      xrnew (cstack.bracelev, size, int);
     }
-  assert (nl == 0 || cstack.cblev[nl-1] < cblev);
+  assert (nl == 0 || cstack.bracelev[nl-1] < bracelev);
   cstack.cname[nl] = (str == NULL) ? NULL : savenstr (str, len);
-  cstack.cblev[nl] = cblev;
+  cstack.bracelev[nl] = bracelev;
   cstack.nl = nl + 1;
 }
 
 static void
-popclass_above (cblev)
-     int cblev;
+popclass_above (bracelev)
+     int bracelev;
 {
   int nl;
 
   for (nl = cstack.nl - 1;
-       nl >= 0 && cstack.cblev[nl] >= cblev;
+       nl >= 0 && cstack.bracelev[nl] >= bracelev;
        nl--)
     {
       if (cstack.cname[nl] != NULL)
@@ -2853,270 +2833,287 @@ static void make_C_tag __P((bool));
  */
 
 static bool
-consider_token (str, len, c, c_extp, cblev, parlev, is_func_or_var)
+consider_token (str, len, c, c_extp, bracelev, parlev, is_func_or_var)
      register char *str;	/* IN: token pointer */
      register int len;		/* IN: token length */
      register int c;		/* IN: first char after the token */
      int *c_extp;		/* IN, OUT: C extensions mask */
-     int cblev;			/* IN: curly brace level */
+     int bracelev;		/* IN: brace level */
      int parlev;		/* IN: parenthesis level */
      bool *is_func_or_var;	/* OUT: function or variable found */
 {
-  /* When structdef is stagseen, scolonseen, or snone with cblev > 0,
+  /* When structdef is stagseen, scolonseen, or snone with bracelev > 0,
      structtype is the type of the preceding struct-like keyword, and
-     structcblev is the curly brace level where it has been seen. */
+     structbracelev is the brace level where it has been seen. */
   static enum sym_type structtype;
-  static int structcblev;
+  static int structbracelev;
   static enum sym_type toktype;
 
 
   toktype = C_symtype (str, len, *c_extp);
 
   /*
-   * Advance the definedef state machine.
+   * Skip __attribute__
    */
-  switch (definedef)
+  if (toktype == st_C_attribute)
     {
-    case dnone:
-      /* We're not on a preprocessor line. */
-      if (toktype == st_C_gnumacro)
-	{
-	  fvdef = fdefunkey;
-	  return FALSE;
-	}
-      break;
-    case dsharpseen:
-      if (toktype == st_C_define)
-	{
-	  definedef = ddefineseen;
-	}
-      else
-	{
-	  definedef = dignorerest;
-	}
+      inattribute = TRUE;
       return FALSE;
-    case ddefineseen:
-      /*
-       * Make a tag for any macro, unless it is a constant
-       * and constantypedefs is FALSE.
-       */
-      definedef = dignorerest;
-      *is_func_or_var = (c == '(');
-      if (!*is_func_or_var && !constantypedefs)
-	return FALSE;
-      else
-	return TRUE;
-    case dignorerest:
-      return FALSE;
-    default:
-      error ("internal error: definedef value.", (char *)NULL);
-    }
+     }
 
-  /*
-   * Now typedefs
-   */
-  switch (typdef)
-    {
-    case tnone:
-      if (toktype == st_C_typedef)
-	{
-	  if (typedefs)
-	    typdef = tkeyseen;
-	  fvextern = FALSE;
-	  fvdef = fvnone;
-	  return FALSE;
-	}
-      break;
-    case tkeyseen:
-      switch (toktype)
-	{
-	case st_none:
-	case st_C_typespec:
-	case st_C_class:
-	case st_C_struct:
-	case st_C_enum:
-	  typdef = ttypeseen;
-	  break;
-	}
-      break;
-    case ttypeseen:
-      if (structdef == snone && fvdef == fvnone)
-	{
-	  fvdef = fvnameseen;
-	  return TRUE;
-	}
-      break;
-    case tend:
-      switch (toktype)
-	{
-	case st_C_typespec:
-	case st_C_class:
-	case st_C_struct:
-	case st_C_enum:
-	  return FALSE;
-	}
-      return TRUE;
-    }
+   /*
+    * Advance the definedef state machine.
+    */
+   switch (definedef)
+     {
+     case dnone:
+       /* We're not on a preprocessor line. */
+       if (toktype == st_C_gnumacro)
+	 {
+	   fvdef = fdefunkey;
+	   return FALSE;
+	 }
+       break;
+     case dsharpseen:
+       if (toktype == st_C_define)
+	 {
+	   definedef = ddefineseen;
+	 }
+       else
+	 {
+	   definedef = dignorerest;
+	 }
+       return FALSE;
+     case ddefineseen:
+       /*
+	* Make a tag for any macro, unless it is a constant
+	* and constantypedefs is FALSE.
+	*/
+       definedef = dignorerest;
+       *is_func_or_var = (c == '(');
+       if (!*is_func_or_var && !constantypedefs)
+	 return FALSE;
+       else
+	 return TRUE;
+     case dignorerest:
+       return FALSE;
+     default:
+       error ("internal error: definedef value.", (char *)NULL);
+     }
 
-  /*
-   * This structdef business is NOT invoked when we are ctags and the
-   * file is plain C.  This is because a struct tag may have the same
-   * name as another tag, and this loses with ctags.
-   */
-  switch (toktype)
-    {
-    case st_C_javastruct:
-      if (structdef == stagseen)
-        structdef = scolonseen;
-      return FALSE;
-    case st_C_template:
-    case st_C_class:
-      if ((*c_extp & C_AUTO)	/* automatic detection of C++ language */
-	  && cblev == 0
-	  && definedef == dnone && structdef == snone
-	  && typdef == tnone && fvdef == fvnone)
-	*c_extp = (*c_extp | C_PLPL) & ~C_AUTO;
-      if (toktype == st_C_template)
-	break;
-      /* FALLTHRU */
-    case st_C_struct:
-    case st_C_enum:
-      if (parlev == 0
-	  && fvdef != vignore
-	  && (typdef == tkeyseen
-	      || (typedefs_or_cplusplus && structdef == snone)))
-	{
-	  structdef = skeyseen;
-	  structtype = toktype;
-	  structcblev = cblev;
-	}
-      return FALSE;
-    }
+   /*
+    * Now typedefs
+    */
+   switch (typdef)
+     {
+     case tnone:
+       if (toktype == st_C_typedef)
+	 {
+	   if (typedefs)
+	     typdef = tkeyseen;
+	   fvextern = FALSE;
+	   fvdef = fvnone;
+	   return FALSE;
+	 }
+       break;
+     case tkeyseen:
+       switch (toktype)
+	 {
+	 case st_none:
+	 case st_C_class:
+	 case st_C_struct:
+	 case st_C_enum:
+	   typdef = ttypeseen;
+	 }
+       break;
+     case ttypeseen:
+       if (structdef == snone && fvdef == fvnone)
+	 {
+	   fvdef = fvnameseen;
+	   return TRUE;
+	 }
+       break;
+     case tend:
+       switch (toktype)
+	 {
+	 case st_C_class:
+	 case st_C_struct:
+	 case st_C_enum:
+	   return FALSE;
+	 }
+       return TRUE;
+     }
 
-  if (structdef == skeyseen)
-    {
-      structdef = stagseen;
-      return TRUE;
-    }
+   /*
+    * This structdef business is NOT invoked when we are ctags and the
+    * file is plain C.  This is because a struct tag may have the same
+    * name as another tag, and this loses with ctags.
+    */
+   switch (toktype)
+     {
+     case st_C_javastruct:
+       if (structdef == stagseen)
+	 structdef = scolonseen;
+       return FALSE;
+     case st_C_template:
+     case st_C_class:
+       if ((*c_extp & C_AUTO)	/* automatic detection of C++ language */
+	   && bracelev == 0
+	   && definedef == dnone && structdef == snone
+	   && typdef == tnone && fvdef == fvnone)
+	 *c_extp = (*c_extp | C_PLPL) & ~C_AUTO;
+       if (toktype == st_C_template)
+	 break;
+       /* FALLTHRU */
+     case st_C_struct:
+     case st_C_enum:
+       if (parlev == 0
+	   && fvdef != vignore
+	   && (typdef == tkeyseen
+	       || (typedefs_or_cplusplus && structdef == snone)))
+	 {
+	   structdef = skeyseen;
+	   structtype = toktype;
+	   structbracelev = bracelev;
+	   if (fvdef == fvnameseen)
+	     fvdef = fvnone;
+	 }
+       return FALSE;
+     }
 
-  if (typdef != tnone)
-    definedef = dnone;
+   if (structdef == skeyseen)
+     {
+       structdef = stagseen;
+       return TRUE;
+     }
 
-  /* Detect Objective C constructs. */
-  switch (objdef)
-    {
-    case onone:
-      switch (toktype)
-	{
-	case st_C_objprot:
-	  objdef = oprotocol;
-	  return FALSE;
-	case st_C_objimpl:
-	  objdef = oimplementation;
-	  return FALSE;
-	}
-      break;
-    case oimplementation:
-      /* Save the class tag for functions or variables defined inside. */
-      objtag = savenstr (str, len);
-      objdef = oinbody;
-      return FALSE;
-    case oprotocol:
-      /* Save the class tag for categories. */
-      objtag = savenstr (str, len);
-      objdef = otagseen;
-      *is_func_or_var = TRUE;
-      return TRUE;
-    case oparenseen:
-      objdef = ocatseen;
-      *is_func_or_var = TRUE;
-      return TRUE;
-    case oinbody:
-      break;
-    case omethodsign:
-      if (parlev == 0)
-	{
-	  objdef = omethodtag;
-	  linebuffer_setlen (&token_name, len);
-	  strncpy (token_name.buffer, str, len);
-	  token_name.buffer[len] = '\0';
-	  return TRUE;
-	}
-      return FALSE;
-    case omethodcolon:
-      if (parlev == 0)
-	objdef = omethodparm;
-      return FALSE;
-    case omethodparm:
-      if (parlev == 0)
-	{
-	  objdef = omethodtag;
-	  linebuffer_setlen (&token_name, token_name.len + len);
-	  strncat (token_name.buffer, str, len);
-	  return TRUE;
-	}
-      return FALSE;
-    case oignore:
-      if (toktype == st_C_objend)
-	{
-	  /* Memory leakage here: the string pointed by objtag is
-	     never released, because many tests would be needed to
-	     avoid breaking on incorrect input code.  The amount of
-	     memory leaked here is the sum of the lengths of the
-	     class tags.
-	  free (objtag); */
-	  objdef = onone;
-	}
-      return FALSE;
-    }
+   if (typdef != tnone)
+     definedef = dnone;
 
-  /* A function, variable or enum constant? */
-  switch (toktype)
-    {
-    case st_C_extern:
-      fvextern = TRUE;
-      /* FALLTHRU */
-    case st_C_typespec:
-      switch  (fvdef)
-	{
-	case finlist:
-	case flistseen:
-	case fignore:
-	case vignore:
-	  break;
-	default:
-	  fvdef = fvnone;
-	}
-      return FALSE;
-    case st_C_ignore:
-      fvextern = FALSE;
-      fvdef = vignore;
-      return FALSE;
-    case st_C_operator:
-      fvdef = foperator;
-      *is_func_or_var = TRUE;
-      return TRUE;
-    case st_none:
-      if (constantypedefs
-	  && structdef == snone
-	  && structtype == st_C_enum && cblev > structcblev)
-	return TRUE;		/* enum constant */
-      switch (fvdef)
-	{
-	case fdefunkey:
-	  if (cblev > 0)
-	    break;
-	  fvdef = fdefunname;	/* GNU macro */
-	  *is_func_or_var = TRUE;
-	  return TRUE;
-	case fvnone:
-	  if ((strneq (str, "asm", 3) && endtoken (str[3]))
-	      || (strneq (str, "__asm__", 7) && endtoken (str[7])))
-	    {
-	      fvdef = vignore;
-	      return FALSE;
-	    }
-	  if (strneq (str+len-10, "::operator", 10))
+   /* Detect Objective C constructs. */
+   switch (objdef)
+     {
+     case onone:
+       switch (toktype)
+	 {
+	 case st_C_objprot:
+	   objdef = oprotocol;
+	   return FALSE;
+	 case st_C_objimpl:
+	   objdef = oimplementation;
+	   return FALSE;
+	 }
+       break;
+     case oimplementation:
+       /* Save the class tag for functions or variables defined inside. */
+       objtag = savenstr (str, len);
+       objdef = oinbody;
+       return FALSE;
+     case oprotocol:
+       /* Save the class tag for categories. */
+       objtag = savenstr (str, len);
+       objdef = otagseen;
+       *is_func_or_var = TRUE;
+       return TRUE;
+     case oparenseen:
+       objdef = ocatseen;
+       *is_func_or_var = TRUE;
+       return TRUE;
+     case oinbody:
+       break;
+     case omethodsign:
+       if (parlev == 0)
+	 {
+	   fvdef = fvnone;
+	   objdef = omethodtag;
+	   linebuffer_setlen (&token_name, len);
+	   strncpy (token_name.buffer, str, len);
+	   token_name.buffer[len] = '\0';
+	   return TRUE;
+	 }
+       return FALSE;
+     case omethodcolon:
+       if (parlev == 0)
+	 objdef = omethodparm;
+       return FALSE;
+     case omethodparm:
+       if (parlev == 0)
+	 {
+	   fvdef = fvnone;
+	   objdef = omethodtag;
+	   linebuffer_setlen (&token_name, token_name.len + len);
+	   strncat (token_name.buffer, str, len);
+	   return TRUE;
+	 }
+       return FALSE;
+     case oignore:
+       if (toktype == st_C_objend)
+	 {
+	   /* Memory leakage here: the string pointed by objtag is
+	      never released, because many tests would be needed to
+	      avoid breaking on incorrect input code.  The amount of
+	      memory leaked here is the sum of the lengths of the
+	      class tags.
+	   free (objtag); */
+	   objdef = onone;
+	 }
+       return FALSE;
+     }
+
+   /* A function, variable or enum constant? */
+   switch (toktype)
+     {
+     case st_C_extern:
+       fvextern = TRUE;
+       switch  (fvdef)
+	 {
+	 case finlist:
+	 case flistseen:
+	 case fignore:
+	 case vignore:
+	   break;
+	 default:
+	   fvdef = fvnone;
+	 }
+       return FALSE;
+     case st_C_ignore:
+       fvextern = FALSE;
+       fvdef = vignore;
+       return FALSE;
+     case st_C_operator:
+       fvdef = foperator;
+       *is_func_or_var = TRUE;
+       return TRUE;
+     case st_none:
+       if (constantypedefs
+	   && structdef == snone
+	   && structtype == st_C_enum && bracelev > structbracelev)
+	 return TRUE;		/* enum constant */
+       switch (fvdef)
+	 {
+	 case fdefunkey:
+	   if (bracelev > 0)
+	     break;
+	   fvdef = fdefunname;	/* GNU macro */
+	   *is_func_or_var = TRUE;
+	   return TRUE;
+	 case fvnone:
+	   switch (typdef)
+	     {
+	     case ttypeseen:
+	       return FALSE;
+	     case tnone:
+	       if ((strneq (str, "asm", 3) && endtoken (str[3]))
+		   || (strneq (str, "__asm__", 7) && endtoken (str[7])))
+		 {
+		   fvdef = vignore;
+		   return FALSE;
+		 }
+	       break;
+	     }
+	  /* FALLTHRU */
+	  case fvnameseen:
+	  if (len >= 10 && strneq (str+len-10, "::operator", 10))
 	    {
 	      if (*c_extp & C_AUTO) /* automatic detection of C++ */
 		*c_extp = (*c_extp | C_PLPL) & ~C_AUTO;
@@ -3124,7 +3121,7 @@ consider_token (str, len, c, c_extp, cblev, parlev, is_func_or_var)
 	      *is_func_or_var = TRUE;
 	      return TRUE;
 	    }
-	  if (cblev > 0 && !instruct)
+	  if (bracelev > 0 && !instruct)
 	    break;
 	  fvdef = fvnameseen;	/* function or variable */
 	  *is_func_or_var = TRUE;
@@ -3220,9 +3217,12 @@ C_entries (c_ext, inf)
   register int toklen;		/* length of current token */
   char *qualifier;		/* string used to qualify names */
   int qlen;			/* length of qualifier */
-  int cblev;			/* current curly brace level */
+  int bracelev;			/* current brace level */
+  int bracketlev;		/* current bracket level */
   int parlev;			/* current parenthesis level */
-  int typdefcblev;		/* cblev where a typedef struct body begun */
+  int attrparlev;		/* __attribute__ parenthesis level */
+  int templatelev;		/* current template level */
+  int typdefbracelev;		/* bracelev where a typedef struct body begun */
   bool incomm, inquote, inchar, quotednl, midtoken;
   bool yacc_rules;		/* in the rules part of a yacc file */
   struct tok savetoken;	        /* token saved during preprocessor handling */
@@ -3235,10 +3235,10 @@ C_entries (c_ext, inf)
       cstack.size = (DEBUG) ? 1 : 4;
       cstack.nl = 0;
       cstack.cname = xnew (cstack.size, char *);
-      cstack.cblev = xnew (cstack.size, int);
+      cstack.bracelev = xnew (cstack.size, int);
     }
 
-  tokoff = toklen = typdefcblev = 0; /* keep compiler quiet */
+  tokoff = toklen = typdefbracelev = 0; /* keep compiler quiet */
   curndx = newndx = 0;
   lp = curlb.buffer;
   *lp = 0;
@@ -3248,8 +3248,7 @@ C_entries (c_ext, inf)
   yacc_rules = FALSE;
   midtoken = inquote = inchar = incomm = quotednl = FALSE;
   token.valid = savetoken.valid = FALSE;
-  cblev = 0;
-  parlev = 0;
+  bracelev = bracketlev = parlev = attrparlev = templatelev = 0;
   if (cjava)
     { qualifier = "."; qlen = 1; }
   else
@@ -3261,8 +3260,8 @@ C_entries (c_ext, inf)
       c = *lp++;
       if (c == '\\')
 	{
-	  /* If we're at the end of the line, the next character is a
-	     '\0'; don't skip it, because it's the thing that tells us
+	  /* If we are at the end of the line, the next character is a
+	     '\0'; do not skip it, because it is what tells us
 	     to read the next line.  */
 	  if (*lp == '\0')
 	    {
@@ -3321,95 +3320,115 @@ C_entries (c_ext, inf)
 	    }
 	  continue;
 	}
-      else
-	switch (c)
-	  {
-	  case '"':
-	    inquote = TRUE;
-	    switch (fvdef)
-	      {
-	      case fdefunkey:
-	      case fstartlist:
-	      case finlist:
-	      case fignore:
-	      case vignore:
-		break;
-	      default:
-		fvextern = FALSE;
-		fvdef = fvnone;
-	      }
-	    continue;
-	  case '\'':
-	    inchar = TRUE;
-	    if (fvdef != finlist && fvdef != fignore && fvdef !=vignore)
-	      {
-		fvextern = FALSE;
-		fvdef = fvnone;
-	      }
-	    continue;
-	  case '/':
-	    if (*lp == '*')
-	      {
-		lp++;
-		incomm = TRUE;
+      else if (bracketlev > 0)
+	{
+	  switch (c)
+	    {
+	    case ']':
+	      if (--bracketlev > 0)
 		continue;
-	      }
-	    else if (/* cplpl && */ *lp == '/')
-	      {
-		c = '\0';
-		break;
-	      }
-	    else
 	      break;
-	  case '%':
-	    if ((c_ext & YACC) && *lp == '%')
-	      {
-		/* Entering or exiting rules section in yacc file. */
-		lp++;
-		definedef = dnone; fvdef = fvnone; fvextern = FALSE;
-		typdef = tnone; structdef = snone;
-		midtoken = inquote = inchar = incomm = quotednl = FALSE;
-		cblev = 0;
-		yacc_rules = !yacc_rules;
-		continue;
- 	      }
-	    else
+	    case '\0':
+	      CNL_SAVE_DEFINEDEF ();
 	      break;
-	  case '#':
-	    if (definedef == dnone)
-	      {
-		char *cp;
-		bool cpptoken = TRUE;
+	    }
+	  continue;
+	}
+      else switch (c)
+	{
+	case '"':
+	  inquote = TRUE;
+	  if (inattribute)
+	    break;
+	  switch (fvdef)
+	    {
+	    case fdefunkey:
+	    case fstartlist:
+	    case finlist:
+	    case fignore:
+	    case vignore:
+	      break;
+	    default:
+	      fvextern = FALSE;
+	      fvdef = fvnone;
+	    }
+	  continue;
+	case '\'':
+	  inchar = TRUE;
+	  if (inattribute)
+	    break;
+	  if (fvdef != finlist && fvdef != fignore && fvdef !=vignore)
+	    {
+	      fvextern = FALSE;
+	      fvdef = fvnone;
+	    }
+	  continue;
+	case '/':
+	  if (*lp == '*')
+	    {
+	      lp++;
+	      incomm = TRUE;
+	      continue;
+	    }
+	  else if (/* cplpl && */ *lp == '/')
+	    {
+	      c = '\0';
+	      break;
+	    }
+	  else
+	    break;
+	case '%':
+	  if ((c_ext & YACC) && *lp == '%')
+	    {
+	      /* Entering or exiting rules section in yacc file. */
+	      lp++;
+	      definedef = dnone; fvdef = fvnone; fvextern = FALSE;
+	      typdef = tnone; structdef = snone;
+	      midtoken = inquote = inchar = incomm = quotednl = FALSE;
+	      bracelev = 0;
+	      yacc_rules = !yacc_rules;
+	      continue;
+	    }
+	  else
+	    break;
+	case '#':
+	  if (definedef == dnone)
+	    {
+	      char *cp;
+	      bool cpptoken = TRUE;
 
-		/* Look back on this line.  If all blanks, or nonblanks
-		   followed by an end of comment, this is a preprocessor
-		   token. */
-		for (cp = newlb.buffer; cp < lp-1; cp++)
-		  if (!iswhite (*cp))
-		    {
-		      if (*cp == '*' && *(cp+1) == '/')
-			{
-			  cp++;
-			  cpptoken = TRUE;
-			}
-		      else
-			cpptoken = FALSE;
-		    }
-		if (cpptoken)
-		  definedef = dsharpseen;
-	      } /* if (definedef == dnone) */
-
+	      /* Look back on this line.  If all blanks, or nonblanks
+		 followed by an end of comment, this is a preprocessor
+		 token. */
+	      for (cp = newlb.buffer; cp < lp-1; cp++)
+		if (!iswhite (*cp))
+		  {
+		    if (*cp == '*' && *(cp+1) == '/')
+		      {
+			cp++;
+			cpptoken = TRUE;
+		      }
+		    else
+		      cpptoken = FALSE;
+		  }
+	      if (cpptoken)
+		definedef = dsharpseen;
+	    } /* if (definedef == dnone) */
+	  continue;
+	case '[':
+	  bracketlev++;
 	    continue;
-	  } /* switch (c) */
+	} /* switch (c) */
 
 
       /* Consider token only if some involved conditions are satisfied. */
       if (typdef != tignore
 	  && definedef != dignorerest
 	  && fvdef != finlist
-	  && structdef != sintemplate
+	  && templatelev == 0
 	  && (definedef != dnone
-	      || structdef != scolonseen))
+	      || structdef != scolonseen)
+	  && !inattribute)
 	{
 	  if (midtoken)
 	    {
@@ -3433,7 +3452,8 @@ C_entries (c_ext, inf)
 
 		      if (yacc_rules
 			  || consider_token (newlb.buffer + tokoff, toklen, c,
-					     &c_ext, cblev, parlev, &funorvar))
+					     &c_ext, bracelev, parlev,
+					     &funorvar))
 			{
 			  if (fvdef == foperator)
 			    {
@@ -3518,7 +3538,7 @@ C_entries (c_ext, inf)
 					     || (funorvar
 						 && definedef == dnone
 						 && structdef == snone
-						 && cblev > 0));
+						 && bracelev > 0));
 			    }
 			  token.lineno = lineno;
 			  token.offset = tokoff;
@@ -3543,6 +3563,16 @@ C_entries (c_ext, inf)
 				   || instruct)
 			    make_C_tag (funorvar);
 			}
+		      else /* not yacc and consider_token failed */
+			{
+			  if (inattribute && fvdef == fignore)
+			    {
+			      /* We have just met __attribute__ after a
+				 function parameter list: do not tag the
+				 function again. */
+			      fvdef = fvnone;
+			    }
+			}
 		      midtoken = FALSE;
 		    }
 		} /* if (endtoken (c)) */
@@ -3561,6 +3591,9 @@ C_entries (c_ext, inf)
 		  switch (fvdef)
 		    {
 		    case fstartlist:
+		      /* This prevents tagging fb in
+			 void (__attribute__((noreturn)) *fb) (void);
+			 Fixing this is not easy and not very important. */
 		      fvdef = finlist;
 		      continue;
 		    case flistseen:
@@ -3570,13 +3603,10 @@ C_entries (c_ext, inf)
 			  fvdef = fignore;
 			}
 		      break;
-		    case fvnameseen:
-		      fvdef = fvnone;
-		      break;
 		    }
 		  if (structdef == stagseen && !cjava)
 		    {
-		      popclass_above (cblev);
+		      popclass_above (bracelev);
 		      structdef = snone;
 		    }
 		  break;
@@ -3600,6 +3630,8 @@ C_entries (c_ext, inf)
       switch (c)
 	{
 	case ':':
+	  if (inattribute)
+	    break;
 	  if (yacc_rules && token.offset == 0 && token.valid)
 	    {
 	      make_C_tag (FALSE); /* a yacc function */
@@ -3634,7 +3666,7 @@ C_entries (c_ext, inf)
 	    }
 	  break;
 	case ';':
-	  if (definedef != dnone)
+	  if (definedef != dnone || inattribute)
 	    break;
 	  switch (typdef)
 	    {
@@ -3654,7 +3686,7 @@ C_entries (c_ext, inf)
 		    fvdef = fvnone;
 		  break;
 		case fvnameseen:
-		  if ((globals && cblev == 0 && (!fvextern || declarations))
+		  if ((globals && bracelev == 0 && (!fvextern || declarations))
 		      || (members && instruct))
 		    make_C_tag (FALSE); /* a variable */
 		  fvextern = FALSE;
@@ -3662,9 +3694,12 @@ C_entries (c_ext, inf)
 		  token.valid = FALSE;
 		  break;
 		case flistseen:
-		  if (declarations
-		      && (typdef == tnone || (typdef != tignore && instruct)))
-		    make_C_tag (TRUE);  /* a function declaration */
+		  if ((declarations
+		       && (cplpl || !instruct)
+		       && (typdef == tnone || (typdef != tignore && instruct)))
+		      || (members
+			  && plainc && instruct))
+		    make_C_tag (TRUE);  /* a function */
 		  /* FALLTHRU */
 		default:
 		  fvextern = FALSE;
@@ -3684,7 +3719,7 @@ C_entries (c_ext, inf)
 	    structdef = snone;
 	  break;
 	case ',':
-	  if (definedef != dnone)
+	  if (definedef != dnone || inattribute)
 	    break;
 	  switch (objdef)
 	    {
@@ -3706,16 +3741,20 @@ C_entries (c_ext, inf)
 	    case fdefunname:
 	      fvdef = fignore;
 	      break;
-	    case fvnameseen:	/* a variable */
-	      if ((globals && cblev == 0 && (!fvextern || declarations))
-		  || (members && instruct))
-		make_C_tag (FALSE);
+	    case fvnameseen:
+	      if (parlev == 0
+		  && ((globals
+		       && bracelev == 0
+		       && templatelev == 0
+		       && (!fvextern || declarations))
+		      || (members && instruct)))
+		  make_C_tag (FALSE); /* a variable */
 	      break;
-	    case flistseen:	/* a function */
+	    case flistseen:
 	      if ((declarations && typdef == tnone && !instruct)
 		  || (members && typdef != tignore && instruct))
 		{
-		  make_C_tag (TRUE); /* a function declaration */
+		  make_C_tag (TRUE); /* a function */
 		  fvdef = fvnameseen;
 		}
 	      else if (!declarations)
@@ -3728,8 +3767,8 @@ C_entries (c_ext, inf)
 	  if (structdef == stagseen)
 	    structdef = snone;
 	  break;
-	case '[':
-	  if (definedef != dnone)
+	case ']':
+	  if (definedef != dnone || inattribute)
 	    break;
 	  if (structdef == stagseen)
 	    structdef = snone;
@@ -3750,8 +3789,8 @@ C_entries (c_ext, inf)
 		case vignore:
 		  break;
 		case fvnameseen:
-		  if ((members && cblev == 1)
-		      || (globals && cblev == 0
+		  if ((members && bracelev == 1)
+		      || (globals && bracelev == 0
 			  && (!fvextern || declarations)))
 		    make_C_tag (FALSE); /* a variable */
 		  /* FALLTHRU */
@@ -3762,6 +3801,11 @@ C_entries (c_ext, inf)
 	    }
 	  break;
 	case '(':
+	  if (inattribute)
+	    {
+	      attrparlev++;
+	      break;
+	    }
 	  if (definedef != dnone)
 	    break;
 	  if (objdef == otagseen && parlev == 0)
@@ -3791,6 +3835,12 @@ C_entries (c_ext, inf)
 	  parlev++;
 	  break;
 	case ')':
+	  if (inattribute)
+	    {
+	      if (--attrparlev == 0)
+		inattribute = FALSE;
+	      break;
+	    }
 	  if (definedef != dnone)
 	    break;
 	  if (objdef == ocatseen && parlev == 1)
@@ -3824,9 +3874,9 @@ C_entries (c_ext, inf)
 	  if (typdef == ttypeseen)
 	    {
 	      /* Whenever typdef is set to tinbody (currently only
-		 here), typdefcblev should be set to cblev. */
+		 here), typdefbracelev should be set to bracelev. */
 	      typdef = tinbody;
-	      typdefcblev = cblev;
+	      typdefbracelev = bracelev;
 	    }
 	  switch (fvdef)
 	    {
@@ -3850,26 +3900,26 @@ C_entries (c_ext, inf)
 		  break;
 		default:
 		  /* Neutralize `extern "C" {' grot. */
-		  if (cblev == 0 && structdef == snone && nestlev == 0
+		  if (bracelev == 0 && structdef == snone && nestlev == 0
 		      && typdef == tnone)
-		    cblev = -1;
+		    bracelev = -1;
 		}
 	      break;
 	    }
 	  switch (structdef)
 	    {
 	    case skeyseen:	   /* unnamed struct */
-	      pushclass_above (cblev, NULL, 0);
+	      pushclass_above (bracelev, NULL, 0);
 	      structdef = snone;
 	      break;
 	    case stagseen:	   /* named struct or enum */
 	    case scolonseen:	   /* a class */
-	      pushclass_above (cblev, token.line+token.offset, token.length);
+	      pushclass_above (bracelev,token.line+token.offset, token.length);
 	      structdef = snone;
 	      make_C_tag (FALSE);  /* a struct or enum */
 	      break;
 	    }
-	  cblev++;
+	  bracelev++;
 	  break;
 	case '*':
 	  if (definedef != dnone)
@@ -3885,21 +3935,21 @@ C_entries (c_ext, inf)
 	    break;
 	  if (!ignoreindent && lp == newlb.buffer + 1)
 	    {
-	      if (cblev != 0)
+	      if (bracelev != 0)
 		token.valid = FALSE;
-	      cblev = 0;	/* reset curly brace level if first column */
+	      bracelev = 0;	/* reset brace level if first column */
 	      parlev = 0;	/* also reset paren level, just in case... */
 	    }
-	  else if (cblev > 0)
-	    cblev--;
+	  else if (bracelev > 0)
+	    bracelev--;
 	  else
 	    token.valid = FALSE; /* something gone amiss, token unreliable */
-	  popclass_above (cblev);
+	  popclass_above (bracelev);
 	  structdef = snone;
-	  /* Only if typdef == tinbody is typdefcblev significant. */
-	  if (typdef == tinbody && cblev <= typdefcblev)
+	  /* Only if typdef == tinbody is typdefbracelev significant. */
+	  if (typdef == tinbody && bracelev <= typdefbracelev)
 	    {
-	      assert (cblev == typdefcblev);
+	      assert (bracelev == typdefbracelev);
 	      typdef = tend;
 	    }
 	  break;
@@ -3914,8 +3964,8 @@ C_entries (c_ext, inf)
 	    case vignore:
 	      break;
 	    case fvnameseen:
-	      if ((members && cblev == 1)
-		  || (globals && cblev == 0 && (!fvextern || declarations)))
+	      if ((members && bracelev == 1)
+		  || (globals && bracelev == 0 && (!fvextern || declarations)))
 		make_C_tag (FALSE); /* a variable */
 	      /* FALLTHRU */
 	    default:
@@ -3923,30 +3973,31 @@ C_entries (c_ext, inf)
 	    }
 	  break;
 	case '<':
-	  if (cplpl && structdef == stagseen)
+	  if (cplpl
+	      && (structdef == stagseen || fvdef == fvnameseen))
 	    {
-	      structdef = sintemplate;
+	      templatelev++;
 	      break;
 	    }
 	  goto resetfvdef;
 	case '>':
-	  if (structdef == sintemplate)
+	  if (templatelev > 0)
 	    {
-	      structdef = stagseen;
+	      templatelev--;
 	      break;
 	    }
 	  goto resetfvdef;
 	case '+':
 	case '-':
-	  if (objdef == oinbody && cblev == 0)
+	  if (objdef == oinbody && bracelev == 0)
 	    {
 	      objdef = omethodsign;
 	      break;
 	    }
 	  /* FALLTHRU */
 	resetfvdef:
-	case '#': case '~': case '&': case '%': case '/': case '|':
-	case '^': case '!': case '.': case '?': case ']':
+	case '#': case '~': case '&': case '%': case '/':
+	case '|': case '^': case '!': case '.': case '?':
 	  if (definedef != dnone)
 	    break;
 	  /* These surely cannot follow a function tag in C. */
@@ -4042,10 +4093,18 @@ Yacc_entries (inf)
            char_pointer = line_buffer.buffer,				\
 	   TRUE);							\
       )
-#define LOOKING_AT(cp, keyword)	/* keyword is a constant string */	\
-  (strneq ((cp), keyword, sizeof(keyword)-1) /* cp points at keyword */	\
-   && notinname ((cp)[sizeof(keyword)-1])	/* end of keyword */	\
-   && ((cp) = skip_spaces((cp)+sizeof(keyword)-1))) /* skip spaces */
+
+#define LOOKING_AT(cp, kw)  /* kw is the keyword, a literal string */	\
+  ((assert("" kw), TRUE)   /* syntax error if not a literal string */	\
+   && strneq ((cp), kw, sizeof(kw)-1)		/* cp points at kw */	\
+   && notinname ((cp)[sizeof(kw)-1])		/* end of kw */		\
+   && ((cp) = skip_spaces((cp)+sizeof(kw)-1)))	/* skip spaces */
+
+/* Similar to LOOKING_AT but does not use notinname, does not skip */
+#define LOOKING_AT_NOCASE(cp, kw) /* the keyword is a literal string */	\
+  ((assert("" kw), TRUE)     /* syntax error if not a literal string */	\
+   && strncaseeq ((cp), kw, sizeof(kw)-1)	/* cp points at kw */	\
+   && ((cp) += sizeof(kw)-1))			/* skip spaces */
 
 /*
  * Read a file, but do no processing.  This is used to do regexp
@@ -4192,7 +4251,7 @@ Fortran_functions (inf)
 /*
  * Ada parsing
  * Original code by
- * Philippe Waroquiers <philippe.waroquiers@eurocontrol.int> (1998)
+ * Philippe Waroquiers (1998)
  */
 
 static void Ada_getit __P((FILE *, char *));
@@ -4898,7 +4957,32 @@ Lisp_functions (inf)
 
 
 /*
- * Postscript tag functions
+ * Lua script language parsing
+ * Original code by David A. Capello <dacap@users.sourceforge.net> (2004)
+ *
+ *  "function" and "local function" are tags if they start at column 1.
+ */
+static void
+Lua_functions (inf)
+     FILE *inf;
+{
+  register char *bp;
+
+  LOOP_ON_INPUT_LINES (inf, lb, bp)
+    {
+      if (bp[0] != 'f' && bp[0] != 'l')
+	continue;
+
+      LOOKING_AT (bp, "local");	/* skip possible "local" */
+
+      if (LOOKING_AT (bp, "function"))
+	get_tag (bp, NULL);
+    }
+}
+
+
+/*
+ * Postscript tags
  * Just look for lines where the first character is '/'
  * Also look at "defineps" for PSWrap
  * Ideas by:
@@ -4929,6 +5013,43 @@ PS_functions (inf)
 
 
 /*
+ * Forth tags
+ * Ignore anything after \ followed by space or in ( )
+ * Look for words defined by :
+ * Look for constant, code, create, defer, value, and variable
+ * OBP extensions:  Look for buffer:, field,
+ * Ideas by Eduardo Horvath <eeh@netbsd.org> (2004)
+ */
+static void
+Forth_words (inf)
+     FILE *inf;
+{
+  register char *bp;
+
+  LOOP_ON_INPUT_LINES (inf, lb, bp)
+    while ((bp = skip_spaces (bp))[0] != '\0')
+      if (bp[0] == '\\' && iswhite(bp[1]))
+	break;			/* read next line */
+      else if (bp[0] == '(' && iswhite(bp[1]))
+	do			/* skip to ) or eol */
+	  bp++;
+	while (*bp != ')' && *bp != '\0');
+      else if ((bp[0] == ':' && iswhite(bp[1]) && bp++)
+	       || LOOKING_AT_NOCASE (bp, "constant")
+	       || LOOKING_AT_NOCASE (bp, "code")
+	       || LOOKING_AT_NOCASE (bp, "create")
+	       || LOOKING_AT_NOCASE (bp, "defer")
+	       || LOOKING_AT_NOCASE (bp, "value")
+	       || LOOKING_AT_NOCASE (bp, "variable")
+	       || LOOKING_AT_NOCASE (bp, "buffer:")
+	       || LOOKING_AT_NOCASE (bp, "field"))
+	get_tag (skip_spaces (bp), NULL); /* Yay!  A definition! */
+      else
+	bp = skip_non_spaces (bp);
+}
+
+
+/*
  * Scheme tag functions
  * look for (def... xyzzy
  *          (def... (xyzzy
@@ -4936,7 +5057,6 @@ PS_functions (inf)
  *          (set! xyzzy
  * Original code by Ken Haase (1985?)
  */
-
 static void
 Scheme_functions (inf)
      FILE *inf;
@@ -5155,11 +5275,6 @@ Texinfo_nodes (inf)
 }
 
 
-/* Similar to LOOKING_AT but does not use notinname, does not skip */
-#define LOOKING_AT_NOCASE(cp, kw)	/* kw is a constant string */	\
-  (strncaseeq ((cp), kw, sizeof(kw)-1)	/* cp points at kw */		\
-   && ((cp) += sizeof(kw)-1))		/* skip spaces */
-
 /*
  * HTML support.
  * Contents of <title>, <h1>, <h2>, <h3> are tags.
@@ -5376,7 +5491,7 @@ prolog_pr (s, last)
        || (s[pos] == '(' && (pos += 1))
        || (s[pos] == ':' && s[pos + 1] == '-' && (pos += 2)))
       && (last == NULL		/* save only the first clause */
-	  || len != strlen (last)
+	  || len != (int)strlen (last)
 	  || !strneq (s, last, len)))
 	{
 	  make_tag (s, len, TRUE, s, pos, lineno, linecharno);
@@ -6444,7 +6559,7 @@ etags_strncasecmp (s1, s2, n)
 	    : *s1 - *s2);
 }
 
-/* Skip spaces, return new pointer. */
+/* Skip spaces (end of string is not space), return new pointer. */
 static char *
 skip_spaces (cp)
      char *cp;
@@ -6454,7 +6569,7 @@ skip_spaces (cp)
   return cp;
 }
 
-/* Skip non spaces, return new pointer. */
+/* Skip non spaces, except end of string, return new pointer. */
 static char *
 skip_non_spaces (cp)
      char *cp;
@@ -6470,7 +6585,7 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (BAD);
+  exit (EXIT_FAILURE);
 }
 
 static void
@@ -6478,21 +6593,15 @@ pfatal (s1)
      char *s1;
 {
   perror (s1);
-  exit (BAD);
+  exit (EXIT_FAILURE);
 }
 
 static void
 suggest_asking_for_help ()
 {
   fprintf (stderr, "\tTry `%s %s' for a complete list of options.\n",
-	   progname,
-#ifdef LONG_OPTIONS
-	   "--help"
-#else
-	   "-h"
-#endif
-	   );
-  exit (BAD);
+	   progname, LONG_OPTIONS ? "--help" : "-h");
+  exit (EXIT_FAILURE);
 }
 
 /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
@@ -6785,3 +6894,8 @@ xrealloc (ptr, size)
  * c-font-lock-extra-types: ("FILE" "bool" "language" "linebuffer" "fdesc" "node" "regexp")
  * End:
  */
+
+/* arch-tag: 8a9b748d-390c-4922-99db-2eeefa921051
+   (do not change this comment) */
+
+/* etags.c ends here */

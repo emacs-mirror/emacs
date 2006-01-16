@@ -1,5 +1,6 @@
 /* Unix emulation routines for GNU Emacs on the Mac OS.
-   Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Contributed by Andrew Choi (akochoi@mac.com).  */
 
@@ -24,36 +25,19 @@ Boston, MA 02111-1307, USA.  */
 
 #include <stdio.h>
 #include <errno.h>
-#include <utime.h>
-#include <dirent.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <pwd.h>
-#include <sys/param.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#if __MWERKS__
-#include <unistd.h>
-#endif
 
-#ifdef MAC_OSX
-#undef mktime
-#undef DEBUG
-#undef free
-#undef malloc
-#undef realloc
+#include "lisp.h"
+#include "process.h"
 #undef init_process
-#include <Carbon/Carbon.h>
-#undef free
-#define free unexec_free
-#undef malloc
-#define malloc unexec_malloc
-#undef realloc
-#define realloc unexec_realloc
-#undef init_process
-#define init_process emacs_init_process
-#else /* not MAC_OSX */
+#include "systime.h"
+#include "sysselect.h"
+#include "blockinput.h"
+
+#include "macterm.h"
+
+#include "charset.h"
+#include "coding.h"
+#if !TARGET_API_MAC_CARBON
 #include <Files.h>
 #include <MacTypes.h>
 #include <TextUtils.h>
@@ -65,20 +49,38 @@ Boston, MA 02111-1307, USA.  */
 #include <OSA.h>
 #include <AppleScript.h>
 #include <Scrap.h>
-#endif /* not MAC_OSX */
+#include <Events.h>
+#include <Processes.h>
+#include <EPPC.h>
+#include <MacLocales.h>
+#include <Endian.h>
+#endif	/* not TARGET_API_MAC_CARBON */
 
-#include "lisp.h"
-#include "process.h"
-#include "sysselect.h"
-#include "systime.h"
+#include <utime.h>
+#include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <pwd.h>
+#include <grp.h>
+#include <sys/param.h>
+#include <fcntl.h>
+#if __MWERKS__
+#include <unistd.h>
+#endif
 
-Lisp_Object QCLIPBOARD;
+/* The system script code. */
+static int mac_system_script_code;
+
+/* The system locale identifier string.  */
+static Lisp_Object Vmac_system_locale;
 
 /* An instance of the AppleScript component.  */
 static ComponentInstance as_scripting_component;
 /* The single script context used for all script executions.  */
 static OSAID as_script_context;
 
+static OSErr posix_pathname_to_fsspec P_ ((const char *, FSSpec *));
+static OSErr fsspec_to_posix_pathname P_ ((const FSSpec *, char *, int));
 
 /* When converting from Mac to Unix pathnames, /'s in folder names are
    converted to :'s.  This function, used in copying folder names,
@@ -257,6 +259,1373 @@ posix_to_mac_pathname (const char *ufn, char *mfn, int mfnbuflen)
   return 1;
 }
 
+
+/***********************************************************************
+		  Conversions on Apple event objects
+ ***********************************************************************/
+
+static Lisp_Object Qundecoded_file_name;
+
+static Lisp_Object
+mac_aelist_to_lisp (desc_list)
+     AEDescList *desc_list;
+{
+  OSErr err;
+  long count;
+  Lisp_Object result, elem;
+  DescType desc_type;
+  Size size;
+  AEKeyword keyword;
+  AEDesc desc;
+
+  err = AECountItems (desc_list, &count);
+  if (err != noErr)
+    return Qnil;
+  result = Qnil;
+  while (count > 0)
+    {
+      err = AESizeOfNthItem (desc_list, count, &desc_type, &size);
+      if (err == noErr)
+	switch (desc_type)
+	  {
+	  case typeAEList:
+	  case typeAERecord:
+	  case typeAppleEvent:
+	    err = AEGetNthDesc (desc_list, count, typeWildCard,
+				&keyword, &desc);
+	    if (err != noErr)
+	      break;
+	    elem = mac_aelist_to_lisp (&desc);
+	    AEDisposeDesc (&desc);
+	    break;
+
+	  default:
+	    if (desc_type == typeNull)
+	      elem = Qnil;
+	    else
+	      {
+		elem = make_uninit_string (size);
+		err = AEGetNthPtr (desc_list, count, typeWildCard, &keyword,
+				   &desc_type, SDATA (elem), size, &size);
+	      }
+	    if (err != noErr)
+	      break;
+	    desc_type = EndianU32_NtoB (desc_type);
+	    elem = Fcons (make_unibyte_string ((char *) &desc_type, 4), elem);
+	    break;
+	}
+
+      if (err != noErr)
+	elem = Qnil;
+      else if (desc_list->descriptorType != typeAEList)
+	{
+	  keyword = EndianU32_NtoB (keyword);
+	  elem = Fcons (make_unibyte_string ((char *) &keyword, 4), elem);
+	}
+
+      result = Fcons (elem, result);
+      count--;
+    }
+
+  desc_type = EndianU32_NtoB (desc_list->descriptorType);
+  return Fcons (make_unibyte_string ((char *) &desc_type, 4), result);
+}
+
+Lisp_Object
+mac_aedesc_to_lisp (desc)
+     AEDesc *desc;
+{
+  OSErr err = noErr;
+  DescType desc_type = desc->descriptorType;
+  Lisp_Object result;
+
+  switch (desc_type)
+    {
+    case typeNull:
+      result = Qnil;
+      break;
+
+    case typeAEList:
+    case typeAERecord:
+    case typeAppleEvent:
+      return mac_aelist_to_lisp (desc);
+#if 0
+      /* The following one is much simpler, but creates and disposes
+	 of Apple event descriptors many times.  */
+      {
+	long count;
+	Lisp_Object elem;
+	AEKeyword keyword;
+	AEDesc desc1;
+
+	err = AECountItems (desc, &count);
+	if (err != noErr)
+	  break;
+	result = Qnil;
+	while (count > 0)
+	  {
+	    err = AEGetNthDesc (desc, count, typeWildCard, &keyword, &desc1);
+	    if (err != noErr)
+	      break;
+	    elem = mac_aedesc_to_lisp (&desc1);
+	    AEDisposeDesc (&desc1);
+	    if (desc_type != typeAEList)
+	      {
+		keyword = EndianU32_NtoB (keyword);
+		elem = Fcons (make_unibyte_string ((char *) &keyword, 4), elem);
+	      }
+	    result = Fcons (elem, result);
+	    count--;
+	  }
+      }
+#endif
+      break;
+
+    default:
+#if TARGET_API_MAC_CARBON
+      result = make_uninit_string (AEGetDescDataSize (desc));
+      err = AEGetDescData (desc, SDATA (result), SBYTES (result));
+#else
+      result = make_uninit_string (GetHandleSize (desc->dataHandle));
+      memcpy (SDATA (result), *(desc->dataHandle), SBYTES (result));
+#endif
+      break;
+    }
+
+  if (err != noErr)
+    return Qnil;
+
+  desc_type = EndianU32_NtoB (desc_type);
+  return Fcons (make_unibyte_string ((char *) &desc_type, 4), result);
+}
+
+static pascal OSErr
+mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
+			  to_type, handler_refcon, result)
+     DescType type_code;
+     const void *data_ptr;
+     Size data_size;
+     DescType to_type;
+     long handler_refcon;
+     AEDesc *result;
+{
+  OSErr err;
+
+  if (type_code == typeNull)
+    err = errAECoercionFail;
+  else if (type_code == to_type || to_type == typeWildCard)
+    err = AECreateDesc (TYPE_FILE_NAME, data_ptr, data_size, result);
+  else if (type_code == TYPE_FILE_NAME)
+    /* Coercion from undecoded file name.  */
+    {
+#ifdef MAC_OSX
+      CFStringRef str;
+      CFURLRef url = NULL;
+      CFDataRef data = NULL;
+
+      str = CFStringCreateWithBytes (NULL, data_ptr, data_size,
+				     kCFStringEncodingUTF8, false);
+      if (str)
+	{
+	  url = CFURLCreateWithFileSystemPath (NULL, str,
+					       kCFURLPOSIXPathStyle, false);
+	  CFRelease (str);
+	}
+      if (url)
+	{
+	  data = CFURLCreateData (NULL, url, kCFStringEncodingUTF8, true);
+	  CFRelease (url);
+	}
+      if (data)
+	{
+	  err = AECoercePtr (typeFileURL, CFDataGetBytePtr (data),
+			     CFDataGetLength (data), to_type, result);
+	  CFRelease (data);
+	}
+      else
+	err = memFullErr;
+#else
+      FSSpec fs;
+      char *buf;
+
+      buf = xmalloc (data_size + 1);
+      if (buf)
+	{
+	  memcpy (buf, data_ptr, data_size);
+	  buf[data_size] = '\0';
+	  err = posix_pathname_to_fsspec (buf, &fs);
+	  xfree (buf);
+	}
+      else
+	err = memFullErr;
+      if (err == noErr)
+	err = AECoercePtr (typeFSS, &fs, sizeof (FSSpec), to_type, result);
+#endif
+    }
+  else if (to_type == TYPE_FILE_NAME)
+    /* Coercion to undecoded file name.  */
+    {
+#ifdef MAC_OSX
+      CFURLRef url = NULL;
+      CFStringRef str = NULL;
+      CFDataRef data = NULL;
+
+      if (type_code == typeFileURL)
+	url = CFURLCreateWithBytes (NULL, data_ptr, data_size,
+				    kCFStringEncodingUTF8, NULL);
+      else
+	{
+	  AEDesc desc;
+	  Size size;
+	  char *buf;
+
+	  err = AECoercePtr (type_code, data_ptr, data_size,
+			     typeFileURL, &desc);
+	  if (err == noErr)
+	    {
+	      size = AEGetDescDataSize (&desc);
+	      buf = xmalloc (size);
+	      if (buf)
+		{
+		  err = AEGetDescData (&desc, buf, size);
+		  if (err == noErr)
+		    url = CFURLCreateWithBytes (NULL, buf, size,
+						kCFStringEncodingUTF8, NULL);
+		  xfree (buf);
+		}
+	      AEDisposeDesc (&desc);
+	    }
+	}
+      if (url)
+	{
+	  str = CFURLCopyFileSystemPath (url, kCFURLPOSIXPathStyle);
+	  CFRelease (url);
+	}
+      if (str)
+	{
+	  data = CFStringCreateExternalRepresentation (NULL, str,
+						       kCFStringEncodingUTF8,
+						       '\0');
+	  CFRelease (str);
+	}
+      if (data)
+	{
+	  err = AECreateDesc (TYPE_FILE_NAME, CFDataGetBytePtr (data),
+			      CFDataGetLength (data), result);
+	  CFRelease (data);
+	}
+#else
+      char file_name[MAXPATHLEN];
+
+      if (type_code == typeFSS && data_size == sizeof (FSSpec))
+	err = fsspec_to_posix_pathname (data_ptr, file_name,
+					sizeof (file_name) - 1);
+      else
+	{
+	  AEDesc desc;
+	  FSSpec fs;
+
+	  err = AECoercePtr (type_code, data_ptr, data_size, typeFSS, &desc);
+	  if (err == noErr)
+	    {
+#if TARGET_API_MAC_CARBON
+	      err = AEGetDescData (&desc, &fs, sizeof (FSSpec));
+#else
+	      fs = *(FSSpec *)(*(desc.dataHandle));
+#endif
+	      if (err == noErr)
+		err = fsspec_to_posix_pathname (&fs, file_name,
+						sizeof (file_name) - 1);
+	      AEDisposeDesc (&desc);
+	    }
+	}
+      if (err == noErr)
+	err = AECreateDesc (TYPE_FILE_NAME, file_name,
+			    strlen (file_name), result);
+#endif
+    }
+  else
+    abort ();
+
+  if (err != noErr)
+    return errAECoercionFail;
+  return noErr;
+}
+
+static pascal OSErr
+mac_coerce_file_name_desc (from_desc, to_type, handler_refcon, result)
+     const AEDesc *from_desc;
+     DescType to_type;
+     long handler_refcon;
+     AEDesc *result;
+{
+  OSErr err = noErr;
+  DescType from_type = from_desc->descriptorType;
+
+  if (from_type == typeNull)
+    err = errAECoercionFail;
+  else if (from_type == to_type || to_type == typeWildCard)
+    err = AEDuplicateDesc (from_desc, result);
+  else
+    {
+      char *data_ptr;
+      Size data_size;
+
+#if TARGET_API_MAC_CARBON
+      data_size = AEGetDescDataSize (from_desc);
+#else
+      data_size = GetHandleSize (from_desc->dataHandle);
+#endif
+      data_ptr = xmalloc (data_size);
+      if (data_ptr)
+	{
+#if TARGET_API_MAC_CARBON
+	  err = AEGetDescData (from_desc, data_ptr, data_size);
+#else
+	  memcpy (data_ptr, *(from_desc->dataHandle), data_size);
+#endif
+	  if (err == noErr)
+	    err = mac_coerce_file_name_ptr (from_type, data_ptr,
+					    data_size, to_type,
+					    handler_refcon, result);
+	  xfree (data_ptr);
+	}
+      else
+	err = memFullErr;
+    }
+
+  if (err != noErr)
+    return errAECoercionFail;
+  return noErr;
+}
+
+OSErr
+init_coercion_handler ()
+{
+  OSErr err;
+
+  static AECoercePtrUPP coerce_file_name_ptrUPP = NULL;
+  static AECoerceDescUPP coerce_file_name_descUPP = NULL;
+
+  if (coerce_file_name_ptrUPP == NULL)
+    {
+      coerce_file_name_ptrUPP = NewAECoercePtrUPP (mac_coerce_file_name_ptr);
+      coerce_file_name_descUPP = NewAECoerceDescUPP (mac_coerce_file_name_desc);
+    }
+
+  err = AEInstallCoercionHandler (TYPE_FILE_NAME, typeWildCard,
+				  (AECoercionHandlerUPP)
+				  coerce_file_name_ptrUPP, 0, false, false);
+  if (err == noErr)
+    err = AEInstallCoercionHandler (typeWildCard, TYPE_FILE_NAME,
+				    (AECoercionHandlerUPP)
+				    coerce_file_name_ptrUPP, 0, false, false);
+  if (err == noErr)
+    err = AEInstallCoercionHandler (TYPE_FILE_NAME, typeWildCard,
+				    coerce_file_name_descUPP, 0, true, false);
+  if (err == noErr)
+    err = AEInstallCoercionHandler (typeWildCard, TYPE_FILE_NAME,
+				    coerce_file_name_descUPP, 0, true, false);
+  return err;
+}
+
+#if TARGET_API_MAC_CARBON
+OSErr
+create_apple_event_from_event_ref (event, num_params, names, types, result)
+     EventRef event;
+     UInt32 num_params;
+     EventParamName *names;
+     EventParamType *types;
+     AppleEvent *result;
+{
+  OSErr err;
+  static const ProcessSerialNumber psn = {0, kCurrentProcess};
+  AEAddressDesc address_desc;
+  UInt32 i, size;
+  CFStringRef string;
+  CFDataRef data;
+  char *buf;
+
+  err = AECreateDesc (typeProcessSerialNumber, &psn,
+		      sizeof (ProcessSerialNumber), &address_desc);
+  if (err == noErr)
+    {
+      err = AECreateAppleEvent (0, 0, /* Dummy class and ID.   */
+				&address_desc, /* NULL is not allowed
+						  on Mac OS Classic. */
+				kAutoGenerateReturnID,
+				kAnyTransactionID, result);
+      AEDisposeDesc (&address_desc);
+    }
+  if (err != noErr)
+    return err;
+
+  for (i = 0; i < num_params; i++)
+    switch (types[i])
+      {
+#ifdef MAC_OSX
+      case typeCFStringRef:
+	err = GetEventParameter (event, names[i], typeCFStringRef, NULL,
+				 sizeof (CFStringRef), NULL, &string);
+	if (err != noErr)
+	  break;
+	data = CFStringCreateExternalRepresentation (NULL, string,
+						     kCFStringEncodingUTF8,
+						     '?');
+	if (data == NULL)
+	  break;
+	/* typeUTF8Text is not available on Mac OS X 10.1.  */
+	AEPutParamPtr (result, names[i], 'utf8',
+		       CFDataGetBytePtr (data), CFDataGetLength (data));
+	CFRelease (data);
+	break;
+#endif
+
+      default:
+	err = GetEventParameter (event, names[i], types[i], NULL,
+				 0, &size, NULL);
+	if (err != noErr)
+	  break;
+	buf = xmalloc (size);
+	if (buf == NULL)
+	  break;
+	err = GetEventParameter (event, names[i], types[i], NULL,
+				 size, NULL, buf);
+	if (err == noErr)
+	  AEPutParamPtr (result, names[i], types[i], buf, size);
+	xfree (buf);
+	break;
+      }
+
+  return noErr;
+}
+#endif
+
+
+/***********************************************************************
+	 Conversion between Lisp and Core Foundation objects
+ ***********************************************************************/
+
+#if TARGET_API_MAC_CARBON
+static Lisp_Object Qstring, Qnumber, Qboolean, Qdate, Qdata;
+static Lisp_Object Qarray, Qdictionary;
+
+struct cfdict_context
+{
+  Lisp_Object *result;
+  int with_tag, hash_bound;
+};
+
+/* C string to CFString.  */
+
+CFStringRef
+cfstring_create_with_utf8_cstring (c_str)
+     const char *c_str;
+{
+  CFStringRef str;
+
+  str = CFStringCreateWithCString (NULL, c_str, kCFStringEncodingUTF8);
+  if (str == NULL)
+    /* Failed to interpret as UTF 8.  Fall back on Mac Roman.  */
+    str = CFStringCreateWithCString (NULL, c_str, kCFStringEncodingMacRoman);
+
+  return str;
+}
+
+
+/* Lisp string to CFString.  */
+
+CFStringRef
+cfstring_create_with_string (s)
+     Lisp_Object s;
+{
+  CFStringRef string = NULL;
+
+  if (STRING_MULTIBYTE (s))
+    {
+      char *p, *end = SDATA (s) + SBYTES (s);
+
+      for (p = SDATA (s); p < end; p++)
+	if (!isascii (*p))
+	  {
+	    s = ENCODE_UTF_8 (s);
+	    break;
+	  }
+      string = CFStringCreateWithBytes (NULL, SDATA (s), SBYTES (s),
+					kCFStringEncodingUTF8, false);
+    }
+
+  if (string == NULL)
+    /* Failed to interpret as UTF 8.  Fall back on Mac Roman.  */
+    string = CFStringCreateWithBytes (NULL, SDATA (s), SBYTES (s),
+				      kCFStringEncodingMacRoman, false);
+
+  return string;
+}
+
+
+/* From CFData to a lisp string.  Always returns a unibyte string.  */
+
+Lisp_Object
+cfdata_to_lisp (data)
+     CFDataRef data;
+{
+  CFIndex len = CFDataGetLength (data);
+  Lisp_Object result = make_uninit_string (len);
+
+  CFDataGetBytes (data, CFRangeMake (0, len), SDATA (result));
+
+  return result;
+}
+
+
+/* From CFString to a lisp string.  Returns a unibyte string
+   containing a UTF-8 byte sequence.  */
+
+Lisp_Object
+cfstring_to_lisp_nodecode (string)
+     CFStringRef string;
+{
+  Lisp_Object result = Qnil;
+  const char *s = CFStringGetCStringPtr (string, kCFStringEncodingUTF8);
+
+  if (s)
+    result = make_unibyte_string (s, strlen (s));
+  else
+    {
+      CFDataRef data =
+	CFStringCreateExternalRepresentation (NULL, string,
+					      kCFStringEncodingUTF8, '?');
+
+      if (data)
+	{
+	  result = cfdata_to_lisp (data);
+	  CFRelease (data);
+	}
+    }
+
+  return result;
+}
+
+
+/* From CFString to a lisp string.  Never returns a unibyte string
+   (even if it only contains ASCII characters).
+   This may cause GC during code conversion. */
+
+Lisp_Object
+cfstring_to_lisp (string)
+     CFStringRef string;
+{
+  Lisp_Object result = cfstring_to_lisp_nodecode (string);
+
+  if (!NILP (result))
+    {
+      result = code_convert_string_norecord (result, Qutf_8, 0);
+      /* This may be superfluous.  Just to make sure that the result
+	 is a multibyte string.  */
+      result = string_to_multibyte (result);
+    }
+
+  return result;
+}
+
+
+/* CFNumber to a lisp integer or a lisp float.  */
+
+Lisp_Object
+cfnumber_to_lisp (number)
+     CFNumberRef number;
+{
+  Lisp_Object result = Qnil;
+#if BITS_PER_EMACS_INT > 32
+  SInt64 int_val;
+  CFNumberType emacs_int_type = kCFNumberSInt64Type;
+#else
+  SInt32 int_val;
+  CFNumberType emacs_int_type = kCFNumberSInt32Type;
+#endif
+  double float_val;
+
+  if (CFNumberGetValue (number, emacs_int_type, &int_val)
+      && !FIXNUM_OVERFLOW_P (int_val))
+    result = make_number (int_val);
+  else
+    if (CFNumberGetValue (number, kCFNumberDoubleType, &float_val))
+      result = make_float (float_val);
+  return result;
+}
+
+
+/* CFDate to a list of three integers as in a return value of
+   `current-time'.  */
+
+Lisp_Object
+cfdate_to_lisp (date)
+     CFDateRef date;
+{
+  static const CFGregorianDate epoch_gdate = {1970, 1, 1, 0, 0, 0.0};
+  static CFAbsoluteTime epoch = 0.0, sec;
+  int high, low;
+
+  if (epoch == 0.0)
+    epoch = CFGregorianDateGetAbsoluteTime (epoch_gdate, NULL);
+
+  sec = CFDateGetAbsoluteTime (date) - epoch;
+  high = sec / 65536.0;
+  low = sec - high * 65536.0;
+
+  return list3 (make_number (high), make_number (low), make_number (0));
+}
+
+
+/* CFBoolean to a lisp symbol, `t' or `nil'.  */
+
+Lisp_Object
+cfboolean_to_lisp (boolean)
+     CFBooleanRef boolean;
+{
+  return CFBooleanGetValue (boolean) ? Qt : Qnil;
+}
+
+
+/* Any Core Foundation object to a (lengthy) lisp string.  */
+
+Lisp_Object
+cfobject_desc_to_lisp (object)
+     CFTypeRef object;
+{
+  Lisp_Object result = Qnil;
+  CFStringRef desc = CFCopyDescription (object);
+
+  if (desc)
+    {
+      result = cfstring_to_lisp (desc);
+      CFRelease (desc);
+    }
+
+  return result;
+}
+
+
+/* Callback functions for cfproperty_list_to_lisp.  */
+
+static void
+cfdictionary_add_to_list (key, value, context)
+     const void *key;
+     const void *value;
+     void *context;
+{
+  struct cfdict_context *cxt = (struct cfdict_context *)context;
+
+  *cxt->result =
+    Fcons (Fcons (cfstring_to_lisp (key),
+		  cfproperty_list_to_lisp (value, cxt->with_tag,
+					   cxt->hash_bound)),
+	   *cxt->result);
+}
+
+static void
+cfdictionary_puthash (key, value, context)
+     const void *key;
+     const void *value;
+     void *context;
+{
+  Lisp_Object lisp_key = cfstring_to_lisp (key);
+  struct cfdict_context *cxt = (struct cfdict_context *)context;
+  struct Lisp_Hash_Table *h = XHASH_TABLE (*(cxt->result));
+  unsigned hash_code;
+
+  hash_lookup (h, lisp_key, &hash_code);
+  hash_put (h, lisp_key,
+	    cfproperty_list_to_lisp (value, cxt->with_tag, cxt->hash_bound),
+	    hash_code);
+}
+
+
+/* Convert CFPropertyList PLIST to a lisp object.  If WITH_TAG is
+   non-zero, a symbol that represents the type of the original Core
+   Foundation object is prepended.  HASH_BOUND specifies which kinds
+   of the lisp objects, alists or hash tables, are used as the targets
+   of the conversion from CFDictionary.  If HASH_BOUND is negative,
+   always generate alists.  If HASH_BOUND >= 0, generate an alist if
+   the number of keys in the dictionary is smaller than HASH_BOUND,
+   and a hash table otherwise.  */
+
+Lisp_Object
+cfproperty_list_to_lisp (plist, with_tag, hash_bound)
+     CFPropertyListRef plist;
+     int with_tag, hash_bound;
+{
+  CFTypeID type_id = CFGetTypeID (plist);
+  Lisp_Object tag = Qnil, result = Qnil;
+  struct gcpro gcpro1, gcpro2;
+
+  GCPRO2 (tag, result);
+
+  if (type_id == CFStringGetTypeID ())
+    {
+      tag = Qstring;
+      result = cfstring_to_lisp (plist);
+    }
+  else if (type_id == CFNumberGetTypeID ())
+    {
+      tag = Qnumber;
+      result = cfnumber_to_lisp (plist);
+    }
+  else if (type_id == CFBooleanGetTypeID ())
+    {
+      tag = Qboolean;
+      result = cfboolean_to_lisp (plist);
+    }
+  else if (type_id == CFDateGetTypeID ())
+    {
+      tag = Qdate;
+      result = cfdate_to_lisp (plist);
+    }
+  else if (type_id == CFDataGetTypeID ())
+    {
+      tag = Qdata;
+      result = cfdata_to_lisp (plist);
+    }
+  else if (type_id == CFArrayGetTypeID ())
+    {
+      CFIndex index, count = CFArrayGetCount (plist);
+
+      tag = Qarray;
+      result = Fmake_vector (make_number (count), Qnil);
+      for (index = 0; index < count; index++)
+	XVECTOR (result)->contents[index] =
+	  cfproperty_list_to_lisp (CFArrayGetValueAtIndex (plist, index),
+				   with_tag, hash_bound);
+    }
+  else if (type_id == CFDictionaryGetTypeID ())
+    {
+      struct cfdict_context context;
+      CFIndex count = CFDictionaryGetCount (plist);
+
+      tag = Qdictionary;
+      context.result  = &result;
+      context.with_tag = with_tag;
+      context.hash_bound = hash_bound;
+      if (hash_bound < 0 || count < hash_bound)
+	{
+	  result = Qnil;
+	  CFDictionaryApplyFunction (plist, cfdictionary_add_to_list,
+				     &context);
+	}
+      else
+	{
+	  result = make_hash_table (Qequal,
+				    make_number (count),
+				    make_float (DEFAULT_REHASH_SIZE),
+				    make_float (DEFAULT_REHASH_THRESHOLD),
+				    Qnil, Qnil, Qnil);
+	  CFDictionaryApplyFunction (plist, cfdictionary_puthash,
+				     &context);
+	}
+    }
+  else
+    abort ();
+
+  UNGCPRO;
+
+  if (with_tag)
+    result = Fcons (tag, result);
+
+  return result;
+}
+#endif
+
+
+/***********************************************************************
+		 Emulation of the X Resource Manager
+ ***********************************************************************/
+
+/* Parser functions for resource lines.  Each function takes an
+   address of a variable whose value points to the head of a string.
+   The value will be advanced so that it points to the next character
+   of the parsed part when the function returns.
+
+   A resource name such as "Emacs*font" is parsed into a non-empty
+   list called `quarks'.  Each element is either a Lisp string that
+   represents a concrete component, a Lisp symbol LOOSE_BINDING
+   (actually Qlambda) that represents any number (>=0) of intervening
+   components, or a Lisp symbol SINGLE_COMPONENT (actually Qquote)
+   that represents as any single component.  */
+
+#define P (*p)
+
+#define LOOSE_BINDING    Qlambda /* '*' ("L"oose) */
+#define SINGLE_COMPONENT Qquote	 /* '?' ("Q"uestion) */
+
+static void
+skip_white_space (p)
+     char **p;
+{
+  /* WhiteSpace = {<space> | <horizontal tab>} */
+  while (*P == ' ' || *P == '\t')
+    P++;
+}
+
+static int
+parse_comment (p)
+     char **p;
+{
+  /* Comment = "!" {<any character except null or newline>} */
+  if (*P == '!')
+    {
+      P++;
+      while (*P)
+	if (*P++ == '\n')
+	  break;
+      return 1;
+    }
+  else
+    return 0;
+}
+
+/* Don't interpret filename.  Just skip until the newline.  */
+static int
+parse_include_file (p)
+     char **p;
+{
+  /* IncludeFile = "#" WhiteSpace "include" WhiteSpace FileName WhiteSpace */
+  if (*P == '#')
+    {
+      P++;
+      while (*P)
+	if (*P++ == '\n')
+	  break;
+      return 1;
+    }
+  else
+    return 0;
+}
+
+static char
+parse_binding (p)
+     char **p;
+{
+  /* Binding = "." | "*"  */
+  if (*P == '.' || *P == '*')
+    {
+      char binding = *P++;
+
+      while (*P == '.' || *P == '*')
+	if (*P++ == '*')
+	  binding = '*';
+      return binding;
+    }
+  else
+    return '\0';
+}
+
+static Lisp_Object
+parse_component (p)
+     char **p;
+{
+  /*  Component = "?" | ComponentName
+      ComponentName = NameChar {NameChar}
+      NameChar = "a"-"z" | "A"-"Z" | "0"-"9" | "_" | "-" */
+  if (*P == '?')
+    {
+      P++;
+      return SINGLE_COMPONENT;
+    }
+  else if (isalnum (*P) || *P == '_' || *P == '-')
+    {
+      char *start = P++;
+
+      while (isalnum (*P) || *P == '_' || *P == '-')
+	P++;
+
+      return make_unibyte_string (start, P - start);
+    }
+  else
+    return Qnil;
+}
+
+static Lisp_Object
+parse_resource_name (p)
+     char **p;
+{
+  Lisp_Object result = Qnil, component;
+  char binding;
+
+  /* ResourceName = [Binding] {Component Binding} ComponentName */
+  if (parse_binding (p) == '*')
+    result = Fcons (LOOSE_BINDING, result);
+
+  component = parse_component (p);
+  if (NILP (component))
+    return Qnil;
+
+  result = Fcons (component, result);
+  while ((binding = parse_binding (p)) != '\0')
+    {
+      if (binding == '*')
+	result = Fcons (LOOSE_BINDING, result);
+      component = parse_component (p);
+      if (NILP (component))
+	return Qnil;
+      else
+	result = Fcons (component, result);
+    }
+
+  /* The final component should not be '?'.  */
+  if (EQ (component, SINGLE_COMPONENT))
+    return Qnil;
+
+  return Fnreverse (result);
+}
+
+static Lisp_Object
+parse_value (p)
+     char **p;
+{
+  char *q, *buf;
+  Lisp_Object seq = Qnil, result;
+  int buf_len, total_len = 0, len, continue_p;
+
+  q = strchr (P, '\n');
+  buf_len = q ? q - P : strlen (P);
+  buf = xmalloc (buf_len);
+
+  while (1)
+    {
+      q = buf;
+      continue_p = 0;
+      while (*P)
+	{
+	  if (*P == '\n')
+	    {
+	      P++;
+	      break;
+	    }
+	  else if (*P == '\\')
+	    {
+	      P++;
+	      if (*P == '\0')
+		break;
+	      else if (*P == '\n')
+		{
+		  P++;
+		  continue_p = 1;
+		  break;
+		}
+	      else if (*P == 'n')
+		{
+		  *q++ = '\n';
+		  P++;
+		}
+	      else if ('0' <= P[0] && P[0] <= '7'
+		       && '0' <= P[1] && P[1] <= '7'
+		       && '0' <= P[2] && P[2] <= '7')
+		{
+		  *q++ = (P[0] - '0' << 6) + (P[1] - '0' << 3) + (P[2] - '0');
+		  P += 3;
+		}
+	      else
+		*q++ = *P++;
+	    }
+	  else
+	    *q++ = *P++;
+	}
+      len = q - buf;
+      seq = Fcons (make_unibyte_string (buf, len), seq);
+      total_len += len;
+
+      if (continue_p)
+	{
+	  q = strchr (P, '\n');
+	  len = q ? q - P : strlen (P);
+	  if (len > buf_len)
+	    {
+	      xfree (buf);
+	      buf_len = len;
+	      buf = xmalloc (buf_len);
+	    }
+	}
+      else
+	break;
+    }
+  xfree (buf);
+
+  if (SBYTES (XCAR (seq)) == total_len)
+    return make_string (SDATA (XCAR (seq)), total_len);
+  else
+    {
+      buf = xmalloc (total_len);
+      q = buf + total_len;
+      for (; CONSP (seq); seq = XCDR (seq))
+	{
+	  len = SBYTES (XCAR (seq));
+	  q -= len;
+	  memcpy (q, SDATA (XCAR (seq)), len);
+	}
+      result = make_string (buf, total_len);
+      xfree (buf);
+      return result;
+    }
+}
+
+static Lisp_Object
+parse_resource_line (p)
+     char **p;
+{
+  Lisp_Object quarks, value;
+
+  /* ResourceLine = Comment | IncludeFile | ResourceSpec | <empty line> */
+  if (parse_comment (p) || parse_include_file (p))
+    return Qnil;
+
+  /* ResourceSpec = WhiteSpace ResourceName WhiteSpace ":" WhiteSpace Value */
+  skip_white_space (p);
+  quarks = parse_resource_name (p);
+  if (NILP (quarks))
+    goto cleanup;
+  skip_white_space (p);
+  if (*P != ':')
+    goto cleanup;
+  P++;
+  skip_white_space (p);
+  value = parse_value (p);
+  return Fcons (quarks, value);
+
+ cleanup:
+  /* Skip the remaining data as a dummy value.  */
+  parse_value (p);
+  return Qnil;
+}
+
+#undef P
+
+/* Equivalents of X Resource Manager functions.
+
+   An X Resource Database acts as a collection of resource names and
+   associated values.  It is implemented as a trie on quarks.  Namely,
+   each edge is labeled by either a string, LOOSE_BINDING, or
+   SINGLE_COMPONENT.  Each node has a node id, which is a unique
+   nonnegative integer, and the root node id is 0.  A database is
+   implemented as a hash table that maps a pair (SRC-NODE-ID .
+   EDGE-LABEL) to DEST-NODE-ID.  It also holds a maximum node id used
+   in the table as a value for HASHKEY_MAX_NID.  A value associated to
+   a node is recorded as a value for the node id.
+
+   A database also has a cache for past queries as a value for
+   HASHKEY_QUERY_CACHE.  It is another hash table that maps
+   "NAME-STRING\0CLASS-STRING" to the result of the query.  */
+
+#define HASHKEY_MAX_NID (make_number (0))
+#define HASHKEY_QUERY_CACHE (make_number (-1))
+
+static XrmDatabase
+xrm_create_database ()
+{
+  XrmDatabase database;
+
+  database = make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+			      make_float (DEFAULT_REHASH_SIZE),
+			      make_float (DEFAULT_REHASH_THRESHOLD),
+			      Qnil, Qnil, Qnil);
+  Fputhash (HASHKEY_MAX_NID, make_number (0), database);
+  Fputhash (HASHKEY_QUERY_CACHE, Qnil, database);
+
+  return database;
+}
+
+static void
+xrm_q_put_resource (database, quarks, value)
+     XrmDatabase database;
+     Lisp_Object quarks, value;
+{
+  struct Lisp_Hash_Table *h = XHASH_TABLE (database);
+  unsigned hash_code;
+  int max_nid, i;
+  Lisp_Object node_id, key;
+
+  max_nid = XINT (Fgethash (HASHKEY_MAX_NID, database, Qnil));
+
+  XSETINT (node_id, 0);
+  for (; CONSP (quarks); quarks = XCDR (quarks))
+    {
+      key = Fcons (node_id, XCAR (quarks));
+      i = hash_lookup (h, key, &hash_code);
+      if (i < 0)
+	{
+	  max_nid++;
+	  XSETINT (node_id, max_nid);
+	  hash_put (h, key, node_id, hash_code);
+	}
+      else
+	node_id = HASH_VALUE (h, i);
+    }
+  Fputhash (node_id, value, database);
+
+  Fputhash (HASHKEY_MAX_NID, make_number (max_nid), database);
+  Fputhash (HASHKEY_QUERY_CACHE, Qnil, database);
+}
+
+/* Merge multiple resource entries specified by DATA into a resource
+   database DATABASE.  DATA points to the head of a null-terminated
+   string consisting of multiple resource lines.  It's like a
+   combination of XrmGetStringDatabase and XrmMergeDatabases.  */
+
+void
+xrm_merge_string_database (database, data)
+     XrmDatabase database;
+     char *data;
+{
+  Lisp_Object quarks_value;
+
+  while (*data)
+    {
+      quarks_value = parse_resource_line (&data);
+      if (!NILP (quarks_value))
+	xrm_q_put_resource (database,
+			    XCAR (quarks_value), XCDR (quarks_value));
+    }
+}
+
+static Lisp_Object
+xrm_q_get_resource_1 (database, node_id, quark_name, quark_class)
+     XrmDatabase database;
+     Lisp_Object node_id, quark_name, quark_class;
+{
+  struct Lisp_Hash_Table *h = XHASH_TABLE (database);
+  Lisp_Object key, labels[3], value;
+  int i, k;
+
+  if (!CONSP (quark_name))
+    return Fgethash (node_id, database, Qnil);
+
+  /* First, try tight bindings */
+  labels[0] = XCAR (quark_name);
+  labels[1] = XCAR (quark_class);
+  labels[2] = SINGLE_COMPONENT;
+
+  key = Fcons (node_id, Qnil);
+  for (k = 0; k < sizeof (labels) / sizeof (*labels); k++)
+    {
+      XSETCDR (key, labels[k]);
+      i = hash_lookup (h, key, NULL);
+      if (i >= 0)
+	{
+	  value = xrm_q_get_resource_1 (database, HASH_VALUE (h, i),
+					XCDR (quark_name), XCDR (quark_class));
+	  if (!NILP (value))
+	    return value;
+	}
+    }
+
+  /* Then, try loose bindings */
+  XSETCDR (key, LOOSE_BINDING);
+  i = hash_lookup (h, key, NULL);
+  if (i >= 0)
+    {
+      value = xrm_q_get_resource_1 (database, HASH_VALUE (h, i),
+				    quark_name, quark_class);
+      if (!NILP (value))
+	return value;
+      else
+	return xrm_q_get_resource_1 (database, node_id,
+				     XCDR (quark_name), XCDR (quark_class));
+    }
+  else
+    return Qnil;
+}
+
+static Lisp_Object
+xrm_q_get_resource (database, quark_name, quark_class)
+     XrmDatabase database;
+     Lisp_Object quark_name, quark_class;
+{
+  return xrm_q_get_resource_1 (database, make_number (0),
+			       quark_name, quark_class);
+}
+
+/* Retrieve a resource value for the specified NAME and CLASS from the
+   resource database DATABASE.  It corresponds to XrmGetResource.  */
+
+Lisp_Object
+xrm_get_resource (database, name, class)
+     XrmDatabase database;
+     char *name, *class;
+{
+  Lisp_Object key, query_cache, quark_name, quark_class, tmp;
+  int i, nn, nc;
+  struct Lisp_Hash_Table *h;
+  unsigned hash_code;
+
+  nn = strlen (name);
+  nc = strlen (class);
+  key = make_uninit_string (nn + nc + 1);
+  strcpy (SDATA (key), name);
+  strncpy (SDATA (key) + nn + 1, class, nc);
+
+  query_cache = Fgethash (HASHKEY_QUERY_CACHE, database, Qnil);
+  if (NILP (query_cache))
+    {
+      query_cache = make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+				     make_float (DEFAULT_REHASH_SIZE),
+				     make_float (DEFAULT_REHASH_THRESHOLD),
+				     Qnil, Qnil, Qnil);
+      Fputhash (HASHKEY_QUERY_CACHE, query_cache, database);
+    }
+  h = XHASH_TABLE (query_cache);
+  i = hash_lookup (h, key, &hash_code);
+  if (i >= 0)
+    return HASH_VALUE (h, i);
+
+  quark_name = parse_resource_name (&name);
+  if (*name != '\0')
+    return Qnil;
+  for (tmp = quark_name, nn = 0; CONSP (tmp); tmp = XCDR (tmp), nn++)
+    if (!STRINGP (XCAR (tmp)))
+      return Qnil;
+
+  quark_class = parse_resource_name (&class);
+  if (*class != '\0')
+    return Qnil;
+  for (tmp = quark_class, nc = 0; CONSP (tmp); tmp = XCDR (tmp), nc++)
+    if (!STRINGP (XCAR (tmp)))
+      return Qnil;
+
+  if (nn != nc)
+    return Qnil;
+  else
+    {
+      tmp = xrm_q_get_resource (database, quark_name, quark_class);
+      hash_put (h, key, tmp, hash_code);
+      return tmp;
+    }
+}
+
+#if TARGET_API_MAC_CARBON
+static Lisp_Object
+xrm_cfproperty_list_to_value (plist)
+     CFPropertyListRef plist;
+{
+  CFTypeID type_id = CFGetTypeID (plist);
+
+  if (type_id == CFStringGetTypeID ())
+    return cfstring_to_lisp (plist);
+  else if (type_id == CFNumberGetTypeID ())
+    {
+      CFStringRef string;
+      Lisp_Object result = Qnil;
+
+      string = CFStringCreateWithFormat (NULL, NULL, CFSTR ("%@"), plist);
+      if (string)
+	{
+	  result = cfstring_to_lisp (string);
+	  CFRelease (string);
+	}
+      return result;
+    }
+  else if (type_id == CFBooleanGetTypeID ())
+    return build_string (CFBooleanGetValue (plist) ? "true" : "false");
+  else if (type_id == CFDataGetTypeID ())
+    return cfdata_to_lisp (plist);
+  else
+    return Qnil;
+}
+#endif
+
+/* Create a new resource database from the preferences for the
+   application APPLICATION.  APPLICATION is either a string that
+   specifies an application ID, or NULL that represents the current
+   application.  */
+
+XrmDatabase
+xrm_get_preference_database (application)
+     char *application;
+{
+#if TARGET_API_MAC_CARBON
+  CFStringRef app_id, *keys, user_doms[2], host_doms[2];
+  CFMutableSetRef key_set = NULL;
+  CFArrayRef key_array;
+  CFIndex index, count;
+  char *res_name;
+  XrmDatabase database;
+  Lisp_Object quarks = Qnil, value = Qnil;
+  CFPropertyListRef plist;
+  int iu, ih;
+  struct gcpro gcpro1, gcpro2, gcpro3;
+
+  user_doms[0] = kCFPreferencesCurrentUser;
+  user_doms[1] = kCFPreferencesAnyUser;
+  host_doms[0] = kCFPreferencesCurrentHost;
+  host_doms[1] = kCFPreferencesAnyHost;
+
+  database = xrm_create_database ();
+
+  GCPRO3 (database, quarks, value);
+
+  BLOCK_INPUT;
+
+  app_id = kCFPreferencesCurrentApplication;
+  if (application)
+    {
+      app_id = cfstring_create_with_utf8_cstring (application);
+      if (app_id == NULL)
+	goto out;
+    }
+
+  key_set = CFSetCreateMutable (NULL, 0, &kCFCopyStringSetCallBacks);
+  if (key_set == NULL)
+    goto out;
+  for (iu = 0; iu < sizeof (user_doms) / sizeof (*user_doms) ; iu++)
+    for (ih = 0; ih < sizeof (host_doms) / sizeof (*host_doms); ih++)
+      {
+	key_array = CFPreferencesCopyKeyList (app_id, user_doms[iu],
+					      host_doms[ih]);
+	if (key_array)
+	  {
+	    count = CFArrayGetCount (key_array);
+	    for (index = 0; index < count; index++)
+	      CFSetAddValue (key_set,
+			     CFArrayGetValueAtIndex (key_array, index));
+	    CFRelease (key_array);
+	  }
+      }
+
+  count = CFSetGetCount (key_set);
+  keys = xmalloc (sizeof (CFStringRef) * count);
+  if (keys == NULL)
+    goto out;
+  CFSetGetValues (key_set, (const void **)keys);
+  for (index = 0; index < count; index++)
+    {
+      res_name = SDATA (cfstring_to_lisp_nodecode (keys[index]));
+      quarks = parse_resource_name (&res_name);
+      if (!(NILP (quarks) || *res_name))
+	{
+	  plist = CFPreferencesCopyAppValue (keys[index], app_id);
+	  value = xrm_cfproperty_list_to_value (plist);
+	  CFRelease (plist);
+	  if (!NILP (value))
+	    xrm_q_put_resource (database, quarks, value);
+	}
+    }
+
+  xfree (keys);
+ out:
+  if (key_set)
+    CFRelease (key_set);
+  CFRelease (app_id);
+
+  UNBLOCK_INPUT;
+
+  UNGCPRO;
+
+  return database;
+#else
+  return xrm_create_database ();
+#endif
+}
+
+
 #ifndef MAC_OSX
 
 /* The following functions with "sys_" prefix are stubs to Unix
@@ -791,38 +2160,8 @@ sys_fopen (const char *name, const char *mode)
 }
 
 
-#include <Events.h>
-
-long target_ticks = 0;
-
-#ifdef __MRC__
-__sigfun alarm_signal_func = (__sigfun) 0;
-#elif __MWERKS__
-__signal_func_ptr alarm_signal_func = (__signal_func_ptr) 0;
-#else /* not __MRC__ and not __MWERKS__ */
-You lose!!!
-#endif /* not __MRC__ and not __MWERKS__ */
-
-
-/* These functions simulate SIG_ALRM.  The stub for function signal
-   stores the signal handler function in alarm_signal_func if a
-   SIG_ALRM is encountered.  check_alarm is called in XTread_socket,
-   which emacs calls periodically.  A pending alarm is represented by
-   a non-zero target_ticks value.  check_alarm calls the handler
-   function pointed to by alarm_signal_func if one has been set up and
-   an alarm is pending.  */
-
-void
-check_alarm ()
-{
-  if (target_ticks && TickCount () > target_ticks)
-    {
-      target_ticks = 0;
-      if (alarm_signal_func)
-	(*alarm_signal_func)(SIGALRM);
-    }
-}
-
+#include "keyboard.h"
+extern Boolean mac_wait_next_event (EventRecord *, UInt32, Boolean);
 
 int
 select (n,  rfds, wfds, efds, timeout)
@@ -832,88 +2171,87 @@ select (n,  rfds, wfds, efds, timeout)
   SELECT_TYPE *efds;
   struct timeval *timeout;
 {
-#ifdef TARGET_API_MAC_CARBON
-  return 1;
+  OSErr err;
+#if TARGET_API_MAC_CARBON
+  EventTimeout timeout_sec =
+    (timeout
+     ? (EMACS_SECS (*timeout) * kEventDurationSecond
+	+ EMACS_USECS (*timeout) * kEventDurationMicrosecond)
+     : kEventDurationForever);
+
+  BLOCK_INPUT;
+  err = ReceiveNextEvent (0, NULL, timeout_sec, kEventLeaveInQueue, NULL);
+  UNBLOCK_INPUT;
 #else /* not TARGET_API_MAC_CARBON */
-  EMACS_TIME end_time, now;
   EventRecord e;
+  UInt32 sleep_time = EMACS_SECS (*timeout) * 60 +
+    ((EMACS_USECS (*timeout) * 60) / 1000000);
 
   /* Can only handle wait for keyboard input.  */
   if (n > 1 || wfds || efds)
     return -1;
 
-  EMACS_GET_TIME (end_time);
-  EMACS_ADD_TIME (end_time, end_time, *timeout);
-
-  do
-    {
-      /* Also return true if an event other than a keyDown has
-         occurred.  This causes kbd_buffer_get_event in keyboard.c to
-         call read_avail_input which in turn calls XTread_socket to
-         poll for these events.  Otherwise these never get processed
-         except but a very slow poll timer.  */
-      if (FD_ISSET (0, rfds) && EventAvail (everyEvent, &e))
-        return 1;
-
-      /* Also check movement of the mouse.  */
-      {
-        Point mouse_pos;
-        static Point old_mouse_pos = {-1, -1};
-
-        GetMouse (&mouse_pos);
-        if (!EqualPt (mouse_pos, old_mouse_pos))
-          {
-            old_mouse_pos = mouse_pos;
-            return 1;
-          }
-      }
-
-      WaitNextEvent (0, &e, 1UL, NULL);	/* Accept no event; wait 1
-					   tic. by T.I. */
-
-      EMACS_GET_TIME (now);
-      EMACS_SUB_TIME (now, end_time, now);
-    }
-  while (!EMACS_TIME_NEG_P (now));
-
-  return 0;
+  /* Also return true if an event other than a keyDown has occurred.
+     This causes kbd_buffer_get_event in keyboard.c to call
+     read_avail_input which in turn calls XTread_socket to poll for
+     these events.  Otherwise these never get processed except but a
+     very slow poll timer.  */
+  if (mac_wait_next_event (&e, sleep_time, false))
+    err = noErr;
+  else
+    err = -9875;		/* eventLoopTimedOutErr */
 #endif /* not TARGET_API_MAC_CARBON */
+
+  if (FD_ISSET (0, rfds))
+    if (err == noErr)
+      return 1;
+    else
+      {
+	FD_ZERO (rfds);
+	return 0;
+      }
+  else
+    if (err == noErr)
+      {
+	if (input_polling_used ())
+	  {
+	    /* It could be confusing if a real alarm arrives while
+	       processing the fake one.  Turn it off and let the
+	       handler reset it.  */
+	    extern void poll_for_input_1 P_ ((void));
+	    int old_poll_suppress_count = poll_suppress_count;
+	    poll_suppress_count = 1;
+	    poll_for_input_1 ();
+	    poll_suppress_count = old_poll_suppress_count;
+	  }
+	errno = EINTR;
+	return -1;
+      }
+    else
+      return 0;
 }
 
 
-/* Called in sys_select to wait for an alarm signal to arrive.  */
+/* Simulation of SIGALRM.  The stub for function signal stores the
+   signal handler function in alarm_signal_func if a SIGALRM is
+   encountered.  */
 
-int
-pause ()
-{
-  EventRecord e;
-  unsigned long tick;
+#include <signal.h>
+#include "syssignal.h"
 
-  if (!target_ticks)  /* no alarm pending */
-    return -1;
+static TMTask mac_atimer_task;
 
-  if ((tick = TickCount ()) < target_ticks)
-    WaitNextEvent (0, &e, target_ticks - tick, NULL); /* Accept no event;
-							 just wait. by T.I. */
+static QElemPtr mac_atimer_qlink = (QElemPtr) &mac_atimer_task;
 
-  target_ticks = 0;
-  if (alarm_signal_func)
-    (*alarm_signal_func)(SIGALRM);
+static int signal_mask = 0;
 
-  return 0;
-}
-
-
-int
-alarm (int seconds)
-{
-  long remaining = target_ticks ? (TickCount () - target_ticks) / 60 : 0;
-
-  target_ticks = seconds ? TickCount () + 60 * seconds : 0;
-
-  return (remaining < 0) ? 0 : (unsigned int) remaining;
-}
-
+#ifdef __MRC__
+__sigfun alarm_signal_func = (__sigfun) 0;
+#elif __MWERKS__
+__signal_func_ptr alarm_signal_func = (__signal_func_ptr) 0;
+#else /* not __MRC__ and not __MWERKS__ */
+You lose!!!
+#endif /* not __MRC__ and not __MWERKS__ */
 
 #undef signal
 #ifdef __MRC__
@@ -943,6 +2281,128 @@ sys_signal (int signal_num, __signal_func_ptr signal_func)
       alarm_signal_func = signal_func;
       return old_signal_func;
     }
+}
+
+
+static pascal void
+mac_atimer_handler (qlink)
+     TMTaskPtr qlink;
+{
+  if (alarm_signal_func)
+    (alarm_signal_func) (SIGALRM);
+}
+
+
+static void
+set_mac_atimer (count)
+     long count;
+{
+  static TimerUPP mac_atimer_handlerUPP = NULL;
+
+  if (mac_atimer_handlerUPP == NULL)
+    mac_atimer_handlerUPP = NewTimerUPP (mac_atimer_handler);
+  mac_atimer_task.tmCount = 0;
+  mac_atimer_task.tmAddr = mac_atimer_handlerUPP;
+  mac_atimer_qlink = (QElemPtr) &mac_atimer_task;
+  InsTime (mac_atimer_qlink);
+  if (count)
+    PrimeTime (mac_atimer_qlink, count);
+}
+
+
+int
+remove_mac_atimer (remaining_count)
+     long *remaining_count;
+{
+  if (mac_atimer_qlink)
+    {
+      RmvTime (mac_atimer_qlink);
+      if (remaining_count)
+	*remaining_count = mac_atimer_task.tmCount;
+      mac_atimer_qlink = NULL;
+
+      return 0;
+    }
+  else
+    return -1;
+}
+
+
+int
+sigblock (int mask)
+{
+  int old_mask = signal_mask;
+
+  signal_mask |= mask;
+
+  if ((old_mask ^ signal_mask) & sigmask (SIGALRM))
+    remove_mac_atimer (NULL);
+
+  return old_mask;
+}
+
+
+int
+sigsetmask (int mask)
+{
+  int old_mask = signal_mask;
+
+  signal_mask = mask;
+
+  if ((old_mask ^ signal_mask) & sigmask (SIGALRM))
+    if (signal_mask & sigmask (SIGALRM))
+      remove_mac_atimer (NULL);
+    else
+      set_mac_atimer (mac_atimer_task.tmCount);
+
+  return old_mask;
+}
+
+
+int
+alarm (int seconds)
+{
+  long remaining_count;
+
+  if (remove_mac_atimer (&remaining_count) == 0)
+    {
+      set_mac_atimer (seconds * 1000);
+
+      return remaining_count / 1000;
+    }
+  else
+    {
+      mac_atimer_task.tmCount = seconds * 1000;
+
+      return 0;
+    }
+}
+
+
+int
+setitimer (which, value, ovalue)
+     int which;
+     const struct itimerval *value;
+     struct itimerval *ovalue;
+{
+  long remaining_count;
+  long count = (EMACS_SECS (value->it_value) * 1000
+		+ (EMACS_USECS (value->it_value) + 999) / 1000);
+
+  if (remove_mac_atimer (&remaining_count) == 0)
+    {
+      if (ovalue)
+	{
+	  bzero (ovalue, sizeof (*ovalue));
+	  EMACS_SET_SECS_USECS (ovalue->it_value, remaining_count / 1000,
+				(remaining_count % 1000) * 1000);
+	}
+      set_mac_atimer (count);
+    }
+  else
+    mac_atimer_task.tmCount = count;
+
+  return 0;
 }
 
 
@@ -1073,35 +2533,6 @@ sys_time (time_t *timer)
 }
 
 
-/* MPW strftime broken for "%p" format */
-#ifdef __MRC__
-#undef strftime
-#include <time.h>
-size_t
-sys_strftime (char * s, size_t maxsize, const char * format,
-	      const struct tm * timeptr)
-{
-  if (strcmp (format, "%p") == 0)
-    {
-      if (maxsize < 3)
-        return 0;
-      if (timeptr->tm_hour < 12)
-        {
-          strcpy (s, "AM");
-          return 2;
-        }
-      else
-        {
-          strcpy (s, "PM");
-          return 2;
-        }
-    }
-  else
-    return strftime (s, maxsize, format, timeptr);
-}
-#endif  /* __MRC__ */
-
-
 /* no subprocesses, empty wait */
 
 int
@@ -1116,13 +2547,6 @@ croak (char *badfunc)
 {
   printf ("%s not yet implemented\r\n", badfunc);
   exit (1);
-}
-
-
-char *
-index (const char * str, int chr)
-{
-  return strchr (str, chr);
 }
 
 
@@ -1162,6 +2586,13 @@ static struct passwd my_passwd =
 {
   my_passwd_name,
   my_passwd_dir,
+};
+
+static struct group my_group =
+{
+  /* There are no groups on the mac, so we just return "root" as the
+     group name.  */
+  "root",
 };
 
 
@@ -1258,6 +2689,13 @@ getpwuid (uid_t uid)
 }
 
 
+struct group *
+getgrgid (gid_t gid)
+{
+  return &my_group;
+}
+
+
 struct passwd *
 getpwnam (const char *name)
 {
@@ -1297,20 +2735,6 @@ void
 sys_subshell ()
 {
   error ("Can't spawn subshell");
-}
-
-
-int
-sigsetmask (int x)
-{
-  return 0;
-}
-
-
-int
-sigblock (int mask)
-{
-  return 0;
 }
 
 
@@ -1407,6 +2831,39 @@ path_from_vol_dir_name (char *path, int man_path_len, short vol_ref_num,
     /* stop when we see the volume's root directory */
 
   return 1;  /* success */
+}
+
+
+static OSErr
+posix_pathname_to_fsspec (ufn, fs)
+     const char *ufn;
+     FSSpec *fs;
+{
+  Str255 mac_pathname;
+
+  if (posix_to_mac_pathname (ufn, mac_pathname, sizeof (mac_pathname)) == 0)
+    return fnfErr;
+  else
+    {
+      c2pstr (mac_pathname);
+      return FSMakeFSSpec (0, 0, mac_pathname, fs);
+    }
+}
+
+static OSErr
+fsspec_to_posix_pathname (fs, ufn, ufnbuflen)
+     const FSSpec *fs;
+     char *ufn;
+     int ufnbuflen;
+{
+  char mac_pathname[MAXPATHLEN];
+
+  if (path_from_vol_dir_name (mac_pathname, sizeof (mac_pathname) - 1,
+			      fs->vRefNum, fs->parID, fs->name)
+      && mac_to_posix_pathname (mac_pathname, ufn, ufnbuflen))
+    return noErr;
+  else
+    return fnfErr;
 }
 
 #ifndef MAC_OSX
@@ -1514,6 +2971,22 @@ umask (mode_t numask)
 
 int
 chmod (const char *path, mode_t mode)
+{
+  /* say it always succeed for now */
+  return 0;
+}
+
+
+int
+fchmod (int fd, mode_t mode)
+{
+  /* say it always succeed for now */
+  return 0;
+}
+
+
+int
+fchown (int fd, uid_t owner, gid_t group)
 {
   /* say it always succeed for now */
   return 0;
@@ -1887,9 +3360,6 @@ uname (struct utsname *name)
 }
 
 
-#include <Processes.h>
-#include <EPPC.h>
-
 /* Event class of HLE sent to subprocess.  */
 const OSType kEmacsSubprocessSend = 'ESND';
 
@@ -1953,7 +3423,10 @@ mystrcpy (char *to, char *from)
    wildcard filename expansion.  Since we don't really have a shell on
    the Mac, this case is detected and the starting of the shell is
    by-passed.  We really need to add code here to do filename
-   expansion to support such functionality. */
+   expansion to support such functionality.
+
+   We can't use this strategy in Carbon because the High Level Event
+   APIs are not available.  */
 
 int
 run_mac_command (argv, workdir, infn, outfn, errfn)
@@ -1961,7 +3434,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
      const char *workdir;
      const char *infn, *outfn, *errfn;
 {
-#ifdef TARGET_API_MAC_CARBON
+#if TARGET_API_MAC_CARBON
   return -1;
 #else /* not TARGET_API_MAC_CARBON */
   char macappname[MAXPATHLEN+1], macworkdir[MAXPATHLEN+1];
@@ -2046,7 +3519,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 	  strcat (t, newargv[0]);
 #endif /* 0 */
 	  Lisp_Object path;
-	  openp (Vexec_path, build_string (newargv[0]), EXEC_SUFFIXES, &path,
+	  openp (Vexec_path, build_string (newargv[0]), Vexec_suffixes, &path,
 		 make_number (X_OK));
 
 	  if (NILP (path))
@@ -2422,93 +3895,328 @@ initialize_applescript ()
 }
 
 
-void terminate_applescript()
+void
+terminate_applescript()
 {
   OSADispose (as_scripting_component, as_script_context);
   CloseComponent (as_scripting_component);
 }
 
+/* Convert a lisp string to the 4 byte character code.  */
+
+OSType
+mac_get_code_from_arg(Lisp_Object arg, OSType defCode)
+{
+  OSType result;
+  if (NILP(arg))
+    {
+      result = defCode;
+    }
+  else
+    {
+      /* check type string */
+      CHECK_STRING(arg);
+      if (SBYTES (arg) != 4)
+	{
+	  error ("Wrong argument: need string of length 4 for code");
+	}
+      result = EndianU32_BtoN (*((UInt32 *) SDATA (arg)));
+    }
+  return result;
+}
+
+/* Convert the 4 byte character code into a 4 byte string.  */
+
+Lisp_Object
+mac_get_object_from_code(OSType defCode)
+{
+  UInt32 code = EndianU32_NtoB (defCode);
+
+  return make_unibyte_string ((char *)&code, 4);
+}
+
+
+DEFUN ("mac-get-file-creator", Fmac_get_file_creator, Smac_get_file_creator, 1, 1, 0,
+       doc: /* Get the creator code of FILENAME as a four character string. */)
+     (filename)
+     Lisp_Object filename;
+{
+  OSErr	status;
+#ifdef MAC_OSX
+  FSRef fref;
+#else
+  FSSpec fss;
+#endif
+  OSType cCode;
+  Lisp_Object result = Qnil;
+  CHECK_STRING (filename);
+
+  if (NILP(Ffile_exists_p(filename)) || !NILP(Ffile_directory_p(filename))) {
+    return Qnil;
+  }
+  filename = Fexpand_file_name (filename, Qnil);
+
+  BLOCK_INPUT;
+#ifdef MAC_OSX
+  status = FSPathMakeRef(SDATA(ENCODE_FILE(filename)), &fref, NULL);
+#else
+  status = posix_pathname_to_fsspec (SDATA (ENCODE_FILE (filename)), &fss);
+#endif
+
+  if (status == noErr)
+    {
+#ifdef MAC_OSX
+      FSCatalogInfo catalogInfo;
+
+      status = FSGetCatalogInfo(&fref, kFSCatInfoFinderInfo,
+				&catalogInfo, NULL, NULL, NULL);
+#else
+      FInfo finder_info;
+
+      status = FSpGetFInfo (&fss, &finder_info);
+#endif
+      if (status == noErr)
+	{
+#ifdef MAC_OSX
+	  result = mac_get_object_from_code(((FileInfo*)&catalogInfo.finderInfo)->fileCreator);
+#else
+	  result = mac_get_object_from_code (finder_info.fdCreator);
+#endif
+	}
+    }
+  UNBLOCK_INPUT;
+  if (status != noErr) {
+    error ("Error while getting file information.");
+  }
+  return result;
+}
+
+DEFUN ("mac-get-file-type", Fmac_get_file_type, Smac_get_file_type, 1, 1, 0,
+       doc: /* Get the type code of FILENAME as a four character string. */)
+     (filename)
+     Lisp_Object filename;
+{
+  OSErr	status;
+#ifdef MAC_OSX
+  FSRef fref;
+#else
+  FSSpec fss;
+#endif
+  OSType cCode;
+  Lisp_Object result = Qnil;
+  CHECK_STRING (filename);
+
+  if (NILP(Ffile_exists_p(filename)) || !NILP(Ffile_directory_p(filename))) {
+    return Qnil;
+  }
+  filename = Fexpand_file_name (filename, Qnil);
+
+  BLOCK_INPUT;
+#ifdef MAC_OSX
+  status = FSPathMakeRef(SDATA(ENCODE_FILE(filename)), &fref, NULL);
+#else
+  status = posix_pathname_to_fsspec (SDATA (ENCODE_FILE (filename)), &fss);
+#endif
+
+  if (status == noErr)
+    {
+#ifdef MAC_OSX
+      FSCatalogInfo catalogInfo;
+
+      status = FSGetCatalogInfo(&fref, kFSCatInfoFinderInfo,
+				&catalogInfo, NULL, NULL, NULL);
+#else
+      FInfo finder_info;
+
+      status = FSpGetFInfo (&fss, &finder_info);
+#endif
+      if (status == noErr)
+	{
+#ifdef MAC_OSX
+	  result = mac_get_object_from_code(((FileInfo*)&catalogInfo.finderInfo)->fileType);
+#else
+	  result = mac_get_object_from_code (finder_info.fdType);
+#endif
+	}
+    }
+  UNBLOCK_INPUT;
+  if (status != noErr) {
+    error ("Error while getting file information.");
+  }
+  return result;
+}
+
+DEFUN ("mac-set-file-creator", Fmac_set_file_creator, Smac_set_file_creator, 1, 2, 0,
+       doc: /* Set creator code of file FILENAME to CODE.
+If non-nil, CODE must be a 4-character string.  Otherwise, 'EMAx' is
+assumed. Return non-nil if successful.  */)
+     (filename, code)
+     Lisp_Object filename, code;
+{
+  OSErr	status;
+#ifdef MAC_OSX
+  FSRef fref;
+#else
+  FSSpec fss;
+#endif
+  OSType cCode;
+  CHECK_STRING (filename);
+
+  cCode = mac_get_code_from_arg(code, 'EMAx');
+
+  if (NILP(Ffile_exists_p(filename)) || !NILP(Ffile_directory_p(filename))) {
+    return Qnil;
+  }
+  filename = Fexpand_file_name (filename, Qnil);
+
+  BLOCK_INPUT;
+#ifdef MAC_OSX
+  status = FSPathMakeRef(SDATA(ENCODE_FILE(filename)), &fref, NULL);
+#else
+  status = posix_pathname_to_fsspec (SDATA (ENCODE_FILE (filename)), &fss);
+#endif
+
+  if (status == noErr)
+    {
+#ifdef MAC_OSX
+      FSCatalogInfo catalogInfo;
+      FSRef parentDir;
+      status = FSGetCatalogInfo(&fref, kFSCatInfoFinderInfo,
+				&catalogInfo, NULL, NULL, &parentDir);
+#else
+      FInfo finder_info;
+
+      status = FSpGetFInfo (&fss, &finder_info);
+#endif
+      if (status == noErr)
+	{
+#ifdef MAC_OSX
+	((FileInfo*)&catalogInfo.finderInfo)->fileCreator = cCode;
+	status = FSSetCatalogInfo(&fref, kFSCatInfoFinderInfo, &catalogInfo);
+	/* TODO: on Mac OS 10.2, we need to touch the parent dir, FNNotify? */
+#else
+	finder_info.fdCreator = cCode;
+	status = FSpSetFInfo (&fss, &finder_info);
+#endif
+	}
+    }
+  UNBLOCK_INPUT;
+  if (status != noErr) {
+    error ("Error while setting creator information.");
+  }
+  return Qt;
+}
+
+DEFUN ("mac-set-file-type", Fmac_set_file_type, Smac_set_file_type, 2, 2, 0,
+       doc: /* Set file code of file FILENAME to CODE.
+CODE must be a 4-character string.  Return non-nil if successful.  */)
+     (filename, code)
+     Lisp_Object filename, code;
+{
+  OSErr	status;
+#ifdef MAC_OSX
+  FSRef fref;
+#else
+  FSSpec fss;
+#endif
+  OSType cCode;
+  CHECK_STRING (filename);
+
+  cCode = mac_get_code_from_arg(code, 0); /* Default to empty code*/
+
+  if (NILP(Ffile_exists_p(filename)) || !NILP(Ffile_directory_p(filename))) {
+    return Qnil;
+  }
+  filename = Fexpand_file_name (filename, Qnil);
+
+  BLOCK_INPUT;
+#ifdef MAC_OSX
+  status = FSPathMakeRef(SDATA(ENCODE_FILE(filename)), &fref, NULL);
+#else
+  status = posix_pathname_to_fsspec (SDATA (ENCODE_FILE (filename)), &fss);
+#endif
+
+  if (status == noErr)
+    {
+#ifdef MAC_OSX
+      FSCatalogInfo catalogInfo;
+      FSRef parentDir;
+      status = FSGetCatalogInfo(&fref, kFSCatInfoFinderInfo,
+				&catalogInfo, NULL, NULL, &parentDir);
+#else
+      FInfo finder_info;
+
+      status = FSpGetFInfo (&fss, &finder_info);
+#endif
+      if (status == noErr)
+	{
+#ifdef MAC_OSX
+	((FileInfo*)&catalogInfo.finderInfo)->fileType = cCode;
+	status = FSSetCatalogInfo(&fref, kFSCatInfoFinderInfo, &catalogInfo);
+	/* TODO: on Mac OS 10.2, we need to touch the parent dir, FNNotify? */
+#else
+	finder_info.fdType = cCode;
+	status = FSpSetFInfo (&fss, &finder_info);
+#endif
+	}
+    }
+  UNBLOCK_INPUT;
+  if (status != noErr) {
+    error ("Error while setting creator information.");
+  }
+  return Qt;
+}
+
 
 /* Compile and execute the AppleScript SCRIPT and return the error
    status as function value.  A zero is returned if compilation and
-   execution is successful, in which case RESULT returns a pointer to
-   a string containing the resulting script value.  Otherwise, the Mac
-   error code is returned and RESULT returns a pointer to an error
-   string.  In both cases the caller should deallocate the storage
-   used by the string pointed to by RESULT if it is non-NULL.  For
-   documentation on the MacOS scripting architecture, see Inside
-   Macintosh - Interapplication Communications: Scripting Components.  */
+   execution is successful, in which case *RESULT is set to a Lisp
+   string containing the resulting script value.  Otherwise, the Mac
+   error code is returned and *RESULT is set to an error Lisp string.
+   For documentation on the MacOS scripting architecture, see Inside
+   Macintosh - Interapplication Communications: Scripting
+   Components.  */
 
 static long
-do_applescript (char *script, char **result)
+do_applescript (script, result)
+     Lisp_Object script, *result;
 {
-  AEDesc script_desc, result_desc, error_desc;
+  AEDesc script_desc, result_desc, error_desc, *desc = NULL;
   OSErr error;
   OSAError osaerror;
-  long length;
 
-  *result = 0;
+  *result = Qnil;
 
   if (!as_scripting_component)
     initialize_applescript();
 
-  error = AECreateDesc (typeChar, script, strlen(script), &script_desc);
+  error = AECreateDesc (typeChar, SDATA (script), SBYTES (script),
+			&script_desc);
   if (error)
     return error;
 
   osaerror = OSADoScript (as_scripting_component, &script_desc, kOSANullScript,
 			  typeChar, kOSAModeNull, &result_desc);
 
-  if (osaerror == errOSAScriptError)
-    {
-      /* error executing AppleScript: retrieve error message */
-      if (!OSAScriptError (as_scripting_component, kOSAErrorMessage, typeChar,
-			   &error_desc))
-        {
-#if TARGET_API_MAC_CARBON
-          length = AEGetDescDataSize (&error_desc);
-          *result = (char *) xmalloc (length + 1);
-          if (*result)
-            {
-              AEGetDescData (&error_desc, *result, length);
-              *(*result + length) = '\0';
-            }
-#else /* not TARGET_API_MAC_CARBON */
-          HLock (error_desc.dataHandle);
-          length = GetHandleSize(error_desc.dataHandle);
-          *result = (char *) xmalloc (length + 1);
-          if (*result)
-            {
-              memcpy (*result, *(error_desc.dataHandle), length);
-              *(*result + length) = '\0';
-            }
-          HUnlock (error_desc.dataHandle);
-#endif /* not TARGET_API_MAC_CARBON */
-          AEDisposeDesc (&error_desc);
-        }
-    }
-  else if (osaerror == noErr)  /* success: retrieve resulting script value */
+  if (osaerror == noErr)
+    /* success: retrieve resulting script value */
+    desc = &result_desc;
+  else if (osaerror == errOSAScriptError)
+    /* error executing AppleScript: retrieve error message */
+    if (!OSAScriptError (as_scripting_component, kOSAErrorMessage, typeChar,
+			 &error_desc))
+      desc = &error_desc;
+
+  if (desc)
     {
 #if TARGET_API_MAC_CARBON
-      length = AEGetDescDataSize (&result_desc);
-      *result = (char *) xmalloc (length + 1);
-      if (*result)
-        {
-          AEGetDescData (&result_desc, *result, length);
-          *(*result + length) = '\0';
-        }
+      *result = make_uninit_string (AEGetDescDataSize (desc));
+      AEGetDescData (desc, SDATA (*result), SBYTES (*result));
 #else /* not TARGET_API_MAC_CARBON */
-      HLock (result_desc.dataHandle);
-      length = GetHandleSize(result_desc.dataHandle);
-      *result = (char *) xmalloc (length + 1);
-      if (*result)
-        {
-          memcpy (*result, *(result_desc.dataHandle), length);
-          *(*result + length) = '\0';
-        }
-      HUnlock (result_desc.dataHandle);
+      *result = make_uninit_string (GetHandleSize (desc->dataHandle));
+      memcpy (SDATA (*result), *(desc->dataHandle), SBYTES (*result));
 #endif /* not TARGET_API_MAC_CARBON */
-      AEDisposeDesc (&result_desc);
+      AEDisposeDesc (desc);
     }
 
   AEDisposeDesc (&script_desc);
@@ -2518,59 +4226,42 @@ do_applescript (char *script, char **result)
 
 
 DEFUN ("do-applescript", Fdo_applescript, Sdo_applescript, 1, 1, 0,
-       doc: /* Compile and execute AppleScript SCRIPT and retrieve and return the result.
+       doc: /* Compile and execute AppleScript SCRIPT and return the result.
 If compilation and execution are successful, the resulting script
 value is returned as a string.  Otherwise the function aborts and
 displays the error message returned by the AppleScript scripting
 component.  */)
-  (script)
+    (script)
     Lisp_Object script;
 {
-  char *result, *temp;
-  Lisp_Object lisp_result;
+  Lisp_Object result;
   long status;
 
   CHECK_STRING (script);
 
-  status = do_applescript (SDATA (script), &result);
-  if (status)
-    {
-      if (!result)
-        error ("AppleScript error %d", status);
-      else
-        {
-          /* Unfortunately only OSADoScript in do_applescript knows how
-             how large the resulting script value or error message is
-             going to be and therefore as caller memory must be
-             deallocated here.  It is necessary to free the error
-             message before calling error to avoid a memory leak.  */
-          temp = (char *) alloca (strlen (result) + 1);
-          strcpy (temp, result);
-          xfree (result);
-          error (temp);
-        }
-    }
+  BLOCK_INPUT;
+  status = do_applescript (script, &result);
+  UNBLOCK_INPUT;
+  if (status == 0)
+    return result;
+  else if (!STRINGP (result))
+    error ("AppleScript error %d", status);
   else
-    {
-      lisp_result = build_string (result);
-      xfree (result);
-      return lisp_result;
-    }
+    error ("%s", SDATA (result));
 }
 
 
 DEFUN ("mac-file-name-to-posix", Fmac_file_name_to_posix,
        Smac_file_name_to_posix, 1, 1, 0,
-       doc: /* Convert Macintosh filename to Posix form.  */)
-     (mac_filename)
-     Lisp_Object mac_filename;
+       doc: /* Convert Macintosh FILENAME to Posix form.  */)
+     (filename)
+     Lisp_Object filename;
 {
   char posix_filename[MAXPATHLEN+1];
 
-  CHECK_STRING (mac_filename);
+  CHECK_STRING (filename);
 
-  if (mac_to_posix_pathname (SDATA (mac_filename), posix_filename,
-			   MAXPATHLEN))
+  if (mac_to_posix_pathname (SDATA (filename), posix_filename, MAXPATHLEN))
     return build_string (posix_filename);
   else
     return Qnil;
@@ -2579,174 +4270,435 @@ DEFUN ("mac-file-name-to-posix", Fmac_file_name_to_posix,
 
 DEFUN ("posix-file-name-to-mac", Fposix_file_name_to_mac,
        Sposix_file_name_to_mac, 1, 1, 0,
-       doc: /* Convert Posix filename to Mac form.  */)
-     (posix_filename)
-     Lisp_Object posix_filename;
+       doc: /* Convert Posix FILENAME to Mac form.  */)
+     (filename)
+     Lisp_Object filename;
 {
   char mac_filename[MAXPATHLEN+1];
 
-  CHECK_STRING (posix_filename);
+  CHECK_STRING (filename);
 
-  if (posix_to_mac_pathname (SDATA (posix_filename), mac_filename,
-			   MAXPATHLEN))
+  if (posix_to_mac_pathname (SDATA (filename), mac_filename, MAXPATHLEN))
     return build_string (mac_filename);
   else
     return Qnil;
 }
 
 
-/* set interprogram-paste-function to mac-paste-function in mac-win.el
-   to enable Emacs to obtain the contents of the Mac clipboard. */
-DEFUN ("mac-paste-function", Fmac_paste_function, Smac_paste_function, 0, 0, 0,
-       doc: /* Return the contents of the Mac clipboard as a string.  */)
+DEFUN ("mac-coerce-ae-data", Fmac_coerce_ae_data, Smac_coerce_ae_data, 3, 3, 0,
+       doc: /* Coerce Apple event data SRC-DATA of type SRC-TYPE to DST-TYPE.
+Each type should be a string of length 4 or the symbol
+`undecoded-file-name'.  */)
+  (src_type, src_data, dst_type)
+     Lisp_Object src_type, src_data, dst_type;
+{
+  OSErr err;
+  Lisp_Object result = Qnil;
+  DescType src_desc_type, dst_desc_type;
+  AEDesc dst_desc;
+#ifdef MAC_OSX
+  FSRef fref;
+#else
+  FSSpec fs;
+#endif
+
+  CHECK_STRING (src_data);
+  if (EQ (src_type, Qundecoded_file_name))
+    src_desc_type = TYPE_FILE_NAME;
+  else
+    src_desc_type = mac_get_code_from_arg (src_type, 0);
+
+  if (EQ (dst_type, Qundecoded_file_name))
+    dst_desc_type = TYPE_FILE_NAME;
+  else
+    dst_desc_type = mac_get_code_from_arg (dst_type, 0);
+
+  BLOCK_INPUT;
+  err = AECoercePtr (src_desc_type, SDATA (src_data), SBYTES (src_data),
+		     dst_desc_type, &dst_desc);
+  if (err == noErr)
+    {
+      result = Fcdr (mac_aedesc_to_lisp (&dst_desc));
+      AEDisposeDesc (&dst_desc);
+    }
+  UNBLOCK_INPUT;
+
+  return result;
+}
+
+
+#if TARGET_API_MAC_CARBON
+static Lisp_Object Qxml, Qmime_charset;
+static Lisp_Object QNFD, QNFKD, QNFC, QNFKC, QHFS_plus_D, QHFS_plus_C;
+
+DEFUN ("mac-get-preference", Fmac_get_preference, Smac_get_preference, 1, 4, 0,
+       doc: /* Return the application preference value for KEY.
+KEY is either a string specifying a preference key, or a list of key
+strings.  If it is a list, the (i+1)-th element is used as a key for
+the CFDictionary value obtained by the i-th element.  Return nil if
+lookup is failed at some stage.
+
+Optional arg APPLICATION is an application ID string.  If omitted or
+nil, that stands for the current application.
+
+Optional arg FORMAT specifies the data format of the return value.  If
+omitted or nil, each Core Foundation object is converted into a
+corresponding Lisp object as follows:
+
+  Core Foundation    Lisp                           Tag
+  ------------------------------------------------------------
+  CFString           Multibyte string               string
+  CFNumber           Integer or float               number
+  CFBoolean          Symbol (t or nil)              boolean
+  CFDate             List of three integers         date
+                       (cf. `current-time')
+  CFData             Unibyte string                 data
+  CFArray            Vector                         array
+  CFDictionary       Alist or hash table            dictionary
+                       (depending on HASH-BOUND)
+
+If it is t, a symbol that represents the type of the original Core
+Foundation object is prepended.  If it is `xml', the value is returned
+as an XML representation.
+
+Optional arg HASH-BOUND specifies which kinds of the list objects,
+alists or hash tables, are used as the targets of the conversion from
+CFDictionary.  If HASH-BOUND is a negative integer or nil, always
+generate alists.  If HASH-BOUND >= 0, generate an alist if the number
+of keys in the dictionary is smaller than HASH-BOUND, and a hash table
+otherwise.  */)
+     (key, application, format, hash_bound)
+     Lisp_Object key, application, format, hash_bound;
+{
+  CFStringRef app_id, key_str;
+  CFPropertyListRef app_plist = NULL, plist;
+  Lisp_Object result = Qnil, tmp;
+
+  if (STRINGP (key))
+    key = Fcons (key, Qnil);
+  else
+    {
+      CHECK_CONS (key);
+      for (tmp = key; CONSP (tmp); tmp = XCDR (tmp))
+	CHECK_STRING_CAR (tmp);
+      if (!NILP (tmp))
+	wrong_type_argument (Qlistp, key);
+    }
+  if (!NILP (application))
+    CHECK_STRING (application);
+  CHECK_SYMBOL (format);
+  if (!NILP (hash_bound))
+    CHECK_NUMBER (hash_bound);
+
+  BLOCK_INPUT;
+
+  app_id = kCFPreferencesCurrentApplication;
+  if (!NILP (application))
+    {
+      app_id = cfstring_create_with_string (application);
+      if (app_id == NULL)
+	goto out;
+    }
+  key_str = cfstring_create_with_string (XCAR (key));
+  if (key_str == NULL)
+    goto out;
+  app_plist = CFPreferencesCopyAppValue (key_str, app_id);
+  CFRelease (key_str);
+  if (app_plist == NULL)
+    goto out;
+
+  plist = app_plist;
+  for (key = XCDR (key); CONSP (key); key = XCDR (key))
+    {
+      if (CFGetTypeID (plist) != CFDictionaryGetTypeID ())
+	break;
+      key_str = cfstring_create_with_string (XCAR (key));
+      if (key_str == NULL)
+	goto out;
+      plist = CFDictionaryGetValue (plist, key_str);
+      CFRelease (key_str);
+      if (plist == NULL)
+	goto out;
+    }
+
+  if (NILP (key))
+    if (EQ (format, Qxml))
+      {
+	CFDataRef data = CFPropertyListCreateXMLData (NULL, plist);
+	if (data == NULL)
+	  goto out;
+	result = cfdata_to_lisp (data);
+	CFRelease (data);
+      }
+    else
+      result =
+	cfproperty_list_to_lisp (plist, EQ (format, Qt),
+				 NILP (hash_bound) ? -1 : XINT (hash_bound));
+
+ out:
+  if (app_plist)
+    CFRelease (app_plist);
+  CFRelease (app_id);
+
+  UNBLOCK_INPUT;
+
+  return result;
+}
+
+
+static CFStringEncoding
+get_cfstring_encoding_from_lisp (obj)
+     Lisp_Object obj;
+{
+  CFStringRef iana_name;
+  CFStringEncoding encoding = kCFStringEncodingInvalidId;
+
+  if (NILP (obj))
+    return kCFStringEncodingUnicode;
+
+  if (INTEGERP (obj))
+    return XINT (obj);
+
+  if (SYMBOLP (obj) && !NILP (Fcoding_system_p (obj)))
+    {
+      Lisp_Object coding_spec, plist;
+
+      coding_spec = Fget (obj, Qcoding_system);
+      plist = XVECTOR (coding_spec)->contents[3];
+      obj = Fplist_get (XVECTOR (coding_spec)->contents[3], Qmime_charset);
+    }
+
+  if (SYMBOLP (obj))
+    obj = SYMBOL_NAME (obj);
+
+  if (STRINGP (obj))
+    {
+      iana_name = cfstring_create_with_string (obj);
+      if (iana_name)
+	{
+	  encoding = CFStringConvertIANACharSetNameToEncoding (iana_name);
+	  CFRelease (iana_name);
+	}
+    }
+
+  return encoding;
+}
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+static CFStringRef
+cfstring_create_normalized (str, symbol)
+     CFStringRef str;
+     Lisp_Object symbol;
+{
+  int form = -1;
+  TextEncodingVariant variant;
+  float initial_mag = 0.0;
+  CFStringRef result = NULL;
+
+  if (EQ (symbol, QNFD))
+    form = kCFStringNormalizationFormD;
+  else if (EQ (symbol, QNFKD))
+    form = kCFStringNormalizationFormKD;
+  else if (EQ (symbol, QNFC))
+    form = kCFStringNormalizationFormC;
+  else if (EQ (symbol, QNFKC))
+    form = kCFStringNormalizationFormKC;
+  else if (EQ (symbol, QHFS_plus_D))
+    {
+      variant = kUnicodeHFSPlusDecompVariant;
+      initial_mag = 1.5;
+    }
+  else if (EQ (symbol, QHFS_plus_C))
+    {
+      variant = kUnicodeHFSPlusCompVariant;
+      initial_mag = 1.0;
+    }
+
+  if (form >= 0)
+    {
+      CFMutableStringRef mut_str = CFStringCreateMutableCopy (NULL, 0, str);
+
+      if (mut_str)
+	{
+	  CFStringNormalize (mut_str, form);
+	  result = mut_str;
+	}
+    }
+  else if (initial_mag > 0.0)
+    {
+      UnicodeToTextInfo uni = NULL;
+      UnicodeMapping map;
+      CFIndex length;
+      UniChar *in_text, *buffer = NULL, *out_buf = NULL;
+      OSErr err = noErr;
+      ByteCount out_read, out_size, out_len;
+
+      map.unicodeEncoding = CreateTextEncoding (kTextEncodingUnicodeDefault,
+						kUnicodeNoSubset,
+						kTextEncodingDefaultFormat);
+      map.otherEncoding = CreateTextEncoding (kTextEncodingUnicodeDefault,
+					      variant,
+					      kTextEncodingDefaultFormat);
+      map.mappingVersion = kUnicodeUseLatestMapping;
+
+      length = CFStringGetLength (str);
+      out_size = (int)((float)length * initial_mag) * sizeof (UniChar);
+      if (out_size < 32)
+	out_size = 32;
+
+      in_text = (UniChar *)CFStringGetCharactersPtr (str);
+      if (in_text == NULL)
+	{
+	  buffer = xmalloc (sizeof (UniChar) * length);
+	  if (buffer)
+	    {
+	      CFStringGetCharacters (str, CFRangeMake (0, length), buffer);
+	      in_text = buffer;
+	    }
+	}
+
+      if (in_text)
+	err = CreateUnicodeToTextInfo(&map, &uni);
+      while (err == noErr)
+	{
+	  out_buf = xmalloc (out_size);
+	  if (out_buf == NULL)
+	    err = mFulErr;
+	  else
+	    err = ConvertFromUnicodeToText (uni, length * sizeof (UniChar),
+					    in_text,
+					    kUnicodeDefaultDirectionMask,
+					    0, NULL, NULL, NULL,
+					    out_size, &out_read, &out_len,
+					    out_buf);
+	  if (err == noErr && out_read < length * sizeof (UniChar))
+	    {
+	      xfree (out_buf);
+	      out_size += length;
+	    }
+	  else
+	    break;
+	}
+      if (err == noErr)
+	result = CFStringCreateWithCharacters (NULL, out_buf,
+					       out_len / sizeof (UniChar));
+      if (uni)
+	DisposeUnicodeToTextInfo (&uni);
+      if (out_buf)
+	xfree (out_buf);
+      if (buffer)
+	xfree (buffer);
+    }
+  else
+    {
+      result = str;
+      CFRetain (result);
+    }
+
+  return result;
+}
+#endif
+
+DEFUN ("mac-code-convert-string", Fmac_code_convert_string, Smac_code_convert_string, 3, 4, 0,
+       doc: /* Convert STRING from SOURCE encoding to TARGET encoding.
+The conversion is performed using the converter provided by the system.
+Each encoding is specified by either a coding system symbol, a mime
+charset string, or an integer as a CFStringEncoding value.  Nil for
+encoding means UTF-16 in native byte order, no byte order mark.
+On Mac OS X 10.2 and later, you can do Unicode Normalization by
+specifying the optional argument NORMALIZATION-FORM with a symbol NFD,
+NFKD, NFC, NFKC, HFS+D, or HFS+C.
+On successful conversion, return the result string, else return nil.  */)
+     (string, source, target, normalization_form)
+     Lisp_Object string, source, target, normalization_form;
+{
+  Lisp_Object result = Qnil;
+  CFStringEncoding src_encoding, tgt_encoding;
+  CFStringRef str = NULL;
+
+  CHECK_STRING (string);
+  if (!INTEGERP (source) && !STRINGP (source))
+    CHECK_SYMBOL (source);
+  if (!INTEGERP (target) && !STRINGP (target))
+    CHECK_SYMBOL (target);
+  CHECK_SYMBOL (normalization_form);
+
+  BLOCK_INPUT;
+
+  src_encoding = get_cfstring_encoding_from_lisp (source);
+  tgt_encoding = get_cfstring_encoding_from_lisp (target);
+
+  /* We really want string_to_unibyte, but since it doesn't exist yet, we
+     use string_as_unibyte which works as well, except for the fact that
+     it's too permissive (it doesn't check that the multibyte string only
+     contain single-byte chars).  */
+  string = Fstring_as_unibyte (string);
+  if (src_encoding != kCFStringEncodingInvalidId
+      && tgt_encoding != kCFStringEncodingInvalidId)
+    str = CFStringCreateWithBytes (NULL, SDATA (string), SBYTES (string),
+				   src_encoding, !NILP (source));
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+  if (str)
+    {
+      CFStringRef saved_str = str;
+
+      str = cfstring_create_normalized (saved_str, normalization_form);
+      CFRelease (saved_str);
+    }
+#endif
+  if (str)
+    {
+      CFIndex str_len, buf_len;
+
+      str_len = CFStringGetLength (str);
+      if (CFStringGetBytes (str, CFRangeMake (0, str_len), tgt_encoding, 0,
+			    !NILP (target), NULL, 0, &buf_len) == str_len)
+	{
+	  result = make_uninit_string (buf_len);
+	  CFStringGetBytes (str, CFRangeMake (0, str_len), tgt_encoding, 0,
+			    !NILP (target), SDATA (result), buf_len, NULL);
+	}
+      CFRelease (str);
+    }
+
+  UNBLOCK_INPUT;
+
+  return result;
+}
+#endif	/* TARGET_API_MAC_CARBON */
+
+
+DEFUN ("mac-clear-font-name-table", Fmac_clear_font_name_table, Smac_clear_font_name_table, 0, 0, 0,
+       doc: /* Clear the font name table.  */)
      ()
 {
-#if TARGET_API_MAC_CARBON
-  ScrapRef scrap;
-  ScrapFlavorFlags sff;
-  Size s;
-  int i;
-  char *data;
-
-  if (GetCurrentScrap (&scrap) != noErr)
-    return Qnil;
-
-  if (GetScrapFlavorFlags (scrap, kScrapFlavorTypeText, &sff) != noErr)
-    return Qnil;
-
-  if (GetScrapFlavorSize (scrap, kScrapFlavorTypeText, &s) != noErr)
-    return Qnil;
-
-  if ((data = (char*) alloca (s)) == NULL)
-    return Qnil;
-
-  if (GetScrapFlavorData (scrap, kScrapFlavorTypeText, &s, data) != noErr
-      || s == 0)
-    return Qnil;
-
-  /* Emacs expects clipboard contents have Unix-style eol's */
-  for (i = 0; i < s; i++)
-    if (data[i] == '\r')
-      data[i] = '\n';
-
-  return make_string (data, s);
-#else /* not TARGET_API_MAC_CARBON */
-  Lisp_Object value;
-  Handle my_handle;
-  long scrap_offset, rc, i;
-
-  my_handle = NewHandle (0);  /* allocate 0-length data area */
-
-  rc = GetScrap (my_handle, 'TEXT', &scrap_offset);
-  if (rc < 0)
-    return Qnil;
-
-  HLock (my_handle);
-
-  /* Emacs expects clipboard contents have Unix-style eol's */
-  for (i = 0; i < rc; i++)
-    if ((*my_handle)[i] == '\r')
-      (*my_handle)[i] = '\n';
-
-  value = make_string (*my_handle, rc);
-
-  HUnlock (my_handle);
-
-  DisposeHandle (my_handle);
-
-  return value;
-#endif /* not TARGET_API_MAC_CARBON */
-}
-
-
-/* set interprogram-cut-function to mac-cut-function in mac-win.el
-   to enable Emacs to write the top of the kill-ring to the Mac clipboard. */
-DEFUN ("mac-cut-function", Fmac_cut_function, Smac_cut_function, 1, 2, 0,
-       doc: /* Put the value of the string parameter to the Mac clipboard.  */)
-  (value, push)
-    Lisp_Object value, push;
-{
-  char *buf;
-  int len, i;
-
-  /* fixme: ignore the push flag for now */
-
-  CHECK_STRING (value);
-
-  len = SCHARS (value);
-  buf = (char *) alloca (len+1);
-  bcopy (SDATA (value), buf, len);
-  buf[len] = '\0';
-
-  /* convert to Mac-style eol's before sending to clipboard */
-  for (i = 0; i < len; i++)
-    if (buf[i] == '\n')
-      buf[i] = '\r';
-
-#if TARGET_API_MAC_CARBON
-  {
-    ScrapRef scrap;
-    ClearCurrentScrap ();
-    if (GetCurrentScrap (&scrap) != noErr)
-      error ("cannot get current scrap");
-
-    if (PutScrapFlavor (scrap, kScrapFlavorTypeText, kScrapFlavorMaskNone, len,
-			buf) != noErr)
-      error ("cannot put to scrap");
-  }
-#else /* not TARGET_API_MAC_CARBON */
-  ZeroScrap ();
-  PutScrap (len, 'TEXT', buf);
-#endif /* not TARGET_API_MAC_CARBON */
-
+  check_mac ();
+  mac_clear_font_name_table ();
   return Qnil;
 }
 
 
-DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
-       0, 1, 0,
-       doc: /* Whether there is an owner for the given X Selection.
-The arg should be the name of the selection in question, typically one of
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-\(Those are literal upper-case symbol names, since that's what X expects.)
-For convenience, the symbol nil is the same as `PRIMARY',
-and t is the same as `SECONDARY'.  */)
-  (selection)
-     Lisp_Object selection;
+static Lisp_Object
+mac_get_system_locale ()
 {
-  CHECK_SYMBOL (selection);
+  OSErr err;
+  LangCode lang;
+  RegionCode region;
+  LocaleRef locale;
+  Str255 str;
 
-  /* Return nil for PRIMARY and SECONDARY selections; for CLIPBOARD, check
-     if the clipboard currently has valid text format contents. */
-
-  if (EQ (selection, QCLIPBOARD))
-    {
-      Lisp_Object val = Qnil;
-
-#if TARGET_API_MAC_CARBON
-      ScrapRef scrap;
-      ScrapFlavorFlags sff;
-
-      if (GetCurrentScrap (&scrap) == noErr)
-        if (GetScrapFlavorFlags (scrap, kScrapFlavorTypeText, &sff) == noErr)
-          val = Qt;
-#else /* not TARGET_API_MAC_CARBON */
-      Handle my_handle;
-      long rc, scrap_offset;
-
-      my_handle = NewHandle (0);
-
-      rc = GetScrap (my_handle, 'TEXT', &scrap_offset);
-      if (rc >= 0)
-        val = Qt;
-
-      DisposeHandle (my_handle);
-#endif /* not TARGET_API_MAC_CARBON */
-
-      return val;
-    }
-  return Qnil;
+  lang = GetScriptVariable (smSystemScript, smScriptLang);
+  region = GetScriptManagerVariable (smRegionCode);
+  err = LocaleRefFromLangOrRegionCode (lang, region, &locale);
+  if (err == noErr)
+    err = LocaleRefGetPartString (locale, kLocaleAllPartsMask,
+				  sizeof (str), str);
+  if (err == noErr)
+    return build_string (str);
+  else
+    return Qnil;
 }
+
 
 #ifdef MAC_OSX
 #undef select
@@ -2754,91 +4706,267 @@ and t is the same as `SECONDARY'.  */)
 extern int inhibit_window_system;
 extern int noninteractive;
 
-/* When Emacs is started from the Finder, SELECT always immediately
-   returns as if input is present when file descriptor 0 is polled for
-   input.  Strangely, when Emacs is run as a GUI application from the
-   command line, it blocks in the same situation.  This `wrapper' of
-   the system call SELECT corrects this discrepancy.  */
+/* Unlike in X11, window events in Carbon do not come from sockets.
+   So we cannot simply use `select' to monitor two kinds of inputs:
+   window events and process outputs.  We emulate such functionality
+   by regarding fd 0 as the window event channel and simultaneously
+   monitoring both kinds of input channels.  It is implemented by
+   dividing into some cases:
+   1. The window event channel is not involved.
+      -> Use `select'.
+   2. Sockets are not involved.
+      -> Use ReceiveNextEvent.
+   3. [If SELECT_USE_CFSOCKET is defined]
+      Only the window event channel and socket read channels are
+      involved, and timeout is not too short (greater than
+      SELECT_TIMEOUT_THRESHHOLD_RUNLOOP seconds).
+      -> Create CFSocket for each socket and add it into the current
+         event RunLoop so that a `ready-to-read' event can be posted
+         to the event queue that is also used for window events.  Then
+         ReceiveNextEvent can wait for both kinds of inputs.
+   4. Otherwise.
+      -> Periodically poll the window input channel while repeatedly
+         executing `select' with a short timeout
+         (SELECT_POLLING_PERIOD_USEC microseconds).  */
+
+#define SELECT_POLLING_PERIOD_USEC 20000
+#ifdef SELECT_USE_CFSOCKET
+#define SELECT_TIMEOUT_THRESHOLD_RUNLOOP 0.2
+#define EVENT_CLASS_SOCK 'Sock'
+
+static void
+socket_callback (s, type, address, data, info)
+     CFSocketRef s;
+     CFSocketCallBackType type;
+     CFDataRef address;
+     const void *data;
+     void *info;
+{
+  EventRef event;
+
+  CreateEvent (NULL, EVENT_CLASS_SOCK, 0, 0, kEventAttributeNone, &event);
+  PostEventToQueue (GetCurrentEventQueue (), event, kEventPriorityStandard);
+  ReleaseEvent (event);
+}
+#endif	/* SELECT_USE_CFSOCKET */
+
+static int
+select_and_poll_event (n, rfds, wfds, efds, timeout)
+     int n;
+     SELECT_TYPE *rfds;
+     SELECT_TYPE *wfds;
+     SELECT_TYPE *efds;
+     struct timeval *timeout;
+{
+  int r;
+  OSErr err;
+
+  r = select (n, rfds, wfds, efds, timeout);
+  if (r != -1)
+    {
+      BLOCK_INPUT;
+      err = ReceiveNextEvent (0, NULL, kEventDurationNoWait,
+			      kEventLeaveInQueue, NULL);
+      UNBLOCK_INPUT;
+      if (err == noErr)
+	{
+	  FD_SET (0, rfds);
+	  r++;
+	}
+    }
+  return r;
+}
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1020
+#undef SELECT_INVALIDATE_CFSOCKET
+#endif
+
 int
 sys_select (n, rfds, wfds, efds, timeout)
-  int n;
-  SELECT_TYPE *rfds;
-  SELECT_TYPE *wfds;
-  SELECT_TYPE *efds;
-  struct timeval *timeout;
+     int n;
+     SELECT_TYPE *rfds;
+     SELECT_TYPE *wfds;
+     SELECT_TYPE *efds;
+     struct timeval *timeout;
 {
-  if (!inhibit_window_system && rfds && FD_ISSET (0, rfds))
-    return 1;
-  else if (inhibit_window_system || noninteractive ||
-	   (timeout && (EMACS_SECS(*timeout)==0) &&
-	    (EMACS_USECS(*timeout)==0)))
-    return select(n, rfds, wfds, efds, timeout);
-  else
+  OSErr err;
+  int i, r;
+  EMACS_TIME select_timeout;
+
+  if (inhibit_window_system || noninteractive
+      || rfds == NULL || !FD_ISSET (0, rfds))
+    return select (n, rfds, wfds, efds, timeout);
+
+  FD_CLR (0, rfds);
+
+  if (wfds == NULL && efds == NULL)
     {
-      EMACS_TIME end_time, now;
+      int nsocks = 0;
+      SELECT_TYPE orfds = *rfds;
 
-      EMACS_GET_TIME (end_time);
-      if (timeout)
-	EMACS_ADD_TIME (end_time, end_time, *timeout);
+      EventTimeout timeout_sec =
+	(timeout
+	 ? (EMACS_SECS (*timeout) * kEventDurationSecond
+	    + EMACS_USECS (*timeout) * kEventDurationMicrosecond)
+	 : kEventDurationForever);
 
-      do
+      for (i = 1; i < n; i++)
+	if (FD_ISSET (i, rfds))
+	  nsocks++;
+
+      if (nsocks == 0)
 	{
-	  int r;
-	  EMACS_TIME one_second;
-	  SELECT_TYPE orfds;
-
-	  FD_ZERO (&orfds);
-	  if (rfds)
+	  BLOCK_INPUT;
+	  err = ReceiveNextEvent (0, NULL, timeout_sec,
+				  kEventLeaveInQueue, NULL);
+	  UNBLOCK_INPUT;
+	  if (err == noErr)
 	    {
-	      orfds = *rfds;
+	      FD_SET (0, rfds);
+	      return 1;
 	    }
-
-	  EMACS_SET_SECS (one_second, 1);
-	  EMACS_SET_USECS (one_second, 0);
-
-	  if (timeout && EMACS_TIME_LT(*timeout, one_second))
-	    one_second = *timeout;
-
-	  if ((r = select (n, &orfds, wfds, efds, &one_second)) > 0)
-	    {
-	      *rfds = orfds;
-	      return r;
-	    }
-
-	  mac_check_for_quit_char();
-
-	  EMACS_GET_TIME (now);
-	  EMACS_SUB_TIME (now, end_time, now);
+	  else
+	    return 0;
 	}
-      while (!timeout || !EMACS_TIME_NEG_P (now));
 
-      return 0;
+      /* Avoid initial overhead of RunLoop setup for the case that
+	 some input is already available.  */
+      EMACS_SET_SECS_USECS (select_timeout, 0, 0);
+      r = select_and_poll_event (n, rfds, wfds, efds, &select_timeout);
+      if (r != 0 || timeout_sec == 0.0)
+	return r;
+
+      *rfds = orfds;
+
+#ifdef SELECT_USE_CFSOCKET
+      if (timeout_sec > 0 && timeout_sec <= SELECT_TIMEOUT_THRESHOLD_RUNLOOP)
+	goto poll_periodically;
+
+      {
+	CFRunLoopRef runloop =
+	  (CFRunLoopRef) GetCFRunLoopFromEventLoop (GetCurrentEventLoop ());
+	EventTypeSpec specs[] = {{EVENT_CLASS_SOCK, 0}};
+#ifdef SELECT_INVALIDATE_CFSOCKET
+	CFSocketRef *shead, *s;
+#else
+	CFRunLoopSourceRef *shead, *s;
+#endif
+
+	BLOCK_INPUT;
+
+#ifdef SELECT_INVALIDATE_CFSOCKET
+	shead = xmalloc (sizeof (CFSocketRef) * nsocks);
+#else
+	shead = xmalloc (sizeof (CFRunLoopSourceRef) * nsocks);
+#endif
+	s = shead;
+	for (i = 1; i < n; i++)
+	  if (FD_ISSET (i, rfds))
+	    {
+	      CFSocketRef socket =
+		CFSocketCreateWithNative (NULL, i, kCFSocketReadCallBack,
+					  socket_callback, NULL);
+	      CFRunLoopSourceRef source =
+		CFSocketCreateRunLoopSource (NULL, socket, 0);
+
+#ifdef SELECT_INVALIDATE_CFSOCKET
+	      CFSocketSetSocketFlags (socket, 0);
+#endif
+	      CFRunLoopAddSource (runloop, source, kCFRunLoopDefaultMode);
+#ifdef SELECT_INVALIDATE_CFSOCKET
+	      CFRelease (source);
+	      *s = socket;
+#else
+	      CFRelease (socket);
+	      *s = source;
+#endif
+	      s++;
+	    }
+
+	err = ReceiveNextEvent (0, NULL, timeout_sec, kEventLeaveInQueue, NULL);
+
+	do
+	  {
+	    --s;
+#ifdef SELECT_INVALIDATE_CFSOCKET
+	    CFSocketInvalidate (*s);
+#else
+	    CFRunLoopRemoveSource (runloop, *s, kCFRunLoopDefaultMode);
+#endif
+	    CFRelease (*s);
+	  }
+	while (s != shead);
+
+	xfree (shead);
+
+	if (err)
+	  {
+	    FD_ZERO (rfds);
+	    r = 0;
+	  }
+	else
+	  {
+	    FlushEventsMatchingListFromQueue (GetCurrentEventQueue (),
+					      GetEventTypeCount (specs),
+					      specs);
+	    EMACS_SET_SECS_USECS (select_timeout, 0, 0);
+	    r = select_and_poll_event (n, rfds, wfds, efds, &select_timeout);
+	  }
+
+	UNBLOCK_INPUT;
+
+	return r;
+      }
+#endif	/* SELECT_USE_CFSOCKET */
     }
+
+ poll_periodically:
+  {
+    EMACS_TIME end_time, now, remaining_time;
+    SELECT_TYPE orfds = *rfds, owfds, oefds;
+
+    if (wfds)
+      owfds = *wfds;
+    if (efds)
+      oefds = *efds;
+    if (timeout)
+      {
+	remaining_time = *timeout;
+	EMACS_GET_TIME (now);
+	EMACS_ADD_TIME (end_time, now, remaining_time);
+      }
+
+    do
+      {
+	EMACS_SET_SECS_USECS (select_timeout, 0, SELECT_POLLING_PERIOD_USEC);
+	if (timeout && EMACS_TIME_LT (remaining_time, select_timeout))
+	  select_timeout = remaining_time;
+	r = select_and_poll_event (n, rfds, wfds, efds, &select_timeout);
+	if (r != 0)
+	  return r;
+
+	*rfds = orfds;
+	if (wfds)
+	  *wfds = owfds;
+	if (efds)
+	  *efds = oefds;
+
+	if (timeout)
+	  {
+	    EMACS_GET_TIME (now);
+	    EMACS_SUB_TIME (remaining_time, end_time, now);
+	  }
+      }
+    while (!timeout || EMACS_TIME_LT (now, end_time));
+
+    FD_ZERO (rfds);
+    if (wfds)
+      FD_ZERO (wfds);
+    if (efds)
+      FD_ZERO (efds);
+    return 0;
+  }
 }
-
-#undef read
-int sys_read (fds, buf, nbyte)
-     int fds;
-     char *buf;
-     unsigned int nbyte;
-{
-  SELECT_TYPE rfds;
-  EMACS_TIME one_second;
-  int r;
-
-  /* Use select to block on IO while still checking for quit_char */
-  if (!inhibit_window_system && !noninteractive &&
-      ! (fcntl(fds, F_GETFL, 0) & O_NONBLOCK))
-    {
-      FD_ZERO (&rfds);
-      FD_SET (fds, &rfds);
-      if (sys_select (fds+1, &rfds, 0, 0, NULL) < 0)
-	return -1;
-    }
-
-  return read (fds, buf, nbyte);
-}
-
 
 /* Set up environment variables so that Emacs can correctly find its
    support files when packaged as an application bundle.  Directories
@@ -2861,12 +4989,22 @@ init_mac_osx_environment ()
   char *p, *q;
   struct stat st;
 
+  /* Initialize locale related variables.  */
+  mac_system_script_code =
+    (ScriptCode) GetScriptManagerVariable (smSysScript);
+  Vmac_system_locale = mac_get_system_locale ();
+
   /* Fetch the pathname of the application bundle as a C string into
      app_bundle_pathname.  */
 
   bundle = CFBundleGetMainBundle ();
-  if (!bundle)
-    return;
+  if (!bundle || CFBundleGetIdentifier (bundle) == NULL)
+    {
+      /* We could not find the bundle identifier.  For now, prevent
+	 the fatal error by bringing it up in the terminal. */
+      inhibit_window_system = 1;
+      return;
+    }
 
   bundleURL = CFBundleCopyBundleURL (bundle);
   if (!bundleURL)
@@ -2931,12 +5069,12 @@ init_mac_osx_environment ()
       q[0] = '\0';
 
       strcpy (p, app_bundle_pathname);
-      strcat (p, "/Contents/MacOS/bin");
+      strcat (p, "/Contents/MacOS/libexec");
       if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
 	strcat (q, p);
 
       strcpy (p, app_bundle_pathname);
-      strcat (p, "/Contents/MacOS/libexec");
+      strcat (p, "/Contents/MacOS/bin");
       if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
 	{
 	  if (q[0] != '\0')
@@ -2974,17 +5112,61 @@ init_mac_osx_environment ()
 }
 #endif /* MAC_OSX */
 
+
 void
 syms_of_mac ()
 {
-  QCLIPBOARD = intern ("CLIPBOARD");
-  staticpro (&QCLIPBOARD);
+  Qundecoded_file_name = intern ("undecoded-file-name");
+  staticpro (&Qundecoded_file_name);
 
-  defsubr (&Smac_paste_function);
-  defsubr (&Smac_cut_function);
-  defsubr (&Sx_selection_exists_p);
+#if TARGET_API_MAC_CARBON
+  Qstring  = intern ("string");		staticpro (&Qstring);
+  Qnumber  = intern ("number");		staticpro (&Qnumber);
+  Qboolean = intern ("boolean");	staticpro (&Qboolean);
+  Qdate	   = intern ("date");		staticpro (&Qdate);
+  Qdata    = intern ("data");		staticpro (&Qdata);
+  Qarray   = intern ("array");		staticpro (&Qarray);
+  Qdictionary = intern ("dictionary");	staticpro (&Qdictionary);
 
+  Qxml = intern ("xml");
+  staticpro (&Qxml);
+
+  Qmime_charset = intern ("mime-charset");
+  staticpro (&Qmime_charset);
+
+  QNFD  = intern ("NFD");		staticpro (&QNFD);
+  QNFKD = intern ("NFKD");		staticpro (&QNFKD);
+  QNFC  = intern ("NFC");		staticpro (&QNFC);
+  QNFKC = intern ("NFKC");		staticpro (&QNFKC);
+  QHFS_plus_D = intern ("HFS+D");	staticpro (&QHFS_plus_D);
+  QHFS_plus_C = intern ("HFS+C");	staticpro (&QHFS_plus_C);
+#endif
+
+  defsubr (&Smac_coerce_ae_data);
+#if TARGET_API_MAC_CARBON
+  defsubr (&Smac_get_preference);
+  defsubr (&Smac_code_convert_string);
+#endif
+  defsubr (&Smac_clear_font_name_table);
+
+  defsubr (&Smac_set_file_creator);
+  defsubr (&Smac_set_file_type);
+  defsubr (&Smac_get_file_creator);
+  defsubr (&Smac_get_file_type);
   defsubr (&Sdo_applescript);
   defsubr (&Smac_file_name_to_posix);
   defsubr (&Sposix_file_name_to_mac);
+
+  DEFVAR_INT ("mac-system-script-code", &mac_system_script_code,
+    doc: /* The system script code.  */);
+  mac_system_script_code = (ScriptCode) GetScriptManagerVariable (smSysScript);
+
+  DEFVAR_LISP ("mac-system-locale", &Vmac_system_locale,
+    doc: /* The system locale identifier string.
+This is not a POSIX locale ID, but an ICU locale ID.  So encoding
+information is not included.  */);
+  Vmac_system_locale = mac_get_system_locale ();
 }
+
+/* arch-tag: 29d30c1f-0c6b-4f88-8a6d-0558d7f9dbff
+   (do not change this comment) */

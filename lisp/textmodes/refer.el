@@ -1,6 +1,7 @@
 ;;; refer.el --- look up references in bibliography files
 
-;; Copyright (C) 1992, 1996, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1996, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Ashwin Ram <ashwin@cc.gatech.edu>
 ;; Maintainer: Gernot Heiser <gernot@acm.org>
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -226,10 +227,12 @@ found on the last refer-find-entry or refer-find-next-entry."
                      (throw 'found (find-file file)))
                  (setq refer-saved-pos nil
                        files (cdr files)))
-             (progn (message "Scanning %s... No such file" (car files) (ding))
+             (progn (ding)
+		    (message "Scanning %s... No such file" (car files))
                     (sit-for 1)
                     (setq files (cdr files))))))
-       (message "Keywords \"%s\" not found in any \.bib file" keywords (ding)))
+       (ding)
+       (message "Keywords \"%s\" not found in any \.bib file" keywords))
      (select-window old-window)))
 
 (defun refer-find-entry-in-file (keywords-list file &optional old-pos)
@@ -336,7 +339,7 @@ found on the last refer-find-entry or refer-find-next-entry."
              (list (expand-file-name
                     (if (eq major-mode 'bibtex-mode)
                         (read-file-name
-                         (format ".bib file: (default %s) "
+                         (format ".bib file (default %s): "
                                  (file-name-nondirectory
                                   (buffer-file-name)))
                          (file-name-directory (buffer-file-name))
@@ -386,7 +389,7 @@ found on the last refer-find-entry or refer-find-next-entry."
                       (eq refer-bib-directory 'bibinputs)))
              (refer-expand-files refer-bib-files dir-list))
             ((listp refer-bib-files) refer-bib-files)
-            (t (error "Illegal value for refer-bib-files: %s"
+            (t (error "Invalid value for refer-bib-files: %s"
                       refer-bib-files)))))
     (if (or (eq refer-bib-directory 'texinputs)
             (eq refer-bib-directory 'bibinputs))
@@ -395,4 +398,5 @@ found on the last refer-find-entry or refer-find-next-entry."
         (setq refer-bib-files files))
     files))
 
+;;; arch-tag: 151f641b-e79b-462b-9a29-a95c3793f300
 ;;; refer.el ends here

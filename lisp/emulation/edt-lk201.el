@@ -1,6 +1,7 @@
 ;;; edt-lk201.el --- enhanced EDT keypad mode emulation for LK-201 keyboards
 
-;; Copyright (C) 1986, 1992, 1993, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1992, 1993, 1995, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kevingal@onramp.net>
 ;; Maintainer: Kevin Gallagher <kevingal@onramp.net>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -57,4 +58,5 @@
     ("HELP" . [help]) ("DO" . [menu]) ("F17" . [f17]) ("F18" . [f18])
     ("F19" . [f19]) ("F20" . [f20])))
 
+;;; arch-tag: 36f498cf-c3f6-41b0-911b-83b1348855ec
 ;;; edt-lk201.el ends here

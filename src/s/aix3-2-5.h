@@ -28,3 +28,6 @@
 /* Bill Woodward <wpwood@austin.ibm.com> says:
    libIM *must* precede libXm, to avoid getting aixLoadIM error messages.  */
 #define LIB_MOTIF -lIM -lXm
+
+/* arch-tag: 692b3acb-5383-4cfb-93f6-378b5c48c75e
+   (do not change this comment) */

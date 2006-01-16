@@ -1,7 +1,7 @@
 ;;; view.el --- peruse file or buffer without editing
 
-;; Copyright (C) 1985, 1989, 1994, 1995, 1997, 2000, 2001
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1989, 1994, 1995, 1997, 2000, 2001, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: Inge Frick <inge@nada.kth.se>
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -43,7 +43,7 @@
 ;;
 ;; You could also bind view-file, view-buffer, view-buffer-other-window and
 ;; view-buffer-other-frame to keys.
-
+
 ;;; Code:
 
 (defgroup view nil
@@ -52,11 +52,6 @@
   :link '(custom-manual "(emacs)Misc File Ops")
   :group 'wp
   :group 'editing)
-
-(defcustom view-read-only nil
-  "*Non-nil means buffers visiting files read-only, do it in view mode."
-  :type 'boolean
-  :group 'view)
 
 (defcustom view-highlight-face 'highlight
    "*The face used for highlighting the match found by View mode search."
@@ -98,6 +93,12 @@ considered for restoring."
   :type 'boolean
   :group 'view)
 
+(defcustom view-inhibit-help-message nil
+  "*Non-nil inhibits the help message showed upon entering View mode."
+  :type 'boolean
+  :group 'view
+  :version "22.1")
+
 ;;;###autoload
 (defvar view-mode nil
   "Non-nil if View mode is enabled.
@@ -110,21 +111,24 @@ functions that enable or disable view mode.")
   "Normal hook run when starting to view a buffer or file."
   :type 'hook
   :group 'view)
-
+
 (defvar view-old-buffer-read-only nil)
 (make-variable-buffer-local 'view-old-buffer-read-only)
 
 (defvar view-old-Helper-return-blurb)
 (make-variable-buffer-local 'view-old-Helper-return-blurb)
 
+;; Just to avoid warnings.
+(defvar Helper-return-blurb)
+
 (defvar view-page-size nil
   "Default number of lines to scroll by View page commands.
-If nil then the local value of this is initially set to window size.")
+If nil that means use the window size.")
 (make-variable-buffer-local 'view-page-size)
 
 (defvar view-half-page-size nil
   "Default number of lines to scroll by View half page commands.
-If nil then the local value of this is initially set to half window size.")
+If nil that means use half the window size.")
 (make-variable-buffer-local 'view-half-page-size)
 
 (defvar view-last-regexp nil)
@@ -139,6 +143,7 @@ subtracted from by `view-mode-exit' when finished viewing the buffer.
 See RETURN-TO-ALIST argument of function `view-mode-exit' for the format of
 `view-return-to-alist'.")
 (make-variable-buffer-local 'view-return-to-alist)
+(put 'view-return-to-alist 'permanent-local t)
 
 (defvar view-exit-action nil
   "nil or a function with one argument (a buffer) called when finished viewing.
@@ -165,7 +170,7 @@ This is local in each buffer, once it is used.")
 				'local-map mode-line-minor-mode-keymap
 				'help-echo "mouse-3: minor mode menu"))
 	      minor-mode-alist)))
-
+
 ;; Define keymap inside defvar to make it easier to load changes.
 ;; Some redundant "less"-like key bindings below have been commented out.
 (defvar view-mode-map
@@ -230,7 +235,7 @@ This is local in each buffer, once it is used.")
 (or (assq 'view-mode minor-mode-map-alist)
     (setq minor-mode-map-alist
 	  (cons (cons 'view-mode view-mode-map) minor-mode-map-alist)))
-
+
 ;;; Commands that enter or exit view mode.
 
 ;;;###autoload
@@ -244,9 +249,16 @@ For list of all View commands, type H or h while viewing.
 
 This command runs the normal hook `view-mode-hook'."
   (interactive "fView file: ")
-  (let ((had-a-buf (get-file-buffer file)))
-    (view-buffer (find-file-noselect file)
-		 (and (not had-a-buf) 'kill-buffer))))
+  (unless (file-exists-p file) (error "%s does not exist" file))
+  (let ((had-a-buf (get-file-buffer file))
+	(buffer (find-file-noselect file)))
+    (if (eq (with-current-buffer buffer
+	      (get major-mode 'mode-class))
+	    'special)
+	(progn
+	  (switch-to-buffer buffer)
+	  (message "Not using View mode because the major mode is special"))
+      (view-buffer buffer (and (not had-a-buf) 'kill-buffer)))))
 
 ;;;###autoload
 (defun view-file-other-window (file)
@@ -260,6 +272,7 @@ For list of all View commands, type H or h while viewing.
 
 This command runs the normal hook `view-mode-hook'."
   (interactive "fIn other window view file: ")
+  (unless (file-exists-p file) (error "%s does not exist" file))
   (let ((had-a-buf (get-file-buffer file)))
     (view-buffer-other-window (find-file-noselect file) nil
 			      (and (not had-a-buf) 'kill-buffer))))
@@ -276,6 +289,7 @@ For list of all View commands, type H or h while viewing.
 
 This command runs the normal hook `view-mode-hook'."
   (interactive "fIn other frame view file: ")
+  (unless (file-exists-p file) (error "%s does not exist" file))
   (let ((had-a-buf (get-file-buffer file)))
     (view-buffer-other-frame (find-file-noselect file) nil
 			     (and (not had-a-buf) 'kill-buffer))))
@@ -354,7 +368,7 @@ Use this argument instead of explicitly setting `view-exit-action'."
     (switch-to-buffer-other-frame buffer)
     (view-mode-enter (and return-to (cons (selected-window) return-to))
 		     exit-action)))
-
+
 ;;;###autoload
 (defun view-mode (&optional arg)
   ;; In the following documentation string we have to use some explicit key
@@ -425,12 +439,14 @@ p	searches backward for last regular expression.
 \\[View-kill-and-leave]	quit View mode, kill current buffer and go back to other buffer.
 
 The effect of \\[View-leave] , \\[View-quit] and \\[View-kill-and-leave] depends on how view-mode was entered.  If it was
-entered by view-file, view-file-other-window or view-file-other-frame
-\(\\[view-file], \\[view-file-other-window], \\[view-file-other-frame] or the dired mode v command), then \\[View-quit] will
-try to kill the current buffer.  If view-mode was entered from another buffer
-as is done by View-buffer, View-buffer-other-window, View-buffer-other frame,
-View-file, View-file-other-window or View-file-other-frame then \\[View-leave] , \\[View-quit] and \\[View-kill-and-leave]
-will return to that buffer.
+entered by view-file, view-file-other-window, view-file-other-frame, or
+\\[dired-view-file] \(\\[view-file], \\[view-file-other-window],
+\\[view-file-other-frame], or the Dired mode v command),
+then \\[View-quit] will try to kill the current buffer.
+If view-mode was entered from another buffer, by \\[view-buffer],
+\\[view-buffer-other-window], \\[view-buffer-other frame], \\[view-file],
+\\[view-file-other-window], or \\[view-file-other-frame],
+then \\[View-leave] , \\[View-quit] and \\[View-kill-and-leave] will return to that buffer.
 
 Entry to view-mode runs the normal hook `view-mode-hook'."
   (interactive "P")
@@ -438,15 +454,15 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
 	       (if (> (prefix-numeric-value arg) 0) view-mode (not view-mode)))
     (if view-mode (view-mode-disable)
       (view-mode-enable))))
-
+
 (defun view-mode-enable ()
   "Turn on View mode."
   ;; Always leave view mode before changing major mode.
   ;; This is to guarantee that the buffer-read-only variable is restored.
   (add-hook 'change-major-mode-hook 'view-mode-disable nil t)
   (setq view-mode t
-	view-page-size (view-page-size-default view-page-size)
-	view-half-page-size (or view-half-page-size (/ (view-window-size) 2))
+	view-page-size nil
+	view-half-page-size nil
 	view-old-buffer-read-only buffer-read-only
 	buffer-read-only t
 	view-old-Helper-return-blurb (and (boundp 'Helper-return-blurb)
@@ -508,10 +524,11 @@ This function runs the normal hook `view-mode-hook'."
   (unless view-mode			; Do nothing if already in view mode.
     (view-mode-enable)
     (force-mode-line-update)
-    (message "%s"
-	     (substitute-command-keys "\
-View mode: type \\[help-command] for help, \\[describe-mode] for commands, \\[View-quit] to quit."))))
-
+    (unless view-inhibit-help-message
+      (message "%s"
+	       (substitute-command-keys "\
+View mode: type \\[help-command] for help, \\[describe-mode] for commands, \\[View-quit] to quit.")))))
+
 (defun view-mode-exit (&optional return-to-alist exit-action all-win)
   "Exit View mode in various ways, depending on optional arguments.
 RETURN-TO-ALIST, EXIT-ACTION and ALL-WIN determine what to do after exit.
@@ -596,7 +613,7 @@ corresponding OLD-WINDOW is a live window, then select OLD-WINDOW."
 	  (setq view-exit-action nil)
 	  (funcall exit-action buffer))
 	(force-mode-line-update))))
-
+
 (defun View-exit ()
   "Exit View mode but stay in current buffer."
   (interactive)
@@ -633,7 +650,7 @@ previous state and go to previous buffer or window."
   "Quit View mode, kill current buffer and return to previous buffer."
   (interactive)
   (view-mode-exit view-return-to-alist (or view-exit-action 'kill-buffer) t))
-
+
 
 ;;; Some help routines.
 
@@ -667,7 +684,8 @@ previous state and go to previous buffer or window."
 
 (defun view-set-half-page-size-default (lines)
   ;; Get and maybe set half page size.
-  (if (not lines) view-half-page-size
+  (if (not lines) (or view-half-page-size
+		      (/ (view-window-size) 2))
     (setq view-half-page-size
 	  (if (zerop (setq lines (prefix-numeric-value lines)))
 	      (/ (view-window-size) 2)
@@ -710,14 +728,16 @@ Also set the mark at the position where point was."
   (goto-line line)
   (view-recenter))
 
-(defun View-scroll-to-buffer-end ()
-  "Scroll backward or forward so that buffer end is at last line of window."
+(defun View-back-to-mark (&optional ignore)
+  "Return to last mark set in View mode, else beginning of file.
+Display that line at the center of the window.
+This command pops the mark ring, so that successive
+invocations return to earlier marks."
   (interactive)
-  (let ((p (if (pos-visible-in-window-p (point-max)) (point))))
-    (goto-char (point-max))
-    (recenter -1)
-    (and p (goto-char p))))
-
+  (goto-char (or (mark t) (point-min)))
+  (pop-mark)
+  (view-recenter))
+
 (defun view-scroll-lines (lines backward default maxdefault)
   ;; This function does the job for all the scrolling commands.
   ;; Scroll forward LINES lines.  If BACKWARD is true scroll backwards.
@@ -776,6 +796,14 @@ Also set the mark at the position where point was."
 		(if view-scroll-auto-exit "\\[View-scroll-page-forward]"
 		  "\\[View-quit]")))
     (message "End of buffer")))
+
+(defun View-scroll-to-buffer-end ()
+  "Scroll backward or forward so that buffer end is at last line of window."
+  (interactive)
+  (let ((p (if (pos-visible-in-window-p (point-max)) (point))))
+    (goto-char (point-max))
+    (recenter -1)
+    (and p (goto-char p))))
 
 (defun View-scroll-page-forward (&optional lines)
   "Scroll \"page size\" or prefix LINES lines forward in View mode.
@@ -785,13 +813,13 @@ Exit if end of text is visible and `view-scroll-auto-exit' is non-nil.
 \\[View-scroll-page-backward-set-page-size].
 If LINES is more than a window-full, only the last window-full is shown."
   (interactive "P")
-  (view-scroll-lines lines nil view-page-size nil))
+  (view-scroll-lines lines nil (view-page-size-default view-page-size) nil))
 
 (defun View-scroll-page-backward (&optional lines)
   "Scroll \"page size\" or prefix LINES lines backward in View mode.
 See also `View-scroll-page-forward'."
   (interactive "P")
-  (view-scroll-lines lines t view-page-size nil))
+  (view-scroll-lines lines t (view-page-size-default view-page-size) nil))
 
 (defun View-scroll-page-forward-set-page-size (&optional lines)
   "Scroll forward LINES lines in View mode, setting the \"page size\".
@@ -855,18 +883,8 @@ If LINES is more than a window-full, only the last window-full is shown."
   (interactive "P")
   (let ((view-scroll-auto-exit nil)
 	(view-try-extend-at-buffer-end t))
-    (view-scroll-lines lines nil view-page-size nil)))
-
-(defun View-back-to-mark (&optional ignore)
-  "Return to last mark set in View mode, else beginning of file.
-Display that line at the center of the window.
-This command pops the mark ring, so that successive
-invocations return to earlier marks."
-  (interactive)
-  (goto-char (or (mark t) (point-min)))
-  (pop-mark)
-  (view-recenter))
-
+    (view-scroll-lines lines nil (view-page-size-default view-page-size) nil)))
+
 (defun View-search-regexp-forward (n regexp)
   "Search forward for first (or prefix Nth) occurrence of REGEXP in View mode.
 
@@ -995,4 +1013,5 @@ for highlighting the match that is found."
 
 (provide 'view)
 
+;;; arch-tag: 6d0ace36-1d12-4de3-8de3-1fa3231636d7
 ;;; view.el ends here

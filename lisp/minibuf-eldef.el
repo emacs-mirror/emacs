@@ -1,6 +1,7 @@
 ;;; minibuf-eldef.el --- Only show defaults in prompts when applicable
 ;;
-;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;
@@ -36,7 +37,7 @@
 ;;; Code:
 
 (defvar minibuffer-default-in-prompt-regexps
-  '(("\\( (default\\>.*)\\):? \\'" . 1))
+  '(("\\( (default\\>.*)\\):? \\'" . 1) ("\\( \\[.*\\]\\):? *\\'" . 1))
   "*A list of regexps matching the parts of minibuffer prompts showing defaults.
 When `minibuffer-electric-default-mode' is active, these regexps are
 used to identify the portions of prompts to elide.
@@ -157,4 +158,5 @@ Returns non-nil if the new state is enabled."
 
 (provide 'minibuf-eldef)
 
+;; arch-tag: 7e421fae-c275-4729-b0da-7836af377d3d
 ;;; minibuf-eldef.el ends here

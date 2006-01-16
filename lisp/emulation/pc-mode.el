@@ -1,6 +1,6 @@
 ;;; pc-mode.el --- emulate certain key bindings used on PCs
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: emulations
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -54,4 +54,5 @@ C-Escape does list-buffers."
 
 (provide 'pc-mode)
 
+;;; arch-tag: df007c05-f885-4cd0-8c1e-487d0f8dd9c9
 ;;; pc-mode.el ends here

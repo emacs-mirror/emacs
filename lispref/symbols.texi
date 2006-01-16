@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002, 2003,
+@c   2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/symbols
 @node Symbols, Evaluation, Hash Tables, Top
@@ -115,10 +115,10 @@ the four cells of the symbol @code{buffer-file-name}:
      @result{} "buffer-file-name"
 (symbol-value 'buffer-file-name)
      @result{} "/gnu/elisp/symbols.texi"
-(symbol-plist 'buffer-file-name)
-     @result{} (variable-documentation 29529)
 (symbol-function 'buffer-file-name)
      @result{} #<subr buffer-file-name>
+(symbol-plist 'buffer-file-name)
+     @result{} (variable-documentation 29529)
 @end example
 
 @noindent
@@ -361,6 +361,7 @@ This variable is the standard obarray for use by @code{intern} and
 @end defvar
 
 @defun mapatoms function &optional obarray
+@anchor{Definition of mapatoms}
 This function calls @var{function} once with each symbol in the obarray
 @var{obarray}.  Then it returns @code{nil}.  If @var{obarray} is
 omitted, it defaults to the value of @code{obarray}, the standard
@@ -475,7 +476,7 @@ This function returns the property list of @var{symbol}.
 @defun setplist symbol plist
 This function sets @var{symbol}'s property list to @var{plist}.
 Normally, @var{plist} should be a well-formed property list, but this is
-not enforced.
+not enforced.  The return value is @var{plist}.
 
 @smallexample
 (setplist 'foo '(a 1 b (2 3) c nil))
@@ -532,6 +533,18 @@ stored in the property list @var{plist}.  For example,
 @example
 (plist-get '(foo 4) 'foo)
      @result{} 4
+(plist-get '(foo 4 bad) 'foo)
+     @result{} 4
+(plist-get '(foo 4 bad) 'bar)
+     @result{} @code{wrong-type-argument} error
+@end example
+
+It accepts a malformed @var{plist} argument and always returns @code{nil}
+if @var{property} is not found in the @var{plist}.  For example,
+
+@example
+(plist-get '(foo 4 bad) 'bar)
+     @result{} nil
 @end example
 @end defun
 
@@ -560,6 +573,16 @@ in the place where you got @var{plist}.  For example,
             (plist-put (symbol-plist symbol) prop value)))
 @end example
 
+@defun lax-plist-get plist property
+Like @code{plist-get} except that it compares properties
+using @code{equal} instead of @code{eq}.
+@end defun
+
+@defun lax-plist-put plist property value
+Like @code{plist-put} except that it compares properties
+using @code{equal} instead of @code{eq}.
+@end defun
+
 @defun plist-member plist property
 @tindex plist-member
 This returns non-@code{nil} if @var{plist} contains the given
@@ -568,3 +591,7 @@ between a missing property and a property with the value @code{nil}.
 The value is actually the tail of @var{plist} whose @code{car} is
 @var{property}.
 @end defun
+
+@ignore
+   arch-tag: 8750b7d2-de4c-4923-809a-d35fc39fd8ce
+@end ignore

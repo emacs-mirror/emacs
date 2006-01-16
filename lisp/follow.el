@@ -1,9 +1,10 @@
 ;;; follow.el --- synchronize windows showing the same buffer
 
-;; Copyright (C) 1995, 1996, 1997, 1999, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1999, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
-;; Maintainer: Anders Lindgren <andersl@andersl.com>
+;; Maintainer: FSF (Anders' email bounces, Sep 2005)
 ;; Created: 1995-05-25
 ;; Keywords: display, window, minor-mode, convenience
 ;; Last Changed: 1999-11-17
@@ -22,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -393,7 +394,6 @@ Used by `follow-window-size-change'.")
 	"Anders Lindgren <andersl@andersl.com>"
 	"follow.el"
 	'(post-command-hook
-	  post-command-idle-hook
 	  pre-command-hook
 	  window-size-change-functions
 	  window-scroll-functions
@@ -682,9 +682,6 @@ Keys specific to Follow mode:
 	       (set 'scroll-on-clipped-lines nil))
 	   (force-mode-line-update)
 	   (add-hook 'post-command-hook 'follow-post-command-hook t)
-	   (if (boundp 'post-command-idle-hook)
-	       (add-hook 'post-command-idle-hook
-			 'follow-avoid-tail-recenter t))
 	   (run-hooks 'follow-mode-hook))
 
 	  ((and (not follow-mode) follow-mode-orig) ; Off
@@ -708,7 +705,7 @@ Keys specific to Follow mode:
 ;; This will start follow-mode whenever a new file is loaded, if
 ;; the variable `follow-auto' is non-nil.
 
-(add-hook 'find-file-hooks 'follow-find-file-hook t)
+(add-hook 'find-file-hook 'follow-find-file-hook t)
 
 (defun follow-find-file-hook ()
   "Find-file hook for Follow Mode.  See the variable `follow-auto'."
@@ -979,7 +976,8 @@ of the way from the true end."
 	  (t
 	   (select-window (car (reverse followers)))))
     (goto-char pos)
-    (end-of-buffer arg)))
+    (with-no-warnings
+      (end-of-buffer arg))))
 
 ;;}}}
 
@@ -1561,7 +1559,7 @@ non-first windows in Follow Mode."
 	      (or follow-internal-force-redisplay
 		  (progn
 		    (if (eq dest (point-max))
-			;; We're at the end, we have be be careful since
+			;; We're at the end, we have to be careful since
 			;; the display can be aligned while `dest' can
 			;; be visible in several windows.
 			(cond
@@ -2347,4 +2345,5 @@ This prevents `mouse-drag-region' from messing things up."
 ;; | save it".             -- Douglas Adams, "Last Chance to See"           |
 ;; \------------------------------------------------------------------------/
 
+;; arch-tag: 7b16bb1a-808c-4991-a8cc-66d3822936d0
 ;;; follow.el ends here

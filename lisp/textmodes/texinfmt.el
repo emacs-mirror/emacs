@@ -1,8 +1,8 @@
 ;;; texinfmt.el --- format Texinfo files into Info files
 
 ;; Copyright (C) 1985, 1986, 1988, 1990, 1991, 1992, 1993,
-;;               1994, 1995, 1996, 1997, 1998, 2000, 2001
-;;    Free Software Foundation, Inc.
+;;   1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: Robert J. Chassell <bug-texinfo@gnu.org>
 ;; Keywords: maint, tex, docs
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -37,7 +37,7 @@
     (defmacro defcustom (var value doc &rest ignore)
       `(defvar ,var ,value ,doc)))
 
-(defvar texinfmt-version "2.40 of  6 Dec 2002")
+(defvar texinfmt-version "2.41 of  1 Mar 2005")
 
 (defun texinfmt-version (&optional here)
   "Show the version of texinfmt.el in the minibuffer.
@@ -134,6 +134,11 @@ Info-split to do these manually."
 (defvar texinfo-region-buffer-name "*Info Region*"
   "*Name of the temporary buffer used by \\[texinfo-format-region].")
 
+(defvar texinfo-pre-format-hook nil
+  "Hook called before the conversion of the Texinfo file to Info format.
+The functions on this hook are called with argument BUFFER, the buffer
+containing the Texinfo file.")
+
 ;; These come from tex-mode.el.
 (defvar tex-start-of-header)
 (defvar tex-end-of-header)
@@ -207,6 +212,8 @@ converted to Info is stored in a temporary buffer."
 
 ;;; Find a buffer to use.
     (switch-to-buffer (get-buffer-create texinfo-region-buffer-name))
+    (setq buffer-read-only t)
+    (let ((inhibit-read-only t))
     (erase-buffer)
     ;; Insert the header into the buffer.
     (insert header-text)
@@ -215,6 +222,7 @@ converted to Info is stored in a temporary buffer."
      input-buffer
      (max region-beginning header-end)
      region-end)
+    (run-hook-with-args 'texinfo-pre-format-hook input-buffer)
     ;; Make sure region ends in a newline.
     (or (= (preceding-char) ?\n)
         (insert "\n"))
@@ -307,7 +315,7 @@ converted to Info is stored in a temporary buffer."
     (goto-char (point-min))
     (Info-tagify input-buffer)
     (goto-char (point-min))
-    (message "Done.")))
+    (message "Done."))))
 
 ;;;###autoload
 (defun texi2info (&optional nosplit)
@@ -372,6 +380,7 @@ if large.  You can use Info-split to do this manually."
     (find-file outfile)
     (texinfo-mode)
     (erase-buffer)
+    (buffer-disable-undo)
 
     (message "Formatting Info file: %s" outfile)
     (setq texinfo-format-filename
@@ -381,6 +390,7 @@ if large.  You can use Info-split to do this manually."
     (set-syntax-table texinfo-format-syntax-table)
 
     (insert-buffer-substring input-buffer)
+    (run-hook-with-args 'texinfo-pre-format-hook input-buffer)
     (message "Converting %s to Info format..." (buffer-name input-buffer))
 
     ;; Insert @include files so `texinfo-raise-lower-sections' can
@@ -478,7 +488,8 @@ if large.  You can use Info-split to do this manually."
    ;;     I don't know if this causes other problems.
    ;;     I suspect itemized lists don't get filled properly and a
    ;;     more precise fix is required.  Bob
-   "itemize\\|"
+   ;; commented out on 2005 Feb 28 by Bob
+   ;; "itemize\\|"
    "direntry\\|"
    "lisp\\|"
    "smalllisp\\|"
@@ -628,7 +639,7 @@ Do not append @refill to paragraphs containing @w{TEXT} or @*."
 	    (forward-char 1)
 	    (unless (re-search-backward "@c[ \t\n]\\|@comment[ \t\n]" line-beg t)
 	      (forward-char -1))
-	    (unless (re-search-backward "@refill\\|@bye" line-beg t)
+	    (unless (re-search-backward "@refill\\|^[ \t]*@" line-beg t)
 	      (insert "@refill")))
           (forward-line 1))))))
 
@@ -935,7 +946,8 @@ lower types.")
          (error "Unterminated @%s" (car (car texinfo-stack)))))
 
   ;; Remove excess whitespace
-  (whitespace-cleanup))
+  (let ((whitespace-silent t))
+    (whitespace-cleanup)))
 
 (defvar texinfo-copying-text ""
   "Text of the copyright notice and copying permissions.")
@@ -2797,7 +2809,7 @@ Default is to leave the number of spaces as is."
   (let ((arg  (texinfo-parse-arg-discard)))
     (if (string= "asis" arg)
         (setq texinfo-paragraph-indent "asis")
-      (setq texinfo-paragraph-indent (string-to-int arg)))))
+      (setq texinfo-paragraph-indent (string-to-number arg)))))
 
 (put 'refill 'texinfo-format 'texinfo-format-refill)
 (defun texinfo-format-refill ()
@@ -2891,7 +2903,7 @@ Default is to leave paragraph indentation as is."
                        1))
                (symbol-value indexvar)))))
 
-(defconst texinfo-indexvar-alist
+(defvar texinfo-indexvar-alist
   '(("cp" . texinfo-cindex)
     ("fn" . texinfo-findex)
     ("vr" . texinfo-vindex)
@@ -3024,7 +3036,7 @@ Default is to leave paragraph indentation as is."
           (indent-to 54)
           (insert
            (if (nth 2 (car indexelts))
-               (format "  %d." (nth 2 (car indexelts)))
+               (format "  (line %3d)" (1+ (nth 2 (car indexelts))))
              "")
            "\n"))
       ;; index entries from @include'd file
@@ -4333,4 +4345,5 @@ For example, invoke
 ;;; Place `provide' at end of file.
 (provide 'texinfmt)
 
+;;; arch-tag: 1e8d9a2d-bca0-40a0-ac6c-dab01bc6f725
 ;;; texinfmt.el ends here

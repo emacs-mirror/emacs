@@ -3,16 +3,19 @@
 @setfilename ../info/ses
 @settitle SES: Simple Emacs Spreadsheet
 @setchapternewpage off
+@syncodeindex fn cp
+@syncodeindex vr cp
+@syncodeindex ky cp
 @c %**end of header
 
 @copying
 This file documents SES: the Simple Emacs Spreadsheet.
 
-Copyright @copyright{} 2002  Free Software Foundation, Inc.
+Copyright @copyright{} 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU
 Manual,'' and with the Back-Cover Texts as in (a) below.  A copy of the
@@ -41,7 +44,7 @@ license to the document, as described in section 6 of the license.
 @title SES
 @subtitle Simple Emacs Spreadsheet
 @author Jonathan A. Yavner
-@author @email{jyavner@@engineer.com}
+@author @email{jyavner@@member.fsf.org}
 
 @page
 @vskip 0pt plus 1filll
@@ -64,15 +67,14 @@ by formulas that can refer to the values of other cells.
 @end display
 @end ifnottex
 
-This (such as @pxref{Top,calc,,calc}) is good.
-
-To report bugs, send email to @email{jyavner@@engineer.com}.
+To report bugs, send email to @email{jyavner@@member.fsf.org}.
 
 @menu
 * Sales Pitch::                 Why use SES?
 * The Basics::                  Basic spreadsheet commands
 * Advanced Features::           Want to know more?
 * For Gurus::                   Want to know @emph{even more}?
+* Index::                       Concept, Function and Variable Index
 * Acknowledgements::            Acknowledgements
 @end menu
 
@@ -81,6 +83,7 @@ To report bugs, send email to @email{jyavner@@engineer.com}.
 @node Sales Pitch, The Basics, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Sales Pitch
+@cindex features
 
 @itemize @bullet
 @item Create and edit simple spreadsheets with a minimum of fuss.
@@ -102,6 +105,13 @@ To report bugs, send email to @email{jyavner@@engineer.com}.
 @node The Basics, Advanced Features, Sales Pitch, Top
 @comment  node-name,  next,  previous,  up
 @chapter The Basics
+@cindex basic commands
+@findex ses-jump
+@findex ses-mark-row
+@findex ses-mark-column
+@findex ses-mark-whole-buffer
+@findex set-mark-command
+@findex keyboard-quit
 
 A @dfn{cell identifier} is a symbol with a column letter and a row
 number.  Cell B7 is the 2nd column of the 7th row.  For very wide
@@ -149,6 +159,13 @@ Highlight all cells (@code{mark-whole-buffer}).
 
 @node Formulas, Resizing, The Basics, The Basics
 @section Cell formulas
+@cindex formulas
+@cindex formulas, entering
+@findex ses-read-cell
+@findex ses-read-symbol
+@findex ses-edit-cell
+@findex ses-recalculate-cell
+@findex ses-recalculate-all
 
 To enter a number into the current cell, just start typing:
 
@@ -195,6 +212,15 @@ Recalculate the entire spreadsheet (@code{ses-recalculate-all}).
 
 @node Resizing, Printer functions, Formulas, The Basics
 @section Resizing the spreadsheet
+@cindex resizing spreadsheets
+@findex ses-insert-row
+@findex ses-insert-column
+@findex ses-delete-row
+@findex ses-delete-column
+@findex ses-set-column-width
+@findex ses-forward-or-insert
+@findex ses-append-row-jump-first-column
+
 
 Basic commands:
 
@@ -242,6 +268,16 @@ Undo previous action (@code{(undo)}).
 
 @node Printer functions, Clearing cells, Resizing, The Basics
 @section Printer functions
+@cindex printer functions
+@findex ses-read-cell-printer
+@findex ses-read-column-printer
+@findex ses-read-default-printer
+@findex ses-center
+@findex ses-center-span
+@findex ses-dashfill
+@findex ses-dashfill-span
+@findex ses-tildefill-span
+
 
 Printer functions convert binary cell values into the print forms that
 Emacs will display on the screen.
@@ -253,8 +289,8 @@ one-argument function (a symbol or a lambda), whose result is a string
 (right-aligned) or list of one string (left-aligned).  While typing in
 a lambda, you can use @kbd{M-TAB} to complete the names of symbols.
 
-Each cell has a printer.  If nil, the column-printer for the cell's
-column is used.  If that is also nil, the default-printer for the
+Each cell has a printer.  If @code{nil}, the column-printer for the cell's
+column is used.  If that is also @code{nil}, the default-printer for the
 spreadsheet is used.
 
 @table @kbd
@@ -275,7 +311,7 @@ spreadsheet, plus the standard printers.
 
 The standard printers are suitable only for cells, not columns or
 default, because they format the value using the column-printer (or
-default-printer if nil) and then center the result:
+default-printer if @code{nil}) and then center the result:
 
 @table @code
 @item ses-center
@@ -297,8 +333,11 @@ Centering with tildes (~) and spill-over.
 
 @node Clearing cells, Copy/cut/paste, Printer functions, The Basics
 @section Clearing cells
+@cindex clearing commands
+@findex ses-clear-cell-backward
+@findex ses-clear-cell-forward
 
-These commands set both formula and printer to nil:
+These commands set both formula and printer to @code{nil}:
 
 @table @kbd
 @item DEL
@@ -311,6 +350,18 @@ Clear cell and move right (@code{ses-clear-cell-forward}).
 
 @node Copy/cut/paste, Customizing SES, Clearing cells, The Basics
 @section Copy, cut, and paste
+@cindex copy
+@cindex cut
+@cindex paste
+@findex kill-ring-save
+@findex mouse-set-region
+@findex mouse-set-secondary
+@findex ses-kill-override
+@findex yank
+@findex clipboard-yank
+@findex mouse-yank-at-click
+@findex mouse-yank-at-secondary
+@findex ses-yank-pop
 
 The copy functions work on rectangular regions of cells.  You can paste the
 copies into non-SES buffers to export the print text.
@@ -333,7 +384,7 @@ Mark a region and copy it to kill ring and secondary clipboard
 @item C-w
 @itemx [cut]
 @itemx [S-delete]
-The cut functions do not actually delete rows or columns - they copy
+The cut functions do not actually delete rows or columns---they copy
 and then clear (@code{ses-kill-override}).
 
 @item C-y
@@ -374,6 +425,12 @@ yank.  This doesn't make any difference?
 
 @node Customizing SES,  , Copy/cut/paste, The Basics
 @section Customizing SES
+@cindex customizing
+@vindex enable-local-eval
+@vindex ses-mode-hook
+@vindex safe-functions
+@vindex enable-local-eval
+
 
 By default, a newly-created spreadsheet has 1 row and 1 column.  The
 column width is 7 and the default printer is @samp{"%.7g"}.  Each of these
@@ -387,11 +444,11 @@ list.
 @code{ses-mode-hook} is a normal mode hook (list of functions to
 execute when starting SES mode for a buffer).
 
-The variable @code{safe-functions} is a a list of possibly-unsafe
+The variable @code{safe-functions} is a list of possibly-unsafe
 functions to be treated as safe when analysing formulas and printers.
 @xref{Virus protection}.  Before customizing @code{safe-functions},
 think about how much you trust the person who's suggesting this
-change.  The value t turns off all anti-virus protection.  A
+change.  The value @code{t} turns off all anti-virus protection.  A
 list-of-functions value might enable a ``gee whiz'' spreadsheet, but it
 also creates trapdoors in your anti-virus armor.  In order for virus
 protection to work, you must always press @kbd{n} when presented with
@@ -405,14 +462,21 @@ safety belts!
 
 @node Advanced Features, For Gurus, The Basics, Top
 @chapter Advanced Features
+@cindex advanced features
+@findex ses-read-header-row
+
 
 @table @kbd
 @item C-c M-C-h
-(@code{ses-read-header-row}).  The header line at the top of the SES
+(@code{ses-set-header-row}).  The header line at the top of the SES
 window normally shows the column letter for each column.  You can set
 it to show a copy of some row, such as a row of column titles, so that
-row will always be visible.  Set the header line to row 0 to show
-column letters again.
+row will always be visible.  Default is to set the current row as the
+header; use C-u to prompt for header row.  Set the header to row 0 to
+show column letters again.
+@item [header-line mouse-3]
+Pops up a menu to set the current row as the header, or revert to
+column letters.
 @end table
 
 @menu
@@ -428,6 +492,10 @@ column letters again.
 
 @node The print area, Ranges in formulas, Advanced Features, Advanced Features
 @section The print area
+@cindex print area
+@findex widen
+@findex ses-renarrow-buffer
+@findex ses-reprint-all
 
 A SES file consists of a print area and a data area.  Normally the
 buffer is narrowed to show only the print area.  The print area is
@@ -450,6 +518,13 @@ Recreate print area by reevaluating printer functions for all cells
 
 @node Ranges in formulas, Sorting by column, The print area, Advanced Features
 @section Ranges in formulas
+@cindex ranges
+@findex ses-insert-range-click
+@findex ses-insert-range
+@findex ses-insert-ses-range-click
+@findex ses-insert-ses-range
+@vindex from
+@vindex to
 
 A formula like
 @lisp
@@ -462,7 +537,7 @@ the formula becomes
 @end lisp
 and the new row is not included in the sum.
 
-The macro @code{(ses-range @var{from} @var{to})} evalutes to a list of
+The macro @code{(ses-range @var{from} @var{to})} evaluates to a list of
 the values in a rectangle of cells.  If your formula is
 @lisp
 (apply '+ (ses-range A1 A3))
@@ -503,6 +578,9 @@ the range.  New cells inserted just before a range are not included.
 
 @node Sorting by column, Standard formula functions, Ranges in formulas, Advanced Features
 @section Sorting by column
+@cindex sorting
+@findex ses-sort-column
+@findex ses-sort-column-click
 
 @table @kbd
 @item C-c M-C-s
@@ -529,13 +607,19 @@ range.
 
 @node Standard formula functions, More on cell printing, Sorting by column, Advanced Features
 @section Standard formula functions
+@cindex standard formula functions
+@cindex *skip*
+@cindex *error*
+@findex ses-delete-blanks
+@findex ses-average
+@findex ses+
 
 Oftentimes you want a calculation to exclude the blank cells.  Here
 are some useful functions to call from your formulas:
 
 @table @code
 @item (ses-delete-blanks &rest @var{args})
-Returns a list from which all blank cells (value is either nil or
+Returns a list from which all blank cells (value is either @code{nil} or
 '*skip*) have been deleted.
 
 @item (ses+ &rest @var{args})
@@ -548,21 +632,24 @@ as a single argument, since you'll probably use it with @code{ses-range}.
 
 @node More on cell printing, Import and export, Standard formula functions, Advanced Features
 @section More on cell printing
+@cindex cell printing, more
+@findex ses-truncate-cell
+@findex ses-recalculate-cell
 
 Special cell values:
 @itemize
 @item nil prints the same as "", but allows previous cell to spill over.
 @item '*skip* replaces nil when the previous cell actually does spill over;
 nothing is printed for it.
-@item '*error* indicates that the formula signalled an error instead of
+@item '*error* indicates that the formula signaled an error instead of
 producing a value: the print cell is filled with hash marks (#).
 @end itemize
 
 If the result from the printer function is too wide for the cell and
-the following cell is nil, the result will spill over into the
+the following cell is @code{nil}, the result will spill over into the
 following cell.  Very wide results can spill over several cells.  If
 the result is too wide for the available space (up to the end of the
-row or the next non-nil cell), the result is truncated if the cell's
+row or the next non-@code{nil} cell), the result is truncated if the cell's
 value is a string, or replaced with hash marks otherwise.
 
 SES could get confused by printer results that contain newlines or
@@ -571,7 +658,7 @@ tabs, so these are replaced with question marks.
 @table @kbd
 @item C-c C-t
 Confine a cell to its own column (@code{ses-truncate-cell}).  This
-alows you to move point to a rightward cell that would otherwise be
+allows you to move point to a rightward cell that would otherwise be
 covered by a spill-over.  If you don't change the rightward cell, the
 confined cell will spill over again the next time it is reprinted.
 
@@ -588,6 +675,10 @@ is numeric-only and you use a string as a cell value.
 
 @node Import and export, Virus protection, More on cell printing, Advanced Features
 @section Import and export
+@cindex import and export
+@cindex export, and import
+@findex ses-export-tsv
+@findex ses-export-tsf
 
 @table @kbd
 @item x t
@@ -604,6 +695,7 @@ contains tabs and/or newlines.  Imported formulas are not relocated.
 
 @node Virus protection, Spreadsheets with details and summary, Import and export, Advanced Features
 @section Virus protection
+@cindex virus protection
 
 Whenever a formula or printer is read from a file or is pasted into
 the spreadsheet, it receives a ``needs safety check'' marking.  Later,
@@ -615,7 +707,7 @@ substitute always signals an error.
 
 Formulas or printers that you type in are checked immediately for
 safety.  If found to be possibly unsafe and you press N to disapprove,
-the action is cancelled and the old formula or printer will remain.
+the action is canceled and the old formula or printer will remain.
 
 Besides viruses (which try to copy themselves to other files),
 @code{unsafep} can also detect all other kinds of Trojan horses, such as
@@ -630,6 +722,8 @@ for more info on how Lisp forms are classified as safe or unsafe.
 
 @node Spreadsheets with details and summary,  , Virus protection, Advanced Features
 @section Spreadsheets with details and summary
+@cindex details and summary
+@cindex summary, and details
 
 A common organization for spreadsheets is to have a bunch of ``detail''
 rows, each perhaps describing a transaction, and then a set of
@@ -662,8 +756,9 @@ details-and-summary spreadsheet.
 
 @c ===================================================================
 
-@node For Gurus, Acknowledgements, Advanced Features, Top
+@node For Gurus, Index, Advanced Features, Top
 @chapter For Gurus
+@cindex advanced features
 
 @menu
 * Deferred updates::
@@ -675,6 +770,9 @@ details-and-summary spreadsheet.
 
 @node Deferred updates, Nonrelocatable references, For Gurus, For Gurus
 @section Deferred updates
+@cindex deferred updates
+@cindex updates, deferred
+@vindex run-with-idle-timer
 
 To save time by avoiding redundant computations, cells that need
 recalculation due to changes in other cells are added to a set.  At
@@ -704,6 +802,8 @@ can type ahead without worrying about the glitch.
 
 @node Nonrelocatable references, The data area, Deferred updates, For Gurus
 @section Nonrelocatable references
+@cindex nonrelocatable references
+@cindex references, nonrelocatable
 
 @kbd{C-y} relocates all cell-references in a pasted formula, while
 @kbd{C-u C-y} relocates none of the cell-references.  What about mixed
@@ -730,6 +830,8 @@ kind of dependency is also not recorded.
 
 @node The data area, Buffer-local variables in spreadsheets, Nonrelocatable references, For Gurus
 @section The data area
+@cindex data area
+@findex ses-reconstruct-all
 
 Begins with an 014 character, followed by sets of cell-definition
 macros for each row, followed by column-widths, column-printers,
@@ -760,6 +862,8 @@ data structures:
 
 @node Buffer-local variables in spreadsheets, Uses of defadvice in SES, The data area, For Gurus
 @section Buffer-local variables in spreadsheets
+@cindex buffer-local variables
+@cindex variables, buffer-local
 
 You can add additional local variables to the list at the bottom of
 the data area, such as hidden constants you want to refer to in your
@@ -792,6 +896,10 @@ avoid virus warnings, each function used in a formula needs
 
 @node Uses of defadvice in SES,  , Buffer-local variables in spreadsheets, For Gurus
 @section Uses of defadvice in SES
+@cindex defadvice
+@cindex undo-more
+@cindex copy-region-as-kill
+@cindex yank
 
 @table @code
 @item undo-more
@@ -812,12 +920,32 @@ formulas, then (if all else fails) as a single formula for the current
 cell.
 @end table
 
+@c ===================================================================
+@node Index, Acknowledgements, For Gurus, Top
+@unnumbered Index
+
+@printindex cp
 
 @c ===================================================================
 
-@node Acknowledgements,  , For Gurus, Top
+@node Acknowledgements, , Index, Top
 @chapter Acknowledgements
 
+Coding by:
+@quotation
+Jonathan Yavner @email{jyavner@@member.fsf.org}@*
+Stefan Monnier @email{monnier@@gnu.org}
+@end quotation
+
+@noindent
+Texinfo manual by:
+@quotation
+Jonathan Yavner @email{jyavner@@member.fsf.org}@*
+Brad Collins <brad@@chenla.org>
+@end quotation
+
+@noindent
+Ideas from:
 @quotation
 Christoph Conrad @email{christoph.conrad@@gmx.de}@*
 CyberBob @email{cyberbob@@redneck.gacracker.org}@*
@@ -826,7 +954,7 @@ Ami Fischman @email{fischman@@zion.bpnetworks.com}@*
 Thomas Gehrlein @email{Thomas.Gehrlein@@t-online.de}@*
 Chris F.A. Johnson @email{c.f.a.johnson@@rogers.com}@*
 Yusong Li @email{lyusong@@hotmail.com}@*
-Yuri Linkov @email{link0ff@@yahoo.com}@*
+Juri Linkov @email{juri@@jurta.org}@*
 Harald Maier @email{maierh@@myself.com}@*
 Alan Nash @email{anash@@san.rr.com}@*
 François Pinard @email{pinard@@iro.umontreal.ca}@*
@@ -834,6 +962,7 @@ Pedro Pinto @email{ppinto@@cs.cmu.edu}@*
 Stefan Reichör @email{xsteve@@riic.at}@*
 Oliver Scholz @email{epameinondas@@gmx.de}@*
 Richard M. Stallman @email{rms@@gnu.org}@*
+Luc Teirlinck @email{teirllm@@dms.auburn.edu}@*
 J. Otto Tennant @email{jotto@@pobox.com}@*
 Jean-Philippe Theberge @email{jphil@@acs.pagesjaunes.fr}
 @end quotation
@@ -841,3 +970,7 @@ Jean-Philippe Theberge @email{jphil@@acs.pagesjaunes.fr}
 @c ===================================================================
 
 @bye
+
+@ignore
+   arch-tag: 10a4ee1c-7ef4-4c06-8b7a-f975e39f0dec
+@end ignore

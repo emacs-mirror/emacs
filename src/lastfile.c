@@ -1,5 +1,5 @@
 /* Mark end of data space to dump as pure, for GNU Emacs.
-   Copyright (C) 1985 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* How this works:
@@ -40,7 +40,6 @@ Boston, MA 02111-1307, USA.  */
 
 char my_edata[] = "End of Emacs initialized data";
 
-#ifdef WINDOWSNT
 /* Help unexec locate the end of the .bss area used by Emacs (which
    isn't always a separate section in NT executables).  */
 char my_endbss[1];
@@ -50,4 +49,6 @@ char my_endbss[1];
    of the bss area used by Emacs.  */
 static char _my_endbss[1];
 char * my_endbss_static = _my_endbss;
-#endif
+
+/* arch-tag: 67e81ab4-e14f-44b2-8875-c0c12252223e
+   (do not change this comment) */

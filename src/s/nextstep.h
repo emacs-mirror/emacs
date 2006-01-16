@@ -1,5 +1,6 @@
 /* Configuration file for the NeXTstep system.
-   Copyright (C) 1990, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1995, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #include "bsd4-3.h"
 
@@ -110,3 +111,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* Tell emacs.c not to define abort.  */
 #define NO_ABORT
+
+/* arch-tag: 5cd6fed4-a0be-4402-9349-85a80bc01d57
+   (do not change this comment) */

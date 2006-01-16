@@ -1,12 +1,13 @@
 ;;; ebnf-iso.el --- parser for ISO EBNF
 
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Time-stamp: <2004/04/03 16:48:52 vinicius>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2003-02-10 10:26:32 jbarranquero>
-;; Version: 1.6
+;; Version: 1.8
 
 ;; This file is part of GNU Emacs.
 
@@ -22,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -111,8 +112,9 @@
 ;;
 ;; ISO EBNF accepts the characters given by <character> production above,
 ;; HORIZONTAL TAB (^I), VERTICAL TAB (^K), NEWLINE (^J or ^M) and FORM FEED
-;; (^L), any other characters are illegal.  But ebnf2ps accepts also the
-;; european 8-bit accentuated characters (from \240 to \377).
+;; (^L), any other characters are invalid.  But ebnf2ps accepts also the
+;; european 8-bit accentuated characters (from \240 to \377) and underscore
+;; (_).
 ;;
 ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -127,7 +129,8 @@
   "Value returned by `ebnf-iso-lex' function.")
 
 
-(defconst ebnf-no-meta-identifier nil)
+(defvar ebnf-no-meta-identifier nil
+  "Used by `ebnf-iso-term' and `ebnf-iso-lex' functions.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -200,17 +203,9 @@
 		(eq token 'catenate))
       (setq seq (cons term seq)))
     (cons token
-	  (cond
-	   ;; null sequence
-	   ((null seq)
-	    term)
-	   ;; sequence with only one element
-	   ((and (null term) (= (length seq) 1))
-	    (car seq))
-	   ;; a real sequence
-	   (t
-	    (ebnf-make-sequence (nreverse (cons term seq))))
-	   ))))
+	  (ebnf-token-sequence (if term
+				   (cons term seq)
+				 seq)))))
 
 
 ;;; term = factor, ['-', exception];
@@ -345,6 +340,7 @@
     ;; Override form feed character:
     (aset table ?\f 'form-feed)		; [FF] form feed
     ;; Override other lexical characters:
+    (aset table ?_  'non-terminal)
     (aset table ?\" 'double-terminal)
     (aset table ?\' 'single-terminal)
     (aset table ?\? 'special)
@@ -389,11 +385,11 @@
 
 ;; replace the range "\240-\377" (see `ebnf-range-regexp').
 (defconst ebnf-iso-non-terminal-chars
-  (ebnf-range-regexp " 0-9A-Za-z" ?\240 ?\377))
+  (ebnf-range-regexp " 0-9A-Za-z_" ?\240 ?\377))
 
 
 (defun ebnf-iso-lex ()
-  "Lexical analyser for ISO EBNF.
+  "Lexical analyzer for ISO EBNF.
 
 Return a lexical token.
 
@@ -431,16 +427,16 @@ See documentation for variable `ebnf-iso-lex'."
 	'end-of-input)
        ;; error
        ((eq token 'error)
-	(error "Illegal character"))
+	(error "Invalid character"))
        ;; integer
        ((eq token 'integer)
 	(setq ebnf-iso-lex (ebnf-buffer-substring "0-9"))
 	'integer)
        ;; special: ?special?
        ((eq token 'special)
-	(setq ebnf-iso-lex (concat "?"
+	(setq ebnf-iso-lex (concat (and ebnf-special-show-delimiter "?")
 				   (ebnf-string " ->@-~" ?\? "special")
-				   "?"))
+				   (and ebnf-special-show-delimiter "?")))
 	'special)
        ;; terminal: "string"
        ((eq token 'double-terminal)
@@ -531,7 +527,7 @@ See documentation for variable `ebnf-iso-lex'."
 	       (forward-char)
 	       (setq pair (1+ pair))))
 	    (t
-	     (error "Illegal character"))
+	     (error "Invalid character"))
 	    ))))
 
 
@@ -612,4 +608,5 @@ See documentation for variable `ebnf-iso-lex'."
 (provide 'ebnf-iso)
 
 
+;;; arch-tag: 03315eef-8f64-404a-bf9d-256d42442ee3
 ;;; ebnf-iso.el ends here

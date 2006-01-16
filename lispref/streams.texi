@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999, 2002, 2003, 2004,
+@c   2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/streams
 @node Read and Print, Minibuffers, Debugging, Top
@@ -338,6 +338,7 @@ For example:
 @defvar standard-input
 This variable holds the default input stream---the stream that
 @code{read} uses when the @var{stream} argument is @code{nil}.
+The default is @code{t}, meaning use the minibuffer.
 @end defvar
 
 @node Output Streams
@@ -361,7 +362,9 @@ The output characters are inserted into the buffer that @var{marker}
 points into, at the marker position.  The marker position advances as
 characters are inserted.  The value of point in the buffer has no effect
 on printing when the stream is a marker, and this kind of printing
-does not move point.
+does not move point (except that if the marker points at or before the
+position of point, point advances with the surrounding text, as
+usual).
 
 @item @var{function}
 @cindex function output stream
@@ -572,7 +575,6 @@ characters are used.  @code{print} returns @var{object}.  For example:
      @print{} "the hat"
      @print{}
      @print{} " came back"
-     @print{}
      @result{} " came back"
 @end group
 @end example
@@ -657,11 +659,11 @@ characters in the output.  (This argument is supported in Emacs versions
 @end group
 @end example
 
-See @code{format}, in @ref{String Conversion}, for other ways to obtain
+See @code{format}, in @ref{Formatting Strings}, for other ways to obtain
 the printed representation of a Lisp object as a string.
 @end defun
 
-@defmac with-output-to-string body...
+@defmac with-output-to-string body@dots{}
 This macro executes the @var{body} forms with @code{standard-output} set
 up to feed output into a string.  Then it returns that string.
 
@@ -683,6 +685,14 @@ returns @code{"The buffer is foo"}.
 @defvar standard-output
 The value of this variable is the default output stream---the stream
 that print functions use when the @var{stream} argument is @code{nil}.
+The default is @code{t}, meaning display in the echo area.
+@end defvar
+
+@defvar print-quoted
+If this is non-@code{nil}, that means to print quoted forms using
+abbreviated reader syntax.  @code{(quote foo)} prints as @code{'foo},
+@code{(function foo)} as @code{#'foo}, and backquoted forms print
+using modern backquote syntax.
 @end defvar
 
 @defvar print-escape-newlines
@@ -721,24 +731,24 @@ In the second expression, the local binding of
 @end defvar
 
 @defvar print-escape-nonascii
-If this variable is non-@code{nil}, then unibyte non-@sc{ascii}
+If this variable is non-@code{nil}, then unibyte non-@acronym{ASCII}
 characters in strings are unconditionally printed as backslash sequences
 by the print functions @code{prin1} and @code{print} that print with
 quoting.
 
-Those functions also use backslash sequences for unibyte non-@sc{ascii}
+Those functions also use backslash sequences for unibyte non-@acronym{ASCII}
 characters, regardless of the value of this variable, when the output
 stream is a multibyte buffer or a marker pointing into one.
 @end defvar
 
 @defvar print-escape-multibyte
-If this variable is non-@code{nil}, then multibyte non-@sc{ascii}
+If this variable is non-@code{nil}, then multibyte non-@acronym{ASCII}
 characters in strings are unconditionally printed as backslash sequences
 by the print functions @code{prin1} and @code{print} that print with
 quoting.
 
 Those functions also use backslash sequences for multibyte
-non-@sc{ascii} characters, regardless of the value of this variable,
+non-@acronym{ASCII} characters, regardless of the value of this variable,
 when the output stream is a unibyte buffer or a marker pointing into
 one.
 @end defvar
@@ -771,8 +781,16 @@ exceeding this limit is abbreviated with an ellipsis.  A value of
 @code{nil} (which is the default) means no limit.
 @end defvar
 
+@defopt eval-expression-print-length
+@defoptx eval-expression-print-level
+These are the values for @code{print-length} and @code{print-level}
+used by @code{eval-expression}, and thus, indirectly, by many
+interactive evaluation commands (@pxref{Lisp Eval,, Evaluating
+Emacs-Lisp Expressions, emacs, The GNU Emacs Manual}).
+@end defopt
+
   These variables are used for detecting and reporting circular
-and shared structure---but they are only defined in Emacs 21.
+and shared structure:
 
 @tindex print-circle
 @defvar print-circle
@@ -787,3 +805,34 @@ If non-@code{nil}, this variable enables detection of uninterned symbols
 uninterned symbols print with the prefix @samp{#:}, which tells the Lisp
 reader to produce an uninterned symbol.
 @end defvar
+
+@defvar print-continuous-numbering
+If non-@code{nil}, that means number continuously across print calls.
+This affects the numbers printed for @samp{#@var{n}=} labels and
+@samp{#@var{m}#} references.
+
+Don't set this variable with @code{setq}; you should only bind it
+temporarily to @code{t} with @code{let}.  When you do that, you should
+also bind @code{print-number-table} to @code{nil}.
+@end defvar
+
+@defvar print-number-table
+This variable holds a vector used internally by printing to implement
+the @code{print-circle} feature.  You should not use it except
+to bind it to @code{nil} when you bind @code{print-continuous-numbering}.
+@end defvar
+
+@defvar float-output-format
+This variable specifies how to print floating point numbers.  Its
+default value is @code{nil}, meaning use the shortest output
+that represents the number without losing information.
+
+To control output format more precisely, you can put a string in this
+variable.  The string should hold a @samp{%}-specification to be used
+in the C function @code{sprintf}.  For further restrictions on what
+you can use, see the variable's documentation string.
+@end defvar
+
+@ignore
+   arch-tag: 07636b8c-c4e3-4735-9e06-2e864320b434
+@end ignore

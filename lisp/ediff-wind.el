@@ -1,6 +1,7 @@
 ;;; ediff-wind.el --- window manipulation utilities
 
-;; Copyright (C) 1994, 95, 96, 97, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -66,7 +67,7 @@
   (defun ediff-compute-toolbar-width () 0))
 
 (defgroup ediff-window nil
-  "Ediff window manipulation"
+  "Ediff window manipulation."
   :prefix "ediff-"
   :group 'ediff
   :group 'frames)
@@ -899,7 +900,7 @@ into icons, regardless of the window manager."
 
     (ediff-with-current-buffer ctl-buffer
       (ediff-cond-compile-for-xemacs-or-emacs
-       (set-buffer-menubar nil) ; xemacs
+       (when (featurep 'menubar) (set-buffer-menubar nil)) ; xemacs
        nil ; emacs
        )
       ;;(setq user-grabbed-mouse (ediff-user-grabbed-mouse))
@@ -954,8 +955,9 @@ into icons, regardless of the window manager."
 		 (minibuffer-window
 		  designated-minibuffer-frame))
 	   (cons 'width fwidth)
-	   (cons 'height fheight))
-	  )
+	   (cons 'height fheight)
+	   (cons 'user-position t)
+	   ))
 
     ;; adjust autoraise
     (setq adjusted-parameters
@@ -1053,7 +1055,8 @@ into icons, regardless of the window manager."
     (if (and (ediff-window-display-p) (frame-live-p ediff-control-frame))
 	(let ((ctl-frame ediff-control-frame))
 	  (ediff-cond-compile-for-xemacs-or-emacs
-	   (set-buffer-menubar default-menubar) ; xemacs
+	   (when (featurep 'menubar)
+	     (set-buffer-menubar default-menubar)) ; xemacs
 	   nil ; emacs
 	   )
 	  (setq ediff-control-frame nil)
@@ -1133,9 +1136,8 @@ It assumes that it is called from within the control buffer."
 	  (list (cons 'left (max 0 (eval (cdr (assoc 'left frame-A-params)))))
 		(cons 'width (cdr (assoc 'width frame-A-params))))
 	  ediff-wide-display-frame frame-A)
-    (modify-frame-parameters frame-A (list (cons 'left cw)
-						 (cons 'width wd)))))
-
+    (modify-frame-parameters
+     frame-A `((left . ,cw) (width . ,wd) (user-position t)))))
 
 
 ;; Revise the mode line to display which difference we have selected
@@ -1318,4 +1320,5 @@ It assumes that it is called from within the control buffer."
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
+;;; arch-tag: 73d9a5d7-eed7-4d9c-8b4b-21d5d78eb597
 ;;; ediff-wind.el ends here

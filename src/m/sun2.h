@@ -1,7 +1,8 @@
 /* machine description file for Sun 68000's OPERATING SYSTEM version 2.
   Note that "sun2.h" refers to the operating system version, not the
   CPU model number.  See the MACHINES file for details.
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,8 +18,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The following line tells the configuration script what sort of
@@ -95,3 +96,6 @@ NOTE-END  */
 #define SYMS_MACHINE syms_of_sunfns ()
 #define PURESIZE 132000
 #endif
+
+/* arch-tag: 543c3570-74ca-4099-aa47-db7c7b691c8e
+   (do not change this comment) */

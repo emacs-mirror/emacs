@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 2002, 2003, 2004,
+@c   2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/compile
 @node Byte Compilation, Advising Functions, Loading, Top
@@ -27,17 +28,15 @@ results compatible with running the same file without compilation.
 @xref{Loading Non-ASCII}.
 
   In general, any version of Emacs can run byte-compiled code produced
-by recent earlier versions of Emacs, but the reverse is not true.  A
-major incompatible change was introduced in Emacs version 19.29, and
-files compiled with versions since that one will definitely not run
-in earlier versions unless you specify a special option.
-@iftex
-@xref{Docs and Compilation}.
-@end iftex
-In addition, the modifier bits in keyboard characters were renumbered in
-Emacs 19.29; as a result, files compiled in versions before 19.29 will
-not work in subsequent versions if they contain character constants with
-modifier bits.
+by recent earlier versions of Emacs, but the reverse is not true.
+
+@vindex no-byte-compile
+  If you do not want a Lisp file to be compiled, ever, put a file-local
+variable binding for @code{no-byte-compile} into it, like this:
+
+@example
+;; -*-no-byte-compile: t; -*-
+@end example
 
   @xref{Compilation Errors}, for how to investigate errors occurring in
 byte compilation.
@@ -48,6 +47,7 @@ byte compilation.
 * Docs and Compilation::        Dynamic loading of documentation strings.
 * Dynamic Loading::             Dynamic loading of individual functions.
 * Eval During Compile::  	Code to be evaluated when you compile.
+* Compiler Errors::             Handling compiler error messages.
 * Byte-Code Objects::		The data type used for byte-compiled functions.
 * Disassembly::                 Disassembling byte-code; how to read byte-code.
 @end menu
@@ -113,6 +113,9 @@ macros must already be defined for proper compilation.  For more
 details, see @ref{Compiling Macros}.  If a program does not work the
 same way when compiled as it does when interpreted, erroneous macro
 definitions are one likely cause (@pxref{Problems with Macros}).
+Inline (@code{defsubst}) functions are less troublesome; if you
+compile a call to such a function before its definition is known, the
+call will still work right, it will just run slower.
 
   Normally, compiling a file does not evaluate the file's contents or
 load the file.  But it does execute any @code{require} calls at top
@@ -162,16 +165,24 @@ the actual byte-code; each character in it is an instruction or an
 operand of an instruction.  The vector contains all the constants,
 variable names and function names used by the function, except for
 certain primitives that are coded as special instructions.
+
+If the argument to @code{byte-compile} is a @code{lambda} expression,
+it returns the corresponding compiled code, but does not store
+it anywhere.
 @end defun
 
-@deffn Command compile-defun
+@deffn Command compile-defun &optional arg
 This command reads the defun containing point, compiles it, and
 evaluates the result.  If you use this on a defun that is actually a
 function definition, the effect is to install a compiled version of that
 function.
+
+@code{compile-defun} normally displays the result of evaluation in the
+echo area, but if @var{arg} is non-@code{nil}, it inserts the result
+in the current buffer after the form it compiled.
 @end deffn
 
-@deffn Command byte-compile-file filename
+@deffn Command byte-compile-file filename &optional load
 This function compiles a file of Lisp code named @var{filename} into a
 file of byte-code.  The output file's name is made by changing the
 @samp{.el} suffix into @samp{.elc}; if @var{filename} does not end in
@@ -184,8 +195,11 @@ batch is compiled, and written so that its compiled code will be
 executed when the file is read.  All comments are discarded when the
 input file is read.
 
-This command returns @code{t}.  When called interactively, it prompts
-for the file name.
+This command returns @code{t} if there were no errors and @code{nil}
+otherwise.  When called interactively, it prompts for the file name.
+
+If @var{load} is non-@code{nil}, this command loads the compiled file
+after compiling it.  Interactively, @var{load} is the prefix argument.
 
 @example
 @group
@@ -206,26 +220,38 @@ for the file name.
 @end example
 @end deffn
 
-@deffn Command byte-recompile-directory directory flag
+@deffn Command byte-recompile-directory directory &optional flag force
 @cindex library compilation
-This function recompiles every @samp{.el} file in @var{directory} that
-needs recompilation.  A file needs recompilation if a @samp{.elc} file
-exists but is older than the @samp{.el} file.
+This command recompiles every @samp{.el} file in @var{directory} (or
+its subdirectories) that needs recompilation.  A file needs
+recompilation if a @samp{.elc} file exists but is older than the
+@samp{.el} file.
 
-When a @samp{.el} file has no corresponding @samp{.elc} file, @var{flag}
-says what to do.  If it is @code{nil}, these files are ignored.  If it
-is non-@code{nil}, the user is asked whether to compile each such file.
+When a @samp{.el} file has no corresponding @samp{.elc} file,
+@var{flag} says what to do.  If it is @code{nil}, this command ignores
+these files.  If @var{flag} is 0, it compiles them.  If it is neither
+@code{nil} nor 0, it asks the user whether to compile each such file,
+and asks about each subdirectory as well.
 
-The returned value of this command is unpredictable.
+Interactively, @code{byte-recompile-directory} prompts for
+@var{directory} and @var{flag} is the prefix argument.
+
+If @var{force} is non-@code{nil}, this command recompiles every
+@samp{.el} file that has a @samp{.elc} file.
+
+The returned value is unpredictable.
 @end deffn
 
-@defun batch-byte-compile
+@defun batch-byte-compile &optional noforce
 This function runs @code{byte-compile-file} on files specified on the
 command line.  This function must be used only in a batch execution of
 Emacs, as it kills Emacs on completion.  An error in one file does not
 prevent processing of subsequent files, but no output file will be
 generated for it, and the Emacs process will terminate with a nonzero
 status code.
+
+If @var{noforce} is non-@code{nil}, this function does not recompile
+files that have an up-to-date @samp{.elc} file.
 
 @example
 % emacs -batch -f batch-byte-compile *.el
@@ -266,8 +292,8 @@ in the file.
 
 @item
 If you alter the compiled file (such as by compiling a new version),
-then further access to documentation strings in this file will give
-nonsense results.
+then further access to documentation strings in this file will
+probably give nonsense results.
 @end itemize
 
   If your site installs Emacs following the usual procedures, these
@@ -281,14 +307,13 @@ directory where you built it, you will experience this problem
 occasionally if you edit and recompile Lisp files.  When it happens, you
 can cure the problem by reloading the file after recompiling it.
 
-  Byte-compiled files made with recent versions of Emacs (since 19.29)
-will not load into older versions because the older versions don't
-support this feature.  You can turn off this feature at compile time by
-setting @code{byte-compile-dynamic-docstrings} to @code{nil}; then you
-can compile files that will load into older Emacs versions.  You can do
-this globally, or for one source file by specifying a file-local binding
-for the variable.  One way to do that is by adding this string to the
-file's first line:
+  You can turn off this feature at compile time by setting
+@code{byte-compile-dynamic-docstrings} to @code{nil}; this is useful
+mainly if you expect to change the file, and you want Emacs processes
+that have already loaded it to keep working when the file changes.
+You can do this globally, or for one source file by specifying a
+file-local binding for the variable.  One way to do that is by adding
+this string to the file's first line:
 
 @example
 -*-byte-compile-dynamic-docstrings: nil;-*-
@@ -338,8 +363,8 @@ longer load the remaining function definitions not already loaded.
 
 @item
 If you alter the compiled file (such as by compiling a new version),
-then trying to load any function not already loaded will yield nonsense
-results.
+then trying to load any function not already loaded will usually yield
+nonsense results.
 @end itemize
 
   These problems will never happen in normal circumstances with
@@ -364,9 +389,10 @@ that are set up for dynamic function loading.
 @end defvar
 
 @defun fetch-bytecode function
-This immediately finishes loading the definition of @var{function} from
-its byte-compiled file, if it is not fully loaded already.  The argument
-@var{function} may be a byte-code function object or a function name.
+If @var{function} is a byte-code function object, this immediately
+finishes loading the byte code of @var{function} from its
+byte-compiled file, if it is not fully loaded already.  Otherwise,
+it does nothing.  It always returns @var{function}.
 @end defun
 
 @node Eval During Compile
@@ -375,26 +401,131 @@ its byte-compiled file, if it is not fully loaded already.  The argument
   These features permit you to write code to be evaluated during
 compilation of a program.
 
-@defspec eval-and-compile body
+@defspec eval-and-compile body@dots{}
 This form marks @var{body} to be evaluated both when you compile the
 containing code and when you run it (whether compiled or not).
 
 You can get a similar result by putting @var{body} in a separate file
 and referring to that file with @code{require}.  That method is
-preferable when @var{body} is large.
+preferable when @var{body} is large.  Effectively @code{require} is
+automatically @code{eval-and-compile}, the package is loaded both when
+compiling and executing.
+
+@code{autoload} is also effectively @code{eval-and-compile} too.  It's
+recognised when compiling, so uses of such a function don't produce
+``not known to be defined'' warnings.
+
+Most uses of @code{eval-and-compile} are fairly sophisticated.
+
+If a macro has a helper function to build its result, and that macro
+is used both locally and outside the package, then
+@code{eval-and-compile} should be used to get the helper both when
+compiling and then later when running.
+
+If functions are defined programmatically (with @code{fset} say), then
+@code{eval-and-compile} can be used to have that done at compile-time
+as well as run-time, so calls to those functions are checked (and
+warnings about ``not known to be defined'' suppressed).
 @end defspec
 
-@defspec eval-when-compile body
+@defspec eval-when-compile body@dots{}
 This form marks @var{body} to be evaluated at compile time but not when
 the compiled program is loaded.  The result of evaluation by the
 compiler becomes a constant which appears in the compiled program.  If
 you load the source file, rather than compiling it, @var{body} is
 evaluated normally.
 
-@strong{Common Lisp Note:} At top level, this is analogous to the Common
+If you have a constant that needs some calculation to produce,
+@code{eval-when-compile} can do that done at compile-time.  For
+example,
+
+@lisp
+(defvar my-regexp
+  (eval-when-compile (regexp-opt '("aaa" "aba" "abb"))))
+@end lisp
+
+If you're using another package, but only need macros from it (the
+byte compiler will expand those), then @code{eval-when-compile} can be
+used to load it for compiling, but not executing.  For example,
+
+@lisp
+(eval-when-compile
+  (require 'my-macro-package))  ;; only macros needed from this
+@end lisp
+
+The same sort of thing goes for macros or @code{defalias}es defined
+locally and only for use within the file.  They can be defined while
+compiling, but then not needed when executing.  This is good for code
+that's only a fallback for compability with other versions of Emacs.
+For example.
+
+@lisp
+(eval-when-compile
+  (unless (fboundp 'some-new-thing)
+    (defmacro 'some-new-thing ()
+      (compatibility code))))
+@end lisp
+
+@strong{Common Lisp Note:} At top level, @code{eval-when-compile} is analogous to the Common
 Lisp idiom @code{(eval-when (compile eval) @dots{})}.  Elsewhere, the
 Common Lisp @samp{#.} reader macro (but not when interpreting) is closer
 to what @code{eval-when-compile} does.
+@end defspec
+
+@node Compiler Errors
+@section Compiler Errors
+@cindex compiler errors
+
+  Byte compilation outputs all errors and warnings into the buffer
+@samp{*Compile-Log*}.  The messages include file names and line
+numbers that identify the location of the problem.  The usual Emacs
+commands for operating on compiler diagnostics work properly on
+these messages.
+
+  However, the warnings about functions that were used but not
+defined are always ``located'' at the end of the file, so these
+commands won't find the places they are really used.  To do that,
+you must search for the function names.
+
+  You can suppress the compiler warning for calling an undefined
+function @var{func} by conditionalizing the function call on an
+@code{fboundp} test, like this:
+
+@example
+(if (fboundp '@var{func}) ...(@var{func} ...)...)
+@end example
+
+@noindent
+The call to @var{func} must be in the @var{then-form} of the
+@code{if}, and @var{func} must appear quoted in the call to
+@code{fboundp}.  (This feature operates for @code{cond} as well.)
+
+  Likewise, you can suppress a compiler warning for an unbound variable
+@var{variable} by conditionalizing its use on a @code{boundp} test,
+like this:
+
+@example
+(if (boundp '@var{variable}) ...@var{variable}...)
+@end example
+
+@noindent
+The reference to @var{variable} must be in the @var{then-form} of the
+@code{if}, and @var{variable} must appear quoted in the call to
+@code{boundp}.
+
+  You can suppress any compiler warnings using the construct
+@code{with-no-warnings}:
+
+@c This is implemented with a defun, but conceptually it is
+@c a special form.
+
+@defspec with-no-warnings body@dots{}
+In execution, this is equivalent to @code{(progn @var{body}...)},
+but the compiler does not issue warnings for anything that occurs
+inside @var{body}.
+
+We recommend that you use this construct around the smallest
+possible piece of code.
 @end defspec
 
 @node Byte-Code Objects
@@ -489,14 +620,17 @@ returns it as the value of the function.
 ordinary Lisp variables, by transferring values between variables and
 the stack.
 
-@deffn Command disassemble object &optional stream
-This function prints the disassembled code for @var{object}.  If
-@var{stream} is supplied, then output goes there.  Otherwise, the
-disassembled code is printed to the stream @code{standard-output}.  The
-argument @var{object} can be a function name or a lambda expression.
+@deffn Command disassemble object &optional buffer-or-name
+This command displays the disassembled code for @var{object}.  In
+interactive use, or if @var{buffer-or-name} is @code{nil} or omitted,
+the output goes in a buffer named @samp{*Disassemble*}.  If
+@var{buffer-or-name} is non-@code{nil}, it must be a buffer or the
+name of an existing buffer.  Then the output goes there, at point, and
+point is left before the output.
 
-As a special exception, if this function is used interactively,
-it outputs to a buffer named @samp{*Disassemble*}.
+The argument @var{object} can be a function name, a lambda expression
+or a byte-code object.  If it is a lambda expression, @code{disassemble}
+compiles it and disassembles the resulting compiled code.
 @end deffn
 
   Here are two examples of using the @code{disassemble} function.  We
@@ -742,3 +876,6 @@ The @code{silly-loop} function is somewhat more complex:
 @end example
 
 
+@ignore
+   arch-tag: f78e3050-2f0a-4dee-be27-d9979a0a2289
+@end ignore

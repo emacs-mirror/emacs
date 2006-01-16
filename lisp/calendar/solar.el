@@ -1,9 +1,11 @@
 ;;; solar.el --- calendar functions for solar events
 
-;; Copyright (C) 1992, 1993, 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1995, 1997, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;	Denis B. Roegel <Denis.Roegel@loria.fr>
+;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: sunrise, sunset, equinox, solstice, calendar, diary,
 ;;	holidays
@@ -22,8 +24,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -48,8 +50,8 @@
 ;;       1951--2050.  For other years the times will be within +/- 1 minute.
 
 ;; Technical details of all the calendrical calculations can be found in
-;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
-;; Cambridge University Press (1997).
+;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
+;; and Nachum Dershowitz, Cambridge University Press (2001).
 
 ;; Comments, corrections, and improvements should be sent to
 ;;  Edward M. Reingold               Department of Computer Science
@@ -58,6 +60,10 @@
 ;;                                   Urbana, Illinois 61801
 
 ;;; Code:
+
+(defvar date)
+(defvar displayed-month)
+(defvar displayed-year)
 
 (if (fboundp 'atan)
     (require 'lisp-float-type)
@@ -223,7 +229,7 @@ Needed for polar areas, in order to know whether the day lasts 0 or 24 hours.")
 Returns nil if nothing was entered."
   (let ((x (read-string prompt "")))
     (if (not (string-equal x ""))
-        (string-to-int x))))
+        (string-to-number x))))
 
 ;; The condition-case stuff is needed to catch bogus arithmetic
 ;; exceptions that occur on some machines (like Sparcs)
@@ -639,48 +645,6 @@ since January 1st, 2000, at 12 ET."
                   ; equation of time, in hours
     (list app i time-eq nut)))
 
-(defun solar-longitude (d)
-  "Longitude of sun on astronomical (Julian) day number D.
-Accurary is about 0.0006 degree (about 365.25*24*60*0.0006/360 = 1 minutes).
-
-The values of calendar-daylight-savings-starts,
-calendar-daylight-savings-starts-time, calendar-daylight-savings-ends,
-calendar-daylight-savings-ends-time, calendar-daylight-time-offset, and
-calendar-time-zone are used to interpret local time."
-  (let* ((a-d (calendar-absolute-from-astro d))
-         ;; get Universal Time
-         (date (calendar-astro-from-absolute
-                (- a-d
-                   (if (dst-in-effect a-d)
-                       (/ calendar-daylight-time-offset 24.0 60.0) 0)
-                   (/ calendar-time-zone 60.0 24.0))))
-         ;; get Ephemeris Time
-         (date (+ date (solar-ephemeris-correction
-                        (extract-calendar-year
-                         (calendar-gregorian-from-absolute
-                          (floor
-                           (calendar-absolute-from-astro
-                            date)))))))
-         (U (/ (- date 2451545) 3652500))
-         (longitude
-          (+ 4.9353929
-             (* 62833.1961680 U)
-             (* 0.0000001
-                (apply '+
-                       (mapcar '(lambda (x)
-                                  (* (car x)
-                                     (sin (mod
-                                           (+ (car (cdr x))
-                                              (* (car (cdr (cdr x))) U))
-                                           (* 2 pi)))))
-                               solar-data-list)))))
-         (aberration
-          (* 0.0000001 (- (* 17 (cos (+ 3.10 (* 62830.14 U)))) 973)))
-         (A1 (mod (+ 2.18 (* U (+ -3375.70 (* 0.36 U)))) (* 2 pi)))
-         (A2 (mod (+ 3.51 (* U (+ 125666.39 (* 0.10 U)))) (* 2 pi)))
-         (nutation (* -0.0000001 (+ (* 834 (sin A1)) (* 64 (sin A2))))))
-    (mod (radians-to-degrees (+ longitude aberration nutation)) 360.0)))
-
 (defconst solar-data-list
   '((403406 4.721964 1.621043)
     (195207 5.937458 62830.348067)
@@ -732,6 +696,48 @@ calendar-time-zone are used to interpret local time."
     (10 3.59 -68.29)
     (10 1.50 21463.25)
     (10 2.55 157208.40)))
+
+(defun solar-longitude (d)
+  "Longitude of sun on astronomical (Julian) day number D.
+Accurary is about 0.0006 degree (about 365.25*24*60*0.0006/360 = 1 minutes).
+
+The values of calendar-daylight-savings-starts,
+calendar-daylight-savings-starts-time, calendar-daylight-savings-ends,
+calendar-daylight-savings-ends-time, calendar-daylight-time-offset, and
+calendar-time-zone are used to interpret local time."
+  (let* ((a-d (calendar-absolute-from-astro d))
+         ;; get Universal Time
+         (date (calendar-astro-from-absolute
+                (- a-d
+                   (if (dst-in-effect a-d)
+                       (/ calendar-daylight-time-offset 24.0 60.0) 0)
+                   (/ calendar-time-zone 60.0 24.0))))
+         ;; get Ephemeris Time
+         (date (+ date (solar-ephemeris-correction
+                        (extract-calendar-year
+                         (calendar-gregorian-from-absolute
+                          (floor
+                           (calendar-absolute-from-astro
+                            date)))))))
+         (U (/ (- date 2451545) 3652500))
+         (longitude
+          (+ 4.9353929
+             (* 62833.1961680 U)
+             (* 0.0000001
+                (apply '+
+                       (mapcar '(lambda (x)
+                                  (* (car x)
+                                     (sin (mod
+                                           (+ (car (cdr x))
+                                              (* (car (cdr (cdr x))) U))
+                                           (* 2 pi)))))
+                               solar-data-list)))))
+         (aberration
+          (* 0.0000001 (- (* 17 (cos (+ 3.10 (* 62830.14 U)))) 973)))
+         (A1 (mod (+ 2.18 (* U (+ -3375.70 (* 0.36 U)))) (* 2 pi)))
+         (A2 (mod (+ 3.51 (* U (+ 125666.39 (* 0.10 U)))) (* 2 pi)))
+         (nutation (* -0.0000001 (+ (* 834 (sin A1)) (* 64 (sin A2))))))
+    (mod (radians-to-degrees (+ longitude aberration nutation)) 360.0)))
 
 (defun solar-ephemeris-correction (year)
   "Ephemeris time minus Universal Time during Gregorian year.
@@ -939,6 +945,33 @@ use when highlighting the day in the calendar."
 		  (format "%s Sabbath candle lighting"
                     (apply 'solar-time-string light)))))))
 
+; from Meeus, 1991, page 167
+(defconst solar-seasons-data
+  '((485 324.96 1934.136)
+    (203 337.23 32964.467)
+    (199 342.08 20.186)
+    (182 27.85 445267.112)
+    (156 73.14 45036.886)
+    (136 171.52 22518.443)
+    (77 222.54 65928.934)
+    (74 296.72 3034.906)
+    (70 243.58 9037.513)
+    (58 119.81 33718.147)
+    (52 297.17 150.678)
+    (50 21.02 2281.226)
+    (45 247.54 29929.562)
+    (44 325.15 31555.956)
+    (29 60.93 4443.417)
+    (18 155.12 67555.328)
+    (17 288.79 4562.452)
+    (16 198.04 62894.029)
+    (14 199.76 31436.921)
+    (12 95.39 14577.848)
+    (12 287.11 31931.756)
+    (12 320.81 34777.259)
+    (9 227.73 1222.114)
+    (8 15.45 16859.074)))
+
 (defun solar-equinoxes/solstices (k year)
   "Date of equinox/solstice K for YEAR.
 K=0, spring equinox; K=1, summer solstice; K=2, fall equinox;
@@ -1017,33 +1050,6 @@ solstice.  These formulas are only to be used between 1000 BC and 3000 AD."
                                    (* -0.00823 z z z)
                                    (* 0.00032 z z z z)))))))
 
-; from Meeus, 1991, page 167
-(defconst solar-seasons-data
-  '((485 324.96 1934.136)
-    (203 337.23 32964.467)
-    (199 342.08 20.186)
-    (182 27.85 445267.112)
-    (156 73.14 45036.886)
-    (136 171.52 22518.443)
-    (77 222.54 65928.934)
-    (74 296.72 3034.906)
-    (70 243.58 9037.513)
-    (58 119.81 33718.147)
-    (52 297.17 150.678)
-    (50 21.02 2281.226)
-    (45 247.54 29929.562)
-    (44 325.15 31555.956)
-    (29 60.93 4443.417)
-    (18 155.12 67555.328)
-    (17 288.79 4562.452)
-    (16 198.04 62894.029)
-    (14 199.76 31436.921)
-    (12 95.39 14577.848)
-    (12 287.11 31931.756)
-    (12 320.81 34777.259)
-    (9 227.73 1222.114)
-    (8 15.45 16859.074)))
-
 ;;;###autoload
 (defun solar-equinoxes-solstices ()
   "*local* date and time of equinoxes and solstices, if visible in the calendar window.
@@ -1093,4 +1099,5 @@ Requires floating point."
 
 (provide 'solar)
 
+;;; arch-tag: bc0ff693-df58-4666-bde4-2a7837ccb8fe
 ;;; solar.el ends here

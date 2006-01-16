@@ -1,7 +1,7 @@
 #include "copyright.h"
 
-/* $Header: /cvs/emacs/oldXMenu/FindPane.c,v 1.1 1999/10/03 19:35:02 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
  * XMenu:	MIT Project Athena, X Window system menu package
@@ -62,3 +62,6 @@ XMenuFindPane(menu, label)
     _XMErrorCode = XME_P_NOT_FOUND;
     return (XM_FAILURE);
 }
+
+/* arch-tag: b6c94285-0d1d-4569-a071-b34b63c67a54
+   (do not change this comment) */

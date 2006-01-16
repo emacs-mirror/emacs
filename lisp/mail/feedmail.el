@@ -3,7 +3,7 @@
 
 ;; This file is part of GNU Emacs.
 
-;; Author: Bill Carpenter <bill@bubblegum.net>, <bill@carpenter.ORG>
+;; Author: Bill Carpenter <bill@carpenter.ORG>
 ;; Version: 8
 ;; Keywords: email, queue, mail, sendmail, message, spray, smtp, draft
 ;; X-URL: <URL:http://www.carpenter.org/feedmail/feedmail.html>
@@ -1372,7 +1372,7 @@ complicated cases."
 	      (if (string-match tracer (buffer-name buffy))
 		  (progn
 		    (insert "SMTP Trace from " (buffer-name buffy) "\n---------------")
-		    (insert-buffer buffy)
+		    (insert-buffer-substring buffy)
 		    (insert "\n\n"))))
 	   (buffer-list))))))
 
@@ -1835,7 +1835,7 @@ the counts."
 	      (setq blobbet (file-name-nondirectory blobby))
 	      (if (string-match "^[0-9][0-9][0-9]-" blobbet)
 		  (let ((water-mark))
-		    (setq water-mark (string-to-int (substring blobbet 0 3)))
+		    (setq water-mark (string-to-number (substring blobbet 0 3)))
 		    (if (> water-mark high-water) (setq high-water water-mark))))
 	      (setq q-cnt (1+ q-cnt)))
 	     (t (setq q-oth (1+ q-oth)))
@@ -1943,7 +1943,7 @@ mapped to mostly alphanumerics for safety."
 	       (file-exists-p a-s-file-name)
 	       (delete-file a-s-file-name))))
     (if feedmail-queue-chatty
-	(progn (message (concat "FQM: Queued in " filename))
+	(progn (message "%s" (concat "FQM: Queued in " filename))
 	       (sit-for feedmail-queue-chatty-sit-for)))
     (if feedmail-queue-chatty
 	(progn
@@ -1989,7 +1989,7 @@ mapped to mostly alphanumerics for safety."
 	  (set-buffer feedmail-prepped-text-buffer) (erase-buffer)
 
 	  ;; jam contents of user-supplied mail buffer into our scratch buffer
-	  (insert-buffer feedmail-raw-text-buffer)
+	  (insert-buffer-substring feedmail-raw-text-buffer)
 
 	  ;; require one newline at the end.
 	  (goto-char (point-max))
@@ -2215,7 +2215,7 @@ feedmail-fiddle-plex-blurb."
 		(erase-buffer)
 		;; not life's most efficient methodology, but spraying isn't
 		;; an every-5-minutes event either
-		(insert-buffer feedmail-prepped-text-buffer)
+		(insert-buffer-substring feedmail-prepped-text-buffer)
 		;; There's a good case to me made that each separate transmission of
 		;; a message in the spray should have a distinct Message-Id:.  There
 		;; is also a less compelling argument in the other direction.  I think
@@ -2670,4 +2670,5 @@ been weeded out."
 
 (provide 'feedmail)
 
+;;; arch-tag: ec27b380-11c0-4dfd-8436-f636cf2bb992
 ;;; feedmail.el ends here

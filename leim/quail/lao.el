@@ -1,7 +1,8 @@
 ;;; lao.el --- Quail package for inputting Lao characters  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 1999, 2004
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, input method, Lao
 
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -42,7 +43,7 @@
 	  (compose-string (quail-lookup-map-and-concat quail-current-key))))
   control-flag)
 
-(defconst lao-key-alist
+(defvar lao-key-alist
   '(("!" . "1")
     ("\"" . "=")
     ("#" . "3")
@@ -146,38 +147,50 @@
     ("\\7" . "(1w(B")
     ("\\8" . "(1x(B")
     ("\\9" . "(1y(B")
-    ))
+    )
+  "Alist of key sequences vs the corresponding Lao string to input.
+This variable is for the input method \"lao\".
+If you change the value of this variable while quail/lao is already loaded,
+you need to re-load it to properly re-initialize related alists.")
 
-(defconst lao-consonant-key-alist nil)
-(defconst lao-semivowel-key-alist nil)
-(defconst lao-vowel-key-alist nil)
-(defconst lao-voweltone-key-alist nil)
-(defconst lao-tone-key-alist nil)
-(defconst lao-other-key-alist nil)
-
-(let ((tail lao-key-alist)
-      elt phonetic-type)
-  (while tail
-    (setq elt (car tail) tail (cdr tail))
-    (if (stringp (cdr elt))
-	(setq phonetic-type (get-char-code-property (aref (cdr elt) 0)
+;; Temporary variable to initialize lao-consonant-key-alist, etc.
+(defconst lao-key-alist-vector
+  (let ((tail lao-key-alist)
+	consonant-key-alist semivowel-key-alist vowel-key-alist 
+	voweltone-key-alist tone-key-alist other-key-alist
+	elt phonetic-type)
+    (while tail
+      (setq elt (car tail) tail (cdr tail))
+      (if (stringp (cdr elt))
+	  (setq phonetic-type (get-char-code-property (aref (cdr elt) 0)
+						      'phonetic-type))
+	(setq phonetic-type (get-char-code-property (aref (aref (cdr elt) 0) 0)
 						    'phonetic-type))
-      (setq phonetic-type (get-char-code-property (aref (aref (cdr elt) 0) 0)
-						  'phonetic-type))
-      (aset (cdr elt) 0 (compose-string (aref (cdr elt) 0))))
-    (cond ((eq phonetic-type 'consonant)
-	   (setq lao-consonant-key-alist (cons elt lao-consonant-key-alist)))
-	  ((memq phonetic-type '(vowel-upper vowel-lower))
-	   (if (stringp (cdr elt))
-	       (setq lao-vowel-key-alist (cons elt lao-vowel-key-alist))
-	     (setq lao-voweltone-key-alist
-		   (cons elt lao-voweltone-key-alist))))
-	  ((eq  phonetic-type 'tone)
-	   (setq lao-tone-key-alist (cons elt lao-tone-key-alist)))
-	  ((eq phonetic-type 'semivowel-lower)
-	   (setq lao-semivowel-key-alist (cons elt lao-semivowel-key-alist)))
-	  (t
-	   (setq lao-other-key-alist (cons elt lao-other-key-alist))))))
+	(aset (cdr elt) 0 (compose-string (aref (cdr elt) 0))))
+      (cond ((eq phonetic-type 'consonant)
+	     (setq consonant-key-alist (cons elt consonant-key-alist)))
+	    ((memq phonetic-type '(vowel-upper vowel-lower))
+	     (if (stringp (cdr elt))
+		 (setq vowel-key-alist (cons elt vowel-key-alist))
+	       (setq voweltone-key-alist (cons elt voweltone-key-alist))))
+	    ((eq  phonetic-type 'tone)
+	     (setq tone-key-alist (cons elt tone-key-alist)))
+	    ((eq phonetic-type 'semivowel-lower)
+	     (setq semivowel-key-alist (cons elt semivowel-key-alist)))
+	    (t
+	     (setq other-key-alist (cons elt other-key-alist)))))
+    (vector consonant-key-alist semivowel-key-alist vowel-key-alist 
+	    voweltone-key-alist tone-key-alist other-key-alist)))
+
+(defconst lao-consonant-key-alist (aref lao-key-alist-vector 0))
+(defconst lao-semivowel-key-alist (aref lao-key-alist-vector 1))
+(defconst lao-vowel-key-alist (aref lao-key-alist-vector 2))
+(defconst lao-voweltone-key-alist (aref lao-key-alist-vector 3))
+(defconst lao-tone-key-alist (aref lao-key-alist-vector 4))
+(defconst lao-other-key-alist (aref lao-key-alist-vector 5))
+
+;; Done with it.
+(makunbound 'lao-key-alist-vector)
 
 (quail-define-package
  "lao" "Lao" "(1E(B" t
@@ -197,4 +210,5 @@
     (v-state (lao-vowel-key-alist . t-state))
     (t-state lao-tone-key-alist))))
 
+;;; arch-tag: 23863a30-a8bf-402c-b7ce-c517a7aa8570
 ;;; lao.el ends here

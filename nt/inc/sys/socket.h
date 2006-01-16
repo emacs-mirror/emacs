@@ -1,4 +1,4 @@
-/* Copyright (C) 1995 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -14,8 +14,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* Workable version of <sys/socket.h> based on winsock.h */
@@ -102,7 +102,7 @@ struct hostent * sys_gethostbyname (const char * name);
 struct servent * sys_getservbyname (const char * name, const char * proto);
 int sys_getpeername (int s, struct sockaddr *addr, int * namelen);
 int sys_shutdown (int socket, int how);
-int sys_setsockopt (int s, int level, int oname, const char * oval, int olen);
+int sys_setsockopt (int s, int level, int oname, const void * oval, int olen);
 int sys_listen (int s, int backlog);
 int sys_getsockname (int s, struct sockaddr * name, int * namelen);
 int sys_accept (int s, struct sockaddr *addr, int *addrlen);
@@ -163,3 +163,6 @@ extern int h_errno;
 #endif /* _SOCKET_H_ */
 
 /* end of socket.h */
+
+/* arch-tag: e3b8b91c-aaa0-4bc4-be57-a85a1dd247b4
+   (do not change this comment) */

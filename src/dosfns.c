@@ -1,7 +1,7 @@
 /* MS-DOS specific Lisp utilities.  Coded by Manabu Higashida, 1991.
    Major changes May-July 1993 Morten Welinder (only 10% original code left)
-   Copyright (C) 1991, 1993, 1996, 1997, 1998, 2001
-   Free Software Foundation, Inc.
+   Copyright (C) 1991, 1993, 1996, 1997, 1998, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,8 +17,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
 
@@ -110,7 +110,7 @@ Return the updated VECTOR.  */)
   offs = (unsigned long) XINT (address);
   CHECK_VECTOR (vector);
   len = XVECTOR (vector)-> size;
-  if (len < 1 || len > 2048 || address < 0 || address > 0xfffff - len)
+  if (len < 1 || len > 2048 || offs < 0 || offs > 0xfffff - len)
     return Qnil;
   buf = alloca (len);
   dosmemget (offs, len, buf);
@@ -135,7 +135,7 @@ DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
   offs = (unsigned long) XINT (address);
   CHECK_VECTOR (vector);
   len = XVECTOR (vector)-> size;
-  if (len < 1 || len > 2048 || address < 0 || address > 0xfffff - len)
+  if (len < 1 || len > 2048 || offs < 0 || offs > 0xfffff - len)
     return Qnil;
   buf = alloca (len);
 
@@ -155,7 +155,7 @@ If the optional argument ALLKEYS is non-nil, the keyboard is mapped for
 all keys; otherwise it is only used when the ALT key is pressed.
 The current keyboard layout is available in dos-keyboard-code.  */)
      (country_code, allkeys)
-     Lisp_Object country_code;
+     Lisp_Object country_code, allkeys;
 {
   CHECK_NUMBER (country_code);
   if (!dos_set_keyboard (XINT (country_code), !NILP (allkeys)))
@@ -651,3 +651,6 @@ If zero, the decimal point key returns the country code specific value.  */);
   dos_decimal_point = 0;
 }
 #endif /* MSDOS */
+
+/* arch-tag: f5ea8847-a014-42c9-83f5-7738ad640b17
+   (do not change this comment) */

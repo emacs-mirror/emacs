@@ -1,6 +1,7 @@
-;;; gnus-ml.el --- mailing list minor mode for Gnus
+;;; gnus-ml.el --- Mailing list minor mode for Gnus
 
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Julien Gilles  <jgilles@free.fr>
 ;; Keywords: news
@@ -19,16 +20,12 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
 ;; implement (small subset of) RFC 2369
-
-;;; Usage:
-
-;; (add-hook 'gnus-summary-mode-hook 'turn-on-gnus-mailing-list-mode)
 
 ;;; Code:
 
@@ -49,12 +46,12 @@
   (setq gnus-mailing-list-mode-map (make-sparse-keymap))
 
   (gnus-define-keys gnus-mailing-list-mode-map
-    "\C-nh" gnus-mailing-list-help
-    "\C-ns" gnus-mailing-list-subscribe
-    "\C-nu" gnus-mailing-list-unsubscribe
-    "\C-np" gnus-mailing-list-post
-    "\C-no" gnus-mailing-list-owner
-    "\C-na" gnus-mailing-list-archive
+    "\C-c\C-nh" gnus-mailing-list-help
+    "\C-c\C-ns" gnus-mailing-list-subscribe
+    "\C-c\C-nu" gnus-mailing-list-unsubscribe
+    "\C-c\C-np" gnus-mailing-list-post
+    "\C-c\C-no" gnus-mailing-list-owner
+    "\C-c\C-na" gnus-mailing-list-archive
     ))
 
 (defun gnus-mailing-list-make-menu-bar ()
@@ -71,8 +68,27 @@
 
 ;;;###autoload
 (defun turn-on-gnus-mailing-list-mode ()
-  (when (gnus-group-get-parameter gnus-newsgroup-name 'to-list)
+  (when (gnus-group-find-parameter gnus-newsgroup-name 'to-list)
     (gnus-mailing-list-mode 1)))
+
+;;;###autoload
+(defun gnus-mailing-list-insinuate (&optional force)
+  "Setup group parameters from List-Post header.
+If FORCE is non-nil, replace the old ones."
+  (interactive "P")
+  (let ((list-post
+	 (with-current-buffer gnus-original-article-buffer
+	   (gnus-fetch-field "list-post"))))
+    (if list-post
+	(if (and (not force)
+		 (gnus-group-get-parameter gnus-newsgroup-name 'to-list))
+	    (gnus-message 1 "to-list is non-nil.")
+	  (if (string-match "<mailto:\\([^>]*\\)>" list-post)
+	      (setq list-post (match-string 1 list-post)))
+	  (gnus-group-add-parameter gnus-newsgroup-name
+				    (cons 'to-list list-post))
+	  (gnus-mailing-list-mode 1))
+      (gnus-message 1 "no list-post in this message."))))
 
 ;;;###autoload
 (defun gnus-mailing-list-mode (&optional arg)
@@ -140,11 +156,15 @@
 (defun gnus-mailing-list-archive ()
   "Browse archive"
   (interactive)
+  (require 'browse-url)
   (let ((list-archive
 	 (with-current-buffer gnus-original-article-buffer
 	   (gnus-fetch-field "list-archive"))))
-    (cond (list-archive (gnus-mailing-list-message list-archive))
-	  (t (gnus-message 1 "no list-owner in this group")))))
+    (cond (list-archive
+	   (if (string-match "<\\(http:[^>]*\\)>" list-archive)
+	       (browse-url (match-string 1 list-archive))
+	     (browse-url list-archive)))
+	  (t (gnus-message 1 "no list-archive in this group")))))
 
 ;;; Utility functions
 
@@ -158,7 +178,7 @@
     (cond
      ((string-match "<mailto:\\([^>]*\\)>" address)
       (let ((args (match-string 1 address)))
-	(cond    				; with param
+	(cond				; with param
 	 ((string-match "\\(.*\\)\\?\\(.*\\)" args)
 	  (setq mailto (match-string 1 args))
 	  (let ((param (match-string 2 args)))
@@ -169,7 +189,7 @@
 	    (if (string-match "to=\\([^&]*\\)" param)
 		(push (match-string 1 param) to))
 	    ))
-	 (t (setq mailto args)))))			; without param
+	 (t (setq mailto args)))))	; without param
 
      ; other case <http://... to be done.
      (t nil))
@@ -179,4 +199,5 @@
 
 (provide 'gnus-ml)
 
+;;; arch-tag: 936c0fe6-acce-4c16-87d0-eded88078896
 ;;; gnus-ml.el ends here

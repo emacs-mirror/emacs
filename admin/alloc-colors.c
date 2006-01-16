@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #include <X11/Xlib.h>
 #include <stdio.h>
@@ -111,3 +111,6 @@ main (int argc, char **argv)
   XCloseDisplay (dpy);
   return 0;
 }
+
+/* arch-tag: f1be90ac-5b70-43c2-835e-5a6432a25145
+   (do not change this comment) */

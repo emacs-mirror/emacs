@@ -21,3 +21,6 @@
 #define LIB_GCC
 
 #endif /* not __ELF__ */
+
+/* arch-tag: 7659632a-a879-4153-bb8b-3765a1463ca1
+   (do not change this comment) */

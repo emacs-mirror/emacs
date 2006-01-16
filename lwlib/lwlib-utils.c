@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -182,3 +182,6 @@ XtSafelyDestroyWidget (widget)
   abort ();
 #endif
 }
+
+/* arch-tag: f21f0a1f-2a4e-44e1-8715-7f234fe2d159
+   (do not change this comment) */

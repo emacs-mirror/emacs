@@ -1,5 +1,6 @@
 #    Make file for building GNU Emacs on the Macintosh.
-#    Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+#    Copyright (C) 1999, 2000, 2002, 2003, 2004,
+#       2005 Free Software Foundation, Inc.
 #
 #    Author: Andrew Choi <akochoi@users.sourceforge.net>
 #
@@ -17,16 +18,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.  */
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.  */
 #
 # Defines the following targets:
-#   Emacs (default) - normal Emacs build.
+#   Emacs (default) - normal Carbon Emacs build.
+#   NonCarbon - non-Carbon Emacs build.
 #   Clean - remove all object and executable files to prepare for a fresh build.
 #   Doc - generate the "DOC" file in ~emacs/etc/.
 #   Make-DocFile - build the make-docfile tool, utility for generating "DOC".
-#   PrepSource - prepare the source files after unstuffing the distribution.
-#   PrepDist - prepare for distribution: generate diff files; move mac-win.el to {Patches}.
 
 Src = ::src:						# emacs's src directory
 Includes = :inc:					# mac includes directory (common for MPW and CW)
@@ -38,16 +38,18 @@ Lisp = ::lisp:						# emacs's lisp directory
 Make-DocFileDir = {Lib-Src}			# directory containing make-docfile tool
 
 Makefile = makefile.MPW			# self reference
+NonCarbonMakeOut = NonCarbon.MakeOut	# temporary file for non-Carbon build script
 
+CarbonOption = -d HAVE_CARBON
 SymOption = # -sym on			# remove hash mark before "-sym on" to enable source debugging
 OptOption = # -opt speed			# alternatively set to -opt off or -opt size
 
 # The -noMapCR options and the two -d's must not be removed.
 
-PPCCOptions = {SymOption} {OptOption} -noMapCR -enum int ¶
+PPCCOptions = {SymOption} {OptOption} -noMapCR -enum int -alloca ¶
 	-typecheck relaxed -w off ¶
 	-includes unix -i {Includes},{Src} ¶
-	-d emacs=1 -d HAVE_CONFIG_H -d MAC_OS -d MAC_OS8
+	-d emacs=1 -d HAVE_CONFIG_H -d MAC_OS -d MAC_OS8 {CarbonOption}
 
 LinkOptions = {SymOption} -d
 
@@ -63,7 +65,6 @@ BLOCKINPUT_H_GROUP = "{Src}blockinput.h" "{Src}atimer.h" "{Src}systime.h" ¶
 EmacsObjects = ¶
 	"{Src}abbrev.c.x" ¶
 	"{Src}alloc.c.x" ¶
-	"{Src}alloca.c.x" ¶
 	"{Src}atimer.c.x" ¶
 	"{Src}buffer.c.x" ¶
 	"{Src}bytecode.c.x" ¶
@@ -92,7 +93,9 @@ EmacsObjects = ¶
 	"{Src}fns.c.x" ¶
 	"{Src}fontset.c.x" ¶
 	"{Src}frame.c.x" ¶
+	"{Src}fringe.c.x" ¶
 	"{Src}getloadavg.c.x" ¶
+	"{Src}image.c.x" ¶
 	"{Src}indent.c.x" ¶
 	"{Src}insdel.c.x" ¶
 	"{Src}intervals.c.x" ¶
@@ -120,7 +123,8 @@ EmacsObjects = ¶
 	"{Src}undo.c.x" ¶
 	"{Src}window.c.x" ¶
 	"{Src}xdisp.c.x" ¶
-	"{Src}xfaces.c.x"
+	"{Src}xfaces.c.x" ¶
+	"{Src}lastfile.c.x"
 
 # The list of object files generated from new source files of the Macintosh port.
 
@@ -128,29 +132,44 @@ MacObjects = ¶
 	"{Src}mac.c.x" ¶
 	"{Src}macfns.c.x" ¶
 	"{Src}macmenu.c.x" ¶
+	"{Src}macselect.c.x" ¶
 	"{Src}macterm.c.x"
+
+StdLibraries = ¶
+	"{SharedLibraries}CarbonLib" ¶
+	"{SharedLibraries}StdCLib" ¶
+	"{PPCLibraries}StdCRuntime.o" ¶
+	"{PPCLibraries}PPCCRuntime.o"
+
+NonCarbonLibs = ¶
+	"{SharedLibraries}InterfaceLib" ¶
+	"{SharedLibraries}StdCLib" ¶
+	"{SharedLibraries}MathLib" ¶
+	"{SharedLibraries}AppleScriptLib" ¶
+	"{SharedLibraries}LocalesLib" ¶
+	"{SharedLibraries}AppearanceLib" ¶
+	"{SharedLibraries}QuickTimeLib" ¶
+	"{PPCLibraries}StdCRuntime.o" ¶
+	"{PPCLibraries}PPCCRuntime.o" ¶
+	"{PPCLibraries}PPCToolLibs.o"
 
 # The next two are the dependency rules for building Emacs.
 
-Emacs ÄÄ {Makefile} {DocTarget}DOC {EmacsObjects} {MacObjects}
+Emacs ÄÄ {Makefile} buildobj.lst {DocTarget}DOC {EmacsObjects} {MacObjects}
 	PPCLink ¶
 		{LinkOptions} ¶
 		{EmacsObjects} {MacObjects} ¶
-		"{SharedLibraries}InterfaceLib" ¶
-		"{SharedLibraries}StdCLib" ¶
-		"{SharedLibraries}MathLib" ¶
-		"{SharedLibraries}AppleScriptLib" ¶
-		"{SharedLibraries}TextEncodingConverter" ¶
-		"{SharedLibraries}AppearanceLib" ¶
-		"{PPCLibraries}StdCRuntime.o" ¶
-		"{PPCLibraries}PPCCRuntime.o" ¶
-		"{PPCLibraries}PPCToolLibs.o" ¶
+		{StdLibraries} ¶
 		-o "{EmacsTarget}"
 
 Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
-	Rez -a "{Source}"Emacs.maclf.r -o "{EmacsTarget}"
-	Rez -a "{Source}"EmacsMPW.maclf.r -o "{EmacsTarget}"
+	Rez {CarbonOption} -a "{Source}"Emacs.maclf.r -o "{EmacsTarget}"
+	Rez {CarbonOption} -a "{Source}"EmacsMPW.maclf.r -o "{EmacsTarget}"
 	SetFile "{EmacsTarget}" -t APPL -c 'EMAx' -a B
+
+NonCarbon Ä
+	Make -f "{Makefile}" -d CarbonOption="" -d StdLibraries='{NonCarbonLibs}' > "{NonCarbonMakeOut}"
+	"{NonCarbonMakeOut}"
 
 # Rez cannot handle files with Unix style end lines at all.  So generate
 # them.  It does not hurt if Emacs.r and EmacsMPW.r already have Mac end
@@ -161,6 +180,9 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 
 "{Source}"EmacsMPW.maclf.r Ä "{Source}"EmacsMPW.r
 	translate ¶0x0a ¶n < "{Source}"EmacsMPW.r > "{Source}"EmacsMPW.maclf.r
+
+buildobj.lst Ä
+	Echo "{EmacsObjects} {MacObjects}" | StreamEdit -e '1,$ Replace -c ° /[Â ]*:([Â: ]*)¨1.c.x/ ¨1".o"' > buildobj.lst
 
 # Here comes a long boring list of rules saying which files depend on which
 # other ones.  I generated them by hand using the "-p" option of the MrC compiler.
@@ -488,15 +510,39 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}frame.h" ¶
 	"{Src}fontset.h" ¶
 	"{Src}termhooks.h" ¶
+	{BLOCKINPUT_H_GROUP} ¶
 	{DISPEXTERN_H_GROUP} ¶
 	{WINDOW_H_GROUP} ¶
 	"{Src}buffer.h" ¶
 	"{Src}commands.h" ¶
 	"{Src}keyboard.h"
 
+{Src}fringe.c.x Ä ¶
+	{CONFIG_H_GROUP} ¶
+	"{Src}lisp.h" ¶
+	"{Src}frame.h" ¶
+	{WINDOW_H_GROUP} ¶
+	"{Src}buffer.h" ¶
+	{BLOCKINPUT_H_GROUP}
+
 {Src}getloadavg.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Includes}sys:types.h"
+
+{Src}image.c.x Ä ¶
+	{CONFIG_H_GROUP} ¶
+	"{Src}lisp.h" ¶
+	"{Src}frame.h" ¶
+	{WINDOW_H_GROUP} ¶
+	{DISPEXTERN_H_GROUP} ¶
+	{BLOCKINPUT_H_GROUP} ¶
+	"{Includes}epaths.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
+		"{Src}frame.h" ¶
+	"{Includes}sys:stat.h" ¶
+	"{Includes}alloca.h" ¶
+	"{Includes}sys:param.h"
 
 {Src}indent.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
@@ -572,6 +618,9 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	{BLOCKINPUT_H_GROUP} ¶
 	"{Src}puresize.h" ¶
 	{INTERVALS_H_GROUP}
+
+{Src}lastfile.c.x Ä ¶
+	{CONFIG_H_GROUP}
 
 {Src}lread.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
@@ -790,10 +839,12 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}indent.h" ¶
 	"{Src}commands.h" ¶
 	"{Src}macros.h" ¶
+	{BLOCKINPUT_H_GROUP} ¶
 	"{Src}disptab.h" ¶
 	"{Src}termhooks.h" ¶
 	{INTERVALS_H_GROUP} ¶
 	"{Src}keyboard.h" ¶
+	"{Src}keymap.h" ¶
 	"{Src}coding.h" ¶
 		"{Src}ccl.h" ¶
 	"{Src}process.h" ¶
@@ -833,6 +884,15 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Includes}sys:types.h" ¶
 	{DISPEXTERN_H_GROUP}
 
+{Src}macselect.c.x Ä ¶
+	{CONFIG_H_GROUP} ¶
+	"{Src}lisp.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
+		"{Src}frame.h" ¶
+	"{Src}keymap.h" ¶
+	{BLOCKINPUT_H_GROUP}
+
 {Src}mac.c Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Includes}utime.h" ¶
@@ -847,7 +907,14 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}sysselect.h" ¶
 	"{Src}systime.h" ¶
 		"{Includes}sys:time.h" ¶
-	"{Includes}utsname.h"
+	"{Includes}utsname.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
+		"{Src}frame.h" ¶
+	{BLOCKINPUT_H_GROUP} ¶
+	"{Src}charset.h" ¶
+	"{Src}coding.h" ¶
+		"{Src}ccl.h"
 
 {Src}macfns.c Ä ¶
 	{CONFIG_H_GROUP} ¶
@@ -919,6 +986,8 @@ Clean Ä
 	Delete -i stdout stderr
 	Delete -i {Make-DocFile-Objects} {Make-DocFileDir}make-docfile
 	Delete -i "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
+	Delete -i "{NonCarbonMakeOut}"
+	Delete -i buildobj.lst
 
 DistClean Ä Clean
 	Delete -i "Emacs CW"Å
@@ -929,100 +998,27 @@ DistClean Ä Clean
 # Variables and rules for target "Doc" #
 #--------------------------------------#
 
-EmacsSource = ¶
-	"{Src}abbrev.c" ¶
-	"{Src}alloc.c" ¶
-	"{Src}alloca.c" ¶
-	"{Src}atimer.c" ¶
-	"{Src}buffer.c" ¶
-	"{Src}bytecode.c" ¶
-	"{Src}callint.c" ¶
-	"{Src}callproc.c" ¶
-	"{Src}casefiddle.c" ¶
-	"{Src}casetab.c" ¶
-	"{Src}category.c" ¶
-	"{Src}ccl.c" ¶
-	"{Src}charset.c" ¶
-	"{Src}cm.c" ¶
-	"{Src}cmds.c" ¶
-	"{Src}coding.c" ¶
-	"{Src}composite.c" ¶
-	"{Src}data.c" ¶
-	"{Src}dired.c" ¶
-	"{Src}dispnew.c" ¶
-	"{Src}doc.c" ¶
-	"{Src}doprnt.c" ¶
-	"{Src}editfns.c" ¶
-	"{Src}emacs.c" ¶
-	"{Src}eval.c" ¶
-	"{Src}fileio.c" ¶
-	"{Src}filemode.c" ¶
-	"{Src}floatfns.c" ¶
-	"{Src}fns.c" ¶
-	"{Src}fontset.c" ¶
-	"{Src}frame.c" ¶
-	"{Src}getloadavg.c" ¶
-	"{Src}indent.c" ¶
-	"{Src}insdel.c" ¶
-	"{Src}intervals.c" ¶
-	"{Src}keyboard.c" ¶
-	"{Src}keymap.c" ¶
-	"{Src}lread.c" ¶
-	"{Src}macros.c" ¶
-	"{Src}marker.c" ¶
-	"{Src}minibuf.c" ¶
-	"{Src}mktime.c" ¶
-	"{Src}print.c" ¶
-	"{Src}process.c" ¶
-	"{Src}regex.c" ¶
-	"{Src}region-cache.c" ¶
-	"{Src}scroll.c" ¶
-	"{Src}search.c" ¶
-	"{Src}strftime.c" ¶
-	"{Src}syntax.c" ¶
-	"{Src}sysdep.c" ¶
-	"{Src}term.c" ¶
-	"{Src}termcap.c" ¶
-	"{Src}textprop.c" ¶
-	"{Src}tparam.c" ¶
-	"{Src}undo.c" ¶
-	"{Src}window.c" ¶
-	"{Src}xdisp.c" ¶
-	"{Src}xfaces.c" ¶
-	"{Src}xmenu.c"
+SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o ¶
+  xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o ¶
+  mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o ¶
+  w32.o w32bdf.o w32console.o w32fns.o w32heap.o w32inevt.o ¶
+  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o
 
-MacSource = ¶
-	"{Src}mac.c" ¶
-	"{Src}macfns.c" ¶
-	"{Src}macterm.c"
-
-
-LispSource = ¶
-	{Lisp}menu-bar.elc ¶
-	{Lisp}mouse.elc ¶
-	{Lisp}select.elc ¶
-	{Lisp}scroll-bar.elc ¶
-	{Lisp}vmsproc.elc ¶
-	{Lisp}vms-patch.elc ¶
-	{Lisp}ls-lisp.elc ¶
-	{Lisp}dos-fns.elc ¶
-	{Lisp}w32-fns.elc ¶
-	{Lisp}dos-w32.elc ¶
-	{Lisp}disp-table.elc ¶
-	{Lisp}dos-vars.elc ¶
-	{Lisp}international:ccl.elc ¶
-	{Lisp}international:codepage.elc ¶
+shortlisp = ¶
 	{Lisp}abbrev.elc ¶
 	{Lisp}buff-menu.elc ¶
-	{Lisp}byte-run.elc ¶
-	{Lisp}cus-start.el ¶
+	{Lisp}button.elc ¶
+	{Lisp}emacs-lisp:byte-run.elc ¶
+	{Lisp}cus-face.elc ¶
+	{Lisp}cus-start.elc ¶
 	{Lisp}custom.elc ¶
+	{Lisp}emacs-lisp:backquote.elc ¶
 	{Lisp}emacs-lisp:lisp-mode.elc ¶
 	{Lisp}emacs-lisp:lisp.elc ¶
 	{Lisp}facemenu.elc ¶
 	{Lisp}faces.elc ¶
 	{Lisp}files.elc ¶
-	{Lisp}float-sup.elc ¶
+	{Lisp}emacs-lisp:float-sup.elc ¶
 	{Lisp}format.elc ¶
 	{Lisp}frame.elc ¶
 	{Lisp}help.elc ¶
@@ -1031,39 +1027,33 @@ LispSource = ¶
 	{Lisp}loadup.el ¶
 	{Lisp}loaddefs.el ¶
 	{Lisp}bindings.elc ¶
-	{Lisp}map-ynp.elc ¶
+	{Lisp}emacs-lisp:map-ynp.elc ¶
+	{Lisp}env.elc ¶
 	{Lisp}international:mule.elc ¶
 	{Lisp}international:mule-conf.el ¶
 	{Lisp}international:mule-cmds.elc ¶
 	{Lisp}international:characters.elc ¶
+	{Lisp}international:ucs-tables.elc ¶
+	{Lisp}international:utf-8.elc ¶
+	{Lisp}international:utf-16.elc ¶
+	{Lisp}international:latin-1.el ¶
+	{Lisp}international:latin-2.el ¶
+	{Lisp}international:latin-3.el ¶
+	{Lisp}international:latin-4.el ¶
+	{Lisp}international:latin-5.el ¶
+	{Lisp}international:latin-8.el ¶
+	{Lisp}international:latin-9.el ¶
 	{Lisp}case-table.elc ¶
 	{Lisp}language:chinese.elc ¶
 	{Lisp}language:cyrillic.elc ¶
 	{Lisp}language:indian.elc ¶
+	{Lisp}language:devanagari.el ¶
+	{Lisp}language:kannada.el ¶
+	{Lisp}language:malayalam.el ¶
+	{Lisp}language:tamil.el ¶
+	{Lisp}language:english.el ¶
 	{Lisp}language:ethiopic.elc ¶
 	{Lisp}language:european.elc ¶
-	{Lisp}language:tibetan.elc ¶
-	{Lisp}language:vietnamese.elc ¶
-	{Lisp}paths.el ¶
-	{Lisp}register.elc ¶
-	{Lisp}replace.elc ¶
-	{Lisp}simple.elc ¶
-	{Lisp}startup.elc ¶
-	{Lisp}subr.elc ¶
-	{Lisp}term:tty-colors.elc ¶
-	{Lisp}textmodes:fill.elc ¶
-	{Lisp}textmodes:page.elc ¶
-	{Lisp}textmodes:paragraphs.elc ¶
-	{Lisp}textmodes:text-mode.elc ¶
-	{Lisp}vc-hooks.elc ¶
-	{Lisp}ediff-hook.elc ¶
-	{Lisp}widget.elc ¶
-	{Lisp}window.elc ¶
-	{Lisp}version.el
-
-LispSourceDontCompile = ¶
-	{Lisp}language:devanagari.el ¶
-	{Lisp}language:english.el ¶
 	{Lisp}language:czech.el ¶
 	{Lisp}language:slovak.el ¶
 	{Lisp}language:romanian.el ¶
@@ -1073,15 +1063,50 @@ LispSourceDontCompile = ¶
 	{Lisp}language:korean.el ¶
 	{Lisp}language:lao.el ¶
 	{Lisp}language:thai.el ¶
-	{Lisp}language:misc-lang.el
+	{Lisp}language:tibetan.elc ¶
+	{Lisp}language:vietnamese.elc ¶
+	{Lisp}language:misc-lang.el ¶
+	{Lisp}language:utf-8-lang.el ¶
+	{Lisp}language:georgian.el ¶
+	{Lisp}menu-bar.elc ¶
+	{Lisp}paths.el ¶
+	{Lisp}register.elc ¶
+	{Lisp}replace.elc ¶
+	{Lisp}simple.elc ¶
+	{Lisp}startup.elc ¶
+	{Lisp}subr.elc ¶
+	{Lisp}term:tty-colors.elc ¶
+	{Lisp}font-core.elc ¶
+	{Lisp}emacs-lisp:syntax.elc ¶
+	{Lisp}font-lock.elc ¶
+	{Lisp}jit-lock.elc ¶
+	{Lisp}textmodes:fill.elc ¶
+	{Lisp}textmodes:page.elc ¶
+	{Lisp}textmodes:paragraphs.elc ¶
+	{Lisp}textmodes:text-mode.elc ¶
+	{Lisp}emacs-lisp:timer.elc ¶
+	{Lisp}vc-hooks.elc ¶
+	{Lisp}jka-cmpr-hook.elc ¶
+	{Lisp}ediff-hook.elc ¶
+	{Lisp}widget.elc ¶
+	{Lisp}window.elc ¶
+	{Lisp}version.el
+
+SOME_MACHINE_LISP = {Lisp}mouse.elc ¶
+  {Lisp}select.elc {Lisp}scroll-bar.elc ¶
+  {Lisp}vmsproc.elc {Lisp}vms-patch.elc ¶
+  {Lisp}ls-lisp.elc {Lisp}dos-fns.elc ¶
+  {Lisp}w32-fns.elc {Lisp}dos-w32.elc ¶
+  {Lisp}disp-table.elc {Lisp}dos-vars.elc ¶
+  {Lisp}tooltip.elc ¶
+  {Lisp}international:ccl.elc ¶
+  {Lisp}international:codepage.elc
 
 Doc Ä {DocTarget}DOC
 
-{DocTarget}DOC Ä {Makefile} {EmacsSource} {MacSource} {LispSource} {LispSourceDontCompile} {Make-DocFileDir}Make-DocFile
-	{Make-DocFileDir}make-docfile {EmacsSource} > {DocTarget}DOC
-	{Make-DocFileDir}make-docfile {MacSource} >> {DocTarget}DOC
-	{Make-DocFileDir}make-docfile {LispSource} >> {DocTarget}DOC
-	{Make-DocFileDir}make-docfile {LispSourceDontCompile} >> {DocTarget}DOC
+{DocTarget}DOC Ä {Makefile} {shortlisp} {SOME_MACHINE_LISP} {Make-DocFileDir}Make-DocFile buildobj.lst
+	{Make-DocFileDir}make-docfile -d {Src} {SOME_MACHINE_OBJECTS} `Catenate buildobj.lst` > {DocTarget}DOC
+	{Make-DocFileDir}make-docfile -a {DocTarget}DOC -d {Src} {SOME_MACHINE_LISP} {shortlisp}
 
 
 #-----------------------------------------------#
@@ -1092,7 +1117,8 @@ Make-DocFile-Includes		= -i :inc:
 Make-DocFile-Sym			=
 
 Make-DocFile-PPCCOptions	= -typecheck relaxed -w off -noMapCR ¶
-								{Make-DocFile-Includes} {Make-DocFile-Sym}
+				  -d MAC_OS -d MAC_OS8 ¶
+				  {Make-DocFile-Includes} {Make-DocFile-Sym}
 
 Make-DocFile-Objects = ¶
 		"{Lib-Src}make-docfile.c.x" ¶
@@ -1120,3 +1146,4 @@ Make-DocFile Ä {Make-DocFileDir}Make-DocFile
 "{Source}chdir.c.x" Ä {Makefile} "{Source}chdir.c"
 	{PPCC} "{Source}chdir.c" -o "{Source}chdir.c.x" {Make-DocFile-PPCCOptions}
 
+# arch-tag: c9d9bc1a-142f-41da-b75e-79e0c44ffbb4

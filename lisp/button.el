@@ -1,6 +1,6 @@
 ;;; button.el --- clickable buttons
 ;;
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: extensions
@@ -19,8 +19,8 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;
@@ -50,11 +50,12 @@
 
 ;; Globals
 
+;; Use color for the MS-DOS port because it doesn't support underline.
 (defface button '((((type pc) (class color))
 		   (:foreground "lightblue"))
 		  (t :underline t))
   "Default face used for buttons."
-  :group 'faces)
+  :group 'basic-faces)
 
 ;;;###autoload
 (defvar button-map
@@ -68,6 +69,7 @@
 (defvar button-buffer-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?\t] 'forward-button)
+    (define-key map "\e\t" 'backward-button)
     (define-key map [backtab] 'backward-button)
     map)
   "Keymap useful for buffers containing buttons.
@@ -78,6 +80,7 @@ Mode-specific keymaps may want to use this as their parent keymap.")
 (put 'default-button 'mouse-face 'highlight)
 (put 'default-button 'keymap button-map)
 (put 'default-button 'type 'button)
+;; action may be either a function to call, or a marker to go to
 (put 'default-button 'action 'ignore)
 (put 'default-button 'help-echo "mouse-2, RET: Push this button")
 ;; Make overlay buttons go away if their underlying text is deleted.
@@ -217,9 +220,14 @@ changes to a supertype are not reflected in its subtypes)."
 If USE-MOUSE-ACTION is non-nil, invoke the button's mouse-action
 instead of its normal action; if the button has no mouse-action,
 the normal action is used instead."
-  (funcall (or (and use-mouse-action (button-get button 'mouse-action))
-	       (button-get button 'action))
-	   button))
+  (let ((action (or (and use-mouse-action (button-get button 'mouse-action))
+		    (button-get button 'action))))
+    (if (markerp action)
+	(save-selected-window
+	  (select-window (display-buffer (marker-buffer action)))
+	  (goto-char action)
+	  (recenter 0))
+      (funcall action button))))
 
 (defun button-label (button)
   "Return BUTTON's text label."
@@ -291,24 +299,23 @@ large numbers of buttons can also be somewhat faster using
 `make-text-button'.
 
 Also see `insert-text-button'."
-  (let (prop val)
-    (while properties
-      (setq prop (pop properties))
-      (setq val (pop properties))
-      ;; Note that all the following code is basically equivalent to
-      ;; `button-put', but we can do it much more efficiently since we
-      ;; already have BEG and END.
-      (cond ((memq prop '(type :type))
-	     ;; We translate a `type' property into a `category'
-	     ;; property, since that's what's actually used by
-	     ;; text-properties for inheritance.
-	     (setq prop 'category)
-	     (setq val (button-category-symbol val)))
-	    ((eq prop 'category)
-	     ;; Disallow setting the `category' property directly.
-	     (error "Button `category' property may not be set directly")))
-      ;; Add the property.
-      (put-text-property beg end prop val)))
+  (let ((type-entry
+	 (or (plist-member properties 'type)
+	     (plist-member properties :type))))
+    ;; Disallow setting the `category' property directly.
+    (when (plist-get properties 'category)
+      (error "Button `category' property may not be set directly"))
+    (if (null type-entry)
+	;; The user didn't specify a `type' property, use the default.
+	(setq properties (cons 'category (cons 'default-button properties)))
+      ;; The user did specify a `type' property.  Translate it into a
+      ;; `category' property, which is what's actually used by
+      ;; text-properties for inheritance.
+      (setcar type-entry 'category)
+      (setcar (cdr type-entry)
+	      (button-category-symbol (car (cdr type-entry))))))
+  ;; Now add all the text properties at once
+  (add-text-properties beg end properties)
   ;; Return something that can be used to get at the button.
   beg)
 
@@ -373,10 +380,11 @@ instead of starting at the next button."
 
 (defun push-button (&optional pos use-mouse-action)
   "Perform the action specified by a button at location POS.
-POS may be either a buffer position or a mouse-event.
-If USE-MOUSE-ACTION is non-nil, invoke the button's mouse-action
+POS may be either a buffer position or a mouse-event.  If
+USE-MOUSE-ACTION is non-nil, invoke the button's mouse-action
 instead of its normal action; if the button has no mouse-action,
-the normal action is used instead.
+the normal action is used instead.  The action may be either a
+function to call or a marker to display.
 POS defaults to point, except when `push-button' is invoked
 interactively as the result of a mouse-event, in which case, the
 mouse event is used.
@@ -444,4 +452,5 @@ Returns the button found."
 
 (provide 'button)
 
+;;; arch-tag: 5f2c7627-413b-4097-b282-630f89d9c5e9
 ;;; button.el ends here

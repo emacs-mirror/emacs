@@ -1,5 +1,5 @@
 /* Functions to manipulate keymaps.
-   Copyright (C) 2001  Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #ifndef KEYMAP_H
 #define KEYMAP_H
@@ -30,22 +30,26 @@ EXFUN (Fdefine_key, 3);
 EXFUN (Flookup_key, 3);
 EXFUN (Fcommand_remapping, 1);
 EXFUN (Fkey_binding, 3);
-EXFUN (Fkey_description, 1);
+EXFUN (Fkey_description, 2);
 EXFUN (Fsingle_key_description, 2);
 EXFUN (Fwhere_is_internal, 5);
+EXFUN (Fcurrent_active_maps, 1);
 extern Lisp_Object access_keymap P_ ((Lisp_Object, Lisp_Object, int, int, int));
 extern Lisp_Object get_keyelt P_ ((Lisp_Object, int));
 extern Lisp_Object get_keymap P_ ((Lisp_Object, int, int));
-extern void describe_vector P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-				 void (*) (Lisp_Object, Lisp_Object), int,
-				 Lisp_Object, Lisp_Object, int *, int));
 extern void describe_map_tree P_ ((Lisp_Object, int, Lisp_Object, Lisp_Object,
-				   char *, int, int, int));
+				   char *, int, int, int, int));
 extern int current_minor_maps P_ ((Lisp_Object **, Lisp_Object **));
 extern void initial_define_key P_ ((Lisp_Object, int, char *));
 extern void initial_define_lispy_key P_ ((Lisp_Object, char *, char *));
 extern void syms_of_keymap P_ ((void));
 extern void keys_of_keymap P_ ((void));
 
+typedef void (*map_keymap_function_t)
+     P_ ((Lisp_Object, Lisp_Object, Lisp_Object, void*));
+extern void map_keymap P_ ((Lisp_Object map, map_keymap_function_t fun, Lisp_Object largs, void* cargs, int autoload));
 
 #endif
+
+/* arch-tag: 7400d5a1-ef0b-43d0-b366-f4d678bf3ba2
+   (do not change this comment) */

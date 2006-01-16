@@ -1,5 +1,6 @@
 /* m- file for NEC EWS4800 RISC series.
-   Copyright (C) 1998, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #undef LIB_STANDARD
 #undef C_DEBUG_SWITCH
@@ -36,3 +37,6 @@ Boston, MA 02111-1307, USA.  */
 #undef C_DEBUG_SWITCH
 #define C_DEBUG_SWITCH -O  -KOlimit=3000 -ZXNd=5000
 #endif  /* !__GNUC__ */
+
+/* arch-tag: 27f72f54-45cd-40a3-b182-345127f04955
+   (do not change this comment) */

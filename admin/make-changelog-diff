@@ -24,3 +24,5 @@ cvs -q diff -b -r $1 -r $2 $(find -name ChangeLog|sort) |
                x
                s/^\n//
 	       p"
+
+# arch-tag: 7604a259-40b4-4f97-86b2-496a9c546f0a

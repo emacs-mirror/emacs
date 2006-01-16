@@ -1,10 +1,11 @@
 ;;; octave-mod.el --- editing Octave source files under Emacs
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
-;; Author: Kurt Hornik <Kurt.Hornik@ci.tuwien.ac.at>
+;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;; Author: John Eaton <jwe@bevo.che.wisc.edu>
-;; Maintainer: Kurt Hornik <Kurt.Hornik@ci.tuwien.ac.at>
+;; Maintainer: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -44,6 +45,7 @@
 
 (defgroup octave nil
   "Major mode for editing Octave source files."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 (defvar inferior-octave-output-list nil)
@@ -51,7 +53,7 @@
 (defvar inferior-octave-receive-in-progress nil)
 
 (defconst octave-maintainer-address
-  "Kurt Hornik <Kurt.Hornik@ci.tuwien.ac.at>, bug-gnu-emacs@gnu.org"
+  "Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>, bug-gnu-emacs@gnu.org"
   "Current maintainer of the Emacs Octave package.")
 
 (defvar octave-abbrev-table nil
@@ -94,7 +96,7 @@ All Octave abbrevs start with a grave accent (`).")
 (defvar octave-comment-char ?#
   "Character to start an Octave comment.")
 (defvar octave-comment-start
-  (concat (make-string 1 octave-comment-char) " ")
+  (string octave-comment-char ?\ )
   "String to insert to start a new Octave in-line comment.")
 (defvar octave-comment-start-skip "\\s<+\\s-*"
   "Regexp to match the start of an Octave comment up to its body.")
@@ -287,10 +289,7 @@ parenthetical grouping.")
 	["Lookup Octave Index"		octave-help t])
   "Menu for Octave mode.")
 
-(defvar octave-mode-syntax-table nil
-  "Syntax table in use in octave-mode buffers.")
-(if octave-mode-syntax-table
-    ()
+(defvar octave-mode-syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?\r " "  table)
     (modify-syntax-entry ?+ "."   table)
@@ -309,10 +308,11 @@ parenthetical grouping.")
     (modify-syntax-entry ?\" "\"" table)
     (modify-syntax-entry ?. "w"   table)
     (modify-syntax-entry ?_ "w"   table)
-    (modify-syntax-entry ?\% "."  table)
+    (modify-syntax-entry ?\% "<"  table)
     (modify-syntax-entry ?\# "<"  table)
     (modify-syntax-entry ?\n ">"  table)
-    (setq octave-mode-syntax-table table)))
+    table)
+  "Syntax table in use in `octave-mode' buffers.")
 
 (defcustom octave-auto-indent nil
   "*Non-nil means indent line after a semicolon or space in Octave mode."
@@ -557,7 +557,7 @@ including a reproducible test case and send the message."
 
   (octave-add-octave-menu)
   (octave-initialize-completions)
-  (run-hooks 'octave-mode-hook))
+  (run-mode-hooks 'octave-mode-hook))
 
 ;;; Miscellaneous useful functions
 (defun octave-describe-major-mode ()
@@ -565,33 +565,21 @@ including a reproducible test case and send the message."
   (interactive)
   (describe-function major-mode))
 
-(defun octave-point (position)
-  "Returns the value of point at certain positions."
-  (save-excursion
-    (cond
-     ((eq position 'bol)  (beginning-of-line))
-     ((eq position 'eol)  (end-of-line))
-     ((eq position 'boi)  (back-to-indentation))
-     ((eq position 'bonl) (forward-line 1))
-     ((eq position 'bopl) (forward-line -1))
-     (t (error "unknown buffer position requested: %s" position)))
-    (point)))
-
 (defsubst octave-in-comment-p ()
   "Returns t if point is inside an Octave comment, nil otherwise."
   (interactive)
   (save-excursion
-    (nth 4 (parse-partial-sexp (octave-point 'bol) (point)))))
+    (nth 4 (parse-partial-sexp (line-beginning-position) (point)))))
 
 (defsubst octave-in-string-p ()
   "Returns t if point is inside an Octave string, nil otherwise."
   (interactive)
   (save-excursion
-    (nth 3 (parse-partial-sexp (octave-point 'bol) (point)))))
+    (nth 3 (parse-partial-sexp (line-beginning-position) (point)))))
 
 (defsubst octave-not-in-string-or-comment-p ()
   "Returns t iff point is not inside an Octave string or comment."
-  (let ((pps (parse-partial-sexp (octave-point 'bol) (point))))
+  (let ((pps (parse-partial-sexp (line-beginning-position) (point))))
     (not (or (nth 3 pps) (nth 4 pps)))))
 
 (defun octave-in-block-p ()
@@ -682,7 +670,7 @@ level."
 	      (back-to-indentation)
 	      (setq icol (current-column))
 	      (let ((bot (point))
-		    (eol (octave-point 'eol)))
+		    (eol (line-end-position)))
 		(while (< (point) eol)
 		  (if (octave-not-in-string-or-comment-p)
 		      (cond
@@ -1017,7 +1005,7 @@ Signal an error if the keywords are incompatible."
 		(buffer-substring-no-properties
 		 (match-beginning 0) pos)
 		pos (+ pos 1)
-		eol (octave-point 'eol)
+		eol (line-end-position)
 		bb-arg
 		(save-excursion
 		  (save-restriction
@@ -1123,7 +1111,7 @@ otherwise."
 		  (if (save-excursion
 			(skip-syntax-backward " <")
 			(bolp))
-		      (re-search-forward "[ \t]" (octave-point 'eol)
+		      (re-search-forward "[ \t]" (line-end-position)
 					 'move))
 		  ;; If we're not in a comment line and just ahead the
 		  ;; continuation string, don't break here.
@@ -1265,7 +1253,7 @@ variables."
 	     ;; Taken from comint.el
 	     (message "Making completion list...")
 	     (with-output-to-temp-buffer "*Completions*"
-	       (display-completion-list list))
+	       (display-completion-list list string))
 	     (message "Hit space to flush")
 	     (let (key first)
 	       (if (save-excursion
@@ -1323,7 +1311,8 @@ Maybe expand abbrevs and blink matching block open keywords.
 Reindent the line of `octave-auto-indent' is non-nil."
   (interactive)
   (setq last-command-char ? )
-  (if (not (octave-not-in-string-or-comment-p))
+  (if (and octave-auto-indent
+	   (not (octave-not-in-string-or-comment-p)))
       (progn
 	(indent-according-to-mode)
 	(self-insert-command 1))
@@ -1535,4 +1524,5 @@ code line."
 
 (provide 'octave-mod)
 
+;;; arch-tag: 05f1ce09-be87-4c00-803e-4919ffa26c23
 ;;; octave-mod.el ends here

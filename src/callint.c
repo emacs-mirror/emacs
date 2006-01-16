@@ -1,6 +1,6 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985, 86, 93, 94, 95, 1997, 2000, 2002
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1997, 2000, 2002, 2003,
+                 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #include <config.h>
@@ -41,6 +41,7 @@ Lisp_Object Qcall_interactively;
 Lisp_Object Vcommand_history;
 
 extern Lisp_Object Vhistory_length;
+extern Lisp_Object Vthis_original_command, real_this_command;
 
 Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
 Lisp_Object Qenable_recursive_minibuffers;
@@ -51,7 +52,7 @@ Lisp_Object Vmark_even_if_inactive;
 
 Lisp_Object Vmouse_leave_buffer_hook, Qmouse_leave_buffer_hook;
 
-Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qprogn;
+Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qprogn, Qif, Qwhen;
 static Lisp_Object preserved_fns;
 
 /* Marker used within call-interactively to refer to point.  */
@@ -97,6 +98,7 @@ e -- Parametrized event (i.e., one that's a list) that invoked this command.
      This skips events that are integers or symbols.
 f -- Existing file name.
 F -- Possibly nonexistent file name.
+G -- Possibly nonexistent file name, defaulting to just directory name.
 i -- Ignored, i.e. always nil.  Does not do I/O.
 k -- Key sequence (downcase the last event if needed to get a definition).
 K -- Key sequence to be redefined (do not downcase the last event).
@@ -109,6 +111,7 @@ P -- Prefix arg in raw form.  Does not do I/O.
 r -- Region: point and mark as 2 numeric args, smallest first.  Does no I/O.
 s -- Any string.  Does not inherit the current input method.
 S -- Any symbol.
+U -- Mouse up event discarded by a previous k or K argument.
 v -- Variable name: symbol that is user-variable-p.
 x -- Lisp expression read but not evaluated.
 X -- Lisp expression read and evaluated.
@@ -174,6 +177,74 @@ check_mark (for_region)
     Fsignal (Qmark_inactive, Qnil);
 }
 
+/* If the list of args INPUT was produced with an explicit call to
+   `list', look for elements that were computed with
+   (region-beginning) or (region-end), and put those expressions into
+   VALUES instead of the present values.
+
+   This function doesn't return a value because it modifies elements
+   of VALUES to do its job.  */
+
+static void
+fix_command (input, values)
+     Lisp_Object input, values;
+{
+  if (CONSP (input))
+    {
+      Lisp_Object car;
+
+      car = XCAR (input);
+      /* Skip through certain special forms.  */
+      while (EQ (car, Qlet) || EQ (car, Qletx)
+	     || EQ (car, Qsave_excursion)
+	     || EQ (car, Qprogn))
+	{
+	  while (CONSP (XCDR (input)))
+	    input = XCDR (input);
+	  input = XCAR (input);
+	  if (!CONSP (input))
+	    break;
+	  car = XCAR (input);
+	}
+      if (EQ (car, Qlist))
+	{
+	  Lisp_Object intail, valtail;
+	  for (intail = Fcdr (input), valtail = values;
+	       CONSP (valtail);
+	       intail = Fcdr (intail), valtail = XCDR (valtail))
+	    {
+	      Lisp_Object elt;
+	      elt = Fcar (intail);
+	      if (CONSP (elt))
+		{
+		  Lisp_Object presflag, carelt;
+		  carelt = Fcar (elt);
+		  /* If it is (if X Y), look at Y.  */
+		  if (EQ (carelt, Qif)
+		      && EQ (Fnthcdr (make_number (3), elt), Qnil))
+		    elt = Fnth (make_number (2), elt);
+		  /* If it is (when ... Y), look at Y.  */
+		  else if (EQ (carelt, Qwhen))
+		    {
+		      while (CONSP (XCDR (elt)))
+			elt = XCDR (elt);
+		      elt = Fcar (elt);
+		    }
+
+		  /* If the function call we're looking at
+		     is a special preserved one, copy the
+		     whole expression for this argument.  */
+		  if (CONSP (elt))
+		    {
+		      presflag = Fmemq (Fcar (elt), preserved_fns);
+		      if (!NILP (presflag))
+			Fsetcar (valtail, Fcar (intail));
+		    }
+		}
+	    }
+	}
+    }
+}
 
 DEFUN ("call-interactively", Fcall_interactively, Scall_interactively, 1, 3, 0,
        doc: /* Call FUNCTION, reading args according to its interactive calling specs.
@@ -187,17 +258,18 @@ Optional second arg RECORD-FLAG non-nil
 means unconditionally put this command in the command-history.
 Otherwise, this is done only if an arg is read using the minibuffer.
 Optional third arg KEYS, if given, specifies the sequence of events to
-supply if the command inquires which events were used to invoke it.  */)
+supply if the command inquires which events were used to invoke it.
+If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
      (function, record_flag, keys)
      Lisp_Object function, record_flag, keys;
 {
   Lisp_Object *args, *visargs;
   unsigned char **argstrings;
   Lisp_Object fun;
-  Lisp_Object funcar;
   Lisp_Object specs;
   Lisp_Object filter_specs;
   Lisp_Object teml;
+  Lisp_Object up_event;
   Lisp_Object enable;
   int speccount = SPECPDL_INDEX ();
 
@@ -219,9 +291,17 @@ supply if the command inquires which events were used to invoke it.  */)
   char prompt1[100];
   char *tem1;
   int arg_from_tty = 0;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   int key_count;
   int record_then_fail = 0;
+
+  Lisp_Object save_this_command, save_last_command;
+  Lisp_Object save_this_original_command, save_real_this_command;
+
+  save_this_command = Vthis_command;
+  save_this_original_command = Vthis_original_command;
+  save_real_this_command = real_this_command;
+  save_last_command = current_kboard->Vlast_command;
 
   if (NILP (keys))
     keys = this_command_keys, key_count = this_command_key_count;
@@ -250,6 +330,9 @@ supply if the command inquires which events were used to invoke it.  */)
      The feature is not fully implemented.  */
   filter_specs = Qnil;
 
+  /* If k or K discard an up-event, save it here so it can be retrieved with U */
+  up_event = Qnil;
+
   /* Decode the kind of function.  Either handle it and return,
      or go to `lose' if not interactive, or go to `retry'
      to specify a different function, or set either STRING or SPECS.  */
@@ -270,25 +353,17 @@ supply if the command inquires which events were used to invoke it.  */)
 	goto lose;
       specs = XVECTOR (fun)->contents[COMPILED_INTERACTIVE];
     }
-  else if (!CONSP (fun))
-    goto lose;
-  else if (funcar = XCAR (fun), EQ (funcar, Qautoload))
-    {
-      GCPRO2 (function, prefix_arg);
-      do_autoload (fun, function);
-      UNGCPRO;
-      goto retry;
-    }
-  else if (EQ (funcar, Qlambda))
-    {
-      specs = Fassq (Qinteractive, Fcdr (XCDR (fun)));
-      if (NILP (specs))
-	goto lose;
-      filter_specs = Fnth (make_number (1), specs);
-      specs = Fcar (Fcdr (specs));
-    }
   else
-    goto lose;
+    {
+      Lisp_Object form;
+      GCPRO2 (function, prefix_arg);
+      form = Finteractive_form (function);
+      UNGCPRO;
+      if (CONSP (form))
+	specs = filter_specs = Fcar (XCDR (form));
+      else
+	goto lose;
+    }
 
   /* If either SPECS or STRING is set to a string, use it.  */
   if (STRINGP (specs))
@@ -311,48 +386,11 @@ supply if the command inquires which events were used to invoke it.  */)
       if (i != num_input_events || !NILP (record_flag))
 	{
 	  /* We should record this command on the command history.  */
-	  Lisp_Object values, car;
+	  Lisp_Object values;
 	  /* Make a copy of the list of values, for the command history,
 	     and turn them into things we can eval.  */
 	  values = quotify_args (Fcopy_sequence (specs));
-	  /* If the list of args was produced with an explicit call to `list',
-	     look for elements that were computed with (region-beginning)
-	     or (region-end), and put those expressions into VALUES
-	     instead of the present values.  */
-	  if (CONSP (input))
-	    {
-	      car = XCAR (input);
-	      /* Skip through certain special forms.  */
-	      while (EQ (car, Qlet) || EQ (car, Qletx)
-		     || EQ (car, Qsave_excursion)
-		     || EQ (car, Qprogn))
-		{
-		  while (CONSP (XCDR (input)))
-		    input = XCDR (input);
-		  input = XCAR (input);
-		  if (!CONSP (input))
-		    break;
-		  car = XCAR (input);
-		}
-	      if (EQ (car, Qlist))
-		{
-		  Lisp_Object intail, valtail;
-		  for (intail = Fcdr (input), valtail = values;
-		       CONSP (valtail);
-		       intail = Fcdr (intail), valtail = Fcdr (valtail))
-		    {
-		      Lisp_Object elt;
-		      elt = Fcar (intail);
-		      if (CONSP (elt))
-			{
-			  Lisp_Object presflag;
-			  presflag = Fmemq (Fcar (elt), preserved_fns);
-			  if (!NILP (presflag))
-			    Fsetcar (valtail, Fcar (intail));
-			}
-		    }
-		}
-	    }
+	  fix_command (input, values);
 	  Vcommand_history
 	    = Fcons (Fcons (function, values), Vcommand_history);
 
@@ -364,6 +402,12 @@ supply if the command inquires which events were used to invoke it.  */)
 		XSETCDR (teml, Qnil);
 	    }
 	}
+
+      Vthis_command = save_this_command;
+      Vthis_original_command = save_this_original_command;
+      real_this_command= save_real_this_command;
+      current_kboard->Vlast_command = save_last_command;
+
       single_kboard_state ();
       return apply1 (function, specs);
     }
@@ -407,25 +451,25 @@ supply if the command inquires which events were used to invoke it.  */)
 	string++;
       else if (*string == '@')
 	{
-	  Lisp_Object event;
+	  Lisp_Object event, tem;
 
 	  event = (next_event < key_count
 		   ? XVECTOR (keys)->contents[next_event]
 		   : Qnil);
 	  if (EVENT_HAS_PARAMETERS (event)
-	      && (event = XCDR (event), CONSP (event))
-	      && (event = XCAR (event), CONSP (event))
-	      && (event = XCAR (event), WINDOWP (event)))
+	      && (tem = XCDR (event), CONSP (tem))
+	      && (tem = XCAR (tem), CONSP (tem))
+	      && (tem = XCAR (tem), WINDOWP (tem)))
 	    {
-	      if (MINI_WINDOW_P (XWINDOW (event))
-		  && ! (minibuf_level > 0 && EQ (event, minibuf_window)))
+	      if (MINI_WINDOW_P (XWINDOW (tem))
+		  && ! (minibuf_level > 0 && EQ (tem, minibuf_window)))
 		error ("Attempt to select inactive minibuffer window");
 
 	      /* If the current buffer wants to clean up, let it.  */
 	      if (!NILP (Vmouse_leave_buffer_hook))
 		call1 (Vrun_hooks, Qmouse_leave_buffer_hook);
 
-	      Fselect_window (event);
+	      Fselect_window (tem, Qnil);
 	    }
 	  string++;
 	}
@@ -460,7 +504,7 @@ supply if the command inquires which events were used to invoke it.  */)
       varies[i] = 0;
     }
 
-  GCPRO4 (prefix_arg, function, *args, *visargs);
+  GCPRO5 (prefix_arg, function, *args, *visargs, up_event);
   gcpro3.nvars = (count + 1);
   gcpro4.nvars = (count + 1);
 
@@ -562,6 +606,12 @@ supply if the command inquires which events were used to invoke it.  */)
 				     Qnil, Qnil, Qnil, Qnil, Qnil);
 	  break;
 
+	case 'G':		/* Possibly nonexistent file name,
+				   default to directory alone. */
+	  args[i] = Fread_file_name (build_string (callint_message),
+				     Qnil, Qnil, Qnil, build_string (""), Qnil);
+	  break;
+
 	case 'i':		/* Ignore an argument -- Does not do I/O */
 	  varies[i] = -1;
 	  break;
@@ -574,7 +624,7 @@ supply if the command inquires which events were used to invoke it.  */)
 					  Qnil, Qnil, Qnil, Qnil);
 	    unbind_to (speccount1, Qnil);
 	    teml = args[i];
-	    visargs[i] = Fkey_description (teml);
+	    visargs[i] = Fkey_description (teml, Qnil);
 
 	    /* If the key sequence ends with a down-event,
 	       discard the following up-event.  */
@@ -589,7 +639,7 @@ supply if the command inquires which events were used to invoke it.  */)
 		/* Ignore first element, which is the base key.  */
 		tem2 = Fmemq (intern ("down"), Fcdr (teml));
 		if (! NILP (tem2))
-		  Fread_event (Qnil, Qnil);
+		  up_event = Fread_event (Qnil, Qnil);
 	      }
 	  }
 	  break;
@@ -601,7 +651,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	    args[i] = Fread_key_sequence (build_string (callint_message),
 					  Qnil, Qt, Qnil, Qnil);
 	    teml = args[i];
-	    visargs[i] = Fkey_description (teml);
+	    visargs[i] = Fkey_description (teml, Qnil);
 	    unbind_to (speccount1, Qnil);
 
 	    /* If the key sequence ends with a down-event,
@@ -617,9 +667,19 @@ supply if the command inquires which events were used to invoke it.  */)
 		/* Ignore first element, which is the base key.  */
 		tem2 = Fmemq (intern ("down"), Fcdr (teml));
 		if (! NILP (tem2))
-		  Fread_event (Qnil, Qnil);
+		  up_event = Fread_event (Qnil, Qnil);
 	      }
 	  }
+	  break;
+
+	case 'U':		/* Up event from last k or K */
+	  if (!NILP (up_event))
+	    {
+	      args[i] = Fmake_vector (make_number (1), up_event);
+	      up_event = Qnil;
+	      teml = args[i];
+	      visargs[i] = Fkey_description (teml, Qnil);
+	    }
 	  break;
 
 	case 'e':		/* The invoking event.  */
@@ -670,7 +730,7 @@ supply if the command inquires which events were used to invoke it.  */)
 
 		tem = Fread_from_minibuffer (build_string (callint_message),
 					     Qnil, Qnil, Qnil, Qnil, Qnil,
-					     Qnil);
+					     Qnil, Qnil);
 		if (! STRINGP (tem) || SCHARS (tem) == 0)
 		  args[i] = Qnil;
 		else
@@ -810,6 +870,11 @@ supply if the command inquires which events were used to invoke it.  */)
   if (record_then_fail)
     Fbarf_if_buffer_read_only ();
 
+  Vthis_command = save_this_command;
+  Vthis_original_command = save_this_original_command;
+  real_this_command= save_real_this_command;
+  current_kboard->Vlast_command = save_last_command;
+
   single_kboard_state ();
 
   {
@@ -862,6 +927,10 @@ syms_of_callint ()
   staticpro (&Qlist);
   Qlet = intern ("let");
   staticpro (&Qlet);
+  Qif = intern ("if");
+  staticpro (&Qif);
+  Qwhen = intern ("when");
+  staticpro (&Qwhen);
   Qletx = intern ("let*");
   staticpro (&Qletx);
   Qsave_excursion = intern ("save-excursion");
@@ -943,3 +1012,6 @@ a way to turn themselves off when a mouse command switches windows.  */);
   defsubr (&Scall_interactively);
   defsubr (&Sprefix_numeric_value);
 }
+
+/* arch-tag: a3a7cad7-bcac-42ce-916e-1bd2546ebf37
+   (do not change this comment) */

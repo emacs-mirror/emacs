@@ -1,10 +1,10 @@
-	    Emacs for Windows NT and Windows 95/98/2000/XP
+			   Emacs for Windows
 
   This README file describes how to set up and run a precompiled version
-  of GNU Emacs for Windows NT and Windows 95/98/2000/XP.  This
+  of GNU Emacs for Windows NT/2000/XP and Windows 95/98/Me.  This
   distribution can be found on the ftp.gnu.org server and its mirrors:
 
-	ftp://ftp.gnu.org/gnu/windows/emacs/latest/
+	ftp://ftp.gnu.org/gnu/windows/emacs/
 
   This server contains other distributions, including the full Emacs
   source distribution and the lisp source distribution, as well as older
@@ -169,23 +169,20 @@
   invoking Emacs with the "-q --no-site-file" options.
 
   If you decide that it is a bug in Emacs that might be specific to the
-  Windows port, send a message to the ntemacs-users@cs.washington.edu
+  Windows port, send a message to the "help-emacs-windows@gnu.org"
   mailing list describing the bug, the version of Emacs that you are
   using, and the operating system that you are running on (Windows NT,
-  2000, 95 or 98 including service pack level if known).  If the bug is
-  related to subprocesses, also specify which shell you are using (e.g.,
-  include the values of `shell-file-name' and `shell-explicit-file-name'
-  in your message).
+  2000, 95, 98, etc. including service pack level if known).  If the bug
+  is related to subprocesses, also specify which shell you are using
+  (e.g., include the values of `shell-file-name' and
+  `shell-explicit-file-name' in your message).
 
   If you think the bug is not specific to the Windows port of Emacs,
-  then it is better to mail the bug report to bug-gnu-emacs@gnu.org so
+  then it is better to mail the bug report to "bug-gnu-emacs@gnu.org" so
   that it will be seen by the right people.  If Emacs has been set up to
   send mail, you can use the command M-x report-emacs-bug to create and
   send the bug report, but in some cases there is a function to report
   bugs in a specific package; e.g. M-x gnus-bug for Gnus, M-x
   c-submit-bug-report for C/C++/Java mode, etc.
 
-  Enjoy.
-
-  Andrew Innes
-  (andrewi@gnu.org)
+  Enjoy!

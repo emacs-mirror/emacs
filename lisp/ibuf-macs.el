@@ -1,6 +1,7 @@
 ;;; ibuf-macs.el --- macros for ibuffer
 
-;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program ; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -37,7 +38,7 @@
 If TEST returns non-nil, bind `it' to the value, and evaluate
 TRUE-BODY.  Otherwise, evaluate forms in FALSE-BODY as if in `progn'.
 Compare with `if'."
-  (let ((sym (gensym "--ibuffer-aif-")))
+  (let ((sym (make-symbol "ibuffer-aif-sym")))
     `(let ((,sym ,test))
        (if ,sym
 	   (let ((it ,sym))
@@ -56,7 +57,7 @@ During evaluation of body, bind `it' to the value returned by TEST."
 
 (defmacro ibuffer-save-marks (&rest body)
   "Save the marked status of the buffers and execute BODY; restore marks."
-  (let ((bufsym (gensym)))
+  (let ((bufsym (make-symbol "bufsym")))
     `(let ((,bufsym (current-buffer))
 	   (ibuffer-save-marks-tmp-mark-list (ibuffer-current-state-list)))
        (unwind-protect
@@ -93,7 +94,9 @@ Note that this macro expands into a `defun' for a function named
 ibuffer-make-column-NAME.  If INLINE is non-nil, then the form will be
 inlined into the compiled format versions.  This means that if you
 change its definition, you should explicitly call
-`ibuffer-recompile-formats'."
+`ibuffer-recompile-formats'.
+
+\(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)"
   (let* ((sym (intern (concat "ibuffer-make-column-"
 			      (symbol-name symbol))))
 	 (bod-1 `(with-current-buffer buffer
@@ -135,7 +138,9 @@ DESCRIPTION is a short string describing the sorting method.
 
 For sorting, the forms in BODY will be evaluated with `a' bound to one
 buffer object, and `b' bound to another.  BODY should return a non-nil
-value if and only if `a' is \"less than\" `b'."
+value if and only if `a' is \"less than\" `b'.
+
+\(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)"
   `(progn
      (defun ,(intern (concat "ibuffer-do-sort-by-" (symbol-name name))) ()
        ,(or documentation "No :documentation specified for this sorting method.")
@@ -189,7 +194,9 @@ ACTIVE-OPSTRING is a string which will be displayed to the user in a
 confirmation message, in the form:
  \"Really ACTIVE-OPSTRING x buffers?\"
 COMPLEX means this function is special; see the source code of this
-macro for exactly what it does."
+macro for exactly what it does.
+
+\(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING COMPLEX) &rest BODY)"
   `(progn
     (defun ,(intern (concat (if (string-match "^ibuffer-do" (symbol-name op))
 				"" "ibuffer-do-") (symbol-name op)))
@@ -265,14 +272,16 @@ DESCRIPTION is a short string describing the filter.
 BODY should contain forms which will be evaluated to test whether or
 not a particular buffer should be displayed or not.  The forms in BODY
 will be evaluated with BUF bound to the buffer object, and QUALIFIER
-bound to the current value of the filter."
+bound to the current value of the filter.
+
+\(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)"
   (let ((fn-name (intern (concat "ibuffer-filter-by-" (symbol-name name)))))
     `(progn
        (defun ,fn-name (qualifier)
 	 ,(concat (or documentation "This filter is not documented."))
 	 (interactive (list ,reader))
 	 (ibuffer-push-filter (cons ',name qualifier))
-	 (message
+	 (message "%s"
 	  (format ,(concat (format "Filter by %s added: " description)
 			   " %s")
 		  qualifier))
@@ -286,4 +295,5 @@ bound to the current value of the filter."
 
 (provide 'ibuf-macs)
 
+;;; arch-tag: 2748edce-82c9-4cd9-9d9d-bd73e43c20c5
 ;;; ibuf-macs.el ends here

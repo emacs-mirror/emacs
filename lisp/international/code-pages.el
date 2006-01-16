@@ -1,6 +1,9 @@
 ;;; code-pages.el --- coding systems for assorted codepages  -*-coding: utf-8;-*-
 
-;; Copyright (C) 2001, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -19,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -33,13 +36,12 @@
 
 ;; Those covered are: cp437, cp737, cp720, cp775, cp850, cp851, cp852,
 ;; cp855, cp857, cp860, cp861, cp862, cp863, cp864, cp865, cp866,
-;; cp869, cp874, cp1125, windows-1250, windows-1251, windows-1252,
-;; windows-1253, windows-1254, windows-1255, windows-1256,
-;; windows-1257, windows-1258, next, koi8-u, iso-8859-6,
-;; iso-8859-10, iso-8859-11, iso-8859-16, koi8-t, georgian-ps.  This
-;; is meant to include all the single-byte ones relevant to GNU (used
-;; in glibc-defined locales); we don't yet get all the multibyte ones
-;; in base Emacs.
+;; cp869, cp874, cp1125, windows-1250, windows-1253, windows-1254,
+;; windows-1255, windows-1256, windows-1257, windows-1258, next,
+;; iso-8859-6, iso-8859-10, iso-8859-11, iso-8859-16, koi8-t,
+;; georgian-ps.  This is meant to include all the single-byte ones
+;; relevant to GNU (used in glibc-defined locales); we don't yet get
+;; all the multibyte ones in base Emacs.
 
 ;; Note that various of these can clash with definitions in
 ;; codepage.el; we try to avoid damage from that.  A few CPs from
@@ -54,7 +56,11 @@
 
 ;;; Code:
 
-(defun cp-make-translation-table (v)
+;; The defsubsts here are just so that language files can use
+;; `cp-make-coding-system' and not require functions from this file
+;; at runtime.
+
+(defsubst cp-make-translation-table (v)
   "Return a translation table made from 128-long vector V.
 V comprises characters encodable by mule-utf-8."
   (let ((encoding-vector (make-vector 256 0)))
@@ -75,7 +81,7 @@ V comprises characters encodable by mule-utf-8."
 		      ucs-mule-to-mule-unicode)
       tab)))
 
-(defun cp-valid-codes (v)
+(defsubst cp-valid-codes (v)
   "Derive a valid-codes list for translation vector V.
 See `make-coding-system'."
   (let (pairs
@@ -94,27 +100,9 @@ See `make-coding-system'."
     (if start (push (cons start end) pairs))
     (nreverse pairs)))
 
-(defun cp-fix-safe-chars (cs)
-  "Remove `char-coding-system-table' entries from previous definition of CS.
-CS is a base coding system or alias."
-  (when (coding-system-p cs)
-    (let ((chars (coding-system-get cs 'safe-chars)))
-      (map-char-table
-       (lambda (k v)
-	 (if (and v (not (eq v t)))
-	     (aset char-coding-system-table
-		   k
-		   (remq cs (aref char-coding-system-table k)))))
-       chars))))
-
 ;; Fix things that have been, or might be, done by codepage.el.
 (eval-after-load "codepage"
   '(progn
-
-     (dolist (cs '(cp857 cp861 cp1253 cp852 cp866 cp437 cp855 cp869 cp775
-		   cp862 cp864 cp1250 cp863 cp865 cp1251 cp737 cp1257 cp850
-		   cp860 cp851 720))
-       (cp-fix-safe-chars cs))
 
 ;; Semi-dummy version for the stuff in codepage.el which we don't
 ;; define here.  (Used by mule-diag.)
@@ -142,7 +130,7 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal."
   (interactive
    (let ((completion-ignore-case t)
 	 (candidates (cp-supported-codepages)))
-     (list (completing-read "Setup DOS Codepage: (default 437) " candidates
+     (list (completing-read "Setup DOS Codepage (default 437): " candidates
 			    nil t nil nil "437"))))
   (let ((cp (format "cp%s" codepage)))
     (unless (coding-system-p (intern cp))
@@ -150,20 +138,16 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal."
        cp (cp-charset-for-codepage cp) (cp-offset-for-codepage cp))))))
 )					; eval-after-load
 
-;; For `non-iso-charset-alist'.  Do this after redefining
-;; `cp-supported-codepages', which is called through loading
-;; mule-diag.
-(require 'mule-diag)
-
 ;; Macro to allow ccl compilation at byte-compile time, avoiding
 ;; loading ccl.
 ;;;###autoload
 (defmacro cp-make-coding-system (name v &optional doc-string mnemonic)
   "Make coding system NAME for and 8-bit, extended-ASCII character set.
 V is a 128-long vector of characters to translate the upper half of
-the charactert set.  DOC-STRING and MNEMONIC are used as the
+the character set.  DOC-STRING and MNEMONIC are used as the
 corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
-?* is used."
+?* is used.
+Return an updated `non-iso-charset-alist'."
   (let* ((encoder (intern (format "encode-%s" name)))
 	 (decoder (intern (format "decode-%s" name)))
 	 (ccl-decoder
@@ -198,7 +182,6 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
        (define-translation-table ',decoder translation-table)
        (define-translation-table ',encoder
 	 (char-table-extra-slot translation-table 0))
-       (cp-fix-safe-chars ',name)
        (make-coding-system
 	',name 4 ,(or mnemonic ?*)
 	(or ,doc-string (format "%s encoding" ',name))
@@ -209,17 +192,21 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 	      ;; For Quail translation.  Fixme: this should really be
 	      ;; a separate table that only translates the coding
 	      ;; system's safe-chars.
-	      (cons 'translation-table-for-input ,ucs-mule-to-mule-unicode)))
-       (push (list ',name
-		   nil			; charset list
-		   ',decoder
-		   (let (l)		; code range
-		     (dolist (elt (reverse codes))
-		       (push (cdr elt) l)
-		       (push (car elt) l))
-		     (list l)))
-	     non-iso-charset-alist))))
+	      (cons 'translation-table-for-input 'ucs-mule-to-mule-unicode)))
+       (let ((slot (assq ',name non-iso-charset-alist))
+	     (elt (list nil			; charset list
+			',decoder
+			(let (l)		; code range
+			  (dolist (elt (reverse codes))
+			    (push (cdr elt) l)
+			    (push (car elt) l))
+			  (list l)))))
+	 (if (not slot)
+	     (push (cons ',name elt) non-iso-charset-alist)
+	   (setcdr slot elt)
+	   non-iso-charset-alist)))))
 
+(eval-when-compile (defvar non-iso-charset-alist))
 
 ;; These tables were mostly derived by running somthing like
 ;; `recode -f cpxxx/..utf-8' on a binary file filled by
@@ -229,6 +216,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 
 ;; Fixme: Do better for mode-line mnemonics?
 
+;;;###autoload(autoload-coding-system 'cp437 '(require 'code-pages))
 (cp-make-coding-system
  cp437
  [?\Ç
@@ -360,6 +348,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp737 '(require 'code-pages))
 (cp-make-coding-system
  cp737
  [?\Α
@@ -492,6 +481,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ ])
 (coding-system-put 'cp737 'mime-charset nil) ; not in IANA list
 
+;;;###autoload(autoload-coding-system 'cp775 '(require 'code-pages))
 (cp-make-coding-system
  cp775
  [?\Ć
@@ -623,6 +613,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp850 '(require 'code-pages))
 (cp-make-coding-system
  cp850
  [?\Ç
@@ -754,6 +745,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp851 '(require 'code-pages))
 (cp-make-coding-system
  cp851
  [?\Ç
@@ -885,6 +877,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp852 '(require 'code-pages))
 (cp-make-coding-system
  cp852
  [?\Ç
@@ -1016,6 +1009,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp855 '(require 'code-pages))
 (cp-make-coding-system
  cp855
  [?\ђ
@@ -1147,6 +1141,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp857 '(require 'code-pages))
 (cp-make-coding-system
  cp857
  [?\Ç
@@ -1278,6 +1273,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp860 '(require 'code-pages))
 (cp-make-coding-system
  cp860
  [?\Ç
@@ -1409,6 +1405,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp861 '(require 'code-pages))
 (cp-make-coding-system
  cp861
  [?\Ç
@@ -1540,6 +1537,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp862 '(require 'code-pages))
 (cp-make-coding-system
  cp862
  [?\א
@@ -1671,6 +1669,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp863 '(require 'code-pages))
 (cp-make-coding-system
  cp863
  [?\Ç
@@ -1802,6 +1801,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp864 '(require 'code-pages))
 (cp-make-coding-system
  cp864
  [?\°
@@ -1933,6 +1933,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp865 '(require 'code-pages))
 (cp-make-coding-system
  cp865
  [?\Ç
@@ -2064,6 +2065,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp866 '(require 'code-pages))
 (cp-make-coding-system
  cp866
  [?\А
@@ -2197,6 +2199,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
  "CP866 (Cyrillic)."
  ?A)
 
+;;;###autoload(autoload-coding-system 'cp869 '(require 'code-pages))
 (cp-make-coding-system
  cp869
  [nil
@@ -2328,6 +2331,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp874 '(require 'code-pages))
 (cp-make-coding-system
  cp874
  [?\€
@@ -2362,7 +2366,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil
   nil
   nil
-  ?\
+  ?\ 
   ?\ก
   ?\ข
   ?\ฃ
@@ -2459,6 +2463,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil
   nil])
 
+;;;###autoload(autoload-coding-system 'windows-1250 '(require 'code-pages))
 (cp-make-coding-system
  windows-1250
  [?\€
@@ -2493,7 +2498,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ť
   ?\ž
   ?\ź
-  ?\
+  ?\ 
   ?\ˇ
   ?\˘
   ?\Ł
@@ -2590,270 +2595,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ţ
   ?\˙])
 
-;; be_BY, bg_BG
-(cp-make-coding-system
- windows-1251
- [?\Ђ
-  ?\Ѓ
-  ?\‚
-  ?\ѓ
-  ?\„
-  ?\…
-  ?\†
-  ?\‡
-  ?\€
-  ?\‰
-  ?\Љ
-  ?\‹
-  ?\Њ
-  ?\Ќ
-  ?\Ћ
-  ?\Џ
-  ?\ђ
-  ?\‘
-  ?\’
-  ?\“
-  ?\”
-  ?\•
-  ?\–
-  ?\—
-  nil
-  ?\™
-  ?\љ
-  ?\›
-  ?\њ
-  ?\ќ
-  ?\ћ
-  ?\џ
-  ?\
-  ?\Ў
-  ?\ў
-  ?\Ј
-  ?\¤
-  ?\Ґ
-  ?\¦
-  ?\§
-  ?\Ё
-  ?\©
-  ?\Є
-  ?\«
-  ?\¬
-  ?\­
-  ?\®
-  ?\Ї
-  ?\°
-  ?\±
-  ?\І
-  ?\і
-  ?\ґ
-  ?\µ
-  ?\¶
-  ?\·
-  ?\ё
-  ?\№
-  ?\є
-  ?\»
-  ?\ј
-  ?\Ѕ
-  ?\ѕ
-  ?\ї
-  ?\А
-  ?\Б
-  ?\В
-  ?\Г
-  ?\Д
-  ?\Е
-  ?\Ж
-  ?\З
-  ?\И
-  ?\Й
-  ?\К
-  ?\Л
-  ?\М
-  ?\Н
-  ?\О
-  ?\П
-  ?\Р
-  ?\С
-  ?\Т
-  ?\У
-  ?\Ф
-  ?\Х
-  ?\Ц
-  ?\Ч
-  ?\Ш
-  ?\Щ
-  ?\Ъ
-  ?\Ы
-  ?\Ь
-  ?\Э
-  ?\Ю
-  ?\Я
-  ?\а
-  ?\б
-  ?\в
-  ?\г
-  ?\д
-  ?\е
-  ?\ж
-  ?\з
-  ?\и
-  ?\й
-  ?\к
-  ?\л
-  ?\м
-  ?\н
-  ?\о
-  ?\п
-  ?\р
-  ?\с
-  ?\т
-  ?\у
-  ?\ф
-  ?\х
-  ?\ц
-  ?\ч
-  ?\ш
-  ?\щ
-  ?\ъ
-  ?\ы
-  ?\ь
-  ?\э
-  ?\ю
-  ?\я]
- nil ?b)
-
-(cp-make-coding-system
- windows-1252
- [?\€
-  nil
-  ?\‚
-  ?\ƒ
-  ?\„
-  ?\…
-  ?\†
-  ?\‡
-  ?\ˆ
-  ?\‰
-  ?\Š
-  ?\‹
-  ?\Œ
-  nil
-  ?\Ž
-  ?\ž
-  nil
-  ?\‘
-  ?\’
-  ?\“
-  ?\”
-  ?\•
-  ?\–
-  ?\—
-  ?\˜
-  ?\™
-  ?\š
-  ?\›
-  ?\œ
-  nil
-  nil
-  ?\Ÿ
-  ?\
-  ?\¡
-  ?\¢
-  ?\£
-  ?\¤
-  ?\¥
-  ?\¦
-  ?\§
-  ?\¨
-  ?\©
-  ?\ª
-  ?\«
-  ?\¬
-  ?\­
-  ?\®
-  ?\¯
-  ?\°
-  ?\±
-  ?\²
-  ?\³
-  ?\´
-  ?\µ
-  ?\¶
-  ?\·
-  ?\¸
-  ?\¹
-  ?\º
-  ?\»
-  ?\¼
-  ?\½
-  ?\¾
-  ?\¿
-  ?\À
-  ?\Á
-  ?\Â
-  ?\Ã
-  ?\Ä
-  ?\Å
-  ?\Æ
-  ?\Ç
-  ?\È
-  ?\É
-  ?\Ê
-  ?\Ë
-  ?\Ì
-  ?\Í
-  ?\Î
-  ?\Ï
-  ?\Ð
-  ?\Ñ
-  ?\Ò
-  ?\Ó
-  ?\Ô
-  ?\Õ
-  ?\Ö
-  ?\×
-  ?\Ø
-  ?\Ù
-  ?\Ú
-  ?\Û
-  ?\Ü
-  ?\Ý
-  ?\Þ
-  ?\ß
-  ?\à
-  ?\á
-  ?\â
-  ?\ã
-  ?\ä
-  ?\å
-  ?\æ
-  ?\ç
-  ?\è
-  ?\é
-  ?\ê
-  ?\ë
-  ?\ì
-  ?\í
-  ?\î
-  ?\ï
-  ?\ð
-  ?\ñ
-  ?\ò
-  ?\ó
-  ?\ô
-  ?\õ
-  ?\ö
-  ?\÷
-  ?\ø
-  ?\ù
-  ?\ú
-  ?\û
-  ?\ü
-  ?\ý
-  ?\þ
-  ?\ÿ])
-
+;;;###autoload(autoload-coding-system 'windows-1253 '(require 'code-pages))
 (cp-make-coding-system
  windows-1253
  [?\€
@@ -2888,7 +2630,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil
   nil
   nil
-  ?\
+  ?\ 
   ?\΅
   ?\Ά
   ?\£
@@ -2986,6 +2728,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil]
  nil ?g) ;; Greek
 
+;;;###autoload(autoload-coding-system 'windows-1254 '(require 'code-pages))
 (cp-make-coding-system
  windows-1254
  [?\€
@@ -3020,7 +2763,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil
   nil
   ?\Ÿ
-  ?\
+  ?\ 
   ?\¡
   ?\¢
   ?\£
@@ -3118,6 +2861,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ÿ])
 
 ;; yi_US
+;;;###autoload(autoload-coding-system 'windows-1255 '(require 'code-pages))
 (cp-make-coding-system
  windows-1255
  [?\€
@@ -3152,7 +2896,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil
   nil
   nil
-  ?\
+  ?\ 
   ?\¡
   ?\¢
   ?\£
@@ -3250,25 +2994,26 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil]
  nil ?h) ;; Hebrew
 
+;;;###autoload(autoload-coding-system 'windows-1256 '(require 'code-pages))
 (cp-make-coding-system
  windows-1256
  [?\€
-  ?\٠
+  ?\پ
   ?\‚
-  ?\١
+  ?\ƒ
   ?\„
   ?\…
   ?\†
   ?\‡
-  ?\٢
-  ?\٣
-  ?\٤
+  ?\ˆ
+  ?\‰
+  ?\ٹ
   ?\‹
-  ?\٥
-  ?\٦
-  ?\٧
-  ?\٨
-  ?\٩
+  ?\Œ
+  ?\چ
+  ?\ژ
+  ?\ڈ
+  ?\گ
   ?\‘
   ?\’
   ?\“
@@ -3276,112 +3021,113 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\•
   ?\–
   ?\—
-  ?\؛
+  ?\ک
   ?\™
-  ?\؟
+  ?\ڑ
   ?\›
-  ?\ء
-  ?\آ
-  ?\أ
-  ?\Ÿ
-  ?\
-  ?\ؤ
-  ?\إ
+  ?\œ
+  ?\‌
+  ?\‍
+  ?\ں
+  ?\ 
+  ?\،
+  ?\¢
   ?\£
   ?\¤
-  ?\ئ
+  ?\¥
   ?\¦
   ?\§
-  ?\ا
+  ?\¨
   ?\©
-  ?\ب
+  ?\ھ
   ?\«
   ?\¬
   ?\­
   ?\®
-  ?\پ
+  ?\¯
   ?\°
   ?\±
-  ?\ة
-  ?\ت
-  ?\ث
+  ?\²
+  ?\³
+  ?\´
   ?\µ
   ?\¶
   ?\·
-  ?\ج
-  ?\چ
-  ?\ح
+  ?\¸
+  ?\¹
+  ?\؛
   ?\»
+  ?\¼
+  ?\½
+  ?\¾
+  ?\؟
+  ?\ہ
+  ?\ء
+  ?\آ
+  ?\أ
+  ?\ؤ
+  ?\إ
+  ?\ئ
+  ?\ا
+  ?\ب
+  ?\ة
+  ?\ت
+  ?\ث
+  ?\ج
+  ?\ح
   ?\خ
   ?\د
   ?\ذ
   ?\ر
-  ?\À
   ?\ز
-  ?\Â
-  ?\ژ
   ?\س
   ?\ش
   ?\ص
-  ?\Ç
-  ?\È
-  ?\É
-  ?\Ê
-  ?\Ë
   ?\ض
+  ?\×
   ?\ط
-  ?\Î
-  ?\Ï
-  ?\ㄓ
+  ?\ظ
   ?\ع
   ?\غ
   ?\ـ
-  ?\Ô
   ?\ف
   ?\ق
-  ?\×
   ?\ك
-  ?\Ù
-  ?\گ
-  ?\Û
-  ?\Ü
+  ?\à
   ?\ل
+  ?\â
   ?\م
   ?\ن
-  ?\à
   ?\ه
-  ?\â
-  ?\ځ
   ?\و
-  ?\ى
-  ?\ي
   ?\ç
   ?\è
   ?\é
   ?\ê
   ?\ë
-  ?\ً
-  ?\ٌ
+  ?\ى
+  ?\ي
   ?\î
   ?\ï
+  ?\ً
+  ?\ٌ
   ?\ٍ
   ?\َ
+  ?\ô
   ?\ُ
   ?\ِ
-  ?\ô
-  ?\ّ
-  ?\ْ
   ?\÷
-  nil
+  ?\ّ
   ?\ù
-  nil
+  ?\ْ
   ?\û
   ?\ü
   ?\‎
   ?\‏
-  ?\ÿ]
+  ?\ے]
  nil ?a) ;; Arabic
 
+;;;###autoload(autoload-coding-system 'windows-1257 '(require 'code-pages))
 (cp-make-coding-system
  windows-1257
  [?\€
@@ -3416,7 +3162,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil
   nil
   nil
-  ?\
+  ?\ 
   nil
   ?\¢
   ?\£
@@ -3513,6 +3259,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ž
   nil])
 
+;;;###autoload(autoload-coding-system 'windows-1258 '(require 'code-pages))
 (cp-make-coding-system
  windows-1258
  [?\€
@@ -3547,7 +3294,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil
   nil
   ?\Ÿ
-  ?\
+  ?\ 
   ?\¡
   ?\¢
   ?\£
@@ -3644,9 +3391,10 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\₫
   ?\ÿ])
 
+;;;###autoload(autoload-coding-system 'next '(require 'code-pages))
 (cp-make-coding-system
  next
- [?\
+ [?\ 
   ?\À
   ?\Á
   ?\Â
@@ -3776,6 +3524,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   nil]
  "NeXTstep encoding." ?N)
 
+;;;###autoload(autoload-coding-system 'koi8-t '(require 'code-pages))
 (cp-make-coding-system
  koi8-t					; used by glibc for tg_TJ
  [?\қ
@@ -3908,6 +3657,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\Ъ]
  "Unicode-based KOI8-T encoding for Cyrillic")
 (coding-system-put 'koi8-t 'mime-charset nil) ; not in the IANA list
+(define-coding-system-alias 'cyrillic-koi8-t 'koi8-t)
 
 ;;   Online final ISO draft:
 
@@ -3916,7 +3666,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 ;;   Equivalent National Standard:
 ;;     Romanian Standard SR 14111:1998, Romanian Standards Institution
 ;;     (ASRO).
-
+ 
 ;; Intended usage:
 
 ;;  "This set of coded graphic characters is intended for use in data and
@@ -3928,17 +3678,18 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 ;;   Slovenian. This set of coded graphic characters may be regarded as a
 ;;   version of an 8-bit code according to ISO/IEC 2022 or ISO/IEC 4873 at
 ;;   level 1." [ISO 8859-16:2001(E), p. 1]
-
+  
 ;;   This charset is suitable for use in MIME text body parts.
-
+  
 ;;   ISO 8859-16 was primarily designed for single-byte encoding the Romanian
 ;;   language. The UTF-8 charset is the preferred and in today's MIME software
 ;;   more widely implemented encoding suitable for Romanian.
+;;;###autoload(autoload-coding-system 'iso-8859-16 '(require 'code-pages))
 (cp-make-coding-system
  iso-latin-10				; consistent with, e.g. Latin-1
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
   nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
-  ?\
+  ?\ 
   ?\Ą
   ?\ą
   ?\Ł
@@ -4042,12 +3793,13 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 
 ;; Unicode-based alternative which has the possible advantage of
 ;; having its relative sparseness specified.
+;;;###autoload(autoload-coding-system 'iso-8859-6 '(require 'code-pages))
 (cp-make-coding-system
  ;; The base system uses arabic-iso-8bit, but that's not a MIME charset.
  iso-8859-6
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
   nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
-  ?\
+  ?\ 
   ?\¤
   ?\،
   ?\­
@@ -4105,11 +3857,12 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
  ?6)
 (define-coding-system-alias 'arabic-iso-8bit 'iso-8859-6)
 
+;;;###autoload(autoload-coding-system 'iso-8859-10 '(require 'code-pages))
 (cp-make-coding-system
  iso-latin-6
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
   nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
-  ?\
+  ?\ 
   ?\Ą
   ?\Ē
   ?\Ģ
@@ -4211,26 +3964,27 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 (define-coding-system-alias 'latin-6 'iso-latin-6)
 
 ;; used by lt_LT, lv_LV, mi_NZ
+;;;###autoload(autoload-coding-system 'iso-8859-13 '(require 'code-pages))
 (cp-make-coding-system
  iso-latin-7
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
   nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
-  ?\
-  ?\¡
+  ?\ 
+  ?\”
   ?\¢
   ?\£
   ?\¤
   ?\„
   ?\¦
   ?\§
-  ?\¨
+  ?\Ø
   ?\©
-  ?\ª
+  ?\Ŗ
   ?\«
   ?\¬
   ?\­
   ?\®
-  ?\¯
+  ?\Æ
   ?\°
   ?\±
   ?\²
@@ -4239,14 +3993,14 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\µ
   ?\¶
   ?\·
-  ?\¸
+  ?\ø
   ?\¹
-  ?\º
+  ?\ŗ
   ?\»
   ?\¼
   ?\½
   ?\¾
-  ?\¿
+  ?\æ
   ?\Ą
   ?\Į
   ?\Ā
@@ -4318,10 +4072,14 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 (define-coding-system-alias 'iso-8859-13 'iso-latin-7)
 (define-coding-system-alias 'latin-7 'iso-latin-7)
 
+;; Fixme: check on the C1 characters which libiconv includes.  They
+;; are reproduced below, but are probably wrong.  I can't find an
+;; official definition of georgian-ps.
+;;;###autoload(autoload-coding-system 'georgian-ps '(require 'code-pages))
 (cp-make-coding-system
  georgian-ps				; used by glibc for ka_GE
- [?\
-  ?\
+ [?\
+  ?\
   ?\‚
   ?\ƒ
   ?\„
@@ -4333,10 +4091,10 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\Š
   ?\‹
   ?\Œ
-  ?\
-  ?\
-  ?\
-  ?\
+  ?\
+  ?\
+  ?\
+  ?\
   ?\‘
   ?\’
   ?\“
@@ -4349,10 +4107,10 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\š
   ?\›
   ?\œ
-  ?\
-  ?\
+  ?\
+  ?\
   ?\Ÿ
-  ?\
+  ?\ 
   ?\¡
   ?\¢
   ?\£
@@ -4451,6 +4209,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
  nil ?G)
 (coding-system-put 'georgian-ps 'mime-charset nil) ; not in IANA list
 
+;;;###autoload(autoload-coding-system 'cp720 '(require 'code-pages))
 ;; From http://www.microsoft.com/globaldev/reference/oem/720.htm
 (cp-make-coding-system
  cp720
@@ -4584,6 +4343,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ ])
 (coding-system-put 'cp720 'mime-charset nil) ; not in IANA list
 
+;;;###autoload(autoload-coding-system 'cp1125 '(require 'code-pages))
 ;; http://oss.software.ibm.com/cvs/icu/charset/data/ucm/ibm-1125_P100-2000.ucm
 (cp-make-coding-system
  cp1125
@@ -4709,19 +4469,21 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\і
   ?\Ї
   ?\ї
-  ?\÷
-  ?\±
+  ?\·
+  ?\√
   ?\№
   ?\¤
-  ?\￭
+  ?\■
   ?\ ])
 (define-coding-system-alias 'ruscii 'cp1125)
 ;; Original name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
 (define-coding-system-alias 'cp866u 'cp1125)
+(coding-system-put 'cp1125 'mime-charset nil)
 
 ;; Suggested by Anton Zinoviev <anton@lml.bas.bg>: Bulgarian DOS
 ;; codepage.  Table at
 ;; <URL:http://czyborra.com/charsets/bulgarian-mik.txt.gz>.
+;;;###autoload(autoload-coding-system 'mik '(require 'code-pages))
 (cp-make-coding-system
  mik
  [?А ?Б ?В ?Г ?Д ?Е ?Ж ?З ?И ?Й ?К ?Л ?М ?Н ?О ?П ?Р ?С ?Т ?У ?Ф ?Х ?Ц
@@ -4730,21 +4492,24 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?┼ ?╣ ?║ ?╚ ?╔ ?╩ ?╦ ?╠ ?═ ?╬ ?┐ ?░ ?▒ ?▓ ?│ ?┤ ?№ ?§ ?╗ ?╝ ?┘ ?┌ ?█
   ?▄ ?▌ ?▐ ?▀ ?α ?β ?Γ ?π ?Σ ?σ ?μ ?τ ?Φ ?Θ ?Ω ?δ ?∞ ?∅ ?∈ ?∩ ?≡ ?± ?≥
   ?≤ ?⌠ ?⌡ ?÷ ?≈ ?° ?∙ ?· ?√ ?ⁿ ?² ?■ ? ])
+(coding-system-put 'mik 'mime-charset nil)
 
 ;; Suggested by Anton Zinoviev <anton@lml.bas.bg>: similar to CP1251
 ;; and used for some non-Slavic Cyrillic languages.  Table found at
 ;; <URL:ftp://ftp.logic.ru/pub/logic/linux/cyr-asian/PT154>.  See also
 ;; <URL:http://lists.w3.org/Archives/Public/ietf-charsets/2002AprJun/0092.html,
 ;; which suggests it's used in an Asian Cyrillic context.
+;;;###autoload(autoload-coding-system 'pt154 '(require 'code-pages))
 (cp-make-coding-system
  pt154
  [?Җ ?Ғ ?Ӯ ?ғ ?„ ?… ?Ҷ ?Ү ?Ҳ ?ү ?Ҡ ?Ӣ ?Ң ?Қ ?Һ ?Ҹ ?җ ?‘ ?’ ?“ ?” ?• ?–
   ?— ?ҳ ?ҷ ?ҡ ?ӣ ?ң ?қ ?һ ?ҹ ?  ?Ў ?ў ?Ј ?Ө ?Ҙ ?Ұ ?§ ?Ё ?© ?Ә ?\« ?¬ ?ӯ
-  ?® ?Ҝ ?° ?ұ ?І ?і ?ҙ ?ө ?¶ ?· ?ё ?№ ?ә ?» ?ј ?Ҫ ?ҫ ?ҝ ?А ?Б ?В ?Г ?Д
+  ?® ?Ҝ ?° ?ұ ?І ?і ?ҙ ?ө ?¶ ?· ?ё ?№ ?ә ?\» ?ј ?Ҫ ?ҫ ?ҝ ?А ?Б ?В ?Г ?Д
   ?Е ?Ж ?З ?И ?Й ?К ?Л ?М ?Н ?О ?П ?Р ?С ?Т ?У ?Ф ?Х ?Ц ?Ч ?Ш ?Щ ?Ъ ?Ы
   ?Ь ?Э ?Ю ?Я ?а ?б ?в ?г ?д ?е ?ж ?з ?и ?й ?к ?л ?м ?н ?о ?п ?р ?с ?т
   ?у ?ф ?х ?ц ?ч ?ш ?щ ?ъ ?ы ?ь ?э ?ю ?я])
-
+  
+;;;###autoload(autoload-coding-system 'iso-8859-11 '(require 'code-pages))
 (cp-make-coding-system
  iso-8859-11
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
@@ -4757,19 +4522,22 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?๐  ?๑  ?๒  ?๓  ?๔  ?๕  ?๖  ?๗  ?๘  ?๙  ?๚  ?๛   nil nil nil nil]
  "ISO-8859-11.  This is `thai-tis620' with the addition of no-break-space.")
 
-(dotimes (i 8)
+(dotimes (i 9)
   (let ((w (intern (format "windows-125%d" i)))
 	(c (intern (format "cp125%d" i))))
-    (define-coding-system-alias c w)
-    ;; Compatibility with codepage.el, though cp... are not the
-    ;; canonical names.
-    (push (assoc w non-iso-charset-alist) non-iso-charset-alist)))
-
-;; Use Unicode font under Windows.  Jason Rumney fecit.
-(if (and (fboundp 'w32-add-charset-info)
-	 (not (boundp 'w32-unicode-charset-defined)))
-    (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))
+    ;; Define cp125* as aliases for all windows-125*, so on Windows
+    ;; we can just concat "cp" to the ANSI codepage we get from the system
+    ;; and not have to worry about whether it should be "cp" or "windows-".
+    (when (coding-system-p w)
+      (define-coding-system-alias c w)
+      ;; Compatibility with codepage.el, though cp... are not the
+      ;; canonical names.
+      (if (not (assq c non-iso-charset-alist))
+	  (let ((slot (assq w non-iso-charset-alist)))
+	    (if slot
+		(push (cons c (cdr slot)) non-iso-charset-alist)))))))
 
 (provide 'code-pages)
 
+;;; arch-tag: 8b6e3c73-b271-4198-866d-ea6d0ceff1b2
 ;;; code-pages.el ends here

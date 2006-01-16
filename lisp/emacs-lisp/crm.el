@@ -1,7 +1,7 @@
 ;;; crm.el --- read multiple strings with completion
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000
-;;       Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Sen Nagata <sen@eccosys.com>
 ;; Keywords: completion, minibuffer, multiple elements
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -197,9 +197,10 @@ If an element is found, bind:
    respectively,
 
 and return t."
-  (let* ((minibuffer-string (buffer-string))
-	 (end-index (or (string-match "," minibuffer-string (1- (point)))
-			(1- (point-max))))
+  (let* ((prompt-end (minibuffer-prompt-end))
+	 (minibuffer-string (buffer-substring prompt-end (point-max)))
+	 (end-index (or (string-match "," minibuffer-string (- (point) prompt-end))
+			(- (point-max) prompt-end)))
 	 (target-string (substring minibuffer-string 0 end-index))
 	 (index (or (string-match
 		     (concat crm-separator "\\([^" crm-separator "]*\\)$")
@@ -213,9 +214,10 @@ and return t."
       (progn
 	;;
 	(setq crm-beginning-of-element (match-beginning 1))
-	(setq crm-end-of-element end-index)
+	(setq crm-end-of-element (+ end-index prompt-end))
 	;; string to the left of the current element
-	(setq crm-left-of-element (substring target-string 0 (match-beginning 1)))
+	(setq crm-left-of-element
+	      (substring target-string 0 (match-beginning 1)))
 	;; the current element
 	(setq crm-current-element (match-string 1 target-string))
 	;; string to the right of the current element
@@ -245,7 +247,9 @@ and return t."
       (if (null completions)
 	  (crm-temp-echo-area-glyphs " [No completions]")
 	(with-output-to-temp-buffer "*Completions*"
-	  (display-completion-list (sort completions 'string-lessp))))))
+	  (display-completion-list
+	   (sort completions 'string-lessp)
+	   crm-current-element)))))
   nil)
 
 (defun crm-do-completion ()
@@ -287,7 +291,7 @@ The meanings of the return values are:
 
 	(if completedp
 	    (progn
-	      (erase-buffer)
+	      (delete-region (minibuffer-prompt-end) (point-max))
 	      (insert crm-left-of-element completion)
 	      ;;		(if crm-complete-up-to-point
 	      ;;		    (insert crm-separator))
@@ -480,7 +484,7 @@ This function is modeled after `minibuffer_complete_and_exit' in src/minibuf.c"
       (setq result
 	    (catch 'crm-exit
 
-	      (if (eq (point-min) (point-max))
+	      (if (eq (minibuffer-prompt-end) (point-max))
 		  (throw 'crm-exit t))
 
 	      ;; TODO: this test is suspect?
@@ -506,7 +510,8 @@ This function is modeled after `minibuffer_complete_and_exit' in src/minibuf.c"
 	  nil
 	(if (equal result "check")
 	    (let ((check-strings
-		   (crm-strings-completed-p (buffer-string))))
+		   (crm-strings-completed-p
+		    (buffer-substring (minibuffer-prompt-end) (point-max)))))
 	      ;; check all of minibuffer
 	      (if (eq check-strings t)
 		  (throw 'exit nil)
@@ -629,4 +634,5 @@ INHERIT-INPUT-METHOD."
 
 (provide 'crm)
 
+;;; arch-tag: db1911d9-86c6-4a42-b32a-4910701b15a6
 ;;; crm.el ends here

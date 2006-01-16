@@ -1,6 +1,7 @@
 ;;; sup-mouse.el --- supdup mouse support for lisp machines
 
-;; Copyright (C) Free Software Foundation 1985, 1986
+;; Copyright (C) 1985, 1986, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Wolfgang Rupprecht
 ;; Maintainer: FSF
@@ -23,8 +24,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -196,4 +197,5 @@ X and Y are 0-based character positions on the frame."
   (get-window-with-predicate (lambda (w)
 			       (coordinates-in-window-p (cons x y) w))))
 
+;;; arch-tag: ec644ed4-cac4-43b8-b3db-cfe83e9098d7
 ;;; sup-mouse.el ends here

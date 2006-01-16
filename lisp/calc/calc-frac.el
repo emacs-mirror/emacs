@@ -1,10 +1,10 @@
 ;;; calc-frac.el --- fraction functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,11 +28,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-frac () nil)
 
 (defun calc-fdiv (arg)
   (interactive "P")
@@ -54,17 +52,12 @@
 
 
 (defun calc-over-notation (fmt)
-  (interactive
-   (list
-    (completing-read "Fraction separator: " (mapcar (lambda (s)
-						      (cons s 0))
-						    '(":" "::" "/" "//" ":/"))
-		     nil t)))
+  (interactive "sFraction separator: ")
   (calc-wrapper
    (if (string-match "\\`\\([^ 0-9][^ 0-9]?\\)[0-9]*\\'" fmt)
        (let ((n nil))
 	 (if (/= (match-end 0) (match-end 1))
-	     (setq n (string-to-int (substring fmt (match-end 1)))
+	     (setq n (string-to-number (substring fmt (match-end 1)))
 		   fmt (math-match-substring fmt 1)))
 	 (if (eq n 0) (error "Bad denominator"))
 	 (calc-change-mode 'calc-frac-format (list fmt n) t))
@@ -225,4 +218,7 @@
 	(math-reject-arg b 'integerp))
     (math-reject-arg a 'integerp)))
 
+(provide 'calc-frac)
+
+;;; arch-tag: 89d65274-0b3b-42d8-aacd-eaf86da5b4ea
 ;;; calc-frac.el ends here

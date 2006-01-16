@@ -2,7 +2,7 @@
   "sun2.h", but since that file is heavily cpu-specific, it was easier
   not to include it.
 
-   Copyright (C) 1988 Free Software Foundation, Inc.
+  Copyright (C) 1988, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,8 +18,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
@@ -80,3 +80,6 @@ NOTE-END  */
    on the 386 needs this.  */
 #define LIBS_MACHINE -lkvm
 #endif
+
+/* arch-tag: 861af4b4-ce5f-475e-876e-ebff6436a1fe
+   (do not change this comment) */

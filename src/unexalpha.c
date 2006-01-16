@@ -1,6 +1,7 @@
 /* Unexec for DEC alpha.  schoepf@sc.ZIB-Berlin.DE (Rainer Schoepf).
 
-   Copyright (C) 1994, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2000, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,8 +17,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #include <config.h>
@@ -26,7 +27,6 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <stdio.h>
-#include <varargs.h>
 #include <errno.h>
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -541,3 +541,6 @@ fatal_unexec (s, arg)
   fputs (".\n", stderr);
   exit (1);
 }
+
+/* arch-tag: 46316c49-ee08-4aa3-942b-00798902f5bd
+   (do not change this comment) */

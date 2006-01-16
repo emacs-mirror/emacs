@@ -1,6 +1,6 @@
 ;;; keypad.el --- simplified keypad bindings
 
-;; Copyright (C) 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -108,7 +108,7 @@ decimal key must be specified."
 	     (keypad-setup value nil nil value)))
   :initialize 'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
@@ -131,7 +131,7 @@ decimal key must be specified."
 	     (keypad-setup value t nil value)))
   :initialize 'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
@@ -154,7 +154,7 @@ decimal key must be specified."
 	     (keypad-setup value nil t value)))
   :initialize 'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
@@ -177,7 +177,7 @@ decimal key must be specified."
 	     (keypad-setup value t t value)))
   :initialize 'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
@@ -271,4 +271,5 @@ the decimal key on the keypad is mapped to DECIMAL instead of `.'"
 
       (setq i (1+ i)))))
 
+;;; arch-tag: 0899d2bd-9e12-4b4e-9aef-d0014d3b6414
 ;;; keypad.el ends here

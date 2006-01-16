@@ -1,7 +1,7 @@
 ;;; dabbrev.el --- dynamic abbreviation package
 
-;; Copyright (C) 1985, 86, 92, 94, 96, 1997, 2000, 2001
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1994, 1996, 1997, 2000, 2001, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Don Morrison
 ;; Maintainer: Lars Lindberg <Lars.Lindberg@sypro.cap.se>
@@ -23,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -100,7 +100,7 @@
 ;;----------------------------------------------------------------
 
 (defgroup dabbrev nil
-  "Dynamic Abbreviations"
+  "Dynamic Abbreviations."
   :tag "Dynamic Abbreviations"
   :group 'abbrev
   :group 'convenience)
@@ -168,7 +168,7 @@ This variable has an effect only when the value of
 		 (const :tag "based on `case-replace'" case-replace)
 		 (other :tag "on" t))
   :group 'dabbrev
-  :version "21.4")
+  :version "22.1")
 
 (defcustom dabbrev-case-replace 'case-replace
   "*Whether dabbrev applies the abbreviations's case pattern to the expansion.
@@ -282,7 +282,8 @@ A mode setting this variable should make it buffer local."
   "If non-nil, a list of buffers which dabbrev should search.
 If this variable is non-nil, dabbrev will only look in these buffers.
 It will not even look in the current buffer if it is not a member of
-this list.")
+this list."
+  :group 'dabbrev)
 
 ;;----------------------------------------------------------------
 ;; Internal variables
@@ -357,11 +358,9 @@ this list.")
 ;; Exported functions
 ;;----------------------------------------------------------------
 
-;;;###autoload
-(define-key esc-map "/" 'dabbrev-expand)
+;;;###autoload (define-key esc-map "/" 'dabbrev-expand)
 ;;;??? Do we want this?
-;;;###autoload
-(define-key esc-map [?\C-/] 'dabbrev-completion)
+;;;###autoload (define-key esc-map [?\C-/] 'dabbrev-completion)
 
 ;;;###autoload
 (defun dabbrev-completion (&optional arg)
@@ -374,11 +373,7 @@ function pointed out by `dabbrev-friend-buffer-function' to find the
 completions.
 
 If the prefix argument is 16 (which comes from C-u C-u),
-then it searches *all* buffers.
-
-With no prefix argument, it reuses an old completion list
-if there is a suitable one already."
-
+then it searches *all* buffers."
   (interactive "*P")
   (dabbrev--reset-global-variables)
   (let* ((dabbrev-check-other-buffers (and arg t))
@@ -393,57 +388,43 @@ if there is a suitable one already."
 	 (my-obarray dabbrev--last-obarray)
 	 init)
     (save-excursion
-      (if (and (null arg)
-	       my-obarray
-	       (or (eq dabbrev--last-completion-buffer (current-buffer))
-		   (and (window-minibuffer-p (selected-window))
-			(eq dabbrev--last-completion-buffer
-			    (dabbrev--minibuffer-origin))))
-	       dabbrev--last-abbreviation
-	       (>= (length abbrev) (length dabbrev--last-abbreviation))
-	       (string= dabbrev--last-abbreviation
-			(substring abbrev 0
-				   (length dabbrev--last-abbreviation)))
-	       (setq init (try-completion abbrev my-obarray)))
-	  ;; We can reuse the existing completion list.
-	  nil
-	;;--------------------------------
-	;; New abbreviation to expand.
-	;;--------------------------------
-	(setq dabbrev--last-abbreviation abbrev)
-	;; Find all expansion
-	(let ((completion-list
-	       (dabbrev--find-all-expansions abbrev ignore-case-p))
-	      (completion-ignore-case ignore-case-p))
-	  ;; Make an obarray with all expansions
-	  (setq my-obarray (make-vector (length completion-list) 0))
-	  (or (> (length my-obarray) 0)
-	      (error "No dynamic expansion for \"%s\" found%s"
-		     abbrev
-		     (if dabbrev--check-other-buffers "" " in this-buffer")))
-	  (cond
-	   ((or (not ignore-case-p)
-		(not dabbrev-case-replace))
-	    (mapc (function (lambda (string)
-			      (intern string my-obarray)))
-		    completion-list))
-	   ((string= abbrev (upcase abbrev))
-	    (mapc (function (lambda (string)
-			      (intern (upcase string) my-obarray)))
-		    completion-list))
-	   ((string= (substring abbrev 0 1)
-		     (upcase (substring abbrev 0 1)))
-	    (mapc (function (lambda (string)
-			      (intern (capitalize string) my-obarray)))
-		    completion-list))
-	   (t
-	    (mapc (function (lambda (string)
-			      (intern (downcase string) my-obarray)))
-		    completion-list)))
-	  (setq dabbrev--last-obarray my-obarray)
-	  (setq dabbrev--last-completion-buffer (current-buffer))
-	  ;; Find the longest common string.
-	  (setq init (try-completion abbrev my-obarray)))))
+      ;;--------------------------------
+      ;; New abbreviation to expand.
+      ;;--------------------------------
+      (setq dabbrev--last-abbreviation abbrev)
+      ;; Find all expansion
+      (let ((completion-list
+	     (dabbrev--find-all-expansions abbrev ignore-case-p))
+	    (completion-ignore-case ignore-case-p))
+	;; Make an obarray with all expansions
+	(setq my-obarray (make-vector (length completion-list) 0))
+	(or (> (length my-obarray) 0)
+	    (error "No dynamic expansion for \"%s\" found%s"
+		   abbrev
+		   (if dabbrev--check-other-buffers "" " in this-buffer")))
+	(cond
+	 ((or (not ignore-case-p)
+	      (not dabbrev-case-replace))
+	  (mapc (function (lambda (string)
+			    (intern string my-obarray)))
+		completion-list))
+	 ((string= abbrev (upcase abbrev))
+	  (mapc (function (lambda (string)
+			    (intern (upcase string) my-obarray)))
+		completion-list))
+	 ((string= (substring abbrev 0 1)
+		   (upcase (substring abbrev 0 1)))
+	  (mapc (function (lambda (string)
+			    (intern (capitalize string) my-obarray)))
+		completion-list))
+	 (t
+	  (mapc (function (lambda (string)
+			    (intern (downcase string) my-obarray)))
+		completion-list)))
+	(setq dabbrev--last-obarray my-obarray)
+	(setq dabbrev--last-completion-buffer (current-buffer))
+	;; Find the longest common string.
+	(setq init (try-completion abbrev my-obarray))))
     ;;--------------------------------
     ;; Let the user choose between the expansions
     ;;--------------------------------
@@ -462,7 +443,8 @@ if there is a suitable one already."
       ;; * String is a common substring completion already.  Make list.
       (message "Making completion list...")
       (with-output-to-temp-buffer "*Completions*"
-	(display-completion-list (all-completions init my-obarray)))
+	(display-completion-list (all-completions init my-obarray)
+				 init))
       (message "Making completion list...done")))
     (and (window-minibuffer-p (selected-window))
 	 (message nil))))
@@ -510,7 +492,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	    (setq direction dabbrev--last-direction))
 	;; If the user inserts a space after expanding
 	;; and then asks to expand again, always fetch the next word.
-	(if (and (eq (preceding-char) ?\ )
+	(if (and (eq (preceding-char) ?\s)
 		 (markerp dabbrev--last-abbrev-location)
 		 (marker-position dabbrev--last-abbrev-location)
 		 (= (point) (1+ dabbrev--last-abbrev-location)))
@@ -518,25 +500,27 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	      ;; The "abbrev" to expand is just the space.
 	      (setq abbrev " ")
 	      (save-excursion
-		(if dabbrev--last-buffer
-		    (set-buffer dabbrev--last-buffer))
-		;; Find the end of the last "expansion" word.
-		(if (or (eq dabbrev--last-direction 1)
-			(and (eq dabbrev--last-direction 0)
-			     (< dabbrev--last-expansion-location (point))))
-		    (setq dabbrev--last-expansion-location
-			  (+ dabbrev--last-expansion-location
-			     (length dabbrev--last-expansion))))
-		(goto-char dabbrev--last-expansion-location)
-		;; Take the following word, with intermediate separators,
-		;; as our expansion this time.
-		(re-search-forward
-		 (concat "\\(\\(" dabbrev--abbrev-char-regexp "\\)+\\)"))
-		(setq expansion (buffer-substring-no-properties
-				 dabbrev--last-expansion-location (point)))
+		(save-restriction
+		  (widen)
+		  (if dabbrev--last-buffer
+		      (set-buffer dabbrev--last-buffer))
+		  ;; Find the end of the last "expansion" word.
+		  (if (or (eq dabbrev--last-direction 1)
+			  (and (eq dabbrev--last-direction 0)
+			       (< dabbrev--last-expansion-location (point))))
+		      (setq dabbrev--last-expansion-location
+			    (+ dabbrev--last-expansion-location
+			       (length dabbrev--last-expansion))))
+		  (goto-char dabbrev--last-expansion-location)
+		  ;; Take the following word, with intermediate separators,
+		  ;; as our expansion this time.
+		  (re-search-forward
+		   (concat "\\(?:" dabbrev--abbrev-char-regexp "\\)+"))
+		  (setq expansion (buffer-substring-no-properties
+				   dabbrev--last-expansion-location (point)))
 
-		;; Record the end of this expansion, in case we repeat this.
-		(setq dabbrev--last-expansion-location (point)))
+		  ;; Record the end of this expansion, in case we repeat this.
+		  (setq dabbrev--last-expansion-location (point))))
 	      ;; Indicate that dabbrev--last-expansion-location is
 	      ;; at the end of the expansion.
 	      (setq dabbrev--last-direction -1))
@@ -613,16 +597,15 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 (defun dabbrev--goto-start-of-abbrev ()
   ;; Move backwards over abbrev chars
   (save-match-data
-    (if (not (bobp))
-	(progn
-	  (forward-char -1)
-	  (while (and (looking-at dabbrev--abbrev-char-regexp)
-		      (not (bobp))
-		      (not (= (point) (field-beginning (point) nil
-						       (1- (point))))))
-	    (forward-char -1))
-	  (or (looking-at dabbrev--abbrev-char-regexp)
-	      (forward-char 1))))
+    (when (> (point) (minibuffer-prompt-end))
+      (forward-char -1)
+      (while (and (looking-at dabbrev--abbrev-char-regexp)
+		  (> (point) (minibuffer-prompt-end))
+		  (not (= (point) (field-beginning (point) nil
+						   (1- (point))))))
+	(forward-char -1))
+      (or (looking-at dabbrev--abbrev-char-regexp)
+	  (forward-char 1)))
     (and dabbrev-abbrev-skip-leading-regexp
 	 (while (looking-at dabbrev-abbrev-skip-leading-regexp)
 	   (forward-char 1)))))
@@ -796,10 +779,7 @@ of the start of the occurrence."
        ;; Walk through the buffers till we find a match.
        (let (expansion)
 	 (while (and (not expansion) dabbrev--friend-buffer-list)
-	   (setq dabbrev--last-buffer
-		 (car dabbrev--friend-buffer-list))
-	   (setq dabbrev--friend-buffer-list
-		 (cdr dabbrev--friend-buffer-list))
+	   (setq dabbrev--last-buffer (pop dabbrev--friend-buffer-list))
 	   (set-buffer dabbrev--last-buffer)
 	   (dabbrev--scanning-message)
 	   (setq dabbrev--last-expansion-location (point-min))
@@ -854,7 +834,8 @@ of the start of the occurrence."
 
 (defun dabbrev--safe-replace-match (string &optional fixedcase literal)
   (if (eq major-mode 'picture-mode)
-      (picture-replace-match string fixedcase literal)
+      (with-no-warnings
+       (picture-replace-match string fixedcase literal))
     (replace-match string fixedcase literal)))
 
 ;;;----------------------------------------------------------------
@@ -893,23 +874,28 @@ to record whether we upcased the expansion, downcased it, or did neither."
     ;; matches the start of the expansion,
     ;; copy the expansion's case
     ;; instead of downcasing all the rest.
-    ;; Treat a one-capital-letter abbrev as "not all upper case",
-    ;; so as to force preservation of the expansion's pattern
-    ;; if the expansion starts with a capital letter.
-    (let ((expansion-rest (substring expansion 1)))
-      (if (and (not (and (or (string= expansion-rest (downcase expansion-rest))
-			     (string= expansion-rest (upcase expansion-rest)))
-			 (or (string= abbrev (downcase abbrev))
-			     (and (string= abbrev (upcase abbrev))
-				  (> (length abbrev) 1)))))
-	       (string= abbrev
-			(substring expansion 0 (length abbrev))))
+    ;;
+    ;; Treat a one-capital-letter (possibly with preceding non-letter
+    ;; characters) abbrev as "not all upper case", so as to force
+    ;; preservation of the expansion's pattern if the expansion starts
+    ;; with a capital letter.
+    (let ((expansion-rest (substring expansion 1))
+	  (first-letter-position (string-match "[[:alpha:]]" abbrev)))
+      (if (or (null first-letter-position)
+	      (and (not (and (or (string= expansion-rest (downcase expansion-rest))
+				 (string= expansion-rest (upcase expansion-rest)))
+			     (or (string= abbrev (downcase abbrev))
+				 (and (string= abbrev (upcase abbrev))
+				      (> (- (length abbrev) first-letter-position)
+					 1)))))
+		   (string= abbrev
+			    (substring expansion 0 (length abbrev)))))
 	  (setq use-case-replace nil)))
 
     ;; If the abbrev and the expansion are both all-lower-case
     ;; then don't do any conversion.  The conversion would be a no-op
     ;; for this replacement, but it would carry forward to subsequent words.
-    ;; The goal of this is to preven that carrying forward.
+    ;; The goal of this is to prevent that carrying forward.
     (if (and (string= expansion (downcase expansion))
 	     (string= abbrev (downcase abbrev)))
 	(setq use-case-replace nil))
@@ -1002,8 +988,7 @@ Leaves point at the location of the start of the expansion."
 	      nil
 	    ;; We have a truly valid match.  Find the end.
 	    (re-search-forward pattern2)
-	    (setq found-string (buffer-substring-no-properties
-				(match-beginning 0) (match-end 0)))
+	    (setq found-string (match-string-no-properties 0))
 	    (setq result found-string)
 	    (and ignore-case (setq found-string (downcase found-string)))
 	    ;; Ignore this match if it's already in the table.
@@ -1012,9 +997,7 @@ Leaves point at the location of the start of the expansion."
 		 (string= found-string table-string))
 		(setq found-string nil)))
 	  ;; Prepare to continue searching.
-	  (if reverse
-	      (goto-char (match-beginning 0))
-	    (goto-char (match-end 0))))
+	  (goto-char (if reverse (match-beginning 0) (match-end 0))))
 	;; If we found something, use it.
 	(when found-string
 	  ;; Put it into `dabbrev--last-table'
@@ -1030,4 +1013,5 @@ Leaves point at the location of the start of the expansion."
 
 (provide 'dabbrev)
 
+;;; arch-tag: 29e58596-f080-4306-a409-70296cf9d46f
 ;;; dabbrev.el ends here

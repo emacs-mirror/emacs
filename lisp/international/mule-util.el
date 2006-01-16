@@ -1,7 +1,10 @@
 ;;; mule-util.el --- utility functions for mulitilingual environment (mule)
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004
+;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 1999, 2004
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: mule, multilingual
 
@@ -19,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -60,7 +63,7 @@ TYPE should be `list' or `vector'."
 ;;;###autoload
 (make-obsolete 'string-to-sequence
 	       "use `string-to-list' or `string-to-vector'."
-	       "21.4")
+	       "22.1")
 
 ;;;###autoload
 (defsubst string-to-list (string)
@@ -207,12 +210,6 @@ defaults to \"...\"."
 ;; 			 (prin1-to-string (cdr ret)))
 ;; 	       (prin1-to-string ret))))))
 
-;;; For backward compatibility ...
-;;;###autoload
-(defalias 'truncate-string 'truncate-string-to-width)
-
-;;;###autoload
-(make-obsolete 'truncate-string 'truncate-string-to-width "20.1")
 
 ;;; Nested alist handler.  Nested alist is alist whose elements are
 ;;; also nested alist.
@@ -314,19 +311,6 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
   (coding-system-get coding-system 'translation-table-for-encode))
 
 ;;;###autoload
-(defun coding-system-equal (coding-system-1 coding-system-2)
-  "Return t if and only if CODING-SYSTEM-1 and CODING-SYSTEM-2 are identical.
-Two coding systems are identical if two symbols are equal
-or one is an alias of the other."
-  (or (eq coding-system-1 coding-system-2)
-      (and (equal (coding-system-spec coding-system-1)
-		  (coding-system-spec coding-system-2))
-	   (let ((eol-type-1 (coding-system-eol-type coding-system-1))
-		 (eol-type-2 (coding-system-eol-type coding-system-2)))
-	     (or (eq eol-type-1 eol-type-2)
-		 (and (vectorp eol-type-1) (vectorp eol-type-2)))))))
-
-;;;###autoload
 (defmacro detect-coding-with-priority (from to priority-list)
   "Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
 PRIORITY-LIST is an alist of coding categories vs the corresponding
@@ -339,6 +323,8 @@ coding systems ordered by priority."
 	 (mapc (function (lambda (x) (set (car x) (cdr x))))
 	       prio-list)
 	 (set-coding-priority (mapcar #'car prio-list))
+	 ;; Changing the binding of a coding category requires this call.
+	 (update-coding-systems-internal)
 	 (detect-coding-region ,from ,to))
      ;; We must restore the internal database.
      (set-coding-priority coding-category-list)
@@ -358,6 +344,33 @@ language environment LANG-ENV."
 		 coding-priority))
       (detect-coding-region from to))))
 
+;;;###autoload
+(defun char-displayable-p (char)
+  "Return non-nil if we should be able to display CHAR.
+On a multi-font display, the test is only whether there is an
+appropriate font from the selected frame's fontset to display CHAR's
+charset in general.  Since fonts may be specified on a per-character
+basis, this may not be accurate."
+  (cond ((< char 256)
+	 ;; Single byte characters are always displayable.
+	 t)
+	((not enable-multibyte-characters)
+	 ;; Maybe there's a font for it, but we can't put it in the buffer.
+	 nil)
+	((display-multi-font-p)
+	 ;; On a window system, a character is displayable if we have
+	 ;; a font for that character in the default face of the
+	 ;; currently selected frame.
+	 (car (internal-char-font nil char)))
+	(t
+	 (let ((coding (terminal-coding-system)))
+	   (if coding
+	       (let ((safe-chars (coding-system-get coding 'safe-chars))
+		     (safe-charsets (coding-system-get coding 'safe-charsets)))
+		 (or (and safe-chars
+			  (aref safe-chars char))
+		     (and safe-charsets
+			  (memq (char-charset char) safe-charsets)))))))))
 
 (provide 'mule-util)
 
@@ -365,4 +378,5 @@ language environment LANG-ENV."
 ;; coding: iso-2022-7bit
 ;; End:
 
+;; arch-tag: 5bdb52b6-a3a5-4529-b7a0-37d01b0e570b
 ;;; mule-util.el ends here

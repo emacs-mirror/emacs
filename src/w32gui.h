@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the Microsoft W32 API.
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #ifndef EMACS_W32GUI_H
 #define EMACS_W32GUI_H
@@ -36,7 +36,7 @@ typedef struct _XCharStruct
 
 enum w32_char_font_type
 {
-  UNKNOWN_FONT,
+  UNKNOWN_FONT = 0 /* FONT_TYPE_UNKNOWN */,
   ANSI_FONT,
   UNICODE_FONT,
   BDF_1D_FONT,
@@ -72,11 +72,29 @@ typedef struct _XGCValues
 typedef HBITMAP Pixmap;
 typedef HBITMAP Bitmap;
 
+typedef char * XrmDatabase;
+
 typedef XGCValues * GC;
 typedef COLORREF Color;
 typedef DWORD Time;
 typedef HWND Window;
+typedef HDC Display;  /* HDC so it doesn't conflict with xpm lib.  */
 typedef HCURSOR Cursor;
+
+#define No_Cursor (0)
+
+#define XChar2b wchar_t
+
+/* Dealing with bits of wchar_t as if they were an XChar2b.  */
+#define STORE_XCHAR2B(chp, byte1, byte2) \
+  ((*chp) = ((XChar2b)((((byte1) & 0x00ff) << 8) | ((byte2) & 0x00ff))))
+
+#define XCHAR2B_BYTE1(chp) \
+ (((*chp) & 0xff00) >> 8)
+
+#define XCHAR2B_BYTE2(chp) \
+ ((*chp) & 0x00ff)
+
 
 /* Windows equivalent of XImage.  */
 typedef struct _XImage
@@ -130,4 +148,34 @@ extern int nCmdShow;
 
 extern int XParseGeometry ();
 
+
+typedef struct {
+    int x, y;
+    unsigned width, height;
+} XRectangle;
+
+#define NativeRectangle RECT
+
+#define CONVERT_TO_XRECT(xr,nr)			\
+  ((xr).x = (nr).left,				\
+   (xr).y = (nr).top,				\
+   (xr).width = ((nr).right - (nr).left),	\
+   (xr).height = ((nr).bottom - (nr).top))
+
+#define CONVERT_FROM_XRECT(xr,nr)		\
+  ((nr).left = (xr).x,				\
+   (nr).top = (xr).y,				\
+   (nr).right = ((xr).x + (xr).width),		\
+   (nr).bottom = ((xr).y + (xr).height))
+
+#define STORE_NATIVE_RECT(nr,x,y,width,height)	\
+  ((nr).left = (x),				\
+   (nr).top = (y),				\
+   (nr).right = ((nr).left + (width)),		\
+   (nr).bottom = ((nr).top + (height)))
+
+
 #endif /* EMACS_W32GUI_H */
+
+/* arch-tag: 9172e5fb-45a5-4684-afd9-ca0e81324604
+   (do not change this comment) */

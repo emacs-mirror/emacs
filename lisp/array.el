@@ -1,6 +1,7 @@
 ;;; array.el --- array editing commands for GNU Emacs
 
-;; Copyright (C) 1987, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author David M. Brown
 ;; Maintainer: FSF
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -607,7 +608,7 @@ If optional ARG is given, copy through ARG rows up."
   (let ((check t)
 	(len))
     (while check
-      (setq array-init-field (read-input "Initial field value: "))
+      (setq array-init-field (read-string "Initial field value: "))
       (setq len (length array-init-field))
       (if (/= len array-field-width)
 	  (if (y-or-n-p (format "Change field width to %d? " len))
@@ -638,7 +639,7 @@ If optional ARG is given, copy through ARG rows up."
   "Reconfigure the state of `array-rows-numbered' and `array-columns-per-line'.
 NEW-COLUMNS-PER-LINE is the desired value of `array-columns-per-line' and
 NEW-ROWS-NUMBERED (a character, either ?y or ?n) is the desired value
-of array-rows-numbered."
+of `array-rows-numbered'."
   (interactive "nColumns per line: \ncRows numbered? (y or n) ")
   ;; Check on new-columns-per-line
   (let ((check t))
@@ -647,8 +648,8 @@ of array-rows-numbered."
 	       (<= new-columns-per-line array-max-column))
 	  (setq check nil)
 	(setq new-columns-per-line
-	      (string-to-int
-	       (read-input
+	      (string-to-number
+	       (read-string
 		(format "Columns per line (1 - %d): " array-max-column)))))))
   ;; Check on new-rows-numbered.  It has to be done this way
   ;;  because interactive does not have y-or-n-p.
@@ -717,7 +718,7 @@ of array-rows-numbered."
     (let ((inhibit-quit t))
       (set-buffer main-buffer)
       (erase-buffer)
-      (insert-buffer temp-buffer)
+      (insert-buffer-substring temp-buffer)
       ;; Update local variables.
       (setq array-columns-per-line new-columns-per-line)
       (setq array-rows-numbered new-rows-numbered)
@@ -767,7 +768,7 @@ Return COLUMN."
 	  (move-to-column column)))))
 
 (defun untabify-backward ()
-  "Untabify the preceding tab."
+  "Untabify the preceding TAB."
   (save-excursion
     (let ((start (point)))
       (backward-char 1)
@@ -817,7 +818,7 @@ NOT recognized as integers or real numbers.
   The array MUST reside at the top of the buffer.
 
   TABs are not respected, and may be converted into spaces at any time.
-Setting the variable 'array-respect-tabs to non-nil will prevent TAB conversion,
+Setting the variable `array-respect-tabs' to non-nil will prevent TAB conversion,
 but will cause many functions to give errors if they encounter one.
 
   Upon entering array mode, you will be prompted for the values of
@@ -872,6 +873,7 @@ take a numeric prefix argument):
 Entering array mode calls the function `array-mode-hook'."
 
   (interactive)
+  (kill-all-local-variables)
   ;; Number of rows in the array.
   (make-local-variable 'array-max-row)
   ;; Number of columns in the array.
@@ -907,7 +909,7 @@ Entering array mode calls the function `array-mode-hook'."
   (setq truncate-lines t)
   (setq overwrite-mode 'overwrite-mode-textual)
   (use-local-map array-mode-map)
-  (run-hooks 'array-mode-hook))
+  (run-mode-hooks 'array-mode-hook))
 
 
 
@@ -927,22 +929,22 @@ Entering array mode calls the function `array-mode-hook'."
 (defun array-init-max-row (&optional arg)
   "Initialize the value of `array-max-row'."
   (setq array-max-row
-	(or arg (string-to-int (read-input "Number of array rows: ")))))
+	(or arg (string-to-number (read-string "Number of array rows: ")))))
 
 (defun array-init-max-column (&optional arg)
   "Initialize the value of `array-max-column'."
   (setq array-max-column
-	(or arg (string-to-int (read-input "Number of array columns: ")))))
+	(or arg (string-to-number (read-string "Number of array columns: ")))))
 
 (defun array-init-columns-per-line (&optional arg)
   "Initialize the value of `array-columns-per-line'."
   (setq array-columns-per-line
-	(or arg (string-to-int (read-input "Array columns per line: ")))))
+	(or arg (string-to-number (read-string "Array columns per line: ")))))
 
 (defun array-init-field-width (&optional arg)
   "Initialize the value of `array-field-width'."
   (setq array-field-width
-	(or arg (string-to-int (read-input "Field width: ")))))
+	(or arg (string-to-number (read-string "Field width: ")))))
 
 (defun array-init-rows-numbered (&optional arg)
   "Initialize the value of `array-rows-numbered'."
@@ -964,4 +966,5 @@ Entering array mode calls the function `array-mode-hook'."
 
 (provide 'array)
 
+;;; arch-tag: 0086605d-79fe-4a1a-992a-456417261f80
 ;;; array.el ends here

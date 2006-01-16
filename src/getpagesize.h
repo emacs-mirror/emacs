@@ -1,5 +1,6 @@
 /* Emulate getpagesize on systems that lack it.
-   Copyright (C) 1986, 1992, 1995, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1992, 1995, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #ifndef HAVE_GETPAGESIZE
 
@@ -57,3 +58,6 @@ Boston, MA 02111-1307, USA.  */
 # endif /* no _SC_PAGESIZE */
 
 #endif /* no HAVE_GETPAGESIZE */
+
+/* arch-tag: ff6206e3-97e2-4763-923a-e84bf28eabbc
+   (do not change this comment) */

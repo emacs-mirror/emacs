@@ -1,6 +1,6 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985, 86, 92, 93, 94, 97, 1999, 2000, 2001
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992, 1993, 1994, 1997, 1999, 2000, 2001,
+                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,13 +16,14 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* The arguments given to this program are all the C and Lisp source files
  of GNU Emacs.  .elc and .el and .c files are allowed.
  A .o file can also be specified; the .c file it was made from is used.
  This helps the makefile pass the correct list of files.
+ Option -d DIR means change to DIR before looking for files.
 
  The results, which go to standard output or to a file
  specified with -a or -o (-a to append, -o to start from nothing),
@@ -58,6 +59,18 @@ Boston, MA 02111-1307, USA.  */
 #define READ_TEXT "r"
 #define READ_BINARY "r"
 #endif /* not DOS_NT */
+
+#ifndef DIRECTORY_SEP
+#ifdef MAC_OS8
+#define DIRECTORY_SEP ':'
+#else  /* not MAC_OS8 */
+#define DIRECTORY_SEP '/'
+#endif	/* not MAC_OS8 */
+#endif
+
+#ifndef IS_DIRECTORY_SEP
+#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
+#endif
 
 int scan_file ();
 int scan_lisp_file ();
@@ -99,16 +112,16 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-long *
+void *
 xmalloc (size)
      unsigned int size;
 {
-  long *result = (long *) malloc (size);
+  void *result = (void *) malloc (size);
   if (result == NULL)
     fatal ("virtual memory exhausted", 0);
   return result;
@@ -174,10 +187,25 @@ main (argc, argv)
       if (j == i)
 	err_count += scan_file (argv[i]);
     }
-#ifndef VMS
-  exit (err_count > 0);
-#endif /* VMS */
-  return err_count > 0;
+  return (err_count > 0 ? EXIT_FAILURE : EXIT_SUCCESS);
+}
+
+/* Add a source file name boundary marker in the output file.  */
+void
+put_filename (filename)
+     char *filename;
+{
+  char *tmp;
+
+  for (tmp = filename; *tmp; tmp++)
+    {
+      if (IS_DIRECTORY_SEP(*tmp))
+	filename = tmp + 1;
+    }
+
+  putc (037, outfile);
+  putc ('S', outfile);
+  fprintf (outfile, "%s\n", filename);
 }
 
 /* Read file FILENAME and output its doc strings to outfile.  */
@@ -188,6 +216,8 @@ scan_file (filename)
      char *filename;
 {
   int len = strlen (filename);
+
+  put_filename (filename);
   if (len > 4 && !strcmp (filename + len - 4, ".elc"))
     return scan_lisp_file (filename, READ_BINARY);
   else if (len > 3 && !strcmp (filename + len - 3, ".el"))
@@ -595,6 +625,7 @@ scan_c_file (filename, mode)
 	  c = getc (infile);
 	  defunflag = c == 'U';
 	  defvarflag = 0;
+	  defvarperbufferflag = 0;
 	}
       else continue;
 
@@ -1185,3 +1216,8 @@ scan_lisp_file (filename, mode)
   fclose (infile);
   return 0;
 }
+
+/* arch-tag: f7203aaf-991a-4238-acb5-601db56f2894
+   (do not change this comment) */
+
+/* make-docfile.c ends here */

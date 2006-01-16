@@ -1,6 +1,6 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002
-   Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
+                 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
 #include "lisp.h"
@@ -637,30 +637,13 @@ get_char_property_and_overlay (position, prop, object, overlay)
     }
   if (BUFFERP (object))
     {
-      int posn = XINT (position);
       int noverlays;
-      Lisp_Object *overlay_vec, tem;
-      int len;
+      Lisp_Object *overlay_vec;
       struct buffer *obuf = current_buffer;
 
       set_buffer_temp (XBUFFER (object));
 
-      /* First try with room for 40 overlays.  */
-      len = 40;
-      overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-
-      noverlays = overlays_at (posn, 0, &overlay_vec, &len,
-			       NULL, NULL, 0);
-
-      /* If there are more than 40,
-	 make enough space for all, and try again.  */
-      if (noverlays > len)
-	{
-	  len = noverlays;
-	  overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	  noverlays = overlays_at (posn, 0, &overlay_vec, &len,
-				   NULL, NULL, 0);
-	}
+      GET_OVERLAYS_AT (XINT (position), overlay_vec, noverlays, NULL, 0);
       noverlays = sort_overlays (overlay_vec, noverlays, w);
 
       set_buffer_temp (obuf);
@@ -668,7 +651,7 @@ get_char_property_and_overlay (position, prop, object, overlay)
       /* Now check the overlays in order of decreasing priority.  */
       while (--noverlays >= 0)
 	{
-	  tem = Foverlay_get (overlay_vec[noverlays], prop);
+	  Lisp_Object tem = Foverlay_get (overlay_vec[noverlays], prop);
 	  if (!NILP (tem))
 	    {
 	      if (overlay)
@@ -703,6 +686,30 @@ overlays are considered only if they are associated with OBJECT.  */)
 {
   return get_char_property_and_overlay (position, prop, object, 0);
 }
+
+DEFUN ("get-char-property-and-overlay", Fget_char_property_and_overlay,
+       Sget_char_property_and_overlay, 2, 3, 0,
+       doc: /* Like `get-char-property', but with extra overlay information.
+Return a cons whose car is the return value of `get-char-property'
+with the same arguments, that is, the value of POSITION's property
+PROP in OBJECT, and whose cdr is the overlay in which the property was
+found, or nil, if it was found as a text property or not found at all.
+OBJECT is optional and defaults to the current buffer.  OBJECT may be
+a string, a buffer or a window.  For strings, the cdr of the return
+value is always nil, since strings do not have overlays.  If OBJECT is
+a window, then that window's buffer is used, but window-specific
+overlays are considered only if they are associated with OBJECT.  If
+POSITION is at the end of OBJECT, both car and cdr are nil.  */)
+     (position, prop, object)
+     Lisp_Object position, object;
+     register Lisp_Object prop;
+{
+  Lisp_Object overlay;
+  Lisp_Object val
+    = get_char_property_and_overlay (position, prop, object, &overlay);
+  return Fcons(val, overlay);
+}
+
 
 DEFUN ("next-char-property-change", Fnext_char_property_change,
        Snext_char_property_change, 1, 2, 0,
@@ -712,7 +719,7 @@ it finds a change in some text property, or the beginning or end of an
 overlay, and returns the position of that.
 If none is found, the function returns (point-max).
 
-If the optional third argument LIMIT is non-nil, don't search
+If the optional second argument LIMIT is non-nil, don't search
 past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
      (position, limit)
      Lisp_Object position, limit;
@@ -722,7 +729,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
   temp = Fnext_overlay_change (position);
   if (! NILP (limit))
     {
-      CHECK_NUMBER (limit);
+      CHECK_NUMBER_COERCE_MARKER (limit);
       if (XINT (limit) < XINT (temp))
 	temp = limit;
     }
@@ -737,7 +744,7 @@ finds a change in some text property, or the beginning or end of an
 overlay, and returns the position of that.
 If none is found, the function returns (point-max).
 
-If the optional third argument LIMIT is non-nil, don't search
+If the optional second argument LIMIT is non-nil, don't search
 past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
      (position, limit)
      Lisp_Object position, limit;
@@ -747,7 +754,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
   temp = Fprevious_overlay_change (position);
   if (! NILP (limit))
     {
-      CHECK_NUMBER (limit);
+      CHECK_NUMBER_COERCE_MARKER (limit);
       if (XINT (limit) > XINT (temp))
 	temp = limit;
     }
@@ -780,7 +787,10 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 	  if (NILP (limit))
 	    position = make_number (SCHARS (object));
 	  else
-	    position = limit;
+	    {
+	      CHECK_NUMBER (limit);
+	      position = limit;
+	    }
 	}
     }
   else
@@ -796,6 +806,8 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 	  Fset_buffer (object);
 	}
+
+      CHECK_NUMBER_COERCE_MARKER (position);
 
       initial_value = Fget_char_property (position, prop, object);
 
@@ -849,7 +861,10 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 	  if (NILP (limit))
 	    position = make_number (SCHARS (object));
 	  else
-	    position = limit;
+	    {
+	      CHECK_NUMBER (limit);
+	      position = limit;
+	    }
 	}
     }
   else
@@ -864,6 +879,8 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 	  Fset_buffer (object);
 	}
+
+      CHECK_NUMBER_COERCE_MARKER (position);
 
       if (NILP (limit))
 	XSETFASTINT (limit, BUF_BEGV (current_buffer));
@@ -1299,8 +1316,8 @@ the designated part of OBJECT.  */)
    properties PROPERTIES.  OBJECT is the buffer or string containing
    the text.  OBJECT nil means use the current buffer.
    SIGNAL_AFTER_CHANGE_P nil means don't signal after changes.  Value
-   is non-nil if properties were replaced; it is nil if there weren't
-   any properties to replace.  */
+   is nil if the function _detected_ that it did not replace any
+   properties, non-nil otherwise.  */
 
 Lisp_Object
 set_text_properties (start, end, properties, object, signal_after_change_p)
@@ -1324,7 +1341,7 @@ set_text_properties (start, end, properties, object, signal_after_change_p)
       && XFASTINT (end) == SCHARS (object))
     {
       if (! STRING_INTERVALS (object))
-	return Qt;
+	return Qnil;
 
       STRING_SET_INTERVALS (object, NULL_INTERVAL);
       return Qt;
@@ -1703,23 +1720,26 @@ markers).  If OBJECT is a string, START and END are 0-based indices into it.  */
 /* Return the direction from which the text-property PROP would be
    inherited by any new text inserted at POS: 1 if it would be
    inherited from the char after POS, -1 if it would be inherited from
-   the char before POS, and 0 if from neither.  */
+   the char before POS, and 0 if from neither.
+   BUFFER can be either a buffer or nil (meaning current buffer).  */
 
 int
-text_property_stickiness (prop, pos)
-     Lisp_Object prop;
-     Lisp_Object pos;
+text_property_stickiness (prop, pos, buffer)
+     Lisp_Object prop, pos, buffer;
 {
   Lisp_Object prev_pos, front_sticky;
   int is_rear_sticky = 1, is_front_sticky = 0; /* defaults */
 
-  if (XINT (pos) > BEGV)
+  if (NILP (buffer))
+    XSETBUFFER (buffer, current_buffer);
+
+  if (XINT (pos) > BUF_BEGV (XBUFFER (buffer)))
     /* Consider previous character.  */
     {
       Lisp_Object rear_non_sticky;
 
       prev_pos = make_number (XINT (pos) - 1);
-      rear_non_sticky = Fget_text_property (prev_pos, Qrear_nonsticky, Qnil);
+      rear_non_sticky = Fget_text_property (prev_pos, Qrear_nonsticky, buffer);
 
       if (!NILP (CONSP (rear_non_sticky)
 		 ? Fmemq (prop, rear_non_sticky)
@@ -1729,7 +1749,7 @@ text_property_stickiness (prop, pos)
     }
 
   /* Consider following character.  */
-  front_sticky = Fget_text_property (pos, Qfront_sticky, Qnil);
+  front_sticky = Fget_text_property (pos, Qfront_sticky, buffer);
 
   if (EQ (front_sticky, Qt)
       || (CONSP (front_sticky)
@@ -1749,7 +1769,8 @@ text_property_stickiness (prop, pos)
      disambiguate.  Basically, rear-sticky wins, _except_ if the
      property that would be inherited has a value of nil, in which case
      front-sticky wins.  */
-  if (XINT (pos) == BEGV || NILP (Fget_text_property (prev_pos, prop, Qnil)))
+  if (XINT (pos) == BUF_BEGV (XBUFFER (buffer))
+      || NILP (Fget_text_property (prev_pos, prop, buffer)))
     return 1;
   else
     return -1;
@@ -2222,7 +2243,9 @@ If a character in a buffer has PROPERTY, new text inserted adjacent to
 the character doesn't inherit PROPERTY if NONSTICKINESS is non-nil,
 inherits it if NONSTICKINESS is nil.  The front-sticky and
 rear-nonsticky properties of the character overrides NONSTICKINESS.  */);
-  Vtext_property_default_nonsticky = Qnil;
+  /* Text property `syntax-table' should be nonsticky by default.  */
+  Vtext_property_default_nonsticky
+    = Fcons (Fcons (intern ("syntax-table"), Qt), Qnil);
 
   staticpro (&interval_insert_behind_hooks);
   staticpro (&interval_insert_in_front_hooks);
@@ -2273,6 +2296,7 @@ rear-nonsticky properties of the character overrides NONSTICKINESS.  */);
   defsubr (&Stext_properties_at);
   defsubr (&Sget_text_property);
   defsubr (&Sget_char_property);
+  defsubr (&Sget_char_property_and_overlay);
   defsubr (&Snext_char_property_change);
   defsubr (&Sprevious_char_property_change);
   defsubr (&Snext_single_char_property_change);
@@ -2291,3 +2315,6 @@ rear-nonsticky properties of the character overrides NONSTICKINESS.  */);
 /*  defsubr (&Serase_text_properties); */
 /*  defsubr (&Scopy_text_properties); */
 }
+
+/* arch-tag: 454cdde8-5f86-4faa-a078-101e3625d479
+   (do not change this comment) */

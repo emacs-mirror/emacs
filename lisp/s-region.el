@@ -1,6 +1,7 @@
 ;;; s-region.el --- set region using shift key
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: terminals
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -63,12 +64,12 @@
     (error "Non-vector key: %S" key)))
 
 (defun s-region-move-p1 (&rest arg)
-  "This is an overlay function to point-moving keys that are interactive \"p\""
+  "This is an overlay function to point-moving keys that are interactive \"p\"."
   (interactive "p")
   (apply (function s-region-move) arg))
 
 (defun s-region-move-p2 (&rest arg)
-  "This is an overlay function to point-moving keys that are interactive \"P\""
+  "This is an overlay function to point-moving keys that are interactive \"P\"."
   (interactive "P")
   (apply (function s-region-move) arg))
 
@@ -83,10 +84,10 @@
   (delete-overlay s-region-overlay))
 
 (defun s-region-bind (keylist &optional map)
-  "Bind shifted keys in KEYLIST to s-region-move-p1 or s-region-move-p2.
-Each key in KEYLIST is shifted and bound to one of the s-region-move
+  "Bind shifted keys in KEYLIST to `s-region-move-p1' or `s-region-move-p2'.
+Each key in KEYLIST is shifted and bound to one of the `s-region-move'
 functions provided it is already bound to some command or other.
-Optional third argument MAP specifies keymap to add binding to, defaulting
+Optional second argument MAP specifies keymap to add binding to, defaulting
 to global keymap."
   (let ((p2 (list 'scroll-up 'scroll-down
 		  'beginning-of-buffer 'end-of-buffer)))
@@ -121,4 +122,5 @@ to global keymap."
 
 (provide 's-region)
 
+;;; arch-tag: a471e912-18d7-4247-a29b-2100bca180ff
 ;;; s-region.el ends here

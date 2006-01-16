@@ -1,10 +1,10 @@
 ;;; calc-yank.el --- kill-ring functionality for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +28,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-yank () nil)
-
 
 ;;; Kill ring commands.
 
@@ -235,7 +232,7 @@
 			pos j)))))
 	(if (string-match "\\` *-?[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]? *\\'"
 			  (car data))
-	    (setq vals (list 'vec (string-to-int (car data))))
+	    (setq vals (list 'vec (string-to-number (car data))))
 	  (if (and (null arg)
 		   (string-match "[[{][^][{}]*[]}]" (car data)))
 	      (setq pos (match-beginning 0)
@@ -428,6 +425,14 @@
   (define-key calc-edit-mode-map "\r" 'calc-edit-return)
   (define-key calc-edit-mode-map "\C-c\C-c" 'calc-edit-finish))
 
+(defvar calc-original-buffer)
+(defvar calc-return-buffer)
+(defvar calc-one-window)
+(defvar calc-edit-handler)
+(defvar calc-restore-trail)
+(defvar calc-allow-ret)
+(defvar calc-edit-top)
+
 (defun calc-edit-mode (&optional handler allow-ret title)
   "Calculator editing mode.  Press RET, LFD, or C-c C-c to finish.
 To cancel the edit, simply kill the *Calc Edit* buffer."
@@ -443,7 +448,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (setq truncate-lines nil)
     (setq major-mode 'calc-edit-mode)
     (setq mode-name "Calc Edit")
-    (run-hooks 'calc-edit-mode-hook)
+    (run-mode-hooks 'calc-edit-mode-hook)
     (make-local-variable 'calc-original-buffer)
     (setq calc-original-buffer oldbuf)
     (make-local-variable 'calc-return-buffer)
@@ -456,17 +461,21 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (setq calc-restore-trail (get-buffer-window (calc-trail-buffer)))
     (make-local-variable 'calc-allow-ret)
     (setq calc-allow-ret allow-ret)
-    (erase-buffer)
-    (insert (or title title "Calc Edit Mode")
-	    ".  Press "
-	    (if (eq (lookup-key (current-global-map) "\e#") 'calc-dispatch)
-		"M-# M-# or C-c C-c"
-	      (if allow-ret "C-c C-c" "RET"))
-	    " to finish, "
-	    (if (eq (lookup-key (current-global-map) "\e#") 'calc-dispatch)
-		"M-# x"
-	      "C-x k RET")
-	    " to cancel.\n")))
+    (let ((inhibit-read-only t))
+      (erase-buffer))
+    (add-hook 'kill-buffer-hook (lambda () 
+                                  (let ((calc-edit-handler nil))
+                                    (calc-edit-finish t))
+                                  (message "(Cancelled)")) t t)
+    (insert (propertize
+             (concat 
+              (or title title "Calc Edit Mode. ")
+              "Press `C-c C-c'"
+              (if allow-ret "" " or RET")
+              " to finish, `C-x k RET' to cancel.\n\n")
+             'font-lock-face 'italic 'read-only t 'rear-nonsticky t 'front-sticky t))
+    (make-local-variable 'calc-edit-top)
+    (setq calc-edit-top (point))))
 (put 'calc-edit-mode 'mode-class 'special)
 
 (defun calc-show-edit-buffer ()
@@ -483,14 +492,17 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 	  (if win
 	      (delete-window win))))
     (set-buffer-modified-p nil)
-    (goto-char (point-min))
-    (forward-line 1)))
+    (goto-char calc-edit-top)))
 
 (defun calc-edit-return ()
   (interactive)
   (if (and (boundp 'calc-allow-ret) calc-allow-ret)
       (newline)
     (calc-edit-finish)))
+
+;; The variable calc-edit-disp-trail is local to calc-edit finish, but
+;; is used by calc-finish-selection-edit and calc-finish-stack-edit.
+(defvar calc-edit-disp-trail)
 
 (defun calc-edit-finish (&optional keep)
   "Finish calc-edit mode.  Parse buffer contents and push them on the stack."
@@ -507,19 +519,17 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 	(original calc-original-buffer)
 	(return calc-return-buffer)
 	(one-window calc-one-window)
-	(disp-trail calc-restore-trail))
+	(calc-edit-disp-trail calc-restore-trail))
     (save-excursion
       (when (or (null (buffer-name original))
 		(progn
 		  (set-buffer original)
 		  (not (eq major-mode 'calc-mode))))
 	(error "Original calculator buffer has been corrupted")))
-    (goto-char (point-min))
-    (when (looking-at "Calc Edit\\|Editing ")
-      (forward-line 1))
+    (goto-char calc-edit-top)
     (if (buffer-modified-p)
 	(eval calc-edit-handler))
-    (if one-window
+    (if (and one-window (not (one-window-p t)))
 	(delete-window))
     (if (get-buffer-window return)
 	(select-window (get-buffer-window return))
@@ -527,7 +537,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (if keep
 	(bury-buffer buf)
       (kill-buffer buf))
-    (if disp-trail
+    (if calc-edit-disp-trail
 	(calc-wrapper
 	 (calc-trail-display 1 t)))
     (message "")))
@@ -541,7 +551,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 
 (defun calc-finish-stack-edit (num)
   (let ((buf (current-buffer))
-	(str (buffer-substring (point) (point-max)))
+	(str (buffer-substring calc-edit-top (point-max)))
 	(start (point))
 	pos)
     (if (and (integerp num) (> num 1))
@@ -561,7 +571,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 	   (progn
 	     (set num (car vals))
 	     (calc-refresh-evaltos num))
-	 (if disp-trail
+	 (if calc-edit-disp-trail
 	     (calc-trail-display 1 t))
 	 (and vals
 	      (let ((calc-simplify-mode (if (eq last-command-char ?\C-j)
@@ -571,4 +581,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 		    (calc-enter-result num "edit" vals)
 		  (calc-enter-result 1 "edit" vals (- num))))))))))
 
+(provide 'calc-yank)
+
+;;; arch-tag: ca61019e-caca-4daa-b32c-b6afe372d5b5
 ;;; calc-yank.el ends here

@@ -1,5 +1,7 @@
 ;;; score-mode.el --- mode for editing Gnus score files
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+
+;; Copyright (C) 1996, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -18,15 +20,16 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'mm-util)			; for mm-auto-save-coding-system
+(require 'mm-util)			; for mm-universal-coding-system
+(require 'gnus-util)			; for gnus-pp, gnus-run-mode-hooks
 
 (defvar gnus-score-mode-hook nil
   "*Hook run in score mode buffers.")
@@ -52,7 +55,7 @@
   "Syntax table used in score-mode buffers.")
 
 ;; We need this to cope with non-ASCII scoring.
-(defvar score-mode-coding-system mm-auto-save-coding-system)
+(defvar score-mode-coding-system mm-universal-coding-system)
 
 ;;;###autoload
 (defun gnus-score-mode ()
@@ -69,7 +72,7 @@ This mode is an extended emacs-lisp mode.
   (setq mode-name "Score")
   (lisp-mode-variables nil)
   (make-local-variable 'gnus-score-edit-exit-function)
-  (run-hooks 'emacs-lisp-mode-hook 'gnus-score-mode-hook))
+  (gnus-run-mode-hooks 'emacs-lisp-mode-hook 'gnus-score-mode-hook))
 
 (defun gnus-score-make-menu-bar ()
   (unless (boundp 'gnus-score-menu)
@@ -93,7 +96,7 @@ This mode is an extended emacs-lisp mode.
   (let ((form (read (current-buffer))))
     (erase-buffer)
     (let ((emacs-lisp-mode-syntax-table score-mode-syntax-table))
-      (pp form (current-buffer))))
+      (gnus-pp form)))
   (goto-char (point-min)))
 
 (defun gnus-score-edit-exit ()
@@ -112,4 +115,5 @@ This mode is an extended emacs-lisp mode.
 
 (provide 'score-mode)
 
+;;; arch-tag: a74a416b-2505-4ad4-bc4e-a418c96b8845
 ;;; score-mode.el ends here

@@ -1,6 +1,7 @@
 ;;; macros.el --- non-primitive commands for keyboard macros
 
-;; Copyright (C) 1985, 86, 87, 92, 94, 95 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1995, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -63,7 +64,15 @@ bindings.
 
 To save a kbd macro, visit a file of Lisp code such as your `~/.emacs',
 use this command, and then save the file."
-  (interactive "CInsert kbd macro (name): \nP")
+  (interactive (list (intern (completing-read "Insert kbd macro (name): "
+					      obarray
+					      (lambda (elt)
+						(and (fboundp elt)
+						     (or (stringp (symbol-function elt))
+							 (vectorp (symbol-function elt))
+							 (get elt 'kmacro))))
+					      t))
+		     current-prefix-arg))
   (let (definition)
     (if (string= (symbol-name macroname) "")
 	(progn
@@ -150,6 +159,8 @@ use this command, and then save the file."
 		       (setq mods (cdr mods)))
 		     (cond ((= char ?\\)
 			    (insert "\\\\"))
+                           ((= char ?\")
+                            (insert "\\\""))
 			   ((= char ?\;)
 			    (insert "\\;"))
 			   ((= char 127)
@@ -238,8 +249,9 @@ Possibilities: \\<query-replace-map>
 
 ;;;###autoload
 (defun apply-macro-to-region-lines (top bottom &optional macro)
-  "For each complete line between point and mark, move to the beginning
-of the line, and run the last keyboard macro.
+  "Apply last keyboard macro to all lines in the region.
+For each line that begins in the region, move to the beginning of
+the line, and run the last keyboard macro.
 
 When called from lisp, this function takes two arguments TOP and
 BOTTOM, describing the current region.  TOP must be before BOTTOM.
@@ -275,8 +287,7 @@ and write a macro to massage a word into a table entry:
     \\C-x )
 
 and then select the region of un-tablified names and use
-`\\[apply-macro-to-region-lines]' to build the table from the names.
-"
+`\\[apply-macro-to-region-lines]' to build the table from the names."
   (interactive "r")
   (or macro
       (progn
@@ -284,10 +295,7 @@ and then select the region of un-tablified names and use
 	    (error "No keyboard macro has been defined"))
 	(setq macro last-kbd-macro)))
   (save-excursion
-    (let ((end-marker (progn
-			(goto-char bottom)
-			(beginning-of-line)
-			(point-marker)))
+    (let ((end-marker (copy-marker bottom))
 	  next-line-marker)
       (goto-char top)
       (if (not (bolp))
@@ -308,4 +316,5 @@ and then select the region of un-tablified names and use
 
 (provide 'macros)
 
+;;; arch-tag: 346ed1a5-1220-4bc8-b533-961ee704361f
 ;;; macros.el ends here

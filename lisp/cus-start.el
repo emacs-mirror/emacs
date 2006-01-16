@@ -1,6 +1,7 @@
 ;;; cus-start.el --- define customization properties of builtins
 ;;
-;; Copyright (C) 1997, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;
@@ -39,8 +40,6 @@
 	     (pre-abbrev-expand-hook abbrev-mode hook)
 	     ;; alloc.c
 	     (gc-cons-threshold alloc integer)
-	     (undo-limit undo integer)
-	     (undo-strong-limit undo integer)
 	     (garbage-collection-messages alloc boolean)
 	     ;; buffer.c
 	     (mode-line-format modeline sexp) ;Hard to do right.
@@ -53,20 +52,61 @@
 	     (ctl-arrow display boolean)
 	     (truncate-lines display boolean)
 	     (selective-display-ellipses display boolean)
-	     (indicate-empty-lines display boolean "21.1")
+	     (indicate-empty-lines fringe boolean "21.1")
+	     (indicate-buffer-boundaries
+	      fringe
+	      (choice
+	       (const :tag "No indicators" nil)
+	       (const :tag "On left, with arrows" left)
+	       (const :tag "On right, with arrows" right)
+	       (set :tag "Pick your own design"
+		    :value ((t . nil))
+		    :format "%{%t%}:\n%v\n%d"
+		    :doc "You can specify a default and then override it \
+for individual indicators.
+Leaving \"Default\" unchecked is equivalent with specifying a default of
+\"Do not show\"."
+		    (choice :tag "Default"
+			    :value (t . nil)
+			    (const :tag "Do not show" (t . nil))
+			    (const :tag "On the left" (t . left))
+			    (const :tag "On the right" (t . right)))
+		    (choice :tag "Top"
+			    :value (top . left)
+			    (const :tag "Do not show" (top . nil))
+			    (const :tag "On the left" (top . left))
+			    (const :tag "On the right" (top . right)))
+		    (choice :tag "Bottom"
+			    :value (bottom . left)
+			    (const :tag "Do not show" (bottom . nil))
+			    (const :tag "On the left" (bottom . left))
+			    (const :tag "On the right" (bottom . right)))
+		    (choice :tag "Up arrow"
+			    :value (up . left)
+			    (const :tag "Do not show" (up . nil))
+			    (const :tag "On the left" (up . left))
+			    (const :tag "On the right" (up . right)))
+		    (choice :tag "Down arrow"
+			    :value (down . left)
+			    (const :tag "Do not show" (down . nil))
+			    (const :tag "On the left" (down . left))
+			    (const :tag "On the right" (down . right))))
+	       (other :tag "On left, no arrows" t))
+	      "22.1")
 	     (scroll-up-aggressively windows
 				     (choice (const :tag "off" nil) number)
 				     "21.1")
 	     (scroll-down-aggressively windows
 				       (choice (const :tag "off" nil) number)
 				       "21.1")
+	     (line-spacing display (choice (const :tag "none" nil) integer))
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
 	     (shell-file-name execute file)
 	     (exec-path execute
-			(repeat (choice (const :tag "default" nil)
-					(file :format "%v"))))
+			(repeat (choice (const :tag "default directory" nil)
+					(directory :format "%v"))))
 	     ;; coding.c
 	     (inhibit-eol-conversion mule boolean)
 	     (eol-mnemonic-undecided mule string)
@@ -121,8 +161,10 @@
 				    (const :tag "always" t)))
 	     ;; fileio.c
 	     (insert-default-directory minibuffer boolean)
+	     (read-file-name-completion-ignore-case minibuffer boolean "22.1")
 	     ;; fns.c
 	     (use-dialog-box menu boolean "21.1")
+	     (use-file-dialog menu boolean "22.1")
 	     ;; frame.c
 	     (default-frame-alist frames
 	       (repeat (cons :format "%v"
@@ -131,6 +173,8 @@
 	     (mouse-highlight mouse (choice (const :tag "disabled" nil)
 					    (const :tag "always shown" t)
 					    (other :tag "hidden by keypress" 1)))
+	     ;; fringe.c
+	     (overflow-newline-into-fringe fringe boolean "22.1")
 	     ;; indent.c
 	     (indent-tabs-mode fill boolean)
 	     ;; keyboard.c
@@ -150,6 +194,33 @@
 	     (suggest-key-bindings keyboard (choice (const :tag "off" nil)
 						    (integer :tag "time" 2)
 						    (other :tag "on")))
+	     ;; macterm.c
+	     (mac-control-modifier mac (choice (const :tag "No modifier" nil)
+					       (const control) (const meta)
+					       (const alt) (const hyper)
+					       (const super)) "22.1")
+	     (mac-command-modifier mac (choice (const :tag "No modifier" nil)
+					       (const control) (const meta)
+					       (const alt) (const hyper)
+					       (const super)) "22.1")
+	     (mac-option-modifier mac (choice (const :tag "No modifier (work as option)" nil)
+					      (const control) (const meta)
+					      (const alt) (const hyper)
+					      (const super)) "22.1")
+	     (mac-function-modifier mac
+				    (choice (const :tag "No modifier (work as function)" nil)
+					    (const control) (const meta)
+					    (const alt) (const hyper)
+					    (const super)) "22.1")
+	     (mac-emulate-three-button-mouse mac
+					     (choice (const :tag "No emulation" nil)
+						     (const :tag "Option->2, Command->3" t)
+						     (const :tag "Command->2, Option->3" reverse))
+				    "22.1")
+	     (mac-wheel-button-is-mouse-2 mac boolean "22.1")
+	     (mac-pass-command-to-system mac boolean "22.1")
+	     (mac-pass-control-to-system mac boolean "22.1")
+	     (mac-allow-anti-aliasing mac boolean "22.1")
 
 ;; This is not good news because it will use the wrong
 ;; version-specific directories when you upgrade.  We need
@@ -166,6 +237,7 @@
 	     (history-length minibuffer
 			     (choice (const :tag "Infinite" t)
 				     integer))
+	     (history-delete-duplicates minibuffer boolean)
 	     (minibuffer-prompt-properties
 	      minibuffer
 	      (list
@@ -175,7 +247,7 @@
 				 :format "%t%n%h"
 				 :inline t
 				 (read-only t))
-			  (const :tag "Inviolable"
+			  (const :tag "Don't Enter"
 				 :doc "Prevent point from ever entering prompt"
 				 :format "%t%n%h"
 				 :inline t
@@ -200,6 +272,24 @@
 	     ;; syntax.c
 	     (parse-sexp-ignore-comments editing-basics boolean)
 	     (words-include-escapes editing-basics boolean)
+	     (open-paren-in-column-0-is-defun-start editing-basics boolean
+						    "21.1")
+             ;; term.c
+             (visible-cursor cursor boolean "22.1")
+	     ;; undo.c
+	     (undo-limit undo integer)
+	     (undo-strong-limit undo integer)
+	     (undo-outer-limit undo
+			       (choice integer
+				       (const :tag "No limit"
+					      :format "%t\n%d"
+					      :doc
+					      "With this choice, \
+the undo info for the current command never gets discarded.
+This should only be chosen under exceptional circumstances,
+since it could result in memory overflow and make Emacs crash."
+					      nil))
+			       "22.1")
 	     ;; window.c
 	     (temp-buffer-show-function windows (choice (const nil) function))
 	     (display-buffer-function windows (choice (const nil) function))
@@ -254,22 +344,26 @@
 	     (line-number-display-limit display
 					(choice integer
 						(const :tag "No limit" nil)))
+	     (line-number-display-limit-width display integer)
 	     (highlight-nonselected-windows display boolean)
 	     (message-log-max debug (choice (const :tag "Disable" nil)
 					    (integer :menu-tag "lines"
 						     :format "%v")
 					    (other :tag "Unlimited" t)))
 	     (unibyte-display-via-language-environment mule boolean)
+	     (blink-cursor-alist cursor alist "22.1")
 	     ;; xfaces.c
 	     (scalable-fonts-allowed display boolean)
 	     ;; xfns.c
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))
+	     (x-use-old-gtk-file-dialog menu boolean "22.1")
+	     (x-gtk-show-hidden-files menu boolean "22.1")
 	     ;; xterm.c
              (mouse-autoselect-window display boolean "21.3")
 	     (x-use-underline-position-properties display boolean "21.3")
 	     (x-stretch-cursor display boolean "21.1")))
-      this symbol group type native-p version
+      this symbol group type standard version native-p
       ;; This function turns a value
       ;; into an expression which produces that value.
       (quoter (lambda (sexp)
@@ -278,8 +372,6 @@
 			(and (listp sexp)
 			     (memq (car sexp) '(lambda)))
 			(stringp sexp)
-;; 			(and (fboundp 'characterp)
-;; 			     (characterp sexp))
 			(numberp sexp))
 		    sexp
 		  (list 'quote sexp)))))
@@ -290,6 +382,12 @@
 	  group (nth 1 this)
 	  type (nth 2 this)
 	  version (nth 3 this)
+	  ;; If we did not specify any standard value expression above,
+	  ;; use the current value as the standard value.
+	  standard (if (nthcdr 4 this)
+		       (nth 4 this)
+		     (when (default-boundp symbol)
+		       (funcall quoter (default-value symbol))))
 	  ;; Don't complain about missing variables which are
 	  ;; irrelevant to this platform.
 	  native-p (save-match-data
@@ -298,8 +396,20 @@
 		       (eq system-type 'ms-dos))
 		      ((string-match "\\`w32-" (symbol-name symbol))
 		       (eq system-type 'windows-nt))
+		      ((string-match "\\`mac-" (symbol-name symbol))
+		       (eq window-system 'mac))
+		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
+		       (or (boundp 'gtk)
+			   (and window-system
+				(not (eq window-system 'pc))
+				(not (eq window-system 'mac))
+				(not (eq system-type 'windows-nt)))))
 		      ((string-match "\\`x-" (symbol-name symbol))
 		       (fboundp 'x-create-frame))
+		      ((string-match "selection" (symbol-name symbol))
+		       (fboundp 'x-selection-exists-p))
+		      ((string-match "fringe" (symbol-name symbol))
+		       (fboundp 'define-fringe-bitmap))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!
@@ -307,8 +417,7 @@
 	     (message "Note, built-in variable `%S' not bound" symbol))
       ;; Save the standard value, unless we already did.
       (or (get symbol 'standard-value)
-	  (put symbol 'standard-value
-	       (list (funcall quoter (default-value symbol)))))
+	  (put symbol 'standard-value (list standard)))
       ;; If this is NOT while dumping Emacs,
       ;; set up the rest of the customization info.
       (unless purify-flag
@@ -319,6 +428,8 @@
 	(put symbol 'custom-version version)))))
 
 (custom-add-to-group 'iswitchb 'read-buffer-function 'custom-variable)
+(custom-add-to-group 'font-lock 'open-paren-in-column-0-is-defun-start
+		     'custom-variable)
 (put 'selection-coding-system 'custom-set
      (lambda (symbol value)
        (set-selection-coding-system value)
@@ -331,4 +442,5 @@
 (unless purify-flag
   (provide 'cus-start))
 
+;;; arch-tag: 4502730d-bcb3-4f5e-99a3-a86f2d54af60
 ;;; cus-start.el ends here

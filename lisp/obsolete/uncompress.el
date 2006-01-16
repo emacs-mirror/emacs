@@ -1,6 +1,7 @@
 ;;; uncompress.el --- auto-decompression hook for visiting .Z files
 
-;; Copyright (C) 1992, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: files
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -83,14 +84,10 @@ It then selects a major mode from the uncompressed file name and contents."
   (goto-char (point-min))
   (message "Uncompressing...done")
   (set-buffer-modified-p nil)
-  (make-local-variable 'write-file-hooks)
-  (or (memq 'uncompress-backup-file write-file-hooks)
-      (setq write-file-hooks (cons 'uncompress-backup-file write-file-hooks)))
+  (add-hook 'write-file-functions 'uncompress-backup-file nil t)
   (normal-mode))
 
-(or (memq 'find-compressed-version find-file-not-found-hooks)
-    (setq find-file-not-found-hooks
-	  (cons 'find-compressed-version find-file-not-found-hooks)))
+(add-hook 'find-file-not-found-functions 'find-compressed-version)
 
 (defun find-compressed-version ()
   "Hook to read and uncompress the compressed version of a file."
@@ -114,4 +111,5 @@ It then selects a major mode from the uncompressed file name and contents."
 
 (provide 'uncompress)
 
+;;; arch-tag: 626658d4-fcce-499a-990d-d165f2ed7da3
 ;;; uncompress.el ends here

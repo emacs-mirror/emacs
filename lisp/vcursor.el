@@ -1,6 +1,7 @@
 ;;; vcursor.el --- manipulate an alternative ("virtual") cursor
 
-;; Copyright (C) 1994, 1996, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1998, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author:   Peter Stephenson <pws@ibmth.df.unipi.it>
 ;; Maintainer: FSF
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -314,7 +315,7 @@
 ;;  - The logic in vcursor-find-window is rather complicated and
 ;;    therefore bug-prone, though in practice it seems to work OK.
 ;;
-;; Possible enhnacements:
+;; Possible enhancements:
 ;; It would be easy to implement vcursor-push (save vcursor position
 ;; as mark and deactivate) and vcursor-pop (deactivate vcursor and
 ;; move to last pushed position) functions.
@@ -342,16 +343,21 @@ disable the vcursor."
   :type '(choice (const t) (const nil) (const copy))
   :group 'vcursor)
 
+(defcustom vcursor-modifiers (list 'control 'shift)
+  "*A list of modifiers that are used to define vcursor key bindings."
+  :type '(repeat symbol)
+  :group 'vcursor)
+
 ;; Needed for defcustom, must be up here
 (defun vcursor-cs-binding (base &optional meta)
-  (vector (let ((key (list 'control 'shift (intern base))))
+  (vector (let ((key (append vcursor-modifiers (list (intern base)))))
 	    (if meta
 		(cons 'meta key)
 	      key))))
 
 (defun vcursor-bind-keys (var value)
   "Alter the value of the variable VAR to VALUE, binding keys as required.
-VAR is usually vcursor-key-bindings.  Normally this function is called
+VAR is usually `vcursor-key-bindings'.  Normally this function is called
 on loading vcursor and from the customize package."
   (set var value)
   (cond
@@ -459,8 +465,8 @@ on loading vcursor and from the customize package."
 
 (defcustom vcursor-key-bindings nil
   "*How to bind keys when vcursor is loaded.
-If t, guess; if xterm, use bindings suitable for an X terminal; if
-oemacs, use bindings which work on a PC with Oemacs. If nil, don't
+If t, guess; if `xterm', use bindings suitable for an X terminal; if
+`oemacs', use bindings which work on a PC with Oemacs.  If nil, don't
 define any key bindings.
 
 Default is nil."
@@ -509,7 +515,7 @@ scrolling set this.  It is used by the `vcursor-auto-disable' code.")
 
 (defvar vcursor-use-vcursor-map nil
   "Non-nil if the vcursor map is mapped directly onto the main keymap.
-See vcursor-toggle-vcursor-map.")
+See `vcursor-toggle-vcursor-map'.")
 (make-variable-buffer-local 'vcursor-use-vcursor-map)
 
 (defvar vcursor-map nil "Keymap for vcursor command.")
@@ -570,7 +576,7 @@ With optional NOT-THIS non-nil never return the current window.
 
 With NEW-WIN non-nil, display the virtual cursor buffer in another
 window if the virtual cursor is not currently visible \(note, however,
-that this function never changes window-point\).
+that this function never changes `window-point'\).
 
 With THIS-FRAME non-nil, don't search other frames for a new window
 \(though if the vcursor is already off-frame then its current window is
@@ -669,15 +675,15 @@ another window.  With LEAVE-W, use the current `vcursor-window'."
     (insert text))
   )
 
-(defun vcursor-relative-move (fn &rest args)
-  "Use FUNCTION with arbitrary ARG1 ... to move the virtual cursor.
+(defun vcursor-relative-move (func &rest args)
+  "Call FUNC with arbitrary ARGS ... to move the virtual cursor.
 
 This is called by most of the virtual-cursor motion commands."
   (let (text opoint)
     (save-excursion
       (vcursor-locate)
       (setq opoint (point))
-      (apply fn args)
+      (apply func args)
       (and (eq opoint (point-max)) (eq opoint (point))
 	   (signal 'end-of-buffer nil))
       (vcursor-move (point))
@@ -725,7 +731,7 @@ The vcursor will always appear in an unselected window."
 )
 
 (defun vcursor-scroll-down (&optional n)
-  "Scroll down the vcursor window ARG lines or near-full screen if none.
+  "Scroll down the vcursor window ARG lines or near full screen if none.
 The vcursor will always appear in an unselected window."
 
   (interactive "P")
@@ -786,10 +792,10 @@ is visible in the current one."
   (setq vcursor-last-command t)
   )
 
-(defun vcursor-get-char-count (fn &rest args)
-  "Apply FN to ARG1 ... and return the number of characters moved.
-Point is temporarily set to the virtual cursor position before FN is
-called.
+(defun vcursor-get-char-count (func &rest args)
+  "Apply FUNC to ARGS ... and return the number of characters moved.
+Point is temporarily set to the virtual cursor position before FUNC
+is called.
 
 This is called by most of the virtual-cursor copying commands to find
 out how much to copy."
@@ -798,7 +804,7 @@ out how much to copy."
   (save-excursion
     (set-buffer (overlay-buffer vcursor-overlay))
     (let ((start (goto-char (overlay-start vcursor-overlay))))
-      (- (progn (apply fn args) (point)) start)))
+      (- (progn (apply func args) (point)) start)))
   )
 
 ;; Make sure the virtual cursor is active.  Unless arg is non-nil,
@@ -817,13 +823,12 @@ Next time you use it, it will start from point.
 
 With a positive prefix ARG, the first window in cyclic order
 displaying the virtual cursor (or which was recently displaying the
-virtual cursor) will be deleted unless it's the selected
-window.
+virtual cursor) will be deleted unless it's the selected window.
 
 With a negative prefix argument, enable the virtual cursor: make it
 active at the same point as the real cursor.
 
-Copying mode is always turned off:  the next use of the vcursor will
+Copying mode is always turned off: the next use of the vcursor will
 not copy text until you turn it on again."
 
   (interactive "P")
@@ -849,7 +854,7 @@ This is the next window cyclically after one currently showing the
 virtual cursor, or else after the current selected window.  If there
 is no other window, the current window is split.
 
-Arguments N and optional ALL-FRAMES are the same as with other-window.
+Arguments N and optional ALL-FRAMES are the same as with `other-window'.
 ALL-FRAMES is also used to decide whether to split the window."
 
   (interactive "p")
@@ -1037,7 +1042,7 @@ ARG is as for `end-of-line'."
 
 (defun vcursor-beginning-of-buffer (&optional arg)
   "Move the virtual cursor to the beginning of its buffer.
-ARG is as for beginning-of-buffer."
+ARG is as for `beginning-of-buffer'."
   (interactive "P")
   (vcursor-relative-move
    (lambda (arg)
@@ -1048,7 +1053,7 @@ ARG is as for beginning-of-buffer."
 
 (defun vcursor-end-of-buffer (&optional arg)
   "Move the virtual cursor to the end of its buffer.
-ARG is as for end-of-buffer.
+ARG is as for `end-of-buffer'.
 
 Actually, the vcursor is moved to the second from last character or it
 would be invisible."
@@ -1111,7 +1116,7 @@ is called interactively, so prefix argument etc. are usable."
   "Copy up to ARGth line after virtual cursor position.
 With no argument, copy to the end of the current line.
 
-Behaviour with regard to newlines is similar (but not identical) to
+Behavior with regard to newlines is similar (but not identical) to
 `kill-line'; the main difference is that whitespace at the end of the
 line is treated like ordinary characters."
 
@@ -1161,4 +1166,5 @@ Disabling the vcursor automatically turns this off."
 
 (provide 'vcursor)
 
+;;; arch-tag: cdfe1cdc-2c46-4046-88e4-ed57d20f7aca
 ;;; vcursor.el ends here

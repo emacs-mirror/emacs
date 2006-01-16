@@ -1,5 +1,5 @@
 /* Asynchronous timers.
-   Copyright (C) 2000 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,17 +15,17 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
-#include <lisp.h>
 #include <signal.h>
+#include <stdio.h>
+#include <lisp.h>
 #include <syssignal.h>
 #include <systime.h>
 #include <blockinput.h>
 #include <atimer.h>
-#include <stdio.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -231,7 +231,7 @@ stop_other_atimers (t)
       struct atimer *p, *prev;
 
       /* See if T is active.  */
-      for (p = atimers, prev = 0; p && p != t; p = p->next)
+      for (p = atimers, prev = NULL; p && p != t; prev = p, p = p->next)
 	;
 
       if (p == t)
@@ -364,6 +364,8 @@ alarm_signal_handler (signo)
 {
   EMACS_TIME now;
 
+  SIGNAL_THREAD_CHECK (signo);
+
   EMACS_GET_TIME (now);
   pending_atimers = 0;
 
@@ -375,7 +377,9 @@ alarm_signal_handler (signo)
 
       t = atimers;
       atimers = atimers->next;
+#ifndef MAC_OSX
       t->fn (t);
+#endif
 
       if (t->type == ATIMER_CONTINUOUS)
 	{
@@ -387,11 +391,16 @@ alarm_signal_handler (signo)
 	  t->next = free_atimers;
 	  free_atimers = t;
 	}
+#ifdef MAC_OSX
+      /* Fix for Ctrl-G.  Perhaps this should apply to all platforms. */
+      t->fn (t); 
+#endif
 
       EMACS_GET_TIME (now);
     }
 
-  set_alarm ();
+  if (! pending_atimers)
+    set_alarm ();
 }
 
 
@@ -433,3 +442,6 @@ init_atimer ()
   pending_atimers = 0;
   signal (SIGALRM, alarm_signal_handler);
 }
+
+/* arch-tag: e6308261-eec6-404b-89fb-6e5909518d70
+   (do not change this comment) */

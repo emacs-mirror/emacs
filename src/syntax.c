@@ -1,5 +1,6 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 87, 93, 94, 95, 97, 1998, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2002,
+                 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #include <config.h>
@@ -26,6 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "keymap.h"
+#include "regex.h"
 
 /* Make syntax table lookup grant data in gl_state.  */
 #define SYNTAX_ENTRY_VIA_PROPERTY
@@ -97,11 +99,12 @@ static int find_start_modiff;
 static int find_defun_start P_ ((int, int));
 static int back_comment P_ ((int, int, int, int, int, int *, int *));
 static int char_quoted P_ ((int, int));
-static Lisp_Object skip_chars P_ ((int, int, Lisp_Object, Lisp_Object));
+static Lisp_Object skip_chars P_ ((int, int, Lisp_Object, Lisp_Object, int));
 static Lisp_Object scan_lists P_ ((int, int, int, int));
 static void scan_sexps_forward P_ ((struct lisp_parse_state *,
 				    int, int, int, int,
 				    int, Lisp_Object, int));
+static int in_classes P_ ((int, Lisp_Object));
 
 
 struct gl_state_s gl_state;		/* Global state of syntax parser.  */
@@ -130,7 +133,7 @@ update_syntax_table (charpos, count, init, object)
 {
   Lisp_Object tmp_table;
   int cnt = 0, invalidate = 1;
-  INTERVAL i, oldi;
+  INTERVAL i;
 
   if (init)
     {
@@ -161,7 +164,7 @@ update_syntax_table (charpos, count, init, object)
       gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
       goto update;
     }
-  oldi = i = count > 0 ? gl_state.forward_i : gl_state.backward_i;
+  i = count > 0 ? gl_state.forward_i : gl_state.backward_i;
 
   /* We are guaranteed to be called with CHARPOS either in i,
      or further off.  */
@@ -246,7 +249,8 @@ update_syntax_table (charpos, count, init, object)
 	    }
 	  else
 	    {
-	      gl_state.b_property = i->position + LENGTH (i) - gl_state.offset;
+	      gl_state.b_property
+		= i->position + LENGTH (i) - gl_state.offset;
 	      gl_state.backward_i = i;
 	    }
 	  return;
@@ -255,7 +259,12 @@ update_syntax_table (charpos, count, init, object)
 	{
 	  if (count > 0)
 	    {
-	      gl_state.e_property = i->position + LENGTH (i) - gl_state.offset;
+	      gl_state.e_property
+		= i->position + LENGTH (i) - gl_state.offset
+		/* e_property at EOB is not set to ZV but to ZV+1, so that
+		   we can do INC(from);UPDATE_SYNTAX_TABLE_FORWARD without
+		   having to check eob between the two.  */
+		+ (NULL_INTERVAL_P (next_interval (i)) ? 1 : 0);
 	      gl_state.forward_i = i;
 	    }
 	  else
@@ -290,10 +299,13 @@ char_quoted (charpos, bytepos)
 
   DEC_BOTH (charpos, bytepos);
 
-  while (bytepos >= beg)
+  while (charpos >= beg)
     {
+      int c;
+
       UPDATE_SYNTAX_TABLE_BACKWARD (charpos);
-      code = SYNTAX (FETCH_CHAR (bytepos));
+      c = FETCH_CHAR (bytepos);
+      code = SYNTAX (c);
       if (! (code == Scharquote || code == Sescape))
 	break;
 
@@ -337,7 +349,7 @@ dec_bytepos (bytepos)
    It should be the last one before POS, or nearly the last.
 
    When open_paren_in_column_0_is_defun_start is nonzero,
-   the beginning of every line is treated as a defun-start.
+   only the beginning of the buffer is treated as a defun-start.
 
    We record the information about where the scan started
    and what its result was, so that another call in the same area
@@ -352,6 +364,12 @@ find_defun_start (pos, pos_byte)
      int pos, pos_byte;
 {
   int opoint = PT, opoint_byte = PT_BYTE;
+
+  if (!open_paren_in_column_0_is_defun_start)
+    {
+      find_start_value_byte = BEGV_BYTE;
+      return BEGV;
+    }
 
   /* Use previous finding, if it's valid and applies to this inquiry.  */
   if (current_buffer == find_start_buffer
@@ -372,24 +390,25 @@ find_defun_start (pos, pos_byte)
      syntax-tables.  */
   gl_state.current_syntax_table = current_buffer->syntax_table;
   gl_state.use_global = 0;
-  if (open_paren_in_column_0_is_defun_start)
+  while (PT > BEGV)
     {
-      while (PT > BEGV)
+      int c;
+
+      /* Open-paren at start of line means we may have found our
+	 defun-start.  */
+      c = FETCH_CHAR (PT_BYTE);
+      if (SYNTAX (c) == Sopen)
 	{
-	  /* Open-paren at start of line means we may have found our
-	     defun-start.  */
-	  if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
-	    {
-	      SETUP_SYNTAX_TABLE (PT + 1, -1);	/* Try again... */
-	      if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
-		break;
-	      /* Now fallback to the default value.  */
-	      gl_state.current_syntax_table = current_buffer->syntax_table;
-	      gl_state.use_global = 0;
-	    }
-	  /* Move to beg of previous line.  */
-	  scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -2, 1);
+	  SETUP_SYNTAX_TABLE (PT + 1, -1);	/* Try again... */
+	  c = FETCH_CHAR (PT_BYTE);
+	  if (SYNTAX (c) == Sopen)
+	    break;
+	  /* Now fallback to the default value.  */
+	  gl_state.current_syntax_table = current_buffer->syntax_table;
+	  gl_state.use_global = 0;
 	}
+      /* Move to beg of previous line.  */
+      scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -2, 1);
     }
 
   /* Record what we found, for the next try.  */
@@ -609,7 +628,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 
 	case Sendcomment:
 	  if (SYNTAX_FLAGS_COMMENT_STYLE (syntax) == comstyle
-	      && (SYNTAX_FLAGS_COMMENT_NESTED (prev_syntax)
+	      && ((com2end && SYNTAX_FLAGS_COMMENT_NESTED (prev_syntax))
 		  || SYNTAX_FLAGS_COMMENT_NESTED (syntax)) == comnested)
 	    /* This is the same style of comment ender as ours. */
 	    {
@@ -661,7 +680,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
     {
       from = comstart_pos;
       from_byte = comstart_byte;
-      /* Globals are correct now.  */
+      UPDATE_SYNTAX_TABLE_FORWARD (from - 1);
     }
   else
     {
@@ -911,7 +930,7 @@ text property.  */)
   p = SDATA (string);
   code = (enum syntaxcode) syntax_spec_code[*p++];
   if (((int) code & 0377) == 0377)
-    error ("invalid syntax description letter: %c", p[-1]);
+    error ("Invalid syntax description letter: %c", p[-1]);
 
   if (code == Sinherit)
     return Qnil;
@@ -974,7 +993,7 @@ text property.  */)
 DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
   "cSet syntax for character: \nsSet syntax for %s to: ",
        doc: /* Set syntax for character CHAR according to string NEWENTRY.
-The syntax is changed only for table SYNTAX_TABLE, which defaults to
+The syntax is changed only for table SYNTAX-TABLE, which defaults to
  the current buffer's syntax table.
 The first character of NEWENTRY should be one of the following:
   Space or -  whitespace syntax.    w   word constituent.
@@ -1274,25 +1293,31 @@ scan_words (from, count)
   return from;
 }
 
-DEFUN ("forward-word", Fforward_word, Sforward_word, 1, 1, "p",
+DEFUN ("forward-word", Fforward_word, Sforward_word, 0, 1, "p",
        doc: /* Move point forward ARG words (backward if ARG is negative).
 Normally returns t.
 If an edge of the buffer or a field boundary is reached, point is left there
 and the function returns nil.  Field boundaries are not noticed if
 `inhibit-field-text-motion' is non-nil.  */)
-     (count)
-     Lisp_Object count;
+     (arg)
+     Lisp_Object arg;
 {
+  Lisp_Object tmp;
   int orig_val, val;
-  CHECK_NUMBER (count);
 
-  val = orig_val = scan_words (PT, XINT (count));
+  if (NILP (arg))
+    XSETFASTINT (arg, 1);
+  else
+    CHECK_NUMBER (arg);
+
+  val = orig_val = scan_words (PT, XINT (arg));
   if (! orig_val)
-    val = XINT (count) > 0 ? ZV : BEGV;
+    val = XINT (arg) > 0 ? ZV : BEGV;
 
   /* Avoid jumping out of an input field.  */
-  val = XFASTINT (Fconstrain_to_field (make_number (val), make_number (PT),
-				       Qt, Qnil, Qnil));
+  tmp = Fconstrain_to_field (make_number (val), make_number (PT),
+			     Qt, Qnil, Qnil);
+  val = XFASTINT (tmp);
 
   SET_PT (val);
   return val == orig_val ? Qt : Qnil;
@@ -1307,13 +1332,13 @@ except that `]' is never special and `\\' quotes `^', `-' or `\\'
  (but not as the end of a range; quoting is never needed there).
 Thus, with arg "a-zA-Z", this skips letters stopping before first nonletter.
 With arg "^a-zA-Z", skips nonletters stopping before first letter.
-Returns the distance traveled, either zero or positive.
-Note that char classes, e.g. `[:alpha:]', are not currently supported;
-they will be treated as literals.  */)
+Char classes, e.g. `[:alpha:]', are supported.
+
+Returns the distance traveled, either zero or positive.  */)
      (string, lim)
      Lisp_Object string, lim;
 {
-  return skip_chars (1, 0, string, lim);
+  return skip_chars (1, 0, string, lim, 1);
 }
 
 DEFUN ("skip-chars-backward", Fskip_chars_backward, Sskip_chars_backward, 1, 2, 0,
@@ -1323,7 +1348,7 @@ Returns the distance traveled, either zero or negative.  */)
      (string, lim)
      Lisp_Object string, lim;
 {
-  return skip_chars (0, 0, string, lim);
+  return skip_chars (0, 0, string, lim, 1);
 }
 
 DEFUN ("skip-syntax-forward", Fskip_syntax_forward, Sskip_syntax_forward, 1, 2, 0,
@@ -1335,7 +1360,7 @@ This function returns the distance traveled, either zero or positive.  */)
      (syntax, lim)
      Lisp_Object syntax, lim;
 {
-  return skip_chars (1, 1, syntax, lim);
+  return skip_chars (1, 1, syntax, lim, 0);
 }
 
 DEFUN ("skip-syntax-backward", Fskip_syntax_backward, Sskip_syntax_backward, 1, 2, 0,
@@ -1347,13 +1372,14 @@ This function returns the distance traveled, either zero or negative.  */)
      (syntax, lim)
      Lisp_Object syntax, lim;
 {
-  return skip_chars (0, 1, syntax, lim);
+  return skip_chars (0, 1, syntax, lim, 0);
 }
 
 static Lisp_Object
-skip_chars (forwardp, syntaxp, string, lim)
+skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
      int forwardp, syntaxp;
      Lisp_Object string, lim;
+     int handle_iso_classes;
 {
   register unsigned int c;
   unsigned char fastmap[0400];
@@ -1369,12 +1395,14 @@ skip_chars (forwardp, syntaxp, string, lim)
   int size_byte;
   const unsigned char *str;
   int len;
+  Lisp_Object iso_classes;
 
   CHECK_STRING (string);
   char_ranges = (int *) alloca (SCHARS (string) * (sizeof (int)) * 2);
   string_multibyte = STRING_MULTIBYTE (string);
   str = SDATA (string);
   size_byte = SBYTES (string);
+  iso_classes = Qnil;
 
   /* Adjust the multibyteness of the string to that of the buffer.  */
   if (multibyte != string_multibyte)
@@ -1430,15 +1458,54 @@ skip_chars (forwardp, syntaxp, string, lim)
 	fastmap[syntax_spec_code[c & 0377]] = 1;
       else
 	{
+	  if (handle_iso_classes && c == '['
+	      && i_byte < size_byte
+	      && STRING_CHAR (str + i_byte, size_byte - i_byte) == ':')
+	    {
+	      const unsigned char *class_beg = str + i_byte + 1;
+	      const unsigned char *class_end = class_beg;
+	      const unsigned char *class_limit = str + size_byte - 2;
+	      /* Leave room for the null.	 */
+	      unsigned char class_name[CHAR_CLASS_MAX_LENGTH + 1];
+	      re_wctype_t cc;
+
+	      if (class_limit - class_beg > CHAR_CLASS_MAX_LENGTH)
+		class_limit = class_beg + CHAR_CLASS_MAX_LENGTH;
+
+	      while (class_end < class_limit
+		     && *class_end >= 'a' && *class_end <= 'z')
+		class_end++;
+
+	      if (class_end == class_beg
+		  || *class_end != ':' || class_end[1] != ']')
+		goto not_a_class_name;
+
+	      bcopy (class_beg, class_name, class_end - class_beg);
+	      class_name[class_end - class_beg] = 0;
+
+	      cc = re_wctype (class_name);
+	      if (cc == 0)
+		error ("Invalid ISO C character class");
+
+	      iso_classes = Fcons (make_number (cc), iso_classes);
+
+	      i_byte = class_end + 2 - str;
+	      continue;
+	    }
+
+	not_a_class_name:
 	  if (c == '\\')
 	    {
 	      if (i_byte == size_byte)
 		break;
 
-	      c = STRING_CHAR_AND_LENGTH (str+i_byte, size_byte-i_byte, len);
+	      c = STRING_CHAR_AND_LENGTH (str + i_byte,
+					  size_byte - i_byte, len);
 	      i_byte += len;
 	    }
-	  if (i_byte < size_byte
+	  /* Treat `-' as range character only if another character
+	     follows.  */
+	  if (i_byte + 1 < size_byte
 	      && str[i_byte] == '-')
 	    {
 	      unsigned int c2;
@@ -1446,11 +1513,9 @@ skip_chars (forwardp, syntaxp, string, lim)
 	      /* Skip over the dash.  */
 	      i_byte++;
 
-	      if (i_byte == size_byte)
-		break;
-
 	      /* Get the end of the range.  */
-	      c2 =STRING_CHAR_AND_LENGTH (str+i_byte, size_byte-i_byte, len);
+	      c2 = STRING_CHAR_AND_LENGTH (str + i_byte,
+					   size_byte - i_byte, len);
 	      i_byte += len;
 
 	      if (SINGLE_BYTE_CHAR_P (c))
@@ -1504,6 +1569,18 @@ skip_chars (forwardp, syntaxp, string, lim)
     int start_point = PT;
     int pos = PT;
     int pos_byte = PT_BYTE;
+    unsigned char *p = PT_ADDR, *endp, *stop;
+
+    if (forwardp)
+      {
+	endp = (XINT (lim) == GPT) ? GPT_ADDR : CHAR_POS_ADDR (XINT (lim));
+	stop = (pos < GPT && GPT < XINT (lim)) ? GPT_ADDR : endp;
+      }
+    else
+      {
+	endp = CHAR_POS_ADDR (XINT (lim));
+	stop = (pos >= GPT && GPT > XINT (lim)) ? GAP_END_ADDR : endp;
+      }
 
     immediate_quit = 1;
     if (syntaxp)
@@ -1512,60 +1589,85 @@ skip_chars (forwardp, syntaxp, string, lim)
 	if (forwardp)
 	  {
 	    if (multibyte)
-	      {
-		if (pos < XINT (lim))
-		  while (fastmap[(int) SYNTAX (FETCH_CHAR (pos_byte))])
+	      while (1)
+		{
+		  int nbytes;
+
+		  if (p >= stop)
 		    {
-		      /* Since we already checked for multibyteness,
-			 avoid using INC_BOTH which checks again.  */
-		      INC_POS (pos_byte);
-		      pos++;
-		      if (pos >= XINT (lim))
-		    	break;
-		      UPDATE_SYNTAX_TABLE_FORWARD (pos);
+		      if (p >= endp)
+			break;
+		      p = GAP_END_ADDR;
+		      stop = endp;
 		    }
-	      }
+		  c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, nbytes);
+		  if (! fastmap[(int) SYNTAX (c)])
+		    break;
+		  p += nbytes, pos++, pos_byte += nbytes;
+		  UPDATE_SYNTAX_TABLE_FORWARD (pos);
+		}
 	    else
-	      {
-		while (pos < XINT (lim)
-		       && fastmap[(int) SYNTAX (FETCH_BYTE (pos))])
-		  {
-		    pos++;
-		    UPDATE_SYNTAX_TABLE_FORWARD (pos);
-		  }
-	      }
+	      while (1)
+		{
+		  if (p >= stop)
+		    {
+		      if (p >= endp)
+			break;
+		      p = GAP_END_ADDR;
+		      stop = endp;
+		    }
+		  if (! fastmap[(int) SYNTAX (*p)])
+		    break;
+		  p++, pos++;
+		  UPDATE_SYNTAX_TABLE_FORWARD (pos);
+		}
 	  }
 	else
 	  {
 	    if (multibyte)
-	      {
-		while (pos > XINT (lim))
-		  {
-		    int savepos = pos_byte;
-		    /* Since we already checked for multibyteness,
-		       avoid using DEC_BOTH which checks again.  */
-		    pos--;
-		    DEC_POS (pos_byte);
-		    UPDATE_SYNTAX_TABLE_BACKWARD (pos);
-		    if (!fastmap[(int) SYNTAX (FETCH_CHAR (pos_byte))])
-		      {
-			pos++;
-			pos_byte = savepos;
-			break;
-		      }
-		  }
-	      }
-	    else
-	      {
-		if (pos > XINT (lim))
-		  while (fastmap[(int) SYNTAX (FETCH_BYTE (pos - 1))])
+	      while (1)
+		{
+		  unsigned char *prev_p;
+		  int nbytes;
+
+		  if (p <= stop)
 		    {
-		      pos--;
-		      if (pos <= XINT (lim))
+		      if (p <= endp)
 			break;
-		      UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
+		      p = GPT_ADDR;
+		      stop = endp;
 		    }
-	      }
+		  prev_p = p;
+		  while (--p >= stop && ! CHAR_HEAD_P (*p));
+		  PARSE_MULTIBYTE_SEQ (p, MAX_MULTIBYTE_LENGTH, nbytes);
+		  if (prev_p - p > nbytes)
+		    p = prev_p - 1, c = *p, nbytes = 1;
+		  else
+		    c = STRING_CHAR (p, MAX_MULTIBYTE_LENGTH);
+		  pos--, pos_byte -= nbytes;
+		  UPDATE_SYNTAX_TABLE_BACKWARD (pos);
+		  if (! fastmap[(int) SYNTAX (c)])
+		    {
+		      pos++;
+		      pos_byte += nbytes;
+		      break;
+		    }
+		}
+	    else
+	      while (1)
+		{
+		  if (p <= stop)
+		    {
+		      if (p <= endp)
+			break;
+		      p = GPT_ADDR;
+		      stop = endp;
+		    }
+		  if (! fastmap[(int) SYNTAX (p[-1])])
+		    break;
+		  p--, pos--;
+		  UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
+		}
 	  }
       }
     else
@@ -1573,9 +1675,27 @@ skip_chars (forwardp, syntaxp, string, lim)
 	if (forwardp)
 	  {
 	    if (multibyte)
-	      while (pos < XINT (lim))
+	      while (1)
 		{
-		  c = FETCH_MULTIBYTE_CHAR (pos_byte);
+		  int nbytes;
+
+		  if (p >= stop)
+		    {
+		      if (p >= endp)
+			break;
+		      p = GAP_END_ADDR;
+		      stop = endp;
+		    }
+		  c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, nbytes);
+
+		  if (! NILP (iso_classes) && in_classes (c, iso_classes))
+		    {
+		      if (negate)
+			break;
+		      else
+			goto fwd_ok;
+		    }
+
 		  if (SINGLE_BYTE_CHAR_P (c))
 		    {
 		      if (!fastmap[c])
@@ -1598,21 +1718,65 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      if (!(negate ^ (i < n_char_ranges)))
 			break;
 		    }
-		  INC_BOTH (pos, pos_byte);
+		fwd_ok:
+		  p += nbytes, pos++, pos_byte += nbytes;
 		}
 	    else
-	      while (pos < XINT (lim) && fastmap[FETCH_BYTE (pos)])
-		pos++;
+	      while (1)
+		{
+		  if (p >= stop)
+		    {
+		      if (p >= endp)
+			break;
+		      p = GAP_END_ADDR;
+		      stop = endp;
+		    }
+
+		  if (!NILP (iso_classes) && in_classes (*p, iso_classes))
+		    {
+		      if (negate)
+			break;
+		      else
+			goto fwd_unibyte_ok;
+		    }
+
+		  if (!fastmap[*p])
+		    break;
+		fwd_unibyte_ok:
+		  p++, pos++;
+		}
 	  }
 	else
 	  {
 	    if (multibyte)
-	      while (pos > XINT (lim))
+	      while (1)
 		{
-		  int prev_pos_byte = pos_byte;
+		  unsigned char *prev_p;
+		  int nbytes;
 
-		  DEC_POS (prev_pos_byte);
-		  c = FETCH_MULTIBYTE_CHAR (prev_pos_byte);
+		  if (p <= stop)
+		    {
+		      if (p <= endp)
+			break;
+		      p = GPT_ADDR;
+		      stop = endp;
+		    }
+		  prev_p = p;
+		  while (--p >= stop && ! CHAR_HEAD_P (*p));
+		  PARSE_MULTIBYTE_SEQ (p, MAX_MULTIBYTE_LENGTH, nbytes);
+		  if (prev_p - p > nbytes)
+		    p = prev_p - 1, c = *p, nbytes = 1;
+		  else
+		    c = STRING_CHAR (p, MAX_MULTIBYTE_LENGTH);
+
+		  if (! NILP (iso_classes) && in_classes (c, iso_classes))
+		    {
+		      if (negate)
+			break;
+		      else
+			goto back_ok;
+		    }
+
 		  if (SINGLE_BYTE_CHAR_P (c))
 		    {
 		      if (!fastmap[c])
@@ -1627,12 +1791,33 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      if (!(negate ^ (i < n_char_ranges)))
 			break;
 		    }
-		  pos--;
-		  pos_byte = prev_pos_byte;
+		back_ok:
+		  pos--, pos_byte -= nbytes;
 		}
 	    else
-	      while (pos > XINT (lim) && fastmap[FETCH_BYTE (pos - 1)])
-		pos--;
+	      while (1)
+		{
+		  if (p <= stop)
+		    {
+		      if (p <= endp)
+			break;
+		      p = GPT_ADDR;
+		      stop = endp;
+		    }
+
+		  if (! NILP (iso_classes) && in_classes (p[-1], iso_classes))
+		    {
+		      if (negate)
+			break;
+		      else
+			goto back_unibyte_ok;
+		    }
+
+		  if (!fastmap[p[-1]])
+		    break;
+		back_unibyte_ok:
+		  p--, pos--;
+		}
 	  }
       }
 
@@ -1652,6 +1837,30 @@ skip_chars (forwardp, syntaxp, string, lim)
 
     return make_number (PT - start_point);
   }
+}
+
+/* Return 1 if character C belongs to one of the ISO classes
+   in the list ISO_CLASSES.  Each class is represented by an
+   integer which is its type according to re_wctype.  */
+
+static int
+in_classes (c, iso_classes)
+     int c;
+     Lisp_Object iso_classes;
+{
+  int fits_class = 0;
+
+  while (! NILP (iso_classes))
+    {
+      Lisp_Object elt;
+      elt = XCAR (iso_classes);
+      iso_classes = XCDR (iso_classes);
+
+      if (re_iswctype (c, XFASTINT (elt)))
+	fits_class = 1;
+    }
+
+  return fits_class;
 }
 
 /* Jump over a comment, assuming we are at the beginning of one.
@@ -2036,7 +2245,7 @@ scan_lists (from, count, depth, sexpflag)
 	  INC_BOTH (from, from_byte);
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
 	  if (from < stop && comstart_first
-	      && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from_byte))
+	      && (c = FETCH_CHAR (from_byte), SYNTAX_COMSTART_SECOND (c))
 	      && parse_sexp_ignore_comments)
 	    {
 	      /* we have encountered a comment start sequence and we
@@ -2310,8 +2519,8 @@ scan_lists (from, count, depth, sexpflag)
 	    case Sstring_fence:
 	      while (1)
 		{
-		  DEC_BOTH (from, from_byte);
 		  if (from == stop) goto lose;
+		  DEC_BOTH (from, from_byte);
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from);
 		  if (!char_quoted (from, from_byte)
 		      && (c = FETCH_CHAR (from_byte),
@@ -2326,19 +2535,13 @@ scan_lists (from, count, depth, sexpflag)
 	      while (1)
 		{
 		  if (from == stop) goto lose;
-		  temp_pos = from_byte;
-		  if (! NILP (current_buffer->enable_multibyte_characters))
-		    DEC_POS (temp_pos);
-		  else
-		    temp_pos--;
-		  UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
-		  if (!char_quoted (from - 1, temp_pos)
-		      && stringterm == (c = FETCH_CHAR (temp_pos))
+		  DEC_BOTH (from, from_byte);
+		  UPDATE_SYNTAX_TABLE_BACKWARD (from);
+		  if (!char_quoted (from, from_byte)
+		      && stringterm == (c = FETCH_CHAR (from_byte))
 		      && SYNTAX_WITH_MULTIBYTE_CHECK (c) == Sstring)
 		    break;
-		  DEC_BOTH (from, from_byte);
 		}
-	      DEC_BOTH (from, from_byte);
 	      if (!depth && sexpflag) goto done2;
 	      break;
 	    default:
@@ -2367,7 +2570,7 @@ scan_lists (from, count, depth, sexpflag)
 	   Fcons (build_string ("Unbalanced parentheses"),
 		  Fcons (make_number (last_good),
 			 Fcons (make_number (from), Qnil))));
-
+  abort ();
   /* NOTREACHED */
 }
 
@@ -2506,8 +2709,8 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
 #define INC_FROM				\
 do { prev_from = from;				\
      prev_from_byte = from_byte; 		\
-     prev_from_syntax				\
-       = SYNTAX_WITH_FLAGS (FETCH_CHAR (prev_from_byte)); \
+     temp = FETCH_CHAR (prev_from_byte);	\
+     prev_from_syntax = SYNTAX_WITH_FLAGS (temp); \
      INC_BOTH (from, from_byte);		\
      if (from < end)				\
        UPDATE_SYNTAX_TABLE_FORWARD (from);	\
@@ -2582,7 +2785,8 @@ do { prev_from = from;				\
   curlevel->last = -1;
 
   SETUP_SYNTAX_TABLE (prev_from, 1);
-  prev_from_syntax = SYNTAX_WITH_FLAGS (FETCH_CHAR (prev_from_byte));
+  temp = FETCH_CHAR (prev_from_byte);
+  prev_from_syntax = SYNTAX_WITH_FLAGS (temp);
   UPDATE_SYNTAX_TABLE_FORWARD (from);
 
   /* Enter the loop at a place appropriate for initial state.  */
@@ -2604,12 +2808,23 @@ do { prev_from = from;				\
       INC_FROM;
       code = prev_from_syntax & 0xff;
 
-      if (code == Scomment)
+      if (from < end
+	  && SYNTAX_FLAGS_COMSTART_FIRST (prev_from_syntax)
+	  && (c1 = FETCH_CHAR (from_byte),
+	      SYNTAX_COMSTART_SECOND (c1)))
+	/* Duplicate code to avoid a complex if-expression
+	   which causes trouble for the SGI compiler.  */
 	{
-	  state.comstyle = SYNTAX_FLAGS_COMMENT_STYLE (prev_from_syntax);
-	  state.incomment = (SYNTAX_FLAGS_COMMENT_NESTED (prev_from_syntax) ?
-			     1 : -1);
+	  /* Record the comment style we have entered so that only
+	     the comment-end sequence of the same style actually
+	     terminates the comment section.  */
+	  state.comstyle = SYNTAX_COMMENT_STYLE (c1);
+	  comnested = SYNTAX_FLAGS_COMMENT_NESTED (prev_from_syntax);
+	  comnested = comnested || SYNTAX_COMMENT_NESTED (c1);
+	  state.incomment = comnested ? 1 : -1;
 	  state.comstr_start = prev_from;
+	  INC_FROM;
+	  code = Scomment;
 	}
       else if (code == Scomment_fence)
 	{
@@ -2621,24 +2836,13 @@ do { prev_from = from;				\
 	  state.comstr_start = prev_from;
 	  code = Scomment;
 	}
-     else if (from < end)
-	if (SYNTAX_FLAGS_COMSTART_FIRST (prev_from_syntax))
-	  if (c1 = FETCH_CHAR (from_byte),
-	      SYNTAX_COMSTART_SECOND (c1))
-	    /* Duplicate code to avoid a complex if-expression
-	       which causes trouble for the SGI compiler.  */
-	    {
-	      /* Record the comment style we have entered so that only
-		 the comment-end sequence of the same style actually
-		 terminates the comment section.  */
-	      state.comstyle = SYNTAX_COMMENT_STYLE (c1);
-	      comnested = SYNTAX_FLAGS_COMMENT_NESTED (prev_from_syntax);
-	      comnested = comnested || SYNTAX_COMMENT_NESTED (c1);
-	      state.incomment = comnested ? 1 : -1;
-	      state.comstr_start = prev_from;
-	      INC_FROM;
-	      code = Scomment;
-	    }
+      else if (code == Scomment)
+	{
+	  state.comstyle = SYNTAX_FLAGS_COMMENT_STYLE (prev_from_syntax);
+	  state.incomment = (SYNTAX_FLAGS_COMMENT_NESTED (prev_from_syntax) ?
+			     1 : -1);
+	  state.comstr_start = prev_from;
+	}
 
       if (SYNTAX_FLAGS_PREFIX (prev_from_syntax))
 	continue;
@@ -2661,7 +2865,8 @@ do { prev_from = from;				\
 	  while (from < end)
 	    {
 	      /* Some compilers can't handle this inside the switch.  */
-	      temp = SYNTAX (FETCH_CHAR (from_byte));
+	      temp = FETCH_CHAR (from_byte);
+	      temp = SYNTAX (temp);
 	      switch (temp)
 		{
 		case Scharquote:
@@ -2815,7 +3020,7 @@ Parsing stops at TO or when certain criteria are met;
  point is set to where parsing stops.
 If fifth arg OLDSTATE is omitted or nil,
  parsing assumes that FROM is the beginning of a function.
-Value is a list of ten elements describing final state of parsing:
+Value is a list of elements describing final state of parsing:
  0. depth in parens.
  1. character address of start of innermost containing list; nil if none.
  2. character address of start of last complete sexp terminated.
@@ -2834,7 +3039,7 @@ If third arg TARGETDEPTH is non-nil, parsing stops if the depth
 in parentheses becomes equal to TARGETDEPTH.
 Fourth arg STOPBEFORE non-nil means stop when come to
  any character that starts a sexp.
-Fifth arg OLDSTATE is a nine-element list like what this function returns.
+Fifth arg OLDSTATE is a list like what this function returns.
  It is used to initialize the state of the parse.  Elements number 1, 2, 6
  and 8 are ignored; you can leave off element 8 (the last) entirely.
 Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.
@@ -2970,6 +3175,14 @@ syms_of_syntax ()
 
   staticpro (&Vsyntax_code_object);
 
+  staticpro (&gl_state.object);
+  staticpro (&gl_state.global_code);
+  staticpro (&gl_state.current_syntax_table);
+  staticpro (&gl_state.old_prop);
+
+  /* Defined in regex.c */
+  staticpro (&re_match_object);
+
   Qscan_error = intern ("scan-error");
   staticpro (&Qscan_error);
   Fput (Qscan_error, Qerror_conditions,
@@ -3023,3 +3236,6 @@ See the info node `(elisp)Syntax Properties' for a description of the
   defsubr (&Sbackward_prefix_chars);
   defsubr (&Sparse_partial_sexp);
 }
+
+/* arch-tag: 3e297b9f-088e-4b64-8f4c-fb0b3443e412
+   (do not change this comment) */

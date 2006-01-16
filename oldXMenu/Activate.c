@@ -1,5 +1,5 @@
-/* $Header: /cvs/emacs/oldXMenu/Activate.c,v 1.4 2002/04/22 18:27:03 jhd Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 #include "copyright.h"
 
@@ -82,9 +82,24 @@
 
 #include <config.h>
 #include "XMenuInt.h"
+#include <X11/keysym.h>
 
 /* For debug, set this to 0 to not grab the keyboard on menu popup */
 int x_menu_grab_keyboard = 1;
+
+typedef void (*Wait_func)();
+
+static Wait_func wait_func;
+static void* wait_data;
+
+void
+XMenuActivateSetWaitFunction (func, data)
+     Wait_func func;
+     void *data;
+{
+  wait_func = func;
+  wait_data = data;
+}
 
 int
 XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
@@ -118,6 +133,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
     Window root, child;
     int root_x, root_y, win_x, win_y;
     unsigned int mask;
+    KeySym keysym;
 
     /*
      * Define and allocate a foreign event queue to hold events
@@ -267,6 +283,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
      * Begin event processing loop.
      */
     while (1) {
+        if (wait_func) (*wait_func) (wait_data);
 	XNextEvent(display, &event);	/* Get next event. */
 	switch (event.type) {		/* Dispatch on the event type. */
     case Expose:
@@ -444,6 +461,18 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 		}
 		selection = True;
 		break;
+        case KeyPress:
+        case KeyRelease:
+                keysym = XLookupKeysym (&event.xkey, 0);
+
+                /* Pop down on C-g and Escape.  */
+                if ((keysym == XK_g && (event.xkey.state & ControlMask) != 0)
+                    || keysym == XK_Escape) /* Any escape, ignore modifiers.  */
+                  {
+                    ret_val = XM_NO_SELECT;
+                    selection = True;
+                  }
+               break;
 	    default:
 		/*
 		 * If AEQ mode is enabled then queue the event.
@@ -558,6 +587,8 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 	free((char *)feq_tmp);
     }
 
+    wait_func = 0;
+
     /*
      * Return successfully.
      */
@@ -565,3 +596,6 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
     return(ret_val);
 
 }
+
+/* arch-tag: 6b90b578-ecea-4328-b460-a0c96963f872
+   (do not change this comment) */

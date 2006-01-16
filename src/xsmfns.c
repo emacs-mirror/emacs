@@ -1,6 +1,6 @@
 /* Session management module for systems which understand the X Session
    management protocol.
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,14 +16,17 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
 
 #ifdef HAVE_X_SM
 
 #include <X11/SM/SMlib.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #else
@@ -42,16 +45,12 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/param.h>
 #include <stdio.h>
 
+#include "lisp.h"
 #include "systime.h"
 #include "sysselect.h"
-#include "lisp.h"
 #include "termhooks.h"
 #include "termopts.h"
-
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 1024
-#endif /* not MAXPATHLEN */
-
+#include "xterm.h"
 
 /* The user login name.  */
 
@@ -69,40 +68,46 @@ static int ice_fd = -1;
 
 static int doing_interact = False;
 
-/* The session manager object for the session manager connection */
+/* The session manager object for the session manager connection.  */
 
 static SmcConn smc_conn;
 
-/* The client session id for this session */
+/* The client session id for this session.  */
+
 static char *client_id;
 
-/* The full path name to the Emacs program */
+/* The full path name to the Emacs program.  */
+
 static char *emacs_program;
 
-/* The client session id for this session as a lisp object. */
+/* The client session id for this session as a lisp object.  */
 
 Lisp_Object Vx_session_id;
 
 /* The id we had the previous session.  This is only available if we
-   have been started by the session manager with SMID_OPT. */
+   have been started by the session manager with SMID_OPT.  */
 
 Lisp_Object Vx_session_previous_id;
 
 /* The option we tell the session manager to start Emacs with when
-   restarting Emacs.  The client_id is appended. */
+   restarting Emacs.  The client_id is appended.  */
 
 #define SMID_OPT "--smid="
 
 
+/* The option to start Emacs without the splash screen when
+   restarting Emacs.  */
+
+#define NOSPLASH_OPT "--no-splash"
+
+
 /* Handle any messages from the session manager.  If no connection is
    open to a session manager, just return 0.
-   Otherwise returns the number of events stored in buffer BUFP,
-   which can hold up to *NUMCHARS characters.  At most one event is
-   stored, a SAVE_SESSION_EVENT. */
+   Otherwise returns 1 if SAVE_SESSION_EVENT is stored in buffer BUFP.  */
+
 int
-x_session_check_input (bufp, numchars)
+x_session_check_input (bufp)
      struct input_event *bufp;
-     int *numchars;
 {
   SELECT_TYPE read_fds;
   EMACS_TIME tmout;
@@ -118,7 +123,7 @@ x_session_check_input (bufp, numchars)
   /* Reset this so wo can check kind after callbacks have been called by
      IceProcessMessages.  The smc_interact_CB sets the kind to
      SAVE_SESSION_EVENT, but we don't know beforehand if that callback
-     will be called. */
+     will be called.  */
   emacs_event.kind = NO_EVENT;
 
   if (select (ice_fd+1, &read_fds,
@@ -135,20 +140,16 @@ x_session_check_input (bufp, numchars)
 
 
   /* Check if smc_interact_CB was called and we shall generate a
-     SAVE_SESSION_EVENT. */
-  if (*numchars > 0 && emacs_event.kind != NO_EVENT)
-    {
-      bcopy (&emacs_event, bufp, sizeof (struct input_event));
-      bufp++;
-      (*numchars)--;
+     SAVE_SESSION_EVENT.  */
+  if (emacs_event.kind == NO_EVENT)
+    return 0;
 
-      return 1;
-    }
-
-  return 0;
+  bcopy (&emacs_event, bufp, sizeof (struct input_event));
+  return 1;
 }
 
-/* Return non-zero if we have a connection to a session manager.*/
+/* Return non-zero if we have a connection to a session manager.  */
+
 int
 x_session_have_connection ()
 {
@@ -157,7 +158,8 @@ x_session_have_connection ()
 
 /* This is called when the session manager says it is OK to interact with the
    user.  Here we set the kind to SAVE_SESSION_EVENT so an event is generated.
-   Then lisp code can interact with the user. */
+   Then lisp code can interact with the user.  */
+
 static void
 smc_interact_CB (smcConn, clientData)
      SmcConn smcConn;
@@ -173,7 +175,8 @@ smc_interact_CB (smcConn, clientData)
    are started in the correct directory.
 
    If this is a shutdown and we can request to interact with the user,
-   we do so, because we don't know what the lisp code might do. */
+   we do so, because we don't know what the lisp code might do.  */
+
 static void
 smc_save_yourself_CB (smcConn,
                       clientData,
@@ -197,10 +200,10 @@ smc_save_yourself_CB (smcConn,
   int val_idx = 0;
   int props_idx = 0;
 
-  char cwd[MAXPATHLEN+1];
+  char *cwd = NULL;
   char *smid_opt;
 
-  /* How to start a new instance of Emacs */
+  /* How to start a new instance of Emacs.  */
   props[props_idx] = &prop_ptr[props_idx];
   props[props_idx]->name = SmCloneCommand;
   props[props_idx]->type = SmLISTofARRAY8;
@@ -210,7 +213,7 @@ smc_save_yourself_CB (smcConn,
   props[props_idx]->vals[0].value = emacs_program;
   ++props_idx;
 
-  /* The name of the program */
+  /* The name of the program.  */
   props[props_idx] = &prop_ptr[props_idx];
   props[props_idx]->name = SmProgram;
   props[props_idx]->type = SmARRAY8;
@@ -220,11 +223,11 @@ smc_save_yourself_CB (smcConn,
   props[props_idx]->vals[0].value = SDATA (Vinvocation_name);
   ++props_idx;
 
-  /* How to restart Emacs (i.e.: /path/to/emacs --smid=xxxx). */
+  /* How to restart Emacs (i.e.: /path/to/emacs --smid=xxxx --no-splash).  */
   props[props_idx] = &prop_ptr[props_idx];
   props[props_idx]->name = SmRestartCommand;
   props[props_idx]->type = SmLISTofARRAY8;
-  props[props_idx]->num_vals = 2; /* 2 values: /path/to/emacs, --smid=xxx */
+  props[props_idx]->num_vals = 3; /* /path/to/emacs, --smid=xxx --no-splash  */
   props[props_idx]->vals = &values[val_idx];
   props[props_idx]->vals[0].length = strlen (emacs_program);
   props[props_idx]->vals[0].value = emacs_program;
@@ -235,10 +238,13 @@ smc_save_yourself_CB (smcConn,
 
   props[props_idx]->vals[1].length = strlen (smid_opt);
   props[props_idx]->vals[1].value = smid_opt;
-  val_idx += 2;
+
+  props[props_idx]->vals[2].length = strlen (NOSPLASH_OPT);
+  props[props_idx]->vals[2].value = NOSPLASH_OPT;
+  val_idx += 3;
   ++props_idx;
 
-  /* User id */
+  /* User id.  */
   props[props_idx] = &prop_ptr[props_idx];
   props[props_idx]->name = SmUserID;
   props[props_idx]->type = SmARRAY8;
@@ -248,12 +254,9 @@ smc_save_yourself_CB (smcConn,
   props[props_idx]->vals[0].value = SDATA (Vuser_login_name);
   ++props_idx;
 
-  /* The current directory property, not mandatory */
-#ifdef HAVE_GETCWD
-  if (getcwd (cwd, MAXPATHLEN+1) != 0)
-#else
-  if (getwd (cwd) != 0)
-#endif
+  cwd = get_current_dir_name ();
+
+  if (cwd)
     {
       props[props_idx] = &prop_ptr[props_idx];
       props[props_idx]->name = SmCurrentDirectory;
@@ -270,18 +273,22 @@ smc_save_yourself_CB (smcConn,
 
   xfree (smid_opt);
 
-  /* See if we maybe shall interact with the user. */
+  if (cwd)
+    free (cwd);
+
+  /* See if we maybe shall interact with the user.  */
   if (interactStyle != SmInteractStyleAny
       || ! shutdown
       || saveType == SmSaveLocal
       || ! SmcInteractRequest (smcConn, SmDialogNormal, smc_interact_CB, 0))
     {
-      /* No interaction, we are done saving ourself. */
+      /* No interaction, we are done saving ourself.  */
       SmcSaveYourselfDone (smcConn, True);
     }
 }
 
-/* According to the SM specification, this shall close the connection */
+/* According to the SM specification, this shall close the connection.  */
+
 static void
 smc_die_CB (smcConn, clientData)
      SmcConn smcConn;
@@ -295,7 +302,8 @@ smc_die_CB (smcConn, clientData)
    According to the SM specification, we should not interact with the
    user between smc_save_yourself_CB is called and until smc_save_complete_CB
    is called.  It seems like a lot of job to implement this and it doesn't
-   even seem necessary. */
+   even seem necessary.  */
+
 static void
 smc_save_complete_CB (smcConn, clientData)
      SmcConn smcConn;
@@ -313,7 +321,8 @@ smc_shutdown_cancelled_CB (smcConn, clientData)
 }
 
 /* Error handlers for SM and ICE.  We don't want to exit Emacs just
-   because there is some error in the session management. */
+   because there is some error in the session management.  */
+
 static void
 smc_error_handler (smcConn,
                    swap,
@@ -330,7 +339,7 @@ smc_error_handler (smcConn,
      int severity;
      SmPointer values;
 {
-  /* Empty */
+  /* Empty  */
 }
 
 static void
@@ -349,7 +358,7 @@ ice_error_handler (iceConn,
      int severity;
      IcePointer values;
 {
-  /* Empty */
+  /* Empty  */
 }
 
 
@@ -357,12 +366,13 @@ static void
 ice_io_error_handler (iceConn)
      IceConn iceConn;
 {
-  /* Connection probably gone. */
+  /* Connection probably gone.  */
   ice_fd = -1;
 }
 
 /* This is called when the ICE connection is created or closed.  The SM library
-   uses ICE as it transport protocol. */
+   uses ICE as it transport protocol.  */
+
 static void
 ice_conn_watch_CB (iceConn, clientData, opening, watchData)
      IceConn iceConn;
@@ -394,9 +404,39 @@ ice_conn_watch_CB (iceConn, clientData, opening, watchData)
 #endif /* ! defined (SIGIO) */
 }
 
-/* Try to open a connection to the session manager. */
+/* Create the client leader window.  */
+
+static void
+create_client_leader_window (dpyinfo, client_id)
+     struct x_display_info *dpyinfo;
+     char *client_id;
+{
+  Window w;
+  XClassHint class_hints;
+  Atom sm_id;
+
+  w = XCreateSimpleWindow (dpyinfo->display,
+                           dpyinfo->root_window,
+                           -1, -1, 1, 1,
+                           CopyFromParent, CopyFromParent, CopyFromParent);
+
+  class_hints.res_name = (char *) SDATA (Vx_resource_name);
+  class_hints.res_class = (char *) SDATA (Vx_resource_class);
+  XSetClassHint (dpyinfo->display, w, &class_hints);
+  XStoreName (dpyinfo->display, w, class_hints.res_name);
+
+  sm_id = XInternAtom (dpyinfo->display, "SM_CLIENT_ID", False);
+  XChangeProperty (dpyinfo->display, w, sm_id, XA_STRING, 8, PropModeReplace,
+                   client_id, strlen (client_id));
+
+  dpyinfo->client_leader_window = w;
+}
+
+/* Try to open a connection to the session manager.  */
+
 void
-x_session_initialize ()
+x_session_initialize (dpyinfo)
+     struct x_display_info *dpyinfo;
 {
 #define SM_ERRORSTRING_LEN 512
   char errorstring[SM_ERRORSTRING_LEN];
@@ -405,17 +445,17 @@ x_session_initialize ()
   int  name_len = 0;
 
   /* Check if we where started by the session manager.  If so, we will
-     have a previous id. */
+     have a previous id.  */
   if (! EQ (Vx_session_previous_id, Qnil) && STRINGP (Vx_session_previous_id))
     previous_id = SDATA (Vx_session_previous_id);
 
-  /* Construct the path to the Emacs program. */
+  /* Construct the path to the Emacs program.  */
   if (! EQ (Vinvocation_directory, Qnil))
     name_len += strlen (SDATA (Vinvocation_directory));
   name_len += strlen (SDATA (Vinvocation_name));
 
   /* This malloc will not be freed, but it is only done once, and hopefully
-     not very large  */
+     not very large   */
   emacs_program = xmalloc (name_len + 1);
   emacs_program[0] = '\0';
 
@@ -424,7 +464,7 @@ x_session_initialize ()
   strcat (emacs_program, SDATA (Vinvocation_name));
 
   /* The SM protocol says all callbacks are mandatory, so set up all
-     here and in the mask passed to SmcOpenConnection */
+     here and in the mask passed to SmcOpenConnection.  */
   callbacks.save_yourself.callback = smc_save_yourself_CB;
   callbacks.save_yourself.client_data = 0;
   callbacks.die.callback = smc_die_CB;
@@ -434,17 +474,17 @@ x_session_initialize ()
   callbacks.shutdown_cancelled.callback = smc_shutdown_cancelled_CB;
   callbacks.shutdown_cancelled.client_data = 0;
 
-  /* Set error handlers. */
+  /* Set error handlers.  */
   SmcSetErrorHandler (smc_error_handler);
   IceSetErrorHandler (ice_error_handler);
   IceSetIOErrorHandler (ice_io_error_handler);
 
-  /* Install callback for when connection status changes. */
+  /* Install callback for when connection status changes.  */
   IceAddConnectionWatch (ice_conn_watch_CB, 0);
 
   /* Open the connection to the session manager.  A failure is not
      critical, it usually means that no session manager is running.
-     The errorstring is here for debugging. */
+     The errorstring is here for debugging.  */
   smc_conn = SmcOpenConnection (NULL, NULL, 1, 0,
                                 (SmcSaveYourselfProcMask|
                                  SmcDieProcMask|
@@ -457,7 +497,17 @@ x_session_initialize ()
                                 errorstring);
 
   if (smc_conn != 0)
-    Vx_session_id = make_string (client_id, strlen (client_id));
+    {
+      Vx_session_id = make_string (client_id, strlen (client_id));
+
+#ifdef USE_GTK
+      /* GTK creats a leader window by itself, but we need to tell
+         it about our client_id.  */
+      gdk_set_sm_client_id (client_id);
+#else
+      create_client_leader_window (dpyinfo, client_id);
+#endif
+    }
 }
 
 
@@ -535,3 +585,6 @@ See also `emacs-save-session-functions', `emacs-session-save' and
 }
 
 #endif /* HAVE_X_SM */
+
+/* arch-tag: 56a2c58c-adfa-430a-b772-130abd29fd2e
+   (do not change this comment) */

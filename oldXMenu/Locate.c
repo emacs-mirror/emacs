@@ -1,7 +1,7 @@
 #include "copyright.h"
 
-/* $Header: /cvs/emacs/oldXMenu/Locate.c,v 1.1 1999/10/03 19:35:09 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
  * XMenu:	MIT Project Athena, X Window system menu package
@@ -76,3 +76,6 @@ XMenuLocate(display, menu, p_num, s_num, x_pos, y_pos, ul_x, ul_y, width, height
     _XMErrorCode = XME_NO_ERROR;
     return(XM_SUCCESS);
 }
+
+/* arch-tag: 1ff94bab-cf67-4c92-bff4-dc0130153173
+   (do not change this comment) */

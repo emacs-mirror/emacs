@@ -1,5 +1,6 @@
 /*
-   Copyright (C) 1986, 1988, 1990, 1991 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1988, 1990, 1991, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /*
  * For Emacs in SunView/Sun-Windows: (supported by Sun Unix v3.2 or greater)
@@ -498,3 +499,6 @@ int interpose_on_window (argc, argv)
 	(tty_view, input_event_filter_function, NOTIFY_SAFE);
 }
 #endif XVIEW
+
+/* arch-tag: 7a2e7105-c059-418a-b3d9-5b5de96abb4e
+   (do not change this comment) */

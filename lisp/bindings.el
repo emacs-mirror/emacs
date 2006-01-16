@@ -1,7 +1,7 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
-;; Copyright (C) 1985,86,87,92,93,94,95,96,99,2000, 2001
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996, 1999,
+;;   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -20,15 +20,15 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
 ;;; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ;;; Special formatting conventions are used in this file!
 ;;;
-;;; a backslash-newline is used at the beginning of a documentation string
+;;; A backslash-newline is used at the beginning of a documentation string
 ;;; when that string should be stored in the file etc/DOCnnn, not in core.
 ;;;
 ;;; Such strings read into Lisp as numbers (during the pure-loading phase).
@@ -123,7 +123,7 @@ corresponding to the mode line clicked."
 
 (defvar mode-line-coding-system-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line mouse-3]
+    (define-key map [mode-line mouse-1]
       (lambda (e)
 	(interactive "e")
 	(save-selected-window
@@ -135,12 +135,14 @@ corresponding to the mode line clicked."
   "Local keymap for the coding-system part of the mode line.")
 
 
-(defun mode-line-change-eol ()
+(defun mode-line-change-eol (event)
   "Cycle through the various possible kinds of end-of-line styles."
-  (interactive)
-  (let ((eol (coding-system-eol-type buffer-file-coding-system)))
-    (set-buffer-file-coding-system
-     (cond ((eq eol 0) 'dos) ((eq eol 1) 'mac) (t 'unix)))))
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (let ((eol (coding-system-eol-type buffer-file-coding-system)))
+      (set-buffer-file-coding-system
+       (cond ((eq eol 0) 'dos) ((eq eol 1) 'mac) (t 'unix))))))
 
 (defvar mode-line-eol-desc-cache nil)
 
@@ -154,7 +156,7 @@ corresponding to the mode line clicked."
       (setq desc
 	    (propertize
 	     mnemonic
-	     'help-echo (format "%s end-of-line; mouse-3 to cycle"
+	     'help-echo (format "%s end-of-line; mouse-1 to cycle"
 				(if (eq eol 0) "Unix-style LF"
 				  (if (eq eol 1) "Dos-style CRLF"
 				    (if (eq eol 2) "Mac-style CR"
@@ -162,8 +164,9 @@ corresponding to the mode line clicked."
 	     'keymap
 	     (eval-when-compile
 	       (let ((map (make-sparse-keymap)))
-		 (define-key map [mode-line mouse-3] 'mode-line-change-eol)
-		 map))))
+		 (define-key map [mode-line mouse-1] 'mode-line-change-eol)
+		 map))
+	     'mouse-face 'mode-line-highlight))
       (push (cons eol (cons mnemonic desc)) mode-line-eol-desc-cache)
       desc)))
 
@@ -175,7 +178,8 @@ corresponding to the mode line clicked."
 			     "Input method: "
 			     current-input-method
 			     ".  mouse-2: disable, mouse-3: describe")
-		  local-map ,mode-line-input-method-map))
+		  local-map ,mode-line-input-method-map
+		  mouse-face mode-line-highlight))
     ,(propertize
       "%z"
       'help-echo
@@ -186,9 +190,10 @@ corresponding to the mode line clicked."
 	    (when buffer-file-coding-system
 	      (if enable-multibyte-characters
 		  (concat (symbol-name buffer-file-coding-system)
-			  " buffer; mouse-3: describe coding system")
+			  " buffer; mouse-1: describe coding system")
 		(concat "Unibyte " (symbol-name buffer-file-coding-system)
 			" buffer")))))
+      'mouse-face 'mode-line-highlight
       'local-map mode-line-coding-system-map)
     (:eval (mode-line-eol-desc)))
   "Mode-line control for displaying information of multilingual environment.
@@ -225,45 +230,56 @@ Normally nil in most modes, since there is no process to display.")
   (list (propertize
 	 "%1*"
 	 'help-echo (purecopy (lambda (window object point)
- 				(format "%sead-only: mouse-3 toggles"
+ 				(format "%sead-only: mouse-1 toggles"
 					(save-selected-window
 					  (select-window window)
 					  (if buffer-read-only
 					      "R"
 					    "Not r")))))
 	 'local-map (purecopy (make-mode-line-mouse-map
-			       'mouse-3
-			       #'mode-line-toggle-read-only)))
+			       'mouse-1
+			       #'mode-line-toggle-read-only))
+	 'mouse-face 'mode-line-highlight)
 	(propertize
 	 "%1+"
 	 'help-echo  (purecopy (lambda (window object point)
-				 (format "%sodified: mouse-3 toggles"
+				 (format "%sodified: mouse-1 toggles"
 					 (save-selected-window
 					   (select-window window)
 					   (if (buffer-modified-p)
 					     "M"
 					   "Not m")))))
 	 'local-map (purecopy (make-mode-line-mouse-map
-			       'mouse-3 #'mode-line-toggle-modified))))
+			       'mouse-1 #'mode-line-toggle-modified))
+	 'mouse-face 'mode-line-highlight))
   "Mode-line control for displaying whether current buffer is modified.")
 
 (make-variable-buffer-local 'mode-line-modified)
 
 ;; Actual initialization is below.
 (defvar mode-line-position nil
-  "Mode-line control for displaying line number, column number and fraction.")
+  "Mode-line control for displaying the position in the buffer.
+Normally displays the buffer percentage and, optionally, the
+buffer size, the line number and the column number.")
 
 (defvar mode-line-modes nil
   "Mode-line control for displaying major and minor modes.")
 
-(defvar mode-line-minor-mode-keymap nil "\
-Keymap to display on major and minor modes.")
+(defvar mode-line-major-mode-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line down-mouse-1] 'mouse-major-mode-menu)
+    (define-key map [mode-line mouse-2] 'describe-mode)
+    (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
+    map) "\
+Keymap to display on major mode.")
 
-;; Menu of minor modes.
-(let ((map (make-sparse-keymap)))
-  (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
-  (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
-  (setq mode-line-minor-mode-keymap map))
+(defvar mode-line-minor-mode-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
+    (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
+    (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
+    map) "\
+Keymap to display on minor modes.")
 
 (let* ((help-echo
 	;; The multi-line message doesn't work terribly well on the
@@ -275,6 +291,7 @@ Keymap to display on major and minor modes.")
        (dashes (propertize "--" 'help-echo help-echo)))
   (setq-default mode-line-format
     (list
+     "%e"
      (propertize "-" 'help-echo help-echo)
      'mode-line-mule-info
      'mode-line-modified
@@ -292,16 +309,25 @@ Keymap to display on major and minor modes.")
   (setq-default mode-line-modes
     (list
      (propertize "%[(" 'help-echo help-echo)
-     `(:propertize ("" mode-name mode-line-process minor-mode-alist)
-		   help-echo "mouse-3: minor mode menu"
+     `(:propertize ("" mode-name)
+		   help-echo "mouse-1: major-mode-menu mouse-2: help for current major mode"
+		   mouse-face mode-line-highlight
+		   local-map ,mode-line-major-mode-keymap)
+     '("" mode-line-process)
+     `(:propertize ("" minor-mode-alist)
+		   mouse-face mode-line-highlight
+		   help-echo "mouse-2: help for minor modes, mouse-3: minor mode menu"
 		   local-map ,mode-line-minor-mode-keymap)
      (propertize "%n" 'help-echo "mouse-2: widen"
+		 'mouse-face 'mode-line-highlight
 		 'local-map (make-mode-line-mouse-map
 			     'mouse-2 #'mode-line-widen))
      (propertize ")%]--" 'help-echo help-echo)))
 
   (setq-default mode-line-position
-    `((-3 . ,(propertize "%p" 'help-echo help-echo))
+    `((-3 ,(propertize "%p" 'help-echo help-echo))
+      (size-indication-mode
+       (8 ,(propertize " of %I" 'help-echo help-echo)))
       (line-number-mode
        ((column-number-mode
 	 (10 ,(propertize " (%l,%c)" 'help-echo help-echo))
@@ -311,29 +337,6 @@ Keymap to display on major and minor modes.")
 
 (defvar mode-line-buffer-identification-keymap nil "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")
-
-(defun last-buffer () "\
-Return the last non-hidden buffer in the buffer list."
-  ;; This logic is more or less copied from bury-buffer,
-  ;; except that we reverse the buffer list.
-  (let ((list (nreverse (buffer-list (selected-frame))))
-	(pred (frame-parameter nil 'buffer-predicate))
-	found notsogood)
-    (while (and list (not found))
-      (unless (or (eq (aref (buffer-name (car list)) 0) ? )
-		  ;; If the selected frame has a buffer_predicate,
-		  ;; disregard buffers that don't fit the predicate.
-		  (and pred (not (funcall pred (car list)))))
-	(if (get-buffer-window (car list) 'visible)
-	    (or notsogood (eq (car list) (current-buffer)))
-	  (setq found (car list))))
-      (pop list))
-    (or found notsogood
-	(get-buffer "*scratch*")
-	(progn
-	  (set-buffer-major-mode
-	   (get-buffer-create "*scratch*"))
-	  (get-buffer "*scratch*")))))
 
 (defun unbury-buffer () "\
 Switch to the last buffer in the buffer list."
@@ -387,13 +390,13 @@ Menu of mode operations in the mode line.")
 	      :button (:toggle . line-number-mode)))
 (define-key mode-line-mode-menu [highlight-changes-mode]
   `(menu-item ,(purecopy "Highlight changes (Chg)") highlight-changes-mode
-	      :button (:toggle . highlight-changes-mode)))
-(define-key mode-line-mode-menu [glasses-mode]
-  `(menu-item ,(purecopy "Glasses (o^o)") glasses-mode
-	      :button (:toggle . (bound-and-true-p glasses-mode))))
+	      :button (:toggle . (bound-and-true-p highlight-changes-mode))))
 (define-key mode-line-mode-menu [hide-ifdef-mode]
   `(menu-item ,(purecopy "Hide ifdef (Ifdef)") hide-ifdef-mode
 	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
+(define-key mode-line-mode-menu [glasses-mode]
+  `(menu-item ,(purecopy "Glasses (o^o)") glasses-mode
+	      :button (:toggle . (bound-and-true-p glasses-mode))))
 (define-key mode-line-mode-menu [font-lock-mode]
   `(menu-item ,(purecopy "Font Lock") font-lock-mode
 	      :button (:toggle . font-lock-mode)))
@@ -403,12 +406,15 @@ Menu of mode operations in the mode line.")
 (define-key mode-line-mode-menu [column-number-mode]
   `(menu-item ,(purecopy "Column number") column-number-mode
 	      :button (:toggle . column-number-mode)))
-(define-key mode-line-mode-menu [auto-fill-mode]
-  `(menu-item ,(purecopy "Auto Fill (Fill)") auto-fill-mode
-	      :button (:toggle . auto-fill-function)))
+(define-key mode-line-mode-menu [auto-revert-tail-mode]
+  `(menu-item ,(purecopy "Auto revert tail (Tail)") auto-revert-tail-mode
+	      :button (:toggle . (bound-and-true-p auto-revert-tail-mode))))
 (define-key mode-line-mode-menu [auto-revert-mode]
   `(menu-item ,(purecopy "Auto revert (ARev)") auto-revert-mode
-	      :button (:toggle . auto-revert-mode)))
+	      :button (:toggle . (bound-and-true-p auto-revert-mode))))
+(define-key mode-line-mode-menu [auto-fill-mode]
+  `(menu-item ,(purecopy "Auto fill (Fill)") auto-fill-mode
+	      :button (:toggle . auto-fill-function)))
 (define-key mode-line-mode-menu [abbrev-mode]
   `(menu-item ,(purecopy "Abbrev (Abbrev)") abbrev-mode
 	      :button (:toggle . abbrev-mode)))
@@ -417,13 +423,18 @@ Menu of mode operations in the mode line.")
   (interactive "@e")
   (x-popup-menu event mode-line-mode-menu))
 
+(defun mode-line-minor-mode-help (event)
+  "Describe minor mode for EVENT occured on minor modes area of the mode line."
+  (interactive "@e")
+  (let ((indicator (car (nth 4 (car (cdr event))))))
+    (describe-minor-mode-from-indicator indicator)))
+
 ;; Add menu of buffer operations to the buffer identification part
 ;; of the mode line.or header line.
 ;
 (let ((map (make-sparse-keymap)))
   ;; Bind down- events so that the global keymap won't ``shine
   ;; through''.
-  (define-key map [mode-line down-mouse-1] 'ignore)
   (define-key map [mode-line mouse-1] 'mode-line-unbury-buffer)
   (define-key map [header-line down-mouse-1] 'ignore)
   (define-key map [header-line mouse-1] 'mode-line-unbury-buffer)
@@ -438,9 +449,10 @@ Menu of mode operations in the mode line.")
 FMT is a format specifier such as \"%12b\".  This function adds
 text properties for face, help-echo, and local-map to it."
   (list (propertize fmt
-		    'face '(:weight bold)
+		    'face 'Buffer-menu-buffer
 		    'help-echo
 		    (purecopy "mouse-1: previous buffer, mouse-3: next buffer")
+		    'mouse-face 'mode-line-highlight
 		    'local-map mode-line-buffer-identification-keymap)))
 
 (setq-default mode-line-buffer-identification
@@ -476,7 +488,7 @@ is okay.  See `mode-line-format'.")
 		".a" ".ln" ".blg" ".bbl" ".dll" ".drv" ".vxd" ".386"))
 	     ((eq system-type 'vax-vms)
 	      '(".obj" ".exe" ".bin" ".lbin" ".sbin"
-		".brn" ".rnt" ".lni" ".lis"
+		".brn" ".rnt" ".lni"
 		".olb" ".tlb" ".mlb" ".hlb"))
 	     (t
 	      '(".o" "~" ".bin" ".lbin" ".so"
@@ -491,16 +503,20 @@ is okay.  See `mode-line-format'.")
 	 ".fas" ".lib" ".mem"
 	 ;; CMUCL
 	 ".x86f" ".sparcf"
-         ;; Other CL implementations (Allegro, LispWorks)
-         ".fasl" ".ufsl" ".fsl" ".dxl"
+         ;; Other CL implementations (Allegro, LispWorks, OpenMCL)
+         ".fasl" ".ufsl" ".fsl" ".dxl" ".pfsl" ".dfsl"
 	 ;; Libtool
 	 ".lo" ".la"
 	 ;; Gettext
 	 ".gmo" ".mo"
 	 ;; Texinfo-related
-	 ".toc" ".log" ".aux"
+	 ;; This used to contain .log, but that's commonly used for log
+	 ;; files you do want to see, not just TeX stuff.  -- fx
+	 ".toc" ".aux"
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
-	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs")))
+	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs"
+	 ;; Python byte-compiled
+	 ".pyc" ".pyo")))
 
 ;; Suffixes used for executables.
 (setq exec-suffixes
@@ -518,63 +534,20 @@ is okay.  See `mode-line-format'.")
 	file-supersession
       	"^Previous command was not a yank$"
 	"^Minibuffer window is not active$"
+	"^No previous history search regexp$"
+	"^No later matching history item$"
+	"^No earlier matching history item$"
+	"^End of history; no default available$"
 	"^End of history; no next item$"
 	"^Beginning of history; no preceding item$"
 	"^No recursive edit is in progress$"
 	"^Changes to be undone are outside visible portion of buffer$"
 	"^No undo information in this buffer$"
-	"^No further undo information$"
+	"^No further undo information"
 	"^Save not confirmed$"
 	"^Recover-file cancelled\\.$"
 	"^Cannot switch buffers in a dedicated window$"
-
-	;; ediff
-	"^Errors in diff output. Diff output is in "
-	"^Hmm... I don't see an Ediff command around here...$"
-	"^Undocumented command! Type `G' in Ediff Control Panel to drop a note to the Ediff maintainer$"
-	": This command runs in Ediff Control Buffer only!$"
-	": Invalid op in ediff-check-version$"
-	"^ediff-shrink-window-C can be used only for merging jobs$"
-	"^Lost difference info on these directories$"
-	"^This command is inapplicable in the present context$"
-	"^This session group has no parent$"
-	"^Can't hide active session, $"
-	"^Ediff: something wrong--no multiple diffs buffer$"
-	"^Can't make context diff for Session $"
-	"^The patch buffer wasn't found$"
-	"^Aborted$"
-	"^This Ediff session is not part of a session group$"
-	"^No active Ediff sessions or corrupted session registry$"
-	"^No session info in this line$"
-	"^`.*' is not an ordinary file$"
-	"^Patch appears to have failed$"
-	"^Recomputation of differences cancelled$"
-	"^No fine differences in this mode$"
-	"^Lost connection to ancestor buffer...sorry$"
-	"^Not merging with ancestor$"
-	"^Don't know how to toggle read-only in buffer "
-	"Emacs is not running as a window application$"
-	"^This command makes sense only when merging with an ancestor$"
-	"^At end of the difference list$"
-	"^At beginning of the difference list$"
-	"^Nothing saved for diff .* in buffer "
-	"^Buffer is out of sync for file "
-	"^Buffer out of sync for file "
-	"^Output from `diff' not found$"
-	"^You forgot to specify a region in buffer "
-	"^All right. Make up your mind and come back...$"
-	"^Current buffer is not visiting any file$"
-	"^Failed to retrieve revision: $"
-	"^Can't determine display width.$"
-	"^File `.*' does not exist or is not readable$"
-	"^File `.*' is a directory$"
-	"^Buffer .* doesn't exist$"
-	"^Directories . and . are the same: "
-	"^Directory merge aborted$"
-	"^Merge of directory revisions aborted$"
-	"^Buffer .* doesn't exist$"
-	"^There is no file to merge$"
-	"^Version control package .*.el not found. Use vc.el instead$"))
+        ))
 
 
 (make-variable-buffer-local 'indent-tabs-mode)
@@ -622,6 +595,11 @@ language you are using."
 
 ;; From frame.c
 (global-set-key [switch-frame] 'handle-switch-frame)
+(global-set-key [select-window] 'handle-select-window)
+
+;; FIXME: Do those 3 events really ever reach the global-map ?
+;;        It seems that they can't because they're handled via
+;;        special-event-map which is used at very low-level.  -stef
 (global-set-key [delete-frame] 'handle-delete-frame)
 (global-set-key [iconify-frame] 'ignore-event)
 (global-set-key [make-frame-visible] 'ignore-event)
@@ -634,6 +612,10 @@ language you are using."
 (define-key ctl-x-map "nw" 'widen)
 ;; (define-key ctl-x-map "n" 'narrow-to-region)
 ;; (define-key ctl-x-map "w" 'widen)
+
+;; Quitting
+(define-key global-map "\e\e\e" 'keyboard-escape-quit)
+(define-key global-map "\C-g" 'keyboard-quit)
 
 (define-key global-map "\C-j" 'newline-and-indent)
 (define-key global-map "\C-m" 'newline)
@@ -659,8 +641,17 @@ language you are using."
 ;; Many people are used to typing C-/ on X terminals and getting C-_.
 (define-key global-map [?\C-/] 'undo)
 (define-key global-map "\C-_" 'undo)
+;; Richard said that we should not use C-x <uppercase letter> and I have
+;; no idea whereas to bind it.  Any suggestion welcome.  -stef
+;; (define-key ctl-x-map "U" 'undo-only)
+
 (define-key esc-map "!" 'shell-command)
 (define-key esc-map "|" 'shell-command-on-region)
+
+(define-key global-map [?\C-x right] 'next-buffer)
+(define-key global-map [?\C-x C-right] 'next-buffer)
+(define-key global-map [?\C-x left] 'previous-buffer)
+(define-key global-map [?\C-x C-left] 'previous-buffer)
 
 (let ((map minibuffer-local-map))
   (define-key map "\en"   'next-history-element)
@@ -710,6 +701,18 @@ language you are using."
 (define-key global-map "\C-n" 'next-line)
 (define-key global-map "\C-p" 'previous-line)
 (define-key ctl-x-map "\C-n" 'set-goal-column)
+(define-key global-map "\C-a" 'move-beginning-of-line)
+(define-key global-map "\C-e" 'move-end-of-line)
+(define-key esc-map "g" (make-sparse-keymap))
+(define-key esc-map "g\M-g" 'goto-line)
+(define-key esc-map "gg" 'goto-line)
+
+(define-key esc-map "gn" 'next-error)
+(define-key esc-map "g\M-n" 'next-error)
+(define-key ctl-x-map "`" 'next-error)
+
+(define-key esc-map "gp" 'previous-error)
+(define-key esc-map "g\M-p" 'previous-error)
 
 ;;(defun function-key-error ()
 ;;  (interactive)
@@ -722,9 +725,11 @@ language you are using."
 ;(define-key global-map [delete] 'backward-delete-char)
 
 ;; natural bindings for terminal keycaps --- defined in X keysym order
-(define-key global-map [home]		'beginning-of-line)
+(define-key global-map [C-S-backspace]  'kill-whole-line)
+(define-key global-map [home]		'move-beginning-of-line)
 (define-key global-map [C-home]		'beginning-of-buffer)
 (define-key global-map [M-home]		'beginning-of-buffer-other-window)
+(define-key esc-map    [home]		'beginning-of-buffer-other-window)
 (define-key global-map [left]		'backward-char)
 (define-key global-map [up]		'previous-line)
 (define-key global-map [right]		'forward-char)
@@ -734,26 +739,41 @@ language you are using."
 (define-key global-map [C-up]		'backward-paragraph)
 (define-key global-map [C-down]		'forward-paragraph)
 (define-key global-map [C-prior]	'scroll-right)
+(put 'scroll-left 'disabled t)
 (define-key global-map [C-next]		'scroll-left)
 (define-key global-map [M-next]		'scroll-other-window)
+(define-key esc-map    [next]		'scroll-other-window)
 (define-key global-map [M-prior]	'scroll-other-window-down)
-(define-key global-map [end]		'end-of-line)
+(define-key esc-map    [prior]		'scroll-other-window-down)
+(define-key esc-map [?\C-\S-v]		'scroll-other-window-down)
+(define-key global-map [end]		'move-end-of-line)
 (define-key global-map [C-end]		'end-of-buffer)
 (define-key global-map [M-end]		'end-of-buffer-other-window)
+(define-key esc-map    [end]		'end-of-buffer-other-window)
 (define-key global-map [begin]		'beginning-of-buffer)
 (define-key global-map [M-begin]	'beginning-of-buffer-other-window)
+(define-key esc-map    [begin]		'beginning-of-buffer-other-window)
 ;; (define-key global-map [select]	'function-key-error)
 ;; (define-key global-map [print]	'function-key-error)
 (define-key global-map [execute]	'execute-extended-command)
 (define-key global-map [insert]		'overwrite-mode)
 (define-key global-map [C-insert]	'kill-ring-save)
 (define-key global-map [S-insert]	'yank)
+;; `insertchar' is what term.c produces.  Should we change term.c
+;; to produce `insert' instead?
+(define-key global-map [insertchar]	'overwrite-mode)
+(define-key global-map [C-insertchar]	'kill-ring-save)
+(define-key global-map [S-insertchar]	'yank)
 (define-key global-map [undo]		'undo)
 (define-key global-map [redo]		'repeat-complex-command)
+(define-key global-map [again]		'repeat-complex-command) ; Sun keyboard
+(define-key global-map [open]		'find-file) ; Sun
+;; The following wouldn't work to interrupt running code since C-g is
+;; treated specially in the event loop.
+;; (define-key global-map [stop]		'keyboard-quit) ; Sun
 ;; (define-key global-map [clearline]	'function-key-error)
 (define-key global-map [insertline]	'open-line)
 (define-key global-map [deleteline]	'kill-line)
-;; (define-key global-map [insertchar]	'function-key-error)
 (define-key global-map [deletechar]	'delete-char)
 ;; (define-key global-map [backtab]	'function-key-error)
 ;; (define-key global-map [f1]		'function-key-error)
@@ -900,7 +920,9 @@ language you are using."
 (define-key global-map "\C-c" 'mode-specific-command-prefix)
 
 (global-set-key [M-right]  'forward-word)
+(define-key esc-map [right] 'forward-word)
 (global-set-key [M-left]   'backward-word)
+(define-key esc-map [left] 'backward-word)
 ;; ilya@math.ohio-state.edu says these bindings are standard on PC editors.
 (global-set-key [C-right]  'forward-word)
 (global-set-key [C-left]   'backward-word)
@@ -910,6 +932,19 @@ language you are using."
 ;; This is "move to the clipboard", or as close as we come.
 (global-set-key [S-delete] 'kill-region)
 
+(global-set-key [C-M-left]    'backward-sexp)
+(define-key esc-map [C-left]  'backward-sexp)
+(global-set-key [C-M-right]   'forward-sexp)
+(define-key esc-map [C-right] 'forward-sexp)
+(global-set-key [C-M-up]      'backward-up-list)
+(define-key esc-map [C-up]    'backward-up-list)
+(global-set-key [C-M-down]    'down-list)
+(define-key esc-map [C-down]  'down-list)
+(global-set-key [C-M-home]    'beginning-of-defun)
+(define-key esc-map [C-home]  'beginning-of-defun)
+(global-set-key [C-M-end]     'end-of-defun)
+(define-key esc-map [C-end]   'end-of-defun)
+
 (define-key esc-map "\C-f" 'forward-sexp)
 (define-key esc-map "\C-b" 'backward-sexp)
 (define-key esc-map "\C-u" 'backward-up-list)
@@ -917,8 +952,10 @@ language you are using."
 (define-key esc-map [?\C-\ ] 'mark-sexp)
 (define-key esc-map "\C-d" 'down-list)
 (define-key esc-map "\C-k" 'kill-sexp)
-(define-key global-map [C-M-delete] 'backward-kill-sexp)
-(define-key global-map [C-M-backspace] 'backward-kill-sexp)
+;;; These are dangerous in various situations,
+;;; so let's not encourage anyone to use them.
+;;;(define-key global-map [C-M-delete] 'backward-kill-sexp)
+;;;(define-key global-map [C-M-backspace] 'backward-kill-sexp)
 (define-key esc-map [C-delete] 'backward-kill-sexp)
 (define-key esc-map [C-backspace] 'backward-kill-sexp)
 (define-key esc-map "\C-n" 'forward-list)
@@ -1006,9 +1043,12 @@ language you are using."
 
 (define-key ctl-x-map "z" 'repeat)
 
+(define-key ctl-x-4-map "c" 'clone-indirect-buffer-other-window)
+
 ;; Don't look for autoload cookies in this file.
 ;; Local Variables:
 ;; no-update-autoloads: t
 ;; End:
 
+;; arch-tag: 23b5c7e6-e47b-49ed-8c6c-ed213c5fffe0
 ;;; bindings.el ends here

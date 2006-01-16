@@ -1,5 +1,7 @@
 ;;; rfc1843.el --- HZ (rfc1843) decoding
-;; Copyright (c) 1998, 1999, 2000 Free Software Foundation, Inc.
+
+;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: news HZ HZ+ mail i18n
@@ -18,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -35,6 +37,10 @@
 (eval-when-compile (require 'cl))
 (require 'mm-util)
 
+(defvar gnus-decode-encoded-word-function)
+(defvar gnus-decode-header-function)
+(defvar gnus-newsgroup-name)
+
 (defvar rfc1843-word-regexp
   "~\\({\\([\041-\167][\041-\176]\\| \\)+\\)\\(~}\\|$\\)")
 
@@ -43,18 +49,18 @@
 
 (defvar rfc1843-hzp-word-regexp
   "~\\({\\([\041-\167][\041-\176]\\| \\)+\\|\
-[<>]\\([\041-\175][\041-\176]\\| \\)+\\)\\(~}\\|$\\)")
+\[<>]\\([\041-\175][\041-\176]\\| \\)+\\)\\(~}\\|$\\)")
 
 (defvar rfc1843-hzp-word-regexp-strictly
   "~\\({\\([\041-\167][\041-\176]\\)+\\|\
-[<>]\\([\041-\175][\041-\176]\\)+\\)\\(~}\\|$\\)")
+\[<>]\\([\041-\175][\041-\176]\\)+\\)\\(~}\\|$\\)")
 
 (defcustom rfc1843-decode-loosely nil
   "Loosely check HZ encoding if non-nil.
 When it is set non-nil, only buffers or strings with strictly
 HZ-encoded are decoded."
   :type 'boolean
-  :group 'gnus)
+  :group 'mime)
 
 (defcustom rfc1843-decode-hzp t
   "HZ+ decoding support if non-nil.
@@ -64,12 +70,12 @@ e-mail transmission, news posting, etc.
 The document of HZ+ 0.78 specification can be found at
 ftp://ftp.math.psu.edu/pub/simpson/chinese/hzp/hzp.doc"
   :type 'boolean
-  :group 'gnus)
+  :group 'mime)
 
 (defcustom rfc1843-newsgroups-regexp "chinese\\|hz"
   "Regexp of newsgroups in which might be HZ encoded."
   :type 'string
-  :group 'gnus)
+  :group 'mime)
 
 (defun rfc1843-decode-region (from to)
   "Decode HZ in the region between FROM and TO."
@@ -181,4 +187,5 @@ ftp://ftp.math.psu.edu/pub/simpson/chinese/hzp/hzp.doc"
 
 (provide 'rfc1843)
 
+;;; arch-tag: 5149c301-a6ca-4731-9c9d-ba616e2cb687
 ;;; rfc1843.el ends here

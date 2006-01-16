@@ -1,6 +1,7 @@
 ;;; cl-extra.el --- Common Lisp features, part 2 -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1993,2000  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: extensions
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -38,15 +39,14 @@
 
 ;;; Code:
 
-(or (memq 'cl-19 features)
-    (error "Tried to load `cl-extra' before `cl'!"))
-
+(require 'cl)
 
 ;;; Type coercion.
 
 (defun coerce (x type)
   "Coerce OBJECT to type TYPE.
-TYPE is a Common Lisp type specifier."
+TYPE is a Common Lisp type specifier.
+\n(fn OBJECT TYPE)"
   (cond ((eq type 'list) (if (listp x) x (append x nil)))
 	((eq type 'vector) (if (vectorp x) x (vconcat x)))
 	((eq type 'string) (if (stringp x) x (concat x)))
@@ -61,7 +61,7 @@ TYPE is a Common Lisp type specifier."
 ;;; Predicates.
 
 (defun equalp (x y)
-  "T if two Lisp objects have similar structures and contents.
+  "Return t if two Lisp objects have similar structures and contents.
 This is like `equal', except that it accepts numerically equal
 numbers of different types (float vs. integer), and also compares
 strings case-insensitively."
@@ -120,16 +120,17 @@ strings case-insensitively."
       (nreverse cl-res))))
 
 (defun map (cl-type cl-func cl-seq &rest cl-rest)
-  "Map a function across one or more sequences, returning a sequence.
-TYPE is the sequence type to return, FUNC is the function, and SEQS
-are the argument sequences."
+  "Map a FUNCTION across one or more SEQUENCEs, returning a sequence.
+TYPE is the sequence type to return.
+\n(fn TYPE FUNCTION SEQUENCE...)"
   (let ((cl-res (apply 'mapcar* cl-func cl-seq cl-rest)))
     (and cl-type (coerce cl-res cl-type))))
 
 (defun maplist (cl-func cl-list &rest cl-rest)
-  "Map FUNC to each sublist of LIST or LISTS.
+  "Map FUNCTION to each sublist of LIST or LISTs.
 Like `mapcar', except applies to lists and their cdr's rather than to
-the elements themselves."
+the elements themselves.
+\n(fn FUNCTION LIST...)"
   (if cl-rest
       (let ((cl-res nil)
 	    (cl-args (cons cl-list (copy-sequence cl-rest)))
@@ -146,14 +147,16 @@ the elements themselves."
       (nreverse cl-res))))
 
 (defun cl-mapc (cl-func cl-seq &rest cl-rest)
-  "Like `mapcar', but does not accumulate values returned by the function."
+  "Like `mapcar', but does not accumulate values returned by the function.
+\n(fn FUNCTION SEQUENCE...)"
   (if cl-rest
       (progn (apply 'map nil cl-func cl-seq cl-rest)
 	     cl-seq)
     (mapc cl-func cl-seq)))
 
 (defun mapl (cl-func cl-list &rest cl-rest)
-  "Like `maplist', but does not accumulate values returned by the function."
+  "Like `maplist', but does not accumulate values returned by the function.
+\n(fn FUNCTION LIST...)"
   (if cl-rest
       (apply 'maplist cl-func cl-list cl-rest)
     (let ((cl-p cl-list))
@@ -161,16 +164,19 @@ the elements themselves."
   cl-list)
 
 (defun mapcan (cl-func cl-seq &rest cl-rest)
-  "Like `mapcar', but nconc's together the values returned by the function."
+  "Like `mapcar', but nconc's together the values returned by the function.
+\n(fn FUNCTION SEQUENCE...)"
   (apply 'nconc (apply 'mapcar* cl-func cl-seq cl-rest)))
 
 (defun mapcon (cl-func cl-list &rest cl-rest)
-  "Like `maplist', but nconc's together the values returned by the function."
+  "Like `maplist', but nconc's together the values returned by the function.
+\n(fn FUNCTION LIST...)"
   (apply 'nconc (apply 'maplist cl-func cl-list cl-rest)))
 
 (defun some (cl-pred cl-seq &rest cl-rest)
   "Return true if PREDICATE is true of any element of SEQ or SEQs.
-If so, return the true (non-nil) value returned by PREDICATE."
+If so, return the true (non-nil) value returned by PREDICATE.
+\n(fn PREDICATE SEQ...)"
   (if (or cl-rest (nlistp cl-seq))
       (catch 'cl-some
 	(apply 'map nil
@@ -183,7 +189,8 @@ If so, return the true (non-nil) value returned by PREDICATE."
       cl-x)))
 
 (defun every (cl-pred cl-seq &rest cl-rest)
-  "Return true if PREDICATE is true of every element of SEQ or SEQs."
+  "Return true if PREDICATE is true of every element of SEQ or SEQs.
+\n(fn PREDICATE SEQ...)"
   (if (or cl-rest (nlistp cl-seq))
       (catch 'cl-every
 	(apply 'map nil
@@ -195,34 +202,22 @@ If so, return the true (non-nil) value returned by PREDICATE."
     (null cl-seq)))
 
 (defun notany (cl-pred cl-seq &rest cl-rest)
-  "Return true if PREDICATE is false of every element of SEQ or SEQs."
+  "Return true if PREDICATE is false of every element of SEQ or SEQs.
+\n(fn PREDICATE SEQ...)"
   (not (apply 'some cl-pred cl-seq cl-rest)))
 
 (defun notevery (cl-pred cl-seq &rest cl-rest)
-  "Return true if PREDICATE is false of some element of SEQ or SEQs."
+  "Return true if PREDICATE is false of some element of SEQ or SEQs.
+\n(fn PREDICATE SEQ...)"
   (not (apply 'every cl-pred cl-seq cl-rest)))
 
 ;;; Support for `loop'.
-(defun cl-map-keymap (cl-func cl-map)
-  (while (symbolp cl-map) (setq cl-map (symbol-function cl-map)))
-  (if (listp cl-map)
-      (let ((cl-p cl-map))
-	(while (consp (setq cl-p (cdr cl-p)))
-	  (cond ((consp (car cl-p))
-		 (funcall cl-func (car (car cl-p)) (cdr (car cl-p))))
-		((or (vectorp (car cl-p)) (char-table-p (car cl-p)))
-		 (cl-map-keymap cl-func (car cl-p)))
-		((eq (car cl-p) 'keymap)
-		 (setq cl-p nil)))))
-    (let ((cl-i -1))
-      (while (< (setq cl-i (1+ cl-i)) (length cl-map))
-	(if (aref cl-map cl-i)
-	    (funcall cl-func cl-i (aref cl-map cl-i)))))))
+(defalias 'cl-map-keymap 'map-keymap)
 
 (defun cl-map-keymap-recursively (cl-func-rec cl-map &optional cl-base)
   (or cl-base
       (setq cl-base (copy-sequence [0])))
-  (cl-map-keymap
+  (map-keymap
    (function
     (lambda (cl-key cl-bind)
       (aset cl-base (1- (length cl-base)) cl-key)
@@ -346,16 +341,16 @@ If so, return the true (non-nil) value returned by PREDICATE."
 	  (setq a (* (/ a (gcd a b)) b))))
       a)))
 
-(defun isqrt (a)
+(defun isqrt (x)
   "Return the integer square root of the argument."
-  (if (and (integerp a) (> a 0))
-      (let ((g (cond ((<= a 100) 10) ((<= a 10000) 100)
-		     ((<= a 1000000) 1000) (t a)))
+  (if (and (integerp x) (> x 0))
+      (let ((g (cond ((<= x 100) 10) ((<= x 10000) 100)
+		     ((<= x 1000000) 1000) (t x)))
 	    g2)
-	(while (< (setq g2 (/ (+ g (/ a g)) 2)) g)
+	(while (< (setq g2 (/ (+ g (/ x g)) 2)) g)
 	  (setq g g2))
 	g)
-    (if (eq a 0) 0 (signal 'arith-error nil))))
+    (if (eq x 0) 0 (signal 'arith-error nil))))
 
 (defun floor* (x &optional y)
   "Return a list of the floor of X and the fractional part of X.
@@ -402,9 +397,9 @@ With two arguments, return rounding and remainder of their quotient."
   "The remainder of X divided by Y, with the same sign as X."
   (nth 1 (truncate* x y)))
 
-(defun signum (a)
-  "Return 1 if A is positive, -1 if negative, 0 if zero."
-  (cond ((> a 0) 1) ((< a 0) -1) (t 0)))
+(defun signum (x)
+  "Return 1 if X is positive, -1 if negative, 0 if zero."
+  (cond ((> x 0) 1) ((< x 0) -1) (t 0)))
 
 
 ;; Random numbers.
@@ -528,7 +523,8 @@ If START or END is negative, it counts from the end."
 	       res))))))
 
 (defun concatenate (type &rest seqs)
-  "Concatenate, into a sequence of type TYPE, the argument SEQUENCES."
+  "Concatenate, into a sequence of type TYPE, the argument SEQUENCEs.
+\n(fn TYPE SEQUENCE...)"
   (cond ((eq type 'vector) (apply 'vconcat seqs))
 	((eq type 'string) (apply 'concat seqs))
 	((eq type 'list) (apply 'append (append seqs '(nil))))
@@ -546,7 +542,7 @@ If START or END is negative, it counts from the end."
   (nconc (nreverse x) y))
 
 (defun list-length (x)
-  "Return the length of a list.  Return nil if list is circular."
+  "Return the length of list X.  Return nil if list is circular."
   (let ((n 0) (fast x) (slow x))
     (while (and (cdr fast) (not (and (eq fast slow) (> n 0))))
       (setq n (+ n 2) fast (cdr (cdr fast)) slow (cdr slow)))
@@ -564,7 +560,8 @@ If START or END is negative, it counts from the end."
 ;;; Property lists.
 
 (defun get* (sym tag &optional def)    ; See compiler macro in cl-macs.el
-  "Return the value of SYMBOL's PROPNAME property, or DEFAULT if none."
+  "Return the value of SYMBOL's PROPNAME property, or DEFAULT if none.
+\n(fn SYMBOL PROPNAME &optional DEFAULT)"
   (or (get sym tag)
       (and def
 	   (let ((plist (symbol-plist sym)))
@@ -574,7 +571,8 @@ If START or END is negative, it counts from the end."
 
 (defun getf (plist tag &optional def)
   "Search PROPLIST for property PROPNAME; return its value or DEFAULT.
-PROPLIST is a list of the sort returned by `symbol-plist'."
+PROPLIST is a list of the sort returned by `symbol-plist'.
+\n(fn PROPLIST PROPNAME &optional DEFAULT)"
   (setplist '--cl-getf-symbol-- plist)
   (or (get '--cl-getf-symbol-- tag)
       ;; Originally we called get* here,
@@ -596,7 +594,8 @@ PROPLIST is a list of the sort returned by `symbol-plist'."
     (and (cdr p) (progn (setcdr p (cdr (cdr (cdr p)))) t))))
 
 (defun cl-remprop (sym tag)
-  "Remove from SYMBOL's plist the property PROP and its value."
+  "Remove from SYMBOL's plist the property PROPNAME and its value.
+\n(fn SYMBOL PROPNAME)"
   (let ((plist (symbol-plist sym)))
     (if (and plist (eq tag (car plist)))
 	(progn (setplist sym (cdr (cdr plist))) t)
@@ -721,11 +720,10 @@ This also does some trivial optimizations to make the form prettier."
 		      (sublis sub (nreverse decls))
 		      (list
 		       (list* 'list '(quote apply)
-			      (list 'list '(quote quote)
-				    (list 'function
-					  (list* 'lambda
-						 (append new (cadadr form))
-						 (sublis sub body))))
+			      (list 'function
+				    (list* 'lambda
+					   (append new (cadadr form))
+					   (sublis sub body)))
 			      (nconc (mapcar (function
 					      (lambda (x)
 						(list 'list '(quote quote) x)))
@@ -733,7 +731,8 @@ This also does some trivial optimizations to make the form prettier."
 				     '((quote --cl-rest--)))))))
 		 (list (car form) (list* 'lambda (cadadr form) body))))
 	   (let ((found (assq (cadr form) env)))
-	     (if (eq (cadr (caddr found)) 'cl-labels-args)
+	     (if (and found (ignore-errors
+			      (eq (cadr (caddr found)) 'cl-labels-args)))
 		 (cl-macroexpand-all (cadr (caddr (cadddr found))) env)
 	       form))))
 	((memq (car form) '(defun defmacro))
@@ -744,6 +743,11 @@ This also does some trivial optimizations to make the form prettier."
 	 (let* ((args (cl-macroexpand-body (cdr form) env)) (p args))
 	   (while (and p (symbolp (car p))) (setq p (cddr p)))
 	   (if p (cl-macroexpand-all (cons 'setf args)) (cons 'setq args))))
+        ((consp (car form))
+         (cl-macroexpand-all (list* 'funcall
+                                    (list 'function (car form))
+                                    (cdr form))
+                             env))
 	(t (cons (car form) (cl-macroexpand-body (cdr form) env)))))
 
 (defun cl-macroexpand-body (body &optional env)
@@ -763,4 +767,5 @@ This also does some trivial optimizations to make the form prettier."
 
 (run-hooks 'cl-extra-load-hook)
 
+;; arch-tag: bcd03437-0871-43fb-a8f1-ad0e0b5427ed
 ;;; cl-extra.el ends here

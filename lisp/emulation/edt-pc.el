@@ -1,6 +1,7 @@
 ;;; edt-pc.el --- enhanced EDT keypad mode emulation for PC 101 keyboards
 
-;; Copyright (C) 1986, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1994, 1995, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kevingal@onramp.net>
 ;; Maintainer: Kevin Gallagher <kevingal@onramp.net>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -87,4 +88,5 @@
     ("HELP" . "" ) ("DO" . "" ) ("F17" . "" ) ("F18" . "" )
     ("F19" . "" ) ("F20" . "" )))
 
+;;; arch-tag: 4593d053-183a-4062-97de-57b8877595ce
 ;;; edt-pc.el ends here

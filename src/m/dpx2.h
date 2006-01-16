@@ -1,5 +1,6 @@
 /* machine description for Bull DPX/2 range
-   Copyright (C) 1985, 1986, 1999, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
@@ -217,3 +218,5 @@ Boston, MA 02111-1307, USA.  */
  /* end of dpx2.h */
 
 
+/* arch-tag: 8cfdf817-aec7-4d99-a00d-0e77615e8e1b
+   (do not change this comment) */

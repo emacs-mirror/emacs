@@ -1,6 +1,7 @@
 ;;; footnote.el --- footnote support for message mode  -*- coding: iso-latin-1;-*-
 
-;; Copyright (C) 1997, 2000 by Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Steven L Baur <steve@xemacs.org>
 ;; Keywords: mail, news
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-;; 02111-1307, USA.
+;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+;; MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -87,8 +88,11 @@ If nil, no blank line will be inserted."
 
 ;;; Interface variables that probably shouldn't be changed
 
-(defconst footnote-section-tag "Footnotes: "
-  "*Tag inserted at beginning of footnote section.")
+(defcustom footnote-section-tag "Footnotes: "
+  "*Tag inserted at beginning of footnote section."
+  :version "22.1"
+  :type 'string
+  :group 'footnote)
 
 (defcustom footnote-section-tag-regexp "Footnotes\\(\\[.\\]\\)?: "
   "*Regexp which indicates the start of a footnote section.
@@ -752,4 +756,5 @@ key		binding
 
 (provide 'footnote)
 
+;;; arch-tag: 9bcfb6d7-2161-4caf-8793-700f62400398
 ;;; footnote.el ends here

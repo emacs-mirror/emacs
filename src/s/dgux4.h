@@ -1,6 +1,6 @@
 /* Definitions file for GNU Emacs running on Data General's DG/UX
    Release 4.10 and above.
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,7 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* This file was written by Roderick Schertler <roderick@ibcinc.com>,
    contact me if you have problems with or comments about running Emacs
@@ -137,3 +138,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define PENDING_OUTPUT_COUNT(FILE) (1)
 
 #endif /* NOT_C_CODE */
+
+/* arch-tag: c7013e7b-6e2e-44f2-ba61-90b6d5e2ea45
+   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; elint.el --- Lint Emacs Lisp
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Peter Liljenberg <petli@lysator.liu.se>
 ;; Created: May 1997
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -29,7 +29,7 @@
 ;; mispellings and undefined variables, although it can also catch
 ;; function calls with the wrong number of arguments.
 
-;; Before using, call `elint-initialize' to set up som argument
+;; Before using, call `elint-initialize' to set up some argument
 ;; data. This takes a while. Then call elint-current-buffer or
 ;; elint-defun to lint a buffer or a defun.
 
@@ -48,6 +48,85 @@
 
 (defvar elint-log-buffer "*Elint*"
   "*The buffer to insert lint messages in.")
+
+;;;
+;;; Data
+;;;
+
+(defconst elint-standard-variables
+  '(abbrev-mode auto-fill-function buffer-auto-save-file-name
+     buffer-backed-up buffer-display-count buffer-display-table buffer-display-time buffer-file-coding-system buffer-file-format
+     buffer-file-name buffer-file-number buffer-file-truename
+     buffer-file-type buffer-invisibility-spec buffer-offer-save
+     buffer-read-only buffer-saved-size buffer-undo-list
+     cache-long-line-scans case-fold-search ctl-arrow cursor-type comment-column
+     default-directory defun-prompt-regexp desktop-save-buffer enable-multibyte-characters fill-column fringes-outside-margins goal-column
+     header-line-format indicate-buffer-boundaries indicate-empty-lines
+     left-fringe-width
+     left-margin left-margin-width line-spacing local-abbrev-table local-write-file-hooks major-mode
+     mark-active mark-ring mode-line-buffer-identification
+     mode-line-format mode-line-modified mode-line-process mode-name
+     overwrite-mode
+     point-before-scroll right-fringe-width right-margin-width
+     scroll-bar-width scroll-down-aggressively scroll-up-aggressively selective-display
+     selective-display-ellipses tab-width truncate-lines vc-mode vertical-scroll-bar)
+  "Standard buffer local vars.")
+
+(defconst elint-unknown-builtin-args
+  '((while test &rest forms)
+    (insert-before-markers-and-inherit &rest text)
+    (catch tag &rest body)
+    (and &rest args)
+    (funcall func &rest args)
+    (insert &rest args)
+    (vconcat &rest args)
+    (run-hook-with-args hook &rest args)
+    (message-or-box string &rest args)
+    (save-window-excursion &rest body)
+    (append &rest args)
+    (logior &rest args)
+    (progn &rest body)
+    (insert-and-inherit &rest args)
+    (message-box string &rest args)
+    (prog2 x y &rest body)
+    (prog1 first &rest body)
+    (insert-before-markers &rest args)
+    (call-process-region start end program &optional delete
+			 destination display &rest args)
+    (concat &rest args)
+    (vector &rest args)
+    (run-hook-with-args-until-success hook &rest args)
+    (track-mouse &rest body)
+    (unwind-protect bodyform &rest unwindforms)
+    (save-restriction &rest body)
+    (quote arg)
+    (make-byte-code &rest args)
+    (or &rest args)
+    (cond &rest clauses)
+    (start-process name buffer program &rest args)
+    (run-hook-with-args-until-failure hook &rest args)
+    (if cond then &rest else)
+    (apply function &rest args)
+    (format string &rest args)
+    (encode-time second minute hour day month year zone &rest args)
+    (min &rest args)
+    (logand &rest args)
+    (logxor &rest args)
+    (max &rest args)
+    (list &rest args)
+    (message string &rest args)
+    (defvar symbol init doc)
+    (call-process program &optional infile destination display &rest args)
+    (with-output-to-temp-buffer bufname &rest body)
+    (nconc &rest args)
+    (save-excursion &rest body)
+    (run-hooks &rest hooks)
+    (/ x y &rest zs)
+    (- x &rest y)
+    (+ &rest args)
+    (* &rest args)
+    (interactive &optional args))
+  "Those built-ins for which we can't find arguments.")
 
 ;;;
 ;;; ADT: top-form
@@ -219,7 +298,7 @@ Return nil if there are no more forms, t otherwise."
   (not (eobp)))
 
 (defun elint-init-env (forms)
-  "Initialise the environment from FORMS."
+  "Initialize the environment from FORMS."
   (let ((env (elint-make-env))
 	form)
     (while forms
@@ -540,7 +619,8 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
 (defun elint-check-defcustom-form (form env)
   "Lint the defcustom FORM in ENV."
   (if (and (> (length form) 3)
-	   (evenp (length form)))	; even no. of keyword/value args
+	   ;; even no. of keyword/value args ?
+	   (zerop (logand (length form) 1)))
       (elint-env-add-global-var (elint-form (nth 2 form) env)
 				(car (cdr form)))
     (elint-error "Malformed variable declaration: %s" form)
@@ -723,82 +803,7 @@ If no documentation could be found args will be `unknown'."
 	    (if list list
 	      (elint-find-builtins))))
 
-;;;
-;;; Data
-;;;
-
-(defconst elint-standard-variables
-  '(abbrev-mode auto-fill-function buffer-auto-save-file-name
-     buffer-backed-up buffer-display-table buffer-file-format
-     buffer-file-name buffer-file-number buffer-file-truename
-     buffer-file-type buffer-invisibility-spec buffer-offer-save
-     buffer-read-only buffer-saved-size buffer-undo-list
-     cache-long-line-scans case-fold-search ctl-arrow comment-column
-     default-directory defun-prompt-regexp fill-column goal-column
-     left-margin local-abbrev-table local-write-file-hooks major-mode
-     mark-active mark-ring minor-modes mode-line-buffer-identification
-     mode-line-format mode-line-modified mode-line-process mode-name
-     overwrite-mode paragraph-separate paragraph-start
-     point-before-scroll require-final-newline selective-display
-     selective-display-ellipses tab-width truncate-lines vc-mode)
-  "Standard buffer local vars.")
-
-(defconst elint-unknown-builtin-args
-  '((while test &rest forms)
-    (insert-before-markers-and-inherit &rest text)
-    (catch tag &rest body)
-    (and &rest args)
-    (funcall func &rest args)
-    (insert &rest args)
-    (vconcat &rest args)
-    (run-hook-with-args hook &rest args)
-    (message-or-box string &rest args)
-    (save-window-excursion &rest body)
-    (append &rest args)
-    (logior &rest args)
-    (progn &rest body)
-    (insert-and-inherit &rest args)
-    (message-box string &rest args)
-    (prog2 x y &rest body)
-    (prog1 first &rest body)
-    (insert-before-markers &rest args)
-    (call-process-region start end program &optional delete
-			 destination display &rest args)
-    (concat &rest args)
-    (vector &rest args)
-    (run-hook-with-args-until-success hook &rest args)
-    (track-mouse &rest body)
-    (unwind-protect bodyform &rest unwindforms)
-    (save-restriction &rest body)
-    (quote arg)
-    (make-byte-code &rest args)
-    (or &rest args)
-    (cond &rest clauses)
-    (start-process name buffer program &rest args)
-    (run-hook-with-args-until-failure hook &rest args)
-    (if cond then &rest else)
-    (apply function &rest args)
-    (format string &rest args)
-    (encode-time second minute hour day month year zone &rest args)
-    (min &rest args)
-    (logand &rest args)
-    (logxor &rest args)
-    (max &rest args)
-    (list &rest args)
-    (message string &rest args)
-    (defvar symbol init doc)
-    (call-process program &optional infile destination display &rest args)
-    (with-output-to-temp-buffer bufname &rest body)
-    (nconc &rest args)
-    (save-excursion &rest body)
-    (run-hooks &rest hooks)
-    (/ x y &rest zs)
-    (- x &rest y)
-    (+ &rest args)
-    (* &rest args)
-    (interactive &optional args))
-  "Those built-ins for which we can't find arguments.")
-
 (provide 'elint)
 
+;;; arch-tag: b2f061e2-af84-4ddc-8e39-f5e969ac228f
 ;;; elint.el ends here

@@ -1,5 +1,6 @@
 /* Definitions file for GNU Emacs running on bsd 4.2
-   Copyright (C) 1985, 1986, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1994, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /*
@@ -118,3 +119,6 @@ Boston, MA 02111-1307, USA.  */
 /* Process groups work in the traditional BSD manner.  */
 
 #define BSD_PGRPS
+
+/* arch-tag: 38ca640f-549e-4726-a257-71048ab4c480
+   (do not change this comment) */

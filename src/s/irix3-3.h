@@ -1,5 +1,6 @@
 /* Definitions file for GNU Emacs running on Silicon Graphics Irix system 3.3.
-   Copyright (C) 1987, 1990, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1990, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /*
@@ -150,3 +151,6 @@ Boston, MA 02111-1307, USA.  */
 /* This was formerly in LIBS_MACHINE in iris4d.h,
    but it is not needed for newer system versions.  */
 #define LIBS_SYSTEM -lsun
+
+/* arch-tag: cccdd761-2ae9-4e71-a33e-749681c01889
+   (do not change this comment) */

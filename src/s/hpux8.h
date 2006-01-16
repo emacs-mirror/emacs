@@ -69,3 +69,6 @@
 
 /* Enable a special hack in XTread_socket.  */
 #define X_IO_BUG
+
+/* arch-tag: 25fafe5c-b26c-43ab-8144-1629d59207ee
+   (do not change this comment) */

@@ -1,6 +1,7 @@
-;;; ietf-drums.el --- functions for parsing RFC822bis headers
-;; Copyright (C) 1998, 1999, 2000, 2002
-;;        Free Software Foundation, Inc.
+;;; ietf-drums.el --- Functions for parsing RFC822bis headers
+
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -17,8 +18,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -26,6 +27,16 @@
 ;; successor to RFC822, "Standard For The Format Of Arpa Internet Text
 ;; Messages".  This library is based on
 ;; draft-ietf-drums-msg-fmt-05.txt, released on 1998-08-05.
+
+;; Pending a real regression self test suite, Simon Josefsson added
+;; various self test expressions snipped from bug reports, and their
+;; expected value, below.  I you believe it could be useful, please
+;; add your own test cases, or write a real self test suite, or just
+;; remove this.
+
+;; <m3oekvfd50.fsf@whitebox.m5r.de>
+;; (ietf-drums-parse-address "'foo' <foo@example.com>")
+;; => ("foo@example.com" . "'foo'")
 
 ;;; Code:
 
@@ -64,10 +75,14 @@ backslash and doublequote.")
     (modify-syntax-entry ?> ")" table)
     (modify-syntax-entry ?@ "w" table)
     (modify-syntax-entry ?/ "w" table)
-    (modify-syntax-entry ?= " " table)
-    (modify-syntax-entry ?* " " table)
-    (modify-syntax-entry ?\; " " table)
-    (modify-syntax-entry ?\' " " table)
+    (modify-syntax-entry ?* "_" table)
+    (modify-syntax-entry ?\; "_" table)
+    (modify-syntax-entry ?\' "_" table)
+    (if (featurep 'xemacs)
+	(let ((i 128))
+	  (while (< i 256)
+	    (modify-syntax-entry i "w" table)
+	    (setq i (1+ i)))))
     table))
 
 (defun ietf-drums-token-to-list (token)
@@ -129,7 +144,7 @@ backslash and doublequote.")
 	  (forward-sexp 1))
 	 ((eq c ?\()
 	  (forward-sexp 1))
-	 ((memq c '(? ?\t ?\n))
+	 ((memq c '(?\  ?\t ?\n))
 	  (delete-char 1))
 	 (t
 	  (forward-char 1))))
@@ -200,25 +215,38 @@ backslash and doublequote.")
 
 (defun ietf-drums-parse-addresses (string)
   "Parse STRING and return a list of MAILBOX / DISPLAY-NAME pairs."
-  (with-temp-buffer
-    (ietf-drums-init string)
-    (let ((beg (point))
-	  pairs c)
-      (while (not (eobp))
-	(setq c (char-after))
-	(cond
-	 ((memq c '(?\" ?< ?\())
-	  (forward-sexp 1))
-	 ((eq c ?,)
-	  (push (ietf-drums-parse-address (buffer-substring beg (point)))
-		pairs)
-	  (forward-char 1)
-	  (setq beg (point)))
-	 (t
-	  (forward-char 1))))
-      (push (ietf-drums-parse-address (buffer-substring beg (point)))
-	    pairs)
-      (nreverse pairs))))
+  (if (null string)
+      nil
+    (with-temp-buffer
+      (ietf-drums-init string)
+      (let ((beg (point))
+	    pairs c address)
+	(while (not (eobp))
+	  (setq c (char-after))
+	  (cond
+	   ((memq c '(?\" ?< ?\())
+	    (condition-case nil
+		(forward-sexp 1)
+	      (error
+	       (skip-chars-forward "^,"))))
+	   ((eq c ?,)
+	    (setq address
+		  (condition-case nil
+		      (ietf-drums-parse-address
+		       (buffer-substring beg (point)))
+		    (error nil)))
+	    (if address (push address pairs))
+	    (forward-char 1)
+	    (setq beg (point)))
+	   (t
+	    (forward-char 1))))
+	(setq address
+	      (condition-case nil
+		  (ietf-drums-parse-address
+		   (buffer-substring beg (point)))
+		(error nil)))
+	(if address (push address pairs))
+	(nreverse pairs)))))
 
 (defun ietf-drums-unfold-fws ()
   "Unfold folding white space in the current buffer."
@@ -248,4 +276,5 @@ backslash and doublequote.")
 
 (provide 'ietf-drums)
 
+;;; arch-tag: 379a0191-dbae-4ca6-a0f5-d4202c209ef9
 ;;; ietf-drums.el ends here

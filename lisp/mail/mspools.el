@@ -1,6 +1,6 @@
 ;;; mspools.el --- show mail spools waiting to be read
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -22,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -109,6 +109,14 @@
 ;; Shrink wrap the buffer to remove excess white-space?
 
 ;;; Code:
+
+(defvar rmail-inbox-list)
+(defvar vm-crash-box)
+(defvar vm-folder-directory)
+(defvar vm-init-file)
+(defvar vm-init-file-loaded)
+(defvar vm-primary-inbox)
+(defvar vm-spool-files)
 
 ;;; User Variables
 
@@ -357,7 +365,7 @@ nil."
   (use-local-map mspools-mode-map)
   (setq major-mode 'mspools-mode)
   (setq mode-name "MSpools")
-  )
+  (run-mode-hooks 'mspools-mode-hook))
 
 (defun mspools-get-spool-files ()
   "Find the list of spool files and display them in *spools* buffer."
@@ -404,4 +412,5 @@ nil."
 
 (provide 'mspools)
 
+;;; arch-tag: 8990b3ee-68c8-4892-98f1-51a735c8bac6
 ;;; mspools.el ends here

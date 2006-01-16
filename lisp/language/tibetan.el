@@ -1,7 +1,9 @@
 ;;; tibetan.el --- support for Tibetan language -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2000
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, Tibetan
 
@@ -19,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;; Author: Toru TOMABECHI, <Toru.Tomabechi@orient.unil.ch>
 
@@ -610,4 +612,5 @@ This also matches some punctuation characters which need conversion.")
 
 (provide 'tibetan)
 
+;;; arch-tag: 8d37c8d7-f95d-450f-9ec2-819e61fc79a7
 ;;; tibetan.el ends here

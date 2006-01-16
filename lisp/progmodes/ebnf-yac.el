@@ -1,12 +1,13 @@
 ;;; ebnf-yac.el --- parser for Yacc/Bison
 
-;; Copyright (C) 1999, 2000, 2001 Free Sofware Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Free Sofware Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Time-stamp: <2004/04/03 16:50:46 vinicius>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2003-02-10 10:47:04 jbarranquero>
-;; Version: 1.2
+;; Version: 1.3
 
 ;; This file is part of GNU Emacs.
 
@@ -22,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -42,7 +43,9 @@
 ;;
 ;; YACC = { YACC-Definitions }* "%%" { YACC-Rule }* [ "%%" [ YACC-Code ] ].
 ;;
-;; YACC-Definitions = "%token" [ "<" Name ">" ] Name-List
+;; YACC-Definitions = ( "%token" | "%left" | "%right" | "%nonassoc" )
+;;                    [ "<" Name ">" ] Name-List
+;;                  | "%prec" Name
 ;;                  | "any other Yacc definition"
 ;;                  .
 ;;
@@ -65,7 +68,20 @@
 ;; Name = "[A-Za-z][A-Za-z0-9_.]*".
 ;;
 ;; Comment = "/*" "any character, but the sequence \"*/\"" "*/"
-;;         | "//" "any character" "\\n".
+;;         | "//" "any character, but the newline \"\\n\"" "\\n".
+;;
+;;
+;; In other words, a valid Name begins with a letter (upper or lower case)
+;; followed by letters, decimal digits, underscore (_) or point (.).  For
+;; example: this_is_a_valid.name, Another_EXAMPLE, mIxEd.CaSe.
+;;
+;;
+;; Acknowledgements
+;; ----------------
+;;
+;; Thanks to Matthew K. Junker <junker@alum.mit.edu> for the suggestion to deal
+;; with %right, %left and %prec pragmas.  His suggestion was extended to deal
+;; with %nonassoc pragma too.
 ;;
 ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -126,7 +142,9 @@
     syntax-list))
 
 
-;;; YACC-Definitions = "%token" [ "<" Name ">" ] Name-List
+;;; YACC-Definitions = ( "%token" | "%left" | "%right" | "%nonassoc" )
+;;;                    [ "<" Name ">" ] Name-List
+;;;                  | "%prec" Name
 ;;;                  | "any other Yacc definition"
 ;;;                  .
 
@@ -135,7 +153,8 @@
     (while (not (memq token '(yac-separator end-of-input)))
       (setq token
 	    (cond
-	     ;; "%token" [ "<" Name ">" ] Name-List
+	     ;; ( "%token" | "%left" | "%right" | "%nonassoc" )
+	     ;; [ "<" Name ">" ] Name-List
 	     ((eq token 'yac-token)
 	      (setq token (ebnf-yac-lex))
 	      (when (eq token 'open-angle)
@@ -148,7 +167,12 @@
 		    ebnf-yac-token-list (nconc (cdr token)
 					       ebnf-yac-token-list))
 	      (car token))
-	     ;; "any other Yacc definition"
+	     ;;  "%prec" Name
+	     ((eq token 'yac-prec)
+	      (or (eq (ebnf-yac-lex) 'non-terminal)
+		  (error "Missing prec name"))
+	      (ebnf-yac-lex))
+	     ;;  "any other Yacc definition"
 	     (t
 	      (ebnf-yac-lex))
 	     )))
@@ -194,20 +218,10 @@
 		 factor (ebnf-yac-factor token))
       (setq seq (cons factor seq)))
     (cons token
-	  (cond
-	   ;; ignore error recovery
-	   ((and ebnf-yac-ignore-error-recovery ebnf-yac-error)
-	    nil)
-	   ;; null sequence
-	   ((null seq)
-	    (ebnf-make-empty))
-	   ;; sequence with only one element
-	   ((= (length seq) 1)
-	    (car seq))
-	   ;; a real sequence
-	   (t
-	    (ebnf-make-sequence (nreverse seq)))
-	   ))))
+	  (if (and ebnf-yac-ignore-error-recovery ebnf-yac-error)
+	      ;; ignore error recovery
+	      nil
+	    (ebnf-token-sequence seq)))))
 
 
 ;;; Factor = Name
@@ -298,7 +312,7 @@
 
 
 (defun ebnf-yac-lex ()
-  "Lexical analyser for Yacc/Bison.
+  "Lexical analyzer for Yacc/Bison.
 
 Return a lexical token.
 
@@ -332,7 +346,7 @@ See documentation for variable `ebnf-yac-lex'."
 	'end-of-input)
        ;; error
        ((eq token 'error)
-	(error "Illegal character"))
+	(error "Invalid character"))
        ;; "string"
        ((eq token 'string)
 	(setq ebnf-yac-lex (ebnf-get-string))
@@ -360,9 +374,13 @@ See documentation for variable `ebnf-yac-lex'."
 	 ((eq (following-char) ?%)
 	  (forward-char)
 	  'yac-separator)
-	 ;; %TOKEN
-	 ((string= (upcase (ebnf-buffer-substring "0-9A-Za-z_")) "TOKEN")
-	  'yac-token)
+	 ;; %TOKEN, %RIGHT, %LEFT,  %PREC, %NONASSOC
+	 ((cdr (assoc (upcase (ebnf-buffer-substring "0-9A-Za-z_"))
+		      '(("TOKEN"    . yac-token)
+			("RIGHT"    . yac-token)
+			("LEFT"     . yac-token)
+			("NONASSOC" . yac-token)
+			("PREC"     . yac-prec)))))
 	 ;; other Yacc pragmas
 	 (t
 	  'yac-pragma)
@@ -407,7 +425,7 @@ See documentation for variable `ebnf-yac-lex'."
        ((= (following-char) ?\')
 	(ebnf-string " -&(-~" ?\' "character"))
        (t
-	(error "Illegal character"))
+	(error "Invalid character"))
        )))
   (ebnf-yac-skip-spaces))
 
@@ -458,7 +476,7 @@ See documentation for variable `ebnf-yac-lex'."
 	       (forward-char)
 	       (setq not-end nil)))
 	    (t
-	     (error "Illegal character"))
+	     (error "Invalid character"))
 	    ))))
 
 
@@ -491,4 +509,5 @@ See documentation for variable `ebnf-yac-lex'."
 (provide 'ebnf-yac)
 
 
+;;; arch-tag: 8a96989c-0b1d-42ba-a020-b2901f9a2a4d
 ;;; ebnf-yac.el ends here

@@ -1,5 +1,6 @@
 /* Machine description file for generic Motorola 68k.
-   Copyright (C) 1985, 1995, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1995, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The following three symbols give information on
@@ -81,3 +82,6 @@ Boston, MA 02111-1307, USA.  */
 #define NO_REMAP
 #define TEXT_START 0
 #endif
+
+/* arch-tag: 4eadd161-b4e8-4b82-82a1-e4ce7f42969d
+   (do not change this comment) */

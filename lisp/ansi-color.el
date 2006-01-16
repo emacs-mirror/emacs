@@ -1,6 +1,7 @@
 ;;; ansi-color.el --- translate ANSI escape sequences into faces
 
-;; Copyright (C) 1999, 2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
@@ -21,8 +22,8 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -46,7 +47,6 @@
 ;;
 ;; If you decide you like this, add the following to your .emacs file:
 ;;
-;; (autoload 'ansi-color-for-comint-mode-on "ansi-color" nil t)
 ;; (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 ;;
 ;; SGR control sequences are defined in section 3.8.117 of the ECMA-48
@@ -85,6 +85,8 @@
 
 
 ;;; Code:
+
+(defvar comint-last-output-start)
 
 ;; Customization
 
@@ -221,23 +223,6 @@ This is a good function to put in `comint-output-filter-functions'."
 
 ;; Alternative font-lock-unfontify-region-function for Emacs only
 
-
-(eval-when-compile
- ;; We use this to preserve or protect things when modifying text
- ;; properties.  Stolen from lazy-lock and font-lock.  Ugly!!!
- ;; Probably most of this is not needed?
- (defmacro save-buffer-state (varlist &rest body)
-   "Bind variables according to VARLIST and eval BODY restoring buffer state."
-   `(let* (,@(append varlist
-                     '((modified (buffer-modified-p)) (buffer-undo-list t)
-                       (inhibit-read-only t) (inhibit-point-motion-hooks t)
-                       before-change-functions after-change-functions
-                       deactivate-mark buffer-file-name buffer-file-truename)))
-     ,@body
-     (when (and (not modified) (buffer-modified-p))
-       (set-buffer-modified-p nil))))
- (put 'save-buffer-state 'lisp-indent-function 1))
-
 (defun ansi-color-unfontify-region (beg end &rest xemacs-stuff)
   "Replacement function for `font-lock-default-unfontify-region'.
 
@@ -260,21 +245,20 @@ A possible way to install this would be:
 	  \(function (lambda ()
 		      \(setq font-lock-unfontify-region-function
 			    'ansi-color-unfontify-region))))"
-  ;; save-buffer-state is a macro in font-lock.el!
-  (save-buffer-state nil
-    (when (boundp 'font-lock-syntactic-keywords)
-      (remove-text-properties beg end '(syntax-table nil)))
-    ;; instead of just using (remove-text-properties beg end '(face
-    ;; nil)), we find regions with a non-nil face test-property, skip
-    ;; positions with the ansi-color property set, and remove the
-    ;; remaining face test-properties.
-    (while (setq beg (text-property-not-all beg end 'face nil))
-      (setq beg (or (text-property-not-all beg end 'ansi-color t) end))
-      (when (get-text-property beg 'face)
-	(let ((end-face (or (text-property-any beg end 'face nil)
-			    end)))
-	  (remove-text-properties beg end-face '(face nil))
-	  (setq beg end-face))))))
+  ;; Simplified now that font-lock-unfontify-region uses save-buffer-state.
+  (when (boundp 'font-lock-syntactic-keywords)
+    (remove-text-properties beg end '(syntax-table nil)))
+  ;; instead of just using (remove-text-properties beg end '(face
+  ;; nil)), we find regions with a non-nil face test-property, skip
+  ;; positions with the ansi-color property set, and remove the
+  ;; remaining face test-properties.
+  (while (setq beg (text-property-not-all beg end 'face nil))
+    (setq beg (or (text-property-not-all beg end 'ansi-color t) end))
+    (when (get-text-property beg 'face)
+      (let ((end-face (or (text-property-any beg end 'face nil)
+			  end)))
+	(remove-text-properties beg end-face '(face nil))
+	(setq beg end-face)))))
 
 ;; Working with strings
 
@@ -504,7 +488,7 @@ For XEmacs, we create a temporary face and return it."
 OBJECT defaults to the current buffer.  XEmacs uses `make-extent', Emacs
 uses `make-overlay'.  XEmacs can use a buffer or a string for OBJECT,
 Emacs requires OBJECT to be a buffer."
-  (if (functionp 'make-extent)
+  (if (fboundp 'make-extent)
       (make-extent from to object)
     ;; In Emacs, the overlay might end at the process-mark in comint
     ;; buffers.  In that case, new text will be inserted before the
@@ -529,7 +513,7 @@ property."
 (defun ansi-color-set-extent-face (extent face)
   "Set the `face' property of EXTENT to FACE.
 XEmacs uses `set-extent-face', Emacs  uses `overlay-put'."
-  (if (functionp 'set-extent-face)
+  (if (fboundp 'set-extent-face)
       (set-extent-face extent face)
     (overlay-put extent 'face face)))
 
@@ -638,7 +622,7 @@ ESCAPE-SEQ is a SGR control sequences such as \\033[34m.  The parameter
     (while (string-match ansi-color-r escape-seq i)
       (setq i (match-end 0)
 	    val (ansi-color-get-face-1
-		 (string-to-int (match-string 0 escape-seq) 10)))
+		 (string-to-number (match-string 0 escape-seq) 10)))
       (cond ((not val))
 	    ((eq val 'default)
 	     (setq f (list val)))
@@ -649,4 +633,5 @@ ESCAPE-SEQ is a SGR control sequences such as \\033[34m.  The parameter
 
 (provide 'ansi-color)
 
+;;; arch-tag: 00726118-9432-44fd-b72d-d2af7591c99c
 ;;; ansi-color.el ends here

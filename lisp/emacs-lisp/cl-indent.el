@@ -1,6 +1,7 @@
 ;;; cl-indent.el --- enhanced lisp-indent mode
 
-;; Copyright (C) 1987, 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Created: July 1987
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -49,13 +50,13 @@
 ;;; Code:
 
 (defgroup lisp-indent nil
-  "Indentation in Lisp"
+  "Indentation in Lisp."
   :group 'lisp)
 
 
 (defcustom lisp-indent-maximum-backtracking 3
   "*Maximum depth to backtrack out from a sublist for structured indentation.
-If this variable is  0, no backtracking will occur and forms such as flet
+If this variable is 0, no backtracking will occur and forms such as `flet'
 may not be correctly indented."
   :type 'integer
   :group 'lisp-indent)
@@ -216,8 +217,12 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
 		     (cond ((string-match "\\`def"
 					  function)
 			    (setq tentative-defun t))
-			   ((string-match "\\`\\(with\\|do\\)-"
-					  function)
+			   ((string-match
+                             (eval-when-compile
+                              (concat "\\`\\("
+                                      (regexp-opt '("with" "without" "do"))
+                                      "\\)-"))
+                             function)
 			    (setq method '(&lambda &body))))))
                   ;; backwards compatibility.  Bletch.
                   ((eq method 'defun)
@@ -454,7 +459,7 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
 					    (forward-char 1)
                                             (forward-sexp 3)
                                             (backward-sexp)
-					    (looking-at ":")))
+					    (looking-at ":\\|\\sw+")))
 		       '(4 4 (&whole 4 &rest 4) &body)
 		     (get 'defun 'common-lisp-indent-function))
 		   path state indent-point sexp-column normal-indent))
@@ -544,7 +549,7 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
            (progv       (4 4 &body))
            (return 0)
            (return-from (nil &body))
-           (symbol-macrolet . multiple-value-bind)
+           (symbol-macrolet . let)
            (tagbody     lisp-indent-tagbody)
            (throw 1)
            (unless 1)
@@ -605,4 +610,5 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
 ;(put 'defclass 'common-lisp-indent-function '((&whole 2 &rest (&whole 2 &rest 1) &rest (&whole 2 &rest 1)))
 ;(put 'defgeneric 'common-lisp-indent-function 'defun)
 
+;;; arch-tag: 7914d50f-92ec-4476-93fc-0f043a380e03
 ;;; cl-indent.el ends here

@@ -1,6 +1,7 @@
 ;;; m4-mode.el --- m4 code editing commands for Emacs
 
-;;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Andrew Csillag <drew_csillag@geocities.com>
 ;; Maintainer: Andrew Csillag <drew_csillag@geocities.com>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -43,6 +44,7 @@
 
 (defgroup m4 nil
   "m4 code editing commands for Emacs."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :prefix "m4-"
   :group 'languages)
 
@@ -147,7 +149,7 @@
 	font-lock-defaults '(m4-font-lock-keywords nil)
 	)
   (set-syntax-table m4-mode-syntax-table)
-  (run-hooks 'm4-mode-hook))
+  (run-mode-hooks 'm4-mode-hook))
 
 (provide 'm4-mode)
 ;;stuff to play with for debugging
@@ -171,4 +173,5 @@
 ;;;		  "m4_syscmd" "m4_sysval" "m4_traceoff" "m4_traceon" "m4_translit"
 ;;;		  "m4_m4_undefine" "m4_undivert"))
 
+;;; arch-tag: 87811d86-94c1-474b-9666-587f6da74af1
 ;;; m4-mode.el ends here

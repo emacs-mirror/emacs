@@ -19,3 +19,6 @@
 /* Correct some library file names.  */
 #define START_FILES pre-crt0.o /usr/lib/crt1.o1.31
 #define LIB_STANDARD -lbsd -lc /usr/lib/crtn.o1.31
+
+/* arch-tag: ae34a1a6-6408-4b23-a6d3-ce4e8f124916
+   (do not change this comment) */

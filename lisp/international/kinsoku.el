@@ -1,7 +1,9 @@
 ;;; kinsoku.el --- `Kinsoku' processing funcs -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: mule, kinsoku
 
@@ -19,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -107,7 +109,7 @@ The value 0 means there's no limitation.")
 $A!.!0#"#(!2!4!6!8!:!<!>!c!d!e#@!f!l(B"
 	 ;; Chinese GB2312
 	 "$A(E(F(G(H(I(J(K(L(M(N(O(P(Q(R(S(T(U(V(W(X(Y(h(B\
-$(0!>!@!B!D!F!H!J!L!N!P!R!T!V!X!Z!\!^!`!b(B"
+\$(0!>!@!B!D!F!H!J!L!N!P!R!T!V!X!Z!\!^!`!b(B"
 	 ;; Chinese BIG5
 	 "$(0!d!f!h!j!k!q!p"i"j"k"n"x$u$v$w$x$y$z${(B\
 $(0$|$}$~%!%"%#%$%%%&%'%(%)%*%+%:(B"))
@@ -121,11 +123,17 @@ The value 0 means there's no limitation.")
 
 ;; Try to resolve `kinsoku' restriction by making the current line longer.
 (defun kinsoku-longer ()
-  (let ((pos-and-column (save-excursion
-			  (forward-char 1)
-			  (while (aref (char-category-set (following-char)) ?>)
-			    (forward-char 1))
-			  (cons (point) (current-column)))))
+  (let ((pos-and-column
+	 (save-excursion
+	   (forward-char 1)
+	   (while (and (not (eolp))
+		       (or (aref (char-category-set (following-char)) ?>)
+			   ;; protect non-kinsoku words
+			   (not (or (eq (preceding-char) ? )
+				    (aref (char-category-set (preceding-char))
+					  ?|)))))
+	     (forward-char 1))
+	   (cons (point) (current-column)))))
     (if (or (<= kinsoku-limit 0)
 	    (< (cdr pos-and-column) (+ (current-fill-column) kinsoku-limit)))
 	(goto-char (car pos-and-column)))))
@@ -135,9 +143,14 @@ The value 0 means there's no limitation.")
 (defun kinsoku-shorter (linebeg)
   (let ((pos (save-excursion
 	       (forward-char -1)
-	       (while (and (< linebeg (point))
-			   (or (aref (char-category-set (preceding-char)) ?<)
-			       (aref (char-category-set (following-char)) ?>)))
+	       (while (and
+		       (< linebeg (point))
+		       (or (aref (char-category-set (preceding-char)) ?<)
+			   (aref (char-category-set (following-char)) ?>)
+			   ;; protect non-kinsoku words
+			   (not (or (eq (preceding-char) ? )
+				    (aref (char-category-set (preceding-char))
+					  ?|)))))
 		 (forward-char -1))
 	       (point))))
     (if (< linebeg pos)
@@ -170,4 +183,5 @@ the context of text formatting."
 	      (aref (char-category-set (preceding-char)) ?<))
 	  (kinsoku-shorter linebeg))))
 
+;;; arch-tag: e6b036bc-9e5b-4e9f-a22c-4ed04e37777e
 ;;; kinsoku.el ends here

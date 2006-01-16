@@ -1,5 +1,5 @@
 /* Dump Emacs in Mach-O format for use on Mac OS X.
-   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Contributed by Andrew Choi (akochoi@mac.com).  */
 
@@ -95,7 +95,18 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #include <mach/mach.h>
 #include <mach-o/loader.h>
+#include <mach-o/reloc.h>
+#if defined (__ppc__)
+#include <mach-o/ppc/reloc.h>
+#endif
+#if defined (HAVE_MALLOC_MALLOC_H)
+#include <malloc/malloc.h>
+#else
 #include <objc/malloc.h>
+#endif
+
+#include <assert.h>
+
 
 #define VERBOSE 1
 
@@ -158,7 +169,12 @@ int in_dumped_exec = 0;
 
 malloc_zone_t *emacs_zone;
 
-/* Read n bytes from infd into memory starting at address dest.
+/* file offset of input file's data segment */
+off_t data_segment_old_fileoff;
+
+struct segment_command *data_segment_scp;
+
+/* Read N bytes from infd into memory starting at address DEST.
    Return true if successful, false otherwise.  */
 static int
 unexec_read (void *dest, size_t n)
@@ -166,8 +182,9 @@ unexec_read (void *dest, size_t n)
   return n == read (infd, dest, n);
 }
 
-/* Write n bytes from memory starting at address src to outfd starting
-   at offset dest.  Return true if successful, false otherwise.  */
+/* Write COUNT bytes from memory starting at address SRC to outfd
+   starting at offset DEST.  Return true if successful, false
+   otherwise.  */
 static int
 unexec_write (off_t dest, const void *src, size_t count)
 {
@@ -177,12 +194,37 @@ unexec_write (off_t dest, const void *src, size_t count)
   return write (outfd, src, count) == count;
 }
 
-/* Copy n bytes from starting offset src in infd to starting offset
-   dest in outfd.  Return true if successful, false otherwise.  */
+/* Write COUNT bytes of zeros to outfd starting at offset DEST.
+   Return true if successful, false otherwise.  */
+static int
+unexec_write_zero (off_t dest, size_t count)
+{
+  char buf[UNEXEC_COPY_BUFSZ];
+  ssize_t bytes;
+
+  bzero (buf, UNEXEC_COPY_BUFSZ);
+  if (lseek (outfd, dest, SEEK_SET) != dest)
+    return 0;
+
+  while (count > 0)
+    {
+      bytes = count > UNEXEC_COPY_BUFSZ ? UNEXEC_COPY_BUFSZ : count;
+      if (write (outfd, buf, bytes) != bytes)
+	return 0;
+      count -= bytes;
+    }
+
+  return 1;
+}
+
+/* Copy COUNT bytes from starting offset SRC in infd to starting
+   offset DEST in outfd.  Return true if successful, false
+   otherwise.  */
 static int
 unexec_copy (off_t dest, off_t src, ssize_t count)
 {
   ssize_t bytes_read;
+  ssize_t bytes_to_read;
 
   char buf[UNEXEC_COPY_BUFSZ];
 
@@ -194,7 +236,8 @@ unexec_copy (off_t dest, off_t src, ssize_t count)
 
   while (count > 0)
     {
-      bytes_read = read (infd, buf, UNEXEC_COPY_BUFSZ);
+      bytes_to_read = count > UNEXEC_COPY_BUFSZ ? UNEXEC_COPY_BUFSZ : count;
+      bytes_read = read (infd, buf, bytes_to_read);
       if (bytes_read <= 0)
 	return 0;
       if (write (outfd, buf, bytes_read) != bytes_read)
@@ -364,7 +407,7 @@ build_region_list ()
 }
 
 
-#define MAX_UNEXEC_REGIONS 30
+#define MAX_UNEXEC_REGIONS 200
 
 int num_unexec_regions;
 vm_range_t unexec_regions[MAX_UNEXEC_REGIONS];
@@ -401,6 +444,46 @@ find_emacs_zone_regions ()
 				      (vm_address_t) emacs_zone,
 				      unexec_reader,
 				      unexec_regions_recorder);
+}
+
+static int
+unexec_regions_sort_compare (const void *a, const void *b)
+{
+  vm_address_t aa = ((vm_range_t *) a)->address;
+  vm_address_t bb = ((vm_range_t *) b)->address;
+
+  if (aa < bb)
+    return -1;
+  else if (aa > bb)
+    return 1;
+  else
+    return 0;
+}
+
+static void
+unexec_regions_merge ()
+{
+  int i, n;
+  vm_range_t r;
+
+  qsort (unexec_regions, num_unexec_regions, sizeof (unexec_regions[0]),
+	 &unexec_regions_sort_compare);
+  n = 0;
+  r = unexec_regions[0];
+  for (i = 1; i < num_unexec_regions; i++)
+    {
+      if (r.address + r.size == unexec_regions[i].address)
+	{
+	  r.size += unexec_regions[i].size;
+	}
+      else
+	{
+	  unexec_regions[n++] = r;
+	  r = unexec_regions[i];
+	}
+    }
+  unexec_regions[n++] = r;
+  num_unexec_regions = n;
 }
 
 
@@ -626,19 +709,46 @@ copy_data_segment (struct load_command *lc)
 	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
 	    unexec_error ("cannot write section %s's header", SECT_DATA);
 	}
-      else if (strncmp (sectp->sectname, SECT_BSS, 16) == 0
-	       || strncmp (sectp->sectname, SECT_COMMON, 16) == 0)
+      else if (strncmp (sectp->sectname, SECT_COMMON, 16) == 0)
 	{
 	  sectp->flags = S_REGULAR;
 	  if (!unexec_write (sectp->offset, (void *) sectp->addr, sectp->size))
-	    unexec_error ("cannot write section %s", SECT_DATA);
+	    unexec_error ("cannot write section %s", sectp->sectname);
 	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
-	    unexec_error ("cannot write section %s's header", SECT_DATA);
+	    unexec_error ("cannot write section %s's header", sectp->sectname);
+	}
+      else if (strncmp (sectp->sectname, SECT_BSS, 16) == 0)
+	{
+	  extern char *my_endbss_static;
+	  unsigned long my_size;
+
+	  sectp->flags = S_REGULAR;
+
+	  /* Clear uninitialized local variables in statically linked
+	     libraries.  In particular, function pointers stored by
+	     libSystemStub.a, which is introduced in Mac OS X 10.4 for
+	     binary compatibility with respect to long double, are
+	     cleared so that they will be reinitialized when the
+	     dumped binary is executed on other versions of OS.  */
+	  my_size = (unsigned long)my_endbss_static - sectp->addr;
+	  if (!(sectp->addr <= (unsigned long)my_endbss_static
+		&& my_size <= sectp->size))
+	    unexec_error ("my_endbss_static is not in section %s",
+			  sectp->sectname);
+	  if (!unexec_write (sectp->offset, (void *) sectp->addr, my_size))
+	    unexec_error ("cannot write section %s", sectp->sectname);
+	  if (!unexec_write_zero (sectp->offset + my_size,
+				  sectp->size - my_size))
+	    unexec_error ("cannot write section %s", sectp->sectname);
+	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
+	    unexec_error ("cannot write section %s's header", sectp->sectname);
 	}
       else if (strncmp (sectp->sectname, "__la_symbol_ptr", 16) == 0
 	       || strncmp (sectp->sectname, "__nl_symbol_ptr", 16) == 0
+	       || strncmp (sectp->sectname, "__la_sym_ptr2", 16) == 0
 	       || strncmp (sectp->sectname, "__dyld", 16) == 0
-	       || strncmp (sectp->sectname, "__const", 16) == 0)
+	       || strncmp (sectp->sectname, "__const", 16) == 0
+	       || strncmp (sectp->sectname, "__cfstring", 16) == 0)
 	{
 	  if (!unexec_copy (sectp->offset, old_file_offset, sectp->size))
 	    unexec_error ("cannot copy section %s", sectp->sectname);
@@ -722,6 +832,65 @@ copy_symtab (struct load_command *lc)
   curr_header_offset += lc->cmdsize;
 }
 
+/* Fix up relocation entries. */
+static void
+unrelocate (const char *name, off_t reloff, int nrel)
+{
+  int i, unreloc_count;
+  struct relocation_info reloc_info;
+  struct scattered_relocation_info *sc_reloc_info
+    = (struct scattered_relocation_info *) &reloc_info;
+
+  for (unreloc_count = 0, i = 0; i < nrel; i++)
+    {
+      if (lseek (infd, reloff, L_SET) != reloff)
+	unexec_error ("unrelocate: %s:%d cannot seek to reloc_info", name, i);
+      if (!unexec_read (&reloc_info, sizeof (reloc_info)))
+	unexec_error ("unrelocate: %s:%d cannot read reloc_info", name, i);
+      reloff += sizeof (reloc_info);
+
+      if (sc_reloc_info->r_scattered == 0)
+	switch (reloc_info.r_type)
+	  {
+	  case GENERIC_RELOC_VANILLA:
+	    if (reloc_info.r_address >= data_segment_scp->vmaddr
+		&& reloc_info.r_address < (data_segment_scp->vmaddr
+					   + data_segment_scp->vmsize))
+	      {
+		off_t src_off = data_segment_old_fileoff
+		  + reloc_info.r_address - data_segment_scp->vmaddr;
+		off_t dst_off = data_segment_scp->fileoff
+		  + reloc_info.r_address - data_segment_scp->vmaddr;
+
+		if (!unexec_copy (dst_off, src_off, 1 << reloc_info.r_length))
+		  unexec_error ("unrelocate: %s:%d cannot copy original value",
+				name, i);
+		unreloc_count++;
+	      }
+	    break;
+	  default:
+	    unexec_error ("unrelocate: %s:%d cannot handle type = %d",
+			  name, i, reloc_info.r_type);
+	  }
+      else
+	switch (sc_reloc_info->r_type)
+	  {
+#if defined (__ppc__)
+	  case PPC_RELOC_PB_LA_PTR:
+	    /* nothing to do for prebound lazy pointer */
+	    break;
+#endif
+	  default:
+	    unexec_error ("unrelocate: %s:%d cannot handle scattered type = %d",
+			  name, i, sc_reloc_info->r_type);
+	  }
+    }
+
+  if (nrel > 0)
+    printf ("Fixed up %d/%d %s relocation entries in data segment.\n",
+	    unreloc_count, nrel, name);
+}
+
 /* Copy a LC_DYSYMTAB load command from the input file to the output
    file, adjusting the file offset fields.  */
 static void
@@ -729,10 +898,8 @@ copy_dysymtab (struct load_command *lc)
 {
   struct dysymtab_command *dstp = (struct dysymtab_command *) lc;
 
-  /* If Mach-O executable is not prebound, relocation entries need
-     fixing up.  This is not supported currently.  */
-  if (!(mh.flags & MH_PREBOUND) && (dstp->nextrel != 0 || dstp->nlocrel != 0))
-    unexec_error ("cannot handle LC_DYSYMTAB with relocation entries");
+  unrelocate ("local", dstp->locreloff, dstp->nlocrel);
+  unrelocate ("external", dstp->extreloff, dstp->nextrel);
 
   if (dstp->nextrel > 0) {
     dstp->extreloff += delta;
@@ -804,6 +971,11 @@ dump_it ()
 	  struct segment_command *scp = (struct segment_command *) lca[i];
 	  if (strncmp (scp->segname, SEG_DATA, 16) == 0)
 	    {
+	      /* save data segment file offset and segment_command for
+		 unrelocate */
+	      data_segment_old_fileoff = scp->fileoff;
+	      data_segment_scp = scp;
+
 	      copy_data_segment (lca[i]);
 	    }
 	  else
@@ -862,6 +1034,7 @@ unexec (char *outfile, char *infile, void *start_data, void *start_bss,
   read_load_commands ();
 
   find_emacs_zone_regions ();
+  unexec_regions_merge ();
 
   in_dumped_exec = 1;
 
@@ -878,6 +1051,23 @@ unexec_init_emacs_zone ()
   malloc_set_zone_name (emacs_zone, "EmacsZone");
 }
 
+#ifndef MACOSX_MALLOC_MULT16
+#define MACOSX_MALLOC_MULT16 1
+#endif
+
+typedef struct unexec_malloc_header {
+  union {
+    char c[8];
+    size_t size;
+  } u;
+} unexec_malloc_header_t;
+
+#if MACOSX_MALLOC_MULT16
+
+#define ptr_in_unexec_regions(p) ((((vm_address_t) (p)) & 8) != 0)
+
+#else
+
 int
 ptr_in_unexec_regions (void *ptr)
 {
@@ -891,36 +1081,75 @@ ptr_in_unexec_regions (void *ptr)
   return 0;
 }
 
+#endif
+
 void *
 unexec_malloc (size_t size)
 {
   if (in_dumped_exec)
-    return malloc (size);
+    {
+      void *p;
+
+      p = malloc (size);
+#if MACOSX_MALLOC_MULT16
+      assert (((vm_address_t) p % 16) == 0);
+#endif
+      return p;
+    }
   else
-    return malloc_zone_malloc (emacs_zone, size);
+    {
+      unexec_malloc_header_t *ptr;
+
+      ptr = (unexec_malloc_header_t *)
+	malloc_zone_malloc (emacs_zone, size + sizeof (unexec_malloc_header_t));
+      ptr->u.size = size;
+      ptr++;
+#if MACOSX_MALLOC_MULT16
+      assert (((vm_address_t) ptr % 16) == 8);
+#endif
+      return (void *) ptr;
+    }
 }
 
 void *
 unexec_realloc (void *old_ptr, size_t new_size)
 {
   if (in_dumped_exec)
-    if (ptr_in_unexec_regions (old_ptr))
-      {
-	char *p = malloc (new_size);
-	/* 2002-04-15 T. Ikegami <ikegami@adam.uprr.pr>.  The original
-	   code to get size failed to reallocate read_buffer
-	   (lread.c).  */
-	int old_size = malloc_default_zone()->size (emacs_zone, old_ptr);
-	int size = new_size > old_size ? old_size : new_size;
+    {
+      void *p;
 
-	if (size)
-	  memcpy (p, old_ptr, size);
-	return p;
-      }
-    else
-      return realloc (old_ptr, new_size);
+      if (ptr_in_unexec_regions (old_ptr))
+	{
+	  size_t old_size = ((unexec_malloc_header_t *) old_ptr)[-1].u.size;
+	  size_t size = new_size > old_size ? old_size : new_size;
+
+	  p = (size_t *) malloc (new_size);
+	  if (size)
+	    memcpy (p, old_ptr, size);
+	}
+      else
+	{
+	  p = realloc (old_ptr, new_size);
+	}
+#if MACOSX_MALLOC_MULT16
+      assert (((vm_address_t) p % 16) == 0);
+#endif
+      return p;
+    }
   else
-    return malloc_zone_realloc (emacs_zone, old_ptr, new_size);
+    {
+      unexec_malloc_header_t *ptr;
+
+      ptr = (unexec_malloc_header_t *)
+	malloc_zone_realloc (emacs_zone, (unexec_malloc_header_t *) old_ptr - 1,
+			     new_size + sizeof (unexec_malloc_header_t));
+      ptr->u.size = new_size;
+      ptr++;
+#if MACOSX_MALLOC_MULT16
+      assert (((vm_address_t) ptr % 16) == 8);
+#endif
+      return (void *) ptr;
+    }
 }
 
 void
@@ -932,5 +1161,8 @@ unexec_free (void *ptr)
 	free (ptr);
     }
   else
-    malloc_zone_free (emacs_zone, ptr);
+    malloc_zone_free (emacs_zone, (unexec_malloc_header_t *) ptr - 1);
 }
+
+/* arch-tag: 1a784f7b-a184-4c4f-9544-da8619593d72
+   (do not change this comment) */

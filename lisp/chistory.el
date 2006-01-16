@@ -1,6 +1,6 @@
 ;;; chistory.el --- list command history
 
-;; Copyright (C) 1985 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -145,7 +145,7 @@ Keybindings:
   (setq major-mode 'command-history-mode)
   (setq mode-name "Command History")
   (use-local-map command-history-map)
-  (run-hooks 'command-history-mode-hook))
+  (run-mode-hooks 'command-history-mode-hook))
 
 (defun Command-history-setup ()
   (kill-all-local-variables)
@@ -191,4 +191,5 @@ and runs the normal hook `command-history-hook'."
 
 (provide 'chistory)
 
+;;; arch-tag: c201a0cd-89f2-4d39-a532-4cb309391dbd
 ;;; chistory.el ends here

@@ -1,3 +1,24 @@
+/* Internals of a lightweight menubar widget.
+   Copyright (C) 1999, 2000, 2002, 2003, 2004, 
+                 2005 Free Software Foundation, Inc.
+
+This file is part of the Lucid Widget Library.
+
+The Lucid Widget Library is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+The Lucid Widget Library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to the
+Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
+
 #ifndef _XlwMenuP_h
 #define _XlwMenuP_h
 
@@ -23,6 +44,10 @@ typedef struct _window_state
 typedef struct _XlwMenu_part
 {
   /* slots set by the resources */
+#ifdef HAVE_X_I18N
+  XFontSet	fontSet;
+  XFontSetExtents *font_extents;
+#endif
   XFontStruct*	font;
   Pixel		foreground;
   Pixel		disabled_foreground;
@@ -47,6 +72,7 @@ typedef struct _XlwMenu_part
   unsigned free_bottom_shadow_color_p : 1;
 
   /* State of the XlwMenu */
+  int                   top_depth;
   int			old_depth;
   widget_value**	old_stack;
   int			old_stack_length;
@@ -97,3 +123,6 @@ typedef struct _XlwMenuClassRec
 extern XlwMenuClassRec xlwMenuClassRec;
 
 #endif /* _XlwMenuP_h */
+
+/* arch-tag: 18d7fc41-ffa0-47a3-a49f-3469900c7a25
+   (do not change this comment) */

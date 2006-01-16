@@ -1,5 +1,6 @@
 /* Handcrafted m-mac.h file for building GNU Emacs on the Macintosh.
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2002, 2003, 2004,
+      2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Contributed by Andrew Choi (akochoi@mac.com).  */
 
@@ -80,16 +81,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define VIRT_ADDR_VARIES
 
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-
-#define C_ALLOCA
-/* #define HAVE_ALLOCA */
-
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
    when Emacs is dumped.  If you define this, the preloaded Lisp
@@ -126,15 +117,5 @@ Boston, MA 02111-1307, USA.  */
 #define IEEE_FLOATING_POINT 1
 #endif
 
-#if 0
-/* The usual definition of XINT, which involves shifting, does not
-   sign-extend properly on this machine.  */
-
-#define XINT(i) (((sign_extend_temp=(i)) & 0x00800000) \
-		 ? (sign_extend_temp | 0xFF000000) \
-		 : (sign_extend_temp & 0x00FFFFFF))
-
-#ifdef emacs /* Don't do this when making xmakefile! */
-extern int sign_extend_temp;
-#endif
-#endif
+/* arch-tag: 9e759031-ab7b-4c76-99d7-3ae94a98de38
+   (do not change this comment) */

@@ -1,6 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
-   Copyright (C) 1985,86,87,88,93,94,95,99, 2000, 2001
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001,
+                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #include <config.h>
@@ -42,7 +42,7 @@ extern int errno;
 #endif
 
 #include <sys/file.h>
-#ifdef USG5
+#ifdef HAVE_FCNTL_H
 #define INCLUDED_FCNTL
 #include <fcntl.h>
 #endif
@@ -83,6 +83,7 @@ extern int errno;
 #include "process.h"
 #include "syssignal.h"
 #include "systty.h"
+#include "blockinput.h"
 
 #ifdef MSDOS
 #include "msdos.h"
@@ -123,13 +124,12 @@ int synch_process_alive;
 /* Nonzero => this is a string explaining death of synchronous subprocess.  */
 char *synch_process_death;
 
+/* Nonzero => this is the signal number that terminated the subprocess.  */
+int synch_process_termsig;
+
 /* If synch_process_death is zero,
    this is exit code of synchronous subprocess.  */
 int synch_process_retcode;
-
-extern Lisp_Object Vdoc_file_name;
-
-extern Lisp_Object Vfile_name_coding_system, Vdefault_file_name_coding_system;
 
 /* Clean up when exiting Fcall_process.
    On MSDOS, delete the temporary file on any kind of termination.
@@ -213,13 +213,15 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
      int nargs;
      register Lisp_Object *args;
 {
-  Lisp_Object infile, buffer, current_dir, display, path;
+  Lisp_Object infile, buffer, current_dir, path;
+  int display_p;
   int fd[2];
   int filefd;
   register int pid;
-  char buf[16384];
-  char *bufptr = buf;
-  int bufsize = 16384;
+#define CALLPROC_BUFFER_SIZE_MIN (16 * 1024)
+#define CALLPROC_BUFFER_SIZE_MAX (4 * CALLPROC_BUFFER_SIZE_MIN)
+  char buf[CALLPROC_BUFFER_SIZE_MAX];
+  int bufsize = CALLPROC_BUFFER_SIZE_MIN;
   int count = SPECPDL_INDEX ();
 
   register const unsigned char **new_argv
@@ -369,7 +371,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     UNGCPRO;
   }
 
-  display = nargs >= 4 ? args[3] : Qnil;
+  display_p = INTERACTIVE && nargs >= 4 && !NILP (args[3]);
 
   filefd = emacs_open (SDATA (infile), O_RDONLY, 0);
   if (filefd < 0)
@@ -506,6 +508,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
        to avoid timing error if process terminates soon.  */
     synch_process_death = 0;
     synch_process_retcode = 0;
+    synch_process_termsig = 0;
 
     if (NILP (error_file))
       fd_error = emacs_open (NULL_DEVICE, O_WRONLY, 0);
@@ -619,6 +622,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     pid = child_setup (filefd, fd1, fd_error, (char **) new_argv,
 		       0, current_dir);
 #else  /* not WINDOWSNT */
+    BLOCK_INPUT;
+
     pid = vfork ();
 
     if (pid == 0)
@@ -636,6 +641,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	child_setup (filefd, fd1, fd_error, (char **) new_argv,
 		     0, current_dir);
       }
+
+    UNBLOCK_INPUT;
 #endif /* not WINDOWSNT */
 
     /* The MSDOS case did this already.  */
@@ -743,7 +750,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     int first = 1;
     int total_read = 0;
     int carryover = 0;
-    int display_on_the_fly = !NILP (display) && INTERACTIVE;
+    int display_on_the_fly = display_p;
     struct coding_system saved_coding;
     int pt_orig = PT, pt_byte_orig = PT_BYTE;
     int inserted;
@@ -759,7 +766,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	nread = carryover;
 	while (nread < bufsize - 1024)
 	  {
-	    int this_read = emacs_read (fd[0], bufptr + nread,
+	    int this_read = emacs_read (fd[0], buf + nread,
 					bufsize - nread);
 
 	    if (this_read < 0)
@@ -784,7 +791,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	if (!NILP (buffer))
 	  {
 	    if (! CODING_MAY_REQUIRE_DECODING (&process_coding))
-	      insert_1_both (bufptr, nread, nread, 0, 1, 0);
+	      insert_1_both (buf, nread, nread, 0, 1, 0);
 	    else
 	      {			/* We have to decode the input.  */
 		int size;
@@ -801,14 +808,16 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		   requires text-encoding detection.  */
 		if (process_coding.type == coding_type_undecided)
 		  {
-		    detect_coding (&process_coding, bufptr, nread);
+		    detect_coding (&process_coding, buf, nread);
 		    if (process_coding.composing != COMPOSITION_DISABLED)
+		      /* We have not yet allocated the composition
+			 data because the coding type was undecided.  */
 		      coding_allocate_composition_data (&process_coding, PT);
 		  }
 		if (process_coding.cmp_data)
 		  process_coding.cmp_data->char_offset = PT;
 
-		decode_coding (&process_coding, bufptr, decoding_buf,
+		decode_coding (&process_coding, buf, decoding_buf,
 			       nread, size);
 
 		if (display_on_the_fly
@@ -817,12 +826,15 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		  {
 		    /* We have detected some coding system.  But,
 		       there's a possibility that the detection was
-		       done by insufficient data.  So, we give up
-		       displaying on the fly.  */
+		       done by insufficient data.  So, we try the code
+		       detection again with more data.  */
 		    xfree (decoding_buf);
 		    display_on_the_fly = 0;
 		    process_coding = saved_coding;
 		    carryover = nread;
+		    /* This is to make the above condition always
+		       fails in the future.  */
+		    saved_coding.type = coding_type_no_conversion;
 		    continue;
 		  }
 
@@ -894,7 +906,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		if (carryover > 0)
 		  /* As CARRYOVER should not be that large, we had
 		     better avoid overhead of bcopy.  */
-		  BCOPY_SHORT (bufptr + process_coding.consumed, bufptr,
+		  BCOPY_SHORT (buf + process_coding.consumed, buf,
 			       carryover);
 		if (process_coding.result == CODING_FINISH_INSUFFICIENT_CMP)
 		  {
@@ -911,24 +923,24 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	if (process_coding.mode & CODING_MODE_LAST_BLOCK)
 	  break;
 
+#if (CALLPROC_BUFFER_SIZE_MIN != CALLPROC_BUFFER_SIZE_MAX)
 	/* Make the buffer bigger as we continue to read more data,
-	   but not past 64k.  */
-	if (bufsize < 64 * 1024 && total_read > 32 * bufsize)
-	  {
-	    char *tempptr;
-	    bufsize *= 2;
+	   but not past CALLPROC_BUFFER_SIZE_MAX.  */
+	if (bufsize < CALLPROC_BUFFER_SIZE_MAX && total_read > 32 * bufsize)
+	  if ((bufsize *= 2) > CALLPROC_BUFFER_SIZE_MAX)
+	    bufsize = CALLPROC_BUFFER_SIZE_MAX;
+#endif
 
-	    tempptr = (char *) alloca (bufsize);
-	    bcopy (bufptr, tempptr, bufsize / 2);
-	    bufptr = tempptr;
-	  }
-
-	if (!NILP (display) && INTERACTIVE)
+	if (display_p)
 	  {
 	    if (first)
 	      prepare_menu_bars ();
 	    first = 0;
 	    redisplay_preserve_echo_area (1);
+	    /* This variable might have been set to 0 for code
+	       detection.  In that case, we set it back to 1 because
+	       we should have already detected a coding system.  */
+	    display_on_the_fly = 1;
 	  }
 	immediate_quit = 1;
 	QUIT;
@@ -977,6 +989,19 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
   unbind_to (count, Qnil);
 
+  if (synch_process_termsig)
+    {
+      char *signame;
+
+      synchronize_system_messages_locale ();
+      signame = strsignal (synch_process_termsig);
+
+      if (signame == 0)
+        signame = "unknown";
+
+      synch_process_death = signame;
+    }
+
   if (synch_process_death)
     return code_convert_string_norecord (build_string (synch_process_death),
 					 Vlocale_coding_system, 0);
@@ -988,9 +1013,11 @@ static Lisp_Object
 delete_temp_file (name)
      Lisp_Object name;
 {
-  /* Use Fdelete_file (indirectly) because that runs a file name handler.
-     We did that when writing the file, so we should do so when deleting.  */
+  /* Suppress jka-compr handling, etc.  */
+  int count = SPECPDL_INDEX ();
+  specbind (intern ("file-name-handler-alist"), Qnil);
   internal_delete_file (name);
+  unbind_to (count, Qnil);
   return Qnil;
 }
 
@@ -1011,7 +1038,7 @@ t (mix it with ordinary output), or a file name string.
 Sixth arg DISPLAY non-nil means redisplay buffer as output is inserted.
 Remaining args are passed to PROGRAM at startup as command args.
 
-If BUFFER is nil, `call-process-region' returns immediately with value nil.
+If BUFFER is 0, `call-process-region' returns immediately with value nil.
 Otherwise it waits for PROGRAM to terminate
 and returns a numeric exit status or a signal description string.
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
@@ -1101,6 +1128,9 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     int count1 = SPECPDL_INDEX ();
 
     specbind (intern ("coding-system-for-write"), val);
+    /* POSIX lets mk[s]temp use "."; don't invoke jka-compr if we
+       happen to get a ".Z" suffix.  */
+    specbind (intern ("file-name-handler-alist"), Qnil);
     Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil, Qnil);
 
     unbind_to (count1, Qnil);
@@ -1672,7 +1702,10 @@ Each element should be a string of the form ENVVARNAME=VALUE.
 If multiple entries define the same variable, the first one always
 takes precedence.
 The environment which Emacs inherits is placed in this variable
-when Emacs starts.  */);
+when Emacs starts.
+Non-ASCII characters are encoded according to the initial value of
+`locale-coding-system', i.e. the elements must normally be decoded for use.
+See `setenv' and `getenv'.  */);
 
 #ifndef VMS
   defsubr (&Scall_process);
@@ -1680,3 +1713,6 @@ when Emacs starts.  */);
 #endif
   defsubr (&Scall_process_region);
 }
+
+/* arch-tag: 769b8045-1df7-4d2b-8968-e3fb49017f95
+   (do not change this comment) */

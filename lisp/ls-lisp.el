@@ -1,6 +1,7 @@
 ;;; ls-lisp.el --- emulate insert-directory completely in Emacs Lisp
 
-;; Copyright (C) 1992, 1994, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Modified by: Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -44,8 +45,6 @@
 ;; * A few obscure ls switches are still ignored: see the docstring of
 ;; `insert-directory'.
 
-;; * Generally only numeric uid/gid.
-
 ;; TO DO =============================================================
 
 ;; Complete handling of F switch (if/when possible).
@@ -60,10 +59,12 @@
 ;; Revised by Andrew Innes and Geoff Volker (and maybe others).
 
 ;; Modified by Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>, mainly
-;; to support many more ls options, "platform emulation", hooks for
-;; external symbolic link support and more robust sorting.
+;; to support many more ls options, "platform emulation" and more
+;; robust sorting.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (defgroup ls-lisp nil
   "Emulate the ls program completely in Emacs Lisp."
@@ -172,14 +173,6 @@ current year. The OLD-TIME-FORMAT is used for older files.  To use ISO
 (or (featurep 'ls-lisp)  ; FJW: unless this file is being reloaded!
     (setq original-insert-directory (symbol-function 'insert-directory)))
 
-;; This stub is to allow ls-lisp to parse symbolic links via another
-;; library such as w32-symlinks.el from
-;; http://centaur.maths.qmw.ac.uk/Emacs/:
-(defun ls-lisp-parse-symlink (file-name)
-  "This stub may be redefined to parse FILE-NAME as a symlink.
-It should return nil or the link target as a string."
-  nil)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -210,22 +203,35 @@ that work are: A a c i r S s t u U X g G B C R and F partly."
 	       file switches wildcard full-directory-p)
     ;; We need the directory in order to find the right handler.
     (let ((handler (find-file-name-handler (expand-file-name file)
-					   'insert-directory)))
+					   'insert-directory))
+	  wildcard-regexp)
       (if handler
 	  (funcall handler 'insert-directory file switches
 		   wildcard full-directory-p)
+	;; Remove --dired switch
+	(if (string-match "--dired " switches)
+	    (setq switches (replace-match "" nil nil switches)))
 	;; Convert SWITCHES to a list of characters.
 	(setq switches (delete ?- (append switches nil)))
+	;; Sometimes we get ".../foo*/" as FILE.  While the shell and
+	;; `ls' don't mind, we certainly do, because it makes us think
+	;; there is no wildcard, only a directory name.
+	(if (and ls-lisp-support-shell-wildcards
+		 (string-match "[[?*]" file))
+	    (progn
+	      (or (not (eq (aref file (1- (length file))) ?/))
+		  (setq file (substring file 0 (1- (length file)))))
+	      (setq wildcard t)))
 	(if wildcard
-	    (setq wildcard
+	    (setq wildcard-regexp
 		  (if ls-lisp-support-shell-wildcards
 		      (wildcard-to-regexp (file-name-nondirectory file))
 		    (file-name-nondirectory file))
 		  file (file-name-directory file))
-	  (if (memq ?B switches) (setq wildcard "[^~]\\'")))
+	  (if (memq ?B switches) (setq wildcard-regexp "[^~]\\'")))
 	(ls-lisp-insert-directory
 	 file switches (ls-lisp-time-index switches)
-	 wildcard full-directory-p)
+	 wildcard-regexp full-directory-p)
 	;; Try to insert the amount of free space.
 	(save-excursion
 	  (goto-char (point-min))
@@ -239,29 +245,20 @@ that work are: A a c i r S s t u U X g G B C R and F partly."
 		(insert " available " available)))))))))
 
 (defun ls-lisp-insert-directory
-  (file switches time-index wildcard full-directory-p)
+  (file switches time-index wildcard-regexp full-directory-p)
   "Insert directory listing for FILE, formatted according to SWITCHES.
 Leaves point after the inserted text.  This is an internal function
 optionally called by the `ls-lisp.el' version of `insert-directory'.
 It is called recursively if the -R switch is used.
 SWITCHES is a *list* of characters.  TIME-INDEX is the time index into
-file-attributes according to SWITCHES.  WILDCARD is nil or an *Emacs
+file-attributes according to SWITCHES.  WILDCARD-REGEXP is nil or an *Emacs
 regexp*.  FULL-DIRECTORY-P means file is a directory and SWITCHES does
 not contain `d', so that a full listing is expected."
-  ;; Sometimes we get ".../foo*/" as FILE.  While the shell and
-  ;; `ls' don't mind, we certainly do, because it makes us think
-  ;; there is no wildcard, only a directory name.
-  (if (and ls-lisp-support-shell-wildcards
-	   (string-match "[[?*]" file))
-      (progn
-	(or (not (eq (aref file (1- (length file))) ?/))
-	    (setq file (substring file 0 (1- (length file)))))
-	(setq wildcard t)))
-  (if (or wildcard full-directory-p)
+  (if (or wildcard-regexp full-directory-p)
       (let* ((dir (file-name-as-directory file))
 	     (default-directory dir)	; so that file-attributes works
 	     (file-alist
-	      (directory-files-and-attributes dir nil wildcard t))
+	      (directory-files-and-attributes dir nil wildcard-regexp t 'string))
 	     (now (current-time))
 	     (sum 0)
 	     ;; do all bindings here for speed
@@ -317,13 +314,13 @@ not contain `d', so that a full listing is expected."
 		(setq elt (expand-file-name (car elt) dir))
 		(insert "\n" elt ":\n")
 		(ls-lisp-insert-directory
-		 elt switches time-index wildcard full-directory-p)))))
+		 elt switches time-index wildcard-regexp full-directory-p)))))
     ;; If not full-directory-p, FILE *must not* end in /, as
     ;; file-attributes will not recognize a symlink to a directory,
     ;; so must make it a relative filename as ls does:
     (if (eq (aref file (1- (length file))) ?/)
 	(setq file (substring file 0 -1)))
-    (let ((fattr (file-attributes file)))
+    (let ((fattr (file-attributes file 'string)))
       (if fattr
 	  (insert (ls-lisp-format file fattr (nth 7 fattr)
 				  switches time-index (current-time)))
@@ -422,7 +419,9 @@ SWITCHES is a list of characters.  Default sorting is alphabetic."
   ;; symbolic link, or nil.
       (let (el dirs files)
 	(while file-alist
-	  (if (eq (cadr (setq el (car file-alist))) t) ; directory
+	  (if (or (eq (cadr (setq el (car file-alist))) t) ; directory
+                  (and (stringp (cadr el))
+                       (file-directory-p (cadr el)))) ; symlink to a directory
 	      (setq dirs (cons el dirs))
 	    (setq files (cons el files)))
 	  (setq file-alist (cdr file-alist)))
@@ -445,15 +444,14 @@ SWITCHES is a list of characters.  Default sorting is alphabetic."
 Also, for regular files that are executable, append `*'.
 The file type indicators are `/' for directories, `@' for symbolic
 links, `|' for FIFOs, `=' for sockets, and nothing for regular files.
-\[But FIFOs and sockets are not recognised.]
+\[But FIFOs and sockets are not recognized.]
 FILEDATA has the form (filename . `file-attributes').  Its `cadr' is t
 for directory, string (name linked to) for symbolic link, or nil."
-  (let ((dir (cadr filedata)) (file-name (car filedata)))
-    (cond ((or dir
-	       ;; Parsing .lnk files here is perhaps overkill!
-	       (setq dir (ls-lisp-parse-symlink file-name)))
+  (let ((file-name (car filedata))
+        (type (cadr filedata)))
+    (cond (type
 	   (cons
-	    (concat file-name (if (eq dir t) "/" "@"))
+	    (concat file-name (if (eq type t) "/" "@"))
 	    (cdr filedata)))
 	  ((string-match "x" (nth 9 filedata))
 	   (cons
@@ -499,10 +497,6 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 	;; t for directory, string (name linked to)
 	;; for symbolic link, or nil.
 	(drwxrwxrwx (nth 8 file-attr)))	; attribute string ("drwxrwxrwx")
-    (and (null file-type)
-	 ;; Maybe no kernel support for symlinks, so...
-	 (setq file-type (ls-lisp-parse-symlink file-name))
-	 (aset drwxrwxrwx 0 ?l)) ; symbolic link - update attribute string
     (concat (if (memq ?i switches)	; inode number
 		(format " %6d" (nth 10 file-attr)))
 	    ;; nil is treated like "" in concat
@@ -516,28 +510,19 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 	    ;; They tend to be bogus on non-UNIX platforms anyway so
 	    ;; optionally hide them.
 	    (if (memq 'uid ls-lisp-verbosity)
-		;; (user-login-name uid) works on Windows NT but not
-		;; on 9x and maybe not on some other platforms, so...
+		;; uid can be a sting or an integer
 		(let ((uid (nth 2 file-attr)))
-		  (if (= uid (user-uid))
-		      (format " %-8s" (user-login-name))
-		    (format " %-8d" uid))))
+                  (format (if (stringp uid) " %-8s" " %-8d") uid)))
 	    (if (not (memq ?G switches)) ; GNU ls -- shows group by default
 		(if (or (memq ?g switches) ; UNIX ls -- no group by default
 			(memq 'gid ls-lisp-verbosity))
-		    (if (memq system-type '(macos windows-nt ms-dos))
-			;; No useful concept of group...
-			" root"
-		      (let* ((gid (nth 3 file-attr))
-			     (group (user-login-name gid)))
-			(if group
-			    (format " %-8s" group)
-			  (format " %-8d" gid))))))
-	    (format (if (floatp file-size) " %8.0f" " %8d") file-size)
+                    (let ((gid (nth 3 file-attr)))
+                      (format (if (stringp gid) " %-8s" " %-8d") gid))))
+	    (ls-lisp-format-file-size file-size (memq ?h switches))
 	    " "
 	    (ls-lisp-format-time file-attr time-index now)
 	    " "
-	    file-name
+	    (propertize file-name 'dired-filename t)
 	    (if (stringp file-type)	; is a symbolic link
 		(concat " -> " file-type))
 	    "\n"
@@ -587,6 +572,16 @@ All ls time options, namely c, t and u, are handled."
 	   time))
       (error "Unk  0  0000"))))
 
+(defun ls-lisp-format-file-size (file-size human-readable)
+  (if (or (not human-readable)
+          (< file-size 1024))
+      (format (if (floatp file-size) " %9.0f" " %9d") file-size)
+    (do ((file-size (/ file-size 1024.0) (/ file-size 1024.0))
+         ;; kilo, mega, giga, tera, peta, exa
+         (post-fixes (list "k" "M" "G" "T" "P" "E") (cdr post-fixes)))
+        ((< file-size 1024) (format " %8.0f%s"  file-size (car post-fixes))))))
+
 (provide 'ls-lisp)
 
+;;; arch-tag: e55f399b-05ec-425c-a6d5-f5e349c35ab4
 ;;; ls-lisp.el ends here

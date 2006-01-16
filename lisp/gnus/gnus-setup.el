@@ -1,6 +1,7 @@
-;;; gnus-setup.el --- initialization & setup for Gnus 5
+;;; gnus-setup.el --- Initialization & Setup for Gnus 5
 
-;; Copyright (C) 1995, 1996, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Steven L. Baur <steve@miranova.com>
 ;; Keywords: news
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;; My head is starting to spin with all the different mail/news packages.
@@ -89,8 +90,8 @@
     (setq load-path (cons gnus-mailcrypt-lisp-directory load-path)))
   (autoload 'mc-install-write-mode "mailcrypt" nil t)
   (autoload 'mc-install-read-mode "mailcrypt" nil t)
-  (add-hook 'message-mode-hook 'mc-install-write-mode)
-  (add-hook 'gnus-summary-mode-hook 'mc-install-read-mode)
+;;;   (add-hook 'message-mode-hook 'mc-install-write-mode)
+;;;   (add-hook 'gnus-summary-mode-hook 'mc-install-read-mode)
   (when gnus-use-mhe
     (add-hook 'mh-folder-mode-hook 'mc-install-read-mode)
     (add-hook 'mh-letter-mode-hook 'mc-install-write-mode)))
@@ -191,4 +192,5 @@ score the alt hierarchy, you'd say \"!alt.all\"." t nil))
 
 (run-hooks 'gnus-setup-load-hook)
 
+;;; arch-tag: 08e4af93-8565-46bf-905c-36229400609d
 ;;; gnus-setup.el ends here

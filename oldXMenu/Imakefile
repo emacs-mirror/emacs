@@ -95,3 +95,6 @@ DebuggedLibraryTarget(XMenu11,$(OBJS))
 DependTarget()
 
 NormalLintTarget($(SRCS))
+
+/* arch-tag: bc7d2799-8343-4700-a415-847e7fa12540
+   (do not change this comment) */

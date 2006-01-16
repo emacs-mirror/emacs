@@ -2,7 +2,8 @@
    0.12.  (Implements POSIX draft P1003.2/D11.2, except for some of the
    internationalization features.)
 
-   Copyright (C) 1993,94,95,96,97,98,99,2000 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,7 +17,7 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
    USA.	 */
 
 /* TODO:
@@ -217,7 +218,7 @@ char *realloc ();
 /* Define the syntax stuff for \<, \>, etc.  */
 
 /* Sword must be nonzero for the wordchar pattern commands in re_match_2.  */
-enum syntaxcode { Swhitespace = 0, Sword = 1 };
+enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 
 # ifdef SWITCH_ENUM_BUG
 #  define SWITCH_ENUM_CAST(x) ((int)(x))
@@ -398,7 +399,7 @@ init_syntax_once ()
      if (ISALNUM (c))
 	re_syntax_table[c] = Sword;
 
-   re_syntax_table['_'] = Sword;
+   re_syntax_table['_'] = Ssymbol;
 
    done = 1;
 }
@@ -654,6 +655,9 @@ typedef enum
 
   wordbound,	/* Succeeds if at a word boundary.  */
   notwordbound,	/* Succeeds if not at a word boundary.	*/
+
+  symbeg,       /* Succeeds if at symbol beginning.  */
+  symend,       /* Succeeds if at symbol end.  */
 
 	/* Matches any character whose syntax is specified.  Followed by
 	   a byte which contains a syntax code, e.g., Sword.  */
@@ -921,50 +925,49 @@ print_partial_compiled_pattern (start, end)
 
   if (start == NULL)
     {
-      printf ("(null)\n");
+      fprintf (stderr, "(null)\n");
       return;
     }
 
   /* Loop over pattern commands.  */
   while (p < pend)
     {
-      printf ("%d:\t", p - start);
+      fprintf (stderr, "%d:\t", p - start);
 
       switch ((re_opcode_t) *p++)
 	{
 	case no_op:
-	  printf ("/no_op");
+	  fprintf (stderr, "/no_op");
 	  break;
 
 	case succeed:
-	  printf ("/succeed");
+	  fprintf (stderr, "/succeed");
 	  break;
 
 	case exactn:
 	  mcnt = *p++;
-	  printf ("/exactn/%d", mcnt);
+	  fprintf (stderr, "/exactn/%d", mcnt);
 	  do
 	    {
-	      putchar ('/');
-	      putchar (*p++);
+	      fprintf (stderr, "/%c", *p++);
 	    }
 	  while (--mcnt);
 	  break;
 
 	case start_memory:
-	  printf ("/start_memory/%d", *p++);
+	  fprintf (stderr, "/start_memory/%d", *p++);
 	  break;
 
 	case stop_memory:
-	  printf ("/stop_memory/%d", *p++);
+	  fprintf (stderr, "/stop_memory/%d", *p++);
 	  break;
 
 	case duplicate:
-	  printf ("/duplicate/%d", *p++);
+	  fprintf (stderr, "/duplicate/%d", *p++);
 	  break;
 
 	case anychar:
-	  printf ("/anychar");
+	  fprintf (stderr, "/anychar");
 	  break;
 
 	case charset:
@@ -975,10 +978,11 @@ print_partial_compiled_pattern (start, end)
 	    int length = CHARSET_BITMAP_SIZE (p - 1);
 	    int has_range_table = CHARSET_RANGE_TABLE_EXISTS_P (p - 1);
 
-	    printf ("/charset [%s",
-		    (re_opcode_t) *(p - 1) == charset_not ? "^" : "");
+	    fprintf (stderr, "/charset [%s",
+		     (re_opcode_t) *(p - 1) == charset_not ? "^" : "");
 
-	    assert (p + *p < pend);
+	    if (p + *p >= pend)
+	      fprintf (stderr, " !extends past end of pattern! ");
 
 	    for (c = 0; c < 256; c++)
 	      if (c / 8 < length
@@ -987,33 +991,33 @@ print_partial_compiled_pattern (start, end)
 		  /* Are we starting a range?  */
 		  if (last + 1 == c && ! in_range)
 		    {
-		      putchar ('-');
+		      fprintf (stderr, "-");
 		      in_range = 1;
 		    }
 		  /* Have we broken a range?  */
 		  else if (last + 1 != c && in_range)
 		    {
-		      putchar (last);
+		      fprintf (stderr, "%c", last);
 		      in_range = 0;
 		    }
 
 		  if (! in_range)
-		    putchar (c);
+		    fprintf (stderr, "%c", c);
 
 		  last = c;
 	      }
 
 	    if (in_range)
-	      putchar (last);
+	      fprintf (stderr, "%c", last);
 
-	    putchar (']');
+	    fprintf (stderr, "]");
 
 	    p += 1 + length;
 
 	    if (has_range_table)
 	      {
 		int count;
-		printf ("has-range-table");
+		fprintf (stderr, "has-range-table");
 
 		/* ??? Should print the range table; for now, just skip it.  */
 		p += 2;		/* skip range table bits */
@@ -1024,130 +1028,139 @@ print_partial_compiled_pattern (start, end)
 	  break;
 
 	case begline:
-	  printf ("/begline");
+	  fprintf (stderr, "/begline");
 	  break;
 
 	case endline:
-	  printf ("/endline");
+	  fprintf (stderr, "/endline");
 	  break;
 
 	case on_failure_jump:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_jump to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_jump to %d", p + mcnt - start);
 	  break;
 
 	case on_failure_keep_string_jump:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_keep_string_jump to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_keep_string_jump to %d", p + mcnt - start);
 	  break;
 
 	case on_failure_jump_nastyloop:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_jump_nastyloop to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_jump_nastyloop to %d", p + mcnt - start);
 	  break;
 
 	case on_failure_jump_loop:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_jump_loop to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_jump_loop to %d", p + mcnt - start);
 	  break;
 
 	case on_failure_jump_smart:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_jump_smart to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_jump_smart to %d", p + mcnt - start);
 	  break;
 
 	case jump:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/jump to %d", p + mcnt - start);
+	  fprintf (stderr, "/jump to %d", p + mcnt - start);
 	  break;
 
 	case succeed_n:
 	  extract_number_and_incr (&mcnt, &p);
 	  extract_number_and_incr (&mcnt2, &p);
-	  printf ("/succeed_n to %d, %d times", p - 2 + mcnt - start, mcnt2);
+	  fprintf (stderr, "/succeed_n to %d, %d times", p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case jump_n:
 	  extract_number_and_incr (&mcnt, &p);
 	  extract_number_and_incr (&mcnt2, &p);
-	  printf ("/jump_n to %d, %d times", p - 2 + mcnt - start, mcnt2);
+	  fprintf (stderr, "/jump_n to %d, %d times", p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case set_number_at:
 	  extract_number_and_incr (&mcnt, &p);
 	  extract_number_and_incr (&mcnt2, &p);
-	  printf ("/set_number_at location %d to %d", p - 2 + mcnt - start, mcnt2);
+	  fprintf (stderr, "/set_number_at location %d to %d", p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case wordbound:
-	  printf ("/wordbound");
+	  fprintf (stderr, "/wordbound");
 	  break;
 
 	case notwordbound:
-	  printf ("/notwordbound");
+	  fprintf (stderr, "/notwordbound");
 	  break;
 
 	case wordbeg:
-	  printf ("/wordbeg");
+	  fprintf (stderr, "/wordbeg");
 	  break;
 
 	case wordend:
-	  printf ("/wordend");
+	  fprintf (stderr, "/wordend");
+	  break;
+
+	case symbeg:
+	  fprintf (stderr, "/symbeg");
+	  break;
+
+	case symend:
+	  fprintf (stderr, "/symend");
+	  break;
 
 	case syntaxspec:
-	  printf ("/syntaxspec");
+	  fprintf (stderr, "/syntaxspec");
 	  mcnt = *p++;
-	  printf ("/%d", mcnt);
+	  fprintf (stderr, "/%d", mcnt);
 	  break;
 
 	case notsyntaxspec:
-	  printf ("/notsyntaxspec");
+	  fprintf (stderr, "/notsyntaxspec");
 	  mcnt = *p++;
-	  printf ("/%d", mcnt);
+	  fprintf (stderr, "/%d", mcnt);
 	  break;
 
 # ifdef emacs
 	case before_dot:
-	  printf ("/before_dot");
+	  fprintf (stderr, "/before_dot");
 	  break;
 
 	case at_dot:
-	  printf ("/at_dot");
+	  fprintf (stderr, "/at_dot");
 	  break;
 
 	case after_dot:
-	  printf ("/after_dot");
+	  fprintf (stderr, "/after_dot");
 	  break;
 
 	case categoryspec:
-	  printf ("/categoryspec");
+	  fprintf (stderr, "/categoryspec");
 	  mcnt = *p++;
-	  printf ("/%d", mcnt);
+	  fprintf (stderr, "/%d", mcnt);
 	  break;
 
 	case notcategoryspec:
-	  printf ("/notcategoryspec");
+	  fprintf (stderr, "/notcategoryspec");
 	  mcnt = *p++;
-	  printf ("/%d", mcnt);
+	  fprintf (stderr, "/%d", mcnt);
 	  break;
 # endif /* emacs */
 
 	case begbuf:
-	  printf ("/begbuf");
+	  fprintf (stderr, "/begbuf");
 	  break;
 
 	case endbuf:
-	  printf ("/endbuf");
+	  fprintf (stderr, "/endbuf");
 	  break;
 
 	default:
-	  printf ("?%d", *(p-1));
+	  fprintf (stderr, "?%d", *(p-1));
 	}
 
-      putchar ('\n');
+      fprintf (stderr, "\n");
     }
 
-  printf ("%d:\tend of pattern.\n", p - start);
+  fprintf (stderr, "%d:\tend of pattern.\n", p - start);
 }
 
 
@@ -1238,12 +1251,23 @@ reg_syntax_t re_syntax_options;
 
 reg_syntax_t
 re_set_syntax (syntax)
-    reg_syntax_t syntax;
+     reg_syntax_t syntax;
 {
   reg_syntax_t ret = re_syntax_options;
 
   re_syntax_options = syntax;
   return ret;
+}
+WEAK_ALIAS (__re_set_syntax, re_set_syntax)
+
+/* Regexp to use to replace spaces, or NULL meaning don't.  */
+static re_char *whitespace_regexp;
+
+void
+re_set_whitespace_regexp (regexp)
+     const char *regexp;
+{
+  whitespace_regexp = (re_char *) regexp;
 }
 WEAK_ALIAS (__re_set_syntax, re_set_syntax)
 
@@ -1271,6 +1295,7 @@ static const char *re_error_msgid[] =
     gettext_noop ("Premature end of regular expression"), /* REG_EEND */
     gettext_noop ("Regular expression too big"), /* REG_ESIZE */
     gettext_noop ("Unmatched ) or \\)"), /* REG_ERPAREN */
+    gettext_noop ("Range striding over charsets") /* REG_ERANGEX  */
   };
 
 /* Avoiding alloca during matching, to placate r_alloc.  */
@@ -1737,8 +1762,11 @@ static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
 
 
 /* This is not an arbitrary limit: the arguments which represent offsets
-   into the pattern are two bytes long.  So if 2^16 bytes turns out to
+   into the pattern are two bytes long.  So if 2^15 bytes turns out to
    be too small, many things would have to change.  */
+# define MAX_BUF_SIZE (1L << 15)
+
+#if 0  /* This is when we thought it could be 2^16 bytes.  */
 /* Any other compiler which, like MSC, has allocation limit below 2^16
    bytes will have to use approach similar to what was done below for
    MSC and drop MAX_BUF_SIZE a bit.  Otherwise you may end up
@@ -1750,6 +1778,7 @@ static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
 #else
 # define MAX_BUF_SIZE (1L << 16)
 #endif
+#endif /* 0 */
 
 /* Extend the buffer by twice its current size via realloc and
    reset the pointers that pointed into the old block to point to the
@@ -1922,64 +1951,32 @@ struct range_table_work_area
 
 /* Get the next unsigned number in the uncompiled pattern.  */
 #define GET_UNSIGNED_NUMBER(num)					\
- do { if (p != pend)							\
-     {									\
-       PATFETCH (c);							\
-       if (c == ' ')							\
-	 FREE_STACK_RETURN (REG_BADBR);					\
-       while ('0' <= c && c <= '9')					\
-	 {								\
-           int prev;							\
-	   if (num < 0)							\
-	     num = 0;							\
-	   prev = num;							\
-	   num = num * 10 + c - '0';					\
-	   if (num / 10 != prev)					\
-	     FREE_STACK_RETURN (REG_BADBR);				\
-	   if (p == pend)						\
-	     break;							\
-	   PATFETCH (c);						\
-	 }								\
-       if (c == ' ')							\
-	 FREE_STACK_RETURN (REG_BADBR);					\
-       }								\
-    } while (0)
+  do {									\
+    if (p == pend)							\
+      FREE_STACK_RETURN (REG_EBRACE);					\
+    else								\
+      {									\
+	PATFETCH (c);							\
+	while ('0' <= c && c <= '9')					\
+	  {								\
+	    int prev;							\
+	    if (num < 0)						\
+	      num = 0;							\
+	    prev = num;							\
+	    num = num * 10 + c - '0';					\
+	    if (num / 10 != prev)					\
+	      FREE_STACK_RETURN (REG_BADBR);				\
+	    if (p == pend)						\
+	      FREE_STACK_RETURN (REG_EBRACE);				\
+	    PATFETCH (c);						\
+	  }								\
+      }									\
+  } while (0)
 
-#if WIDE_CHAR_SUPPORT
-/* The GNU C library provides support for user-defined character classes
-   and the functions from ISO C amendement 1.  */
-# ifdef CHARCLASS_NAME_MAX
-#  define CHAR_CLASS_MAX_LENGTH CHARCLASS_NAME_MAX
-# else
-/* This shouldn't happen but some implementation might still have this
-   problem.  Use a reasonable default value.  */
-#  define CHAR_CLASS_MAX_LENGTH 256
-# endif
-typedef wctype_t re_wctype_t;
-typedef wchar_t re_wchar_t;
-# define re_wctype wctype
-# define re_iswctype iswctype
-# define re_wctype_to_bit(cc) 0
-#else
-# define CHAR_CLASS_MAX_LENGTH  9 /* Namely, `multibyte'.  */
-# define btowc(c) c
-
-/* Character classes.  */
-typedef enum { RECC_ERROR = 0,
-	       RECC_ALNUM, RECC_ALPHA, RECC_WORD,
-	       RECC_GRAPH, RECC_PRINT,
-	       RECC_LOWER, RECC_UPPER,
-	       RECC_PUNCT, RECC_CNTRL,
-	       RECC_DIGIT, RECC_XDIGIT,
-	       RECC_BLANK, RECC_SPACE,
-	       RECC_MULTIBYTE, RECC_NONASCII,
-	       RECC_ASCII, RECC_UNIBYTE
-} re_wctype_t;
-
-typedef int re_wchar_t;
+#if ! WIDE_CHAR_SUPPORT
 
 /* Map a string to the char class it names (if any).  */
-static re_wctype_t
+re_wctype_t
 re_wctype (str)
      re_char *str;
 {
@@ -2005,7 +2002,7 @@ re_wctype (str)
 }
 
 /* True iff CH is in the char class CC.  */
-static boolean
+boolean
 re_iswctype (ch, cc)
      int ch;
      re_wctype_t cc;
@@ -2450,6 +2447,15 @@ regex_compile (pattern, size, syntax, bufp)
   /* If the object matched can contain multibyte characters.  */
   const boolean multibyte = RE_MULTIBYTE_P (bufp);
 
+  /* Nonzero if we have pushed down into a subpattern.  */
+  int in_subpattern = 0;
+
+  /* These hold the values of p, pattern, and pend from the main
+     pattern when we have pushed into a subpattern.  */
+  re_char *main_p;
+  re_char *main_pattern;
+  re_char *main_pend;
+
 #ifdef DEBUG
   debug++;
   DEBUG_PRINT1 ("\nCompiling pattern: ");
@@ -2512,12 +2518,61 @@ regex_compile (pattern, size, syntax, bufp)
   begalt = b = bufp->buffer;
 
   /* Loop through the uncompiled pattern until we're at the end.  */
-  while (p != pend)
+  while (1)
     {
+      if (p == pend)
+	{
+	  /* If this is the end of an included regexp,
+	     pop back to the main regexp and try again.  */
+	  if (in_subpattern)
+	    {
+	      in_subpattern = 0;
+	      pattern = main_pattern;
+	      p = main_p;
+	      pend = main_pend;
+	      continue;
+	    }
+	  /* If this is the end of the main regexp, we are done.  */
+	  break;
+	}
+
       PATFETCH (c);
 
       switch (c)
 	{
+	case ' ':
+	  {
+	    re_char *p1 = p;
+
+	    /* If there's no special whitespace regexp, treat
+	       spaces normally.  And don't try to do this recursively.  */
+	    if (!whitespace_regexp || in_subpattern)
+	      goto normal_char;
+
+	    /* Peek past following spaces.  */
+	    while (p1 != pend)
+	      {
+		if (*p1 != ' ')
+		  break;
+		p1++;
+	      }
+	    /* If the spaces are followed by a repetition op,
+	       treat them normally.  */
+	    if (p1 != pend
+		&& (*p1 == '*' || *p1 == '+' || *p1 == '?'
+		    || (*p1 == '\\' && p1 + 1 != pend && p1[1] == '{')))
+	      goto normal_char;
+
+	    /* Replace the spaces with the whitespace regexp.  */
+	    in_subpattern = 1;
+	    main_p = p1;
+	    main_pend = pend;
+	    main_pattern = pattern;
+	    p = pattern = whitespace_regexp;
+	    pend = p + strlen (p);
+	    break;
+	  }    
+
 	case '^':
 	  {
 	    if (   /* If at start of pattern, it's an operator.	 */
@@ -2886,7 +2941,7 @@ regex_compile (pattern, size, syntax, bufp)
 			  }
 		      }
 		    else if (!SAME_CHARSET_P (c, c1))
-		      FREE_STACK_RETURN (REG_ERANGE);
+		      FREE_STACK_RETURN (REG_ERANGEX);
 		  }
 		else
 		  /* Range from C to C. */
@@ -3179,9 +3234,6 @@ regex_compile (pattern, size, syntax, bufp)
 
 		beg_interval = p;
 
-		if (p == pend)
-		  FREE_STACK_RETURN (REG_EBRACE);
-
 		GET_UNSIGNED_NUMBER (lower_bound);
 
 		if (c == ',')
@@ -3198,7 +3250,8 @@ regex_compile (pattern, size, syntax, bufp)
 		  {
 		    if (c != '\\')
 		      FREE_STACK_RETURN (REG_BADBR);
-
+		    if (p == pend)
+		      FREE_STACK_RETURN (REG_EESCAPE);
 		    PATFETCH (c);
 		  }
 
@@ -3394,6 +3447,19 @@ regex_compile (pattern, size, syntax, bufp)
 	      BUF_PUSH (wordend);
 	      break;
 
+	    case '_':
+	      if (syntax & RE_NO_GNU_OPS)
+		goto normal_char;
+              laststart = b;
+              PATFETCH (c);
+              if (c == '<')
+                BUF_PUSH (symbeg);
+              else if (c == '>')
+                BUF_PUSH (symend);
+              else
+                FREE_STACK_RETURN (REG_BADPAT);
+              break;
+
 	    case 'b':
 	      if (syntax & RE_NO_GNU_OPS)
 		goto normal_char;
@@ -3515,8 +3581,6 @@ regex_compile (pattern, size, syntax, bufp)
   if (syntax & RE_NO_POSIX_BACKTRACKING)
     BUF_PUSH (succeed);
 
-  free (compile_stack.stack);
-
   /* We have succeeded; set the length of the buffer.  */
   bufp->used = b - bufp->buffer;
 
@@ -3556,7 +3620,7 @@ regex_compile (pattern, size, syntax, bufp)
   }
 #endif /* not MATCH_MAY_ALLOCATE */
 
-  return REG_NOERROR;
+  FREE_STACK_RETURN (REG_NOERROR);
 } /* regex_compile */
 
 /* Subroutines for `regex_compile'.  */
@@ -3888,6 +3952,8 @@ analyse_first (p, pend, fastmap, multibyte)
 	case notwordbound:
 	case wordbeg:
 	case wordend:
+	case symbeg:
+	case symend:
 	  continue;
 
 
@@ -4225,12 +4291,19 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 			d += buf_charlen;
 		      }
 		  else
-		    while (range > lim
-			   && !fastmap[RE_TRANSLATE (translate, *d)])
-		      {
-			d++;
-			range--;
-		      }
+		    {
+		      /* Convert *d to integer to shut up GCC's
+			 whining about comparison that is always
+			 true.  */
+		      int di = *d;
+
+		      while (range > lim
+			     && !fastmap[RE_TRANSLATE (translate, di)])
+			{
+			  di = *(++d);
+			  range--;
+			}
+		    }
 		}
 	      else
 		while (range > lim && !fastmap[*d])
@@ -4459,9 +4532,9 @@ skip_one_char (p)
 
 
 /* Jump over non-matching operations.  */
-static unsigned char *
+static re_char *
 skip_noops (p, pend)
-     unsigned char *p, *pend;
+     re_char *p, *pend;
 {
   int mcnt;
   while (p < pend)
@@ -4490,7 +4563,7 @@ skip_noops (p, pend)
 static int
 mutually_exclusive_p (bufp, p1, p2)
      struct re_pattern_buffer *bufp;
-     unsigned char *p1, *p2;
+     re_char *p1, *p2;
 {
   re_opcode_t op2;
   const boolean multibyte = RE_MULTIBYTE_P (bufp);
@@ -4652,14 +4725,20 @@ mutually_exclusive_p (bufp, p1, p2)
       break;
 
     case wordend:
-    case notsyntaxspec:
+      return ((re_opcode_t) *p1 == syntaxspec && p1[1] == Sword);
+    case symend:
       return ((re_opcode_t) *p1 == syntaxspec
-	      && p1[1] == (op2 == wordend ? Sword : p2[1]));
+              && (p1[1] == Ssymbol || p1[1] == Sword));
+    case notsyntaxspec:
+      return ((re_opcode_t) *p1 == syntaxspec && p1[1] == p2[1]);
 
     case wordbeg:
-    case syntaxspec:
+      return ((re_opcode_t) *p1 == notsyntaxspec && p1[1] == Sword);
+    case symbeg:
       return ((re_opcode_t) *p1 == notsyntaxspec
-	      && p1[1] == (op2 == wordend ? Sword : p2[1]));
+              && (p1[1] == Ssymbol || p1[1] == Sword));
+    case syntaxspec:
+      return ((re_opcode_t) *p1 == notsyntaxspec && p1[1] == p2[1]);
 
     case wordbound:
       return (((re_opcode_t) *p1 == notsyntaxspec
@@ -5173,8 +5252,13 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      else
 		do
 		  {
+		    /* Avoid compiler whining about comparison being
+		       always true.  */
+		    int di;
+
 		    PREFETCH ();
-		    if (RE_TRANSLATE (translate, *d) != *p++)
+		    di = *d;
+		    if (RE_TRANSLATE (translate, di) != *p++)
 		      {
 			d = dfail;
 			goto fail;
@@ -5789,7 +5873,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		  PREFETCH_NOLIMIT ();
 		  c2 = RE_STRING_CHAR (d, dend - d);
 #ifdef emacs
-		  UPDATE_SYNTAX_TABLE_FORWARD (charpos);
+		  UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
 #endif
 		  s2 = SYNTAX (c2);
 
@@ -5797,6 +5881,92 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		     returns 0.	 */
 		  if ((s2 == Sword) && !WORD_BOUNDARY_P (c1, c2))
 	  goto fail;
+		}
+	    }
+	  break;
+
+	case symbeg:
+	  DEBUG_PRINT1 ("EXECUTING symbeg.\n");
+
+	  /* We FAIL in one of the following cases: */
+
+	  /* Case 1: D is at the end of string.	 */
+	  if (AT_STRINGS_END (d))
+	    goto fail;
+	  else
+	    {
+	      /* C1 is the character before D, S1 is the syntax of C1, C2
+		 is the character at D, and S2 is the syntax of C2.  */
+	      re_wchar_t c1, c2;
+	      int s1, s2;
+#ifdef emacs
+	      int offset = PTR_TO_OFFSET (d);
+	      int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      UPDATE_SYNTAX_TABLE (charpos);
+#endif
+	      PREFETCH ();
+	      c2 = RE_STRING_CHAR (d, dend - d);
+	      s2 = SYNTAX (c2);
+	
+	      /* Case 2: S2 is neither Sword nor Ssymbol. */
+	      if (s2 != Sword && s2 != Ssymbol)
+		goto fail;
+
+	      /* Case 3: D is not at the beginning of string ... */
+	      if (!AT_STRINGS_BEG (d))
+		{
+		  GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+#ifdef emacs
+		  UPDATE_SYNTAX_TABLE_BACKWARD (charpos - 1);
+#endif
+		  s1 = SYNTAX (c1);
+
+		  /* ... and S1 is Sword or Ssymbol.  */
+		  if (s1 == Sword || s1 == Ssymbol)
+		    goto fail;
+		}
+	    }
+	  break;
+
+	case symend:
+	  DEBUG_PRINT1 ("EXECUTING symend.\n");
+
+	  /* We FAIL in one of the following cases: */
+
+	  /* Case 1: D is at the beginning of string.  */
+	  if (AT_STRINGS_BEG (d))
+	    goto fail;
+	  else
+	    {
+	      /* C1 is the character before D, S1 is the syntax of C1, C2
+		 is the character at D, and S2 is the syntax of C2.  */
+	      re_wchar_t c1, c2;
+	      int s1, s2;
+#ifdef emacs
+	      int offset = PTR_TO_OFFSET (d) - 1;
+	      int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      UPDATE_SYNTAX_TABLE (charpos);
+#endif
+	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+	      s1 = SYNTAX (c1);
+
+	      /* Case 2: S1 is neither Ssymbol nor Sword.  */
+	      if (s1 != Sword && s1 != Ssymbol)
+		goto fail;
+
+	      /* Case 3: D is not at the end of string ... */
+	      if (!AT_STRINGS_END (d))
+		{
+		  PREFETCH_NOLIMIT ();
+		  c2 = RE_STRING_CHAR (d, dend - d);
+#ifdef emacs
+		  UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
+#endif
+		  s2 = SYNTAX (c2);
+
+		  /* ... and S2 is Sword or Ssymbol.  */
+		  if (s2 == Sword || s2 == Ssymbol)
+                    goto fail;
 		}
 	    }
 	  break;
@@ -6328,3 +6498,6 @@ regfree (preg)
 WEAK_ALIAS (__regfree, regfree)
 
 #endif /* not emacs  */
+
+/* arch-tag: 4ffd68ba-2a9e-435b-a21a-018990f9eeb2
+   (do not change this comment) */

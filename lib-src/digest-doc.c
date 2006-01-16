@@ -1,7 +1,8 @@
 /* Give this program DOC-mm.nn.oo as standard input and it outputs to
    standard output a file of nroff output containing the doc strings.
 
-   Copyright (C) 1987, 1994, 2001  Free Software Foundation Inc.
+   Copyright (C) 1987, 1994, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
    This file is part of GNU Emacs.
 
@@ -17,8 +18,8 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Emacs; see the file COPYING.  If not, write to the
-   Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.
 
    See also sorted-doc.c, which produces similar output
    but in texinfo format and sorted by function/variable name.  */
@@ -65,3 +66,6 @@ main ()
     }
   return 0;
 }
+
+/* arch-tag: 2ba2c9b0-4157-4eba-bd9f-967e3677e35f
+   (do not change this comment) */

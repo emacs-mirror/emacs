@@ -1,7 +1,8 @@
 /* Header for multibyte character handler.
-   Copyright (C) 1995, 1997, 1998 Electrotechnical Laboratory, JAPAN.
-   Licensed to the Free Software Foundation.
-   Copyright (C) 2001 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1997, 1998, 2003
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H14PRO021
 
 This file is part of GNU Emacs.
 
@@ -17,8 +18,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #ifndef EMACS_CHARSET_H
 #define EMACS_CHARSET_H
@@ -129,6 +130,9 @@ extern int charset_katakana_jisx0201; /* JISX0201.Kana (Japanese Katakana) */
 extern int charset_latin_jisx0201; /* JISX0201.Roman (Japanese Roman) */
 extern int charset_big5_1;	/* Big5 Level 1 (Chinese Traditional) */
 extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
+extern int charset_mule_unicode_0100_24ff;
+extern int charset_mule_unicode_2500_33ff;
+extern int charset_mule_unicode_e000_ffff;
 
 /* Check if CH is an ASCII character or a base leading-code.
    Nowadays, any byte can be the first byte of a character in a
@@ -216,7 +220,7 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 #define MAX_CHAR (0x1F << 14)
 
 /* 1 if C is a single byte character, else 0.  */
-#define SINGLE_BYTE_CHAR_P(c) ((unsigned) (c) < 0x100)
+#define SINGLE_BYTE_CHAR_P(c) (((unsigned)(c) & 0xFF) == (c))
 
 /* 1 if BYTE is an ASCII character in itself, in multibyte mode.  */
 #define ASCII_BYTE_P(byte) ((byte) < 0x80)
@@ -437,25 +441,33 @@ extern int width_by_char_head[256];
 #else  /* not BYTE_COMBINING_DEBUG */
 
 #define PARSE_MULTIBYTE_SEQ(str, length, bytes)	\
-  (bytes) = BYTES_BY_CHAR_HEAD ((str)[0])
+  ((void)(length), (bytes) = BYTES_BY_CHAR_HEAD ((str)[0]))
 
 #endif /* not BYTE_COMBINING_DEBUG */
+
+#define VALID_LEADING_CODE_P(code)	\
+  (! NILP (CHARSET_TABLE_ENTRY (code)))
 
 /* Return 1 iff the byte sequence at unibyte string STR (LENGTH bytes)
    is valid as a multibyte form.  If valid, by a side effect, BYTES is
    set to the byte length of the multibyte form.  */
 
-#define UNIBYTE_STR_AS_MULTIBYTE_P(str, length, bytes)	\
-  (((str)[0] < 0x80 || (str)[0] >= 0xA0)		\
-   ? ((bytes) = 1)					\
-   : (((bytes) = BYTES_BY_CHAR_HEAD ((str)[0])),	\
-      ((bytes) > 1 && (bytes) <= (length)		\
-       && (str)[0] != LEADING_CODE_8_BIT_CONTROL	\
-       && !CHAR_HEAD_P ((str)[1])			\
-       && ((bytes) == 2					\
-	   || (!CHAR_HEAD_P ((str)[2])			\
-	       && ((bytes) == 3				\
-		   || !CHAR_HEAD_P ((str)[3])))))))
+#define UNIBYTE_STR_AS_MULTIBYTE_P(str, length, bytes)		\
+  (((str)[0] < 0x80 || (str)[0] >= 0xA0)			\
+   ? ((bytes) = 1)						\
+   : (((bytes) = BYTES_BY_CHAR_HEAD ((str)[0])),		\
+      ((bytes) <= (length)					\
+       && !CHAR_HEAD_P ((str)[1])				\
+       && ((bytes) == 2						\
+	   ? (str)[0] != LEADING_CODE_8_BIT_CONTROL		\
+	   : (!CHAR_HEAD_P ((str)[2])				\
+	      && ((bytes) == 3					\
+		  ? (((str)[0] != LEADING_CODE_PRIVATE_11	\
+		      && (str)[0] != LEADING_CODE_PRIVATE_12)	\
+		     || VALID_LEADING_CODE_P (str[1]))		\
+		  : (!CHAR_HEAD_P ((str)[3])			\
+		     && VALID_LEADING_CODE_P (str[1]))))))))
+
 
 /* Return 1 iff the byte sequence at multibyte string STR is valid as
    a unibyte form.  By a side effect, BYTES is set to the byte length
@@ -527,7 +539,7 @@ extern int iso_charset_table[2][2][128];
 
 #define CHAR_STRING(c, str)						  \
   (SINGLE_BYTE_CHAR_P (c)						  \
-   ? ((ASCII_BYTE_P (c) || c >= 0xA0)					  \
+   ? ((ASCII_BYTE_P (c) || c >= 0xA0)			  \
       ? (*(str) = (unsigned char)(c), 1)				  \
       : (*(str) = LEADING_CODE_8_BIT_CONTROL, *((str)+ 1) = c + 0x20, 2)) \
    : char_to_string (c, (unsigned char *) str))
@@ -862,3 +874,6 @@ extern Lisp_Object Vauto_fill_chars;
   } while (0)
 
 #endif /* EMACS_CHARSET_H */
+
+/* arch-tag: 3b96db55-4961-481d-ac3e-219f46a2b3aa
+   (do not change this comment) */

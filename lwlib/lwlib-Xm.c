@@ -1,11 +1,13 @@
 /* The lwlib interface to Motif widgets.
+   Copyright (C) 1994, 1995, 1996, 1997, 1999, 2000, 2001, 2002, 2003,
+                 2004, 2005 Free Software Foundation, Inc.
    Copyright (C) 1992 Lucid, Inc.
 
 This file is part of the Lucid Widget Library.
 
 The Lucid Widget Library is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 The Lucid Widget Library is distributed in the hope that it will be useful,
@@ -15,8 +17,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -368,7 +370,7 @@ xm_update_label (instance, widget, val)
       else
 	{
 	  built_string =
-	    XmStringCreateLtoR (val->value, XmSTRING_DEFAULT_CHARSET);
+	    XmStringCreateLocalized (val->value);
 	  XtSetArg (al [ac], XmNlabelString, built_string); ac++;
 	}
 
@@ -377,7 +379,7 @@ xm_update_label (instance, widget, val)
 
   if (val->key)
     {
-      key_string = XmStringCreateLtoR (val->key, XmSTRING_DEFAULT_CHARSET);
+      key_string = XmStringCreateLocalized (val->key);
       XtSetArg (al [ac], XmNacceleratorText, key_string); ac++;
     }
 
@@ -406,7 +408,7 @@ xm_update_list (instance, widget, val)
   for (cur = val->contents, i = 0; cur; cur = cur->next)
     if (cur->value)
       {
-	XmString xmstr = XmStringCreate (cur->value, XmSTRING_DEFAULT_CHARSET);
+	XmString xmstr = XmStringCreateLocalized (cur->value);
 	i += 1;
 	XmListAddItem (widget, xmstr, 0);
 	if (cur->selected)
@@ -522,6 +524,10 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
   Widget* old_children;
   unsigned int old_num_children;
 
+  /* Disable drag and drop for labels in menu bar.  */
+  static char overrideTrans[] = "<Btn2Down>: Noop()";
+  XtTranslations override = XtParseTranslationTable (overrideTrans);
+
   old_children = XtCompositeChildren (widget, &old_num_children);
 
   /* Allocate the children array */
@@ -630,6 +636,8 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
 
 	  XtAddCallback (button, XmNcascadingCallback, xm_pull_down_callback,
 			 (XtPointer)instance);
+          XtOverrideTranslations (button, override);
+
 	}
 
       children[child_index] = button;
@@ -1035,6 +1043,33 @@ activate_button (widget, closure, call_data)
 
 /* creation functions */
 
+/* Called for key press in dialogs.  Used to pop down dialog on ESC.  */
+static void
+dialog_key_cb (widget, closure, event, continue_to_dispatch)
+     Widget widget;
+     XtPointer closure;
+     XEvent *event;
+     Boolean *continue_to_dispatch;
+{
+  KeySym sym = 0;
+  Modifiers modif_ret;
+  
+  XtTranslateKeycode (event->xkey.display, event->xkey.keycode, 0,
+                      &modif_ret, &sym);
+                      
+  if (sym == osfXK_Cancel)
+    {
+      Widget w = *((Widget *) closure);
+
+      while (w && ! XtIsShell (w))
+        w = XtParent (w);
+
+      if (XtIsShell (w)) XtPopdown (w);
+    }
+
+  *continue_to_dispatch = TRUE;
+}
+
 /* dialogs */
 static Widget
 make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
@@ -1123,6 +1158,8 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
       XtSetArg(al[ac], XmNmarginWidth, 10); ac++;
       XtSetArg(al[ac], XmNnavigationType, XmTAB_GROUP); ac++;
       children [n_children] = XmCreatePushButton (row, button_name, al, ac);
+      XtAddEventHandler (children [n_children],
+                         KeyPressMask, False, dialog_key_cb, result);
 
       if (i == 0)
 	{
@@ -1149,6 +1186,9 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
       XtSetArg(al[ac], XmNmarginWidth, 10); ac++;
       XtSetArg(al[ac], XmNnavigationType, XmTAB_GROUP); ac++;
       children [n_children] = XmCreatePushButton (row, button_name, al, ac);
+      XtAddEventHandler (children [n_children],
+                         KeyPressMask, False, dialog_key_cb, result);
+
       if (! button) button = children [n_children];
       n_children++;
     }
@@ -1491,6 +1531,7 @@ xm_create_dialog (instance)
 
   XtAddCallback (widget, XmNpopdownCallback, xm_nosel_callback,
 		 (XtPointer) instance);
+
   return widget;
 }
 
@@ -1976,3 +2017,6 @@ xm_manage_resizing (w, flag)
 {
   XtVaSetValues (w, XtNallowShellResize, flag, NULL);
 }
+
+/* arch-tag: 73976f64-73b2-4600-aa13-d9ede20ee965
+   (do not change this comment) */

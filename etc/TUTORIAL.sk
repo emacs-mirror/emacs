@@ -1,4 +1,4 @@
-Copyright (c) 1985 Free Software Foundation, Inc; podmienky pozri na konci.
+Tútorial k Emacsu. Podmienky pozri na konci.
 Do èe¹tiny prelo¾il Milan Zamazal <pdm@zamazal.org>, do slovenèiny Miroslav
 Va¹ko <zemiak@zoznam.sk>.
 
@@ -500,7 +500,7 @@ vyvoláte príkaz
 	C-x C-f   Vyhµadanie súboru
 
 Emacs sa Vás opýta na meno súboru.  Meno súboru, ktoré pí¹ete, sa
-objavuje v spodnom riadku obrazovky, ktorý sa v tejto situácii nazýva
+objavuje v spodnom riadku obrazovky, ktorý sa v tejto situácii nazýva
 minibuffer.  Pre editáciu mena súboru mô¾ete pou¾íva» obvyklé editaèné
 príkazy Emacsu.
 
@@ -1081,7 +1081,8 @@ tútorialom napísaným Stuartom Cracraftom pre pôvodný Emacs.
 Táto verzia tútorialu je, podobne ako GNU Emacs, chránená copyrightom
 a je ¹írená s povolením distribuova» kópie za istých podmienok:
 
-Copyright (c) 1985, 1996 Free Software Foundation
+Copyright (C) 1985, 1996, 1998, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Ka¾dému je zaruèené právo vytvára» a distribuova» presné kópie tohto
    dokumentu tak, ako ho dostal, na akomkoµvek médiu, s tým, ¾e bude
@@ -1101,3 +1102,5 @@ GNU Emacsu svojim priateµom.  Pomáhajte potlaèova» softwarovú ob¹trukciu
 ;;; Local Variables:
 ;;; coding: iso-latin-2
 ;;; End:
+
+;;; arch-tag: 87861cfa-5cf6-4b87-9fab-86c93c5ca9f3

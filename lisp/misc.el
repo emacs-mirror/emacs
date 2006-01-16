@@ -1,6 +1,6 @@
 ;;; misc.el --- some nonstandard basic editing commands for Emacs
 
-;; Copyright (C) 1989 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -58,6 +58,56 @@ The characters copied are inserted in the buffer before point."
 				 (+ n (point)))))))
     (insert string)))
 
+;; Variation of `zap-to-char'.
+
+(defun zap-up-to-char (arg char)
+  "Kill up to, but not including ARG'th occurrence of CHAR.
+Case is ignored if `case-fold-search' is non-nil in the current buffer.
+Goes backward if ARG is negative; error if CHAR not found.
+Ignores CHAR at point."
+  (interactive "p\ncZap up to char: ")
+  (let ((direction (if (>= arg 0) 1 -1)))
+    (kill-region (point)
+		 (progn
+		   (forward-char direction)
+		   (unwind-protect
+		       (search-forward (char-to-string char) nil nil arg)
+		     (backward-char direction))
+		   (point)))))
+
+;; These were added with an eye to making possible a more CCA-compatible
+;; command set; but that turned out not to be interesting.
+
+(defun mark-beginning-of-buffer ()
+  "Set mark at the beginning of the buffer."
+  (interactive)
+  (push-mark (point-min)))
+
+(defun mark-end-of-buffer ()
+  "Set mark at the end of the buffer."
+  (interactive)
+  (push-mark (point-max)))
+
+(defun upcase-char (arg)
+  "Uppercasify ARG chars starting from point.  Point doesn't move."
+  (interactive "p")
+  (save-excursion
+    (upcase-region (point) (progn (forward-char arg) (point)))))
+
+(defun forward-to-word (arg)
+  "Move forward until encountering the beginning of a word.
+With argument, do this that many times."
+  (interactive "p")
+  (or (re-search-forward (if (> arg 0) "\\W\\b" "\\b\\W") nil t arg)
+      (goto-char (if (> arg 0) (point-max) (point-min)))))
+
+(defun backward-to-word (arg)
+  "Move backward until encountering the end of a word.
+With argument, do this that many times."
+  (interactive "p")
+  (forward-to-word (- arg)))
+
 (provide 'misc)
 
+;;; arch-tag: 908f7884-c19e-4388-920c-9cfa425e449b
 ;;; misc.el ends here

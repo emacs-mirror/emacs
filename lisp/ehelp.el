@@ -1,6 +1,7 @@
 ;;; ehelp.el --- bindings for electric-help mode
 
-;; Copyright (C) 1986, 1995, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1995, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, extensions
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -85,11 +86,11 @@
     (define-key map "<" 'beginning-of-buffer)
     (define-key map ">" 'end-of-buffer)
     ;(define-key map "\C-g" 'electric-help-exit)
-    (define-key map "q" 'electric-help-exit)
     (define-key map "Q" 'electric-help-exit)
+    (define-key map "q" 'electric-help-exit)
     ;;a better key than this?
-    (define-key map "r" 'electric-help-retain)
     (define-key map "R" 'electric-help-retain)
+    (define-key map "r" 'electric-help-retain)
     (define-key map "\ex" 'electric-help-execute-extended)
     (define-key map "\C-x" 'electric-help-ctrl-x-prefix)
 
@@ -200,13 +201,13 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
 		   (progn (setq unread-command-events nil)
 			  (throw 'exit t)))))
     (let (up down both neither
-	  (standard (and (eq (key-binding " ")
+	  (standard (and (eq (key-binding " " nil t)
 			     'scroll-up)
-			 (eq (key-binding "\^?")
+			 (eq (key-binding "\^?" nil t)
 			     'scroll-down)
-			 (eq (key-binding "q")
+			 (eq (key-binding "q" nil t)
 			     'electric-help-exit)
-			 (eq (key-binding "r")
+			 (eq (key-binding "r" nil t)
 			     'electric-help-retain))))
       (Electric-command-loop
         'exit
@@ -215,7 +216,7 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
 	              ;beginning-of-buffer - otherwise pos-visible-in-window-p
 	              ;will yield a wrong result.
 	  (let ((min (pos-visible-in-window-p (point-min)))
-		(max (pos-visible-in-window-p (point-max))))
+		(max (pos-visible-in-window-p (1- (point-max)))))
 	    (cond (isearch-mode 'noprompt)
 		  ((and min max)
 		   (cond (standard "Press q to exit, r to retain ")
@@ -272,7 +273,7 @@ will select it.)"
   (interactive)
   (error "%s is undefined -- Press %s to exit"
 	 (mapconcat 'single-key-description (this-command-keys) " ")
-	 (if (eq (key-binding "q") 'electric-help-exit)
+	 (if (eq (key-binding "q" nil t) 'electric-help-exit)
 	     "q"
 	   (substitute-command-keys "\\[electric-help-exit]"))))
 
@@ -280,10 +281,10 @@ will select it.)"
 ;>>> this needs to be hairified (recursive help, anybody?)
 (defun electric-help-help ()
   (interactive)
-  (if (and (eq (key-binding "q") 'electric-help-exit)
-	   (eq (key-binding " ") 'scroll-up)
-	   (eq (key-binding "\^?") 'scroll-down)
-	   (eq (key-binding "r") 'electric-help-retain))
+  (if (and (eq (key-binding "q" nil t) 'electric-help-exit)
+	   (eq (key-binding " " nil t) 'scroll-up)
+	   (eq (key-binding "\^?" nil t) 'scroll-down)
+	   (eq (key-binding "r" nil t) 'electric-help-retain))
       (message "SPC scrolls up, DEL scrolls down, q exits burying help buffer, r exits")
     (message "%s" (substitute-command-keys "\\[scroll-up] scrolls up, \\[scroll-down] scrolls down, \\[electric-help-exit] exits burying help buffer, \\[electric-help-retain] exits")))
   (sit-for 2))
@@ -418,9 +419,13 @@ will select it.)"
     (substitute-key-definition 'describe-bindings 'electric-describe-bindings map)
     (substitute-key-definition 'describe-syntax 'electric-describe-syntax map)
 
-    (setq ehelp-map map)
-    (fset 'ehelp-command map)))
+    (setq ehelp-map map)))
+
+;;;###(autoload 'ehelp-command "ehelp" "Prefix command for ehelp." t 'keymap)
+(defalias 'ehelp-command ehelp-map)
+(put 'ehelp-command 'documentation "Prefix command for ehelp.")
 
 (provide 'ehelp)
 
+;;; arch-tag: e0e3037f-42c0-433e-ba18-322c5d951f46
 ;;; ehelp.el ends here

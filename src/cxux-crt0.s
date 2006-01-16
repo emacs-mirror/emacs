@@ -1,6 +1,6 @@
 /*
  * External symbol setup file for GNU Emacs on CX/UX
- * Copyright (C) 1990 Free Software Foundation, Inc.
+ * Copyright (C) 1990, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
  *
  * This file is part of GNU Emacs.
  *
@@ -36,3 +36,6 @@ __start:
 	.data
 	.globl _data_start
 _data_start:	.space 4
+
+/* arch-tag: ba84e4dc-615d-4a81-898c-f5b98ec71c9d
+   (do not change this comment) */

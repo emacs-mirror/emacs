@@ -1,6 +1,7 @@
 ;;; eudcb-ldap.el --- Emacs Unified Directory Client - LDAP Backend
 
-;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;    This library provides specific LDAP protocol support for the
@@ -193,7 +194,7 @@ attribute names are returned. Default to `person'"
   "Check if the current LDAP server has a configured search base."
   (unless (or (eudc-ldap-get-host-parameter eudc-server 'base)
 	      ldap-default-base
-	      (null (y-or-n-p "No search base defined. Configure it now ?")))
+	      (null (y-or-n-p "No search base defined. Configure it now? ")))
     ;; If the server is not in ldap-host-parameters-alist we add it for the
     ;; user
     (if (null (assoc eudc-server ldap-host-parameters-alist))
@@ -208,4 +209,5 @@ attribute names are returned. Default to `person'"
 
 (provide 'eudcb-ldap)
 
+;;; arch-tag: 0f254dc0-7378-4fd4-ae26-18666184e96b
 ;;; eudcb-ldap.el ends here

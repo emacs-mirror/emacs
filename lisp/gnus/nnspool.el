@@ -1,11 +1,10 @@
 ;;; nnspool.el --- spool access for GNU Emacs
 
 ;; Copyright (C) 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997, 1998,
-;;               2000, 2002
-;;               Free Software Foundation, Inc.
+;;   2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
-;; 	Lars Magne Ingebrigtsen <larsi@gnus.org>
+;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -22,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -44,13 +43,19 @@ This is most commonly `inews' or `injnews'.")
   "Switches for nnspool-request-post to pass to `inews' for posting news.
 If you are using Cnews, you probably should set this variable to nil.")
 
-(defvoo nnspool-spool-directory (file-name-as-directory news-path)
+(defvoo nnspool-spool-directory
+    (file-name-as-directory (if (boundp 'news-directory)
+				(symbol-value 'news-directory)
+			      news-path))
   "Local news spool directory.")
 
 (defvoo nnspool-nov-directory (concat nnspool-spool-directory "over.view/")
   "Local news nov directory.")
 
-(defvoo nnspool-lib-dir "/usr/lib/news/"
+(defvoo nnspool-lib-dir
+    (if (file-exists-p "/usr/lib/news/active")
+	"/usr/lib/news/"
+      "/var/lib/news/")
   "Where the local news library files are stored.")
 
 (defvoo nnspool-active-file (concat nnspool-lib-dir "active")
@@ -69,8 +74,8 @@ If you are using Cnews, you probably should set this variable to nil.")
   "Local news active date file.")
 
 (defvoo nnspool-large-newsgroup 50
-  "The number of the articles which indicates a large newsgroup.
-If the number of the articles is greater than the value, verbose
+  "The number of articles which indicates a large newsgroup.
+If the number of articles is greater than the value, verbose
 messages will be shown to indicate the current status.")
 
 (defvoo nnspool-nov-is-evil nil
@@ -242,7 +247,7 @@ there.")
 	;; Fix by Sudish Joseph <joseph@cis.ohio-state.edu>
 	(when (setq dir (directory-files pathname nil "^[0-9]+$" t))
 	  (setq dir
-		(sort (mapcar (lambda (name) (string-to-int name)) dir) '<)))
+		(sort (mapcar (lambda (name) (string-to-number name)) dir) '<)))
 	(if dir
 	    (nnheader-insert
 	     "211 %d %d %d %s\n" (length dir) (car dir)
@@ -361,7 +366,7 @@ there.")
     (let ((nov (nnheader-group-pathname
 		nnspool-current-group nnspool-nov-directory ".overview"))
 	  (arts articles)
-      	  (nnheader-file-coding-system nnspool-file-coding-system)
+	  (nnheader-file-coding-system nnspool-file-coding-system)
 	  last)
       (if (not (file-exists-p nov))
 	  ()
@@ -434,7 +439,7 @@ there.")
     (goto-char (point-min))
     (prog1
 	(when (looking-at "<[^>]+>[ \t]+[-0-9~]+[ \t]+\\([^ /\t\n]+\\)/\\([0-9]+\\)[ \t\n]")
-	  (cons (match-string 1) (string-to-int (match-string 2))))
+	  (cons (match-string 1) (string-to-number (match-string 2))))
       (kill-buffer (current-buffer)))))
 
 (defun nnspool-find-file (file)
@@ -462,4 +467,5 @@ there.")
 
 (provide 'nnspool)
 
+;;; arch-tag: bdac8d27-2934-4eee-bad0-49e6b90c0d05
 ;;; nnspool.el ends here

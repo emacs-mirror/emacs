@@ -1,6 +1,7 @@
 ;;; em-banner.el --- sample module that displays a login banner
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'em-banner)
 
@@ -30,7 +31,7 @@
 It exists so that others wishing to create their own Eshell extension
 modules may have a simple template to begin with."
   :tag "Login banner"
-  :link '(info-link "(eshell)Login banner")
+  ;; :link '(info-link "(eshell)Login banner")
   :group 'eshell-module)
 
 ;;; Commentary:
@@ -89,4 +90,5 @@ This can be any sexp, and should end with at least two newlines."
     (goto-char (point-min))
     (looking-at msg)))
 
+;;; arch-tag: e738b4ef-8671-42ae-a757-291779b92491
 ;;; em-banner.el ends here

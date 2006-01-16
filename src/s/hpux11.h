@@ -1,4 +1,4 @@
-#include "hpux10.h"
+#include "hpux10-20.h"
 
 #define HPUX11
 
@@ -14,5 +14,5 @@
    then close and reopen it in the child.  */
 #define USG_SUBTTY_WORKS
 
-/* HPUX 10.10 needs this; HPUX 10.20 does not, and HPUX 11 does not.  */
-#undef POLLING_PROBLEM_IN_SELECT
+/* arch-tag: f5a3d780-82cd-4a9a-832e-a4031aab788b
+   (do not change this comment) */

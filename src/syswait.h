@@ -1,5 +1,6 @@
 /* Define wait system call interface for Emacs.
-   Copyright (C) 1993, 1994, 1995, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 2000, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Define the structure that the wait system call stores.
    On many systems, there is a structure defined for this.
@@ -152,3 +153,6 @@ Boston, MA 02111-1307, USA.  */
 #endif /* VMS */
 
 #endif /* EMACS_SYSWAIT_H */
+
+/* arch-tag: 7e5d9719-ec66-4b6f-89bb-563eea16a899
+   (do not change this comment) */

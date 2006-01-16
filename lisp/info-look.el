@@ -1,7 +1,8 @@
 ;;; info-look.el --- major-mode-sensitive Info index lookup facility
 ;; An older version of this was known as libc.el.
 
-;; Copyright (C) 1995,96,97,98,99,2001  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;;         (did not show signs of life (Nov 2001)  -stef)
@@ -21,13 +22,13 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
 ;; Really cool code to lookup info indexes.
-;; Try especially info-lookup-symbol (aka C-h TAB).
+;; Try especially info-lookup-symbol (aka C-h S).
 
 ;;; Code:
 
@@ -47,7 +48,7 @@ Automatically becomes buffer local when set in any fashion.")
   "Non-nil means pop up the Info buffer in another window."
   :group 'info-lookup :type 'boolean)
 
-(defcustom info-lookup-highlight-face 'highlight
+(defcustom info-lookup-highlight-face 'match
   "Face for highlighting looked up help items.
 Setting this variable to nil disables highlighting."
   :group 'info-lookup :type 'face)
@@ -245,6 +246,7 @@ system."
   (interactive)
   (setq info-lookup-cache nil))
 
+;;;###autoload (put 'info-lookup-symbol 'info-file "emacs")
 ;;;###autoload
 (defun info-lookup-symbol (symbol &optional mode)
   "Display the definition of SYMBOL, as found in the relevant manual.
@@ -258,6 +260,7 @@ With prefix arg a query for the symbol help mode is offered."
    (info-lookup-interactive-arguments 'symbol current-prefix-arg))
   (info-lookup 'symbol symbol mode))
 
+;;;###autoload (put 'info-lookup-file 'info-file "emacs")
 ;;;###autoload
 (defun info-lookup-file (file &optional mode)
   "Display the documentation of a file.
@@ -321,26 +324,27 @@ If optional argument QUERY is non-nil, query for the help mode."
   (let* ((completions (info-lookup->completions topic mode))
          (ignore-case (info-lookup->ignore-case topic mode))
          (entry (or (assoc (if ignore-case (downcase item) item) completions)
-                    (assoc-ignore-case item completions)
+                    (assoc-string item completions t)
                     (error "Not documented as a %s: %s" topic (or item ""))))
          (modes (info-lookup->all-modes topic mode))
          (window (selected-window))
          found doc-spec node prefix suffix doc-found)
-    (if (or (not info-lookup-other-window-flag)
-	    (eq (current-buffer) (get-buffer "*info*")))
-	(info)
-      (progn
-	(save-window-excursion (info))
-	;; Determine whether or not the Info buffer is visible in
-	;; another frame on the same display.  If it is, simply raise
-	;; that frame.  Otherwise, display it in another window.
-	(let* ((window (get-buffer-window "*info*" t))
-	       (info-frame (and window (window-frame window))))
-	  (if (and info-frame
-		   (display-multi-frame-p)
-		   (memq info-frame (frames-on-display-list)))
-	    (select-frame info-frame)
-	  (switch-to-buffer-other-window "*info*")))))
+    (if (not (eq major-mode 'Info-mode))
+	(if (not info-lookup-other-window-flag)
+	    (info)
+	  (progn
+	    (save-window-excursion (info))
+	    ;; Determine whether or not the Info buffer is visible in
+	    ;; another frame on the same display.  If it is, simply raise
+	    ;; that frame.  Otherwise, display it in another window.
+	    (let* ((window (get-buffer-window "*info*" t))
+		   (info-frame (and window (window-frame window))))
+	      (if (and info-frame
+		       (display-multi-frame-p)
+		       (memq info-frame (frames-on-display-list))
+		       (not (eq info-frame (selected-frame))))
+		  (select-frame info-frame)
+		(switch-to-buffer-other-window "*info*"))))))
     (while (and (not found) modes)
       (setq doc-spec (info-lookup->doc-spec topic (car modes)))
       (while (and (not found) doc-spec)
@@ -407,12 +411,11 @@ If optional argument QUERY is non-nil, query for the help mode."
 	    (message "No %s help available for `%s'" topic mode)
 	  ;; Recursively setup cross references.
 	  ;; But refer only to non-void modes.
-	  (mapcar (lambda (arg)
-		    (or (info-lookup->initialized topic arg)
-			(info-lookup-setup-mode topic arg))
-		    (and (eq (info-lookup->initialized topic arg) t)
-			 (setq refer-modes (cons arg refer-modes))))
-		  (info-lookup->other-modes topic mode))
+	  (dolist (arg (info-lookup->other-modes topic mode))
+	    (or (info-lookup->initialized topic arg)
+		(info-lookup-setup-mode topic arg))
+	    (and (eq (info-lookup->initialized topic arg) t)
+		 (setq refer-modes (cons arg refer-modes))))
 	  (setq refer-modes (nreverse refer-modes))
 	  ;; Build the full completion alist.
 	  (setq completions
@@ -468,7 +471,7 @@ If optional argument QUERY is non-nil, query for the help mode."
 	      (progn
 		(goto-char (point-min))
 		(and (search-forward "\n* Menu:" nil t)
-		     (while (re-search-forward "\n\\* \\([^:\t\n]*\\):" nil t)
+		     (while (re-search-forward "\n\\* \\(.*\\): " nil t)
 		       (setq entry (match-string 1)
 			     item (funcall trans entry))
 		       ;; `trans' can return nil if the regexp doesn't match.
@@ -631,11 +634,18 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'c-mode :topic 'symbol
  :regexp "\\(struct \\|union \\|enum \\)?[_a-zA-Z][_a-zA-Z0-9]*"
  :doc-spec '(("(libc)Function Index" nil
-	      "^[ \t]+- \\(Function\\|Macro\\): .*\\<" "\\>")
+	      "^[ \t]+-+ \\(Function\\|Macro\\): .*\\<" "\\>")
+             ;; prefix/suffix has to match things like
+             ;;   " -- Macro: int F_DUPFD"
+             ;;   " -- Variable: char * tzname [2]"
+             ;;   "`DBL_MAX'"    (texinfo @table)
+             ;; suffix "\\>" is not used because that sends DBL_MAX to
+             ;; DBL_MAX_EXP ("_" is a non-word char)
 	     ("(libc)Variable Index" nil
-	      "^[ \t]+- \\(Variable\\|Macro\\): .*\\<" "\\>")
+              "^\\([ \t]+-+ \\(Variable\\|Macro\\): .*\\<\\|`\\)"
+              "\\( \\|'?$\\)")
 	     ("(libc)Type Index" nil
-	      "^[ \t]+- Data Type: \\<" "\\>")
+	      "^[ \t]+-+ Data Type: \\<" "\\>")
 	     ("(termcap)Var Index" nil
 	      "^[ \t]*`" "'"))
  :parse-rule 'info-lookup-guess-c-symbol)
@@ -671,7 +681,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 	      (lambda (item)
 		(if (string-match "^\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\( .*\\)?$" item)
 		    (concat "@" (match-string 1 item))))
-	      "`" "'")))
+	      "`" "[' ]")))
 
 (info-lookup-maybe-add-help
  :mode 'm4-mode
@@ -682,13 +692,37 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'autoconf-mode
  :regexp "A[CM]_[_A-Z0-9]+"
- :doc-spec '(("(autoconf)Autoconf Macro Index" "AC_"
-	      "^[ \t]+- \\(Macro\\|Variable\\): .*\\<" "\\>")
-	     ("(automake)Macro and Variable Index" nil
-	      "^[ \t]*`" "'")
-	     ;; These are for older versions (probably pre autoconf 2.5x):
+ :doc-spec '(;; Autoconf Macro Index entries are without an "AC_" prefix,
+	     ;; but with "AH_" or "AU_" for those.  So add "AC_" if there
+	     ;; isn't already an "A._".
+             ("(autoconf)Autoconf Macro Index"
+              (lambda (item)
+                (if (string-match "^A._" item) item (concat "AC_" item)))
+	      "^[ \t]+-+ \\(Macro\\|Variable\\): .*\\<" "\\>")
+             ;; M4 Macro Index entries are without "AS_" prefixes, and
+             ;; mostly without "m4_" prefixes.  "dnl" is an exception, not
+             ;; wanting any prefix.  So AS_ is added back to upper-case
+             ;; names, m4_ to others which don't already an m4_.
+             ("(autoconf)M4 Macro Index"
+              (lambda (item)
+                (let ((case-fold-search nil))
+                  (cond ((or (string-equal item "dnl")
+                             (string-match "^m4_" item))
+                         item)
+                        ((string-match "^[A-Z0-9_]+$" item)
+                         (concat "AS_" item))
+                        (t
+                         (concat "m4_" item)))))
+	      "^[ \t]+-+ Macro: .*\\<" "\\>")
+             ;; Autotest Macro Index entries are without "AT_".
+             ("(autoconf)Autotest Macro Index" "AT_"
+	      "^[ \t]+-+ Macro: .*\\<" "\\>")
+	     ;; This is for older versions (probably pre autoconf 2.5x):
 	     ("(autoconf)Macro Index" "AC_"
-	      "^[ \t]+- \\(Macro\\|Variable\\): .*\\<" "\\>")
+	      "^[ \t]+-+ \\(Macro\\|Variable\\): .*\\<" "\\>")
+	     ;; Automake has index entries for its notes on various autoconf
+	     ;; macros (eg. AC_PROG_CC).  Ensure this is after the autoconf
+	     ;; index, so as to prefer the autoconf docs.
 	     ("(automake)Macro and Variable Index" nil
 	      "^[ \t]*`" "'"))
  ;; Autoconf symbols are M4 macros.  Thus use M4's parser.
@@ -756,9 +790,19 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'emacs-lisp-mode
  :regexp "[^][()'\" \t\n]+"
- :doc-spec '(("(emacs)Command Index")
-	     ("(emacs)Variable Index")
-	     ("(elisp)Index")))
+ :doc-spec '(;; Commands with key sequences appear in nodes as `foo' and
+             ;; those without as `M-x foo'.
+             ("(emacs)Command Index"  nil "`\\(M-x[ \t\n]+\\)?" "'")
+             ;; Variables normally appear in nodes as just `foo'.
+             ("(emacs)Variable Index" nil "`" "'")
+             ;; Almost all functions, variables, etc appear in nodes as
+             ;; " -- Function: foo" etc.  A small number of aliases and
+             ;; symbols appear only as `foo', and will miss out on exact
+             ;; positions.  Allowing `foo' would hit too many false matches
+             ;; for things that should go to Function: etc, and those latter
+             ;; are much more important.  Perhaps this could change if some
+             ;; sort of fallback match scheme existed.
+             ("(elisp)Index"          nil "^ -+ .*: " "\\( \\|$\\)")))
 
 (info-lookup-maybe-add-help
  :mode 'lisp-interaction-mode
@@ -774,18 +818,18 @@ Return nil if there is nothing appropriate in the buffer near point."
 
 (info-lookup-maybe-add-help
  :mode 'scheme-mode
- :regexp "[^()'\" \t\n]+"
+ :regexp "[^()`',\" \t\n]+"
  :ignore-case t
  ;; Aubrey Jaffer's rendition from <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm>
  :doc-spec '(("(r5rs)Index" nil
-	      "^[ \t]+- [^:]+:[ \t]*" "\\b")))
+	      "^[ \t]+-+ [^:]+:[ \t]*" "\\b")))
 
 (info-lookup-maybe-add-help
  :mode 'octave-mode
  :regexp "[_a-zA-Z0-9]+"
- :doc-spec '(("(octave)Function Index" nil 
-	      "^ - [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)
-	     ("(octave)Variable Index" nil "^ - [^:]+:[ ]+" nil)
+ :doc-spec '(("(octave)Function Index" nil
+	      "^ -+ [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)
+	     ("(octave)Variable Index" nil "^ -+ [^:]+:[ ]+" nil)
 	     ;; Catch lines of the form "xyz statement"
 	     ("(octave)Concept Index"
 	      (lambda (item)
@@ -793,9 +837,83 @@ Return nil if there is nothing appropriate in the buffer near point."
 		 ((string-match "^\\([A-Z]+\\) statement\\b" item)
 		    (match-string 1 item))
 		 (t nil)))
-	      nil; "^ - [^:]+:[ ]+" don't think this prefix is useful here.
+	      nil; "^ -+ [^:]+:[ ]+" don't think this prefix is useful here.
 	      nil)))
+
+(info-lookup-maybe-add-help
+ :mode 'maxima-mode
+ :ignore-case t
+ :regexp "[a-zA-Z_%]+"
+ :doc-spec '( ("(maxima)Function and Variable Index" nil
+	       "^ -+ [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)))
+
+(info-lookup-maybe-add-help
+ :mode 'inferior-maxima-mode
+ :other-modes '(maxima-mode))
+
+;; coreutils and bash builtins overlap in places, eg. printf, so there's a
+;; question which should come first.  Some of the coreutils descriptions are
+;; more detailed, but if bash is usually /bin/sh on a GNU system then the
+;; builtins will be what's normally run.
+;;
+;; Maybe special variables like $? should be matched as $?, not just ?.
+;; This would avoid a clash between variable $! and negation !, or variable
+;; $# and comment # (though comment # is not currently indexed in bash).
+;; Unfortunately if $? etc is the symbol, then we wouldn't be taken to the
+;; exact spot in the relevant node, since the bash manual has just `?' etc
+;; there.  Maybe an extension to the prefix/suffix scheme could help this.
+
+(info-lookup-maybe-add-help
+ :mode 'sh-mode :topic 'symbol
+ ;; bash has "." and ":" in its index, but those chars will probably never
+ ;; work in info, so don't bother matching them in the regexp.
+ :regexp "\\([a-zA-Z0-9_-]+\\|[!{}@*#?$]\\|\\[\\[?\\|]]?\\)"
+ :doc-spec '(("(bash)Builtin Index"       nil "^`" "[ .']")
+             ("(bash)Reserved Word Index" nil "^`" "[ .']")
+             ("(bash)Variable Index"      nil "^`" "[ .']")
+             ;; coreutils (version 4.5.10) doesn't have a separate program
+             ;; index, so exclude extraneous stuff (most of it) by demanding
+             ;; "[a-z]+" in the trans-func.
+             ("(coreutils)Index"
+              (lambda (item) (if (string-match "\\`[a-z]+\\'" item) item)))
+             ;; diff (version 2.8.1) has only a few programs, index entries
+             ;; are things like "foo invocation".
+             ("(diff)Index"
+              (lambda (item)
+		(if (string-match "\\`\\([a-z]+\\) invocation\\'" item)
+                    (match-string 1 item))))
+             ;; there's no plain "sed" index entry as such, mung another
+             ;; hopefully unique one to get to the invocation section
+             ("(sed)Concept Index"
+              (lambda (item)
+                (if (string-equal item "Standard input, processing as input")
+                    "sed")))
+             ;; there's no plain "awk" or "gawk" index entries, mung other
+             ;; hopefully unique ones to get to the command line options
+             ("(gawk)Index"
+              (lambda (item)
+                (cond ((string-equal item "gawk, extensions, disabling")
+                       "awk")
+                      ((string-equal item "gawk, versions of, information about, printing")
+                       "gawk"))))))
+
+;; This misses some things which occur as node names but not in the
+;; index.  Unfortunately it also picks up the wrong one of multiple
+;; entries for the same term in some cases.  --fx
+(info-lookup-maybe-add-help
+ :mode 'cfengine-mode
+ :regexp "[[:alnum:]_]+\\(?:()\\)?"
+ :doc-spec '(("(cfengine-Reference)Variable Index"
+	      (lambda (item)
+		;; Index entries may be like `IsPlain()'
+		(if (string-match "\\([[:alnum:]_]+\\)()" item)
+		    (match-string 1 item)
+		  item))
+	      ;; This gets functions in evaluated classes.  Other
+	      ;; possible patterns don't seem to work too well.
+	      "`" "(")))
 
 (provide 'info-look)
 
+;;; arch-tag: 0f1e3ea3-32a2-4461-bbab-3cff93539a74
 ;;; info-look.el ends here

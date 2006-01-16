@@ -2,8 +2,8 @@
 # Configuration script for src/makefile
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1993, 1994, 1995, 1996, 1997, 2000
-#   Free Software Foundation, Inc.
+# Copyright (C) 1993, 1994, 1995, 1996, 1997, 2000, 2002, 2003, 2004,
+#   2005 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -53,3 +53,5 @@ ${libsrc}make-doc.exe:\
 /^temacs:/s/prefix-args//
 /^temacs:/s/stamp-oldxmenu//
 /^	#/d
+
+# arch-tag: 246725c1-79de-4d03-a080-8f19329fa35e

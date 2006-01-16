@@ -1,6 +1,7 @@
 ;;; esh-ext.el --- commands external to Eshell
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'esh-ext)
 
@@ -91,7 +92,7 @@ since nothing else but Eshell will be able to understand
       (if (string-match "\\(\\`cmdproxy\\|sh\\)\\.\\(com\\|exe\\)"
 			shell-file-name)
 	  (or (eshell-search-path "cmd.exe")
-	      (eshell-search-path "command.exe"))
+	      (eshell-search-path "command.com"))
 	shell-file-name))
   "*The name of the shell command to use for DOS/Windows batch files.
 This defaults to nil on non-Windows systems, where this variable is
@@ -103,7 +104,7 @@ wholly ignored."
   "Invoke a .BAT or .CMD file on DOS/Windows systems."
   ;; since CMD.EXE can't handle forward slashes in the initial
   ;; argument...
-  (setcar args (subst-char-in-string directory-sep-char ?\\ (car args)))
+  (setcar args (subst-char-in-string ?/ ?\\ (car args)))
   (throw 'eshell-replace-command
 	 (eshell-parse-command eshell-windows-shell-file (cons "/c" args))))
 
@@ -150,8 +151,8 @@ by the user on the command line."
 
 (defcustom eshell-explicit-command-char ?*
   "*If this char occurs before a command name, call it externally.
-That is, although vi may be an alias, *vi will always call the
-external version.  UNIX users may prefer this variable to be \."
+That is, although `vi' may be an alias, `\vi' will always call the
+external version."
   :type 'character
   :group 'eshell-ext)
 
@@ -316,4 +317,5 @@ line of the form #!<interp>."
 
 ;;; Code:
 
+;;; arch-tag: 178d4064-7e60-4745-b81f-bab5d8d7c40f
 ;;; esh-ext.el ends here

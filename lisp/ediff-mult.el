@@ -1,6 +1,7 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff
 
-;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -106,7 +107,7 @@
 (provide 'ediff-mult)
 
 (defgroup ediff-mult nil
-  "Multi-file and multi-buffer processing in Ediff"
+  "Multi-file and multi-buffer processing in Ediff."
   :prefix "ediff-"
   :group 'ediff)
 
@@ -167,8 +168,17 @@ directories.")
 ;; buffer used to collect custom diffs from individual sessions in the group
 (ediff-defvar-local ediff-meta-diff-buffer nil "")
 
-;; history var to use for filtering groups
+;; t means recurse into subdirs when deciding which files have same contents
+(ediff-defvar-local ediff-recurse-to-subdirectories nil "")
+
+;; history var to use for filtering groups of files
 (defvar ediff-filtering-regexp-history nil "")
+
+(defcustom ediff-default-filtering-regexp nil
+  "The default regular expression used as a filename filter in multifile comparisons.
+Should be a sexp. For instance (car ediff-filtering-regexp-history) or nil."
+  :type 'sexp
+  :group 'ediff-mult)
 
 ;; This has the form ((meta-buf regexp dir1 dir2 dir3 merge-auto-store-dir)
 ;; (ctl-buf session-status (file1 . eq-status) (file2 . eq-status) (file3
@@ -194,8 +204,14 @@ directories.")
 (defcustom ediff-meta-truncate-filenames t
   "*If non-nil, truncate long file names in the session group buffers.
 This can be toggled with `ediff-toggle-filename-truncation'."
+  :type 'boolean
+  :group 'ediff-mult)
+
+(defcustom ediff-meta-mode-hook nil
+  "*Hooks run just after setting up meta mode."
   :type 'hook
   :group 'ediff-mult)
+
 (defcustom ediff-registry-setup-hook nil
   "*Hooks run just after the registry control panel is set up."
   :type 'hook
@@ -401,7 +417,9 @@ Commands:
 \\{ediff-meta-buffer-map}"
   (kill-all-local-variables)
   (setq major-mode 'ediff-meta-mode)
-  (setq mode-name "MetaEdiff"))
+  (setq mode-name "MetaEdiff")
+  ;; don't use run-mode-hooks here!
+  (run-hooks 'ediff-meta-mode-hook))
 
 
 ;; the keymap for the buffer showing directory differences
@@ -551,17 +569,23 @@ behavior."
 			   (ediff-add-slash-if-directory auxdir1 elt))
 			 lis1)
 	  auxdir2	(file-name-as-directory dir2)
+	  lis2		(directory-files auxdir2 nil regexp)
+	  lis2 		(delete "."  lis2)
+	  lis2 		(delete ".." lis2)
 	  lis2		(mapcar
 			 (lambda (elt)
 			   (ediff-add-slash-if-directory auxdir2 elt))
-			 (directory-files auxdir2 nil regexp)))
+			 lis2))
 
     (if (stringp dir3)
 	(setq auxdir3	(file-name-as-directory dir3)
+	      lis3	(directory-files auxdir3 nil regexp)
+	      lis3 	(delete "."  lis3)
+	      lis3 	(delete ".." lis3)
 	      lis3	(mapcar
 			 (lambda (elt)
 			   (ediff-add-slash-if-directory auxdir3 elt))
-			 (directory-files auxdir3 nil regexp))))
+			 lis3)))
 
     (if (ediff-nonempty-string-p merge-autostore-dir)
 	(setq merge-autostore-dir
@@ -841,7 +865,7 @@ behavior."
 	 (session-info (ediff-overlay-get overl 'ediff-meta-info))
 	 (activity-marker (ediff-get-session-activity-marker session-info))
 	 buffer-read-only)
-    (or new-marker activity-marker (setq new-marker ?\ ))
+    (or new-marker activity-marker (setq new-marker ?\s))
     (goto-char (ediff-overlay-start overl))
     (if (eq (char-after (point)) new-marker)
 	() ; if marker shown in buffer is the same as new-marker, do nothing
@@ -856,7 +880,7 @@ behavior."
 	 (session-info (ediff-overlay-get overl 'ediff-meta-info))
 	 (status (ediff-get-session-status session-info))
 	 buffer-read-only)
-    (setq new-status (or new-status status ?\ ))
+    (setq new-status (or new-status status ?\s))
     (goto-char (ediff-overlay-start overl))
     (forward-char 1) ; status is the second char in session record
     (if (eq (char-after (point)) new-status)
@@ -1290,7 +1314,7 @@ Useful commands:
 	 (if otherfile
 	     (or (file-exists-p otherfile)
 		 (if (y-or-n-p
-		      (format "Copy %s to %s ? " file-abs otherfile))
+		      (format "Copy %s to %s? " file-abs otherfile))
 		     (let* ((file-diff-record (assoc file-tail dir-diff-list))
 			    (new-mem-code
 			     (* (cdr file-diff-record) file-mem-code)))
@@ -1600,7 +1624,7 @@ Useful commands:
 	   (save-excursion
 	     (set-buffer meta-diff-buff)
 	     (goto-char (point-max))
-	     (insert-buffer custom-diff-buf)
+	     (insert-buffer-substring custom-diff-buf)
 	     (insert "\n")))
 	  ;; if ediff session is not live, run diff directly on the files
 	  ((memq metajob '(ediff-directories
@@ -1619,7 +1643,7 @@ Useful commands:
 	   (save-excursion
 	     (set-buffer meta-diff-buff)
 	     (goto-char (point-max))
-	     (insert-buffer tmp-buf)
+	     (insert-buffer-substring tmp-buf)
 	     (insert "\n")))
 	  (t
 	   (ediff-kill-buffer-carefully meta-diff-buff)
@@ -1667,7 +1691,8 @@ all marked sessions must be active."
 	       (ediff-get-session-objC-name info)))
 	    (set-buffer (get-buffer-create ediff-tmp-buffer))
 	    (erase-buffer)
-	    (insert-buffer patchbuffer)
+	    (insert-buffer-substring patchbuffer)
+	    (goto-char (point-min))
 	    (display-buffer ediff-tmp-buffer 'not-this-window)
 	    ))
       (error "The patch buffer wasn't found"))))
@@ -1683,6 +1708,7 @@ all marked sessions must be active."
 	 (info (ediff-get-meta-info meta-buf pos))
 	 (session-buf (ediff-get-session-buffer info))
 	 (session-number (ediff-get-session-number-at-pos pos meta-buf))
+	 (default-regexp (eval ediff-default-filtering-regexp))
 	 merge-autostore-dir file1 file2 file3 regexp)
 
     (setq file1 (ediff-get-session-objA-name info)
@@ -1711,8 +1737,16 @@ all marked sessions must be active."
 	     ;; do ediff/ediff-merge on subdirectories
 	     (if (ediff-buffer-live-p session-buf)
 		 (ediff-show-meta-buffer session-buf)
-	       (setq regexp (read-string "Filter through regular expression: "
-					 nil 'ediff-filtering-regexp-history))
+	       (setq regexp
+		     (read-string
+		      (if (stringp default-regexp)
+			  (format
+			   "Filter through regular expression (default %s): "
+			   default-regexp)
+			"Filter through regular expression: ")
+		      nil
+		      'ediff-filtering-regexp-history
+		      (eval ediff-default-filtering-regexp)))
 	       (ediff-directories-internal
 		file1 file2 file3 regexp
 		ediff-session-action-function
@@ -2334,6 +2368,7 @@ last-command-char is used to decide which action to take."
 		))
       (setq list (cdr list)))
     (message "Comparing files ... Done"))
+  (setq ediff-recurse-to-subdirectories nil)
   (ediff-update-meta-buffer (current-buffer) 'must-redraw))
 
 ;; mark files 1 and 2 as equal, if they are.
@@ -2341,12 +2376,11 @@ last-command-char is used to decide which action to take."
 (defun ediff-mark-if-equal (fileinfo1 fileinfo2)
   (let ((f1 (car fileinfo1))
 	(f2 (car fileinfo2)))
-    (cond ((file-directory-p f1) nil)
-	  ((file-directory-p f2) nil)
-	  ((ediff-same-file-contents f1 f2)
-	   (ediff-set-file-eqstatus fileinfo1 t)
-	   (ediff-set-file-eqstatus fileinfo2 t)
-	   t))
+    (if (and (stringp f1) (stringp f2) (ediff-same-contents f1 f2))
+	(progn
+	  (ediff-set-file-eqstatus fileinfo1 t)
+	  (ediff-set-file-eqstatus fileinfo2 t)
+	  ))
     ))
 
 
@@ -2357,4 +2391,5 @@ last-command-char is used to decide which action to take."
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
+;;; arch-tag: c8a76898-f96f-4d9c-be9d-129134017188
 ;;; ediff-mult.el ends here

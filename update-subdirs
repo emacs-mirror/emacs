@@ -1,7 +1,7 @@
 #!/bin/sh
 # Write into $1/subdirs.el a list of subdirs of directory $1.
 
-# Copyright (C) 1994, 1995, 1997, 1999, 2001 Free Software Foundation, Inc.
+# Copyright (C) 1994,95,97,1999,2001,2004  Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -17,8 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs; see the file COPYING.  If not, write to the
-# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+# Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 
 cd $1
 for file in *; do
@@ -42,5 +42,11 @@ else
   echo ";; In load-path, after this directory should come
 ;; certain of its subdirectories.  Here we specify them." >> subdirs.el
 
-  echo "(normal-top-level-add-to-load-path '($subdirs))" >> subdirs.el
+  echo "(normal-top-level-add-to-load-path '($subdirs))
+;; Local" "Variables:
+;; version-control: never
+;; no-byte-compile: t
+;; End:" >> subdirs.el
 fi
+
+# arch-tag: 56ebcf1b-5c30-4934-b0b4-72d374064704

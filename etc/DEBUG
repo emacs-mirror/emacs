@@ -1,5 +1,6 @@
 Debugging GNU Emacs
-Copyright (c) 1985, 2000, 2001 Free Software Foundation, Inc.
+Copyright (C) 1985, 2000, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
@@ -17,8 +18,15 @@ should read the Windows-specific section near the end of this
 document.]
 
 ** When you debug Emacs with GDB, you should start it in the directory
-where you built Emacs.  That directory has a .gdbinit file that defines
-various "user-defined" commands for debugging Emacs.
+where the executable was made.  That directory has a .gdbinit file
+that defines various "user-defined" commands for debugging Emacs.
+
+** When you are trying to analyze failed assertions, it will be
+essential to compile Emacs either completely without optimizations or
+at least (when using GCC) with the -fno-crossjumping option.  Failure
+to do so may make the compiler recycle the same abort call for all
+assertions in a given function, rendering the stack backtrace useless
+for identifying the specific failed assertion.
 
 ** It is a good idea to run Emacs under GDB (or some other suitable
 debugger) *all the time*.  Then, when Emacs crashes, you will be able
@@ -62,6 +70,11 @@ use the set command until the inferior process has been started.
 Put a breakpoint early in `main', or suspend the Emacs,
 to get an opportunity to do the set command.
 
+When Emacs is running in a terminal, it is useful to use a separate terminal
+for the debug session.  This can be done by starting Emacs as usual, then
+attaching to it from gdb with the `attach' command which is explained in the
+node "Attach" of the GDB manual.
+
 ** Examining Lisp object values.
 
 When you have a live process to debug, and it has not encountered a
@@ -69,9 +82,11 @@ fatal error, you can use the GDB command `pr'.  First print the value
 in the ordinary way, with the `p' command.  Then type `pr' with no
 arguments.  This calls a subroutine which uses the Lisp printer.
 
-Note: It is not a good idea to try `pr' if you know that Emacs is in
-deep trouble: its stack smashed (e.g., if it encountered SIGSEGV due
-to stack overflow), or crucial data structures, such as `obarray',
+You can also use `pp value' to print the emacs value directly.
+
+Note: It is not a good idea to try `pr' or `pp' if you know that Emacs
+is in deep trouble: its stack smashed (e.g., if it encountered SIGSEGV
+due to stack overflow), or crucial data structures, such as `obarray',
 corrupted, etc.  In such cases, the Emacs subroutine called by `pr'
 might make more damage, like overwrite some data that is important for
 debugging the original problem.
@@ -105,36 +120,32 @@ objects which you can examine in turn with the x... commands.
 Even with a live process, these x...  commands are useful for
 examining the fields in a buffer, window, process, frame or marker.
 Here's an example using concepts explained in the node "Value History"
-of the GDB manual to print the variable frame from this line in
-xmenu.c:
-
-		  buf.frame_or_window = frame;
-
-First, use these commands:
+of the GDB manual to print values associated with the variable
+called frame.  First, use these commands:
 
     cd src
     gdb emacs
-    b xmenu.c:1296
+    b set_frame_buffer_list
     r -q
 
-Then type C-x 5 2 to create a new frame, and it hits the breakpoint:
+Then Emacs hits the breakpoint:
 
     (gdb) p frame
-    $1 = 1077872640
+    $1 = 139854428
     (gdb) xtype
     Lisp_Vectorlike
     PVEC_FRAME
     (gdb) xframe
-    $2 = (struct frame *) 0x3f0800
+    $2 = (struct frame *) 0x8560258
     (gdb) p *$
     $3 = {
-      size = 536871989,
-      next = 0x366240,
-      name = 809661752,
+      size = 1073742931,
+      next = 0x85dfe58,
+      name = 140615219,
       [...]
     }
     (gdb) p $3->name
-    $4 = 809661752
+    $4 = 140615219
 
 Now we can use `pr' to print the name of the frame:
 
@@ -147,11 +158,13 @@ we want the address of the l-value expression near the bottom of
 
   XVECTOR (this_command_keys)->contents[this_command_key_count++] = key;
 
-XVECTOR is a macro, and therefore GDB does not know about it.
-GDB cannot evaluate "p XVECTOR (this_command_keys)".
+XVECTOR is a macro, so GDB only knows about it if Emacs has been compiled with
+preprocessor macro information.  GCC provides this if you specify the options
+`-gdwarf-2' and `-g3'.  In this case, GDB can evaluate expressions like
+"p XVECTOR (this_command_keys)".
 
-However, you can use the xvector command in GDB to get the same
-result.  Here is how:
+When this information isn't available, you can use the xvector command in GDB
+to get the same result.  Here is how:
 
     (gdb) p this_command_keys
     $1 = 1078005760
@@ -442,6 +455,9 @@ Several more functions for debugging display code are available in
 Emacs compiled with GLYPH_DEBUG defined; type "C-h f dump- TAB" and
 "C-h f trace- TAB" to see the full list.
 
+When you debug display problems running emacs under X, you can use
+the `ff' command to flush all pending display updates to the screen.
+
 
 ** Debugging LessTif
 
@@ -563,6 +579,13 @@ these data structures on the respective headers to remove the `:N'
 bitfield definitions (which will cause each such field to use a full
 int).
 
+** How to recover buffer contents from an Emacs core dump file
+
+The file etc/emacs-buffer.gdb defines a set of GDB commands for
+recovering the contents of Emacs buffers from a core dump file.  You
+might also find those commands useful for displaying the list of
+buffers in human-readable format from within the debugger.
+
 ** Some suggestions for debugging on MS Windows:
 
    (written by Marc Fleischeuers, Geoff Voelker and Andrew Innes)
@@ -647,3 +670,5 @@ temporarily, you will see an old value for it.  Again, you need to
 look at the disassembly to determine which registers are being used,
 and look at those registers directly, to see the actual current values
 of these variables.
+
+;;; arch-tag: fbf32980-e35d-481f-8e4c-a2eca2586e6b

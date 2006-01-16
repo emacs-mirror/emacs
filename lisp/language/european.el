@@ -1,8 +1,10 @@
 ;;; european.el --- support for European languages -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1995, 1997, 2001 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004
+;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, European
 
@@ -20,28 +22,17 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
-;; For European scripts, character sets ISO8859-1,2,3,4,9,14,15 are
-;; supported.
+;; For European scripts, all the ISO Latin character sets are
+;; supported, along with various others.
 
 ;;; Code:
 
 ;; Latin-1 (ISO-8859-1)
-
-(make-coding-system
- 'iso-latin-1 2 ?1
- "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)."
- '(ascii latin-iso8859-1 nil nil
-   nil nil nil nil nil nil nil nil nil nil nil t t)
- '((safe-charsets ascii latin-iso8859-1)
-   (mime-charset . iso-8859-1)))
-
-(define-coding-system-alias 'iso-8859-1 'iso-latin-1)
-(define-coding-system-alias 'latin-1 'iso-latin-1)
 
 (set-language-info-alist
  "Latin-1" '((charset ascii latin-iso8859-1)
@@ -73,6 +64,19 @@ Latin-1 also covers several written languages outside Europe, including
 Indonesian/Malay, Tagalog (Philippines), Swahili and Afrikaans."))
  '("European"))
 
+(eval-and-compile
+  (setq
+   non-iso-charset-alist
+   (cp-make-coding-system
+    windows-1252
+    [?\$,1tL(B nil ?\$,1rz(B ?\$,1!R(B ?\$,1r~(B ?\$,1s&(B ?\$,1s (B ?\$,1s!(B ?\$,1$f(B ?\$,1s0(B ?\$,1! (B ?\$,1s9(B ?\$,1 r(B nil ?\$,1!=(B nil nil
+	 ?\$,1rx(B ?\$,1ry(B ?\$,1r|(B ?\$,1r}(B ?\$,1s"(B ?\$,1rs(B ?\$,1rt(B ?\$,1$|(B ?\$,1ub(B ?\$,1!!(B ?\$,1s:(B ?\$,1 s(B nil ?\$,1!>(B ?\$,1!8(B ?\,A (B ?\,A!(B
+	 ?\,A"(B ?\,A#(B ?\,A$(B ?\,A%(B ?\,A&(B ?\,A'(B ?\,A((B ?\,A)(B ?\,A*(B ?\,A+(B ?\,A,(B ?\,A-(B ?\,A.(B ?\,A/(B ?\,A0(B ?\,A1(B ?\,A2(B
+	 ?\,A3(B ?\,A4(B ?\,A5(B ?\,A6(B ?\,A7(B ?\,A8(B ?\,A9(B ?\,A:(B ?\,A;(B ?\,A<(B ?\,A=(B ?\,A>(B ?\,A?(B ?\,A@(B ?\,AA(B ?\,AB(B ?\,AC(B
+	 ?\,AD(B ?\,AE(B ?\,AF(B ?\,AG(B ?\,AH(B ?\,AI(B ?\,AJ(B ?\,AK(B ?\,AL(B ?\,AM(B ?\,AN(B ?\,AO(B ?\,AP(B ?\,AQ(B ?\,AR(B ?\,AS(B ?\,AT(B
+	 ?\,AU(B ?\,AV(B ?\,AW(B ?\,AX(B ?\,AY(B ?\,AZ(B ?\,A[(B ?\,A\(B ?\,A](B ?\,A^(B ?\,A_(B ?\,A`(B ?\,Aa(B ?\,Ab(B ?\,Ac(B ?\,Ad(B ?\,Ae(B
+	 ?\,Af(B ?\,Ag(B ?\,Ah(B ?\,Ai(B ?\,Aj(B ?\,Ak(B ?\,Al(B ?\,Am(B ?\,An(B ?\,Ao(B ?\,Ap(B ?\,Aq(B ?\,Ar(B ?\,As(B ?\,At(B ?\,Au(B ?\,Av(B
+	 ?\,Aw(B ?\,Ax(B ?\,Ay(B ?\,Az(B ?\,A{(B ?\,A|(B ?\,A}(B ?\,A~(B ?\,A(B])))
 
 ;; Latin-2 (ISO-8859-2)
 
@@ -392,8 +396,7 @@ and it selects the Spanish tutorial."))
  "Latin-6" `((coding-system latin-6)
 	     (coding-priority latin-6)
 	     (nonascii-translation . ,(get 'decode-iso-latin-6 'translation-table))
-	     (input-method . latin-pre)
-	     (input-method . latin-pre)
+	     (input-method . "latin-prefix")
 	     (features code-pages)
 	     (documentation . "Support for Latin-6."))
  '("European"))
@@ -403,7 +406,7 @@ and it selects the Spanish tutorial."))
 	     (coding-priority latin-7)
 	     (nonascii-translation . ,(get 'decode-iso-latin-7
 					   'translation-table))
-	     (input-method . latin-pre)
+	     (input-method . "latin-prefix")
 	     (features code-pages)
 	     (documentation . "Support for Latin-7, e.g. Latvian, Lithuanian."))
  '("European"))
@@ -449,6 +452,19 @@ and it selects the Spanish tutorial."))
 	      (unibyte-syntax . "latin-2")
 	      (unibyte-display . iso-8859-2)
 	      (documentation . "Support for Croatian with Latin-2 encoding."))
+ '("European"))
+
+(set-language-info-alist
+ "Brazilian Portuguese" '((tutorial . "TUTORIAL.pt_BR")
+	    (charset ascii latin-iso8859-1)
+	    (coding-system iso-latin-1 iso-latin-9)
+	    (coding-priority iso-latin-1)
+	    (nonascii-translation . latin-iso8859-1)
+	    (unibyte-syntax . "latin-1")
+	    (unibyte-display . iso-latin-1)
+	    (input-method . "latin-1-prefix")
+	    (sample-text . "Oi")
+	    (documentation . "Support for Brazilian Portuguese."))
  '("European"))
 
 ;; Definitions for the Mac Roman character sets and coding system.
@@ -696,4 +712,5 @@ The return value is the number of composed characters."
 
 (provide 'european)
 
+;;; arch-tag: 9e018b12-fb02-4120-907b-9adeaf84b5c2
 ;;; european.el ends here

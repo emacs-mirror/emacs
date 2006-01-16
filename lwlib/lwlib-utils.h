@@ -18,3 +18,6 @@ XtWidgetBeingDestroyedP __P ((Widget widget));
 void XtSafelyDestroyWidget __P ((Widget));
 
 #endif /* _LWLIB_UTILS_H_ */
+
+/* arch-tag: 705efd86-9319-4447-80f6-16aa5b349809
+   (do not change this comment) */

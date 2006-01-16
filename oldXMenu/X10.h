@@ -1,4 +1,3 @@
-/* $Header: /cvs/emacs/oldXMenu/X10.h,v 1.1 1999/10/03 19:35:16 fx Exp $ */
 /*
  * Copyright 1985, 1986, 1987 by the Massachusetts Institute of Technology
  *
@@ -16,6 +15,7 @@
  *
  */
 
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
  *	X10.h - Header definition and support file for the C subroutine
@@ -76,3 +76,6 @@ XAssocTable *XCreateAssocTable();
 char *XLookUpAssoc();
 
 #endif /* _X10_H_ */
+
+/* arch-tag: b0b749fb-757b-470b-b405-af7d033a5aad
+   (do not change this comment) */

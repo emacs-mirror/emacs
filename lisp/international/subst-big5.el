@@ -1,6 +1,6 @@
 ;;; subst-big5.el --- Unicode/GB2312 translation     -*-coding: big5;-*-
 
-;; Copyright (C) 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -17,13 +17,13 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
 ;; Provides translation tables between Unicode and chinese-big5 for
-;; use by the `utf-translate-cjk' option.  See subst-jis.el for the
+;; use by the `utf-translate-cjk-mode' option.  See subst-jis.el for the
 ;; method used.
 
 ;;; Code:
@@ -32,8 +32,9 @@
  (lambda (pair)
    (let ((unicode (car pair))
 	 (char (cadr pair)))
-     (if (and (>= unicode #x2e80) (<= unicode #xd7a3))
-	 (puthash unicode  char ucs-unicode-to-mule-cjk))
+     ;; exclude non-supporting components from decode table
+     (if (utf-translate-cjk-substitutable-p unicode)
+	 (puthash unicode char ucs-unicode-to-mule-cjk))
      (puthash char unicode ucs-mule-cjk-to-unicode)))
  '((#xa7 ?¡±)
    (#xaf ?¡Â)
@@ -13937,4 +13938,5 @@
    (#xffe3 ?¡Ã)
    (#xffe5 ?¢D)))
 
+;;; arch-tag: 4fbf5312-bb44-4f23-8ae2-7ab2ee1c540f
 ;;; subst-big5.el ends here

@@ -1,6 +1,7 @@
 ;;; text-mode.el --- text mode, and its idiosyncratic commands
 
-;; Copyright (C) 1985, 1992, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1992, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -68,7 +69,8 @@ You can thus get the full benefit of adaptive filling
 Turning on Text mode runs the normal hook `text-mode-hook'."
   (make-local-variable 'text-mode-variant)
   (setq text-mode-variant t)
-  (set (make-local-variable 'require-final-newline) t)
+  (set (make-local-variable 'require-final-newline)
+       mode-require-final-newline)
   (set (make-local-variable 'indent-line-function) 'indent-relative))
 
 (define-derived-mode paragraph-indent-text-mode text-mode "Parindent"
@@ -87,7 +89,7 @@ Turning on Paragraph-Indent Text mode runs the normal hooks
   "Minor mode for editing text, with leading spaces starting a paragraph.
 In this mode, you do not need blank lines between paragraphs when the
 first line of the following paragraph starts with whitespace, as with
-`paragraph-indent-mode'.
+`paragraph-indent-text-mode'.
 Turning on Paragraph-Indent minor mode runs the normal hook
 `paragraph-indent-text-mode-hook'."
   (interactive)
@@ -178,4 +180,5 @@ The argument NLINES says how many lines to center."
 	   (setq nlines (1+ nlines))
 	   (forward-line -1)))))
 
+;;; arch-tag: a07ccaad-da13-4d7b-9c61-cd04f5926aab
 ;;; text-mode.el ends here

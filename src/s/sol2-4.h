@@ -33,3 +33,5 @@
    are in this directory on Solaris 2.4.  */
 #define C_SWITCH_X_SYSTEM -I/usr/dt/include
 
+/* arch-tag: 6f0de37b-cfda-427a-a5ae-b83ed54aaae7
+   (do not change this comment) */

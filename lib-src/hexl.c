@@ -1,5 +1,5 @@
 /* Convert files for Emacs Hexl mode.
-   Copyright (C) 1989 Free Software Foundation, Inc
+   Copyright (C) 1989, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is not considered part of GNU Emacs.
 
@@ -15,7 +15,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software Foundation,
-Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
+Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -173,7 +173,7 @@ main (argc, argv)
 #endif
 	  for (;;)
 	    {
-	      register int i, c, d;
+	      register int i, c = 0, d;
 
 #define hexchar(x) (isdigit (x) ? x - '0' : x - 'a' + 10)
 
@@ -225,7 +225,7 @@ main (argc, argv)
 	  string[17] = '\0';
 	  for (;;)
 	    {
-	      register int i, c;
+	      register int i, c = 0;
 
 	      for (i=0; i < 16; ++i)
 		{
@@ -270,12 +270,17 @@ main (argc, argv)
 	fclose (fp);
 
     } while (*argv != NULL);
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 void
 usage ()
 {
   fprintf (stderr, "usage: %s [-de] [-iso]\n", progname);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
+
+/* arch-tag: 20e04fb7-926e-4e48-be86-64fe869ecdaa
+   (do not change this comment) */
+
+/* hexl.c ends here */

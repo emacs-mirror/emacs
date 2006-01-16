@@ -1,11 +1,11 @@
 ;;; todo-mode.el --- major mode for editing TODO list files
 
-;; Copyright (C) 1997, 1999, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Oliver Seidel <os10000@seidel-space.de>
 ;;   [Not clear the above works, July 2000]
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.49 2001/11/17 04:01:31 rms Exp $
 ;; Keywords: calendar, todo
 
 ;; This file is part of GNU Emacs.
@@ -22,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;; ---------------------------------------------------------------------------
 
@@ -92,12 +92,6 @@
 ;;      the whole source code for autoloads, because there are several
 ;;      extensions that are not explicitly listed in the above quick
 ;;      installation.
-;;
-;;  Version
-;;
-;;      Which version of todo-mode.el does this documentation refer to?
-;;
-;;      $Id: todo-mode.el,v 1.49 2001/11/17 04:01:31 rms Exp $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -318,7 +312,7 @@ which it will stop.  If you set the threshhold to zero, the upper and
 lower bound will coincide at the end of the loop and you will insert
 your item just before that point.  If you set the threshhold to,
 e.g. 8, it will stop as soon as the window size drops below that
-amount and will insert the item in the approximate centre of that
+amount and will insert the item in the approximate center of that
 window."
   :type 'integer
   :group 'todo)
@@ -911,11 +905,12 @@ Number of entries for each category is given by `todo-print-priorities'."
 
 \\{todo-mode-map}"
   (interactive)
+  (kill-all-local-variables)
   (setq major-mode 'todo-mode)
   (setq mode-name "TODO")
   (use-local-map todo-mode-map)
   (easy-menu-add todo-menu)
-  (run-hooks 'todo-mode-hook))
+  (run-mode-hooks 'todo-mode-hook))
 
 (eval-when-compile
   (defvar date)
@@ -961,4 +956,5 @@ Number of entries for each category is given by `todo-print-priorities'."
 
 (provide 'todo-mode)
 
+;;; arch-tag: 6fd91be5-776e-4464-a109-da4ea0e4e497
 ;;; todo-mode.el ends here

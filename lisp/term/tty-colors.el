@@ -1,8 +1,9 @@
 ;;; tty-colors.el --- color support for character terminals
 
-;; Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
-;; Author: Eli Zaretskii <eliz@is.elta.co.il>
+;; Author: Eli Zaretskii
 ;; Maintainer: FSF
 ;; Keywords: terminals, faces
 
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -60,6 +61,8 @@
 ;; beginning of lisp/term/pc-win.el.
 
 ;;; Code:
+
+(defvar msdos-color-values)
 
 ;; The following list is taken from rgb.txt distributed with X.
 ;;
@@ -864,15 +867,10 @@ of gray, thus the name."
     (if (< mag 1) 0 (acos (/ (+ r g b) mag)))))
 
 (defun tty-color-approximate (rgb &optional frame)
-  "Given a list of 3 rgb values in RGB, find the color in `tty-color-alist'
-which is the best approximation in the 3-dimensional RGB space,
-and return its description.
-
-Value is a list of the form \(NAME INDEX R G B\).  Note that the returned
-NAME is not necessarily the same string as the argument COLOR, because
-the latter might need to be approximated if it is not supported directly.
-
-Each value of the RGB triplet should be in the range 0..65535 range.
+  "Find the color in `tty-color-alist' that best approximates RGB.
+Value is a list of the form \(NAME INDEX R G B\).
+The argument RGB should be an rgb value, that is, a list of three
+integers in the 0..65535 range.
 FRAME defaults to the selected frame."
   (let* ((color-list (tty-color-alist frame))
 	 (candidate (car color-list))
@@ -1047,4 +1045,5 @@ A color is considered gray if the 3 components of its RGB value are equal."
       (setq colors (cdr colors)))
     count))
 
+;;; arch-tag: 84d5c3ef-ae22-4754-99ac-e6350c0967ae
 ;;; tty-colors.el ends here

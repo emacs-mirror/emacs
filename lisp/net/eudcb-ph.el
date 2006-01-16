@@ -1,6 +1,7 @@
 ;;; eudcb-ph.el --- Emacs Unified Directory Client - CCSO PH/QI Backend
 
-;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -183,7 +184,7 @@ SERVER is either a string naming the server or a list (NAME PORT)."
       (setq process (open-network-stream "ph" eudc-ph-process-buffer host port))
       (if (null process)
 	  (throw 'done nil))
-      (process-kill-without-query process)
+      (set-process-query-on-exit-flag process t)
       process)))
 
 (defun eudc-ph-close-session (process)
@@ -244,4 +245,5 @@ depending on RETURN-RESPONSE."
 
 (provide 'eudcb-ph)
 
+;;; arch-tag: 4365bbf5-af20-453e-b5b6-2e7118ebfcdb
 ;;; eudcb-ph.el ends here

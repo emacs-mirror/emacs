@@ -1,7 +1,9 @@
 ;;; greek.el --- Quail package for inputting Greek -*-coding: iso-2022-7bit-*-
 
-;; Copyright (C) 1997, 2001 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001, 2002, 2003, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, input method, Greek
 
@@ -19,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -461,6 +463,7 @@ ypogegrammeni	|
 psili		>
 dasia		<
 oxia		'
+koronis         ''
 varia		`
 perispomeni	~
 dialytika	\"
@@ -483,14 +486,19 @@ nil t t nil nil nil nil nil nil nil t)
  ("?" ?$,1&^(B) ; erotimatiko
  ("\"" ?,A((B) ; dialytika
  ("|" ?$,1&Z(B) ; ypogegrammeni
+ ("''" ?$,1q}(B) ; koronis
+ ("((" ?,A+(B) ; #x00ab
+ ("))" ?,A;(B) ; #x00bb
 
  ("A" ?$,1&q(B)
+ ("A|" ?$,1q|(B)
  ("B" ?$,1&r(B)
  ("D" ?$,1&t(B)
  ("E" ?$,1&u(B)
  ("F" ?$,1'&(B)
  ("G" ?$,1&s(B)
  ("H" ?$,1&w(B)
+ ("H|" ?$,1r,(B)
  ("I" ?$,1&y(B)
  ("J" ?$,1&x(B)
  ("K" ?$,1&z(B)
@@ -505,6 +513,7 @@ nil t t nil nil nil nil nil nil nil t)
  ("T" ?$,1'$(B)
  ("U" ?$,1'%(B)
  ("W" ?$,1')(B)
+ ("W|" ?$,1r\(B)
  ("X" ?$,1&~(B)
  ("Y" ?$,1'((B)
  ("Z" ?$,1&v(B)
@@ -556,9 +565,21 @@ nil t t nil nil nil nil nil nil nil t)
  ("\"'i" ?$,1r3(B)
  ("\"`i" ?$,1r2(B)
 
+ ("<I" ?$,1pY(B)
+ (">I" ?$,1pX(B)
+ ("'I" ?$,1r;(B)
+ ("<'I" ?$,1p](B)
+ (">'I" ?$,1p\(B)
+ ("`I" ?$,1r:(B)
+ ("<`I" ?$,1p[(B)
+ (">`I" ?$,1pZ(B)
+ ("<~I"  ?$,1p_(B)
+ (">~I"  ?$,1p^(B)
+ ("\"I" ?$,1'*(B)
+
  ("<~"  ?$,1r?(B)
  (">~"  ?$,1r/(B)
- ("<`" ?$,1r>(B)
+ ("<'" ?$,1r>(B)
  (">'" ?$,1r.(B)
  ("<`" ?$,1r=(B)
  (">`" ?$,1r-(B)
@@ -574,6 +595,15 @@ nil t t nil nil nil nil nil nil nil t)
  ("<`e" ?$,1p3(B)
  (">`e" ?$,1p2(B)
 
+ ("<E" ?$,1p9(B)
+ (">E" ?$,1p8(B)
+ ("'E" ?$,1r)(B)
+ ("<'E" ?$,1p=(B)
+ (">'E" ?$,1p<(B)
+ ("`E" ?$,1r((B)
+ ("<`E" ?$,1p;(B)
+ (">`E" ?$,1p:(B)
+
  ("<a" ?$,1p!(B)
  (">a" ?$,1p (B)
  ("'a" ?$,1q1(B)
@@ -585,6 +615,17 @@ nil t t nil nil nil nil nil nil nil t)
  ("~a"  ?$,1qv(B)
  ("<~a"  ?$,1p'(B)
  (">~a"  ?$,1p&(B)
+
+ ("<A" ?$,1p)(B)
+ (">A" ?$,1p((B)
+ ("'A" ?$,1q{(B)
+ ("<'A" ?$,1p-(B)
+ (">'A" ?$,1p,(B)
+ ("`A" ?$,1qz(B)
+ ("<`A" ?$,1p+(B)
+ (">`A" ?$,1p*(B)
+ ("<~A"  ?$,1p/(B)
+ (">~A"  ?$,1p.(B)
 
  ("<a|" ?$,1qA(B)
  (">a|" ?$,1q@(B)
@@ -598,8 +639,19 @@ nil t t nil nil nil nil nil nil nil t)
  ("<~a|"  ?$,1qG(B)
  (">~a|"  ?$,1qF(B)
 
+ ("<A|" ?$,1qI(B)
+ (">A|" ?$,1qH(B)
+ ("<'A|" ?$,1qM(B)
+ (">'A|" ?$,1qL(B)
+ ("<`A|" ?$,1qK(B)
+ (">`A|" ?$,1qJ(B)
+ ("<~A|"  ?$,1qO(B)
+ (">~A|"  ?$,1qN(B)
+
  ("<r" ?$,1rE(B)
  (">r" ?$,1rD(B)
+
+ ("<R" ?$,1rL(B)
 
  ("<h" ?$,1pA(B)
  (">h" ?$,1p@(B)
@@ -612,6 +664,17 @@ nil t t nil nil nil nil nil nil nil t)
  ("~h"  ?$,1r&(B)
  ("<~h"  ?$,1pG(B)
  (">~h"  ?$,1pF(B)
+
+ ("<H" ?$,1pI(B)
+ (">H" ?$,1pH(B)
+ ("'H" ?$,1r+(B)
+ ("<'H" ?$,1pM(B)
+ (">'H" ?$,1pL(B)
+ ("`H" ?$,1r*(B)
+ ("<`H" ?$,1pK(B)
+ (">`H" ?$,1pJ(B)
+ ("<~H"  ?$,1pO(B)
+ (">~H"  ?$,1pN(B)
 
  ("|" ?$,1&Z(B) ; ypogegrammeni
 
@@ -627,6 +690,15 @@ nil t t nil nil nil nil nil nil nil t)
  ("<~h|"  ?$,1qW(B)
  (">~h|"  ?$,1qV(B)
 
+ ("<H|" ?$,1qY(B)
+ (">H|" ?$,1qX(B)
+ ("<'H|" ?$,1q](B)
+ (">'H|" ?$,1q\(B)
+ ("<`H|" ?$,1q[(B)
+ (">`H|" ?$,1qZ(B)
+ ("<~H|"  ?$,1q_(B)
+ (">~H|"  ?$,1q^(B)
+
  ("<o" ?$,1pa(B)
  (">o" ?$,1p`(B)
  ("'o" ?$,1q9(B)
@@ -635,6 +707,15 @@ nil t t nil nil nil nil nil nil nil t)
  ("`o" ?$,1q8(B)
  ("<`o" ?$,1pc(B)
  (">`o" ?$,1pb(B)
+
+ ("<O" ?$,1pi(B)
+ (">O" ?$,1ph(B)
+ ("'O" ?$,1rY(B)
+ ("<'O" ?$,1pm(B)
+ (">'O" ?$,1pl(B)
+ ("`O" ?$,1rX(B)
+ ("<`O" ?$,1pk(B)
+ (">`O" ?$,1pj(B)
 
  ("<u"   ?$,1pq(B)
  (">u"   ?$,1pp(B)
@@ -651,6 +732,14 @@ nil t t nil nil nil nil nil nil nil t)
  ("\"'u" ?$,1rC(B)
  ("`\"u" ?$,1rB(B)
 
+ ("<U"   ?$,1py(B)
+ ("'U"   ?$,1rK(B)
+ ("<'U"  ?$,1p}(B)
+ ("`U"   ?$,1rJ(B)
+ ("<`U"  ?$,1p{(B)
+ ("<~U"  ?$,1p(B)
+ ("\"U"  ?$,1'+(B)
+
  ("<w"  ?$,1q!(B)
  (">w"  ?$,1q (B)
  ("'w"  ?$,1q=(B)
@@ -663,6 +752,17 @@ nil t t nil nil nil nil nil nil nil t)
  ("<~w" ?$,1q'(B)
  (">~w" ?$,1q&(B)
 
+ ("<W"  ?$,1q)(B)
+ (">W"  ?$,1q((B)
+ ("'W"  ?$,1r[(B)
+ ("<'W" ?$,1q-(B)
+ (">'W" ?$,1q,(B)
+ ("`W"  ?$,1rZ(B)
+ ("<`W" ?$,1q+(B)
+ (">`W" ?$,1q*(B)
+ ("<~W" ?$,1q/(B)
+ (">~W" ?$,1q.(B)
+
  ("<w|"	 ?$,1qa(B)
  (">w|"	 ?$,1q`(B)
  ("'w|"	 ?$,1rT(B)
@@ -674,6 +774,16 @@ nil t t nil nil nil nil nil nil nil t)
  ("~w|"	 ?$,1rW(B)
  ("<~w|" ?$,1qg(B)
  (">~w|" ?$,1qf(B)
+
+ ("<W|"	 ?$,1qi(B)
+ (">W|"	 ?$,1qh(B)
+ ("'W|"	 ?$,1rT(B)
+ ("<'W|" ?$,1qm(B)
+ (">'W|" ?$,1ql(B)
+ ("<`W|" ?$,1qk(B)
+ (">`W|" ?$,1qj(B)
+ ("<~W|" ?$,1qo(B)
+ (">~W|" ?$,1qn(B)
  )
 
 ;;
@@ -1312,4 +1422,5 @@ e.g.
  ("y;:" ?,F`(B))
 
 
+;;; arch-tag: 2a37e042-db1b-4ecf-b755-117775a3c150
 ;;; greek.el ends here

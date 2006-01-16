@@ -1,6 +1,6 @@
 ;;; rot13.el --- display a buffer in rot13
 
-;; Copyright (C) 1988,2002 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -110,4 +110,5 @@ See also `toggle-rot13-mode'."
 
 (provide 'rot13)
 
+;;; arch-tag: ad5b9ca8-946c-4414-996f-e9b1bf9ec79f
 ;;; rot13.el ends here

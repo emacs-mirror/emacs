@@ -1,6 +1,7 @@
 /* Header for CCL (Code Conversion Language) interpreter.
-   Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-   Licensed to the Free Software Foundation.
+   Copyright (C) 1995, 1998, 2000
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H14PRO021
 
 This file is part of GNU Emacs.
 
@@ -16,8 +17,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #ifndef EMACS_CCL_H
 #define EMACS_CCL_H
@@ -33,6 +34,10 @@ Boston, MA 02111-1307, USA.  */
 /* Structure to hold information about running CCL code.  Read
    comments in the file ccl.c for the detail of each field.  */
 struct ccl_program {
+  int idx;			/* Index number of the CCL program.
+				   -1 means that the program was given
+				   by a vector, not by a program
+				   name.  */
   int size;			/* Size of the compiled code.  */
   Lisp_Object *prog;		/* Pointer into the compiled code.  */
   int ic;			/* Instruction Counter (index for PROG).  */
@@ -65,8 +70,11 @@ struct ccl_program {
 				   system.  */
   int suppress_error;		/* If nonzero, don't insert error
 				   message in the output.  */
-  int eight_bit_control;	/* Set to nonzero if CCL_WRITE_CHAR
-				   writes eight-bit-control char.  */
+  int eight_bit_control;	/* If nonzero, ccl_driver counts all
+				   eight-bit-control bytes written by
+				   CCL_WRITE_CHAR.  After execution,
+				   if no such byte is written, set
+				   this value to zero.  */
 };
 
 /* This data type is used for the spec field of the structure
@@ -87,6 +95,9 @@ extern Lisp_Object Vfont_ccl_encoder_alist;
    execution of ccl program CCL_PROG (symbol or vector).  */
 extern int setup_ccl_program P_ ((struct ccl_program *, Lisp_Object));
 
+/* Check if CCL is updated or not.  If not, re-setup members of CCL.  */
+extern int check_ccl_update P_ ((struct ccl_program *));
+
 extern int ccl_driver P_ ((struct ccl_program *, unsigned char *,
 			   unsigned char *, int, int, int *));
 
@@ -98,3 +109,6 @@ extern Lisp_Object Vccl_program_table;
 extern Lisp_Object Qccl_program_idx;
 
 #endif /* EMACS_CCL_H */
+
+/* arch-tag: 14681df7-876d-43de-bc71-6b78e23a4e3c
+   (do not change this comment) */

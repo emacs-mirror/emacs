@@ -1,10 +1,10 @@
 ;;; calc-map.el --- higher-order functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +28,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-map () nil)
-
 
 (defun calc-apply (&optional oper)
   (interactive)
@@ -700,10 +697,7 @@
 					       (calcFunc-afixp   . 2))))))
 			  (oper3 (if (eq (nth 2 oper) 'calcFunc-inner)
 				     (calc-get-operator
-				      (format "%s%s, inner (add)" msg dir
-					      (substring
-					       (symbol-name (nth 2 oper))
-					       9)))
+				      (format "%s%s, inner (add)" msg dir))
 				   '(0 0 0)))
 			  (args nil)
 			  (nargs (if (> (nth 1 oper) 0)
@@ -805,25 +799,34 @@
 	  (cons f args))))))
 
 ;;; Do substitutions in parallel to avoid crosstalk.
+
+;; The variables math-ms-temp and math-ms-args are local to 
+;; math-multi-subst, but are used by math-multi-subst-rec, which 
+;; is called by math-multi-subst.
+(defvar math-ms-temp)
+(defvar math-ms-args)
+
 (defun math-multi-subst (expr olds news)
-  (let ((args nil)
-	temp)
+  (let ((math-ms-args nil)
+	math-ms-temp)
     (while (and olds news)
-      (setq args (cons (cons (car olds) (car news)) args)
+      (setq math-ms-args (cons (cons (car olds) (car news)) math-ms-args)
 	    olds (cdr olds)
 	    news (cdr news)))
     (math-multi-subst-rec expr)))
 
 (defun math-multi-subst-rec (expr)
-  (cond ((setq temp (assoc expr args)) (cdr temp))
+  (cond ((setq math-ms-temp (assoc expr math-ms-args)) 
+         (cdr math-ms-temp))
 	((Math-primp expr) expr)
 	((and (eq (car expr) 'calcFunc-lambda) (> (length expr) 2))
 	 (let ((new (list (car expr)))
-	       (args args))
+	       (math-ms-args math-ms-args))
 	   (while (cdr (setq expr (cdr expr)))
 	     (setq new (cons (car expr) new))
-	     (if (assoc (car expr) args)
-		 (setq args (cons (cons (car expr) (car expr)) args))))
+	     (if (assoc (car expr) math-ms-args)
+		 (setq math-ms-args (cons (cons (car expr) (car expr)) 
+                                          math-ms-args))))
 	   (nreverse (cons (math-multi-subst-rec (car expr)) new))))
 	(t
 	 (cons (car expr)
@@ -1036,7 +1039,7 @@
 						  (calcFunc-mod . math-mod)
 						  (calcFunc-vconcat .
 						   math-concat) )))
-				    lfunc)))
+				    func)))
 		     (while (cdr vec)
 		       (setq expr (funcall lfunc expr (nth 1 vec))
 			     vec (cdr vec)))))
@@ -1225,7 +1228,13 @@
     (math-normalize (cons 'vec (nreverse mat)))))
 
 
-(defun calcFunc-inner (mul-func add-func a b)
+;; The variables math-inner-mul-func and math-inner-add-func are
+;; local to calcFunc-inner, but are used by math-inner-mats,
+;; which is called by math-inner-mats.
+(defvar math-inner-mul-func)
+(defvar math-inner-add-func)
+
+(defun calcFunc-inner (math-inner-mul-func math-inner-add-func a b)
   (or (math-vectorp a) (math-reject-arg a 'vectorp))
   (or (math-vectorp b) (math-reject-arg b 'vectorp))
   (if (math-matrixp a)
@@ -1243,7 +1252,7 @@
 	    (math-dimension-error))))
     (if (math-matrixp b)
 	(nth 1 (math-inner-mats (list 'vec a) b))
-      (calcFunc-reduce add-func (calcFunc-map mul-func a b)))))
+      (calcFunc-reduce math-inner-add-func (calcFunc-map math-inner-mul-func a b)))))
 
 (defun math-inner-mats (a b)
   (let ((mat nil)
@@ -1253,12 +1262,15 @@
       (setq col cols
 	    row nil)
       (while (> (setq col (1- col)) 0)
-	(setq row (cons (calcFunc-reduce add-func
-					 (calcFunc-map mul-func
+	(setq row (cons (calcFunc-reduce math-inner-add-func
+					 (calcFunc-map math-inner-mul-func
 						       (car a)
 						       (math-mat-col b col)))
 			row)))
       (setq mat (cons (cons 'vec row) mat)))
     (cons 'vec (nreverse mat))))
 
+(provide 'calc-map)
+
+;;; arch-tag: 980eac49-00e0-4870-b72a-e726b74c7990
 ;;; calc-map.el ends here
