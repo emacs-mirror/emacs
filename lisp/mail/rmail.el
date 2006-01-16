@@ -42,9 +42,7 @@
 (eval-when-compile
   (require 'font-lock)
   (require 'mailabbrev)
-  (require 'mule-util)                ; for detect-coding-with-priority
-  (require 'rmailout)
-  (require 'rmailsum))
+  (require 'mule-util))                ; for detect-coding-with-priority
 
 (eval-and-compile
   (require 'rmaildesc)
