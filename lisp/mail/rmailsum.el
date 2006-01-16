@@ -62,7 +62,7 @@
     ("^....-.*" . font-lock-type-face)				; Unread.
     ;; Neither of the below will be highlighted if either of the above are:
     ("^.....[^D-]....\\(......\\)" 1 font-lock-keyword-face)	; Date.
-    ("{ \\([^\n}]+\\),}" 1 font-lock-comment-face))		; Labels.
+    ("{ \\([^\n}]+\\) }" 1 font-lock-comment-face))		; Labels.
   "Additional expressions to highlight in Rmail Summary mode.")
 
 (defvar rmail-summary-redo nil
@@ -1670,15 +1670,19 @@ KEYWORDS is a comma-separated list of labels."
 
 (defun rmail-summary-get-summary (n)
   "Return a summary line for message N."
-  (funcall rmail-summary-line-decoder
-	   (format "%5s%s%6s %25s%s %s\n"
-		   n
-		   (rmail-summary-get-summary-attributes n)
-		   (concat (rmail-desc-get-day-number n) "-"
-			   (rmail-desc-get-month n))
-		   (rmail-desc-get-sender n)
-		   (rmail-summary-get-line-count n)
-		   (rmail-desc-get-subject n))))
+  (let* ((keywords (rmail-desc-get-keywords n))
+	 (str (if keywords 
+		  (concat "{ " (mapconcat 'identity keywords " ") " } ")
+		"")))
+    (funcall rmail-summary-line-decoder
+	     (format "%5s%s%6s %25s%s %s\n"
+		     n
+		     (rmail-summary-get-summary-attributes n)
+		     (concat (rmail-desc-get-day-number n) "-"
+			     (rmail-desc-get-month n))
+		     (rmail-desc-get-sender n)
+		     (rmail-summary-get-line-count n)
+		     (concat str (rmail-desc-get-subject n))))))
 
 (defun rmail-summary-update-attribute (attr-index n)
   "Update the attribute denoted by ATTR-INDEX in message N."
