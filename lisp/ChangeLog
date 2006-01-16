@@ -1,3 +1,29 @@
+2006-01-17  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (mode-line-faces): New defgroup.
+	(mode-line-highlight): Move definition after new defgroup.
+	(mode-line, mode-line-inactive, mode-line-highlight):
+	Replace :group `modeline' with `mode-line-faces'.
+	(mode-line-buffer-id): New face.
+	(modeline-buffer-id): New face alias.
+	(vertical-border): Remove :group `modeline'.
+
+	* bindings.el (propertized-buffer-identification): Use face
+	`mode-line-buffer-id' instead of `Buffer-menu-buffer'.
+	(mode-line-next-buffer, mode-line-previous-buffer): New functions.
+	(mode-line-buffer-identification-keymap): For mouse-1 replace
+	`mode-line-unbury-buffer' with `mode-line-previous-buffer'.
+	Replace `mode-line-bury-buffer' with `mode-line-next-buffer' for
+	mouse-3.
+
+	* info.el (Info-mode-line-node-keymap): New defvar.
+	(Info-set-mode-line): Use `stringp' to check Info-current-file.
+	Propertize Info-current-node with `mode-line-buffer-id' and
+	`mode-line-highlight' faces and `Info-mode-line-node-keymap'.
+
+	* time.el (display-time-mail-face): Replace :group `faces' with
+	`mode-line-faces'.
+
 2006-01-16  Kenichi Handa  <handa@m17n.org>
 
 	* international/code-pages.el: Add autoload cookies for
