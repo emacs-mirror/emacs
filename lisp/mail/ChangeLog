@@ -1,5 +1,11 @@
 2006-01-16  Henrik Enberg  <enberg@printf.se>
 
+	* rmail.el: Don't require `rmailout' and `rmailsum'.
+
+	* rmailsum.el (rmail-summary-get-line-count): Rightalign line count.
+	(rmail-summary-get-summary): Display 5-digit message ids.
+	(rmail-summary-goto-msg): Adjust for 5-digit ids.
+
 	* rmail.el (rmail-url-map, rmail-activate-urls, rmail-visit-url-at-mouse,
 	rmail-visit-url-at-point, rmail-browse-body): Deleted, don't
 	duplicate goto-address functionality.
