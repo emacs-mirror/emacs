@@ -1,3 +1,9 @@
+2006-01-16  Henrik Enberg  <enberg@printf.se>
+
+	* rmail.el (rmail-url-map, rmail-activate-urls, rmail-visit-url-at-mouse,
+	rmail-visit-url-at-point, rmail-browse-body): Deleted, don't
+	duplicate goto-address functionality.
+
 2004-10-02  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmail.el	(rmail): Convert Babyl files using decode-babyl-file.
