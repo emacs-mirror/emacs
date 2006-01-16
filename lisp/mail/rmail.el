@@ -1762,87 +1762,8 @@ is non-nil if the user has supplied the password interactively.
 	  (t
 	   (message "Malformed MIME quoted-printable message")))))
 
-;;; DEPRECATED -pmr
-;; Delete the "From ..." line, creating various other headers with
-;; information from it if they don't already exist.  Now puts the
-;; original line into a mail-from: header line for debugging and for
-;; use by the rmail-output function.
-(defun rmail-nuke-pinhead-header ()
-  (save-excursion
-    (save-restriction
-      (let ((start (point))
-  	    (end (progn
-		   (condition-case ()
-		       (search-forward "\n\n")
-		     (error
-		      (goto-char (point-max))
-		      (insert "\n\n")))
-		   (point)))
-	    has-from has-date)
-	(narrow-to-region start end)
-	(let ((case-fold-search t))
-	  (goto-char start)
-	  (setq has-from (search-forward "\nFrom:" nil t))
-	  (goto-char start)
-	  (setq has-date (and (search-forward "\nDate:" nil t) (point)))
-	  (goto-char start))
-	(let ((case-fold-search nil))
-	  (if (re-search-forward (concat "^" rmail-unix-mail-delimiter) nil t)
-	      (replace-match
-		(concat
-		  "Mail-from: \\&"
-		  ;; Keep and reformat the date if we don't
-		  ;;  have a Date: field.
-		  (if has-date
-		      ""
-		    (concat
-		     "Date: \\2, \\4 \\3 \\9 \\5 "
-
-		     ;; The timezone could be matched by group 7 or group 10.
-		     ;; If neither of them matched, assume EST, since only
-		     ;; Easterners would be so sloppy.
-		     ;; It's a shame the substitution can't use "\\10".
-		     (cond
-		      ((/= (match-beginning 7) (match-end 7)) "\\7")
-		      ((/= (match-beginning 10) (match-end 10))
-		       (buffer-substring (match-beginning 10)
-					 (match-end 10)))
-		      (t "EST"))
-		     "\n"))
-		  ;; Keep and reformat the sender if we don't
-		  ;; have a From: field.
-		  (if has-from
-		      ""
-		    "From: \\1\n"))
-		t)))))))
 
 ;;;; *** Rmail Message Formatting and Header Manipulation ***
-
-(defun rmail-reformat-message (beg end)
-  (goto-char beg)
-  (forward-line 1)
-  (if (/= (following-char) ?0)
-      (error "Bad format in RMAIL file"))
-  (let ((inhibit-read-only t)
-	(delta (- (buffer-size) end)))
-    (delete-char 1)
-    (insert ?1)
-    (forward-line 1)
-    (let ((case-fold-search t))
-      (while (looking-at "Summary-line:\\|Mail-From:")
- 	(forward-line 1)))
-    (if (looking-at "\\*\\*\\* EOOH \\*\\*\\*\n")
-	(delete-region (point)
-		       (progn (forward-line 1) (point))))
-    (let ((str (buffer-substring (point)
-				 (save-excursion (search-forward "\n\n" end 'move)
-						 (point)))))
-      (insert str "*** EOOH ***\n")
-      (narrow-to-region (point) (- (buffer-size) delta)))
-    (goto-char (point-min))
-    (if rmail-message-filter (funcall rmail-message-filter))
-    (if (or rmail-displayed-headers rmail-ignored-headers)
-	(rmail-clear-headers))))
 
 (defun rmail-clear-headers (&optional ignored-headers)
   "Delete all header fields that Rmail should not show.
@@ -1892,55 +1813,6 @@ unless they also match `rmail-nonignored-headers'."
   displayed. If MSG is non-nil it will be used as the message number
   instead of the current message."
   (rmail-desc-get-header-display-state (or msg rmail-current-message)))
-
-;; mbox: untested
-(defun rmail-msg-restore-non-pruned-header ()
-  (let ((old-point (point))
-	new-point
-	new-start
-	(inhibit-read-only t))
-    (save-excursion
-      (narrow-to-region
-       (rmail-desc-get-start rmail-current-message)
-       (point-max))
-      (goto-char (point-min))
-      (forward-line 1)
-      ;; Change 1 to 0.
-      (delete-char 1)
-      (insert ?0)
-      ;; Insert new EOOH line at the proper place.
-      (forward-line 1)
-      (let ((case-fold-search t))
-	(while (looking-at "Summary-Line:\\|Mail-From:")
-	  (forward-line 1)))
-      (insert "*** EOOH ***\n")
-      (setq new-start (point))
-      ;; Delete the old reformatted header.
-      (forward-char -1)
-      (search-forward "\n*** EOOH ***\n")
-      (forward-line -1)
-      (let ((start (point)))
-	(search-forward "\n\n")
-	(if (and (<= start old-point)
-		 (<= old-point (point)))
-	    (setq new-point new-start))
-	(delete-region start (point)))
-      ;; Narrow to after the new EOOH line.
-      (narrow-to-region new-start (point-max)))
-    (if new-point
-	(goto-char new-point))))
-
-;; mbox: untested
-(defun rmail-msg-prune-header ()
-  (let ((new-point
-	 (= (point) (point-min))))
-    (save-excursion
-      (narrow-to-region
-       (rmail-desc-get-start rmail-current-message)
-       (point-max))
-      (rmail-reformat-message (point-min) (point-max)))
-    (if new-point
-	(goto-char (point-min)))))
 
 (defun rmail-toggle-header (&optional arg)
   "Show original message header if pruned header currently shown, or vice versa.
@@ -2581,15 +2453,15 @@ or forward if N is negative."
       (setq mid (+ low (/ (- high low) 2))))
     (if (>= where (rmail-desc-get-start high)) high low)))
 
-;;; mbox: ready
 (defun rmail-narrow-to-header (msg)
+  "Narrow to buffer the headers of message number MSG."
   (save-excursion
     (let ((start (rmail-desc-get-start msg))
-          (end (rmail-desc-get-end msg)))
+	  (end (rmail-desc-get-end msg)))
       (widen)
       (goto-char start)
-    (search-forward "\n\n" end nil t)
-    (narrow-to-region start (point)))))
+      (search-forward "\n\n" end)	; error if we don't find it
+      (narrow-to-region start (point)))))
 
 ;;; mbox: ready
 (defun rmail-message-recipients-p (msg recipients &optional primary-only)
