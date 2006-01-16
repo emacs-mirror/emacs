@@ -1,3 +1,10 @@
+2006-01-16  Alex Schroeder  <alex@gnu.org>
+
+	* unrmail.el (unrmail): Use regular expression search to find
+	message separators such that the fake separators inserted by
+	rmime.el are not matched.  The sections added by rmime.el are
+	removed.
+
 2006-01-16  Henrik Enberg  <enberg@printf.se>
 
 	* rmail.el: Don't require `rmailout' and `rmailsum'.
