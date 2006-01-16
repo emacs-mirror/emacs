@@ -1242,8 +1242,12 @@ the `Local variables' section of a file."
 
 ;; Characters that should not be considered as part of the word, in reformed-vi
 ;; syntax mode.
+;; Note: \\ (quoted \) must appear before `-' because this string is listified
+;; into characters at some point and then put back to string. The result is
+;; used in skip-chars-forward, which treats - specially. Here we achieve the
+;; effect of quoting - and preventing it from being special.
 (defconst viper-non-word-characters-reformed-vi
-  "!@#$%^&*()-+=|\\~`{}[];:'\",<.>/?")
+  "!@#$%^&*()\\-+=|\\~`{}[];:'\",<.>/?")
 ;; These are characters that are not to be considered as parts of a word in
 ;; Viper.
 ;; Set each time state changes and at loading time

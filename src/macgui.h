@@ -92,6 +92,12 @@ typedef GWorldPtr Pixmap;
 #endif
 
 
+#ifndef USE_CG_TEXT_DRAWING
+#if USE_ATSUI && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#define USE_CG_TEXT_DRAWING 1
+#endif
+#endif
+
 /* Emulate XCharStruct.  */
 typedef struct _XCharStruct
 {
@@ -103,7 +109,6 @@ typedef struct _XCharStruct
 #if 0
   unsigned short attributes;	/* per char flags (not predefined) */
 #endif
-  unsigned valid_p : 1;
 } XCharStruct;
 
 #define STORE_XCHARSTRUCT(xcs, w, bds)			\
@@ -111,8 +116,19 @@ typedef struct _XCharStruct
    (xcs).lbearing = (bds).left,				\
    (xcs).rbearing = (bds).right,			\
    (xcs).ascent = -(bds).top,				\
-   (xcs).descent = (bds).bottom,			\
-   (xcs).valid_p = 1)
+   (xcs).descent = (bds).bottom)
+
+typedef struct
+{
+  char valid_bits[0x100 / 8];
+  XCharStruct per_char[0x100];
+} XCharStructRow;
+
+#define XCHARSTRUCTROW_CHAR_VALID_P(row, byte2) \
+  ((row)->valid_bits[(byte2) / 8] & (1 << (byte2) % 8))
+
+#define XCHARSTRUCTROW_SET_CHAR_VALID(row, byte2) \
+  ((row)->valid_bits[(byte2) / 8] |= (1 << (byte2) % 8))
 
 struct MacFontStruct {
   char *full_name;
@@ -127,6 +143,10 @@ struct MacFontStruct {
 #endif
 #if USE_ATSUI
   ATSUStyle mac_style;		/* NULL if QuickDraw Text is used */
+#if USE_CG_TEXT_DRAWING
+  CGFontRef cg_font;		/* NULL if ATSUI text drawing is used */
+  CGGlyph *cg_glyphs;		/* Likewise  */
+#endif
 #endif
 
 /* from Xlib.h */
@@ -147,7 +167,10 @@ struct MacFontStruct {
 #endif /* 0 */
   XCharStruct min_bounds;  /* minimum bounds over all existing char */
   XCharStruct max_bounds;  /* maximum bounds over all existing char */
-  XCharStruct *per_char;   /* first_char to last_char information */
+  union {
+    XCharStruct *per_char; /* first_char to last_char information */
+    XCharStructRow **rows; /* first row to last row information */
+  } bounds;
   int ascent;              /* logical extent above baseline for spacing */
   int descent;             /* logical decent below baseline for spacing */
 };

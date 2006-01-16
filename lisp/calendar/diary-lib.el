@@ -1,7 +1,7 @@
 ;;; diary-lib.el --- diary functions
 
-;; Copyright (C) 1989, 1990, 1992, 1993, 1994, 1995, 2003, 2004, 2005
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1992, 1993, 1994, 1995, 2001, 2002, 2003,
+;;   2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -378,7 +378,7 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
             (or (verify-visited-file-modtime diary-buffer)
                 (revert-buffer t t))))
         ;; Setup things like the header-line-format and invisibility-spec.
-        (when (eq major-mode 'fundamental-mode) (diary-mode))
+        (when (eq major-mode default-major-mode) (diary-mode))
         ;; d-s-p is passed to the diary display function.
         (let ((diary-saved-point (point)))
           (save-excursion
@@ -439,10 +439,21 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
                                  date-start temp)
                              (re-search-backward "\^M\\|\n\\|\\`")
                              (setq date-start (point))
-                             (re-search-forward "\^M\\|\n" nil t 2)
+                             ;; When selective display (rather than
+                             ;; overlays) was used, diary file used to
+                             ;; start in a blank line and end in a
+                             ;; newline. Now that neither of these
+                             ;; need be true, 'move handles the latter
+                             ;; and 1/2 kludge the former.
+                             (re-search-forward
+                              "\^M\\|\n" nil 'move
+                              (if (and (bobp) (not (looking-at "\^M\\|\n")))
+                                  1
+                                2))
                              (while (looking-at " \\|\^I")
-                               (re-search-forward "\^M\\|\n" nil t))
-                             (backward-char 1)
+                               (re-search-forward "\^M\\|\n" nil 'move))
+                             (unless (and (eobp) (not (bolp)))
+                               (backward-char 1))
                              (unless list-only
                                (remove-overlays date-start (point)
                                                 'invisible 'diary))
@@ -763,7 +774,7 @@ is created."
         (pop-up-frames (window-dedicated-p (selected-window))))
     (with-current-buffer (or (find-buffer-visiting d-file)
                              (find-file-noselect d-file t))
-      (when (eq major-mode 'fundamental-mode) (diary-mode))
+      (when (eq major-mode default-major-mode) (diary-mode))
       (diary-unhide-everything)
       (display-buffer (current-buffer)))))
 
@@ -866,7 +877,7 @@ diary entries."
         file-glob-attrs marks)
     (with-current-buffer (find-file-noselect (diary-check-diary-file) t)
       (save-excursion
-        (when (eq major-mode 'fundamental-mode) (diary-mode))
+        (when (eq major-mode default-major-mode) (diary-mode))
         (setq mark-diary-entries-in-calendar t)
         (message "Marking diary entries...")
         (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
@@ -1661,7 +1672,7 @@ If omitted, NONMARKING defaults to nil and FILE defaults to
 `diary-file'."
   (let ((pop-up-frames (window-dedicated-p (selected-window))))
     (find-file-other-window (substitute-in-file-name (or file diary-file))))
-  (when (eq major-mode 'fundamental-mode) (diary-mode))
+  (when (eq major-mode default-major-mode) (diary-mode))
   (widen)
   (diary-unhide-everything)
   (goto-char (point-max))

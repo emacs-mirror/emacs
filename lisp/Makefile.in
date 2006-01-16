@@ -1,5 +1,5 @@
 # Maintenance productions for the Lisp directory
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -100,11 +100,11 @@ $(lisp)/loaddefs.el:
 	echo ";;; loaddefs.el --- automatically extracted autoloads" >> $@
 	echo ";;" >> $@; echo ";;; Code:" >> $@
 	echo "" >> $@
-	echo ";;; Local Variables:" >> $@
-	echo ";;; version-control: never" >> $@
-	echo ";;; no-byte-compile: t" >> $@
-	echo ";;; no-update-autoloads: t" >> $@
-	echo ";;; End:" >> $@
+	echo ";; Local Variables:" >> $@
+	echo ";; version-control: never" >> $@
+	echo ";; no-byte-compile: t" >> $@
+	echo ";; no-update-autoloads: t" >> $@
+	echo ";; End:" >> $@
 	echo ";;; loaddefs.el ends here" >> $@
 autoloads: $(lisp)/loaddefs.el doit
 	wd=$(lisp); $(setwins); \
@@ -119,7 +119,10 @@ update-subdirs: doit
 	   $(srcdir)/update-subdirs $$file; \
 	done;
 
-updates: update-subdirs autoloads mh-autoloads finder-data custom-deps
+updates: update-subdirs autoloads finder-data custom-deps
+
+# This is useful after "cvs up".
+cvs-update: recompile autoloads finder-data custom-deps
 
 # Update the AUTHORS file.
 
@@ -168,7 +171,7 @@ compile: $(lisp)/subdirs.el mh-autoloads doit
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 
-compile-always: $(lisp)/subdirs.el doit
+compile-always: $(lisp)/subdirs.el mh-autoloads doit
 	# `|| true' prevents old Bash versions from getting confused
 	# by an error.
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1 || true; \
@@ -219,23 +222,23 @@ $(lisp)/progmodes/cc-mode.elc: \
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in
 # loaddefs.el.
-MH-E-SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
-	$(lisp)/mh-e/mh-comp.el $(lisp)/mh-e/mh-customize.el	\
-	$(lisp)/mh-e/mh-e.el $(lisp)/mh-e/mh-funcs.el		\
-	$(lisp)/mh-e/mh-mime.el $(lisp)/mh-e/mh-pick.el		\
-	$(lisp)/mh-e/mh-print.el $(lisp)/mh-e/mh-inc.el		\
-	$(lisp)/mh-e/mh-init.el $(lisp)/mh-e/mh-index.el	\
-	$(lisp)/mh-e/mh-identity.el $(lisp)/mh-e/mh-junk.el	\
+MH_E_SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
+	$(lisp)/mh-e/mh-buffers.el $(lisp)/mh-e/mh-comp.el	\
+	$(lisp)/mh-e/mh-customize.el $(lisp)/mh-e/mh-e.el	\
+	$(lisp)/mh-e/mh-funcs.el $(lisp)/mh-e/mh-identity.el	\
+	$(lisp)/mh-e/mh-inc.el $(lisp)/mh-e/mh-init.el		\
+	$(lisp)/mh-e/mh-junk.el $(lisp)/mh-e/mh-mime.el		\
+	$(lisp)/mh-e/mh-print.el $(lisp)/mh-e/mh-search.el	\
 	$(lisp)/mh-e/mh-seq.el $(lisp)/mh-e/mh-speed.el		\
 	$(lisp)/mh-e/mh-utils.el
 
 mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
-$(lisp)/mh-e/mh-loaddefs.el: $(MH-E-SRC)
+$(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@
 	echo ";;" >> $@
-	echo ";;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc." >> $@
-	echo ";;; Author: Bill Wohler <wohler@newt.com>" >> $@
-	echo ";;; Keywords: mail" >> $@
+	echo ";; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc." >> $@
+	echo ";; Author: Bill Wohler <wohler@newt.com>" >> $@
+	echo ";; Keywords: mail" >> $@
 	echo ";;; Commentary:" >> $@
 	echo ";;; Change Log:" >> $@
 	echo ";;; Code:" >> $@
@@ -247,11 +250,11 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH-E-SRC)
 	   -f batch-update-autoloads $(lisp)/mh-e
 	echo "" >> $@
 	echo "(provide 'mh-loaddefs)" >> $@
-	echo ";;; Local Variables:" >> $@
-	echo ";;; version-control: never" >> $@
-	echo ";;; no-byte-compile: t" >> $@
-	echo ";;; no-update-autoloads: t" >> $@
-	echo ";;; End:" >> $@
+	echo ";; Local Variables:" >> $@
+	echo ";; version-control: never" >> $@
+	echo ";; no-byte-compile: t" >> $@
+	echo ";; no-update-autoloads: t" >> $@
+	echo ";; End:" >> $@
 	echo ";;; mh-loaddefs.el ends here" >> $@
 
 # Prepare a bootstrap in the lisp subdirectory.
@@ -282,7 +285,7 @@ bootstrap-clean:
 
 # Generate/update files for the bootstrap process.
 
-bootstrap: update-subdirs autoloads mh-autoloads compile
+bootstrap: update-subdirs autoloads compile
 
 # Generate/update files after the bootstrap process.
 # custom-deps needs `preloaded-file-list'.

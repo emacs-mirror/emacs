@@ -1,3 +1,205 @@
+2006-01-14  Nick Roberts  <nickrob@snap.net.nz>
+
+	* advice.texi (Simple Advice): Update example to fit argument
+	change in previous-line.
+
+2006-01-05  Richard M. Stallman  <rms@gnu.org>
+
+	* markers.texi (The Mark): Fix in `mark'.
+
+2006-01-04  Richard M. Stallman  <rms@gnu.org>
+
+	* processes.texi (Misc Network, Make Network): Minor cleanups.
+
+2006-01-04  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Make Network): Add IPv6 addresses and handling.
+	(Network Feature Testing): Mention (:family ipv6).
+	(Misc Network): Add IPv6 formats to format-network-address.
+
+2005-12-30  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Changing Properties):
+	Don't use return value of set-text-properties.
+
+2005-12-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* modes.texi (Mode Line Format): Correct typo in menu.
+
+2005-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Mode Line Top): New node.
+	(Mode Line Data): Some text moved to new node.
+	Explain the data structure more concretely.
+	(Mode Line Basics): Clarifications.
+	(Mode Line Variables): Clarify intro paragraph.
+	(%-Constructs): Clarify intro paragraph.
+	(Mode Line Format): Update menu.
+
+2005-12-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.texi (Basic Completion): Update lazy-completion-table
+	examples for removal of ARGS argument.
+
+2005-12-23  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Undo): Restore some explanation from the version
+	that was deleted.
+
+2005-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Undo): Remove dupliate descriptions of `apply
+	funname' and `apply delta' elements of the undo list.
+
+2005-12-20  Richard M. Stallman  <rms@gnu.org>
+
+	* help.texi (Help Functions): Update documentation of `apropos'.
+
+2005-12-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* customize.texi (Type Keywords): Delete xref to "Text help-echo",
+	because it is confusing.  If the :help-echo keyword is a function,
+	it is not directly used as the :help-echo overlay property, as the
+	xref seems to suggest (it does not take the appropriate args).
+
+2005-12-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* customize.texi (Common Keywords): Fix Texinfo usage.
+	(Group Definitions, Variable Definitions): Update for new
+	conventions for using `*' in docstrings.
+
+	* tips.texi (Documentation Tips): Update for new conventions for
+	using `*' in docstrings.
+
+2005-12-16  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Minibuffer Contents): Minor cleanup.
+
+2005-12-16  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Minibuffer Contents): Add minibuffer-completion-contents.
+
+2005-12-14  Romain Francoise  <romain@orebokech.com>
+
+	* modes.texi (Customizing Keywords): Rename `append' to `how'.
+	Fix typo.
+
+2005-12-11  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Completion Commands): Add mention of read-file-name
+	for filename completion keymaps.
+	(Reading File Names): Add mention of filename completion keymaps
+	for read-file-name and xref to `Completion Commands'.
+
+2005-12-10  Richard M. Stallman  <rms@gnu.org>
+
+	* customize.texi (Common Keywords): State caveats for use of :tag.
+
+2005-12-08  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Intro to Minibuffers): Replace list of local maps
+	with xrefs and better explanation.
+	(Completion Commands): Add the filename completion maps.
+
+	* objects.texi (Character Type): Clarify that \s is not space
+	if a dash follows.
+
+2005-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Resizing Windows): Delete preserve-before args.
+
+2005-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymaps.texi (Format of Keymaps): Remove mention of a quirk
+	in full keymaps, since the quirk has been fixed.
+
+2005-12-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* hooks.texi (Standard Hooks): Add index entries.  Mention
+	`compilation-finish-functions'.
+
+2005-11-27  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Resizing Windows): Add adjust-window-trailing-edge.
+
+2005-11-21  Juri Linkov  <juri@jurta.org>
+
+	* customize.texi (Common Keywords): Update links types
+	custom-manual and url-link.  Add link types emacs-library-link,
+	file-link, function-link, variable-link, custom-group-link.
+
+2005-11-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi: Revert 2005-11-20 change.
+
+2005-11-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* processes.texi (Bindat Functions):
+	Say "third" to refer to zero-based index "2".
+
+2005-11-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* loading.texi (Library Search): Update the default value of
+	`load-suffixes'.
+
+2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Attribute Functions): Mention :ignore-defface.
+
+2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Minor Mode Conventions): Use custom-set-minor-mode.
+	(Minor Mode Conventions): Mention the use of a hook.
+
+2005-11-06  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Magic File Names): find-file-name-handler checks the
+	`operations' property of the handler.
+
+2005-11-03  Richard M. Stallman  <rms@gnu.org>
+
+	* variables.texi (Frame-Local Variables): Small clarification.
+
+2005-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Init File): Document ~/.emacs.d/init.el.
+
+2005-10-29  Richard M. Stallman  <rms@gnu.org>
+
+	* internals.texi (Garbage Collection): Document memory-full.
+
+2005-10-28  Bill Wohler  <wohler@newt.com>
+
+	* tips.texi (Documentation Tips): Help mode now creates hyperlinks
+	for URLs.
+
+2005-10-28  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Completion Commands): Clean up prev change.
+
+2005-10-26  Kevin Ryde  <user42@zip.com.au>
+
+	* compile.texi (Eval During Compile): Explain recommended uses
+	of eval-when-compile and eval-and-compile.
+
+2005-10-27  Masatake YAMATO  <jet@gyve.org>
+
+	* minibuf.texi (Completion Commands):
+	Write about new optional argument for `display-completion-list'.
+
+2005-10-23  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Overlay Arrow): Clarify about local bindings of
+	overlay-arrow-position.
+
+2005-10-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* internals.texi (Building Emacs): Fix last change.
+
+2005-10-22  Richard M. Stallman  <rms@gnu.org>
+
+	* internals.texi (Building Emacs): Document eval-at-startup.
+
 2005-10-21  Richard M. Stallman  <rms@gnu.org>
 
 	* loading.texi (Where Defined): load-history contains abs file names.

@@ -381,11 +381,14 @@ Lisp_Object real_this_command;
    command is stored in this-original-command.  It is nil otherwise.  */
 Lisp_Object Vthis_original_command;
 
-/* The value of point when the last command was executed.  */
+/* The value of point when the last command was started.  */
 int last_point_position;
 
 /* The buffer that was current when the last command was started.  */
 Lisp_Object last_point_position_buffer;
+
+/* The window that was selected when the last command was started.  */
+Lisp_Object last_point_position_window;
 
 /* The frame in which the last input event occurred, or Qmacro if the
    last event came from a macro.  We use this to determine when to
@@ -527,6 +530,9 @@ Lisp_Object Qlanguage_change;
 #endif
 Lisp_Object Qdrag_n_drop;
 Lisp_Object Qsave_session;
+#ifdef MAC_OS
+Lisp_Object Qmac_apple_event;
+#endif
 
 /* Lisp_Object Qmouse_movement; - also an event header */
 
@@ -1441,8 +1447,6 @@ command_loop_1 ()
 	safe_run_hooks (Qdeferred_action_function);
     }
 
-  Vmemory_full = Qnil;
-
   /* Do this after running Vpost_command_hook, for consistency.  */
   current_kboard->Vlast_command = Vthis_command;
   current_kboard->Vreal_last_command = real_this_command;
@@ -1580,6 +1584,7 @@ command_loop_1 ()
       prev_buffer = current_buffer;
       prev_modiff = MODIFF;
       last_point_position = PT;
+      last_point_position_window = selected_window;
       XSETBUFFER (last_point_position_buffer, prev_buffer);
 
       /* By default, we adjust point to a boundary of a region that
@@ -5803,14 +5808,8 @@ make_lispy_event (event)
 	Lisp_Object head, position;
 	Lisp_Object files;
 
-	/* The frame_or_window field should be a cons of the frame in
-	   which the event occurred and a list of the filenames
-	   dropped.  */
-	if (! CONSP (event->frame_or_window))
-	  abort ();
-
-	f = XFRAME (XCAR (event->frame_or_window));
-	files = XCDR (event->frame_or_window);
+	f = XFRAME (event->frame_or_window);
+	files = event->arg;
 
 	/* Ignore mouse events that were made on frames that
 	   have been deleted.  */
@@ -5864,6 +5863,20 @@ make_lispy_event (event)
 
     case SAVE_SESSION_EVENT:
       return Qsave_session;
+
+#ifdef MAC_OS
+    case MAC_APPLE_EVENT:
+      {
+	Lisp_Object spec[2];
+
+	spec[0] = event->x;
+	spec[1] = event->y;
+	return Fcons (Qmac_apple_event,
+		      Fcons (Fvector (2, spec),
+			     Fcons (mac_make_lispy_event_code (event->code),
+				    Qnil)));
+      }
+#endif
 
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
@@ -10879,6 +10892,11 @@ syms_of_keyboard ()
   Qsave_session = intern ("save-session");
   staticpro (&Qsave_session);
 
+#ifdef MAC_OS
+  Qmac_apple_event = intern ("mac-apple-event");
+  staticpro (&Qmac_apple_event);
+#endif
+
   Qusr1_signal = intern ("usr1-signal");
   staticpro (&Qusr1_signal);
   Qusr2_signal = intern ("usr2-signal");
@@ -10969,6 +10987,7 @@ syms_of_keyboard ()
   Fset (Qinput_method_use_echo_area, Qnil);
 
   last_point_position_buffer = Qnil;
+  last_point_position_window = Qnil;
 
   {
     struct event_head *p;

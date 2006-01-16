@@ -403,10 +403,8 @@ new value.")
     ;; We want to avoid the face with image buttons.
     (unless (widget-get widget :suppress-face)
       (overlay-put overlay 'face (widget-apply widget :button-face-get))
-      ; Text terminals cannot change mouse pointer shape, so use mouse
-      ; face instead.
-      (or (display-graphic-p)
-	  (overlay-put overlay 'mouse-face widget-mouse-face)))
+      (overlay-put overlay 'mouse-face 
+		   (widget-apply widget :mouse-face-get)))
     (overlay-put overlay 'pointer 'hand)
     (overlay-put overlay 'follow-link follow-link)
     (overlay-put overlay 'help-echo help-echo)))
@@ -664,11 +662,9 @@ button is pressed or inactive, respectively.  These are currently ignored."
   "Move to where you click, and if it is an active field, invoke it."
   (interactive "e")
   (mouse-set-point event)
-  (if (widget-event-point event)
-      (let* ((pos (widget-event-point event))
-	     (button (get-char-property pos 'button)))
-	(if button
-	    (widget-button-click event)))))
+  (let ((pos (widget-event-point event)))
+    (if (and pos (get-char-property pos 'button))
+	(widget-button-click event))))
 
 ;;; Buttons.
 
@@ -857,6 +853,7 @@ button end points."
 (defvar widget-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map "\t" 'widget-forward)
+    (define-key map "\e\t" 'widget-backward)
     (define-key map [(shift tab)] 'widget-backward)
     (define-key map [backtab] 'widget-backward)
     (define-key map [down-mouse-2] 'widget-button-click)
@@ -1206,22 +1203,24 @@ When not inside a field, move to the previous button or field."
     ;; or if a special `boundary' field has been added after the widget
     ;; field.
     (if (overlayp overlay)
-	(if (and (not (eq (with-current-buffer
-			      (widget-field-buffer widget)
-			    (save-restriction
-			      ;; `widget-narrow-to-field' can be
-			      ;; active when this function is called
-			      ;; from an change-functions hook. So
-			      ;; temporarily remove field narrowing
-			      ;; before to call `get-char-property'.
-			      (widen)
-			      (get-char-property (overlay-end overlay)
-						 'field)))
-			  'boundary))
-		 (or widget-field-add-space
-		     (null (widget-get widget :size))))
-	    (1- (overlay-end overlay))
-	  (overlay-end overlay))
+        ;; Don't proceed if overlay has been removed from buffer.
+        (when (overlay-buffer overlay)
+          (if (and (not (eq (with-current-buffer
+                                (widget-field-buffer widget)
+                              (save-restriction
+                                ;; `widget-narrow-to-field' can be
+                                ;; active when this function is called
+                                ;; from an change-functions hook. So
+                                ;; temporarily remove field narrowing
+                                ;; before to call `get-char-property'.
+                                (widen)
+                                (get-char-property (overlay-end overlay)
+                                                   'field)))
+                            'boundary))
+                   (or widget-field-add-space
+                       (null (widget-get widget :size))))
+              (1- (overlay-end overlay))
+            (overlay-end overlay)))
       (cdr overlay))))
 
 (defun widget-field-find (pos)
@@ -1395,6 +1394,7 @@ The value of the :type attribute should be an unconverted widget type."
   :offset 0
   :format-handler 'widget-default-format-handler
   :button-face-get 'widget-default-button-face-get
+  :mouse-face-get 'widget-default-mouse-face-get
   :sample-face-get 'widget-default-sample-face-get
   :delete 'widget-default-delete
   :copy 'identity
@@ -1538,6 +1538,14 @@ If that does not exists, call the value of `widget-complete-field'."
 	(if parent
 	    (widget-apply parent :button-face-get)
 	  widget-button-face))))
+
+(defun widget-default-mouse-face-get (widget)
+  ;; Use :mouse-face or widget-mouse-face
+  (or (widget-get widget :mouse-face)
+      (let ((parent (widget-get widget :parent)))
+	(if parent
+	    (widget-apply parent :mouse-face-get)
+	  widget-mouse-face))))
 
 (defun widget-default-sample-face-get (widget)
   ;; Use :sample-face.
@@ -2165,7 +2173,8 @@ when he invoked the menu."
     (when sibling
       (if (widget-value widget)
 	  (widget-apply sibling :activate)
-	(widget-apply sibling :deactivate)))))
+	(widget-apply sibling :deactivate))
+      (widget-clear-undo))))
 
 ;;; The `checklist' Widget.
 
@@ -3028,7 +3037,7 @@ widget.  If that isn't a list, it's evalled and expected to yield a list."
 
 (define-widget 'file 'string
   "A file widget.
-It will read a file name from the minibuffer when invoked."
+It reads a file name from an editable text field."
   :complete-function 'widget-file-complete
   :prompt-value 'widget-file-prompt-value
   :format "%{%t%}: %v"
@@ -3090,7 +3099,7 @@ It will read a file name from the minibuffer when invoked."
 ;; Fixme: use file-name-as-directory.
 (define-widget 'directory 'file
   "A directory widget.
-It will read a directory name from the minibuffer when invoked."
+It reads a directory name from an editable text field."
   :tag "Directory")
 
 (defvar widget-symbol-prompt-value-history nil
@@ -3197,6 +3206,84 @@ It will read a directory name from the minibuffer when invoked."
     (widget-value-set widget answer)
     (widget-apply widget :notify widget event)
     (widget-setup)))
+
+;;; I'm not sure about what this is good for?  KFS.
+(defvar widget-key-sequence-prompt-value-history nil
+  "History of input to `widget-key-sequence-prompt-value'.")
+
+(defvar widget-key-sequence-default-value [ignore]
+  "Default value for an empty key sequence.")
+
+(defvar widget-key-sequence-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map widget-field-keymap)
+    (define-key map [(control ?q)] 'widget-key-sequence-read-event)
+    map))
+
+(define-widget 'key-sequence 'restricted-sexp
+  "A key sequence."
+  :prompt-value 'widget-field-prompt-value
+  :prompt-internal 'widget-symbol-prompt-internal
+; :prompt-match 'fboundp   ;; What was this good for?  KFS
+  :prompt-history 'widget-key-sequence-prompt-value-history
+  :action 'widget-field-action
+  :match-alternatives '(stringp vectorp)
+  :format "%{%t%}: %v"
+  :validate 'widget-key-sequence-validate
+  :value-to-internal 'widget-key-sequence-value-to-internal
+  :value-to-external 'widget-key-sequence-value-to-external
+  :value widget-key-sequence-default-value
+  :keymap widget-key-sequence-map
+  :help-echo "C-q: insert KEY, EVENT, or CODE; RET: enter value"
+  :tag "Key sequence")
+
+(defun widget-key-sequence-read-event (ev)
+  (interactive (list
+		(let ((inhibit-quit t) quit-flag)
+		  (read-event "Insert KEY, EVENT, or CODE: "))))
+  (let ((ev2 (and (memq 'down (event-modifiers ev))
+		  (read-event)))
+	(tr (and (keymapp function-key-map)
+		 (lookup-key function-key-map (vector ev)))))
+    (when (and (integerp ev)
+	       (or (and (<= ?0 ev) (< ev (+ ?0 (min 10 read-quoted-char-radix))))
+		   (and (<= ?a (downcase ev))
+			(< (downcase ev) (+ ?a -10 (min 36 read-quoted-char-radix))))))
+      (setq unread-command-events (cons ev unread-command-events)
+	    ev (read-quoted-char (format "Enter code (radix %d)" read-quoted-char-radix))
+	    tr nil)
+      (if (and (integerp ev) (not (char-valid-p ev)))
+	  (insert (char-to-string ev))))  ;; throw invalid char error
+    (setq ev (key-description (list ev)))
+    (when (arrayp tr)
+      (setq tr (key-description (list (aref tr 0))))
+      (if (y-or-n-p (format "Key %s is translated to %s -- use %s? " ev tr tr))
+	  (setq ev tr ev2 nil)))
+    (insert (if (= (char-before) ?\s)  "" " ") ev " ")
+    (if ev2
+	(insert (key-description (list ev2)) " "))))
+
+(defun widget-key-sequence-validate (widget)
+  (unless (or (stringp (widget-value widget))
+	      (vectorp (widget-value widget)))
+    (widget-put widget :error (format "Invalid key sequence: %S"
+				      (widget-value widget)))
+    widget))
+
+(defun widget-key-sequence-value-to-internal (widget value)
+  (if (widget-apply widget :match value)
+      (if (equal value widget-key-sequence-default-value)
+	  ""
+	(key-description value))
+    value))
+
+(defun widget-key-sequence-value-to-external (widget value)
+  (if (stringp value)
+      (if (string-match "\\`[[:space:]]*\\'" value)
+	  widget-key-sequence-default-value
+	(read-kbd-macro value))
+    value))
+
 
 (define-widget 'sexp 'editable-field
   "An arbitrary Lisp expression."
@@ -3591,7 +3678,7 @@ example:
 ;; Fixme: match
 (define-widget 'color 'editable-field
   "Choose a color name (with sample)."
-  :format "%t: %v (%{sample%})\n"
+  :format "%{%t%}: %v (%{sample%})\n"
   :size 10
   :tag "Color"
   :value "black"

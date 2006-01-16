@@ -1,10 +1,11 @@
 /* Header for coding system handler.
-   Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
-     Licensed to the Free Software Foundation.
+   Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1997, 1998, 2000
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H14PRO021
    Copyright (C) 2003
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
-   Copyright (C) 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -610,7 +611,7 @@ struct coding_system
 
 /* Decode the string STR using the specified coding system
    for system functions, if any.  */
-#define DECODE_SYSTEM(name)						   \
+#define DECODE_SYSTEM(str)						   \
   (! NILP (Vlocale_coding_system)					   \
    && !EQ (Vlocale_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (str, Vlocale_coding_system, 0)	   \

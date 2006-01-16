@@ -1,8 +1,9 @@
 ;;; ps-bdf.el --- BDF font file handler for ps-print
 
-;; Copyright (C) 1998, 1999, 2001 Electrotechnical Laboratory, JAPAN.
-;;   Licensed to the Free Software Foundation.
-;; Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2001, 2002, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2001, 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009

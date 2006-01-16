@@ -164,6 +164,7 @@
 
 (defgroup f90 nil
   "Major mode for editing free format Fortran 90,95 code."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 (defgroup f90-indent nil
@@ -1767,7 +1768,7 @@ Leave point at the end of line."
                            (buffer-substring
                             (line-beginning-position)
                             (line-end-position)))
-                (sit-for 1)))
+                (sit-for blink-matching-delay)))
           (setq beg-block (car matching-beg)
                 beg-name (car (cdr matching-beg)))
           (goto-char end-point)

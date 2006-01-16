@@ -104,8 +104,11 @@ Buffer B."
 (make-variable-buffer-local 'ediff-skip-merge-regions-that-differ-from-default)
 
 ;; check if there is no clash between the ancestor and one of the variants.
+;; if it is not a merge job then return true
 (defsubst ediff-merge-region-is-non-clash (n)
-  (string-match "prefer" (or (ediff-get-state-of-merge n) "")))
+  (if (ediff-merge-job)
+      (string-match "prefer" (or (ediff-get-state-of-merge n) ""))
+    t))
 
 ;; If ediff-show-clashes-only, check if there is no clash between the ancestor
 ;; and one of the variants.

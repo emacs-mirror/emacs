@@ -91,6 +91,41 @@
 				    (calc-top-n 1))
 			      (and n (list (prefix-numeric-value n)))))))
 
+;;; Write out powers (a*b*...)^n as a*b*...*a*b*...
+(defun calcFunc-powerexpand (expr)
+  (math-normalize (math-map-tree 'math-powerexpand expr)))
+
+(defun math-powerexpand (expr)
+  (if (eq (car-safe expr) '^)
+      (let ((n (nth 2 expr)))
+        (cond ((and (integerp n)
+                    (> n 0))
+               (let ((i 1)
+                     (a (nth 1 expr))
+                     (prod (nth 1 expr)))
+                 (while (< i n)
+                   (setq prod (math-mul prod a))
+                   (setq i (1+ i)))
+                 prod))
+              ((and (integerp n)
+                    (< n 0))
+               (let ((i -1)
+                     (a (math-pow (nth 1 expr) -1))
+                     (prod (math-pow (nth 1 expr) -1)))
+                 (while (> i n)
+                   (setq prod (math-mul a prod))
+                   (setq i (1- i)))
+                 prod))
+              (t
+               expr)))
+    expr))
+
+(defun calc-powerexpand ()
+  (interactive)
+  (calc-slow-wrapper
+   (calc-enter-result 1 "pexp"
+		      (calcFunc-powerexpand (calc-top-n 1)))))
+
 (defun calc-collect (&optional var)
   (interactive "sCollect terms involving: ")
   (calc-slow-wrapper

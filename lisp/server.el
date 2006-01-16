@@ -189,6 +189,11 @@ are done with it in the server.")
 			      (not server-existing-buffer))
 			 (server-temp-file-p)))
 	    (kill-buffer (current-buffer)))))))
+  ;; If this is a new client process, set the query-on-exit flag to nil
+  ;; for this process (it isn't inherited from the server process).
+  (when (and (eq (process-status proc) 'open)
+	     (process-query-on-exit-flag proc))
+    (set-process-query-on-exit-flag proc nil))
   (server-log (format "Status changed to %s" (process-status proc)) proc))
 
 (defun server-select-display (display)

@@ -478,19 +478,22 @@ Point is assumed to be just at the end of a comment."
   (if (bolp)
       ;; comment-end = ""
       (progn (backward-char) (skip-syntax-backward " "))
-    (let ((end (point)))
-      (beginning-of-line)
-      (save-restriction
-	(narrow-to-region (point) end)
-	(if (re-search-forward (concat comment-end-skip "\\'") nil t)
-	    (goto-char (match-beginning 0))
-	  ;; comment-end-skip not found probably because it was not set right.
-	  ;; Since \\s> should catch the single-char case, we'll blindly
-	  ;; assume we're at the end of a two-char comment-end.
-	  (goto-char (point-max))
-	  (backward-char 2)
-	  (skip-chars-backward (string (char-after)))
-	  (skip-syntax-backward " "))))))
+    (cond
+     ((save-restriction
+        (narrow-to-region (line-beginning-position) (point))
+        (goto-char (point-min))
+        (re-search-forward (concat comment-end-skip "\\'") nil t))
+      (goto-char (match-beginning 0)))
+     ;; comment-end-skip not found.  Maybe we're at EOB which implicitly
+     ;; closes the comment.
+     ((eobp) (skip-syntax-backward " "))
+     (t
+      ;; else comment-end-skip was not found probably because it was not
+      ;; set right.  Since \\s> should catch the single-char case, we'll
+      ;; blindly assume we're at the end of a two-char comment-end.
+      (backward-char 2)
+      (skip-chars-backward (string (char-after)))
+      (skip-syntax-backward " ")))))
 
 ;;;;
 ;;;; Commands
@@ -943,9 +946,13 @@ the region rather than at left margin."
 		(setq max-indent (max max-indent (current-column)))
 		(not (or (eobp) (progn (forward-line) nil)))))
 
-	  ;; Inserting ccs can change max-indent by (1- tab-width).
 	  (setq max-indent
-		(+ max-indent (max (length cs) (length ccs)) tab-width -1))
+		(+ max-indent (max (length cs) (length ccs))
+                   ;; Inserting ccs can change max-indent by (1- tab-width)
+                   ;; but only if there are TABs in the boxed text, of course.
+                   (if (save-excursion (goto-char beg)
+                                       (search-forward "\t" end t))
+                       (1- tab-width) 0)))
 	  (unless indent (setq min-indent 0))
 
 	  ;; make the leading and trailing lines if requested

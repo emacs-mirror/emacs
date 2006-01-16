@@ -158,8 +158,6 @@
   (setq comment-start-skip "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+[ \t]*")
   (make-local-variable 'comment-column)
   (setq comment-column 40)
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'lisp-comment-indent)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
   (make-local-variable 'lisp-indent-function)
@@ -240,6 +238,7 @@ if that value is non-nil."
 
 (defgroup scheme nil
   "Editing Scheme code."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'lisp)
 
 (defcustom scheme-mit-dialect t

@@ -1,7 +1,7 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -37,7 +37,6 @@
 ;;   after mm-dissect-buffer and defined in the same file.
 ;; The following are autoloaded instead of `require'd to avoid eagerly
 ;; loading all of URL when turning on url-handler-mode in the .emacs.
-(autoload 'url-retrieve-synchronously "url" "Retrieve url synchronously.")
 (autoload 'url-expand-file-name "url-expand" "Convert url to a fully specified url, and canonicalize it.")
 (autoload 'mm-dissect-buffer "mm-decode" "Dissect the current buffer and return a list of MIME handles.")
 (autoload 'url-scheme-get-property "url-methods" "Get property of a URL SCHEME.")
@@ -202,6 +201,7 @@ accessible."
 (defun url-insert-file-contents (url &optional visit beg end replace)
   (let ((buffer (url-retrieve-synchronously url))
 	(handle nil)
+	(charset nil)
 	(data nil))
     (if (not buffer)
 	(error "Opening input file: No such file or directory, %s" url))
@@ -215,13 +215,14 @@ accessible."
     (mm-destroy-parts handle)
     (if replace (delete-region (point-min) (point-max)))
     (save-excursion
+      (setq charset (mail-content-type-get (mm-handle-type handle)
+					     'charset))
       (let ((start (point)))
-	(insert data)
-	;; FIXME: for text/plain data, we sometimes receive a `charset'
-	;; annotation which we could use as a hint of the locale in use
-	;; at the remote site.  Not sure how/if that should be done.  --Stef
-	(decode-coding-inserted-region
-	 start (point) url visit beg end replace)))
+	(if charset
+	    (insert (mm-decode-string data (mm-charset-to-coding-system charset)))
+	  (progn
+	    (insert data)
+	    (decode-coding-inserted-region start (point) url visit beg end replace)))))
     (list url (length data))))
 
 (defun url-file-name-completion (url directory)

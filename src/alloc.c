@@ -66,6 +66,14 @@ Boston, MA 02110-1301, USA.  */
 extern POINTER_TYPE *sbrk ();
 #endif
 
+#ifdef HAVE_FCNTL_H
+#define INCLUDED_FCNTL
+#include <fcntl.h>
+#endif
+#ifndef O_WRONLY
+#define O_WRONLY 1
+#endif
+
 #ifdef DOUG_LEA_MALLOC
 
 #include <malloc.h>
@@ -138,6 +146,8 @@ static pthread_mutex_t alloc_mutex;
 
 static __malloc_size_t bytes_used_when_full;
 
+static __malloc_size_t bytes_used_when_reconsidered;
+
 /* Mark, unmark, query mark bit of a Lisp string.  S must be a pointer
    to a struct Lisp_String.  */
 
@@ -182,6 +192,11 @@ EMACS_INT gc_relative_threshold;
 
 static Lisp_Object Vgc_cons_percentage;
 
+/* Minimum number of bytes of consing since GC before next GC,
+   when memory is full.  */
+
+EMACS_INT memory_full_cons_threshold;
+
 /* Nonzero during GC.  */
 
 int gc_in_progress;
@@ -213,11 +228,12 @@ static int total_free_conses, total_free_markers, total_free_symbols;
 static int total_free_floats, total_floats;
 
 /* Points to memory space allocated as "spare", to be freed if we run
-   out of memory.  */
+   out of memory.  We keep one large block, four cons-blocks, and
+   two string blocks.  */
 
-static char *spare_memory;
+char *spare_memory[7];
 
-/* Amount of spare memory to keep in reserve.  */
+/* Amount of spare memory to keep in large reserve block.  */
 
 #define SPARE_MEMORY (1 << 14)
 
@@ -350,6 +366,11 @@ enum mem_type
   MEM_TYPE_WINDOW
 };
 
+static POINTER_TYPE *lisp_align_malloc P_ ((size_t, enum mem_type));
+static POINTER_TYPE *lisp_malloc P_ ((size_t, enum mem_type));
+void refill_memory_reserve ();
+
+
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
@@ -450,6 +471,7 @@ static void mem_delete P_ ((struct mem_node *));
 static void mem_delete_fixup P_ ((struct mem_node *));
 static INLINE struct mem_node *mem_find P_ ((void *));
 
+
 #if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
 static void check_gcpros P_ ((void));
 #endif
@@ -510,57 +532,10 @@ display_malloc_warning ()
 
 
 #ifdef DOUG_LEA_MALLOC
-#  define BYTES_USED (mallinfo ().arena)
+#  define BYTES_USED (mallinfo ().uordblks)
 #else
 #  define BYTES_USED _bytes_used
 #endif
-
-
-/* Called if malloc returns zero.  */
-
-void
-memory_full ()
-{
-  Vmemory_full = Qt;
-
-#ifndef SYSTEM_MALLOC
-  bytes_used_when_full = BYTES_USED;
-#endif
-
-  /* The first time we get here, free the spare memory.  */
-  if (spare_memory)
-    {
-      free (spare_memory);
-      spare_memory = 0;
-    }
-
-  /* This used to call error, but if we've run out of memory, we could
-     get infinite recursion trying to build the string.  */
-  while (1)
-    Fsignal (Qnil, Vmemory_signal_data);
-}
-
-DEFUN ("memory-full-p", Fmemory_full_p, Smemory_full_p, 0, 0, 0,
-       doc: /* t if memory is nearly full, nil otherwise.  */)
-  ()
-{
-  return (spare_memory ? Qnil : Qt);
-}
-
-/* If we released our reserve (due to running out of memory),
-   and we have a fair amount free once again,
-   try to set aside another reserve in case we run out once more.
-
-   This is called when a relocatable block is freed in ralloc.c.  */
-
-void
-refill_memory_reserve ()
-{
-#ifndef SYSTEM_MALLOC
-  if (spare_memory == 0)
-    spare_memory = (char *) malloc ((size_t) SPARE_MEMORY);
-#endif
-}
 
 /* Called if we can't allocate relocatable space for a buffer.  */
 
@@ -577,8 +552,6 @@ buffer_memory_full ()
 #ifndef REL_ALLOC
   memory_full ();
 #endif
-
-  Vmemory_full = Qt;
 
   /* This used to call error, but if we've run out of memory, we could
      get infinite recursion trying to build the string.  */
@@ -805,6 +778,9 @@ xfree (block)
   BLOCK_INPUT;
   free (block);
   UNBLOCK_INPUT;
+  /* We don't call refill_memory_reserve here
+     because that duplicates doing so in emacs_blocked_free
+     and the criterion should go there.  */
 }
 
 
@@ -1178,6 +1154,8 @@ emacs_blocked_free (ptr, ptr2)
      void *ptr;
      const void *ptr2;
 {
+  EMACS_INT bytes_used_now;
+
   BLOCK_INPUT_ALLOC;
 
 #ifdef GC_MALLOC_CHECK
@@ -1206,14 +1184,15 @@ emacs_blocked_free (ptr, ptr2)
   /* If we released our reserve (due to running out of memory),
      and we have a fair amount free once again,
      try to set aside another reserve in case we run out once more.  */
-  if (spare_memory == 0
+  if (! NILP (Vmemory_full)
       /* Verify there is enough space that even with the malloc
 	 hysteresis this call won't run out again.
 	 The code here is correct as long as SPARE_MEMORY
 	 is substantially larger than the block size malloc uses.  */
       && (bytes_used_when_full
-	  > BYTES_USED + max (malloc_hysteresis, 4) * SPARE_MEMORY))
-    spare_memory = (char *) malloc ((size_t) SPARE_MEMORY);
+	  > ((bytes_used_when_reconsidered = BYTES_USED)
+	     + max (malloc_hysteresis, 4) * SPARE_MEMORY)))
+    refill_memory_reserve ();
 
   __free_hook = emacs_blocked_free;
   UNBLOCK_INPUT_ALLOC;
@@ -2560,7 +2539,7 @@ void
 free_float (ptr)
      struct Lisp_Float *ptr;
 {
-  *(struct Lisp_Float **)&ptr->data = float_free_list;
+  ptr->u.chain = float_free_list;
   float_free_list = ptr;
 }
 
@@ -2578,7 +2557,7 @@ make_float (float_value)
       /* We use the data field for chaining the free list
 	 so that we won't use the same field that has the mark bit.  */
       XSETFLOAT (val, float_free_list);
-      float_free_list = *(struct Lisp_Float **)&float_free_list->data;
+      float_free_list = float_free_list->u.chain;
     }
   else
     {
@@ -2678,7 +2657,7 @@ void
 free_cons (ptr)
      struct Lisp_Cons *ptr;
 {
-  *(struct Lisp_Cons **)&ptr->cdr = cons_free_list;
+  ptr->u.chain = cons_free_list;
 #if GC_MARK_STACK
   ptr->car = Vdead;
 #endif
@@ -2697,7 +2676,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
       /* We use the cdr for chaining the free list
 	 so that we won't use the same field that has the mark bit.  */
       XSETCONS (val, cons_free_list);
-      cons_free_list = *(struct Lisp_Cons **)&cons_free_list->cdr;
+      cons_free_list = cons_free_list->u.chain;
     }
   else
     {
@@ -2732,7 +2711,7 @@ check_cons_list ()
   struct Lisp_Cons *tail = cons_free_list;
 
   while (tail)
-    tail = *(struct Lisp_Cons **)&tail->cdr;
+    tail = tail->u.chain;
 #endif
 }
 
@@ -3126,7 +3105,7 @@ Its value and function definition are void, and its property list is nil.  */)
   if (symbol_free_list)
     {
       XSETSYMBOL (val, symbol_free_list);
-      symbol_free_list = *(struct Lisp_Symbol **)&symbol_free_list->value;
+      symbol_free_list = symbol_free_list->next;
     }
   else
     {
@@ -3335,6 +3314,83 @@ make_event_array (nargs, args)
 }
 
 
+
+/************************************************************************
+			   Memory Full Handling
+ ************************************************************************/
+
+
+/* Called if malloc returns zero.  */
+
+void
+memory_full ()
+{
+  int i;
+
+  Vmemory_full = Qt;
+
+  memory_full_cons_threshold = sizeof (struct cons_block);
+
+  /* The first time we get here, free the spare memory.  */
+  for (i = 0; i < sizeof (spare_memory) / sizeof (char *); i++)
+    if (spare_memory[i])
+      {
+	if (i == 0)
+	  free (spare_memory[i]);
+	else if (i >= 1 && i <= 4)
+	  lisp_align_free (spare_memory[i]);
+	else
+	  lisp_free (spare_memory[i]);
+	spare_memory[i] = 0;
+      }
+
+  /* Record the space now used.  When it decreases substantially,
+     we can refill the memory reserve.  */
+#ifndef SYSTEM_MALLOC
+  bytes_used_when_full = BYTES_USED;
+#endif
+
+  /* This used to call error, but if we've run out of memory, we could
+     get infinite recursion trying to build the string.  */
+  while (1)
+    Fsignal (Qnil, Vmemory_signal_data);
+}
+
+/* If we released our reserve (due to running out of memory),
+   and we have a fair amount free once again,
+   try to set aside another reserve in case we run out once more.
+
+   This is called when a relocatable block is freed in ralloc.c,
+   and also directly from this file, in case we're not using ralloc.c.  */
+
+void
+refill_memory_reserve ()
+{
+#ifndef SYSTEM_MALLOC
+  if (spare_memory[0] == 0)
+    spare_memory[0] = (char *) malloc ((size_t) SPARE_MEMORY);
+  if (spare_memory[1] == 0)
+    spare_memory[1] = (char *) lisp_align_malloc (sizeof (struct cons_block),
+						  MEM_TYPE_CONS);
+  if (spare_memory[2] == 0)
+    spare_memory[2] = (char *) lisp_align_malloc (sizeof (struct cons_block),
+						  MEM_TYPE_CONS);
+  if (spare_memory[3] == 0)
+    spare_memory[3] = (char *) lisp_align_malloc (sizeof (struct cons_block),
+						  MEM_TYPE_CONS);
+  if (spare_memory[4] == 0)
+    spare_memory[4] = (char *) lisp_align_malloc (sizeof (struct cons_block),
+						  MEM_TYPE_CONS);
+  if (spare_memory[5] == 0)
+    spare_memory[5] = (char *) lisp_malloc (sizeof (struct string_block),
+					    MEM_TYPE_STRING);
+  if (spare_memory[6] == 0)
+    spare_memory[6] = (char *) lisp_malloc (sizeof (struct string_block),
+					    MEM_TYPE_STRING);
+  if (spare_memory[0] && spare_memory[1] && spare_memory[5])
+    Vmemory_full = Qnil;
+#endif
+}
 
 /************************************************************************
 			   C Stack Marking
@@ -4393,8 +4449,94 @@ mark_stack ()
 #endif
 }
 
-
 #endif /* GC_MARK_STACK != 0 */
+
+
+
+/* Return 1 if OBJ is a valid lisp object.
+   Return 0 if OBJ is NOT a valid lisp object.
+   Return -1 if we cannot validate OBJ.
+   This function can be quite slow,
+   so it should only be used in code for manual debugging.  */
+
+int
+valid_lisp_object_p (obj)
+     Lisp_Object obj;
+{
+  void *p;
+#if !GC_MARK_STACK
+  int fd;
+#else
+  struct mem_node *m;
+#endif
+
+  if (INTEGERP (obj))
+    return 1;
+
+  p = (void *) XPNTR (obj);
+  if (PURE_POINTER_P (p))
+    return 1;
+
+#if !GC_MARK_STACK
+  /* We need to determine whether it is safe to access memory at
+     address P.  Obviously, we cannot just access it (we would SEGV
+     trying), so we trick the o/s to tell us whether p is a valid
+     pointer.  Unfortunately, we cannot use NULL_DEVICE here, as
+     emacs_write may not validate p in that case.  */
+  if ((fd = emacs_open ("__Valid__Lisp__Object__", O_CREAT | O_WRONLY | O_TRUNC, 0666)) >= 0)
+    {
+      int valid = (emacs_write (fd, (char *)p, 16) == 16);
+      emacs_close (fd);
+      unlink ("__Valid__Lisp__Object__");
+      return valid;
+    }
+
+    return -1;
+#else
+
+  m = mem_find (p);
+
+  if (m == MEM_NIL)
+    return 0;
+
+  switch (m->type)
+    {
+    case MEM_TYPE_NON_LISP:
+      return 0;
+
+    case MEM_TYPE_BUFFER:
+      return live_buffer_p (m, p);
+
+    case MEM_TYPE_CONS:
+      return live_cons_p (m, p);
+
+    case MEM_TYPE_STRING:
+      return live_string_p (m, p);
+
+    case MEM_TYPE_MISC:
+      return live_misc_p (m, p);
+
+    case MEM_TYPE_SYMBOL:
+      return live_symbol_p (m, p);
+
+    case MEM_TYPE_FLOAT:
+      return live_float_p (m, p);
+
+    case MEM_TYPE_VECTOR:
+    case MEM_TYPE_PROCESS:
+    case MEM_TYPE_HASH_TABLE:
+    case MEM_TYPE_FRAME:
+    case MEM_TYPE_WINDOW:
+      return live_vector_p (m, p);
+
+    default:
+      break;
+    }
+
+  return 0;
+#endif
+}
+
 
 
 
@@ -4876,7 +5018,7 @@ returns nil, because real GC can't be done.  */)
       total += total_floats  * sizeof (struct Lisp_Float);
       total += total_intervals * sizeof (struct interval);
       total += total_strings * sizeof (struct Lisp_String);
-      
+
       gc_relative_threshold = total * XFLOAT_DATA (Vgc_cons_percentage);
     }
   else
@@ -5403,14 +5545,14 @@ mark_object (arg)
 	CHECK_ALLOCATED_AND_LIVE (live_cons_p);
 	CONS_MARK (ptr);
 	/* If the cdr is nil, avoid recursion for the car.  */
-	if (EQ (ptr->cdr, Qnil))
+	if (EQ (ptr->u.cdr, Qnil))
 	  {
 	    obj = ptr->car;
 	    cdr_count = 0;
 	    goto loop;
 	  }
 	mark_object (ptr->car);
-	obj = ptr->cdr;
+	obj = ptr->u.cdr;
 	cdr_count++;
 	if (cdr_count == mark_object_loop_halt)
 	  abort ();
@@ -5557,7 +5699,7 @@ gc_sweep ()
 	  if (!CONS_MARKED_P (&cblk->conses[i]))
 	    {
 	      this_free++;
-	      *(struct Lisp_Cons **)&cblk->conses[i].cdr = cons_free_list;
+	      cblk->conses[i].u.chain = cons_free_list;
 	      cons_free_list = &cblk->conses[i];
 #if GC_MARK_STACK
 	      cons_free_list->car = Vdead;
@@ -5576,7 +5718,7 @@ gc_sweep ()
 	  {
 	    *cprev = cblk->next;
 	    /* Unhook from the free list.  */
-	    cons_free_list = *(struct Lisp_Cons **) &cblk->conses[0].cdr;
+	    cons_free_list = cblk->conses[0].u.chain;
 	    lisp_align_free (cblk);
 	    n_cons_blocks--;
 	  }
@@ -5607,7 +5749,7 @@ gc_sweep ()
 	  if (!FLOAT_MARKED_P (&fblk->floats[i]))
 	    {
 	      this_free++;
-	      *(struct Lisp_Float **)&fblk->floats[i].data = float_free_list;
+	      fblk->floats[i].u.chain = float_free_list;
 	      float_free_list = &fblk->floats[i];
 	    }
 	  else
@@ -5623,7 +5765,7 @@ gc_sweep ()
 	  {
 	    *fprev = fblk->next;
 	    /* Unhook from the free list.  */
-	    float_free_list = *(struct Lisp_Float **) &fblk->floats[0].data;
+	    float_free_list = fblk->floats[0].u.chain;
 	    lisp_align_free (fblk);
 	    n_float_blocks--;
 	  }
@@ -5711,7 +5853,7 @@ gc_sweep ()
 
 	    if (!sym->gcmarkbit && !pure_p)
 	      {
-		*(struct Lisp_Symbol **) &sym->value = symbol_free_list;
+		sym->next = symbol_free_list;
 		symbol_free_list = sym;
 #if GC_MARK_STACK
 		symbol_free_list->function = Vdead;
@@ -5735,7 +5877,7 @@ gc_sweep ()
 	  {
 	    *sprev = sblk->next;
 	    /* Unhook from the free list.  */
-	    symbol_free_list = *(struct Lisp_Symbol **)&sblk->symbols[0].value;
+	    symbol_free_list = sblk->symbols[0].next;
 	    lisp_free (sblk);
 	    n_symbol_blocks--;
 	  }
@@ -5963,7 +6105,7 @@ init_alloc_once ()
   malloc_hysteresis = 0;
 #endif
 
-  spare_memory = (char *) malloc (SPARE_MEMORY);
+  refill_memory_reserve ();
 
   ignore_warnings = 0;
   gcprolist = 0;
@@ -6064,7 +6206,7 @@ This means that certain objects should be allocated in shared (pure) space.  */)
 	     build_string ("Memory exhausted--use M-x save-some-buffers then exit and restart Emacs"));
 
   DEFVAR_LISP ("memory-full", &Vmemory_full,
-	       doc: /* Non-nil means we are handling a memory-full error.  */);
+	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);
   Vmemory_full = Qnil;
 
   staticpro (&Qgc_cons_threshold);
@@ -6079,7 +6221,6 @@ The time is in seconds as a floating point value.  */);
   DEFVAR_INT ("gcs-done", &gcs_done,
 	      doc: /* Accumulated number of garbage collections done.  */);
 
-  defsubr (&Smemory_full_p);
   defsubr (&Scons);
   defsubr (&Slist);
   defsubr (&Svector);

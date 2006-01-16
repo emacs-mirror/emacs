@@ -1000,7 +1000,9 @@ which it may alter in any way."
   :type '(repeat symbol))
 
 (defcustom gnus-ignored-from-addresses
-  (and user-mail-address (regexp-quote user-mail-address))
+  (and user-mail-address  
+       (not (string= user-mail-address ""))
+       (regexp-quote user-mail-address))
   "*Regexp of From headers that may be suppressed in favor of To headers."
   :version "21.1"
   :group 'gnus-summary
@@ -6112,7 +6114,7 @@ current article will be taken into consideration."
       (let ((max (max (point) (mark)))
 	    articles article)
 	(save-excursion
-	  (goto-char (min (min (point) (mark))))
+	  (goto-char (min (point) (mark)))
 	  (while
 	      (and
 	       (push (setq article (gnus-summary-article-number)) articles)

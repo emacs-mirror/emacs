@@ -225,7 +225,9 @@ only of boring text.  Boring text is controlled by
 This can also be a list of regexps.  In that case, it will be checked
 from head to tail looking for a separator.  Searches will be done from
 the end of the buffer."
-  :type '(repeat string)
+  :type '(choice :format "%{%t%}: %[Value Menu%]\n%v"
+		 (regexp)
+		 (repeat :tag "List of regexp" regexp))
   :group 'gnus-article-signature)
 
 (defcustom gnus-signature-limit nil
@@ -535,7 +537,8 @@ Gnus provides the following functions:
 		(function-item gnus-summary-save-in-file)
 		(function-item gnus-summary-save-body-in-file)
 		(function-item gnus-summary-save-in-vm)
-		(function-item gnus-summary-write-to-file)))
+		(function-item gnus-summary-write-to-file)
+		(function)))
 
 (defcustom gnus-rmail-save-name 'gnus-plain-save-name
   "A function generating a file name to save articles in Rmail format.
@@ -821,7 +824,9 @@ This variable is only used when `gnus-inhibit-mime-unbuttonizing' is nil."
   "List of MIME types that should be given buttons when rendered inline.
 If set, this variable overrides `gnus-unbuttonized-mime-types'.
 To see e.g. security buttons you could set this to
-`(\"multipart/signed\")'.
+`(\"multipart/signed\")'.  You could also add \"multipart/alternative\" to
+this list to display radio buttons that allow you to choose one of two
+media types those mails include.  See also `mm-discouraged-alternatives'.
 This variable is only used when `gnus-inhibit-mime-unbuttonizing' is nil."
   :version "22.1"
   :group 'gnus-article-mime
@@ -1627,10 +1632,24 @@ Initialized from `text-mode-syntax-table.")
   "Delete text of TYPE in the current buffer."
   (save-excursion
     (let ((b (point-min)))
-      (while (setq b (text-property-any b (point-max) 'article-type type))
-	(delete-region
-	 b (or (text-property-not-all b (point-max) 'article-type type)
-	       (point-max)))))))
+      (if (eq type 'multipart)
+	  ;; Remove MIME buttons associated with multipart/alternative parts.
+	  (progn
+	    (goto-char b)
+	    (while (if (get-text-property (point) 'gnus-part)
+		       (setq b (point))
+		     (when (setq b (next-single-property-change (point)
+								'gnus-part))
+		       (goto-char b)
+		       t))
+	      (end-of-line)
+	      (skip-chars-forward "\n")
+	      (when (eq (get-text-property b 'article-type) 'multipart)
+		(delete-region b (point)))))
+	(while (setq b (text-property-any b (point-max) 'article-type type))
+	  (delete-region
+	   b (or (text-property-not-all b (point-max) 'article-type type)
+		 (point-max))))))))
 
 (defun gnus-article-delete-invisible-text ()
   "Delete all invisible text in the current buffer."
@@ -2495,19 +2514,17 @@ If READ-CHARSET, ask for a coding system."
 (defun gnus-article-wash-html-with-w3m ()
   "Wash the current buffer with emacs-w3m."
   (mm-setup-w3m)
-  (save-restriction
-    (narrow-to-region (point) (point-max))
-    (let ((w3m-safe-url-regexp mm-w3m-safe-url-regexp)
-	  w3m-force-redisplay)
-      (w3m-region (point-min) (point-max)))
-    (when (and mm-inline-text-html-with-w3m-keymap
-	       (boundp 'w3m-minor-mode-map)
-	       w3m-minor-mode-map)
-      (add-text-properties
-       (point-min) (point-max)
-       (list 'keymap w3m-minor-mode-map
-	     ;; Put the mark meaning this part was rendered by emacs-w3m.
-	     'mm-inline-text-html-with-w3m t)))))
+  (let ((w3m-safe-url-regexp mm-w3m-safe-url-regexp)
+	w3m-force-redisplay)
+    (w3m-region (point-min) (point-max)))
+  (when (and mm-inline-text-html-with-w3m-keymap
+	     (boundp 'w3m-minor-mode-map)
+	     w3m-minor-mode-map)
+    (add-text-properties
+     (point-min) (point-max)
+     (list 'keymap w3m-minor-mode-map
+	   ;; Put the mark meaning this part was rendered by emacs-w3m.
+	   'mm-inline-text-html-with-w3m t))))
 
 (defun article-hide-list-identifiers ()
   "Remove list identifies from the Subject header.
@@ -4951,7 +4968,7 @@ If displaying \"text/html\" is discouraged \(see
 	     ,gnus-mouse-face-prop ,gnus-article-mouse-face
 	     face ,gnus-article-button-face
 	     gnus-part ,id
-	     gnus-data ,handle))
+	     article-type multipart))
 	  (widget-convert-button 'link from (point)
 				 :action 'gnus-widget-press-button
 				 :button-keymap gnus-widget-button-keymap)

@@ -65,7 +65,7 @@
   :version "22.1"
   :group 'multimedia)
 
-(defcustom thumbs-thumbsdir "~/.emacs-thumbs"
+(defcustom thumbs-thumbsdir "~/.emacs.d/thumbs"
   "*Directory to store thumbnails."
   :type 'directory
   :group 'thumbs)
@@ -190,7 +190,7 @@ Create the thumbnails directory if it does not exist."
   (let ((thumbs-thumbsdir (file-name-as-directory
                            (expand-file-name thumbs-thumbsdir))))
     (unless (file-directory-p thumbs-thumbsdir)
-      (make-directory thumbs-thumbsdir)
+      (make-directory thumbs-thumbsdir t)
       (message "Creating thumbnails directory"))
     thumbs-thumbsdir))
 
@@ -339,6 +339,7 @@ Or, alternatively, a SIZE may be specified."
   (cond ((string-match ".*\\.jpe?g\\'" img) 'jpeg)
 	((string-match ".*\\.xpm\\'" img) 'xpm)
 	((string-match ".*\\.xbm\\'" img) 'xbm)
+	((string-match ".*\\.pbm\\'" img) 'pbm)
 	((string-match ".*\\.gif\\'" img) 'gif)
 	((string-match ".*\\.bmp\\'" img) 'bmp)
 	((string-match ".*\\.png\\'" img) 'png)

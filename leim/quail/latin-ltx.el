@@ -1,8 +1,9 @@
 ;;; latin-ltx.el --- Quail package for TeX-style input -*-coding: utf-8;-*-
 
-;; Copyright (C) 2001, 2004  Free Software Foundation, Inc.
-;; Copyright (C) 2001 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 2001
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: TAKAHASHI Naoto <ntakahas@m17n.org>
 ;;         Dave Love <fx@gnu.org>
@@ -299,7 +300,7 @@ system, including many technical ones.  Examples:
  ("\\'m" ?ḿ)
  ("\\'p" ?ṕ)
  ("\\'w" ?ẃ)
- ("\\," ? )
+ ("\\," ? )
  ("\\." ?̇)
  ("\\.B" ?Ḃ)
  ("\\.D" ?Ḋ)
@@ -960,6 +961,31 @@ system, including many technical ones.  Examples:
  ("\\frq" ?›)
  ("\\flqq" ?\«) ("\\\"<" ?\«)
  ("\\frqq" ?\») ("\\\">" ?\»)
+
+ ("\\-" ?­)   ;; soft hyphen
+
+ ("\\textmu" ?µ)
+ ("\\textfractionsolidus" ?⁄)
+ ("\\textbigcircle" ?⃝)
+ ("\\textmusicalnote" ?♪)
+ ("\\textdied" ?✝)
+ ("\\textcolonmonetary" ?₡)
+ ("\\textwon" ?₩)
+ ("\\textnaira" ?₦)
+ ("\\textpeso" ?₱)
+ ("\\textlira" ?₤)
+ ("\\textrecipe" ?℞)
+ ("\\textinterrobang" ?‽)
+ ("\\textpertenthousand" ?‱)
+ ("\\textbaht" ?฿)
+ ("\\textnumero" ?№)
+ ("\\textdiscount" ?⁒)
+ ("\\textestimated" ?℮)
+ ("\\textopenbullet" ?◦)
+ ("\\textlquill" ?⁅)
+ ("\\textrquill" ?⁆)
+ ("\\textcircledP" ?℗)
+ ("\\textreferencemark" ?※)
  )
 
 ;; arch-tag: 3daae613-2c53-446e-a0a1-ee2e1ebed15f

@@ -331,7 +331,9 @@ Return t if file exists."
 		(inhibit-file-name-operation nil))
 	    (save-excursion
 	      (set-buffer buffer)
-	      (insert-file-contents fullname)
+	      ;; Don't let deactivate-mark remain set.
+	      (let (deactivate-mark)
+		(insert-file-contents fullname))
 	      ;; If the loaded file was inserted with no-conversion or
 	      ;; raw-text coding system, make the buffer unibyte.
 	      ;; Otherwise, eval-buffer might try to interpret random
@@ -343,7 +345,9 @@ Return t if file exists."
 	      ;; Make `kill-buffer' quiet.
 	      (set-buffer-modified-p nil))
 	    ;; Have the original buffer current while we eval.
-	    (eval-buffer buffer nil file
+	    (eval-buffer buffer nil
+			 ;; This is compatible with what `load' does.
+			 (if purify-flag file fullname)
 			 ;; If this Emacs is running with --unibyte,
 			 ;; convert multibyte strings to unibyte
 			 ;; after reading them.

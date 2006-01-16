@@ -1200,10 +1200,10 @@ format).
 If the variable @code{dired-bind-man} is @code{nil}, @code{dired-man} will not
 be bound to @kbd{N}.
 
-@item dired-do-relative-symlink
+@item dired-do-relsymlink
 @cindex Relative symbolic links.
 @kindex Y
-@findex dired-do-relative-symlink
+@findex dired-do-relsymlink
 Bound to @kbd{Y}.  Relative symlink all marked (or next ARG) files into a
 directory, or make a relative symbolic link to the current file.  This creates
 relative symbolic links like
@@ -1219,9 +1219,9 @@ not absolute ones like
     foo -> /ugly/path/that/may/change/any/day/bar/foo
 @end example
 
-@item dired-do-relative-symlink-regexp
+@item dired-do-relsymlink-regexp
 @kindex %Y
-@findex dired-do-relative-symlink-regexp
+@findex dired-do-relsymlink-regexp
 Bound to @kbd{%Y}.  Relative symlink all marked files containing
 @var{regexp} to @var{newname}.  See functions
 @code{dired-do-rename-regexp} and @code{dired-do-relsymlink} for more

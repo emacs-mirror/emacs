@@ -1,7 +1,7 @@
 ;;; startup.el --- process Emacs shell arguments
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -40,14 +40,14 @@
   "Emacs start-up procedure."
   :group 'internal)
 
-(defcustom inhibit-startup-message nil
-  "*Non-nil inhibits the initial startup message.
+(defcustom inhibit-splash-screen nil
+  "*Non-nil inhibits the startup screen.
 This is for use in your personal init file, once you are familiar
-with the contents of the startup message."
+with the contents of the startup screen."
   :type 'boolean
   :group 'initialization)
 
-(defvaralias 'inhibit-splash-screen 'inhibit-startup-message)
+(defvaralias 'inhibit-startup-message 'inhibit-splash-screen)
 
 (defcustom inhibit-startup-echo-area-message nil
   "*Non-nil inhibits the initial startup echo area message.
@@ -197,23 +197,22 @@ the user's init file.")
   :type 'function
   :group 'initialization)
 
-(defcustom init-file-user nil
+(defvar init-file-user nil
   "Identity of user whose `.emacs' file is or was read.
 The value is nil if `-q' or `--no-init-file' was specified,
 meaning do not load any init file.
 
-Otherwise, the value may be the null string, meaning use the init file
-for the user that originally logged in, or it may be a
-string containing a user's name meaning use that person's init file.
+Otherwise, the value may be an empty string, meaning
+use the init file for the user who originally logged in,
+or it may be a string containing a user's name meaning
+use that person's init file.
 
 In either of the latter cases, `(concat \"~\" init-file-user \"/\")'
 evaluates to the name of the directory where the `.emacs' file was
 looked for.
 
 Setting `init-file-user' does not prevent Emacs from loading
-`site-start.el'.  The only way to do that is to use `--no-site-file'."
-  :type '(choice (const :tag "none" nil) string)
-  :group 'initialization)
+`site-start.el'.  The only way to do that is to use `--no-site-file'.")
 
 (defcustom site-run-file "site-start"
   "File containing site-wide run-time initializations.
@@ -642,15 +641,22 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (set-locale-environment nil)
 
   ;; Convert preloaded file names to absolute.
-  (setq load-history
-	(mapcar (lambda (elt)
-		  (if (and (stringp (car elt))
-			   (not (file-name-absolute-p (car elt))))
-		      (cons (locate-file (car elt) load-path
-					 load-suffixes)
-			    (cdr elt))
-		    elt))
-		load-history))
+  (let ((lisp-dir
+	 (file-name-directory
+	  (locate-file "simple" load-path
+		       load-suffixes))))
+
+    (setq load-history
+	  (mapcar (lambda (elt)
+		    (if (and (stringp (car elt))
+			     (not (file-name-absolute-p (car elt))))
+			(cons (concat lisp-dir
+				      (car elt)
+				      (if (string-match "[.]el$" (car elt))
+					  "" ".elc"))
+			      (cdr elt))
+		      elt))
+		  load-history)))
 
   ;; Convert the arguments to Emacs internal representation.
   (let ((args (cdr command-line-args)))
@@ -731,6 +737,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (and command-line-args
          (setcdr command-line-args args)))
 
+  (run-hooks 'before-init-hook)
+
   ;; Under X Window, this creates the X frame and deletes the terminal frame.
   (when (fboundp 'frame-initialize)
     (frame-initialize))
@@ -763,10 +771,15 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (custom-reevaluate-setting 'blink-cursor-mode)
   (custom-reevaluate-setting 'normal-erase-is-backspace)
   (custom-reevaluate-setting 'tooltip-mode)
+  (custom-reevaluate-setting 'global-font-lock-mode)
+  (custom-reevaluate-setting 'mouse-wheel-down-event)
+  (custom-reevaluate-setting 'mouse-wheel-up-event)
+  (custom-reevaluate-setting 'file-name-shadow-mode)
+  (custom-reevaluate-setting 'send-mail-function)
 
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
-  (unless (memq window-system '(x w32))
+  (unless (memq window-system '(x w32 mac))
     ;; We do this regardles of whether the terminal supports colors
     ;; or not, since they can switch that support on or off in
     ;; mid-session by setting the tty-color-mode frame parameter.
@@ -788,8 +801,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(old-font-list-limit font-list-limit)
 	(old-face-ignored-fonts face-ignored-fonts))
 
-    (run-hooks 'before-init-hook)
-
     ;; Run the site-start library if it exists.  The point of this file is
     ;; that it is run before .emacs.  There is no point in doing this after
     ;; .emacs; that is useless.
@@ -801,12 +812,18 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (setq inhibit-startup-message nil)
 
     ;; Warn for invalid user name.
-    (and init-file-user
-	 (not (file-directory-p (expand-file-name (concat "~" init-file-user))))
-	 (display-warning 'initialization
-			  (format "User %s has no home directory"
-				  init-file-user)
-			  :error))
+    (when init-file-user
+      (if (string-match "[~/:\n]" init-file-user)
+	  (display-warning 'initialization
+			   (format "Invalid user name %s"
+				   init-file-user)
+			   :error)
+	(if (file-directory-p (expand-file-name (concat "~" init-file-user)))
+	    nil
+	  (display-warning 'initialization
+			   (format "User %s has no home directory"
+				   init-file-user)
+			   :error))))
 
     ;; Load that user's init file, or the default one, or none.
     (let (debug-on-error-from-init-file
@@ -844,14 +861,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
 		      (when (eq user-init-file t)
 			;; If we did not find ~/.emacs, try
-			;; ~/.emacs.d/.emacs.
+			;; ~/.emacs.d/init.el.
 			(let ((otherfile
 			       (expand-file-name
-				(file-name-nondirectory user-init-file-1)
+				"init"
 				(file-name-as-directory
-				 (expand-file-name
-				  ".emacs.d"
-				  (file-name-directory user-init-file-1))))))
+				 (concat "~" init-file-user "/.emacs.d")))))
 			  (load otherfile t t)
 
 			  ;; If we did not find the user's init file,
@@ -915,6 +930,10 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		 (pop-to-buffer "*Messages*"))
 	       (setq init-file-had-error t)))))
 
+	(if (and deactivate-mark transient-mark-mode)
+	    (with-current-buffer (window-buffer)
+	      (deactivate-mark)))
+
 	;; If the user has a file of abbrevs, read it.
 	(if (file-exists-p abbrev-file-name)
 	    (quietly-read-abbrev-file abbrev-file-name))
@@ -951,6 +970,38 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(setq user-mail-address (concat (user-login-name) "@"
 					(or mail-host-address
 					    (system-name)))))
+
+    ;; Originally face attributes were specified via
+    ;; `font-lock-face-attributes'.  Users then changed the default
+    ;; face attributes by setting that variable.  However, we try and
+    ;; be back-compatible and respect its value if set except for
+    ;; faces where M-x customize has been used to save changes for the
+    ;; face.
+    (when (boundp 'font-lock-face-attributes)
+      (let ((face-attributes font-lock-face-attributes))
+	(while face-attributes
+	  (let* ((face-attribute (pop face-attributes))
+		 (face (car face-attribute)))
+	    ;; Rustle up a `defface' SPEC from a
+	    ;; `font-lock-face-attributes' entry.
+	    (unless (get face 'saved-face)
+	      (let ((foreground (nth 1 face-attribute))
+		    (background (nth 2 face-attribute))
+		    (bold-p (nth 3 face-attribute))
+		    (italic-p (nth 4 face-attribute))
+		    (underline-p (nth 5 face-attribute))
+		    face-spec)
+		(when foreground
+		  (setq face-spec (cons ':foreground (cons foreground face-spec))))
+		(when background
+		  (setq face-spec (cons ':background (cons background face-spec))))
+		(when bold-p
+		  (setq face-spec (append '(:weight bold) face-spec)))
+		(when italic-p
+		  (setq face-spec (append '(:slant italic) face-spec)))
+		(when underline-p
+		  (setq face-spec (append '(:underline t) face-spec)))
+		(face-spec-set face (list (list t face-spec)) nil)))))))
 
     ;; If parameter have been changed in the init file which influence
     ;; face realization, clear the face cache so that new faces will
@@ -1217,7 +1268,7 @@ where FACE is a valid face specification, as it can be used with
 			 (emacs-version)
 			 "\n"
 			 :face '(variable-pitch :height 0.5)
-			 "Copyright (C) 2005 Free Software Foundation, Inc.")
+			 "Copyright (C) 2006 Free Software Foundation, Inc.")
     (and auto-save-list-file-prefix
 	 ;; Don't signal an error if the
 	 ;; directory for auto-save-list files
@@ -1264,7 +1315,7 @@ This is an internal function used to turn off the splash screen after
 the user caused an input event by hitting a key or clicking with the
 mouse."
   (interactive)
-  (if (and (consp last-command-event)
+  (if (and (memq 'down (event-modifiers last-command-event))
 	   (eq (posn-window (event-start last-command-event))
 	       (selected-window)))
       ;; This is a mouse-down event in the spash screen window.
@@ -1389,7 +1440,7 @@ More Manuals / Ordering Manuals    How to order printed manuals from the FSF
 ")
 		  (insert "\n\n" (emacs-version)
 			  "
-Copyright (C) 2005 Free Software Foundation, Inc."))
+Copyright (C) 2006 Free Software Foundation, Inc."))
 
 	      ;; No mouse menus, so give help using kbd commands.
 
@@ -1437,7 +1488,7 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 
 	      (insert "\n\n" (emacs-version)
 		      "
-Copyright (C) 2005 Free Software Foundation, Inc.")
+Copyright (C) 2006 Free Software Foundation, Inc.")
 
 	      (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
 		       (eq (key-binding "\C-h\C-d") 'describe-distribution)

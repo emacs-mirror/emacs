@@ -911,6 +911,11 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 (defvar math-cu-pure)
 
 (defun math-convert-units (expr math-cu-new-units &optional math-cu-pure)
+  (if (eq (car-safe math-cu-new-units) 'var)
+      (let ((unew (assq (nth 1 math-cu-new-units)
+                        (math-build-units-table))))
+        (if (eq (car-safe (nth 1 unew)) '+)
+            (setq math-cu-new-units (nth 1 unew)))))
   (math-with-extra-prec 2
     (let ((compat (and (not math-cu-pure) 
                        (math-find-compatible-unit expr math-cu-new-units)))

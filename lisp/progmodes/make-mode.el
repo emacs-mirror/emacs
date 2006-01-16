@@ -97,6 +97,7 @@
 
 (defgroup makefile nil
   "Makefile editing commands for Emacs."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'tools
   :prefix "makefile-")
 
@@ -104,7 +105,6 @@
   '((((class color)) (:background  "hotpink"))
     (t (:reverse-video t)))
   "Face to use for highlighting leading spaces in Font-Lock mode."
-  :group 'faces
   :group 'makefile)
 (put 'makefile-space-face 'face-alias 'makefile-space)
 
@@ -112,7 +112,6 @@
   ;; This needs to go along both with foreground and background colors (i.e. shell)
   '((t (:inherit font-lock-function-name-face)))
   "Face to use for additionally highlighting rule targets in Font-Lock mode."
-  :group 'faces
   :group 'makefile
   :version "22.1")
 
@@ -121,7 +120,6 @@
   ;;'((((class color) (min-colors 88) (background light)) (:background  "seashell1"))
   ;;  (((class color) (min-colors 88) (background dark)) (:background  "seashell4")))
   "Face to use for additionally highlighting Shell commands in Font-Lock mode."
-  :group 'faces
   :group 'makefile
   :version "22.1")
 
@@ -130,7 +128,6 @@
     (((class color) (background dark)) (:background  "DarkBlue"))
     (t (:reverse-video t)))
   "Face to use for additionally highlighting Perl code in Font-Lock mode."
-  :group 'faces
   :group 'makefile
   :version "22.1")
 

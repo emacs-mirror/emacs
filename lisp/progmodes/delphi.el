@@ -177,7 +177,7 @@ differs from the default."
 
 (defcustom delphi-other-face nil
   "*Face used to color everything else."
-  :type 'face
+  :type '(choice (const :tag "None" nil) face)
   :group 'delphi)
 
 (defconst delphi-directives

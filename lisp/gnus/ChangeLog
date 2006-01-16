@@ -1,3 +1,366 @@
+2006-01-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnrss.el (nnrss-wash-html-in-text-plain-parts): New variable.
+	(nnrss-request-article): Render text/plain parts as HTML.
+
+	* gnus-art.el (gnus-article-wash-html-with-w3m): No need to narrow
+	the buffer.
+
+2006-01-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-cus.el (gnus-group-parameters): Sync posting-style with
+	custom definition of `gnus-posting-styles'.
+
+	* gnus-start.el (gnus-gnus-to-quick-newsrc-format): Bind
+	print-circle.  Suggested by Kalle Olavi Niemitalo <kon@iki.fi>.
+
+2006-01-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-group.el (gnus-useful-groups): Use Gmane for ding.  Use
+	nntp for bug archive.
+
+2006-01-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnrss.el (nnrss-request-article): Fix the way to fill text/plain
+	parts.
+	(nnrss-normalize-date): New function converts ISO 8601 date into
+	RFC822 style.  Suggested by Mark Plaksin <happy@mcplaksin.org>.
+	(nnrss-check-group): Use it.
+
+2006-01-03  Rodrigo Ventura <yoda@isr.ist.utl.pt>  (tiny change)
+
+	* gnus-xmas.el (gnus-xmas-group-startup-message): Typo
+	gnus-splash-face -> gnus-splash.  Fixes starting from a TTY in
+	XEmacs.
+
+2006-01-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-work-articles): Remove useless `min'.
+
+	* nnrss.el (nnrss-fetch): Make it fail gracefully when it can't
+	fetch a feed.  Suggested by Mark Plaksin <happy@mcplaksin.org>.
+	(nnrss-insert-w3): Ditto.
+
+2005-12-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnrss.el (nnrss-request-article): Fix last change; fill
+	text/plain parts.
+
+2005-12-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnrss.el (nnrss-request-article): Replace <br />s with newlines
+	in text/plain part.
+	(nnrss-check-group): Don't add excessive newline to dc:subject.
+
+2005-12-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-delete-text-of-type): Enable it to
+	remove MIME buttons associated with multipart/alternative parts.
+	(gnus-mime-display-alternative): Tag buttons using `article-type'
+	text property.
+
+	* gnus-msg.el (gnus-copy-article-buffer): Remove MIME buttons
+	associated with multipart/alternative parts.
+
+2005-12-19  Mark Plaksin <happy@mcplaksin.org>  (tiny change)
+
+	* nnrss.el (nnrss-check-group): Put the RSS dc:subject in the
+	article.
+
+2005-12-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dns.el (query-dns): Make sure we check the buffer size before
+	removing tcp headers.
+
+2006-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* spam.el (spam-group-ham-mark-p, spam-group-spam-mark-p)
+	(spam-group-spam-marks): Delete functions.
+	(spam-list-articles): Just call spam-group-ham-marks directly.
+	(spam-group-ham-marks): Simplify.
+
+2005-12-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-signature-separator): Fix custom type.
+
+	* mm-decode.el (mm-inlined-types): Fix custom type.
+	(mm-keep-viewer-alive-types): Ditto.
+	(mm-automatic-display): Ditto.
+	(mm-attachment-override-types): Ditto.
+	(mm-inline-override-types): Ditto.
+	(mm-automatic-external-display): Ditto.
+
+2005-12-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-buttonized-mime-types): Mention addition of
+	multipart/alternative and add xref to mm-discouraged-alternatives
+	in doc string.
+
+	* mm-decode.el (mm-discouraged-alternatives): Add xref to
+	gnus-buttonized-mime-types in doc string.
+
+2005-12-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-charset-to-coding-system): Recognize
+	us-ascii as a MIME charset.
+
+	* mm-bodies.el (mm-decode-content-transfer-encoding): Protect
+	against the case where the 2nd arg TYPE is nil.
+
+2005-12-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-start.el (gnus-no-server-1): Mention
+	`gnus-level-default-subscribed' in doc string.
+
+2005-11-26  Dave Love  <fx@gnu.org>
+
+	* tls.el (open-tls-stream): Rename arg SERVICE to PORT.
+	(tls-program, tls-success): Provide openssl alternative.
+
+	* starttls.el: Doc fixes.
+	(starttls-open-stream-gnutls, starttls-open-stream): Rename arg
+	SERVICE to PORT.
+
+2005-12-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-start.el (gnus-start-draft-setup): Enforce
+	`gnus-draft-mode' for nndraft:drafts at startup.
+
+	* gnus.el (gnus-splash): Change custom group.
+	(gnus-group-get-parameter, gnus-group-parameter-value): Describe
+	allow-list argument.
+
+	* gnus-agent.el (gnus-agent-article-alist-save-format): Format doc
+	string.
+
+2005-12-09  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>  (tiny change)
+
+	* mm-decode.el (mm-display-external): Add lacked cdr.
+
+2005-12-12  Richard M. Stallman  <rms@gnu.org>
+
+	* mm-url.el (mm-url-load-url): Require url-parse and url-vars.
+
+2005-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-decode.el (mm-discouraged-alternatives): Fix custom type.
+	Suggest image/.* in the doc string.
+
+2005-12-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-display-external): Use nametemplate (defined in
+	RFC1524) if it is in mailcap or add a suffix according to
+	mailcap-mime-extensions when generating a temp filename; postpone
+	deleting a temp file for 2 seconds for some wrappers, shell
+	scripts, and so on, which might exit right after having started a
+	viewer command as a background job.
+
+2005-12-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-default-article-saver): Add user-defined
+	`function' to custom type.
+
+2005-12-02  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>  (tiny change)
+
+	* mm-view.el (mm-inline-text-html-render-with-w3m): Fix misplaced
+	parens.
+
+2005-11-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-cache.el (gnus-cache-rename-group): Wrap doc strings and
+	long lines.
+	(gnus-cache-delete-group): Wrap doc strings.
+
+	* gnus-agent.el (gnus-agent-rename-group)
+	(gnus-agent-delete-group): Wrap doc strings.
+
+2005-11-24  Pascal Rigaux  <pixel@mandriva.com>  (tiny change)
+
+	* rfc2231.el (rfc2231-parse-string): Support non-ascii chars.
+
+2005-11-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmail.el (nnmail-fancy-expiry-target): Use current-time instead
+	of current-time-string.
+
+2005-11-20  Stefan Schimanski  <schimmi@debian.org>  (tiny change)
+
+	* nnmail.el (nnmail-fancy-expiry-target): Protect against invalid
+	date header.
+
+2005-11-16  Boris Samorodov <bsam@ipt.ru>  (tiny patch)
+
+	* imap.el (imap-kerberos4-open): Ignore SSL stuff.
+
+2005-11-14  Kevin Greiner  <kevin.greiner@compsol.cc>
+
+	* gnus-agent.el (gnus-agent-article-alist-save-format): Changed
+	internal variable to a custom variable.  Changed default value
+	from compressed(2) to uncompressed(1).
+	(gnus-agent-read-agentview): Reversed revision 7.8 to restore
+	support for uncompressed agentview files.  Taken together, reading
+	the agentview file should now be 6-7 times faster.
+	(gnus-agent-long-article,
+	gnus-agent-short-article, gnus-agent-score): Renamed category
+	keywords to match gnus-cus.
+	(gnus-agent-summary-fetch-series): Modified to protect against
+	gnus-agent-summary-fetch-group clearing processable flags.
+	(gnus-agent-synchronize-group-flags): Update live group buffer as
+	synchronization may occur due to the user toggling the plugged
+	status.
+	(gnus-agent-braid-nov): Now tests new nov entries
+	for duplicates which are removed.  The invalid sort check then
+	triggers a rescan after the sort as sorting may have moved
+	duplicate entries such that they can be cheaply detected.
+	(gnus-agent-read-local): Trivial fix to format of
+	error message to display actual error condition.
+	(gnus-agent-save-local): Avoid saving symbols that are bound to
+	nil as they simply result in a warning message in
+	gnus-agent-read-local.
+	(gnus-agent-fetch-group-1): Clear downloadable flag when article
+	successfully downloaded.
+	(gnus-agent-regenerate-group): Use
+	gnus-agent-synchronize-group-flags to reset read status in both
+	gnus and server.
+
+	* nntp.el (nntp-end-of-line): Doc fix.
+	(nntp-authinfo-rejected): New error condition.
+	(nntp-wait-for): Use new error condition to signal authentication
+	error.
+	(nntp-retrieve-data): Rethrow new error condition to break out of
+	recursive call to nntp-send-authinfo.
+	
+2005-11-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-dribble-read-file): Use make-local-variable
+	rather than make-variable-buffer-local for file-precious-flag.
+
+2005-11-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-dribble-read-file): Quote file-precious-flag.
+
+2005-11-11  Jan Nieuwenhuizen  <janneke@gnu.org>
+
+	* gnus-start.el (gnus-dribble-read-file): Set file-precious-flag,
+	as a buffer-local variable.  This avoids creating truncated
+	dribble files as a result of a hang up, eg.
+
+2005-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-delay.el (gnus-delay-group): Don't autoload.
+	It's useless and could trigger a bug in cus-dep.el causing ldefs-boot
+	to be re-loaded when customizing the `gnus-delay' group.
+
+2005-11-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el: Revert last changes.
+	(message-insert-citation-line): Use newlines.
+
+2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-courtesy-message)
+	(message-mark-insert-begin, message-mark-insert-end)
+	(message-elide-ellipsis, message-cancel-message)
+	(message-add-header, message-change-subject)
+	(message-cross-post-followup-to-header)
+	(message-cross-post-insert-note, message-reduce-to-to-cc)
+	(message-widen-reply, message-delete-not-region)
+	(message-kill-to-signature, message-insert-signature)
+	(message-insert-importance-high, message-insert-importance-low)
+	(message-insert-or-toggle-importance)
+	(message-insert-disposition-notification-to)
+	(message-indent-citation, message-yank-original)
+	(message-cite-original-without-signature, message-cite-original)
+	(message-insert-citation-line, message-position-on-field)
+	(message-fix-before-sending, message-send-mail-partially)
+	(message-send-mail, message-send-mail-with-sendmail)
+	(message-send-mail-with-qmail, message-send-news)
+	(message-check-news-header-syntax, message-generate-headers)
+	(message-insert-courtesy-copy, message-fill-address)
+	(message-fill-header, message-shorten-references)
+	(message-setup-1, message-cancel-news)
+	(message-forward-make-body-plain) (message-forward-make-body-mime)
+	(message-forward-make-body-mml) (message-encode-message-body)
+	(message-forward-make-body-digest-plain)
+	(message-forward-make-body-digest-mime)
+	(message-use-alternative-email-as-from): Insert `hard-newline'
+	instead of ordinary newlines.
+
+2005-11-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-generate-headers): Downcase the argument
+	given to message-check-element.
+
+2005-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-parameters-case-fold-search): New variable.
+	(gnus-parameters-get-parameter): Use it.
+
+	* gnus-score.el (gnus-home-score-file): Doc fix.
+
+2005-11-01  Xavier Maillard  <zedek@gnu-rox.org>  (tiny change)
+
+	* gnus-score.el (gnus-update-score-entry-dates): Doc fix.
+
+2005-10-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-preview): Doc fix.
+
+2005-10-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* flow-fill.el (fill-flowed-encode-tests): Restore trailing
+	whitespace removed in revision 7.8.  Use concatenated string to
+	protect trailing whitespace.
+
+2005-10-27  Jouni K Seppanen <jks@iki.fi>  (tiny change)
+
+	* nnimap.el (nnimap-search-uids-not-since-is-evil): Add variable.
+	(nnimap-request-expire-articles): Use it to avoid sending 'UID
+	SEARCH UID ... NOT SINCE' queries, for inefficient servers like
+	Courier IMAP ("some version from 2004").  Mostly based on similar
+	code in the same function.
+
+2005-10-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-display-completion-list): New function.
+	(message-expand-group): Use it; make sure the Completions buffer
+	is modifiable.
+
+2005-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* imap.el (imap-open): Handle case where buffer is a buffer
+	object.
+
+2005-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* pgg-def.el:
+	* pgg-gpg.el:
+	* pgg-parse.el:
+	* pgg-pgp.el:
+	* pgg-pgp5.el:
+	* pgg.el: Move to the parent lisp directory.
+
+2005-10-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gnus-sum.el (gnus-ignored-from-addresses): Handle case where
+	user-mail-name is an empty string.
+
+2005-10-25  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-score.el (gnus-default-adaptive-score-alist): Set defaults
+	depending on gnus-score-decay-constant.
+
+2005-10-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnslashdot.el (nnslashdot-request-article)
+	(nnslashdot-retrieve-headers-1): Update to new HTML.
+
+2005-10-23  Simon Josefsson  <jas@extundo.com>
+
+	* imap.el (imap-gssapi-program): Align command line parameters
+	with latest GNU SASL.
+	(imap-gssapi-open): Ignore 'Trying ...' messages from GNU SASL.
+
 2005-10-20  Hiroshi Fujishima  <hiroshi.fujishima@gmail.com>  (tiny change)
 
 	* mail-source.el (mail-source-fetch-pop): Require pop3.
@@ -303,38 +666,6 @@
 	* gnus-fun.el (gnus-convert-image-to-face-command): Fix typo in
 	docstring.
 	(gnus-face-from-file): Likewise.
-
-2005-08-31  Juanma Barranquero  <lekktu@gmail.com>
-
-	* gnus-art.el (w3m-minor-mode-map):
-	* gnus-spec.el (gnus-newsrc-file-version):
-	* gnus-util.el (nnmail-active-file-coding-system)
-	(gnus-original-article-buffer, gnus-user-agent):
-	* gnus.el (gnus-ham-process-destinations)
-	(gnus-parameter-ham-marks-alist)
-	(gnus-parameter-spam-marks-alist, gnus-spam-autodetect)
-	(gnus-spam-autodetect-methods, gnus-spam-newsgroup-contents)
-	(gnus-spam-process-destinations, gnus-spam-process-newsgroups):
-	* mm-decode.el (gnus-current-window-configuration):
-	* mm-extern.el (gnus-article-mime-handles):
-	* mm-url.el (url-current-object, url-package-name)
-	(url-package-version):
-	* mm-view.el (gnus-article-mime-handles, gnus-newsgroup-charset)
-	(smime-keys, w3m-cid-retrieve-function-alist)
-	(w3m-current-buffer, w3m-display-inline-images)
-	(w3m-minor-mode-map):
-	* mml-smime.el (gnus-extract-address-components):
-	* mml.el (gnus-article-mime-handles, gnus-mouse-2)
-	(gnus-newsrc-hashtb, message-default-charset)
-	(message-deletable-headers, message-options)
-	(message-posting-charset, message-required-mail-headers)
-	(message-required-news-headers):
-	* mml1991.el (mc-pgp-always-sign):
-	* mml2015.el (mc-pgp-always-sign):
-	* nnheader.el (nnmail-extra-headers):
-	* rfc1843.el (gnus-decode-encoded-word-function)
-	(gnus-decode-header-function, gnus-newsgroup-name):
-	* spam-stat.el (gnus-original-article-buffer): Add defvars.
 
 2005-08-31  Juanma Barranquero  <lekktu@gmail.com>
 

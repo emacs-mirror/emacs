@@ -174,7 +174,7 @@ off_t data_segment_old_fileoff;
 
 struct segment_command *data_segment_scp;
 
-/* Read n bytes from infd into memory starting at address dest.
+/* Read N bytes from infd into memory starting at address DEST.
    Return true if successful, false otherwise.  */
 static int
 unexec_read (void *dest, size_t n)
@@ -182,8 +182,9 @@ unexec_read (void *dest, size_t n)
   return n == read (infd, dest, n);
 }
 
-/* Write n bytes from memory starting at address src to outfd starting
-   at offset dest.  Return true if successful, false otherwise.  */
+/* Write COUNT bytes from memory starting at address SRC to outfd
+   starting at offset DEST.  Return true if successful, false
+   otherwise.  */
 static int
 unexec_write (off_t dest, const void *src, size_t count)
 {
@@ -193,8 +194,32 @@ unexec_write (off_t dest, const void *src, size_t count)
   return write (outfd, src, count) == count;
 }
 
-/* Copy n bytes from starting offset src in infd to starting offset
-   dest in outfd.  Return true if successful, false otherwise.  */
+/* Write COUNT bytes of zeros to outfd starting at offset DEST.
+   Return true if successful, false otherwise.  */
+static int
+unexec_write_zero (off_t dest, size_t count)
+{
+  char buf[UNEXEC_COPY_BUFSZ];
+  ssize_t bytes;
+
+  bzero (buf, UNEXEC_COPY_BUFSZ);
+  if (lseek (outfd, dest, SEEK_SET) != dest)
+    return 0;
+
+  while (count > 0)
+    {
+      bytes = count > UNEXEC_COPY_BUFSZ ? UNEXEC_COPY_BUFSZ : count;
+      if (write (outfd, buf, bytes) != bytes)
+	return 0;
+      count -= bytes;
+    }
+
+  return 1;
+}
+
+/* Copy COUNT bytes from starting offset SRC in infd to starting
+   offset DEST in outfd.  Return true if successful, false
+   otherwise.  */
 static int
 unexec_copy (off_t dest, off_t src, ssize_t count)
 {
@@ -684,14 +709,39 @@ copy_data_segment (struct load_command *lc)
 	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
 	    unexec_error ("cannot write section %s's header", SECT_DATA);
 	}
-      else if (strncmp (sectp->sectname, SECT_BSS, 16) == 0
-	       || strncmp (sectp->sectname, SECT_COMMON, 16) == 0)
+      else if (strncmp (sectp->sectname, SECT_COMMON, 16) == 0)
 	{
 	  sectp->flags = S_REGULAR;
 	  if (!unexec_write (sectp->offset, (void *) sectp->addr, sectp->size))
-	    unexec_error ("cannot write section %s", SECT_DATA);
+	    unexec_error ("cannot write section %s", sectp->sectname);
 	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
-	    unexec_error ("cannot write section %s's header", SECT_DATA);
+	    unexec_error ("cannot write section %s's header", sectp->sectname);
+	}
+      else if (strncmp (sectp->sectname, SECT_BSS, 16) == 0)
+	{
+	  extern char *my_endbss_static;
+	  unsigned long my_size;
+
+	  sectp->flags = S_REGULAR;
+
+	  /* Clear uninitialized local variables in statically linked
+	     libraries.  In particular, function pointers stored by
+	     libSystemStub.a, which is introduced in Mac OS X 10.4 for
+	     binary compatibility with respect to long double, are
+	     cleared so that they will be reinitialized when the
+	     dumped binary is executed on other versions of OS.  */
+	  my_size = (unsigned long)my_endbss_static - sectp->addr;
+	  if (!(sectp->addr <= (unsigned long)my_endbss_static
+		&& my_size <= sectp->size))
+	    unexec_error ("my_endbss_static is not in section %s",
+			  sectp->sectname);
+	  if (!unexec_write (sectp->offset, (void *) sectp->addr, my_size))
+	    unexec_error ("cannot write section %s", sectp->sectname);
+	  if (!unexec_write_zero (sectp->offset + my_size,
+				  sectp->size - my_size))
+	    unexec_error ("cannot write section %s", sectp->sectname);
+	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
+	    unexec_error ("cannot write section %s's header", sectp->sectname);
 	}
       else if (strncmp (sectp->sectname, "__la_symbol_ptr", 16) == 0
 	       || strncmp (sectp->sectname, "__nl_symbol_ptr", 16) == 0

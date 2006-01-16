@@ -144,12 +144,12 @@
 
 (defcustom locate-fcodes-file nil
   "*File name for the database of file names."
-  :type '(choice file (const nil))
+  :type '(choice (const :tag "None" nil) file)
   :group 'locate)
 
 (defcustom locate-header-face nil
   "*Face used to highlight the locate header."
-  :type 'face
+  :type '(choice (const :tag "None" nil) face)
   :group 'locate)
 
 ;;;###autoload
@@ -229,7 +229,8 @@ With prefix arg, prompt for the locate command to run."
     (save-window-excursion
       (set-buffer (get-buffer-create locate-buffer-name))
       (locate-mode)
-      (let ((inhibit-read-only t))
+      (let ((inhibit-read-only t)
+	    (buffer-undo-list t))
 	(erase-buffer)
 
 	(setq locate-current-filter filter)
@@ -376,13 +377,13 @@ do not work in subdirectories.
   (set (make-local-variable 'dired-directory) "/")
   (set (make-local-variable 'dired-subdir-switches) locate-ls-subdir-switches)
   (setq dired-switches-alist nil)
-  (make-local-variable 'dired-move-to-filename-regexp)
+  (make-local-variable 'directory-listing-before-filename-regexp)
   ;; This should support both Unix and Windoze style names
-  (setq dired-move-to-filename-regexp
+  (setq directory-listing-before-filename-regexp
 	(concat "^."
 		(make-string (1- locate-filename-indentation) ?\ )
 		"\\(/\\|[A-Za-z]:\\)\\|"
-		(default-value 'dired-move-to-filename-regexp)))
+		(default-value 'directory-listing-before-filename-regexp)))
   (make-local-variable 'dired-actual-switches)
   (setq dired-actual-switches "")
   (make-local-variable 'dired-permission-flags-regexp)

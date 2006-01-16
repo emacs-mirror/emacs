@@ -279,7 +279,8 @@ instead."
       (if (stringp switches)
 	  (setq switches (split-string switches)))
       (let (eshell-current-handles
-	    eshell-current-subjob-p)
+	    eshell-current-subjob-p
+	    font-lock-mode)
 	;; use the fancy highlighting in `eshell-ls' rather than font-lock
 	(when (and eshell-ls-use-colors
 		   (featurep 'font-lock))
@@ -320,7 +321,8 @@ instead."
   (defvar show-recursive)
   (defvar show-size)
   (defvar sort-method)
-  (defvar ange-cache))
+  (defvar ange-cache)
+  (defvar dired-flag))
 
 (defun eshell-do-ls (&rest args)
   "Implementation of \"ls\" in Lisp, passing ARGS."
@@ -333,7 +335,7 @@ instead."
    `((?a "all" nil show-all
 	 "show all files in directory")
      (?c nil by-ctime sort-method
-	 "sort by modification time")
+	 "sort by last status change time")
      (?d "directory" nil dir-literal
 	 "list directory entries instead of contents")
      (?k "kilobytes" 1024 block-size
@@ -372,6 +374,8 @@ instead."
 	 "sort alphabetically by entry extension")
      (?1 nil single-column listing-style
 	 "list one file per line")
+     (nil "dired" nil dired-flag
+	  "Here for compatibility with GNU ls.")
      (nil "help" nil nil
 	  "show this usage display")
      :external "ls"

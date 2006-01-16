@@ -55,7 +55,7 @@
 		   (:foreground "lightblue"))
 		  (t :underline t))
   "Default face used for buttons."
-  :group 'faces)
+  :group 'basic-faces)
 
 ;;;###autoload
 (defvar button-map
@@ -69,6 +69,7 @@
 (defvar button-buffer-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?\t] 'forward-button)
+    (define-key map "\e\t" 'backward-button)
     (define-key map [backtab] 'backward-button)
     map)
   "Keymap useful for buffers containing buttons.

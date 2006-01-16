@@ -1,7 +1,9 @@
 # -*- Makefile -*- for leim subdirectory in GNU Emacs on the Microsoft W32 API.
-# Copyright (C) 1997, 2004 Electrotechnical Laboratory, JAPAN.
-#   Licensed to the Free Software Foundation.
-# Copyright (C) 2005, Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005
+#   Free Software Foundation, Inc.
+# Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+#   National Institute of Advanced Industrial Science and Technology (AIST)
+#   Registration Number H14PRO021
 
 # This file is part of GNU Emacs.
 
@@ -163,6 +165,9 @@ $(SUBDIRS):
 .NO_PARALLEL: $(TIT) $(MISC_DIC)
 
 # Rule to generate quail/*.el from CXTERM-DIC/*.tit.
+#
+# WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
+#          this can break with GNU Make 3.81 and later if sh.exe is used.
 $(TIT):
 	$(RUN_EMACS) -l $(buildlisppath)/international/titdic-cnv \
 	    --eval $(ARGQUOTE)(batch-titdic-convert t)$(ARGQUOTE) \
@@ -177,6 +182,9 @@ $(MISC_DIC):
 	$(RUN_EMACS)  -l $(buildlisppath)/international/quail \
 	    -f batch-byte-compile $(MISC_DIC:.elc=.el)
 
+#
+# WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
+#          this can break with GNU Make 3.81 and later if sh.exe is used.
 leim-list.el: $(SUBDIRS) $(WORLD)
 	$(RUN_EMACS) -l $(buildlisppath)/international/quail \
 	    --eval $(ARGQUOTE)(update-leim-list-file $(DQUOTE).$(DQUOTE))$(ARGQUOTE)

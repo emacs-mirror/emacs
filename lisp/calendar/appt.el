@@ -1,6 +1,7 @@
 ;;; appt.el --- appointment notification functions
 
-;; Copyright (C) 1989, 1990, 1994, 1998, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1994, 1998, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Neil Mager <neilm@juliet.ll.mit.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -235,6 +236,8 @@ The variable `appt-audible' controls the audible reminder."
     (cond ((eq appt-display-format 'window)
            (funcall appt-disp-window-function
                     (number-to-string mins)
+                    ;; TODO - use calendar-month-abbrev-array rather
+                    ;; than %b?
                     (format-time-string "%a %b %e " (current-time))
                     string)
            (run-at-time (format "%d sec" appt-display-duration)

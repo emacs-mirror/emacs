@@ -693,6 +693,7 @@ a previously found match."
 
 (defvar occur-mode-map
   (let ((map (make-sparse-keymap)))
+    ;; We use this alternative name, so we can use \\[occur-mode-mouse-goto].
     (define-key map [mouse-2] 'occur-mode-mouse-goto)
     (define-key map "\C-c\C-c" 'occur-mode-goto-occurrence)
     (define-key map "\C-m" 'occur-mode-goto-occurrence)
@@ -746,18 +747,6 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   "Handle `revert-buffer' for Occur mode buffers."
   (apply 'occur-1 (append occur-revert-arguments (list (buffer-name)))))
 
-(defun occur-mode-mouse-goto (event)
-  "In Occur mode, go to the occurrence whose line you click on."
-  (interactive "e")
-  (let (pos)
-    (save-excursion
-      (set-buffer (window-buffer (posn-window (event-end event))))
-      (save-excursion
-	(goto-char (posn-point (event-end event)))
-	(setq pos (occur-mode-find-occurrence))))
-    (pop-to-buffer (marker-buffer pos))
-    (goto-char pos)))
-
 (defun occur-mode-find-occurrence ()
   (let ((pos (get-text-property (point) 'occur-target)))
     (unless pos
@@ -766,10 +755,22 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
       (error "Buffer for this occurrence was killed"))
     pos))
 
-(defun occur-mode-goto-occurrence ()
+(defalias 'occur-mode-mouse-goto 'occur-mode-goto-occurrence)
+(defun occur-mode-goto-occurrence (&optional event)
   "Go to the occurrence the current line describes."
-  (interactive)
-  (let ((pos (occur-mode-find-occurrence)))
+  (interactive (list last-nonmenu-event))
+  (let ((pos
+         (if (null event)
+             ;; Actually `event-end' works correctly with a nil argument as
+             ;; well, so we could dispense with this test, but let's not
+             ;; rely on this undocumented behavior.
+             (occur-mode-find-occurrence)
+           (with-current-buffer (window-buffer (posn-window (event-end event)))
+             (save-excursion
+               (goto-char (posn-point (event-end event)))
+               (occur-mode-find-occurrence)))))
+        same-window-buffer-names
+        same-window-regexps)
     (pop-to-buffer (marker-buffer pos))
     (goto-char pos)))
 
@@ -832,7 +833,8 @@ Compatibility function for \\[next-error] invocations."
 
     (goto-char (cond (reset (point-min))
 		     ((< argp 0) (line-beginning-position))
-		     ((line-end-position))))
+		     ((> argp 0) (line-end-position))
+		     ((point))))
     (occur-find-match
      (abs argp)
      (if (> 0 argp)
@@ -878,6 +880,16 @@ If the value is nil, don't highlight the buffer names specially."
   :type 'face
   :group 'matching)
 
+(defcustom occur-excluded-properties
+  '(read-only invisible intangible field mouse-face help-echo local-map keymap
+    yank-handler follow-link)
+  "*Text properties to discard when copying lines to the *Occur* buffer.
+The value should be a list of text properties to discard or t,
+which means to discard all text properties."
+  :type '(choice (const :tag "All" t) (repeat symbol))
+  :group 'matching
+  :version "22.1")
+
 (defun occur-accumulate-lines (count &optional keep-props)
   (save-excursion
     (let ((forwardp (> count 0))
@@ -894,10 +906,12 @@ If the value is nil, don't highlight the buffer names specially."
 	    (if (fboundp 'jit-lock-fontify-now)
 		(jit-lock-fontify-now beg end)))
 	(push
-	 (funcall (if keep-props
-		      #'buffer-substring
-		    #'buffer-substring-no-properties)
-		  beg end)
+	 (if (and keep-props (not (eq occur-excluded-properties t)))
+	     (let ((str (buffer-substring beg end)))
+	       (remove-list-of-text-properties
+		0 (length str) occur-excluded-properties str)
+	       str)
+	   (buffer-substring-no-properties beg end))
 	 result)
 	(forward-line (if forwardp 1 -1)))
       (nreverse result))))
@@ -1033,7 +1047,8 @@ See also `multi-occur'."
 		      (and case-fold-search
 			   (isearch-no-upper-case-p regexp t))
 		      list-matching-lines-buffer-name-face
-		      nil list-matching-lines-face t)))
+		      nil list-matching-lines-face
+		      (not (eq occur-excluded-properties t)))))
 	  (let* ((bufcount (length active-bufs))
 		 (diff (- (length bufs) bufcount)))
 	    (message "Searched %d buffer%s%s; %s match%s for `%s'"
@@ -1076,8 +1091,7 @@ See also `multi-occur'."
 		(marker nil)
 		(curstring "")
 		(headerpt (with-current-buffer out-buf (point))))
-	    (save-excursion
-	      (set-buffer buf)
+	    (with-current-buffer buf
 	      (or coding
 		  ;; Set CODING only if the current buffer locally
 		  ;; binds buffer-file-coding-system.
@@ -1102,13 +1116,15 @@ See also `multi-occur'."
 			     (text-property-not-all begpt endpt 'fontified t))
 			(if (fboundp 'jit-lock-fontify-now)
 			    (jit-lock-fontify-now begpt endpt)))
-		    (setq curstring (buffer-substring begpt endpt))
-		    ;; Depropertize the string, and maybe
-		    ;; highlight the matches
+		    (if (and keep-props (not (eq occur-excluded-properties t)))
+			(progn
+			  (setq curstring (buffer-substring begpt endpt))
+			  (remove-list-of-text-properties
+			   0 (length curstring) occur-excluded-properties curstring))
+		      (setq curstring (buffer-substring-no-properties begpt endpt)))
+		    ;; Highlight the matches
 		    (let ((len (length curstring))
 			  (start 0))
-		      (unless keep-props
-			(set-text-properties 0 len nil curstring))
 		      (while (and (< start len)
 				  (string-match regexp curstring start))
 			(add-text-properties
@@ -1129,12 +1145,19 @@ See also `multi-occur'."
 				    (append
 				     (when prefix-face
 				       `(font-lock-face prefix-face))
-				     '(occur-prefix t)))
+				     `(occur-prefix t mouse-face (highlight)
+				       occur-target ,marker follow-link t
+				       help-echo "mouse-2: go to this occurrence")))
 			     ;; We don't put `mouse-face' on the newline,
 			     ;; because that loses.  And don't put it
 			     ;; on context lines to reduce flicker.
-			     (propertize curstring 'mouse-face 'highlight)
-			     "\n"))
+			     (propertize curstring 'mouse-face (list 'highlight)
+					 'occur-target marker
+					 'follow-link t
+					 'help-echo
+					 "mouse-2: go to this occurrence")
+			     ;; Add marker at eol, but no mouse props.
+			     (propertize "\n" 'occur-target marker)))
 			   (data
 			    (if (= nlines 0)
 				;; The simple display style
@@ -1154,11 +1177,7 @@ See also `multi-occur'."
 			(let ((beg (point))
 			      (end (progn (insert data) (point))))
 			  (unless (= nlines 0)
-			    (insert "-------\n"))
-			  (add-text-properties
-			   beg end
-			   `(occur-target ,marker follow-link t
-					  help-echo "mouse-2: go to this occurrence")))))
+			    (insert "-------\n")))))
 		    (goto-char endpt))
 		  (if endpt
 		      (progn
@@ -1205,41 +1224,42 @@ C-l to clear the screen, redisplay, and offer same replacement again,
 E to edit the replacement string"
   "Help message while in `query-replace'.")
 
-(defvar query-replace-map (make-sparse-keymap)
+(defvar query-replace-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map " " 'act)
+    (define-key map "\d" 'skip)
+    (define-key map [delete] 'skip)
+    (define-key map [backspace] 'skip)
+    (define-key map "y" 'act)
+    (define-key map "n" 'skip)
+    (define-key map "Y" 'act)
+    (define-key map "N" 'skip)
+    (define-key map "e" 'edit-replacement)
+    (define-key map "E" 'edit-replacement)
+    (define-key map "," 'act-and-show)
+    (define-key map "q" 'exit)
+    (define-key map "\r" 'exit)
+    (define-key map [return] 'exit)
+    (define-key map "." 'act-and-exit)
+    (define-key map "\C-r" 'edit)
+    (define-key map "\C-w" 'delete-and-edit)
+    (define-key map "\C-l" 'recenter)
+    (define-key map "!" 'automatic)
+    (define-key map "^" 'backup)
+    (define-key map "\C-h" 'help)
+    (define-key map [f1] 'help)
+    (define-key map [help] 'help)
+    (define-key map "?" 'help)
+    (define-key map "\C-g" 'quit)
+    (define-key map "\C-]" 'quit)
+    (define-key map "\e" 'exit-prefix)
+    (define-key map [escape] 'exit-prefix)
+    map)
   "Keymap that defines the responses to questions in `query-replace'.
 The \"bindings\" in this map are not commands; they are answers.
 The valid answers include `act', `skip', `act-and-show',
 `exit', `act-and-exit', `edit', `delete-and-edit', `recenter',
 `automatic', `backup', `exit-prefix', and `help'.")
-
-(define-key query-replace-map " " 'act)
-(define-key query-replace-map "\d" 'skip)
-(define-key query-replace-map [delete] 'skip)
-(define-key query-replace-map [backspace] 'skip)
-(define-key query-replace-map "y" 'act)
-(define-key query-replace-map "n" 'skip)
-(define-key query-replace-map "Y" 'act)
-(define-key query-replace-map "N" 'skip)
-(define-key query-replace-map "e" 'edit-replacement)
-(define-key query-replace-map "E" 'edit-replacement)
-(define-key query-replace-map "," 'act-and-show)
-(define-key query-replace-map "q" 'exit)
-(define-key query-replace-map "\r" 'exit)
-(define-key query-replace-map [return] 'exit)
-(define-key query-replace-map "." 'act-and-exit)
-(define-key query-replace-map "\C-r" 'edit)
-(define-key query-replace-map "\C-w" 'delete-and-edit)
-(define-key query-replace-map "\C-l" 'recenter)
-(define-key query-replace-map "!" 'automatic)
-(define-key query-replace-map "^" 'backup)
-(define-key query-replace-map "\C-h" 'help)
-(define-key query-replace-map [f1] 'help)
-(define-key query-replace-map [help] 'help)
-(define-key query-replace-map "?" 'help)
-(define-key query-replace-map "\C-g" 'quit)
-(define-key query-replace-map "\C-]" 'quit)
-(define-key query-replace-map "\e" 'exit-prefix)
-(define-key query-replace-map [escape] 'exit-prefix)
 
 (defun replace-match-string-symbols (n)
   "Process a list (and any sub-lists), expanding certain symbols.
@@ -1454,31 +1474,32 @@ make, or the user didn't cancel the call."
 				 ;; For speed, use only integers and
 				 ;; reuse the list used last time.
 				 (replace-match-data t real-match-data)))))
+	  
+	  ;; Record whether the match is nonempty, to avoid an infinite loop
+	  ;; repeatedly matching the same empty string.
+	  (setq nonempty-match
+		(/= (nth 0 real-match-data) (nth 1 real-match-data)))
+
+	  ;; If the match is empty, record that the next one can't be
+	  ;; adjacent.
+
+	  ;; Otherwise, if matching a regular expression, do the next
+	  ;; match now, since the replacement for this match may
+	  ;; affect whether the next match is adjacent to this one.
+	  ;; If that match is empty, don't use it.
+	  (setq match-again
+		(and nonempty-match
+		     (or (not regexp-flag)
+			 (and (looking-at search-string)
+			      (let ((match (match-data)))
+				(and (/= (nth 0 match) (nth 1 match))
+				     match))))))
+
 	  ;; Optionally ignore matches that have a read-only property.
 	  (unless (and query-replace-skip-read-only
 		       (text-property-not-all
-			(match-beginning 0) (match-end 0)
+			(nth 0 real-match-data) (nth 1 real-match-data)
 			'read-only nil))
-
-	    ;; Record whether the match is nonempty, to avoid an infinite loop
-	    ;; repeatedly matching the same empty string.
-	    (setq nonempty-match
-		  (/= (nth 0 real-match-data) (nth 1 real-match-data)))
-
-	    ;; If the match is empty, record that the next one can't be
-	    ;; adjacent.
-
-	    ;; Otherwise, if matching a regular expression, do the next
-	    ;; match now, since the replacement for this match may
-	    ;; affect whether the next match is adjacent to this one.
-	    ;; If that match is empty, don't use it.
-	    (setq match-again
-		  (and nonempty-match
-		       (or (not regexp-flag)
-			   (and (looking-at search-string)
-				(let ((match (match-data)))
-				  (and (/= (nth 0 match) (nth 1 match))
-				       match))))))
 
 	    ;; Calculate the replacement string, if necessary.
 	    (when replacements
@@ -1690,7 +1711,7 @@ make, or the user didn't cancel the call."
       (if replace-overlay
 	  (move-overlay replace-overlay match-beg match-end (current-buffer))
 	(setq replace-overlay (make-overlay match-beg match-end))
-	(overlay-put replace-overlay 'priority 1) ;higher than lazy overlays
+	(overlay-put replace-overlay 'priority 1001) ;higher than lazy overlays
 	(overlay-put replace-overlay 'face 'query-replace)))
   (if query-replace-lazy-highlight
       (let ((isearch-string string)

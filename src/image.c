@@ -2259,23 +2259,25 @@ find_image_fsspec (specified_file, file, fss)
      Lisp_Object specified_file, *file;
      FSSpec *fss;
 {
-#if MAC_OSX
-  FSRef fsr;
-#endif
   OSErr err;
+  AEDesc desc;
 
   *file = x_find_image_file (specified_file);
   if (!STRINGP (*file))
     return fnfErr;		/* file or directory not found;
 				   incomplete pathname */
   /* Try to open the image file.  */
-#if MAC_OSX
-  err = FSPathMakeRef (SDATA (*file), &fsr, NULL);
+  err = AECoercePtr (TYPE_FILE_NAME, SDATA (*file),
+		     SBYTES (*file), typeFSS, &desc);
   if (err == noErr)
-    err = FSGetCatalogInfo (&fsr, kFSCatInfoNone, NULL, NULL, fss, NULL);
+    {
+#if TARGET_API_MAC_CARBON
+      err = AEGetDescData (&desc, fss, sizeof (FSSpec));
 #else
-  err = posix_pathname_to_fsspec (SDATA (*file), fss);
+      *fss = *(FSSpec *)(*(desc.dataHandle));
 #endif
+      AEDisposeDesc (&desc);
+    }
   return err;
 }
 
@@ -2291,6 +2293,7 @@ image_load_qt_1 (f, img, type, fss, dh)
   GraphicsImportComponent gi;
   Rect rect;
   int width, height;
+  ImageDescriptionHandle desc_handle;
   short draw_all_pixels;
   Lisp_Object specified_bg;
   XColor color;
@@ -2326,14 +2329,22 @@ image_load_qt_1 (f, img, type, fss, dh)
 	  goto error;
 	}
     }
-  err = GraphicsImportGetNaturalBounds (gi, &rect);
-  if (err != noErr)
+  err = GraphicsImportGetImageDescription (gi, &desc_handle);
+  if (err != noErr || desc_handle == NULL)
     {
       image_error ("Error reading `%s'", img->spec, Qnil);
       goto error;
     }
-  width = img->width = rect.right - rect.left;
-  height = img->height = rect.bottom - rect.top;
+  width = img->width = (*desc_handle)->width;
+  height = img->height = (*desc_handle)->height;
+  DisposeHandle ((Handle)desc_handle);
+
+  if (!check_image_size (f, width, height))
+    {
+      image_error ("Invalid image size", Qnil, Qnil);
+      goto error;
+    }
+
   err = GraphicsImportDoesDrawAllPixels (gi, &draw_all_pixels);
 #if 0
   /* Don't check the error code here.  It may have an undocumented
@@ -2535,6 +2546,16 @@ image_load_quartz2d (f, img, png_p)
       image_error ("Error reading image `%s'", img->spec, Qnil);
       return 0;
     }
+  width = img->width = CGImageGetWidth (image);
+  height = img->height = CGImageGetHeight (image);
+
+  if (!check_image_size (f, width, height))
+    {
+      CGImageRelease (image);
+      UNGCPRO;
+      image_error ("Invalid image size", Qnil, Qnil);
+      return 0;
+    }
 
   if (png_p)
     {
@@ -2548,8 +2569,7 @@ image_load_quartz2d (f, img, png_p)
 	  color.blue = BLUE16_FROM_ULONG (color.pixel);
 	}
     }
-  width = img->width = CGImageGetWidth (image);
-  height = img->height = CGImageGetHeight (image);
+
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     {
       CGImageRelease (image);
@@ -3698,6 +3718,47 @@ xpm_image_p (object)
 
 #endif /* HAVE_XPM || MAC_OS */
 
+#if defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
+int
+x_create_bitmap_from_xpm_data (f, bits)
+     struct frame *f;
+     char **bits;
+{
+  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  int id, rc;
+  XpmAttributes attrs;
+  Pixmap bitmap, mask;
+
+  bzero (&attrs, sizeof attrs);
+
+  attrs.visual = FRAME_X_VISUAL (f);
+  attrs.colormap = FRAME_X_COLORMAP (f);
+  attrs.valuemask |= XpmVisual;
+  attrs.valuemask |= XpmColormap;
+
+  rc = XpmCreatePixmapFromData (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				bits, &bitmap, &mask, &attrs);
+  if (rc != XpmSuccess)
+    {
+      XpmFreeAttributes (&attrs);
+      return -1;
+    }
+
+  id = x_allocate_bitmap_record (f);
+  dpyinfo->bitmaps[id - 1].pixmap = bitmap;
+  dpyinfo->bitmaps[id - 1].have_mask = 1;
+  dpyinfo->bitmaps[id - 1].mask = mask;
+  dpyinfo->bitmaps[id - 1].file = NULL;
+  dpyinfo->bitmaps[id - 1].height = attrs.height;
+  dpyinfo->bitmaps[id - 1].width = attrs.width;
+  dpyinfo->bitmaps[id - 1].depth = attrs.depth;
+  dpyinfo->bitmaps[id - 1].refcount = 1;
+
+  XpmFreeAttributes (&attrs);
+  return id;
+}
+#endif /* defined (HAVE_XPM) && defined (HAVE_X_WINDOWS) */
+
 /* Load image IMG which will be displayed on frame F.  Value is
    non-zero if successful.  */
 
@@ -3745,6 +3806,9 @@ xpm_load (f, img)
   attrs.valuemask |= XpmCloseness;
 #endif /* not XpmAllocCloseColors */
 #endif /* ALLOC_XPM_COLORS */
+#ifdef ALLOC_XPM_COLORS
+  xpm_init_color_cache (f, &attrs);
+#endif
 
   /* If image specification contains symbolic color definitions, add
      these to `attrs'.  */
@@ -4190,6 +4254,13 @@ xpm_load_image (f, img, contents, end)
       || width <= 0 || height <= 0
       || num_colors <= 0 || chars_per_pixel <= 0)
     goto failure;
+
+  if (!check_image_size (f, width, height))
+    {
+      image_error ("Invalid image size", Qnil, Qnil);
+      goto failure;
+    }
+
   expect (',');
 
   XSETFRAME (frame, f);
@@ -7709,6 +7780,9 @@ gif_load (f, img)
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   specified_data = image_spec_value (img->spec, QCdata, NULL);
 
+  /* Animated gifs use QuickTime Movie Toolbox.  So initialize it here. */
+  EnterMovies ();
+
   if (NILP (specified_data))
     {
       /* Read from a file */
@@ -8431,12 +8505,8 @@ meaning don't clear the cache.  */);
 void
 init_image ()
 {
-#ifdef MAC_OS
-  /* Animated gifs use QuickTime Movie Toolbox.  So initialize it here. */
-  EnterMovies ();
-#ifdef MAC_OSX
+#if defined (MAC_OSX) && TARGET_API_MAC_CARBON
   init_image_func_pointer ();
-#endif
 #endif
 }
 

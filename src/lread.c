@@ -1392,33 +1392,34 @@ openp (path, str, suffixes, storeptr, predicate)
 
 /* Merge the list we've accumulated of globals from the current input source
    into the load_history variable.  The details depend on whether
-   the source has an associated file name or not. */
+   the source has an associated file name or not.
+
+   FILENAME is the file name that we are loading from.
+   ENTIRE is 1 if loading that entire file, 0 if evaluating part of it.  */
 
 static void
-build_load_history (stream, source)
-     FILE *stream;
-     Lisp_Object source;
+build_load_history (filename, entire)
+     Lisp_Object filename;
+     int entire;
 {
   register Lisp_Object tail, prev, newelt;
   register Lisp_Object tem, tem2;
-  register int foundit, loading;
-
-  loading = stream || !NARROWED;
+  register int foundit = 0;
 
   tail = Vload_history;
   prev = Qnil;
-  foundit = 0;
+
   while (CONSP (tail))
     {
       tem = XCAR (tail);
 
       /* Find the feature's previous assoc list... */
-      if (!NILP (Fequal (source, Fcar (tem))))
+      if (!NILP (Fequal (filename, Fcar (tem))))
 	{
 	  foundit = 1;
 
-	  /*  If we're loading, remove it. */
-	  if (loading)
+	  /*  If we're loading the entire file, remove old data. */
+	  if (entire)
 	    {
 	      if (NILP (prev))
 		Vload_history = XCDR (tail);
@@ -1450,10 +1451,10 @@ build_load_history (stream, source)
       QUIT;
     }
 
-  /* If we're loading, cons the new assoc onto the front of load-history,
-     the most-recently-loaded position.  Also do this if we didn't find
-     an existing member for the current source.  */
-  if (loading || !foundit)
+  /* If we're loading an entire file, cons the new assoc onto the
+     front of load-history, the most-recently-loaded position.  Also
+     do this if we didn't find an existing member for the file.  */
+  if (entire || !foundit)
     Vload_history = Fcons (Fnreverse (Vcurrent_load_list),
 			   Vload_history);
 }
@@ -1509,21 +1510,32 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
   register int c;
   register Lisp_Object val;
   int count = SPECPDL_INDEX ();
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   struct buffer *b = 0;
+  int bpos;
   int continue_reading_p;
+  /* Nonzero if reading an entire buffer.  */
+  int whole_buffer = 0;
+  /* 1 on the first time around.  */
+  int first_sexp = 1;
+
+  if (MARKERP (readcharfun))
+    {
+      if (NILP (start))
+	start = readcharfun;	
+    }
 
   if (BUFFERP (readcharfun))
     b = XBUFFER (readcharfun);
   else if (MARKERP (readcharfun))
     b = XMARKER (readcharfun)->buffer;
 
-  specbind (Qstandard_input, readcharfun);
+  specbind (Qstandard_input, readcharfun); /* GCPROs readcharfun.  */
   specbind (Qcurrent_load_list, Qnil);
   record_unwind_protect (readevalloop_1, load_convert_to_unibyte ? Qt : Qnil);
   load_convert_to_unibyte = !NILP (unibyte);
 
-  GCPRO1 (sourcename);
+  GCPRO4 (sourcename, readfun, start, end);
 
   LOADHIST_ATTACH (sourcename);
 
@@ -1537,11 +1549,31 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
 
       if (!NILP (start))
 	{
+	  /* Switch to the buffer we are reading from.  */
 	  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+	  set_buffer_internal (b);
+
+	  /* Save point in it.  */
+	  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+	  /* Save ZV in it.  */
 	  record_unwind_protect (save_restriction_restore, save_restriction_save ());
+	  /* Those get unbound after we read one expression.  */
+
+	  /* Set point and ZV around stuff to be read.  */
 	  Fgoto_char (start);
-	  Fnarrow_to_region (make_number (BEGV), end);
+	  if (!NILP (end))
+	    Fnarrow_to_region (make_number (BEGV), end);
+
+	  /* Just for cleanliness, convert END to a marker
+	     if it is an integer.  */
+	  if (INTEGERP (end))
+	    end = Fpoint_max_marker ();
 	}
+
+      /* On the first cycle, we can easily test here
+	 whether we are reading the whole buffer.  */
+      if (b && first_sexp)
+	whole_buffer = (PT == BEG && ZV == Z);
 
       instream = stream;
     read_next:
@@ -1592,8 +1624,11 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
 
       if (!NILP (start) && continue_reading_p)
 	start = Fpoint_marker ();
+
+      /* Restore saved point and BEGV.  */
       unbind_to (count1, Qnil);
 
+      /* Now eval what we just read.  */
       val = (*evalfun) (val);
 
       if (printflag)
@@ -1604,9 +1639,13 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
 	  else
 	    Fprint (val, Qnil);
 	}
+
+      first_sexp = 0;
     }
 
-  build_load_history (stream, sourcename);
+  build_load_history (sourcename, 
+		      stream || whole_buffer);
+
   UNGCPRO;
 
   unbind_to (count, Qnil);
@@ -1893,13 +1932,12 @@ read_escape (readcharfun, stringp)
       return c | alt_modifier;
 
     case 's':
-      if (stringp)
-	return ' ';
       c = READCHAR;
-      if (c != '-') {
-	UNREAD (c);
-	return ' ';
-      }
+      if (c != '-')
+	{
+	  UNREAD (c);
+	  return ' ';
+	}
       c = READCHAR;
       if (c == '\\')
 	c = read_escape (readcharfun, 0);
@@ -4035,8 +4073,8 @@ An element `(t . SYMBOL)' precedes an entry `(defun . FUNCTION)',
 and means that SYMBOL was an autoload before this file redefined it
 as a function.
 
-For a preloaded file, the file name recorded is relative to the main Lisp
-directory.  These names are converted to absolute by `file-loadhist-lookup'.  */);
+During preloading, the file name recorded is relative to the main Lisp
+directory.  These file names are converted to absolute at startup.  */);
   Vload_history = Qnil;
 
   DEFVAR_LISP ("load-file-name", &Vload_file_name,

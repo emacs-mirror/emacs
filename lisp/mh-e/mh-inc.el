@@ -1,6 +1,6 @@
-;;; mh-inc.el --- MH-E `inc' and separate mail spool handling
+;;; mh-inc.el --- MH-E "inc" and separate mail spool handling
 ;;
-;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2006 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -28,14 +28,16 @@
 
 ;;  Support for inc. In addition to reading from the system mailbox, inc can
 ;;  also be used to incorporate mail from multiple spool files into separate
-;;  folders. See `C-h v mh-inc-spool-list'.
+;;  folders. See "C-h v mh-inc-spool-list".
 
 ;;; Change Log:
 
 ;;; Code:
 
+;;(message "> mh-inc")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
+;;(message "< mh-inc")
 
 (defvar mh-inc-spool-map (make-sparse-keymap)
   "Keymap for MH-E's mh-inc-spool commands.")
@@ -73,8 +75,8 @@
                                         (char-to-string key)
                                         "] inc " folder " folder\n"))))
 
-;; Avoid compiler warning
-(defvar mh-inc-spool-list)
+;; Shush compiler.
+(eval-when-compile (defvar mh-inc-spool-list))
 
 (defun mh-inc-spool-make ()
   "Make all commands and defines keys for contents of `mh-inc-spool-list'."
@@ -98,10 +100,10 @@ This is called after 'customize is used to alter `mh-inc-spool-list'."
 
 (provide 'mh-inc)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 3713cf2a-6082-4cb4-8ce2-99d9acaba835
+;; arch-tag: 3713cf2a-6082-4cb4-8ce2-99d9acaba835
 ;;; mh-inc.el ends here

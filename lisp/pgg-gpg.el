@@ -4,6 +4,7 @@
 ;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
+;; Symmetric encryption added by: Sascha Wilde <wilde@sha-bang.de>
 ;; Created: 1999/10/28
 ;; Keywords: PGP, OpenPGP, GnuPG
 
@@ -96,19 +97,20 @@
 	  (delete-file output-file-name))
       (set-default-file-modes orig-mode))))
 
-(defun pgg-gpg-possibly-cache-passphrase (passphrase &optional key)
+(defun pgg-gpg-possibly-cache-passphrase (passphrase &optional key notruncate)
   (if (and pgg-cache-passphrase
 	   (progn
 	     (goto-char (point-min))
 	     (re-search-forward "^\\[GNUPG:] \\(GOOD_PASSPHRASE\\>\\)\\|\\(SIG_CREATED\\)" nil t)))
-      (pgg-add-passphrase-cache
+      (pgg-add-passphrase-to-cache
        (or key
 	   (progn
 	     (goto-char (point-min))
 	     (if (re-search-forward
 		  "^\\[GNUPG:] NEED_PASSPHRASE\\(_PIN\\)? \\w+ ?\\w*" nil t)
 		 (substring (match-string 0) -8))))
-       passphrase)))
+       passphrase
+       notruncate)))
 
 (defvar pgg-gpg-all-secret-keys 'unknown)
 
@@ -139,18 +141,53 @@
 			     nil t)
 	  (substring (match-string 2) 8)))))
 
-(defun pgg-gpg-encrypt-region (start end recipients &optional sign)
+(defun pgg-gpg-lookup-key-owner (string &optional all)
+  "Search keys associated with STRING and return owner of identified key.
+
+The value may be just the bare key id, or it may be a combination of the
+user name associated with the key and the key id, with the key id enclosed
+in \"<...>\" angle brackets.
+
+Optional ALL non-nil means search all keys, including secret keys."
+  (let ((args (list "--with-colons" "--no-greeting" "--batch"
+		    (if all "--list-secret-keys" "--list-keys")
+		    string))
+        (key-regexp (concat "^\\(sec\\|pub\\)"
+                            ":[^:]*:[^:]*:[^:]*:\\([^:]*\\):[^:]*"
+                            ":[^:]*:[^:]*:[^:]*:\\([^:]*\\):"))
+        )
+    (with-temp-buffer
+      (apply #'call-process pgg-gpg-program nil t nil args)
+      (goto-char (point-min))
+      (if (re-search-forward key-regexp
+                             nil t)
+          (match-string 3)))))
+
+(defun pgg-gpg-key-id-from-key-owner (key-owner)
+  (cond ((not key-owner) nil)
+        ;; Extract bare key id from outermost paired angle brackets, if any:
+        ((string-match "[^<]*<\\(.+\\)>[^>]*" key-owner)
+         (substring key-owner (match-beginning 1)(match-end 1)))
+        (key-owner))
+  )
+
+(defun pgg-gpg-encrypt-region (start end recipients &optional sign passphrase)
   "Encrypt the current region between START and END.
-If optional argument SIGN is non-nil, do a combined sign and encrypt."
+
+If optional argument SIGN is non-nil, do a combined sign and encrypt.
+
+If optional PASSPHRASE is not specified, it will be obtained from the
+passphrase cache or user."
   (let* ((pgg-gpg-user-id (or pgg-gpg-user-id pgg-default-user-id))
-	 (passphrase
-	  (when sign
-	    (pgg-read-passphrase
-	     (format "GnuPG passphrase for %s: " pgg-gpg-user-id)
-	     pgg-gpg-user-id)))
+	 (passphrase (or passphrase
+                         (when sign
+                           (pgg-read-passphrase
+                            (format "GnuPG passphrase for %s: "
+                                    pgg-gpg-user-id)
+                            pgg-gpg-user-id))))
 	 (args
 	  (append
-	   (list "--batch" "--armor" "--always-trust" "--encrypt")
+	   (list "--batch" "--textmode" "--armor" "--always-trust" "--encrypt")
 	   (if sign (list "--sign" "--local-user" pgg-gpg-user-id))
 	   (if recipients
 	       (apply #'nconc
@@ -169,19 +206,46 @@ If optional argument SIGN is non-nil, do a combined sign and encrypt."
 	(pgg-gpg-possibly-cache-passphrase passphrase)))
     (pgg-process-when-success)))
 
-(defun pgg-gpg-decrypt-region (start end)
-  "Decrypt the current region between START and END."
+(defun pgg-gpg-encrypt-symmetric-region (start end &optional passphrase)
+  "Encrypt the current region between START and END with symmetric cipher.
+
+If optional PASSPHRASE is not specified, it will be obtained from the
+passphrase cache or user."
+  (let* ((passphrase (or passphrase
+                         (pgg-read-passphrase
+                          "GnuPG passphrase for symmetric encryption: ")))
+	 (args
+	  (append (list "--batch" "--textmode" "--armor" "--symmetric" ))))
+    (pgg-as-lbt start end 'CRLF
+      (pgg-gpg-process-region start end passphrase pgg-gpg-program args))
+    (pgg-process-when-success)))
+
+(defun pgg-gpg-decrypt-region (start end &optional passphrase)
+  "Decrypt the current region between START and END.
+
+If optional PASSPHRASE is not specified, it will be obtained from the
+passphrase cache or user."
   (let* ((current-buffer (current-buffer))
 	 (message-keys (with-temp-buffer
 			 (insert-buffer-substring current-buffer)
 			 (pgg-decode-armor-region (point-min) (point-max))))
 	 (secret-keys (pgg-gpg-lookup-all-secret-keys))
+         ;; XXX the user is stuck if they need to use the passphrase for
+         ;;     any but the first secret key for which the message is
+         ;;     encrypted.  ideally, we would incrementally give them a
+         ;;     chance with subsequent keys each time they fail with one.
 	 (key (pgg-gpg-select-matching-key message-keys secret-keys))
-	 (pgg-gpg-user-id (or key pgg-gpg-user-id pgg-default-user-id))
-	 (passphrase
-	  (pgg-read-passphrase
-	   (format "GnuPG passphrase for %s: " pgg-gpg-user-id)
-	   pgg-gpg-user-id))
+         (key-owner (and key (pgg-gpg-lookup-key-owner key t)))
+	 (key-id (pgg-gpg-key-id-from-key-owner key-owner))
+	 (pgg-gpg-user-id (or key-id key
+	                      pgg-gpg-user-id pgg-default-user-id))
+	 (passphrase (or passphrase
+                         (pgg-read-passphrase
+                          (format (if (pgg-gpg-symmetric-key-p message-keys)
+                                      "Passphrase for symmetric decryption: "
+                                    "GnuPG passphrase for %s: ")
+                                  (or key-owner "??"))
+                          pgg-gpg-user-id)))
 	 (args '("--batch" "--decrypt")))
     (pgg-gpg-process-region start end passphrase pgg-gpg-program args)
     (with-current-buffer pgg-errors-buffer
@@ -189,21 +253,31 @@ If optional argument SIGN is non-nil, do a combined sign and encrypt."
       (goto-char (point-min))
       (re-search-forward "^\\[GNUPG:] DECRYPTION_OKAY\\>" nil t))))
 
+;;;###autoload
+(defun pgg-gpg-symmetric-key-p (message-keys)
+  "True if decoded armor MESSAGE-KEYS has symmetric encryption indicator."
+  (let (result)
+    (dolist (key message-keys result)
+      (when (and (eq (car key) 3)
+		 (member '(symmetric-key-algorithm) key))
+	(setq result key)))))
+
 (defun pgg-gpg-select-matching-key (message-keys secret-keys)
   "Choose a key from MESSAGE-KEYS that matches one of the keys in SECRET-KEYS."
   (loop for message-key in message-keys
 	for message-key-id = (and (equal (car message-key) 1)
-				  (cdr (assq 'key-identifier message-key)))
+				  (cdr (assq 'key-identifier
+                                             (cdr message-key))))
 	for key = (and message-key-id (pgg-lookup-key message-key-id 'encrypt))
 	when (and key (member key secret-keys)) return key))
 
-(defun pgg-gpg-sign-region (start end &optional cleartext)
+(defun pgg-gpg-sign-region (start end &optional cleartext passphrase)
   "Make detached signature from text between START and END."
   (let* ((pgg-gpg-user-id (or pgg-gpg-user-id pgg-default-user-id))
-	 (passphrase
-	  (pgg-read-passphrase
-	   (format "GnuPG passphrase for %s: " pgg-gpg-user-id)
-	   pgg-gpg-user-id))
+	 (passphrase (or passphrase
+                         (pgg-read-passphrase
+                          (format "GnuPG passphrase for %s: " pgg-gpg-user-id)
+                          pgg-gpg-user-id)))
 	 (args
 	  (list (if cleartext "--clearsign" "--detach-sign")
 		"--armor" "--batch" "--verbose"

@@ -899,8 +899,11 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
       xpos += XINT (x);
       ypos += XINT (y);
+
+      XSETFRAME (Vmenu_updating_frame, f);
     }
-  Vmenu_updating_frame = Qnil;
+  else
+    Vmenu_updating_frame = Qnil;
 #endif /* HAVE_MENUS */
 
   record_unwind_protect (unuse_menu_items, Qnil);
@@ -1572,6 +1575,15 @@ menubar_selection_callback (widget, client_data)
   if (! cb_data || ! cb_data->cl_data || ! cb_data->cl_data->f)
     return;
 
+  /* For a group of radio buttons, GTK calls the selection callback first
+     for the item that was active before the selection and then for the one that
+     is active after the selection.  For C-h k this means we get the help on
+     the deselected item and then the selected item is executed.  Prevent that
+     by ignoring the non-active item.  */
+  if (GTK_IS_RADIO_MENU_ITEM (widget)
+      && ! gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM (widget)))
+    return;
+
   /* When a menu is popped down, X generates a focus event (i.e. focus
      goes back to the frame below the menu).  Since GTK buffers events,
      we force it out here before the menu selection event.  Otherwise
@@ -1891,7 +1903,7 @@ update_submenu_strings (first_wv)
     {
       if (STRINGP (wv->lname))
         {
-          wv->name = SDATA (wv->lname);
+          wv->name = (char *) SDATA (wv->lname);
 
           /* Ignore the @ that means "separate pane".
              This is a kludge, but this isn't worth more time.  */
@@ -1904,7 +1916,7 @@ update_submenu_strings (first_wv)
         }
 
       if (STRINGP (wv->lkey))
-        wv->key = SDATA (wv->lkey);
+        wv->key = (char *) SDATA (wv->lkey);
 
       if (wv->contents)
         update_submenu_strings (wv->contents);
@@ -3330,6 +3342,11 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
       *error = "Can't create menu";
       return Qnil;
     }
+
+  /* Don't GC while we prepare and show the menu,
+     because we give the oldxmenu library pointers to the
+     contents of strings.  */
+  inhibit_garbage_collection ();
 
 #ifdef HAVE_X_WINDOWS
   /* Adjust coordinates to relative to the outer (window manager) window.  */

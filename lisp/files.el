@@ -861,6 +861,43 @@ it means chase no more than that many links and then stop."
 	(setq count (1+ count))))
     newname))
 
+(defun make-temp-file (prefix &optional dir-flag suffix)
+  "Create a temporary file.
+The returned file name (created by appending some random characters at the end
+of PREFIX, and expanding against `temporary-file-directory' if necessary),
+is guaranteed to point to a newly created empty file.
+You can then use `write-region' to write new data into the file.
+
+If DIR-FLAG is non-nil, create a new empty directory instead of a file.
+
+If SUFFIX is non-nil, add that at the end of the file name."
+  (let ((umask (default-file-modes))
+	file)
+    (unwind-protect
+	(progn
+	  ;; Create temp files with strict access rights.  It's easy to
+	  ;; loosen them later, whereas it's impossible to close the
+	  ;; time-window of loose permissions otherwise.
+	  (set-default-file-modes ?\700)
+	  (while (condition-case ()
+		     (progn
+		       (setq file
+			     (make-temp-name
+			      (expand-file-name prefix temporary-file-directory)))
+		       (if suffix
+			   (setq file (concat file suffix)))
+		       (if dir-flag
+			   (make-directory file)
+			 (write-region "" nil file nil 'silent nil 'excl))
+		       nil)
+		   (file-already-exists t))
+	    ;; the file was somehow created by someone else between
+	    ;; `make-temp-name' and `write-region', let's try again.
+	    nil)
+	  file)
+      ;; Reset the umask.
+      (set-default-file-modes umask))))
+
 (defun recode-file-name (file coding new-coding &optional ok-if-already-exists)
   "Change the encoding of FILE's name from CODING to NEW-CODING.
 The value is a new name of FILE.
@@ -1377,7 +1414,7 @@ the various files."
 		   (not (or buf nowarn))
 		   (> (nth 7 attributes) large-file-warning-threshold)
 		   (not (y-or-n-p
-			 (format "File %s is large (%sMB), really open? "
+			 (format "File %s is large (%dMB), really open? "
 				 (file-name-nondirectory filename)
 				   (/ (nth 7 attributes) 1048576)))))
 	  (error "Aborted"))
@@ -1832,7 +1869,6 @@ in that case, this function acts as if `enable-local-variables' were t."
      ;; /tmp/Re.... or Message
      ("\\`/tmp/Re" . text-mode)
      ("/Message[0-9]*\\'" . text-mode)
-     ("/drafts/[0-9]+\\'" . mh-letter-mode)
      ("\\.zone\\'" . zone-mode)
      ;; some news reader is reported to use this
      ("\\`/tmp/fol/" . text-mode)
@@ -2062,7 +2098,8 @@ only set the major mode, if that would change it."
 	      (setq done t)
 	      (or (set-auto-mode-0 mode keep-mode-if-same)
 		  ;; continuing would call minor modes again, toggling them off
-		  (throw 'nop nil)))))
+		  (throw 'nop nil))))))
+    (unless done
       ;; If we didn't, look for an interpreter specified in the first line.
       ;; As a special case, allow for things like "#!/bin/env perl", which
       ;; finds the interpreter anywhere in $PATH.
@@ -2528,8 +2565,9 @@ However, the mode will not be changed if
 
 (defun set-visited-file-name (filename &optional no-query along-with-file)
   "Change name of file visited in current buffer to FILENAME.
+This also renames the buffer to correspond to the new file.
 The next time the buffer is saved it will go in the newly specified file.
-FILENAME nil or an empty string means make buffer not be visiting any file.
+FILENAME nil or an empty string means mark buffer as not visiting any file.
 Remember to delete the initial contents of the minibuffer
 if you wish to pass an empty string as the argument.
 
@@ -2680,7 +2718,10 @@ Interactively, confirmation is required unless you supply a prefix argument."
   (and buffer-file-name
        (file-writable-p buffer-file-name)
        (setq buffer-read-only nil))
-  (save-buffer))
+  (save-buffer)
+  ;; It's likely that the VC status at the new location is different from
+  ;; the one at the old location.
+  (vc-find-file-hook))
 
 (defun backup-buffer ()
   "Make a backup of the disk file visited by the current buffer, if appropriate.
@@ -3114,7 +3155,7 @@ Uses `backup-directory-alist' in the same way as does
 This function returns a relative file name which is equivalent to FILENAME
 when used with that default directory as the default.
 If FILENAME and DIRECTORY lie on different machines or on different drives
-on a DOS/Windows machine, it returns FILENAME on expanded form."
+on a DOS/Windows machine, it returns FILENAME in expanded form."
   (save-match-data
     (setq directory
 	  (file-name-as-directory (expand-file-name (or directory
@@ -3158,7 +3199,9 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
             ancestor))))))
 
 (defun save-buffer (&optional args)
-  "Save current buffer in visited file if modified.  Variations are described below.
+  "Save current buffer in visited file if modified.
+Variations are described below.
+
 By default, makes the previous version into a backup file
  if previously requested or if this is the first save.
 Prefixed with one \\[universal-argument], marks this version
@@ -3426,7 +3469,9 @@ Before and after saving the buffer, this function runs
 	    ;; If we get an error writing the new file, and we made
 	    ;; the backup by renaming, undo the backing-up.
 	    (and setmodes (not success)
-		 (rename-file (cdr setmodes) buffer-file-name))))))
+		 (progn
+		   (rename-file (cdr setmodes) buffer-file-name t)
+		   (setq buffer-backed-up nil)))))))
     setmodes))
 
 (defun diff-buffer-with-file (&optional buffer)
@@ -4438,6 +4483,57 @@ program specified by `directory-free-space-program' if that is non-nil."
 		  (forward-word -1)
 		  (buffer-substring (point) end)))))))))
 
+;; The following expression replaces `dired-move-to-filename-regexp'.
+(defvar directory-listing-before-filename-regexp
+  (let* ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
+	 (l-or-quote "\\([A-Za-z']\\|[^\0-\177]\\)")
+	 ;; In some locales, month abbreviations are as short as 2 letters,
+	 ;; and they can be followed by ".".
+	 ;; In Breton, a month name  can include a quote character.
+	 (month (concat l-or-quote l-or-quote "+\\.?"))
+	 (s " ")
+	 (yyyy "[0-9][0-9][0-9][0-9]")
+	 (dd "[ 0-3][0-9]")
+	 (HH:MM "[ 0-2][0-9][:.][0-5][0-9]")
+	 (seconds "[0-6][0-9]\\([.,][0-9]+\\)?")
+	 (zone "[-+][0-2][0-9][0-5][0-9]")
+	 (iso-mm-dd "[01][0-9]-[0-3][0-9]")
+	 (iso-time (concat HH:MM "\\(:" seconds "\\( ?" zone "\\)?\\)?"))
+	 (iso (concat "\\(\\(" yyyy "-\\)?" iso-mm-dd "[ T]" iso-time
+		      "\\|" yyyy "-" iso-mm-dd "\\)"))
+	 (western (concat "\\(" month s "+" dd "\\|" dd "\\.?" s month "\\)"
+			  s "+"
+			  "\\(" HH:MM "\\|" yyyy "\\)"))
+	 (western-comma (concat month s "+" dd "," s "+" yyyy))
+	 ;; Japanese MS-Windows ls-lisp has one-digit months, and
+	 ;; omits the Kanji characters after month and day-of-month.
+	 ;; On Mac OS X 10.3, the date format in East Asian locales is
+	 ;; day-of-month digits followed by month digits.
+	 (mm "[ 0-1]?[0-9]")
+	 (east-asian
+	  (concat "\\(" mm l "?" s dd l "?" s "+"
+		  "\\|" dd s mm s "+" "\\)"
+		  "\\(" HH:MM "\\|" yyyy l "?" "\\)")))
+	 ;; The "[0-9]" below requires the previous column to end in a digit.
+	 ;; This avoids recognizing `1 may 1997' as a date in the line:
+	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README
+
+	 ;; The "[BkKMGTPEZY]?" below supports "ls -alh" output.
+	 ;; The ".*" below finds the last match if there are multiple matches.
+	 ;; This avoids recognizing `jservice  10  1024' as a date in the line:
+	 ;; drwxr-xr-x  3 jservice  10  1024 Jul  2  1997 esg-host
+
+         ;; vc dired listings provide the state or blanks between file
+         ;; permissions and date.  The state is always surrounded by
+         ;; parantheses:
+         ;; -rw-r--r-- (modified) 2005-10-22 21:25 files.el
+         ;; This is not supported yet.
+    (concat ".*[0-9][BkKMGTPEZY]?" s
+	    "\\(" western "\\|" western-comma "\\|" east-asian "\\|" iso "\\)"
+	    s "+"))
+  "Regular expression to match up to the file name in a directory listing.
+The default value is designed to recognize dates and times
+regardless of the language.")
 
 (defvar insert-directory-ls-version 'unknown)
 

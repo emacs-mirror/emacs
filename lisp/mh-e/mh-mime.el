@@ -1,7 +1,7 @@
 ;;; mh-mime.el --- MH-E support for composing MIME messages
 
 ;; Copyright (C) 1993, 1995,
-;;  2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -28,101 +28,102 @@
 ;;; Commentary:
 
 ;; Internal support for MH-E package.
-;; Support for generating an mhn composition file.
-;; MIME is supported only by MH 6.8 or later.
+;; Support for generating MH-style directives for mhn or mhbuild as well as
+;; MML (MIME Meta Language) tags. MH-style directives are supported by MH 6.8
+;; or later.
 
 ;;; Change Log:
 
 ;;; Code:
 
+;;(message "> mh-mime")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
-(require 'mh-comp)
-(require 'gnus-util)
-(require 'mh-gnus)
 
-(autoload 'gnus-article-goto-header "gnus-art")
+(require 'gnus-util)
+(require 'mh-buffers)
+(require 'mh-comp)
+(require 'mh-gnus)
+;;(message "< mh-mime")
+
 (autoload 'article-emphasize "gnus-art")
-(autoload 'gnus-get-buffer-create "gnus")
+(autoload 'gnus-article-goto-header "gnus-art")
 (autoload 'gnus-eval-format "gnus-spec")
-(autoload 'widget-convert-button "wid-edit")
+(autoload 'gnus-get-buffer-create "gnus")
 (autoload 'message-options-set-recipient "message")
+(autoload 'mm-uu-dissect "mm-uu")
 (autoload 'mml-unsecure-message "mml-sec")
-(autoload 'mml-minibuffer-read-file "mml")
-(autoload 'mml-minibuffer-read-description "mml")
-(autoload 'mml-insert-empty-tag "mml")
-(autoload 'mml-to-mime "mml")
-(autoload 'mml-attach-file "mml")
 (autoload 'rfc2047-decode-region "rfc2047")
+(autoload 'widget-convert-button "wid-edit")
 
 ;;;###mh-autoload
 (defun mh-compose-insertion (&optional inline)
-  "Add a directive to insert a MIME part from a file, using mhn or gnus.
-If the variable `mh-compose-insertion' is set to 'mhn, then that will be used.
-If it is set to 'gnus, then that will be used instead.
-Optional argument INLINE means make it an inline attachment."
+  "Add tag to include a file such as an image or sound.
+
+You are prompted for the filename containing the object, the
+media type if it cannot be determined automatically, and a
+content description. If you're using MH-style directives, you
+will also be prompted for additional attributes.
+
+The option `mh-compose-insertion' controls what type of tags are
+inserted. Optional argument INLINE means make it an inline
+attachment."
   (interactive "P")
-  (if (equal mh-compose-insertion 'gnus)
+  (if (equal mh-compose-insertion 'mml)
       (if inline
           (mh-mml-attach-file "inline")
         (mh-mml-attach-file))
-    (call-interactively 'mh-mhn-compose-insertion)))
+    (call-interactively 'mh-mh-attach-file)))
 
 ;;;###mh-autoload
-(defun mh-compose-forward (&optional description folder messages)
-  "Add a MIME directive to forward a message, using mhn or gnus.
-If the variable `mh-compose-insertion' is set to 'mhn, then that will be used.
-If it is set to 'gnus, then that will be used instead.
-Optional argument DESCRIPTION is a description of the attachment.
-Optional argument FOLDER is the folder from which the forwarded message should
-come.
-Optional argument MESSAGES is the range of messages to forward.
-If any of the optional arguments are absent, they are prompted for."
-  (interactive (let*
-                   ((description (read-string "Forw Content-description: "))
-                    (folder (mh-prompt-for-folder "Message from"
-                                                  mh-sent-from-folder nil))
-                    (messages (let ((default-message
-                                      (if (and (equal
-                                                folder mh-sent-from-folder)
-                                               (numberp mh-sent-from-msg))
-                                          mh-sent-from-msg
-                                        (nth 0 (mh-translate-range
-                                                folder "cur")))))
-                                (if default-message
-                                    (read-string
-                                     (format "Messages (default %d): "
-                                             default-message)
-                                     nil nil
-                                     (number-to-string default-message))
-                                  (read-string (format "Messages: "))))))
-                 (list description folder messages)))
-  (let
-      ((range))
-    (if (null messages)
-	(setq messages ""))
-    (setq range (mh-translate-range folder messages))
-    (if (null range)
-	(error "No messages in specified range"))
-    (dolist (message range)
-      (if (equal mh-compose-insertion 'gnus)
-	  (mh-mml-forward-message description folder (format "%s" message))
-	(mh-mhn-compose-forw description folder message)))))
+(defun mh-compose-forward (&optional description folder range)
+  "Add tag to forward a message.
+
+You are prompted for a content DESCRIPTION, the name of the
+FOLDER in which the messages to forward are located, and a RANGE
+of messages, which defaults to the current message in that
+folder. Check the documentation of `mh-interactive-range' to see
+how RANGE is read in interactive use.
+
+The option `mh-compose-insertion' controls what type of tags are inserted."
+  (interactive
+   (let* ((description
+           (mml-minibuffer-read-description))
+          (folder
+           (mh-prompt-for-folder "Message from"
+                                 mh-sent-from-folder nil))
+          (default
+            (if (and (equal folder mh-sent-from-folder)
+                     (numberp mh-sent-from-msg))
+                mh-sent-from-msg
+              (nth 0 (mh-translate-range folder "cur"))))
+          (range
+           (mh-read-range "Forward" folder
+                          (or (and default
+                                   (number-to-string default))
+                              t)
+                          t t)))
+     (list description folder range)))
+  (let ((messages (mapconcat 'identity (mh-list-to-string range) " ")))
+    (dolist (message (mh-translate-range folder messages))
+      (if (equal mh-compose-insertion 'mml)
+          (mh-mml-forward-message description folder (format "%s" message))
+        (mh-mh-forward-message description folder (format "%s" message))))))
 
 ;; To do:
 ;; paragraph code should not fill # lines if MIME enabled.
-;; implement mh-auto-edit-mhn (if non-nil, \\[mh-send-letter]
-;;      invokes mh-edit-mhn automatically before sending.)
-;;      actually, instead of mh-auto-edit-mhn,
+;; implement mh-auto-mh-to-mime (if non-nil, \\[mh-send-letter]
+;;      invokes mh-mh-to-mime automatically before sending.)
+;;      actually, instead of mh-auto-mh-to-mime,
 ;;      should read automhnproc from profile
 ;; MIME option to mh-forward
 ;; command to move to content-description insertion point
 
-(defvar mh-mhn-args nil
-  "Extra arguments to have \\[mh-edit-mhn] pass to the \"mhn\" command.
-The arguments are passed to mhn if \\[mh-edit-mhn] is given a
-prefix argument.  Normally default arguments to mhn are specified in the
-MH profile.")
+(defvar mh-mh-to-mime-args nil
+  "Extra arguments for \\[mh-mh-to-mime] to pass to the \"mhbuild\" command.
+The arguments are passed to \"mhbuild\" if \\[mh-mh-to-mime] is
+given a prefix argument. Normally default arguments to
+\"mhbuild\" are specified in the MH profile.")
 
 (defvar mh-media-type-regexp
   (concat (regexp-opt '("text" "image" "audio" "video" "application"
@@ -130,16 +131,16 @@ MH profile.")
           "/[-.+a-zA-Z0-9]+")
   "Regexp matching valid media types used in MIME attachment compositions.")
 
-;; Just defvar the variable to avoid compiler warning... This doesn't bind
-;; the variable, so things should work exactly as before.
-(defvar mh-have-file-command)
+(defvar mh-have-file-command 'undefined
+  "Cached value of function `mh-have-file-command'.
+Do not reference this variable directly as it might not have been
+initialized. Always use the command `mh-have-file-command'.")
 
 ;;;###mh-autoload
 (defun mh-have-file-command ()
   "Return t if 'file' command is on the system.
 'file -i' is used to get MIME type of composition insertion."
-  (when (not (boundp 'mh-have-file-command))
-    (load "executable" t t)        ; executable-find not autoloaded in emacs20
+  (when (eq mh-have-file-command 'undefined)
     (setq mh-have-file-command
           (and (fboundp 'executable-find)
                (executable-find "file") ; file command exists
@@ -154,12 +155,14 @@ MH profile.")
     ("text/plain" "\.vcf" "text/x-vcard"))
   "Substitutions to make for Content-Type returned from file command.
 The first element is the Content-Type returned by the file command.
-The second element is a regexp matching the file name, usually the extension.
+The second element is a regexp matching the file name, usually the
+extension.
 The third element is the Content-Type to replace with.")
 
 (defun mh-file-mime-type-substitute (content-type filename)
   "Return possibly changed CONTENT-TYPE on the FILENAME.
-Substitutions are made from the `mh-file-mime-type-substitutions' variable."
+Substitutions are made from the `mh-file-mime-type-substitutions'
+variable."
   (let ((subst mh-file-mime-type-substitutions)
         (type) (match) (answer content-type)
         (case-fold-search t))
@@ -179,9 +182,10 @@ Substitutions are made from the `mh-file-mime-type-substitutions' variable."
 Returns nil if file command not on system."
   (cond
    ((not (mh-have-file-command))
-    nil)                                ;No file command, exit now.
-   ((not (and (file-exists-p filename)(file-readable-p filename)))
-    nil)
+    nil)                                ;no file command, exit now
+   ((not (and (file-exists-p filename)
+              (file-readable-p filename)))
+    nil)                               ;no file or not readable, ditto
    (t
     (save-excursion
       (let ((tmp-buffer (get-buffer-create mh-temp-buffer)))
@@ -196,30 +200,26 @@ Returns nil if file command not on system."
                 (mh-file-mime-type-substitute (match-string 0) filename)))
           (kill-buffer tmp-buffer)))))))
 
-;;; This is needed for Emacs20 which doesn't have mailcap-mime-types.
-(defvar mh-mime-content-types
-  '(("application/mac-binhex40") ("application/msword")
-    ("application/octet-stream") ("application/pdf") ("application/pgp-keys")
-    ("application/pgp-signature") ("application/pkcs7-signature")
-    ("application/postscript") ("application/rtf")
-    ("application/vnd.ms-excel") ("application/vnd.ms-powerpoint")
-    ("application/vnd.ms-project") ("application/vnd.ms-tnef")
-    ("application/wordperfect5.1") ("application/wordperfect6.0")
-    ("application/zip")
-
-    ("audio/basic") ("audio/mpeg")
-
-    ("image/gif") ("image/jpeg") ("image/png")
-
-    ("message/delivery-status")
-    ("message/external-body") ("message/partial") ("message/rfc822")
-
-    ("text/enriched") ("text/html") ("text/plain") ("text/rfc822-headers")
-    ("text/richtext") ("text/x-vcard") ("text/xml")
-
-    ("video/mpeg") ("video/quicktime"))
-  "Valid MIME content types.
-See documentation for \\[mh-edit-mhn].")
+(defun mh-minibuffer-read-type (filename &optional default)
+  "Return the content type associated with the given FILENAME.
+If the \"file\" command exists and recognizes the given file,
+then its value is returned\; otherwise, the user is prompted for
+a type (see `mailcap-mime-types' and for Emacs 20,
+`mh-mime-content-types').
+Optional argument DEFAULT is returned if a type isn't entered."
+  (mailcap-parse-mimetypes)
+  (let* ((default (or default
+                      (mm-default-file-encoding filename)
+                      "application/octet-stream"))
+         (probed-type (mh-file-mime-type filename))
+         (type (or (and (not (equal probed-type "application/octet-stream"))
+                        probed-type)
+                   (completing-read
+                    (format "Content type (default %s): " default)
+                    (mapcar 'list (mailcap-mime-types))))))
+    (if (not (equal type ""))
+        type
+      default)))
 
 ;; RFC 2045 - Multipurpose Internet Mail Extensions (MIME) Part One:
 ;;            Format of Internet Message Bodies.
@@ -248,38 +248,31 @@ See documentation for \\[mh-edit-mhn].")
   "Valid MIME access-type values.")
 
 ;;;###mh-autoload
-(defun mh-mhn-compose-insertion (filename type description attributes)
-  "Add a directive to insert a MIME message part from a file.
-This is the typical way to insert non-text parts in a message.
+(defun mh-mh-attach-file (filename type description attributes)
+  "Add a tag to insert a MIME message part from a file.
+You are prompted for the FILENAME containing the object, the
+media TYPE if it cannot be determined automatically, and a
+content DESCRIPTION. In addition, you are also prompted for
+additional ATTRIBUTES.
 
-Arguments are FILENAME, which tells where to find the file, TYPE, the MIME
-content type, DESCRIPTION, a line of text for the Content-Description field.
-ATTRIBUTES is a comma separated list of name=value pairs that is appended to
-the Content-Type field of the attachment.
-
-See also \\[mh-edit-mhn]."
-  (interactive (let ((filename (read-file-name "Insert contents of: ")))
+See also \\[mh-mh-to-mime]."
+  (interactive (let ((filename (mml-minibuffer-read-file "Attach file: ")))
                  (list
                   filename
-                  (or (mh-file-mime-type filename)
-                      (completing-read "Content-Type: "
-                                       (if (fboundp 'mailcap-mime-types)
-                                           (mapcar 'list (mailcap-mime-types))
-                                         mh-mime-content-types)))
-                  (read-string "Content-Description: ")
-                  (read-string "Content-Attributes: "
+                  (mh-minibuffer-read-type filename)
+                  (mml-minibuffer-read-description)
+                  (read-string "Attributes: "
                                (concat "name=\""
                                        (file-name-nondirectory filename)
                                        "\"")))))
-  (mh-mhn-compose-type filename type description attributes ))
+  (mh-mh-compose-type filename type description attributes))
 
-(defun mh-mhn-compose-type (filename type
+(defun mh-mh-compose-type (filename type
                                      &optional description attributes comment)
-  "Insert a mhn directive to insert a file.
-
-The file specified by FILENAME is encoded as TYPE. An optional DESCRIPTION is
-used as the Content-Description field, optional set of ATTRIBUTES and an
-optional COMMENT can also be included."
+  "Insert an MH-style directive to insert a file.
+The file specified by FILENAME is encoded as TYPE. An optional
+DESCRIPTION is used as the Content-Description field, optional
+set of ATTRIBUTES and an optional COMMENT can also be included."
   (beginning-of-line)
   (insert "#" type)
   (and attributes
@@ -292,75 +285,66 @@ optional COMMENT can also be included."
   (insert "] " (expand-file-name filename))
   (insert "\n"))
 
-
 ;;;###mh-autoload
-(defun mh-mhn-compose-anon-ftp (host filename type description)
-  "Add a directive for a MIME anonymous ftp external body part.
-This directive tells MH to include a reference to a message/external-body part
-retrievable by anonymous FTP.
+(defun mh-mh-compose-anon-ftp (host filename type description)
+  "Add tag to include anonymous ftp reference to a file.
 
-Arguments are HOST and FILENAME, which tell where to find the file, TYPE, the
-MIME content type, and DESCRIPTION, a line of text for the Content-description
-header.
+You can have your message initiate an \"ftp\" transfer when the
+recipient reads the message. You are prompted for the remote HOST
+and FILENAME, the media TYPE, and the content DESCRIPTION.
 
-See also \\[mh-edit-mhn]."
+See also \\[mh-mh-to-mime]."
   (interactive (list
                 (read-string "Remote host: ")
                 (read-string "Remote filename: ")
-                (completing-read "External Content-Type: "
-                                 (if (fboundp 'mailcap-mime-types)
-                                     (mapcar 'list (mailcap-mime-types))
-                                   mh-mime-content-types))
-                (read-string "External Content-Description: ")))
-  (mh-mhn-compose-external-type "anon-ftp" host filename
-                                type description))
+                (mh-minibuffer-read-type "DUMMY-FILENAME")
+                (mml-minibuffer-read-description)))
+  (mh-mh-compose-external-type "anon-ftp" host filename
+                               type description))
 
 ;;;###mh-autoload
-(defun mh-mhn-compose-external-compressed-tar (host filename description)
-  "Add a directive to include a MIME reference to a compressed tar file.
-The file should be available via anonymous ftp. This directive tells MH to
-include a reference to a message/external-body part.
+(defun mh-mh-compose-external-compressed-tar (host filename description)
+  "Add tag to include anonymous ftp reference to a compressed tar file.
 
-Arguments are HOST and FILENAME, which tell where to find the file, and
-DESCRIPTION, a line of text for the Content-description header.
+In addition to retrieving the file via anonymous \"ftp\" as per
+the command \\[mh-mh-compose-anon-ftp], the file will also be
+uncompressed and untarred. You are prompted for the remote HOST
+and FILENAME and the content DESCRIPTION.
 
-See also \\[mh-edit-mhn]."
+See also \\[mh-mh-to-mime]."
   (interactive (list
                 (read-string "Remote host: ")
                 (read-string "Remote filename: ")
-                (read-string "Tar file Content-description: ")))
-  (mh-mhn-compose-external-type "anon-ftp" host filename
-                                "application/octet-stream"
-                                description
-                                "type=tar; conversions=x-compress"
-                                "mode=image"))
+                (mml-minibuffer-read-description)))
+  (mh-mh-compose-external-type "anon-ftp" host filename
+                               "application/octet-stream"
+                               description
+                               "type=tar; conversions=x-compress"
+                               "mode=image"))
 
 ;;;###mh-autoload
-(defun mh-mhn-compose-external-type (access-type host filename type
-                                                 &optional description
-                                                 attributes extra-params
-                                                 comment)
-  "Add a directive to include a MIME reference to a remote file.
-The file should be available via anonymous ftp. This directive tells MH to
-include a reference to a message/external-body part.
+(defun mh-mh-compose-external-type (access-type host filename type
+                                                &optional description
+                                                attributes parameters
+                                                comment)
+  "Add tag to refer to a remote file.
 
-Arguments are ACCESS-TYPE, HOST and FILENAME, which tell where to find the
-file and TYPE which is the MIME Content-Type. Optional arguments include
-DESCRIPTION, a line of text for the Content-description header, ATTRIBUTES,
-EXTRA-PARAMS, and COMMENT.
+This command is a general utility for referencing external files.
+In fact, all of the other commands that insert directives to
+access external files call this command. You are prompted for the
+ACCESS-TYPE, remote HOST and FILENAME, and content TYPE. If you
+provide a prefix argument, you are also prompted for a content
+DESCRIPTION, ATTRIBUTES, PARAMETERS, and a COMMENT.
 
-See also \\[mh-edit-mhn]."
+See also \\[mh-mh-to-mime]."
   (interactive (list
-                (completing-read "Access Type: " mh-access-types)
+                (completing-read "Access type: " mh-access-types)
                 (read-string "Remote host: ")
-                (read-string "Remote url-path: ")
-                (completing-read "Content-Type: "
-                                 (if (fboundp 'mailcap-mime-types)
-                                     (mapcar 'list (mailcap-mime-types))
-                                   mh-mime-content-types))
-                (if current-prefix-arg (read-string "Content-description: "))
+                (read-string "Remote filename: ")
+                (mh-minibuffer-read-type "DUMMY-FILENAME")
+                (if current-prefix-arg (mml-minibuffer-read-description))
                 (if current-prefix-arg (read-string "Attributes: "))
-                (if current-prefix-arg (read-string "Extra Parameters: "))
+                (if current-prefix-arg (read-string "Parameters: "))
                 (if current-prefix-arg (read-string "Comment: "))))
   (beginning-of-line)
   (insert "#@" type)
@@ -378,25 +362,25 @@ See also \\[mh-edit-mhn]."
   (let ((directory (file-name-directory filename)))
     (and directory
          (insert "; directory=\"" directory "\"")))
-  (and extra-params
-       (insert "; " extra-params))
+  (and parameters
+       (insert "; " parameters))
   (insert "\n"))
 
 ;;;###mh-autoload
-(defun mh-mhn-compose-forw (&optional description folder messages)
-  "Add a forw directive to this message, to forward a message with MIME.
-This directive tells MH to include the named messages in this one.
+(defun mh-mh-forward-message (&optional description folder messages)
+  "Add tag to forward a message.
+You are prompted for a content DESCRIPTION, the name of the
+FOLDER in which the messages to forward are located, and the
+MESSAGES' numbers.
 
-Arguments are DESCRIPTION, a line of text for the Content-description header,
-and FOLDER and MESSAGES, which name the message(s) to be forwarded.
-
-See also \\[mh-edit-mhn]."
+See also \\[mh-mh-to-mime]."
   (interactive (list
-                (read-string "Forw Content-description: ")
+                (mml-minibuffer-read-description)
                 (mh-prompt-for-folder "Message from" mh-sent-from-folder nil)
                 (read-string (concat "Messages"
                                      (if (numberp mh-sent-from-msg)
-                                         (format " (default %d): " mh-sent-from-msg)
+                                         (format " (default %d): "
+                                                 mh-sent-from-msg)
                                        ": ")))))
   (beginning-of-line)
   (insert "#forw [")
@@ -417,63 +401,66 @@ See also \\[mh-edit-mhn]."
   (insert "\n"))
 
 ;;;###mh-autoload
-(defun mh-edit-mhn (&optional extra-args)
-  "Format the current draft for MIME, expanding any mhn directives.
+(defun mh-mh-to-mime (&optional extra-args)
+  "Compose MIME message from MH-style directives.
 
-Process the current draft with the mhn program, which, using directives
-already inserted in the draft, fills in all the MIME components and header
-fields.
+Typically, you send a message with attachments just like any other
+message. However, you may take a sneak preview of the MIME encoding if
+you wish by running this command.
 
-This step is performed automatically when sending the message, but this
-function may be called manually before sending the draft as well.
+If you wish to pass additional arguments to \"mhbuild\" (\"mhn\")
+to affect how it builds your message, use the option
+`mh-mh-to-mime-args'. For example, you can build a consistency
+check into the message by setting `mh-mh-to-mime-args' to
+\"-check\". The recipient of your message can then run \"mhbuild
+-check\" on the message--\"mhbuild\" (\"mhn\") will complain if
+the message has been corrupted on the way. This command only
+consults this option when given a prefix argument EXTRA-ARGS.
 
-The `\\[mh-revert-mhn-edit]' command undoes this command. The arguments in the
-list `mh-mhn-args' are passed to mhn if this function is passed an optional
-prefix argument EXTRA-ARGS.
+The hook `mh-mh-to-mime-hook' is called after the message has been
+formatted.
 
-For assistance with creating mhn directives to insert various types of
-components in a message, see \\[mh-mhn-compose-insertion] (generic insertion
-from a file), \\[mh-mhn-compose-anon-ftp] (external reference to file via
-anonymous ftp), \\[mh-mhn-compose-external-compressed-tar] \ \(reference to
-compressed tar file via anonymous ftp), and \\[mh-mhn-compose-forw] (forward
-message).
-
-The value of `mh-edit-mhn-hook' is a list of functions to be called, with no
-arguments, after performing the conversion.
-
-The mhn program is part of MH version 6.8 or later."
+The effects of this command can be undone by running
+\\[mh-mh-to-mime-undo]."
   (interactive "*P")
-  (mh-mhn-quote-unescaped-sharp)
+  (mh-mh-quote-unescaped-sharp)
   (save-buffer)
-  (message "mhn editing...")
+  (message "Running %s..." (if (mh-variant-p 'nmh) "mhbuild" "mhn"))
   (cond
    ((mh-variant-p 'nmh)
     (mh-exec-cmd-error nil
-                       "mhbuild" (if extra-args mh-mhn-args) buffer-file-name))
+                       "mhbuild"
+                       (if extra-args mh-mh-to-mime-args)
+                       buffer-file-name))
    (t
     (mh-exec-cmd-error (format "mhdraft=%s" buffer-file-name)
-                       "mhn" (if extra-args mh-mhn-args) buffer-file-name)))
+                       "mhn"
+                       (if extra-args mh-mh-to-mime-args)
+                       buffer-file-name)))
   (revert-buffer t t)
-  (message "mhn editing...done")
-  (run-hooks 'mh-edit-mhn-hook))
+  (message "Running %s...done" (if (mh-variant-p 'nmh) "mhbuild" "mhn"))
+  (run-hooks 'mh-mh-to-mime-hook))
 
-(defun mh-mhn-quote-unescaped-sharp ()
-  "Quote `#' characters that haven't been quoted for `mhbuild'.
-If the `#' character is present in the first column, but it isn't part of a
-MHN directive then `mhbuild' gives an error. This function will quote all such
-characters."
+(defun mh-mh-quote-unescaped-sharp ()
+  "Quote \"#\" characters that haven't been quoted for \"mhbuild\".
+If the \"#\" character is present in the first column, but it isn't
+part of a MH-style directive then \"mhbuild\" gives an error.
+This function will quote all such characters."
   (save-excursion
     (goto-char (point-min))
     (while (re-search-forward "^#" nil t)
       (beginning-of-line)
-      (unless (mh-mhn-directive-present-p (point) (line-end-position))
+      (unless (mh-mh-directive-present-p (point) (line-end-position))
         (insert "#"))
       (goto-char (line-end-position)))))
 
 ;;;###mh-autoload
-(defun mh-revert-mhn-edit (noconfirm)
-  "Undo the effect of \\[mh-edit-mhn] by reverting to the backup file.
-Optional non-nil argument NOCONFIRM means don't ask for confirmation."
+(defun mh-mh-to-mime-undo (noconfirm)
+  "Undo effects of \\[mh-mh-to-mime].
+
+It does this by reverting to a backup file. You are prompted to
+confirm this action, but you can avoid the confirmation by adding
+a prefix argument NOCONFIRM."
   (interactive "*P")
   (if (null buffer-file-name)
       (error "Buffer does not seem to be associated with any file"))
@@ -488,7 +475,7 @@ Optional non-nil argument NOCONFIRM means don't ask for confirmation."
                                     ".orig")))))
       (setq backup-strings (cdr backup-strings)))
     (or backup-strings
-        (error "Backup file for %s no longer exists!" buffer-file-name))
+        (error "Backup file for %s no longer exists" buffer-file-name))
     (or noconfirm
         (yes-or-no-p (format "Revert buffer from file %s? "
                              backup-file))
@@ -499,25 +486,25 @@ Optional non-nil argument NOCONFIRM means don't ask for confirmation."
     (after-find-file nil)))
 
 ;;;###mh-autoload
-(defun mh-mhn-directive-present-p (&optional begin end)
-  "Check if the text between BEGIN and END might be a MHN directive.
-The optional argument BEGIN defaults to the beginning of the buffer, while END
-defaults to the the end of the buffer."
+(defun mh-mh-directive-present-p (&optional begin end)
+  "Check if the text between BEGIN and END might be a MH-style directive.
+The optional argument BEGIN defaults to the beginning of the
+buffer, while END defaults to the the end of the buffer."
   (unless begin (setq begin (point-min)))
   (unless end (setq end (point-max)))
   (save-excursion
-    (block 'search-for-mhn-directive
+    (block 'search-for-mh-directive
       (goto-char begin)
       (while (re-search-forward "^#" end t)
         (let ((s (buffer-substring-no-properties (point) (line-end-position))))
           (cond ((equal s ""))
                 ((string-match "^forw[ \t\n]+" s)
-                 (return-from 'search-for-mhn-directive t))
+                 (return-from 'search-for-mh-directive t))
                 (t (let ((first-token (car (split-string s "[ \t;@]"))))
                      (when (and first-token
                                 (string-match mh-media-type-regexp
                                               first-token))
-                       (return-from 'search-for-mhn-directive t)))))))
+                       (return-from 'search-for-mh-directive t)))))))
       nil)))
 
 
@@ -526,12 +513,16 @@ defaults to the the end of the buffer."
 
 ;;;###mh-autoload
 (defun mh-mml-to-mime ()
-  "Compose MIME message from mml directives.
-This step is performed automatically when sending the message, but this
-function may be called manually before sending the draft as well."
+  "Compose MIME message from MML tags.
+
+Typically, you send a message with attachments just like any
+other message. However, you may take a sneak preview of the MIME
+encoding if you wish by running this command.
+
+This action can be undone by running \\[undo]."
   (interactive)
   (require 'message)
-  (when mh-gnus-pgp-support-flag ;; This is only needed for PGP
+  (when mh-pgp-support-flag ;; This is only needed for PGP
     (message-options-set-recipient))
   (let ((saved-text (buffer-string))
         (buffer (current-buffer))
@@ -547,8 +538,9 @@ function may be called manually before sending the draft as well."
 ;;;###mh-autoload
 (defun mh-mml-forward-message (description folder message)
   "Forward a message as attachment.
-The function will prompt the user for a DESCRIPTION, a FOLDER and MESSAGE
-number."
+
+The function will prompt the user for a DESCRIPTION, a FOLDER and
+MESSAGE number."
   (let ((msg (if (and (equal message "") (numberp mh-sent-from-msg))
                  mh-sent-from-msg
                (car (read-from-string message)))))
@@ -563,7 +555,7 @@ number."
                                       mh-user-path (substring folder 1) msg)
                               "message/rfc822"
                               description)))
-          (t (error "The message number, %s is not a integer!" msg)))))
+          (t (error "The message number, %s, is not a integer" msg)))))
 
 (defvar mh-mml-cryptographic-method-history ())
 
@@ -573,53 +565,48 @@ number."
   (if current-prefix-arg
       (let ((def (or (car mh-mml-cryptographic-method-history)
                      mh-mml-method-default)))
-        (completing-read (format "Method: [%s] " def)
+        (completing-read (format "Method (default %s): " def)
                          '(("pgp") ("pgpmime") ("smime"))
                          nil t nil 'mh-mml-cryptographic-method-history def))
     mh-mml-method-default))
 
 ;;;###mh-autoload
 (defun mh-mml-attach-file (&optional disposition)
-  "Attach a file to the outgoing MIME message.
-The file is not inserted or encoded until you send the message with
-`\\[mh-send-letter]'.
-Message disposition is \"inline\" or \"attachment\" and is prompted for if
-DISPOSITION is nil.
+  "Add a tag to insert a MIME message part from a file.
 
-This is basically `mml-attach-file' from gnus, modified such that a prefix
-argument yields an `inline' disposition and Content-Type is determined
+You are prompted for the filename containing the object, the
+media type if it cannot be determined automatically, a content
+description and the DISPOSITION of the attachment.
+
+This is basically `mml-attach-file' from Gnus, modified such that a prefix
+argument yields an \"inline\" disposition and Content-Type is determined
 automatically."
   (let* ((file (mml-minibuffer-read-file "Attach file: "))
-         (type (or (mh-file-mime-type file)
-                   (completing-read "Content-Type: "
-                                    (if (fboundp 'mailcap-mime-types)
-                                        (mapcar 'list (mailcap-mime-types))
-                                      mh-mime-content-types))))
+         (type (mh-minibuffer-read-type file))
          (description (mml-minibuffer-read-description))
          (dispos (or disposition
-                     (completing-read "Disposition: [attachment] "
-                                      '(("attachment")("inline"))
-                                      nil t nil nil
-                                      "attachment"))))
+                     (mml-minibuffer-read-disposition type))))
     (mml-insert-empty-tag 'part 'type type 'filename file
                           'disposition dispos 'description description)))
 
-(defvar mh-identity-pgg-default-user-id)
+;; Shush compiler.
+(eval-when-compile (defvar mh-identity-pgg-default-user-id))
 
 (defun mh-secure-message (method mode &optional identity)
-  "Add directive to Encrypt/Sign an entire message.
+  "Add tag to encrypt or sign message.
+
 METHOD should be one of: \"pgpmime\", \"pgp\", \"smime\".
 MODE should be one of: \"sign\", \"encrypt\", \"signencrypt\", \"none\".
 IDENTITY is optionally the default-user-id to use."
-  (if (not mh-gnus-pgp-support-flag)
-      (error "Sorry.  Your version of gnus does not support PGP/GPG")
+  (if (not mh-pgp-support-flag)
+      (error "Your version of Gnus does not support PGP/GPG")
     ;; Check the arguments
     (let ((valid-methods (list "pgpmime" "pgp" "smime"))
           (valid-modes (list "sign" "encrypt" "signencrypt" "none")))
       (if (not (member method valid-methods))
-          (error "Sorry. METHOD \"%s\" is invalid" method))
+          (error "Method %s is invalid" method))
       (if (not (member mode valid-modes))
-          (error "Sorry. MODE \"%s\" is invalid" mode))
+          (error "Mode %s is invalid" mode))
       (mml-unsecure-message)
       (if (not (string= mode "none"))
         (save-excursion
@@ -631,39 +618,55 @@ IDENTITY is optionally the default-user-id to use."
             (mml-insert-tag 'secure 'method method 'mode mode)))))))
 
 ;;;###mh-autoload
-(defun mh-mml-unsecure-message (&optional ignore)
-  "Remove any secure message directives.
-The IGNORE argument is not used."
-  (interactive "P")
-  (if (not mh-gnus-pgp-support-flag)
-      (error "Sorry.  Your version of gnus does not support PGP/GPG")
+(defun mh-mml-unsecure-message ()
+  "Remove any secure message tags."
+  (interactive)
+  (if (not mh-pgp-support-flag)
+      (error "Your version of Gnus does not support PGP/GPG")
     (mml-unsecure-message)))
 
 ;;;###mh-autoload
 (defun mh-mml-secure-message-sign (method)
-  "Add security directive to sign the entire message using METHOD."
+  "Add tag to sign the message.
+
+A proper multipart message is created for you when you send the
+message. Use the command \\[mh-mml-unsecure-message] to remove
+this tag. Use a prefix argument METHOD to be prompted for one of
+the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
   (mh-secure-message method "sign" mh-identity-pgg-default-user-id))
 
 ;;;###mh-autoload
 (defun mh-mml-secure-message-encrypt (method)
-  "Add security directive to encrypt the entire message using METHOD."
+  "Add tag to encrypt the message.
+
+A proper multipart message is created for you when you send the
+message. Use the command \\[mh-mml-unsecure-message] to remove
+this tag. Use a prefix argument METHOD to be prompted for one of
+the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
   (mh-secure-message method "encrypt" mh-identity-pgg-default-user-id))
 
 ;;;###mh-autoload
 (defun mh-mml-secure-message-signencrypt (method)
-  "Add security directive to encrypt and sign the entire message using METHOD."
+  "Add tag to encrypt and sign the message.
+
+A proper multipart message is created for you when you send the
+message. Use the command \\[mh-mml-unsecure-message] to remove
+this tag. Use a prefix argument METHOD to be prompted for one of
+the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
   (mh-secure-message method "signencrypt" mh-identity-pgg-default-user-id))
 
 ;;;###mh-autoload
-(defun mh-mml-directive-present-p ()
-  "Check if the current buffer has text which may be an MML directive."
+(defun mh-mml-tag-present-p ()
+  "Check if the current buffer has text which may be a MML tag."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward
-     "\\(<#part\\(.\\|\n\\)*>[ \n\t]*<#/part>\\|^<#secure.+>$\\)"
+     (concat
+      "\\(<#\\(mml\\|part\\)\\(.\\|\n\\)*>[ \n\t]*<#/\\(mml\\|part\\)>\\|"
+      "^<#secure.+>$\\)")
      nil t)))
 
 
@@ -682,7 +685,7 @@ The IGNORE argument is not used."
 
 ;;;###mh-autoload
 (defun mh-destroy-postponed-handles ()
-  "Free MIME data for externally displayed mime parts."
+  "Free MIME data for externally displayed MIME parts."
   (let ((mime-data (mh-buffer-data)))
     (when mime-data
       (mm-destroy-parts (mh-mime-handles mime-data)))
@@ -690,10 +693,11 @@ The IGNORE argument is not used."
 
 (defun mh-handle-set-external-undisplayer (folder handle function)
   "Replacement for `mm-handle-set-external-undisplayer'.
-This is only called in recent versions of Gnus. The MIME handles are stored
-in data structures corresponding to MH-E folder buffer FOLDER instead of in
-Gnus (as in the original). The MIME part, HANDLE is associated with the
-undisplayer FUNCTION."
+
+This is only called in recent versions of Gnus. The MIME handles
+are stored in data structures corresponding to MH-E folder buffer
+FOLDER instead of in Gnus (as in the original). The MIME part,
+HANDLE is associated with the undisplayer FUNCTION."
   (if (mm-keep-viewer-alive-p handle)
       (let ((new-handle (copy-sequence handle)))
         (mm-handle-set-undisplayer new-handle function)
@@ -711,7 +715,8 @@ undisplayer FUNCTION."
 ;;;###mh-autoload
 (defun mh-add-missing-mime-version-header ()
   "Some mail programs don't put a MIME-Version header.
-I have seen this only in spam, so maybe we shouldn't fix this ;-)"
+I have seen this only in spam, so maybe we shouldn't fix
+this ;-)"
   (save-excursion
     (goto-char (point-min))
     (re-search-forward "\n\n" nil t)
@@ -724,7 +729,8 @@ I have seen this only in spam, so maybe we shouldn't fix this ;-)"
 
 (defun mh-small-show-buffer-p ()
   "Check if show buffer is small.
-This is used to decide if smileys and graphical emphasis will be displayed."
+This is used to decide if smileys and graphical emphasis will be
+displayed."
   (let ((max nil))
     (when (and (boundp 'font-lock-maximum-size) font-lock-maximum-size)
       (cond ((numberp font-lock-maximum-size)
@@ -736,13 +742,13 @@ This is used to decide if smileys and graphical emphasis will be displayed."
 
 ;;;###mh-autoload
 (defun mh-display-smileys ()
-  "Function to display smileys."
+  "Display smileys."
   (when (and mh-graphical-smileys-flag (mh-small-show-buffer-p))
     (mh-funcall-if-exists smiley-region (point-min) (point-max))))
 
 ;;;###mh-autoload
 (defun mh-display-emphasis ()
-  "Function to display graphical emphasis."
+  "Display graphical emphasis."
   (when (and mh-graphical-emphasis-flag (mh-small-show-buffer-p))
     (flet ((article-goto-body ()))      ; shadow this function to do nothing
       (save-excursion
@@ -795,12 +801,16 @@ This is used to decide if smileys and graphical emphasis will be displayed."
 Set from last use.")
 
 ;;;###mh-autoload
-(defun mh-mime-save-parts (arg)
-  "Store the MIME parts of the current message.
-If ARG, prompt for directory, else use that specified by the variable
-`mh-mime-save-parts-default-directory'. These directories may be superseded by
-mh_profile directives, since this function calls on mhstore or mhn to do the
-actual storing."
+(defun mh-mime-save-parts (prompt)
+  "Save attachments.
+
+You can save all of the attachments at once with this command.
+The attachments are saved in the directory specified by the
+option `mh-mime-save-parts-default-directory' unless you use a
+prefix argument PROMPT in which case you are prompted for the
+directory. These directories may be superseded by MH profile
+components, since this function calls on \"mhstore\" (\"mhn\") to
+do the work."
   (interactive "P")
   (let ((msg (if (eq major-mode 'mh-show-mode)
                  (mh-show-buffer-message-number)
@@ -811,16 +821,16 @@ actual storing."
         (command (if (mh-variant-p 'nmh) "mhstore" "mhn"))
         (directory
          (cond
-          ((and (or arg
+          ((and (or prompt
                     (equal nil mh-mime-save-parts-default-directory)
                     (equal t mh-mime-save-parts-default-directory))
                 (not mh-mime-save-parts-directory))
            (read-file-name "Store in directory: " nil nil t nil))
-          ((and (or arg
+          ((and (or prompt
                     (equal t mh-mime-save-parts-default-directory))
                 mh-mime-save-parts-directory)
            (read-file-name (format
-                            "Store in directory: [%s] "
+                            "Store in directory (default %s): "
                             mh-mime-save-parts-directory)
                            "" mh-mime-save-parts-directory t ""))
           ((stringp mh-mime-save-parts-default-directory)
@@ -874,11 +884,13 @@ If message has been encoded for transfer take that into account."
 
 ;;;###mh-autoload
 (defun mh-toggle-mh-decode-mime-flag ()
-  "Toggle whether MH-E should decode MIME or not."
+  "Toggle the value of `mh-decode-mime-flag'."
   (interactive)
   (setq mh-decode-mime-flag (not mh-decode-mime-flag))
   (mh-show nil t)
-  (message "(setq mh-decode-mime-flag %s)" mh-decode-mime-flag))
+  (message "%s" (if mh-decode-mime-flag
+                    "Processing attachments normally"
+                  "Displaying raw message")))
 
 ;;;###mh-autoload
 (defun mh-decode-message-header ()
@@ -890,9 +902,9 @@ If message has been encoded for transfer take that into account."
 ;;;###mh-autoload
 (defun mh-mime-display (&optional pre-dissected-handles)
   "Display (and possibly decode) MIME handles.
-Optional argument, PRE-DISSECTED-HANDLES is a list of MIME handles. If
-present they are displayed otherwise the buffer is parsed and then
-displayed."
+Optional argument, PRE-DISSECTED-HANDLES is a list of MIME
+handles. If present they are displayed otherwise the buffer is
+parsed and then displayed."
   (let ((handles ())
         (folder mh-show-folder-buffer)
         (raw-message-data (buffer-string)))
@@ -928,8 +940,7 @@ displayed."
                    (mh-mime-display-part handles))
                   (t (mh-signature-highlight))))
         (error
-         (message "Please report this error. The error message is:\n %s"
-                  (error-message-string err))
+         (message "Could not display body: %s" (error-message-string err))
          (delete-region (point-min) (point-max))
          (insert raw-message-data))))))
 
@@ -940,7 +951,7 @@ displayed."
          (mh-mime-display-single handle))
         ((equal (car handle) "multipart/alternative")
          (mh-mime-display-alternative (cdr handle)))
-        ((and mh-gnus-pgp-support-flag
+        ((and mh-pgp-support-flag
               (or (equal (car handle) "multipart/signed")
                   (equal (car handle) "multipart/encrypted")))
          (mh-mime-display-security handle))
@@ -964,8 +975,8 @@ If no part is preferred then all the parts are displayed."
 
 (defun mh-mime-maybe-display-alternatives (alternatives)
   "Show buttons for ALTERNATIVES.
-If `mh-mime-display-alternatives-flag' is non-nil then display buttons for
-alternative parts that are usually suppressed."
+If `mh-mime-display-alternatives-flag' is non-nil then display
+buttons for alternative parts that are usually suppressed."
   (when (and mh-display-buttons-for-alternatives-flag alternatives)
     (insert "\n----------------------------------------------------\n")
     (insert "Alternatives:\n")
@@ -980,9 +991,9 @@ alternative parts that are usually suppressed."
 
 (defun mh-mime-part-index (handle)
   "Generate the button number for MIME part, HANDLE.
-Notice that a hash table is used to display the same number when buttons need
-to be displayed multiple times (for instance when nested messages are
-opened)."
+Notice that a hash table is used to display the same number when
+buttons need to be displayed multiple times (for instance when
+nested messages are opened)."
   (or (gethash handle (mh-mime-part-index-hash (mh-buffer-data)))
       (setf (gethash handle (mh-mime-part-index-hash (mh-buffer-data)))
             (incf (mh-mime-parts-count (mh-buffer-data))))))
@@ -1047,7 +1058,7 @@ This is only useful if a Content-Disposition header is not present."
                                      (mm-inlined-p handle)))))))
     (save-restriction
       (narrow-to-region (point) (if (eobp) (point) (1+ (point))))
-      (cond ((and mh-gnus-pgp-support-flag
+      (cond ((and mh-pgp-support-flag
                   (equal type "application/pgp-signature"))
              nil)             ; skip signatures as they are already handled...
             ((not displayp)
@@ -1065,8 +1076,8 @@ This is only useful if a Content-Disposition header is not present."
 
 (defun mh-signature-highlight (&optional handle)
   "Highlight message signature in HANDLE.
-The optional argument, HANDLE is a MIME handle if the function is being used
-to highlight the signature in a MIME part."
+The optional argument, HANDLE is a MIME handle if the function is
+being used to highlight the signature in a MIME part."
   (let ((regexp
          (cond ((not handle) "^-- $")
                ((not (and (equal (mm-handle-media-supertype handle) "text")
@@ -1091,8 +1102,8 @@ to highlight the signature in a MIME part."
 
 (defun mh-insert-mime-button (handle index displayed)
   "Insert MIME button for HANDLE.
-INDEX is the part number that will be DISPLAYED. It is also used by commands
-like \"K v\" which operate on individual MIME parts."
+INDEX is the part number that will be DISPLAYED. It is also used
+by commands like \"K v\" which operate on individual MIME parts."
   ;; The button could be displayed by a previous decode. In that case
   ;; undisplay it if we need a hidden button.
   (when (and (mm-handle-displayed-p handle) (not displayed))
@@ -1181,7 +1192,7 @@ like \"K v\" which operate on individual MIME parts."
                   (goto-char (point-min))
                   (delete-char 1))
                 (when (equal (mm-handle-media-supertype handle) "text")
-                  (when (eq mh-highlight-citation-p 'gnus)
+                  (when (eq mh-highlight-citation-style 'gnus)
                     (mh-gnus-article-highlight-citation))
                   (mh-display-smileys)
                   (mh-display-emphasis)
@@ -1202,9 +1213,10 @@ like \"K v\" which operate on individual MIME parts."
 
 ;;;###mh-autoload
 (defun mh-press-button ()
-  "Press MIME button.
-If the MIME part is visible then it is removed. Otherwise the part is
-displayed."
+  "View contents of button.
+
+This command is a toggle so if you use it again on the same
+attachment, the attachment is hidden."
   (interactive)
   (let ((mm-inline-media-tests mh-mm-inline-media-tests)
         (data (get-text-property (point) 'mh-data))
@@ -1222,9 +1234,10 @@ displayed."
 ;;;###mh-autoload
 (defun mh-push-button (event)
   "Click MIME button for EVENT.
-If the MIME part is visible then it is removed. Otherwise the part is
-displayed. This function is called when the mouse is used to click the MIME
-button."
+
+If the MIME part is visible then it is removed. Otherwise the
+part is displayed. This function is called when the mouse is used
+to click the MIME button."
   (interactive "e")
   (mh-do-at-event-location event
     (let ((folder mh-show-folder-buffer)
@@ -1276,7 +1289,26 @@ button."
 
 ;;;###mh-autoload
 (defun mh-display-with-external-viewer (part-index)
-  "View MIME PART-INDEX externally."
+  "View attachment externally.
+
+If Emacs does not know how to view an attachment, you could save
+it into a file and then run some program to open it. It is
+easier, however, to launch the program directly from MH-E with
+this command. While you'll most likely use this to view
+spreadsheets and documents, it is also useful to use your browser
+to view HTML attachments with higher fidelity than what Emacs can
+provide.
+
+This command displays the attachment associated with the button
+under the cursor. If the cursor is not located over a button,
+then the cursor first moves to the next button, wrapping to the
+beginning of the message if necessary. You can provide a numeric
+prefix argument PART-INDEX to view the attachment labeled with
+that number.
+
+This command tries to provide a reasonable default for the viewer
+by calling the Emacs function `mailcap-mime-info'. This function
+usually reads the file \"/etc/mailcap\"."
   (interactive "P")
   (when (consp part-index) (setq part-index (car part-index)))
   (mh-folder-mime-action
@@ -1287,7 +1319,9 @@ button."
               (methods (mapcar (lambda (x) (list (cdr (assoc 'viewer x))))
                                (mailcap-mime-info type 'all)))
               (def (caar methods))
-              (prompt (format "Viewer: %s" (if def (format "[%s] " def) "")))
+              (prompt (format "Viewer%s: " (if def
+                                               (format " (default %s)" def)
+                                             "")))
               (method (completing-read prompt methods nil nil nil nil def))
               (folder mh-show-folder-buffer)
               (buffer-read-only nil))
@@ -1319,9 +1353,9 @@ Parameter EL is unused."
     (mm-set-handle-multipart-parameter
      handle 'mh-region (cons (point-min-marker) (point-max-marker)))))
 
-;;; I rewrote the security part because Gnus doesn't seem to ever minimize
-;;; the button. That is once the mime-security button is pressed there seems
-;;; to be no way of getting rid of the inserted text.
+;; I rewrote the security part because Gnus doesn't seem to ever minimize
+;; the button. That is once the mime-security button is pressed there seems
+;; to be no way of getting rid of the inserted text.
 (defun mh-mime-security-show-details (handle)
   "Toggle display of detailed security info for HANDLE."
   (let ((details (mm-handle-multipart-ctl-parameter handle 'gnus-details)))
@@ -1349,14 +1383,15 @@ Parameter EL is unused."
 (defun mh-mime-security-button-face (info)
   "Return the button face to use for encrypted/signed mail based on INFO."
   (cond ((string-match "OK" info)       ;Decrypted mail
-         mh-show-pgg-good-face)
+         'mh-show-pgg-good)
         ((string-match "Failed" info)   ;Decryption failed or signature invalid
-         mh-show-pgg-bad-face)
+         'mh-show-pgg-bad)
         ((string-match "Undecided" info);Unprocessed mail
-         mh-show-pgg-unknown-face)
+         'mh-show-pgg-unknown)
         ((string-match "Untrusted" info);Key not trusted
-         mh-show-pgg-unknown-face)
-        (t mh-show-pgg-good-face)))
+         'mh-show-pgg-unknown)
+        (t
+         'mh-show-pgg-good)))
 
 (defun mh-mime-security-press-button (handle)
   "Callback from security button for part HANDLE."
@@ -1377,10 +1412,10 @@ Parameter EL is unused."
       (mh-mime-display-security handle)
       (goto-char point))))
 
-;; These variables should already be initialized in mm-decode.el if we have a
-;; recent enough Gnus. The defvars are here to avoid compiler warnings.
-(defvar mm-verify-function-alist nil)
-(defvar mm-decrypt-function-alist nil)
+;; Shush compiler.
+(eval-when-compile
+  (defvar mm-verify-function-alist nil)
+  (defvar mm-decrypt-function-alist nil))
 
 (defvar pressed-details)
 
@@ -1429,8 +1464,8 @@ Parameter EL is unused."
 
 (defun mh-mm-inline-message (handle)
   "Display message, HANDLE.
-The function decodes the message and displays it. It avoids decoding the same
-message multiple times."
+The function decodes the message and displays it. It avoids
+decoding the same message multiple times."
   (let ((b (point))
         (clean-message-header mh-clean-message-header-flag)
         (invisible-headers mh-invisible-header-fields-compiled)
@@ -1461,7 +1496,7 @@ message multiple times."
         (mh-decode-message-header)
         (mh-show-addr)
         ;; The other highlighting types don't need anything special
-        (when (eq mh-highlight-citation-p 'gnus)
+        (when (eq mh-highlight-citation-style 'gnus)
           (mh-gnus-article-highlight-citation))
         (goto-char (point-min))
         (insert "\n------- Forwarded Message\n\n")
@@ -1481,10 +1516,10 @@ message multiple times."
 
 (provide 'mh-mime)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 0dd36518-1b64-4a84-8f4e-59f422d3f002
+;; arch-tag: 0dd36518-1b64-4a84-8f4e-59f422d3f002
 ;;; mh-mime.el ends here

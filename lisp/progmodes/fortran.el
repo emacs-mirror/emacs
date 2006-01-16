@@ -63,7 +63,8 @@
 
 (defgroup fortran nil
   "Major mode for editing fixed format Fortran code."
-  :link  '(custom-manual "(emacs)Fortran")
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
+  :link '(custom-manual "(emacs)Fortran")
   :group 'languages)
 
 (defgroup fortran-indent nil
@@ -1251,7 +1252,7 @@ Use function FIND-BEGIN to match it."
       (if message
           (message "%s" message)
         (goto-char matching)
-        (sit-for 1)
+        (sit-for blink-matching-delay)
         (goto-char end-point)))))
 
 (defun fortran-blink-matching-if ()

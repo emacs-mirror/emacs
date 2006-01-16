@@ -34,8 +34,16 @@ display one name.
 
 @table @code
 @item :tag @var{label}
-Use @var{label}, a string, instead of the item's name, to label the item
-in customization menus and buffers.
+Use @var{label}, a string, instead of the item's name, to label the
+item in customization menus and buffers.  @strong{Don't use a tag
+which is substantially different from the item's real name; that would
+cause confusion.}  One legitimate case for use of @code{:tag} is to
+specify a dash where normally a hyphen would be converted to a space:
+
+@example
+(defcustom cursor-in-non-selected-windows @dots{}
+  :tag "Cursor In Non-selected Windows"
+@end example
 
 @item :group @var{group}
 Put this customization item in group @var{group}.  When you use
@@ -51,25 +59,50 @@ Include an external link after the documentation string for this item.
 This is a sentence containing an active field which references some
 other documentation.
 
-There are four alternatives you can use for @var{link-data}:
+There are several alternatives you can use for @var{link-data}:
 
 @table @code
 @item (custom-manual @var{info-node})
 Link to an Info node; @var{info-node} is a string which specifies the
 node name, as in @code{"(emacs)Top"}.  The link appears as
-@samp{[manual]} in the customization buffer.
+@samp{[Manual]} in the customization buffer and enters the built-in
+Info reader on @var{info-node}.
 
 @item (info-link @var{info-node})
 Like @code{custom-manual} except that the link appears
 in the customization buffer with the Info node name.
 
 @item (url-link @var{url})
-Link to a web page; @var{url} is a string which specifies the @acronym{URL}.
-The link appears in the customization buffer as @var{url}.
+Link to a web page; @var{url} is a string which specifies the
+@acronym{URL}.  The link appears in the customization buffer as
+@var{url} and invokes the WWW browser specified by
+@code{browse-url-browser-function}.
 
 @item (emacs-commentary-link @var{library})
 Link to the commentary section of a library; @var{library} is a string
 which specifies the library name.
+
+@item (emacs-library-link @var{library})
+Link to an Emacs Lisp library file; @var{library} is a string which
+specifies the library name.
+
+@item (file-link @var{file})
+Link to a file; @var{file} is a string which specifies the name of the
+file to visit with @code{find-file} when the user invokes this link.
+
+@item (function-link @var{function})
+Link to the documentation of a function; @var{function} is a string
+which specifies the name of the function to describe with
+@code{describe-function} when the user invokes this link.
+
+@item (variable-link @var{variable})
+Link to the documentation of a variable; @var{variable} is a string
+which specifies the name of the variable to describe with
+@code{describe-variable} when the user invokes this link.
+
+@item (custom-group-link @var{group})
+Link to another customization group.  Invoking it creates a new
+customization buffer for @var{group}.
 @end table
 
 You can specify the text to use in the customization buffer by adding
@@ -122,8 +155,7 @@ keyword.
 @defmac defgroup group members doc [keyword value]@dots{}
 Declare @var{group} as a customization group containing @var{members}.
 Do not quote the symbol @var{group}.  The argument @var{doc} specifies
-the documentation string for the group.  It should not start with a
-@samp{*} as in @code{defcustom}; that convention is for variables only.
+the documentation string for the group.
 
 The argument @var{members} is a list specifying an initial set of
 customization items to be members of the group.  However, most often
@@ -178,12 +210,9 @@ turn this feature back on, if someone would like to do the work.
 @defmac defcustom option default doc [keyword value]@dots{}
 Declare @var{option} as a customizable user option variable.  Do not
 quote @var{option}.  The argument @var{doc} specifies the documentation
-string for the variable.  It should often start with a @samp{*} to mark
-it as a @dfn{user option} (@pxref{Defining Variables}).  Do not start
-the documentation string with @samp{*} for options which cannot or
-normally should not be set with @code{set-variable}; examples of the
-former are global minor mode options such as
-@code{global-font-lock-mode} and examples of the latter are hooks.
+string for the variable.  There is no need to start it with a @samp{*}
+because @code{defcustom} automatically marks @var{option} as a
+@dfn{user option} (@pxref{Defining Variables}).
 
 If @var{option} is void, @code{defcustom} initializes it to
 @var{default}.  @var{default} should be an expression to compute the
@@ -982,7 +1011,6 @@ the echo area.  In addition, @var{motion-doc} is used as the mouse
 @code{help-echo} string and may actually be a function or form evaluated
 to yield a help string.  If it is a function, it is called with one
 argument, the widget.
-@xref{Text help-echo}.
 
 @item :match @var{function}
 Specify how to decide whether a value matches the type.  The

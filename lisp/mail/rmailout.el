@@ -123,11 +123,11 @@ appended in inbox format, the same way `rmail-output' does it.
 The default file name comes from `rmail-default-rmail-file',
 which is updated to the name you use in this command.
 
-A prefix argument N says to output N consecutive messages
+A prefix argument COUNT says to output that many consecutive messages,
 starting with the current one.  Deleted messages are skipped and don't count.
 
-If optional argument STAY is non-nil, then leave the last filed
-mesasge up instead of moving forward to the next non-deleted message."
+If the optional argument STAY is non-nil, then leave the last filed
+message up instead of moving forward to the next non-deleted message."
   (interactive
    (list (rmail-output-read-rmail-file-name)
 	 (prefix-numeric-value current-prefix-arg)))
@@ -265,9 +265,9 @@ mesasge up instead of moving forward to the next non-deleted message."
 ;;;###autoload
 (defun rmail-output (file-name &optional count noattribute from-gnus)
   "Append this message to system-inbox-format mail file named FILE-NAME.
-A prefix argument N says to output N consecutive messages
+A prefix argument COUNT says to output that many consecutive messages,
 starting with the current one.  Deleted messages are skipped and don't count.
-When called from lisp code, N may be omitted.
+When called from lisp code, COUNT may be omitted and defaults to 1.
 
 If the pruned message header is shown on the current message, then
 messages will be appended with pruned headers; otherwise, messages

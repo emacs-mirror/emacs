@@ -40,6 +40,9 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/types.h>		/* some typedefs are used in sys/file.h */
 #include <sys/file.h>
 #include <sys/stat.h>
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -118,6 +121,14 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/wait.h>
 #endif
 
+/* Disable IPv6 support for w32 until someone figures out how to do it
+   properly.  */
+#ifdef WINDOWSNT
+# ifdef AF_INET6
+#  undef AF_INET6
+# endif
+#endif
+
 #include "lisp.h"
 #include "systime.h"
 #include "systty.h"
@@ -140,7 +151,10 @@ Boston, MA 02110-1301, USA.  */
 Lisp_Object Qprocessp;
 Lisp_Object Qrun, Qstop, Qsignal;
 Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
-Lisp_Object Qlocal, Qdatagram;
+Lisp_Object Qlocal, Qipv4, Qdatagram;
+#ifdef AF_INET6
+Lisp_Object Qipv6;
+#endif
 Lisp_Object QCname, QCbuffer, QChost, QCservice, QCtype;
 Lisp_Object QClocal, QCremote, QCcoding;
 Lisp_Object QCserver, QCnowait, QCnoquery, QCstop;
@@ -1196,9 +1210,11 @@ a socket connection.  */)
 DEFUN ("format-network-address", Fformat_network_address, Sformat_network_address,
        1, 2, 0,
        doc: /* Convert network ADDRESS from internal format to a string.
+A 4 or 5 element vector represents an IPv4 address (with port number).
+An 8 or 9 element vector represents an IPv6 address (with port number).
 If optional second argument OMIT-PORT is non-nil, don't include a port
-number in the string; in this case, interpret a 4 element vector as an
-IP address.  Returns nil if format of ADDRESS is invalid.  */)
+number in the string, even when present in ADDRESS.
+Returns nil if format of ADDRESS is invalid.  */)
      (address, omit_port)
      Lisp_Object address, omit_port;
 {
@@ -1208,13 +1224,13 @@ IP address.  Returns nil if format of ADDRESS is invalid.  */)
   if (STRINGP (address))  /* AF_LOCAL */
     return address;
 
-  if (VECTORP (address))  /* AF_INET */
+  if (VECTORP (address))  /* AF_INET or AF_INET6 */
     {
       register struct Lisp_Vector *p = XVECTOR (address);
       Lisp_Object args[6];
       int nargs, i;
 
-      if (!NILP (omit_port) && (p->size == 4 || p->size == 5))
+      if (p->size == 4 || (p->size == 5 && !NILP (omit_port)))
 	{
 	  args[0] = build_string ("%d.%d.%d.%d");
 	  nargs = 4;
@@ -1223,6 +1239,16 @@ IP address.  Returns nil if format of ADDRESS is invalid.  */)
 	{
 	  args[0] = build_string ("%d.%d.%d.%d:%d");
 	  nargs = 5;
+	}
+      else if (p->size == 8 || (p->size == 9 && !NILP (omit_port)))
+	{
+	  args[0] = build_string ("%x:%x:%x:%x:%x:%x:%x:%x");
+	  nargs = 8;
+	}
+      else if (p->size == 9)
+	{
+	  args[0] = build_string ("[%x:%x:%x:%x:%x:%x:%x:%x]:%d");
+	  nargs = 9;
 	}
       else
 	return Qnil;
@@ -2213,6 +2239,20 @@ conv_sockaddr_to_lisp (sa, len)
 	cp = (unsigned char *)&sin->sin_addr;
 	break;
       }
+#ifdef AF_INET6
+    case AF_INET6:
+      {
+	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) sa;
+	uint16_t *ip6 = (uint16_t *)&sin6->sin6_addr;
+	len = sizeof (sin6->sin6_addr)/2 + 1;
+	address = Fmake_vector (make_number (len), Qnil);
+	p = XVECTOR (address);
+	p->contents[--len] = make_number (ntohs (sin6->sin6_port));
+	for (i = 0; i < len; i++)
+	  p->contents[i] = make_number (ntohs (ip6[i]));
+	return address;
+      }
+#endif
 #ifdef HAVE_LOCAL_SOCKETS
     case AF_LOCAL:
       {
@@ -2257,6 +2297,13 @@ get_lisp_to_sockaddr_size (address, familyp)
 	  *familyp = AF_INET;
 	  return sizeof (struct sockaddr_in);
 	}
+#ifdef AF_INET6
+      else if (p->size == 9)
+	{
+	  *familyp = AF_INET6;
+	  return sizeof (struct sockaddr_in6);
+	}
+#endif
     }
 #ifdef HAVE_LOCAL_SOCKETS
   else if (STRINGP (address))
@@ -2303,6 +2350,23 @@ conv_lisp_to_sockaddr (family, address, sa, len)
 	  sin->sin_port = htons (i);
 	  cp = (unsigned char *)&sin->sin_addr;
 	}
+#ifdef AF_INET6
+      else if (family == AF_INET6)
+	{
+	  struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) sa;
+	  uint16_t *ip6 = (uint16_t *)&sin6->sin6_addr;
+	  len = sizeof (sin6->sin6_addr) + 1;
+	  i = XINT (p->contents[--len]);
+	  sin6->sin6_port = htons (i);
+	  for (i = 0; i < len; i++)
+	    if (INTEGERP (p->contents[i]))
+	      {
+		int j = XFASTINT (p->contents[i]) & 0xffff;
+		ip6[i] = ntohs (j);
+	      }
+	  return;
+	}
+#endif
     }
   else if (STRINGP (address))
     {
@@ -2596,10 +2660,13 @@ a random port number is selected for the server.
 stream type connection, `datagram' creates a datagram type connection.
 
 :family FAMILY -- FAMILY is the address (and protocol) family for the
-service specified by HOST and SERVICE.  The default address family is
-Inet (or IPv4) for the host and port number specified by HOST and
-SERVICE.  Other address families supported are:
+service specified by HOST and SERVICE.  The default (nil) is to use
+whatever address family (IPv4 or IPv6) that is defined for the host
+and port number specified by HOST and SERVICE.  Other address families
+supported are:
   local -- for a local (i.e. UNIX) address specified by SERVICE.
+  ipv4  -- use IPv4 address family only.
+  ipv6  -- use IPv6 address family only.
 
 :local ADDRESS -- ADDRESS is the local address used for the connection.
 This parameter is ignored when opening a client process. When specified
@@ -2716,8 +2783,8 @@ usage: (make-network-process &rest ARGS)  */)
   struct Lisp_Process *p;
 #ifdef HAVE_GETADDRINFO
   struct addrinfo ai, *res, *lres;
-      struct addrinfo hints;
-      char *portstring, portbuf[128];
+  struct addrinfo hints;
+  char *portstring, portbuf[128];
 #else /* HAVE_GETADDRINFO */
   struct _emacs_addrinfo
   {
@@ -2856,19 +2923,29 @@ usage: (make-network-process &rest ARGS)  */)
 
   /* :family FAMILY -- nil (for Inet), local, or integer.  */
   tem = Fplist_get (contact, QCfamily);
-  if (INTEGERP (tem))
-    family = XINT (tem);
-  else
+  if (NILP (tem))
     {
-      if (NILP (tem))
-	family = AF_INET;
-#ifdef HAVE_LOCAL_SOCKETS
-      else if (EQ (tem, Qlocal))
-	family = AF_LOCAL;
+#if defined(HAVE_GETADDRINFO) && defined(AF_INET6)
+      family = AF_UNSPEC;
+#else
+      family = AF_INET;
 #endif
     }
-  if (family < 0)
+#ifdef HAVE_LOCAL_SOCKETS
+  else if (EQ (tem, Qlocal))
+    family = AF_LOCAL;
+#endif
+#ifdef AF_INET6
+  else if (EQ (tem, Qipv6))
+    family = AF_INET6;
+#endif
+  else if (EQ (tem, Qipv4))
+    family = AF_INET;
+  else if (INTEGERP (tem))
+    family = XINT (tem);
+  else
     error ("Unknown address family");
+
   ai.ai_family = family;
 
   /* :service SERVICE -- string, integer (port number), or t (random port).  */
@@ -2934,7 +3011,7 @@ usage: (make-network-process &rest ARGS)  */)
       QUIT;
       memset (&hints, 0, sizeof (hints));
       hints.ai_flags = 0;
-      hints.ai_family = NILP (Fplist_member (contact, QCfamily)) ? AF_UNSPEC : family;
+      hints.ai_family = family;
       hints.ai_socktype = socktype;
       hints.ai_protocol = 0;
       ret = getaddrinfo (SDATA (host), portstring, &hints, &res);
@@ -3523,6 +3600,21 @@ static struct ifflag_def ifflag_table[] = {
 #ifdef IFF_DYNAMIC
   { IFF_DYNAMIC,	"dynamic" },
 #endif
+#ifdef IFF_OACTIVE
+  { IFF_OACTIVE,	"oactive" },	/* OpenBSD: transmission in progress */
+#endif
+#ifdef IFF_SIMPLEX
+  { IFF_SIMPLEX,	"simplex" },	/* OpenBSD: can't hear own transmissions */
+#endif
+#ifdef IFF_LINK0
+  { IFF_LINK0,		"link0" },	/* OpenBSD: per link layer defined bit */
+#endif
+#ifdef IFF_LINK1
+  { IFF_LINK1,		"link1" },	/* OpenBSD: per link layer defined bit */
+#endif
+#ifdef IFF_LINK2
+  { IFF_LINK2,		"link2" },	/* OpenBSD: per link layer defined bit */
+#endif
   { 0, 0 }
 };
 
@@ -3559,7 +3651,7 @@ FLAGS is the current flags of the interface.  */)
       int fnum;
 
       any++;
-      for (fp = ifflag_table; flags != 0 && fp; fp++)
+      for (fp = ifflag_table; flags != 0 && fp->flag_sym; fp++)
 	{
 	  if (flags & fp->flag_bit)
 	    {
@@ -3595,11 +3687,15 @@ FLAGS is the current flags of the interface.  */)
   res = Fcons (elt, res);
 
   elt = Qnil;
-#if defined(SIOCGIFNETMASK) && defined(ifr_netmask)
+#if defined(SIOCGIFNETMASK) && (defined(HAVE_STRUCT_IFREQ_IFR_NETMASK) || defined(HAVE_STRUCT_IFREQ_IFR_ADDR))
   if (ioctl (s, SIOCGIFNETMASK, &rq) == 0)
     {
       any++;
+#ifdef HAVE_STRUCT_IFREQ_IFR_NETMASK
       elt = conv_sockaddr_to_lisp (&rq.ifr_netmask, sizeof (rq.ifr_netmask));
+#else
+      elt = conv_sockaddr_to_lisp (&rq.ifr_addr, sizeof (rq.ifr_addr));
+#endif
     }
 #endif
   res = Fcons (elt, res);
@@ -3817,6 +3913,9 @@ server_accept_connection (server, channel)
   union u_sockaddr {
     struct sockaddr sa;
     struct sockaddr_in in;
+#ifdef AF_INET6
+    struct sockaddr_in6 in6;
+#endif
 #ifdef HAVE_LOCAL_SOCKETS
     struct sockaddr_un un;
 #endif
@@ -3872,6 +3971,26 @@ server_accept_connection (server, channel)
 	caller = Fformat (3, args);
       }
       break;
+
+#ifdef AF_INET6
+    case AF_INET6:
+      {
+	Lisp_Object args[9];
+	uint16_t *ip6 = (uint16_t *)&saddr.in6.sin6_addr;
+	int i;
+	args[0] = build_string ("%x:%x:%x:%x:%x:%x:%x:%x");
+	for (i = 0; i < 8; i++)
+	  args[i+1] = make_number (ntohs(ip6[i]));
+	host = Fformat (9, args);
+	service = make_number (ntohs (saddr.in.sin_port));
+
+	args[0] = build_string (" <[%s]:%d>");
+	args[1] = host;
+	args[2] = service;
+	caller = Fformat (3, args);
+      }
+      break;
+#endif
 
 #ifdef HAVE_LOCAL_SOCKETS
     case AF_LOCAL:
@@ -5942,97 +6061,100 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
       CHECK_SYMBOL (sigcode);
       name = SDATA (SYMBOL_NAME (sigcode));
 
+      if (!strncmp(name, "SIG", 3))
+	name += 3;
+
       if (0)
 	;
 #ifdef SIGHUP
-      handle_signal ("SIGHUP", SIGHUP);
+      handle_signal ("HUP", SIGHUP);
 #endif
 #ifdef SIGINT
-      handle_signal ("SIGINT", SIGINT);
+      handle_signal ("INT", SIGINT);
 #endif
 #ifdef SIGQUIT
-      handle_signal ("SIGQUIT", SIGQUIT);
+      handle_signal ("QUIT", SIGQUIT);
 #endif
 #ifdef SIGILL
-      handle_signal ("SIGILL", SIGILL);
+      handle_signal ("ILL", SIGILL);
 #endif
 #ifdef SIGABRT
-      handle_signal ("SIGABRT", SIGABRT);
+      handle_signal ("ABRT", SIGABRT);
 #endif
 #ifdef SIGEMT
-      handle_signal ("SIGEMT", SIGEMT);
+      handle_signal ("EMT", SIGEMT);
 #endif
 #ifdef SIGKILL
-      handle_signal ("SIGKILL", SIGKILL);
+      handle_signal ("KILL", SIGKILL);
 #endif
 #ifdef SIGFPE
-      handle_signal ("SIGFPE", SIGFPE);
+      handle_signal ("FPE", SIGFPE);
 #endif
 #ifdef SIGBUS
-      handle_signal ("SIGBUS", SIGBUS);
+      handle_signal ("BUS", SIGBUS);
 #endif
 #ifdef SIGSEGV
-      handle_signal ("SIGSEGV", SIGSEGV);
+      handle_signal ("SEGV", SIGSEGV);
 #endif
 #ifdef SIGSYS
-      handle_signal ("SIGSYS", SIGSYS);
+      handle_signal ("SYS", SIGSYS);
 #endif
 #ifdef SIGPIPE
-      handle_signal ("SIGPIPE", SIGPIPE);
+      handle_signal ("PIPE", SIGPIPE);
 #endif
 #ifdef SIGALRM
-      handle_signal ("SIGALRM", SIGALRM);
+      handle_signal ("ALRM", SIGALRM);
 #endif
 #ifdef SIGTERM
-      handle_signal ("SIGTERM", SIGTERM);
+      handle_signal ("TERM", SIGTERM);
 #endif
 #ifdef SIGURG
-      handle_signal ("SIGURG", SIGURG);
+      handle_signal ("URG", SIGURG);
 #endif
 #ifdef SIGSTOP
-      handle_signal ("SIGSTOP", SIGSTOP);
+      handle_signal ("STOP", SIGSTOP);
 #endif
 #ifdef SIGTSTP
-      handle_signal ("SIGTSTP", SIGTSTP);
+      handle_signal ("TSTP", SIGTSTP);
 #endif
 #ifdef SIGCONT
-      handle_signal ("SIGCONT", SIGCONT);
+      handle_signal ("CONT", SIGCONT);
 #endif
 #ifdef SIGCHLD
-      handle_signal ("SIGCHLD", SIGCHLD);
+      handle_signal ("CHLD", SIGCHLD);
 #endif
 #ifdef SIGTTIN
-      handle_signal ("SIGTTIN", SIGTTIN);
+      handle_signal ("TTIN", SIGTTIN);
 #endif
 #ifdef SIGTTOU
-      handle_signal ("SIGTTOU", SIGTTOU);
+      handle_signal ("TTOU", SIGTTOU);
 #endif
 #ifdef SIGIO
-      handle_signal ("SIGIO", SIGIO);
+      handle_signal ("IO", SIGIO);
 #endif
 #ifdef SIGXCPU
-      handle_signal ("SIGXCPU", SIGXCPU);
+      handle_signal ("XCPU", SIGXCPU);
 #endif
 #ifdef SIGXFSZ
-      handle_signal ("SIGXFSZ", SIGXFSZ);
+      handle_signal ("XFSZ", SIGXFSZ);
 #endif
 #ifdef SIGVTALRM
-      handle_signal ("SIGVTALRM", SIGVTALRM);
+      handle_signal ("VTALRM", SIGVTALRM);
 #endif
 #ifdef SIGPROF
-      handle_signal ("SIGPROF", SIGPROF);
+      handle_signal ("PROF", SIGPROF);
 #endif
 #ifdef SIGWINCH
-      handle_signal ("SIGWINCH", SIGWINCH);
+      handle_signal ("WINCH", SIGWINCH);
 #endif
 #ifdef SIGINFO
-      handle_signal ("SIGINFO", SIGINFO);
+      handle_signal ("INFO", SIGINFO);
 #endif
 #ifdef SIGUSR1
-      handle_signal ("SIGUSR1", SIGUSR1);
+      handle_signal ("USR1", SIGUSR1);
 #endif
 #ifdef SIGUSR2
-      handle_signal ("SIGUSR2", SIGUSR2);
+      handle_signal ("USR2", SIGUSR2);
 #endif
       else
 	error ("Undefined signal name %s", name);
@@ -6719,6 +6841,10 @@ init_process ()
 #ifdef HAVE_LOCAL_SOCKETS
    ADD_SUBFEATURE (QCfamily, Qlocal);
 #endif
+   ADD_SUBFEATURE (QCfamily, Qipv4);
+#ifdef AF_INET6
+   ADD_SUBFEATURE (QCfamily, Qipv6);
+#endif
 #ifdef HAVE_GETSOCKNAME
    ADD_SUBFEATURE (QCservice, Qt);
 #endif
@@ -6777,6 +6903,12 @@ syms_of_process ()
   staticpro (&Qlisten);
   Qlocal = intern ("local");
   staticpro (&Qlocal);
+  Qipv4 = intern ("ipv4");
+  staticpro (&Qipv4);
+#ifdef AF_INET6
+  Qipv6 = intern ("ipv6");
+  staticpro (&Qipv6);
+#endif
   Qdatagram = intern ("datagram");
   staticpro (&Qdatagram);
 

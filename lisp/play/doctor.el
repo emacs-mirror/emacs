@@ -954,7 +954,7 @@ Otherwise call the Doctor to parse preceding sentence."
 		      (doctor-type '(are you (doc$ afraidof) that \?)))
 		     ((zerop (random 2))
 		      (doctor-type '(don\'t tell me what to do \. i am the
-					    psychiatrist here!))
+					    doctor here!))
 		      (doctor-rthing))
 		     (t
 		      (doctor-type '((doc$ whysay) that i shouldn\'t
@@ -1552,8 +1552,8 @@ Hack on previous word, setting global variable OWNER to correct result."
 	(t (doctor-type '((doc$ whysay)(list subj verb obj))))))
 
 (defun doctor-symptoms ()
-  (doctor-type '((doc$ maybe) you should consult a doctor of medicine\,
-		 i am a psychiatrist \.)))
+  (doctor-type '((doc$ maybe) you should consult a medical doctor\;
+		 i am a psychotherapist. \.)))
 
 (defun doctor-hates ()
   (doctor-svo sent found 1 t)

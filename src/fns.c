@@ -2867,7 +2867,8 @@ particular subfeatures supported in this version of FEATURE.  */)
   CHECK_SYMBOL (feature);
   CHECK_LIST (subfeatures);
   if (!NILP (Vautoload_queue))
-    Vautoload_queue = Fcons (Fcons (Vfeatures, Qnil), Vautoload_queue);
+    Vautoload_queue = Fcons (Fcons (make_number (0), Vfeatures),
+			     Vautoload_queue);
   tem = Fmemq (feature, Vfeatures);
   if (NILP (tem))
     Vfeatures = Fcons (feature, Vfeatures);
@@ -2912,14 +2913,20 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
 {
   register Lisp_Object tem;
   struct gcpro gcpro1, gcpro2;
+  int from_file = load_in_progress;
 
   CHECK_SYMBOL (feature);
 
   /* Record the presence of `require' in this file
      even if the feature specified is already loaded.
      But not more than once in any file,
-     and not when we aren't loading a file.  */
-  if (load_in_progress)
+     and not when we aren't loading or reading from a file.  */
+  if (!from_file)
+    for (tem = Vcurrent_load_list; CONSP (tem); tem = XCDR (tem))
+      if (NILP (XCDR (tem)) && STRINGP (XCAR (tem)))
+	from_file = 1;
+
+  if (from_file)
     {
       tem = Fcons (Qrequire, feature);
       if (NILP (Fmember (tem, Vcurrent_load_list)))

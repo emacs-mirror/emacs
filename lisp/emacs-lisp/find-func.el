@@ -63,8 +63,9 @@
   ;;  (define-derived-mode foo ...), (define-minor-mode foo)
   (concat
    "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
-ine-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|foo\\|[^cfgv]\\w+\\*?\\)\
-\\|easy-mmode-define-global-mode\\|menu-bar-make-toggle\\)"
+ine\\(?:-global\\)?-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|\
+foo\\|[^cfgv]\\w+\\*?\\)\\|easy-mmode-define-[a-z-]+\\|easy-menu-define\\|\
+menu-bar-make-toggle\\)"
    find-function-space-re
    "\\('\\|\(quote \\)?%s\\(\\s-\\|$\\|\(\\|\)\\)")
   "The regexp used by `find-function' to search for a function definition.
@@ -78,7 +79,11 @@ Please send improvements and fixes to the maintainer."
   :version "21.1")
 
 (defcustom find-variable-regexp
-  (concat"^\\s-*(def[^fumag]\\(\\w\\|\\s_\\)+\\*?" find-function-space-re "%s\\(\\s-\\|$\\)")
+  (concat
+   "^\\s-*(\\(def[^fumag]\\(\\w\\|\\s_\\)+\\*?\\|\
+easy-mmode-def\\(map\\|syntax\\)\\|easy-menu-define\\)"
+   find-function-space-re
+   "%s\\(\\s-\\|$\\)")
   "The regexp used by `find-variable' to search for a variable definition.
 Note it must contain a `%s' at the place where `format'
 should insert the variable name.  The default value
@@ -142,9 +147,9 @@ See the functions `find-function' and `find-variable'."
 
 (defun find-library-name (library)
   "Return the absolute file name of the Lisp source of LIBRARY."
-  ;; If the library is byte-compiled, try to find a source library by
-  ;; the same name.
-  (if (string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
+  ;; Strip off the extension to take advantage of library suffixes in
+  ;; the call to `locate-file'.
+  (if (string-match "\\.el\\(c\\(\\..*\\)?\\)?\\'" library)
       (setq library (replace-match "" t t library)))
   (or (locate-file library
 		   (or find-function-source-path load-path)
@@ -408,7 +413,7 @@ See `find-variable' for more details."
 (defun find-definition-noselect (symbol type &optional file)
   "Return a pair `(BUFFER . POINT)' pointing to the definition of SYMBOL.
 TYPE says what type of definition: nil for a function,
-`defvar' or `defface' for a variable or face.  This functoin
+`defvar' or `defface' for a variable or face.  This function
 does not switch to the buffer or display it.
 
 The library where SYMBOL is defined is searched for in FILE or

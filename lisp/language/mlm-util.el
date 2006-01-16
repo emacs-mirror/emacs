@@ -235,7 +235,7 @@ In this case, compose characters after POS of the string."
     ("$,1@H@m@E(B" . "$,47Y(B")
     ("$,1@H@m@Q(B" . "$,47b(B")
     ("$,1@H@a(B" . "$,47k(B")
-    ("$,1@H@m@H@a(B" . "$,47l(B") 
+    ("$,1@H@m@H@a(B" . "$,47l(B")
 
     ("$,1@J(B" . "$,46=(B")
     ("$,1@J@m@J(B" . "$,478(B") ;; duplicate
@@ -403,7 +403,7 @@ In this case, compose characters after POS of the string."
                (apply
                 'nconc
                 (mapcar
-                 (function 
+                 (function
                   (lambda (x) (list '(5 . 3) x))) ;; default ref. point.
                  glyph-str))))
         (compose-region from to glyph-str)))))

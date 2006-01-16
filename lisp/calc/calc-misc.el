@@ -33,7 +33,7 @@
 (require 'calc-macs)
 
 (defun calc-dispatch-help (arg)
-  "M-# is a prefix key; follow it with one of these letters:
+  "C-x* is a prefix key sequence; follow it with one of these letters:
 
 For turning Calc on and off:
   C  calc.  Start the Calculator in a window at the bottom of the screen.
@@ -73,8 +73,9 @@ Miscellaneous:
   M  read-kbd-macro.  Read a region of keystroke names as a keyboard macro.
   0  (zero) calc-reset.  Reset Calc stack and modes to default state.
 
-Press twice (`M-# M-#' or `M-# #') to turn Calc on or off using the same
-Calc user interface as before (either M-# C or M-# K; initially M-# C)."
+Press `*' twice (`C-x * *') to turn Calc on or off using the same
+Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
+"
   (interactive "P")
   (calc-check-defines)
   (if calc-dispatch-help
@@ -646,8 +647,11 @@ loaded and the keystroke automatically re-typed."
 	    (or (math-with-extra-prec 2 (math-matrix-inv-raw m))
 		(math-reject-arg m "*Singular matrix"))
 	  (math-reject-arg m 'square-matrixp)))
-    (math-div 1 m)))
-
+    (if (and
+         (require 'calc-arith)
+         (math-known-matrixp m))
+        (math-pow m -1)
+      (math-div 1 m))))
 
 (defun math-do-working (msg arg)
   (or executing-kbd-macro

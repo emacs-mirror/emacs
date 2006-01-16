@@ -39,9 +39,6 @@
 
 ;;; Todo:
 
-;; The xterm mouse escape codes are supposedly also supported by the
-;; Linux console, but I have not been able to verify this.
-
 ;; Support multi-click -- somehow.
 
 ;;; Code:
@@ -146,10 +143,12 @@
 
     (setq xterm-mouse-x x
 	  xterm-mouse-y y)
-    (if w
-	(list mouse (posn-at-x-y (- x left) (- y top) w t))
-      (list mouse
-	    (append (list nil 'menu-bar) (nthcdr 2 (posn-at-x-y x y w t)))))))
+    (setq
+     last-input-event
+     (if w
+	 (list mouse (posn-at-x-y (- x left) (- y top) w t))
+       (list mouse
+	     (append (list nil 'menu-bar) (nthcdr 2 (posn-at-x-y x y w t))))))))
 
 ;;;###autoload
 (define-minor-mode xterm-mouse-mode

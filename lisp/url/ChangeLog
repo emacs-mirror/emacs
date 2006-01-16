@@ -1,9 +1,94 @@
+2006-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url.el (url-retrieve-synchronously): Adjust the workaround so as not
+	to stop in the middle of a redirection.
+
+	* url-vars.el (url-privacy-level): Add setter.
+
+2006-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-history.el (url-history-hash-table): Initialize in declaration.
+	(url-history-parse-history): Don't reset the history.
+	(url-history-save-history): Create parent dir if necessary.
+	(url-history-save-history): Don't write the initialization of
+	url-history-hash-table into the history file.
+	(url-have-visited-url): Simplify since url-history-hash-table is non-nil.
+	(url-completion-function): Simplify.
+
+	* url-cookie.el (url-cookie-parse-file): Don't complain of missing file.
+	(url-cookie-parse-file, url-cookie-write-file, url-cookie-retrieve)
+	(url-cookie-generate-header-lines, url-cookie-handle-set-cookie)
+	(url-cookie-setup-save-timer): Remove autoload cookies.
+	They're only called from files that require url-cookie anyway.
+
+	* url-history.el (url-history-setup-save-timer)
+	(url-history-parse-history, url-history-save-history):
+	Remove autoload cookies.  They're only called from url.el which requires
+	url-history anyway.
+	(url-history-parse-history): Don't complain if the file is missing.
+
+2006-01-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (url-retrieve-synchronously): Don't autoload.
+
+	* url.el (url-retrieve, url-retrieve-synchronously): Autoload.
+
+	* url-cache.el: Require `url'.
+
+2005-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-cache.el (url-store-in-cache): Use save-current-buffer.
+
+	* url.el (url-configuration-directory): Don't autoload because the
+	default value needs to be computed at run-time, not dump-time.
+
+2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-cookie.el (url-cookie-write-file): Create parent dir.
+
+	* url.el (url-configuration-directory): Use ~/.emacs.d if possible.
+
+2005-12-07  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-cookie.el (url-cookie-save-interval): Simplify.
+	(url-cookie-setup-save-timer): Simplify.
+
+2005-12-04  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-history.el (url-history-list): Var deleted.
+	(url-history-save-interval): Simplify.
+	(url-history-setup-save-timer): Simplify.
+
+2005-12-01  Kim F. Storm  <storm@cua.dk>
+
+	* url-history.el (url-history-track): Fix last change.
+
+2005-12-01  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-history.el (url-history-track):
+	Call url-history-setup-save-timer in :set function.
+	:type allows three alternatives.
+	(url-history-setup-save-timer): Test url-history-track.
+	* url.el (url-retrieve): Test url-history-track.
+
+2005-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-http.el: Use with-current-buffer.
+	(url-http-target-url): Rename from url-http-cookies-sources.
+	(url-http-parse-headers): Use it.
+	(url-http-handle-authentication): Use subst-char-in-string.
+
+2005-11-16  Juergen Hoetzel  <emacs@hoetzel.info>  (tiny change)
+
+	* url-handlers.el (url-insert-file-contents): Use the charset info
+	provided by the HTTP server, if any.
+
 2005-10-20  CHENG Gao  <chenggao@gmail.com>  (tiny change)
 
-	* url-nfs.el (top level): 
-	* url-handlers.el (directory-files): 
+	* url-nfs.el (top level):
+	* url-handlers.el (directory-files):
 	* url-file.el (top level):
-	* url-dired.el (url-dired-minor-mode-map): 
+	* url-dired.el (url-dired-minor-mode-map):
 	* url-http.el (url-http-chunked-encoding-after-change-function):
 	Remove XEmacs support.
 

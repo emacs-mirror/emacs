@@ -65,7 +65,9 @@ Preserves the `buffer-modified-p' state of the current buffer."
   :group 'font-lock)
 
 (defcustom jit-lock-chunk-size 500
-  "*Jit-lock chunks of this many characters, or smaller."
+  "*Jit-lock fontifies chunks of at most this many characters at a time.
+
+This variable controls both display-time and stealth fontification."
   :type 'integer
   :group 'jit-lock)
 
@@ -264,7 +266,6 @@ the variable `jit-lock-stealth-nice'."
 	 (remove-hook 'after-change-functions 'jit-lock-after-change t)
 	 (remove-hook 'fontification-functions 'jit-lock-function))))
 
-;;;###autoload
 (defun jit-lock-register (fun &optional contextual)
   "Register FUN as a fontification function to be called in this buffer.
 FUN will be called with two arguments START and END indicating the region
@@ -299,7 +300,7 @@ Only applies to the current buffer."
   "Fontify current buffer starting at position START.
 This function is added to `fontification-functions' when `jit-lock-mode'
 is active."
-  (when (and jit-lock-mode (not (memory-full-p)))
+  (when (and jit-lock-mode (not memory-full))
     (if (null jit-lock-defer-time)
 	;; No deferral.
 	(jit-lock-fontify-now start (+ start jit-lock-chunk-size))
@@ -353,7 +354,12 @@ Defaults to the whole buffer.  END can be out of bounds."
            ;; what's already been refontified.
            (when (and jit-lock-context-unfontify-pos
                       (< jit-lock-context-unfontify-pos next)
-                      (>= jit-lock-context-unfontify-pos start))
+                      (>= jit-lock-context-unfontify-pos start)
+                      ;; Don't move boundary forward if we have to
+                      ;; refontify previous text.  Otherwise, we risk moving
+                      ;; it past the end of the multiline property and thus
+                      ;; forget about this multiline region altogether.
+                      (not (get-text-property start 'jit-lock-defer-multiline)))
              (setq jit-lock-context-unfontify-pos next))
 
 	   ;; Fontify the chunk, and mark it as fontified.
@@ -422,6 +428,7 @@ This functions is called after Emacs has been idle for
 `jit-lock-stealth-time' seconds."
   ;; I used to check `inhibit-read-only' here, but I can't remember why.  -stef
   (unless (or executing-kbd-macro
+	      memory-full
 	      (window-minibuffer-p (selected-window)))
     (let ((buffers (buffer-list))
 	  (outer-buffer (current-buffer))
@@ -485,7 +492,7 @@ This functions is called after Emacs has been idle for
 
 (defun jit-lock-deferred-fontify ()
   "Fontify what was deferred."
-  (when jit-lock-defer-buffers
+  (when (and jit-lock-defer-buffers (not memory-full))
     ;; Mark the deferred regions back to `fontified = nil'
     (dolist (buffer jit-lock-defer-buffers)
       (when (buffer-live-p buffer)
@@ -512,33 +519,34 @@ This functions is called after Emacs has been idle for
 
 (defun jit-lock-context-fontify ()
   "Refresh fontification to take new context into account."
-  (dolist (buffer (buffer-list))
-    (with-current-buffer buffer
-      (when jit-lock-context-unfontify-pos
-	;; (message "Jit-Context %s" (buffer-name))
-	(save-restriction
-	  (widen)
-	  (when (and (>= jit-lock-context-unfontify-pos (point-min))
-		     (< jit-lock-context-unfontify-pos (point-max)))
-	    ;; If we're in text that matches a complex multi-line
-	    ;; font-lock pattern, make sure the whole text will be
-	    ;; redisplayed eventually.
-	    ;; Despite its name, we treat jit-lock-defer-multiline here
-	    ;; rather than in jit-lock-defer since it has to do with multiple
-	    ;; lines, i.e. with context.
-	    (when (get-text-property jit-lock-context-unfontify-pos
-				     'jit-lock-defer-multiline)
-	      (setq jit-lock-context-unfontify-pos
-		    (or (previous-single-property-change
-			 jit-lock-context-unfontify-pos
-			 'jit-lock-defer-multiline)
-			(point-min))))
-	    (with-buffer-prepared-for-jit-lock
-	     ;; Force contextual refontification.
-	     (remove-text-properties
-	      jit-lock-context-unfontify-pos (point-max)
-	      '(fontified nil jit-lock-defer-multiline nil)))
-	    (setq jit-lock-context-unfontify-pos (point-max))))))))
+  (unless memory-full
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+	(when jit-lock-context-unfontify-pos
+	  ;; (message "Jit-Context %s" (buffer-name))
+	  (save-restriction
+	    (widen)
+	    (when (and (>= jit-lock-context-unfontify-pos (point-min))
+		       (< jit-lock-context-unfontify-pos (point-max)))
+	      ;; If we're in text that matches a complex multi-line
+	      ;; font-lock pattern, make sure the whole text will be
+	      ;; redisplayed eventually.
+	      ;; Despite its name, we treat jit-lock-defer-multiline here
+	      ;; rather than in jit-lock-defer since it has to do with multiple
+	      ;; lines, i.e. with context.
+	      (when (get-text-property jit-lock-context-unfontify-pos
+				       'jit-lock-defer-multiline)
+		(setq jit-lock-context-unfontify-pos
+		      (or (previous-single-property-change
+			   jit-lock-context-unfontify-pos
+			   'jit-lock-defer-multiline)
+			  (point-min))))
+	      (with-buffer-prepared-for-jit-lock
+	       ;; Force contextual refontification.
+	       (remove-text-properties
+		jit-lock-context-unfontify-pos (point-max)
+		'(fontified nil jit-lock-defer-multiline nil)))
+	      (setq jit-lock-context-unfontify-pos (point-max)))))))))
 
 (defun jit-lock-after-change (start end old-len)
   "Mark the rest of the buffer as not fontified after a change.
@@ -548,7 +556,7 @@ is the pre-change length.
 This function ensures that lines following the change will be refontified
 in case the syntax of those lines has changed.  Refontification
 will take place when text is fontified stealthily."
-  (when (and jit-lock-mode (not (memory-full-p)))
+  (when (and jit-lock-mode (not memory-full))
     (save-excursion
       (with-buffer-prepared-for-jit-lock
        ;; It's important that the `fontified' property be set from the

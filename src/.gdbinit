@@ -1,4 +1,4 @@
-# Copyright (C) 1992, 93, 94, 95, 96, 97, 1998, 2000, 01, 2004
+# Copyright (C) 1992, 93, 94, 95, 96, 97, 1998, 2000, 01, 2004, 2005, 2006
 #   Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
@@ -30,6 +30,9 @@ dir ../lwlib
 # at the GDB to stop Emacs, when using X.
 # However, C-z works just as well in that case.
 handle 2 noprint pass
+
+# Make it work like SIGINT normally does.
+handle SIGTSTP nopass
 
 # Don't pass SIGALRM to Emacs.  This makes problems when
 # debugging.
@@ -66,11 +69,51 @@ end
 # Print out s-expressions
 define pp
   set $tmp = $arg0
-  set debug_print ($tmp)
+  set safe_debug_print ($tmp)
 end
 document pp
 Print the argument as an emacs s-expression
 Works only when an inferior emacs is executing.
+end
+
+# Print out s-expressions from tool bar
+define pp1
+  set $tmp = $arg0
+  echo $arg0
+  printf " = "
+  set safe_debug_print ($tmp)
+end
+document pp1
+Print the argument as an emacs s-expression
+Works only when an inferior emacs is executing.
+For use on tool bar when debugging in Emacs
+where the variable name would not otherwise
+be recorded in the GUD buffer.
+end
+
+# Print value of lisp variable
+define pv
+  set $tmp = "$arg0"
+  set safe_debug_print ( find_symbol_value (intern ($tmp)))
+end
+document pv
+Print the value of the lisp variable given as argument.
+Works only when an inferior emacs is executing.
+end
+
+# Print value of lisp variable
+define pv1
+  set $tmp = "$arg0"
+  echo $arg0
+  printf " = "
+  set safe_debug_print (find_symbol_value (intern ($tmp)))
+end
+document pv1
+Print the value of the lisp variable given as argument.
+Works only when an inferior emacs is executing.
+For use on tool bar when debugging in Emacs
+where the variable name would not otherwise
+be recorded in the GUD buffer.
 end
 
 # Print out current buffer point and boundaries
@@ -122,7 +165,7 @@ define pitx
     printf " HL"
   end
   if ($it->n_overlay_strings > 0)
-    printf " nov=%d"
+    printf " nov=%d", $it->n_overlay_strings
   end
   if ($it->sp != 0)
     printf " sp=%d", $it->sp
@@ -585,7 +628,7 @@ Print the contents of $, assuming it is an Emacs Lisp cons.
 end
 
 define nextcons
-  p $.cdr
+  p $.u.cdr
   xcons
 end
 document nextcons
@@ -605,7 +648,7 @@ end
 define xcdr
   xgetptr $
   xgettype $
-  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->cdr : 0)
+  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->u.cdr : 0)
 end
 document xcdr
 Print the cdr of $, assuming it is an Emacs Lisp pair.
@@ -613,7 +656,7 @@ end
 
 define xfloat
   xgetptr $
-  print ((struct Lisp_Float *) $ptr)->data
+  print ((struct Lisp_Float *) $ptr)->u.data
 end
 document xfloat
 Print $ assuming it is a lisp floating-point number.
@@ -695,6 +738,16 @@ document xbacktrace
   an error was signaled.
 end
 
+# Show Lisp backtrace after normal backtrace.
+define hookpost-backtrace
+  set $bt = backtrace_list
+  if $bt
+    echo \n
+    echo Lisp Backtrace:\n
+    xbacktrace
+  end
+end
+
 define xreload
   set $tagmask = (((long)1 << gdb_gctypebits) - 1)
   set $valmask = gdb_use_lsb ? ~($tagmask) : ((long)1 << gdb_valbits) - 1
@@ -734,13 +787,40 @@ show environment DISPLAY
 show environment TERM
 set args -geometry 80x40+0+0
 
-# Don't let abort actually run, as it will make
-# stdio stop working and therefore the `pr' command above as well.
-break abort
+# People get bothered when they see messages about non-existent functions...
+xgetptr Vsystem_type
+set $tem = (struct Lisp_Symbol *) $ptr
+xgetptr $tem->xname
+set $tem = (struct Lisp_String *) $ptr
+set $tem = (char *) $tem->data
 
-# If we are running in synchronous mode, we want a chance to look around
-# before Emacs exits.  Perhaps we should put the break somewhere else
-# instead...
-break x_error_quitter
+# Don't let abort actually run, as it will make stdio stop working and
+# therefore the `pr' command above as well.
+if $tem[0] == 'w' && $tem[1] == 'i' && $tem[2] == 'n' && $tem[3] == 'd'
+  # The windows-nt build replaces abort with its own function.
+  break w32_abort
+else
+  break abort
+end
 
+# x_error_quitter is defined only on X.  But window-system is set up
+# only at run time, during Emacs startup, so we need to defer setting
+# the breakpoint.  init_sys_modes is the first function called on
+# every platform after init_display, where window-system is set.
+tbreak init_sys_modes
+commands
+  silent
+  xgetptr Vwindow_system
+  set $tem = (struct Lisp_Symbol *) $ptr
+  xgetptr $tem->xname
+  set $tem = (struct Lisp_String *) $ptr
+  set $tem = (char *) $tem->data
+  # If we are running in synchronous mode, we want a chance to look
+  # around before Emacs exits.  Perhaps we should put the break
+  # somewhere else instead...
+  if $tem[0] == 'x' && $tem[1] == '\0'
+    break x_error_quitter
+  end
+  continue
+end
 # arch-tag: 12f34321-7bfa-4240-b77a-3cd3a1696dfe

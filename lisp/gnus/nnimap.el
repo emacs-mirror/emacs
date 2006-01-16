@@ -317,6 +317,11 @@ every message in the group, thus making it quite slow.
 Unlike other backends, you do not need to take special care if you
 flip this variable.")
 
+(defvoo nnimap-search-uids-not-since-is-evil nil
+  "If non-nil, avoid \"UID SEARCH UID ... NOT SINCE\" queries when expiring.
+Instead, use \"UID SEARCH SINCE\" to prune the list of expirable
+articles within Gnus.  This seems to be faster on Courier in some cases.")
+
 (defvoo nnimap-expunge-on-close 'always ; 'ask, 'never
   "Whether to expunge a group when it is closed.
 When a IMAP group with articles marked for deletion is closed, this
@@ -1436,6 +1441,21 @@ function is generally only called when Gnus is shutting down."
 		     (when (imap-message-flags-add
 			    (imap-range-to-message-set
 			     (gnus-compress-sequence oldarts)) "\\Deleted")
+		       (setq articles (gnus-set-difference
+				       articles oldarts))))))
+		((and nnimap-search-uids-not-since-is-evil (numberp days))
+		 (let* ((all-new-articles
+			 (gnus-compress-sequence
+			  (imap-search (format "SINCE %s"
+					       (nnimap-date-days-ago days)))))
+			(oldartseq
+			 (gnus-range-difference artseq all-new-articles))
+			(oldarts (gnus-uncompress-range oldartseq)))
+		   (when oldarts
+		     (nnimap-expiry-target oldarts group server)
+		     (when (imap-message-flags-add
+			    (imap-range-to-message-set oldartseq)
+			    "\\Deleted")
 		       (setq articles (gnus-set-difference
 				       articles oldarts))))))
 		((numberp days)

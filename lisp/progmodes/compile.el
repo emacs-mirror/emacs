@@ -331,7 +331,8 @@ beginning of line's indentation.
 FILE can also have the form (FILE FORMAT...), where the FORMATs
 \(e.g. \"%s.c\") will be applied in turn to the recognized file
 name, until a file of that name is found.  Or FILE can also be a
-function to return the filename.
+function that returns (FILENAME) or (RELATIVE-FILENAME . DIRNAME).
+In the former case, FILENAME may be relative or absolute.
 
 LINE can also be of the form (LINE . END-LINE) meaning a range
 of lines.  COLUMN can also be of the form (COLUMN . END-COLUMN)
@@ -707,24 +708,25 @@ FMTS is a list of format specs for transforming the file name.
       (setq marker (nth 3 (cadr marker-line))
 	    marker-line (or (car marker-line) 1))
       (with-current-buffer (marker-buffer marker)
-	(save-restriction
-	  (widen)
-	  (goto-char (marker-position marker))
-	  (when (or end-col end-line)
-	    (beginning-of-line (- (or end-line line) marker-line -1))
-	    (if (or (null end-col) (< end-col 0))
-		(end-of-line)
-	      (compilation-move-to-column
-	       end-col compilation-error-screen-columns))
-	    (setq end-marker (list (point-marker))))
-	  (beginning-of-line (if end-line
-				 (- line end-line -1)
-			       (- loc marker-line -1)))
-	  (if col
-	      (compilation-move-to-column
-	       col compilation-error-screen-columns)
-	    (forward-to-indentation 0))
-	  (setq marker (list (point-marker))))))
+	(save-excursion
+	  (save-restriction
+	    (widen)
+	    (goto-char (marker-position marker))
+	    (when (or end-col end-line)
+	      (beginning-of-line (- (or end-line line) marker-line -1))
+	      (if (or (null end-col) (< end-col 0))
+		  (end-of-line)
+		(compilation-move-to-column
+		 end-col compilation-error-screen-columns))
+	      (setq end-marker (list (point-marker))))
+	    (beginning-of-line (if end-line
+				   (- line end-line -1)
+				 (- loc marker-line -1)))
+	    (if col
+		(compilation-move-to-column
+		 col compilation-error-screen-columns)
+	      (forward-to-indentation 0))
+	    (setq marker (list (point-marker)))))))
 
     (setq loc (compilation-assq line (cdr file-struct)))
     (if end-line
@@ -1334,19 +1336,18 @@ Optional argument MINOR indicates this is called from
   ;; jit-lock might fontify some things too late.
   (set (make-local-variable 'font-lock-support-mode) nil)
   (set (make-local-variable 'font-lock-maximum-size) nil)
-  (let ((fld font-lock-defaults))
-    (if (and minor fld)
+  (if minor
+      (let ((fld font-lock-defaults))
 	(font-lock-add-keywords nil (compilation-mode-font-lock-keywords))
-      (setq font-lock-defaults '(compilation-mode-font-lock-keywords t)))
-    (if minor
 	(if font-lock-mode
 	    (if fld
 		(font-lock-fontify-buffer)
 	      (font-lock-change-mode)
 	      (turn-on-font-lock))
-	  (turn-on-font-lock))
-      ;; maybe defer font-lock till after derived mode is set up
-      (run-mode-hooks 'compilation-turn-on-font-lock))))
+	  (turn-on-font-lock)))
+    (setq font-lock-defaults '(compilation-mode-font-lock-keywords t))
+    ;; maybe defer font-lock till after derived mode is set up
+    (run-mode-hooks 'compilation-turn-on-font-lock)))
 
 ;;;###autoload
 (define-minor-mode compilation-shell-minor-mode

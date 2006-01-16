@@ -1,6 +1,7 @@
 ;;; cc-styles.el --- support for styles in CC Mode
 
-;; Copyright (C) 1985,1987,1992-2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2003, 2004, 2005 Free Software Foundation,
+;; Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -24,7 +25,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; along with this program; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
@@ -55,6 +56,7 @@
   '(("gnu"
      (c-basic-offset . 2)
      (c-comment-only-line-offset . (0 . 0))
+     (c-hanging-braces-alist     . ((substatement-open before after)))
      (c-offsets-alist . ((statement-block-intro . +)
 			 (knr-argdecl-intro . 5)
 			 (substatement-open . +)
@@ -65,11 +67,10 @@
 			 (arglist-intro . c-lineup-arglist-intro-after-paren)
 			 (arglist-close . c-lineup-arglist)
 			 (inline-open . 0)
-			 (brace-list-open . +)
-			 ))
+			 (brace-list-open . +)))
      (c-special-indent-hook . c-gnu-impose-minimum)
-     (c-block-comment-prefix . "")
-     )
+     (c-block-comment-prefix . ""))
+
     ("k&r"
      (c-basic-offset . 5)
      (c-comment-only-line-offset . 0)
@@ -78,9 +79,8 @@
 			 (substatement-open . 0)
 			 (substatement-label . 0)
 			 (label . 0)
-			 (statement-cont . +)
-			 ))
-     )
+			 (statement-cont . +))))
+
     ("bsd"
      (c-basic-offset . 8)
      (c-comment-only-line-offset . 0)
@@ -91,9 +91,8 @@
 			 (label . 0)
 			 (statement-cont . +)
 			 (inline-open . 0)
-			 (inexpr-class . 0)
-			 ))
-     )
+			 (inexpr-class . 0))))
+
     ("stroustrup"
      (c-basic-offset . 4)
      (c-comment-only-line-offset . 0)
@@ -101,46 +100,61 @@
 			 (substatement-open . 0)
 			 (substatement-label . 0)
 			 (label . 0)
-			 (statement-cont . +)
-			 ))
-     )
+			 (statement-cont . +))))
+
     ("whitesmith"
      (c-basic-offset . 4)
      (c-comment-only-line-offset . 0)
-     (c-offsets-alist . ((knr-argdecl-intro . +)
-			 (label . 0)
-			 (statement-cont . +)
+     ;; It's obvious that the CC Mode way of choosing anchor positions
+     ;; doesn't fit this style at all. :P
+     (c-offsets-alist . ((defun-open . +)
+			 (defun-close . c-lineup-whitesmith-in-block)
+			 (defun-block-intro . (add c-lineup-whitesmith-in-block
+						   c-indent-multi-line-block))
+			 (class-open . +)
+			 (class-close . +)
+			 (inline-open . +)
+			 (inline-close . c-lineup-whitesmith-in-block)
+			 (knr-argdecl-intro . +)
+			 (block-open . 0) ; Get indentation from `statement' instead.
+			 (block-close . c-lineup-whitesmith-in-block)
+			 (brace-list-open . +)
+			 (brace-list-close . c-lineup-whitesmith-in-block)
+			 (brace-list-intro . (add c-lineup-whitesmith-in-block
+						  c-indent-multi-line-block))
+			 (brace-list-entry . (add c-lineup-after-whitesmith-blocks
+						  c-indent-multi-line-block))
+			 (brace-entry-open . (add c-lineup-after-whitesmith-blocks
+						  c-indent-multi-line-block))
+			 (statement . (add c-lineup-after-whitesmith-blocks
+					   c-indent-multi-line-block))
+			 (statement-block-intro . (add c-lineup-whitesmith-in-block
+						       c-indent-multi-line-block))
 			 (substatement-open . +)
 			 (substatement-label . +)
-			 (block-open . +)
-			 (statement-block-intro . c-lineup-whitesmith-in-block)
-			 (block-close . c-lineup-whitesmith-in-block)
-			 (inline-open . +)
-			 (defun-open . +)
-			 (defun-block-intro . c-lineup-whitesmith-in-block)
-			 (defun-close . c-lineup-whitesmith-in-block)
-			 (brace-list-open . +)
-			 (brace-list-intro . c-lineup-whitesmith-in-block)
-			 (brace-entry-open . c-indent-multi-line-block)
-			 (brace-list-close . c-lineup-whitesmith-in-block)
-			 (class-open . +)
+			 (label . 0)
+			 (arglist-intro . (add c-lineup-whitesmith-in-block
+					       c-indent-multi-line-block))
+			 (arglist-cont . (add c-lineup-after-whitesmith-blocks
+					      c-indent-multi-line-block))
+			 (arglist-cont-nonempty . (add c-lineup-whitesmith-in-block
+						       c-indent-multi-line-block))
+			 (arglist-close . c-lineup-whitesmith-in-block)
 			 (inclass . c-lineup-whitesmith-in-block)
-			 (class-close . +)
-			 (inexpr-class . 0)
 			 (extern-lang-open . +)
-			 (inextern-lang . c-lineup-whitesmith-in-block)
-			 (extern-lang-close . +)
 			 (namespace-open . +)
-			 (innamespace . c-lineup-whitesmith-in-block)
-			 (namespace-close . +)
 			 (module-open . +)
-			 (inmodule . c-lineup-whitesmith-in-block)
-			 (module-close . +)
 			 (composition-open . +)
-			 (incomposition . c-lineup-whitesmith-in-block)
+			 (extern-lang-close . +)
+			 (namespace-close . +)
+			 (module-close . +)
 			 (composition-close . +)
-			 ))
-     )
+			 (inextern-lang . c-lineup-whitesmith-in-block)
+			 (innamespace . c-lineup-whitesmith-in-block)
+			 (inmodule . c-lineup-whitesmith-in-block)
+			 (incomposition . c-lineup-whitesmith-in-block)
+			 (inexpr-class . 0))))
+
     ("ellemtel"
      (c-basic-offset . 3)
      (c-comment-only-line-offset . 0)
@@ -151,9 +165,8 @@
                          (case-label           . +)
                          (access-label         . -)
                          (inclass              . ++)
-                         (inline-open          . 0)
-                         ))
-     )
+			 (inline-open          . 0))))
+
     ("linux"
      (c-basic-offset  . 8)
      (c-comment-only-line-offset . 0)
@@ -167,9 +180,8 @@
 			 (substatement-open     . 0)
 			 (substatement-label    . 0)
 			 (label                 . 0)
-			 (statement-cont        . +)
-			 ))
-     )
+			 (statement-cont        . +))))
+
     ("python"
      (indent-tabs-mode . t)
      (fill-column      . 78)
@@ -177,17 +189,15 @@
      (c-offsets-alist  . ((substatement-open . 0)
 			  (inextern-lang . 0)
 			  (arglist-intro . +)
-			  (knr-argdecl-intro . +)
-			  ))
+			  (knr-argdecl-intro . +)))
      (c-hanging-braces-alist . ((brace-list-open)
 				(brace-list-intro)
 				(brace-list-close)
 				(brace-entry-open)
 				(substatement-open after)
-				(block-close . c-snug-do-while)
-				))
-     (c-block-comment-prefix . "")
-     )
+				(block-close . c-snug-do-while)))
+     (c-block-comment-prefix . ""))
+
     ("java"
      (c-basic-offset . 4)
      (c-comment-only-line-offset . (0 . 0))
@@ -205,9 +215,23 @@
  			 (arglist-close  . c-lineup-arglist)
  			 (access-label   . 0)
 			 (inher-cont     . c-lineup-java-inher)
-			 (func-decl-cont . c-lineup-java-throws)
-			 ))
-     )
+			 (func-decl-cont . c-lineup-java-throws))))
+
+    ;; awk style exists primarily for auto-newline settings.  Otherwise it's
+    ;; pretty much like k&r.
+    ("awk"
+     (c-basic-offset . 4)
+     (c-comment-only-line-offset . 0)
+     (c-hanging-braces-alist . ((defun-open after)
+				(defun-close . c-snug-1line-defun-close)
+				(substatement-open after)
+				(block-close . c-snug-do-while)))
+     (c-hanging-semi&comma-criteria . nil)
+     (c-cleanup-list . nil)		; You might want one-liner-defun here.
+     (c-offsets-alist . ((statement-block-intro . +)
+			 (substatement-open . 0)
+			 (statement-cont . +))))
+
     )
   "Styles of indentation.
 Elements of this alist are of the form:
@@ -246,8 +270,6 @@ the existing style.")
 ;; Functions that manipulate styles
 (defun c-set-style-1 (conscell dont-override)
   ;; Set the style for one variable
-  ;;
-  ;; This function does not do any hidden buffer changes.
   (let ((attr (car conscell))
 	(val  (cdr conscell)))
     (cond
@@ -291,8 +313,6 @@ the existing style.")
 
 (defun c-get-style-variables (style basestyles)
   ;; Return all variables in a style by resolving inheritances.
-  ;;
-  ;; This function does not do any hidden buffer changes.
   (if (not style)
       (copy-alist c-fallback-style)
     (let ((vars (cdr (or (assoc (downcase style) c-style-alist)
@@ -314,48 +334,36 @@ the existing style.")
 
 ;;;###autoload
 (defun c-set-style (stylename &optional dont-override)
-  "Set CC Mode variables to use one of several different indentation styles.
-STYLENAME is a string representing the desired style from the list of
-styles described in the variable `c-style-alist'.  See that variable
-for details of setting up styles.
+  "Set the current buffer to use the style STYLENAME.
+STYLENAME, a string, must be an existing CC Mode style - These are contained
+in the variable `c-style-alist'.
 
-The variable `c-indentation-style' always contains the buffer's current
-style name.
+The variable `c-indentation-style' will get set to STYLENAME.
 
-If the optional argument DONT-OVERRIDE is t, no style variables that
-already have values will be overridden.  I.e. in the case of
-`c-offsets-alist', syntactic symbols will only be added, and in the
-case of all other style variables, only those set to `set-from-style'
-will be reassigned.
+\"Setting the style\" is done by setting CC Mode's \"style variables\" to the
+values indicated by the pertinent entry in `c-style-alist'.  Other variables
+might get set too.
 
-If DONT-OVERRIDE is neither nil nor t, only those style variables that
-have default (i.e. non-buffer local) values will keep their settings
-while the rest will be overridden.  This is useful to avoid overriding
-global settings done in ~/.emacs when setting a style from a mode hook
-\(providing the style variables are buffer local, which is the
-default).
+If DONT-OVERRIDE is neither nil nor t, style variables whose default values
+have been set (more precisely, whose default values are not the symbol
+`set-from-style') will not be changed.  This avoids overriding global settings
+done in ~/.emacs.  It is useful to call c-set-style from a mode hook in this
+way.
 
-Obviously, setting DONT-OVERRIDE to t is useful mainly when the
-initial style is chosen for a CC Mode buffer by a major mode.  Since
-that is done internally by CC Mode, it typically won't have any effect
-when used elsewhere."
+If DONT-OVERRIDE is t, style variables that already have values (i.e., whose
+values are not the symbol `set-from-style') will not be overridden.  CC Mode
+calls c-set-style internally in this way whilst initializing a buffer; if
+cc-set-style is called like this from anywhere else, it will usually behave as
+a null operation."
   (interactive
    (list (let ((completion-ignore-case t)
 	       (prompt (format "Which %s indentation style? "
 			       mode-name)))
-	   (condition-case nil
-	       ;; The default argument is preferred over
-	       ;; initial-contents, but it only exists in Emacs >= 20
-	       ;; and XEmacs >= 21.
-	       (completing-read prompt c-style-alist nil t nil
-				'c-set-style-history
-				c-indentation-style)
-	     (wrong-number-of-arguments
-	      ;; If the call above failed, we fall back to the old way
-	      ;; of specifying the default value.
-	      (completing-read prompt c-style-alist nil t
-			       (cons c-indentation-style 0)
-			       'c-set-style-history))))))
+	   (completing-read prompt c-style-alist nil t nil
+			    'c-set-style-history
+			    c-indentation-style))))
+  (or c-buffer-is-cc-mode
+      (error "Buffer %s is not a CC Mode buffer (c-set-style)" (buffer-name)))
   (or (stringp stylename)
       (error "Argument to c-set-style was not a string"))
   (c-initialize-builtin-style)
@@ -406,8 +414,6 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
 (defun c-read-offset (langelem)
   ;; read new offset value for LANGELEM from minibuffer. return a
   ;; legal value only
-  ;;
-  ;; This function does not do any hidden buffer changes.
   (let* ((oldoff  (cdr-safe (or (assq langelem c-offsets-alist)
 				(assq langelem (get 'c-offsets-alist
 						    'c-stylevar-fallback)))))
@@ -475,20 +481,22 @@ and exists only for compatibility reasons."
 	      (setq c-offsets-alist (cons (cons symbol offset)
 					  c-offsets-alist))
 	    (c-benign-error "%s is not a valid syntactic symbol" symbol))))
-    (c-benign-error "Invalid indentation setting for symbol %s: %s"
+    (c-benign-error "Invalid indentation setting for symbol %s: %S"
 		    symbol offset))
   (c-keep-region-active))
 
 
 (defun c-setup-paragraph-variables ()
-  "Fix things up for paragraph recognition and filling inside comments by
-incorporating the value of `c-comment-prefix-regexp' in the relevant
+  "Fix things up for paragraph recognition and filling inside comments and
+strings by incorporating the values of `c-comment-prefix-regexp',
+`sentence-end', `paragraph-start' and `paragraph-separate' in the relevant
 variables."
-  ;;
-  ;; This function does not do any hidden buffer changes.
 
   (interactive)
-
+  (or c-buffer-is-cc-mode
+      (error "Buffer %s is not a CC Mode buffer (c-setup-paragraph-variables)"
+	     (buffer-name)))
+  ;; Set up the values for use in comments.
   (setq c-current-comment-prefix
 	(if (listp c-comment-prefix-regexp)
 	    (cdr-safe (or (assoc major-mode c-comment-prefix-regexp)
@@ -498,34 +506,48 @@ variables."
   (let ((comment-line-prefix
 	 (concat "[ \t]*\\(" c-current-comment-prefix "\\)[ \t]*")))
 
-    (set (make-local-variable 'paragraph-start)
-         (concat comment-line-prefix
-                 c-paragraph-start
-                 "\\|"
-                 page-delimiter))
-    (set (make-local-variable 'paragraph-separate)
-         (concat comment-line-prefix
-                 c-paragraph-separate
-                 "\\|"
-                 page-delimiter))
-    (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
-    (set (make-local-variable 'adaptive-fill-mode) t)
-    (set (make-local-variable 'adaptive-fill-regexp)
-         (concat comment-line-prefix
-                 (if (default-value 'adaptive-fill-regexp)
-                     (concat "\\("
-                             (default-value 'adaptive-fill-regexp)
-                             "\\)")
-                   "")))
+    (setq paragraph-start (concat comment-line-prefix
+				  c-paragraph-start
+				  "\\|"
+				  page-delimiter)
+	  paragraph-separate (concat comment-line-prefix
+				     c-paragraph-separate
+				     "\\|"
+				     page-delimiter)
+	  paragraph-ignore-fill-prefix t
+	  adaptive-fill-mode t
+	  adaptive-fill-regexp
+	  (concat comment-line-prefix
+		  (if (default-value 'adaptive-fill-regexp)
+		      (concat "\\("
+			      (default-value 'adaptive-fill-regexp)
+			      "\\)")
+		    "")))
 
     (when (boundp 'adaptive-fill-first-line-regexp)
-      ;; XEmacs (20.x) adaptive fill mode doesn't have this.
-      (set (make-local-variable 'adaptive-fill-first-line-regexp)
-           (concat "\\`" comment-line-prefix
-                   ;; Maybe we should incorporate the old value here,
-                   ;; but then we have to do all sorts of kludges to
-                   ;; deal with the \` and \' it probably contains.
-                   "\\'")))))
+      ;; XEmacs adaptive fill mode doesn't have this.
+      (make-local-variable 'adaptive-fill-first-line-regexp)
+      (setq adaptive-fill-first-line-regexp
+	    (concat "\\`" comment-line-prefix
+		    ;; Maybe we should incorporate the old value here,
+		    ;; but then we have to do all sorts of kludges to
+		    ;; deal with the \` and \' it probably contains.
+		    "\\'"))))
+
+  ;; Set up the values for use in strings.  These are the default
+  ;; paragraph-start/separate values, enhanced to accept escaped EOLs as
+  ;; whitespace.  Used in c-beginning/end-of-sentence-in-string in cc-cmds.
+  (setq c-string-par-start
+	;;(concat "\\(" (default-value 'paragraph-start) "\\)\\|[ \t]*\\\\$"))
+	"\f\\|[ \t]*\\\\?$")
+  (setq c-string-par-separate
+	;;(concat "\\(" (default-value 'paragraph-separate) "\\)\\|[ \t]*\\\\$"))
+	"[ \t\f]*\\\\?$")
+  (setq c-sentence-end-with-esc-eol
+	(concat "\\(\\(" (c-default-value-sentence-end) "\\)"
+		;; N.B.:  "$" would be illegal when not enclosed like "\\($\\)".
+		"\\|" "[.?!][]\"')}]* ?\\\\\\($\\)[ \t\n]*"
+		"\\)")))
 
 
 ;; Helper for setting up Filladapt mode.  It's not used by CC Mode itself.
@@ -542,8 +564,6 @@ CC Mode by making sure the proper entries are present on
 `c-mode-common-hook' or similar."
   ;; This function is intended to be used explicitly by the end user
   ;; only.
-  ;;
-  ;; This function does not do any hidden buffer changes.
 
   ;; The default configuration already handles C++ comments, but we
   ;; need to add handling of C block comments.  A new filladapt token
@@ -573,8 +593,6 @@ CC Mode by making sure the proper entries are present on
   ;; crucial because future c-set-style calls will always reset the
   ;; variables first to the `cc-mode' style before instituting the new
   ;; style.  Only do this once!
-  ;;
-  ;; This function does not do any hidden buffer changes.
   (unless (get 'c-initialize-builtin-style 'is-run)
     (put 'c-initialize-builtin-style 'is-run t)
     ;;(c-initialize-cc-mode)
@@ -601,13 +619,11 @@ CC Mode by making sure the proper entries are present on
   "Make all CC Mode style variables buffer local.
 If `this-buf-only-p' is non-nil, the style variables will be made
 buffer local only in the current buffer.  Otherwise they'll be made
-permanently buffer local in any buffer that change their values.
+permanently buffer local in any buffer that changes their values.
 
 The buffer localness of the style variables are normally controlled
 with the variable `c-style-variables-are-local-p', so there's seldom
 any reason to call this function directly."
-  ;;
-  ;; This function does not do any hidden buffer changes.
 
   ;; style variables
   (let ((func (if this-buf-only-p
@@ -619,7 +635,7 @@ any reason to call this function directly."
     ;; Hooks must be handled specially
     (if this-buf-only-p
 	(make-local-hook 'c-special-indent-hook)
-      (make-variable-buffer-local 'c-special-indent-hook)
+      (with-no-warnings (make-variable-buffer-local 'c-special-indent-hook))
       (setq c-style-variables-are-local-p t))
     ))
 
@@ -627,5 +643,5 @@ any reason to call this function directly."
 
 (cc-provide 'cc-styles)
 
-;; arch-tag: c764f61a-96ba-484a-a68f-101c0e9d5d2c
+;;; arch-tag: c764f61a-96ba-484a-a68f-101c0e9d5d2c
 ;;; cc-styles.el ends here

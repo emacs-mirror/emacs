@@ -1,4 +1,4 @@
-;;; texinfo.el --- major mode for editing Texinfo files
+;;; texinfo.el --- major mode for editing Texinfo files -*- coding: iso-2022-7bit -*-
 
 ;; Copyright (C) 1985, 1988, 1989, 1990, 1991, 1992, 1993, 1996, 1997,
 ;;   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
@@ -46,6 +46,7 @@
 
 (defgroup texinfo nil
   "Texinfo Mode."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'docs)
 
 ;;;###autoload
@@ -595,7 +596,7 @@ value of `texinfo-mode-hook'."
   (setq paragraph-start (concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-start))
   (make-local-variable 'sentence-end-base)
   (setq sentence-end-base
-	"\\(@\\(end\\)?dots{}\\|[.?!]\\)[]\"'\xd0c9\x5397d)}]*")
+	"\\(@\\(end\\)?dots{}\\|[.?!]\\)[]\"'$B!I$,1r}(B)}]*")
   (make-local-variable 'adaptive-fill-mode)
   (setq adaptive-fill-mode nil)
   (make-local-variable 'fill-column)
@@ -1059,5 +1060,5 @@ You are prompted for the job number (use a number shown by a previous
 
 (provide 'texinfo)
 
-;;; arch-tag: 005d7c38-43b9-4b7d-aa1d-aea69bae73e1
+;; arch-tag: 005d7c38-43b9-4b7d-aa1d-aea69bae73e1
 ;;; texinfo.el ends here

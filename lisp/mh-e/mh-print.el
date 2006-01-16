@@ -1,6 +1,6 @@
 ;;; mh-print.el --- MH-E printing support
 
-;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Jeffrey C Honig <jch@honig.net>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -25,151 +25,140 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
-;;	Pp	Print to lpr              |   Default inline settings
-;;      Pf      Print to file             |   Generate a postscript file
-;;	Ps	Print show buffer         |   Fails if no show buffer
-;;
-;;	PA	Toggle inline/attachments
-;;	PC	Toggle color
-;;	PF	Toggle faces
 
 ;;; Change Log:
 
 ;;; Code:
 
+;;(message "> mh-print")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 (require 'ps-print)
+(require 'mh-buffers)
 (require 'mh-utils)
 (require 'mh-funcs)
 (eval-when-compile (require 'mh-seq))
-
-(defvar mh-ps-print-mime nil
-  "Control printing of MIME parts.
-The three possible states are:
-  1. nil to not print inline parts
-  2. t to print inline parts
-  3. non-zero to print inline parts and attachments")
+;;(message "< mh-print")
 
 (defvar mh-ps-print-color-option ps-print-color-p
-  "MH-E's version of `\\[ps-print-color-p]'.")
+  "Specify how buffer's text color is printed.
+
+Valid values are:
+
+   nil         - Do not print colors.
+   t           - Print colors.
+   black-white - Print colors on black/white printer.
+		 See also `ps-black-white-faces'.
+
+Any other value is treated as t. This variable is initialized
+from `ps-print-color-p'.")
 
 (defvar mh-ps-print-func 'ps-spool-buffer-with-faces
   "Function to use to spool a buffer.
+
 Sensible choices are the functions `ps-spool-buffer' and
 `ps-spool-buffer-with-faces'.")
 
-;; XXX - If buffer is already being displayed, use that buffer
-;; XXX - What about showing MIME content?
-;; XXX - Default print buffer is bogus
 (defun mh-ps-spool-buffer (buffer)
-  "Send BUFFER to printer queue."
-  (message "mh-ps-spool-buffer %s" buffer)
+  "Spool BUFFER."
   (save-excursion
     (set-buffer buffer)
     (let ((ps-print-color-p mh-ps-print-color-option)
-      (ps-left-header
-       (list
-	(concat "("
-		(mh-get-header-field "Subject:") ")")
-	(concat "("
-		(mh-get-header-field "From:") ")")))
-      (ps-right-header
-       (list
-	"/pagenumberstring load"
-	(concat "("
-		(mh-get-header-field "Date:") ")"))))
-    (funcall mh-ps-print-func))))
+          (ps-left-header
+           (list
+            (concat "(" (mh-get-header-field "Subject:") ")")
+            (concat "(" (mh-get-header-field "From:") ")")))
+          (ps-right-header
+           (list
+            "/pagenumberstring load"
+            (concat "(" (mh-get-header-field "Date:") ")"))))
+      (funcall mh-ps-print-func))))
 
-(defun mh-ps-spool-a-msg (msg buffer)
-  "Print MSG.
-First the message is decoded in BUFFER before the results are sent to the
-printer."
-  (message "mh-ps-spool-a-msg msg %s buffer %s"
-		   msg buffer)
-  (let ((mh-show-buffer mh-show-buffer)
-	(folder mh-current-folder)
-        ;; The following is commented out because
-        ;; `clean-message-header-flag' isn't used anywhere. I
-        ;; commented rather than deleted in case somebody had some
-        ;; future plans for it. --SY.
-	;(clean-message-header-flag mh-clean-message-header-flag)
-        )
+(defun mh-ps-spool-msg (msg)
+  "Spool MSG."
+  (let* ((folder mh-current-folder)
+         (buffer (mh-in-show-buffer (mh-show-buffer)
+                   (if (not (equal (mh-msg-filename msg folder)
+                                   buffer-file-name))
+                       (get-buffer-create mh-temp-buffer)))))
     (unwind-protect
-	(progn
-	  (setq mh-show-buffer buffer)
-	  (save-excursion
-	    ;;
-	    ;; XXX - Use setting of mh-ps-print-mime
-	    ;;
-	    (mh-display-msg msg folder)
-	    (mh-ps-spool-buffer mh-show-buffer)
-      (kill-buffer mh-show-buffer))))))
+        (save-excursion
+          (if buffer
+              (let ((mh-show-buffer buffer))
+                (mh-display-msg msg folder)))
+          (mh-ps-spool-buffer (if buffer buffer mh-show-buffer)))
+      (if buffer
+          (kill-buffer buffer)))))
 
-;;;###mh-autoload
-(defun mh-ps-print-msg (range)
-  "Print the messages in RANGE.
+(defun mh-ps-print-range (range file)
+  "Print RANGE to FILE.
 
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use."
-  (interactive (list (mh-interactive-range "Print")))
-  (message "mh-ps-print-msg range %s keys %s"
-		    range (this-command-keys))
+This is the function that actually does the work.
+If FILE is nil, then the messages are spooled to the printer."
   (mh-iterate-on-range msg range
-    (let ((buffer (get-buffer-create mh-temp-buffer)))
-      (unwind-protect
-	  (mh-ps-spool-a-msg msg buffer)
-	(kill-buffer buffer)))
-    (mh-notate nil mh-note-printed mh-cmd-note))
-  (ps-despool nil))
+    (unwind-protect
+        (mh-ps-spool-msg msg))
+    (mh-notate msg mh-note-printed mh-cmd-note))
+  (ps-despool file))
 
 (defun mh-ps-print-preprint (prefix-arg)
-  "Replacement for `ps-print-preprint'.
-The original function does not handle the fact that MH folders are directories
-nicely, when generating the default file name. This function works around
-that. The function is passed the interactive PREFIX-ARG."
-  (let ((buffer-file-name (format "/tmp/%s" (substring (buffer-name) 1))))
+  "Provide a better default file name for `ps-print-preprint'.
+Pass along the PREFIX-ARG to it."
+  (let ((buffer-file-name (format "mh-%s" (substring (buffer-name) 1))))
     (ps-print-preprint prefix-arg)))
 
 ;;;###mh-autoload
-(defun mh-ps-print-msg-file (file range)
-  "Print to FILE the messages in RANGE.
+(defun mh-ps-print-msg (range)
+  "Print RANGE\\<mh-folder-mode-map>.
 
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use."
-  (interactive (list
-		(mh-ps-print-preprint 1)
-		(mh-interactive-range "Print")))
-  (mh-iterate-on-range msg range
-    (let ((buffer (get-buffer-create mh-temp-buffer)))
-      (unwind-protect
-	  (mh-ps-spool-a-msg msg buffer)
-	(kill-buffer buffer)))
-    (mh-notate nil mh-note-printed mh-cmd-note))
-  (ps-despool file))
+Check the documentation of `mh-interactive-range' to see how RANGE is
+read in interactive use.
+
+This command will print inline text attachments but will not decrypt
+messages. However, when a message is displayed in an MH-Show buffer,
+then that buffer is used verbatim for printing with the caveat that
+only text attachments, if opened inline, are printed. Therefore,
+encrypted messages can be printed by showing and decrypting them
+first.
+
+MH-E uses the \"ps-print\" package to do the printing, so you can
+customize the printing further by going to the `ps-print'
+customization group. This command does not use the options
+`mh-lpr-command-format' or `mh-print-background-flag'. See also the
+commands \\[mh-ps-print-toggle-color] and
+\\[mh-ps-print-toggle-faces]."
+  (interactive (list (mh-interactive-range "Print")))
+  (mh-ps-print-range range nil))
 
 ;;;###mh-autoload
-(defun mh-ps-print-msg-show (file)
-  "Print current show buffer to FILE."
-  (interactive (list (mh-ps-print-preprint current-prefix-arg)))
-  (message "mh-ps-print-msg-show file %s keys %s mh-show-buffer %s"
-		   file (this-command-keys) mh-show-buffer)
-  (let ((msg (mh-get-msg-num t))
-        (folder mh-current-folder)
-        (show-buffer mh-show-buffer)
-        (show-window (get-buffer-window mh-show-buffer)))
-    (if (and show-buffer show-window)
-	(mh-in-show-buffer (show-buffer)
-	  (if (equal (mh-msg-filename msg folder) buffer-file-name)
-	      (progn
-		(mh-ps-spool-buffer show-buffer)
-		(ps-despool file))
-	    (message "Current message is not being shown(1).")))
-      (message "Current message is not being shown(2)."))))
+(defun mh-ps-print-msg-file (range file)
+  "Print RANGE to FILE\\<mh-folder-mode-map>.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is
+read in interactive use.
+
+This command will print inline text attachments but will not decrypt
+messages. However, when a message is displayed in an MH-Show buffer,
+then that buffer is used verbatim for printing with the caveat that
+only text attachments, if opened inline, are printed. Therefore,
+encrypted messages can be printed by showing and decrypting them
+first.
+
+MH-E uses the \"ps-print\" package to do the printing, so you can
+customize the printing further by going to the `ps-print'
+customization group. This command does not use the options
+`mh-lpr-command-format' or `mh-print-background-flag'. See also the
+commands \\[mh-ps-print-toggle-color] and
+\\[mh-ps-print-toggle-faces]."
+  (interactive (list (mh-interactive-range "Print") (mh-ps-print-preprint 1)))
+  (mh-ps-print-range range file))
 
 ;;;###mh-autoload
 (defun mh-ps-print-toggle-faces ()
- "Toggle whether printing is done with faces or not."
+ "Toggle whether printing is done with faces or not.
+
+When faces are enabled, the printed message will look very
+similar to the message in the MH-Show buffer."
  (interactive)
  (if (eq mh-ps-print-func 'ps-spool-buffer-with-faces)
      (progn
@@ -180,49 +169,40 @@ interactive use."
 
 ;;;###mh-autoload
 (defun mh-ps-print-toggle-color ()
-  "Toggle whether color is used in printing messages."
+  "Toggle whether color is used in printing messages.
+
+Colors are emulated on black-and-white printers with shades of
+gray. This might produce illegible output, even if your screen
+colors only use shades of gray. If this is the case, try using
+this command to toggle between color, no color, and a black and
+white representation of the colors and see which works best. You
+change this setting permanently by customizing the option
+`ps-print-color-p'."
  (interactive)
  (if (eq mh-ps-print-color-option nil)
      (progn
        (setq mh-ps-print-color-option 'black-white)
-       (message "Colors will be printed as black & white."))
+       (message "Colors will be printed as black & white"))
    (if (eq mh-ps-print-color-option 'black-white)
        (progn
 	 (setq mh-ps-print-color-option t)
-	 (message "Colors will be printed."))
+	 (message "Colors will be printed"))
      (setq mh-ps-print-color-option nil)
-     (message "Colors will not be printed."))))
+     (message "Colors will not be printed"))))
 
-;;; XXX: Check option 3. Documentation doesn't sound right.
-;;;###mh-autoload
-(defun mh-ps-print-toggle-mime ()
-  "Cycle through available choices on how MIME parts should be printed.
-The available settings are:
-  1. Print only inline MIME parts.
-  2. Print all MIME parts.
-  3. Print no MIME parts."
-  (interactive)
-  (if (eq mh-ps-print-mime nil)
-      (progn
-        (setq mh-ps-print-mime t)
-        (message "Inline parts will be printed, attachments will not be printed."))
-    (if (eq mh-ps-print-mime t)
-        (progn
-          (setq mh-ps-print-mime 1)
-          (message "Both Inline parts and attachments will be printed."))
-      (setq mh-ps-print-mime nil)
-      (message "Neither inline parts nor attachments will be printed."))))
-
-;;; Old non-PS based printing
+;; Old non-PS based printing
 ;;;###mh-autoload
 (defun mh-print-msg (range)
-  "Print RANGE on printer.
+  "Print RANGE the old fashioned way\\<mh-folder-mode-map>.
 
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use.
+The message is formatted with \"mhl\" (see option
+`mh-mhl-format-file') and printed with the \"lpr\" command (see
+option `mh-lpr-command-format').
 
-The variable `mh-lpr-command-format' is used to generate the print command.
-The messages are formatted by mhl. See the variable `mhl-formfile'."
+Check the documentation of `mh-interactive-range' to see how
+RANGE is read in interactive use.
+
+Consider using \\[mh-ps-print-msg] instead."
   (interactive (list (mh-interactive-range "Print")))
   (message "Printing...")
   (let (msgs)
@@ -254,8 +234,8 @@ The messages are formatted by mhl. See the variable `mhl-formfile'."
     (dolist (msg msgs)
       (let* ((mhl-command (format "%s %s %s"
                                   (expand-file-name "mhl" mh-lib-progs)
-                                  (if mhl-formfile
-                                      (format " -form %s" mhl-formfile)
+                                  (if mh-mhl-format-file
+                                      (format " -form %s" mh-mhl-format-file)
                                     "")
                                   (mh-msg-filename msg)))
              (lpr-command
@@ -270,10 +250,10 @@ The messages are formatted by mhl. See the variable `mhl-formfile'."
 
 (provide 'mh-print)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
 ;; arch-tag: 8d84d50b-2a49-4d0d-b51e-ba9c9b6fc679
 ;;; mh-print.el ends here

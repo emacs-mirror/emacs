@@ -1,7 +1,7 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1988, 1993, 1994, 1997, 1998, 2000, 2002,
-;;   2003, 2004, 2005 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: tools
@@ -551,7 +551,8 @@ non-nil, otherwise in local time."
 	  (forward-line 1)
 	(insert (nth (random (length new-entries))
 		     new-entries)
-		"\n\n")
+		(if use-hard-newlines hard-newline "\n")
+		(if use-hard-newlines hard-newline "\n"))
 	(forward-line -1)))
 
     ;; Determine where we should stop searching for a usable
@@ -584,7 +585,8 @@ non-nil, otherwise in local time."
 	   ;; Delete excess empty lines; make just 2.
 	   (while (and (not (eobp)) (looking-at "^\\s *$"))
 	     (delete-region (point) (line-beginning-position 2)))
-	   (insert-char ?\n 2)
+	   (insert (if use-hard-newlines hard-newline "\n")
+		   (if use-hard-newlines hard-newline "\n"))
 	   (forward-line -2)
 	   (indent-relative-maybe))
 	  (t
@@ -593,7 +595,9 @@ non-nil, otherwise in local time."
 	     (forward-line 1))
 	   (while (and (not (eobp)) (looking-at "^\\s *$"))
 	     (delete-region (point) (line-beginning-position 2)))
-	   (insert-char ?\n 3)
+	   (insert (if use-hard-newlines hard-newline "\n")
+		   (if use-hard-newlines hard-newline "\n")
+		   (if use-hard-newlines hard-newline "\n"))
 	   (forward-line -2)
 	   (indent-to left-margin)
 	   (insert "* ")
@@ -826,31 +830,28 @@ Has a preference of looking backwards."
 		 ;; If the desired position is within the defun we found,
 		 ;; find the function name.
 		 (when (< location (point))
+		   ;; Move back over function body.
 		   (backward-sexp 1)
-		   (let (beg tem)
-
+		   (let (beg)
+		     ;; Skip back over typedefs and arglist.
+		     ;; Stop at the function definition itself
+		     ;; or at the line that follows end of function doc string.
 		     (forward-line -1)
-		     ;; Skip back over typedefs of arglist.
 		     (while (and (not (bobp))
-				 (looking-at "[ \t\n]"))
+				 (looking-at "[ \t\n]")
+				 (not (looking-back "[*]/)\n" (- (point) 4))))
 		       (forward-line -1))
-		     ;; See if this is using the DEFUN macro used in Emacs,
-		     ;; or the DEFUN macro used by the C library:
-		     (if (condition-case nil
-			     (and (save-excursion
-				    (end-of-line)
-				    (while (= (preceding-char) ?\\)
-				      (end-of-line 2))
-				    (backward-sexp 1)
-				    (beginning-of-line)
-				    (setq tem (point))
-				    (looking-at "DEFUN\\b"))
-				  (>= location tem))
-			   (error nil))
+		     ;; If we found a doc string, this must be the DEFUN macro
+		     ;; used in Emacs.  Move back to the DEFUN line.
+		     (when (looking-back "[*]/)\n" (- (point) 4))
+		       (backward-sexp 1)
+		       (beginning-of-line))
+		     ;; Is this a DEFUN construct?  And is LOCATION in it?
+		     (if (and (looking-at "DEFUN\\b")
+			      (>= location (point)))
                          ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
                          ;; DEFUN(POSIX::STREAM-LOCK, stream lockp &key BLOCK SHARED START LENGTH) ==> POSIX::STREAM-LOCK
 			 (progn
-			   (goto-char tem)
 			   (down-list 1)
 			   (when (= (char-after (point)) ?\")
                              (forward-sexp 1)
@@ -863,6 +864,7 @@ Has a preference of looking backwards."
                                    (skip-syntax-backward " ")
 				   (point))))
 		       (if (looking-at "^[+-]")
+			   ;; Objective-C
 			   (change-log-get-method-definition)
 			 ;; Ordinary C function syntax.
 			 (setq beg (point))
@@ -903,6 +905,13 @@ Has a preference of looking backwards."
 			       ;; precede the name.
 			       (setq middle (point))
 			       (forward-word -1)
+			       ;; Is this C++ method?
+			       (when (and (< 2 middle)
+					  (string= (buffer-substring (- middle 2)
+								     middle)
+						   "::"))
+				 ;; Include "classname::".
+				 (setq middle (point)))
 			       ;; Ignore these subparts of a class decl
 			       ;; and move back to the class name itself.
 			       (while (looking-at "public \\|private ")
@@ -1061,7 +1070,7 @@ old-style time formats for entries are supported."
 			(and (= ?\n (char-before))
 			     (or (<= (1- (point)) (point-min))
 				 (= ?\n (char-before (1- (point)))))))
-	      (insert "\n"))
+	      (insert (if use-hard-newlines hard-newline "\n")))
 	    ;; Move to the end of it to terminate outer loop.
 	    (with-current-buffer other-buf
 	      (goto-char (point-max)))

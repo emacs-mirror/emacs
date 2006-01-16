@@ -831,11 +831,11 @@ If your Emacs implementation can't decode CHARSET, return nil."
 	    (memq 'gnus-all mail-parse-ignored-charsets)
 	    (memq charset mail-parse-ignored-charsets))
     (setq charset mail-parse-charset))
-  (let ((cs (mm-coding-system-p (mm-charset-to-coding-system charset))))
+  (let ((cs (mm-charset-to-coding-system charset)))
     (cond ((eq cs 'ascii)
 	   (setq cs (or (mm-charset-to-coding-system mail-parse-charset)
 			'raw-text)))
-	  (cs)
+	  ((setq cs (mm-coding-system-p cs)))
 	  ((and charset
 		(listp mail-parse-ignored-charsets)
 		(memq 'gnus-unknown mail-parse-ignored-charsets))

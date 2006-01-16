@@ -1872,9 +1872,15 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	 (case-fold-search nil)
 	 (from (or (message-fetch-field "from") ""))
 	 (to (or (message-fetch-field "to") ""))
-	 (date (date-to-time
-		(or (message-fetch-field "date") (current-time-string))))
+	 (date (message-fetch-field "date"))
 	 (target 'delete))
+    (setq date (if date
+		   (condition-case err
+		       (date-to-time date)
+		     (error
+		      (message "%s" (error-message-string err))
+		      (current-time)))
+		 (current-time)))
     (dolist (regexp-target-pair (reverse nnmail-fancy-expiry-targets) target)
       (setq header (car regexp-target-pair))
       (cond

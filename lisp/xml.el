@@ -279,10 +279,11 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
     (modify-syntax-entry ?. "_" table)
     (modify-syntax-entry ?: "_" table)
     ;; XML [89]
-    (dolist (c '(#x00B7 #x02D0 #x02D1 #x0387 #x0640 #x0E46 #x0EC6 #x3005
-		 #x3031 #x3032 #x3033 #x3034 #x3035 #x309D #x309E #x30FC
-		 #x30FD #x30FE))
-      (modify-syntax-entry (decode-char 'ucs c) "w" table))
+    (unless (featurep 'xemacs)
+      (dolist (c '(#x00B7 #x02D0 #x02D1 #x0387 #x0640 #x0E46 #x0EC6 #x3005
+			  #x3031 #x3032 #x3033 #x3034 #x3035 #x309D #x309E #x30FC
+			  #x30FD #x30FE))
+	(modify-syntax-entry (decode-char 'ucs c) "w" table)))
     ;; Fixme: rest of [4]
     table)
   "Syntax table used by `xml-parse-region'.")
@@ -473,7 +474,7 @@ Returns one of:
 			      (if (stringp expansion)
 				  (if (stringp (car children))
 				      ;; The two strings were separated by a comment.
-				      (setq children (append (concat (car children) expansion)
+				      (setq children (append (list (concat (car children) expansion))
 							     (cdr children)))
 				    (setq children (append (list expansion) children)))
 				(setq children (append expansion children))))))))

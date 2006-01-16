@@ -109,7 +109,7 @@ The value 0 means there's no limitation.")
 $A!.!0#"#(!2!4!6!8!:!<!>!c!d!e#@!f!l(B"
 	 ;; Chinese GB2312
 	 "$A(E(F(G(H(I(J(K(L(M(N(O(P(Q(R(S(T(U(V(W(X(Y(h(B\
-$(0!>!@!B!D!F!H!J!L!N!P!R!T!V!X!Z!\!^!`!b(B"
+\$(0!>!@!B!D!F!H!J!L!N!P!R!T!V!X!Z!\!^!`!b(B"
 	 ;; Chinese BIG5
 	 "$(0!d!f!h!j!k!q!p"i"j"k"n"x$u$v$w$x$y$z${(B\
 $(0$|$}$~%!%"%#%$%%%&%'%(%)%*%+%:(B"))
@@ -126,7 +126,7 @@ The value 0 means there's no limitation.")
   (let ((pos-and-column
 	 (save-excursion
 	   (forward-char 1)
-	   (while (and (not (eobp))
+	   (while (and (not (eolp))
 		       (or (aref (char-category-set (following-char)) ?>)
 			   ;; protect non-kinsoku words
 			   (not (or (eq (preceding-char) ? )

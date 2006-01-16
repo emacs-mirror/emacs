@@ -331,6 +331,16 @@ display is used instead."
   :group 'speedbar
   :type 'boolean)
 
+(defcustom speedbar-default-position 'left-right
+  "*Default position of the speedbar frame.
+Possible values are 'left, 'right or 'left-right.
+If value is 'left-right, the most suitable location is
+determined automatically."
+  :group 'speedbar
+  :type '(radio (const :tag "Automatic" left-right)
+		(const :tag "Left" left)
+		(const :tag "Right" right)))
+
 (defcustom speedbar-sort-tags nil
   "*If non-nil, sort tags in the speedbar display.  *Obsolete*.
 Use `semantic-tag-hierarchy-method' instead."
@@ -967,7 +977,7 @@ supported at a time.
 	(t
 	 (dframe-reposition-frame speedbar-frame
 				  (dframe-attached-frame speedbar-frame)
-				  'left-right))))
+				  speedbar-default-position))))
 
 (defun speedbar-detach ()
   "Detach the current Speedbar from auto-updating.

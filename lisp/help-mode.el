@@ -126,21 +126,22 @@ The format is (FUNCTION ARGS...).")
 (define-button-type 'help-info
   :supertype 'help-xref
   'help-function #'info
-  'help-echo (purecopy"mouse-2, RET: read this Info node"))
+  'help-echo (purecopy "mouse-2, RET: read this Info node"))
+
+(define-button-type 'help-url
+  :supertype 'help-xref
+  'help-function #'browse-url
+  'help-echo (purecopy "mouse-2, RET: view this URL in a browser"))
 
 (define-button-type 'help-customize-variable
   :supertype 'help-xref
   'help-function (lambda (v)
-		   (if help-xref-stack
-		       (pop help-xref-stack))
 		   (customize-variable v))
   'help-echo (purecopy "mouse-2, RET: customize variable"))
 
 (define-button-type 'help-customize-face
   :supertype 'help-xref
   'help-function (lambda (v)
-		   (if help-xref-stack
-		       (pop help-xref-stack))
 		   (customize-face v))
   'help-echo (purecopy "mouse-2, RET: customize face"))
 
@@ -257,6 +258,10 @@ when help commands related to multilingual environment (e.g.,
   (purecopy "\\<[Ii]nfo[ \t\n]+\\(node\\|anchor\\)[ \t\n]+`\\([^']+\\)'")
   "Regexp matching doc string references to an Info node.")
 
+(defconst help-xref-url-regexp
+  (purecopy "\\<[Uu][Rr][Ll][ \t\n]+`\\([^']+\\)'")
+  "Regexp matching doc string references to a URL.")
+
 ;;;###autoload
 (defun help-setup-xref (item interactive-p)
   "Invoked from commands using the \"*Help*\" buffer to install some xref info.
@@ -338,6 +343,11 @@ that."
 		      (unless (string-match "^([^)]+)" data)
 			(setq data (concat "(emacs)" data))))
 		    (help-xref-button 2 'help-info data))))
+              ;; URLs
+              (save-excursion
+                (while (re-search-forward help-xref-url-regexp nil t)
+                  (let ((data (match-string 1)))
+		    (help-xref-button 1 'help-url data))))
 	      ;; Mule related keywords.  Do this before trying
 	      ;; `help-xref-symbol-regexp' because some of Mule
 	      ;; keywords have variable or function definitions.
@@ -370,8 +380,9 @@ that."
                     (if sym
                         (cond
                          ((match-string 3)  ; `variable' &c
-                          (and (boundp sym) ; `variable' doesn't ensure
+                          (and (or (boundp sym) ; `variable' doesn't ensure
                                         ; it's actually bound
+				   (get sym 'variable-documentation))
                                (help-xref-button 8 'help-variable sym)))
                          ((match-string 4)   ; `function' &c
                           (and (fboundp sym) ; similarly
@@ -392,12 +403,15 @@ that."
                            (facep sym)
                            (save-match-data (looking-at "[ \t\n]+face\\W")))
                           (help-xref-button 8 'help-face sym))
-                         ((and (boundp sym) (fboundp sym))
+                         ((and (or (boundp sym)
+				   (get sym 'variable-documentation))
+			       (fboundp sym))
                           ;; We can't intuit whether to use the
                           ;; variable or function doc -- supply both.
                           (help-xref-button 8 'help-symbol sym))
                          ((and
-			   (boundp sym)
+			   (or (boundp sym)
+			       (get sym 'variable-documentation))
  			   (or
  			    (documentation-property
  			     sym 'variable-documentation)
@@ -504,7 +518,10 @@ See `help-make-xrefs'."
 				     ((or (memq sym '(t nil))
 					  (keywordp sym))
 				      nil)
-				     ((and sym (boundp sym))
+				     ((and sym
+					   (or (boundp sym)
+					       (get sym
+						    'variable-documentation)))
 				      'help-variable))))
 		    (when type (help-xref-button 1 type sym)))
 		  (goto-char (match-end 1)))
@@ -528,7 +545,8 @@ help buffer."
 		  ;; Don't record the current entry in the stack.
 		  (setq help-xref-stack-item nil)
 		  (describe-function symbol)))
-	  (sdoc (when (boundp symbol)
+	  (sdoc (when (or (boundp symbol)
+			  (get symbol 'variable-documentation))
 		  ;; Don't record the current entry in the stack.
 		  (setq help-xref-stack-item nil)
 		  (describe-variable symbol))))
@@ -625,9 +643,20 @@ For the cross-reference format, see `help-make-xrefs'."
 	      (buffer-substring (point)
 				(progn (skip-syntax-forward "w_")
 				       (point)))))))
-      (when (or (boundp sym) (fboundp sym) (facep sym))
+      (when (or (boundp sym)
+		(get sym 'variable-documentation)
+		(fboundp sym) (facep sym))
 	(help-do-xref pos #'help-xref-interned (list sym))))))
 
+(defun help-insert-string (string)
+  "Insert STRING to the help buffer and install xref info for it.
+This function can be used to restore the old contents of the help buffer
+when going back to the previous topic in the xref stack.  It is needed
+in case when it is impossible to recompute the old contents of the
+help buffer by other means."
+  (setq help-xref-stack-item (list #'help-insert-string string))
+  (with-output-to-temp-buffer (help-buffer)
+    (insert string)))
 
 (provide 'help-mode)
 

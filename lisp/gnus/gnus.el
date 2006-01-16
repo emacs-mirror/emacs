@@ -934,7 +934,7 @@ be set in `.emacs' instead."
     (t
      ()))
   "Face for the splash screen."
-  :group 'gnus)
+  :group 'gnus-start)
 ;; backward-compatibility alias
 (put 'gnus-splash-face 'face-alias 'gnus-splash)
 
@@ -1103,6 +1103,17 @@ For example:
   :group 'gnus-group-various
   :type '(repeat (cons regexp
 		       (repeat sexp))))
+
+(defcustom gnus-parameters-case-fold-search 'default
+  "If it is t, ignore case of group names specified in `gnus-parameters'.
+If it is nil, don't ignore case.  If it is `default', which is for the
+backward compatibility, use the value of `case-fold-search'."
+  :version "22.1"
+  :group 'gnus-group-various
+  :type '(choice :format "%{%t%}:\n %[Value Menu%] %v"
+		 (const :tag "Use `case-fold-search'" default)
+		 (const nil)
+		 (const t)))
 
 (defvar gnus-group-parameters-more nil)
 
@@ -3722,7 +3733,10 @@ You should probably use `gnus-find-method-for-group' instead."
 
 (defun gnus-parameters-get-parameter (group)
   "Return the group parameters for GROUP from `gnus-parameters'."
-  (let (params-list)
+  (let ((case-fold-search (if (eq gnus-parameters-case-fold-search 'default)
+			      case-fold-search
+			    gnus-parameters-case-fold-search))
+	params-list)
     (dolist (elem gnus-parameters)
       (when (string-match (car elem) group)
 	(setq params-list
@@ -3806,6 +3820,7 @@ If you call this function inside a loop, consider using the faster
 (defun gnus-group-get-parameter (group &optional symbol allow-list)
   "Return the group parameters for GROUP.
 If SYMBOL, return the value of that symbol in the group parameters.
+If ALLOW-LIST, also allow list as a result.
 Most functions should use `gnus-group-find-parameter', which
 also examines the topic parameters."
   (let ((params (gnus-info-params (gnus-get-info group))))
@@ -3815,7 +3830,8 @@ also examines the topic parameters."
 
 (defun gnus-group-parameter-value (params symbol &optional
 					  allow-list present-p)
-  "Return the value of SYMBOL in group PARAMS."
+  "Return the value of SYMBOL in group PARAMS.
+If ALLOW-LIST, also allow list as a result."
   ;; We only wish to return group parameters (dotted lists) and
   ;; not local variables, which may have the same names.
   ;; But first we handle single elements...

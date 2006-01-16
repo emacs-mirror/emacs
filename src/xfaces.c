@@ -277,6 +277,10 @@ Boston, MA 02110-1301, USA.  */
 
 #define UNSPECIFIEDP(ATTR) EQ ((ATTR), Qunspecified)
 
+/* Non-zero if face attribute ATTR is `ignore-defface'.  */
+
+#define IGNORE_DEFFACE_P(ATTR) EQ ((ATTR), Qignore_defface)
+
 /* Value is the number of elements of VECTOR.  */
 
 #define DIM(VECTOR) (sizeof (VECTOR) / sizeof *(VECTOR))
@@ -316,6 +320,7 @@ Lisp_Object Qultra_expanded;
 Lisp_Object Qreleased_button, Qpressed_button;
 Lisp_Object QCstyle, QCcolor, QCline_width;
 Lisp_Object Qunspecified;
+Lisp_Object Qignore_defface;
 
 char unspecified_fg[] = "unspecified-fg", unspecified_bg[] = "unspecified-bg";
 
@@ -3165,48 +3170,64 @@ check_lface_attrs (attrs)
      Lisp_Object *attrs;
 {
   xassert (UNSPECIFIEDP (attrs[LFACE_FAMILY_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_FAMILY_INDEX])
 	   || STRINGP (attrs[LFACE_FAMILY_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_SWIDTH_INDEX])
 	   || SYMBOLP (attrs[LFACE_SWIDTH_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_AVGWIDTH_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_AVGWIDTH_INDEX])
 	   || INTEGERP (attrs[LFACE_AVGWIDTH_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_HEIGHT_INDEX])
 	   || INTEGERP (attrs[LFACE_HEIGHT_INDEX])
 	   || FLOATP (attrs[LFACE_HEIGHT_INDEX])
 	   || FUNCTIONP (attrs[LFACE_HEIGHT_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_WEIGHT_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_WEIGHT_INDEX])
 	   || SYMBOLP (attrs[LFACE_WEIGHT_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_SLANT_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_SLANT_INDEX])
 	   || SYMBOLP (attrs[LFACE_SLANT_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_UNDERLINE_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_UNDERLINE_INDEX])
 	   || SYMBOLP (attrs[LFACE_UNDERLINE_INDEX])
 	   || STRINGP (attrs[LFACE_UNDERLINE_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_OVERLINE_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_OVERLINE_INDEX])
 	   || SYMBOLP (attrs[LFACE_OVERLINE_INDEX])
 	   || STRINGP (attrs[LFACE_OVERLINE_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_STRIKE_THROUGH_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_STRIKE_THROUGH_INDEX])
 	   || SYMBOLP (attrs[LFACE_STRIKE_THROUGH_INDEX])
 	   || STRINGP (attrs[LFACE_STRIKE_THROUGH_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_BOX_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_BOX_INDEX])
 	   || SYMBOLP (attrs[LFACE_BOX_INDEX])
 	   || STRINGP (attrs[LFACE_BOX_INDEX])
 	   || INTEGERP (attrs[LFACE_BOX_INDEX])
 	   || CONSP (attrs[LFACE_BOX_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_INVERSE_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_INVERSE_INDEX])
 	   || SYMBOLP (attrs[LFACE_INVERSE_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_FOREGROUND_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_FOREGROUND_INDEX])
 	   || STRINGP (attrs[LFACE_FOREGROUND_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_BACKGROUND_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_BACKGROUND_INDEX])
 	   || STRINGP (attrs[LFACE_BACKGROUND_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_INHERIT_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_INHERIT_INDEX])
 	   || NILP (attrs[LFACE_INHERIT_INDEX])
 	   || SYMBOLP (attrs[LFACE_INHERIT_INDEX])
 	   || CONSP (attrs[LFACE_INHERIT_INDEX]));
 #ifdef HAVE_WINDOW_SYSTEM
   xassert (UNSPECIFIEDP (attrs[LFACE_STIPPLE_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_STIPPLE_INDEX])
 	   || SYMBOLP (attrs[LFACE_STIPPLE_INDEX])
 	   || !NILP (Fbitmap_spec_p (attrs[LFACE_STIPPLE_INDEX])));
   xassert (UNSPECIFIEDP (attrs[LFACE_FONT_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_FONT_INDEX])
 	   || NILP (attrs[LFACE_FONT_INDEX])
 	   || STRINGP (attrs[LFACE_FONT_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_FONTSET_INDEX])
@@ -3403,7 +3424,7 @@ lface_fully_specified_p (attrs)
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (i != LFACE_FONT_INDEX && i != LFACE_INHERIT_INDEX
 	&& i != LFACE_AVGWIDTH_INDEX && i != LFACE_FONTSET_INDEX)
-      if (UNSPECIFIEDP (attrs[i])
+      if ((UNSPECIFIEDP (attrs[i]) || IGNORE_DEFFACE_P (attrs[i]))
 #ifdef MAC_OS
         /* MAC_TODO: No stipple support on Mac OS yet, this index is
            always unspecified.  */
@@ -4110,7 +4131,18 @@ FRAME 0 means change the face on all frames, and change the default
 
   /* Set lface to the Lisp attribute vector of FACE.  */
   if (EQ (frame, Qt))
-    lface = lface_from_face_name (NULL, face, 1);
+    {
+      lface = lface_from_face_name (NULL, face, 1);
+
+      /* When updating face-new-frame-defaults, we put :ignore-defface
+	 where the caller wants `unspecified'.  This forces the frame
+	 defaults to ignore the defface value.  Otherwise, the defface
+	 will take effect, which is generally not what is intended.
+	 The value of that attribute will be inherited from some other
+	 face during face merging.  See internal_merge_in_global_face. */
+      if (UNSPECIFIEDP (value))
+      	value = Qignore_defface;
+    }
   else
     {
       if (NILP (frame))
@@ -4126,7 +4158,7 @@ FRAME 0 means change the face on all frames, and change the default
 
   if (EQ (attr, QCfamily))
     {
-      if (!UNSPECIFIEDP (value))
+      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	{
 	  CHECK_STRING (value);
 	  if (SCHARS (value) == 0)
@@ -4138,7 +4170,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCheight))
     {
-      if (!UNSPECIFIEDP (value))
+      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	{
 	  Lisp_Object test;
 
@@ -4159,7 +4191,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCweight))
     {
-      if (!UNSPECIFIEDP (value))
+      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	{
 	  CHECK_SYMBOL (value);
 	  if (face_numeric_weight (value) < 0)
@@ -4171,7 +4203,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCslant))
     {
-      if (!UNSPECIFIEDP (value))
+      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	{
 	  CHECK_SYMBOL (value);
 	  if (face_numeric_slant (value) < 0)
@@ -4183,7 +4215,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCunderline))
     {
-      if (!UNSPECIFIEDP (value))
+      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	if ((SYMBOLP (value)
 	     && !EQ (value, Qt)
 	     && !EQ (value, Qnil))
@@ -4197,7 +4229,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCoverline))
     {
-      if (!UNSPECIFIEDP (value))
+      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	if ((SYMBOLP (value)
 	     && !EQ (value, Qt)
 	     && !EQ (value, Qnil))
@@ -4211,7 +4243,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCstrike_through))
     {
-      if (!UNSPECIFIEDP (value))
+      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	if ((SYMBOLP (value)
 	     && !EQ (value, Qt)
 	     && !EQ (value, Qnil))
@@ -4232,7 +4264,7 @@ FRAME 0 means change the face on all frames, and change the default
       if (EQ (value, Qt))
 	value = make_number (1);
 
-      if (UNSPECIFIEDP (value))
+      if (UNSPECIFIEDP (value) || IGNORE_DEFFACE_P (value))
 	valid_p = 1;
       else if (NILP (value))
 	valid_p = 1;
@@ -4289,7 +4321,7 @@ FRAME 0 means change the face on all frames, and change the default
   else if (EQ (attr, QCinverse_video)
 	   || EQ (attr, QCreverse_video))
     {
-      if (!UNSPECIFIEDP (value))
+      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	{
 	  CHECK_SYMBOL (value);
 	  if (!EQ (value, Qt) && !NILP (value))
@@ -4300,7 +4332,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCforeground))
     {
-      if (!UNSPECIFIEDP (value))
+      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	{
 	  /* Don't check for valid color names here because it depends
 	     on the frame (display) whether the color will be valid
@@ -4314,7 +4346,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCbackground))
     {
-      if (!UNSPECIFIEDP (value))
+      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	{
 	  /* Don't check for valid color names here because it depends
 	     on the frame (display) whether the color will be valid
@@ -4329,7 +4361,7 @@ FRAME 0 means change the face on all frames, and change the default
   else if (EQ (attr, QCstipple))
     {
 #ifdef HAVE_X_WINDOWS
-      if (!UNSPECIFIEDP (value)
+      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value)
 	  && !NILP (value)
 	  && NILP (Fbitmap_spec_p (value)))
 	signal_error ("Invalid stipple attribute", value);
@@ -4339,7 +4371,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCwidth))
     {
-      if (!UNSPECIFIEDP (value))
+      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	{
 	  CHECK_SYMBOL (value);
 	  if (face_numeric_swidth (value) < 0)
@@ -4364,7 +4396,7 @@ FRAME 0 means change the face on all frames, and change the default
 	  else
 	    f = check_x_frame (frame);
 
-	  if (!UNSPECIFIEDP (value))
+	  if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	    {
 	      CHECK_STRING (value);
 
@@ -4419,7 +4451,7 @@ FRAME 0 means change the face on all frames, and change the default
     signal_error ("Invalid face attribute name", attr);
 
   if (font_related_attr_p
-      && !UNSPECIFIEDP (value))
+      && !UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
     /* If a font-related attribute other than QCfont is specified, the
        original `font' attribute nor that of default face is useless
        to determine a new font.  Thus, we set it to nil so that font
@@ -4441,7 +4473,7 @@ FRAME 0 means change the face on all frames, and change the default
       ++windows_or_buffers_changed;
     }
 
-  if (!UNSPECIFIEDP (value)
+  if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value)
       && NILP (Fequal (old_value, value)))
     {
       Lisp_Object param;
@@ -4742,7 +4774,7 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
       if (SYMBOLP (boolean_value))
 	value = boolean_value;
     }
-  else if (EQ (attr, QCbox))
+  else if (EQ (attr, QCbox) || EQ (attr, QCinherit))
     value = Fcar (Fread_from_string (value, Qnil, Qnil));
 
   return Finternal_set_lisp_face_attribute (face, attr, value, frame);
@@ -4858,7 +4890,7 @@ DEFUN ("face-attribute-relative-p", Fface_attribute_relative_p,
      (attribute, value)
      Lisp_Object attribute, value;
 {
-  if (EQ (value, Qunspecified))
+  if (EQ (value, Qunspecified) || (EQ (value, Qignore_defface)))
     return Qt;
   else if (EQ (attribute, QCheight))
     return INTEGERP (value) ? Qnil : Qt;
@@ -4874,7 +4906,7 @@ the result will be absolute, otherwise it will be relative.  */)
      (attribute, value1, value2)
      Lisp_Object attribute, value1, value2;
 {
-  if (EQ (value1, Qunspecified))
+  if (EQ (value1, Qunspecified) || EQ (value1, Qignore_defface))
     return value2;
   else if (EQ (attribute, QCheight))
     return merge_face_heights (value1, value2, value1);
@@ -4945,6 +4977,9 @@ frames).  If FRAME is omitted or nil, use the selected frame.  */)
     value = LFACE_FONTSET (lface);
   else
     signal_error ("Invalid face attribute name", keyword);
+
+  if (IGNORE_DEFFACE_P (value))
+    return Qunspecified;
 
   return value;
 }
@@ -5028,7 +5063,10 @@ Default face attributes override any local face attributes.  */)
   gvec = XVECTOR (global_lface)->contents;
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (! UNSPECIFIEDP (gvec[i]))
-      lvec[i] = gvec[i];
+      if (IGNORE_DEFFACE_P (gvec[i]))
+	lvec[i] = Qunspecified;
+      else
+	lvec[i] = gvec[i];
 
   return Qnil;
 }
@@ -8210,6 +8248,8 @@ syms_of_xfaces ()
   staticpro (&Qforeground_color);
   Qunspecified = intern ("unspecified");
   staticpro (&Qunspecified);
+  Qignore_defface = intern (":ignore-defface");
+  staticpro (&Qignore_defface);
 
   Qface_alias = intern ("face-alias");
   staticpro (&Qface_alias);

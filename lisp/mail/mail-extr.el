@@ -699,9 +699,10 @@ Unless NO-REPLACE is true, at each of the positions in LIST-SYMBOL
 ;;;###autoload
 (defun mail-extract-address-components (address &optional all)
   "Given an RFC-822 address ADDRESS, extract full name and canonical address.
-Returns a list of the form (FULL-NAME CANONICAL-ADDRESS).
-If no name can be extracted, FULL-NAME will be nil.  Also see
-`mail-extr-ignore-single-names' and `mail-extr-ignore-realname-equals-mailbox-name'.
+Returns a list of the form (FULL-NAME CANONICAL-ADDRESS).  If no
+name can be extracted, FULL-NAME will be nil.  Also see
+`mail-extr-ignore-single-names' and
+`mail-extr-ignore-realname-equals-mailbox-name'.
 
 If the optional argument ALL is non-nil, then ADDRESS can contain zero
 or more recipients, separated by commas, and we return a list of

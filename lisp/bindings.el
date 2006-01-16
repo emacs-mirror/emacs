@@ -291,6 +291,7 @@ Keymap to display on minor modes.")
        (dashes (propertize "--" 'help-echo help-echo)))
   (setq-default mode-line-format
     (list
+     "%e"
      (propertize "-" 'help-echo help-echo)
      'mode-line-mule-info
      'mode-line-modified
@@ -336,29 +337,6 @@ Keymap to display on minor modes.")
 
 (defvar mode-line-buffer-identification-keymap nil "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")
-
-(defun last-buffer () "\
-Return the last non-hidden buffer in the buffer list."
-  ;; This logic is more or less copied from bury-buffer,
-  ;; except that we reverse the buffer list.
-  (let ((list (nreverse (buffer-list (selected-frame))))
-	(pred (frame-parameter nil 'buffer-predicate))
-	found notsogood)
-    (while (and list (not found))
-      (unless (or (eq (aref (buffer-name (car list)) 0) ? )
-		  ;; If the selected frame has a buffer_predicate,
-		  ;; disregard buffers that don't fit the predicate.
-		  (and pred (not (funcall pred (car list)))))
-	(if (get-buffer-window (car list) 'visible)
-	    (or notsogood (eq (car list) (current-buffer)))
-	  (setq found (car list))))
-      (pop list))
-    (or found notsogood
-	(get-buffer "*scratch*")
-	(progn
-	  (set-buffer-major-mode
-	   (get-buffer-create "*scratch*"))
-	  (get-buffer "*scratch*")))))
 
 (defun unbury-buffer () "\
 Switch to the last buffer in the buffer list."
@@ -666,8 +644,8 @@ language you are using."
 
 (define-key global-map [?\C-x right] 'next-buffer)
 (define-key global-map [?\C-x C-right] 'next-buffer)
-(define-key global-map [?\C-x left] 'prev-buffer)
-(define-key global-map [?\C-x C-left] 'prev-buffer)
+(define-key global-map [?\C-x left] 'previous-buffer)
+(define-key global-map [?\C-x C-left] 'previous-buffer)
 
 (let ((map minibuffer-local-map))
   (define-key map "\en"   'next-history-element)

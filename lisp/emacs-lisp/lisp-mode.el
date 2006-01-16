@@ -96,13 +96,13 @@
 			     (regexp-opt
 			      '("defun" "defun*" "defsubst" "defmacro"
 				"defadvice" "define-skeleton"
-				"define-minor-mode" "define-derived-mode"
-				"define-generic-mode"
+				"define-minor-mode" "define-global-minor-mode"
+				"define-derived-mode" "define-generic-mode"
 				"define-compiler-macro" "define-modify-macro"
 				"defsetf" "define-setf-expander"
 				"define-method-combination"
 				"defgeneric" "defmethod") t))
-			   "\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)"))
+			   "\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2)
    (list (purecopy "Variables")
 	 (purecopy (concat "^\\s-*("
@@ -110,7 +110,7 @@
 			     (regexp-opt
 			      '("defvar" "defconst" "defconstant" "defcustom"
 				"defparameter" "define-symbol-macro") t))
-			   "\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)"))
+			   "\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2)
    (list (purecopy "Types")
 	 (purecopy (concat "^\\s-*("
@@ -119,7 +119,7 @@
 			      '("defgroup" "deftheme" "deftype" "defstruct"
 				"defclass" "define-condition" "define-widget"
 				"defface" "defpackage") t))
-			   "\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)"))
+			   "\\s-+'?\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2))
 
   "Imenu generic expression for Lisp mode.  See `imenu-generic-expression'.")
@@ -141,13 +141,16 @@
 (put 'define-compilation-mode 'doc-string-elt 3)
 (put 'easy-mmode-define-minor-mode 'doc-string-elt 2)
 (put 'define-minor-mode 'doc-string-elt 2)
+(put 'easy-mmode-define-global-mode 'doc-string-elt 2)
+(put 'define-global-minor-mode 'doc-string-elt 2)
 (put 'define-generic-mode 'doc-string-elt 7)
-;; define-global-mode has no explicit docstring.
-(put 'easy-mmode-define-global-mode 'doc-string-elt 0)
 (put 'define-ibuffer-filter 'doc-string-elt 2)
 (put 'define-ibuffer-op 'doc-string-elt 3)
 (put 'define-ibuffer-sorter 'doc-string-elt 2)
 (put 'lambda 'doc-string-elt 2)
+(put 'defalias 'doc-string-elt 3)
+(put 'defvaralias 'doc-string-elt 3)
+(put 'define-category 'doc-string-elt 2)
 
 (defvar lisp-doc-string-elt-property 'doc-string-elt
   "The symbol property that holds the docstring position info.")
@@ -232,8 +235,6 @@
   (setq comment-column 40)
   ;; Don't get confused by `;' in doc strings when paragraph-filling.
   (set (make-local-variable 'comment-use-global-state) t)
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'lisp-comment-indent)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression lisp-imenu-generic-expression)
   (make-local-variable 'multibyte-syntax-as-symbol)
@@ -745,17 +746,9 @@ which see."
 	     (unless (eq old-value new-value)
 	       (setq debug-on-error new-value))
 	     value)))))
-
-;; Used for comment-indent-function in Lisp modes.
-(defun lisp-comment-indent ()
-  (if (looking-at "\\s<\\s<\\s<")
-      (current-column)
-    (if (looking-at "\\s<\\s<")
-	(let ((tem (or (calculate-lisp-indent) (current-column))))
-	  (if (listp tem) (car tem) tem))
-      (skip-chars-backward " \t")
-      (max (if (bolp) 0 (1+ (current-column)))
-	   comment-column))))
+
+;; May still be used by some external Lisp-mode variant.
+(define-obsolete-function-alias 'lisp-comment-indent 'comment-indent-default)
 
 ;; This function just forces a more costly detection of comments (using
 ;; parse-partial-sexp from beginning-of-defun).  I.e. It avoids the problem of

@@ -180,10 +180,11 @@ for someone else.
 
   When you start Emacs, it normally attempts to load your @dfn{init
 file}, a file in your home directory.  Its normal name is
-@file{.emacs}, but you can alternatively call it @file{.emacs.el}.
-You can also store it inside a subdirectory @file{.emacs.d}.
-Whichever place you use, you can also compile the file (@pxref{Byte
-Compilation}); then the actual file loaded will be @file{.emacs.elc}.
+@file{.emacs}, but you can also call it @file{.emacs.el}.
+Alternatively, you can use a file named @file{init.el} in a
+subdirectory @file{.emacs.d}.  Whichever place you use, you can also
+compile the file (@pxref{Byte Compilation}); then the actual file
+loaded will be @file{.emacs.elc} or @file{init.elc}.
 
   The command-line switches @samp{-q}, @samp{-Q}, and @samp{-u}
 control whether and where to find the init file; @samp{-q} (and the

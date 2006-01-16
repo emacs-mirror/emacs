@@ -220,6 +220,13 @@ startup file, `~/.emacs-octave'."
 	  (concat (mapconcat
 		   'identity inferior-octave-output-list "\n")
 		  "\n"))))
+
+    ;; An empty secondary prompt, as e.g. obtained by '--braindead',
+    ;; means trouble.
+    (inferior-octave-send-list-and-digest (list "PS2\n"))
+    (if (string-match "^PS2 = *$" (car inferior-octave-output-list))
+	(inferior-octave-send-list-and-digest (list "PS2 = \"> \"\n")))
+
     ;; O.k., now we are ready for the Inferior Octave startup commands.
     (let* (commands
 	   (program (file-name-nondirectory inferior-octave-program))

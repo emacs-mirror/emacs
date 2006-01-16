@@ -713,7 +713,8 @@ narrowed."
 		(setq browse-url-temp-file-name
 		      (convert-standard-filename
 		       (make-temp-file
-			(expand-file-name "burl" browse-url-temp-dir)))))
+			(expand-file-name "burl" browse-url-temp-dir)
+			nil ".html"))))
 	    (setq file-name browse-url-temp-file-name)
 	    (write-region (point-min) (point-max) file-name nil 'no-message)))
       (browse-url-of-file file-name))))
@@ -863,7 +864,9 @@ xterm, MMM, and then W3."
      ((executable-find "tellw3b") 'browse-url-iximosaic)
      ((executable-find browse-url-xterm-program) 'browse-url-lynx-xterm)
      ((executable-find "mmm") 'browse-url-mmm)
-     (t 'browse-url-w3))
+     ((locate-library "w3") 'browse-url-w3)
+     (t
+      (lambda (&ignore args) (error "No usable browser found"))))
      url args))
 
 ;;;###autoload

@@ -50,6 +50,8 @@ The return value of this function is not used."
 	     (put macro 'lisp-indent-function (car (cdr d))))
 	    ((and (consp d) (eq (car d) 'debug))
 	     (put macro 'edebug-form-spec (car (cdr d))))
+	    ((and (consp d) (eq (car d) 'doc-string))
+	     (put macro 'doc-string-elt (car (cdr d))))
 	    (t
 	     (message "Unknown declaration %s" d))))))
 
@@ -126,6 +128,7 @@ is equivalent to the following two lines of code:
 \(make-obsolete 'old-fun 'new-fun \"22.1\")
 
 See the docstrings of `defalias' and `make-obsolete' for more details."
+  (declare (doc-string 4))
   `(progn
      (defalias ,obsolete-name ,current-name ,docstring)
      (make-obsolete ,obsolete-name ,current-name ,when)))
@@ -158,9 +161,10 @@ is equivalent to the following two lines of code:
 
 See the docstrings of `defvaralias' and `make-obsolete-variable' or
 Info node `(elisp)Variable Aliases' for more details."
+  (declare (doc-string 4))
   `(progn
      (defvaralias ,obsolete-name ,current-name ,docstring)
-      (make-obsolete-variable ,obsolete-name ,current-name ,when)))
+     (make-obsolete-variable ,obsolete-name ,current-name ,when)))
 
 (defmacro dont-compile (&rest body)
   "Like `progn', but the body always runs interpreted (not compiled).
@@ -169,10 +173,10 @@ If you think you need this, you're probably making a mistake somewhere."
   (list 'eval (list 'quote (if (cdr body) (cons 'progn body) (car body)))))
 
 
-;;; interface to evaluating things at compile time and/or load time
-;;; these macro must come after any uses of them in this file, as their
-;;; definition in the file overrides the magic definitions on the
-;;; byte-compile-macro-environment.
+;; interface to evaluating things at compile time and/or load time
+;; these macro must come after any uses of them in this file, as their
+;; definition in the file overrides the magic definitions on the
+;; byte-compile-macro-environment.
 
 (defmacro eval-when-compile (&rest body)
   "Like `progn', but evaluates the body at compile time if you're compiling.
@@ -196,12 +200,12 @@ In interpreted code, this is entirely equivalent to `progn'."
   (car (last body)))
 
 
-;;; I nuked this because it's not a good idea for users to think of using it.
-;;; These options are a matter of installation preference, and have nothing to
-;;; with particular source files; it's a mistake to suggest to users
-;;; they should associate these with particular source files.
-;;; There is hardly any reason to change these parameters, anyway.
-;;; --rms.
+;; I nuked this because it's not a good idea for users to think of using it.
+;; These options are a matter of installation preference, and have nothing to
+;; with particular source files; it's a mistake to suggest to users
+;; they should associate these with particular source files.
+;; There is hardly any reason to change these parameters, anyway.
+;; --rms.
 
 ;; (put 'byte-compiler-options 'lisp-indent-function 0)
 ;; (defmacro byte-compiler-options (&rest args)
@@ -227,5 +231,5 @@ In interpreted code, this is entirely equivalent to `progn'."
 ;;       (file-format emacs19))"
 ;;   nil)
 
-;;; arch-tag: 76f8328a-1f66-4df2-9b6d-5c3666dc05e9
+;; arch-tag: 76f8328a-1f66-4df2-9b6d-5c3666dc05e9
 ;;; byte-run.el ends here

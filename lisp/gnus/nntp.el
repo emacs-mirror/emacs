@@ -102,7 +102,7 @@ This command is used by the various nntp-open-via-* methods.")
 (defvoo nntp-end-of-line "\r\n"
   "*String to use on the end of lines when talking to the NNTP server.
 This is \"\\r\\n\" by default, but should be \"\\n\" when
-using and indirect connection method (nntp-open-via-*).")
+using an indirect connection method (nntp-open-via-*).")
 
 (defvoo nntp-via-rlogin-command "rsh"
   "*Rlogin command used to connect to an intermediate host.
@@ -259,6 +259,13 @@ Within a string, %s is replaced with the server address and %p with
 port number on server.  The program should accept IMAP commands on
 stdin and return responses to stdout.")
 
+(defvar nntp-authinfo-rejected nil
+"A custom error condition used to report 'Authentication Rejected' errors.  
+Condition handlers that match just this condition ensure that the nntp 
+backend doesn't catch this error.")
+(put 'nntp-authinfo-rejected 'error-conditions '(error nntp-authinfo-rejected))
+(put 'nntp-authinfo-rejected 'error-message "Authorization Rejected")
+
 
 
 ;;; Internal functions.
@@ -313,12 +320,15 @@ be restored and the command retried."
     (set-buffer (process-buffer process))
     (goto-char (point-min))
     (while (and (or (not (memq (char-after (point)) '(?2 ?3 ?4 ?5)))
-		    (looking-at "480"))
+		    (looking-at "48[02]"))
 		(memq (process-status process) '(open run)))
-      (when (looking-at "480")
+      (cond ((looking-at "480")
 	(nntp-handle-authinfo process))
-      (when (looking-at "^.*\n")
-	(delete-region (point) (progn (forward-line 1) (point))))
+	    ((looking-at "482")
+	     (nnheader-report 'nntp (get 'nntp-authinfo-rejected 'error-message))
+	     (signal 'nntp-authinfo-rejected nil))
+	    ((looking-at "^.*\n")
+	     (delete-region (point) (progn (forward-line 1) (point)))))
       (nntp-accept-process-output process)
       (goto-char (point-min)))
     (prog1
@@ -411,6 +421,8 @@ be restored and the command retried."
                  (wait-for
                   (nntp-wait-for process wait-for buffer decode))
                  (t t)))
+	    (nntp-authinfo-rejected
+	     (signal 'nntp-authinfo-rejected (cdr err)))
             (error
              (nnheader-report 'nntp "Couldn't open connection to %s: %s"
                               address err))

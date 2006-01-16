@@ -735,15 +735,18 @@ the same file name is found in the `doc-directory'.  */)
 DEFUN ("substitute-command-keys", Fsubstitute_command_keys,
        Ssubstitute_command_keys, 1, 1, 0,
        doc: /* Substitute key descriptions for command names in STRING.
-Return a new string which is STRING with substrings of the form \\=\\[COMMAND]
-replaced by either:  a keystroke sequence that will invoke COMMAND,
-or "M-x COMMAND" if COMMAND is not on any keys.
+Substrings of the form \\=\\[COMMAND] replaced by either: a keystroke
+sequence that will invoke COMMAND, or "M-x COMMAND" if COMMAND is not
+on any keys.
 Substrings of the form \\=\\{MAPVAR} are replaced by summaries
 \(made by describe-bindings) of the value of MAPVAR, taken as a keymap.
 Substrings of the form \\=\\<MAPVAR> specify to use the value of MAPVAR
 as the keymap for future \\=\\[COMMAND] substrings.
 \\=\\= quotes the following character and is discarded;
-thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ into the output.  */)
+thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ into the output.
+
+Returns original STRING if no substitutions were made.  Othwerwise,
+a new string, without any text properties, is returned.  */)
      (string)
      Lisp_Object string;
 {

@@ -124,10 +124,13 @@
 (load "frame")
 (load "term/tty-colors")
 (load "font-core")
+;; facemenu must be loaded before font-lock, because `facemenu-keymap'
+;; needs to be defined when font-lock is loaded.
+(load "facemenu")
+(load "emacs-lisp/syntax")
+(load "font-lock")
+(load "jit-lock")
 
-(if (fboundp 'frame-face-alist)
-    (progn
-      (load "facemenu")))
 (if (fboundp 'track-mouse)
     (progn
       (load "mouse")
@@ -136,6 +139,7 @@
       (load "select")))
 (load "emacs-lisp/timer")
 (load "isearch")
+(load "rfn-eshadow")
 
 (message "%s" (garbage-collect))
 (load "menu-bar")
@@ -156,6 +160,18 @@
       (load "vmsproc")))
 (load "abbrev")
 (load "buff-menu")
+
+(if (fboundp 'x-create-frame)
+    (progn
+      (load "image")
+      (load "international/fontset")
+      (load "dnd")
+      (load "mwheel")
+      (load "tool-bar")))
+(if (featurep 'x)
+    (load "x-dnd"))
+(message "%s" (garbage-collect))
+
 (if (eq system-type 'vax-vms)
     (progn
       (load "vms-patch")))
@@ -187,6 +203,7 @@
 (load "jka-cmpr-hook")
 (load "ediff-hook")
 (if (fboundp 'x-show-tip) (load "tooltip"))
+
 (message "%s" (garbage-collect))
 
 ;If you want additional libraries to be preloaded and their

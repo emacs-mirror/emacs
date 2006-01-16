@@ -518,9 +518,7 @@ and:
 ;;;###autoload
 (defun whitespace-cleanup ()
   "Cleanup the five different kinds of whitespace problems.
-
-Use \\[describe-function] whitespace-describe to read a summary of the
-whitespace problems."
+See `whitespace-buffer' docstring for a summary of the problems."
   (interactive)
   ;; If this buffer really contains a file, then run, else quit.
   (whitespace-check-whitespace-mode current-prefix-arg)

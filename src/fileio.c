@@ -1,7 +1,7 @@
 /* File IO for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005 Free Software Foundation, Inc.
+                 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1648,8 +1648,7 @@ See also the function `substitute-in-file-name'.  */)
 	{
 	  *o++ = *p++;
 	}
-      else if (IS_DIRECTORY_SEP (p[0])
-	       && p[1] == '.'
+      else if (p[1] == '.'
 	       && (IS_DIRECTORY_SEP (p[2])
 		   || p[2] == 0))
 	{
@@ -1659,7 +1658,7 @@ See also the function `substitute-in-file-name'.  */)
 	    *o++ = *p;
 	  p += 2;
 	}
-      else if (IS_DIRECTORY_SEP (p[0]) && p[1] == '.' && p[2] == '.'
+      else if (p[1] == '.' && p[2] == '.'
 	       /* `/../' is the "superroot" on certain file systems.
 		  Turned off on DOS_NT systems because they have no
 		  "superroot" and because this causes us to produce
@@ -1679,14 +1678,9 @@ See also the function `substitute-in-file-name'.  */)
 	    ++o;
 	  p += 3;
 	}
-      else if (p > target
-	       && IS_DIRECTORY_SEP (p[0]) && IS_DIRECTORY_SEP (p[1]))
-	{
-	  /* Collapse multiple `/' in a row.  */
-	  *o++ = *p++;
-	  while (IS_DIRECTORY_SEP (*p))
-	    ++p;
-	}
+      else if (p > target && IS_DIRECTORY_SEP (p[1]))
+	/* Collapse multiple `/' in a row.  */
+	p++;
       else
 	{
 	  *o++ = *p++;
@@ -2735,8 +2729,10 @@ int
 internal_delete_file (filename)
      Lisp_Object filename;
 {
-  return NILP (internal_condition_case_1 (Fdelete_file, filename,
-					  Qt, internal_delete_file_1));
+  Lisp_Object tem;
+  tem = internal_condition_case_1 (Fdelete_file, filename,
+				   Qt, internal_delete_file_1);
+  return NILP (tem);
 }
 
 DEFUN ("rename-file", Frename_file, Srename_file, 2, 3,
@@ -3397,8 +3393,10 @@ searchable directory.  */)
 }
 
 DEFUN ("file-regular-p", Ffile_regular_p, Sfile_regular_p, 1, 1, 0,
-       doc: /* Return t if file FILENAME is the name of a regular file.
-This is the sort of file that holds an ordinary stream of data bytes.  */)
+       doc: /* Return t if FILENAME names a regular file.
+This is the sort of file that holds an ordinary stream of data bytes.
+Symbolic links to regular files count as regular files.
+See `file-symlink-p' to distinguish symlinks.  */)
      (filename)
      Lisp_Object filename;
 {
@@ -4531,6 +4529,8 @@ actually used.  */)
 #endif
       Vdeactivate_mark = old_Vdeactivate_mark;
     }
+  else
+    Vdeactivate_mark = Qt;
 
   /* Make the text read part of the buffer.  */
   GAP_SIZE -= inserted;
@@ -6148,13 +6148,17 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
 #endif
 	{
 	  /* Must do it the hard (and slow) way.  */
+	  Lisp_Object tem;
 	  GCPRO3 (all, comp, specdir);
 	  count = SPECPDL_INDEX ();
 	  record_unwind_protect (read_file_name_cleanup, current_buffer->directory);
 	  current_buffer->directory = realdir;
 	  for (comp = Qnil; CONSP (all); all = XCDR (all))
-	    if (!NILP (call1 (Vread_file_name_predicate, XCAR (all))))
-	      comp = Fcons (XCAR (all), comp);
+	    {
+	      tem = call1 (Vread_file_name_predicate, XCAR (all));
+	      if (!NILP (tem))
+		comp = Fcons (XCAR (all), comp);
+	    }
 	  unbind_to (count, Qnil);
 	  UNGCPRO;
 	}

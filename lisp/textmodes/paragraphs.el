@@ -159,7 +159,7 @@ to obtain the value of this variable."
   :group 'paragraphs
   :type '(choice regexp (const :tag "Use default value" nil)))
 
-(defcustom sentence-end-base "[.?!][]\"'\xd0c9\x5397d)}]*"
+(defcustom sentence-end-base "[.?!][]\"'$B!I$,1r}(B)}]*"
   "*Regexp matching the basic end of a sentence, not including following space."
   :group 'paragraphs
   :type 'string
@@ -502,9 +502,9 @@ ones already marked."
   (interactive "*p")
   (transpose-subr 'forward-sentence arg))
 
-;;; Local Variables:
-;;; coding: iso-2022-7bit
-;;; End:
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; End:
 
-;;; arch-tag: e727eb1a-527a-4464-b9d7-9d3ec0d1a575
+;; arch-tag: e727eb1a-527a-4464-b9d7-9d3ec0d1a575
 ;;; paragraphs.el ends here

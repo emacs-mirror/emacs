@@ -1,6 +1,6 @@
 ;;; mh-gnus.el --- Make MH-E compatible with installed version of Gnus.
 
-;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2006 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -30,52 +30,39 @@
 
 ;;; Code:
 
-(load "mm-decode" t t)                  ; Non-fatal dependency
-(load "mm-uu" t t)                      ; Non-fatal dependency
-(load "mailcap" t t)                    ; Non-fatal dependency
-(load "smiley" t t)                     ; Non-fatal dependency
+;;(message "> mh-gnus")
+(eval-when-compile (require 'mh-acros))
+;;(message "< mh-gnus")
+
+;; Load libraries in a non-fatal way in order to see if certain functions are
+;; pre-defined.
 (load "mailabbrev" t t)
+(load "mailcap" t t)
+(load "mm-decode" t t)
+(load "mm-uu" t t)
+(load "mml" t t)
+(load "smiley" t t)
 
-(defmacro mh-defun-compat (function arg-list &rest body)
-  "This is a macro to define functions which are not defined.
-It is used for Gnus utility functions which were added recently. If FUNCTION
-is not defined then it is defined to have argument list, ARG-LIST and body,
-BODY."
-  (let ((defined-p (fboundp function)))
-    (unless defined-p
-      `(defun ,function ,arg-list ,@body))))
-(put 'mh-defun-compat 'lisp-indent-function 'defun)
-
-(defmacro mh-defmacro-compat (function arg-list &rest body)
-  "This is a macro to define functions which are not defined.
-It is used for Gnus utility functions which were added recently. If FUNCTION
-is not defined then it is defined to have argument list, ARG-LIST and body,
-BODY."
-  (let ((defined-p (fboundp function)))
-    (unless defined-p
-      `(defmacro ,function ,arg-list ,@body))))
-(put 'mh-defmacro-compat 'lisp-indent-function 'defun)
-
-;; Copy of original function from gnus-util.el
+;; Copy of function from gnus-util.el.
 (mh-defun-compat gnus-local-map-property (map)
   "Return a list suitable for a text property list specifying keymap MAP."
   (cond (mh-xemacs-flag (list 'keymap map))
         ((>= emacs-major-version 21) (list 'keymap map))
         (t (list 'local-map map))))
 
-;; Copy of original function from mm-decode.el
+;; Copy of function from mm-decode.el.
 (mh-defun-compat mm-merge-handles (handles1 handles2)
   (append (if (listp (car handles1)) handles1 (list handles1))
           (if (listp (car handles2)) handles2 (list handles2))))
 
-;; Copy of function from mm-decode.el
+;; Copy of function from mm-decode.el.
 (mh-defun-compat mm-set-handle-multipart-parameter (handle parameter value)
   ;; HANDLE could be a CTL.
   (if handle
       (put-text-property 0 (length (car handle)) parameter value
                          (car handle))))
 
-;; Copy of function from mm-view.el
+;; Copy of function from mm-view.el.
 (mh-defun-compat mm-inline-text-vcard (handle)
   (let (buffer-read-only)
     (mm-insert-inline
@@ -89,15 +76,15 @@ BODY."
 				      'vcard-standard-filter))))))))
 
 ;; Function from mm-decode.el used in PGP messages. Just define it with older
-;; gnus to avoid compiler warning.
+;; Gnus to avoid compiler warning.
 (mh-defun-compat mm-possibly-verify-or-decrypt (parts ctl)
   nil)
 
-;; Copy of original macro is in mm-decode.el
+;; Copy of macro in mm-decode.el.
 (mh-defmacro-compat mm-handle-multipart-ctl-parameter (handle parameter)
   `(get-text-property 0 ,parameter (car ,handle)))
 
-;; Copy of original function in mm-decode.el
+;; Copy of function in mm-decode.el.
 (mh-defun-compat mm-readable-p (handle)
   "Say whether the content of HANDLE is readable."
   (and (< (with-current-buffer (mm-handle-buffer handle)
@@ -107,7 +94,7 @@ BODY."
          (and (eq (mm-body-7-or-8) '7bit)
               (not (mm-long-lines-p 76))))))
 
-;; Copy of original function in mm-bodies.el
+;; Copy of function in mm-bodies.el.
 (mh-defun-compat mm-long-lines-p (length)
   "Say whether any of the lines in the buffer is longer than LENGTH."
   (save-excursion
@@ -126,13 +113,28 @@ BODY."
   nil)
 
 (mh-defun-compat mm-destroy-parts (list)
-  "Older emacs don't have this function."
+  "Older versions of Emacs don't have this function."
   nil)
 
-;;; This is mm-save-part from gnus 5.10 since that function in emacs21.2 is
-;;; buggy (the args to read-file-name are incorrect). When all supported
-;;; versions of Emacs come with at least Gnus 5.10, we can delete this
-;;; function and rename calls to mh-mm-save-part to mm-save-part.
+;; Copy of function in mml.el.
+(mh-defun-compat mml-minibuffer-read-disposition (type &optional default)
+  (unless default (setq default
+                        (if (and (string-match "\\`text/" type)
+                                 (not (string-match "\\`text/rtf\\'" type)))
+                            "inline"
+                          "attachment")))
+  (let ((disposition (completing-read
+                      (format "Disposition (default %s): " default)
+                      '(("attachment") ("inline") (""))
+                      nil t nil nil default)))
+    (if (not (equal disposition ""))
+	disposition
+      default)))
+
+;; This is mm-save-part from Gnus 5.10 since that function in emacs21.2 is
+;; buggy (the args to read-file-name are incorrect). When all supported
+;; versions of Emacs come with at least Gnus 5.10, we can delete this
+;; function and rename calls to mh-mm-save-part to mm-save-part.
 (defun mh-mm-save-part (handle)
   "Write HANDLE to a file."
   (let ((name (mail-content-type-get (mm-handle-type handle) 'name))
@@ -152,7 +154,7 @@ BODY."
          (mm-save-part-to-file handle file))))
 
 (defun mh-mm-text-html-renderer ()
-  "Find the renderer gnus is using to display text/html MIME parts."
+  "Find the renderer Gnus is using to display text/html MIME parts."
   (or (and (boundp 'mm-inline-text-html-renderer) mm-inline-text-html-renderer)
       (and (boundp 'mm-text-html-renderer) mm-text-html-renderer)))
 
@@ -163,12 +165,12 @@ BODY."
 
 (provide 'mh-gnus)
 
-;;; Local Variables:
-;;; no-byte-compile: t
-;;; no-update-autoloads: t
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; no-byte-compile: t
+;; no-update-autoloads: t
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
 ;; arch-tag: 1e3638af-cad3-4c69-8427-bc8eb6e5e4fa
 ;;; mh-gnus.el ends here

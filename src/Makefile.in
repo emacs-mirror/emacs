@@ -677,6 +677,20 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBO
 #define MSDOS_SUPPORT
 #endif
 
+#ifdef HAVE_WINDOW_SYSTEM
+#ifdef HAVE_X_WINDOWS
+#define WINDOW_SUPPORT ${lispsource}image.elc \
+ ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
+ ${lispsource}tool-bar.elc ${lispsource}mwheel.elc ${lispsource}x-dnd.elc
+#else
+#define WINDOW_SUPPORT ${lispsource}image.elc \
+ ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
+ ${lispsource}tool-bar.elc ${lispsource}mwheel.elc
+#endif
+#else
+#define WINDOW_SUPPORT
+#endif
+
 #ifdef WINDOWSNT
 #define WINNT_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
   ${lispsource}dos-w32.elc ${lispsource}w32-vars.elc \
@@ -726,6 +740,7 @@ lisp= \
 	${lispsource}help.elc \
 	${lispsource}indent.elc \
 	${lispsource}isearch.elc \
+	${lispsource}rfn-eshadow.elc \
 	${lispsource}loadup.el \
 	${lispsource}loaddefs.el \
 	${lispsource}bindings.elc \
@@ -769,6 +784,9 @@ lisp= \
 	${lispsource}subr.elc \
 	${lispsource}term/tty-colors.elc \
 	${lispsource}font-core.elc \
+	${lispsource}emacs-lisp/syntax.elc \
+	${lispsource}font-lock.elc \
+	${lispsource}jit-lock.elc \
 	${lispsource}textmodes/fill.elc \
 	${lispsource}textmodes/page.elc \
 	${lispsource}textmodes/paragraphs.elc \
@@ -781,6 +799,7 @@ lisp= \
 	VMS_SUPPORT \
 	MSDOS_SUPPORT \
 	WINNT_SUPPORT \
+	WINDOW_SUPPORT \
 	${lispsource}widget.elc \
 	${lispsource}window.elc \
 	${lispsource}version.el
@@ -810,6 +829,7 @@ shortlisp= \
 	../lisp/help.elc \
 	../lisp/indent.elc \
 	../lisp/isearch.elc \
+	../lisp/rfn-eshadow.elc \
 	../lisp/loadup.el \
 	../lisp/loaddefs.el \
 	../lisp/bindings.elc \
@@ -853,6 +873,9 @@ shortlisp= \
 	../lisp/subr.elc \
 	../lisp/term/tty-colors.elc \
 	../lisp/font-core.elc \
+	../lisp/emacs-lisp/syntax.elc \
+	../lisp/font-lock.elc \
+	../lisp/jit-lock.elc \
 	../lisp/textmodes/fill.elc \
 	../lisp/textmodes/page.elc \
 	../lisp/textmodes/paragraphs.elc \
@@ -876,9 +899,13 @@ SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
   ${dotdot}/lisp/ls-lisp.elc ${dotdot}/lisp/dos-fns.elc \
   ${dotdot}/lisp/w32-fns.elc ${dotdot}/lisp/dos-w32.elc \
   ${dotdot}/lisp/disp-table.elc ${dotdot}/lisp/dos-vars.elc \
-  ${dotdot}/lisp/tooltip.elc \
+  ${dotdot}/lisp/tooltip.elc ${dotdot}/lisp/image.elc \
+  ${dotdot}/lisp/dnd.elc ${dotdot}/lisp/mwheel.elc \
+  ${dotdot}/lisp/tool-bar.elc \
+  ${dotdot}/lisp/x-dnd.elc \
   ${dotdot}/lisp/international/ccl.elc \
-  ${dotdot}/lisp/international/codepage.elc
+  ${dotdot}/lisp/international/codepage.elc \
+  ${dotdot}/lisp/international/fontset.elc
 
 /* Construct full set of libraries to be linked.
    Note that SunOS needs -lm to come before -lc; otherwise, you get
@@ -1159,7 +1186,7 @@ term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
 termcap.o: termcap.c $(config_h)
 terminfo.o: terminfo.c $(config_h)
 tparam.o: tparam.c $(config_h)
-undo.o: undo.c buffer.h commands.h $(config_h)
+undo.o: undo.c buffer.h commands.h window.h $(config_h)
 /* This hack is to discard any space that cpp might put at the beginning
    of UNEXEC when substituting it in.  */
 UNEXEC_ALIAS=UNEXEC
@@ -1251,7 +1278,7 @@ macterm.o: blockinput.h atimer.h systime.h syssignal.h macterm.h macgui.h \
   frame.h charset.h ccl.h dispextern.h fontset.h termhooks.h termopts.h \
   termchar.h gnu.h disptab.h buffer.h window.h keyboard.h $(INTERVAL_SRC) \
   process.h coding.h $(config_h)
-macselect.o: blockinput.h macterm.h macgui.h frame.h $(config_h)
+macselect.o: blockinput.h macterm.h macgui.h frame.h keymap.h $(config_h)
 
 ${emacsapp}Contents/Resources/English.lproj:
 	mkdir -p $@

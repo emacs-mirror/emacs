@@ -799,7 +799,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
   ;; for events without parameters.
   (interactive (list last-input-event))
   (let ((pos (point)))
-    (if event (mouse-set-point event))
+    (if event (posn-set-point (event-end event)))
     (if (not (eq (get-char-property (point) 'field) 'input))
 	;; No input at POS, fall back to the global definition.
 	(let* ((keys (this-command-keys))
@@ -1550,7 +1550,11 @@ Similarly for Soar, Scheme, etc."
 		  ;; problems when `comint-prompt-read-only' is non-nil.
 		  (let ((inhibit-read-only t))
 		    (delete-region comint-last-input-end
-				   (+ comint-last-input-end echo-len))))))
+				   (+ comint-last-input-end echo-len))
+		    (when comint-prompt-read-only
+		      (save-excursion
+			(goto-char comint-last-input-end)
+			(comint-update-fence)))))))
 
 	  ;; This used to call comint-output-filter-functions,
 	  ;; but that scrolled the buffer in undesirable ways.

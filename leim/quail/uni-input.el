@@ -1,6 +1,9 @@
 ;;; uni-input.el --- Hex Unicode input method
 
-;; Copyright (C) 2001, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 2004
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -108,7 +111,6 @@ While this input method is active, the variable
     (quail-delete-overlays)
     (if (eq (selected-window) (minibuffer-window))
 	(add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer))
-    (add-hook 'kill-buffer-hook 'quail-kill-guidance-buf nil t)
     (set (make-local-variable 'input-method-function)
 	 'ucs-input-method)))
 

@@ -67,16 +67,16 @@ megabytes.
 @table @kbd
 @item C-x b @var{buffer} @key{RET}
 Select or create a buffer named @var{buffer} (@code{switch-to-buffer}).
-@item C-x @key{LEFT}
-Select the previous buffer in the list of existing buffers.
-@item C-x @key{RIGHT}
-Select the next buffer in the list of existing buffers.
 @item C-x 4 b @var{buffer} @key{RET}
 Similar, but select @var{buffer} in another window
 (@code{switch-to-buffer-other-window}).
 @item C-x 5 b @var{buffer} @key{RET}
 Similar, but select @var{buffer} in a separate frame
 (@code{switch-to-buffer-other-frame}).
+@item C-x @key{LEFT}
+Select the previous buffer in the list of existing buffers.
+@item C-x @key{RIGHT}
+Select the next buffer in the list of existing buffers.
 @item C-u M-g M-g
 @itemx C-u M-g g
 Read a number @var{n} and move to line @var{n} in the most recently
@@ -95,11 +95,11 @@ now displayed in any window.
 @kindex C-x @key{LEFT}
 @kindex C-x @key{RIGHT}
 @findex next-buffer
-@findex prev-buffer
+@findex previous-buffer
   For conveniently switching between a few buffers, use the commands
 @kbd{C-x @key{LEFT}} and @kbd{C-x @key{RIGHT}}.  @kbd{C-x @key{RIGHT}}
-(@code{prev-buffer}) selects the previous buffer (following the order
-of most recent selection), while @kbd{C-x @key{LEFT}}
+(@code{previous-buffer}) selects the previous buffer (following the order
+of most recent selection in the current frame), while @kbd{C-x @key{LEFT}}
 (@code{next-buffer}) moves through buffers in the reverse direction.
 
 @kindex C-x 4 b
@@ -252,9 +252,9 @@ no renaming is done.
   @kbd{M-x rename-uniquely} renames the current buffer to a similar
 name with a numeric suffix added to make it both different and unique.
 This command does not need an argument.  It is useful for creating
-multiple shell buffers: if you rename the @samp{*Shell*} buffer, then
+multiple shell buffers: if you rename the @samp{*shell*} buffer, then
 do @kbd{M-x shell} again, it makes a new shell buffer named
-@samp{*Shell*}; meanwhile, the old shell buffer continues to exist
+@samp{*shell*}; meanwhile, the old shell buffer continues to exist
 under its new name.  This method is also good for mail buffers,
 compilation buffers, and most Emacs features that create special
 buffers with particular names.  (With some of these features, such as
@@ -530,11 +530,10 @@ outline.  @xref{Outline Views}.
 @kbd{M-x clone-indirect-buffer}.  It creates and selects an indirect
 buffer whose base buffer is the current buffer.  With a numeric
 argument, it prompts for the name of the indirect buffer; otherwise it
-defaults to the name of the current buffer, modifying it by adding a
-@samp{<@var{n}>} suffix if required.  @kbd{C-x 4 c}
-(@code{clone-indirect-buffer-other-window}) works like @kbd{M-x
-clone-indirect-buffer}, but it selects the new buffer in another
-window.
+uses the name of the current buffer, with a @samp{<@var{n}>} suffix
+added.  @kbd{C-x 4 c} (@code{clone-indirect-buffer-other-window})
+works like @kbd{M-x clone-indirect-buffer}, but it selects the new
+buffer in another window.
 
   The more general way to make an indirect buffer is with the command
 @kbd{M-x make-indirect-buffer}.  It creates an indirect buffer from

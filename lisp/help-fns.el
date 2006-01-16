@@ -1,7 +1,7 @@
 ;;; help-fns.el --- Complex help functions
 
 ;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -99,34 +99,6 @@ With ARG, you are asked to choose which language."
       (goto-char (point-min))
       (setq buffer-undo-list nil)
       (set-buffer-modified-p nil))))
-
-;;;###autoload
-(defun locate-library (library &optional nosuffix path interactive-call)
-  "Show the precise file name of Emacs library LIBRARY.
-This command searches the directories in `load-path' like `\\[load-library]'
-to find the file that `\\[load-library] RET LIBRARY RET' would load.
-Optional second arg NOSUFFIX non-nil means don't add suffixes `load-suffixes'
-to the specified name LIBRARY.
-
-If the optional third arg PATH is specified, that list of directories
-is used instead of `load-path'.
-
-When called from a program, the file name is normaly returned as a
-string.  When run interactively, the argument INTERACTIVE-CALL is t,
-and the file name is displayed in the echo area."
-  (interactive (list (completing-read "Locate library: "
-				      'locate-file-completion
-				      (cons load-path load-suffixes))
-		     nil nil
-		     t))
-  (let ((file (locate-file library
-			   (or path load-path)
-			   (append (unless nosuffix load-suffixes) '("")))))
-    (if interactive-call
-	(if file
-	    (message "Library is file %s" (abbreviate-file-name file))
-	  (message "No library %s in search path" library)))
-    file))
 
 
 ;; Functions
@@ -251,7 +223,6 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	    (concat "src/" file)
 	  file)))))
 
-;;;###autoload
 (defface help-argument-name '((((supports :slant italic)) :inherit italic))
   "Face to highlight argument names in *Help* buffers."
   :group 'help)
@@ -312,6 +283,20 @@ face (according to `face-differs-from-default-p')."
   (cons usage doc))
 
 ;;;###autoload
+(defun describe-simplify-lib-file-name (file)
+  "Simplify a library name FILE to a relative name, and make it a source file."
+  (if file
+      ;; Try converting the absolute file name to a library name.
+      (let ((libname (file-name-nondirectory file)))
+	;; Now convert that back to a file name and see if we get
+	;; the original one.  If so, they are equivalent.
+	(if (equal file (locate-file libname load-path '("")))
+	    (if (string-match "[.]elc\\'" libname)
+		(substring libname 0 -1)
+	      libname)
+	  file))))
+
+;;;###autoload
 (defun describe-function-1 (function)
   (let* ((def (if (symbolp function)
 		  (symbol-function function)
@@ -363,6 +348,7 @@ face (according to `face-differs-from-default-p')."
 	      (help-xref-button 1 'help-function def)))))
     (or file-name
 	(setq file-name (symbol-file function 'defun)))
+    (setq file-name (describe-simplify-lib-file-name file-name))
     (when (equal file-name "loaddefs.el")
       ;; Find the real def site of the preloaded function.
       ;; This is necessary only for defaliases.
@@ -449,7 +435,9 @@ face (according to `face-differs-from-default-p')."
                          (format "\nMacro: %s" (format-kbd-macro def)))
                         (t "[Missing arglist.  Please make a bug report.]")))
                  (high (help-highlight-arguments use doc)))
-            (insert (car high) "\n")
+            (let ((fill-begin (point)))
+	      (insert (car high) "\n")
+	      (fill-region fill-begin (point)))
             (setq doc (cdr high))))
         (let ((obsolete (and
                          ;; function might be a lambda construct.
@@ -509,7 +497,11 @@ it is displayed along with the global value."
 				    (format
 				     "Describe variable (default %s): " v)
 				  "Describe variable: ")
-				obarray 'boundp t nil nil
+				obarray
+				'(lambda (vv)
+				   (or (boundp vv)
+				       (get vv 'variable-documentation)))
+				t nil nil
 				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
 	       v (intern val)))))
@@ -531,6 +523,7 @@ it is displayed along with the global value."
 	    ;; change the format of the buffer's initial line in case
 	    ;; anything expects the current format.)
 	    (let ((file-name (symbol-file variable 'defvar)))
+	      (setq file-name (describe-simplify-lib-file-name file-name))
 	      (when (equal file-name "loaddefs.el")
 		;; Find the real def site of the preloaded variable.
 		(let ((location
@@ -561,10 +554,10 @@ it is displayed along with the global value."
 			(help-xref-button 1 'help-variable-def
 					  variable file-name)))
 		    (if valvoid
-			(princ "It is void as a variable.\n")
+			(princ "It is void as a variable.")
 		      (princ "Its ")))
 		(if valvoid
-		    (princ " is void as a variable.\n")
+		    (princ " is void as a variable.")
 		  (princ "'s "))))
 	    (if valvoid
 		nil

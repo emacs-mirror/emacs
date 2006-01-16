@@ -257,7 +257,7 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
   "Enable or disable filtering by the major mode at point."
   (interactive "d")
   (if (eventp event-or-point)
-      (mouse-set-point event-or-point)
+      (posn-set-point (event-end event-or-point))
     (goto-char event-or-point))
   (let ((buf (ibuffer-current-buffer)))
     (if (assq 'mode ibuffer-filtering-qualifiers)
@@ -1021,10 +1021,12 @@ currently used by buffers."
   (ibuffer-awhen (with-current-buffer buf
 		   (or buffer-file-name
 		       (and (boundp 'dired-directory)
-			    (if (stringp dired-directory)
-				dired-directory
-			      (car dired-directory))
-			    (expand-file-name dired-directory))))
+			    (let ((dired-dir
+				   (if (stringp dired-directory)
+				       dired-directory
+				     (car dired-directory))))
+			      (and dired-dir
+				   (expand-file-name dired-dir))))))
     (string-match qualifier it)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-size-gt  "ibuf-ext")

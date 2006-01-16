@@ -37,8 +37,15 @@ extern Lisp_Object Vminibuffer_local_ns_map;
 /* keymap used for minibuffers when doing completion */
 extern Lisp_Object Vminibuffer_local_completion_map;
 
+/* keymap used for minibuffers when doing completion in filenames*/
+extern Lisp_Object Vminibuffer_local_filename_completion_map;
+
 /* keymap used for minibuffers when doing completion and require a match */
 extern Lisp_Object Vminibuffer_local_must_match_map;
+
+/* keymap used for minibuffers when doing completion in filenames
+   and require a match */
+extern Lisp_Object Vminibuffer_local_must_match_filename_map;
 
 /* Last character of last key sequence.  */
 extern Lisp_Object last_command_char;
@@ -68,11 +75,14 @@ extern Lisp_Object Vthis_command;
    events until a non-ASCII event is acceptable as input.  */
 extern Lisp_Object unread_switch_frame;
 
-/* The value of point when the last command was executed.  */
+/* The value of point when the last command was started.  */
 extern int last_point_position;
 
 /* The buffer that was current when the last command was started.  */
 extern Lisp_Object last_point_position_buffer;
+
+/* The window that was selected when the last command was started.  */
+extern Lisp_Object last_point_position_window;
 
 /* Nonzero means ^G can quit instantly */
 extern int immediate_quit;

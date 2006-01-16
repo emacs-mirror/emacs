@@ -85,25 +85,12 @@ permit or forbid recursive minibuffers by setting the variable
 @code{enable-recursive-minibuffers} or by putting properties of that
 name on command symbols (@pxref{Recursive Mini}).
 
-  Like other buffers, a minibuffer may use any of several local keymaps
-(@pxref{Keymaps}); these contain various exit commands and in some cases
-completion commands (@pxref{Completion}).
-
-@itemize @bullet
-@item
-@code{minibuffer-local-map} is for ordinary input (no completion).
-
-@item
-@code{minibuffer-local-ns-map} is similar, except that @key{SPC} exits
-just like @key{RET}.
-
-@item
-@code{minibuffer-local-completion-map} is for permissive completion.
-
-@item
-@code{minibuffer-local-must-match-map} is for strict completion and
-for cautious completion.
-@end itemize
+  Like other buffers, a minibuffer uses a local keymap
+(@pxref{Keymaps}) to specify special key bindings.  The function that
+invokes the minibuffer also sets up its local map according to the job
+to be done.  @xref{Text from Minibuffer}, for the non-completion
+minibuffer local maps.  @xref{Completion Commands}, for the minibuffer
+local maps for completion.
 
   When Emacs is running in batch mode, any request to read from the
 minibuffer actually reads a line from the standard input descriptor that
@@ -781,22 +768,19 @@ in this list, with @code{case-fold-search} (@pxref{Searching and Case})
 bound to the value of @code{completion-ignore-case}.
 @end defvar
 
-@defmac lazy-completion-table var fun &rest args
+@defmac lazy-completion-table var fun
 This macro provides a way to initialize the variable @var{var} as a
 collection for completion in a lazy way, not computing its actual
 contents until they are first needed.  You use this macro to produce a
 value that you store in @var{var}.  The actual computation of the
 proper value is done the first time you do completion using @var{var}.
-It is done by calling @var{fun} with the arguments @var{args}.  The
+It is done by calling @var{fun} with no arguments.  The
 value @var{fun} returns becomes the permanent value of @var{var}.
 
-Here are two examples of use:
+Here is an example of use:
 
 @smallexample
-(defvar foo (lazy-completion-table foo make-my-alist 'global))
-
-(make-local-variable 'bar)
-(setq bar (lazy-completion-table foo make-my-alist 'local)
+(defvar foo (lazy-completion-table foo make-my-alist))
 @end smallexample
 @end defmac
 
@@ -949,7 +933,7 @@ The list of completions is displayed as text in a buffer named
 @samp{*Completions*}.
 @end deffn
 
-@defun display-completion-list completions
+@defun display-completion-list completions &optional common-substring
 This function displays @var{completions} to the stream in
 @code{standard-output}, usually a buffer.  (@xref{Read and Print}, for more
 information about streams.)  The argument @var{completions} is normally
@@ -960,6 +944,13 @@ which is printed as if the strings were concatenated.  The first of
 the two strings is the actual completion, the second string serves as
 annotation.
 
+The argument @var{common-substring} is the prefix that is common to
+all the completions.  With normal Emacs completion, it is usually the
+same as the string that was completed.  @code{display-completion-list}
+uses this to highlight text in the completion list for better visual
+feedback.  This is not needed in the minibuffer; for minibuffer
+completion, you can pass @code{nil}.
+
 This function is called by @code{minibuffer-completion-help}.  The
 most common way to use it is together with
 @code{with-output-to-temp-buffer}, like this:
@@ -967,7 +958,8 @@ most common way to use it is together with
 @example
 (with-output-to-temp-buffer "*Completions*"
   (display-completion-list
-    (all-completions (buffer-string) my-alist)))
+    (all-completions (buffer-string) my-alist)
+    (buffer-string)))
 @end example
 @end defun
 
@@ -1024,6 +1016,18 @@ bindings:
 
 @noindent
 with other characters bound as in @code{minibuffer-local-map}.
+@end defvar
+
+@defvar minibuffer-local-filename-completion-map
+This is like @code{minibuffer-local-completion-map}
+except that it does not bind @key{SPC}.  This keymap is used by the
+function @code{read-file-name}.
+@end defvar
+
+@defvar minibuffer-local-must-match-filename-map
+This is like @code{minibuffer-local-must-match-map}
+except that it does not bind @key{SPC}.  This keymap is used by the
+function @code{read-file-name}.
 @end defvar
 
 @node High-Level Completion
@@ -1206,6 +1210,12 @@ value of @var{existing} is neither @code{nil} nor @code{t}, then
 @key{RET} also requires confirmation after completion.  If
 @var{existing} is @code{nil}, then the name of a nonexistent file is
 acceptable.
+
+The function @code{read-file-name} uses
+@code{minibuffer-local-filename-completion-map} as the keymap if
+@var{existing} is @code{nil}, and uses
+@code{minibuffer-local-must-match-filename-map} if @var{existing} is
+non-@code{nil}.  @xref{Completion Commands}.
 
 The argument @var{directory} specifies the directory to use for
 completion of relative file names.  It should be an absolute directory
@@ -1821,6 +1831,13 @@ entire contents of the current buffer.
 @tindex minibuffer-contents-no-properties
 This is like @code{minibuffer-contents}, except that it does not copy text
 properties, just the characters themselves.  @xref{Text Properties}.
+@end defun
+
+@defun minibuffer-completion-contents
+@tindex minibuffer-completion-contents
+This is like @code{minibuffer-contents}, except that it returns only
+the contents before point.  That is the part that completion commands
+operate on.  @xref{Minibuffer Completion}.
 @end defun
 
 @defun delete-minibuffer-contents

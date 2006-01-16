@@ -2262,7 +2262,7 @@ IGNORE-WORDS List of words which should be removed from the string."
 
 (defun reftex-use-fonts ()
   ;; Return t if we can and want to use fonts.
-  (and window-system
+  (and ; window-system
        reftex-use-fonts
        (featurep 'font-lock)))
 

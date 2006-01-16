@@ -72,6 +72,12 @@ otherwise)."
   :group 'paren-showing
   :version "20.3")
 
+(defgroup paren-showing-faces nil
+  "Group for faces of Show Paren mode."
+  :group 'paren-showing
+  :group 'faces
+  :version "22.1")
+
 (defface show-paren-match
   '((((class color) (background light))
      :background "turquoise")		; looks OK on tty (becomes cyan)
@@ -82,8 +88,7 @@ otherwise)."
     (t
      :background "gray"))
   "Show Paren mode face used for a matching paren."
-  :group 'faces
-  :group 'paren-showing)
+  :group 'paren-showing-faces)
 ;; backward-compatibility alias
 (put 'show-paren-match-face 'face-alias 'show-paren-match)
 
@@ -91,8 +96,7 @@ otherwise)."
   '((((class color)) (:foreground "white" :background "purple"))
     (t (:inverse-video t)))
   "Show Paren mode face used for a mismatching paren."
-  :group 'faces
-  :group 'paren-showing)
+  :group 'paren-showing-faces)
 ;; backward-compatibility alias
 (put 'show-paren-mismatch-face 'face-alias 'show-paren-mismatch)
 
@@ -110,14 +114,7 @@ Returns the new status of Show Paren mode (non-nil means on).
 When Show Paren mode is enabled, any matching parenthesis is highlighted
 in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
   :global t :group 'paren-showing
-    ;; Turn off the usual paren-matching method
-    ;; when this one is turned on.
-    (if (local-variable-p 'show-paren-mode)
-	(make-local-variable 'blink-matching-paren-on-screen)
-      (kill-local-variable 'blink-matching-paren-on-screen))
-    (setq blink-matching-paren-on-screen (not show-paren-mode))
-
-    ;; Now enable or disable the mechanism.
+    ;; Enable or disable the mechanism.
     ;; First get rid of the old idle timer.
     (if show-paren-idle-timer
 	(cancel-timer show-paren-idle-timer))
@@ -181,7 +178,12 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 				       (cdr (syntax-after beg)))
 				   (eq (char-after beg)
 				       ;; This can give nil.
-				       (cdr (syntax-after (1- end)))))))))))))
+				       (cdr (syntax-after (1- end))))
+                                   ;; The cdr might hold a new paren-class
+                                   ;; info rather than a matching-char info,
+                                   ;; in which case the two CDRs should match.
+                                   (eq (cdr (syntax-after (1- end)))
+                                       (cdr (syntax-after beg))))))))))))
 	;;
 	;; Highlight the other end of the sexp, or unhighlight if none.
 	(if (not pos)

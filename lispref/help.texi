@@ -133,11 +133,17 @@ unless @var{verbatim} is non-@code{nil}.
 (symbol-plist 'command-line-processed)
      @result{} (variable-documentation 188902)
 @end group
+@group
+(documentation-property 'emacs 'group-documentation)
+     @result{} "Customization of the One True Editor."
+@end group
 @end smallexample
 @end defun
 
 @defun documentation function &optional verbatim
 This function returns the documentation string of @var{function}.
+@code{documentation} handles macros, named keyboard macros, and
+special forms, as well as ordinary functions.
 
 If @var{function} is a symbol, this function first looks for the
 @code{function-documentation} property of that symbol; if that has a
@@ -155,6 +161,11 @@ The function @code{documentation} signals a @code{void-function} error
 if @var{function} has no function definition.  However, it is OK if
 the function definition has no documentation string.  In that case,
 @code{documentation} returns @code{nil}.
+@end defun
+
+@defun face-documentation face
+This function returns the documentation string of @var{face} as a
+face.
 @end defun
 
 @c Wordy to prevent overfull hboxes.  --rjc 15mar92
@@ -498,14 +509,28 @@ the user as subcommands of the prefix @kbd{C-h}.  For more information
 about them, see @ref{Help, , Help, emacs, The GNU Emacs Manual}.  Here
 we describe some program-level interfaces to the same information.
 
-@deffn Command apropos regexp &optional do-all
+@deffn Command apropos pattern &optional do-all
 This function finds all ``meaningful'' symbols whose names contain a
-match for the regular expression @var{regexp}, and returns a list of
-them, with associated documentation (@pxref{Regular Expressions}).  It
-also displays the symbols in a buffer named @samp{*Apropos*}, each
-with a one-line description taken from the beginning of its
-documentation string.  A symbol is ``meaningful'' if it has a
+match for the apropos pattern @var{pattern}.  An apropos pattern is
+either a word to match, a space-separated list of words of which at
+least two must match, or a regular expression (if any special regular
+expression characters occur).  A symbol is ``meaningful'' if it has a
 definition as a function, variable, or face, or has properties.
+
+The function returns a list of elements that look like this:
+
+@example
+(@var{symbol} @var{score} @var{fn-doc} @var{var-doc}
+ @var{plist-doc} @var{widget-doc} @var{face-doc} @var{group-doc})
+@end example
+
+Here, @var{score} is an integer measure of how important the symbol
+seems to be as a match, and the remaining elements are documentation
+strings for @var{symbol}'s various roles (or @code{nil}).
+
+It also displays the symbols in a buffer named @samp{*Apropos*}, each
+with a one-line description taken from the beginning of its
+documentation string.
 
 @c Emacs 19 feature
 If @var{do-all} is non-@code{nil}, or if the user option

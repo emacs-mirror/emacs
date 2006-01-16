@@ -65,6 +65,7 @@
 ;; List of overlays used to display current rectangle.
 (defvar cua--rectangle-overlays nil)
 (make-variable-buffer-local 'cua--rectangle-overlays)
+(put 'cua--rectangle-overlays 'permanent-local t)
 
 (defvar cua--overlay-keymap
   (let ((map (make-sparse-keymap)))
@@ -781,7 +782,7 @@ If command is repeated at same position, delete the rectangle."
 			       (make-string
 				(- l cl0 (if (and (= le pl) (/= le lb)) 1 0))
 				(if cua--virtual-edges-debug ?. ?\s))
-			       'face 'default))
+			       'face (or (get-text-property (1- s) 'face) 'default)))
 		     (if (/= pl le)
 			 (setq s (1- s))))
 		   (cond
@@ -1241,6 +1242,7 @@ The numbers are formatted according to the FORMAT string."
 	       (setq z (cdr z)))
 	     (if cua--debug
 		 (print (list (current-column) cc) auxbuf))
+	     (just-one-space 0)
              (indent-to cc))))
       (if (> tr 0)
 	  (message "Warning:  Truncated %d row%s" tr (if (> tr 1) "s" "")))
@@ -1357,7 +1359,9 @@ With prefix arg, indent to that column."
 
 (defun cua-help-for-rectangle (&optional help)
   (interactive)
-  (let ((M (if cua-use-hyper-key " H-" " M-")))
+  (let ((M (cond ((eq cua--rectangle-modifier-key 'hyper) " H-")
+		 ((eq cua--rectangle-modifier-key 'super) " s-")
+		 (t " M-"))))
     (message
      (concat (if help "C-?:help" "")
              M "p:pad" M "o:open" M "c:close" M "b:blank"
@@ -1393,7 +1397,12 @@ With prefix arg, indent to that column."
       (if (and mark-active
                (not deactivate-mark))
           (cua--highlight-rectangle)
-        (cua--deactivate-rectangle)))
+        (cua--deactivate-rectangle))
+    (when cua--rectangle-overlays
+      ;; clean-up after revert-buffer
+      (mapcar (function delete-overlay) cua--rectangle-overlays)
+      (setq cua--rectangle-overlays nil)
+      (setq deactivate-mark t)))
   (when cua--rect-undo-set-point
     (goto-char cua--rect-undo-set-point)
     (setq cua--rect-undo-set-point nil)))
@@ -1404,12 +1413,11 @@ With prefix arg, indent to that column."
   (cua--M/H-key cua--rectangle-keymap key cmd))
 
 (defun cua--init-rectangles ()
-  (unless (eq cua-use-hyper-key 'only)
-    (define-key cua--rectangle-keymap [(control return)] 'cua-clear-rectangle-mark)
-    (define-key cua--region-keymap    [(control return)] 'cua-toggle-rectangle-mark))
-  (when cua-use-hyper-key
-    (cua--rect-M/H-key 'space			       'cua-clear-rectangle-mark)
-    (cua--M/H-key cua--region-keymap 'space	       'cua-toggle-rectangle-mark))
+  (define-key cua--rectangle-keymap [(control return)] 'cua-clear-rectangle-mark)
+  (define-key cua--region-keymap    [(control return)] 'cua-toggle-rectangle-mark)
+  (unless (eq cua--rectangle-modifier-key 'meta)
+    (cua--rect-M/H-key ?\s			       'cua-clear-rectangle-mark)
+    (cua--M/H-key cua--region-keymap ?\s	       'cua-toggle-rectangle-mark))
 
   (define-key cua--rectangle-keymap [remap copy-region-as-kill] 'cua-copy-rectangle)
   (define-key cua--rectangle-keymap [remap kill-ring-save]      'cua-copy-rectangle)

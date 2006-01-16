@@ -40,6 +40,7 @@
 
 (defgroup simula nil
   "Major mode for editing Simula code."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :prefix "simula-"
   :group 'languages)
 

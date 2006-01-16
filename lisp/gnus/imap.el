@@ -182,8 +182,7 @@ the list is tried until a successful connection is made."
   :type '(repeat string))
 
 (defcustom imap-gssapi-program (list
-				(concat "gsasl --client --connect %s:%p "
-					"--imap --application-data "
+				(concat "gsasl %s %p "
 					"--mechanism GSSAPI "
 					"--authentication-id %l")
 				"imtest -m gssapi -u %l -p %p %s")
@@ -592,6 +591,13 @@ sure of changing the value of `foo'."
 	    (while (and (memq (process-status process) '(open run))
 			(set-buffer buffer) ;; XXX "blue moon" nntp.el bug
 			(goto-char (point-min))
+			;; Athena IMTEST can output SSL verify errors
+			(or (while (looking-at "^verify error:num=")
+			      (forward-line))
+			    t)
+			(or (while (looking-at "^TLS connection established")
+			      (forward-line))
+			    t)
 			;; cyrus 1.6.x (13? < x <= 22) queries capabilities
 			(or (while (looking-at "^C:")
 			      (forward-line))
@@ -599,6 +605,10 @@ sure of changing the value of `foo'."
 			;; cyrus 1.6 imtest print "S: " before server greeting
 			(or (not (looking-at "S: "))
 			    (forward-char 3)
+			    t)
+			;; GNU SASL may print 'Trying ...' first.
+			(or (not (looking-at "Trying "))
+			    (forward-line)
 			    t)
 			(not (and (imap-parse-greeting)
 				  ;; success in imtest 1.6:
@@ -1035,8 +1045,11 @@ necessary.  If nil, the buffer name is generated."
 			   stream))
 		      ;; We're done, kill the first connection
 		      (imap-close buffer)
-		      (kill-buffer buffer)
-		      (rename-buffer buffer)
+		      (let ((name (if (stringp buffer)
+				      buffer
+				    (buffer-name buffer))))
+			(kill-buffer buffer)
+			(rename-buffer name))
 		      (message "imap: Reconnecting with stream `%s'...done"
 			       stream)
 		      (setq imap-stream stream)

@@ -3317,7 +3317,9 @@ prefix, and don't delete any headers."
 (defun message-insert-citation-line ()
   "Insert a simple citation line."
   (when message-reply-headers
-    (insert (mail-header-from message-reply-headers) " writes:\n\n")))
+    (insert (mail-header-from message-reply-headers) " writes:")
+    (newline)
+    (newline)))
 
 (defun message-position-on-field (header &rest afters)
   (let ((case-fold-search t))
@@ -5077,7 +5079,8 @@ Headers already prepared in the buffer are not modified."
 		  ;; The element is a symbol.  We insert the value
 		  ;; of this symbol, if any.
 		  (symbol-value header))
-		 ((not (message-check-element header))
+		 ((not (message-check-element
+			(intern (downcase (symbol-name header)))))
 		  ;; We couldn't generate a value for this header,
 		  ;; so we just ask the user.
 		  (read-from-minibuffer
@@ -6652,6 +6655,17 @@ those headers."
 		 (lookup-key global-map "\t")
 		 'indent-relative))))
 
+(eval-and-compile
+  (condition-case nil
+      (with-temp-buffer
+	(let ((standard-output (current-buffer)))
+	  (eval '(display-completion-list nil "")))
+	(defalias 'message-display-completion-list 'display-completion-list))
+    (error ;; Don't use `wrong-number-of-arguments' here because of XEmacs.
+     (defun message-display-completion-list (completions &optional ignore)
+       "Display the list of completions, COMPLETIONS, using `standard-output'."
+       (display-completion-list completions)))))
+
 (defun message-expand-group ()
   "Expand the group name under point."
   (let* ((b (save-excursion
@@ -6690,7 +6704,9 @@ those headers."
 	  (let ((buffer-read-only nil))
 	    (erase-buffer)
 	    (let ((standard-output (current-buffer)))
-	      (display-completion-list (sort completions 'string<) string))
+	      (message-display-completion-list (sort completions 'string<)
+					       string))
+	    (setq buffer-read-only nil)
 	    (goto-char (point-min))
 	    (delete-region (point) (progn (forward-line 3) (point))))))))))
 

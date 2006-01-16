@@ -33,7 +33,6 @@
   (autoload 'xw-defined-colors "x-win"))
 
 (defvar help-xref-stack-item)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Font selection.
@@ -375,8 +374,11 @@ completely specified)."
       ;; VALUE is relative, so merge with inherited faces
       (let ((inh-from (face-attribute face :inherit frame)))
 	(unless (or (null inh-from) (eq inh-from 'unspecified))
-	  (setq value
-		(face-attribute-merged-with attribute value inh-from frame)))))
+          (condition-case nil
+              (setq value
+                    (face-attribute-merged-with attribute value inh-from frame))
+            ;; The `inherit' attribute may point to non existent faces.
+            (error nil)))))
     (when (and inherit
 	       (not (eq inherit t))
 	       (face-attribute-relative-p attribute value))
@@ -547,6 +549,9 @@ If FACE is a face-alias, get the documentation for the target face."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(defvar inhibit-face-set-after-frame-default nil
+  "If non-nil, that tells `face-set-after-frame-default' to do nothing.")
+
 (defun set-face-attribute (face frame &rest args)
   "Set attributes of FACE on FRAME from ARGS.
 
@@ -555,7 +560,7 @@ the default for new frames (this is done automatically each time an
 attribute is changed on all frames).
 
 ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a valid
-face attribute name.  All attributes can be set to `unspecified';
+face attribute name. All attributes can be set to `unspecified';
 this fact is not further mentioned below.
 
 The following attributes are recognized:
@@ -677,9 +682,12 @@ like an underlying face would be, with higher priority than underlying faces."
     (if (memq where '(0 t))
 	(put (or (get face 'face-alias) face) 'face-modified t))
     (while args
-      (internal-set-lisp-face-attribute face (car args)
-					(purecopy (cadr args))
-					where)
+      ;; Don't recursively set the attributes from the frame's font param
+      ;; when we update the frame's font param fro the attributes.
+      (let ((inhibit-face-set-after-frame-default t))
+	(internal-set-lisp-face-attribute face (car args)
+					  (purecopy (cadr args))
+					  where))
       (setq args (cdr (cdr args))))))
 
 
@@ -1011,7 +1019,7 @@ Value is the new attribute value."
 		     (format "%s for face `%s' (default %s): "
 			     name face default)
 		   (format "%s for face `%s': " name face))
-		 completion-alist)))
+		 completion-alist nil nil nil nil default)))
     (if (equal value "") default value)))
 
 
@@ -1298,6 +1306,7 @@ If FRAME is omitted or nil, use the selected frame."
 	      ;; The next 4 sexps are copied from describe-function-1
 	      ;; and simplified.
 	      (setq file-name (symbol-file f 'defface))
+	      (setq file-name (describe-simplify-lib-file-name file-name))
 	      (when file-name
 		(princ "Defined in `")
 		(princ file-name)
@@ -1440,7 +1449,7 @@ FRAME is the frame whose frame-local face is set.  FRAME nil means
 do it on all frames.  See `defface' for information about SPEC.
 If SPEC is nil, do nothing."
   (let ((attrs (face-spec-choose spec frame)))
-    (when attrs
+    (when spec
       (face-spec-reset-face face frame))
     (while attrs
       (let ((attribute (car attrs))
@@ -1569,17 +1578,17 @@ If omitted or nil, that stands for the selected frame's display."
 (defcustom frame-background-mode nil
   "*The brightness of the background.
 Set this to the symbol `dark' if your background color is dark,
-`light' if your background is light, or nil (default) if you want Emacs
-to examine the brightness for you.  Don't set this variable with `setq';
-this won't have the expected effect."
+`light' if your background is light, or nil (automatic by default)
+if you want Emacs to examine the brightness for you.  Don't set this
+variable with `setq'; this won't have the expected effect."
   :group 'faces
   :set #'(lambda (var value)
 	   (set-default var value)
 	   (mapc 'frame-set-background-mode (frame-list)))
   :initialize 'custom-initialize-changed
-  :type '(choice (choice-item dark)
-		 (choice-item light)
-		 (choice-item :tag "default" nil)))
+  :type '(choice (const dark)
+		 (const light)
+		 (const :tag "automatic" nil)))
 
 (defvar default-frame-background-mode nil
   "Internal variable for the default brightness of the background.
@@ -1730,23 +1739,23 @@ Value is the new frame created."
 	(delete-frame frame)))
     frame))
 
-
 (defun face-set-after-frame-default (frame)
   "Set frame-local faces of FRAME from face specs and resources.
 Initialize colors of certain faces from frame parameters."
-  (if (face-attribute 'default :font t)
-      (set-face-attribute 'default frame :font
-			  (face-attribute 'default :font t))
-    (set-face-attribute 'default frame :family
-			(face-attribute 'default :family t))
-    (set-face-attribute 'default frame :height
-			(face-attribute 'default :height t))
-    (set-face-attribute 'default frame :slant
-			(face-attribute 'default :slant t))
-    (set-face-attribute 'default frame :weight
-			(face-attribute 'default :weight t))
-    (set-face-attribute 'default frame :width
-			(face-attribute 'default :width t)))
+  (unless inhibit-face-set-after-frame-default
+    (if (face-attribute 'default :font t)
+	(set-face-attribute 'default frame :font
+			    (face-attribute 'default :font t))
+      (set-face-attribute 'default frame :family
+			  (face-attribute 'default :family t))
+      (set-face-attribute 'default frame :height
+			  (face-attribute 'default :height t))
+      (set-face-attribute 'default frame :slant
+			  (face-attribute 'default :slant t))
+      (set-face-attribute 'default frame :weight
+			  (face-attribute 'default :weight t))
+      (set-face-attribute 'default frame :width
+			  (face-attribute 'default :width t))))
   (dolist (face (face-list))
     ;; Don't let frame creation fail because of an invalid face spec.
     (condition-case ()
@@ -1975,7 +1984,7 @@ created."
     (t :inverse-video t))
   "Basic face for highlighting trailing whitespace."
   :version "21.1"
-  :group 'whitespace		; like `show-trailing-whitespace'
+  :group 'whitespace-faces	; like `show-trailing-whitespace'
   :group 'basic-faces)
 
 (defface escape-glyph

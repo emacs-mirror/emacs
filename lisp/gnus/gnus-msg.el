@@ -844,6 +844,7 @@ header line with the old Message-ID."
 	      (delete-region (point) (point-max))
 	      (insert yank-string))
 	    (gnus-article-delete-text-of-type 'annotation)
+	    (gnus-article-delete-text-of-type 'multipart)
 	    (gnus-remove-text-with-property 'gnus-prev)
 	    (gnus-remove-text-with-property 'gnus-next)
 	    (gnus-remove-text-with-property 'gnus-decoration)

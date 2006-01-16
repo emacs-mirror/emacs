@@ -263,13 +263,13 @@ Boston, MA 02110-1301, USA.  */
 
 /* Indicate that we are compiling for Mac OS X and where to find Mac
    specific headers.  */
-#define C_SWITCH_SYSTEM -fpascal-strings -fno-common -DMAC_OSX -I../mac/src
+#define C_SWITCH_SYSTEM -fpascal-strings -DMAC_OSX -I../mac/src
 
 /* Link in the Carbon lib. */
 #ifdef HAVE_CARBON
 #define LIBS_CARBON -framework Carbon -framework QuickTime
 #else
-#define LIBS_CARBON -framework Carbon
+#define LIBS_CARBON
 #endif
 
 /* The -headerpad option tells ld (see man page) to leave room at the
@@ -328,6 +328,10 @@ struct kboard;
    does not exist.  */
 #undef HAVE_WORKING_VFORK
 #define vfork fork
+
+/* Don't close pty in process.c to make it as controlling terminal.
+   It is already a controlling terminal of subprocess, because we did
+   ioctl TIOCSCTTY.  */
 #define DONT_REOPEN_PTY
 
 #ifdef temacs

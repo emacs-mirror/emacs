@@ -2493,9 +2493,9 @@ determines whether case is significant or ignored.  */)
 {
   register int begp1, endp1, begp2, endp2, temp;
   register struct buffer *bp1, *bp2;
-  register Lisp_Object *trt
+  register Lisp_Object trt
     = (!NILP (current_buffer->case_fold_search)
-       ? XCHAR_TABLE (current_buffer->case_canon_table)->contents : 0);
+       ? current_buffer->case_canon_table : Qnil);
   int chars = 0;
   int i1, i2, i1_byte, i2_byte;
 
@@ -2614,10 +2614,10 @@ determines whether case is significant or ignored.  */)
 	  i2++;
 	}
 
-      if (trt)
+      if (!NILP (trt))
 	{
-	  c1 = XINT (trt[c1]);
-	  c2 = XINT (trt[c2]);
+	  c1 = CHAR_TABLE_TRANSLATE (trt, c1);
+	  c2 = CHAR_TABLE_TRANSLATE (trt, c2);
 	}
       if (c1 < c2)
 	return make_number (- 1 - chars);
@@ -3794,7 +3794,7 @@ usage: (format STRING &rest OBJECTS)  */)
 		    ++nchars;
 		  }
 
-	      start = nchars;
+	      info[n].start = start = nchars;
 	      nchars += nchars_string;
 	      end = nchars;
 
@@ -3808,6 +3808,8 @@ usage: (format STRING &rest OBJECTS)  */)
 	      p += copy_text (SDATA (args[n]), p,
 			      nbytes,
 			      STRING_MULTIBYTE (args[n]), multibyte);
+
+	      info[n].end = nchars;
 
 	      if (negative)
 		while (padding-- > 0)
@@ -3845,9 +3847,9 @@ usage: (format STRING &rest OBJECTS)  */)
 	      else
 		p += this_nchars;
 	      nchars += this_nchars;
+	      info[n].end = nchars;
 	    }
 
-	  info[n].end = nchars;
 	}
       else if (STRING_MULTIBYTE (args[0]))
 	{

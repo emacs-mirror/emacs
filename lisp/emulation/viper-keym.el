@@ -200,9 +200,10 @@ Enter as a sexp. Examples: \"\\C-z\", [(control ?z)]."
   :type 'string
   :group 'viper)
 
-(defcustom viper-ESC-key [(escape)]  ; "\e"
+(defcustom viper-ESC-key (if (viper-window-display-p) [(escape)] "\e")
   "Key used to ESC.
-Enter as a sexp. Examples: \"\\e\", [(escape)]."
+Enter as a sexp. Examples: \"\\e\", [(escape)].
+If running in a terminal, [(escape)] is not understood, so must use \"\\e\"."
   :type 'sexp
   :group 'viper
   :set (lambda (symbol value)

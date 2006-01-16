@@ -253,7 +253,7 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 /* If union type is not wanted, define Lisp_Object as just a number.  */
 
 #ifdef NO_UNION_TYPE
-#define Lisp_Object EMACS_INT
+typedef EMACS_INT Lisp_Object;
 #define LISP_MAKE_RVALUE(o) (0+(o))
 #endif /* NO_UNION_TYPE */
 
@@ -455,7 +455,7 @@ enum pvec_type
 extern Lisp_Object make_number P_ ((EMACS_INT));
 #endif
 
-#define EQ(x, y) ((x).s.val == (y).s.val && (x).s.type == (y).s.type)
+#define EQ(x, y) ((x).i == (y).i)
 
 #endif /* NO_UNION_TYPE */
 
@@ -603,9 +603,19 @@ struct Lisp_Cons
     /* Please do not use the names of these elements in code other
        than the core lisp implementation.  Use XCAR and XCDR below.  */
 #ifdef HIDE_LISP_IMPLEMENTATION
-    Lisp_Object car_, cdr_;
+    Lisp_Object car_;
+    union
+    {
+      Lisp_Object cdr_;
+      struct Lisp_Cons *chain;
+    } u;
 #else
-    Lisp_Object car, cdr;
+    Lisp_Object car;
+    union
+    {
+      Lisp_Object cdr;
+      struct Lisp_Cons *chain;
+    } u;
 #endif
   };
 
@@ -618,10 +628,10 @@ struct Lisp_Cons
    invalidated at arbitrary points.)  */
 #ifdef HIDE_LISP_IMPLEMENTATION
 #define XCAR_AS_LVALUE(c) (XCONS ((c))->car_)
-#define XCDR_AS_LVALUE(c) (XCONS ((c))->cdr_)
+#define XCDR_AS_LVALUE(c) (XCONS ((c))->u.cdr_)
 #else
 #define XCAR_AS_LVALUE(c) (XCONS ((c))->car)
-#define XCDR_AS_LVALUE(c) (XCONS ((c))->cdr)
+#define XCDR_AS_LVALUE(c) (XCONS ((c))->u.cdr)
 #endif
 
 /* Use these from normal code.  */
@@ -1271,17 +1281,21 @@ union Lisp_Misc
 /* Lisp floating point type */
 struct Lisp_Float
   {
+    union
+    {
 #ifdef HIDE_LISP_IMPLEMENTATION
-    double data_;
+      double data_;
 #else
-    double data;
+      double data;
 #endif
+      struct Lisp_Float *chain;
+    } u;
   };
 
 #ifdef HIDE_LISP_IMPLEMENTATION
-#define XFLOAT_DATA(f)	(XFLOAT (f)->data_)
+#define XFLOAT_DATA(f)	(XFLOAT (f)->u.data_)
 #else
-#define XFLOAT_DATA(f)	(XFLOAT (f)->data)
+#define XFLOAT_DATA(f)	(XFLOAT (f)->u.data)
 #endif
 
 /* A character, declared with the following typedef, is a member
@@ -1891,6 +1905,8 @@ extern int consing_since_gc;
 extern EMACS_INT gc_cons_threshold;
 
 extern EMACS_INT gc_relative_threshold;
+
+extern EMACS_INT memory_full_cons_threshold;
 
 /* Structure for recording stack slots that need marking.  */
 
@@ -2557,6 +2573,7 @@ extern void init_alloc_once P_ ((void));
 extern void init_alloc P_ ((void));
 extern void syms_of_alloc P_ ((void));
 extern struct buffer * allocate_buffer P_ ((void));
+extern int valid_lisp_object_p P_ ((Lisp_Object));
 
 /* Defined in chartab.c */
 EXFUN (Fmake_char_table, 2);
@@ -2699,6 +2716,7 @@ extern Lisp_Object call6 P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object
 EXFUN (Fdo_auto_save, 2);
 extern Lisp_Object apply_lambda P_ ((Lisp_Object, Lisp_Object, int));
 extern Lisp_Object internal_catch P_ ((Lisp_Object, Lisp_Object (*) (Lisp_Object), Lisp_Object));
+extern Lisp_Object internal_lisp_condition_case P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object internal_condition_case P_ ((Lisp_Object (*) (void), Lisp_Object, Lisp_Object (*) (Lisp_Object)));
 extern Lisp_Object internal_condition_case_1 P_ ((Lisp_Object (*) (Lisp_Object), Lisp_Object, Lisp_Object, Lisp_Object (*) (Lisp_Object)));
 extern Lisp_Object internal_condition_case_2 P_ ((Lisp_Object (*) (int, Lisp_Object *), int, Lisp_Object *, Lisp_Object, Lisp_Object (*) (Lisp_Object)));
