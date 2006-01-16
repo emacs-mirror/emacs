@@ -1,3 +1,14 @@
+2006-01-16  Henrik Enberg  <enberg@printf.se>
+
+	* rmailsum.el (rmail-new-summary): Make sure summary buffer is
+	current when selecting message.
+	(rmail-summary-browse-body): Deleted.
+	(rmail-summary-rmail-update, rmail-summary-get-message-at-point,
+	rmail-summary-goto-msg): Use string-to-number.
+	(rmail-summary-toggle-header, rmail-summary-add-label,
+	rmail-summary-kill-label): Use with-current-buffer.
+	(rmail-summary-previous-msg): Add docstring.
+
 2006-01-16  Alex Schroeder  <alex@gnu.org>
 
 	* rmail.el (rmail-ignored-headers): Merged several terms using
