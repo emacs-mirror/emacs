@@ -1,3 +1,13 @@
+2006-01-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el: Add autoload cookies for
+	cp125[0345678].
+
+	* language/european.el (cp1252): New alias for windows-1252.
+
+	* international/mule.el (autoload-coding-system): Prepare for EOL
+	variants.
+
 2006-01-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (term-raw-map): Add mapping for insert.
