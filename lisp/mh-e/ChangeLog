@@ -1,3 +1,9 @@
+2006-01-16  Mark D. Baushke  <mdb@gnu.org>
+
+	* mh-mime.el (mh-mime-display, mh-mm-inline-message): Fix use of
+	mm- functions for proper text=flowed handling. (SF #1273521)
+	(Patch contributed by Katsumi Yamaoka <yamaoka@jpl.org>.)
+
 2006-01-15  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-limit-map, mh-help-messages): Change keybinding of

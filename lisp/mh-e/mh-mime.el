@@ -921,7 +921,10 @@ parsed and then displayed."
             ;; If needed dissect the current buffer
             (if pre-dissected-handles
                 (setq handles pre-dissected-handles)
-              (setq handles (or (mm-dissect-buffer nil) (mm-uu-dissect)))
+              (if (setq handles (mm-dissect-buffer nil))
+                  (when (fboundp 'mm-uu-dissect-text-parts)
+                    (mm-uu-dissect-text-parts handles))
+                (setq handles (mm-uu-dissect)))
               (setf (mh-mime-handles (mh-buffer-data))
                     (mm-merge-handles handles
                                       (mh-mime-handles (mh-buffer-data))))
@@ -1477,8 +1480,11 @@ decoding the same message multiple times."
         (mh-mime-display
          (or (gethash handle (mh-mime-handles-cache (mh-buffer-data)))
              (setf (gethash handle (mh-mime-handles-cache (mh-buffer-data)))
-                   (let ((handles (or (mm-dissect-buffer nil)
-                                      (mm-uu-dissect))))
+                   (let ((handles (mm-dissect-buffer nil)))
+                     (if handles
+                         (when (fboundp 'mm-uu-dissect-text-parts)
+                           (mm-uu-dissect-text-parts handles))
+                       (setq handles (mm-uu-dissect)))
                      (setf (mh-mime-handles (mh-buffer-data))
                            (mm-merge-handles
                             handles (mh-mime-handles (mh-buffer-data))))
