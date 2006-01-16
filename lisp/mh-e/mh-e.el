@@ -2756,8 +2756,8 @@ in list."
   "'"           mh-narrow-to-tick
   "?"           mh-prefix-help
   "c"           mh-narrow-to-cc
-  "f"           mh-narrow-to-from
-  "r"           mh-narrow-to-range
+  "g"           mh-narrow-to-range
+  "m"           mh-narrow-to-from
   "s"           mh-narrow-to-subject
   "t"           mh-narrow-to-to
   "w"           mh-widen)
@@ -2815,7 +2815,7 @@ in list."
          "\n [T]hread, [/]limit, e[X]tract, [D]igest, [I]nc spools.")
 
     (?F "[l]ist; [v]isit folder;\n"
-        "[n]ew messages; [']ticked messages; [s]earch; [i]ndexed search;\n"
+        "[n]ew messages; [']ticked messages; [s]earch;\n"
         "[p]ack; [S]ort; [r]escan; [k]ill")
     (?P "[p]rint message to [f]ile; old-style [l]pr printing;\n"
         "Toggle printing of [C]olors, [F]aces")
@@ -2823,7 +2823,7 @@ in list."
         "[s]equences, [l]ist,\n"
         "[d]elete message from sequence, [k]ill sequence")
     (?T "[t]oggle, [d]elete, [o]refile thread")
-    (?/ "Limit to [c]c, [f]rom, [r]ange, [s]ubject, [t]o; [w]iden")
+    (?/ "Limit to [c]c, ran[g]e, fro[m], [s]ubject, [t]o; [w]iden")
     (?X "un[s]har, [u]udecode message")
     (?D "[b]urst digest")
     (?K "[v]iew, [i]nline, [o]utput/save MIME part; save [a]ll parts; \n"
