@@ -1,3 +1,10 @@
+2006-01-16  Alex Schroeder  <alex@gnu.org>
+
+	* rmail.el (rmail): Create the buffer using
+	file-name-nondirectory.
+	(rmail-mode-map): Bind j to rmail-show-message instead of
+	rmail-message.
+
 2006-01-16  Henrik Enberg  <enberg@printf.se>
 
 	* rmailsum.el (rmail-new-summary): Make sure summary buffer is
