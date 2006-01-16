@@ -2,8 +2,7 @@
 # Extra configuration script for src/config.h for DesqView/X
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1994
-#   Free Software Foundation, Inc.
+# Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -22,3 +21,5 @@
 /^#undef HAVE_XSCREENNUMBEROFSCREEN *$/s/undef/define/
 /^#undef HAVE_XSETWMPROTOCOLS *$/s/undef/define/
 /^#undef HAVE_SELECT *$/s/undef/define/
+
+# arch-tag: 4a41c3ea-eb6c-4e17-8432-307516498e5a

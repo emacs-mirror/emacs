@@ -1,5 +1,5 @@
 /* sysselect.h - System-dependent definitions for the select function.
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,11 +15,17 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
-#ifdef HAVE_SYS_SELECT
+#ifdef HAVE_SYS_SELECT_H
+#if defined (DARWIN) || defined (MAC_OSX)
+#undef init_process
+#endif
 #include <sys/select.h>
+#if defined (DARWIN) || defined (MAC_OSX)
+#define init_process emacs_init_process
+#endif
 #endif
 
 #ifdef FD_SET
@@ -43,3 +49,6 @@ Boston, MA 02111-1307, USA.  */
 #if !defined (HAVE_SELECT) || defined (BROKEN_SELECT_NON_X)
 #define select sys_select
 #endif
+
+/* arch-tag: 36d05500-8cf6-4847-8e78-6721f18c06ef
+   (do not change this comment) */

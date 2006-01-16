@@ -1,7 +1,7 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997, 1998, 2000, 2001, 2002
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 1997, 1998, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -22,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -56,9 +56,6 @@
 (defvar report-emacs-bug-orig-text nil
   "The automatically-created initial text of bug report.")
 
-(defvar report-emacs-bug-text-prompt nil
-  "The automatically-created initial prompt of bug report.")
-
 (defcustom report-emacs-bug-no-confirmation nil
   "*If non-nil, suppress the confirmations asked for the sake of novice users."
   :group 'emacsbug
@@ -78,14 +75,20 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   (interactive (reverse (list (recent-keys) (read-string "Bug Subject: "))))
   ;; If there are four numbers in emacs-version, this is a pretest
   ;; version.
-  (let ((pretest-p (string-match "\\..*\\..*\\." emacs-version))
-	user-point prompt-beg-point message-end-point)
+  (let* ((pretest-p (string-match "\\..*\\..*\\." emacs-version))
+	(from-buffer (current-buffer))
+	(reporting-address (if pretest-p
+			       report-emacs-bug-pretest-address
+			     report-emacs-bug-address))
+        ;; Put these properties on semantically-void text.
+        (prompt-properties '(field emacsbug-prompt
+                                   intangible but-helpful
+                                   rear-nonsticky t))
+	user-point message-end-point)
     (setq message-end-point
 	  (with-current-buffer (get-buffer-create "*Messages*")
 	    (point-max-marker)))
-    (compose-mail (if pretest-p
-		      report-emacs-bug-pretest-address
-		    report-emacs-bug-address)
+    (compose-mail reporting-address
 		  topic)
     ;; The rest of this does not execute
     ;; if the user was asked to confirm and said no.
@@ -96,37 +99,49 @@ Prompts for bug subject.  Leaves you in a mail buffer."
       (delete-region (point) (point-max))
       (insert signature)
       (backward-char (length signature)))
-    (setq prompt-beg-point (point))
     (unless report-emacs-bug-no-explanations
       ;; Insert warnings for novice users.
-      (insert "This bug report will be sent to the Free Software Foundation,\n")
-      (let ((pos (point)))
-	(insert "not to your local site managers!")
-	(put-text-property pos (point) 'face 'highlight))
-      (insert "\nPlease write in ")
+      (when (string-match "@gnu\\.org^" reporting-address)
+	(insert "This bug report will be sent to the Free Software Foundation,\n")
+	(let ((pos (point)))
+	  (insert "not to your local site managers!")
+	  (put-text-property pos (point) 'face 'highlight)))
+	(insert "\nPlease write in ")
       (let ((pos (point)))
 	(insert "English")
 	(put-text-property pos (point) 'face 'highlight))
       (insert " if possible, because the Emacs maintainers
 usually do not have translators to read other languages for them.\n\n")
       (insert (format "Your bug report will be posted to the %s mailing list"
-		      (if pretest-p
-			  report-emacs-bug-pretest-address
-			report-emacs-bug-address)))
+		      reporting-address))
       (if pretest-p
 	  (insert ".\n\n")
 	(insert ",\nand to the gnu.emacs.bug news group.\n\n")))
 
     (insert "Please describe exactly what actions triggered the bug\n"
-	    "and the precise symptoms of the bug:")
-    (setq report-emacs-bug-text-prompt
-	  (buffer-substring prompt-beg-point (point)))
+	    "and the precise symptoms of the bug:\n\n")
+    (add-text-properties (point) (save-excursion (mail-text) (point))
+                         prompt-properties)
 
-    (insert "\n\n")
     (setq user-point (point))
-    (insert "\n\n\n")
+    (insert "\n\n")
 
-    (insert "In " (emacs-version) "\n")
+    (insert "If emacs crashed, and you have the emacs process in the gdb debugger,\n"
+	    "please include the output from the following gdb commands:\n"
+	    "    `bt full' and `xbacktrace'.\n")
+
+    (let ((debug-file (expand-file-name "DEBUG" data-directory)))
+      (if (file-readable-p debug-file)
+	(insert "If you would like to further debug the crash, please read the file\n"
+		debug-file " for instructions.\n")))
+    (add-text-properties (1+ user-point) (point) prompt-properties)
+
+    (insert "\n\nIn " (emacs-version) "\n")
+    (if (fboundp 'x-server-vendor)
+	(condition-case nil
+	    (insert "X server distributor `" (x-server-vendor) "', version "
+		    (mapconcat 'number-to-string (x-server-version) ".") "\n")
+	  (error t)))
     (if (and system-configuration-options
 	     (not (equal system-configuration-options "")))
 	(insert "configured using `configure "
@@ -140,6 +155,15 @@ usually do not have translators to read other languages for them.\n\n")
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))
     (insert (format "  default-enable-multibyte-characters: %s\n"
 		    default-enable-multibyte-characters))
+    (insert "\n")
+    (insert (format "Major mode: %s\n"
+		    (buffer-local-value 'mode-name from-buffer)))
+    (insert "\n")
+    (insert "Minor modes in effect:\n")
+    (dolist (mode minor-mode-list)
+      (and (boundp mode) (buffer-local-value mode from-buffer)
+	   (insert (format "  %s: %s\n" mode
+			   (buffer-local-value mode from-buffer)))))
     (insert "\n")
     (insert "Recent input:\n")
     (let ((before-keys (point)))
@@ -250,9 +274,12 @@ and send the mail again using \\[mail-send-and-exit].")))
 
     ;; Unclutter
     (mail-text)
-    (if (looking-at report-emacs-bug-text-prompt)
-	(replace-match "Symptoms:"))))
+    (let ((pos (1- (point))))
+      (while (setq pos (text-property-any pos (point-max)
+                                          'field 'emacsbug-prompt))
+        (delete-region pos (field-end (1+ pos)))))))
 
 (provide 'emacsbug)
 
+;;; arch-tag: 248b6523-c3b5-4fec-9a3f-0411fafa7d49
 ;;; emacsbug.el ends here

@@ -1,6 +1,7 @@
-;;; cvs-status.el --- major mode for browsing `cvs status' output
+;;; cvs-status.el --- major mode for browsing `cvs status' output -*- coding: utf-8 -*-
 
-;; Copyright (C) 1999, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree tools
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -32,6 +33,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'pcvs-util)
+(eval-when-compile (require 'pcvs))
 
 ;;;
 
@@ -48,7 +50,8 @@
     ("\M-n"	. cvs-status-next)
     ("\M-p"	. cvs-status-prev)
     ("t"	. cvs-status-cvstrees)
-    ("T"	. cvs-status-trees))
+    ("T"	. cvs-status-trees)
+    (">"        . cvs-mode-checkout))
   "CVS-Status' keymap."
   :group 'cvs-status
   :inherit 'cvs-mode-map)
@@ -71,8 +74,8 @@
 
 (defconst cvs-status-font-lock-keywords
   `((,cvs-status-entry-leader-re
-     (1 'cvs-filename-face)
-     (2 'cvs-need-action-face))
+     (1 'cvs-filename)
+     (2 'cvs-need-action))
     (,cvs-status-tags-leader-re
      (,cvs-status-rev-re
       (save-excursion (re-search-forward "^\n" nil 'move) (point))
@@ -87,7 +90,7 @@
 (defconst cvs-status-font-lock-defaults
   '(cvs-status-font-lock-keywords t nil nil nil (font-lock-multiline . t)))
 
-
+(defvar cvs-minor-wrap-function)
 (put 'cvs-status-mode 'mode-class 'special)
 ;;;###autoload
 (define-derived-mode cvs-status-mode fundamental-mode "CVS-Status"
@@ -106,7 +109,8 @@
     (let* ((file (match-string 1))
 	   (cvsdir (and (re-search-backward cvs-status-dir-re nil t)
 			(match-string 1)))
-	   (pcldir (and (re-search-backward cvs-pcl-cvs-dirchange-re nil t)
+	   (pcldir (and (if (boundp 'cvs-pcl-cvs-dirchange-re)
+			    (re-search-backward cvs-pcl-cvs-dirchange-re nil t))
 			(match-string 1)))
 	   (dir ""))
       (let ((default-directory ""))
@@ -277,10 +281,10 @@ BEWARE:  because of stability issues, this is not a symetric operation."
 	       (cvs-tree-merge (cdr tree1) (cdr tree2))))))
      ((> l1 l2)
       (cvs-tree-merge
-       (list (cons (cvs-tag-make (cvs-butlast vl1)) tree1)) tree2))
+       (list (cons (cvs-tag-make (butlast vl1)) tree1)) tree2))
      ((< l1 l2)
       (cvs-tree-merge
-       tree1 (list (cons (cvs-tag-make (cvs-butlast vl2)) tree2)))))))))
+       tree1 (list (cons (cvs-tag-make (butlast vl2)) tree2)))))))))
 
 (defun cvs-tag-make-tag (tag)
   (let ((vl (mapcar 'string-to-number (split-string (nth 2 tag) "\\."))))
@@ -293,7 +297,7 @@ BEWARE:  because of stability issues, this is not a symetric operation."
 	  (lambda (tag)
 	    (let ((tag (cvs-tag-make-tag tag)))
 	      (list (if (not (eq (cvs-tag->type tag) 'branch)) tag
-		      (list (cvs-tag-make (cvs-butlast (cvs-tag->vlist tag)))
+		      (list (cvs-tag-make (butlast (cvs-tag->vlist tag)))
 			    tag)))))
 	  tags)))
     (while (cdr tags)
@@ -384,23 +388,45 @@ the list is a three-string list TAG, KIND, REV."
 ;;;; CVSTree-style trees
 ;;;;
 
-(defvar cvs-tree-use-jisx0208
-  nil ;; (and (char-display-font 'japanese-jisx0208) t)
+(defvar cvs-tree-use-jisx0208 nil)	;Old compat var.
+(defvar cvs-tree-use-charset
+  (cond
+   (cvs-tree-use-jisx0208 'jisx0208)
+   ((char-displayable-p ?━) 'unicode)
+   ((char-displayable-p (make-char 'japanese-jisx0208 40 44)) 'jisx0208))
   "*Non-nil if we should use the graphical glyphs from `japanese-jisx0208'.
 Otherwise, default to ASCII chars like +, - and |.")
 
 (defconst cvs-tree-char-space
-  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 33 33) "  "))
+  (case cvs-tree-use-charset
+    (jisx0208 (make-char 'japanese-jisx0208 33 33))
+    (unicode " ")
+    (t "  ")))
 (defconst cvs-tree-char-hbar
-  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 44) "--"))
+  (case cvs-tree-use-charset
+    (jisx0208 (make-char 'japanese-jisx0208 40 44))
+    (unicode "━")
+    (t "--")))
 (defconst cvs-tree-char-vbar
-  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 45) "| "))
+  (case cvs-tree-use-charset
+    (jisx0208 (make-char 'japanese-jisx0208 40 45))
+    (unicode "┃")
+    (t "| ")))
 (defconst cvs-tree-char-branch
-  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 50) "+-"))
+  (case cvs-tree-use-charset
+    (jisx0208 (make-char 'japanese-jisx0208 40 50))
+    (unicode "┣")
+    (t "+-")))
 (defconst cvs-tree-char-eob		;end of branch
-  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 49) "`-"))
+  (case cvs-tree-use-charset
+    (jisx0208 (make-char 'japanese-jisx0208 40 49))
+    (unicode "┗")
+    (t "`-")))
 (defconst cvs-tree-char-bob		;beginning of branch
-  (if cvs-tree-use-jisx0208 (make-char 'japanese-jisx0208 40 51) "+-"))
+  (case cvs-tree-use-charset
+    (jisx0208 (make-char 'japanese-jisx0208 40 51))
+    (unicode "┳")
+    (t "+-")))
 
 (defun cvs-tag-lessp (tag1 tag2)
   (eq (cvs-tag-compare tag1 tag2) 'more2))
@@ -411,7 +437,7 @@ Otherwise, default to ASCII chars like +, - and |.")
   "Look for a list of tags, and replace it with a tree.
 Optional prefix ARG chooses between two representations."
   (interactive "P")
-  (when (and cvs-tree-use-jisx0208
+  (when (and cvs-tree-use-charset
 	     (not enable-multibyte-characters))
     ;; We need to convert the buffer from unibyte to multibyte
     ;; since we'll use multibyte chars for the tree.
@@ -513,4 +539,5 @@ Optional prefix ARG chooses between two representations."
 
 (provide 'cvs-status)
 
+;; arch-tag: db8b5094-d02a-473e-a476-544e89ff5ad0
 ;;; cvs-status.el ends here

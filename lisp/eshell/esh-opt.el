@@ -1,6 +1,7 @@
 ;;; esh-opt.el --- command options processing
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'esh-opt)
 
@@ -98,7 +99,7 @@ This code doesn't really need to be macro expanded everywhere."
 			last-value (eval (append (list 'progn)
 						 body-forms)))
 		  nil))
-	   (error usage-msg))))
+	   (error "%s" usage-msg))))
       (throw 'eshell-external
 	     (eshell-external-command ext-command args))
     last-value))
@@ -225,4 +226,5 @@ This assumes that symbols have been intern'd by `eshell-with-options'."
 
 ;;; Code:
 
+;;; arch-tag: 45c6c2d0-8091-46a1-a205-2f4bafd8230c
 ;;; esh-opt.el ends here

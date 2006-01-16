@@ -1,5 +1,6 @@
 /* filemode.c -- make a string describing file modes
-   Copyright (C) 1985, 1990, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1990, 1993, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +14,7 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
    USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -254,3 +255,6 @@ setst (bits, chars)
     }
 #endif
 }
+
+/* arch-tag: 4340830c-15a5-47d2-b45f-1d43c45a91bb
+   (do not change this comment) */

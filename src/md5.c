@@ -1,6 +1,7 @@
 /* Functions to compute MD5 message digest of files or memory blocks.
    according to the definition of MD5 in RFC 1321 from April 1992.
-   Copyright (C) 1995, 1996, 1997, 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997, 1999, 2000, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
    This file is part of the GNU Emacs.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,8 +16,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with the GNU C Library; see the file COPYING.LIB.  If not,
-   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
+   write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.  */
 
 /* Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>, 1995.  */
 
@@ -441,3 +442,6 @@ md5_process_block (buffer, len, ctx)
   ctx->C = C;
   ctx->D = D;
 }
+
+/* arch-tag: 60084f04-b434-42cb-9d2b-e91df01f4325
+   (do not change this comment) */

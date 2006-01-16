@@ -1,6 +1,9 @@
 ;;; codepage.el --- MS-DOS/MS-Windows specific coding systems
 
-;; Copyright (C) 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2000
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: Eli Zaretskii
 ;; Maintainer: FSF
@@ -20,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -40,6 +43,8 @@
 ;; encoders/decoders, and for help in debugging this code.
 
 ;;; Code:
+
+(defvar dos-unsupported-char-glyph)
 
 (defun cp-coding-system-for-codepage-1 (coding mnemonic iso-name
 					       decoder encoder)
@@ -657,7 +662,7 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal."
   (interactive
    (let ((completion-ignore-case t)
 	 (candidates (cp-supported-codepages)))
-     (list (completing-read "Setup DOS Codepage: (default 437) " candidates
+     (list (completing-read "Setup DOS Codepage (default 437): " candidates
 			    nil t nil nil "437"))))
   (let* ((cp (format "cp%s" codepage))
 	 (cp-defined (intern-soft cp)))
@@ -666,6 +671,26 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal."
 	(cp-make-coding-systems-for-codepage
 	 cp (cp-charset-for-codepage cp) (cp-offset-for-codepage cp)))))
 
+;; Add DOS codepages to `non-iso-charset-alist'.
+(eval-after-load "mule-diag"
+  '(let ((tail (cp-supported-codepages))
+	 elt)
+     (while tail
+       (setq elt (car tail) tail (cdr tail))
+       ;; Now ELT is (CODEPAGE . CHARSET), where CODEPAGE is a string
+       ;; (e.g. "850"), CHARSET is a charset that characters in CODEPAGE
+       ;; are mapped to.
+       (unless (assq (intern (concat "cp" (car elt))) non-iso-charset-alist)
+	 (setq non-iso-charset-alist
+	       (cons (list (intern (concat "cp" (car elt)))
+			   (list 'ascii (cdr elt))
+			   `(lambda (code)
+			      (decode-codepage-char ,(string-to-int (car elt))
+						    code))
+			   (list (list 0 255)))
+		     non-iso-charset-alist))))))
+
 (provide 'codepage)
 
+;;; arch-tag: 80328de8-b94e-4386-be26-5876105731f0
 ;;; codepage.el ends here

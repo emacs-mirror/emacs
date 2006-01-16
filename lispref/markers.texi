@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002, 2003,
+@c   2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/markers
 @node Markers, Text, Positions, Top
@@ -28,10 +28,13 @@ deleted, so that it stays with the two characters on either side of it.
 @node Overview of Markers
 @section Overview of Markers
 
-  A marker specifies a buffer and a position in that buffer.  The marker
-can be used to represent a position in the functions that require one,
-just as an integer could be used.  @xref{Positions}, for a complete
-description of positions.
+  A marker specifies a buffer and a position in that buffer.  The
+marker can be used to represent a position in the functions that
+require one, just as an integer could be used.  In that case, the
+marker's buffer is normally ignored.  Of course, a marker used in this
+way usually points to a position in the buffer that the function
+operates on, but that is entirely the programmer's responsibility.
+@xref{Positions}, for a complete description of positions.
 
   A marker has two attributes: the marker position, and the marker
 buffer.  The marker position is an integer that is equivalent (at a
@@ -144,6 +147,9 @@ to the present position of point, or to the beginning or end of the
 accessible portion of the buffer, or to the same place as another given
 marker.
 
+The next four functions all return markers with insertion type
+@code{nil}.  @xref{Marker Insertion Types}.
+
 @defun make-marker
 This function returns a newly created marker that does not point
 anywhere.
@@ -201,7 +207,7 @@ chapter.
 @end example
 @end defun
 
-@defun copy-marker marker-or-integer insertion-type
+@defun copy-marker marker-or-integer &optional insertion-type
 If passed a marker as its argument, @code{copy-marker} returns a
 new marker that points to the same place and the same buffer as does
 @var{marker-or-integer}.  If passed an integer as its argument,
@@ -331,6 +337,11 @@ text is inserted at its position.  If @var{type} is @code{nil},
 This function reports the current insertion type of @var{marker}.
 @end defun
 
+Most functions that create markers, without an argument allowing to
+specify the insertion type, create them with insertion type
+@code{nil}.  Also, the mark has, by default, insertion type
+@code{nil}.
+
 @node Moving Markers
 @section Moving Marker Positions
 
@@ -383,17 +394,17 @@ This is another name for @code{set-marker}.
 @cindex mark ring
 
   One special marker in each buffer is designated @dfn{the mark}.  It
-records a position for the user for the sake of commands such as
-@code{kill-region} and @code{indent-rigidly}.  Lisp programs should set
-the mark only to values that have a potential use to the user, and never
-for their own internal purposes.  For example, the @code{replace-regexp}
-command sets the mark to the value of point before doing any
-replacements, because this enables the user to move back there
-conveniently after the replace is finished.
+specifies a position to bound a range of text for commands such as
+@code{kill-region} and @code{indent-rigidly}.  Lisp programs should
+set the mark only to values that have a potential use to the user, and
+never for their own internal purposes.  For example, the
+@code{replace-regexp} command sets the mark to the value of point
+before doing any replacements, because this enables the user to move
+back there conveniently after the replace is finished.
 
-  Many commands are designed so that when called interactively they
-operate on the text between point and the mark.  If you are writing such
-a command, don't examine the mark directly; instead, use
+  Many commands are designed to operate on the text between point and
+the mark when called interactively.  If you are writing such a
+command, don't examine the mark directly; instead, use
 @code{interactive} with the @samp{r} specification.  This provides the
 values of point and the mark as arguments to the command in an
 interactive call, but permits other Lisp programs to specify arguments
@@ -430,12 +441,14 @@ programming.  So we do not describe it here.
 
 @defun mark &optional force
 @cindex current buffer mark
-This function returns the current buffer's mark position as an integer.
+This function returns the current buffer's mark position as an integer,
+or @code{nil} if no mark has ever been set in this buffer.
 
-If the mark is inactive, @code{mark} normally signals an error.
-However, if @var{force} is non-@code{nil}, then @code{mark} returns the
-mark position anyway---or @code{nil}, if the mark is not yet set for
-this buffer.
+If Transient Mark mode is enabled, and @code{mark-even-if-inactive} is
+@code{nil}, @code{mark} signals an error if the mark is inactive.
+However, if @var{force} is non-@code{nil}, then @code{mark} disregards
+inactivity of the mark, and returns the mark position anyway (or
+@code{nil}).
 @end defun
 
 @defun mark-marker
@@ -542,6 +555,12 @@ This variable if non-@code{nil} enables Transient Mark mode, in which
 every buffer-modifying primitive sets @code{deactivate-mark}.  The
 consequence of this is that commands that modify the buffer normally
 make the mark inactive.
+
+Lisp programs can set @code{transient-mark-mode} to @code{only} to
+enable Transient Mark mode for the following command only.  During
+that following command, the value of @code{transient-mark-mode} is
+@code{identity}.  If it is still @code{identity} at the end of the
+command, it changes to @code{nil}.
 @end defopt
 
 @defopt mark-even-if-inactive
@@ -617,20 +636,21 @@ Various functions operate on text delimited by point and the mark, but
 only those functions specifically related to the region itself are
 described here.
 
+The next two functions signal an error if the mark does not point
+anywhere.  If Transient Mark mode is enabled and
+@code{mark-even-if-inactive} is @code{nil}, they also signal an error
+if the mark is inactive.
+
 @defun region-beginning
 This function returns the position of the beginning of the region (as
 an integer).  This is the position of either point or the mark,
 whichever is smaller.
-
-If the mark does not point anywhere, an error is signaled.
 @end defun
 
 @defun region-end
 This function returns the position of the end of the region (as an
 integer).  This is the position of either point or the mark, whichever is
 larger.
-
-If the mark does not point anywhere, an error is signaled.
 @end defun
 
   Few programs need to use the @code{region-beginning} and
@@ -639,3 +659,7 @@ should normally use @code{interactive} with the @samp{r} specification
 to find the beginning and end of the region.  This lets other Lisp
 programs specify the bounds explicitly as arguments.  (@xref{Interactive
 Codes}.)
+
+@ignore
+   arch-tag: b1ba2e7a-a0f3-4c5e-875c-7d8e22d73299
+@end ignore

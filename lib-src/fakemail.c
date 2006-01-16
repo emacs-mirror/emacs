@@ -1,5 +1,6 @@
 /* sendmail-like interface to /bin/mail for system V,
-   Copyright (C) 1985, 1994, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #define NO_SHORTNAMES
 #define _XOPEN_SOURCE 500	/* for cuserid */
@@ -169,7 +170,7 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
@@ -410,7 +411,7 @@ close_the_streams ()
     no_problems = (no_problems &&
 		   ((*rem->action) (rem->handle) == 0));
   the_streams = ((stream_list) NULL);
-  return (no_problems ? 0 : 1);
+  return (no_problems ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
 void
@@ -667,7 +668,7 @@ read_header ()
       if (next_line == ((line_list *) NULL))
 	{
 	  /* Not a valid header */
-	  exit (1);
+	  exit (EXIT_FAILURE);
 	}
       *next_line = new_list ();
       (*next_line)->string = alloc_string (length);
@@ -750,3 +751,8 @@ main (argc, argv)
 
 #endif /* not MSDOS */
 #endif /* not BSD 4.2 (or newer) */
+
+/* arch-tag: acb0afa6-315a-4c5b-b9e3-def5725c8783
+   (do not change this comment) */
+
+/* fakemail.c ends here */

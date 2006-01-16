@@ -1,6 +1,7 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes
 
-;; Copyright (C) 1985, 1986, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1995, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -144,35 +145,21 @@
 	 (buf (get-buffer buffer))
 	 (one-window (one-window-p t))
 	 (pop-up-windows t)
-	 (target-height)
-	 (lines))
+	 (pop-up-frames nil))
     (if (not buf)
 	(error "Buffer %s does not exist" buffer)
-      (save-excursion
-	(set-buffer buf)
-	(setq lines (count-lines (point-min) (point-max)))
-	(setq target-height
-	      (min (max (if max-height (min max-height (1+ lines)) (1+ lines))
-			window-min-height)
-		   (save-window-excursion
-		     (delete-other-windows)
-		     (1- (window-height (selected-window)))))))
       (cond ((and (eq (window-buffer win) buf))
 	     (select-window win))
 	    (one-window
-	     (goto-char (window-start win))
 	     (pop-to-buffer buffer)
-	     (setq win (selected-window))
-	     (enlarge-window (- target-height (window-height win))))
+	     (setq win (selected-window)))
 	    (t
 	     (switch-to-buffer buf)))
-      (if (and (not max-height)
-	       (> target-height (window-height (selected-window))))
-	  (progn (goto-char (window-start win))
-		 (enlarge-window (- target-height (window-height win)))))
+      (fit-window-to-buffer win max-height)
       (goto-char (point-min))
       win)))
 
 (provide 'electric)
 
+;;; arch-tag: dae045eb-dc2d-4fb7-9f27-9cc2ce277be8
 ;;; electric.el ends here

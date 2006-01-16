@@ -1,6 +1,7 @@
 ;;; hilit19.el --- customizable highlighting for Emacs 19
 
-;; Copyright (c) 1993, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author:   Jonathan Stigelman <stig@hackvan.com>
 ;; Maintainer: FSF
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -396,8 +397,6 @@ See the hilit-lookup-face-create documentation for valid face names.")
 
 If hilit19 is dumped into emacs at your site, you may have to set this in
 your init file.")
-
-(eval-when-compile (setq byte-optimize t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use this to report bugs:
@@ -945,46 +944,60 @@ the entire buffer is forced."
 ;; Initialization.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(and (not hilit-inhibit-rebinding)
-     (progn
-       (substitute-key-definition 'yank     'hilit-yank
-				  (current-global-map))
-       (substitute-key-definition 'yank-pop 'hilit-yank-pop
-				  (current-global-map))
-       (substitute-key-definition 'recenter 'hilit-recenter
-				  (current-global-map))))
+(define-minor-mode hilit-mode
+  "Obsolete minor mode.  Use `global-font-lock-mode' instead."
+  :global t
 
-(global-set-key [?\C-\S-l] 'hilit-repaint-command)
+  (unless (and hilit-inhibit-rebinding hilit-mode)
+    (substitute-key-definition
+     (if hilit-mode 'yank 'hilit-yank)
+     (if hilit-mode 'hilit-yank 'yank)
+     (current-global-map))
+    (substitute-key-definition
+     (if hilit-mode 'yank-pop 'hilit-yank-pop)
+     (if hilit-mode 'hilit-yank-pop 'yank-pop)
+     (current-global-map))
+    (substitute-key-definition
+     (if hilit-mode 'recenter 'hilit-recenter)
+     (if hilit-mode 'hilit-recenter 'recenter)
+     (current-global-map)))
 
-(add-hook 'find-file-hook 'hilit-find-file-hook t)
+  (if hilit-mode
+      (global-set-key [?\C-\S-l] 'hilit-repaint-command)
+    (global-unset-key [?\C-\S-l]))
+
+  (if hilit-mode
+      (add-hook 'find-file-hook 'hilit-find-file-hook t)
+    (remove-hook 'find-file-hook 'hilit-find-file-hook))
+
+  (unless (and hilit-inhibit-hooks hilit-mode)
+    (condition-case c
+	(progn
+
+	  ;; BUFFER highlights...
+	  (mapcar (lambda (hook)
+		    (if hilit-mode
+			(add-hook hook 'hilit-rehighlight-buffer-quietly)
+		      (remove-hook hook 'hilit-rehighlight-buffer-quietly)))
+		  '(
+		    Info-selection-hook
+
+		    ;; runs too early		     vm-summary-mode-hooks
+		    vm-summary-pointer-hook
+		    vm-preview-message-hook
+		    vm-show-message-hook
+
+		    rmail-show-message-hook
+		    mail-setup-hook
+		    mh-show-mode-hook
+
+		    dired-after-readin-hook
+		    ))
+	  )
+      (error (message "Error loading highlight hooks: %s" c)
+	     (ding) (sit-for 1)))))
 
 (eval-when-compile (require 'gnus))	; no compilation gripes
-
-(and (not hilit-inhibit-hooks)
-     (condition-case c
-	 (progn
-
-	   ;; BUFFER highlights...
-	   (mapcar (function
-		    (lambda (hook)
-		      (add-hook hook 'hilit-rehighlight-buffer-quietly)))
-		   '(
-		     Info-selection-hook
-
-;; runs too early		     vm-summary-mode-hooks
-		     vm-summary-pointer-hook
-		     vm-preview-message-hook
-		     vm-show-message-hook
-
-		     rmail-show-message-hook
-		     mail-setup-hook
-		     mh-show-mode-hook
-
-		     dired-after-readin-hook
-		     ))
-	   )
-       (error (message "Error loading highlight hooks: %s" c)
-	      (ding) (sit-for 1))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Default patterns for various modes.
@@ -1038,7 +1051,7 @@ Optionally, place the new pattern first in the pattern list"
 
   (and (equal pstart "") (error "Must specify starting regex"))
   (cond ((equal pend "") (setq pend 0))
-	((string-match "^[0-9]+$" pend) (setq pend (string-to-int pend))))
+	((string-match "^[0-9]+$" pend) (setq pend (string-to-number pend))))
   (or mode (setq mode major-mode))
   (let ((old-patterns (cdr (assq mode hilit-patterns-alist)))
 	(new-pat (list pstart pend face)))
@@ -1510,4 +1523,5 @@ number of backslashes."
 
 (provide 'hilit19)
 
+;; arch-tag: db99739a-4837-41ee-ad02-3baced8ae71d
 ;;; hilit19.el ends here

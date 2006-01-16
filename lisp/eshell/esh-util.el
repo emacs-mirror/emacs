@@ -1,6 +1,7 @@
 ;;; esh-util.el --- general utilities
 
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'esh-util)
 
@@ -253,14 +254,13 @@ If N or M is nil, it means the end of the list."
 	parts)
     (if (and (eshell-under-windows-p)
 	     (> len 2)
-	     (eq (aref path 0) directory-sep-char)
-	     (eq (aref path 1) directory-sep-char))
+	     (eq (aref path 0) ?/)
+	     (eq (aref path 1) ?/))
 	(setq i 2))
     (while (< i len)
-      (if (and (eq (aref path i) directory-sep-char)
+      (if (and (eq (aref path i) ?/)
 	       (not (get-text-property i 'escaped path)))
-	  (setq parts (cons (if (= li i)
-				(char-to-string directory-sep-char)
+	  (setq parts (cons (if (= li i) "/"
 			      (substring path li (1+ i))) parts)
 		li (1+ i)))
       (setq i (1+ i)))
@@ -268,9 +268,7 @@ If N or M is nil, it means the end of the list."
 	(setq parts (cons (substring path li i) parts)))
     (if (and (eshell-under-windows-p)
 	     (string-match "\\`[A-Za-z]:\\'" (car (last parts))))
-	(setcar (last parts)
-		(concat (car (last parts))
-			(char-to-string directory-sep-char))))
+	(setcar (last parts) (concat (car (last parts)) "/")))
     (nreverse parts)))
 
 (defun eshell-to-flat-string (value)
@@ -450,8 +448,8 @@ list."
 				 (point) (progn (end-of-line)
 						(point))) ":")))
 	    (if (and (and fields (nth 0 fields) (nth 2 fields))
-		     (not (assq (string-to-int (nth 2 fields)) names)))
-		(setq names (cons (cons (string-to-int (nth 2 fields))
+		     (not (assq (string-to-number (nth 2 fields)) names)))
+		(setq names (cons (cons (string-to-number (nth 2 fields))
 					(nth 0 fields))
 				  names))))
 	  (forward-line))))
@@ -789,4 +787,5 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 
 ;;; Code:
 
+;;; arch-tag: 70159778-5c7a-480a-bae4-3ad332fca19d
 ;;; esh-util.el ends here

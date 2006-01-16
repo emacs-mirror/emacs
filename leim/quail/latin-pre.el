@@ -1,8 +1,10 @@
 ;;; latin-pre.el --- Quail packages for inputting various European characters  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002
+;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: mule, multilingual, latin, input method
 
@@ -20,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -154,6 +156,7 @@
  ("_+" ?,A1(B)
  ("_y" ?,A%(B)
  ("_:" ?,Aw(B)
+ ("__" ?_)
  ("/c" ?,A"(B)
  ("/\\" ?,AW(B)
  ("/2" ?,A=(B)
@@ -260,7 +263,7 @@ Key translation rules are:
     acute    |   '    | 'e -> ,Ai(B
     grave    |   `    | `a -> ,A`(B
   circumflex |   ^    | ^a -> ,Ab(B
-  diaeresis  |   \"   | \"i -> ,Ao(B
+  diaeresis  |   \"    | \"i -> ,Ao(B
    cedilla   | ~ or , | ~c -> ,Ag(B   ,c -> ,Ag(B
    symbol    |   ~    | ~> -> ,A;(B   ~< -> ,A+(B
 " nil t nil nil nil nil nil nil nil nil t)
@@ -351,7 +354,7 @@ Key translation rules are:
  "german-prefix" "German" "DE>" t
  "German (Deutsch) input method with prefix modifiers
 Key translation rules are:
- \"A -> ,AD(B ->   \"O -> ,AV(B   \"U -> ,A\(B   \"s -> ?,A_(B
+ \"A -> ,AD(B ->   \"O -> ,AV(B   \"U -> ,A\(B   \"s -> ,A_(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -700,11 +703,12 @@ Key translation rules are:
 
 (quail-define-package
  "polish-slash" "Polish" "PL>" nil
- "Polish diacritics in Latin-2 encoding are input as `/[acelnosxzACELNOSXZ]'.
+ "Polish diacritics and slash character are input as `/[acelnosxzACELNOSXZ/]'.
 For example, the character named `aogonek' is obtained by `/a'."
  nil t t t nil nil nil nil nil nil t)
 
 (quail-define-rules
+ ("//" ?/)
  ("/a" ?,B1(B)
  ("/c" ?,Bf(B)
  ("/e" ?,Bj(B)
@@ -833,6 +837,8 @@ For example, the character named `aogonek' is obtained by `/a'."
  ("_+" ?,b1(B)
  ("_y" ?,b%(B)
  ("_:" ?,bw(B)
+ ("_ " ?,b (B)
+ ("__" ?_)
  ("/c" ?,b"(B)
  ("/\\" ?,bW(B)
  ("/o" ?,b=(B)				; clash with ,bx(B, but ,bf(B uses /
@@ -1182,4 +1188,6 @@ of characters from a single Latin-N charset.
  ("~|" ?,A&(B)
  ("~~" ?,A8(B)
 )
+
+;;; arch-tag: 83017837-6b84-4366-b183-e0577e3ed838
 ;;; latin-pre.el ends here

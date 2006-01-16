@@ -1,9 +1,11 @@
 ;;; cal-dst.el --- calendar functions for daylight savings rules
 
-;; Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Paul Eggert <eggert@twinsun.com>
 ;;	Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: daylight savings time, calendar, diary, holidays
 
@@ -21,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -70,14 +72,14 @@ absolute date ABS-DATE is the equivalent moment to X."
 (defun calendar-time-from-absolute (abs-date s)
   "Time of absolute date ABS-DATE, S seconds after midnight.
 
-Returns the pair (HIGH . LOW) where HIGH and LOW are the high and low
+Returns the list (HIGH LOW) where HIGH and LOW are the high and low
 16 bits, respectively, of the number of seconds 1970-01-01 00:00:00 UTC,
 ignoring leap seconds, that is the equivalent moment to S seconds after
 midnight UTC on absolute date ABS-DATE."
   (let* ((a (- abs-date calendar-system-time-basis))
          (u (+ (* 163 (mod a 512)) (floor s 128))))
     ;; Overflow is a terrible thing!
-    (cons
+    (list
      ;; floor((60*60*24*a + s) / 2^16)
      (+ a (* 163 (floor a 512)) (floor u 512))
      ;; (60*60*24*a + s) mod 2^16
@@ -394,4 +396,5 @@ Conversion to daylight savings time is done according to
 
 (provide 'cal-dst)
 
+;;; arch-tag: a141d204-213c-4ca5-bdc6-f9df3aa92aad
 ;;; cal-dst.el ends here

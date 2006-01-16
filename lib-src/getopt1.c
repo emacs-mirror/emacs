@@ -1,6 +1,6 @@
 /* getopt_long and getopt_long_only entry points for GNU getopt.
-   Copyright (C) 1987,88,89,90,91,92,93,94,96,97,98
-     Free Software Foundation, Inc.
+   Copyright (C) 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1996, 1997,
+                 1998, 2004, 2005 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 
    You should have received a copy of the GNU General Public License along
    with this program; if not, write to the Free Software Foundation,
-   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
+   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -26,35 +26,9 @@
 #else
 # include "getopt.h"
 #endif
-
-#if !defined __STDC__ || !__STDC__
-/* This is a separate conditional since some stdc systems
-   reject `defined (const)'.  */
-#ifndef const
-#define const
-#endif
-#endif
+#include "getopt_int.h"
 
 #include <stdio.h>
-
-/* Comment out all this code if we are using the GNU C Library, and are not
-   actually compiling the library itself.  This code is part of the GNU C
-   Library, but also included in many other GNU distributions.  Compiling
-   and linking in this code is a waste when using the GNU C library
-   (especially if it is a shared library).  Rather than having every GNU
-   program understand `configure --with-gnu-libc' and omit the object files,
-   it is simpler to just do this in the source for each such file.  */
-
-#define GETOPT_INTERFACE_VERSION 2
-#if !defined _LIBC && defined __GLIBC__ && __GLIBC__ >= 2
-#include <gnu-versions.h>
-#if _GNU_GETOPT_INTERFACE_VERSION == GETOPT_INTERFACE_VERSION
-#define ELIDE_CODE
-#endif
-#endif
-
-#ifndef ELIDE_CODE
-
 
 /* This needs to come after some library #include
    to get __GNU_LIBRARY__ defined.  */
@@ -67,14 +41,20 @@
 #endif
 
 int
-getopt_long (argc, argv, options, long_options, opt_index)
-     int argc;
-     char *const *argv;
-     const char *options;
-     const struct option *long_options;
-     int *opt_index;
+getopt_long (int argc, char *__getopt_argv_const *argv, const char *options,
+	     const struct option *long_options, int *opt_index)
 {
-  return _getopt_internal (argc, argv, options, long_options, opt_index, 0);
+  return _getopt_internal (argc, (char **) argv, options, long_options,
+			   opt_index, 0, 0);
+}
+
+int
+_getopt_long_r (int argc, char **argv, const char *options,
+		const struct option *long_options, int *opt_index,
+		struct _getopt_data *d)
+{
+  return _getopt_internal_r (argc, argv, options, long_options, opt_index,
+			     0, 0, d);
 }
 
 /* Like getopt_long, but '-' as well as '--' can indicate a long option.
@@ -83,31 +63,30 @@ getopt_long (argc, argv, options, long_options, opt_index)
    instead.  */
 
 int
-getopt_long_only (argc, argv, options, long_options, opt_index)
-     int argc;
-     char *const *argv;
-     const char *options;
-     const struct option *long_options;
-     int *opt_index;
+getopt_long_only (int argc, char *__getopt_argv_const *argv,
+		  const char *options,
+		  const struct option *long_options, int *opt_index)
 {
-  return _getopt_internal (argc, argv, options, long_options, opt_index, 1);
+  return _getopt_internal (argc, (char **) argv, options, long_options,
+			   opt_index, 1, 0);
 }
 
-# ifdef _LIBC
-libc_hidden_def (getopt_long)
-libc_hidden_def (getopt_long_only)
-# endif
+int
+_getopt_long_only_r (int argc, char **argv, const char *options,
+		     const struct option *long_options, int *opt_index,
+		     struct _getopt_data *d)
+{
+  return _getopt_internal_r (argc, argv, options, long_options, opt_index,
+			     1, 0, d);
+}
 
-#endif	/* Not ELIDE_CODE.  */
 
 #ifdef TEST
 
 #include <stdio.h>
 
 int
-main (argc, argv)
-     int argc;
-     char **argv;
+main (int argc, char **argv)
 {
   int c;
   int digit_optind = 0;
@@ -194,3 +173,5 @@ main (argc, argv)
 
 #endif /* TEST */
 
+/* arch-tag: 28a5c558-b0c0-4bff-b5bc-e2e20291d4b6
+   (do not change this comment) */

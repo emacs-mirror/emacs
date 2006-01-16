@@ -1,10 +1,11 @@
 ;;; nnvirtual.el --- virtual newsgroups access for Gnus
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2002
-;;        Free Software Foundation, Inc.
+
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: David Moore <dmoore@ucsd.edu>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
-;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
+;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -45,13 +46,13 @@
 (nnoo-declare nnvirtual)
 
 (defvoo nnvirtual-always-rescan t
-  "*If non-nil, always scan groups for unread articles when entering a group.
+  "If non-nil, always scan groups for unread articles when entering a group.
 If this variable is nil and you read articles in a component group
 after the virtual group has been activated, the read articles from the
 component group will show up when you enter the virtual group.")
 
 (defvoo nnvirtual-component-regexp nil
-  "*Regexp to match component groups.")
+  "Regexp to match component groups.")
 
 (defvoo nnvirtual-component-groups nil
   "Component group in this nnvirtual group.")
@@ -374,8 +375,9 @@ component group will show up when you enter the virtual group.")
 			      #'(lambda (article)
 				  (nnvirtual-reverse-map-article
 				   group article))
-			      (gnus-group-expire-articles-1 group)))))
-    (sort unexpired '<)))
+			      (gnus-uncompress-range
+			       (gnus-group-expire-articles-1 group))))))
+    (sort (delq nil unexpired) '<)))
 
 
 ;;; Internal functions.
@@ -425,7 +427,7 @@ component group will show up when you enter the virtual group.")
 	   (concat (regexp-quote (gnus-group-real-name group)) ":[0-9]+")
 	   nil t)
       (replace-match "" t t))
-    (unless (= (point) (point-max))
+    (unless (eobp)
       (insert " ")
       (when (not (string= "" prefix))
 	(while (re-search-forward "[^ ]+:[0-9]+" nil t)
@@ -520,14 +522,15 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
 
 
 ;;; We map between virtual articles and real articles in a manner
-;;; which keeps the size of the virtual active list the same as
-;;; the sum of the component active lists.
-;;; To achieve fair mixing of the groups, the last article in
-;;; each of N component groups will be in the last N articles
-;;; in the virtual group.
+;;; which keeps the size of the virtual active list the same as the
+;;; sum of the component active lists.
 
-;;; If you have 3 components A, B and C, with articles 1-8, 1-5, and 6-7
-;;; respectively, then the virtual article numbers look like:
+;;; To achieve fair mixing of the groups, the last article in each of
+;;; N component groups will be in the last N articles in the virtual
+;;; group.
+
+;;; If you have 3 components A, B and C, with articles 1-8, 1-5, and
+;;; 6-7 respectively, then the virtual article numbers look like:
 ;;;
 ;;;  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15
 ;;;  A1 A2 A3 A4 B1 A5 B2 A6 B3 A7 B4 C6 A8 B5 C7
@@ -816,4 +819,5 @@ based on the marks on the component groups."
 
 (provide 'nnvirtual)
 
+;;; arch-tag: ca8c8ad9-1bd8-4b0f-9722-90dc645a45f5
 ;;; nnvirtual.el ends here

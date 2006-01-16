@@ -1,5 +1,6 @@
 /* amdahl machine description file
-   Copyright (C) 1987, 1999, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /*
 This file for amdahl_uts created by modifying the template.h
@@ -134,3 +135,6 @@ extern int sign_extend_temp;
 
 /* Compensate for error in signal.h.  */
 #define NSIG_MINIMUM 20
+
+/* arch-tag: cf665976-ddb1-49b0-b383-371e17f36acf
+   (do not change this comment) */

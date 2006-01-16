@@ -1,6 +1,7 @@
 ;;; eshell.el --- the Emacs command shell
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Version: 2.4.2
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'eshell)
 
@@ -34,7 +35,7 @@ is intended to be a functional replacement for command shells such as
 bash, zsh, rc, 4dos; since Emacs itself is capable of handling most of
 the tasks accomplished by such tools."
   :tag "The Emacs shell"
-  :link '(info-link "(eshell)The Emacs shell")
+  :link '(info-link "(eshell)Top")
   :version "21.1"
   :group 'applications)
 
@@ -64,7 +65,7 @@ the tasks accomplished by such tools."
 ;; @ Command argument completion (tcsh, zsh)
 ;; @ Input history management (bash)
 ;; @ Intelligent output scrolling
-;; @ Psuedo-devices (such as "/dev/clip" for copying to the clipboard)
+;; @ Pseudo-devices (such as "/dev/clip" for copying to the clipboard)
 ;; @ Extended globbing (zsh)
 ;; @ Argument and globbing predication (zsh)
 ;; @ I/O redirection to buffers, files, symbols, processes, etc.
@@ -86,8 +87,8 @@ the tasks accomplished by such tools."
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with Eshell; see the file COPYING.  If not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-;; 02111-1307, USA.
+;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+;; MA 02110-1301, USA.
 ;;
 ;;;_* How to begin
 ;;
@@ -373,11 +374,10 @@ buffer selected (or created)."
     ;; `same-window-buffer-names', which is done when Eshell is loaded
     (assert (and buf (buffer-live-p buf)))
     (pop-to-buffer buf)
-    (unless (fboundp 'eshell-mode)
+    (if (fboundp 'eshell-mode)
+	(unless (eq major-mode 'eshell-mode)
+	  (eshell-mode))
       (error "`eshell-auto' must be loaded before Eshell can be used"))
-    (unless (eq major-mode 'eshell-mode)
-      (eshell-mode))
-    (assert (eq major-mode 'eshell-mode))
     buf))
 
 (defun eshell-return-exits-minibuffer ()
@@ -561,4 +561,5 @@ Emacs."
 
 (run-hooks 'eshell-load-hook)
 
+;;; arch-tag: 9d4d5214-0e4e-4e02-b349-39add640d63f
 ;;; eshell.el ends here

@@ -1,7 +1,7 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/ChgPane.c,v 1.1 1992/04/11 22:10:17 jimb Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
  * XMenu:	MIT Project Athena, X Window system menu package
@@ -64,3 +64,6 @@ XMenuChangePane(menu, p_num, label)
     _XMErrorCode = XME_NO_ERROR;
     return(p_num);
 }
+
+/* arch-tag: e267e9de-a3f0-4a0d-8c45-413afa176fd8
+   (do not change this comment) */

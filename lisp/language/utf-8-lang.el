@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -50,4 +50,6 @@ character set encoded in UTF-8."))
  nil)
 
 (provide 'utf-8-lang)
+
+;;; arch-tag: dfa339e1-296f-4b1e-9fe8-2b65279ec813
 ;;; utf-8-lang.el ends here

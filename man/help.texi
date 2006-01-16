@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000, 2001
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
+@c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Help, Mark, M-x, Top
 @chapter Help
@@ -25,45 +25,35 @@ help options, each with a brief description.  Before you type a help
 option, you can use @key{SPC} or @key{DEL} to scroll through the list.
 
   @kbd{C-h} or @key{F1} means ``help'' in various other contexts as
-well.  For example, in the middle of @code{query-replace}, it describes
-the options available for how to operate on the current match.  After a
-prefix key, it displays a list of the alternatives that can follow the
-prefix key.  (A few prefix keys don't support @kbd{C-h}, because they
-define other meanings for it, but they all support @key{F1}.)
+well.  After a prefix key, it displays a list of the alternatives that
+can follow the prefix key.  (A few prefix keys don't support
+@kbd{C-h}, because they define other meanings for it, but they all
+support @key{F1}.)
 
   Most help buffers use a special major mode, Help mode, which lets you
 scroll conveniently with @key{SPC} and @key{DEL}.  It also offers
-hyperlinks to further help regarding cross-referenced names, Info nodes,
-customization buffers and the like.  @xref{Help Mode}.
+hyperlinks to URLs and further help regarding cross-referenced names, Info
+nodes, customization buffers and the like.  @xref{Help Mode}.
 
 @cindex searching documentation efficiently
 @cindex looking for a subject in documentation
   If you are looking for a certain feature, but don't know where
 exactly it is documented, and aren't sure of the name of a
-related command or option, we recommend trying these methods.  Usually
+related command or variable, we recommend trying these methods.  Usually
 it is best to start with an apropos command, then try searching the
 manual index, then finally look in the FAQ and the package keywords.
 
 @table @kbd
-@item C-h a @var{topic} @key{RET}
-This searches for commands whose names match @var{topic}, which should
-be a regular expression (@pxref{Regexps}).  Browse the buffer that this
-command displays to find what you are looking for.  @xref{Apropos}.
-
-@item M-x apropos @key{RET} @var{topic} @key{RET}
-This works like @kbd{C-h a}, but it also searches for user options and
-other variables, in case the feature you are looking for is controlled
-by an option, not a command.  @xref{Apropos}.
-
-@item M-x apropos-documentation @key{RET} @var{topic} @key{RET}
-This searches the @emph{documentation strings} (the built-in short
-descriptions) of all variables and functions (not their names) for a
-match for @var{topic}, a regular expression.  @xref{Apropos}.
+@item C-h a @var{topics} @key{RET}
+This searches for commands whose names match @var{topics}, which
+should be a keyword, a list of keywords, or a regular expression
+(@pxref{Regexps}).  This command displays all the matches in a new
+buffer.  @xref{Apropos}.
 
 @item C-h i d m emacs @key{RET} i @var{topic} @key{RET}
 This looks up @var{topic} in the indices of the Emacs on-line manual.
 If there are several matches, Emacs displays the first one.  You can then
-press @key{,} to move to other matches, until you find what you are
+press @kbd{,} to move to other matches, until you find what you are
 looking for.
 
 @item C-h i d m emacs @key{RET} s @var{topic} @key{RET}
@@ -71,9 +61,9 @@ Similar, but searches for @var{topic} (which can be a regular
 expression) in the @emph{text} of the manual rather than in its
 indices.
 
-@item C-h F
-This brings up the Emacs FAQ, where you can use the usual search
-commands (@pxref{Search}) to find the information.
+@item C-h C-f
+This brings up the Emacs FAQ.  You can use the Info commands
+to browse it.
 
 @item C-h p
 Finally, you can try looking up a suitable package using keywords
@@ -103,19 +93,19 @@ command.
 @iftex
 @node Help Summary
 @end iftex
-@ifinfo
+@ifnottex
 @node Help Summary
 @section Help Summary
-@end ifinfo
+@end ifnottex
 
   Here is a summary of the Emacs interactive help commands.
 @xref{Help Files}, for other help commands that just display a
 pre-written file of information.
 
 @table @kbd
-@item C-h a @var{regexp} @key{RET}
-Display a list of commands whose names match @var{regexp}
-(@code{apropos-command}).
+@item C-h a @var{topics} @key{RET}
+Display a list of commands whose names match @var{topics}
+(@code{apropos-command}; @pxref{Apropos}).
 @item C-h b
 Display a table of all key bindings in effect now, in this order: minor
 mode bindings, major mode bindings, and global bindings
@@ -124,6 +114,12 @@ mode bindings, major mode bindings, and global bindings
 Show the name of the command that @var{key} runs
 (@code{describe-key-briefly}).  Here @kbd{c} stands for ``character.''
 For more extensive information on @var{key}, use @kbd{C-h k}.
+@item C-h d @var{topics} @key{RET}
+Display a list of commands and variables whose documentation matches
+@var{topics} (@code{apropos-documentation}).
+@item C-h e
+Display the @code{*Messages*} buffer
+(@code{view-echo-area-messages}).
 @item C-h f @var{function} @key{RET}
 Display documentation on the Lisp function named @var{function}
 (@code{describe-function}).  Since commands are Lisp functions,
@@ -174,6 +170,9 @@ documented (@code{Info-goto-emacs-key-command-node}).
 @item C-h S @var{symbol} @key{RET}
 Display the Info documentation on symbol @var{symbol} according to the
 programming language you are editing (@code{info-lookup-symbol}).
+@item C-h .
+Display a help message associated with special text areas, such as
+links in @samp{*Help*} buffers (@code{display-local-help}).
 @end table
 
 @node Key Help
@@ -198,6 +197,13 @@ This is too big for the echo area, so a window is used for the display.
   @kbd{C-h c} and @kbd{C-h k} work for any sort of key sequences,
 including function keys and mouse events.
 
+@kindex C-h w
+@findex where-is
+  @kbd{C-h w @var{command} @key{RET}} tells you what keys are bound to
+@var{command}.  It displays a list of the keys in the echo area.  If it
+says the command is not on any key, you must use @kbd{M-x} to run it.
+@kbd{C-h w} runs the command @code{where-is}.
+
 @node Name Help
 @section Help by Command or Variable Name
 
@@ -217,15 +223,15 @@ displays the documentation of @code{auto-fill-mode}.  This is the only
 way to get the documentation of a command that is not bound to any key
 (one which you would normally run using @kbd{M-x}).
 
-  @kbd{C-h f} is also useful for Lisp functions that you are planning to
-use in a Lisp program.  For example, if you have just written the
-expression @code{(make-vector len)} and want to check that you are using
-@code{make-vector} properly, type @kbd{C-h f make-vector @key{RET}}.
-Because @kbd{C-h f} allows all function names, not just command names,
-you may find that some of your favorite abbreviations that work in
-@kbd{M-x} don't work in @kbd{C-h f}.  An abbreviation may be unique
-among command names yet fail to be unique when other function names are
-allowed.
+  @kbd{C-h f} is also useful for Lisp functions that you are planning
+to use in a Lisp program.  For example, if you have just written the
+expression @code{(make-vector len)} and want to check that you are
+using @code{make-vector} properly, type @kbd{C-h f make-vector
+@key{RET}}.  Because @kbd{C-h f} allows all function names, not just
+command names, you may find that some of your favorite completion
+abbreviations that work in @kbd{M-x} don't work in @kbd{C-h f}.  An
+abbreviation may be unique among command names, yet fail to be unique
+when other function names are allowed.
 
   The default function name for @kbd{C-h f} to describe, if you type
 just @key{RET}, is the name of the function called by the innermost Lisp
@@ -241,56 +247,85 @@ buffer as the default, that name must be defined as a Lisp function.  If
 that is all you want to know, just type @kbd{C-g} to cancel the @kbd{C-h
 f} command, then go on editing.
 
-@kindex C-h w
-@findex where-is
-  @kbd{C-h w @var{command} @key{RET}} tells you what keys are bound to
-@var{command}.  It displays a list of the keys in the echo area.  If it
-says the command is not on any key, you must use @kbd{M-x} to run it.
-@kbd{C-h w} runs the command @code{where-is}.
-
   @kbd{C-h v} (@code{describe-variable}) is like @kbd{C-h f} but describes
 Lisp variables instead of Lisp functions.  Its default is the Lisp symbol
 around or before point, but only if that is the name of a known Lisp
-variable.  @xref{Variables}.@refill
+variable.  @xref{Variables}.
 
-  Help buffers describing variables or functions defined in Lisp
-normally have hyperlinks to the Lisp definition, if you have the Lisp
-source files installed.  If you know Lisp, this provides the ultimate
-documentation.  If you don't know Lisp, you should learn it.  If you
-are treating Emacs as an object file, then you are just @emph{using}
-Emacs.  For real intimacy with Emacs, you must read the source code.
+  Help buffers describing Emacs variables and functions normally have
+hyperlinks to the definition, if you have the source files installed.
+(@xref{Hyperlinking}.)  If you know Lisp (or C), this provides the
+ultimate documentation.  If you don't know Lisp, you should learn it.
+If you are just @emph{using} Emacs, treating Emacs as an object
+(file), then you don't really love it.  For true intimacy with your
+editor, you need to read the source code.
 
 @node Apropos
 @section Apropos
 
+  A more sophisticated sort of question to ask is, ``What are the
+commands for working with files?''  The @dfn{apropos} commands ask
+such questions---they look for things whose names match an
+@dfn{apropos pattern}, which means either a word, a list of words, or
+a regular expression.  Each apropos command displays a list of
+matching items in a special buffer.
+
+@table @kbd
+@item C-h a @var{pattern} @key{RET}
+Search for commands whose names match @var{pattern}.
+
+@item M-x apropos @key{RET} @var{pattern} @key{RET}
+Similar, but it searches for noninteractive functions and for
+variables, as well as commands.
+
+@item M-x apropos-variable @key{RET} @var{pattern} @key{RET}
+Similar, but it searches for variables only.
+
+@item M-x apropos-value @key{RET} @var{pattern} @key{RET}
+Similar, but it searches for variables based on their values, or
+functions based on their definitions.
+
+@item C-h d @var{pattern} @key{RET}
+Search the @emph{documentation strings} (the built-in short
+descriptions) of all variables and functions (not their names) for a
+match for @var{pattern}.
+@end table
+
 @kindex C-h a
 @findex apropos-command
 @cindex apropos
-  A more sophisticated sort of question to ask is, ``What are the
-commands for working with files?''  To ask this question, type @kbd{C-h
-a file @key{RET}}, which displays a list of all command names that
-contain @samp{file}, including @code{copy-file}, @code{find-file}, and
-so on.  With each command name appears a brief description of how to use
-the command, and what keys you can currently invoke it with.  For
-example, it would say that you can invoke @code{find-file} by typing
-@kbd{C-x C-f}.  The @kbd{a} in @kbd{C-h a} stands for ``Apropos'';
-@kbd{C-h a} runs the command @code{apropos-command}.  This command
-normally checks only commands (interactive functions); if you specify a
-prefix argument, it checks noninteractive functions as well.
+  To find the commands that work on files, type @kbd{C-h a file
+@key{RET}}.  This displays a list of all command names that contain
+@samp{file}, including @code{copy-file}, @code{find-file}, and so on.
+With each command name appears a brief description of how to use the
+command, and what keys you can currently invoke it with.  For example,
+it would say that you can invoke @code{find-file} by typing @kbd{C-x
+C-f}.  The @kbd{a} in @kbd{C-h a} stands for ``Apropos''; @kbd{C-h a}
+runs the command @code{apropos-command}.  This command normally checks
+only commands (interactive functions); if you specify a prefix
+argument, it checks noninteractive functions as well.
 
-  Because @kbd{C-h a} looks only for functions whose names contain the
-string you specify, you must use ingenuity in choosing the
-string.  If you are looking for commands for killing backwards and
-@kbd{C-h a kill-backwards @key{RET}} doesn't reveal any, don't give up.
-Try just @kbd{kill}, or just @kbd{backwards}, or just @kbd{back}.  Be
-persistent.  Also note that you can use a regular expression as the
-argument, for more flexibility (@pxref{Regexps}).
+  If you want more information about a function definition, variable or
+symbol property listed in the Apropos buffer, you can click on it with
+@kbd{Mouse-1} or @kbd{Mouse-2}, or move there and type @key{RET}.
+
+  @kbd{C-h a} with a single word can find too many matches.  Don't
+just give up; you can give Apropos a list of words to search for.
+When you specify more than one word in the apropos pattern, a name
+must contain at least two of the words in order to match.  Thus, if
+you are looking for commands to kill a chunk of text before point, you
+could try @kbd{C-h a kill back backward behind before @key{RET}}.
+
+  For even greater flexibility, you can specify a regular expression
+(@pxref{Regexps}).  An apropos pattern is interpreted as a regular
+expression if it contains any of the regular expression special
+characters, @samp{^$*+?.\[}.
 
   Here is a set of arguments to give to @kbd{C-h a} that covers many
-classes of Emacs commands, since there are strong conventions for naming
-the standard Emacs commands.  By giving you a feel for the naming
-conventions, this set should also serve to aid you in developing a
-technique for picking @code{apropos} strings.
+classes of Emacs commands, since there are strong conventions for
+naming the standard Emacs commands.  By giving you a feel for the
+naming conventions, this set should also serve to aid you in
+developing a technique for picking Apropos keywords.
 
 @quotation
 char, line, word, sentence, paragraph, region, page, sexp, list, defun,
@@ -300,37 +335,46 @@ mark, insert, yank, fill, indent, case, change, set, what, list, find,
 view, describe, default.
 @end quotation
 
-@findex apropos-variable
-  To list all user variables that match a regexp, use the command
-@kbd{M-x apropos-variable}. This command shows only user variables and
-customization options by default; if you specify a prefix argument, it
-checks all variables.
-
 @findex apropos
-  To list all Lisp symbols that contain a match for a regexp, not just
-the ones that are defined as commands, use the command @kbd{M-x apropos}
-instead of @kbd{C-h a}.  This command does not check key bindings by
-default; specify a numeric argument if you want it to check them.
+  To list all Lisp symbols that contain a match for an Apropos pattern,
+not just the ones that are defined as commands, use the command
+@kbd{M-x apropos} instead of @kbd{C-h a}.  This command does not check
+key bindings by default; specify a numeric argument if you want it to
+check them.
 
+@findex apropos-variable
+  To list user-customizable variables that match an apropos pattern,
+use the command @kbd{M-x apropos-variable}.  If you specify a prefix
+argument, it checks all variables.
+
+@kindex C-h d
 @findex apropos-documentation
-  The @code{apropos-documentation} command is like @code{apropos} except
-that it searches documentation strings as well as symbol names for
-matches for the specified regular expression.
+  The @code{apropos-documentation} command is like @code{apropos}
+except that it searches documentation strings instead of symbol names
+for matches for the specified Apropos pattern.
 
 @findex apropos-value
-  The @code{apropos-value} command is like @code{apropos} except that it
-searches symbols' values for matches for the specified regular
-expression.  This command does not check function definitions or
-property lists by default; specify a numeric argument if you want it to
-check them.
+  The @code{apropos-value} command is like @code{apropos} except that
+it searches variables' values for matches for the pattern.  With a
+prefix argument, it also checks symbols' function definitions and
+property lists.
 
 @vindex apropos-do-all
   If the variable @code{apropos-do-all} is non-@code{nil}, the commands
 above all behave as if they had been given a prefix argument.
 
-  If you want more information about a function definition, variable or
-symbol property listed in the Apropos buffer, you can click on it with
-@kbd{Mouse-2} or move there and type @key{RET}.
+@vindex apropos-sort-by-scores
+@cindex apropos search results, order by score
+  By default, Apropos lists the search results in alphabetical order.
+If the variable @code{apropos-sort-by-scores} is non-@code{nil},
+Apropos tries to guess the relevance of each result, and displays the
+most relevant ones first.
+
+@vindex apropos-documentation-sort-by-scores
+  By default, Apropos lists the search results for
+@code{apropos-documentation} in order of relevance of the match.  If
+the variable @code{apropos-documentation-sort-by-scores} is
+@code{nil}, Apropos lists the symbols found in alphabetical order.
 
 @node Library Keywords
 @section Keyword Search for Lisp Libraries
@@ -341,42 +385,44 @@ The @kbd{C-h p} command lets you search the standard Emacs Lisp
 libraries by topic keywords.  Here is a partial list of keywords you can
 use:
 
-@display
-abbrev --- abbreviation handling, typing shortcuts, macros.
-bib --- support for the bibliography processor @code{bib}.
-c --- C and C++ language support.
-calendar --- calendar and time management support.
-comm --- communications, networking, remote access to files.
-data --- support for editing files of data.
-docs --- support for Emacs documentation.
-emulations --- emulations of other editors.
-extensions --- Emacs Lisp language extensions.
-faces --- support for using faces (fonts and colors; @pxref{Faces}).
-frames --- support for Emacs frames and window systems.
-games --- games, jokes and amusements.
-hardware --- support for interfacing with exotic hardware.
-help --- support for on-line help systems.
-hypermedia --- support for links within text, or other media types.
-i18n --- internationalization and alternate character-set support.
-internal --- code for Emacs internals, build process, defaults.
-languages --- specialized modes for editing programming languages.
-lisp --- support for using Lisp (including Emacs Lisp).
-local --- libraries local to your site.
-maint --- maintenance aids for the Emacs development group.
-mail --- modes for electronic-mail handling.
-matching --- searching and matching.
-news --- support for netnews reading and posting.
-non-text --- support for editing files that are not ordinary text.
-oop --- support for object-oriented programming.
-outlines --- hierarchical outlining.
-processes --- process, subshell, compilation, and job control support.
-terminals --- support for terminal types.
-tex --- support for the @TeX{} formatter.
-tools --- programming tools.
-unix --- front-ends/assistants for, or emulators of, system features.
-vms --- support code for VMS.
-wp --- word processing.
-@end display
+@multitable {emulations} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@item abbrev@tab abbreviation handling, typing shortcuts, macros.
+@item bib@tab code related to the @code{bib} bibliography processor.
+@item c@tab support for the C language and related languages.
+@item calendar@tab calendar and time management support.
+@item comm@tab communications, networking, remote access to files.
+@item convenience@tab convenience features for faster editing.
+@item data@tab support for editing files of data.
+@item docs@tab support for Emacs documentation.
+@item emulations@tab emulations of other editors.
+@item extensions@tab Emacs Lisp language extensions.
+@item faces@tab support for multiple fonts.
+@item files@tab support for editing and manipulating files.
+@item frames@tab support for Emacs frames and window systems.
+@item games@tab games, jokes and amusements.
+@item hardware@tab support for interfacing with exotic hardware.
+@item help@tab support for on-line help systems.
+@item hypermedia@tab support for links between text or other media types.
+@item i18n@tab internationalization and alternate character-set support.
+@item internal@tab code for Emacs internals, build process, defaults.
+@item languages@tab specialized modes for editing programming languages.
+@item lisp@tab Lisp support, including Emacs Lisp.
+@item local@tab code local to your site.
+@item maint@tab maintenance aids for the Emacs development group.
+@item mail@tab modes for electronic-mail handling.
+@item matching@tab various sorts of searching and matching.
+@item mouse@tab mouse support.
+@item multimedia@tab images and sound support.
+@item news@tab support for netnews reading and posting.
+@item oop@tab support for object-oriented programming.
+@item outlines@tab support for hierarchical outlining.
+@item processes@tab process, subshell, compilation, and job control support.
+@item terminals@tab support for terminal types.
+@item tex@tab supporting code for the @TeX{} formatter.
+@item tools@tab programming tools.
+@item unix@tab front-ends/assistants for, or emulators of, UNIX-like features.
+@item wp@tab word processing.
+@end multitable
 
 @node Language Help
 @section Help for International Language Support
@@ -419,16 +465,27 @@ Follow a cross reference at point.
 Move point forward to the next cross reference.
 @item S-@key{TAB}
 Move point back to the previous cross reference.
-@item Mouse-2
+@item Mouse-1
+@itemx Mouse-2
 Follow a cross reference that you click on.
 @end table
 
-  When a command name (@pxref{M-x,, Running Commands by Name}) or
+  When a function name (@pxref{M-x,, Running Commands by Name}) or
 variable name (@pxref{Variables}) appears in the documentation, it
-normally appears inside paired single-quotes.  You can click on the name
-with @kbd{Mouse-2}, or move point there and type @key{RET}, to view the
-documentation of that command or variable.  Use @kbd{C-c C-b} to retrace
-your steps.
+normally appears inside paired single-quotes.  You can click on the
+name with @kbd{Mouse-1} or @kbd{Mouse-2}, or move point there and type
+@key{RET}, to view the documentation of that command or variable.  Use
+@kbd{C-c C-b} to retrace your steps.
+
+@cindex URL, viewing in help
+@cindex help, viewing web pages
+@cindex viewing web pages in help
+@cindex web pages, viewing in help
+@findex browse-url
+  You can follow cross references to URLs (web pages) as well.  When
+you follow a cross reference that is a URL, the @code{browse-url}
+command is used to view the web page in a browser of your choosing.
+@xref{Browse-URL}.
 
 @kindex @key{TAB} @r{(Help mode)}
 @findex help-next-ref
@@ -453,11 +510,16 @@ is available within Info.  Eventually all the documentation of the GNU
 system will be available.  Type @kbd{h} after entering Info to run
 a tutorial on using Info.
 
-  If you specify a numeric argument, @kbd{C-h i} prompts for the name of
-a documentation file.  This way, you can browse a file which doesn't
+@cindex find Info manual by its file name
+  With a numeric argument, @kbd{C-h i} selects an Info buffer with the
+number appended to the default @samp{*info*} buffer name
+(e.g. @samp{*info*<2>}).  This is useful if you want to browse
+multiple Info manuals simultaneously.  If you specify just @kbd{C-u}
+as the prefix argument, @kbd{C-h i} prompts for the name of a
+documentation file.  This way, you can browse a file which doesn't
 have an entry in the top-level Info menu.  It is also handy when you
-need to get to the documentation quickly, and you know the exact name of
-the file.
+need to get to the documentation quickly, and you know the exact name
+of the file.
 
 @kindex C-h F
 @kindex C-h K
@@ -583,7 +645,23 @@ Emacs (@code{describe-no-warranty}).
 @cindex balloon help
   When a region of text is ``active,'' so that you can select it with
 the mouse or a key like @kbd{RET}, it often has associated help text.
-Areas of the mode line are examples.  This help will normally be
-shown in the echo area when you move point into the active text.  In
-a window system you can display the help text as a ``tooltip''
-(sometimes known as ``balloon help'').  @xref{Tooltips}.
+Areas of the mode line are examples.  On most window systems, the help
+text is displayed as a ``tooltip'' (sometimes known as ``balloon
+help''), when you move the mouse over the active text.  @xref{Tooltips}.
+On some systems, it is shown in the echo area.  On text-only
+terminals, Emacs may not be able to follow the mouse and hence will
+not show the help text on mouse-over.
+
+@kindex C-h .
+@findex display-local-help
+@vindex help-at-pt-display-when-idle
+  You can also access text region help info using the keyboard.  The
+command @kbd{C-h .} (@code{display-local-help}) displays any help text
+associated with the text at point, using the echo area.  If you want
+help text to be displayed automatically whenever it is available at
+point, set the variable @code{help-at-pt-display-when-idle} to
+@code{t}.
+
+@ignore
+   arch-tag: 6f33ab62-bc75-4367-8057-fd67cc15c3a1
+@end ignore

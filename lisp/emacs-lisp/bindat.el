@@ -1,6 +1,6 @@
 ;;; bindat.el --- binary data structure packing and unpacking.
 
-;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Assignment name: struct.el
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -85,7 +85,7 @@
 ;;	(items     u8)
 ;;	(fill      3)
 ;;	(item	   repeat (items)
-;;		   ((struct data-spec)))))
+;;		   (struct data-spec))))
 ;;
 ;;
 ;;  A binary data representation may look like
@@ -131,7 +131,7 @@
 ;;          |  ( [FIELD] align LEN )    -- skip to next multiple of LEN bytes
 ;;          |  ( [FIELD] struct SPEC_NAME )
 ;;          |  ( [FIELD] union TAG_VAL (TAG SPEC)... [(t SPEC)] )
-;;          |  ( [FIELD] repeat COUNT SPEC )
+;;          |  ( [FIELD] repeat COUNT ITEM... )
 
 ;;          -- In (eval EXPR), the value of the last field is available in
 ;;             the dynamically bound variable `last'.
@@ -151,7 +151,8 @@
 ;;          -- Note: 32 bit values may be limited by emacs' INTEGER
 ;;             implementation limits.
 ;;
-;;          -- Example: bits 2 will map bytes 0x1c 0x28 to list (2 3 7 11 13)
+;;          -- Example: `bits 2' will unpack 0x28 0x1c to (2 3 4 11 13)
+;;                                       and 0x1c 0x28 to (3 5 10 11 12).
 
 ;; FIELD   ::= ( eval EXPR )		-- use result as NAME
 ;;          |  NAME
@@ -619,4 +620,5 @@ If optional second arg SEP is a string, use that as separator."
 
 (provide 'bindat)
 
+;;; arch-tag: 5e6708c3-03e2-4ad7-9885-5041b779c3fb
 ;;; bindat.el ends here

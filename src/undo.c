@@ -1,5 +1,6 @@
 /* undo handling for GNU Emacs.
-   Copyright (C) 1990, 1993, 1994, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993, 1994, 2000, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,19 +16,35 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #include <config.h>
 #include "lisp.h"
 #include "buffer.h"
 #include "commands.h"
+#include "window.h"
+
+/* Limits controlling how much undo information to keep.  */
+
+EMACS_INT undo_limit;
+EMACS_INT undo_strong_limit;
+
+Lisp_Object Vundo_outer_limit;
+
+/* Function to call when undo_outer_limit is exceeded.  */
+
+Lisp_Object Vundo_outer_limit_function;
 
 /* Last buffer for which undo information was recorded.  */
 Lisp_Object last_undo_buffer;
 
 Lisp_Object Qinhibit_read_only;
+
+/* Marker for function call undo list elements.  */
+
+Lisp_Object Qapply;
 
 /* The first time a command records something for undo.
    it also allocates the undo-boundary object
@@ -84,12 +101,19 @@ record_point (pt)
   /* If we are just after an undo boundary, and
      point wasn't at start of deleted range, record where it was.  */
   if (at_boundary
-      && last_point_position != pt
-      /* If we're called from batch mode, this could be nil.  */
       && BUFFERP (last_point_position_buffer)
+      /* If we're called from batch mode, this could be nil.  */
       && current_buffer == XBUFFER (last_point_position_buffer))
-    current_buffer->undo_list
-      = Fcons (make_number (last_point_position), current_buffer->undo_list);
+    {
+      /* If we have switched windows, use the point value
+	 from the window we are in.  */
+      if (! EQ (last_point_position_window, selected_window))
+	last_point_position = marker_position (XWINDOW (selected_window)->pointm);
+
+      if (last_point_position != pt)
+	current_buffer->undo_list
+	  = Fcons (make_number (last_point_position), current_buffer->undo_list);
+    }
 }
 
 /* Record an insertion that just happened or is about to happen,
@@ -291,29 +315,35 @@ but another undo command will undo to the previous boundary.  */)
 }
 
 /* At garbage collection time, make an undo list shorter at the end,
-   returning the truncated list.
-   MINSIZE and MAXSIZE are the limits on size allowed, as described below.
-   In practice, these are the values of undo-limit and
-   undo-strong-limit.  */
+   returning the truncated list.  How this is done depends on the
+   variables undo-limit, undo-strong-limit and undo-outer-limit.
+   In some cases this works by calling undo-outer-limit-function.  */
 
-Lisp_Object
-truncate_undo_list (list, minsize, maxsize)
-     Lisp_Object list;
-     int minsize, maxsize;
+void
+truncate_undo_list (b)
+     struct buffer *b;
 {
+  Lisp_Object list;
   Lisp_Object prev, next, last_boundary;
   int size_so_far = 0;
+
+  /* Make sure that calling undo-outer-limit-function
+     won't cause another GC.  */
+  int count = inhibit_garbage_collection ();
+
+  /* Make the buffer current to get its local values of variables such
+     as undo_limit.  Also so that Vundo_outer_limit_function can
+     tell which buffer to operate on.  */
+  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
+  set_buffer_internal (b);
+
+  list = b->undo_list;
 
   prev = Qnil;
   next = list;
   last_boundary = Qnil;
 
-  /* Always preserve at least the most recent undo record.
-     If the first element is an undo boundary, skip past it.
-
-     Skip, skip, skip the undo, skip, skip, skip the undo,
-     Skip, skip, skip the undo, skip to the undo bound'ry.
-     (Get it?  "Skip to my Loo?")  */
+  /* If the first element is an undo boundary, skip past it.  */
   if (CONSP (next) && NILP (XCAR (next)))
     {
       /* Add in the space occupied by this element and its chain link.  */
@@ -323,6 +353,13 @@ truncate_undo_list (list, minsize, maxsize)
       prev = next;
       next = XCDR (next);
     }
+
+  /* Always preserve at least the most recent undo record
+     unless it is really horribly big.
+
+     Skip, skip, skip the undo, skip, skip, skip the undo,
+     Skip, skip, skip the undo, skip to the undo bound'ry.  */
+
   while (CONSP (next) && ! NILP (XCAR (next)))
     {
       Lisp_Object elt;
@@ -342,24 +379,49 @@ truncate_undo_list (list, minsize, maxsize)
       prev = next;
       next = XCDR (next);
     }
+
+  /* If by the first boundary we have already passed undo_outer_limit,
+     we're heading for memory full, so offer to clear out the list.  */
+  if (INTEGERP (Vundo_outer_limit)
+      && size_so_far > XINT (Vundo_outer_limit)
+      && !NILP (Vundo_outer_limit_function))
+    {
+      Lisp_Object temp = last_undo_buffer, tem;
+
+      /* Normally the function this calls is undo-outer-limit-truncate.  */
+      tem = call1 (Vundo_outer_limit_function, make_number (size_so_far));
+      if (! NILP (tem))
+	{
+	  /* The function is responsible for making
+	     any desired changes in buffer-undo-list.  */
+	  unbind_to (count, Qnil);
+	  return;
+	}
+      /* That function probably used the minibuffer, and if so, that
+	 changed last_undo_buffer.  Change it back so that we don't
+	 force next change to make an undo boundary here.  */
+      last_undo_buffer = temp;
+    }
+
   if (CONSP (next))
     last_boundary = prev;
 
+  /* Keep additional undo data, if it fits in the limits.  */
   while (CONSP (next))
     {
       Lisp_Object elt;
       elt = XCAR (next);
 
       /* When we get to a boundary, decide whether to truncate
-	 either before or after it.  The lower threshold, MINSIZE,
+	 either before or after it.  The lower threshold, undo_limit,
 	 tells us to truncate after it.  If its size pushes past
-	 the higher threshold MAXSIZE as well, we truncate before it.  */
+	 the higher threshold undo_strong_limit, we truncate before it.  */
       if (NILP (elt))
 	{
-	  if (size_so_far > maxsize)
+	  if (size_so_far > undo_strong_limit)
 	    break;
 	  last_boundary = prev;
-	  if (size_so_far > minsize)
+	  if (size_so_far > undo_limit)
 	    break;
 	}
 
@@ -380,16 +442,15 @@ truncate_undo_list (list, minsize, maxsize)
 
   /* If we scanned the whole list, it is short enough; don't change it.  */
   if (NILP (next))
-    return list;
-
+    ;
   /* Truncate at the boundary where we decided to truncate.  */
-  if (!NILP (last_boundary))
-    {
-      XSETCDR (last_boundary, Qnil);
-      return list;
-    }
+  else if (!NILP (last_boundary))
+    XSETCDR (last_boundary, Qnil);
+  /* There's nothing we decided to keep, so clear it out.  */
   else
-    return Qnil;
+    b->undo_list = Qnil;
+
+  unbind_to (count, Qnil);
 }
 
 DEFUN ("primitive-undo", Fprimitive_undo, Sprimitive_undo, 2, 2, 0,
@@ -402,6 +463,8 @@ Return what remains of the list.  */)
   Lisp_Object next;
   int count = SPECPDL_INDEX ();
   register int arg;
+  Lisp_Object oldlist;
+  int did_apply = 0;
 
 #if 0  /* This is a good feature, but would make undo-start
 	  unable to do what is expected.  */
@@ -418,6 +481,8 @@ Return what remains of the list.  */)
   arg = XINT (n);
   next = Qnil;
   GCPRO2 (next, list);
+  /* I don't think we need to gcpro oldlist, as we use it only
+     to check for EQ.  ++kfs  */
 
   /* In a writable buffer, enable undoing read-only text that is so
      because of text properties.  */
@@ -426,6 +491,8 @@ Return what remains of the list.  */)
 
   /* Don't let `intangible' properties interfere with undo.  */
   specbind (Qinhibit_point_motion_hooks, Qt);
+
+  oldlist = current_buffer->undo_list;
 
   while (arg > 0)
     {
@@ -471,7 +538,7 @@ Return what remains of the list.  */)
 		}
 	      else if (EQ (car, Qnil))
 		{
-		  /* Element (nil prop val beg . end) is property change.  */
+		  /* Element (nil PROP VAL BEG . END) is property change.  */
 		  Lisp_Object beg, end, prop, val;
 
 		  prop = Fcar (cdr);
@@ -494,6 +561,41 @@ Return what remains of the list.  */)
 		     does not send point back to where it is now.  */
 		  Fgoto_char (car);
 		  Fdelete_region (car, cdr);
+		}
+	      else if (EQ (car, Qapply))
+		{
+		  /* Element (apply FUN . ARGS) means call FUN to undo.  */
+		  struct buffer *save_buffer = current_buffer;
+
+		  car = Fcar (cdr);
+		  cdr = Fcdr (cdr);
+		  if (INTEGERP (car))
+		    {
+		      /* Long format: (apply DELTA START END FUN . ARGS).  */
+		      Lisp_Object delta = car;
+		      Lisp_Object start = Fcar (cdr);
+		      Lisp_Object end   = Fcar (Fcdr (cdr));
+		      Lisp_Object start_mark = Fcopy_marker (start, Qnil);
+		      Lisp_Object end_mark   = Fcopy_marker (end, Qt);
+
+		      cdr = Fcdr (Fcdr (cdr));
+		      apply1 (Fcar (cdr), Fcdr (cdr));
+
+		      /* Check that the function did what the entry said it
+			 would do.  */
+		      if (!EQ (start, Fmarker_position (start_mark))
+			  || (XINT (delta) + XINT (end)
+			      != marker_position (end_mark)))
+			error ("Changes to be undone by function different than announced");
+		      Fset_marker (start_mark, Qnil, Qnil);
+		      Fset_marker (end_mark, Qnil, Qnil);
+		    }
+		  else
+		    apply1 (car, cdr);
+
+		  if (save_buffer != current_buffer)
+		    error ("Undo function switched buffer");
+		  did_apply = 1;
 		}
 	      else if (STRINGP (car) && INTEGERP (cdr))
 		{
@@ -538,19 +640,84 @@ Return what remains of the list.  */)
       arg--;
     }
 
+
+  /* Make sure an apply entry produces at least one undo entry,
+     so the test in `undo' for continuing an undo series
+     will work right.  */
+  if (did_apply
+      && EQ (oldlist, current_buffer->undo_list))
+    current_buffer->undo_list
+      = Fcons (list3 (Qapply, Qcdr, Qnil), current_buffer->undo_list);
+
   UNGCPRO;
   return unbind_to (count, list);
 }
-
+
 void
 syms_of_undo ()
 {
   Qinhibit_read_only = intern ("inhibit-read-only");
   staticpro (&Qinhibit_read_only);
 
+  Qapply = intern ("apply");
+  staticpro (&Qapply);
+
   pending_boundary = Qnil;
   staticpro (&pending_boundary);
 
   defsubr (&Sprimitive_undo);
   defsubr (&Sundo_boundary);
+
+  DEFVAR_INT ("undo-limit", &undo_limit,
+	      doc: /* Keep no more undo information once it exceeds this size.
+This limit is applied when garbage collection happens.
+When a previous command increases the total undo list size past this
+value, the earlier commands that came before it are forgotten.
+
+The size is counted as the number of bytes occupied,
+which includes both saved text and other data.  */);
+  undo_limit = 20000;
+
+  DEFVAR_INT ("undo-strong-limit", &undo_strong_limit,
+	      doc: /* Don't keep more than this much size of undo information.
+This limit is applied when garbage collection happens.
+When a previous command increases the total undo list size past this
+value, that command and the earlier commands that came before it are forgotten.
+However, the most recent buffer-modifying command's undo info
+is never discarded for this reason.
+
+The size is counted as the number of bytes occupied,
+which includes both saved text and other data.  */);
+  undo_strong_limit = 30000;
+
+  DEFVAR_LISP ("undo-outer-limit", &Vundo_outer_limit,
+	      doc: /* Outer limit on size of undo information for one command.
+At garbage collection time, if the current command has produced
+more than this much undo information, it discards the info and displays
+a warning.  This is a last-ditch limit to prevent memory overflow.
+
+The size is counted as the number of bytes occupied, which includes
+both saved text and other data.  A value of nil means no limit.  In
+this case, accumulating one huge undo entry could make Emacs crash as
+a result of memory overflow.
+
+In fact, this calls the function which is the value of
+`undo-outer-limit-function' with one argument, the size.
+The text above describes the behavior of the function
+that variable usually specifies.  */);
+  Vundo_outer_limit = make_number (3000000);
+
+  DEFVAR_LISP ("undo-outer-limit-function", &Vundo_outer_limit_function,
+	       doc: /* Function to call when an undo list exceeds `undo-outer-limit'.
+This function is called with one argument, the current undo list size
+for the most recent command (since the last undo boundary).
+If the function returns t, that means truncation has been fully handled.
+If it returns nil, the other forms of truncation are done.
+
+Garbage collection is inhibited around the call to this function,
+so it must make sure not to do a lot of consing.  */);
+  Vundo_outer_limit_function = Qnil;
 }
+
+/* arch-tag: d546ee01-4aed-4ffb-bb8b-eefaae50d38a
+   (do not change this comment) */

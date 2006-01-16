@@ -1,6 +1,7 @@
 ;;; terminal.el --- terminal emulator for GNU Emacs
 
-;; Copyright (C) 1986,87,88,89,93,94 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987, 1988, 1989, 1993, 1994, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Maintainer: FSF
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -209,9 +210,13 @@ performance."
           (use-local-map terminal-escape-map)
           (setq s (read-key-sequence
                     (if current-prefix-arg
-                        (format "Emacs Terminal escape> %d "
+                        (format "Emacs Terminal escape[%s for help]> %d "
+				(substitute-command-keys
+				 "\\<terminal-escape-map>\\[te-escape-help]")
                                 (prefix-numeric-value current-prefix-arg))
-                        "Emacs Terminal escape> "))))
+                        (format "Emacs Terminal escape[%s for help]> "
+				(substitute-command-keys
+				 "\\<terminal-escape-map>\\[te-escape-help]"))))))
       (use-global-map global)
       (use-local-map local))
 
@@ -485,7 +490,7 @@ lets you type a terminal emulator command."
 	     (progn
 	       (and terminal-more-processing (null (cdr te-pending-output))
 		    (te-set-more-count nil))
-	       (send-string te-process (make-string 1 last-input-char))
+	       (process-send-string te-process (make-string 1 last-input-char))
 	       (te-process-output t))
 	   (message "Function key `%s' ignored"
 		    (single-key-description last-input-char))))))
@@ -533,7 +538,7 @@ together with a command \\<terminal-edit-map>to return to terminal emulation: \\
   (setq mode-name "Terminal Edit")
   (setq mode-line-modified (default-value 'mode-line-modified))
   (setq mode-line-process nil)
-  (run-hooks 'terminal-edit-mode-hook))
+  (run-mode-hooks 'terminal-edit-mode-hook))
 
 (defun te-edit ()
   "Start editing the terminal emulator buffer with ordinary Emacs commands."
@@ -1085,7 +1090,7 @@ This escape character may be changed using the variable `terminal-escape-char'.
 
 `Meta' characters may not currently be sent through the terminal emulator.
 
-Here is a list of some of the variables which control the behaviour
+Here is a list of some of the variables which control the behavior
 of the emulator -- see their documentation for more information:
 terminal-escape-char, terminal-scrolling, terminal-more-processing,
 terminal-redisplay-interval.
@@ -1110,7 +1115,7 @@ subprocess started."
 			 (getenv "SHELL")
 			 "/bin/sh"))
 		   (s (read-string
-		       (format "Run program in emulator: (default %s) "
+		       (format "Run program in emulator (default %s): "
 			       default-s))))
 	      (if (equal s "")
 		  (list default-s '())
@@ -1341,4 +1346,5 @@ in the directory specified by `te-terminfo-directory'."
 
 (provide 'terminal)
 
+;;; arch-tag: 0ae1d7d7-90ef-4566-a531-6e7ff8c79b2f
 ;;; terminal.el ends here

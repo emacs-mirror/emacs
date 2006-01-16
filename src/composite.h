@@ -1,7 +1,8 @@
 /* Header for composite sequence handler.
-   Copyright (C) 1999 Electrotechnical Laboratory, JAPAN.
-   Licensed to the Free Software Foundation.
-   Copyright (C) 2001 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1997
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H14PRO021
 
 This file is part of GNU Emacs.
 
@@ -17,8 +18,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #ifndef EMACS_COMPOSITE_H
 #define EMACS_COMPOSITE_H
@@ -209,6 +210,8 @@ extern void compose_region P_ ((int, int, Lisp_Object, Lisp_Object,
 extern void syms_of_composite P_ ((void));
 extern void compose_text P_ ((int, int, Lisp_Object, Lisp_Object,
 			      Lisp_Object));
-extern void compose_chars_in_text P_ ((int, int, Lisp_Object));
 
 #endif /* not EMACS_COMPOSITE_H */
+
+/* arch-tag: 59524d89-c645-47bd-b5e6-65e861690118
+   (do not change this comment) */

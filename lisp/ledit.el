@@ -1,6 +1,6 @@
 ;;; ledit.el --- Emacs side of ledit interface
 
-;; Copyright (C) 1985 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: languages
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -144,7 +144,7 @@ Like Lisp mode, plus these special commands:
 To make Lisp mode automatically change to Ledit mode,
 do (setq lisp-mode-hook 'ledit-from-lisp-mode)"
   (interactive)
-  (lisp-mode)
+  (delay-mode-hooks (lisp-mode))
   (ledit-from-lisp-mode))
 
 ;;;###autoload
@@ -152,8 +152,9 @@ do (setq lisp-mode-hook 'ledit-from-lisp-mode)"
   (use-local-map ledit-mode-map)
   (setq mode-name "Ledit")
   (setq major-mode 'ledit-mode)
-  (run-hooks 'ledit-mode-hook))
+  (run-mode-hooks 'ledit-mode-hook))
 
 (provide 'ledit)
 
+;;; arch-tag: f0f1ca13-8d31-478c-ae1b-b448c55a8faf
 ;;; ledit.el ends here

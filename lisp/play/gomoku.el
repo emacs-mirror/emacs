@@ -1,6 +1,7 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs
 
-;; Copyright (C) 1988, 1994, 1996, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1996, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Maintainer: FSF
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -83,6 +84,9 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
 ;;;
 ;;; CONSTANTS FOR BOARD
 ;;;
+
+(defconst gomoku-buffer-name "*Gomoku*"
+  "Name of the Gomoku buffer.")
 
 ;; You may change these values if you have a small screen or if the squares
 ;; look rectangular, but spacings SHOULD be at least 2 (MUST BE at least 1).
@@ -157,22 +161,20 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
 (defvar gomoku-emacs-won ()
   "For making font-lock use the winner's face for the line.")
 
-(defface gomoku-font-lock-O-face
+(defface gomoku-O
     '((((class color)) (:foreground "red" :weight bold)))
   "Face to use for Emacs' O."
   :group 'gomoku)
 
-(defface gomoku-font-lock-X-face
+(defface gomoku-X
     '((((class color)) (:foreground "green" :weight bold)))
   "Face to use for your X."
   :group 'gomoku)
 
 (defvar gomoku-font-lock-keywords
-  '(("O" . 'gomoku-font-lock-O-face)
-    ("X" . 'gomoku-font-lock-X-face)
-    ("[-|/\\]" 0 (if gomoku-emacs-won
-		     'gomoku-font-lock-O-face
-		   'gomoku-font-lock-X-face)))
+  '(("O" . 'gomoku-O)
+    ("X" . 'gomoku-X)
+    ("[-|/\\]" 0 (if gomoku-emacs-won 'gomoku-O 'gomoku-X)))
   "*Font lock rules for Gomoku.")
 
 (put 'gomoku-mode 'front-sticky
@@ -193,8 +195,9 @@ You play by moving the cursor over the square you choose and hitting \\[gomoku-h
 Other useful commands:
 \\{gomoku-mode-map}
 Entry to this mode calls the value of `gomoku-mode-hook' if that value
-is non-nil.  One interesting value is `turn-on-font-lock'."
+is non-nil."
   (interactive)
+  (kill-all-local-variables)
   (setq major-mode 'gomoku-mode
 	mode-name "Gomoku")
   (gomoku-display-statistics)
@@ -202,7 +205,7 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(gomoku-font-lock-keywords t))
   (toggle-read-only t)
-  (run-hooks 'gomoku-mode-hook))
+  (run-mode-hooks 'gomoku-mode-hook))
 
 ;;;
 ;;; THE BOARD.
@@ -668,11 +671,11 @@ that DVAL has been added on SQUARE."
      (cond ((< gomoku-number-of-moves 20)
 	    "This was a REALLY QUICK win.")
 	   (gomoku-human-refused-draw
-	    "I won... Too bad you refused my offer of a draw !")
+	    "I won... Too bad you refused my offer of a draw!")
 	   (gomoku-human-took-back
-	    "I won... Taking moves back will not help you !")
+	    "I won... Taking moves back will not help you!")
 	   ((not gomoku-emacs-played-first)
-	    "I won... Playing first did not help you much !")
+	    "I won... Playing first did not help you much!")
 	   ((and (zerop gomoku-number-of-human-wins)
 		 (zerop gomoku-number-of-draws)
 		 (> gomoku-number-of-emacs-wins 1))
@@ -685,7 +688,7 @@ that DVAL has been added on SQUARE."
 	      (gomoku-human-took-back
 	       "  I, for one, never take my moves back...")
 	      (gomoku-emacs-played-first
-	       ".. so what ?")
+	       ".. so what?")
 	      ("  Now, let me play first just once."))))
     ((eq result 'human-resigned)
      (setq gomoku-number-of-emacs-wins (1+ gomoku-number-of-emacs-wins))
@@ -747,7 +750,17 @@ Use \\[describe-mode] for more info."
   (interactive (if current-prefix-arg
 		   (list (prefix-numeric-value current-prefix-arg)
 			 (eval (read-minibuffer "Height: ")))))
-  (gomoku-switch-to-window)
+  ;; gomoku-switch-to-window, but without the potential call to gomoku
+  ;; from gomoku-prompt-for-other-game.
+  (if (get-buffer gomoku-buffer-name)
+      (switch-to-buffer gomoku-buffer-name)
+    (when gomoku-game-in-progress
+      (setq gomoku-emacs-is-computing nil)
+      (gomoku-terminate-game 'crash-game)
+      (sit-for 4)
+      (or (y-or-n-p "Another game? ") (error "Chicken!")))
+    (switch-to-buffer gomoku-buffer-name)
+    (gomoku-mode))
   (cond
    (gomoku-emacs-is-computing
     (gomoku-crash-game))
@@ -766,14 +779,14 @@ Use \\[describe-mode] for more info."
       (if (and (> m max-height)
 	       (not (eq m gomoku-saved-board-height))
 	       ;; Use EQ because SAVED-BOARD-HEIGHT may be nil
-	       (not (y-or-n-p (format "Do you really want %d rows " m))))
+	       (not (y-or-n-p (format "Do you really want %d rows? " m))))
 	  (setq m max-height)))
     (message "One moment, please...")
     (gomoku-start-game n m)
-    (if (y-or-n-p "Do you allow me to play first ")
+    (if (y-or-n-p "Do you allow me to play first? ")
 	(gomoku-emacs-plays)
 	(gomoku-prompt-for-move)))
-   ((y-or-n-p "Shall we continue our game ")
+   ((y-or-n-p "Shall we continue our game? ")
     (gomoku-prompt-for-move))
    (t
     (gomoku-human-resigns))))
@@ -862,9 +875,9 @@ If the game is finished, this command requests for another game."
     (let (square score)
       (setq square (gomoku-point-square))
       (cond ((null square)
-	     (error "Your point is not on a square. Retry !"))
+	     (error "Your point is not on a square. Retry!"))
 	    ((not (zerop (aref gomoku-board square)))
-	     (error "Your point is not on a free square. Retry !"))
+	     (error "Your point is not on a free square. Retry!"))
 	    (t
 	     (setq score (aref gomoku-score-table square))
 	     (gomoku-play-move square 1)
@@ -889,7 +902,7 @@ If the game is finished, this command requests for another game."
     (sit-for 4)
     (gomoku-prompt-for-other-game))
    ((zerop gomoku-number-of-human-moves)
-    (message "You have not played yet... Your move ?"))
+    (message "You have not played yet... Your move?"))
    (t
     (message "One moment, please...")
     ;; It is possible for the user to let Emacs play several consecutive
@@ -910,9 +923,9 @@ If the game is finished, this command requests for another game."
     (gomoku-crash-game))
    ((not gomoku-game-in-progress)
     (message "There is no game in progress"))
-   ((y-or-n-p "You mean, you resign ")
+   ((y-or-n-p "You mean, you resign? ")
     (gomoku-terminate-game 'human-resigned))
-   ((y-or-n-p "You mean, we continue ")
+   ((y-or-n-p "You mean, we continue? ")
     (gomoku-prompt-for-move))
    (t
     (gomoku-terminate-game 'human-resigned)))) ; OK. Accept it
@@ -924,21 +937,21 @@ If the game is finished, this command requests for another game."
 (defun gomoku-prompt-for-move ()
   "Display a message asking for Human's move."
   (message (if (zerop gomoku-number-of-human-moves)
-	       "Your move ? (move to a free square and hit X, RET ...)"
-	       "Your move ?"))
+	       "Your move? (move to a free square and hit X, RET ...)"
+	       "Your move?"))
   ;; This may seem silly, but if one omits the following line (or a similar
   ;; one), the cursor may very well go to some place where POINT is not.
   (save-excursion (set-buffer (other-buffer))))
 
 (defun gomoku-prompt-for-other-game ()
   "Ask for another game, and start it."
-  (if (y-or-n-p "Another game ")
+  (if (y-or-n-p "Another game? ")
       (gomoku gomoku-board-width gomoku-board-height)
-    (message "Chicken !")))
+    (error "Chicken!")))
 
 (defun gomoku-offer-a-draw ()
   "Offer a draw and return t if Human accepted it."
-  (or (y-or-n-p "I offer you a draw. Do you accept it ")
+  (or (y-or-n-p "I offer you a draw. Do you accept it? ")
       (not (setq gomoku-human-refused-draw t))))
 
 ;;;
@@ -1067,13 +1080,12 @@ If the game is finished, this command requests for another game."
 (defun gomoku-switch-to-window ()
   "Find or create the Gomoku buffer, and display it."
   (interactive)
-  (let ((buff (get-buffer "*Gomoku*")))
-    (if buff				; Buffer exists:
-	(switch-to-buffer buff)		;   no problem.
-      (if gomoku-game-in-progress
-	  (gomoku-crash-game))		;   buffer has been killed or something
-      (switch-to-buffer "*Gomoku*")	; Anyway, start anew.
-      (gomoku-mode))))
+  (if (get-buffer gomoku-buffer-name)       ; Buffer exists:
+      (switch-to-buffer gomoku-buffer-name) ;   no problem.
+    (if gomoku-game-in-progress
+        (gomoku-crash-game))            ;   buffer has been killed or something
+    (switch-to-buffer gomoku-buffer-name)   ; Anyway, start anew.
+    (gomoku-mode)))
 
 ;;;
 ;;; CROSSING WINNING QTUPLES.
@@ -1199,4 +1211,5 @@ If the game is finished, this command requests for another game."
 
 (provide 'gomoku)
 
+;;; arch-tag: b1b8205e-77fc-4597-b373-3ea2c04311eb
 ;;; gomoku.el ends here

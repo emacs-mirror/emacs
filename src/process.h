@@ -1,5 +1,6 @@
 /* Definitions for asynchronous process control in GNU Emacs.
-   Copyright (C) 1985, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* This structure records information about a subprocess
@@ -33,9 +34,6 @@ struct Lisp_Process
     Lisp_Object infd;
     /* Descriptor by which we write to this process */
     Lisp_Object outfd;
-    /* Descriptor for the tty which this process is using.
-       nil if we didn't record it (on some systems, there's no need).  */
-    Lisp_Object subtty;
     /* Name of subprocess terminal.  */
     Lisp_Object tty_name;
     /* Name of this process */
@@ -55,8 +53,6 @@ struct Lisp_Process
     Lisp_Object buffer;
     /* Number of this process */
     Lisp_Object pid;
-    /* Non-nil if this is really a command channel */
-    Lisp_Object command_channel_p;
     /* t if this is a real child process.
        For a net connection, it is a plist based on the arguments to make-network-process.  */
     Lisp_Object childp;
@@ -104,6 +100,18 @@ struct Lisp_Process
        generated, and can be changed by the function
        `set-process-fileter-multibyte'. */
     Lisp_Object filter_multibyte;
+    /* Should we delay reading output from this process.
+       Initialized from `Vprocess_adaptive_read_buffering'.  */
+    Lisp_Object adaptive_read_buffering;
+    /* Hysteresis to try to read process output in larger blocks.
+       On some systems, e.g. GNU/Linux, Emacs is seen as 
+       an interactive app also when reading process output, meaning
+       that process output can be read in as little as 1 byte at a
+       time.  Value is micro-seconds to delay reading output from
+       this process.  Range is 0 .. 50000.  */
+    Lisp_Object read_output_delay;
+    /* Skip reading this process on next read.  */
+    Lisp_Object read_output_skip;
 };
 
 /* Every field in the preceding structure except for the first two
@@ -127,6 +135,9 @@ extern int synch_process_alive;
 /* Nonzero => this is a string explaining death of synchronous subprocess.  */
 extern char *synch_process_death;
 
+/* Nonzero => this is the signal number that terminated the subprocess.  */
+extern int synch_process_termsig;
+
 /* If synch_process_death is zero,
    this is exit code of synchronous subprocess.  */
 extern int synch_process_retcode;
@@ -136,3 +147,6 @@ extern int synch_process_retcode;
 #ifndef NULL_DEVICE
 #define NULL_DEVICE "/dev/null"
 #endif
+
+/* arch-tag: dffedfc4-d7bc-4b58-a26f-c16155449c72
+   (do not change this comment) */

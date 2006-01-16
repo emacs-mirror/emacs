@@ -1,7 +1,8 @@
 ;;; japanese.el --- Quail package for inputting Japanese  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, input method, Japanese
 
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -79,9 +80,9 @@
   (when (= (char-before (overlay-end quail-conv-overlay)) ?n)
     ;; The last char is `n'.  We had better convert it to `ん'
     ;; before kana-kanji conversion.
-    (goto-char (overlay-end quail-conv-overlay))
-    (delete-char -1)
-    (insert ?ん))
+    (goto-char (1- (overlay-end quail-conv-overlay)))
+    (insert ?ん)
+    (delete-char 1))
   (let* ((from (copy-marker (overlay-start quail-conv-overlay)))
 	 (len (- (overlay-end quail-conv-overlay) from)))
     (quail-delete-overlays)
@@ -543,4 +544,5 @@ qq:	toggle between this input method and the input method `japanese-ascii'.
 			  (vector (japanese-katakana (aref trans 0))))
 			 (t trans)))))
 
+;;; arch-tag: 47e0bfd4-6ecc-4d01-89a8-d687c5e01ff7
 ;;; japanese.el ends here

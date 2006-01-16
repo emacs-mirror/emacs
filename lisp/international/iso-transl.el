@@ -1,6 +1,7 @@
 ;;; iso-transl.el --- keyboard input definitions for ISO 8859-1  -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1987, 1993, 1994, 1995, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -292,4 +293,5 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
 
 (provide 'iso-transl)
 
+;;; arch-tag: 034cfedf-7ebd-461d-bcd0-5c79e6dc0b61
 ;;; iso-transl.el ends here

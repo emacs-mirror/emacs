@@ -1,6 +1,7 @@
 ;;; align.el --- align text to a specific column, by regexp
 
-;; Copyright (C) 1999, 2000, 2002 Free Sofware Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: convenience languages lisp
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -383,9 +384,6 @@ The possible settings for `align-region-separate' are:
 			   regexp function)))))))
   "The `type' form for any `align-rules-list' variable.")
 
-(unless (functionp 'c-guess-basic-syntax)
-  (autoload 'c-guess-basic-syntax "cc-engine"))
-
 (defcustom align-rules-list
   `((lisp-second-arg
      (regexp   . "\\(^\\s-+[^( \t\n]\\|(\\(\\S-+\\)\\s-+\\)\\S-+\\(\\s-+\\)")
@@ -466,13 +464,13 @@ The possible settings for `align-region-separate' are:
      (repeat   . t)
      (modes    . align-c++-modes)
      (run-if   . ,(function (lambda () current-prefix-arg))))
-;      (valid
-;       . ,(function
-;	  (lambda ()
-;	    (memq (caar (c-guess-basic-syntax))
-;		  '(brace-list-intro
-;		    brace-list-entry
-;		    brace-entry-open))))))
+					;      (valid
+					;       . ,(function
+					;	  (lambda ()
+					;	    (memq (caar (c-guess-basic-syntax))
+					;		  '(brace-list-intro
+					;		    brace-list-entry
+					;		    brace-entry-open))))))
 
     ;; With a prefix argument, comma delimiter will be aligned.  Since
     ;; perl-mode doesn't give us enough syntactic information (and we
@@ -525,11 +523,11 @@ The possible settings for `align-region-separate' are:
      (regexp   . "\\(\\s-*\\)\\\\$")
      (modes    . align-c++-modes)
      (column   . c-backslash-column))
-;      (valid
-;       . ,(function
-;	  (lambda ()
-;	    (memq (caar (c-guess-basic-syntax))
-;		  '(cpp-macro cpp-macro-cont))))))
+					;      (valid
+					;       . ,(function
+					;	  (lambda ()
+					;	    (memq (caar (c-guess-basic-syntax))
+					;		  '(cpp-macro cpp-macro-cont))))))
 
     (basic-line-continuation
      (regexp   . "\\(\\s-*\\)\\\\$")
@@ -561,7 +559,7 @@ The possible settings for `align-region-separate' are:
     ;; With a numeric prefix argument, or C-u, space delimited text
     ;; tables will be aligned.
     (text-column
-     (regexp   . "\\(^\\|\\S-\\)\\(\\s-+\\)\\(\\S-\\|$\\)")
+     (regexp   . "\\(^\\|\\S-\\)\\([ \t]+\\)\\(\\S-\\|$\\)")
      (group    . 2)
      (modes    . align-text-modes)
      (repeat   . t)
@@ -578,7 +576,12 @@ The possible settings for `align-region-separate' are:
      (justify  . t)
      (run-if   . ,(function
 		   (lambda ()
-		     (eq '- current-prefix-arg))))))
+		     (eq '- current-prefix-arg)))))
+
+    (css-declaration
+     (regexp . "^\\s-*\\w+:\\(\\s-*\\).*;")
+     (group . (1))
+     (modes . '(css-mode html-mode))))
   "*A list describing all of the available alignment rules.
 The format is:
 
@@ -635,9 +638,9 @@ The following attributes are meaningful:
 	    containing alphabetic character, sometimes you may want
 	    the search to proceed case-insensitively (for languages
 	    that ignore case, such as pascal for example).  In that
-	    case, set `case-fold' to nil, and the regular expression
-	    search will ignore case.  If `regexp' is set to a
-	    function, that function must handle the job of ignoring
+	    case, set `case-fold' to a non-nil value, and the regular
+	    expression search will ignore case.  If `regexp' is set to
+	    a function, that function must handle the job of ignoring
 	    case by itself.
 
 `tab-stop'  If the `tab-stop' attribute is set, and non-nil, the
@@ -928,15 +931,14 @@ using a REGEXP like \"(\". All you would have to do is to mark the
 region, call `align-regexp' and type in that regular expression."
   (interactive
    (append
-    (list (min (point) (mark))
-	  (max (point) (mark)))
+    (list (region-beginning) (region-end))
     (if current-prefix-arg
 	(list (read-string "Complex align using regexp: "
 			   "\\(\\s-*\\)")
-	      (string-to-int
+	      (string-to-number
 	       (read-string
 		"Parenthesis group to modify (justify if negative): " "1"))
-	      (string-to-int
+	      (string-to-number
 	       (read-string "Amount of spacing (or column if negative): "
 			    (number-to-string align-default-spacing)))
 	      (y-or-n-p "Repeat throughout line? "))
@@ -985,8 +987,7 @@ list of rules (see `align-rules-list'), it can be used to override the
 default alignment rules that would have been used to identify the text
 to be colored."
   (interactive
-   (list (min (mark) (point))
-	 (max (mark) (point))
+   (list (region-beginning) (region-end)
 	 (completing-read
 	  "Title of rule to highlight: "
 	  (mapcar
@@ -1212,6 +1213,14 @@ have been aligned.  No changes will be made to the buffer."
 	      (cond ((< gocol 0) t)     ; don't do anything
 		    ((= cur gocol) t)   ; don't need to
 		    ((< cur gocol)      ; just add space
+		     ;; FIXME: It is stated above that "...the
+		     ;;	       whitespace to be modified was already
+		     ;;	       deleted by `align-region', all we have
+		     ;;	       to do here is indent."  However, this
+		     ;;	       doesn't seem to be true, so we first
+		     ;;	       delete the whitespace to avoid tabs
+		     ;;	       after spaces.
+		     (delete-horizontal-space t)
 		     (indent-to gocol))
 		    (t
 		     ;; This code works around an oddity in the
@@ -1588,4 +1597,5 @@ aligner would have dealt with are."
 
 (run-hooks 'align-load-hook)
 
+;;; arch-tag: ef79cccf-1db8-4888-a8a1-d7ce2d1532f7
 ;;; align.el ends here

@@ -1,6 +1,6 @@
 ;;; cust-print.el --- handles print-level and print-circle
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Adapted-By: ESR
@@ -24,8 +24,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -178,7 +178,7 @@ print-level, but not for vectors."
 ;; Custom printers
 ;;==========================================================
 
-(defconst custom-printers nil
+(defvar custom-printers nil
   ;; e.g. '((symbolp . pkg::print-symbol))
   "An alist for custom printing of any type.
 Pairs are of the form (PREDICATE . PRINTER).  If PREDICATE is true
@@ -688,4 +688,5 @@ See `custom-format' for the details."
 
 (provide 'cust-print)
 
+;;; arch-tag: 3a5a8650-622c-48c4-87d8-e01bf72ec580
 ;;; cust-print.el ends here

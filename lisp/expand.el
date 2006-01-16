@@ -1,6 +1,7 @@
 ;;; expand.el --- make abbreviations more usable
 
-;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Frederic Lepied <Frederic.Lepied@sugix.frmug.org>
 ;; Maintainer: Frederic Lepied <Frederic.Lepied@sugix.frmug.org>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;
@@ -504,4 +505,5 @@ This is used only in conjunction with `expand-add-abbrevs'."
 ;; run load hooks
 (run-hooks 'expand-load-hook)
 
+;;; arch-tag: fee53e9e-30e3-4ef3-b191-9785e1f8e885
 ;;; expand.el ends here

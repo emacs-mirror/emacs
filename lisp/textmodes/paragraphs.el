@@ -1,7 +1,7 @@
 ;;; paragraphs.el --- paragraph and sentence parsing
 
-;; Copyright (C) 1985, 86, 87, 91, 94, 95, 96, 1997, 1999, 2000, 2001
-;;    Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1991, 1994, 1995, 1996, 1997, 1999, 2000,
+;;   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -34,6 +34,7 @@
   "Paragraph and sentence parsing."
   :group 'editing)
 
+(put 'use-hard-newlines 'permanent-local t)
 (define-minor-mode use-hard-newlines
   "Minor mode to distinguish hard and soft newlines.
 When active, the functions `newline' and `open-line' add the
@@ -120,40 +121,71 @@ text indented by a margin setting."
 This is relevant for filling.  See also `sentence-end-without-period'
 and `colon-double-space'.
 
-If you change this, you should also change `sentence-end'.  See Info
-node `Sentences'."
+This value is used by the function `sentence-end' to construct the
+regexp describing the end of a sentence, when the value of the variable
+`sentence-end' is nil.  See Info node `(elisp)Standard Regexps'."
   :type 'boolean
   :group 'fill)
 
 (defcustom sentence-end-without-period nil
   "*Non-nil means a sentence will end without a period.
 For example, a sentence in Thai text ends with double space but
-without a period."
+without a period.
+
+This value is used by the function `sentence-end' to construct the
+regexp describing the end of a sentence, when the value of the variable
+`sentence-end' is nil.  See Info node `(elisp)Standard Regexps'."
   :type 'boolean
   :group 'fill)
 
-(defcustom sentence-end
-  (purecopy
-   ;; This is a bit stupid since it's not auto-updated when the
-   ;; other variables are changes, but it's still useful info.
-   (concat (if sentence-end-without-period "\\w  \\|")
-	   "[.?!][]\"')}]*"
-	   (if sentence-end-double-space
-	       "\\($\\| $\\|\t\\|  \\)" "\\($\\|[\t ]\\)")
-	   "[ \t\n]*"))
+(defcustom sentence-end-without-space
+  "$B!#!%!)!*$A!##.#?#!$(0!$!%!)!*$(G!$!%!)!*(B"
+  "*String of characters that end sentence without following spaces.
+
+This value is used by the function `sentence-end' to construct the
+regexp describing the end of a sentence, when the value of the variable
+`sentence-end' is nil.  See Info node `(elisp)Standard Regexps'."
+  :group 'paragraphs
+  :type 'string)
+
+(defcustom sentence-end nil
   "*Regexp describing the end of a sentence.
 The value includes the whitespace following the sentence.
 All paragraph boundaries also end sentences, regardless.
 
-The default value specifies that in order to be recognized as the end
-of a sentence, the ending period, question mark, or exclamation point
-must be followed by two spaces, unless it's inside some sort of quotes
-or parenthesis.
-
-See also the variable `sentence-end-double-space', the variable
-`sentence-end-without-period' and Info node `Sentences'."
+The value nil means to use the default value defined by the
+function `sentence-end'.  You should always use this function
+to obtain the value of this variable."
   :group 'paragraphs
-  :type 'regexp)
+  :type '(choice regexp (const :tag "Use default value" nil)))
+
+(defcustom sentence-end-base "[.?!][]\"'$B!I$,1r}(B)}]*"
+  "*Regexp matching the basic end of a sentence, not including following space."
+  :group 'paragraphs
+  :type 'string
+  :version "22.1")
+
+(defun sentence-end ()
+  "Return the regexp describing the end of a sentence.
+
+This function returns either the value of the variable `sentence-end'
+if it is non-nil, or the default value constructed from the
+variables `sentence-end-base', `sentence-end-double-space',
+`sentence-end-without-period' and `sentence-end-without-space'.
+
+The default value specifies that in order to be recognized as the
+end of a sentence, the ending period, question mark, or exclamation point
+must be followed by two spaces, with perhaps some closing delimiters
+in between.  See Info node `(elisp)Standard Regexps'."
+  (or sentence-end
+      (concat (if sentence-end-without-period "\\w  \\|")
+	      "\\("
+	      sentence-end-base
+              (if sentence-end-double-space
+                  "\\($\\| $\\|\t\\|  \\)" "\\($\\|[\t ]\\)")
+              "\\|[" sentence-end-without-space "]+"
+	      "\\)"
+              "[ \t\n]*")))
 
 (defcustom page-delimiter "^\014"
   "*Regexp describing line-beginnings that separate pages."
@@ -251,8 +283,9 @@ Returns the count of paragraphs left to move."
 				   (not (looking-at parsep)))
 			    (not (and (looking-at parstart)
 				      (or (not use-hard-newlines)
-					  (get-text-property (1- start) 'hard)
-					  (bobp)))))
+					  (bobp)
+					  (get-text-property
+					   (1- start) 'hard)))))
 		  (setq found-start nil)
 		  (goto-char start))
 		found-start)
@@ -323,7 +356,7 @@ See `forward-paragraph' for more information."
   (or arg (setq arg 1))
   (forward-paragraph (- arg)))
 
-(defun mark-paragraph (&optional arg)
+(defun mark-paragraph (&optional arg allow-extend)
   "Put point at beginning of this paragraph, mark at end.
 The paragraph marked is the one that contains point or follows point.
 
@@ -333,13 +366,16 @@ the number of paragraphs marked equals ARG.
 If ARG is negative, point is put at end of this paragraph, mark is put
 at beginning of this or a previous paragraph.
 
-If this command is repeated, it marks the next ARG paragraphs after (or
-before, if arg is negative) the ones already marked."
-  (interactive "p")
+Interactively, if this command is repeated
+or (in Transient Mark mode) if the mark is active,
+it marks the next ARG paragraphs after the ones already marked."
+  (interactive "p\np")
   (unless arg (setq arg 1))
   (when (zerop arg)
     (error "Cannot mark zero paragraphs"))
-  (cond ((and (eq last-command this-command) (mark t))
+  (cond ((and allow-extend
+	      (or (and (eq last-command this-command) (mark t))
+		  (and transient-mark-mode mark-active)))
 	 (set-mark
 	  (save-excursion
 	    (goto-char (mark))
@@ -402,7 +438,8 @@ The variable `sentence-end' is a regular expression that matches ends of
 sentences.  Also, every paragraph boundary terminates sentences as well."
   (interactive "p")
   (or arg (setq arg 1))
-  (let ((opoint (point)))
+  (let ((opoint (point))
+        (sentence-end (sentence-end)))
     (while (< arg 0)
       (let ((pos (point))
 	    (par-beg (save-excursion (start-of-paragraph-text) (point))))
@@ -419,6 +456,14 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
 	 (goto-char par-end)))
       (setq arg (1- arg)))
     (constrain-to-field nil opoint t)))
+
+(defun repunctuate-sentences ()
+  "Put two spaces at the end of sentences from point to the end of buffer.
+It works using `query-replace-regexp'."
+  (interactive)
+  (query-replace-regexp "\\([]\"')]?\\)\\([.?!]\\)\\([]\"')]?\\) +"
+			"\\1\\2\\3  "))
+
 
 (defun backward-sentence (&optional arg)
   "Move backward to start of sentence.  With arg, do it arg times.
@@ -457,4 +502,9 @@ ones already marked."
   (interactive "*p")
   (transpose-subr 'forward-sentence arg))
 
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; End:
+
+;; arch-tag: e727eb1a-527a-4464-b9d7-9d3ec0d1a575
 ;;; paragraphs.el ends here

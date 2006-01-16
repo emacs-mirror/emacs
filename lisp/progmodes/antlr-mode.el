@@ -1,9 +1,10 @@
 ;;; antlr-mode.el --- major mode for ANTLR grammar files
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 ;;
 ;; Author: Christoph.Wedler@sap.com
-;; Keywords: languages
+;; Keywords: languages, ANTLR, code generator
 ;; Version: (see `antlr-version' below)
 ;; X-URL: http://antlr-mode.sourceforge.net/
 
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -55,6 +56,9 @@
 ;;  * Probably.  Show rules/dependencies for ANT like for Makefile (does ANT
 ;;    support vocabularies and grammar inheritance?), I have to look at
 ;;    jde-ant.el: http://jakarta.apache.org/ant/manual/OptionalTasks/antlr.html
+;;  * Probably.  Make `indent-region' faster, especially in actions.  ELP
+;;    profiling in a class init action shows half the time is spent in
+;;    `antlr-next-rule', the other half in `c-guess-basic-syntax'.
 ;;  * Unlikely.  Sather as generated language with syntax highlighting etc/.
 ;;    Questions/problems: is sather-mode.el the standard mode for sather, is it
 ;;    still supported, what is its relationship to eiffel3.el?  Requirement:
@@ -158,7 +162,7 @@
 ;; More compile-time-macros
 (eval-when-compile
   (defmacro save-buffer-state-x (&rest body) ; similar to EMACS/lazy-lock.el
-    (let ((modified (gensym "save-buffer-state-x-modified-")))
+    (let ((modified (with-no-warnings (gensym "save-buffer-state-x-modified-"))))
       `(let ((,modified (buffer-modified-p)))
 	 (unwind-protect
 	     (let ((buffer-undo-list t) (inhibit-read-only t)
@@ -173,12 +177,23 @@
 
 ;; get rid of byte-compile warnings
 (eval-when-compile			; required and optional libraries
-  (ignore-errors (require 'cc-mode))
+  (require 'cc-mode)
   (ignore-errors (require 'font-lock))
   (ignore-errors (require 'compile))
+  ;;(ignore-errors (defun c-init-language-vars))) dangerous on Emacs!
+  ;;(ignore-errors (defun c-init-c-language-vars))) dangerous on Emacs!
+  ;;(ignore-errors (defun c-basic-common-init))   dangerous on Emacs!
   (defvar outline-level) (defvar imenu-use-markers)
-  (defvar imenu-create-index-function)
-  (ignore-errors (defun c-init-language-vars)))
+  (defvar imenu-create-index-function))
+
+;; We cannot use `c-forward-syntactic-ws' directly since it is a macro since
+;; cc-mode-5.30 => antlr-mode compiled with older cc-mode would fail (macro
+;; call) when used with newer cc-mode.  Also, antlr-mode compiled with newer
+;; cc-mode would fail (undefined `c-forward-sws') when used with older cc-mode.
+;; Additional to the `defalias' below, we must set `antlr-c-forward-sws' to
+;; `c-forward-syntactic-ws' when `c-forward-sws' is not defined after requiring
+;; cc-mode.
+(defalias 'antlr-c-forward-sws 'c-forward-sws)
 
 
 ;;;;##########################################################################
@@ -193,7 +208,7 @@
   :link '(url-link "http://antlr-mode.sourceforge.net/")
   :prefix "antlr-")
 
-(defconst antlr-version "2.2b"
+(defconst antlr-version "2.2c"
   "ANTLR major mode version number.
 Check <http://antlr-mode.sourceforge.net/> for the newest.")
 
@@ -771,6 +786,7 @@ bound to `antlr-language'.  For example, with value
   \((java-mode \. 2) (c++-mode \. 0))
 Java actions are fontified with level 2 and C++ actions are not
 fontified at all."
+  :group 'antlr
   :type '(choice (const :tag "None" none)
 		 (const :tag "Inherit" inherit)
 		 (const :tag "Default" nil)
@@ -812,58 +828,72 @@ font-lock keywords according to `font-lock-defaults' used for the code
 in the grammar's actions and semantic predicates, see
 `antlr-font-lock-maximum-decoration'.")
 
-(defvar antlr-font-lock-default-face 'antlr-font-lock-default-face)
-(defface antlr-font-lock-default-face nil
+(defvar antlr-default-face 'antlr-default)
+(defface antlr-default nil
   "Face to prevent strings from language dependent highlighting.
 Do not change."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-default-face 'face-alias 'antlr-default)
 
-(defvar antlr-font-lock-keyword-face 'antlr-font-lock-keyword-face)
-(defface antlr-font-lock-keyword-face
+(defvar antlr-keyword-face 'antlr-keyword)
+(defface antlr-keyword
   (cond-emacs-xemacs
    '((((class color) (background light))
       (:foreground "black" :EMACS :weight bold :XEMACS :bold t))))
   "ANTLR keywords."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-keyword-face 'face-alias 'antlr-keyword)
 
-(defvar antlr-font-lock-syntax-face 'antlr-font-lock-keyword-face)
-(defface antlr-font-lock-syntax-face
+(defvar antlr-syntax-face 'antlr-keyword)
+(defface antlr-syntax
   (cond-emacs-xemacs
    '((((class color) (background light))
       (:foreground "black" :EMACS :weight bold :XEMACS :bold t))))
   "ANTLR syntax symbols like :, |, (, ), ...."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-syntax-face 'face-alias 'antlr-syntax)
 
-(defvar antlr-font-lock-ruledef-face 'antlr-font-lock-ruledef-face)
-(defface antlr-font-lock-ruledef-face
+(defvar antlr-ruledef-face 'antlr-ruledef)
+(defface antlr-ruledef
   (cond-emacs-xemacs
    '((((class color) (background light))
       (:foreground "blue" :EMACS :weight bold :XEMACS :bold t))))
   "ANTLR rule references (definition)."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-ruledef-face 'face-alias 'antlr-ruledef)
 
-(defvar antlr-font-lock-tokendef-face 'antlr-font-lock-tokendef-face)
-(defface antlr-font-lock-tokendef-face
+(defvar antlr-tokendef-face 'antlr-tokendef)
+(defface antlr-tokendef
   (cond-emacs-xemacs
    '((((class color) (background light))
       (:foreground "blue" :EMACS :weight bold :XEMACS :bold t))))
   "ANTLR token references (definition)."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-tokendef-face 'face-alias 'antlr-tokendef)
 
-(defvar antlr-font-lock-ruleref-face 'antlr-font-lock-ruleref-face)
-(defface antlr-font-lock-ruleref-face
+(defvar antlr-ruleref-face 'antlr-ruleref)
+(defface antlr-ruleref
   '((((class color) (background light)) (:foreground "blue4")))
   "ANTLR rule references (usage)."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-ruleref-face 'face-alias 'antlr-ruleref)
 
-(defvar antlr-font-lock-tokenref-face 'antlr-font-lock-tokenref-face)
-(defface antlr-font-lock-tokenref-face
+(defvar antlr-tokenref-face 'antlr-tokenref)
+(defface antlr-tokenref
   '((((class color) (background light)) (:foreground "orange4")))
   "ANTLR token references (usage)."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-tokenref-face 'face-alias 'antlr-tokenref)
 
-(defvar antlr-font-lock-literal-face 'antlr-font-lock-literal-face)
-(defface antlr-font-lock-literal-face
+(defvar antlr-literal-face 'antlr-literal)
+(defface antlr-literal
   (cond-emacs-xemacs
    '((((class color) (background light))
       (:foreground "brown4" :EMACS :weight bold :XEMACS :bold t))))
@@ -871,6 +901,8 @@ Do not change."
 It is used to highlight strings matched by the first regexp group of
 `antlr-font-lock-literal-regexp'."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-literal-face 'face-alias 'antlr-literal)
 
 (defcustom antlr-font-lock-literal-regexp "\"\\(\\sw\\(\\sw\\|-\\)*\\)\""
   "Regexp matching literals with special syntax highlighting, or nil.
@@ -889,56 +921,56 @@ group.  The string matched by the first group is highlighted with
   (cond-emacs-xemacs
    `((antlr-invalidate-context-cache)
      ("\\$setType[ \t]*(\\([A-Za-z\300-\326\330-\337]\\sw*\\))"
-      (1 antlr-font-lock-tokendef-face))
-     ("\\$\\sw+" (0 font-lock-keyword-face))
+      (1 antlr-tokendef-face))
+     ("\\$\\sw+" (0 keyword-face))
      ;; the tokens are already fontified as string/docstrings:
      (,(lambda (limit)
 	 (if antlr-font-lock-literal-regexp
 	     (antlr-re-search-forward antlr-font-lock-literal-regexp limit)))
-      (1 antlr-font-lock-literal-face t)
+      (1 antlr-literal-face t)
       :XEMACS (0 nil))			; XEmacs bug workaround
      (,(lambda (limit)
 	 (antlr-re-search-forward antlr-class-header-regexp limit))
-      (1 antlr-font-lock-keyword-face)
-      (2 antlr-font-lock-ruledef-face)
-      (3 antlr-font-lock-keyword-face)
+      (1 antlr-keyword-face)
+      (2 antlr-ruledef-face)
+      (3 antlr-keyword-face)
       (4 (if (member (match-string 4) '("Lexer" "Parser" "TreeParser"))
-	     'antlr-font-lock-keyword-face
-	   'font-lock-type-face)))
+	     antlr-keyword-face
+	   type-face)))
      (,(lambda (limit)
 	 (antlr-re-search-forward
 	  "\\<\\(header\\|options\\|tokens\\|exception\\|catch\\|returns\\)\\>"
 	  limit))
-     (1 antlr-font-lock-keyword-face))
+     (1 antlr-keyword-face))
      (,(lambda (limit)
 	 (antlr-re-search-forward
 	  "^\\(private\\|public\\|protected\\)\\>[ \t]*\\(\\(\\sw+[ \t]*\\(:\\)?\\)\\)?"
 	  limit))
      (1 font-lock-type-face)		; not XEmacs' java level-3 fruit salad
      (3 (if (antlr-upcase-p (char-after (match-beginning 3)))
-	    'antlr-font-lock-tokendef-face
-	  'antlr-font-lock-ruledef-face) nil t)
-     (4 antlr-font-lock-syntax-face nil t))
+	    antlr-tokendef-face
+	  antlr-ruledef-face) nil t)
+     (4 antlr-syntax-face nil t))
      (,(lambda (limit)
 	 (antlr-re-search-forward "^\\(\\sw+\\)[ \t]*\\(:\\)?" limit))
      (1 (if (antlr-upcase-p (char-after (match-beginning 0)))
-	    'antlr-font-lock-tokendef-face
-	  'antlr-font-lock-ruledef-face) nil t)
-     (2 antlr-font-lock-syntax-face nil t))
+	    antlr-tokendef-face
+	  antlr-ruledef-face) nil t)
+     (2 antlr-syntax-face nil t))
      (,(lambda (limit)
 	 ;; v:ruleref and v:"literal" is allowed...
 	 (antlr-re-search-forward "\\(\\sw+\\)[ \t]*\\([=:]\\)?" limit))
      (1 (if (match-beginning 2)
 	    (if (eq (char-after (match-beginning 2)) ?=)
-		'antlr-font-lock-default-face
-	      'font-lock-variable-name-face)
+		antlr-default-face
+	      font-lock-variable-name-face)
 	  (if (antlr-upcase-p (char-after (match-beginning 1)))
-	      'antlr-font-lock-tokenref-face
-	    'antlr-font-lock-ruleref-face)))
-     (2 antlr-font-lock-default-face nil t))
+	      antlr-tokenref-face
+	    antlr-ruleref-face)))
+     (2 antlr-default-face nil t))
      (,(lambda (limit)
 	 (antlr-re-search-forward "[|&:;(~]\\|)\\([*+?]\\|=>\\)?" limit))
-     (0 'antlr-font-lock-syntax-face))))
+     (0 antlr-syntax-face))))
   "Font-lock keywords for ANTLR's normal grammar code.
 See `antlr-font-lock-keywords-alist' for the keywords of actions.")
 
@@ -1190,7 +1222,7 @@ strings and actions/semantic predicates."
 Return position before the comments after the last expression."
   (goto-char (or (ignore-errors-x (scan-sexps (point) count)) (point-max)))
   (prog1 (point)
-    (c-forward-syntactic-ws)))
+    (antlr-c-forward-sws)))
 
 
 ;;;===========================================================================
@@ -1272,7 +1304,7 @@ header.  If SKIP-COMMENT is non-nil, also skip the comment after that
 part."
   (let ((pos (point))
 	(class nil))
-    (c-forward-syntactic-ws)
+    (antlr-c-forward-sws)
     (while (looking-at "options\\>\\|tokens\\>")
       (setq class t)
       (setq pos (antlr-skip-sexps 2)))
@@ -1298,7 +1330,7 @@ Hack: if SKIP-COMMENT is `header-only' only skip header and return
 position before the comment after the header."
   (let* ((pos (point))
 	 (pos0 pos))
-    (c-forward-syntactic-ws)
+    (antlr-c-forward-sws)
     (if skip-comment (setq pos0 (point)))
     (while (looking-at "header\\>[ \t]*\\(\"\\)?")
       (setq pos (antlr-skip-sexps (if (match-beginning 1) 3 2))))
@@ -1360,7 +1392,7 @@ Move to the beginning of the current rule if point is inside a rule."
   (let ((pos (point)))
     (antlr-next-rule -1 nil)
     (let ((between (or (bobp) (< (point) pos))))
-      (c-forward-syntactic-ws)
+      (antlr-c-forward-sws)
       (and between (> (point) pos) (goto-char pos)))))
 
 
@@ -1420,7 +1452,7 @@ prefix arg MSG, move to `:'."
 			  (or (antlr-search-forward ":") (point-max))))
 	    (goto-char orig)
 	    (error msg))
-	  (c-forward-syntactic-ws))))))
+	  (antlr-c-forward-sws))))))
 
 (defunx antlr-beginning-of-body ()
   "Move to the first element after the `:' of the current rule."
@@ -1598,7 +1630,7 @@ This command might also set the mark like \\[set-mark-command] does, see
 
 (defun antlr-insert-option-interactive (arg)
   "Interactive specification for `antlr-insert-option'.
-Use prefix argument ARG to return \(LEVEL OPTION LOCATION)."
+Return \(LEVEL OPTION LOCATION)."
   (barf-if-buffer-read-only)
   (if arg (setq arg (prefix-numeric-value arg)))
   (unless (memq arg '(nil 1 2 3 4))
@@ -1627,7 +1659,7 @@ Use prefix argument ARG to return \(LEVEL OPTION LOCATION)."
 		      :active active))
 	    (sort (mapcar 'car (elt antlr-options-alists (1- level)))
 		  'string-lessp))))
-
+    
 
 ;;;===========================================================================
 ;;;  Insert option: determine section-kind
@@ -1653,7 +1685,7 @@ like \(AREA \. PLACE), see `antlr-option-location'."
 	       (setq pos (antlr-skip-file-prelude 'header-only)))
 	      ((not (eq level 3))	; grammar or subrule options
 	       (setq pos (point))
-	       (c-forward-syntactic-ws))
+	       (antlr-c-forward-sws))
 	      ((looking-at "^\\(private[ \t\n]\\|public[ \t\n]\\|protected[ \t\n]\\)?[ \t\n]*\\(\\(\\sw\\|\\s_\\)+\\)[ \t\n]*\\(!\\)?[ \t\n]*\\(\\[\\)?")
 	       ;; rule options, with complete rule header
 	       (goto-char (or (match-end 4) (match-end 3)))
@@ -1904,7 +1936,7 @@ For OLD, see `antlr-insert-option-do'."
     ;; stuff (no =, {, } or /) at point is not followed by ";"
     (insert ";")
     (backward-char)))
-
+	
 (defun antlr-insert-option-space (area old)
   "Find appropriate place to insert option, insert newlines/spaces.
 For AREA and OLD, see `antlr-insert-option-do'."
@@ -1924,7 +1956,7 @@ For AREA and OLD, see `antlr-insert-option-do'."
 		 (setq orig (point))
 	       (goto-char orig)))
 	(skip-chars-forward " \t")
-
+	
 	(if (looking-at "$\\|//")
 	    ;; just comment after point => skip (+ lines w/ same col comment)
 	    (let ((same (if (> (match-end 0) (match-beginning 0))
@@ -1959,7 +1991,7 @@ Used by `antlr-insert-option-do'."
   (when (and antlr-options-auto-colon
 	     (memq level '(3 4))
 	     (save-excursion
-	       (c-forward-syntactic-ws)
+	       (antlr-c-forward-sws)
 	       (if (eq (char-after (point)) ?\{) (antlr-skip-sexps 1))
 	       (not (eq (char-after (point)) ?\:))))
     (insert "\n:")
@@ -2079,12 +2111,12 @@ its export vocabulary is used as an import vocabulary."
 	       (evocab (or default-vocab class))
 	       (ivocab nil))
 	  (goto-char (match-end 0))
-	  (c-forward-syntactic-ws)
+	  (antlr-c-forward-sws)
 	  (while (looking-at "options\\>\\|\\(tokens\\)\\>")
 	    (if (match-beginning 1)
 		(antlr-skip-sexps 2)
 	      (goto-char (match-end 0))
-	      (c-forward-syntactic-ws)
+	      (antlr-c-forward-sws)
 	      ;; parse grammar option sections -------------------------------
 	      (when (eq (char-after (point)) ?\{)
 		(let* ((beg (1+ (point)))
@@ -2209,9 +2241,8 @@ called interactively, the buffers are always saved, see also variable
   (interactive (antlr-run-tool-interactive))
   (or saved (save-some-buffers (not antlr-ask-about-save)))
   (let ((default-directory (file-name-directory file)))
-    (require 'compile)			; only `compile' autoload
-    (compile-internal (concat command " " (file-name-nondirectory file))
-		      "No more errors" "Antlr-Run")))
+    (compilation-start (concat command " " (file-name-nondirectory file))
+		       nil #'(lambda (mode-name) "*Antlr-Run*"))))
 
 (defun antlr-run-tool-interactive ()
   ;; code in `interactive' is not compiled
@@ -2341,7 +2372,7 @@ commentary with value `antlr-help-unknown-file-text' is added.  The
 
 (defun antlr-indent-line ()
   "Indent the current line as ANTLR grammar code.
-The indentation of non-comment lines are calculated by `c-basic-offset',
+The indentation of grammar lines are calculated by `c-basic-offset',
 multiplied by:
  - the level of the paren/brace/bracket depth,
  - plus 0/2/1, depending on the position inside the rule: header, body,
@@ -2484,63 +2515,36 @@ ANTLR's syntax and influences the auto indentation, see
 ;;;  Mode entry
 ;;;===========================================================================
 
-(defun antlr-c-common-init ()
-  "Like `c-common-init' except menu, auto-hungry and c-style stuff."
-  ;; X/Emacs 20 only
-  (make-local-variable 'paragraph-start)
-  (make-local-variable 'paragraph-separate)
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (make-local-variable 'require-final-newline)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (make-local-variable 'indent-line-function)
-  (make-local-variable 'indent-region-function)
-  (make-local-variable 'comment-start)
-  (make-local-variable 'comment-end)
-  (make-local-variable 'comment-column)
-  (make-local-variable 'comment-start-skip)
-  (make-local-variable 'comment-multi-line)
-  (make-local-variable 'outline-regexp)
-  (make-local-variable 'outline-level)
-  (make-local-variable 'adaptive-fill-regexp)
-  (make-local-variable 'adaptive-fill-mode)
-  (make-local-variable 'imenu-generic-expression) ;set in the mode functions
-  (and (boundp 'comment-line-break-function)
-       (make-local-variable 'comment-line-break-function))
-  ;; Emacs 19.30 and beyond only, AFAIK
-  (if (boundp 'fill-paragraph-function)
-      (progn
-	(make-local-variable 'fill-paragraph-function)
-	(setq fill-paragraph-function 'c-fill-paragraph)))
-  ;; now set their values
-  (setq paragraph-start (concat page-delimiter "\\|$")
-	paragraph-separate paragraph-start
-	paragraph-ignore-fill-prefix t
-	require-final-newline t
-	parse-sexp-ignore-comments t
-	indent-line-function 'c-indent-line
-	indent-region-function 'c-indent-region
-	outline-regexp "[^#\n\^M]"
-	outline-level 'c-outline-level
-	comment-column 32
-	comment-start-skip "/\\*+ *\\|// *"
-	comment-multi-line nil
-	comment-line-break-function 'c-comment-line-break-function
-	adaptive-fill-regexp nil
-	adaptive-fill-mode nil)
-  (c-set-style (or antlr-indent-style "gnu"))
-  (and (boundp 'c-current-comment-prefix) (boundp 'c-comment-prefix-regexp)
-       (setq c-current-comment-prefix
-	     (if (listp c-comment-prefix-regexp)
-		 (cdr-safe (or (assoc major-mode c-comment-prefix-regexp)
-			       (assoc 'other c-comment-prefix-regexp)))
-	       c-comment-prefix-regexp)))
-  ;; we have to do something special for c-offsets-alist so that the
-  ;; buffer local value has its own alist structure.
-  (setq c-offsets-alist (copy-alist c-offsets-alist))
-  ;; setup the comment indent variable in a Emacs version portable way
-  ;; ignore any byte compiler warnings you might get here
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'c-comment-indent))
+(defun antlr-c-init-language-vars ()
+  "Like `c-init-language-vars-for' when using cc-mode before v5.29."
+  (let ((settings			; (cdr '(setq...)) will be optimized
+	 (if (eq antlr-language 'c++-mode)
+	     (cdr '(setq		;' from `c++-mode' v5.20, v5.28
+		    c-keywords (c-identifier-re c-C++-keywords)
+		    c-conditional-key c-C++-conditional-key
+		    c-comment-start-regexp c-C++-comment-start-regexp
+		    c-class-key c-C++-class-key
+		    c-extra-toplevel-key c-C++-extra-toplevel-key
+		    c-access-key c-C++-access-key
+		    c-recognize-knr-p nil
+		    c-bitfield-key c-C-bitfield-key ; v5.28
+		    ))
+	   (cdr '(setq			; from `java-mode' v5.20, v5.28
+		  c-keywords (c-identifier-re c-Java-keywords)
+		  c-conditional-key c-Java-conditional-key
+		  c-comment-start-regexp c-Java-comment-start-regexp
+		  c-class-key c-Java-class-key
+		  c-method-key nil
+		  c-baseclass-key nil
+		  c-recognize-knr-p nil
+		  c-access-key c-Java-access-key ; v5.20
+		  c-inexpr-class-key c-Java-inexpr-class-key ; v5.28
+		  )))))
+    (while settings
+      (when (boundp (car settings))
+	(ignore-errors
+	  (set (car settings) (eval (cadr settings)))))
+      (setq settings (cddr settings)))))
 
 (defun antlr-language-option (search)
   "Find language in `antlr-language-alist' for language option.
@@ -2563,14 +2567,15 @@ the default language."
 	(setq r nil)))			; no result yet
     (car r)))
 
-
 ;;;###autoload
 (defun antlr-mode ()
   "Major mode for editing ANTLR grammar files.
 \\{antlr-mode-map}"
   (interactive)
-  (c-initialize-cc-mode)		; required when depending on cc-mode
   (kill-all-local-variables)
+  (c-initialize-cc-mode)		; cc-mode is required
+  (unless (fboundp 'c-forward-sws)	; see above
+    (fset 'antlr-c-forward-sws 'c-forward-syntactic-ws))
   ;; ANTLR specific ----------------------------------------------------------
   (setq major-mode 'antlr-mode
 	mode-name "Antlr")
@@ -2597,42 +2602,31 @@ the default language."
 	    (concat "Antlr."
 		    (cadr (assq antlr-language antlr-language-alist)))))
   ;; indentation, for the C engine -------------------------------------------
-  (antlr-c-common-init)
+  (setq c-buffer-is-cc-mode antlr-language)
+  (cond ((fboundp 'c-init-language-vars-for) ; cc-mode 5.30.5+
+	 (c-init-language-vars-for antlr-language))
+	((fboundp 'c-init-c-language-vars) ; cc-mode 5.30 to 5.30.4
+	 (c-init-c-language-vars)	; not perfect, but OK
+	 (setq c-recognize-knr-p nil))
+	((fboundp 'c-init-language-vars) ; cc-mode 5.29
+	 (let ((init-fn 'c-init-language-vars))
+	   (funcall init-fn)))		; is a function in v5.29
+	(t				; cc-mode upto 5.28
+	 (antlr-c-init-language-vars)))	; do it myself
+  (c-basic-common-init antlr-language (or antlr-indent-style "gnu"))
+  (make-local-variable 'outline-regexp)
+  (make-local-variable 'outline-level)
+  (make-local-variable 'require-final-newline)
+  (make-local-variable 'indent-line-function)
+  (make-local-variable 'indent-region-function)
+  (setq outline-regexp "[^#\n\^M]"
+	outline-level 'c-outline-level)	; TODO: define own
+  (setq require-final-newline mode-require-final-newline)
   (setq indent-line-function 'antlr-indent-line
 	indent-region-function nil)	; too lazy
-  (setq c-buffer-is-cc-mode antlr-language)
-  (if (fboundp 'c-init-language-vars)
-      (c-init-language-vars)		; cc-mode >= v5.29
-    (let ((settings			; (cdr '(setq...)) will be optimized
-	   (if (eq antlr-language 'c++-mode)
-	       (cdr '(setq		;' from `c++-mode' v5.20, v5.28
-		      c-keywords (c-identifier-re c-C++-keywords)
-		      c-conditional-key c-C++-conditional-key
-		      c-comment-start-regexp c-C++-comment-start-regexp
-		      c-class-key c-C++-class-key
-		      c-extra-toplevel-key c-C++-extra-toplevel-key
-		      c-access-key c-C++-access-key
-		      c-recognize-knr-p nil
-		      c-bitfield-key c-C-bitfield-key ; v5.28
-		      ))
-	     (cdr '(setq		; from `java-mode' v5.20, v5.28
-		    c-keywords (c-identifier-re c-Java-keywords)
-		    c-conditional-key c-Java-conditional-key
-		    c-comment-start-regexp c-Java-comment-start-regexp
-		    c-class-key c-Java-class-key
-		    c-method-key nil
-		    c-baseclass-key nil
-		    c-recognize-knr-p nil
-		    c-access-key c-Java-access-key ; v5.20
-		    c-inexpr-class-key c-Java-inexpr-class-key ; v5.28
-		    )))))
-      (while settings
-	(when (boundp (car settings))
-	  (ignore-errors
-	    (set (car settings) (eval (cadr settings)))))
-	(setq settings (cddr settings)))))
   (setq comment-start "// "
- 	comment-end "")
+ 	comment-end ""
+	comment-start-skip "/\\*+ *\\|// *")
   ;; various -----------------------------------------------------------------
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults antlr-font-lock-defaults)
@@ -2646,7 +2640,7 @@ the default language."
        (imenu-add-to-menubar
 	(if (stringp antlr-imenu-name) antlr-imenu-name "Index")))
   (antlr-set-tabs)
-  (run-hooks 'antlr-mode-hook))
+  (run-mode-hooks 'antlr-mode-hook))
 
 ;; A smarter version of `group-buffers-menu-by-mode-then-alphabetically' (in
 ;; XEmacs) could use the following property.  The header of the submenu would
@@ -2669,4 +2663,6 @@ Used in `antlr-mode'.  Also a useful function in `java-mode-hook'."
 		     alist nil))))))
 
 ;;; Local IspellPersDict: .ispell_antlr
+
+;;; arch-tag: 5de2be79-3d13-4560-8fbc-f7d0234dcb5c
 ;;; antlr-mode.el ends here

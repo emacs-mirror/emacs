@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2002, 2003,
+@c   2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Characters, Keys and Commands
@@ -10,38 +11,42 @@ of @dfn{keys} and @dfn{commands}, which are fundamental for understanding
 how Emacs interprets your keyboard and mouse input.
 @end iftex
 
+@ifnottex
+@raisesections
+@end ifnottex
+
 @node User Input, Keys, Screen, Top
 @section Kinds of User Input
 @cindex input with the keyboard
 @cindex keyboard input
 @cindex character set (keyboard)
-@cindex ASCII
+@cindex @acronym{ASCII}
 @cindex C-
 @cindex Control
 @cindex control characters
 
-  GNU Emacs uses an extension of the ASCII character set for keyboard
+  GNU Emacs uses an extension of the @acronym{ASCII} character set for keyboard
 input; it also accepts non-character input events including function
 keys and mouse button actions.
 
-  ASCII consists of 128 character codes.  Some of these codes are
+  @acronym{ASCII} consists of 128 character codes.  Some of these codes are
 assigned graphic symbols such as @samp{a} and @samp{=}; the rest are
 control characters, such as @kbd{Control-a} (usually written @kbd{C-a}
 for short).  @kbd{C-a} gets its name from the fact that you type it by
 holding down the @key{CTRL} key while pressing @kbd{a}.
 
-  Some ASCII control characters have special names, and most terminals
+  Some @acronym{ASCII} control characters have special names, and most terminals
 have special keys you can type them with: for example, @key{RET},
 @key{TAB}, @key{DEL} and @key{ESC}.  The space character is usually
 referred to below as @key{SPC}, even though strictly speaking it is a
 graphic character whose graphic happens to be blank.  Some keyboards
 have a key labeled ``linefeed'' which is an alias for @kbd{C-j}.
 
-  Emacs extends the ASCII character set with thousands more printing
+  Emacs extends the @acronym{ASCII} character set with thousands more printing
 characters (@pxref{International}), additional control characters, and a
 few more modifiers that can be combined with any character.
 
-  On ASCII terminals, there are only 32 possible control characters.
+  On @acronym{ASCII} terminals, there are only 32 possible control characters.
 These are the control variants of letters and @samp{@@[]\^_}.  In
 addition, the shift key is meaningless with control characters:
 @kbd{C-a} and @kbd{C-A} are the same character, and Emacs cannot
@@ -117,8 +122,8 @@ Reference Manual}, for more information.  If you are not doing Lisp
 programming, but simply want to redefine the meaning of some characters
 or non-character events, see @ref{Customization}.
 
-  ASCII terminals cannot really send anything to the computer except
-ASCII characters.  These terminals use a sequence of characters to
+  @acronym{ASCII} terminals cannot really send anything to the computer except
+@acronym{ASCII} characters.  These terminals use a sequence of characters to
 represent each function key.  But that is invisible to the Emacs user,
 because the keyboard input routines recognize these special sequences
 and convert them to function key events before any other part of Emacs
@@ -164,11 +169,13 @@ the @kbd{C-f} is a complete key in itself.  It's impossible to give
 key sequences, not one.@refill
 
   All told, the prefix keys in Emacs are @kbd{C-c}, @kbd{C-h},
-@kbd{C-x}, @kbd{C-x @key{RET}}, @kbd{C-x @@}, @kbd{C-x a}, @kbd{C-x n}, @w{@kbd{C-x
-r}}, @kbd{C-x v}, @kbd{C-x 4}, @kbd{C-x 5}, @kbd{C-x 6}, @key{ESC}, and
-@kbd{M-g}.  But this list is not cast in concrete; it is
-just a matter of Emacs's standard key bindings.  If you customize Emacs,
-you can make new prefix keys, or eliminate these.  @xref{Key Bindings}.
+@kbd{C-x}, @kbd{C-x @key{RET}}, @kbd{C-x @@}, @kbd{C-x a}, @kbd{C-x
+n}, @w{@kbd{C-x r}}, @kbd{C-x v}, @kbd{C-x 4}, @kbd{C-x 5}, @kbd{C-x 6},
+@key{ESC}, @kbd{M-o} and @kbd{M-g}.  (@key{F1} and @key{F2} are aliases for
+@kbd{C-h} and @kbd{C-x 6}.)  But this list is not cast in concrete; it
+is just a matter of Emacs's standard key bindings.  If you customize
+Emacs, you can make new prefix keys, or eliminate these.  @xref{Key
+Bindings}.
 
   If you do make or eliminate prefix keys, that changes the set of
 possible key sequences.  For example, if you redefine @kbd{C-f} as a
@@ -218,13 +225,15 @@ this effect @emph{because} it is bound to that command.  If you rebind
 forward by words instead.  Rebinding keys is a common method of
 customization.@refill
 
-  In the rest of this manual, we usually ignore this subtlety to keep
-things simple.  To give the information needed for customization, we
-state the name of the command which really does the work in parentheses
+  In the rest of this manual, we usually ignore this distinction to
+keep things simple.  We will often speak of keys like @kbd{C-n} as
+commands, even though strictly speaking a key is bound to some
+command.  To give the information needed for customization, we state
+the name of the command which really does the work in parentheses
 after mentioning the key that runs it.  For example, we will say that
 ``The command @kbd{C-n} (@code{next-line}) moves point vertically
-down,'' meaning that @code{next-line} is a command that moves vertically
-down, and @kbd{C-n} is a key that is normally bound to it.
+down,'' meaning that @code{next-line} is a command that moves
+vertically down, and @kbd{C-n} is a key that is normally bound to it.
 
   While we are on the subject of information for customization only,
 it's a good time to tell you about @dfn{variables}.  Often the
@@ -243,25 +252,33 @@ variables will make sense.  @xref{Variables}.
 @cindex characters (in text)
 
   Text in Emacs buffers is a sequence of 8-bit bytes.  Each byte can
-hold a single ASCII character.  Both ASCII control characters (octal
-codes 000 through 037, and 0177) and ASCII printing characters (codes
-040 through 0176) are allowed; however, non-ASCII control characters
+hold a single @acronym{ASCII} character.  Both @acronym{ASCII} control characters (octal
+codes 000 through 037, and 0177) and @acronym{ASCII} printing characters (codes
+040 through 0176) are allowed; however, non-@acronym{ASCII} control characters
 cannot appear in a buffer.  The other modifier flags used in keyboard
 input, such as Meta, are not allowed in buffers either.
 
-  Some ASCII control characters serve special purposes in text, and have
+  Some @acronym{ASCII} control characters serve special purposes in text, and have
 special names.  For example, the newline character (octal code 012) is
 used in the buffer to end a line, and the tab character (octal code 011)
 is used for indenting to the next tab stop column (normally every 8
 columns).  @xref{Text Display}.
 
-  Non-ASCII printing characters can also appear in buffers.  When
-multibyte characters are enabled, you can use any of the non-ASCII
+  Non-@acronym{ASCII} printing characters can also appear in buffers.  When
+multibyte characters are enabled, you can use any of the non-@acronym{ASCII}
 printing characters that Emacs supports.  They have character codes
 starting at 256, octal 0400, and each one is represented as a sequence
 of two or more bytes.  @xref{International}.  Single-byte characters
 with codes 128 through 255 can also appear in multibyte buffers.
 
   If you disable multibyte characters, then you can use only one
-alphabet of non-ASCII characters, but they all fit in one byte.  They
+alphabet of non-@acronym{ASCII} characters, but they all fit in one byte.  They
 use codes 0200 through 0377.  @xref{Single-Byte Character Support}.
+
+@ifnottex
+@lowersections
+@end ifnottex
+
+@ignore
+   arch-tag: 9be43eef-d1f4-4d03-a916-c741ea713a45
+@end ignore

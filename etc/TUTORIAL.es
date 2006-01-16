@@ -1,6 +1,4 @@
-Usted esta viendo el tutorial de Emacs. Vea al final las condiciones
-de copiado. Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software
-Foundation.
+Tutorial de Emacs. Vea al final las condiciones de copiado.
 
 Generalmente los comandos de Emacs involucran la tecla CONTROL
 (algunas veces llamada CTRL O CTL) o la tecla meta (algunas veces
@@ -18,32 +16,8 @@ ocasión, usaremos las siguientes abreviaturas.
 Nota importante: para terminar la sesión de Emacs teclee C-x C-c (dos
 caracteres).  Los caracteres ">>" en el margen izquierdo indican
 instrucciones para que usted trate de usar un comando.  Por ejemplo:
-
-
-
-
-
-
-
-
-
-
-
-
-[Mitad de página en blanco para propósitos didácticos. El texto
- continúa abajo]
-
-
-
-
-
-
-
-
-
-
-
-
+<<Blank lines inserted around following line by help-with-tutorial>>
+[Mitad de página en blanco para propósitos didácticos. El texto continúa abajo]
 >> Ahora teclee C-v (ver la próxima pantalla) para desplazarse a la
 	siguiente pantalla (hágalo manteniendo la tecla control
 	oprimida mientras teclea v).  Desde ahora debería hacer esto
@@ -1213,7 +1187,8 @@ Por favor, en caso de duda, sólo es válido el original en inglés de la
 siguiente nota de derechos de reproducción (que puede encontrar en el
 archivo TUTORIAL).
 
-Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software Foundation
+Copyright (C) 1985, 1996, 1998, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Se permite a cualquiera hacer o distribuir copias literales de este
    documento como se recibe, en cualquier medio, siempre que la nota
@@ -1237,3 +1212,5 @@ compartiendo software libre!
 ;;; Local Variables:
 ;;;   coding: latin-1
 ;;; End:
+
+;;; arch-tag: 66aae86e-6f86-4a3e-b82a-44a783f774fd

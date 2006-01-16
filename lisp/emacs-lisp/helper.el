@@ -1,6 +1,6 @@
 ;;; helper.el --- utility help package supporting help in electric modes
 
-;; Copyright (C) 1985 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -77,7 +77,7 @@
 		   "Type anything to %s"))
 	    blurb)
 	  (setq continue (read-char))
-	  (cond ((and (memq continue '(?\ ?\C-v)) (< state 2))
+	  (cond ((and (memq continue '(?\s ?\C-v)) (< state 2))
 		 (scroll-up))
 		((= continue ?\C-l)
 		 (recenter))
@@ -157,4 +157,5 @@
 
 (provide 'helper)
 
+;;; arch-tag: a0984577-d3e9-4124-ae0d-c46fe740f6a9
 ;;; helper.el ends here

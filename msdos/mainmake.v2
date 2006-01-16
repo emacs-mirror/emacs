@@ -1,7 +1,7 @@
 # Top-level Makefile for Emacs under MS-DOS/DJGPP v2.0 or higher. -*-makefile-*-
 
-# Copyright (C) 1996,1997,1998,1999,2000,2001,2002
-#  Free Software Foundation, Inc.
+# Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+#   2005 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -17,11 +17,11 @@
 
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 
 # make all	to compile and build Emacs.
-# make install	to install it.
+# make install	to install it (installs in-place, in `bin' subdir of top dir).
 # make TAGS	to update tags tables.
 #
 # make clean  or  make mostlyclean
@@ -40,11 +40,12 @@
 #      `make distclean' should leave only the files that were in the
 #      distribution.
 #
-# make realclean
+# make maintainer-clean
 #      Delete everything from the current directory that can be
 #      reconstructed with this Makefile.  This typically includes
-#      everything deleted by distclean, plus more: C source files
-#      produced by Bison, tags tables, info files, and so on.
+#      everything deleted by distclean, plus more: *.elc files,
+#      C source files produced by Bison, tags tables, info files,
+#      and so on.
 #
 # make extraclean
 #      Still more severe - delete backup and autosave files, too.
@@ -93,7 +94,7 @@ src: FRC
 
 man lispref lispintro:	FRC
 	cd $@
-	$(MAKE) top_srcdir=${top_srcdir}
+	$(MAKE) top_srcdir=${top_srcdir} info
 	cd ..
 
 install: all
@@ -135,22 +136,89 @@ TAGS tags:	lib-src FRC
 check:
 	@echo "We don't have any tests for GNU Emacs yet."
 
-clean:
+clean mostlyclean:
 	cd lib-src
-	$(MAKE) clean
+	$(MAKE) $(MFLAGS) $@
 	cd ..
 	cd src
-	$(MAKE) clean
+	$(MAKE) $(MFLAGS) $@
 	cd ..
 	cd oldxmenu
-	-$(MAKE) clean
+	-$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd man
+	-$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd lispref
+	-$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd lispintro
+	-$(MAKE) $(MFLAGS) $@
 	cd ..
 	cd leim
-	if exist Makefile redir $(MAKE) clean
+	if exist Makefile redir $(MAKE) $(MFLAGS) $@
 	cd ..
+	-$(MAKE) $(MFLAGS) $@
 
-.PHONY: bootstrap bootstrap-lisp-1 boostrap-src bootstrap-lisp bootstrap-clean
-.PHONY: maybe_bootstrap
+top_distclean=rm -f Makefile */Makefile src/_gdbinit
+
+distclean maintainer-clean: FRC
+	cd src
+	$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd oldxmenu
+	-$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd lib-src
+	$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd man
+	-$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd lispref
+	-$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd lispintro
+	-$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd leim
+	if exist Makefile redir $(MAKE) $(MFLAGS) $@
+	cd ..
+	cd lisp
+	$(MAKE) $(MFLAGS) $@
+	cd ..
+	${top_distclean}
+
+extraclean:
+	cd src
+	$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd oldxmenu
+	-$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd lib-src
+	$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd man
+	-$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd lispref
+	-$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd lispintro
+	-$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd leim
+	if exist Makefile redir $(MAKE) $(MFLAGS) $@
+	cd ..
+	cd lisp
+	$(MAKE) $(MFLAGS) $@
+	cd ..
+	${top_distclean}
+	-rm -f *~ #*
+
+.PHONY: bootstrap bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean
+.PHONY: maybe_bootstrap bootfast
 
 maybe_bootstrap:
 	@if not exist lisp\abbrev.elc djecho \
@@ -158,6 +226,10 @@ maybe_bootstrap:
 	@if not exist lisp\abbrev.elc redir -e /dev/null -oe redir fail-this-make.exe
 
 bootstrap: bootstrap-clean-before bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean-after all info
+	cd lisp; $(MAKE) $(MFLAGS) bootstrap-after; cd ..
+
+bootfast: bootstrap-clean-before bootstrap-src bootstrap-lisp bootstrap-clean-after all info
+	cd lisp; $(MAKE) $(MFLAGS) bootstrap-after; cd ..
 
 bootstrap-lisp-1:
 	cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean; cd ..
@@ -172,7 +244,12 @@ bootstrap-src:
 bootstrap-clean-before: FRC
 	cd src;      $(MAKE) $(MFLAGS) mostlyclean; cd ..
 	cd lib-src;  $(MAKE) $(MFLAGS) clean;       cd ..
-	cd leim;     $(MAKE) $(MFLAGS) clean;       cd ..
+	-cd man;     $(MAKE) $(MFLAGS) clean;       cd ..
+	-cd lispref; $(MAKE) $(MFLAGS) clean;       cd ..
+	-cd lispintro; $(MAKE) $(MFLAGS) clean;     cd ..
+	cd leim;     if exist Makefile redir $(MAKE) $(MFLAGS) clean; cd ..
 
 bootstrap-clean-after:
 	cd src; $(MAKE) $(MFLAGS) mostlyclean; cd ..
+
+# arch-tag: 6fee5130-4c53-46c6-93d3-d0ea852298b9

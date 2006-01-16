@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;; Created: Feb. 11. 2003
 
@@ -74,6 +74,7 @@
     (malayalam-compose-region (point-min) (point-max))
     (buffer-string)))
 
+;;;###autoload
 (defun malayalam-post-read-conversion (len)
   (save-excursion
     (save-restriction
@@ -102,7 +103,7 @@
 ;;;###autoload
 (defun malayalam-composition-function (from to pattern  &optional string)
   "Compose Malayalam characters in REGION, or STRING if specified.
-Assume that the REGION or STRING must fully match the composable 
+Assume that the REGION or STRING must fully match the composable
 PATTERN regexp."
   (if string (malayalam-compose-syllable-string string)
     (malayalam-compose-syllable-region from to))
@@ -157,12 +158,14 @@ PATTERN regexp."
     ;; Consonants
     ("$,1@5(B" . "$,46)(B")
     ("$,1@5@m@5(B" . "$,47!(B")
-    ("$,1@5@m@7(B" . "$,47"(B")
+    ("$,1@5@m@S(B" . "$,47"(B")
     ("$,1@5@m@W(B" . "$,47#(B")
-    ("$,1@5@m@?(B" . "$,47N(B") ;; ?
+    ("$,1@5@m@?(B" . "$,47N(B")
     ("$,1@5@m@D(B" . "$,47`(B")
-    ("$,1@5@m@F(B" . "$,47f(B") ;; ? ;; vowel u?
-    ("$,1@5@m@5@m@F(B" . "$,47g(B") ;; ? ;; vowel u?
+    ("$,1@5@a(B" . "$,47f(B")
+    ("$,1@5@m@5@a(B" . "$,47g(B")
+    ("$,1@5@a(B" . "$,47f(B")
+    ("$,1@5@m@5@a(B" . "$,47g(B")
 
     ("$,1@6(B" . "$,46*(B")
 
@@ -177,11 +180,11 @@ PATTERN regexp."
     ("$,1@9(B" . "$,46-(B")
     ("$,1@9@m@5(B" . "$,47&(B")
     ("$,1@9@m@9(B" . "$,47'(B")
-    ("$,1@9@m@5@m@F(B" . "$,47h(B") ;; ? ;; vowel u?
+    ("$,1@9@m@5@a(B" . "$,47h(B")
 
     ("$,1@:(B" . "$,46.(B")
     ("$,1@:@m@:(B" . "$,47((B") ;; duplicate
-    ("$,1@:@m@;(B" . "$,47Q(B") ;; ?
+    ("$,1@:@m@;(B" . "$,47Q(B")
 
     ("$,1@;(B" . "$,46/(B")
 
@@ -204,12 +207,12 @@ PATTERN regexp."
     ("$,1@B(B" . "$,466(B")
 
     ("$,1@C(B" . "$,467(B")
-    ("$,1@C@m(B" . "$,47,(B") ;; half consonant
+    ("$,1@C@a@m(B" . "$,47,(B") ;; half consonant
     ("$,1@C@m@?(B" . "$,47-(B")
     ("$,1@C@m@C(B" . "$,47.(B")
     ("$,1@C@m@N(B" . "$,47W(B")
-    ("$,1@C@m@G(B" . "$,47^(B") ;; ?
-    ("$,1@C@m@V(B" . "$,47i(B") ;; ?
+    ("$,1@C@m@A(B" . "$,47^(B")
+    ("$,1@C@a(B" . "$,47i(B")
 
     ("$,1@D(B" . "$,468(B")
     ("$,1@D@m@D(B" . "$,47/(B")
@@ -217,7 +220,6 @@ PATTERN regexp."
     ("$,1@D@m@X(B" . "$,47U(B")
     ("$,1@D@m@M(B" . "$,47[(B")
     ("$,1@D@m@N(B" . "$,47_(B")
-    ("$,1@D@m@F(B" . "$,47j(B") ;; ? ;; vowel u ?
 
     ("$,1@E(B" . "$,469(B")
 
@@ -228,7 +230,7 @@ PATTERN regexp."
     ("$,1@G(B" . "$,46;(B")
 
     ("$,1@H(B" . "$,46<(B")
-    ("$,1@H@m(B" . "$,473(B") ;; half consonant
+    ("$,1@H@a@m(B" . "$,473(B") ;; half consonant
     ("$,1@H@m@D(B" . "$,474(B")
     ("$,1@H@m@F(B" . "$,475(B")
     ("$,1@H@m@H(B" . "$,476(B")
@@ -236,8 +238,8 @@ PATTERN regexp."
     ("$,1@H@m@G(B" . "$,47T(B")
     ("$,1@H@m@E(B" . "$,47Y(B")
     ("$,1@H@m@Q(B" . "$,47b(B")
-    ("$,1@H@m@V(B" . "$,47k(B") ;; ?
-    ("$,1@H@m@H@m@V(B" . "$,47l(B") ;; ?
+    ("$,1@H@a(B" . "$,47k(B")
+    ("$,1@H@m@H@a(B" . "$,47l(B")
 
     ("$,1@J(B" . "$,46=(B")
     ("$,1@J@m@J(B" . "$,478(B") ;; duplicate
@@ -248,8 +250,8 @@ PATTERN regexp."
     ("$,1@L(B" . "$,46?(B")
     ("$,1@L@m@L(B" . "$,47:(B") ;; duplicate
     ("$,1@L@m@R(B" . "$,47;(B") ;; lakar
-    ("$,1@L@m@G(B" . "$,47O(B") ;; ?
-    ("$,1@L@m@F(B" . "$,47P(B") ;; ?
+    ("$,1@L@m@G(B" . "$,47O(B")
+    ("$,1@L@m@F(B" . "$,47P(B")
 
     ("$,1@M(B" . "$,46@(B")
 
@@ -260,27 +262,28 @@ PATTERN regexp."
 
     ("$,1@O(B" . "$,46B(B")
     ("$,1@O@m@O(B" . "$,47?(B") ;; duplicate
-    ("$,1@O@m@5@m@5(B" . "$,47m(B") ;; ?
+    ("$,1@O@m@5@m@5(B" . "$,47m(B")
 
     ("$,1@P(B" . "$,46C(B")
-    ("$,1@P@m(B" . "$,47@(B")
+    ("$,1@P@a@m(B" . "$,47@(B")
+    ("$,1@P@a(B" . "$,47j(B")
 
     ("$,1@Q(B" . "$,46D(B")
     ("$,1@Q@m(B" . "$,47@(B") ;; same glyph as "$,1@P@m(B"
+    ("$,1@Q@a@m(B" . "$,47@(B") ;; same glyph as "$,1@P@m(B"
     ;;("$,1@Q@m@Q(B" . "$,47A(B")
     ("$,1@Q@m@Q(B" . "$,47d(B")
 
     ("$,1@R(B" . "$,46E(B")
-    ("$,1@R@m(B" . "$,47B(B")
+    ("$,1@R@a@m(B" . "$,47B(B")
     ("$,1@R@m@R(B" . "$,47C(B") ;; lakar
-    ("$,1@R@m@J(B" . "$,47e(B") ;; ?
+    ("$,1@R@m@J(B" . "$,47e(B")
 
     ("$,1@S(B" . "$,46F(B")
-    ("$,1@S@m(B" . "$,47D(B")
+    ("$,1@S@a@m(B" . "$,47D(B")
     ("$,1@S@m@S(B" . "$,47E(B")
 
     ("$,1@T(B" . "$,46G(B")
-    ("$,1@T@m(B" . "$,47D(B")
 
     ("$,1@U(B" . "$,46H(B")
     ("$,1@U@m@U(B" . "$,47F(B")
@@ -320,11 +323,13 @@ PATTERN regexp."
     ;; Various signs
     ("$,1@m(B" . "$,46V(B")
     ("$,1@m@O(B" . "$,46Y(B") ;; yakar
-    ("$,1@m@O@a(B" . "$,46\(B") ;; yakar + u ;; ?
-    ("$,1@m@O@b(B" . "$,46](B") ;; yakar + uu ;; ?
+    ("$,1@m@O@a(B" . "$,46\(B") ;; yakar + u
+    ("$,1@m@O@b(B" . "$,46](B") ;; yakar + uu
     ("$,1@m@U(B" . "$,46Z(B") ;; vakar modifier
     ("$,1@m@P(B" . "$,46[(B") ;; rakar modifier is the same to rra modifier.
+    ("$,1@m@P@m(B" . "$,46R(B") ;; halant + rakar + halant
     ("$,1@m@Q(B" . "$,46[(B") ;; rrakar modifier
+    ("$,1@m@Q@m(B" . "$,46R(B") ;; halant + rrakar + halant
     ("$,1@m@m(B" . "$,46V(B") ;; double omission sign to stop forming half consonant.
     ("$,1@w(B" . "$,46U(B") ;; not in present use, already at 0D4C.
     ))
@@ -396,11 +401,12 @@ PATTERN regexp."
                (apply
                 'nconc
                 (mapcar
-                 (function 
+                 (function
                   (lambda (x) (list '(5 . 3) x))) ;; default ref. point.
                  glyph-str))))
         (compose-region from to glyph-str)))))
 
 (provide 'mlm-util)
 
+;;; arch-tag: 7f25ee67-8f9d-49f2-837b-35c412c00eba
 ;;; devan-util.el ends here

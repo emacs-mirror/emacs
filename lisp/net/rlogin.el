@@ -1,12 +1,11 @@
 ;;; rlogin.el --- remote login interface
 
-;; Copyright (C) 1992, 93, 94, 95, 97, 1998, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1997, 1998, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman
 ;; Maintainer: Noah Friedman <friedman@splode.com>
 ;; Keywords: unix, comm
-
-;; $Id: rlogin.el,v 1.2 2002/03/14 08:51:43 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -22,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -43,7 +42,7 @@
 (require 'shell)
 
 (defgroup rlogin nil
-  "Remote login interface"
+  "Remote login interface."
   :group 'processes
   :group 'unix)
 
@@ -71,8 +70,8 @@
                 (string-match "-solaris2" system-configuration))
            t)
           (t nil)))
-  "*If non-`nil', use a pty for the local rlogin process.
-If `nil', use a pipe (if pipes are supported on the local system).
+  "*If non-nil, use a pty for the local rlogin process.
+If nil, use a pipe (if pipes are supported on the local system).
 
 Generally it is better not to waste ptys on systems which have a static
 number of them.  On the other hand, some implementations of `rlogin' assume
@@ -181,10 +180,15 @@ variable."
 
   (let* ((process-connection-type rlogin-process-connection-type)
          (args (if rlogin-explicit-args
-                   (append (rlogin-parse-words input-args)
+                   (append (split-string input-args)
                            rlogin-explicit-args)
-                 (rlogin-parse-words input-args)))
-	 (host (car args))
+                 (split-string input-args)))
+         (host (let ((tail args))
+                 ;; Find first arg that doesn't look like an option.
+                 ;; This still loses for args that take values, feh.
+                 (while (and tail (= ?- (aref (car tail) 0)))
+                   (setq tail (cdr tail)))
+                 (car tail)))
 	 (user (or (car (cdr (member "-l" args)))
                    (user-login-name)))
          (buffer-name (if (string= user (user-login-name))
@@ -283,19 +287,6 @@ local one share the same directories (through NFS)."
           (goto-char orig-point)))))))
 
 
-;; Parse a line into its constituent parts (words separated by
-;; whitespace).  Return a list of the words.
-(defun rlogin-parse-words (line)
-  (let ((list nil)
-	(posn 0)
-        (match-data (match-data)))
-    (while (string-match "[^ \t\n]+" line posn)
-      (setq list (cons (substring line (match-beginning 0) (match-end 0))
-                       list))
-      (setq posn (match-end 0)))
-    (set-match-data (match-data))
-    (nreverse list)))
-
 (defun rlogin-send-Ctrl-C ()
   (interactive)
   (process-send-string nil "\C-c"))
@@ -329,4 +320,5 @@ Delete ARG characters forward, or send a C-d to process if at end of buffer."
 
 (provide 'rlogin)
 
+;;; arch-tag: 6e20eabf-feda-40fa-ab40-0d156db447e4
 ;;; rlogin.el ends here

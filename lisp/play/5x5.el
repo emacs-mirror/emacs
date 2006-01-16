@@ -1,6 +1,7 @@
 ;;; 5x5.el --- simple little puzzle game
 
-;; Copyright (C) 1999,2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Maintainer: Dave Pearson <davep@davep.org>
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -178,10 +179,10 @@ The key bindings for 5x5-mode are:
   (use-local-map 5x5-mode-map)
   (setq major-mode '5x5-mode
         mode-name  "5x5")
-  (run-hooks '5x5-mode-hook)
+  (run-mode-hooks '5x5-mode-hook)
   (setq buffer-read-only t
         truncate-lines   t)
-  (buffer-disable-undo (current-buffer)))
+  (buffer-disable-undo))
 
 ;;;###autoload
 (defun 5x5 (&optional size)
@@ -224,9 +225,8 @@ Quit current game         \\[5x5-quit-game]"
           5x5-y-pos (/ 5x5-grid-size 2)
           5x5-moves 0
           5x5-grid  (5x5-make-move (5x5-make-new-grid) 5x5-y-pos 5x5-x-pos))
-    (when (interactive-p)
-      (5x5-draw-grid (list 5x5-grid))
-      (5x5-position-cursor))))
+    (5x5-draw-grid (list 5x5-grid))
+    (5x5-position-cursor)))
 
 (defun 5x5-quit-game ()
   "Quit the current game of `5x5'."
@@ -521,4 +521,5 @@ progress because it is an animated attempt."
 
 (provide '5x5)
 
+;;; arch-tag: ec4dabd5-572d-41ea-b48c-ec5ce0d68fa9
 ;;; 5x5.el ends here

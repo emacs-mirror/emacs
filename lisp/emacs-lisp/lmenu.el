@@ -1,6 +1,7 @@
 ;;; lmenu.el --- emulate Lucid's menubar support
 
-;; Copyright (C) 1992, 1993, 1994, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1997, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Keywords: emulations obsolete
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -31,8 +32,10 @@
 ;; Arrange to use current-menubar to set up part of the menu bar.
 
 (defvar current-menubar)
+(defvar lucid-menubar-map)
+(defvar lucid-failing-menubar)
 
-(setq recompute-lucid-menubar 'recompute-lucid-menubar)
+(defvar recompute-lucid-menubar 'recompute-lucid-menubar)
 (defun recompute-lucid-menubar ()
   (define-key lucid-menubar-map [menu-bar]
     (condition-case nil
@@ -143,7 +146,7 @@ If the `callback' of a button is a symbol, then it must name a command.
 It will be invoked with `call-interactively'.  If it is a list, then it is
 evaluated with `eval'.
 
-One (and only one) of the buttons may be `nil'.  This marker means that all
+One (and only one) of the buttons may be nil.  This marker means that all
 following buttons should be flushright instead of flushleft.
 
 The syntax, more precisely:
@@ -436,4 +439,5 @@ BEFORE, if provided, is the name of a menu before which this menu should
 
 (provide 'lmenu)
 
+;;; arch-tag: 7051c396-2837-435a-ae11-b2d2e2af8fc1
 ;;; lmenu.el ends here

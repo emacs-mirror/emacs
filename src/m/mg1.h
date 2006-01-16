@@ -1,5 +1,5 @@
 /* machine description file for Whitechapel Computer Works MG1 (ns16000 based).
-   Copyright (C) 1985, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
    MG-1 version by L.M.McLoughlin
 
 This file is part of GNU Emacs.
@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The following line tells the configuration script what sort of
@@ -101,3 +101,6 @@ NOTE-END  */
 
 /* Avoids a compiler bug */
 /* borrowed from sequent.h */
+
+/* arch-tag: e15d9072-9e1a-44bf-8add-966be535967b
+   (do not change this comment) */

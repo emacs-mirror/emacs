@@ -1,7 +1,7 @@
 /* test-distrib.c --- testing distribution of nonprinting chars
 
-   Copyright (C) 1987, 1993, 1994, 1995, 1999, 2001
-      Free Software Foundation Inc.
+   Copyright (C) 1987, 1993, 1994, 1995, 1999, 2001, 2002, 2003,
+                 2004, 2005 Free Software Foundation, Inc.
 
    This file is part of GNU Emacs.
 
@@ -17,8 +17,8 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Emacs; see the file COPYING.  If not, write to the
-   Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.  */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -80,13 +80,13 @@ main (argc, argv)
   if (argc != 2)
     {
       fprintf (stderr, "Usage: %s testfile\n", argv[0]);
-      exit (2);
+      exit (EXIT_FAILURE);
     }
   fd = open (argv[1], O_RDONLY);
   if (fd < 0)
     {
       perror (argv[1]);
-      exit (2);
+      exit (EXIT_FAILURE);
     }
   if (cool_read (fd, buf, sizeof string1) != sizeof string1 ||
       strcmp (buf, string1) ||
@@ -97,11 +97,13 @@ main (argc, argv)
 Most likely this means that many nonprinting characters\n\
 have been corrupted in the files of Emacs, and it will not work.\n",
 	       argv[1]);
-      exit (2);
+      exit (EXIT_FAILURE);
     }
   close (fd);
-#ifdef VMS
-  exit (1);			/* On VMS, success is 1.  */
-#endif
-  return (0);
+  return EXIT_SUCCESS;
 }
+
+/* arch-tag: 3a89005d-df98-4c32-aa9f-33570e16a26a
+   (do not change this comment) */
+
+/* test-distrib.c ends here */

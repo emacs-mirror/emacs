@@ -1,6 +1,7 @@
 ;;; disp-table.el --- functions for dealing with char tables
 
-;; Copyright (C) 1987, 1994, 1995, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1994, 1995, 1999, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Based on a previous version by Howard Gayle
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -113,15 +114,17 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 ;;;###autoload
 (defun standard-display-8bit (l h)
   "Display characters in the range L to H literally."
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
   (while (<= l h)
-    (if (and (>= l ?\ ) (< l 127))
-	(aset standard-display-table l nil)
-      (aset standard-display-table l (vector l)))
+    (aset standard-display-table l (if (or (< l ?\ ) (>= l 127)) (vector l)))
     (setq l (1+ l))))
 
 ;;;###autoload
 (defun standard-display-default (l h)
   "Display characters in the range L to H using the default notation."
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
   (while (<= l h)
     (if (and (>= l ?\ ) (char-valid-p l))
 	(aset standard-display-table l nil))
@@ -133,6 +136,8 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 ;;;###autoload
 (defun standard-display-ascii (c s)
   "Display character C using printable string S."
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
   (aset standard-display-table c (vconcat s)))
 
 ;;;###autoload
@@ -140,8 +145,10 @@ Valid symbols are `truncation', `wrap', `escape', `control',
   "Display character C as character SC in the g1 character set.
 This function assumes that your terminal uses the SO/SI characters;
 it is meaningless for an X frame."
-  (if (memq window-system '(x w32))
+  (if (memq window-system '(x w32 mac))
       (error "Cannot use string glyphs in a windowing system"))
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
   (aset standard-display-table c
 	(vector (create-glyph (concat "\016" (char-to-string sc) "\017")))))
 
@@ -150,14 +157,18 @@ it is meaningless for an X frame."
   "Display character C as character GC in graphics character set.
 This function assumes VT100-compatible escapes; it is meaningless for an
 X frame."
-  (if (memq window-system '(x w32))
+  (if (memq window-system '(x w32 mac))
       (error "Cannot use string glyphs in a windowing system"))
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
   (aset standard-display-table c
 	(vector (create-glyph (concat "\e(0" (char-to-string gc) "\e(B")))))
 
 ;;;###autoload
 (defun standard-display-underline (c uc)
   "Display character C as character UC plus underlining."
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
   (aset standard-display-table c
 	(vector
 	 (if window-system
@@ -206,17 +217,19 @@ for users who call this function in `.emacs'."
 	       (equal (aref standard-display-table 161) [161])))
       (progn
 	(standard-display-default 160 255)
-	(unless (or (memq window-system '(x w32)))
+	(unless (or (memq window-system '(x w32 mac)))
 	  (and (terminal-coding-system)
 	       (set-terminal-coding-system nil))))
-    ;; Turn off multibyte chars for more compatibility.
-    (setq-default enable-multibyte-characters nil)
+
+    (display-warning 'i18n
+		     "`standard-display-european' is semi-obsolete; see its doc string for details"
+		     :warning)
 
     ;; Switch to Latin-1 language environment
     ;; unless some other has been specified.
     (if (equal current-language-environment "English")
 	(set-language-environment "latin-1"))
-    (unless (or noninteractive (memq window-system '(x w32)))
+    (unless (or noninteractive (memq window-system '(x w32 mac)))
       ;; Send those codes literally to a character-based terminal.
       ;; If we are using single-byte characters,
       ;; it doesn't matter which coding system we use.
@@ -227,4 +240,5 @@ for users who call this function in `.emacs'."
 
 (provide 'disp-table)
 
+;;; arch-tag: ffe4c28c-960c-47aa-b8a8-ae89d371ffc7
 ;;; disp-table.el ends here

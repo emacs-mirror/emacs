@@ -1,6 +1,7 @@
 ;;; yow.el --- quote random zippyisms
 
-;; Copyright (C) 1993, 1994, 1995, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Richard Mlynarik
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -101,7 +102,8 @@ If called interactively, display a list of matches."
                     (while l
                       (princ (car l))
                       (setq l (cdr l))
-                      (and l (princ "\n\n"))))))))
+                      (and l (princ "\n\n")))
+		    (print-help-return-message))))))
     matches))
 
 
@@ -126,4 +128,5 @@ If called interactively, display a list of matches."
 
 (provide 'yow)
 
+;;; arch-tag: d13db89b-84f1-4141-a5ce-261d1733a65c
 ;;; yow.el ends here

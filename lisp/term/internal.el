@@ -1,6 +1,7 @@
 ;;; internal.el --- support for PC internal terminal -*- coding: raw-text; no-byte-compile: t -*-
 
-;; Copyright (C) 1993, 1994, 1998, 1999, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1998, 1999, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -728,4 +729,5 @@ list.  You can (and should) also run it whenever the value of
 ;; characters to arrive at our display code verbatim.
 (standard-display-8bit 127 255)
 
+;;; arch-tag: eea04c06-7311-4b5a-b531-3c1be1b070af
 ;;; internal.el ends here

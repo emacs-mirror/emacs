@@ -1,12 +1,12 @@
 /* machine description file for the IA-64 architecture.
-   Copyright (C) 2000, 2002 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
      Contributed by David Mosberger <davidm@hpl.hp.com>
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #define BITS_PER_LONG		64
 #define BITS_PER_EMACS_INT	64
@@ -119,20 +119,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define PNTR_COMPARISON_TYPE unsigned long
 
-/* On the 64 bit architecture, we can use 60 bits for addresses */
-
-#define VALBITS         60
-
-/* This definition of MARKBIT is necessary because of the comparison of
-   ARRAY_MARK_FLAG and MARKBIT in an #if in lisp.h, which cpp doesn't like. */
-
-#define MARKBIT         0x8000000000000000L
-
-/* Define XINT and XUINT so that they can take arguments of type int */
-
-#define XINT(a)  (((long) (a) << (BITS_PER_LONG - VALBITS)) >> (BITS_PER_LONG - VALBITS))
-#define XUINT(a) ((long) (a) & VALMASK)
-
 #ifndef NOT_C_CODE
 
 #ifdef REL_ALLOC
@@ -147,6 +133,7 @@ extern void r_alloc_free ();
 
 #endif /* not NOT_C_CODE */
 
-#define DATA_SEG_BITS	0x6000000000000000
-
 #define HAVE_TEXT_START
+
+/* arch-tag: 9b8e9fb2-2e49-4c22-b68f-11a488e77c66
+   (do not change this comment) */

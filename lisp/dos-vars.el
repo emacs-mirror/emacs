@@ -1,6 +1,6 @@
 ;;; dos-vars.el --- MS-Dos specific user options
 
-;; Copyright (C) 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -44,4 +44,5 @@ in `standard-display-table' as appropriate for your codepage, if
   :type '(hook)
   :version "20.3.3")
 
+;;; arch-tag: dce8a0d9-ab29-413f-84ed-8b89d6190546
 ;;; dos-vars.el ends here

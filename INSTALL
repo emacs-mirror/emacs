@@ -1,5 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (c) 1992, 1994, 1996, 1997, 2000, 2001 Free software Foundation, Inc.
+Copyright (c) 1992, 94, 96, 97, 2000, 01, 02 Free software Foundation, Inc.
 See the end of the file for copying permissions.
 
 
@@ -93,13 +93,13 @@ ADDITIONAL DISTRIBUTION FILES
 
 * intlfonts-VERSION.tar.gz
 
-The intlfonts distribution contains X11 fonts that Emacs needs in
-order to display international characters.  If you see a non-ASCII
-character appear as a hollow box, that means you don't have a font for
-it.  You might find a font in the intlfonts distribution.  If you do
-have a font for a non-ASCII character, but some characters don't look
-right, or appear improperly aligned, a font from the intlfonts
-distribution might look better.
+The intlfonts distribution contains X11 fonts in various encodings
+that Emacs can use to display international characters.  If you see a
+non-ASCII character appear as a hollow box, that means you don't have
+a font for it.  You might find one in the intlfonts distribution.  If
+you do have a font for a non-ASCII character, but some characters
+don't look right, or appear improperly aligned, a font from the
+intlfonts distribution might look better.
 
 The fonts in the intlfonts distribution are also used by the ps-print
 package for printing international characters.  The file
@@ -156,64 +156,39 @@ At first, Emacs does not include fonts and does not install them.  You
 must do this yourself.
 
 To take proper advantage of Emacs 21's mule-unicode charsets, you need
-a Unicode font.  For information on Unicode fonts for X, see
-<URL:http://czyborra.com/unifont/>,
-<URL:http://openlab.ring.gr.jp/efont/> and
+a suitable font.  For `Unicode' (ISO 10646) fonts for X, see
+<URL:http://dvdeug.dhis.org/unifont.html> (packaged in Debian),
+<URL:http://openlab.ring.gr.jp/efont/> (packaged in Debian).  (In
+recent Debian versions, there is an extensive `misc-fixed' iso10646-1
+in the default X installation.)  Perhaps also see
 <URL:http://www.cl.cam.ac.uk/%7Emgk25/ucs-fonts.html>.
+
 <URL:http://czyborra.com/charsets/> has basic fonts for Emacs's
 ISO-8859 charsets.
 
 XFree86 release 4 (from <URL:ftp://ftp.xfree86.org/> and mirrors)
 contains font support for most, if not all, of the charsets that Emacs
-supports.  The font files should be usable separately with older X
-releases.
+currently supports, including iso10646-1 encoded fonts for use with
+the mule-unicode charsets.  The font files should also be usable with
+older X releases.  Note that XFree 4 contains many iso10646-1 fonts
+with minimal character repertoires, which can cause problems -- see
+etc/PROBLEMS.
 
 BDF fonts etl-unicode.tar.gz used by ps-print and ps-mule to print
 Unicode characters are available from <URL:ftp://ftp.x.org/contrib/fonts/>
 and <URL:ftp://ftp.xfree86.org/pub/X.Org/contrib/fonts/>.
 
+* GNU/Linux development packages
 
-The new Indian implementation uses the ISFOC standard fonts.  We use
-CDAC ISFOC fonts to display the Devanagari script in Emacs.  They are
-copyrighted, but we received permission to use them in Emacs from the
-font developers.  These fonts can be obtained from the internet, or
-may be found in C-DAC products (including downloadable ones).  For
-examle, you can search the CDAC Devanagari font `dvsr0ntt.ttf' by
-using some search engines and they will guide you to appropriate URLs
-to obtain them.
-
-After you've downloaded the fonts, then run the following Makefile
-to create the appropriate BDF/PCF fonts.  (You will need `ttf2bdf',
-equipped with freetype 1, to create BDF file.)
-
-TTFS=	asdr0ntt.ttf:Assamese\
-	bndr0ntt.ttf:Bengali\
-	dvsr0ntt.ttf:Devanagari\
-	gjav0ntt.ttf:Gujarati\
-	knum0ntt.ttf:Kannada\
-	mlkr0ntt.ttf:Malayalam\
-	orsr0ntt.ttf:Oriya\
-	pnam0ntt.ttf:Punjabi\
-	sdsr0ntt.ttf:Sanskrit\
-	tlhm0ntt.ttf:Telugu\
-	tmvl0ntt.ttf:Tamil
-
-all:
-	for f in ${TTFS}; do \
-	  ttf=`echo $$f | sed 's/:.*$$//'`; \
-	  reg=`echo $$f | sed 's/[^:]*://'`; \
-	  base=`basename $$ttf .ttf`; \
-	  echo Converting "$$ttf to $$base-XX.bdf/pcf with registry $$reg"; \
-	  for i in 16 24; do \
-	    ttf2bdf -p $${i} -r 100 -l 0_255 $$ttf > temp; \
-	    sed "/^FONT /s/ISO10646-1/$$reg-CDAC/" <temp >$$base-$$i.bdf; \
-	    bdftopcf $$base-$$i.bdf > $$base-$$i.pcf; \
-	  done; \
-	done
-	rm -f temp
-
-clean:
-	rm -f *.pcf *.bdf
+Many GNU/Linux systems do not come with development packages by
+default; they just include the files that you need to run Emacs, but
+not those you need to compile it.  For example, to compile Emacs with
+X11 support, you may need to install the special `X11 development'
+package.  For example, in April 2003, the package names to install
+were `XFree86-devel' and `Xaw3d-devel' on RedHat.  On Debian, the
+packages necessary to build the installed version should be
+sufficient; they can be installed using `apt-get build-dep emacs21' in
+Debian 3 and above.
 
 
 DETAILED BUILDING AND INSTALLATION:
@@ -316,9 +291,15 @@ or more of these options:
   --without-png        for PNG image support
 
 Use --without-toolkit-scroll-bars to disable LessTif/Motif or Xaw3d
-scroll bars.  --without-xim disables the use of X Input Methods, and
---disable-largefile omits support for files larger than 2GB on systems
-which support that.  Use --without-sound to disable sound support.
+scroll bars.  
+
+Use --without-xim to inhibit the default use of X Input Methods.  In
+this case, the X resource useXIM can be used to turn on use of XIM.
+
+Use --disable-largefile omits support for files larger than 2GB on
+systems which support that.  
+
+Use --without-sound to disable sound support.
 
 The `--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to `/usr/local'.
@@ -485,17 +466,6 @@ are installed in the following directories:
 		at the same time; in particular, you don't have to
 		make Emacs unavailable while installing a new version.
 
-`/usr/local/share/emacs/VERSION/site-lisp' holds the local Emacs Lisp
-		files installed for Emacs version VERSION only.
-
-`/usr/local/share/emacs/site-lisp' holds the local Emacs Lisp
-		files installed for all Emacs versions.
-
-		When Emacs is installed, it searches for its Lisp files
-		in `/usr/local/share/emacs/VERSION/site-lisp', then in
-		`/usr/local/share/emacs/site-lisp', and finally in
-		`/usr/local/share/emacs/VERSION/lisp'.
-
 `/usr/local/share/emacs/VERSION/etc' holds the Emacs tutorial, the DOC
 		file, the `yow' database, and other
 		architecture-independent files Emacs might need while
@@ -524,6 +494,20 @@ are installed in the following directories:
 
 `/usr/local/man/man1' holds the man pages for the programs installed
 		in `/usr/local/bin'.
+
+Any version of Emacs, whether installed or not, also looks for Lisp
+files in these directories.
+
+`/usr/local/share/emacs/VERSION/site-lisp' holds the local Emacs Lisp
+		files installed for Emacs version VERSION only.
+
+`/usr/local/share/emacs/site-lisp' holds the local Emacs Lisp
+		files installed for all Emacs versions.
+
+		When Emacs is installed, it searches for its Lisp files
+		in `/usr/local/share/emacs/VERSION/site-lisp', then in
+		`/usr/local/share/emacs/site-lisp', and finally in
+		`/usr/local/share/emacs/VERSION/lisp'.
 
 If these directories are not what you want, you can specify where to
 install Emacs's libraries and data files or where Emacs should search

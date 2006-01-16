@@ -1,6 +1,6 @@
 ;;; ogonek.el --- change the encoding of Polish diacritics
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2001  Free Software Foundation, Inc.
 
 ;; Author: W{\l}odek Bzyl, Ryszard Kubiak
 ;; Maintainer: rysiek@ipipan.gda.pl (Ryszard Kubiak)
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -166,7 +166,7 @@ znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
   (set-buffer  (get-buffer-create " *ogonek-jak*"))
   (insert ogonek-informacja)
   (switch-to-buffer " *ogonek-jak*")
-  (beginning-of-buffer))
+  (goto-char (point-min)))
 
 ;; ------ A Little Info in English --------
 
@@ -264,7 +264,7 @@ The functions come in the following groups.
   (set-buffer  (get-buffer-create " *ogonek-how*"))
   (insert ogonek-information)
   (switch-to-buffer " *ogonek-how*")
-  (beginning-of-buffer))
+  (goto-char (point-min)))
 
 ;; ---- Variables keeping the suggested answers to dialogue questions -----
 (defvar ogonek-encoding-choices
@@ -500,4 +500,5 @@ followed by a non-Polish character, that is one not listed in the
 
 (provide 'ogonek)
 
+;;; arch-tag: 672d7744-28ac-412b-965e-06a27e50d1d7
 ;;; ogonek.el ends here

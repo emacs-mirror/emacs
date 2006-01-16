@@ -1,5 +1,6 @@
 /* Functions taken directly from X sources for use with the Microsoft W32 API.
-   Copyright (C) 1989, 1992, 1993, 1994, 1995, 1999 Free Software Foundation.
+   Copyright (C) 1989, 1992, 1993, 1994, 1995, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
 #include <signal.h>
@@ -409,3 +410,6 @@ x_sync (f)
      void *f;
 {
 }
+
+/* arch-tag: 4fab3695-4ad3-4cc6-a2b1-fd2c67dc46be
+   (do not change this comment) */

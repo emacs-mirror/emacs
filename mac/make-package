@@ -18,7 +18,7 @@
 ####     files inside /usr.  This will replace the default version of
 ####     emacs included with Mac OS X.
 
-# Copyright (C) 2002 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -34,8 +34,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs; see the file COPYING.  If not, write to the
-# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+# Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 #
 # Contributed by Steven Tamm (steventamm@mac.com).
 
@@ -55,6 +55,7 @@ comp_diskimage=no
 self_contained=no
 app_symlink=no
 full_dist=yes
+compressed_dist=no
 build_in_place=no
 keep_directory=no
 
@@ -94,6 +95,8 @@ do
        with_app=no ;;
     --without-full-dist | -without-full-dist | -no-full-dist | -no-full)
        full_dist=no ;;
+    --compressed-dist)
+       compressed_dist=yes ;;
     --self-contained | -self-contained | --with-self-contained-app | -sc)
        self_contained=yes ;;
     -app-symlink | --app-symlink | -symlink | --symlink | --asl)
@@ -138,6 +141,7 @@ Options:
                           --without-app.
       --without-full-dist Do not include all the .el files in the distribution.
                           This is discouraged except if disk space is critical.
+      --compressed-dist   Compress .el and info files in the distribution.
       --app-symlink       Have the Emacs.app executable be a symlink
                           to the install in [prefix]/bin/emacs and have
                           the emacs executable link to emacs-${version}
@@ -298,6 +302,14 @@ if test "$full_dist" == "no"; then
     find $sharedir/lisp $sharedir/leim -name "*.elc" -print | sed 's|\(.*\)\.elc$|/bin/rm -f \1.el|' | /bin/sh -s
 fi
 
+if test "$compressed_dist" == "yes" -a "$full_dist" == "yes"; then
+    echo "Compressing .el files"
+    sharedir=$installprefix/share/emacs/$version
+    find $sharedir/lisp $sharedir/leim -name "*.elc" -print | sed 's|\(.*\)\.elc$|/usr/bin/gzip -9 \1.el|' | /bin/sh -s
+    echo "Compressing info files"
+    find $installprefix/info -type f ! -name dir -print | sed 's|\(.*\)$|/usr/bin/gzip -9 \1|' | /bin/sh -s
+fi
+
 if test "$with_app" == "yes"; then
   echo "Creating Emacs.app application"
   tempappdir=${tempparentfull}${appsdir}
@@ -313,13 +325,15 @@ if test "$with_app" == "yes"; then
   fi
 fi
 
+compver=powerpc-apple-darwin`uname -r`
+ 
 if test "$self_contained" = "yes"; then
     # Move shared files down to Resources directory
     mv $installprefix/share/emacs/$version/* $installprefix
     rm -rf $installprefix/share
     # These directories might remain in Resources
     mv $installprefix/bin $installprefix/../MacOS/bin
-    mv $installprefix/libexec $installprefix/../MacOS/libexec
+    mv $installprefix/libexec/emacs/$version/$compver $installprefix/../MacOS/libexec
     # Make the application binary a hard link
     rm $installprefix/../MacOS/Emacs
     ln $installprefix/../MacOS/bin/emacs $installprefix/../MacOS/Emacs
@@ -383,9 +397,9 @@ echo "CompressedSize ${compressedSize}" >> ${sizesfile}
 cat ${sizesfile}
 
 echo "Creating Disc Image"
-## Allocate an extra 5000 sectors (about 2.5 mg)
-## Note a sector appears to be 512k
-sectorsAlloced=`echo 2*${compressedSize}+20|bc`
+## From hdiutil man page, a sector is 512k.  Allocate an extra 5% for
+## directories and partition tables.
+sectorsAlloced=`echo 2.1*${compressedSize}|bc`
 hdiutil create -ov ${builddir}/mac/EmacsRW -sectors ${sectorsAlloced}
 ## Need to format the disc image before mounting
 mountLoc=`hdid -nomount ${builddir}/mac/EmacsRW.dmg | grep HFS | cut -f1`
@@ -423,4 +437,5 @@ rm ${builddir}/mac/EmacsRW.dmg
 echo "Cleaning up the staging directory"
 rm -rf ${builddir}/mac/Emacs.pkg ${removable_build_dir}
 
+# arch-tag: 1b631d0d-9fde-4f71-80c0-33e0e5815515
 ### make-package ends here

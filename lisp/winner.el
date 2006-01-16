@@ -1,6 +1,7 @@
 ;;; winner.el --- Restore old window configurations
 
-;; Copyright (C) 1997, 1998, 2001 Free Software Foundation. Inc.
+;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation. Inc.
 
 ;; Author: Ivar Rummelhoff <ivarru@math.uio.no>
 ;; Created: 27 Feb 1997
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -30,8 +31,8 @@
 ;; window configuration (i.e. how the frames are partitioned into
 ;; windows) so that the changes can be "undone" using the command
 ;; `winner-undo'.  By default this one is bound to the key sequence
-;; ctrl-x left.  If you change your mind (while undoing), you can
-;; press ctrl-x right (calling `winner-redo').  Even though it uses
+;; ctrl-c left.  If you change your mind (while undoing), you can
+;; press ctrl-c right (calling `winner-redo').  Even though it uses
 ;; some features of Emacs20.3, winner.el should also work with
 ;; Emacs19.34 and XEmacs20, provided that the installed version of
 ;; custom is not obsolete.
@@ -44,29 +45,24 @@
 (eval-when-compile
   (require 'cl))
 
-(eval-when-compile
-  (cond
-   ((eq (aref (emacs-version) 0) ?X)
-    (defmacro winner-active-region ()
-      '(region-active-p))
-    (defsetf winner-active-region () (store)
-      `(if ,store (zmacs-activate-region)
-	 (zmacs-deactivate-region))))
-   (t (defmacro winner-active-region ()
-	'mark-active)
-      (defsetf winner-active-region () (store)
-	`(setq mark-active ,store)))) )
 
-(eval-and-compile
-  (cond
-   ((eq (aref (emacs-version) 0) ?X)
-    (defalias 'winner-edges 'window-pixel-edges)
-    (defsubst winner-window-list ()
-      (remq (minibuffer-window)
-            (window-list nil 0))))
-   (t (defalias 'winner-edges 'window-edges)
-      (defsubst winner-window-list ()
-        (window-list nil 0)))) )
+(defmacro winner-active-region ()
+  (if (fboundp 'region-active-p)
+      '(region-active-p)
+    'mark-active))
+
+(defsetf winner-active-region () (store)
+  (if (fboundp 'zmacs-activate-region)
+      `(if ,store (zmacs-activate-region)
+	 (zmacs-deactivate-region))
+    `(setq mark-active ,store)))
+
+(defalias 'winner-edges
+  (if (featurep 'xemacs) 'window-pixel-edges 'window-edges))
+(defalias 'winner-window-list
+  (if (featurep 'xemacs)
+      (lambda () (delq (minibuffer-window) (window-list nil 0)))
+    (lambda () (window-list nil 0))))
 
 (require 'ring)
 
@@ -83,11 +79,10 @@
 
 ;;;###autoload
 (defcustom winner-mode nil
-  "Toggle winner-mode.
+  "Toggle Winner mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `winner-mode'."
-  :set #'(lambda (symbol value)
-	   (winner-mode (or value 0)))
+  :set #'(lambda (symbol value) (funcall symbol (or value 0)))
   :initialize 'custom-initialize-default
   :type    'boolean
   :group   'winner
@@ -104,8 +99,7 @@ use either \\[customize] or the function `winner-mode'."
   :group 'winner)
 
 (defcustom winner-boring-buffers '("*Completions*")
-  "`winner-undo' will not restore windows displaying any of these \
-buffers.
+  "`winner-undo' will not restore windows displaying any of these buffers.
 You may want to include buffer names such as *Help*, *Apropos*,
 *Buffer List*, *info* and *Compile-Log*."
   :type '(repeat string)
@@ -114,7 +108,8 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 
 
-;;;; Saving old configurations (internal variables and subroutines)
+
+;;;; Saving old configurations (internal variables and subroutines)
 
 
 ;;; Current configuration
@@ -168,13 +163,13 @@ You may want to include buffer names such as *Help*, *Apropos*,
 ;; Find the right ring.  If it does not exist, create one.
 (defsubst winner-ring (frame)
   (or (cdr (assq frame winner-ring-alist))
-      (progn
-	(let ((ring (make-ring winner-ring-size)))
-	  (ring-insert ring (winner-configuration frame))
-	  (push (cons frame ring) winner-ring-alist)
-	  ring))))
+      (let ((ring (make-ring winner-ring-size)))
+        (ring-insert ring (winner-configuration frame))
+        (push (cons frame ring) winner-ring-alist)
+        ring)))
 
-;; If the same command is called several times in a row,
+
+;; If the same command is called several times in a row,
 ;; we only save one window configuration.
 (defvar winner-last-command nil)
 
@@ -182,7 +177,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
 (defvar winner-last-frames nil)
 
 
-(defun winner-equal (a b)
+(defsubst winner-equal (a b)
   "Check whether two Winner configurations (as produced by
 `winner-conf') are equal."
   (equal (cdr a) (cdr b)))
@@ -246,7 +241,8 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 
 
-;;;; Restoring configurations
+
+;;;; Restoring configurations
 
 ;; Works almost as `set-window-configuration',
 ;; but does not change the contents or the size of the minibuffer,
@@ -307,7 +303,8 @@ You may want to include buffer names such as *Help*, *Apropos*,
 		  winner-point-alist)
 	    (point)))))))
 
-;; Make sure point does not end up in the minibuffer and delete
+
+;; Make sure point does not end up in the minibuffer and delete
 ;; windows displaying dead or boring buffers
 ;; (c.f. `winner-boring-buffers').  Return nil iff all the windows
 ;; should be deleted.  Preserve correct points and marks.
@@ -363,7 +360,12 @@ You may want to include buffer names such as *Help*, *Apropos*,
   :type 'hook
   :group 'winner)
 
-(defvar winner-mode-map nil "Keymap for Winner mode.")
+(defvar winner-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(control c) left] 'winner-undo)
+    (define-key map [(control c) right] 'winner-redo)
+    map)
+  "Keymap for Winner mode.")
 
 ;; Check if `window-configuration-change-hook' is working.
 (defun winner-hook-installed-p ()
@@ -389,7 +391,7 @@ With arg, turn Winner mode on if and only if arg is positive."
       (cond
        ((winner-hook-installed-p)
 	(add-hook 'window-configuration-change-hook 'winner-change-fun)
-	(add-hook 'post-command-hook 'winner-save-old-configurations))
+      (add-hook 'post-command-hook 'winner-save-old-configurations))
        (t (add-hook 'post-command-hook 'winner-save-conditionally)))
       (add-hook 'minibuffer-setup-hook 'winner-save-unconditionally)
       (setq winner-modified-list (frame-list))
@@ -411,7 +413,7 @@ With arg, turn Winner mode on if and only if arg is positive."
 (defvar winner-undo-frame nil)
 
 (defvar winner-pending-undo-ring nil
-  "The ring currently used by winner undo.")
+  "The ring currently used by `winner-undo'.")
 (defvar winner-undo-counter nil)
 (defvar winner-undone-data  nil) ; There confs have been passed.
 
@@ -438,7 +440,8 @@ In other words, \"undo\" changes in window configuration."
 
 
 
-(defun winner-undo-this ()		; The heart of winner undo.
+
+(defun winner-undo-this ()		; The heart of winner undo.
   (loop
    (cond
     ((>= winner-undo-counter (ring-length winner-pending-undo-ring))
@@ -468,14 +471,9 @@ In other words, \"undo\" changes in window configuration."
        (ring-ref winner-pending-undo-ring 0)))
     (unless (eq (selected-window) (minibuffer-window))
       (message "Winner undid undo")))
-   (t (error "Previous command was not a winner-undo"))))
+   (t (error "Previous command was not a `winner-undo'"))))
 
 ;;; To be evaluated when the package is loaded:
-
-(unless winner-mode-map
-  (setq winner-mode-map (make-sparse-keymap))
-  (define-key winner-mode-map [(control x) left] 'winner-undo)
-  (define-key winner-mode-map [(control x) right] 'winner-redo))
 
 (unless (or (assq 'winner-mode minor-mode-map-alist)
 	    winner-dont-bind-my-keys)
@@ -483,5 +481,5 @@ In other words, \"undo\" changes in window configuration."
 	minor-mode-map-alist))
 
 (provide 'winner)
-
+;; arch-tag: 686d1c1b-010e-42ca-a192-b5685112418f
 ;;; winner.el ends here

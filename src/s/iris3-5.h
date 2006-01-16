@@ -1,5 +1,6 @@
 /* Definitions file for GNU Emacs running on Silicon Graphics 3.5
-   Copyright (C) 1987, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /*
@@ -160,3 +161,6 @@ Boston, MA 02111-1307, USA.  */
 /* This is how to get the device name of the tty end of a pty.  */
 #define PTY_TTY_NAME_SPRINTF \
  	    sprintf (ptyname, "/dev/ttyq%d", minor (stb.st_rdev));
+
+/* arch-tag: 41161051-477f-44be-bb2a-0eead3142157
+   (do not change this comment) */

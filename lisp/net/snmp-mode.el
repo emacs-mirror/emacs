@@ -1,6 +1,7 @@
 ;;; snmp-mode.el --- SNMP & SNMPv2 MIB major mode
 
-;; Copyright (C) 1995, 1998, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Paul D. Smith <psmith@BayNetworks.com>
 ;; Keywords: data
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -356,7 +357,7 @@ This is used during Tempo template completion."
 
   ;; Miscellaneous customization
   (make-local-variable 'require-final-newline)
-  (setq require-final-newline t))
+  (setq require-final-newline mode-require-final-newline))
 
 
 ;; SNMPv1 MIB Editing Mode.
@@ -393,8 +394,7 @@ Turning on snmp-mode runs the hooks in `snmp-common-mode-hook', then
   (setq snmp-mode-status-list snmp-rfc1212-status)
 
   ;; Run hooks
-  (run-hooks 'snmp-common-mode-hook)
-  (run-hooks 'snmp-mode-hook))
+  (run-mode-hooks 'snmp-common-mode-hook 'snmp-mode-hook))
 
 
 ;;;###autoload
@@ -429,8 +429,7 @@ then `snmpv2-mode-hook'."
   (setq snmp-mode-status-list snmp-rfc1902-status)
 
   ;; Run hooks
-  (run-hooks 'snmp-common-mode-hook)
-  (run-hooks 'snmpv2-mode-hook))
+  (run-mode-hooks 'snmp-common-mode-hook 'snmpv2-mode-hook))
 
 
 ;;;----------------------------------------------------------------------------
@@ -720,4 +719,5 @@ controls whether case is significant."
 
 (provide 'snmp-mode)
 
+;;; arch-tag: eb6cc0f9-1e47-4023-8625-bc9aae6c3527
 ;;; snmp-mode.el ends here

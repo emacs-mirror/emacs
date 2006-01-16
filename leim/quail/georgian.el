@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -34,7 +34,7 @@
 (quail-define-package
  "georgian" "Georgian" "გ" t
  "A common Georgian transliteration (using Unicode)"
- nil t nil nil nil nil nil nil nil nil t)
+ nil t nil nil t nil nil nil nil nil t)
 
 (quail-define-rules
  ("a" ?ა)
@@ -82,4 +82,5 @@
  ("e1" ?) ;; Letter not in Unicode (private use code).
  )
 
+;;; arch-tag: 7b26f205-7091-435e-a2cf-8778f899dc8a
 ;;; georgian.el ends here

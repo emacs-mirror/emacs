@@ -1,5 +1,6 @@
 /* 16-bit Windows Selection processing for emacs on MS-Windows
-   Copyright (C) 1996, 1997, 2001 Free Software Foundation.
+   Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* These functions work by using WinOldAp interface.  WinOldAp
    (WINOLDAP.MOD) is a Microsoft Windows extension supporting
@@ -764,3 +765,6 @@ set to nil.  */);
 }
 
 #endif /* MSDOS */
+
+/* arch-tag: 085a22c8-7324-436e-a6da-102464ce95d8
+   (do not change this comment) */

@@ -1,7 +1,10 @@
 ;;; ethio-util.el --- utilities for Ethiopic -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1997, 2001 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 1998, 2002
+;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2001, 2004, 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: mule, multilingual, Ethiopic
 
@@ -19,14 +22,17 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;; Author: TAKAHASHI Naoto <ntakahas@m17n.org>
 
 ;;; Commentary:
 
 ;;; Code:
+
+(defvar rmail-current-message)
+(defvar rmail-message-vector)
 
 ;; Information for exiting Ethiopic environment.
 (defvar exit-ethiopic-environment-data nil)
@@ -138,7 +144,7 @@ variable.")
 
 (defvar ethio-use-three-dot-question nil
   "*Non-nil means associate ASCII question mark with Ethiopic old style question mark (three vertically stacked dots).
-If nil, associate ASCII question mark with Ethiopic stylised question
+If nil, associate ASCII question mark with Ethiopic stylized question
 mark.  All SERA <--> FIDEL converters refer this variable.")
 
 (defvar ethio-quote-vowel-always nil
@@ -417,6 +423,11 @@ If nil, use uppercases.")
    nil nil nil nil nil
    ])
 
+;; To avoid byte-compiler warnings.  It should never be set globally.
+(defvar ethio-sera-being-called-by-w3)
+;; This variable will be bound by some third-party package.
+(defvar sera-being-called-by-w3)
+
 ;;;###autoload
 (defun ethio-sera-to-fidel-region (beg end &optional secondary force)
   "Convert the characters in region from SERA to FIDEL.
@@ -424,7 +435,7 @@ The variable `ethio-primary-language' specifies the primary language
 and `ethio-secondary-language' specifies the secondary.
 
 If the 3rd parameter SECONDARY is given and non-nil, assume the region
-begins begins with the secondary language; otherwise with the primary
+begins with the secondary language; otherwise with the primary
 language.
 
 If the 4th parameter FORCE is given and non-nil, perform conversion
@@ -587,9 +598,11 @@ the conversion of \"a\"."
       (cond
 
        ;; skip from "<" to ">" (or from "&" to ";") if in w3-mode
-       ((and (boundp 'sera-being-called-by-w3)
-	     sera-being-called-by-w3
-	     (or (= ch ?<) (= ch ?&)))
+       ((and (or (= ch ?<) (= ch ?&))
+	     (or (and (boundp 'ethio-sera-being-called-by-w3)
+		      ethio-sera-being-called-by-w3)
+		 (and (boundp 'sera-being-called-by-w3)
+		      sera-being-called-by-w3)))
 	(search-forward (if (= ch ?<) ">" ";")
 			nil 0))
 
@@ -716,7 +729,7 @@ changing anything."
 
 (defun ethio-tilde-escape nil
   "Handle a SERA tilde escape in Ethiopic section and delete it.
-Delete the escape even it is not recognised."
+Delete the escape even it is not recognized."
 
   (let ((p (point)) command)
     (skip-chars-forward "^ \t\n\\\\")
@@ -811,7 +824,7 @@ Delete the escape even it is not recognised."
 
 ;;;###autoload
 (defun ethio-sera-to-fidel-mail-or-marker (&optional arg)
-  "Execute ethio-sera-to-fidel-mail or ethio-sera-to-fidel-marker depending on the current major mode.
+  "Execute `ethio-sera-to-fidel-mail' or `ethio-sera-to-fidel-marker' depending on the current major mode.
 If in rmail-mode or in mail-mode, execute the former; otherwise latter."
 
   (interactive "P")
@@ -1174,9 +1187,11 @@ See also the descriptions of the variables
 	  (goto-char (1+ (match-end 0)))) ; because we inserted one byte (\)
 
 	 ;; skip from "<" to ">" (or from "&" to ";") if called from w3
-	 ((and (boundp 'sera-being-called-by-w3)
-	       sera-being-called-by-w3
-	       (or (= ch ?<) (= ch ?&)))
+	 ((and (or (= ch ?<) (= ch ?&))
+	       (or (and (boundp 'ethio-sera-being-called-by-w3)
+			ethio-sera-being-called-by-w3)
+		   (and (boundp 'sera-being-called-by-w3)
+			sera-being-called-by-w3)))
 	  (search-forward (if (= ch ?<) ">" ";")
 			  nil 0))
 
@@ -1199,7 +1214,7 @@ See also the descriptions of the variables
 
 ;;;###autoload
 (defun ethio-fidel-to-sera-mail-or-marker (&optional arg)
-  "Execute ethio-fidel-to-sera-mail or ethio-fidel-to-sera-marker depending on the current major mode.
+  "Execute `ethio-fidel-to-sera-mail' or `ethio-fidel-to-sera-marker' depending on the current major mode.
 If in rmail-mode or in mail-mode, execute the former; otherwise latter."
 
   (interactive "P")
@@ -1826,7 +1841,7 @@ Otherwise, [0-9A-F]."
 
 ;;;###autoload
 (defun ethio-find-file nil
-  "Transcribe file content into Ethiopic dependig on filename suffix."
+  "Transcribe file content into Ethiopic depending on filename suffix."
   (cond
 
    ((string-match "\\.sera$" (buffer-file-name))
@@ -1835,7 +1850,7 @@ Otherwise, [0-9A-F]."
       (set-buffer-modified-p nil)))
 
    ((string-match "\\.html$" (buffer-file-name))
-    (let ((sera-being-called-by-w3 t))
+    (let ((ethio-sera-being-called-by-w3 t))
       (save-excursion
 	(ethio-sera-to-fidel-marker 'force)
 	(goto-char (point-min))
@@ -1872,7 +1887,7 @@ Otherwise, [0-9A-F]."
 
    ((string-match "\\.html$" (buffer-file-name))
     (save-excursion
-      (let ((sera-being-called-by-w3 t)
+      (let ((ethio-sera-being-called-by-w3 t)
 	    (lq (aref ethio-fidel-to-sera-map 461))
 	    (rq (aref ethio-fidel-to-sera-map 462)))
 	(aset ethio-fidel-to-sera-map 461 "&laquote;")
@@ -2005,4 +2020,5 @@ mark."
 ;;
 (provide 'ethio-util)
 
+;;; arch-tag: c8feb3d6-39bf-4b0a-b6ef-26f03fbc8140
 ;;; ethio-util.el ends here

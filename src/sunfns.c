@@ -1,5 +1,6 @@
 /* Functions for Sun Windows menus and selection buffer.
-   Copyright (C) 1987, 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1999, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is probably totally obsolete.  In any case, the FSF is
 unwilling to support it.  We agreed to include it in our distribution
@@ -25,8 +26,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Author: Jeff Peck, Sun Microsystems, Inc. <peck@sun.com>
 Original ideas by David Kastan and Eric Negaard, SRI International
@@ -299,7 +300,7 @@ sel_read (sel, file)
     error("fread botch in sel_read");
     return(-1);
   } else if (n < 0) {
-    error("Error reading selection.");
+    error("Error reading selection");
     return(-1);
   }
   /*
@@ -454,8 +455,10 @@ as a menu label.  */)
 
   CHECK_GFX (Qnil);
 
-  xpos = CtoSX (WINDOW_LEFT_MARGIN (XWINDOW (window)) + XINT(X_Position));
-  ypos = CtoSY (XWINDOW(window)->top  + XINT(Y_Position));
+  xpos = CtoSX (WINDOW_LEFT_EDGE_COL (XWINDOW (window))
+		+ WINDOW_LEFT_SCROLL_BAR_COLS (XWINDOW (window))
+		+ XINT(X_Position));
+  ypos = CtoSY (WINDOW_TOP_EDGE_LINE (XWINDOW(window)) + XINT(Y_Position));
 #ifdef  Menu_Base_Kludge
   {static Lisp_Object symbol[2];
    symbol[0] = Fintern (sm_kludge_string, Qnil);
@@ -511,3 +514,6 @@ syms_of_sunfns()
   defsubr(&Ssun_get_selection);
   defsubr(&Ssun_menu_internal);
 }
+
+/* arch-tag: 2d7decb7-58f6-41aa-b45b-077ccfab7158
+   (do not change this comment) */

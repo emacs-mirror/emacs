@@ -1,8 +1,8 @@
 /* Give this program DOC-mm.nn.oo as standard input and it outputs to
    standard output a file of texinfo input containing the doc strings.
 
-   Copyright (C) 1989, 1992, 1994, 1996, 1999, 2000, 2001
-      Free Software Foundation Inc.
+   Copyright (C) 1989, 1992, 1994, 1996, 1999, 2000, 2001, 2002, 2003,
+                 2004, 2005 Free Software Foundation, Inc.
 
    This file is part of GNU Emacs.
 
@@ -18,8 +18,8 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Emacs; see the file COPYING.  If not, write to the
-   Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.
 
    This version sorts the output by function name.  */
 
@@ -75,7 +75,7 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
@@ -279,5 +279,10 @@ main ()
     printf ("@bye\n");
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
+
+/* arch-tag: ce28f204-1e70-4b34-8210-3d54a5662071
+   (do not change this comment) */
+
+/* sorted-doc.c ends here */

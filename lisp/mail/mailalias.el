@@ -1,6 +1,7 @@
 ;;; mailalias.el --- expand and complete mailing address aliases
 
-;; Copyright (C) 1985, 1987, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1995, 1996, 1997, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -33,7 +34,7 @@
 (require 'sendmail)
 
 (defgroup mailalias nil
-  "Expanding mail aliases"
+  "Expanding mail aliases."
   :group 'mail)
 
 (defcustom mail-passwd-files '("/etc/passwd")
@@ -93,14 +94,14 @@ If `angles', they look like:
   :group 'mailalias)
 
 (defcustom mail-directory-function nil
-  "*Function to get completions from directory service or `nil' for none.
+  "*Function to get completions from directory service or nil for none.
 See `mail-directory-requery'."
   :type '(choice function (const nil))
   :group 'mailalias)
 
 ;; This is for when the directory is huge, or changes frequently.
 (defcustom mail-directory-requery nil
-  "*When non-`nil' call `mail-directory-function' for each completion.
+  "*When non-nil call `mail-directory-function' for each completion.
 In that case, one argument gets passed to the function, the partial string
 entered so far."
   :type 'boolean
@@ -111,9 +112,10 @@ entered so far."
 This value is used when the value of `mail-directory-function'
 is `mail-directory-process'.  The value should be a list
 of the form (COMMAND ARG ...), where each of the list elements
-is evaluated.  When `mail-directory-requery' is non-nil, during
-evaluation of these elements, the variable `pattern' contains
-the partial input being completed.
+is evaluated.  COMMAND should evaluate to a string.  When
+`mail-directory-requery' is non-nil, during evaluation of these
+elements, the variable `pattern' contains the partial input being
+completed.  `pattern' is nil when `mail-directory-requery' is nil.
 
 The value might look like this:
 
@@ -149,7 +151,7 @@ Three types of values are possible:
   "Alist of local users, aliases and directory entries as available.
 Elements have the form (MAILNAME) or (MAILNAME . FULLNAME).
 If the value means t, it means the real value should be calculated
-for the next use.  this is used in `mail-complete'.")
+for the next use.  This is used in `mail-complete'.")
 
 (defvar mail-local-names t
   "Alist of local users.
@@ -260,6 +262,12 @@ By default, this is the file specified by `mail-personal-alias-file'."
 		  ((file-exists-p (setq file (concat "~/" file)))
 		   (insert-file-contents file))
 		  (t (setq file nil)))
+	    (goto-char (point-min))
+	    ;; Delete comments from the contents.
+	    (while (search-forward "# " nil t)
+	      (let ((p (- (point) 2)))
+		(end-of-line)
+		(delete-region p (point))))
 	    ;; Don't lose if no final newline.
 	    (goto-char (point-max))
 	    (or (eq (preceding-char) ?\n) (newline))
@@ -434,7 +442,7 @@ PATTERN is the string we want to complete."
 	(if mail-passwd-command
 	    (call-process shell-file-name nil t nil
 			  shell-command-switch mail-passwd-command))
-	(beginning-of-buffer)
+	(goto-char (point-min))
 	(setq mail-local-names nil)
 	(while (not (eobp))
 	  ;;Recognize lines like
@@ -448,7 +456,7 @@ PATTERN is the string we want to complete."
 	      (add-to-list 'mail-local-names
 			   (cons (match-string 1)
 				 (user-full-name
-				  (string-to-int (match-string 2))))))
+				  (string-to-number (match-string 2))))))
 	  (beginning-of-line 2))
 	(kill-buffer (current-buffer))))
   (if (or (eq mail-names t)
@@ -469,7 +477,9 @@ PATTERN is the string we want to complete."
 				     mail-aliases))
 				(if (consp mail-local-names)
 				    mail-local-names)
-				(or directory mail-directory-names))
+				(or directory 
+				    (when (consp mail-directory-names)
+				      mail-directory-names)))
 			(lambda (a b)
 			  ;; should cache downcased strings
 			  (string< (downcase (car a))
@@ -478,8 +488,10 @@ PATTERN is the string we want to complete."
 
 
 (defun mail-directory (pattern)
-  "Call directory to get names matching PATTERN or all if `nil'.
-Calls `mail-directory-function' and applies `mail-directory-parser' to output."
+  "Use mail-directory facility to get user names matching PATTERN.
+If PATTERN is nil, get all the defined user names.
+This function calls `mail-directory-function' to query the directory,
+then uses `mail-directory-parser' to parse the output it returns."
   (save-excursion
     (message "Querying directory...")
     (set-buffer (generate-new-buffer " *mail-directory*"))
@@ -509,8 +521,9 @@ Calls `mail-directory-function' and applies `mail-directory-parser' to output."
 (defun mail-directory-process (pattern)
   "Run a shell command to output names in directory.
 See `mail-directory-process'."
-  (apply 'call-process (eval (car mail-directory-process)) nil t nil
-	 (mapcar 'eval (cdr mail-directory-process))))
+  (when (consp mail-directory-process)
+    (apply 'call-process (eval (car mail-directory-process)) nil t nil
+	   (mapcar 'eval (cdr mail-directory-process)))))
 
 ;; This should handle a dialog.  Currently expects port to spit out names.
 (defun mail-directory-stream (pattern)
@@ -540,4 +553,5 @@ See `mail-directory-stream'."
 
 (provide 'mailalias)
 
+;;; arch-tag: 1d6a0f87-eb34-4d45-8816-60c1b952cf46
 ;;; mailalias.el ends here

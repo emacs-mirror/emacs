@@ -1,13 +1,14 @@
 ;;; ps-mule.el --- provide multi-byte character facility to ps-print
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, print, PostScript, multibyte, mule
-;; Time-stamp: <2001/08/15 15:34:11 vinicius>
+;; Time-stamp: <2003/05/14 22:19:41 vinicius>
 
 ;; This file is part of GNU Emacs.
 
@@ -23,8 +24,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -212,53 +213,6 @@ Any other value is treated as nil."
 		 (const bdf-font-except-latin) (const :tag "nil" nil))
   :group 'ps-print-font)
 
-
-(eval-and-compile
-  ;; For Emacs 20.2 and the earlier version.
-  (if (and (boundp 'mule-version)
-	   (not (string< (symbol-value 'mule-version) "4.0")))
-      ;; mule package is loaded
-      (progn
-	(defalias 'ps-mule-next-point '1+)
-	(defalias 'ps-mule-chars-in-string 'length)
-	(defalias 'ps-mule-string-char 'aref)
-	(defsubst ps-mule-next-index (str i) (1+ i)))
-    ;; mule package isn't loaded or mule version lesser than 4.0
-    (defun ps-mule-next-point (arg)
-      (save-excursion (goto-char arg) (forward-char 1) (point)))
-    (defun ps-mule-chars-in-string (string)
-      (/ (length string)
-	 (charset-bytes (char-charset (string-to-char string)))))
-    (defun ps-mule-string-char (string idx)
-      (string-to-char (substring string idx)))
-    (defun ps-mule-next-index (string i)
-      (+ i (charset-bytes (char-charset (string-to-char string)))))
-    )
-  ;; For Emacs 20.4 and the earlier version.
-  (if (and (boundp 'mule-version)
-	   (string< (symbol-value 'mule-version) "5.0"))
-      ;; mule package is loaded and mule version is lesser than 5.0
-      (progn
-	(defun encode-composition-rule (rule)
-	  (if (= (car rule) 4) (setcar rule 10))
-	  (if (= (cdr rule) 4) (setcdr rule 10))
-	  (+ (* (car rule) 12) (cdr rule)))
-	(defun find-composition (pos &rest ignore)
-	  (let ((ch (char-after pos)))
-	    (and ch (eq (char-charset ch) 'composition)
-		 (let ((components (decompose-composite-char ch 'vector t)))
-		   (list pos (ps-mule-next-point pos) components
-			 (integerp (aref components 1)) nil
-			 (char-width ch)))))))
-    ;; mule package isn't loaded
-    (or (fboundp 'encode-composition-rule)
-	(defun encode-composition-rule (rule)
-	  130))
-    (or (fboundp 'find-composition)
-	(defun find-composition (pos &rest ignore)
-	  nil))
-    ))
-
 (defvar ps-mule-font-info-database
   nil
   "Alist of charsets with the corresponding font information.
@@ -272,7 +226,7 @@ CHARSET is a charset (symbol) for this font family,
 
 FONT-TYPE is a font type: normal, bold, italic, or bold-italic.
 
-FONT-SRC is a font source: builtin, ps-bdf, vflib, or nil.
+FONT-SRC is a font source: builtin, bdf, vflib, or nil.
 
   If FONT-SRC is builtin, FONT-NAME is a built-in PostScript font name.
 
@@ -464,21 +418,21 @@ See also `ps-mule-font-info-database-bdf'.")
 
 (defun ps-mule-encode-bit (string delta)
   (let* ((dim (charset-dimension (char-charset (string-to-char string))))
-	 (len (* (ps-mule-chars-in-string string) dim))
+	 (len (* (length string) dim))
 	 (str (make-string len 0))
 	 (i 0)
 	 (j 0))
     (if (= dim 1)
 	(while (< j len)
 	  (aset str j
-		(+ (nth 1 (split-char (ps-mule-string-char string i))) delta))
-	  (setq i (ps-mule-next-index string i)
+		(+ (nth 1 (split-char (aref string i))) delta))
+	  (setq i (1+ i)
 		j (1+ j)))
       (while (< j len)
-	(let ((split (split-char (ps-mule-string-char string i))))
+	(let ((split (split-char (aref string i))))
 	  (aset str j (+ (nth 1 split) delta))
 	  (aset str (1+ j) (+ (nth 2 split) delta))
-	  (setq i (ps-mule-next-index string i)
+	  (setq i (1+ i)
 		j (+ j 2)))))
     str))
 
@@ -514,13 +468,13 @@ See also `ps-mule-font-info-database-bdf'.")
 
 ;; Special encoding for mule-unicode-* characters.
 (defun ps-mule-encode-ucs2 (string)
-  (let* ((len (ps-mule-chars-in-string string))
+  (let* ((len (length string))
 	 (str (make-string (* 2 len) 0))
 	 (i 0)
 	 (j 0)
 	 ch hi lo)
     (while (< i len)
-      (setq ch (encode-char (ps-mule-string-char string i) 'ucs)
+      (setq ch (encode-char (aref string i) 'ucs)
 	    hi (lsh ch -8)
 	    lo (logand ch 255))
       (aset str j hi)
@@ -557,7 +511,10 @@ element of the list."
 
 (defsubst ps-mule-printable-p (charset)
   "Non-nil if characters in CHARSET is printable."
-  (ps-mule-get-font-spec charset 'normal))
+  ;; ASCII and Latin-1 are always printable.
+  (or (eq charset 'ascii)
+      (eq charset 'latin-iso8859-1)
+      (ps-mule-get-font-spec charset 'normal)))
 
 (defconst ps-mule-external-libraries
   '((builtin nil nil
@@ -842,11 +799,11 @@ the sequence."
 	    (cons from ps-width-remaining)
 	  (cons (if composition
 		    (nth 1 composition)
-		  (ps-mule-next-point from))
+		  (1+ from))
 		run-width)))
     ;; We assume that all characters in this range have the same width.
     (setq char-width (* char-width (charset-width ps-mule-current-charset)))
-    (let ((run-width (* (chars-in-region from to) char-width)))
+    (let ((run-width (* (abs (- from to)) char-width)))
       (if (> run-width ps-width-remaining)
 	  (cons (min to
 		     (save-excursion
@@ -870,7 +827,9 @@ Returns the value:
 
 Where ENDPOS is the end position of the sequence and RUN-WIDTH is the width of
 the sequence."
-  (setq ps-mule-current-charset (charset-after from))
+  (let ((ch (char-after from)))
+    (setq ps-mule-current-charset
+	  (char-charset (or (aref ps-print-translation-table ch) ch))))
   (let* ((wrappoint (ps-mule-find-wrappoint
 		     from to (ps-avg-char-width 'ps-font-for-text)))
 	 (to (car wrappoint))
@@ -878,6 +837,10 @@ the sequence."
 			      (ps-font-alist 'ps-font-for-text))))
 	 (font-spec (ps-mule-get-font-spec ps-mule-current-charset font-type))
 	 (string (buffer-substring-no-properties from to)))
+    (dotimes (i (length string))
+      (let ((ch (aref ps-print-translation-table (aref string i))))
+	(if ch
+	    (aset string i ch))))
     (cond
      ((= from to)
       ;; We can't print any more characters in the current line.
@@ -895,7 +858,7 @@ the sequence."
 
      ;; This case is obsolete for Emacs 21.
      ((eq ps-mule-current-charset 'composition)
-      (ps-mule-plot-composition from (ps-mule-next-point from) bg-color))
+      (ps-mule-plot-composition from (1+ from) bg-color))
 
      (t
       ;; No way to print this charset.  Just show a vacant box of an
@@ -1076,9 +1039,12 @@ the sequence."
 	    /BOTTOM LLY def
 	    currentfont /RelativeCompose known {
 		/relative currentfont /RelativeCompose get def
+		relative false eq {
+		    %% Disable relative composition by setting sufficiently low
+		    %% and high positions.
+		    /relative [ -100000 100000 ] def
+		} if
 	    } {
-		%% Disable relative composition by setting sufficiently low
-		%% and high positions.
 		/relative [ -100000 100000 ] def
 	    } ifelse
 	    [ elt 0 0 ]
@@ -1273,7 +1239,7 @@ NewBitmapDict
 	} ifelse
 	/FirstCode -1 store
 
-	bmp 0 get SpaceWidthRatio ratio div mul size div 0	% wx wy
+	bmp 0 get size div 0		% wx wy
 	setcharwidth			% We can't use setcachedevice here.
 
 	bmp 1 get 0 gt bmp 2 get 0 gt and {
@@ -1436,39 +1402,67 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
 	  (setq string (ps-mule-string-encoding font-spec string nil t))))))
   string)
 
-;;;###autoload
-(defun ps-mule-header-string-charsets ()
-  "Return a list of character sets that appears in header strings."
-  (let ((str ""))
-    (when ps-print-header
-      (let ((tail (list ps-left-header ps-right-header)))
-	(while tail
-	  ;; Simulate what is done by ps-generate-header-line to get a
-	  ;; string to plot.
-	  (let ((count 0)
-		(tmp (car tail)))
-	    (setq tail (cdr tail))
-	    (while (and tmp (< count ps-header-lines))
-	      (let ((elt (car tmp)))
-		(setq tmp (cdr tmp)
-		      count (1+ count)
-		      str (concat str
-				  (cond ((stringp elt) elt)
-					((and (symbolp elt) (fboundp elt))
-					 (funcall elt))
-					((and (symbolp elt) (boundp elt))
-					 (symbol-value elt))
-					(t ""))))))))))
-    (let ((len (length str))
-	  (i 0)
-	  charset-list)
-      (while (< i len)
-	(let ((charset (char-charset (aref str i))))
-	  (setq i (1+ i))
-	  (or (eq charset 'ascii)
-	      (memq charset charset-list)
-	      (setq charset-list (cons charset charset-list)))))
-      charset-list)))
+(defun ps-mule-show-warning (charsets from to header-footer-list)
+  (let ((table (make-category-table))
+	(buf (current-buffer))
+	(max-unprintable-chars 15)
+	char-pos-list)
+    (define-category ?u "Unprintable charset" table)
+    (dolist (cs charsets)
+      (modify-category-entry (make-char cs) ?u table))
+    (with-category-table table
+      (save-excursion
+	(goto-char from)
+	(while (and (<= (length char-pos-list) max-unprintable-chars)
+		    (re-search-forward "\\cu" to t))
+	  (or (aref ps-print-translation-table (preceding-char))
+	      (push (cons (preceding-char) (1- (point))) char-pos-list)))))
+    (with-output-to-temp-buffer "*Warning*"
+      (with-current-buffer standard-output
+	(when char-pos-list
+	  (let ((func #'(lambda (buf pos)
+			  (when (buffer-live-p buf)
+			    (pop-to-buffer buf)
+			    (goto-char pos))))
+		(more nil))
+	    (if (>= (length char-pos-list) max-unprintable-chars)
+		(setq char-pos-list (cdr char-pos-list)
+		      more t))
+	    (insert "These characters in the buffer can't be printed:\n")
+	    (dolist (elt (nreverse char-pos-list))
+	      (insert " ")
+	      (insert-text-button (string (car elt))
+				  :type 'help-xref
+				  'help-echo
+				  "mouse-2, RET: jump to this character"
+				  'help-function func
+				  'help-args (list buf (cdr elt)))
+	      (insert ","))
+	    (if more
+		(insert " and more...")
+	      ;; Delete the last comma.
+	      (delete-char -1))
+	    (insert "\nClick them to jump to the buffer position,\n"
+		    (substitute-command-keys "\
+or \\[universal-argument] \\[what-cursor-position] will give information about them.\n"))))
+
+	(with-category-table table
+	  (let (string-list idx)
+	    (dolist (elt header-footer-list)
+	      (when (stringp elt)
+		(when (string-match "\\cu+" elt)
+		  (setq elt (copy-sequence elt))
+		  (put-text-property (match-beginning 0) (match-end 0)
+				     'face 'highlight elt)
+		  (while (string-match "\\cu+" elt (match-end 0))
+		    (put-text-property (match-beginning 0) (match-end 0)
+				       'face 'highlight elt))
+		  (push elt string-list))))
+	    (when string-list
+	      (insert
+	       "These highlighted characters in header/footer can't be printed:\n")
+	      (dolist (elt string-list)
+		(insert "  " elt "\n")))))))))
 
 ;;;###autoload
 (defun ps-mule-begin-job (from to)
@@ -1489,58 +1483,57 @@ This checks if all multi-byte characters in the region are printable or not."
        enable-multibyte-characters
        ;; Initialize `ps-mule-charset-list'.  If some characters aren't
        ;; printable, warn it.
-       (let ((charsets (find-charset-region from to)))
-	 (setq charsets (delq 'ascii (delq 'unknown (delq nil charsets)))
-	       ps-mule-charset-list charsets)
-	 (save-excursion
-	   (goto-char from)
-	   (and (search-forward "\200" to t)
-		(setq ps-mule-charset-list
-		      (cons 'composition ps-mule-charset-list))))
-	 ;; We also have to check non-ASCII charsets in the header strings.
-	 (let ((tail (ps-mule-header-string-charsets)))
-	   (while tail
-	     (unless (eq (car tail) 'ascii)
-	       (setq ps-mule-header-charsets
-		     (cons (car tail) ps-mule-header-charsets))
-	       (or (memq (car tail) charsets)
-		   (setq charsets (cons (car tail) charsets))))
-	     (setq tail (cdr tail))))
-	 (while charsets
-	   (setq charsets
-		 (cond
-		  ((or (eq (car charsets) 'composition)
-		       (ps-mule-printable-p (car charsets)))
-		   (cdr charsets))
-		  ((y-or-n-p
-		    "Font for some characters not found, continue anyway? ")
-		   nil)
-		  (t
-		   (error "Printing cancelled")))))))
+       (let ((header-footer-list (ps-header-footer-string))
+	     unprintable-charsets)
+	 (setq ps-mule-charset-list
+	       (delq 'ascii (delq 'eight-bit-control
+				  (delq 'eight-bit-graphic 
+					(find-charset-region
+					 from to ps-print-translation-table))))
+	       ps-mule-header-charsets
+	       (delq 'ascii (delq 'eight-bit-control
+				  (delq 'eight-bit-graphic 
+					(find-charset-string
+					 (mapconcat
+					  'identity header-footer-list "")
+					 ps-print-translation-table)))))
+	 (dolist (cs ps-mule-charset-list)
+	   (or (ps-mule-printable-p cs)
+	       (push cs unprintable-charsets)))
+	 (dolist (cs ps-mule-header-charsets)
+	   (or (ps-mule-printable-p cs)
+	       (memq cs unprintable-charsets)
+	       (push cs unprintable-charsets)))
+	 (when unprintable-charsets
+	   (ps-mule-show-warning unprintable-charsets from to
+				 header-footer-list)
+	   (or
+	    (y-or-n-p "Font for some characters not found, continue anyway? ")
+	    (error "Printing cancelled")))
+
+	 (or ps-mule-composition-prologue-generated
+	     (let ((use-composition (nth 2 (find-composition from to))))
+	       (or use-composition
+		   (let (str)
+		     (while header-footer-list
+		       (setq str (car header-footer-list))
+		       (if (and (stringp str)
+				(nth 2 (find-composition 0 (length str) str)))
+			   (setq use-composition t
+				 header-footer-list nil)
+			 (setq header-footer-list (cdr header-footer-list))))))
+	       (when use-composition
+		 (progn
+		   (ps-mule-prologue-generated)
+		   (ps-output-prologue ps-mule-composition-prologue)
+		   (setq ps-mule-composition-prologue-generated t)))))))
 
   (setq ps-mule-current-charset 'ascii)
 
-  (if (and (nth 2 (find-composition from to))
-	   (not ps-mule-composition-prologue-generated))
-      (progn
-	(ps-mule-prologue-generated)
-	(ps-output-prologue ps-mule-composition-prologue)
-	(setq ps-mule-composition-prologue-generated t)))
-
   (if (or ps-mule-charset-list ps-mule-header-charsets)
-      (let ((the-list (append ps-mule-header-charsets ps-mule-charset-list))
-	    font-spec elt)
+      (dolist (elt (append ps-mule-header-charsets ps-mule-charset-list))
 	(ps-mule-prologue-generated)
-	;; If external functions are necessary, generate prologues for them.
-	(while the-list
-	  (setq elt (car the-list)
-		the-list (cdr the-list))
-	  (cond ((and (eq elt 'composition)
-		      (not ps-mule-composition-prologue-generated))
-		 (ps-output-prologue ps-mule-composition-prologue)
-		 (setq ps-mule-composition-prologue-generated t))
-		((setq font-spec (ps-mule-get-font-spec elt 'normal))
-		 (ps-mule-init-external-library font-spec))))))
+	(ps-mule-init-external-library (ps-mule-get-font-spec elt 'normal))))
 
   ;; If ASCII font is also specified in ps-mule-font-info-database,
   ;; use it instead of what specified in ps-font-info-database.
@@ -1561,7 +1554,8 @@ This checks if all multi-byte characters in the region are printable or not."
   ;; If the header contains non-ASCII and non-Latin1 characters, prepare a font
   ;; and glyphs for the first occurrence of such characters.
   (if (and ps-mule-header-charsets
-	   (not (eq (car ps-mule-header-charsets) 'latin-iso8859-1)))
+	   (not (eq (car ps-mule-header-charsets) 'latin-iso8859-1))
+	   (= (charset-dimension (car ps-mule-header-charsets)) 1))
       (let ((font-spec (ps-mule-get-font-spec (car ps-mule-header-charsets)
 					      'normal)))
 	(if font-spec
@@ -1588,4 +1582,5 @@ This checks if all multi-byte characters in the region are printable or not."
 
 (provide 'ps-mule)
 
+;;; arch-tag: bca017b2-66a7-4e59-8584-103e749eadbe
 ;;; ps-mule.el ends here

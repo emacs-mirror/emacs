@@ -1,6 +1,7 @@
 ;;; regexp-opt.el --- generate efficient regexps to match strings
 
-;; Copyright (C) 1994,95,96,97,98,99,2000 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -106,25 +107,29 @@ by \\=\\< and \\>."
 	   (completion-regexp-list nil)
 	   (words (eq paren 'words))
 	   (open (cond ((stringp paren) paren) (paren "\\(")))
-	   (sorted-strings (sort (copy-sequence strings) 'string-lessp))
+	   (sorted-strings (delete-dups
+			    (sort (copy-sequence strings) 'string-lessp)))
 	   (re (regexp-opt-group sorted-strings open)))
       (if words (concat "\\<" re "\\>") re))))
 
 ;;;###autoload
 (defun regexp-opt-depth (regexp)
   "Return the depth of REGEXP.
-This means the number of regexp grouping constructs (parenthesised expressions)
-in REGEXP."
+This means the number of non-shy regexp grouping constructs
+\(parenthesized expressions) in REGEXP."
   (save-match-data
     ;; Hack to signal an error if REGEXP does not have balanced parentheses.
     (string-match regexp "")
     ;; Count the number of open parentheses in REGEXP.
-    (let ((count 0) start)
-      (while (string-match "\\(\\`\\|[^\\]\\)\\\\\\(\\\\\\\\\\)*([^?]"
-			   regexp start)
-	(setq count (1+ count)
-	      ;; Go back 2 chars (one for [^?] and one for [^\\]).
-	      start (- (match-end 0) 2)))
+    (let ((count 0) start last)
+      (while (string-match "\\\\(\\(\\?:\\)?" regexp start)
+	(setq start (match-end 0))	      ; Start of next search.
+	(when (and (not (match-beginning 1))
+		   (subregexp-context-p regexp (match-beginning 0) last))
+	  ;; It's not a shy group and it's not inside brackets or after
+	  ;; a backslash: it's really a group-open marker.
+	  (setq last start)	    ; Speed up next regexp-opt-re-context-p.
+	  (setq count (1+ count))))
       count)))
 
 ;;; Workhorse functions.
@@ -280,4 +285,5 @@ in REGEXP."
 
 (provide 'regexp-opt)
 
+;; arch-tag: 6c5a66f4-29af-4fd6-8c3b-4b554d5b4370
 ;;; regexp-opt.el ends here

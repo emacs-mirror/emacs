@@ -1,6 +1,7 @@
 /* Declaration of functions and data types used for MD5 sum computing
    library functions.
-   Copyright (C) 1995, 1996, 1997, 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997, 1999, 2000, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
    This file is part of GNU Emacs.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,8 +16,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with the GNU C Library; see the file COPYING.LIB.  If not,
-   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
+   write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.  */
 
 #ifndef _MD5_H
 #define _MD5_H 1
@@ -144,3 +145,6 @@ extern void *md5_buffer __P ((const char *buffer, size_t len,
 				void *resblock));
 
 #endif /* md5.h */
+
+/* arch-tag: 7cd389f3-6c40-4950-999d-0b2ebd1d20d7
+   (do not change this comment) */

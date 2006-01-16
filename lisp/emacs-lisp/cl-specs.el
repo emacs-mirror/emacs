@@ -1,13 +1,12 @@
 ;;; cl-specs.el --- Edebug specs for cl.el -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Keywords: lisp, tools, maint
 
 ;; LCD Archive Entry:
 ;; cl-specs.el|Daniel LaLiberte|liberte@holonexus.org
 ;; |Edebug specs for cl.el
-;; |$Date: 2002/10/01 17:00:27 $|1.1|
 
 ;; This file is part of GNU Emacs.
 
@@ -23,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -131,7 +130,7 @@
 (def-edebug-spec pushnew
   (form place &rest
 	&or [[&or ":test" ":test-not" ":key"] function-form]
-	[edebug-keywordp form]))
+	[keywordp form]))
 (def-edebug-spec pop (place))		; different for CL
 
 (def-edebug-spec shiftf (&rest place))  ;; really [&rest place] form
@@ -470,4 +469,5 @@
 (def-edebug-spec loop-d-type-spec
   (&or (loop-d-type-spec . [&or nil loop-d-type-spec]) cl-type-spec))
 
+;;; arch-tag: b29aa3c2-cf67-4af8-9ee1-318fea61b478
 ;;; cl-specs.el ends here

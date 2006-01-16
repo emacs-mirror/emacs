@@ -1,6 +1,7 @@
 ;;; esh-test.el --- Eshell test suite
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'esh-test)
 
@@ -42,18 +43,22 @@
 
 ;;; User Variables:
 
-(defface eshell-test-ok-face
+(defface eshell-test-ok
   '((((class color) (background light)) (:foreground "Green" :bold t))
     (((class color) (background dark)) (:foreground "Green" :bold t)))
   "*The face used to highlight OK result strings."
   :group 'eshell-test)
+;; backward-compatibility alias
+(put 'eshell-test-ok-face 'face-alias 'eshell-test-ok)
 
-(defface eshell-test-failed-face
+(defface eshell-test-failed
   '((((class color) (background light)) (:foreground "OrangeRed" :bold t))
     (((class color) (background dark)) (:foreground "OrangeRed" :bold t))
     (t (:bold t)))
   "*The face used to highlight FAILED result strings."
   :group 'eshell-test)
+;; backward-compatibility alias
+(put 'eshell-test-failed-face 'face-alias 'eshell-test-failed)
 
 (defcustom eshell-show-usage-metrics nil
   "*If non-nil, display different usage metrics for each Eshell command."
@@ -108,12 +113,10 @@
 	       (if truth
 		   (progn
 		     (setq str "  OK  ")
-		     (put-text-property 0 6 'face
-					'eshell-test-ok-face str))
+		     (put-text-property 0 6 'face 'eshell-test-ok str))
 		 (setq str "FAILED")
 		 (setq eshell-test-failures (1+ eshell-test-failures))
-		 (put-text-property 0 6 'face
-				    'eshell-test-failed-face str))
+		 (put-text-property 0 6 'face 'eshell-test-failed str))
 	       str) "]")
 	(add-text-properties (line-beginning-position) (point)
 			     (list 'test-func funcsym))
@@ -125,7 +128,7 @@
   (let ((fsym (get-text-property (point) 'test-func)))
     (when fsym
       (let* ((def (symbol-function fsym))
-	     (library (locate-library (symbol-file fsym)))
+	     (library (locate-library (symbol-file fsym 'defun)))
 	     (name (substring (symbol-name fsym)
 			      (length "eshell-test--")))
 	     (inhibit-redisplay t))
@@ -167,13 +170,7 @@
       (local-set-key [(control ?m)] 'eshell-test-goto-func)
       (local-set-key [return] 'eshell-test-goto-func)
 
-      (insert "Testing Eshell under "
-	      (format "GNU Emacs %s (%s%s)"
-		      emacs-version
-		      system-configuration
-		      (cond ((featurep 'motif) ", Motif")
-			    ((featurep 'x-toolkit) ", X toolkit")
-			    (t ""))))
+      (insert "Testing Eshell under " (emacs-version))
       (switch-to-buffer test-buffer)
       (delete-other-windows))
     (eshell-for funcname (sort (all-completions "eshell-test--"
@@ -239,4 +236,5 @@
 		 "\n"))))
 	    nil t))
 
+;;; arch-tag: 6e32275a-8285-4a4e-b7cf-819aa7c86b8e
 ;;; esh-test.el ends here

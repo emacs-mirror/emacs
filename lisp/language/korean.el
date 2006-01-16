@@ -1,7 +1,9 @@
 ;;; korean.el --- support for Korean -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1998  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, Korean
 
@@ -19,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -38,6 +40,7 @@
 
 (define-coding-system-alias 'euc-kr 'korean-iso-8bit)
 (define-coding-system-alias 'euc-korea 'korean-iso-8bit)
+(define-coding-system-alias 'cp949 'korean-iso-8bit)
 
 (make-coding-system
  'iso-2022-kr 2 ?k
@@ -69,4 +72,5 @@ The following key bindings are available while using Korean input methods:
 
 (provide 'korean)
 
+;;; arch-tag: ca7c7348-5ca3-4623-887a-7fd33d725d0e
 ;;; korean.el ends here

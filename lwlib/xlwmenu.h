@@ -1,3 +1,23 @@
+/* Interface of a lightweight menubar widget.
+   Copyright (C) 2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+
+This file is part of the Lucid Widget Library.
+
+The Lucid Widget Library is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+The Lucid Widget Library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to the
+Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
+
 #ifndef _XlwMenu_h
 #define _XlwMenu_h
 
@@ -53,7 +73,7 @@ typedef struct _XlwMenuClassRec *XlwMenuWidgetClass;
 
 extern WidgetClass xlwMenuWidgetClass;
 
-void
-pop_up_menu __P ((XlwMenuWidget, XButtonPressedEvent*));
-
 #endif /* _XlwMenu_h */
+
+/* arch-tag: 0c019735-d61b-4080-be85-4fdd6e50ae07
+   (do not change this comment) */

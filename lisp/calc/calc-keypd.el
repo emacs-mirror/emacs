@@ -1,10 +1,10 @@
 ;;; calc-keypd.el --- mouse-capable keypad input for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -27,14 +27,10 @@
 
 ;;; Code:
 
-
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-keypd () nil)
-
 
 (defvar calc-keypad-buffer nil)
 (defvar calc-keypad-menu 0)
@@ -241,9 +237,21 @@
   (define-key calc-keypad-mode-map (kbd "RET") 'calc-keypad-press)
   (define-key calc-keypad-mode-map (kbd "TAB") 'calc-keypad-menu)
   (define-key calc-keypad-mode-map "q" 'calc-keypad-off)
-  (define-key calc-keypad-mode-map [(mouse-3)] 'calc-keypad-right-click)
-  (define-key calc-keypad-mode-map [(mouse-2)] 'calc-keypad-middle-click)
-  (define-key calc-keypad-mode-map [(mouse-1)] 'calc-keypad-left-click)
+  (define-key calc-keypad-mode-map [down-mouse-1] 'ignore)
+  (define-key calc-keypad-mode-map [drag-mouse-1] 'ignore)
+  (define-key calc-keypad-mode-map [double-mouse-1] 'ignore)
+  (define-key calc-keypad-mode-map [triple-mouse-1] 'ignore)
+  (define-key calc-keypad-mode-map [down-mouse-2] 'ignore)
+  (define-key calc-keypad-mode-map [drag-mouse-2] 'ignore)
+  (define-key calc-keypad-mode-map [double-mouse-2] 'ignore)
+  (define-key calc-keypad-mode-map [triple-mouse-2] 'ignore)
+  (define-key calc-keypad-mode-map [down-mouse-3] 'ignore)
+  (define-key calc-keypad-mode-map [drag-mouse-3] 'ignore)
+  (define-key calc-keypad-mode-map [double-mouse-3] 'ignore)
+  (define-key calc-keypad-mode-map [triple-mouse-3] 'ignore)
+  (define-key calc-keypad-mode-map [mouse-3] 'calc-keypad-right-click)
+  (define-key calc-keypad-mode-map [mouse-2] 'calc-keypad-middle-click)
+  (define-key calc-keypad-mode-map [mouse-1] 'calc-keypad-left-click)
   (put 'calc-keypad-mode 'mode-class 'special)
   (make-local-variable 'calc-main-buffer))
 
@@ -288,7 +296,7 @@
 	      (set-window-buffer old-win (calc-trail-buffer))
 	      (set-window-buffer win calc-keypad-buffer)
 	      (set-window-start win 1)
-	      (setq win (split-window win (+ width 3) t))
+	      (setq win (split-window win (+ width 7) t))
 	      (set-window-buffer win calcbuf))
 	  (if (or t  ; left-side keypad not yet fully implemented
 		  (< (save-excursion
@@ -376,7 +384,7 @@
 	  (delete-region (point-min) (point))
 	  (if calc-keypad-input
 	      (insert "Calc: " calc-keypad-input "\n")
-	    (insert "----+-----Calc " calc-version "-----+----"
+	    (insert "----+-----Calc " calc-version " -----+----"
 		    (int-to-string (1+ calc-keypad-menu))
 		    "\n")))))
   (setq calc-keypad-prev-input calc-keypad-input))
@@ -534,8 +542,9 @@
 (defun calc-keypad-left-click (event)
   "Handle a left-button mouse click in Calc Keypad window."
   (interactive "e")
-  (goto-char (posn-point (event-start event)))
-  (calc-keypad-press))
+  (with-current-buffer calc-keypad-buffer
+    (goto-char (posn-point (event-start event)))
+    (calc-keypad-press)))
 
 (defun calc-keypad-right-click (event)
   "Handle a right-button mouse click in Calc Keypad window."
@@ -612,5 +621,7 @@
 	(command-execute cmd)
       (error "Not a Calc command: %s" (key-description keys)))))
 
+(provide 'calc-keypd)
 
+;;; arch-tag: 4ba0d360-2bb6-40b8-adfa-eb373765b3f9
 ;;; calc-keypd.el ends here

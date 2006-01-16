@@ -1,8 +1,10 @@
 ;;; cal-persia.el --- calendar functions for the Persian calendar
 
-;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: Persian calendar, calendar, diary
 
@@ -20,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -29,8 +31,8 @@
 ;; diary.el that deal with the Persian calendar.
 
 ;; Technical details of all the calendrical calculations can be found in
-;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
-;; Cambridge University Press (1997).
+;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
+;; and Nachum Dershowitz, Cambridge University Press (2001).
 
 ;; Comments, corrections, and improvements should be sent to
 ;;  Edward M. Reingold               Department of Computer Science
@@ -39,6 +41,8 @@
 ;;                                   Urbana, Illinois 61801
 
 ;;; Code:
+
+(defvar date)
 
 (require 'cal-julian)
 
@@ -206,4 +210,5 @@ Echo Persian date unless NOECHO is t."
 
 (provide 'cal-persia)
 
+;;; arch-tag: 2832383c-e4b4-4dc2-8ee9-cfbdd53e5e2d
 ;;; cal-persia.el ends here

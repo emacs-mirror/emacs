@@ -1,6 +1,7 @@
 ;;; xt-mouse.el --- support the mouse when emacs run in an xterm
 
-;; Copyright (C) 1994, 2000, 2001 Free Software Foundation
+;; Copyright (C) 1994, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: mouse, terminals
@@ -19,21 +20,18 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
-;; Enable mouse support when running inside an xterm or Linux console.
+;; Enable mouse support when running inside an xterm.
 
 ;; This is actually useful when you are running X11 locally, but is
 ;; working on remote machine over a modem line or through a gateway.
 
 ;; It works by translating xterm escape codes into generic emacs mouse
 ;; events so it should work with any package that uses the mouse.
-
-;; The xterm mouse escape codes are supposedly also supported by the
-;; Linux console, but I have not been able to verify this.
 
 ;; You don't have to turn off xterm mode to use the normal xterm mouse
 ;; functionality, it is still available by holding down the SHIFT key
@@ -43,13 +41,16 @@
 
 ;; Support multi-click -- somehow.
 
-;; Clicking on the mode-line does not work, although it should.
-
 ;;; Code:
 
 (define-key function-key-map "\e[M" 'xterm-mouse-translate)
 
 (defvar xterm-mouse-last)
+
+;; Mouse events symbols must have an 'event-kind property with
+;; the value 'mouse-click.
+(dolist (event-type '(mouse-1 mouse-2 mouse-3))
+  (put event-type 'event-kind 'mouse-click))
 
 (defun xterm-mouse-translate (event)
   "Read a click and release event from XTerm."
@@ -78,7 +79,7 @@
 	       (click-where (nth 1 click-data)))
 	  (if (memq down-binding '(nil ignore))
 	      (if (and (symbolp click-where)
-		       (not (eq 'menu-bar click-where)))
+		       (consp click-where))
 		  (vector (list click-where click-data) click)
 		(vector click))
 	    (setq unread-command-events
@@ -92,10 +93,9 @@
 			 0
 		       (list (intern (format "drag-mouse-%d"
 					     (+ 1 xterm-mouse-last)))
-			     down-data click-data))
-		     )))
+			     down-data click-data)))))
 	    (if (and (symbolp down-where)
-		     (not (eq 'menu-bar down-where)))
+		     (consp down-where))
 		(vector (list down-where down-data) down)
 	      (vector down))))))))
 
@@ -112,34 +112,18 @@
   (setcdr pos (cons xterm-mouse-x xterm-mouse-y))
   pos)
 
+;; read xterm sequences above ascii 127 (#x7f)
+(defun xterm-mouse-event-read ()
+  (let ((c (read-char)))
+    (if (< c 0)
+        (+ c #x8000000 128)
+      c)))
+
 (defun xterm-mouse-event ()
   "Convert XTerm mouse event to Emacs mouse event."
-  (let* ((type (- (read-char) #o40))
-	 (x (- (read-char) #o40 1))
-	 (y (- (read-char) #o40 1))
-	 (point (cons x y))
-	 (window (window-at x y))
-	 (where (if window
-		    (coordinates-in-window-p point window)
-		  'menu-bar))
-	 (pos (if (consp where)
-		  (progn
-		    (select-window window)
-		    (goto-char (window-start window))
-		    (move-to-window-line (-
-					  (cdr where)
-					  (if (or header-line-format
-						  default-header-line-format)
-					      1
-					    0)))
-		    (move-to-column (+ (car where) (current-column)
-				       (if (string-match "\\` \\*Minibuf"
-							 (buffer-name))
-					   (- (minibuffer-prompt-width))
-					 0)
-				       (max 0 (1- (window-hscroll)))))
-		    (point))
-		where))
+  (let* ((type (- (xterm-mouse-event-read) #o40))
+	 (x (- (xterm-mouse-event-read) #o40 1))
+	 (y (- (xterm-mouse-event-read) #o40 1))
 	 (mouse (intern
 		 ;; For buttons > 3, the release-event looks
 		 ;; differently (see xc/programs/xterm/button.c,
@@ -151,20 +135,33 @@
 			(format "mouse-%d" (+ 1 xterm-mouse-last)))
 		       (t
 			(setq xterm-mouse-last type)
-			(format "down-mouse-%d" (+ 1 type)))))))
+			(format "down-mouse-%d" (+ 1 type))))))
+	 (w (window-at x y))
+         (ltrb (window-edges w))
+         (left (nth 0 ltrb))
+         (top (nth 1 ltrb)))
+
     (setq xterm-mouse-x x
 	  xterm-mouse-y y)
-    (list mouse
-	  (list window pos point
-		(/ (nth 2 (current-time)) 1000)))))
+    (setq
+     last-input-event
+     (if w
+	 (list mouse (posn-at-x-y (- x left) (- y top) w t))
+       (list mouse
+	     (append (list nil 'menu-bar) (nthcdr 2 (posn-at-x-y x y w t))))))))
 
 ;;;###autoload
 (define-minor-mode xterm-mouse-mode
   "Toggle XTerm mouse mode.
 With prefix arg, turn XTerm mouse mode on iff arg is positive.
 
-Turn it on to use emacs mouse commands, and off to use xterm mouse commands."
-  nil " Mouse" nil :global t
+Turn it on to use Emacs mouse commands, and off to use xterm mouse commands.
+This works in terminal emulators compatible with xterm.  It only
+works for simple uses of the mouse.  Basically, only non-modified
+single clicks are supported.  When turned on, the normal xterm
+mouse functionality for such clicks is still available by holding
+down the SHIFT key while pressing the mouse button."
+  :global t :group 'mouse
   (if xterm-mouse-mode
       ;; Turn it on
       (unless window-system
@@ -191,4 +188,5 @@ Turn it on to use emacs mouse commands, and off to use xterm mouse commands."
 
 (provide 'xt-mouse)
 
+;;; arch-tag: 84962d4e-fae9-4c13-a9d7-ef4925a4ac03
 ;;; xt-mouse.el ends here

@@ -1,6 +1,7 @@
 ;;; cpp.el --- highlight or hide text according to cpp conditionals
 
-;; Copyright (C) 1994, 1995 Free Software Foundation
+;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: c, faces, tools
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -49,6 +50,7 @@
 ;;; Customization:
 (defgroup cpp nil
   "Highlight or hide text according to cpp conditionals."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'c
   :prefix "cpp-")
 
@@ -57,14 +59,18 @@
   :type 'file
   :group 'cpp)
 
+(define-widget 'cpp-face 'lazy
+  "Either a face or the special symbol 'invisible'."
+  :type '(choice (const invisible) (face)))
+
 (defcustom cpp-known-face 'invisible
   "*Face used for known cpp symbols."
-  :type 'face
+  :type 'cpp-face
   :group 'cpp)
 
 (defcustom cpp-unknown-face 'highlight
   "*Face used for unknown cpp symbols."
-  :type 'face
+  :type 'cpp-face
   :group 'cpp)
 
 (defcustom cpp-face-type 'light
@@ -92,11 +98,13 @@ Each entry is a list with the following elements:
 0. The name of the macro (a string).
 1. Face used for text that is `ifdef' the macro.
 2. Face used for text that is `ifndef' the macro.
-3. `t', `nil', or `both' depending on what text may be edited."
-  :type '(repeat (list string face face
-		       (choice (const t)
-			       (const nil)
-			       (const both))))
+3. t, nil, or `both' depending on what text may be edited."
+  :type '(repeat (list (string :tag "Macro")
+		       (cpp-face :tag "True")
+		       (cpp-face :tag "False")
+		       (choice (const :tag "True branch writable" t)
+			       (const :tag "False branch writeable" nil)
+			       (const :tag "Both branches writeable" both))))
   :group 'cpp)
 
 (defvar cpp-overlay-list nil)
@@ -144,7 +152,7 @@ or a cons cell (background-color . COLOR)."
   '("light gray" "light blue" "light cyan" "light yellow" "light pink"
     "pale green" "beige" "orange" "magenta" "violet" "medium purple"
     "turquoise")
-  "Background colours useful with dark foreground colors."
+  "Background colors useful with dark foreground colors."
   :type '(repeat string)
   :group 'cpp)
 
@@ -152,7 +160,7 @@ or a cons cell (background-color . COLOR)."
   '("dim gray" "blue" "cyan" "yellow" "red"
     "dark green" "brown" "dark orange" "dark khaki" "dark violet" "purple"
     "dark turquoise")
-  "Background colours useful with light foreground colors."
+  "Background colors useful with light foreground colors."
   :type '(repeat string)
   :group 'cpp)
 
@@ -181,7 +189,7 @@ or a cons cell (background-color . COLOR)."
    '(("default" . default)
      ("invisible" . invisible))
    "Alist of names and faces available even if you don't use a window system."
-  :type '(repeat (cons string face))
+  :type '(repeat (cons string cpp-face))
   :group 'cpp)
 
 (defvar cpp-face-all-list
@@ -379,9 +387,6 @@ A prefix arg suppresses display of that buffer."
 (defun cpp-make-overlay-hidden (overlay)
   ;; Make overlay hidden and intangible.
   (overlay-put overlay 'invisible 'cpp)
-  (overlay-put overlay 'intangible t)
-  ;; Unfortunately `intangible' is not implemented for overlays yet,
-  ;; so we make is read-only instead.
   (overlay-put overlay 'modification-hooks '(cpp-signal-read-only))
   (overlay-put overlay 'insert-in-front-hooks '(cpp-signal-read-only)))
 
@@ -824,4 +829,5 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
 
 (provide 'cpp)
 
+;;; arch-tag: fb7d433d-745d-495a-96f0-86908ab63f74
 ;;; cpp.el ends here

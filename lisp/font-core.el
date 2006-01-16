@@ -1,7 +1,7 @@
 ;;; font-core.el --- Core interface to font-lock
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 1999, 2000, 2001, 2002
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+;;   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: languages, faces
@@ -20,13 +20,10 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Code:
-
-(defvar font-lock-maximum-size)
-(defvar font-lock-verbose)
 
 ;; This variable is used by mode packages that support Font Lock mode by
 ;; defining their own keywords to use for `font-lock-keywords'.  (The mode
@@ -35,7 +32,7 @@
   "Defaults for Font Lock mode specified by the major mode.
 Defaults should be of the form:
 
- (KEYWORDS KEYWORDS-ONLY CASE-FOLD SYNTAX-ALIST SYNTAX-BEGIN ...)
+ (KEYWORDS [KEYWORDS-ONLY [CASE-FOLD [SYNTAX-ALIST [SYNTAX-BEGIN ...]]]])
 
 KEYWORDS may be a symbol (a variable or function whose value is the keywords to
 use for fontification) or a list of symbols.  If KEYWORDS-ONLY is non-nil,
@@ -69,58 +66,14 @@ textual modes (i.e., the mode-dependent function is known to put point and mark
 around a text block relevant to that mode).
 
 Other variables include that for syntactic keyword fontification,
-`font-lock-syntactic-keywords'
-and those for buffer-specialized fontification functions,
-`font-lock-fontify-buffer-function', `font-lock-unfontify-buffer-function',
-`font-lock-fontify-region-function', `font-lock-unfontify-region-function',
-`font-lock-inhibit-thing-lock' and `font-lock-maximum-size'.")
+`font-lock-syntactic-keywords' and those for buffer-specialized fontification
+functions, `font-lock-fontify-buffer-function',
+`font-lock-unfontify-buffer-function', `font-lock-fontify-region-function',
+`font-lock-unfontify-region-function', and `font-lock-inhibit-thing-lock'.")
 (make-variable-buffer-local 'font-lock-defaults)
 
-;; This variable is used where font-lock.el itself supplies the
-;; keywords.  Really, this shouldn't need to be in font-core.el, but
-;; we can't avoid it.  In the future, this stuff will hopefully be
-;; moved to cc-mode itself.
-(defvar font-lock-defaults-alist
-  (let (;; We use `beginning-of-defun', rather than nil, for SYNTAX-BEGIN.
-	;; Thus the calculation of the cache is usually faster but not
-	;; infallible, so we risk mis-fontification.  sm.
-	(c-mode-defaults
-	 '((c-font-lock-keywords c-font-lock-keywords-1
-	    c-font-lock-keywords-2 c-font-lock-keywords-3)
-	   nil nil ((?_ . "w")) beginning-of-defun
-	   (font-lock-syntactic-face-function
-	    . c-font-lock-syntactic-face-function)
-	   (font-lock-mark-block-function . mark-defun)))
-	(c++-mode-defaults
-	 '((c++-font-lock-keywords c++-font-lock-keywords-1
-	    c++-font-lock-keywords-2 c++-font-lock-keywords-3)
-	   nil nil ((?_ . "w")) beginning-of-defun
-	   (font-lock-syntactic-face-function
-	    . c-font-lock-syntactic-face-function)
-	   (font-lock-mark-block-function . mark-defun)))
-	(objc-mode-defaults
-	 '((objc-font-lock-keywords objc-font-lock-keywords-1
-	    objc-font-lock-keywords-2 objc-font-lock-keywords-3)
-	   nil nil ((?_ . "w") (?$ . "w")) nil
-	   (font-lock-syntactic-face-function
-	    . c-font-lock-syntactic-face-function)
-	   (font-lock-mark-block-function . mark-defun)))
-	(java-mode-defaults
-	 '((java-font-lock-keywords java-font-lock-keywords-1
-	    java-font-lock-keywords-2 java-font-lock-keywords-3)
-	   nil nil ((?_ . "w") (?$ . "w")) nil
-	   (font-lock-syntactic-face-function
-	    . java-font-lock-syntactic-face-function)
-	   (font-lock-mark-block-function . mark-defun))))
-    (list
-     (cons 'c-mode			c-mode-defaults)
-     (cons 'c++-mode			c++-mode-defaults)
-     (cons 'objc-mode			objc-mode-defaults)
-     (cons 'java-mode			java-mode-defaults)))
+(defvar font-lock-defaults-alist nil
   "Alist of fall-back Font Lock defaults for major modes.
-
-This variable should not be used any more.
-Set the buffer-local `font-lock-keywords' in the major mode instead.
 
 Each item should be a list of the form:
 
@@ -130,21 +83,13 @@ where MAJOR-MODE is a symbol and FONT-LOCK-DEFAULTS is a list of default
 settings.  See the variable `font-lock-defaults', which takes precedence.")
 (make-obsolete-variable 'font-lock-defaults-alist 'font-lock-defaults)
 
-(defvar font-lock-multiline nil
-  "Whether font-lock should cater to multiline keywords.
-If nil, don't try to handle multiline patterns.
-If t, always handle multiline patterns.
-If `undecided', don't try to handle multiline patterns until you see one.
-Major/minor modes can set this variable if they know which option applies.")
-
-(defvar font-lock-fontified nil)	; Whether we have fontified the buffer.
-
 (defvar font-lock-function 'font-lock-default-function
   "A function which is called when `font-lock-mode' is toggled.
 It will be passed one argument, which is the current value of
 `font-lock-mode'.")
-(make-variable-buffer-local 'font-lock-function)
 
+;; The mode for which font-lock was initialized, or nil if none.
+(defvar font-lock-mode-major-mode)
 (define-minor-mode font-lock-mode
   "Toggle Font Lock mode.
 With arg, turn Font Lock mode off if and only if arg is a non-positive
@@ -173,17 +118,14 @@ of `font-lock-global-modes'.  For example, put in your ~/.emacs:
 
  (global-font-lock-mode t)
 
-There are a number of support modes that may be used to speed up Font Lock mode
-in various ways, specified via the variable `font-lock-support-mode'.  Where
-major modes support different levels of fontification, you can use the variable
-`font-lock-maximum-decoration' to specify which level you generally prefer.
-When you turn Font Lock mode on/off the buffer is fontified/defontified, though
-fontification occurs only if the buffer is less than `font-lock-maximum-size'.
+Where major modes support different levels of fontification, you can use
+the variable `font-lock-maximum-decoration' to specify which level you
+generally prefer.  When you turn Font Lock mode on/off the buffer is
+fontified/defontified, though fontification occurs only if the buffer is
+less than `font-lock-maximum-size'.
 
-For example, to specify that Font Lock mode use use Lazy Lock mode as a support
-mode and use maximum levels of fontification, put in your ~/.emacs:
+For example, to use maximum levels of fontification, put in your ~/.emacs:
 
- (setq font-lock-support-mode 'lazy-lock-mode)
  (setq font-lock-maximum-decoration t)
 
 To add your own highlighting for some major mode, and modify the highlighting
@@ -213,7 +155,9 @@ your own function which is called when `font-lock-mode' is toggled via
   ;; Arrange to unfontify this buffer if we change major mode later.
   (if font-lock-mode
       (add-hook 'change-major-mode-hook 'font-lock-change-mode nil t)
-    (remove-hook 'change-major-mode-hook 'font-lock-change-mode t)))
+    (remove-hook 'change-major-mode-hook 'font-lock-change-mode t))
+  (when font-lock-mode
+    (setq font-lock-mode-major-mode major-mode)))
 
 ;; Get rid of fontification for the old major mode.
 ;; We do this when changing major modes.
@@ -222,7 +166,7 @@ your own function which is called when `font-lock-mode' is toggled via
 
 (defun font-lock-defontify ()
   "Clear out all `font-lock-face' properties in current buffer.
-A major mode that uses `font-lock-face' properties should put
+A major mode that uses `font-lock-face' properties might want to put
 this function onto `change-major-mode-hook'."
   (let ((modp (buffer-modified-p))
 	(inhibit-read-only t))
@@ -232,10 +176,10 @@ this function onto `change-major-mode-hook'."
 				      '(font-lock-face)))
     (restore-buffer-modified-p modp)))
 
+(defvar font-lock-set-defaults)
 (defun font-lock-default-function (mode)
   ;; Turn on Font Lock mode.
   (when mode
-    (font-lock-set-defaults)
     (set (make-local-variable 'char-property-alias-alist)
 	 (copy-tree char-property-alias-alist))
     ;; Add `font-lock-face' as an alias for the `face' property.
@@ -243,21 +187,7 @@ this function onto `change-major-mode-hook'."
       (if elt
 	  (unless (memq 'font-lock-face (cdr elt))
 	    (setcdr elt (nconc (cdr elt) (list 'font-lock-face))))
-	(push (list 'face 'font-lock-face) char-property-alias-alist)))
-    ;; Only do hard work if the mode has specified stuff in
-    ;; `font-lock-defaults'.
-    (when font-lock-defaults
-      (add-hook 'after-change-functions 'font-lock-after-change-function t t)
-      (font-lock-turn-on-thing-lock)
-      ;; Fontify the buffer if we have to.
-      (let ((max-size (font-lock-value-in-major-mode font-lock-maximum-size)))
-	(cond (font-lock-fontified
-	       nil)
-	      ((or (null max-size) (> max-size (buffer-size)))
-	       (font-lock-fontify-buffer))
-	      (font-lock-verbose
-	       (message "Fontifying %s...buffer size greater than font-lock-maximum-size"
-			(buffer-name)))))))
+	(push (list 'face 'font-lock-face) char-property-alias-alist))))
   ;; Turn off Font Lock mode.
   (unless mode
     ;; Remove `font-lock-face' as an alias for the `face' property.
@@ -267,32 +197,26 @@ this function onto `change-major-mode-hook'."
       (when elt
 	(setcdr elt (remq 'font-lock-face (cdr elt)))
 	(when (null (cdr elt))
-	  (setq char-property-alias-alist (delq elt char-property-alias-alist)))))
-    (when font-lock-defaults
-      (remove-hook 'after-change-functions 'font-lock-after-change-function t)
-      (font-lock-unfontify-buffer)
-      (font-lock-turn-off-thing-lock))))
+	  (setq char-property-alias-alist
+		(delq elt char-property-alias-alist))))))
+
+  ;; Only do hard work if the mode has specified stuff in
+  ;; `font-lock-defaults'.
+  (when (or font-lock-defaults
+	    (if (boundp 'font-lock-keywords) font-lock-keywords)
+	    (with-no-warnings
+	      (cdr (assq major-mode font-lock-defaults-alist)))
+	    (and mode
+		 (boundp 'font-lock-set-defaults)
+		 font-lock-set-defaults
+		 font-lock-mode-major-mode
+		 (not (eq font-lock-mode-major-mode major-mode))))
+    (font-lock-mode-internal mode)))
 
 (defun turn-on-font-lock ()
   "Turn on Font Lock mode (only if the terminal can display it)."
   (unless font-lock-mode
     (font-lock-mode)))
-
-(defvar font-lock-set-defaults nil)	; Whether we have set up defaults.
-
-(defun font-lock-set-defaults ()
-  "Set fontification defaults appropriately for this mode.
-Sets various variables using `font-lock-defaults' (or, if nil, using
-`font-lock-defaults-alist') and `font-lock-maximum-decoration'."
-  (unless font-lock-set-defaults
-    (set (make-local-variable 'font-lock-set-defaults) t)
-    (make-local-variable 'font-lock-fontified)
-    (make-local-variable 'font-lock-multiline)
-    (let ((defaults (or font-lock-defaults
-			(cdr (assq major-mode font-lock-defaults-alist)))))
-      (when defaults
-	(require 'font-lock)
-	(font-lock-set-defaults-1)))))
 
 ;;; Global Font Lock mode.
 
@@ -314,24 +238,20 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;; hook is run, the major mode is in the process of being changed and we do not
 ;; know what the final major mode will be.  So, `font-lock-change-major-mode'
 ;; only (a) notes the name of the current buffer, and (b) adds our function
-;; `turn-on-font-lock-if-enabled' to the hook variables `find-file-hook' and
-;; `post-command-hook' (for buffers that are not visiting files).  By the time
+;; `turn-on-font-lock-if-enabled' to the hook variables
+;; `after-change-major-mode-hook' and `post-command-hook' (for modes
+;; that do not yet run `after-change-major-mode-hook').  By the time
 ;; the functions on the first of these hooks to be run are run, the new major
 ;; mode is assumed to be in place.  This way we get a Font Lock function run
 ;; when a major mode is turned on, without knowing major modes or their hooks.
 ;;
-;; Naturally this requires that (a) major modes run `kill-all-local-variables',
-;; as they are supposed to do, and (b) the major mode is in place after the
-;; file is visited or the command that ran `kill-all-local-variables' has
-;; finished, whichever the sooner.  Arguably, any major mode that does not
-;; follow the convension (a) is broken, and I can't think of any reason why (b)
-;; would not be met (except `gnudoit' on non-files).  However, it is not clean.
-;;
-;; Probably the cleanest solution is to have each major mode function run some
-;; hook, e.g., `major-mode-hook', but maybe implementing that change is
-;; impractical.  I am personally against making `setq' a macro or be advised,
-;; or have a special function such as `set-major-mode', but maybe someone can
-;; come up with another solution?
+;; Naturally this requires that major modes run `kill-all-local-variables'
+;; and `after-change-major-mode-hook', as they are supposed to.  For modes
+;; that do not run `after-change-major-mode-hook' yet, `post-command-hook'
+;; takes care of things if the mode is set directly or indirectly by
+;; an interactive command; however, problems can occur if the mode is
+;; set by a timer or process: in that case, proper handling of Font Lock mode
+;; may be delayed until the next interactive command.
 
 ;; User interface.
 ;;
@@ -371,13 +291,17 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
     (let (inhibit-quit)
       (turn-on-font-lock))))
 
-(easy-mmode-define-global-mode
- global-font-lock-mode font-lock-mode turn-on-font-lock-if-enabled
- :extra-args (dummy))
+(define-global-minor-mode global-font-lock-mode
+  font-lock-mode turn-on-font-lock-if-enabled
+  :extra-args (dummy)
+  :initialize 'custom-initialize-safe-default
+  :init-value (not (or noninteractive emacs-basic-display))
+  :group 'font-lock
+  :version "22.1")
 
 ;;; End of Global Font Lock mode.
 
 (provide 'font-core)
 
+;; arch-tag: f8c286e1-02f7-41d9-b89b-1b67780aed71
 ;;; font-core.el ends here
-

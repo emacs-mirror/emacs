@@ -1,6 +1,7 @@
 ;;; mwheel.el --- Wheel mouse support
 
-;; Copyright (C) 1998,2000,2001,2002  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001, 2002, 2002, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;; Maintainer: William M. Perry <wmperry@gnu.org>
 ;; Keywords: mouse
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -35,7 +36,7 @@
 ;; To enable this code, simply put this at the top of your .emacs
 ;; file:
 ;;
-;; (mwheel-install)
+;; (mouse-wheel-mode 1)
 
 ;;; Code:
 
@@ -58,8 +59,10 @@
                         'mouse-wheel-down-event)
 (defcustom mouse-wheel-down-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
-  (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
-		  mouse-wheel-down-button))
+  (if (memq window-system '(w32 mac))
+      'wheel-up
+    (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
+		    mouse-wheel-down-button)))
   "Event used for scrolling down."
   :group 'mouse
   :type 'symbol
@@ -70,8 +73,10 @@
                         'mouse-wheel-up-event)
 (defcustom mouse-wheel-up-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
-  (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
-		  mouse-wheel-up-button))
+  (if (memq window-system '(w32 mac))
+      'wheel-down
+    (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
+		    mouse-wheel-up-button)))
   "Event used for scrolling down."
   :group 'mouse
   :type 'symbol
@@ -105,7 +110,7 @@ the wheel is moved with the modifier key depressed.
 Elements of the list have the form (MODIFIERS . AMOUNT) or just AMOUNT if
 MODIFIERS is nil.
 
-AMOUNT should be the number of lines to scroll, or `nil' for near full
+AMOUNT should be the number of lines to scroll, or nil for near full
 screen.  It can also be a floating point number, specifying the fraction of
 a full screen to scroll.  A near full screen is `next-screen-context-lines'
 less than a full screen."
@@ -133,7 +138,7 @@ less than a full screen."
                     (integer :tag "Specific # of lines")
                     (float :tag "Fraction of window"))))))
 
-(defcustom mouse-wheel-progessive-speed t
+(defcustom mouse-wheel-progressive-speed t
   "If non-nil, the faster the user moves the wheel, the faster the scrolling.
 Note that this has no effect when `mouse-wheel-scroll-amount' specifies
 a \"near full screen\" scroll or when the mouse wheel sends key instead
@@ -193,7 +198,7 @@ This should only be bound to mouse buttons 4 and 5."
       (let ((list-elt mouse-wheel-scroll-amount))
 	(while (consp (setq amt (pop list-elt))))))
     (if (floatp amt) (setq amt (1+ (truncate (* amt (window-height))))))
-    (when (and mouse-wheel-progessive-speed (numberp amt))
+    (when (and mouse-wheel-progressive-speed (numberp amt))
       ;; When the double-mouse-N comes in, a mouse-N has been executed already,
       ;; So by adding things up we get a squaring up (1, 3, 6, 10, 15, ...).
       (setq amt (* amt (event-click-count event))))
@@ -246,4 +251,5 @@ Returns non-nil if the new state is enabled."
 
 (provide 'mwheel)
 
+;; arch-tag: 50ed00e7-3686-4b7a-8037-fb31aa5c237f
 ;;; mwheel.el ends here

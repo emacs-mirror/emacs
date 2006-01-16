@@ -1,7 +1,8 @@
 ;;; pypunct-b5.el --- Quail packages for Chinese (pinyin + extra symbols)
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 2000
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: Ken'ichi HANDA <handa@etl.go.jp>
 
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -34,7 +35,7 @@
 (load "quail/Punct-b5")
 
 (quail-define-package
- "chinese-py-punct-b5" "Chinese-BIG5" "$AF47{(B"
+ "chinese-py-punct-b5" "Chinese-BIG5" "$(03<>K(B"
  t
  "$(0&d'GTT&,!J3<5x!K(B and `v' for $(0O:X5>KHATT&,(B
 
@@ -53,4 +54,5 @@ For instance, typing `v' and `%' insert `$(0"h(B'.
 
 (quail-defrule "v" (nth 2 (assoc "chinese-punct-b5" quail-package-alist)))
 
+;;; arch-tag: fe8176d3-b467-47d5-9ed9-75b6e27cf29b
 ;;; pypunct-b5.el ends here

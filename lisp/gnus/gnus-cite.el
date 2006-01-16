@@ -1,7 +1,7 @@
-;;; gnus-cite.el --- parse citations in articles for Gnus  -*- coding: iso-latin-1 -*-
+;;; gnus-cite.el --- parse citations in articles for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002
-;;        Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Per Abhiddenware
 
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -29,8 +29,9 @@
 (eval-when-compile (require 'cl))
 
 (require 'gnus)
-(require 'gnus-art)
 (require 'gnus-range)
+(require 'gnus-art)
+(require 'message)	; for message-cite-prefix-regexp
 
 ;;; Customization:
 
@@ -39,19 +40,6 @@
   :prefix "gnus-cite-"
   :link '(custom-manual "(gnus)Article Highlighting")
   :group 'gnus-article)
-
-(defcustom gnus-cite-reply-regexp
-  "^\\(Subject: Re\\|In-Reply-To\\|References\\):"
-  "*If headers match this regexp it is reasonable to believe that
-article has citations."
-  :group 'gnus-cite
-  :type 'string)
-
-(defcustom gnus-cite-always-check nil
-  "Check article always for citations.  Set it t to check all articles."
-  :group 'gnus-cite
-  :type '(choice (const :tag "no" nil)
-		 (const :tag "yes" t)))
 
 (defcustom gnus-cited-opened-text-button-line-format "%(%{[-]%}%)\n"
   "Format of opened cited text buttons."
@@ -79,20 +67,13 @@ Set it to nil to parse all articles."
   :type '(choice (const :tag "all" nil)
 		 integer))
 
-(defcustom gnus-cite-prefix-regexp
-  ;; The Latin-1 angle quote looks pretty dubious.  -- fx
-  "^[]>»|:}+ ]*[]>»|:}+]\\(.*>»\\)?\\|^.*>"
-  "*Regexp matching the longest possible citation prefix on a line."
-  :group 'gnus-cite
-  :type 'regexp)
-
 (defcustom gnus-cite-max-prefix 20
   "Maximum possible length for a citation prefix."
   :group 'gnus-cite
   :type 'integer)
 
 (defcustom gnus-supercite-regexp
-  (concat "^\\(" gnus-cite-prefix-regexp "\\)? *"
+  (concat "^\\(" message-cite-prefix-regexp "\\)? *"
 	  ">>>>> +\"\\([^\"\n]+\\)\" +==")
   "*Regexp matching normal Supercite attribution lines.
 The first grouping must match prefixes added by other packages."
@@ -110,143 +91,210 @@ The first regexp group should match the Supercite attribution."
   :group 'gnus-cite
   :type 'integer)
 
+;; Some Microsoft products put in a citation that extends to the
+;; remainder of the message:
+;;
+;;     -----Original Message-----
+;;     From: ...
+;;     To: ...
+;;     Sent: ...   [date, in non-RFC-2822 format]
+;;     Subject: ...
+;;
+;;     Cited message, with no prefixes
+;;
+;; The four headers are always the same.  But note they are prone to
+;; folding without additional indentation.
+;;
+;; Others use "----- Original Message -----" instead, and properly quote
+;; the body using "> ".  This style is handled without special cases.
+
 (defcustom gnus-cite-attribution-prefix
-  "In article\\|in <\\|On \\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),\\|-----Original Message-----"
+  "In article\\|in <\\|On \\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),\\|----- ?Original Message ?-----"
   "*Regexp matching the beginning of an attribution line."
   :group 'gnus-cite
   :type 'regexp)
 
 (defcustom gnus-cite-attribution-suffix
-  "\\(\\(wrote\\|writes\\|said\\|says\\|>\\)\\(:\\|\\.\\.\\.\\)\\|-----Original Message-----\\)[ \t]*$"
+  "\\(\\(wrote\\|writes\\|said\\|says\\|>\\)\\(:\\|\\.\\.\\.\\)\\|----- ?Original Message ?-----\\)[ \t]*$"
   "*Regexp matching the end of an attribution line.
 The text matching the first grouping will be used as a button."
   :group 'gnus-cite
   :type 'regexp)
 
-(defface gnus-cite-attribution-face '((t
-				       (:slant italic)))
-  "Face used for attribution lines.")
+(defcustom gnus-cite-unsightly-citation-regexp
+  "^-----Original Message-----\nFrom: \\(.+\n\\)+\n"
+  "Regexp matching Microsoft-type rest-of-message citations."
+  :version "22.1"
+  :group 'gnus-cite
+  :type 'regexp)
 
-(defcustom gnus-cite-attribution-face 'gnus-cite-attribution-face
+(defcustom gnus-cite-ignore-quoted-from t
+  "Non-nil means don't regard lines beginning with \">From \" as cited text.
+Those lines may have been quoted by MTAs in order not to mix up with
+the envelope From line."
+  :version "22.1"
+  :group 'gnus-cite
+  :type 'boolean)
+
+(defface gnus-cite-attribution '((t (:italic t)))
+  "Face used for attribution lines."
+  :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-attribution-face 'face-alias 'gnus-cite-attribution)
+
+(defcustom gnus-cite-attribution-face 'gnus-cite-attribution
   "Face used for attribution lines.
 It is merged with the face for the cited text belonging to the attribution."
+  :version "22.1"
   :group 'gnus-cite
   :type 'face)
 
-(defface gnus-cite-face-1 '((((class color)
-			      (background dark))
-			     (:foreground "light blue"))
-			    (((class color)
-			      (background light))
-			     (:foreground "MidnightBlue"))
-			    (t
-			     (:slant italic)))
-  "Citation face.")
+(defface gnus-cite-1 '((((class color)
+			 (background dark))
+			(:foreground "light blue"))
+		       (((class color)
+			 (background light))
+			(:foreground "MidnightBlue"))
+		       (t
+			(:italic t)))
+  "Citation face."
+  :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-1 'face-alias 'gnus-cite-1)
 
-(defface gnus-cite-face-2 '((((class color)
-			      (background dark))
-			     (:foreground "light cyan"))
-			    (((class color)
-			      (background light))
-			     (:foreground "firebrick"))
-			    (t
-			     (:slant italic)))
-  "Citation face.")
+(defface gnus-cite-2 '((((class color)
+			 (background dark))
+			(:foreground "light cyan"))
+		       (((class color)
+			 (background light))
+			(:foreground "firebrick"))
+		       (t
+			(:italic t)))
+  "Citation face."
+  :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-2 'face-alias 'gnus-cite-2)
 
-(defface gnus-cite-face-3 '((((class color)
-			      (background dark))
-			     (:foreground "light yellow"))
-			    (((class color)
-			      (background light))
-			     (:foreground "dark green"))
-			    (t
-			     (:slant italic)))
-  "Citation face.")
+(defface gnus-cite-3 '((((class color)
+			 (background dark))
+			(:foreground "light yellow"))
+		       (((class color)
+			 (background light))
+			(:foreground "dark green"))
+		       (t
+			(:italic t)))
+  "Citation face."
+  :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-3 'face-alias 'gnus-cite-3)
 
-(defface gnus-cite-face-4 '((((class color)
-			      (background dark))
-			     (:foreground "light pink"))
-			    (((class color)
-			      (background light))
-			     (:foreground "OrangeRed"))
-			    (t
-			     (:slant italic)))
-  "Citation face.")
+(defface gnus-cite-4 '((((class color)
+			 (background dark))
+			(:foreground "light pink"))
+		       (((class color)
+			 (background light))
+			(:foreground "OrangeRed"))
+		       (t
+			(:italic t)))
+  "Citation face."
+  :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-4 'face-alias 'gnus-cite-4)
 
-(defface gnus-cite-face-5 '((((class color)
-			      (background dark))
-			     (:foreground "pale green"))
-			    (((class color)
-			      (background light))
-			     (:foreground "dark khaki"))
-			    (t
-			     (:slant italic)))
-  "Citation face.")
+(defface gnus-cite-5 '((((class color)
+			 (background dark))
+			(:foreground "pale green"))
+		       (((class color)
+			 (background light))
+			(:foreground "dark khaki"))
+		       (t
+			(:italic t)))
+  "Citation face."
+  :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-5 'face-alias 'gnus-cite-5)
 
-(defface gnus-cite-face-6 '((((class color)
-			      (background dark))
-			     (:foreground "beige"))
-			    (((class color)
-			      (background light))
-			     (:foreground "dark violet"))
-			    (t
-			     (:slant italic)))
-  "Citation face.")
+(defface gnus-cite-6 '((((class color)
+			 (background dark))
+			(:foreground "beige"))
+		       (((class color)
+			 (background light))
+			(:foreground "dark violet"))
+		       (t
+			(:italic t)))
+  "Citation face."
+  :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-6 'face-alias 'gnus-cite-6)
 
-(defface gnus-cite-face-7 '((((class color)
-			      (background dark))
-			     (:foreground "orange"))
-			    (((class color)
-			      (background light))
-			     (:foreground "SteelBlue4"))
-			    (t
-			     (:slant italic)))
-  "Citation face.")
+(defface gnus-cite-7 '((((class color)
+			 (background dark))
+			(:foreground "orange"))
+		       (((class color)
+			 (background light))
+			(:foreground "SteelBlue4"))
+		       (t
+			(:italic t)))
+  "Citation face."
+  :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-7 'face-alias 'gnus-cite-7)
 
-(defface gnus-cite-face-8 '((((class color)
-			      (background dark))
-			     (:foreground "magenta"))
-			    (((class color)
-			      (background light))
-			     (:foreground "magenta"))
-			    (t
-			     (:slant italic)))
-  "Citation face.")
+(defface gnus-cite-8 '((((class color)
+			 (background dark))
+			(:foreground "magenta"))
+		       (((class color)
+			 (background light))
+			(:foreground "magenta"))
+		       (t
+			(:italic t)))
+  "Citation face."
+  :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-8 'face-alias 'gnus-cite-8)
 
-(defface gnus-cite-face-9 '((((class color)
-			      (background dark))
-			     (:foreground "violet"))
-			    (((class color)
-			      (background light))
-			     (:foreground "violet"))
-			    (t
-			     (:slant italic)))
-  "Citation face.")
+(defface gnus-cite-9 '((((class color)
+			 (background dark))
+			(:foreground "violet"))
+		       (((class color)
+			 (background light))
+			(:foreground "violet"))
+		       (t
+			(:italic t)))
+  "Citation face."
+  :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-9 'face-alias 'gnus-cite-9)
 
-(defface gnus-cite-face-10 '((((class color)
-			       (background dark))
-			      (:foreground "medium purple"))
-			     (((class color)
-			       (background light))
-			      (:foreground "medium purple"))
-			     (t
-			      (:slant italic)))
-  "Citation face.")
+(defface gnus-cite-10 '((((class color)
+			  (background dark))
+			 (:foreground "medium purple"))
+			(((class color)
+			  (background light))
+			 (:foreground "medium purple"))
+			(t
+			 (:italic t)))
+  "Citation face."
+  :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-10 'face-alias 'gnus-cite-10)
 
-(defface gnus-cite-face-11 '((((class color)
-			       (background dark))
-			      (:foreground "turquoise"))
-			     (((class color)
-			       (background light))
-			      (:foreground "turquoise"))
-			     (t
-			      (:slant italic)))
-  "Citation face.")
+(defface gnus-cite-11 '((((class color)
+			  (background dark))
+			 (:foreground "turquoise"))
+			(((class color)
+			  (background light))
+			 (:foreground "turquoise"))
+			(t
+			 (:italic t)))
+  "Citation face."
+  :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-11 'face-alias 'gnus-cite-11)
 
 (defcustom gnus-cite-face-list
-  '(gnus-cite-face-1 gnus-cite-face-2 gnus-cite-face-3 gnus-cite-face-4
-		     gnus-cite-face-5 gnus-cite-face-6 gnus-cite-face-7 gnus-cite-face-8
-		     gnus-cite-face-9 gnus-cite-face-10 gnus-cite-face-11)
+  '(gnus-cite-1 gnus-cite-2 gnus-cite-3 gnus-cite-4 gnus-cite-5 gnus-cite-6
+    gnus-cite-7 gnus-cite-8 gnus-cite-9 gnus-cite-10 gnus-cite-11)
   "*List of faces used for highlighting citations.
 
 When there are citations from multiple articles in the same message,
@@ -269,6 +317,16 @@ This should make it easier to see who wrote what."
   "If non-nil, put a blank line between the citation header and the button."
   :group 'gnus-cite
   :type 'boolean)
+
+;; This has to go here because its default value depends on
+;; gnus-cite-face-list.
+(defcustom gnus-article-boring-faces (cons 'gnus-signature gnus-cite-face-list)
+  "List of faces that are not worth reading.
+If an article has more pages below the one you are looking at, but
+nothing on those pages is a word of at least three letters that is not
+in a boring face, then the pages will be skipped."
+  :type '(repeat face)
+  :group 'gnus-article-hiding)
 
 ;;; Internal Variables:
 
@@ -314,10 +372,10 @@ This should make it easier to see who wrote what."
 Each citation in the article will be highlighted with a different face.
 The faces are taken from `gnus-cite-face-list'.
 Attribution lines are highlighted with the same face as the
-corresponding citation merged with `gnus-cite-attribution-face'.
+corresponding citation merged with the face `gnus-cite-attribution'.
 
 Text is considered cited if at least `gnus-cite-minimum-match-count'
-lines matches `gnus-cite-prefix-regexp' with the same prefix.
+lines matches `message-cite-prefix-regexp' with the same prefix.
 
 Lines matching `gnus-cite-attribution-suffix' and perhaps
 `gnus-cite-attribution-prefix' are considered attribution lines."
@@ -358,7 +416,7 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
 	(goto-char (point-min))
 	(forward-line (1- number))
 	(when (re-search-forward gnus-cite-attribution-suffix
-				 (save-excursion (end-of-line 1) (point))
+				 (gnus-point-at-eol)
 				 t)
 	  (gnus-article-add-button (match-beginning 1) (match-end 1)
 				   'gnus-cite-toggle prefix))
@@ -450,7 +508,10 @@ If WIDTH (the numerical prefix), use that text width when filling."
 	  (narrow-to-region (caar marks) (caadr marks))
 	  (let ((adaptive-fill-regexp
 		 (concat "^" (regexp-quote (cdar marks)) " *"))
-		(fill-prefix (cdar marks)))
+		(fill-prefix
+		 (if (string= (cdar marks) "") ""
+		   (concat (cdar marks) " ")))
+		use-hard-newlines)
 	    (fill-region (point-min) (point-max)))
 	  (set-marker (caar marks) nil)
 	  (setq marks (cdr marks)))
@@ -519,6 +580,7 @@ always hide."
 		      (setq beg nil)
 		  (setq end (point-marker))))))
 	    (when (and beg end)
+	      (gnus-add-wash-type 'cite)
 	      ;; We use markers for the end-points to facilitate later
 	      ;; wrapping and mangling of text.
 	      (setq beg (set-marker (make-marker) beg)
@@ -558,14 +620,20 @@ means show, nil means toggle."
 	      (and (> arg 0) (not hidden))
 	      (and (< arg 0) hidden))
       (if hidden
-	  (gnus-remove-text-properties-when
-	   'article-type 'cite beg end
-	   (cons 'article-type (cons 'cite
-				     gnus-hidden-properties)))
+	  (progn
+	    ;; Can't remove 'cite from g-a-wash-types here because
+	    ;; multiple citations may be hidden -jas
+	    (gnus-remove-text-properties-when
+	     'article-type 'cite beg end
+	     (cons 'article-type (cons 'cite
+				       gnus-hidden-properties))))
+	(gnus-add-wash-type 'cite)
 	(gnus-add-text-properties-when
 	 'article-type nil beg end
 	 (cons 'article-type (cons 'cite
 				   gnus-hidden-properties))))
+      (let ((gnus-article-mime-handle-alist-1 gnus-article-mime-handle-alist))
+	(gnus-set-mode-line 'article))
       (save-excursion
 	(goto-char start)
 	(gnus-delete-line)
@@ -594,41 +662,44 @@ cited text with attributions.  When called interactively, these two
 variables are ignored.
 See also the documentation for `gnus-article-highlight-citation'."
   (interactive (append (gnus-article-hidden-arg) '(force)))
-  (unless (gnus-article-check-hidden-text 'cite arg)
-    (save-excursion
-      (set-buffer gnus-article-buffer)
-      (gnus-cite-parse-maybe force)
-      (article-goto-body)
-      (let ((start (point))
-	    (atts gnus-cite-attribution-alist)
-	    (buffer-read-only nil)
-	    (inhibit-point-motion-hooks t)
-	    (hidden 0)
-	    total)
-	(goto-char (point-max))
-	(gnus-article-search-signature)
-	(setq total (count-lines start (point)))
-	(while atts
-	  (setq hidden (+ hidden (length (cdr (assoc (cdar atts)
-						     gnus-cite-prefix-alist))))
-		atts (cdr atts)))
-	(when (or force
-		  (and (> (* 100 hidden) (* gnus-cite-hide-percentage total))
-		       (> hidden gnus-cite-hide-absolute)))
-	  (setq atts gnus-cite-attribution-alist)
+  (with-current-buffer gnus-article-buffer
+    (gnus-delete-wash-type 'cite)
+    (unless (gnus-article-check-hidden-text 'cite arg)
+      (save-excursion
+	(gnus-cite-parse-maybe force)
+	(article-goto-body)
+	(let ((start (point))
+	      (atts gnus-cite-attribution-alist)
+	      (buffer-read-only nil)
+	      (inhibit-point-motion-hooks t)
+	      (hidden 0)
+	      total)
+	  (goto-char (point-max))
+	  (gnus-article-search-signature)
+	  (setq total (count-lines start (point)))
 	  (while atts
-	    (setq total (cdr (assoc (cdar atts) gnus-cite-prefix-alist))
-		  atts (cdr atts))
-	    (while total
-	      (setq hidden (car total)
-		    total (cdr total))
-	      (goto-char (point-min))
-	      (forward-line (1- hidden))
-	      (unless (assq hidden gnus-cite-attribution-alist)
-		(gnus-add-text-properties
-		 (point) (progn (forward-line 1) (point))
-		 (nconc (list 'article-type 'cite)
-			gnus-hidden-properties))))))))))
+	    (setq hidden (+ hidden (length (cdr (assoc (cdar atts)
+						       gnus-cite-prefix-alist))))
+		  atts (cdr atts)))
+	  (when (or force
+		    (and (> (* 100 hidden) (* gnus-cite-hide-percentage total))
+			 (> hidden gnus-cite-hide-absolute)))
+	    (gnus-add-wash-type 'cite)
+	    (setq atts gnus-cite-attribution-alist)
+	    (while atts
+	      (setq total (cdr (assoc (cdar atts) gnus-cite-prefix-alist))
+		    atts (cdr atts))
+	      (while total
+		(setq hidden (car total)
+		      total (cdr total))
+		(goto-char (point-min))
+		(forward-line (1- hidden))
+		(unless (assq hidden gnus-cite-attribution-alist)
+		  (gnus-add-text-properties
+		   (point) (progn (forward-line 1) (point))
+		   (nconc (list 'article-type 'cite)
+			  gnus-hidden-properties)))))))))
+    (gnus-set-mode-line 'article)))
 
 (defun gnus-article-hide-citation-in-followups ()
   "Hide cited text in non-root articles."
@@ -663,11 +734,13 @@ See also the documentation for `gnus-article-highlight-citation'."
 
 (defun gnus-cite-delete-overlays ()
   (dolist (overlay gnus-cite-overlay-list)
-    (when (or (not (gnus-overlay-end overlay))
-	      (and (>= (gnus-overlay-end overlay) (point-min))
-		   (<= (gnus-overlay-end overlay) (point-max))))
-      (setq gnus-cite-overlay-list (delete overlay gnus-cite-overlay-list))
-      (gnus-delete-overlay overlay))))
+    (ignore-errors
+      (when (or (not (gnus-overlay-end overlay))
+		(and (>= (gnus-overlay-end overlay) (point-min))
+		     (<= (gnus-overlay-end overlay) (point-max))))
+	(setq gnus-cite-overlay-list (delete overlay gnus-cite-overlay-list))
+	(ignore-errors
+	  (gnus-delete-overlay overlay))))))
 
 (defun gnus-cite-parse-wrapper ()
   ;; Wrap chopped gnus-cite-parse.
@@ -690,23 +763,33 @@ See also the documentation for `gnus-article-highlight-citation'."
 	       (goto-char (point-max))
 	       (gnus-article-search-signature)
 	       (point)))
-	alist entry start begin end numbers prefix)
+	(prefix-regexp (concat "^\\(" message-cite-prefix-regexp "\\)"))
+	alist entry start begin end numbers prefix guess-limit)
     ;; Get all potential prefixes in `alist'.
     (while (< (point) max)
       ;; Each line.
       (setq begin (point)
-	    end (progn (beginning-of-line 2) (point))
+	    guess-limit (progn (skip-chars-forward "^> \t\r\n") (point))
+	    end (gnus-point-at-bol 2)
 	    start end)
       (goto-char begin)
       ;; Ignore standard Supercite attribution prefix.
-      (when (looking-at gnus-supercite-regexp)
+      (when (and (< guess-limit (+ begin gnus-cite-max-prefix))
+		 (looking-at gnus-supercite-regexp))
 	(if (match-end 1)
 	    (setq end (1+ (match-end 1)))
 	  (setq end (1+ begin))))
       ;; Ignore very long prefixes.
-      (when (> end (+ (point) gnus-cite-max-prefix))
-	(setq end (+ (point) gnus-cite-max-prefix)))
-      (while (re-search-forward gnus-cite-prefix-regexp (1- end) t)
+      (when (> end (+ begin gnus-cite-max-prefix))
+	(setq end (+ begin gnus-cite-max-prefix)))
+      ;; Ignore quoted envelope From_.
+      (when (and gnus-cite-ignore-quoted-from
+		 (prog2
+		     (setq case-fold-search nil)
+		     (looking-at ">From ")
+		   (setq case-fold-search t)))
+	(setq end (1+ begin)))
+      (while (re-search-forward prefix-regexp (1- end) t)
 	;; Each prefix.
 	(setq end (match-end 0)
 	      prefix (buffer-substring begin end))
@@ -718,9 +801,19 @@ See also the documentation for `gnus-article-highlight-citation'."
 	(goto-char begin))
       (goto-char start)
       (setq line (1+ line)))
+    ;; Horrible special case for some Microsoft mailers.
+    (goto-char (point-min))
+    (when (re-search-forward gnus-cite-unsightly-citation-regexp max t)
+      (setq begin (count-lines (point-min) (point)))
+      (setq end (count-lines (point-min) max))
+      (setq entry nil)
+      (while (< begin end)
+	(push begin entry)
+	(setq begin (1+ begin)))
+      (push (cons "" entry) alist))
     ;; We got all the potential prefixes.  Now create
     ;; `gnus-cite-prefix-alist' containing the oldest prefix for each
-    ;; line that appears at least gnus-cite-minimum-match-count
+    ;; line that appears at least `gnus-cite-minimum-match-count'
     ;; times.  First sort them by length.  Longer is older.
     (setq alist (sort alist (lambda (a b)
 			      (> (length (car a)) (length (car b))))))
@@ -944,6 +1037,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 	(when (< from to)
 	  (push (setq overlay (gnus-make-overlay from to))
 		gnus-cite-overlay-list)
+	  (gnus-overlay-put overlay 'evaporate t)
 	  (gnus-overlay-put overlay 'face face))))))
 
 (defun gnus-cite-toggle (prefix)
@@ -960,14 +1054,20 @@ See also the documentation for `gnus-article-highlight-citation'."
 	(goto-char (point-min))
 	(forward-line (1- number))
 	(cond ((get-text-property (point) 'invisible)
+	       ;; Can't remove 'cite from g-a-wash-types here because
+	       ;; multiple citations may be hidden -jas
 	       (remove-text-properties (point) (progn (forward-line 1) (point))
 				       gnus-hidden-properties))
 	      ((assq number gnus-cite-attribution-alist))
 	      (t
+	       (gnus-add-wash-type 'cite)
 	       (gnus-add-text-properties
 		(point) (progn (forward-line 1) (point))
 		(nconc (list 'article-type 'cite)
-		       gnus-hidden-properties))))))))
+		       gnus-hidden-properties))))
+	(let ((gnus-article-mime-handle-alist-1
+	       gnus-article-mime-handle-alist))
+	  (gnus-set-mode-line 'article))))))
 
 (defun gnus-cite-find-prefix (line)
   ;; Return citation prefix for LINE.
@@ -990,6 +1090,17 @@ See also the documentation for `gnus-article-highlight-citation'."
     (while vars
       (make-local-variable (pop vars)))))
 
+(defun gnus-cited-line-p ()
+  "Say whether the current line is a cited line."
+  (save-excursion
+    (beginning-of-line)
+    (let ((found nil))
+      (dolist (prefix (mapcar 'car gnus-cite-prefix-alist))
+	(when (string= (buffer-substring (point) (+ (length prefix) (point)))
+		       prefix)
+	  (setq found t)))
+      found)))
+
 (gnus-ems-redefine)
 
 (provide 'gnus-cite)
@@ -998,4 +1109,5 @@ See also the documentation for `gnus-article-highlight-citation'."
 ;; coding: iso-8859-1
 ;; End:
 
+;;; arch-tag: 1997b044-6067-471e-8c8f-dc903093098a
 ;;; gnus-cite.el ends here

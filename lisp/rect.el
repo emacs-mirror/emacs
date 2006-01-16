@@ -1,6 +1,7 @@
 ;;; rect.el --- rectangle functions for GNU Emacs
 
-;; Copyright (C) 1985, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1999, 2000, 2001, 2002, 2003, 2004
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: Didier Verna <didier@xemacs.org>
 ;; Keywords: internal
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -127,14 +128,14 @@ the function is called."
     ))
 
 (defun delete-rectangle-line (startcol endcol fill)
-  (when (= (move-to-column startcol (or fill 'coerce)) startcol)
+  (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
     (delete-region (point)
 		   (progn (move-to-column endcol 'coerce)
 			  (point)))))
 
 (defun delete-extract-rectangle-line (startcol endcol lines fill)
   (let ((pt (point-at-eol)))
-    (if (< (move-to-column startcol (or fill 'coerce)) startcol)
+    (if (< (move-to-column startcol (if fill t 'coerce)) startcol)
 	(setcdr lines (cons (spaces-string (- endcol startcol))
 			    (cdr lines)))
       ;; else
@@ -284,13 +285,13 @@ on the right side of the rectangle."
   (goto-char start))
 
 (defun open-rectangle-line (startcol endcol fill)
-  (when (= (move-to-column startcol (or fill 'coerce)) startcol)
+  (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
     (unless (and (not fill)
 		 (= (point) (point-at-eol)))
       (indent-to endcol))))
 
 (defun delete-whitespace-rectangle-line (startcol endcol fill)
-  (when (= (move-to-column startcol (or fill 'coerce)) startcol)
+  (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
     (unless (= (point) (point-at-eol))
       (delete-region (point) (progn (skip-syntax-forward " ") (point))))))
 
@@ -331,7 +332,7 @@ Called from a program, takes three args; START, END and STRING."
 	  (list
 	   (region-beginning)
 	   (region-end)
-	   (read-string (format "String rectangle (default `%s'): "
+	   (read-string (format "String rectangle (default %s): "
 				(or (car string-rectangle-history) ""))
 			nil 'string-rectangle-history
 			(car string-rectangle-history)))))
@@ -352,7 +353,7 @@ This command does not delete or overwrite any existing text."
 	  (list
 	   (region-beginning)
 	   (region-end)
-	   (read-string (format "String insert rectangle (default `%s'): "
+	   (read-string (format "String insert rectangle (default %s): "
 				(or (car string-rectangle-history) ""))
 			nil 'string-rectangle-history
 			(car string-rectangle-history)))))
@@ -371,7 +372,7 @@ rectangle which were empty."
 
 (defun clear-rectangle-line (startcol endcol fill)
   (let ((pt (point-at-eol)))
-    (when (= (move-to-column startcol (or fill 'coerce)) startcol)
+    (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
       (if (and (not fill)
 	       (<= (save-excursion (goto-char pt) (current-column)) endcol))
 	  (delete-region (point) pt)
@@ -384,4 +385,5 @@ rectangle which were empty."
 
 (provide 'rect)
 
+;;; arch-tag: 178847b3-1f50-4b03-83de-a6e911cc1d16
 ;;; rect.el ends here

@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -40,7 +40,8 @@ ISOgrk2, ISOgrk3, ISOgrk4, ISOlat1, ISOlat2, ISOnum, ISOpub, ISOtech,
 HTMLspecial and HTMLsymbol.
 
 E.g.: &aacute; -> á"
- nil t nil nil nil nil nil nil nil nil t)
+ '(("\t" . quail-completion))
+ t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
   ("&Aacgr;" ?\Ά) ;; GREEK CAPITAL LETTER ALPHA WITH TONOS
@@ -1059,4 +1060,5 @@ E.g.: &aacute; -> á"
   ("&zwnj;" ?\‌) ;; ZERO WIDTH NON-JOINER
 )
 
+;;; arch-tag: ad2a65ea-f903-423b-b3bd-08d0912ae41f
 ;;; sgml-input.el ends here

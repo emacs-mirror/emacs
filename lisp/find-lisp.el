@@ -3,9 +3,10 @@
 ;; Author: Peter Breton
 ;; Created: Fri Mar 26 1999
 ;; Keywords: unix
-;; Time-stamp: <2001-07-16 12:42:35 pavel>
+;; Time-stamp: <2005-11-11 20:37:50 teirllm>
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;
@@ -44,6 +45,11 @@
 ;; again. Maybe that could work by storing the original file attributes?
 
 ;;; Code:
+
+(require 'dired)
+
+(defvar dired-buffers)
+(defvar dired-subdir-alist)
 
 ;; Internal variables
 
@@ -194,8 +200,7 @@ It is a function which takes two arguments, the directory and its parent."
 	(regexp find-lisp-regexp))
     ;; Expand DIR ("" means default-directory), and make sure it has a
     ;; trailing slash.
-    (setq dir (abbreviate-file-name
-	       (file-name-as-directory (expand-file-name dir))))
+    (setq dir (file-name-as-directory (expand-file-name dir)))
     ;; Check that it's really a directory.
     (or (file-directory-p dir)
 	(error "find-dired needs a directory: %s" dir))
@@ -288,7 +293,7 @@ It is a function which takes two arguments, the directory and its parent."
 (defun find-lisp-find-dired-insert-file (file buffer)
   (set-buffer buffer)
   (insert find-lisp-line-indent
-	  (find-lisp-format file (file-attributes file) (list "")
+	  (find-lisp-format file (file-attributes file 'string) (list "")
 			  (current-time))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -304,18 +309,16 @@ It is a function which takes two arguments, the directory and its parent."
 	    (if (memq ?s switches)	; size in K
 		(format "%4d " (1+ (/ (nth 7 file-attr) 1024))))
 	    (nth 8 file-attr)		; permission bits
-	    ;; numeric uid/gid are more confusing than helpful
-	    ;; Emacs should be able to make strings of them.
-	    ;; user-login-name and user-full-name could take an
-	    ;; optional arg.
 	    (format " %3d %-8s %-8s %8d "
 		    (nth 1 file-attr)	; no. of links
-		    (if (= (user-uid) (nth 2 file-attr))
-			(user-login-name)
-		      (int-to-string (nth 2 file-attr)))	; uid
+		    (if (numberp (nth 2 file-attr))
+			(int-to-string (nth 2 file-attr))
+		      (nth 2 file-attr)) ; uid
 		    (if (eq system-type 'ms-dos)
 			"root"		; everything is root on MSDOS.
-		      (int-to-string (nth 3 file-attr)))	; gid
+		      (if (numberp (nth 3 file-attr))
+			  (int-to-string (nth 3 file-attr))
+			(nth 3 file-attr))) ; gid
 		    (nth 7 file-attr)	; size in bytes
 		    )
 	    (find-lisp-format-time file-attr switches now)
@@ -360,4 +363,5 @@ It is a function which takes two arguments, the directory and its parent."
 ;; autocompile: t
 ;; End:
 
+;;; arch-tag: a711374c-f12a-46f6-aa18-ba7d77b9602a
 ;;; find-lisp.el ends here

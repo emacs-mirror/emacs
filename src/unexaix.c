@@ -1,5 +1,6 @@
 /* Dump an executable image.
-   Copyright (C) 1985, 1986, 1987, 1988, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.
 
 In other words, you are welcome to use, share and improve this program.
 You are forbidden to forbid anyone else to use, share and improve
@@ -676,3 +677,6 @@ unrelocate_symbols (int new, int a_out, char *a_name, char *new_name)
     }
   return 0;
 }
+
+/* arch-tag: 0783857a-7c2d-456f-a426-58b722d69fd0
+   (do not change this comment) */

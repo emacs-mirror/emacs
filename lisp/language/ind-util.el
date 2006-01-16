@@ -1,6 +1,6 @@
 ;;; ind-util.el --- Transliteration and Misc. Tools for Indian Languages -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2003 Free Software Foundation, Inc.
 
 ;; Maintainer:  KAWABATA, Taichi <kawabata@m17n.org>
 ;; Keywords: multilingual, Indian, Devanagari
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -42,14 +42,9 @@
 
 (defun indian-regexp-of-hashtbl-keys (hashtbl)
   "Returns the regular expression of hashtable keys."
-  (let ((max-specpdl-size 1000))
-    (regexp-opt
-     (sort
-      (let (dummy)
-	(maphash (function (lambda (key val) (setq dummy (cons key dummy))))
-		 hashtbl)
-	dummy)
-      (function (lambda (x y) (> (length x) (length y))))))))
+  (let (keys)
+    (maphash (lambda (key val) (push key keys)) hashtbl)
+    (regexp-opt keys)))
 
 (defvar indian-dev-base-table
   '(
@@ -414,10 +409,8 @@ FUNCTION will be called 15 times."
       (if (stringp trans-char) (setq trans-char (list trans-char)))
       (if (char-valid-p char) (setq char (char-to-string char)))
       (puthash char (car trans-char) encode-hash)
-      (mapc
-       (lambda (trans)
-	 (puthash trans char decode-hash))
-       trans-char))))
+      (dolist (trans trans-char)
+	 (puthash trans char decode-hash)))))
 
 (defun indian--map (f l1 l2)
   (while l1
@@ -722,6 +715,7 @@ FUNCTION will be called 15 times."
 (defvar ucs-tamil-to-is13194-alist nil)
 (defvar ucs-telugu-to-is13194-alist nil)
 (defvar ucs-malayalam-to-is13194-alist nil)
+(defvar ucs-kannada-to-is13194-alist nil)
 
 (defvar is13194-default-repartory 'devanagari)
 
@@ -758,6 +752,8 @@ FUNCTION will be called 15 times."
 (defvar is13194-to-ucs-telugu-regexp nil)
 (defvar is13194-to-ucs-malayalam-hashtbl nil)
 (defvar is13194-to-ucs-malayalam-regexp nil)
+(defvar is13194-to-ucs-kannada-hashtbl nil)
+(defvar is13194-to-ucs-kannada-regexp nil)
 
 (mapc
  (function (lambda (script)
@@ -778,7 +774,7 @@ FUNCTION will be called 15 times."
                             "-to-is13194-alist"))))
      (set regexp (indian-regexp-of-hashtbl-keys (eval hashtable))))))
  '(devanagari bengali assamese gurmukhi gujarati
-   oriya tamil telugu malayalam))
+   oriya tamil telugu malayalam kannada))
 
 (defvar ucs-to-is13194-regexp
   ;; only Devanagari is supported now.
@@ -825,7 +821,7 @@ Returns new end position."
 
 ;;;###autoload
 (defun indian-compose-region (from to)
-  "Compose the region according to `composition-function-table'. "
+  "Compose the region according to `composition-function-table'."
   (interactive "r")
   (save-excursion
     (save-restriction
@@ -1224,7 +1220,7 @@ Returns new end position."
             (if (= len 1)
                 (setq subst (aref indian-2-column-to-ucs-chartable
 				  (char-after (match-beginning 0))))
-              (setq subst (assoc (match-string 0) alist)))
+              (setq subst (cdr (assoc (match-string 0) alist))))
             (replace-match (if subst subst "?"))))
         (indian-compose-region (point-min) (point-max))))))
 
@@ -1266,4 +1262,5 @@ See also the function `indian-glyph-char'."
 
 (provide 'ind-util)
 
+;;; arch-tag: 59aacd71-46c2-4cb3-bb26-e12bbad55545
 ;;; ind-util.el ends here

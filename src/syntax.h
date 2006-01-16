@@ -1,5 +1,6 @@
 /* Declarations having to do with GNU Emacs syntax tables.
-   Copyright (C) 1985, 93, 94, 97, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1993, 1994, 1997, 1998, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 extern Lisp_Object Qsyntax_table_p;
@@ -58,7 +59,7 @@ enum syntaxcode
 /* Set the syntax entry VAL for char C in table TABLE.  */
 
 #define SET_RAW_SYNTAX_ENTRY(table, c, val)				\
-  ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS					\
+  ((((c) & 0xFF) == (c))						\
    ? (XCHAR_TABLE (table)->contents[(unsigned char) (c)] = (val))	\
    : Faset ((table), make_number (c), (val)))
 
@@ -68,16 +69,16 @@ enum syntaxcode
 
 #ifdef __GNUC__
 #define SYNTAX_ENTRY_FOLLOW_PARENT(table, c)			\
-  ({ Lisp_Object tbl = table;					\
-     Lisp_Object temp = XCHAR_TABLE (tbl)->contents[(c)];	\
-     while (NILP (temp))					\
+  ({ Lisp_Object _syntax_tbl = (table);				\
+     Lisp_Object _syntax_temp = XCHAR_TABLE (_syntax_tbl)->contents[(c)]; \
+     while (NILP (_syntax_temp))				\
        {							\
-	 tbl = XCHAR_TABLE (tbl)->parent;			\
-	 if (NILP (tbl))					\
+	 _syntax_tbl = XCHAR_TABLE (_syntax_tbl)->parent;	\
+	 if (NILP (_syntax_tbl))				\
 	   break;						\
-	 temp = XCHAR_TABLE (tbl)->contents[(c)];		\
+	 _syntax_temp = XCHAR_TABLE (_syntax_tbl)->contents[(c)]; \
        }							\
-     temp; })
+     _syntax_temp; })
 #else
 extern Lisp_Object syntax_temp;
 extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
@@ -106,7 +107,7 @@ extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
 #endif
 
 #define SYNTAX_ENTRY_INT(c)				\
-  ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS			\
+  ((((c) & 0xFF) == (c))				\
    ? SYNTAX_ENTRY_FOLLOW_PARENT (CURRENT_SYNTAX_TABLE,	\
 				 (unsigned char) (c))	\
    : Faref (CURRENT_SYNTAX_TABLE,			\
@@ -117,24 +118,24 @@ extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
 
 #ifdef __GNUC__
 #define SYNTAX(c)							\
-  ({ Lisp_Object temp;							\
-     temp = SYNTAX_ENTRY (c);						\
-     (CONSP (temp)							\
-      ? (enum syntaxcode) (XINT (XCAR (temp)) & 0xff)		\
+  ({ Lisp_Object _syntax_temp;						\
+     _syntax_temp = SYNTAX_ENTRY (c);					\
+     (CONSP (_syntax_temp)						\
+      ? (enum syntaxcode) (XINT (XCAR (_syntax_temp)) & 0xff)		\
       : Swhitespace); })
 
 #define SYNTAX_WITH_FLAGS(c)						\
-  ({ Lisp_Object temp;							\
-     temp = SYNTAX_ENTRY (c);						\
-     (CONSP (temp)							\
-      ? XINT (XCAR (temp))					\
+  ({ Lisp_Object _syntax_temp;						\
+     _syntax_temp = SYNTAX_ENTRY (c);					\
+     (CONSP (_syntax_temp)						\
+      ? XINT (XCAR (_syntax_temp))					\
       : (int) Swhitespace); })
 
 #define SYNTAX_MATCH(c)							\
-  ({ Lisp_Object temp;							\
-     temp = SYNTAX_ENTRY (c);						\
-     (CONSP (temp)							\
-      ? XCDR (temp)						\
+  ({ Lisp_Object _syntax_temp;						\
+     _syntax_temp = SYNTAX_ENTRY (c);					\
+     (CONSP (_syntax_temp)						\
+      ? XCDR (_syntax_temp)						\
       : Qnil); })
 #else
 #define SYNTAX(c)							\
@@ -371,3 +372,6 @@ extern int parse_sexp_lookup_properties;
 extern INTERVAL interval_of P_ ((int, Lisp_Object));
 
 extern int scan_words P_ ((int, int));
+
+/* arch-tag: 28833cca-cd73-4741-8c85-a3111166a0e0
+   (do not change this comment) */

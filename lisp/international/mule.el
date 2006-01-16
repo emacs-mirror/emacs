@@ -1,8 +1,10 @@
 ;;; mule.el --- basic commands for mulitilingual environment
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: mule, multilingual, character set, coding system
 
@@ -20,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -71,7 +73,9 @@ Return t if file exists."
 		(inhibit-file-name-operation nil))
 	    (save-excursion
 	      (set-buffer buffer)
-	      (insert-file-contents fullname)
+	      ;; Don't let deactivate-mark remain set.
+	      (let (deactivate-mark)
+		(insert-file-contents fullname))
 	      ;; If the loaded file was inserted with no-conversion or
 	      ;; raw-text coding system, make the buffer unibyte.
 	      ;; Otherwise, eval-buffer might try to interpret random
@@ -83,7 +87,9 @@ Return t if file exists."
 	      ;; Make `kill-buffer' quiet.
 	      (set-buffer-modified-p nil))
 	    ;; Have the original buffer current while we eval.
-	    (eval-buffer buffer nil file
+	    (eval-buffer buffer nil
+			 ;; This is compatible with what `load' does.
+			 (if purify-flag file fullname)
 			 ;; If this Emacs is running with --unibyte,
 			 ;; convert multibyte strings to unibyte
 			 ;; after reading them.
@@ -316,8 +322,7 @@ Optional argument RESTRICTION specifies a way to map the pair of CCS
 and CODE-POINT to a character.  Currently not supported and just ignored."
   (cond
    ((eq ccs 'ucs)
-    (or (gethash code-point
-		 (get 'utf-subst-table-for-decode 'translation-hash-table))
+    (or (utf-lookup-subst-table-for-decode code-point)
 	(let ((c (cond
 		  ((< code-point 160)
 		   code-point)
@@ -361,8 +366,7 @@ code-point in CCS.  Currently not supported and just ignored."
 	 (charset (car split))
 	 trans)
     (cond ((eq ccs 'ucs)
-	   (or (gethash char (get 'utf-subst-table-for-encode
-				  'translation-hash-table))
+	   (or (utf-lookup-subst-table-for-encode char)
 	       (let ((table (get 'utf-translation-table-for-encode
 				 'translation-table)))
 		 (setq trans (aref table char))
@@ -370,7 +374,7 @@ code-point in CCS.  Currently not supported and just ignored."
 		     (setq split (split-char trans)
 			   charset (car split)))
 		 (cond ((eq charset 'ascii)
-			char)
+			(or trans char))
 		       ((eq charset 'latin-iso8859-1)
 			(+ (nth 1 split) 128))
 		       ((eq charset 'mule-unicode-0100-24ff)
@@ -488,9 +492,6 @@ A base coding system is what made by `make-coding-system'.
 Any alias nor subsidiary coding systems are not base coding system."
   (car (coding-system-get coding-system 'alias-coding-systems)))
 
-(defalias 'coding-system-parent 'coding-system-base)
-(make-obsolete 'coding-system-parent 'coding-system-base "20.3")
-
 ;; Coding system also has a property `eol-type'.
 ;;
 ;; This property indicates how the coding system handles end-of-line
@@ -536,6 +537,18 @@ coding system whose eol-type is N."
 	     (or (< (downcase c1) (downcase c2))
 		 (and (not (> (downcase c1) (downcase c2)))
 		      (< c1 c2)))))))
+
+(defun coding-system-equal (coding-system-1 coding-system-2)
+  "Return t if and only if CODING-SYSTEM-1 and CODING-SYSTEM-2 are identical.
+Two coding systems are identical if two symbols are equal
+or one is an alias of the other."
+  (or (eq coding-system-1 coding-system-2)
+      (and (equal (coding-system-spec coding-system-1)
+		  (coding-system-spec coding-system-2))
+	   (let ((eol-type-1 (coding-system-eol-type coding-system-1))
+		 (eol-type-2 (coding-system-eol-type coding-system-2)))
+	     (or (eq eol-type-1 eol-type-2)
+		 (and (vectorp eol-type-1) (vectorp eol-type-2)))))))
 
 (defun add-to-coding-system-list (coding-system)
   "Add CODING-SYSTEM to `coding-system-list' while keeping it sorted."
@@ -592,83 +605,14 @@ character code range.  Thus FUNC should iterate over [START, END]."
 		 (make-char charset (+ i start) start)
 		 (make-char charset (+ i start) (+ start chars -1)))))))
 
-(defun optimize-char-coding-system-table ()
-  "Optimize `char-coding-system-table'.
-Elements which compare `equal' are modified to share the same list."
-  (let (cache)
-    (map-char-table
-     (lambda (k v)
-       ;; This doesn't worry about elements which are permutations of
-       ;; each other.  As it is, with utf-translate-cjk on and
-       ;; code-pages loaded, the table has ~50k elements, which are
-       ;; reduced to ~1k.  (`optimize-char-table' might win if
-       ;; permutations were eliminated, but that's probably a small
-       ;; effect and not easy to test.)
-       (if v
-	   (let ((existing (car (member v cache))))
-	     (if existing
-		 (aset char-coding-system-table k existing)
-	       (push v cache)))))
-     char-coding-system-table))
-  (optimize-char-table char-coding-system-table))
+(defalias 'register-char-codings 'ignore "")
+(make-obsolete 'register-char-codings
+               "it exists just for backward compatibility, and does nothing."
+	       "21.3")
 
-(defun register-char-codings (coding-system safe-chars)
-  "Add entries for CODING-SYSTEM to `char-coding-system-table'.
-If SAFE-CHARS is a char-table, its non-nil entries specify characters
-which CODING-SYSTEM encodes safely.  If SAFE-CHARS is t, register
-CODING-SYSTEM as a general one which can encode all characters."
-  (let ((general (char-table-extra-slot char-coding-system-table 0))
-	;; Charsets which have some members in the table, but not all
-	;; of them (i.e. not just a generic character):
-	(partials (char-table-extra-slot char-coding-system-table 1)))
-    (if (eq safe-chars t)
-	(or (memq coding-system general)
-	    (set-char-table-extra-slot char-coding-system-table 0
-				       (cons coding-system general)))
-      (map-char-table
-       (lambda (key val)
-	 (if (and (>= key 128) val)
-	     (let ((codings (aref char-coding-system-table key))
-		   (charset (char-charset key)))
-	       (unless (memq coding-system codings)
-		 (if (and (generic-char-p key)
-			  (memq charset partials))
-		     ;; The generic char would clobber individual
-		     ;; entries already in the table.  First save the
-		     ;; separate existing entries for all chars of the
-		     ;; charset (with the generic entry added, if
-		     ;; necessary).
-		     (let (entry existing)
-		       (map-charset-chars
-			(lambda (start end)
-			  (while (<= start end)
-			    (setq entry (aref char-coding-system-table start))
-			    (when entry
-			      (push (cons
-				     start
-				     (if (memq coding-system entry)
-					 entry
-				       (cons coding-system entry)))
-				    existing))
-			    (setq start (1+ start))))
-			charset)
-		       ;; Update the generic entry.
-		       (aset char-coding-system-table key
-			     (cons coding-system codings))
-		       ;; Override with the saved entries.
-		       (dolist (elt existing)
-			 (aset char-coding-system-table (car elt) (cdr elt))))
-		   (aset char-coding-system-table key
-			 (cons coding-system codings))
-		   (unless (or (memq charset partials)
-			       (generic-char-p key))
-		     (push charset partials)))))))
-       safe-chars)
-      ;; This is probably too expensive (e.g. multiple calls in
-      ;; ucs-tables), and only really relevant in certain cases, so do
-      ;; it explicitly where appropriate.
-      ;; (optimize-char-coding-system-table)
-      (set-char-table-extra-slot char-coding-system-table 1 partials))))
+(defconst char-coding-system-table nil
+  "This is an obsolete variable.
+It exists just for backward compatibility, and the value is always nil.")
 
 (defun make-subsidiary-coding-system (coding-system)
   "Make subsidiary coding systems (eol-type variants) of CODING-SYSTEM."
@@ -882,6 +826,11 @@ following properties are recognized:
   The value is a symbol whose name is the `MIME-charset' parameter of
   the coding system.
 
+  o mime-text-unsuitable
+
+  A non-nil value means the `mime-charset' property names a charset
+  which is unsuitable for the top-level media type \"text\".
+
   o valid-codes (meaningful only for a coding system based on CCL)
 
   The value is a list to indicate valid byte ranges of the encoded
@@ -893,6 +842,12 @@ following properties are recognized:
 
   If the value is non-nil, the coding system preserves composition
   information.
+
+  o ascii-incompatible
+
+  If the value is non-nil, the coding system is not compatible
+  with ASCII, which means it encodes or decodes ASCII character
+  string to the different byte sequence.
 
 These properties are set in PLIST, a property list.  This function
 also sets properties `coding-category' and `alias-coding-systems'
@@ -1088,7 +1043,6 @@ a value of `safe-charsets' in PLIST."
 		(if (and (symbolp val)
 			 (get val 'translation-table))
 		    (setq safe-chars (get val 'translation-table)))
-		(register-char-codings coding-system safe-chars)
 		(setq val safe-chars)))
 	  (plist-put plist prop val)))
       ;; The property `coding-category' may have been set differently
@@ -1096,6 +1050,7 @@ a value of `safe-charsets' in PLIST."
       (setq coding-category (plist-get plist 'coding-category))
       (aset coding-spec coding-spec-plist-idx plist))
     (put coding-system 'coding-system coding-spec)
+    (put coding-system 'coding-system-define-form nil)
     (put coding-category 'coding-systems
 	 (cons coding-system (get coding-category 'coding-systems))))
 
@@ -1121,6 +1076,8 @@ a value of `safe-charsets' in PLIST."
 	      (t
 	       (error "Invalid EOL-TYPE spec:%S" eol-type))))
   (put coding-system 'eol-type eol-type)
+
+  (define-coding-system-internal coding-system)
 
   ;; At last, register CODING-SYSTEM in `coding-system-list' and
   ;; `coding-system-alist'.
@@ -1155,6 +1112,7 @@ a value of `safe-charsets' in PLIST."
 (defun define-coding-system-alias (alias coding-system)
   "Define ALIAS as an alias for coding system CODING-SYSTEM."
   (put alias 'coding-system (coding-system-spec coding-system))
+  (put alias 'coding-system-define-form nil)
   (add-to-coding-system-list alias)
   (setq coding-system-alist (cons (list (symbol-name alias))
 				  coding-system-alist))
@@ -1180,7 +1138,15 @@ Return the resulting coding system."
 		     first eol)))
     first))
 
-(defun set-buffer-file-coding-system (coding-system &optional force)
+(defun autoload-coding-system (symbol form)
+  "Define SYMBOL as a coding-system that is defined on demand.
+
+FROM is a form to evaluate to define the coding-system."
+  (put symbol 'coding-system-define-form form)
+  (setq coding-system-alist (cons (list (symbol-name symbol))
+				  coding-system-alist)))
+
+(defun set-buffer-file-coding-system (coding-system &optional force nomodify)
   "Set the file coding-system of the current buffer to CODING-SYSTEM.
 This means that when you save the buffer, it will be converted
 according to CODING-SYSTEM.  For a list of possible values of CODING-SYSTEM,
@@ -1190,13 +1156,14 @@ If CODING-SYSTEM leaves the text conversion unspecified, or if it
 leaves the end-of-line conversion unspecified, FORCE controls what to
 do.  If FORCE is nil, get the unspecified aspect (or aspects) from the
 buffer's previous `buffer-file-coding-system' value (if it is
-specified there).  Otherwise, levae it unspecified.
+specified there).  Otherwise, leave it unspecified.
 
 This marks the buffer modified so that the succeeding \\[save-buffer]
 surely saves the buffer with CODING-SYSTEM.  From a program, if you
-don't want to mark the buffer modified, just set the variable
-`buffer-file-coding-system' directly."
-  (interactive "zCoding system for saving file (default, nil): \nP")
+don't want to mark the buffer modified, specify t for NOMODIFY.
+If you know exactly what coding system you want to use,
+just set the variable `buffer-file-coding-system' directly."
+  (interactive "zCoding system for saving file (default nil): \nP")
   (check-coding-system coding-system)
   (if (and coding-system buffer-file-coding-system (null force))
       (setq coding-system
@@ -1206,7 +1173,8 @@ don't want to mark the buffer modified, just set the variable
   ;; `set-buffer-major-mode-hook' take care of setting the table.
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
       (ucs-set-table-for-input))
-  (set-buffer-modified-p t)
+  (unless nomodify
+    (set-buffer-modified-p t))
   (force-mode-line-update))
 
 (defun revert-buffer-with-coding-system (coding-system &optional force)
@@ -1219,7 +1187,7 @@ do.  If FORCE is nil, get the unspecified aspect (or aspects) from the
 buffer's previous `buffer-file-coding-system' value (if it is
 specified there).  Otherwise, determine it from the file contents as
 usual for visiting a file."
-  (interactive "zCoding system for visited file (default, nil): \nP")
+  (interactive "zCoding system for visited file (default nil): \nP")
   (check-coding-system coding-system)
   (if (and coding-system buffer-file-coding-system (null force))
       (setq coding-system
@@ -1231,8 +1199,11 @@ usual for visiting a file."
   "Set coding system for decoding and encoding file names to CODING-SYSTEM.
 It actually just set the variable `file-name-coding-system' (which
 see) to CODING-SYSTEM."
-  (interactive "zCoding system for file names (default, nil): ")
+  (interactive "zCoding system for file names (default nil): ")
   (check-coding-system coding-system)
+  (if (and coding-system
+	   (coding-system-get coding-system 'ascii-incompatible))
+      (error "%s is not ASCII-compatible" coding-system))
   (setq file-name-coding-system coding-system))
 
 (defvar default-terminal-coding-system nil
@@ -1252,7 +1223,7 @@ or by the previous use of this command."
 				 default-terminal-coding-system)
 			    default-terminal-coding-system)))
 	   (read-coding-system
-	    (format "Coding system for terminal display (default, %s): "
+	    (format "Coding system for terminal display (default %s): "
 		    default)
 	    default))))
   (if (and (not coding-system)
@@ -1281,7 +1252,7 @@ or by the previous use of this command."
 				 default-keyboard-coding-system)
 			    default-keyboard-coding-system)))
 	   (read-coding-system
-	    (format "Coding system for keyboard input (default, %s): "
+	    (format "Coding system for keyboard input (default %s): "
 		    default)
 	    default))))
   (if (and (not coding-system)
@@ -1289,6 +1260,9 @@ or by the previous use of this command."
       (setq coding-system default-keyboard-coding-system))
   (if coding-system
       (setq default-keyboard-coding-system coding-system))
+  (if (and coding-system
+	   (coding-system-get coding-system 'ascii-incompatible))
+      (error "%s is not ASCII-compatible" coding-system))
   (set-keyboard-coding-system-internal coding-system)
   (setq keyboard-coding-system coding-system)
   (encoded-kbd-mode (if coding-system 1 0)))
@@ -1302,7 +1276,7 @@ See Info node `Specify Coding' and Info node `Single-Byte Character Support'.
 On non-windowing terminals, this is set from the locale by default.
 
 Setting this variable directly does not take effect;
-use either M-x customize or \\[set-keyboard-coding-system]."
+use either \\[customize] or \\[set-keyboard-coding-system]."
   :type '(coding-system :tag "Coding system")
   :link '(info-link "(emacs)Specify Coding")
   :link '(info-link "(emacs)Single-Byte Character Support")
@@ -1311,7 +1285,7 @@ use either M-x customize or \\[set-keyboard-coding-system]."
 	 (if (or value (boundp 'encoded-kbd-mode))
 	     (set-keyboard-coding-system value)
 	   (set-default 'keyboard-coding-system nil))) ; must initialize
-  :version "21.4"
+  :version "22.1"
   :group 'keyboard
   :group 'mule)
 
@@ -1351,7 +1325,7 @@ This setting is effective for the next communication only."
   (interactive
    (list (read-coding-system
 	  (if last-next-selection-coding-system
-	      (format "Coding system for the next X selection (default, %S): "
+	      (format "Coding system for the next X selection (default %S): "
 		      last-next-selection-coding-system)
 	    "Coding system for the next X selection: ")
 	  last-next-selection-coding-system)))
@@ -1382,204 +1356,212 @@ ARG is a list of coding categories ordered by priority."
 
 ;;; X selections
 
-(defvar non-standard-icccm-encodings-alist
-  '(("ISO8859-15" . latin-iso8859-15)
-    ("ISO8859-14" . latin-iso8859-14)
-    ("KOI8-R" . koi8-r)
-    ("BIG5-0" . big5))
-  "Alist of font charset names defined by XLFD.
-The cdr of each element is the corresponding Emacs charset or coding system.")
+(defvar ctext-non-standard-encodings-alist
+  '(("big5-0" big5 2 (chinese-big5-1 chinese-big5-2))
+    ("ISO8859-14" iso-8859-14 1 latin-iso8859-14)
+    ("ISO8859-15" iso-8859-15 1 latin-iso8859-15))
+  "Alist of non-standard encoding names vs the corresponding usages in CTEXT.
+
+It controls how extended segments of a compound text are handled
+by the coding system `compound-text-with-extensions'.
+
+Each element has the form (ENCODING-NAME CODING-SYSTEM N-OCTET CHARSET).
+
+ENCODING-NAME is an encoding name of an \"extended segments\".
+
+CODING-SYSTEM is the coding-system to encode (or decode) the
+characters into (or from) the extended segment.
+
+N-OCTET is the number of octets (bytes) that encodes a character
+in the segment.  It can be 0 (meaning the number of octets per
+character is variable), 1, 2, 3, or 4.
+
+CHARSET is a charater set containing characters that are encoded
+in the segment.  It can be a list of character sets.  It can also
+be a char-table, in which case characters that have non-nil value
+in the char-table are the target.
+
+On decoding CTEXT, all encoding names listed here are recognized.
+
+On encoding CTEXT, encoding names in the variable
+`ctext-non-standard-encodings' (which see) and in the information
+listed for the current language environment under the key
+`ctext-non-standard-encodings' are used.")
+
+(defvar ctext-non-standard-encodings
+  '("big5-0")
+  "List of non-standard encoding names used in extended segments of CTEXT.
+Each element must be one of the names listed in the variable
+`ctext-non-standard-encodings-alist' (which see).")
+
+(defvar ctext-non-standard-encodings-regexp
+  (string-to-multibyte
+   (concat
+    ;; For non-standard encodings.
+    "\\(\e%/[0-4][\200-\377][\200-\377]\\([^\002]+\\)\002\\)"
+    "\\|"
+    ;; For UTF-8 encoding.
+    "\\(\e%G[^\e]*\e%@\\)")))
 
 ;; Functions to support "Non-Standard Character Set Encodings" defined
-;; by the COMPOUND-TEXT spec.
-;; We support that by converting the leading sequence of the
-;; ``extended segment'' to the corresponding ISO-2022 sequences (if
-;; the leading sequence names an Emacs charset), or decode the segment
-;; (if it names a coding system).  Encoding does the reverse.
-;; This function also supports "The UTF-8 encoding" described in the
-;; section 7 of the documentation fo COMPOUND-TEXT distributed with
-;; XFree86.
+;; by the COMPOUND-TEXT spec.  They also support "The UTF-8 encoding"
+;; described in the section 7 of the documentation of COMPOUND-TEXT
+;; distributed with XFree86.
 
 (defun ctext-post-read-conversion (len)
   "Decode LEN characters encoded as Compound Text with Extended Segments."
-  (buffer-disable-undo)	; minimize consing due to insertions and deletions
-  (narrow-to-region (point) (+ (point) len))
   (save-match-data
-    (let ((pt (point-marker))
-	  (oldpt (point-marker))
-	  (newpt (make-marker))
-	  (modified-p (buffer-modified-p))
-	  (case-fold-search nil)
-	  last-coding-system-used
-	  encoding textlen chset)
-      (while (re-search-forward
-	      "\\(\e\\)%/[0-4]\\([\200-\377][\200-\377]\\)\\([^\002]+\\)\002\\|\e%G[^\e]+\e%@"
-	      nil 'move)
-	(set-marker newpt (point))
-	(set-marker pt (match-beginning 0))
-	(if (= (preceding-char) ?@)
-	    ;; We found embedded utf-8 sequence.
-	    (progn
-	      (delete-char -3)		; delete ESC % @ at the tail
-	      (goto-char pt)
-	      (delete-char 3)		; delete ESC % G at the head
-	      (if (> pt oldpt)
-		  (decode-coding-region oldpt pt 'ctext-no-compositions))
-	      (decode-coding-region pt newpt 'mule-utf-8)
-	      (goto-char newpt)
-	      (set-marker oldpt newpt))
-	  (setq encoding (match-string 3))
-	  (setq textlen (- (+ (* (- (aref (match-string 2) 0) 128) 128)
-			      (- (aref (match-string 2) 1) 128))
-			   (1+ (length encoding))))
-	  (setq
-	   chset (cdr (assoc-ignore-case encoding
-					 non-standard-icccm-encodings-alist)))
-	  (cond ((null chset)
-		 ;; This charset is not supported--leave this extended
-		 ;; segment unaltered and skip over it.
-		 (goto-char (+ (point) textlen)))
-		((charsetp chset)
-		 ;; If it's a charset, replace the leading escape sequence
-		 ;; with a standard ISO-2022 sequence.  We will decode all
-		 ;; such segments later, in one go, when we exit the loop
-		 ;; or find an extended segment that names a coding
-		 ;; system, not a charset.
-		 (replace-match
-		  (concat "\\1"
-			  (if (= 0 (charset-iso-graphic-plane chset))
-			      ;; GL charsets
-			      (if (= 1 (charset-dimension chset)) "(" "$(")
-			    ;; GR charsets
-			    (if (= 96 (charset-chars chset))
-				"-"
-			      (if (= 1 (charset-dimension chset)) ")" "$)")))
-			  (string (charset-iso-final-char chset)))
-		  t)
-		 (goto-char (+ (point) textlen)))
-		((coding-system-p chset)
-		 ;; If it's a coding system, we need to decode the segment
-		 ;; right away.  But first, decode what we've skipped
-		 ;; across until now.
-		 (when (> pt oldpt)
-		   (decode-coding-region oldpt pt 'ctext-no-compositions))
-		 (delete-region pt newpt)
-		 (set-marker newpt (+ newpt textlen))
-		 (decode-coding-region pt newpt chset)
-		 (goto-char newpt)
-		 (set-marker oldpt newpt)))))
-      ;; Decode what's left.
-      (when (> (point) oldpt)
-	(decode-coding-region oldpt (point) 'ctext-no-compositions))
-      ;; This buffer started as unibyte, because the string we get from
-      ;; the X selection is a unibyte string.  We must now make it
-      ;; multibyte, so that the decoded text is inserted as multibyte
-      ;; into its buffer.
-      (set-buffer-multibyte t)
-      (set-buffer-modified-p modified-p)
-      (- (point-max) (point-min)))))
+    (save-restriction
+      (let ((case-fold-search nil)
+	    (in-workbuf (string= (buffer-name) " *code-converting-work*"))
+	    last-coding-system-used
+	    pos bytes)
+	(or in-workbuf
+	    (narrow-to-region (point) (+ (point) len)))
+	(if in-workbuf
+	    (set-buffer-multibyte t))
+	(while (re-search-forward ctext-non-standard-encodings-regexp
+				  nil 'move)
+	  (setq pos (match-beginning 0))
+	  (if (match-beginning 1)
+	      ;; ESC % / [0-4] M L --ENCODING-NAME-- \002 --BYTES--
+	      (let* ((M (char-after (+ pos 4)))
+		     (L (char-after (+ pos 5)))
+		     (encoding (match-string 2))
+		     (encoding-info (assoc-string
+				     encoding
+				     ctext-non-standard-encodings-alist t))
+		     (coding (if encoding-info
+				 (nth 1 encoding-info)
+			       (setq encoding (intern (downcase encoding)))
+			       (and (coding-system-p encoding)
+				    encoding))))
+		(setq bytes (- (+ (* (- M 128) 128) (- L 128))
+			       (- (point) (+ pos 6))))
+		(when coding
+		  (delete-region pos (point))
+		  (forward-char bytes)
+		  (decode-coding-region (- (point) bytes) (point) coding)))
+	    ;; ESC % G --UTF-8-BYTES-- ESC % @
+	    (delete-char -3)
+	    (delete-region pos (+ pos 3))
+	    (decode-coding-region pos (point) 'utf-8))))
+      (goto-char (point-min))
+      (- (point-max) (point)))))
 
-;; If you add charsets here, be sure to modify the regexp used by
-;; ctext-pre-write-conversion to look up non-standard charsets.
-(defvar non-standard-designations-alist
-  '(("$(0" . (big5 "big5-0" 2))
-    ("$(1" . (big5 "big5-0" 2))
-    ;; The following are actually standard; generating extended
-    ;; segments for them is wrong and screws e.g. Latin-9 users.
-    ;; 8859-{10,13,16} aren't Emacs charsets anyhow.  -- fx
-;;     ("-V"  . (t "iso8859-10" 1))
-;;     ("-Y"  . (t "iso8859-13" 1))
-;;     ("-_"  . (t "iso8859-14" 1))
-;;     ("-b"  . (t "iso8859-15" 1))
-;;     ("-f"  . (t "iso8859-16" 1))
-    )
-  "Alist of ctext control sequences that introduce character sets which
-are not in the list of approved encodings, and the corresponding
-coding system, identifier string, and number of octets per encoded
-character.
+;; Return a char table of extended segment usage for each character.
+;; Each value of the char table is nil, one of the elements of
+;; `ctext-non-standard-encodings-alist', or the symbol `utf-8'.
 
-Each element has the form (CTLSEQ . (ENCODING CHARSET NOCTETS)).  CTLSEQ
-is the control sequence (sans the leading ESC) that introduces the character
-set in the text encoded by compound-text.  ENCODING is a coding system
-symbol; if it is t, it means that the ctext coding system already encodes
-the text correctly, and only the leading control sequence needs to be altered.
-If ENCODING is a coding system, we need to re-encode the text with that
-coding system.  CHARSET is the name of the charset we need to put into
-the leading control sequence.  NOCTETS is the number of octets (bytes) that
-encode each character in this charset.  NOCTETS can be 0 (meaning the number
-of octets per character is variable), 1, 2, 3, or 4.")
+(defun ctext-non-standard-encodings-table ()
+  (let ((table (make-char-table 'translation-table)))
+    (aset table (make-char 'mule-unicode-0100-24ff) 'utf-8)
+    (aset table (make-char 'mule-unicode-2500-33ff) 'utf-8)
+    (aset table (make-char 'mule-unicode-e000-ffff) 'utf-8)
+    (dolist (encoding (reverse
+		       (append
+			(get-language-info current-language-environment
+					   'ctext-non-standard-encodings)
+			ctext-non-standard-encodings)))
+      (let* ((slot (assoc encoding ctext-non-standard-encodings-alist))
+	     (charset (nth 3 slot)))
+	(if charset
+	    (cond ((charsetp charset)
+		   (aset table (make-char charset) slot))
+		  ((listp charset)
+		   (dolist (elt charset)
+		     (aset table (make-char elt) slot)))
+		  ((char-table-p charset)
+		   (map-char-table #'(lambda (k v)
+				   (if (and v (> k 128)) (aset table k slot)))
+				   charset))))))
+    table))
 
 (defun ctext-pre-write-conversion (from to)
   "Encode characters between FROM and TO as Compound Text w/Extended Segments.
 
 If FROM is a string, or if the current buffer is not the one set up for us
-by run_pre_post_conversion_on_str, generate a new temp buffer, insert the
+by encode-coding-string, generate a new temp buffer, insert the
 text, and convert it in the temporary buffer.  Otherwise, convert in-place."
-  (cond ((and (string= (buffer-name) " *code-converting-work*")
-	      (not (stringp from)))
-	 ; Minimize consing due to subsequent insertions and deletions.
-	 (buffer-disable-undo)
-	 (narrow-to-region from to))
-	(t
-	 (let ((buf (current-buffer)))
-	   (set-buffer (generate-new-buffer " *temp"))
-	   (buffer-disable-undo)
-	   (if (stringp from)
-	       (insert from)
-	     (insert-buffer-substring buf from to))
-	   (setq from (point-min) to (point-max)))))
-  (encode-coding-region from to 'ctext-no-compositions)
-  ;; Replace ISO-2022 charset designations with extended segments, for
-  ;; those charsets that are not part of the official X registry.
   (save-match-data
-    (goto-char (point-min))
-    (let ((newpt (make-marker))
-	  (case-fold-search nil)
-	  pt desig encode-info encoding chset noctets textlen)
-      (set-buffer-multibyte nil)
-      ;; The regexp below finds the leading sequences for big5.
-      (while (re-search-forward "\e\\(\$([01]\\)" nil 'move)
-	(setq desig (match-string 1)
-	      pt (point-marker)
-	      encode-info (cdr (assoc desig non-standard-designations-alist))
-	      encoding (car encode-info)
-	      chset (cadr encode-info)
-	      noctets (car (cddr encode-info)))
-	(skip-chars-forward "^\e")
-	(set-marker newpt (point))
-	(cond
-	 ((eq encoding t)  ; only the leading sequence needs to be changed
-	  (setq textlen (+ (- newpt pt) (length chset) 1))
-	  ;; Generate the ICCCM control sequence for an extended segment.
-	  (replace-match (format "\e%%/%d%c%c%s"
-				 noctets
-				 (+ (/ textlen 128) 128)
-				 (+ (% textlen 128) 128)
-				 chset)
-			 t t))
-	 ((coding-system-p encoding) ; need to recode the entire segment...
-	  (set-marker pt (match-beginning 0))
-	  (decode-coding-region pt newpt 'ctext-no-compositions)
-	  (set-buffer-multibyte t)
-	  (encode-coding-region pt newpt encoding)
-	  (set-buffer-multibyte nil)
-	  (setq textlen (+ (- newpt pt) (length chset) 1))
-	  (goto-char pt)
-	  (insert (format "\e%%/%d%c%c%s"
-			  noctets
-			  (+ (/ textlen 128) 128)
-			  (+ (% textlen 128) 128)
-			  chset))))
-	(goto-char newpt))))
-  (set-buffer-multibyte t)
+    (let ((workbuf (get-buffer-create " *code-conversion-work*")))
+      ;; Setup a working buffer if necessary.
+      (cond ((stringp from)
+	     (set-buffer workbuf)
+	     (erase-buffer)
+	     (set-buffer-multibyte (multibyte-string-p from))
+	     (insert from))
+	    ((not (eq (current-buffer) workbuf))
+	     (let ((buf (current-buffer))
+		   (multibyte enable-multibyte-characters))
+	       (set-buffer workbuf)
+	       (erase-buffer)
+	       (set-buffer-multibyte multibyte)
+	       (insert-buffer-substring buf from to)))))
+
+    ;; Now we can encode the whole buffer.
+    (let ((encoding-table (ctext-non-standard-encodings-table))
+	  last-coding-system-used
+	  last-pos last-encoding-info
+	  encoding-info end-pos)
+      (goto-char (setq last-pos (point-min)))
+      (setq end-pos (point-marker))
+      (while (re-search-forward "[^\000-\177]+" nil t)
+	;; Found a sequence of non-ASCII characters.
+	(setq last-pos (match-beginning 0)
+	      last-encoding-info (aref encoding-table (char-after last-pos)))
+	(set-marker end-pos (match-end 0))
+	(goto-char (1+ last-pos))
+	(catch 'tag
+	  (while t
+	    (setq encoding-info
+		  (if (< (point) end-pos)
+		      (aref encoding-table (following-char))))
+	    (unless (eq last-encoding-info encoding-info)
+	      (cond ((consp last-encoding-info)
+		     ;; Encode the previous range using an extended
+		     ;; segment.
+		     (let ((encoding-name (car last-encoding-info))
+			   (coding-system (nth 1 last-encoding-info))
+			   (noctets (nth 2 last-encoding-info))
+			   len)
+		       (encode-coding-region last-pos (point) coding-system)
+		       (setq len (+ (length encoding-name) 1
+				    (- (point) last-pos)))
+		       (save-excursion
+			 (goto-char last-pos)
+			 (insert (string-to-multibyte
+				  (format "\e%%/%d%c%c%s"
+					  noctets
+					  (+ (/ len 128) 128)
+					  (+ (% len 128) 128)
+					  encoding-name))))))
+		    ((eq last-encoding-info 'utf-8)
+		     ;; Encode the previous range using UTF-8 encoding
+		     ;; extention.
+		     (encode-coding-region last-pos (point) 'mule-utf-8)
+		     (save-excursion
+		       (goto-char last-pos)
+		       (insert "\e%G"))
+		     (insert "\e%@")))
+	      (setq last-pos (point)
+		    last-encoding-info encoding-info))
+	    (if (< (point) end-pos)
+		(forward-char 1)
+	      (throw 'tag nil)))))
+      (set-marker end-pos nil)
+      (goto-char (point-min))))
   ;; Must return nil, as build_annotations_2 expects that.
   nil)
 
 ;;; FILE I/O
 
 (defcustom auto-coding-alist
-  '(("\\.\\(arc\\|zip\\|lzh\\|zoo\\|jar\\|sx[dmicw]\\|tar\\|tgz\\)\\'" . no-conversion)
+  '(("\\.\\(arc\\|zip\\|lzh\\|zoo\\|[jew]ar\\|xpi\\)\\'" . no-conversion)
+    ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|[JEW]AR\\|XPI\\)\\'" . no-conversion)
+    ("\\.\\(sx[dmicw]\\|tar\\|tgz\\)\\'" . no-conversion)
     ("\\.\\(gz\\|Z\\|bz\\|bz2\\|gpg\\)\\'" . no-conversion)
+    ("\\.\\(jpe?g\\|png\\|gif\\|tiff?\\|p[bpgn]m\\)\\'" . no-conversion)
     ("/#[^/]+#\\'" . emacs-mule))
   "Alist of filename patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).
@@ -1612,14 +1594,18 @@ and the contents of `file-coding-system-alist'."
 				   sgml-html-meta-auto-coding-function)
   "A list of functions which attempt to determine a coding system.
 
-Each function in this list should be written to operate on the current
-buffer, but should not modify it in any way.  It should take one
-argument SIZE, past which it should not search.  If a function
-succeeds in determining a coding system, it should return that coding
-system.  Otherwise, it should return nil.
+Each function in this list should be written to operate on the
+current buffer, but should not modify it in any way.  The buffer
+will contain undecoded text of parts of the file.  Each function
+should take one argument, SIZE, which says how many
+characters (starting from point) it should look at.
 
-Any `coding:' tags present have a higher priority than the
-functions in this list."
+If one of these functions succeeds in determining a coding
+system, it should return that coding system.  Otherwise, it
+should return nil.
+
+If a file has a `coding:' tag, that takes precedence over these
+functions, so they won't be called at all."
   :group 'files
   :group 'mule
   :type '(repeat function))
@@ -1639,8 +1625,8 @@ This is used for loading and byte-compiling Emacs Lisp files.")
 	(setq alist (cdr alist))))
     coding-system))
 
-(defun set-auto-coding (filename size)
-  "Return coding system for a file FILENAME of which SIZE bytes follow point.
+(defun find-auto-coding (filename size)
+  "Find a coding system for a file FILENAME of which SIZE bytes follow point.
 These bytes should include at least the first 1k of the file
 and the last 3k of the file, but the middle may be omitted.
 
@@ -1654,12 +1640,21 @@ contents of the current buffer following point against
 succeed, it checks to see if any function in `auto-coding-functions'
 gives a match.
 
-The return value is the specified coding system, or nil if nothing is
-specified.
+If a coding system is specifed, the return value is a
+cons (CODING . SOURCE), where CODING is the specified coding
+system and SOURCE is a symbol `auto-coding-alist',
+`auto-coding-regexp-alist', `coding:', or `auto-coding-functions'
+indicating by what CODING is specified.  Note that the validity
+of CODING is not checked; it's callers responsibility to check
+it.
+
+If nothing is specified, the return value is nil.
 
 The variable `set-auto-coding-function' (which see) is set to this
 function by default."
-  (or (auto-coding-alist-lookup filename)
+  (or (let ((coding-system (auto-coding-alist-lookup filename)))
+	(if coding-system
+	    (cons coding-system 'auto-coding-alist)))
       ;; Try using `auto-coding-regexp-alist'.
       (save-excursion
 	(let ((alist auto-coding-regexp-alist)
@@ -1669,7 +1664,8 @@ function by default."
 	      (when (re-search-forward regexp (+ (point) size) t)
 		(setq coding-system (cdr (car alist)))))
 	    (setq alist (cdr alist)))
-	  coding-system))
+	  (if coding-system
+	      (cons coding-system 'auto-coding-regexp-alist))))
       (let* ((case-fold-search t)
 	     (head-start (point))
 	     (head-end (+ head-start (min size 1024)))
@@ -1703,36 +1699,39 @@ function by default."
 		       (re-search-forward
 			"\\(.*;\\)?[ \t]*coding:[ \t]*\\([^ ;]+\\)"
 			head-end t))
-	      (setq coding-system (intern (match-string 2)))
-	      (or (coding-system-p coding-system)
-		  (setq coding-system nil)))))
+	      (setq coding-system (intern (match-string 2))))))
 
 	;; If no coding: tag in the head, check the tail.
+	;; Here we must pay attention to the case that the end-of-line
+	;; is just "\r" and we can't use "^" nor "$" in regexp.
 	(when (and tail-found (not coding-system))
 	  (goto-char tail-start)
-	  (search-forward "\n\^L" nil t)
+	  (re-search-forward "[\r\n]\^L" nil t)
 	  (if (re-search-forward
-	       "^\\(.*\\)[ \t]*Local Variables:[ \t]*\\(.*\\)$" tail-end t)
-	  ;; The prefix is what comes before "local variables:" in its
-	   ;; line.  The suffix is what comes after "local variables:"
+	       "[\r\n]\\([^[\r\n]*\\)[ \t]*Local Variables:[ \t]*\\([^\r\n]*\\)[\r\n]"
+	       tail-end t)
+	      ;; The prefix is what comes before "local variables:" in its
+	      ;; line.  The suffix is what comes after "local variables:"
 	      ;; in its line.
 	      (let* ((prefix (regexp-quote (match-string 1)))
 		     (suffix (regexp-quote (match-string 2)))
 		     (re-coding
 		      (concat
-		       "^" prefix
+		       "[\r\n]" prefix
 		       ;; N.B. without the \n below, the regexp can
 		       ;; eat newlines.
-		       "[ \t]*coding[ \t]*:[ \t]*\\([^ \t\n]+\\)[ \t]*"
-		       suffix "$"))
+		       "[ \t]*coding[ \t]*:[ \t]*\\([^ \t\r\n]+\\)[ \t]*"
+		       suffix "[\r\n]"))
 		     (re-unibyte
 		      (concat
-		       "^" prefix
-		       "[ \t]*unibyte[ \t]*:[ \t]*\\([^ \t\n]+\\)[ \t]*"
-		       suffix "$"))
+		       "[\r\n]" prefix
+		       "[ \t]*unibyte[ \t]*:[ \t]*\\([^ \t\r\n]+\\)[ \t]*"
+		       suffix "[\r\n]"))
 		     (re-end
-		      (concat "^" prefix "[ \t]*End *:[ \t]*" suffix "$"))
-		     (pos (point)))
+		      (concat "[\r\n]" prefix "[ \t]*End *:[ \t]*" suffix
+			      "[\r\n]?"))
+		     (pos (1- (point))))
+		(forward-char -1)	; skip back \r or \n.
 		(re-search-forward re-end tail-end 'move)
 		(setq tail-end (point))
 		(goto-char pos)
@@ -1741,10 +1740,9 @@ function by default."
 		  (setq coding-system 'raw-text))
 		(when (and (not coding-system)
 			   (re-search-forward re-coding tail-end t))
-		  (setq coding-system (intern (match-string 1)))
-		  (or (coding-system-p coding-system)
-		      (setq coding-system nil))))))
-	coding-system)
+		  (setq coding-system (intern (match-string 1)))))))
+	(if coding-system
+	    (cons coding-system :coding)))
       ;; Finally, try all the `auto-coding-functions'.
       (let ((funcs auto-coding-functions)
 	    (coding-system nil))
@@ -1754,18 +1752,54 @@ function by default."
 				    (goto-char (point-min))
 				    (funcall (pop funcs) size))
 				(error nil))))
-	coding-system)))
+	(if coding-system
+	    (cons coding-system 'auto-coding-functions)))))
+
+(defun set-auto-coding (filename size)
+  "Return coding system for a file FILENAME of which SIZE bytes follow point.
+See `find-auto-coding' for how the coding system is found.
+Return nil if an invalid coding system is found."
+  (let ((found (find-auto-coding filename size)))
+    (if (and found (coding-system-p (car found)))
+	(car found))))
 
 (setq set-auto-coding-function 'set-auto-coding)
 
-(defun after-insert-file-set-buffer-file-coding-system (inserted)
-  "Set `buffer-file-coding-system' of current buffer after text is inserted."
+;; This variable is set in these two cases:
+;;   (1) A file is read by a coding system specified explicitly.
+;;       after-insert-file-set-coding sets this value to
+;;       coding-system-for-read.
+;;   (2) A buffer is saved.
+;;       After writing, basic-save-buffer-1 sets this value to
+;;       last-coding-system-used.
+;; This variable is used for decoding in revert-buffer.
+(defvar buffer-file-coding-system-explicit nil
+  "The file coding system explicitly specified for the current buffer.
+Internal use only.")
+(make-variable-buffer-local 'buffer-file-coding-system-explicit)
+(put 'buffer-file-coding-system-explicit 'permanent-local t)
+
+(defun after-insert-file-set-coding (inserted &optional visit)
+  "Set `buffer-file-coding-system' of current buffer after text is inserted.
+INSERTED is the number of characters that were inserted, as figured
+in the situation before this function.  Return the number of characters
+inserted, as figured in the situation after.  The two numbers can be
+different if the buffer has become unibyte.
+The optional second arg VISIT non-nil means that we are visiting a file."
+  (if (and visit
+	   coding-system-for-read
+	   (not (eq coding-system-for-read 'auto-save-coding)))
+      (setq buffer-file-coding-system-explicit coding-system-for-read))
   (if last-coding-system-used
       (let ((coding-system
 	     (find-new-buffer-file-coding-system last-coding-system-used))
 	    (modified-p (buffer-modified-p)))
 	(when coding-system
-	  (set-buffer-file-coding-system coding-system t)
+	  ;; Tell set-buffer-file-coding-system not to mark the file
+	  ;; as modified; we just read it, and it's supposed to be unmodified.
+	  ;; Marking it modified would try to lock it, which would
+	  ;; check the modtime, and we don't want to do that again now.
+	  (set-buffer-file-coding-system coding-system t t)
 	  (if (and enable-multibyte-characters
 		   (or (eq coding-system 'no-conversion)
 		       (eq (coding-system-type coding-system) 5))
@@ -1775,14 +1809,13 @@ function by default."
 		   (= (buffer-size) inserted))
 	      ;; For coding systems no-conversion and raw-text...,
 	      ;; edit the buffer as unibyte.
-	      (let ((pos-byte (position-bytes (+ (point) inserted))))
+	      (let ((pos-marker (copy-marker (+ (point) inserted)))
+		    ;; Prevent locking.
+		    (buffer-file-name nil))
 		(set-buffer-multibyte nil)
-		(setq inserted (- pos-byte (position-bytes (point))))))
+		(setq inserted (- pos-marker (point)))))
 	  (set-buffer-modified-p modified-p))))
   inserted)
-
-(add-hook 'after-insert-file-functions
-	  'after-insert-file-set-buffer-file-coding-system)
 
 ;; The coding-spec and eol-type of coding-system returned is decided
 ;; independently in the following order.
@@ -1902,28 +1935,70 @@ or a function symbol which, when called, returns such a cons cell."
 (defun decode-coding-inserted-region (from to filename
 					   &optional visit beg end replace)
   "Decode the region between FROM and TO as if it is read from file FILENAME.
+The idea is that the text between FROM and TO was just inserted somehow.
 Optional arguments VISIT, BEG, END, and REPLACE are the same as those
-of the function `insert-file-contents'."
+of the function `insert-file-contents'.
+Part of the job of this function is setting `buffer-undo-list' appropriately."
   (save-excursion
     (save-restriction
-      (narrow-to-region from to)
-      (goto-char (point-min))
-      (let ((coding coding-system-for-read))
+      (let ((coding coding-system-for-read)
+	    undo-list-saved)
+	(if visit
+	    ;; Temporarily turn off undo recording, if we're decoding the
+	    ;; text of a visited file.
+	    (setq buffer-undo-list t)
+	  ;; Otherwise, if we can recognize the undo elt for the insertion,
+	  ;; remove it and get ready to replace it later.
+	  ;; In the mean time, turn off undo recording.
+	  (let ((last (car-safe buffer-undo-list)))
+	    (if (and (consp last) (eql (car last) from) (eql (cdr last) to))
+		(setq undo-list-saved (cdr buffer-undo-list)
+		      buffer-undo-list t))))
+	(narrow-to-region from to)
+	(goto-char (point-min))
 	(or coding
 	    (setq coding (funcall set-auto-coding-function
 				  filename (- (point-max) (point-min)))))
 	(or coding
-	    (setq coding (find-operation-coding-system
-			  'insert-file-contents
-			  filename visit beg end replace)))
+	    (setq coding (car (find-operation-coding-system
+			       'insert-file-contents
+			       filename visit beg end replace))))
 	(if (coding-system-p coding)
 	    (or enable-multibyte-characters
 		(setq coding
 		      (coding-system-change-text-conversion coding 'raw-text)))
 	  (setq coding nil))
 	(if coding
-	    (decode-coding-region (point-min) (point-max) coding))
-	(setq last-coding-system-used coding)))))
+	    (decode-coding-region (point-min) (point-max) coding)
+	  (setq last-coding-system-used coding))
+	;; If we're decoding the text of a visited file,
+	;; the undo list should start out empty.
+	(if visit
+	    (setq buffer-undo-list nil)
+	  ;; If we decided to replace the undo entry for the insertion,
+	  ;; do so now.
+	  (if undo-list-saved
+	      (setq buffer-undo-list
+		    (cons (cons from (point-max)) undo-list-saved))))))))
+
+(defun recode-region (start end new-coding coding)
+  "Re-decode the region (previously decoded by CODING) by NEW-CODING."
+  (interactive
+   (list (region-beginning) (region-end)
+	 (read-coding-system "Text was really in: ")
+	 (let ((coding (or buffer-file-coding-system last-coding-system-used)))
+	   (read-coding-system
+	    (concat "But was interpreted as"
+		    (if coding (format " (default %S): " coding) ": "))
+	    coding))))
+  (or (and new-coding coding)
+      (error "Coding system not specified"))
+  ;; Check it before we encode the region.
+  (check-coding-system new-coding)
+  (save-restriction
+    (narrow-to-region start end)
+    (encode-coding-region (point-min) (point-max) coding)
+    (decode-coding-region (point-min) (point-max) new-coding)))
 
 (defun make-translation-table (&rest args)
   "Make a translation table from arguments.
@@ -2047,14 +2122,52 @@ the table in `translation-table-vector'."
     (put symbol 'translation-table-id id)
     id))
 
+(defun translate-region (start end table)
+  "From START to END, translate characters according to TABLE.
+TABLE is a string or a char-table.
+If TABLE is a string, the Nth character in it is the mapping
+for the character with code N.
+If TABLE is a char-table, the element for character N is the mapping
+for the character with code N.
+It returns the number of characters changed."
+  (interactive
+   (list (region-beginning)
+	 (region-end)
+	 (let (table l)
+	   (dotimes (i (length translation-table-vector))
+	     (if (consp (aref translation-table-vector i))
+		 (push (list (symbol-name
+			      (car (aref translation-table-vector i)))) l)))
+	   (if (not l)
+	       (error "No translation table defined"))
+	   (while (not table)
+	     (setq table (completing-read "Translation table: " l nil t)))
+	   (intern table))))
+  (if (symbolp table)
+      (let ((val (get table 'translation-table)))
+	(or (char-table-p val)
+	    (error "Invalid translation table name: %s" table))
+	(setq table val)))
+  (translate-region-internal start end table))
+
 (put 'with-category-table 'lisp-indent-function 1)
 
-(defmacro with-category-table (category-table &rest body)
-  `(let ((current-category-table (category-table)))
-     (set-category-table ,category-table)
-     (unwind-protect
-	 (progn ,@body)
-       (set-category-table current-category-table))))
+(defmacro with-category-table (table &rest body)
+  "Evaluate BODY with category table of current buffer set to TABLE.
+The category table of the current buffer is saved, BODY is evaluated,
+then the saved table is restored, even in case of an abnormal exit.
+Value is what BODY returns."
+  (let ((old-table (make-symbol "old-table"))
+	(old-buffer (make-symbol "old-buffer")))
+    `(let ((,old-table (category-table))
+	   (,old-buffer (current-buffer)))
+       (unwind-protect
+	   (progn
+	     (set-category-table ,table)
+	     ,@body)
+	 (save-current-buffer
+	   (set-buffer ,old-buffer)
+	   (set-category-table ,old-table))))))
 
 (defun define-translation-hash-table (symbol table)
   "Define SYMBOL as the name of the hash translation TABLE for use in CCL.
@@ -2097,12 +2210,13 @@ Analogous to `define-translation-table', but updates
 (defun sgml-xml-auto-coding-function (size)
   "Determine whether the buffer is XML, and if so, its encoding.
 This function is intended to be added to `auto-coding-functions'."
-  (when (re-search-forward "\\`[[:space:]\n]*<\\?xml" nil t)
+  (setq size (+ (point) size))
+  (when (re-search-forward "\\`[[:space:]\n]*<\\?xml" size t)
     (let ((end (save-excursion
 		 ;; This is a hack.
-		 (re-search-forward "\"\\s-*\\?>" size t))))
+		 (re-search-forward "[\"']\\s-*\\?>" size t))))
       (when end
-	(if (re-search-forward "encoding=\"\\(.+?\\)\"" end t)
+	(if (re-search-forward "encoding=[\"']\\(.+?\\)[\"']" end t)
 	    (let* ((match (match-string 1))
 		   (sym (intern (downcase match))))
 	      (if (coding-system-p sym)
@@ -2114,12 +2228,12 @@ This function is intended to be added to `auto-coding-functions'."
 (defun sgml-html-meta-auto-coding-function (size)
   "If the buffer has an HTML meta tag, use it to determine encoding.
 This function is intended to be added to `auto-coding-functions'."
-  (setq size (min size
+  (setq size (min (+ (point) size)
 		  ;; Only search forward 10 lines
 		  (save-excursion
 		    (forward-line 10)
 		    (point))))
-  (when (and (search-forward "<html>" size t)
+  (when (and (search-forward "<html" size t)
 	     (re-search-forward "<meta\\s-+http-equiv=\"content-type\"\\s-+content=\"text/\\sw+;\\s-*charset=\\(.+?\\)\"" size t))
       (let* ((match (match-string 1))
 	     (sym (intern (downcase match))))
@@ -2131,4 +2245,5 @@ This function is intended to be added to `auto-coding-functions'."
 ;;;
 (provide 'mule)
 
+;;; arch-tag: 9aebaa6e-0e8a-40a9-b857-cb5d04a39e7c
 ;;; mule.el ends here

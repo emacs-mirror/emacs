@@ -1,6 +1,7 @@
 ;;; bs.el --- menu for selecting and displaying buffers
 
-;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Keywords: convenience
@@ -19,13 +20,13 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
 ;; Version: 1.17
-;; X-URL: http://home.netsurf.de/olaf.sylvester/emacs
+;; X-URL: http://www.geekware.de/software/emacs
 ;;
 ;; The bs-package contains a main function bs-show for poping up a
 ;; buffer in a way similar to `list-buffers' and `electric-buffer-list':
@@ -130,6 +131,8 @@
 
 ;;; Code:
 
+(defvar font-lock-verbose)
+
 ;; ----------------------------------------------------------------------
 ;; Globals for customization
 ;; ----------------------------------------------------------------------
@@ -138,7 +141,7 @@
   "Buffer Selection: Maintaining buffers by buffer menu."
   :version "21.1"
   :link '(emacs-commentary-link "bs")
-  :link '(url-link "http://home.netsurf.de/olaf.sylvester/emacs")
+  :link '(url-link "http://www.geekware.de/software/emacs")
   :group 'convenience)
 
 (defgroup bs-appearance nil
@@ -160,15 +163,17 @@
   "*List specifying the layout of a Buffer Selection Menu buffer.
 Each entry specifies a column and is a list of the form of:
 \(HEADER MINIMUM-LENGTH MAXIMUM-LENGTH ALIGNMENT FUN-OR-STRING)
-HEADER         : string for header for first line or a function
-  which calculates column title.
-MINIMUM-LENGTH : minimum width of column (number or name of function).
-  The function must return a positive integer.
-MAXIMUM-LENGTH : maximum width of column (number or name of function)
-                 (currently ignored)
-ALIGNMENT      : alignment of column: (`left' `right' `middle')
-FUN-OR-STRING  : Name of a function for calculating the value or
-a string for a constant value.
+
+HEADER         : String for header for first line or a function
+                 which calculates column title.
+MINIMUM-LENGTH : Minimum width of column (number or name of function).
+                 The function must return a positive integer.
+MAXIMUM-LENGTH : Maximum width of column (number or name of function)
+                 (currently ignored).
+ALIGNMENT      : Alignment of column (`left', `right', `middle').
+FUN-OR-STRING  : Name of a function for calculating the value or a
+                 string for a constant value.
+
 The function gets as parameter the buffer where we have started
 buffer selection and the list of all buffers to show.  The function must
 return a string representing the column's value."
@@ -457,68 +462,60 @@ Used internally, only.")
 (defvar bs--marked-buffers nil
   "Currently marked buffers in Buffer Selection Menu.")
 
-(defvar bs-mode-map ()
+(defvar bs-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map " "       'bs-select)
+    (define-key map "f"       'bs-select)
+    (define-key map "v"       'bs-view)
+    (define-key map "!"       'bs-select-in-one-window)
+    (define-key map [mouse-2] 'bs-mouse-select)	;; for GNU EMACS
+    (define-key map [button2] 'bs-mouse-select) ;; for XEmacs
+    (define-key map "F"       'bs-select-other-frame)
+    (let ((key ?1))
+      (while (<= key ?9)
+	(define-key map (char-to-string key) 'digit-argument)
+	(setq key (1+ key))))
+    (define-key map "-"       'negative-argument)
+    (define-key map "\e-"     'negative-argument)
+    (define-key map "o"       'bs-select-other-window)
+    (define-key map "\C-o"    'bs-tmp-select-other-window)
+    ;; for GNU EMACS
+    (define-key map [mouse-3] 'bs-mouse-select-other-frame)
+    ;; for XEmacs
+    (define-key map [button3] 'bs-mouse-select-other-frame)
+    (define-key map [up]      'bs-up)
+    (define-key map "n"       'bs-down)
+    (define-key map "p"       'bs-up)
+    (define-key map [down]    'bs-down)
+    (define-key map "\C-m"    'bs-select)
+    (define-key map "b"       'bs-bury-buffer)
+    (define-key map "s"       'bs-save)
+    (define-key map "S"       'bs-show-sorted)
+    (define-key map "a"       'bs-toggle-show-all)
+    (define-key map "d"       'bs-delete)
+    (define-key map "\C-d"    'bs-delete-backward)
+    (define-key map "k"       'bs-delete)
+    (define-key map "g"       'bs-refresh)
+    (define-key map "C"       'bs-set-configuration-and-refresh)
+    (define-key map "c"       'bs-select-next-configuration)
+    (define-key map "q"       'bs-kill)
+    ;; (define-key map "z"       'bs-kill)
+    (define-key map "\C-c\C-c" 'bs-kill)
+    (define-key map "\C-g"    'bs-abort)
+    (define-key map "\C-]"    'bs-abort)
+    (define-key map "%"       'bs-toggle-readonly)
+    (define-key map "~"       'bs-clear-modified)
+    (define-key map "M"       'bs-toggle-current-to-show)
+    (define-key map "+"       'bs-set-current-buffer-to-show-always)
+    ;;(define-key map "-"       'bs-set-current-buffer-to-show-never)
+    (define-key map "t"       'bs-visit-tags-table)
+    (define-key map "m"       'bs-mark-current)
+    (define-key map "u"       'bs-unmark-current)
+    (define-key map ">"       'scroll-right)
+    (define-key map "<"       'scroll-left)
+    (define-key map "?"       'bs-help)
+    map)
   "Keymap of `bs-mode'.")
-
-(if bs-mode-map
-    ()
-  (setq bs-mode-map (make-sparse-keymap))
-  (define-key bs-mode-map " "       'bs-select)
-  (define-key bs-mode-map "f"       'bs-select)
-  (define-key bs-mode-map "v"       'bs-view)
-  (define-key bs-mode-map "!"       'bs-select-in-one-window)
-  (define-key bs-mode-map [mouse-2] 'bs-mouse-select) ;; for GNU EMACS
-  (define-key bs-mode-map [button2] 'bs-mouse-select) ;; for XEmacs
-  (define-key bs-mode-map "F"       'bs-select-other-frame)
-
-  (let ((key ?1))
-    (while (<= key ?9)
-      (define-key bs-mode-map (char-to-string key) 'digit-argument)
-      (setq key (1+ key))))
-
-  (define-key bs-mode-map "-"       'negative-argument)
-  (define-key bs-mode-map "\e-"     'negative-argument)
-
-  (define-key bs-mode-map "o"       'bs-select-other-window)
-  (define-key bs-mode-map "\C-o"    'bs-tmp-select-other-window)
-  ;; for GNU EMACS
-  (define-key bs-mode-map [mouse-3] 'bs-mouse-select-other-frame)
-  ;; for XEmacs
-  (define-key bs-mode-map [button3] 'bs-mouse-select-other-frame)
-  (define-key bs-mode-map [up]      'bs-up)
-  (define-key bs-mode-map "n"       'bs-down)
-  (define-key bs-mode-map "p"       'bs-up)
-  (define-key bs-mode-map [down]    'bs-down)
-  (define-key bs-mode-map "\C-m"    'bs-select)
-  (define-key bs-mode-map "b"       'bs-bury-buffer)
-  (define-key bs-mode-map "s"       'bs-save)
-  (define-key bs-mode-map "S"       'bs-show-sorted)
-  (define-key bs-mode-map "a"       'bs-toggle-show-all)
-  (define-key bs-mode-map "d"       'bs-delete)
-  (define-key bs-mode-map "\C-d"    'bs-delete-backward)
-  (define-key bs-mode-map "k"       'bs-delete)
-  (define-key bs-mode-map "g"       'bs-refresh)
-  (define-key bs-mode-map "C"       'bs-set-configuration-and-refresh)
-  (define-key bs-mode-map "c"       'bs-select-next-configuration)
-  (define-key bs-mode-map "q"       'bs-kill)
-  ;; (define-key bs-mode-map "z"       'bs-kill)
-  (define-key bs-mode-map "\C-c\C-c" 'bs-kill)
-  (define-key bs-mode-map "\C-g"    'bs-abort)
-  (define-key bs-mode-map "\C-]"    'bs-abort)
-  (define-key bs-mode-map "%"       'bs-toggle-readonly)
-  (define-key bs-mode-map "~"       'bs-clear-modified)
-  (define-key bs-mode-map "M"       'bs-toggle-current-to-show)
-  (define-key bs-mode-map "+"       'bs-set-current-buffer-to-show-always)
-  ;;(define-key bs-mode-map "-"       'bs-set-current-buffer-to-show-never)
-  (define-key bs-mode-map "t"       'bs-visit-tags-table)
-  (define-key bs-mode-map "m"       'bs-mark-current)
-  (define-key bs-mode-map "u"       'bs-unmark-current)
-  (define-key bs-mode-map ">"       'scroll-right)
-  (define-key bs-mode-map "<"       'scroll-left)
-  (define-key bs-mode-map "\e\e"    nil)
-  (define-key bs-mode-map "\e\e\e"  'bs-kill)
-  (define-key bs-mode-map [escape escape escape] 'bs-kill)
-  (define-key bs-mode-map "?"       'bs-help))
 
 ;; ----------------------------------------------------------------------
 ;; Functions
@@ -554,9 +551,7 @@ a special function.  SORT-DESCRIPTION is an element of `bs-sort-functions'."
 	     (extern-must-show-from-fun (and bs-must-show-function
 					     (funcall bs-must-show-function
 						      (car list))))
-	     (show-flag (save-excursion
-			  (set-buffer (car list))
-			  bs-buffer-show-mark)))
+	     (show-flag (buffer-local-value 'bs-buffer-show-mark (car list))))
 	(if (or (eq show-flag 'always)
 		(and (or bs--show-all (not (eq show-flag 'never)))
 		     (not int-show-never)
@@ -638,8 +633,8 @@ For faster navigation each digit key is a digit argument.
 \\[bs-tmp-select-other-window] -- make another window display that buffer and
     remain in Buffer Selection Menu.
 \\[bs-mouse-select] -- select current line's buffer and other marked buffers.
-\\[bs-save] -- save current line's buffer immediatly.
-\\[bs-delete] -- kill current line's buffer immediatly.
+\\[bs-save] -- save current line's buffer immediately.
+\\[bs-delete] -- kill current line's buffer immediately.
 \\[bs-toggle-readonly] -- toggle read-only status of current line's buffer.
 \\[bs-clear-modified] -- clear modified-flag on that buffer.
 \\[bs-mark-current] -- mark current line's buffer to be displayed.
@@ -666,7 +661,7 @@ to show always.
 	truncate-lines t
 	font-lock-defaults '(bs-mode-font-lock-keywords t)
 	font-lock-verbose nil)
-  (run-hooks 'bs-mode-hook))
+  (run-mode-hooks 'bs-mode-hook))
 
 (defun bs-kill ()
   "Let buffer disappear and reset window-configuration."
@@ -873,9 +868,7 @@ always.  Otherwise it is marked to show never."
   "Set value `bs-buffer-show-mark' of buffer BUFFER to WHAT.
 Redisplay current line and display a message describing
 the status of buffer on current line."
-  (save-excursion
-    (set-buffer buffer)
-    (setq bs-buffer-show-mark what))
+  (with-current-buffer buffer (setq bs-buffer-show-mark what))
   (bs--update-current-line)
   (bs--set-window-height)
   (bs--show-config-message what))
@@ -1515,4 +1508,5 @@ name of buffer configuration."
 ;; Now provide feature bs
 (provide 'bs)
 
+;;; arch-tag: c0d9ab34-bf06-4368-ae9d-af88878e6802
 ;;; bs.el ends here

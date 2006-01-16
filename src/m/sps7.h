@@ -1,5 +1,6 @@
 /* machine description file for Bull SPS-7.
-   Copyright (C) 1986, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The following line tells the configuration script what sort of
@@ -112,3 +113,6 @@ Boston, MA 02111-1307, USA.  */
 #define	ADJUST_EXEC_HEADER f_hdr.f_magic = SMROMAGIC;\
  f_ohdr.stsize = 0;
 #endif
+
+/* arch-tag: 2240f71c-6f3b-4a82-80fc-4d56c682d7ad
+   (do not change this comment) */

@@ -1,7 +1,9 @@
 ;;; tibetan.el --- Quail package for inputting Tibetan characters
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Copyright (C) 1995  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 1999, 2000
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, input method, Tibetan
 
@@ -19,7 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; the Free Software Foundation, 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;; Author: Toru TOMABECHI, <Toru.Tomabechi@orient.unil.ch>
 
@@ -450,4 +453,5 @@
 	     (tibetan-vowel-tibkey-alist . m-state))
     (m-state tibetan-modifier-tibkey-alist))))
 
+;;; arch-tag: 828fdb1a-733f-4c7b-b882-a19d2449ac99
 ;;; tibetan.el ends here

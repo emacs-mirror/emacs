@@ -1,10 +1,10 @@
 ;;; calc-math.el --- mathematical functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +28,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-math () nil)
-
 
 (defun calc-sqrt (arg)
   (interactive "P")
@@ -148,6 +145,18 @@
   (calc-hyperbolic-func)
   (calc-sin arg))
 
+(defun calc-sec (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (if (calc-is-hyperbolic)
+       (calc-unary-op "sech" 'calcFunc-sech arg)
+     (calc-unary-op "sec" 'calcFunc-sec arg))))
+
+(defun calc-sech (arg)
+  (interactive "P")
+  (calc-hyperbolic-func)
+  (calc-sec arg))
+
 (defun calc-cos (arg)
   (interactive "P")
   (calc-slow-wrapper
@@ -174,6 +183,18 @@
   (calc-invert-func)
   (calc-hyperbolic-func)
   (calc-cos arg))
+
+(defun calc-csc (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (if (calc-is-hyperbolic)
+       (calc-unary-op "csch" 'calcFunc-csch arg)
+     (calc-unary-op "csc" 'calcFunc-csc arg))))
+
+(defun calc-csch (arg)
+  (interactive "P")
+  (calc-hyperbolic-func)
+  (calc-csc arg))
 
 (defun calc-sincos ()
   (interactive)
@@ -209,6 +230,18 @@
   (calc-hyperbolic-func)
   (calc-tan arg))
 
+(defun calc-cot (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (if (calc-is-hyperbolic)
+       (calc-unary-op "coth" 'calcFunc-coth arg)
+     (calc-unary-op "cot" 'calcFunc-cot arg))))
+
+(defun calc-coth (arg)
+  (interactive "P")
+  (calc-hyperbolic-func)
+  (calc-cot arg))
+
 (defun calc-arctan2 ()
   (interactive)
   (calc-slow-wrapper
@@ -223,8 +256,6 @@
   (interactive)
   (calc-slow-wrapper
    (calc-pop-push-record 1 "i*" (math-imaginary (calc-top-n 1)))))
-
-
 
 (defun calc-to-degrees (arg)
   (interactive "P")
@@ -574,39 +605,51 @@
 	   (and root (list 'polar root (math-div (nth 2 a) n)))))
 	(t nil)))
 
-(defun math-nth-root-float (a n &optional guess)
+;; The variables math-nrf-n, math-nrf-nf and math-nrf-nfm1 are local
+;; to math-nth-root-float, but are used by math-nth-root-float-iter,
+;; which is called by math-nth-root-float.
+(defvar math-nrf-n)
+(defvar math-nrf-nf)
+(defvar math-nrf-nfm1)
+
+(defun math-nth-root-float (a math-nrf-n &optional guess)
   (math-inexact-result)
   (math-with-extra-prec 1
-    (let ((nf (math-float n))
-	  (nfm1 (math-float (1- n))))
+    (let ((math-nrf-nf (math-float math-nrf-n))
+	  (math-nrf-nfm1 (math-float (1- math-nrf-n))))
       (math-nth-root-float-iter a (or guess
 				      (math-make-float
 				       1 (/ (+ (math-numdigs (nth 1 a))
 					       (nth 2 a)
-					       (/ n 2))
-					    n)))))))
+					       (/ math-nrf-n 2))
+					    math-nrf-n)))))))
 
-(defun math-nth-root-float-iter (a guess)   ; uses "n", "nf", "nfm1"
+(defun math-nth-root-float-iter (a guess)
   (math-working "root" guess)
-  (let ((g2 (math-div-float (math-add-float (math-mul nfm1 guess)
+  (let ((g2 (math-div-float (math-add-float (math-mul math-nrf-nfm1 guess)
 					    (math-div-float
-					     a (math-ipow guess (1- n))))
-			    nf)))
+					     a (math-ipow guess (1- math-nrf-n))))
+			    math-nrf-nf)))
     (if (math-nearly-equal-float g2 guess)
 	g2
       (math-nth-root-float-iter a g2))))
 
-(defun math-nth-root-integer (a n &optional guess)   ; [I I S]
+;; The variable math-nri-n is local to math-nth-root-integer, but
+;; is used by math-nth-root-int-iter, which is called by
+;; math-nth-root-int.
+(defvar math-nri-n)
+
+(defun math-nth-root-integer (a math-nri-n &optional guess)   ; [I I S]
   (math-nth-root-int-iter a (or guess
 				(math-scale-int 1 (/ (+ (math-numdigs a)
-							(1- n))
-						     n)))))
+							(1- math-nri-n))
+						     math-nri-n)))))
 
-(defun math-nth-root-int-iter (a guess)   ; uses "n"
+(defun math-nth-root-int-iter (a guess)
   (math-working "root" guess)
-  (let* ((q (math-idivmod a (math-ipow guess (1- n))))
-	 (s (math-add (car q) (math-mul (1- n) guess)))
-	 (g2 (math-idivmod s n)))
+  (let* ((q (math-idivmod a (math-ipow guess (1- math-nri-n))))
+	 (s (math-add (car q) (math-mul (1- math-nri-n) guess)))
+	 (g2 (math-idivmod s math-nri-n)))
     (if (Math-natnum-lessp (car g2) guess)
 	(math-nth-root-int-iter a (car g2))
       (cons (and (equal (car g2) guess)
@@ -786,6 +829,169 @@
 	(t (calc-record-why 'scalarp x)
 	   (list 'calcFunc-tan x))))
 
+(defun calcFunc-sec (x)
+  (cond ((and (integerp x)
+              (eq calc-angle-mode 'deg)
+              (= (% x 180) 0))
+         (if (= (% x 360) 0)
+             1
+           -1))
+        ((and (integerp x)
+              (eq calc-angle-mode 'rad)
+              (= x 0))
+         1)
+        ((Math-scalarp x)
+         (math-with-extra-prec 2
+           (math-sec-raw (math-to-radians (math-float x)))))
+        ((eq (car x) 'sdev)
+         (if (math-constp x)
+             (math-with-extra-prec 2
+               (let* ((xx (math-to-radians (math-float (nth 1 x))))
+                      (xs (math-to-radians (math-float (nth 2 x))))
+                      (sc (math-sin-cos-raw xx)))
+                 (if (and (math-zerop (cdr sc))
+                          (not calc-infinite-mode))
+                     (progn
+                       (calc-record-why "*Division by zero")
+                       (list 'calcFunc-sec x))
+                   (math-make-sdev (math-div-float '(float 1 0) (cdr sc))
+                                   (math-div-float
+                                    (math-mul xs (car sc))
+                                    (math-sqr (cdr sc)))))))
+           (math-make-sdev (calcFunc-sec (nth 1 x))
+                           (math-div 
+                            (math-mul (nth 2 x)
+                                      (calcFunc-sin (nth 1 x)))
+                            (math-sqr (calcFunc-cos (nth 1 x)))))))
+        ((and (eq (car x) 'intv)
+              (math-intv-constp x))
+         (math-with-extra-prec 2
+           (let* ((xx (math-to-radians (math-float x)))
+                  (na (math-floor (math-div (math-sub (nth 2 xx)
+                                                      (math-pi-over-2))
+                                            (math-pi))))
+                  (nb (math-floor (math-div (math-sub (nth 3 xx)
+                                                      (math-pi-over-2))
+                                            (math-pi))))
+                  (naa (math-floor (math-div (nth 2 xx) (math-pi-over-2))))
+                  (nbb (math-floor (math-div (nth 3 xx) (math-pi-over-2))))
+                  (span (math-sub nbb naa)))
+             (if (not (equal na nb))
+                 '(intv 3 (neg (var inf var-inf)) (var inf var-inf))
+               (let ((int (math-sort-intv (nth 1 x)
+                                          (math-sec-raw (nth 2 xx))
+                                          (math-sec-raw (nth 3 xx)))))
+                 (if (eq span 1)
+                     (if (math-evenp (math-div (math-add naa 1) 2))
+                         (math-make-intv (logior (nth 1 int) 2)
+                                         1
+                                         (nth 3 int))
+                       (math-make-intv (logior (nth 1 int) 1)
+                                       (nth 2 int)
+                                       -1))
+                   int))))))
+        ((equal x '(var nan var-nan))
+         x)
+        (t (calc-record-why 'scalarp x)
+           (list 'calcFunc-sec x))))
+
+(defun calcFunc-csc (x)
+  (cond ((and (integerp x)
+              (eq calc-angle-mode 'deg)
+              (= (% (- x 90) 180) 0))
+         (if (= (% (- x 90) 360) 0)
+             1
+           -1))
+        ((Math-scalarp x)
+         (math-with-extra-prec 2
+           (math-csc-raw (math-to-radians (math-float x)))))
+        ((eq (car x) 'sdev)
+         (if (math-constp x)
+             (math-with-extra-prec 2
+               (let* ((xx (math-to-radians (math-float (nth 1 x))))
+                      (xs (math-to-radians (math-float (nth 2 x))))
+                      (sc (math-sin-cos-raw xx)))
+                 (if (and (math-zerop (car sc))
+                          (not calc-infinite-mode))
+                     (progn
+                       (calc-record-why "*Division by zero")
+                       (list 'calcFunc-csc x))
+                   (math-make-sdev (math-div-float '(float 1 0) (car sc))
+                                   (math-div-float
+                                    (math-mul xs (cdr sc))
+                                    (math-sqr (car sc)))))))
+           (math-make-sdev (calcFunc-csc (nth 1 x))
+                           (math-div 
+                            (math-mul (nth 2 x)
+                                      (calcFunc-cos (nth 1 x)))
+                            (math-sqr (calcFunc-sin (nth 1 x)))))))
+        ((and (eq (car x) 'intv)
+              (math-intv-constp x))
+         (math-with-extra-prec 2
+           (let* ((xx (math-to-radians (math-float x)))
+                  (na (math-floor (math-div (nth 2 xx) (math-pi))))
+                  (nb (math-floor (math-div (nth 3 xx) (math-pi))))
+                  (naa (math-floor (math-div (nth 2 xx) (math-pi-over-2))))
+                  (nbb (math-floor (math-div (nth 3 xx) (math-pi-over-2))))
+                  (span (math-sub nbb naa)))
+             (if (not (equal na nb))
+                 '(intv 3 (neg (var inf var-inf)) (var inf var-inf))
+               (let ((int (math-sort-intv (nth 1 x)
+                                          (math-csc-raw (nth 2 xx))
+                                          (math-csc-raw (nth 3 xx)))))
+                 (if (eq span 1)
+                     (if (math-evenp (math-div naa 2))
+                         (math-make-intv (logior (nth 1 int) 2)
+                                         1
+                                         (nth 3 int))
+                       (math-make-intv (logior (nth 1 int) 1)
+                                       (nth 2 int)
+                                       -1))
+                   int))))))
+        ((equal x '(var nan var-nan))
+         x)
+        (t (calc-record-why 'scalarp x)
+           (list 'calcFunc-csc x))))
+
+(defun calcFunc-cot (x)   ; [N N] [Public]
+  (cond ((and (integerp x)
+	      (if (eq calc-angle-mode 'deg)
+		  (= (% (- x 90) 180) 0)
+		(= x 0)))
+	 0)
+	((Math-scalarp x)
+	 (math-with-extra-prec 2
+	   (math-cot-raw (math-to-radians (math-float x)))))
+	((eq (car x) 'sdev)
+	 (if (math-constp x)
+	     (math-with-extra-prec 2
+	       (let* ((xx (math-to-radians (math-float (nth 1 x))))
+		      (xs (math-to-radians (math-float (nth 2 x))))
+		      (sc (math-sin-cos-raw xx)))
+		 (if (and (math-zerop (car sc)) (not calc-infinite-mode))
+		     (progn
+		       (calc-record-why "*Division by zero")
+		       (list 'calcFunc-cot x))
+		   (math-make-sdev (math-div-float (cdr sc) (car sc))
+				   (math-div-float xs (math-sqr (car sc)))))))
+	   (math-make-sdev (calcFunc-cot (nth 1 x))
+			   (math-div (nth 2 x)
+				     (math-sqr (calcFunc-sin (nth 1 x)))))))
+	((and (eq (car x) 'intv) (math-intv-constp x))
+	 (or (math-with-extra-prec 2
+	       (let* ((xx (math-to-radians (math-float x)))
+		      (na (math-floor (math-div (nth 2 xx) (math-pi))))
+		      (nb (math-floor (math-div (nth 3 xx) (math-pi)))))
+		 (and (equal na nb)
+		      (math-sort-intv (nth 1 x)
+				      (math-cot-raw (nth 2 xx))
+				      (math-cot-raw (nth 3 xx))))))
+	     '(intv 3 (neg (var inf var-inf)) (var inf var-inf))))
+	((equal x '(var nan var-nan))
+	 x)
+	(t (calc-record-why 'scalarp x)
+	   (list 'calcFunc-cot x))))
+
 (defun math-sin-raw (x)   ; [N N]
   (cond ((eq (car x) 'cplx)
 	 (let* ((expx (math-exp-raw (nth 2 x)))
@@ -810,6 +1016,85 @@
   (if (eq (car-safe x) 'polar)
       (math-polar (math-cos-raw (math-complex x)))
     (math-sin-raw (math-sub (math-pi-over-2) x))))
+
+(defun math-sec-raw (x)   ; [N N]
+  (cond ((eq (car x) 'cplx)
+	 (let* ((x (math-mul x '(float 1 0)))
+                (expx (math-exp-raw (nth 2 x)))
+		(expmx (math-div-float '(float 1 0) expx))
+                (sh (math-mul-float (math-sub-float expx expmx) '(float 5 -1)))
+                (ch (math-mul-float (math-add-float expx expmx) '(float 5 -1)))
+		(sc (math-sin-cos-raw (nth 1 x)))
+		(d (math-add-float 
+                    (math-mul-float (math-sqr (car sc))
+                                    (math-sqr sh))
+                    (math-mul-float (math-sqr (cdr sc))
+                                    (math-sqr ch)))))
+	   (and (not (eq (nth 1 d) 0))
+		(list 'cplx
+		      (math-div-float (math-mul-float (cdr sc) ch) d)
+		      (math-div-float (math-mul-float (car sc) sh) d)))))
+	((eq (car x) 'polar)
+	 (math-polar (math-sec-raw (math-complex x))))
+	(t
+	 (let ((cs (math-cos-raw x)))
+           (if (eq cs 0)
+               (math-div 1 0)
+	     (math-div-float '(float 1 0) cs))))))
+
+(defun math-csc-raw (x)   ; [N N]
+  (cond ((eq (car x) 'cplx)
+	 (let* ((x (math-mul x '(float 1 0)))
+                (expx (math-exp-raw (nth 2 x)))
+		(expmx (math-div-float '(float 1 0) expx))
+                (sh (math-mul-float (math-sub-float expx expmx) '(float 5 -1)))
+                (ch (math-mul-float (math-add-float expx expmx) '(float 5 -1)))
+		(sc (math-sin-cos-raw (nth 1 x)))
+		(d (math-add-float 
+                    (math-mul-float (math-sqr (car sc))
+                                    (math-sqr ch))
+                    (math-mul-float (math-sqr (cdr sc))
+                                    (math-sqr sh)))))
+	   (and (not (eq (nth 1 d) 0))
+		(list 'cplx
+		      (math-div-float (math-mul-float (car sc) ch) d)
+		      (math-div-float (math-mul-float (cdr sc) sh) d)))))
+	((eq (car x) 'polar)
+	 (math-polar (math-csc-raw (math-complex x))))
+	(t
+	 (let ((sn (math-sin-raw x)))
+           (if (eq sn 0)
+               (math-div 1 0)
+	     (math-div-float '(float 1 0) sn))))))
+
+(defun math-cot-raw (x)   ; [N N]
+  (cond ((eq (car x) 'cplx)
+	 (let* ((x (math-mul x '(float 1 0)))
+                (expx (math-exp-raw (nth 2 x)))
+		(expmx (math-div-float '(float 1 0) expx))
+                (sh (math-mul-float (math-sub-float expx expmx) '(float 5 -1)))
+                (ch (math-mul-float (math-add-float expx expmx) '(float 5 -1)))
+		(sc (math-sin-cos-raw (nth 1 x)))
+		(d (math-add-float 
+                    (math-sqr (car sc))
+                    (math-sqr sh))))
+	   (and (not (eq (nth 1 d) 0))
+		(list 'cplx
+		      (math-div-float 
+                       (math-mul-float (car sc) (cdr sc))
+                       d)
+                      (math-neg
+                       (math-div-float 
+                        (math-mul-float sh ch) 
+                        d))))))
+	((eq (car x) 'polar)
+	 (math-polar (math-cot-raw (math-complex x))))
+	(t
+	 (let ((sc (math-sin-cos-raw x)))
+	   (if (eq (nth 1 (car sc)) 0)
+	       (math-div (cdr sc) 0)
+	     (math-div-float (cdr sc) (car sc)))))))
+
 
 ;;; This could use a smarter method:  Reduce x as in math-sin-raw, then
 ;;;   compute either sin(x) or cos(x), whichever is smaller, and compute
@@ -1247,7 +1532,7 @@
 	     (math-div (calcFunc-ln x) 0)
 	   (math-reject-arg b "*Logarithm base one")))
 	((math-equal-int x 1)
-	 (if (or (math-floatp a) (math-floatp b)) '(float 0 0) 0))
+	 (if (math-floatp b) '(float 0 0) 0))
 	((and (Math-ratp x) (Math-ratp b)
 	      (math-posp x) (math-posp b)
 	      (let* ((sign 1) (inv nil)
@@ -1529,6 +1814,104 @@
 	   (list 'calcFunc-tanh x))))
 (put 'calcFunc-tanh 'math-expandable t)
 
+(defun calcFunc-sech (x)   ; [N N] [Public]
+  (cond ((eq x 0) 1)
+	(math-expand-formulas
+	 (math-normalize
+	  (list '/ 2 (list '+ (list 'calcFunc-exp x)
+                           (list 'calcFunc-exp (list 'neg x))))))
+	((Math-numberp x)
+	 (if calc-symbolic-mode (signal 'inexact-result nil))
+	 (math-with-extra-prec 2
+	   (let ((expx (math-exp-raw (math-float x))))
+	     (math-div '(float 2 0) (math-add expx (math-div 1 expx))))))
+	((eq (car-safe x) 'sdev)
+	 (math-make-sdev (calcFunc-sech (nth 1 x))
+			 (math-mul (nth 2 x)
+                                   (math-mul (calcFunc-sech (nth 1 x))
+                                             (calcFunc-tanh (nth 1 x))))))
+	((and (eq (car x) 'intv) (math-intv-constp x))
+	 (setq x (math-abs x))
+	 (math-sort-intv (nth 1 x)
+			 (calcFunc-sech (nth 2 x))
+			 (calcFunc-sech (nth 3 x))))
+	((or (equal x '(var inf var-inf))
+	     (equal x '(neg (var inf var-inf))))
+         0)
+        ((equal x '(var nan var-nan))
+         x)
+	(t (calc-record-why 'numberp x)
+	   (list 'calcFunc-sech x))))
+(put 'calcFunc-sech 'math-expandable t)
+
+(defun calcFunc-csch (x)   ; [N N] [Public]
+  (cond ((eq x 0) (math-div 1 0))
+	(math-expand-formulas
+	 (math-normalize
+	  (list '/ 2 (list '- (list 'calcFunc-exp x)
+                           (list 'calcFunc-exp (list 'neg x))))))
+	((Math-numberp x)
+	 (if calc-symbolic-mode (signal 'inexact-result nil))
+	 (math-with-extra-prec 2
+	   (let ((expx (math-exp-raw (math-float x))))
+	     (math-div '(float 2 0) (math-add expx (math-div -1 expx))))))
+	((eq (car-safe x) 'sdev)
+	 (math-make-sdev (calcFunc-csch (nth 1 x))
+			 (math-mul (nth 2 x) 
+                                   (math-mul (calcFunc-csch (nth 1 x))
+                                             (calcFunc-coth (nth 1 x))))))
+	((eq (car x) 'intv)
+         (if (and (Math-negp (nth 2 x))
+                  (Math-posp (nth 3 x)))
+             '(intv 3 (neg (var inf var-inf)) (var inf var-inf))
+           (math-sort-intv (nth 1 x)
+                           (calcFunc-csch (nth 2 x))
+                           (calcFunc-csch (nth 3 x)))))
+	((or (equal x '(var inf var-inf))
+	     (equal x '(neg (var inf var-inf))))
+         0)
+        ((equal x '(var nan var-nan))
+         x)
+	(t (calc-record-why 'numberp x)
+	   (list 'calcFunc-csch x))))
+(put 'calcFunc-csch 'math-expandable t)
+
+(defun calcFunc-coth (x)   ; [N N] [Public]
+  (cond ((eq x 0) (math-div 1 0))
+	(math-expand-formulas
+	 (math-normalize
+	  (let ((expx (list 'calcFunc-exp x))
+		(expmx (list 'calcFunc-exp (list 'neg x))))
+	    (math-normalize
+	     (list '/ (list '+ expx expmx) (list '- expx expmx))))))
+	((Math-numberp x)
+	 (if calc-symbolic-mode (signal 'inexact-result nil))
+	 (math-with-extra-prec 2
+	   (let* ((expx (calcFunc-exp (math-float x)))
+		  (expmx (math-div 1 expx)))
+	     (math-div (math-add expx expmx)
+		       (math-sub expx expmx)))))
+	((eq (car-safe x) 'sdev)
+	 (math-make-sdev (calcFunc-coth (nth 1 x))
+			 (math-div (nth 2 x)
+				   (math-sqr (calcFunc-sinh (nth 1 x))))))
+	((eq (car x) 'intv)
+         (if (and (Math-negp (nth 2 x))
+                  (Math-posp (nth 3 x)))
+             '(intv 3 (neg (var inf var-inf)) (var inf var-inf))
+           (math-sort-intv (nth 1 x)
+                           (calcFunc-coth (nth 2 x))
+                           (calcFunc-coth (nth 3 x)))))
+	((equal x '(var inf var-inf))
+	 1)
+	((equal x '(neg (var inf var-inf)))
+	 -1)
+	((equal x '(var nan var-nan))
+	 x)
+	(t (calc-record-why 'numberp x)
+	   (list 'calcFunc-coth x))))
+(put 'calcFunc-coth 'math-expandable t)
+
 (defun calcFunc-arcsinh (x)   ; [N N] [Public]
   (cond ((eq x 0) 0)
 	(math-expand-formulas
@@ -1676,4 +2059,7 @@
 	(t (list 'calcFunc-deg a))))
 (put 'calcFunc-deg 'math-expandable t)
 
+(provide 'calc-math)
+
+;;; arch-tag: c7367e8e-d0b8-4f70-8577-2fb3f31dbb4c
 ;;; calc-math.el ends here

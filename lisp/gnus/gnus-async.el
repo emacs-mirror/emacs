@@ -1,5 +1,7 @@
 ;;; gnus-async.el --- asynchronous support for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -18,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -31,15 +33,13 @@
 (require 'gnus-sum)
 (require 'nntp)
 
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (require 'timer-funcs)))
+
 (defgroup gnus-asynchronous nil
   "Support for asynchronous operations."
   :group 'gnus)
-
-(defcustom gnus-asynchronous nil
-  "*If nil, inhibit all Gnus asynchronicity.
-If non-nil, let the other asynch variables be heeded."
-  :group 'gnus-asynchronous
-  :type 'boolean)
 
 (defcustom gnus-use-article-prefetch 30
   "*If non-nil, prefetch articles in groups that allow this.
@@ -49,6 +49,12 @@ if t, prefetch as many articles as possible."
   :type '(choice (const :tag "off" nil)
 		 (const :tag "all" t)
 		 (integer :tag "some" 0)))
+
+(defcustom gnus-asynchronous nil
+  "*If nil, inhibit all Gnus asynchronicity.
+If non-nil, let the other asynch variables be heeded."
+  :group 'gnus-asynchronous
+  :type 'boolean)
 
 (defcustom gnus-prefetched-article-deletion-strategy '(read exit)
   "List of symbols that say when to remove articles from the prefetch buffer.
@@ -276,15 +282,16 @@ It should return non-nil if the article is to be prefetched."
 	  ;; needs to be done in nntp.el.
 	  (while (eq article gnus-async-current-prefetch-article)
 	    (incf tries)
-	    (when (nntp-accept-process-output proc 1)
+	    (when (nntp-accept-process-output proc)
 	      (setq tries 0))
-	    (when (and (not nntp-have-messaged) (eq 3 tries))
+	    (when (and (not nntp-have-messaged)
+		       (= tries 3))
 	      (gnus-message 5 "Waiting for async article...")
 	      (setq nntp-have-messaged t)))
 	(quit
 	 ;; if the user interrupted on a slow/hung connection,
 	 ;; do something friendly.
-	 (when (< 3 tries)
+	 (when (> tries 3)
 	   (setq gnus-async-current-prefetch-article nil))
 	 (signal 'quit nil)))
       (when nntp-have-messaged
@@ -372,4 +379,5 @@ It should return non-nil if the article is to be prefetched."
 
 (provide 'gnus-async)
 
+;;; arch-tag: fee61de5-3ea2-4de6-8578-2f90ce89391d
 ;;; gnus-async.el ends here

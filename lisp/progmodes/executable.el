@@ -1,6 +1,7 @@
 ;;; executable.el --- base functionality for executable interpreter scripts -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1994, 1995, 1996, 2000 by Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 2000, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: languages, unix
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -53,7 +54,7 @@
 ;;; Code:
 
 (defgroup executable nil
-  "Base functionality for executable interpreter scripts"
+  "Base functionality for executable interpreter scripts."
   :group 'processes)
 
 ;; This used to default to `other', but that doesn't seem to have any
@@ -141,28 +142,25 @@ See `compilation-error-regexp-alist'.")
 (defvaralias 'executable-binary-suffixes 'exec-suffixes)
 
 ;;;###autoload
-(defun executable-find (command)
-  "Search for COMMAND in `exec-path' and return the absolute file name.
-Return nil if COMMAND is not found anywhere in `exec-path'."
-  (let ((list exec-path)
-	file)
-    (while list
-      (setq list
-	    (if (and (setq file (expand-file-name command (car list)))
-		     (let ((suffixes exec-suffixes)
-			   candidate)
-		       (while suffixes
-			 (setq candidate (concat file (car suffixes)))
-			 (if (and (file-executable-p candidate)
-				  (not (file-directory-p candidate)))
-			     (setq suffixes nil)
-			   (setq suffixes (cdr suffixes))
-			   (setq candidate nil)))
-		       (setq file candidate)))
-		nil
-	      (setq file nil)
-	      (cdr list))))
-    file))
+(defun executable-command-find-posix-p (&optional program)
+  "Check if PROGRAM handles arguments Posix-style.
+If PROGRAM is non-nil, use that instead of \"find\"."
+  ;;  Pick file to search from location we know
+  (let* ((dir (file-truename data-directory))
+         (file (car (directory-files dir nil "^[^.]"))))
+    (with-temp-buffer
+      (call-process (or program "find")
+                    nil
+                    (current-buffer)
+                    nil
+                    dir
+                    "-name"
+                    file
+                    "-maxdepth"
+                    "1")
+        (goto-char (point-min))
+        (if (search-forward file nil t)
+            t))))
 
 (defun executable-chmod ()
   "This gets called after saving a file to assure that it be executable.
@@ -178,20 +176,20 @@ non-executable files."
 				     (file-modes buffer-file-name)))))))
 
 
+;;;###autoload
 (defun executable-interpret (command)
   "Run script with user-specified args, and collect output in a buffer.
-While script runs asynchronously, you can use the \\[next-error] command
-to find the next error."
+While script runs asynchronously, you can use the \\[next-error]
+command to find the next error.  The buffer is also in `comint-mode' and
+`compilation-shell-minor-mode', so that you can answer any prompts."
   (interactive (list (read-string "Run script: "
 				  (or executable-command
 				      buffer-file-name))))
   (require 'compile)
   (save-some-buffers (not compilation-ask-about-save))
-  (make-local-variable 'executable-command)
-  (compile-internal (setq executable-command command)
-		    "No more errors." "Interpretation"
-		    ;; Give it a simpler regexp to match.
-		    nil executable-error-regexp-alist))
+  (set (make-local-variable 'executable-command) command)
+  (let ((compilation-error-regexp-alist executable-error-regexp-alist))
+    (compilation-start command t (lambda (x) "*interpretation*"))))
 
 
 
@@ -227,34 +225,28 @@ executable."
       (not (or insert-flag executable-insert))
       (> (point-min) 1)
       (save-excursion
-	(let ((point (point-marker))
-	      (buffer-modified-p (buffer-modified-p)))
-	  (goto-char (point-min))
-	  (add-hook 'after-save-hook 'executable-chmod nil t)
-	  (if (looking-at "#![ \t]*\\(.*\\)$")
-	      (and (goto-char (match-beginning 1))
-		   ;; If the line ends in a space,
-		   ;; don't offer to change it.
-		   (not (= (char-after (1- (match-end 1))) ?\ ))
-		   (not (string= argument
-				 (buffer-substring (point) (match-end 1))))
-		   (if (or (not executable-query) no-query-flag
-			   (save-window-excursion
-			     ;; Make buffer visible before question.
-			     (switch-to-buffer (current-buffer))
-			     (y-or-n-p (concat "Replace magic number by `"
-					       executable-prefix argument "'? "))))
-		       (progn
-			 (replace-match argument t t nil 1)
-			 (message "Magic number changed to `%s'"
-				  (concat executable-prefix argument)))))
-	    (insert executable-prefix argument ?\n)
-	    (message "Magic number changed to `%s'"
-		     (concat executable-prefix argument)))
-;;;	  (or insert-flag
-;;;	      (eq executable-insert t)
-;;;	      (set-buffer-modified-p buffer-modified-p))
-	  )))
+	(goto-char (point-min))
+	(add-hook 'after-save-hook 'executable-chmod nil t)
+	(if (looking-at "#![ \t]*\\(.*\\)$")
+	    (and (goto-char (match-beginning 1))
+		 ;; If the line ends in a space,
+		 ;; don't offer to change it.
+		 (not (= (char-after (1- (match-end 1))) ?\s))
+		 (not (string= argument
+			       (buffer-substring (point) (match-end 1))))
+		 (if (or (not executable-query) no-query-flag
+			 (save-window-excursion
+			   ;; Make buffer visible before question.
+			   (switch-to-buffer (current-buffer))
+			   (y-or-n-p (concat "Replace magic number by `"
+					     executable-prefix argument "'? "))))
+		     (progn
+		       (replace-match argument t t nil 1)
+		       (message "Magic number changed to `%s'"
+				(concat executable-prefix argument)))))
+	  (insert executable-prefix argument ?\n)
+	  (message "Magic number changed to `%s'"
+		   (concat executable-prefix argument)))))
     interpreter)
 
 
@@ -276,7 +268,7 @@ file modes."
   (and (>= (buffer-size) 2)
        (save-restriction
 	 (widen)
-	 (string= "#!" (buffer-substring 1 3)))
+	 (string= "#!" (buffer-substring (point-min) (+ 2 (point-min)))))
        (let* ((current-mode (file-modes (buffer-file-name)))
               (add-mode (logand ?\111 (default-file-modes))))
          (or (/= (logand ?\111 current-mode) 0)
@@ -286,4 +278,5 @@ file modes."
 
 (provide 'executable)
 
+;; arch-tag: 58458d1c-d9db-45ec-942b-8bbb1d5e319d
 ;;; executable.el ends here

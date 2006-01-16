@@ -1,5 +1,6 @@
 /* alliant.h  Alliant machine running system version 2 or 3.
-   Copyright (C) 1985, 1986, 1987, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
    Note that for version 1 of the Alliant system
    you should use alliant1.h instead of this file.
    Use alliant4.h for version 4.
@@ -18,8 +19,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
@@ -117,3 +118,6 @@ unexec_text_start = hdr.a_text_addr;}
    a variable name causes errors when compiling under ANSI C.  */
 
 #define vector xxvector
+
+/* arch-tag: 0ad5f932-f29a-4458-a24c-496cafdfd50d
+   (do not change this comment) */

@@ -1,0 +1,20 @@
+ttn 2003-04-09
+
+we use a C preprocesor not only in the normal compilation of .c files
+into object files, but also for creating
+
+	src/Makefile
+	lib-src/Makefile
+
+(delimited by comment "start of cpp stuff").  some cpp implementations
+insert whitespace in between tokens, which explains the "$(dot)$(dot)"
+and "UNEXEC_ALIAS" workarounds for unixoid systems and the bundled
+tradcpp/ for vms.  [NOTE: tradcpp/ not yet checked in.]
+
+during makefile creation, the preprocessor symbol NOT_C_CODE is defined.
+this should not be defined for normal .c file compilation.
+
+there has been discussion on eliminating this use of cpp and relying
+solely on autoconf processing.  rms says to leave it be.
+
+;;; arch-tag: d654291e-9fc8-41b7-ab0c-d3cde842a8e0

@@ -1,6 +1,7 @@
 ;;; eudc.el --- Emacs Unified Directory Client
 
-;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;    This package provides a common interface to query directory servers using
@@ -74,6 +75,8 @@
 
 (defvar eudc-form-widget-list nil)
 (defvar eudc-mode-map nil)
+
+(defvar mode-popup-menu)
 
 ;; List of known servers
 ;; Alist of (SERVER . PROTOCOL)
@@ -377,7 +380,7 @@ The translation is done according to
 BEG and END delimit the text which is to be replaced."
   (let ((replacement))
    (setq replacement
-	 (completing-read "Multiple matches found; choose one:"
+	 (completing-read "Multiple matches found; choose one: "
 			  (mapcar 'list choices)))
    (delete-region beg end)
    (insert replacement)))
@@ -462,73 +465,73 @@ attribute name ATTR."
   "Display the record list RECORDS in a formatted buffer.
 If RAW-ATTR-NAMES is non-nil, the raw attribute names are displayed
 otherwise they are formatted according to `eudc-user-attribute-names-alist'."
-  (let ((buffer (get-buffer-create "*Directory Query Results*"))
-	inhibit-read-only
+  (let (inhibit-read-only
 	precords
 	(width 0)
 	beg
 	first-record
 	attribute-name)
-    (switch-to-buffer buffer)
-    (setq buffer-read-only t)
-    (setq inhibit-read-only t)
-    (erase-buffer)
-    (insert "Directory Query Result\n")
-    (insert "======================\n\n\n")
-    (if (null records)
-	(insert "No match found.\n"
-		(if eudc-strict-return-matches
-		    "Try setting `eudc-strict-return-matches' to nil or change `eudc-default-return-attributes'.\n"
-		  ""))
-      ;; Replace field names with user names, compute max width
-      (setq precords
-	    (mapcar
-	     (function
-	      (lambda (record)
+    (with-output-to-temp-buffer "*Directory Query Results*"
+      (with-current-buffer standard-output
+	(setq buffer-read-only t)
+	(setq inhibit-read-only t)
+	(erase-buffer)
+	(insert "Directory Query Result\n")
+	(insert "======================\n\n\n")
+	(if (null records)
+	    (insert "No match found.\n"
+		    (if eudc-strict-return-matches
+			"Try setting `eudc-strict-return-matches' to nil or change `eudc-default-return-attributes'.\n"
+		      ""))
+	  ;; Replace field names with user names, compute max width
+	  (setq precords
 		(mapcar
 		 (function
-		  (lambda (field)
-		    (setq attribute-name
-			  (if raw-attr-names
-			      (symbol-name (car field))
-			    (eudc-format-attribute-name-for-display (car field))))
-		    (if (> (length attribute-name) width)
-			(setq width (length attribute-name)))
-		    (cons attribute-name (cdr field))))
-		 record)))
-	     records))
-      ;; Display the records
-      (setq first-record (point))
-      (mapcar
-       (function
-	(lambda (record)
-	  (setq beg (point))
-	  ;; Map over the record fields to print the attribute/value pairs
-	  (mapcar (function
-		   (lambda (field)
-		     (eudc-print-record-field field width)))
-		  record)
-	  ;; Store the record internal format in some convenient place
-	  (overlay-put (make-overlay beg (point))
-		       'eudc-record
-		       (car records))
-	  (setq records (cdr records))
-	  (insert "\n")))
-       precords))
-    (insert "\n")
-    (widget-create 'push-button
-		   :notify (lambda (&rest ignore)
-			     (eudc-query-form))
-		   "New query")
-    (widget-insert " ")
-    (widget-create 'push-button
-		   :notify (lambda (&rest ignore)
-			     (kill-this-buffer))
-		   "Quit")
-    (eudc-mode)
-    (widget-setup)
-    (if first-record
-	(goto-char first-record))))
+		  (lambda (record)
+		    (mapcar
+		     (function
+		      (lambda (field)
+			(setq attribute-name
+			      (if raw-attr-names
+				  (symbol-name (car field))
+				(eudc-format-attribute-name-for-display (car field))))
+			(if (> (length attribute-name) width)
+			    (setq width (length attribute-name)))
+			(cons attribute-name (cdr field))))
+		     record)))
+		 records))
+	  ;; Display the records
+	  (setq first-record (point))
+	  (mapcar
+	   (function
+	    (lambda (record)
+	      (setq beg (point))
+	      ;; Map over the record fields to print the attribute/value pairs
+	      (mapcar (function
+		       (lambda (field)
+			 (eudc-print-record-field field width)))
+		      record)
+	      ;; Store the record internal format in some convenient place
+	      (overlay-put (make-overlay beg (point))
+			   'eudc-record
+			   (car records))
+	      (setq records (cdr records))
+	      (insert "\n")))
+	   precords))
+	(insert "\n")
+	(widget-create 'push-button
+		       :notify (lambda (&rest ignore)
+				 (eudc-query-form))
+		       "New query")
+	(widget-insert " ")
+	(widget-create 'push-button
+		       :notify (lambda (&rest ignore)
+				 (kill-this-buffer))
+		       "Quit")
+	(eudc-mode)
+	(widget-setup)
+	(if first-record
+	    (goto-char first-record))))))
 
 (defun eudc-process-form ()
   "Process the query form in current buffer and display the results."
@@ -670,8 +673,7 @@ These are the special commands of EUDC mode:
   (if eudc-emacs-p
       (easy-menu-define eudc-emacs-menu eudc-mode-map "" (eudc-menu))
     (setq mode-popup-menu (eudc-menu)))
-  (run-hooks 'eudc-mode-hook)
-  )
+  (run-mode-hooks 'eudc-mode-hook))
 
 ;;}}}
 
@@ -709,34 +711,36 @@ server for future sessions."
       (eudc-save-options)))
 
 ;;;###autoload
-(defun eudc-get-email (name)
-  "Get the email field of NAME from the directory server."
-  (interactive "sName: ")
+(defun eudc-get-email (name &optional error)
+  "Get the email field of NAME from the directory server.
+If ERROR is non-nil, report an error if there is none."
+  (interactive "sName: \np")
   (or eudc-server
       (call-interactively 'eudc-set-server))
   (let ((result (eudc-query (list (cons 'name name)) '(email)))
 	email)
     (if (null (cdr result))
 	(setq email (eudc-cdaar result))
-      (error "Multiple match. Use the query form"))
-    (if (interactive-p)
+      (error "Multiple match--use the query form"))
+    (if error
 	(if email
 	    (message "%s" email)
 	  (error "No record matching %s" name)))
     email))
 
 ;;;###autoload
-(defun eudc-get-phone (name)
-  "Get the phone field of NAME from the directory server."
-  (interactive "sName: ")
+(defun eudc-get-phone (name &optional error)
+  "Get the phone field of NAME from the directory server.
+If ERROR is non-nil, report an error if there is none."
+  (interactive "sName: \np")
   (or eudc-server
       (call-interactively 'eudc-set-server))
   (let ((result (eudc-query (list (cons 'name name)) '(phone)))
 	phone)
     (if (null (cdr result))
 	(setq phone (eudc-cdaar result))
-      (error "Multiple match. Use the query form"))
-    (if (interactive-p)
+      (error "Multiple match--use the query form"))
+    (if error
 	(if phone
 	    (message "%s" phone)
 	  (error "No record matching %s" name)))
@@ -919,6 +923,7 @@ see `eudc-inline-expansion-servers'"
 	     ((eq eudc-multiple-match-handling-method 'select)
 	      (eudc-select response-strings beg end))
 	     ((eq eudc-multiple-match-handling-method 'all)
+	      (delete-region beg end)
 	      (insert (mapconcat 'identity response-strings ", ")))
 	     ((eq eudc-multiple-match-handling-method 'abort)
 	      (error "There is more than one match for the query"))))
@@ -1212,7 +1217,7 @@ queries the server for the existing fields and displays a corresponding form."
 ;;; Load the options file
 (if (and (not noninteractive)
 	 (and (locate-library eudc-options-file)
-	      (message ""))		; Remove modeline message
+	      (progn (message "") t))   ; Remove modeline message
 	 (not (featurep 'eudc-options-file)))
     (load eudc-options-file))
 
@@ -1284,4 +1289,5 @@ This does nothing except loading eudc by autoload side-effect."
 
 (provide 'eudc)
 
+;;; arch-tag: e18872b6-db83-400b-869d-be54e9a4160c
 ;;; eudc.el ends here

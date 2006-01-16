@@ -1,6 +1,7 @@
 ;;; ediff-merg.el --- merging utilities
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -102,11 +103,18 @@ Buffer B."
   )
 (make-variable-buffer-local 'ediff-skip-merge-regions-that-differ-from-default)
 
+;; check if there is no clash between the ancestor and one of the variants.
+;; if it is not a merge job then return true
+(defsubst ediff-merge-region-is-non-clash (n)
+  (if (ediff-merge-job)
+      (string-match "prefer" (or (ediff-get-state-of-merge n) ""))
+    t))
+
 ;; If ediff-show-clashes-only, check if there is no clash between the ancestor
 ;; and one of the variants.
-(defsubst ediff-merge-region-is-non-clash (n)
+(defsubst ediff-merge-region-is-non-clash-to-skip (n)
   (and ediff-show-clashes-only
-       (string-match "prefer" (or (ediff-get-state-of-merge n) ""))))
+       (ediff-merge-region-is-non-clash n)))
 
 ;; If ediff-skip-changed-regions, check if the merge region differs from
 ;; the current default. If a region is different from the default, it means
@@ -388,4 +396,5 @@ Combining is done according to the specifications in variable
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
+;;; arch-tag: 9b798cf9-02ba-487f-a62e-b63aa823dbfb
 ;;; ediff-merg.el ends here

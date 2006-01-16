@@ -1,5 +1,5 @@
 /* unexec for GNU Emacs on Windows NT.
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,15 +15,14 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.
 
    Geoff Voelker (voelker@cs.washington.edu)                         8-12-94
 */
 
 #include <config.h>
 
-#include <stdlib.h> 	/* _fmode */
 #include <stdio.h>
 #include <fcntl.h>
 #include <time.h>
@@ -111,10 +110,6 @@ _start (void)
 
   /* Grab our malloc arena space now, before CRT starts up. */
   init_heap ();
-
-  /* The default behavior is to treat files as binary and patch up
-     text files appropriately, in accordance with the MSDOS code.  */
-  _fmode = O_BINARY;
 
   /* This prevents ctrl-c's in shells running while we're suspended from
      having us exit.  */
@@ -330,6 +325,9 @@ relocate_offset (DWORD offset,
 /* Convert address in executing image to RVA.  */
 #define PTR_TO_RVA(ptr) ((DWORD)(ptr) - (DWORD) GetModuleHandle (NULL))
 
+#define RVA_TO_PTR(var,section,filedata) \
+	  ((void *)(RVA_TO_OFFSET(var,section) + (filedata).file_base))
+
 #define PTR_TO_OFFSET(ptr, pfile_data) \
           ((unsigned char *)(ptr) - (pfile_data)->file_base)
 
@@ -493,27 +491,34 @@ copy_executable_and_dump_data (file_data *p_infile,
   PIMAGE_SECTION_HEADER dst_section;
   DWORD offset;
   int i;
+  int be_verbose = GetEnvironmentVariable ("DEBUG_DUMP", NULL, 0) > 0;
 
-#define COPY_CHUNK(message, src, size)						\
+#define COPY_CHUNK(message, src, size, verbose)					\
   do {										\
     unsigned char *s = (void *)(src);						\
     unsigned long count = (size);						\
-    printf ("%s\n", (message));							\
-    printf ("\t0x%08x Offset in input file.\n", s - p_infile->file_base);	\
-    printf ("\t0x%08x Offset in output file.\n", dst - p_outfile->file_base);	\
-    printf ("\t0x%08x Size in bytes.\n", count);				\
+    if (verbose)								\
+      {										\
+	printf ("%s\n", (message));						\
+	printf ("\t0x%08x Offset in input file.\n", s - p_infile->file_base); 	\
+	printf ("\t0x%08x Offset in output file.\n", dst - p_outfile->file_base); \
+	printf ("\t0x%08x Size in bytes.\n", count);				\
+      }										\
     memcpy (dst, s, count);							\
     dst += count;								\
   } while (0)
 
-#define COPY_PROC_CHUNK(message, src, size)					\
+#define COPY_PROC_CHUNK(message, src, size, verbose)				\
   do {										\
     unsigned char *s = (void *)(src);						\
     unsigned long count = (size);						\
-    printf ("%s\n", (message));							\
-    printf ("\t0x%08x Address in process.\n", s);				\
-    printf ("\t0x%08x Offset in output file.\n", dst - p_outfile->file_base);	\
-    printf ("\t0x%08x Size in bytes.\n", count);				\
+    if (verbose)								\
+      {										\
+	printf ("%s\n", (message));						\
+	printf ("\t0x%08x Address in process.\n", s);				\
+	printf ("\t0x%08x Offset in output file.\n", dst - p_outfile->file_base); \
+	printf ("\t0x%08x Size in bytes.\n", count);				\
+      }										\
     memcpy (dst, s, count);							\
     dst += count;								\
   } while (0)
@@ -544,13 +549,14 @@ copy_executable_and_dump_data (file_data *p_infile,
   dst = (unsigned char *) p_outfile->file_base;
 
   COPY_CHUNK ("Copying DOS header...", dos_header,
-	      (DWORD) nt_header - (DWORD) dos_header);
+	      (DWORD) nt_header - (DWORD) dos_header, be_verbose);
   dst_nt_header = (PIMAGE_NT_HEADERS) dst;
   COPY_CHUNK ("Copying NT header...", nt_header,
-	      (DWORD) section - (DWORD) nt_header);
+	      (DWORD) section - (DWORD) nt_header, be_verbose);
   dst_section = (PIMAGE_SECTION_HEADER) dst;
   COPY_CHUNK ("Copying section table...", section,
-	      nt_header->FileHeader.NumberOfSections * sizeof (*section));
+	      nt_header->FileHeader.NumberOfSections * sizeof (*section),
+	      be_verbose);
 
   /* Align the first section's raw data area, and set the header size
      field accordingly.  */
@@ -560,7 +566,9 @@ copy_executable_and_dump_data (file_data *p_infile,
   for (i = 0; i < nt_header->FileHeader.NumberOfSections; i++)
     {
       char msg[100];
-      sprintf (msg, "Copying raw data for %s...", section->Name);
+      /* Windows section names are fixed 8-char strings, only
+	 zero-terminated if the name is shorter than 8 characters.  */
+      sprintf (msg, "Copying raw data for %.8s...", section->Name);
 
       dst_save = dst;
 
@@ -573,7 +581,7 @@ copy_executable_and_dump_data (file_data *p_infile,
       /* Can always copy the original raw data.  */
       COPY_CHUNK
 	(msg, OFFSET_TO_PTR (section->PointerToRawData, p_infile),
-	 section->SizeOfRawData);
+	 section->SizeOfRawData, be_verbose);
       /* Ensure alignment slop is zeroed.  */
       ROUND_UP_DST_AND_ZERO (dst_nt_header->OptionalHeader.FileAlignment);
 
@@ -582,7 +590,8 @@ copy_executable_and_dump_data (file_data *p_infile,
 	{
 	  dst = dst_save
 	    + RVA_TO_SECTION_OFFSET (PTR_TO_RVA (data_start), dst_section);
-	  COPY_PROC_CHUNK ("Dumping initialized data...", data_start, data_size);
+	  COPY_PROC_CHUNK ("Dumping initialized data...",
+			   data_start, data_size, be_verbose);
 	  dst = dst_save + dst_section->SizeOfRawData;
 	}
       if (section == bss_section)
@@ -591,7 +600,8 @@ copy_executable_and_dump_data (file_data *p_infile,
              data size as necessary.  */
 	  dst = dst_save
 	    + RVA_TO_SECTION_OFFSET (PTR_TO_RVA (bss_start), dst_section);
-	  COPY_PROC_CHUNK ("Dumping bss data...", bss_start, bss_size);
+	  COPY_PROC_CHUNK ("Dumping bss data...", bss_start,
+			   bss_size, be_verbose);
 	  ROUND_UP_DST (dst_nt_header->OptionalHeader.FileAlignment);
 	  dst_section->PointerToRawData = PTR_TO_OFFSET (dst_save, p_outfile);
 	  /* Determine new size of raw data area.  */
@@ -606,7 +616,8 @@ copy_executable_and_dump_data (file_data *p_infile,
              section's raw data size as necessary.  */
 	  dst = dst_save
 	    + RVA_TO_SECTION_OFFSET (PTR_TO_RVA (bss_start_static), dst_section);
-	  COPY_PROC_CHUNK ("Dumping static bss data...", bss_start_static, bss_size_static);
+	  COPY_PROC_CHUNK ("Dumping static bss data...", bss_start_static,
+			   bss_size_static, be_verbose);
 	  ROUND_UP_DST (dst_nt_header->OptionalHeader.FileAlignment);
 	  dst_section->PointerToRawData = PTR_TO_OFFSET (dst_save, p_outfile);
 	  /* Determine new size of raw data area.  */
@@ -624,7 +635,8 @@ copy_executable_and_dump_data (file_data *p_infile,
              section's size to the appropriate size.  */
 	  dst = dst_save
 	    + RVA_TO_SECTION_OFFSET (PTR_TO_RVA (heap_start), dst_section);
-	  COPY_PROC_CHUNK ("Dumping heap...", heap_start, heap_size);
+	  COPY_PROC_CHUNK ("Dumping heap...", heap_start, heap_size,
+			   be_verbose);
 	  ROUND_UP_DST (dst_nt_header->OptionalHeader.FileAlignment);
 	  dst_section->PointerToRawData = PTR_TO_OFFSET (dst_save, p_outfile);
 	  /* Determine new size of raw data area.  */
@@ -659,7 +671,7 @@ copy_executable_and_dump_data (file_data *p_infile,
   COPY_CHUNK
     ("Copying remainder of executable...",
      OFFSET_TO_PTR (offset, p_infile),
-     p_infile->size - offset);
+     p_infile->size - offset, be_verbose);
 
   /* Final size for new image.  */
   p_outfile->size = DST_TO_OFFSET ();
@@ -812,3 +824,6 @@ unexec (char *new_name, char *old_name, void *start_data, void *start_bss,
 }
 
 /* eof */
+
+/* arch-tag: fe1d3d1c-ef88-4917-ab22-f12ab16b3254
+   (do not change this comment) */

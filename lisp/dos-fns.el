@@ -1,6 +1,7 @@
 ;;; dos-fns.el --- MS-Dos specific functions
 
-;; Copyright (C) 1991, 1993, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1993, 1995, 1996, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: Morten Welinder <terra@diku.dk>
 ;; Keywords: internal
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -31,9 +32,13 @@
 ;; This overrides a trivial definition in files.el.
 (defun convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the current OS.
-This function's standard definition is trivial; it just returns the argument.
-However, on some systems, the function is redefined
-with a definition that really does change some file names."
+This means to guarantee valid names and perhaps to canonicalize
+certain patterns.
+
+On Windows and DOS, replace invalid characters.  On DOS, make
+sure to obey the 8.3 limitations.  On Windows, turn Cygwin names
+into native names, and also turn slashes into backslashes if the
+shell requires it (see `w32-shell-dos-semantics')."
   (if (or (not (stringp filename))
 	  ;; This catches the case where FILENAME is "x:" or "x:/" or
 	  ;; "/", thus preventing infinite recursion.
@@ -252,4 +257,5 @@ that your video hardware might not support 50-line mode."
 
 (provide 'dos-fns)
 
+;;; arch-tag: 00b03579-8ebb-4a02-8762-5c5a929774ad
 ;;; dos-fns.el ends here

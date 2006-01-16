@@ -1,7 +1,9 @@
 ;;; hangul3.el --- Quail package for inputting Korean Hangul characters  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 1998, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2002
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, input method, Korean, Hangul
 
@@ -19,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -3567,4 +3569,5 @@
  ("mdq" ?힛)
  ("mda" ?힝))
 
+;;; arch-tag: 20ea2223-ab47-414f-8e28-d03dc83617b7
 ;;; hangul3.el ends here

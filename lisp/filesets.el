@@ -1,8 +1,9 @@
 ;;; filesets.el --- handle group of files
 
-;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <t.link@gmx.at>
+;; Maintainer: FSF
 ;; Keywords: filesets convenience
 
 ;; This file is part of GNU Emacs.
@@ -18,8 +19,8 @@
 ;; GNU General Public License for more details.
 
 ;; A copy of the GNU General Public License can be obtained from this
-;; program's author or from the Free Software Foundation, Inc., 675 Mass
-;; Ave, Cambridge, MA 02139, USA.
+;; program's author or from the Free Software Foundation, Inc.,
+;; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 (defvar filesets-version "1.8.4")
 (defvar filesets-homepage
@@ -32,9 +33,10 @@
 ;; pattern, a base directory and a search pattern (for files), or an
 ;; inclusion group (i.e. a base file including other files).
 
-;; Usage: 1. Put (require 'filesets) into your start-up file.  2. Type
-;; M-x filesets-edit or choose "Edit Filesets" from the menu.  3. Save
-;; your customizations.
+;; Usage:
+;; 1. Put (require 'filesets) and (filesets-init) in your .emacs file.
+;; 2. Type ;; M-x filesets-edit or choose "Edit Filesets" from the menu.
+;; 3. Save your customizations.
 
 ;; Caveat: Fileset names have to be unique.
 
@@ -65,6 +67,13 @@
 
 ;;- better handling of different customization scenarios
 
+;; Data gathering should be better separated from building the menu
+;; so that one could (1) use filesets without installing the menu
+;; and (2) create new "frontends" to speedbar and others.
+
+;; The functionality to call external viewers should be isolated in
+;; an extra package and possibly integrated with the MIME
+;; handling.
 
 ;;; Credits:
 
@@ -118,12 +127,13 @@ ignored.")
 Is buffer local variable.")
 
 (defvar filesets-verbosity 1
-  "An integer defining the level of verbosity. 0 means no messages
-at all.")
+  "An integer defining the level of verbosity.
+0 means no messages at all.")
 
 (defvar filesets-menu-ensure-use-cached
   (and filesets-running-xemacs
-       (not (emacs-version>= 21 5)))
+       (if (fboundp 'emacs-version>=)
+	   (not (emacs-version>= 21 5))))
   "Make sure (X)Emacs uses filesets' cache.
 
 Well, if you use XEmacs (prior to 21.5?) custom.el is loaded after
@@ -241,8 +251,15 @@ key is supported."
 ;  (customize-set-variable var val))
 ;  (filesets-build-menu))
 
+;; It seems this is a workaround for the XEmacs issue described in the
+;; doc-string of filesets-menu-ensure-use-cached. Under Emacs this is
+;; essentially just `set-default'.
 (defun filesets-set-default (sym val &optional init-flag)
-  "Set-default wrapper function used in conjunction with `defcustom'."
+  "Set-default wrapper function used in conjunction with `defcustom'.
+If SYM is in the list `filesets-ignore-next-set-default', delete
+it from that list, and return nil.  Otherwise, set the value of
+SYM to VAL and return t.  If INIT-FLAG is non-nil, set with
+`custom-initialize-set', otherwise with `set-default'."
   (let ((ignore-flag (member sym filesets-ignore-next-set-default)))
     (if ignore-flag
 	(setq filesets-ignore-next-set-default
@@ -263,6 +280,8 @@ key is supported."
     (setq filesets-has-changed-flag t)))
 ;    (filesets-reset-fileset nil t)))
 
+(defvar filesets-data)
+
 (defun filesets-data-set-default (sym val)
   "Set the default for `filesets-data'."
   (if filesets-menu-use-cached-flag
@@ -279,14 +298,13 @@ key is supported."
 	(dolist (x modified-filesets)
 	  (filesets-reset-fileset (car x))))))
   (filesets-set-default sym val))
-
-
-
+
 ;;; configuration
 (defgroup filesets nil
   "The fileset swapper."
   :prefix "filesets-"
-  :group 'convenience)
+  :group 'convenience
+  :version "22.1")
 
 (defcustom filesets-menu-name "Filesets"
   "*Filesets' menu name."
@@ -294,31 +312,26 @@ key is supported."
   :type 'sexp
   :group 'filesets)
 
-(if filesets-running-xemacs
-    (progn
-      (defcustom filesets-menu-path nil
-	"*The menu under which the filesets menu should be inserted.
-XEmacs specific; see `add-submenu' for documentation."
-	:set (function filesets-set-default)
-	:type 'sexp
-	:group 'filesets)
+(defcustom filesets-menu-path nil
+  "*The menu under which the filesets menu should be inserted.
+See `add-submenu' for documentation."
+  :set (function filesets-set-default)
+  :type 'sexp
+  :group 'filesets)
 
-      (defcustom filesets-menu-before "File"
-	"*The name of a menu before which this menu should be added.
-XEmacs specific; see `add-submenu' for documentation."
-	:set (function filesets-set-default)
-	:type 'sexp
-	:group 'filesets)
+(defcustom filesets-menu-before "File"
+  "*The name of a menu before which this menu should be added.
+See `add-submenu' for documentation."
+  :set (function filesets-set-default)
+  :type 'sexp
+  :group 'filesets)
 
-      (defcustom filesets-menu-in-menu nil
-	"*Use that instead of `current-menubar' as the menu to change.
-XEmacs specific; see `add-submenu' for documentation."
-	:set (function filesets-set-default)
-	:type 'sexp
-	:group 'filesets))
-  (defvar filesets-menu-path nil)
-  (defvar filesets-menu-before nil)
-  (defvar filesets-menu-in-menu nil))
+(defcustom filesets-menu-in-menu nil
+  "*Use that instead of `current-menubar' as the menu to change.
+See `add-submenu' for documentation."
+  :set (function filesets-set-default)
+  :type 'sexp
+  :group 'filesets)
 
 (defcustom filesets-menu-shortcuts-flag t
   "*Non-nil means to prepend menus with hopefully unique shortcuts."
@@ -341,7 +354,7 @@ XEmacs specific; see `add-submenu' for documentation."
 (defcustom filesets-menu-cache-file
   (if filesets-running-xemacs
       "~/.xemacs/filesets-cache.el"
-      "~/.filesets-cache.el")
+      "~/.emacs.d/filesets-cache.el")
   "*File to be used for saving the filesets menu between sessions.
 Set this to \"\", to disable caching of menus.
 Don't forget to check out `filesets-menu-ensure-use-cached'."
@@ -637,8 +650,8 @@ the filename."
 Has the form ((FILE-PATTERN VIEWER PROPERTIES) ...), VIEWER being either a
 function or a command name as string.
 
-Properties is an association list determining filesets' behaviour in
-several conditions. Choose one from this list:
+Properties is an association list determining filesets' behavior in
+several conditions.  Choose one from this list:
 
 :ignore-on-open-all ... Don't open files of this type automatically --
 i.e. on open-all-files-events or when running commands
@@ -1056,14 +1069,11 @@ defined in `filesets-ingroup-patterns'."
   :set (function filesets-set-default)
   :type 'integer
   :group 'filesets)
-
-
+
 ;;; Emacs compatibility
 (eval-and-compile
   (if filesets-running-xemacs
-      (progn
-	(fset 'filesets-error 'error)
-	(fset 'filesets-add-submenu 'add-submenu))
+      (fset 'filesets-error 'error)
 
     (require 'easymenu)
 
@@ -1071,12 +1081,6 @@ defined in `filesets-ingroup-patterns'."
       "`error' wrapper."
       (error (mapconcat 'identity args " ")))
 
-    ;; This should work for 21.1 Emacs
-    (defun filesets-add-submenu (menu-path submenu &optional
-					   before in-menu)
-      "`easy-menu-define' wrapper."
-      (easy-menu-define
-	filesets-submenu global-map "Filesets menu" submenu))
     ))
 
 (defun filesets-filter-dir-names (lst &optional negative)
@@ -1347,7 +1351,7 @@ Use the viewer defined in EV-ENTRY (a valid element of
 		  (run-hooks 'oh))
 		(set-buffer-modified-p nil)
 		(setq buffer-read-only t)
-		(beginning-of-buffer))
+		(goto-char (point-min)))
 	    (when oh
 	      (run-hooks 'oh))))
       (filesets-error 'error
@@ -1584,7 +1588,8 @@ SAVE-FUNCTION takes no argument, but works on the current buffer."
 (defun filesets-cmd-show-result (cmd output)
   "Show OUTPUT of CMD (a shell command)."
   (pop-to-buffer "*Filesets: Shell Command Output*")
-  (end-of-buffer)
+  (with-no-warnings
+   (end-of-buffer))
   (insert "*** ")
   (insert cmd)
   (newline)
@@ -1629,7 +1634,7 @@ Replace <file-name> or <<file-name>> with filename."
 		(save-restriction
 		  (let ((buffer (filesets-find-file this)))
 		    (when buffer
-		      (beginning-of-buffer)
+		      (goto-char (point-min))
 		      (let ()
 			(cond
 			 ((stringp fn)
@@ -1790,8 +1795,17 @@ User will be queried, if no fileset name is provided."
 	 (name   (or name
 		     (completing-read
 		      (format "Add '%s' to fileset: " buffer)
-		      filesets-data nil t)))
-	 (entry  (assoc name filesets-data)))
+		      filesets-data nil)))
+         (entry  (or (assoc name filesets-data)
+                     (when (y-or-n-p
+                            (format "Fileset %s does not exist. Create it?"
+                                    name))
+                       (progn
+      (add-to-list 'filesets-data (list name '(:files)))
+      (message
+       "Fileset %s created.  Call `M-x filesets-save-config' to save."
+       name)
+      (car filesets-data))))))
     (if entry
 	(let* ((files  (filesets-entry-get-files entry))
 	       (this   (buffer-file-name buffer))
@@ -2329,7 +2343,7 @@ bottom up, set `filesets-submenus' to nil, first.)"
       (filesets-menu-cache-file-save-maybe)))
   (let ((cb (current-buffer)))
     (when (not (member cb filesets-updated-buffers))
-      (filesets-add-submenu
+      (add-submenu
        filesets-menu-path
        `(,filesets-menu-name
 	 ("# Filesets"
@@ -2486,6 +2500,7 @@ We apologize for the inconvenience."))
 (defun filesets-exit ()
   (filesets-menu-cache-file-save-maybe))
 
+;;;###autoload
 (defun filesets-init ()
   "Filesets initialization.
 Set up hooks, load the cache file -- if existing -- and build the menu."
@@ -2505,13 +2520,11 @@ Set up hooks, load the cache file -- if existing -- and build the menu."
     (filesets-build-menu)))
 
 
-;;; run
-(filesets-init)
-
 (provide 'filesets)
 
 ;;; Local Variables:
 ;;; sentence-end-double-space:t
 ;;; End:
 
+;;; arch-tag: 2c03f85f-c3df-4cec-b0a3-b46fd5592d70
 ;;; filesets.el ends here

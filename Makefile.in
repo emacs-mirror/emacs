@@ -2,8 +2,8 @@
 # DIST: make most of the changes to this file you might want, so try
 # DIST: that first.
 
-# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-#  2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+# Copyright (C) 1992,93,94,95,96,97,98,1999,2000,01,02,03,04,2005
+#   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -19,8 +19,8 @@
 
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 
 # make all	to compile and build Emacs.
 # make install	to install it.
@@ -45,13 +45,27 @@
 # make maintainer-clean
 #      Delete everything from the current directory that can be
 #      reconstructed with this Makefile.  This typically includes
-#      everything deleted by distclean, plus more: C source files
-#      produced by Bison, tags tables, info files, and so on.
+#      everything deleted by distclean, plus more: .elc files,
+#      C source files produced by Bison, tags tables, info files,
+#      and so on.
 #
 # make extraclean
 #      Still more severe - delete backup and autosave files, too.
+#
+# make bootstrap
+#      Recompiles all the Emacs Lisp files using the latest source,
+#      then rebuilds Emacs.
+#
+# make bootfast
+#      Recompiles changed Emacs Lisp files using the latest C source,
+#      then rebuilds Emacs.  This is faster than `make bootstrap'
+#      but once in a while an old .elc file can cause trouble.
 
 SHELL = /bin/sh
+
+# This may not work with certain non-GNU make's.  It only matters when
+# inheriting a CDPATH not starting with the current directory.
+CDPATH=
 
 # If Make doesn't predefine MAKE, set it here.
 @SET_MAKE@
@@ -68,7 +82,6 @@ LDFLAGS=@LDFLAGS@
 CPPFLAGS=@CPPFLAGS@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 LD_SWITCH_X_SITE=@LD_SWITCH_X_SITE@
-YACC=@YACC@
 EXEEXT=@EXEEXT@
 
 ### These help us choose version- and architecture-specific directories
@@ -210,6 +223,9 @@ INSTALL_INFO = @INSTALL_INFO@
 # By default, we uphold the dignity of our programs.
 INSTALL_STRIP =
 
+# We use gzip to compress installed .el files.
+GZIP_PROG = @GZIP_PROG@
+
 # ============================= Targets ==============================
 
 # Program name transformation.
@@ -236,9 +252,6 @@ SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile lispref/Makefile lispintro/Make
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = ${etcdir} ${lispdir}
 
-# Set to FRC to force running autoconf and autoheader
-MAINT =
-
 all: ${SUBDIR} leim
 
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
@@ -250,15 +263,16 @@ epaths-force: FRC
 	  x_default_search_path=`echo ${x_default_search_path}`; \
 	  gamedir=`echo ${gamedir}`; \
 	  sed < ${srcdir}/src/epaths.in > epaths.h.$$$$		\
-	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'	\
-	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";' \
+	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'"$${lisppath}"'";'	\
+	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'"$${buildlisppath}"'";' \
 	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
 	  -e 's;\(#.*PATH_INFO\).*$$;\1 "${infodir}";'			\
 	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";' \
 	  -e 's;\(#.*PATH_GAME\).*$$;\1 "${gamedir}";' \
-	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
+	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";' \
+	  -e 's;/[*] *arch-tag:.*;/*;') &&		\
 	${srcdir}/move-if-change epaths.h.$$$$ src/epaths.h
 
 # For parallel make, src should be build before leim.
@@ -291,12 +305,14 @@ Makefile: $(srcdir)/Makefile.in config.status
 config.status: ${srcdir}/configure
 	./config.status --recheck
 
-${srcdir}/configure: $(MAINT)
+AUTOCONF_INPUTS = @MAINT@ $(srcdir)/configure.in $(srcdir)/m4/getopt.m4
+
+$(srcdir)/configure: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoconf
 
 $(srcdir)/src/config.in: $(srcdir)/src/stamp-h.in
 	@true
-$(srcdir)/src/stamp-h.in: $(MAINT)
+$(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoheader
 	rm -f $(srcdir)/src/stamp-h.in
 	echo timestamp > $(srcdir)/src/stamp-h.in
@@ -371,9 +387,9 @@ install-arch-dep: mkdir
 	done
 	if test "${carbon_appdir}" != ""; then \
 	  umask 022; mkdir -p ${carbon_appdir}/Emacs.app; \
-	  (cd mac/Emacs.app; tar -chf - . ) | \
+	  (cd mac/Emacs.app; (tar -chf - . | \
 		(cd ${carbon_appdir}/Emacs.app; umask 022; tar -xvf - \
-			&& cat > /dev/null) || exit 1; \
+			&& cat > /dev/null))) || exit 1; \
 	fi
 
 ### Install the files that are machine-independent.
@@ -413,6 +429,7 @@ install-arch-indep: mkdir info
 		rm -rf $${subdir}/RCS ; \
 		rm -rf $${subdir}/CVS ; \
 		rm -f  $${subdir}/.cvsignore ; \
+		rm -f  $${subdir}/.arch-inventory ; \
 		rm -f  $${subdir}/\#* ; \
 		rm -f  $${subdir}/.\#* ; \
 		rm -f  $${subdir}/*~ ; \
@@ -461,6 +478,14 @@ install-arch-indep: mkdir info
 	   (cd ${lispdir}; find . -exec chown $${LOGNAME:-$$USERNAME} {} ';') ; \
 	else true; fi
 	-unset CDPATH; \
+	if [ -n "${GZIP_PROG}" ]; \
+	then \
+	   echo "Compressing *.el ..." ; \
+	   (cd ${lispdir}; for f in `find . -name "*.elc" -print`; do \
+		${GZIP_PROG} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
+	    done) \
+	else true; fi
+	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
 	then \
@@ -472,7 +497,7 @@ install-arch-indep: mkdir info
 	      chmod a+r ${infodir}/dir); \
 	   fi; \
 	   cd ${srcdir}/info ; \
-	   for f in ada-mode* autotype* calc* ccmode* cl* dired-x* ebrowse* ediff* efaq* eintr* elisp* emacs* eshell* eudc* forms* gnus* idlwave* info* message* mh-e* pcl-cvs* reftex* sc* speedbar* tramp* vip* widget* woman*; do \
+	   for f in ada-mode* autotype* calc* ccmode* cl* dired-x* ebrowse* ediff* efaq* eintr* elisp* emacs* emacs-mime* emacs-xtra* eshell* eudc* flymake* forms* gnus* idlwave* info* message* mh-e* newsticker* org* pcl-cvs* pgg* reftex* sc* ses* sieve* speedbar* tramp* vip* widget* woman* smtpmail* url*; do \
 	     (cd $${thisdir}; \
 	      ${INSTALL_DATA} ${srcdir}/info/$$f ${infodir}/$$f; \
 	      chmod a+r ${infodir}/$$f); \
@@ -482,7 +507,7 @@ install-arch-indep: mkdir info
 	thisdir=`/bin/pwd`; \
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
 	then \
-	  for f in ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq elisp eintr emacs emacs-mime eshell eudc forms gnus idlwave info message mh-e pcl-cvs reftex sc speedbar tramp vip viper widget woman; do \
+	  for f in ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq elisp eintr emacs emacs-mime emacs-xtra eshell eudc flymake forms gnus idlwave info message mh-e newsticker org pcl-cvs pgg reftex sc ses sieve speedbar tramp vip viper widget woman smtpmail url; do \
 	    (cd $${thisdir}; \
 	     ${INSTALL_INFO} --info-dir=${infodir} ${infodir}/$$f); \
 	  done; \
@@ -548,7 +573,7 @@ uninstall:
 	done
 	(cd ${archlibdir} && rm -f fns-*)
 	-rm -rf ${libexecdir}/emacs/${version}
-	(cd ${infodir} && rm -f cl* ada-mode* autotype* calc* ccmode* ebrowse* efaq* eintr elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* tramp* widget* woman* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*)
+	(cd ${infodir} && rm -f cl* ada-mode* autotype* calc* ccmode* ebrowse* efaq* eintr elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* tramp* widget* woman* dired-x* ediff* emacs* emacs-xtra* flymake* forms* gnus* info* mh-e* newsticker* org* sc* ses* vip* smtpmail* url*)
 	(cd ${man1dir}  && rm -f emacs${manext} emacsclient${manext} etags${manext} ctags${manext})
 	(cd ${bindir}  && rm -f $(EMACSFULL) $(EMACS))
 
@@ -634,6 +659,7 @@ maintainer-clean: FRC
 	-(cd lispref &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd lisp;     $(MAKE) $(MFLAGS) maintainer-clean)
 	${top_distclean}
 
 ### This doesn't actually appear in the coding standards, but Karl
@@ -706,9 +732,9 @@ force-info:
 # put the info files in $(srcdir),
 # so we can do ok running make in the build dir.
 info: force-info
-	(cd man; $(MAKE) $(MFLAGS) info)
-	(cd lispref; $(MAKE) $(MFLAGS) info)
-	(cd lispintro; $(MAKE) $(MFLAGS) info)
+	-(cd man; $(MAKE) $(MFLAGS) info)
+	-(cd lispref; $(MAKE) $(MFLAGS) info)
+	-(cd lispintro; $(MAKE) $(MFLAGS) info)
 dvi:
 	(cd man; $(MAKE) $(MFLAGS) dvi)
 	(cd lispref; $(MAKE) $(MFLAGS) elisp.dvi)
@@ -722,6 +748,8 @@ dvi:
 ### used to compile Lisp files.  The last step is a "normal" make.
 
 .PHONY: bootstrap
+.PHONY: bootstrap-build
+.PHONY: bootfast
 .PHONY: maybe_bootstrap
 
 maybe_bootstrap:
@@ -733,8 +761,14 @@ maybe_bootstrap:
 	  exit 1;\
 	fi
 
-bootstrap: bootstrap-clean-before info FRC
-	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean)
+bootstrap: bootstrap-clean-before FRC
+	$(MAKE) $(MFLAGS) info bootstrap-build
+
+bootfast: bootstrap-clean-before-fast FRC
+	$(MAKE) $(MFLAGS) info bootstrap-build
+
+bootstrap-build: FRC
+	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-prepare)
 	(cd src; $(MAKE) $(MFLAGS) bootstrap)
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs${EXEEXT})
 	(cd src; $(MAKE) $(MFLAGS) mostlyclean)
@@ -742,7 +776,12 @@ bootstrap: bootstrap-clean-before info FRC
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-after)
 
 ### Used for `bootstrap' to avoid deleting existing dumped Emacs executables.
-bootstrap-clean-before: FRC
+bootstrap-clean-before: bootstrap-clean-before-fast FRC
+	(cd lisp;     $(MAKE) $(MFLAGS) bootstrap-clean)
+
+### Used for `bootfast' to avoid deleting existing dumped Emacs executables
+### and compiled .elc files.
+bootstrap-clean-before-fast: FRC
 	(cd src;      $(MAKE) $(MFLAGS) mostlyclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) clean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) clean)
@@ -751,4 +790,3 @@ bootstrap-clean-before: FRC
 	-(cd lispref &&   $(MAKE) $(MFLAGS) clean)
 	-(cd lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
-

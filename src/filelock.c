@@ -1,6 +1,6 @@
 /* Lock files for editing.
-   Copyright (C) 1985, 86, 87, 93, 94, 96, 98, 1999, 2000, 2001
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1996, 1998, 1999, 2000, 2001,
+                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #include <config.h>
@@ -26,11 +26,9 @@ Boston, MA 02111-1307, USA.  */
 #include <signal.h>
 #include <stdio.h>
 
-#ifdef VMS
-#include "vms-pwd.h"
-#else
+#ifdef HAVE_PWD_H
 #include <pwd.h>
-#endif /* not VMS */
+#endif
 
 #include <sys/file.h>
 #ifdef HAVE_FCNTL_H
@@ -377,6 +375,9 @@ lock_file_1 (lfname, force)
   char *host_name;
   char *lock_info_str;
 
+  /* Call this first because it can GC.  */
+  boot_time = get_boot_time ();
+
   if (STRINGP (Fuser_login_name (Qnil)))
     user_name = (char *)SDATA (Fuser_login_name (Qnil));
   else
@@ -386,9 +387,8 @@ lock_file_1 (lfname, force)
   else
     host_name = "";
   lock_info_str = (char *)alloca (strlen (user_name) + strlen (host_name)
-				  + LOCK_PID_MAX + 5);
+				  + LOCK_PID_MAX + 30);
 
-  boot_time = get_boot_time ();
   if (boot_time)
     sprintf (lock_info_str, "%s@%s.%lu:%lu", user_name, host_name,
 	     (unsigned long) getpid (), (unsigned long) boot_time);
@@ -770,3 +770,6 @@ syms_of_filelock ()
 }
 
 #endif /* CLASH_DETECTION */
+
+/* arch-tag: e062676d-50b2-4be0-ab96-197c81b181a1
+   (do not change this comment) */

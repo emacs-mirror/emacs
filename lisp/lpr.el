@@ -1,6 +1,7 @@
 ;;; lpr.el --- print Emacs buffer on line printer
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1988, 1992, 1994, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: unix
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -40,7 +41,7 @@
 
 
 (defgroup lpr nil
-  "Print Emacs buffer on line printer"
+  "Print Emacs buffer on line printer."
   :group 'wp)
 
 
@@ -283,14 +284,16 @@ The printable representations use ^ (for ASCII control characters) or hex.
 The characters tab, linefeed, space, return and formfeed are not affected."
   (interactive "r")
   (save-excursion
-    (goto-char begin)
-    (let (c)
-      (while (re-search-forward "[\^@-\^h\^k\^n-\^_\177-\377]" end t)
-	(setq c (preceding-char))
-	(delete-backward-char 1)
-	(insert (if (< c ?\ )
-		    (format "\\^%c" (+ c ?@))
-		  (format "\\%02x" c)))))))
+    (save-restriction
+      (narrow-to-region begin end)
+      (goto-char (point-min))
+      (let (c)
+	(while (re-search-forward "[\^@-\^h\^k\^n-\^_\177-\377]" nil t)
+	  (setq c (preceding-char))
+	  (delete-backward-char 1)
+	  (insert (if (< c ?\s)
+		      (format "\\^%c" (+ c ?@))
+		    (format "\\%02x" c))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions hacked from `ps-print' package.
@@ -323,4 +326,5 @@ The characters tab, linefeed, space, return and formfeed are not affected."
 
 (provide 'lpr)
 
+;;; arch-tag: 21c3f821-ebec-4ca9-ac67-a81e4b75c62a
 ;;; lpr.el ends here

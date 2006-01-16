@@ -1,6 +1,7 @@
 ;;; em-term.el --- running visual commands
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'em-term)
 
@@ -265,4 +266,5 @@ allowed."
 
 ;;; Code:
 
+;;; arch-tag: ab7c8fe4-3101-4257-925b-1354c6b2fe9d
 ;;; em-term.el ends here

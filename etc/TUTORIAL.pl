@@ -1,5 +1,4 @@
-Czytasz w³a¶nie krótki samouczek Emacsa. Copyright (c) 1985, 2001
-Free Software Foundation, Inc. Szczegó³y na koñcu pliku.
+Krótki samouczek Emacsa.  Warunki kopiowania znajduj± sie na koñcu pliku.
 
 Polecenia Emacsa wymagaj± na ogó³ wci¶niêcia klawisza CONTROL (oznaczanego
 czasami Ctrl lub CTL) lub klawisza META (oznaczanego czasami EDIT
@@ -1218,7 +1217,8 @@ z pomoc± Ryszarda Kubiaka i Janusza S. Bienia <jsbien@mail.uw.edu.pl>.
 Ta wersja samouczka, podobnie jak GNU Emacs, jest chroniona prawem
 autorskim, ale wolno j± kopiowaæ pod nastêpuj±cymi warunkami:
 
-Copyright (c) 1985, 1994, 2001 Free Software Foundation
+Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
 Zezwala siê na wykonywanie lub rozpowszechnianie
 wiernych kopii tego dokumentu w otrzymanej formie, na dowolnym
@@ -1239,12 +1239,10 @@ z t± ide±. Proszê, przeczytaj plik COPYING, po czym rozdaj swoim
 znajomym kopie Emacsa. Pomó¿ têpiæ obstrukcjonizm w informatyce,
 u¿ywaj±c, tworz±c i dziel±c siê oprogramowaniem swobodnym.
 
-
 ;;; Local Variables:
 ;;; mode: fundamental
 ;;; coding: latin-2
+;;; sentence-end-double-space: nil
 ;;; End:
 
-
-
-
+;;; arch-tag: 6c6b7445-4cd5-44ca-a101-7f4697b92f60

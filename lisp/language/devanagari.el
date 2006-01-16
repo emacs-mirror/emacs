@@ -1,6 +1,6 @@
 ;;; devanagari.el --- Support for Devanagari -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
-;; Copyright (C) 1996, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 2001  Free Software Foundation, Inc.
 
 ;; Maintainer:  KAWABATA, Taichi <kawabata@m17n.org>
 ;; Keywords: multilingual, Indian, Devanagari
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -44,4 +44,5 @@ are supported in this language environment."))
 
 (provide 'devanagari)
 
+;;; arch-tag: fd13667d-868b-41e8-81ef-79dd28bbfed2
 ;;; devanagari.el ends here

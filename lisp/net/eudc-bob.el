@@ -1,6 +1,7 @@
 ;;; eudc-bob.el --- Binary Objects Support for EUDC
 
-;; Copyright (C) 1999, 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -69,7 +70,7 @@
 
 (defun eudc-jump-to-event (event)
   "Jump to the window and point where EVENT occurred."
-  (if eudc-xemacs-p
+  (if (fboundp 'event-closest-point)
       (goto-char (event-closest-point event))
     (set-buffer (window-buffer (posn-window (event-start event))))
     (goto-char (posn-point (event-start event)))))
@@ -89,7 +90,7 @@
 
 (defun eudc-bob-can-display-inline-images ()
   "Return non-nil if we can display images inline."
-  (if eudc-xemacs-p
+  (if (fboundp 'console-type)
       (and (memq (console-type) '(x mswindows))
 	   (fboundp 'make-glyph))
     (and (fboundp 'display-graphic-p)
@@ -120,7 +121,7 @@ LABEL."
   "Display the JPEG DATA at point.
 If INLINE is non-nil, try to inline the image otherwise simply
 display a button."
-  (cond (eudc-xemacs-p
+  (cond ((fboundp 'make-glyph)
 	 (let ((glyph (if (eudc-bob-can-display-inline-images)
 			  (make-glyph (list (vector 'jpeg :data data)
 					    [string :data "[JPEG Picture]"])))))
@@ -365,4 +366,5 @@ display a button."
   "Display a button for the JPEG DATA."
   (eudc-bob-display-jpeg data nil))
 
+;;; arch-tag: 8f1853df-c9b6-4c5a-bdb1-d94dbd651fb3
 ;;; eudc-bob.el ends here

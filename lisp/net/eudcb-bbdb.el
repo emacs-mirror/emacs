@@ -1,6 +1,7 @@
 ;;; eudcb-bbdb.el --- Emacs Unified Directory Client - BBDB Backend
 
-;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;    This library provides an interface to use BBDB as a backend of
@@ -231,4 +232,5 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 
 (provide 'eudcb-bbdb)
 
+;;; arch-tag: 38276208-75de-4dbc-ba6f-8db684c32e0a
 ;;; eudcb-bbdb.el ends here

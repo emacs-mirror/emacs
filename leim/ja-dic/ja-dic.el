@@ -34,7 +34,8 @@
 ;; 
 ;; You should have received a copy of the GNU General Public License
 ;; along with SKK, see the file COPYING.  If not, write to the Free
-;; Software Foundation Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; Software Foundation Inc., 51 Franklin Street, Fifth Floor, Boston,
+;; MA 02110-1301, USA.
 ;; 
 ;; okuri-ari entries.
 
@@ -54582,4 +54583,5 @@
 ;;
 (provide 'ja-dic)
 
+;;; arch-tag: 18f1f3f5-d706-4c5d-bdac-a6a762de287d
 ;;; ja-dic.el ends here

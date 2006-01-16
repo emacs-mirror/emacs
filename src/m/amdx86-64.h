@@ -1,5 +1,5 @@
 /* machine description file for AMD x86-64.
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The following line tells the configuration script what sort of
@@ -97,25 +97,41 @@ Boston, MA 02111-1307, USA.  */
 
 #define PNTR_COMPARISON_TYPE unsigned long
 
-/* On the 64 bit architecture, we can use 60 bits for addresses */
-
-#define VALBITS         60
-
-/* This definition of MARKBIT is necessary because of the comparison of
-   ARRAY_MARK_FLAG and MARKBIT in an #if in lisp.h, which cpp doesn't like. */
-
-#define MARKBIT         0x8000000000000000L
-
-/* Define XINT and XUINT so that they can take arguments of type int */
-#define XINT(a)  (((long) (a) << (BITS_PER_LONG - VALBITS)) >> (BITS_PER_LONG - VALBITS))
-#define XUINT(a) ((long) (a) & VALMASK)
-
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
+#undef DATA_SEG_BITS
 
-#define XPNTR(a) XUINT (a)
+#ifdef __FreeBSD__
+
+/* The libraries for binaries native to the build host's architecture are
+   installed under /usr/lib in FreeBSD, and the ones that need special paths
+   are 32-bit compatibility libraries (installed under /usr/lib32).  To build
+   a native binary of Emacs on FreeBSD/amd64 we can just point to /usr/lib.  */
+
+#undef START_FILES
+#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
+
+/* The duplicate -lgcc is intentional in the definition of LIB_STANDARD.
+   The reason is that some functions in libgcc.a call functions from libc.a,
+   and some libc.a functions need functions from libgcc.a.  Since most
+   versions of ld are one-pass linkers, we need to mention -lgcc twice,
+   or else we risk getting unresolved externals.  */
+#undef LIB_STANDARD
+#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
+
+#else /* !__FreeBSD__ */
 
 #undef START_FILES
 #define START_FILES pre-crt0.o /usr/lib64/crt1.o /usr/lib64/crti.o
 
+/* The duplicate -lgcc is intentional in the definition of LIB_STANDARD.
+   The reason is that some functions in libgcc.a call functions from libc.a,
+   and some libc.a functions need functions from libgcc.a.  Since most
+   versions of ld are one-pass linkers, we need to mention -lgcc twice,
+   or else we risk getting unresolved externals.  */
 #undef LIB_STANDARD
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib64/crtn.o
+
+#endif /* __FreeBSD__ */
+
+/* arch-tag: 8a5e001d-e12e-4692-a3a6-0b15ba271c6e
+   (do not change this comment) */

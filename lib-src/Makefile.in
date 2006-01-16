@@ -1,6 +1,6 @@
 # Makefile for lib-src subdirectory in GNU Emacs.
-# Copyright (C) 1985, 1987, 1988, 1993, 1994, 2002, 2003
-#  Free Software Foundation, Inc.
+# Copyright (C) 1985, 1987, 1988, 1993, 1994, 2002, 2003, 2004,
+#               2005 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -16,8 +16,8 @@
 
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 
 # Avoid trouble on systems where the `SHELL' variable might be
 # inherited from the environment.
@@ -27,7 +27,6 @@ SHELL = /bin/sh
 
 CC=@CC@
 CFLAGS=@CFLAGS@
-ALLOCA=@ALLOCA@
 version=@version@
 configuration=@configuration@
 EXEEXT=@EXEEXT@
@@ -145,12 +144,6 @@ MOVE_FLAGS=
 #define NOT_C_CODE
 #include "../src/config.h"
 
-/* We won't really call alloca;
-   don't let the file name alloca.c get messed up.  */
-#ifdef alloca
-#undef alloca
-#endif
-
 /* Some machines don\'t find the standard C libraries in the usual place.  */
 #ifndef ORDINARY_LINK
 #ifndef LIB_STANDARD_LIBSRC
@@ -234,8 +227,12 @@ MOVE_FLAGS=
 
 LIBS_MOVE=$(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) $(COM_ERRLIB) $(HESIODLIB)
 
+#ifdef HAVE_LIBLOCKFILE
+LIBS_MAIL=-llockfile
+#else
 #ifdef HAVE_LIBMAIL
 LIBS_MAIL=-lmail
+#endif
 #endif
 
 LOADLIBES=LIBS_SYSTEM LIBS_MACHINE LIB_STANDARD_LIBSRC
@@ -347,7 +344,7 @@ uninstall:
 	 rm -f ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS})
 
 mostlyclean:
-	-rm -f core *.o
+	-rm -f core *.o getopt.h getopt.h-t
 
 clean: mostlyclean
 	-rm -f ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
@@ -385,14 +382,19 @@ test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
 	$(CC) ${ALL_CFLAGS} -o test-distrib ${srcdir}/test-distrib.c
 	./test-distrib ${srcdir}/testfile
 
-GETOPTOBJS = getopt.o getopt1.o $(ALLOCA)
-GETOPTDEPS = $(GETOPTOBJS) ${srcdir}/getopt.h
-getopt.o: ${srcdir}/getopt.c ${srcdir}/getopt.h
+/* We need the following in order to create a <getopt.h> when the system
+   doesn't have one that works with the given compiler.  */
+GETOPT_H = @GETOPT_H@
+getopt.h: getopt_.h
+	cp $(srcdir)/getopt_.h $@-t
+	mv $@-t $@
+
+GETOPTOBJS = @GETOPTOBJS@
+GETOPTDEPS = $(GETOPTOBJS) $(GETOPT_H)
+getopt.o: ${srcdir}/getopt.c $(GETOPT_H) ${srcdir}/gettext.h
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt.c
-getopt1.o: ${srcdir}/getopt1.c ${srcdir}/getopt.h
+getopt1.o: ${srcdir}/getopt1.c $(GETOPT_H)
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt1.c
-alloca.o: ${srcdir}/alloca.c
-	${CC} -Demacs -c ${BASE_CFLAGS} ${srcdir}/alloca.c
 
 #ifdef REGEXP_IN_LIBC
 REGEXPOBJ =
@@ -425,8 +427,8 @@ make-docfile${EXEEXT}: ${srcdir}/make-docfile.c ../src/config.h
 digest-doc${EXEEXT}: ${srcdir}/digest-doc.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/digest-doc.c $(LOADLIBES) -o digest-doc
 
-sorted-doc${EXEEXT}: ${srcdir}/sorted-doc.c ${ALLOCA}
-	$(CC) ${ALL_CFLAGS} ${srcdir}/sorted-doc.c ${ALLOCA} $(LOADLIBES) -o sorted-doc
+sorted-doc${EXEEXT}: ${srcdir}/sorted-doc.c
+	$(CC) ${ALL_CFLAGS} ${srcdir}/sorted-doc.c $(LOADLIBES) -o sorted-doc
 
 b2m${EXEEXT}: ${srcdir}/b2m.c ../src/config.h $(GETOPTDEPS)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/b2m.c  -DVERSION="\"${version}\"" \
@@ -435,7 +437,7 @@ b2m${EXEEXT}: ${srcdir}/b2m.c ../src/config.h $(GETOPTDEPS)
 movemail${EXEEXT}: movemail.o pop.o $(GETOPTDEPS)
 	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(GETOPTOBJS) $(LOADLIBES) $(LIBS_MAIL) $(LIBS_MOVE) -o movemail
 
-movemail.o: ${srcdir}/movemail.c ../src/config.h
+movemail.o: ${srcdir}/movemail.c ../src/config.h $(GETOPT_H)
 	$(CC) -c ${CPP_CFLAGS} -Demacs ${MOVE_FLAGS} ${srcdir}/movemail.c
 
 pop.o: ${srcdir}/pop.c  ../src/config.h
@@ -452,16 +454,18 @@ yow${EXEEXT}: ${srcdir}/yow.c ../src/epaths.h
 
 emacsclient${EXEEXT}: ${srcdir}/emacsclient.c ../src/config.h $(GETOPTDEPS)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c $(GETOPTOBJS)  \
-	   -DVERSION=`sed -n -e '/(defconst emacs-version/ s/^[^"]*\("[^"]*"\).*/\1/p' ${srcdir}/../lisp/version.el` \
+	   -DVERSION="\"${version}\"" \
 	   $(LOADLIBES) -o emacsclient
 
 hexl${EXEEXT}: ${srcdir}/hexl.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
-update-game-score${EXEEXT}: ${srcdir}/update-game-score.c ../src/config.h
-	$(CC) ${ALL_CFLAGS} ${srcdir}/update-game-score.c \
-	  -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\"" \
-	  $(LOADLIBES) -o update-game-score
+update-game-score${EXEEXT}: update-game-score.o $(GETOPTDEPS)
+	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} update-game-score.o $(GETOPTOBJS) $(LOADLIBES) -o update-game-score
+
+update-game-score.o: ${srcdir}/update-game-score.c ../src/config.h $(GETOPT_H)
+	$(CC) -c ${CPP_CFLAGS} ${srcdir}/update-game-score.c \
+	  -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\""
 
 /* These are NOT included in INSTALLABLES or UTILITIES.
    See ../src/Makefile.in.  */

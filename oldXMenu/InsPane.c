@@ -1,7 +1,7 @@
 #include "copyright.h"
 
-/* $Header: /cvs/emacs/oldXMenu/InsPane.c,v 1.1 1999/10/03 19:35:04 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
  * XMenu:	MIT Project Athena, X Window system menu package
@@ -110,3 +110,6 @@ XMenuInsertPane(menu, p_num, label, active)
     _XMErrorCode = XME_NO_ERROR;
     return(p_num);
 }
+
+/* arch-tag: ab94d53d-f05b-4273-82d3-f1b01eb9dc9e
+   (do not change this comment) */

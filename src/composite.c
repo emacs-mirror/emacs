@@ -1,7 +1,8 @@
 /* Composite sequence support.
-   Copyright (C) 1999 Electrotechnical Laboratory, JAPAN.
-   Licensed to the Free Software Foundation.
-   Copyright (C) 2001 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H14PRO021
 
 This file is part of GNU Emacs.
 
@@ -17,8 +18,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
 #include "lisp.h"
@@ -589,123 +590,6 @@ compose_text (start, end, components, modification_func, string)
 		       Qcomposition, prop, string);
 }
 
-/* Compose sequences of characters in the region between START and END
-   by functions registered in Vcomposition_function_table.  If STRING
-   is non-nil, operate on characters contained between indices START
-   and END in STRING.  */
-
-void
-compose_chars_in_text (start, end, string)
-     int start, end;
-     Lisp_Object string;
-{
-  int count = 0;
-  struct gcpro gcpro1;
-  Lisp_Object tail, elt, val, to;
-  /* Set to nonzero if we don't have to compose ASCII characters.  */
-  int skip_ascii;
-  int i, len, stop, c;
-  const unsigned char *ptr, *pend;
-
-  if (! CHAR_TABLE_P (Vcomposition_function_table))
-    return;
-
-  if (STRINGP (string))
-    {
-      count = SPECPDL_INDEX ();
-      GCPRO1 (string);
-      stop = end;
-      ptr = SDATA (string) + string_char_to_byte (string, start);
-      pend = ptr + SBYTES (string);
-    }
-  else
-    {
-      record_unwind_protect (save_excursion_restore, save_excursion_save ());
-      TEMP_SET_PT (start);
-      stop = (start < GPT && GPT < end ? GPT : end);
-      ptr = CHAR_POS_ADDR (start);
-      pend = CHAR_POS_ADDR (end);
-    }
-
-  /* Preserve the match data.  */
-  record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
-
-  /* If none of ASCII characters have composition functions, we can
-     skip them quickly.  */
-  for (i = 0; i < 128; i++)
-    if (!NILP (CHAR_TABLE_REF (Vcomposition_function_table, i)))
-      break;
-  skip_ascii = (i == 128);
-
-
-  while (1)
-    {
-      if (skip_ascii)
-	while (start < stop && ASCII_BYTE_P (*ptr))
-	  start++, ptr++;
-
-      if (start >= stop)
-	{
-	  if (stop == end || start >= end)
-	    break;
-	  stop = end;
-	  if (STRINGP (string))
-	    ptr = SDATA (string) + string_char_to_byte (string, start);
-	  else
-	    ptr = CHAR_POS_ADDR (start);
-	}
-
-      c = STRING_CHAR_AND_LENGTH (ptr, pend - ptr, len);
-      tail = CHAR_TABLE_REF (Vcomposition_function_table, c);
-      while (CONSP (tail))
-	{
-	  elt = XCAR (tail);
-	  if (CONSP (elt)
-	      && STRINGP (XCAR (elt))
-	      && !NILP (Ffboundp (XCDR (elt))))
-	    {
-	      if (STRINGP (string))
-		val = Fstring_match (XCAR (elt), string, make_number (start));
-	      else
-		{
-		  val = Flooking_at (XCAR (elt));
-		  if (!NILP (val))
-		    val = make_number (start);
-		}
-	      if (INTEGERP (val) && XFASTINT (val) == start)
-		{
-		  to = Fmatch_end (make_number (0));
-		  val = call4 (XCDR (elt), val, to, XCAR (elt), string);
-		  if (INTEGERP (val) && XINT (val) > 1)
-		    {
-		      start += XINT (val);
-		      if (STRINGP (string))
-			ptr = SDATA (string) + string_char_to_byte (string, start);
-		      else
-			ptr = CHAR_POS_ADDR (start);
-		    }
-		  else
-		    {
-		      start++;
-		      ptr += len;
-		    }
-		  break;
-		}
-	    }
-	  tail = XCDR (tail);
-	}
-      if (!CONSP (tail))
-	{
-	  /* No composition done.  Try the next character.  */
-	  start++;
-	  ptr += len;
-	}
-    }
-
-  unbind_to (count, Qnil);
-  if (STRINGP (string))
-    UNGCPRO;
-}
 
 /* Emacs Lisp APIs.  */
 
@@ -716,8 +600,8 @@ DEFUN ("compose-region-internal", Fcompose_region_internal,
 Compose text in the region between START and END.
 Optional 3rd and 4th arguments are COMPONENTS and MODIFICATION-FUNC
 for the composition.  See `compose-region' for more detail.  */)
-     (start, end, components, mod_func)
-     Lisp_Object start, end, components, mod_func;
+     (start, end, components, modification_func)
+     Lisp_Object start, end, components, modification_func;
 {
   validate_region (&start, &end);
   if (!NILP (components)
@@ -726,7 +610,7 @@ for the composition.  See `compose-region' for more detail.  */)
       && !STRINGP (components))
     CHECK_VECTOR (components);
 
-  compose_text (XINT (start), XINT (end), components, mod_func, Qnil);
+  compose_text (XINT (start), XINT (end), components, modification_func, Qnil);
   return Qnil;
 }
 
@@ -737,8 +621,8 @@ DEFUN ("compose-string-internal", Fcompose_string_internal,
 Compose text between indices START and END of STRING.
 Optional 4th and 5th arguments are COMPONENTS and MODIFICATION-FUNC
 for the composition.  See `compose-string' for more detail.  */)
-     (string, start, end, components, mod_func)
-     Lisp_Object string, start, end, components, mod_func;
+     (string, start, end, components, modification_func)
+     Lisp_Object string, start, end, components, modification_func;
 {
   CHECK_STRING (string);
   CHECK_NUMBER (start);
@@ -749,7 +633,7 @@ for the composition.  See `compose-string' for more detail.  */)
       || XINT (end) > SCHARS (string))
     args_out_of_range (start, end);
 
-  compose_text (XINT (start), XINT (end), components, mod_func, string);
+  compose_text (XINT (start), XINT (end), components, modification_func, string);
   return string;
 }
 
@@ -842,8 +726,13 @@ syms_of_composite ()
 
     args[0] = QCtest;
     args[1] = Qequal;
+    /* We used to make the hash table weak so that unreferenced
+       compostions can be garbage-collected.  But, usually once
+       created compositions are repeatedly used in an Emacs session,
+       and thus it's not worth to save memory in such a way.  So, we
+       make the table not weak.  */
     args[2] = QCweakness;
-    args[3] = Qt;
+    args[3] = Qnil;
     args[4] = QCsize;
     args[5] = make_number (311);
     composition_hash_table = Fmake_hash_table (6, args);
@@ -896,3 +785,6 @@ the composition gets invalid after a change in a buffer.  */);
   defsubr (&Scompose_string_internal);
   defsubr (&Sfind_composition_internal);
 }
+
+/* arch-tag: 79cefaf8-ca48-4eed-97e5-d5afb290d272
+   (do not change this comment) */

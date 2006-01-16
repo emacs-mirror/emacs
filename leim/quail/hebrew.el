@@ -1,7 +1,8 @@
 ;;; hebrew.el --- Quail package for inputting Hebrew characters  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1998 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1999
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: mule, input method, Hebrew
 
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -35,10 +36,10 @@ Based on Hebrew typewriter keys.
 Hebrew letters are assigned to lowercases.
 " nil t t t t nil nil nil nil nil t)
 
-;;  1! 2@ 3# 4$ 5% 6^ 7& 8* 9( 0) _- += ~;
-;;   /Q 'W ,Hw(BE ,Hx(BR ,H`(BT ,Hh(BY ,He(BU ,Ho(BI ,Hm(BO ,Ht(BP {[ {]
-;;    ,Hy(BA ,Hc(BS ,Hb(BD ,Hk(BF ,Hr(BG ,Hi(BH ,Hg(BJ ,Hl(BK ,Hj(BL :,Hs(B ", |\
-;;     ,Hf(BZ ,Hq(BX ,Ha(BC ,Hd(BV ,Hp(BB ,Hn(BN ,Hv(BM <,Hz(B >,Hu(B ?.
+;;  1! 2@ 3# 4$ 5% 6^ 7& 8* 9( 0) -_ =+ ;~
+;;   /Q 'W ,Hw(BE ,Hx(BR ,H`(BT ,Hh(BY ,He(BU ,Ho(BI ,Hm(BO ,Ht(BP [{ ]}
+;;    ,Hy(BA ,Hc(BS ,Hb(BD ,Hk(BF ,Hr(BG ,Hi(BH ,Hg(BJ ,Hl(BK ,Hj(BL ,Hs(B: ," \|
+;;     ,Hf(BZ ,Hq(BX ,Ha(BC ,Hd(BV ,Hp(BB ,Hn(BN ,Hv(BM ,Hz(B< ,Hu(B> .?
 ;;
 
 (quail-define-rules
@@ -75,4 +76,5 @@ Hebrew letters are assigned to lowercases.
  ("/" ?.)
  ("'" ?,))
 
+;;; arch-tag: 771b887d-15af-4a4d-b4ce-a4a86f5ca0cf
 ;;; hebrew.el ends here

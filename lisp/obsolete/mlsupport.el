@@ -1,6 +1,6 @@
 ;;; mlsupport.el --- run-time support for mocklisp code
 
-;; Copyright (C) 1985 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: extensions
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -321,15 +321,15 @@
   "Mocklisp compatibility variable; 1 means pass -f when calling csh.")
 
 (defun filter-region (command)
-  (let ((shell (if (/= use-users-shell 0) shell-file-name "/bin/sh"))
-	(csh (equal (file-name-nondirectory shell) "csh")))
+  (let* ((shell (if (/= use-users-shell 0) shell-file-name "/bin/sh"))
+         (csh (equal (file-name-nondirectory shell) "csh")))
     (call-process-region (point) (mark) shell t t nil
 			 (if (and csh use-csh-option-f) "-cf" "-c")
 			 (concat "exec " command))))
 
 (defun execute-monitor-command (command)
-  (let ((shell (if (/= use-users-shell 0) shell-file-name "/bin/sh"))
-	(csh (equal (file-name-nondirectory shell) "csh")))
+  (let* ((shell (if (/= use-users-shell 0) shell-file-name "/bin/sh"))
+         (csh (equal (file-name-nondirectory shell) "csh")))
     (call-process shell nil t t
 		  (if (and csh use-csh-option-f) "-cf" "-c")
 		  (concat "exec " command))))
@@ -432,4 +432,5 @@
 
 (provide 'mlsupport)
 
+;;; arch-tag: b0ad09bc-8cb2-4be0-8888-2e874839bcbc
 ;;; mlsupport.el ends here

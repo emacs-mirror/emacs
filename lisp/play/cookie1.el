@@ -1,6 +1,6 @@
 ;;; cookie1.el --- retrieve random phrases from fortune cookie files
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -168,4 +168,5 @@ Optional fifth arg REQUIRE-MATCH non-nil forces a matching cookie."
 
 (provide 'cookie1)
 
+;;; arch-tag: 4a8a8712-df6a-4f34-b030-108a1b47f9f2
 ;;; cookie1.el ends here

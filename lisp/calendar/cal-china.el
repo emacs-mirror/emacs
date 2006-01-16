@@ -1,8 +1,10 @@
 ;;; cal-china.el --- calendar functions for the Chinese calendar
 
-;; Copyright (C) 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: Chinese calendar, calendar, holidays, diary
 
@@ -20,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -38,8 +40,8 @@
 ;; The date of Chinese New Year is correct from 1644-2051.
 
 ;; Technical details of all the calendrical calculations can be found in
-;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
-;; Cambridge University Press (1997).
+;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
+;; and Nachum Dershowitz, Cambridge University Press (2001).
 
 ;; Comments, corrections, and improvements should be sent to
 ;;  Edward M. Reingold               Department of Computer Science
@@ -48,6 +50,10 @@
 ;;                                   Urbana, Illinois 61801
 
 ;;; Code:
+
+(defvar date)
+(defvar displayed-month)
+(defvar displayed-year)
 
 (require 'lunar)
 
@@ -498,4 +504,5 @@ Echo Chinese date unless NOECHO is t."
 
 (provide 'cal-china)
 
+;;; arch-tag: 7e5b7e0d-676c-47e3-8696-93e7ea0ab644
 ;;; cal-china.el ends here

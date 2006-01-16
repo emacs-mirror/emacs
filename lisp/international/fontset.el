@@ -1,8 +1,9 @@
 ;;; fontset.el --- commands for handling fontset
 
-;; Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: mule, multilingual, fontset
 
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -42,86 +43,103 @@
 
 (defun setup-default-fontset ()
   "Setup the default fontset."
-  (dolist
-      (elt
-       ;; Eval this at compile-time, since fontset.el is always loaded
-       ;; when run under X and this would always load ind-util.el as well.
-       (eval-when-compile
-	 `((latin-iso8859-1 . (nil . "ISO8859-1"))
-	   (latin-iso8859-2 . (nil . "ISO8859-2"))
-	   (latin-iso8859-3 . (nil . "ISO8859-3"))
-	   (latin-iso8859-4 . (nil . "ISO8859-4"))
-	   (thai-tis620 . ("*" . "TIS620"))
-	   (greek-iso8859-7 . ("*" . "ISO8859-7"))
-	   (arabic-iso8859-6 . ("*" . "ISO8859-6"))
-	   (hebrew-iso8859-8 . ("*" . "ISO8859-8"))
-	   (katakana-jisx0201 . ("*" . "JISX0201"))
-	   (latin-jisx0201 . (nil . "JISX0201"))
-	   (cyrillic-iso8859-5 . ("*" . "ISO8859-5"))
-	   (latin-iso8859-9 . (nil . "ISO8859-9"))
-	   (japanese-jisx0208-1978 . ("*" . "JISX0208.1978"))
-	   (chinese-gb2312 . ("*" . "GB2312.1980"))
-	   (japanese-jisx0208 . ("*" . "JISX0208.1990"))
-	   (korean-ksc5601 . ("*" . "KSC5601.1989"))
-	   (japanese-jisx0212 . ("*" . "JISX0212"))
-	   (chinese-cns11643-1 . ("*" . "CNS11643.1992-1"))
-	   (chinese-cns11643-2 . ("*" . "CNS11643.1992-2"))
-	   (chinese-cns11643-3 . ("*" . "CNS11643.1992-3"))
-	   (chinese-cns11643-4 . ("*" . "CNS11643.1992-4"))
-	   (chinese-cns11643-5 . ("*" . "CNS11643.1992-5"))
-	   (chinese-cns11643-6 . ("*" . "CNS11643.1992-6"))
-	   (chinese-cns11643-7 . ("*" . "CNS11643.1992-7"))
-	   (chinese-big5-1 . ("*" . "Big5"))
-	   (chinese-big5-2 . ("*" . "Big5"))
-	   (chinese-sisheng . (nil . "sisheng_cwnn"))
-	   (vietnamese-viscii-lower . (nil . "VISCII1.1"))
-	   (vietnamese-viscii-upper . (nil . "VISCII1.1"))
-	   (arabic-digit . ("*" . "MuleArabic-0"))
-	   (arabic-1-column . ("*" . "MuleArabic-1"))
-	   (arabic-2-column . ("*" . "MuleArabic-2"))
-	   (ipa . (nil . "MuleIPA"))
-	   (ethiopic . ("*" . "Ethiopic-Unicode"))
-	   (ascii-right-to-left . (nil . "ISO8859-1"))
-	   (indian-is13194 . ("*" . "IS13194-Devanagari"))
-	   (indian-2-column . ("*" . "MuleIndian-2"))
-	   (lao . ("*" . "MuleLao-1"))
-	   (tibetan . ("proportional" . "MuleTibetan-2"))
-	   (tibetan-1-column . ("*" . "MuleTibetan-1"))
-	   (latin-iso8859-14 . (nil . "ISO8859-14"))
-	   (latin-iso8859-15 . (nil . "ISO8859-15"))
-	   (mule-unicode-0100-24ff . (nil . "ISO10646-1"))
-	   (mule-unicode-2500-33ff . (nil . "ISO10646-1"))
-	   (mule-unicode-e000-ffff . (nil . "ISO10646-1"))
-	   (japanese-jisx0213-1 . ("*" . "JISX0213.2000-1"))
-	   (japanese-jisx0213-2 . ("*" . "JISX0213.2000-2"))
-           ;; unicode
-           ((,(decode-char 'ucs #x0900)
-	     . ,(decode-char 'ucs #x097F)) . ("*" . "ISO10646.indian-1"))
-           ;; indian
-	   (indian-glyph . ("*" . "Devanagari-CDAC"))
-	   ((,(indian-glyph-char 0 'devanagari)
-	     . ,(indian-glyph-char 255 'devanagari)) . ("*" . "Devanagari-CDAC"))
-	   ((,(indian-glyph-char 0 'sanskrit)
-	     . ,(indian-glyph-char 255 'sanskrit)) . ("*" . "Sanskrit-CDAC"))
-	   ((,(indian-glyph-char 0 'bengali)
-	     . ,(indian-glyph-char 255 'bengali)) . ("*" . "Bengali-CDAC"))
-	   ((,(indian-glyph-char 0 'assamese)
-	     . ,(indian-glyph-char 255 'assamese)) . ("*" . "Assamese-CDAC"))
-	   ((,(indian-glyph-char 0 'punjabi)
-	     . ,(indian-glyph-char 255 'punjabi)) . ("*" . "Punjabi-CDAC"))
-	   ((,(indian-glyph-char 0 'gujarati)
-	     . ,(indian-glyph-char 255 'gujarati)) . ("*" . "Gujarati-CDAC"))
-	   ((,(indian-glyph-char 0 'oriya)
-	     . ,(indian-glyph-char 255 'oriya)) . ("*" . "Oriya-CDAC"))
-	   ((,(indian-glyph-char 0 'tamil)
-	     . ,(indian-glyph-char 255 'tamil)) . ("*" . "Tamil-CDAC"))
-	   ((,(indian-glyph-char 0 'telugu)
-	     . ,(indian-glyph-char 255 'telugu)) . ("*" . "Telugu-CDAC"))
-	   ((,(indian-glyph-char 0 'kannada)
-	     . ,(indian-glyph-char 255 'kannada)) . ("*" . "Kannada-CDAC"))
-	   ((,(indian-glyph-char 0 'malayalam)
-	     . ,(indian-glyph-char 255 'malayalam)) . ("*" . "Malayalam-CDAC"))
-	   )))
+  (dolist (elt
+	   `((latin-iso8859-1 . (nil . "ISO8859-1"))
+	     (latin-iso8859-2 . (nil . "ISO8859-2"))
+	     (latin-iso8859-3 . (nil . "ISO8859-3"))
+	     (latin-iso8859-4 . (nil . "ISO8859-4"))
+	     ;; Setting "*" family is for a workaround of the problem
+	     ;; that a font of wrong size is preferred if the font
+	     ;; family matches with a requested one.
+	     (thai-tis620 . ("*" . "TIS620"))
+	     (greek-iso8859-7 . (nil . "ISO8859-7"))
+	     (arabic-iso8859-6 . (nil . "ISO8859-6"))
+	     (hebrew-iso8859-8 . (nil . "ISO8859-8"))
+	     (katakana-jisx0201 . (nil . "JISX0201"))
+	     (latin-jisx0201 . (nil . "JISX0201"))
+	     (cyrillic-iso8859-5 . (nil . "ISO8859-5"))
+	     (latin-iso8859-9 . (nil . "ISO8859-9"))
+	     (japanese-jisx0208-1978 . (nil . "JISX0208.1978"))
+	     (chinese-gb2312 . (nil . "GB2312.1980"))
+	     (japanese-jisx0208 . (nil . "JISX0208.1990"))
+	     (korean-ksc5601 . (nil . "KSC5601.1989"))
+	     (japanese-jisx0212 . (nil . "JISX0212"))
+	     (chinese-cns11643-1 . (nil . "CNS11643.1992-1"))
+	     (chinese-cns11643-2 . (nil . "CNS11643.1992-2"))
+	     (chinese-cns11643-3 . (nil . "CNS11643.1992-3"))
+	     (chinese-cns11643-4 . (nil . "CNS11643.1992-4"))
+	     (chinese-cns11643-5 . (nil . "CNS11643.1992-5"))
+	     (chinese-cns11643-6 . (nil . "CNS11643.1992-6"))
+	     (chinese-cns11643-7 . (nil . "CNS11643.1992-7"))
+	     (chinese-big5-1 . (nil . "Big5"))
+	     (chinese-big5-2 . (nil . "Big5"))
+	     (chinese-sisheng . (nil . "sisheng_cwnn"))
+	     (vietnamese-viscii-lower . (nil . "VISCII1.1"))
+	     (vietnamese-viscii-upper . (nil . "VISCII1.1"))
+	     (arabic-digit . (nil . "MuleArabic-0"))
+	     (arabic-1-column . (nil . "MuleArabic-1"))
+	     (arabic-2-column . (nil . "MuleArabic-2"))
+	     (ipa . (nil . "MuleIPA"))
+	     (ethiopic . (nil . "Ethiopic-Unicode"))
+	     (ascii-right-to-left . (nil . "ISO8859-1"))
+	     (indian-is13194 . (nil . "IS13194-Devanagari"))
+	     (indian-2-column . (nil . "MuleIndian-2"))
+	     (lao . (nil . "MuleLao-1"))
+	     (tibetan . ("proportional" . "MuleTibetan-2"))
+	     (tibetan-1-column . (nil . "MuleTibetan-1"))
+	     (latin-iso8859-14 . (nil . "ISO8859-14"))
+	     (latin-iso8859-15 . (nil . "ISO8859-15"))
+	     (mule-unicode-0100-24ff . (nil . "ISO10646-1"))
+	     (mule-unicode-2500-33ff . (nil . "ISO10646-1"))
+	     (mule-unicode-e000-ffff . (nil . "ISO10646-1"))
+	     (japanese-jisx0213-1 . (nil . "JISX0213.2000-1"))
+	     (japanese-jisx0213-2 . (nil . "JISX0213.2000-2"))
+	     ;; unicode
+	     ((,(decode-char 'ucs #x0900) . ,(decode-char 'ucs #x097F))
+	      . (nil . "ISO10646.indian-1"))
+	     ;; Indian CDAC
+	     (,(indian-font-char-range 'cdac:dv-ttsurekh)
+	      . (nil . "Devanagari-CDAC"))
+	     (,(indian-font-char-range 'cdac:sd-ttsurekh)
+	      . (nil . "Sanskrit-CDAC"))
+	     (,(indian-font-char-range 'cdac:bn-ttdurga)
+	      . (nil . "Bengali-CDAC"))
+	     (,(indian-font-char-range 'cdac:as-ttdurga)
+	      . (nil . "Assamese-CDAC"))
+	     (,(indian-font-char-range 'cdac:pn-ttamar)
+	      . (nil . "Punjabi-CDAC"))
+	     (,(indian-font-char-range 'cdac:gj-ttavantika)
+	      . (nil . "Gujarati-CDAC"))
+	     (,(indian-font-char-range 'cdac:or-ttsarala)
+	      . (nil . "Oriya-CDAC"))
+	     (,(indian-font-char-range 'cdac:tm-ttvalluvar)
+	      . (nil . "Tamil-CDAC"))
+	     (,(indian-font-char-range 'cdac:tl-tthemalatha)
+	      . (nil . "Telugu-CDAC"))
+	     (,(indian-font-char-range 'cdac:kn-ttuma)
+	      . (nil . "Kannada-CDAC"))
+	     (,(indian-font-char-range 'cdac:ml-ttkarthika)
+	      . (nil . "Malayalam-CDAC"))
+	     ;; Indian AKRUTI
+	     (,(indian-font-char-range 'akruti:dev)
+	      . (nil . "Devanagari-Akruti"))
+	     (,(indian-font-char-range 'akruti:bng)
+	      . (nil . "Bengali-Akruti"))
+	     (,(indian-font-char-range 'akruti:pnj)
+	      . (nil . "Punjabi-Akruti"))
+	     (,(indian-font-char-range 'akruti:guj)
+	      . (nil . "Gujarati-Akruti"))
+	     (,(indian-font-char-range 'akruti:ori)
+	      . (nil . "Oriay-Akruti"))
+	     (,(indian-font-char-range 'akruti:tml)
+	      . (nil . "Tamil-Akruti"))
+	     (,(indian-font-char-range 'akruti:tlg)
+	      . (nil . "Telugu-Akruti"))
+	     (,(indian-font-char-range 'akruti:knd)
+	      . (nil . "Kannada-Akruti"))
+	     (,(indian-font-char-range 'akruti:mal)
+	      . (nil . "Malayalam-Akruti"))
+	     ))
     (set-fontset-font "fontset-default" (car elt) (cdr elt))))
 
 ;; Set arguments in `font-encoding-alist' (which see).
@@ -155,39 +173,42 @@
        ((if (r2 >= 0)
 	    ;; This is a 2D charset.
 	    (r1 = ((r1 << 7) | r2)))
-	(lookup-character ucs-mule-cjk-to-unicode r0 r1)
+	(lookup-character utf-subst-table-for-encode r0 r1)
 	(if r7
 	    ;; We got it!
 	    ((r1 = (r0 >> 8))
 	     (r2 = (r0 & #xFF)))
 	  ;; Look for a translation for non-ASCII chars.
 	  ((translate-character ucs-mule-to-mule-unicode r0 r1)
-	   (if (r0 == ,(charset-id 'latin-iso8859-1))
-	       ((r2 = (r1 + 128))
+	   (if (r0 == ,(charset-id 'ascii))
+	       ((r2 = r1)
 		(r1 = 0))
-	     ((r2 = (r1 & #x7F))
-	      (r1 >>= 7)
-	      (if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
-		  ((r1 *= 96)
-		   (r1 += r2)
-		   (r1 += ,(- #x100 (* 32 96) 32))
-		   (r1 >8= 0)
-		   (r2 = r7))
-		(if (r0 == ,(charset-id 'mule-unicode-2500-33ff))
-		    ((r1 *= 96)
-		     (r1 += r2)
-		     (r1 += ,(- #x2500 (* 32 96) 32))
-		     (r1 >8= 0)
-		     (r2 = r7))
-		  (if (r0 == ,(charset-id 'mule-unicode-e000-ffff))
-		      ((r1 *= 96)
-		       (r1 += r2)
-		       (r1 += ,(- #xe000 (* 32 96) 32))
-		       (r1 >8= 0)
-		       (r2 = r7))
-		    ;; No way, use the glyph for U+FFFD.
-		    ((r1 = #xFF)
-		     (r2 = #xFD)))))))))))))
+	     ((if (r0 == ,(charset-id 'latin-iso8859-1))
+		  ((r2 = (r1 + 128))
+		   (r1 = 0))
+		((r2 = (r1 & #x7F))
+		 (r1 >>= 7)
+		 (if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
+		     ((r1 *= 96)
+		      (r1 += r2)
+		      (r1 += ,(- #x100 (* 32 96) 32))
+		      (r1 >8= 0)
+		      (r2 = r7))
+		   (if (r0 == ,(charset-id 'mule-unicode-2500-33ff))
+		       ((r1 *= 96)
+			(r1 += r2)
+			(r1 += ,(- #x2500 (* 32 96) 32))
+			(r1 >8= 0)
+			(r2 = r7))
+		     (if (r0 == ,(charset-id 'mule-unicode-e000-ffff))
+			 ((r1 *= 96)
+			  (r1 += r2)
+			  (r1 += ,(- #xe000 (* 32 96) 32))
+			  (r1 >8= 0)
+			  (r2 = r7))
+		       ;; No way, use the glyph for U+FFFD.
+		       ((r1 = #xFF)
+			(r2 = #xFD)))))))))))))))
   "Encode characters for display with iso10646 font.
 Translate through the translation-hash-table named
 `ucs-mule-cjk-to-unicode' and the translation-table named
@@ -209,6 +230,10 @@ Translate through the translation-hash-table named
 ;; These fonts require vertical centering.
 (setq vertical-centering-font-regexp
       "gb2312\\|jisx0208\\|jisx0212\\|ksc5601\\|cns11643\\|big5")
+
+;; CDAC fonts are actually smaller than their design sizes.
+(setq face-font-rescale-alist
+      '(("-cdac$" . 1.3)))
 
 (defvar x-font-name-charset-alist
   '(("iso8859-1" ascii latin-iso8859-1)
@@ -380,7 +405,7 @@ Value is name of that font."
 	   (aset xlfd-fields index "*")
 	   (setq index (1+ index))))))
     (unless ascii-font
-      (error "No fonts founds"))
+      (error "No fonts found"))
     ascii-font))
 
 
@@ -470,7 +495,7 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
 	      name)
 	  (if (not (string= "fontset" charset))
 	      fontset
-	    (if (> (string-to-int size) 0)
+	    (if (> (string-to-number size) 0)
 		(setq name (format "%s: %s-dot" nickname size))
 	      (setq name nickname))
 	    (cond ((string-match "^medium$" weight)
@@ -553,7 +578,7 @@ It returns a name of the created fontset."
   "Create a fontset from an ASCII font FONT.
 
 Optional 1st arg RESOLVED-FONT is a resolved name of FONT.  If
-omitted, x-resolve-font-name is called to get the resolved name.  At
+omitted, `x-resolve-font-name' is called to get the resolved name.  At
 this time, if FONT is not available, error is signaled.
 
 Optional 2nd arg FONTSET-NAME is a string to be used in
@@ -620,4 +645,5 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;;
 (provide 'fontset)
 
+;;; arch-tag: bb53e629-0234-403c-950e-551e61554849
 ;;; fontset.el ends here

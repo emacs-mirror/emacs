@@ -1,6 +1,7 @@
 ;;; viper-macs.el --- functions implementing keyboard macros for Viper
 
-;; Copyright (C) 1994, 95, 96, 97, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -117,7 +118,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
       (define-key viper-vi-intercept-map "\C-x)" 'viper-end-mapping-kbd-macro)
       (define-key viper-insert-intercept-map "\C-x)" 'viper-end-mapping-kbd-macro)
       (define-key viper-emacs-intercept-map "\C-x)" 'viper-end-mapping-kbd-macro)
-      (message "Mapping %S in %s state.  Hit `C-x )' to complete the mapping"
+      (message "Mapping %S in %s state.  Type macro definition followed by `C-x )'"
 	       (viper-display-macro macro-name)
 	       (if ins "Insert" "Vi")))
     ))
@@ -169,7 +170,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	      ((stringp macro-name)
 	       (setq macro-name (vconcat macro-name)))
 	      (t (setq macro-name (vconcat (prin1-to-string macro-name)))))
-      (message ":map%s <Name>" variant)(sit-for 2)
+      (message ":map%s <Macro Name>" variant)(sit-for 2)
       (while
 	  (not (member key
 		       '(?\C-m ?\n (control m) (control j) return linefeed)))
@@ -178,14 +179,14 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	(if (member
 	     key
 	     '(?\b ?\d '^? '^H (control h) (control \?) backspace delete))
-	    (setq key-seq (subseq key-seq 0 (- (length key-seq) 2))))
+	    (setq key-seq (viper-subseq key-seq 0 (- (length key-seq) 2))))
 	(setq message
 	      (format
 	       ":map%s %s"
 	       variant (if (> (length key-seq) 0)
 			   (prin1-to-string (viper-display-macro key-seq))
 			 "")))
-	(message message)
+	(message "%s" message)
 	(setq event (viper-read-key))
 	;;(setq event (viper-read-event))
 	(setq key
@@ -242,9 +243,9 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	(cond ((member
 		key
 		'(?\b ?\d '^? '^H (control h) (control \?) backspace delete))
-	       (setq key-seq (subseq key-seq 0 (- (length key-seq) 2))))
+	       (setq key-seq (viper-subseq key-seq 0 (- (length key-seq) 2))))
 	      ((member key '(tab (control i) ?\t))
-	       (setq key-seq (subseq key-seq 0 (1- (length key-seq))))
+	       (setq key-seq (viper-subseq key-seq 0 (1- (length key-seq))))
 	       (setq message
 		     (format
 		      ":unmap%s %s"
@@ -262,7 +263,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 			   (prin1-to-string
 			    (viper-display-macro key-seq))
 			 "")))
-	(message message)
+	(message "%s" message)
 	(setq event (viper-read-key))
 	;;(setq event (viper-read-event))
 	(setq key
@@ -329,6 +330,8 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 ;; Accepts as macro names: strings and vectors.
 ;; strings must be strings of characters; vectors must be vectors of keys
 ;; in canonic form.  The canonic form is essentially the form used in XEmacs
+;; More general definitions are inherited by more specific scopes:
+;; global->major mode->buffer. More specific definitions override more general
 (defun viper-record-kbd-macro (macro-name state macro-body &optional scope)
   "Record a Vi macro.  Can be used in `.viper' file to define permanent macros.
 MACRO-NAME is a string of characters or a vector of keys.  STATE is
@@ -439,7 +442,7 @@ If SCOPE is nil, the user is asked to specify the scope."
 		       scope)
 	       viper-custom-file-name))
 
-	  (message msg)
+	  (message "%s" msg)
 	  ))
 
     (setq new-elt
@@ -451,22 +454,22 @@ If SCOPE is nil, the user is asked to specify the scope."
 		       (list (list (cons scope nil)) nil (cons t nil))))))
     (setq old-elt (assoc macro-name (eval macro-alist-var)))
 
-      (if (null old-elt)
-	  (progn
-	    ;; insert new-elt in macro-alist-var and keep the list sorted
-	    (define-key
-	      keymap
-	      (vector (viper-key-to-emacs-key (aref macro-name 0)))
-	      'viper-exec-mapped-kbd-macro)
-	    (setq lis (eval macro-alist-var))
-	    (while (and lis (string< (viper-array-to-string (car (car lis)))
-				     (viper-array-to-string macro-name)))
-	      (setq lis2 (cons (car lis) lis2))
-	      (setq lis (cdr lis)))
-
-	    (setq lis2 (reverse lis2))
-	    (set macro-alist-var (append lis2 (cons new-elt lis)))
-	    (setq old-elt new-elt)))
+    (if (null old-elt)
+	(progn
+	  ;; insert new-elt in macro-alist-var and keep the list sorted
+	  (define-key
+	    keymap
+	    (vector (viper-key-to-emacs-key (aref macro-name 0)))
+	    'viper-exec-mapped-kbd-macro)
+	  (setq lis (eval macro-alist-var))
+	  (while (and lis (string< (viper-array-to-string (car (car lis)))
+				   (viper-array-to-string macro-name)))
+	    (setq lis2 (cons (car lis) lis2))
+	    (setq lis (cdr lis)))
+	  
+	  (setq lis2 (reverse lis2))
+	  (set macro-alist-var (append lis2 (cons new-elt lis)))
+	  (setq old-elt new-elt)))
     (setq old-sub-elt
 	  (cond ((eq scope t) (viper-kbd-global-pair old-elt))
 		((symbolp scope) (assoc scope (viper-kbd-mode-alist old-elt)))
@@ -484,6 +487,11 @@ If SCOPE is nil, the user is asked to specify the scope."
 
 
 ;; macro name must be a vector of viper-style keys
+;; viper-unrecord-kbd-macro doesn't have scope. Macro definitions are inherited
+;; from global -> major mode -> buffer
+;; More specific definition overrides more general
+;; Can't unrecord definition for more specific, if a more general definition is
+;; in effect
 (defun viper-unrecord-kbd-macro (macro-name state)
   "Delete macro MACRO-NAME from Viper STATE.
 MACRO-NAME must be a vector of viper-style keys.  This command is used by Viper
@@ -546,7 +554,7 @@ name from there."
 	   (setq macro-pair mode-mapping)
 	   (message "%S is unmapped for %s in %S"
 		    (viper-display-macro macro-name) state-name major-mode))
-	  ((cdr (setq macro-pair (viper-kbd-global-pair macro-entry)))
+	  ((cdr (setq macro-pair global-mapping))
 	   (message
 	    "Global mapping for %S in %s is removed"
 	    (viper-display-macro macro-name) state-name))
@@ -560,7 +568,7 @@ name from there."
 	(progn
 	  (set macro-alist-var (delq macro-entry (eval macro-alist-var)))
 	  (if (viper-can-release-key (aref macro-name 0)
-				   (eval macro-alist-var))
+				     (eval macro-alist-var))
 	      (define-key
 		keymap
 		(vector (viper-key-to-emacs-key (aref macro-name 0)))
@@ -611,7 +619,7 @@ name from there."
 
     (if (null macro-alist-elt)
 	(setq macro-alist-elt (car next-best-match)
-	      unmatched-suffix (subseq event-seq (cdr next-best-match))))
+	      unmatched-suffix (viper-subseq event-seq (cdr next-best-match))))
 
     (cond ((null macro-alist-elt))
 	  ((setq macro-body (viper-kbd-buf-definition macro-alist-elt)))
@@ -694,7 +702,7 @@ name from there."
   (let ((len1 (length seq1))
 	(len2 (length seq2)))
     (if (<= len1 len2)
-	(equal seq1 (subseq seq2 0 len1)))))
+	(equal seq1 (viper-subseq seq2 0 len1)))))
 
 ;; find the longest common prefix
 (defun viper-common-seq-prefix (&rest seqs)
@@ -759,7 +767,7 @@ name from there."
       (setq macro-def (car lis)
 	    def-len (length (car macro-def)))
       (if (and (>= str-len def-len)
-	       (equal (car macro-def) (subseq str 0 def-len)))
+	       (equal (car macro-def) (viper-subseq str 0 def-len)))
 	  (if (or (viper-kbd-buf-definition macro-def)
 		  (viper-kbd-mode-definition macro-def)
 		  (viper-kbd-global-definition macro-def))
@@ -929,4 +937,5 @@ name from there."
     (call-last-kbd-macro)))
 
 
+;;; arch-tag: ecd3cc5c-8cd0-4bbe-b2ec-7e75a4b7d0aa
 ;;; viper-macs.el ends here

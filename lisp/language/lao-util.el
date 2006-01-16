@@ -1,8 +1,9 @@
 ;;; lao-util.el --- utilities for Lao -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, Lao
 
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -615,4 +616,5 @@ The return value is number of composed characters."
 ;;
 (provide 'lao-util)
 
+;;; arch-tag: 1f828781-3cb8-4695-88af-8f33222338ce
 ;;; lao-util.el ends here

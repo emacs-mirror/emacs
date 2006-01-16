@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -43,4 +43,5 @@ South Indian language Malayalam is supported in this language environment."))
 
 (provide 'malayalam)
 
+;;; arch-tag: 5f500e53-1e4f-4bb2-aa93-ad8736f0349f
 ;;; malayalam.el ends here

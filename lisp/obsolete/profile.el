@@ -1,6 +1,7 @@
 ;;; profile.el --- Emacs profiler (OBSOLETE; use elp.el instead)
 
-;; Copyright (C) 1992, 1994, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1998, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Boaz Ben-Zvi <boaz@lcs.mit.edu>
 ;; Created: 07 Feb 1992
@@ -22,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -289,4 +290,5 @@ DEF is (symbol-function FUN)."
 
 (provide 'profile)
 
+;;; arch-tag: 816f97e8-efff-4da2-9a95-7bc392f58b19
 ;;; profile.el ends here

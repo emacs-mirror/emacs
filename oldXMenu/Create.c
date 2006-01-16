@@ -1,5 +1,5 @@
-/* $Header: /cvs/emacs/oldXMenu/Create.c,v 1.1 1999/10/03 19:34:56 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 #include "copyright.h"
 
@@ -759,3 +759,6 @@ XMenuCreate(display, parent, def_env)
   _XMErrorCode = XME_NO_ERROR;
   return(menu);
 }
+
+/* arch-tag: 6945b7d2-3b13-40b9-8b6e-56b1b20f3463
+   (do not change this comment) */

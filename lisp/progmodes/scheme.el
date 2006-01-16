@@ -1,6 +1,7 @@
 ;;; scheme.el --- Scheme (and DSSSL) editing mode
 
-;; Copyright (C) 1986, 87, 88, 97, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987, 1988, 1997, 1998, 2001, 2002, 2003, 2004, 2005
+;;           Free Software Foundation, Inc.
 
 ;; Author: Bill Rozas <jinx@martigny.ai.mit.edu>
 ;; Adapted-by: Dave Love <d.love@dl.ac.uk>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -56,55 +57,60 @@
 (defvar scheme-mode-syntax-table
   (let ((st (make-syntax-table))
 	(i 0))
-    (with-syntax-table st
 
-      ;; Default is atom-constituent.
-      (while (< i 256)
-	(modify-syntax-entry i "_   ")
-	(setq i (1+ i)))
+    ;; Default is atom-constituent.
+    (while (< i 256)
+      (modify-syntax-entry i "_   " st)
+      (setq i (1+ i)))
 
-      ;; Word components.
-      (setq i ?0)
-      (while (<= i ?9)
-	(modify-syntax-entry i "w   ")
-	(setq i (1+ i)))
-      (setq i ?A)
-      (while (<= i ?Z)
-	(modify-syntax-entry i "w   ")
-	(setq i (1+ i)))
-      (setq i ?a)
-      (while (<= i ?z)
-	(modify-syntax-entry i "w   ")
-	(setq i (1+ i)))
+    ;; Word components.
+    (setq i ?0)
+    (while (<= i ?9)
+      (modify-syntax-entry i "w   " st)
+      (setq i (1+ i)))
+    (setq i ?A)
+    (while (<= i ?Z)
+      (modify-syntax-entry i "w   " st)
+      (setq i (1+ i)))
+    (setq i ?a)
+    (while (<= i ?z)
+      (modify-syntax-entry i "w   " st)
+      (setq i (1+ i)))
 
-      ;; Whitespace
-      (modify-syntax-entry ?\t "    ")
-      (modify-syntax-entry ?\n ">   ")
-      (modify-syntax-entry ?\f "    ")
-      (modify-syntax-entry ?\r "    ")
-      (modify-syntax-entry ?  "    ")
+    ;; Whitespace
+    (modify-syntax-entry ?\t "    " st)
+    (modify-syntax-entry ?\n ">   " st)
+    (modify-syntax-entry ?\f "    " st)
+    (modify-syntax-entry ?\r "    " st)
+    (modify-syntax-entry ?\s "    " st)
 
-      ;; These characters are delimiters but otherwise undefined.
-      ;; Brackets and braces balance for editing convenience.
-      (modify-syntax-entry ?\[ "(]  ")
-      (modify-syntax-entry ?\] ")[  ")
-      (modify-syntax-entry ?{ "(}  ")
-      (modify-syntax-entry ?} "){  ")
-      (modify-syntax-entry ?\| "  23")
+    ;; These characters are delimiters but otherwise undefined.
+    ;; Brackets and braces balance for editing convenience.
+    (modify-syntax-entry ?\[ "(]  " st)
+    (modify-syntax-entry ?\] ")[  " st)
+    (modify-syntax-entry ?{ "(}  " st)
+    (modify-syntax-entry ?} "){  " st)
+    (modify-syntax-entry ?\| "\" 23bn" st)
+    ;; Guile allows #! ... !# comments.
+    ;; But SRFI-22 defines the comment as #!...\n instead.
+    ;; Also Guile says that the !# should be on a line of its own.
+    ;; It's too difficult to get it right, for too little benefit.
+    ;; (modify-syntax-entry ?! "_ 2" st)
 
-      ;; Other atom delimiters
-      (modify-syntax-entry ?\( "()  ")
-      (modify-syntax-entry ?\) ")(  ")
-      (modify-syntax-entry ?\; "<   ")
-      (modify-syntax-entry ?\" "\"    ")
-      (modify-syntax-entry ?' "  p")
-      (modify-syntax-entry ?` "  p")
+    ;; Other atom delimiters
+    (modify-syntax-entry ?\( "()  " st)
+    (modify-syntax-entry ?\) ")(  " st)
+    ;; It's used for single-line comments as well as for #;(...) sexp-comments.
+    (modify-syntax-entry ?\; "< 2 " st)
+    (modify-syntax-entry ?\" "\"   " st)
+    (modify-syntax-entry ?' "'   " st)
+    (modify-syntax-entry ?` "'   " st)
 
-      ;; Special characters
-      (modify-syntax-entry ?, "_ p")
-      (modify-syntax-entry ?@ "_ p")
-      (modify-syntax-entry ?# "_ p14")
-      (modify-syntax-entry ?\\ "\\   "))
+    ;; Special characters
+    (modify-syntax-entry ?, "'   " st)
+    (modify-syntax-entry ?@ "'   " st)
+    (modify-syntax-entry ?# "' 14b" st)
+    (modify-syntax-entry ?\\ "\\   " st)
     st))
 
 (defvar scheme-mode-abbrev-table nil)
@@ -145,43 +151,42 @@
   (setq outline-regexp ";;; \\|(....")
   (make-local-variable 'comment-start)
   (setq comment-start ";")
+  (set (make-local-variable 'comment-add) 1)
   (make-local-variable 'comment-start-skip)
   ;; Look within the line for a ; following an even number of backslashes
   ;; after either a non-backslash or the line beginning.
   (setq comment-start-skip "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+[ \t]*")
   (make-local-variable 'comment-column)
   (setq comment-column 40)
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'lisp-comment-indent)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
   (make-local-variable 'lisp-indent-function)
-  (set lisp-indent-function 'scheme-indent-function)
+  (setq lisp-indent-function 'scheme-indent-function)
   (setq mode-line-process '("" scheme-mode-line-process))
   (set (make-local-variable 'imenu-case-fold-search) t)
   (setq imenu-generic-expression scheme-imenu-generic-expression)
   (set (make-local-variable 'imenu-syntax-alist)
 	'(("+-*/.<>=?!$%_&~^:" . "w")))
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
-        '((scheme-font-lock-keywords
-           scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
-          nil t (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
-          (font-lock-mark-block-function . mark-defun))))
+  (set (make-local-variable 'font-lock-defaults)
+       '((scheme-font-lock-keywords
+          scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
+         nil t (("+-*/.<>=!?$%_&~^:" . "w") (?#. "w 14"))
+         beginning-of-defun
+         (font-lock-mark-block-function . mark-defun)
+         (font-lock-syntactic-face-function
+          . scheme-font-lock-syntactic-face-function)
+         (parse-sexp-lookup-properties . t)
+         (font-lock-extra-managed-props syntax-table)))
+  (set (make-local-variable 'lisp-doc-string-elt-property)
+       'scheme-doc-string-elt))
 
 (defvar scheme-mode-line-process "")
 
-(defvar scheme-mode-map nil
-  "Keymap for Scheme mode.
-All commands in `lisp-mode-shared-map' are inherited by this map.")
-
-(unless scheme-mode-map
-  (let ((map (make-sparse-keymap "Scheme")))
-    (setq scheme-mode-map (make-sparse-keymap))
-    (set-keymap-parent scheme-mode-map lisp-mode-shared-map)
-    (define-key scheme-mode-map [menu-bar] (make-sparse-keymap))
-    (define-key scheme-mode-map [menu-bar scheme]
-      (cons "Scheme" map))
+(defvar scheme-mode-map
+  (let ((smap (make-sparse-keymap))
+	(map (make-sparse-keymap "Scheme")))
+    (set-keymap-parent smap lisp-mode-shared-map)
+    (define-key smap [menu-bar scheme] (cons "Scheme" map))
     (define-key map [run-scheme] '("Run Inferior Scheme" . run-scheme))
     (define-key map [uncomment-region]
       '("Uncomment Out Region" . (lambda (beg end)
@@ -192,7 +197,10 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
     (define-key map [indent-line] '("Indent Line" . lisp-indent-line))
     (put 'comment-region 'menu-enable 'mark-active)
     (put 'uncomment-region 'menu-enable 'mark-active)
-    (put 'indent-region 'menu-enable 'mark-active)))
+    (put 'indent-region 'menu-enable 'mark-active)
+    smap)
+  "Keymap for Scheme mode.
+All commands in `lisp-mode-shared-map' are inherited by this map.")
 
 ;; Used by cmuscheme
 (defun scheme-mode-commands (map)
@@ -222,17 +230,15 @@ Entry to this mode calls the value of `scheme-mode-hook'
 if that value is non-nil."
   (interactive)
   (kill-all-local-variables)
-  (scheme-mode-initialize)
-  (scheme-mode-variables)
-  (run-hooks 'scheme-mode-hook))
-
-(defun scheme-mode-initialize ()
   (use-local-map scheme-mode-map)
   (setq major-mode 'scheme-mode)
-  (setq mode-name "Scheme"))
+  (setq mode-name "Scheme")
+  (scheme-mode-variables)
+  (run-mode-hooks 'scheme-mode-hook))
 
 (defgroup scheme nil
-  "Editing Scheme code"
+  "Editing Scheme code."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'lisp)
 
 (defcustom scheme-mit-dialect t
@@ -328,25 +334,67 @@ See `run-hooks'."
 	       "do" "else" "for-each" "if" "lambda"
 	       "let" "let*" "let-syntax" "letrec" "letrec-syntax"
 	       ;; Hannes Haug <hannes.haug@student.uni-tuebingen.de> wants:
-	       "and" "or" "delay"
+	       "and" "or" "delay" "force"
 	       ;; Stefan Monnier <stefan.monnier@epfl.ch> says don't bother:
 	       ;;"quasiquote" "quote" "unquote" "unquote-splicing"
 	       "map" "syntax" "syntax-rules") t)
 	"\\>") 1)
       ;;
+      ;; It wouldn't be Scheme w/o named-let.
+      '("(let\\s-+\\(\\sw+\\)"
+        (1 font-lock-function-name-face))
+      ;;
       ;; David Fox <fox@graphics.cs.nyu.edu> for SOS/STklos class specifiers.
       '("\\<<\\sw+>\\>" . font-lock-type-face)
       ;;
-      ;; Scheme `:' keywords as builtins.
-      '("\\<:\\sw+\\>" . font-lock-builtin-face)
+      ;; Scheme `:' and `#:' keywords as builtins.
+      '("\\<#?:\\sw+\\>" . font-lock-builtin-face)
       )))
   "Gaudy expressions to highlight in Scheme modes.")
 
 (defvar scheme-font-lock-keywords scheme-font-lock-keywords-1
   "Default expressions to highlight in Scheme modes.")
 
+(defconst scheme-sexp-comment-syntax-table
+  (let ((st (make-syntax-table scheme-mode-syntax-table)))
+    (modify-syntax-entry ?\; "." st)
+    (modify-syntax-entry ?\n " " st)
+    (modify-syntax-entry ?#  "'" st)
+    st))
+
+(put 'lambda 'scheme-doc-string-elt 2)
+;; Docstring's pos in a `define' depends on whether it's a var or fun def.
+(put 'define 'scheme-doc-string-elt
+     (lambda ()
+       ;; The function is called with point right after "define".
+       (forward-comment (point-max))
+       (if (eq (char-after) ?\() 2 0)))
+
+(defun scheme-font-lock-syntactic-face-function (state)
+  (when (and (null (nth 3 state))
+             (eq (char-after (nth 8 state)) ?#)
+             (eq (char-after (1+ (nth 8 state))) ?\;))
+    ;; It's a sexp-comment.  Tell parse-partial-sexp where it ends.
+    (save-excursion
+      (let ((pos (point))
+            (end
+             (condition-case err
+                 (let ((parse-sexp-lookup-properties nil))
+                   (goto-char (+ 2 (nth 8 state)))
+                   ;; FIXME: this doesn't handle the case where the sexp
+                   ;; itself contains a #; comment.
+                   (forward-sexp 1)
+                   (point))
+               (scan-error (nth 2 err)))))
+        (when (< pos (- end 2))
+          (put-text-property pos (- end 2)
+                             'syntax-table scheme-sexp-comment-syntax-table))
+        (put-text-property (- end 1) end 'syntax-table '(12)))))
+  ;; Choose the face to use.
+  (lisp-font-lock-syntactic-face-function state))
+
 ;;;###autoload
-(defun dsssl-mode ()
+(define-derived-mode dsssl-mode scheme-mode "DSSSL"
   "Major mode for editing DSSSL code.
 Editing commands are similar to those of `lisp-mode'.
 
@@ -357,20 +405,16 @@ Blank lines separate paragraphs.  Semicolons start comments.
 Entering this mode runs the hooks `scheme-mode-hook' and then
 `dsssl-mode-hook' and inserts the value of `dsssl-sgml-declaration' if
 that variable's value is a string."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map scheme-mode-map)
-  (scheme-mode-initialize)
   (make-local-variable 'page-delimiter)
   (setq page-delimiter "^;;;" ; ^L not valid SGML char
 	major-mode 'dsssl-mode
 	mode-name "DSSSL")
   ;; Insert a suitable SGML declaration into an empty buffer.
+  ;; FIXME: This should use `auto-insert-alist' instead.
   (and (zerop (buffer-size))
        (stringp dsssl-sgml-declaration)
        (not buffer-read-only)
        (insert dsssl-sgml-declaration))
-  (scheme-mode-variables)
   (setq font-lock-defaults '(dsssl-font-lock-keywords
 			     nil t (("+-*/.<>=?$%_&~^:" . "w"))
 			     beginning-of-defun
@@ -378,9 +422,7 @@ that variable's value is a string."
   (set (make-local-variable 'imenu-case-fold-search) nil)
   (setq imenu-generic-expression dsssl-imenu-generic-expression)
   (set (make-local-variable 'imenu-syntax-alist)
-       '(("+-*/.<>=?$%_&~^:" . "w")))
-  (run-hooks 'scheme-mode-hook)
-  (run-hooks 'dsssl-mode-hook))
+       '(("+-*/.<>=?$%_&~^:" . "w"))))
 
 ;; Extra syntax for DSSSL.  This isn't separated from Scheme, but
 ;; shouldn't cause much trouble in scheme-mode.
@@ -558,4 +600,5 @@ that variable's value is a string."
 
 (provide 'scheme)
 
+;; arch-tag: a8f06bc1-ad11-42d2-9e36-ce651df37a90
 ;;; scheme.el ends here

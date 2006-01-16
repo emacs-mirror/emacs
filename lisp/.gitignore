@@ -1,7 +1,10 @@
 *.elc
 MANIFEST
 Makefile
+Makefile.unix
+makefile
 elc.tar.gz
 cus-load.el
 finder-inf.el
 subdirs.el
+loaddefs.el

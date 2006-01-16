@@ -1,12 +1,12 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998, 1999, 2000, 2001, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+;;           Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.71 $
 
 ;; This file is part of GNU Emacs.
 
@@ -22,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;; BEFORE USE:
 ;;
@@ -42,6 +42,7 @@
 ;; * tcl-typeword-list is similar, but uses font-lock-type-face.
 ;; * tcl-keyword-list is a list of keywords.  I've generally used this
 ;; for flow-control words.  Eg I add "unwind_protect" to this list.
+;; * tcl-builtin-list lists commands to be given font-lock-builtin-face.
 ;; * tcl-type-alist can be used to minimally customize indentation
 ;; according to context.
 
@@ -117,25 +118,26 @@
 ;;
 
 (defgroup tcl nil
-  "Major mode for editing Tcl source in Emacs"
+  "Major mode for editing Tcl source in Emacs."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 (defcustom tcl-indent-level 4
   "*Indentation of Tcl statements with respect to containing block."
-  :group 'tcl
-  :type 'integer)
+  :type 'integer
+  :group 'tcl)
 
 (defcustom tcl-continued-indent-level 4
   "*Indentation of continuation line relative to first line of command."
-  :group 'tcl
-  :type 'integer)
+  :type 'integer
+  :group 'tcl)
 
 (defcustom tcl-auto-newline nil
   "*Non-nil means automatically newline before and after braces you insert."
-  :group 'tcl
-  :type 'boolean)
+  :type 'boolean
+  :group 'tcl)
 
-(defcustom tcl-tab-always-indent t
+(defcustom tcl-tab-always-indent tab-always-indent
   "*Control effect of TAB key.
 If t (the default), always indent current line.
 If nil and point is not in the indentation area at the beginning of
@@ -149,10 +151,10 @@ to take place:
   4. Move forward to end of line, indenting if necessary.
   5. Create an empty comment.
   6. Move backward to start of comment, indenting if necessary."
-  :group 'tcl
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Beginning only" nil)
-		 (const :tag "Maybe move or make or delete comment" 'tcl)))
+		 (const :tag "Maybe move or make or delete comment" 'tcl))
+  :group 'tcl)
 
 
 (defcustom tcl-electric-hash-style nil ;; 'smart
@@ -163,28 +165,28 @@ meaning that the choice between `backslash' and `quote' should be
 made depending on the number of hashes inserted; or nil, meaning that
 no quoting should be done.  Any other value for this variable is
 taken to mean `smart'.  The default is nil."
-  :group 'tcl
-  :type '(choice (const backslash) (const quote) (const smart) (const nil)))
+  :type '(choice (const backslash) (const quote) (const smart) (const nil))
+  :group 'tcl)
 
 (defcustom tcl-help-directory-list nil
   "*List of topmost directories containing TclX help files."
-  :group 'tcl
-  :type '(repeat directory))
+  :type '(repeat directory)
+  :group 'tcl)
 
 (defcustom tcl-use-smart-word-finder t
   "*If not nil, use smart way to find current word, for Tcl help feature."
-  :group 'tcl
-  :type 'boolean)
+  :type 'boolean
+  :group 'tcl)
 
 (defcustom tcl-application "wish"
   "*Name of Tcl program to run in inferior Tcl mode."
-  :group 'tcl
-  :type 'string)
+  :type 'string
+  :group 'tcl)
 
 (defcustom tcl-command-switches nil
   "*List of switches to supply to the `tcl-application' program."
-  :group 'tcl
-  :type '(repeat string))
+  :type '(repeat string)
+  :group 'tcl)
 
 (defcustom tcl-prompt-regexp "^\\(% \\|\\)"
   "*If not nil, a regexp that will match the prompt in the inferior process.
@@ -192,8 +194,8 @@ If nil, the prompt is the name of the application with \">\" appended.
 
 The default is \"^\\(% \\|\\)\", which will match the default primary
 and secondary prompts for tclsh and wish."
-  :group 'tcl
-  :type 'regexp)
+  :type 'regexp
+  :group 'tcl)
 
 (defcustom inferior-tcl-source-command "source %s\n"
   "*Format-string for building a Tcl command to load a file.
@@ -201,8 +203,13 @@ This format string should use `%s' to substitute a file name
 and should result in a Tcl expression that will command the
 inferior Tcl to load that file.  The filename will be appropriately
 quoted for Tcl."
+  :type 'string
+  :group 'tcl)
+
+(defface tcl-escaped-newline '((t :inherit font-lock-string-face))
+  "Face used for (non-escaped) backslash at end of a line in Tcl mode."
   :group 'tcl
-  :type 'string)
+  :version "22.1")
 
 ;;
 ;; Keymaps, abbrevs, syntax tables.
@@ -383,6 +390,21 @@ Call `tcl-set-font-lock-keywords' after changing this list.")
 Default list includes some TclX keywords.
 Call `tcl-set-font-lock-keywords' after changing this list.")
 
+(defvar tcl-builtin-list
+  '("after" "append" "array" "bgerror" "binary" "catch" "cd" "clock"
+    "close" "concat" "console" "dde" "encoding" "eof" "exec" "expr"
+    "fblocked" "fconfigure" "fcopy" "file" "fileevent" "flush"
+    "format" "gets" "glob" "history" "incr" "info" "interp" "join"
+    "lappend" "lindex" "linsert" "list" "llength" "load" "lrange"
+    "lreplace" "lsort" "namespace" "open" "package" "pid" "puts" "pwd"
+    "read" "regexp" "registry" "regsub" "rename" "scan" "seek" "set"
+    "socket" "source" "split" "string" "subst" "tell" "time" "trace"
+    "unknown" "unset" "vwait")
+  "List of Tcl commands.  Used only for highlighting.
+Call `tcl-set-font-lock-keywords' after changing this list.
+This list excludes those commands already found in `tcl-proc-list' and
+`tcl-keyword-list'.")
+
 (defvar tcl-font-lock-keywords nil
   "Keywords to highlight for Tcl.  See variable `font-lock-keywords'.
 This variable is generally set from `tcl-proc-regexp',
@@ -437,7 +459,7 @@ argument is ignored (for indentation purposes).  The second argument
 is a Tcl expression, and the last argument is Tcl commands.")
 
 (defvar tcl-explain-indentation nil
-  "If not `nil', debugging message will be printed during indentation.")
+  "If non-nil, debugging message will be printed during indentation.")
 
 
 
@@ -450,7 +472,7 @@ is a Tcl expression, and the last argument is Tcl commands.")
 ;;    proc foo { \n {arg1 def} \n arg2 } {
 ;; The current setting handles the first case properly but not the second.
 ;; It also fails if `proc' is not in column-0 (e.g. it's in a namespace).
-(defconst tcl-omit-ws-regexp "^[^] \t\n#}].+[ \t]+")
+(defconst tcl-omit-ws-regexp "^[^]\" \t\n#}][^\n\"#]+[ \t]+")
 
 
 
@@ -478,14 +500,30 @@ Uses variables `tcl-proc-regexp' and `tcl-keyword-list'."
 		       "\\(\\s-\\|$\\)")
 	       2 'font-lock-type-face)
 
+         (list (concat "\\_<" (regexp-opt tcl-builtin-list t) "\\_>")
+	       1 'font-lock-builtin-face)
+
+         ;; When variable names are enclosed in {} braces, any
+         ;; character can be used. Otherwise just letters, digits,
+         ;; underscores.  Variable names can be prefixed with any
+         ;; number of "namespace::" qualifiers.  A leading "::" refers
+         ;; to the global namespace.
+         '("\\${\\([^}]+\\)}" 1 font-lock-variable-name-face)
+         '("\\$\\(\\(?:::\\)?\\(?:[[:alnum:]_]+::\\)*[[:alnum:]_]+\\)"
+           1 font-lock-variable-name-face)
+         '("\\(?:\\s-\\|^\\|\\[\\)set\\s-+{\\([^}]+\\)}"
+           1 font-lock-variable-name-face keep)
+         '("\\(?:\\s-\\|^\\|\\[\\)set\\s-+\\(\\(?:::\\)?\
+\\(?:[[:alnum:]_]+::\\)*[[:alnum:]_]+\\)"
+           1 font-lock-variable-name-face keep)
+
+         '("\\(^\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\\\)$" 3 'tcl-escaped-newline)
+
 	 ;; Keywords.  Only recognized if surrounded by whitespace.
 	 ;; FIXME consider using "not word or symbol", not
 	 ;; "whitespace".
-	 (cons (concat "\\(\\s-\\|^\\)"
-		       ;; FIXME Use regexp-quote?
-		       (regexp-opt tcl-keyword-list t)
-		       "\\(\\s-\\|$\\)")
-	       2))))
+	 (cons (concat "\\_<" (regexp-opt tcl-keyword-list t) "\\_>")
+	       1))))
 
 (if tcl-proc-regexp
     ()
@@ -556,11 +594,11 @@ Commands:
 
   (set (make-local-variable 'font-lock-defaults)
        '(tcl-font-lock-keywords nil nil nil beginning-of-defun
-	 (font-lock-syntactic-keywords . tcl-font-lock-syntactic-keywords)
-	 (parse-sexp-lookup-properties . t)))
+ 	 (font-lock-syntactic-keywords . tcl-font-lock-syntactic-keywords)
+ 	 (parse-sexp-lookup-properties . t)))
 
   (set (make-local-variable 'imenu-generic-expression)
-       'tcl-imenu-generic-expression)
+       tcl-imenu-generic-expression)
 
   ;; Settings for new dabbrev code.
   (set (make-local-variable 'dabbrev-case-fold-search) nil)
@@ -644,16 +682,9 @@ from the following list to take place:
   5. Create an empty comment.
   6. Move backward to start of comment, indenting if necessary."
   (interactive "p")
-  (cond
-   ((not tcl-tab-always-indent)
-    ;; Indent if in indentation area, otherwise insert TAB.
-    (if (<= (current-column) (current-indentation))
-	(tcl-indent-line)
-      (insert-tab arg)))
-   ((eq tcl-tab-always-indent t)
-    ;; Always indent.
-    (tcl-indent-line))
-   (t
+  (if (memq tcl-tab-always-indent '(nil t))
+      (let ((tab-always-indent tcl-tab-always-indent))
+        (call-interactively 'indent-for-tab-command))
     ;; "Perl-mode" style TAB command.
     (let* ((ipoint (point))
 	   (eolpoint (progn
@@ -692,7 +723,7 @@ from the following list to take place:
 	;; Go to start of comment.  We don't leave point where it is
 	;; because we want to skip comment-start-skip.
 	(tcl-indent-line)
-	(indent-for-comment)))))))
+	(indent-for-comment))))))
 
 (defun tcl-indent-line ()
   "Indent current line as Tcl code.
@@ -701,29 +732,28 @@ Return the amount the indentation changed by."
 	beg shift-amt
 	(case-fold-search nil)
 	(pos (- (point-max) (point))))
-    (beginning-of-line)
-    (setq beg (point))
-    (cond ((eq indent nil)
-	   (setq indent (current-indentation)))
-	  (t
-	   (skip-chars-forward " \t")
-	   (if (listp indent) (setq indent (car indent)))
-	   (cond ((= (following-char) ?})
-		  (setq indent (- indent tcl-indent-level)))
-		 ((= (following-char) ?\])
-		  (setq indent (- indent 1))))))
-    (skip-chars-forward " \t")
-    (setq shift-amt (- indent (current-column)))
-    (if (zerop shift-amt)
-	(if (> (- (point-max) pos) (point))
-	    (goto-char (- (point-max) pos)))
-      (delete-region beg (point))
-      (indent-to indent)
-      ;; If initial point was within line's indentation,
-      ;; position after the indentation.  Else stay at same point in text.
-      (if (> (- (point-max) pos) (point))
-	  (goto-char (- (point-max) pos))))
-    shift-amt))
+    (if (null indent)
+        'noindent
+      (beginning-of-line)
+      (setq beg (point))
+      (skip-chars-forward " \t")
+      (if (listp indent) (setq indent (car indent)))
+      (cond ((= (following-char) ?})
+             (setq indent (- indent tcl-indent-level)))
+            ((= (following-char) ?\])
+             (setq indent (- indent 1))))
+      (skip-chars-forward " \t")
+      (setq shift-amt (- indent (current-column)))
+      (if (zerop shift-amt)
+          (if (> (- (point-max) pos) (point))
+              (goto-char (- (point-max) pos)))
+        (delete-region beg (point))
+        (indent-to indent)
+        ;; If initial point was within line's indentation,
+        ;; position after the indentation.  Else stay at same point in text.
+        (if (> (- (point-max) pos) (point))
+            (goto-char (- (point-max) pos))))
+      shift-amt)))
 
 (defun tcl-figure-type ()
   "Determine type of sexp at point.
@@ -878,7 +908,7 @@ Returns nil if line starts inside a string, t if in a comment."
 	(contain-stack (list (point)))
 	(case-fold-search nil)
 	outer-loop-done inner-loop-done state ostate
-	this-indent last-sexp continued-line
+	this-indent continued-line
 	(next-depth 0)
 	last-depth)
     (save-excursion
@@ -898,9 +928,6 @@ Returns nil if line starts inside a string, t if in a comment."
 	  (setq state (parse-partial-sexp (point) (progn (end-of-line) (point))
 					  nil nil state))
 	  (setq next-depth (car state))
-	  (if (and (car (cdr (cdr state)))
-		   (>= (car (cdr (cdr state))) 0))
-	      (setq last-sexp (car (cdr (cdr state)))))
 	  (if (or (nth 4 ostate))
 	      (tcl-indent-line))
 	  (if (or (nth 3 state))
@@ -917,8 +944,6 @@ Returns nil if line starts inside a string, t if in a comment."
 	    (setq indent-stack (cdr indent-stack)
 		  contain-stack (cdr contain-stack)
 		  last-depth (1- last-depth)))
-	  (if (/= last-depth next-depth)
-	      (setq last-sexp nil))
 	  ;; Add levels for any parens that were started in this line.
 	  (while (< last-depth next-depth)
 	    (setq indent-stack (cons nil indent-stack)
@@ -1121,15 +1146,13 @@ See documentation for function `inferior-tcl-mode' for more information."
    (list (if current-prefix-arg
 	     (read-string "Run Tcl: " tcl-application)
 	   tcl-application)))
-  (if (not (comint-check-proc "*inferior-tcl*"))
-      (progn
-	(set-buffer (apply (function make-comint) "inferior-tcl" cmd nil
-			   tcl-command-switches))
-	(inferior-tcl-mode)))
-  (make-local-variable 'tcl-application)
-  (setq tcl-application cmd)
+  (unless (comint-check-proc "*inferior-tcl*")
+    (set-buffer (apply (function make-comint) "inferior-tcl" cmd nil
+		       tcl-command-switches))
+    (inferior-tcl-mode))
+  (set (make-local-variable 'tcl-application) cmd)
   (setq inferior-tcl-buffer "*inferior-tcl*")
-  (switch-to-buffer "*inferior-tcl*"))
+  (pop-to-buffer "*inferior-tcl*"))
 
 (defalias 'run-tcl 'inferior-tcl)
 
@@ -1459,7 +1482,7 @@ styles."
     (unless (or (bolp) (tcl-real-command-p))
       (insert ";")
       ;; Try and erase a non-significant char to keep charpos identical.
-      (if (memq (char-after) '(?\t ?\ )) (delete-char 1))))
+      (if (memq (char-after) '(?\t ?\s)) (delete-char 1))))
   (funcall (default-value 'comment-indent-function)))
 
 ;; The following was inspired by the Tcl editing mode written by
@@ -1503,7 +1526,7 @@ The first line is assumed to look like \"#!.../program ...\"."
 (defun tcl-quote (string)
   "Quote STRING according to Tcl rules."
   (mapconcat (lambda (char)
-	       (if (memq char '(?[ ?] ?{ ?} ?\\ ?\" ?$ ?  ?\;))
+	       (if (memq char '(?[ ?] ?{ ?} ?\\ ?\" ?$ ?\s ?\;))
 		   (concat "\\" (char-to-string char))
 		 (char-to-string char)))
 	     string ""))
@@ -1526,4 +1549,5 @@ The first line is assumed to look like \"#!.../program ...\"."
 
 (provide 'tcl)
 
+;; arch-tag: 8a032554-c3ef-422e-b84c-acec0522179d
 ;;; tcl.el ends here

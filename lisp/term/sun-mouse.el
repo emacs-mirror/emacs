@@ -1,6 +1,6 @@
 ;;; sun-mouse.el --- mouse handling for Sun windows
 
-;; Copyright (C) 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jeff Peck
 ;; Maintainer: FSF
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -57,6 +57,11 @@ Setting to nil limits the scrollbar to the edge or vertical dividing bar.")
 (defun make-mousemap ()
   "Returns a new mousemap."
   (cons 'mousemap nil))
+
+;;; initialize mouse maps
+(defvar current-global-mousemap (make-mousemap))
+(defvar current-local-mousemap nil)
+(make-variable-buffer-local 'current-local-mousemap)
 
 (defun copy-mousemap (mousemap)
   "Return a copy of mousemap."
@@ -615,7 +620,7 @@ CODE values: 13 = Tool-Position, 14 = Size-in-Pixels, 18 = Size-in-Chars."
     (setq str (substring str (match-end 0)))
     (string-match ";[0-9]*" str)
     (setq x (substring str (1+ (match-beginning 0)) (match-end 0)))
-    (cons (string-to-int y) (string-to-int x))))
+    (cons (string-to-number y) (string-to-number x))))
 
 (defun sm::font-size ()
   "Returns font size in pixels: (cons Ysize Xsize)"
@@ -668,15 +673,9 @@ just close the window, and wait for reopening."
   (if stuffstring (send-string-to-terminal stuffstring))
   (send-string-to-terminal "\033[2t")	; To close EmacsTool window.
   (run-hooks 'suspend-resume-hook))
-;;;
-;;; initialize mouse maps
-;;;
-
-(make-variable-buffer-local 'current-local-mousemap)
-(setq-default current-local-mousemap nil)
-(defvar current-global-mousemap (make-mousemap))
 
 (provide 'sun-mouse)
 (provide 'term/sun-mouse)		; have to (require 'term/sun-mouse)
 
+;;; arch-tag: 6e879372-b899-4509-833f-d7f6250e309a
 ;;; sun-mouse.el ends here

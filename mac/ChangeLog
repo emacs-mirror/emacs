@@ -1,3 +1,212 @@
+2005-12-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (macselect.c.x): Depend on keymap.h.
+
+2005-12-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Emacs.app/Contents/Info.plist: Add CFBundleURLTypes key and
+	data.  Make NSServices open-selection the first entry.
+
+2005-11-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (shortlisp): Sync with src/Makefile.in.
+
+2005-10-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* INSTALL: Replace `Mac OS 8/9' with `Mac OS Classic'.  Add
+	`FIXME' to descriptions about Metrowerks CodeWarrior.  Remove
+	obsolete description about 512MB limit and icon on Mac OS Classic.
+	Add description about flags for experimental features.
+
+	* README: Replace `Mac OS 8/9' with `Mac OS Classic'.  Add `FIXME'
+	to descriptions about Metrowerks CodeWarrior.  Remove obsolete
+	descriptions about C-g and supported image types.
+
+2005-10-20  Bryan D. O'Connor  <bryan@lunch.org>  (tiny change)
+
+	* make-package: Add a --compressed-dist option to compress info
+	files and .el files that have been byte-compiled. It defaults to "no".
+
+2005-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL (NOTES): Update the list of versions of MacOS on which
+	Emacs should build.
+
+	* README: Remove a link to ftp://ftp.gnu.org/gnu/mac/emacs/ (which
+	does not exist).
+
+2005-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* inc/config.h: Sync with src/config.in.
+
+2005-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Emacs.app/Contents/Info.plist (mail-to, mail-selection): New
+	NSServices.
+
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
+2005-06-08  Steven Tamm  <steventamm@mac.com>
+
+	* INSTALL: Explain that a universal binary cannot be created and
+	builds for on emachine cannot be targeted to the other.
+	* README: Add Universal Binary to the Todo List.
+
+2005-05-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (buildobj.lst): New target.
+	(Clean): Delete file buildobj.lst.
+	(Emacs, {DocTarget}DOC): Depend on buildobj.lst.
+	(EmacsSource, MacSource, LispSource, LispSourceDontCompile):
+	Remove variables.
+	(SOME_MACHINE_OBJECTS, shortlisp, SOME_MACHINE_LISP): New
+	variables.
+	({DocTarget}DOC): Use them.
+	(Make-DocFile-PPCCOptions): Add `-d MAC_OS -d MAC_OS8'.
+
+	* inc/config.h: Sync with src/config.in.
+	(DO_BLOCK_INPUT, HAVE_DIFFTIME, HAVE_LOCALE_H, HAVE_MEMCMP)
+	(HAVE_MEMCPY, HAVE_MEMMOVE, HAVE_MEMSET, HAVE_SETITIMER)
+	(HAVE_SIZE_T, HAVE_SYS_IOCTL_H, HAVE_SYS_PARAM_H, HAVE_SYS_STAT_H)
+	(HAVE_SYS_TYPES_H, TIME_WITH_SYS_TIME, SYNC_INPUT): Define them.
+	[__MRC__] (HAVE_ALLOCA_H): Likewise.
+	(config_machfile, config_opsysfile, my_strftime): New macros.
+	(HAVE_PWD_H): Move from s-mac.h.
+	(HAVE_ALLOCA, C_ALLOCA): Move from m-mac.h.
+	(PTR): Move to s-mac.h.
+
+	* inc/m-mac.h: (HAVE_ALLOCA, C_ALLOCA): Move to config.h.
+
+	* inc/s-mac.h: Sync with src/s/template.h.  Don't include fcntl.h,
+	time.h, or signal.h.
+	(index, rindex): New macros.
+	[__MRC__] (sigmask, __signal_max, NSIG): Adjust signal numbers for
+	compatibility with predefined ones.
+	(PTR): Move from s-mac.h.
+	(HAVE_PWD_H): Move to config.h.
+	(volatile): Remove macro.
+	[__MRC__] (strftime): Likewise.
+	(read_input_waiting, sys_gmtime, sys_localtime, sys_ctime)
+	(sys_time, sys_signal, atof): Remove declarations.
+
+	* inc/sys/time.h (ITIMER_REAL): New macro.
+	(struct itimerval): New struct.
+	(setitimer): New extern.
+
+2005-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* inc/config.h [HAVE_CARBON] (USE_TOOLKIT_SCROLL_BARS): Define.
+
+2005-04-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (MacObjects): Add macselect.c.x.
+	(macselect.c.x): New target.
+	(mac.c): Fix dependency.
+
+	* Emacs.app/Contents/Info.plist: Add NSServices key and data.
+
+	* inc/s-mac.h (HAVE_PWD_H): Define.
+
+2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (NonCarbonLibs): Add LocalesLib.  Delete
+	TextEncodingConverter.
+
+2005-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings
+	(CFBundleShortVersionString, CFBundleGetInfoString): Fix version
+	number and copyright.
+
+	* Emacs.r (DITL, vers): Likewise.
+
+2005-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Emacs.app/Contents/Info.plist (CFBundleIdentifier): Change to
+	org.gnu.Emacs.
+
+2005-03-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* INSTALL: Mention new target `NonCarbon'.
+
+2005-03-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (NonCarbon): New target.  The target `Emacs' is now
+	used for the Carbon build that defines HAVE_CARBON.
+
+	* inc/config.h (HAVE_STDLIB_H): Define to 1.
+
+	* src/EmacsMPW.r (SIZE): Increase preferred memory size to 32MB.
+	[HAVE_CARBON] (crfg): New resource for extra stack space.
+
+2004-12-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW: Add dependencies for fringe.c.x, image.c.x, and
+	lastfile.c.x.
+	(PPCCOptions): Add -alloca.
+	(EmacsObjects): Remove alloca.c.x.  Add fringe.c.x, image.c.x, and
+	lastfile.c.x.
+	(Emacs MPW): Add QuickTimeLib.
+	(EmacsSource): Remove alloca.c.  Add fringe.c, image.c, and
+	lastfile.c.
+	(LispSource): Fix pathnames for byte-run.elc, float-sup.elc, and
+	map-ynp.elc.
+	* inc/config.h (USE_LSB_TAG) [__MRC__]: Define.
+	(UNEXEC_SRC): Close comment.
+	* inc/epaths.h (PATH_BITMAPS, PATH_GAME): New defines.
+	* inc/m-mac.h (HAVE_ALLOCA) [__MRC__]: Define.
+	(C_ALLOCA) [__MRC__]: Don't define.
+	* inc/s-mac.h (X_OK): New define.
+	(DECL_ALIGN) [USE_LSB_TAG && __MRC__]: New macro.
+	(GC_MARK_STACK): Define to GC_MAKE_GCPROS_NOOPS.
+
+2004-05-29  Steven Tamm  <steventamm@mac.com>
+
+	* INSTALL: Fixing typos
+	* README: Updating list of TODOs to remove image support and
+	environment variable problem.
+
+2004-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* src/Emacs.r: Update TOO_MUCH_RAM error message.
+
+2003-11-22  Lars Hansen <larsh@math.ku.dk>
+
+	* inc/grp.h: Added.
+
+2003-11-02  Andrew Choi  <akochoi@shaw.ca>
+
+	* src/Emacs.r [!TARGET_API_MAC_CARBON]: Don't define hfdr resource.
+	* Emacs.app/Contents/Resources/Emacs.rsrc: Remove.
+
+2003-10-31  Andrew Choi  <akochoi@shaw.ca>
+
+	* INSTALL: Add Nozomu Ando's changes to instructions for
+	installing on X Window (that static libraries are no longer
+	necessary after his changes to src/unexmacosx.c).
+
+2003-04-28  Andrew Choi  <akochoi@shaw.ca>
+
+	* make-package: Allocate 5% extra space on disk image for
+	directories and partition tables.
+
+2003-04-04  Steven Tamm  <steventamm@mac.com>
+
+	* make-package: Place libexec executables directly under the
+	Contents/MacOS/libexec if the application is self-contained
+
+2003-04-01  Kim F. Storm  <storm@cua.dk>
+
+	* makefile.MPW (frame.c.x): Add dependency on BLOCKINPUT_H_GROUP.
+	(xdisp.c.x): Fix to use BLOCKINPUT_H_GROUP.
+
+2003-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* makefile.MPW (xdisp.c.x):  Add dependency on blockinput.h and
+	files included from it.  Add dependency on keymap.h.
+
 2003-01-14  Steven Tamm  <steventamm@mac.com>
 
 	* make-package: Fixed problem where the building without
@@ -596,6 +805,8 @@
 ;; coding: iso-2022-7bit-unix
 ;; End:
 
-    Copyright (C) 2001 Free Software Foundation, Inc.
+    Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: c6fd43f7-0e50-4c0a-ac82-1c8a9e45a9bf

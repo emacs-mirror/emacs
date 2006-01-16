@@ -1,5 +1,6 @@
 /* This file is the configuration file for Linux-based GNU systems
-   Copyright (C) 1985, 86, 92, 94, 96, 1999, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992, 1994, 1996, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* This file was put together by Michael K. Johnson and Rik Faith.  */
 
@@ -130,8 +131,18 @@ Boston, MA 02111-1307, USA.  */
 /* On GNU/Linux systems, both methods are used by various mail
    programs.  I assume that most people are using newer mailers that
    have heard of flock.  Change this if you need to. */
+/* Debian contains a patch which says: ``On Debian/GNU/Linux systems,
+   configure gets the right answers, and that means *NOT* using flock.
+   Using flock is guaranteed to be the wrong thing. See Debian Policy
+   for details.'' and then uses `#ifdef DEBIAN'.  Unfortunately the
+   Debian maintainer hasn't provided a clean fix for Emacs.
+   movemail.c will use `maillock' when MAILDIR, HAVE_LIBMAIL and
+   HAVE_MAILLOCK_H are defined, so the following appears to be the
+   correct logic.  -- fx */
 
+#if !(defined (HAVE_LIBMAIL) && defined (HAVE_MAILLOCK_H))
 #define MAIL_USE_FLOCK
+#endif
 
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
@@ -345,10 +356,23 @@ Boston, MA 02111-1307, USA.  */
 
 #if defined __i386__ || defined __sparc__ || defined __mc68000__ \
     || defined __alpha__ || defined __mips__ || defined __s390__ \
-    || defined __arm__ || defined __powerpc__
+    || defined __arm__ || defined __powerpc__ || defined __amd64__ \
+    || defined __ia64__
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 #ifdef __mc68000__
 #define GC_LISP_OBJECT_ALIGNMENT 2
 #endif
+#ifdef __ia64__
+#define GC_MARK_SECONDARY_STACK()				\
+  do {								\
+    extern void *__libc_ia64_register_backing_store_base;	\
+    __builtin_ia64_flushrs ();					\
+    mark_memory (__libc_ia64_register_backing_store_base,	\
+		 __builtin_ia64_bsp ());			\
+  } while (0)
 #endif
+#endif
+
+/* arch-tag: 6244ea2a-abd0-44ec-abec-ff3dcc9afea9
+   (do not change this comment) */

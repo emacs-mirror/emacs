@@ -1,5 +1,6 @@
 /* machine description file for National Semiconductor 32000, running Genix.
-   Copyright (C) 1985, 1986, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 
@@ -96,3 +97,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define START_FILES pre-crt0.o /lib/crt0.o
 #endif
+
+/* arch-tag: 13dde0e0-8ed5-4bc3-a0dc-5456c9db5f94
+   (do not change this comment) */

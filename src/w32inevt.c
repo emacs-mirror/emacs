@@ -1,5 +1,6 @@
 /* Input event support for Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1993, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1992, 1993, 1995, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.
 
    Drew Bliss                   01-Oct-93
      Adapted from ntkbd.c by Tim Fleehart
@@ -464,12 +465,12 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 	}
       if (event->uChar.AsciiChar == 0)
 	return 0;
-      XSETINT (emacs_ev->code, event->uChar.AsciiChar);
+      emacs_ev->code = event->uChar.AsciiChar;
     }
   else
     {
       emacs_ev->kind = NON_ASCII_KEYSTROKE_EVENT;
-      XSETINT (emacs_ev->code, event->wVirtualKeyCode);
+      emacs_ev->code = event->wVirtualKeyCode;
     }
 
   XSETFRAME (emacs_ev->frame_or_window, get_frame ());
@@ -524,8 +525,8 @@ w32_console_mouse_position (FRAME_PTR *f,
   *part = 0;
   SELECTED_FRAME ()->mouse_moved = 0;
 
-  *x = movement_pos.X;
-  *y = movement_pos.Y;
+  XSETINT(*x, movement_pos.X);
+  XSETINT(*y, movement_pos.Y);
   *time = movement_time;
 
   UNBLOCK_INPUT;
@@ -593,9 +594,9 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
     if (but_change & mask)
       {
         if (i < NUM_TRANSLATED_MOUSE_BUTTONS)
-          XSETINT (emacs_ev->code, emacs_button_translation[i]);
+          emacs_ev->code = emacs_button_translation[i];
         else
-          XSETINT (emacs_ev->code, i);
+          emacs_ev->code = i;
 	break;
       }
 
@@ -642,8 +643,7 @@ maybe_generate_resize_event ()
 }
 
 int
-w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
-			 int expected)
+w32_console_read_socket (int sd, int expected, struct input_event *hold_quit)
 {
   BOOL no_events = TRUE;
   int nev, ret = 0, add;
@@ -670,27 +670,31 @@ w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
 	  return nev;
         }
 
-      while (nev > 0 && numchars > 0)
+      while (nev > 0)
         {
+	  struct input_event inev;
+
+	  EVENT_INIT (inev);
+	  inev.kind = NO_EVENT;
+	  inev.arg = Qnil;
+
 	  switch (queue_ptr->EventType)
             {
             case KEY_EVENT:
-	      add = key_event (&queue_ptr->Event.KeyEvent, bufp, &isdead);
+	      add = key_event (&queue_ptr->Event.KeyEvent, &inev, &isdead);
 	      if (add == -1) /* 95.7.25 by himi */
 		{
 		  queue_ptr--;
 		  add = 1;
 		}
-	      bufp += add;
-	      ret += add;
-	      numchars -= add;
+	      if (add)
+		kbd_buffer_store_event_hold (&inev, hold_quit);
 	      break;
 
             case MOUSE_EVENT:
-	      add = do_mouse_event (&queue_ptr->Event.MouseEvent, bufp);
-	      bufp += add;
-	      ret += add;
-	      numchars -= add;
+	      add = do_mouse_event (&queue_ptr->Event.MouseEvent, &inev);
+	      if (add)
+		kbd_buffer_store_event_hold (&inev, hold_quit);
 	      break;
 
             case WINDOW_BUFFER_SIZE_EVENT:
@@ -721,3 +725,6 @@ w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
   UNBLOCK_INPUT;
   return ret;
 }
+
+/* arch-tag: 0bcb39b7-d085-4b85-9070-6750e8c03047
+   (do not change this comment) */

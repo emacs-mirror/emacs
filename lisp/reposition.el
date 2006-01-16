@@ -1,6 +1,7 @@
 ;;; reposition.el --- center a Lisp function or comment on the screen
 
-;; Copyright (C) 1991, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Ernst <mernst@theory.lcs.mit.edu>
 ;; Created: Jan 1991
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -196,4 +197,5 @@ first comment line visible (if point is in a comment)."
 
 (provide 'reposition)
 
+;;; arch-tag: 79487039-3bd7-4ab5-a3e8-ecf3b4919010
 ;;; reposition.el ends here

@@ -1,10 +1,10 @@
 ;;; calc-bin.el --- binary functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +28,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-bin () nil)
-
 
 ;;; b-prefix binary commands.
 
@@ -139,7 +136,7 @@
 	       (if (equal n "")
 		   calc-word-size
 		 (if (string-match "\\`[-+]?[0-9]+\\'" n)
-		     (string-to-int n)
+		     (string-to-number n)
 		   (error "Expected an integer")))
 	     (prefix-numeric-value n)))
    (or (= n calc-word-size)
@@ -656,7 +653,8 @@
   (let ((fmt (car calc-float-format))
 	(figs (nth 1 calc-float-format))
 	(point calc-point-char)
-	(str nil))
+	(str nil)
+        pos)
     (if (eq fmt 'fix)
 	(let* ((afigs (math-abs figs))
 	       (fp (math-float-parts a (> afigs 0)))
@@ -751,8 +749,8 @@
 	  (if explo
 	      (let ((estr (let ((calc-number-radix 10)
 				(calc-group-digits nil))
-			    (setq estr (math-format-number
-					(math-sub explo eadj))))))
+                            (math-format-number
+                             (math-sub explo eadj)))))
 		(setq str (if (or (memq calc-language '(math maple))
 				  (> calc-number-radix 14))
 			      (format "%s*%d.^%s" str calc-number-radix estr)
@@ -774,6 +772,7 @@
 				math-radix-digits-cache))))))))
 
 (defvar math-radix-float-cache-tag nil)
+(defvar math-radix-float-cache)
 
 (defun math-radix-float-power (n)
   (if (eq n 0)
@@ -803,5 +802,7 @@
 						       calc-number-radix))))))
 			       math-radix-float-cache))))))))
 
+(provide 'calc-bin)
 
+;;; arch-tag: f6dba7bc-53b2-41ae-919c-c266ab0ca8b3
 ;;; calc-bin.el ends here

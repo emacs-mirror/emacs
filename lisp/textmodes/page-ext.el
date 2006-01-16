@@ -1,6 +1,7 @@
 ;;; page-ext.el --- extended page handling commands
 
-;; Copyright (C) 1990, 1991, 1993, 1994 Free Software Foundation
+;; Copyright (C) 1990, 1991, 1993, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: Robert J. Chassell <bob@gnu.org>
 ;; Keywords: wp data
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -120,8 +121,8 @@
 ;;
 ;;     FSF
 ;;     Free Software Foundation
-;;     59 Temple Place - Suite 330
-;;     Boston, MA 02111-1307  USA.
+;;     51 Franklin Street, Fifth Floor
+;;     Boston, MA 02110-1301  USA.
 ;;     (617) 542-5942
 ;;     gnu@gnu.org
 ;;
@@ -800,4 +801,6 @@ to the same line in the pages buffer."
   :syntax-table nil)
 
 (provide 'page-ext)
+
+;;; arch-tag: 2f311550-c6e0-4458-9c12-7f039c058bdb
 ;;; page-ext.el ends here

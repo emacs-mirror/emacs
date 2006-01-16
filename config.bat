@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MSDOS
-rem   Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001
+rem   Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2004
 rem   Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
@@ -18,23 +18,21 @@ rem   GNU General Public License for more details.
 
 rem   You should have received a copy of the GNU General Public License
 rem   along with GNU Emacs; see the file COPYING.  If not, write to the
-rem   Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-rem   Boston, MA 02111-1307, USA.
+rem   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+rem   Boston, MA 02110-1301, USA.
 rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
 rem   + msdos version 3 or better.
-rem   + djgpp version 1.12maint1 or later (version 2.0 or later recommended).
+rem   + DJGPP version 1.12maint1 or later (version 2.03 or later recommended).
 rem   + make utility that allows breaking of the 128 chars limit on
 rem     command lines.  ndmake (as of version 4.5) won't work due to a
-rem     line length limit.  The make that comes with djgpp does work.
+rem     line length limit.  The make that comes with DJGPP does work.
 rem   + rm and mv (from GNU file utilities).
 rem   + sed (you can use the port that comes with DJGPP).
 rem
-rem   You should be able to get all the above utilities from any SimTel
-rem   repository, e.g. ftp.simtel.net, in the directory
-rem   "pub/simtelnet/gnu/djgpp/v2gnu".  As usual, please use your local
-rem   mirroring site to reduce trans-Atlantic traffic.
+rem   You should be able to get all the above utilities from the DJGPP FTP
+rem   site, ftp.delorie.com, in the directory "pub/djgpp/current/v2gnu".
 rem   ----------------------------------------------------------------------
 set X11=
 set nodebug=
@@ -123,7 +121,9 @@ Goto End
 set djgpp_ver=1
 If ErrorLevel 20 set djgpp_ver=2
 rm -f junk.c junk junk.exe
-rem DJECHO is used by the top-level Makefile
+rem The v1.x build does not need djecho
+if "%DJGPP_VER%" == "1" Goto djechoOk
+rem DJECHO is used by the top-level Makefile in the v2.x build
 Echo Checking whether 'djecho' is available...
 redir -o Nul -eo djecho -o junk.$$$ foo
 If Exist junk.$$$ Goto djechoOk
@@ -158,6 +158,23 @@ goto src42
 :src41
 sed -f ../msdos/sed2v2.inp <config.tmp >config.h2
 :src42
+Rem See if DECL_ALIGN can be supported with this GCC
+rm -f junk.c junk.o junk junk.exe
+echo struct { int i; char *p; } __attribute__((__aligned__(8))) foo;  >junk.c
+rem Two percent signs because it is a special character for COMMAND.COM/CMD
+rem Filter thru Sed because "&" is special for CMD.EXE
+echo int main(void) { return (unsigned long)"&"foo %% 8; } | sed "s/.&./\&/"         >>junk.c
+gcc -o junk junk.c
+if not exist junk.exe coff2exe junk
+junk
+If Not ErrorLevel 1 Goto alignOk
+Echo WARNING: Your GCC does not support 8-byte aligned variables.
+Echo WARNING: Therefore Emacs cannot support buffers larger than 128MB.
+rem The following line disables DECL_ALIGN which in turn disables USE_LSB_TAG
+rem For details see lisp.h where it defines USE_LSB_TAG
+echo #define NO_DECL_ALIGN >>config.h2
+:alignOk
+rm -f junk.c junk junk.exe
 update config.h2 config.h >nul
 rm -f config.tmp config.h2
 
@@ -191,7 +208,7 @@ rem   ----------------------------------------------------------------------
 Echo Configuring the library source directory...
 cd lib-src
 rem   Create "makefile" from "makefile.in".
-sed -e "1,/== start of cpp stuff ==/s@^# .*$@@" <Makefile.in >junk.c
+sed -e "1,/== start of cpp stuff ==/s@^#[ 	].*$@@" <Makefile.in >junk.c
 gcc -E -traditional -I. -I../src junk.c | sed -e "s/^ /	/" -e "/^#/d" -e "/^[ 	]*$/d" >makefile.new
 If "%DJGPP_VER%" == "2" goto libsrc-v2
 sed -f ../msdos/sed3.inp <makefile.new >Makefile
@@ -276,3 +293,7 @@ set $foo$=
 set X11=
 set nodebug=
 set djgpp_ver=
+
+goto skipArchTag
+   arch-tag: 2d2fed23-4dc6-4006-a2e4-49daf0031f33
+:skipArchTag

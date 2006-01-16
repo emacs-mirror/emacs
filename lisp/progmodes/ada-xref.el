@@ -1,13 +1,13 @@
 ;;; ada-xref.el --- for lookup and completion in Ada mode
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 2001, 2002
-;;    Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;               2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Rolf Ebert <ebert@inf.enst.fr>
 ;;      Emmanuel Briot <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   Revision: 1.155.2.8 (GNAT 3.15)
+;; Ada Core Technologies's version:   Revision: 1.181
 ;; Keywords: languages ada xref
 
 ;; This file is part of GNU Emacs.
@@ -24,8 +24,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;; This Package provides a set of functions to use the output of the
@@ -33,7 +33,7 @@
 ;;; for lookup and completion in Ada mode.
 ;;;
 ;;; If a file *.`adp' exists in the ada-file directory, then it is
-;;; read for configuration informations. It is read only the first
+;;; read for configuration informations.  It is read only the first
 ;;; time a cross-reference is asked for, and is not read later.
 
 ;;; You need Emacs >= 20.2 to run this package
@@ -44,6 +44,8 @@
 
 (require 'compile)
 (require 'comint)
+(require 'find-file)
+(require 'ada-mode)
 
 ;; ------ Use variables
 (defcustom ada-xref-other-buffer t
@@ -53,18 +55,27 @@ Otherwise create either a new buffer or a new frame."
 
 (defcustom ada-xref-create-ali nil
   "*If non-nil, run gcc whenever the cross-references are not up-to-date.
-If nil, the cross-reference mode will never run gcc."
+If nil, the cross-reference mode never runs gcc."
   :type 'boolean :group 'ada)
 
 (defcustom ada-xref-confirm-compile nil
-  "*If non-nil, always ask for user confirmation before compiling or running
-the application."
+  "*If non-nil, ask for confirmation before compiling or running the application."
   :type 'boolean :group 'ada)
 
 (defcustom ada-krunch-args "0"
-  "*Maximum number of characters for filenames created by gnatkr.
-Set to 0, if you don't use crunched filenames. This should be a string."
+  "*Maximum number of characters for filenames created by `gnatkr'.
+Set to 0, if you don't use crunched filenames.  This should be a string."
   :type 'string :group 'ada)
+
+(defcustom ada-gnatls-args '("-v")
+  "*Arguments to pass to `gnatfind' to find location of the runtime.
+Typical use is to pass `--RTS=soft-floats' on some systems that support it.
+
+You can also add `-I-' if you do not want the current directory to be included.
+Otherwise, going from specs to bodies and back will first look for files in the
+current directory.  This only has an impact if you are not using project files,
+but only ADA_INCLUDE_PATH."
+  :type '(repeat string) :group 'ada)
 
 (defcustom ada-prj-default-comp-opt "-gnatq -gnatQ"
   "Default compilation options."
@@ -79,14 +90,14 @@ Set to 0, if you don't use crunched filenames. This should be a string."
   :type 'string :group 'ada)
 
 (defcustom ada-prj-default-gnatmake-opt "-g"
-  "Default options for gnatmake."
+  "Default options for `gnatmake'."
   :type 'string :group 'ada)
 
 (defcustom ada-prj-gnatfind-switches "-rf"
-  "Default switches to use for gnatfind.
-You should modify this variable, for instance to add -a, if you are working
+  "Default switches to use for `gnatfind'.
+You should modify this variable, for instance to add `-a', if you are working
 in an environment where most ALI files are write-protected.
-The command gnatfind is used every time you choose the menu
+The command `gnatfind' is used every time you choose the menu
 \"Show all references\"."
   :type 'string :group 'ada)
 
@@ -94,12 +105,12 @@ The command gnatfind is used every time you choose the menu
   (concat "${cross_prefix}gnatmake -u -c ${gnatmake_opt} ${full_current} -cargs"
 	  " ${comp_opt}")
   "*Default command to be used to compile a single file.
-Emacs will add the filename at the end of this command. This is the same
+Emacs will add the filename at the end of this command.  This is the same
 syntax as in the project file."
   :type 'string :group 'ada)
 
 (defcustom ada-prj-default-debugger "${cross_prefix}gdb"
-  "*Default name of the debugger. We recommend either `gdb',
+  "*Default name of the debugger.  We recommend either `gdb',
 `gdb --emacs_gdbtk' or `ddd --tty -fullname'."
   :type 'string :group 'ada)
 
@@ -117,7 +128,7 @@ this string is not empty."
   :type '(file :must-match t) :group 'ada)
 
 (defcustom ada-gnatstub-opts "-q -I${src_dir}"
-  "*List of the options to pass to gnatsub to generate the body of a package.
+  "*List of the options to pass to `gnatsub' to generate the body of a package.
 This has the same syntax as in the project file (with variable substitution)."
   :type 'string :group 'ada)
 
@@ -127,16 +138,17 @@ Otherwise, ask the user for the name of the project file to use."
   :type 'boolean :group 'ada)
 
 (defconst is-windows (memq system-type (quote (windows-nt)))
-  "True if we are running on windows NT or windows 95.")
+  "True if we are running on Windows NT or Windows 95.")
 
 (defcustom ada-tight-gvd-integration nil
   "*If non-nil, a new Emacs frame will be swallowed in GVD when debugging.
-If GVD is not the debugger used, nothing happens.")
+If GVD is not the debugger used, nothing happens."
+  :type 'boolean :group 'ada)
 
 (defcustom ada-xref-search-with-egrep t
   "*If non-nil, use egrep to find the possible declarations for an entity.
 This alternate method is used when the exact location was not found in the
-information provided by GNAT. However, it might be expensive if you have a lot
+information provided by GNAT.  However, it might be expensive if you have a lot
 of sources, since it will search in all the files in your project."
   :type 'boolean :group 'ada)
 
@@ -148,8 +160,8 @@ This hook should be used to support new formats for the project files.
 
 If the function can load the file with the given filename, it should create a
 buffer that contains a conversion of the file to the standard format of the
-project files, and return that buffer. (the usual \"src_dir=\" or \"obj_dir=\"
-lines).  It should return nil if it doesn't know how to convert that project
+project files, and return that buffer.  (The usual \"src_dir=\" or \"obj_dir=\"
+lines.)  It should return nil if it doesn't know how to convert that project
 file.")
 
 
@@ -179,14 +191,13 @@ Used to go back to these positions.")
   (if (string-match "cmdproxy.exe" shell-file-name)
       "cd /d"
     "cd")
-  "Command to use to change to a specific directory. On windows systems
-using cmdproxy.exe as the shell, we need to use /d or the drive is never
-changed.")
+  "Command to use to change to a specific directory.
+On Windows systems using `cmdproxy.exe' as the shell,
+we need to use `/d' or the drive is never changed.")
 
 (defvar ada-command-separator (if is-windows " && " "\n")
-  "Separator to use when sending multiple commands to `compile' or
-`start-process'.
-cmdproxy.exe doesn't recognize multiple-line commands, so we have to use
+  "Separator to use between multiple commands to `compile' or `start-process'.
+`cmdproxy.exe' doesn't recognize multiple-line commands, so we have to use
 \"&&\" for now.")
 
 (defconst ada-xref-pos-ring-max 16
@@ -202,13 +213,44 @@ It has the following format:
 \((project_name . value) (project_name . value) ...)
 As always, the values of the project file are defined through properties.")
 
+
+;; ----- Identlist manipulation -------------------------------------------
+;; An identlist is a vector that is used internally to reference an identifier
+;; To facilitate its use, we provide the following macros
+
+(defmacro ada-make-identlist () (make-vector 8 nil))
+(defmacro ada-name-of   (identlist)    (list 'aref identlist 0))
+(defmacro ada-line-of   (identlist)    (list 'aref identlist 1))
+(defmacro ada-column-of (identlist)    (list 'aref identlist 2))
+(defmacro ada-file-of   (identlist)    (list 'aref identlist 3))
+(defmacro ada-ali-index-of    (identlist) (list 'aref identlist 4))
+(defmacro ada-declare-file-of (identlist) (list 'aref identlist 5))
+(defmacro ada-references-of   (identlist) (list 'aref identlist 6))
+(defmacro ada-on-declaration  (identlist) (list 'aref identlist 7))
+
+(defmacro ada-set-name         (identlist name) (list 'aset identlist 0 name))
+(defmacro ada-set-line         (identlist line) (list 'aset identlist 1 line))
+(defmacro ada-set-column       (identlist col)  (list 'aset identlist 2 col))
+(defmacro ada-set-file         (identlist file) (list 'aset identlist 3 file))
+(defmacro ada-set-ali-index   (identlist index) (list 'aset identlist 4 index))
+(defmacro ada-set-declare-file (identlist file) (list 'aset identlist 5 file))
+(defmacro ada-set-references   (identlist ref)  (list 'aset identlist 6 ref))
+(defmacro ada-set-on-declaration (ident value) (list 'aset ident 7 value))
+
+(defsubst ada-get-ali-buffer (file)
+  "Reads the ali file into a new buffer, and returns this buffer's name"
+  (find-file-noselect (ada-get-ali-file-name file)))
+
+
+;; -----------------------------------------------------------------------
+
 (defun ada-quote-cmd (cmd)
-  "Duplicates all \\ characters in CMD so that it can be passed to `compile'"
+  "Duplicate all \\ characters in CMD so that it can be passed to `compile'."
   (mapconcat 'identity (split-string cmd "\\\\") "\\\\"))
 
 (defun ada-initialize-runtime-library (cross-prefix)
-  "Initializes the variables for the runtime library location.
-CROSS-PREFIX is the prefix to use for the gnatls command"
+  "Initialize the variables for the runtime library location.
+CROSS-PREFIX is the prefix to use for the gnatls command."
   (save-excursion
     (setq ada-xref-runtime-library-specs-path '()
 	  ada-xref-runtime-library-ali-path   '())
@@ -220,8 +262,8 @@ CROSS-PREFIX is the prefix to use for the gnatls command"
 	;;  Even if we get an error, delete the *gnatls* buffer
 	(unwind-protect
 	    (progn
-	      (call-process (concat cross-prefix "gnatls")
-			    nil t nil "-v")
+	      (apply 'call-process (concat cross-prefix "gnatls")
+		     (append '(nil t nil) ada-gnatls-args))
 	      (goto-char (point-min))
 
 	      ;;  Source path
@@ -230,7 +272,8 @@ CROSS-PREFIX is the prefix to use for the gnatls command"
 	      (forward-line 1)
 	      (while (not (looking-at "^$"))
 		(back-to-indentation)
-		(unless (looking-at "<Current_Directory>")
+		(if (looking-at "<Current_Directory>")
+		    (add-to-list 'ada-xref-runtime-library-specs-path  ".")
 		  (add-to-list 'ada-xref-runtime-library-specs-path
 			       (buffer-substring-no-properties
 				(point)
@@ -243,7 +286,8 @@ CROSS-PREFIX is the prefix to use for the gnatls command"
 	      (forward-line 1)
 	      (while (not (looking-at "^$"))
 		(back-to-indentation)
-		(unless (looking-at "<Current_Directory>")
+		(if (looking-at "<Current_Directory>")
+		    (add-to-list 'ada-xref-runtime-library-ali-path ".")
 		  (add-to-list 'ada-xref-runtime-library-ali-path
 			       (buffer-substring-no-properties
 				(point)
@@ -281,7 +325,7 @@ replaced by the name including the extension."
       ;; Check if there is an environment variable with the same name
       (if (null value)
 	  (if (not (setq value (getenv name)))
-	      (message (concat "No environment variable " name " found"))))
+	      (message "%s" (concat "No environment variable " name " found"))))
 
       (cond
        ((null value)
@@ -312,8 +356,7 @@ replaced by the name including the extension."
 			    (cond
 			     (ada-prj-default-project-file
 			      ada-prj-default-project-file)
-			     (file
-			      (ada-prj-get-prj-dir file))
+			     (file (ada-prj-find-prj-file file t))
 			     (t
 			      (message (concat "Not editing an Ada file,"
 					       "and no default project "
@@ -433,56 +476,42 @@ All the directories are returned as absolute directories."
 
 (defun ada-xref-update-project-menu ()
   "Update the menu Ada->Project, with the list of available project files."
-  (interactive)
-  (let (submenu)
+  ;; Create the standard items.
+  (let ((submenu
+	 `("Project"
+	   ["Load..." ada-set-default-project-file t]
+	   ["New..."  ada-prj-new t]
+	   ["Edit..." ada-prj-edit t]
+	   "---"
+	   ;;  Add the new items
+	   ,@(mapcar
+	      (lambda (x)
+		(let ((name (or (car x) "<default>"))
+		      (command `(lambda ()
+				  "Change the active project file."
+				  (interactive)
+				  (ada-parse-prj-file ,(car x))
+				  (set 'ada-prj-default-project-file ,(car x))
+				  (ada-xref-update-project-menu))))
+		  (vector
+		   (if (string= (file-name-extension name)
+				ada-project-file-extension)
+		       (file-name-sans-extension
+			(file-name-nondirectory name))
+		     (file-name-nondirectory name))
+		   command
+		   :button (cons
+			    :toggle
+			    (equal ada-prj-default-project-file
+				   (car x))
+			    ))))
 
-    ;;  Create the standard items
-    (set 'submenu (list (cons 'Load (cons "Load..."
-					  'ada-set-default-project-file))
-			(cons 'New  (cons "New..."  'ada-prj-new))
-			(cons 'Edit (cons "Edit..." 'ada-prj-edit))
-			(cons 'sep  (cons "---" nil))))
+	      ;; Parses all the known project files, and insert at
+	      ;; least the default one (in case
+	      ;; ada-xref-project-files is nil)
+	      (or ada-xref-project-files '(nil))))))
 
-    ;;  Add the new items
-    (mapcar
-     (lambda (x)
-       (let ((name (or (car x) "<default>"))
-	     (command `(lambda ()
-			 "Change the active project file."
-			 (interactive)
-			 (ada-parse-prj-file ,(car x))
-			 (set 'ada-prj-default-project-file ,(car x))
-			 (ada-xref-update-project-menu))))
-	 (set 'submenu
-	      (append submenu
-		      (list (cons (intern name)
-				  (list
-				   'menu-item
-				   (if (string= (file-name-extension name)
-						ada-project-file-extension)
-				       (file-name-sans-extension
-					(file-name-nondirectory name))
-				     (file-name-nondirectory name))
-				   command
-				   :button (cons
-					    :toggle
-					    (equal ada-prj-default-project-file
-						   (car x))
-					    ))))))))
-
-     ;; Parses all the known project files, and insert at least the default
-     ;; one (in case ada-xref-project-files is nil)
-     (or ada-xref-project-files '(nil)))
-
-     (if (not ada-xemacs)
-         (if (and (lookup-key ada-mode-map [menu-bar Ada])
-		  (lookup-key ada-mode-map [menu-bar Ada Project]))
-	     (setcdr (lookup-key ada-mode-map [menu-bar Ada Project])
-		     submenu)
-	   (if (lookup-key ada-mode-map [menu-bar ada Project])
-	       (setcdr (lookup-key ada-mode-map [menu-bar ada Project])
-		       submenu))))
-     ))
+    (easy-menu-add-item ada-mode-menu '() submenu)))
 
 
 ;;-------------------------------------------------------------
@@ -528,215 +557,6 @@ Completion is available."
       (error (concat filename " not found in src_dir")))))
 
 
-;; ----- Keybindings ------------------------------------------------------
-
-(defun ada-add-keymap ()
-  "Add new key bindings when using `ada-xrel.el'."
-  (interactive)
-  (if ada-xemacs
-      (progn
-        (define-key ada-mode-map '(shift button3) 'ada-point-and-xref)
-        (define-key ada-mode-map '(control tab) 'ada-complete-identifier))
-    (define-key ada-mode-map [C-tab] 'ada-complete-identifier)
-    (define-key ada-mode-map [S-mouse-3] 'ada-point-and-xref))
-
-  (define-key ada-mode-map "\C-co"    'ff-find-other-file)
-  (define-key ada-mode-map "\C-c5\C-d" 'ada-goto-declaration-other-frame)
-  (define-key ada-mode-map "\C-c\C-d" 'ada-goto-declaration)
-  (define-key ada-mode-map "\C-c\C-s" 'ada-xref-goto-previous-reference)
-  (define-key ada-mode-map "\C-c\C-c" 'ada-compile-application)
-  (define-key ada-mode-map "\C-cc"  'ada-change-prj)
-  (define-key ada-mode-map "\C-cd"  'ada-set-default-project-file)
-  (define-key ada-mode-map "\C-cg"  'ada-gdb-application)
-  (define-key ada-mode-map "\C-cr"  'ada-run-application)
-  (define-key ada-mode-map "\C-c\C-o" 'ada-goto-parent)
-  (define-key ada-mode-map "\C-c\C-r" 'ada-find-references)
-  (define-key ada-mode-map "\C-cl" 'ada-find-local-references)
-  (define-key ada-mode-map "\C-c\C-v" 'ada-check-current)
-  (define-key ada-mode-map "\C-cf" 'ada-find-file)
-  )
-
-;; ----- Menus --------------------------------------------------------------
-(defun ada-add-ada-menu ()
-  "Add some items to the standard Ada mode menu.
-The items are added to the menu called NAME, which should be the same
-name as was passed to `ada-create-menu'."
-  (interactive)
-  (if ada-xemacs
-      (let* ((menu-list '("Ada"))
-	     (goto-menu '("Ada" "Goto"))
-	     (edit-menu '("Ada" "Edit"))
-	     (help-menu '("Ada" "Help"))
-	     (options-menu (list "Ada" "Options")))
-	(funcall (symbol-function 'add-menu-button)
-		 menu-list ["Check file" ada-check-current
-			    (string= mode-name "Ada")] "Goto")
-	(funcall (symbol-function 'add-menu-button)
-		 menu-list ["Compile file" ada-compile-current
-			    (string= mode-name "Ada")] "Goto")
-	(funcall (symbol-function 'add-menu-button)
-		 menu-list ["Build" ada-compile-application t] "Goto")
-	(funcall (symbol-function 'add-menu-button)
-		 menu-list ["Run" ada-run-application t] "Goto")
-	(funcall (symbol-function 'add-menu-button)
-		 menu-list ["Debug" ada-gdb-application t] "Goto")
-	(funcall (symbol-function 'add-menu-button)
-		 menu-list ["--" nil t] "Goto")
-	(funcall (symbol-function 'add-menu-button)
-		 goto-menu ["Goto Parent Unit" ada-goto-parent t]
-		 "Next compilation error")
-	(funcall (symbol-function 'add-menu-button)
-		 goto-menu ["Goto References to any entity"
-			    ada-find-any-references t]
-		 "Next compilation error")
-	(funcall (symbol-function 'add-menu-button)
-		 goto-menu ["List References" ada-find-references t]
-		 "Next compilation error")
-	(funcall (symbol-function 'add-menu-button)
-		 goto-menu ["List Local References" ada-find-local-references t]
-		 "Next compilation error")
-	(funcall (symbol-function 'add-menu-button)
-		 goto-menu ["Goto Declaration Other Frame"
-			    ada-goto-declaration-other-frame t]
-		 "Next compilation error")
-	(funcall (symbol-function 'add-menu-button)
-		 goto-menu ["Goto Declaration/Body"
-			    ada-goto-declaration t]
-		 "Next compilation error")
-	(funcall (symbol-function 'add-menu-button)
-		 goto-menu ["Goto Previous Reference"
-			    ada-xref-goto-previous-reference t]
-		 "Next compilation error")
-	(funcall (symbol-function 'add-menu-button)
-		 goto-menu ["--" nil t] "Next compilation error")
-	(funcall (symbol-function 'add-menu-button)
-		 edit-menu ["Complete Identifier"
-			    ada-complete-identifier t]
-		 "Indent Line")
-	(funcall (symbol-function 'add-menu-button)
-		 edit-menu ["--------" nil t] "Indent Line")
-	(funcall (symbol-function 'add-menu-button)
-		 help-menu ["Gnat User Guide" (info "gnat_ug")])
-	(funcall (symbol-function 'add-menu-button)
-		 help-menu ["Gnat Reference Manual" (info "gnat_rm")])
-	(funcall (symbol-function 'add-menu-button)
-		 help-menu ["Gcc Documentation" (info "gcc")])
-	(funcall (symbol-function 'add-menu-button)
-		 help-menu ["Gdb Documentation" (info "gdb")])
-	(funcall (symbol-function 'add-menu-button)
-		 help-menu ["Ada95 Reference Manual" (info "arm95")])
-	(funcall (symbol-function 'add-menu-button)
-		 options-menu
-		 ["Show Cross-References in Other Buffer"
-		  (setq ada-xref-other-buffer
-			(not ada-xref-other-buffer))
-		  :style toggle :selected ada-xref-other-buffer])
-	(funcall (symbol-function 'add-menu-button)
-		 options-menu
-		 ["Automatically Recompile for Cross-References"
-		  (setq ada-xref-create-ali (not ada-xref-create-ali))
-		  :style toggle :selected ada-xref-create-ali])
-	(funcall (symbol-function 'add-menu-button)
-		 options-menu
-		 ["Confirm Commands"
-		  (setq ada-xref-confirm-compile
-			(not ada-xref-confirm-compile))
-		  :style toggle :selected ada-xref-confirm-compile])
-	(if (string-match "gvd" ada-prj-default-debugger)
-	    (funcall (symbol-function 'add-menu-button)
-		     options-menu
-		     ["Tight Integration With Gnu Visual Debugger"
-		      (setq ada-tight-gvd-integration
-			    (not ada-tight-gvd-integration))
-		      :style toggle :selected ada-tight-gvd-integration]))
-	)
-
-    ;; for Emacs
-    (let* ((menu      (or (lookup-key ada-mode-map [menu-bar Ada])
-			  ;; Emacs-21.4's easymenu.el downcases the events.
-			  (lookup-key ada-mode-map [menu-bar ada])))
-	   (edit-menu (or (lookup-key menu [Edit]) (lookup-key menu [edit])))
-	   (help-menu (or (lookup-key menu [Help]) (lookup-key menu [help])))
-	   (goto-menu (or (lookup-key menu [Goto]) (lookup-key menu [goto])))
-	   (options-menu (or (lookup-key menu [Options])
-			     (lookup-key menu [options]))))
-
-      (define-key-after menu [Check] '("Check file" . ada-check-current)
-	'Customize)
-      (define-key-after menu [Compile] '("Compile file" . ada-compile-current)
-        'Check)
-      (define-key-after menu [Build]   '("Build" . ada-compile-application)
-	'Compile)
-      (define-key-after menu [Run]     '("Run"   . ada-run-application) 'Build)
-      (define-key-after menu [Debug]   '("Debug" . ada-gdb-application) 'Run)
-      (define-key-after menu [rem]     '("--"    . nil) 'Debug)
-      (define-key-after menu [Project]
-	(cons "Project" (make-sparse-keymap)) 'rem)
-
-      (define-key help-menu [Gnat_ug]
-        '("Gnat User Guide" . (lambda() (interactive) (info "gnat_ug"))))
-      (define-key help-menu [Gnat_rm]
-        '("Gnat Reference Manual" . (lambda() (interactive) (info "gnat_rm"))))
-      (define-key help-menu [Gcc]
-        '("Gcc Documentation" . (lambda() (interactive) (info "gcc"))))
-      (define-key help-menu [gdb]
-        '("Gdb Documentation" . (lambda() (interactive) (info "gdb"))))
-      (define-key help-menu [arm95]
-        '("Ada95 Reference Manual" . (lambda() (interactive) (info "arm95"))))
-
-      (define-key goto-menu [rem]    '("----" . nil))
-      (define-key goto-menu [Parent] '("Goto Parent Unit"
-				       . ada-goto-parent))
-      (define-key goto-menu [References-any]
-	'("Goto References to any entity" . ada-find-any-references))
-      (define-key goto-menu [References]
-	'("List References" . ada-find-references))
-      (define-key goto-menu [Local-References]
-	'("List Local References" . ada-find-local-references))
-      (define-key goto-menu [Prev]
-	'("Goto Previous Reference" . ada-xref-goto-previous-reference))
-      (define-key goto-menu [Decl-other]
-	'("Goto Declaration Other Frame" . ada-goto-declaration-other-frame))
-      (define-key goto-menu [Decl]
-	'("Goto Declaration/Body" . ada-goto-declaration))
-
-      (define-key edit-menu [rem] '("----" . nil))
-      (define-key edit-menu [Complete] '("Complete Identifier"
-					 . ada-complete-identifier))
-
-      (define-key-after options-menu [xrefrecompile]
-	'(menu-item "Automatically Recompile for Cross-References"
-		    (lambda()(interactive)
-		      (setq ada-xref-create-ali (not ada-xref-create-ali)))
-		    :button (:toggle . ada-xref-create-ali)) t)
-      (define-key-after options-menu [xrefconfirm]
-	'(menu-item "Confirm Commands"
-		   (lambda()(interactive)
-		     (setq ada-xref-confirm-compile
-			   (not ada-xref-confirm-compile)))
-		   :button (:toggle . ada-xref-confirm-compile)) t)
-      (define-key-after options-menu [xrefother]
-	'(menu-item "Show Cross-References in Other Buffer"
-		   (lambda()(interactive)
-		     (setq ada-xref-other-buffer (not ada-xref-other-buffer)))
-		   :button (:toggle . ada-xref-other-buffer)) t)
-
-      (if (string-match "gvd" ada-prj-default-debugger)
-	  (define-key-after options-menu [tightgvd]
-	    '(menu-item "Tight Integration With Gnu Visual Debugger"
-			(lambda()(interactive)
-			  (setq ada-tight-gvd-integration
-				(not ada-tight-gvd-integration)))
-			:button (:toggle . ada-tight-gvd-integration)) t))
-
-      (define-key edit-menu [rem3] '("------------" . nil))
-      (define-key edit-menu [open-file-from-src-path]
-	'("Search File on source path..." . ada-find-file))
-      )
-    )
-  (ada-xref-update-project-menu)
-  )
-
 ;; ----- Utilities -------------------------------------------------
 
 (defun ada-require-project-file ()
@@ -766,21 +586,27 @@ name as was passed to `ada-create-menu'."
 This is overriden on VMS to convert from VMS filenames to Unix filenames."
   name)
 
-(defun ada-set-default-project-file (name)
-  "Set the file whose name is NAME as the default project file."
+(defun ada-set-default-project-file (name &optional keep-existing)
+  "Set the file whose name is NAME as the default project file.
+If KEEP-EXISTING is true and a project file has already been loaded, nothing
+is done.  This is meant to be used from `ada-mode-hook', for instance, to force
+a project file unless the user has already loaded one."
   (interactive "fProject file:")
-  (setq ada-prj-default-project-file name)
-  (ada-reread-prj-file name)
-  )
+  (if (or (not keep-existing)
+	  (not ada-prj-default-project-file)
+	  (equal ada-prj-default-project-file ""))
+      (progn
+	(setq ada-prj-default-project-file name)
+	(ada-reread-prj-file name))))
 
 ;; ------ Handling the project file -----------------------------
 
-(defun ada-prj-find-prj-file (&optional no-user-question)
-  "Find the prj file associated with the current buffer.
+(defun ada-prj-find-prj-file (&optional file no-user-question)
+  "Find the prj file associated with FILE (or the current buffer if nil).
 If NO-USER-QUESTION is non-nil, use a default file if not project file was
 found, and do not ask the user.
 If the buffer is not an Ada buffer, associate it with the default project
-file. If none is set, return nil."
+file.  If none is set, return nil."
 
   (let (selected)
 
@@ -789,14 +615,16 @@ file. If none is set, return nil."
     ;;  the current buffer is not a real file (for instance an emerge buffer)
 
     (if (or (not (string= mode-name "Ada"))
-	    (not (buffer-file-name))
-	    (and ada-prj-default-project-file
-		 (not (string= ada-prj-default-project-file ""))))
-	(set 'selected ada-prj-default-project-file)
+	    (not (buffer-file-name)))
+
+	(if (and ada-prj-default-project-file
+		 (not (string= ada-prj-default-project-file "")))
+	    (setq selected ada-prj-default-project-file)
+	  (setq selected nil))
 
       ;;  other cases: use a more complex algorithm
 
-      (let* ((current-file (buffer-file-name))
+      (let* ((current-file (or file (buffer-file-name)))
 	     (first-choice (concat
 			    (file-name-sans-extension current-file)
 			    ada-project-file-extension))
@@ -836,6 +664,7 @@ file. If none is set, return nil."
 				 counter
 				 (nth (1- counter) prj-files)))
 		  (setq counter (1+ counter))
+
 		  ))) ; end of with-output-to ...
 	    (setq choice nil)
 	    (while (or
@@ -843,7 +672,7 @@ file. If none is set, return nil."
 		    (not (integerp choice))
 		    (< choice 1)
 		    (> choice (length prj-files)))
-	      (setq choice (string-to-int
+	      (setq choice (string-to-number
 			    (read-from-minibuffer "Enter No. of your choice: "))))
 	    (set 'selected (nth (1- choice) prj-files))))
 
@@ -859,7 +688,8 @@ file. If none is set, return nil."
 	    (unless (string= ada-last-prj-file "")
 	      (set 'selected ada-last-prj-file))))
 	 )))
-    selected
+
+    (or selected "default.adp")
     ))
 
 
@@ -872,74 +702,105 @@ The current buffer should be the ada-file buffer."
             (ada-buffer (current-buffer)))
 	(setq prj-file (expand-file-name prj-file))
 
+	;;  Set the project file as the active one.
+	(setq ada-prj-default-project-file prj-file)
+
 	;;  Initialize the project with the default values
 	(ada-xref-set-default-prj-values 'project (current-buffer))
 
 	;;  Do not use find-file below, since we don't want to show this
-	;;  buffer. If the file is open through speedbar, we can't use
+	;;  buffer.  If the file is open through speedbar, we can't use
 	;;  find-file anyway, since the speedbar frame is special and does not
 	;;  allow the selection of a file in it.
 
-	(let* ((buffer (run-hook-with-args-until-success
-		       'ada-load-project-hook prj-file)))
-	  (unless buffer
-	    (setq buffer (find-file-noselect prj-file nil)))
-	  (set-buffer buffer))
+	(if (file-exists-p prj-file)
+	    (progn
+	      (let* ((buffer (run-hook-with-args-until-success
+			      'ada-load-project-hook prj-file)))
+		(unless buffer
+		  (setq buffer (find-file-noselect prj-file nil)))
+		(set-buffer buffer))
 
-	(widen)
-	(goto-char (point-min))
+	      (widen)
+	      (goto-char (point-min))
 
-	;;  Now overrides these values with the project file
-	(while (not (eobp))
-	  (if (looking-at "^\\([^=]+\\)=\\(.*\\)")
-	      (cond
-	       ((string= (match-string 1) "src_dir")
-		(add-to-list 'src_dir
-			     (file-name-as-directory (match-string 2))))
-	       ((string= (match-string 1) "obj_dir")
-		(add-to-list 'obj_dir
-			     (file-name-as-directory (match-string 2))))
-	       ((string= (match-string 1) "casing")
-		(set 'casing (cons (match-string 2) casing)))
-	       ((string= (match-string 1) "build_dir")
-		(set 'project
-		     (plist-put project 'build_dir
-				(file-name-as-directory (match-string 2)))))
-	       ((string= (match-string 1) "make_cmd")
-		(add-to-list 'make_cmd (match-string 2)))
-	       ((string= (match-string 1) "comp_cmd")
-		(add-to-list 'comp_cmd (match-string 2)))
-	       ((string= (match-string 1) "check_cmd")
-		(add-to-list 'check_cmd (match-string 2)))
-	       ((string= (match-string 1) "run_cmd")
-		(add-to-list 'run_cmd (match-string 2)))
-	       ((string= (match-string 1) "debug_pre_cmd")
-		(add-to-list 'debug_pre_cmd (match-string 2)))
-	       ((string= (match-string 1) "debug_post_cmd")
-		(add-to-list 'debug_post_cmd (match-string 2)))
-	       (t
-		(set 'project (plist-put project (intern (match-string 1))
-					 (match-string 2))))))
-	  (forward-line 1))
+	      ;;  Now overrides these values with the project file
+	      (while (not (eobp))
+		(if (looking-at "^\\([^=]+\\)=\\(.*\\)")
+		    (cond
+		     ((string= (match-string 1) "src_dir")
+		      (add-to-list 'src_dir
+				   (file-name-as-directory (match-string 2))))
+		     ((string= (match-string 1) "obj_dir")
+		      (add-to-list 'obj_dir
+				   (file-name-as-directory (match-string 2))))
+		     ((string= (match-string 1) "casing")
+		      (set 'casing (cons (match-string 2) casing)))
+		     ((string= (match-string 1) "build_dir")
+		      (set 'project
+			   (plist-put project 'build_dir
+				      (file-name-as-directory (match-string 2)))))
+		     ((string= (match-string 1) "make_cmd")
+		      (add-to-list 'make_cmd (match-string 2)))
+		     ((string= (match-string 1) "comp_cmd")
+		      (add-to-list 'comp_cmd (match-string 2)))
+		     ((string= (match-string 1) "check_cmd")
+		      (add-to-list 'check_cmd (match-string 2)))
+		     ((string= (match-string 1) "run_cmd")
+		      (add-to-list 'run_cmd (match-string 2)))
+		     ((string= (match-string 1) "debug_pre_cmd")
+		      (add-to-list 'debug_pre_cmd (match-string 2)))
+		     ((string= (match-string 1) "debug_post_cmd")
+		      (add-to-list 'debug_post_cmd (match-string 2)))
+		     (t
+		      (set 'project (plist-put project (intern (match-string 1))
+					       (match-string 2))))))
+		(forward-line 1))
 
-	(if src_dir (set 'project (plist-put project 'src_dir
-					     (reverse src_dir))))
-	(if obj_dir (set 'project (plist-put project 'obj_dir
-					     (reverse obj_dir))))
-	(if casing  (set 'project (plist-put project 'casing
-					     (reverse casing))))
-	(if make_cmd (set 'project (plist-put project 'make_cmd
-					      (reverse make_cmd))))
-	(if comp_cmd (set 'project (plist-put project 'comp_cmd
-					      (reverse comp_cmd))))
-	(if check_cmd (set 'project (plist-put project 'check_cmd
-					       (reverse check_cmd))))
-	(if run_cmd (set 'project (plist-put project 'run_cmd
-					     (reverse run_cmd))))
-	(set 'project (plist-put project 'debug_post_cmd
-				 (reverse debug_post_cmd)))
-	(set 'project (plist-put project 'debug_pre_cmd
-				 (reverse debug_pre_cmd)))
+	      (if src_dir (set 'project (plist-put project 'src_dir
+						   (reverse src_dir))))
+	      (if obj_dir (set 'project (plist-put project 'obj_dir
+						   (reverse obj_dir))))
+	      (if casing  (set 'project (plist-put project 'casing
+						   (reverse casing))))
+	      (if make_cmd (set 'project (plist-put project 'make_cmd
+						    (reverse make_cmd))))
+	      (if comp_cmd (set 'project (plist-put project 'comp_cmd
+						    (reverse comp_cmd))))
+	      (if check_cmd (set 'project (plist-put project 'check_cmd
+						     (reverse check_cmd))))
+	      (if run_cmd (set 'project (plist-put project 'run_cmd
+						   (reverse run_cmd))))
+	      (set 'project (plist-put project 'debug_post_cmd
+				       (reverse debug_post_cmd)))
+	      (set 'project (plist-put project 'debug_pre_cmd
+				       (reverse debug_pre_cmd)))
+
+	      ;; Kill the project buffer
+	      (kill-buffer nil)
+	      (set-buffer ada-buffer)
+	      )
+
+	  ;;  Else the file wasn't readable (probably the default project).
+	  ;;  We initialize it with the current environment variables.
+          ;;  We need to add the startup directory in front so that
+          ;;  files locally redefined are properly found.  We cannot
+          ;;  add ".", which varies too much depending on what the
+          ;;  current buffer is.
+	  (set 'project
+	       (plist-put project 'src_dir
+			  (append
+                           (list command-line-default-directory)
+			   (split-string (or (getenv "ADA_INCLUDE_PATH") "") ":")
+			   (list "." default-directory))))
+	  (set 'project
+	       (plist-put project 'obj_dir
+			  (append
+                           (list command-line-default-directory)
+			   (split-string (or (getenv "ADA_OBJECTS_PATH") "") ":")
+			   (list "." default-directory))))
+	  )
+
 
 	;;  Delete the default project file from the list, if it is there.
 	;;  Note that in that case, this default project is the only one in
@@ -951,9 +812,6 @@ The current buffer should be the ada-file buffer."
 	(if (assoc prj-file ada-xref-project-files)
 	    (setcdr (assoc prj-file ada-xref-project-files) project)
 	  (add-to-list 'ada-xref-project-files (cons prj-file project)))
-
-	;;  Set the project file as the active one.
-	(setq ada-prj-default-project-file prj-file)
 
 	;; Sets up the compilation-search-path so that Emacs is able to
 	;; go to the source of the errors in a compilation buffer
@@ -967,20 +825,16 @@ The current buffer should be the ada-file buffer."
 
 	;; Add the directories to the search path for ff-find-other-file
 	;; Do not add the '/' or '\' at the end
-	(setq ada-search-directories
+	(setq ada-search-directories-internal
 	     (append (mapcar 'directory-file-name compilation-search-path)
 		     ada-search-directories))
-
-	;; Kill the project buffer
-	(kill-buffer nil)
-	(set-buffer ada-buffer)
 
 	(ada-xref-update-project-menu)
 	)
 
     ;;  No prj file ? => Setup default values
     ;;  Note that nil means that all compilation modes will first look in the
-    ;;  current directory, and only then in the current file's directory. This
+    ;;  current directory, and only then in the current file's directory.  This
     ;;  current file is assumed at this point to be in the common source
     ;;  directory.
     (setq compilation-search-path (list nil default-directory))
@@ -990,10 +844,9 @@ The current buffer should be the ada-file buffer."
 (defun ada-find-references (&optional pos arg local-only)
   "Find all references to the entity under POS.
 Calls gnatfind to find the references.
-if ARG is t, the contents of the old *gnatfind* buffer is preserved.
-if LOCAL-ONLY is t, only the declarations in the current file are returned."
-  (interactive "d
-P")
+If ARG is t, the contents of the old *gnatfind* buffer is preserved.
+If LOCAL-ONLY is t, only the declarations in the current file are returned."
+  (interactive "d\nP")
   (ada-require-project-file)
 
   (let* ((identlist (ada-read-identifier pos))
@@ -1016,24 +869,23 @@ P")
 
 (defun ada-find-local-references (&optional pos arg)
   "Find all references to the entity under POS.
-Calls gnatfind to find the references.
-if ARG is t, the contents of the old *gnatfind* buffer is preserved."
-  (interactive "d
-P")
+Calls `gnatfind' to find the references.
+If ARG is t, the contents of the old *gnatfind* buffer is preserved."
+  (interactive "d\nP")
   (ada-find-references pos arg t))
 
 (defun ada-find-any-references
   (entity &optional file line column local-only append)
   "Search for references to any entity whose name is ENTITY.
 ENTITY was first found the location given by FILE, LINE and COLUMN.
-If LOCAL-ONLY is t, then only the references in file will be listed, which
+If LOCAL-ONLY is t, then list only the references in FILE, which
 is much faster.
-If APPEND is t, then the output of the command will be append to the existing
-buffer *gnatfind* if it exists."
+If APPEND is t, then append the output of the command to the existing
+buffer `*gnatfind*', if there is one."
   (interactive "sEntity name: ")
   (ada-require-project-file)
 
-  ;;  Prepare the gnatfind command. Note that we must protect the quotes
+  ;;  Prepare the gnatfind command.  Note that we must protect the quotes
   ;;  around operators, so that they are correctly handled and can be
   ;;  processed (gnatfind \"+\":...).
   (let* ((quote-entity
@@ -1043,7 +895,7 @@ buffer *gnatfind* if it exists."
 		(concat "'\"" (substring entity 1 -1) "\"'"))
 	    entity))
 	 (switches (ada-xref-get-project-field 'gnatfind_opt))
-	 (command (concat "gnatfind " switches " "
+	 (command (concat "gnat find " switches " "
 			  quote-entity
                           (if file (concat ":" (file-name-nondirectory file)))
                           (if line (concat ":" line))
@@ -1055,14 +907,18 @@ buffer *gnatfind* if it exists."
     ;;  If a project file is defined, use it
     (if (and ada-prj-default-project-file
 	     (not (string= ada-prj-default-project-file "")))
-        (setq command (concat command " -p" ada-prj-default-project-file)))
+        (if (string-equal (file-name-extension ada-prj-default-project-file)
+                          "gpr")
+            (setq command (concat command " -P" ada-prj-default-project-file))
+          (setq command (concat command " -p" ada-prj-default-project-file))))
 
     (if (and append (get-buffer "*gnatfind*"))
 	(save-excursion
 	  (set-buffer "*gnatfind*")
 	  (setq old-contents (buffer-string))))
 
-    (compile-internal command "No more references" "gnatfind")
+    (let ((compilation-error "reference"))
+      (compilation-start command))
 
     ;;  Hide the "Compilation" menu
     (save-excursion
@@ -1079,40 +935,11 @@ buffer *gnatfind* if it exists."
 
 (defalias 'ada-change-prj (symbol-function 'ada-set-default-project-file))
 
-;; ----- Identlist manipulation -------------------------------------------
-;; An identlist is a vector that is used internally to reference an identifier
-;; To facilitate its use, we provide the following macros
-
-(defmacro ada-make-identlist () (make-vector 8 nil))
-(defmacro ada-name-of   (identlist)    (list 'aref identlist 0))
-(defmacro ada-line-of   (identlist)    (list 'aref identlist 1))
-(defmacro ada-column-of (identlist)    (list 'aref identlist 2))
-(defmacro ada-file-of   (identlist)    (list 'aref identlist 3))
-(defmacro ada-ali-index-of    (identlist) (list 'aref identlist 4))
-(defmacro ada-declare-file-of (identlist) (list 'aref identlist 5))
-(defmacro ada-references-of   (identlist) (list 'aref identlist 6))
-(defmacro ada-on-declaration  (identlist) (list 'aref identlist 7))
-
-(defmacro ada-set-name         (identlist name) (list 'aset identlist 0 name))
-(defmacro ada-set-line         (identlist line) (list 'aset identlist 1 line))
-(defmacro ada-set-column       (identlist col)  (list 'aset identlist 2 col))
-(defmacro ada-set-file         (identlist file) (list 'aset identlist 3 file))
-(defmacro ada-set-ali-index   (identlist index) (list 'aset identlist 4 index))
-(defmacro ada-set-declare-file (identlist file) (list 'aset identlist 5 file))
-(defmacro ada-set-references   (identlist ref)  (list 'aset identlist 6 ref))
-(defmacro ada-set-on-declaration (ident value) (list 'aset ident 7 value))
-
-(defsubst ada-get-ali-buffer (file)
-  "Reads the ali file into a new buffer, and returns this buffer's name"
-  (find-file-noselect (ada-get-ali-file-name file)))
-
-
-
 ;; ----- Identifier Completion --------------------------------------------
 (defun ada-complete-identifier (pos)
   "Tries to complete the identifier around POS.
-The feature is only available if the files where compiled not using the -gnatx
-option."
+The feature is only available if the files where compiled without
+the option `-gnatx'."
   (interactive "d")
   (ada-require-project-file)
 
@@ -1150,10 +977,28 @@ option."
 ;; ----- Cross-referencing ----------------------------------------
 
 (defun ada-point-and-xref ()
- "Calls `mouse-set-point' and then `ada-goto-declaration'."
+  "Jump to the declaration of the entity below the cursor."
   (interactive)
   (mouse-set-point last-input-event)
   (ada-goto-declaration (point)))
+
+(defun ada-point-and-xref-body ()
+  "Jump to the body of the entity under the cursor."
+  (interactive)
+  (mouse-set-point last-input-event)
+  (ada-goto-body (point)))
+
+(defun ada-goto-body (pos &optional other-frame)
+  "Display the body of the entity around POS.
+If the entity doesn't have a body, display its declaration.
+As a side effect, the buffer for the declaration is also open."
+  (interactive "d")
+  (ada-goto-declaration pos other-frame)
+
+  ;;  Temporarily force the display in the same buffer, since we
+  ;;  already changed previously
+  (let ((ada-xref-other-buffer nil))
+    (ada-goto-declaration (point) nil)))
 
 (defun ada-goto-declaration (pos &optional other-frame)
   "Display the declaration of the identifier around POS.
@@ -1178,15 +1023,15 @@ If OTHER-FRAME is non-nil, display the cross-reference in another frame."
 	 ;; entity, whose references are not given by GNAT
 	 (if (and (file-exists-p ali-file)
 		  (file-newer-than-file-p ali-file (ada-file-of identlist)))
-	     (message "No cross-reference found. It might be a predefined entity.")
+	     (message "No cross-reference found--may be a predefined entity.")
 
 	   ;; Else, look in every ALI file, except if the user doesn't want that
 	   (if ada-xref-search-with-egrep
 	       (ada-find-in-src-path identlist other-frame)
-	     (message "Cross-referencing information is not up-to-date. Please recompile.")
+	     (message "Cross-referencing information is not up-to-date; please recompile.")
 	     )))))))
 
-(defun ada-goto-declaration-other-frame (pos &optional other-frame)
+(defun ada-goto-declaration-other-frame (pos)
   "Display the declaration of the identifier around POS.
 The declation is shown in another frame if `ada-xref-other-buffer' is non-nil."
   (interactive "d")
@@ -1204,12 +1049,13 @@ The declation is shown in another frame if `ada-xref-other-buffer' is non-nil."
 
 (defun ada-get-absolute-dir-list (dir-list root-dir)
   "Returns the list of absolute directories found in dir-list.
-If a directory is a relative directory, the value of ROOT-DIR is added in
-front."
+If a directory is a relative directory, add the value of ROOT-DIR in front."
   (mapcar (lambda (x) (expand-file-name x root-dir)) dir-list))
 
 (defun ada-set-environment ()
-  "Return the new value for process-environment.
+  "Prepare an environment for Ada compilation.
+This returns a new value to use for `process-environment',
+but does not actually put it into use.
 It modifies the source path and object path with the values found in the
 project file."
   (let ((include   (getenv "ADA_INCLUDE_PATH"))
@@ -1234,7 +1080,7 @@ project file."
       process-environment))))
 
 (defun ada-compile-application (&optional arg)
-  "Compiles the application, using the command found in the project file.
+  "Compile the application, using the command found in the project file.
 If ARG is not nil, ask for user confirmation."
   (interactive "P")
   (ada-require-project-file)
@@ -1256,9 +1102,9 @@ If ARG is not nil, ask for user confirmation."
 	(setq cmd (read-from-minibuffer "enter command to compile: " cmd)))
 
     ;;  Insert newlines so as to separate the name of the commands to run
-    ;;  and the output of the commands. this doesn't work with cmdproxy.exe,
+    ;;  and the output of the commands.  This doesn't work with cmdproxy.exe,
     ;;  which gets confused by newline characters.
-    (if (not (string-match "cmdproxy.exe" shell-file-name))
+    (if (not (string-match ".exe" shell-file-name))
 	(setq cmd (concat cmd "\n\n")))
 
     (compile (ada-quote-cmd cmd))))
@@ -1289,9 +1135,9 @@ command, and should be either comp_cmd (default) or check_cmd."
 	(setq cmd (read-from-minibuffer "enter command to compile: " cmd)))
 
     ;;  Insert newlines so as to separate the name of the commands to run
-    ;;  and the output of the commands. this doesn't work with cmdproxy.exe,
+    ;;  and the output of the commands.  This doesn't work with cmdproxy.exe,
     ;;  which gets confused by newline characters.
-    (if (not (string-match "cmdproxy.exe" shell-file-name))
+    (if (not (string-match ".exe" shell-file-name))
 	(setq cmd (concat cmd "\n\n")))
 
     (compile (ada-quote-cmd cmd))))
@@ -1304,7 +1150,7 @@ If ARG is not nil, ask for user confirmation of the command."
 
 (defun ada-run-application (&optional arg)
   "Run the application.
-if ARG is not-nil, asks for user confirmation."
+if ARG is not-nil, ask for user confirmation."
   (interactive)
   (ada-require-project-file)
 
@@ -1379,7 +1225,7 @@ If ARG is non-nil, ask the user to confirm the command."
 	;;  We make sure that gvd swallows the new frame, not the one the
 	;;  user has been using until now
 	;;  The frame is made invisible initially, so that GtkPlug gets a
-	;;  chance to fully manage it. Then it works fine with Enlightenment
+	;;  chance to fully manage it.  Then it works fine with Enlightenment
 	;;  as well
 	(let ((frame (make-frame '((visibility . nil)))))
 	  (set 'cmd (concat
@@ -1395,11 +1241,10 @@ If ARG is non-nil, ask the user to confirm the command."
     (if (or arg ada-xref-confirm-compile)
 	(set 'cmd (read-from-minibuffer "enter command to debug: " cmd)))
 
-    (let (comint-exec
-	  in-post-mode
-	  gud-gdb-massage-args)
+    (let ((old-comint-exec (symbol-function 'comint-exec)))
 
       ;;  Do not add -fullname, since we can have a 'rsh' command in front.
+      ;;  FIXME: This is evil but luckily a nop under Emacs-21.3.50 !  -stef
       (fset 'gud-gdb-massage-args (lambda (file args) args))
 
       (set 'pre-cmd  (mapconcat 'identity pre-cmd  ada-command-separator))
@@ -1408,10 +1253,12 @@ If ARG is non-nil, ask the user to confirm the command."
 
       (set 'post-cmd (mapconcat 'identity post-cmd "\n"))
       (if post-cmd
-	(set 'post-cmd (concat post-cmd "\n")))
+	  (set 'post-cmd (concat post-cmd "\n")))
+
 
       ;;  Temporarily replaces the definition of `comint-exec' so that we
       ;;  can execute commands before running gdb.
+      ;;  FIXME: This is evil and not temporary !!!  -stef
       (fset 'comint-exec
 	    `(lambda (buffer name command startfile switches)
 	       (let (compilation-buffer-name-function)
@@ -1435,15 +1282,20 @@ If ARG is non-nil, ask the user to confirm the command."
 	  (funcall (symbol-function 'jdb) cmd)
 	(gdb cmd))
 
+      ;;  Restore the standard fset command (or for instance C-U M-x shell
+      ;;  wouldn't work anymore
+
+      (fset 'comint-exec old-comint-exec)
+
       ;;  Send post-commands to the debugger
       (process-send-string (get-buffer-process (current-buffer)) post-cmd)
 
       ;;  Move to the end of the debugger buffer, so that it is automatically
       ;;  scrolled from then on.
-      (end-of-buffer)
+      (goto-char (point-max))
 
       ;;  Display both the source window and the debugger window (the former
-      ;;  above the latter). No need to show the debugger window unless it
+      ;;  above the latter).  No need to show the debugger window unless it
       ;;  is going to have some relevant information.
       (if (or (not (string-match "gvd" (comint-arguments cmd 0 0)))
 	      (string-match "--tty" cmd))
@@ -1465,7 +1317,7 @@ automatically modifies the setup for all the Ada buffer that use this file."
 
   ;; Reread the location of the standard runtime library
   (ada-initialize-runtime-library
-   (or (ada-xref-get-project-field 'cross-prefix) ""))
+   (or (ada-xref-get-project-field 'cross_prefix) ""))
   )
 
 ;; ------ Private routines
@@ -1474,8 +1326,8 @@ automatically modifies the setup for all the Ada buffer that use this file."
   "Update the cross-references for FILE.
 This in fact recompiles FILE to create ALI-FILE-NAME.
 This function returns the name of the file that was recompiled to generate
-the cross-reference information. Note that the ali file can then be deduced by
-replacing the file extension with .ali"
+the cross-reference information.  Note that the ali file can then be deduced by
+replacing the file extension with `.ali'."
   ;; kill old buffer
   (if (and ali-file-name
            (get-file-buffer ali-file-name))
@@ -1484,7 +1336,7 @@ replacing the file extension with .ali"
   (let* ((name      (ada-convert-file-name file))
 	 (body-name (or (ada-get-body-name name) name)))
 
-    ;; Always recompile the body when we can. We thus temporarily switch to a
+    ;; Always recompile the body when we can.  We thus temporarily switch to a
     ;; buffer than contains the body of the unit
     (save-excursion
       (let ((body-visible (find-buffer-visiting body-name))
@@ -1493,7 +1345,7 @@ replacing the file extension with .ali"
 	    (set-buffer body-visible)
 	  (find-file body-name))
 
-	;; Execute the compilation. Note that we must wait for the end of the
+	;; Execute the compilation.  Note that we must wait for the end of the
 	;; process, or the ALI file would still not be available.
 	;; Unfortunately, the underlying `compile' command that we use is
 	;; asynchronous.
@@ -1523,13 +1375,13 @@ replacing the file extension with .ali"
     found))
 
 (defun ada-find-ali-file-in-dir (file)
-  "Find an .ali file in obj_dir. The current buffer must be the Ada file.
+  "Find an .ali file in obj_dir.  The current buffer must be the Ada file.
 Adds build_dir in front of the search path to conform to gnatmake's behavior,
 and the standard runtime location at the end."
   (ada-find-file-in-dir file (ada-xref-get-obj-dir-field)))
 
 (defun ada-find-src-file-in-dir (file)
-  "Find a source file in src_dir. The current buffer must be the Ada file.
+  "Find a source file in src_dir.  The current buffer must be the Ada file.
 Adds src_dir in front of the search path to conform to gnatmake's behavior,
 and the standard runtime location at the end."
   (ada-find-file-in-dir file (ada-xref-get-src-dir-field)))
@@ -1546,7 +1398,7 @@ the project file."
   ;;      and look for this file
   ;;   2- If this file is found:
   ;;      grep the "^U" lines, and make sure we are not reading the
-  ;;      .ali file for a spec file. If we are, go to step 3.
+  ;;      .ali file for a spec file.  If we are, go to step 3.
   ;;   3- If the file is not found or step 2 failed:
   ;;      find the name of the "other file", ie the body, and look
   ;;      for its associated .ali file by subtituing the extension
@@ -1554,9 +1406,9 @@ the project file."
   ;; We must also handle the case of separate packages and subprograms:
   ;;   4- If no ali file was found, we try to modify the file name by removing
   ;;      everything after the last '-' or '.' character, so as to get the
-  ;;      ali file for the parent unit. If we found an ali file, we check that
+  ;;      ali file for the parent unit.  If we found an ali file, we check that
   ;;      it indeed contains the definition for the separate entity by checking
-  ;;      the 'D' lines. This is done repeatedly, in case the direct parent is
+  ;;      the 'D' lines.  This is done repeatedly, in case the direct parent is
   ;;      also a separate.
 
   (save-excursion
@@ -1569,7 +1421,7 @@ the project file."
 
       ;; If we have a non-standard file name, and this is a spec, we first
       ;; look for the .ali file of the body, since this is the one that
-      ;; contains the most complete information. If not found, we will do what
+      ;; contains the most complete information.  If not found, we will do what
       ;; we can with the .ali file for the spec...
 
       (if (not (string= (file-name-extension file) "ads"))
@@ -1622,8 +1474,8 @@ the project file."
 
       ;; If still not found, try to recompile the file
       (if (not ali-file-name)
-	  ;; recompile only if the user asked for this. and search the ali
-	  ;; filename again. We avoid a possible infinite recursion by
+	  ;; Recompile only if the user asked for this, and search the ali
+	  ;; filename again.  We avoid a possible infinite recursion by
 	  ;; temporarily disabling the automatic compilation.
 
 	  (if ada-xref-create-ali
@@ -1631,7 +1483,7 @@ the project file."
 		    (concat (file-name-sans-extension (ada-xref-current file))
 			    ".ali"))
 
-	    (error "Ali file not found. Recompile your file"))
+	    (error "`.ali' file not found; recompile your source file"))
 
 
 	;; same if the .ali file is too old and we must recompile it
@@ -1645,7 +1497,7 @@ the project file."
 
 (defun ada-get-ada-file-name (file original-file)
   "Create the complete file name (+directory) for FILE.
-The original file (where the user was) is ORIGINAL-FILE. Search in project
+The original file (where the user was) is ORIGINAL-FILE.  Search in project
 file for possible paths."
 
   (save-excursion
@@ -1665,7 +1517,7 @@ file for possible paths."
           (expand-file-name filename)
         (error (concat
                 (file-name-nondirectory file)
-                " not found in src_dir. Please check your project file")))
+                " not found in src_dir; please check your project file")))
 
       )))
 
@@ -1780,7 +1632,7 @@ from the ali file (definition file and places where it is referenced)."
       (unless (re-search-forward (concat (ada-ali-index-of identlist)
 					 "|\\([0-9]+[^0-9][0-9]+\\(\n\\.\\)? \\)*"
 					 (ada-line-of identlist)
-					 "[^etp]"
+					 "[^etpzkd<>=^]"
 					 (ada-column-of identlist) "\\>")
 				 nil t)
 
@@ -1817,13 +1669,13 @@ from the ali file (definition file and places where it is referenced)."
 	      (set 'declaration-found nil))))
 
       ;; Still no success ! The ali file must be too old, and we need to
-      ;; use a basic algorithm based on guesses. Note that this only happens
+      ;; use a basic algorithm based on guesses.  Note that this only happens
       ;; if the user does not want us to automatically recompile files
       ;; automatically
       (unless declaration-found
 	(if (ada-xref-find-in-modified-ali identlist)
 	    (set 'declaration-found t)
-	  ;; no more idea to find the declaration. Give up
+	  ;; No more idea to find the declaration.  Give up
 	  (progn
 	    (kill-buffer ali-buffer)
 	    (error (concat "No declaration of " (ada-name-of identlist)
@@ -1886,7 +1738,7 @@ This function is disabled for operators, and only works for identifiers."
           (goto-char (point-max))
           (while (re-search-backward my-regexp nil t)
             (save-excursion
-              (setq line-ali (count-lines 1 (point)))
+              (set 'line-ali (count-lines 1 (point)))
               (beginning-of-line)
               ;; have a look at the line and column numbers
               (if (looking-at "^\\([0-9]+\\).\\([0-9]+\\)[ *]")
@@ -1948,7 +1800,7 @@ This function is disabled for operators, and only works for identifiers."
 		      (< choice 1)
 		      (> choice len))
 		(setq choice
-		      (string-to-int
+		      (string-to-number
 		       (read-from-minibuffer "Enter No. of your choice: "))))
 	      )
 	    (set-buffer ali-buffer)
@@ -1977,13 +1829,14 @@ opens a new window to show the declaration."
     (set 'locations (list (list (match-string 1 ali-line) ;; line
 				(match-string 2 ali-line) ;; column
 				(ada-declare-file-of identlist))))
-    (while (string-match "\\([0-9]+\\)[bc]\\([0-9]+\\)" ali-line start)
+    (while (string-match "\\([0-9]+\\)[bc]\\(<[^>]+>\\)?\\([0-9]+\\)"
+			 ali-line start)
       (setq line  (match-string 1 ali-line)
-	    col   (match-string 2 ali-line)
-	    start (match-end 2))
+	    col   (match-string 3 ali-line)
+	    start (match-end 3))
 
       ;;  it there was a file number in the same line
-      (if (string-match (concat "\\([0-9]+\\)|\\([^|bc]+\\)?"
+      (if (string-match (concat "[^{(<]\\([0-9]+\\)|\\([^|bc]+\\)?"
 				(match-string 0 ali-line))
 			ali-line)
 	  (let ((file-number (match-string 1 ali-line)))
@@ -2056,7 +1909,7 @@ is using."
 
     (save-excursion
 
-      ;;  Do the grep in all the directories. We do multiple shell
+      ;;  Do the grep in all the directories.  We do multiple shell
       ;;  commands instead of one in case there is no .ali file in one
       ;;  of the directory and the shell stops because of that.
 
@@ -2135,7 +1988,7 @@ is using."
 		   (< choice 1)
 		   (> choice (length list)))
 	  (setq choice
-		(string-to-int
+		(string-to-number
 		 (read-from-minibuffer "Enter No. of your choice: "))))
 	)
       (set 'choice (1- choice))
@@ -2156,7 +2009,7 @@ is using."
   (file line column identlist &optional other-frame)
   "Select and display FILE, at LINE and COLUMN.
 If we do not end on the same identifier as IDENTLIST, find the closest
-match. Kills the .ali buffer at the end.
+match.  Kills the .ali buffer at the end.
 If OTHER-FRAME is non-nil, creates a new frame to show the file."
 
   (let (declaration-buffer)
@@ -2301,17 +2154,17 @@ This is a GNAT specific function that uses gnatkrunch."
   adaname
   )
 
-(defun ada-make-body-gnatstub ()
+(defun ada-make-body-gnatstub (&optional interactive)
   "Create an Ada package body in the current buffer.
 This function uses the `gnatstub' program to create the body.
 This function typically is to be hooked into `ff-file-created-hooks'."
-  (interactive)
+  (interactive "p")
 
   (save-some-buffers nil nil)
 
   ;; If the current buffer is the body (as is the case when calling this
   ;; function from ff-file-created-hooks), then kill this temporary buffer
-  (unless (interactive-p)
+  (unless interactive
     (progn
       (set-buffer-modified-p nil)
       (kill-buffer (current-buffer))))
@@ -2323,7 +2176,7 @@ This function typically is to be hooked into `ff-file-created-hooks'."
   (unless (buffer-file-name (car (buffer-list)))
     (set-buffer (cadr (buffer-list))))
 
-  ;;  Make sure we have a project file (for parameters to gnatstub). Note that
+  ;;  Make sure we have a project file (for parameters to gnatstub).  Note that
   ;;  this might have already been done if we have been called from the hook,
   ;;  but this is not an expensive call)
   (ada-require-project-file)
@@ -2371,12 +2224,13 @@ This function typically is to be hooked into `ff-file-created-hooks'."
   "Function called by `ada-mode-hook' to initialize the ada-xref.el package.
 For instance, it creates the gnat-specific menus, sets some hooks for
 find-file...."
-  (make-local-hook 'ff-file-created-hooks)
   ;; This should really be an `add-hook'.  -stef
-  (setq ff-file-created-hooks 'ada-make-body-gnatstub)
+  (setq ff-file-created-hook 'ada-make-body-gnatstub)
 
   ;; Completion for file names in the mini buffer should ignore .ali files
   (add-to-list 'completion-ignored-extensions ".ali")
+
+  (ada-xref-update-project-menu)
   )
 
 
@@ -2384,9 +2238,9 @@ find-file...."
 
 ;;  Use gvd or ddd as the default debugger if it was found
 ;;  On windows, do not use the --tty switch for GVD, since this is
-;;  not supported. Actually, we do not use this on Unix either, since otherwise
-;;  there is no console window left in GVD, and people have to use the
-;;  Emacs one.
+;;  not supported.  Actually, we do not use this on Unix either,
+;;  since otherwise there is no console window left in GVD,
+;;  and people have to use the Emacs one.
 ;;  This must be done before initializing the Ada menu.
 (if (ada-find-file-in-dir "gvd" exec-path)
     (set 'ada-prj-default-debugger "gvd ")
@@ -2395,29 +2249,17 @@ find-file...."
   (if (ada-find-file-in-dir "ddd" exec-path)
       (set 'ada-prj-default-debugger "ddd --tty -fullname -toolbar"))))
 
-;;  Set the keymap once and for all, so that the keys set by the user in his
-;;  config file are not overwritten every time we open a new file.
-(ada-add-ada-menu)
-(ada-add-keymap)
-
 (add-hook 'ada-mode-hook 'ada-xref-initialize)
 
 ;;  Initializes the cross references to the runtime library
 (ada-initialize-runtime-library "")
 
 ;;  Add these standard directories to the search path
-(set 'ada-search-directories
+(set 'ada-search-directories-internal
      (append (mapcar 'directory-file-name ada-xref-runtime-library-specs-path)
 	     ada-search-directories))
 
-;;  Make sure that the files are always associated with a project file. Since
-;;  the project file has some fields that are used for the editor (like the
-;;  casing exceptions), it has to be read before the user edits a file).
-;; (add-hook 'ada-mode-hook
-;; 	  (lambda()
-;; 	    (let ((file (ada-prj-find-prj-file t)))
-;; 	      (if file (ada-reread-prj-file file)))))
-
 (provide 'ada-xref)
 
+;;; arch-tag: 415a39fe-577b-4676-b3b1-6ff6db7ca24e
 ;;; ada-xref.el ends here

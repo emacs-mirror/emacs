@@ -1,6 +1,7 @@
 ;;; decipher.el --- cryptanalyze monoalphabetic substitution ciphers
 ;;
-;; Copyright (C) 1995, 1996, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Christopher J. Madsen <chris_madsen@geocities.com>
 ;; Keywords: games
@@ -19,8 +20,8 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;
@@ -108,8 +109,8 @@ This variable must be set before typing `\\[decipher]'."
 
 (defcustom decipher-ignore-spaces nil
   "*Non-nil means to ignore spaces and punctuation when counting digrams.
-You should set this to `nil' if the cipher message is divided into words,
-or `t' if it is not.
+You should set this to nil if the cipher message is divided into words,
+or t if it is not.
 This variable is buffer-local."
   :type 'boolean
   :group 'decipher)
@@ -305,7 +306,8 @@ The most useful commands are:
       (setq case-fold-search nil))      ;Case is significant when searching
   (use-local-map decipher-mode-map)
   (set-syntax-table decipher-mode-syntax-table)
-  (decipher-read-alphabet)
+  (unless (= (point-min) (point-max))
+    (decipher-read-alphabet))
   (set (make-local-variable 'font-lock-defaults)
        '(decipher-font-lock-keywords t))
   ;; Make the buffer writable when we exit Decipher mode:
@@ -313,7 +315,7 @@ The most useful commands are:
             (lambda () (setq buffer-read-only nil
                              buffer-undo-list nil))
             nil t)
-  (run-hooks 'decipher-mode-hook)
+  (run-mode-hooks 'decipher-mode-hook)
   (setq buffer-read-only t))
 (put 'decipher-mode 'mode-class 'special)
 
@@ -598,7 +600,7 @@ you have determined the keyword."
 (defun decipher-show-alphabet ()
   "Display the current cipher alphabet in the message line."
   (interactive)
-  (message
+  (message "%s"
    (mapconcat (lambda (a)
                 (concat
                  (char-to-string (car a))
@@ -771,7 +773,7 @@ See `decipher-loop-no-breaks' if you do not care about word divisions."
           (forward-char))
         (or (equal decipher-char ?\ )
             (progn
-              (setq decipher-char ?\ ;
+              (setq decipher-char ?\s
                     decipher--loop-prev-char ?\ )
               (funcall func)))))))
 
@@ -997,7 +999,7 @@ Creates the statistics buffer if it doesn't exist."
         major-mode       'decipher-stats-mode
         mode-name        "Decipher-Stats")
   (use-local-map decipher-stats-mode-map)
-  (run-hooks 'decipher-stats-mode-hook))
+  (run-mode-hooks 'decipher-stats-mode-hook))
 (put 'decipher-stats-mode 'mode-class 'special)
 
 ;;--------------------------------------------------------------------
@@ -1068,4 +1070,5 @@ if it can't, it signals an error."
 ;;;          (delete-backward-char 1)
 ;;;          (insert ")\n"))))))
 
+;;; arch-tag: 8f094d88-ffe1-4f99-afe3-a5e81dd939d9
 ;;; decipher.el ends here

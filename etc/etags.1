@@ -1,4 +1,5 @@
-.\" Copyright (c) 1992, 2001 Free Software Foundation
+.\" Copyright (C) 1992, 2001, 2002, 2003, 2004,
+.\"   2005 Free Software Foundation, Inc.
 .\" See section COPYING for conditions for redistribution
 .TH etags 1 "23nov2001" "GNU Tools" "GNU Tools"
 .de BP
@@ -50,7 +51,7 @@ format understood by
 .BR vi ( 1 )\c
 \&.  Both forms of the program understand
 the syntax of C, Objective C, C++, Java, Fortran, Ada, Cobol, Erlang, HTML,
-LaTeX, Emacs Lisp/Common Lisp, makefiles, Pascal, Perl, PHP, Postscript,
+LaTeX, Emacs Lisp/Common Lisp, Lua, makefile, Pascal, Perl, PHP, Postscript,
 Python, Prolog, Scheme and
 most assembler\-like syntaxes.
 Both forms read the files specified on the command line, and write a tag
@@ -58,7 +59,9 @@ table (defaults: \fBTAGS\fP for \fBetags\fP, \fBtags\fP for
 \fBctags\fP) in the current working directory.
 Files specified with relative file names will be recorded in the tag
 table with file names relative to the directory where the tag table
-resides.  Files specified with absolute file names will be recorded
+resides.  If the tag table is in /dev, however, the file names are made
+relative to the working directory.  Files specified with absolute file
+names will be recorded
 with absolute file names.  Files generated from a source file\-\-like
 a C file generated from a source Cweb file\-\-will be recorded with
 the name of the source file.
@@ -90,28 +93,31 @@ and create tags for extern variables unless \-\-no\-globals is used.
 .TP
 .B \-d, \-\-defines
 Create tag entries for C preprocessor constant definitions
-and enum constants, too.  This is the
-default behavior for \fBetags\fP.
+and enum constants, too.  Since this is the default behavior of
+\fBetags\fP, only \fBctags\fP accepts this option.
 .TP
 .B \-D, \-\-no\-defines
 Do not create tag entries for C preprocessor constant definitions
 and enum constants.
 This may make the tags file much smaller if many header files are tagged.
-This is the default behavior for \fBctags\fP.
+Since this is the default behavior of \fBctags\fP, only \fBetags\fP
+accepts this option.
 .TP
-.B \-g, \-\-globals
+.B \-\-globals
 Create tag entries for global variables in C, C++, Objective C, Java,
 and Perl.
-This is the default behavior for \fBetags\fP.
+Since this is the default behavior of \fBetags\fP, only \fBctags\fP
+accepts this option.
 .TP
-.B \-G, \-\-no\-globals
+.B \-\-no\-globals
 Do not tag global variables.  Typically this reduces the file size by
-one fourth.  This is the default behavior for \fBctags\fP.
+one fourth.  Since this is the default behavior of \fBctags\fP, only
+\fBetags\fP accepts this option.
 .TP
 \fB\-i\fP \fIfile\fP, \fB\-\-include=\fIfile\fP
 Include a note in the tag file indicating that, when searching for a
 tag, one should also consult the tags file \fIfile\fP after checking the
-current file.  This options is only accepted by \fBetags\fP.
+current file.  Only \fBetags\fP accepts this option.
 .TP
 .B \-I, \-\-ignore\-indentation
 Don't rely on indentation as much as we normally do.  Currently, this
@@ -266,7 +272,8 @@ Instead of generating a tag file, write a cross reference (in
 \fBcxref\fP format) to standard output.  Only \fBctags\fP accepts this option.
 .TP
 .B \-h, \-H, \-\-help
-Print usage information.
+Print usage information.  Followed by one or more \-\-language=LANG
+prints detailed information about how tags are created for LANG.
 .TP
 .B \-V, \-\-version
 Print the current version of the program (same as the version of the
@@ -285,7 +292,7 @@ Stallman.
 Copyright
 .if t \(co
 .if n (c)
-1999, 2001 Free Software Foundation, Inc.
+1999, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 .PP
 Permission is granted to make and distribute verbatim copies of this
 document provided the copyright notice and this permission notice are
@@ -300,3 +307,5 @@ Permission is granted to copy and distribute translations of this
 document into another language, under the above conditions for
 modified versions, except that this permission notice may be stated
 in a translation approved by the Free Software Foundation.
+
+.\" arch-tag: 9534977f-af78-42f0-991d-1df6b6c05573

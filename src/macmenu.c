@@ -1,5 +1,6 @@
-/* Menu support for GNU Emacs on the for Mac OS.
-   Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+/* Menu support for GNU Emacs on Mac OS.
+   Copyright (C) 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,15 +16,15 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Contributed by Andrew Choi (akochoi@mac.com).  */
 
 #include <config.h>
-#include <signal.h>
 
 #include <stdio.h>
+
 #include "lisp.h"
 #include "termhooks.h"
 #include "keyboard.h"
@@ -35,34 +36,7 @@ Boston, MA 02111-1307, USA.  */
 #include "charset.h"
 #include "coding.h"
 
-#ifdef MAC_OSX
-#undef mktime
-#undef DEBUG
-#undef Z
-#undef free
-#undef malloc
-#undef realloc
-/* Macros max and min defined in lisp.h conflict with those in
-   precompiled header Carbon.h.  */
-#undef max
-#undef min
-#undef init_process
-#include <Carbon/Carbon.h>
-#undef Z
-#define Z (current_buffer->text->z)
-#undef free
-#define free unexec_free
-#undef malloc
-#define malloc unexec_malloc
-#undef realloc
-#define realloc unexec_realloc
-#undef min
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#undef max
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#undef init_process
-#define init_process emacs_init_process
-#else /* not MAC_OSX */
+#if !TARGET_API_MAC_CARBON
 #include <MacTypes.h>
 #include <Menus.h>
 #include <QuickDraw.h>
@@ -74,7 +48,7 @@ Boston, MA 02111-1307, USA.  */
 #if defined (__MRC__) || (__MSL__ >= 0x6000)
 #include <ControlDefinitions.h>
 #endif
-#endif /* not MAC_OSX */
+#endif /* not TARGET_API_MAC_CARBON */
 
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
@@ -117,10 +91,12 @@ enum button_type
 typedef struct _widget_value
 {
   /* name of widget */
+  Lisp_Object   lname;
   char*		name;
   /* value (meaning depend on widget type) */
   char*		value;
   /* keyboard equivalent. no implications for XtTranslations */
+  Lisp_Object   lkey;
   char*		key;
   /* Help string or nil if none.
      GC finds this string through the frame's menu_bar_vector
@@ -179,7 +155,7 @@ Lisp_Object Vmenu_updating_frame;
 
 Lisp_Object Qdebug_on_next_call;
 
-extern Lisp_Object Qmenu_bar;
+extern Lisp_Object Qmenu_bar, Qmac_apple_event;
 
 extern Lisp_Object QCtoggle, QCradio;
 
@@ -190,21 +166,28 @@ extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 
 extern Lisp_Object Qmenu_bar_update_hook;
 
-void set_frame_menubar ();
+void set_frame_menubar P_ ((FRAME_PTR, int, int));
+
+#if TARGET_API_MAC_CARBON
+#define ENCODE_MENU_STRING(str) ENCODE_UTF_8 (str)
+#else
+#define ENCODE_MENU_STRING(str) ENCODE_SYSTEM (str)
+#endif
 
 static void push_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				Lisp_Object, Lisp_Object, Lisp_Object,
 				Lisp_Object, Lisp_Object));
 #ifdef HAVE_DIALOGS
-static Lisp_Object mac_dialog_show ();
+static Lisp_Object mac_dialog_show P_ ((FRAME_PTR, int, Lisp_Object,
+					Lisp_Object, char **));
 #endif
-static Lisp_Object mac_menu_show ();
-
-static void keymap_panes ();
-static void single_keymap_panes ();
-static void single_menu_item ();
-static void list_of_panes ();
-static void list_of_items ();
+static Lisp_Object mac_menu_show P_ ((struct frame *, int, int, int, int,
+				      Lisp_Object, char **));
+static void keymap_panes P_ ((Lisp_Object *, int, int));
+static void single_keymap_panes P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+				     int, int));
+static void list_of_panes P_ ((Lisp_Object));
+static void list_of_items P_ ((Lisp_Object));
 
 static void fill_submenu (MenuHandle, widget_value *);
 static void fill_menubar (widget_value *);
@@ -299,8 +282,7 @@ init_menu_items ()
   menu_items_submenu_depth = 0;
 }
 
-/* Call at the end of generating the data in menu_items.
-   This fills in the number of items in the last pane.  */
+/* Call at the end of generating the data in menu_items.  */
 
 static void
 finish_menu_items ()
@@ -434,10 +416,20 @@ keymap_panes (keymaps, nmaps, notreal)
      P is the number of panes we have made so far.  */
   for (mapno = 0; mapno < nmaps; mapno++)
     single_keymap_panes (keymaps[mapno],
-                         Fkeymap_prompt (keymaps[mapno]), Qnil, notreal, 10);
+			 Fkeymap_prompt (keymaps[mapno]), Qnil, notreal, 10);
 
   finish_menu_items ();
 }
+
+/* Args passed between single_keymap_panes and single_menu_item.  */
+struct skp
+  {
+     Lisp_Object pending_maps;
+     int maxdepth, notreal;
+  };
+
+static void single_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+				  void *));
 
 /* This is a recursive subroutine of keymap_panes.
    It handles one keymap, KEYMAP.
@@ -456,89 +448,71 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
      int notreal;
      int maxdepth;
 {
-  Lisp_Object pending_maps = Qnil;
-  Lisp_Object tail, item;
-  struct gcpro gcpro1, gcpro2;
+  struct skp skp;
+  struct gcpro gcpro1;
+
+  skp.pending_maps = Qnil;
+  skp.maxdepth = maxdepth;
+  skp.notreal = notreal;
 
   if (maxdepth <= 0)
     return;
 
   push_menu_pane (pane_name, prefix);
 
-  for (tail = keymap; CONSP (tail); tail = XCDR (tail))
-    {
-      GCPRO2 (keymap, pending_maps);
-      /* Look at each key binding, and if it is a menu item add it
-	 to this menu.  */
-      item = XCAR (tail);
-      if (CONSP (item))
-	single_menu_item (XCAR (item), XCDR (item),
-			  &pending_maps, notreal, maxdepth);
-      else if (VECTORP (item))
-	{
-	  /* Loop over the char values represented in the vector.  */
-	  int len = XVECTOR (item)->size;
-	  int c;
-	  for (c = 0; c < len; c++)
-	    {
-	      Lisp_Object character;
-	      XSETFASTINT (character, c);
-	      single_menu_item (character, XVECTOR (item)->contents[c],
-				&pending_maps, notreal, maxdepth);
-	    }
-	}
-      UNGCPRO;
-    }
+  GCPRO1 (skp.pending_maps);
+  map_keymap (keymap, single_menu_item, Qnil, &skp, 1);
+  UNGCPRO;
 
   /* Process now any submenus which want to be panes at this level.  */
-  while (!NILP (pending_maps))
+  while (CONSP (skp.pending_maps))
     {
       Lisp_Object elt, eltcdr, string;
-      elt = Fcar (pending_maps);
+      elt = XCAR (skp.pending_maps);
       eltcdr = XCDR (elt);
       string = XCAR (eltcdr);
       /* We no longer discard the @ from the beginning of the string here.
 	 Instead, we do this in mac_menu_show.  */
       single_keymap_panes (Fcar (elt), string,
 			   XCDR (eltcdr), notreal, maxdepth - 1);
-      pending_maps = Fcdr (pending_maps);
+      skp.pending_maps = XCDR (skp.pending_maps);
     }
 }
 
 /* This is a subroutine of single_keymap_panes that handles one
    keymap entry.
    KEY is a key in a keymap and ITEM is its binding.
-   PENDING_MAPS_PTR points to a list of keymaps waiting to be made into
+   SKP->PENDING_MAPS_PTR is a list of keymaps waiting to be made into
    separate panes.
-   If NOTREAL is nonzero, only check for equivalent key bindings, don't
+   If SKP->NOTREAL is nonzero, only check for equivalent key bindings, don't
    evaluate expressions in menu items and don't make any menu.
-   If we encounter submenus deeper than MAXDEPTH levels, ignore them.  */
+   If we encounter submenus deeper than SKP->MAXDEPTH levels, ignore them.  */
 
 static void
-single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
-     Lisp_Object key, item;
-     Lisp_Object *pending_maps_ptr;
-     int maxdepth, notreal;
+single_menu_item (key, item, dummy, skp_v)
+     Lisp_Object key, item, dummy;
+     void *skp_v;
 {
   Lisp_Object map, item_string, enabled;
   struct gcpro gcpro1, gcpro2;
   int res;
+  struct skp *skp = skp_v;
 
   /* Parse the menu item and leave the result in item_properties.  */
   GCPRO2 (key, item);
-  res = parse_menu_item (item, notreal, 0);
+  res = parse_menu_item (item, skp->notreal, 0);
   UNGCPRO;
   if (!res)
     return;			/* Not a menu item.  */
 
   map = XVECTOR (item_properties)->contents[ITEM_PROPERTY_MAP];
 
-  if (notreal)
+  if (skp->notreal)
     {
       /* We don't want to make a menu, just traverse the keymaps to
 	 precompute equivalent key bindings.  */
       if (!NILP (map))
-	single_keymap_panes (map, Qnil, key, 1, maxdepth - 1);
+	single_keymap_panes (map, Qnil, key, 1, skp->maxdepth - 1);
       return;
     }
 
@@ -549,8 +523,8 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
     {
       if (!NILP (enabled))
 	/* An enabled separate pane. Remember this to handle it later.  */
-	*pending_maps_ptr = Fcons (Fcons (map, Fcons (item_string, key)),
-				   *pending_maps_ptr);
+	skp->pending_maps = Fcons (Fcons (map, Fcons (item_string, key)),
+				   skp->pending_maps);
       return;
     }
 
@@ -558,14 +532,14 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
 		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF],
 		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ],
 		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_TYPE],
-                  XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED],
-                  XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]);
+		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED],
+		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]);
 
   /* Display a submenu using the toolkit.  */
   if (! (NILP (map) || NILP (enabled)))
     {
       push_submenu_start ();
-      single_keymap_panes (map, Qnil, key, 0, maxdepth - 1);
+      single_keymap_panes (map, Qnil, key, 0, skp->maxdepth - 1);
       push_submenu_end ();
     }
 }
@@ -582,13 +556,13 @@ list_of_panes (menu)
 
   init_menu_items ();
 
-  for (tail = menu; !NILP (tail); tail = Fcdr (tail))
+  for (tail = menu; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object elt, pane_name, pane_data;
-      elt = Fcar (tail);
+      elt = XCAR (tail);
       pane_name = Fcar (elt);
       CHECK_STRING (pane_name);
-      push_menu_pane (pane_name, Qnil);
+      push_menu_pane (ENCODE_MENU_STRING (pane_name), Qnil);
       pane_data = Fcdr (elt);
       CHECK_CONS (pane_data);
       list_of_items (pane_data);
@@ -605,67 +579,88 @@ list_of_items (pane)
 {
   Lisp_Object tail, item, item1;
 
-  for (tail = pane; !NILP (tail); tail = Fcdr (tail))
+  for (tail = pane; CONSP (tail); tail = XCDR (tail))
     {
-      item = Fcar (tail);
+      item = XCAR (tail);
       if (STRINGP (item))
-	push_menu_item (item, Qnil, Qnil, Qt, Qnil, Qnil, Qnil, Qnil);
-      else if (NILP (item))
-	push_left_right_boundary ();
-      else
+	push_menu_item (ENCODE_MENU_STRING (item), Qnil, Qnil, Qt,
+			Qnil, Qnil, Qnil, Qnil);
+      else if (CONSP (item))
 	{
-	  CHECK_CONS (item);
-	  item1 = Fcar (item);
+	  item1 = XCAR (item);
 	  CHECK_STRING (item1);
-	  push_menu_item (item1, Qt, Fcdr (item), Qt, Qnil, Qnil, Qnil, Qnil);
+	  push_menu_item (ENCODE_MENU_STRING (item1), Qt, XCDR (item),
+			  Qt, Qnil, Qnil, Qnil, Qnil);
 	}
+      else
+	push_left_right_boundary ();
+
     }
 }
 
+static Lisp_Object
+cleanup_popup_menu (arg)
+     Lisp_Object arg;
+{
+  discard_menu_items ();
+}
+
 DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
        doc: /* Pop up a deck-of-cards menu and return user's selection.
-POSITION is a position specification.  This is either a mouse button
-event or a list ((XOFFSET YOFFSET) WINDOW) where XOFFSET and YOFFSET
-are positions in pixels from the top left corner of WINDOW's frame
-\(WINDOW may be a frame object instead of a window).  This controls the
-position of the center of the first line in the first pane of the
-menu, not the top left of the menu as a whole.  If POSITION is t, it
-means to use the current mouse position.
+POSITION is a position specification.  This is either a mouse button event
+or a list ((XOFFSET YOFFSET) WINDOW)
+where XOFFSET and YOFFSET are positions in pixels from the top left
+corner of WINDOW.  (WINDOW may be a window or a frame object.)
+This controls the position of the top left of the menu as a whole.
+If POSITION is t, it means to use the current mouse position.
 
 MENU is a specifier for a menu.  For the simplest case, MENU is a keymap.
 The menu items come from key bindings that have a menu string as well as
-a definition; actually, the \"definition\" in such a key binding looks like
+a definition; actually, the "definition" in such a key binding looks like
 \(STRING . REAL-DEFINITION).  To give the menu a title, put a string into
 the keymap as a top-level element.
 
 If REAL-DEFINITION is nil, that puts a nonselectable string in the menu.
 Otherwise, REAL-DEFINITION should be a valid key binding definition.
 
-You can also use a list of keymaps as MENU.  Then each keymap makes a
-separate pane.  When MENU is a keymap or a list of keymaps, the return
-value is a list of events.
+You can also use a list of keymaps as MENU.
+  Then each keymap makes a separate pane.
 
-Alternatively, you can specify a menu of multiple panes with a list of
-the form (TITLE PANE1 PANE2...), where each pane is a list of
-form (TITLE ITEM1 ITEM2...).
-Each ITEM is normally a cons cell (STRING . VALUE); but a string can
-appear as an item--that makes a nonselectable line in the menu.
+When MENU is a keymap or a list of keymaps, the return value is the
+list of events corresponding to the user's choice. Note that
+`x-popup-menu' does not actually execute the command bound to that
+sequence of events.
+
+Alternatively, you can specify a menu of multiple panes
+  with a list of the form (TITLE PANE1 PANE2...),
+where each pane is a list of form (TITLE ITEM1 ITEM2...).
+Each ITEM is normally a cons cell (STRING . VALUE);
+but a string can appear as an item--that makes a nonselectable line
+in the menu.
 With this form of menu, the return value is VALUE from the chosen item.
 
 If POSITION is nil, don't display the menu at all, just precalculate the
-cached information about equivalent key sequences.  */)
-  (position, menu)
+cached information about equivalent key sequences.
+
+If the user gets rid of the menu without making a valid choice, for
+instance by clicking the mouse away from a valid choice or by typing
+keyboard input, then this normally results in a quit and
+`x-popup-menu' does not return.  But if POSITION is a mouse button
+event (indicating that the user invoked the menu with the mouse) then
+no quit occurs and `x-popup-menu' returns nil.  */)
+     (position, menu)
      Lisp_Object position, menu;
 {
   Lisp_Object keymap, tem;
   int xpos = 0, ypos = 0;
   Lisp_Object title;
-  char *error_name;
+  char *error_name = NULL;
   Lisp_Object selection;
   FRAME_PTR f = NULL;
   Lisp_Object x, y, window;
   int keymaps = 0;
   int for_click = 0;
+  int specpdl_count = SPECPDL_INDEX ();
   struct gcpro gcpro1;
 
 #ifdef HAVE_MENUS
@@ -676,7 +671,8 @@ cached information about equivalent key sequences.  */)
       /* Decode the first argument: find the window and the coordinates.  */
       if (EQ (position, Qt)
 	  || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
-                                   || EQ (XCAR (position), Qtool_bar))))
+				   || EQ (XCAR (position), Qtool_bar)
+				   || EQ (XCAR (position), Qmac_apple_event))))
 	{
 	  /* Use the mouse's current position.  */
 	  FRAME_PTR new_f = SELECTED_FRAME ();
@@ -702,8 +698,8 @@ cached information about equivalent key sequences.  */)
 	  if (CONSP (tem))
 	    {
 	      window = Fcar (Fcdr (position));
-	      x = Fcar (tem);
-	      y = Fcar (Fcdr (tem));
+	      x = XCAR (tem);
+	      y = Fcar (XCDR (tem));
 	    }
 	  else
 	    {
@@ -732,10 +728,8 @@ cached information about equivalent key sequences.  */)
 	  CHECK_LIVE_WINDOW (window);
 	  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
 
-	  xpos = (FONT_WIDTH (FRAME_FONT (f))
-		  * XFASTINT (XWINDOW (window)->left));
-	  ypos = (FRAME_LINE_HEIGHT (f)
-		  * XFASTINT (XWINDOW (window)->top));
+	  xpos = WINDOW_LEFT_EDGE_X (XWINDOW (window));
+	  ypos = WINDOW_TOP_EDGE_Y (XWINDOW (window));
 	}
       else
 	/* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
@@ -747,7 +741,8 @@ cached information about equivalent key sequences.  */)
 
       XSETFRAME (Vmenu_updating_frame, f);
     }
-  Vmenu_updating_frame = Qnil;
+  else
+    Vmenu_updating_frame = Qnil;
 #endif /* HAVE_MENUS */
 
   title = Qnil;
@@ -788,11 +783,11 @@ cached information about equivalent key sequences.  */)
 
       /* The first keymap that has a prompt string
 	 supplies the menu title.  */
-      for (tem = menu, i = 0; CONSP (tem); tem = Fcdr (tem))
+      for (tem = menu, i = 0; CONSP (tem); tem = XCDR (tem))
 	{
 	  Lisp_Object prompt;
 
-	  maps[i++] = keymap = get_keymap (Fcar (tem), 1, 0);
+	  maps[i++] = keymap = get_keymap (XCAR (tem), 1, 0);
 
 	  prompt = Fkeymap_prompt (keymap);
 	  if (NILP (title) && !NILP (prompt))
@@ -828,13 +823,13 @@ cached information about equivalent key sequences.  */)
 
 #ifdef HAVE_MENUS
   /* Display them in a menu.  */
+  record_unwind_protect (cleanup_popup_menu, Qnil);
   BLOCK_INPUT;
 
   selection = mac_menu_show (f, xpos, ypos, for_click,
 			     keymaps, title, &error_name);
   UNBLOCK_INPUT;
-
-  discard_menu_items ();
+  unbind_to (specpdl_count, Qnil);
 
   UNGCPRO;
 #endif /* HAVE_MENUS */
@@ -845,7 +840,7 @@ cached information about equivalent key sequences.  */)
 
 #ifdef HAVE_MENUS
 
-DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 2, 0,
+DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 3, 0,
        doc: /* Pop up a dialog box and return user's selection.
 POSITION specifies which frame to use.
 This is normally a mouse button event or a window or frame.
@@ -853,16 +848,23 @@ If POSITION is t, it means to use the frame the mouse is on.
 The dialog box appears in the middle of the specified frame.
 
 CONTENTS specifies the alternatives to display in the dialog box.
-It is a list of the form (TITLE ITEM1 ITEM2...).
+It is a list of the form (DIALOG ITEM1 ITEM2...).
 Each ITEM is a cons cell (STRING . VALUE).
 The return value is VALUE from the chosen item.
 
 An ITEM may also be just a string--that makes a nonselectable item.
 An ITEM may also be nil--that means to put all preceding items
 on the left of the dialog box and all following items on the right.
-\(By default, approximately half appear on each side.)  */)
-  (position, contents)
-     Lisp_Object position, contents;
+\(By default, approximately half appear on each side.)
+
+If HEADER is non-nil, the frame title for the box is "Information",
+otherwise it is "Question".
+
+If the user gets rid of the dialog box without making a valid choice,
+for instance using the window manager, then this produces a quit and
+`x-popup-dialog' does not return.  */)
+     (position, contents, header)
+     Lisp_Object position, contents, header;
 {
   FRAME_PTR f = NULL;
   Lisp_Object window;
@@ -872,7 +874,8 @@ on the left of the dialog box and all following items on the right.
   /* Decode the first argument: find the window or frame to use.  */
   if (EQ (position, Qt)
       || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
-                               || EQ (XCAR (position), Qtool_bar))))
+			       || EQ (XCAR (position), Qtool_bar)
+			       || EQ (XCAR (position), Qmac_apple_event))))
     {
 #if 0 /* Using the frame the mouse is on may not be right.  */
       /* Use the mouse's current position.  */
@@ -940,6 +943,7 @@ on the left of the dialog box and all following items on the right.
     Lisp_Object title;
     char *error_name;
     Lisp_Object selection;
+    int specpdl_count = SPECPDL_INDEX ();
 
     /* Decode the dialog items from what was specified.  */
     title = Fcar (contents);
@@ -948,11 +952,11 @@ on the left of the dialog box and all following items on the right.
     list_of_panes (Fcons (contents, Qnil));
 
     /* Display them in a dialog box.  */
+    record_unwind_protect (cleanup_popup_menu, Qnil);
     BLOCK_INPUT;
-    selection = mac_dialog_show (f, 0, title, &error_name);
+    selection = mac_dialog_show (f, 0, title, header, &error_name);
     UNBLOCK_INPUT;
-
-    discard_menu_items ();
+    unbind_to (specpdl_count, Qnil);
 
     if (error_name) error (error_name);
     return selection;
@@ -964,13 +968,14 @@ on the left of the dialog box and all following items on the right.
    This is called from keyboard.c when it gets the
    MENU_BAR_ACTIVATE_EVENT out of the Emacs event queue.
 
-   To activate the menu bar, we signal to the input thread that it can
-   return from the WM_INITMENU message, allowing the normal Windows
-   processing of the menus.
+   To activate the menu bar, we use the button-press event location
+   that was saved in saved_menu_event_location.
 
    But first we recompute the menu bar contents (the whole tree).
 
-   This way we can safely execute Lisp code.  */
+   The reason for saving the button event until here, instead of
+   passing it to the toolkit right away, is that we can safely
+   execute Lisp code.  */
 
 void
 x_activate_menubar (f)
@@ -1037,6 +1042,7 @@ menubar_selection_callback (FRAME_PTR f, int client_data)
 	      int j;
 	      struct input_event buf;
 	      Lisp_Object frame;
+	      EVENT_INIT (buf);
 
 	      XSETFRAME (frame, f);
 	      buf.kind = MENU_BAR_EVENT;
@@ -1066,14 +1072,12 @@ menubar_selection_callback (FRAME_PTR f, int client_data)
 	      buf.arg = entry;
 	      kbd_buffer_store_event (&buf);
 
-	      f->output_data.mac->menu_command_in_progress = 0;
 	      f->output_data.mac->menubar_active = 0;
 	      return;
 	    }
 	  i += MENU_ITEMS_ITEM_LENGTH;
 	}
     }
-  f->output_data.mac->menu_command_in_progress = 0;
   f->output_data.mac->menubar_active = 0;
 }
 
@@ -1119,22 +1123,18 @@ free_menubar_widget_value_tree (wv)
   UNBLOCK_INPUT;
 }
 
-/* Return a tree of widget_value structures for a menu bar item
+/* Set up data in menu_items for a menu bar item
    whose event type is ITEM_KEY (with string ITEM_NAME)
    and whose contents come from the list of keymaps MAPS.  */
 
-static widget_value *
-single_submenu (item_key, item_name, maps)
+static int
+parse_single_submenu (item_key, item_name, maps)
      Lisp_Object item_key, item_name, maps;
 {
-  widget_value *wv, *prev_wv, *save_wv, *first_wv;
-  int i;
-  int submenu_depth = 0;
   Lisp_Object length;
   int len;
   Lisp_Object *mapvec;
-  widget_value **submenu_stack;
-  int previous_items = menu_items_used;
+  int i;
   int top_level_items = 0;
 
   length = Flength (maps);
@@ -1148,28 +1148,44 @@ single_submenu (item_key, item_name, maps)
       maps = Fcdr (maps);
     }
 
-  menu_items_n_panes = 0;
-
   /* Loop over the given keymaps, making a pane for each map.
      But don't make a pane that is empty--ignore that map instead.  */
   for (i = 0; i < len; i++)
     {
-      if (SYMBOLP (mapvec[i])
-	  || (CONSP (mapvec[i]) && !KEYMAPP (mapvec[i])))
+      if (!KEYMAPP (mapvec[i]))
 	{
 	  /* Here we have a command at top level in the menu bar
 	     as opposed to a submenu.  */
 	  top_level_items = 1;
 	  push_menu_pane (Qnil, Qnil);
 	  push_menu_item (item_name, Qt, item_key, mapvec[i],
-                          Qnil, Qnil, Qnil, Qnil);
+			  Qnil, Qnil, Qnil, Qnil);
 	}
       else
-	single_keymap_panes (mapvec[i], item_name, item_key, 0, 10);
+	{
+	  Lisp_Object prompt;
+	  prompt = Fkeymap_prompt (mapvec[i]);
+	  single_keymap_panes (mapvec[i],
+			       !NILP (prompt) ? prompt : item_name,
+			       item_key, 0, 10);
+	}
     }
 
-  /* Create a tree of widget_value objects
-     representing the panes and their items.  */
+  return top_level_items;
+}
+
+/* Create a tree of widget_value objects
+   representing the panes and items
+   in menu_items starting at index START, up to index END.  */
+
+static widget_value *
+digest_single_submenu (start, end, top_level_items)
+     int start, end, top_level_items;
+{
+  widget_value *wv, *prev_wv, *save_wv, *first_wv;
+  int i;
+  int submenu_depth = 0;
+  widget_value **submenu_stack;
 
   submenu_stack
     = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
@@ -1183,12 +1199,12 @@ single_submenu (item_key, item_name, maps)
   save_wv = 0;
   prev_wv = 0;
 
-  /* Loop over all panes and items made during this call
-     and construct a tree of widget_value objects.
-     Ignore the panes and items made by previous calls to
-     single_submenu, even though those are also in menu_items.  */
-  i = previous_items;
-  while (i < menu_items_used)
+  /* Loop over all panes and items made by the preceding call
+     to parse_single_submenu and construct a tree of widget_value objects.
+     Ignore the panes and items used by previous calls to
+     digest_single_submenu, even though those are also in menu_items.  */
+  i = start;
+  while (i < end)
     {
       if (EQ (XVECTOR (menu_items)->contents[i], Qnil))
 	{
@@ -1222,7 +1238,7 @@ single_submenu (item_key, item_name, maps)
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
 	    {
-	      pane_name = ENCODE_SYSTEM (pane_name);
+	      pane_name = ENCODE_MENU_STRING (pane_name);
 	      AREF (menu_items, i + MENU_ITEMS_PANE_NAME) = pane_name;
 	    }
 #endif
@@ -1243,12 +1259,9 @@ single_submenu (item_key, item_name, maps)
 		save_wv->next = wv;
 	      else
 		first_wv->contents = wv;
-	      wv->name = pane_string;
-	      /* Ignore the @ that means "separate pane".
-		 This is a kludge, but this isn't worth more time.  */
-	      if (!NILP (prefix) && wv->name[0] == '@')
-		wv->name++;
-	      wv->value = 0;
+	      wv->lname = pane_name;
+              /* Set value to 1 so update_submenu_strings can handle '@'  */
+	      wv->value = (char *)1;
 	      wv->enabled = 1;
 	      wv->button_type = BUTTON_TYPE_NONE;
 	      wv->help = Qnil;
@@ -1261,7 +1274,7 @@ single_submenu (item_key, item_name, maps)
 	{
 	  /* Create a new item within current pane.  */
 	  Lisp_Object item_name, enable, descrip, def, type, selected;
-          Lisp_Object help;
+	  Lisp_Object help;
 
 	  item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
 	  enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
@@ -1272,15 +1285,15 @@ single_submenu (item_key, item_name, maps)
 	  help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
 
 #ifndef HAVE_MULTILINGUAL_MENU
-	  if (STRING_MULTIBYTE (item_name))
+          if (STRING_MULTIBYTE (item_name))
 	    {
-	      item_name = ENCODE_SYSTEM (item_name);
+	      item_name = ENCODE_MENU_STRING (item_name);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
 	    }
 
-	  if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
+          if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
-	      descrip = ENCODE_SYSTEM (descrip);
+	      descrip = ENCODE_MENU_STRING (descrip);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
@@ -1291,9 +1304,9 @@ single_submenu (item_key, item_name, maps)
 	  else
 	    save_wv->contents = wv;
 
-	  wv->name = (char *) SDATA (item_name);
+	  wv->lname = item_name;
 	  if (!NILP (descrip))
-	    wv->key = (char *) SDATA (descrip);
+	    wv->lkey = descrip;
 	  wv->value = 0;
 	  /* The EMACS_INT cast avoids a warning.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
@@ -1310,7 +1323,7 @@ single_submenu (item_key, item_name, maps)
 	    abort ();
 
 	  wv->selected = !NILP (selected);
-	  if (!STRINGP (help))
+	  if (! STRINGP (help))
 	    help = Qnil;
 
 	  wv->help = help;
@@ -1332,7 +1345,113 @@ single_submenu (item_key, item_name, maps)
 
   return first_wv;
 }
+
+/* Walk through the widget_value tree starting at FIRST_WV and update
+   the char * pointers from the corresponding lisp values.
+   We do this after building the whole tree, since GC may happen while the
+   tree is constructed, and small strings are relocated.  So we must wait
+   until no GC can happen before storing pointers into lisp values.  */
+static void
+update_submenu_strings (first_wv)
+     widget_value *first_wv;
+{
+  widget_value *wv;
+
+  for (wv = first_wv; wv; wv = wv->next)
+    {
+      if (STRINGP (wv->lname))
+        {
+          wv->name = SDATA (wv->lname);
+
+          /* Ignore the @ that means "separate pane".
+             This is a kludge, but this isn't worth more time.  */
+          if (wv->value == (char *)1)
+            {
+              if (wv->name[0] == '@')
+		wv->name++;
+              wv->value = 0;
+            }
+        }
+
+      if (STRINGP (wv->lkey))
+        wv->key = SDATA (wv->lkey);
+
+      if (wv->contents)
+        update_submenu_strings (wv->contents);
+    }
+}
+
 
+/* Event handler function that pops down a menu on C-g.  We can only pop
+   down menus if CancelMenuTracking is present (OSX 10.3 or later).  */
+
+#ifdef HAVE_CANCELMENUTRACKING
+static pascal OSStatus
+menu_quit_handler (nextHandler, theEvent, userData)
+     EventHandlerCallRef nextHandler;
+     EventRef theEvent;
+     void* userData;
+{
+  UInt32 keyCode;
+  UInt32 keyModifiers;
+  extern int mac_quit_char_modifiers;
+  extern int mac_quit_char_keycode;
+
+  GetEventParameter (theEvent, kEventParamKeyCode,
+                     typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode);
+
+  GetEventParameter (theEvent, kEventParamKeyModifiers,
+                     typeUInt32, NULL, sizeof(UInt32),
+                     NULL, &keyModifiers);
+
+  if (keyCode == mac_quit_char_keycode
+      && keyModifiers == mac_quit_char_modifiers)
+    {
+      MenuRef menu = userData != 0
+        ? (MenuRef)userData : AcquireRootMenu ();
+
+      CancelMenuTracking (menu, true, 0);
+      if (!userData) ReleaseMenu (menu);
+      return noErr;
+    }
+
+  return CallNextEventHandler (nextHandler, theEvent);
+}
+#endif /* HAVE_CANCELMENUTRACKING */
+
+/* Add event handler for MENU_HANDLE so we can detect C-g.
+   If MENU_HANDLE is NULL, install handler for all menus in the menu bar.
+   If CancelMenuTracking isn't available, do nothing.  */
+
+static void
+install_menu_quit_handler (MenuHandle menu_handle)
+{
+#ifdef HAVE_CANCELMENUTRACKING
+  EventTypeSpec typesList[] = { { kEventClassKeyboard, kEventRawKeyDown } };
+  int i = MIN_MENU_ID;
+  MenuHandle menu = menu_handle ? menu_handle : GetMenuHandle (i);
+
+  while (menu != NULL)
+    {
+      InstallMenuEventHandler (menu, menu_quit_handler,
+			       GetEventTypeCount (typesList),
+                               typesList, menu_handle, NULL);
+      if (menu_handle) break;
+      menu = GetMenuHandle (++i);
+    }
+
+  i = menu_handle ? MIN_POPUP_SUBMENU_ID : MIN_SUBMENU_ID;  
+  menu = GetMenuHandle (i);
+  while (menu != NULL)
+    {
+      InstallMenuEventHandler (menu, menu_quit_handler,
+			       GetEventTypeCount (typesList),
+                               typesList, menu_handle, NULL);
+      menu = GetMenuHandle (++i);
+    }
+#endif /* HAVE_CANCELMENUTRACKING */
+}
+
 /* Set the contents of the menubar widgets of frame F.
    The argument FIRST_TIME is currently ignored;
    it is set the first time this is called, from initialize_frame_menubar.  */
@@ -1346,7 +1465,9 @@ set_frame_menubar (f, first_time, deep_p)
   int menubar_widget = f->output_data.mac->menubar_widget;
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
-  int i;
+  int i, last_i = 0;
+  int *submenu_start, *submenu_end;
+  int *submenu_top_level_items, *submenu_n_panes;
 
   /* We must not change the menubar when actually in use.  */
   if (f->output_data.mac->menubar_active)
@@ -1358,14 +1479,6 @@ set_frame_menubar (f, first_time, deep_p)
     deep_p = 1;
   else if (pending_menu_activation && !deep_p)
     deep_p = 1;
-
-  wv = xmalloc_widget_value ();
-  wv->name = "menubar";
-  wv->value = 0;
-  wv->enabled = 1;
-  wv->button_type = BUTTON_TYPE_NONE;
-  wv->help = Qnil;
-  first_wv = wv;
 
   if (deep_p)
     {
@@ -1390,7 +1503,7 @@ set_frame_menubar (f, first_time, deep_p)
 	 because it is not reentrant.  */
       specbind (Qdebug_on_next_call, Qnil);
 
-      record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+      record_unwind_save_match_data ();
       if (NILP (Voverriding_local_map_menu_flag))
 	{
 	  specbind (Qoverriding_terminal_local_map, Qnil);
@@ -1401,6 +1514,7 @@ set_frame_menubar (f, first_time, deep_p)
 
       /* Run the Lucid hook.  */
       safe_run_hooks (Qactivate_menubar_hook);
+
       /* If it has changed current-menubar from previous value,
 	 really recompute the menubar from the value.  */
       if (! NILP (Vlucid_menu_bar_dirty_flag))
@@ -1410,20 +1524,26 @@ set_frame_menubar (f, first_time, deep_p)
 
       items = FRAME_MENU_BAR_ITEMS (f);
 
-      inhibit_garbage_collection ();
-
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
 	bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
 	       previous_menu_items_used * sizeof (Lisp_Object));
 
-      /* Fill in the current menu bar contents.  */
+      /* Fill in menu_items with the current menu bar contents.
+	 This can evaluate Lisp code.  */
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
+      submenu_start = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
+      submenu_end = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
+      submenu_n_panes = (int *) alloca (XVECTOR (items)->size * sizeof (int));
+      submenu_top_level_items
+	= (int *) alloca (XVECTOR (items)->size * sizeof (int *));
       init_menu_items ();
       for (i = 0; i < XVECTOR (items)->size; i += 4)
 	{
 	  Lisp_Object key, string, maps;
+
+	  last_i = i;
 
 	  key = XVECTOR (items)->contents[i];
 	  string = XVECTOR (items)->contents[i + 1];
@@ -1431,7 +1551,34 @@ set_frame_menubar (f, first_time, deep_p)
 	  if (NILP (string))
 	    break;
 
-	  wv = single_submenu (key, string, maps);
+	  submenu_start[i] = menu_items_used;
+
+	  menu_items_n_panes = 0;
+	  submenu_top_level_items[i]
+	    = parse_single_submenu (key, string, maps);
+	  submenu_n_panes[i] = menu_items_n_panes;
+
+	  submenu_end[i] = menu_items_used;
+	}
+
+      finish_menu_items ();
+
+      /* Convert menu_items into widget_value trees
+	 to display the menu.  This cannot evaluate Lisp code.  */
+
+      wv = xmalloc_widget_value ();
+      wv->name = "menubar";
+      wv->value = 0;
+      wv->enabled = 1;
+      wv->button_type = BUTTON_TYPE_NONE;
+      wv->help = Qnil;
+      first_wv = wv;
+
+      for (i = 0; i < last_i; i += 4)
+	{
+	  menu_items_n_panes = submenu_n_panes[i];
+	  wv = digest_single_submenu (submenu_start[i], submenu_end[i],
+				      submenu_top_level_items[i]);
 	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
@@ -1442,8 +1589,6 @@ set_frame_menubar (f, first_time, deep_p)
 	  prev_wv = wv;
 	}
 
-      finish_menu_items ();
-
       set_buffer_internal_1 (prev);
       unbind_to (specpdl_count, Qnil);
 
@@ -1452,21 +1597,18 @@ set_frame_menubar (f, first_time, deep_p)
 
       for (i = 0; i < previous_menu_items_used; i++)
 	if (menu_items_used == i
-	    || (!Fequal (previous_items[i], XVECTOR (menu_items)->contents[i])))
+	    || (!EQ (previous_items[i], XVECTOR (menu_items)->contents[i])))
 	  break;
       if (i == menu_items_used && i == previous_menu_items_used && i != 0)
 	{
 	  free_menubar_widget_value_tree (first_wv);
-	  menu_items = Qnil;
+	  discard_menu_items ();
 
 	  return;
 	}
 
       /* Now GC cannot happen during the lifetime of the widget_value,
-	 so it's safe to store data from a Lisp_String, as long as
-	 local copies are made when the actual menu is created.
-	 Windows takes care of this for normal string items, but
-	 not for owner-drawn items or additional item-info.  */
+	 so it's safe to store data from a Lisp_String.  */
       wv = first_wv->contents;
       for (i = 0; i < XVECTOR (items)->size; i += 4)
 	{
@@ -1475,17 +1617,26 @@ set_frame_menubar (f, first_time, deep_p)
 	  if (NILP (string))
 	    break;
 	  wv->name = (char *) SDATA (string);
+          update_submenu_strings (wv->contents);
 	  wv = wv->next;
 	}
 
       f->menu_bar_vector = menu_items;
       f->menu_bar_items_used = menu_items_used;
-      menu_items = Qnil;
+      discard_menu_items ();
     }
   else
     {
       /* Make a widget-value tree containing
 	 just the top level menu bar strings.  */
+
+      wv = xmalloc_widget_value ();
+      wv->name = "menubar";
+      wv->value = 0;
+      wv->enabled = 1;
+      wv->button_type = BUTTON_TYPE_NONE;
+      wv->help = Qnil;
+      first_wv = wv;
 
       items = FRAME_MENU_BAR_ITEMS (f);
       for (i = 0; i < XVECTOR (items)->size; i += 4)
@@ -1552,6 +1703,8 @@ set_frame_menubar (f, first_time, deep_p)
 
   DrawMenuBar ();
 
+  /* Add event handler so we can detect C-g. */
+  install_menu_quit_handler (NULL);
   free_menubar_widget_value_tree (first_wv);
 
   UNBLOCK_INPUT;
@@ -1572,6 +1725,7 @@ initialize_frame_menubar (f)
   set_frame_menubar (f, 1, 1);
 }
 
+
 /* Get rid of the menu bar of frame F, and free its storage.
    This is used when deleting a frame, and when turning off the menu bar.  */
 
@@ -1579,11 +1733,47 @@ void
 free_frame_menubar (f)
      FRAME_PTR f;
 {
-  f->output_data.mac->menubar_widget = NULL;
+  f->output_data.mac->menubar_widget = 0;
 }
 
 
-/* mac_menu_show actually displays a menu using the panes and items in
+static Lisp_Object
+pop_down_menu (arg)
+     Lisp_Object arg;
+{
+  struct Lisp_Save_Value *p1 = XSAVE_VALUE (Fcar (arg));
+  struct Lisp_Save_Value *p2 = XSAVE_VALUE (Fcdr (arg));
+
+  FRAME_PTR f = p1->pointer;
+  MenuHandle *menu = p2->pointer;
+
+  BLOCK_INPUT;
+
+  /* Must reset this manually because the button release event is not
+     passed to Emacs event loop. */
+  FRAME_MAC_DISPLAY_INFO (f)->grabbed = 0;
+
+  /* delete all menus */
+  {
+    int i = MIN_POPUP_SUBMENU_ID;
+    MenuHandle submenu = GetMenuHandle (i);
+    while (submenu != NULL)
+      {
+	DeleteMenu (i);
+	DisposeMenu (submenu);
+	submenu = GetMenuHandle (++i);
+      }
+  }
+
+  DeleteMenu (POPUP_SUBMENU_ID);
+  DisposeMenu (*menu);
+
+  UNBLOCK_INPUT;
+
+  return Qnil;
+}
+
+/* Mac_menu_show actually displays a menu using the panes and items in
    menu_items and returns the value selected from it; we assume input
    is blocked by the caller.  */
 
@@ -1620,7 +1810,9 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   Lisp_Object *subprefix_stack
     = (Lisp_Object *) alloca (menu_items_used * sizeof (Lisp_Object));
   int submenu_depth = 0;
+
   int first_pane;
+  int specpdl_count = SPECPDL_INDEX ();
 
   *error = NULL;
 
@@ -1672,12 +1864,14 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
 	  char *pane_string;
+
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
+
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
 	    {
-	      pane_name = ENCODE_SYSTEM (pane_name);
+	      pane_name = ENCODE_MENU_STRING (pane_name);
 	      AREF (menu_items, i + MENU_ITEMS_PANE_NAME) = pane_name;
 	    }
 #endif
@@ -1720,24 +1914,24 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 	{
 	  /* Create a new item within current pane.  */
 	  Lisp_Object item_name, enable, descrip, def, type, selected, help;
-
 	  item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
 	  enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
 	  descrip = AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY);
 	  def = AREF (menu_items, i + MENU_ITEMS_ITEM_DEFINITION);
 	  type = AREF (menu_items, i + MENU_ITEMS_ITEM_TYPE);
 	  selected = AREF (menu_items, i + MENU_ITEMS_ITEM_SELECTED);
-          help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
+	  help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
 
 #ifndef HAVE_MULTILINGUAL_MENU
           if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
 	    {
-	      item_name = ENCODE_SYSTEM (item_name);
+	      item_name = ENCODE_MENU_STRING (item_name);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
 	    }
+
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
-            {
-	      descrip = ENCODE_SYSTEM (descrip);
+	    {
+	      descrip = ENCODE_MENU_STRING (descrip);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
@@ -1766,7 +1960,8 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 	    abort ();
 
 	  wv->selected = !NILP (selected);
-          if (!STRINGP (help))
+
+          if (! STRINGP (help))
 	    help = Qnil;
 
 	  wv->help = help;
@@ -1791,10 +1986,11 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
 #ifndef HAVE_MULTILINGUAL_MENU
       if (STRING_MULTIBYTE (title))
-	title = ENCODE_SYSTEM (title);
+	title = ENCODE_MENU_STRING (title);
 #endif
+
       wv_title->name = (char *) SDATA (title);
-      wv_title->enabled = TRUE;
+      wv_title->enabled = FALSE;
       wv_title->title = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
       wv_title->help = Qnil;
@@ -1807,16 +2003,15 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   submenu_id = MIN_POPUP_SUBMENU_ID;
   fill_submenu (menu, first_wv->contents);
 
+  /* Free the widget_value objects we used to specify the
+     contents.  */
+  free_menubar_widget_value_tree (first_wv);
+
   /* Adjust coordinates to be root-window-relative.  */
   pos.h = x;
   pos.v = y;
 
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (FRAME_MAC_WINDOW (f)));
-#else
-  SetPort (FRAME_MAC_WINDOW (f));
-#endif
-
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
   LocalToGlobal (&pos);
 
   /* No selection has been chosen yet.  */
@@ -1825,43 +2020,29 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
   InsertMenu (menu, -1);
 
+  record_unwind_protect (pop_down_menu,
+                         Fcons (make_save_value (f, 0),
+                                make_save_value (&menu, 0)));
+
+  /* Add event handler so we can detect C-g. */
+  install_menu_quit_handler (menu);
+
   /* Display the menu.  */
   menu_item_choice = PopUpMenuSelect (menu, pos.v, pos.h, 0);
   menu_item_selection = LoWord (menu_item_choice);
 
-  /* Get the refcon to find the correct item*/
+  /* Get the refcon to find the correct item */
   if (menu_item_selection)
     {
-      menu = GetMenuHandle (HiWord (menu_item_choice));
-      if (menu) {
-	GetMenuItemRefCon (menu, menu_item_selection, &refcon);
+      MenuHandle sel_menu = GetMenuHandle (HiWord (menu_item_choice));
+      if (sel_menu) {
+	GetMenuItemRefCon (sel_menu, menu_item_selection, &refcon);
       }
     }
-
-#if 0
-  /* Clean up extraneous mouse events which might have been generated
-     during the call.  */
-  discard_mouse_events ();
-#endif
-
-  /* Free the widget_value objects we used to specify the
-     contents.  */
-  free_menubar_widget_value_tree (first_wv);
-
-  /* delete all menus */
-  {
-    int i = MIN_POPUP_SUBMENU_ID;
-    MenuHandle submenu = GetMenuHandle (i);
-    while (menu != NULL)
-      {
-	DeleteMenu (i);
-	DisposeMenu (menu);
-	menu = GetMenuHandle (++i);
-      }
-  }
-
-  DeleteMenu (POPUP_SUBMENU_ID);
-  DisposeMenu (menu);
+  else if (! for_click)
+    /* Make "Cancel" equivalent to C-g unless this menu was popped up by
+       a mouse press.  */
+    Fsignal (Qquit, Qnil);
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
@@ -1917,6 +2098,11 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 	    }
 	}
     }
+  else if (!for_click)
+    /* Make "Cancel" equivalent to C-g.  */
+    Fsignal (Qquit, Qnil);
+
+  unbind_to (specpdl_count, Qnil);
 
   return Qnil;
 }
@@ -1969,11 +2155,7 @@ mac_dialog (widget_value *wv)
 
   window_ptr = GetNewCWindow (DIALOG_WINDOW_RESOURCE, NULL, (WindowPtr) -1);
 
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (window_ptr));
-#else
-  SetPort (window_ptr);
-#endif
+  SetPortWindowPort (window_ptr);
 
   TextFont (0);
   /* Left and right margins in the dialog are 13 pixels each.*/
@@ -1991,11 +2173,7 @@ mac_dialog (widget_value *wv)
   SizeWindow (window_ptr, dialog_width, 78, 0);
   ShowWindow (window_ptr);
 
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (window_ptr));
-#else
-  SetPort (window_ptr);
-#endif
+  SetPortWindowPort (window_ptr);
 
   TextFont (0);
 
@@ -2043,11 +2221,11 @@ static char * button_names [] = {
   "button6", "button7", "button8", "button9", "button10" };
 
 static Lisp_Object
-mac_dialog_show (f, keymaps, title, error)
+mac_dialog_show (f, keymaps, title, header, error_name)
      FRAME_PTR f;
      int keymaps;
-     Lisp_Object title;
-     char **error;
+     Lisp_Object title, header;
+     char **error_name;
 {
   int i, nb_buttons=0;
   char dialog_name[6];
@@ -2060,11 +2238,11 @@ mac_dialog_show (f, keymaps, title, error)
   /* 1 means we've seen the boundary between left-hand elts and right-hand.  */
   int boundary_seen = 0;
 
-  *error = NULL;
+  *error_name = NULL;
 
   if (menu_items_n_panes > 1)
     {
-      *error = "Multiple panes in dialog box";
+      *error_name = "Multiple panes in dialog box";
       return Qnil;
     }
 
@@ -2092,18 +2270,16 @@ mac_dialog_show (f, keymaps, title, error)
       {
 
 	/* Create a new item within current pane.  */
-	Lisp_Object item_name, enable, descrip, help;
-
+	Lisp_Object item_name, enable, descrip;
 	item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
 	enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
 	descrip
 	  = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
-        help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
 
 	if (NILP (item_name))
 	  {
 	    free_menubar_widget_value_tree (first_wv);
-	    *error = "Submenu in dialog items";
+	    *error_name = "Submenu in dialog items";
 	    return Qnil;
 	  }
 	if (EQ (item_name, Qquote))
@@ -2117,7 +2293,7 @@ mac_dialog_show (f, keymaps, title, error)
 	if (nb_buttons >= 9)
 	  {
 	    free_menubar_widget_value_tree (first_wv);
-	    *error = "Too many dialog items";
+	    *error_name = "Too many dialog items";
 	    return Qnil;
 	  }
 
@@ -2149,11 +2325,17 @@ mac_dialog_show (f, keymaps, title, error)
     wv->name = dialog_name;
     wv->help = Qnil;
 
+    /*  Frame title: 'Q' = Question, 'I' = Information.
+        Can also have 'E' = Error if, one day, we want
+        a popup for errors. */
+    if (NILP(header))
+      dialog_name[0] = 'Q';
+    else
+      dialog_name[0] = 'I';
+
     /* Dialog boxes use a really stupid name encoding
        which specifies how many buttons to use
-       and how many buttons are on the right.
-       The Q means something also.  */
-    dialog_name[0] = 'Q';
+       and how many buttons are on the right. */
     dialog_name[1] = '0' + nb_buttons;
     dialog_name[2] = 'B';
     dialog_name[3] = 'R';
@@ -2174,8 +2356,8 @@ mac_dialog_show (f, keymaps, title, error)
   /* Free the widget_value objects we used to specify the contents.  */
   free_menubar_widget_value_tree (first_wv);
 
-  /* Find the selected item, and its pane, to return the proper
-     value.  */
+  /* Find the selected item, and its pane, to return
+     the proper value.  */
   if (menu_item_selection != 0)
     {
       Lisp_Object prefix;
@@ -2191,6 +2373,12 @@ mac_dialog_show (f, keymaps, title, error)
 	      prefix
 		= XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
 	      i += MENU_ITEMS_PANE_LENGTH;
+	    }
+	  else if (EQ (XVECTOR (menu_items)->contents[i], Qquote))
+	    {
+	      /* This is the boundary between left-side elts and
+		 right-side elts.  */
+	      ++i;
 	    }
 	  else
 	    {
@@ -2210,6 +2398,9 @@ mac_dialog_show (f, keymaps, title, error)
 	    }
 	}
     }
+  else
+    /* Make "Cancel" equivalent to C-g.  */
+    Fsignal (Qquit, Qnil);
 
   return Qnil;
 }
@@ -2235,8 +2426,12 @@ static void
 add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
 	       int force_disable)
 {
+#if TARGET_API_MAC_CARBON
+  CFStringRef item_name;
+#else
   Str255 item_name;
-  int pos, i;
+#endif
+  int pos;
 
   if (name_is_separator (wv->name))
     AppendMenu (menu, "\p-");
@@ -2246,33 +2441,49 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
 
 #if TARGET_API_MAC_CARBON
       pos = CountMenuItems (menu);
-#else
-      pos = CountMItems (menu);
-#endif
 
-      strcpy (item_name, "");
-      strncat (item_name, wv->name, 255);
+      item_name = cfstring_create_with_utf8_cstring (wv->name);
+
       if (wv->key != NULL)
 	{
-	  strncat (item_name, " ", 255);
-	  strncat (item_name, wv->key, 255);
+	  CFStringRef name, key;
+
+	  name = item_name;
+	  key = cfstring_create_with_utf8_cstring (wv->key);
+	  item_name = CFStringCreateWithFormat (NULL, NULL, CFSTR ("%@ %@"),
+						name, key);
+	  CFRelease (name);
+	  CFRelease (key);
 	}
-      item_name[255] = 0;
+
+      SetMenuItemTextWithCFString (menu, pos, item_name);
+      CFRelease (item_name);
+
+      if (wv->enabled && !force_disable)
+        EnableMenuItem (menu, pos);
+      else
+        DisableMenuItem (menu, pos);
+#else  /* ! TARGET_API_MAC_CARBON */
+      pos = CountMItems (menu);
+
+      item_name[sizeof (item_name) - 1] = '\0';
+      strncpy (item_name, wv->name, sizeof (item_name) - 1);
+      if (wv->key != NULL)
+	{
+	  int len = strlen (item_name);
+
+	  strncpy (item_name + len, " ", sizeof (item_name) - 1 - len);
+	  len = strlen (item_name);
+	  strncpy (item_name + len, wv->key, sizeof (item_name) - 1 - len);
+	}
       c2pstr (item_name);
       SetMenuItemText (menu, pos, item_name);
 
       if (wv->enabled && !force_disable)
-#if TARGET_API_MAC_CARBON
-        EnableMenuItem (menu, pos);
-#else
         EnableItem (menu, pos);
-#endif
       else
-#if TARGET_API_MAC_CARBON
-        DisableMenuItem (menu, pos);
-#else
         DisableItem (menu, pos);
-#endif
+#endif  /* ! TARGET_API_MAC_CARBON */
 
       /* Draw radio buttons and tickboxes. */
       {
@@ -2282,11 +2493,11 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
       else
 	SetItemMark (menu, pos, noMark);
       }
+
+      SetMenuItemRefCon (menu, pos, (UInt32) wv->call_data);
     }
 
-  SetMenuItemRefCon (menu, pos, (UInt32) wv->call_data);
-
-  if (submenu != NULL)
+  if (submenu != 0)
     SetMenuItemHierarchicalID (menu, pos, submenu);
 }
 
@@ -2305,7 +2516,7 @@ fill_submenu (MenuHandle menu, widget_value *wv)
         add_menu_item (menu, wv, cur_submenu, 0);
       }
     else
-      add_menu_item (menu, wv, NULL, 0);
+      add_menu_item (menu, wv, 0, 0);
 }
 
 
@@ -2324,7 +2535,7 @@ fill_menu (MenuHandle menu, widget_value *wv)
         add_menu_item (menu, wv, cur_submenu, 0);
       }
     else
-      add_menu_item (menu, wv, NULL, 0);
+      add_menu_item (menu, wv, 0, 0);
 }
 
 /* Construct native Mac OS menubar based on widget_value tree.  */
@@ -2354,7 +2565,6 @@ fill_menubar (widget_value *wv)
 }
 
 #endif /* HAVE_MENUS */
-
 
 void
 syms_of_macmenu ()
@@ -2375,3 +2585,6 @@ The enable predicate for a menu command should check this variable.  */);
   defsubr (&Sx_popup_dialog);
 #endif
 }
+
+/* arch-tag: 40b2c6c7-b8a9-4a49-b930-1b2707184cce
+   (do not change this comment) */

@@ -1,7 +1,7 @@
 ;;; mailabbrev.el --- abbrev-expansion of mail aliases
 
-;; Copyright (C) 1985, 86, 87, 92, 93, 96, 1997, 2000, 2002, 2003
-;;	Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1996, 1997, 2000, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>, now <jwz@jwz.org>
 ;; Maintainer: FSF
@@ -22,15 +22,15 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
 ;; This file ensures that, when the point is in a To:, CC:, BCC:, or From:
 ;; field, word-abbrevs are defined for each of your mail aliases.  These
 ;; aliases will be defined from your .mailrc file (or the file specified by
-;; the MAILRC environment variable) if it exists.  Your mail aliases will
+;; `mail-personal-alias-file') if it exists.  Your mail aliases will
 ;; expand any time you type a word-delimiter at the end of an abbreviation.
 ;;
 ;; What you see is what you get: if mailabbrev is in use when you type
@@ -161,12 +161,13 @@ no aliases, which is represented by this being a table with no entries.)")
   "The modification time of your mail alias file when it was last examined.")
 
 (defun mail-abbrevs-sync-aliases ()
-  (if (file-exists-p mail-personal-alias-file)
-      (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
-	(if (not (equal mail-abbrev-modtime modtime))
-	    (progn
-	      (setq mail-abbrev-modtime modtime)
-	      (build-mail-abbrevs))))))
+  (when mail-personal-alias-file
+    (if (file-exists-p mail-personal-alias-file)
+	(let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
+	  (if (not (equal mail-abbrev-modtime modtime))
+	      (progn
+		(setq mail-abbrev-modtime modtime)
+		(build-mail-abbrevs)))))))
 
 ;;;###autoload
 (defun mail-abbrevs-setup ()
@@ -304,10 +305,19 @@ If DEFINITION contains multiple addresses, separate them with commas."
 		    end (string-match "\"[ \t,]*" definition start))
 	    (setq end (string-match "[ \t,]+" definition start)))
 	(setq end (string-match "[ \t\n,]*,[ \t\n,]*" definition start)))
-      (setq result (cons (substring definition start end) result))
-      (setq start (and end
-		       (/= (match-end 0) L)
-		       (match-end 0))))
+      (let ((tem (substring definition start end)))
+	;; Advance the loop past this address.
+	(setq start (and end
+			 (/= (match-end 0) L)
+			 (match-end 0)))
+	;; If the full name contains a problem character, quote it.
+	(when (string-match "\\(.+?\\)[ \t]*\\(<.*>\\)" tem)
+	  (if (string-match "[^- !#$%&'*+/0-9=?A-Za-z^_`{|}~]"
+			    (match-string 1 tem))
+	      (setq tem (replace-regexp-in-string
+			 "\\(.+?\\)[ \t]*\\(<.*>\\)" "\"\\1\" \\2"
+			 tem))))
+	(push tem result)))
     (setq definition (mapconcat (function identity)
 				(nreverse result)
 				mail-alias-separator-string)))
@@ -484,7 +494,9 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 	     ;; the usual syntax table.
 
 	     (or (and (integerp last-command-char)
-		      (eq (char-syntax last-command-char) ?_))
+		      (or (eq (char-syntax last-command-char) ?_)
+			  ;; Don't expand on @.
+			  (memq last-command-char '(?@ ?. ?% ?! ?_ ?-))))
 		 (let ((pre-abbrev-expand-hook nil)) ; That's us; don't loop.
 		   ;; Use this table so that abbrevs can have hyphens in them.
 		   (set-syntax-table mail-abbrev-syntax-table)
@@ -516,7 +528,7 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 		      (default-directory (expand-file-name "~/"))
 		      (def mail-personal-alias-file))
 		  (read-file-name
-		    (format "Read additional aliases from file: (default %s) "
+		   (format "Read additional aliases from file (default %s): "
 			    def)
 		    default-directory
 		    (expand-file-name def default-directory)
@@ -530,7 +542,7 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 		      (default-directory (expand-file-name "~/"))
 		      (def mail-personal-alias-file))
 		  (read-file-name
-		   (format "Read mail aliases from file: (default %s) " def)
+		   (format "Read mail aliases from file (default %s): " def)
 		   default-directory
 		   (expand-file-name def default-directory)
 		   t))))
@@ -575,7 +587,8 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 		(prog2
 		    (message "Making completion list...")
 		    (all-completions alias mail-abbrevs)
-		  (message "Making completion list...done"))))))))
+		  (message "Making completion list...done"))
+		alias))))))
 
 (defun mail-abbrev-next-line (&optional arg)
   "Expand any mail abbrev, then move cursor vertically down ARG lines.
@@ -609,7 +622,8 @@ Don't use this command in Lisp programs!
   (interactive "P")
   (if (looking-at "[ \t]*\n") (expand-abbrev))
   (setq this-command 'end-of-buffer)
-  (end-of-buffer arg))
+  (with-no-warnings
+   (end-of-buffer arg)))
 
 (eval-after-load "sendmail"
   '(progn
@@ -625,4 +639,5 @@ Don't use this command in Lisp programs!
 (if mail-abbrevs-mode
     (mail-abbrevs-enable))
 
+;;; arch-tag: 5aa2d901-73f8-4ad7-b73c-4802282ad2ff
 ;;; mailabbrev.el ends here

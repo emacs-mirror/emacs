@@ -1,5 +1,6 @@
 /* Definitions file for GNU Emacs running on IBM AIX version 3.1
-   Copyright (C) 1985, 1986, 1990, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1990, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /*
@@ -213,3 +214,5 @@ Boston, MA 02111-1307, USA.  */
 /* For unexaix.c. */
 #define ALIGN_DATA_RELOC
 
+/* arch-tag: bfff798c-542d-4290-91f2-267394c85b7b
+   (do not change this comment) */

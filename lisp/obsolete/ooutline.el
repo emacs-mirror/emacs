@@ -1,6 +1,7 @@
 ;;; ooutline.el --- outline mode commands for Emacs
 
-;; Copyright (C) 1986, 1993, 1994, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1993, 1994, 1997, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: outlines
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -33,7 +34,7 @@
 ;; Jan '86, Some new features added by Peter Desnoyers and rewritten by RMS.
 
 (defgroup outlines nil
-  "Support for hierarchical outlining"
+  "Support for hierarchical outlining."
   :prefix "outline-"
   :group 'editing)
 
@@ -224,7 +225,7 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (setq font-lock-defaults '(outline-font-lock-keywords t))
   (make-local-variable 'change-major-mode-hook)
   (add-hook 'change-major-mode-hook 'show-all)
-  (run-hooks 'text-mode-hook 'outline-mode-hook))
+  (run-mode-hooks 'text-mode-hook 'outline-mode-hook))
 
 (defcustom outline-minor-mode-prefix "\C-c@"
   "*Prefix key to use for Outline commands in Outline minor mode.
@@ -582,4 +583,5 @@ Stop at the first and last subheadings of a superior heading."
 
 (provide 'outline)
 
+;;; arch-tag: 14ed00e1-bd40-4db8-86e5-3b82ce326e45
 ;;; ooutline.el ends here

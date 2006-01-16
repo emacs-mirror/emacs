@@ -1,6 +1,7 @@
 ;;; gnus-dup.el --- suppression of duplicate articles in Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000
-;;        Free Software Foundation, Inc.
+
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -113,7 +114,7 @@ seen in the same session."
     (gnus-dup-open))
   (setq gnus-dup-list-dirty t)		; mark list for saving
   (let ((data gnus-newsgroup-data)
- 	datum msgid)
+	datum msgid)
     ;; Enter the Message-IDs of all read articles into the list
     ;; and hash table.
     (while (setq datum (pop data))
@@ -121,11 +122,11 @@ seen in the same session."
 		 (> (gnus-data-number datum) 0)
 		 (not (memq (gnus-data-number datum) gnus-newsgroup-unreads))
 		 (not (= (gnus-data-mark datum) gnus-canceled-mark))
- 		 (setq msgid (mail-header-id (gnus-data-header datum)))
- 		 (not (nnheader-fake-message-id-p msgid))
- 		 (not (intern-soft msgid gnus-dup-hashtb)))
+		 (setq msgid (mail-header-id (gnus-data-header datum)))
+		 (not (nnheader-fake-message-id-p msgid))
+		 (not (intern-soft msgid gnus-dup-hashtb)))
 	(push msgid gnus-dup-list)
- 	(intern msgid gnus-dup-hashtb))))
+	(intern msgid gnus-dup-hashtb))))
   ;; Chop off excess Message-IDs from the list.
   (let ((end (nthcdr gnus-duplicate-list-length gnus-dup-list)))
     (when end
@@ -162,4 +163,5 @@ seen in the same session."
 
 (provide 'gnus-dup)
 
+;;; arch-tag: 903e94db-7b00-4d19-83ee-cf34a81fa5fb
 ;;; gnus-dup.el ends here

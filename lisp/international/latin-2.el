@@ -1,6 +1,6 @@
 ;;; latin-2.el --- set up case-conversion and syntax tables for ISO Latin-2
 
-;; Copyright (C) 1995,1997 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2005  Free Software Foundation, Inc.
 
 ;; Author: Michael Gschwind (mike@vlsivie.tuwien.ac.at)
 ;; Maintainer: FSF
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -38,7 +38,9 @@
        (if set-case-syntax-set-multibyte
 	   (- (make-char 'latin-iso8859-2) 128)
 	 0)))
-  (set-case-syntax 160 " " tbl)		;no-break space
+  ;; NBSP isn't semantically interchangeable with other whitespace chars,
+  ;; so it's more like punctation.
+  (set-case-syntax 160 "." tbl)		;no-break space
   (set-case-syntax-pair 161 177 tbl)	;latin letter a with ogonek
   (set-case-syntax 162 "w" tbl)		;breve
   (set-case-syntax-pair 163 179 tbl)	;latin letter l with stroke
@@ -100,10 +102,11 @@
 (or set-case-syntax-set-multibyte
     (provide 'latin-2))
 
-;;; Don't compile this file: src/Makefile.in instructs make-docfile
-;;; to look at the .el file!
-;;; Local Variables:
-;;; no-byte-compile: t
-;;; End:
+;; Don't compile this file: src/Makefile.in instructs make-docfile
+;; to look at the .el file!
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
 
+;; arch-tag: 2b9f9c30-1a63-4877-8a80-e95a5e4c57c9
 ;;; latin-2.el ends here

@@ -1,5 +1,6 @@
 /* Definitions for interface to indent.c
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* We introduce new member `tab_offset'.  We need it because of the
    existence of wide-column characters.  There is a case that the
@@ -71,3 +72,5 @@ void recompute_width_table P_ ((struct buffer *buf,
 				struct Lisp_Char_Table *disptab));
 
 
+/* arch-tag: f9feb373-5bff-4f4f-9198-94805d00cfd7
+   (do not change this comment) */

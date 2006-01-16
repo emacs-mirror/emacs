@@ -1,13 +1,12 @@
 ;;; rsz-mini.el --- dynamically resize minibuffer to display entire contents
 
-;; Copyright (C) 1990, 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993, 1994, 1995, 1997, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;;         Roland McGrath <roland@gnu.org>
 ;; Maintainer: Noah Friedman <friedman@splode.com>
 ;; Keywords: minibuffer, window, frame, display
-
-;; $Id: rsz-mini.el,v 1.29 2001/07/16 12:22:59 pj Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -23,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -65,7 +64,8 @@
 
 ;;;###autoload
 (defcustom resize-minibuffer-frame-max-height nil
-  "*This variable is obsolete.")
+  "*This variable is obsolete."
+  :group 'resize-minibuffer)
 
 ;;;###autoload
 (defcustom resize-minibuffer-frame-exactly t
@@ -81,4 +81,5 @@
 
 (provide 'rsz-mini)
 
+;;; arch-tag: 3cb85d51-ab33-4e46-8362-dd87a5d06c99
 ;;; rsz-mini.el ends here

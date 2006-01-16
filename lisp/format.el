@@ -1,6 +1,7 @@
 ;;; format.el --- read and save files in multiple formats
 
-;; Copyright (c) 1994, 1995, 1997, 1999 Free Software Foundation
+;; Copyright (C) 1994, 1995, 1997, 1999, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -37,7 +38,7 @@
 ;; change this variable, or use `format-write-file'.
 ;;
 ;; Auto-save files are normally created in the same format as the visited
-;; file, but the variable `auto-save-file-format' can be set to a
+;; file, but the variable `buffer-auto-save-file-format' can be set to a
 ;; particularly fast or otherwise preferred format to be used for
 ;; auto-saving (or nil to do no encoding on auto-save files, but then you
 ;; risk losing any text-properties in the buffer).
@@ -62,6 +63,7 @@
 ;;; Code:
 
 (put 'buffer-file-format 'permanent-local t)
+(put 'buffer-auto-save-file-format 'permanent-local t)
 
 (defvar format-alist
   '((text/enriched "Extended MIME text/enriched format."
@@ -223,10 +225,12 @@ For most purposes, consider using `format-encode-region' instead."
 	    (let ((copy-buf (get-buffer-create (format " *Format Temp %d*"
 						       format-count)))
 		  (sel-disp selective-display)
-		  (multibyte enable-multibyte-characters))
+		  (multibyte enable-multibyte-characters)
+		  (coding-system buffer-file-coding-system))
 	      (with-current-buffer copy-buf
 		(setq selective-display sel-disp)
-		(set-buffer-multibyte multibyte))
+		(set-buffer-multibyte multibyte)
+		(setq buffer-file-coding-system coding-system))
 	      (copy-to-buffer copy-buf from to)
 	      (set-buffer copy-buf)
 	      (format-insert-annotations write-region-annotations-so-far from)
@@ -285,7 +289,7 @@ For most purposes, consider using `format-decode-region' instead."
 	    (let ((do format) f)
 	      (while do
 		(or (setq f (assq (car do) format-alist))
-		    (error "Unknown format" (car do)))
+		    (error "Unknown format %s" (car do)))
 		;; Decode:
 		(if (nth 3 f)
 		    (setq end (format-decode-run-method (nth 3 f) begin end)))
@@ -312,7 +316,7 @@ If the format is not specified, this function attempts to guess.
 `buffer-file-format' is set to the format used, and any mode-functions
 for the format are called."
   (interactive
-   (list (format-read "Translate buffer from format (default: guess): ")))
+   (list (format-read "Translate buffer from format (default guess): ")))
   (save-excursion
     (goto-char (point-min))
     (format-decode format (buffer-size) t)))
@@ -323,7 +327,7 @@ Arg FORMAT is optional; if omitted the format will be determined by looking
 for identifying regular expressions at the beginning of the region."
   (interactive
    (list (region-beginning) (region-end)
-	 (format-read "Translate region from format (default: guess): ")))
+	 (format-read "Translate region from format (default guess): ")))
   (save-excursion
     (goto-char from)
     (format-decode format (- to from) nil)))
@@ -364,11 +368,15 @@ one of the formats defined in `format-alist', or a list of such symbols."
 		 (funcall to-fn beg end (current-buffer)))))
 	  (setq format (cdr format)))))))
 
-(defun format-write-file (filename format)
+(defun format-write-file (filename format &optional confirm)
   "Write current buffer into file FILENAME using some FORMAT.
-Makes buffer visit that file and sets the format as the default for future
+Make buffer visit that file and set the format as the default for future
 saves.  If the buffer is already visiting a file, you can specify a directory
-name as FILENAME, to write a file of the same old name in that directory."
+name as FILENAME, to write a file of the same old name in that directory.
+
+If optional third arg CONFIRM is non-nil, this function asks for
+confirmation before overwriting an existing file.  Interactively,
+confirmation is required unless you supply a prefix argument."
   (interactive
    ;; Same interactive spec as write-file, plus format question.
    (let* ((file (if buffer-file-name
@@ -380,7 +388,7 @@ name as FILENAME, to write a file of the same old name in that directory."
 				  nil nil (buffer-name))))
 	  (fmt (format-read (format "Write file `%s' in format: "
 				    (file-name-nondirectory file)))))
-     (list file fmt)))
+     (list file fmt (not current-prefix-arg))))
   (let ((old-formats buffer-file-format)
 	preserve-formats)
     (dolist (fmt old-formats)
@@ -391,7 +399,7 @@ name as FILENAME, to write a file of the same old name in that directory."
     (dolist (fmt preserve-formats)
       (unless (memq fmt buffer-file-format)
 	(setq buffer-file-format (append buffer-file-format (list fmt))))))
-  (write-file filename))
+  (write-file filename confirm))
 
 (defun format-find-file (filename format)
   "Find the file FILENAME using data format FORMAT.
@@ -414,7 +422,7 @@ The optional third and fourth arguments BEG and END specify
 the part of the file to read.
 
 The return value is like the value of `insert-file-contents':
-a list (ABSOLUTE-FILE-NAME . SIZE)."
+a list (ABSOLUTE-FILE-NAME SIZE)."
   (interactive
    ;; Same interactive spec as write-file, plus format question.
    (let* ((file (read-file-name "Find file: "))
@@ -427,7 +435,7 @@ a list (ABSOLUTE-FILE-NAME . SIZE)."
       (setq size (nth 1 value)))
     (if format
 	(setq size (format-decode format size)
-	      value (cons (car value) size)))
+	      value (list (car value) size)))
     value))
 
 (defun format-read (&optional prompt)
@@ -744,13 +752,15 @@ to write these unknown annotations back into the file."
 	    (message "Unknown annotations: %s" unknown-ans))))))
 
 (defun format-subtract-regions (minu subtra)
-  "Remove from the regions in MINUend the regions in SUBTRAhend.
+  "Remove from the regions in MINUEND the regions in SUBTRAHEND.
 A region is a dotted pair (FROM . TO).  Both parameters are lists of
 regions.  Each list must contain nonoverlapping, noncontiguous
 regions, in descending order.  The result is also nonoverlapping,
 noncontiguous, and in descending order.  The first element of MINUEND
 can have a cdr of nil, indicating that the end of that region is not
-yet known."
+yet known.
+
+\(fn MINUEND SUBTRAHEND)"
   (let* ((minuend (copy-alist minu))
 	 (subtrahend (copy-alist subtra))
 	 (m (car minuend))
@@ -803,8 +813,8 @@ in the region, it is treated as though it were DEFAULT."
 Inserts each element of the given LIST of buffer annotations at its
 appropriate place.  Use second arg OFFSET if the annotations' locations are
 not relative to the beginning of the buffer: annotations will be inserted
-at their location-OFFSET+1 \(ie, the offset is treated as the character number
-of the first character in the buffer)."
+at their location-OFFSET+1 \(ie, the offset is treated as the position of
+the first character in the buffer)."
   (if (not offset)
       (setq offset 0)
     (setq offset (1- offset)))
@@ -914,7 +924,7 @@ The same TRANSLATIONS structure can be used in reverse for reading files."
 
 (defun format-annotate-location (loc all ignore translations)
   "Return annotation(s) needed at location LOC.
-This includes any properties that change between LOC-1 and LOC.
+This includes any properties that change between LOC - 1 and LOC.
 If ALL is true, don't look at previous location, but generate annotations for
 all non-nil properties.
 Third argument IGNORE is a list of text-properties not to consider.
@@ -1047,4 +1057,5 @@ OLD and NEW are the values."
 
 (provide 'format)
 
+;;; arch-tag: c387e9c7-a93d-47bf-89bc-8ca67e96755a
 ;;; format.el ends here

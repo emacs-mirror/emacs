@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
+@c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Major Modes, Indentation, International, Top
 @chapter Major Modes
@@ -18,9 +19,10 @@ parentheses (@pxref{Mode Line}).
   The least specialized major mode is called @dfn{Fundamental mode}.
 This mode has no mode-specific redefinitions or variable settings, so
 that each Emacs command behaves in its most general manner, and each
-option is in its default state.  For editing text of a specific type
-that Emacs knows about, such as Lisp code or English text, you should
-switch to the appropriate major mode, such as Lisp mode or Text mode.
+user option variable is in its default state.  For editing text of a
+specific type that Emacs knows about, such as Lisp code or English
+text, you should switch to the appropriate major mode, such as Lisp
+mode or Text mode.
 
   Selecting a major mode changes the meanings of a few keys to become
 more specifically adapted to the language being edited.  The ones that
@@ -91,14 +93,29 @@ For example, one element normally found in the list has the form
 @code{(@t{"\\.c\\'"} . c-mode)}, and it is responsible for selecting C
 mode for files whose names end in @file{.c}.  (Note that @samp{\\} is
 needed in Lisp syntax to include a @samp{\} in the string, which must
-be used to suppress the special meaning of @samp{.} in regexps.)  If the
-element has the form @code{(@var{regexp} @var{mode-function}
+be used to suppress the special meaning of @samp{.} in regexps.)  If
+the element has the form @code{(@var{regexp} @var{mode-function}
 @var{flag})} and @var{flag} is non-@code{nil}, then after calling
-@var{mode-function}, the suffix that matched @var{regexp} is discarded
-and the list is searched again for another match.
+@var{mode-function}, Emacs discards the suffix that matched
+@var{regexp} and searches the list again for another match.
 
-  You can specify which major mode should be used for editing a certain
-file by a special sort of text in the first nonblank line of the file.  The
+@vindex magic-mode-alist
+  Sometimes the major mode is determined from the way the file's text
+begins.  The variable @code{magic-mode-alist} controls this.  Its value
+is a list of elements of this form:
+
+@example
+(@var{regexp} . @var{mode-function})
+@end example
+
+@noindent
+This looks like an element of @code{auto-mode-alist}, but it doesn't work
+the same: this @var{regexp} is matched against the text at the start
+of the buffer, not against the file name.  @code{magic-mode-alist}
+takes priority over @code{auto-mode-alist}.
+
+  You can specify the major mode to use for editing a certain file by
+special text in the first nonblank line of the file.  The
 mode name should appear in this line both preceded and followed by
 @samp{-*-}.  Other text may appear on the line as well.  For example,
 
@@ -160,12 +177,18 @@ mode is taken from the previously current buffer.
 mode Emacs would choose automatically: use the command @kbd{M-x
 normal-mode} to do this.  This is the same function that
 @code{find-file} calls to choose the major mode.  It also processes
-the file's local variables list (if any).
+the file's @samp{-*-} line or local variables list (if any).
+@xref{File Variables}.
 
 @vindex change-major-mode-with-file-name
   The commands @kbd{C-x C-w} and @code{set-visited-file-name} change to
 a new major mode if the new file name implies a mode (@pxref{Saving}).
+(@kbd{C-x C-s} does this too, if the buffer wasn't visiting a file.)
 However, this does not happen if the buffer contents specify a major
 mode, and certain ``special'' major modes do not allow the mode to
 change.  You can turn off this mode-changing feature by setting
 @code{change-major-mode-with-file-name} to @code{nil}.
+
+@ignore
+   arch-tag: f2558800-cf32-4839-8acb-7d3b4df2a155
+@end ignore

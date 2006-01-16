@@ -1,5 +1,6 @@
 /* Resource definitions for GNU Emacs on the Macintosh.
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2002, 2003, 2004,
+      2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Contributed by Andrew Choi (akochoi@mac.com).  */
 
@@ -24,7 +25,6 @@ Boston, MA 02111-1307, USA.  */
 #include "Types.r"
 /* added for finder icon balloon help --ben */
 #include "Balloons.r"
-#endif
 
 /* Define to use gnu icon */
 /* #define GNU_ICON 1 */
@@ -57,7 +57,6 @@ resource 'hfdr' (-5696) { /*help for emacs icon*/
    	}
 };
 
-#ifndef TARGET_API_MAC_CARBON
 /* added for finder icon balloon help --ben */
 resource 'STR ' (128) { /*help message for emacs icon*/
 	"GNU Emacs\0xd1the extensible, customizable, self-documenting real-time display editor."
@@ -143,7 +142,7 @@ resource 'DITL' (128, purgeable) {
 		{10, 60, 72, 278},
 		StaticText {
 			disabled,
-			"GNU Emacs 21 for Mac OS"
+			"GNU Emacs 22 for Mac OS"
 		}
 	}
 };
@@ -176,7 +175,7 @@ resource 'DITL' (129, purgeable) {
 		{10, 60, 72, 278},
 		StaticText {
 			disabled,
-			"Emacs does not run on a Macintosh with more than 256 MB of physical or virtual memory"
+			"Emacs does not run on a Macintosh with more than 512 MB of physical or virtual memory"
 		}
 	}
 };
@@ -217,14 +216,14 @@ resource 'FREF' (129) {
 };
 
 resource 'vers' (1) {
-	0x1,
-	0x0,
-	development,
-	0x0,
-	0,
-	"d6",
-	"GNU Emacs 21.1 for Mac OS\n\0xa9 2"
-	"000 Free Software Foundation"
+	0x22,		/* Major revision in BCD */
+	0x0,		/* Minor revision in BCD */
+	development,	/* development, alpha, beta, or final (release) */
+	50,		/* Non-final release # */
+	0,		/* Region code */
+	"22.0.50",	/* Short version number */
+	"22.0.50, Copyright \0xa9 2005 "
+	"Free Software Foundation, Inc." /* Long version number */
 };
 
 data 'EMAx' (0, "Owner resource") {

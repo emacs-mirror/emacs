@@ -1,6 +1,7 @@
 ;;; ediff-hook.el --- setup for Ediff's menus and autoloads
 
-;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -131,10 +132,10 @@
        ))
    (defvar ediff-misc-menu
      '("Ediff Miscellanea"
-       ["Ediff Manual..." ediff-documentation t]
-       ["Customize Ediff..." ediff-customize t]
-       ["List Ediff Sessions..." ediff-show-registry t]
-       ["Use separate frame for Ediff control buffer..."
+       ["Ediff Manual" ediff-documentation t]
+       ["Customize Ediff" ediff-customize t]
+       ["List Ediff Sessions" ediff-show-registry t]
+       ["Use separate frame for Ediff control buffer"
 	ediff-toggle-multiframe
 	:style toggle
 	:selected (if (and (featurep 'ediff-util)
@@ -242,14 +243,14 @@
 
        ;; define ediff miscellanea
        (define-key menu-bar-ediff-misc-menu [emultiframe]
-	 '("Toggle use of separate control buffer frame..."
+	 '("Toggle use of separate control buffer frame"
 	   . ediff-toggle-multiframe))
        (define-key menu-bar-ediff-misc-menu [eregistry]
-	 '("List Ediff Sessions..." . ediff-show-registry))
+	 '("List Ediff Sessions" . ediff-show-registry))
        (define-key menu-bar-ediff-misc-menu [ediff-cust]
-	 '("Customize Ediff..." . ediff-customize))
+	 '("Customize Ediff" . ediff-customize))
        (define-key menu-bar-ediff-misc-menu [ediff-doc]
-	 '("Ediff Manual..." . ediff-documentation))
+	 '("Ediff Manual" . ediff-documentation))
        )
 
       ) ; emacs case
@@ -370,4 +371,5 @@
 
 (provide 'ediff-hook)
 
+;;; arch-tag: 512f8656-8a4b-4789-af5d-5c6144498df3
 ;;; ediff-hook.el ends here

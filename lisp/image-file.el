@@ -1,6 +1,7 @@
 ;;; image-file.el --- support for visiting image files
 ;;
-;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: multimedia
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -118,6 +119,8 @@ the command `insert-file-contents'."
 	      (create-image data nil t))
 	     (props
 	      `(display ,image
+			yank-handler
+			(image-file-yank-handler nil t)
 			intangible ,image
 			rear-nonsticky (display intangible)
 			;; This a cheap attempt to make the whole buffer
@@ -135,6 +138,26 @@ the command `insert-file-contents'."
 	  (setq truncate-lines t))))
     rval))
 
+;; We use a yank-handler to make yanked images unique, so that
+;; yanking two copies of the same image next to each other are
+;; recognized as two different images.
+(defun image-file-yank-handler (string)
+  "Yank handler for inserting an image into a buffer."
+  (let ((len (length string))
+	(image (get-text-property 0 'display string)))
+    (remove-text-properties 0 len yank-excluded-properties string)
+    (if (consp image)
+	(add-text-properties 0
+			     (or (next-single-property-change 0 'image-counter string)
+				 (length string))
+			     `(display
+			       ,(cons (car image) (cdr image))
+			       yank-handler
+			       ,(cons 'image-file-yank-handler '(nil t)))
+			     string))
+    (insert string)))
+
+(put 'image-file-handler 'safe-magic t)
 (defun image-file-handler (operation &rest args)
   "Filename handler for inserting image files.
 OPERATION is the operation to perform, on ARGS.
@@ -181,4 +204,5 @@ Image files are those whose name has an extension in
 
 (provide 'image-file)
 
+;;; arch-tag: 04cafe36-f7ba-4c80-9f47-4cb656520ce1
 ;;; image-file.el ends here

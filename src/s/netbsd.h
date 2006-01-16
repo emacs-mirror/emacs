@@ -60,11 +60,19 @@
 #endif /* not NO_SHARED_LIBS and not ELF */
 
 #if !defined (NO_SHARED_LIBS) && defined (__ELF__)
-#define START_FILES pre-crt0.o /usr/lib/crt0.o /usr/lib/crtbegin.o
+#define START_FILES pre-crt0.o /usr/lib/crt0.o START_FILES_1 /usr/lib/crtbegin.o
 #define UNEXEC unexelf.o
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtend.o
+#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtend.o END_FILES_1
 #undef LIB_GCC
 #define LIB_GCC
+#endif
+
+#ifdef HAVE_CRTIN
+#define START_FILES_1 /usr/lib/crti.o 
+#define END_FILES_1 /usr/lib/crtn.o
+#else
+#define START_FILES_1
+#define END_FILES_1
 #endif
 
 #define HAVE_WAIT_HEADER
@@ -85,6 +93,13 @@
    /usr/local/include or libs in /usr/local/lib by default.  */
 
 #define C_SWITCH_SYSTEM -I/usr/X11R6/include -I/usr/pkg/include -I/usr/local/include -L/usr/pkg/lib -L/usr/local/lib
+
+/* Link temacs with -z nocombreloc so that unexec works right, whether or
+   not -z combreloc is the default.  GNU ld ignores unknown -z KEYWORD
+   switches, so this also works with older versions that don't implement
+   -z combreloc.  */
+
+#define LD_SWITCH_SYSTEM_TEMACS -Wl,-z,nocombreloc
 
 #endif /* __ELF__ */
 
@@ -123,3 +138,5 @@
 
 #define GC_MARK_STACK	GC_MAKE_GCPROS_NOOPS
 
+/* arch-tag: e80f364a-04e9-4faf-93cb-f36a0fe95c81
+   (do not change this comment) */

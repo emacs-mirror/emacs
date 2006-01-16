@@ -1,6 +1,7 @@
 ;;; find-dired.el --- run a `find' command and dired the output
 
-;; Copyright (C) 1992, 1994, 1995, 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1995, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>,
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -53,6 +54,16 @@ LS-SWITCHES is a list of `ls' switches to tell dired how to parse the output."
   :type '(cons (string :tag "Find Option")
 	       (string :tag "Ls Switches"))
   :group 'find-dired)
+
+;;;###autoload
+(defcustom find-ls-subdir-switches "-al"
+  "`ls' switches for inserting subdirectories in `*Find*' buffers.
+This should contain the \"-l\" switch.
+Use the \"-F\" or \"-b\" switches if and only if you also use
+them for `find-ls-option'."
+  :type 'string
+  :group 'find-dired
+  :version "22.1")
 
 ;;;###autoload
 (defcustom find-grep-options
@@ -89,8 +100,7 @@ as the final argument."
   (let ((dired-buffers dired-buffers))
     ;; Expand DIR ("" means default-directory), and make sure it has a
     ;; trailing slash.
-    (setq dir (abbreviate-file-name
-	       (file-name-as-directory (expand-file-name dir))))
+    (setq dir (file-name-as-directory (expand-file-name dir)))
     ;; Check that it's really a directory.
     (or (file-directory-p dir)
 	(error "find-dired needs a directory: %s" dir))
@@ -115,14 +125,20 @@ as the final argument."
     (setq buffer-read-only nil)
     (erase-buffer)
     (setq default-directory dir
-	  find-args args		; save for next interactive call
+	  find-args args	      ; save for next interactive call
 	  args (concat find-dired-find-program " . "
 		       (if (string= args "")
 			   ""
 			 (concat "\\( " args " \\) "))
 		       (car find-ls-option)))
+    ;; Start the find process.
+    (shell-command (concat args "&") (current-buffer))
     ;; The next statement will bomb in classic dired (no optional arg allowed)
     (dired-mode dir (cdr find-ls-option))
+    (let ((map (make-sparse-keymap)))
+      (set-keymap-parent map (current-local-map))
+      (define-key map "\C-c\C-k" 'kill-find)
+      (use-local-map map))
     (make-local-variable 'dired-sort-inhibit)
     (setq dired-sort-inhibit t)
     (set (make-local-variable 'revert-buffer-function)
@@ -137,6 +153,7 @@ as the final argument."
       ;; this does no harm)
       (set (make-local-variable 'dired-subdir-alist)
 	   (list (cons default-directory (point-min-marker)))))
+    (set (make-local-variable 'dired-subdir-switches) find-ls-subdir-switches)
     (setq buffer-read-only nil)
     ;; Subdir headlerline must come first because the first marker in
     ;; subdir-alist points there.
@@ -144,13 +161,23 @@ as the final argument."
     ;; Make second line a ``find'' line in analogy to the ``total'' or
     ;; ``wildcard'' line.
     (insert "  " args "\n")
-    ;; Start the find process.
-    (let ((proc (start-process-shell-command find-dired-find-program (current-buffer) args)))
+    (setq buffer-read-only t)
+    (let ((proc (get-buffer-process (current-buffer))))
       (set-process-filter proc (function find-dired-filter))
       (set-process-sentinel proc (function find-dired-sentinel))
       ;; Initialize the process marker; it is used by the filter.
       (move-marker (process-mark proc) 1 (current-buffer)))
     (setq mode-line-process '(":%s"))))
+
+(defun kill-find ()
+  "Kill the `find' process running in the current buffer."
+  (interactive)
+  (let ((find (get-buffer-process (current-buffer))))
+    (and find (eq (process-status find) 'run)
+	 (eq (process-filter find) (function find-dired-filter))
+	 (condition-case nil
+	     (delete-process find)
+	   (error nil)))))
 
 ;;;###autoload
 (defun find-name-dired (dir pattern)
@@ -192,7 +219,8 @@ Thus ARG can also contain additional grep options."
 
 (defun find-dired-filter (proc string)
   ;; Filter for \\[find-dired] processes.
-  (let ((buf (process-buffer proc)))
+  (let ((buf (process-buffer proc))
+	(inhibit-read-only t))
     (if (buffer-name buf)		; not killed?
 	(save-excursion
 	  (set-buffer buf)
@@ -229,7 +257,8 @@ Thus ARG can also contain additional grep options."
 
 (defun find-dired-sentinel (proc state)
   ;; Sentinel for \\[find-dired] processes.
-  (let ((buf (process-buffer proc)))
+  (let ((buf (process-buffer proc))
+	(inhibit-read-only t))
     (if (buffer-name buf)
 	(save-excursion
 	  (set-buffer buf)
@@ -249,7 +278,9 @@ Thus ARG can also contain additional grep options."
 	      (delete-process proc)
 	      (force-mode-line-update)))
 	  (message "find-dired %s finished." (current-buffer))))))
+
 
 (provide 'find-dired)
 
+;;; arch-tag: 8edece95-af00-4221-bc74-a4bd2f75f9b0
 ;;; find-dired.el ends here

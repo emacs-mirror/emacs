@@ -1,6 +1,7 @@
 ;;; saveplace.el --- automatically save place in files
 
-;; Copyright (C) 1993, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: FSF
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -61,7 +62,10 @@ This variable is automatically buffer-local.
 If you wish your place in any file to always be automatically saved,
 simply put this in your `~/.emacs' file:
 
-\(setq-default save-place t\)"
+\(setq-default save-place t)
+\(require 'saveplace)
+
+or else use the Custom facility to set this option."
   :type 'boolean
   :require 'saveplace
   :group 'save-place)
@@ -93,6 +97,40 @@ value of `version-control'."
   :type '(choice (integer :tag "Entries" :value 1)
 		 (const :tag "No Limit" nil))
   :group 'save-place)
+
+(defcustom save-place-forget-unreadable-files t
+  "Non-nil means forget place in unreadable files.
+
+The filenames in `save-place-alist' that do not match
+`save-place-skip-check-regexp' are filtered through
+`file-readable-p'. if nil, their alist entries are removed.
+
+You may do this anytime by calling the complementary function,
+`save-place-forget-unreadable-files'.  When this option is turned on,
+this happens automatically before saving `save-place-alist' to
+`save-place-file'."
+  :type 'boolean :group 'save-place)
+
+(defcustom save-place-save-skipped t
+  "If non-nil, remember files matching `save-place-skip-check-regexp'.
+
+When filtering `save-place-alist' for unreadable files, some will not
+be checked, based on said regexp, and instead saved or forgotten based
+on this flag."
+  :type 'boolean :group 'save-place)
+
+(defcustom save-place-skip-check-regexp
+  ;; thanks to ange-ftp-name-format
+  "\\`/\\(?:cdrom\\|floppy\\|mnt\\|\\(?:[^@/:]*@\\)?[^@/:]*[^@/:.]:\\)"
+  "Regexp whose file names shall not be checked for readability.
+
+When forgetting unreadable files, file names matching this regular
+expression shall not be checked for readability, but instead be
+subject to `save-place-save-skipped'.
+
+Files for which such a check may be inconvenient include those on
+removable and network volumes."
+  :type 'regexp :group 'save-place)
 
 (defun toggle-save-place (&optional parg)
   "Toggle whether to save your place in this file between sessions.
@@ -129,7 +167,8 @@ To save places automatically in all files, put this in your `.emacs' file:
         (let ((cell (assoc buffer-file-name save-place-alist))
 	      (position (if (not (eq major-mode 'hexl-mode))
 			    (point)
-			  (1+ (hexl-current-address)))))
+			  (with-no-warnings
+			    (1+ (hexl-current-address))))))
           (if cell
               (setq save-place-alist (delq cell save-place-alist)))
 	  (if (and save-place
@@ -138,13 +177,44 @@ To save places automatically in all files, put this in your `.emacs' file:
 		    (cons (cons buffer-file-name position)
 			  save-place-alist)))))))
 
+(defun save-place-forget-unreadable-files ()
+  "Remove unreadable files from `save-place-alist'.
+For each entry in the alist, if `file-readable-p' returns nil for the
+filename, remove the entry.  Save the new alist \(as the first pair
+may have changed\) back to `save-place-alist'."
+  (interactive)
+  ;; the following was adapted from an in-place filtering function,
+  ;; `filter-mod', used in the original.
+  (unless (null save-place-alist)	;says it better than `when'
+    ;; first, check all except first
+    (let ((fmprev save-place-alist) (fmcur (cdr save-place-alist)))
+      (while fmcur			;not null
+	;; a value is only saved when it becomes FMPREV.
+	(if (if (string-match save-place-skip-check-regexp (caar fmcur))
+		save-place-save-skipped
+	      (file-readable-p (caar fmcur)))
+	    (setq fmprev fmcur)
+	  (setcdr fmprev (cdr fmcur)))
+	(setq fmcur (cdr fmcur))))
+    ;; test first pair, keep it if OK, otherwise 2nd element, which
+    ;; may be '()
+    (unless (if (string-match save-place-skip-check-regexp
+			      (caar save-place-alist))
+		save-place-save-skipped
+	      (file-readable-p (caar save-place-alist)))
+      (setq save-place-alist (cdr save-place-alist)))))
+
 (defun save-place-alist-to-file ()
   (let ((file (expand-file-name save-place-file)))
     (save-excursion
       (message "Saving places to %s..." file)
       (set-buffer (get-buffer-create " *Saved Places*"))
       (delete-region (point-min) (point-max))
-      (print save-place-alist (current-buffer))
+      (when save-place-forget-unreadable-files
+	(save-place-forget-unreadable-files))
+      (let ((print-length nil)
+            (print-level nil))
+        (print save-place-alist (current-buffer)))
       (let ((version-control
              (cond
               ((null save-place-version-control) nil)
@@ -152,7 +222,10 @@ To save places automatically in all files, put this in your `.emacs' file:
               ((eq 'nospecial save-place-version-control) version-control)
               (t
                t))))
-        (write-file file)
+	(condition-case nil
+	    ;; Don't use write-file; we don't want this buffer to visit it.
+	    (write-region (point-min) (point-max) file)
+	  (file-error (message "Can't write %s" file)))
         (kill-buffer (current-buffer))
         (message "Saving places to %s...done" file)))))
 
@@ -238,4 +311,5 @@ To save places automatically in all files, put this in your `.emacs' file:
 
 (provide 'saveplace) ; why not...
 
+;;; arch-tag: 3c2ef47b-0a22-4558-b116-118c9ef454a0
 ;;; saveplace.el ends here

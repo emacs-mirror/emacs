@@ -1,6 +1,7 @@
 ;;; tildify.el --- adding hard spaces into texts
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
 ;; Version:    4.5
@@ -20,15 +21,15 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
 ;; This package can be typically used for adding forgotten tildes in TeX
 ;; sources or adding `&nbsp;' sequences in SGML (e.g. HTML) texts.
 ;;
-;; For example, the Czech ortography requires avoiding one letter
+;; For example, the Czech orthography requires avoiding one letter
 ;; prepositions at line endings.  So they should be connected with the
 ;; following words by a tilde.  Some users forget to do this all the
 ;; time.  The purpose of this program is to check the text and suggest
@@ -42,7 +43,7 @@
 ;; The default variable settings are suited for Czech, so do not try to
 ;; understand them if you are not familiar with Czech grammar and spelling.
 ;;
-;; The algorithm was inspired by Petr Ol¹ák's program `vlna'.  Abbilities of
+;; The algorithm was inspired by Petr Ol¹ák's program `vlna'.  Abilities of
 ;; `tildify.el' are a little limited; if you have improvement suggestions, let
 ;; me know.
 
@@ -221,11 +222,11 @@ This function performs no refilling of the changed text."
 		      (if (> (point) (marker-position marker-end))
 			  (setq finish t))
 		    (message
-		     (format "End of environment not found: %s" end-env))
+		     "End of environment not found: %s" end-env)
 		    (setq finish t))))))
       ;; No ignored environments, tildify directly
       (tildify-tildify beg end ask)))
-  (message (format "%d spaces replaced." tildify-count)))
+  (message "%d spaces replaced." tildify-count))
 
 ;;;###autoload
 (defun tildify-buffer ()
@@ -354,4 +355,5 @@ further questions)."
 ;; coding: iso-latin-2
 ;; End:
 
+;;; arch-tag: fc9b05a6-7355-4639-8170-dcf57853ba22
 ;;; tildify.el ends here

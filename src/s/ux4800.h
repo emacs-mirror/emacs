@@ -15,3 +15,6 @@
 #ifndef __GNUC__
 #define C_DEBUG_SWITCH -O  -KOlimit=3000 -ZXNd=5000
 #endif
+
+/* arch-tag: e42eeb13-028a-490b-8427-0b57010f2ab9
+   (do not change this comment) */

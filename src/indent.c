@@ -1,6 +1,6 @@
 /* Indentation functions.
-   Copyright (C) 1985,86,87,88,93,94,95,98, 2000, 2001, 2002
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1998, 2000, 2001,
+                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
 #include "lisp.h"
@@ -220,7 +220,7 @@ skip_invisible (pos, next_boundary_p, to, window)
      Lisp_Object window;
 {
   Lisp_Object prop, position, overlay_limit, proplimit;
-  Lisp_Object buffer;
+  Lisp_Object buffer, tmp;
   int end, inv_p;
 
   XSETFASTINT (position, pos);
@@ -251,8 +251,9 @@ skip_invisible (pos, next_boundary_p, to, window)
       /* No matter what. don't go past next overlay change.  */
       if (XFASTINT (overlay_limit) < XFASTINT (proplimit))
 	proplimit = overlay_limit;
-      end = XFASTINT (Fnext_single_property_change (position, Qinvisible,
-						    buffer, proplimit));
+      tmp = Fnext_single_property_change (position, Qinvisible,
+					  buffer, proplimit);
+      end = XFASTINT (tmp);
 #if 0
       /* Don't put the boundary in the middle of multibyte form if
          there is no actual property change.  */
@@ -339,7 +340,9 @@ will have a variable width)
 Ignores finite width of frame, which means that this function may return
 values greater than (frame-width).
 Whether the line is visible (if `selective-display' is t) has no effect;
-however, ^M is treated as end of line when `selective-display' is t.  */)
+however, ^M is treated as end of line when `selective-display' is t.
+Text that has an invisible property is considered as having width 0, unless
+`buffer-invisibility-spec' specifies that it is replaced by an ellipsis.  */)
      ()
 {
   Lisp_Object temp;
@@ -374,8 +377,8 @@ current_column ()
   /* If the buffer has overlays, text properties,
      or multibyte characters, use a more general algorithm.  */
   if (BUF_INTERVALS (current_buffer)
-      || !NILP (current_buffer->overlays_before)
-      || !NILP (current_buffer->overlays_after)
+      || current_buffer->overlays_before
+      || current_buffer->overlays_after
       || Z != Z_BYTE)
     return current_column_1 ();
 
@@ -1131,6 +1134,9 @@ struct position val_compute_motion;
 
    WIDTH is the number of columns available to display text;
    compute_motion uses this to handle continuation lines and such.
+   If WIDTH is -1, use width of window's text area adjusted for
+   continuation glyph when needed.
+
    HSCROLL is the number of columns not being displayed at the left
    margin; this is usually taken from a window's hscroll member.
    TAB_OFFSET is the number of columns of the first tab that aren't
@@ -1159,18 +1165,18 @@ struct position val_compute_motion;
 
 	window_width - 1
 	 - (has_vertical_scroll_bars
-	    ? FRAME_SCROLL_BAR_COLS (XFRAME (window->frame))
-	    : (window_width + window_left != frame_width))
+	    ? WINDOW_CONFIG_SCROLL_BAR_COLS (window)
+	    : (window_width + window_left != frame_cols))
 
 	where
-	  window_width is XFASTINT (w->width),
-	  window_left is XFASTINT (w->left),
+	  window_width is XFASTINT (w->total_cols),
+	  window_left is XFASTINT (w->left_col),
 	  has_vertical_scroll_bars is
-	    FRAME_HAS_VERTICAL_SCROLL_BARS (XFRAME (WINDOW_FRAME (window)))
-	  and frame_width = FRAME_WIDTH (XFRAME (window->frame))
+	    WINDOW_HAS_VERTICAL_SCROLL_BAR (window)
+	  and frame_cols = FRAME_COLS (XFRAME (window->frame))
 
-   Or you can let window_internal_width do this all for you, and write:
-	window_internal_width (w) - 1
+   Or you can let window_box_text_cols do this all for you, and write:
+	window_box_text_cols (w) - 1
 
    The `-1' accounts for the continuation-line backslashes; the rest
    accounts for window borders if the window is split horizontally, and
@@ -1197,7 +1203,6 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
     = (INTEGERP (current_buffer->selective_display)
        ? XINT (current_buffer->selective_display)
        : !NILP (current_buffer->selective_display) ? -1 : 0);
-  int prev_hpos = 0;
   int selective_rlen
     = (selective && dp && VECTORP (DISP_INVIS_VECTOR (dp))
        ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
@@ -1225,8 +1230,11 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   int wide_column_end_hpos = 0;
   int prev_pos;			/* Previous buffer position.  */
   int prev_pos_byte;		/* Previous buffer position.  */
+  int prev_hpos = 0;
+  int prev_vpos = 0;
   int contin_hpos;		/* HPOS of last column of continued line.  */
   int prev_tab_offset;		/* Previous tab offset.  */
+  int continuation_glyph_width;
 
   XSETBUFFER (buffer, current_buffer);
   XSETWINDOW (window, win);
@@ -1243,6 +1251,23 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 
   if (tab_width <= 0 || tab_width > 1000)
     tab_width = 8;
+
+  /* Negative width means use all available text columns.  */
+  if (width < 0)
+    {
+      width = window_box_text_cols (win);
+      /* We must make room for continuation marks if we don't have fringes.  */
+#ifdef HAVE_WINDOW_SYSTEM
+      if (!FRAME_WINDOW_P (XFRAME (win->frame)))
+#endif
+	width -= 1;
+    }
+
+  continuation_glyph_width = 1;
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (XFRAME (win->frame)))
+    continuation_glyph_width = 0;  /* In the fringe.  */
+#endif
 
   immediate_quit = 1;
   QUIT;
@@ -1273,6 +1298,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		  pos = prev_pos;
 		  pos_byte = prev_pos_byte;
 		  hpos = prev_hpos;
+		  vpos = prev_vpos;
 		  tab_offset = prev_tab_offset;
 		}
 	      break;
@@ -1366,7 +1392,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	{
 	  if (hscroll
 	      || (truncate_partial_width_windows
-		  && width + 1 < FRAME_WIDTH (XFRAME (WINDOW_FRAME (win))))
+		  && ((width + continuation_glyph_width)
+		      < FRAME_COLS (XFRAME (WINDOW_FRAME (win)))))
 	      || !NILP (current_buffer->truncate_lines))
 	    {
 	      /* Truncating: skip to newline, unless we are already past
@@ -1382,6 +1409,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		  if (pos >= next_boundary)
 		    next_boundary = pos + 1;
 		  prev_hpos = width;
+		  prev_vpos = vpos;
 		  prev_tab_offset = tab_offset;
 		}
 	    }
@@ -1404,6 +1432,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      vpos++;
 	      contin_hpos = prev_hpos;
 	      prev_hpos = 0;
+	      prev_vpos = vpos;
 	    }
 	}
 
@@ -1414,6 +1443,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	  pos = prev_pos;
 	  pos_byte = prev_pos_byte;
 	  hpos = prev_hpos;
+	  vpos = prev_vpos;
 	  tab_offset = prev_tab_offset;
 
 	  /* NOTE on contin_hpos, hpos, and prev_hpos.
@@ -1434,10 +1464,6 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      hpos = contin_hpos;
 	      vpos = vpos - 1;
 	    }
-	  else if (c == '\n')
-	    /* If previous character is NEWLINE,
-	       set VPOS back to previous line */
-	    vpos = vpos - 1;
 	  break;
 	}
 
@@ -1455,6 +1481,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      pos = prev_pos;
 	      pos_byte = prev_pos_byte;
 	      hpos = prev_hpos;
+	      vpos = prev_vpos;
 	      tab_offset = prev_tab_offset;
 	    }
 	  break;
@@ -1463,6 +1490,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	break;
 
       prev_hpos = hpos;
+      prev_vpos = vpos;
       prev_pos = pos;
       prev_pos_byte = pos_byte;
       wide_column_end_hpos = 0;
@@ -1649,7 +1677,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		      hpos -= hscroll;
 		      /* Count the truncation glyph on column 0 */
 		      if (hscroll > 0)
-			hpos++;
+			hpos += continuation_glyph_width;
 		      tab_offset = 0;
 		    }
 		  contin_hpos = 0;
@@ -1734,12 +1762,14 @@ assuming it is at position FROMPOS--a cons of the form (HPOS . VPOS)--
 to position TO or position TOPOS--another cons of the form (HPOS . VPOS)--
 and return the ending buffer position and screen location.
 
+If TOPOS is nil, the actual width and height of the window's
+text area are used.
+
 There are three additional arguments:
 
 WIDTH is the number of columns available to display text;
-this affects handling of continuation lines.
-This is usually the value returned by `window-width', less one (to allow
-for the continuation glyph).
+this affects handling of continuation lines.  A value of nil
+corresponds to the actual number of available text columns.
 
 OFFSETS is either nil or a cons cell (HSCROLL . TAB-OFFSET).
 HSCROLL is the number of columns not being displayed at the left
@@ -1771,6 +1801,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
      Lisp_Object from, frompos, to, topos;
      Lisp_Object width, offsets, window;
 {
+  struct window *w;
   Lisp_Object bufpos, hpos, vpos, prevhpos;
   struct position *pos;
   int hscroll, tab_offset;
@@ -1780,10 +1811,15 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
   CHECK_NUMBER_CAR (frompos);
   CHECK_NUMBER_CDR (frompos);
   CHECK_NUMBER_COERCE_MARKER (to);
-  CHECK_CONS (topos);
-  CHECK_NUMBER_CAR (topos);
-  CHECK_NUMBER_CDR (topos);
-  CHECK_NUMBER (width);
+  if (!NILP (topos))
+    {
+      CHECK_CONS (topos);
+      CHECK_NUMBER_CAR (topos);
+      CHECK_NUMBER_CDR (topos);
+    }
+  if (!NILP (width))
+    CHECK_NUMBER (width);
+
   if (!NILP (offsets))
     {
       CHECK_CONS (offsets);
@@ -1799,6 +1835,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
     window = Fselected_window ();
   else
     CHECK_LIVE_WINDOW (window);
+  w = XWINDOW (window);
 
   if (XINT (from) < BEGV || XINT (from) > ZV)
     args_out_of_range_3 (from, make_number (BEGV), make_number (ZV));
@@ -1807,9 +1844,20 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 
   pos = compute_motion (XINT (from), XINT (XCDR (frompos)),
 			XINT (XCAR (frompos)), 0,
-			XINT (to), XINT (XCDR (topos)),
-			XINT (XCAR (topos)),
-			XINT (width), hscroll, tab_offset,
+			XINT (to),
+			(NILP (topos)
+			 ? window_internal_height (w)
+			 : XINT (XCDR (topos))),
+			(NILP (topos)
+			 ? (window_box_text_cols (w)
+			    - (
+#ifdef HAVE_WINDOW_SYSTEM
+			       FRAME_WINDOW_P (XFRAME (w->frame)) ? 0 :
+#endif
+			       1))
+			 : XINT (XCAR (topos))),
+			(NILP (width) ? -1 : XINT (width)),
+			hscroll, tab_offset,
 			XWINDOW (window));
 
   XSETFASTINT (bufpos, pos->bufpos);
@@ -1834,12 +1882,11 @@ vmotion (from, vtarget, w)
      register int from, vtarget;
      struct window *w;
 {
-  int width = window_internal_width (w) - 1;
   int hscroll = XINT (w->hscroll);
   struct position pos;
   /* vpos is cumulative vertical position, changed as from is changed */
   register int vpos = 0;
-  Lisp_Object prevline;
+  int prevline;
   register int first;
   int from_byte;
   int lmargin = hscroll > 0 ? 1 - hscroll : 0;
@@ -1873,39 +1920,36 @@ vmotion (from, vtarget, w)
 	{
 	  Lisp_Object propval;
 
-	  XSETFASTINT (prevline, find_next_newline_no_quit (from - 1, -1));
-	  while (XFASTINT (prevline) > BEGV
+	  prevline = find_next_newline_no_quit (from - 1, -1);
+	  while (prevline > BEGV
 		 && ((selective > 0
-		      && indented_beyond_p (XFASTINT (prevline),
-					    CHAR_TO_BYTE (XFASTINT (prevline)),
+		      && indented_beyond_p (prevline,
+					    CHAR_TO_BYTE (prevline),
 					    (double) selective)) /* iftc */
-		     /* watch out for newlines with `invisible' property */
-		     || (propval = Fget_char_property (prevline,
+		     /* Watch out for newlines with `invisible' property.
+			When moving upward, check the newline before.  */
+		     || (propval = Fget_char_property (make_number (prevline - 1),
 						       Qinvisible,
 						       text_prop_object),
 			 TEXT_PROP_MEANS_INVISIBLE (propval))))
-	    XSETFASTINT (prevline,
-			 find_next_newline_no_quit (XFASTINT (prevline) - 1,
-						    -1));
-	  pos = *compute_motion (XFASTINT (prevline), 0,
-				 lmargin + (XFASTINT (prevline) == BEG
-					    ? start_hpos : 0),
+	    prevline = find_next_newline_no_quit (prevline - 1, -1);
+	  pos = *compute_motion (prevline, 0,
+				 lmargin + (prevline == BEG ? start_hpos : 0),
 				 0,
 				 from,
 				 /* Don't care for VPOS...  */
 				 1 << (BITS_PER_SHORT - 1),
 				 /* ... nor HPOS.  */
 				 1 << (BITS_PER_SHORT - 1),
-				 width, hscroll,
+				 -1, hscroll,
 				 /* This compensates for start_hpos
 				    so that a tab as first character
 				    still occupies 8 columns.  */
-				 (XFASTINT (prevline) == BEG
-				  ? -start_hpos : 0),
+				 (prevline == BEG ? -start_hpos : 0),
 				 w);
 	  vpos -= pos.vpos;
 	  first = 0;
-	  from = XFASTINT (prevline);
+	  from = prevline;
 	}
 
       /* If we made exactly the desired vertical distance,
@@ -1933,21 +1977,21 @@ vmotion (from, vtarget, w)
     {
       Lisp_Object propval;
 
-      XSETFASTINT (prevline, find_next_newline_no_quit (from, -1));
-      while (XFASTINT (prevline) > BEGV
+      prevline = find_next_newline_no_quit (from, -1);
+      while (prevline > BEGV
 	     && ((selective > 0
-		  && indented_beyond_p (XFASTINT (prevline),
-					CHAR_TO_BYTE (XFASTINT (prevline)),
+		  && indented_beyond_p (prevline,
+					CHAR_TO_BYTE (prevline),
 					(double) selective)) /* iftc */
-		 /* watch out for newlines with `invisible' property */
-		 || (propval = Fget_char_property (prevline, Qinvisible,
+		 /* Watch out for newlines with `invisible' property.
+		    When moving downward, check the newline after.  */
+		 || (propval = Fget_char_property (make_number (prevline),
+						   Qinvisible,
 						   text_prop_object),
 		     TEXT_PROP_MEANS_INVISIBLE (propval))))
-	XSETFASTINT (prevline,
-		     find_next_newline_no_quit (XFASTINT (prevline) - 1,
-						-1));
-      pos = *compute_motion (XFASTINT (prevline), 0,
-			     lmargin + (XFASTINT (prevline) == BEG
+	prevline = find_next_newline_no_quit (prevline - 1, -1);
+      pos = *compute_motion (prevline, 0,
+			     lmargin + (prevline == BEG
 					? start_hpos : 0),
 			     0,
 			     from,
@@ -1955,8 +1999,8 @@ vmotion (from, vtarget, w)
 			     1 << (BITS_PER_SHORT - 1),
 			     /* ... nor HPOS.  */
 			     1 << (BITS_PER_SHORT - 1),
-			     width, hscroll,
-			     (XFASTINT (prevline) == BEG ? -start_hpos : 0),
+			     -1, hscroll,
+			     (prevline == BEG ? -start_hpos : 0),
 			     w);
       did_motion = 1;
     }
@@ -1969,7 +2013,7 @@ vmotion (from, vtarget, w)
     }
   return compute_motion (from, vpos, pos.hpos, did_motion,
 			 ZV, vtarget, - (1 << (BITS_PER_SHORT - 1)),
-			 width, hscroll,
+			 -1, hscroll,
 			 pos.tab_offset - (from == BEG ? start_hpos : 0),
 			 w);
 }
@@ -2020,21 +2064,53 @@ whether or not it is currently displayed in some window.  */)
       XSETBUFFER (w->buffer, current_buffer);
     }
 
-  SET_TEXT_POS (pt, PT, PT_BYTE);
-  start_display (&it, w, pt);
+  if (noninteractive)
+    {
+      struct position pos;
+      pos = *vmotion (PT, XINT (lines), w);
+      SET_PT_BOTH (pos.bufpos, pos.bytepos);
+    }
+  else
+    {
+      int it_start;
+      int oselective;
+      int start_on_image_or_stretch_p;
 
-  /* Move to the start of the display line containing PT.  If we don't
-     do this, we start moving with IT->current_x == 0, while PT is
-     really at some x > 0.  The effect is, in continuation lines, that
-     we end up with the iterator placed at where it thinks X is 0,
-     while the end position is really at some X > 0, the same X that
-     PT had.  */
-  move_it_by_lines (&it, 0, 0);
+      SET_TEXT_POS (pt, PT, PT_BYTE);
+      start_display (&it, w, pt);
 
-  if (XINT (lines) != 0)
-    move_it_by_lines (&it, XINT (lines), 0);
+      /* Scan from the start of the line containing PT.  If we don't
+	 do this, we start moving with IT->current_x == 0, while PT is
+	 really at some x > 0.  The effect is, in continuation lines, that
+	 we end up with the iterator placed at where it thinks X is 0,
+	 while the end position is really at some X > 0, the same X that
+	 PT had.  */
+      it_start = IT_CHARPOS (it);
+      start_on_image_or_stretch_p = (it.method == GET_FROM_IMAGE
+				     || it.method == GET_FROM_STRETCH);
+      reseat_at_previous_visible_line_start (&it);
+      it.current_x = it.hpos = 0;
+      /* Temporarily disable selective display so we don't move too far */
+      oselective = it.selective;
+      it.selective = 0;
+      move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
+      it.selective = oselective;
 
-  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+      /* Move back if we got too far.  This may happen if
+	 truncate-lines is on and PT is beyond right margin.
+	 It may also happen if it_start is on an image or a stretch
+	 glyph -- in that case, don't go back.  */
+      if (IT_CHARPOS (it) > it_start && XINT (lines) > 0
+	  && !start_on_image_or_stretch_p)
+	move_it_by_lines (&it, -1, 0);
+
+      it.vpos = 0;
+      /* Do this even if LINES is 0, so that we move back
+	 to the beginning of the current line as we ought.  */
+      move_it_by_lines (&it, XINT (lines), 0);
+
+      SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+    }
 
   if (BUFFERP (old_buffer))
     w->buffer = old_buffer;
@@ -2061,3 +2137,6 @@ Setting this variable automatically makes it local to the current buffer.  */);
   defsubr (&Svertical_motion);
   defsubr (&Scompute_motion);
 }
+
+/* arch-tag: 9adfea44-71f7-4988-8ee3-96da15c502cc
+   (do not change this comment) */

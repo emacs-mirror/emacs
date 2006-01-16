@@ -11,3 +11,6 @@
 /* The address of this is used, but Ultrix header files don't declare it.  */
 extern double rint ();
 #endif
+
+/* arch-tag: 927a396a-d50f-494b-960b-533671184ce1
+   (do not change this comment) */

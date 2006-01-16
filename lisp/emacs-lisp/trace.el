@@ -1,6 +1,7 @@
 ;;; trace.el --- tracing facility for Emacs Lisp functions
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1998, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: FSF
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;; LCD Archive Entry:
 ;; trace|Hans Chalupsky|hans@cs.buffalo.edu|
@@ -156,7 +157,7 @@
 (require 'advice)
 
 (defgroup trace nil
-  "Tracing facility for Emacs Lisp functions"
+  "Tracing facility for Emacs Lisp functions."
   :prefix "trace-"
   :group 'lisp)
 
@@ -175,6 +176,9 @@
 ;; Used to separate new trace output from previous traced runs:
 (defvar trace-separator (format "%s\n" (make-string 70 ?=)))
 
+(defvar inhibit-trace nil
+  "If non-nil, all tracing is temporarily inhibited.")
+
 (defun trace-entry-message (function level argument-bindings)
   ;; Generates a string that describes that FUNCTION has been entered at
   ;; trace LEVEL with ARGUMENT-BINDINGS.
@@ -183,14 +187,13 @@
 	  (if (> level 1) " " "")
 	  level
 	  function
-	  (mapconcat (function
-		      (lambda (binding)
-			(concat
-			 (symbol-name (ad-arg-binding-field binding 'name))
-			 "="
-			 ;; do this so we'll see strings:
-			 (prin1-to-string
-			  (ad-arg-binding-field binding 'value)))))
+	  (mapconcat (lambda (binding)
+		       (concat
+			(symbol-name (ad-arg-binding-field binding 'name))
+			"="
+			;; do this so we'll see strings:
+			(prin1-to-string
+			 (ad-arg-binding-field binding 'value))))
 		     argument-bindings
 		     " ")))
 
@@ -211,43 +214,27 @@
   ;; (quietly if BACKGROUND is t).
   (ad-make-advice
    trace-advice-name nil t
-   (cond (background
-	  `(advice
-	   lambda ()
-	   (let ((trace-level (1+ trace-level))
-		 (trace-buffer (get-buffer-create ,buffer)))
-	     (save-excursion
-	       (set-buffer trace-buffer)
-	       (goto-char (point-max))
-	       ;; Insert a separator from previous trace output:
-	       (if (= trace-level 1) (insert trace-separator))
-	       (insert
-		(trace-entry-message
-		 ',function trace-level ad-arg-bindings)))
-	     ad-do-it
-	     (save-excursion
-	       (set-buffer trace-buffer)
-	       (goto-char (point-max))
-	       (insert
-		(trace-exit-message
-		 ',function trace-level ad-return-value))))))
-	 (t `(advice
-	     lambda ()
-	     (let ((trace-level (1+ trace-level))
-		   (trace-buffer (get-buffer-create ,buffer)))
-	       (pop-to-buffer trace-buffer)
-	       (goto-char (point-max))
-	       ;; Insert a separator from previous trace output:
-	       (if (= trace-level 1) (insert trace-separator))
-	       (insert
-		(trace-entry-message
-		 ',function trace-level ad-arg-bindings))
-	       ad-do-it
-	       (pop-to-buffer trace-buffer)
-	       (goto-char (point-max))
-	       (insert
-		(trace-exit-message
-		 ',function trace-level ad-return-value))))))))
+   `(advice
+     lambda ()
+     (let ((trace-level (1+ trace-level))
+	   (trace-buffer (get-buffer-create ,buffer)))
+       (unless inhibit-trace
+	 (with-current-buffer trace-buffer
+	   ,(unless background '(pop-to-buffer trace-buffer))
+	   (goto-char (point-max))
+	   ;; Insert a separator from previous trace output:
+	   (if (= trace-level 1) (insert trace-separator))
+	   (insert
+	    (trace-entry-message
+	     ',function trace-level ad-arg-bindings))))
+       ad-do-it
+       (unless inhibit-trace
+	 (with-current-buffer trace-buffer
+	   ,(unless background '(pop-to-buffer trace-buffer))
+	   (goto-char (point-max))
+	   (insert
+	    (trace-exit-message
+	     ',function trace-level ad-return-value))))))))
 
 (defun trace-function-internal (function buffer background)
   ;; Adds trace advice for FUNCTION and activates it.
@@ -297,9 +284,9 @@ activated only if the advice of FUNCTION is currently active.  If FUNCTION
 was not traced this is a noop."
   (interactive
    (list (ad-read-advised-function "Untrace function: " 'trace-is-traced)))
-  (cond ((trace-is-traced function)
-	 (ad-remove-advice function 'around trace-advice-name)
-	 (ad-update function))))
+  (when (trace-is-traced function)
+    (ad-remove-advice function 'around trace-advice-name)
+    (ad-update function)))
 
 (defun untrace-all ()
   "Untraces all currently traced functions."
@@ -309,4 +296,5 @@ was not traced this is a noop."
 
 (provide 'trace)
 
+;; arch-tag: cfd170a7-4932-4331-8c8b-b7151942e5a1
 ;;; trace.el ends here

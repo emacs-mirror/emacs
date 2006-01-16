@@ -1,6 +1,7 @@
 ;;; em-pred.el --- argument predicates and modifiers (ala zsh)
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'em-pred)
 
@@ -113,7 +114,7 @@ The format of each entry is
 (put 'eshell-predicate-alist 'risky-local-variable t)
 
 (defcustom eshell-modifier-alist
-  '((?e . '(lambda (lst)
+  '((?E . '(lambda (lst)
 	     (mapcar
 	      (function
 	       (lambda (str)
@@ -186,12 +187,13 @@ OWNERSHIP:
 
 FILE ATTRIBUTES:
   l[+-]N                 +/-/= N links
-  a[Mwhm][+-](N|'FILE')  access time +/-/= N mnths/weeks/days/mins
-			 if FILE specified, use as comparison basis;
-			 so a+'file.c' shows files accessed before
-			 file.c was last accessed
-  m[Mwhm][+-](N|'FILE')  modification time...
-  c[Mwhm][+-](N|'FILE')  change time...
+  a[Mwhms][+-](N|'FILE') access time +/-/= N mnths/weeks/hours/mins/secs
+			 (days if unspecified) if FILE specified,
+			 use as comparison basis; so a+'file.c'
+			 shows files accessed before file.c was
+			 last accessed
+  m[Mwhms][+-](N|'FILE') modification time...
+  c[Mwhms][+-](N|'FILE') change time...
   L[kmp][+-]N            file size +/-/= N Kb/Mb/blocks
 
 EXAMPLES:
@@ -207,7 +209,7 @@ EXAMPLES:
   "Eshell modifier quick reference:
 
 FOR SINGLE ARGUMENTS, or each argument of a list of strings:
-  e  evaluate again
+  E  evaluate again
   L  lowercase
   U  uppercase
   C  capitalize
@@ -409,7 +411,7 @@ returning the resultant string."
   "Return a predicate to test whether a file matches a certain time."
   (let* ((quantum 86400)
 	 qual amount when open close end)
-    (when (memq (char-after) '(?M ?w ?h ?m))
+    (when (memq (char-after) '(?M ?w ?h ?m ?s))
       (setq quantum (char-after))
       (cond
        ((eq quantum ?M)
@@ -600,4 +602,5 @@ that 'ls -l' will show in the first column of its display. "
 	 (lambda (str)
 	   (split-string str ,sep))) lst))))
 
+;;; arch-tag: 8b5ce022-17f3-4c40-93c7-5faafaa63f31
 ;;; em-pred.el ends here

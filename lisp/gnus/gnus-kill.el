@@ -1,6 +1,7 @@
 ;;; gnus-kill.el --- kill commands for Gnus
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
-;;        Free Software Foundation, Inc.
+
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -161,7 +162,7 @@ gnus-kill-file-mode-hook with no arguments, if that value is non-nil."
   (setq major-mode 'gnus-kill-file-mode)
   (setq mode-name "Kill")
   (lisp-mode-variables nil)
-  (gnus-run-hooks 'emacs-lisp-mode-hook 'gnus-kill-file-mode-hook))
+  (gnus-run-mode-hooks 'emacs-lisp-mode-hook 'gnus-kill-file-mode-hook))
 
 (defun gnus-kill-file-edit-file (newsgroup)
   "Begin editing a kill file for NEWSGROUP.
@@ -357,16 +358,16 @@ If NEWSGROUP is nil, return the global kill file instead."
 (defun gnus-apply-kill-file-unless-scored ()
   "Apply .KILL file, unless a .SCORE file for the same newsgroup exists."
   (cond ((file-exists-p (gnus-score-file-name gnus-newsgroup-name))
-         ;; Ignores global KILL.
-         (when (file-exists-p (gnus-newsgroup-kill-file gnus-newsgroup-name))
+	 ;; Ignores global KILL.
+	 (when (file-exists-p (gnus-newsgroup-kill-file gnus-newsgroup-name))
 	   (gnus-message 3 "Note: Ignoring %s.KILL; preferring .SCORE"
 			 gnus-newsgroup-name))
-         0)
-        ((or (file-exists-p (gnus-newsgroup-kill-file nil))
-             (file-exists-p (gnus-newsgroup-kill-file gnus-newsgroup-name)))
-         (gnus-apply-kill-file-internal))
-        (t
-         0)))
+	 0)
+	((or (file-exists-p (gnus-newsgroup-kill-file nil))
+	     (file-exists-p (gnus-newsgroup-kill-file gnus-newsgroup-name)))
+	 (gnus-apply-kill-file-internal))
+	(t
+	 0)))
 
 (defun gnus-apply-kill-file-internal ()
   "Apply a kill file to the current newsgroup.
@@ -398,7 +399,7 @@ Returns the number of articles marked as read."
 			  gnus-newsgroup-kill-headers))
 		  (setq headers (cdr headers))))
 	      (setq files nil))
- 	  (setq files (cdr files)))))
+	  (setq files (cdr files)))))
     (if (not gnus-newsgroup-kill-headers)
 	()
       (save-window-excursion
@@ -428,16 +429,6 @@ Returns the number of articles marked as read."
 	0))))
 
 ;; Parse a Gnus killfile.
-(defun gnus-score-insert-help (string alist idx)
-  (save-excursion
-    (pop-to-buffer "*Score Help*")
-    (buffer-disable-undo)
-    (erase-buffer)
-    (insert string ":\n\n")
-    (while alist
-      (insert (format " %c: %s\n" (caar alist) (nth idx (car alist))))
-      (setq alist (cdr alist)))))
-
 (defun gnus-kill-parse-gnus-kill-file ()
   (goto-char (point-min))
   (gnus-kill-file-mode)
@@ -588,7 +579,7 @@ COMMAND must be a lisp expression or a string representing a key sequence."
 	(insert "\n  t"))
       (insert ")")
       (prog1
-	  (buffer-substring (point-min) (point-max))
+	  (buffer-string)
 	(kill-buffer (current-buffer))))))
 
 (defun gnus-execute-1 (function regexp form header)
@@ -608,7 +599,7 @@ COMMAND must be a lisp expression or a string representing a key sequence."
 		     (setq did-kill (string-match regexp value)))
 		   (cond ((stringp form) ;Keyboard macro.
 			  (execute-kbd-macro form))
-			 ((gnus-functionp form)
+			 ((functionp form)
 			  (funcall form))
 			 (t
 			  (eval form)))))
@@ -627,7 +618,7 @@ COMMAND must be a lisp expression or a string representing a key sequence."
 		    (setq did-kill (re-search-forward regexp nil t)))
 	      (cond ((stringp form)	;Keyboard macro.
 		     (execute-kbd-macro form))
-		    ((gnus-functionp form)
+		    ((functionp form)
 		     (funcall form))
 		    (t
 		     (eval form)))))))
@@ -641,18 +632,30 @@ If optional 2nd argument UNREAD is non-nil, articles which are
 marked as read or ticked are ignored."
   (save-excursion
     (let ((killed-no 0)
-	  function article header)
+	  function article header extras)
       (cond
        ;; Search body.
        ((or (null field)
 	    (string-equal field ""))
 	(setq function nil))
        ;; Get access function of header field.
-       ((fboundp
-	 (setq function
-	       (intern-soft
-		(concat "mail-header-" (downcase field)))))
-	(setq function `(lambda (h) (,function h))))
+       ((cond ((fboundp
+		(setq function
+		      (intern-soft
+		       (concat "mail-header-" (downcase field)))))
+	       (setq function `(lambda (h) (,function h))))
+	      ((when (setq extras
+			   (member (downcase field)
+				   (mapcar (lambda (header)
+					     (downcase (symbol-name header)))
+					   gnus-extra-headers)))
+		 (setq function
+		       `(lambda (h)
+			  (gnus-extra-header
+			   (quote ,(nth (- (length gnus-extra-headers)
+					   (length extras))
+					gnus-extra-headers))
+			   h)))))))
        ;; Signal error.
        (t
 	(error "Unknown header field: \"%s\"" field)))
@@ -715,4 +718,5 @@ Usage: emacs -batch -l ~/.emacs -l gnus -f gnus-batch-score"
 
 (provide 'gnus-kill)
 
+;;; arch-tag: b30c0f53-df1a-490b-b81e-17b13474f395
 ;;; gnus-kill.el ends here

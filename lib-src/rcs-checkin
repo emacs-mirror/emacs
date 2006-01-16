@@ -2,7 +2,8 @@
 
 # This script accepts any number of file arguments and checks them into RCS.
 
-# Copyright (C) 1993, 1994, 1995, 2001, 2002 Free Software Foundation, Inc.
+# Copyright (C) 1993, 1994, 1995, 2001, 2002, 2003, 2004,
+#               2005 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -18,8 +19,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs; see the file COPYING.  If not, write to the
-# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+# Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 
 # Arguments which are detectably either RCS masters (with names ending in ,v)
 # or Emacs version files  (with names of the form foo.~<number>~) are ignored.
@@ -115,3 +116,4 @@ $file"
 	ci -d -q -u $owner -m"entered into RCS" "$file" || exit
 done
 
+# arch-tag: 89c86949-ef04-4380-838b-bc1444dcb074

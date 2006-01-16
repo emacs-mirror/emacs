@@ -40,3 +40,6 @@
 /* Unfortunately without libXmu we cannot support EditRes.  */
 #define NO_EDITRES
 #endif
+
+/* arch-tag: 72d598e1-bc3e-48e0-bfd2-693917c3738e
+   (do not change this comment) */

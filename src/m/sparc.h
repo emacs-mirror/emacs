@@ -1,5 +1,5 @@
 /* machine description file for Sun 4 SPARC.
-   Copyright (C) 1987, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1987, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
@@ -97,3 +97,6 @@ NOTE-END  */
 				   should be here.  -- fx */
 #endif
 #endif
+
+/* arch-tag: 0a6f7882-33fd-4811-9832-7466c51e50f7
+   (do not change this comment) */

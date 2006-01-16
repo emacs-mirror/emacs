@@ -3,7 +3,8 @@
 ;; Maintainer: FSF
 ;; Keywords: internal
 
-;; Copyright (c) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;; Based partially on earlier release by Lucid.
 
 ;; This file is part of GNU Emacs.
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -35,10 +36,25 @@ The argument TYPE (default `PRIMARY') says which selection,
 and the argument DATA-TYPE (default `STRING') says
 how to convert the data.
 
-TYPE may be `SECONDARY' or `CLIPBOARD', in addition to `PRIMARY'.
+TYPE may be any symbol \(but nil stands for `PRIMARY').  However,
+only a few symbols are commonly used.  They conventionally have
+all upper-case names.  The most often used ones, in addition to
+`PRIMARY', are `SECONDARY' and `CLIPBOARD'.
+
 DATA-TYPE is usually `STRING', but can also be one of the symbols
 in `selection-converter-alist', which see."
-  (x-get-selection-internal (or type 'PRIMARY) (or data-type 'STRING)))
+  (let ((data (x-get-selection-internal (or type 'PRIMARY)
+					(or data-type 'STRING)))
+	coding)
+    (when (and (stringp data)
+	       (setq data-type (get-text-property 0 'foreign-selection data)))
+      (setq coding (if (eq data-type 'UTF8_STRING)
+		       'utf-8
+		     (or next-selection-coding-system
+			 selection-coding-system))
+	    data (decode-coding-string data coding))
+      (put-text-property 0 (length data) 'foreign-selection data-type data))
+    data))
 
 (defun x-get-clipboard ()
   "Return text pasted to the clipboard."
@@ -46,9 +62,11 @@ in `selection-converter-alist', which see."
 
 (defun x-set-selection (type data)
   "Make an X Windows selection of type TYPE and value DATA.
-The argument TYPE (default `PRIMARY') says which selection,
-and DATA specifies the contents.  DATA may be a string,
-a symbol, an integer (or a cons of two integers or list of two integers).
+The argument TYPE (nil means `PRIMARY') says which selection, and
+DATA specifies the contents.  TYPE must be a symbol.  \(It can also
+be a string, which stands for the symbol with that name, but this
+is considered obsolete.)  DATA may be a string, a symbol, an
+integer (or a cons of two integers or list of two integers).
 
 The selection may also be a cons of two markers pointing to the same buffer,
 or an overlay.  In these cases, the selection is considered to be the text
@@ -58,8 +76,11 @@ can alter the effective value of the selection.
 
 The data may also be a vector of valid non-vector selection values.
 
-Interactively, the text of the region is used as the selection value
-if the prefix arg is set."
+The return value is DATA.
+
+Interactively, this command sets the primary selection.  Without
+prefix argument, it reads the selection in the minibuffer.  With
+prefix argument, it uses the text of the region as the selection value ."
   (interactive (if (not current-prefix-arg)
 		   (list 'PRIMARY (read-string "Set text for pasting: "))
 		 (list 'PRIMARY (buffer-substring (region-beginning) (region-end)))))
@@ -165,47 +186,48 @@ Cut buffers are considered obsolete; you should use selections instead."
 	(if coding
 	    (setq coding (coding-system-base coding))
 	  (setq coding 'raw-text))
-	;; Suppress producing escape sequences for compositions.
-	(remove-text-properties 0 (length str) '(composition nil) str)
-	(cond
-	 ((eq type 'TEXT)
-	  (if (not (multibyte-string-p str))
-	      ;; Don't have to encode unibyte string.
-	      (setq type 'STRING)
-	    ;; If STR contains only ASCII, Latin-1, and raw bytes,
-	    ;; encode STR by iso-latin-1, and return it as type
-	    ;; `STRING'.  Otherwise, encode STR by CODING.  In that
-	    ;; case, the returing type depends on CODING.
-	    (let ((charsets (find-charset-string str)))
-	      (setq charsets
-		    (delq 'ascii
-			  (delq 'latin-iso8859-1
-				(delq 'eight-bit-control
-				      (delq 'eight-bit-graphic charsets)))))
-	      (if charsets
-		  (setq str (encode-coding-string str coding)
-			type (if (memq coding '(compound-text
-						compound-text-with-extensions))
-				 'COMPOUND_TEXT
-			       'STRING))
-		(setq type 'STRING
-		      str (encode-coding-string str 'iso-latin-1))))))
+	(let ((inhibit-read-only t))
+	  ;; Suppress producing escape sequences for compositions.
+	  (remove-text-properties 0 (length str) '(composition nil) str)
+	  (cond
+	   ((eq type 'TEXT)
+	    (if (not (multibyte-string-p str))
+		;; Don't have to encode unibyte string.
+		(setq type 'STRING)
+	      ;; If STR contains only ASCII, Latin-1, and raw bytes,
+	      ;; encode STR by iso-latin-1, and return it as type
+	      ;; `STRING'.  Otherwise, encode STR by CODING.  In that
+	      ;; case, the returing type depends on CODING.
+	      (let ((charsets (find-charset-string str)))
+		(setq charsets
+		      (delq 'ascii
+			    (delq 'latin-iso8859-1
+				  (delq 'eight-bit-control
+					(delq 'eight-bit-graphic charsets)))))
+		(if charsets
+		    (setq str (encode-coding-string str coding)
+			  type (if (memq coding '(compound-text
+						  compound-text-with-extensions))
+				   'COMPOUND_TEXT
+				 'STRING))
+		  (setq type 'STRING
+			str (encode-coding-string str 'iso-latin-1))))))
 
-	 ((eq type 'COMPOUND_TEXT)
-	  (setq str (encode-coding-string str coding)))
+	   ((eq type 'COMPOUND_TEXT)
+	    (setq str (encode-coding-string str coding)))
 
-	 ((eq type 'STRING)
-	  (if (memq coding '(compound-text
-			     compound-text-with-extensions))
-	      (setq str (string-make-unibyte str))
-	    (setq str (encode-coding-string str coding))))
+	   ((eq type 'STRING)
+	    (if (memq coding '(compound-text
+			       compound-text-with-extensions))
+		(setq str (string-make-unibyte str))
+	      (setq str (encode-coding-string str coding))))
 
-	 ((eq type 'UTF8_STRING)
-	  (setq str (encode-coding-string str 'utf-8)))
+	   ((eq type 'UTF8_STRING)
+	    (setq str (encode-coding-string str 'utf-8)))
 
-	 (t
-	  (error "Unknow selection type: %S" type))
-	 ))
+	   (t
+	    (error "Unknow selection type: %S" type))
+	   )))
 
       (setq next-selection-coding-system nil)
       (cons type str))))
@@ -378,4 +400,5 @@ This function returns the string \"emacs\"."
 
 (provide 'select)
 
+;;; arch-tag: bb634f97-8a3b-4b0a-b940-f6e09982328c
 ;;; select.el ends here

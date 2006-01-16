@@ -1,6 +1,6 @@
 ;;; hippie-exp.el --- expand text trying various ways to find its expansion
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Anders Holst <aho@sans.kth.se>
 ;; Last change: 3 March 1998
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -634,7 +634,7 @@ for subsequent calls (for further possible completions of the same
 string).  It returns t if a new completion is found, nil otherwise."
   (let ((expansion ())
 	(strip-prompt (and (get-buffer-process (current-buffer))
-			   comint-use-prompt-regexp-instead-of-fields
+			   comint-use-prompt-regexp
 			   comint-prompt-regexp)))
     (if (not old)
 	(progn
@@ -681,7 +681,7 @@ for subsequent calls (for further possible completions of the same
 string).  It returns t if a new completion is found, nil otherwise."
   (let ((expansion ())
 	(strip-prompt (and (get-buffer-process (current-buffer))
-			   comint-use-prompt-regexp-instead-of-fields
+			   comint-use-prompt-regexp
 			   comint-prompt-regexp))
 	(buf (current-buffer))
 	(orig-case-fold-search case-fold-search))
@@ -708,7 +708,7 @@ string).  It returns t if a new completion is found, nil otherwise."
 		      (widen))
 		  (goto-char he-search-loc)
 		  (setq strip-prompt (and (get-buffer-process (current-buffer))
-					  comint-use-prompt-regexp-instead-of-fields
+					  comint-use-prompt-regexp
 					  comint-prompt-regexp))
 		  (setq expansion
 			(let ((case-fold-search orig-case-fold-search))
@@ -1222,4 +1222,5 @@ string).  It returns t if a new completion is found, nil otherwise."
 
 (provide 'hippie-exp)
 
+;;; arch-tag: 5e6e00bf-b061-4a7a-9b46-de0ae105ab99
 ;;; hippie-exp.el ends here

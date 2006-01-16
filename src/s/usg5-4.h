@@ -1,5 +1,6 @@
 /* Definitions file for GNU Emacs running on AT&T's System V Release 4
-   Copyright (C) 1987, 1990, 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1990, 1999, 2000, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* This file written by James Van Artsdalen of Dell Computer Corporation.
  * james@bigtex.cactus.org.  Subsequently improved for Dell 2.2 by Eric
@@ -193,3 +194,6 @@ Boston, MA 02111-1307, USA.  */
    SINIX.  */
 #undef LIBS_SYSTEM
 #define LIBS_SYSTEM -lgen
+
+/* arch-tag: 1a0ed909-5faa-434b-b7c3-9d86c63d53a6
+   (do not change this comment) */

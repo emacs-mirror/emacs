@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002, 2003,
+@c   2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/sequences
 @node Sequences Arrays Vectors, Hash Tables, Lists, Top
@@ -69,8 +69,8 @@ elements.  This section describes functions that accept any kind of
 sequence.
 
 @defun sequencep object
-Returns @code{t} if @var{object} is a list, vector, or
-string, @code{nil} otherwise.
+Returns @code{t} if @var{object} is a list, vector, string,
+bool-vector, or char-table, @code{nil} otherwise.
 @end defun
 
 @defun length sequence
@@ -78,12 +78,14 @@ string, @code{nil} otherwise.
 @cindex list length
 @cindex vector length
 @cindex sequence length
+@cindex char-table length
 This function returns the number of elements in @var{sequence}.  If
-@var{sequence} is a cons cell that is not a list (because the final
-@sc{cdr} is not @code{nil}), a @code{wrong-type-argument} error is
-signaled.
+@var{sequence} is a dotted list, a @code{wrong-type-argument} error is
+signaled.  Circular lists may cause an infinite loop.  For a
+char-table, the value returned is always one more than the maximum
+Emacs character code.
 
-@xref{List Elements}, for the related function @code{safe-length}.
+@xref{Definition of safe-length}, for the related function @code{safe-length}.
 
 @example
 @group
@@ -109,13 +111,21 @@ signaled.
 @end example
 @end defun
 
+@defun string-bytes string
+@cindex string, number of bytes
+This function returns the number of bytes in @var{string}.
+If @var{string} is a multibyte string, this is greater than
+@code{(length @var{string})}.
+@end defun
+
 @defun elt sequence index
 @cindex elements of sequences
 This function returns the element of @var{sequence} indexed by
-@var{index}.  Legitimate values of @var{index} are integers ranging from
-0 up to one less than the length of @var{sequence}.  If @var{sequence}
-is a list, then out-of-range values of @var{index} return @code{nil};
-otherwise, they trigger an @code{args-out-of-range} error.
+@var{index}.  Legitimate values of @var{index} are integers ranging
+from 0 up to one less than the length of @var{sequence}.  If
+@var{sequence} is a list, out-of-range values behave as for
+@code{nth}.  @xref{Definition of nth}.  Otherwise, out-of-range values
+trigger an @code{args-out-of-range} error.
 
 @example
 @group
@@ -142,7 +152,7 @@ otherwise, they trigger an @code{args-out-of-range} error.
 @end example
 
 This function generalizes @code{aref} (@pxref{Array Functions}) and
-@code{nth} (@pxref{List Elements}).
+@code{nth} (@pxref{Definition of nth}).
 @end defun
 
 @defun copy-sequence sequence
@@ -162,9 +172,12 @@ the copy is itself a copy, not shared with the original's property
 list.  However, the actual values of the properties are shared.
 @xref{Text Properties}.
 
+This function does not work for dotted lists.  Trying to copy a
+circular list may cause an infinite loop.
+
 See also @code{append} in @ref{Building Lists}, @code{concat} in
-@ref{Creating Strings}, and @code{vconcat} in @ref{Vectors}, for other
-ways to copy sequences.
+@ref{Creating Strings}, and @code{vconcat} in @ref{Vector Functions},
+for other ways to copy sequences.
 
 @example
 @group
@@ -239,8 +252,8 @@ The length of the array is fixed once you create it; you cannot
 change the length of an existing array.
 
 @item
-The array is a constant, for evaluation---in other words, it evaluates
-to itself.
+For purposes of evaluation, the array is a constant---in other words,
+it evaluates to itself.
 
 @item
 The elements of an array may be referenced or changed with the functions
@@ -313,7 +326,7 @@ first element is at index zero.
 @end group
 @group
 (aref "abcdefg" 1)
-     @result{} 98           ; @r{@samp{b} is @sc{ascii} code 98.}
+     @result{} 98           ; @r{@samp{b} is @acronym{ASCII} code 98.}
 @end group
 @end example
 
@@ -463,9 +476,9 @@ each initialized to @var{object}.
 @defun vconcat &rest sequences
 @cindex copying vectors
 This function returns a new vector containing all the elements of the
-@var{sequences}.  The arguments @var{sequences} may be any kind of
-arrays, including lists, vectors, or strings.  If no @var{sequences} are
-given, an empty vector is returned.
+@var{sequences}.  The arguments @var{sequences} may be true lists,
+vectors, strings or bool-vectors.  If no @var{sequences} are given, an
+empty vector is returned.
 
 The value is a newly constructed vector that is not @code{eq} to any
 existing vector.
@@ -489,14 +502,11 @@ The @code{vconcat} function also allows byte-code function objects as
 arguments.  This is a special feature to make it easy to access the entire
 contents of a byte-code function object.  @xref{Byte-Code Objects}.
 
-The @code{vconcat} function also allows integers as arguments.  It
-converts them to strings of digits, making up the decimal print
-representation of the integer, and then uses the strings instead of the
-original integers.  @strong{Don't use this feature; we plan to eliminate
-it.  If you already use this feature, change your programs now!}  The
-proper way to convert an integer to a decimal number in this way is with
-@code{format} (@pxref{Formatting Strings}) or @code{number-to-string}
-(@pxref{String Conversion}).
+In Emacs versions before 21, the @code{vconcat} function allowed
+integers as arguments, converting them to strings of digits, but that
+feature has been eliminated.  The proper way to convert an integer to
+a decimal number in this way is with @code{format} (@pxref{Formatting
+Strings}) or @code{number-to-string} (@pxref{String Conversion}).
 
 For other concatenation functions, see @code{mapconcat} in @ref{Mapping
 Functions}, @code{concat} in @ref{Creating Strings}, and @code{append}
@@ -570,12 +580,12 @@ otherwise @code{nil}.
 This function returns the subtype symbol of @var{char-table}.
 @end defun
 
-@defun set-char-table-default char-table new-default
-This function sets the default value of @var{char-table} to
-@var{new-default}.
+@defun set-char-table-default char-table char new-default
+This function sets the default value of generic character @var{char}
+in @var{char-table} to @var{new-default}.
 
-There is no special function to access the default value of a char-table.
-To do that, use @code{(char-table-range @var{char-table} nil)}.
+There is no special function to access default values in a char-table.
+To do that, use @code{char-table-range} (see below).
 @end defun
 
 @defun char-table-parent char-table
@@ -618,9 +628,10 @@ Refers to the value specified for the whole character set
 @var{charset} (@pxref{Character Sets}).
 
 @item @var{generic-char}
-A generic character stands for a character set; specifying the generic
-character as argument is equivalent to specifying the character set
-name.  @xref{Splitting Characters}, for a description of generic characters.
+A generic character stands for a character set, or a row of a
+character set; specifying the generic character as argument is
+equivalent to specifying the character set name.  @xref{Splitting
+Characters}, for a description of generic characters.
 @end table
 @end defun
 
@@ -722,3 +733,6 @@ bv
 These results make sense because the binary codes for control-_ and
 control-W are 11111 and 10111, respectively.
 
+@ignore
+   arch-tag: fcf1084a-cd29-4adc-9f16-68586935b386
+@end ignore

@@ -1,7 +1,7 @@
 ;;; gnus-vm.el --- vm interface for Gnus
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000
-;;	Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Per Persson <pp@gnu.ai.mit.edu>
 ;; Keywords: news, mail
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -105,4 +105,5 @@ save those articles instead."
 
 (provide 'gnus-vm)
 
+;;; arch-tag: 42ca7f88-a12f-461d-be3e-cac7efb44866
 ;;; gnus-vm.el ends here

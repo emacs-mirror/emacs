@@ -1,6 +1,7 @@
 ;;; em-alias.el --- creation and management of command aliases
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -18,17 +19,18 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'em-alias)
 
 (eval-when-compile (require 'esh-maint))
+(require 'eshell)
 
 (defgroup eshell-alias nil
   "Command aliases allow for easy definition of alternate commands."
   :tag "Command aliases"
-  :link '(info-link "(eshell)Command aliases")
+  ;; :link '(info-link "(eshell)Command aliases")
   :group 'eshell-module)
 
 ;;; Commentary:
@@ -103,7 +105,7 @@ gained by using this module."
 (defcustom eshell-bad-command-tolerance 3
   "*The number of failed commands to ignore before creating an alias."
   :type 'integer
-  :link '(custom-manual "(eshell)Auto-correction of bad commands")
+  ;; :link '(custom-manual "(eshell)Auto-correction of bad commands")
   :group 'eshell-alias)
 
 ;;;
@@ -272,4 +274,5 @@ These are all the command aliases which begin with NAME."
 					eshell-prevent-alias-expansion))))
 		     (eshell-parse-command alias))))))))))
 
+;;; arch-tag: 8b018fc1-4e07-4ccc-aa73-c0a1ba361f82
 ;;; em-alias.el ends here

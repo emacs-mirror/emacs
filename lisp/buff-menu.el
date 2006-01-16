@@ -1,7 +1,7 @@
-;;; buff-menu.el --- buffer menu main function and support functions
+;;; buff-menu.el --- buffer menu main function and support functions -*- coding:utf-8 -*-
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 2000, 2001, 2002, 2003
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -47,22 +47,22 @@
 
 ;;; Code:
 
-;;;Trying to preserve the old window configuration works well in
-;;;simple scenarios, when you enter the buffer menu, use it, and exit it.
-;;;But it does strange things when you switch back to the buffer list buffer
-;;;with C-x b, later on, when the window configuration is different.
-;;;The choice seems to be, either restore the window configuration
-;;;in all cases, or in no cases.
-;;;I decided it was better not to restore the window config at all. -- rms.
+;;Trying to preserve the old window configuration works well in
+;;simple scenarios, when you enter the buffer menu, use it, and exit it.
+;;But it does strange things when you switch back to the buffer list buffer
+;;with C-x b, later on, when the window configuration is different.
+;;The choice seems to be, either restore the window configuration
+;;in all cases, or in no cases.
+;;I decided it was better not to restore the window config at all. -- rms.
 
-;;;But since then, I changed buffer-menu to use the selected window,
-;;;so q now once again goes back to the previous window configuration.
+;;But since then, I changed buffer-menu to use the selected window,
+;;so q now once again goes back to the previous window configuration.
 
-;;;(defvar Buffer-menu-window-config nil
-;;;  "Window configuration saved from entry to `buffer-menu'.")
+;;(defvar Buffer-menu-window-config nil
+;;  "Window configuration saved from entry to `buffer-menu'.")
 
-; Put buffer *Buffer List* into proper mode right away
-; so that from now on even list-buffers is enough to get a buffer menu.
+;; Put buffer *Buffer List* into proper mode right away
+;; so that from now on even list-buffers is enough to get a buffer menu.
 
 (defgroup Buffer-menu nil
   "Show a menu of all buffers in a buffer."
@@ -74,10 +74,10 @@
   :type 'boolean
   :group 'Buffer-menu)
 
-(defface Buffer-menu-buffer-face
+(defface Buffer-menu-buffer
   '((t (:weight bold)))
   "Face used to highlight buffer name."
-  :group 'font-lock-highlighting-faces)
+  :group 'Buffer-menu)
 
 (defcustom Buffer-menu-buffer+size-width 26
   "*How wide to jointly make the buffer name and size columns."
@@ -89,14 +89,33 @@
   :type 'number
   :group 'Buffer-menu)
 
-; This should get updated & resorted when you click on a column heading
+(defcustom Buffer-menu-use-frame-buffer-list t
+  "If non-nil, the Buffer Menu uses the selected frame's buffer list.
+Buffers that were never selected in that frame are listed at the end.
+If the value is nil, the Buffer Menu uses the global buffer list.
+This variable matters if the Buffer Menu is sorted by visited order,
+as it is by default."
+  :type 'boolean
+  :group 'Buffer-menu
+  :version "22.1")
+
+;; This should get updated & resorted when you click on a column heading
 (defvar Buffer-menu-sort-column nil
-  "*2 for sorting by buffer names.  5 for sorting by file names.
+  "2 for sorting by buffer names.  5 for sorting by file names.
 nil for default sorting by visited order.")
 
 (defconst Buffer-menu-buffer-column 4)
 
-(defvar Buffer-menu-mode-map nil "")
+(defvar Buffer-menu-mode-map nil
+  "Local keymap for `Buffer-menu-mode' buffers.")
+
+(defvar Buffer-menu-files-only nil
+  "Non-nil if the current buffer-menu lists only file buffers.
+This variable determines whether reverting the buffer lists only
+file buffers.  It affects both manual reverting and reverting by
+Auto Revert Mode.")
+
+(make-variable-buffer-local 'Buffer-menu-files-only)
 
 (if Buffer-menu-mode-map
     ()
@@ -130,7 +149,9 @@ nil for default sorting by visited order.")
   (define-key Buffer-menu-mode-map "b" 'Buffer-menu-bury)
   (define-key Buffer-menu-mode-map "g" 'Buffer-menu-revert)
   (define-key Buffer-menu-mode-map "V" 'Buffer-menu-view)
+  (define-key Buffer-menu-mode-map "T" 'Buffer-menu-toggle-files-only)
   (define-key Buffer-menu-mode-map [mouse-2] 'Buffer-menu-mouse-select)
+  (define-key Buffer-menu-mode-map [follow-link] 'mouse-face)
 )
 
 ;; Buffer Menu mode is suitable only for specially formatted data.
@@ -166,24 +187,62 @@ Letters do not insert themselves; instead, they are commands.
 \\[Buffer-menu-backup-unmark] -- back up a line and remove marks.
 \\[Buffer-menu-toggle-read-only] -- toggle read-only status of buffer on this line.
 \\[Buffer-menu-revert] -- update the list of buffers.
+\\[Buffer-menu-toggle-files-only] -- toggle whether the menu displays only file buffers.
 \\[Buffer-menu-bury] -- bury the buffer listed on this line."
   (kill-all-local-variables)
   (use-local-map Buffer-menu-mode-map)
   (setq major-mode 'Buffer-menu-mode)
   (setq mode-name "Buffer Menu")
-  (make-local-variable 'revert-buffer-function)
-  (setq revert-buffer-function 'Buffer-menu-revert-function)
+  (set (make-local-variable 'revert-buffer-function)
+       'Buffer-menu-revert-function)
+  (set (make-local-variable 'buffer-stale-function)
+       #'(lambda (&optional noconfirm) 'fast))
   (setq truncate-lines t)
   (setq buffer-read-only t)
-  (run-hooks 'buffer-menu-mode-hook))
+  (run-mode-hooks 'buffer-menu-mode-hook))
 
+;; This function exists so we can make the doc string of Buffer-menu-mode
+;; look nice.
 (defun Buffer-menu-revert ()
   "Update the list of buffers."
   (interactive)
   (revert-buffer))
 
 (defun Buffer-menu-revert-function (ignore1 ignore2)
-  (list-buffers))
+  (or (eq buffer-undo-list t)
+      (setq buffer-undo-list nil))
+  ;; We can not use save-excursion here.  The buffer gets erased.
+  (let ((opoint (point))
+	(eobp (eobp))
+	(ocol (current-column))
+	(oline (progn (move-to-column 4)
+		      (get-text-property (point) 'buffer)))
+	(prop (point-min))
+	;; do not make undo records for the reversion.
+	(buffer-undo-list t))
+    ;; We can be called by Auto Revert Mode with the "*Buffer Menu*"
+    ;; temporarily the current buffer.  Make sure that the
+    ;; interactively current buffer is correctly identified with a `.'
+    ;; by `list-buffers-noselect'.
+    (with-current-buffer (window-buffer)
+      (list-buffers-noselect Buffer-menu-files-only))
+    (if oline
+	(while (setq prop (next-single-property-change prop 'buffer))
+	  (when (eq (get-text-property prop 'buffer) oline)
+	    (goto-char prop)
+	    (move-to-column ocol)))
+      (goto-char (if eobp (point-max) opoint)))))
+
+(defun Buffer-menu-toggle-files-only (arg)
+  "Toggle whether the current buffer-menu displays only file buffers.
+With a positive ARG display only file buffers.  With zero or
+negative ARG, display other buffers as well."
+  (interactive "P")
+  (setq Buffer-menu-files-only
+	(cond ((not arg) (not Buffer-menu-files-only))
+	      ((> (prefix-numeric-value arg) 0) t)))
+  (revert-buffer))
+
 
 (defun Buffer-menu-buffer (error-if-non-existent-p)
   "Return buffer described by this line of buffer menu."
@@ -199,8 +258,8 @@ Letters do not insert themselves; instead, they are commands.
 		(error "No buffer named `%s'" name)
 	      nil))
       (or (and buf (buffer-name buf) buf)
-      (if error-if-non-existent-p
-	  (error "No buffer on this line")
+	  (if error-if-non-existent-p
+	      (error "No buffer on this line")
 	    nil)))))
 
 (defun buffer-menu (&optional arg)
@@ -258,7 +317,7 @@ For more information, see the function `buffer-menu'."
 
 (defun Buffer-menu-unmark (&optional backup)
   "Cancel all requested operations on buffer on this line and move down.
-Optional ARG means move up."
+Optional prefix arg means move up."
   (interactive "P")
   (when (Buffer-menu-no-header)
     (let* ((buf (Buffer-menu-buffer t))
@@ -322,18 +381,21 @@ and then move up one line.  Prefix arg means move that many lines."
   (save-excursion
    (beginning-of-line)
    (forward-char 2)
-   (if (= (char-after) (if arg ?  ?*))
+   (if (= (char-after) (if arg ?\s ?*))
        (let ((buffer-read-only nil))
 	 (delete-char 1)
-	 (insert (if arg ?* ? ))))))
+	 (insert (if arg ?* ?\s))))))
+
+(defun Buffer-menu-beginning ()
+  (goto-char (point-min))
+  (unless Buffer-menu-use-header-line
+    (forward-line)))
 
 (defun Buffer-menu-execute ()
   "Save and/or delete buffers marked with \\<Buffer-menu-mode-map>\\[Buffer-menu-save] or \\<Buffer-menu-mode-map>\\[Buffer-menu-delete] commands."
   (interactive)
   (save-excursion
-    (goto-char (point-min))
-    (unless Buffer-menu-use-header-line
-      (forward-line 1))
+    (Buffer-menu-beginning)
     (while (re-search-forward "^..S" nil t)
       (let ((modp nil))
 	(save-excursion
@@ -342,11 +404,9 @@ and then move up one line.  Prefix arg means move that many lines."
 	  (setq modp (buffer-modified-p)))
 	(let ((buffer-read-only nil))
 	  (delete-char -1)
-	  (insert (if modp ?* ? ))))))
+	  (insert (if modp ?* ?\s))))))
   (save-excursion
-    (goto-char (point-min))
-    (unless Buffer-menu-use-header-line
-      (forward-line 1))
+    (Buffer-menu-beginning)
     (let ((buff-menu-buffer (current-buffer))
 	  (buffer-read-only nil))
       (while (re-search-forward "^D" nil t)
@@ -357,7 +417,7 @@ and then move up one line.  Prefix arg means move that many lines."
 	      (save-excursion (kill-buffer buf)))
 	  (if (and buf (buffer-name buf))
 	    (progn (delete-char 1)
-		   (insert ? ))
+		   (insert ?\s))
 	  (delete-region (point) (progn (forward-line 1) (point)))
 	    (unless (bobp)
 	      (forward-char -1))))))))
@@ -372,14 +432,12 @@ in the selected frame."
 	(menu (current-buffer))
 	(others ())
 	tem)
-    (goto-char (point-min))
-    (unless Buffer-menu-use-header-line
-      (forward-line 1))
+    (Buffer-menu-beginning)
     (while (re-search-forward "^>" nil t)
       (setq tem (Buffer-menu-buffer t))
       (let ((buffer-read-only nil))
 	(delete-char -1)
-	(insert ?\ ))
+	(insert ?\s))
       (or (eq tem buff) (memq tem others) (setq others (cons tem others))))
     (setq others (nreverse others)
 	  tem (/ (1- (frame-height)) (1+ (length others))))
@@ -450,14 +508,19 @@ in the selected frame."
   "Make the other window select this line's buffer.
 The current window remains selected."
   (interactive)
-  (display-buffer (Buffer-menu-buffer t)))
+  (let ((pop-up-windows t)
+	same-window-buffer-names
+	same-window-regexps)
+    (display-buffer (Buffer-menu-buffer t))))
 
 (defun Buffer-menu-2-window ()
   "Select this line's buffer, with previous buffer in second window."
   (interactive)
   (let ((buff (Buffer-menu-buffer t))
 	(menu (current-buffer))
-	(pop-up-windows t))
+	(pop-up-windows t)
+	same-window-buffer-names
+	same-window-regexps)
     (delete-other-windows)
     (switch-to-buffer (other-buffer))
     (pop-to-buffer buff)
@@ -470,7 +533,7 @@ The current window remains selected."
     (save-excursion
       (set-buffer (Buffer-menu-buffer t))
       (vc-toggle-read-only)
-      (setq char (if buffer-read-only ?% ? )))
+      (setq char (if buffer-read-only ?% ?\s)))
     (save-excursion
       (beginning-of-line)
       (forward-char 1)
@@ -543,67 +606,174 @@ For more information, see the function `buffer-menu'."
 	  (make-string (- Buffer-menu-buffer+size-width
 			  (length name)
 			  (length size))
-		       ? )
+		       ?\s)
 	  size))
 
-(defun list-buffers-noselect (&optional files-only)
+(defun Buffer-menu-sort (column)
+  "Sort the buffer menu by COLUMN."
+  (interactive "P")
+  (when column
+    (setq column (prefix-numeric-value column))
+    (if (< column 2) (setq column 2))
+    (if (> column 5) (setq column 5)))
+  (setq Buffer-menu-sort-column column)
+  (let (buffer-read-only l buf m1 m2)
+    (save-excursion
+      (Buffer-menu-beginning)
+      (while (not (eobp))
+	(when (buffer-live-p (setq buf (get-text-property (+ (point) 4) 'buffer)))
+	  (setq m1 (char-after)
+		m1 (if (memq m1 '(?> ?D)) m1)
+		m2 (char-after (+ (point) 2))
+		m2 (if (eq m2 ?S) m2))
+	  (if (or m1 m2)
+	      (push (list buf m1 m2) l)))
+	(forward-line)))
+    (Buffer-menu-revert)
+    (setq buffer-read-only)
+    (save-excursion
+      (Buffer-menu-beginning)
+      (while (not (eobp))
+	(when (setq buf (assq (get-text-property (+ (point) 4) 'buffer) l))
+	  (setq m1 (cadr buf)
+		m2 (cadr (cdr buf)))
+	  (when m1
+	    (delete-char 1)
+	    (insert m1)
+	    (backward-char 1))
+	  (when m2
+	    (forward-char 2)
+	    (delete-char 1)
+	    (insert m2)))
+	(forward-line)))))
+
+(defun Buffer-menu-sort-by-column (&optional e)
+  "Sort the buffer menu by the column clicked on."
+  (interactive (list last-input-event))
+  (if e (mouse-select-window e))
+  (let* ((pos (event-start e))
+	 (obj (posn-object pos))
+	 (col (if obj
+		  (get-text-property (cdr obj) 'column (car obj))
+		(get-text-property (posn-point pos) 'column))))
+    (Buffer-menu-sort col)))
+
+(defvar Buffer-menu-sort-button-map
+  (let ((map (make-sparse-keymap)))
+    ;; This keymap handles both nil and non-nil values for
+    ;; Buffer-menu-use-header-line.
+    (define-key map [header-line mouse-1] 'Buffer-menu-sort-by-column)
+    (define-key map [header-line mouse-2] 'Buffer-menu-sort-by-column)
+    (define-key map [mouse-2] 'Buffer-menu-sort-by-column)
+    (define-key map [follow-link] 'mouse-face)
+    (define-key map "\C-m" 'Buffer-menu-sort-by-column)
+    map)
+  "Local keymap for Buffer menu sort buttons.")
+
+(defun Buffer-menu-make-sort-button (name column)
+  (if (equal column Buffer-menu-sort-column) (setq column nil))
+  (propertize name
+	      'column column
+	      'help-echo (concat
+			  (if Buffer-menu-use-header-line
+			      "mouse-1, mouse-2: sort by "
+			    "mouse-2, RET: sort by ")
+			  (if column (downcase name) "visited order"))
+	      'mouse-face 'highlight
+	      'keymap Buffer-menu-sort-button-map))
+
+(defun list-buffers-noselect (&optional files-only buffer-list)
   "Create and return a buffer with a list of names of existing buffers.
 The buffer is named `*Buffer List*'.
 Note that buffers with names starting with spaces are omitted.
 Non-null optional arg FILES-ONLY means mention only file buffers.
 
+If BUFFER-LIST is non-nil, it should be a list of buffers;
+it means list those buffers and no others.
+
 For more information, see the function `buffer-menu'."
   (let* ((old-buffer (current-buffer))
 	 (standard-output standard-output)
-	 (mode-end (make-string (- Buffer-menu-mode-width 2) ? ))
-	 ;; Fixme: This is wrong for left-hand scroll-bars.
-	 (header (concat "CRM " (Buffer-menu-buffer+size "Buffer" "Size")
-			 "  Mode" mode-end "File\n"))
-	 list desired-point name file mode)
-    (save-excursion
-      (set-buffer (get-buffer-create "*Buffer List*"))
+	 (mode-end (make-string (- Buffer-menu-mode-width 2) ?\s))
+	 (header (concat "CRM "
+			 (Buffer-menu-buffer+size
+			  (Buffer-menu-make-sort-button "Buffer" 2)
+			  (Buffer-menu-make-sort-button "Size" 3))
+			 "  "
+			 (Buffer-menu-make-sort-button "Mode" 4) mode-end
+			 (Buffer-menu-make-sort-button "File" 5) "\n"))
+	 list desired-point)
+    (when Buffer-menu-use-header-line
+      (let ((pos 0))
+	;; Turn spaces in the header into stretch specs so they work
+	;; regardless of the header-line face.
+	(while (string-match "[ \t]+" header pos)
+	  (setq pos (match-end 0))
+	  (put-text-property (match-beginning 0) pos 'display
+			     ;; Assume fixed-size chars in the buffer.
+			     (list 'space :align-to pos)
+			     header)))
+      ;; Try to better align the one-char headers.
+      (put-text-property 0 3 'face 'fixed-pitch header)
+      ;; Add a "dummy" leading space to align the beginning of the header
+      ;; line with the beginning of the text (rather than with the left
+      ;; scrollbar or the left fringe).  –-Stef
+      (setq header (concat (propertize " " 'display '(space :align-to 0))
+			   header)))
+    (with-current-buffer (get-buffer-create "*Buffer List*")
       (setq buffer-read-only nil)
       (erase-buffer)
       (setq standard-output (current-buffer))
       (unless Buffer-menu-use-header-line
-	(insert header "--- ------")
-	(indent-to Buffer-menu-buffer+size-width)
-	(insert "----  ----" mode-end "----\n")
-	(put-text-property 1 (point) 'intangible t))
-      (setq list
-	    (delq t
-		  (mapcar
-		   (lambda (buffer)
-		     (with-current-buffer buffer
-		       (setq name (buffer-name)
-			     file (buffer-file-name))
-		       (cond
-			;; Don't mention internal buffers.
-			((and (string= (substring name 0 1) " ") (null file)))
-			;; Maybe don't mention buffers without files.
-			((and files-only (not file)))
-			((string= name "*Buffer List*"))
-			;; Otherwise output info.
-			(t
-			 (unless file
-			   ;; No visited file.  Check local value of
-			   ;; list-buffers-directory.
-			   (when (and (boundp 'list-buffers-directory)
-				      list-buffers-directory)
-			     (setq file list-buffers-directory)))
-			 (list buffer
-			       (format "%c%c%c "
-				       (if (eq buffer old-buffer) ?. ? )
-				       ;; Handle readonly status.  The output buffer is special
-				       ;; cased to appear readonly; it is actually made so at a
-				       ;; later date.
-				       (if (or (eq buffer standard-output)
-					       buffer-read-only)
-					   ?% ? )
-				       ;; Identify modified buffers.
-				       (if (buffer-modified-p) ?* ? ))
-			       name (buffer-size) mode-name file)))))
-		   (buffer-list))))
+	(let ((underline (if (char-displayable-p ?—) ?— ?-)))
+	  (insert header
+		  (apply 'string
+			 (mapcar (lambda (c)
+				   (if (memq c '(?\n ?\s)) c underline))
+				 header)))))
+      ;; Collect info for every buffer we're interested in.
+      (dolist (buffer (or buffer-list
+			  (buffer-list
+			   (when Buffer-menu-use-frame-buffer-list
+			     (selected-frame)))))
+	(with-current-buffer buffer
+	  (let ((name (buffer-name))
+		(file buffer-file-name))
+	    (unless (and (not buffer-list)
+			 (or
+			  ;; Don't mention internal buffers.
+			  (and (string= (substring name 0 1) " ") (null file))
+			  ;; Maybe don't mention buffers without files.
+			  (and files-only (not file))
+			  (string= name "*Buffer List*")))
+	      ;; Otherwise output info.
+	      (let ((mode (concat (format-mode-line mode-name nil nil buffer)
+				  (if mode-line-process
+				      (format-mode-line mode-line-process
+							nil nil buffer))))
+		    (bits (string
+			   (if (eq buffer old-buffer) ?. ?\s)
+			   ;; Handle readonly status.  The output buffer
+			   ;; is special cased to appear readonly; it is
+			   ;; actually made so at a later date.
+			   (if (or (eq buffer standard-output)
+				   buffer-read-only)
+			       ?% ?\s)
+			   ;; Identify modified buffers.
+			   (if (buffer-modified-p) ?* ?\s)
+			   ;; Space separator.
+			   ?\s)))
+		(unless file
+		  ;; No visited file.  Check local value of
+		  ;; list-buffers-directory.
+		  (when (and (boundp 'list-buffers-directory)
+			     list-buffers-directory)
+		    (setq file list-buffers-directory)))
+		(push (list buffer bits name (buffer-size) mode file)
+		      list))))))
+      ;; Preserve the original buffer-list ordering, just in case.
+      (setq list (nreverse list))
+      ;; Place the buffers's info in the output buffer, sorted if necessary.
       (dolist (buffer
 	       (if Buffer-menu-sort-column
 		   (sort list
@@ -625,7 +795,7 @@ For more information, see the function `buffer-menu'."
 					 (int-to-string (nth 3 buffer))
 					 `(buffer-name ,(nth 2 buffer)
 					   buffer ,(car buffer)
-					   face Buffer-menu-buffer-face
+					   font-lock-face Buffer-menu-buffer
 					   mouse-face highlight
 					   help-echo "mouse-2: select this buffer"))
 		"  "
@@ -639,13 +809,14 @@ For more information, see the function `buffer-menu'."
 	(princ "\n"))
       (Buffer-menu-mode)
       (when Buffer-menu-use-header-line
-	(set (make-local-variable 'Buffer-menu-header-line)
-	     (concat " " header))
-	(setq header-line-format 'Buffer-menu-header-line))
+	(setq header-line-format header))
       ;; DESIRED-POINT doesn't have to be set; it is not when the
       ;; current buffer is not displayed for some reason.
       (and desired-point
 	   (goto-char desired-point))
+      (setq Buffer-menu-files-only files-only)
+      (set-buffer-modified-p nil)
       (current-buffer))))
 
+;; arch-tag: e7dfcfc9-6cb2-46e4-bf55-8ef1936d83c6
 ;;; buff-menu.el ends here

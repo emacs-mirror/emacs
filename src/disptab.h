@@ -1,5 +1,5 @@
 /* Things for GLYPHS and glyph tables.
-   Copyright (C) 1993 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Access the slots of a display-table, according to their purpose.  */
 
@@ -99,3 +99,6 @@ extern Lisp_Object Vglyph_table;
 #define NULL_GLYPH 00
 
 #define GLYPH_FROM_CHAR(c) (c)
+
+/* arch-tag: d7f792d2-f59c-4904-a91e-91522e3ab349
+   (do not change this comment) */

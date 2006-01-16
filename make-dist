@@ -6,7 +6,8 @@
 #### be distributed.  This means that if you add a file with an odd name,
 #### you should make sure that this script will include it.
 
-# Copyright (C) 1995, 1997, 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
+# Copyright (C) 1995, 1997, 1998, 2000, 2001, 2002, 2005
+#   Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -22,8 +23,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs; see the file COPYING.  If not, write to the
-# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+# Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 
 progname="$0"
 
@@ -183,9 +184,9 @@ fi
 if [ $check = yes ];
 then
   ### Check for .elc files with no corresponding .el file.
-  ls -1 lisp/[a-z]*.el lisp/[a-z]*/[a-z]*.el \
+  ls -1 lisp/[a-zA-Z]*.el lisp/[a-z]*/[a-zA-Z0-9]*.el \
 	leim/[a-z]*/[a-z]*.el | sed 's/\.el$/.elc/' > /tmp/el
-  ls -1 lisp/[a-z]*.elc lisp/[a-z]*/[a-z]*.elc \
+  ls -1 lisp/[a-zA-Z]*.elc lisp/[a-z]*/[a-zA-Z0-9]*.elc \
 	leim/[a-z]*/[a-z]*.elc > /tmp/elc
   bogosities="`comm -13 /tmp/el /tmp/elc`"
   if [ "${bogosities}" != "" ]; then
@@ -195,20 +196,16 @@ then
   rm -f /tmp/el /tmp/elc
 
   ### Check for .el files with no corresponding .elc file.
-  (cd lisp; ls -1 [a-z]*.el [a-z]*/[a-z]*.el ; \
-   cd ../leim; ls -1 [a-z]*/[a-z]*.el) > /tmp/el
-  (cd lisp; ls -1 [a-z]*.elc [a-z]*/[a-z]*.elc; \
-   cd ../leim; ls -1 [a-z]*/[a-z]*.elc) | sed 's/\.elc$/.el/' > /tmp/elc
+  ls -1 lisp/[a-zA-Z]*.el lisp/[a-z]*/[a-zA-Z0-9]*.el \
+	leim/[a-z]*/[a-z]*.el > /tmp/el
+  ls -1 lisp/[a-zA-Z]*.elc lisp/[a-z]*/[a-zA-Z0-9]*.elc \
+	leim/[a-z]*/[a-z]*.elc | sed 's/\.elc$/.el/' > /tmp/elc
   losers="`comm -23 /tmp/el /tmp/elc`"
   bogosities=
   for file in $losers; do
-    file1=`echo $file | sed -e "s|.*/||"`
-    if ! sed -n -e "/^DONTCOMPILE/,/[^\\]\$/p" lisp/Makefile.in |
-	 grep -q "[ 	]$file1\($\| \)"; then
+    if ! grep -q "no-byte-compile: t" $file; then
       case $file in
 	site-init.el | site-load.el | site-start.el | default.el)
-	  ;;
-	term/*)
 	  ;;
 	*)
 	  bogosities="$file $bogosities"
@@ -221,13 +218,6 @@ then
     echo "${bogosities}"
   fi
   rm -f /tmp/el /tmp/elc
-
-  ### Check for .el files that would overflow the 14-char limit if compiled.
-  long=`find lisp leim -name '[a-zA-Z0-9]??????????*.el' -print`
-  if [ "$long" != "" ]; then
-    echo "The following .el file names are too long:"
-    echo "$long"
-  fi
 fi
 
 ### Make sure configure is newer than configure.in.
@@ -324,8 +314,12 @@ for subdir in lisp site-lisp lispref lispintro \
 	      leim/SKK-DIC leim/ja-dic leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
-	      etc etc/e info man msdos vms mac mac/inc mac/inc/sys \
-	      mac/src mac/Emacs.app mac/Emacs.app/Contents \
+	      etc etc/e \
+	      etc/images etc/images/ezimage etc/images/gnus etc/images/gud \
+	      etc/images/icons etc/images/low-color etc/images/mail \
+	      etc/images/smilies etc/tree-widget etc/tree-widget/default \
+	      etc/tree-widget/folder info man m4 msdos vms mac mac/inc \
+	      mac/inc/sys mac/src mac/Emacs.app mac/Emacs.app/Contents \
 	      mac/Emacs.app/Contents/MacOS mac/Emacs.app/Contents/Resources \
 	      mac/Emacs.app/Contents/Resources/English.lproj
 do
@@ -347,8 +341,8 @@ echo "Making links to \`lisp' and its subdirectories"
  done
  ## simula.el doesn't keep abbreviations in simula.defns any more.
  ## ln [a-zA-Z]*.defns ../${tempdir}/lisp
- ln ChangeLog Makefile.in makefile.nt ChangeLog.? ../${tempdir}/lisp
- ln makefile.w32-in ../${tempdir}/lisp
+ ln ChangeLog ChangeLog.*[0-9] ../${tempdir}/lisp
+ ln Makefile.in makefile.w32-in ../${tempdir}/lisp
  test -f README && ln README ../${tempdir}/lisp
  (cd ../${tempdir}/lisp
   rm -f TAGS =*
@@ -387,7 +381,7 @@ echo "Making links to \`lisp' and its subdirectories"
 
    if [ -f $file/ChangeLog ]; then
      ln $file/ChangeLog ../${tempdir}/lisp/$file
-     for f in $file/ChangeLog.[0-9]; do
+     for f in $file/ChangeLog.*[0-9]; do
        if [ -f $f ]; then
 	 ln $f ../${tempdir}/lisp/$file
        fi
@@ -398,7 +392,7 @@ echo "Making links to \`lisp' and its subdirectories"
 echo "Making links to \`leim' and its subdirectories"
 ### Don't distribute TAGS, or =*.el files.
 (cd leim
- ln makefile.nt makefile.w32-in ../${tempdir}/leim
+ ln makefile.w32-in ../${tempdir}/leim
  ln ChangeLog README ../${tempdir}/leim
 
  ln CXTERM-DIC/*.tit ../${tempdir}/leim/CXTERM-DIC
@@ -406,6 +400,9 @@ echo "Making links to \`leim' and its subdirectories"
  ln MISC-DIC/*.* ../${tempdir}/leim/MISC-DIC
  ln ja-dic/*.el ja-dic/*.elc ../${tempdir}/leim/ja-dic
  ln Makefile.in ../${tempdir}/leim/Makefile.in
+ ln leim-ext.el ../${tempdir}/leim/leim-ext.el
+ ## Lisp files that start with a capital are generated from TIT
+ ## dictionaries so we don't distribute them.
  ln quail/[a-z]*.el quail/[a-z]*.elc ../${tempdir}/leim/quail
  rm -f ../${tempdir}/leim/quail/quick-b5.*
  rm -f ../${tempdir}/leim/quail/quick-cns.*
@@ -442,7 +439,7 @@ echo "Making links to \`src'"
    fi
  done
  ln README ChangeLog ChangeLog.*[0-9] ../${tempdir}/src
- ln makefile.nt makefile.w32-in ../${tempdir}/src
+ ln makefile.w32-in ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
  cd ../${tempdir}/src
  rm -f config.h epaths.h Makefile Makefile.c
@@ -465,7 +462,7 @@ echo "Making links to \`lib-src'"
 (cd lib-src
  ln [a-zA-Z]*.[chy] ../${tempdir}/lib-src
  ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
- ln grep-changelog rcs2log rcs-checkin makefile.nt ../${tempdir}/lib-src
+ ln grep-changelog rcs2log rcs-checkin ../${tempdir}/lib-src
  ln makefile.w32-in ../${tempdir}/lib-src
  ## If we ended up with a symlink, or if we did not get anything
  ## due to a cross-device symlink, copy the file.
@@ -485,13 +482,18 @@ echo "Making links to \`lib-src'"
  done
  cd ../${tempdir}/lib-src
  rm -f Makefile.c
+ rm -f getopt.h
  rm -f =* TAGS)
+
+echo "Making links to \`m4'"
+(cd m4
+ ln *.m4 ../${tempdir}/m4)
 
 echo "Making links to \`nt'"
 (cd nt
  ln emacs.rc config.nt [a-z]*.c ../${tempdir}/nt
  ln nmake.defs gmake.defs subdirs.el ../${tempdir}/nt
- ln [a-z]*.bat [a-z]*.h makefile.def makefile.nt ../${tempdir}/nt
+ ln [a-z]*.bat [a-z]*.h ../${tempdir}/nt
  ln ChangeLog INSTALL README makefile.w32-in ../${tempdir}/nt)
 
 echo "Making links to \`nt/inc'"
@@ -512,7 +514,8 @@ echo "Making links to \`nt/inc/netinet'"
 
 echo "Making links to \`nt/icons'"
 (cd nt/icons
- ln [a-z]*.ico ../../${tempdir}/nt/icons)
+ ln [a-z]*.ico ../../${tempdir}/nt/icons
+ ln [a-z]*.cur ../../${tempdir}/nt/icons)
 
 echo "Making links to \`mac'"
 (cd mac
@@ -561,7 +564,8 @@ echo "Making links to \`etc'"
 ### tex litter.
 ### Don't distribute gfdl.1, since no man page references it.
 (cd etc
- files=`ls -d * | grep -v CVS | grep -v RCS | grep -v 'Old' | grep -v '^e$'`
+ files=`ls -d * | grep -v CVS | grep -v RCS | grep -v 'Old' | grep -v '^e$' \
+        | grep -v '^images$' | grep -v '^tree-widget$'`
  ln $files ../${tempdir}/etc
  ## If we ended up with a symlink, or if we did not get anything
  ## due to a cross-device symlink, copy the file.
@@ -590,6 +594,24 @@ echo "Making links to \`etc/e'"
  cd ../../${tempdir}/etc/e
  rm -f *~ \#*\# *,v =* core)
 
+echo "Making links to \`etc/images'"
+(cd etc/images
+ for img in [a-zA-Z]*.xpm [a-zA-Z]*.xbm [a-zA-Z]*.pbm; do
+   if [ -f $img ]; then
+     ln $img ../../${tempdir}/etc/images
+   fi
+ done)
+
+for dir in etc/images/ezimage etc/images/gnus etc/images/gud etc/images/icons \
+           etc/images/low-color etc/images/mail etc/images/smilies \
+           etc/tree-widget/default etc/tree-widget/folder ; do
+    echo "Making links to \`${dir}'"
+    (cd ${dir}
+     ln `ls -d * | grep -v CVS | grep -v RCS` ../../../${tempdir}/${dir}
+     cd ../../../${tempdir}/${dir}
+     rm -f *~ \#*\# *,v =* core)
+done
+
 echo "Making links to \`info'"
 # Don't distribute backups or autosaves.
 (cd info
@@ -614,9 +636,9 @@ echo "Making links to \`man'"
 
 echo "Making links to \`lispref'"
 (cd lispref
- ln `ls -1 *.texi | grep -v index.texi` ../${tempdir}/lispref
- ln *.aux *.cps *.fns *.kys *.vrs index.*perm ../${tempdir}/lispref
- ln *.txt *.el spellfile permute-index tindex.pl ../${tempdir}/lispref
+ ln `ls -1 *.texi` ../${tempdir}/lispref
+ ln *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/lispref
+ ln *.txt *.el spellfile tindex.pl ../${tempdir}/lispref
  test -f README && ln README ../${tempdir}/lispref
  test -f Makefile.in && ln Makefile.in ../${tempdir}/lispref
  ln ChangeLog ../${tempdir}/lispref
@@ -704,4 +726,5 @@ else
   rm -rf ${tempparent}
 fi
 
+# arch-tag: 26e3eb50-a394-4ab2-82b2-d8e5af500de7
 ### make-dist ends here

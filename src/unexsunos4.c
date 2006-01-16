@@ -1,5 +1,6 @@
 /* Unexec for Sunos 4 using shared libraries.
-   Copyright (C) 1990, 1994, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1994, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Contributed by Viktor Dukhovni.  */
 /*
@@ -375,3 +376,6 @@ is_it (filename)
     }
   return 0;
 }
+
+/* arch-tag: 30227420-2c6f-4700-a4f8-9e45e52f53b1
+   (do not change this comment) */

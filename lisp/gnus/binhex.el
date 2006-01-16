@@ -1,8 +1,9 @@
 ;;; binhex.el --- elisp native binhex decode
-;; Copyright (c) 1998 Free Software Foundation, Inc.
+
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
-;; Create Date: Oct 1, 1998
 ;; Keywords: binhex news
 
 ;; This file is part of GNU Emacs.
@@ -19,27 +20,41 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
 ;;; Code:
 
+(autoload 'executable-find "executable")
+
 (eval-when-compile (require 'cl))
 
-(defalias 'binhex-char-int
-  (if (fboundp 'char-int)
-      'char-int
-    'identity))
+(eval-and-compile
+  (defalias 'binhex-char-int
+    (if (fboundp 'char-int)
+	'char-int
+      'identity)))
 
-(defvar binhex-decoder-program "hexbin"
-  "*Non-nil value should be a string that names a uu decoder.
+(defcustom binhex-decoder-program "hexbin"
+  "*Non-nil value should be a string that names a binhex decoder.
 The program should expect to read binhex data on its standard
-input and write the converted data to its standard output.")
+input and write the converted data to its standard output."
+  :type 'string
+  :group 'gnus-extract)
 
-(defvar binhex-decoder-switches '("-d")
-  "*List of command line flags passed to the command `binhex-decoder-program'.")
+(defcustom binhex-decoder-switches '("-d")
+  "*List of command line flags passed to the command `binhex-decoder-program'."
+  :group 'gnus-extract
+  :type '(repeat string))
+
+(defcustom binhex-use-external
+  (executable-find binhex-decoder-program)
+  "*Use external binhex program."
+  :version "22.1"
+  :group 'gnus-extract
+  :type 'boolean)
 
 (defconst binhex-alphabet-decoding-alist
   '(( ?\! . 0) ( ?\" . 1) ( ?\# . 2) ( ?\$ . 3) ( ?\% . 4) ( ?\& . 5)
@@ -69,13 +84,16 @@ input and write the converted data to its standard output.")
 	((boundp 'temporary-file-directory) temporary-file-directory)
 	("/tmp/")))
 
-(if (featurep 'xemacs)
-    (defalias 'binhex-insert-char 'insert-char)
-  (defun binhex-insert-char (char &optional count ignored buffer)
-    (if (or (null buffer) (eq buffer (current-buffer)))
-	(insert-char char count)
-      (with-current-buffer buffer
-	(insert-char char count)))))
+(eval-and-compile
+  (defalias 'binhex-insert-char
+    (if (featurep 'xemacs)
+	'insert-char
+      (lambda (char &optional count ignored buffer)
+	"Insert COUNT copies of CHARACTER into BUFFER."
+	(if (or (null buffer) (eq buffer (current-buffer)))
+	    (insert-char char count)
+	  (with-current-buffer buffer
+	    (insert-char char count)))))))
 
 (defvar binhex-crc-table
   [0  4129  8258  12387  16516  20645  24774  28903
@@ -184,8 +202,9 @@ input and write the converted data to its standard output.")
    (t
     (binhex-insert-char (setq binhex-last-char char) 1 ignored buffer))))
 
-(defun binhex-decode-region (start end &optional header-only)
-  "Binhex decode region between START and END.
+;;;###autoload
+(defun binhex-decode-region-internal (start end &optional header-only)
+  "Binhex decode region between START and END without using an external program.
 If HEADER-ONLY is non-nil only decode header and return filename."
   (interactive "r")
   (let ((work-buffer nil)
@@ -258,12 +277,14 @@ If HEADER-ONLY is non-nil only decode header and return filename."
       (and work-buffer (kill-buffer work-buffer)))
     (if header (aref header 1))))
 
+;;;###autoload
 (defun binhex-decode-region-external (start end)
   "Binhex decode region between START and END using external decoder."
   (interactive "r")
   (let ((cbuf (current-buffer)) firstline work-buffer status
 	(file-name (expand-file-name
-		    (concat (binhex-decode-region start end t) ".data")
+		    (concat (binhex-decode-region-internal start end t)
+			    ".data")
 		    binhex-temporary-file-directory)))
     (save-excursion
       (goto-char start)
@@ -296,6 +317,15 @@ If HEADER-ONLY is non-nil only decode header and return filename."
       (ignore-errors
 	(if file-name (delete-file file-name))))))
 
+;;;###autoload
+(defun binhex-decode-region (start end)
+  "Binhex decode region between START and END."
+  (interactive "r")
+  (if binhex-use-external
+      (binhex-decode-region-external start end)
+    (binhex-decode-region-internal start end)))
+
 (provide 'binhex)
 
+;;; arch-tag: 8476badd-1e76-4f1d-a640-f9a38c72eed8
 ;;; binhex.el ends here

@@ -1,7 +1,7 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader
 
-;; Copyright (C) 1985, 1993, 1994, 1995, 1996, 2000, 2001
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1993, 1994, 1995, 1996, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -39,6 +39,8 @@
 ;; Overhauled by Paul Reilly to support mbox format.
 
 ;;; Code:
+
+(defvar msgnum)
 
 ;; For rmail-select-summary
 (require 'rmail)
@@ -141,7 +143,15 @@ Normally checks the Subject field of headers;
 but if WHOLE-MESSAGE is non-nil (prefix arg given),
  look in the whole message.
 SUBJECT is a string of regexps separated by commas."
-  (interactive "sTopics to summarize by: \nP")
+  (interactive
+   (let* ((subject (with-current-buffer rmail-buffer
+		     (rmail-current-subject)))
+	  (subject-re (with-current-buffer rmail-buffer
+			(rmail-current-subject-regexp)))
+	  (prompt (concat "Topics to summarize by (regexp"
+			  (if subject ", default current subject" "")
+			  "): ")))
+     (list (read-string prompt nil nil subject) current-prefix-arg)))
   (rmail-new-summary
    (concat "about " subject)
    (list 'rmail-summary-by-topic subject whole-message)
@@ -305,8 +315,12 @@ By default, `identity' is set."
 		 ""
 	       (concat "{"
 		       (buffer-substring (point)
-					 (progn (end-of-line) (point)))
-		       "} ")))))
+					 (progn (end-of-line)
+						(backward-char)
+						(if (looking-at ",")
+						    (point)
+						  (1+ (point)))))
+		       " } ")))))
 	 (line
 	  (progn
 	    (forward-line 1)
@@ -378,17 +392,17 @@ Setting this variable has an effect only before reading a mail."
 	      (cond ((re-search-forward "\\([^0-9:]\\)\\([0-3]?[0-9]\\)\\([- \t_]+\\)\\([adfjmnos][aceopu][bcglnprtvy]\\)"
 		      (save-excursion (end-of-line) (point)) t)
 		     (format "%2d-%3s"
-			     (string-to-int (buffer-substring
-					     (match-beginning 2)
-					     (match-end 2)))
+			     (string-to-number (buffer-substring
+                                                (match-beginning 2)
+                                                (match-end 2)))
 			     (buffer-substring
 			      (match-beginning 4) (match-end 4))))
 		    ((re-search-forward "\\([^a-z]\\)\\([adfjmnos][acepou][bcglnprtvy]\\)\\([-a-z \t_]*\\)\\([0-9][0-9]?\\)"
 		      (save-excursion (end-of-line) (point)) t)
 		     (format "%2d-%3s"
-			     (string-to-int (buffer-substring
-					     (match-beginning 4)
-					     (match-end 4)))
+			     (string-to-number (buffer-substring
+                                                (match-beginning 4)
+                                                (match-end 4)))
 			     (buffer-substring
 			      (match-beginning 2) (match-end 2))))
 		    ((re-search-forward "\\(19\\|20\\)\\([0-9][0-9]\\)-\\([01][0-9]\\)-\\([0-3][0-9]\\)"
@@ -414,13 +428,14 @@ Setting this variable has an effect only before reading a mail."
 			     (let ((opoint (point)))
 			       (while (progn (forward-line 1)
 					     (looking-at "[ \t]")))
-			       ;; Back up over newline, then trailing spaces or tabs
+			       ;; Back up over newline, then trailing
+			       ;; spaces or tabs
 			       (forward-char -1)
 			       (skip-chars-backward " \t")
 			       (point)))))
                      len mch lo)
 		(if (string-match
-		     (or rmail-user-mail-address-regexp 
+		     (or rmail-user-mail-address-regexp
 			 (concat "^\\("
 				 (regexp-quote (user-login-name))
 				 "\\($\\|@\\)\\|"
@@ -562,7 +577,7 @@ If N is negative, go backwards."
     (if found
         (setq rmail-current-message found
               rmail-summary-skip-rmail t))))
-          
+
 ;;; mbox: ready
 (defun rmail-summary-previous-same-subject (n)
   "Go to the previous message in the summary having the same subject.
@@ -725,7 +740,7 @@ Commands for sorting the summary:
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(rmail-summary-font-lock-keywords t))
   (rmail-summary-enable)
-  (run-hooks 'rmail-summary-mode-hook))
+  (run-mode-hooks 'rmail-summary-mode-hook))
 
 ;; Summary features need to be disabled during edit mode.
 (defun rmail-summary-disable ()
@@ -752,66 +767,64 @@ Search, the `unseen' attribute is restored.")
   "Update the Rmail summary buffer.
 Put the cursor on the beginning of the line containing the current
 message and highlight the buffer."
-
-(let (buffer-read-only)
-  (save-excursion
-    ;; If at end of buffer, pretend we are on the last text line.
-    (if (eobp)
-        (forward-line -1))
-
-    ;; Determine the message number correpsonding to line point is on.
-    (beginning-of-line)
-    (skip-chars-forward " ")
-    (let ((msg-num (string-to-int (buffer-substring
+  (let (buffer-read-only)
+    (save-excursion
+      ;; If at end of buffer, pretend we are on the last text line.
+      (if (eobp)
+	  (forward-line -1))
+      ;; Determine the message number correpsonding to line point is on.
+      (beginning-of-line)
+      (skip-chars-forward " ")
+      (let ((msg-num (string-to-int (buffer-substring
  				     (point)
  				     (progn (skip-chars-forward "0-9")
  					    (point))))))
 
-      ;; Always leave `unseen' removed if we get out of isearch mode.
-      ;; Don't let a subsequent isearch restore `unseen'.
-      (if (not isearch-mode)
-          (setq rmail-summary-put-back-unseen nil))
- 
-      (or (eq rmail-current-message msg-num)
-          (let ((window (get-buffer-window rmail-view-buffer t))
-                (owin (selected-window)))
-            (if isearch-mode
-                (save-excursion
-                  (set-buffer rmail-buffer)
-                  ;; If we first saw the previous message in this search,
-                  ;; and we have gone to a different message while searching,
-                  ;; put back `unseen' on the former one.
-                  (if rmail-summary-put-back-unseen
-                      (rmail-set-attribute "unseen" t
-                                           rmail-current-message))
-                  ;; Arrange to do that later, for the new current message,
-                  ;; if it still has `unseen'.
-                  (setq rmail-summary-put-back-unseen
-                        (rmail-message-labels-p msg-num ", ?\\(unseen\\),")))
-              (setq rmail-summary-put-back-unseen nil))
- 
-            ;; Go to the desired message.
-            (setq rmail-current-message msg-num)
- 
-            ;; Update the summary to show the message has been seen.
-            (if (= (following-char) ?-)
-                (progn
-                  (delete-char 1)
-                  (insert " ")))
- 
-            (if window
-                ;; Using save-window-excursion would cause the new value
-                ;; of point to get lost.
-                (unwind-protect
-                    (progn
-                      (select-window window)
-                      (rmail-show-message msg-num t))
-                  (select-window owin))
-              (if (buffer-name rmail-buffer)
-                  (save-excursion
-                    (set-buffer rmail-buffer)
-                    (rmail-show-message msg-num t))))))
-      (rmail-summary-update-highlight nil)))))
+	;; Always leave `unseen' removed if we get out of isearch mode.
+	;; Don't let a subsequent isearch restore `unseen'.
+	(if (not isearch-mode)
+	    (setq rmail-summary-put-back-unseen nil))
+	(or (eq rmail-current-message msg-num)
+	    (let ((window (get-buffer-window rmail-view-buffer t))
+		  (owin (selected-window)))
+	      (if isearch-mode
+		  (save-excursion
+		    (set-buffer rmail-buffer)
+		    ;; If we first saw the previous message in this
+		    ;; search, and we have gone to a different message
+		    ;; while searching, put back `unseen' on the former
+		    ;; one.
+		    (if rmail-summary-put-back-unseen
+			(rmail-set-attribute "unseen" t
+					     rmail-current-message))
+		    ;; Arrange to do that later, for the new current message,
+		    ;; if it still has `unseen'.
+		    (setq rmail-summary-put-back-unseen
+			  (rmail-message-labels-p msg-num ", ?\\(unseen\\),")))
+		(setq rmail-summary-put-back-unseen nil))
+
+	      ;; Go to the desired message.
+	      (setq rmail-current-message msg-num)
+
+	      ;; Update the summary to show the message has been seen.
+	      (if (= (following-char) ?-)
+		  (progn
+		    (delete-char 1)
+		    (insert " ")))
+
+	      (if window
+		  ;; Using save-window-excursion would cause the new value
+		  ;; of point to get lost.
+		  (unwind-protect
+		      (progn
+			(select-window window)
+			(rmail-show-message msg-num t))
+		    (select-window owin))
+		(if (buffer-name rmail-buffer)
+		    (save-excursion
+		      (set-buffer rmail-buffer)
+		      (rmail-show-message msg-num t))))))
+	(rmail-summary-update-highlight nil)))))
 
 (if rmail-summary-mode-map
     nil
@@ -860,6 +873,7 @@ message and highlight the buffer."
   (define-key rmail-summary-mode-map "x"      'rmail-summary-expunge)
   (define-key rmail-summary-mode-map "w"      'rmail-summary-output-body)
   (define-key rmail-summary-mode-map "."      'rmail-summary-beginning-of-message)
+  (define-key rmail-summary-mode-map "/"      'rmail-summary-end-of-message)
   (define-key rmail-summary-mode-map "<"      'rmail-summary-first-message)
   (define-key rmail-summary-mode-map ">"      'rmail-summary-last-message)
   (define-key rmail-summary-mode-map " "      'rmail-summary-scroll-msg-up)
@@ -1027,7 +1041,7 @@ If the summary buffer contains no messages, nil is returned."
     ;; Parse the message number.
     (string-to-int
      (buffer-substring (point) (min (point-max) (+ 4 (point)))))))
-  
+
 (defun rmail-summary-goto-msg (&optional n nowarn skip-rmail)
   "Go to message N in the summary buffer and the Rmail buffer.
 If N is nil, use the message corresponding to point in the summary
@@ -1037,63 +1051,63 @@ If NOWARN, don't say anything if N is out of range.
 If SKIP-RMAIL, don't do anything to the Rmail buffer."
   (interactive "P")
   (if (consp n) (setq n (prefix-numeric-value n)))
-
   ;; Do the end of buffer adjustment.
   (if (eobp) (forward-line -1))
   (beginning-of-line)
-
   ;; Set N to the current message unless it was already set by the
   ;; caller.
   (unless n
     (setq n (rmail-summary-get-message-at-point)))
 
-    (let* ((obuf (current-buffer))
-           (buf rmail-buffer)
-           (cur (point))
-           message-not-found
-           (curmsg (string-to-int
-                    (buffer-substring (point)
-                                      (min (point-max) (+ 6 (point))))))
-           (total (save-excursion (set-buffer buf) rmail-total-messages)))
+  (let* ((obuf (current-buffer))
+	 (buf rmail-buffer)
+	 (cur (point))
+	 message-not-found
+	 (curmsg (string-to-int
+		  (buffer-substring (point)
+				    (min (point-max) (+ 6 (point))))))
+	 (total (save-excursion
+		  (set-buffer buf)
+		  rmail-total-messages)))
 
-      ;; Do a validity check on N.  If it is valid then set the current
-      ;; summary message to N.  `rmail-summary-rmail-update' will then
-      ;; actually move point to the selected message.
-      (if (< n 1)
-	  (progn (message "No preceding message")
-		 (setq n 1)))
-      (if (> n total)
-	  (progn (message "No following message")
-		 (goto-char (point-max))
-		 (rmail-summary-goto-msg nil nowarn skip-rmail)))
-      (goto-char (point-min))
-      (if (not (re-search-forward (format "^%4d[^0-9]" n) nil t))
-	  (progn (or nowarn (message "Message %d not found" n))
-		 (setq n curmsg)
-		 (setq message-not-found t)
-		 (goto-char cur)))
-      (beginning-of-line)
-      (skip-chars-forward " ")
-      (skip-chars-forward "0-9")
-      (save-excursion (if (= (following-char) ?-)
-                          (let ((buffer-read-only nil))
-                            (delete-char 1)
-                            (insert " "))))
-      (rmail-summary-update-highlight message-not-found)
-      (beginning-of-line)
+    ;; Do a validity check on N.  If it is valid then set the current
+    ;; summary message to N.  `rmail-summary-rmail-update' will then
+    ;; actually move point to the selected message.
+    (if (< n 1)
+	(progn (message "No preceding message")
+	       (setq n 1)))
+    (if (and (> n total)
+	     (> total 0))
+	(progn (message "No following message")
+	       (goto-char (point-max))
+	       (rmail-summary-goto-msg nil nowarn skip-rmail)))
+    (goto-char (point-min))
+    (if (not (re-search-forward (format "^%4d[^0-9]" n) nil t))
+	(progn (or nowarn (message "Message %d not found" n))
+	       (setq n curmsg)
+	       (setq message-not-found t)
+	       (goto-char cur)))
+    (beginning-of-line)
+    (skip-chars-forward " ")
+    (skip-chars-forward "0-9")
+    (save-excursion (if (= (following-char) ?-)
+			(let ((buffer-read-only nil))
+			  (delete-char 1)
+			  (insert " "))))
+    (rmail-summary-update-highlight message-not-found)
+    (beginning-of-line)
 
-      ;; Determine if the Rmail buffer needs to be processed.
-      (if skip-rmail
-          nil
-
-        ;; It does.
-        (let ((selwin (selected-window)))
-          (unwind-protect
-              (progn (pop-to-buffer buf)
-                     (rmail-show-message n))
-            (select-window selwin)
-            ;; The actions above can alter the current buffer.  Preserve it.
-            (set-buffer obuf))))))
+    ;; Determine if the Rmail buffer needs to be processed.
+    (if skip-rmail
+	nil
+      ;; It does.
+      (let ((selwin (selected-window)))
+	(unwind-protect
+	    (progn (pop-to-buffer buf)
+		   (rmail-show-message n))
+	  (select-window selwin)
+	  ;; The actions above can alter the current buffer.  Preserve it.
+	  (set-buffer obuf))))))
 
 ;; Update the highlighted line in an rmail summary buffer.
 ;; That should be current.  We highlight the line point is on.
@@ -1171,6 +1185,16 @@ move to the previous message."
 (defun rmail-summary-beginning-of-message ()
   "Show current message from the beginning."
   (interactive)
+  (rmail-summary-show-message 'BEG))
+
+(defun rmail-summary-end-of-message ()
+  "Show bottom of current message."
+  (interactive)
+  (rmail-summary-show-message 'END))
+
+(defun rmail-summary-show-message (where)
+  "Show current mail message.
+Position it according to WHERE which can be BEG or END"
   (if (and (one-window-p) (not pop-up-frames))
       ;; If there is just one window, put the summary on the top.
       (let ((buffer rmail-view-buffer))
@@ -1182,7 +1206,14 @@ move to the previous message."
 	(or (eq buffer (window-buffer (next-window (frame-first-window))))
 	    (delete-other-windows)))
     (pop-to-buffer rmail-view-buffer))
-  (beginning-of-buffer)
+  (cond
+   ((eq where 'BEG)
+	(goto-char (point-min))
+	(search-forward "\n\n"))
+   ((eq where 'END)
+	(goto-char (point-max))
+	(recenter (1- (window-height))))
+   )
   (pop-to-buffer rmail-summary-buffer))
 
 (defun rmail-summary-bury ()
@@ -1259,12 +1290,14 @@ argument says to read a file name and use that file as the inbox."
 (defun rmail-summary-first-message ()
   "Show first message in Rmail file from summary buffer."
   (interactive)
-  (beginning-of-buffer))
+  (with-no-warnings
+    (beginning-of-buffer)))
 
 (defun rmail-summary-last-message ()
   "Show last message in Rmail file from summary buffer."
   (interactive)
-  (end-of-buffer)
+  (with-no-warnings
+    (end-of-buffer))
   (forward-line -1))
 
 (defvar rmail-summary-edit-map nil)
@@ -1303,13 +1336,14 @@ Interactively, empty argument means use same regexp used last time."
   (interactive
     (let* ((reversep (>= (prefix-numeric-value current-prefix-arg) 0))
 	   (prompt
-	    (concat (if reversep "Reverse " "") "Rmail search (regexp): "))
+	    (concat (if reversep "Reverse " "") "Rmail search (regexp"))
 	   regexp)
-      (if rmail-search-last-regexp
-	  (setq prompt (concat prompt
-			       "(default "
-			       rmail-search-last-regexp
-			       ") ")))
+      (setq prompt
+	    (concat prompt
+		    (if rmail-search-last-regexp
+			(concat ", default "
+				rmail-search-last-regexp "): ")
+		      "): ")))
       (setq regexp (read-string prompt))
       (cond ((not (equal regexp ""))
 	     (setq rmail-search-last-regexp regexp))
@@ -1334,13 +1368,14 @@ Interactively, empty argument means use same regexp used last time."
   (interactive
     (let* ((reversep (< (prefix-numeric-value current-prefix-arg) 0))
 	   (prompt
-	    (concat (if reversep "Reverse " "") "Rmail search (regexp): "))
+	    (concat (if reversep "Reverse " "") "Rmail search (regexp"))
 	   regexp)
-      (if rmail-search-last-regexp
-	  (setq prompt (concat prompt
-			       "(default "
-			       rmail-search-last-regexp
-			       ") ")))
+      (setq prompt
+	    (concat prompt
+		    (if rmail-search-last-regexp
+			(concat ", default "
+				rmail-search-last-regexp "): ")
+		      "): ")))
       (setq regexp (read-string prompt))
       (cond ((not (equal regexp ""))
 	     (setq rmail-search-last-regexp regexp))
@@ -1698,4 +1733,5 @@ KEYWORDS is a comma-separated list of labels."
 
 (provide 'rmailsum)
 
+;;; arch-tag: 556079ee-75c1-47f5-9884-2e0a0bc6c5a1
 ;;; rmailsum.el ends here

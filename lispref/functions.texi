@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002, 2003,
+@c   2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/functions
 @node Functions, Macros, Variables, Top
@@ -21,8 +21,9 @@ define them.
 * Anonymous Functions::   Lambda expressions are functions with no names.
 * Function Cells::        Accessing or setting the function definition
                             of a symbol.
+* Obsolete Functions::    Declaring functions obsolete.
 * Inline Functions::	  Defining functions that the compiler will open code.
-* Function safety::       Determining whether a function is safe to call.
+* Function Safety::       Determining whether a function is safe to call.
 * Related Topics::        Cross-references to specific Lisp primitives
                             that have a special bearing on how functions work.
 @end menu
@@ -53,14 +54,14 @@ macros are not functions.
 @cindex built-in function
 A @dfn{primitive} is a function callable from Lisp that is written in C,
 such as @code{car} or @code{append}.  These functions are also called
-@dfn{built-in} functions or @dfn{subrs}.  (Special forms are also
+@dfn{built-in functions}, or @dfn{subrs}.  (Special forms are also
 considered primitives.)
 
 Usually the reason we implement a function as a primitive is either
-because it is fundamental, because it provides a low-level interface to
-operating system services, or because it needs to run fast.  Primitives
-can be modified or added only by changing the C sources and recompiling
-the editor.  See @ref{Writing Emacs Primitives}.
+because it is fundamental, because it provides a low-level interface
+to operating system services, or because it needs to run fast.
+Primitives can be modified or added only by changing the C sources and
+recompiling the editor.  See @ref{Writing Emacs Primitives}.
 
 @item lambda expression
 A @dfn{lambda expression} is a function written in Lisp.
@@ -113,9 +114,14 @@ byte compiler.  @xref{Byte-Code Type}.
 @end table
 
 @defun functionp object
-This function returns @code{t} if @var{object} is any kind of function,
-or a special form or macro.
+This function returns @code{t} if @var{object} is any kind of
+function, or a special form, or, recursively, a symbol whose function
+definition is a function or special form.  (This does not include
+macros.)
 @end defun
+
+Unlike @code{functionp}, the next three functions do @emph{not}
+treat a symbol as its function definition.
 
 @defun subrp object
 This function returns @code{t} if @var{object} is a built-in function
@@ -407,13 +413,14 @@ are easier to access.
 because @code{apropos} displays just this first line.  It should consist
 of one or two complete sentences that summarize the function's purpose.
 
-  The start of the documentation string is usually indented in the source file,
-but since these spaces come before the starting double-quote, they are not part of
-the string.  Some people make a practice of indenting any additional
-lines of the string so that the text lines up in the program source.
-@emph{This is a mistake.}  The indentation of the following lines is
-inside the string; what looks nice in the source code will look ugly
-when displayed by the help commands.
+  The start of the documentation string is usually indented in the
+source file, but since these spaces come before the starting
+double-quote, they are not part of the string.  Some people make a
+practice of indenting any additional lines of the string so that the
+text lines up in the program source.  @emph{That is a mistake.}  The
+indentation of the following lines is inside the string; what looks
+nice in the source code will look ugly when displayed by the help
+commands.
 
   You may wonder how the documentation string could be optional, since
 there are required components of the function that follow it (the body).
@@ -422,6 +429,25 @@ it has no effect if it is not the last form in the body.  Thus, in
 practice, there is no confusion between the first form of the body and the
 documentation string; if the only body form is a string then it serves both
 as the return value and as the documentation.
+
+  The last line of the documentation string can specify calling
+conventions different from the actual function arguments.  Write
+text like this:
+
+@example
+\(fn @var{arglist})
+@end example
+
+@noindent
+following a blank line, at the beginning of the line, with no newline
+following it inside the documentation string.  (The @samp{\} is used
+to avoid confusing the Emacs motion commands.)  The calling convention
+specified in this way appears in help messages in place of the one
+derived from the actual arguments of the function.
+
+  This feature is particularly useful for macro definitions, since the
+arguments written in a macro definition often do not correspond to the
+way users think of the parts of the macro call.
 
 @node Function Names
 @section Naming a Function
@@ -462,8 +488,8 @@ practice).
   We often identify functions with the symbols used to name them.  For
 example, we often speak of ``the function @code{car}'', not
 distinguishing between the symbol @code{car} and the primitive
-subr-object that is its function definition.  For most purposes, there
-is no need to distinguish.
+subr-object that is its function definition.  For most purposes, the
+distinction is not important.
 
   Even so, keep in mind that a function need not have a unique name.  While
 a given function object @emph{usually} appears in the function cell of only
@@ -499,9 +525,9 @@ defines the symbol @var{name} as a function that looks like this:
 @var{name}.  It returns the value @var{name}, but usually we ignore this
 value.
 
-As described previously (@pxref{Lambda Expressions}),
-@var{argument-list} is a list of argument names and may include the
-keywords @code{&optional} and @code{&rest}.  Also, the first two of the
+As described previously, @var{argument-list} is a list of argument
+names and may include the keywords @code{&optional} and @code{&rest}
+(@pxref{Lambda Expressions}).  Also, the first two of the
 @var{body-forms} may be a documentation string and an interactive
 declaration.
 
@@ -558,9 +584,15 @@ defined is often done deliberately, and there is no way to distinguish
 deliberate redefinition from unintentional redefinition.
 @end defspec
 
-@defun defalias name definition
+@defun defalias name definition &optional docstring
+@anchor{Definition of defalias}
 This special form defines the symbol @var{name} as a function, with
 definition @var{definition} (which can be any valid Lisp function).
+It returns @var{definition}.
+
+If @var{docstring} is non-@code{nil}, it becomes the function
+documentation of @var{name}.  Otherwise, any documentation provided by
+@var{definition} is used.
 
 The proper place to use @code{defalias} is where a specific function
 name is being defined---especially where that name appears explicitly in
@@ -570,8 +602,19 @@ which file defined the function, just like @code{defun}
 
 By contrast, in programs that manipulate function definitions for other
 purposes, it is better to use @code{fset}, which does not keep such
-records.
+records.  @xref{Function Cells}.
 @end defun
+
+  You cannot create a new primitive function with @code{defun} or
+@code{defalias}, but you can use them to change the function definition of
+any symbol, even one such as @code{car} or @code{x-popup-menu} whose
+normal definition is a primitive.  However, this is risky: for
+instance, it is next to impossible to redefine @code{car} without
+breaking Lisp completely.  Redefining an obscure function such as
+@code{x-popup-menu} is less dangerous, but it still may not work as
+you expect.  If there are calls to the primitive from C code, they
+call the primitive's C definition directly, so changing the symbol's
+definition will have no effect on them.
 
   See also @code{defsubst}, which defines a function like @code{defun}
 and tells the Lisp compiler to open-code it.  @xref{Inline Functions}.
@@ -590,13 +633,12 @@ For example, evaluating the list @code{(concat "a" "b")} calls the
 function @code{concat} with arguments @code{"a"} and @code{"b"}.
 @xref{Evaluation}, for a description of evaluation.
 
-  When you write a list as an expression in your program, the function
-name it calls is written in your program.  This means that you choose
-which function to call, and how many arguments to give it, when you
-write the program.  Usually that's just what you want.  Occasionally you
-need to compute at run time which function to call.  To do that, use the
-function @code{funcall}.  When you also need to determine at run time
-how many arguments to pass, use @code{apply}.
+  When you write a list as an expression in your program, you specify
+which function to call, and how many arguments to give it, in the text
+of the program.  Usually that's just what you want.  Occasionally you
+need to compute at run time which function to call.  To do that, use
+the function @code{funcall}.  When you also need to determine at run
+time how many arguments to pass, use @code{apply}.
 
 @defun funcall function &rest arguments
 @code{funcall} calls @var{function} with @var{arguments}, and returns
@@ -605,11 +647,12 @@ whatever @var{function} returns.
 Since @code{funcall} is a function, all of its arguments, including
 @var{function}, are evaluated before @code{funcall} is called.  This
 means that you can use any expression to obtain the function to be
-called.  It also means that @code{funcall} does not see the expressions
-you write for the @var{arguments}, only their values.  These values are
-@emph{not} evaluated a second time in the act of calling @var{function};
-@code{funcall} enters the normal procedure for calling a function at the
-place where the arguments have already been evaluated.
+called.  It also means that @code{funcall} does not see the
+expressions you write for the @var{arguments}, only their values.
+These values are @emph{not} evaluated a second time in the act of
+calling @var{function}; the operation of @code{funcall} is like the
+normal procedure for calling a function, once its arguments have
+already been evaluated.
 
 The argument @var{function} must be either a Lisp function or a
 primitive function.  Special forms and macros are not allowed, because
@@ -676,8 +719,8 @@ primitive function; special forms and macros do not make sense in
 @end group
 @end example
 
-For an interesting example of using @code{apply}, see the description of
-@code{mapcar}, in @ref{Mapping Functions}.
+For an interesting example of using @code{apply}, see @ref{Definition
+of mapcar}.
 @end defun
 
 @cindex functionals
@@ -702,13 +745,14 @@ This function ignores any arguments and returns @code{nil}.
 @section Mapping Functions
 @cindex mapping functions
 
-  A @dfn{mapping function} applies a given function to each element of a
-list or other collection.  Emacs Lisp has several such functions;
-@code{mapcar} and @code{mapconcat}, which scan a list, are described
-here.  @xref{Creating Symbols}, for the function @code{mapatoms} which
-maps over the symbols in an obarray.  @xref{Hash Access}, for the
-function @code{maphash} which maps over key/value associations in a
-hash table.
+  A @dfn{mapping function} applies a given function (@emph{not} a
+special form or macro) to each element of a list or other collection.
+Emacs Lisp has several such functions; @code{mapcar} and
+@code{mapconcat}, which scan a list, are described here.
+@xref{Definition of mapatoms}, for the function @code{mapatoms} which
+maps over the symbols in an obarray.  @xref{Definition of maphash},
+for the function @code{maphash} which maps over key/value associations
+in a hash table.
 
   These mapping functions do not allow char-tables because a char-table
 is a sparse array whose nominal range of indices is very large.  To map
@@ -716,6 +760,7 @@ over a char-table in a way that deals properly with its sparse nature,
 use the function @code{map-char-table} (@pxref{Char-Tables}).
 
 @defun mapcar function sequence
+@anchor{Definition of mapcar}
 @code{mapcar} applies @var{function} to each element of @var{sequence}
 in turn, and returns a list of the results.
 
@@ -746,7 +791,7 @@ length of @var{sequence}.
   "Apply FUNCTION to successive cars of all ARGS.
 Return the list of results."
   ;; @r{If no list is exhausted,}
-  (if (not (memq 'nil args))
+  (if (not (memq nil args))
       ;; @r{apply function to @sc{car}s.}
       (cons (apply function (mapcar 'car args))
             (apply 'mapcar* function
@@ -937,8 +982,8 @@ to be used only as a function, and therefore can safely be compiled.
 Contrast this with @code{quote}, in @ref{Quoting}.
 @end defspec
 
-  See @code{documentation} in @ref{Accessing Documentation}, for a
-realistic example using @code{function} and an anonymous function.
+  @xref{describe-symbols example}, for a realistic example using
+@code{function} and an anonymous function.
 
 @node Function Cells
 @section Accessing Function Cell Contents
@@ -947,8 +992,8 @@ realistic example using @code{function} and an anonymous function.
 function cell of the symbol.  The functions described here access, test,
 and set the function cell of symbols.
 
-  See also the function @code{indirect-function} in @ref{Function
-Indirection}.
+  See also the function @code{indirect-function}.  @xref{Definition of
+indirect-function}.
 
 @defun symbol-function symbol
 @kindex void-function
@@ -1003,8 +1048,9 @@ is a legitimate function.
 
 @defun fmakunbound symbol
 This function makes @var{symbol}'s function cell void, so that a
-subsequent attempt to access this cell will cause a @code{void-function}
-error.  (See also @code{makunbound}, in @ref{Void Variables}.)
+subsequent attempt to access this cell will cause a
+@code{void-function} error.  It returns @var{symbol}.  (See also
+@code{makunbound}, in @ref{Void Variables}.)
 
 @example
 @group
@@ -1040,7 +1086,7 @@ There are three normal uses of this function:
 Copying one symbol's function definition to another---in other words,
 making an alternate name for a function.  (If you think of this as the
 definition of the new name, you should use @code{defalias} instead of
-@code{fset}; see @ref{Defining Functions}.)
+@code{fset}; see @ref{Definition of defalias}.)
 
 @item
 Giving a symbol a function definition that is not a list and therefore
@@ -1098,30 +1144,45 @@ Here are examples of these uses:
 @end example
 @end defun
 
-  When writing a function that extends a previously defined function,
-the following idiom is sometimes used:
+  @code{fset} is sometimes used to save the old definition of a
+function before redefining it.  That permits the new definition to
+invoke the old definition.  But it is unmodular and unclean for a Lisp
+file to redefine a function defined elsewhere.  If you want to modify
+a function defined by another package, it is cleaner to use
+@code{defadvice} (@pxref{Advising Functions}).
+
+@node Obsolete Functions
+@section Declaring Functions Obsolete
+
+You can use @code{make-obsolete} to declare a function obsolete.  This
+indicates that the function may be removed at some stage in the future.
+
+@defun make-obsolete obsolete-name current-name &optional when
+This function makes the byte compiler warn that the function
+@var{obsolete-name} is obsolete.  If @var{current-name} is a symbol, the
+warning message says to use @var{current-name} instead of
+@var{obsolete-name}.  @var{current-name} does not need to be an alias for
+@var{obsolete-name}; it can be a different function with similar
+functionality.  If @var{current-name} is a string, it is the warning
+message.
+
+If provided, @var{when} should be a string indicating when the function
+was first made obsolete---for example, a date or a release number.
+@end defun
+
+You can define a function as an alias and declare it obsolete at the
+same time using the macro @code{define-obsolete-function-alias}.
+
+@defmac define-obsolete-function-alias obsolete-name current-name &optional when docstring
+This macro marks the function @var{obsolete-name} obsolete and also
+defines it as an alias for the function @var{current-name}.  It is
+equivalent to the following:
 
 @example
-(fset 'old-foo (symbol-function 'foo))
-(defun foo ()
-  "Just like old-foo, except more so."
-@group
-  (old-foo)
-  (more-so))
-@end group
+(defalias @var{obsolete-name} @var{current-name} @var{docstring})
+(make-obsolete @var{obsolete-name} @var{current-name} @var{when})
 @end example
-
-@noindent
-This does not work properly if @code{foo} has been defined to autoload.
-In such a case, when @code{foo} calls @code{old-foo}, Lisp attempts
-to define @code{old-foo} by loading a file.  Since this presumably
-defines @code{foo} rather than @code{old-foo}, it does not produce the
-proper results.  The only way to avoid this problem is to make sure the
-file is loaded before moving aside the old definition of @code{foo}.
-
-  But it is unmodular and unclean, in any case, for a Lisp file to
-redefine a function defined elsewhere.  It is cleaner to use the advice
-facility (@pxref{Advising Functions}).
+@end defmac
 
 @node Inline Functions
 @section Inline Functions
@@ -1158,27 +1219,21 @@ do for macros.  (@xref{Argument Evaluation}.)
 Inline functions can be used and open-coded later on in the same file,
 following the definition, just like macros.
 
-@node Function safety
-@section Determining whether a function is safe to call
+@node Function Safety
+@section Determining whether a Function is Safe to Call
 @cindex function safety
 @cindex safety of functions
-@cindex virus detection
-@cindex Trojan-horse detection
-@cindex DDoS attacks
 
-Some major modes such as SES (see @pxref{Top,,,ses}) will call
-functions that are stored in user files.  User files sometimes have
-poor pedigrees---you can get a spreadsheet from someone you've just
-met, or you can get one through email from someone you've never met.
-Such files can contain viruses and other Trojan horses that could
-corrupt your operating system environment, delete your files, or even
-turn your computer into a DDoS zombie!  To avoid this terrible fate,
-you should not call a function whose source code is stored in a user
-file until you have determined that it is safe.
+Some major modes such as SES call functions that are stored in user
+files.  (@inforef{Top, ,ses}, for more information on SES.)  User
+files sometimes have poor pedigrees---you can get a spreadsheet from
+someone you've just met, or you can get one through email from someone
+you've never met.  So it is risky to call a function whose source code
+is stored in a user file until you have determined that it is safe.
 
 @defun unsafep form &optional unsafep-vars
-Returns nil if @var{form} is a @dfn{safe} lisp expression, or returns
-a list that describes why it might be unsafe.  The argument
+Returns @code{nil} if @var{form} is a @dfn{safe} Lisp expression, or
+returns a list that describes why it might be unsafe.  The argument
 @var{unsafep-vars} is a list of symbols known to have temporary
 bindings at this point; it is mainly used for internal recursive
 calls.  The current buffer is an implicit argument, which provides a
@@ -1187,14 +1242,15 @@ list of buffer-local bindings.
 
 Being quick and simple, @code{unsafep} does a very light analysis and
 rejects many Lisp expressions that are actually safe.  There are no
-known cases where @code{unsafep} returns nil for an unsafe expression.
-However, a ``safe'' Lisp expression can return a string with a
-@code{display} property, containing an associated Lisp expression to
-be executed after the string is inserted into a buffer.  This
-associated expression can be a virus.  In order to be safe, you must
-delete properties from all strings calculated by user code before
+known cases where @code{unsafep} returns @code{nil} for an unsafe
+expression.  However, a ``safe'' Lisp expression can return a string
+with a @code{display} property, containing an associated Lisp
+expression to be executed after the string is inserted into a buffer.
+This associated expression can be a virus.  In order to be safe, you
+must delete properties from all strings calculated by user code before
 inserting them into buffers.
 
+@ignore
 What is a safe Lisp expression?  Basically, it's an expression that
 calls only built-in functions with no side effects (or only innocuous
 ones).  Innocuous side effects include displaying messages and
@@ -1209,16 +1265,20 @@ An atom or quoted thing.
 A call to a safe function (see below), if all its arguments are
 safe expressions.
 @item
-One of the special forms [and, catch, cond, if, or, prog1, prog2,
-progn, while, unwind-protect], if all its arguments are safe.
+One of the special forms @code{and}, @code{catch}, @code{cond},
+@code{if}, @code{or}, @code{prog1}, @code{prog2}, @code{progn},
+@code{while}, and @code{unwind-protect}], if all its arguments are
+safe.
 @item
-A form that creates temporary bindings [condition-case, dolist,
-dotimes, lambda, let, let*], if all args are safe and the symbols to
-be bound are not explicitly risky (see @pxref{File Local Variables}).
+A form that creates temporary bindings (@code{condition-case},
+@code{dolist}, @code{dotimes}, @code{lambda}, @code{let}, or
+@code{let*}), if all args are safe and the symbols to be bound are not
+explicitly risky (see @pxref{File Local Variables}).
 @item
-An assignment [add-to-list, setq, push, pop], if all args are safe and
-the symbols to be assigned are not explicitly risky and they already
-have temporary or buffer-local bindings.
+An assignment using @code{add-to-list}, @code{setq}, @code{push}, or
+@code{pop}, if all args are safe and the symbols to be assigned are
+not explicitly risky and they already have temporary or buffer-local
+bindings.
 @item
 One of [apply, mapc, mapcar, mapconcat] if the first argument is a
 safe explicit lambda and the other args are safe expressions.
@@ -1231,9 +1291,9 @@ A lambda containing safe expressions.
 @item
 A symbol on the list @code{safe-functions}, so the user says it's safe.
 @item
-A symbol with a non-nil @code{side-effect-free} property.
+A symbol with a non-@code{nil} @code{side-effect-free} property.
 @item
-A symbol with a non-nil @code{safe-function} property.  Value t
+A symbol with a non-@code{nil} @code{safe-function} property.  Value t
 indicates a function that is safe but has innocuous side effects.
 Other values will someday indicate functions with classes of side
 effects that are not always safe.
@@ -1243,11 +1303,8 @@ The @code{side-effect-free} and @code{safe-function} properties are
 provided for built-in functions and for low-level functions and macros
 defined in @file{subr.el}.  You can assign these properties for the
 functions you write.
-
 @end table
-
-
-@c Emacs versions prior to 19 did not have inline functions.
+@end ignore
 
 @node Related Topics
 @section Other Topics Related to Functions
@@ -1306,6 +1363,9 @@ See @ref{Char-Tables}.
 See @ref{Mapping Functions}.
 
 @item undefined
-See @ref{Key Lookup}.
+See @ref{Functions for Key Lookup}.
 @end table
 
+@ignore
+   arch-tag: 39100cdf-8a55-4898-acba-595db619e8e2
+@end ignore

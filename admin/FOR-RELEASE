@@ -1,0 +1,255 @@
+Tasks needed before the next release.
+
+* TO BE DONE SHORTLY BEFORE RELEASE
+
+** `undo-ask-before-discard', currently set to t for debugging purposes
+has to be set to nil: when t, it can leak memory and cause other problems.
+
+** Update release dates of manuals.
+
+** Spell check the manuals.
+
+** Get rid of overfull and underfull boxes in manuals.
+
+** Check for widow and orphan lines in manuals;
+make sure all the pages really look ok in the manual as formatted.
+
+** Update facemenu-unlisted-faces, adding whatever other
+face name prefixes should be in it for good results.
+
+** Update AUTHORS.
+
+** Regenerate the postscript files of the reference cards in etc.
+
+** Ask maintainers of refcard translations to update them.
+
+** Check what should be deleted or updated in MORE.STUFF.
+
+** Send an email to the various distributions, including the GNOME
+and KDE projects, to use the new Emacs icons in etc/images/icons.
+
+** Ensure MH-E 8.0 has been released.
+Assigned to Bill Wohler <wohler@newt.com>.
+
+* NEW FEATURES
+
+** Rework how fringe bitmaps are defined and used.
+Currently, bitmap usage and bitmap appearence are "mixed-up" in a
+one-level representation.  It would be cleaner to split the
+representation into a two-level model where first level maps
+bitmap usage to a bitmap name, and second level maps bitmap name to
+a bitmap appearence.
+[Assigned to KFS]
+
+* FATAL ERRORS
+
+** Investigate reported crashes in compact_small_strings.
+
+** Investigate reported crashes related to using an
+invalid pointer from string_free_list.
+
+* BUGS
+
+** Ronan Keryell's Sep 23 bug about "tramp sudo:: and version control on RCS"
+
+** TCP server processes do not work on Windows.
+
+TCP/IP server processes created with `make-network-process' consume
+excesive CPU on some Windows environments.  Usages of 50% and 100%
+CPU time have been observed on different Window XP configurations.
+Seems to be a problem in sys_select in w32proc.c.
+
+* DOCUMENTATION
+
+** Add a node to the Lisp manual describing key sequences from the
+Lisp point of view.
+
+** Check man/info.texi.
+
+** Add missing years in copyright notices of all files.
+
+Please record your name here and say which part of the distribution
+you're going to handle.
+
+DIRECTORY		STATUS		IN CHARGE
+---------		------		---------
+etc (and subdirs)	done		Thien-Thi Nguyen (ttn(@gnu.org))
+leim			done		Kenichi Handa
+lib-src			done		ttn
+lisp			done		ttn
+lisp/calc		done		ttn
+lisp/calendar		done		Glenn Morris
+lisp/emacs-lisp		done		ttn
+lisp/emulation		done		ttn
+lisp/eshell		done		ttn
+lisp/gnus		done		ttn
+lisp/international	done		Kenichi Handa
+lisp/language		done		Kenichi Handa
+lisp/mail		done		ttn
+lisp/mh-e		done		Bill Wohler
+lisp/net		done		ttn
+lisp/obsolete		done		ttn
+lisp/play		done		ttn
+lisp/progmodes		done		Nick Roberts
+lisp/term		done		ttn
+lisp/textmodes		done		ttn
+lisp/url		done		ttn
+lispintro		done		ttn
+lispref			done		ttn
+lwlib			done		ttn
+m4			done		ttn
+mac (and subdirs)	done		ttn
+man			done		ttn
+msdos			done		ttn
+nt (and subdirs)	done		ttn
+oldXMenu		done		ttn
+src (and subdirs)	done		ttn
+vms			done		ttn
+
+** Check the Emacs manual.
+
+Each manual section should be checked for factual correctness
+regarding recent changes by at least two people.  After each file
+name, on the same line or the following line, come the names of the
+people who have checked it.
+
+SECTION             READERS
+-----------------------------
+man/abbrevs.texi    Chong Yidong    Joakim Verona
+man/anti.texi       Chong Yidong
+man/basic.texi      "Luc Teirlinck"  Chong Yidong
+man/buffers.texi    "Luc Teirlinck"  Chong Yidong
+man/building.texi   "Ted Zlatanov" <tzz@lifelogs.com>
+man/calendar.texi   joakim@verona.se  Chong Yidong
+man/cmdargs.texi    Chong Yidong     "Luc Teirlinck"
+man/commands.texi   "Luc Teirlinck"  Chong Yidong
+man/custom.texi     Chong Yidong     "Luc Teirlinck"
+man/dired.texi      Chong Yidong     joakim@verona.se
+man/display.texi    "Luc Teirlinck"  Chong Yidong
+man/emacs.texi      "Luc Teirlinck"  Lute Kamstra
+man/entering.texi   "Luc Teirlinck"  Chong Yidong
+man/files.texi      "Luc Teirlinck"  Chong Yidong
+man/fixit.texi      "Luc Teirlinck"  Chong Yidong
+man/frames.texi     "Luc Teirlinck"  Chong Yidong
+man/glossary.texi   Chong Yidong
+man/help.texi       "Luc Teirlinck"  Chong Yidong
+man/indent.texi     "Luc Teirlinck"  Chong Yidong
+man/killing.texi    "Luc Teirlinck"  Chong Yidong
+man/kmacro.texi     "Luc Teirlinck"  Chong Yidong
+man/macos.texi      Chong Yidong
+man/maintaining.texi Chong Yidong
+man/major.texi      "Luc Teirlinck"  Chong Yidong
+man/mark.texi       "Luc Teirlinck"  Chong Yidong
+man/mini.texi       "Luc Teirlinck"  Chong Yidong
+man/misc.texi       Chong Yidong
+man/msdog.texi      Chong Yidong
+man/mule.texi       "Luc Teirlinck"  Kenichi Handa
+man/m-x.texi        "Luc Teirlinck"  Chong Yidong
+man/picture.texi    Joakim Verona <joakim@verona.se>   Chong Yidong
+man/programs.texi   "Stephen Eglen"  Chong Yidong
+man/regs.texi       "Luc Teirlinck"   Chong Yidong
+man/rmail.texi      Chong Yidong      "Luc Teirlinck"
+man/screen.texi     "Luc Teirlinck"   Chong Yidong
+man/search.texi     "Luc Teirlinck"   Chong Yidong
+man/sending.texi    Chong Yidong      "Luc Teirlinck"
+man/text.texi       "Luc Teirlinck"   Chong Yidong
+man/trouble.texi    Chong Yidong
+man/windows.texi    "Luc Teirlinck"   Chong Yidong
+man/xresources.texi
+
+** Check the Emacs Lisp manual.
+
+Each manual section should be checked for factual correctness
+regarding recent changes by at least two people.  After each file
+name, on the same line or the following line, come the names of the
+people who have checked it.
+
+SECTION                  READERS
+----------------------------------
+lispref/abbrevs.texi     "Luc Teirlinck"   Chong Yidong
+lispref/advice.texi	 joakim@verona.se  Chong Yidong
+lispref/anti.texi        Chong Yidong
+lispref/backups.texi     "Luc Teirlinck"   Chong Yidong
+lispref/buffers.texi     "Luc Teirlinck"   Chong Yidong
+lispref/calendar.texi    Joakim Verona <joakim@verona.se>  Chong Yidong
+lispref/commands.texi    "Luc Teirlinck"   Chong Yidong
+lispref/compile.texi     "Luc Teirlinck"   Chong Yidong
+lispref/control.texi     "Luc Teirlinck"   Chong Yidong
+lispref/customize.texi   Chong Yidong      "Luc Teirlinck"
+lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
+lispref/display.texi     Chong Yidong
+lispref/edebug.texi      Chong Yidong      "Luc Teirlinck"
+lispref/elisp.texi       "Luc Teirlinck"   Lute Kamstra
+lispref/errors.texi      "Luc Teirlinck"   Chong Yidong
+lispref/eval.texi        "Luc Teirlinck"   Chong Yidong
+lispref/files.texi       "Luc Teirlinck"   Chong Yidong
+lispref/frames.texi      "Luc Teirlinck"   Chong Yidong
+lispref/functions.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/hash.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/help.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/hooks.texi	 Lute Kamstra      Chong Yidong
+lispref/internals.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/intro.texi	 "Luc Teirlinck"   Josh Varner
+lispref/keymaps.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/lists.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/loading.texi     "Luc Teirlinck"   Chong Yidong
+lispref/locals.texi      Chong Yidong
+lispref/macros.texi      "Luc Teirlinck"   Chong Yidong
+lispref/maps.texi        Chong Yidong
+lispref/markers.texi     "Luc Teirlinck"   Chong Yidong
+lispref/minibuf.texi     "Luc Teirlinck"   Chong Yidong
+lispref/modes.texi	 Chong Yidong
+lispref/nonascii.texi    "Luc Teirlinck"   Chong Yidong
+lispref/numbers.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/objects.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/os.texi		 "Luc Teirlinck"   Chong Yidong
+lispref/positions.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/processes.texi   Chong Yidong	   ttn
+lispref/searching.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/sequences.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/streams.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/strings.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/symbols.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/syntax.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/text.texi        Chong Yidong
+lispref/tips.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/variables.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/windows.texi     "Luc Teirlinck"   Chong Yidong
+
+** Check the Emacs Tutorial.
+
+The first line of every tutorial must begin with text ending in a period
+(".", ASCII 0x2E) saying "Emacs Tutorial" in the respective language.
+This should be followed by "See end for copying conditions", likewise
+in the respective language.
+
+After each file name, on the same line or the following line, come the
+names of the people who have checked it.
+
+SECTION                  READERS
+----------------------------------
+etc/TUTORIAL             rms
+etc/TUTORIAL.bg          Ognyan Kulev <ogi@fmi.uni-sofia.bg>
+etc/TUTORIAL.cn
+etc/TUTORIAL.cs          Pavel Janík <Pavel@Janik.cz>
+etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
+etc/TUTORIAL.es          Marcelo Toledo
+etc/TUTORIAL.fr          ttn
+etc/TUTORIAL.it          ttn
+etc/TUTORIAL.ja		 Kenichi Handa <handa@m17n.org>
+etc/TUTORIAL.ko
+etc/TUTORIAL.nl		 Lute Kamstra
+etc/TUTORIAL.pl          Slawomir Nowaczyk <slawek@cs.lth.se>
+etc/TUTORIAL.pt_BR       Marcelo Toledo
+etc/TUTORIAL.ro
+etc/TUTORIAL.ru          Alex Ott <alexott@gmail.com>
+etc/TUTORIAL.sk          Pavel Janík <Pavel@Janik.cz>
+etc/TUTORIAL.sl          Primoz PETERLIN <primoz.peterlin@biofiz.mf.uni-lj.si>
+etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
+etc/TUTORIAL.th          Virach Sornlertlamvanich <virach@tcllab.org>
+etc/TUTORIAL.zh
+
+
+Local variables:
+mode: outline
+end:

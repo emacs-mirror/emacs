@@ -1,6 +1,7 @@
 ;;; indent.el --- indentation commands for Emacs
 
-;; Copyright (C) 1985, 1995, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1995, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -29,7 +30,7 @@
 ;;; Code:
 
 (defgroup indent nil
-  "Indentation commands"
+  "Indentation commands."
   :group 'editing)
 
 (defcustom standard-indent 4
@@ -49,7 +50,7 @@ Don't rebind TAB unless you really need to.")
   "*Controls the operation of the TAB key.
 If t, hitting TAB always just indents the current line.
 If nil, hitting TAB indents the current line if point is at the left margin
-  or in the line's indentation, otherwise it insert a `real' tab character."
+  or in the line's indentation, otherwise it insert a \"real\" tab character."
   :group 'indent
   :type '(choice (const nil) (const t) (const always)))
 
@@ -87,7 +88,8 @@ The function actually called to indent is determined by the value of
 	;; so we force it to always insert a tab here.
 	(eq indent-line-function 'indent-to-left-margin)
 	(and (not tab-always-indent)
-	     (> (current-column) (current-indentation))))
+	     (or (> (current-column) (current-indentation))
+		 (eq this-command last-command))))
     (insert-tab arg))
    ;; Those functions are meant specifically for tabbing and not for
    ;; indenting, so we can't pass them to indent-according-to-mode.
@@ -163,16 +165,20 @@ interactively or with optional argument FORCE, it will be fixed."
   (interactive (list (prefix-numeric-value current-prefix-arg) t))
   (beginning-of-line n)
   (skip-chars-forward " \t")
-  (let ((lm (current-left-margin))
-	(cc (current-column)))
-    (cond ((> cc lm)
-	   (if (> (move-to-column lm force) lm)
-	       ;; If lm is in a tab and we are not forcing, move before tab
-	       (backward-char 1)))
-	  ((and force (< cc lm))
-	   (indent-to-left-margin)))))
+  (if (minibufferp (current-buffer))
+      (if (save-excursion (beginning-of-line) (bobp))
+	  (goto-char (minibuffer-prompt-end))
+	(beginning-of-line))
+    (let ((lm (current-left-margin))
+	  (cc (current-column)))
+      (cond ((> cc lm)
+	     (if (> (move-to-column lm force) lm)
+		 ;; If lm is in a tab and we are not forcing, move before tab
+		 (backward-char 1)))
+	    ((and force (< cc lm))
+	     (indent-to-left-margin))))))
 
-;; This is the default indent-line-function,
+;; This used to be the default indent-line-function,
 ;; used in Fundamental Mode, Text Mode, etc.
 (defun indent-to-left-margin ()
   "Indent current line to the column given by `current-left-margin'."
@@ -193,11 +199,13 @@ Args FROM and TO are optional; default is the whole buffer."
       (forward-line 1))
     (move-marker to nil)))
 
-(defun set-left-margin (from to lm)
+(defun set-left-margin (from to width)
   "Set the left margin of the region to WIDTH.
-If `auto-fill-mode' is active, re-fill the region to fit the new margin."
+If `auto-fill-mode' is active, re-fill the region to fit the new margin.
+
+Interactively, WIDTH is the prefix argument, if specified.
+Without prefix argument, the command prompts for WIDTH."
   (interactive "r\nNSet left margin to column: ")
-  (if (interactive-p) (setq lm (prefix-numeric-value lm)))
   (save-excursion
     ;; If inside indentation, start from BOL.
     (goto-char from)
@@ -209,21 +217,23 @@ If `auto-fill-mode' is active, re-fill the region to fit the new margin."
     (setq to (point-marker)))
   ;; Delete margin indentation first, but keep paragraph indentation.
   (delete-to-left-margin from to)
-  (put-text-property from to 'left-margin lm)
-  (indent-rigidly from to lm)
+  (put-text-property from to 'left-margin width)
+  (indent-rigidly from to width)
   (if auto-fill-function (save-excursion (fill-region from to nil t t)))
   (move-marker to nil))
 
-(defun set-right-margin (from to lm)
+(defun set-right-margin (from to width)
   "Set the right margin of the region to WIDTH.
-If `auto-fill-mode' is active, re-fill the region to fit the new margin."
+If `auto-fill-mode' is active, re-fill the region to fit the new margin.
+
+Interactively, WIDTH is the prefix argument, if specified.
+Without prefix argument, the command prompts for WIDTH."
   (interactive "r\nNSet right margin to width: ")
-  (if (interactive-p) (setq lm (prefix-numeric-value lm)))
   (save-excursion
     (goto-char from)
     (skip-chars-backward " \t")
     (if (bolp) (setq from (point))))
-  (put-text-property from to 'right-margin lm)
+  (put-text-property from to 'right-margin width)
   (if auto-fill-function (save-excursion (fill-region from to nil t t))))
 
 (defun alter-text-property (from to prop func &optional object)
@@ -278,12 +288,10 @@ to change the margin by, in characters.  A negative argument decreases
 the right margin width.
 If `auto-fill-mode' is active, re-fill the region to fit the new margin."
   (interactive "r\nP")
-  (if (interactive-p)
-      (setq inc (if inc (prefix-numeric-value current-prefix-arg)
-		  standard-indent)))
+  (setq inc (if inc (prefix-numeric-value inc) standard-indent))
   (save-excursion
     (alter-text-property from to 'right-margin
-       (lambda (v) (+ inc (or v 0))))
+			 (lambda (v) (+ inc (or v 0))))
     (if auto-fill-function
 	(fill-region from to nil t t))))
 
@@ -441,8 +449,8 @@ This should be a list of integers, ordered from smallest to largest."
   "Keymap used in `edit-tab-stops'.")
 
 (defvar edit-tab-stops-buffer nil
-  "Buffer whose tab stops are being edited--in case
-the variable `tab-stop-list' is local in that buffer.")
+  "Buffer whose tab stops are being edited.
+This matters if the variable `tab-stop-list' is local in that buffer.")
 
 (defun edit-tab-stops ()
   "Edit the tab stops used by `tab-to-tab-stop'.
@@ -534,4 +542,5 @@ Use \\[edit-tab-stops] to edit them interactively."
 (define-key ctl-x-map "\t" 'indent-rigidly)
 (define-key esc-map "i" 'tab-to-tab-stop)
 
+;;; arch-tag: f402b2a7-e44f-492f-b5b8-38996020b7c3
 ;;; indent.el ends here

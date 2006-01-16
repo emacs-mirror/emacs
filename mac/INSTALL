@@ -1,6 +1,6 @@
-* BUILDING EMACS ON MAC OS 8/9 AND MAC OS X     -*- outline -*-
+* BUILDING EMACS ON MAC OS Classic AND MAC OS X     -*- outline -*-
 
-Copyright (c) 2001, 2002 Free Software Foundation, Inc.
+Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim
    copies of this document as received, in any medium, provided that
@@ -58,16 +58,11 @@ must be typed to the shell to enable Emacs to locate its resources
 correctly.  You may want to create a symlink or alias to this path to
 quickly access both the terminal and GUI versions.
 
-If you are building Emacs to run on Mac OS X and X Window, you need to
-create a directory containing statically-linked X libraries.
+If you are building Emacs to run on Mac OS X and X Window,
+instead of typing `./configure' above, type
 
-  sudo mkdir /usr/X11R6/libstatic
-  cd /usr/X11R6/libstatic
-  sudo ln -s ../lib/lib*.a ../lib/X11 .
+  ./configure --without-carbon --with-x
 
-Instead of typing `./configure' above, type
-
-  ./configure --without-carbon --with-x --x-libraries=/usr/X11R6/libstatic
 
 To use colors in a terminal, put the following lines in the file
 ~/.termcap and log in again.
@@ -159,82 +154,91 @@ options to user
 	      	    $prefix/bin/emacs to reduce disk space.  Note, this
 		    option may removed in the future.
 
-If you are intending to build a binary distribution for X windows, you
-will probably want to follow the directions above to create static
-X11R6 libraries and run the make-package script like this
-
-./make-package --with-x -C,--x-libraries=/usr/X11R6/libstatic
 
 For usage of other options, use the --help option.
 
-* BUILDING EMACS ON MAC OS 8/9
+* BUILDING EMACS ON MAC OS Classic
 
-You can use either Metrowerks CodeWarrior Pro 6 or MPW-GM (Aug. 2001)
-to build Emacs.  MPW-GM can be downloaded free of charge from Apple.
+FIXME: You can use either Metrowerks CodeWarrior Pro 6 or MPW-GM
+(Aug. 2001) to build Emacs.  MPW-GM can be downloaded free of charge
+from Apple.
 
 In either case, you will need MPW-GM to build the make-docfile utility
 and to generate the doc string file DOC.
 
-### IMPORTANT ### You can use StuffIf Expander to decompress and untar
+### IMPORTANT ### You can use StuffIt Expander to decompress and untar
 the distribution.  However, you *must* set the radio button in the
 Preferences->Cross Platform->Convert text files to Macintosh format to
 "Never".  Otherwise the compiled Lisp files will be corrupted.
 
-(Optional) A subset of the fonts from the GNU intlfonts-1.2
+FIXME: (Optional) A subset of the fonts from the GNU intlfonts-1.2
 distribution converted to NFNT format can be obtained from
 
   ftp://mac-emacs.sourceforge.net/pub/mac-emacs/GNU-fonts.smi.bin
 
 To build Emacs in the MPW Shell, simply set the directory to
 ...:emacs:mac: and build the target Emacs of the make file
-makefile.mpw.  I.e., execute the commands
+makefile.MPW.  I.e., execute the commands
 
   make Emacs -f makefile.MPW > Emacs.MakeScript
   Emacs.MakeScript
 
-To build Emacs using CodeWarrior, start up the CodeWarrior IDE, choose
-File->Import Project...  and select the file cw6-mcp.xml.  When
+The above commands create an executable that uses the Carbon API.  The
+non-Carbon version can also be created by replacing all the
+occurrences of `Emacs' above with `NonCarbon'.  Not that the
+non-Carbon version does not support some features such as file
+dialogs, drag-and-drop, and Unicode menus.
+
+FIXME: To build Emacs using CodeWarrior, start up the CodeWarrior IDE,
+choose File->Import Project...  and select the file cw6-mcp.xml.  When
 prompted to save the project, navigate to same directory as the file
 cw6-mcp.xml, name the project emacs-cw6.mcp, and save it there.  Then
 choose Project->Make.  Note that this does not build the DOC file.  To
 do so, use MPW and build the target "Doc" in makefile.MPW.
 
-Once built, the Emacs application (Emacs CW or Emacs MPW) can be
-launched where it is created.
+FIXME: Once built, the Emacs application (Emacs CW or Emacs MPW) can
+be launched where it is created.
 
-To build an optimized version of Emacs in CodeWarrior, change the
-value in the Emacs Settings->Code Generation->Global Optimization
+FIXME: To build an optimized version of Emacs in CodeWarrior, change
+the value in the Emacs Settings->Code Generation->Global Optimization
 dialog.  To build a version for profiling, check the Profiler
 Information box in the Emacs Settings->Code Generation->PPC Processor
 dialog and include the Profiler PPC.Lib library.
 
 * NOTES
 
-Emacs should build and run on a PowerMac running Mac OS 8.6 - 10.2.
+Emacs should build and run on a PowerMac running Mac OS 8.6 - 9.2 (but
+only tested on 9.2.2), and Mac OS X 10.1 - 10.4.
 
 You will need around 100 MB of disk space for the source files and
 intermediate files.
 
-It will not run on machines running Mac OS 8/9 with more than 256 MB
-of physical or virtual memory.  It does not have this restriction when
-it is run under Mac OS X.  But the usual 128MB buffer limit of a
-32-bit Emacs still exists.
-
-Under Mac OS 8/9, there is no support for building the LEIM directory.
-However, it can be built on Mac OS X or another platform and
-transferred to the Mac.
-
-On Mac OS 8/9, to use the same icon as when Emacs is built on Windows
-NT, define GNU_ICON in mac/src/Emacs.r.  Currently Emacs uses a
-generic application icon on the Mac OS X.  A better looking one is
-coming soon.
+Under Mac OS Classic, there is no support for building the LEIM
+directory.  However, it can be built on Mac OS X or another platform
+and transferred to the Mac.
 
 On Mac OS X, installing the emacs files in /usr can cause issues with
-system sofware updates possibly overwriting the distribution.  If this
+system software updates possibly overwriting the distribution.  If this
 is a concern, as it should be in normal binary distributions, please
 use /usr/local as the prefix for installation.
 
-Enjoy!
+Emacs supports both PowerPC and Intel-based Macintoshes.  However,
+due to the unexec process that Emacs uses to dump core, it is not
+possible at this time to generate a universal binary that supports both
+architectures.  In addition, Rosetta doesn't appear to work correctly
+with PowerPC builds of Emacs; you will have to recompile for Intel.
+Therefore, builds of Emacs are architecture specific.
 
-Andrew.
-<akochoi@mac.com>
+There are some compile-time flags that enable experimental features.
+Please use them at your own risk after reading the corresponding
+threads in the emacs-devel@gnu.org archive.
+
+  USE_ATSUI: Enable ATSUI (Apple Type Services for Unicode Imaging)
+  support.  Available on Mac OS 9/Carbon and Mac OS X.
+  http://lists.gnu.org/archive/html/emacs-devel/2005-10/msg00005.html
+
+  SELECT_USE_CFSOCKET: Avoid polling in sys_select (in src/mac.c).
+  Available on Mac OS X.
+  http://lists.gnu.org/archive/html/emacs-devel/2004-12/msg00789.html
+
+Enjoy!

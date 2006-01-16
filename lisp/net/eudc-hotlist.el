@@ -1,6 +1,7 @@
 ;;; eudc-hotlist.el --- hotlist management for EUDC
 
-;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -51,12 +52,13 @@ These are the special commands of this mode:
   (setq major-mode 'eudc-hotlist-mode)
   (setq mode-name "EUDC-Servers")
   (use-local-map eudc-hotlist-mode-map)
-  (setq mode-popup-menu eudc-hotlist-menu)
-  (when (and eudc-xemacs-p
-	     (featurep 'menubar))
-    (set-buffer-menubar current-menubar)
-    (add-submenu nil (cons "EUDC-Hotlist" (cdr (cdr eudc-hotlist-menu)))))
-  (setq buffer-read-only t))
+  (when (featurep 'xemacs)
+    (setq mode-popup-menu eudc-hotlist-menu)
+    (when (featurep 'menubar)
+      (set-buffer-menubar current-menubar)
+      (add-submenu nil (cons "EUDC-Hotlist" (cdr (cdr eudc-hotlist-menu))))))
+  (setq buffer-read-only t)
+  (run-mode-hooks 'eudc-hotlist-mode-hook))
 
 ;;;###autoload
 (defun eudc-edit-hotlist ()
@@ -194,4 +196,5 @@ These are the special commands of this mode:
 		      ""
 		      eudc-hotlist-menu))
 
+;;; arch-tag: 9b633ab3-6a6e-4b46-b12e-d96739a7e0e8
 ;;; eudc-hotlist.el ends here

@@ -1,5 +1,5 @@
 /* Asynchronous timers.
-   Copyright (C) 2000 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,11 +15,18 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #ifndef EMACS_ATIMER_H
 #define EMACS_ATIMER_H
+
+/* Declare the prototype for a general external function.  */
+#if defined (PROTOTYPES) || defined (WINDOWSNT)
+#define P_(proto) proto
+#else
+#define P_(proto) ()
+#endif
 
 #include "systime.h"		/* for EMACS_TIME */
 
@@ -82,3 +89,6 @@ void run_all_atimers P_ ((void));
 Lisp_Object unwind_stop_other_atimers P_ ((Lisp_Object));
 
 #endif /* EMACS_ATIMER_H */
+
+/* arch-tag: 02c7c1c8-45bd-4222-b874-4ca44662f60b
+   (do not change this comment) */

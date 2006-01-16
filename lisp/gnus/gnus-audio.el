@@ -1,5 +1,7 @@
-;;; gnus-audio.el --- sound effects for Gnus
-;; Copyright (C) 1996, 2000 Free Software Foundation
+;;; gnus-audio.el --- Sound effects for Gnus
+
+;; Copyright (C) 1996, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Steven L. Baur <steve@miranova.com>
 ;; Keywords: news, mail, multimedia
@@ -18,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -47,15 +49,15 @@
   :type '(choice directory (const nil))
   :group 'gnus-audio)
 
-(defcustom gnus-audio-au-player "/usr/bin/showaudio"
+(defcustom gnus-audio-au-player (executable-find "play")
   "Executable program for playing sun AU format sound files."
   :group 'gnus-audio
-  :type 'string)
+  :type '(choice file (const nil)))
 
-(defcustom gnus-audio-wav-player "/usr/local/bin/play"
+(defcustom gnus-audio-wav-player (executable-find "play")
   "Executable program for playing WAV files."
   :group 'gnus-audio
-  :type 'string)
+  :type '(choice file (const nil)))
 
 ;;; The following isn't implemented yet.  Wait for Millennium Gnus.
 ;;(defvar gnus-audio-effects-enabled t
@@ -93,7 +95,7 @@
 ;;;###autoload
 (defun gnus-audio-play (file)
   "Play a sound FILE through the speaker."
-  (interactive)
+  (interactive "fSound file name: ")
   (let ((sound-file (if (file-exists-p file)
 			file
 		      (expand-file-name file gnus-audio-directory))))
@@ -146,4 +148,5 @@
 
 (run-hooks 'gnus-audio-load-hook)
 
+;;; arch-tag: 6f129e78-3416-4fc9-973f-6cf5ac8d654b
 ;;; gnus-audio.el ends here

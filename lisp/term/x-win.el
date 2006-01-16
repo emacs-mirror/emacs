@@ -1,6 +1,7 @@
 ;;; x-win.el --- parse relevant switches and set up for X  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1993, 1994, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals, i18n
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -53,8 +54,6 @@
 ;; -font		*font
 ;; -foreground		*foreground
 ;; -geometry		.geometry
-;; -i			.iconType
-;; -itype		.iconType
 ;; -iconic		.iconic
 ;; -name		.name
 ;; -reverse		*reverseVideo
@@ -76,8 +75,13 @@
 (require 'select)
 (require 'menu-bar)
 (require 'fontset)
+(require 'x-dnd)
 
 (defvar x-invocation-args)
+(defvar x-keysym-table)
+(defvar x-selection-timeout)
+(defvar x-session-id)
+(defvar x-session-previous-id)
 
 (defvar x-command-line-resources nil)
 
@@ -104,7 +108,7 @@
 	(let ((param (nth 3 aelt)))
 	  (setq default-frame-alist
 		(cons (cons param
-			    (string-to-int (car x-invocation-args)))
+			    (string-to-number (car x-invocation-args)))
 		      default-frame-alist)
 		x-invocation-args
 		(cdr x-invocation-args))))))
@@ -243,8 +247,8 @@ This function returns ARGS minus the arguments that have been processed."
 	x-invocation-args (cdr x-invocation-args)))
 
 (defvar emacs-save-session-functions nil
-  "Functions to run when a save-session event occurs.
-The functions does not get any argument.
+  "Special hook run when a save-session event occurs.
+The functions do not get any argument.
 Functions can return non-nil to inform the session manager that the
 window system shutdown should be aborted.
 
@@ -1159,13 +1163,6 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 ;;;; Function keys
 
-(defun iconify-or-deiconify-frame ()
-  "Iconify the selected frame, or deiconify if it's currently an icon."
-  (interactive)
-  (if (eq (cdr (assq 'visibility (frame-parameters))) t)
-      (iconify-frame)
-    (make-frame-visible)))
-
 (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
 			   global-map)
 
@@ -1202,9 +1199,9 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 ;;;; Keysyms
 
 (defun vendor-specific-keysyms (vendor)
-  "Return the appropriate value of system-key-alist for VENDOR.
+  "Return the appropriate value of `system-key-alist' for VENDOR.
 VENDOR is a string containing the name of the X Server's vendor,
-as returned by (x-server-vendor)."
+as returned by `x-server-vendor'."
   ;; Fixme: Drop Apollo now?
   (cond ((string-equal vendor "Apollo Computer Inc.")
 	 '((65280 . linedel)
@@ -1510,6 +1507,36 @@ as returned by (x-server-vendor)."
 	(#x5f1 . ?,Gq(B)
 	(#x5f2 . ?,Gr(B)
 	;; Cyrillic
+	(#x680 . ?$,1)R(B)
+	(#x681 . ?$,1)V(B)
+	(#x682 . ?$,1)Z(B)
+	(#x683 . ?$,1)\(B)
+	(#x684 . ?$,1)b(B)
+	(#x685 . ?$,1)n(B)
+	(#x686 . ?$,1)p(B)
+	(#x687 . ?$,1)r(B)
+	(#x688 . ?$,1)v(B)
+	(#x689 . ?$,1)x(B)
+	(#x68a . ?$,1)z(B)
+	(#x68c . ?$,1*8(B)
+	(#x68d . ?$,1*B(B)
+	(#x68e . ?$,1*H(B)
+	(#x68f . ?$,1*N(B)
+	(#x690 . ?$,1)S(B)
+	(#x691 . ?$,1)W(B)
+	(#x692 . ?$,1)[(B)
+	(#x693 . ?$,1)](B)
+	(#x694 . ?$,1)c(B)
+	(#x695 . ?$,1)o(B)
+	(#x696 . ?$,1)q(B)
+	(#x697 . ?$,1)s(B)
+	(#x698 . ?$,1)w(B)
+	(#x699 . ?$,1)y(B)
+	(#x69a . ?$,1){(B)
+	(#x69c . ?$,1*9(B)
+	(#x69d . ?$,1*C(B)
+	(#x69e . ?$,1*I(B)
+	(#x69f . ?$,1*O(B)
 	(#x6a1 . ?,Lr(B)
 	(#x6a2 . ?,Ls(B)
 	(#x6a3 . ?,Lq(B)
@@ -2089,26 +2116,28 @@ as returned by (x-server-vendor)."
 
 ;;;; Selections and cut buffers
 
-;;; We keep track of the last text selected here, so we can check the
-;;; current selection against it, and avoid passing back our own text
-;;; from x-cut-buffer-or-selection-value.  We track all three
-;;; seperately in case another X application only sets one of them
-;;; (say the cut buffer) we aren't fooled by the PRIMARY or
-;;; CLIPBOARD selection staying the same.
+;; We keep track of the last text selected here, so we can check the
+;; current selection against it, and avoid passing back our own text
+;; from x-cut-buffer-or-selection-value.  We track all three
+;; seperately in case another X application only sets one of them
+;; (say the cut buffer) we aren't fooled by the PRIMARY or
+;; CLIPBOARD selection staying the same.
 (defvar x-last-selected-text-clipboard nil
   "The value of the CLIPBOARD X selection last time we selected or
 pasted text.")
-(defvar x-last-selected-text-primary   nil
+(defvar x-last-selected-text-primary nil
   "The value of the PRIMARY X selection last time we selected or
 pasted text.")
-(defvar x-last-selected-text-cut       nil
-  "The vaue of the X cut buffer last time we selected or
-pasted text.")
+(defvar x-last-selected-text-cut nil
+  "The value of the X cut buffer last time we selected or pasted text.
+The actual text stored in the X cut buffer is what encoded from this value.")
+(defvar x-last-selected-text-cut-encoded nil
+  "The value of the X cut buffer last time we selected or pasted text.
+This is the actual text stored in the X cut buffer.")
 
-;;; It is said that overlarge strings are slow to put into the cut buffer.
-;;; Note this value is overridden below.
-(defvar x-cut-buffer-max 20000
-  "Max number of characters to put in the cut buffer.")
+(defvar x-cut-buffer-max 20000 ; Note this value is overridden below.
+  "Max number of characters to put in the cut buffer.
+It is said that overlarge strings are slow to put into the cut buffer.")
 
 (defcustom x-select-enable-clipboard nil
   "Non-nil means cutting and pasting uses the clipboard.
@@ -2116,45 +2145,146 @@ This is in addition to, but in preference to, the primary selection."
   :type 'boolean
   :group 'killing)
 
-;;; Make TEXT, a string, the primary X selection.
-;;; Also, set the value of X cut buffer 0, for backward compatibility
-;;; with older X applications.
-;;; gildea@stop.mail-abuse.org says it's not desirable to put kills
-;;; in the clipboard.
 (defun x-select-text (text &optional push)
+  "Make TEXT, a string, the primary X selection.
+Also, set the value of X cut buffer 0, for backward compatibility
+with older X applications.
+gildea@stop.mail-abuse.org says it's not desirable to put kills
+in the clipboard."
   ;; Don't send the cut buffer too much text.
   ;; It becomes slow, and if really big it causes errors.
   (cond ((>= (length text) x-cut-buffer-max)
 	 (x-set-cut-buffer "" push)
-	 (setq x-last-selected-text-cut ""))
+	 (setq x-last-selected-text-cut ""
+	       x-last-selected-text-cut-encoded ""))
 	(t
-      (x-set-cut-buffer text push)
-	 (setq x-last-selected-text-cut text)))
+	 (setq x-last-selected-text-cut text
+	       x-last-selected-text-cut-encoded
+	       (encode-coding-string text (or locale-coding-system
+					      'iso-latin-1)))
+	 (x-set-cut-buffer x-last-selected-text-cut-encoded push)))
   (x-set-selection 'PRIMARY text)
   (setq x-last-selected-text-primary text)
   (when x-select-enable-clipboard
-      (x-set-selection 'CLIPBOARD text)
-      (setq x-last-selected-text-clipboard text))
+    (x-set-selection 'CLIPBOARD text)
+    (setq x-last-selected-text-clipboard text))
   )
 
-;;; Return the value of the current X selection.
-;;; Consult the selection, and the cut buffer.  Treat empty strings
-;;; as if they were unset.
-;;; If this function is called twice and finds the same text,
-;;; it returns nil the second time.  This is so that a single
-;;; selection won't be added to the kill ring over and over.
+(defvar x-select-request-type nil
+  "*Data type request for X selection.
+The value is nil, one of the following data types, or a list of them:
+  `COMPOUND_TEXT', `UTF8_STRING', `STRING', `TEXT'
+
+If the value is nil, try `COMPOUND_TEXT' and `UTF8_STRING', and
+use the more appropriate result.  If both fail, try `STRING', and
+then `TEXT'.
+
+If the value is one of the above symbols, try only the specified
+type.
+
+If the value is a list of them, try each of them in the specified
+order until succeed.")
+
+;; Helper function for x-selection-value.  Select UTF8 or CTEXT
+;; whichever is more appropriate.  Here, we use this heurisitcs.
+;;
+;;   (1) If their lengthes are different, select the longer one.  This
+;;   is because an X client may just cut off unsupported characters.
+;;
+;;   (2) Otherwise, if the Nth character of CTEXT is an ASCII
+;;   character that is different from the Nth character of UTF8,
+;;   select UTF8.  This is because an X client may replace unsupported
+;;   characters with some ASCII character (typically ` ' or `?') in
+;;   CTEXT.
+;;
+;;   (3) Otherwise, select CTEXT.  This is because legacy charsets are
+;;   better for the current Emacs, especially when the selection owner
+;;   is also Emacs.
+
+(defun x-select-utf8-or-ctext (utf8 ctext)
+  (let ((len-utf8 (length utf8))
+	(len-ctext (length ctext))
+	(selected ctext)
+	(i 0)
+	char)
+    (if (/= len-utf8 len-ctext)
+	(if (> len-utf8 len-ctext) utf8 ctext)
+      (let ((result (compare-strings utf8 0 len-utf8 ctext 0 len-ctext)))
+	(if (or (eq result t)
+		(>= (aref ctext (1- (abs result))) 128))
+	    ctext
+	  utf8)))))
+
+;; Get a selection value of type TYPE by calling x-get-selection with
+;; an appropiate DATA-TYPE argument decidd by `x-select-request-type'.
+;; The return value is already decoded.  If x-get-selection causes an
+;; error, this function return nil.
+
+(defun x-selection-value (type)
+  (let (text)
+    (cond ((null x-select-request-type)
+	   (let (utf8 ctext utf8-coding)
+	     ;; We try both UTF8_STRING and COMPOUND_TEXT, and choose
+	     ;; the more appropriate one.  If both fail, try STRING.
+
+	     ;; At first try UTF8_STRING.
+	     (setq utf8 (condition-case nil
+			    (x-get-selection type 'UTF8_STRING)
+			  (error nil))
+		   utf8-coding last-coding-system-used)
+	     (if utf8
+		 ;; If it is a local selection, or it contains only
+		 ;; ASCII characers, choose it.
+		 (if (or (not (get-text-property 0 'foreign-selection utf8))
+			 (= (length utf8) (string-bytes utf8)))
+		     (setq text utf8)))
+	     ;; If not yet decided, try COMPOUND_TEXT.
+	     (if (not text)
+		 (if (setq ctext (condition-case nil
+				     (x-get-selection type 'COMPOUND_TEXT)
+				   (error nil)))
+		     ;; If UTF8_STRING was also successful, choose the
+		     ;; more appropriate one from UTF8 and CTEXT.
+		     (if utf8
+			 (setq text (x-select-utf8-or-ctext utf8 ctext))
+		       ;; Othewise, choose CTEXT.
+		       (setq text ctext))
+		   (setq text utf8)))
+	     ;; If not yet decided, try STRING.
+	     (or text
+		 (setq text (condition-case nil
+				(x-get-selection type 'STRING)
+			      (error nil))))
+	     (if (eq text utf8)
+		 (setq last-coding-system-used utf8-coding))))
+
+	  ((consp x-select-request-type)
+	   (let ((tail x-select-request-type))
+	     (while (and tail (not text))
+	       (condition-case nil
+		   (setq text (x-get-selection type (car tail)))
+		 (error nil))
+	       (setq tail (cdr tail)))))
+
+	  (t
+	   (condition-case nil
+	       (setq text (x-get-selection type x-select-request-type))
+	     (error nil))))
+
+    (if text
+	(remove-text-properties 0 (length text) '(foreign-selection nil) text))
+    text))
+
+;; Return the value of the current X selection.
+;; Consult the selection, and the cut buffer.  Treat empty strings
+;; as if they were unset.
+;; If this function is called twice and finds the same text,
+;; it returns nil the second time.  This is so that a single
+;; selection won't be added to the kill ring over and over.
 (defun x-cut-buffer-or-selection-value ()
   (let (clip-text primary-text cut-text)
     (when x-select-enable-clipboard
-      ;; Don't die if x-get-selection signals an error.
-      (if (null clip-text)
-	  (condition-case c
-	      (setq clip-text (x-get-selection 'CLIPBOARD 'COMPOUND_TEXT))
-	    (error nil)))
-      (if (null clip-text)
-	  (condition-case c
-	      (setq clip-text (x-get-selection 'CLIPBOARD 'STRING))
-	    (error nil)))
+      (setq clip-text (x-selection-value 'CLIPBOARD))
       (if (string= clip-text "") (setq clip-text nil))
 
       ;; Check the CLIPBOARD selection for 'newness', is it different
@@ -2174,15 +2304,7 @@ This is in addition to, but in preference to, the primary selection."
 	      (setq x-last-selected-text-clipboard clip-text))))
       )
 
-    ;; Don't die if x-get-selection signals an error.
-    (if (null primary-text)
-	(condition-case c
-	    (setq primary-text (x-get-selection 'PRIMARY 'COMPOUND_TEXT))
-	  (error nil)))
-    (if (null primary-text)
-	(condition-case c
-	    (setq primary-text (x-get-selection 'PRIMARY 'STRING))
-	  (error nil)))
+    (setq primary-text (x-selection-value 'PRIMARY))
     ;; Check the PRIMARY selection for 'newness', is it different
     ;; from what we remebered them to be last time we did a
     ;; cut/paste operation.
@@ -2205,17 +2327,26 @@ This is in addition to, but in preference to, the primary selection."
     ;; from what we remebered them to be last time we did a
     ;; cut/paste operation.
     (setq cut-text
-	  (cond;; check primary selection
+	  (cond;; check cut buffer
 	   ((or (not cut-text) (string= cut-text ""))
 	    (setq x-last-selected-text-cut nil))
-	   ((eq      cut-text x-last-selected-text-cut) nil)
-	   ((string= cut-text x-last-selected-text-cut)
+	   ;; This short cut doesn't work because x-get-cut-buffer
+	   ;; always returns a newly created string.
+	   ;; ((eq      cut-text x-last-selected-text-cut) nil)
+	   ((string= cut-text x-last-selected-text-cut-encoded)
+	    ;; See the comment above.  No need of this recording.
 	    ;; Record the newer string,
 	    ;; so subsequent calls can use the `eq' test.
-	    (setq x-last-selected-text-cut cut-text)
-      nil)
-     (t
-	    (setq x-last-selected-text-cut cut-text))))
+	    ;; (setq x-last-selected-text-cut cut-text)
+	    nil)
+	   (t
+	    (setq x-last-selected-text-cut-encoded cut-text
+		  x-last-selected-text-cut
+		  (decode-coding-string cut-text (or locale-coding-system
+						     'iso-latin-1))))))
+
+    ;; As we have done one selection, clear this now.
+    (setq next-selection-coding-system nil)
 
     ;; At this point we have recorded the current values for the
     ;; selection from clipboard (if we are supposed to) primary,
@@ -2241,12 +2372,12 @@ This is in addition to, but in preference to, the primary selection."
     ))
 
 
-;;; Do the actual X Windows setup here; the above code just defines
-;;; functions and variables that we use now.
+;; Do the actual X Windows setup here; the above code just defines
+;; functions and variables that we use now.
 
 (setq command-line-args (x-handle-args command-line-args))
 
-;;; Make sure we have a valid resource name.
+;; Make sure we have a valid resource name.
 (or (stringp x-resource-name)
     (let (i)
       (setq x-resource-name (invocation-name))
@@ -2298,12 +2429,6 @@ This is in addition to, but in preference to, the primary selection."
 	;; generated from FONT.
 	(create-fontset-from-ascii-font font resolved-name "startup"))))
 
-;; Sun expects the menu bar cut and paste commands to use the clipboard.
-;; This has ,? to match both on Sunos and on Solaris.
-(if (string-match "Sun Microsystems,? Inc\\."
-		  (x-server-vendor))
-    (menu-bar-enable-clipboard))
-
 ;; Apply a geometry resource to the initial frame.  Put it at the end
 ;; of the alist, so that anything specified on the command line takes
 ;; precedence.
@@ -2345,25 +2470,51 @@ This is in addition to, but in preference to, the primary selection."
       (setq x-selection-timeout (string-to-number res-selection-timeout))))
 
 (defun x-win-suspend-error ()
-  (error "Suspending an emacs running under X makes no sense"))
+  (error "Suspending an Emacs running under X makes no sense"))
 (add-hook 'suspend-hook 'x-win-suspend-error)
 
-;;; Arrange for the kill and yank functions to set and check the clipboard.
+;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-cut-function 'x-select-text)
 (setq interprogram-paste-function 'x-cut-buffer-or-selection-value)
 
-;;; Turn off window-splitting optimization; X is usually fast enough
-;;; that this is only annoying.
+;; Turn off window-splitting optimization; X is usually fast enough
+;; that this is only annoying.
 (setq split-window-keep-point t)
 
 ;; Don't show the frame name; that's redundant with X.
 (setq-default mode-line-frame-identification "  ")
 
-;;; Motif direct handling of f10 wasn't working right,
-;;; So temporarily we've turned it off in lwlib-Xm.c
-;;; and turned the Emacs f10 back on.
-;;; ;; Motif normally handles f10 itself, so don't try to handle it a second time.
-;;; (if (featurep 'motif)
-;;;     (global-set-key [f10] 'ignore))
+;; Motif direct handling of f10 wasn't working right,
+;; So temporarily we've turned it off in lwlib-Xm.c
+;; and turned the Emacs f10 back on.
+;; ;; Motif normally handles f10 itself, so don't try to handle it a second time.
+;; (if (featurep 'motif)
+;;     (global-set-key [f10] 'ignore))
 
+;; Turn on support for mouse wheels.
+(mouse-wheel-mode 1)
+
+
+;; Enable CLIPBOARD copy/paste through menu bar commands.
+(menu-bar-enable-clipboard)
+
+;; Override Paste so it looks at CLIPBOARD first.
+(defun x-clipboard-yank ()
+  "Insert the clipboard contents, or the last stretch of killed text."
+  (interactive)
+  (let ((clipboard-text (x-selection-value 'CLIPBOARD))
+	(x-select-enable-clipboard t))
+    (if (and clipboard-text (> (length clipboard-text) 0))
+	(kill-new clipboard-text))
+    (yank)))
+
+(define-key menu-bar-edit-menu [paste]
+  (cons "Paste" (cons "Paste text from clipboard or kill ring"
+		      'x-clipboard-yank)))
+
+;; Initiate drag and drop
+(add-hook 'after-make-frame-functions 'x-dnd-init-frame)
+(global-set-key [drag-n-drop] 'x-dnd-handle-drag-n-drop-event)
+
+;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
 ;;; x-win.el ends here

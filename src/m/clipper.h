@@ -1,5 +1,6 @@
 /* machine description file for clipper
-   Copyright (C) 1985, 1986, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
@@ -92,3 +93,6 @@ Boston, MA 02111-1307, USA.  */
 #endif /* USG */
 
 #define LD_TEXT_START_ADDR 8000
+
+/* arch-tag: 2f7981c1-7018-4a1e-b7b6-b2900de36a04
+   (do not change this comment) */

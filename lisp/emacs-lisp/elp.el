@@ -1,6 +1,7 @@
 ;;; elp.el --- Emacs Lisp Profiler
 
-;; Copyright (C) 1994,1995,1997,1998, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997, 1998, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw
 ;; Maintainer: FSF
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;
@@ -130,7 +131,7 @@
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
 (defgroup elp nil
-  "Emacs Lisp Profiler"
+  "Emacs Lisp Profiler."
   :group 'lisp)
 
 (defcustom elp-function-list nil
@@ -205,18 +206,28 @@ This variable is set by the master function.")
   "Master function symbol.")
 
 (defvar elp-not-profilable
-  '(elp-wrapper elp-elapsed-time error call-interactively apply current-time interactive-p)
+  ;; First, the functions used inside each instrumented function:
+  '(elp-wrapper called-interactively-p
+    ;; Then the functions used by the above functions.  I used
+    ;; (delq nil (mapcar (lambda (x) (and (symbolp x) (fboundp x) x))
+    ;;                   (aref (symbol-function 'elp-wrapper) 2)))
+    ;; to help me find this list.
+    error call-interactively apply current-time)
   "List of functions that cannot be profiled.
 Those functions are used internally by the profiling code and profiling
 them would thus lead to infinite recursion.")
 
-(defun elp-not-profilable-p (fun)
-  (or (memq fun elp-not-profilable)
-      (keymapp fun)
-      (condition-case nil
-	  (when (subrp (symbol-function fun))
-	    (eq 'unevalled (cdr (subr-arity (symbol-function fun)))))
-	(error nil))))
+(defun elp-profilable-p (fun)
+  (and (symbolp fun)
+       (fboundp fun)
+       (not (or (memq fun elp-not-profilable)
+                (keymapp fun)
+                (memq (car-safe (symbol-function fun)) '(autoload macro))
+                (condition-case nil
+                    (when (subrp (indirect-function fun))
+                      (eq 'unevalled
+                          (cdr (subr-arity (indirect-function fun)))))
+                  (error nil))))))
 
 
 ;;;###autoload
@@ -236,9 +247,6 @@ FUNSYM must be a symbol of a defined function."
   (let* ((funguts (symbol-function funsym))
 	 (infovec (vector 0 0 funguts))
 	 (newguts '(lambda (&rest args))))
-    ;; We cannot profile functions used internally during profiling.
-    (when (elp-not-profilable-p funsym)
-      (error "ELP cannot profile the function: %s" funsym))
     ;; we cannot profile macros
     (and (eq (car-safe funguts) 'macro)
 	 (error "ELP cannot profile macro: %s" funsym))
@@ -251,13 +259,16 @@ FUNSYM must be a symbol of a defined function."
     ;; type functionality (i.e. it shouldn't execute the function).
     (and (eq (car-safe funguts) 'autoload)
 	 (error "ELP cannot profile autoloaded function: %s" funsym))
+    ;; We cannot profile functions used internally during profiling.
+    (unless (elp-profilable-p funsym)
+      (error "ELP cannot profile the function: %s" funsym))
     ;; put rest of newguts together
     (if (commandp funsym)
 	(setq newguts (append newguts '((interactive)))))
     (setq newguts (append newguts `((elp-wrapper
 				     (quote ,funsym)
 				     ,(when (commandp funsym)
-					'(interactive-p))
+					'(called-interactively-p))
 				     args))))
     ;; to record profiling times, we set the symbol's function
     ;; definition so that it runs the elp-wrapper function with the
@@ -343,18 +354,15 @@ Use optional LIST if provided instead."
 For example, to instrument all ELP functions, do the following:
 
     \\[elp-instrument-package] RET elp- RET"
-  (interactive "sPrefix of package to instrument: ")
+  (interactive
+   (list (completing-read "Prefix of package to instrument: "
+                          obarray 'elp-profilable-p)))
   (if (zerop (length prefix))
       (error "Instrumenting all Emacs functions would render Emacs unusable"))
   (elp-instrument-list
    (mapcar
     'intern
-    (all-completions
-     prefix obarray
-     (lambda (sym)
-       (and (fboundp sym)
-	    (not (or (memq (car-safe (symbol-function sym)) '(autoload macro))
-		     (elp-not-profilable-p sym)))))))))
+    (all-completions prefix obarray 'elp-profilable-p))))
 
 (defun elp-restore-list (&optional list)
   "Restore the original definitions for all functions in `elp-function-list'.
@@ -487,12 +495,12 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
     ;; check for very large or small numbers
     (if (string-match "^\\(.*\\)\\(e[+-].*\\)$" number)
 	(concat (substring
-		 (substring number (match-beginning 1) (match-end 1))
+		 (match-string 1 number)
 		 0
 		 (- width (match-end 2) (- (match-beginning 2)) 3))
 		"..."
-		(substring number (match-beginning 2) (match-end 2)))
-      (concat (substring number 0 width)))))
+		(match-string 2 number))
+      (substring number 0 width))))
 
 (defun elp-output-result (resultvec)
   ;; output the RESULTVEC into the results buffer. RESULTVEC is a 4 or
@@ -513,7 +521,7 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 	     (numberp elp-report-limit)
 	     (< cc elp-report-limit))
 	nil
-      (insert symname)
+      (elp-output-insert-symname symname)
       (insert-char 32 (+ elp-field-len (- (length symname)) 2))
       ;; print stuff out, formatting it nicely
       (insert callcnt)
@@ -524,6 +532,27 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 	(insert-char 32 (+ elp-et-len (- (length ttstr)) 2))
 	(insert atstr))
       (insert "\n"))))
+
+(defvar elp-results-symname-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-2] 'elp-results-jump-to-definition)
+    (define-key map "\C-m" 'elp-results-jump-to-definition)
+    map)
+  "Keymap used on the function name column." )
+
+(defun elp-results-jump-to-definition (&optional event)
+  "Jump to the definition of the function under the point."
+  (interactive (list last-nonmenu-event))
+  (if event (posn-set-point (event-end event)))
+  (find-function (get-text-property (point) 'elp-symname)))
+
+(defun elp-output-insert-symname (symname)
+  ;; Insert SYMNAME with text properties.
+  (insert (propertize symname
+		      'elp-symname (intern symname)
+		      'keymap elp-results-symname-map
+		      'mouse-face 'highlight
+		      'help-echo "mouse-2 or RET jumps to definition")))
 
 ;;;###autoload
 (defun elp-results ()
@@ -538,7 +567,6 @@ displayed."
 		      (generate-new-buffer elp-results-buffer))))
     (set-buffer resultsbuf)
     (erase-buffer)
-    (beginning-of-buffer)
     ;; get the length of the longest function name being profiled
     (let* ((longest 0)
 	   (title "Function Name")
@@ -600,7 +628,9 @@ displayed."
 
 (defun elp-unload-hook ()
   (elp-restore-all))
+(add-hook 'elp-unload-hook 'elp-unload-hook)
 
 (provide 'elp)
 
+;; arch-tag: c4eef311-9b3e-4bb2-8a54-3485d41b4eb1
 ;;; elp.el ends here

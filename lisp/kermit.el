@@ -1,6 +1,6 @@
 ;;; kermit.el --- additions to shell mode for use with kermit
 
-;; Copyright (C) 1988 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jeff Norden <jeff@colgate.csnet>
 ;; Maintainer: FSF
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -149,4 +149,5 @@ command `kermit | tr -d '\\015''."
 
 (provide 'kermit)
 
+;;; arch-tag: 6633215d-6c47-4e66-9f27-16fba02a8dce
 ;;; kermit.el ends here

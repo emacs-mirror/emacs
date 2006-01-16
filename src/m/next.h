@@ -1,5 +1,5 @@
 /* Configuration file for the NeXT machine.
-   Copyright (C) 1990, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1990, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* Say this machine is a next if not previously defined */
@@ -121,3 +121,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* This should be true for recent NeXT systems.  At least since 3.2.  */
 #define HAVE_MACH_MACH_H
+
+/* arch-tag: 1155cdcb-1f6c-4208-a2da-22c7473060a1
+   (do not change this comment) */

@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,1997,2000,2001
-@c  Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
+@c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node MS-DOS, Manifesto, Mac OS, Top
 @appendix Emacs and MS-DOS
@@ -24,7 +24,8 @@ sections at the end of this chapter which apply specifically for the
 Windows version.
 
 @menu
-* Input: MS-DOS Input.         Keyboard and mouse usage on MS-DOS.
+* Keyboard: MS-DOS Keyboard.   Keyboard conventions on MS-DOS.
+* Mouse: MS-DOS Mouse.         Mouse conventions on MS-DOS.
 * Display: MS-DOS Display.     Fonts, frames and display size on MS-DOS.
 * Files: MS-DOS File Names.    File name conventions on MS-DOS.
 * Text and Binary::            Text files on MS-DOS use CRLF to separate lines.
@@ -35,8 +36,28 @@ Windows version.
 * Windows System Menu::        Controlling what the ALT key does.
 @end menu
 
-@node MS-DOS Input
-@section Keyboard and Mouse on MS-DOS
+@node MS-DOS Keyboard
+@section Keyboard Usage on MS-DOS
+
+@kindex DEL @r{(MS-DOS)}
+@kindex BS @r{(MS-DOS)}
+  The key that is called @key{DEL} in Emacs (because that's how it is
+designated on most workstations) is known as @key{BS} (backspace) on a
+PC.  That is why the PC-specific terminal initialization remaps the
+@key{BS} key to act as @key{DEL}; the @key{DELETE} key is remapped to act
+as @kbd{C-d} for the same reasons.
+
+@kindex C-g @r{(MS-DOS)}
+@kindex C-BREAK @r{(MS-DOS)}
+@cindex quitting on MS-DOS
+  Emacs built for MS-DOS recognizes @kbd{C-@key{BREAK}} as a quit
+character, just like @kbd{C-g}.  This is because Emacs cannot detect
+that you have typed @kbd{C-g} until it is ready for more input.  As a
+consequence, you cannot use @kbd{C-g} to stop a running command
+(@pxref{Quitting}).  By contrast, @kbd{C-@key{BREAK}} @emph{is} detected
+as soon as you type it (as @kbd{C-g} is on other systems), so it can be
+used to stop a running command and for emergency escape
+(@pxref{Emergency Escape}).
 
 @cindex Meta (under MS-DOS)
 @cindex Hyper (under MS-DOS)
@@ -68,25 +89,8 @@ following line into your @file{_emacs} file:
 (define-key function-key-map [kp-enter] [?\C-j])
 @end smallexample
 
-@kindex DEL @r{(MS-DOS)}
-@kindex BS @r{(MS-DOS)}
-  The key that is called @key{DEL} in Emacs (because that's how it is
-designated on most workstations) is known as @key{BS} (backspace) on a
-PC.  That is why the PC-specific terminal initialization remaps the
-@key{BS} key to act as @key{DEL}; the @key{DEL} key is remapped to act
-as @kbd{C-d} for the same reasons.
-
-@kindex C-g @r{(MS-DOS)}
-@kindex C-BREAK @r{(MS-DOS)}
-@cindex quitting on MS-DOS
-  Emacs built for MS-DOS recognizes @kbd{C-@key{BREAK}} as a quit
-character, just like @kbd{C-g}.  This is because Emacs cannot detect
-that you have typed @kbd{C-g} until it is ready for more input.  As a
-consequence, you cannot use @kbd{C-g} to stop a running command
-(@pxref{Quitting}).  By contrast, @kbd{C-@key{BREAK}} @emph{is} detected
-as soon as you type it (as @kbd{C-g} is on other systems), so it can be
-used to stop a running command and for emergency escape
-(@pxref{Emergency Escape}).
+@node MS-DOS Mouse
+@section Mouse Usage on MS-DOS
 
 @cindex mouse support under MS-DOS
   Emacs on MS-DOS supports a mouse (on the default terminal only).
@@ -141,7 +145,7 @@ the clipboard, and displays in the echo area a message to that effect.
 
 @vindex dos-display-scancodes
   The variable @code{dos-display-scancodes}, when non-@code{nil},
-directs Emacs to display the ASCII value and the keyboard scan code of
+directs Emacs to display the @acronym{ASCII} value and the keyboard scan code of
 each keystroke; this feature serves as a complement to the
 @code{view-lossage} command, for debugging.
 
@@ -281,7 +285,7 @@ only see their short 8+3 aliases.
 
 @cindex @env{HOME} directory under MS-DOS
   MS-DOS has no notion of home directory, so Emacs on MS-DOS pretends
-that the directory where it is installed is the value of @env{HOME}
+that the directory where it is installed is the value of the @env{HOME}
 environment variable.  That is, if your Emacs binary,
 @file{emacs.exe}, is in the directory @file{c:/utils/emacs/bin}, then
 Emacs acts as if @env{HOME} were set to @samp{c:/utils/emacs}.  In
@@ -352,7 +356,7 @@ effectively converts the file to Unix EOL style, like @code{dos2unix}.
 @findex add-untranslated-filesystem
   When you use NFS or Samba to access file systems that reside on
 computers using GNU or Unix systems, Emacs should not perform
-end-of-line translation on any files in these file systems--not even
+end-of-line translation on any files in these file systems---not even
 when you create a new file.  To request this, designate these file
 systems as @dfn{untranslated} file systems by calling the function
 @code{add-untranslated-filesystem}.  It takes one argument: the file
@@ -415,13 +419,12 @@ EOL conversion is determined by @code{file-name-buffer-file-type-alist}.
 @node MS-DOS Printing
 @section Printing and MS-DOS
 
-  Printing commands, such as @code{lpr-buffer} (@pxref{Hardcopy}) and
+  Printing commands, such as @code{lpr-buffer} (@pxref{Printing}) and
 @code{ps-print-buffer} (@pxref{PostScript}) can work in MS-DOS and
 MS-Windows by sending the output to one of the printer ports, if a
 Posix-style @code{lpr} program is unavailable.  The same Emacs
-variables control printing on all systems (@pxref{Hardcopy}), but in
-some cases they have different default values on MS-DOS and
-MS-Windows.
+variables control printing on all systems, but in some cases they have
+different default values on MS-DOS and MS-Windows.
 
 @vindex printer-name @r{(MS-DOS)}
   If you want to use your local printer, printing on it in the usual DOS
@@ -436,7 +439,7 @@ discarded (sent to the system null device).
 
   On MS-Windows, when the Windows network software is installed, you can
 also use a printer shared by another machine by setting
-@code{printer-name} to the UNC share name for that printer--for example,
+@code{printer-name} to the UNC share name for that printer---for example,
 @code{"//joes_pc/hp4si"}.  (It doesn't matter whether you use forward
 slashes or backslashes here.)  To find out the names of shared printers,
 run the command @samp{net view} at a DOS command prompt to obtain a list
@@ -466,7 +469,7 @@ Windows to capture a specific printer port such as @code{"LPT2"}, and
 redirect it to a networked printer via the @w{@code{Control
 Panel->Printers}} applet instead of @samp{net use}.
 
-  Some printers expect DOS codepage encoding of non-ASCII text, even
+  Some printers expect DOS codepage encoding of non-@acronym{ASCII} text, even
 though they are connected to a Windows machine which uses a different
 encoding for the same locale.  For example, in the Latin-1 locale, DOS
 uses codepage 850 whereas Windows uses codepage 1252.  @xref{MS-DOS and
@@ -580,6 +583,12 @@ However, due to incompatibilities between MS-DOS/MS-Windows and other systems,
 there are several DOS-specific aspects of this support that you should
 be aware of.  This section describes these aspects.
 
+  The description below is largely specific to the MS-DOS port of
+Emacs, especially where it talks about practical implications for
+Emacs users.  For other operating systems, see the @file{code-pages.el}
+package, which implements support for MS-DOS- and MS-Windows-specific
+encodings for all platforms other than MS-DOS.
+
 @table @kbd
 @item M-x dos-codepage-setup
 Set up Emacs display and coding systems as appropriate for the current
@@ -594,7 +603,7 @@ Create a coding system for a certain DOS codepage.
   MS-DOS is designed to support one character set of 256 characters at
 any given time, but gives you a variety of character sets to choose
 from.  The alternative character sets are known as @dfn{DOS codepages}.
-Each codepage includes all 128 ASCII characters, but the other 128
+Each codepage includes all 128 @acronym{ASCII} characters, but the other 128
 characters (codes 128 through 255) vary from one codepage to another.
 Each DOS codepage is identified by a 3-digit number, such as 850, 862,
 etc.
@@ -603,18 +612,18 @@ etc.
 MS-DOS normally doesn't allow use of several codepages in a single
 session.  MS-DOS was designed to load a single codepage at system
 startup, and require you to reboot in order to change
-it@footnote{Normally, one particular codepage is burnt into the display
-memory, while other codepages can be installed by modifying system
-configuration files, such as @file{CONFIG.SYS}, and rebooting.  While
-third-party software is known to exist that allows to change the
-codepage without rebooting, we describe here how a stock MS-DOS system
+it@footnote{Normally, one particular codepage is burnt into the
+display memory, while other codepages can be installed by modifying
+system configuration files, such as @file{CONFIG.SYS}, and rebooting.
+While there is third-party software that allows changing the codepage
+without rebooting, we describe here how a stock MS-DOS system
 behaves.}.  Much the same limitation applies when you run DOS
 executables on other systems such as MS-Windows.
 
 @cindex unibyte operation @r{(MS-DOS)}
   If you invoke Emacs on MS-DOS with the @samp{--unibyte} option
 (@pxref{Initial Options}), Emacs does not perform any conversion of
-non-ASCII characters.  Instead, it reads and writes any non-ASCII
+non-@acronym{ASCII} characters.  Instead, it reads and writes any non-@acronym{ASCII}
 characters verbatim, and sends their 8-bit codes to the display
 verbatim.  Thus, unibyte Emacs on MS-DOS supports the current codepage,
 whatever it may be, but cannot even represent any other characters.
@@ -668,7 +677,7 @@ language environment for that script (@pxref{Language Environments}).
 
   If a buffer contains a character belonging to some other ISO 8859
 character set, not the one that the chosen DOS codepage supports, Emacs
-displays it using a sequence of ASCII characters.  For example, if the
+displays it using a sequence of @acronym{ASCII} characters.  For example, if the
 current codepage doesn't have a glyph for the letter @samp{@`o} (small
 @samp{o} with a grave accent), it is displayed as @samp{@{`o@}}, where
 the braces serve as a visual indication that this is a single character.
@@ -718,7 +727,8 @@ DOS codepages for the same locale.  For example, DOS codepage 850
 supports the same character set as Windows codepage 1252; DOS codepage
 855 supports the same character set as Windows codepage 1251, etc.
 The MS-Windows version of Emacs uses the current codepage for display
-when invoked with the @samp{-nw} option.
+when invoked with the @samp{-nw} option.  Support for codepages in the
+Windows port of Emacs is part of the @file{code-pages.el} package.
 
 @node MS-DOS Processes
 @section Subprocesses on MS-DOS
@@ -749,12 +759,12 @@ asynchronous invocation on other platforms
 the @kbd{M-x eshell} command.  This invokes the Eshell package that
 implements a Posix-like shell entirely in Emacs Lisp.
 
-  By contrast, Emacs compiled as native Windows application
+  By contrast, Emacs compiled as a native Windows application
 @strong{does} support asynchronous subprocesses.  @xref{Windows
 Processes}.
 
 @cindex printing under MS-DOS
-  Printing commands, such as @code{lpr-buffer} (@pxref{Hardcopy}) and
+  Printing commands, such as @code{lpr-buffer} (@pxref{Printing}) and
 @code{ps-print-buffer} (@pxref{PostScript}), work in MS-DOS by sending
 the output to one of the printer ports.  @xref{MS-DOS Printing}.
 
@@ -782,7 +792,7 @@ the @code{dired-listing-switches} variable.  The options that work are
 @node Windows Processes
 @section Subprocesses on Windows 9X/ME and Windows NT/2K
 
-Emacs compiled as a native Windows application (as opposed to the DOS
+  Emacs compiled as a native Windows application (as opposed to the DOS
 version) includes full support for asynchronous subprocesses.
 In the Windows version, synchronous and asynchronous subprocesses work
 fine on both
@@ -840,6 +850,9 @@ effect of bringing up the Windows menu, it alters the meaning of
 subsequent commands.  Many users find this frustrating.
 
 @vindex w32-pass-alt-to-system
-You can reenable Windows's default handling of tapping the @key{ALT} key
+You can re-enable Windows' default handling of tapping the @key{ALT} key
 by setting @code{w32-pass-alt-to-system} to a non-@code{nil} value.
 
+@ignore
+   arch-tag: f39d2590-5dcc-4318-88d9-0eb73ca10fa2
+@end ignore

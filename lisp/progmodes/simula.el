@@ -1,6 +1,7 @@
 ;;; simula.el --- SIMULA 87 code editing commands for Emacs
 
-;; Copyright (C) 1992, 1994, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Hans Henrik Eriksen <hhe@ifi.uio.no>
 ;; Maintainer: simula-mode@ifi.uio.no
@@ -21,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -39,6 +40,7 @@
 
 (defgroup simula nil
   "Major mode for editing Simula code."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :prefix "simula-"
   :group 'languages)
 
@@ -380,7 +382,7 @@ with no arguments, if that value is non-nil."
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'simula-indent-line)
   (make-local-variable 'require-final-newline)
-  (setq require-final-newline t)
+  (setq require-final-newline mode-require-final-newline)
   (make-local-variable 'comment-start)
   (setq comment-start "! ")
   (make-local-variable 'comment-end)
@@ -398,11 +400,6 @@ with no arguments, if that value is non-nil."
 	  nil t ((?_ . "w")) nil
 	  (font-lock-syntactic-keywords . simula-font-lock-syntactic-keywords)))
   (abbrev-mode 1))
-
-(if simula-abbrev-file
-    (read-abbrev-file simula-abbrev-file))
-(let (abbrevs-changed)
-  (simula-install-standard-abbrevs))
 
 (defun simula-indent-exp ()
   "Indent SIMULA expression following point."
@@ -1378,8 +1375,7 @@ If not nil and not t, move to limit of search and return nil."
   "Define Simula keywords, procedures and classes in local abbrev table."
   ;; procedure and class names are as of the SIMULA 87 standard.
   (interactive)
-  (mapcar (function (lambda (args)
-		      (apply 'define-abbrev simula-mode-abbrev-table args)))
+  (dolist (args
 	  '(("abs" "Abs" simula-expand-stdproc)
 	    ("accum" "Accum" simula-expand-stdproc)
 	    ("activate" "ACTIVATE" simula-expand-keyword)
@@ -1609,7 +1605,14 @@ If not nil and not t, move to limit of search and return nil."
 	    ("virtual" "VIRTUAL" simula-expand-keyword)
 	    ("wait" "Wait" simula-expand-stdproc)
 	    ("when" "WHEN" simula-electric-keyword)
-	    ("while" "WHILE" simula-expand-keyword))))
+	    ("while" "WHILE" simula-expand-keyword)))
+    (define-abbrev simula-mode-abbrev-table
+      (nth 0 args) (nth 1 args) (nth 2 args) nil 'system)))
+
+(if simula-abbrev-file
+    (read-abbrev-file simula-abbrev-file))
+(let (abbrevs-changed)
+  (simula-install-standard-abbrevs))
 
 ;; Hilit mode support.
 (if (and (fboundp 'hilit-set-mode-patterns)
@@ -1655,4 +1658,5 @@ If not nil and not t, move to limit of search and return nil."
 
 (provide 'simula)
 
+;;; arch-tag: 488c1bb0-eebf-4f06-93df-1df603f06255
 ;;; simula.el ends here

@@ -1,12 +1,12 @@
 ;;; calc.el --- the GNU Emacs calculator
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 ;; Keywords: convenience, extensions
-;; Version: 2.02g
+;; Version: 2.1
 
 ;; This file is part of GNU Emacs.
 
@@ -204,112 +204,330 @@
 
 ;;; Code:
 
-(provide 'calc)
 (require 'calc-macs)
 
-;;; The "###autoload" comment will be used by Emacs version 19 for
-;;; maintaining the loaddefs.el file automatically.
+(defgroup calc nil
+  "GNU Calc."
+  :prefix "calc-"
+  :tag    "Calc"
+  :group  'applications)
 
 ;;;###autoload
-(defvar calc-info-filename "calc.info"
-  "*File name in which to look for the Calculator's Info documentation.")
+(defcustom calc-settings-file 
+  (convert-standard-filename "~/.calc.el")
+  "*File in which to record permanent settings."
+  :group 'calc
+  :type '(file))
 
-;;;###autoload
-(defvar calc-settings-file user-init-file
-  "*File in which to record permanent settings; default is `user-init-file'.")
+(defcustom calc-language-alist
+  '((latex-mode . latex)
+    (tex-mode   . tex)
+    (plain-tex-mode . tex)
+    (context-mode . tex)
+    (nroff-mode . eqn)
+    (pascal-mode . pascal)
+    (c-mode . c)
+    (c++-mode . c)
+    (fortran-mode . fortran)
+    (f90-mode . fortran))
+  "*Alist of major modes with appropriate Calc languages."
+  :group 'calc
+  :type '(alist :key-type (symbol :tag "Major mode") 
+                :value-type (symbol :tag "Calc language")))
 
-;;;###autoload
-(defvar calc-autoload-directory nil
-  "Name of directory from which additional \".elc\" files for Calc should be
-loaded.  Should include a trailing \"/\".
-If nil, use original installation directory.
-This can safely be nil as long as the Calc files are on the load-path.")
+(defcustom calc-embedded-announce-formula 
+  "%Embed\n\\(% .*\n\\)*"
+  "*A regular expression which is sure to be followed by a calc-embedded formula."
+  :group 'calc
+  :type '(regexp))
 
-;;;###autoload
-(defvar calc-gnuplot-name "gnuplot"
-  "*Name of GNUPLOT program, for calc-graph features.")
+(defcustom calc-embedded-announce-formula-alist
+  '((c++-mode     . "//Embed\n\\(// .*\n\\)*")
+    (c-mode       . "/\\*Embed\\*/\n\\(/\\* .*\\*/\n\\)*")
+    (f90-mode     . "!Embed\n\\(! .*\n\\)*")
+    (fortran-mode . "C Embed\n\\(C .*\n\\)*")
+    (html-helper-mode . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (html-mode    . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (nroff-mode   . "\\\\\"Embed\n\\(\\\\\" .*\n\\)*")
+    (pascal-mode  . "{Embed}\n\\({.*}\n\\)*")
+    (sgml-mode    . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (xml-mode     . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (texinfo-mode . "@c Embed\n\\(@c .*\n\\)*"))
+  "*Alist of major modes with appropriate values for `calc-embedded-announce-formula'."
+  :group 'calc
+  :type '(alist :key-type (symbol :tag "Major mode")
+                :value-type (regexp :tag "Regexp to announce formula")))
 
-;;;###autoload
-(defvar calc-gnuplot-plot-command nil
-  "*Name of command for displaying GNUPLOT output; %s = file name to print.")
+(defcustom calc-embedded-open-formula 
+  "\\`\\|^\n\\|\\$\\$?\\|\\\\\\[\\|^\\\\begin[^{].*\n\\|^\\\\begin{.*[^x]}.*\n\\|^@.*\n\\|^\\.EQ.*\n\\|\\\\(\\|^%\n\\|^\\.\\\\\"\n"
+  "*A regular expression for the opening delimiter of a formula used by calc-embedded."
+  :group 'calc
+  :type '(regexp))
 
-;;;###autoload
-(defvar calc-gnuplot-print-command "lp %s"
-  "*Name of command for printing GNUPLOT output; %s = file name to print.")
+(defcustom calc-embedded-close-formula 
+  "\\'\\|\n$\\|\\$\\$?\\|\\\\]\\|^\\\\end[^{].*\n\\|^\\\\end{.*[^x]}.*\n\\|^@.*\n\\|^\\.EN.*\n\\|\\\\)\\|\n%\n\\|^\\.\\\\\"\n"
+  "*A regular expression for the closing delimiter of a formula used by calc-embedded."
+  :group 'calc
+  :type '(regexp))
 
-(defvar calc-bug-address "deego@gnufans.org"
-  "Address of the author of Calc, for use by `report-calc-bug'.")
+(defcustom calc-embedded-open-close-formula-alist
+  nil
+  "*Alist of major modes with pairs of formula delimiters used by calc-embedded."
+  :group 'calc
+  :type '(alist :key-type (symbol :tag "Major mode")
+                :value-type (list (regexp :tag "Opening formula delimiter")
+                                  (regexp :tag "Closing formula delimiter"))))
+
+(defcustom calc-embedded-open-word 
+  "^\\|[^-+0-9.eE]"
+  "*A regular expression for the opening delimiter of a formula used by calc-embedded-word."
+  :group 'calc
+  :type '(regexp))
+
+(defcustom calc-embedded-close-word 
+  "$\\|[^-+0-9.eE]"
+  "*A regular expression for the closing delimiter of a formula used by calc-embedded-word."
+  :group 'calc
+  :type '(regexp))
+
+(defcustom calc-embedded-open-close-word-alist
+  nil
+  "*Alist of major modes with pairs of word delimiters used by calc-embedded."
+  :group 'calc
+  :type '(alist :key-type (symbol :tag "Major mode")
+                :value-type (list (regexp :tag "Opening word delimiter")
+                                  (regexp :tag "Closing word delimiter"))))
+
+(defcustom calc-embedded-open-plain 
+  "%%% "
+  "*A string which is the opening delimiter for a \"plain\" formula.
+If calc-show-plain mode is enabled, this is inserted at the front of
+each formula."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-embedded-close-plain 
+  " %%%\n"
+  "*A string which is the closing delimiter for a \"plain\" formula.
+See calc-embedded-open-plain."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-embedded-open-close-plain-alist
+  '((c++-mode     "// %% "   " %%\n")
+    (c-mode       "/* %% "   " %% */\n")
+    (f90-mode     "! %% "    " %%\n")
+    (fortran-mode "C %% "    " %%\n")
+    (html-helper-mode "<!-- %% " " %% -->\n")
+    (html-mode "<!-- %% " " %% -->\n")
+    (nroff-mode   "\\\" %% " " %%\n")
+    (pascal-mode  "{%% "    " %%}\n")
+    (sgml-mode     "<!-- %% " " %% -->\n")
+    (xml-mode     "<!-- %% " " %% -->\n")
+    (texinfo-mode "@c %% "   " %%\n"))
+  "*Alist of major modes with pairs of delimiters for \"plain\" formulas."
+  :group 'calc
+  :type '(alist :key-type (symbol :tag "Major mode")
+                :value-type (list (string :tag "Opening \"plain\" delimiter")
+                                  (string :tag "Closing \"plain\" delimiter"))))
+
+(defcustom calc-embedded-open-new-formula 
+  "\n\n"
+  "*A string which is inserted at front of formula by calc-embedded-new-formula."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-embedded-close-new-formula 
+  "\n\n"
+  "*A string which is inserted at end of formula by calc-embedded-new-formula."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-embedded-open-close-new-formula-alist
+  nil
+  "*Alist of major modes with pairs of new formula delimiters used by calc-embedded."
+  :group 'calc
+  :type '(alist :key-type (symbol :tag "Major mode")
+                :value-type (list (string :tag "Opening new formula delimiter")
+                                  (string :tag "Closing new formula delimiter"))))
+
+(defcustom calc-embedded-open-mode 
+  "% "
+  "*A string which should precede calc-embedded mode annotations.
+This is not required to be present for user-written mode annotations."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-embedded-close-mode 
+  "\n"
+  "*A string which should follow calc-embedded mode annotations.
+This is not required to be present for user-written mode annotations."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-embedded-open-close-mode-alist
+  '((c++-mode     "// "   "\n")
+    (c-mode       "/* "   " */\n")
+    (f90-mode     "! "    "\n")
+    (fortran-mode "C "    "\n")
+    (html-helper-mode "<!-- " " -->\n")
+    (html-mode    "<!-- " " -->\n")
+    (nroff-mode   "\\\" " "\n")
+    (pascal-mode  "{ "    " }\n")
+    (sgml-mode    "<!-- " " -->\n")
+    (xml-mode     "<!-- " " -->\n")
+    (texinfo-mode "@c "   "\n"))
+  "*Alist of major modes with pairs of strings to delimit annotations."
+  :group 'calc
+  :type '(alist :key-type (symbol :tag "Major mode")
+                :value-type (list (string :tag "Opening annotation delimiter")
+                                  (string :tag "Closing annotation delimiter"))))
+
+(defcustom calc-gnuplot-name 
+  "gnuplot"
+  "*Name of GNUPLOT program, for calc-graph features."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-gnuplot-plot-command 
+  nil
+  "*Name of command for displaying GNUPLOT output; %s = file name to print."
+  :group 'calc
+  :type '(choice (string) (sexp)))
+
+(defcustom calc-gnuplot-print-command 
+  "lp %s"
+  "*Name of command for printing GNUPLOT output; %s = file name to print."
+  :group 'calc
+  :type '(choice (string) (sexp)))
+
+(defvar calc-bug-address "belanger@truman.edu"
+  "Address of the maintainer of Calc, for use by `report-calc-bug'.")
 
 (defvar calc-scan-for-dels t
   "If t, scan keymaps to find all DEL-like keys.
 if nil, only DEL itself is mapped to calc-pop.")
 
-(defvar calc-extensions-loaded nil)
-
 (defvar calc-stack '((top-of-stack 1 nil))
   "Calculator stack.
 Entries are 3-lists:  Formula, Height (in lines), Selection (or nil).")
-
-(defvar calc-show-banner t
-  "*If non-nil, show a friendly greeting above the stack.")
 
 (defvar calc-stack-top 1
   "Index into `calc-stack' of \"top\" of stack.
 This is 1 unless `calc-truncate-stack' has been used.")
 
-(defvar calc-always-load-extensions nil
+(defvar calc-display-sci-high 0
+  "Floating-point numbers with this positive exponent or higher above the
+current precision are displayed in scientific notation in calc-mode.")
+
+(defvar calc-display-sci-low -3
+  "Floating-point numbers with this negative exponent or lower are displayed
+scientific notation in calc-mode.")
+
+(defvar calc-other-modes nil
+  "List of used-defined strings to append to Calculator mode line.")
+
+(defvar calc-Y-help-msgs nil
+  "List of strings for Y prefix help.")
+
+(defvar calc-loaded-settings-file nil
+  "t if `calc-settings-file' has been loaded yet.")
+
+
+(defvar calc-mode-var-list '()
+  "List of variables used in customizing GNU Calc.")
+
+(defmacro defcalcmodevar (var defval &optional doc)
+  `(progn
+     (defvar ,var ,defval ,doc)
+     (add-to-list 'calc-mode-var-list (list (quote ,var) ,defval))))
+
+(defun calc-mode-var-list-restore-default-values ()
+  (mapcar (function (lambda (v) (set (car v) (nth 1 v))))
+          calc-mode-var-list))
+
+(defun calc-mode-var-list-restore-saved-values ()
+  (let ((newvarlist '()))
+    (save-excursion
+      (let (pos
+            (file (substitute-in-file-name calc-settings-file)))
+        (when (and
+               (file-regular-p file)
+               (set-buffer (find-file-noselect file))
+               (goto-char (point-min))
+               (search-forward ";;; Mode settings stored by Calc" nil t)
+               (progn
+                 (forward-line 1)
+                 (setq pos (point))
+                 (search-forward "\n;;; End of mode settings" nil t)))
+          (beginning-of-line)
+          (calc-mode-var-list-restore-default-values)
+          (eval-region pos (point))
+          (let ((varlist calc-mode-var-list))
+            (while varlist
+              (let ((var (car varlist)))
+                (setq newvarlist
+                      (cons (list (car var) (symbol-value (car var)))
+                            newvarlist)))
+              (setq varlist (cdr varlist)))))))
+    (if newvarlist
+        (mapcar (function (lambda (v) (set (car v) (nth 1 v))))
+                newvarlist)
+      (calc-mode-var-list-restore-default-values))))
+
+(defcalcmodevar calc-always-load-extensions nil
   "If non-nil, load the calc-ext module automatically when calc is loaded.")
 
-(defvar calc-line-numbering t
+(defcalcmodevar  calc-line-numbering t
   "If non-nil, display line numbers in Calculator stack.")
 
-(defvar calc-line-breaking t
+(defcalcmodevar calc-line-breaking t
   "If non-nil, break long values across multiple lines in Calculator stack.")
 
-(defvar calc-display-just nil
+(defcalcmodevar calc-display-just nil
   "If nil, stack display is left-justified.
 If `right', stack display is right-justified.
 If `center', stack display is centered.")
 
-(defvar calc-display-origin nil
+(defcalcmodevar calc-display-origin nil
   "Horizontal origin of displayed stack entries.
 In left-justified mode, this is effectively indentation.  (Default 0).
 In right-justified mode, this is effectively window width.
 In centered mode, center of stack entry is placed here.")
 
-(defvar calc-number-radix 10
+(defcalcmodevar calc-number-radix 10
   "Radix for entry and display of numbers in calc-mode, 2-36.")
 
-(defvar calc-leading-zeros nil
+(defcalcmodevar calc-leading-zeros nil
   "If non-nil, leading zeros are provided to pad integers to calc-word-size.")
 
-(defvar calc-group-digits nil
+(defcalcmodevar calc-group-digits nil
   "If non-nil, group digits in large displayed integers by inserting spaces.
 If an integer, group that many digits at a time.
 If t, use 4 for binary and hex, 3 otherwise.")
 
-(defvar calc-group-char ","
+(defcalcmodevar calc-group-char ","
   "The character (in the form of a string) to be used for grouping digits.
 This is used only when calc-group-digits mode is on.")
 
-(defvar calc-point-char "."
+(defcalcmodevar calc-point-char "."
   "The character (in the form of a string) to be used as a decimal point.")
-
-(defvar calc-frac-format '(":" nil)
+  
+(defcalcmodevar calc-frac-format '(":" nil)
   "Format of displayed fractions; a string of one or two of \":\" or \"/\".")
 
-(defvar calc-prefer-frac nil
+(defcalcmodevar calc-prefer-frac nil
   "If non-nil, prefer fractional over floating-point results.")
 
-(defvar calc-hms-format "%s@ %s' %s\""
+(defcalcmodevar calc-hms-format "%s@ %s' %s\""
   "Format of displayed hours-minutes-seconds angles, a format string.
 String must contain three %s marks for hours, minutes, seconds respectively.")
 
-(defvar calc-date-format '((H ":" mm C SS pp " ")
-			   Www " " Mmm " " D ", " YYYY)
+(defcalcmodevar calc-date-format '((H ":" mm C SS pp " ")
+                                  Www " " Mmm " " D ", " YYYY)
   "Format of displayed date forms.")
 
-(defvar calc-float-format '(float 0)
+(defcalcmodevar calc-float-format '(float 0)
   "Format to use for display of floating-point numbers in calc-mode.
 Must be a list of one of the following forms:
  (float 0)      Floating point format, display full precision.
@@ -323,53 +541,53 @@ Must be a list of one of the following forms:
  (eng N)        N > 0: Engineering notation, N significant figures.
  (eng -N)       -N < 0: Engineering notation, calc-internal-prec - N figs.")
 
-(defvar calc-full-float-format '(float 0)
+(defcalcmodevar calc-full-float-format '(float 0)
   "Format to use when full precision must be displayed.")
 
-(defvar calc-complex-format nil
+(defcalcmodevar calc-complex-format nil
   "Format to use for display of complex numbers in calc-mode.  Must be one of:
   nil            Use (x, y) form.
   i              Use x + yi form.
   j              Use x + yj form.")
 
-(defvar calc-complex-mode 'cplx
+(defcalcmodevar calc-complex-mode 'cplx
   "Preferred form, either `cplx' or `polar', for complex numbers.")
 
-(defvar calc-infinite-mode nil
+(defcalcmodevar calc-infinite-mode nil
   "If nil, 1 / 0 is left unsimplified.
 If 0, 1 / 0 is changed to inf (zeros are considered positive).
 Otherwise, 1 / 0 is changed to uinf (undirected infinity).")
 
-(defvar calc-display-strings nil
+(defcalcmodevar calc-display-strings nil
   "If non-nil, display vectors of byte-sized integers as strings.")
 
-(defvar calc-matrix-just 'center
+(defcalcmodevar calc-matrix-just 'center
   "If nil, vector elements are left-justified.
 If `right', vector elements are right-justified.
 If `center', vector elements are centered.")
 
-(defvar calc-break-vectors nil
+(defcalcmodevar calc-break-vectors nil
   "If non-nil, display vectors one element per line.")
 
-(defvar calc-full-vectors t
+(defcalcmodevar calc-full-vectors t
   "If non-nil, display long vectors in full.  If nil, use abbreviated form.")
 
-(defvar calc-full-trail-vectors t
+(defcalcmodevar calc-full-trail-vectors t
   "If non-nil, display long vectors in full in the trail.")
 
-(defvar calc-vector-commas ","
+(defcalcmodevar calc-vector-commas ","
   "If non-nil, separate elements of displayed vectors with this string.")
 
-(defvar calc-vector-brackets "[]"
+(defcalcmodevar calc-vector-brackets "[]"
   "If non-nil, surround displayed vectors with these characters.")
 
-(defvar calc-matrix-brackets '(R O)
+(defcalcmodevar calc-matrix-brackets '(R O)
   "A list of code-letter symbols that control \"big\" matrix display.
 If `R' is present, display inner brackets for matrices.
 If `O' is present, display outer brackets for matrices (above/below).
 If `C' is present, display outer brackets for matrices (centered).")
 
-(defvar calc-language nil
+(defcalcmodevar calc-language nil
   "Language or format for entry and display of stack values.  Must be one of:
   nil		Use standard Calc notation.
   flat		Use standard Calc notation, one-line format.
@@ -379,41 +597,27 @@ If `C' is present, display outer brackets for matrices (centered).")
   pascal	Use Pascal language notation.
   fortran	Use Fortran language notation.
   tex		Use TeX notation.
+  latex         Use LaTeX notation.
   eqn		Use eqn notation.
   math		Use Mathematica(tm) notation.
   maple		Use Maple notation.")
 
-(defvar calc-language-option nil
+(defcalcmodevar calc-language-option nil
   "Numeric prefix argument for the command that set `calc-language'.")
 
-(defvar calc-function-open "("
-  "Open-parenthesis string for function call notation.")
-
-(defvar calc-function-close ")"
-  "Close-parenthesis string for function call notation.")
-
-(defvar calc-language-output-filter nil
-  "Function through which to pass strings after formatting.")
-
-(defvar calc-language-input-filter nil
-  "Function through which to pass strings before parsing.")
-
-(defvar calc-radix-formatter nil
-  "Formatting function used for non-decimal numbers.")
-
-(defvar calc-left-label ""
+(defcalcmodevar calc-left-label ""
   "Label to display at left of formula.")
 
-(defvar calc-right-label ""
+(defcalcmodevar calc-right-label ""
   "Label to display at right of formula.")
 
-(defvar calc-word-size 32
+(defcalcmodevar calc-word-size 32
   "Minimum number of bits per word, if any, for binary operations in calc-mode.")
 
-(defvar calc-previous-modulo nil
+(defcalcmodevar calc-previous-modulo nil
   "Most recently used value of M in a modulo form.")
 
-(defvar calc-simplify-mode nil
+(defcalcmodevar calc-simplify-mode nil
   "Type of simplification applied to results.
 If `none', results are not simplified when pushed on the stack.
 If `num', functions are simplified only when args are constant.
@@ -423,96 +627,69 @@ If `alg', `math-simplify' is applied.
 If `ext', `math-simplify-extended' is applied.
 If `units', `math-simplify-units' is applied.")
 
-(defvar calc-auto-recompute t
+(defcalcmodevar calc-auto-recompute t
   "If non-nil, recompute evalto's automatically when necessary.")
 
-(defvar calc-display-raw nil
-  "If non-nil, display shows unformatted Lisp exprs.  (For debugging)")
+(defcalcmodevar calc-display-raw nil
+  "If non-nil, display shows unformatted Lisp exprs. (For debugging)")
 
-(defvar calc-internal-prec 12
+(defcalcmodevar calc-internal-prec 12
   "Number of digits of internal precision for calc-mode calculations.")
 
-(defvar calc-inverse-flag nil
-  "If non-nil, next operation is Inverse.")
-
-(defvar calc-hyperbolic-flag nil
-  "If non-nil, next operation is Hyperbolic.")
-
-(defvar calc-keep-args-flag nil
-  "If non-nil, next operation should not remove its arguments from stack.")
-
-(defvar calc-angle-mode 'deg
+(defcalcmodevar calc-angle-mode 'deg
   "If deg, angles are in degrees; if rad, angles are in radians.
 If hms, angles are in degrees-minutes-seconds.")
 
-(defvar calc-algebraic-mode nil
+(defcalcmodevar calc-algebraic-mode nil
   "If non-nil, numeric entry accepts whole algebraic expressions.
 If nil, algebraic expressions must be preceded by \"'\".")
 
-(defvar calc-incomplete-algebraic-mode nil
+(defcalcmodevar calc-incomplete-algebraic-mode nil
   "Like calc-algebraic-mode except only affects ( and [ keys.")
 
-(defvar calc-symbolic-mode nil
+(defcalcmodevar calc-symbolic-mode nil
   "If non-nil, inexact numeric computations like sqrt(2) are postponed.
 If nil, computations on numbers always yield numbers where possible.")
 
-(defvar calc-matrix-mode nil
+(defcalcmodevar calc-matrix-mode nil
   "If `matrix', variables are assumed to be matrix-valued.
 If a number, variables are assumed to be NxN matrices.
+If `sqmatrix', variables are assumed to be square matrices of an unspecified size.
 If `scalar', variables are assumed to be scalar-valued.
 If nil, symbolic math routines make no assumptions about variables.")
 
-(defvar calc-shift-prefix nil
+(defcalcmodevar calc-shift-prefix nil
   "If non-nil, shifted letter keys are prefix keys rather than normal meanings.")
 
-(defvar calc-window-height 7
+(defcalcmodevar calc-window-height 7
   "Initial height of Calculator window.")
 
-(defvar calc-display-trail t
+(defcalcmodevar calc-display-trail t
   "If non-nil, M-x calc creates a window to display Calculator trail.")
 
-(defvar calc-show-selections t
+(defcalcmodevar calc-show-selections t
   "If non-nil, selected sub-formulas are shown by obscuring rest of formula.
 If nil, selected sub-formulas are highlighted by obscuring the sub-formulas.")
 
-(defvar calc-use-selections t
+(defcalcmodevar calc-use-selections t
   "If non-nil, commands operate only on selected portions of formulas.
 If nil, selections displayed but ignored.")
 
-(defvar calc-assoc-selections t
+(defcalcmodevar calc-assoc-selections t
   "If non-nil, selection hides deep structure of associative formulas.")
 
-(defvar calc-display-working-message 'lots
+(defcalcmodevar calc-display-working-message 'lots
   "If non-nil, display \"Working...\" for potentially slow Calculator commands.")
 
-(defvar calc-auto-why 'maybe
+(defcalcmodevar calc-auto-why 'maybe
   "If non-nil, automatically execute a \"why\" command to explain odd results.")
 
-(defvar calc-timing nil
+(defcalcmodevar calc-timing nil
   "If non-nil, display timing information on each slow command.")
 
-(defvar calc-display-sci-high 0
-  "Floating-point numbers with this positive exponent or higher above the
-current precision are displayed in scientific notation in calc-mode.")
+(defcalcmodevar calc-mode-save-mode 'local)
 
-(defvar calc-display-sci-low -3
-  "Floating-point numbers with this negative exponent or lower are displayed
-scientific notation in calc-mode.")
-
-
-(defvar calc-other-modes nil
-  "List of used-defined strings to append to Calculator mode line.")
-
-(defvar calc-Y-help-msgs nil
-  "List of strings for Y prefix help.")
-
-(defvar calc-loaded-settings-file nil
-  "t if `calc-settings-file' has been loaded yet.")
-
-
-
-(defvar calc-mode-save-mode 'local)
-(defvar calc-standard-date-formats
+(defcalcmodevar calc-standard-date-formats
   '("N"
     "<H:mm:SSpp >Www Mmm D, YYYY"
     "D Mmm YYYY<, h:mm:SS>"
@@ -523,19 +700,33 @@ scientific notation in calc-mode.")
     "D-M-Y< h:mm:SS>"
     "j<, h:mm:SS>"
     "YYddd< hh:mm:ss>"))
-(defvar calc-autorange-units nil)
-(defvar calc-was-keypad-mode nil)
-(defvar calc-full-mode nil)
-(defvar calc-user-parse-tables nil)
-(defvar calc-gnuplot-default-device "default")
-(defvar calc-gnuplot-default-output "STDOUT")
-(defvar calc-gnuplot-print-device "postscript")
-(defvar calc-gnuplot-print-output "auto")
-(defvar calc-gnuplot-geometry nil)
-(defvar calc-graph-default-resolution 15)
-(defvar calc-graph-default-resolution-3d 5)
-(defvar calc-invocation-macro nil)
-(defvar calc-show-banner t)
+
+(defcalcmodevar calc-autorange-units nil)
+  
+(defcalcmodevar calc-was-keypad-mode nil)
+  
+(defcalcmodevar calc-full-mode nil)
+
+(defcalcmodevar calc-user-parse-tables nil)
+
+(defcalcmodevar calc-gnuplot-default-device "default")
+
+(defcalcmodevar calc-gnuplot-default-output "STDOUT")
+
+(defcalcmodevar calc-gnuplot-print-device "postscript")
+  
+(defcalcmodevar calc-gnuplot-print-output "auto")
+
+(defcalcmodevar calc-gnuplot-geometry nil)
+
+(defcalcmodevar calc-graph-default-resolution 15)
+
+(defcalcmodevar calc-graph-default-resolution-3d 5)
+  
+(defcalcmodevar calc-invocation-macro nil)
+
+(defcalcmodevar calc-show-banner t
+  "*If non-nil, show a friendly greeting above the stack.")
 
 (defconst calc-local-var-list '(calc-stack
 				calc-stack-top
@@ -592,19 +783,38 @@ scientific notation in calc-mode.")
 				calc-word-size
 				calc-internal-prec))
 
+(defvar calc-mode-hook nil
+  "Hook run when entering calc-mode.")
+
+(defvar calc-trail-mode-hook nil
+  "Hook run when entering calc-trail-mode.")
+
+(defvar calc-start-hook nil
+  "Hook run when calc is started.")
+
+(defvar calc-end-hook nil
+  "Hook run when calc is quit.")
+
+(defvar calc-load-hook nil
+  "Hook run when calc.el is loaded.")
+
+(defvar calc-window-hook nil
+  "Hook called to create the Calc window.")
+
+(defvar calc-trail-window-hook nil
+  "Hook called to create the Calc trail window.")
+
+(defvar calc-embedded-new-buffer-hook nil
+  "Hook run when starting embedded mode in a new buffer.")
+
+(defvar calc-embedded-new-formula-hook nil
+  "Hook run when starting embedded mode in a new formula.")
+
+(defvar calc-embedded-mode-hook nil
+  "Hook run when starting embedded mode.")
 
 ;; Verify that Calc is running on the right kind of system.
-(defconst calc-emacs-type-epoch (and (fboundp 'epoch::version) epoch::version))
-(defvar calc-emacs-type-19 (not (or calc-emacs-type-epoch
-				    (string-lessp emacs-version "19"))))
 (defvar calc-emacs-type-lucid (not (not (string-match "Lucid" emacs-version))))
-(defvar calc-emacs-type-gnu19 (and calc-emacs-type-19
-				   (not calc-emacs-type-lucid)))
-
-;; Set up the standard keystroke (M-#) to run the Calculator, if that key
-;; has not yet been bound to anything.  For best results, the user should
-;; do this before Calc is even loaded, so that M-# can auto-load Calc.
-(or (global-key-binding "\e#") (global-set-key "\e#" 'calc-dispatch))
 
 ;; Set up the autoloading linkage.
 (let ((name (and (fboundp 'calc-dispatch)
@@ -633,14 +843,7 @@ scientific notation in calc-mode.")
 					 (directory-file-name
 					  (file-name-directory
 					   (expand-file-name
-					    name (car p2))))))))))
-
-	;; If calc-autoload-directory is given, use that (and hope it works!).
-	(and calc-autoload-directory
-	     (not (equal calc-autoload-directory ""))
-	     (setq load-path (nconc load-path
-				    (list (directory-file-name
-					   calc-autoload-directory)))))))
+					    name (car p2))))))))))))
 
 ;; The following modes use specially-formatted data.
 (put 'calc-mode 'mode-class 'special)
@@ -656,8 +859,7 @@ scientific notation in calc-mode.")
 (put 'math-underflow 'error-conditions '(error math-underflow calc-error))
 (put 'math-underflow 'error-message "Floating-point underflow occurred")
 
-(defconst calc-version "2.02g")
-(defconst calc-version-date "Mon Nov 19 2001")
+(defconst calc-version "2.1")
 (defvar calc-trail-pointer nil)		; "Current" entry in trail buffer.
 (defvar calc-trail-overlay nil)		; Value of overlay-arrow-string.
 (defvar calc-undo-list nil)		; List of previous operations for undo.
@@ -666,9 +868,23 @@ scientific notation in calc-mode.")
 (defvar calc-trail-buffer nil)		; Pointer to Calc Trail buffer.
 (defvar calc-why nil)			; Explanations of most recent errors.
 (defvar calc-next-why nil)
-(defvar calc-inverse-flag nil)
-(defvar calc-hyperbolic-flag nil)
-(defvar calc-keep-args-flag nil)
+(defvar calc-inverse-flag nil
+  "If non-nil, next operation is Inverse.")
+(defvar calc-hyperbolic-flag nil
+  "If non-nil, next operation is Hyperbolic.")
+(defvar calc-keep-args-flag nil
+  "If non-nil, next operation should not remove its arguments from stack.")
+(defvar calc-function-open "("
+  "Open-parenthesis string for function call notation.")
+(defvar calc-function-close ")"
+  "Close-parenthesis string for function call notation.")
+(defvar calc-language-output-filter nil
+  "Function through which to pass strings after formatting.")
+(defvar calc-language-input-filter nil
+  "Function through which to pass strings before parsing.")
+(defvar calc-radix-formatter nil
+  "Formatting function used for non-decimal numbers.")
+
 (defvar calc-last-kill nil)		; Last number killed in calc-mode.
 (defvar calc-previous-alg-entry nil)	; Previous algebraic entry.
 (defvar calc-dollar-values nil)		; Values to be used for '$'.
@@ -691,6 +907,7 @@ scientific notation in calc-mode.")
 (defvar math-eval-rules-cache-tag t)
 (defvar math-radix-explicit-format t)
 (defvar math-expr-function-mapping nil)
+(defvar math-expr-special-function-mapping nil)
 (defvar math-expr-variable-mapping nil)
 (defvar math-read-expr-quotes nil)
 (defvar math-working-step nil)
@@ -733,13 +950,13 @@ scientific notation in calc-mode.")
     (define-key map "\M-\C-m" 'calc-last-args-stub)
     (define-key map "\C-j" 'calc-over)
 
-    (mapcar (lambda (x) (define-key map (char-to-string x) 'undefined))
-	    "lOW")
-    (mapcar (lambda (x) (define-key map (char-to-string x) 'calc-missing-key))
-	    (concat "ABCDEFGHIJKLMNPQRSTUVXZabcdfghjkmoprstuvwxyz"
-		    ":\\|!()[]<>{},;=~`\C-k\M-k\C-w\M-w\C-y\C-_"))
-    (mapcar (lambda (x) (define-key map (char-to-string x) 'calcDigit-start))
-	    "_0123456789.#@")
+    (mapc (lambda (x) (define-key map (char-to-string x) 'undefined))
+	  "lOW")
+    (mapc (lambda (x) (define-key map (char-to-string x) 'calc-missing-key))
+	  (concat "ABCDEFGHIJKLMNPQRSTUVXZabcdfghjkmoprstuvwxyz"
+		  ":\\|!()[]<>{},;=~`\C-k\M-k\C-w\M-w\C-y\C-_"))
+    (mapc (lambda (x) (define-key map (char-to-string x) 'calcDigit-start))
+	  "_0123456789.#@")
     map))
 
 (defvar calc-digit-map
@@ -751,8 +968,8 @@ scientific notation in calc-mode.")
 			 (if (eq bind 'undefined)
 			     'undefined 'calcDigit-nondigit))))
 		    calc-mode-map)
-      (let ((cmap (if calc-emacs-type-19 (nth 1 calc-mode-map) calc-mode-map))
-	    (dmap (if calc-emacs-type-19 (nth 1 map) map))
+      (let ((cmap (nth 1 calc-mode-map))
+	    (dmap (nth 1 map))
 	    (i 0))
 	(while (< i 128)
 	  (aset dmap i
@@ -824,31 +1041,36 @@ scientific notation in calc-mode.")
 	       ( ?x . calc-quit )
 	       ( ?y . calc-copy-to-buffer )
 	       ( ?z . calc-user-invocation )
-	       ( ?= . calc-embedded-update-formula )
 	       ( ?\' . calc-embedded-new-formula )
 	       ( ?\` . calc-embedded-edit )
 	       ( ?: . calc-grab-sum-down )
 	       ( ?_ . calc-grab-sum-across )
 	       ( ?0 . calc-reset )
+	       ( ?? . calc-dispatch-help )
 	       ( ?# . calc-same-interface )
-	       ( ?? . calc-dispatch-help ) ))
+	       ( ?& . calc-same-interface )
+	       ( ?\\ . calc-same-interface )
+	       ( ?= . calc-same-interface )
+	       ( ?* . calc-same-interface )
+	       ( ?/ . calc-same-interface )
+	       ( ?+ . calc-same-interface )
+	       ( ?- . calc-same-interface ) ))
     map))
-
-(autoload 'calc-extensions "calc-ext")
-(autoload 'calc-need-macros "calc-macs")
 
 ;;;; (Autoloads here)
 (mapcar
  (lambda (x) (dolist (func (cdr x)) (autoload func (car x))))
     '(
 
- ("calc-aent" calc-Need-calc-aent calc-alg-digit-entry calc-alg-entry
+ ("calc-aent" calc-alg-digit-entry calc-alg-entry
     calc-check-user-syntax calc-do-alg-entry calc-do-calc-eval
     calc-do-quick-calc calc-match-user-syntax math-build-parse-table
     math-find-user-tokens math-read-expr-list math-read-exprs math-read-if
-    math-read-token math-remove-dashes)
+    math-read-token math-remove-dashes math-read-preprocess-string)
 
- ("calc-misc" calc-Need-calc-misc
+ ("calc-embed" calc-do-embedded-activate)
+
+ ("calc-misc" 
     calc-do-handle-whys calc-do-refresh calc-num-prefix-name
     calc-record-list calc-record-why calc-report-bug calc-roll-down-stack
     calc-roll-up-stack calc-temp-minibuffer-message calcFunc-floor
@@ -866,14 +1088,15 @@ scientific notation in calc-mode.")
     calcDigit-algebraic calcDigit-edit)
 
  ("calc-misc" another-calc calc-big-or-small calc-dispatch-help
-    calc-help calc-info calc-info-summary calc-inv calc-last-args-stub
+    calc-help calc-info calc-info-goto-node calc-info-summary calc-inv 
+    calc-last-args-stub
     calc-missing-key calc-mod calc-other-window calc-over calc-percent
     calc-pop-above calc-power calc-roll-down calc-roll-up
     calc-shift-Y-prefix-help calc-tutorial calcDigit-letter
     report-calc-bug)))
 
 
-;;;###autoload (global-set-key "\e#" 'calc-dispatch)
+;;;###autoload (define-key ctl-x-map "*" 'calc-dispatch)
 
 ;;;###autoload
 (defun calc-dispatch (&optional arg)
@@ -905,7 +1128,7 @@ scientific notation in calc-mode.")
     (message "")
     (if key
 	(progn
-	  (or (commandp key) (calc-extensions))
+	  (or (commandp key) (require 'calc-ext))
 	  (call-interactively key))
       (beep))))
 
@@ -920,15 +1143,11 @@ scientific notation in calc-mode.")
 	  (progn
 	    (use-global-map map)
 	    (use-local-map nil)
-	    (read-key-sequence
-	     (if (commandp (key-binding (if calc-emacs-type-19
-					    (vector (cdr key))
-					  (char-to-string (cdr key)))))
-		 "" prompt2)))
+	    (read-key-sequence nil))
 	(use-global-map glob)
 	(use-local-map loc)))))
 
-
+(defvar calc-alg-map) ; Defined in calc-ext.el
 
 (defun calc-mode ()
   "Calculator major mode.
@@ -966,7 +1185,7 @@ Notations:  3.14e6     3.14 * 10^6
 	   (lambda (v) (set-default v (symbol-value v)))) calc-local-var-list)
   (kill-all-local-variables)
   (use-local-map (if (eq calc-algebraic-mode 'total)
-		     (progn (calc-extensions) calc-alg-map) calc-mode-map))
+		     (progn (require 'calc-ext) calc-alg-map) calc-mode-map))
   (mapcar (function (lambda (v) (make-local-variable v))) calc-local-var-list)
   (make-local-variable 'overlay-arrow-position)
   (make-local-variable 'overlay-arrow-string)
@@ -982,13 +1201,10 @@ Notations:  3.14e6     3.14 * 10^6
   (setq calc-stack-top (- (length calc-stack) calc-stack-top -1))
   (or calc-loaded-settings-file
       (null calc-settings-file)
-      (string-match "\\.emacs" calc-settings-file)
+      (equal calc-settings-file user-init-file)
       (progn
 	(setq calc-loaded-settings-file t)
-	(load calc-settings-file t)))   ; t = missing-ok
-  (if (and (eq window-system 'x) (boundp 'mouse-map))
-      (substitute-key-definition 'x-paste-text 'calc-x-paste-text
-				 mouse-map))
+	(load (file-name-sans-extension calc-settings-file) t)))   ; t = missing-ok
   (let ((p command-line-args))
     (while p
       (and (equal (car p) "-f")
@@ -996,17 +1212,9 @@ Notations:  3.14e6     3.14 * 10^6
 	   (string-match "full" (nth 1 p))
 	   (setq calc-standalone-flag t))
       (setq p (cdr p))))
-  (run-hooks 'calc-mode-hook)
+  (run-mode-hooks 'calc-mode-hook)
   (calc-refresh t)
   (calc-set-mode-line)
-  ;; The calc-defs variable is a relic.  Use calc-define properties instead.
-  (when (and (boundp 'calc-defs)
-	     calc-defs)
-    (message "Evaluating calc-defs...")
-    (calc-need-macros)
-    (eval (cons 'progn calc-defs))
-    (setq calc-defs nil)
-    (calc-set-mode-line))
   (calc-check-defines))
 
 (defvar calc-check-defines 'calc-check-defines)  ; suitable for run-hooks
@@ -1017,8 +1225,8 @@ Notations:  3.14e6     3.14 * 10^6
 	  (setq plist (cdr (cdr plist))))
 	(if plist
 	    (save-excursion
-	      (calc-extensions)
-	      (calc-need-macros)
+	      (require 'calc-ext)
+	      (require 'calc-macs)
 	      (set-buffer "*Calculator*")
 	      (while plist
 		(put 'calc-define (car plist) nil)
@@ -1047,8 +1255,6 @@ commands given here will actually operate on the *Calculator* stack."
   (setq buffer-read-only t)
   (make-local-variable 'overlay-arrow-position)
   (make-local-variable 'overlay-arrow-string)
-  (set (make-local-variable 'font-lock-defaults)
-       '(nil t nil nil nil (font-lock-core-only . t)))
   (when buf
     (set (make-local-variable 'calc-main-buffer) buf))
   (when (= (buffer-size) 0)
@@ -1056,7 +1262,7 @@ commands given here will actually operate on the *Calculator* stack."
       (insert (propertize (concat "Emacs Calculator v" calc-version
 				  " by Dave Gillespie\n")
 			  'font-lock-face 'italic))))
-  (run-hooks 'calc-trail-mode-hook))
+  (run-mode-hooks 'calc-trail-mode-hook))
 
 (defun calc-create-buffer ()
   (set-buffer (get-buffer-create "*Calculator*"))
@@ -1064,18 +1270,18 @@ commands given here will actually operate on the *Calculator* stack."
       (calc-mode))
   (setq max-lisp-eval-depth (max max-lisp-eval-depth 1000))
   (when calc-always-load-extensions
-    (calc-extensions))
+    (require 'calc-ext))
   (when calc-language
-    (calc-extensions)
+    (require 'calc-ext)
     (calc-set-language calc-language calc-language-option t)))
 
 ;;;###autoload
 (defun calc (&optional arg full-display interactive)
   "The Emacs Calculator.  Full documentation is listed under \"calc-mode\"."
-  (interactive "P")
+  (interactive "P\ni\np")
   (if arg
       (unless (eq arg 0)
-	(calc-extensions)
+	(require 'calc-ext)
 	(if (= (prefix-numeric-value arg) -1)
 	    (calc-grab-region (region-beginning) (region-end) nil)
 	  (when (= (prefix-numeric-value arg) -2)
@@ -1093,20 +1299,20 @@ commands given here will actually operate on the *Calculator* stack."
 	    (switch-to-buffer (current-buffer) t)
 	  (if (get-buffer-window (current-buffer))
 	      (select-window (get-buffer-window (current-buffer)))
-	    (if (and (boundp 'calc-window-hook) calc-window-hook)
-		(run-hooks 'calc-window-hook)
-	      (let ((w (get-largest-window)))
-		(if (and pop-up-windows
-			 (> (window-height w)
-			    (+ window-min-height calc-window-height 2)))
-		    (progn
-		      (setq w (split-window w
-					    (- (window-height w)
-					       calc-window-height 2)
-					    nil))
-		      (set-window-buffer w (current-buffer))
-		      (select-window w))
-		  (pop-to-buffer (current-buffer)))))))
+            (if calc-window-hook
+                (run-hooks 'calc-window-hook)
+              (let ((w (get-largest-window)))
+                (if (and pop-up-windows
+                         (> (window-height w)
+                            (+ window-min-height calc-window-height 2)))
+                    (progn
+                      (setq w (split-window w
+                                            (- (window-height w)
+                                               calc-window-height 2)
+                                            nil))
+                      (set-window-buffer w (current-buffer))
+                      (select-window w))
+                  (pop-to-buffer (current-buffer)))))))
 	(save-excursion
 	  (set-buffer (calc-trail-buffer))
 	  (and calc-display-trail
@@ -1118,17 +1324,16 @@ commands given here will actually operate on the *Calculator* stack."
 	     (window-point full-display)
 	     (select-window full-display))
 	(calc-check-defines)
-	(when (and calc-said-hello
-		   (or (interactive-p) interactive))
+	(when (and calc-said-hello interactive)
 	  (sit-for 2)
 	  (message ""))
 	(setq calc-said-hello t)))))
 
 ;;;###autoload
-(defun full-calc ()
+(defun full-calc (&optional interactive)
   "Invoke the Calculator and give it a full-sized window."
-  (interactive)
-  (calc nil t (interactive-p)))
+  (interactive "p")
+  (calc nil t interactive))
 
 (defun calc-same-interface (arg)
   "Invoke the Calculator using the most recent interface (calc or calc-keypad)."
@@ -1138,15 +1343,12 @@ commands given here will actually operate on the *Calculator* stack."
       (exit-recursive-edit)
     (if (eq major-mode 'calc-edit-mode)
 	(calc-edit-finish arg)
-      (if (eq major-mode 'MacEdit-mode)
-	  (MacEdit-finish-edit)
-	(if calc-was-keypad-mode
-	    (calc-keypad)
-	  (calc arg calc-full-mode t))))))
+      (if calc-was-keypad-mode
+          (calc-keypad)
+        (calc arg calc-full-mode t)))))
 
-
-(defun calc-quit (&optional non-fatal)
-  (interactive)
+(defun calc-quit (&optional non-fatal interactive)
+  (interactive "i\np")
   (and calc-standalone-flag (not non-fatal)
        (save-buffers-kill-emacs nil))
   (if (and (equal (buffer-name) "*Gnuplot Trail*")
@@ -1154,33 +1356,31 @@ commands given here will actually operate on the *Calculator* stack."
       (exit-recursive-edit))
   (if (eq major-mode 'calc-edit-mode)
       (calc-edit-cancel)
-    (if (eq major-mode 'MacEdit-mode)
-	(MacEdit-cancel-edit)
-      (if (and (interactive-p)
-	       calc-embedded-info
-	       (eq (current-buffer) (aref calc-embedded-info 0)))
-	  (calc-embedded nil)
-	(unless (eq major-mode 'calc-mode)
-	  (calc-create-buffer))
-	(run-hooks 'calc-end-hook)
-	(setq calc-undo-list nil calc-redo-list nil)
-	(mapcar (function (lambda (v) (set-default v (symbol-value v))))
-		calc-local-var-list)
-	(let ((buf (current-buffer))
-	      (win (get-buffer-window (current-buffer)))
-	      (kbuf (get-buffer "*Calc Keypad*")))
-	  (delete-windows-on (calc-trail-buffer))
-	  (if (and win
-		   (< (window-height win) (1- (frame-height)))
-		   (= (window-width win) (frame-width))  ; avoid calc-keypad
-		   (not (get-buffer-window "*Calc Keypad*")))
-	      (setq calc-window-height (- (window-height win) 2)))
-	  (progn
-	    (delete-windows-on buf)
-	    (delete-windows-on kbuf))
-	  (bury-buffer buf)
-	  (bury-buffer calc-trail-buffer)
-	  (and kbuf (bury-buffer kbuf)))))))
+    (if (and interactive
+             calc-embedded-info
+             (eq (current-buffer) (aref calc-embedded-info 0)))
+        (calc-embedded nil)
+      (unless (eq major-mode 'calc-mode)
+        (calc-create-buffer))
+      (run-hooks 'calc-end-hook)
+      (setq calc-undo-list nil calc-redo-list nil)
+      (mapcar (function (lambda (v) (set-default v (symbol-value v))))
+              calc-local-var-list)
+      (let ((buf (current-buffer))
+            (win (get-buffer-window (current-buffer)))
+            (kbuf (get-buffer "*Calc Keypad*")))
+        (delete-windows-on (calc-trail-buffer))
+        (if (and win
+                 (< (window-height win) (1- (frame-height)))
+                 (= (window-width win) (frame-width))  ; avoid calc-keypad
+                 (not (get-buffer-window "*Calc Keypad*")))
+            (setq calc-window-height (- (window-height win) 2)))
+        (progn
+          (delete-windows-on buf)
+          (delete-windows-on kbuf))
+        (bury-buffer buf)
+        (bury-buffer calc-trail-buffer)
+        (and kbuf (bury-buffer kbuf))))))
 
 ;;;###autoload
 (defun quick-calc ()
@@ -1196,22 +1396,22 @@ or a list containing a character position and an error message in string form."
   (calc-do-calc-eval str separator args))
 
 ;;;###autoload
-(defun calc-keypad ()
+(defun calc-keypad (&optional interactive)
   "Invoke the Calculator in \"visual keypad\" mode.
 This is most useful in the X window system.
 In this mode, click on the Calc \"buttons\" using the left mouse button.
 Or, position the cursor manually and do M-x calc-keypad-press."
-  (interactive)
-  (calc-extensions)
-  (calc-do-keypad calc-full-mode (interactive-p)))
+  (interactive "p")
+  (require 'calc-ext)
+  (calc-do-keypad calc-full-mode interactive))
 
 ;;;###autoload
-(defun full-calc-keypad ()
+(defun full-calc-keypad (&optional interactive)
   "Invoke the Calculator in full-screen \"visual keypad\" mode.
 See calc-keypad for details."
-  (interactive)
-  (calc-extensions)
-  (calc-do-keypad t (interactive-p)))
+  (interactive "p")
+  (require 'calc-ext)
+  (calc-do-keypad t interactive))
 
 
 (defvar calc-aborted-prefix nil)
@@ -1224,7 +1424,7 @@ See calc-keypad for details."
   (calc-check-defines)
   (let* ((calc-command-flags nil)
 	 (calc-start-time (and calc-timing (not calc-start-time)
-			       (calc-extensions)
+			       (require 'calc-ext)
 			       (current-time-string)))
 	 (gc-cons-threshold (max gc-cons-threshold
 				 (if calc-timing 2000000 100000)))
@@ -1237,7 +1437,7 @@ See calc-keypad for details."
 		  (calc-embedded-select-buffer)
 		(calc-select-buffer))
 	      (and (eq calc-algebraic-mode 'total)
-		   (calc-extensions)
+		   (require 'calc-ext)
 		   (use-local-map calc-alg-map))
 	      (when (and do-slow calc-display-working-message)
 		(message "Working...")
@@ -1353,6 +1553,7 @@ See calc-keypad for details."
 		     (cond ((eq calc-matrix-mode 'matrix) "Matrix ")
 			   ((integerp calc-matrix-mode)
 			    (format "Matrix%d " calc-matrix-mode))
+			   ((eq calc-matrix-mode 'sqmatrix) "SqMatrix ")
 			   ((eq calc-matrix-mode 'scalar) "Scalar ")
 			   (t ""))
 		     (if (eq calc-complex-mode 'polar) "Polar " "")
@@ -1378,6 +1579,7 @@ See calc-keypad for details."
 		     (if calc-leading-zeros "Zero " "")
 		     (cond ((null calc-language) "")
 			   ((eq calc-language 'tex) "TeX ")
+			   ((eq calc-language 'latex) "LaTeX ")
 			   (t (concat
 			       (capitalize (symbol-name calc-language))
 			       " ")))
@@ -1512,7 +1714,7 @@ See calc-keypad for details."
 (defun calc-normalize (val)
   (if (memq calc-simplify-mode '(nil none num))
       (math-normalize val)
-    (calc-extensions)
+    (require 'calc-ext)
     (calc-normalize-fancy val)))
 
 (defun calc-handle-whys ()
@@ -1653,27 +1855,6 @@ See calc-keypad for details."
 	 (calc-refresh align)))
   (setq calc-refresh-count (1+ calc-refresh-count)))
 
-
-(defun calc-x-paste-text (arg)
-  "Move point to mouse position and insert window system cut buffer contents.
-If mouse is pressed in Calc window, push cut buffer contents onto the stack."
-  (x-mouse-select arg)
-  (if (memq major-mode '(calc-mode calc-trail-mode))
-      (progn
-	(calc-wrapper
-	 (calc-extensions)
-	 (let* ((buf (x-get-cut-buffer))
-		(val (math-read-exprs (calc-clean-newlines buf))))
-	   (if (eq (car-safe val) 'error)
-	       (progn
-		 (setq val (math-read-exprs buf))
-		 (if (eq (car-safe val) 'error)
-		     (error "%s in yanked data" (nth 2 val)))))
-	   (calc-enter-result 0 "Xynk" val))))
-    (x-paste-text arg)))
-
-
-
 ;;;; The Calc Trail buffer.
 
 (defun calc-check-trail-aligned ()
@@ -1732,30 +1913,30 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
   val)
 
 
-(defun calc-trail-display (flag &optional no-refresh)
-  (interactive "P")
+(defun calc-trail-display (flag &optional no-refresh interactive)
+  (interactive "P\ni\np")
   (let ((win (get-buffer-window (calc-trail-buffer))))
     (if (setq calc-display-trail
 	      (not (if flag (memq flag '(nil 0)) win)))
 	(if (null win)
 	    (progn
-	      (if (and (boundp 'calc-trail-window-hook) calc-trail-window-hook)
-		  (run-hooks 'calc-trail-window-hook)
-		(let ((w (split-window nil (/ (* (window-width) 2) 3) t)))
-		  (set-window-buffer w calc-trail-buffer)))
-	      (calc-wrapper
-	       (setq overlay-arrow-string calc-trail-overlay
-		     overlay-arrow-position calc-trail-pointer)
-	       (or no-refresh
-		   (if (interactive-p)
-		       (calc-do-refresh)
-		     (calc-refresh))))))
+              (if calc-trail-window-hook
+                  (run-hooks 'calc-trail-window-hook)
+                (let ((w (split-window nil (/ (* (window-width) 2) 3) t)))
+                  (set-window-buffer w calc-trail-buffer)))
+              (calc-wrapper
+               (setq overlay-arrow-string calc-trail-overlay
+                     overlay-arrow-position calc-trail-pointer)
+               (or no-refresh
+                   (if interactive
+                       (calc-do-refresh)
+                     (calc-refresh))))))
       (if win
 	  (progn
 	    (delete-window win)
 	    (calc-wrapper
 	     (or no-refresh
-		 (if (interactive-p)
+		 (if interactive
 		     (calc-do-refresh)
 		   (calc-refresh))))))))
   calc-trail-buffer)
@@ -1815,7 +1996,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
       (calc-enter-result 2 name (cons (or func2 func)
 				      (mapcar 'math-check-complete
 					      (calc-top-list 2))))
-    (calc-extensions)
+    (require 'calc-ext)
     (calc-binary-op-fancy name func arg ident unary)))
 
 (defun calc-unary-op (name func arg &optional func2)
@@ -1823,7 +2004,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
   (if (null arg)
       (calc-enter-result 1 name (list (or func2 func)
 				      (math-check-complete (calc-top 1))))
-    (calc-extensions)
+    (require 'calc-ext)
     (calc-unary-op-fancy name func arg)))
 
 
@@ -1847,6 +2028,10 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
   (calc-slow-wrapper
    (calc-binary-op "/" 'calcFunc-div arg 0 'calcFunc-inv '/)))
 
+(defun calc-left-divide (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (calc-binary-op "ldiv" 'calcFunc-ldiv arg 0 nil nil)))
 
 (defun calc-change-sign (arg)
   (interactive "P")
@@ -1935,7 +2120,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 						 calc-digit-value))))))
        (if (eq calc-prev-char 'dots)
 	   (progn
-	     (calc-extensions)
+	     (require 'calc-ext)
 	     (calc-dots)))))))
 
 (defsubst calc-minibuffer-size ()
@@ -2041,7 +2226,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
      (t
       (insert (char-to-string last-command-char))
       (if (or (and (calc-minibuffer-contains "[-+]?\\(.*\\+/- *\\|.*mod *\\)?\\([0-9][0-9]?\\)#[0-9a-zA-Z]*\\(:[0-9a-zA-Z]*\\(:[0-9a-zA-Z]*\\)?\\|.[0-9a-zA-Z]*\\(e[-+]?[0-9]*\\)?\\)?\\'")
-		   (let ((radix (string-to-int
+		   (let ((radix (string-to-number
 				 (buffer-substring
 				  (match-beginning 2) (match-end 2)))))
 		     (and (>= radix 2)
@@ -2059,7 +2244,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	(if (and (eq this-command last-command)
 		 (eq last-command-char ?.))
 	    (progn
-	      (calc-extensions)
+	      (require 'calc-ext)
 	      (calc-digit-dots))
 	  (delete-backward-char 1)
 	  (beep)
@@ -2185,114 +2370,127 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 (defvar math-eval-rules-cache)
 (defvar math-eval-rules-cache-other)
 ;;; Reduce an object to canonical (normalized) form.  [O o; Z Z] [Public]
-(defun math-normalize (a)
+
+(defvar math-normalize-a)
+(defun math-normalize (math-normalize-a)
   (cond
-   ((not (consp a))
-    (if (integerp a)
-	(if (or (>= a 1000000) (<= a -1000000))
-	    (math-bignum a)
-	  a)
-      a))
-   ((eq (car a) 'bigpos)
-    (if (eq (nth (1- (length a)) a) 0)
-	(let* ((last (setq a (copy-sequence a))) (digs a))
+   ((not (consp math-normalize-a))
+    (if (integerp math-normalize-a)
+	(if (or (>= math-normalize-a 1000000) (<= math-normalize-a -1000000))
+	    (math-bignum math-normalize-a)
+	  math-normalize-a)
+      math-normalize-a))
+   ((eq (car math-normalize-a) 'bigpos)
+    (if (eq (nth (1- (length math-normalize-a)) math-normalize-a) 0)
+	(let* ((last (setq math-normalize-a 
+                           (copy-sequence math-normalize-a))) (digs math-normalize-a))
 	  (while (setq digs (cdr digs))
 	    (or (eq (car digs) 0) (setq last digs)))
 	  (setcdr last nil)))
-    (if (cdr (cdr (cdr a)))
-	a
+    (if (cdr (cdr (cdr math-normalize-a)))
+	math-normalize-a
       (cond
-       ((cdr (cdr a)) (+ (nth 1 a) (* (nth 2 a) 1000)))
-       ((cdr a) (nth 1 a))
+       ((cdr (cdr math-normalize-a)) (+ (nth 1 math-normalize-a) 
+                                        (* (nth 2 math-normalize-a) 1000)))
+       ((cdr math-normalize-a) (nth 1 math-normalize-a))
        (t 0))))
-   ((eq (car a) 'bigneg)
-    (if (eq (nth (1- (length a)) a) 0)
-	(let* ((last (setq a (copy-sequence a))) (digs a))
+   ((eq (car math-normalize-a) 'bigneg)
+    (if (eq (nth (1- (length math-normalize-a)) math-normalize-a) 0)
+	(let* ((last (setq math-normalize-a (copy-sequence math-normalize-a))) 
+               (digs math-normalize-a))
 	  (while (setq digs (cdr digs))
 	    (or (eq (car digs) 0) (setq last digs)))
 	  (setcdr last nil)))
-    (if (cdr (cdr (cdr a)))
-	a
+    (if (cdr (cdr (cdr math-normalize-a)))
+	math-normalize-a
       (cond
-       ((cdr (cdr a)) (- (+ (nth 1 a) (* (nth 2 a) 1000))))
-       ((cdr a) (- (nth 1 a)))
+       ((cdr (cdr math-normalize-a)) (- (+ (nth 1 math-normalize-a) 
+                                           (* (nth 2 math-normalize-a) 1000))))
+       ((cdr math-normalize-a) (- (nth 1 math-normalize-a)))
        (t 0))))
-   ((eq (car a) 'float)
-    (math-make-float (math-normalize (nth 1 a)) (nth 2 a)))
-   ((or (memq (car a) '(frac cplx polar hms date mod sdev intv vec var quote
-			     special-const calcFunc-if calcFunc-lambda
-			     calcFunc-quote calcFunc-condition
-			     calcFunc-evalto))
-	(integerp (car a))
-	(and (consp (car a)) (not (eq (car (car a)) 'lambda))))
-    (calc-extensions)
-    (math-normalize-fancy a))
+   ((eq (car math-normalize-a) 'float)
+    (math-make-float (math-normalize (nth 1 math-normalize-a)) 
+                     (nth 2 math-normalize-a)))
+   ((or (memq (car math-normalize-a) 
+              '(frac cplx polar hms date mod sdev intv vec var quote
+                     special-const calcFunc-if calcFunc-lambda
+                     calcFunc-quote calcFunc-condition
+                     calcFunc-evalto))
+	(integerp (car math-normalize-a))
+	(and (consp (car math-normalize-a)) 
+             (not (eq (car (car math-normalize-a)) 'lambda))))
+    (require 'calc-ext)
+    (math-normalize-fancy math-normalize-a))
    (t
     (or (and calc-simplify-mode
-	     (calc-extensions)
+	     (require 'calc-ext)
 	     (math-normalize-nonstandard))
-	(let ((args (mapcar 'math-normalize (cdr a))))
+	(let ((args (mapcar 'math-normalize (cdr math-normalize-a))))
 	  (or (condition-case err
-		  (let ((func (assq (car a) '( ( + . math-add )
-					       ( - . math-sub )
-					       ( * . math-mul )
-					       ( / . math-div )
-					       ( % . math-mod )
-					       ( ^ . math-pow )
-					       ( neg . math-neg )
-					       ( | . math-concat ) ))))
+		  (let ((func 
+                         (assq (car math-normalize-a) '( ( + . math-add )
+                                                         ( - . math-sub )
+                                                         ( * . math-mul )
+                                                         ( / . math-div )
+                                                         ( % . math-mod )
+                                                         ( ^ . math-pow )
+                                                         ( neg . math-neg )
+                                                         ( | . math-concat ) ))))
 		    (or (and var-EvalRules
 			     (progn
 			       (or (eq var-EvalRules math-eval-rules-cache-tag)
 				   (progn
-				     (calc-extensions)
+				     (require 'calc-ext)
 				     (math-recompile-eval-rules)))
 			       (and (or math-eval-rules-cache-other
-					(assq (car a) math-eval-rules-cache))
+					(assq (car math-normalize-a) 
+                                              math-eval-rules-cache))
 				    (math-apply-rewrites
-				     (cons (car a) args)
+				     (cons (car math-normalize-a) args)
 				     (cdr math-eval-rules-cache)
 				     nil math-eval-rules-cache))))
 			(if func
 			    (apply (cdr func) args)
-			  (and (or (consp (car a))
-				   (fboundp (car a))
-				   (and (not calc-extensions-loaded)
-					(calc-extensions)
-					(fboundp (car a))))
-			       (apply (car a) args)))))
+			  (and (or (consp (car math-normalize-a))
+				   (fboundp (car math-normalize-a))
+				   (and (not (featurep 'calc-ext))
+					(require 'calc-ext)
+					(fboundp (car math-normalize-a))))
+			       (apply (car math-normalize-a) args)))))
 		(wrong-number-of-arguments
 		 (calc-record-why "*Wrong number of arguments"
-				  (cons (car a) args))
+				  (cons (car math-normalize-a) args))
 		 nil)
 		(wrong-type-argument
-		 (or calc-next-why (calc-record-why "Wrong type of argument"
-						    (cons (car a) args)))
+		 (or calc-next-why 
+                     (calc-record-why "Wrong type of argument"
+                                      (cons (car math-normalize-a) args)))
 		 nil)
 		(args-out-of-range
-		 (calc-record-why "*Argument out of range" (cons (car a) args))
+		 (calc-record-why "*Argument out of range" 
+                                  (cons (car math-normalize-a) args))
 		 nil)
 		(inexact-result
 		 (calc-record-why "No exact representation for result"
-				  (cons (car a) args))
+				  (cons (car math-normalize-a) args))
 		 nil)
 		(math-overflow
 		 (calc-record-why "*Floating-point overflow occurred"
-				  (cons (car a) args))
+				  (cons (car math-normalize-a) args))
 		 nil)
 		(math-underflow
 		 (calc-record-why "*Floating-point underflow occurred"
-				  (cons (car a) args))
+				  (cons (car math-normalize-a) args))
 		 nil)
 		(void-variable
 		 (if (eq (nth 1 err) 'var-EvalRules)
 		     (progn
 		       (setq var-EvalRules nil)
-		       (math-normalize (cons (car a) args)))
+		       (math-normalize (cons (car math-normalize-a) args)))
 		   (calc-record-why "*Variable is void" (nth 1 err)))))
-	      (if (consp (car a))
+	      (if (consp (car math-normalize-a))
 		  (math-dimension-error)
-		(cons (car a) args))))))))
+		(cons (car math-normalize-a) args))))))))
 
 
 
@@ -2524,7 +2722,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 			   (cons 'bigpos diff))))
 		    (cons 'bigpos (math-add-bignum (cdr a) (cdr b)))))))
 	 (and (Math-ratp a) (Math-ratp b)
-	      (calc-extensions)
+	      (require 'calc-ext)
 	      (calc-add-fractions a b))
 	 (and (Math-realp a) (Math-realp b)
 	      (progn
@@ -2533,9 +2731,9 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		(or (and (consp b) (eq (car b) 'float))
 		    (setq b (math-float b)))
 		(math-add-float a b)))
-	 (and (calc-extensions)
+	 (and (require 'calc-ext)
 	      (math-add-objects-fancy a b))))
-   (and (calc-extensions)
+   (and (require 'calc-ext)
 	(math-add-symb-fancy a b))))
 
 (defun math-add-bignum (a b)   ; [L L L; l l l]
@@ -2664,12 +2862,12 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
    (and (Math-zerop a) (not (eq (car-safe b) 'mod))
 	(if (Math-scalarp b)
 	    (if (and (math-floatp b) (Math-ratp a)) (math-float a) a)
-	  (calc-extensions)
+	  (require 'calc-ext)
 	  (math-mul-zero a b)))
    (and (Math-zerop b) (not (eq (car-safe a) 'mod))
 	(if (Math-scalarp a)
 	    (if (and (math-floatp a) (Math-ratp b)) (math-float b) b)
-	  (calc-extensions)
+	  (require 'calc-ext)
 	  (math-mul-zero b a)))
    (and (Math-objvecp a) (Math-objvecp b)
 	(or
@@ -2685,7 +2883,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 			     (math-mul-bignum-digit (cdr a) (nth 1 b) 0))
 			 (math-mul-bignum-digit (cdr b) (nth 1 a) 0))))))
 	 (and (Math-ratp a) (Math-ratp b)
-	      (calc-extensions)
+	      (require 'calc-ext)
 	      (calc-mul-fractions a b))
 	 (and (Math-realp a) (Math-realp b)
 	      (progn
@@ -2695,9 +2893,9 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		    (setq b (math-float b)))
 		(math-make-float (math-mul (nth 1 a) (nth 1 b))
 				 (+ (nth 2 a) (nth 2 b)))))
-	 (and (calc-extensions)
+	 (and (require 'calc-ext)
 	      (math-mul-objects-fancy a b))))
-   (and (calc-extensions)
+   (and (require 'calc-ext)
 	(math-mul-symb-fancy a b))))
 
 (defun math-infinitep (a &optional undir)
@@ -2853,12 +3051,12 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 (defun math-div (a b)
   (or
    (and (Math-zerop b)
-	(calc-extensions)
+	(require 'calc-ext)
 	(math-div-by-zero a b))
    (and (Math-zerop a) (not (eq (car-safe b) 'mod))
 	(if (Math-scalarp b)
 	    (if (and (math-floatp b) (Math-ratp a)) (math-float a) a)
-	  (calc-extensions)
+	  (require 'calc-ext)
 	  (math-div-zero a b)))
    (and (Math-objvecp a) (Math-objvecp b)
 	(or
@@ -2868,12 +3066,12 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		    (car q)
 		  (if calc-prefer-frac
 		      (progn
-			(calc-extensions)
+			(require 'calc-ext)
 			(math-make-frac a b))
 		    (math-div-float (math-make-float a 0)
 				    (math-make-float b 0))))))
 	 (and (Math-ratp a) (Math-ratp b)
-	      (calc-extensions)
+	      (require 'calc-ext)
 	      (calc-div-fractions a b))
 	 (and (Math-realp a) (Math-realp b)
 	      (progn
@@ -2882,9 +3080,9 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		(or (and (consp b) (eq (car b) 'float))
 		    (setq b (math-float b)))
 		(math-div-float a b)))
-	 (and (calc-extensions)
+	 (and (require 'calc-ext)
 	      (math-div-objects-fancy a b))))
-   (and (calc-extensions)
+   (and (require 'calc-ext)
 	(math-div-symb-fancy a b))))
 
 (defun math-div-float (a b)   ; [F F F]
@@ -2913,7 +3111,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 			(memq calc-language '(nil flat unform))
 			(null math-comp-selected))
 		   (math-format-number a))
-		  (t (calc-extensions)
+		  (t (require 'calc-ext)
 		     (math-compose-expr a 0))))
 	 (off (math-stack-value-offset c))
 	 s w)
@@ -2921,10 +3119,10 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
     (setq w (cdr off)
 	  off (car off))
     (when (> off 0)
-      (setq c (math-comp-concat (make-string off ? ) c)))
+      (setq c (math-comp-concat (make-string off ?\s) c)))
     (or (equal calc-left-label "")
 	(setq c (math-comp-concat (if (eq a 'top-of-stack)
-				      (make-string (length calc-left-label) ? )
+				      (make-string (length calc-left-label) ?\s)
 				    calc-left-label)
 				  c)))
     (when calc-line-numbering
@@ -2936,10 +3134,10 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 				c)))
     (unless (or (equal calc-right-label "")
 		(eq a 'top-of-stack))
-      (calc-extensions)
+      (require 'calc-ext)
       (setq c (list 'horiz c
 		    (make-string (max (- w (math-comp-width c)
-					 (length calc-right-label)) 0) ? )
+					 (length calc-right-label)) 0) ?\s)
 		    '(break -1)
 		    calc-right-label)))
     (setq s (if (stringp c)
@@ -2952,24 +3150,27 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
     (if (eq calc-language 'big)
 	(setq s (concat s "\n"))
       (when calc-line-numbering
-	(aset s 0 ?1)
-	(aset s 1 ?:)))
+	(setq s (concat "1:" (substring s 2)))))
     (setcar (cdr entry) (calc-count-lines s))
     s))
 
-(defun math-stack-value-offset (c)
+;; The variables math-svo-c, math-svo-wid and math-svo-off are local
+;; to math-stack-value-offset, but are used by math-stack-value-offset-fancy
+;; in calccomp.el.
+
+(defun math-stack-value-offset (math-svo-c)
   (let* ((num (if calc-line-numbering 4 0))
-	 (wid (calc-window-width))
-	 off)
+	 (math-svo-wid (calc-window-width))
+	 math-svo-off)
     (if calc-display-just
 	(progn
-	  (calc-extensions)
+	  (require 'calc-ext)
 	  (math-stack-value-offset-fancy))
-      (setq off (or calc-display-origin 0))
+      (setq math-svo-off (or calc-display-origin 0))
       (when (integerp calc-line-breaking)
-	(setq wid calc-line-breaking)))
-    (cons (max (- off (length calc-left-label)) 0)
-	  (+ wid num))))
+	(setq math-svo-wid calc-line-breaking)))
+    (cons (max (- math-svo-off (length calc-left-label)) 0)
+	  (+ math-svo-wid num))))
 
 (defun calc-count-lines (s)
   (let ((pos 0)
@@ -2983,7 +3184,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
   (if (and (Math-scalarp a)
 	   (memq calc-language '(nil flat unform)))
       (math-format-number a)
-    (calc-extensions)
+    (require 'calc-ext)
     (let ((calc-line-breaking nil))
       (math-composition-to-string (math-compose-expr a 0) w))))
 
@@ -3019,7 +3220,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	  (calc-language nil))
       (math-format-number a)))
    (t
-    (calc-extensions)
+    (require 'calc-ext)
     (math-format-flat-expr-fancy a prec))))
 
 
@@ -3029,7 +3230,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
   (cond
    ((eq calc-display-raw t) (format "%s" a))
    ((and (nth 1 calc-frac-format) (Math-integerp a))
-    (calc-extensions)
+    (require 'calc-ext)
     (math-format-number (math-adjust-fraction a)))
    ((integerp a)
     (if (not (or calc-group-digits calc-leading-zeros))
@@ -3037,7 +3238,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	    (int-to-string a)
 	  (if (< a 0)
 	      (concat "-" (math-format-number (- a)))
-	    (calc-extensions)
+	    (require 'calc-ext)
 	    (if math-radix-explicit-format
 		(if calc-radix-formatter
 		    (funcall calc-radix-formatter
@@ -3132,7 +3333,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 				  str (- eadj scale)))))))
 	str)))
    (t
-    (calc-extensions)
+    (require 'calc-ext)
     (math-format-number-fancy a prec))))
 
 (defun math-format-bignum (a)   ; [X L]
@@ -3140,7 +3341,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	   (not calc-leading-zeros)
 	   (not calc-group-digits))
       (math-format-bignum-decimal a)
-    (calc-extensions)
+    (require 'calc-ext)
     (math-format-bignum-fancy a)))
 
 (defun math-format-bignum-decimal (a)   ; [X L]
@@ -3167,7 +3368,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		(eq (aref digs 0) ?0))
 	   (math-read-number (concat "8#" digs))
 	 (if (<= (length digs) 6)
-	     (string-to-int digs)
+	     (string-to-number digs)
 	   (cons 'bigpos (math-read-bignum digs))))))
 
     ;; Clean up the string if necessary
@@ -3182,7 +3383,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 
     ;; Forms that require extensions module
     ((string-match "[^-+0-9eE.]" s)
-     (calc-extensions)
+     (require 'calc-ext)
      (math-read-number-fancy s))
 
     ;; Decimal point
@@ -3204,7 +3405,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	   (exp (math-match-substring s 2)))
        (let ((mant (if (> (length mant) 0) (math-read-number mant) 1))
 	     (exp (if (<= (length exp) (if (memq (aref exp 0) '(?+ ?-)) 8 7))
-		      (string-to-int exp))))
+		      (string-to-number exp))))
 	 (and mant exp (Math-realp mant) (> exp -4000000) (< exp 4000000)
 	      (let ((mant (math-float mant)))
 		(list 'float (nth 1 mant) (+ (nth 2 mant) exp)))))))
@@ -3219,9 +3420,9 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 
 (defun math-read-bignum (s)   ; [l X]
   (if (> (length s) 3)
-      (cons (string-to-int (substring s -3))
+      (cons (string-to-number (substring s -3))
 	    (math-read-bignum (substring s 0 -3)))
-    (list (string-to-int s))))
+    (list (string-to-number s))))
 
 
 (defconst math-tex-ignore-words
@@ -3235,9 +3436,13 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
      ("\\cal") ("\\mit") ("\\Cal") ("\\Bbb") ("\\frak") ("\\goth")
      ("\\evalto")
      ("\\matrix" mat) ("\\bmatrix" mat) ("\\pmatrix" mat)
+     ("\\begin" begenv)
      ("\\cr" punc ";") ("\\\\" punc ";") ("\\*" punc "*")
-     ("\\{" punc "[") ("\\}" punc "]")
-))
+     ("\\{" punc "[") ("\\}" punc "]")))
+
+(defconst math-latex-ignore-words
+  (append math-tex-ignore-words
+          '(("\\begin" begenv))))
 
 (defconst math-eqn-ignore-words
   '( ("roman") ("bold") ("italic") ("mark") ("lineup") ("evalto")
@@ -3245,8 +3450,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
      ("right" ("floor") ("ceil"))
      ("arc" ("sin") ("cos") ("tan") ("sinh") ("cosh") ("tanh"))
      ("size" n) ("font" n) ("fwd" n) ("back" n) ("up" n) ("down" n)
-     ("above" punc ",")
-))
+     ("above" punc ",")))
 
 (defconst math-standard-opers
   '( ( "_"     calcFunc-subscr 1200 1201 )
@@ -3291,26 +3495,26 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 (defun calc-grab-region (top bot arg)
   "Parse the region as a vector of numbers and push it on the Calculator stack."
   (interactive "r\nP")
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-do-grab-region top bot arg))
 
 ;;;###autoload
 (defun calc-grab-rectangle (top bot arg)
   "Parse a rectangle as a matrix of numbers and push it on the Calculator stack."
   (interactive "r\nP")
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-do-grab-rectangle top bot arg))
 
 (defun calc-grab-sum-down (top bot arg)
   "Parse a rectangle as a matrix of numbers and sum its columns."
   (interactive "r\nP")
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-do-grab-rectangle top bot arg 'calcFunc-reduced))
 
 (defun calc-grab-sum-across (top bot arg)
   "Parse a rectangle as a matrix of numbers and sum its rows."
   (interactive "r\nP")
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-do-grab-rectangle top bot arg 'calcFunc-reducea))
 
 
@@ -3318,7 +3522,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 (defun calc-embedded (arg &optional end obeg oend)
   "Start Calc Embedded mode on the formula surrounding point."
   (interactive "P")
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-do-embedded arg end obeg oend))
 
 ;;;###autoload
@@ -3330,15 +3534,15 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 
 (defun calc-user-invocation ()
   (interactive)
-  (unless (stringp calc-invocation-macro)
-    (error "Use `Z I' inside Calc to define a `M-# Z' keyboard macro"))
+  (unless calc-invocation-macro
+    (error "Use `Z I' inside Calc to define a `C-x * Z' keyboard macro"))
   (execute-kbd-macro calc-invocation-macro nil))
 
 ;;; User-programmability.
 
 ;;;###autoload
 (defmacro defmath (func args &rest body)   ;  [Public]
-  (calc-extensions)
+  (require 'calc-ext)
   (math-do-defmath func args body))
 
 ;;; Functions needed for Lucid Emacs support.
@@ -3349,11 +3553,8 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 	   (let ((key (event-to-character event t t)))
 	     (or key optkey (error "Expected a plain keystroke"))
 	     (cons key event))))
-	(calc-emacs-type-gnu19
-	 (let ((key (read-event)))
-	   (cons key key)))
 	(t
-	 (let ((key (read-char)))
+	 (let ((key (read-event)))
 	   (cons key key)))))
 
 (defun calc-unread-command (&optional input)
@@ -3369,10 +3570,13 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
     (setq unread-command-events nil)))
 
 (when calc-always-load-extensions
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-load-everything))
 
 
 (run-hooks 'calc-load-hook)
 
+(provide 'calc)
+
+;;; arch-tag: 0c3b170c-4ce6-4eaf-8d9b-5834d1fe938f
 ;;; calc.el ends here

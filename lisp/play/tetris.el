@@ -1,6 +1,6 @@
 ;;; tetris.el --- implementation of Tetris for Emacs
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 2.01
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -601,22 +601,23 @@ tetris-mode keybindings:
   (setq major-mode 'tetris-mode)
   (setq mode-name "Tetris")
 
-  (setq mode-popup-menu
-	'("Tetris Commands"
-	  ["Start new game"	tetris-start-game]
-	  ["End game"		tetris-end-game
-	   (tetris-active-p)]
-	  ["Pause"		tetris-pause-game
-	   (and (tetris-active-p) (not tetris-paused))]
-	  ["Resume"		tetris-pause-game
-	   (and (tetris-active-p) tetris-paused)]))
+  (unless (featurep 'emacs)
+    (setq mode-popup-menu
+	  '("Tetris Commands"
+	    ["Start new game"	tetris-start-game]
+	    ["End game"		tetris-end-game
+	     (tetris-active-p)]
+	    ["Pause"		tetris-pause-game
+	     (and (tetris-active-p) (not tetris-paused))]
+	    ["Resume"		tetris-pause-game
+	     (and (tetris-active-p) tetris-paused)])))
 
   (setq gamegrid-use-glyphs tetris-use-glyphs)
   (setq gamegrid-use-color tetris-use-color)
 
   (gamegrid-init (tetris-display-options))
 
-  (run-hooks 'tetris-mode-hook))
+  (run-mode-hooks 'tetris-mode-hook))
 
 ;;;###autoload
 (defun tetris ()
@@ -646,4 +647,5 @@ tetris-mode keybindings:
 
 (provide 'tetris)
 
+;;; arch-tag: fb780d53-3ff0-49f0-8e19-f7f13cf2d49e
 ;;; tetris.el ends here

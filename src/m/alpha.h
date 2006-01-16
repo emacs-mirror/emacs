@@ -1,5 +1,6 @@
 /* machine description file For the alpha chip.
-   Copyright (C) 1994, 1997, 1999, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1997, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The following line tells the configuration script what sort of
@@ -149,3 +150,6 @@ NOTE-END
    Define DBL_MIN_REPLACEMENT to be the next value larger than DBL_MIN:
    this avoids the assembler bug.  */
 #define DBL_MIN_REPLACEMENT 2.2250738585072019e-308
+
+/* arch-tag: 978cb578-1e25-4a60-819b-adae0972aa78
+   (do not change this comment) */

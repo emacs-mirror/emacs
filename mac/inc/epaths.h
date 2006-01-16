@@ -1,7 +1,8 @@
 /* Hey Emacs, this is -*- C -*- code!  */
 
 /* Handcrafted epaths.h file for building GNU Emacs on the Macintosh.
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2002, 2003, 2004,
+      2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,8 +18,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Contributed by Andrew Choi (akochoi@mac.com).  */
 
@@ -46,7 +47,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* Where Emacs should look for X bitmap files.
    The lisp variable x-bitmap-file-path is set based on this value.  */
-/* #define PATH_BITMAPS "/usr/include/X11/bitmaps" */
+#define PATH_BITMAPS ""
 
 /* Where Emacs should look for its docstring file.  The lisp variable
    doc-directory is set to this value.  */
@@ -57,5 +58,11 @@ Boston, MA 02111-1307, USA.  */
    macro, and is then used to set the Info-default-directory-list.  */
 #define PATH_INFO "~emacs/info"
 
+/* Where Emacs should store game score files.  */
+#define PATH_GAME "~emacs/games"
+
 /* Where Emacs should look for the application default file. */
 /* #define PATH_X_DEFAULTS "/usr/lib/X11/%L/%T/%N%C%S:/usr/lib/X11/%l/%T/%N%C%S:/usr/lib/X11/%T/%N%C%S:/usr/lib/X11/%L/%T/%N%S:/usr/lib/X11/%l/%T/%N%S:/usr/lib/X11/%T/%N%S" */
+
+/* arch-tag: 32e95134-dfe4-47be-be28-e8cbf78505b6
+   (do not change this comment) */

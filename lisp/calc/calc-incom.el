@@ -1,10 +1,10 @@
 ;;; calc-incom.el --- complex data type input functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +28,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-incom () nil)
-
 
 ;;; Incomplete forms.
 
@@ -172,6 +169,12 @@
 				   (cons 'vec (append (cdr (cdr inc)) stuff)))
 			     (list 'incomplete 'vec))))))))
 
+;; The following variables are initially declared in calc.el,
+;; but are used by calc-digit-dots.
+(defvar calc-prev-char)
+(defvar calc-prev-prev-char)
+(defvar calc-digit-value)
+
 (defun calc-digit-dots ()
   (if (eq calc-prev-char ?.)
       (progn
@@ -183,7 +186,8 @@
 	(if calc-prev-prev-char
 	    (calcDigit-nondigit)
 	  (setq calc-digit-value nil)
-	  (erase-buffer)
+          (let ((inhibit-read-only t))
+            (erase-buffer))
 	  (exit-minibuffer)))
     ;; just ignore extra decimal point, anticipating ".."
     (delete-backward-char 1)))
@@ -226,4 +230,7 @@
 	 (error "Interval form is incomplete"))
 	(t (error "Object is incomplete"))))
 
+(provide 'calc-incom)
+
+;;; arch-tag: b8001270-4dc7-481b-a3e3-a952e19b390d
 ;;; calc-incom.el ends here

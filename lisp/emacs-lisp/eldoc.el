@@ -1,13 +1,12 @@
 ;;; eldoc.el --- show function arglist or variable docstring in echo area
 
-;; Copyright (C) 1996, 97, 98, 99, 2000, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-
-;; $Id: eldoc.el,v 1.23 2003/01/03 11:53:46 jpw Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -23,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -40,10 +39,13 @@
 ;; One useful way to enable this minor mode is to put the following in your
 ;; .emacs:
 ;;
-;;      (autoload 'turn-on-eldoc-mode "eldoc" nil t)
 ;;      (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
 ;;      (add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
 ;;      (add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
+
+;; Major modes for other languages may use Eldoc by defining an
+;; appropriate function as the buffer-local value of
+;; `eldoc-documentation-function'.
 
 ;;; Code:
 
@@ -81,11 +83,11 @@ returns another string is acceptable."
 
 (defcustom eldoc-echo-area-use-multiline-p 'truncate-sym-name-if-fit
   "*Allow long eldoc messages to resize echo area display.
-If value is `t', never attempt to truncate messages; complete symbol name
+If value is t, never attempt to truncate messages; complete symbol name
 and function arglist or 1-line variable documentation will be displayed
 even if echo area must be resized to fit.
 
-If value is any non-nil value other than `t', symbol name may be truncated
+If value is any non-nil value other than t, symbol name may be truncated
 if it will enable the function arglist or documentation string to fit on a
 single line without resizing window.  Otherwise, behavior is just like
 former case.
@@ -101,55 +103,50 @@ truncated to make more of the arglist or documentation string visible."
 
 ;;; No user options below here.
 
-;; Commands after which it is appropriate to print in the echo area.
-;; Eldoc does not try to print function arglists, etc. after just any command,
-;; because some commands print their own messages in the echo area and these
-;; functions would instantly overwrite them.  But self-insert-command as well
-;; as most motion commands are good candidates.
-;; This variable contains an obarray of symbols; do not manipulate it
-;; directly.  Instead, use `eldoc-add-command' and `eldoc-remove-command'.
-(defvar eldoc-message-commands nil)
+(defvar eldoc-message-commands-table-size 31
+  "This is used by eldoc-add-command to initialize eldoc-message-commands
+as an obarray.
+It should probably never be necessary to do so, but if you
+choose to increase the number of buckets, you must do so before loading
+this file since the obarray is initialized at load time.
+Remember to keep it a prime number to improve hash performance.")
 
-;; This is used by eldoc-add-command to initialize eldoc-message-commands
-;; as an obarray.
-;; It should probably never be necessary to do so, but if you
-;; choose to increase the number of buckets, you must do so before loading
-;; this file since the obarray is initialized at load time.
-;; Remember to keep it a prime number to improve hash performance.
-(defvar eldoc-message-commands-table-size 31)
+(defconst eldoc-message-commands
+  (make-vector eldoc-message-commands-table-size 0)
+  "Commands after which it is appropriate to print in the echo area.
+Eldoc does not try to print function arglists, etc. after just any command,
+because some commands print their own messages in the echo area and these
+functions would instantly overwrite them.  But self-insert-command as well
+as most motion commands are good candidates.
+This variable contains an obarray of symbols; do not manipulate it
+directly.  Instead, use `eldoc-add-command' and `eldoc-remove-command'.")
 
-;; Bookkeeping; elements are as follows:
-;;   0 - contains the last symbol read from the buffer.
-;;   1 - contains the string last displayed in the echo area for that
-;;       symbol, so it can be printed again if necessary without reconsing.
-;;   2 - 'function if function args, 'variable if variable documentation.
-(defvar eldoc-last-data (make-vector 3 nil))
+(defconst eldoc-last-data (make-vector 3 nil)
+  "Bookkeeping; elements are as follows:
+  0 - contains the last symbol read from the buffer.
+  1 - contains the string last displayed in the echo area for that
+      symbol, so it can be printed again if necessary without reconsing.
+  2 - 'function if function args, 'variable if variable documentation.")
 (defvar eldoc-last-message nil)
 
-;; eldoc's timer object.
-(defvar eldoc-timer nil)
+(defvar eldoc-timer nil "eldoc's timer object.")
 
-;; idle time delay currently in use by timer.
-;; This is used to determine if eldoc-idle-delay is changed by the user.
-(defvar eldoc-current-idle-delay eldoc-idle-delay)
+(defvar eldoc-current-idle-delay eldoc-idle-delay
+  "idle time delay currently in use by timer.
+This is used to determine if `eldoc-idle-delay' is changed by the user.")
 
 
 ;;;###autoload
 (define-minor-mode eldoc-mode
   "Toggle ElDoc mode on or off.
-Show the defined parameters for the elisp function near point.
-
-For the emacs lisp function at the beginning of the sexp which point is
-within, show the defined parameters for the function in the echo area.
-This information is extracted directly from the function or macro if it is
-in pure lisp.  If the emacs function is a subr, the parameters are obtained
-from the documentation string if possible.
-
-If point is over a documented variable, print that variable's docstring
-instead.
+In ElDoc mode, the echo area displays information about a
+function or variable in the text where point is.  If point is
+on a documented variable, it displays the first line of that
+variable's doc string.  Otherwise it displays the argument list
+of the function called in the expression point is on.
 
 With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
-  nil eldoc-minor-mode-string nil
+  :group 'eldoc :lighter eldoc-minor-mode-string
   (setq eldoc-last-message nil)
   (if eldoc-mode
       (progn
@@ -165,7 +162,6 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
   (eldoc-mode 1))
 
 
-;; Idle timers are part of Emacs 19.31 and later.
 (defun eldoc-schedule-timer ()
   (or (and eldoc-timer
            (memq eldoc-timer timer-idle-list))
@@ -180,7 +176,7 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
 
 (defun eldoc-message (&rest args)
   (let ((omessage eldoc-last-message))
-    (setq eldoc-last-message 
+    (setq eldoc-last-message
 	  (cond ((eq (car args) eldoc-last-message) eldoc-last-message)
 		((null (car args)) nil)
 		;; If only one arg, no formatting to do, so put it in
@@ -233,19 +229,33 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
        (not (eq (selected-window) (minibuffer-window)))))
 
 
+;;;###autoload
+(defvar eldoc-documentation-function nil
+  "If non-nil, function to call to return doc string.
+The function of no args should return a one-line string for displaying
+doc about a function etc. appropriate to the context around point.
+It should return nil if there's no doc appropriate for the context.
+Typically doc is returned if point is on a function-like name or in its
+arg list.
+
+This variable is expected to be made buffer-local by modes (other than
+Emacs Lisp mode) that support Eldoc.")
+
 (defun eldoc-print-current-symbol-info ()
   (condition-case err
       (and (eldoc-display-message-p)
-	   (let* ((current-symbol (eldoc-current-symbol))
-		  (current-fnsym  (eldoc-fnsym-in-current-sexp))
-		  (doc (cond
-			((eq current-symbol current-fnsym)
-			 (or (eldoc-get-fnsym-args-string current-fnsym)
-			     (eldoc-get-var-docstring current-symbol)))
-			(t
-			 (or (eldoc-get-var-docstring current-symbol)
-			     (eldoc-get-fnsym-args-string current-fnsym))))))
-	     (eldoc-message doc)))
+	   (if eldoc-documentation-function
+	       (eldoc-message (funcall eldoc-documentation-function))
+	     (let* ((current-symbol (eldoc-current-symbol))
+		    (current-fnsym  (eldoc-fnsym-in-current-sexp))
+		    (doc (cond
+			  ((eq current-symbol current-fnsym)
+			   (or (eldoc-get-fnsym-args-string current-fnsym)
+			       (eldoc-get-var-docstring current-symbol)))
+			  (t
+			   (or (eldoc-get-var-docstring current-symbol)
+			       (eldoc-get-fnsym-args-string current-fnsym))))))
+	       (eldoc-message doc))))
     ;; This is run from post-command-hook or some idle timer thing,
     ;; so we need to be careful that errors aren't ignored.
     (error (message "eldoc error: %s" err))))
@@ -398,57 +408,38 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
 ;; These functions do display-command table management.
 
 (defun eldoc-add-command (&rest cmds)
-  (or eldoc-message-commands
-      (setq eldoc-message-commands
-            (make-vector eldoc-message-commands-table-size 0)))
-
-  (let (name sym)
-    (while cmds
-      (setq name (car cmds))
-      (setq cmds (cdr cmds))
-
-      (cond ((symbolp name)
-             (setq sym name)
-             (setq name (symbol-name sym)))
-            ((stringp name)
-             (setq sym (intern-soft name))))
-
-      (and (symbolp sym)
-           (fboundp sym)
-           (set (intern name eldoc-message-commands) t)))))
+  (dolist (name cmds)
+    (and (symbolp name)
+         (setq name (symbol-name name)))
+    (set (intern name eldoc-message-commands) t)))
 
 (defun eldoc-add-command-completions (&rest names)
-  (while names
-    (apply 'eldoc-add-command
-	   (all-completions (car names) obarray 'fboundp))
-    (setq names (cdr names))))
+  (dolist (name names)
+    (apply 'eldoc-add-command (all-completions name obarray 'commandp))))
 
 (defun eldoc-remove-command (&rest cmds)
-  (let (name)
-    (while cmds
-      (setq name (car cmds))
-      (setq cmds (cdr cmds))
-
-      (and (symbolp name)
-           (setq name (symbol-name name)))
-
-      (unintern name eldoc-message-commands))))
+  (dolist (name cmds)
+    (and (symbolp name)
+         (setq name (symbol-name name)))
+    (unintern name eldoc-message-commands)))
 
 (defun eldoc-remove-command-completions (&rest names)
-  (while names
+  (dolist (name names)
     (apply 'eldoc-remove-command
-           (all-completions (car names) eldoc-message-commands))
-    (setq names (cdr names))))
+           (all-completions name eldoc-message-commands))))
 
 
 ;; Prime the command list.
 (eldoc-add-command-completions
- "backward-" "beginning-of-" "delete-other-windows" "delete-window"
- "end-of-" "forward-" "indent-for-tab-command" "goto-" "mouse-set-point"
- "next-" "other-window" "previous-" "recenter" "scroll-"
- "self-insert-command" "split-window-"
- "up-list" "down-list")
+ "backward-" "beginning-of-" "move-beginning-of-" "delete-other-windows"
+ "delete-window"
+ "end-of-" "move-end-of-" "exchange-point-and-mark" "forward-"
+ "indent-for-tab-command" "goto-" "mark-page" "mark-paragraph"
+ "mouse-set-point" "move-" "pop-global-mark" "next-" "other-window"
+ "previous-" "recenter" "scroll-" "self-insert-command"
+ "split-window-" "up-list" "down-list")
 
 (provide 'eldoc)
 
+;; arch-tag: c9a58f9d-2055-46c1-9b82-7248b71a8375
 ;;; eldoc.el ends here

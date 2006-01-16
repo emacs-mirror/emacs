@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,1997,2001 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
+@c   2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Dealing with Common Problems
@@ -9,6 +10,10 @@ mysterious.  This chapter tells what you can do to cancel your mistake or
 recover from a mysterious situation.  Emacs bugs and system crashes are
 also considered.
 @end iftex
+
+@ifnottex
+@raisesections
+@end ifnottex
 
 @node Quitting, Lossage, Customization, Top
 @section Quitting and Aborting
@@ -53,7 +58,7 @@ successive @kbd{C-g} characters to get out of a search
 like @kbd{C-g}.  The reason is that it is not feasible, on MS-DOS, to
 recognize @kbd{C-g} while a command is running, between interactions
 with the user.  By contrast, it @emph{is} feasible to recognize
-@kbd{C-@key{BREAK}} at all times.  @xref{MS-DOS Input}.
+@kbd{C-@key{BREAK}} at all times.  @xref{MS-DOS Keyboard}.
 
 @findex keyboard-quit
   @kbd{C-g} works by setting the variable @code{quit-flag} to @code{t}
@@ -62,9 +67,9 @@ frequently and quits if it is non-@code{nil}.  @kbd{C-g} is only
 actually executed as a command if you type it while Emacs is waiting for
 input.  In that case, the command it runs is @code{keyboard-quit}.
 
-  If you quit with @kbd{C-g} a second time before the first @kbd{C-g} is
-recognized, you activate the ``emergency escape'' feature and return to
-the shell.  @xref{Emergency Escape}.
+  On a text terminal, if you quit with @kbd{C-g} a second time before
+the first @kbd{C-g} is recognized, you activate the ``emergency
+escape'' feature and return to the shell.  @xref{Emergency Escape}.
 
 @cindex NFS and quitting
   There may be times when you cannot quit.  When Emacs is waiting for
@@ -124,8 +129,8 @@ about the undo facility.
 normally, and how to recognize them and correct them.  For a list of
 additional problems you might encounter, see @ref{Bugs and problems, ,
 Bugs and problems, efaq, GNU Emacs FAQ}, and the file @file{etc/PROBLEMS}
-in the Emacs distribution.  Type @kbd{C-h F} to read the FAQ; type
-@kbd{C-h P} to read the @file{PROBLEMS} file.
+in the Emacs distribution.  Type @kbd{C-h C-f} to read the FAQ; type
+@kbd{C-h C-e} to read the @file{PROBLEMS} file.
 
 @menu
 * DEL Does Not Delete::   What to do if @key{DEL} doesn't delete.
@@ -233,11 +238,11 @@ back to top level.  @xref{Recursive Edit}.
 @node Screen Garbled
 @subsection Garbage on the Screen
 
-  If the data on the screen looks wrong, the first thing to do is see
-whether the text is really wrong.  Type @kbd{C-l} to redisplay the
-entire screen.  If the screen appears correct after this, the problem
-was entirely in the previous screen update.  (Otherwise, see the following
-section.)
+  If the text on a text terminal looks wrong, the first thing to do is
+see whether it is wrong in the buffer.  Type @kbd{C-l} to redisplay
+the entire screen.  If the screen appears correct after this, the
+problem was entirely in the previous screen update.  (Otherwise, see
+the following section.)
 
   Display updating problems often result from an incorrect termcap entry
 for the terminal you are using.  The file @file{etc/TERMS} in the Emacs
@@ -299,26 +304,27 @@ the following in your @file{.emacs} file:
 
   When flow control is enabled, you must type @kbd{C-\} to get the
 effect of a @kbd{C-s}, and type @kbd{C-^} to get the effect of a
-@kbd{C-q}.  (These aliases work by means of keyboard translations; see
-@ref{Keyboard Translations}.)
+@kbd{C-q}.
 
 @node Memory Full
 @subsection Running out of Memory
 @cindex memory full
 @cindex out of memory
 
-  If you get the error message @samp{Virtual memory exceeded}, save your
-modified buffers with @kbd{C-x s}.  This method of saving them has the
-smallest need for additional memory.  Emacs keeps a reserve of memory
-which it makes available when this error happens; that should be enough
-to enable @kbd{C-x s} to complete its work.
+  If you get the error message @samp{Virtual memory exceeded}, save
+your modified buffers with @kbd{C-x s}.  This method of saving them
+has the smallest need for additional memory.  Emacs keeps a reserve of
+memory which it makes available when this error happens; that should
+be enough to enable @kbd{C-x s} to complete its work.  When the
+reserve has been used, @samp{!MEM FULL!} appears at the beginning of
+the mode line, indicating there is no more reserve.
 
-  Once you have saved your modified buffers, you can exit this Emacs job
-and start another, or you can use @kbd{M-x kill-some-buffers} to free
-space in the current Emacs job.  If you kill buffers containing a
-substantial amount of text, you can safely go on editing.  Emacs refills
-its memory reserve automatically when it sees sufficient free space
-available, in case you run out of memory another time.
+  Once you have saved your modified buffers, you can exit this Emacs
+session and start another, or you can use @kbd{M-x kill-some-buffers}
+to free space in the current Emacs job.  If this frees up sufficient
+space, Emacs will refill its memory reserve, and @samp{!MEM FULL!}
+will disappear from the mode line.  That means you can safely go on
+editing in the same Emacs session.
 
   Do not use @kbd{M-x buffer-menu} to save or kill buffers when you run
 out of memory, because the buffer menu needs a fair amount of memory
@@ -346,6 +352,25 @@ visits the file but gets the text from the auto-save file.
   When @code{recover-session} is done, the files you've chosen to
 recover are present in Emacs buffers.  You should then save them.  Only
 this---saving them---updates the files themselves.
+
+  As a last resort, if you had buffers with content which were not
+associated with any files, or if the autosave was not recent enough to
+have recorded important changes, you can use the
+@file{etc/emacs-buffer.gdb} script with GDB (the GNU Debugger) to
+retrieve them from a core dump--provided that a core dump was saved,
+and that the Emacs executable was not stripped of its debugging
+symbols.
+
+  To use this script, run @code{gdb} with the file name of your Emacs
+executable and the file name of the core dump, e.g. @samp{gdb
+/usr/bin/emacs core.emacs}.  At the @code{(gdb)} prompt, load the
+recovery script: @samp{source /usr/src/emacs/etc/emacs-buffer.gdb}.
+Then type the command @code{ybuffer-list} to see which buffers are
+available.  For each buffer, it lists a buffer number.  To save a
+buffer, use @code{ysave-buffer}; you specify the buffer number, and
+the file name to write that buffer into.  You should use a file name
+which does not already exist; if the file does exist, the script does
+not make a backup of its old contents.
 
 @node Emergency Escape
 @subsection Emergency Escape
@@ -426,7 +451,7 @@ to do so effectively, you must know when and how to do it.
 
   Before reporting a bug, it is a good idea to see if it is already
 known.  You can find the list of known problems in the file
-@file{etc/PROBLEMS} in the Emacs distribution; type @kbd{C-h P} to read
+@file{etc/PROBLEMS} in the Emacs distribution; type @kbd{C-h C-e} to read
 it.  Some additional user-level problems can be found in @ref{Bugs and
 problems, , Bugs and problems, efaq, GNU Emacs FAQ}.  Looking up your
 problem in these two documents might provide you with a solution or a
@@ -572,8 +597,8 @@ or machine-readable media to this address:
 @format
 GNU Emacs Bugs
 Free Software Foundation
-59 Temple Place, Suite 330
-Boston, MA 02111-1307 USA
+51 Franklin Street, Fifth Floor
+Boston, MA 02110-1301 USA
 @end format
 
   We do not promise to fix the bug; but if the bug is serious,
@@ -683,7 +708,7 @@ terminal-dependent bug without access to a terminal of the type that
 stimulates the bug.@refill
 
 @item
-If non-ASCII text or internationalization is relevant, the locale that
+If non-@acronym{ASCII} text or internationalization is relevant, the locale that
 was current when you started Emacs.  On GNU/Linux and Unix systems, or
 if you use a Posix-style shell such as Bash, you can use this shell
 command to view the relevant values:
@@ -1033,18 +1058,23 @@ form that is clearly safe to install.
 
 If you would like to help pretest Emacs releases to assure they work
 well, or if you would like to work on improving Emacs, please contact
-the maintainers at @email{bug-gnu-emacs@@gnu.org}.  A pretester
+the maintainers at @email{emacs-devel@@gnu.org}.  A pretester
 should be prepared to investigate bugs as well as report them.  If you'd
 like to work on improving Emacs, please ask for suggested projects or
 suggest your own ideas.
 
 If you have already written an improvement, please tell us about it.  If
 you have not yet started work, it is useful to contact
-@email{bug-gnu-emacs@@gnu.org} before you start; it might be
+@email{emacs-devel@@gnu.org} before you start; it might be
 possible to suggest ways to make your extension fit in better with the
 rest of Emacs.
 
-@node Service, Command Arguments, Contributing, Top
+The development version of Emacs can be downloaded from the CVS
+repository where it is actively maintained by a group of developers.
+See the Emacs project page http://savannah.gnu.org/projects/emacs/ for
+details.
+
+@node Service, Copying, Contributing, Top
 @section How To Get Help with GNU Emacs
 
 If you need help installing, using or changing GNU Emacs, there are two
@@ -1062,3 +1092,11 @@ Look in the service directory for someone who might help you for a fee.
 The service directory is found in the file named @file{etc/SERVICE} in the
 Emacs distribution.
 @end itemize
+
+@ifnottex
+@lowersections
+@end ifnottex
+
+@ignore
+   arch-tag: c9cba76d-b2cb-4e0c-ae3f-19d5ef35817c
+@end ignore

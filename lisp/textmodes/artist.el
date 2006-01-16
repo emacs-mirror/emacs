@@ -1,12 +1,13 @@
 ;;; artist.el --- draw ascii graphics with your mouse
 
-;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Maintainer:   Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Keywords:     mouse
-;; Version:	 1.2.4
-;; Release-date: 25-Oct-2001
+;; Version:	 1.2.6
+;; Release-date: 6-Aug-2004
 ;; Location:     http://www.lysator.liu.se/~tab/artist/
 
 ;; This file is part of GNU Emacs.
@@ -23,8 +24,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -32,7 +33,7 @@
 ;; ---------------
 ;;
 ;; Artist is an Emacs lisp package that allows you to draw lines,
-;; rectangles and ellipses by using your mouse and/or keyboard. The
+;; rectangles and ellipses by using your mouse and/or keyboard.  The
 ;; shapes are made up with the ascii characters |, -, / and \.
 ;;
 ;; Features are:
@@ -61,20 +62,20 @@
 ;;     erase characters         erase rectangles
 ;;
 ;;   Straight lines are lines that go horizontally, vertically or
-;;   diagonally. Plain lines go in any direction. The operations in
+;;   diagonally.  Plain lines go in any direction.  The operations in
 ;;   the right column are accessed by holding down the shift key while
 ;;   drawing.
 ;;
 ;;   It is possible to vaporize (erase) entire lines and connected lines
 ;;   (rectangles for example) as long as the lines being vaporized are
-;;   straight and connected at their endpoints. Vaporizing is inspired
+;;   straight and connected at their endpoints.  Vaporizing is inspired
 ;;   by the drawrect package by Jari Aalto <jari.aalto@poboxes.com>.
 ;;
 ;; * Flood-filling: You can fill any area with a certain character by
 ;;   flood-filling.
 ;;
 ;; * Cut copy and paste: You can cut, copy and paste rectangular
-;;   regions. Artist also interfaces with the rect package (this can be
+;;   regions.  Artist also interfaces with the rect package (this can be
 ;;   turned off if it causes you any trouble) so anything you cut in
 ;;   artist can be yanked with C-x r y and vice versa.
 ;;
@@ -85,7 +86,7 @@
 ;;   poly-line, you can set arrows on the line-ends by typing < or >.
 ;;
 ;; * Aspect-ratio: You can set the variable artist-aspect-ratio to
-;;   reflect the height-width ratio for the font you are using. Squares
+;;   reflect the height-width ratio for the font you are using.  Squares
 ;;   and circles are then drawn square/round.  Note, that once your
 ;;   ascii-file is shown with font with a different height-width ratio,
 ;;   the squares won't be square and the circles won't be round.
@@ -136,6 +137,14 @@
 
 ;;; ChangeLog:
 
+;; 1.2.6	6-Aug-2004
+;; New:		Coerced with the artist.el that's in Emacs-21.3.
+;;              (minor editorial changes)
+;;
+;; 1.2.5	4-Aug-2004
+;; New:		Added tool selection via the mouse-wheel
+;;		Function provided by Andreas Leue <al@sphenon.de>
+;;
 ;; 1.2.4	25-Oct-2001
 ;; Bugfix:	Some operations (the edit menu) got hidden
 ;; Bugfix:      The first arrow for poly-lines was always pointing
@@ -187,9 +196,10 @@
 
 ;; Variables
 
-(defconst artist-version "1.2.4")
+(defconst artist-version "1.2.6")
 (defconst artist-maintainer-address "tab@lysator.liu.se")
 
+(defvar x-pointer-crosshair)
 
 (eval-and-compile
  (condition-case ()
@@ -395,7 +405,7 @@ Example:
   :type 'integer)
 
 
-(defvar artist-spray-chars '(?\  ?. ?- ?+ ?m ?% ?* ?#)
+(defvar artist-spray-chars '(?\s ?. ?- ?+ ?m ?% ?* ?#)
   ;; This is a defvar, not a defcustom, since the custom
   ;; package shows lists of characters as a lists of integers,
   ;; which is confusing
@@ -446,7 +456,7 @@ strangely.")
   "Char to use when filling.")
 (make-variable-buffer-local 'artist-fill-char)
 
-(defvar artist-erase-char ?\
+(defvar artist-erase-char ?\s
   "Char to use when erasing.")
 (make-variable-buffer-local 'artist-erase-char)
 
@@ -471,6 +481,14 @@ strangely.")
 The fill char is used instead, if it is set.")
 (make-variable-buffer-local 'artist-borderless-shapes)
 
+(defvar artist-prev-next-op-alist nil
+  "Assoc list for looking up next and/or previous draw operation.
+The structure is as follows:  (OP . (PREV-OP . NEXT-OP))
+where the elements are as follows:
+* OP is an atom: the KEY-SYMBOL in the `artist-mt' structure
+* PREV-OP and NEXT-OP are strings: the KEYWORD in the `artist-mt' structure
+
+This variable is initialized by the artist-make-prev-next-op-alist function.")
 
 (eval-when-compile
   ;; Make rect available at compile-time
@@ -486,7 +504,18 @@ The fill char is used instead, if it is set.")
 (if artist-picture-compatibility
     (require 'picture))
 
-
+;; Variables that are made local in artist-mode-init
+(defvar artist-key-is-drawing nil)
+(defvar artist-key-endpoint1 nil)
+(defvar artist-key-poly-point-list nil)
+(defvar artist-key-shape nil)
+(defvar artist-key-draw-how nil)
+(defvar artist-popup-menu-table nil)
+(defvar artist-key-compl-table nil)
+(defvar artist-rb-save-data nil)
+(defvar artist-arrow-point-1 nil)
+(defvar artist-arrow-point-2 nil)
+
 (defvar artist-mode-map
   (let ((map (make-sparse-keymap)))
     (setq artist-mode-map (make-sparse-keymap))
@@ -496,6 +525,8 @@ The fill char is used instead, if it is set.")
     (define-key map [S-down-mouse-2] 'artist-mouse-choose-operation)
     (define-key map [down-mouse-3] 'artist-down-mouse-3)
     (define-key map [S-down-mouse-3] 'artist-down-mouse-3)
+    (define-key map [C-mouse-4] 'artist-select-prev-op-in-list)
+    (define-key map [C-mouse-5] 'artist-select-next-op-in-list)
     (define-key map "\r" 'artist-key-set-point) ; return
     (define-key map [up] 'artist-previous-line)
     (define-key map "\C-p" 'artist-previous-line)
@@ -1063,6 +1094,73 @@ component is other than `artist-do-continously' or 1."
   "Retrieve the items component from a graphics operation INFO-PART."
   (elt info-part 1))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; mouse wheel cyclic operation selection
+
+(defun artist-get-last-non-nil-op (op-list &optional last-non-nil)
+  "Find the last non-nil draw operation in OP-LIST.
+Optional LAST-NON-NIL will be returned if OP-LIST is nil."
+  (if op-list
+      (artist-get-last-non-nil-op (cdr op-list)
+				  (or (car (car op-list)) last-non-nil))
+    last-non-nil))
+
+(defun artist-get-first-non-nil-op (op-list)
+  "Find the first non-nil draw operation in OP-LIST."
+  (or (car (car op-list)) (artist-get-first-non-nil-op (cdr op-list))))
+
+(defun artist-is-in-op-list-p (op op-list)
+  "Check whether OP is in OP-LIST."
+  (and op-list
+       (or (and (car (car op-list)) (string= op (car (car op-list))))
+	   (artist-is-in-op-list-p op (cdr op-list)))))
+
+(defun artist-make-prev-next-op-alist (op-list
+				       &optional
+				       last-non-nil-arg first-non-nil-arg
+				       prev-entry prev-op-arg)
+  "Build an assoc-list of OP-LIST.
+The arguments LAST-NON-NIL-ARG, FIRST-NON-NIL-ARG, PREV-ENTRY and
+PREV-OP-ARG are used when invoked recursively during the build-up."
+  (let* ((last-non-nil  (or last-non-nil-arg
+			    (artist-get-last-non-nil-op
+			     artist-key-compl-table)))
+         (first-non-nil (or first-non-nil-arg
+			    (artist-get-first-non-nil-op
+			     artist-key-compl-table)))
+         (prev-op       (or prev-op-arg last-non-nil))
+         (op            (car (car op-list)))
+         (opsym         (artist-mt-get-symbol-from-keyword op))
+         (entry         (cons opsym (cons prev-op nil))))
+    (if (or (and op-list (not op))
+	    (artist-is-in-op-list-p op (cdr op-list)))
+        (artist-make-prev-next-op-alist (cdr op-list)
+					last-non-nil first-non-nil
+					prev-entry prev-op)
+      (if prev-entry (setcdr (cdr prev-entry) op))
+      (if op-list
+          (cons entry (artist-make-prev-next-op-alist
+		       (cdr op-list)
+		       last-non-nil first-non-nil
+		       entry op))
+        (progn (setcdr (cdr prev-entry) first-non-nil) nil)))))
+
+(defun artist-select-next-op-in-list ()
+  "Cyclically select next drawing mode operation."
+  (interactive)
+  (let ((next-op (cdr (cdr (assoc artist-curr-go artist-prev-next-op-alist)))))
+    (artist-select-operation next-op)
+    (message next-op)))
+
+(defun artist-select-prev-op-in-list ()
+  "Cyclically select previous drawing mode operation."
+  (interactive)
+  (let ((prev-op (car (cdr (assoc artist-curr-go artist-prev-next-op-alist)))))
+    (artist-select-operation prev-op)
+    (message prev-op)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;; ---------------------------------
 ;;; The artist-mode
 ;;; ---------------------------------
@@ -1285,21 +1383,6 @@ Keymap summary
 		minor-mode-map-alist)))
 
 
-
-(eval-when-compile
-  ;; Variables that are made local in artist-mode-init
-  (defvar artist-key-is-drawing nil)
-  (defvar artist-key-endpoint1 nil)
-  (defvar artist-key-poly-point-list nil)
-  (defvar artist-key-shape nil)
-  (defvar artist-key-draw-how nil)
-  (defvar artist-popup-menu-table nil)
-  (defvar artist-key-compl-table nil)
-  (defvar artist-rb-save-data nil)
-  (defvar artist-arrow-point-1 nil)
-  (defvar artist-arrow-point-2 nil))
-
-
 ;; Init and exit
 (defun artist-mode-init ()
   "Init Artist mode.  This will call the hook `artist-mode-init-hook'."
@@ -1307,9 +1390,9 @@ Keymap summary
     (while (< i 256)
       (aset artist-replacement-table i i)
       (setq i (1+ i))))
-  (aset artist-replacement-table ?\n ?\ )
-  (aset artist-replacement-table ?\t ?\ )
-  (aset artist-replacement-table 0 ?\ )
+  (aset artist-replacement-table ?\n ?\s)
+  (aset artist-replacement-table ?\t ?\s)
+  (aset artist-replacement-table 0 ?\s)
   (make-local-variable 'artist-key-is-drawing)
   (make-local-variable 'artist-key-endpoint1)
   (make-local-variable 'artist-key-poly-point-list)
@@ -1317,6 +1400,7 @@ Keymap summary
   (make-local-variable 'artist-key-draw-how)
   (make-local-variable 'artist-popup-menu-table)
   (make-local-variable 'artist-key-compl-table)
+  (make-local-variable 'artist-prev-next-op-alist)
   (make-local-variable 'artist-rb-save-data)
   (make-local-variable 'artist-arrow-point-1)
   (make-local-variable 'artist-arrow-point-2)
@@ -1326,6 +1410,8 @@ Keymap summary
   (setq artist-key-shape nil)
   (setq artist-popup-menu-table (artist-compute-popup-menu-table artist-mt))
   (setq artist-key-compl-table (artist-compute-key-compl-table artist-mt))
+  (setq artist-prev-next-op-alist
+	(artist-make-prev-next-op-alist artist-key-compl-table))
   (setq artist-rb-save-data (make-vector 7 0))
   (setq artist-arrow-point-1 nil)
   (setq artist-arrow-point-2 nil)
@@ -1444,7 +1530,7 @@ The returned value is suitable for the `x-popup-menu' function."
   "Compute completion table from MENU-TABLE, suitable for `completing-read'."
   (apply
    'nconc
-   (artist-remove-nulls
+   (remq nil
     (mapcar
      (lambda (element)
        (let ((element-tag (artist-mt-get-tag element)))
@@ -1684,50 +1770,12 @@ info-variant-part."
   "Call function FN with ARGS iff FN is not nil."
   (list 'if fn (cons 'funcall (cons fn args))))
 
-(defvar artist-butlast-fn 'artist-butlast
-  "The butlast function")
-
-(if (fboundp 'butlast)
-    (setq artist-butlast-fn 'butlast)
-  (setq artist-butlast-fn 'artist-butlast))
-
-(defun artist-butlast (l)
-  "Return the list L with all elements but the last."
-  (cond ((null l) nil)
-	((null (cdr l)) nil)
-	(t (cons (car l) (artist-butlast (cdr l))))))
-
-
-(defun artist-last (seq &optional n)
-  "Return the last link in the list SEQ.
-With optional argument N, returns Nth-to-last link (default 1)."
-  (if (not n)
-      (setq n 1))
-  (let ((len (length seq)))
-    (elt seq (- len n))))
-
-(defun artist-remove-nulls (l)
-  "Remove nils in list L."
-  (cond ((null l) nil)
-	((null (car l)) (artist-remove-nulls (cdr l)))
-	(t (cons (car l) (artist-remove-nulls (cdr l))))))
-
 (defun artist-uniq (l)
   "Remove consecutive duplicates in list L.  Comparison is done with `equal'."
   (cond ((null l) nil)
 	((null (cdr l)) l)		; only one element in list
 	((equal (car l) (car (cdr l))) (artist-uniq (cdr l))) ; first 2 equal
 	(t (cons (car l) (artist-uniq (cdr l)))))) ; first 2 are different
-
-(defmacro artist-push (x stack)
-  "Push element X to a STACK."
-  (list 'setq stack (list 'cons x stack)))
-
-(defmacro artist-pop (stack)
-  "Pop an element from a STACK."
-  (list 'prog1
-	(list 'car stack)
-	(list 'setq stack (list 'cdr stack))))
 
 (defun artist-string-split (str r)
   "Split string STR at occurrences of regexp R, returning a list of strings."
@@ -1966,7 +2014,7 @@ With optional argument SEE-THRU, set to non-nil, text in the buffer
 	(blink-matching-paren nil))
     (while char-list
       (let ((c (car char-list)))
-	(if (and see-thru (= (aref artist-replacement-table c) ?\ ))
+	(if (and see-thru (= (aref artist-replacement-table c) ?\s))
 	    (artist-move-to-xy (1+ (artist-current-column))
 			       (artist-current-line))
 	  (artist-replace-char c)))
@@ -2526,7 +2574,7 @@ They are faster to draw and most often they are what you need
 when drawing a simple image.
 
 Output is a straight line, which is a list on the form
-(END-POINT-1 END-POINT-2 SHAPE-INFO).
+\(END-POINT-1 END-POINT-2 SHAPE-INFO).
 
 END-POINT-1 and END-POINT-2 are two-element vectors on the form [X Y].
 SHAPE-INFO is a vector [START-X START-Y LENGTH-OF-LINE DIRECTION
@@ -2581,7 +2629,7 @@ SHAPE-INFO is a vector [START-X START-Y LENGTH-OF-LINE DIRECTION
   "Draws a rectangle with corners at X1, Y1 and X2, Y2.
 
 Output is a rectangle, which is a list on the form
-(END-POINT-1 END-POINT-2 SHAPE-INFO).
+\(END-POINT-1 END-POINT-2 SHAPE-INFO).
 
 END-POINT-1 and END-POINT-2 are two-element vectors on the form [X Y].
 SHAPE-INFO is a list of four straight lines."
@@ -2642,7 +2690,7 @@ depends on which of X2 and Y2 is most far away from X1, Y1."
   "Draw a square with corners at X1, Y1 and X2, Y2.
 
 Output is a square, which is a list on the form
-(END-POINT-1 END-POINT-2 SHAPE-INFO).
+\(END-POINT-1 END-POINT-2 SHAPE-INFO).
 
 END-POINT-1 and END-POINT-2 are two-element vectors on the form [X Y].
 SHAPE-INFO is a list of four straight lines."
@@ -2815,9 +2863,9 @@ Returns a list of strings."
   "Read any extra arguments for figlet."
   (interactive)
   (let* ((avail-fonts  (artist-figlet-get-font-list))
-	 (font (completing-read (concat "Select font: (default "
+	 (font (completing-read (concat "Select font (default "
 					artist-figlet-default-font
-					") ")
+					"): ")
 				(mapcar
 				 (lambda (font) (cons font font))
 				 avail-fonts))))
@@ -2825,7 +2873,7 @@ Returns a list of strings."
 
 (defun artist-figlet-get-extra-args ()
   "Read any extra arguments for figlet."
-  (let ((extra-args (read-input "Extra args to figlet: ")))
+  (let ((extra-args (read-string "Extra args to figlet: ")))
     (if (string= extra-args "")
 	nil
       extra-args)))
@@ -2866,7 +2914,7 @@ This is done by calling the function specified by `artist-text-renderer',
 which must return a list of strings, to be inserted in the buffer.
 
 Text already in the buffer ``shines thru'' blanks in the rendered text."
-  (let* ((input-text (read-input "Type text to render: "))
+  (let* ((input-text (read-string "Type text to render: "))
 	 (rendered-text (artist-funcall artist-text-renderer input-text)))
     (artist-text-insert-see-thru x y rendered-text)))
 
@@ -2877,7 +2925,7 @@ This is done by calling the function specified by `artist-text-renderer',
 which must return a list of strings, to be inserted in the buffer.
 
 Blanks in the rendered text overwrites any text in the buffer."
-  (let* ((input-text (read-input "Type text to render: "))
+  (let* ((input-text (read-string "Type text to render: "))
 	 (rendered-text (artist-funcall artist-text-renderer input-text)))
     (artist-text-insert-overwrite x y rendered-text)))
 
@@ -3022,26 +3070,26 @@ An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
 (defun artist-vap-find-endpoints-horiz (x y)
   "Find endpoints for a horizontal line through X, Y.
 An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
-  (list (artist-vap-find-endpoint x y  1 0 '(?- ?+) '(?  ))
-	(artist-vap-find-endpoint x y -1 0 '(?- ?+) '(?  ))))
+  (list (artist-vap-find-endpoint x y  1 0 '(?- ?+) '(?\s))
+	(artist-vap-find-endpoint x y -1 0 '(?- ?+) '(?\s))))
 
 (defun artist-vap-find-endpoints-vert (x y)
   "Find endpoints for a vertical line through X, Y.
 An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
-  (list (artist-vap-find-endpoint x y 0  1 '(?| ?+) '(?  ))
-	(artist-vap-find-endpoint x y 0 -1 '(?| ?+) '(?  ))))
+  (list (artist-vap-find-endpoint x y 0  1 '(?| ?+) '(?\s))
+	(artist-vap-find-endpoint x y 0 -1 '(?| ?+) '(?\s))))
 
 (defun artist-vap-find-endpoints-swne (x y)
   "Find endpoints for a diagonal line (made by /'s) through X, Y.
 An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
-  (list (artist-vap-find-endpoint x y  1 -1 '(?/ ?X) '(?  ))
-	(artist-vap-find-endpoint x y -1  1 '(?/ ?X) '(?  ))))
+  (list (artist-vap-find-endpoint x y  1 -1 '(?/ ?X) '(?\s))
+	(artist-vap-find-endpoint x y -1  1 '(?/ ?X) '(?\s))))
 
 (defun artist-vap-find-endpoints-nwse (x y)
   "Find endpoints for a diagonal line (made by \\'s) through X, Y.
 An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
-  (list (artist-vap-find-endpoint x y  1  1 '(?\\ ?X) '(?  ))
-	(artist-vap-find-endpoint x y -1 -1 '(?\\ ?X) '(?  ))))
+  (list (artist-vap-find-endpoint x y  1  1 '(?\\ ?X) '(?\s))
+	(artist-vap-find-endpoint x y -1 -1 '(?\\ ?X) '(?\s))))
 
 
 (defun artist-vap-find-endpoints (x y)
@@ -3163,14 +3211,14 @@ through X1, Y1. An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
   "Vaporize lines reachable from point X1, Y1."
   (let ((ep-stack nil))
     (mapcar
-     (lambda (ep) (artist-push ep ep-stack))
+     (lambda (ep) (push ep ep-stack))
      (artist-vap-find-endpoints x1 y1))
     (while (not (null ep-stack))
-      (let* ((vaporize-point (artist-pop ep-stack))
+      (let* ((vaporize-point (pop ep-stack))
 	     (new-endpoints (artist-vaporize-line (car vaporize-point)
 						  (cdr vaporize-point))))
 	(mapcar
-	 (lambda (endpoint) (artist-push endpoint ep-stack))
+	 (lambda (endpoint) (push endpoint ep-stack))
 	 new-endpoints)))))
 
 
@@ -3331,7 +3379,7 @@ The POINT-LIST is expected to cover the first quadrant."
     ;; that look like:    \           /  instead we get:   (           )
     ;;                     \         /                      \         /
     ;;                      ---------                        ---------
-    (let ((last-coord  (artist-last point-list)))
+    (let ((last-coord (car (last point-list))))
       (if (= (artist-coord-get-new-char last-coord) ?/)
 	  (artist-coord-set-new-char last-coord artist-ellipse-right-char)))
 
@@ -3364,12 +3412,12 @@ The POINT-LIST is expected to cover the first quadrant."
 				       (t c)))))
 	   ;; The cdr and butlast below is so we don't draw the middle top
 	   ;; and middle bottom char twice.
-	   (funcall artist-butlast-fn (cdr (reverse right-half)))))
+	   (butlast (cdr (reverse right-half)))))
     (append right-half left-half)))
 
 
-(defun artist-draw-ellipse-general (x y x-radius y-radius)
-  "Draw an ellipse with center at X, Y and X-RADIUS and Y-RADIUS.
+(defun artist-draw-ellipse-general (x1 y1 x-radius y-radius)
+  "Draw an ellipse with center at X1, Y1 and X-RADIUS and Y-RADIUS.
 
 Output is an ellipse, which is a list (END-POINT-1 END-POINT-2 SHAPE-INFO).
 
@@ -3379,15 +3427,15 @@ SHAPE-INFO is a two-element vector on the form [POINT-LIST FILL-INFO].
 POINT-LIST is a list of vectors on the form [X Y SAVED-CHAR NEW-CHAR].
 FILL-INFO is a list of vectors on the form [X Y ELLIPSE-WIDTH-ON-THIS-LINE].
 
-Ellipses with zero y-radius are not drawn correctly."
+Ellipses with zero Y-RADIUS are not drawn correctly."
   (let* ((point-list   (artist-ellipse-generate-quadrant x-radius y-radius))
 	 (fill-info    (artist-ellipse-compute-fill-info point-list))
 	 (shape-info   (make-vector 2 0)))
 
     (setq point-list (artist-calculate-new-chars point-list))
     (setq point-list (artist-ellipse-mirror-quadrant point-list))
-    (setq point-list (artist-ellipse-point-list-add-center x y point-list))
-    (setq fill-info (artist-ellipse-fill-info-add-center x y fill-info))
+    (setq point-list (artist-ellipse-point-list-add-center x1 y1 point-list))
+    (setq fill-info (artist-ellipse-fill-info-add-center x1 y1 fill-info))
 
     ;; Draw the ellipse
     (setq point-list
@@ -3404,12 +3452,12 @@ Ellipses with zero y-radius are not drawn correctly."
 
     (aset shape-info 0 point-list)
     (aset shape-info 1 fill-info)
-    (artist-make-2point-object (artist-make-endpoint x y)
+    (artist-make-2point-object (artist-make-endpoint x1 y1)
 			       (artist-make-endpoint x-radius y-radius)
 			       shape-info)))
 
-(defun artist-draw-ellipse-with-0-height (x y x-radius y-radius)
-  "Draw an ellipse with center at X, Y and X-RADIUS and Y-RADIUS.
+(defun artist-draw-ellipse-with-0-height (x1 y1 x-radius y-radius)
+  "Draw an ellipse with center at X1, Y1 and X-RADIUS and Y-RADIUS.
 
 Output is an ellipse, which is a list (END-POINT-1 END-POINT-2 SHAPE-INFO).
 
@@ -3419,10 +3467,10 @@ SHAPE-INFO is a two-element vector on the form [POINT-LIST FILL-INFO].
 POINT-LIST is a list of vectors on the form [X Y SAVED-CHAR NEW-CHAR].
 FILL-INFO is a list of vectors on the form [X Y ELLIPSE-WIDTH-ON-THIS-LINE].
 
-The Y-RADIUS must be 0, but the X-RADUIS must not be 0."
+The Y-RADIUS must be 0, but the X-RADIUS must not be 0."
   (let ((point-list nil)
 	(width      (max (- (abs (* 2 x-radius)) 1)))
-	(left-edge  (1+ (- x (abs x-radius))))
+	(left-edge  (1+ (- x1 (abs x-radius))))
 	(line-char  (if artist-line-char-set artist-line-char ?-))
 	(i          0)
 	(point-list nil)
@@ -3430,7 +3478,7 @@ The Y-RADIUS must be 0, but the X-RADUIS must not be 0."
 	(shape-info (make-vector 2 0)))
     (while (< i width)
       (let* ((line-x (+ left-edge i))
-	     (line-y y)
+	     (line-y y1)
 	     (new-coord (artist-new-coord line-x line-y)))
 	(artist-coord-add-saved-char new-coord
 				     (artist-get-char-at-xy line-x line-y))
@@ -3440,7 +3488,7 @@ The Y-RADIUS must be 0, but the X-RADUIS must not be 0."
 	(setq i (1+ i))))
     (aset shape-info 0 point-list)
     (aset shape-info 1 fill-info)
-    (artist-make-2point-object (artist-make-endpoint x y)
+    (artist-make-2point-object (artist-make-endpoint x1 y1)
 			       (artist-make-endpoint x-radius y-radius)
 			       shape-info)))
 
@@ -3680,10 +3728,10 @@ original contents of that area in the buffer."
     ;; area we are about to fill, or, in other words, don't fill if we
     ;; needn't.
     (if (not (= c artist-fill-char))
-	(artist-push (artist-new-coord x1 y1) stack))
+	(push (artist-new-coord x1 y1) stack))
 
     (while (not (null stack))
-      (let* ((coord (artist-pop stack))
+      (let* ((coord (pop stack))
 	     (x (artist-coord-get-x coord))
 	     (y (artist-coord-get-y coord))
 
@@ -3715,7 +3763,7 @@ original contents of that area in the buffer."
 	  (if lines-above
 	      (let ((c-above (artist-get-char-at-xy-conv x (- y 1))))
 		(if (and (= c-above c) (/= c-above last-c-above))
-		    (artist-push (artist-new-coord x (- y 1)) stack))
+		    (push (artist-new-coord x (- y 1)) stack))
 		(setq last-c-above c-above)))
 	  (setq last-x x)
 	  (setq x (- x 1)))
@@ -3729,7 +3777,7 @@ original contents of that area in the buffer."
 	  (if lines-below
 	      (let ((c-below (artist-get-char-at-xy-conv x (1+ y))))
 		(if (and (= c-below c) (/= c-below last-c-below))
-		    (artist-push (artist-new-coord x (1+ y)) stack))
+		    (push (artist-new-coord x (1+ y)) stack))
 		(setq last-c-below c-below)))
 	  (setq x (- x 1)))
 
@@ -3800,8 +3848,8 @@ Optional argument STATE can be used to set state (default is nil)."
 	 (x2    (artist-endpoint-get-x ep2))
 	 (y2    (artist-endpoint-get-y ep2))
 	 (dir1  (artist-find-direction x2 y2 x1 y1))
-	 (epn   (artist-last point-list))
-	 (epn-1 (artist-last point-list 2))
+	 (epn   (car (last point-list)))
+	 (epn-1 (car (last point-list 2)))
 	 (xn    (artist-endpoint-get-x epn))
 	 (yn    (artist-endpoint-get-y epn))
 	 (xn-1  (artist-endpoint-get-x epn-1))
@@ -3954,7 +4002,7 @@ The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
 
 (defun artist-draw-region-trim-line-endings (min-y max-y)
   "Trim lines in current draw-region from MIN-Y to MAX-Y.
-Trimming here means removing white space at end of a line"
+Trimming here means removing white space at end of a line."
   ;; Safetyc check: switch min-y and max-y if if max-y is smaller
   (if (< max-y min-y)
       (let ((tmp min-y))
@@ -4114,7 +4162,7 @@ If optional argument THIS-IS-LAST-POINT is non-nil, this point is the last."
 	  (setq artist-key-is-drawing t)
 
 	  ;; Feedback
-	  (message (substitute-command-keys
+	  (message "%s" (substitute-command-keys
 		    (concat "First point set. "
 			    "Set next with \\[artist-key-set-point], "
 			    "set last with C-u \\[artist-key-set-point]"))))
@@ -4286,7 +4334,7 @@ If optional argument THIS-IS-LAST-POINT is non-nil, this point is the last."
 
 (defun artist-key-set-point-common (arg)
   "Common routine for setting point in current shape.
-With ARG set to t, set the last point."
+With non-nil ARG, set the last point."
   (let ((draw-how    (artist-go-get-draw-how-from-symbol artist-curr-go))
 	(col         (artist-current-column))
 	(row         (artist-current-line))
@@ -4407,7 +4455,7 @@ If N is negative, move backward."
 (defun artist-select-erase-char (c)
   "Set current erase character to be C."
   (interactive "cType char to use when erasing (type RET for normal): ")
-  (cond ((eq c ?\r) (setq artist-erase-char ?\ )
+  (cond ((eq c ?\r) (setq artist-erase-char ?\s)
 		    (message "Normal erasing"))
 	(t	    (setq artist-erase-char c)
 		    (message "Erasing with \"%c\"" c)))
@@ -4793,7 +4841,7 @@ If optional argument STATE is positive, turn borders on."
 
 
 (defun artist-mouse-choose-operation (ev op)
-  "Choose operation for evenvt EV and operation OP."
+  "Choose operation for event EV and operation OP."
   (interactive
    (progn
      (select-window (posn-window (event-start last-input-event)))
@@ -5515,4 +5563,5 @@ The event, EV, is the mouse event."
 ;; Don't hesitate to ask me any questions.
 
 
+;;; arch-tag: 3e63b881-aaaa-4b83-a072-220d4661a8a3
 ;;; artist.el ends here

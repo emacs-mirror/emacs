@@ -1,11 +1,13 @@
 ;;; ps-bdf.el --- BDF font file handler for ps-print
 
-;; Copyright (C) 1998,99,2001 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1998, 1999, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2001, 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: wp, BDF, font, PostScript
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp>
-;; Time-stamp: <2001-07-15 12:25:51 pavel>
+;; Time-stamp: <2003/07/11 21:13:44 vinicius>
 
 ;; This file is part of GNU Emacs.
 
@@ -21,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -40,8 +42,7 @@
 
 ;;;###autoload
 (defvar bdf-directory-list
-  (if (and (memq system-type '(ms-dos windows-nt))
-	   (boundp 'installation-directory))
+  (if (memq system-type '(ms-dos windows-nt))
       (list (expand-file-name "fonts/bdf" installation-directory))
     '("/usr/local/share/emacs/fonts/bdf"))
   "*List of directories to search for `BDF' font files.
@@ -49,8 +50,7 @@ The default value is '(\"/usr/local/share/emacs/fonts/bdf\").")
 
 ;; MS-DOS and MS-Windows users like to move the binary around after
 ;; it's built, but the value above is computed at load-up time.
-(and (and (memq system-type '(ms-dos windows-nt))
-	  (boundp 'installation-directory))
+(and (memq system-type '(ms-dos windows-nt))
      (setq bdf-directory-list
 	   (list (expand-file-name "fonts/bdf" installation-directory))))
 
@@ -274,18 +274,20 @@ CODE, where N and CODE are in the following relation:
 	    (while (search-forward "\nSTARTCHAR" nil t)
 	      (setq offset (line-beginning-position))
 	      (search-forward "\nENCODING")
-	      (setq code (read (current-buffer))
-		    code0 (lsh code -8)
-		    code1 (logand code 255)
-		    min-code (min min-code code)
-		    max-code (max max-code code)
-		    min-code0 (min min-code0 code0)
-		    max-code0 (max max-code0 code0)
-		    min-code1 (min min-code1 code1)
-		    max-code1 (max max-code1 code1))
-	      (search-forward "ENDCHAR")
-	      (setq maxlen (max maxlen (- (point) offset))
-		    glyph-list (cons (cons code offset) glyph-list)))
+	      (setq code (read (current-buffer)))
+	      (if (< code 0)
+		  (search-forward "ENDCHAR")
+		(setq code0 (lsh code -8)
+		      code1 (logand code 255)
+		      min-code (min min-code code)
+		      max-code (max max-code code)
+		      min-code0 (min min-code0 code0)
+		      max-code0 (max max-code0 code0)
+		      min-code1 (min min-code1 code1)
+		      max-code1 (max max-code1 code1))
+		(search-forward "ENDCHAR")
+		(setq maxlen (max maxlen (- (point) offset))
+		      glyph-list (cons (cons code offset) glyph-list))))
 
 	    (setq code-range
 		  (vector min-code0 max-code0 min-code1 max-code1
@@ -455,4 +457,5 @@ BITMAP-STRING is a string representing bits by hexadecimal digits."
 
 (provide 'ps-bdf)
 
+;;; arch-tag: 9b875ba8-565a-4ecf-acaa-30cee732c898
 ;;; ps-bdf.el ends here

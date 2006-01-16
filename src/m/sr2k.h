@@ -1,5 +1,5 @@
 /* machine description file for Hitachi SR2001/SR2201 machines.
-   Copyright (C) 1996, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1996, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The following line tells the configuration script what sort of
@@ -67,13 +67,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define XSET(var, type, ptr) \
    ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS))
-
-#define XMARKBIT(a) ((a) < 0)
-#define XSETMARKBIT(a,b) ((a) = ((b) ? (a)|MARKBIT : (a) & ~MARKBIT))
-
-#if 0  /* Loses when sign bit of type field is set.  */
-#define XUNMARK(a) ((a) = (((a) << BITS_PER_INT-GCTYPEBITS-VALBITS) >> BITS_PER_INT-GCTYPEBITS-VALBITS))
-#endif
 
 /* #ifdef __hpux */
 /* Now define a symbol for the cpu type, if your compiler
@@ -161,3 +154,6 @@ Boston, MA 02111-1307, USA.  */
 #define rindex strrchr
 
 /* #endif */
+
+/* arch-tag: 4ced5b51-ffe6-4be1-9954-eb40657023a5
+   (do not change this comment) */

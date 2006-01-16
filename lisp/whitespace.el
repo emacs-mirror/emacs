@@ -1,11 +1,11 @@
 ;;; whitespace.el --- warn about and clean bogus whitespaces in the file
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
 
-;; $Id: whitespace.el,v 1.21 2002/09/13 06:21:32 lektu Exp $
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -20,46 +20,46 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
-
-;; Whitespace.el URL: http://www.dsmit.com/lisp/
-
+;;
+;; URL: http://www.dsmit.com/lisp/
+;;
 ;; The whitespace library is intended to find and help fix five different types
 ;; of whitespace problems that commonly exist in source code.
-
+;;
 ;; 1. Leading space (empty lines at the top of a file).
 ;; 2. Trailing space (empty lines at the end of a file).
 ;; 3. Indentation space (8 or more spaces at beginning of line, that should be
-;; 		      replaced with TABS).
+;;		      replaced with TABS).
 ;; 4. Spaces followed by a TAB.  (Almost always, we never want that).
 ;; 5. Spaces or TABS at the end of a line.
-
+;;
 ;; Whitespace errors are reported in a buffer, and on the modeline.
-
+;;
 ;; Modeline will show a W:<x>!<y> to denote a particular type of whitespace,
 ;; where `x' and `y' can be one (or more) of:
-
+;;
 ;; e - End-of-Line whitespace.
 ;; i - Indentation whitespace.
 ;; l - Leading whitespace.
 ;; s - Space followed by Tab.
 ;; t - Trailing whitespace.
-
+;;
 ;; If any of the whitespace checks is turned off, the modeline will display a
 ;; !<y>.
-
+;;
 ;;     (since (3) is the most controversial one, here is the rationale: Most
 ;;     terminal drivers and printer drivers have TAB configured or even
 ;;     hardcoded to be 8 spaces.  (Some of them allow configuration, but almost
 ;;     always they default to 8.)
-
+;;
 ;;     Changing `tab-width' to other than 8 and editing will cause your code to
 ;;     look different from within Emacs, and say, if you cat it or more it, or
 ;;     even print it.
-
+;;
 ;;     Almost all the popular programming modes let you define an offset (like
 ;;     c-basic-offset or perl-indent-level) to configure the offset, so you
 ;;     should never have to set your `tab-width' to be other than 8 in all
@@ -68,16 +68,16 @@
 ;;     your office complain, tell them to use vim, which distinguishes between
 ;;     tabstop and shiftwidth (vi equivalent of our offsets), and also ask them
 ;;     to set smarttab.)
-
+;;
 ;; All the above have caused (and will cause) unwanted codeline integration and
 ;; merge problems.
-
+;;
 ;; whitespace.el will complain if it detects whitespaces on opening a file, and
 ;; warn you on closing a file also (in case you had inserted any
 ;; whitespaces during the process of your editing).
-
+;;
 ;; Exported functions:
-
+;;
 ;; `whitespace-buffer' - To check the current buffer for whitespace problems.
 ;; `whitespace-cleanup' - To cleanup all whitespaces in the current buffer.
 ;; `whitespace-region' - To check between point and mark for whitespace
@@ -87,7 +87,7 @@
 
 ;;; Code:
 
-(defvar whitespace-version "3.2" "Version of the whitespace library.")
+(defvar whitespace-version "3.5" "Version of the whitespace library.")
 
 (defvar whitespace-all-buffer-files nil
   "An associated list of buffers and files checked for whitespace cleanliness.
@@ -110,32 +110,32 @@ visited by the buffers.")
 (put 'whitespace-mode-line 'permanent-local nil)
 
 (defvar whitespace-check-buffer-leading nil
-  "Test leading whitespace for file in current buffer if t")
+  "Test leading whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-leading)
 (put 'whitespace-check-buffer-leading 'permanent-local nil)
 
 (defvar whitespace-check-buffer-trailing nil
-  "Test trailing whitespace for file in current buffer if t")
+  "Test trailing whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-trailing)
 (put 'whitespace-check-buffer-trailing 'permanent-local nil)
 
 (defvar whitespace-check-buffer-indent nil
-  "Test indentation whitespace for file in current buffer if t")
+  "Test indentation whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-indent)
 (put 'whitespace-check-buffer-indent 'permanent-local nil)
 
 (defvar whitespace-check-buffer-spacetab nil
-  "Test Space-followed-by-TABS whitespace for file in current buffer if t")
+  "Test Space-followed-by-TABS whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-spacetab)
 (put 'whitespace-check-buffer-spacetab 'permanent-local nil)
 
 (defvar whitespace-check-buffer-ateol nil
-  "Test end-of-line whitespace for file in current buffer if t")
+  "Test end-of-line whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-ateol)
 (put 'whitespace-check-buffer-ateol 'permanent-local nil)
 
 (defvar whitespace-highlighted-space nil
-  "The variable to store the extent to highlight")
+  "The variable to store the extent to highlight.")
 (make-variable-buffer-local 'whitespace-highlighted-space)
 (put 'whitespace-highlighted-space 'permanent-local nil)
 
@@ -143,59 +143,53 @@ visited by the buffers.")
 (eval-when-compile
   (if (not (fboundp 'defgroup))
       (defmacro defgroup (sym memb doc &rest args)
-	"Null macro for defgroup in all versions of Emacs that don't define
-defgroup"
+	"Null macro for `defgroup' in all versions of Emacs that don't define it."
 	t))
   (if (not (fboundp 'defcustom))
       (defmacro defcustom (sym val doc &rest args)
-	"Macro to alias defcustom to defvar in all versions of Emacs that
-don't define defcustom"
+	"Macro to alias `defcustom' to `defvar' in all versions of Emacs that
+don't define it."
 	`(defvar ,sym ,val ,doc))))
 
-(if (fboundp 'make-overlay)
-    (progn
-      (defalias 'whitespace-make-overlay 'make-overlay)
-      (defalias 'whitespace-overlay-put 'overlay-put)
-      (defalias 'whitespace-delete-overlay 'delete-overlay)
-      (defalias 'whitespace-overlay-start 'overlay-start)
-      (defalias 'whitespace-overlay-end 'overlay-end)
-      (defalias 'whitespace-mode-line-update 'force-mode-line-update))
-  (defalias 'whitespace-make-overlay 'make-extent)
-  (defalias 'whitespace-overlay-put 'set-extent-property)
-  (defalias 'whitespace-delete-overlay 'delete-extent)
-  (defalias 'whitespace-overlay-start 'extent-start)
-  (defalias 'whitespace-overlay-end 'extent-end)
-  (defalias 'whitespace-mode-line-update 'redraw-modeline))
+(defalias 'whitespace-make-overlay
+  (if (featurep 'xemacs) 'make-extent 'make-overlay))
+(defalias 'whitespace-overlay-put
+  (if (featurep 'xemacs) 'set-extent-property 'overlay-put))
+(defalias 'whitespace-delete-overlay
+  (if (featurep 'xemacs) 'delete-extent 'delete-overlay))
+(defalias 'whitespace-overlay-start
+  (if (featurep 'xemacs) 'extent-start 'overlay-start))
+(defalias 'whitespace-overlay-end
+  (if (featurep 'xemacs) 'extent-end 'overlay-end))
+(defalias 'whitespace-mode-line-update
+  (if (featurep 'xemacs) 'redraw-modeline 'force-mode-line-update))
 
-(if (featurep 'xemacs)
-(defgroup whitespace nil
-  "Check for and fix five different types of whitespaces in source code."
-  ;; Since XEmacs doesn't have a 'convenience group, use the next best group
-  ;; which is 'editing?
-  :group 'editing)
 (defgroup whitespace nil
   "Check for and fix five different types of whitespaces in source code."
   :version "21.1"
-  :group 'convenience))
+  :link '(emacs-commentary-link "whitespace.el")
+  ;; Since XEmacs doesn't have a 'convenience group, use the next best group
+  ;; which is 'editing?
+  :group (if (featurep 'xemacs) 'editing 'convenience))
 
 (defcustom whitespace-check-leading-whitespace t
-  "Flag to check leading whitespace. This is the global for the system.
+  "Flag to check leading whitespace.  This is the global for the system.
 It can be overriden by setting a buffer local variable
-`whitespace-check-buffer-leading'"
+`whitespace-check-buffer-leading'."
   :type 'boolean
   :group 'whitespace)
 
 (defcustom whitespace-check-trailing-whitespace t
-  "Flag to check trailing whitespace. This is the global for the system.
+  "Flag to check trailing whitespace.  This is the global for the system.
 It can be overriden by setting a buffer local variable
-`whitespace-check-buffer-trailing'"
+`whitespace-check-buffer-trailing'."
   :type 'boolean
   :group 'whitespace)
 
 (defcustom whitespace-check-spacetab-whitespace t
-  "Flag to check space followed by a TAB. This is the global for the system.
+  "Flag to check space followed by a TAB.  This is the global for the system.
 It can be overriden by setting a buffer local variable
-`whitespace-check-buffer-spacetab'"
+`whitespace-check-buffer-spacetab'."
   :type 'boolean
   :group 'whitespace)
 
@@ -205,9 +199,9 @@ It can be overriden by setting a buffer local variable
   :group 'whitespace)
 
 (defcustom whitespace-check-indent-whitespace indent-tabs-mode
-  "Flag to check indentation whitespace. This is the global for the system.
+  "Flag to check indentation whitespace.  This is the global for the system.
 It can be overriden by setting a buffer local variable
-`whitespace-check-buffer-indent'"
+`whitespace-check-buffer-indent'."
   :type 'boolean
   :group 'whitespace)
 
@@ -217,9 +211,9 @@ It can be overriden by setting a buffer local variable
   :group 'whitespace)
 
 (defcustom whitespace-check-ateol-whitespace t
-  "Flag to check end-of-line whitespace. This is the global for the system.
+  "Flag to check end-of-line whitespace.  This is the global for the system.
 It can be overriden by setting a buffer local variable
-`whitespace-check-buffer-ateol'"
+`whitespace-check-buffer-ateol'."
   :type 'boolean
   :group 'whitespace)
 
@@ -234,10 +228,16 @@ It can be overriden by setting a buffer local variable
   :type 'string
   :group 'whitespace)
 
+(defcustom whitespace-clean-msg "clean."
+  "If non-nil, this message will be displayed after a whitespace check
+determines a file to be clean."
+  :type 'string
+  :group 'whitespace)
+
 (defcustom whitespace-abort-on-error nil
-  "While writing a file, abort if the file is unclean. If
-`whitespace-auto-cleanup' is set, that takes precedence over this
-variable."
+  "While writing a file, abort if the file is unclean.
+If `whitespace-auto-cleanup' is set, that takes precedence over
+this variable."
   :type  'boolean
   :group 'whitespace)
 
@@ -270,7 +270,7 @@ Errors*' buffer before opening (or closing) another file."
 				       tcl-mode tex-mode texinfo-mode
 				       vrml-mode xml-mode)
 
-  "Major Modes in which we turn on whitespace checking.
+  "Major modes in which we turn on whitespace checking.
 
 These are mostly programming and documentation modes.  But you may add other
 modes that you want whitespaces checked in by adding something like the
@@ -300,8 +300,8 @@ To disable timer scans, set this to zero."
   :group 'whitespace)
 
 (defcustom whitespace-display-spaces-in-color t
-  "Display the bogus whitespaces by coloring them with
-`whitespace-highlight-face'."
+  "Display the bogus whitespaces by coloring them with the face
+`whitespace-highlight'."
   :type 'boolean
   :group 'whitespace)
 
@@ -311,18 +311,20 @@ To disable timer scans, set this to zero."
   :group 'whitespace
   :group 'faces)
 
-(defface whitespace-highlight-face '((((class color) (background light))
-				      (:background "green"))
-				     (((class color) (background dark))
-				      (:background "sea green"))
-				     (((class grayscale mono)
-				       (background light))
-				      (:background "black"))
-				     (((class grayscale mono)
-				       (background dark))
-				      (:background "white")))
+(defface whitespace-highlight '((((class color) (background light))
+				 (:background "green1"))
+				(((class color) (background dark))
+				 (:background "sea green"))
+				(((class grayscale mono)
+				  (background light))
+				 (:background "black"))
+				(((class grayscale mono)
+				  (background dark))
+				 (:background "white")))
   "Face used for highlighting the bogus whitespaces that exist in the buffer."
   :group 'whitespace-faces)
+;; backward-compatibility alias
+(put 'whitespace-highlight-face 'face-alias 'whitespace-highlight)
 
 (if (not (assoc 'whitespace-mode minor-mode-alist))
     (setq minor-mode-alist (cons '(whitespace-mode whitespace-mode-line)
@@ -482,16 +484,14 @@ and:
 				  (if whitespace-spacetab "s")
 				  (if whitespace-trailing "t")))))
 	      (whitespace-update-modeline whitespace-this-modeline)
-	      (save-excursion
-		(get-buffer-create whitespace-errbuf)
-		(kill-buffer whitespace-errbuf)
-		(get-buffer-create whitespace-errbuf)
-		(set-buffer whitespace-errbuf)
+	      (if (get-buffer whitespace-errbuf)
+		  (kill-buffer whitespace-errbuf))
+	      (with-current-buffer (get-buffer-create whitespace-errbuf)
 		(if whitespace-errmsg
 		    (progn
 		      (insert whitespace-errmsg)
 		      (if (not (or quiet whitespace-silent))
-			  (display-buffer whitespace-errbuf t))
+			  (display-buffer (current-buffer) t))
 		      (if (not quiet)
 			  (message "Whitespaces: [%s%s] in %s"
 				   whitespace-this-modeline
@@ -501,11 +501,10 @@ and:
 					 (concat "!" whitespace-unchecked)
 				       ""))
 				   whitespace-filename)))
-		  (if (not quiet)
-		      (message "%s clean" whitespace-filename))))))))
-    (if whitespace-error
-	t
-      nil)))
+		  (if (and (not quiet) (not (equal whitespace-clean-msg "")))
+		      (message "%s %s" whitespace-filename
+			       whitespace-clean-msg))))))))
+    whitespace-error))
 
 ;;;###autoload
 (defun whitespace-region (s e)
@@ -519,9 +518,7 @@ and:
 ;;;###autoload
 (defun whitespace-cleanup ()
   "Cleanup the five different kinds of whitespace problems.
-
-Use \\[describe-function] whitespace-describe to read a summary of the
-whitespace problems."
+See `whitespace-buffer' docstring for a summary of the problems."
   (interactive)
   ;; If this buffer really contains a file, then run, else quit.
   (whitespace-check-whitespace-mode current-prefix-arg)
@@ -568,7 +565,8 @@ whitespace problems."
 	(if whitespace-any
 	    (whitespace-cleanup)
 	  (progn
-	    (message "%s clean" buffer-file-name)
+	    (if (not whitespace-silent)
+		(message "%s clean" buffer-file-name))
 	    (whitespace-update-modeline)))
 	(setq tab-width whitespace-tabwith-saved))))
 
@@ -594,24 +592,16 @@ whitespace problems."
       (setq pmax (point))
       (if (equal pmin pmax)
 	  (progn
-	    (whitespace-highlight-the-space pmin pmax)
+	    (whitespace-highlight-the-space pmin (1+ pmax))
 	    t)
 	nil))))
 
 (defun whitespace-buffer-leading-cleanup ()
   "Remove any empty lines at the top of the file."
   (save-excursion
-    (let ((pmin nil)
-	  (pmax nil))
-      (goto-char (point-min))
-      (beginning-of-line)
-      (setq pmin (point))
-      (end-of-line)
-      (setq pmax (point))
-      (if (equal pmin pmax)
-	  (progn
-	    (kill-line)
-	    (whitespace-buffer-leading-cleanup))))))
+    (goto-char (point-min))
+    (skip-chars-forward "\n")
+    (delete-region (point-min) (point))))
 
 (defun whitespace-buffer-trailing ()
   "Check to see if are is more than one empty line at the bottom."
@@ -632,7 +622,7 @@ whitespace problems."
 	    (setq pmax (point))
 	    (if (equal pmin pmax)
 		(progn
-		  (whitespace-highlight-the-space pmin pmax)
+		  (whitespace-highlight-the-space (- pmin 1) pmax)
 		  t)
 	      nil))
 	nil))))
@@ -640,26 +630,11 @@ whitespace problems."
 (defun whitespace-buffer-trailing-cleanup ()
   "Delete all the empty lines at the bottom."
   (save-excursion
-    (let ((pmin nil)
-	  (pmax nil))
-      (goto-char (point-max))
-      (beginning-of-line)
-      (setq pmin (point))
-      (end-of-line)
-      (setq pmax (point))
-      (if (equal pmin pmax)
-	  (progn
-	    (goto-char (1- pmin))
-	    (beginning-of-line)
-	    (setq pmin (point))
-	    (end-of-line)
-	    (setq pmax (point))
-	    (if (equal pmin pmax)
-		(progn
-		  (goto-char (1- (point-max)))
-		  (beginning-of-line)
-		  (kill-line)
-		  (whitespace-buffer-trailing-cleanup))))))))
+    (goto-char (point-max))
+    (skip-chars-backward "\n")
+    (if (not (bolp))
+	(forward-char 1))
+    (delete-region (point) (point-max))))
 
 (defun whitespace-buffer-search (regexp)
   "Search for any given whitespace REGEXP."
@@ -727,23 +702,16 @@ Also with whitespaces whose testing has been turned off."
 (defun whitespace-highlight-the-space (b e)
   "Highlight the current line, unhighlighting a previously jumped to line."
   (if whitespace-display-spaces-in-color
-      (progn
-	(whitespace-unhighlight-the-space)
-	(add-to-list 'whitespace-highlighted-space
-		     (whitespace-make-overlay b e))
-	(whitespace-overlay-put (whitespace-make-overlay b e) 'face
-				'whitespace-highlight-face))))
+      (let ((ol (whitespace-make-overlay b e)))
+	(push ol whitespace-highlighted-space)
+	(whitespace-overlay-put ol 'face 'whitespace-highlight))))
 ;;  (add-hook 'pre-command-hook 'whitespace-unhighlight-the-space))
 
-(defun whitespace-unhighlight-the-space ()
+(defun whitespace-unhighlight-the-space()
   "Unhighlight the currently highlight line."
   (if (and whitespace-display-spaces-in-color whitespace-highlighted-space)
-      (let ((whitespace-this-space nil))
-	(while whitespace-highlighted-space
-	  (setq whitespace-this-space (car whitespace-highlighted-space))
-	  (setq whitespace-highlighted-space
-		(cdr whitespace-highlighted-space))
-	  (whitespace-delete-overlay whitespace-this-space))
+      (progn
+	(mapc 'whitespace-delete-overlay whitespace-highlighted-space)
 	(setq whitespace-highlighted-space nil))
     (remove-hook 'pre-command-hook 'whitespace-unhighlight-the-space)))
 
@@ -811,13 +779,17 @@ If timer is not set, then set it to scan the files in
       (setq whitespace-rescan-timer nil))))
 
 ;;;###autoload
+(defalias 'global-whitespace-mode 'whitespace-global-mode)
+
+;;;###autoload
 (define-minor-mode whitespace-global-mode
   "Toggle using Whitespace mode in new buffers.
-With ARG, turn the mode on if and only iff ARG is positive.
+With ARG, turn the mode on iff ARG is positive.
 
 When this mode is active, `whitespace-buffer' is added to
 `find-file-hook' and `kill-buffer-hook'."
-  :global t :group 'whitespace
+  :global t
+  :group 'whitespace
   (if whitespace-global-mode
       (progn
 	(add-hook 'find-file-hook 'whitespace-buffer)
@@ -846,5 +818,9 @@ This is meant to be added buffer-locally to `write-file-functions'."
   (remove-hook 'write-file-functions 'whitespace-write-file-hook t)
   (remove-hook 'kill-buffer-hook 'whitespace-buffer))
 
+(add-hook 'whitespace-unload-hook 'whitespace-unload-hook)
+
 (provide 'whitespace)
+
+;; arch-tag: 4ff44e87-b63c-402d-95a6-15e51e58bd0c
 ;;; whitespace.el ends here

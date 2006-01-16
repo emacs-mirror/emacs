@@ -1,6 +1,6 @@
 ;; dos-w32.el --- Functions shared among MS-DOS and W32 (NT/95) platforms
 
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -378,7 +378,8 @@ indicates a specific program should be invoked."
 	 (printer (or (and (boundp 'dos-printer)
 			   (stringp (symbol-value 'dos-printer))
 			   (symbol-value 'dos-printer))
-		      printer-name)))
+		      printer-name
+		      (default-printer-name))))
     (or (eq coding-system-for-write 'no-conversion)
 	(setq coding-system-for-write
 	      (aref eol-type 1)))	; force conversion to DOS EOLs
@@ -411,7 +412,8 @@ indicates a specific program should be invoked."
   (let ((printer (or (and (boundp 'dos-ps-printer)
 			  (stringp (symbol-value 'dos-ps-printer))
 			  (symbol-value 'dos-ps-printer))
-		     ps-printer-name)))
+		     ps-printer-name
+		     (default-printer-name))))
     (direct-print-region-helper printer start end lpr-prog
 				delete-text buf display rest)))
 
@@ -424,4 +426,5 @@ indicates a specific program should be invoked."
 
 (provide 'dos-w32)
 
+;;; arch-tag: dcfefdd2-362f-4fbc-9141-9634f5f4d6a7
 ;;; dos-w32.el ends here

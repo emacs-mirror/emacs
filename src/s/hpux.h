@@ -1,6 +1,7 @@
 /* Definitions file for GNU Emacs running on HPUX release 7.0.
    Based on AT&T System V.2.
-   Copyright (C) 1985, 1986, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,8 +17,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /*
@@ -221,3 +222,6 @@ Boston, MA 02111-1307, USA.  */
 /* It's possible that HPUX 7 has sys/wait.h but it does not work right.  */
 #undef HAVE_SYS_WAIT_H
 #endif
+
+/* arch-tag: 75c1239f-fedb-4f64-8f86-7893e75699e8
+   (do not change this comment) */

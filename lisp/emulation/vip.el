@@ -1,7 +1,7 @@
 ;;; vip.el --- a VI Package for GNU Emacs
 
-;; Copyright (C) 1986, 1987, 1988, 1992, 1993, 1998
-;;        Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987, 1988, 1992, 1993, 1998, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Masahiko Sato <ms@sail.stanford.edu>
 ;; Keywords: emulations
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -293,9 +293,6 @@ If nil then it is bound to `delete-backward-char'."
 (define-key vip-mode-map "~" 'vip-nil)
 (define-key vip-mode-map "\177" 'vip-delete-backward-char)
 
-(define-key ctl-x-map "3" 'vip-buffer-in-two-windows)
-(define-key ctl-x-map "\C-i" 'insert-file)
-
 (defun vip-version ()
   (interactive)
   (message "VIP version 3.5 of September 15, 1987"))
@@ -303,7 +300,11 @@ If nil then it is bound to `delete-backward-char'."
 
 ;; basic set up
 
-(global-set-key "\C-z" 'vip-change-mode-to-vi)
+;;;###autoload
+(defun vip-setup ()
+  "Set up bindings for C-x 7 and C-z that are useful for VIP users."
+  (define-key ctl-x-map "7" 'vip-buffer-in-two-windows)
+  (global-set-key "\C-z" 'vip-change-mode-to-vi))
 
 (defmacro vip-loop (count body)
   "(COUNT BODY) Execute BODY COUNT times."
@@ -892,7 +893,7 @@ is the name of the register for COM."
 each line in the region."
   (setq vip-quote-string
 	(let ((str
-	       (vip-read-string (format "quote string \(default \"%s\"\): "
+	       (vip-read-string (format "quote string (default %s): "
 					vip-quote-string))))
 	  (if (string= str "") vip-quote-string str)))
   (vip-enlarge-region (point) (mark))
@@ -1111,9 +1112,10 @@ the query replace mode will toggle between string replace and regexp replace."
 	    (replace-match (vip-read-string
 			    (format "Replace regexp \"%s\" with: " str))
 			   nil nil))
-	(replace-string
-	 str
-	 (vip-read-string (format "Replace \"%s\" with: " str)))))))
+	(with-no-warnings
+	  (replace-string
+	   str
+	   (vip-read-string (format "Replace \"%s\" with: " str))))))))
 
 
 ;; basic cursor movement.  j, k, l, m commands.
@@ -1341,7 +1343,7 @@ after search."
 (defun vip-find-char-forward (arg)
   "Find char on the line.  If called interactively read the char to find
 from the terminal, and if called from vip-repeat, the char last used is
-used.  This behaviour is controlled by the sign of prefix numeric value."
+used.  This behavior is controlled by the sign of prefix numeric value."
   (interactive "P")
   (let ((val (vip-p-val arg)) (com (vip-getcom arg)))
     (if (> val 0)
@@ -2176,7 +2178,7 @@ a token has type \(command, address, end-mark\) and value."
 		 (cond ((string= ex-token-type "plus") "add-number")
 		       ((string= ex-token-type "minus") "sub-number")
 		       (t "abs-number")))
-	   (setq ex-token (string-to-int (buffer-substring (point) (mark)))))
+	   (setq ex-token (string-to-number (buffer-substring (point) (mark)))))
 	  ((looking-at "\\$")
 	   (forward-char 1)
 	   (setq ex-token-type "end"))
@@ -2252,7 +2254,7 @@ a token has type \(command, address, end-mark\) and value."
 	   (setq ex-token-type "end-mark")
 	   (setq ex-token "goto"))
 	  (t
-	   (error "illegal token")))))
+	   (error "invalid token")))))
 
 (defun vip-ex (&optional string)
   "ex commands within VIP."
@@ -2291,7 +2293,7 @@ a token has type \(command, address, end-mark\) and value."
 			     (setq cont nil))
 			    (t (error "Extra character at end of a command")))))))
 	    ((string= ex-token-type "non-command")
-	     (error (format "%s: Not an editor command" ex-token)))
+	     (error "%s: Not an editor command" ex-token))
 	    ((string= ex-token-type "whole")
 	     (setq ex-addresses
 		   (cons (point-max) (cons (point-min) ex-addresses))))
@@ -2470,14 +2472,14 @@ a token has type \(command, address, end-mark\) and value."
 	(progn
 	  (set-mark (point))
 	  (re-search-forward "[0-9][0-9]*")
-	  (setq ex-count (string-to-int (buffer-substring (point) (mark))))
+	  (setq ex-count (string-to-number (buffer-substring (point) (mark))))
 	  (skip-chars-forward " \t")))
     (if (looking-at "[pl#]")
 	(progn
 	  (setq ex-flag t)
 	  (forward-char 1)))
     (if (not (looking-at "[\n|]"))
-	(error "Illegal extra characters"))))
+	(error "Invalid extra characters"))))
 
 (defun vip-get-ex-count ()
   (setq ex-variant nil
@@ -2495,14 +2497,14 @@ a token has type \(command, address, end-mark\) and value."
 	(progn
 	  (set-mark (point))
 	  (re-search-forward "[0-9][0-9]*")
-	  (setq ex-count (string-to-int (buffer-substring (point) (mark))))
+	  (setq ex-count (string-to-number (buffer-substring (point) (mark))))
 	  (skip-chars-forward " \t")))
     (if (looking-at "[pl#]")
 	(progn
 	  (setq ex-flag t)
 	  (forward-char 1)))
     (if (not (looking-at "[\n|]"))
-	(error "Illegal extra characters"))))
+	(error "Invalid extra characters"))))
 
 (defun vip-get-ex-file ()
   "get a file name and set ex-variant, ex-append and ex-offset if found"
@@ -2829,7 +2831,8 @@ a token has type \(command, address, end-mark\) and value."
       (skip-chars-forward " \t")
       (if (looking-at "[\n|]") (error "Missing rhs"))
       (set-mark (point))
-      (end-of-buffer)
+      (with-no-warnings
+	(end-of-buffer))
       (backward-char 1)
       (setq string (buffer-substring (mark) (point))))
     (if (not (lookup-key ex-map char))
@@ -2899,7 +2902,8 @@ a token has type \(command, address, end-mark\) and value."
 	(setq file (buffer-substring (point) (mark)))))
       (if variant
 	  (shell-command command t)
-	(insert-file file))))
+	(with-no-warnings
+	  (insert-file file)))))
 
 (defun ex-set ()
   (eval (list 'setq
@@ -3071,4 +3075,5 @@ vip-s-string"
 
 (provide 'vip)
 
+;;; arch-tag: bff623ef-48f7-41d4-9aa3-2e840c9ab415
 ;;; vip.el ends here

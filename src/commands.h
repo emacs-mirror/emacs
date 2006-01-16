@@ -1,5 +1,6 @@
 /* Definitions needed by most editing commands.
-   Copyright (C) 1985, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #define Ctl(c) ((c)&037)
@@ -36,8 +37,15 @@ extern Lisp_Object Vminibuffer_local_ns_map;
 /* keymap used for minibuffers when doing completion */
 extern Lisp_Object Vminibuffer_local_completion_map;
 
+/* keymap used for minibuffers when doing completion in filenames*/
+extern Lisp_Object Vminibuffer_local_filename_completion_map;
+
 /* keymap used for minibuffers when doing completion and require a match */
 extern Lisp_Object Vminibuffer_local_must_match_map;
+
+/* keymap used for minibuffers when doing completion in filenames
+   and require a match */
+extern Lisp_Object Vminibuffer_local_must_match_filename_map;
 
 /* Last character of last key sequence.  */
 extern Lisp_Object last_command_char;
@@ -67,20 +75,23 @@ extern Lisp_Object Vthis_command;
    events until a non-ASCII event is acceptable as input.  */
 extern Lisp_Object unread_switch_frame;
 
-/* The value of point when the last command was executed.  */
+/* The value of point when the last command was started.  */
 extern int last_point_position;
 
 /* The buffer that was current when the last command was started.  */
 extern Lisp_Object last_point_position_buffer;
 
+/* The window that was selected when the last command was started.  */
+extern Lisp_Object last_point_position_window;
+
 /* Nonzero means ^G can quit instantly */
 extern int immediate_quit;
 
-extern Lisp_Object Vexecuting_macro;
+extern Lisp_Object Vexecuting_kbd_macro;
 
 /* Nonzero if input is coming from the keyboard */
 
-#define INTERACTIVE (NILP (Vexecuting_macro) && !noninteractive)
+#define INTERACTIVE (NILP (Vexecuting_kbd_macro) && !noninteractive)
 
 /* Set this nonzero to force reconsideration of mode line. */
 
@@ -90,3 +101,6 @@ extern int update_mode_lines;
    so put cursor on minibuffer after the prompt.  */
 
 extern int cursor_in_echo_area;
+
+/* arch-tag: 4f7ca0b7-6a56-4b20-8bf5-b67a99921d1d
+   (do not change this comment) */

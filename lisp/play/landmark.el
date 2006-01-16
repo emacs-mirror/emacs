@@ -1,10 +1,11 @@
 ;;; landmark.el --- neural-network robot that learns landmarks
 
-;; Copyright (c) 1996, 1997, 2000, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet
-;; Keywords: gomoku neural network adaptive search chemotaxis
+;; Keywords: gomoku, neural network, adaptive search, chemotaxis
 
 ;;;_* Usage
 ;;; Just type
@@ -26,8 +27,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 
 ;;; Commentary:
@@ -248,6 +249,7 @@ Other useful commands:
 Entry to this mode calls the value of `lm-mode-hook' if that value
 is non-nil.  One interesting value is `turn-on-font-lock'."
   (interactive)
+  (kill-all-local-variables)
   (setq major-mode 'lm-mode
 	mode-name "Lm")
   (lm-display-statistics)
@@ -255,7 +257,7 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(lm-font-lock-keywords t))
   (toggle-read-only t)
-  (run-hooks 'lm-mode-hook))
+  (run-mode-hooks 'lm-mode-hook))
 
 
 ;;;_ +  THE SCORE TABLE.
@@ -761,9 +763,9 @@ If the game is finished, this command requests for another game."
     (let (square score)
       (setq square (lm-point-square))
       (cond ((null square)
-	     (error "Your point is not on a square. Retry !"))
+	     (error "Your point is not on a square. Retry!"))
 	    ((not (zerop (aref lm-board square)))
-	     (error "Your point is not on a free square. Retry !"))
+	     (error "Your point is not on a free square. Retry!"))
 	    (t
 	     (setq score (aref lm-score-table square))
 	     (lm-play-move square 1)
@@ -788,7 +790,7 @@ If the game is finished, this command requests for another game."
     (sit-for 4)
     (lm-prompt-for-other-game))
    ((zerop lm-number-of-human-moves)
-    (message "You have not played yet... Your move ?"))
+    (message "You have not played yet... Your move?"))
    (t
     (message "One moment, please...")
     ;; It is possible for the user to let Emacs play several consecutive
@@ -809,9 +811,9 @@ If the game is finished, this command requests for another game."
     (lm-crash-game))
    ((not lm-game-in-progress)
     (message "There is no game in progress"))
-   ((y-or-n-p "You mean, you resign ")
+   ((y-or-n-p "You mean, you resign? ")
     (lm-terminate-game 'human-resigned))
-   ((y-or-n-p "You mean, we continue ")
+   ((y-or-n-p "You mean, we continue? ")
     (lm-prompt-for-move))
    (t
     (lm-terminate-game 'human-resigned)))) ; OK. Accept it
@@ -821,23 +823,23 @@ If the game is finished, this command requests for another game."
 (defun lm-prompt-for-move ()
   "Display a message asking for Human's move."
   (message (if (zerop lm-number-of-human-moves)
-	       "Your move ? (move to a free square and hit X, RET ...)"
-	       "Your move ?"))
+	       "Your move? (move to a free square and hit X, RET ...)"
+	       "Your move?"))
   ;; This may seem silly, but if one omits the following line (or a similar
   ;; one), the cursor may very well go to some place where POINT is not.
   (save-excursion (set-buffer (other-buffer))))
 
 (defun lm-prompt-for-other-game ()
   "Ask for another game, and start it."
-  (if (y-or-n-p "Another game ")
+  (if (y-or-n-p "Another game? ")
       (if (y-or-n-p "Retain learned weights ")
 	  (lm 2)
 	(lm 1))
-    (message "Chicken !")))
+    (message "Chicken!")))
 
 (defun lm-offer-a-draw ()
   "Offer a draw and return t if Human accepted it."
-  (or (y-or-n-p "I offer you a draw. Do you accept it ")
+  (or (y-or-n-p "I offer you a draw. Do you accept it? ")
       (not (setq lm-human-refused-draw t))))
 
 
@@ -1471,7 +1473,7 @@ After this limit is reached, lm-random-move is called to push him out of it."
   (lm-plot-square (lm-point-square) 1)
   (incf lm-number-of-moves)
   (if lm-output-moves
-      (message (format "Moves made: %d" lm-number-of-moves))))
+      (message "Moves made: %d" lm-number-of-moves)))
 
 
 (defun lm-random-move ()
@@ -1521,9 +1523,9 @@ If the game is finished, this command requests for another game."
     (let (square score)
       (setq square (lm-point-square))
       (cond ((null square)
-	     (error "Your point is not on a square. Retry !"))
+	     (error "Your point is not on a square. Retry!"))
 	    ((not (zerop (aref lm-board square)))
-	     (error "Your point is not on a free square. Retry !"))
+	     (error "Your point is not on a free square. Retry!"))
 	    (t
 	     (progn
 	       (lm-plot-square square 1)
@@ -1676,7 +1678,7 @@ Use \\[describe-mode] for more info."
       (if (and (> lm-m max-height)
 	       (not (eq lm-m lm-saved-board-height))
 	       ;; Use EQ because SAVED-BOARD-HEIGHT may be nil
-	       (not (y-or-n-p (format "Do you really want %d rows " lm-m))))
+	       (not (y-or-n-p (format "Do you really want %d rows? " lm-m))))
 	  (setq lm-m max-height)))
     (if lm-one-moment-please
 	(message "One moment, please..."))
@@ -1703,4 +1705,5 @@ Use \\[describe-mode] for more info."
 
 (provide 'landmark)
 
+;;; arch-tag: ae5031be-96e6-459e-a3df-1df53117d3f2
 ;;; landmark.el ends here

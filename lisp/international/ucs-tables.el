@@ -1,6 +1,9 @@
 ;;; ucs-tables.el --- translation to, from and via Unicode  -*- coding: iso-2022-7bit -*-
 
-;; Copyright (C) 2001, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -19,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -1180,13 +1183,14 @@ everything on input operations."
 
   (when for-encode
     ;; Make mule-utf-* encode all characters in ucs-mule-to-mule-unicode.
-    (let ((coding-list '(mule-utf-8 mule-utf-16-be mule-utf-16-le)))
+    (let ((coding-list '(mule-utf-8 mule-utf-16be mule-utf-16le
+				    mule-utf-16be-with-signature
+				    mule-utf-16le-with-signature)))
       (define-translation-table 'utf-translation-table-for-encode
 	ucs-mule-to-mule-unicode)
       (dolist (coding coding-list)
 	(set-char-table-parent (coding-system-get coding 'safe-chars)
-			       ucs-mule-to-mule-unicode)
-	(register-char-codings coding ucs-mule-to-mule-unicode)))
+			       ucs-mule-to-mule-unicode)))
 
     ;; Adjust the 8859 coding systems to fragment the unified characters
     ;; on encoding.
@@ -1200,11 +1204,8 @@ everything on input operations."
 	;; used after they've been registered, but we might as well
 	;; record them.  Setting the parent here is a convenience.
 	(set-char-table-parent safe table)
-	;; Update the table of what encodes to what.
-	(register-char-codings coding-system table)
 	(coding-system-put coding-system 'translation-table-for-encode table)))
-    (add-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup))
-  (optimize-char-coding-system-table))
+    (add-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
 
 (defun ucs-fragment-8859 (for-encode for-decode)
   "Undo the unification done by `ucs-unify-8859'.
@@ -1223,63 +1224,40 @@ unification on input operations."
     ;; ucs-mule-to-mule-unicode except what was originally supported
     ;; and what is translated by utf-translation-table-for-decode when
     ;; `utf-fragment-on-decoding' is non-nil.
-    (let ((coding-list '(mule-utf-8 mule-utf-16-be mule-utf-16-le))
+    (let ((coding-list '(mule-utf-8 mule-utf-16be mule-utf-16le
+				    mule-utf-16be-with-signature
+				    mule-utf-16le-with-signature))
 	  (safe (coding-system-get 'mule-utf-8 'safe-chars)))
       (dolist (coding coding-list)
 	(set-char-table-parent (coding-system-get coding 'safe-chars) nil))
-      ;; Here we assume that all mule-utf-* have the same character
-      ;; repertory, thus we can use SAFE for all of them.
-      (map-char-table
-       (lambda (key val)
-	 (if (and (>= key 128) val
-		  (not (aref safe key)))
-	     (aset char-coding-system-table key
-		   (remq 'mule-utf-8
-			 (remq 'mule-utf-16-le
-			       (remq 'mule-utf-16-be
-				     (aref char-coding-system-table key)))))))
-       ucs-mule-to-mule-unicode)
-
       (if (not utf-fragment-on-decoding)
 	  (define-translation-table 'utf-translation-table-for-encode)
 	(define-translation-table 'utf-translation-table-for-encode
-	  utf-defragmentation-table)
-	(dolist (coding coding-list)
-	  (register-char-codings coding utf-defragmentation-table))))
+	  utf-defragmentation-table)))
 
-    ;; For each charset, remove the entries in
-    ;; `char-coding-system-table' added to its safe-chars table (as
-    ;; its parent).
+    ;; For each charset, remove the parent of `safe-chars' property of
+    ;; the corresponding coding system.
     (dolist (n '(1 2 3 4 5 7 8 9 14 15))
       (let* ((coding-system
 	      (coding-system-base (intern (format "iso-8859-%d" n))))
-	     (table (symbol-value
-		     (intern (format "ucs-8859-%d-encode-table" n))))
 	     (safe (coding-system-get coding-system 'safe-chars)))
-	(when (char-table-parent safe)
-	  (map-char-table
-	   (lambda (key val)
-	     (if (and (>= key 128) val)
-		 (let ((codings (aref char-coding-system-table key)))
-		   (aset char-coding-system-table key
-			 (remq coding-system codings)))))
-	   (char-table-parent safe))
-	  (set-char-table-parent safe nil))
+	(if (char-table-parent safe)
+	    (set-char-table-parent safe nil))
 	(coding-system-put coding-system 'translation-table-for-encode nil)))
-    (optimize-char-coding-system-table)
-    (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup))
-  (optimize-char-coding-system-table))
+    (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
 
 (defun ucs-insert (arg)
   "Insert the Emacs character representation of the given Unicode.
 Interactively, prompts for a hex string giving the code."
   (interactive "sUnicode (hex): ")
-  (let ((c (decode-char 'ucs (if (integerp arg)
-				 arg
-			       (string-to-number arg 16)))))
+  (or (integerp arg)
+      (setq arg (string-to-number arg 16)))
+  (let ((c (decode-char 'ucs arg)))
     (if c
 	(insert c)
-      (error "Character can't be decoded to UCS"))))
+      (if (or (< arg 0) (> arg #x10FFFF))
+	  (error "Not a Unicode character code: 0x%X" arg)
+	(error "Character U+%04X is not yet supported" arg)))))
 
 ;;; Dealing with non-8859 character sets.
 
@@ -2461,7 +2439,7 @@ Interactively, prompts for a hex string giving the code."
 The ISO 8859 characters sets overlap, e.g. 8859-1 (Latin-1) and
 8859-15 (Latin-9) differ only in a few characters.  Emacs normally
 distinguishes equivalent characters from those ISO-8859 character sets
-which are built in to Emacs.  This behaviour is essentially inherited
+which are built in to Emacs.  This behavior is essentially inherited
 from the European-originated international standards.  Treating them
 equivalently, by translating to and from a single representation is
 called `unification'.  (The `utf-8' coding system treats the
@@ -2521,8 +2499,10 @@ See also command `unify-8859-on-encoding-mode' and the user option
 ;; normal-mode and minibuffer-setup-hook.
 (defun ucs-set-table-for-input (&optional buffer)
   "Set up an appropriate `translation-table-for-input' for BUFFER.
-BUFFER defaults to the current buffer."
+BUFFER defaults to the current buffer.  This function is
+automatically called directly at the end of `get-buffer-create'."
   (when (and unify-8859-on-encoding-mode
+             (not unify-8859-on-decoding-mode)
 	     (char-table-p translation-table-for-input))
     (let ((cs (and buffer-file-coding-system
 		   (coding-system-base buffer-file-coding-system)))
@@ -2534,14 +2514,18 @@ BUFFER defaults to the current buffer."
 		     (coding-system-base default-buffer-file-coding-system))))
       (when cs
 	(setq table (coding-system-get cs 'translation-table-for-encode))
+	(if (and table (symbolp table))
+	    (setq table (get table 'translation-table)))
 	(unless (char-table-p table)
-	  (setq table (coding-system-get cs 'translation-table-for-input)))
+	  (setq table (coding-system-get cs 'translation-table-for-input))
+	  (if (and table (symbolp table))
+	      (setq table (get table 'translation-table))))
 	(when (char-table-p table)
 	  (if buffer
 	      (with-current-buffer buffer
-		(set (make-variable-buffer-local 'translation-table-for-input)
+		(set (make-local-variable 'translation-table-for-input)
 		     table))
-	    (set (make-variable-buffer-local 'translation-table-for-input)
+	    (set (make-local-variable 'translation-table-for-input)
 		 table)))))))
 
 ;; The minibuffer needs to acquire a `buffer-file-coding-system' for
@@ -2558,4 +2542,5 @@ Intended to be added to `minibuffer-setup-hook'."
 
 (provide 'ucs-tables)
 
+;; arch-tag: b497e22b-7fe1-486a-9352-e2d7f7d76a76
 ;;; ucs-tables.el ends here

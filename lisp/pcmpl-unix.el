@@ -1,6 +1,7 @@
 ;;; pcmpl-unix.el --- standard UNIX completions
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -16,8 +17,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -122,4 +123,5 @@
     (pcomplete-here* (pcmpl-unix-group-names)))
   (while (pcomplete-here (pcomplete-entries))))
 
+;;; arch-tag: 3f9eb5af-7e0e-449d-b586-381cbbf8fc5c
 ;;; pcmpl-unix.el ends here

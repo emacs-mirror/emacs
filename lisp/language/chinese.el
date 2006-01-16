@@ -1,7 +1,9 @@
 ;;; chinese.el --- support for Chinese -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, Chinese
 
@@ -19,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -80,6 +82,7 @@
 (define-coding-system-alias 'euc-cn 'chinese-iso-8bit)
 (define-coding-system-alias 'cn-gb 'chinese-iso-8bit)
 (define-coding-system-alias 'gb2312 'chinese-iso-8bit)
+(define-coding-system-alias 'cp936 'chinese-iso-8bit)
 
 (make-coding-system
  'chinese-hz 0 ?z
@@ -118,7 +121,8 @@
 		(input-method . "chinese-py-punct")
 		(features china-util)
 		(sample-text . "Chinese ($AVPND(B,$AFUM(;0(B,$A::So(B)	$ADc:C(B")
-		(documentation . "Support for Chinese GB2312 character set."))
+		(documentation . "Support for Chinese GB2312 character set.")
+		(tutorial . "TUTORIAL.cn"))
  '("Chinese"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -136,6 +140,7 @@
 
 (define-coding-system-alias 'big5 'chinese-big5)
 (define-coding-system-alias 'cn-big5 'chinese-big5)
+(define-coding-system-alias 'cp950 'chinese-big5)
 
 ;; Big5 font requires special encoding.
 (define-ccl-program ccl-encode-big5-font
@@ -162,7 +167,8 @@
 		  (input-method . "chinese-py-punct-b5")
 		  (features china-util)
 		  (sample-text . "Cantonese ($(0GnM$(B,$(0N]0*Hd(B)	$(0*/=((B, $(0+$)p(B")
-		  (documentation . "Support for Chinese Big5 character set."))
+		  (documentation . "Support for Chinese Big5 character set.")
+		  (tutorial . "TUTORIAL.zh"))
  '("Chinese"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -343,4 +349,5 @@ converted to CNS)."))
 
 (provide 'chinese)
 
+;;; arch-tag: b82fcf7a-84f6-4e0b-b38c-1742dac0e09f
 ;;; chinese.el ends here

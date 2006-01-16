@@ -1,8 +1,9 @@
 ;;; utf-8.el --- UTF-8 decoding/encoding support -*- coding: iso-2022-7bit -*-
 
-;; Copyright (C) 2001 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: TAKAHASHI Naoto  <ntakahas@m17n.org>
 ;; Maintainer: FSF
@@ -22,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -48,13 +49,12 @@
 ;;
 ;; Characters from other character sets can be encoded with mule-utf-8
 ;; by populating the translation table
-;; `utf-translation-table-for-encode' and registering the translation
-;; with `register-char-codings'.  Hash tables
+;; `utf-translation-table-for-encode'.  Hash tables
 ;; `utf-subst-table-for-decode' and `utf-subst-table-for-encode' are
 ;; used to support encoding and decoding of about a quarter of the CJK
 ;; space between U+3400 and U+DFFF.
 
-;; UTF-8 is defined in RFC 2279.  A sketch of the encoding is:
+;; UTF-8 is defined in RFC 3629.  A sketch of the encoding is:
 
 ;;        scalar       |               utf-8
 ;;        value        | 1st byte  | 2nd byte  | 3rd byte
@@ -98,7 +98,7 @@ translation-table named `utf-translation-table-for-encode'")
 (defvar ucs-mule-cjk-to-unicode (make-hash-table :test 'eq)
   "Hash table mapping Emacs CJK character sets to Unicode code points.
 
-If `utf-translate-cjk' is non-nil, this table populates the
+If `utf-translate-cjk-mode' is non-nil, this table populates the
 translation-hash-table named `utf-subst-table-for-encode'.")
 
 (define-translation-hash-table 'utf-subst-table-for-encode
@@ -107,7 +107,7 @@ translation-hash-table named `utf-subst-table-for-encode'.")
 (defvar ucs-unicode-to-mule-cjk (make-hash-table :test 'eq)
   "Hash table mapping Unicode code points to Emacs CJK character sets.
 
-If `utf-translate-cjk' is non-nil, this table populates the
+If `utf-translate-cjk-mode' is non-nil, this table populates the
 translation-hash-table named `utf-subst-table-for-decode'.")
 
 (define-translation-hash-table 'utf-subst-table-for-decode
@@ -177,9 +177,7 @@ Setting this variable outside customize has no effect."
 				'translation-table)
 			   ucs-mule-to-mule-unicode)
 		 (define-translation-table 'utf-translation-table-for-encode
-		   utf-defragmentation-table)
-		 (dolist (coding '(mule-utf-8 mule-utf-16-be mule-utf-16-le))
-		   (register-char-codings coding utf-defragmentation-table))))
+		   utf-defragmentation-table)))
 	   (define-translation-table 'utf-translation-table-for-decode)
 	   ;; When unify-8859-on-encoding-mode is off, be sure to make
 	   ;; mule-utf-* disabled for characters in
@@ -187,26 +185,186 @@ Setting this variable outside customize has no effect."
 	   (unless (eq (get 'utf-translation-table-for-encode
 			    'translation-table)
 		       ucs-mule-to-mule-unicode)
-	     (define-translation-table 'utf-translation-table-for-encode)
-	     (map-char-table
-	      (lambda (key val)
-		(if (and (>= key 128) val)
-		    (aset char-coding-system-table key
-			  (remq 'mule-utf-8
-				(remq 'mule-utf-16-le
-				      (remq 'mule-utf-16-be
-					    (aref char-coding-system-table
-						  key)))))))
-	      utf-defragmentation-table)))
+	     (define-translation-table 'utf-translation-table-for-encode)))
 	 (set-default s v))
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'mule)
 
-(defcustom utf-translate-cjk nil
-  "Whether the UTF based coding systems should decode/encode CJK characters.
-Enabling this loads tables which allow the coding systems mule-utf-8,
-mule-utf-16-le and mule-utf-16-be to encode characters in the charsets
+
+(defconst utf-translate-cjk-charsets '(chinese-gb2312
+				       chinese-big5-1 chinese-big5-2
+				       japanese-jisx0208 japanese-jisx0212
+				       katakana-jisx0201
+				       korean-ksc5601)
+  "List of charsets supported by `utf-translate-cjk-mode'.")
+
+(defvar utf-translate-cjk-lang-env nil
+  "Language environment in which tables for `utf-translate-cjk-mode' is loaded.
+The value nil means that the tables are not yet loaded.")
+
+(defvar utf-translate-cjk-unicode-range)
+
+;; String generated from utf-translate-cjk-unicode-range.  It is
+;; suitable for an argument to skip-chars-forward.
+(defvar utf-translate-cjk-unicode-range-string nil)
+
+(defun utf-translate-cjk-set-unicode-range (range)
+  (setq utf-translate-cjk-unicode-range range)
+  (setq utf-translate-cjk-unicode-range-string
+	(let ((decode-char-no-trans
+	       #'(lambda (x)
+		   (cond ((< x #x100) (make-char 'latin-iso8859-1 x))
+			 ((< x #x2500)
+			  (setq x (- x #x100))
+			  (make-char 'mule-unicode-0100-24ff
+				     (+ (/ x 96) 32) (+ (% x 96) 32)))
+			 ((< x #x3400)
+			  (setq x (- x #x2500))
+			  (make-char 'mule-unicode-2500-33ff
+				     (+ (/ x 96) 32) (+ (% x 96) 32)))
+			 (t
+			  (setq x (- x #xe000))
+			  (make-char 'mule-unicode-e000-ffff
+				     (+ (/ x 96) 32) (+ (% x 96) 32))))))
+	      ranges from to)
+	  (dolist (elt range)
+	    (setq from (max #xA0 (car elt)) to (min #xffff (cdr elt)))
+	    (if (and (>= to #x3400) (< to #xE000))
+		(setq to #x33FF))
+	    (cond ((< from #x100)
+		   (if (>= to #xE000)
+		       (setq ranges (cons (cons #xE000 to) ranges)
+			     to #x33FF))
+		   (if (>= to #x2500)
+		       (setq ranges (cons (cons #x2500 to) ranges)
+			     to #x24FF))
+		   (if (>= to #x100)
+		       (setq ranges (cons (cons #x100 to) ranges)
+			     to #xFF)))
+		  ((< from #x2500)
+		   (if (>= to #xE000)
+		       (setq ranges (cons (cons #xE000 to) ranges)
+			     to #x33FF))
+		   (if (>= to #x2500)
+		       (setq ranges (cons (cons #x2500 to) ranges)
+			     to #x24FF)))
+		  ((< from #x3400)
+		   (if (>= to #xE000)
+		       (setq ranges (cons (cons #xE000 to) ranges)
+			     to #x33FF))))
+	    (if (<= from to)
+		(setq ranges (cons (cons from to) ranges))))
+	  (mapconcat #'(lambda (x)
+			 (format "%c-%c"
+				 (funcall decode-char-no-trans (car x))
+				 (funcall decode-char-no-trans (cdr x))))
+		     ranges "")))
+  ;; These forces loading and settting tables for
+  ;; utf-translate-cjk-mode.
+  (setq utf-translate-cjk-lang-env nil
+	ucs-mule-cjk-to-unicode (make-hash-table :test 'eq)
+	ucs-unicode-to-mule-cjk (make-hash-table :test 'eq)))
+
+(defcustom utf-translate-cjk-unicode-range '((#x2e80 . #xd7a3)
+					     (#xff00 . #xffef))
+  "List of Unicode code ranges supported by `utf-translate-cjk-mode'.
+Setting this variable directly does not take effect;
+use either \\[customize] or the function
+`utf-translate-cjk-set-unicode-range'."
+  :version "22.1"
+  :type '(repeat (cons integer integer))
+  :set (lambda (symbol value)
+	 (utf-translate-cjk-set-unicode-range value))
+  :group 'mule)
+
+;; Return non-nil if CODE-POINT is in `utf-translate-cjk-unicode-range'.
+(defsubst utf-translate-cjk-substitutable-p (code-point)
+  (let ((tail utf-translate-cjk-unicode-range)
+	elt)
+    (while tail
+      (setq elt (car tail) tail (cdr tail))
+      (if (and (>= code-point (car elt)) (<= code-point (cdr elt)))
+	  (setq tail nil)
+	(setq elt nil)))
+    elt))
+
+(defun utf-translate-cjk-load-tables ()
+  "Load tables for `utf-translate-cjk-mode'."
+  ;; Fixme: Allow the use of the CJK charsets to be
+  ;; customized by reordering and possible omission.
+  (let ((redefined (< (hash-table-size ucs-mule-cjk-to-unicode) 43000)))
+    (if redefined
+	;; Redefine them with realistic initial sizes and a
+	;; smallish rehash size to avoid wasting significant
+	;; space after they're built.
+	(setq ucs-mule-cjk-to-unicode
+	      (make-hash-table :test 'eq :size 43000 :rehash-size 1000)
+	      ucs-unicode-to-mule-cjk
+	      (make-hash-table :test 'eq :size 21500 :rehash-size 1000)))
+
+    ;; Load the files explicitly, to avoid having to keep
+    ;; around the large tables they contain (as well as the
+    ;; ones which get built).
+    ;; Here we bind coding-system-for-read to nil so that coding tags
+    ;; in the files are respected even if the files are not yet
+    ;; byte-compiled
+    (let ((coding-system-for-read nil))
+      (cond ((string= "Korean" current-language-environment)
+	     (load "subst-jis")
+	     (load "subst-big5")
+	     (load "subst-gb2312")
+	     (load "subst-ksc"))
+	    ((string= "Chinese-BIG5" current-language-environment)
+	     (load "subst-jis")
+	     (load "subst-ksc")
+	     (load "subst-gb2312")
+	     (load "subst-big5"))
+	    ((string= "Chinese-GB" current-language-environment)
+	     (load "subst-jis")
+	     (load "subst-ksc")
+	     (load "subst-big5")
+	     (load "subst-gb2312"))
+	    (t
+	     (load "subst-ksc")
+	     (load "subst-gb2312")
+	     (load "subst-big5")
+	     (load "subst-jis")))) ; jis covers as much as big5, gb2312
+
+    (when redefined
+      (define-translation-hash-table 'utf-subst-table-for-decode
+	ucs-unicode-to-mule-cjk)
+      (define-translation-hash-table 'utf-subst-table-for-encode
+	ucs-mule-cjk-to-unicode)
+      (set-char-table-extra-slot (get 'utf-translation-table-for-encode
+				      'translation-table)
+				 1 ucs-mule-cjk-to-unicode))
+
+    (setq utf-translate-cjk-lang-env current-language-environment)))
+
+(defun utf-lookup-subst-table-for-decode (code-point)
+  (if (and utf-translate-cjk-mode
+	   (not utf-translate-cjk-lang-env)
+	   (utf-translate-cjk-substitutable-p code-point))
+      (utf-translate-cjk-load-tables))
+  (gethash code-point
+	   (get 'utf-subst-table-for-decode 'translation-hash-table)))
+
+
+(defun utf-lookup-subst-table-for-encode (char)
+  (if (and utf-translate-cjk-mode
+	   (not utf-translate-cjk-lang-env)
+	   (memq (char-charset char) utf-translate-cjk-charsets))
+      (utf-translate-cjk-load-tables))
+  (gethash char
+	   (get 'utf-subst-table-for-encode 'translation-hash-table)))
+
+(define-minor-mode utf-translate-cjk-mode
+  "Toggle whether UTF based coding systems de/encode CJK characters.
+If ARG is an integer, enable if ARG is positive and disable if
+zero or negative.  This is a minor mode.
+Enabling this allows the coding systems mule-utf-8,
+mule-utf-16le and mule-utf-16be to encode characters in the charsets
 `korean-ksc5601', `chinese-gb2312', `chinese-big5-1',
 `chinese-big5-2', `japanese-jisx0208' and `japanese-jisx0212', and to
 decode the corresponding unicodes into such characters.
@@ -216,73 +374,82 @@ according to the language environment in effect when this option is
 turned on: ksc5601 for Korean, gb2312 for Chinese-GB, big5 for
 Chinese-Big5 and jisx for other environments.
 
-The tables are large (over 40000 entries), so this option is not the
-default.  Also, installing them may be rather slow."
-  :set (lambda (s v)
-	 (if v
-	     ;; Fixme: Allow the use of the CJK charsets to be
-	     ;; customized by reordering and possible omission.
-	     (progn
-	       ;; Redefine them with realistic initial sizes and a
-	       ;; smallish rehash size to avoid wasting significant
-	       ;; space after they're built.
-	       (setq ucs-mule-cjk-to-unicode
-		     (make-hash-table :test 'eq :size 43000 :rehash-size 1000)
-		     ucs-unicode-to-mule-cjk
-		     (make-hash-table :test 'eq :size 43000 :rehash-size 1000))
-	       ;; Load the files explicitly, to avoid having to keep
-	       ;; around the large tables they contain (as well as the
-	       ;; ones which get built).
-	       (cond
-		((string= "Korean" current-language-environment)
-		 (load "subst-jis")
-		 (load "subst-big5")
-		 (load "subst-gb2312")
-		 (load "subst-ksc"))
-		((string= "Chinese-BIG5" current-language-environment)
-		 (load "subst-jis")
-		 (load "subst-ksc")
-		 (load "subst-gb2312")
-		 (load "subst-big5"))
-		((string= "Chinese-GB" current-language-environment)
-		 (load "subst-jis")
-		 (load "subst-ksc")
-		 (load "subst-big5")
-		 (load "subst-gb2312"))
-		(t
-		 (load "subst-ksc")
-		 (load "subst-gb2312")
-		 (load "subst-big5")
-		 (load "subst-jis")))   ; jis covers as much as big5, gb2312
-	       (let ((table (make-char-table 'translation-table)))
-		 (maphash (lambda (k v)
-			    (aset table k t))
-			  ucs-mule-cjk-to-unicode)
-		 (register-char-codings 'mule-utf-8 table)
-		 (register-char-codings 'mule-utf-16-le table)
-		 (register-char-codings 'mule-utf-16-be table))
-	       (define-translation-hash-table 'utf-subst-table-for-decode
-		 ucs-unicode-to-mule-cjk)
-	       (define-translation-hash-table 'utf-subst-table-for-encode
-		 ucs-mule-cjk-to-unicode))
-	   (map-char-table
-	    (lambda (k v)
-	      (if (gethash k ucs-mule-cjk-to-unicode)
-		  (aset char-coding-system-table k
-			(remq 'mule-utf-8
-			      (remq 'mule-utf-16-le
-				    (remq 'mule-utf-16-be v))))))
-	    char-coding-system-table)
-	   (define-translation-hash-table 'utf-subst-table-for-decode
-	     (make-hash-table :test 'eq))
-	   (define-translation-hash-table 'utf-subst-table-for-encode
-	     (make-hash-table :test 'eq)))
-	 (optimize-char-coding-system-table)
-	 (set-default s v))
-  :version "21.4"
+This mode is on by default.  If you are not interested in CJK
+characters and want to avoid some overhead on encoding/decoding
+by the above coding systems, you can customize the user option
+`utf-translate-cjk-mode' to nil."
+  :init-value t
+  :version "22.1"
   :type 'boolean
-  :set-after '(current-language-environment)
-  :group 'mule)
+  :group 'mule
+  :global t
+  (if utf-translate-cjk-mode
+      (progn
+	(define-translation-hash-table 'utf-subst-table-for-decode
+	  ucs-unicode-to-mule-cjk)
+	(define-translation-hash-table 'utf-subst-table-for-encode
+	  ucs-mule-cjk-to-unicode)
+	(set-char-table-extra-slot (get 'utf-translation-table-for-encode
+					'translation-table)
+				   1 ucs-mule-cjk-to-unicode))
+    (define-translation-hash-table 'utf-subst-table-for-decode
+      (make-hash-table :test 'eq))
+    (define-translation-hash-table 'utf-subst-table-for-encode
+      (make-hash-table :test 'eq))
+    (set-char-table-extra-slot (get 'utf-translation-table-for-encode
+				    'translation-table)
+			       1 nil))
+
+  ;; Update safe-chars of mule-utf-* coding systems.
+  (dolist (elt (coding-system-list t))
+    (if (string-match "^mule-utf" (symbol-name elt))
+	(let ((safe-charsets (coding-system-get elt 'safe-charsets))
+	      (safe-chars (coding-system-get elt 'safe-chars))
+	      (need-update nil))
+	  (dolist (charset utf-translate-cjk-charsets)
+	    (unless (eq utf-translate-cjk-mode (memq charset safe-charsets))
+	      (setq safe-charsets
+		    (if utf-translate-cjk-mode
+			(cons charset safe-charsets)
+		      (delq charset safe-charsets))
+		    need-update t)
+	      (aset safe-chars (make-char charset) utf-translate-cjk-mode)))
+	  (when need-update
+	    (coding-system-put elt 'safe-charsets safe-charsets)
+	    (define-coding-system-internal elt))))))
+
+(define-ccl-program ccl-mule-utf-untrans
+  ;; R0 is an untranslatable Unicode code-point (U+3500..U+DFFF or
+  ;; U+10000..U+10FFFF) or an invaid byte (#x00..#xFF).  Write
+  ;; eight-bit-control/graphic sequence (2 to 4 chars) representing
+  ;; UTF-8 sequence of r0.  Registers r4, r5, r6 are modified.
+  ;;
+  ;; This is a subrountine because we assume that this is called very
+  ;; rarely (so we don't have to worry about the overhead of the
+  ;; call).
+  `(0
+    ((r5 = ,(charset-id 'eight-bit-control))
+     (r6 = ,(charset-id 'eight-bit-graphic))
+     (if (r0 < #x100)
+	 ((r4 = ((r0 >> 6) | #xC0))
+	  (write-multibyte-character r6 r4))
+       ((if (r0 < #x10000)
+	    ((r4 = ((r0 >> 12) | #xE0))
+	     (write-multibyte-character r6 r4))
+	  ((r4 = ((r0 >> 18) | #xF0))
+	   (write-multibyte-character r6 r4)
+	   (r4 = (((r0 >> 12) & #x3F) | #x80))
+	   (if (r4 < #xA0)
+	       (write-multibyte-character r5 r4)
+	     (write-multibyte-character r6 r4))))
+	(r4 = (((r0 >> 6) & #x3F) | #x80))
+	(if (r4 < #xA0)
+	    (write-multibyte-character r5 r4)
+	  (write-multibyte-character r6 r4))))
+     (r4 = ((r0 & #x3F) | #x80))
+     (if (r4 < #xA0)
+	 (write-multibyte-character r5 r4)
+       (write-multibyte-character r6 r4)))))
 
 (define-ccl-program ccl-decode-mule-utf-8
   ;;
@@ -301,218 +468,220 @@ default.  Also, installing them may be rather slow."
   ;;        (>= 8000)       |                |
   ;; mule-unicode-2500-33ff |       3        |       4
   ;; mule-unicode-e000-ffff |       3        |       4
+  ;; -----------------------+----------------+---------------
+  ;;      invalid byte      |       1        |       2
   ;;
   ;; Thus magnification factor is two.
   ;;
   `(2
-    ((r5 = ,(charset-id 'eight-bit-control))
-     (r6 = ,(charset-id 'eight-bit-graphic))
+    ((r6 = ,(charset-id 'latin-iso8859-1))
+     (read r0)
      (loop
-      (read r0)
-
-      ;; 1byte encoding, i.e., ascii
       (if (r0 < #x80)
-	  (write r0)
-	(if (r0 < #xc0)		    ; continuation byte (invalid here)
-	    (if (r0 < #xa0)
-		(write-multibyte-character r5 r0)
-	      (write-multibyte-character r6 r0))
-	  ;; 2 byte encoding 00000yyyyyxxxxxx = 110yyyyy 10xxxxxx
-	  (if (r0 < #xe0)
-	      ((read r1)
+	  ;; 1-byte encoding, i.e., ascii
+	  (write-read-repeat r0))
+      (if (r0 < #xc2)
+	  ;; continuation byte (invalid here) or 1st byte of overlong
+	  ;; 2-byte sequence.
+	  ((call ccl-mule-utf-untrans)
+	   (r6 = ,(charset-id 'latin-iso8859-1))
+	   (read r0)
+	   (repeat)))
 
-	       (if ((r1 & #b11000000) != #b10000000)
-		   ;; Invalid 2-byte sequence
-		   ((if (r0 < #xa0)
-			(write-multibyte-character r5 r0)
-		      (write-multibyte-character r6 r0))
-		    (if (r1 < #x80)
-			(write r1)
-		      (if (r1 < #xa0)
-			  (write-multibyte-character r5 r1)
-			(write-multibyte-character r6 r1))))
+      ;; Read the 2nd byte.
+      (read r1)
+      (if ((r1 & #b11000000) != #b10000000) ; Invalid 2nd byte
+	  ((call ccl-mule-utf-untrans)
+	   (r6 = ,(charset-id 'latin-iso8859-1))
+	   ;; Handle it in the next loop.
+	   (r0 = r1)
+	   (repeat)))
 
-		 ((r3 = r0)	   ; save in case of overlong sequence
-		  (r2 = r1)
-		  (r0 &= #x1f)
-		  (r0 <<= 6)
-		  (r1 &= #x3f)
-		  (r1 += r0)
-		  ;; Now r1 holds scalar value
+      (if (r0 < #xe0)
+	  ;; 2-byte encoding 00000yyyyyxxxxxx = 110yyyyy 10xxxxxx
+	  ((r1 &= #x3F)
+	   (r1 |= ((r0 & #x1F) << 6))
+	   ;; Now r1 holds scalar value.  We don't have to check
+	   ;; `overlong sequence' because r0 >= 0xC2.
 
-		  (if (r1 < 128)	; `overlong sequence'
-		      ((if (r3 < #xa0)
-			   (write-multibyte-character r5 r3)
-			 (write-multibyte-character r6 r3))
-		       (if (r2 < #x80)
-			   (write r2)
-			 (if (r2 < #xa0)
-			     (write-multibyte-character r5 r2)
-			   (write-multibyte-character r6 r2))))
+	   (if (r1 >= 256)
+	       ;; mule-unicode-0100-24ff (< 0800)
+	       ((r0 = r1)
+		(lookup-integer utf-subst-table-for-decode r0 r1)
+		(if (r7 == 0)
+		    ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
+		     (r1 -= #x0100)
+		     (r2 = (((r1 / 96) + 32) << 7))
+		     (r1 %= 96)
+		     (r1 += (r2 + 32))
+		     (translate-character
+		      utf-translation-table-for-decode r0 r1)))
+		(write-multibyte-character r0 r1)
+		(read r0)
+		(repeat))
+	     (if (r1 >= 160)
+		 ;; latin-iso8859-1
+		 ((r0 = r1)
+		  (lookup-integer utf-subst-table-for-decode r0 r1)
+		  (if (r7 == 0)
+		      ((r1 -= 128)
+		       (write-multibyte-character r6 r1))
+		    ((write-multibyte-character r0 r1)))
+		  (read r0)
+		  (repeat))
+	       ;; eight-bit-control
+	       ((r0 = ,(charset-id 'eight-bit-control))
+		(write-multibyte-character r0 r1)
+		(read r0)
+		(repeat))))))
 
-		    ;; eight-bit-control
-		    (if (r1 < 160)
-			((write-multibyte-character r5 r1))
+      ;; Read the 3rd bytes.
+      (read r2)
+      (if ((r2 & #b11000000) != #b10000000) ; Invalid 3rd byte
+	  ((call ccl-mule-utf-untrans)
+	   (r0 = r1)
+	   (call ccl-mule-utf-untrans)
+	   (r6 = ,(charset-id 'latin-iso8859-1))
+	   ;; Handle it in the next loop.
+	   (r0 = r2)
+	   (repeat)))
 
-		      ;; latin-iso8859-1
-		      (if (r1 < 256)
-			  ((r0 = ,(charset-id 'latin-iso8859-1))
-			   (r1 -= 128)
-			   (write-multibyte-character r0 r1))
+      (if (r0 < #xF0)
+	  ;; 3byte encoding
+	  ;; zzzzyyyyyyxxxxxx = 1110zzzz 10yyyyyy 10xxxxxx
+	  ((r3 = ((r0 & #xF) << 12))
+	   (r3 |= ((r1 & #x3F) << 6))
+	   (r3 |= (r2 & #x3F))
 
-			;; mule-unicode-0100-24ff (< 0800)
-			((r0 = ,(charset-id 'mule-unicode-0100-24ff))
-			 (r1 -= #x0100)
-			 (r2 = (((r1 / 96) + 32) << 7))
-			 (r1 %= 96)
-			 (r1 += (r2 + 32))
-			 (translate-character
-			  utf-translation-table-for-decode r0 r1)
-			 (write-multibyte-character r0 r1))))))))
+	   (if (r3 < #x800)		; `overlong sequence'
+	       ((call ccl-mule-utf-untrans)
+		(r0 = r1)
+		(call ccl-mule-utf-untrans)
+		(r0 = r2)
+		(call ccl-mule-utf-untrans)
+		(r6 = ,(charset-id 'latin-iso8859-1))
+		(read r0)
+		(repeat)))
 
-	    ;; 3byte encoding
-	    ;; zzzzyyyyyyxxxxxx = 1110zzzz 10yyyyyy 10xxxxxx
-	    (if (r0 < #xf0)
-		((read r1 r2)
+	   (if (r3 < #x2500)
+	       ;; mule-unicode-0100-24ff (>= 0800)
+	       ((r0 = r3)
+		(lookup-integer utf-subst-table-for-decode r0 r1)
+		(if (r7 == 0)
+		    ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
+		     (r3 -= #x0100)
+		     (r3 //= 96)
+		     (r1 = (r7 + 32))
+		     (r1 += ((r3 + 32) << 7))
+		     (translate-character
+		      utf-translation-table-for-decode r0 r1)))
+		(write-multibyte-character r0 r1)
+		(read r0)
+		(repeat)))
 
-		 ;; This is set to 1 if the encoding is invalid.
-		 (r4 = 0)
+	   (if (r3 < #x3400)
+	       ;; mule-unicode-2500-33ff
+	       ((r0 = r3)		; don't zap r3
+		(lookup-integer utf-subst-table-for-decode r0 r1)
+		(if (r7 == 0)
+		    ((r0 = ,(charset-id 'mule-unicode-2500-33ff))
+		     (r3 -= #x2500)
+		     (r3 //= 96)
+		     (r1 = (r7 + 32))
+		     (r1 += ((r3 + 32) << 7))))
+		(write-multibyte-character r0 r1)
+		(read r0)
+		(repeat)))
 
-		 (r3 = (r1 & #b11000000))
-		 (r3 |= ((r2 >> 2) & #b00110000))
-		 (if (r3 != #b10100000)
-		     (r4 = 1)
-		   ((r3 = ((r0 & #x0f) << 12))
-		    (r3 += ((r1 & #x3f) << 6))
-		    (r3 += (r2 & #x3f))
-		    (if (r3 < #x0800)
-			(r4 = 1))))
+	   (if (r3 < #xE000)
+	       ;; Try to convert to CJK chars, else
+	       ;; keep them as eight-bit-{control|graphic}.
+	       ((r0 = r3)
+		(lookup-integer utf-subst-table-for-decode r3 r1)
+		(if r7
+		    ;; got a translation
+		    ((write-multibyte-character r3 r1)
+		     (read r0)
+		     (repeat))
+		  ((call ccl-mule-utf-untrans)
+		   (r6 = ,(charset-id 'latin-iso8859-1))
+		   (read r0)
+		   (repeat)))))
 
-		 (if (r4 != 0)
-		     ;; Invalid 3-byte sequence
-		     ((if (r0 < #xa0)
-			  (write-multibyte-character r5 r0)
-			(write-multibyte-character r6 r0))
-		      (if (r1 < #x80)
-			  (write r1)
-			(if (r1 < #xa0)
-			    (write-multibyte-character r5 r1)
-			  (write-multibyte-character r6 r1)))
-		      (if (r2 < #x80)
-			  (write r2)
-			(if (r2 < #xa0)
-			    (write-multibyte-character r5 r2)
-			  (write-multibyte-character r6 r2))))
+	   ;; mule-unicode-e000-ffff
+	   ;; Fixme: fffe and ffff are invalid.
+	   (r0 = r3)		; don't zap r3
+	   (lookup-integer utf-subst-table-for-decode r0 r1)
+	   (if (r7 == 0)
+	       ((r0 = ,(charset-id 'mule-unicode-e000-ffff))
+		(r3 -= #xe000)
+		(r3 //= 96)
+		(r1 = (r7 + 32))
+		(r1 += ((r3 + 32) << 7))))
+	   (write-multibyte-character r0 r1)
+	   (read r0)
+	   (repeat)))
 
-		   ;; mule-unicode-0100-24ff (>= 0800)
-		   ((if (r3 < #x2500)
-			((r0 = ,(charset-id 'mule-unicode-0100-24ff))
-			 (r3 -= #x0100)
-			 (r3 //= 96)
-			 (r1 = (r7 + 32))
-			 (r1 += ((r3 + 32) << 7))
-			 (translate-character
-			  utf-translation-table-for-decode r0 r1)
-			 (write-multibyte-character r0 r1))
+      ;; Read the 4th bytes.
+      (read r3)
+      (if ((r3 & #b11000000) != #b10000000) ; Invalid 4th byte
+	  ((call ccl-mule-utf-untrans)
+	   (r0 = r1)
+	   (call ccl-mule-utf-untrans)
+	   (r0 = r2)
+	   (call ccl-mule-utf-untrans)
+	   (r6 = ,(charset-id 'latin-iso8859-1))
+	   ;; Handle it in the next loop.
+	   (r0 = r3)
+	   (repeat)))
 
-		      ;; mule-unicode-2500-33ff
-		      (if (r3 < #x3400)
-			  ((r4 = r3)	; don't zap r3
-			   (lookup-integer utf-subst-table-for-decode r4 r5)
-			   (if r7
-			       ;; got a translation
-			       ((write-multibyte-character r4 r5)
-				;; Zapped through register starvation.
-				(r5 = ,(charset-id 'eight-bit-control)))
-			     ((r0 = ,(charset-id 'mule-unicode-2500-33ff))
-			      (r3 -= #x2500)
-			      (r3 //= 96)
-			      (r1 = (r7 + 32))
-			      (r1 += ((r3 + 32) << 7))
-			      (write-multibyte-character r0 r1))))
+      (if (r0 < #xF8)
+	  ;; 4-byte encoding:
+	  ;; wwwzzzzzzyyyyyyxxxxxx = 11110www 10zzzzzz 10yyyyyy 10xxxxxx
+	  ;; keep those bytes as eight-bit-{control|graphic}
+	  ;; Fixme: allow lookup in utf-subst-table-for-decode.
+	  ((r4 = ((r0 & #x7) << 18))
+	   (r4 |= ((r1 & #x3F) << 12))
+	   (r4 |= ((r2 & #x3F) << 6))
+	   (r4 |= (r3 & #x3F))
 
-			;; U+3400 .. U+D7FF
-			;; Try to convert to CJK chars, else keep
-			;; them as eight-bit-{control|graphic}.
-			(if (r3 < #xd800)
-			    ((r4 = r3)	; don't zap r3
-			     (lookup-integer utf-subst-table-for-decode r4 r5)
-			     (if r7
-				 ;; got a translation
-				 ((write-multibyte-character r4 r5)
-				  ;; Zapped through register starvation.
-				  (r5 = ,(charset-id 'eight-bit-control)))
-			       ;; #xe0 <= r0 < #xf0, so r0 is eight-bit-graphic
-			       ((r3 = r6)
-				(write-multibyte-character r3 r0)
-				(if (r1 < #xa0)
-				    (r3 = r5))
-				(write-multibyte-character r3 r1)
-				(if (r2 < #xa0)
-				    (r3 = r5)
-				  (r3 = r6))
-				(write-multibyte-character r3 r2))))
+	   (if (r4 < #x10000)		; `overlong sequence'
+	       ((call ccl-mule-utf-untrans)
+		(r0 = r1)
+		(call ccl-mule-utf-untrans)
+		(r0 = r2)
+		(call ccl-mule-utf-untrans)
+		(r0 = r3)
+		(call ccl-mule-utf-untrans))
+	     ((r0 = r4)
+	      (call ccl-mule-utf-untrans))))
 
-			  ;; Surrogates, U+D800 .. U+DFFF
-			  (if (r3 < #xe000)
-			      ((r3 = r6)
-			       (write-multibyte-character r3 r0) ; eight-bit-graphic
-			       (if (r1 < #xa0)
-				   (r3 = r5))
-			       (write-multibyte-character r3 r1)
-			       (if (r2 < #xa0)
-				   (r3 = r5)
-				 (r3 = r6))
-			       (write-multibyte-character r3 r2))
+	;; Unsupported sequence.
+	((call ccl-mule-utf-untrans)
+	 (r0 = r1)
+	 (call ccl-mule-utf-untrans)
+	 (r0 = r2)
+	 (call ccl-mule-utf-untrans)
+	 (r0 = r3)
+	 (call ccl-mule-utf-untrans)))
+      (r6 = ,(charset-id 'latin-iso8859-1))
+      (read r0)
+      (repeat)))
 
-			    ;; mule-unicode-e000-ffff
-			    ;; Fixme: fffe and ffff are invalid.
-			    ((r0 = ,(charset-id 'mule-unicode-e000-ffff))
-			     (r3 -= #xe000)
-			     (r3 //= 96)
-			     (r1 = (r7 + 32))
-			     (r1 += ((r3 + 32) << 7))
-			     (write-multibyte-character r0 r1)))))))))
 
-	      (if (r0 < #xfe)
-		  ;; 4byte encoding
-		  ;; keep those bytes as eight-bit-{control|graphic}
-		  ;; Fixme: allow lookup in utf-subst-table-for-decode.
-		  ((read r1 r2 r3)
-		   ;; r0 > #xf0, thus eight-bit-graphic
-		   (write-multibyte-character r6 r0)
-		   (if (r1 < #xa0)
-		       (if (r1 < #x80)	; invalid byte
-			   (write r1)
-			 (write-multibyte-character r5 r1))
-		     (write-multibyte-character r6 r1))
-		   (if (r2 < #xa0)
-		       (if (r2 < #x80)	; invalid byte
-			   (write r2)
-			 (write-multibyte-character r5 r2))
-		     (write-multibyte-character r6 r2))
-		   (if (r3 < #xa0)
-		       (if (r3 < #x80)	; invalid byte
-			   (write r3)
-			 (write-multibyte-character r5 r3))
-		     (write-multibyte-character r6 r3))
-		   (if (r0 >= #xf8)	; 5- or 6-byte encoding
-		       ((read r1)
-			(if (r1 < #xa0)
-			    (if (r1 < #x80) ; invalid byte
-				(write r1)
-			      (write-multibyte-character r5 r1))
-			  (write-multibyte-character r6 r1))
-			(if (r0 >= #xfc) ; 6-byte
-			    ((read r1)
-			     (if (r1 < #xa0)
-				 (if (r1 < #x80) ; invalid byte
-				     (write r1)
-				   (write-multibyte-character r5 r1))
-			       (write-multibyte-character r6 r1)))))))
-		;; else invalid byte >= #xfe
-		(write-multibyte-character r6 r0))))))
-      (repeat))))
+    ;; At EOF...
+    (if (r0 >= 0)
+	;; r0 >= #x80
+	((call ccl-mule-utf-untrans)
+	 (if (r1 >= 0)
+	     ((r0 = r1)
+	      (call ccl-mule-utf-untrans)
+	      (if (r2 >= 0)
+		  ((r0 = r2)
+		   (call ccl-mule-utf-untrans)
+		   (if (r3 >= 0)
+		       ((r0 = r3)
+			(call ccl-mule-utf-untrans))))))))))
 
   "CCL program to decode UTF-8.
 Basic decoding is done into the charsets ascii, latin-iso8859-1 and
@@ -521,164 +690,203 @@ mule-unicode-*, but see also `utf-fragmentation-table' and
 Encodings of un-representable Unicode characters are decoded asis into
 eight-bit-control and eight-bit-graphic characters.")
 
+(define-ccl-program ccl-mule-utf-8-encode-untrans
+  ;; UTF-8 decoder generates an UTF-8 sequence represented by a
+  ;; sequence eight-bit-control/graphic chars for an untranslatable
+  ;; character and an invalid byte.
+  ;;
+  ;; This CCL parses that sequence (the first byte is already in r1),
+  ;; writes out the original bytes of that sequence, and sets r5 to
+  ;; -1.
+  ;;
+  ;; If the eight-bit-control/graphic sequence is shorter than what r1
+  ;; suggests, it sets r5 and r6 to the last character read that
+  ;; should be handled by the next loop of a caller.
+  ;;
+  ;; Note: For UTF-8 validation, we only check if a character is
+  ;; eight-bit-control/graphic or not.  It may result in incorrect
+  ;; handling of random binary data, but such a data can't be encoded
+  ;; by UTF-8 anyway.  At least, UTF-8 decoders doesn't generate such
+  ;; a sequence even if a source contains invalid byte-sequence.
+  `(0
+    (;; Read the 2nd byte.
+     (read-multibyte-character r5 r6)
+     (r0 = (r5 != ,(charset-id 'eight-bit-control)))
+     (if ((r5 != ,(charset-id 'eight-bit-graphic)) & r0)
+	 ((write r1)			; invalid UTF-8
+	  (r1 = -1)
+	  (end)))
+
+     (if (r1 <= #xC3)
+	 ;; 2-byte sequence for an originally invalid byte.
+	 ((r6 &= #x3F)
+	  (r6 |= ((r1 & #x1F) << 6))
+	  (write r6)
+	  (r5 = -1)
+	  (end)))
+
+     (write r1 r6)
+     (r2 = r1)
+     (r1 = -1)
+     ;; Read the 3rd byte.
+     (read-multibyte-character r5 r6)
+     (r0 = (r5 != ,(charset-id 'eight-bit-control)))
+     (if ((r5 != ,(charset-id 'eight-bit-graphic)) & r0)
+	 (end))				; invalid UTF-8
+     (write r6)
+     (if (r2 < #xF0)
+	 ;; 3-byte sequence for an untranslated character.
+	 ((r5 = -1)
+	  (end)))
+     ;; Read the 4th byte.
+     (read-multibyte-character r5 r6)
+     (r0 = (r5 != ,(charset-id 'eight-bit-control)))
+     (if ((r5 != ,(charset-id 'eight-bit-graphic)) & r0)
+	 (end))			; invalid UTF-8
+     ;; 4-byte sequence for an untranslated character.
+     (write r6)
+     (r5 = -1)
+     (end))
+
+    ;; At EOF...
+    ((r5 = -1)
+     (if (r1 >= 0)
+	 (write r1)))))
+
 (define-ccl-program ccl-encode-mule-utf-8
   `(1
     ((r5 = -1)
      (loop
       (if (r5 < 0)
-	  ((r1 = -1)
-	   (read-multibyte-character r0 r1)
-	   (translate-character utf-translation-table-for-encode r0 r1))
-	(;; We have already done read-multibyte-character.
-	 (r0 = r5)
+	  (read-multibyte-character r0 r1)
+	;; Pre-read character is in r5 (charset-ID) and r6 (code-point).
+	((r0 = r5)
 	 (r1 = r6)
 	 (r5 = -1)))
+      (translate-character utf-translation-table-for-encode r0 r1)
 
       (if (r0 == ,(charset-id 'ascii))
-	  (write r1)
+	  (write-repeat r1))
 
-	(if (r0 == ,(charset-id 'latin-iso8859-1))
-	    ;; r1          scalar                  utf-8
-	    ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
-	    ;; 20    0000 0000 1010 0000    1100 0010 1010 0000
-	    ;; 7f    0000 0000 1111 1111    1100 0011 1011 1111
-	    ((r0 = (((r1 & #x40) >> 6) | #xc2))
-	     (r1 &= #x3f)
-	     (r1 |= #x80)
-	     (write r0 r1))
+      (if (r0 == ,(charset-id 'latin-iso8859-1))
+	  ;; r1          scalar                  utf-8
+	  ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
+	  ;; 20    0000 0000 1010 0000    1100 0010 1010 0000
+	  ;; 7f    0000 0000 1111 1111    1100 0011 1011 1111
+	  ((write ((r1 >> 6) | #xc2))
+	   (r1 &= #x3f)
+	   (r1 |= #x80)
+	   (write-repeat r1)))
 
-	  (if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
-	      ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
-	       ;; #x3f80 == (0011 1111 1000 0000)b
-	       (r1 &= #x7f)
-	       (r1 += (r0 + 224))	; 240 == -32 + #x0100
-	       ;; now r1 holds scalar value
-	       (if (r1 < #x0800)
-		   ;; 2byte encoding
-		   ((r0 = (((r1 & #x07c0) >> 6) | #xc0))
-		    ;; #x07c0 == (0000 0111 1100 0000)b
-		    (r1 &= #x3f)
-		    (r1 |= #x80)
-		    (write r0 r1))
-		 ;; 3byte encoding
-		 ((r0 = (((r1 & #xf000) >> 12) | #xe0))
-		  (r2 = ((r1 & #x3f) | #x80))
-		  (r1 &= #x0fc0)
-		  (r1 >>= 6)
-		  (r1 |= #x80)
-		  (write r0 r1 r2))))
+      (if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
+	  ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
+	   ;; #x3f80 == (0011 1111 1000 0000)b
+	   (r1 &= #x7f)
+	   (r1 += (r0 + 224))		; 240 == -32 + #x0100
+	   ;; now r1 holds scalar value
+	   (if (r1 < #x0800)
+	       ;; 2byte encoding
+	       ((write ((r1 >> 6) | #xC0))
+		(r1 &= #x3F)
+		(r1 |= #x80)
+		(write-repeat r1))
+	     ;; 3byte encoding
+	     ((write ((r1 >> 12) | #xE0))
+	      (write  (((r1 & #x0FC0) >> 6) | #x80))
+	      (r1 &= #x3F)
+	      (r1 |= #x80)
+	      (write-repeat r1)))))
 
-	    (if (r0 == ,(charset-id 'mule-unicode-2500-33ff))
-		((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
-		 (r1 &= #x7f)
-		 (r1 += (r0 + 9440))	; 9440 == -32 + #x2500
-		 (r0 = (((r1 & #xf000) >> 12) | #xe0))
-		 (r2 = ((r1 & #x3f) | #x80))
-		 (r1 &= #x0fc0)
-		 (r1 >>= 6)
-		 (r1 |= #x80)
-		 (write r0 r1 r2))
+      (if (r0 == ,(charset-id 'mule-unicode-2500-33ff))
+	  ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
+	   (r1 &= #x7f)
+	   (r1 += (r0 + 9440))		; 9440 == -32 + #x2500
+	   ;; now r1 holds scalar value
+	   (write ((r1 >> 12) | #xE0))
+	   (write  (((r1 & #x0FC0) >> 6) | #x80))
+	   (r1 &= #x3F)
+	   (r1 |= #x80)
+	   (write-repeat r1)))
 
-	      (if (r0 == ,(charset-id 'mule-unicode-e000-ffff))
-		  ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
-		   (r1 &= #x7f)
-		   (r1 += (r0 + 57312))	; 57312 == -32 + #xe000
-		   (r0 = (((r1 & #xf000) >> 12) | #xe0))
-		   (r2 = ((r1 & #x3f) | #x80))
-		   (r1 &= #x0fc0)
-		   (r1 >>= 6)
-		   (r1 |= #x80)
-		   (write r0 r1 r2))
+      (if (r0 == ,(charset-id 'mule-unicode-e000-ffff))
+	  ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
+	   (r1 &= #x7f)
+	   (r1 += (r0 + 57312))		; 57312 == -32 + #xe000
+	   ;; now r1 holds scalar value
+	   (write ((r1 >> 12) | #xE0))
+	   (write  (((r1 & #x0FC0) >> 6) | #x80))
+	   (r1 &= #x3F)
+	   (r1 |= #x80)
+	   (write-repeat r1)))
 
-		(if (r0 == ,(charset-id 'eight-bit-control))
-		    ;; r1          scalar                  utf-8
-		    ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
-		    ;; 80    0000 0000 1000 0000    1100 0010 1000 0000
-		    ;; 9f    0000 0000 1001 1111    1100 0010 1001 1111
-		    ((write #xc2)
-		     (write r1))
+      (if (r0 == ,(charset-id 'eight-bit-control))
+	  ;; r1          scalar                  utf-8
+	  ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
+	  ;; 80    0000 0000 1000 0000    1100 0010 1000 0000
+	  ;; 9f    0000 0000 1001 1111    1100 0010 1001 1111
+	  ((write #xC2)
+	   (write-repeat r1)))
 
-		  (if (r0 == ,(charset-id 'eight-bit-graphic))
-		      ;; r1          scalar                  utf-8
-		      ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
-		      ;; a0    0000 0000 1010 0000    1100 0010 1010 0000
-		      ;; ff    0000 0000 1111 1111    1101 1111 1011 1111
-		      ((write r1)
-		       (r1 = -1)
-		       (read-multibyte-character r0 r1)
-		       (if (r0 != ,(charset-id 'eight-bit-graphic))
-			   (if (r0 != ,(charset-id 'eight-bit-control))
-			       ((r5 = r0)
-				(r6 = r1))))
-		       (if (r5 < 0)
-			   ((read-multibyte-character r0 r2)
-			    (if (r0 != ,(charset-id 'eight-bit-graphic))
-				(if (r0 != ,(charset-id 'eight-bit-control))
-				    ((r5 = r0)
-				     (r6 = r2))))
-			    (if (r5 < 0)
-				(write r1 r2)
-			      (if (r1 < #xa0)
-				  (write r1)
-				((write #xc2)
-				 (write r1)))))))
+      (if (r0 == ,(charset-id 'eight-bit-graphic))
+	  ;; r1          scalar                  utf-8
+	  ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
+	  ;; a0    0000 0000 1010 0000    1100 0010 1010 0000
+	  ;; ff    0000 0000 1111 1111    1101 1111 1011 1111
+	  ((r0 = (r1 >= #xC0))
+	   (r0 &= (r1 <= #xC3))
+	   (r4 = (r1 >= #xE1))
+	   (r4 &= (r1 <= #xF7))
+	   (r0 |= r4)
+	   (if r0
+	       ((call ccl-mule-utf-8-encode-untrans)
+		(repeat))
+	     (write-repeat r1))))
 
-		    ((lookup-character utf-subst-table-for-encode r0 r1)
-		     (if r7		; lookup succeeded
-			 ((r1 = (((r0 & #xf000) >> 12) | #xe0))
-			  (r2 = ((r0 & #x3f) | #x80))
-			  (r0 &= #x0fc0)
-			  (r0 >>= 6)
-			  (r0 |= #x80)
-			  (write r1 r0 r2))
-		       ;; Unsupported character.
-		       ;; Output U+FFFD, which is `ef bf bd' in UTF-8.
-		       ((write #xef)
-			(write #xbf)
-			(write #xbd)))))))))))
-      (repeat)))
-    (if (r1 >= #xa0)
-	(write r1)
-      (if (r1 >= #x80)
-	  ((write #xc2)
-	   (write r1)))))
+      (lookup-character utf-subst-table-for-encode r0 r1)
+      (if r7		; lookup succeeded
+	  (if (r0 < #x800)
+	      ;; 2byte encoding
+	      ((write ((r0 >> 6) | #xC0))
+	       (r0 = ((r0 & #x3F) | #x80))
+	       (write-repeat r0))
+	    ;; 3byte encoding
+	    ((write ((r0 >> 12) | #xE0))
+	     (write  (((r0 & #x0FC0) >> 6) | #x80))
+	     (r0 = ((r0 & #x3F) | #x80))
+	     (write-repeat r0))))
 
+      ;; Unsupported character.
+      ;; Output U+FFFD, which is `ef bf bd' in UTF-8.
+      (write #xef)
+      (write #xbf)
+      (write-repeat #xbd))))
   "CCL program to encode into UTF-8.")
 
 
 (define-ccl-program ccl-untranslated-to-ucs
   `(0
-    (if (r0 < #xf0)			; 3-byte encoding, as above
-	((r4 = 0)
-	 (r3 = (r1 & #b11000000))
-	 (r3 |= ((r2 >> 2) & #b00110000))
-	 (if (r3 != #b10100000)
-	     (r4 = 1)
-	   ((r3 = ((r0 & #x0f) << 12))
-	    (r3 += ((r1 & #x3f) << 6))
-	    (r3 += (r2 & #x3f))
-	    (if (r3 < #x0800)
-		(r4 = 1))))
-	 (if (r4 != 0)
-	     (r0 = 0)
-	   (r0 = r3)))
-      (if (r0 < #xf8)			; 4-byte (Mule-UCS recipe)
-	  ((r4 = (r1 >> 6))
-	   (if (r4 != #b10)
-	       (r0 = 0)
-	     ((r4 = (r2 >> 6))
-	      (if (r4 != #b10)
-		  (r0 = 0)
-		((r4 = (r3 >> 6))
-		 (if (r4 != #b10)
-		     (r0 = 0)
-		   ((r1 = ((r1  & #x3F) << 12))
-		    (r2 = ((r2  & #x3F) << 6))
-		    (r3 &= #x3F)
-		    (r0 = (((((r0 & #x07) << 18) | r1) | r2) | r3)))))))))
-	(r0 = 0))))
-  "Decode 3- or 4-byte sequences in r0, r1, r2 [,r3] to unicodes in r0.
-r0 == 0 for invalid sequence.")
+    (if (r1 == 0)
+	nil
+      (if (r0 <= #xC3)			; 2-byte encoding
+	  ((r0 = ((r0 & #x3) << 6))
+	   (r0 |= (r1 & #x3F))
+	   (r1 = 2))
+	(if (r2 == 0)
+	    (r1 = 0)
+	  (if (r0 < #xF0)		; 3-byte encoding, as above
+	      ((r0 = ((r0 & #xF) << 12))
+	       (r0 |= ((r1 & #x3F) << 6))
+	       (r0 |= (r2 & #x3F))
+	       (r1 = 3))
+	    (if (r3 == 0)
+		(r1 = 0)
+	      ((r0 = ((r0 & #x7) << 18))
+	       (r0 |= ((r1 & #x3F) << 12))
+	       (r0 |= ((r2 & #x3F) << 6))
+	       (r0 |= (r3 & #x3F))
+	       (r1 = 4))))))))
+  "Decode 2-, 3-, or 4-byte sequences in r0, r1, r2 [,r3] to unicodes in r0.
+Set r1 to the byte length.  r0 == 0 for invalid sequence.")
 
 (defvar utf-8-ccl-regs (make-vector 8 0))
 
@@ -689,73 +897,118 @@ Only for 3- or 4-byte sequences."
   (aset utf-8-ccl-regs 1 (or (char-after (1+ (point))) 0))
   (aset utf-8-ccl-regs 2 (or (char-after (+ 2 (point))) 0))
   (aset utf-8-ccl-regs 3 (or (char-after (+ 3 (point))) 0))
-  (ccl-execute 'ccl-untranslated-to-ucs utf-8-ccl-regs)
-  (aref utf-8-ccl-regs 0))
+  (ccl-execute 'ccl-untranslated-to-ucs utf-8-ccl-regs))
 
 (defun utf-8-help-echo (window object position)
   (format "Untranslated Unicode U+%04X"
 	  (get-char-property position 'untranslated-utf-8 object)))
 
-;; We compose the untranslatable sequences into a single character.
+;; We compose the untranslatable sequences into a single character,
+;; and move point to the next character.
 ;; This is infelicitous for editing, because there's currently no
 ;; mechanism for treating compositions as atomic, but is OK for
 ;; display.  They are composed to U+FFFD with help-echo which
 ;; indicates the unicodes they represent.  This function GCs too much.
-(defsubst utf-8-compose ()
-  "Put a suitable composition on an untranslatable sequence.
-Return the sequence's length."
-  (let* ((u (utf-8-untranslated-to-ucs))
-	 (l (unless (zerop u)
-	      (if (>= u #x10000)
-		       4
-		     3))))
-    (when l
-      (put-text-property (point) (min (point-max) (+ l (point)))
-			 'untranslated-utf-8 u)
-      (put-text-property (point) (min (point-max) (+ l (point)))
-			 'help-echo 'utf-8-help-echo)
-      (compose-region (point) (+ l (point)) ?$,3u=(B)
-      l)))
+
+;; If utf-translate-cjk-mode is non-nil, this function is called with
+;; HASH-TABLE which translates CJK characters into some of CJK
+;; charsets.
+
+(defsubst utf-8-compose (hash-table)
+  "Put a suitable composition on an untranslatable sequence at point.
+If HASH-TABLE is non-nil, try to translate CJK characters by it at first.
+Move point to the end of the sequence."
+  (utf-8-untranslated-to-ucs)
+  (let ((l (aref utf-8-ccl-regs 1))
+	ch)
+    (if (> l 0)
+	(if (and hash-table
+		 (setq ch (gethash (aref utf-8-ccl-regs 0)  hash-table)))
+	    (progn
+	      (insert ch)
+	      (delete-region (point) (min (point-max) (+ l (point)))))
+	  (setq ch (aref utf-8-ccl-regs 0))
+	  (put-text-property (point) (min (point-max) (+ l (point)))
+			     'untranslated-utf-8 ch)
+	  (put-text-property (point) (min (point-max) (+ l (point)))
+			     'help-echo 'utf-8-help-echo)
+	  (if (= l 2)
+	      (put-text-property (point) (min (point-max) (+ l (point)))
+				 'display (propertize (format "\\%03o" ch)
+						      'face 'escape-glyph))
+	    (compose-region (point) (+ l (point)) ?$,3u=(B))
+	  (forward-char l))
+      (forward-char 1))))
 
 (defcustom utf-8-compose-scripts nil
   "*Non-nil means compose various scripts on decoding utf-8 text."
   :group 'mule
-  :version "21.4"
+  :version "22.1"
   :type 'boolean)
 
 (defun utf-8-post-read-conversion (length)
   "Compose untranslated utf-8 sequences into single characters.
+If `utf-translate-cjk-mode' is non-nil, tries to translate CJK characters.
 Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
   (save-excursion
-    ;; Can't do eval-when-compile to insert a multibyte constant
-    ;; version of the string in the loop, since it's always loaded as
-    ;; unibyte from a byte-compiled file.
-    (let ((range (string-as-multibyte "^\xe1-\xf7")))
-      (while (and (skip-chars-forward range)
-		  (not (eobp)))
-	(forward-char (utf-8-compose)))))
-  ;; Fixme: Takahashi-san implies it may not work this easily.  I
-  ;; asked why but didn't get a reply. -- fx
-  (when (and utf-8-compose-scripts (> length 1))
-    ;; These currently have definitions which cover the relevant
-    ;; unicodes.  We could avoid loading thai-util &c by checking
-    ;; whether the region contains any characters with the appropriate
-    ;; categories.  There aren't yet Unicode-based rules for Tibetan.
-    (save-excursion (setq length (diacritic-post-read-conversion length)))
-    (save-excursion (setq length (thai-post-read-conversion length)))
-    (save-excursion (setq length (lao-post-read-conversion length)))
-    (save-excursion
-      (setq length (in-is13194-devanagari-post-read-conversion length))))
-  length)
+    (save-restriction
+      (narrow-to-region (point) (+ (point) length))
+      ;; Can't do eval-when-compile to insert a multibyte constant
+      ;; version of the string in the loop, since it's always loaded as
+      ;; unibyte from a byte-compiled file.
+      (let ((range (string-as-multibyte "^\xc0-\xc3\xe1-\xf7"))
+	    (buffer-multibyte enable-multibyte-characters)
+	    hash-table ch)
+	(set-buffer-multibyte t)
+	(when utf-translate-cjk-mode
+	  (unless utf-translate-cjk-lang-env
+	    ;; Check these characters in utf-translate-cjk-range.
+	    ;; We may have to translate them to CJK charsets.
+	    (skip-chars-forward
+	     (concat range utf-translate-cjk-unicode-range-string))
+	    (unless (eobp)
+	      (utf-translate-cjk-load-tables)
+	      (setq range
+		    (concat range utf-translate-cjk-unicode-range-string)))
+	    (setq hash-table (get 'utf-subst-table-for-decode
+				  'translation-hash-table))))
+	(while (and (skip-chars-forward range)
+		    (not (eobp)))
+	  (setq ch (following-char))
+	  (if (< ch 256)
+	      (utf-8-compose hash-table)
+	    (if (and hash-table
+		     (setq ch (gethash (encode-char ch 'ucs) hash-table)))
+		(progn
+		  (insert ch)
+		  (delete-char 1))
+	      (forward-char 1))))
+	(or buffer-multibyte
+	    (set-buffer-multibyte nil)))
 
-;; ucs-tables is preloaded
-;; (defun utf-8-pre-write-conversion (beg end)
-;;   "Semi-dummy pre-write function effectively to autoload ucs-tables."
-;;   ;; Ensure translation-table is loaded.
-;;   (require 'ucs-tables)
-;;   ;; Don't do this again.
-;;   (coding-system-put 'mule-utf-8 'pre-write-conversion nil)
-;;   nil)
+      (when (and utf-8-compose-scripts (> length 1))
+	;; These currently have definitions which cover the relevant
+	;; unicodes.  We could avoid loading thai-util &c by checking
+	;; whether the region contains any characters with the appropriate
+	;; categories.  There aren't yet Unicode-based rules for Tibetan.
+	(diacritic-compose-region (point-max) (point-min))
+	(thai-compose-region (point-max) (point-min))
+	(lao-compose-region (point-max) (point-min))
+	(devanagari-compose-region (point-max) (point-min))
+	(malayalam-compose-region (point-max) (point-min))
+	(tamil-compose-region (point-max) (point-min)))
+      (- (point-max) (point-min)))))
+
+(defun utf-8-pre-write-conversion (beg end)
+  "Prepare for `utf-translate-cjk-mode' to encode text between BEG and END.
+This is used as a post-read-conversion of utf-8 coding system."
+  (if (and utf-translate-cjk-mode
+	   (not utf-translate-cjk-lang-env)
+	   (save-excursion
+	     (goto-char beg)
+	     (re-search-forward "\\cc\\|\\cj\\|\\ch" end t)))
+      (utf-translate-cjk-load-tables))
+  nil)
 
 (make-coding-system
  'mule-utf-8 4 ?u
@@ -777,23 +1030,26 @@ any of the character sets listed above are encoded into the UTF-8 byte
 sequence representing U+FFFD (REPLACEMENT CHARACTER)."
 
  '(ccl-decode-mule-utf-8 . ccl-encode-mule-utf-8)
- '((safe-charsets
+ `((safe-charsets
     ascii
     eight-bit-control
     eight-bit-graphic
     latin-iso8859-1
     mule-unicode-0100-24ff
     mule-unicode-2500-33ff
-    mule-unicode-e000-ffff)
+    mule-unicode-e000-ffff
+    ,@(if utf-translate-cjk-mode
+	  utf-translate-cjk-charsets))
    (mime-charset . utf-8)
    (coding-category . coding-category-utf-8)
    (valid-codes (0 . 255))
-;;    (pre-write-conversion . utf-8-pre-write-conversion)
+   (pre-write-conversion . utf-8-pre-write-conversion)
    (post-read-conversion . utf-8-post-read-conversion)
+   (translation-table-for-encode . utf-translation-table-for-encode)
    (dependency unify-8859-on-encoding-mode
 	       unify-8859-on-decoding-mode
 	       utf-fragment-on-decoding
-	       utf-translate-cjk)))
+	       utf-translate-cjk-mode)))
 
 (define-coding-system-alias 'utf-8 'mule-utf-8)
 
@@ -818,4 +1074,5 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."
 ;;; 	`((,(string-as-multibyte "[\200-\237\240-\377]")
 ;;; 	   . utf-8-compose-function))))
 
+;;; arch-tag: b08735b7-753b-4ae6-b754-0f3efe4515c5
 ;;; utf-8.el ends here

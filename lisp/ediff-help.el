@@ -1,6 +1,7 @@
 ;;; ediff-help.el --- Code related to the contents of Ediff help buffers
 
-;; Copyright (C) 1996, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -132,7 +133,7 @@ Normally, not a user option.  See `ediff-help-message' for details.")
   "Normally, not a user option.  See `ediff-help-message' for details.")
 
 (defconst ediff-brief-message-string
-  " ? -quick help "
+  " Type ? for help"
   "Contents of the brief help message.")
 ;; The actual brief help message
 (ediff-defvar-local ediff-brief-help-message ""
@@ -324,4 +325,5 @@ the value of this variable and the variables `ediff-help-message-*' in
   (customize-group "ediff"))
 
 
+;;; arch-tag: 05659813-7fcf-4274-964f-d2f577431a9d
 ;;; ediff-help.el ends here

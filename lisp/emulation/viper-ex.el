@@ -1,6 +1,7 @@
 ;;; viper-ex.el --- functions implementing the Ex commands for Viper
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -58,7 +59,7 @@
 (require 'viper-util)
 
 (defgroup viper-ex nil
-  "Viper support for Ex commands"
+  "Viper support for Ex commands."
   :prefix "ex-"
   :group 'viper)
 
@@ -67,10 +68,10 @@
 ;;; Variables
 
 (defconst viper-ex-work-buf-name " *ex-working-space*")
-(defconst viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
+(defvar viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
 (defconst viper-ex-tmp-buf-name " *ex-tmp*")
 (defconst viper-ex-print-buf-name " *ex-print*")
-(defconst viper-ex-print-buf (get-buffer-create viper-ex-print-buf-name))
+(defvar viper-ex-print-buf (get-buffer-create viper-ex-print-buf-name))
 
 
 ;;; ex-commands...
@@ -434,7 +435,7 @@ reversed."
 			 ((eq ex-token-type 'minus) 'sub-number)
 			 (t 'abs-number)))
 	     (setq ex-token
-		   (string-to-int (buffer-substring (point) (mark t)))))
+		   (string-to-number (buffer-substring (point) (mark t)))))
 	    ((looking-at "\\$")
 	     (forward-char 1)
 	     (setq ex-token-type 'end))
@@ -912,7 +913,7 @@ reversed."
 	(progn
 	  (set-mark (point))
 	  (re-search-forward "[0-9][0-9]*")
-	  (setq ex-count (string-to-int (buffer-substring (point) (mark t))))
+	  (setq ex-count (string-to-number (buffer-substring (point) (mark t))))
 	  (skip-chars-forward " \t")))
     (if (looking-at "[pl#]")
 	(progn
@@ -938,7 +939,7 @@ reversed."
 	(progn
 	  (set-mark (point))
 	  (re-search-forward "[0-9][0-9]*")
-	  (setq ex-count (string-to-int (buffer-substring (point) (mark t))))
+	  (setq ex-count (string-to-number (buffer-substring (point) (mark t))))
 	  (skip-chars-forward " \t")))
     (if (looking-at "[pl#]")
 	(progn
@@ -1458,7 +1459,7 @@ reversed."
 	(if (eq 1 (length name))
 	    (setq char (string-to-char name))
 	  (error "`%s': Spurious text \"%s\" after mark name"
-		 name (substring name 1) viper-SpuriousText))
+		 name (substring name 1)))
     (save-window-excursion
       (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
       (set-buffer viper-ex-work-buf)
@@ -1490,7 +1491,7 @@ reversed."
 		(progn
 		  (ex-edit t)
 		  (throw 'ex-edit nil))
-	      (setq count (string-to-int ex-file))
+	      (setq count (string-to-number ex-file))
 	      (if (= count 0) (setq count 1))
 	      (if (< count 0) (error "Usage: `next <count>' (count >= 0)"))))
 	(setq count 1))
@@ -1589,7 +1590,7 @@ reversed."
 
 ;; Ex print working directory
 (defun ex-pwd ()
-  (message default-directory))
+  (message "%s" default-directory))
 
 ;; Ex quit command
 (defun ex-quit ()
@@ -2229,7 +2230,7 @@ Type 'mak ' (including the space) to run make with no args."
 		       (if (buffer-modified-p) "[Modified]" "[Unchanged]")))
     (if (< (+ 1 (length info) (length file))
 	   (window-width (minibuffer-window)))
-	(message (concat file " " info))
+	(message "%s" (concat file " " info))
       (save-window-excursion
 	(with-output-to-temp-buffer " *viper-info*"
 	  (princ (concat "\n" file "\n\n\t" info "\n\n")))
@@ -2318,4 +2319,5 @@ Type 'mak ' (including the space) to run make with no args."
 
 
 
+;;; arch-tag: 56b80d36-f880-4d10-bd66-85ad91a295db
 ;;; viper-ex.el ends here

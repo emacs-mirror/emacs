@@ -1,0 +1,193 @@
+2004-08-22 Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* Disclaimer: This is *temporary* file to keep track of the changes
+	in the trunk, that have or have not made it into the Gnus branch.
+
+
+
+2004--08-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* Add `:version "21.4"' to all new defcustoms.  Grep ChangeLog and
+	ChangeLog.1 for "new variable".  Also check if the `:version
+	"21.1"' and `:version "21.3"' entries are correct.
+
+
+
+2002-10-02  Karl Berry  <karl@gnu.org>
+
+	* In directory ./man:
+	
+	* emacs-mime.texi, gnus-faq.texi, gnus.texi, message.texi,
+	pgg.texi, sieve.texi: Per rms, update all manuals to use @copying
+	instead of @ifinfo.  Also use @ifnottex instead of @ifinfo around
+	the top node, where needed for the sake of the HTML output.
+	(The Gnus manual is not fixed since it's not clear to me how it
+	 works; and the Tramp manual already uses @copying, although in an
+	 unusual way.  All others were changed.)
+
+==> Done.  Not yet in Gnus repository.
+	
+
+
+2004-06-29  Kim F. Storm  <storm@cua.dk>
+
+	* nntp.el (nntp-authinfo-file): Add :group 'nntp.
+
+	* nnimap.el (nnimap-authinfo-file, nnimap-prune-cache):
+	Add :group 'nnimap.
+
+==> applied, here and in Gnus repository.
+
+2004-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-view.el (mm-insert-inline): Make it work in read-only buffer.
+
+	* gnus-win.el (gnus-all-windows-visible-p): Don't consider
+	non-visible windows.
+
+2004-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rfc2047.el (rfc2047-encode-message-header): Don't encode non-address
+	headers as address headers (which breaks if subject has a single ").
+
+==> already in Gnus
+	
+2004-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnimap.el (nnimap-demule): Avoid string-as-multibyte.
+
+==> applied, here and in Gnus repository.
+
+2004-04-21  Richard M. Stallman  <rms@gnu.org>
+
+	* mailcap.el (mailcap-mime-data): Mark as risky.
+
+==> applied, here and in Gnus repository.
+
+2004-03-27  Juanma Barranquero  <lektu@terra.es>
+
+	* gnus-srvr.el (gnus-server-prepare): Remove spurious call to `cdr'.
+
+==> already in Gnus
+
+2004-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-art.el: Use inhibit-read-only instead of buffer-read-only.
+	(gnus-narrow-to-page): Don't assume point-min == 1.
+	(gnus-article-edit-mode): Derive from message-mode.
+	(gnus-button-alist): Add buttons to (info "(emacs)Keymaps").
+
+	* gnus-score.el (gnus-score-find-bnews): Simplify and don't assume
+	point-min == 1.
+
+	* imap.el (imap-parse-address-list, imap-parse-body-ext):
+	Disable incorrect use of `assert'.
+
+==> applied / modified
+
+2004-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-mode): Fix last change.
+
+==> applied
+	
+2004-03-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-mode): Set comment-start-skip.
+
+==> applied
+	
+2004-02-08  Andreas Schwab  <schwab@suse.de>
+
+	* nnlistserv.el (nnlistserv-kk-wash-article): Fix paren nesting.
+
+	* gnus-score.el (gnus-summary-increase-score): Fix format string.
+
+==> applied; here and in Gnus v5-10.  Already fixed in No Gnus.
+
+2003-06-25  Sam Steingold  <sds@gnu.org>
+
+	* gnus-group.el (gnus-group-suspend): Avoid some consing.
+
+==> hunk FAILED / not very important / skip
+	
+2003-06-11  Sam Steingold  <sds@gnu.org>
+
+	* pop3.el (pop3-leave-mail-on-server): New user variable.
+	(pop3-movemail): Delete mail only when it is nil.
+
+==> applied / Was not documented in the Gnus manual, added it.
+	
+2003-05-10  Juanma Barranquero  <lektu@terra.es>
+
+	* message.el (message-buffer-naming-style): Fix typo.
+
+==> variable has been removed.
+
+2003-05-07  Dave Love  <fx@gnu.org>
+
+	[Partial sync with Gnus.]
+
+	* rfc2047.el (rfc2047-header-encoding-alist): Add Followup-To.
+	(rfc2047-encode-message-header): Fold when encoding not necessary.
+	(rfc2047-encode-region): Skip \n as whitespace.
+	(rfc2047-fold-region): Fix whitespace regexps.  Don't break just
+	after the header name.
+	(rfc2047-unfold-region): Fix regexp and whitespace-skipping.
+
+2003-05-06  Jesper Harder  <harder@ifa.au.dk>
+
+	* gnus-cus.el (gnus-group-customize, gnus-score-parameters):
+	Don't quote nil and t in docstrings.
+
+	* gnus-score.el (gnus-score-lower-thread): Likewise.
+
+	* gnus-art.el (gnus-article-mime-match-handle-function): Likewise.
+
+==> already in Gnus
+
+2003-02-28  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* nnfolder.el (nnfolder-request-accept-article): Don't use
+	mail-header-unfold-field.
+
+	* imap.el (imap-ssl-open): Don't depend on ssl.el.
+	* nntp.el (nntp-open-ssl-stream): Don't depend on ssl.el.
+
+2003-02-18  Juanma Barranquero  <lektu@terra.es>
+
+	* ietf-drums.el (ietf-drums-remove-whitespace): Fix character constant.
+
+2003-02-14  Juanma Barranquero  <lektu@terra.es>
+
+	* mm-uu.el (mm-uu-dissect): Fix use of character constant.
+
+==> already done.  [2003-02-14  ShengHuo ZHU synced stuff to Gnus]
+
+2003-02-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* nntp.el (nntp-accept-process-output): Don't use point-max to get
+	the buffer's size.
+
+==> already done.  [2003-02-14  ShengHuo ZHU synced stuff to Gnus]
+
+2003-01-31  Joe Buehler  <jhpb@draco.hekimian.com>
+
+	* nnheader.el: Added cygwin to system-type comparisons.
+
+==> already done.
+	
+
+
+2004-08-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* It seems that the last few changes and all older changes have
+	already been applied in Gnus repository, e.g. by ShengHuo ZHU
+	<zsh@cs.rochester.edu>.
+	
+# Local Variables:
+# coding: iso-2022-7bit
+# mode: change-log
+# End:
+
+# arch-tag: e6e5d695-4d00-46b1-a49d-508a2418a483

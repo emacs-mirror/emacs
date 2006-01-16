@@ -1,6 +1,6 @@
 ;;; resume.el --- process command line args from within a suspended Emacs job
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bucsf.bu.edu>
 ;; Adapted-By: ESR
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -125,4 +125,5 @@
 
 (provide 'resume)
 
+;;; arch-tag: c90b2761-4803-4e58-a0ae-c4721368b628
 ;;; resume.el ends here

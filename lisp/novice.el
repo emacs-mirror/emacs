@@ -1,6 +1,7 @@
 ;;; novice.el --- handling of disabled commands ("novice mode") for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1994, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal, help
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -36,15 +37,18 @@
 ;; and the keys are returned by (this-command-keys).
 
 ;;;###autoload
-(defvar disabled-command-hook 'disabled-command-hook
+(defvar disabled-command-function 'disabled-command-function
   "Function to call to handle disabled commands.
 If nil, the feature is disabled, i.e., all commands work normally.")
 
 ;;;###autoload
-(defun disabled-command-hook (&rest ignore)
+(define-obsolete-variable-alias 'disabled-command-hook 'disabled-command-function "22.1")
+
+;;;###autoload
+(defun disabled-command-function (&rest ignore)
   (let (char)
     (save-window-excursion
-     (with-output-to-temp-buffer "*Help*"
+     (with-output-to-temp-buffer "*Disabled Command*"
        (let ((keys (this-command-keys)))
 	 (if (or (eq (aref keys 0)
 		     (if (stringp keys)
@@ -63,7 +67,7 @@ If nil, the feature is disabled, i.e., all commands work normally.")
 	 (princ "It is disabled because new users often find it confusing.\n")
 	 (princ "Here's the first part of its description:\n\n")
 	 ;; Keep only the first paragraph of the documentation.
-	 (with-current-buffer "*Help*"
+	 (with-current-buffer "*Disabled Command*"
 	   (goto-char (point-max))
 	   (let ((start (point)))
 	     (save-excursion
@@ -86,12 +90,17 @@ SPC to try the command just this once, but leave it disabled.
 	(help-mode)))
      (message "Type y, n, ! or SPC (the space bar): ")
      (let ((cursor-in-echo-area t))
-       (while (not (memq (setq char (downcase (read-char)))
-			 '(?! ?  ?y ?n)))
+       (while (progn (setq char (read-event))
+		     (or (not (numberp char))
+			 (not (memq (downcase char)
+				    '(?! ?y ?n ?\  ?\C-g)))))
 	 (ding)
 	 (message "Please type y, n, ! or SPC (the space bar): "))))
+    (setq char (downcase char))
+    (if (= char ?\C-g)
+	(setq quit-flag t))
     (if (= char ?!)
-	(setq disabled-command-hook nil))
+	(setq disabled-command-function nil))
     (if (= char ?y)
 	(if (and user-init-file
 		 (not (string= "" user-init-file))
@@ -104,7 +113,8 @@ SPC to try the command just this once, but leave it disabled.
 ;;;###autoload
 (defun enable-command (command)
   "Allow COMMAND to be executed without special confirmation from now on.
-The user's .emacs file is altered so that this will apply
+COMMAND must be a symbol.
+This command alters the user's .emacs file so that this will apply
 to future sessions."
   (interactive "CEnable command: ")
   (put command 'disabled nil)
@@ -141,7 +151,8 @@ to future sessions."
 ;;;###autoload
 (defun disable-command (command)
   "Require special confirmation to execute COMMAND from now on.
-The user's .emacs file is altered so that this will apply
+COMMAND must be a symbol.
+This command alters the user's .emacs file so that this will apply
 to future sessions."
   (interactive "CDisable command: ")
   (if (not (commandp command))
@@ -170,11 +181,13 @@ to future sessions."
       (if (search-forward (concat "(put '" (symbol-name command) " ") nil t)
 	  (delete-region
 	   (progn (beginning-of-line) (point))
-	   (progn (forward-line 1) (point))))
-      (goto-char (point-max))
-      (insert "\n(put '" (symbol-name command) " 'disabled t)\n")
+	   (progn (forward-line 1) (point)))
+	(goto-char (point-max))
+	(insert ?\n))
+      (insert "(put '" (symbol-name command) " 'disabled t)\n")
       (save-buffer))))
 
 (provide 'novice)
 
+;; arch-tag: f83c0f96-497e-4db6-a430-8703716c6dd9
 ;;; novice.el ends here

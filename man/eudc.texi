@@ -12,11 +12,12 @@ EUDC is the Emacs Unified Directory Client, a common interface to
 directory servers using various protocols such as LDAP or the CCSO white
 pages directory system (PH/QI)
 
-Copyright 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
+Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,
+  2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU
 Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
@@ -475,7 +476,7 @@ An alist specifying methods to display attribute values.  Each member of
 the list is of the form @code{(@var{name} . @var{func})} where
 @var{name} is a lowercased string naming a directory attribute
 (translated according to @code{eudc-user-attribute-names-alist} if
-@code{eudc-use-raw-directory-names} is non-nil) and @var{func} a
+@code{eudc-use-raw-directory-names} is non-@code{nil}) and @var{func} a
 function that will be passed the corresponding attribute values for
 display.
 @end defvar
@@ -973,3 +974,7 @@ in testing and proofreading the code and docs of @file{ph.el}.
 @setchapternewpage odd
 @contents
 @bye
+
+@ignore
+   arch-tag: 1b79460b-4ea1-441d-ab45-05ddd16ef241
+@end ignore

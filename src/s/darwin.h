@@ -1,5 +1,5 @@
 /* System description header file for Darwin (Mac OS X).
-   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /*
@@ -36,6 +36,13 @@ Boston, MA 02111-1307, USA.  */
 /* #define BSD4_4 */
 #define BSD_SYSTEM
 /* #define VMS */
+
+#if 0 /* Don't define DARWIN on Mac OS X because CoreFoundation.h uses
+	 it to distinguish Mac OS X from bare Darwin.  */
+#ifndef	DARWIN
+#define	DARWIN 1
+#endif
+#endif
 
 /* MAC_OS is used to conditionally compile code common to both MAC_OS8
    and MAC_OSX.  */
@@ -103,9 +110,17 @@ Boston, MA 02111-1307, USA.  */
 
 /*
  *	Define HAVE_PTYS if the system supports pty devices.
+ *      Note: PTYs are broken on darwin <6.  Use at your own risk.
  */
 
 #define HAVE_PTYS
+
+/**
+ * PTYs only work correctly on Darwin 7 or higher.  So make the
+ * default for process-connection-type dependent on the kernel
+ * version.
+ */
+#define MIN_PTY_KERNEL_VERSION '7' 
 
 /*
  *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
@@ -203,9 +218,6 @@ Boston, MA 02111-1307, USA.  */
 /* Fix compilation problem for regex.c.  */
 #define __restrict
 
-/* Fix compilation problem for md5.c.  */
-#define __attribute__(x)
-
 /* Used in dispnew.c.  Copied from freebsd.h. */
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
@@ -219,6 +231,13 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
 #define HAVE_SOCKETS
+
+/* In Carbon, asynchronous I/O (using SIGIO) can't be used for window
+   events because they don't come from sockets, even though it works
+   fine on tty's.  */
+#ifdef HAVE_CARBON
+#define NO_SOCK_SIGIO
+#endif
 
 /* Extra initialization calls in main for Mac OS X system type.  */
 #ifdef HAVE_CARBON
@@ -244,13 +263,20 @@ Boston, MA 02111-1307, USA.  */
 
 /* Indicate that we are compiling for Mac OS X and where to find Mac
    specific headers.  */
-#define C_SWITCH_SYSTEM -fpascal-strings -fno-common -DMAC_OSX -I../mac/src
+#define C_SWITCH_SYSTEM -fpascal-strings -DMAC_OSX -I../mac/src
 
-/* Link in the Carbon lib.  The -headerpad option tells ld (see man
-   page) to leave room at the end of the header for adding load
-   commands.  Needed for dumping.  0x690 is the total size of 30
-   segment load commands (at 56 each).  */
-#define LD_SWITCH_SYSTEM_TEMACS -prebind -framework Carbon -lstdc++ -Xlinker -headerpad -Xlinker 690
+/* Link in the Carbon lib. */
+#ifdef HAVE_CARBON
+#define LIBS_CARBON -framework Carbon -framework QuickTime
+#else
+#define LIBS_CARBON
+#endif
+
+/* The -headerpad option tells ld (see man page) to leave room at the
+   end of the header for adding load commands.  Needed for dumping.
+   0x690 is the total size of 30 segment load commands (at 56
+   each).  */
+#define LD_SWITCH_SYSTEM_TEMACS -prebind LIBS_CARBON -Xlinker -headerpad -Xlinker 690
 
 #define C_SWITCH_SYSTEM_TEMACS -Dtemacs
 
@@ -302,6 +328,10 @@ struct kboard;
    does not exist.  */
 #undef HAVE_WORKING_VFORK
 #define vfork fork
+
+/* Don't close pty in process.c to make it as controlling terminal.
+   It is already a controlling terminal of subprocess, because we did
+   ioctl TIOCSCTTY.  */
 #define DONT_REOPEN_PTY
 
 #ifdef temacs
@@ -310,9 +340,20 @@ struct kboard;
 #define free unexec_free
 #endif
 
+/* This makes create_process in process.c save and restore signal
+   handlers correctly.  Suggested by Nozomu Ando.*/
+#define POSIX_SIGNALS
+
 /* Reroute calls to SELECT to the version defined in mac.c to fix the
    problem of Emacs requiring an extra return to be typed to start
    working when started from the command line.  */
 #if defined (HAVE_CARBON) && (defined (emacs) || defined (temacs))
 #define select sys_select
 #endif
+
+/* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the
+   stack.  */
+#define GC_MARK_STACK   GC_MAKE_GCPROS_NOOPS
+
+/* arch-tag: 481d443d-4f89-43ea-b5fb-49706d95fa41
+   (do not change this comment) */

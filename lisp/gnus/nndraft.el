@@ -1,6 +1,7 @@
 ;;; nndraft.el --- draft article access for Gnus
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
-;;        Free Software Foundation, Inc.
+
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -32,10 +33,7 @@
 (require 'nnmh)
 (require 'nnoo)
 (require 'mm-util)
-(eval-when-compile
-  (require 'cl)
-  ;; This is just to shut up the byte-compiler.
-  (fset 'nndraft-request-group 'ignore))
+(eval-when-compile (require 'cl))
 
 (nnoo-declare nndraft
   nnmh)
@@ -113,7 +111,7 @@
       (when (and (file-exists-p newest)
 		 (let ((nnmail-file-coding-system
 			(if (file-newer-than-file-p file auto)
-			    (if (equal group "drafts")
+			    (if (member group '("drafts" "delayed"))
 				message-draft-coding-system
 			      mm-text-coding-system)
 			  mm-auto-save-coding-system)))
@@ -124,7 +122,7 @@
 	  ;; If there's a mail header separator in this file,
 	  ;; we remove it.
 	  (when (re-search-forward
-		 (concat "^" mail-header-separator "$") nil t)
+		 (concat "^" (regexp-quote mail-header-separator) "$") nil t)
 	    (replace-match "" t t)))
 	t))))
 
@@ -134,6 +132,9 @@
   (when (nndraft-request-article article group server (current-buffer))
     (message-remove-header "xref")
     (message-remove-header "lines")
+    ;; Articles in nndraft:queue are considered as sent messages.  The
+    ;; Date field should be the time when they are sent.
+    ;;(message-remove-header "date")
     t))
 
 (deffoo nndraft-request-update-info (group info &optional server)
@@ -151,6 +152,12 @@
 		nil))))
   t)
 
+(defun nndraft-generate-headers ()
+  (save-excursion
+    (message-generate-headers
+     (message-headers-to-generate
+      message-required-headers message-draft-headers nil))))
+
 (deffoo nndraft-request-associate-buffer (group)
   "Associate the current buffer with some article in the draft group."
   (nndraft-open-server "")
@@ -167,7 +174,47 @@
     (setq buffer-file-name (expand-file-name file)
 	  buffer-auto-save-file-name (make-auto-save-file-name))
     (clear-visited-file-modtime)
+    (let ((hook (if (boundp 'write-contents-functions)
+		    'write-contents-functions
+		  'write-contents-hooks)))
+      (gnus-make-local-hook hook)
+      (add-hook hook 'nndraft-generate-headers nil t))
     article))
+
+(deffoo nndraft-request-group (group &optional server dont-check)
+  (nndraft-possibly-change-group group)
+  (unless dont-check
+    (let* ((pathname (nnmail-group-pathname group nndraft-directory))
+	   (file-name-coding-system nnmail-pathname-coding-system)
+	   dir file)
+      (nnheader-re-read-dir pathname)
+      (setq dir (mapcar (lambda (name) (string-to-number (substring name 1)))
+			(ignore-errors (directory-files
+					pathname nil "^#[0-9]+#$" t))))
+      (dolist (n dir)
+	(unless (file-exists-p
+		 (setq file (expand-file-name (int-to-string n) pathname)))
+	  (rename-file (nndraft-auto-save-file-name file) file)))))
+  (nnoo-parent-function 'nndraft
+			'nnmh-request-group
+			(list group server dont-check)))
+
+(deffoo nndraft-request-move-article (article group server
+					      accept-form &optional last)
+  (nndraft-possibly-change-group group)
+  (let ((buf (get-buffer-create " *nndraft move*"))
+	result)
+    (and
+     (nndraft-request-article article group server)
+     (save-excursion
+       (set-buffer buf)
+       (erase-buffer)
+       (insert-buffer-substring nntp-server-buffer)
+       (setq result (eval accept-form))
+       (kill-buffer (current-buffer))
+       result)
+     (null (nndraft-request-expire-articles (list article) group server 'force))
+     result)))
 
 (deffoo nndraft-request-expire-articles (articles group &optional server force)
   (nndraft-possibly-change-group group)
@@ -201,8 +248,8 @@
 (deffoo nndraft-request-replace-article (article group buffer)
   (nndraft-possibly-change-group group)
   (let ((nnmail-file-coding-system
-	 (if (equal group "drafts")
-	     mm-auto-save-coding-system
+	 (if (member group '("drafts" "delayed"))
+	     message-draft-coding-system
 	   mm-text-coding-system)))
     (nnoo-parent-function 'nndraft 'nnmh-request-replace-article
 			  (list article group buffer))))
@@ -249,7 +296,7 @@
   "Return the list of messages in the group."
   (gnus-make-directory nndraft-current-directory)
   (sort
-   (mapcar 'string-to-int
+   (mapcar 'string-to-number
 	   (directory-files nndraft-current-directory nil "\\`[0-9]+\\'" t))
    '<))
 
@@ -259,9 +306,9 @@
    nnmh-request-group
    nnmh-close-group
    nnmh-request-list
-   nnmh-request-newsgroups
-   nnmh-request-move-article))
+   nnmh-request-newsgroups))
 
 (provide 'nndraft)
 
+;;; arch-tag: 3ce26ca0-41cb-48b1-8703-4dad35e188aa
 ;;; nndraft.el ends here

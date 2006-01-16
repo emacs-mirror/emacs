@@ -1,6 +1,7 @@
 ;;; em-hist.el --- history list management
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -18,12 +19,13 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'em-hist)
 
 (eval-when-compile (require 'esh-maint))
+(require 'eshell)
 
 (defgroup eshell-hist nil
   "This module provides command history management."
@@ -203,6 +205,8 @@ element, regardless of any text on the command line.  In that case,
   (define-key eshell-isearch-map [(control ?c)] 'eshell-isearch-cancel-map)
   (define-key eshell-isearch-cancel-map [(control ?c)] 'eshell-isearch-cancel))
 
+(defvar eshell-rebind-keys-alist)
+
 ;;; Functions:
 
 (defun eshell-hist-initialize ()
@@ -216,10 +220,10 @@ element, regardless of any text on the command line.  In that case,
 
   (if (and (eshell-using-module 'eshell-rebind)
 	   (not eshell-non-interactive-p))
-      (let ((rebind-alist (symbol-value 'eshell-rebind-keys-alist)))
+      (let ((rebind-alist eshell-rebind-keys-alist))
 	(make-local-variable 'eshell-rebind-keys-alist)
-	(set 'eshell-rebind-keys-alist
-	     (append rebind-alist eshell-hist-rebind-keys-alist))
+	(setq eshell-rebind-keys-alist
+	      (append rebind-alist eshell-hist-rebind-keys-alist))
 	(set (make-local-variable 'search-invisible) t)
 	(set (make-local-variable 'search-exit-option) t)
 	(add-hook 'isearch-mode-hook
@@ -503,7 +507,7 @@ See also `eshell-read-history'."
 	;; Change "completion" to "history reference"
 	;; to make the display accurate.
 	(with-output-to-temp-buffer history-buffer
-	  (display-completion-list history)
+	  (display-completion-list history prefix)
 	  (set-buffer history-buffer)
 	  (forward-line 3)
 	  (while (search-backward "completion" nil 'move)
@@ -523,7 +527,7 @@ See also `eshell-read-history'."
    ((string= "^" ref) 1)
    ((string= "$" ref) nil)
    ((string= "%" ref)
-    (error "`%' history word designator not yet implemented"))))
+    (error "`%%' history word designator not yet implemented"))))
 
 (defun eshell-hist-parse-arguments (&optional silent b e)
   "Parse current command arguments in a history-code-friendly way."
@@ -839,7 +843,7 @@ If N is negative, find the next or Nth next match."
       (unless (minibuffer-window-active-p (selected-window))
 	(message "History item: %d" (- (ring-length eshell-history-ring) pos)))
        ;; Can't use kill-region as it sets this-command
-      (delete-region (save-excursion (eshell-bol) (point)) (point))
+      (delete-region eshell-last-output-end (point))
       (insert-and-inherit (eshell-get-history pos)))))
 
 (defun eshell-next-matching-input (regexp arg)
@@ -984,4 +988,5 @@ If N is negative, search backwards for the -Nth previous match."
   (isearch-done)
   (eshell-send-input))
 
+;;; arch-tag: 1a847333-f864-4b96-9acd-b549d620b6c6
 ;;; em-hist.el ends here

@@ -1,12 +1,9 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 2002
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 2002, 2003, 2004,
+@c   2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/intro
-
-@c Versino of the manual.
-@set VERSION 2.9
 
 @node Introduction, Lisp Data Types, Top, Top
 @comment  node-name,  next,  previous,  up
@@ -38,7 +35,8 @@ Lisp that have counterparts in many programming languages, and later
 chapters describe features that are peculiar to Emacs Lisp or relate
 specifically to editing.
 
-  This is edition @value{VERSION}.
+  This is edition @value{VERSION} of the GNU Emacs Lisp Reference
+Manual, corresponding to Emacs version @value{EMACSVER}.
 
 @menu
 * Caveats::             Flaws and a request for help.
@@ -132,8 +130,7 @@ worry about it; this manual is self-contained.
 
 @pindex cl
   A certain amount of Common Lisp emulation is available via the
-@file{cl} library.  @xref{Top,, Common Lisp Extension, cl, Common Lisp
-Extensions}.
+@file{cl} library.  @inforef{Top, Overview, cl}.
 
   Emacs Lisp is not at all influenced by Scheme; but the GNU project has
 an implementation of Scheme, called Guile.  We use Guile in all new GNU
@@ -200,7 +197,7 @@ in Lisp programs also.
 (not nil)                     ; @r{Emphasize the truth value @var{false}}
 @end example
 
-@cindex @code{t} and truth
+@cindex @code{t}, uses of
 @cindex true
   In contexts where a truth value is expected, any non-@code{nil} value
 is considered to be @var{true}.  However, @code{t} is the preferred way
@@ -212,14 +209,14 @@ choosing, use @code{t}.  The symbol @code{t} always has the value
   In Emacs Lisp, @code{nil} and @code{t} are special symbols that always
 evaluate to themselves.  This is so that you do not need to quote them
 to use them as constants in a program.  An attempt to change their
-values results in a @code{setting-constant} error.  The same is true of
-any symbol whose name starts with a colon (@samp{:}).  @xref{Constant
+values results in a @code{setting-constant} error.  @xref{Constant
 Variables}.
 
 @node Evaluation Notation
 @subsection Evaluation Notation
 @cindex evaluation notation
 @cindex documentation notation
+@cindex notation
 
   A Lisp expression that you can evaluate is called a @dfn{form}.
 Evaluating a form always produces a result, which is a Lisp object.  In
@@ -264,12 +261,13 @@ evaluating the function @code{eval-region}), the printed text is
 displayed in the echo area.
 
   Examples in this manual indicate printed text with @samp{@print{}},
-irrespective of where that text goes.  The value returned by evaluating
-the form (here @code{bar}) follows on a separate line.
+irrespective of where that text goes.  The value returned by
+evaluating the form (here @code{bar}) follows on a separate line with
+@samp{@result{}}.
 
 @example
 @group
-(progn (print 'foo) (print 'bar))
+(progn (prin1 'foo) (princ "\n") (prin1 'bar))
      @print{} foo
      @print{} bar
      @result{} bar
@@ -357,11 +355,11 @@ indicates that the subsequent arguments may be omitted (omitted
 arguments default to @code{nil}).  Do not write @code{&optional} when
 you call the function.
 
-  The keyword @code{&rest} (which must be followed by a single argument
-name) indicates that any number of arguments can follow.  The single
-following argument name will have a value, as a variable, which is a
-list of all these remaining arguments.  Do not write @code{&rest} when
-you call the function.
+  The keyword @code{&rest} (which must be followed by a single
+argument name) indicates that any number of arguments can follow.  The
+single argument name following @code{&rest} will receive, as its
+value, a list of all the remaining arguments passed to the function.
+Do not write @code{&rest} when you call the function.
 
   Here is a description of an imaginary function @code{foo}:
 
@@ -452,9 +450,9 @@ from @var{body}, which includes all remaining elements of the form.
 @cindex variable descriptions
 @cindex option descriptions
 
-  A @dfn{variable} is a name that can hold a value.  Although any
-variable can be set by the user, certain variables that exist
-specifically so that users can change them are called @dfn{user
+  A @dfn{variable} is a name that can hold a value.  Although nearly
+all variables can be set by the user, certain variables exist
+specifically so that users can change them; these are called @dfn{user
 options}.  Ordinary variables and user options are described using a
 format like that for functions except that there are no arguments.
 
@@ -476,7 +474,7 @@ replaced by `User Option'.
   These facilities provide information about which version of Emacs is
 in use.
 
-@deffn Command emacs-version
+@deffn Command emacs-version &optional here
 This function returns a string describing the version of Emacs that is
 running.  It is useful to include this string in bug reports.
 
@@ -488,8 +486,10 @@ running.  It is useful to include this string in bug reports.
 @end group
 @end smallexample
 
-Called interactively, the function prints the same information in the
-echo area.
+If @var{here} is non-@code{nil}, it inserts the text in the buffer
+before point, and returns @code{nil}.  Called interactively, the
+function prints the same information in the echo area, but giving a
+prefix argument makes @var{here} non-@code{nil}.
 @end deffn
 
 @defvar emacs-build-time
@@ -548,3 +548,7 @@ Francesco Potorti, Friedrich Pukelsheim, Arnold D. Robbins, Raul
 Rockwell, Per Starb@"ack, Shinichirou Sugou, Kimmo Suominen, Edward Tharp,
 Bill Trost, Rickard Westman, Jean White, Matthew Wilding, Carl Witty,
 Dale Worley, Rusty Wright, and David D. Zuhn.
+
+@ignore
+   arch-tag: d156593f-82f8-4708-a844-204e48f7f2aa
+@end ignore

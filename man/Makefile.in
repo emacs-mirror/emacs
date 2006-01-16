@@ -1,7 +1,7 @@
 #### Makefile for the Emacs Manual and other documentation.
 
-# Copyright (C) 1994, 1996, 1997, 1998, 1999, 2000, 2001
-#  Free Software Foundation, Inc.
+# Copyright (C) 1994, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+#   2004, 2005 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -17,35 +17,40 @@
 
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 
-# Where to find the source code.  The source code for Emacs's C kernel is
-# expected to be in ${srcdir}/src, and the source code for Emacs's
-# utility programs is expected to be in ${srcdir}/lib-src.  This is
+# Where to find the source code.  $(srcdir) will be the man
+# subdirectory of the source tree.  This is
 # set by the configure script's `--srcdir' option.
 srcdir=@srcdir@
+top_srcdir=@top_srcdir@
 
 # Tell make where to find source files; this is needed for the makefiles.
 VPATH=@srcdir@
 
 
 # The makeinfo program is part of the Texinfo distribution.
-MAKEINFO = makeinfo
-INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl \
+# Use --force so that it generates output even if there are errors.
+MAKEINFO = makeinfo --force
+INFO_TARGETS = ../info/emacs ../info/emacs-xtra ../info/ccmode ../info/cl \
 	        ../info/dired-x ../info/ediff ../info/forms ../info/gnus \
-		../info/info ../info/message ../info/mh-e ../info/reftex \
+		../info/message ../info/sieve ../info/pgg ../info/emacs-mime \
+		../info/info ../info/mh-e ../info/reftex \
 		../info/sc ../info/vip ../info/viper ../info/widget \
 		../info/efaq ../info/ada-mode ../info/autotype ../info/calc \
 		../info/idlwave ../info/eudc ../info/ebrowse ../info/pcl-cvs \
-		../info/woman ../info/emacs-mime ../info/eshell \
-		../info/speedbar ../info/tramp ../info/ses
+		../info/woman ../info/eshell ../info/org ../info/url \
+		../info/speedbar ../info/tramp ../info/ses ../info/smtpmail \
+		../info/flymake ../info/newsticker
 DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
-		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
+		 ediff.dvi forms.dvi gnus.dvi message.dvi emacs-mime.dvi \
+                 gnus.dvi message.dvi sieve.dvi pgg.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
-		 pcl-cvs.dvi woman.dvi emacs-mime.dvi eshell.dvi \
-		 speedbar.dvi tramp.dvi ses.dvi
+		 pcl-cvs.dvi woman.dvi eshell.dvi org.dvi url.dvi \
+		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
+                 newsticker.dvi emacs-xtra.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -99,9 +104,13 @@ EMACSSOURCES= \
 	${srcdir}/msdog.texi \
 	${srcdir}/gnu.texi \
 	${srcdir}/glossary.texi \
-	${srcdir}/ack.texi
+	${srcdir}/ack.texi \
+	${srcdir}/kmacro.texi
 
-info: $(INFO_TARGETS)
+info: $(top_srcdir)/info $(INFO_TARGETS)
+
+$(top_srcdir)/info:
+	mkdir $@
 
 dvi: $(DVI_TARGETS)
 
@@ -168,14 +177,20 @@ dired-x.dvi: dired-x.texi
 ediff.dvi: ediff.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ediff.texi
 
+../info/emacs-xtra: emacs-xtra.texi
+	cd $(srcdir); $(MAKEINFO) emacs-xtra.texi
+emacs-xtra.dvi: emacs-xtra.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-xtra.texi
+
 ../info/forms: forms.texi
 	cd $(srcdir); $(MAKEINFO) forms.texi
 forms.dvi: forms.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/forms.texi
 
-../info/gnus: gnus.texi
+# gnus/message/emacs-mime/sieve/pgg are part of Gnus:
+../info/gnus: gnus.texi gnus-faq.texi
 	cd $(srcdir); $(MAKEINFO) gnus.texi
-gnus.dvi: gnus.texi
+gnus.dvi: gnus.texi gnus-faq.texi
 	sed -e '/@iflatex/,/@end iflatex/d' ${srcdir}/gnus.texi > gnustmp.texi
 	$(ENVADD) $(TEXI2DVI) gnustmp.texi
 	cp gnustmp.dvi $*.dvi
@@ -185,6 +200,21 @@ gnus.dvi: gnus.texi
 	cd $(srcdir); $(MAKEINFO) message.texi
 message.dvi: message.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/message.texi
+
+../info/sieve: sieve.texi
+	cd $(srcdir); $(MAKEINFO) sieve.texi
+sieve.dvi: sieve.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/sieve.texi
+
+../info/emacs-mime: emacs-mime.texi
+	cd $(srcdir); $(MAKEINFO) emacs-mime.texi
+emacs-mime.dvi: emacs-mime.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
+
+../info/pgg: pgg.texi
+	cd $(srcdir); $(MAKEINFO) pgg.texi
+pgg.dvi: pgg.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/pgg.texi
 
 ../info/mh-e: mh-e.texi
 	cd $(srcdir); $(MAKEINFO) mh-e.texi
@@ -257,25 +287,45 @@ ebrowse.dvi: ebrowse.texi
 woman.dvi: woman.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/woman.texi
 
+../info/org: org.texi
+	cd $(srcdir); $(MAKEINFO) org.texi
+org.dvi: org.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/org.texi
+
+../info/url: url.texi
+	cd $(srcdir); $(MAKEINFO) url.texi
+url.dvi: url.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/url.texi
+
 ../info/speedbar: speedbar.texi
 	cd $(srcdir); $(MAKEINFO) speedbar.texi
 speedbar.dvi: speedbar.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/speedbar.texi
 
-../info/emacs-mime: emacs-mime.texi
-	cd $(srcdir); $(MAKEINFO) emacs-mime.texi
-emacs-mime.dvi: emacs-mime.texi
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
-
-../info/tramp: tramp.texi
-	cd $(srcdir); $(MAKEINFO) tramp.texi
-tramp.dvi: tramp.texi
+../info/tramp: tramp.texi trampver.texi
+	cd $(srcdir); $(MAKEINFO) -D emacs tramp.texi
+tramp.dvi: tramp.texi trampver.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/tramp.texi
 
 ../info/ses: ses.texi
 	cd $(srcdir); $(MAKEINFO) ses.texi
 ses.dvi: ses.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ses.texi
+
+../info/smtpmail: smtpmail.texi
+	cd $(srcdir); $(MAKEINFO) smtpmail.texi
+smtpmail.dvi: smtpmail.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/smtpmail.texi
+
+../info/flymake: flymake.texi
+	cd $(srcdir); $(MAKEINFO) flymake.texi
+flymake.dvi: flymake.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/flymake.texi
+
+../info/newsticker: newsticker.texi
+	cd $(srcdir); $(MAKEINFO) newsticker.texi
+newsticker.dvi: newsticker.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/newsticker.texi
 
 mostlyclean:
 	rm -f *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*
@@ -287,8 +337,7 @@ distclean: clean
 
 maintainer-clean: distclean
 	rm -f *.aux *.cps *.fns *.kys *.pgs *.vrs *.toc
-# Don't delete these, because they are outside the current directory.
-#	for file in $(INFO_TARGETS); do rm -f $${file}*; done
+	for file in $(INFO_TARGETS); do rm -f $${file}*; done
 
 
 # Formerly this directory had texindex.c and getopt.c in it

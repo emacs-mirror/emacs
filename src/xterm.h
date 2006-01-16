@@ -1,6 +1,6 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993, 1994, 1998, 1999, 2000, 2001, 2001
-   Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003,
+                 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,13 +16,18 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #include <X11/Xlib.h>
 #include <X11/cursorfont.h>
-#include <X11/Xutil.h>
+
+/* Include Xutil.h after keysym.h to work around a bug that prevents
+   correct recognition of AltGr key in some X versions.  */
+
 #include <X11/keysym.h>
+#include <X11/Xutil.h>
+
 #include <X11/Xatom.h>
 #include <X11/Xresource.h>
 
@@ -44,11 +49,13 @@ typedef Widget xt_or_gtk_widget;
 /* Some definitions to reduce conditionals.  */
 typedef GtkWidget *xt_or_gtk_widget;
 #define XtParent(x) (gtk_widget_get_parent (x))
+#undef XSync
+#define XSync(d, b) do { gdk_window_process_all_updates (); \
+                         XSync (d, b);  } while (0)
 
-#endif
 
-/* The class of this X application.  */
-#define EMACS_CLASS "Emacs"
+#endif /* USE_GTK */
+
 
 /* Bookkeeping to distinguish X versions.  */
 
@@ -102,6 +109,7 @@ typedef GtkWidget *xt_or_gtk_widget;
 #define FONT_WIDTH(f)	((f)->max_bounds.width)
 #define FONT_HEIGHT(f)	((f)->ascent + (f)->descent)
 #define FONT_BASE(f)    ((f)->ascent)
+#define FONT_DESCENT(f) ((f)->descent)
 
 /* The mask of events that text windows always want to receive.  This
    includes mouse movement events, since handling the mouse-font text property
@@ -125,6 +133,8 @@ typedef GtkWidget *xt_or_gtk_widget;
 struct x_bitmap_record
 {
   Pixmap pixmap;
+  int have_mask;
+  Pixmap mask;
   char *file;
   int refcount;
   /* Record some info about this pixmap.  */
@@ -164,7 +174,7 @@ struct x_display_info
   /* The colormap being used.  */
   Colormap cmap;
 
-  /* Number of panes on this screen.  */
+  /* Number of planes on this screen.  */
   int n_planes;
 
   /* Dimensions of this screen.  */
@@ -180,8 +190,16 @@ struct x_display_info
   /* The root window of this screen.  */
   Window root_window;
 
+  /* Client leader window.  */
+  Window client_leader_window;
+
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
+
+#ifdef USE_GTK
+  /* The GDK cursor for scroll bars and popup menus.  */
+  GdkCursor *xg_cursor;
+#endif
 
   /* X Resource data base */
   XrmDatabase xrdb;
@@ -286,6 +304,7 @@ struct x_display_info
   /* Other WM communication */
   Atom Xatom_wm_configure_denied; /* When our config request is denied */
   Atom Xatom_wm_window_moved;     /* When the WM moves us.  */
+  Atom Xatom_wm_client_leader;    /* Id of client leader window.  */
 
   /* EditRes protocol */
   Atom Xatom_editres;
@@ -298,7 +317,7 @@ struct x_display_info
 
   /* More atoms for font properties.  The last three are private
      properties, see the comments in src/fontset.h.  */
-  Atom Xatom_PIXEL_SIZE,
+  Atom Xatom_PIXEL_SIZE, Xatom_AVERAGE_WIDTH,
   Xatom_MULE_BASELINE_OFFSET, Xatom_MULE_RELATIVE_COMPOSE,
   Xatom_MULE_DEFAULT_ASCENT;
 
@@ -353,7 +372,29 @@ struct x_display_info
      use this directly, call x_color_cells instead.  */
   XColor *color_cells;
   int ncolor_cells;
+
+  /* Bits and shifts to use to compose pixel values on TrueColor visuals.  */
+  int red_bits, blue_bits, green_bits;
+  int red_offset, blue_offset, green_offset;
+
+  /* The type of window manager we have.  If we move FRAME_OUTER_WINDOW
+     to x/y 0/0, some window managers (type A) puts the window manager
+     decorations outside the screen and FRAME_OUTER_WINDOW exactly at 0/0.
+     Other window managers (type B) puts the window including decorations
+     at 0/0, so FRAME_OUTER_WINDOW is a bit below 0/0.
+     Record the type of WM in use so we can compensate for type A WMs.  */
+  enum
+    {
+      X_WMTYPE_UNKNOWN,
+      X_WMTYPE_A,
+      X_WMTYPE_B
+    } wm_type;
 };
+
+#ifdef HAVE_X_I18N
+/* Whether or not to use XIM if we have it.  */
+extern int use_xim;
+#endif
 
 /* This checks to make sure we have a display.  */
 extern void check_x P_ ((void));
@@ -399,16 +440,6 @@ extern void x_find_ccl_program P_ ((struct font_info *));
 
 struct x_output
 {
-  /* Position of the X window (x and y offsets in root window).  */
-  int left_pos;
-  int top_pos;
-
-  /* Border width of the X window as known by the X window system.  */
-  int border_width;
-
-  /* Size of the X window in pixels.  */
-  int pixel_height, pixel_width;
-
   /* Height of menu bar widget, in pixels.
      Zero if not using the X toolkit.
      When using the toolkit, this value is not meaningful
@@ -419,9 +450,6 @@ struct x_output
      Zero if not using an external tool bar.  */
   int toolbar_height;
 
-  /* Height of a line, in pixels.  */
-  int line_height;
-
   /* The tiled border used when the mouse is out of the frame.  */
   Pixmap border_tile;
 
@@ -429,11 +457,6 @@ struct x_output
   GC normal_gc;				/* Normal video */
   GC reverse_gc;			/* Reverse video */
   GC cursor_gc;				/* cursor drawing */
-
-  /* Width of the internal border.  This is a line of background color
-     just inside the window's border.  When the frame is selected,
-     a highlighting is displayed inside the internal border.  */
-  int internal_border_width;
 
   /* The X window used for this frame.
      May be zero while the frame object is being created
@@ -476,6 +499,8 @@ struct x_output
   GtkWidget *toolbar_widget;
   /* The handle box that makes the tool bar detachable.  */
   GtkWidget *handlebox_widget;
+  /* Non-zero if the tool bar is detached.  */
+  int toolbar_detached;
 
   /* The last size hints set.  */
   GdkGeometry size_hints;
@@ -523,7 +548,7 @@ struct x_output
   Cursor text_cursor;
   Cursor nontext_cursor;
   Cursor modeline_cursor;
-  Cursor cross_cursor;
+  Cursor hand_cursor;
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
 
@@ -549,22 +574,6 @@ struct x_output
      structure around, just leaving values in it and adding new bits
      to the mask as we go.  */
   XWMHints wm_hints;
-
-  /* The size of the extra width currently allotted for vertical
-     scroll bars, in pixels.  */
-  int vertical_scroll_bar_extra;
-
-  /* The extra width currently allotted for the areas in which
-     truncation marks, continuation marks, and overlay arrows are
-     displayed.  */
-  int left_fringe_width, right_fringe_width;
-  int fringe_cols, fringes_extra;
-
-  /* This is the gravity value for the specified window position.  */
-  int win_gravity;
-
-  /* The geometry flags for this window.  */
-  int size_hint_flags;
 
   /* This is the Emacs structure for the X display this frame is on.  */
   struct x_display_info *display_info;
@@ -593,6 +602,7 @@ struct x_output
   XIC xic;
   XIMStyle xic_style;
   XFontSet xic_xfs;
+  char *xic_base_fontname;
 #endif
 
   /* Relief GCs, colors etc.  */
@@ -615,17 +625,6 @@ struct x_output
      zero, tell Xt not to wait.  */
   int wait_for_wm;
 
-  /* See enum below */
-  int want_fullscreen;
-
-  /* This many pixels are the difference between the outer window (i.e. the
-     left of the window manager decoration) and FRAME_X_WINDOW. */
-  int x_pixels_diff;
-
-  /* This many pixels are the difference between the outer window (i.e. the
-     top of the window manager titlebar) and FRAME_X_WINDOW. */
-  int y_pixels_diff;
-
   /* As x_pixels_diff, but to FRAME_OUTER_WINDOW.  For some reason the
      two might differ by a pixel, depending on WM */
   int x_pixels_outer_diff;
@@ -639,18 +638,22 @@ struct x_output
      frame, or IMPLICIT if we received an EnterNotify.
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
   int focus_state;
+
+  /* The latest move we made to FRAME_OUTER_WINDOW.  Saved so we can
+     compensate for type A WMs (see wm_type in dpyinfo above).  */
+  int expected_top;
+  int expected_left;
+
+  /* The offset we need to add to compensate for type A WMs.  */
+  int move_offset_top;
+  int move_offset_left;
+
+  /* Nonzero if we have made a move and needs to check if the WM placed us
+     at the right position.  */
+  int check_expected_move;
 };
 
-enum
-{
-  /* Values used as a bit mask, BOTH == WIDTH | HEIGHT.  */
-  FULLSCREEN_NONE       = 0,
-  FULLSCREEN_WIDTH      = 1,
-  FULLSCREEN_HEIGHT     = 2,
-  FULLSCREEN_BOTH       = 3,
-  FULLSCREEN_WAIT       = 4,
-  FULLSCREEN_MOVE_WAIT  = 8,
-};
+#define No_Cursor (None)
 
 enum
 {
@@ -664,6 +667,9 @@ enum
   FOCUS_EXPLICIT = 2
 };
 
+
+/* Return the X output data for frame F.  */
+#define FRAME_X_OUTPUT(f) ((f)->output_data.x)
 
 /* Return the X window used for displaying data in frame F.  */
 #define FRAME_X_WINDOW(f) ((f)->output_data.x->window_desc)
@@ -693,14 +699,9 @@ enum
 
 #define FRAME_FONT(f) ((f)->output_data.x->font)
 #define FRAME_FONTSET(f) ((f)->output_data.x->fontset)
-#define FRAME_INTERNAL_BORDER_WIDTH(f) ((f)->output_data.x->internal_border_width)
 #define FRAME_MENUBAR_HEIGHT(f) ((f)->output_data.x->menubar_height)
 #define FRAME_TOOLBAR_HEIGHT(f) ((f)->output_data.x->toolbar_height)
-#define FRAME_LINE_HEIGHT(f) ((f)->output_data.x->line_height)
-
-/* Width of the default font of frame F.  Must be defined by each
-   terminal specific header.  */
-#define FRAME_DEFAULT_FONT_WIDTH(F) 	FONT_WIDTH (FRAME_FONT (F))
+#define FRAME_BASELINE_OFFSET(f) ((f)->output_data.x->baseline_offset)
 
 /* This gives the x_display_info structure for the display F is on.  */
 #define FRAME_X_DISPLAY_INFO(f) ((f)->output_data.x->display_info)
@@ -721,10 +722,6 @@ enum
 /* This is the 'font_info *' which frame F has.  */
 #define FRAME_X_FONT_TABLE(f) (FRAME_X_DISPLAY_INFO (f)->font_table)
 
-/* These two really ought to be called FRAME_PIXEL_{WIDTH,HEIGHT}.  */
-#define PIXEL_WIDTH(f) ((f)->output_data.x->pixel_width)
-#define PIXEL_HEIGHT(f) ((f)->output_data.x->pixel_height)
-
 /* The difference in pixels between the top left corner of the
    Emacs window (including possible window manager decorations)
    and FRAME_X_WINDOW (f).  */
@@ -740,6 +737,7 @@ enum
 #define FRAME_X_XIM_STYLES(f) (FRAME_X_DISPLAY_INFO (f)->xim_styles)
 #define FRAME_XIC_STYLE(f) ((f)->output_data.x->xic_style)
 #define FRAME_XIC_FONTSET(f) ((f)->output_data.x->xic_xfs)
+#define FRAME_XIC_BASE_FONTNAME(f) ((f)->output_data.x->xic_base_fontname)
 
 /* Value is the smallest width of any character in any font on frame F.  */
 
@@ -754,25 +752,6 @@ enum
 /* Return a pointer to the image cache of frame F.  */
 
 #define FRAME_X_IMAGE_CACHE(F) FRAME_X_DISPLAY_INFO ((F))->image_cache
-
-
-/* Total width of fringes reserved for drawing truncation bitmaps,
-   continuation bitmaps and alike.  The width is in canonical char
-   units of the frame.  This must currently be the case because window
-   sizes aren't pixel values.  If it weren't the case, we wouldn't be
-   able to split windows horizontally nicely.  */
-
-#define FRAME_X_FRINGE_COLS(F)	((F)->output_data.x->fringe_cols)
-
-/* Total width of fringes in pixels.  */
-
-#define FRAME_X_FRINGE_WIDTH(F) ((F)->output_data.x->fringes_extra)
-
-/* Pixel-width of the left and right fringe.  */
-
-#define FRAME_X_LEFT_FRINGE_WIDTH(F) ((F)->output_data.x->left_fringe_width)
-#define FRAME_X_RIGHT_FRINGE_WIDTH(F) ((F)->output_data.x->right_fringe_width)
-
 
 
 /* X-specific scroll bar stuff.  */
@@ -916,52 +895,6 @@ struct scroll_bar
 #define VERTICAL_SCROLL_BAR_WIDTH_TRIM (0)
 
 
-/* Manipulating pixel sizes and character sizes.
-   Knowledge of which factors affect the overall size of the window should
-   be hidden in these macros, if that's possible.
-
-   Return the upper/left pixel position of the character cell on frame F
-   at ROW/COL.  */
-#define CHAR_TO_PIXEL_ROW(f, row) \
-  ((f)->output_data.x->internal_border_width \
-   + (row) * (f)->output_data.x->line_height)
-#define CHAR_TO_PIXEL_COL(f, col) \
-  ((f)->output_data.x->internal_border_width \
-   + (col) * FONT_WIDTH ((f)->output_data.x->font))
-
-/* Return the pixel width/height of frame F if it has
-   WIDTH columns/HEIGHT rows.  */
-#define CHAR_TO_PIXEL_WIDTH(f, width) \
-  (CHAR_TO_PIXEL_COL (f, width) \
-   + (f)->output_data.x->vertical_scroll_bar_extra \
-   + (f)->output_data.x->fringes_extra \
-   + (f)->output_data.x->internal_border_width)
-#define CHAR_TO_PIXEL_HEIGHT(f, height) \
-  (CHAR_TO_PIXEL_ROW (f, height) \
-   + (f)->output_data.x->internal_border_width)
-
-
-/* Return the row/column (zero-based) of the character cell containing
-   the pixel on FRAME at ROW/COL.  */
-#define PIXEL_TO_CHAR_ROW(f, row) \
-  (((row) - (f)->output_data.x->internal_border_width) \
-   / (f)->output_data.x->line_height)
-#define PIXEL_TO_CHAR_COL(f, col) \
-  (((col) - (f)->output_data.x->internal_border_width) \
-   / FONT_WIDTH ((f)->output_data.x->font))
-
-/* How many columns/rows of text can we fit in WIDTH/HEIGHT pixels on
-   frame F?  */
-#define PIXEL_TO_CHAR_WIDTH(f, width) \
-  (PIXEL_TO_CHAR_COL (f, ((width) \
-			  - (f)->output_data.x->internal_border_width \
-			  - (f)->output_data.x->fringes_extra \
-			  - (f)->output_data.x->vertical_scroll_bar_extra)))
-#define PIXEL_TO_CHAR_HEIGHT(f, height) \
-  (PIXEL_TO_CHAR_ROW (f, ((height) \
-			  - (f)->output_data.x->internal_border_width)))
-
-
 /* If a struct input_event has a kind which is SELECTION_REQUEST_EVENT
    or SELECTION_CLEAR_EVENT, then its contents are really described
    by this structure.  */
@@ -1016,12 +949,10 @@ Lisp_Object display_x_get_resource P_ ((struct x_display_info *,
 struct frame *check_x_frame P_ ((Lisp_Object));
 EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
-int image_ascent P_ ((struct image *, struct face *));
 extern void x_free_gcs P_ ((struct frame *));
 
 /* From xrdb.c.  */
 
-char *x_get_string_resource P_ ((XrmDatabase, char *, char *));
 char *x_get_customization_string P_ ((XrmDatabase, char *, char *));
 XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
 int x_get_resource P_ ((XrmDatabase, char *, char *,
@@ -1030,8 +961,6 @@ void x_delete_display P_ ((struct x_display_info *));
 void x_make_frame_visible P_ ((struct frame *));
 void x_iconify_frame P_ ((struct frame *));
 void x_wm_set_size_hint P_ ((struct frame *, long, int));
-void x_set_offset P_ ((struct frame *, int, int, int));
-void x_wm_set_icon_position P_ ((struct frame *, int, int));
 int x_catch_errors P_ ((Display *));
 int x_had_errors_p P_ ((Display *));
 void x_uncatch_errors P_ ((Display *, int));
@@ -1042,26 +971,16 @@ void x_set_window_size P_ ((struct frame *, int, int, int));
 void x_wm_set_window_state P_ ((struct frame *, int));
 int x_alloc_nearest_color P_ ((struct frame *, Colormap, XColor *));
 
-extern void pixel_to_glyph_coords P_ ((struct frame *, int, int,
-				       int *, int *, XRectangle *, int));
-
 /* Defined in xterm.c */
 
 extern void cancel_mouse_face P_ ((struct frame *));
 extern void x_scroll_bar_clear P_ ((struct frame *));
-extern void x_start_queuing_selection_requests P_ ((Display *));
-extern void x_stop_queuing_selection_requests P_ ((Display *));
-extern void x_update_cursor P_ ((struct frame *, int));
 extern int x_text_icon P_ ((struct frame *, char *));
 extern int x_bitmap_icon P_ ((struct frame *, Lisp_Object));
 extern int x_catch_errors P_ ((Display *));
 extern void x_check_errors P_ ((Display *, char *));
 extern int x_had_errors_p P_ ((Display *));
 extern void x_uncatch_errors P_ ((Display *, int));
-extern Lisp_Object x_new_font P_ ((struct frame *, char *));
-extern Lisp_Object x_new_fontset P_ ((struct frame *, char *));
-extern void x_compute_fringe_widths P_ ((struct frame *, int));
-extern void x_set_offset P_ ((struct frame *, int, int, int));
 extern void x_set_window_size P_ ((struct frame *, int, int, int));
 extern void x_set_mouse_position P_ ((struct frame *, int, int));
 extern void x_set_mouse_pixel_position P_ ((struct frame *, int, int));
@@ -1075,10 +994,8 @@ extern void x_destroy_window P_ ((struct frame *));
 extern void x_wm_set_size_hint P_ ((struct frame *, long, int));
 extern void x_wm_set_window_state P_ ((struct frame *, int));
 extern void x_wm_set_icon_pixmap P_ ((struct frame *, int));
-extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
 extern void x_delete_display P_ ((struct x_display_info *));
 extern void x_initialize P_ ((void));
-extern void x_display_cursor P_ ((struct window *, int, int, int, int, int));
 extern unsigned long x_copy_color P_ ((struct frame *, unsigned long));
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
@@ -1086,9 +1003,7 @@ extern XtAppContext Xt_app_con;
 extern void x_query_colors P_ ((struct frame *f, XColor *, int));
 extern void x_query_color P_ ((struct frame *f, XColor *));
 extern void x_clear_area P_ ((Display *, Window, int, int, int, int, int));
-
-extern void x_fullscreen_adjust P_ ((struct frame *f, int *, int *,
-                                     int *, int *));
+extern void set_vertical_scroll_bar P_ ((struct window *));
 
 extern int x_dispatch_event P_ ((XEvent *, Display *));
 
@@ -1096,30 +1011,40 @@ extern int x_dispatch_event P_ ((XEvent *, Display *));
 
 extern void x_handle_property_notify P_ ((XPropertyEvent *));
 extern void x_handle_selection_notify P_ ((XSelectionEvent *));
-extern void x_handle_selection_request P_ ((struct input_event *));
-extern void x_handle_selection_clear P_ ((struct input_event *));
+extern void x_handle_selection_event P_ ((struct input_event *));
 extern void x_clear_frame_selections P_ ((struct frame *));
+
+extern int x_handle_dnd_message P_ ((struct frame *,
+                                     XClientMessageEvent *,
+                                     struct x_display_info *,
+                                     struct input_event *bufp));
+extern int x_check_property_data P_ ((Lisp_Object));
+extern void x_fill_property_data P_ ((Display *,
+                                      Lisp_Object,
+                                      void *,
+                                      int));
+extern Lisp_Object x_property_data_to_lisp P_ ((struct frame *,
+                                                unsigned char *,
+                                                Atom,
+                                                int,
+                                                unsigned long));
 
 /* Defined in xfns.c */
 
+extern struct x_display_info * check_x_display_info P_ ((Lisp_Object frame));
 extern int have_menus_p P_ ((void));
-extern int x_bitmap_height P_ ((struct frame *, int));
-extern int x_bitmap_width P_ ((struct frame *, int));
-extern int x_bitmap_pixmap P_ ((struct frame *, int));
-extern void x_reference_bitmap P_ ((struct frame *, int));
-extern int x_create_bitmap_from_data P_ ((struct frame *, char *,
-					  unsigned int, unsigned int));
-extern int x_create_bitmap_from_file P_ ((struct frame *, Lisp_Object));
-extern void x_destroy_bitmap P_ ((struct frame *, int));
-extern void x_set_frame_parameters P_ ((struct frame *, Lisp_Object));
+
+#ifdef USE_GTK
+extern int xg_set_icon P_ ((struct frame *, Lisp_Object));
+extern int xg_set_icon_from_xpm_data P_ ((struct frame *, char**));
+#endif /* USE_GTK */
+
 extern void x_real_positions P_ ((struct frame *, int *, int *));
-extern void x_report_frame_params P_ ((struct frame *, Lisp_Object *));
 extern int defined_color P_ ((struct frame *, char *, XColor *, int));
 extern void x_set_border_pixel P_ ((struct frame *, int));
 extern void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern unsigned char * x_encode_text P_ ((Lisp_Object, Lisp_Object, int,
-					  int *, int *));
 extern void x_implicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void xic_free_xfontset P_ ((struct frame *));
 extern void create_frame_xic P_ ((struct frame *));
 extern void destroy_frame_xic P_ ((struct frame *));
 extern void xic_set_preeditarea P_ ((struct window *, int, int));
@@ -1139,7 +1064,6 @@ extern void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object))
 
 /* Defined in xfaces.c */
 
-extern int frame_update_line_height P_ ((struct frame *));
 extern int compute_glyph_face P_ ((struct frame *, int, int));
 extern int compute_glyph_face_1 P_ ((struct frame *, Lisp_Object, int));
 extern void x_free_dpy_colors P_ ((Display *, Screen *, Colormap,
@@ -1147,9 +1071,12 @@ extern void x_free_dpy_colors P_ ((Display *, Screen *, Colormap,
 
 /* Defined in xmenu.c */
 
+extern void x_menu_set_in_use P_ ((int));
+extern void x_menu_wait_for_event P_ ((void *data));
 extern void x_activate_menubar P_ ((struct frame *));
 extern int popup_activated P_ ((void));
 extern void initialize_frame_menubar P_ ((struct frame *));
+extern void free_frame_menubar P_ ((struct frame *));
 
 /* Defined in widget.c */
 
@@ -1159,8 +1086,29 @@ extern void widget_store_internal_border P_ ((Widget));
 
 /* Defined in xsmfns.c */
 #ifdef HAVE_X_SM
-extern void x_session_initialize P_ ((void));
-extern int x_session_check_input P_ ((struct input_event *bufp,
-                                      int *numchars));
+extern void x_session_initialize P_ ((struct x_display_info *dpyinfo));
+extern int x_session_check_input P_ ((struct input_event *bufp));
 extern int x_session_have_connection P_ ((void));
 #endif
+
+#define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
+#define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
+
+#define STORE_XCHAR2B(chp, b1, b2) \
+  ((chp)->byte1 = (b1), (chp)->byte2 = (b2))
+
+#define XCHAR2B_BYTE1(chp) \
+  ((chp)->byte1)
+
+#define XCHAR2B_BYTE2(chp) \
+  ((chp)->byte2)
+
+
+#define STORE_NATIVE_RECT(nr,rx,ry,rwidth,rheight)	\
+  ((nr).x = (rx),					\
+   (nr).y = (ry),					\
+   (nr).width = (rwidth),				\
+   (nr).height = (rheight))
+
+/* arch-tag: 78a7972a-b18f-4694-861a-0780c4b3090e
+   (do not change this comment) */

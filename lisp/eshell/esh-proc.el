@@ -1,6 +1,7 @@
 ;;; esh-proc.el --- process management
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'esh-proc)
 
@@ -224,8 +225,8 @@ The prompt will be set to PROMPT."
   (if (and (eshell-processp (car entry))
 	   (nth 2 entry)
 	   eshell-done-messages-in-minibuffer)
-      (message (format "[%s]+ Done %s" (process-name (car entry))
-		       (process-command (car entry)))))
+      (message "[%s]+ Done %s" (process-name (car entry))
+	       (process-command (car entry))))
   (setq eshell-process-list
 	(delq entry eshell-process-list)))
 
@@ -503,4 +504,5 @@ See the variable `eshell-kill-processes-on-exit'."
 
 ;;; Code:
 
+;;; arch-tag: ac477a3e-ee4d-4b44-8ec6-212010e607bb
 ;;; esh-proc.el ends here

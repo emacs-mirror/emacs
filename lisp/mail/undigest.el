@@ -1,7 +1,7 @@
 ;;; undigest.el --- digest-cracking support for the RMAIL mail reader
 
-;; Copyright (C) 1985, 1986, 1994, 1996, 2002
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994, 1996, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -40,7 +40,7 @@
   "^----.*\\([Ff]orwarded\\|[Oo]riginal\\).*[Mm]essage"
   "*Regexp to match the string that introduces forwarded messages.
 This is not a header, but a string contained in the body of the message.
-You may need to customise it for local needs."
+You may need to customize it for local needs."
   :type 'regexp
   :group 'rmail-headers)
 
@@ -232,13 +232,18 @@ following the containing message."
   ;; If we are in a summary buffer, switch to the Rmail buffer.
   (unwind-protect
       (with-current-buffer rmail-buffer
-	(narrow-to-region (rmail-msgbeg rmail-current-message)
-			  (rmail-msgend rmail-current-message))
 	(goto-char (point-min))
+	(narrow-to-region (point)
+			  (save-excursion (search-forward "\n\n") (point)))
 	(let ((buffer-read-only nil)
-	      (forwarded-from (mail-fetch-field "From"))
-	      (forwarded-date (mail-fetch-field "Date"))
+	      (old-fwd-from (mail-fetch-field "Forwarded-From" nil nil t))
+	      (old-fwd-date (mail-fetch-field "Forwarded-Date" nil nil t))
+	      (fwd-from (mail-fetch-field "From"))
+	      (fwd-date (mail-fetch-field "Date"))
 	      beg end prefix forward-msg)
+	  (narrow-to-region (rmail-msgbeg rmail-current-message)
+			    (rmail-msgend rmail-current-message))
+	  (goto-char (point-min))
 	  (cond ((re-search-forward rmail-forward-separator-regex nil t)
 		 (forward-line 1)
 		 (skip-chars-forward "\n")
@@ -274,8 +279,13 @@ following the containing message."
 	  (narrow-to-region (point) (point))
 	  (insert rmail-mail-separator)
 	  (narrow-to-region (point) (point))
-	  (insert "Forwarded-From: " forwarded-from "\n")
-	  (insert "Forwarded-Date: " forwarded-date "\n")
+	  (while old-fwd-from
+	    (insert "Forwarded-From: " (car old-fwd-from) "\n")
+	    (insert "Forwarded-Date: " (car old-fwd-date) "\n")
+	    (setq old-fwd-from (cdr old-fwd-from))
+	    (setq old-fwd-date (cdr old-fwd-date)))
+	  (insert "Forwarded-From: " fwd-from "\n")
+	  (insert "Forwarded-Date: " fwd-date "\n")
 	  (insert forward-msg)
 	  (save-restriction
 	    (goto-char (point-min))
@@ -297,4 +307,5 @@ following the containing message."
 
 (provide 'undigest)
 
+;;; arch-tag: 3a28b9fb-c1f5-43ef-9278-285f3e4b874d
 ;;; undigest.el ends here

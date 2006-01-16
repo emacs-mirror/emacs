@@ -1,6 +1,7 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997-2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulation convenience cua
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 
 ;;; Commentary:
@@ -61,7 +62,7 @@
 ;; If you really need to perform a command which starts with one of
 ;; the prefix keys even when the region is active, you have three options:
 ;; - press the prefix key twice very quickly (within 0.2 seconds),
-;; - press the prefix key and the following key within 0.2 seconds), or
+;; - press the prefix key and the following key within 0.2 seconds, or
 ;; - use the SHIFT key with the prefix key, i.e. C-X or C-C
 ;;
 ;; This behaviour can be customized via the
@@ -141,30 +142,39 @@
 ;; completely separate set of "rectangle commands" [C-x r ...] on the
 ;; region to copy, kill, fill a.s.o. the virtual rectangle.
 ;;
-;; cua-mode's superior rectangle support is based on using a true visual
-;; representation of the selected rectangle. To start a rectangle, use
-;; [S-return] and extend it using the normal movement keys (up, down,
-;; left, right, home, end, C-home, C-end). Once the rectangle has the
-;; desired size, you can cut or copy it using C-x and C-c (or C-w and M-w),
-;; and you can subsequently insert it - as a rectangle - using C-v (or
-;; C-y).  So the only new command you need to know to work with
-;; cua-mode rectangles is S-return!
+;; cua-mode's superior rectangle support uses a true visual
+;; representation of the selected rectangle, i.e. it highlights the
+;; actual part of the buffer that is currently selected as part of the
+;; rectangle.  Unlike emacs' traditional rectangle commands, the
+;; selected rectangle always as straight left and right edges, even
+;; when those are in the middle of a TAB character or beyond the end
+;; of the current line.  And it does this without actually modifying
+;; the buffer contents (it uses display overlays to visualize the
+;; virtual dimensions of the rectangle).
+;;
+;; This means that cua-mode's rectangles are not limited to the actual
+;; contents of the buffer, so if the cursor is currently at the end of a
+;; short line, you can still extend the rectangle to include more columns
+;; of longer lines in the same rectangle.  And you can also have the
+;; left edge of a rectangle start in the middle of a TAB character.
+;; Sounds strange? Try it!
+;;
+;; To start a rectangle, use [C-return] and extend it using the normal
+;; movement keys (up, down, left, right, home, end, C-home,
+;; C-end). Once the rectangle has the desired size, you can cut or
+;; copy it using C-x and C-c (or C-w and M-w), and you can
+;; subsequently insert it - as a rectangle - using C-v (or C-y).  So
+;; the only new command you need to know to work with cua-mode
+;; rectangles is C-return!
 ;;
 ;; Normally, when you paste a rectangle using C-v (C-y), each line of
 ;; the rectangle is inserted into the existing lines in the buffer.
 ;; If overwrite-mode is active when you paste a rectangle, it is
 ;; inserted as normal (multi-line) text.
 ;;
-;; Furthermore, cua-mode's rectangles are not limited to the actual
-;; contents of the buffer, so if the cursor is currently at the end of a
-;; short line, you can still extend the rectangle to include more columns
-;; of longer lines in the same rectangle.  Sounds strange? Try it!
-;;
-;; You can enable padding for just this rectangle by pressing [M-p];
-;; this works like entering `picture-mode' where the tabs and spaces
-;; are automatically converted/inserted to make the rectangle truly
-;; rectangular. Or you can do it for all rectangles by setting the
-;; `cua-auto-expand-rectangles' variable.
+;; If you prefer the traditional rectangle marking (i.e. don't want
+;; straight edges), [M-p] toggles this for the current rectangle,
+;; or you can customize cua-virtual-rectangle-edges.
 
 ;; And there's more: If you want to extend or reduce the size of the
 ;; rectangle in one of the other corners of the rectangle, just use
@@ -173,7 +183,7 @@
 ;; entire rectangle overlay (but not the contents) in the given
 ;; direction.
 ;;
-;; [S-return] cancels the rectangle
+;; [C-return] cancels the rectangle
 ;; [C-space] activates the region bounded by the rectangle
 
 ;; If you type a normal (self-inserting) character when the rectangle is
@@ -184,7 +194,7 @@
 ;; bottom of the rectangle.  So, for example, to comment out an entire
 ;; paragraph like this one, just place the cursor on the first character
 ;; of the first line, and enter the following:
-;;     S-return M-} ; ; <space>  S-return
+;;     C-return M-} ; ; <space>  C-return
 
 ;; cua-mode's rectangle support also includes all the normal rectangle
 ;; functions with easy access:
@@ -204,8 +214,8 @@
 ;;       a supplied format string (prompt)
 ;; [M-o] opens the rectangle by moving the highlighted text to the
 ;;       right of the rectangle and filling the rectangle with blanks.
-;; [M-p] toggles rectangle padding, i.e. insert tabs and spaces to
-;;       make rectangles truly rectangular
+;; [M-p] toggles virtual straight rectangle edges
+;; [M-P] inserts tabs and spaces (padding) to make real straight edges
 ;; [M-q] performs text filling on the rectangle
 ;; [M-r] replaces REGEXP (prompt) by STRING (prompt) in rectangle
 ;; [M-R] reverse the lines in the rectangle
@@ -257,36 +267,14 @@
   :group 'editing-basics
   :group 'convenience
   :group 'emulations
+  :version "22.1"
   :link '(emacs-commentary-link :tag "Commentary" "cua-base.el")
   :link '(emacs-library-link :tag "Lisp File" "cua-base.el"))
-
-;;;###autoload
-(defcustom cua-mode nil
-  "Non-nil means that CUA emulation mode is enabled.
-In CUA mode, shifted movement keys highlight and extend the region.
-When a region is highlighted, the binding of the C-x and C-c keys are
-temporarily changed to work as Motif, MAC or MS-Windows cut and paste.
-Also, insertion commands first delete the region and then insert.
-This mode enables Transient Mark mode and it provides a superset of the
-PC Selection Mode and Delete Selection Modes.
-
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `cua-mode'."
-  :set (lambda (symbol value)
-	 (cua-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :set-after '(cua-enable-modeline-indications cua-use-hyper-key)
-  :require 'cua-base
-  :link '(emacs-commentary-link "cua-base.el")
-  :version "21.4"
-  :type 'boolean
-  :group 'cua)
-
 
 (defcustom cua-enable-cua-keys t
   "*Enable using C-z, C-x, C-c, and C-v for undo, cut, copy, and paste.
 If the value is t, these mappings are always enabled.  If the value is
-'shift, these keys are only enabled if the last region was marked with
+`shift', these keys are only enabled if the last region was marked with
 a shifted movement key.  If the value is nil, these keys are never
 enabled."
   :type '(choice (const :tag "Disabled" nil)
@@ -326,9 +314,9 @@ If the value is nil, use a shifted prefix key to inhibit the override."
   "*If non-nil, registers are supported via numeric prefix arg.
 If the value is t, any numeric prefix arg in the range 0 to 9 will be
 interpreted as a register number.
-If the value is not-ctrl-u, using C-u to enter a numeric prefix is not
+If the value is `not-ctrl-u', using C-u to enter a numeric prefix is not
 interpreted as a register number.
-If the value is ctrl-u-only, only numeric prefix entered with C-u is
+If the value is `ctrl-u-only', only numeric prefix entered with C-u is
 interpreted as a register number."
   :type '(choice (const :tag "Disabled" nil)
 		 (const :tag "Enabled, but C-u arg is not a register" not-ctrl-u)
@@ -339,15 +327,6 @@ interpreted as a register number."
 (defcustom cua-delete-copy-to-register-0 t
   "*If non-nil, save last deleted region or rectangle to register 0."
   :type 'boolean
-  :group 'cua)
-
-(defcustom cua-use-hyper-key nil
-  "*If non-nil, bind rectangle commands to H-? instead of M-?.
-If set to 'also, toggle region command is also on S-return.
-Must be set prior to enabling CUA."
-  :type '(choice (const :tag "Meta key and S-return" nil)
-		 (const :tag "Hyper key only" only)
-		 (const :tag "Hyper key and S-return" also))
   :group 'cua)
 
 (defcustom cua-enable-region-auto-help nil
@@ -362,7 +341,7 @@ Must be set prior to enabling CUA."
 
 (defcustom cua-check-pending-input t
   "*If non-nil, don't override prefix key if input pending.
-It is rumoured that input-pending-p is unreliable under some window
+It is rumoured that `input-pending-p' is unreliable under some window
 managers, so try setting this to nil, if prefix override doesn't work."
   :type 'boolean
   :group 'cua)
@@ -370,12 +349,34 @@ managers, so try setting this to nil, if prefix override doesn't work."
 
 ;;; Rectangle Customization
 
-(defcustom cua-auto-expand-rectangles nil
-  "*If non-nil, rectangles are padded with spaces to make straight edges.
-This implies modifying buffer contents by expanding tabs and inserting spaces.
-Consequently, this is inhibited in read-only buffers.
-Can be toggled by [M-p] while the rectangle is active,"
+(defcustom cua-virtual-rectangle-edges t
+  "*If non-nil, rectangles have virtual straight edges.
+Note that although rectangles are always DISPLAYED with straight edges, the
+buffer is NOT modified, until you execute a command that actually modifies it.
+M-p toggles this feature when a rectangle is active."
   :type 'boolean
+  :group 'cua)
+
+(defcustom cua-auto-tabify-rectangles 1000
+  "*If non-nil, automatically tabify after rectangle commands.
+This basically means that `tabify' is applied to all lines that
+are modified by inserting or deleting a rectangle.  If value is
+an integer, CUA will look for existing tabs in a region around
+the rectangle, and only do the conversion if any tabs are already
+present.  The number specifies then number of characters before
+and after the region marked by the rectangle to search."
+  :type '(choice (number :tag "Auto detect (limit)")
+		 (const :tag "Disabled" nil)
+		 (other :tag "Enabled" t))
+  :group 'cua)
+
+(defcustom cua-rectangle-modifier-key 'meta
+  "*Modifier key used for rectangle commands bindings.
+On non-window systems, always use the meta modifier.
+Must be set prior to enabling CUA."
+  :type '(choice (const :tag "Meta key" meta)
+		 (const :tag "Hyper key" hyper )
+		 (const :tag "Super key" super))
   :group 'cua)
 
 (defcustom cua-enable-rectangle-auto-help t
@@ -383,17 +384,16 @@ Can be toggled by [M-p] while the rectangle is active,"
   :type 'boolean
   :group 'cua)
 
-(defface cua-rectangle-face 'nil
+(defface cua-rectangle
+  '((default :inherit region)
+    (((class color)) :foreground "white" :background "maroon"))
   "*Font used by CUA for highlighting the rectangle."
   :group 'cua)
 
-(defface cua-rectangle-noselect-face 'nil
+(defface cua-rectangle-noselect
+  '((default :inherit region)
+    (((class color)) :foreground "white" :background "dimgray"))
   "*Font used by CUA for highlighting the non-selected rectangle lines."
-  :group 'cua)
-
-(defcustom cua-undo-max 64
-  "*Max no of undoable CUA rectangle changes (including undo)."
-  :type 'integer
   :group 'cua)
 
 
@@ -404,10 +404,10 @@ Can be toggled by [M-p] while the rectangle is active,"
   :type 'boolean
   :group 'cua)
 
-(defface cua-global-mark-face '((((class color))
-                                  (:foreground "black")
-				  (:background "yellow"))
-                                 (t (:bold t)))
+(defface cua-global-mark
+  '((((min-colors 88)(class color)) :foreground "black" :background "yellow1")
+    (((class color)) :foreground "black" :background "yellow")
+    (t :bold t))
   "*Font used by CUA for highlighting the global mark."
   :group 'cua)
 
@@ -435,27 +435,100 @@ Can be toggled by [M-p] while the rectangle is active,"
 				       (frame-parameter nil 'cursor-color)
 				       "red")
   "Normal (non-overwrite) cursor color.
-Also used to indicate that rectangle padding is not in effect.
-Default is to load cursor color from initial or default frame parameters."
+Default is to load cursor color from initial or default frame parameters.
+
+If the value is a COLOR name, then only the `cursor-color' attribute will be
+affected.  If the value is a cursor TYPE (one of: box, hollow, bar, or hbar),
+then only the `cursor-type' property will be affected.  If the value is
+a cons (TYPE . COLOR), then both properties are affected."
   :initialize 'custom-initialize-default
-  :type 'color
+  :type '(choice
+	  (color :tag "Color")
+	  (choice :tag "Type"
+		  (const :tag "Filled box" box)
+		  (const :tag "Vertical bar" bar)
+		  (const :tag "Horizontal bar" hbar)
+		  (const :tag "Hollow box" hollow))
+	  (cons :tag "Color and Type"
+		(choice :tag "Type"
+			(const :tag "Filled box" box)
+			(const :tag "Vertical bar" bar)
+			(const :tag "Horizontal bar" hbar)
+			(const :tag "Hollow box" hollow))
+		(color :tag "Color")))
   :group 'cua)
 
 (defcustom cua-read-only-cursor-color "darkgreen"
-  "*Cursor color used in read-only buffers, if non-nil."
-  :type 'color
+  "*Cursor color used in read-only buffers, if non-nil.
+Only used when `cua-enable-cursor-indications' is non-nil.
+
+If the value is a COLOR name, then only the `cursor-color' attribute will be
+affected.  If the value is a cursor TYPE (one of: box, hollow, bar, or hbar),
+then only the `cursor-type' property will be affected.  If the value is
+a cons (TYPE . COLOR), then both properties are affected."
+  :type '(choice
+	  (color :tag "Color")
+	  (choice :tag "Type"
+		  (const :tag "Filled box" box)
+		  (const :tag "Vertical bar" bar)
+		  (const :tag "Horizontal bar" hbar)
+		  (const :tag "Hollow box" hollow))
+	  (cons :tag "Color and Type"
+		(choice :tag "Type"
+			(const :tag "Filled box" box)
+			(const :tag "Vertical bar" bar)
+			(const :tag "Horizontal bar" hbar)
+			(const :tag "Hollow box" hollow))
+		(color :tag "Color")))
   :group 'cua)
 
 (defcustom cua-overwrite-cursor-color "yellow"
   "*Cursor color used when overwrite mode is set, if non-nil.
-Also used to indicate that rectangle padding is in effect."
-  :type 'color
+Only used when `cua-enable-cursor-indications' is non-nil.
+
+If the value is a COLOR name, then only the `cursor-color' attribute will be
+affected.  If the value is a cursor TYPE (one of: box, hollow, bar, or hbar),
+then only the `cursor-type' property will be affected.  If the value is
+a cons (TYPE . COLOR), then both properties are affected."
+  :type '(choice
+	  (color :tag "Color")
+	  (choice :tag "Type"
+		  (const :tag "Filled box" box)
+		  (const :tag "Vertical bar" bar)
+		  (const :tag "Horizontal bar" hbar)
+		  (const :tag "Hollow box" hollow))
+	  (cons :tag "Color and Type"
+		(choice :tag "Type"
+			(const :tag "Filled box" box)
+			(const :tag "Vertical bar" bar)
+			(const :tag "Horizontal bar" hbar)
+			(const :tag "Hollow box" hollow))
+		(color :tag "Color")))
   :group 'cua)
 
 (defcustom cua-global-mark-cursor-color "cyan"
   "*Indication for active global mark.
-Will change cursor color to specified color if string."
-  :type 'color
+Will change cursor color to specified color if string.
+Only used when `cua-enable-cursor-indications' is non-nil.
+
+If the value is a COLOR name, then only the `cursor-color' attribute will be
+affected.  If the value is a cursor TYPE (one of: box, hollow, bar, or hbar),
+then only the `cursor-type' property will be affected.  If the value is
+a cons (TYPE . COLOR), then both properties are affected."
+  :type '(choice
+	  (color :tag "Color")
+	  (choice :tag "Type"
+		  (const :tag "Filled box" box)
+		  (const :tag "Vertical bar" bar)
+		  (const :tag "Horizontal bar" hbar)
+		  (const :tag "Hollow box" hollow))
+	  (cons :tag "Color and Type"
+		(choice :tag "Type"
+			(const :tag "Filled box" box)
+			(const :tag "Vertical bar" bar)
+			(const :tag "Horizontal bar" hbar)
+			(const :tag "Hollow box" hollow))
+		(color :tag "Color")))
   :group 'cua)
 
 
@@ -475,7 +548,7 @@ Will change cursor color to specified color if string."
 
 ;;; Global Mark support is in cua-gmrk.el
 
-(autoload 'cua-toggle-global-mark "cua-gmrk.el" nil t nil)
+(autoload 'cua-toggle-global-mark "cua-gmrk" nil t nil)
 
 ;; Stub definitions until cua-gmrk.el is loaded
 
@@ -495,13 +568,14 @@ Will change cursor color to specified color if string."
 ;;; Low-level Interface
 
 (defvar cua-inhibit-cua-keys nil
-  "Buffer-local variable that may disable the cua keymappings.")
+  "Buffer-local variable that may disable the CUA keymappings.")
 (make-variable-buffer-local 'cua-inhibit-cua-keys)
 
 ;;; Aux. variables
 
 ;; Current region was started using cua-set-mark.
 (defvar cua--explicit-region-start nil)
+(make-variable-buffer-local 'cua--explicit-region-start)
 
 ;; Latest region was started using shifted movement command.
 (defvar cua--last-region-shifted nil)
@@ -512,6 +586,7 @@ Will change cursor color to specified color if string."
 
 ;; status string for mode line indications
 (defvar cua--status-string nil)
+(make-variable-buffer-local 'cua--status-string)
 
 (defvar cua--debug nil)
 
@@ -665,15 +740,6 @@ Repeating prefix key when region is active works as a single prefix key."
 	     (+ arg ?0)))
   (if cua--register nil arg))
 
-;;; Enhanced undo - restore rectangle selections
-
-(defun cua-undo (&optional arg)
-  "Undo some previous changes.
-Knows about CUA rectangle highlighting in addition to standard undo."
-  (interactive "*P")
-  (if (fboundp 'cua--rectangle-undo)
-      (cua--rectangle-undo arg)
-    (undo arg)))
 
 ;;; Region specific commands
 
@@ -695,14 +761,19 @@ Save a copy in register 0 if `cua-delete-copy-to-register-0' is non-nil."
 	  (cons (current-buffer)
 		(and (consp buffer-undo-list)
 		     (car buffer-undo-list))))
-    (cua--deactivate)))
+    (cua--deactivate)
+    (/= start end)))
 
 (defun cua-replace-region ()
   "Replace the active region with the character you type."
   (interactive)
-  (cua-delete-region)
-  (unless (eq this-original-command this-command)
-    (cua--fallback)))
+  (let ((not-empty (cua-delete-region)))
+    (unless (eq this-original-command this-command)
+      (let ((overwrite-mode
+	     (and overwrite-mode
+		  not-empty
+		  (not (eq this-original-command 'self-insert-command)))))
+	(cua--fallback)))))
 
 (defun cua-copy-region (arg)
   "Copy the region to the kill ring.
@@ -713,9 +784,13 @@ With numeric prefix arg, copy to register 0-9 instead."
   (let ((start (mark)) (end (point)))
     (or (<= start end)
 	(setq start (prog1 end (setq end start))))
-    (if cua--register
-	(copy-to-register cua--register start end nil)
-      (copy-region-as-kill start end))
+    (cond
+     (cua--register
+      (copy-to-register cua--register start end nil))
+     ((eq this-original-command 'clipboard-kill-ring-save)
+      (clipboard-kill-ring-save start end))
+     (t
+      (copy-region-as-kill start end)))
     (if cua-keep-region-after-copy
 	(cua--keep-active)
       (cua--deactivate))))
@@ -731,9 +806,13 @@ With numeric prefix arg, copy to register 0-9 instead."
     (let ((start (mark)) (end (point)))
       (or (<= start end)
 	  (setq start (prog1 end (setq end start))))
-      (if cua--register
-	  (copy-to-register cua--register start end t)
-	(kill-region start end)))
+      (cond
+       (cua--register
+	(copy-to-register cua--register start end t))
+       ((eq this-original-command 'clipboard-kill-region)
+	(clipboard-kill-region start end))
+       (t
+	(kill-region start end))))
     (cua--deactivate)))
 
 ;;; Generic commands for regions, rectangles, and global marks
@@ -754,7 +833,8 @@ If global mark is active, copy from register or one character."
   (interactive "P")
   (setq arg (cua--prefix-arg arg))
   (let ((regtxt (and cua--register (get-register cua--register)))
-	(count (prefix-numeric-value arg)))
+	(count (prefix-numeric-value arg))
+	paste-column paste-lines)
     (cond
      ((and cua--register (not regtxt))
       (message "Nothing in register %c" cua--register))
@@ -773,7 +853,12 @@ If global mark is active, copy from register or one character."
 	  ;; the same region that we are going to delete.
 	  ;; That would make yank a no-op.
 	  (if cua--rectangle
-	      (cua--delete-rectangle)
+	      (progn
+		(goto-char (min (mark) (point)))
+		(setq paste-column (cua--rectangle-left))
+		(setq paste-lines (cua--delete-rectangle))
+		(if (= paste-lines 1)
+		    (setq paste-lines nil))) ;; paste all
 	    (if (string= (buffer-substring (point) (mark))
 			 (car kill-ring))
 		(current-kill 1))
@@ -791,8 +876,11 @@ If global mark is active, copy from register or one character."
 	    (setq this-command 'cua--paste-rectangle)
 	    (undo-boundary)
 	    (setq buffer-undo-list (cons pt buffer-undo-list)))
-	  (cua--insert-rectangle (cdr cua--last-killed-rectangle))
+	  (cua--insert-rectangle (cdr cua--last-killed-rectangle)
+				 nil paste-column paste-lines)
 	  (if arg (goto-char pt))))
+       ((eq this-original-command 'clipboard-yank)
+	(clipboard-yank))
        (t (yank arg)))))))
 
 (defun cua-paste-pop (arg)
@@ -821,8 +909,8 @@ Activates the mark if a prefix argument is given."
 
 (defun cua-repeat-replace-region (arg)
   "Repeat replacing text of highlighted region with typed text.
-Searches for the next streach of text identical to the region last
-replaced by typing text over it and replaces it with the same streach
+Searches for the next stretch of text identical to the region last
+replaced by typing text over it and replaces it with the same stretch
 of text."
   (interactive "P")
   (when cua--last-deleted-region-pos
@@ -870,18 +958,30 @@ of text."
 
 (defun cua-set-mark (&optional arg)
   "Set mark at where point is, clear mark, or jump to mark.
-With no prefix argument, set mark, push old mark position on local mark
-ring, and push mark on global mark ring, or if mark is already set, clear mark.
-With argument, jump to mark, and pop a new position for mark off the ring;
-then it jumps to the next mark off the ring if repeated with no argument, or
-sets the mark at the new position if repeated with argument."
+
+With no prefix argument, clear mark if already set.  Otherwise, set
+mark, and push old mark position on local mark ring; also push mark on
+global mark ring if last mark was set in another buffer.
+
+With argument, jump to mark, and pop a new position for mark off
+the local mark ring \(this does not affect the global mark ring\).
+Use \\[pop-global-mark] to jump to a mark off the global mark ring
+\(see `pop-global-mark'\).
+
+Repeating the command without the prefix jumps to the next position
+off the local \(or global\) mark ring.
+
+With a double \\[universal-argument] prefix argument, unconditionally set mark."
   (interactive "P")
   (cond
+   ((and (consp arg) (> (prefix-numeric-value arg) 4))
+    (push-mark-command nil))
    ((eq last-command 'pop-to-mark-command)
-    (if (and (consp arg) (> (prefix-numeric-value arg) 4))
-	(push-mark-command nil)
-      (setq this-command 'pop-to-mark-command)
-      (pop-to-mark-command)))
+    (setq this-command 'pop-to-mark-command)
+    (pop-to-mark-command))
+   ((and (eq last-command 'pop-global-mark) (not arg))
+    (setq this-command 'pop-global-mark)
+    (pop-global-mark))
    (arg
     (setq this-command 'pop-to-mark-command)
     (pop-to-mark-command))
@@ -895,146 +995,198 @@ sets the mark at the new position if repeated with argument."
     (if cua-enable-region-auto-help
 	(cua-help-for-region t)))))
 
-(defvar cua--standard-movement-commands
-  '(forward-char backward-char
-    next-line previous-line
-    forward-word backward-word
-    end-of-line beginning-of-line
-    end-of-buffer beginning-of-buffer
-    scroll-up scroll-down    forward-paragraph backward-paragraph)
-  "List of standard movement commands.
-Extra commands should be added to `cua-user-movement-commands'")
+;;; Scrolling commands which does not signal errors at top/bottom
+;;; of buffer at first key-press (instead moves to top/bottom
+;;; of buffer).
 
-(defvar cua-movement-commands nil
-  "User may add additional movement commands to this list.")
+(defun cua-scroll-up (&optional arg)
+  "Scroll text of current window upward ARG lines; or near full screen if no ARG.
+If window cannot be scrolled further, move cursor to bottom line instead.
+A near full screen is `next-screen-context-lines' less than a full screen.
+Negative ARG means scroll downward.
+If ARG is the atom `-', scroll downward by nearly full screen."
+  (interactive "P")
+  (cond
+   ((eq arg '-) (cua-scroll-down nil))
+   ((< (prefix-numeric-value arg) 0)
+    (cua-scroll-down (- (prefix-numeric-value arg))))
+   ((eobp)
+    (scroll-up arg))  ; signal error
+   (t
+    (condition-case nil
+	(scroll-up arg)
+      (end-of-buffer (goto-char (point-max)))))))
 
+(put 'cua-scroll-up 'CUA 'move)
+
+(defun cua-scroll-down (&optional arg)
+  "Scroll text of current window downward ARG lines; or near full screen if no ARG.
+If window cannot be scrolled further, move cursor to top line instead.
+A near full screen is `next-screen-context-lines' less than a full screen.
+Negative ARG means scroll upward.
+If ARG is the atom `-', scroll upward by nearly full screen."
+  (interactive "P")
+  (cond
+   ((eq arg '-) (cua-scroll-up nil))
+   ((< (prefix-numeric-value arg) 0)
+    (cua-scroll-up (- (prefix-numeric-value arg))))
+   ((bobp)
+    (scroll-down arg))  ; signal error
+   (t
+    (condition-case nil
+	(scroll-down arg)
+      (beginning-of-buffer (goto-char (point-min)))))))
+
+(put 'cua-scroll-down 'CUA 'move)
 
 ;;; Cursor indications
 
 (defun cua--update-indications ()
-  (let ((cursor
-	 (cond
-	  ((and cua--global-mark-active
-		(stringp cua-global-mark-cursor-color))
-	   cua-global-mark-cursor-color)
-	  ((and buffer-read-only
-		(stringp cua-read-only-cursor-color))
-	   cua-read-only-cursor-color)
-	  ((and (stringp cua-overwrite-cursor-color)
-		(or overwrite-mode
-		    (and cua--rectangle (cua--rectangle-padding))))
-	   cua-overwrite-cursor-color)
-	  (t cua-normal-cursor-color))))
-    (if (and cursor
-	     (not (equal cursor (frame-parameter nil 'cursor-color))))
-	(set-cursor-color cursor))
-    cursor))
+  (let* ((cursor
+	  (cond
+	   ((and cua--global-mark-active
+		 cua-global-mark-cursor-color)
+	    cua-global-mark-cursor-color)
+	   ((and buffer-read-only
+		 cua-read-only-cursor-color)
+	    cua-read-only-cursor-color)
+	   ((and cua-overwrite-cursor-color overwrite-mode)
+	    cua-overwrite-cursor-color)
+	   (t cua-normal-cursor-color)))
+	 (color (if (consp cursor) (cdr cursor) cursor))
+	 (type (if (consp cursor) (car cursor) cursor)))
+    (if (and color
+	     (stringp color)
+	     (not (equal color (frame-parameter nil 'cursor-color))))
+	(set-cursor-color color))
+    (if (and type
+	     (symbolp type)
+	     (not (eq type default-cursor-type)))
+	(setq default-cursor-type type))))
 
 
 ;;; Pre-command hook
 
+(defun cua--pre-command-handler-1 ()
+  (let ((movement (eq (get this-command 'CUA) 'move)))
+
+    ;; Cancel prefix key timeout if user enters another key.
+    (when cua--prefix-override-timer
+      (if (timerp cua--prefix-override-timer)
+	  (cancel-timer cua--prefix-override-timer))
+      (setq cua--prefix-override-timer nil))
+
+    ;; Handle shifted cursor keys and other movement commands.
+    ;; If region is not active, region is activated if key is shifted.
+    ;; If region is active, region is cancelled if key is unshifted (and region not started with C-SPC).
+    ;; If rectangle is active, expand rectangle in specified direction and ignore the movement.
+    (if movement
+	(cond
+	 ((if window-system
+	      (memq 'shift (event-modifiers
+			    (aref (this-single-command-raw-keys) 0)))
+	    (or
+	     (memq 'shift (event-modifiers
+			   (aref (this-single-command-keys) 0)))
+	     ;; See if raw escape sequence maps to a shifted event, e.g. S-up or C-S-home.
+	     (and (boundp 'function-key-map)
+		  function-key-map
+		  (let ((ev (lookup-key function-key-map
+					(this-single-command-raw-keys))))
+		    (and (vector ev)
+			 (symbolp (setq ev (aref ev 0)))
+			 (string-match "S-" (symbol-name ev)))))))
+	  (unless mark-active
+	    (push-mark-command nil t))
+	  (setq cua--last-region-shifted t)
+	  (setq cua--explicit-region-start nil))
+	 ((or cua--explicit-region-start cua--rectangle)
+	  (unless mark-active
+	    (push-mark-command nil nil)))
+	 (t
+	  ;; If we set mark-active to nil here, the region highlight will not be
+	  ;; removed by the direct_output_ commands.
+	  (setq deactivate-mark t)))
+
+      ;; Handle delete-selection property on other commands
+      (if (and mark-active (not deactivate-mark))
+	  (let* ((ds (or (get this-command 'delete-selection)
+			 (get this-command 'pending-delete)))
+		 (nc (cond
+		      ((not ds) nil)
+		      ((eq ds 'yank)
+		       'cua-paste)
+		      ((eq ds 'kill)
+		       (if cua--rectangle
+			   'cua-copy-rectangle
+			 'cua-copy-region))
+		      ((eq ds 'supersede)
+		       (if cua--rectangle
+			   'cua-delete-rectangle
+			 'cua-delete-region))
+		      (t
+		       (if cua--rectangle
+			   'cua-delete-rectangle ;; replace?
+			 'cua-replace-region)))))
+	    (if nc
+		(setq this-original-command this-command
+		      this-command nc)))))
+
+    ;; Detect extension of rectangles by mouse or other movement
+    (setq cua--buffer-and-point-before-command
+	  (if cua--rectangle (cons (current-buffer) (point))))))
+
 (defun cua--pre-command-handler ()
-  (condition-case nil
-      (let ((movement (or (memq this-command cua--standard-movement-commands)
-			  (memq this-command cua-movement-commands))))
-
-	;; Cancel prefix key timeout if user enters another key.
-	(when cua--prefix-override-timer
-	  (if (timerp cua--prefix-override-timer)
-	      (cancel-timer cua--prefix-override-timer))
-	  (setq cua--prefix-override-timer nil))
-
-	;; Handle shifted cursor keys and other movement commands.
-	;; If region is not active, region is activated if key is shifted.
-	;; If region is active, region is cancelled if key is unshifted (and region not started with C-SPC).
-	;; If rectangle is active, expand rectangle in specified direction and ignore the movement.
-	(if movement
-	    (cond
-	     ((memq 'shift (event-modifiers (aref (this-single-command-raw-keys) 0)))
-	      (unless mark-active
-		(push-mark-command nil t))
-	      (setq cua--last-region-shifted t)
-	      (setq cua--explicit-region-start nil))
-	     ((or cua--explicit-region-start cua--rectangle)
-	      (unless mark-active
-		(push-mark-command nil nil)))
-	     (t
-	      ;; If we set mark-active to nil here, the region highlight will not be
-	      ;; removed by the direct_output_ commands.
-	      (setq deactivate-mark t)))
-
-	  ;; Handle delete-selection property on other commands
-	  (if (and mark-active (not deactivate-mark))
-	      (let* ((ds (or (get this-command 'delete-selection)
-			     (get this-command 'pending-delete)))
-		     (nc (cond
-			  ((not ds) nil)
-			  ((eq ds 'yank)
-			   'cua-paste)
-			  ((eq ds 'kill)
-			   (if cua--rectangle
-			       'cua-copy-rectangle
-			     'cua-copy-region))
-			  ((eq ds 'supersede)
-			   (if cua--rectangle
-			       'cua-delete-rectangle
-			     'cua-delete-region))
-			  (t
-			   (if cua--rectangle
-			       'cua-delete-rectangle ;; replace?
-			     'cua-replace-region)))))
-		(if nc
-		    (setq this-original-command this-command
-			  this-command nc)))))
-
-	;; Detect extension of rectangles by mouse or other movement
-	(setq cua--buffer-and-point-before-command
-	      (if cua--rectangle (cons (current-buffer) (point))))
-	)
-    (error nil)))
+  (when cua-mode
+    (condition-case nil
+	(cua--pre-command-handler-1)
+    (error nil))))
 
 ;;; Post-command hook
 
+(defun cua--post-command-handler-1 ()
+  (when cua--global-mark-active
+    (cua--global-mark-post-command))
+  (when (fboundp 'cua--rectangle-post-command)
+    (cua--rectangle-post-command))
+  (setq cua--buffer-and-point-before-command nil)
+  (if (or (not mark-active) deactivate-mark)
+      (setq cua--explicit-region-start nil))
+
+  ;; Debugging
+  (if cua--debug
+      (cond
+       (cua--rectangle (cua--rectangle-assert))
+       (mark-active (message "Mark=%d Point=%d Expl=%s"
+			     (mark t) (point) cua--explicit-region-start))))
+
+  ;; Disable transient-mark-mode if rectangle active in current buffer.
+  (if (not (window-minibuffer-p (selected-window)))
+      (setq transient-mark-mode (and (not cua--rectangle)
+				     (if cua-highlight-region-shift-only
+					 (not cua--explicit-region-start)
+				       t))))
+  (if cua-enable-cursor-indications
+      (cua--update-indications))
+
+  (cua--select-keymaps))
+
 (defun cua--post-command-handler ()
-  (condition-case nil
-      (progn
-	(when cua--global-mark-active
-	  (cua--global-mark-post-command))
-	(when (fboundp 'cua--rectangle-post-command)
-	  (cua--rectangle-post-command))
-	(setq cua--buffer-and-point-before-command nil)
-	(if (or (not mark-active) deactivate-mark)
-	    (setq cua--explicit-region-start nil))
-
-	;; Debugging
-	(if cua--debug
-	    (cond
-	     (cua--rectangle (cua--rectangle-assert))
-	     (mark-active (message "Mark=%d Point=%d Expl=%s"
-				   (mark t) (point) cua--explicit-region-start))))
-
-	;; Disable transient-mark-mode if rectangle active in current buffer.
-	(if (not (window-minibuffer-p (selected-window)))
-	    (setq transient-mark-mode (and (not cua--rectangle)
-					   (if cua-highlight-region-shift-only
-					       (not cua--explicit-region-start)
-					     t))))
-	(if cua-enable-cursor-indications
-	    (cua--update-indications))
-
-	(cua--select-keymaps)
-	)
-
-    (error nil)))
+  (when cua-mode
+    (condition-case nil
+	(cua--post-command-handler-1)
+      (error nil))))
 
 
 ;;; Keymaps
 
+;; Cached value of actual cua-rectangle-modifier-key
+(defvar cua--rectangle-modifier-key 'meta)
+
 (defun cua--M/H-key (map key fct)
   ;; bind H-KEY or M-KEY to FCT in MAP
-  (if (eq key 'space) (setq key ? ))
   (unless (listp key) (setq key (list key)))
-  (define-key map (vector (cons (if cua-use-hyper-key 'hyper 'meta) key)) fct))
+  (define-key map (vector (cons cua--rectangle-modifier-key key)) fct))
 
 (defun cua--self-insert-char-p (def)
   ;; Return DEF if current key sequence is self-inserting in
@@ -1082,7 +1234,8 @@ Extra commands should be added to `cua-user-movement-commands'")
 	     (not cua--prefix-override-timer)))
   (setq cua--ena-prefix-repeat-keymap
 	(and cua--ena-region-keymap
-	     (timerp cua--prefix-override-timer)))
+	     (or (timerp cua--prefix-override-timer)
+		 (eq cua--prefix-override-timer 'shift))))
   (setq cua--ena-cua-keys-keymap
 	(and cua-enable-cua-keys
 	     (not cua-inhibit-cua-keys)
@@ -1094,14 +1247,41 @@ Extra commands should be added to `cua-user-movement-commands'")
 
 (defvar cua--keymaps-initalized nil)
 
-(defun cua--init-keymaps ()
-  (unless (eq cua-use-hyper-key 'only)
-    (define-key cua-global-keymap [(shift return)]	'cua-set-rectangle-mark))
-  (when cua-use-hyper-key
-    (cua--M/H-key cua-global-keymap 'space	'cua-set-rectangle-mark)
-    (define-key cua-global-keymap [(hyper mouse-1)] 'cua-mouse-set-rectangle-mark))
+(defun cua--shift-control-prefix (prefix arg)
+  ;; handle S-C-x and S-C-c by emulating the fast double prefix function.
+  ;; Don't record this command
+  (setq this-command last-command)
+  ;; Restore the prefix arg
+  (setq prefix-arg arg)
+  (reset-this-command-lengths)
+  ;; Activate the cua--prefix-repeat-keymap
+  (setq cua--prefix-override-timer 'shift)
+  ;; Push duplicate keys back on the event queue
+  (setq unread-command-events (cons prefix (cons prefix unread-command-events))))
 
-  (define-key cua-global-keymap [(shift control ? )]	'cua-toggle-global-mark)
+(defun cua--shift-control-c-prefix (arg)
+  (interactive "P")
+  (cua--shift-control-prefix ?\C-c arg))
+
+(defun cua--shift-control-x-prefix (arg)
+  (interactive "P")
+  (cua--shift-control-prefix ?\C-x arg))
+
+(defun cua--init-keymaps ()
+  ;; Cache actual rectangle modifier key.
+  (setq cua--rectangle-modifier-key
+	(if (and cua-rectangle-modifier-key
+		 (memq window-system '(x)))
+	    cua-rectangle-modifier-key
+	  'meta))
+  ;; C-return always toggles rectangle mark
+  (define-key cua-global-keymap [(control return)]	'cua-set-rectangle-mark)
+  (unless (eq cua--rectangle-modifier-key 'meta)
+    (cua--M/H-key cua-global-keymap ?\s			'cua-set-rectangle-mark)
+    (define-key cua-global-keymap
+      (vector (list cua--rectangle-modifier-key 'mouse-1)) 'cua-mouse-set-rectangle-mark))
+
+  (define-key cua-global-keymap [(shift control ?\s)]	'cua-toggle-global-mark)
 
   ;; replace region with rectangle or element on kill ring
   (define-key cua-global-keymap [remap yank]		'cua-paste)
@@ -1110,9 +1290,10 @@ Extra commands should be added to `cua-user-movement-commands'")
   (define-key cua-global-keymap [remap yank-pop]		'cua-paste-pop)
   ;; set mark
   (define-key cua-global-keymap [remap set-mark-command]	'cua-set-mark)
-  ;; undo
-  (define-key cua-global-keymap [remap undo]		'cua-undo)
-  (define-key cua-global-keymap [remap advertised-undo]	'cua-undo)
+
+  ;; scrolling
+  (define-key cua-global-keymap [remap scroll-up]	'cua-scroll-up)
+  (define-key cua-global-keymap [remap scroll-down]	'cua-scroll-down)
 
   (define-key cua--cua-keys-keymap [(control x) timeout] 'kill-region)
   (define-key cua--cua-keys-keymap [(control c) timeout] 'copy-region-as-kill)
@@ -1136,8 +1317,9 @@ Extra commands should be added to `cua-user-movement-commands'")
   (define-key cua--prefix-repeat-keymap [(control c) right] 'cua--prefix-copy-handler)
 
   ;; Enable shifted fallbacks for C-x and C-c when region is active
-  (define-key cua--region-keymap [(shift control x)] 'Control-X-prefix)
-  (define-key cua--region-keymap [(shift control c)] 'mode-specific-command-prefix)
+  (define-key cua--region-keymap [(shift control x)] 'cua--shift-control-x-prefix)
+  (define-key cua--region-keymap [(shift control c)] 'cua--shift-control-c-prefix)
+
   ;; replace current region
   (define-key cua--region-keymap [remap self-insert-command]	'cua-replace-region)
   (define-key cua--region-keymap [remap self-insert-iso]	'cua-replace-region)
@@ -1152,13 +1334,34 @@ Extra commands should be added to `cua-user-movement-commands'")
   (define-key cua--region-keymap [remap delete-char]		'cua-delete-region)
   ;; kill region
   (define-key cua--region-keymap [remap kill-region]		'cua-cut-region)
+  (define-key cua--region-keymap [remap clipboard-kill-region]	'cua-cut-region)
   ;; copy region
   (define-key cua--region-keymap [remap copy-region-as-kill]	'cua-copy-region)
   (define-key cua--region-keymap [remap kill-ring-save]		'cua-copy-region)
+  (define-key cua--region-keymap [remap clipboard-kill-ring-save] 'cua-copy-region)
   ;; cancel current region/rectangle
   (define-key cua--region-keymap [remap keyboard-escape-quit]	'cua-cancel)
   (define-key cua--region-keymap [remap keyboard-quit]		'cua-cancel)
   )
+
+
+;; Setup standard movement commands to be recognized by CUA.
+
+(dolist (cmd
+ '(forward-char backward-char
+   next-line previous-line
+   forward-word backward-word
+   end-of-line beginning-of-line
+   move-end-of-line move-beginning-of-line
+   end-of-buffer beginning-of-buffer
+   scroll-up scroll-down
+   up-list down-list backward-up-list
+   end-of-defun beginning-of-defun
+   forward-sexp backward-sexp
+   forward-list backward-list
+   forward-sentence backward-sentence
+   forward-paragraph backward-paragraph))
+  (put cmd 'CUA 'move))
 
 ;; State prior to enabling cua-mode
 ;; Value is a list with the following elements:
@@ -1169,23 +1372,35 @@ Extra commands should be added to `cua-user-movement-commands'")
 (defvar cua--saved-state nil)
 
 ;;;###autoload
-(defun cua-mode (&optional arg)
+(define-minor-mode cua-mode
   "Toggle CUA key-binding mode.
-When enabled, using shifted movement keys will activate the region (and
-highlight the region using `transient-mark-mode'), and typed text replaces
-the active selection.  C-z, C-x, C-c, and C-v will undo, cut, copy, and
-paste (in addition to the normal emacs bindings)."
-  (interactive "P")
-  (setq cua-mode
-	(cond
-	 ((null arg) (not cua-mode))
-	 ((symbolp arg) t)
-	 (t (> (prefix-numeric-value arg) 0))))
+When enabled, using shifted movement keys will activate the
+region (and highlight the region using `transient-mark-mode'),
+and typed text replaces the active selection.
 
+Also when enabled, you can use C-z, C-x, C-c, and C-v to undo,
+cut, copy, and paste in addition to the normal Emacs bindings.
+The C-x and C-c keys only do cut and copy when the region is
+active, so in most cases, they do not conflict with the normal
+function of these prefix keys.
+
+If you really need to perform a command which starts with one of
+the prefix keys even when the region is active, you have three
+options:
+- press the prefix key twice very quickly (within 0.2 seconds),
+- press the prefix key and the following key within 0.2 seconds, or
+- use the SHIFT key with the prefix key, i.e. C-S-x or C-S-c.
+
+You can customize `cua-enable-cua-keys' to completely disable the
+CUA bindings, or `cua-prefix-override-inhibit-delay' to change
+the prefix fallback behavior."
+  :global t
+  :group 'cua
+  :set-after '(cua-enable-modeline-indications cua-rectangle-modifier-key)
+  :require 'cua-base
+  :link '(emacs-commentary-link "cua-base.el")
   (setq mark-even-if-inactive t)
   (setq highlight-nonselected-windows nil)
-  (make-variable-buffer-local 'cua--explicit-region-start)
-  (make-variable-buffer-local 'cua--status-string)
 
   (unless cua--keymaps-initalized
     (cua--init-keymaps)
@@ -1197,17 +1412,16 @@ paste (in addition to the normal emacs bindings)."
 	(add-hook 'post-command-hook 'cua--post-command-handler)
 	(if (and cua-enable-modeline-indications (not (assoc 'cua-mode minor-mode-alist)))
 	    (setq minor-mode-alist (cons '(cua-mode cua--status-string) minor-mode-alist)))
-	)
+	(if cua-enable-cursor-indications
+	    (cua--update-indications)))
+
     (remove-hook 'pre-command-hook 'cua--pre-command-handler)
     (remove-hook 'post-command-hook 'cua--post-command-handler))
 
   (if (not cua-mode)
       (setq emulation-mode-map-alists (delq 'cua--keymap-alist emulation-mode-map-alists))
-    (add-to-list 'emulation-mode-map-alists 'cua--keymap-alist)
+    (add-to-ordered-list 'emulation-mode-map-alists 'cua--keymap-alist 400)
     (cua--select-keymaps))
-
-  (if (fboundp 'cua--rectangle-on-off)
-      (cua--rectangle-on-off cua-mode))
 
   (cond
    (cua-mode
@@ -1217,15 +1431,14 @@ paste (in addition to the normal emacs bindings)."
 	   (and (boundp 'delete-selection-mode) delete-selection-mode)
 	   (and (boundp 'pc-selection-mode) pc-selection-mode)))
     (if (and (boundp 'delete-selection-mode) delete-selection-mode)
-	(delete-selection-mode))
+	(delete-selection-mode -1))
     (if (and (boundp 'pc-selection-mode) pc-selection-mode)
-	(pc-selection-mode))
+	(pc-selection-mode -1))
+    (cua--deactivate)
     (setq transient-mark-mode (and cua-mode
 				   (if cua-highlight-region-shift-only
 				       (not cua--explicit-region-start)
-				     t)))
-    (if (interactive-p)
-	(message "CUA mode enabled")))
+				     t))))
    (cua--saved-state
     (setq transient-mark-mode (car cua--saved-state))
     (if (nth 1 cua--saved-state)
@@ -1238,15 +1451,40 @@ paste (in addition to the normal emacs bindings)."
 		 (if (and (nth 1 cua--saved-state) (nth 2 cua--saved-state)) " and" "")
 		 (if (nth 2 cua--saved-state) " PC-Selection" "")
 		 (if (or (nth 1 cua--saved-state) (nth 2 cua--saved-state)) " enabled" "")))
-    (setq cua--saved-state nil))
+    (setq cua--saved-state nil))))
 
-   (t
-    (if (interactive-p)
-	(message "CUA mode disabled")))))
+
+;;;###autoload
+(defun cua-selection-mode (arg)
+  "Enable CUA selection mode without the C-z/C-x/C-c/C-v bindings."
+  (interactive "P")
+  (setq-default cua-enable-cua-keys nil)
+  (cua-mode arg))
+
 
 (defun cua-debug ()
-  "Toggle cua debugging."
+  "Toggle CUA debugging."
   (interactive)
   (setq cua--debug (not cua--debug)))
 
+;; Install run-time check for older versions of CUA-mode which does not
+;; work with GNU Emacs version 22.1 and newer.
+;;
+;; Except for version 1.2, all of the 1.x and 2.x version of cua-mode
+;; provided the `CUA-mode' feature.  Since this is no longer true,
+;; we can warn the user if the `CUA-mode' feature is ever provided.
+
+;;;###autoload (eval-after-load 'CUA-mode
+;;;###autoload  '(error (concat "\n\n"
+;;;###autoload  "CUA-mode is now part of the standard GNU Emacs distribution,\n"
+;;;###autoload  "so you may now enable and customize CUA via the Options menu.\n\n"
+;;;###autoload  "You have loaded an older version of CUA-mode which does\n"
+;;;###autoload  "not work correctly with this version of GNU Emacs.\n\n"
+;;;###autoload  (if user-init-file (concat
+;;;###autoload  "To correct this, remove the loading and customization of the\n"
+;;;###autoload  "old version from the " user-init-file " file.\n\n")))))
+
+(provide 'cua)
+
+;;; arch-tag: 21fb6289-ba25-4fee-bfdc-f9fb351acf05
 ;;; cua-base.el ends here

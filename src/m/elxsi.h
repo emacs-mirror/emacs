@@ -1,5 +1,6 @@
 /* machine description file for Elxsi machine (running enix).
-   Copyright (C) 1986, 1992, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1992, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
    Adapted by John Salmon
 
 This file is part of GNU Emacs.
@@ -16,8 +17,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
@@ -127,3 +128,6 @@ Boston, MA 02111-1307, USA.  */
 extern int _init_brk;\
 _init_brk = bss_start;\
 }
+
+/* arch-tag: 73bf1120-a994-4c29-8d60-af425d8bf10c
+   (do not change this comment) */

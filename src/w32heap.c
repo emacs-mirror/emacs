@@ -1,5 +1,5 @@
 /* Heap management routines for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.
 
    Geoff Voelker (voelker@cs.washington.edu)			     7-29-94
 */
@@ -31,7 +31,6 @@ Boston, MA 02111-1307, USA.
 #include "w32heap.h"
 #include "lisp.h"  /* for VALMASK */
 
-#undef RVA_TO_PTR
 #define RVA_TO_PTR(rva) ((unsigned char *)((DWORD)(rva) + (DWORD)GetModuleHandle (NULL)))
 
 /* This gives us the page size and the size of the allocation unit on NT.  */
@@ -245,6 +244,7 @@ init_heap ()
 	  exit (1);
 	}
 
+#if defined (NO_UNION_TYPE) && !defined (USE_LSB_TAG)
       /* Ensure that the addresses don't use the upper tag bits since
 	 the Lisp type goes there.  */
       if (((unsigned long) data_region_base & ~VALMASK) != 0)
@@ -252,7 +252,7 @@ init_heap ()
 	  printf ("Error: The heap was allocated in upper memory.\n");
 	  exit (1);
 	}
-
+#endif
       data_region_end = data_region_base;
       real_data_region_end = data_region_end;
     }
@@ -304,3 +304,6 @@ _heap_term (void)
 }
 
 #endif
+
+/* arch-tag: 9a6a9860-040d-422d-8905-450dd535cd9c
+   (do not change this comment) */

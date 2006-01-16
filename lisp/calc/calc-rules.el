@@ -1,10 +1,10 @@
 ;;; calc-rules.el --- rules for simplifying algebraic expressions in Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +28,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-rules () nil)
-
 
 (defun calc-compile-rule-set (name rules)
   (prog2
@@ -157,10 +154,14 @@ tan(select(2 a))		:=  2 tan(select(a)) / (1 - tan(a)^2),
 tan(select(n a))		:=  (tan((n-1) select(a)) + tan(a)) /
 				    (1 - tan((n-1) a) tan(a))
 				    :: integer(n) :: n > 2,
+cot(select(a + b))		:=  (cot(select(a)) cot(b) - 1) /
+				    (cot(a) + cot(b)),
 sinh(select(a + b))		:=  sinh(select(a)) cosh(b) + cosh(a) sinh(b),
 cosh(select(a + b))		:=  cosh(select(a)) cosh(b) + sinh(a) sinh(b),
 tanh(select(a + b))		:=  (tanh(select(a)) + tanh(b)) /
 				    (1 + tanh(a) tanh(b)),
+coth(select(a + b))		:=  (coth(select(a)) coth(b) + 1) /
+				    (coth(a) + coth(b)),
 x && select(a || b)		:=  (x && select(a)) || (x && b),
 select(a || b) && x		:=  (select(a) && x) || (b && x),
 ! select(a && b)		:=  (!a) || (!b),
@@ -273,12 +274,18 @@ exp(select(x))			:=  1 / exp(select(-x)),
 sin(select(x))			:=  -sin(select(-x)),
 cos(select(x))			:=  cos(select(-x)),
 tan(select(x))			:=  -tan(select(-x)),
+sec(select(x))			:=  sec(select(-x)),
+csc(select(x))			:=  -csc(select(-x)),
+cot(select(x))			:=  -cot(select(-x)),
 arcsin(select(x))		:=  -arcsin(select(-x)),
 arccos(select(x))		:=  4 arctan(1) - arccos(select(-x)),
 arctan(select(x))		:=  -arctan(select(-x)),
 sinh(select(x))			:=  -sinh(select(-x)),
 cosh(select(x))			:=  cosh(select(-x)),
 tanh(select(x))			:=  -tanh(select(-x)),
+sech(select(x))			:=  sech(select(-x)),
+csch(select(x))			:=  -csch(select(-x)),
+coth(select(x))			:=  -coth(select(-x)),
 arcsinh(select(x))		:=  -arcsinh(select(-x)),
 arctanh(select(x))		:=  -arctanh(select(-x)),
 select(x) = a			:=  select(-x) = -a,
@@ -438,4 +445,7 @@ fitsystem(y, xv, pv, 0)  :=  fitsystem(y, xv, cons(fvh,fvt))
 						    hasfitparams(pv)))),
 fitparam(n) = x  :=  x ]"))
 
+(provide 'calc-rules)
+
+;;; arch-tag: 0ed54a52-38f3-4ed7-9ca7-b8ecf8f2febe
 ;;; calc-rules.el ends here

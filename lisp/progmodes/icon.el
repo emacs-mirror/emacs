@@ -1,6 +1,7 @@
 ;;; icon.el --- mode for editing Icon code
 
-;; Copyright (C) 1989 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Chris Smith <csmith@convex.com>
 ;; Created: 15 Feb 89
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -83,6 +84,7 @@
 
 (defgroup icon nil
   "Mode for editing Icon code."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 (defcustom icon-indent-level 4
@@ -177,7 +179,7 @@ with no args, if that value is non-nil."
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'icon-indent-line)
   (make-local-variable 'require-final-newline)
-  (setq require-final-newline t)
+  (setq require-final-newline mode-require-final-newline)
   (make-local-variable 'comment-start)
   (setq comment-start "# ")
   (make-local-variable 'comment-end)
@@ -205,7 +207,7 @@ with no args, if that value is non-nil."
 	  (cons '(icon-mode  "\\<procedure\\>" "\\<end\\>" nil
 			     icon-forward-sexp-function)
 		hs-special-modes-alist)))
-  (run-hooks 'icon-mode-hook))
+  (run-mode-hooks 'icon-mode-hook))
 
 ;; This is used by indent-for-comment to decide how much to
 ;; indent a comment in Icon code based on its context.
@@ -243,7 +245,6 @@ with no args, if that value is non-nil."
       (self-insert-command (prefix-numeric-value arg)))))
 
 (defun icon-indent-command (&optional whole-exp)
-  (interactive "P")
   "Indent current line as Icon code, or in some cases insert a tab character.
 If `icon-tab-always-indent' is non-nil (the default), always indent current
 line.  Otherwise, indent the current line only if point is at the left margin
@@ -253,6 +254,7 @@ A numeric argument, regardless of its value, means indent rigidly all the
 lines of the expression starting after point so that this line becomes
 properly indented.  The relative indentation among the lines of the
 expression are preserved."
+  (interactive "P")
   (if whole-exp
       ;; If arg, always indent this line as Icon
       ;; and shift remaining lines of expression the same amount.
@@ -687,4 +689,5 @@ Returns nil if line starts inside a string, t if in a comment."
 
 (provide 'icon)
 
+;;; arch-tag: 8abf8c99-e7df-44af-a58f-ef5ed2ee52cb
 ;;; icon.el ends here

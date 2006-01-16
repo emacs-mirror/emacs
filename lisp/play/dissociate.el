@@ -1,6 +1,6 @@
 ;;; dissociate.el --- scramble text amusingly for Emacs
 
-;; Copyright (C) 1985 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: games
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -100,4 +100,5 @@ Default is 2."
 
 (provide 'dissociate)
 
+;;; arch-tag: 90d197d1-409b-45c5-a0b5-fbfb2e06334f
 ;;; dissociate.el ends here

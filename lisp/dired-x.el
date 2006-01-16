@@ -2,12 +2,13 @@
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
-;; Maintainer: FSF (unless Dodd can be found)
+;; Maintainer: Romain Francoise <rfrancoise@gnu.org>
 ;; Version: 2.37+
 ;; Date: 1994/08/18 19:27:42
 ;; Keywords: dired extensions files
 
-;; Copyright (C) 1993, 1994, 1997, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1997, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -23,8 +24,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -50,7 +51,7 @@
 ;; (add-hook 'dired-mode-hook
 ;;           (function (lambda ()
 ;;                       ;; Set buffer-local variables here.  For example:
-;;                       ;; (setq dired-omit-files-p t)
+;;                       ;; (dired-omit-mode 1)
 ;;                       )))
 ;;
 ;; At load time dired-x.el will install itself, redefine some functions, and
@@ -74,7 +75,7 @@
 ;;      dired-guess-shell-znew-switches
 ;;      dired-guess-shell-alist-user
 ;;      dired-clean-up-buffers-too
-;;      dired-omit-files-p
+;;      dired-omit-mode
 ;;      dired-omit-files
 ;;      dired-omit-extensions
 ;;      dired-omit-size-limit
@@ -109,6 +110,9 @@
 ;; load dired stuff of GNU Emacs.
 
 (require 'dired-aux)
+
+(defvar vm-folder-directory)
+(eval-when-compile (require 'man))
 
 ;;; User-defined variables.
 
@@ -154,19 +158,27 @@ Read-only folders only work in VM 5, not in VM 4."
 		 (other :tag "non-writable only" if-file-read-only))
   :group 'dired-x)
 
-(defcustom dired-omit-files-p nil
-  "*If non-nil, \"uninteresting\" files are not listed (buffer-local).
-Use \\[dired-omit-toggle] to toggle its value.
+(define-minor-mode dired-omit-mode
+  "Toggle Dired-Omit mode.
+With numeric ARG, enable Dired-Omit mode if ARG is positive, disable
+otherwise.  Enabling and disabling is buffer-local.
+If enabled, \"uninteresting\" files are not listed.
 Uninteresting files are those whose filenames match regexp `dired-omit-files',
 plus those ending with extensions in `dired-omit-extensions'."
-  :type 'boolean
-  :group 'dired-x)
-(make-variable-buffer-local 'dired-omit-files-p)
+  :group 'dired-x
+  (if dired-omit-mode
+      ;; This will mention how many lines were omitted:
+      (let ((dired-omit-size-limit nil)) (dired-omit-expunge))
+    (revert-buffer)))
+
+;; For backward compatibility
+(defvaralias 'dired-omit-files-p 'dired-omit-mode)
+(make-obsolete-variable 'dired-omit-files-p 'dired-omit-mode)
 
 (defcustom dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$"
   "*Filenames matching this regexp will not be displayed.
-This only has effect when `dired-omit-files-p' is t.  See interactive function
-`dired-omit-toggle' \(\\[dired-omit-toggle]\) and variable
+This only has effect when `dired-omit-mode' is t.  See interactive function
+`dired-omit-mode' \(\\[dired-omit-mode]\) and variable
 `dired-omit-extensions'.  The default is to omit  `.', `..', auto-save
 files and lock files."
   :type 'regexp
@@ -177,7 +189,7 @@ files and lock files."
 If nil, Dired finds the directory as a subdirectory in some other buffer
 if it is present as one.
 
-If there are several Dired buffers for a directory, the most recently
+If there are several dired buffers for a directory, the most recently
 used is chosen.
 
 Dired avoids switching to the current buffer, so that if you have
@@ -193,7 +205,7 @@ If nil, there is no maximum size."
   :group 'dired-x)
 
 (defcustom dired-enable-local-variables t
-  "*Control use of local-variables lists in dired.
+  "*Control use of local-variables lists in Dired.
 The value can be t, nil or something else.
 A value of t means local-variables lists are obeyed;
 nil means they are ignored; anything else means query.
@@ -224,13 +236,14 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
   :group 'dired-x)
 
 (defcustom dired-clean-up-buffers-too t
-  "*Non-nil means offer to kill buffers visiting files and dirs deleted in dired."
+  "*Non-nil means offer to kill buffers visiting files and dirs deleted in Dired."
   :type 'boolean
   :group 'dired-x)
 
 ;;; KEY BINDINGS.
 
-(define-key dired-mode-map "\M-o" 'dired-omit-toggle)
+(define-key dired-mode-map "\M-o" 'dired-omit-mode)
+(define-key dired-mode-map "*O" 'dired-mark-omitted)
 (define-key dired-mode-map "\M-(" 'dired-mark-sexp)
 (define-key dired-mode-map "*(" 'dired-mark-sexp)
 (define-key dired-mode-map "*." 'dired-mark-extension)
@@ -249,6 +262,72 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 (if dired-bind-info
     (define-key dired-mode-map "I" 'dired-info))
 
+;;; MENU BINDINGS
+
+(let ((menu-bar (lookup-key dired-mode-map [menu-bar])))
+  (let ((menu (lookup-key menu-bar [operate])))
+    (define-key-after
+      menu
+      [find-files]
+      '(menu-item
+        "Find files"
+        dired-do-find-marked-files
+        :help "Find current or marked files")
+      'delete)
+    (define-key-after
+      menu
+      [relsymlink]
+      '(menu-item
+        "Relative symlink to..."
+        dired-do-relsymlink
+        :visible (fboundp 'make-symbolic-link)
+        :help "Make relative symbolic links for current or marked files")
+      'symlink))
+  (let ((menu (lookup-key menu-bar [mark])))
+    (define-key-after
+      menu
+      [flag-extension]
+      '(menu-item
+        "Flag extension..."
+        dired-flag-extension
+        :help "Flag files with a certain extension for deletion")
+      'garbage-files)
+    (define-key-after
+      menu
+      [mark-extension]
+      '(menu-item
+        "Mark extension..."
+        dired-mark-extension
+        :help "Mark files with a certain extension")
+      'symlinks)
+    (define-key-after
+      menu
+      [mark-omitted]
+      '(menu-item
+        "Mark omitted"
+        dired-mark-omitted
+        :help "Mark files matching `dired-omit-files' and `dired-omit-extensions'")
+      'mark-extension))
+  (let ((menu (lookup-key menu-bar [regexp])))
+    (define-key-after
+      menu
+      [relsymlink-regexp]
+      '(menu-item
+        "Relative symlink..."
+        dired-do-relsymlink-regexp
+        :visible (fboundp 'make-symbolic-link)
+        :help "Make relative symbolic links for files matching regexp")
+      'symlink))
+  (let ((menu (lookup-key menu-bar [immediate])))
+    (define-key-after
+      menu
+      [omit-mode]
+      '(menu-item
+        "Omit mode" dired-omit-mode
+        :button (:toggle . dired-omit-mode)
+        :help "Enable or disable omitting \"uninteresting\" files")
+      'dashes)))
+
 ;;; GLOBAL BINDING.
 (if dired-bind-jump
     (progn
@@ -262,16 +341,16 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 (add-hook 'dired-after-readin-hook 'dired-omit-expunge)
 
 (defun dired-extra-startup ()
-  "Automatically put on `dired-mode-hook' to get extra dired features:
+  "Automatically put on `dired-mode-hook' to get extra Dired features:
 \\<dired-mode-map>
   \\[dired-do-run-mail]\t-- run mail on folder (see `dired-bind-vm')
   \\[dired-info]\t-- run info on file
   \\[dired-man]\t-- run man on file
   \\[dired-do-find-marked-files]\t-- visit all marked files simultaneously
-  \\[dired-omit-toggle]\t-- toggle omitting of files
+  \\[dired-omit-mode]\t-- toggle omitting of files
   \\[dired-mark-sexp]\t-- mark by Lisp expression
-  \\[dired-copy-filename-as-kill]\t-- copy the file or subdir names into the kill ring.
-  \t   You can feed it to other commands using \\[yank].
+  \\[dired-copy-filename-as-kill]\t-- copy the file or subdir names into the kill ring;
+  \t   you can feed it to other commands using \\[yank]
 
 For more features, see variables
 
@@ -280,7 +359,7 @@ For more features, see variables
   `dired-bind-info'
   `dired-bind-man'
   `dired-vm-read-only-folders'
-  `dired-omit-files-p'
+  `dired-omit-mode'
   `dired-omit-files'
   `dired-omit-extensions'
   `dired-omit-size-limit'
@@ -348,7 +427,7 @@ Remove expanded subdir of deleted dir, if any."
 ;;; Mark files with some extension.
 (defun dired-mark-extension (extension &optional marker-char)
   "Mark all files with a certain EXTENSION for use in later commands.
-A `.' is not automatically prepended to the string entered."
+A `.' is *not* automatically prepended to the string entered."
   ;; EXTENSION may also be a list of extensions instead of a single one.
   ;; Optional MARKER-CHAR is marker to use.
   (interactive "sMarking extension: \nP")
@@ -398,7 +477,7 @@ See variable `dired-patch-unclean-extensions'."
 
 (defun dired-clean-tex ()
   "Flag dispensable files created by [La]TeX etc. for deletion.
-See variables `dired-texinfo-unclean-extensions',
+See variables `dired-tex-unclean-extensions',
 `dired-latex-unclean-extensions', `dired-bibtex-unclean-extensions' and
 `dired-texinfo-unclean-extensions'."
   (interactive)
@@ -425,7 +504,7 @@ See variables `dired-texinfo-unclean-extensions',
 (defun dired-jump (&optional other-window)
   "Jump to dired buffer corresponding to current buffer.
 If in a file, dired the current directory and move to file's line.
-If in dired already, pop up a level and goto old directory's line.
+If in Dired already, pop up a level and goto old directory's line.
 In case the proper dired file line cannot be found, refresh the dired
 buffer and try again."
   (interactive "P")
@@ -450,13 +529,13 @@ buffer and try again."
                 (dired-insert-subdir (file-name-directory file))
                 (dired-goto-file file))
               ;; Toggle omitting, if it is on, and try again.
-	      (if dired-omit-files-p
+	      (if dired-omit-mode
 		  (progn
-		    (dired-omit-toggle)
+		    (dired-omit-mode)
 		    (dired-goto-file file))))))))
 
 (defun dired-jump-other-window ()
-  "Like \\[dired-jump] (dired-jump) but in other window."
+  "Like \\[dired-jump] (`dired-jump') but in other window."
   (interactive)
   (dired-jump t))
 
@@ -469,41 +548,28 @@ buffer and try again."
 ;; sk 28-Aug-1991 09:37
 (defvar dired-omit-localp 'no-dir
   "The LOCALP argument `dired-omit-expunge' passes to `dired-get-filename'.
-If it is 'no-dir, omitting is much faster, but you can only match
+If it is `no-dir', omitting is much faster, but you can only match
 against the non-directory part of the file name.  Set it to nil if you
 need to match the entire file name.")
 
 ;; \017=^O for Omit - other packages can chose other control characters.
 (defvar dired-omit-marker-char ?\017
-  "Temporary marker used by by dired-omit.
+  "Temporary marker used by dired-omit.
 Should never be used as marker by the user or other packages.")
 
 (defun dired-omit-startup ()
-  (or (assq 'dired-omit-files-p minor-mode-alist)
+  (or (assq 'dired-omit-mode minor-mode-alist)
       (setq minor-mode-alist
-            (append '((dired-omit-files-p
+            (append '((dired-omit-mode
 		       (:eval (if (eq major-mode 'dired-mode)
 				  " Omit" ""))))
 		    minor-mode-alist))))
 
-(defun dired-omit-toggle (&optional flag)
-  "Toggle omitting files matching `dired-omit-files' and `dired-omit-extensions'.
-With an arg, and if omitting was off, don't toggle and just mark the
-  files but don't actually omit them.
-With an arg, and if omitting was on, turn it off but don't refresh the buffer."
-  (interactive "P")
-  (if flag
-      (if dired-omit-files-p
-          (setq dired-omit-files-p (not dired-omit-files-p))
-        (dired-mark-unmarked-files (dired-omit-regexp) nil nil
-                                   dired-omit-localp))
-    ;; no FLAG
-    (setq dired-omit-files-p (not dired-omit-files-p))
-    (if (not dired-omit-files-p)
-        (revert-buffer)
-      ;; this will mention how many were omitted:
-      (let ((dired-omit-size-limit nil))
-        (dired-omit-expunge)))))
+(defun dired-mark-omitted ()
+  "Mark files matching `dired-omit-files' and `dired-omit-extensions'."
+  (interactive)
+  (let ((dired-omit-mode nil)) (revert-buffer)) ;; Show omitted files
+  (dired-mark-unmarked-files (dired-omit-regexp) nil nil dired-omit-localp))
 
 (defvar dired-omit-extensions
   (append completion-ignored-extensions
@@ -515,12 +581,12 @@ Defaults to elements of `completion-ignored-extensions',
 `dired-latex-unclean-extensions', `dired-bibtex-unclean-extensions', and
 `dired-texinfo-unclean-extensions'.
 
-See interactive function `dired-omit-toggle' \(\\[dired-omit-toggle]\) and
-variables `dired-omit-files-p' and `dired-omit-files'.")
+See interactive function `dired-omit-mode' \(\\[dired-omit-mode]\) and
+variables `dired-omit-mode' and `dired-omit-files'.")
 
 (defun dired-omit-expunge (&optional regexp)
   "Erases all unmarked files matching REGEXP.
-Does nothing if global variable `dired-omit-files-p' is nil, or if called
+Does nothing if global variable `dired-omit-mode' is nil, or if called
   non-interactively and buffer is bigger than `dired-omit-size-limit'.
 If REGEXP is nil or not specified, uses `dired-omit-files', and also omits
   filenames ending in `dired-omit-extensions'.
@@ -529,14 +595,14 @@ If REGEXP is the empty string, this function is a no-op.
 This functions works by temporarily binding `dired-marker-char' to
 `dired-omit-marker-char' and calling `dired-do-kill-lines'."
   (interactive "sOmit files (regexp): ")
-  (if (and dired-omit-files-p
+  (if (and dired-omit-mode
            (or (interactive-p)
                (not dired-omit-size-limit)
                (< (buffer-size) dired-omit-size-limit)
 	       (progn
 		 (message "Not omitting: directory larger than %d characters."
 			  dired-omit-size-limit)
-		 (setq dired-omit-files-p nil)
+		 (setq dired-omit-mode nil)
 		 nil)))
       (let ((omit-re (or regexp (dired-omit-regexp)))
             (old-modified-p (buffer-modified-p))
@@ -573,9 +639,9 @@ This functions works by temporarily binding `dired-marker-char' to
 REGEXP is matched against the entire file name.
 Does not re-mark files which already have a mark.
 With prefix argument, unflag all those files.
-Second optional argument LOCALP is as in `dired-get-filename'."
+Optional fourth argument LOCALP is as in `dired-get-filename'."
   (interactive "P")
-  (let ((dired-marker-char (if unflag-p ?\  dired-marker-char)))
+  (let ((dired-marker-char (if unflag-p ?\s dired-marker-char)))
     (dired-mark-if
      (and
       ;; not already marked
@@ -589,7 +655,7 @@ Second optional argument LOCALP is as in `dired-get-filename'."
 (defun dired-omit-new-add-entry (filename &optional marker-char relative)
   ;; This redefines dired-aux.el's dired-add-entry to avoid calling ls for
   ;; files that are going to be omitted anyway.
-  (if dired-omit-files-p
+  (if dired-omit-mode
       ;; perhaps return t without calling ls
       (let ((omit-re (dired-omit-regexp)))
         (if (or (string= omit-re "")
@@ -625,7 +691,7 @@ Second optional argument LOCALP is as in `dired-get-filename'."
 
 ;;; For browsing `ls -lR' listings in a dired-like fashion.
 
-(fset 'virtual-dired 'dired-virtual)
+(defalias 'virtual-dired 'dired-virtual)
 (defun dired-virtual (dirname &optional switches)
   "Put this buffer into Virtual Dired mode.
 
@@ -642,10 +708,10 @@ buffer.
 If you have save a Dired buffer in a file you can use \\[dired-virtual] to
 resume it in a later session.
 
-Type \\<dired-mode-map>\\[revert-buffer] in the
-Virtual Dired buffer and answer `y' to convert the virtual to a real
-dired buffer again.  You don't have to do this, though: you can relist
-single subdirs using \\[dired-do-redisplay]."
+Type \\<dired-mode-map>\\[revert-buffer] \
+in the Virtual Dired buffer and answer `y' to convert
+the virtual to a real dired buffer again.  You don't have to do this, though:
+you can relist single subdirs using \\[dired-do-redisplay]."
 
   ;; DIRNAME is the top level directory of the buffer.  It will become
   ;; its `default-directory'.  If nil, the old value of
@@ -679,7 +745,9 @@ single subdirs using \\[dired-do-redisplay]."
   ;; decent subdir headerline:
   (goto-char (point-min))
   (or (looking-at dired-subdir-regexp)
-      (dired-insert-headerline default-directory))
+      (insert "  " 
+	      (directory-file-name (file-name-directory default-directory))
+	      ":\n"))
   (dired-mode dirname (or switches dired-listing-switches))
   (setq mode-name "Virtual Dired"
         revert-buffer-function 'dired-virtual-revert)
@@ -729,12 +797,12 @@ nil."
 ;; `buffer-contents-mode-alist'.
 ;; Or you use infer-mode.el and infer-mode-alist, same syntax.
 (defun dired-virtual-mode ()
-  "Put current buffer into virtual dired mode (see `dired-virtual').
+  "Put current buffer into Virtual Dired mode (see `dired-virtual').
 Useful on `buffer-contents-mode-alist' (which see) with the regexp
 
     \"^  \\(/[^ /]+\\)/?+:$\"
 
-to put saved dired buffers automatically into virtual dired mode.
+to put saved dired buffers automatically into Virtual Dired mode.
 
 Also useful for `auto-mode-alist' (which see) like this:
 
@@ -772,7 +840,7 @@ Knows about the special cases in variable `default-directory-alist'."
       default-directory))
 
 (defun dired-smart-shell-command (cmd &optional insert)
-  "Like function `shell-command', but in the current Tree Dired directory."
+  "Like function `shell-command', but in the current Virtual Dired directory."
   (interactive (list (read-from-minibuffer "Shell command: "
 					   nil nil nil 'shell-command-history)
 		     current-prefix-arg))
@@ -804,8 +872,9 @@ Knows about the special cases in variable `default-directory-alist'."
 (defvar dired-local-variables-file (convert-standard-filename ".dired")
   "Filename, as string, containing local dired buffer variables to be hacked.
 If this file found in current directory, then it will be inserted into dired
-buffer and `hack-local-variables' will be run.  See Emacs Info pages for more
-information on local variables.  See also `dired-enable-local-variables'.")
+buffer and `hack-local-variables' will be run.  See Info node
+`(emacs)File Variables' for more information on local variables.
+See also `dired-enable-local-variables'.")
 
 (defun dired-hack-local-variables ()
   "Evaluate local variables in `dired-local-variables-file' for dired buffer."
@@ -832,7 +901,7 @@ information on local variables.  See also `dired-enable-local-variables'.")
 
 (defun dired-omit-here-always ()
   "Create `dired-local-variables-file' for omitting and reverts directory.
-Sets dired-omit-file-p to t in a local variables file that is readable by
+Sets `dired-omit-mode' to t in a local variables file that is readable by
 dired."
   (interactive)
   (if (file-exists-p dired-local-variables-file)
@@ -842,7 +911,7 @@ dired."
     (save-excursion
       (set-buffer (get-buffer-create " *dot-dired*"))
       (erase-buffer)
-      (insert "Local Variables:\ndired-omit-files-p: t\nEnd:\n")
+      (insert "Local Variables:\ndired-omit-mode: t\nEnd:\n")
       (write-file dired-local-variables-file)
       (kill-buffer (current-buffer)))
 
@@ -887,9 +956,17 @@ dired."
 
 (defvar dired-guess-shell-alist-default
   (list
-   (list "\\.tar$" '(if dired-guess-shell-gnutar
-                        (concat dired-guess-shell-gnutar " xvf")
-                      "tar xvf"))
+   (list "\\.tar$"
+         '(if dired-guess-shell-gnutar
+              (concat dired-guess-shell-gnutar " xvf")
+            "tar xvf")
+         ;; Extract files into a separate subdirectory
+         '(if dired-guess-shell-gnutar
+              (concat "mkdir " (file-name-sans-extension file)
+                      "; " dired-guess-shell-gnutar " -C "
+                      (file-name-sans-extension file) " -xvf")
+            (concat "mkdir " (file-name-sans-extension file)
+                    "; tar -C " (file-name-sans-extension file) " -xvf")))
 
    ;; REGEXPS for compressed archives must come before the .Z rule to
    ;; be recognized:
@@ -907,31 +984,67 @@ dired."
          '(if dired-guess-shell-gnutar
               (concat dired-guess-shell-gnutar " zxvf")
             (concat "gunzip -qc * | tar xvf -"))
+         ;; Extract files into a separate subdirectory
+         '(if dired-guess-shell-gnutar
+              (concat "mkdir " (file-name-sans-extension file)
+                      "; " dired-guess-shell-gnutar " -C "
+                      (file-name-sans-extension file) " -zxvf")
+            (concat "mkdir " (file-name-sans-extension file)
+                    "; gunzip -qc * | tar -C "
+                    (file-name-sans-extension file) " -xvf -"))
          ;; Optional decompression.
          '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q" "")))
+
    ;; bzip2'ed archives
-   (list "\\.tar\\.bz2$"
+   (list "\\.t\\(ar\\.bz2\\|bz\\)$"
 	 "bunzip2 -c * | tar xvf -"
+         ;; Extract files into a separate subdirectory
+         '(concat "mkdir " (file-name-sans-extension file)
+                  "; bunzip2 -c * | tar -C "
+                  (file-name-sans-extension file) " -xvf -")
 	 ;; Optional decompression.
          "bunzip2")
 
-   '("\\.shar.Z$" "zcat * | unshar")
-   '("\\.shar.g?z$" "gunzip -qc * | unshar")
+   '("\\.shar\\.Z$" "zcat * | unshar")
+   '("\\.shar\\.g?z$" "gunzip -qc * | unshar")
 
    '("\\.e?ps$" "ghostview" "xloadimage" "lpr")
-   (list "\\.e?ps.g?z$" "gunzip -qc * | ghostview -"
+   (list "\\.e?ps\\.g?z$" "gunzip -qc * | ghostview -"
          ;; Optional decompression.
          '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
-   (list "\\.e?ps.Z$" "zcat * | ghostview -"
+   (list "\\.e?ps\\.Z$" "zcat * | ghostview -"
          ;; Optional conversion to gzip format.
          '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
                   " " dired-guess-shell-znew-switches))
+
    '("\\.patch$" "cat * | patch")
-   '("\\.patch.g?z$" "gunzip -qc * | patch")
-   (list "\\.patch.Z$" "zcat * | patch"
+   (list "\\.patch\\.g?z$" "gunzip -qc * | patch"
+         ;; Optional decompression.
+         '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+   (list "\\.patch\\.Z$" "zcat * | patch"
          ;; Optional conversion to gzip format.
          '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
                   " " dired-guess-shell-znew-switches))
+
+   ;; The following four extensions are useful with dired-man ("N" key)
+   (list "\\.[0-9]$" '(progn (require 'man)
+                             (if (Man-support-local-filenames)
+                                 "man -l"
+                               "cat * | tbl | nroff -man -h")))
+   (list "\\.[0-9]\\.g?z$" '(progn (require 'man)
+                                   (if (Man-support-local-filenames)
+                                       "man -l"
+                                     "gunzip -qc * | tbl | nroff -man -h"))
+         ;; Optional decompression.
+         '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+   (list "\\.[0-9]\\.Z$" '(progn (require 'man)
+                                 (if (Man-support-local-filenames)
+                                     "man -l"
+                                   "zcat * | tbl | nroff -man -h"))
+         ;; Optional conversion to gzip format.
+         '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
+                  " " dired-guess-shell-znew-switches))
+   '("\\.pod$" "perldoc" "pod2man * | nroff -man")
 
    '("\\.dvi$" "xdvi" "dvips")          ; preview and printing
    '("\\.au$" "play")                   ; play Sun audiofiles
@@ -945,7 +1058,7 @@ dired."
    '("\\.gif$" "xloadimage")                    ; view gif pictures
    '("\\.tif$" "xloadimage")
    '("\\.png$" "display")		; xloadimage 4.1 doesn't grok PNG
-   '("\\.jpg$" "xloadimage")
+   '("\\.jpe?g$" "xloadimage")
    '("\\.fig$" "xfig")                  ; edit fig pictures
    '("\\.out$" "xgraph")                ; for plotting purposes.
    '("\\.tex$" "latex" "tex")
@@ -953,14 +1066,18 @@ dired."
    '("\\.pdf$" "xpdf")              ; edit PDF files
 
    ;; Some other popular archivers.
+   (list "\\.zip$" "unzip"
+         ;; Extract files into a separate subdirectory
+         '(concat "unzip" (if dired-guess-shell-gzip-quiet " -q")
+                  " -d " (file-name-sans-extension file)))
    '("\\.zoo$" "zoo x//")
-   '("\\.zip$" "unzip")
    '("\\.lzh$" "lharc x")
    '("\\.arc$" "arc x")
    '("\\.shar$" "unshar")
 
    ;; Compression.
    (list "\\.g?z$" '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+   (list "\\.dz$" "dictunzip")
    (list "\\.bz2$" "bunzip2")
    (list "\\.Z$" "uncompress"
          ;; Optional conversion to gzip format.
@@ -980,7 +1097,7 @@ Each element of this list looks like
 
     \(REGEXP COMMAND...\)
 
-where each COMMAND can either be a string or a lisp expression that evaluates
+where each COMMAND can either be a string or a Lisp expression that evaluates
 to a string.  If several COMMANDs are given, the first one will be the default
 and the rest will be added temporarily to the history and can be retrieved
 with \\[previous-history-element] (M-p) .
@@ -998,11 +1115,17 @@ You can set this variable in your ~/.emacs.  For example, to add rules for
   :group 'dired-x
   :type '(alist :key-type regexp :value-type (repeat sexp)))
 
+(defcustom dired-guess-shell-case-fold-search t
+  "If non-nil, `dired-guess-shell-alist-default' and
+`dired-guess-shell-alist-user' are matched case-insensitively."
+  :group 'dired-x
+  :type 'boolean)
+
 (defun dired-guess-default (files)
   "Guess a shell commands for FILES.  Return command or list of commands.
 See `dired-guess-shell-alist-user'."
 
-  (let* ((case-fold-search nil) ; case-sensitive matching
+  (let* ((case-fold-search dired-guess-shell-case-fold-search)
          ;; Prepend the user's alist to the default alist.
          (alist (append dired-guess-shell-alist-user
                         dired-guess-shell-alist-default))
@@ -1173,14 +1296,14 @@ not absolute ones like
   (dired-do-create-files 'relsymlink (function dired-make-relative-symlink)
                            "RelSymLink" arg dired-keep-marker-relsymlink))
 
-(defun dired-do-relsymlink-regexp (regexp newname &optional whole-name)
+(defun dired-do-relsymlink-regexp (regexp newname &optional arg whole-name)
   "RelSymlink all marked files containing REGEXP to NEWNAME.
 See functions `dired-do-rename-regexp' and `dired-do-relsymlink'
 for more info."
   (interactive (dired-mark-read-regexp "RelSymLink"))
   (dired-do-create-files-regexp
    (function dired-make-relative-symlink)
-   "RelSymLink" nil regexp newname whole-name dired-keep-marker-relsymlink))
+   "RelSymLink" arg regexp newname whole-name dired-keep-marker-relsymlink))
 
 
 ;;; VISIT ALL MARKED FILES SIMULTANEOUSLY.
@@ -1271,11 +1394,13 @@ NOSELECT the files are merely found but not selected."
 
 (defun dired-man ()
   "Run man on this file.  Display old buffer if buffer name matches filename.
-Uses ../lisp/man.el of \\[manual-entry] fame."
+Uses `man.el' of \\[manual-entry] fame."
   (interactive)
   (require 'man)
-  (let ((file (dired-get-filename))
-        (manual-program "nroff -man -h"))
+  (let* ((file (dired-get-filename))
+         (manual-program (replace-regexp-in-string "\\*" "%s"
+                          (dired-guess-shell-command
+                           "Man command: " (list file)))))
     (Man-getpage-in-background file)))
 
 ;;; Run Info on files.
@@ -1287,9 +1412,11 @@ Uses ../lisp/man.el of \\[manual-entry] fame."
 
 ;;; Run mail on mail folders.
 
-;;; (and (not (fboundp 'vm-visit-folder))
-;;;      (defun vm-visit-folder (file &optional arg)
-;;;        nil))
+;; Avoid compiler warning.
+(eval-when-compile
+  (when (not (fboundp 'vm-visit-folder))
+    (defun vm-visit-folder (file &optional arg)
+      nil)))
 
 (defun dired-vm (&optional read-only)
   "Run VM on this file.
@@ -1389,7 +1516,7 @@ See also variable `dired-vm-read-only-folders'."
 (defun dired-initial-position (dirname)
   "Where point should go in a new listing of DIRNAME.
 Point assumed at beginning of new subdir line.
-You may redefine this function as you wish, e.g. like in dired-x.el."
+You may redefine this function as you wish, e.g. like in `dired-x.el'."
   (end-of-line)
   (if dired-find-subdir (dired-goto-subdir dirname)) ; new
   (if dired-trivial-filenames (dired-goto-next-nontrivial-file)))
@@ -1449,10 +1576,10 @@ to mark all zero length files."
               (if (looking-at dired-re-inode-size)
                   (progn
                     (goto-char (match-end 0))
-                    (setq inode (string-to-int (buffer-substring (match-beginning 1)
-                                                                 (match-end 1)))
-                          s (string-to-int (buffer-substring (match-beginning 2)
-                                                             (match-end 2)))))
+                    (setq inode (string-to-number (buffer-substring (match-beginning 1)
+                                                                    (match-end 1)))
+                          s (string-to-number (buffer-substring (match-beginning 2)
+                                                                (match-end 2)))))
                 (setq inode nil
                       s nil))
               (setq mode (buffer-substring (point) (+ mode-len (point))))
@@ -1461,14 +1588,13 @@ to mark all zero length files."
               ;; Karsten Wenger <kw@cis.uni-muenchen.de> fixed uid.
               (setq uid (buffer-substring (+ (point) 1)
 					  (progn (forward-word 1) (point))))
-              (re-search-forward "\\(Jan\\|Feb\\|Mar\\|Apr\\|May\\|Jun\\|\
-Jul\\|Aug\\|Sep\\|Oct\\|Nov\\|Dec\\)")
+              (re-search-forward directory-listing-before-filename-regexp)
               (goto-char (match-beginning 1))
               (forward-char -1)
-              (setq size (string-to-int (buffer-substring (save-excursion
-                                                            (backward-word 1)
-                                                            (setq pos (point)))
-                                                          (point))))
+              (setq size (string-to-number (buffer-substring (save-excursion
+                                                               (backward-word 1)
+                                                               (setq pos (point)))
+                                                             (point))))
               (goto-char pos)
               (backward-word 1)
               ;; if no gid is displayed, gid will be set to uid
@@ -1499,7 +1625,7 @@ Jul\\|Aug\\|Sep\\|Oct\\|Nov\\|Dec\\)")
 (defvar dired-x-hands-off-my-keys t
   "*Non-nil means don't bind `dired-x-find-file' over `find-file' on keyboard.
 Similarly for `dired-x-find-file-other-window' over `find-file-other-window'.
-If you change this variable after dired-x.el is loaded then do
+If you change this variable after `dired-x.el' is loaded then do
 \\[dired-x-bind-find-file].")
 
 ;;; Bind `dired-x-find-file{-other-window}' over wherever
@@ -1508,7 +1634,7 @@ If you change this variable after dired-x.el is loaded then do
   "Bind `dired-x-find-file' in place of `find-file' \(or reverse\).
 Similarly for `dired-x-find-file-other-window' and `find-file-other-window'.
 Binding direction based on `dired-x-hands-off-my-keys'.
-This function part of `after-init-hook'."
+This function is part of `after-init-hook'."
   (interactive)
   (if (interactive-p)
       (setq dired-x-hands-off-my-keys
@@ -1541,9 +1667,9 @@ May create a new window, or reuse an existing one.
 See the function `display-buffer'.
 
 Identical to `find-file' except when called interactively, with a prefix arg
-\(e.g., \\[universal-argument]\), in which case it guesses filename near
-point.  Useful for editing file mentioned in buffer you are viewing, or to
-test if that file exists.  Use minibuffer after snatching filename."
+\(e.g., \\[universal-argument]\), in which case it guesses filename near point.
+Useful for editing file mentioned in buffer you are viewing,
+or to test if that file exists.  Use minibuffer after snatching filename."
   (interactive (list (read-filename-at-point "Find file: ")))
   (find-file (expand-file-name filename)))
 
@@ -1553,9 +1679,9 @@ May create a new window, or reuse an existing one.
 See the function `display-buffer'.
 
 Identical to `find-file-other-window' except when called interactively, with a
-prefix arg \(e.g., \\[universal-argument]\), in which case it guesses filename
-near point.  Useful for editing file mentioned in buffer you are viewing, or
-to test if that file exists.  Use minibuffer after snatching filename."
+prefix arg \(e.g., \\[universal-argument]\), in which case it guesses filename near point.
+Useful for editing file mentioned in buffer you are viewing,
+or to test if that file exists.  Use minibuffer after snatching filename."
   (interactive (list (read-filename-at-point "Find file: ")))
   (find-file-other-window (expand-file-name filename)))
 
@@ -1637,14 +1763,14 @@ If `current-prefix-arg' is non-nil, uses name at point as guess."
    'dired-guess-shell-znew-switches
    'dired-guess-shell-alist-user
    'dired-clean-up-buffers-too
-   'dired-omit-files-p
+   'dired-omit-mode
    'dired-omit-files
    'dired-omit-extensions
    )
   "List of variables to be appended to reports sent by `dired-x-submit-report'.")
 
 (defun dired-x-submit-report ()
-  "Submit via reporter.el a bug report on program.
+  "Submit via `reporter.el' a bug report on program.
 Send report on `dired-x-file' version `dired-x-version,' to
 `dired-x-maintainer' at address `dired-x-help-address' listing
 variables `dired-x-variable-list' in the message."
@@ -1661,4 +1787,5 @@ variables `dired-x-variable-list' in the message."
 ;; As Barry Warsaw would say: "This might be useful..."
 (provide 'dired-x)
 
+;; arch-tag: 71a43ba2-7a00-4793-a028-0613dd7765ae
 ;;; dired-x.el ends here

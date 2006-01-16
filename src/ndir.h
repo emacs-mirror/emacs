@@ -53,3 +53,6 @@ extern void		seekdir();
 extern void		closedir();
 
 #define rewinddir( dirp )	seekdir( dirp, 0L )
+
+/* arch-tag: aea50570-ffb7-43fd-b423-7743b10fbe6e
+   (do not change this comment) */

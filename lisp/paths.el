@@ -1,6 +1,7 @@
 ;;; paths.el --- define pathnames for use by various Emacs commands -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1986, 1988, 1994, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1988, 1994, 1999, 2000, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -37,13 +38,13 @@
 ;; DOC file rather than in memory.
 
 (defun prune-directory-list (dirs &optional keep reject)
-  "Returns a copy of DIRS with all non-existant directories removed.
+  "Returns a copy of DIRS with all non-existent directories removed.
 The optional argument KEEP is a list of directories to retain even if
 they don't exist, and REJECT is a list of directories to remove from
 DIRS, even if they exist; REJECT takes precedence over KEEP.
 
 Note that membership in REJECT and KEEP is checked using simple string
-comparision."
+comparison."
   (apply #'nconc
 	 (mapcar (lambda (dir)
 		   (and (not (member dir reject))
@@ -101,11 +102,12 @@ This variable `Info-default-directory-list' is used as the default
 for initializing `Info-directory-list' when Info is started, unless
 the environment variable INFOPATH is set.")
 
-(defvar news-path
+(defvar news-directory
   (if (file-exists-p "/usr/spool/news/")
       "/usr/spool/news/"
     "/var/spool/news/")
   "The root directory below which all news files are stored.")
+(defvaralias 'news-path 'news-directory)
 
 (defvar news-inews-program
   (cond ((file-exists-p "/usr/bin/inews") "/usr/bin/inews")
@@ -136,7 +138,7 @@ The `ORGANIZATION' environment variable is used instead if defined.")
   :group 'rmail
   :version "21.1")
 
-(defconst rmail-spool-directory
+(defvar rmail-spool-directory
   (cond ((string-match "^[^-]+-[^-]+-sco3.2v4" system-configuration)
 	 "/usr/spool/mail/")
 	;; On The Bull DPX/2 /usr/spool/mail is used although
@@ -157,15 +159,17 @@ The `ORGANIZATION' environment variable is used instead if defined.")
   "Name of directory used by system mailer for delivering new mail.
 Its name should end with a slash.")
 
-(defconst sendmail-program
+(defcustom sendmail-program
   (cond
     ((file-exists-p "/usr/sbin/sendmail") "/usr/sbin/sendmail")
     ((file-exists-p "/usr/lib/sendmail") "/usr/lib/sendmail")
     ((file-exists-p "/usr/ucblib/sendmail") "/usr/ucblib/sendmail")
     (t "fakemail"))			;In ../etc, to interface to /bin/mail.
-  "Program used to send messages.")
+  "Program used to send messages."
+  :group 'mail
+  :type 'file)
 
-(defconst remote-shell-program
+(defcustom remote-shell-program
   (cond
    ;; Some systems use rsh for the remote shell; others use that name for the
    ;; restricted shell and use remsh for the remote shell.  Let's try to guess
@@ -186,17 +190,20 @@ Its name should end with a slash.")
    ((file-exists-p "/bin/rsh") "/bin/rsh")
    ((file-exists-p "/usr/bin/rsh") "/usr/bin/rsh")
    (t "rsh"))
-  "File name for remote-shell program (often rsh or remsh).")
+  "File name for remote-shell program (often rsh or remsh)."
+  :group 'environment
+  :type 'file)
 
-(defconst term-file-prefix (if (eq system-type 'vax-vms) "[.term]" "term/") "\
+(defvar term-file-prefix (if (eq system-type 'vax-vms) "[.term]" "term/") "\
 If non-nil, Emacs startup does (load (concat term-file-prefix (getenv \"TERM\")))
 You may set this variable to nil in your `.emacs' file if you do not wish
 the terminal-initialization file to be loaded.")
 
-(defconst abbrev-file-name
+(defvar abbrev-file-name
   (if (eq system-type 'vax-vms)
       "~/abbrev.def"
     (convert-standard-filename "~/.abbrev_defs"))
   "*Default name of file to read abbrevs from.")
 
+;;; arch-tag: bae27ffb-9944-4c87-b569-30d4635a99e1
 ;;; paths.el ends here

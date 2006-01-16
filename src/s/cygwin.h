@@ -1,7 +1,8 @@
 /* Template for system description header files.
    This file describes the parameters that system description files
    should define or not.
-   Copyright (C) 1985, 1986, 1992, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,8 +18,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
@@ -115,18 +116,14 @@ Boston, MA 02111-1307, USA.  */
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 #define GETPGRP_NO_ARG 1
 #define SYSV_SYSTEM_DIR 1
-/* -lutil comes from inetutils and has pty functions in it */
-#define LIBS_SYSTEM -lutil
-/* undumping is not implemented yet */
-#define CANNOT_DUMP 1
+#define LIB_STANDARD_LIBSRC
+#define UNEXEC unexcw.o
 #define POSIX_SIGNALS 1
 /* force the emacs image to start high in memory, so dll relocation
    can put things in low memory without causing all sorts of grief for
    emacs lisp pointers */
 #define DATA_SEG_BITS 0x20000000
 #define LINKER $(CC) -Wl,--image-base,DATA_SEG_BITS
-/* gettext.h is in a strange place */
-#define C_SWITCH_SYSTEM -I/usr/share/gettext
 
 /* Use terminfo instead of termcap.  Fewer environment variables to
    go wrong, more terminal types. */
@@ -137,10 +134,13 @@ Boston, MA 02111-1307, USA.  */
 /*#define HAVE_VFORK*/
 /* Xaw3d causes problems -- might have been fixed by NARROWPROTO
    above, but I haven't tried it */
-#undef HAVE_XAW3D
+/*#undef HAVE_XAW3D*/
 
 /* vfork() interacts badly with setsid(), causing ptys to fail to
    change their controlling terminal */
 #define vfork fork
 
 /* the end */
+
+/* arch-tag: 5ae7ba00-83b0-4ab3-806a-3e845779191b
+   (do not change this comment) */

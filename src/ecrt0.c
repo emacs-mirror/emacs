@@ -1,5 +1,6 @@
 /* C code startup routine.
-   Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* The standard Vax 4.2 Unix crt0.c cannot be used for Emacs
@@ -610,3 +611,6 @@ char *__progname;
 char *__progname;
 #endif
 #endif /* __bsdi__ */
+
+/* arch-tag: 4025c2fb-d6b1-4d29-b1b6-8100b6bd1e74
+   (do not change this comment) */

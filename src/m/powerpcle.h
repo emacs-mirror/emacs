@@ -1,5 +1,5 @@
 /* machine description file for PowerPC.
-   Copyright (C) 1987, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1987, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
@@ -56,3 +57,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Control a conditional in unexelf.c.  */
 #define SOLARIS_POWERPC
+
+/* arch-tag: dc2c3cb6-4683-45ae-961f-0a4f2bda3c61
+   (do not change this comment) */

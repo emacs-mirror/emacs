@@ -1,6 +1,7 @@
 ;;; register.el --- register commands for Emacs
 
-;; Copyright (C) 1985, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1993, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -146,7 +147,7 @@ Interactively, NUMBER is the prefix arg (none means nil)."
 		  (if (looking-at "\\s-*-?[0-9]+")
 		      (progn
 			(goto-char (match-end 0))
-			(string-to-int (match-string 0)))
+			(string-to-number (match-string 0)))
 		    0))))
 
 (defun increment-register (number register)
@@ -227,8 +228,10 @@ The Lisp value REGISTER is a character."
 	(princ (car val))))
 
      ((stringp val)
-      (remove-list-of-text-properties 0 (length val)
-                                      yank-excluded-properties val)
+      (if (eq yank-excluded-properties t)
+	  (set-text-properties 0 (length val) nil val)
+	(remove-list-of-text-properties 0 (length val)
+					yank-excluded-properties val))
       (if verbose
 	  (progn
 	    (princ "the text:\n")
@@ -275,7 +278,7 @@ Interactively, second arg is non-nil if prefix arg is supplied."
 Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to copy."
   (interactive "cCopy to register: \nr\nP")
-  (set-register register (buffer-substring start end))
+  (set-register register (filter-buffer-substring start end))
   (if delete-flag (delete-region start end)))
 
 (defun append-to-register (register start end &optional delete-flag)
@@ -287,7 +290,7 @@ START and END are buffer positions indicating what to append."
   (or (stringp (get-register register))
       (error "Register does not contain text"))
   (set-register register (concat (get-register register)
-			    (buffer-substring start end)))
+			    (filter-buffer-substring start end)))
   (if delete-flag (delete-region start end)))
 
 (defun prepend-to-register (register start end &optional delete-flag)
@@ -298,14 +301,16 @@ START and END are buffer positions indicating what to prepend."
   (interactive "cPrepend to register: \nr\nP")
   (or (stringp (get-register register))
       (error "Register does not contain text"))
-  (set-register register (concat (buffer-substring start end)
+  (set-register register (concat (filter-buffer-substring start end)
 			    (get-register register)))
   (if delete-flag (delete-region start end)))
 
 (defun copy-rectangle-to-register (register start end &optional delete-flag)
   "Copy rectangular region into register REGISTER.
-With prefix arg, delete as well.
-Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
+With prefix arg, delete as well.  To insert this register
+in the buffer, use \\[insert-register].
+
+Called from a program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions giving two corners of rectangle."
   (interactive "cCopy rectangle to register: \nr\nP")
   (set-register register
@@ -313,4 +318,6 @@ START and END are buffer positions giving two corners of rectangle."
 		    (delete-extract-rectangle start end)
 		  (extract-rectangle start end))))
 
+(provide 'register)
+;;; arch-tag: ce14dd68-8265-475f-9341-5d4ec5a53035
 ;;; register.el ends here

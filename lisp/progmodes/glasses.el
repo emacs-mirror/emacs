@@ -1,6 +1,6 @@
 ;;; glasses.el --- make cantReadThis readable
 
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Maintainer: Milan Zamazal <pdm@zamazal.org>
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -82,7 +82,7 @@ For example, you can set `glasses-separator' to an empty string and
 `glasses-face' to `bold'.  Then unreadable identifiers will have no separators,
 but will have their capitals in bold."
   :group 'glasses
-  :type 'symbol
+  :type '(choice (const :tag "None" nil) face)
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default)
 
@@ -195,6 +195,16 @@ CATEGORY is the overlay category.  If it is nil, use the `glasses' category."
 			   (looking-at glasses-uncapitalize-regexp))))
 	      (overlay-put o 'invisible t)
 	      (overlay-put o 'after-string (downcase (match-string n))))))
+        ;; Separator change
+        (unless (string= glasses-separator "_")
+          (goto-char beg)
+          (while (re-search-forward "[a-zA-Z0-9]\\(_+\\)[a-zA-Z0-9]" end t)
+            (goto-char (match-beginning 1))
+            (while (eql (char-after) ?\_)
+              (let ((o (glasses-make-overlay (point) (1+ (point)))))
+                ;; `concat' ensures the character properties won't merge
+                (overlay-put o 'display (concat glasses-separator)))
+              (forward-char))))
 	;; Parentheses
 	(when glasses-separate-parentheses-p
 	  (goto-char beg)
@@ -227,6 +237,13 @@ recognized according to the current value of the variable `glasses-separator'."
 	  (let ((n (if (match-string 1) 1 2)))
 	    (replace-match "" t nil nil n)
 	    (goto-char (match-end n))))
+        (unless (string= glasses-separator "_")
+          (goto-char (point-min))
+          (while (re-search-forward (format "[a-zA-Z0-9]\\(%s+\\)[a-zA-Z0-9]"
+                                            separator)
+                                    nil t)
+            (replace-match "_" nil nil nil 1)
+            (goto-char (match-beginning 1))))
 	(when glasses-separate-parentheses-p
 	  (goto-char (point-min))
 	  (while (re-search-forward "[a-zA-Z]_*\\( \\)\(" nil t)
@@ -251,7 +268,7 @@ recognized according to the current value of the variable `glasses-separator'."
   "Minor mode for making identifiers likeThis readable.
 When this mode is active, it tries to add virtual separators (like underscores)
 at places they belong to."
-  nil " o^o" nil
+  :group 'glasses :lighter " o^o"
   (save-excursion
     (save-restriction
       (widen)
@@ -273,4 +290,5 @@ at places they belong to."
 (provide 'glasses)
 
 
+;;; arch-tag: a3515167-c89e-484f-90a1-d85143e52b12
 ;;; glasses.el ends here

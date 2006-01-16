@@ -1,6 +1,7 @@
 ;;; hideif.el --- hides selected code within ifdef
 
-;; Copyright (C) 1988,1994,2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 2001, 2002, 2003, 2004 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Maintainer: FSF
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -197,7 +198,7 @@ how the hiding is done:
 	After `show-ifdefs', read-only status is restored to previous value.
 
 \\{hide-ifdef-mode-map}"
-  nil " Ifdef" nil
+  :group 'hide-ifdef :lighter " Ifdef"
   (if hide-ifdef-mode
       (progn
 	;; inherit global values
@@ -958,7 +959,12 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
 
 (defun hide-ifdef-use-define-alist (name)
   "Set `hide-ifdef-env' to the define list specified by NAME."
-  (interactive "SUse define list: ")
+  (interactive
+   (list (completing-read "Use define list: "
+			  (mapcar (lambda (x) (symbol-name (car x)))
+                                  hide-ifdef-define-alist)
+                          nil t)))
+  (if (stringp name) (setq name (intern name)))
   (let ((define-list (assoc name hide-ifdef-define-alist)))
     (if define-list
 	(setq hide-ifdef-env
@@ -969,4 +975,5 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
 
 (provide 'hideif)
 
+;; arch-tag: c6381d17-a59a-483a-b945-658f22277981
 ;;; hideif.el ends here

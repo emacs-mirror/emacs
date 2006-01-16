@@ -2,8 +2,8 @@
 # Configuration script for src/config.h under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2000, 2002
-#   Free Software Foundation, Inc.
+# Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2000, 2002, 2003,
+#   2004, 2005 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -37,12 +37,17 @@
 /^#undef HAVE_FMOD *$/s/^.*$/#define HAVE_FMOD 1/
 /^#undef HAVE_RINT *$/s/^.*$/#define HAVE_RINT 1/
 /^#undef HAVE_CBRT *$/s/^.*$/#define HAVE_CBRT 1/
+/^#undef HAVE_DIFFTIME *$/s/^.*$/#define HAVE_DIFFTIME 1/
 /^#undef HAVE_FPATHCONF *$/s/^.*$/#define HAVE_FPATHCONF 1/
+/^#undef HAVE_MEMCMP *$/s/^.*$/#define HAVE_MEMCMP 1/
+/^#undef HAVE_MEMMOVE *$/s/^.*$/#define HAVE_MEMMOVE 1/
 /^#undef HAVE_SETRLIMIT *$/s/^.*$/#define HAVE_SETRLIMIT 1/
+/^#undef HAVE_GETRUSAGE *$/s/^.*$/#define HAVE_GETRUSAGE 1/
 /^#undef HAVE_TM_GMTOFF *$/s/^.*$/#define HAVE_TM_GMTOFF 1/
 /^#undef HAVE_MBLEN *$/s/^.*$/#define HAVE_MBLEN 1/
 /^#undef HAVE_STRUCT_TIMEZONE *$/s/^.*$/#define HAVE_STRUCT_TIMEZONE 1/
 /^#undef HAVE_INDEX *$/s/^.*$/#define HAVE_INDEX 1/
+/^#undef HAVE_SIZE_T *$/s/^.*$/#define HAVE_SIZE_T 1/
 /^#undef HAVE_RINDEX *$/s/^.*$/#define HAVE_RINDEX 1/
 /^#undef HAVE_MKSTEMP *$/s/^.*$/#define HAVE_MKSTEMP 1/
 /^#undef HAVE_STRUCT_TM_TM_ZONE *$/s/^.*$/#define HAVE_STRUCT_TM_TM_ZONE 1/
@@ -79,8 +84,18 @@ s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
 #else\
 #undef HAVE_STDINT_H\
 #endif
+# GCC 3.x has a built-in bzero, which conflicts with the define at
+# the end of config.in
+/^#undef HAVE_BZERO/c\
+#if __GNUC__ >= 3\
+#define HAVE_BZERO 1\
+#else\
+#undef HAVE_BZERO\
+#endif
 
 # Comment out any remaining undef directives, because some of them
 # might be defined in sys/config.h we include at the top of config.h.
 /^#undef BSTRING/s|#undef|# undef|
 /^#undef .*$/s|^.*$|/* & */|
+
+# arch-tag: 2acb5571-ff53-4822-9175-95b864b59f7c

@@ -1,13 +1,14 @@
 ;;; ediff.el --- a comprehensive visual interface to diff & patch
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02, 03 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, tools, unix
 
-(defconst ediff-version "2.78" "The current version of Ediff")
-(defconst ediff-date "January 25, 2003" "Date of last update")
+(defconst ediff-version "2.80.1" "The current version of Ediff")
+(defconst ediff-date "November 25, 2005" "Date of last update")
 
 
 ;; This file is part of GNU Emacs.
@@ -24,8 +25,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -135,7 +136,7 @@
 (require 'ediff-mult)  ; required because of the registry stuff
 
 (defgroup ediff nil
-  "A comprehensive visual interface to diff & patch"
+  "A comprehensive visual interface to diff & patch."
   :tag "Ediff"
   :group 'tools)
 
@@ -501,6 +502,7 @@ the same name in both.  The third argument, REGEXP, is nil or a regular
 expression; only file names that match the regexp are considered."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
+	 (default-regexp (eval ediff-default-filtering-regexp))
 	 f)
      (list (setq f (ediff-read-file-name "Directory A to compare:" dir-A nil))
 	   (ediff-read-file-name "Directory B to compare:"
@@ -508,8 +510,14 @@ expression; only file names that match the regexp are considered."
 				     ediff-last-dir-B
 				   (ediff-strip-last-dir f))
 				 nil)
-	   (read-string "Filter through regular expression: "
-			nil 'ediff-filtering-regexp-history)
+	   (read-string
+	    (if (stringp default-regexp)
+		(format "Filter through regular expression (default %s): "
+			 default-regexp)
+	      "Filter through regular expression: ")
+	    nil
+	    'ediff-filtering-regexp-history
+	    (eval ediff-default-filtering-regexp))
 	   )))
   (ediff-directories-internal
    dir1 dir2 nil regexp 'ediff-files 'ediff-directories
@@ -525,11 +533,19 @@ expression; only file names that match the regexp are considered."
 The second argument, REGEXP, is a regular expression that filters the file
 names.  Only the files that are under revision control are taken into account."
   (interactive
-   (let ((dir-A (ediff-get-default-directory-name)))
+   (let ((dir-A (ediff-get-default-directory-name))
+	 (default-regexp (eval ediff-default-filtering-regexp))
+	 )
      (list (ediff-read-file-name
 	    "Directory to compare with revision:" dir-A nil)
-	   (read-string "Filter through regular expression: "
-			nil 'ediff-filtering-regexp-history)
+	   (read-string
+	    (if (stringp default-regexp)
+		(format "Filter through regular expression (default %s): "
+			 default-regexp)
+	      "Filter through regular expression: ")
+	    nil
+	    'ediff-filtering-regexp-history
+	    (eval ediff-default-filtering-regexp))
 	   )))
   (ediff-directory-revisions-internal
    dir1 regexp 'ediff-revision 'ediff-directory-revisions
@@ -547,6 +563,7 @@ regular expression; only file names that match the regexp are considered."
 
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
+	 (default-regexp (eval ediff-default-filtering-regexp))
 	 f)
      (list (setq f (ediff-read-file-name "Directory A to compare:" dir-A nil))
 	   (setq f (ediff-read-file-name "Directory B to compare:"
@@ -559,8 +576,14 @@ regular expression; only file names that match the regexp are considered."
 				     ediff-last-dir-C
 				   (ediff-strip-last-dir f))
 				 nil)
-	   (read-string "Filter through regular expression: "
-			nil 'ediff-filtering-regexp-history)
+	   (read-string
+	    (if (stringp default-regexp)
+		(format "Filter through regular expression (default %s): "
+			 default-regexp)
+	      "Filter through regular expression: ")
+	    nil
+	    'ediff-filtering-regexp-history
+	    (eval ediff-default-filtering-regexp))
 	   )))
   (ediff-directories-internal
    dir1 dir2 dir3 regexp 'ediff-files3 'ediff-directories3
@@ -576,6 +599,7 @@ the same name in both.  The third argument, REGEXP, is nil or a regular
 expression; only file names that match the regexp are considered."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
+	 (default-regexp (eval ediff-default-filtering-regexp))
 	 f)
      (list (setq f (ediff-read-file-name "Directory A to merge:" dir-A nil))
 	   (ediff-read-file-name "Directory B to merge:"
@@ -583,8 +607,14 @@ expression; only file names that match the regexp are considered."
 				     ediff-last-dir-B
 				   (ediff-strip-last-dir f))
 				 nil)
-	   (read-string "Filter through regular expression: "
-			nil 'ediff-filtering-regexp-history)
+	   (read-string
+	    (if (stringp default-regexp)
+		(format "Filter through regular expression (default %s): "
+			 default-regexp)
+	      "Filter through regular expression: ")
+	    nil
+	    'ediff-filtering-regexp-history
+	    (eval ediff-default-filtering-regexp))
 	   )))
   (ediff-directories-internal
    dir1 dir2 nil regexp 'ediff-merge-files 'ediff-merge-directories
@@ -605,6 +635,7 @@ without ancestor.  The fourth argument, REGEXP, is nil or a regular expression;
 only file names that match the regexp are considered."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
+	 (default-regexp (eval ediff-default-filtering-regexp))
 	 f)
      (list (setq f (ediff-read-file-name "Directory A to merge:" dir-A nil))
 	   (setq f (ediff-read-file-name "Directory B to merge:"
@@ -617,8 +648,14 @@ only file names that match the regexp are considered."
 				     ediff-last-dir-C
 				   (ediff-strip-last-dir f))
 				 nil)
-	   (read-string "Filter through regular expression: "
-			nil 'ediff-filtering-regexp-history)
+	   (read-string
+	    (if (stringp default-regexp)
+		(format "Filter through regular expression (default %s): "
+			 default-regexp)
+	      "Filter through regular expression: ")
+	    nil
+	    'ediff-filtering-regexp-history
+	    (eval ediff-default-filtering-regexp))
 	   )))
   (ediff-directories-internal
    dir1 dir2 ancestor-dir regexp
@@ -633,11 +670,19 @@ only file names that match the regexp are considered."
 The second argument, REGEXP, is a regular expression that filters the file
 names.  Only the files that are under revision control are taken into account."
   (interactive
-   (let ((dir-A (ediff-get-default-directory-name)))
+   (let ((dir-A (ediff-get-default-directory-name))
+	 (default-regexp (eval ediff-default-filtering-regexp))
+	 )
      (list (ediff-read-file-name
 	    "Directory to merge with revisions:" dir-A nil)
-	   (read-string "Filter through regular expression: "
-			nil 'ediff-filtering-regexp-history)
+	   (read-string
+	    (if (stringp default-regexp)
+		(format "Filter through regular expression (default %s): "
+			 default-regexp)
+	      "Filter through regular expression: ")
+	    nil
+	    'ediff-filtering-regexp-history
+	    (eval ediff-default-filtering-regexp))
 	   )))
   (ediff-directory-revisions-internal
    dir1 regexp 'ediff-merge-revisions 'ediff-merge-directory-revisions
@@ -655,11 +700,19 @@ names.  Only the files that are under revision control are taken into account."
 The second argument, REGEXP, is a regular expression that filters the file
 names.  Only the files that are under revision control are taken into account."
   (interactive
-   (let ((dir-A (ediff-get-default-directory-name)))
+   (let ((dir-A (ediff-get-default-directory-name))
+	 (default-regexp (eval ediff-default-filtering-regexp))
+	 )
      (list (ediff-read-file-name
 	    "Directory to merge with revisions and ancestors:" dir-A nil)
-	   (read-string "Filter through regular expression: "
-			nil 'ediff-filtering-regexp-history)
+	   (read-string
+	    (if (stringp default-regexp)
+		(format "Filter through regular expression (default %s): "
+			 default-regexp)
+	      "Filter through regular expression: ")
+	    nil
+	    'ediff-filtering-regexp-history
+	    (eval ediff-default-filtering-regexp))
 	   )))
   (ediff-directory-revisions-internal
    dir1 regexp 'ediff-merge-revisions-with-ancestor
@@ -1028,8 +1081,11 @@ lines.  For small regions, use `ediff-regions-wordwise'."
 
 (defsubst ediff-merge-on-startup ()
   (ediff-do-merge 0)
-  (ediff-with-current-buffer ediff-buffer-C
-    (set-buffer-modified-p nil)))
+  ;; Can't remember why this is here, but it may cause the automatically merged
+  ;; buffer to be lost. So, keep the buffer modified.
+  ;;(ediff-with-current-buffer ediff-buffer-C
+  ;;  (set-buffer-modified-p nil))
+  )
 
 ;;;###autoload
 (defun ediff-merge-files (file-A file-B
@@ -1205,13 +1261,13 @@ buffer."
     (setq rev1
 	  (read-string
 	   (format
-	    "Version 1 to merge (default: %s's working version): "
+	    "Version 1 to merge (default %s's working version): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer")))
 	  rev2
 	  (read-string
 	   (format
-	    "Version 2 to merge (default: %s): "
+	    "Version 2 to merge (default %s): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer"))))
     (ediff-load-version-control)
@@ -1237,19 +1293,19 @@ buffer."
     (setq rev1
 	  (read-string
 	   (format
-	    "Version 1 to merge (default: %s's working version): "
+	    "Version 1 to merge (default %s's working version): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer")))
 	  rev2
 	  (read-string
 	   (format
-	    "Version 2 to merge (default: %s): "
+	    "Version 2 to merge (default %s): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer")))
 	  ancestor-rev
 	  (read-string
 	   (format
-	    "Ancestor version (default: %s's base revision): "
+	    "Ancestor version (default %s's base revision): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer"))))
     (ediff-load-version-control)
@@ -1302,11 +1358,13 @@ buffer. If odd -- assume it is in a file."
 
 ;;;###autoload
 (defun ediff-patch-buffer (&optional arg patch-buf)
-  "Run Ediff by patching BUFFER-NAME.
-Without prefix argument: asks if the patch is in some buffer and prompts for
-the buffer or a file, depending on the answer.
-With prefix arg=1: assumes the patch is in a file and prompts for the file.
-With prefix arg=2: assumes the patch is in a buffer and prompts for the buffer."
+  "Run Ediff by patching the buffer specified at prompt.
+Without the optional prefix ARG, asks if the patch is in some buffer and
+prompts for the buffer or a file, depending on the answer.
+With ARG=1, assumes the patch is in a file and prompts for the file.
+With ARG=2, assumes the patch is in a buffer and prompts for the buffer.
+PATCH-BUF is an optional argument, which specifies the buffer that contains the
+patch. If not given, the user is prompted according to the prefix argument."
   (interactive "P")
   (require 'ediff-ptch)
   (setq patch-buf
@@ -1353,11 +1411,11 @@ Uses `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
   (let (rev1 rev2)
     (setq rev1
 	  (read-string
-	   (format "Revision 1 to compare (default: %s's latest revision): "
+	   (format "Revision 1 to compare (default %s's latest revision): "
 		   (file-name-nondirectory file)))
 	  rev2
 	  (read-string
-	   (format "Revision 2 to compare (default: %s's current state): "
+	   (format "Revision 2 to compare (default %s's current state): "
 		   (file-name-nondirectory file))))
     (ediff-load-version-control)
     (funcall
@@ -1422,7 +1480,58 @@ With optional NODE, goes to that node."
 		   (set-window-buffer ctl-window ctl-buf)))))))
 
 
+(dolist (mess '("^Errors in diff output. Diff output is in "
+                "^Hmm... I don't see an Ediff command around here...$"
+                "^Undocumented command! Type `G' in Ediff Control Panel to drop a note to the Ediff maintainer$"
+                ": This command runs in Ediff Control Buffer only!$"
+                ": Invalid op in ediff-check-version$"
+                "^ediff-shrink-window-C can be used only for merging jobs$"
+                "^Lost difference info on these directories$"
+                "^This command is inapplicable in the present context$"
+                "^This session group has no parent$"
+                "^Can't hide active session, $"
+                "^Ediff: something wrong--no multiple diffs buffer$"
+                "^Can't make context diff for Session $"
+                "^The patch buffer wasn't found$"
+                "^Aborted$"
+                "^This Ediff session is not part of a session group$"
+                "^No active Ediff sessions or corrupted session registry$"
+                "^No session info in this line$"
+                "^`.*' is not an ordinary file$"
+                "^Patch appears to have failed$"
+                "^Recomputation of differences cancelled$"
+                "^No fine differences in this mode$"
+                "^Lost connection to ancestor buffer...sorry$"
+                "^Not merging with ancestor$"
+                "^Don't know how to toggle read-only in buffer "
+                "Emacs is not running as a window application$"
+                "^This command makes sense only when merging with an ancestor$"
+                "^At end of the difference list$"
+                "^At beginning of the difference list$"
+                "^Nothing saved for diff .* in buffer "
+                "^Buffer is out of sync for file "
+                "^Buffer out of sync for file "
+                "^Output from `diff' not found$"
+                "^You forgot to specify a region in buffer "
+                "^All right. Make up your mind and come back...$"
+                "^Current buffer is not visiting any file$"
+                "^Failed to retrieve revision: $"
+                "^Can't determine display width.$"
+                "^File `.*' does not exist or is not readable$"
+                "^File `.*' is a directory$"
+                "^Buffer .* doesn't exist$"
+                "^Directories . and . are the same: "
+                "^Directory merge aborted$"
+                "^Merge of directory revisions aborted$"
+                "^Buffer .* doesn't exist$"
+                "^There is no file to merge$"
+                "^Version control package .*.el not found. Use vc.el instead$"))
+  (add-to-list 'debug-ignored-errors mess))
 
+
+(require 'ediff-util)
+
+(run-hooks 'ediff-load-hook)
 
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
@@ -1430,8 +1539,5 @@ With optional NODE, goes to that node."
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-(require 'ediff-util)
-
-(run-hooks 'ediff-load-hook)
-
+;;; arch-tag: 97c71396-db02-4f41-8b48-6a51c3348fcc
 ;;; ediff.el ends here

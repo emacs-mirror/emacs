@@ -1,6 +1,7 @@
 ;;; uce.el --- facilitate reply to unsolicited commercial email
 
-;; Copyright (C) 1996, 1998, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: stanislav shalunov <shalunov@mccme.ru>
 ;; Created: 10 Dec 1996
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -113,6 +114,10 @@
 ;; nil, left blank.
 
 ;;; Code:
+
+(defvar gnus-original-article-buffer)
+(defvar mail-reply-buffer)
+(defvar rmail-current-message)
 
 (require 'sendmail)
 ;; Those sections of code which are dependent upon
@@ -283,7 +288,7 @@ address, and postmaster of the mail relay used."
 	     (re-search-forward "^Lines:")
 	     (beginning-of-line))
 	    ((eq uce-mail-reader 'rmail)
-	     (beginning-of-buffer)
+	     (goto-char (point-min))
 	     (search-forward "*** EOOH ***\n")
 	     (beginning-of-line)
 	     (forward-line -1)))
@@ -364,11 +369,7 @@ address, and postmaster of the mail relay used."
 	       (if (file-exists-p "~/.signature")
 		   (progn
 		     (insert "\n\n-- \n")
-		     (insert-file "~/.signature")
-		     ;; Function insert-file leaves point where it was,
-		     ;; while we want to place signature in the ``middle''
-		     ;; of the message.
-		     (exchange-point-and-mark))))
+		     (forward-char (cadr (insert-file-contents "~/.signature"))))))
 	      (uce-signature
 	       (insert "\n\n-- \n" uce-signature)))
 	;; And text of the original message.
@@ -392,4 +393,5 @@ address, and postmaster of the mail relay used."
 
 (provide 'uce)
 
+;;; arch-tag: 44b68c87-9b29-47bd-822c-3feee3883221
 ;;; uce.el ends here

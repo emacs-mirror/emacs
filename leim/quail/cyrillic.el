@@ -1,8 +1,10 @@
 ;;; cyrillic.el --- Quail package for inputting Cyrillic characters
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: TAKAHASHI Naoto <ntakahas@m17n.org>
 ;; Keywords: multilingual, input method, Cyrillic, i18n
@@ -21,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -52,8 +54,8 @@
  nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2" 3' 4* 5: 6, 7. 8; 9( 0) -_ =+ ,L!(B
-;;   ,L9(B  ,LF(B  ,LC(B  ,L:(B  ,L5(B  ,L=(B  ,L3(B  ,LH(B  ,LI(B  ,L7(B  ,LE(B  ,Lj(B
-;;    ,LD(B  ,LK(B  ,L2(B  ,L0(B  ,L?(B  ,L@(B  ,L>(B  ,L;(B  ,L4(B ,L6(B  ,LM(B
+;;   ,L9(B  ,LF(B  ,LC(B  ,L:(B  ,L5(B  ,L=(B  ,L3(B  ,LH(B  ,LI(B  ,L7(B  ,LE(B  ,LJ(B
+;;    ,LD(B  ,LK(B  ,L2(B  ,L0(B  ,L?(B  ,L@(B  ,L>(B  ,L;(B  ,L4(B  ,L6(B  ,LM(B
 ;;     ,LO(B  ,LG(B  ,LA(B  ,L<(B  ,L8(B  ,LB(B  ,LL(B  ,L1(B  ,LN(B  /?
 
 (quail-define-rules
@@ -174,8 +176,8 @@
  nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2" 3,Lp(B 4; 5% 6: 7? 8* 9( 0) -_ =+ ,Lq!(B
-;;   ,L9(B  ,LF(B  ,LC(B  ,L:(B  ,L5(B  ,L=(B  ,L3(B  ,LH(B  ,LI(B  ,L7(B  ,LE(B  ,Lj(B
-;;    ,LD(B  ,LK(B  ,L2(B  ,L0(B  ,L?(B  ,L@(B  ,L>(B  ,L;(B  ,L4(B ,L6(B  ,LM(B
+;;   ,L9(B  ,LF(B  ,LC(B  ,L:(B  ,L5(B  ,L=(B  ,L3(B  ,LH(B  ,LI(B  ,L7(B  ,LE(B  ,LJ(B
+;;    ,LD(B  ,LK(B  ,L2(B  ,L0(B  ,L?(B  ,L@(B  ,L>(B  ,L;(B  ,L4(B  ,L6(B  ,LM(B
 ;;     ,LO(B  ,LG(B  ,LA(B  ,L<(B  ,L8(B  ,LB(B  ,LL(B  ,L1(B  ,LN(B  .,
 
 (quail-define-rules
@@ -770,7 +772,6 @@ Sorry, but 'ghe with upturn' is not included in ISO 8859-5."
  ("l" ?$,1(T(B)
  (";" ?$,1(V(B)
  ("'" ?$,1(t(B)
- ("\\" ?\\)
  ("z" ?$,1(o(B)
  ("x" ?$,1(g(B)
  ("c" ?$,1(a(B)
@@ -998,10 +999,10 @@ as follows.
 ;; language-independent and universal.  It should be able to generate all
 ;; Cyrillic symbols.
 (quail-define-package
- "cyrillic-translit" "Cyrillic" ",L6(Bt" nil
+ "cyrillic-translit" "Cyrillic" ",L6(Bt" t
  "Intuitively transliterated keyboard layout.
-Most convenient for entering Russian but all Cyrillic characters are included.
-Should handle most cases. However:
+Most convenient for entering Russian, but all Cyrillic characters
+are included.  Should handle most cases.  However:
   for ,Lf(B (TSE) use \"c\", never \"ts\"
   ,Li(B (SHCHA = Bulgarian SHT) = \"shch\", \"sj\", \"/sht\" or \"/t\",
   ,Lm(B (REVERSE ROUNDED E) = \"e'\" or \"e`\"
@@ -1073,8 +1074,8 @@ Unicode based."
  nil t t t t nil nil nil nil nil t)
 
 ;; $,1(q(!(B 1! 2" 3N 4; 5% 6: 7? 8* 9( 0) -_ =+
-;;     $,1(9(B  $,1(F(B  $,1(C(B  $,1(:(B  $,1(5(B  $,1(=(B  $,1(3(B  $,1(H(B  $,1(.(B $,1(7(B  $,1(E(B  '
-;;      $,1(D(B  $,1(K(B  $,1(2(B  $,1(0(B  $,1(?(B  $,1(@(B  $,1(>(B  $,1(;(B  $,1(4(B $,1(6(B  $,1(M(B
+;;     $,1(9(B  $,1(F(B  $,1(C(B  $,1(:(B  $,1(5(B  $,1(=(B  $,1(3(B  $,1(H(B  $,1(.(B  $,1(7(B  $,1(E(B  '
+;;      $,1(D(B  $,1(K(B  $,1(2(B  $,1(0(B  $,1(?(B  $,1(@(B  $,1(>(B  $,1(;(B  $,1(4(B  $,1(6(B  $,1(M(B
 ;;       $,1(O(B  $,1(G(B  $,1(A(B  $,1(<(B  $,1(&(B  $,1(B(B  $,1(L(B  $,1(1(B  $,1(N(B  .,
 
 (quail-define-rules
@@ -1170,12 +1171,15 @@ Unicode based."
 The layout is similar to `cyrillic-translit', but all Bulgarian
 characters are typed with a single key.
 
-Use /& for ,A'(B (Cyrillic paragraph) and /# for $,1uV(B."
+Use /& for ,A'(B (Cyrillic paragraph) and /# for $,1uV(B.
+
+The letters $,1(G(B, $,1(H(B, $,1(I(B and $,1(N(B are not affected by Caps Lock."
  nil t t t t nil nil nil nil nil t)
 
-;;   $,1(O(B  $,1(2(B  $,1(5(B  $,1(@(B  $,1(B(B  $,1(J(B  $,1(C(B  $,1(8(B  $,1(>(B  $,1(?(B  $,1(H(B  $,1(I(B
-;;    $,1(0(B  $,1(A(B  $,1(4(B  $,1(D(B  $,1(3(B  $,1(E(B  $,1(9(B  $,1(:(B  $,1(;(B        $,1(G(B
-;;  $,1(N(B  $,1(7(B  $,1(L(B  $,1(F(B  $,1(6(B  $,1(1(B  $,1(=(B  $,1(<(B
+;;  $,1(G(B
+;;      $,1(O(B  $,1(2(B  $,1(5(B  $,1(@(B  $,1(B(B  $,1(J(B  $,1(C(B  $,1(8(B  $,1(>(B  $,1(?(B  $,1(H(B  $,1(I(B
+;;       $,1(0(B  $,1(A(B  $,1(4(B  $,1(D(B  $,1(3(B  $,1(E(B  $,1(9(B  $,1(:(B  $,1(;(B        $,1(N(B
+;;        $,1(7(B  $,1(L(B  $,1(F(B  $,1(6(B  $,1(1(B  $,1(=(B  $,1(<(B
 
 (quail-define-rules
  ("/&" ?,A'(B)
@@ -1239,7 +1243,6 @@ Use /& for ,A'(B (Cyrillic paragraph) and /# for $,1uV(B."
  ("y" ?$,1(j(B)
  ("x" ?$,1(l(B)
  ("\\" ?$,1(n(B)
- ("|" ?$,1(N(B)
  ("q" ?$,1(o(B))
 
 ;; Based on an implementation by Ognyan Kulev <ogi@fmi.uni-sofia.bg>.
@@ -1249,36 +1252,34 @@ Use /& for ,A'(B (Cyrillic paragraph) and /# for $,1uV(B."
  "bulgarian-bds" "Bulgarian" "$,1(1(4(A(B" nil
  "Bulgarian standard keyboard layout (BDS)
 
-This keyboard layout is standard for Bulgarian typewriters."
+This keyboard layout is standard for Bulgarian typewriters.
+
+The letters $,1(F(B, $,1(<(B, $,1(G(B, $,1(@(B, $,1(;(B, $,1(1(B and $,1(K(B are not affected by Caps Lock.
+
+In addition to original Bulgarian typewriter layout, keys \\ and |
+are transformed into ' and $,1(K(B respectively.  Some keyboards mark these
+keys as being transformed into ( and ) respectively.  For ( and ), use
+` and ~ respectively.  This input method follows XKB."
  nil t t t t nil nil nil nil nil t)
 
-;;  1! 2? 3+ 4" 5% 6= 7: 8/ 9_ 0$,1uV(B -I .V
-;;   ,$,1(k(B $,1(C(B  $,1(5(B  $,1(8(B  $,1(H(B  $,1(I(B  $,1(:(B  $,1(A(B  $,1(4(B  $,1(7(B  $,1(F(B  ;,A'(B
-;;    $,1(l(B  $,1(O(B  $,1(0(B  $,1(>(B  $,1(6(B  $,1(3(B  $,1(B(B  $,1(=(B  $,1(2(B  $,1(<(B  $,1(G(B  ()
-;;     $,1(N(B  $,1(9(B  $,1(J(B  $,1(M(B  $,1(D(B  $,1(E(B  $,1(?(B  $,1(@(B  $,1(;(B  $,1(1(B
+;;  () 1! 2? 3+ 4" 5% 6= 7: 8/ 9_ 0$,1uV(B -I .V
+;;      ,$,1(k(B $,1(C(B  $,1(5(B  $,1(8(B  $,1(H(B  $,1(I(B  $,1(:(B  $,1(A(B  $,1(4(B  $,1(7(B  $,1(F(B  ;,A'(B
+;;       $,1(L(B  $,1(O(B  $,1(0(B  $,1(>(B  $,1(6(B  $,1(3(B  $,1(B(B  $,1(=(B  $,1(2(B  $,1(<(B  $,1(G(B  '$,1(K(B
+;;        $,1(N(B  $,1(9(B  $,1(J(B  $,1(M(B  $,1(D(B  $,1(E(B  $,1(?(B  $,1(@(B  $,1(;(B  $,1(1(B
 
 (quail-define-rules
 
  ("1" ?1) ("!" ?!)
- ("2" ?2)
- ("@" ??)
- ("3" ?3)
- ("#" ?+)
- ("4" ?4)
- ("$" ?\")
+ ("2" ?2) ("@" ??)
+ ("3" ?3) ("#" ?+)
+ ("4" ?4) ("$" ?\")
  ("5" ?5) ("%" ?%)
- ("6" ?6)
- ("^" ?=)
- ("7" ?7)
- ("&" ?:)
- ("8" ?8)
- ("*" ?/)
- ("9" ?9)
- ("(" ?_)
- ("0" ?0)
- (")" ?$,1uV(B)
- ("-" ?-)
- ("_" ?I)
+ ("6" ?6) ("^" ?=)
+ ("7" ?7) ("&" ?:)
+ ("8" ?8) ("*" ?/)
+ ("9" ?9) ("(" ?_)
+ ("0" ?0) (")" ?$,1uV(B)
+ ("-" ?-) ("_" ?I)
  ("=" ?.) ("+" ?V)
 
  ("q" ?,) ("Q" ?$,1(k(B)
@@ -1292,8 +1293,7 @@ This keyboard layout is standard for Bulgarian typewriters."
  ("o" ?$,1(T(B) ("O" ?$,1(4(B)
  ("p" ?$,1(W(B) ("P" ?$,1(7(B)
  ("[" ?$,1(f(B) ("{" ?$,1(F(B)
- ("]" ?\;)
- ("}" ?,A'(B) ;; not in XKB's bg
+ ("]" ?\;) ("}" ?,A'(B)
 
  ("a" ?$,1(l(B) ("A" ?$,1(L(B)
  ("s" ?$,1(o(B) ("S" ?$,1(O(B)
@@ -1324,4 +1324,5 @@ This keyboard layout is standard for Bulgarian typewriters."
 ;; coding: iso-2022-7bit
 ;; End:
 
+;;; arch-tag: e6d34b16-8710-4181-a17e-819a1df0334f
 ;;; cyrillic.el ends here

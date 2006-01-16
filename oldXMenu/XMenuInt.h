@@ -1,6 +1,6 @@
 
-/* $Header: /cvs/emacs/oldXMenu/XMenuInt.h,v 1.1 1999/10/03 19:35:24 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
  * XMenu:	MIT Project Athena, X Window system menu package
@@ -61,3 +61,6 @@ int _XMHighlightSelection();	/* No value actually returned. */
 
 #endif
 /* Don't add stuff after this #endif */
+
+/* arch-tag: 00640af1-9386-48b5-a4be-35620b8cd3aa
+   (do not change this comment) */

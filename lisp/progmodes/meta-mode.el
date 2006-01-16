@@ -1,6 +1,7 @@
 ;;; meta-mode.el --- major mode for editing Metafont or MetaPost sources
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Ulrik Vieth <vieth@thphy.uni-duesseldorf.de>
 ;; Version: 1.0
@@ -20,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -32,7 +33,7 @@
 ;; a major mode including an approriate syntax table, keymap, and a
 ;; mode-specific pull-down menu.  It also provides a sophisticated set
 ;; of font-lock patterns, a fancy indentation function adapted from
-;; AUC-TeX's latex.el, and some basic mode-specific editing functions
+;; AUCTeX's latex.el, and some basic mode-specific editing functions
 ;; such as functions to move to the beginning or end of the enclosing
 ;; environment, or to mark, re-indent, or comment-out environments.
 ;; On the other hand, it doesn't yet provide any functionality for
@@ -134,6 +135,7 @@
 
 (defgroup meta-font nil
   "Major mode for editing Metafont or MetaPost sources."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 ;;; Fontification.
@@ -508,7 +510,7 @@ If the list was changed, sort the list and remove duplicates first."
                  (message "Making completion list...")
                  (let ((list (all-completions symbol list nil)))
                    (with-output-to-temp-buffer "*Completions*"
-                     (display-completion-list list)))
+                     (display-completion-list list symbol)))
                  (message "Making completion list... done"))))
       (funcall (nth 1 entry)))))
 
@@ -898,7 +900,7 @@ The environment marked is the one that contains point or follows point."
 ;; Compatibility: XEmacs doesn't have the  `mark-active' variable.
 (defun meta-mark-active ()
   "Return whether the mark and region are currently active in this buffer."
-  (or (and (boundp 'mark-active) mark-active) (mark)))
+  (if (boundp 'mark-active) mark-active (mark)))
 
 
 
@@ -998,7 +1000,7 @@ Turning on Metafont mode calls the value of the variables
   (setq meta-complete-list
         (list (list "\\<\\(\\sw+\\)" 1 'meta-symbol-list)
               (list "" 'ispell-complete-word)))
-  (run-hooks 'meta-common-mode-hook 'metafont-mode-hook))
+  (run-mode-hooks 'meta-common-mode-hook 'metafont-mode-hook))
 
 ;;;###autoload
 (defun metapost-mode ()
@@ -1023,7 +1025,7 @@ Turning on MetaPost mode calls the value of the variable
   (setq meta-complete-list
         (list (list "\\<\\(\\sw+\\)" 1 'meta-symbol-list)
               (list "" 'ispell-complete-word)))
-  (run-hooks 'meta-common-mode-hook 'metapost-mode-hook))
+  (run-mode-hooks 'meta-common-mode-hook 'metapost-mode-hook))
 
 
 ;;; Just in case ...
@@ -1031,4 +1033,5 @@ Turning on MetaPost mode calls the value of the variable
 (provide 'meta-mode)
 (run-hooks 'meta-mode-load-hook)
 
+;;; arch-tag: ec2916b2-3a83-4cf7-962d-d8019370c006
 ;;; meta-mode.el ends here

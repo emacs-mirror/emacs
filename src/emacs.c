@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
-   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2001,2002
-      Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999,
+                 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #include <config.h>
@@ -40,10 +40,18 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/ioctl.h>
 #endif
 
+#ifdef WINDOWSNT
+#include <fcntl.h>
+#include <windows.h> /* just for w32.h */
+#include "w32.h"
+#include "w32heap.h" /* for prototype of sbrk */
+#endif
+
 #include "lisp.h"
 #include "commands.h"
 #include "intervals.h"
 #include "buffer.h"
+#include "window.h"
 
 #include "systty.h"
 #include "blockinput.h"
@@ -60,6 +68,10 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_SETRLIMIT
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
+
+#ifdef HAVE_PERSONALITY_LINUX32
+#include <sys/personality.h>
 #endif
 
 #ifndef O_RDWR
@@ -81,15 +93,28 @@ extern char *index P_ ((const char *, int));
 
 /* Make these values available in GDB, which doesn't see macros.  */
 
+#ifdef USE_LSB_TAG
+int gdb_use_lsb = 1;
+#else
+int gdb_use_lsb = 0;
+#endif
+#ifdef NO_UNION_TYPE
+int gdb_use_union = 0;
+#else
+int gdb_use_union = 1;
+#endif
 EMACS_INT gdb_valbits = VALBITS;
 EMACS_INT gdb_gctypebits = GCTYPEBITS;
-EMACS_INT gdb_emacs_intbits = sizeof (EMACS_INT) * BITS_PER_CHAR;
 #ifdef DATA_SEG_BITS
 EMACS_INT gdb_data_seg_bits = DATA_SEG_BITS;
 #else
 EMACS_INT gdb_data_seg_bits = 0;
 #endif
 EMACS_INT PVEC_FLAG = PSEUDOVECTOR_FLAG;
+EMACS_INT gdb_array_mark_flag = ARRAY_MARK_FLAG;
+/* GDB might say "No enum type named pvec_type" if we don't have at
+   least one symbol with that type, and then xbacktrace could fail.  */
+enum pvec_type gdb_pvec_type = PVEC_TYPE_MASK;
 
 /* Command line args from shell, as list of strings.  */
 Lisp_Object Vcommand_line_args;
@@ -111,14 +136,6 @@ Lisp_Object Vkill_emacs_hook;
 /* An empty lisp string.  To avoid having to build any other.  */
 Lisp_Object empty_string;
 
-#ifdef SIGUSR1
-/* Hooks for signal USR1 and USR2 handling.  */
-Lisp_Object Vsignal_USR1_hook;
-#ifdef SIGUSR2
-Lisp_Object Vsignal_USR2_hook;
-#endif
-#endif
-
 /* Search path separator.  */
 Lisp_Object Vpath_separator;
 
@@ -134,7 +151,7 @@ void *malloc_state_ptr;
 /* From glibc, a routine that returns a copy of the malloc internal state.  */
 extern void *malloc_get_state ();
 /* From glibc, a routine that overwrites the malloc internal state.  */
-extern void malloc_set_state ();
+extern int malloc_set_state ();
 /* Non-zero if the MALLOC_CHECK_ enviroment variable was set while
    dumping.  Used to work around a bug in glibc's malloc.  */
 int malloc_using_checking;
@@ -185,11 +202,24 @@ int display_arg;
    Tells GC how to save a copy of the stack.  */
 char *stack_bottom;
 
+/* The address where the heap starts (from the first sbrk (0) call).  */
+static void *my_heap_start;
+
+/* The gap between BSS end and heap start as far as we can tell.  */
+static unsigned long heap_bss_diff;
+
+/* If the gap between BSS end and heap start is larger than this we try to
+   work around it, and if that fails, output a warning in dump-emacs.  */
+#define MAX_HEAP_BSS_DIFF (1024*1024)
+
+
 #ifdef HAVE_WINDOW_SYSTEM
 extern Lisp_Object Vwindow_system;
 #endif /* HAVE_WINDOW_SYSTEM */
 
 extern Lisp_Object Vauto_save_list_file_name;
+
+extern Lisp_Object Vinhibit_redisplay;
 
 #ifdef USG_SHARED_LIBRARIES
 /* If nonzero, this is the place to put the end of the writable segment
@@ -215,6 +245,8 @@ int initial_argc;
 static void sort_args ();
 void syms_of_emacs ();
 
+/* MSVC needs each string be shorter than 2048 bytes, so the usage
+   strings below are split to not overflow this limit.  */
 #define USAGE1 "\
 Usage: %s [OPTION-OR-FILENAME]...\n\
 \n\
@@ -222,81 +254,89 @@ Run Emacs, the extensible, customizable, self-documenting real-time\n\
 display editor.  The recommended way to start Emacs for normal editing\n\
 is with no options at all.\n\
 \n\
-Run M-x info RET m emacs RET m command arguments RET inside Emacs to\n\
+Run M-x info RET m emacs RET m emacs invocation RET inside Emacs to\n\
 read the main documentation for these command-line arguments.\n\
 \n\
 Initialization options:\n\
 \n\
---batch			do not do interactive display; implies -q\n\
---script FILE           run FILE as an Emacs Lisp script.\n\
---debug-init		enable Emacs Lisp debugger during init file\n\
---help			display this help message and exit\n\
---multibyte, --no-unibyte   run Emacs in multibyte mode\n\
---no-init-file, -q	    load neither ~/.emacs nor default.el\n\
---no-shared-memory, -nl	    do not use shared memory\n\
---no-site-file		    do not load site-start.el\n\
---no-splash		    do not display a splash screen on startup\n\
---no-window-system, -nw	    don't communicate with X, ignoring $DISPLAY\n\
---terminal, -t DEVICE	    use DEVICE for terminal I/O\n\
+--batch                     do not do interactive display; implies -q\n\
+--debug-init                enable Emacs Lisp debugger for init file\n\
+--display, -d DISPLAY       use X server DISPLAY\n\
+--multibyte, --no-unibyte   inhibit the effect of EMACS_UNIBYTE\n\
+--no-desktop                do not load a saved desktop\n\
+--no-init-file, -q          load neither ~/.emacs nor default.el\n\
+--no-shared-memory, -nl     do not use shared memory\n\
+--no-site-file              do not load site-start.el\n\
+--no-splash                 do not display a splash screen on startup\n\
+--no-window-system, -nw     do not communicate with X, ignoring $DISPLAY\n\
+--quick, -Q                 equivalent to -q --no-site-file --no-splash\n\
+--script FILE               run FILE as an Emacs Lisp script\n\
+--terminal, -t DEVICE       use DEVICE for terminal I/O\n\
 --unibyte, --no-multibyte   run Emacs in unibyte mode\n\
---user, -u USER		load ~USER/.emacs instead of your own\n\
---version		display version information and exit\n\
-\n\
-Action options:\n\
-\n\
-FILE			visit FILE using find-file\n\
-+LINE FILE		visit FILE using find-file, then go to line LINE\n\
-+LINE:COLUMN FILE	visit FILE using find-file, then go to line LINE,\n\
-			    column COLUMN\n\
---directory, -L DIR	add DIR to variable load-path\n\
---eval EXPR		evaluate Emacs Lisp expression EXPR\n\
---execute EXPR		evaluate Emacs Lisp expression EXPR\n\
---find-file FILE	visit FILE\n\
---funcall, -f FUNC	call Emacs function FUNC with no arguments\n\
---insert FILE		insert contents of FILE into current buffer\n\
---kill			exit without asking for confirmation\n\
---load, -l FILE		load FILE of Emacs Lisp code using the load function\n\
---visit FILE		visit FILE\n\
-\n"
+--user, -u USER             load ~USER/.emacs instead of your own\n\
+\n%s"
 
 #define USAGE2 "\
+Action options:\n\
+\n\
+FILE                    visit FILE using find-file\n\
++LINE FILE              visit FILE using find-file, then go to line LINE\n\
++LINE:COLUMN FILE       visit FILE using find-file, then go to line LINE,\n\
+                          column COLUMN\n\
+--directory, -L DIR     add DIR to variable load-path\n\
+--eval EXPR             evaluate Emacs Lisp expression EXPR\n\
+--execute EXPR          evaluate Emacs Lisp expression EXPR\n\
+--file FILE             visit FILE using find-file\n\
+--find-file FILE        visit FILE using find-file\n\
+--funcall, -f FUNC      call Emacs Lisp function FUNC with no arguments\n\
+--insert FILE           insert contents of FILE into current buffer\n\
+--kill                  exit without asking for confirmation\n\
+--load, -l FILE         load Emacs Lisp FILE using the load function\n\
+--visit FILE            visit FILE using find-file\n\
+\n"
+
+#define USAGE3 "\
 Display options:\n\
 \n\
---background-color, -bg COLOR	window background color\n\
---border-color, -bd COLOR	main border color\n\
---border-width, -bw WIDTH	width of main border\n\
---color=MODE			color mode for character terminals;\n\
-				MODE defaults to `auto', and can also\n\
-				be `never', `auto', `always',\n\
-				or a mode name like `ansi8'\n\
---cursor-color, -cr COLOR	color of the Emacs cursor indicating point\n\
---display, -d DISPLAY		use X server DISPLAY\n\
---font, -fn FONT		default font; must be fixed-width\n\
---foreground-color, -fg COLOR	window foreground color\n\
---fullscreen, -fs	        make first frame fullscreen\n\
---fullwidth, -fw	        make the first frame wide as the screen\n\
---fullheight, -fh	        make the first frame high as the screen\n\
---geometry, -g GEOMETRY		window geometry\n\
---iconic			start Emacs in iconified state\n\
---icon-type, -i			use picture of gnu for Emacs icon\n\
---internal-border, -ib WIDTH	width between text and main border\n\
---line-spacing, -lsp PIXELS	additional space to put between lines\n\
---mouse-color, -ms COLOR 	mouse cursor color in Emacs window\n\
---name NAME			title of main Emacs window\n\
---reverse-video, -r, -rv	switch foreground and background\n\
---title, -T, -wn TITLE		title for Emacs windows\n\
---vertical-scroll-bars, -vb	enable vertical scroll bars\n\
---xrm XRESOURCES		set additional X resources\n\
-\n\
+--background-color, -bg COLOR   window background color\n\
+--basic-display, -D             disable many display features;\n\
+                                  used for debugging Emacs\n\
+--border-color, -bd COLOR       main border color\n\
+--border-width, -bw WIDTH       width of main border\n\
+--color, --color=MODE           color mode for character terminals;\n\
+                                  MODE defaults to `auto', and can also\n\
+                                  be `never', `auto', `always',\n\
+                                  or a mode name like `ansi8'\n\
+--cursor-color, -cr COLOR       color of the Emacs cursor indicating point\n\
+--font, -fn FONT                default font; must be fixed-width\n\
+--foreground-color, -fg COLOR   window foreground color\n\
+--fullheight, -fh               make the first frame high as the screen\n\
+--fullscreen, -fs               make first frame fullscreen\n\
+--fullwidth, -fw                make the first frame wide as the screen\n\
+--geometry, -g GEOMETRY         window geometry\n\
+--no-bitmap-icon, -nbi          do not use picture of gnu for Emacs icon\n\
+--iconic                        start Emacs in iconified state\n\
+--internal-border, -ib WIDTH    width between text and main border\n\
+--line-spacing, -lsp PIXELS     additional space to put between lines\n\
+--mouse-color, -ms COLOR        mouse cursor color in Emacs window\n\
+--name NAME                     title for initial Emacs frame\n\
+--no-blinking-cursor, -nbc      disable blinking cursor\n\
+--reverse-video, -r, -rv        switch foreground and background\n\
+--title, -T TITLE               title for initial Emacs frame\n\
+--vertical-scroll-bars, -vb     enable vertical scroll bars\n\
+--xrm XRESOURCES                set additional X resources\n\
+--help                          display this help and exit\n\
+--version                       output version information and exit\n\
+\n"
+
+#define USAGE4 "\
 You can generally also specify long option names with a single -; for\n\
 example, -batch as well as --batch.  You can use any unambiguous\n\
 abbreviation for a --option.\n\
 \n\
 Various environment variables and window system resources also affect\n\
 Emacs' operation.  See the main documentation.\n\
-\n"
-
-#define USAGE3 "\
+\n\
 Report bugs to %s.  First, please see the Bugs\n\
 section of the Emacs manual or the file BUGS.\n"
 
@@ -312,6 +352,14 @@ int fatal_error_in_progress;
 
 void (*fatal_error_signal_hook) P_ ((void));
 
+#ifdef HAVE_GTK_AND_PTHREAD
+/* When compiled with GTK and running under Gnome, multiple threads meay be
+   created.  Keep track of our main thread to make sure signals are delivered
+   to it (see syssignal.h).  */
+
+pthread_t main_thread;
+#endif
+
 
 #ifdef SIGUSR1
 SIGTYPE
@@ -320,6 +368,7 @@ handle_USR1_signal (sig)
 {
   struct input_event buf;
 
+  SIGNAL_THREAD_CHECK (sig);
   bzero (&buf, sizeof buf);
   buf.kind = USER_SIGNAL_EVENT;
   buf.frame_or_window = selected_frame;
@@ -335,6 +384,7 @@ handle_USR2_signal (sig)
 {
   struct input_event buf;
 
+  SIGNAL_THREAD_CHECK (sig);
   bzero (&buf, sizeof buf);
   buf.kind = USER_SIGNAL_EVENT;
   buf.code = 1;
@@ -349,6 +399,7 @@ SIGTYPE
 fatal_error_signal (sig)
      int sig;
 {
+  SIGNAL_THREAD_CHECK (sig);
   fatal_error_code = sig;
   signal (sig, SIG_DFL);
 
@@ -388,6 +439,7 @@ memory_warning_signal (sig)
      int sig;
 {
   signal (sig, memory_warning_signal);
+  SIGNAL_THREAD_CHECK (sig);
 
   malloc_warning ("Operating system warns that virtual memory is running low.\n");
 
@@ -550,8 +602,12 @@ init_cmdargs (argc, argv, skip_args)
   for (i = argc - 1; i >= 0; i--)
     {
       if (i == 0 || i > skip_args)
+	/* For the moment, we keep arguments as is in unibyte strings.
+	   They are decoded in the function command-line after we know
+	   locale-coding-system.  */
 	Vcommand_line_args
-	  = Fcons (build_string (argv[i]), Vcommand_line_args);
+	  = Fcons (make_unibyte_string (argv[i], strlen (argv[i])),
+		   Vcommand_line_args);
     }
 
   unbind_to (count, Qnil);
@@ -601,7 +657,7 @@ void __do_global_ctors_aux ()
 {}
 void __do_global_dtors ()
 {}
-/* Linux has a bug in its library; avoid an error.  */
+/* GNU/Linux has a bug in its library; avoid an error.  */
 #ifndef GNU_LINUX
 char * __CTOR_LIST__[2] = { (char *) (-1), 0 };
 #endif
@@ -714,10 +770,16 @@ malloc_initialize_hook ()
 	}
 
       malloc_set_state (malloc_state_ptr);
+#ifndef XMALLOC_OVERRUN_CHECK
       free (malloc_state_ptr);
+#endif
     }
   else
-    malloc_using_checking = getenv ("MALLOC_CHECK_") != NULL;
+    {
+      if (my_heap_start == 0)
+        my_heap_start = sbrk (0);
+      malloc_using_checking = getenv ("MALLOC_CHECK_") != NULL;
+    }
 }
 
 void (*__malloc_initialize_hook) () = malloc_initialize_hook;
@@ -793,6 +855,17 @@ main (argc, argv
   stack_base = &dummy;
 #endif
 
+  if (!initialized)
+    {
+      extern char my_endbss[];
+      extern char *my_endbss_static;
+
+      if (my_heap_start == 0)
+        my_heap_start = sbrk (0);
+
+      heap_bss_diff = (char *)my_heap_start - max (my_endbss, my_endbss_static);
+    }
+
 #ifdef LINUX_SBRK_BUG
   __sbrk (1);
 #endif
@@ -826,7 +899,7 @@ main (argc, argv
       else
 	{
 	  printf ("GNU Emacs %s\n", SDATA (tem));
-	  printf ("Copyright (C) 2002 Free Software Foundation, Inc.\n");
+	  printf ("Copyright (C) 2006 Free Software Foundation, Inc.\n");
 	  printf ("GNU Emacs comes with ABSOLUTELY NO WARRANTY.\n");
 	  printf ("You may redistribute copies of Emacs\n");
 	  printf ("under the terms of the GNU General Public License.\n");
@@ -835,6 +908,34 @@ main (argc, argv
 	  exit (0);
 	}
     }
+
+#ifdef HAVE_PERSONALITY_LINUX32
+  /* See if there is a gap between the end of BSS and the heap.
+     In that case, set personality and exec ourself again.  */
+  if (!initialized
+      && (strcmp (argv[argc-1], "dump") == 0
+          || strcmp (argv[argc-1], "bootstrap") == 0)
+      && heap_bss_diff > MAX_HEAP_BSS_DIFF)
+    {
+      if (! getenv ("EMACS_HEAP_EXEC"))
+        {
+          /* Set this so we only do this once.  */
+          putenv("EMACS_HEAP_EXEC=true");
+
+	  /* A flag to turn off address randomization which is introduced
+	   in linux kernel shipped with fedora core 4 */
+#define ADD_NO_RANDOMIZE 0x0040000
+	  personality (PER_LINUX32 | ADD_NO_RANDOMIZE);
+#undef  ADD_NO_RANDOMIZE
+
+          execvp (argv[0], argv);
+
+          /* If the exec fails, try to dump anyway.  */
+          perror ("execvp");
+        }
+    }
+#endif /* HAVE_PERSONALITY_LINUX32 */
+
 
 /* Map in shared memory, if we are using that.  */
 #ifdef HAVE_SHM
@@ -864,16 +965,22 @@ main (argc, argv
 
 #ifdef MAC_OSX
   /* Skip process serial number passed in the form -psn_x_y as
-     command-line argument.  */
+     command-line argument.  The WindowServer adds this option when
+     Emacs is invoked from the Finder or by the `open' command.  In
+     these cases, the working directory becomes `/', so we change it
+     to the user's home directory.  */
   if (argc > skip_args + 1 && strncmp (argv[skip_args+1], "-psn_", 5) == 0)
-    skip_args++;
+    {
+      chdir (getenv ("HOME"));
+      skip_args++;
+    }
 #endif /* MAC_OSX */
 
 #ifdef VMS
   /* If -map specified, map the data file in.  */
   {
     char *file;
-    if (argmatch (argv, argc, "-map", "--map-data", 3, &mapin_file, &skip_args))
+    if (argmatch (argv, argc, "-map", "--map-data", 3, &file, &skip_args))
       mapin_data (file);
   }
 
@@ -903,7 +1010,7 @@ main (argc, argv
       && !getrlimit (RLIMIT_STACK, &rlim))
     {
       long newlim;
-      extern int re_max_failures;
+      extern size_t re_max_failures;
       /* Approximate the amount regex.c needs per unit of re_max_failures.  */
       int ratio = 20 * sizeof (char *);
       /* Then add 33% to cover the size of the smaller stacks that regex.c
@@ -950,15 +1057,23 @@ main (argc, argv
      Also call realloc and free for consistency.  */
   free (realloc (malloc (4), 4));
 
+# ifndef SYNC_INPUT
   /* Arrange to disable interrupt input inside malloc etc.  */
   uninterrupt_malloc ();
+# endif /* not SYNC_INPUT */
 #endif	/* not SYSTEM_MALLOC */
 
-#ifdef MSDOS
+#ifdef HAVE_GTK_AND_PTHREAD
+  main_thread = pthread_self ();
+#endif /* HAVE_GTK_AND_PTHREAD */
+
+#if defined (MSDOS) || defined (WINDOWSNT)
   /* We do all file input/output as binary files.  When we need to translate
      newlines, we do that manually.  */
   _fmode = O_BINARY;
+#endif /* MSDOS || WINDOWSNT */
 
+#ifdef MSDOS
 #if __DJGPP__ >= 2
   if (!isatty (fileno (stdin)))
     setmode (fileno (stdin), O_BINARY);
@@ -1040,13 +1155,16 @@ main (argc, argv
   /* Handle the -batch switch, which means don't do interactive display.  */
   noninteractive = 0;
   if (argmatch (argv, argc, "-batch", "--batch", 5, NULL, &skip_args))
-    noninteractive = 1;
+    {
+      noninteractive = 1;
+      Vundo_outer_limit = Qnil;
+    }
   if (argmatch (argv, argc, "-script", "--script", 3, &junk, &skip_args))
     {
       noninteractive = 1;	/* Set batch mode.  */
-      /* Convert --script to -l, un-skip it, and sort again so that -l will be
-	 handled in proper sequence.  */
-      argv[skip_args - 1] = "-l";
+      /* Convert --script to --scriptload, un-skip it, and sort again
+	 so that it will be handled in proper sequence.  */
+      argv[skip_args - 1] = "-scriptload";
       skip_args -= 2;
       sort_args (argc, argv);
     }
@@ -1054,9 +1172,9 @@ main (argc, argv
   /* Handle the --help option, which gives a usage message.  */
   if (argmatch (argv, argc, "-help", "--help", 3, NULL, &skip_args))
     {
-      printf (USAGE1, argv[0]);
-      printf (USAGE2);
-      printf (USAGE3, bug_reporting_address ());
+      printf (USAGE1, argv[0], USAGE2);
+      printf (USAGE3);
+      printf (USAGE4, bug_reporting_address ());
       exit (0);
     }
 
@@ -1210,7 +1328,7 @@ main (argc, argv
          creates a full-fledge output_mac type frame.  This does not
          work correctly before syms_of_textprop, syms_of_macfns,
          syms_of_ccl, syms_of_fontset, syms_of_xterm, syms_of_search,
-         syms_of_frame, mac_initialize, and init_keyboard have already
+         syms_of_frame, mac_term_init, and init_keyboard have already
          been called.  */
       syms_of_textprop ();
       syms_of_macfns ();
@@ -1218,16 +1336,21 @@ main (argc, argv
       syms_of_fontset ();
       syms_of_macterm ();
       syms_of_macmenu ();
+      syms_of_macselect ();
       syms_of_data ();
       syms_of_search ();
       syms_of_frame ();
 
-      mac_initialize ();
+      init_atimer ();
+      mac_term_init (build_string ("Mac"), NULL, NULL);
       init_keyboard ();
 #endif
 
       init_window_once ();	/* Init the window system.  */
       init_fileio_once ();	/* Must precede any path manipulation.  */
+#ifdef HAVE_WINDOW_SYSTEM
+      init_fringe_once ();	/* Swap bitmaps if necessary. */
+#endif /* HAVE_WINDOW_SYSTEM */
     }
 
   init_alloc ();
@@ -1244,7 +1367,9 @@ main (argc, argv
 #ifdef CLASH_DETECTION
   init_filelock ();
 #endif
+#ifndef MAC_OS8
   init_atimer ();
+#endif
   running_asynch_code = 0;
 
   /* Handle --unibyte and the EMACS_UNIBYTE envvar,
@@ -1381,7 +1506,7 @@ main (argc, argv
   init_ntproc ();	/* must precede init_editfns.  */
 #endif
 
-#ifdef HAVE_CARBON
+#if defined (MAC_OSX) && defined (HAVE_CARBON)
   if (initialized)
     init_mac_osx_environment ();
 #endif
@@ -1492,6 +1617,10 @@ main (argc, argv
 #endif /* WINDOWSNT */
       syms_of_window ();
       syms_of_xdisp ();
+#ifdef HAVE_WINDOW_SYSTEM
+      syms_of_fringe ();
+      syms_of_image ();
+#endif /* HAVE_WINDOW_SYSTEM */
 #ifdef HAVE_X_WINDOWS
       syms_of_xterm ();
       syms_of_xfns ();
@@ -1519,12 +1648,13 @@ main (argc, argv
       syms_of_fontset ();
 #endif /* HAVE_NTGUI */
 
-#ifdef HAVE_CARBON
+#if defined (MAC_OSX) && defined (HAVE_CARBON)
       syms_of_macterm ();
       syms_of_macfns ();
       syms_of_macmenu ();
+      syms_of_macselect ();
       syms_of_fontset ();
-#endif /* HAVE_CARBON */
+#endif /* MAC_OSX && HAVE_CARBON */
 
 #ifdef SYMS_SYSTEM
       SYMS_SYSTEM;
@@ -1542,16 +1672,15 @@ main (argc, argv
       keys_of_minibuf ();
       keys_of_window ();
     }
-	else
+  else
     {
-      /*
-        Initialization that must be done even if the global variable
-        initialized is non zero
-      */
+      /* Initialization that must be done even if the global variable
+	 initialized is non zero.  */
 #ifdef HAVE_NTGUI
       globals_of_w32fns ();
       globals_of_w32menu ();
-#endif  /* end #ifdef HAVE_NTGUI */
+      globals_of_w32select ();
+#endif  /* HAVE_NTGUI */
     }
 
   if (!noninteractive)
@@ -1569,11 +1698,12 @@ main (argc, argv
   init_vmsproc ();	/* And this too.  */
 #endif /* VMS */
   init_sys_modes ();	/* Init system terminal modes (RAW or CBREAK, etc.).  */
-#if defined (HAVE_X_WINDOWS) || defined (WINDOWSNT)
-  init_xfns ();
-#endif /* HAVE_X_WINDOWS */
   init_fns ();
   init_xdisp ();
+#ifdef HAVE_WINDOW_SYSTEM
+  init_fringe ();
+  init_image ();
+#endif /* HAVE_WINDOW_SYSTEM */
   init_macros ();
   init_editfns ();
   init_floatfns ();
@@ -1698,6 +1828,8 @@ struct standard_args standard_args[] =
   { "-d", "--display", 60, 1 },
   { "-display", 0, 60, 1 },
   /* Now for the options handled in startup.el.  */
+  { "-Q", "--quick", 55, 0 },
+  { "-quick", 0, 55, 0 },
   { "-q", "--no-init-file", 50, 0 },
   { "-no-init-file", 0, 50, 0 },
   { "-no-site-file", "--no-site-file", 40, 0 },
@@ -1705,9 +1837,10 @@ struct standard_args standard_args[] =
   { "-u", "--user", 30, 1 },
   { "-user", 0, 30, 1 },
   { "-debug-init", "--debug-init", 20, 0 },
-  { "-i", "--icon-type", 15, 0 },
-  { "-itype", 0, 15, 0 },
+  { "-nbi", "--no-bitmap-icon", 15, 0 },
   { "-iconic", "--iconic", 15, 0 },
+  { "-D", "--basic-display", 12, 0},
+  { "-basic-display", 0, 12, 0},
   { "-bg", "--background-color", 10, 1 },
   { "-background", 0, 10, 1 },
   { "-fg", "--foreground-color", 10, 1 },
@@ -1717,6 +1850,7 @@ struct standard_args standard_args[] =
   { "-ib", "--internal-border", 10, 1 },
   { "-ms", "--mouse-color", 10, 1 },
   { "-cr", "--cursor-color", 10, 1 },
+  { "-nbc", "--no-blinking-cursor", 10, 0 },
   { "-fn", "--font", 10, 1 },
   { "-font", 0, 10, 1 },
   { "-fs", "--fullscreen", 10, 0 },
@@ -1740,6 +1874,7 @@ struct standard_args standard_args[] =
   { "-directory", 0, 0, 1 },
   { "-l", "--load", 0, 1 },
   { "-load", 0, 0, 1 },
+  { "-scriptload", "--scriptload", 0, 1 },
   { "-f", "--funcall", 0, 1 },
   { "-funcall", 0, 0, 1 },
   { "-eval", "--eval", 0, 1 },
@@ -1903,9 +2038,9 @@ sort_args (argc, argv)
 
   bcopy (new, argv, sizeof (char *) * argc);
 
-  free (options);
-  free (new);
-  free (priority);
+  xfree (options);
+  xfree (new);
+  xfree (priority);
 }
 
 DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 1, "P",
@@ -1945,14 +2080,9 @@ all of which are called before Emacs is actually killed.  */)
   if (STRINGP (Vauto_save_list_file_name))
     unlink (SDATA (Vauto_save_list_file_name));
 
-  exit (INTEGERP (arg) ? XINT (arg)
-#ifdef VMS
-	: 1
-#else
-	: 0
-#endif
-	);
+  exit (INTEGERP (arg) ? XINT (arg) : EXIT_SUCCESS);
   /* NOTREACHED */
+  return Qnil;
 }
 
 
@@ -1975,6 +2105,9 @@ shut_down_emacs (sig, no_x, stuff)
   /* Prevent running of hooks from now on.  */
   Vrun_hooks = Qnil;
 
+  /* Don't update display from now on.  */
+  Vinhibit_redisplay = Qt;
+
   /* If we are controlling the terminal, reset terminal modes.  */
 #ifdef EMACS_HAVE_TTY_PGRP
   {
@@ -1987,7 +2120,7 @@ shut_down_emacs (sig, no_x, stuff)
 	fflush (stdout);
 	reset_sys_modes ();
 	if (sig && sig != SIGTERM)
-	  fprintf (stderr, "Fatal error (%d).", sig);
+	  fprintf (stderr, "Fatal error (%d)", sig);
       }
   }
 #else
@@ -2099,6 +2232,20 @@ You must run Emacs in batch mode in order to dump it.  */)
   if (! noninteractive)
     error ("Dumping Emacs works only in batch mode");
 
+#ifdef __linux__
+  if (heap_bss_diff > MAX_HEAP_BSS_DIFF)
+    {
+      fprintf (stderr, "**************************************************\n");
+      fprintf (stderr, "Warning: Your system has a gap between BSS and the\n");
+      fprintf (stderr, "heap (%lu byte).  This usually means that exec-shield\n",
+               heap_bss_diff);
+      fprintf (stderr, "or something similar is in effect.  The dump may\n");
+      fprintf (stderr, "fail because of this.  See the section about \n");
+      fprintf (stderr, "exec-shield in etc/PROBLEMS for more information.\n");
+      fprintf (stderr, "**************************************************\n");
+    }
+#endif /* __linux__ */
+
   /* Bind `command-line-processed' to nil before dumping,
      so that the dumped Emacs will process its command line
      and set up to work with X windows if appropriate.  */
@@ -2137,6 +2284,12 @@ You must run Emacs in batch mode in order to dump it.  */)
      Meanwhile, my_edata is not valid on Windows.  */
   memory_warnings (my_edata, malloc_warning);
 #endif /* not WINDOWSNT */
+#endif
+#if !defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD) && !defined SYNC_INPUT
+  /* Pthread may call malloc before main, and then we will get an endless
+     loop, because pthread_self (see alloc.c) calls malloc the first time
+     it is called on some systems.  */
+  reset_malloc_hooks ();
 #endif
 #ifdef DOUG_LEA_MALLOC
   malloc_state_ptr = malloc_get_state ();
@@ -2186,7 +2339,7 @@ synchronize_locale (category, plocale, desired_locale)
     {
       *plocale = desired_locale;
       setlocale (category, (STRINGP (desired_locale)
-			    ? (char *)(SDATA (desired_locale))
+			    ? (char *) SDATA (desired_locale)
 			    : ""));
     }
 }
@@ -2303,7 +2456,16 @@ syms_of_emacs ()
 Many arguments are deleted from the list as they are processed.  */);
 
   DEFVAR_LISP ("system-type", &Vsystem_type,
-	       doc: /* Value is symbol indicating type of operating system you are using.  */);
+	       doc: /* Value is symbol indicating type of operating system you are using.
+Special values:
+  `gnu/linux'   compiled for a GNU/Linux system.
+  `darwin'      compiled for Darwin (GNU-Darwin, Mac OS X, ...).
+  `macos'       compiled for Mac OS 9.
+  `ms-dos'      compiled as an MS-DOS application.
+  `windows-nt'  compiled as a native W32 application.
+  `cygwin'      compiled using the Cygwin library.
+  `vax-vms' or `axp-vms': compiled for a (Open)VMS system.
+Anything else indicates some sort of Unix system.  */);
   Vsystem_type = intern (SYSTEM_TYPE);
 
   DEFVAR_LISP ("system-configuration", &Vsystem_configuration,
@@ -2331,18 +2493,6 @@ The hook is not run in batch mode, i.e., if `noninteractive' is non-nil.  */);
 
   empty_string = build_string ("");
   staticpro (&empty_string);
-
-#ifdef SIGUSR1
-  DEFVAR_LISP ("signal-USR1-hook", &Vsignal_USR1_hook,
-	       doc: /* Hook to be run whenever emacs receives a USR1 signal.  */);
-  Vsignal_USR1_hook = Qnil;
-#ifdef SIGUSR2
-  DEFVAR_LISP ("signal-USR2-hook", &Vsignal_USR2_hook,
-	       doc: /* Hook to be run whenever emacs receives a USR2 signal.  */);
-  Vsignal_USR2_hook = Qnil;
-#endif
-#endif
-
 
   DEFVAR_INT ("emacs-priority", &emacs_priority,
 	      doc: /* Priority for Emacs to run at.
@@ -2392,3 +2542,6 @@ near where the Emacs executable was found.  */);
 	       doc: /* Most recently used system locale for time.  */);
   Vprevious_system_time_locale = Qnil;
 }
+
+/* arch-tag: 7bfd356a-c720-4612-8ab6-aa4222931c2e
+   (do not change this comment) */

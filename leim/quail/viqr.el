@@ -1,7 +1,8 @@
 ;;; viqr.el --- Quail packages for inputting Vietnamese with VIQR system  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, input method, latin
 
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -68,4 +69,5 @@
 
 (viet-quail-define-rules)
 
+;;; arch-tag: d2c29221-5a2e-46b2-898b-0e56bc4eb858
 ;;; viqr.el ends here

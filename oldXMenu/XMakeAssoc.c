@@ -1,5 +1,5 @@
-/* $XConsortium: XMakeAssoc.c,v 10.18 91/01/06 12:09:28 rws Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
 Permission to use, copy, modify, distribute, and sell this software and its
@@ -100,3 +100,5 @@ XMakeAssoc(dpy, table, x_id, data)
 	emacs_insque((struct qelem *)new_entry, (struct qelem *)Entry->prev);
 }
 
+/* arch-tag: d7e3fb8a-f3b3-4c5d-a307-75ca67ec1b49
+   (do not change this comment) */

@@ -1,6 +1,7 @@
 ;;; ediff-vers.el --- version control interface to Ediff
 
-;;; Copyright (C) 1995, 96, 97, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -298,11 +299,17 @@
 	  ((eq type 'MODIFIED)
 	   (ediff-buffers
 	    (find-file-noselect tmp-file)
-	    (find-file-noselect (cvs-fileinfo->full-path fileinfo))
+	    (if (featurep 'xemacs)
+		;; XEmacs doesn't seem to have cvs-fileinfo->full-name
+		(find-file-noselect (cvs-fileinfo->full-path fileinfo))
+	      (find-file-noselect (cvs-fileinfo->full-name fileinfo)))
 	    nil ; startup-hooks
 	    'ediff-revisions)))
     (if (stringp tmp-file) (delete-file tmp-file))
     (if (stringp ancestor-file) (delete-file ancestor-file))))
+
+
+(provide 'ediff-vers)
 
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
@@ -310,6 +317,5 @@
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-(provide 'ediff-vers)
-
+;;; arch-tag: bbb34f0c-2a90-426a-a77a-c75f479ebbbf
 ;;; ediff-vers.el ends here

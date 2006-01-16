@@ -1,5 +1,6 @@
 /* Process support for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1995, 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1992, 1995, 1999, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.
 
    Drew Bliss                   Oct 14, 1993
      Adapted from alarm.c by Tim Fleehart
@@ -57,6 +58,11 @@ extern BOOL WINAPI IsValidLocale(LCID, DWORD);
 #include "syssignal.h"
 #include "w32term.h"
 
+#define RVA_TO_PTR(var,section,filedata) \
+  ((void *)((section)->PointerToRawData					\
+	    + ((DWORD)(var) - (section)->VirtualAddress)		\
+	    + (filedata).file_base))
+
 /* Control whether spawnve quotes arguments as necessary to ensure
    correct parsing by child process.  Because not all uses of spawnve
    are careful about constructing argv arrays, we make this behaviour
@@ -82,7 +88,7 @@ Lisp_Object Vw32_start_process_inherit_error_mode;
    avoids the inefficiency of frequently reading small amounts of data.
    This is primarily necessary for handling DOS processes on Windows 95,
    but is useful for W32 processes on both Windows 95 and NT as well.  */
-Lisp_Object Vw32_pipe_read_delay;
+int w32_pipe_read_delay;
 
 /* Control conversion of upper case file names to lower case.
    nil means no, t means yes. */
@@ -367,7 +373,7 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
     cp->pid = -cp->pid;
 
   /* pid must fit in a Lisp_Int */
-  cp->pid = (cp->pid & VALMASK);
+  cp->pid = cp->pid & INTMASK;
 
   *pPid = cp->pid;
 
@@ -1218,7 +1224,7 @@ count_children:
     {
       DebPrint (("select.WaitForMultipleObjects (%d, %lu) failed with %lu\n",
 		 nh + nc, timeout_ms, GetLastError ()));
-      /* don't return EBADF - this causes wait_reading_process_input to
+      /* don't return EBADF - this causes wait_reading_process_output to
 	 abort; WAIT_FAILED is returned when single-stepping under
 	 Windows 95 after switching thread focus in debugger, and
 	 possibly at other times. */
@@ -2141,6 +2147,8 @@ syms_of_ntproc ()
 {
   Qhigh = intern ("high");
   Qlow = intern ("low");
+  staticpro (&Qhigh);
+  staticpro (&Qlow);
 
 #ifdef HAVE_SOCKETS
   defsubr (&Sw32_has_winsock);
@@ -2202,7 +2210,7 @@ When non-nil, they inherit their error mode setting from Emacs, which stops
 them blocking when trying to access unmounted drives etc.  */);
   Vw32_start_process_inherit_error_mode = Qt;
 
-  DEFVAR_INT ("w32-pipe-read-delay", &Vw32_pipe_read_delay,
+  DEFVAR_INT ("w32-pipe-read-delay", &w32_pipe_read_delay,
 	      doc: /* Forced delay before reading subprocess output.
 This is done to improve the buffering of subprocess output, by
 avoiding the inefficiency of frequently reading small amounts of data.
@@ -2211,7 +2219,7 @@ If positive, the value is the number of milliseconds to sleep before
 reading the subprocess output.  If negative, the magnitude is the number
 of time slices to wait (effectively boosting the priority of the child
 process temporarily).  A value of zero disables waiting entirely.  */);
-  Vw32_pipe_read_delay = 50;
+  w32_pipe_read_delay = 50;
 
   DEFVAR_LISP ("w32-downcase-file-names", &Vw32_downcase_file_names,
 	       doc: /* Non-nil means convert all-upper case file names to lower case.
@@ -2236,5 +2244,11 @@ the truename of a file can be slow.  */);
 Note that this option is only useful for files on NTFS volumes, where hard links
 are supported.  Moreover, it slows down `file-attributes' noticeably.  */);
   Vw32_get_true_file_attributes = Qt;
+
+  staticpro (&Vw32_valid_locale_ids);
+  staticpro (&Vw32_valid_codepages);
 }
 /* end of ntproc.c */
+
+/* arch-tag: 23d3a34c-06d2-48a1-833b-ac7609aa5250
+   (do not change this comment) */

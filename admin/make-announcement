@@ -64,3 +64,5 @@ EOF
 make-changelog-diff $oldtag $newtag
 
 echo " announcement created in $outfile" >&2
+
+# arch-tag: 605e00c7-7330-4c45-81e1-2ed53a13c39f

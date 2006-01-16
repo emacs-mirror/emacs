@@ -1,6 +1,6 @@
 /* Definitions file for GNU Emacs running on Data General's DG/UX
    5.4 Release 2.xx systems.
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #include "dgux.h"
 
@@ -45,3 +45,6 @@ Boston, MA 02111-1307, USA.  */
 	  caused trouble on DGUX 5.4.2.  */
 #define LIBS_SYSTEM -ldgc
 #endif
+
+/* arch-tag: a14f4043-6caa-4f01-a9b9-ae0fb0d2c96e
+   (do not change this comment) */

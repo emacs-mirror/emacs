@@ -27,30 +27,34 @@
 
 ;;;###autoload
 (defvar menu-bar-emerge-menu (make-sparse-keymap "Emerge"))
-;;;###autoload
-(fset 'menu-bar-emerge-menu (symbol-value 'menu-bar-emerge-menu))
+;;;###autoload (fset 'menu-bar-emerge-menu (symbol-value 'menu-bar-emerge-menu))
 
-;;;###autoload
-(define-key menu-bar-emerge-menu [emerge-merge-directories]
-  '("Merge Directories..." . emerge-merge-directories))
-;;;###autoload
-(define-key menu-bar-emerge-menu [emerge-revisions-with-ancestor]
-  '("Revisions with Ancestor..." . emerge-revisions-with-ancestor))
-;;;###autoload
-(define-key menu-bar-emerge-menu [emerge-revisions]
-  '("Revisions..." . emerge-revisions))
-;;;###autoload
-(define-key menu-bar-emerge-menu [emerge-files-with-ancestor]
-  '("Files with Ancestor..." . emerge-files-with-ancestor))
-;;;###autoload
-(define-key menu-bar-emerge-menu [emerge-files]
-  '("Files..." . emerge-files))
-;;;###autoload
-(define-key menu-bar-emerge-menu [emerge-buffers-with-ancestor]
-  '("Buffers with Ancestor..." . emerge-buffers-with-ancestor))
-;;;###autoload
-(define-key menu-bar-emerge-menu [emerge-buffers]
-  '("Buffers..." . emerge-buffers))
+;;;###autoload (define-key menu-bar-emerge-menu [emerge-merge-directories]
+;;;###autoload   '("Merge Directories..." . emerge-merge-directories))
+;;;###autoload (define-key menu-bar-emerge-menu [emerge-revisions-with-ancestor]
+;;;###autoload   '("Revisions with Ancestor..." . emerge-revisions-with-ancestor))
+;;;###autoload (define-key menu-bar-emerge-menu [emerge-revisions]
+;;;###autoload   '("Revisions..." . emerge-revisions))
+;;;###autoload (define-key menu-bar-emerge-menu [emerge-files-with-ancestor]
+;;;###autoload   '("Files with Ancestor..." . emerge-files-with-ancestor))
+;;;###autoload (define-key menu-bar-emerge-menu [emerge-files]
+;;;###autoload   '("Files..." . emerge-files))
+;;;###autoload (define-key menu-bar-emerge-menu [emerge-buffers-with-ancestor]
+;;;###autoload   '("Buffers with Ancestor..." . emerge-buffers-with-ancestor))
+;;;###autoload (define-key menu-bar-emerge-menu [emerge-buffers]
+;;;###autoload   '("Buffers..." . emerge-buffers))
+
+;; There aren't really global variables, just dynamic bindings
+(defvar A-begin)
+(defvar A-end)
+(defvar B-begin)
+(defvar B-end)
+(defvar diff)
+(defvar diff-vector)
+(defvar merge-begin)
+(defvar merge-end)
+(defvar template)
+(defvar valid-diff)
 
 ;;; Macros
 
@@ -665,20 +669,20 @@ This is *not* a user option, since Emerge uses it for its own processing.")
      diff-buffer
      (goto-char (point-min))
      (while (re-search-forward emerge-match-diff-line nil t)
-       (let* ((a-begin (string-to-int (buffer-substring (match-beginning 1)
-							(match-end 1))))
+       (let* ((a-begin (string-to-number (buffer-substring (match-beginning 1)
+                                                           (match-end 1))))
 	      (a-end  (let ((b (match-beginning 3))
 			    (e (match-end 3)))
 			(if b
-			    (string-to-int (buffer-substring b e))
+			    (string-to-number (buffer-substring b e))
 			  a-begin)))
 	      (diff-type (buffer-substring (match-beginning 4) (match-end 4)))
-	      (b-begin (string-to-int (buffer-substring (match-beginning 5)
-							(match-end 5))))
+	      (b-begin (string-to-number (buffer-substring (match-beginning 5)
+                                                           (match-end 5))))
 	      (b-end (let ((b (match-beginning 7))
 			   (e (match-end 7)))
 		       (if b
-			   (string-to-int (buffer-substring b e))
+			   (string-to-number (buffer-substring b e))
 			 b-begin))))
 	 ;; fix the beginning and end numbers, because diff is somewhat
 	 ;; strange about how it numbers lines
@@ -870,16 +874,16 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 	;; it is a "c" group
 	(if (match-beginning 2)
 	    ;; it has two numbers
-	    (list (string-to-int
+	    (list (string-to-number
 		   (buffer-substring (match-beginning 1) (match-end 1)))
-		  (1+ (string-to-int
+		  (1+ (string-to-number
 		       (buffer-substring (match-beginning 3) (match-end 3)))))
 	  ;; it has one number
-	  (let ((x (string-to-int
+	  (let ((x (string-to-number
 		    (buffer-substring (match-beginning 1) (match-end 1)))))
 	    (list x (1+ x))))
       ;; it is an "a" group
-      (let ((x (1+ (string-to-int
+      (let ((x (1+ (string-to-number
 		    (buffer-substring (match-beginning 1) (match-end 1))))))
 	(list x x)))))
 
@@ -1462,7 +1466,7 @@ These characteristics are restored by `emerge-restore-buffer-characteristics'."
 				     emerge-merging-values)))))
 
 (defun emerge-restore-buffer-characteristics ()
-  "Restores characteristics saved by `emerge-remember-buffer-characteristics'."
+  "Restore characteristics saved by `emerge-remember-buffer-characteristics'."
   (let ((A-values emerge-A-buffer-values)
 	(B-values emerge-B-buffer-values))
     (emerge-eval-in-buffer emerge-A-buffer
@@ -3106,16 +3110,19 @@ SPC, it is ignored; if it is anything else, it is processed as a command."
 	(setq name "Buffer has no file name."))
     (save-window-excursion
       (select-window (minibuffer-window))
-      (erase-buffer)
-      (insert name)
-      (if (not (pos-visible-in-window-p))
-	  (let ((echo-keystrokes 0))
-	    (while (and (not (pos-visible-in-window-p))
-			(> (1- (frame-height)) (window-height)))
-	      (enlarge-window 1))
-	    (let ((c (read-event)))
+      (unwind-protect
+	  (progn
+	    (erase-buffer)
+	    (insert name)
+	    (if (not (pos-visible-in-window-p))
+		(while (and (not (pos-visible-in-window-p))
+			    (> (1- (frame-height)) (window-height)))
+		  (enlarge-window 1)))
+	    (let* ((echo-keystrokes 0)
+		   (c (read-event)))
 	      (if (not (eq c 32))
-		  (setq unread-command-events (list c)))))))))
+		  (setq unread-command-events (list c)))))
+	(erase-buffer)))))
 
 ;; Improved auto-save file names.
 ;; This function fixes many problems with the standard auto-save file names:
@@ -3214,4 +3221,5 @@ More precisely, a [...] regexp to match any one such character."
 
 (provide 'emerge)
 
+;;; arch-tag: a575f092-6e44-400e-b8a2-4124e9377585
 ;;; emerge.el ends here

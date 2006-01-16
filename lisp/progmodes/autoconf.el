@@ -1,10 +1,10 @@
 ;;; autoconf.el --- mode for editing Autoconf configure.in files
 
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: languages
-;; $Revision: 1.2 $
 
 ;; This file is part of GNU Emacs.
 
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -38,6 +38,8 @@
 
 ;;; Code:
 
+(defvar font-lock-syntactic-keywords)
+
 (defvar autoconf-mode-map (make-sparse-keymap))
 
 (defvar autoconf-mode-hook nil
@@ -50,7 +52,7 @@
   "AC_\\(SUBST\\|DEFINE\\(_UNQUOTED\\)?\\)(\\(\\sw+\\)")
 
 (defvar autoconf-font-lock-keywords
-  `(("A[CM]_\\sw+" . font-lock-keyword-face)
+  `(("A[CHMS]_\\sw+" . font-lock-keyword-face)
     (,autoconf-definition-regexp
      3 font-lock-function-name-face)
     ;; Are any other M4 keywords really appropriate for configure.in,
@@ -73,7 +75,7 @@
 This version looks back for an AC_DEFINE or AC_SUBST.  It will stop
 searching backwards at another AC_... command."
   (save-excursion
-    (with-syntax-table autoconf-mode-syntax-table
+    (with-syntax-table (copy-syntax-table autoconf-mode-syntax-table)
       (modify-syntax-entry ?_ "w")
       (if (re-search-backward autoconf-definition-regexp
 			      (save-excursion (beginning-of-defun) (point))
@@ -104,8 +106,9 @@ searching backwards at another AC_... command."
   (set (make-local-variable 'indent-line-function) #'indent-relative)
   (set (make-local-variable 'add-log-current-defun-function)
 	#'autoconf-current-defun-function)
-  (run-hooks 'autoconf-mode-hook))
+  (run-mode-hooks 'autoconf-mode-hook))
 
 (provide 'autoconf-mode)
 
+;;; arch-tag: 4f44778f-2ab3-49a1-a103-f0acb9df2de4
 ;;; autoconf.el ends here

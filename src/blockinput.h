@@ -1,5 +1,6 @@
 /* blockinput.h - interface to blocking complicated interrupt-driven input.
-   Copyright (C) 1989, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #ifndef EMACS_BLOCKINPUT_H
 #define EMACS_BLOCKINPUT_H
@@ -94,11 +95,38 @@ extern int pending_atimers;
     }						\
   while (0)
 
-#define TOTALLY_UNBLOCK_INPUT (interrupt_input_blocked = 0)
+/* Undo any number of BLOCK_INPUT calls,
+   and also reinvoke any pending signal.  */
+
+#define TOTALLY_UNBLOCK_INPUT			\
+  do if (interrupt_input_blocked != 0)		\
+    {						\
+      interrupt_input_blocked = 1;		\
+      UNBLOCK_INPUT;				\
+    }						\
+  while (0)
+
+/* Undo any number of BLOCK_INPUT calls down to level LEVEL,
+   and also (if the level is now 0) reinvoke any pending signal.  */
+
+#define UNBLOCK_INPUT_TO(LEVEL)				\
+  do							\
+    {							\
+      interrupt_input_blocked = (LEVEL) + 1;		\
+      UNBLOCK_INPUT;					\
+    }							\
+  while (0)
+
 #define UNBLOCK_INPUT_RESIGNAL UNBLOCK_INPUT
+
+/* In critical section ? */
+#define INPUT_BLOCKED_P (interrupt_input_blocked > 0)
 
 /* Defined in keyboard.c */
 /* Don't use a prototype here; it causes trouble in some files.  */
 extern void reinvoke_input_signal ();
 
 #endif /* EMACS_BLOCKINPUT_H */
+
+/* arch-tag: 51a9ec86-945a-4966-8f04-2d1341250e03
+   (do not change this comment) */

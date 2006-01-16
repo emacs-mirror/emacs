@@ -1,6 +1,7 @@
 ;;; forms.el --- Forms mode: edit a file as a form to fill in
 
-;; Copyright (C) 1991, 1994, 1995, 1996, 1997, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 1995, 1996, 1997, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -63,7 +64,7 @@
 ;; Automatic mode switching is supported if you specify
 ;; "-*- forms -*-" in the first line of the control file.
 ;;
-;; The control file is visited, evaluated using `eval-current-buffer',
+;; The control file is visited, evaluated using `eval-buffer',
 ;; and should set at least the following variables:
 ;;
 ;;	forms-file				[string]
@@ -286,7 +287,7 @@
 ;; forms mode functions next/prev record and first/last
 ;; record.
 ;;
-;; `local-write-file-hooks' is defined to save the actual data file
+;; `write-file-functions' is defined to save the actual data file
 ;; instead of the buffer data, `revert-file-hook' is defined to
 ;; revert a forms to original.
 
@@ -301,12 +302,7 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.44 $" 11 -2)
-  "The version number of forms-mode (as string).  The complete RCS id is:
-
-  $Id: forms.el,v 2.44 2003/01/12 20:47:48 schwab Exp $")
-
-(defcustom forms-mode-hooks nil
+(defcustom forms-mode-hook nil
   "Hook run upon entering Forms mode."
   :group 'forms
   :type 'hook)
@@ -523,8 +519,8 @@ Commands:                        Equivalent keys in read-only mode:
 	(if (or (eq enable-local-eval t)
 		(yes-or-no-p
 		 (concat "Evaluate lisp code in buffer "
-			 (buffer-name) " to display forms ")))
-	    (eval-current-buffer)
+			 (buffer-name) " to display forms? ")))
+	    (eval-buffer)
 	  (error "`enable-local-eval' inhibits buffer evaluation"))
 
 	;; Check if the mandatory variables make sense.
@@ -555,7 +551,7 @@ Commands:                        Equivalent keys in read-only mode:
 		     (eq (length forms-multi-line) 1))
 		(if (string= forms-multi-line forms-field-sep)
 		    (error (concat "Forms control file error: "
-				   "`forms-multi-line' is equal to 'forms-field-sep'")))
+				   "`forms-multi-line' is equal to `forms-field-sep'")))
 	      (error (concat "Forms control file error: "
 			     "`forms-multi-line' must be nil or a one-character string"))))
 	(or (fboundp 'set-text-properties)
@@ -648,30 +644,24 @@ Commands:                        Equivalent keys in read-only mode:
   (let ((read-file-filter forms-read-file-filter)
 	(write-file-filter forms-write-file-filter))
     (if read-file-filter
-	(save-excursion
-	  (set-buffer forms--file-buffer)
+	(with-current-buffer forms--file-buffer
 	  (let ((inhibit-read-only t)
 		(file-modified (buffer-modified-p)))
 	    (run-hooks 'read-file-filter)
 	    (if (not file-modified) (set-buffer-modified-p nil)))
 	  (if write-file-filter
-	      (progn
-		(make-variable-buffer-local 'local-write-file-hooks)
-		(setq local-write-file-hooks (list write-file-filter)))))
+	      (add-hook 'write-file-functions write-file-filter nil t)))
       (if write-file-filter
-	  (save-excursion
-	    (set-buffer forms--file-buffer)
-	    (make-variable-buffer-local 'local-write-file-hooks)
-	    (setq local-write-file-hooks (list write-file-filter))))))
+	  (with-current-buffer forms--file-buffer
+	    (add-hook 'write-file-functions write-file-filter nil t)))))
 
   ;; count the number of records, and set see if it may be modified
   (let (ro)
     (setq forms--total-records
-	  (save-excursion
+	  (with-current-buffer forms--file-buffer
 	    (prog1
 		(progn
 		  ;;(message "forms: counting records...")
-		  (set-buffer forms--file-buffer)
 		  (bury-buffer (current-buffer))
 		  (setq ro buffer-read-only)
 		  (count-lines (point-min) (point-max)))
@@ -700,7 +690,7 @@ Commands:                        Equivalent keys in read-only mode:
       ;;(message "forms: proceeding setup (new file)...")
       (progn
 	(insert
-	 "GNU Emacs Forms Mode version " forms-version "\n\n"
+	 "GNU Emacs Forms Mode\n\n"
 	 (if (file-exists-p forms-file)
 	     (concat "No records available in file `" forms-file "'\n\n")
 	   (format "Creating new file `%s'\nwith %d field%s per record\n\n"
@@ -724,7 +714,7 @@ Commands:                        Equivalent keys in read-only mode:
 
   ;; user customising
   ;;(message "forms: proceeding setup (user hooks)...")
-  (run-hooks 'forms-mode-hooks)
+  (run-mode-hooks 'forms-mode-hook 'forms-mode-hooks)
   ;;(message "forms: setting up... done.")
 
   ;; be helpful
@@ -757,7 +747,6 @@ Commands:                        Equivalent keys in read-only mode:
   (setq forms--elements (make-vector forms-number-of-fields nil))
 
   (let ((the-list forms-format-list)	; the list of format elements
-	(this-item 0)			; element in list
 	(prev-item nil)
 	(field-num 0))			; highest field number
 
@@ -1219,15 +1208,14 @@ Commands:                        Equivalent keys in read-only mode:
 
       ;; Need a file to do this.
       (if (not (file-exists-p forms-file))
-	  (error "Need existing file or explicit 'forms-number-of-records'")
+	  (error "Need existing file or explicit `forms-number-of-fields'")
 
 	;; Visit the file and extract the first record.
 	(setq forms--file-buffer (find-file-noselect forms-file))
 	(let ((read-file-filter forms-read-file-filter)
 	      (the-record))
 	  (setq the-record
-		(save-excursion
-		  (set-buffer forms--file-buffer)
+		(with-current-buffer forms--file-buffer
 		  (let ((inhibit-read-only t))
 		    (run-hooks 'read-file-filter))
 		  (goto-char (point-min))
@@ -1238,8 +1226,7 @@ Commands:                        Equivalent keys in read-only mode:
 	  (kill-buffer forms--file-buffer)
 
 	  ;; Count the number of fields in `the-record'.
-	  (let (the-result
-		(start-pos 0)
+	  (let ((start-pos 0)
 		found-pos
 		(field-sep-length (length forms-field-sep)))
 	    (setq forms-number-of-fields 1)
@@ -1287,7 +1274,6 @@ Commands:                        Equivalent keys in read-only mode:
   (setq forms-mode-ro-map (make-keymap))
   (suppress-keymap forms-mode-ro-map)
   (define-key forms-mode-ro-map "\C-c" forms-mode-map)
-  (define-key forms-mode-ro-map "\t" 'forms-next-field)
   (define-key forms-mode-ro-map "q" 'forms-toggle-read-only)
   (define-key forms-mode-ro-map "l" 'forms-jump-record)
   (define-key forms-mode-ro-map "n" 'forms-next-record)
@@ -1304,7 +1290,6 @@ Commands:                        Equivalent keys in read-only mode:
 
   ;; This is the normal, local map.
   (setq forms-mode-edit-map (make-keymap))
-  (define-key forms-mode-edit-map "\t"   'forms-next-field)
   (define-key forms-mode-edit-map "\C-c" forms-mode-map)
   (forms--mode-commands1 forms-mode-edit-map)
   (forms--mode-menu-edit forms-mode-edit-map)
@@ -1405,7 +1390,7 @@ Commands:                        Equivalent keys in read-only mode:
 
 (defun forms--mode-commands1 (map)
   "Helper routine to define keys."
-  (define-key map [TAB] 'forms-next-field)
+  (define-key map "\t" 'forms-next-field)
   (define-key map [S-tab] 'forms-prev-field)
   (define-key map [next] 'forms-next-record)
   (define-key map [prior] 'forms-prev-record)
@@ -1455,14 +1440,13 @@ Commands:                        Equivalent keys in read-only mode:
   "Translate in SUBJ all chars ARG into char REP.  ARG and REP should
  be single-char strings."
   (let ((i 0)
-	(x (length subj))
 	(re (regexp-quote arg))
 	(k (string-to-char rep)))
     (while (setq i (string-match re subj i))
       (aset subj i k)
       (setq i (1+ i)))))
 
-(defun forms--exit (query &optional save)
+(defun forms--exit (&optional save)
   "Internal exit from forms mode function."
 
   (let ((buf (buffer-name forms--file-buffer)))
@@ -1470,8 +1454,7 @@ Commands:                        Equivalent keys in read-only mode:
     (if (and save
 	     (buffer-modified-p forms--file-buffer))
 	(forms-save-buffer))
-    (save-excursion
-      (set-buffer forms--file-buffer)
+    (with-current-buffer forms--file-buffer
       (delete-auto-save-file-if-necessary)
       (kill-buffer (current-buffer)))
     (if (get-buffer buf)	; not killed???
@@ -1598,12 +1581,10 @@ As a side effect: sets `forms--the-record-list'."
     (if (string-match "\n" the-record)
 	(error "Multi-line fields in this record - update refused"))
 
-    (save-excursion
-      (set-buffer forms--file-buffer)
+    (with-current-buffer forms--file-buffer
       ;; Use delete-region instead of kill-region, to avoid
       ;; adding junk to the kill-ring.
-      (delete-region (save-excursion (beginning-of-line) (point))
-		     (save-excursion (end-of-line) (point)))
+      (delete-region (line-beginning-position) (line-end-position))
       (insert the-record)
       (beginning-of-line))))
 
@@ -1635,15 +1616,15 @@ As a side effect: sets `forms--the-record-list'."
     (find-file-other-window fn)
     (or forms--mode-setup (forms-mode t))))
 
-(defun forms-exit (query)
+(defun forms-exit ()
   "Normal exit from Forms mode.  Modified buffers are saved."
-  (interactive "P")
-  (forms--exit query t))
+  (interactive)
+  (forms--exit t))
 
-(defun forms-exit-no-save (query)
+(defun forms-exit-no-save ()
   "Exit from Forms mode without saving buffers."
-  (interactive "P")
-  (forms--exit query nil))
+  (interactive)
+  (forms--exit nil))
 
 ;;; Navigating commands
 
@@ -1656,6 +1637,16 @@ As a side effect: sets `forms--the-record-list'."
   "Advance to the ARGth previous record."
   (interactive "P")
   (forms-jump-record (- forms--current-record (prefix-numeric-value arg)) t))
+
+(defun forms--goto-record (rn &optional current)
+  "Goto record number RN.
+If CURRENT is provided, it specifies the current record and can be used
+to speed up access to RN.  Returns the number of records missing, if any."
+  (if current
+      (forward-line (- rn current))
+    ;; goto-line does not do what we want when the buffer is narrowed.
+    (goto-char (point-min))
+    (forward-line (1- rn))))
 
 (defun forms-jump-record (arg &optional relative)
   "Jump to a random record."
@@ -1675,25 +1666,18 @@ As a side effect: sets `forms--the-record-list'."
   (forms--checkmod)
 
   ;; Calculate displacement.
-  (let ((disp (- arg forms--current-record))
-	(cur forms--current-record))
+  (let ((cur forms--current-record))
 
     ;; `forms--show-record' needs it now.
     (setq forms--current-record arg)
 
     ;; Get the record and show it.
     (forms--show-record
-     (save-excursion
-       (set-buffer forms--file-buffer)
+     (with-current-buffer forms--file-buffer
        (beginning-of-line)
 
        ;; Move, and adjust the amount if needed (shouldn't happen).
-       (if relative
-	   (if (zerop disp)
-	       nil
-	     (setq cur (+ cur disp (- (forward-line disp)))))
-	 (goto-char (point-min))
-	 (setq cur (+ cur disp (- (forward-line (1- arg))))))
+       (setq cur (- arg (forms--goto-record arg (if relative cur))))
 
        (forms--get-record)))
 
@@ -1714,8 +1698,7 @@ As a side effect: re-calculates the number of records in the data file."
   (interactive)
   (let
       ((numrec
-	(save-excursion
-	  (set-buffer forms--file-buffer)
+	(with-current-buffer forms--file-buffer
 	  (count-lines (point-min) (point-max)))))
     (if (= numrec forms--total-records)
 	nil
@@ -1740,8 +1723,7 @@ Otherwise enables edit mode if the visited file is writable."
 
       ;; Enable edit mode, if possible.
       (let ((ro forms-read-only))
-	(if (save-excursion
-	      (set-buffer forms--file-buffer)
+	(if (with-current-buffer forms--file-buffer
 	      buffer-read-only)
 	    (progn
 	      (setq forms-read-only t)
@@ -1801,10 +1783,8 @@ after the current record."
 	  the-list
 	  forms-field-sep))
 
-    (save-excursion
-      (set-buffer forms--file-buffer)
-      (goto-char (point-min))
-      (forward-line (1- ln))
+    (with-current-buffer forms--file-buffer
+      (forms--goto-record ln)
       (open-line 1)
       (insert the-record)
       (beginning-of-line))
@@ -1825,10 +1805,8 @@ after the current record."
   (if (or arg
 	  (y-or-n-p "Really delete this record? "))
       (let ((ln forms--current-record))
-	(save-excursion
-	  (set-buffer forms--file-buffer)
-	  (goto-char (point-min))
-	  (forward-line (1- ln))
+	(with-current-buffer forms--file-buffer
+	  (forms--goto-record ln)
 	  ;; Use delete-region instead of kill-region, to avoid
 	  ;; adding junk to the kill-ring.
 	  (delete-region (progn (beginning-of-line) (point))
@@ -1852,10 +1830,8 @@ after the current record."
       (setq regexp forms--search-regexp))
   (forms--checkmod)
 
-  (let (the-line the-record here
-		 (fld-sep forms-field-sep))
-    (save-excursion
-      (set-buffer forms--file-buffer)
+  (let (the-line the-record here)
+    (with-current-buffer forms--file-buffer
       (end-of-line)
       (setq here (point))
       (if (or (re-search-forward regexp nil t)
@@ -1888,10 +1864,8 @@ after the current record."
       (setq regexp forms--search-regexp))
   (forms--checkmod)
 
-  (let (the-line the-record here
-		 (fld-sep forms-field-sep))
-    (save-excursion
-      (set-buffer forms--file-buffer)
+  (let (the-line the-record here)
+    (with-current-buffer forms--file-buffer
       (beginning-of-line)
       (setq here (point))
       (if (or (re-search-backward regexp nil t)
@@ -1921,10 +1895,9 @@ after writing out the data."
   (let ((write-file-filter forms-write-file-filter)
 	(read-file-filter forms-read-file-filter)
 	(cur forms--current-record))
-    (save-excursion
-      (set-buffer forms--file-buffer)
+    (with-current-buffer forms--file-buffer
       (let ((inhibit-read-only t))
-	;; Write file hooks are run via local-write-file-hooks.
+	;; Write file hooks are run via write-file-functions.
 	;; (if write-file-filter
 	;;  (save-excursion
 	;;   (run-hooks 'write-file-filter)))
@@ -2011,7 +1984,7 @@ after writing out the data."
       (goto-char (aref forms--markers (1- (length forms--markers)))))))
 
 (defun forms-print ()
-  "Send the records to the printer with 'print-buffer', one record per page."
+  "Send the records to the printer with `print-buffer', one record per page."
   (interactive)
   (let ((inhibit-read-only t)
 	(save-record forms--current-record)
@@ -2021,16 +1994,14 @@ after writing out the data."
     (while (<= nb-record forms--total-records)
       (forms-jump-record nb-record)
       (setq record (buffer-string))
-      (save-excursion
-	(set-buffer (get-buffer-create "*forms-print*"))
+      (with-current-buffer (get-buffer-create "*forms-print*")
 	(goto-char (buffer-end 1))
 	(insert record)
 	(setq buffer-read-only nil)
 	(if (< nb-record total-nb-records)
 	    (insert "\n\n")))
       (setq nb-record (1+ nb-record)))
-    (save-excursion
-      (set-buffer "*forms-print*")
+    (with-current-buffer "*forms-print*"
       (print-buffer)
       (set-buffer-modified-p nil)
       (kill-buffer (current-buffer)))
@@ -2078,11 +2049,11 @@ Usage: (setq forms-number-of-fields
 	      (if (fboundp el)
 		  (setq ret (concat ret (prin1-to-string (symbol-function el))
 				    "\n"))))))
-	(save-excursion
-	  (set-buffer (get-buffer-create "*forms-mode debug*"))
+	(with-current-buffer (get-buffer-create "*forms-mode debug*")
 	  (if (zerop (buffer-size))
 	      (emacs-lisp-mode))
 	  (goto-char (point-max))
 	  (insert ret)))))
 
+;;; arch-tag: 4a6695c7-d47a-4a21-809b-5cec7f8ec7a1
 ;;; forms.el ends here

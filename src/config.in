@@ -1,7 +1,8 @@
 /* src/config.in.  Generated from configure.in by autoheader.  */
 
 /* GNU Emacs site configuration template file.
-   Copyright (C) 1988, 93, 94, 99, 2000, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2002, 2004
+             Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,8 +18,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to the
-Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* No code in Emacs #includes config.h twice, but some bits of code
@@ -95,6 +96,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `bzero' function. */
 #undef HAVE_BZERO
 
+/* Define to 1 if CancelMenuTracking is available (Mac OSX). */
+#undef HAVE_CANCELMENUTRACKING
+
 /* Define to 1 if you are using the Carbon API on Mac OS X. */
 #undef HAVE_CARBON
 
@@ -110,6 +114,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the <com_err.h> header file. */
 #undef HAVE_COM_ERR_H
 
+/* Define to 1 if you have /usr/lib/crti.o. */
+#undef HAVE_CRTIN
+
 /* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
    don't. */
 #undef HAVE_DECL_SYS_SIGLIST
@@ -123,6 +130,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if dynamic ptys are supported. */
 #undef HAVE_DEV_PTMX
+
+/* Define to 1 if you have the `difftime' function. */
+#undef HAVE_DIFFTIME
 
 /* Define to 1 if you have the `dup2' function. */
 #undef HAVE_DUP2
@@ -157,6 +167,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `gai_strerror' function. */
 #undef HAVE_GAI_STRERROR
 
+/* Define to 1 if you have the `gdk_display_open' function. */
+#undef HAVE_GDK_DISPLAY_OPEN
+
 /* Define to 1 if you have the `getaddrinfo' function. */
 #undef HAVE_GETADDRINFO
 
@@ -178,6 +191,12 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `getloadavg' function. */
 #undef HAVE_GETLOADAVG
 
+/* Define to 1 if you have the <getopt.h> header file. */
+#undef HAVE_GETOPT_H
+
+/* Define to 1 if you have the `getopt_long_only' function. */
+#undef HAVE_GETOPT_LONG_ONLY
+
 /* Define to 1 if you have the `getpagesize' function. */
 #undef HAVE_GETPAGESIZE
 
@@ -186,6 +205,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the `getpt' function. */
 #undef HAVE_GETPT
+
+/* Define to 1 if you have the `getrusage' function. */
+#undef HAVE_GETRUSAGE
 
 /* Define to 1 if you have the `getsockname' function. */
 #undef HAVE_GETSOCKNAME
@@ -199,6 +221,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `getwd' function. */
 #undef HAVE_GETWD
 
+/* Define to 1 if you have the `get_current_dir_name' function. */
+#undef HAVE_GET_CURRENT_DIR_NAME
+
 /* Define to 1 if you have the ungif library (-lungif). */
 #undef HAVE_GIF
 
@@ -207,6 +232,21 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if using GTK. */
 #undef HAVE_GTK
+
+/* Define to 1 if you have GTK and pthread (-lpthread). */
+#undef HAVE_GTK_AND_PTHREAD
+
+/* Define to 1 if GTK has both file selection and chooser dialog. */
+#undef HAVE_GTK_FILE_BOTH
+
+/* Define to 1 if you have the `gtk_file_chooser_dialog_new' function. */
+#undef HAVE_GTK_FILE_CHOOSER_DIALOG_NEW
+
+/* Define to 1 if you have the `gtk_file_selection_new' function. */
+#undef HAVE_GTK_FILE_SELECTION_NEW
+
+/* Define to 1 if GTK can handle more than one display. */
+#undef HAVE_GTK_MULTIDISPLAY
 
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO
@@ -295,6 +335,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `ncurses' library (-lncurses). */
 #undef HAVE_LIBNCURSES
 
+/* Define to 1 if you have the <libpng/png.h> header file. */
+#undef HAVE_LIBPNG_PNG_H
+
 /* Define to 1 if you have the `pthreads' library (-lpthreads). */
 #undef HAVE_LIBPTHREADS
 
@@ -316,6 +359,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the <linux/version.h> header file. */
 #undef HAVE_LINUX_VERSION_H
 
+/* Define to 1 if you have the <locale.h> header file. */
+#undef HAVE_LOCALE_H
+
 /* Define to 1 if you have the `logb' function. */
 #undef HAVE_LOGB
 
@@ -334,6 +380,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the <maillock.h> header file. */
 #undef HAVE_MAILLOCK_H
 
+/* Define to 1 if you have the <malloc/malloc.h> header file. */
+#undef HAVE_MALLOC_MALLOC_H
+
 /* Define to 1 if you have the `mblen' function. */
 #undef HAVE_MBLEN
 
@@ -343,11 +392,23 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `mbsinit' function. */
 #undef HAVE_MBSINIT
 
+/* Define to 1 if <wchar.h> declares mbstate_t. */
+#undef HAVE_MBSTATE_T
+
+/* Define to 1 if you have the `memcmp' function. */
+#undef HAVE_MEMCMP
+
+/* Define to 1 if you have the `memcpy' function. */
+#undef HAVE_MEMCPY
+
 /* Define to 1 if you have the `memmove' function. */
 #undef HAVE_MEMMOVE
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `mempcpy' function. */
+#undef HAVE_MEMPCPY
 
 /* Define to 1 if you have the `memset' function. */
 #undef HAVE_MEMSET
@@ -375,17 +436,35 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `mremap' function. */
 #undef HAVE_MREMAP
 
+/* Define to 1 if you have the <net/if.h> header file. */
+#undef HAVE_NET_IF_H
+
 /* Define to 1 if you have the <nlist.h> header file. */
 #undef HAVE_NLIST_H
+
+/* Define to 1 if personality LINUX32 can be set. */
+#undef HAVE_PERSONALITY_LINUX32
 
 /* Define to 1 if you have the png library (-lpng). */
 #undef HAVE_PNG
 
+/* Define to 1 if you have the <png.h> header file. */
+#undef HAVE_PNG_H
+
+/* Define to 1 if you have the `posix_memalign' function. */
+#undef HAVE_POSIX_MEMALIGN
+
 /* Define to 1 if you have the `pstat_getdynamic' function. */
 #undef HAVE_PSTAT_GETDYNAMIC
 
+/* Define to 1 if you have the <pthread.h> header file. */
+#undef HAVE_PTHREAD_H
+
 /* Define to 1 if you have the <pty.h> header file. */
 #undef HAVE_PTY_H
+
+/* Define to 1 if you have the <pwd.h> header file. */
+#undef HAVE_PWD_H
 
 /* Define to 1 if you have the `random' function. */
 #undef HAVE_RANDOM
@@ -468,6 +547,21 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `strsignal' function. */
 #undef HAVE_STRSIGNAL
 
+/* Define to 1 if `ifr_addr' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_ADDR
+
+/* Define to 1 if `ifr_broadaddr' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_BROADADDR
+
+/* Define to 1 if `ifr_flags' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_FLAGS
+
+/* Define to 1 if `ifr_hwaddr' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_HWADDR
+
+/* Define to 1 if `ifr_netmask' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_NETMASK
+
 /* Define to 1 if `n_un.n_name' is member of `struct nlist'. */
 #undef HAVE_STRUCT_NLIST_N_UN_N_NAME
 
@@ -480,6 +574,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `sysinfo' function. */
 #undef HAVE_SYSINFO
 
+/* Define to 1 if you have the <sys/ioctl.h> header file. */
+#undef HAVE_SYS_IOCTL_H
+
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #undef HAVE_SYS_MMAN_H
 
@@ -491,6 +588,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the <sys/select.h> header file. */
 #undef HAVE_SYS_SELECT_H
+
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#undef HAVE_SYS_SOCKET_H
 
 /* Define to 1 if you have the <sys/soundcard.h> header file. */
 #undef HAVE_SYS_SOUNDCARD_H
@@ -513,11 +613,17 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the <sys/un.h> header file. */
 #undef HAVE_SYS_UN_H
 
+/* Define to 1 if you have the <sys/utsname.h> header file. */
+#undef HAVE_SYS_UTSNAME_H
+
 /* Define to 1 if you have the <sys/vlimit.h> header file. */
 #undef HAVE_SYS_VLIMIT_H
 
 /* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
 #undef HAVE_SYS_WAIT_H
+
+/* Define to 1 if you have the <sys/_mbstate_t.h> header file. */
+#undef HAVE_SYS__MBSTATE_T_H
 
 /* Define to 1 if you have the <termcap.h> header file. */
 #undef HAVE_TERMCAP_H
@@ -594,6 +700,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you're using XFree386. */
 #undef HAVE_XFREE386
 
+/* Define to 1 if XIM is available */
+#undef HAVE_XIM
+
 /* Define to 1 if you have the XkbGetKeyboard function. */
 #undef HAVE_XKBGETKEYBOARD
 
@@ -640,9 +749,6 @@ Boston, MA 02111-1307, USA.  */
    Solaris, for example). */
 #undef LD_SWITCH_X_SITE_AUX
 
-/* Define to -llockfile if it is usable. */
-#undef LIBMAIL
-
 /* Define to 1 if localtime caches TZ. */
 #undef LOCALTIME_CACHE
 
@@ -652,9 +758,6 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if your `struct nlist' has an `n_un' member. Obsolete, depend
    on `HAVE_STRUCT_NLIST_N_UN_N_NAME */
 #undef NLIST_NAME_UNION
-
-/* Define to 1 if you have <nlist.h>. */
-#undef NLIST_STRUCT
 
 /* Define to 1 if you don't have struct exception in math.h. */
 #undef NO_MATHERR
@@ -691,9 +794,9 @@ Boston, MA 02111-1307, USA.  */
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-        STACK_DIRECTION > 0 => grows toward higher addresses
-        STACK_DIRECTION < 0 => grows toward lower addresses
-        STACK_DIRECTION = 0 => direction of growth unknown */
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -727,6 +830,10 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if using an X toolkit. */
 #undef USE_X_TOOLKIT
 
+/* Define to the type of the 6th arg of XRegisterIMInstantiateCallback, either
+   XPointer or XPointer*. */
+#undef XRegisterIMInstantiateCallback_arg6
+
 /* Define to 1 if on AIX 3.
    System headers sometimes define this.
    We just want to avoid a redefinition error message.  */
@@ -748,6 +855,10 @@ Boston, MA 02111-1307, USA.  */
 /* Define for large files, on AIX-style hosts. */
 #undef _LARGE_FILES
 
+/* Define to rpl_ if the getopt replacement functions and variables should be
+   used. */
+#undef __GETOPT_PREFIX
+
 /* Define like PROTOTYPES; this can be used by system headers. */
 #undef __PROTOTYPES
 
@@ -767,6 +878,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
+
+/* Define to a type if <wchar.h> does not define. */
+#undef mbstate_t
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
@@ -812,6 +926,9 @@ Boston, MA 02111-1307, USA.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
 #define AMPERSAND_FULL_NAME
 
+/* We have blockinput.h.  */
+#define DO_BLOCK_INPUT
+
 /* Define HAVE_SOUND if we have sound support.  We know it works
    and compiles only on the specified platforms.   For others,
    it probably doesn't make sense to try.  */
@@ -832,7 +949,7 @@ Boston, MA 02111-1307, USA.  */
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
    may reject `extern inline'.  */
-#ifdef __GNUC__
+#if defined (__GNUC__) && defined (OPTIMIZE)
 #define INLINE __inline__
 #else
 #define INLINE
@@ -880,13 +997,21 @@ Boston, MA 02111-1307, USA.  */
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object
 #define RE_TRANSLATE(TBL, C) CHAR_TABLE_TRANSLATE (TBL, C)
-#define RE_TRANSLATE_P(TBL) (XFASTINT (TBL) != 0)
+#ifdef make_number
+/* If make_number is a macro, use it.  */
+#define RE_TRANSLATE_P(TBL) (!EQ (TBL, make_number (0)))
+#else
+/* If make_number is a function, avoid it.  */
+#define RE_TRANSLATE_P(TBL) (!(INTEGERP (TBL) && XINT (TBL) == 0))
+#endif
 #endif
 
 /* Avoid link-time collision with system mktime if we will use our own.  */
 #if ! HAVE_MKTIME || BROKEN_MKTIME
 #define mktime emacs_mktime
 #endif
+
+#define my_strftime nstrftime	/* for strftime.c */
 
 /* The rest of the code currently tests the CPP symbol BSTRING.
    Override any claims made by the system-description files.

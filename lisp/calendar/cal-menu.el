@@ -1,9 +1,11 @@
 ;;; cal-menu.el --- calendar functions for menu bar and popup menu support
 
-;; Copyright (C) 1994, 1995, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;	Lara Rios <lrios@coewl.cen.uiuc.edu>
+;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: calendar, popup menus, menu bar
 
@@ -21,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -37,8 +39,10 @@
 
 ;;; Code:
 
+(defvar displayed-month)
+(defvar displayed-year)
+
 (eval-when-compile (require 'calendar))
-(require 'easymenu)
 
 (define-key calendar-mode-map [menu-bar edit] 'undefined)
 (define-key calendar-mode-map [menu-bar search] 'undefined)
@@ -48,7 +52,6 @@
 
 (defvar calendar-mouse-3-map (make-sparse-keymap "Calendar"))
 (define-key calendar-mode-map [down-mouse-3] calendar-mouse-3-map)
-(define-key calendar-mode-map [C-down-mouse-3] calendar-mouse-3-map)
 
 (define-key calendar-mode-map [menu-bar moon]
   (cons "Moon" (make-sparse-keymap "Moon")))
@@ -63,6 +66,8 @@
   '("Insert Hebrew" . calendar-mouse-insert-hebrew-diary-entry))
 (define-key calendar-mode-map [menu-bar diary isl]
   '("Insert Islamic" . calendar-mouse-insert-islamic-diary-entry))
+(define-key calendar-mode-map [menu-bar diary baha]
+  '("Insert Baha'i" . calendar-mouse-insert-bahai-diary-entry))
 (define-key calendar-mode-map [menu-bar diary cyc]
   '("Insert Cyclic" . insert-cyclic-diary-entry))
 (define-key calendar-mode-map [menu-bar diary blk]
@@ -107,6 +112,8 @@
 (define-key calendar-mode-map [menu-bar goto islamic]
   '("Islamic Date" . calendar-goto-islamic-date))
 (define-key calendar-mode-map [menu-bar goto persian]
+  '("Baha'i Date" . calendar-goto-bahai-date))
+(define-key calendar-mode-map [menu-bar goto persian]
   '("Persian Date" . calendar-goto-persian-date))
 (define-key calendar-mode-map [menu-bar goto hebrew]
   '("Hebrew Date" . calendar-goto-hebrew-date))
@@ -114,6 +121,10 @@
   '("Astronomical Date" . calendar-goto-astro-day-number))
 (define-key calendar-mode-map [menu-bar goto iso]
   '("ISO Date" . calendar-goto-iso-date))
+(define-key calendar-mode-map [menu-bar goto iso-week]
+  '("ISO Week" . calendar-goto-iso-week))
+(define-key calendar-mode-map [menu-bar goto day-of-year]
+  '("Day of Year" . calendar-goto-day-of-year))
 (define-key calendar-mode-map [menu-bar goto gregorian]
   '("Other Date" . calendar-goto-date))
 (define-key calendar-mode-map [menu-bar goto end-of-year]
@@ -161,6 +172,15 @@
 (define-key calendar-mode-map [menu-bar scroll fwd-1]
   '("Forward 1 Month" . scroll-calendar-left))
 
+(defun calendar-flatten (list)
+  "Flatten LIST eliminating sublists structure; result is a list of atoms.
+This is the same as the preorder list of leaves in a rooted forest."
+  (if (atom list)
+      (list list)
+    (if (cdr list)
+        (append (calendar-flatten (car list)) (calendar-flatten (cdr list)))
+      (calendar-flatten (car list)))))
+
 (defun cal-menu-x-popup-menu (position menu)
   "Like `x-popup-menu', but prints an error message if popup menus are
 not available."
@@ -201,8 +221,9 @@ not available."
                            l)))
             (setq l (cons ["Mark Holidays" mark-calendar-holidays t]
                           (cons ["Unmark Calendar" calendar-unmark t]
-                                (cons ["--" '("--") t] l))))
-            (easy-menu-change nil "Holidays" (nreverse l))
+                                (cons "--" l))))
+            (define-key calendar-mode-map [menu-bar Holidays]
+	      (cons "Holidays" (easy-menu-create-menu "Holidays" (nreverse l))))
             (define-key calendar-mode-map [menu-bar Holidays separator]
               '("--"))
             (define-key calendar-mode-map [menu-bar Holidays today]
@@ -218,13 +239,13 @@ not available."
                      (increment-calendar-month m2 y2 1)
                      (if (= y1 y2)
                          (format "%s-%s, %d"
-                                 (calendar-month-name m1 3)
-                                 (calendar-month-name m2 3)
+                                 (calendar-month-name m1 'abbrev)
+                                 (calendar-month-name m2 'abbrev)
                                  y2)
                        (format "%s, %d-%s, %d"
-                               (calendar-month-name m1 3)
+                               (calendar-month-name m1 'abbrev)
                                y1
-                               (calendar-month-name m2 3)
+                               (calendar-month-name m2 'abbrev)
                                y2)))))
               (define-key  calendar-mode-map [menu-bar Holidays 3-month]
                 `(,(format "For Window (%s)" title)
@@ -273,6 +294,19 @@ ERROR is t, otherwise just returns nil."
                       '("Yearly" . insert-yearly-islamic-diary-entry))))))
     (and islamic-selection (call-interactively islamic-selection))))
 
+(defun calendar-mouse-insert-bahai-diary-entry (event)
+  "Pop up menu to insert an Baha'i-date diary entry."
+  (interactive "e")
+  (let ((bahai-selection
+         (x-popup-menu
+          event
+          (list "Baha'i insert menu"
+                (list (calendar-bahai-date-string (calendar-cursor-to-date))
+                      '("One time" . insert-bahai-diary-entry)
+                      '("Monthly" . insert-monthly-bahai-diary-entry)
+                      '("Yearly" . insert-yearly-bahai-diary-entry))))))
+    (and bahai-selection (call-interactively bahai-selection))))
+
 (defun calendar-mouse-sunrise/sunset ()
   "Show sunrise/sunset times for mouse-selected date."
   (interactive)
@@ -287,12 +321,14 @@ ERROR is t, otherwise just returns nil."
     (calendar-cursor-to-date (calendar-current-date))
     (calendar-cursor-holidays)))
 
-(defun calendar-mouse-holidays ()
+(autoload 'check-calendar-holidays "holidays")
+(autoload 'diary-list-entries "diary-lib")
+
+(defun calendar-mouse-holidays (&optional event)
   "Pop up menu of holidays for mouse selected date."
-  (interactive)
+  (interactive "e")
   (let* ((date (calendar-event-to-date))
-         (l (mapcar '(lambda (x) (list x))
-                    (check-calendar-holidays date)))
+         (l (mapcar 'list (check-calendar-holidays date)))
          (selection
           (cal-menu-x-popup-menu
            event
@@ -303,53 +339,45 @@ ERROR is t, otherwise just returns nil."
              (if l l '("None")))))))
     (and selection (call-interactively selection))))
 
-(defun calendar-mouse-view-diary-entries ()
-  "Pop up menu of diary entries for mouse selected date."
-  (interactive)
-  (let* ((date (calendar-event-to-date))
-         (l (mapcar '(lambda (x) (list (car (cdr x))))
-                    (let ((diary-list-include-blanks nil)
-                          (diary-display-hook 'ignore))
-                      (list-diary-entries date 1))))
+(defun calendar-mouse-view-diary-entries (&optional date diary event)
+  "Pop up menu of diary entries for mouse-selected date.
+Use optional DATE and alternative file DIARY.
+
+Any holidays are shown if `holidays-in-diary-buffer' is t."
+  (interactive "i\ni\ne")
+  (let* ((date (if date date (calendar-event-to-date)))
+         (diary-file (if diary diary diary-file))
+         (diary-list-include-blanks nil)
+         (diary-display-hook 'ignore)
+         (diary-entries
+          (mapcar (lambda (x) (split-string (car (cdr x)) "\^M\\|\n"))
+                  (diary-list-entries date 1 'list-only)))
+         (holidays (if holidays-in-diary-buffer
+                       (check-calendar-holidays date)))
+         (title (concat "Diary entries "
+                        (if diary (format "from %s " diary) "")
+                        "for "
+                        (calendar-date-string date)))
          (selection
           (cal-menu-x-popup-menu
            event
-           (list
-            (format "Diary entries for %s" (calendar-date-string date))
-            (append
-             (list (format "Diary entries for %s" (calendar-date-string date)))
-             (if l l '("None")))))))
+           (list title
+                 (append
+                  (list title)
+                  (mapcar (lambda (x) (list (concat "     " x))) holidays)
+                  (if holidays
+                      (list "--shadow-etched-in" "--shadow-etched-in"))
+                  (if diary-entries
+                      (mapcar 'list (calendar-flatten diary-entries))
+                    '("None")))))))
     (and selection (call-interactively selection))))
 
 (defun calendar-mouse-view-other-diary-entries ()
   "Pop up menu of diary entries from alternative file on mouse-selected date."
   (interactive)
-  (let* ((date (calendar-event-to-date))
-         (diary-list-include-blanks nil)
-         (diary-display-hook 'ignore)
-         (diary-file (read-file-name
-                      "Enter diary file name: "
-                      default-directory nil t))
-         ; The following doesn't really do the right thing.  The problem is
-         ; that a newline in the diary entry does not give a newline in a
-         ; pop-up menu; for that you need a separate list item.  When the (car
-         ; (cdr x)) contains newlines, the item should be split into a list of
-         ; items.  Too minor and messy to worry about.
-         (l (mapcar '(lambda (x) (list (car (cdr x))))
-                    (list-diary-entries date 1)))
-         (selection
-          (cal-menu-x-popup-menu
-           event
-           (list
-            (format "Diary entries from %s for %s"
-                    diary-file
-                    (calendar-date-string date))
-            (append
-             (list (format "Diary entries from %s for %s"
-                            diary-file
-                           (calendar-date-string date)))
-             (if l l '("None")))))))
-    (and selection (call-interactively selection))))
+  (calendar-mouse-view-diary-entries
+   (calendar-event-to-date)
+   (read-file-name "Enter diary file name: " default-directory nil t)))
 
 (defun calendar-mouse-insert-diary-entry ()
   "Insert diary entry for mouse-selected date."
@@ -461,10 +489,10 @@ The output is in landscape format, one month to a page."
     (calendar-mouse-goto-date (calendar-event-to-date))
     (cal-tex-cursor-year-landscape nil)))
 
-(defun calendar-mouse-print-dates ()
+(defun calendar-mouse-print-dates (&optional event)
   "Pop up menu of equivalent dates to mouse selected date."
-  (interactive)
-  (let ((date (calendar-event-to-date))
+  (interactive "e")
+  (let* ((date (calendar-event-to-date))
         (selection
          (cal-menu-x-popup-menu
           event
@@ -486,15 +514,17 @@ The output is in landscape format, one month to a page."
              (list (format "Hebrew date (before sunset): %s"
                            (calendar-hebrew-date-string date)))
              (list (format "Persian date: %s"
-                           (calendar-persian-date-string date))))
+                           (calendar-persian-date-string date)))
+             (list (format "Baha'i date (before sunset): %s"
+                           (calendar-bahai-date-string date))))
             (let ((i (calendar-islamic-date-string date)))
               (if (not (string-equal i ""))
                   (list (list (format "Islamic date (before sunset): %s" i)))))
             (list
              (list (format "Chinese date: %s"
                            (calendar-chinese-date-string date))))
-;            (list '("Chinese date (select to echo Chinese date)"
-;                    . calendar-mouse-chinese-date))
+            ;; (list '("Chinese date (select to echo Chinese date)"
+            ;;         . calendar-mouse-chinese-date))
             (let ((c (calendar-coptic-date-string date)))
               (if (not (string-equal c ""))
                   (list (list (format "Coptic date: %s" c)))))
@@ -549,7 +579,7 @@ The output is in landscape format, one month to a page."
   (let* ((selection
           (cal-menu-x-popup-menu
            event
-           (list (calendar-date-string date t nil)
+           (list (calendar-date-string (calendar-event-to-date t) t nil)
                  (list
                   ""
                   '("Daily (1 page)" . cal-tex-mouse-day)
@@ -572,7 +602,7 @@ The output is in landscape format, one month to a page."
   (let* ((selection
           (cal-menu-x-popup-menu
            event
-           (list (calendar-date-string date t nil)
+           (list (calendar-date-string (calendar-event-to-date t) t nil)
                  (list
                   ""
                   '("Filofax Daily (one-day-per-page)" .
@@ -608,4 +638,5 @@ The output is in landscape format, one month to a page."
 
 (provide 'cal-menu)
 
+;; arch-tag: aa81cf73-ce89-48a4-97ec-9ef861e87fe9
 ;;; cal-menu.el ends here

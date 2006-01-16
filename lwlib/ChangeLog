@@ -1,3 +1,137 @@
+2005-09-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xlwmenu.c (find_next_selectable): 
+	(find_prev_selectable): Add missing parameter
+	declarations.
+
+2005-09-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xlwmenu.c: Fix the return type for x_clear_errors and
+	x_uncatch_errors. 
+
+2005-07-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* lwlib-Xm.c (make_menu_in_widget): Disable drag and drop for 
+	labels in menu bar.
+
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
+2005-04-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	Reenable support for I18N to Lucid menus.
+
+	* xlwmenuP.h (_XlwMenu_part): Add fontSet resource.
+
+	* xlwmenu.c (string_width):
+	(MENU_FONT_HEIGHT, MENU_FONT_ASCENT): Ditto.
+	(display_menu_item, make_drawing_gcs, XlwMenuInitialize)
+	(XlwMenuSetValues):  Use font if fontSet is NULL, use only
+	font for !HAVE_X_I18N.
+	(xlwMenuResources): Add fontSet resource.
+
+2005-03-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xlwmenuP.h: Temporary #undef HAVE_X_I18N until FontSet for UTF-8
+	on XFree86 is investigated.
+
+	* xlwmenu.c: Ditto.
+
+2005-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add support for I18N to Lucid menus.
+
+	* xlwmenuP.h (struct _XlwMenu_part) [HAVE_X_I18N]: Change `font' to be
+	a fontset.  Add a `font_extents' element.
+
+	* xlwmenu.c (xlwMenuResources) [HAVE_X_I18N]: Use a fontset for the
+	`font' resource.
+	(string_width) [HAVE_X_I18N]: Use XmbTextExtents;
+	(MENU_FONT_HEIGHT, MENU_FONT_ASCENT): New macros.
+	(arrow_width, toggle_button_width, size_menu_item, draw_arrow)
+	(draw_toggle, draw_radio, display_menu_item): Use them.
+	(display_menu_item) [HAVE_X_I18N]: Use XmbDrawString.
+	(make_drawing_gcs) [HAVE_X_I18N]: Don't mess with fonts.
+	(XlwMenuInitialize) [HAVE_X_I18N]: Initialize font_extents.
+	(XlwMenuSetValues) [HAVE_X_I18N]: Refresh font_extents if font changes.
+
+	* lwlib-Xm.c (xm_update_label, xm_update_list): Use the recommended
+	XmStringCreateLocalized function.  Add missing copyright.
+
+	* lwlib-Xm.h: Add missing copyright and license notice.
+
+2005-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xlwmenuP.h:
+	* xlwmenu.h: Add missing copyright and license notice.
+
+2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.c (xlwMenuActionsList): Install MenuGadgetEscape as an
+	action procedure for compatibility with Lesstif/Motif.
+
+	* Makefile.in (mostlyclean): Don't remove *~ on clean.
+
+2004-12-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* lwlib-Xaw.c: Put <KeyPress>Escape in dialogOverride so dialogs only
+	pops down on Escape, not any keypress.
+
+2004-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.c (find_first_selectable, find_next_selectable)
+	(find_prev_selectable): Rename parameter skip_no_call_data to
+	skip_titles.  Recognize titles as having no call_data and no contents.
+	(Down, Up): Comment update.
+
+2004-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* lwlib.h (_widget_value): Add lname and lkey.
+
+2004-01-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xlwmenuP.h (_XlwMenu_part): Add top_depth.
+
+	* xlwmenu.h: Removed declaration of pop_up_menu
+
+	* xlwmenu.c (Start): Get correct time if time in event is CurrentTime.
+	(find_first_selectable, find_next_selectable)
+	(find_prev_selectable): Add parameter skip_no_call_data to skip
+	over items with no call data (popup menu titles).
+	(Down, Up): Compare old_depth to top_depth instead of 2.
+	Pass True to find_*_selectable:s new parameter if this is a popup menu.
+	(Left, Right): Compare old_depth to top_depth instead of 2.
+	Pass 0 to find_*_selectable:s new parameter.
+	(pop_up_menu): Set top_depth to 1 for pop up menus and 2 for
+	menu bar menus, to enable keyboard traversal of popups.
+
+	* lwlib-Xm.c (dialog_key_cb): New function.
+	(make_dialog): Add event handlers to dialog_key_cb for key press
+	so we can pop down on ESC.
+
+	* lwlib-Xlw.c (xlw_popup_menu): Replace call to pop_up_menu with
+	XtCallActionProc ("start").  Use a full XEvent since "start" copies it.
+
+	* lwlib-Xaw.c (make_dialog): Add override so dialog pops down
+	on ESC.
+	(wm_delete_window): If widget isn't a shell, use the parent.
+
+2003-05-22  Dave Love  <fx@gnu.org>
+
+	* xlwmenu.c: Include lisp.h, not ../src/lisp.h.
+	(make_drawing_gcs): Remove unused `xswa', `mask'.
+
+	* lwlib-Xlw.c: Include lisp.h, not ../src/lisp.h.
+	(lw_lucid_widget_p): Remove unused `mw'.
+	(xlw_update_one_widget, xlw_pop_instance) [PROTOTYPES]:
+	Provide ISO C arglists.
+
+2003-04-30  Lute Kamstra  <lute@gnu.org>
+
+	* Makefile.in: Make things function properly in case both LessTif
+	and Open Motif are installed.
+
 2003-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* lwlib-Xm.c (update_one_menu_entry): Deallocate widget_list.
@@ -18,8 +152,7 @@
 2002-11-20  Dave Love  <fx@gnu.org>
 
 	* lwlib.c: Remove obsolete USE_OLIT code.
-	[PROTOTYPES]: Provide ISO C arglists for functions with Boolean
-	args.
+	[PROTOTYPES]: Provide ISO C arglists for functions with Boolean args.
 	(lwlib_memset): Declare length arg as size_t.
 	(malloc_widget_value): Cast arg of lwlib_memset.
 
@@ -182,7 +315,7 @@
 
 	* lwlib-Xm.c (make_menu_in_widget): Add an XmNpopdownCallback
 	instead of an XmNunmapCallback.
-	(xm_unmap_callback): Removed.
+	(xm_unmap_callback): Remove.
 
 	* lwlib-Xm.c (make_menubar): Take out code in #if 0.
 
@@ -1169,3 +1302,5 @@
         Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 0cd8ab87-d764-40d9-b86d-d00c71887a9e

@@ -1,6 +1,7 @@
 ;;; shadowfile.el --- automatic file copying
 
-;; Copyright (C) 1993, 1994, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: comm files
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -302,40 +303,40 @@ be matched against the primary of site2."
 ;;; Filename manipulation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun shadow-parse-fullpath (fullpath)
-  "Parse FULLPATH into \(site user path) list.
+(defun shadow-parse-fullname (fullname)
+  "Parse FULLNAME into \(site user path) list.
 Leave it alone if it already is one.  Returns nil if the argument is
 not a full ange-ftp pathname."
-  (if (listp fullpath)
-      fullpath
-    (ange-ftp-ftp-name fullpath)))
+  (if (listp fullname)
+      fullname
+    (ange-ftp-ftp-name fullname)))
 
-(defun shadow-parse-path (path)
-  "Parse any PATH into \(site user path) list.
-Argument can be a simple path, full ange-ftp path, or already a hup list."
-  (or (shadow-parse-fullpath path)
+(defun shadow-parse-name (name)
+  "Parse any NAME into \(site user name) list.
+Argument can be a simple name, full ange-ftp name, or already a hup list."
+  (or (shadow-parse-fullname name)
       (list shadow-system-name
 	    (user-login-name)
-	    path)))
+	    name)))
 
-(defsubst shadow-make-fullpath (host user path)
-  "Make an ange-ftp style fullpath out of HOST, USER (optional), and PATH.
+(defsubst shadow-make-fullname (host user name)
+  "Make an ange-ftp style fullname out of HOST, USER (optional), and NAME.
 This is probably not as general as it ought to be."
   (concat "/"
 	  (if user (concat user "@"))
 	  host ":"
-	  path))
+	  name))
 
-(defun shadow-replace-path-component (fullpath newpath)
-  "Return FULLPATH with the pathname component changed to NEWPATH."
-  (let ((hup (shadow-parse-fullpath fullpath)))
-    (shadow-make-fullpath (nth 0 hup) (nth 1 hup) newpath)))
+(defun shadow-replace-name-component (fullname newname)
+  "Return FULLNAME with the name component changed to NEWNAME."
+  (let ((hup (shadow-parse-fullname fullname)))
+    (shadow-make-fullname (nth 0 hup) (nth 1 hup) newname)))
 
 (defun shadow-local-file (file)
   "If FILE is at this site, remove /user@host part.
 If refers to a different system or a different user on this system,
 return nil."
-  (let ((hup (shadow-parse-fullpath file)))
+  (let ((hup (shadow-parse-fullname file)))
     (cond ((null hup) file)
 	  ((and (shadow-site-match (nth 0 hup) shadow-system-name)
 		(string-equal (nth 1 hup) (user-login-name)))
@@ -344,12 +345,12 @@ return nil."
 
 (defun shadow-expand-cluster-in-file-name (file)
   "If hostname part of FILE is a cluster, expand it to cluster's primary hostname.
-Will return the pathname bare if it is a local file."
-  (let ((hup (shadow-parse-path file))
+Will return the name bare if it is a local file."
+  (let ((hup (shadow-parse-name file))
 	cluster)
     (cond ((null hup) file)
 	  ((shadow-local-file hup))
-	  ((shadow-make-fullpath (shadow-site-primary (nth 0 hup))
+	  ((shadow-make-fullname (shadow-site-primary (nth 0 hup))
 				 (nth 1 hup)
 				 (nth 2 hup))))))
 
@@ -362,17 +363,17 @@ Will return the pathname bare if it is a local file."
 Do so by replacing (when possible) home directory with ~, and hostname
 with cluster name that includes it.  Filename should be absolute and
 true."
-  (let* ((hup (shadow-parse-path file))
+  (let* ((hup (shadow-parse-name file))
 	 (homedir (if (shadow-local-file hup)
 		      shadow-homedir
 		    (file-name-as-directory
-		     (nth 2 (shadow-parse-fullpath
+		     (nth 2 (shadow-parse-fullname
 			     (expand-file-name
-			      (shadow-make-fullpath
+			      (shadow-make-fullname
 			       (nth 0 hup) (nth 1 hup) "~")))))))
 	 (suffix (shadow-suffix homedir (nth 2 hup)))
 	 (cluster (shadow-site-cluster (nth 0 hup))))
-    (shadow-make-fullpath
+    (shadow-make-fullname
      (if cluster
 	 (shadow-cluster-name cluster)
        (nth 0 hup))
@@ -384,10 +385,10 @@ true."
 (defun shadow-same-site (pattern file)
   "True if the site of PATTERN and of FILE are on the same site.
 If usernames are supplied, they must also match exactly.  PATTERN and FILE may
-be lists of host, user, path, or ange-ftp pathnames.  FILE may also be just a
+be lists of host, user, name, or ange-ftp file names.  FILE may also be just a
 local filename."
-  (let ((pattern-sup (shadow-parse-fullpath pattern))
-	(file-sup    (shadow-parse-path file)))
+  (let ((pattern-sup (shadow-parse-fullname pattern))
+	(file-sup    (shadow-parse-name file)))
     (and
      (shadow-site-match (nth 0 pattern-sup) (nth 0 file-sup))
      (or (null (nth 1 pattern-sup))
@@ -395,13 +396,13 @@ local filename."
 
 (defun shadow-file-match (pattern file &optional regexp)
  "Return t if PATTERN matches FILE.
-If REGEXP is supplied and nonnil, the pathname part of the pattern is a regular
+If REGEXP is supplied and non-nil, the file part of the pattern is a regular
 expression, otherwise it must match exactly.  The sites and usernames must
 match---see shadow-same-site.  The pattern must be in full ange-ftp format, but
 the file can be any valid filename.  This function does not do any filename
 expansion or contraction, you must do that yourself first."
- (let* ((pattern-sup (shadow-parse-fullpath pattern))
-	(file-sup (shadow-parse-path file)))
+ (let* ((pattern-sup (shadow-parse-fullname pattern))
+	(file-sup (shadow-parse-name file)))
    (and (shadow-same-site pattern-sup file-sup)
 	(if regexp
 	    (string-match (nth 2 pattern-sup) (nth 2 file-sup))
@@ -437,7 +438,7 @@ in the cluster."
 		       (sit-for 2))
 		     try-regexp))
 ;	 (username (read-no-blanks-input
-;		    (format "Username [default: %s]: "
+;		    (format "Username (default %s): "
 ;			    (shadow-get-user primary))
 ;		    (if old (or (shadow-cluster-username old) "")
 ;		      (user-login-name))))
@@ -452,19 +453,19 @@ It may have different filenames on each site.  When this file is edited, the
 new version will be copied to each of the other locations.  Sites can be
 specific hostnames, or names of clusters \(see `shadow-define-cluster')."
   (interactive)
-  (let* ((hup (shadow-parse-fullpath
+  (let* ((hup (shadow-parse-fullname
 	       (shadow-contract-file-name (buffer-file-name))))
-	 (path (nth 2 hup))
+	 (name (nth 2 hup))
 	 user site group)
     (while (setq site (shadow-read-site))
-      (setq user (read-string (format "Username [default %s]: "
+      (setq user (read-string (format "Username (default %s): "
 				      (shadow-get-user site)))
-	    path (read-string "Filename: " path))
-      (setq group (cons (shadow-make-fullpath site
+	    name (read-string "Filename: " name))
+      (setq group (cons (shadow-make-fullname site
 					      (if (string-equal "" user)
 						  (shadow-get-user site)
 						user)
-					      path)
+					      name)
 			group)))
     (setq shadow-literal-groups (cons group shadow-literal-groups)))
   (shadow-write-info-file))
@@ -483,7 +484,7 @@ Each site can be either a hostname or the name of a cluster \(see
 		 (if (buffer-file-name)
 		     (shadow-regexp-superquote
 		      (nth 2
-			   (shadow-parse-path
+			   (shadow-parse-name
 			    (shadow-contract-file-name
 			     (buffer-file-name))))))))
 	site sites usernames)
@@ -518,8 +519,9 @@ Pending copies are stored in variable `shadow-files-to-copy', and in
 `shadow-save-buffers-kill-emacs', so it is not usually necessary to
 call it manually."
   (interactive "P")
-  (if (and (not shadow-files-to-copy) (interactive-p))
-      (message "No files need to be shadowed.")
+  (if (not shadow-files-to-copy)
+      (if (interactive-p)
+	  (message "No files need to be shadowed."))
     (save-excursion
       (map-y-or-n-p (function
 		     (lambda (pair)
@@ -558,7 +560,7 @@ actually a list of regexp ange-ftp file names---from REGEXP \(name of file to
 be shadowed), list of SITES, and corresponding list of USERNAMES for each
 site."
   (if sites
-      (cons (shadow-make-fullpath (car sites) (car usernames) regexp)
+      (cons (shadow-make-fullname (car sites) (car usernames) regexp)
 	    (shadow-make-group regexp (cdr sites) (cdr usernames)))
     nil))
 
@@ -619,11 +621,11 @@ Consider them as regular expressions if third arg REGEXP is true."
 	      (car groups))))
 	(append (cond ((equal nonmatching (car groups)) nil)
 		      (regexp
-		       (let ((realpath (nth 2 (shadow-parse-fullpath file))))
+		       (let ((realname (nth 2 (shadow-parse-fullname file))))
 			 (mapcar
 			  (function
 			   (lambda (x)
-			     (shadow-replace-path-component x realpath)))
+			     (shadow-replace-name-component x realname)))
 			  nonmatching)))
 		      (t nonmatching))
 		(shadow-shadows-of-1 file (cdr groups) regexp)))))
@@ -674,7 +676,7 @@ Returns t unless files were locked; then returns nil."
 	  (message "Data recovered from %s."
 		   (car (insert-file-contents (make-auto-save-file-name))))
 	  (sit-for 1))
-	(eval-current-buffer))
+	(eval-buffer))
       (when shadow-todo-file
 	(set-buffer (setq shadow-todo-buffer
 			  (find-file-noselect shadow-todo-file)))
@@ -685,7 +687,7 @@ Returns t unless files were locked; then returns nil."
 	  (message "Data recovered from %s."
 		   (car (insert-file-contents (make-auto-save-file-name))))
 	  (sit-for 1))
-	(eval-current-buffer nil))
+	(eval-buffer nil))
       (shadow-invalidate-hashtable))
     t))
 
@@ -799,7 +801,7 @@ look for files that have been changed and need to be copied to other systems."
 ;	    (symbol-function 'symlink-expand-file-name)))
 ;  (if (not (fboundp 'ange-ftp-ftp-name))
 ;      (fset 'ange-ftp-ftp-name
-;	    (symbol-function 'ange-ftp-ftp-path))))
+;	    (symbol-function 'ange-ftp-ftp-name))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Hook us up
@@ -837,6 +839,9 @@ look for files that have been changed and need to be copied to other systems."
 	    (symbol-function 'shadow-orig-save-buffers-kill-emacs)))
   (remove-hook 'write-file-hooks 'shadow-add-to-todo))
 
+(add-hook 'shadowfile-unload-hook 'shadowfile-unload-hook)
+
 (provide 'shadowfile)
 
+;;; arch-tag: e2f4cdd7-2bab-4def-9130-9e69b412b79e
 ;;; shadowfile.el ends here

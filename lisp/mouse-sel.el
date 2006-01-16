@@ -1,6 +1,7 @@
 ;;; mouse-sel.el --- multi-click selection support for Emacs 19
 
-;; Copyright (C) 1993,1994,1995,2001,2002 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mdub@bigfoot.com>
 ;; Keywords: mouse
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -196,6 +197,9 @@ If nil, point will always be placed at the beginning of the region."
 
 ;;=== User Command ========================================================
 
+(defvar mouse-sel-has-been-enabled nil
+  "Non-nil if Mouse Sel mode has been enabled at least once.")
+
 (defvar mouse-sel-original-bindings nil)
 (defvar mouse-sel-original-interprogram-cut-function nil)
 (defvar mouse-sel-original-interprogram-paste-function nil)
@@ -237,9 +241,10 @@ to the kill ring.  Pressing mouse-1 or mouse-3 kills it.
 & mouse-3, but operate on the X secondary selection rather than the
 primary selection and region."
   :global t
+  :group 'mouse-sel
   (if mouse-sel-mode
       (progn
-	(add-hook 'x-lost-selection-hooks 'mouse-sel-lost-selection-hook)
+	(add-hook 'x-lost-selection-functions 'mouse-sel-lost-selection-hook)
 	(when mouse-sel-default-bindings
 	  ;; Save original bindings and replace them with new ones.
 	  (setq mouse-sel-original-bindings
@@ -252,19 +257,23 @@ primary selection and region."
 	  (setq mouse-sel-original-interprogram-cut-function
 		interprogram-cut-function
 		mouse-sel-original-interprogram-paste-function
-		interprogram-paste-function)
+		interprogram-paste-function
+		mouse-sel-has-been-enabled t)
 	  (unless (eq mouse-sel-default-bindings 'interprogram-cut-paste)
 	    (setq interprogram-cut-function nil
 		  interprogram-paste-function nil))))
 
     ;; Restore original bindings
-    (remove-hook 'x-lost-selection-hooks 'mouse-sel-lost-selection-hook)
+    (remove-hook 'x-lost-selection-functions 'mouse-sel-lost-selection-hook)
     (dolist (binding mouse-sel-original-bindings)
       (global-set-key (car binding) (cdr binding)))
-    (setq interprogram-cut-function
-          mouse-sel-original-interprogram-cut-function
-          interprogram-paste-function
-          mouse-sel-original-interprogram-paste-function)))
+    ;; Restore the old values of these variables,
+    ;; only if they were actually saved previously.
+    (if mouse-sel-has-been-enabled
+	(setq interprogram-cut-function
+	      mouse-sel-original-interprogram-cut-function
+	      interprogram-paste-function
+	      mouse-sel-original-interprogram-paste-function))))
 
 ;;=== Internal Variables/Constants ========================================
 
@@ -313,7 +322,9 @@ unless `mouse-sel-default-bindings' is `interprogram-cut-paste'.")
 (defvar mouse-sel-get-selection-function
   (lambda (selection)
     (if (eq selection 'PRIMARY)
-	(or (x-cut-buffer-or-selection-value) x-last-selected-text)
+	(or (x-cut-buffer-or-selection-value)
+	    (bound-and-true-p x-last-selected-text)
+	    (bound-and-true-p x-last-selected-text-primary))
       (x-get-selection selection)))
   "Function to call to get the selection.
 Called with one argument:
@@ -345,7 +356,7 @@ multi-click semantics."
      ((= nclicks 3) 'line)
      ((>= nclicks 4) 'paragraph)
      ((memq char-syntax '(?\( ?\) ?\" ?')) 'sexp)
-     ((memq next-char '(? ?\t ?\n)) 'whitespace)
+     ((memq next-char '(?\s ?\t ?\n)) 'whitespace)
      ((eq char-syntax ?_) 'symbol)
      ((eq char-syntax ?w) 'word))))
 
@@ -454,10 +465,12 @@ Clicking mouse-1 or mouse-3 kills the selected text.
 
 This should be bound to a down-mouse event."
   (interactive "@e")
-  (let (direction)
+  (let (select)
     (unwind-protect
-	(setq direction (mouse-select-internal 'PRIMARY event))
-      (mouse-sel-primary-to-region direction))))
+    	(setq select (mouse-select-internal 'PRIMARY event))
+      (if (and select (listp select))
+	  (push (cons 'mouse-2 (cdr event)) unread-command-events)
+	(mouse-sel-primary-to-region select)))))
 
 (defun mouse-select-secondary (event)
   "Set secondary selection using the mouse.
@@ -476,7 +489,14 @@ This should be bound to a down-mouse event."
   (mouse-select-internal 'SECONDARY event))
 
 (defun mouse-select-internal (selection event)
-  "Set SELECTION using the mouse."
+  "Set SELECTION using the mouse, with EVENT as the initial down-event.
+Normally, this returns the direction in which the selection was
+made: a value of 1 indicates that the mouse was dragged
+left-to-right, otherwise it was dragged right-to-left.
+
+However, if `mouse-1-click-follows-link' is non-nil and the
+subsequent mouse events specify following a link, this returns
+the final mouse-event.  In that case, the selection is not set."
   (mouse-sel-eval-at-event-end event
     (let ((thing-symbol (mouse-sel-selection-thing selection))
 	  (overlay (mouse-sel-selection-overlay selection)))
@@ -490,7 +510,8 @@ This should be bound to a down-mouse event."
 			    (car object-bounds) (cdr object-bounds)
 			    (current-buffer)))
 	  (move-overlay overlay (point) (point) (current-buffer)))))
-    (mouse-extend-internal selection)))
+    (catch 'follow-link
+      (mouse-extend-internal selection event t))))
 
 ;;=== Extend ==============================================================
 
@@ -512,11 +533,12 @@ This should be bound to a down-mouse event."
   (save-window-excursion
     (mouse-extend-internal 'SECONDARY event)))
 
-(defun mouse-extend-internal (selection &optional initial-event)
+(defun mouse-extend-internal (selection &optional initial-event no-process)
   "Extend specified SELECTION using the mouse.
 Track mouse-motion events, adjusting the SELECTION appropriately.
-Optional argument INITIAL-EVENT specifies an initial down-mouse event to
-process.
+Optional argument INITIAL-EVENT specifies an initial down-mouse event.
+Optional argument NO-PROCESS means not to process the initial
+event.
 
 See documentation for mouse-select-internal for more details."
   (mouse-sel-eval-at-event-end initial-event
@@ -553,7 +575,8 @@ See documentation for mouse-select-internal for more details."
 	    ;; Handle dragging
 	    (track-mouse
 
-	      (while (if initial-event	; Use initial event
+	      (while (if (and initial-event (not no-process))
+			 ;; Use initial event
 			 (prog1
 			     (setq event initial-event)
 			   (setq initial-event nil))
@@ -632,6 +655,10 @@ See documentation for mouse-select-internal for more details."
 
 		  )))			; end track-mouse
 
+	    ;; Detect follow-link events
+	    (when (mouse-sel-follow-link-p initial-event event)
+	      (throw 'follow-link event))
+
 	    ;; Finish up after dragging
 	    (let ((overlay-start (overlay-start overlay))
 		  (overlay-end (overlay-end overlay)))
@@ -668,6 +695,25 @@ See documentation for mouse-select-internal for more details."
 
 	))))
 
+(defun mouse-sel-follow-link-p (initial final)
+  "Return t if we should follow a link, given INITIAL and FINAL mouse events.
+See `mouse-1-click-follows-link' for details.  Currently, Mouse
+Sel mode does not support using a `double' value to follow links
+using double-clicks."
+  (and initial final mouse-1-click-follows-link
+       (eq (car initial) 'down-mouse-1)
+       (mouse-on-link-p	(posn-point (event-start initial)))
+       (= (posn-point (event-start initial))
+	  (posn-point (event-end final)))
+       (= (event-click-count initial) 1)
+       (or (not (integerp mouse-1-click-follows-link))
+	   (let ((t0 (posn-timestamp (event-start initial)))
+		 (t1 (posn-timestamp (event-end final))))
+	     (and (integerp t0) (integerp t1)
+		  (if (> mouse-1-click-follows-link 0)
+		      (<= (- t1 t0) mouse-1-click-follows-link)
+		    (< (- t0 t1) mouse-1-click-follows-link)))))))
+
 ;;=== Paste ===============================================================
 
 (defun mouse-insert-selection (event arg)
@@ -702,4 +748,5 @@ If `mouse-yank-at-point' is non-nil, insert at point instead."
 
 (provide 'mouse-sel)
 
+;; arch-tag: 86e6c73f-deaa-48d3-a24e-c565fda1f7d7
 ;;; mouse-sel.el ends here

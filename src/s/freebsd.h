@@ -1,8 +1,8 @@
 /* System description header for FreeBSD systems.
    This file describes the parameters that system description files
    should define or not.
-   Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001
-   Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+                 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,8 +18,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Get the correct __FreeBSD_version, even if this is before that was
    defined. */
@@ -68,6 +68,9 @@ Boston, MA 02111-1307, USA.  */
 #define LIBS_SYSTEM -lutil
 #if __FreeBSD_version < 400000
 #define LIBS_TERMCAP -ltermcap
+#else
+#define TERMINFO
+#define LIBS_TERMCAP -lncurses
 #endif
 
 #define SYSV_SYSTEM_DIR
@@ -216,3 +219,14 @@ Boston, MA 02111-1307, USA.  */
    of sigblock says it is obsolete.  */
 
 #define POSIX_SIGNALS		1
+
+/* The `combreloc' setting became the default, and it seems to be
+   incompatible with unexec.  Symptom is an immediate SEGV in
+   XtInitializeWidget when starting Emacs under X11.  */
+
+#if defined __FreeBSD_version && __FreeBSD_version >= 500042
+#define LD_SWITCH_SYSTEM_TEMACS -znocombreloc
+#endif
+
+/* arch-tag: 426529ca-b7c4-448f-b10a-d4dcdc9c78eb
+   (do not change this comment) */

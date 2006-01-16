@@ -1,7 +1,7 @@
 /* Output like sprintf to a buffer of specified size.
    Also takes args differently: pass one pointer to an array of strings
    in addition to the format string which is separate.
-   Copyright (C) 1985 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,8 +17,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #include <config.h>
@@ -334,3 +334,6 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
   *bufptr = 0;		/* Make sure our string end with a '\0' */
   return bufptr - buffer;
 }
+
+/* arch-tag: aa0ab528-7c5f-4c73-894c-aa2526a1efb3
+   (do not change this comment) */

@@ -1,8 +1,9 @@
+;;; -*- coding: iso-2022-7bit; -*-
 ;;; tramp-uu.el --- uuencode in Lisp
 
-;; Copyright (C) 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
-;; Author: Kai Groﬂjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+;; Author: Kai Gro,A_(Bjohann <kai.grossjohann@gmx.net>
 ;; Keywords: comm, terminals
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -17,8 +18,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -62,10 +63,10 @@
 	(setq c (char-after (point)))
 	(delete-char 1)
 	(if (equal c ?=)
-	    ;; "=" means padding.  Insert "`" instead.
-	    (insert "`")
-	  (insert (tramp-uu-byte-to-uu-char (tramp-uu-b64-char-to-byte c))))
-	(setq i (1+ i))
+	    ;; "=" means padding.  Insert "`" instead.  Not counted for length.
+	    (progn (insert "`") (setq len (1- len)))
+	  (insert (tramp-uu-byte-to-uu-char (tramp-uu-b64-char-to-byte c)))
+	  (setq i (1+ i)))
 	;; Every 60 characters, add "M" at beginning of line (as
 	;; length byte) and insert a newline.
 	(when (zerop (% i 60))
@@ -86,4 +87,6 @@
       (insert "begin 600 xxx\n"))))
 
 (provide 'tramp-uu)
+
+;;; arch-tag: 7153f2c6-8be5-4cd2-8c06-0fbcf5190ef6
 ;;; tramp-uu.el ends here

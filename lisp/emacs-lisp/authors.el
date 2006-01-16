@@ -1,6 +1,6 @@
 ;;; authors.el --- utility for maintaining Emacs' AUTHORS file -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 2000, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: Kim F. Storm <storm@cua.dk>
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -41,7 +41,6 @@ files.")
 
 (defconst authors-aliases
   '(
-    ("Andrew Innes" "Andrw Innes")
     ("Barry A. Warsaw" "Barry A. Warsaw, Century Computing, Inc."
      "Barry A. Warsaw, ITB" "Barry Warsaw")
     ("Bj,Av(Brn Torkelsson" "Bjorn Torkelsson")
@@ -52,18 +51,23 @@ files.")
     ("David Gillespie" "Dave Gillespie")
     ("David K,Ae(Bgedal" "David K..edal")
     ("David M. Koppelman" "David M. Koppelman, Koppel@Ee.Lsu.Edu")
-    ("David M. Smith" "David Smith")
+    ("David M. Smith" "David Smith" "David M Smith")
+    ("Ed L. Cashin" "Ed L Cashin")
     ("Edward M. Reingold" "Ed Reingold" "Edward M Reingold"
      "Reingold Edward M")
     ("Eli Zaretskii" "eliz")
+    ("Emilio C. Lopes" "Emilio Lopes")
+    ("Era Eriksson" "Era@Iki.Fi")
     ("Eric M. Ludlam" "Eric Ludlam")
     ("Eric S. Raymond" "Eric Raymond")
     ("Eric Youngdale" "(Eric Youngdale at youngdale@v6550c.nrl.navy.mil)")
+    ("Francis J. Wright" "Dr Francis J. Wright" "Francis Wright")
     ("Fran,Ag(Bois Pinard" "Francois Pinard")
-    ("Francesco Potorti" "Francesco Potorti`")
+    ("Francesco Potort,Al(B" "Francesco Potorti" "Francesco Potorti`")
     ("Frederic Pierresteguy" "Fred Pierresteguy")
     ("Geoff Voelker" "voelker")
     ("Hallvard B. Furuseth" "Hallvard B Furuseth")
+    ("Hrvoje Nik,B9(Bi,Bf(B" "Hrvoje Niksic")
     (nil "(afs@hplb.hpl.hp.com)")
     (nil "<Use-Author-Address-Header@\\[127.1\\]>")
     (nil "Code Extracted")
@@ -71,25 +75,39 @@ files.")
     (nil "ISO-2022-JP")
     ("Jaeyoun Chung" "Jae-youn Chung" "Jae-you Chung" "Chung Jae-youn")
     ("Jan Dj,Ad(Brv" "Jan D." "Jan Djarv")
-    ("Jay K. Adams" "jka@ece.cmu.edu")
-    ("Jay R. Adams" "Jay Adams")
+    ("Jay K. Adams" "jka@ece.cmu.edu" "Jay Adams")
+    ("J,Ai(Br,At(Bme Marant" "J,bi(Br,bt(Bme Marant" "Jerome Marant")
     ("Jens-Ulrik Holger Petersen" "Jens-Ulrik Petersen")
+    ("Johan Bockg,Ae(Brd" "Johan Bockgard")
+    ("John W. Eaton" "John Eaton")
     ("Jonathan I. Kamens" "Jonathan Kamens")
     ("Joseph Arceneaux" "Joe Arceneaux")
+    ("Juan Le,As(Bn Lahoz Garc,Am(Ba" "Juan-Leon Lahoz Garcia")
     ("K. Shane Hartman" "Shane Hartman")
     ("Kai Gro,A_(Bjohann" "Kai Grossjohann" "Kai Gro,b_(Bjohann"
-     "Kai.Grossjohann@Cs.Uni-Dortmund.De")
+     "Kai.Grossjohann@Cs.Uni-Dortmund.De"
+     "Kai.Grossjohann@Gmx.Net")
     ("Karl Berry" "K. Berry")
+    ("Kazushi Marukawa" "Kazushi")
     ("Ken Manheimer" "Kenneth Manheimer")
     ("Kenichi Handa" "Ken'ichi Handa" "Kenichi HANDA")
+    ("Kevin Greiner" "Kevin J. Greiner")
     ("Kim F. Storm" "Kim Storm")
+    ("Kyle Jones" "Kyle E. Jones")
     ("Marcus G. Daniels" "Marcus Daniels")
+    ("Mark D. Baushke" "Mark D Baushke")
+    ("Martin Lorentzon" "Martin Lorentzson")
+    ("Matt Swift" "Matthew Swift")
+    ("Michael R. Mauger" "Michael Mauger")
     ("Michael D. Ernst" "Michael Ernst")
     ("Michael I. Bushnell" "Michael I Bushnell" "Michael I. Bushnell, P/Bsg")
+    ("Mikio Nakajima" "Nakajima Mikio")
     ("Paul Eggert" "eggert")
     ("Paul Reilly" "(pmr@legacy.pajato.com)")
-    ("Pavel Jan,Bm(Bk" "Pavel Jan,Am(Bk Ml.")
+    ("Pavel Jan,Bm(Bk" "Pavel Jan,Am(Bk Ml." "Pavel Jan,Am(Bk" "Pavel@Janik.Cz")
     ("Per Abrahamsen" "Per Abhiddenware")
+    ("Peter S. Galbraith" "Peter Galbraith")
+    ("Peter Runestig" "Peter 'luna' Runestig")
     ("Peter S. Galbraith" "Peter S Galbraith")
     ("Richard M. Stallman" "Richard M. Stallman,,," "Richard Stallman"
      "rms" "rms@gnu.org")
@@ -97,9 +115,12 @@ files.")
     ("Roland B. Roberts" "Roland B Roberts" "Roland Roberts")
     ("Rui-Tao Dong" "Rui-Tao Dong ~{6-Hpln~}")
     ("Sam Steingold" "Sam Shteingold")
+    ("Stefan Monnier" "Stefan")
     ("Stephen A. Wood" "(saw@cebaf.gov)")
     ("Steven L. Baur" "SL Baur" "Steven L Baur")
     ("Takaaki Ota" "Tak Ota")
+    ("Takahashi Naoto" "Naoto Takahashi")
+    ("Teodor Zlatanov" "Ted Zlatanov")
     ("Torbj,Av(Brn Axelsson" "Torbjvrn Axelsson")
     ("Torbj,Av(Brn Einarsson" "Torbj.*rn Einarsson")
     ("Toru Tomabechi" "Toru Tomabechi,")
@@ -137,6 +158,13 @@ If REALNAME is nil, ignore that author.")
 Changes to files matching one of the regexps in this list are not
 listed.")
 
+(defconst authors-ignored-files
+  '("external-lisp"
+    "lock" "share-lib" "local-lisp"
+    "noleim-Makefile.in"
+    "NEWS" "PROBLEMS" "FAQ")
+  "List of files and directories to ignore.
+Changes to files in this list are not listed.")
 
 (defconst authors-fixed-entries
   '(("Richard M. Stallman" :wrote "[The original GNU emacs and numerous files]")
@@ -168,8 +196,8 @@ listed.")
     ("Michael K. Johnson" :changed "configure.in" "emacs.c" "intel386.h"
      "mem-limits.h" "process.c" "template.h" "sysdep.c" "syssignal.h" "systty.h" "unexec.c"
       "ymakefile" "linux.h")
-    ("Kyle E. Jones" :wrote "mldrag.el")
-    ("Kenry Kautz" :wrote "bib-mode.el")
+    ("Kyle Jones" :wrote "mldrag.el")
+    ("Henry Kautz" :wrote "bib-mode.el")
     ("Joseph M. Kelsey" :changed "fileio.c" "vms-pwd.h" "vmsfns.c" "dir.h"
      "uaf.h")
     ("Sam Kendall" :changed "etags.c" "etags.el")
@@ -207,7 +235,7 @@ listed.")
     ("Frederic Pierresteguy" :wrote "widget.c")
     ("Michael D. Prange" :changed "tex-mode.el")
     ("Paul Reilly" :wrote "gux5-4r2.h" "dgux5-4r3.h")
-    ("Roland B Roberts" :changed "files.el" "sort.el" "vmsproc.el"
+    ("Roland B. Roberts" :changed "files.el" "sort.el" "vmsproc.el"
      "buffer.h" "callproc.c" "dired.c" "process.c" "sysdep.c" "systty.h"
      "vmspaths.h" "build.com" "compile.com" "kepteditor.com" "precomp.com"
      :wrote "logout.com" "mailemacs.com")
@@ -245,7 +273,8 @@ listed.")
 
 (defconst authors-valid-file-names
   '("aclocal.m4"
-    "makedist.bat")
+    "makedist.bat"
+    "make-delta")
   "File names which are valid, but no longer exists (or cannot be
 found) in the repository.")
 
@@ -259,6 +288,9 @@ found) in the repository.")
     ("s/windowsnt.h" . "s/ms-w32.h")
     ("config.emacs" . "configure")
     ("GETTING.GNU.SOFTWARE" . "FTP")
+    ("leim-Makefile" . "leim/Makefile")
+    ("leim-Makefile.in" . "leim/Makefile.in")
+    ("INSTALL-CVS" . "INSTALL.CVS")
     )
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")
@@ -357,7 +389,8 @@ from `authors-obsolete-files-regexps'."
 ACTION is a keyword symbol describing what he did.  Record file,
 author and what he did in hash table TABLE.  See the description of
 `authors-scan-change-log' for the structure of the hash table."
-  (unless (or (authors-obsolete-file-p file)
+  (unless (or (member file authors-ignored-files)
+	      (authors-obsolete-file-p file)
 	      (equal author ""))
     (let* ((value (gethash author table))
 	   (entry (assoc file value))
@@ -405,10 +438,12 @@ words in the author's name."
 	  (setq regexps (cdr regexps))))))
   (when author
     (setq author (replace-regexp-in-string "[ \t]*[(<].*$" "" author))
-    (setq author (replace-regexp-in-string "^[ \t]+" "" author))
+    (setq author (replace-regexp-in-string "\`[ \t]+" "" author))
     (setq author (replace-regexp-in-string "[ \t]+$" "" author))
+    (setq author (replace-regexp-in-string "[ \t]+" " " author))
+    (unless (string-match "[-, \t]" author)
+      (setq author ""))
     (capitalize author)))
-
 
 (defun authors-scan-change-log (log-file table)
   "Scan change log LOG-FILE for author information.
@@ -563,8 +598,7 @@ buffer *Authors Errors* containing references to unknown files."
     (unless (file-exists-p (expand-file-name "src/emacs.c" root))
       (error "Not the root directory of Emacs: %s" root))
     (dolist (log logs)
-      (when (and (string-match "ChangeLog\\(.[0-9]+\\)?$" log)
-		 (not (string-match "/lispref/" log)))
+      (when (string-match "ChangeLog\\(.[0-9]+\\)?$" log)
 	(message "Scanning %s..." log)
 	(authors-scan-change-log log table)))
     (let ((els (authors-process-lines "find" root "-name" "*.el")))
@@ -638,4 +672,5 @@ the Emacs source tree, from which to build the file."
     (authors root)
     (write-file file)))
 
+;;; arch-tag: 659d5900-5ff2-43b0-954c-a315cc1e4dc1
 ;;; authors.el ends here

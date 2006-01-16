@@ -1,6 +1,7 @@
 ;;; qp.el --- Quoted-Printable functions
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, extensions
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -32,13 +33,18 @@
 (require 'mm-util)
 (eval-when-compile (defvar mm-use-ultra-safe-encoding))
 
+;;;###autoload
 (defun quoted-printable-decode-region (from to &optional coding-system)
   "Decode quoted-printable in the region between FROM and TO, per RFC 2045.
 If CODING-SYSTEM is non-nil, decode bytes into characters with that
 coding-system.
 
 Interactively, you can supply the CODING-SYSTEM argument
-with \\[universal-coding-system-argument]."
+with \\[universal-coding-system-argument].
+
+The CODING-SYSTEM argument is a historical hangover and is deprecated.
+QP encodes raw bytes and should be decoded into raw bytes.  Decoding
+them into characters should be done separately."
   (interactive
    ;; Let the user determine the coding system with "C-x RET c".
    (list (region-beginning) (region-end) coding-system-for-read))
@@ -63,23 +69,23 @@ with \\[universal-coding-system-argument]."
 	  (cond ((eq (char-after (1+ (point))) ?\n)
 		 (delete-char 2))
 		((looking-at "=[0-9A-F][0-9A-F]")
-		 (let ((byte (string-to-int (buffer-substring (1+ (point))
-							      (+ 3 (point)))
-					    16)))
+		 (let ((byte (string-to-number (buffer-substring (1+ (point))
+								 (+ 3 (point)))
+					       16)))
 		   (mm-insert-byte byte 1)
-		   (delete-char 3)
-		   (unless (eq byte ?=)
-		     (backward-char))))
+		   (delete-char 3)))
 		(t
-		 (error "Malformed quoted-printable text")
+		 (message "Malformed quoted-printable text")
 		 (forward-char)))))
       (if coding-system
 	  (mm-decode-coding-region (point-min) (point-max) coding-system)))))
 
 (defun quoted-printable-decode-string (string &optional coding-system)
   "Decode the quoted-printable encoded STRING and return the result.
-If CODING-SYSTEM is non-nil, decode the region with coding-system."
-  (with-temp-buffer
+If CODING-SYSTEM is non-nil, decode the region with coding-system.
+Use of CODING-SYSTEM is deprecated; this function should deal with
+raw bytes, and coding conversion should be done separately."
+  (mm-with-unibyte-buffer
     (insert string)
     (quoted-printable-decode-region (point-min) (point-max) coding-system)
     (buffer-string)))
@@ -95,20 +101,15 @@ You should probably avoid non-ASCII characters in this arg.
 If `mm-use-ultra-safe-encoding' is set, fold lines unconditionally and
 encode lines starting with \"From\"."
   (interactive "r")
-  (save-excursion
-    (goto-char from)
-    (if (fboundp 'string-to-multibyte)	; Emacs 22
-	(if (re-search-forward (string-to-multibyte "[^\x0-\x7f\x80-\xff]")
-			       to t)
-	    ;; Fixme: This is somewhat misleading.
-	    (error "Multibyte character in QP encoding region"))
-      (if (re-search-forward (mm-string-as-multibyte "[^\0-\377]") to t)
-	  (error "Multibyte character in QP encoding region"))))
   (unless class
     ;; Avoid using 8bit characters. = is \075.
     ;; Equivalent to "^\000-\007\013\015-\037\200-\377="
     (setq class "\010-\012\014\040-\074\076-\177"))
   (save-excursion
+    (goto-char from)
+    (if (re-search-forward (mm-string-to-multibyte "[^\x0-\x7f\x80-\xff]")
+			   to t)
+	(error "Multibyte character in QP encoding region"))
     (save-restriction
       (narrow-to-region from to)
       ;; Encode all the non-ascii and control characters.
@@ -163,4 +164,5 @@ encode lines starting with \"From\"."
 
 (provide 'qp)
 
+;;; arch-tag: db89e52a-e4a1-4b69-926f-f434f04216ba
 ;;; qp.el ends here

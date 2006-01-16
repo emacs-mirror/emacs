@@ -1,6 +1,6 @@
 ;;; page.el --- page motion commands for Emacs
 
-;; Copyright (C) 1985 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp convenience
@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -112,7 +112,7 @@ thus showing a page other than the one point was originally in."
 	     (save-excursion
 	       (goto-char (match-beginning 0)) ; was (beginning-of-line)
 	       (looking-at page-delimiter)))
-	(beginning-of-line))
+	(goto-char (match-beginning 0))) ; was (beginning-of-line)
     (narrow-to-region (point)
 		      (progn
 			;; Find the top of the page.
@@ -163,4 +163,5 @@ thus showing a page other than the one point was originally in."
 ;;; Place `provide' at end of file.
 (provide 'page)
 
+;;; arch-tag: e8d7a0bd-8655-4b6e-b852-f2ee25316a1d
 ;;; page.el ends here

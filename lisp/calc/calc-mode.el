@@ -1,10 +1,10 @@
 ;;; calc-mode.el --- calculator modes for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -27,14 +27,10 @@
 
 ;;; Code:
 
-
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-mode () nil)
-
 
 (defun calc-line-numbering (n)
   (interactive "P")
@@ -309,30 +305,29 @@
 	       vals (cdr vals))))
      (run-hooks 'calc-mode-save-hook)
      (insert ";;; End of mode settings\n")
-     (save-buffer))))
+     (save-buffer)
+     (if calc-embedded-info
+         (calc-embedded-save-original-modes)))))
 
 (defun calc-settings-file-name (name &optional arg)
   (interactive
    (list (read-file-name (format "Settings file name (normally %s): "
-				 (abbreviate-file-name (or user-init-file
-							   "~/.emacs"))))
+				 (abbreviate-file-name calc-settings-file)))
 	 current-prefix-arg))
   (calc-wrapper
    (setq arg (if arg (prefix-numeric-value arg) 0))
-   (if (equal name "")
+   (if (string-equal (file-name-nondirectory name) "")
        (message "Calc settings file is \"%s\"" calc-settings-file)
      (if (< (math-abs arg) 2)
 	 (let ((list calc-mode-var-list))
 	   (while list
 	     (set (car (car list)) (nth 1 (car list)))
 	     (setq list (cdr list)))))
-     ;; FIXME: we should use ~/.calc or so in order to avoid
-     ;; reexecuting ~/.emacs (it's not always idempotent) -cgw 2001.11.12
      (setq calc-settings-file name)
      (or (and
 	  calc-settings-file
-	  (string-match "\\.emacs" calc-settings-file)
-	      (> arg 0))
+          (equal user-init-file calc-settings-file)
+          (> arg 0))
 	 (< arg 0)
 	 (load name t)
 	 (message "New file")))))
@@ -357,6 +352,7 @@
 	(if (eq calc-complex-mode 'polar) 1 0)
 	(cond ((eq calc-matrix-mode 'scalar) 0)
 	      ((eq calc-matrix-mode 'matrix) -2)
+	      ((eq calc-matrix-mode 'sqmatrix) -3)
 	      (calc-matrix-mode)
 	      (t -1))
 	(cond ((eq calc-simplify-mode 'none) -1)
@@ -413,7 +409,8 @@
 			   ((= n 4) 'global)
 			   ((= n 5) 'save)
 			   (t 'local)))
-   (message (cond ((and (eq calc-mode-save-mode 'local) calc-embedded-info)
+   (message "%s" 
+	    (cond ((and (eq calc-mode-save-mode 'local) calc-embedded-info)
 		   "Recording mode changes with [calc-mode: ...]")
 		  ((eq calc-mode-save-mode 'edit)
 		   "Recording mode changes with [calc-edit-mode: ...]")
@@ -429,8 +426,6 @@
 
 (defun calc-total-algebraic-mode (flag)
   (interactive "P")
-  (if calc-emacs-type-19
-      (error "Total algebraic mode not yet supported for Emacs 19"))
   (calc-wrapper
    (if (eq calc-algebraic-mode 'total)
        (calc-algebraic-mode nil)
@@ -482,7 +477,9 @@
 		     (cond ((eq arg 0) 'scalar)
 			   ((< (prefix-numeric-value arg) 1)
 			    (and (< (prefix-numeric-value arg) -1) 'matrix))
-			   (arg (prefix-numeric-value arg))
+			   (arg 
+                            (if (consp arg) 'sqmatrix
+                              (prefix-numeric-value arg)))
 			   ((eq calc-matrix-mode 'matrix) 'scalar)
 			   ((eq calc-matrix-mode 'scalar) nil)
 			   (t 'matrix)))
@@ -491,9 +488,11 @@
 		calc-matrix-mode calc-matrix-mode)
      (message (if (eq calc-matrix-mode 'matrix)
 		  "Variables are assumed to be matrices"
-		(if calc-matrix-mode
-		    "Variables are assumed to be scalars (non-matrices)"
-		  "Variables are not assumed to be matrix or scalar"))))))
+                (if (eq calc-matrix-mode 'sqmatrix)
+                    "Variables are assumed to be square matrices"
+                  (if calc-matrix-mode
+                      "Variables are assumed to be scalars (non-matrices)"
+                    "Variables are not assumed to be matrix or scalar")))))))
 
 (defun calc-set-simplify-mode (mode arg msg)
   (calc-change-mode 'calc-simplify-mode
@@ -674,4 +673,7 @@
 	 (error "Unrecognized character: %c" (aref arg bad)))
      (calc-change-mode 'calc-matrix-brackets code t))))
 
+(provide 'calc-mode)
+
+;;; arch-tag: ecc70eea-c712-43f2-9085-4205e58d6ddf
 ;;; calc-mode.el ends here

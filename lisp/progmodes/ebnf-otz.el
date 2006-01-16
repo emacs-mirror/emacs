@@ -1,11 +1,12 @@
 ;;; ebnf-otz.el --- syntactic chart OpTimiZer
 
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Free Sofware Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Time-stamp: <2004/11/19 22:24:07 vinicius>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2003-02-10 10:46:51 jbarranquero>
 ;; Version: 1.0
 
 ;; This file is part of GNU Emacs.
@@ -22,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -35,6 +36,46 @@
 ;; This package defines an optimizer for ebnf2ps.
 ;;
 ;; See ebnf2ps.el for documentation.
+;;
+;;
+;; Optimizations
+;; -------------
+;;
+;;
+;; *To be implemented*:
+;;    left recursion:
+;;    A = B | A C B | A C D.   ==>   A = B {C (B | D)}*.
+;;
+;;    right recursion:
+;;    A = B | C A.             ==>   A = {C}* B.
+;;    A = B | D | C A | E A.   ==>   A = { C | E }* ( B | D ).
+;;
+;;    optional:
+;;    A = B | C B.             ==>   A = [C] B.
+;;    A = B | B C.             ==>   A = B [C].
+;;    A = D | B D | B C D.     ==>   A = [B [C]] D.
+;;
+;;
+;; *Already implemented*:
+;;    left recursion:
+;;    A = B | A C.             ==>   A = B {C}*.
+;;    A = B | A B.             ==>   A = {B}+.
+;;    A =   | A B.             ==>   A = {B}*.
+;;    A = B | A C B.           ==>   A = {B || C}+.
+;;    A = B | D | A C | A E.   ==>   A = ( B | D ) { C | E }*.
+;;
+;;    optional:
+;;    A = B | .                ==>   A = [B].
+;;    A =   | B .              ==>   A = [B].
+;;
+;;    factorization:
+;;    A = B C | B D.           ==>   A = B (C | D).
+;;    A = C B | D B.           ==>   A = (C | D) B.
+;;    A = B C E | B D E.       ==>   A = B (C | D) E.
+;;
+;;    none:
+;;    A = B | C | .            ==>   A = B | C | .
+;;    A = B | C A D.           ==>   A = B | C A D.
 ;;
 ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -186,7 +227,7 @@
 ;;    A = B | .                ==>   A = [B].
 ;;    A =   | B .              ==>   A = [B].
 
-;;    factoration:
+;;    factorization:
 ;;    A = B C | B D.           ==>   A = B (C | D).
 ;;    A = C B | D B.           ==>   A = (C | D) B.
 ;;    A = B C E | B D E.       ==>   A = B (C | D) E.
@@ -219,7 +260,7 @@
 ;; 6.  A = B | .                ==>   A = [B].
 ;; 7.  A =   | B .              ==>   A = [B].
 
-;; factoration:
+;; factorization:
 ;; 8.  A = B C | B D.           ==>   A = B (C | D).
 ;; 9.  A = C B | D B.           ==>   A = (C | D) B.
 ;; 10. A = B C E | B D E.       ==>   A = B (C | D) E.
@@ -658,4 +699,5 @@
 (provide 'ebnf-otz)
 
 
+;;; arch-tag: 7ef2249d-9e8b-4bc1-999f-95d784690636
 ;;; ebnf-otz.el ends here

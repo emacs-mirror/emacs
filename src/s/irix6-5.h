@@ -32,3 +32,6 @@
 #undef ospeed
 
 #undef TIOCSIGSEND		/* defined in usg5-4.h */
+
+/* arch-tag: d7ad9ec2-54ad-4b2f-adf2-0070c5c63e83
+   (do not change this comment) */

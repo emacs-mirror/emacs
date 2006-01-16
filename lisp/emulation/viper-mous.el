@@ -1,6 +1,7 @@
 ;;; viper-mous.el --- mouse support for Viper
 
-;; Copyright (C) 1994, 95, 96, 97, 2001, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -18,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -52,7 +53,7 @@
 
 
 (defgroup viper-mouse nil
-  "Support for Viper special mouse-bound commands"
+  "Support for Viper special mouse-bound commands."
   :prefix "viper-"
   :group 'viper)
 
@@ -65,7 +66,7 @@
 (defvar viper-frame-of-focus nil)
 
 ;; Frame that was selected before the switch-frame event.
-(defconst viper-current-frame-saved (selected-frame))
+(defvar viper-current-frame-saved (selected-frame))
 
 (defcustom viper-surrounding-word-function 'viper-surrounding-word
   "*Function that determines what constitutes a word for clicking events.
@@ -674,4 +675,5 @@ This buffer may be different from the one where the click occurred."
 ;;; End:
 
 
+;;; arch-tag: e56b2390-06c4-4dd1-96f5-c7876e2d8c2f
 ;;; viper-mous.el ends here

@@ -1,5 +1,5 @@
 /* Proxy shell designed for use with Emacs on Windows 95 and NT.
-   Copyright (C) 1997 Free Software Foundation, Inc.
+   Copyright (C) 1997, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    Accepts subset of Unix sh(1) command-line options, for compatability
    with elisp code written for Unix.  When possible, executes external
@@ -26,8 +26,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #include <windows.h>
 
@@ -699,3 +699,6 @@ main (int argc, char ** argv)
 
   return 0;
 }
+
+/* arch-tag: 88678d93-07ac-4e2f-ad63-d4a740ca69ac
+   (do not change this comment) */

@@ -1,5 +1,6 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
-   Copyright (C) 1988, 1993, 1994, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1993, 1994, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 /* ANSI C requires only these float functions:
@@ -460,7 +461,8 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
   CHECK_NUMBER_OR_FLOAT (arg1);
   CHECK_NUMBER_OR_FLOAT (arg2);
   if (INTEGERP (arg1)     /* common lisp spec */
-      && INTEGERP (arg2)) /* don't promote, if both are ints */
+      && INTEGERP (arg2)   /* don't promote, if both are ints, and */
+      && 0 <= XINT (arg2)) /* we are sure the result is not fractional */
     {				/* this can be improved by pre-calculating */
       EMACS_INT acc, x, y;	/* some binary powers of x then accumulating */
       Lisp_Object val;
@@ -506,7 +508,7 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
 
 DEFUN ("log", Flog, Slog, 1, 2, 0,
        doc: /* Return the natural logarithm of ARG.
-If second optional argument BASE is given, return log ARG using that base.  */)
+If the optional argument BASE is given, return log ARG using that base.  */)
      (arg, base)
      register Lisp_Object arg, base;
 {
@@ -692,7 +694,7 @@ This is the same as the exponent of a float.  */)
   double f = extract_float (arg);
 
   if (f == 0.0)
-    value = -(VALMASK >> 1);
+    value = MOST_NEGATIVE_FIXNUM;
   else
     {
 #ifdef HAVE_LOGB
@@ -861,7 +863,7 @@ With optional DIVISOR, return the smallest integer no less than ARG/DIVISOR.  */
 
 DEFUN ("floor", Ffloor, Sfloor, 1, 2, 0,
        doc: /* Return the largest integer no greater than ARG.
-This rounds the value towards +inf.
+This rounds the value towards -inf.
 With optional DIVISOR, return the largest integer no greater than ARG/DIVISOR.  */)
      (arg, divisor)
      Lisp_Object arg, divisor;
@@ -981,6 +983,7 @@ float_error (signo)
   signal (SIGILL, float_error);
 #endif /* BSD_SYSTEM */
 
+  SIGNAL_THREAD_CHECK (signo);
   in_float = 0;
 
   Fsignal (Qarith_error, Fcons (float_error_arg, Qnil));
@@ -1075,3 +1078,6 @@ syms_of_floatfns ()
   defsubr (&Sround);
   defsubr (&Struncate);
 }
+
+/* arch-tag: be05bf9d-049e-4e31-91b9-e6153d483ae7
+   (do not change this comment) */

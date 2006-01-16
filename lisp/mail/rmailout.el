@@ -1,6 +1,7 @@
 ;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file.
 
-;; Copyright (C) 1985, 1987, 1993, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1993, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -19,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -68,7 +69,7 @@ Set `rmail-default-rmail-file' to this name as well as returning it."
 	    (read-file-name
 	     (concat "Output message to Rmail (mbox) file: (default "
 		     (file-name-nondirectory default-file)
-		     ") ")
+		     "): ")
 	     (file-name-directory default-file)
 	     (abbreviate-file-name default-file))
 	    (file-name-directory default-file))))
@@ -99,9 +100,9 @@ Set `rmail-default-file' to this name as well as returning it."
     (let ((read-file
 	   (expand-file-name
 	    (read-file-name
-	     (concat "Output message to Unix mail file: (default "
+	     (concat "Output message to Unix mail file (default "
 		     (file-name-nondirectory default-file)
-		     ") ")
+		     "): ")
 	     (file-name-directory default-file)
 	     (abbreviate-file-name default-file))
 	    (file-name-directory default-file))))
@@ -128,27 +129,27 @@ appended in inbox format, the same way `rmail-output' does it.
 The default file name comes from `rmail-default-rmail-file',
 which is updated to the name you use in this command.
 
-A prefix argument N says to output N consecutive messages
+A prefix argument COUNT says to output that many consecutive messages,
 starting with the current one.  Deleted messages are skipped and don't count.
 
-If optional argument STAY is non-nil, then leave the last filed
-mesasge up instead of moving forward to the next non-deleted message."
+If the optional argument STAY is non-nil, then leave the last filed
+message up instead of moving forward to the next non-deleted message."
   (interactive
    (list (rmail-output-read-rmail-file-name)
 	 (prefix-numeric-value current-prefix-arg)))
-  
+
   ;; Use the 'rmail-output function to perform the output.
   (rmail-output file-name count nil nil)
 
-  ;; Deal with the next message 
+  ;; Deal with the next message
   (if rmail-delete-after-output
-      (unless 
+      (unless
           (if (and (= count 0) stay)
               (rmail-delete-message)
             (rmail-delete-forward))
         (setq count 0))
     (if (> count 0)
-        (unless 
+        (unless
             (if (not stay) (rmail-next-undeleted-message 1))
           (setq count 0)))))
 
@@ -228,7 +229,7 @@ Rmail function, for example by GNUS or Sendmail."
         (set-buffer tembuf)
         (erase-buffer)
         (insert-buffer-substring src-buf)
-        
+
         ;; Deal with MIME --- tbd.
         ;;(when rmail-enable-mime ...
 
@@ -284,7 +285,7 @@ Rmail function, for example by GNUS or Sendmail."
                        (rmail-next-undeleted-message 1))))
                 (num-appended (- orig-count count)))
             (if (and (> count 1) (not next-message-p))
-                (progn 
+                (progn
                   (error
                    (save-excursion
                      (set-buffer src-buf)
@@ -325,8 +326,10 @@ FILE-NAME defaults, interactively, from the Subject field of the message."
 	 (error "Operation aborted"))
     (write-region (point) (point-max) file-name)
     (if (equal major-mode 'rmail-mode)
-	(rmail-desc-set-attribute rmail-desc-stored-index t rmail-current-message)))
+	(rmail-desc-set-attribute rmail-desc-stored-index
+				  t rmail-current-message)))
   (if rmail-delete-after-output
       (rmail-delete-forward)))
 
+;;; arch-tag: 447117c6-1a9a-4b88-aa43-3101b043e3a4
 ;;; rmailout.el ends here

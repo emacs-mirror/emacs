@@ -1,8 +1,10 @@
 ;;; life.el --- John Horton Conway's `Life' game for GNU Emacs
 
-;; Copyright (C) 1988, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Kyle Jones <kyleuunet.uu.net>
+;; Maintainer: FSF
 ;; Keywords: games
 
 ;; This file is part of GNU Emacs.
@@ -19,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -30,7 +32,7 @@
 
 ;;; Code:
 
-(defconst life-patterns
+(defvar life-patterns
   [("@@@" " @@" "@@@")
    ("@@@ @@@" "@@  @@ " "@@@ @@@")
    ("@@@ @@@" "@@   @@" "@@@ @@@")
@@ -80,16 +82,16 @@
 
 ;; list of numbers that tell how many characters to move to get to
 ;; each of a cell's eight neighbors.
-(defconst life-neighbor-deltas nil)
+(defvar life-neighbor-deltas nil)
 
 ;; window display always starts here.  Easier to deal with than
 ;; (scroll-up) and (scroll-down) when trying to center the display.
-(defconst life-window-start nil)
+(defvar life-window-start nil)
 
 ;; For mode line
-(defconst life-current-generation nil)
+(defvar life-current-generation nil)
 ;; Sadly, mode-line-format won't display numbers.
-(defconst life-generation-string nil)
+(defvar life-generation-string nil)
 
 (defvar life-initialized nil
   "Non-nil if `life' has been run at least once.")
@@ -279,4 +281,5 @@ generations (this defaults to 1)."
 
 (provide 'life)
 
+;;; arch-tag: e9373544-755e-42f5-a9a1-4d4c422bb97a
 ;;; life.el ends here
