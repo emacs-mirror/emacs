@@ -2379,7 +2379,7 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
 
         ;; Post back any status messages.
 	(if blurb
-	    (message blurb))))))
+	    (message blurb)))))))
 
 ;;; NOT DONE
 (defun rmail-redecode-body (coding)
