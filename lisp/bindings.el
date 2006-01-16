@@ -362,6 +362,20 @@ Switch to the most recently selected buffer other than the current one."
   (interactive)
   (switch-to-buffer (other-buffer)))
 
+(defun mode-line-next-buffer (event)
+  "Like `next-buffer', but temporarily select EVENT's window."
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (next-buffer)))
+
+(defun mode-line-previous-buffer (event)
+  "Like `previous-buffer', but temporarily select EVENT's window."
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (previous-buffer)))
+
 (defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
 Menu of mode operations in the mode line.")
 
@@ -435,13 +449,13 @@ Menu of mode operations in the mode line.")
 (let ((map (make-sparse-keymap)))
   ;; Bind down- events so that the global keymap won't ``shine
   ;; through''.
-  (define-key map [mode-line mouse-1] 'mode-line-unbury-buffer)
+  (define-key map [mode-line mouse-1] 'mode-line-previous-buffer)
   (define-key map [header-line down-mouse-1] 'ignore)
-  (define-key map [header-line mouse-1] 'mode-line-unbury-buffer)
+  (define-key map [header-line mouse-1] 'mode-line-previous-buffer)
   (define-key map [header-line down-mouse-3] 'ignore)
-  (define-key map [mode-line mouse-3] 'mode-line-bury-buffer)
+  (define-key map [mode-line mouse-3] 'mode-line-next-buffer)
   (define-key map [header-line down-mouse-3] 'ignore)
-  (define-key map [header-line mouse-3] 'mode-line-bury-buffer)
+  (define-key map [header-line mouse-3] 'mode-line-next-buffer)
   (setq mode-line-buffer-identification-keymap map))
 
 (defun propertized-buffer-identification (fmt)
@@ -449,7 +463,7 @@ Menu of mode operations in the mode line.")
 FMT is a format specifier such as \"%12b\".  This function adds
 text properties for face, help-echo, and local-map to it."
   (list (propertize fmt
-		    'face 'Buffer-menu-buffer
+		    'face 'mode-line-buffer-id
 		    'help-echo
 		    (purecopy "mouse-1: previous buffer, mouse-3: next buffer")
 		    'mouse-face 'mode-line-highlight
