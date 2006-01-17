@@ -101,7 +101,7 @@ LABELS should be a string containing the desired labels, separated by commas."
   (rmail-new-summary (concat "labels " labels)
 		     (list 'rmail-summary-by-labels labels)
 		     'rmail-message-labels-p
-		     (concat ", \\(" (mail-comma-list-regexp labels) "\\),")))
+		     (mail-comma-list-regexp labels)))
 
 ;;;###autoload
 (defun rmail-summary-by-recipients (recipients &optional primary-only)
@@ -803,7 +803,7 @@ message and highlight the buffer."
 		    ;; Arrange to do that later, for the new current message,
 		    ;; if it still has `unseen'.
 		    (setq rmail-summary-put-back-unseen
-			  (rmail-message-labels-p msg-num ", ?\\(unseen\\),")))
+			  (member "unseen" (rmail-desc-get-keywords msg-num))))
 		(setq rmail-summary-put-back-unseen nil))
 
 	      ;; Go to the desired message.
