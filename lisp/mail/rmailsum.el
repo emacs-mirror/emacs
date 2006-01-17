@@ -59,7 +59,7 @@
 
 (defvar rmail-summary-font-lock-keywords
   '(("^.....D.*" . font-lock-string-face)			; Deleted.
-    ("^....-.*" . font-lock-type-face)				; Unread.
+    ("^.....-.*" . font-lock-type-face)				; Unread.
     ;; Neither of the below will be highlighted if either of the above are:
     ("^.....[^D-]....\\(......\\)" 1 font-lock-keyword-face)	; Date.
     ("{ \\([^\n}]+\\) }" 1 font-lock-comment-face))		; Labels.
@@ -700,6 +700,22 @@ These additional commands exist:
 \\[rmail-summary-undelete-many]	Undelete all or prefix arg deleted messages.
 \\[rmail-summary-wipe] Delete the summary and go to the Rmail buffer.
 
+Commands for filtering the summary:
+
+\\[rmail-summary-by-labels] Filter by label.
+\\[rmail-summary-by-topic] Filter by Subject.
+      Filter by the entire message (header and body) if given a
+      prefix argument.
+\\[rmail-summary-by-sender] Filter by From field.
+\\[rmail-summary-by-recipients] Filter by To, From, and Cc fields.
+      Filter by To and From only if given a prefix argument.
+
+The commands listed above take comma-separated lists of regular
+expressions.
+
+\\[rmail-summary-by-regexp] Filter by any header line.
+\\[rmail-summary] Restore the default summary.
+
 Commands for sorting the summary:
 
 \\[rmail-summary-sort-by-date] Sort by date.
@@ -837,6 +853,7 @@ message and highlight the buffer."
   (define-key rmail-summary-mode-map "\e\C-h" 'rmail-summary)
   (define-key rmail-summary-mode-map "\e\C-l" 'rmail-summary-by-labels)
   (define-key rmail-summary-mode-map "\e\C-r" 'rmail-summary-by-recipients)
+  (define-key rmail-summary-mode-map "\e\C-f" 'rmail-summary-by-sender)
   (define-key rmail-summary-mode-map "\e\C-s" 'rmail-summary-by-regexp)
   (define-key rmail-summary-mode-map "\e\C-t" 'rmail-summary-by-topic)
   (define-key rmail-summary-mode-map "m"      'rmail-summary-mail)
@@ -1667,10 +1684,15 @@ KEYWORDS is a comma-separated list of labels."
 
 (defun rmail-summary-get-summary (n)
   "Return a summary line for message N."
-  (let* ((keywords (rmail-desc-get-keywords n))
-	 (str (if keywords
+  (let (keywords str)
+    (dolist (keyword (rmail-desc-get-keywords n))
+      (when (and (rmail-keyword-p keyword)
+		 (not (rmail-attribute-p keyword)))
+	(setq keywords (cons keyword keywords))))
+    (setq keywords (nreverse keywords))
+    (setq str (if keywords
 		  (concat "{ " (mapconcat 'identity keywords " ") " } ")
-		"")))
+		""))
     (funcall rmail-summary-line-decoder
 	     (format "%5s%s%6s %25s%s %s\n"
 		     n
