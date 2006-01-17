@@ -1944,7 +1944,8 @@ non-nil then do not show any progress messages."
         (case-fold-search nil)
 	(new-message-counter 0)
 	(start (point-max))
-	end attributes keywords message-descriptor-list date)
+	end attributes keywords message-descriptor-list
+	date coding)
     (or nomsg (message "Processing new messages..."))
     ;; Process each message in turn starting from the back and
     ;; proceeding to the front of the region.  This is especially a
@@ -1985,6 +1986,17 @@ non-nil then do not show any progress messages."
 		    (delete-char 1)))
 		(setq end (marker-position end-marker))
 		(set-marker end-marker nil)))
+
+	  ;; Add an X-Coding-System header if we don't have one.
+	  (unless (rmail-header-get-header "X-Coding-System")
+	    (let ((case-fold-search t))
+	      (when (save-excursion
+		      (goto-char start)
+		      (search-forward "\n\n" nil t)
+		      (re-search-backward rmail-mime-charset-pattern start t))
+		(rmail-header-add-header "X-Coding-System"
+					 (downcase (match-string 1))))))
+
 	  ;; Make sure we have an Rmail BABYL attribute header field.
 	  ;; All we can assume is that the Rmail BABYL header field is
 	  ;; in the header section.  It's placement can be modified by
