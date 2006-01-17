@@ -1,5 +1,16 @@
 2006-01-17  Alex Schroeder  <alex@gnu.org>
 
+	* rmailsum.el (rmail-summary-by-labels): No longer concatenate
+	regexp with commas because of recent change to
+	rmail-message-labels-p.
+	(rmail-summary-rmail-update): Replace rmail-message-labels-p test
+	with simple rmail-desc-get-keywords.
+
+	* rmail.el (rmail-message-labels-p): Rewrote using
+	rmail-desc-get-keywords.
+	(rmail-auto-file): Rewrote test for "filed" using
+	rmail-desc-get-keywords.
+
 	* rmailsum.el (rmail-summary-font-lock-keywords): Fix regular
 	expression for unread messages.
 	(rmail-summary-mode): Added documentation for the filtering
