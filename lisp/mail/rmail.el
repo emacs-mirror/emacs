@@ -1892,15 +1892,14 @@ otherwise, show it in full."
             (with-current-buffer rmail-summary-buffer
               (rmail-summary-update-attribute attr-index msgnum)))))))
 
-;; Return t if the attributes/keywords line of msg number MSG
-;; contains a match for the regexp LABELS.
-(defun rmail-message-labels-p (msg labels)
-  (save-excursion
-    (save-restriction
-      (widen)
-      (goto-char (rmail-desc-get-start msg))
-      (forward-line 1)
-      (re-search-backward labels (prog1 (point) (end-of-line)) t))))
+(defun rmail-message-labels-p (n labels)
+  "Return t if message number N has keywords matching LABELS.
+LABELS is a regular expression."
+  (catch 'found
+    (dolist (keyword (rmail-desc-get-keywords n))
+      (when (string-match labels keyword)
+	(throw 'found t)))))
+
 
 ;;;; *** Rmail Message Selection And Support ***
 
