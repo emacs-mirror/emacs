@@ -796,7 +796,7 @@ For more information, see the function `buffer-menu'."
 					 (int-to-string (nth 3 buffer))
 					 `(buffer-name ,(nth 2 buffer)
 					   buffer ,(car buffer)
-					   font-lock-face Buffer-menu-buffer
+					   font-lock-face buffer-menu-buffer
 					   mouse-face highlight
 					   help-echo "mouse-2: select this buffer"))
 		"  "
