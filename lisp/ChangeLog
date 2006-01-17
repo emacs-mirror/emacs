@@ -1,5 +1,10 @@
 2006-01-17  Juri Linkov  <juri@jurta.org>
 
+	* dired-aux.el (dired-diff): Use dired-dwim-target-directory
+	instead of the file at the mark as default if the file at the mark
+	is the same as the file at point or if dired-dwim-target-directory
+	is not the same as the current directory and the mark is not active.
+
 	* log-view.el (log-view-minor-wrap): Use the same logic to get
 	revisions as `log-view-diff'.
 
