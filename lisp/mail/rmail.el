@@ -2316,7 +2316,7 @@ iso-8859, koi8-r, etc."
 (defun rmail-auto-file ()
   "Automatically move a message into a sub-folder based on criteria.
 Called when a new message is displayed."
-  (if (or (rmail-message-labels-p rmail-current-message "filed")
+  (if (or (member "filed" (rmail-desc-get-keywords rmail-current-message))
 	  (not (string= (buffer-file-name)
 			(expand-file-name rmail-file-name))))
       ;; Do nothing if it's already been filed.
