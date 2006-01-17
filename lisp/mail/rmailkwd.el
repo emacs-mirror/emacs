@@ -135,7 +135,6 @@ Completion is performed over known labels when reading."
   (interactive (list (rmail-read-label "Remove label")))
   (rmail-set-label string nil))
 
-;;; mbox: ready to define and execute test
 ;;;###autoload
 (defun rmail-read-label (prompt)
   (if (= rmail-total-messages 0)
@@ -155,7 +154,6 @@ Completion is performed over known labels when reading."
 	  rmail-last-label
 	(setq rmail-last-label (rmail-make-label result t))))))
 
-;;; mbox: ready
 (defun rmail-set-label (l state &optional n)
   "Add (STATE is non-nil) or remove (STATE is nil) label L in message N.
 If N is nil then use the current Rmail message.  The current buffer,
@@ -164,30 +162,16 @@ possibly narrowed, displays a message."
       (error "No messages in this file"))
   (with-current-buffer rmail-buffer
     (if (not n) (setq n rmail-current-message))
-
-    ;; Make message N the current message.
     (save-restriction
       (widen)
       (narrow-to-region (rmail-desc-get-start n) (rmail-desc-get-end n))
-
       (if (rmail-attribute-p l)
-
-          ;; Handle the case where the label is one of the predefined
-          ;; attributes by using rmail code to set the attribute.
           (rmail-set-attribute l state n)
-
-        ;; Handle the case where the label is a keyword.  Make sure the
-        ;; keyword is registered.
+        ;; Make sure the keyword is registered.
         (or (rmail-keyword-p l) (rmail-install-keyword l))
-
-        ;; Determine if we are adding or removing the keyword.
         (let ((keyword (symbol-name l)))
           (if state
-
-              ;; Add the keyword to this message.
               (rmail-desc-add-keyword keyword n)
-
-            ;; Remove the keyword from the keyword header.
             (rmail-desc-remove-keyword keyword n)))))))
             
 
