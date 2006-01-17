@@ -6596,7 +6596,9 @@ code_conversion_restore (arg)
      Lisp_Object arg;
 {
   Lisp_Object current, workbuf;
+  struct gcpro gcpro1;
 
+  GCPRO1 (arg);
   current = XCAR (arg);
   workbuf = XCDR (arg);
   if (! NILP (workbuf))
@@ -6607,6 +6609,7 @@ code_conversion_restore (arg)
 	Fkill_buffer (workbuf);
     }
   set_buffer_internal (XBUFFER (current));
+  UNGCPRO;
   return Qnil;
 }
 
