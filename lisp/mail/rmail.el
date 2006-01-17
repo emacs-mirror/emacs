@@ -2446,7 +2446,6 @@ or forward if N is negative."
       (search-forward "\n\n" end)	; error if we don't find it
       (narrow-to-region start (point)))))
 
-;;; mbox: ready
 (defun rmail-message-recipients-p (msg recipients &optional primary-only)
   (save-restriction
     (or (string-match recipients (or (mail-fetch-field "To") ""))
@@ -2454,7 +2453,6 @@ or forward if N is negative."
 	(if (not primary-only)
 	    (string-match recipients (or (mail-fetch-field "Cc") ""))))))
 
-;;; mbox: ready
 (defun rmail-message-regexp-p (msg regexp)
   "Return t, if for message number MSG, regexp REGEXP matches in the header."
   (save-excursion
@@ -2462,7 +2460,6 @@ or forward if N is negative."
       (rmail-narrow-to-header msg)
       (re-search-forward regexp nil t))))
 
-;;; mbox: ready
 (defun rmail-search-message (msg regexp)
   "Return non-nil, if for message number MSG, regexp REGEXP matches."
   (goto-char (rmail-desc-get-start msg))
@@ -2470,7 +2467,6 @@ or forward if N is negative."
       (funcall rmail-search-mime-message-function msg regexp)
     (re-search-forward regexp (rmail-desc-get-end msg) t)))
 
-;;; mbox: ready
 (defvar rmail-search-last-regexp nil)
 (defun rmail-search (regexp &optional n)
   "Show message containing next match for REGEXP (but not the current msg).
