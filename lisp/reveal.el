@@ -85,7 +85,8 @@ Each element has the form (WINDOW . OVERLAY).")
                         ;; a window which does not show this buffer any more.
                         (cond
                          ((eq (car x) (selected-window)) (cdr x))
-                         ((not (eq (window-buffer (car x)) (current-buffer)))
+                         ((not (and (window-live-p (car x))
+                                    (eq (window-buffer (car x)) (current-buffer))))
                           ;; Adopt this since it's owned by a window that's
                           ;; either not live or at least not showing this
                           ;; buffer any more.
@@ -104,35 +105,37 @@ Each element has the form (WINDOW . OVERLAY).")
                            (overlays-at (mark)))
                          (overlays-at (point))))
         (setq old-ols (delq ol old-ols))
-        (let ((inv (overlay-get ol 'invisible)) open)
-          (when (and inv
-                     ;; There's an `invisible' property.  Make sure it's
-                     ;; actually invisible, and ellipsised.
-                     (and (consp buffer-invisibility-spec)
-                          (cdr (assq inv buffer-invisibility-spec)))
-                     (or (setq open
-                               (or (overlay-get ol 'reveal-toggle-invisible)
-                                   (and (symbolp inv)
-                                        (get inv 'reveal-toggle-invisible))
-                                   (overlay-get ol 'isearch-open-invisible-temporary)))
-                         (overlay-get ol 'isearch-open-invisible)
-                         (and (consp buffer-invisibility-spec)
-                              (cdr (assq inv buffer-invisibility-spec))))
-                     (overlay-put ol 'reveal-invisible inv))
-            (push (cons (selected-window) ol) reveal-open-spots)
-            (if (null open)
-                (overlay-put ol 'invisible nil)
-              ;; Use the provided opening function and repeat (since the
-              ;; opening function might have hidden a subpart around point).
-              (setq repeat t)
-              (condition-case err
-                  (funcall open ol nil)
-                (error (message "!!Reveal-show (funcall %s %s nil): %s !!"
-                                open ol err)
-                       ;; Let's default to a meaningful behavior to avoid
-                       ;; getting stuck in an infinite loop.
-                       (setq repeat nil)
-                       (overlay-put ol 'invisible nil)))))))))
+        (when (overlay-start ol)        ;Check it's still live.
+          (let ((inv (overlay-get ol 'invisible)) open)
+            (when (and inv
+                       ;; There's an `invisible' property.  Make sure it's
+                       ;; actually invisible, and ellipsised.
+                       (and (consp buffer-invisibility-spec)
+                            (cdr (assq inv buffer-invisibility-spec)))
+                       (or (setq open
+                                 (or (overlay-get ol 'reveal-toggle-invisible)
+                                     (and (symbolp inv)
+                                          (get inv 'reveal-toggle-invisible))
+                                     (overlay-get ol 'isearch-open-invisible-temporary)))
+                           (overlay-get ol 'isearch-open-invisible)
+                           (and (consp buffer-invisibility-spec)
+                                (cdr (assq inv buffer-invisibility-spec))))
+                       (overlay-put ol 'reveal-invisible inv))
+              (push (cons (selected-window) ol) reveal-open-spots)
+              (if (null open)
+                  (overlay-put ol 'invisible nil)
+                ;; Use the provided opening function and repeat (since the
+                ;; opening function might have hidden a subpart around point
+                ;; or moved/killed some of the overlays).
+                (setq repeat t)
+                (condition-case err
+                    (funcall open ol nil)
+                  (error (message "!!Reveal-show (funcall %s %s nil): %s !!"
+                                  open ol err)
+                         ;; Let's default to a meaningful behavior to avoid
+                         ;; getting stuck in an infinite loop.
+                         (setq repeat nil)
+                         (overlay-put ol 'invisible nil))))))))))
   old-ols)
 
 (defun reveal-close-old-overlays (old-ols)

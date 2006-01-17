@@ -1,6 +1,6 @@
 ;;; mh-acros.el --- Macros used in MH-E
 
-;; Copyright (C) 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -74,6 +74,26 @@ appropriate."
     `(when (fboundp ',function)
        (funcall ',function ,@args))))
 
+(defmacro mh-defun-compat (function arg-list &rest body)
+  "This is a macro to define functions which are not defined.
+It is used for functions which were added to Emacs recently.
+If FUNCTION is not defined then it is defined to have argument
+list, ARG-LIST and body, BODY."
+  (let ((defined-p (fboundp function)))
+    (unless defined-p
+      `(defun ,function ,arg-list ,@body))))
+(put 'mh-defun-compat 'lisp-indent-function 'defun)
+
+(defmacro mh-defmacro-compat (function arg-list &rest body)
+  "This is a macro to define functions which are not defined.
+It is used for macros which were added to Emacs recently.
+If FUNCTION is not defined then it is defined to have argument
+list, ARG-LIST and body, BODY."
+  (let ((defined-p (fboundp function)))
+    (unless defined-p
+      `(defmacro ,function ,arg-list ,@body))))
+(put 'mh-defmacro-compat 'lisp-indent-function 'defun)
+
 (defmacro mh-make-local-hook (hook)
   "Make HOOK local if needed.
 XEmacs and versions of GNU Emacs before 21.1 require
@@ -130,6 +150,9 @@ more details."
                           (list 'nth ,x z)))
        (quote ,struct-name))))
 
+;; A better solution would be to use Stefan's change in bytecomp.el.
+;; If it were checked in, we can drop the advice to require and it
+;; will make things nicer elsewhere too.
 (defadvice require (around mh-prefer-el activate)
   "Modify `require' to load uncompiled MH-E files."
   (or (featurep (ad-get-arg 0))

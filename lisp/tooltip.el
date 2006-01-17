@@ -48,7 +48,10 @@
 
 (define-minor-mode tooltip-mode
   "Toggle Tooltip display.
-With ARG, turn tooltip mode on if and only if ARG is positive."
+With ARG, turn tooltip mode on if and only if ARG is positive.
+When this minor mode is enabled, Emacs displays help text
+in a pop-up window on mouse-over.  When it is disabled,
+Emacs displays the help text in the echo area instead."
   :global t
   :init-value (not (or noninteractive
 		       emacs-basic-display

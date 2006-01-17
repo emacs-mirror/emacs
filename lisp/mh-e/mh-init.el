@@ -39,9 +39,12 @@
 
 ;;; Code:
 
+;;(message "> mh-init")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
-(require 'mh-utils)
+(require 'mh-buffers)
+(require 'mh-exec)
+;;(message "< mh-init")
 
 (defvar mh-sys-path
   '("/usr/local/nmh/bin"                ; nmh default
@@ -65,26 +68,8 @@ directories to the customizable variable `mh-path'.")
 ;; was installed into.  But if you installed MH after building Emacs,
 ;; this would almost certainly be wrong, so now we do it at run time.
 
-(defvar mh-progs nil
-  "Directory containing MH commands, such as inc, repl, and rmm.")
-
-(defvar mh-lib nil
-  "Directory containing the MH library.
-This directory contains, among other things, the components file.")
-
-(defvar mh-lib-progs nil
-  "Directory containing MH helper programs.
-This directory contains, among other things, the mhl program.")
-
 (defvar mh-flists-present-flag nil
   "Non-nil means that we have \"flists\".")
-
-;;;###autoload
-(put 'mh-progs 'risky-local-variable t)
-;;;###autoload
-(put 'mh-lib 'risky-local-variable t)
-;;;###autoload
-(put 'mh-lib-progs 'risky-local-variable t)
 
 (defvar mh-variants nil
   "List describing known MH variants.
@@ -355,6 +340,31 @@ MH-E."
     (setq mh-find-path-run t)))
 
 
+
+;;; MH profile
+
+(defun mh-profile-component (component)
+  "Return COMPONENT value from mhparam, or nil if unset."
+  (save-excursion
+    (mh-exec-cmd-quiet nil "mhparam" "-components" component)
+    (mh-profile-component-value component)))
+
+(defun mh-profile-component-value (component)
+  "Find and return the value of COMPONENT in the current buffer.
+Returns nil if the component is not in the buffer."
+  (let ((case-fold-search t))
+    (goto-char (point-min))
+    (cond ((not (re-search-forward (format "^%s:" component) nil t)) nil)
+          ((looking-at "[\t ]*$") nil)
+          (t
+           (re-search-forward "[\t ]*\\([^\t \n].*\\)$" nil t)
+           (let ((start (match-beginning 1)))
+             (end-of-line)
+             (buffer-substring start (point)))))))
+
+
+
+;;; MH-E images
 
 ;; Shush compiler.
 (eval-when-compile (defvar image-load-path))

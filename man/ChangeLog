@@ -1,3 +1,24 @@
+2006-01-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Article Washing): Additions.
+
+2006-01-08  Alex Schroeder  <alex@gnu.org>
+
+	* pgg.texi (Caching passphrase): Rewording.
+
+2006-01-14  Richard M. Stallman  <rms@gnu.org>
+
+	* basic.texi (Inserting Text): Minor cleanup.
+
+2006-01-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Agenda commands): Document tags command.
+
+2006-01-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.texi (Changing a Variable, Face Customization): Update
+	for changes in Custom menus.
+
 2006-01-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (RSS): Document nnrss-wash-html-in-text-plain-parts.
@@ -40,7 +61,7 @@
 
 2006-01-05  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Agenda Views): Chapter reorganized.
+	* org.texi (Agenda Views): Chapter reorganized.
 
 2006-01-02  Chong Yidong  <cyd@stupidchicken.com>
 

@@ -34,8 +34,10 @@
 
 ;;; Code:
 
+;;(message "> mh-inc")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
+;;(message "< mh-inc")
 
 (defvar mh-inc-spool-map (make-sparse-keymap)
   "Keymap for MH-E's mh-inc-spool commands.")

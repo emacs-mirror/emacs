@@ -3,7 +3,7 @@ dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
 dnl  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
@@ -1261,6 +1261,10 @@ then
   CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
+dnl checks for Unix variants
+AC_AIX
+AC_GNU_SOURCE
+
 ### Use -Wno-pointer-sign if the compiler supports it
 AC_MSG_CHECKING([whether gcc understands -Wno-pointer-sign])
 SAVE_CFLAGS="$CFLAGS"
@@ -1319,10 +1323,6 @@ AC_LINK_IFELSE([main(){return 0;}],
   [AC_MSG_RESULT(yes)],
   LDFLAGS=$late_LDFLAGS
   [AC_MSG_RESULT(no)])
-
-dnl checks for Unix variants
-AC_AIX
-
 
 #### Extract some information from the operating system and machine files.
 
@@ -1472,8 +1472,6 @@ fi
 
 dnl For AC_FUNC_GETLOADAVG, at least:
 AC_CONFIG_LIBOBJ_DIR(src)
-
-AC_GNU_SOURCE
 
 dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE

@@ -33,16 +33,19 @@
 
 ;;; Code:
 
+;;(message "> mh-comp")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 
 (require 'easymenu)
 (require 'gnus-util)
+(require 'mh-buffers)
 (require 'mh-e)
 (require 'mh-gnus)
 
 (eval-when (compile load eval)
   (ignore-errors (require 'mailabbrev)))
+;;(message "< mh-comp")
 
 
 
@@ -378,7 +381,7 @@ See also `mh-compose-forward-as-mime-flag',
          ;; forw always leaves file in "draft" since it doesn't have -draft
          (draft-name (expand-file-name "draft" mh-user-path))
          (draft (cond ((or (not (file-exists-p draft-name))
-                           (y-or-n-p "The file 'draft' exists.  Discard it? "))
+                           (y-or-n-p "The file draft exists; discard it? "))
                        (mh-exec-cmd "forw" "-build"
                                     (if (and (mh-variant-p 'nmh)
                                              mh-compose-forward-as-mime-flag)
@@ -860,6 +863,9 @@ Returns t if found, nil if not."
 
 
 ;;; Mode for composing and sending a draft message.
+
+(defvar mh-pgp-support-flag (not (not (locate-library "mml2015")))
+  "Non-nil means PGP support is available.")
 
 (put 'mh-letter-mode 'mode-class 'special)
 
@@ -1475,12 +1481,16 @@ use `mh-send-prog' to tell MH-E the name."
                (and (boundp 'default-buffer-file-coding-system )
                     default-buffer-file-coding-system)
                'iso-latin-1))))
+    ;; Adding a Message-ID field looks good, makes it easier to search for
+    ;; message in your +outbox, and best of all doesn't break threading for
+    ;; the recipient if you reply to a message in your +outbox.
+    (setq mh-send-args (concat "-msgid " mh-send-args))
     ;; The default BCC encapsulation will make a MIME message unreadable.
     ;; With nmh use the -mime arg to prevent this.
     (if (and (mh-variant-p 'nmh)
              (mh-goto-header-field "Bcc:")
              (mh-goto-header-field "Content-Type:"))
-        (setq mh-send-args (format "-mime %s" mh-send-args)))
+        (setq mh-send-args (concat "-mime " mh-send-args)))
     (cond (arg
            (pop-to-buffer mh-mail-delivery-buffer)
            (erase-buffer)
@@ -1514,23 +1524,33 @@ use `mh-send-prog' to tell MH-E the name."
 (defun mh-insert-letter (folder message verbatim)
   "Insert a message.
 
-This command prompts you for the FOLDER and MESSAGE number and inserts
+This command prompts you for the FOLDER and MESSAGE number, which
+defaults to the current message in that folder. It then inserts
 the message, indented by `mh-ins-buf-prefix' (\"> \") unless
-`mh-yank-behavior' is set to one of the supercite flavors in which
-case supercite is used to format the message. Certain undesirable
-header fields (see `mh-invisible-header-fields-compiled') are removed
-before insertion.
+`mh-yank-behavior' is set to one of the supercite flavors in
+which case supercite is used to format the message. Certain
+undesirable header fields (see
+`mh-invisible-header-fields-compiled') are removed before
+insertion.
 
 If given a prefix argument VERBATIM, the header is left intact, the
 message is not indented, and \"> \" is not inserted before each line.
 This command leaves the mark before the letter and point after it."
   (interactive
-   (list (mh-prompt-for-folder "Message from" mh-sent-from-folder nil)
-         (read-string (concat "Message number"
-                              (if (numberp mh-sent-from-msg)
-                                  (format " (default %d): " mh-sent-from-msg)
-                                ": ")))
-         current-prefix-arg))
+   (let* ((folder
+           (mh-prompt-for-folder "Message from"
+                                 mh-sent-from-folder nil))
+          (default
+            (if (and (equal folder mh-sent-from-folder)
+                     (numberp mh-sent-from-msg))
+                mh-sent-from-msg
+              (nth 0 (mh-translate-range folder "cur"))))
+          (message
+           (read-string (concat "Message number"
+                                (or (and default
+                                         (format " (default %d): " default))
+                                    ": ")))))
+     (list folder message current-prefix-arg)))
   (save-restriction
     (narrow-to-region (point) (point))
     (let ((start (point-min)))

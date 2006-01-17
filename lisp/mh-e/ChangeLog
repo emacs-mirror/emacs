@@ -1,7 +1,228 @@
+2006-01-15  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-limit-map, mh-help-messages): Change keybinding of
+	mh-narrow-to-from from / f to / m; mh-narrow-to-range from / r to
+	/ g.
+
+	* mh-utils.el (mh-show-limit-map): Ditto.
+
+	* mh-exec.el: Require mh-acros, mh-buffers, and mh-utils for
+	standalone compile.
+	(mh-progs, mh-lib, mh-lib-progs): Move here from mh-init.el.
+
+	* mh-init.el (mh-progs, mh-lib, mh-lib-progs): Move to mh-exec.el,
+	where they are used.
+
+	* mh-comp.el (mh-pgp-support-flag): Move here from mh-utils.el;
+	needed to help remove dependency on mh-utils.
+
+	* mh-exec.el: New file. Move process support routines here from
+	mh-utils.el.
+
+	* mh-init.el (mh-utils): Remove require.
+	(mh-exec): Add require.
+	(mh-profile-component, mh-profile-component-value): Move here from
+	mh-utils.el.
+
+	* mh-utils.el (mh-pgp-support-flag): Move to mh-comp.el to reduce
+	dependencies on mh-utils.el.
+	(mh-profile-component, mh-profile-component-value): Move to
+	mh-init.el since that's the only place that uses them. (Other than
+	mh-alias.el; I'm thinking that mh-find-path can set variable from
+	the Aliasfile component like it does the other components).
+	(mh-index-max-cmdline-args, mh-xargs, mh-quote-for-shell)
+	(mh-exec-cmd, mh-exec-cmd-error, mh-exec-cmd-daemon)
+	(mh-exec-cmd-env-daemon, mh-process-daemon, mh-exec-cmd-quiet)
+	(defvar, mh-exec-cmd-output)
+	(mh-exchange-point-and-mark-preserving-active-mark)
+	(mh-exec-lib-cmd-output, mh-handle-process-error): Move to new
+	file mh-exec.el so that mh-init.el doesn't have to depend on
+	mh-utils.el, breaking circular dependency.
+
+	* mh-alias.el: 
+	* mh-customize.el: 
+	* mh-e.el: 
+	* mh-funcs.el: 
+	* mh-gnus.el: 
+	* mh-identity.el: 
+	* mh-inc.el: 
+	* mh-junk.el: 
+	* mh-mime.el: 
+	* mh-print.el: 
+	* mh-search.el: 
+	* mh-seq.el: 
+	* mh-speed.el: Added debugging statements (commented out) around
+	requires to help find dependency loops. Will remove them when
+	issues are resolved.
+
+2006-01-14  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-index): Rename group to mh-search and sort
+	group definition and options accordingly.
+	(mh-index-program): Rename to mh-search-program.
+	(mh-kill-folder-suppress-prompt-hooks): Rename mh-index-p to
+	mh-search-p.
+	(mh-search-mode-hook): Change group from mh-index to mh-search.
+	(mh-index-folder): Rename to mh-search-folder. Change group from
+	mh-index to mh-search.
+
+	* mh-e.el (mh-folder-font-lock-keywords): Rename mh-index-folder
+	to mh-search-folder.
+
+	* mh-search.el (mh-indexer) Rename to mh-searcher. The commands
+	pick and grep are searchers too but aren't indexed.
+	(mh-index-execute-search-function): Rename to mh-search-function.
+	(mh-index-next-result-function): Rename to
+	mh-search-next-result-function.
+	(mh-index-regexp-builder): Rename to mh-search-regexp-builder.
+	(mh-search): Since redo-search-flag defaults to nil and is of
+	lesser importance, make it an optional argument and place it after
+	the folder and search-regexp arguments. Sync docstring with
+	manual.
+	(mh-search-mode-map): Autoload so that keys are shown in help even
+	before mh-search is loaded.
+	(mh-search-mode): Sync docstring with manual.
+	(mh-index-do-search): Rename argument indexer to searcher. Sync
+	docstring with manual.
+	(mh-pick-do-search): Sync docstring with manual.
+	(mh-index-p): Rename to mh-search-p.
+	(mh-indexer-choices): Rename to mh-search-choices.
+	(mh-index-choose): Rename to mh-search-choose. Rename argument
+	indexer to searcher.
+	(mh-swish++-execute-search, mh-swish-execute-search)
+	(mh-mairix-execute-search, mh-namazu-execute-search): Drop "and
+	read the results" from docstring since these functions don't.
+	(mh-pick-execute-search, mh-grep-execute-search): Sync docstring
+	with manual.
+	(mh-index-generate-pretty-name): Prune -search from string so that
+	folder names for pick searches are the same as those of other
+	searches.
+
+2006-01-13  Bill Wohler  <wohler@newt.com>
+
+	* mh-acros.el (require): Added Satyaki's comment regarding what
+	needs to happen to remove this defadvice which caused a little
+	discussion on emacs-devel today (see Subject: mh-e/mh-acros.el
+	advices `require' incorrectly).
+
+	* mh-search.el (mh-index-next-result-function): Add format to
+	docstring.
+	(mh-mairix-next-result): Use nil instead of () which doesn't stand
+	out as well.
+	(mh-pick-execute-search): Operate across all folders if no folder
+	given and recurse folder(s).
+	(mh-pick-next-result): Handle new output.
+
+	* mh-utils.el: (mh-collect-folder-names): Fix docstring.
+	(mh-children-p, mh-folder-list): New functions.	
+
+2006-01-12  Bill Wohler  <wohler@newt.com>
+
+	* mh-search.el: New file containing contents of mh-index.el and
+	mh-pick.el. C-c C-c launches your mh-index-program; C-c C-p runs
+	pick. Pick no longer sets the "search" sequence. Instead, it
+	brings up a folder view that we're accustomed to. (closes SF
+	#829207).
+	(mh-index-search): Rename to mh-search.
+	(mh-pick-menu): Rename menu from Pick to Search. Rename Execute
+	the Search to Perform Search and call mh-do-search. Add Search
+	with Pick menu item.
+	(mh-do-search): Delete.
+	(mh-search-mode): Rename from mh-pick-mode.
+	(MH-Search): Rename mode from MH-Pick.
+	(mh-search-mode-map): Rename from mh-pick-mode-map.
+	(mh-search-mode-help-messages): Rename from
+	mh-pick-mode-help-messages.
+	(mh-index-choose): Don't reuse the last value of mh-indexer; when
+	mh-pick-do-search sets it to 'pick, we don't necessarily want to
+	stay with that choice!
+
+	* mh-index.el:
+	* mh-pick.el: Merge into mh-search.el and delete.
+
+	* mh-customize.el (mh-index-program): Change mh-index-search to
+	mh-search in docstring.
+	(mh-tool-bar-search-function): Change default from
+	mh-search-folder to mh-search. Remove mh-search-folder as choice
+	and rename mh-index-search choice to mh-search. Fix docstring.
+	(mh-pick-mode-hook): Rename to mh-search-mode-hook and change
+	mh-search-folder to mh-search in docstring.
+
+	* mh-e.el (mh-folder-folder-menu): Delete Search a Folder. Change
+	Indexed Search to Search. Use mh-search instead of
+	mh-index-search.
+	(mh-folder-map): Delete i (mh-index-search) keybinding. Change s
+	from mh-show-search-folder to mh-search.
+
+	* mh-seq.el (mh-put-msg-in-seq): Fix docstring now that
+	mh-search-folder no longer creates the search sequence.
+
+	* mh-utils.el (mh-show-search-folder): Delete.
+	(mh-show-folder-map): Delete i (mh-index-search) keybinding.
+	Change s from mh-show-search-folder to mh-search.
+	(mh-show-folder-menu): Delete Search a Folder. Change Indexed
+	Search to Search. Use mh-search instead of mh-index-search.
+	(mh-index-max-cmdline-args, mh-xargs, mh-quote-for-shell): Move
+	here from deleted mh-index.el.
+
+2006-01-11  Bill Wohler  <wohler@newt.com>
+
+	* mh-acros.el (mh-defun-compat, mh-defmacro-compat): Move here
+	from mh-gnus.el.
+
+	* mh-gnus.el: Require mh-acros.
+	(mh-defmacro-compat, mh-defun-compat): Move to mh-acros.el.
+
+	* mh-utils.el (mh-x-image-url-cache-canonicalize): Use
+	url-hexify-string to remove special characters from filenames
+	(closes SF #1396499). Note that this invalidates the existing
+	names in your cache so you might as well remove
+	~/Mail/.mhe-x-image-cache/* now.
+	(url-unreserved-chars, url-hexify-string): Define if not defined.
+	Copied from url-util.el in Emacs22 for Emacs 21.
+
+	* mh-buffers.el: New file. Contains constants and code from
+	mh-index.el and mh-utils.el.
+
+	* mh-alias.el: 
+	* mh-comp.el: 
+	* mh-e.el: 
+	* mh-funcs.el: 
+	* mh-init.el:
+	* mh-junk.el: 
+	* mh-mime.el:
+	* mh-print.el:
+	* mh-seq.el: Require new file mh-buffers.el.
+
+	* mh-index.el: Require new file mh-buffers.el.
+	(mh-index-temp-buffer, mh-checksum-buffer): Move to new file
+	mh-buffers.el.
+
+	* mh-utils.el: Require new file mh-buffers.el.
+	(mh-temp-buffer, mh-temp-fetch-buffer)
+	(mh-aliases-buffer, mh-folders-buffer, mh-help-buffer)
+	(mh-info-buffer, mh-log-buffer, mh-mail-delivery-buffer)
+	(mh-recipients-buffer, mh-sequences-buffer, mh-log-buffer-lines)
+	(mh-truncate-log-buffer): Move to new file mh-buffers.el.
+
+	* mh-comp.el (mh-forward): Cosmetics on prompt when draft exists.
+	(mh-send-letter): Add -msgid to mh-send-args (closes SF #725425).
+
 2006-01-10  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-insert-letter): If you choose a different folder,
+	the cur message is used. Sync docstring with manual (closes SF
+	#1205890).
+
+	* mh-mime.el (mh-compose-forward): Use standard range argument
+	instead of messages. Use more powerful mh-read-range instead of
+	read-string. Sync docstring with manual (close SF #1205890).
 
 	* mh-index.el (mh-index-search): Checking mh-find-path-run is
 	unnecessary.
+	(mh-index-next-folder): Don't back up a line when going backwards
+	since this skips the current folder heading if point is on the
+	first message after the folder heading (closes SF #1126188).
 
 	* mh-init.el (mh-sys-path): Co-locate with mh-variants, which uses
 	it.

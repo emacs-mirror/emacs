@@ -154,20 +154,25 @@ the directory " custom-theme-directory "\n\n")
 
 (defun custom-theme-add-variable (symbol)
   (interactive "vVariable name: ")
-  (save-excursion
-    (goto-char custom-theme-insert-variable-marker)
-    (if (assq symbol custom-theme-variables)
-	(message "%s is already in the theme" (symbol-name symbol))
-      (widget-insert "\n")
-      (let ((widget (widget-create 'custom-variable
-				   :tag (custom-unlispify-tag-name symbol)
-				   :custom-level 0
-				   :action 'custom-theme-variable-action
-				   :custom-state 'unknown
-				   :value symbol)))
-	(push (cons symbol widget) custom-theme-variables)
-	(custom-magic-reset widget))
-      (widget-setup))))
+  (cond ((assq symbol custom-theme-variables)
+	 (message "%s is already in the theme" (symbol-name symbol)))
+	((not (boundp symbol))
+	 (message "%s is not defined as a variable" (symbol-name symbol)))
+	((eq symbol 'custom-enabled-themes)
+	 (message "Custom theme cannot contain `custom-enabled-themes'"))
+	(t
+	 (save-excursion
+	   (goto-char custom-theme-insert-variable-marker)
+	   (widget-insert "\n")
+	   (let ((widget (widget-create 'custom-variable
+					:tag (custom-unlispify-tag-name symbol)
+					:custom-level 0
+					:action 'custom-theme-variable-action
+					:custom-state 'unknown
+					:value symbol)))
+	     (push (cons symbol widget) custom-theme-variables)
+	     (custom-magic-reset widget))
+	   (widget-setup)))))
 
 (defvar custom-theme-variable-menu
   `(("Reset to Current" custom-redraw
@@ -220,20 +225,23 @@ Optional EVENT is the location for the menu."
 
 (defun custom-theme-add-face (symbol)
   (interactive (list (read-face-name "Face name" nil nil)))
-  (save-excursion
-    (goto-char custom-theme-insert-face-marker)
-    (if (assq symbol custom-theme-faces)
-	(message "%s is already in the theme" (symbol-name symbol))
-      (widget-insert "\n")
-      (let ((widget (widget-create 'custom-face
-				   :tag (custom-unlispify-tag-name symbol)
-				   :custom-level 0
-				   :action 'custom-theme-face-action
-				   :custom-state 'unknown
-				   :value symbol)))
-	(push (cons symbol widget) custom-theme-faces)
-	(custom-magic-reset widget)
-	(widget-setup)))))
+  (cond ((assq symbol custom-theme-faces)
+	 (message "%s is already in the theme" (symbol-name symbol)))
+	((not (facep symbol))
+	 (message "%s is not defined as a face" (symbol-name symbol)))
+	(t
+	 (save-excursion
+	   (goto-char custom-theme-insert-face-marker)
+	   (widget-insert "\n")
+	   (let ((widget (widget-create 'custom-face
+					:tag (custom-unlispify-tag-name symbol)
+					:custom-level 0
+					:action 'custom-theme-face-action
+					:custom-state 'unknown
+					:value symbol)))
+	     (push (cons symbol widget) custom-theme-faces)
+	     (custom-magic-reset widget)
+	     (widget-setup))))))
 
 (defvar custom-theme-face-menu
   `(("Reset to Theme Value" custom-face-reset-theme

@@ -85,6 +85,7 @@
 
 ;;; Code:
 
+;;(message "> mh-e")
 (provide 'mh-e)
 
 (eval-when-compile (require 'mh-acros))
@@ -92,8 +93,10 @@
 
 (require 'easymenu)
 (require 'gnus-util)
+(require 'mh-buffers)
 (require 'mh-seq)
 (require 'mh-utils)
+;;(message "< mh-e")
 
 (defconst mh-version "7.85+cvs" "Version number of MH-E.")
 
@@ -330,7 +333,7 @@ highlighted with the face `mh-folder-sent-to-me-sender'.")
   (list
    ;; Folders when displaying index buffer
    (list "^\\+.*"
-         '(0 'mh-index-folder))
+         '(0 'mh-search-folder))
    ;; Marked for deletion
    (list (concat mh-scan-deleted-msg-regexp ".*")
          '(0 'mh-folder-deleted))
@@ -1734,8 +1737,7 @@ Make it the current folder."
     ["List Folders"                     mh-list-folders t]
     ["Visit a Folder..."                mh-visit-folder t]
     ["View New Messages"                mh-index-new-messages t]
-    ["Search a Folder..."               mh-search-folder t]
-    ["Indexed Search..."                mh-index-search t]
+    ["Search..."                        mh-search t]
     "--"
     ["Quit MH-E"                        mh-quit t]))
 
@@ -1861,9 +1863,9 @@ perform the operation on all messages in that region.
    'mh-folder-view-stack ()             ; Stack of previous views of the
                                         ; folder.
    'mh-index-data nil                   ; If the folder was created by a call
-                                        ; to mh-index-search this contains info
+                                        ; to mh-search, this contains info
                                         ; about the search results.
-   'mh-index-previous-search nil        ; Previous folder and search-regexp
+   'mh-index-previous-search nil        ; folder, indexer, search-regexp
    'mh-index-msg-checksum-map nil       ; msg -> checksum map
    'mh-index-checksum-origin-map nil    ; checksum -> ( orig-folder, orig-msg )
    'mh-index-sequence-search-flag nil   ; folder resulted from sequence search
@@ -2704,7 +2706,6 @@ in list."
   "S"           mh-sort-folder
   "c"           mh-catchup
   "f"           mh-alt-visit-folder
-  "i"           mh-index-search
   "k"           mh-kill-folder
   "l"           mh-list-folders
   "n"           mh-index-new-messages
@@ -2712,7 +2713,7 @@ in list."
   "p"           mh-pack-folder
   "q"           mh-index-sequenced-messages
   "r"           mh-rescan-folder
-  "s"           mh-search-folder
+  "s"           mh-search
   "u"           mh-undo-folder
   "v"           mh-visit-folder)
 
@@ -2755,8 +2756,8 @@ in list."
   "'"           mh-narrow-to-tick
   "?"           mh-prefix-help
   "c"           mh-narrow-to-cc
-  "f"           mh-narrow-to-from
-  "r"           mh-narrow-to-range
+  "g"           mh-narrow-to-range
+  "m"           mh-narrow-to-from
   "s"           mh-narrow-to-subject
   "t"           mh-narrow-to-to
   "w"           mh-widen)
@@ -2814,7 +2815,7 @@ in list."
          "\n [T]hread, [/]limit, e[X]tract, [D]igest, [I]nc spools.")
 
     (?F "[l]ist; [v]isit folder;\n"
-        "[n]ew messages; [']ticked messages; [s]earch; [i]ndexed search;\n"
+        "[n]ew messages; [']ticked messages; [s]earch;\n"
         "[p]ack; [S]ort; [r]escan; [k]ill")
     (?P "[p]rint message to [f]ile; old-style [l]pr printing;\n"
         "Toggle printing of [C]olors, [F]aces")
@@ -2822,7 +2823,7 @@ in list."
         "[s]equences, [l]ist,\n"
         "[d]elete message from sequence, [k]ill sequence")
     (?T "[t]oggle, [d]elete, [o]refile thread")
-    (?/ "Limit to [c]c, [f]rom, [r]ange, [s]ubject, [t]o; [w]iden")
+    (?/ "Limit to [c]c, ran[g]e, fro[m], [s]ubject, [t]o; [w]iden")
     (?X "un[s]har, [u]udecode message")
     (?D "[b]urst digest")
     (?K "[v]iew, [i]nline, [o]utput/save MIME part; save [a]ll parts; \n"

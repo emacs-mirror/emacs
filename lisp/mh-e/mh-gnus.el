@@ -1,6 +1,6 @@
 ;;; mh-gnus.el --- Make MH-E compatible with installed version of Gnus.
 
-;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2006 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -30,6 +30,10 @@
 
 ;;; Code:
 
+;;(message "> mh-gnus")
+(eval-when-compile (require 'mh-acros))
+;;(message "< mh-gnus")
+
 ;; Load libraries in a non-fatal way in order to see if certain functions are
 ;; pre-defined.
 (load "mailabbrev" t t)
@@ -39,34 +43,14 @@
 (load "mml" t t)
 (load "smiley" t t)
 
-(defmacro mh-defun-compat (function arg-list &rest body)
-  "This is a macro to define functions which are not defined.
-It is used for Gnus utility functions which were added recently.
-If FUNCTION is not defined then it is defined to have argument
-list, ARG-LIST and body, BODY."
-  (let ((defined-p (fboundp function)))
-    (unless defined-p
-      `(defun ,function ,arg-list ,@body))))
-(put 'mh-defun-compat 'lisp-indent-function 'defun)
-
-(defmacro mh-defmacro-compat (function arg-list &rest body)
-  "This is a macro to define functions which are not defined.
-It is used for Gnus utility functions which were added recently.
-If FUNCTION is not defined then it is defined to have argument
-list, ARG-LIST and body, BODY."
-  (let ((defined-p (fboundp function)))
-    (unless defined-p
-      `(defmacro ,function ,arg-list ,@body))))
-(put 'mh-defmacro-compat 'lisp-indent-function 'defun)
-
-;; Copy of original function from gnus-util.el.
+;; Copy of function from gnus-util.el.
 (mh-defun-compat gnus-local-map-property (map)
   "Return a list suitable for a text property list specifying keymap MAP."
   (cond (mh-xemacs-flag (list 'keymap map))
         ((>= emacs-major-version 21) (list 'keymap map))
         (t (list 'local-map map))))
 
-;; Copy of original function from mm-decode.el.
+;; Copy of function from mm-decode.el.
 (mh-defun-compat mm-merge-handles (handles1 handles2)
   (append (if (listp (car handles1)) handles1 (list handles1))
           (if (listp (car handles2)) handles2 (list handles2))))
@@ -96,11 +80,11 @@ list, ARG-LIST and body, BODY."
 (mh-defun-compat mm-possibly-verify-or-decrypt (parts ctl)
   nil)
 
-;; Copy of original macro is in mm-decode.el.
+;; Copy of macro in mm-decode.el.
 (mh-defmacro-compat mm-handle-multipart-ctl-parameter (handle parameter)
   `(get-text-property 0 ,parameter (car ,handle)))
 
-;; Copy of original function in mm-decode.el.
+;; Copy of function in mm-decode.el.
 (mh-defun-compat mm-readable-p (handle)
   "Say whether the content of HANDLE is readable."
   (and (< (with-current-buffer (mm-handle-buffer handle)
@@ -110,7 +94,7 @@ list, ARG-LIST and body, BODY."
          (and (eq (mm-body-7-or-8) '7bit)
               (not (mm-long-lines-p 76))))))
 
-;; Copy of original function in mm-bodies.el.
+;; Copy of function in mm-bodies.el.
 (mh-defun-compat mm-long-lines-p (length)
   "Say whether any of the lines in the buffer is longer than LENGTH."
   (save-excursion
@@ -132,7 +116,7 @@ list, ARG-LIST and body, BODY."
   "Older versions of Emacs don't have this function."
   nil)
 
-;; Copy of original function in mml.el.
+;; Copy of function in mml.el.
 (mh-defun-compat mml-minibuffer-read-disposition (type &optional default)
   (unless default (setq default
                         (if (and (string-match "\\`text/" type)

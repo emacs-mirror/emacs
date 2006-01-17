@@ -626,6 +626,7 @@ atsu_get_text_layout_with_text_ptr (text, text_length, style, text_layout)
       static ATSLineLayoutOptions line_layout =
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
 	kATSLineDisableAllLayoutOperations | kATSLineUseDeviceMetrics
+	| kATSLineUseQDRendering
 #else
 	kATSLineIsDisplayOnly | kATSLineFractDisable
 #endif
@@ -7507,8 +7508,10 @@ XLoadQueryFont (Display *dpy, char *fontname)
       static Boolean bold_p, italic_p;
       ATSUAttributeValuePtr values[] = {&font_id, &size_fixed,
 					&bold_p, &italic_p};
-      ATSUFontFeatureType types[] = {kAllTypographicFeaturesType};
-      ATSUFontFeatureSelector selectors[] = {kAllTypeFeaturesOffSelector};
+      ATSUFontFeatureType types[] = {kAllTypographicFeaturesType,
+				     kDiacriticsType};
+      ATSUFontFeatureSelector selectors[] = {kAllTypeFeaturesOffSelector,
+					     kDecomposeDiacriticsSelector};
       Lisp_Object font_id_cons;
 
       font_id_cons = Fgethash (make_unibyte_string (family, strlen (family)),

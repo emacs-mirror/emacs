@@ -32,9 +32,12 @@
 
 ;;; Code:
 
+;;(message "< mh-junk")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
+(require 'mh-buffers)
 (require 'mh-e)
+;;(message "> mh-junk")
 
 ;; Interactive functions callable from the folder buffer
 ;;;###mh-autoload

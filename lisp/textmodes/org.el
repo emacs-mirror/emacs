@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.02
+;; Version: 4.03
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,6 +81,12 @@
 ;;
 ;; Changes since version 4.00:
 ;; ---------------------------
+;; Version 4.03
+;;    - Table alignment fixed for use with wide characters.
+;;    - `C-c -' leaves cursor in current table line.
+;;    - The current TAG can be incorporated into the agenda prefix.
+;;      See option `org-agenda-prefix-format' for details.
+;;
 ;; Version 4.02
 ;;    - Minor bug fixes and improvements around tag searches.
 ;;    - XEmacs compatibility fixes.
@@ -105,7 +111,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.01"
+(defvar org-version "4.03"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -565,6 +571,7 @@ This format works similar to a printf format, with the following meaning:
 
   %c   the category of the item, \"Diary\" for entries from the diary, or
        as given by the CATEGORY keyword or derived from the file name.
+  %T   the first tag of the item.
   %t   the time-of-day specification if one applies to the entry, in the
        format HH:MM
   %s   Scheduling/Deadline information, a short string
@@ -1012,29 +1019,7 @@ The default is true, to keep new users from shooting into their own foot."
   :type 'boolean)
 
 (defconst org-file-apps-defaults-gnu
-  '((t        . emacs)
-    ("jpg"    . "xv %s")
-    ("gif"    . "xv %s")
-    ("ppm"    . "xv %s")
-    ("pgm"    . "xv %s")
-    ("pbm"    . "xv %s")
-    ("tif"    . "xv %s")
-    ("png"    . "xv %s")
-    ("ps"     . "gv %s")
-    ("ps.gz"  . "gv %s")
-    ("eps"    . "gv %s")
-    ("eps.gz" . "gv %s")
-    ("dvi"    . "xdvi %s")
-    ("mpeg"   . "plaympeg %s")
-    ("mp3"    . "plaympeg %s")
-    ("fig"    . "xfig %s")
-    ("pdf"    . "acroread %s")
-    ("doc"    . "soffice %s")
-    ("ppt"    . "soffice %s")
-    ("pps"    . "soffice %s")
-    ("html"   . "netscape -remote openURL(%s,new-window)")
-    ("htm"    . "netscape -remote openURL(%s,new-window)")
-    ("xs"     . "soffice %s"))
+  '((t . mailcap))
   "Default file applications on a UNIX/LINUX system.
 See `org-file-apps'.")
 
@@ -4186,6 +4171,7 @@ The following commands are available:
 (define-key org-agenda-mode-map "q" 'org-agenda-quit)
 (define-key org-agenda-mode-map "x" 'org-agenda-exit)
 (define-key org-agenda-mode-map "P" 'org-agenda-show-priority)
+(define-key org-agenda-mode-map "T" 'org-agenda-show-tags)
 (define-key org-agenda-mode-map "n" 'next-line)
 (define-key org-agenda-mode-map "p" 'previous-line)
 (define-key org-agenda-mode-map "\C-n" 'org-agenda-next-date-line)
@@ -4232,7 +4218,9 @@ The following commands are available:
      :style toggle :selected org-agenda-follow-mode :active t]
     "--"
     ["Cycle TODO" org-agenda-todo t]
-    ["Set Tags" org-agenda-set-tags t]
+    ("Tags"
+     ["Show all Tags" org-agenda-show-tags t]
+     ["Set Tags" org-agenda-set-tags t])
     ("Reschedule"
      ["Reschedule +1 day" org-agenda-date-later (org-agenda-check-type nil 'agenda 'timeline)]
      ["Reschedule -1 day" org-agenda-date-earlier (org-agenda-check-type nil 'agenda 'timeline)]
@@ -4946,7 +4934,7 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
       (setq entries
 	    (mapcar
 	     (lambda (x)
-	       (setq x (org-format-agenda-item "" x "Diary" 'time))
+	       (setq x (org-format-agenda-item "" x "Diary" nil 'time))
 	       ;; Extend the text properties to the beginning of the line
 	       (add-text-properties
 		0 (length x)
@@ -5297,14 +5285,15 @@ the documentation of `org-diary'."
 				     "\\)\\>")
 			   org-not-done-regexp)
 			 "[^\n\r]*\\)"))
-	 marker priority category
+	 marker priority category tags
 	 ee txt)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
       (goto-char (match-beginning 1))
       (setq marker (org-agenda-new-marker (1+ (match-beginning 0)))
 	    category (org-get-category)
-	    txt (org-format-agenda-item "" (match-string 1) category)
+	    tags (org-get-tags-at (point))
+	    txt (org-format-agenda-item "" (match-string 1) category tags)
 	    priority
 	    (+ (org-get-priority txt)
 	       (if org-todo-kwd-priority-p
@@ -5340,7 +5329,7 @@ the documentation of `org-diary'."
 			   (list 0 0 0 (nth 1 date) (car date) (nth 2 date))))
 		   0 11)))
 	 marker hdmarker deadlinep scheduledp donep tmp priority category
-	 ee txt timestr)
+	 ee txt timestr tags)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
       (if (not (save-match-data (org-at-date-range-p)))
@@ -5362,13 +5351,14 @@ the documentation of `org-diary'."
 	      (if (re-search-backward "\\(^\\|\r\\)\\*+" nil t)
 		  (progn
 		    (goto-char (match-end 1))
-		    (setq hdmarker (org-agenda-new-marker))
+		    (setq hdmarker (org-agenda-new-marker)
+			  tags (org-get-tags-at))
 		    (looking-at "\\*+[ \t]*\\([^\r\n]+\\)")
 		    (setq txt (org-format-agenda-item
 			       (format "%s%s"
 				       (if deadlinep  "Deadline:  " "")
 				       (if scheduledp "Scheduled: " ""))
-			       (match-string 1) category timestr)))
+			       (match-string 1) category tags timestr)))
 		(setq txt org-agenda-no-heading-message))
 	      (setq priority (org-get-priority txt))
 	      (add-text-properties
@@ -5417,7 +5407,7 @@ the documentation of `org-diary'."
 		     (apply 'encode-time  ; DATE bound by calendar
 			    (list 0 0 0 (nth 1 date) (car date) (nth 2 date))))
 		    1 11))))
-	 marker hdmarker priority category
+	 marker hdmarker priority category tags
 	 ee txt timestr)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
@@ -5435,11 +5425,12 @@ the documentation of `org-diary'."
 	      (if (re-search-backward "\\(^\\|\r\\)\\*+" nil t)
 		  (progn
 		    (goto-char (match-end 1))
-		    (setq hdmarker (org-agenda-new-marker))
+		    (setq hdmarker (org-agenda-new-marker)
+			  tags (org-get-tags-at))
 		    (looking-at "\\*+[ \t]*\\([^\r\n]+\\)")
 		    (setq txt (org-format-agenda-item
 			       "Closed:    "
-			       (match-string 1) category timestr)))
+			       (match-string 1) category tags timestr)))
 		(setq txt org-agenda-no-heading-message))
 	      (setq priority 100000)
 	      (add-text-properties
@@ -5466,7 +5457,7 @@ the documentation of `org-diary'."
 	 (regexp org-deadline-time-regexp)
 	 (todayp (equal date (calendar-current-date))) ; DATE bound by calendar
 	 (d1 (calendar-absolute-from-gregorian date))  ; DATE bound by calendar
-	 d2 diff pos pos1 category
+	 d2 diff pos pos1 category tags
 	 ee txt head)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
@@ -5484,6 +5475,7 @@ the documentation of `org-diary'."
 		(progn
 		  (goto-char (match-end 0))
 		  (setq pos1 (match-end 1))
+		  (setq tags (org-get-tags-at pos1))
 		  (setq head (buffer-substring-no-properties
 			      (point)
 			      (progn (skip-chars-forward "^\r\n")
@@ -5491,7 +5483,7 @@ the documentation of `org-diary'."
 		  (if (string-match org-looking-at-done-regexp head)
 		      (setq txt nil)
 		    (setq txt (org-format-agenda-item
-			       (format "In %3d d.: " diff) head category))))
+			       (format "In %3d d.: " diff) head category tags))))
 	      (setq txt org-agenda-no-heading-message))
 	    (when txt
 	      (add-text-properties
@@ -5527,7 +5519,7 @@ the documentation of `org-diary'."
 	 (regexp org-scheduled-time-regexp)
 	 (todayp (equal date (calendar-current-date))) ; DATE bound by calendar
 	 (d1 (calendar-absolute-from-gregorian date))  ; DATE bound by calendar
-	 d2 diff pos pos1 category
+	 d2 diff pos pos1 category tags
 	 ee txt head)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
@@ -5544,6 +5536,7 @@ the documentation of `org-diary'."
 		(progn
 		  (goto-char (match-end 0))
 		  (setq pos1 (match-end 1))
+		  (setq tags (org-get-tags-at))
 		  (setq head (buffer-substring-no-properties
 			      (point)
 			      (progn (skip-chars-forward "^\r\n") (point))))
@@ -5551,7 +5544,7 @@ the documentation of `org-diary'."
 		      (setq txt nil)
 		    (setq txt (org-format-agenda-item
 			       (format "Sched.%2dx: " (- 1 diff)) head 
-			       category))))
+			       category tags))))
 	      (setq txt org-agenda-no-heading-message))
 	    (when txt
 	      (add-text-properties
@@ -5574,7 +5567,7 @@ the documentation of `org-diary'."
 			      (abbreviate-file-name (buffer-file-name)))))
 	 (regexp org-tr-regexp)
 	 (d0 (calendar-absolute-from-gregorian date))
-	 marker hdmarker ee txt d1 d2 s1 s2 timestr category)
+	 marker hdmarker ee txt d1 d2 s1 s2 timestr category tags)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
       (setq timestr (match-string 0)
@@ -5592,11 +5585,12 @@ the documentation of `org-diary'."
 		(progn
 		  (setq hdmarker (org-agenda-new-marker (match-end 1)))
 		  (goto-char (match-end 1))
+		  (setq tags (org-get-tags-at))
 		  (looking-at "\\*+[ \t]*\\([^\r\n]+\\)")
 		  (setq txt (org-format-agenda-item
 			     (format (if (= d1 d2) "" "(%d/%d): ")
 				     (1+ (- d0 d1)) (1+ (- d2 d1)))
-			     (match-string 1) category
+			     (match-string 1) category tags
 			     (if (= d0 d1) timestr))))
 	      (setq txt org-agenda-no-heading-message))
 	    (add-text-properties
@@ -5643,7 +5637,7 @@ After a match, the following groups carry important information:
   "A flag, set by `org-compile-prefix-format'.
 The flag is set if the currently compiled format contains a `%t'.")
 
-(defun org-format-agenda-item (extra txt &optional category dotime noprefix)
+(defun org-format-agenda-item (extra txt &optional category tags dotime noprefix)
   "Format TXT to be inserted into the agenda buffer.
 In particular, it adds the prefix and corresponding text properties.  EXTRA
 must be a string and replaces the `%s' specifier in the prefix format.
@@ -5654,7 +5648,7 @@ time-of-day should be extracted from TXT for sorting of this entry, and for
 the `%t' specifier in the format.  When DOTIME is a string, this string is
 searched for a time before TXT is.  NOPREFIX is a flag and indicates that
 only the correctly processes TXT should be returned - this is used by
-`org-agenda-change-all-lines'."
+`org-agenda-change-all-lines'. TAG can be the tag of the headline."
   (save-match-data
     ;; Diary entries sometimes have extra whitespace at the beginning
     (if (string-match "^ +" txt) (setq txt (replace-match "" nil nil txt)))
@@ -5664,6 +5658,7 @@ only the correctly processes TXT should be returned - this is used by
 			     (file-name-sans-extension
 			      (file-name-nondirectory (buffer-file-name)))
 			   "")))
+	   (tag (or (nth (1- (length tags)) tags) ""))
 	   time              ;; needed for the eval of the prefix format
 	   (ts (if dotime (concat (if (stringp dotime) dotime "") txt)))
 	   (time-of-day (and dotime (org-get-time-of-day ts)))
@@ -5704,6 +5699,7 @@ only the correctly processes TXT should be returned - this is used by
       ;; And finally add the text properties
       (add-text-properties
        0 (length rtn) (list 'category (downcase category)
+			    'tags tags
 			    'prefix-length (- (length rtn) (length txt))
 			    'time-of-day time-of-day
 			    'dotime dotime)
@@ -5732,7 +5728,7 @@ only the correctly processes TXT should be returned - this is used by
 	(unless (and remove (member time have))
 	  (setq time (int-to-string time))
 	  (push (org-format-agenda-item
-		 nil string "" ;; FIXME: put a category for the grid?
+		 nil string "" nil ;; FIXME: put a category for the grid?
 		 (concat (substring time 0 -2) ":" (substring time -2)))
 		new)
 	  (put-text-property
@@ -5746,11 +5742,12 @@ only the correctly processes TXT should be returned - this is used by
 The resulting form is returned and stored in the variable
 `org-prefix-format-compiled'."
   (setq org-prefix-has-time nil)
-  (let ((start 0) varform vars var (s format) c f opt)
+  (let ((start 0) varform vars var (s format)e c f opt)
     (while (string-match "%\\(\\?\\)?\\([-+]?[0-9.]*\\)\\([ .;,:!?=|/<>]?\\)\\([cts]\\)"
 			 s start)
       (setq var (cdr (assoc (match-string 4 s)
-			    '(("c" . category) ("t" . time) ("s" . extra))))
+			    '(("c" . category) ("t" . time) ("s" . extra)
+			      ("T" . tag))))
 	    c (or (match-string 3 s) "")
 	    opt (match-beginning 1)
 	    start (1+ (match-beginning 0)))
@@ -5788,7 +5785,9 @@ HH:MM."
 		   (if (match-beginning 3)
 		       (string-to-number (match-string 3 s))
 		     0)))
-	    (t1 (concat " " (int-to-string t0))))
+	    (t1 (concat " "
+			(if (< t0 100) "0" "") (if (< t0 10) "0" "")
+			(int-to-string t0))))
        (if string (concat (substring t1 -4 -2) ":" (substring t1 -2)) t0)))))
 
 (defun org-finalize-agenda-entries (list)
@@ -5841,6 +5840,14 @@ and by additional input from the age of a schedules or deadline entry."
   (interactive)
   (let* ((pri (get-text-property (point-at-bol) 'priority)))
     (message "Priority is %d" (if pri pri -1000))))
+
+(defun org-agenda-show-tags ()
+  "Show the tags applicable to the current item."
+  (interactive)
+  (let* ((tags (get-text-property (point-at-bol) 'tags)))
+    (if tags
+	(message "Tags are :%s:" (mapconcat 'identity tags ":"))
+      (message "No tags associated with this line"))))
 
 (defun org-agenda-goto (&optional highlight)
   "Go to the Org-mode file which contains the item at point."
@@ -5954,7 +5961,7 @@ The new content of the line will be NEWHEAD (as modified by
 `equal' against all `org-hd-marker' text properties in the file.
 If FIXFACE is non-nil, the face of each item is modified acording to
 the new TODO state."
-  (let* (props m pl undone-face done-face finish new dotime cat)
+  (let* (props m pl undone-face done-face finish new dotime cat tags)
 ;    (setq newhead (org-format-agenda-item "x" newhead "x" nil 'noprefix))
     (save-excursion
       (goto-char (point-max))
@@ -5966,7 +5973,8 @@ the new TODO state."
 	  (setq props (text-properties-at (point))
 		dotime (get-text-property (point) 'dotime)
 		cat (get-text-property (point) 'category)
-		new (org-format-agenda-item "x" newhead cat dotime 'noprefix)
+		tags (get-text-property (point) 'tags)
+		new (org-format-agenda-item "x" newhead cat tags dotime 'noprefix)
 		pl (get-text-property (point) 'prefix-length)
 		undone-face (get-text-property (point) 'undone-face)
 		done-face (get-text-property (point) 'done-face))
@@ -6294,7 +6302,7 @@ d are included in the output."
 			(if org-tags-match-list-sublevels
 			    (make-string (1- level) ?.) "")
 			(org-get-heading))
-		       category))
+		       category tags-list))
             (goto-char lspos)
 	    (setq marker (org-agenda-new-marker))
 	    (add-text-properties
@@ -6870,11 +6878,19 @@ If the file does not exist, an error is thrown."
 	(setq cmd 'emacs)
       (setq cmd (or (cdr (assoc ext apps))
 		    (cdr (assoc t apps)))))
+    (when (eq cmd 'mailcap)
+      (require 'mailcap)
+      (mailcap-parse-mailcaps)
+      (let* ((mime-type (mailcap-extension-to-mime (or ext "")))
+	     (command (mailcap-mime-info mime-type)))
+	(if (stringp command)
+	    (setq cmd command)
+	  (setq cmd 'emacs))))
     (cond
      ((and (stringp cmd) (not (string-match "^\\s-*$" cmd)))
       (setq cmd (format cmd (concat "\"" file "\"")))
       (save-window-excursion
-	(shell-command (concat cmd " & &"))))
+	(shell-command (concat cmd " &"))))
      ((or (stringp cmd)
 	  (eq cmd 'emacs))
       (unless (equal (file-truename file) (file-truename (buffer-file-name)))
@@ -7587,7 +7603,7 @@ This is being used to correctly align a single field after TAB or RET.")
     (while (< (setq i (1+ i)) maxfields)   ;; Loop over all columns
       (setq column (mapcar (lambda (x) (or (nth i x) "")) fields))
       ;; maximum length
-      (push (apply 'max 1 (mapcar 'length column)) lengths)
+      (push (apply 'max 1 (mapcar 'string-width column)) lengths)
       ;; compute the fraction stepwise, ignoring empty fields
       (setq cnt 0 frac 0.0)
       (mapcar
@@ -7843,7 +7859,7 @@ This actually throws an error, so it aborts the current command."
     (if (looking-at "|[^|\n]+")
 	(let* ((pos (match-beginning 0))
 	       (match (match-string 0))
-	       (len (length match)))
+	       (len (string-width match)))
 	  (replace-match (concat "|" (make-string (1- len) ?\ )))
 	  (goto-char (+ 2 pos))
 	  (substring match 1)))))
@@ -8101,7 +8117,9 @@ With prefix ARG, insert below the current line."
   (interactive "P")
   (if (not (org-at-table-p))
       (error "Not at a table"))
-  (let* ((line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
+  (let* ((line
+	  (org-expand-wide-chars
+	   (buffer-substring-no-properties (point-at-bol) (point-at-eol))))
 	 new)
     (if (string-match "^[ \t]*|-" line)
 	(setq new (mapcar (lambda (x) (if (member x '(?| ?+)) ?| ?\ )) line))
@@ -8124,7 +8142,9 @@ With prefix ARG, insert above the current line."
   (interactive "P")
   (if (not (org-at-table-p))
       (error "Not at a table"))
-  (let ((line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
+  (let ((line
+	 (org-expand-wide-chars
+	  (buffer-substring-no-properties (point-at-bol) (point-at-eol))))
 	(col (current-column))
 	start)
     (if (string-match "^[ \t]*|-" line)
@@ -8143,8 +8163,18 @@ With prefix ARG, insert above the current line."
     (if (equal (char-before (point)) ?+)
 	(progn (backward-delete-char 1) (insert "|")))
     (insert "\n")
-    (beginning-of-line 0)
+    (beginning-of-line (if arg 1 -1))
     (move-to-column col)))
+
+(defun org-expand-wide-chars (s)
+  "Expand wide characters to spaces."
+  (let (w a)
+    (mapconcat
+     (lambda (x)
+       (if (> (setq w (string-width (setq a (char-to-string x)))) 1)
+	   (make-string w ?\ )
+	 a))
+     s "")))
 
 (defun org-table-kill-row ()
   "Delete the current row or horizontal line from the table."
@@ -8300,8 +8330,9 @@ blindly applies a recipe that works for simple tables."
 	  ;; insert a hline before first
 	  (goto-char beg)
 	  (org-table-insert-hline 'above)
+	  (beginning-of-line -1)
 	  ;; insert a hline after each line
-	  (while (progn (beginning-of-line 2) (< (point) end))
+	  (while (progn (beginning-of-line 3) (< (point) end))
 	    (org-table-insert-hline))
 	  (goto-char beg)
 	  (setq end (move-marker end (org-table-end)))
@@ -8390,7 +8421,7 @@ IF WIDTH is nil and LINES is non-nil, the string is forced into at most that
 many lines, whatever width that takes.
 The return value is a list of lines, without newlines at the end."
   (let* ((words (org-split-string string "[ \t\n]+"))
-	 (maxword (apply 'max (mapcar 'length words)))
+	 (maxword (apply 'max (mapcar 'string-width words)))
 	 w ll)
     (cond (width
 	   (org-do-wrap words (max maxword width)))
@@ -11130,10 +11161,10 @@ a time), or the day by one (if it does not contain a time)."
 
 ;; - Bindings in Org-mode map are currently
 ;;   0123456789abcdefghijklmnopqrstuvwxyz!?@#$%^&-+*/=()_{}[]:;"|,.<>~`'\t  the alphabet
-;;             abcd fgh j lmnopqrstuvwxyz ? #$   -+*/=     [] ; |,.<>~  \t  necessary bindings
+;;             abcd fgh j lmnopqrstuvwxyz!? #$   -+*/=     [] ; |,.<>~  \t  necessary bindings
 ;;                 e                                                        (?) useful from outline-mode
 ;;                     i k                 @                                expendable from outline-mode
-;;   0123456789                          !    %^&     ()_{}    "      `'    free
+;;   0123456789                               %^&     ()_{}    "      `'    free
 
 ;; Make `C-c C-x' a prefix key
 (define-key org-mode-map "\C-c\C-x" (make-sparse-keymap))
@@ -12116,3 +12147,25 @@ Show the heading too, if it is currently invisible."
 ;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
 ;;; org.el ends here
 
+
+(defun org-get-tags-at (&optional pos)
+  "Get a list of all headline targs applicable at POS.
+POS defaults to point.  If tags are inherited, the list contains
+the targets in the same sequence as the headlines appear, i.e.
+the tags of the current headline come last."
+  (interactive)
+  (let (tags)
+    (save-excursion
+      (goto-char (or pos (point)))
+      (save-match-data
+	(org-back-to-heading t)
+	(condition-case nil
+	    (while t
+	      (if (looking-at "[^\r\n]+?:\\([a-zA-Z_:]+\\):[ \t]*\\([\n\r]\\|\\'\\)")
+		  (setq tags (append (org-split-string (match-string 1) ":") tags)))
+	      (or org-use-tag-inheritance (error ""))
+	      (org-up-heading-all 1))
+	  (error nil))))
+    (message "%s" tags)
+    tags))
+      

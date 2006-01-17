@@ -63,7 +63,7 @@ for that purpose.  If the large key not far above the @key{RET} or
 @key{ENTER} key doesn't delete backwards, you need to do this.
 @xref{DEL Does Not Delete}, for an explanation of how.
 
-  Most PC keyboards have both a @key{BACKSPACE} key a short ways above
+  Most PC keyboards have both a @key{BACKSPACE} key not far above
 @key{RET} or @key{ENTER}, and a @key{DELETE} key elsewhere.  On these
 keyboards, Emacs supports when possible the usual convention that the
 @key{BACKSPACE} key deletes backwards (it is @key{DEL}), while the

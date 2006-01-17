@@ -33,12 +33,13 @@
 
 ;;; Code:
 
-;; Requires
+;;(message "> mh-speed")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 (require 'mh-e)
 (require 'speedbar)
 (require 'timer)
+;;(message "< mh-speed")
 
 ;; Global variables
 (defvar mh-speed-refresh-flag nil)

@@ -71,10 +71,13 @@
 
 ;;; Code:
 
+;;(message "> mh-seq")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 
+(require 'mh-buffers)
 (require 'mh-e)
+;;(message "< mh-seq")
 
 
 
@@ -289,11 +292,6 @@ When you want to widen the view to all your messages again, use
 ;;;###mh-autoload
 (defun mh-put-msg-in-seq (range sequence)
   "Add RANGE to SEQUENCE\\<mh-folder-mode-map>.
-
-To place a message in a sequence, use this command to do it
-manually, or use the MH command \"pick\" or the MH-E version of
-\"pick\", \\[mh-search-folder], which create a sequence
-automatically.
 
 Give this command a RANGE and you can add all the messages in a
 sequence to another sequence (for example,

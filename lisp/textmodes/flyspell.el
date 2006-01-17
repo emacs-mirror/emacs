@@ -525,6 +525,12 @@ in your .emacs file.
             (member (or ispell-local-dictionary ispell-dictionary)
                     flyspell-dictionaries-that-consider-dash-as-word-delimiter)))))
 
+(defun flyspell-kill-ispell-hook ()
+  (setq flyspell-last-buffer nil)
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (kill-local-variable 'flyspell-word-cache-word))))
+
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-mode-on ...                                             */
 ;;*---------------------------------------------------------------------*/
@@ -536,6 +542,8 @@ in your .emacs file.
   (or ispell-local-dictionary ispell-dictionary
       (if flyspell-default-dictionary
 	  (ispell-change-dictionary flyspell-default-dictionary)))
+  ;; Make sure we flush our caches when needed.
+  (add-hook 'ispell-kill-ispell-hook 'flyspell-kill-ispell-hook)
   ;; we have to force ispell to accept the local definition or
   ;; otherwise it could be too late, the local dictionary may
   ;; be forgotten!

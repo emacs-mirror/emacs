@@ -33,6 +33,7 @@
 
 ;;; Code:
 
+;;(message "> mh-utils")
 (eval-and-compile
   (defvar recursive-load-depth-limit)
   (if (and (boundp 'recursive-load-depth-limit)
@@ -45,10 +46,12 @@
 
 (require 'font-lock)
 (require 'gnus-util)
+(require 'mh-buffers)
 (require 'mh-customize)
 (require 'mh-inc)
 (require 'mouse)
 (require 'sendmail)
+;;(message "< mh-utils")
 
 ;; Non-fatal dependencies
 (load "hl-line" t t)
@@ -195,9 +198,6 @@ when searching for a separator.")
 
 (defvar mh-globals-hash (make-hash-table)
   "Keeps track of MIME data on a per buffer basis.")
-
-(defvar mh-pgp-support-flag (not (not (locate-library "mml2015")))
-  "Non-nil means PGP support is available.")
 
 (defvar mh-mm-inline-media-tests
   `(("image/jpeg"
@@ -516,28 +516,6 @@ Name of the Previous sequence.")
   "Cached value of the \"Inbox:\" MH profile component.
 Set to \"+inbox\" if no such component.
 Name of the Inbox folder.")
-
-;; The names of ephemeral buffers have a " *mh-" prefix (so that they are
-;; hidden and can be programmatically removed in mh-quit), and the variable
-;; names have the form mh-temp-.*-buffer.
-(defconst mh-temp-buffer " *mh-temp*")  ;scratch
-(defconst mh-temp-fetch-buffer " *mh-fetch*")  ;wget/curl/fetch output
-
-;; The names of MH-E buffers that are not ephemeral and can be used by the
-;; user (and deleted by the user when no longer needed) have a "*MH-E " prefix
-;; (so they can be programmatically removed in mh-quit), and the variable
-;; names have the form mh-.*-buffer.
-(defconst mh-aliases-buffer "*MH-E Aliases*") ;alias lookups
-(defconst mh-folders-buffer "*MH-E Folders*") ;folder list
-(defconst mh-help-buffer "*MH-E Help*") ;quick help
-(defconst mh-info-buffer "*MH-E Info*") ;version information buffer
-(defconst mh-log-buffer "*MH-E Log*") ;output of MH commands and so on
-(defconst mh-mail-delivery-buffer "*MH-E Mail Delivery*") ;mail delivery log
-(defconst mh-recipients-buffer "*MH-E Recipients*") ;killed when draft sent
-(defconst mh-sequences-buffer "*MH-E Sequences*") ;sequences list
-
-(defvar mh-log-buffer-lines 100
-  "Number of lines to keep in `mh-log-buffer'.")
 
 (defvar mh-previous-window-config nil
   "Window configuration before MH-E command.")
@@ -868,7 +846,6 @@ still visible.\n")
 (mh-defun-show-buffer mh-show-pack-folder mh-pack-folder)
 (mh-defun-show-buffer mh-show-kill-folder mh-kill-folder t)
 (mh-defun-show-buffer mh-show-list-folders mh-list-folders t)
-(mh-defun-show-buffer mh-show-search-folder mh-search-folder t)
 (mh-defun-show-buffer mh-show-undo-folder mh-undo-folder)
 (mh-defun-show-buffer mh-show-delete-msg-from-seq
                       mh-delete-msg-from-seq)
@@ -973,14 +950,13 @@ still visible.\n")
   "S"    mh-show-sort-folder
   "c"    mh-show-catchup
   "f"    mh-show-visit-folder
-  "i"    mh-index-search
   "k"    mh-show-kill-folder
   "l"    mh-show-list-folders
   "n"    mh-index-new-messages
   "o"    mh-show-visit-folder
   "q"    mh-show-index-sequenced-messages
   "r"    mh-show-rescan-folder
-  "s"    mh-show-search-folder
+  "s"    mh-search
   "t"    mh-show-toggle-threads
   "u"    mh-show-undo-folder
   "v"    mh-show-visit-folder)
@@ -1024,8 +1000,8 @@ still visible.\n")
   "'"    mh-show-narrow-to-tick
   "?"    mh-prefix-help
   "c"    mh-show-narrow-to-cc
-  "f"    mh-show-narrow-to-from
-  "r"    mh-show-narrow-to-range
+  "g"    mh-show-narrow-to-range
+  "m"    mh-show-narrow-to-from
   "s"    mh-show-narrow-to-subject
   "t"    mh-show-narrow-to-to
   "w"    mh-show-widen)
@@ -1119,8 +1095,7 @@ still visible.\n")
     ["List Folders"                     mh-show-list-folders t]
     ["Visit a Folder..."                mh-show-visit-folder t]
     ["View New Messages"                mh-show-index-new-messages t]
-    ["Search a Folder..."               mh-show-search-folder t]
-    ["Indexed Search..."                mh-index-search t]
+    ["Search..."                        mh-search t]
     "--"
     ["Quit MH-E"                        mh-quit t]))
 
@@ -1487,14 +1462,42 @@ path is generated."
   "Scale image in INPUT file and write to OUTPUT file using ImageMagick."
   (call-process "convert" nil nil nil "-geometry" "96x48" input output))
 
+;; Copy of constant from url-util.el in Emacs 22; needed by Emacs 21.
+(if (not (boundp 'url-unreserved-chars))
+    (defconst url-unreserved-chars
+      '(
+        ?a ?b ?c ?d ?e ?f ?g ?h ?i ?j ?k ?l ?m ?n ?o ?p ?q ?r ?s ?t ?u ?v ?w ?x ?y ?z
+        ?A ?B ?C ?D ?E ?F ?G ?H ?I ?J ?K ?L ?M ?N ?O ?P ?Q ?R ?S ?T ?U ?V ?W ?X ?Y ?Z
+        ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9
+        ?- ?_ ?. ?! ?~ ?* ?' ?\( ?\))
+      "A list of characters that are _NOT_ reserved in the URL spec.
+This is taken from RFC 2396."))
+
+;; Copy of function from url-util.el in Emacs 22; needed by Emacs 21.
+(mh-defun-compat url-hexify-string (str)
+  "Escape characters in a string."
+  (mapconcat
+   (lambda (char)
+     ;; Fixme: use a char table instead.
+     (if (not (memq char url-unreserved-chars))
+	 (if (> char 255)
+	       (error "Hexifying multibyte character %s" str)
+	   (format "%%%02X" char))
+       (char-to-string char)))
+   str ""))
+
 (defun mh-x-image-url-cache-canonicalize (url)
   "Canonicalize URL.
-Replace the ?/ character with a ?! character and append .png."
-   (format "%s/%s.png" mh-x-image-cache-directory
+Replace the ?/ character with a ?! character and append .png.
+Also replaces special characters with `url-hexify-string' since
+not all characters, such as :, are legal within Windows
+filenames. See URL `http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/naming_a_file.asp'."
+  (format "%s/%s.png" mh-x-image-cache-directory
+          (url-hexify-string
            (with-temp-buffer
              (insert url)
              (mh-replace-string "/" "!")
-             (buffer-string))))
+             (buffer-string)))))
 
 (defun mh-x-image-set-download-state (file data)
   "Setup a symbolic link from FILE to DATA."
@@ -1950,25 +1953,6 @@ the message."
     (or dont-show (not return-value) (mh-maybe-show number))
     return-value))
 
-(defun mh-profile-component (component)
-  "Return COMPONENT value from mhparam, or nil if unset."
-  (save-excursion
-    (mh-exec-cmd-quiet nil "mhparam" "-components" component)
-    (mh-profile-component-value component)))
-
-(defun mh-profile-component-value (component)
-  "Find and return the value of COMPONENT in the current buffer.
-Returns nil if the component is not in the buffer."
-  (let ((case-fold-search t))
-    (goto-char (point-min))
-    (cond ((not (re-search-forward (format "^%s:" component) nil t)) nil)
-          ((looking-at "[\t ]*$") nil)
-          (t
-           (re-search-forward "[\t ]*\\([^\t \n].*\\)$" nil t)
-           (let ((start (match-beginning 1)))
-             (end-of-line)
-             (buffer-substring start (point)))))))
-
 (defun mh-set-folder-modified-p (flag)
   "Mark current folder as modified or unmodified according to FLAG."
   (set-buffer-modified-p flag))
@@ -2055,7 +2039,7 @@ folder buffer are not updated."
 
 ;; Initialize mh-sub-folders-cache...
 (defun mh-collect-folder-names ()
-  "Collect folder names by running \"flists\"."
+  "Collect folder names by running \"folders\"."
   (unless mh-flists-process
     (setq mh-flists-process
           (mh-exec-cmd-daemon "folders" 'mh-collect-folder-names-filter
@@ -2153,6 +2137,44 @@ removed."
           ((equal folder "") (setq folder "+"))
           ((not (equal (aref folder 0) ?+)) (setq folder (concat "+" folder)))))
   folder)
+
+(defmacro mh-children-p (folder)
+  "Return t if FOLDER from sub-folders cache has children.
+The car of folder is the name, and the cdr is either t or some
+sort of count that I do not understand. It's too small to be the
+number of messages in the sub-folders and too large to be the
+number of sub-folders. XXX"
+  `(if (cdr ,folder)
+       t
+     nil))
+
+(defun mh-folder-list (folder)
+  "Return FOLDER and its descendents.
+Returns a list of strings. For example,
+
+  '(\"inbox\" \"lists\" \"lists/mh-e\").
+
+If folder is nil, then all folders are considered. Respects the
+value of `mh-recursive-folders-flag'. If this flag is nil, and
+the sub-folders have not been explicitly viewed, then they will
+not be returned."
+  (let ((folder-list))
+    ;; Normalize folder. Strip leading +. Add trailing slash. If no
+    ;; folder is specified, ensure it is nil to ensure we get the
+    ;; top-level folders; otherwise mh-sub-folders returns all the
+    ;; files in / if given an empty string or +.
+    (when folder
+      (setq folder (replace-regexp-in-string "^\+" "" folder))
+      (setq folder (replace-regexp-in-string "/*$" "/" folder))
+      (if (equal folder "")
+        (setq folder nil)))
+    (loop for f in (mh-sub-folders folder) do
+          (setq folder-list (append folder-list (list (concat folder (car f)))))
+          (if (mh-children-p f)
+              (setq folder-list
+                    (append folder-list
+                            (mh-folder-list (concat folder (car f)))))))
+    folder-list))
 
 (defun mh-sub-folders (folder &optional add-trailing-slash-flag)
   "Find the subfolders of FOLDER.
@@ -2384,185 +2406,9 @@ used in searching."
                     (mh-expand-file-name folder-name)))))
     folder-name))
 
-(defun mh-truncate-log-buffer ()
-  "If `mh-log-buffer' is too big then truncate it.
-If the number of lines in `mh-log-buffer' exceeds
-`mh-log-buffer-lines' then keep only the last
-`mh-log-buffer-lines'. As a side effect the point is set to the
-end of the log buffer.
-
-The function returns the size of the final size of the log buffer."
-  (with-current-buffer (get-buffer-create mh-log-buffer)
-    (goto-char (point-max))
-    (save-excursion
-      (when (equal (forward-line (- mh-log-buffer-lines)) 0)
-        (delete-region (point-min) (point))))
-    (unless (or (bobp)
-                (save-excursion
-                  (and (equal (forward-line -1) 0) (equal (char-after) ?))))
-      (insert "\n\n"))
-    (buffer-size)))
-
 
 
-;;; Issue commands to MH.
-
-(defun mh-exec-cmd (command &rest args)
-  "Execute mh-command COMMAND with ARGS.
-The side effects are what is desired. Any output is assumed to be
-an error and is shown to the user. The output is not read or
-parsed by MH-E."
-  (save-excursion
-    (set-buffer (get-buffer-create mh-log-buffer))
-    (let* ((initial-size (mh-truncate-log-buffer))
-           (start (point))
-           (args (mh-list-to-string args)))
-      (apply 'call-process (expand-file-name command mh-progs) nil t nil args)
-      (when (> (buffer-size) initial-size)
-        (save-excursion
-          (goto-char start)
-          (insert "Errors when executing: " command)
-          (loop for arg in args do (insert " " arg))
-          (insert "\n"))
-        (save-window-excursion
-          (switch-to-buffer-other-window mh-log-buffer)
-          (sit-for 5))))))
-
-(defun mh-exec-cmd-error (env command &rest args)
-  "In environment ENV, execute mh-command COMMAND with ARGS.
-ENV is nil or a string of space-separated \"var=value\" elements.
-Signals an error if process does not complete successfully."
-  (save-excursion
-    (set-buffer (get-buffer-create mh-temp-buffer))
-    (erase-buffer)
-    (let ((process-environment process-environment))
-      ;; XXX: We should purge the list that split-string returns of empty
-      ;;  strings. This can happen in XEmacs if leading or trailing spaces
-      ;;  are present.
-      (dolist (elem (if (stringp env) (split-string env " ") ()))
-        (push elem process-environment))
-      (mh-handle-process-error
-       command (apply #'call-process (expand-file-name command mh-progs)
-                      nil t nil (mh-list-to-string args))))))
-
-(defun mh-exec-cmd-daemon (command filter &rest args)
-  "Execute MH command COMMAND in the background.
-
-If FILTER is non-nil then it is used to process the output
-otherwise the default filter `mh-process-daemon' is used. See
-`set-process-filter' for more details of FILTER.
-
-ARGS are passed to COMMAND as command line arguments."
-  (save-excursion
-    (set-buffer (get-buffer-create mh-log-buffer))
-    (mh-truncate-log-buffer))
-  (let* ((process-connection-type nil)
-         (process (apply 'start-process
-                         command nil
-                         (expand-file-name command mh-progs)
-                         (mh-list-to-string args))))
-    (set-process-filter process (or filter 'mh-process-daemon))
-    process))
-
-(defun mh-exec-cmd-env-daemon (env command filter &rest args)
-  "In ennvironment ENV, execute mh-command COMMAND in the background.
-
-ENV is nil or a string of space-separated \"var=value\" elements.
-Signals an error if process does not complete successfully.
-
-If FILTER is non-nil then it is used to process the output
-otherwise the default filter `mh-process-daemon' is used. See
-`set-process-filter' for more details of FILTER.
-
-ARGS are passed to COMMAND as command line arguments."
-  (let ((process-environment process-environment))
-    (dolist (elem (if (stringp env) (split-string env " ") ()))
-      (push elem process-environment))
-    (apply #'mh-exec-cmd-daemon command filter args)))
-
-(defun mh-process-daemon (process output)
-  "PROCESS daemon that puts OUTPUT into a temporary buffer.
-Any output from the process is displayed in an asynchronous
-pop-up window."
-  (with-current-buffer (get-buffer-create mh-log-buffer)
-    (insert-before-markers output)
-    (display-buffer mh-log-buffer)))
-
-(defun mh-exec-cmd-quiet (raise-error command &rest args)
-  "Signal RAISE-ERROR if COMMAND with ARGS fails.
-Execute MH command COMMAND with ARGS. ARGS is a list of strings.
-Return at start of mh-temp buffer, where output can be parsed and
-used.
-Returns value of `call-process', which is 0 for success, unless
-RAISE-ERROR is non-nil, in which case an error is signaled if
-`call-process' returns non-0."
-  (set-buffer (get-buffer-create mh-temp-buffer))
-  (erase-buffer)
-  (let ((value
-         (apply 'call-process
-                (expand-file-name command mh-progs) nil t nil
-                args)))
-    (goto-char (point-min))
-    (if raise-error
-        (mh-handle-process-error command value)
-      value)))
-
-;; Shush compiler.
-(eval-when-compile (defvar mark-active))
-
-(defun mh-exchange-point-and-mark-preserving-active-mark ()
-  "Put the mark where point is now, and point where the mark is now.
-This command works even when the mark is not active, and
-preserves whether the mark is active or not."
-  (interactive nil)
-  (let ((is-active (and (boundp 'mark-active) mark-active)))
-    (let ((omark (mark t)))
-      (if (null omark)
-          (error "No mark set in this buffer"))
-      (set-mark (point))
-      (goto-char omark)
-      (if (boundp 'mark-active)
-          (setq mark-active is-active))
-      nil)))
-
-(defun mh-exec-cmd-output (command display &rest args)
-  "Execute MH command COMMAND with DISPLAY flag and ARGS.
-Put the output into buffer after point.
-Set mark after inserted text.
-Output is expected to be shown to user, not parsed by MH-E."
-  (push-mark (point) t)
-  (apply 'call-process
-         (expand-file-name command mh-progs) nil t display
-         (mh-list-to-string args))
-
-  ;; The following is used instead of 'exchange-point-and-mark because the
-  ;; latter activates the current region (between point and mark), which
-  ;; turns on highlighting.  So prior to this bug fix, doing "inc" would
-  ;; highlight a region containing the new messages, which is undesirable.
-  ;; The bug wasn't seen in emacs21 but still occurred in XEmacs21.4.
-  (mh-exchange-point-and-mark-preserving-active-mark))
-
-(defun mh-exec-lib-cmd-output (command &rest args)
-  "Execute MH library command COMMAND with ARGS.
-Put the output into buffer after point.
-Set mark after inserted text."
-  (apply 'mh-exec-cmd-output (expand-file-name command mh-lib-progs) nil args))
-
-(defun mh-handle-process-error (command status)
-  "Raise error if COMMAND returned non-zero STATUS, otherwise return STATUS."
-  (if (equal status 0)
-      status
-    (goto-char (point-min))
-    (insert (if (integerp status)
-                (format "%s: exit code %d\n" command status)
-              (format "%s: %s\n" command status)))
-    (save-excursion
-      (let ((error-message (buffer-substring (point-min) (point-max))))
-        (set-buffer (get-buffer-create mh-log-buffer))
-        (mh-truncate-log-buffer)
-        (insert error-message)))
-    (error "%s failed, check buffer %s for error message"
-           command mh-log-buffer)))
+;;; List and string manipulation
 
 (defun mh-list-to-string (l)
   "Flatten the list L and make every element of the new list into a string."
