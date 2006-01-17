@@ -275,8 +275,8 @@ It is useful to set this variable in the site customization file.")
 	  "\\|^nntp-posting-\\(host\\|date\\):\\|^user-agent"
 	  "\\|^importance:\\|^envelope-to:\\|^delivery-date\\|^openpgp:"
 	  "\\|^mbox-line:\\|^cancel-lock:\\|^in-reply-to:\\|^comment:"
-	  "\\|^domainkey-signature:\\|^mime-version:"
-	  "\\|^from \\|^x-.*:")
+	  "\\|^x-.*:\\|^domainkey-signature:\\|^mime-version:"
+	  "\\|^original-recipient:\\|^from ")
   "*Regexp to match header fields that Rmail should normally hide.
 \(See also `rmail-nonignored-headers', which overrides this regexp.)
 This variable is used for reformatting the message header,
@@ -1946,14 +1946,12 @@ non-nil then do not show any progress messages."
 	(start (point-max))
 	end attributes keywords message-descriptor-list date)
     (or nomsg (message "Processing new messages..."))
-
     ;; Process each message in turn starting from the back and
     ;; proceeding to the front of the region.  This is especially a
     ;; good approach since the buffer will likely have new headers
     ;; added.
     (goto-char start)
     (while (re-search-backward rmail-unix-mail-delimiter nil t)
-
       ;; Cache the message date to facilitate generating a message
       ;; summary later.  The format is '(DAY-OF-WEEK DAY-NUMBER MON
       ;; YEAR TIME)
@@ -1963,8 +1961,6 @@ non-nil then do not show any progress messages."
 		  (buffer-substring (match-beginning 3) (match-end 3))
 		  (buffer-substring (match-beginning 7) (match-end 7))
 		  (buffer-substring (match-beginning 5) (match-end 5))))
-
-
       ;;Set start and end to bracket this message.
       (setq end start)
       (setq start (point))
@@ -1972,10 +1968,8 @@ non-nil then do not show any progress messages."
 	(save-restriction
 	  (narrow-to-region start end)
 	  (goto-char start)
-
 	  ;; Bump the new message counter.
 	  (setq new-message-counter (1+ new-message-counter))
-
 	  ;; I don't understand why the following is done ... -pmr
 	  ;; Detect messages that have been added with DOS line
 	  ;; endings and convert the line endings for such messages.
@@ -1991,30 +1985,25 @@ non-nil then do not show any progress messages."
 		    (delete-char 1)))
 		(setq end (marker-position end-marker))
 		(set-marker end-marker nil)))
-
 	  ;; Make sure we have an Rmail BABYL attribute header field.
 	  ;; All we can assume is that the Rmail BABYL header field is
 	  ;; in the header section.  It's placement can be modified by
 	  ;; another mailer.
-	  (setq attributes
-                (rmail-header-get-header rmail-header-attribute-header))
+	  (setq attributes (rmail-header-get-header
+			    rmail-header-attribute-header))
 	  (unless attributes
-
 	    ;; No suitable header exists.  Append the default BABYL
 	    ;; data header for a new message.
 	    (setq attributes (rmail-desc-get-default-attrs))
-	    (rmail-header-add-header
-             rmail-header-attribute-header attributes))
-
+	    (rmail-header-add-header rmail-header-attribute-header attributes))
           ;; Set up keywords, if any.  The keywords are provided via a
           ;; comma separated list and returned as a list of strings.
           (setq keywords (rmail-header-get-keywords))
-          (if keywords
-
-              ;; Keywords do exist.  Register them with the keyword
-              ;; management library.
-              (rmail-keyword-register-keywords keywords))
-
+          (when keywords
+	    ;; Keywords do exist.  Register them with the keyword
+	    ;; management library.
+	    (require 'rmailkwd)
+	    (rmail-keyword-register-keywords keywords))
 
 	  ;; Insure that we have From and Date headers.
 	  ;;(rmail-decode-from-line)
@@ -2022,7 +2011,6 @@ non-nil then do not show any progress messages."
 	  ;; Perform User defined filtering.
 	  (save-excursion
 	    (if rmail-message-filter (funcall rmail-message-filter)))
-
 	  ;; Accumulate the message attributes along with the message
 	  ;; markers and the message date list.
 	  (setq message-descriptor-list
@@ -2034,14 +2022,13 @@ non-nil then do not show any progress messages."
                                      (rmail-get-sender)
                                      (rmail-header-get-header "subject")))
 			 message-descriptor-list)))))
-
     ;; Add the new message data lists to the Rmail message descriptor
     ;; vector.
     (rmail-desc-add-descriptors message-descriptor-list)
-
     ;; Unless requested otherwise, show the number of new messages.
     ;; Return the number of new messages.
-    (or nomsg (message "Processing new messages...done (%d)" new-message-counter))
+    (or nomsg (message "Processing new messages...done (%d)"
+		       new-message-counter))
     new-message-counter))
 
 ;;; mbox: deprecated
