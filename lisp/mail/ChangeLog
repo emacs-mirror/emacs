@@ -1,3 +1,12 @@
+2006-01-17  Henrik Enberg  <enberg@printf.se>
+
+	* rmailkwd.el: Don't require rmail.
+
+	* rmail.el (rmail-process-new-messages): Don't require rmailkwd
+	here, do it at toplevel instead.
+	(rmail-process-new-messages): Add an X-Coding-System
+	header if one doesn't exist.
+
 2006-01-17  Alex Schroeder  <alex@gnu.org>
 
 	* rmailsum.el (rmail-summary-by-labels): No longer concatenate
