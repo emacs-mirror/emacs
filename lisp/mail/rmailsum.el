@@ -1494,7 +1494,7 @@ A prefix argument N says to output N consecutive messages
 starting with the current one.  Deleted messages are skipped and don't count."
   (interactive
    (progn (require 'rmailout)
-	  (list (rmail-output-read-rmail-file-name)
+	  (list (rmail-output-read-file-name)
 		(prefix-numeric-value current-prefix-arg))))
   (let ((i 0) prev-msg)
     (while
@@ -1513,7 +1513,6 @@ starting with the current one.  Deleted messages are skipped and don't count."
 	(if (< i n)
 	    (rmail-summary-next-msg 1))))))
 
-;;; mbox: ready
 (defun rmail-summary-output (&optional file-name n)
   "Append this message to Unix mail file named FILE-NAME.
 
@@ -1671,7 +1670,7 @@ KEYWORDS is a comma-separated list of labels."
 (defun rmail-summary-get-summary (n)
   "Return a summary line for message N."
   (let* ((keywords (rmail-desc-get-keywords n))
-	 (str (if keywords 
+	 (str (if keywords
 		  (concat "{ " (mapconcat 'identity keywords " ") " } ")
 		"")))
     (funcall rmail-summary-line-decoder
