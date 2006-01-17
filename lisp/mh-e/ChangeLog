@@ -26,11 +26,11 @@
 	* mh-seq.el (mh-translate-range, mh-narrow-to-header-field)
 	(mh-thread-generate): Ditto.
 
-2006-01-16  Mark D. Baushke  <mdb@gnu.org>
+2006-01-16  Katsumi Yamaoka <yamaoka@jpl.org>
 
 	* mh-mime.el (mh-mime-display, mh-mm-inline-message): Fix use of
-	mm- functions for proper text=flowed handling (closes SF
-	#1273521). Patch contributed by Katsumi Yamaoka <yamaoka@jpl.org>.
+	mm- functions for proper text=flowed handling (addresses SF
+	#1273521).
 
 2006-01-15  Bill Wohler  <wohler@newt.com>
 
