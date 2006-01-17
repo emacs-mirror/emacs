@@ -1,3 +1,7 @@
+2006-01-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (customize-rogue): Minor doc fix.
+
 2006-01-17  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-diff): Use dired-dwim-target-directory
@@ -115,7 +119,7 @@
 
 2006-01-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-open-file): Use mailcap for selecting an
+	* textmodes/org.el (org-open-file): Use mailcap for selecting an
 	application.
 	(org-file-apps-defaults-gnu): Use mailcap as the default for
 	selecting an application on a UNIX system.
@@ -401,7 +405,7 @@
 
 2006-01-05  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-end-of-subtree): New function.
+	* textmodes/org.el (org-end-of-subtree): New function.
 	(org-cycle, org-subtree-end-visible-p, org-scan-tags):
 	Use `org-end-of-subtree'.
 	(org-agenda, org-agenda-convert-date): Protect calls to
@@ -1122,7 +1126,7 @@
 
 2005-12-20  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-agenda-custom-commands): New option.
+	* textmodes/org.el (org-agenda-custom-commands): New option.
 	(org-agenda): Offer custom commands on splash screen.
 	(org-make-tags-matcher): Parser for Boolean logic added.
 	(org-agenda-set-tags): New command.
@@ -1238,7 +1242,7 @@
 
 2005-12-16  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-tags-match-list-sublevels): New option.
+	* textmodes/org.el (org-tags-match-list-sublevels): New option.
 	(org-open-at-point): Implement tag searches as links.
 	(org-fit-agenda-window, org-get-buffer-tags, org-get-tags)
 	(org-make-tags-matcher, org-scan-tags, org-activate-tags): New funs.
@@ -1460,7 +1464,7 @@
 
 2005-12-12  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-agenda, org-timeline, org-todo):
+	* textmodes/org.el (org-agenda, org-timeline, org-todo):
 	Implement Logging and the keep-modes setting.
 	(org-get-category): Make sure a string is returned.
 	(org-log-done): New function.
