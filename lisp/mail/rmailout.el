@@ -33,7 +33,6 @@
   (require 'rmail)
   (require 'rmaildesc))
 
-
 ;;;###autoload
 (defcustom rmail-output-file-alist nil
   "*Alist matching regexps to suggested output Rmail files.
@@ -48,68 +47,34 @@ a file name as a string."
 			       sexp)))
   :group 'rmail-output)
 
-(defun rmail-output-read-rmail-file-name ()
-  "Read the file name to use for `rmail-output-to-rmail-file'.
-Set `rmail-default-rmail-file' to this name as well as returning it."
-  (let ((default-file
-	  (let (answer tail)
-	    (setq tail rmail-output-file-alist)
-	    ;; Suggest a file based on a pattern match.
-	    (while (and tail (not answer))
-	      (save-excursion
-		(set-buffer rmail-buffer)
-		(goto-char (point-min))
-		(if (re-search-forward (car (car tail)) nil t)
-		    (setq answer (eval (cdr (car tail)))))
-		(setq tail (cdr tail))))
-	    ;; If no suggestions, use same file as last time.
-	    (expand-file-name (or answer rmail-default-rmail-file)))))
-    (let ((read-file
-	   (expand-file-name
-	    (read-file-name
-	     (concat "Output message to Rmail (mbox) file: (default "
-		     (file-name-nondirectory default-file)
-		     "): ")
-	     (file-name-directory default-file)
-	     (abbreviate-file-name default-file))
-	    (file-name-directory default-file))))
-      ;; If the user enters just a directory,
-      ;; use the name within that directory chosen by the default.
-      (setq rmail-default-rmail-file
-	    (if (file-directory-p read-file)
-		(expand-file-name (file-name-nondirectory default-file)
-				  read-file)
-	      read-file)))))
-
-;;; mbox: deprecated
 (defun rmail-output-read-file-name ()
   "Read the file name to use for `rmail-output'.
 Set `rmail-default-file' to this name as well as returning it."
   (let ((default-file
 	  (let (answer tail)
 	    (setq tail rmail-output-file-alist)
-	    ;; Suggest a file based on a pattern match.
-	    (while (and tail (not answer))
-	      (save-excursion
-		(goto-char (point-min))
-		(if (re-search-forward (car (car tail)) nil t)
-		    (setq answer (eval (cdr (car tail)))))
-		(setq tail (cdr tail))))
+	    (with-current-buffer rmail-buffer
+	      ;; Suggest a file based on a pattern match.
+	      (while (and tail (not answer))
+	      	(save-excursion
+	      	  (goto-char (point-min))
+	      	  (when (re-search-forward (caar tail) nil t)
+		    (setq answer (eval (cdar tail))))
+	      	  (setq tail (cdr tail)))))
 	    ;; If no suggestion, use same file as last time.
 	    (or answer rmail-default-file))))
     (let ((read-file
 	   (expand-file-name
 	    (read-file-name
-	     (concat "Output message to Unix mail file (default "
-		     (file-name-nondirectory default-file)
-		     "): ")
+	     (concat "Output message to Rmail (mbox) file: (default "
+		     (file-name-nondirectory default-file) "): ")
 	     (file-name-directory default-file)
 	     (abbreviate-file-name default-file))
 	    (file-name-directory default-file))))
       (setq rmail-default-file
 	    (if (file-directory-p read-file)
-		(expand-file-name (file-name-nondirectory default-file)
-				  read-file)
+		(expand-file-name
+		 (file-name-nondirectory default-file) read-file)
 	      (expand-file-name
 	       (or read-file (file-name-nondirectory default-file))
 	       (file-name-directory default-file)))))))
@@ -134,23 +99,18 @@ starting with the current one.  Deleted messages are skipped and don't count.
 
 If the optional argument STAY is non-nil, then leave the last filed
 message up instead of moving forward to the next non-deleted message."
-  (interactive
-   (list (rmail-output-read-rmail-file-name)
-	 (prefix-numeric-value current-prefix-arg)))
-
+  (interactive (list (rmail-output-read-file-name)
+		     (prefix-numeric-value current-prefix-arg)))
   ;; Use the 'rmail-output function to perform the output.
   (rmail-output file-name count nil nil)
-
   ;; Deal with the next message
   (if rmail-delete-after-output
-      (unless
-          (if (and (= count 0) stay)
-              (rmail-delete-message)
-            (rmail-delete-forward))
+      (unless (if (and (= count 0) stay)
+		  (rmail-delete-message)
+		(rmail-delete-forward))
         (setq count 0))
     (if (> count 0)
-        (unless
-            (if (not stay) (rmail-next-undeleted-message 1))
+        (unless (if (not stay) (rmail-next-undeleted-message 1))
           (setq count 0)))))
 
 ;;; mbox: deprecated
@@ -179,7 +139,6 @@ message up instead of moving forward to the next non-deleted message."
 		(delete-region (point)
 			       (progn (forward-line 1) (point)))))))))
 
-;;; mbox: ready
 ;;; There are functions elsewhere in Emacs that use this function;
 ;;; look at them before you change the calling method.
 ;;;###autoload
@@ -197,21 +156,18 @@ to set the `filed' attribute, and not to display a message.
 
 The optional fourth argument EXT is set when called from outside of an
 Rmail function, for example by GNUS or Sendmail."
-  (interactive
-   (list (rmail-output-read-file-name)
-	 (prefix-numeric-value current-prefix-arg)))
+  (interactive (list (rmail-output-read-file-name)
+		     (prefix-numeric-value current-prefix-arg)))
   (or count (setq count 1))
   (setq file-name
 	(expand-file-name file-name
 			  (and rmail-default-file
 			       (file-name-directory rmail-default-file))))
-
   ;; Use the Rmail buffer, likely narrowed, as the message source
   ;; unless being called from an external party, such as GNUS or
   ;; Sendmail.
   (unless ext
     (set-buffer rmail-buffer))
-
   (let ((orig-count count)
 	(src-buf (current-buffer))
         (dst-buf (find-buffer-visiting file-name))
@@ -219,11 +175,9 @@ Rmail function, for example by GNUS or Sendmail."
 	(tembuf (get-buffer-create " rmail-output"))
 	(original-headers-p
 	 (and (not ext) (not (rmail-msg-is-pruned)))))
-
     ;; Output each message to the destination file.
     (while (> count 0)
       (save-excursion
-
         ;; Copy the message, including all headers, to the temporary
         ;; buffer.
         (set-buffer tembuf)
@@ -236,17 +190,14 @@ Rmail function, for example by GNUS or Sendmail."
         ;; Determine whether a buffer is already visiting the output
         ;; file.
         (if dst-buf
-
             ;; The destination file is being visited.  Update it.
             (progn
               (set-buffer dst-buf)
-
               ;; Determine if the destination file is an Rmail file.
               (let ((buffer-read-only nil)
                     (dst-current-message (and (boundp 'rmail-current-message)
                                               rmail-current-message)))
                 (if dst-current-message
-
                     ;; The buffer is an Rmail buffer.  Append the message.
                     (progn
                       (widen)
@@ -255,17 +206,14 @@ Rmail function, for example by GNUS or Sendmail."
                       (insert "\n")
                       (rmail-process-new-messages)
                       (rmail-show-message dst-current-message))
-
                   ;; The destination file is not an Rmail file, just
                   ;; insert at the end.
                   (goto-char (point-max))
                   (insert-buffer-substring src-buf))))
-
           ;; The destination file is not being visited, just write out
           ;; the processed message.
           (write-region (point-min) (point-max) file-name t
                         (if noattribute 'nomsg))))
-
       ;; Do housekeeping, such as setting the "Filed" attribute, if
       ;; necessary and moving to the next message.
       (or noattribute
@@ -273,10 +221,8 @@ Rmail function, for example by GNUS or Sendmail."
               (progn
                 (rmail-set-attribute "filed" t current-message)
                 (setq current-message (1+ current-message)))))
-
       ;; Determine if Rmail post output operations need to be handled.
       (or ext
-
           ;; They do.  Move to the next non-deleted message.
           (let ((next-message-p
                  (if rmail-delete-after-output
@@ -292,14 +238,12 @@ Rmail function, for example by GNUS or Sendmail."
                      (format "Only %d message%s appended" num-appended
                              (if (= num-appended 1) "" "s"))))
                   (setq count 0)))))
-
       ;; Decrement the count for the next iteration.  If an error has
       ;; occurred, then count will be -1, which is every bit as good
       ;; as 0.
       (setq count (1- count)))
     (kill-buffer tembuf)))
 
-;;; mbox: ready
 ;;;###autoload
 (defun rmail-output-body-to-file (file-name)
   "Write this message body to the file FILE-NAME.
