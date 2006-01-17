@@ -44,8 +44,7 @@
 (provide 'rmailkwd)
 
 (eval-when-compile
-  (require 'mail-utils)
-  (require 'rmail))
+  (require 'mail-utils))
 
 (defvar rmail-label-obarray (make-vector 47 0))
 
@@ -173,7 +172,7 @@ possibly narrowed, displays a message."
           (if state
               (rmail-desc-add-keyword keyword n)
             (rmail-desc-remove-keyword keyword n)))))))
-            
+
 
 ;; Motion on messages with keywords.
 
