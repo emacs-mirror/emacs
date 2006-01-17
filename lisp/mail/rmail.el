@@ -46,7 +46,8 @@
 
 (eval-and-compile
   (require 'rmaildesc)
-  (require 'rmailhdr))
+  (require 'rmailhdr)
+  (require 'rmailkwd))
 
 (defvar deleted-head)
 (defvar font-lock-fontified)
@@ -2001,7 +2002,6 @@ non-nil then do not show any progress messages."
           (when keywords
 	    ;; Keywords do exist.  Register them with the keyword
 	    ;; management library.
-	    (require 'rmailkwd)
 	    (rmail-keyword-register-keywords keywords))
 
 	  ;; Insure that we have From and Date headers.
