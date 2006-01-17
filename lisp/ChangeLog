@@ -8,6 +8,9 @@
 	* log-view.el (log-view-minor-wrap): Use the same logic to get
 	revisions as `log-view-diff'.
 
+	* info.el (Info-revert-find-node): Check for Info-current-file
+	before preserving new-history.
+
 	* man.el (Man-heading-regexp): Add `/'.
 
 	* textmodes/sgml-mode.el: Add `coding: iso-2022-7bit' cookie.
@@ -30,6 +33,10 @@
 	`mode-line-unbury-buffer' with `mode-line-previous-buffer'.
 	Replace `mode-line-bury-buffer' with `mode-line-next-buffer' for
 	mouse-3.
+
+	* buff-menu.el (buffer-menu-buffer) <defface>: Renamed from
+	Buffer-menu-buffer.  Doc fix.
+	(Buffer-menu-buffer): Face alias to buffer-menu-buffer.
 
 	* info.el (Info-mode-line-node-keymap): New defvar.
 	(Info-set-mode-line): Use `stringp' to check Info-current-file.
