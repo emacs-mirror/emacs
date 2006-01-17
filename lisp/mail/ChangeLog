@@ -7,6 +7,7 @@
 
 	* rmailsum.el (rmail-summary-output-to-rmail-file): Use
 	`rmail-output-read-file-name'.
+	(rmail-summary-get-message-at-point): Handle 5-digit message ids.
 	
 	* rmail.el (rmail-process-new-messages): Require rmailkwd.
 	(rmail-ignored-headers): Add "Original-Recipient"
