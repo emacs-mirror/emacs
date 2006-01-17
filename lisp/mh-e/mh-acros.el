@@ -157,8 +157,8 @@ Case is ignored if CASE-FOLD is non-nil.
 This function added by MH-E for Emacs versions that lack
 `assoc-string', introduced in Emacs 22."
     (if case-fold
-        (assoc-ignore-case key alist)
-      (assoc key alist))))
+        (assoc-ignore-case key list)
+      (assoc key list))))
 
 (provide 'mh-acros)
 

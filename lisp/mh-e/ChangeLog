@@ -1,3 +1,7 @@
+2006-01-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-acros.el (assoc-string): Fix typo in argument.
+
 2006-01-16  Bill Wohler  <wohler@newt.com>
 
 	* mh-acros.el (require): Remove defadvice of require as defadvice
