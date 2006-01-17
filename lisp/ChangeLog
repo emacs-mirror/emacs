@@ -63,6 +63,8 @@
 	* buff-menu.el (buffer-menu-buffer) <defface>: Renamed from
 	Buffer-menu-buffer.  Doc fix.
 	(Buffer-menu-buffer): Face alias to buffer-menu-buffer.
+	(list-buffers-noselect): Use `buffer-menu-buffer' face instead of
+	`Buffer-menu-buffer'.
 
 	* info.el (Info-mode-line-node-keymap): New defvar.
 	(Info-set-mode-line): Use `stringp' to check Info-current-file.
