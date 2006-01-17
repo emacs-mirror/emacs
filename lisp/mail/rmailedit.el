@@ -119,8 +119,10 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
     (goto-char (point-max))
     (if (/= (preceding-char) ?\n)
 	(insert "\n"))
-    ;; Adjust the marker that points to the end of this message.
-    (rmail-desc-set-start (1+ rmail-current-message) (point)))
+    ;; Adjust the marker that points to the end of this message, unles
+    ;; we're at the last message.
+    (when (< rmail-current-message (length rmail-desc-vector))
+	(rmail-desc-set-end (1+ rmail-current-message) (point))))
   (let ((old rmail-old-text))
     (force-mode-line-update)
     (kill-all-local-variables)
