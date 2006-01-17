@@ -1,3 +1,7 @@
+2006-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* font-lock.el (lisp-font-lock-keywords-1): Minor rearrangement.
+
 2006-01-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el (customize-rogue): Minor doc fix.
@@ -50,6 +54,7 @@
 	* time.el (display-time-mail-face): Replace :group `faces' with
 	`mode-line-faces'.
 
+>>>>>>> 1.8983
 2006-01-16  Kenichi Handa  <handa@m17n.org>
 
 	* international/code-pages.el: Add autoload cookies for
@@ -98,6 +103,7 @@
 	(Custom-reset-saved): Do not ask for confirmation in single option
 	buffers.
 
+>>>>>>> 1.8978
 2006-01-13  Romain Francoise  <romain@orebokech.com>
 
 	* add-log.el (add-change-log-entry, change-log-merge):
