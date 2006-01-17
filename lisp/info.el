@@ -731,7 +731,8 @@ is preserved, if possible."
 	(pline        (count-lines (point-min) (line-beginning-position)))
 	(wline        (count-lines (point-min) (window-start)))
 	(old-history  Info-history)
-	(new-history  (list Info-current-file Info-current-node (point))))
+	(new-history  (and Info-current-file
+			   (list Info-current-file Info-current-node (point)))))
     (kill-buffer (current-buffer))
     (Info-find-node filename nodename)
     (setq Info-history old-history)
