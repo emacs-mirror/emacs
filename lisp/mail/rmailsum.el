@@ -577,7 +577,6 @@ If N is negative, go forwards instead."
 
 ;; Delete and undelete summary commands.
 
-;;; mbox: ready
 (defun rmail-summary-delete-forward (&optional count)
   "Delete this message and move to next nondeleted one.
 Deleted messages stay in the file until the \\[rmail-expunge] command is given.
@@ -599,7 +598,6 @@ a negative argument means to delete and move backward."
 	(forward-line (if backward -1 1)))
       (setq count
 	    (if (> count 0) (1- count) (1+ count))))
-
     ;; Update the summary buffer current message counter and show the
     ;; message in the Rmail buffer.
     (rmail-summary-goto-msg (rmail-summary-get-message-at-point))))
@@ -1027,7 +1025,7 @@ If the summary buffer contains no messages, nil is returned."
       (forward-line 0))
     ;; Parse the message number.
     (string-to-number
-     (buffer-substring (point) (min (point-max) (+ 4 (point)))))))
+     (buffer-substring (point) (min (point-max) (+ 6 (point)))))))
 
 (defun rmail-summary-goto-msg (&optional n nowarn skip-rmail)
   "Go to message N in the summary buffer and the Rmail buffer.
