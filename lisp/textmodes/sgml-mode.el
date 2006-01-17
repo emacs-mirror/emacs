@@ -1,4 +1,4 @@
-;;; sgml-mode.el --- SGML- and HTML-editing modes
+;;; sgml-mode.el --- SGML- and HTML-editing modes -*- coding: iso-2022-7bit -*-
 
 ;; Copyright (C) 1992, 1995, 1996, 1998, 2001, 2002, 2003, 2004,
 ;;   2005 Free Software Foundation, Inc.
@@ -1828,12 +1828,9 @@ To work around that, do:
   (make-local-variable 'outline-regexp)
   (make-local-variable 'outline-heading-end-regexp)
   (make-local-variable 'outline-level)
-  (make-local-variable 'sentence-end)
-  (setq sentence-end
-	(if sentence-end-double-space
-	    "[.?!][]\"')}]*\\(<[^>]*>\\)*\\($\\| $\\|\t\\|  \\)[ \t\n]*"
-	  "[.?!][]\"')}]*\\(<[^>]*>\\)*\\($\\|[ \t]\\)[ \t\n]*"))
-  (setq sgml-tag-alist html-tag-alist
+  (make-local-variable 'sentence-end-base)
+  (setq sentence-end-base "[.?!][]\"'$B!I$,1r}(B)}]*\\(<[^>]*>\\)*"
+	sgml-tag-alist html-tag-alist
 	sgml-face-tag-alist html-face-tag-alist
 	sgml-tag-help html-tag-help
 	outline-regexp "^.*<[Hh][1-6]\\>"
