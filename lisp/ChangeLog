@@ -1,5 +1,15 @@
 2006-01-17  Juri Linkov  <juri@jurta.org>
 
+	* log-view.el (log-view-minor-wrap): Use the same logic to get
+	revisions as `log-view-diff'.
+
+	* man.el (Man-heading-regexp): Add `/'.
+
+	* textmodes/sgml-mode.el: Add `coding: iso-2022-7bit' cookie.
+	(html-mode): Set `sentence-end-base' instead of `sentence-end'.
+
+2006-01-16  Juri Linkov  <juri@jurta.org>
+
 	* faces.el (mode-line-faces): New defgroup.
 	(mode-line-highlight): Move definition after new defgroup.
 	(mode-line, mode-line-inactive, mode-line-highlight):
