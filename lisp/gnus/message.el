@@ -1,7 +1,7 @@
 ;;; message.el --- composing mail and news messages
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -2185,6 +2185,15 @@ Point is left at the beginning of the narrowed-to region."
 	     (1+ max)))))
       (message-sort-headers-1))))
 
+(defun message-info (&optional arg)
+  "Display the Message manual.
+
+Prefixed with one \\[universal-argument], display the Emacs MIME manual.
+Prefixed with two \\[universal-argument]'s, display the PGG manual."
+  (interactive "p")
+  (cond ((eq arg 16) (Info-goto-node "(pgg)Top"))
+	((eq arg  4) (Info-goto-node "(emacs-mime)Top"))
+	(t           (Info-goto-node "(message)Top"))))
 
 
 
@@ -2312,7 +2321,11 @@ Point is left at the beginning of the narrowed-to region."
 	 '(:help "Ask, then arrange to send message at that time"))]
     ["Kill Message" message-kill-buffer
      ,@(if (featurep 'xemacs) '(t)
-	 '(:help "Delete this message without sending"))]))
+	 '(:help "Delete this message without sending"))]
+    "----"
+    ["Message manual" message-info
+     ,@(if (featurep 'xemacs) '(t)
+	 '(:help "Display the Message manual"))]))
 
 (easy-menu-define
   message-mode-field-menu message-mode-map ""

@@ -74,10 +74,11 @@
   :type 'boolean
   :group 'Buffer-menu)
 
-(defface Buffer-menu-buffer
+(defface buffer-menu-buffer
   '((t (:weight bold)))
-  "Face used to highlight buffer name."
+  "Face used to highlight buffer names in the buffer menu."
   :group 'Buffer-menu)
+(put 'Buffer-menu-buffer 'face-alias 'buffer-menu-buffer)
 
 (defcustom Buffer-menu-buffer+size-width 26
   "*How wide to jointly make the buffer name and size columns."

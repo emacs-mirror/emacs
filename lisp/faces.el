@@ -1976,16 +1976,6 @@ created."
   "Basic face for highlighting."
   :group 'basic-faces)
 
-(defface mode-line-highlight
-  '((((class color) (min-colors 88))
-     :box (:line-width 2 :color "grey40" :style released-button))
-    (t
-     :inherit highlight))
-  "Basic mode line face for highlighting."
-  :version "22.1"
-  :group 'modeline
-  :group 'basic-faces)
-
 (defface region
   '((((class color) (min-colors 88) (background dark))
      :background "blue3")
@@ -2050,6 +2040,12 @@ created."
   :group 'basic-faces
   :version "22.1")
 
+(defgroup mode-line-faces nil
+  "Faces used in the mode line."
+  :group 'modeline
+  :group 'faces
+  :version "22.1")
+
 (defface mode-line
   '((((class color) (min-colors 88))
      :box (:line-width -1 :style released-button)
@@ -2058,7 +2054,7 @@ created."
      :inverse-video t))
   "Basic mode line face for selected window."
   :version "21.1"
-  :group 'modeline
+  :group 'mode-line-faces
   :group 'basic-faces)
 
 (defface mode-line-inactive
@@ -2074,13 +2070,31 @@ created."
      :foreground "grey80" :background "grey30"))
   "Basic mode line face for non-selected windows."
   :version "22.1"
-  :group 'modeline
+  :group 'mode-line-faces
+  :group 'basic-faces)
+
+(defface mode-line-highlight
+  '((((class color) (min-colors 88))
+     :box (:line-width 2 :color "grey40" :style released-button))
+    (t
+     :inherit highlight))
+  "Basic mode line face for highlighting."
+  :version "22.1"
+  :group 'mode-line-faces
+  :group 'basic-faces)
+
+(defface mode-line-buffer-id
+  '((t (:weight bold)))
+  "Face used for buffer identification parts of the mode line."
+  :version "22.1"
+  :group 'mode-line-faces
   :group 'basic-faces)
 
 ;; Make `modeline' an alias for `mode-line', for compatibility.
 (put 'modeline 'face-alias 'mode-line)
 (put 'modeline-inactive 'face-alias 'mode-line-inactive)
 (put 'modeline-highlight 'face-alias 'mode-line-highlight)
+(put 'modeline-buffer-id 'face-alias 'mode-line-buffer-id)
 
 (defface header-line
   '((default
@@ -2121,7 +2135,6 @@ created."
   '((((type tty)) :inherit mode-line-inactive))
   "Face used for vertical window dividers on ttys."
   :version "22.1"
-  :group 'modeline
   :group 'basic-faces)
 
 (defface minibuffer-prompt

@@ -129,7 +129,7 @@ This runs the normal hook `display-time-hook' after each update."
 If `display-time-use-mail-icon' is non-nil, the image's
 background color is the background of this face.  Set this to
 make the mail indicator stand out on a color display."
-  :group 'faces
+  :group 'mode-line-faces
   :group 'display-time
   :version "22.1"
   :type '(choice (const :tag "None" nil) face))

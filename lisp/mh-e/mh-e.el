@@ -1372,13 +1372,13 @@ folders whose names end with a '+' character."
     (goto-char (point-max))
     (let (folder unseen total p)
       (when (search-backward " out of " (point-min) t)
-        (setq total (read-from-string
+        (setq total (string-to-number
                      (buffer-substring-no-properties
                       (match-end 0) (line-end-position))))
         (when (search-backward " in sequence " (point-min) t)
           (setq p (point))
           (when (search-backward " has " (point-min) t)
-            (setq unseen (read-from-string (buffer-substring-no-properties
+            (setq unseen (string-to-number (buffer-substring-no-properties
                                             (match-end 0) p)))
             (while (eq (char-after) ? )
               (backward-char))
@@ -1387,7 +1387,7 @@ folders whose names end with a '+' character."
             (when (and (equal (aref folder (1- (length folder))) ?+)
                        (equal current-folder folder))
               (setq folder (substring folder 0 (1- (length folder)))))
-            (values (format "+%s" folder) (car unseen) (car total))))))))
+            (values (format "+%s" folder) unseen total)))))))
 
 (defun mh-folder-size-folder (folder)
   "Find size of FOLDER using \"folder\"."
@@ -1398,7 +1398,7 @@ folders whose names end with a '+' character."
                     "-norecurse" folder)
       (goto-char (point-min))
       (if (re-search-forward " has \\([0-9]+\\) " nil t)
-          (values (car (read-from-string (match-string 1))) u folder)
+          (values (string-to-number (match-string 1)) u folder)
         (values 0 u folder)))))
 
 (defun mh-folder-size-flist (folder)

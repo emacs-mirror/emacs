@@ -142,8 +142,6 @@ their own faces for this purpose.)
 @item highlight
 This face is used for highlighting portions of text, in various modes.
 For example, mouse-sensitive text is highlighted using this face.
-@item mode-line-highlight
-Like @code{highlight}, but used for portions of text on mode lines.
 @item isearch
 This face is used for highlighting Isearch matches.
 @item lazy-highlight
@@ -193,6 +191,10 @@ Like @code{mode-line}, but used for mode lines of the windows other
 than the selected one (if @code{mode-line-in-non-selected-windows} is
 non-@code{nil}).  This face inherits from @code{mode-line}, so changes
 in that face affect mode lines in all windows.
+@item mode-line-highlight
+Like @code{highlight}, but used for portions of text on mode lines.
+@item mode-line-buffer-id
+This face is used for buffer identification parts in the mode line.
 @item header-line
 Similar to @code{mode-line} for a window's header line.  Most modes
 don't use the header line, but some special modes, such the Info mode, do.

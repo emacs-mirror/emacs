@@ -1249,7 +1249,7 @@ suggest to customize that face, if it's customizable."
 
 ;;;###autoload
 (defun customize-rogue ()
-  "Customize all user variable modified outside customize."
+  "Customize all user variables modified outside customize."
   (interactive)
   (let ((found nil))
     (mapatoms (lambda (symbol)

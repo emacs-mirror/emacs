@@ -2464,6 +2464,7 @@ Return an updated `non-iso-charset-alist'."
   nil])
 
 ;;;###autoload(autoload-coding-system 'windows-1250 '(require 'code-pages))
+;;;###autoload(autoload-coding-system 'cp1250 '(require 'code-pages))
 (cp-make-coding-system
  windows-1250
  [?\€
@@ -2596,6 +2597,7 @@ Return an updated `non-iso-charset-alist'."
   ?\˙])
 
 ;;;###autoload(autoload-coding-system 'windows-1253 '(require 'code-pages))
+;;;###autoload(autoload-coding-system 'cp1253 '(require 'code-pages))
 (cp-make-coding-system
  windows-1253
  [?\€
@@ -2729,6 +2731,7 @@ Return an updated `non-iso-charset-alist'."
  nil ?g) ;; Greek
 
 ;;;###autoload(autoload-coding-system 'windows-1254 '(require 'code-pages))
+;;;###autoload(autoload-coding-system 'cp1254 '(require 'code-pages))
 (cp-make-coding-system
  windows-1254
  [?\€
@@ -2862,6 +2865,7 @@ Return an updated `non-iso-charset-alist'."
 
 ;; yi_US
 ;;;###autoload(autoload-coding-system 'windows-1255 '(require 'code-pages))
+;;;###autoload(autoload-coding-system 'cp1255 '(require 'code-pages))
 (cp-make-coding-system
  windows-1255
  [?\€
@@ -2995,6 +2999,7 @@ Return an updated `non-iso-charset-alist'."
  nil ?h) ;; Hebrew
 
 ;;;###autoload(autoload-coding-system 'windows-1256 '(require 'code-pages))
+;;;###autoload(autoload-coding-system 'cp1256 '(require 'code-pages))
 (cp-make-coding-system
  windows-1256
  [?\€
@@ -3128,6 +3133,7 @@ Return an updated `non-iso-charset-alist'."
  nil ?a) ;; Arabic
 
 ;;;###autoload(autoload-coding-system 'windows-1257 '(require 'code-pages))
+;;;###autoload(autoload-coding-system 'cp1257 '(require 'code-pages))
 (cp-make-coding-system
  windows-1257
  [?\€
@@ -3260,6 +3266,7 @@ Return an updated `non-iso-charset-alist'."
   nil])
 
 ;;;###autoload(autoload-coding-system 'windows-1258 '(require 'code-pages))
+;;;###autoload(autoload-coding-system 'cp1258 '(require 'code-pages))
 (cp-make-coding-system
  windows-1258
  [?\€
