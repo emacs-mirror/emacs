@@ -1,6 +1,7 @@
 ;;; nnrss.el --- interfacing with RSS
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005,
+;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: RSS
@@ -755,14 +756,29 @@ which RSS 2.0 allows."
   "OPML subscriptions import.
 Read the file and attempt to subscribe to each Feed in the file."
   (interactive "fImport file: ")
-  (mapcar
-   (lambda (node) (gnus-group-make-rss-group
-		   (cdr (assq 'xmlUrl (cadr node)))))
+  (mapc
+   (lambda (node)
+     (let ((xmlurl (cdr (assq 'xmlUrl (cadr node)))))
+       (when (and xmlurl
+		  (not (string-match "\\`[\t ]*\\'" xmlurl))
+		  (prog1
+		      (y-or-n-p (format "Subscribe to %s " xmlurl))
+		    (message "")))
+	 (condition-case err
+	     (progn
+	       (gnus-group-make-rss-group xmlurl)
+	       (forward-line 1))
+	   (error
+	    (message
+	     "Failed to subscribe to %s (%s); type any key to continue: "
+	     xmlurl
+	     (error-message-string err))
+	    (let ((echo-keystrokes 0))
+	      (read-char)))))))
    (nnrss-find-el 'outline
-		  (progn
-		    (find-file opml-file)
-		    (xml-parse-region (point-min)
-				      (point-max))))))
+		  (mm-with-multibyte-buffer
+		    (insert-file-contents opml-file)
+		    (xml-parse-region (point-min) (point-max))))))
 
 (defun nnrss-opml-export ()
   "OPML subscription export.
