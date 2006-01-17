@@ -531,6 +531,11 @@ in your .emacs file.
     (with-current-buffer buf
       (kill-local-variable 'flyspell-word-cache-word))))
 
+;; Make sure we flush our caches when needed.  Do it here rather than in
+;; flyspell-mode-on, since flyspell-region may be used without ever turning
+;; on flyspell-mode.
+(add-hook 'ispell-kill-ispell-hook 'flyspell-kill-ispell-hook)
+
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-mode-on ...                                             */
 ;;*---------------------------------------------------------------------*/
@@ -542,8 +547,6 @@ in your .emacs file.
   (or ispell-local-dictionary ispell-dictionary
       (if flyspell-default-dictionary
 	  (ispell-change-dictionary flyspell-default-dictionary)))
-  ;; Make sure we flush our caches when needed.
-  (add-hook 'ispell-kill-ispell-hook 'flyspell-kill-ispell-hook)
   ;; we have to force ispell to accept the local definition or
   ;; otherwise it could be too late, the local dictionary may
   ;; be forgotten!

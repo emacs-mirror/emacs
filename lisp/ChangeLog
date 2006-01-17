@@ -1,3 +1,8 @@
+2006-01-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/flyspell.el (ispell-kill-ispell-hook): Add to the hook when
+	loading the file rather than when turning on flyspell-mode.
+
 2006-01-13  Richard M. Stallman  <rms@gnu.org>
 
 	* font-lock.el (lisp-font-lock-keywords-1): Minor rearrangement.
@@ -54,11 +59,9 @@
 	* time.el (display-time-mail-face): Replace :group `faces' with
 	`mode-line-faces'.
 
->>>>>>> 1.8983
 2006-01-16  Kenichi Handa  <handa@m17n.org>
 
-	* international/code-pages.el: Add autoload cookies for
-	cp125[0345678].
+	* international/code-pages.el: Add autoload cookies for cp125[0345678].
 
 	* language/european.el (cp1252): New alias for windows-1252.
 
@@ -78,8 +81,8 @@
 	(term-reset-terminal): Reset the scroll region.
 	(term-handle-ansi-escape): Cursor up and down should take into
 	account the scroll region.
-	(term-set-scroll-region): Renamed from `term-scroll-region'.  Move
-	to 0,0 after setting the region.
+	(term-set-scroll-region): Rename from `term-scroll-region'.
+	Move to 0,0 after setting the region.
 	(term-handle-scroll): Handle scroll up.
 	(term-down): Fix off by one error.
 	(term-delete-lines): Do not delete outside the scroll region.
@@ -103,7 +106,6 @@
 	(Custom-reset-saved): Do not ask for confirmation in single option
 	buffers.
 
->>>>>>> 1.8978
 2006-01-13  Romain Francoise  <romain@orebokech.com>
 
 	* add-log.el (add-change-log-entry, change-log-merge):
