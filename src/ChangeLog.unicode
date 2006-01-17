@@ -1,3 +1,10 @@
+2006-01-17  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (handle_one_xevent): Delete unnecessary code inserted by
+	sync with HEAD.
+
+	* coding.c (code_conversion_restore): GCPRO arg.
+
 2005-12-28  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (lisp_string_width): Check multibyteness of STRING.
