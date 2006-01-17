@@ -1876,9 +1876,9 @@ subprocess are controlled by the user options `scheme-trace-command',
 `scheme-untrace-command' and `scheme-expand-current-form'.
 
 ---
-** Makefile mode has submodes for automake, gmake, makepp and BSD make.
+** Makefile mode has submodes for automake, gmake, makepp, BSD make and imake.
 
-The former two couldn't be differentiated before, and the latter two
+The former two couldn't be differentiated before, and the latter three
 are new.  Font-locking is robust now and offers new customizable
 faces.
 

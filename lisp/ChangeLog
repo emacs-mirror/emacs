@@ -1,3 +1,16 @@
+2006-01-18  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/make-mode.el (makefile-imake-mode): New mode
+	derived from maiefile-mode.
+	(makefile-imake-mode-syntax-table): New syntax table
+	derived from makefile-mode-syntax-table.
+	(makefile-mode): Write about makefile-imake-mode in 
+	doc string.
+	(makefile-mode-map): Bind "\C-c\C-m\C-i" to makefile-imake-mode.
+	(makefile-imake-font-lock-keywords): New font lock keywords.
+
+	* files.el (auto-mode-alist): Added Imakefile.
+
 2006-01-17  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (ispell-kill-ispell-hook): Add to the hook when
