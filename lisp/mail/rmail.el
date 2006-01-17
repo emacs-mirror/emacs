@@ -797,7 +797,8 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	    (setq major-mode 'fundamental-mode))
 	(switch-to-buffer
 	 (get-buffer-create (file-name-nondirectory file-name)))
-	(insert-file-contents-literally file-name)
+	(when (file-exists-p file-name)
+	  (insert-file-contents-literally file-name))
 	(setq buffer-file-name file-name))
       ;; As we have read a file as raw-text, the buffer is set to
       ;; unibyte.  We must make it multibyte if necessary.
@@ -2102,20 +2103,11 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
   (interactive "p")
   (or (eq major-mode 'rmail-mode)
       (switch-to-buffer rmail-buffer))
-
-  ;; If there are no messages to display, then provide a message to
-  ;; indicate thusly.
   (if (zerop rmail-total-messages)
-
-      ;; There are no messages so display the Babyl boilerplate in the
-      ;; presentation buffer.  It is important to keep the boilerplate
-      ;; out of the Rmail file so as not to break other mail agents.
       (progn
         (message "No messages to show.  Add something better soon.")
-        (rmail-display-labels)
+        ;; (rmail-display-labels)
         (force-mode-line-update))
-
-    ;; There are messages.  Show one.
     (let (blurb coding-system)
       ;; Set n to the first sane message based on the sign of n:
       ;; positive but greater than the total number of messages -> n;
