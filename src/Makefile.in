@@ -925,7 +925,7 @@ SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
   ${dotdot}/lisp/x-dnd.elc \
   ${dotdot}/lisp/international/ccl.elc \
   ${dotdot}/lisp/international/codepage.elc \
-  ${dotdot}/lisp/international/fontset.elc
+  ${dotdot}/lisp/international/fontset.elc \
   ${dotdot}/lisp/mouse.elc \
   ${dotdot}/lisp/term/x-win.elc
 
