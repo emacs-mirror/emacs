@@ -1,4 +1,4 @@
-2006-01-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+2006-01-17  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (ispell-kill-ispell-hook): Add to the hook when
 	loading the file rather than when turning on flyspell-mode.
