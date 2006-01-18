@@ -843,7 +843,8 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
     ;; If new mail was found, display of the correct message was done
     ;; elsewhere.
     (unless new-mail
-      (rmail-show-message (rmail-first-unseen-message)))
+      (rmail-show-message (or (rmail-first-unseen-message)
+			      rmail-total-messages)))
     (rmail-construct-io-menu)
     ;; Run any callbacks if the buffer was not in rmail-mode
     (if run-mail-hook
