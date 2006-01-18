@@ -1,7 +1,7 @@
 ;;; rmailedit.el --- "RMAIL edit mode"  Edit the current message
 
-;; Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004, 2005,
+;;   2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -106,7 +106,6 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
     (message "%s" (substitute-command-keys
 		   "Editing: Type \\[rmail-cease-edit] to return to Rmail, \\[rmail-abort-edit] to abort"))))
 
-;;; mbox: ready
 (defun rmail-cease-edit ()
   "Finish editing message; switch back to Rmail proper."
   (interactive)
@@ -119,10 +118,10 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
     (goto-char (point-max))
     (if (/= (preceding-char) ?\n)
 	(insert "\n"))
-    ;; Adjust the marker that points to the end of this message, unles
+    ;; Adjust the marker that points to the end of this message, unless
     ;; we're at the last message.
     (when (< rmail-current-message (length rmail-desc-vector))
-	(rmail-desc-set-end (1+ rmail-current-message) (point))))
+	(rmail-desc-set-start (1+ rmail-current-message) (point))))
   (let ((old rmail-old-text))
     (force-mode-line-update)
     (kill-all-local-variables)
