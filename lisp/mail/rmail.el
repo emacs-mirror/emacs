@@ -1397,6 +1397,17 @@ original copy."
 
 ;;;; *** Rmail input ***
 
+(defun rmail-get-inbox-list ()
+  ;; Pull files off rmail-inbox-list onto files as long as there is no
+  ;; name conflict.  A conflict happens when two inbox file names have
+  ;; the same last component.
+  (let (list last-names)
+    (dolist (file rmail-inbox-list)
+      (unless (member (file-name-nondirectory file) last-names)
+	(push file list))
+      (push (file-name-nondirectory file) last-names))
+    (nreverse list)))
+
 ;; RLK feature not added in this version:
 ;; argument specifies inbox file or files in various ways.
 
@@ -1431,98 +1442,79 @@ It returns t if it got any new messages."
   ;; Get rid of all undo records for this buffer.
   (unless (eq buffer-undo-list t)
     (setq buffer-undo-list nil))
-  (let ((all-files (if file-name (list file-name)
-		     rmail-inbox-list))
+  (let ((files (if file-name (list file-name) (rmail-get-inbox-list)))
 	(rmail-enable-multibyte (default-value 'enable-multibyte-characters))
 	found current-message)
     (condition-case nil
 	(progn
-	  (while all-files
-	    (let ((opoint (point))
-		  (new-messages 0)
-		  (delete-files ())
-		  ;; If buffer has not changed yet, and has not been saved yet,
-		  ;; don't replace the old backup file now.
-		  (make-backup-files (and make-backup-files (buffer-modified-p)))
-		  (buffer-read-only nil)
-		  ;; Don't make undo records for what we do in getting mail.
-		  (buffer-undo-list t)
-		  ;; Files to insert this time around.
-		  files
-		  ;; Last names of those files.
-		  file-last-names)
-	      ;; Pull files off all-files onto files as long as there is
-	      ;; no name conflict.  A conflict happens when two inbox
-	      ;; file names have the same last component.
-	      (while (and all-files
-			  (not (member (file-name-nondirectory (car all-files))
-				       file-last-names)))
-		(setq files (cons (car all-files) files)
-		      file-last-names
-		      (cons (file-name-nondirectory (car all-files)) files))
-		(setq all-files (cdr all-files)))
-	      ;; Put them back in their original order.
-	      (setq files (nreverse files))
+	  (let ((opoint (point))
+		(new-messages 0)
+		(delete-files ())
+		;; If buffer has not changed yet, and has not been saved yet,
+		;; don't replace the old backup file now.
+		(make-backup-files (and make-backup-files (buffer-modified-p)))
+		(buffer-read-only nil)
+		;; Don't make undo records for what we do in getting mail.
+		(buffer-undo-list t))
+	    (save-excursion
+	      (save-restriction
+		(goto-char (point-max))
+		(narrow-to-region (point) (point))
+		;; Read in the contents of the inbox files, renaming
+		;; them as necessary, and adding to the list of files
+		;; to delete eventually.
+		(if file-name
+		    (rmail-insert-inbox-text files nil)
+		  (setq delete-files (rmail-insert-inbox-text files t)))
+		(unless (equal (point-min) (point-max))
+		  (setq new-messages (rmail-process-new-messages)
+			rmail-current-message (1+ rmail-total-messages)
+			rmail-total-messages (rmail-desc-get-count))
+		  (run-hooks 'rmail-get-new-mail-hook)
+		  (save-buffer))
+		;; Delete the old files, now that the RMAIL file is
+		;; saved.
+		(dolist (i delete-files)
+		  (condition-case nil
+		      ;; First, try deleting.
+		      (condition-case nil
+			  (delete-file i)
+			;; If we can't delete it, truncate it.
+			(file-error (write-region (point) (point) i)))
+		    (file-error nil)))))
+	    (if (= new-messages 0)
+		(progn (goto-char opoint)
+		       (when (or file-name rmail-inbox-list)
+			 (message "(No new mail has arrived)")))
+	      ;; Make the first unseen message the current message
+	      ;; and update the summary buffer, if one exists.
+	      (setq current-message (rmail-first-unseen-message))
+	      (if (rmail-summary-exists)
+		  (with-current-buffer rmail-summary-buffer
+		    (rmail-update-summary)))
+	      ;; Process the new messages for spam using the
+	      ;; integrated spam filter.  The spam filter can mark
+	      ;; messages for deletion and can output a message.
+	      (if rmail-use-spam-filter
+		  ;; Loop through the new messages processing each
+		  ;; message for spam.
+		  (while (<= current-message rmail-total-messages)
+		    (rmail-spam-filter current-message)
+		    (setq current-message (1+ current-message))))
 
-	      (save-excursion
-		(save-restriction
-                  (goto-char (point-max))
-		  (narrow-to-region (point) (point))
-		  ;; Read in the contents of the inbox files, renaming
-		  ;; them as necessary, and adding to the list of files
-		  ;; to delete eventually.
-		  (if file-name
-		      (rmail-insert-inbox-text files nil)
-		    (setq delete-files (rmail-insert-inbox-text files t)))
-		  (unless (equal (point-min) (point-max))
-		    (setq new-messages (rmail-process-new-messages)
-                          rmail-current-message (1+ rmail-total-messages)
-                          rmail-total-messages (rmail-desc-get-count))
-		    (run-hooks 'rmail-get-new-mail-hook)
-		    (save-buffer))
-		  ;; Delete the old files, now that the RMAIL file is
-		  ;; saved.
-		  (dolist (i delete-files)
-		    (condition-case nil
-			;; First, try deleting.
-			(condition-case nil
-			    (delete-file i)
-			  ;; If we can't delete it, truncate it.
-			  (file-error (write-region (point) (point) i)))
-		      (file-error nil)))))
-	      (if (= new-messages 0)
-		  (progn (goto-char opoint)
-			 (when (or file-name rmail-inbox-list)
-			   (message "(No new mail has arrived)")))
-		;; Make the first unseen message the current message
-		;; and update the summary buffer, if one exists.
-		(setq current-message (rmail-first-unseen-message))
-		(if (rmail-summary-exists)
-		    (with-current-buffer rmail-summary-buffer
-                      (rmail-update-summary)))
-                ;; Process the new messages for spam using the
-                ;; integrated spam filter.  The spam filter can mark
-                ;; messages for deletion and can output a message.
-                (if rmail-use-spam-filter
-                    ;; Loop through the new messages processing each
-                    ;; message for spam.
-                    (while (<= current-message rmail-total-messages)
-                      (rmail-spam-filter current-message)
-                      (setq current-message (1+ current-message))))
+	      ;; Position the mail cursor again.
+	      (setq current-message (rmail-first-unseen-message))
+	      (if (rmail-summary-exists)
+		  (with-current-buffer rmail-summary-buffer
+		    (rmail-update-summary)
+		    (rmail-summary-goto-msg current-message))
+		(rmail-show-message current-message))
 
-                ;; Position the mail cursor again.
-		(setq current-message (rmail-first-unseen-message))
-		(if (rmail-summary-exists)
-		    (with-current-buffer rmail-summary-buffer
-                      (rmail-update-summary)
-                      (rmail-summary-goto-msg current-message))
-                  (rmail-show-message current-message))
-
-                ;; Run the after get new mail hook.
-		(run-hooks 'rmail-after-get-new-mail-hook)
-		(message "%d new message%s read"
-			 new-messages (if (= 1 new-messages) "" "s"))
-		(setq found t))))
+	      ;; Run the after get new mail hook.
+	      (run-hooks 'rmail-after-get-new-mail-hook)
+	      (message "%d new message%s read"
+		       new-messages (if (= 1 new-messages) "" "s"))
+	      (setq found t)))
 	  found)
       ;; Don't leave the buffer screwed up if we get a disk-full error.
       (file-error (or found (rmail-show-message))))))
