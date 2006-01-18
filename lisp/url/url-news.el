@@ -1,7 +1,7 @@
 ;;; url-news.el --- News Uniform Resource Locator retrieval code
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -30,10 +30,9 @@
 (require 'nntp)
 (autoload 'url-warn "url")
 (autoload 'gnus-group-read-ephemeral-group "gnus-group")
-(eval-when-compile
-  (require 'cl)
-  (defvar nntp-open-tls-stream)
-  (defvar nntp-open-ssl-stream))
+(eval-when-compile (require 'cl))
+(defvar nntp-open-tls-stream)
+(defvar nntp-open-ssl-stream)
 
 (defgroup url-news nil
   "News related options."
@@ -59,8 +58,7 @@
     (if (cdr-safe (nntp-request-article message-id nil host buf))
 	;; Successfully retrieved the article
 	nil
-      (save-excursion
-	(set-buffer buf)
+      (with-current-buffer buf
 	(insert "Content-type: text/html\n\n"
 		"<html>\n"
 		" <head>\n"
@@ -97,8 +95,7 @@
   ;; This saves us from checking new news if Gnus is already running
   ;; FIXME - is it relatively safe to use gnus-alive-p here? FIXME
   (if (or (not (get-buffer gnus-group-buffer))
-	  (save-excursion
-	    (set-buffer gnus-group-buffer)
+	  (with-current-buffer gnus-group-buffer
 	    (not (eq major-mode 'gnus-group-mode))))
       (gnus))
   (set-buffer gnus-group-buffer)
@@ -117,9 +114,8 @@
 	 (port (url-port url))
 	 (article-brackets nil)
 	 (buf nil)
-	 (article (url-filename url)))
+	 (article (url-unhex-string (url-filename url))))
     (url-news-open-host host port (url-user url) (url-password url))
-    (setq article (url-unhex-string article))
     (cond
      ((string-match "@" article)	; Its a specific article
       (setq buf (url-news-fetch-message-id host article)))
@@ -138,5 +134,5 @@
 
 (provide 'url-news)
 
-;;; arch-tag: 8975be13-04e8-4d38-bfff-47918e3ad311
+;; arch-tag: 8975be13-04e8-4d38-bfff-47918e3ad311
 ;;; url-news.el ends here
