@@ -1938,7 +1938,7 @@ non-nil then do not show any progress messages."
 	(new-message-counter 0)
 	(start (point-max))
 	end attributes keywords message-descriptor-list
-	date coding)
+	date coding sender)
     (or nomsg (message "Processing new messages..."))
     ;; Process each message in turn starting from the back and
     ;; proceeding to the front of the region.  This is especially a
@@ -2023,7 +2023,8 @@ non-nil then do not show any progress messages."
                                      keywords
 				     date
                                      (count-lines start end)
-                                     (rmail-get-sender)
+				     (cadr (mail-extract-address-components
+					    (mail-fetch-field "from")))
                                      (rmail-header-get-header "subject")))
 			 message-descriptor-list)))))
     ;; Add the new message data lists to the Rmail message descriptor
@@ -3483,65 +3484,6 @@ encoded string (and the same mask) will decode the string."
      (aset string-vector i (logxor charmask (aref string-vector i)))
      (setq i (1+ i)))
    (concat string-vector)))
-
-;;; New functions that need better placement.
-(defun rmail-get-sender ()
-  "Return the message sender.
-The current buffer (possibly narrowed) contains a single message."
-  (save-excursion
-    (goto-char (point-min))
-    (if (not (re-search-forward "^From:[ \t]*" nil t))
-	"                         "
-      (let* ((from (mail-strip-quoted-names
-		    (buffer-substring
-		     (1- (point))
-		     ;; Get all the lines of the From field
-		     ;; so that we get a whole comment if there is one,
-		     ;; so that mail-strip-quoted-names can discard it.
-		     (let ((opoint (point)))
-		       (while (progn (forward-line 1)
-				     (looking-at "[ \t]")))
-		       ;; Back up over newline, then trailing spaces or tabs
-		       (forward-char -1)
-		       (skip-chars-backward " \t")
-		       (point)))))
-	     len mch lo)
-	(if (string-match (concat "^\\("
-				  (regexp-quote (user-login-name))
-				  "\\($\\|@\\)\\|"
-				  (regexp-quote
-				   ;; Don't lose if run from init file
-				   ;; where user-mail-address is not
-				   ;; set yet.
-				   (or user-mail-address
-				       (concat (user-login-name) "@"
-					       (or mail-host-address
-						   (system-name)))))
-				  "\\>\\)")
-			  from)
-	    (save-excursion
-	      (goto-char (point-min))
-	      (if (not (re-search-forward "^To:[ \t]*" nil t))
-		  nil
-		(setq from
-		      (concat "to: "
-			      (mail-strip-quoted-names
-			       (buffer-substring
-				(point)
-				(progn (end-of-line)
-				       (skip-chars-backward " \t")
-				       (point)))))))))
-	(setq len (length from))
-	(setq mch (string-match "[@%]" from))
-	(format "%25s"
-		(if (or (not mch) (<= len 25))
-		    (substring from (max 0 (- len 25)))
-		  (substring from
-			     (setq lo (cond ((< (- mch 14) 0) 0)
-					    ((< len (+ mch 11))
-					     (- len 25))
-					    (t (- mch 14))))
-			     (min len (+ lo 25)))))))))
 
 ;;;;  Desktop support
 
