@@ -1,7 +1,7 @@
 ;;; rmailkwd.el --- part of the "RMAIL" mail reader for Emacs
 
 ;; Copyright (C) 1985, 1988, 1994, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -121,37 +121,44 @@ Return WORD if it is a new entry, nil otherwise."
 
 ;;;###autoload
 (defun rmail-add-label (string)
-  "Add LABEL to labels associated with current RMAIL message.
-Completion is performed over known labels when reading."
+  "Add LABEL to labels associated with current RMAIL message."
   (interactive (list (rmail-read-label "Add label")))
   (rmail-set-label string t)
   (rmail-display-labels))
 
 ;;;###autoload
 (defun rmail-kill-label (string)
-  "Remove LABEL from labels associated with current RMAIL message.
-Completion is performed over known labels when reading."
-  (interactive (list (rmail-read-label "Remove label")))
+  "Remove LABEL from labels associated with current RMAIL message."
+  (interactive (list (rmail-read-label "Remove label" t)))
   (rmail-set-label string nil))
 
 ;;;###autoload
-(defun rmail-read-label (prompt)
-  (if (= rmail-total-messages 0)
-      (error "No messages in this file"))
+(defun rmail-read-label (prompt &optional existing)
+  "Ask for a label using PROMPT.
+If EXISTING is non-nil, ask for one of the labels of the current
+message."
+  (when (= rmail-total-messages 0)
+    (error "No messages in this file"))
   (with-current-buffer rmail-buffer
-    (let ((result
-	   (completing-read (concat prompt
-				    (if rmail-last-label
-					(concat " (default "
-						(symbol-name rmail-last-label)
-						"): ")
-				      ": "))
-			    rmail-label-obarray
-			    nil
-			    nil)))
-      (if (string= result "")
-	  rmail-last-label
-	(setq rmail-last-label (rmail-make-label result t))))))
+    (let ((result (if existing
+		      (let* ((keywords (rmail-desc-get-keywords
+					rmail-current-message))
+			     (last (symbol-name rmail-last-label))
+			     (default (if (member last keywords)
+					  last
+					(car keywords))))
+			(unless keywords
+			  (error "No labels for the current message"))
+			(completing-read
+			 (concat prompt " (default " default "): ")
+			 keywords nil t nil nil default))
+		    (let ((default (symbol-name rmail-last-label)))
+		      (completing-read
+		       (concat prompt (if rmail-last-label
+					  (concat " (default " default "): ")
+					": "))
+		       rmail-label-obarray nil nil nil nil default)))))
+      (setq rmail-last-label (rmail-make-label result t)))))
 
 (defun rmail-set-label (l state &optional n)
   "Add (STATE is non-nil) or remove (STATE is nil) label L in message N.
@@ -171,8 +178,9 @@ possibly narrowed, displays a message."
         (let ((keyword (symbol-name l)))
           (if state
               (rmail-desc-add-keyword keyword n)
-            (rmail-desc-remove-keyword keyword n)))))))
-
+            (rmail-desc-remove-keyword keyword n)))
+	;; FIXME: handle redisplay in the summary buffer
+	(rmail-display-labels)))))
 
 ;; Motion on messages with keywords.
 
