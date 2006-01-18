@@ -1,7 +1,6 @@
 ;;; rmaildesc.el --- Low level message descriptor library for Rmail.
 
-;; Copyright (C) 2002
-;;		Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2006  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -28,12 +27,6 @@
 ;;; This package provides low level functions for tracking messages in Rmail.  
 
 ;;; Code:
-
-;; Written by Paul Reilly as part of moving BABYL to mbox format.
-
-(eval-when-compile
-  (require 'rmailhdr)
-  (require 'mail-utils))
 
 (defvar rmail-desc-attributes nil
   "A private variable providing temporary access to message attributes.")
@@ -116,7 +109,7 @@ where
   "The index for the `deleted' attribute.")
 
 (defconst rmail-desc-edited-index 2
-  "The index for the `edited' attirute.")
+  "The index for the `edited' attribute.")
 
 (defconst rmail-desc-filed-index 3
   "The index for the `filed' attribute.")
@@ -200,57 +193,37 @@ N is 1 based, i.e. the first message number is 1."
 
 (defun rmail-desc-add-keyword (keyword n)
   "Add KEYWORD to the list of keywords for message N.
-The current buffer, likely narrowed, contains message N."
-
-  ;; Append KEYWORD to the descriptor for message N.
+The current buffer must be narrowed to message N.  Both
+`rmail-desc-vector' and the message headers are updated."
   (save-excursion
     (save-restriction
-      (let ((keyword-list (rmail-desc-get-keyword-list n))
+      (let ((keywords (rmail-desc-get-keywords n))
             (display-state (rmail-desc-get-header-display-state n)))
-        (rmail-header-show-headers)
-        (if keyword-list
-
-            ;; ??? Don't use setcdr for this.
-            ;; Just add it to the front of the list
-            ;; and store the updated list back in its proper place.
-
-            ;; Append the string to the list unless it already is there.
-            (unless (member-ignore-case keyword keyword-list)
-              (setcdr keyword-list (append (cdr keyword-list) (list keyword)))
-
-              ;; Persist the label for this message.
-              (rmail-header-add-header
-               rmail-header-keyword-header
-               (concat (rmail-header-get-header rmail-header-keyword-header)
-                       "," keyword)))
-
-          ;; Create the initial keyword list as well as the keyword header
-          ;; and persist the header.
-          (setq keyword-list
-                (nthcdr rmail-desc-keywords-index (rmail-desc-get-descriptor n)))
-          (setcar keyword-list (list keyword))
-          (rmail-header-add-header rmail-header-keyword-header keyword))
-        (rmail-header-toggle-visibility display-state)))))
+	(unless (member keyword keywords)
+	  (setq keywords (cons keyword keywords))
+	  (setcar (nthcdr rmail-desc-keywords-index (rmail-desc-get-descriptor n))
+		  keywords)
+	  (rmail-header-show-headers)
+	  (rmail-header-add-header rmail-header-keyword-header
+				   (mapconcat 'identity keywords ","))
+	  (rmail-header-toggle-visibility display-state))))))
         
 (defun rmail-desc-remove-keyword (keyword n)
   "Remove KEYWORD from the list of keywords for message N.
-The current buffer, likely narrowed, contains message N."
-
-  ;; Remove KEYWORD from the descriptor for message N.
+The current buffer must be narrowed to message N.  Both
+`rmail-desc-vector' and the message headers are updated."
   (save-excursion
     (save-restriction
-      (let ((desc-list (nthcdr rmail-desc-keywords-index
-                               (rmail-desc-get-descriptor n)))
+      (let ((keywords (rmail-desc-get-keywords n))
             (display-state (rmail-desc-get-header-display-state n)))
-
-        ;; Remove the keyword from the descriptor.
-        (setcar desc-list (delete keyword (car desc-list)))
-
-        ;; Persist the change by removing the keyword for the keywords
-        ;; header and restore the display state.
-        (rmail-header-show-headers)
-        (rmail-header-delete-keyword keyword)
-        (rmail-header-toggle-visibility display-state)))))
+	(when (member keyword keywords)
+	  (setq keywords (delete keyword keywords))
+	  (setcar (nthcdr rmail-desc-keywords-index (rmail-desc-get-descriptor n))
+		  keywords)
+	  (rmail-header-show-headers)
+	  (rmail-header-add-header rmail-header-keyword-header
+				   (mapconcat 'identity keywords ","))
+	  (rmail-header-toggle-visibility display-state))))))
         
 (defun rmail-desc-attr-p (attr-index n)
   "Return the state of the the attribute denoted by ATTR-INDEX in
@@ -346,7 +319,7 @@ If the attribute is not set, return nil."
        (cdr (assoc attr-index rmail-desc-attr-alist))))
 
 (defun rmail-desc-get-keyword-list (n)
-  "Return the list of User defined keywords for message N."
+  "Return the list of user-defined labels for message N."
   (nth rmail-desc-keywords-index (rmail-desc-get-descriptor n)))
 
 (defun rmail-desc-get-keyword-maybe (attribute)
@@ -357,8 +330,8 @@ ATTRIBUTE is a cons cell associating an attribute index with a keyword string."
 	(nth rmail-desc-attr-keyword-index (cdr attribute)))))
 
 (defun rmail-desc-get-keywords (n)
-  "Return a list of keywords for message N."
-  ;; Combine the attribute keywords with the User defined keywords.
+  "Return a list of keywords for message N.
+This includes the attributes."
   (setq rmail-desc-attributes (rmail-desc-get-attributes n))
   (append (delq nil (mapcar
                      'rmail-desc-get-keyword-maybe
