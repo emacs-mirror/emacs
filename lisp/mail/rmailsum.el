@@ -292,72 +292,6 @@ By default, `identity' is set."
   :type 'function
   :group 'rmail-summary)
 
-;; mbox: not ready
-(defun rmail-make-summary-line-1 (msg)
-  (goto-char (rmail-desc-get-start msg))
-  (let* ((lim (save-excursion (forward-line 2) (point)))
-         (labels
-          (progn
-            (forward-char 3)
-            (concat
-;	     (if (save-excursion (re-search-forward ",answered," lim t))
-;		 "*" "")
-;	     (if (save-excursion (re-search-forward ",filed," lim t))
-;		 "!" "")
-	     (if (progn (search-forward ",,") (eolp))
-		 ""
-	       (concat "{"
-		       (buffer-substring (point)
-					 (progn (end-of-line)
-						(backward-char)
-						(if (looking-at ",")
-						    (point)
-						  (1+ (point)))))
-		       " } ")))))
-	 (line
-	  (progn
-	    (forward-line 1)
-	    (if (looking-at "Summary-line: ")
-		(progn
-		  (goto-char (match-end 0))
-		  (buffer-substring (point)
-                                    (progn (forward-line 1) (point)))))))
-	 pos)
-
-    ;; Obsolete status lines lacking a # should be flushed.
-    (and line
-	 (not (string-match "#" line))
-	 (progn
-	   (delete-region (point)
-			  (progn (forward-line -1) (point)))
-	   (setq line nil)))
-    ;; If we didn't get a valid status line from the message,
-    ;; make a new one and put it in the message.
-    (or line
-	(let* ((case-fold-search t)
-	       (next (rmail-desc-get-end msg))
-	       (beg (if (progn (goto-char (rmail-desc-get-start msg))
-			       (search-forward "\n*** EOOH ***\n" next t))
-			(point)
-		      (forward-line 1)
-		      (point)))
-	       (end (progn (search-forward "\n\n" nil t) (point))))
-	  (save-restriction
-	    (narrow-to-region beg end)
-	    (goto-char beg)
-	    (setq line (rmail-make-basic-summary-line)))
-	  (goto-char (rmail-desc-get-start msg))
-	  (forward-line 2)
-	  (insert "Summary-line: " line)))
-    (setq pos (string-match "#" line))
-    (aset rmail-summary-vector (1- msg)
-	  (funcall rmail-summary-line-decoder
-		   (concat (format "%5d  " msg)
-			   (substring line 0 pos)
-			   labels
-			   (substring line (1+ pos)))))
-    ))
-
 ;;;###autoload
 (defcustom rmail-user-mail-address-regexp nil
   "*Regexp matching user mail addresses.
@@ -376,124 +310,6 @@ Setting this variable has an effect only before reading a mail."
   :group 'rmail-retrieve
   :version "21.1")
 
-;; mbox: not ready
-(defun rmail-make-basic-summary-line ()
-  (goto-char (point-min))
-  (concat (save-excursion
-	    (if (not (re-search-forward "^Date:" nil t))
-		"      "
-	      (cond ((re-search-forward "\\([^0-9:]\\)\\([0-3]?[0-9]\\)\\([- \t_]+\\)\\([adfjmnos][aceopu][bcglnprtvy]\\)"
-		      (save-excursion (end-of-line) (point)) t)
-		     (format "%2d-%3s"
-			     (string-to-number (buffer-substring
-                                                (match-beginning 2)
-                                                (match-end 2)))
-			     (buffer-substring
-			      (match-beginning 4) (match-end 4))))
-		    ((re-search-forward "\\([^a-z]\\)\\([adfjmnos][acepou][bcglnprtvy]\\)\\([-a-z \t_]*\\)\\([0-9][0-9]?\\)"
-		      (save-excursion (end-of-line) (point)) t)
-		     (format "%2d-%3s"
-			     (string-to-number (buffer-substring
-                                                (match-beginning 4)
-                                                (match-end 4)))
-			     (buffer-substring
-			      (match-beginning 2) (match-end 2))))
-		    ((re-search-forward "\\(19\\|20\\)\\([0-9][0-9]\\)-\\([01][0-9]\\)-\\([0-3][0-9]\\)"
-		      (save-excursion (end-of-line) (point)) t)
-		     (format "%2s%2s%2s"
-			     (buffer-substring
-			      (match-beginning 2) (match-end 2))
-			     (buffer-substring
-			      (match-beginning 3) (match-end 3))
-			     (buffer-substring
-			      (match-beginning 4) (match-end 4))))
-		    (t "??????"))))
-	  "  "
-	  (save-excursion
-	    (if (not (re-search-forward "^From:[ \t]*" nil t))
-		"                         "
-	      (let* ((from (mail-strip-quoted-names
-			    (buffer-substring
-			     (1- (point))
-			     ;; Get all the lines of the From field
-			     ;; so that we get a whole comment if there is one,
-			     ;; so that mail-strip-quoted-names can discard it.
-			     (let ((opoint (point)))
-			       (while (progn (forward-line 1)
-					     (looking-at "[ \t]")))
-			       ;; Back up over newline, then trailing
-			       ;; spaces or tabs
-			       (forward-char -1)
-			       (skip-chars-backward " \t")
-			       (point)))))
-                     len mch lo)
-		(if (string-match
-		     (or rmail-user-mail-address-regexp
-			 (concat "^\\("
-				 (regexp-quote (user-login-name))
-				 "\\($\\|@\\)\\|"
-				 (regexp-quote
-				  ;; Don't lose if run from init file
-				  ;; where user-mail-address is not
-				  ;; set yet.
-				  (or user-mail-address
-				      (concat (user-login-name) "@"
-					      (or mail-host-address
-						  (system-name)))))
-				 "\\>\\)"))
-		     from)
-		    (save-excursion
-		      (goto-char (point-min))
-		      (if (not (re-search-forward "^To:[ \t]*" nil t))
-			  nil
-			(setq from
-			      (concat "to: "
-				      (mail-strip-quoted-names
-				       (buffer-substring
-					(point)
-					(progn (end-of-line)
-					       (skip-chars-backward " \t")
-					       (point)))))))))
-		(setq len (length from))
-		(setq mch (string-match "[@%]" from))
-		(format "%25s"
-			(if (or (not mch) (<= len 25))
-			    (substring from (max 0 (- len 25)))
-			  (substring from
-				     (setq lo (cond ((< (- mch 14) 0) 0)
-						    ((< len (+ mch 11))
-						     (- len 25))
-						    (t (- mch 14))))
-				     (min len (+ lo 25))))))))
-          (if rmail-summary-line-count-flag
-	      (save-excursion
-		(save-restriction
-		  (widen)
-		  (let ((beg (rmail-desc-get-start rmail-current-message))
-			(end (rmail-desc-get-end rmail-current-message))
-			lines)
-		    (save-excursion
-		      (goto-char beg)
-		      ;; Count only lines in the reformatted header,
-		      ;; if we have reformatted it.
-		      (search-forward "\n*** EOOH ***\n" end t)
-		      (setq lines (count-lines (point) end)))
-		    (format (cond
-			     ((<= lines     9) "   [%d]")
-			     ((<= lines    99) "  [%d]")
-			     ((<= lines   999) " [%3d]")
-			     (t		    "[%d]"))
-			    lines))))
-            " ")
-	  " #"				;The # is part of the format.
-	  (if (re-search-forward "^Subject:" nil t)
-	      (progn (skip-chars-forward " \t")
-		     (buffer-substring (point)
-				       (progn (end-of-line)
-					      (point))))
-	    (re-search-forward "[\n][\n]+" nil t)
-	    (buffer-substring (point) (progn (end-of-line) (point))))
-	  "\n"))
 
 ;;;; Simple motion in a summary buffer.
 
@@ -517,7 +333,6 @@ move forward one message."
        (forward-line -1))
   (display-buffer rmail-buffer))
 
-;;; mbox: ready
 (defun rmail-summary-next-msg (&optional number)
   "Display next non-deleted msg from rmail file.
 With optional prefix argument NUMBER, moves forward this number of
@@ -529,7 +344,6 @@ non-deleted messages, or backward if NUMBER is negative."
       (setq msg rmail-current-message))
     (rmail-summary-goto-msg msg)))
 
-;;; mbox: ready
 (defun rmail-summary-previous-msg (&optional number)
   "Display previous non-deleted msg from rmail file.
 With optional prefix argument NUMBER, moves backward this number of
@@ -1412,7 +1226,7 @@ Completion is performed over known labels when reading."
   "Remove LABEL from labels associated with current Rmail message.
 Completion is performed over known labels when reading."
   (interactive (list (with-current-buffer rmail-buffer
-		       (rmail-read-label "Kill label"))))
+		       (rmail-read-label "Kill label" t))))
   (with-current-buffer rmail-buffer
     (rmail-set-label label nil)))
 
