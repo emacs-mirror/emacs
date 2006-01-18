@@ -1,3 +1,31 @@
+2006-01-18  Alex Schroeder  <alex@gnu.org>
+
+	* rmailsum.el (rmail-make-summary-line-1)
+	(rmail-make-basic-summary-line): Deleted.
+	(rmail-summary-kill-label): Only ask for existing labels.
+
+	* rmailkwd.el (rmail-add-label): Doc fix.
+	(rmail-kill-label): Only read labels that the current message has.
+	(rmail-read-label): Possibly only ask for existing labels.
+	(rmail-set-label): Display labels at the end.
+
+	* rmailhdr.el (rmail-header-get-limit): Rewrote macro as simple
+	defun.
+	(rmail-header-persist-attributes): Doc.
+	(rmail-header-add-header): Simplified the finding of the header.
+	Delete header if value is nil or "".
+	(rmail-header-remove-keyword): Deleted stub.  Removing can be
+	handled by calling `rmail-header-add-header' with value nil or "".
+
+	* rmailedit.el (rmail-cease-edit): Bugfix.
+
+	* rmaildesc.el: Removed require statements.
+	(rmail-desc-add-keyword, rmail-desc-remove-keyword): Rewrite.
+	(rmail-desc-get-keywords, rmail-desc-get-keyword-list)
+	(rmail-desc-edited-index): Doc fix.
+
+	* rmail.el (rmail-set-attribute): Moved comment into document.
+
 2006-01-18  Henrik Enberg  <enberg@printf.se>
 
 	* rmail.el (rmail-get-inbox-list): New function.
