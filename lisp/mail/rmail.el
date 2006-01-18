@@ -799,12 +799,12 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	 (get-buffer-create (file-name-nondirectory file-name)))
 	(when (file-exists-p file-name)
 	  (insert-file-contents-literally file-name))
-	(setq buffer-file-name file-name))
-      ;; As we have read a file as raw-text, the buffer is set to
-      ;; unibyte.  We must make it multibyte if necessary.
-      (if (and rmail-enable-multibyte
-	       (not enable-multibyte-characters))
-	  (set-buffer-multibyte t)))
+	(setq buffer-file-name file-name)
+	;; As we have read a file as raw-text, the buffer is set to
+	;; unibyte.  We must make it multibyte if necessary.
+	(if (and rmail-enable-multibyte
+		 (not enable-multibyte-characters))
+	    (set-buffer-multibyte t))))
     ;; Make sure we're in rmail-mode, even if the buffer did exist and
     ;; the file was not changed.
     (unless (eq major-mode 'rmail-mode)
@@ -866,7 +866,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
       (unless (memq coding-system '(undecided undecided-unix))
 	(set-buffer-modified-p t) ;; avoid locking when decoding
 	(let ((buffer-undo-list t))
-	  (decode-coding-region from to coding-system))
+	  (decode-coding-region (point-min) (point-max) coding-system))
 	(setq coding-system last-coding-system-used))
       (set-buffer-modified-p modifiedp)
       (setq buffer-file-coding-system nil)
