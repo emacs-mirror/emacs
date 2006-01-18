@@ -1271,11 +1271,14 @@ argument says to read a file name and use that file as the inbox."
   (interactive
    (list (if current-prefix-arg
 	     (read-file-name "Get new mail from file: "))))
-  (let (current-message)
+  (let (current-message new-mail)
     (with-current-buffer rmail-buffer
-      (rmail-get-new-mail file-name)
-      (setq current-message rmail-current-message))
-    (rmail-summary-goto-msg current-message nil t)))
+      (setq new-mail (rmail-get-new-mail file-name)
+	    current-message rmail-current-message))
+    ;; If new mail was found, display of the correct message was
+    ;; done elsewhere.
+    (unless new-mail
+      (rmail-summary-goto-msg current-message nil t))))
 
 (defun rmail-summary-input (filename)
   "Run Rmail on file FILENAME."
