@@ -828,6 +828,8 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	    (delete-file new-file))))
       (goto-char (point-max))
       (rmail-mode-2)
+      ;; setup files coding system
+      (rmail-decode-mbox-file)
       ;;  We use `run-mail-hook' to remember whether we should run
       ;; `rmail-mode-hook' at the end.
       (setq run-mail-hook t)
@@ -850,19 +852,25 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
     (if run-mail-hook
         (run-hooks 'rmail-mode-hook))))
 
-;; Given the value of MAILPATH, return a list of inbox file names.
-;; This is turned off because it is not clear that the user wants
-;; all these inboxes to feed into the primary rmail file.
-; (defun rmail-convert-mailpath (string)
-;   (let (idx list)
-;     (while (setq idx (string-match "[%:]" string))
-;       (let ((this (substring string 0 idx)))
-; 	(setq string (substring string (1+ idx)))
-; 	(setq list (cons (if (string-match "%" this)
-; 			     (substring this 0 (string-match "%" this))
-; 			   this)
-; 			 list))))
-;     list))
+(defun rmail-decode-mbox-file ()
+  "Decode file to a suitable conding system."
+  (when (and (not rmail-enable-mime) rmail-enable-multibyte)
+    (let ((modifiedp (buffer-modified-p))
+	  (buffer-read-only nil)
+	  (coding-system rmail-file-coding-system))
+      (unless (and coding-system (coding-system-p coding-system))
+	(setq coding-system
+	      (car (detect-coding-with-priority
+		    (point-min) (point-max)
+		    '((coding-category-emacs-mule . emacs-mule))))))
+      (unless (memq coding-system '(undecided undecided-unix))
+	(set-buffer-modified-p t) ;; avoid locking when decoding
+	(let ((buffer-undo-list t))
+	  (decode-coding-region from to coding-system))
+	(setq coding-system last-coding-system-used))
+      (set-buffer-modified-p modifiedp)
+      (setq buffer-file-coding-system nil)
+      (setq save-buffer-coding-system (or coding-system 'undecided)))))
 
 (defun rmail-initialize-messages ()
   "Initialize message state based on messages in the buffer."
@@ -1965,8 +1973,8 @@ non-nil then do not show any progress messages."
 	  ;; Bump the new message counter.
 	  (setq new-message-counter (1+ new-message-counter))
 	  ;; I don't understand why the following is done ... -pmr
-	  ;; Detect messages that have been added with DOS line
-	  ;; endings and convert the line endings for such messages.
+	  ;; Detect messages that have been added with DOS line endings
+	  ;; and convert the line endings for such messages.
 	  (if (save-excursion (end-of-line) (= (preceding-char) ?\r))
 	      (let ((buffer-read-only nil)
 		    (buffer-undo t)
@@ -1980,15 +1988,26 @@ non-nil then do not show any progress messages."
 		(setq end (marker-position end-marker))
 		(set-marker end-marker nil)))
 
+	  ;; Decode Message according to charset.
+	  (setq last-coding-system-used nil)
+	  (or rmail-enable-mime
+	      (not rmail-enable-multibyte)
+	      (let ((mime-charset
+		     (if (and rmail-decode-mime-charset
+			      (save-excursion
+				(goto-char start)
+				(search-forward "\n\n" nil t)
+				(let ((case-fold-search t))
+				  (re-search-backward
+				   rmail-mime-charset-pattern
+				   start t))))
+			 (intern (downcase (match-string 1))))))
+		(rmail-decode-region start (point) mime-charset)))
+
 	  ;; Add an X-Coding-System header if we don't have one.
 	  (unless (rmail-header-get-header "X-Coding-System")
-	    (let ((case-fold-search t))
-	      (when (save-excursion
-		      (goto-char start)
-		      (search-forward "\n\n" nil t)
-		      (re-search-backward rmail-mime-charset-pattern start t))
-		(rmail-header-add-header "X-Coding-System"
-					 (downcase (match-string 1))))))
+	    (rmail-header-add-header "X-Coding-System"
+				     (symbol-name last-coding-system-used)))
 
 	  ;; Make sure we have an Rmail BABYL attribute header field.
 	  ;; All we can assume is that the Rmail BABYL header field is
@@ -2094,14 +2113,13 @@ Ask the user whether to add that list name to `mail-mailing-lists'."
   "Show message number N (prefix argument), counting from start of file.
 If NO-SUMMARY is non-nil, then do not update the summary buffer."
   (interactive "p")
-  (or (eq major-mode 'rmail-mode)
-      (switch-to-buffer rmail-buffer))
+  (unless (eq major-mode 'rmail-mode)
+    (switch-to-buffer rmail-buffer))
   (if (zerop rmail-total-messages)
       (progn
         (message "No messages to show.  Add something better soon.")
-        ;; (rmail-display-labels)
         (force-mode-line-update))
-    (let (blurb coding-system)
+    (let (blurb)
       ;; Set n to the first sane message based on the sign of n:
       ;; positive but greater than the total number of messages -> n;
       ;; negative -> 1.
@@ -2129,16 +2147,6 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
 	(narrow-to-region beg end)
         (goto-char (point-min))
 
-	;; I think this is stale. -pmr
-	;;(rfc822-goto-eoh)
-	;;(narrow-to-region beg (point))
-	;;(goto-char (point-min))
-	;;(if (re-search-forward "^X-Coding-System: *\\(.*\\)$" nil t)
-	;;    (let ((coding-system (intern (match-string 1))))
-	;;      (check-coding-system coding-system)
-	;;      (setq buffer-file-coding-system coding-system))
-        ;;  (setq buffer-file-coding-system nil))))
-
         ;; Do something here with the coding system, I'm not sure what. -pmr
         (if (re-search-forward "^X-Coding-System: *\\(.*\\)$" nil t)
             (let ((coding-system (intern (match-string 1))))
@@ -2152,8 +2160,8 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
 
         ;; Clear the "unseen" attribute when we show a message, unless
 	;; it is already cleared.
-	(if (rmail-desc-attr-p rmail-desc-unseen-index n)
-	    (rmail-desc-set-attribute rmail-desc-unseen-index nil n))
+	(when (rmail-desc-attr-p rmail-desc-unseen-index n)
+	  (rmail-desc-set-attribute rmail-desc-unseen-index nil n))
 
 ;; More code that has been added that I ill understand.
 ;;	(walk-windows
@@ -2163,30 +2171,22 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
 ;;	 nil t)
 
 	(rmail-display-labels)
-
 	;; Deal with MIME
 	(if (eq rmail-enable-mime t)
 	    (funcall rmail-show-mime-function)
-
 	;; Deal with the message headers and URLs..
 	(rmail-header-hide-headers)
 	(rmail-highlight-headers)
-
-	;; ?
-	(if transient-mark-mode (deactivate-mark))
-
+	(when transient-mark-mode (deactivate-mark))
         ;; Make sure that point in the Rmail window is at the beginning
         ;; of the buffer.
         (set-window-point (get-buffer-window rmail-buffer) (point))
-
 	;; Run any User code.
 	(run-hooks 'rmail-show-message-hook)
-
-	;; If there is a summary buffer, try to move to this message
-	;; in that buffer.  But don't complain if this message
-	;; is not mentioned in the summary.
-	;; Don't do this at all if we were called on behalf
-	;; of cursor motion in the summary buffer.
+	;; If there is a summary buffer, try to move to this message in
+	;; that buffer.  But don't complain if this message is not
+	;; mentioned in the summary.  Don't do this at all if we were
+	;; called on behalf of cursor motion in the summary buffer.
 	(and (rmail-summary-exists) (not no-summary)
              (save-excursion
                (let ((curr-msg rmail-current-message))
@@ -2194,15 +2194,11 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
                  ;; Rmail buffer update.
                  (set-buffer rmail-summary-buffer)
                  (rmail-summary-goto-msg curr-msg nil t))))
-;;;                 (rmail-summary-rmail-update))))
-
-        ;; What is going on here?
 	(with-current-buffer rmail-buffer
 	  (rmail-auto-file))
-
         ;; Post back any status messages.
-	(if blurb
-	    (message blurb)))))))
+	(when blurb
+	  (message blurb)))))))
 
 ;;; NOT DONE
 (defun rmail-redecode-body (coding)

@@ -3,8 +3,13 @@
 	* rmail.el (rmail-get-inbox-list): New function.
 	(rmail-get-new-mail): Use it.  Only call `rmail-show-message'
 	on file-error condition if no new messages are found.
-	(rmail): Only call `rmail-show-message' if no new mail
-	was found.
+	(rmail-get-sender): Deleted.
+	(rmail-process-new-messages): Use mail-fetch-field instead.
+	(rmail-show-message): Cleanup.
+	
+	(rmail-decode-mbox-file): New function.
+	(rmail): Use it. Only call `rmail-show-message' if no new mail was
+	found.
 
 	* rmailsum.el (rmail-summary-get-new-mail): Only call
 	`rmail-summary-goto-msg' if no new mail was found.
