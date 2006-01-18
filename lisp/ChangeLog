@@ -1,3 +1,7 @@
+2006-01-18  Jesper Harder  <harder@phys.au.dk>
+
+	* mail/smtpmail.el (smtpmail-send-it): Use insert-buffer-substring.
+
 2006-01-18  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/make-mode.el (makefile-imake-mode): New mode
