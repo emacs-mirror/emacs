@@ -1,3 +1,8 @@
+2006-01-18  Henrik Enberg  <enberg@printf.se>
+
+	* rmail.el (rmail-get-new-mail): Only call `rmail-show-message'
+	on file-error condition if no new messages are found.
+
 2006-01-18  Alex Schroeder  <alex@gnu.org>
 
 	* rmail.el (rmail): Only insert the file if it actually exists.
