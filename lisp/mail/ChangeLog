@@ -1,12 +1,11 @@
 2006-01-18  Henrik Enberg  <enberg@printf.se>
 
 	* rmail.el (rmail-get-inbox-list): New function.
-	(rmail-get-new-mail): Use it.  Only call `rmail-show-message'
-	on file-error condition if no new messages are found.
+	(rmail-get-new-mail): Use it.  Only call `rmail-show-message' on
+	file-error condition if no new messages are found.
 	(rmail-get-sender): Deleted.
 	(rmail-process-new-messages): Use mail-fetch-field instead.
 	(rmail-show-message): Cleanup.
-	
 	(rmail-decode-mbox-file): New function.
 	(rmail): Use it. Only call `rmail-show-message' if no new mail was
 	found.
