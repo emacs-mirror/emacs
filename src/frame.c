@@ -3604,7 +3604,7 @@ x_frame_get_and_record_arg (f, alist, param, attribute, class, type)
 
   value = x_get_arg (FRAME_X_DISPLAY_INFO (f), alist, param,
 		     attribute, class, type);
-  if (! NILP (value))
+  if (! NILP (value) && ! EQ (value, Qunbound))
     store_frame_param (f, param, value);
 
   return value;
