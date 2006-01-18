@@ -1878,10 +1878,10 @@ otherwise, show it in full."
 	  (with-current-buffer rmail-view-buffer
 	    (setq mode-line-process mlp))))))
 
-;; Turn an attribute of a message on or off according to STATE.
-;; ATTR is the name of the attribute, as a string.
-;; MSGNUM is message number to change; nil means current message.
 (defun rmail-set-attribute (attr state &optional msgnum)
+  "Turn a attribute ATTR of a message on or off according to STATE.
+ATTR is a string, MSGNUM is the optional message number.  By
+default, the current message is changed."
   (save-excursion
     (save-restriction
       (let ((attr-index (rmail-desc-get-attr-index attr)))
