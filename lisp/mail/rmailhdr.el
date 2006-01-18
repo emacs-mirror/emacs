@@ -1,7 +1,6 @@
 ;;; rmail-header.el --- Header handling code of "RMAIL" mail reader for Emacs
 
-;; Copyright (C) 2002
-;;		Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -45,42 +44,37 @@
   "Records the current header display mode.
 nil means headers are displayed, t indicates headers are not displayed.")
 
-(defmacro rmail-header-get-limit ()
-  '(progn
-     (goto-char (point-min))
-     (if (search-forward "\n\n" nil t)
-	 (1- (point))
-       (error "Invalid message format."))))
+(defun rmail-header-get-limit ()
+  "Return the end of the headers."
+  (goto-char (point-min))
+  (if (search-forward "\n\n" nil t)
+      (1- (point))
+    (error "Invalid message format.")))
 
 ;;; The following functions are presented alphabetically ordered by
 ;;; name.
 
 (defun rmail-header-add-header (header value)
   "Add HEADER to the list of headers and associate VALUE with it.
-The current buffer, possibly narrowed, contains a single message."
+The current buffer, possibly narrowed, contains a single message.
+If VALUE is nil or the empty string, the header is removed
+instead."
   (save-excursion
     (let* ((inhibit-read-only t)
 	   (case-fold-search t)
 	   (limit (rmail-header-get-limit))
 	   start end)
-
       ;; Search for the given header.  If found, then set it's value.
       ;; If not then add the header to the end of the header section.
       (goto-char (point-min))
       (if (re-search-forward (format "^%s: " header) limit t)
-
-	  ;; Kill the current value and replace it with the new.
-	  (progn
-            (beginning-of-line)
-	    (setq start (point))
-	    (while (progn
-		     (forward-line 1)
-		     (looking-at "[ \t]+")))
-	    (kill-region start (point)))
-
-	;; Add a new header at the end of the headers.
+	  (let ((start (match-beginning 0)))
+	    (re-search-forward "\n[^ \t]")
+	    (goto-char limit)
+	    (kill-region start (1+ (match-beginning 0))))
 	(goto-char limit))
-      (insert header ": " value "\n"))))
+      (when (> (length value) 0)
+	(insert header ": " value "\n")))))
 
 (defun rmail-header-contains-keyword-p (keyword)
   "Return t if KEYWORD exists in the current buffer, nil otherwise."
@@ -102,7 +96,6 @@ The current buffer, possibly narrowed, contains a single message."
           (inhibit-point-motion-hooks t)
 	  (limit (rmail-header-get-limit))
 	  result start end)
-
       ;; Search for the given header.  If found return it, otherwise
       ;; nil.
       (goto-char (point-min))
@@ -208,14 +201,8 @@ The current buffer, possibly narrowed, contains a single message."
 	  (forward-line 1))))))
 
 (defun rmail-header-persist-attributes (attributes)
-  "Save ATTRIBUTES in the Rmail BABYL header.
-The current buffer, possibly narrowed, contains a single message."
+  "Save ATTRIBUTES in the Rmail BABYL header."
   (rmail-header-set-header rmail-header-attribute-header attributes))
-
-(defun rmail-header-remove-keyword (keyword)
-  "..."
-  ;; tbd
-  )
 
 (defun rmail-header-set-header (header value)
   "Set the current value of HEADER to VALUE.
