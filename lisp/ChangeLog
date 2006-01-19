@@ -1,3 +1,9 @@
+2006-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (auto-coding-regexp-alist-lookup): New
+	function.
+	(find-auto-coding): Use auto-coding-regexp-alist-lookup.
+
 2006-01-18  Jesper Harder  <harder@phys.au.dk>
 
 	* mail/smtpmail.el (smtpmail-send-it): Use insert-buffer-substring.
