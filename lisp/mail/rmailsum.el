@@ -520,7 +520,7 @@ Commands for filtering the summary:
 \\[rmail-summary-by-topic] Filter by Subject.
       Filter by the entire message (header and body) if given a
       prefix argument.
-\\[rmail-summary-by-sender] Filter by From field.
+\\[rmail-summary-by-senders] Filter by From field.
 \\[rmail-summary-by-recipients] Filter by To, From, and Cc fields.
       Filter by To and From only if given a prefix argument.
 
@@ -667,7 +667,7 @@ message and highlight the buffer."
   (define-key rmail-summary-mode-map "\e\C-h" 'rmail-summary)
   (define-key rmail-summary-mode-map "\e\C-l" 'rmail-summary-by-labels)
   (define-key rmail-summary-mode-map "\e\C-r" 'rmail-summary-by-recipients)
-  (define-key rmail-summary-mode-map "\e\C-f" 'rmail-summary-by-sender)
+  (define-key rmail-summary-mode-map "\e\C-f" 'rmail-summary-by-senders)
   (define-key rmail-summary-mode-map "\e\C-s" 'rmail-summary-by-regexp)
   (define-key rmail-summary-mode-map "\e\C-t" 'rmail-summary-by-topic)
   (define-key rmail-summary-mode-map "m"      'rmail-summary-mail)
@@ -1520,29 +1520,19 @@ KEYWORDS is a comma-separated list of labels."
 		     (rmail-summary-get-line-count n)
 		     (concat str (rmail-desc-get-subject n))))))
 
-(defun rmail-summary-update-attribute (attr-index n)
-  "Update the attribute denoted by ATTR-INDEX in message N."
-  (save-excursion
-    (let (offset)
-
-      ;; Position point at the beginning of the attributes.
-      (rmail-summary-goto-msg n)
-      (skip-chars-forward " ")
-      (skip-chars-forward "0-9")
-
-      ;; Determine if the attribute is represented on the summary
-      ;; line.
-      (setq offset (rmail-desc-get-summary-offset attr-index))
-      (if offset
-
-          ;; It is.  If necessary, replace the character code
-          ;; corresponding to ATTR-INDEX.
-          (let ((char (rmail-desc-get-attr-code attr-index n))
-                (buffer-read-only nil))
-            (goto-char (+ (point) offset))
-            (unless (looking-at char)
-              (delete-char 1)
-              (insert char)))))))
+(defun rmail-summary-update (n)
+  "Rewrite the summary line for message N."
+  (with-current-buffer rmail-buffer
+    ;; we need to do this in the rmail-buffer lest the keywords are
+    ;; not recognized
+    (let ((summary (rmail-summary-get-summary n)))
+      (with-current-buffer rmail-summary-buffer
+	(save-excursion
+	  (let ((buffer-read-only nil))
+	    (rmail-summary-goto-msg n)
+	    ;; summary line includes newline at the end
+	    (delete-region (point) (1+ (line-end-position)))
+	    (insert summary)))))))
 
 (provide 'rmailsum)
 
