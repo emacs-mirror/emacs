@@ -365,7 +365,7 @@ This is relative to `smtpmail-queue-dir'.")
 		(make-directory smtpmail-queue-dir t))
 	      (with-current-buffer buffer-data
 		(erase-buffer)
-		(insert-buffer-contents tembuf)
+		(insert-buffer-substring tembuf)
 		(write-file file-data)
 		(set-buffer buffer-elisp)
 		(erase-buffer)

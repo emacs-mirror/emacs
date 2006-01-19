@@ -1875,43 +1875,42 @@ When this is non-nil, the headline after the keyword is set to the
 
 ;; Tell the compiler about dynamically scoped variables,
 ;; and variables from other packages
-(eval-when-compile
-  (defvar zmacs-regions)
-  (defvar original-date)
-  (defvar org-transient-mark-mode)
-  (defvar org-old-auto-fill-inhibit-regexp)
-  (defvar orgtbl-mode-menu)
-  (defvar org-html-entities)
-  (defvar org-goto-start-pos)
-  (defvar org-cursor-color)
-  (defvar org-time-was-given)
-  (defvar org-ts-what)
-  (defvar mark-active)
-  (defvar timecnt)
-  (defvar levels-open)
-  (defvar title)
-  (defvar author)
-  (defvar email)
-  (defvar text)
-  (defvar entry)
-  (defvar date)
-  (defvar language)
-  (defvar options)
-  (defvar ans1)
-  (defvar ans2)
-  (defvar starting-day)
-  (defvar include-all-loc)
-  (defvar vm-message-pointer)
-  (defvar vm-folder-directory)
-  (defvar wl-summary-buffer-elmo-folder)
-  (defvar wl-summary-buffer-folder-name)
-  (defvar gnus-group-name)
-  (defvar gnus-article-current)
-  (defvar w3m-current-url)
-  (defvar org-selected-point)
-  (defvar calendar-mode-map)
-  (defvar remember-save-after-remembering)
-  (defvar remember-data-file))
+(defvar zmacs-regions)
+(defvar original-date)
+(defvar org-transient-mark-mode)
+(defvar org-old-auto-fill-inhibit-regexp)
+(defvar orgtbl-mode-menu)
+(defvar org-html-entities)
+(defvar org-goto-start-pos)
+(defvar org-cursor-color)
+(defvar org-time-was-given)
+(defvar org-ts-what)
+(defvar mark-active)
+(defvar timecnt)
+(defvar levels-open)
+(defvar title)
+(defvar author)
+(defvar email)
+(defvar text)
+(defvar entry)
+(defvar date)
+(defvar language)
+(defvar options)
+(defvar ans1)
+(defvar ans2)
+(defvar starting-day)
+(defvar include-all-loc)
+(defvar vm-message-pointer)
+(defvar vm-folder-directory)
+(defvar wl-summary-buffer-elmo-folder)
+(defvar wl-summary-buffer-folder-name)
+(defvar gnus-group-name)
+(defvar gnus-article-current)
+(defvar w3m-current-url)
+(defvar org-selected-point)
+(defvar calendar-mode-map)
+(defvar remember-save-after-remembering)
+(defvar remember-data-file)
 
 
 ;;; Define the mode
@@ -3101,7 +3100,7 @@ heading be marked DONE, and the current time will be added."
     (if (string-match "\\(.*\\)::\\(.*\\)" org-archive-location)
 	(progn
 	  (setq file (format (match-string 1 org-archive-location)
-			     (file-name-nondirectory (buffer-file-name)))
+			     (file-name-nondirectory buffer-file-name))
 		heading (match-string 2 org-archive-location)))
       (error "Invalid `org-archive-location'"))
     (if (> (length file) 0)
@@ -4032,9 +4031,8 @@ in the timestamp determines what will be changed."
 		  (nthcdr 6 time0))))
     (if (eq what 'calendar)
 	(let ((cal-date
-	       (save-excursion
-		 (save-match-data
-		   (set-buffer "*Calendar*")
+               (save-match-data
+                 (with-current-buffer "*Calendar*"
 		   (calendar-cursor-to-date)))))
 	  (setcar (nthcdr 4 time0) (nth 0 cal-date)) ; month
 	  (setcar (nthcdr 3 time0) (nth 1 cal-date)) ; day
@@ -4287,7 +4285,7 @@ first press `1' to indicate that the agenda should be temporarily (until the
 next use of \\[org-agenda]) restricted to the current file."
   (interactive "P")
   (catch 'exit
-    (let ((restrict-ok (and (buffer-file-name) (eq major-mode 'org-mode)))
+    (let ((restrict-ok (and buffer-file-name (eq major-mode 'org-mode)))
 	  (custom org-agenda-custom-commands)
 	  c entry key type string)
       (put 'org-agenda-files 'org-restrict nil)
@@ -4322,7 +4320,7 @@ C   Configure your own agenda commands")
 	(message "")
 	(when (equal c ?1)
 	  (if restrict-ok
-	      (put 'org-agenda-files 'org-restrict (list (buffer-file-name)))
+	      (put 'org-agenda-files 'org-restrict (list buffer-file-name))
 	    (error "Cannot restrict agenda to current buffer"))
 	  (message "Press key for agenda command%s"
 		   (if restrict-ok " (restricted to current file)" ""))
@@ -4446,8 +4444,8 @@ dates."
 	 (dotodo include-all)
 	 (doclosed org-agenda-show-log)
 	 (org-agenda-keep-modes keep-modes)
-	 (entry (buffer-file-name))
-	 (org-agenda-files (list (buffer-file-name)))
+	 (entry buffer-file-name)
+	 (org-agenda-files (list buffer-file-name))
 	 (date (calendar-current-date))
 	 (win (selected-window))
 	 (pos1 (point))
@@ -4674,10 +4672,9 @@ for a keyword.  A numeric prefix directly selects the Nth keyword in
     (erase-buffer)
     (org-agenda-mode) (setq buffer-read-only nil)
     (set (make-local-variable 'org-agenda-type) 'todo)
-    (set (make-local-variable 'last-arg) arg)
     (set (make-local-variable 'org-todo-keywords) kwds)
     (set (make-local-variable 'org-agenda-redo-command)
-	 '(org-todo-list (or current-prefix-arg last-arg) t))
+	 `(org-todo-list (or current-prefix-arg ',arg) t))
     (setq files (org-agenda-files)
 	  rtnall nil)
     (while (setq file (pop files))
@@ -4974,7 +4971,7 @@ date.  Itt also removes lines that contain only whitespace."
        "Make the position visible."
        (if (and org-disable-agenda-to-diary  ;; called from org-agenda
 		(stringp string)
-		(buffer-file-name))
+		buffer-file-name)
 	   (setq string (org-modify-diary-entry-string string))))))
 
 (defun org-modify-diary-entry-string (string)
@@ -4986,7 +4983,7 @@ date.  Itt also removes lines that contain only whitespace."
 	 'help-echo
 	 (format
 	  "mouse-2 or RET jump to diary file %s"
-	  (abbreviate-file-name (buffer-file-name)))
+	  (abbreviate-file-name buffer-file-name))
 	 'org-agenda-diary-link t
 	 'org-marker (org-agenda-new-marker (point-at-bol)))
    string)
@@ -5008,7 +5005,7 @@ If the current buffer visits an agenda file, find the next one in the list.
 If the current buffer does not, find the first agenda file."
   (interactive)
   (let ((files (append org-agenda-files (list (car org-agenda-files))))
-	(tcf (if (buffer-file-name) (file-truename (buffer-file-name))))
+	(tcf (if buffer-file-name (file-truename buffer-file-name)))
 	file)
     (unless files (error "No agenda files"))
     (catch 'exit
@@ -5019,30 +5016,28 @@ If the current buffer does not, find the first agenda file."
 	      (throw 'exit t))))
       (find-file (car org-agenda-files)))))
 
-(defun org-agenda-file-to-end (&optional file)
+(defun org-agenda-file-to-end ()
   "Move/add the current file to the end of the agenda fiole list.
-I the file is not present in the list, it is appended ot the list.  If it is
-present, it is moved there."
+If the file is not present in the list, append it to the list.  If it is
+present, move it there."
   (interactive)
-  (org-agenda-file-to-front 'to-end file))
+  (org-agenda-file-to-front 'to-end))
 
-(defun org-agenda-file-to-front (&optional to-end file)
+(defun org-agenda-file-to-front (&optional to-end)
   "Move/add the current file to the top of the agenda file list.
-If the file is not present in the list, it is added to the front.  If it is
-present, it is moved there.  With optional argument TO-END, add/move to the
+If the file is not present in the list, add it to the front.  If it is
+present, it move it there.  With optional argument TO-END, add/move to the
 end of the list."
   (interactive "P")
-  (let ((file-alist (mapcar (lambda (x)
-			      (cons (file-truename x) x))
-			    org-agenda-files))
-	(ctf (file-truename (buffer-file-name)))
-	x had)
-    (setq x (assoc ctf file-alist) had x)
-
-    (if (not x) (setq x (cons ctf (abbreviate-file-name (buffer-file-name)))))
-    (if to-end
-	(setq file-alist (append (delq x file-alist) (list x)))
-      (setq file-alist (cons x (delq x file-alist))))
+  (let* ((file-alist (mapcar (lambda (x)
+                               (cons (file-truename x) x))
+                             org-agenda-files))
+         (ctf (file-truename buffer-file-name))
+         (had (assoc ctf file-alist))
+         (x (or had (cons ctf (abbreviate-file-name buffer-file-name)))))
+    (setq file-alist (if to-end
+                         (append (delq x file-alist) (list x))
+                       (cons x (delq x file-alist))))
     (setq org-agenda-files (mapcar 'cdr file-alist))
     (let ((org-mode-hook nil) (default-major-mode 'fundamental-mode))
       (customize-save-variable 'org-agenda-files org-agenda-files))
@@ -5055,7 +5050,7 @@ end of the list."
 These are the files which are being checked for agenda entries.
 Optional argument FILE means, use this file instead of the current."
   (interactive)
-  (let* ((file (or file (buffer-file-name)))
+  (let* ((file (or file buffer-file-name))
 	 (true-file (file-truename file))
 	 (afile (abbreviate-file-name file))
 	 (files (delq nil (mapcar
@@ -5179,9 +5174,9 @@ function from a program - use `org-agenda-get-day-entries' instead."
       (cond
        ((null org-category)
 	(setq org-category
-	      (if (buffer-file-name)
+	      (if buffer-file-name
 		  (file-name-sans-extension
-		   (file-name-nondirectory (buffer-file-name)))
+		   (file-name-nondirectory buffer-file-name))
 		"???")))
        ((symbolp org-category) (symbol-name org-category))
        (t org-category))
@@ -5278,7 +5273,7 @@ the documentation of `org-diary'."
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
-			      (abbreviate-file-name (buffer-file-name)))))
+			      (abbreviate-file-name buffer-file-name))))
 	 (regexp (concat "[\n\r]\\*+ *\\(" 
 			 (if org-select-this-todo-keyword
 			     (concat "\\<\\(" org-select-this-todo-keyword
@@ -5320,7 +5315,7 @@ the documentation of `org-diary'."
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
-			      (abbreviate-file-name (buffer-file-name)))))
+			      (abbreviate-file-name buffer-file-name))))
 	 (regexp (regexp-quote
 		  (substring
 		   (format-time-string
@@ -5397,7 +5392,7 @@ the documentation of `org-diary'."
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
-			      (abbreviate-file-name (buffer-file-name)))))
+			      (abbreviate-file-name buffer-file-name))))
 	 (regexp (concat
 		  "\\<" org-closed-string " *\\["
 		  (regexp-quote
@@ -5453,7 +5448,7 @@ the documentation of `org-diary'."
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
-			      (abbreviate-file-name (buffer-file-name)))))
+			      (abbreviate-file-name buffer-file-name))))
 	 (regexp org-deadline-time-regexp)
 	 (todayp (equal date (calendar-current-date))) ; DATE bound by calendar
 	 (d1 (calendar-absolute-from-gregorian date))  ; DATE bound by calendar
@@ -5515,7 +5510,7 @@ the documentation of `org-diary'."
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
-			      (abbreviate-file-name (buffer-file-name)))))
+			      (abbreviate-file-name buffer-file-name))))
 	 (regexp org-scheduled-time-regexp)
 	 (todayp (equal date (calendar-current-date))) ; DATE bound by calendar
 	 (d1 (calendar-absolute-from-gregorian date))  ; DATE bound by calendar
@@ -5564,7 +5559,7 @@ the documentation of `org-diary'."
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
-			      (abbreviate-file-name (buffer-file-name)))))
+			      (abbreviate-file-name buffer-file-name))))
 	 (regexp org-tr-regexp)
 	 (d0 (calendar-absolute-from-gregorian date))
 	 marker hdmarker ee txt d1 d2 s1 s2 timestr category tags)
@@ -5637,6 +5632,8 @@ After a match, the following groups carry important information:
   "A flag, set by `org-compile-prefix-format'.
 The flag is set if the currently compiled format contains a `%t'.")
 
+(defvar time)                     ;Needed for the eval of the prefix format.
+(defvar tag)                      ;Presumably, same thing as above.
 (defun org-format-agenda-item (extra txt &optional category tags dotime noprefix)
   "Format TXT to be inserted into the agenda buffer.
 In particular, it adds the prefix and corresponding text properties.  EXTRA
@@ -5654,9 +5651,9 @@ only the correctly processes TXT should be returned - this is used by
     (if (string-match "^ +" txt) (setq txt (replace-match "" nil nil txt)))
     (let* ((category (or category
 			 org-category
-			 (if (buffer-file-name)
+			 (if buffer-file-name
 			     (file-name-sans-extension
-			      (file-name-nondirectory (buffer-file-name)))
+			      (file-name-nondirectory buffer-file-name))
 			   "")))
 	   (tag (or (nth (1- (length tags)) tags) ""))
 	   time              ;; needed for the eval of the prefix format
@@ -5819,6 +5816,9 @@ HH:MM."
 	  ((< tb ta) +1)
 	  (t nil))))
 
+(defvar time-up) (defvar time-down)
+(defvar priority-up) (defvar priority-down)
+(defvar category-up) (defvar category-down) (defvar category-keep)
 (defun org-entries-lessp (a b)
   "Predicate for sorting agenda entries."
   ;; The following variables will be used when the form is evaluated.
@@ -6260,7 +6260,7 @@ d are included in the output."
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
-			      (abbreviate-file-name (buffer-file-name)))))
+			      (abbreviate-file-name buffer-file-name))))
          lspos
 	 tags tags-list tags-alist (llast 0) rtn level category i txt
 	 todo marker)
@@ -6862,7 +6862,7 @@ openen in emacs.
 If the file does not exist, an error is thrown."
   (setq in-emacs (or in-emacs line search))
   (let* ((file (if (equal path "") 
-		   (buffer-file-name)
+		   buffer-file-name
 		 (convert-standard-filename (org-expand-file-name path))))
 	 (dfile (downcase file))
 	 ext cmd apps)
@@ -6893,7 +6893,7 @@ If the file does not exist, an error is thrown."
 	(shell-command (concat cmd " &"))))
      ((or (stringp cmd)
 	  (eq cmd 'emacs))
-      (unless (equal (file-truename file) (file-truename (buffer-file-name)))
+      (unless (equal (file-truename file) (file-truename buffer-file-name))
 	(funcall (cdr (assq 'file org-link-frame-setup)) file))
       (if line (goto-line line)
 	(if search (org-link-search search))))
@@ -6956,7 +6956,7 @@ For file links, arg negates `org-context-in-file-links'."
       (save-excursion
        (vm-select-folder-buffer)
        (let* ((message (car vm-message-pointer))
-	      (folder (buffer-file-name))
+	      (folder buffer-file-name)
 	      (subject (vm-su-subject message))
 	      (author (vm-su-full-name message))
 	      (message-id (vm-su-message-id message)))
@@ -6987,7 +6987,7 @@ For file links, arg negates `org-context-in-file-links'."
       (save-excursion
 	(save-restriction
 	  (rmail-narrow-to-non-pruned-header)
-	  (let ((folder (buffer-file-name))
+	  (let ((folder buffer-file-name)
 		(message-id (mail-fetch-field "message-id"))
 		(author (mail-fetch-field "from"))
 		(subject (mail-fetch-field "subject")))
@@ -7041,7 +7041,7 @@ For file links, arg negates `org-context-in-file-links'."
      ((eq major-mode 'org-mode)
       ;; Just link to current headline
       (setq cpltxt (concat "file:"
-			   (abbreviate-file-name (buffer-file-name))))
+			   (abbreviate-file-name buffer-file-name)))
       ;; Add a context search string
       (when (org-xor org-context-in-file-links arg)
 	(if (save-excursion
@@ -7059,10 +7059,10 @@ For file links, arg negates `org-context-in-file-links'."
 			 )))))
       (setq link (org-make-link cpltxt)))
 
-     ((buffer-file-name)
+     (buffer-file-name
       ;; Just link to this file here.
       (setq cpltxt (concat "file:"
-			   (abbreviate-file-name (buffer-file-name))))
+			   (abbreviate-file-name buffer-file-name)))
       ;; Add a context string
       (when (org-xor org-context-in-file-links arg)
 	(setq cpltxt
@@ -7197,7 +7197,7 @@ is in the current directory or below."
 	       (case-fold-search nil)
 	       (search (match-string 2 link)))
 	    (when (save-match-data
-		    (equal (file-truename (buffer-file-name))
+		    (equal (file-truename buffer-file-name)
 			   (file-truename path)))
 	      (if (save-match-data
 		    (string-match (concat "^" org-camel-regexp "$") search))
@@ -7356,7 +7356,7 @@ See also the variable `org-reverse-note-order'."
 	(let  ((all org-reverse-note-order)
 	       entry)
 	  (while (setq entry (pop all))
-	    (if (string-match (car entry) (buffer-file-name))
+	    (if (string-match (car entry) buffer-file-name)
 		(throw 'exit (cdr entry))))
 	  nil)))))
 
@@ -10010,7 +10010,7 @@ underlined headlines.  The default is 3."
 	 (level 0) line txt
 	 (umax nil)
 	 (case-fold-search nil)
-	 (filename (concat (file-name-sans-extension (buffer-file-name))
+	 (filename (concat (file-name-sans-extension buffer-file-name)
 			   ".txt"))
 	 (buffer (find-file-noselect filename))
 	 (levels-open (make-vector org-level-max nil))
@@ -10159,7 +10159,7 @@ underlined headlines.  The default is 3."
 Also removes the first line of the buffer if it specifies a mode,
 and all options lines."
   (interactive)
-  (let* ((filename (concat (file-name-sans-extension (buffer-file-name))
+  (let* ((filename (concat (file-name-sans-extension buffer-file-name)
 			   ".txt"))
 	 (buffer (find-file-noselect filename))
 	 (ore (concat
@@ -10233,7 +10233,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
    org-export-with-sub-superscripts
    org-export-with-emphasize
    org-export-with-TeX-macros
-   (file-name-nondirectory (buffer-file-name))
+   (file-name-nondirectory buffer-file-name)
    (if (equal org-todo-interpretation 'sequence)
        (mapconcat 'identity org-todo-keywords " ")
      "TODO FEEDBACK VERIFY DONE")
@@ -10306,7 +10306,7 @@ The prefix ARG specifies how many levels of the outline should become
 headlines.  The default is 3.  Lower levels will become bulleted lists."
   (interactive "P")
   (org-export-as-html arg 'hidden)
-  (org-open-file (buffer-file-name)))
+  (org-open-file buffer-file-name))
 
 (defun org-export-as-html-batch ()
   "Call `org-export-as-html', may be used in batch processing as
@@ -10336,7 +10336,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
          (lines (org-export-find-first-heading-line all_lines))
          (level 0) (line "") (origline "") txt todo
          (umax nil)
-         (filename (concat (file-name-sans-extension (buffer-file-name))
+         (filename (concat (file-name-sans-extension buffer-file-name)
                            ".html"))
          (buffer (find-file-noselect filename))
          (levels-open (make-vector org-level-max nil))
@@ -10999,7 +10999,7 @@ When LEVEL is non-nil, increase section numbers on that level."
 The iCalendar file will be located in the same directory as the Org-mode
 file, but with extension `.ics'."
   (interactive)
-  (org-export-icalendar nil (buffer-file-name)))
+  (org-export-icalendar nil buffer-file-name))
 
 ;;;###autoload
 (defun org-export-icalendar-all-agenda-files ()
@@ -11036,7 +11036,7 @@ file and store it under the name `org-combined-agenda-icalendar-file'."
 	  (set-buffer (org-get-agenda-file-buffer file))
 	  (setq category (or org-category
 			     (file-name-sans-extension
-			      (file-name-nondirectory (buffer-file-name)))))
+			      (file-name-nondirectory buffer-file-name))))
 	  (if (symbolp category) (setq category (symbol-name category)))
 	  (let ((standard-output ical-buffer))
 	    (if combine
@@ -12074,8 +12074,7 @@ When ENTRY is non-nil, show the entire entry."
   ;; trees.  And is uses an invisible-OK argument.
   ;; Under Emacs this is not needed, but the old outline.el needs this fix.
   (org-back-to-heading invisible-OK)
-  (let ((opoint (point))
-	(first t)
+  (let ((first t)
 	(level (funcall outline-level)))
     (while (and (not (eobp))
 		(or first (> (funcall outline-level) level)))
@@ -12138,16 +12137,6 @@ Show the heading too, if it is currently invisible."
 			   (org-invisible-p)))
        (org-show-hierarchy-above)))
 
-;;; Finish up
-
-(provide 'org)
-
-(run-hooks 'org-load-hook)
-
-;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
-;;; org.el ends here
-
-
 (defun org-get-tags-at (&optional pos)
   "Get a list of all headline targs applicable at POS.
 POS defaults to point.  If tags are inherited, the list contains
@@ -12168,4 +12157,13 @@ the tags of the current headline come last."
 	  (error nil))))
     (message "%s" tags)
     tags))
+
+;;; Finish up
+
+(provide 'org)
+
+(run-hooks 'org-load-hook)
+
+;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
+;;; org.el ends here
       

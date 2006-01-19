@@ -1,7 +1,7 @@
 ;;; array.el --- array editing commands for GNU Emacs
 
 ;; Copyright (C) 1987, 2000, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author David M. Brown
 ;; Maintainer: FSF
@@ -42,21 +42,19 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (defvar array-max-column)
-  (defvar array-columns-per-line)
-  (defvar array-buffer-column)
-  (defvar array-line-length)
-  (defvar array-buffer-line)
-  (defvar array-lines-per-row)
-  (defvar array-max-row)
-  (defvar array-field-width)
-  (defvar array-row)
-  (defvar array-column)
-  (defvar array-rows-numbered)
-  (defvar array-copy-string)
-  (defvar array-init-field)
-  (defvar array-respect-tabs))
+(defvar array-max-column nil "Number of columns in the array.")
+(defvar array-columns-per-line nil "Number of array columns per line.")
+(defvar array-buffer-column nil "Current column number of point in the buffer.")
+(defvar array-line-length nil "Length of a line in the array.")
+(defvar array-buffer-line nil "Current line number of point in the buffer.")
+(defvar array-lines-per-row nil "Number of lines per array row.")
+(defvar array-max-row nil "Number of rows in the array.")
+(defvar array-field-width nil "Width of a field in the array.")
+(defvar array-row nil "Current array row location of point.")
+(defvar array-column nil "Current array column location of point.")
+(defvar array-rows-numbered nil "Are rows numbered in the buffer?")
+(defvar array-copy-string nil "Current field string being copied.")
+(defvar array-respect-tabs nil "Should TAB conversion be prevented?")
 
 ;;; Internal information functions.
 
@@ -107,7 +105,7 @@ Set them to the optional arguments A-ROW and A-COLUMN if those are supplied."
 	array-column (or a-column (array-current-column))))
 
 (defun array-update-buffer-position ()
-  "Set array-buffer-line and array-buffer-column to their current values."
+  "Set `array-buffer-line' and `array-buffer-column' to their current values."
   (setq array-buffer-line (current-line)
 	array-buffer-column (current-column)))
 
@@ -606,33 +604,34 @@ If optional ARG is given, copy through ARG rows up."
   (interactive)
   ;; If there is a conflict between array-field-width and init-string, resolve it.
   (let ((check t)
-	(len))
+	(len)
+        init-field)
     (while check
-      (setq array-init-field (read-string "Initial field value: "))
-      (setq len (length array-init-field))
+      (setq init-field (read-string "Initial field value: "))
+      (setq len (length init-field))
       (if (/= len array-field-width)
 	  (if (y-or-n-p (format "Change field width to %d? " len))
 	      (progn (setq array-field-width len)
 		     (setq check nil)))
-	(setq check nil))))
-  (goto-char (point-min))
-  (message "Working...")
-  (let ((this-row 1))
-    ;; Loop through the rows.
-    (while (<= this-row array-max-row)
-      (if array-rows-numbered
-	  (insert (format "%d:\n" this-row)))
-      (let ((this-column 1))
-	;; Loop through the columns.
-	(while (<= this-column array-max-column)
-	  (insert array-init-field)
-	  (if (and (zerop (% this-column array-columns-per-line))
-		   (/= this-column array-max-column))
-	      (newline))
-	  (setq this-column (1+ this-column))))
-      (setq this-row (1+ this-row))
-      (newline)))
-  (message "Working...done")
+	(setq check nil)))
+    (goto-char (point-min))
+    (message "Working...")
+    (let ((this-row 1))
+      ;; Loop through the rows.
+      (while (<= this-row array-max-row)
+        (if array-rows-numbered
+            (insert (format "%d:\n" this-row)))
+        (let ((this-column 1))
+          ;; Loop through the columns.
+          (while (<= this-column array-max-column)
+            (insert init-field)
+            (if (and (zerop (% this-column array-columns-per-line))
+                     (/= this-column array-max-column))
+                (newline))
+            (setq this-column (1+ this-column))))
+        (setq this-row (1+ this-row))
+        (newline)))
+    (message "Working...done"))
   (array-goto-cell 1 1))
 
 (defun array-reconfigure-rows (new-columns-per-line new-rows-numbered)
@@ -874,97 +873,39 @@ Entering array mode calls the function `array-mode-hook'."
 
   (interactive)
   (kill-all-local-variables)
-  ;; Number of rows in the array.
-  (make-local-variable 'array-max-row)
-  ;; Number of columns in the array.
-  (make-local-variable 'array-max-column)
-  ;; Number of array columns per line.
-  (make-local-variable 'array-columns-per-line)
-  ;; Width of a field in the array.
-  (make-local-variable 'array-field-width)
-  ;; Are rows numbered in the buffer?
-  (make-local-variable 'array-rows-numbered)
-  ;; Length of a line in the array.
-  (make-local-variable 'array-line-length)
-  ;; Number of lines per array row.
-  (make-local-variable 'array-lines-per-row)
-  ;; Current line number of point in the buffer.
   (make-local-variable 'array-buffer-line)
-  ;; Current column number of point in the buffer.
   (make-local-variable 'array-buffer-column)
-  ;; Current array row location of point.
   (make-local-variable 'array-row)
-  ;; Current array column location of point.
   (make-local-variable 'array-column)
-  ;; Current field string being copied.
   (make-local-variable 'array-copy-string)
-  ;; Should TAB conversion be prevented?
-  (make-local-variable 'array-respect-tabs)
-  (setq array-respect-tabs nil)
-  (array-init-local-variables)
+  (set (make-local-variable 'array-respect-tabs) nil)
+  (set (make-local-variable 'array-max-row)
+       (read-number "Number of array rows: "))
+  (set (make-local-variable 'array-max-column)
+       (read-number "Number of array columns: "))
+  (set (make-local-variable 'array-columns-per-line)
+       (read-number "Array columns per line: "))
+  (set (make-local-variable 'array-field-width)
+       (read-number "Field width: "))
+  (set (make-local-variable 'array-rows-numbered)
+       (y-or-n-p "Rows numbered? "))
+  (set (make-local-variable 'array-line-length)
+       (* array-field-width array-columns-per-line))
+  (set (make-local-variable 'array-lines-per-row)
+       (+ (floor (1- array-max-column) array-columns-per-line)
+          (if array-rows-numbered 2 1)))
+  (message "")
   (setq major-mode 'array-mode)
   (setq mode-name "Array")
   (force-mode-line-update)
-  (make-local-variable 'truncate-lines)
-  (setq truncate-lines t)
+  (set (make-local-variable 'truncate-lines) t)
   (setq overwrite-mode 'overwrite-mode-textual)
   (use-local-map array-mode-map)
   (run-mode-hooks 'array-mode-hook))
 
 
 
-;;; Initialization functions.  These are not interactive.
-
-(defun array-init-local-variables ()
-  "Initialize the variables associated with the array in this buffer."
-  (array-init-max-row)
-  (array-init-max-column)
-  (array-init-columns-per-line)
-  (array-init-field-width)
-  (array-init-rows-numbered)
-  (array-init-line-length)
-  (array-init-lines-per-row)
-  (message ""))
-
-(defun array-init-max-row (&optional arg)
-  "Initialize the value of `array-max-row'."
-  (setq array-max-row
-	(or arg (string-to-number (read-string "Number of array rows: ")))))
-
-(defun array-init-max-column (&optional arg)
-  "Initialize the value of `array-max-column'."
-  (setq array-max-column
-	(or arg (string-to-number (read-string "Number of array columns: ")))))
-
-(defun array-init-columns-per-line (&optional arg)
-  "Initialize the value of `array-columns-per-line'."
-  (setq array-columns-per-line
-	(or arg (string-to-number (read-string "Array columns per line: ")))))
-
-(defun array-init-field-width (&optional arg)
-  "Initialize the value of `array-field-width'."
-  (setq array-field-width
-	(or arg (string-to-number (read-string "Field width: ")))))
-
-(defun array-init-rows-numbered (&optional arg)
-  "Initialize the value of `array-rows-numbered'."
-  (setq array-rows-numbered
-	(or arg (y-or-n-p "Rows numbered? "))))
-
-(defun array-init-line-length (&optional arg)
-  "Initialize the value of `array-line-length'."
-  (setq array-line-length
-	(or arg
-	  (* array-field-width array-columns-per-line))))
-
-(defun array-init-lines-per-row (&optional arg)
-  "Initialize the value of `array-lines-per-row'."
-  (setq array-lines-per-row
-	(or arg
-	  (+ (floor (1- array-max-column) array-columns-per-line)
-	     (if array-rows-numbered 2 1)))))
-
 (provide 'array)
 
-;;; arch-tag: 0086605d-79fe-4a1a-992a-456417261f80
+;; arch-tag: 0086605d-79fe-4a1a-992a-456417261f80
 ;;; array.el ends here
