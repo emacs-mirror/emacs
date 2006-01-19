@@ -1,3 +1,9 @@
+2006-01-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired.el (dired-no-confirm): Add quote.
+	(dired-subdir-alist-pre-R): Add quote in
+	`make-variable-buffer-local' form and remove unbalanced parenthesis.
+
 2006-01-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/table.el (table-mode-indicator): Typo in last change.
@@ -85,7 +91,7 @@
 2006-01-18  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/make-mode.el (makefile-imake-mode): New mode
-	derived from maiefile-mode.
+	derived from makefile-mode.
 	(makefile-imake-mode-syntax-table): New syntax table
 	derived from makefile-mode-syntax-table.
 	(makefile-mode): Write about makefile-imake-mode in doc string.
