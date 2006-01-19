@@ -1,3 +1,17 @@
+2006-01-20  Alex Schroeder  <alex@gnu.org>
+
+	* rmailsum.el (rmail-summary-mode): Fixed typo in doc string and
+	keymap.
+	(rmail-summary-update-attribute): Deleted.
+	(rmail-summary-update): Simple defun regenerates the entire
+	summary line.
+
+	* rmailkwd.el (rmail-set-label): Call rmail-summary-update at the
+	end.
+
+	* rmail.el (rmail-set-attribute): Call rmail-summary-update
+	instead of just updating the attributes.
+
 2006-01-19  Henrik Enberg  <enberg@printf.se>
 
 	* rmailhdr.el (rmail-header-get-header): Rewrite to be a
