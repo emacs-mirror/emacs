@@ -1888,11 +1888,9 @@ default, the current message is changed."
 	(set-buffer rmail-buffer)
 	(or msgnum (setq msgnum rmail-current-message))
 	(rmail-desc-set-attribute attr-index state msgnum)
-
         ;; Deal with the summary buffer.
-        (if rmail-summary-buffer
-            (with-current-buffer rmail-summary-buffer
-              (rmail-summary-update-attribute attr-index msgnum)))))))
+        (when rmail-summary-buffer
+	  (rmail-summary-update msgnum))))))
 
 (defun rmail-message-labels-p (n labels)
   "Return t if message number N has keywords matching LABELS.
