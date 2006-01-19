@@ -33,5 +33,9 @@
 
 #undef TIOCSIGSEND		/* defined in usg5-4.h */
 
+/* Tested on Irix 6.5.  SCM worked on earlier versions.  */
+#define GC_SETJMP_WORKS 1
+#define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
+
 /* arch-tag: d7ad9ec2-54ad-4b2f-adf2-0070c5c63e83
    (do not change this comment) */
