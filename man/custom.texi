@@ -729,14 +729,15 @@ theme occurring earlier in @code{custom-enabled-themes} takes effect.
 @findex load-theme
 @findex enable-theme
 @findex disable-theme
-  You can also enable a Custom theme with @kbd{M-x enable-theme}.
-This prompts for a theme name in the minibuffer, loads the theme from
-the theme file if necessary, and enables the theme.  An enabled theme
-can be @dfn{disabled} with the command @kbd{M-x disable-theme}; this
-returns the options specified in the theme to their original values.
-To re-enable the theme, call @kbd{M-x enable-theme} again.  If a theme
-file is changed during your Emacs session, you can reload it by
-calling @kbd{M-x load-theme}.  This also enables the theme.
+  You can temporarily enable a Custom theme with @kbd{M-x
+enable-theme}.  This prompts for a theme name in the minibuffer, loads
+the theme from the theme file if necessary, and enables the theme.
+You can @dfn{disabled} any enabled theme with the command @kbd{M-x
+disable-theme}; this returns the options specified in the theme to
+their original values.  To re-enable the theme, type @kbd{M-x
+enable-theme} again.  If a theme file is changed during your Emacs
+session, you can reload it by typing @kbd{M-x load-theme}.  (This also
+enables the theme.)
 
 @node Variables
 @section Variables
