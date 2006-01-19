@@ -81,44 +81,24 @@ instead."
   (let ((limit (rmail-header-get-limit)))
     (goto-char (point-min))
     (if (re-search-forward (format "^%s: " rmail-header-keyword-header) limit t)
-
         ;; Some keywords exist.  Now search for the specific keyword.
         (let ((start (point))
               (end (progn (end-of-line) (point))))
           (if (re-search-forward (concat "\\(" keyword ",\\|" keyword "$\\)"))
               t)))))
-            
+
 (defun rmail-header-get-header (header)
   "Return the text value for HEADER, nil if no such header exists.
 The current buffer, possibly narrowed, contains a single message."
   (save-excursion
-    (let ((case-fold-search t)
-          (inhibit-point-motion-hooks t)
-	  (limit (rmail-header-get-limit))
-	  result start end)
-      ;; Search for the given header.  If found return it, otherwise
-      ;; nil.
-      (goto-char (point-min))
-      (if (re-search-forward (format "^%s: " header) limit t)
-
-	  ;; Get the value, including extension parts.
-	  (progn
-	    (setq start (point))
-	    (end-of-line)
-	    (setq result (buffer-substring start (point)))
-	    (while (progn
-		     (forward-line 1)
-		     (looking-at "[ \t]+"))
-	      (setq start (match-end 0))
-	      (end-of-line)
-	      (setq result (format "%s %s" result
-				   (buffer-substring start (point)))))))
-      result)))
+    (save-restriction
+      (let ((limit (rmail-header-get-limit)))
+	(narrow-to-region (point-min) limit)
+	(mail-fetch-field header)))))
 
 (defun rmail-header-get-keywords ()
   "Return the keywords in the current message.
 The current buffer, possibly narrowed, contains a single message."
-
   ;; Search for a keyword header and return the comma separated
   ;; strings as a list.
   (let ((limit (rmail-header-get-limit)) result)
@@ -127,7 +107,7 @@ The current buffer, possibly narrowed, contains a single message."
          (format "^%s: " rmail-header-keyword-header) limit t)
         (save-excursion
           (save-restriction
-            (narrow-to-region (point) (progn (end-of-line) (point)))
+            (narrow-to-region (point) (line-end-position))
             (goto-char (point-min))
             (mail-parse-comma-list))))))
 
@@ -151,7 +131,7 @@ The current buffer, possibly narrowed, contains a single message."
       ;; Determine whether to use the displayed headers or the ignored
       ;; headers.
       (if rmail-displayed-headers
-	  
+
 	  ;; Set the visibility predicate function to ignore headers
 	  ;; marked for display.
 	  (setq visibility-p 'rmail-header-show-displayed-p)
@@ -177,7 +157,7 @@ The current buffer, possibly narrowed, contains a single message."
 	      (while (looking-at "[ \t]+")
 		(forward-line 1))
 	      (setq end (point))
-	      
+
 	      ;; Use one of the cleared, cached overlays until they
 	      ;; run out.
 	      (if (car overlay-list)
@@ -191,7 +171,7 @@ The current buffer, possibly narrowed, contains a single message."
 		;; No overlay exists for this header.  Create one and
 		;; add it to the cache.
 		(setq overlay (make-overlay start end)
-		      rmail-header-overlay-list 
+		      rmail-header-overlay-list
 		      (append (list overlay)
 			      rmail-header-overlay-list))
 		(overlay-put overlay 'invisible t)
@@ -236,7 +216,7 @@ The current buffer, possibly narrowed, contains a single message."
 	    (kill-region (point) (1- (marker-position end))))
 	;; Generate an error since the header does not exist.
 	(error "Header %s not found." header)))))
-	    
+
 (defun rmail-header-show-headers ()
   "Show all headers.
 The current buffer, possibly narrowed, contains a single message."
