@@ -1,5 +1,13 @@
 2006-01-19  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* cus-edit.el (custom-buffer-create-internal): State in the text above
+	the whole buffer buttons that they do not operate on hidden items.
+	(custom-face-menu): Use `custom-face-save' instead of
+	`custom-face-save-command'.
+	(custom-face-save-command): Make it an alias for `custom-face-save'
+	and declare it obsolete.
+	(custom-face-save): Doc fix.
+
 	* dired.el (dired-no-confirm): Add quote.
 	(dired-subdir-alist-pre-R): Add quote in
 	`make-variable-buffer-local' form and remove unbalanced parenthesis.
