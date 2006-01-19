@@ -1,3 +1,9 @@
+2006-01-19  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Custom Themes): Minor cleanup.
+
+	* programs.texi (Hungry Delete): Upcase @key argument.
+
 2006-01-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi: Update copyright.
