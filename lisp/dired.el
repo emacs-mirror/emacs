@@ -2523,12 +2523,12 @@ Command symbols are `byte-compile', `chgrp', `chmod', `chown', `compress',
 `copy', `delete', `hardlink', `load', `move', `print', `shell', `symlink',
 `touch' and `uncompress'."
   :group 'dired
-  :type (set (const byte-compile) (const chgrp)
-	     (const chmod) (const chown) (const compress)
-	     (const copy) (const delete) (const hardlink)
-	     (const load) (const move) (const print)
-	     (const shell) (const symlink) (const touch)
-	     (const uncompress)))
+  :type '(set (const byte-compile) (const chgrp)
+	      (const chmod) (const chown) (const compress)
+	      (const copy) (const delete) (const hardlink)
+	      (const load) (const move) (const print)
+	      (const shell) (const symlink) (const touch)
+	      (const uncompress)))
 
 (defun dired-mark-pop-up (bufname op-symbol files function &rest args)
   "Return FUNCTION's result on ARGS after showing which files are marked.
@@ -3103,7 +3103,7 @@ With optional second arg NO-REVERT, don't refresh the listing afterwards."
 
 (defvar dired-subdir-alist-pre-R nil
   "Value of `dired-subdir-alist' before -R switch added.")
-(make-variable-buffer-local dired-subdir-alist-pre-R))
+(make-variable-buffer-local 'dired-subdir-alist-pre-R)
 
 (defun dired-sort-R-check (switches)
   "Additional processing of -R in ls option string SWITCHES.
