@@ -1,3 +1,14 @@
+2006-01-19  Richard M. Stallman  <rms@gnu.org>
+
+	* keymap.c (Fmap_keymap): Doc fix.
+
+	* s/irix6-5.h (GC_SETJMP_WORKS, GC_MARK_STACK): New definitions.
+
+	* keyboard.c (echo_char): Don't omit the space between first two
+	echoed chars.
+
+	* minibuf.c (read_minibuf): Fix previous change.
+
 2006-01-19  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (handle_one_xevent): Handle keysyms 0x1000000..0x10000FF.

@@ -1,5 +1,7 @@
 2006-01-19  Richard M. Stallman  <rms@gnu.org>
 
+	* killing.texi (Deletion): Upcase @key argument.
+
 	* custom.texi (Custom Themes): Minor cleanup.
 
 	* programs.texi (Hungry Delete): Upcase @key argument.

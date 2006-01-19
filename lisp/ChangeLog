@@ -1,3 +1,24 @@
+2006-01-19  Richard M. Stallman  <rms@gnu.org>
+
+	* outline.el (hide-leaves): Don't call outline-end-of-heading.
+	Fixes bug reported in Nov 2005.
+
+	* isearch.el (isearch-forward): Doc fix.
+
+	* dired.el (dired-move-to-filename-regexp): Define as alias.
+	(dired-no-confirm): Use defcustom.
+	(dired-subdir-alist-pre-R): Put defvar at top level.
+
+	* battery.el (battery-linux-proc-acpi): Handle "last full capacity".
+
+	* textmodes/bibtex.el (bibtex-strings, bibtex-reference-keys):
+	Mark as risky.
+
+	* simple.el (set-mark-command): Doc fix.
+	(clone-indirect-buffer-other-window):
+	Read arg like clone-indirect-buffer.
+	(move-beginning-of-line): Skip invisible newlines.
+
 2006-01-19  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/cpp.el (cpp-edit-load): Make the order of 
@@ -36,10 +57,6 @@
 
 	* textmodes/flyspell.el (ispell-kill-ispell-hook): Add to the hook when
 	loading the file rather than when turning on flyspell-mode.
-
-2006-01-13  Richard M. Stallman  <rms@gnu.org>
-
-	* font-lock.el (lisp-font-lock-keywords-1): Minor rearrangement.
 
 2006-01-16  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -141,6 +158,10 @@
 	* cus-edit.el (Custom-set, Custom-save, Custom-reset-current)
 	(Custom-reset-saved): Do not ask for confirmation in single option
 	buffers.
+
+2006-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* font-lock.el (lisp-font-lock-keywords-1): Minor rearrangement.
 
 2006-01-13  Romain Francoise  <romain@orebokech.com>
 
