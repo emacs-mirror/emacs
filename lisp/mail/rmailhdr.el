@@ -111,7 +111,6 @@ The current buffer, possibly narrowed, contains a single message."
             (goto-char (point-min))
             (mail-parse-comma-list))))))
 
-
 (defun rmail-header-hide-headers ()
   "Hide ignored headers.  All others will be visible.
 The current buffer, possibly narrowed, contains a single message."
@@ -119,66 +118,57 @@ The current buffer, possibly narrowed, contains a single message."
     (let ((case-fold-search t)
 	  (limit (rmail-header-get-limit))
 	  (inhibit-point-motion-hooks t)
-	  start end visibility-p overlay overlay-list)
-
+	  ;; start end
+	  visibility-p
+	  ;;overlay
+	  overlay-list)
       ;; Record the display state as having headers hidden.
       (setq rmail-header-display-mode t)
-
       ;; Clear the pool of overlays for reuse.
       (mapcar 'delete-overlay rmail-header-overlay-list)
       (setq overlay-list rmail-header-overlay-list)
-
       ;; Determine whether to use the displayed headers or the ignored
       ;; headers.
       (if rmail-displayed-headers
-
 	  ;; Set the visibility predicate function to ignore headers
 	  ;; marked for display.
 	  (setq visibility-p 'rmail-header-show-displayed-p)
-
 	;; Set the visibility predicate function to hide ignored
 	;; headers.
 	(setq visibility-p 'rmail-header-hide-ignored-p))
-
       ;; Walk through all the headers marking the non-displayed
       ;; headers as invisible.
       (goto-char (point-min))
       (while (re-search-forward "^[^ \t:]+[ :]" limit t)
-
 	;; Determine if the current header needs to be hidden.
 	(beginning-of-line)
-	(if (funcall visibility-p)
-
-	    ;; It does.  Make this header hidden by setting an overlay
-	    ;; with both the invisible and intangible properties set.
-	    (progn
-	      (setq start (point))
-	      (forward-line 1)
-	      (while (looking-at "[ \t]+")
-		(forward-line 1))
-	      (setq end (point))
-
-	      ;; Use one of the cleared, cached overlays until they
-	      ;; run out.
-	      (if (car overlay-list)
-
-		  ;; Use a cached overlay.
-		  (progn
-		    (setq overlay (car overlay-list)
-			  overlay-list (cdr overlay-list))
-		    (move-overlay overlay start end))
-
-		;; No overlay exists for this header.  Create one and
-		;; add it to the cache.
-		(setq overlay (make-overlay start end)
-		      rmail-header-overlay-list
-		      (append (list overlay)
-			      rmail-header-overlay-list))
-		(overlay-put overlay 'invisible t)
-		(overlay-put overlay 'intangible t)))
-
-	  ;; It does not.  Move point away from this header.
-	  (forward-line 1))))))
+	(if (not (funcall visibility-p))
+	    ;; It does not.  Move point away from this header.
+	    (forward-line 1)
+	  ;; It does.  Make this header hidden by setting an overlay
+	  ;; with both the invisible and intangible properties set.
+	  (let ((start (point))
+		overlay)
+	    ;; Move to end and pick upp any continuation lines on folded
+	    ;; headers.
+	    (forward-line 1)
+	    (while (looking-at "[ \t]+")
+	      (forward-line 1))
+	    ;; (setq end (point))
+	    ;; Use one of the cleared, cached overlays until they
+	    ;; run out.
+	    (if (car overlay-list)
+		;; Use a cached overlay.
+		(progn
+		  (setq overlay (car overlay-list)
+			overlay-list (cdr overlay-list))
+		  (move-overlay overlay start (point)))
+	      ;; No overlay exists for this header.  Create one and
+	      ;; add it to the cache.
+	      (setq overlay (make-overlay start (point)))
+	      (overlay-put overlay 'invisible t)
+	      (overlay-put overlay 'intangible t)
+	      (push overlay rmail-header-overlay-list))))))))
 
 (defun rmail-header-persist-attributes (attributes)
   "Save ATTRIBUTES in the Rmail BABYL header."
@@ -246,3 +236,5 @@ single message."
   (not (looking-at rmail-displayed-headers)))
 
 (provide 'rmailhdr)
+
+;;; rmailhdr.el ends here
