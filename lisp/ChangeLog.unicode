@@ -1,3 +1,8 @@
+2006-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (autoload-coding-system): Install the same
+	function as in HEAD.
+
 2005-12-28  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Register characters in

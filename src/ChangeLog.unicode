@@ -1,5 +1,7 @@
 2006-01-19  Kenichi Handa  <handa@m17n.org>
 
+	* xterm.c (handle_one_xevent): Handle keysyms 0x1000000..0x10000FF.
+
 	* coding.c: Sync to HEAD for handling autoload-coding-system.
 	(Qcoding_system_define_form): New variable.
 	(syms_of_coding): Intern and staticpro it.
