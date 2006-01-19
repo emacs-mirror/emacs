@@ -1,3 +1,7 @@
+2006-01-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/table.el (table-mode-indicator): Typo in last change.
+
 2006-01-19  Richard M. Stallman  <rms@gnu.org>
 
 	* outline.el (hide-leaves): Don't call outline-end-of-heading.
@@ -21,10 +25,10 @@
 
 2006-01-19  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/cpp.el (cpp-edit-load): Make the order of 
+	* progmodes/cpp.el (cpp-edit-load): Make the order of
 	listed conditions in a base C code buffer and its associate
 	CPP Edit buffer the same.
-	
+
 2006-01-19  Kenichi Handa  <handa@m17n.org>
 
 	* mail/rmail.el (rmail-enable-mime): Docstring fixed.
@@ -32,9 +36,47 @@
 	(rmail-require-mime-maybe): Use display-warning to show a warning
 	message.
 
-	* international/mule.el (auto-coding-regexp-alist-lookup): New
-	function.
+	* international/mule.el (auto-coding-regexp-alist-lookup): New fun.
 	(find-auto-coding): Use auto-coding-regexp-alist-lookup.
+
+2006-01-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* array.el: Move defvars out of eval-when-compile.
+	(array-make-template): Replace undeclared global var with a local one.
+	(array-mode): Inline initialization functions.
+	(array-init-local-variables, array-init-max-row)
+	(array-init-max-column, array-init-columns-per-line)
+	(array-init-field-width, array-init-rows-numbered)
+	(array-init-line-length, array-init-lines-per-row): Remove.
+
+	* play/doctor.el: Move defvars out of eval-when-compile.  Use dolist.
+	(doc-mode-map): Define explicitly.
+	(doctor-txtype): Use mapc.
+
+	* textmodes/table.el: Move defvars out of eval-when-compile.
+	Remove harmful code meant to avoid byte-compiler warnings.
+	(table-fixed-mode-indicator): Remove.  Use a more complex mode-line
+	specification that checks table-fixed-width-mode directly.
+	(table-recognize-region, table-recognize-cell):
+	Use restore-buffer-modified-p.
+	(table-fixed-width-mode): Remove code that refreshes
+	table-fixed-mode-indicator.
+	(*table--cell-describe-bindings, *table--cell-describe-mode):
+	Avoid obsolete name print-help-return-message.
+	(table--test-cell-list): Don't use replace-regexp from elisp.
+	(table--point-entered-cell-function, table--point-left-cell-function):
+	Don't set table-fixed-mode-indicator, use force-mode-line-update.
+
+	* textmodes/org.el: Move defvars out of eval-when-compile.  Move code
+	that was after the end of file.  Use buffer-file-name variable.
+	(org-timestamp-change): Use with-current-buffer.
+	(org-todo-list): Don't unnecessarily define a new buffer-local var.
+	(org-agenda-file-to-end, org-agenda-file-to-front): Remove unused arg
+	`file'.
+
+	* progmodes/fortran.el: Move defvars out of eval-when-compile.
+	(fortran-break-line): Remove unused var `opoint'.
+	(fortran-abbrev-start): Obey help-event-list.
 
 2006-01-18  Jesper Harder  <harder@phys.au.dk>
 
@@ -46,12 +88,11 @@
 	derived from maiefile-mode.
 	(makefile-imake-mode-syntax-table): New syntax table
 	derived from makefile-mode-syntax-table.
-	(makefile-mode): Write about makefile-imake-mode in 
-	doc string.
+	(makefile-mode): Write about makefile-imake-mode in doc string.
 	(makefile-mode-map): Bind "\C-c\C-m\C-i" to makefile-imake-mode.
 	(makefile-imake-font-lock-keywords): New font lock keywords.
 
-	* files.el (auto-mode-alist): Added Imakefile.
+	* files.el (auto-mode-alist): Add Imakefile.
 
 2006-01-17  Agustin Martin  <agustin.martin@hispalinux.es>
 
