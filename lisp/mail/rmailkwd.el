@@ -180,7 +180,10 @@ possibly narrowed, displays a message."
               (rmail-desc-add-keyword keyword n)
             (rmail-desc-remove-keyword keyword n)))
 	;; FIXME: handle redisplay in the summary buffer
-	(rmail-display-labels)))))
+	(rmail-display-labels))))
+  ;; Deal with the summary buffer.
+  (when rmail-summary-buffer
+    (rmail-summary-update n)))
 
 ;; Motion on messages with keywords.
 
