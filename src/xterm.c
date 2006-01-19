@@ -6248,9 +6248,12 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	    }
 
 	  /* Keysyms directly mapped to Unicode characters.  */
-	  if (keysym >= 0x01000100 && keysym <= 0x0110FFFF)
+	  if (keysym >= 0x01000000 && keysym <= 0x0110FFFF)
 	    {
-	      inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+	      if (keysym < 0x01000080)
+		inev.ie.kind = ASCII_KEYSTROKE_EVENT;
+	      else
+		inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
 	      inev.ie.code = keysym & 0xFFFFFF;
 	      goto done_keysym;
 	    }
