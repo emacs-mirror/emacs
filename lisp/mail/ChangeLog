@@ -1,5 +1,11 @@
 2006-01-19  Henrik Enberg  <enberg@printf.se>
 
+	* rmailhdr.el (rmail-header-get-header): Rewrite to be a
+	convenience wrapper for mail-fetch-field.
+
+	* rmail.el (rmail-process-new-messages): Use
+	rmail-header-get-header instead of mail-fetch-field.
+
 	* rmailout.el (rmail-output-read-file-name): Simplify.
 	(rmail-output): Likewise.
 
