@@ -2043,7 +2043,7 @@ non-nil then do not show any progress messages."
 				     date
                                      (count-lines start end)
 				     (cadr (mail-extract-address-components
-					    (mail-fetch-field "from")))
+					    (rmail-header-get-header "from")))
                                      (rmail-header-get-header "subject")))
 			 message-descriptor-list)))))
     ;; Add the new message data lists to the Rmail message descriptor
