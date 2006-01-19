@@ -212,14 +212,17 @@ enum coding_attr_index
 
 /* Return 1 iff CODING_SYSTEM_SYMBOL is a coding system.  */
 
-#define CODING_SYSTEM_P(coding_system_symbol)	\
-  (! NILP (CODING_SYSTEM_SPEC (coding_system_symbol)))
+#define CODING_SYSTEM_P(coding_system_symbol)		\
+  (CODING_SYSTEM_ID (coding_system_symbol) >= 0		\
+   || (! NILP (coding_system_symbol)			\
+       && ! NILP (Fcoding_system_p (coding_system_symbol))))
 
 /* Check if X is a coding system or not.  */
 
 #define CHECK_CODING_SYSTEM(x)				\
   do {							\
-    if (!CODING_SYSTEM_P (x))				\
+    if (CODING_SYSTEM_ID (x) < 0			\
+	&& NILP (Fcheck_coding_system (x)))		\
       wrong_type_argument (Qcoding_system_p, (x));	\
   } while (0)
 
@@ -230,6 +233,11 @@ enum coding_attr_index
 #define CHECK_CODING_SYSTEM_GET_SPEC(x, spec)		\
   do {							\
     spec = CODING_SYSTEM_SPEC (x);			\
+    if (NILP (spec))					\
+      {							\
+	Fcheck_coding_system (x);			\
+	spec = CODING_SYSTEM_SPEC (x);			\
+      }							\
     if (NILP (spec))					\
       x = wrong_type_argument (Qcoding_system_p, (x));	\
   } while (0)
@@ -242,6 +250,11 @@ enum coding_attr_index
   do								\
     {								\
       id = CODING_SYSTEM_ID (x);				\
+      if (id < 0)						\
+	{							\
+	  Fcheck_coding_system (x);				\
+	  id = CODING_SYSTEM_ID (x);				\
+	}							\
       if (id < 0)						\
 	x = wrong_type_argument (Qcoding_system_p, (x));	\
     } while (0)
