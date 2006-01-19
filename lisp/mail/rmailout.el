@@ -50,34 +50,30 @@ a file name as a string."
 (defun rmail-output-read-file-name ()
   "Read the file name to use for `rmail-output'.
 Set `rmail-default-file' to this name as well as returning it."
-  (let ((default-file
-	  (let (answer tail)
-	    (setq tail rmail-output-file-alist)
-	    (with-current-buffer rmail-buffer
-	      ;; Suggest a file based on a pattern match.
-	      (while (and tail (not answer))
-	      	(save-excursion
-	      	  (goto-char (point-min))
-	      	  (when (re-search-forward (caar tail) nil t)
-		    (setq answer (eval (cdar tail))))
-	      	  (setq tail (cdr tail)))))
-	    ;; If no suggestion, use same file as last time.
-	    (or answer rmail-default-file))))
-    (let ((read-file
-	   (expand-file-name
-	    (read-file-name
-	     (concat "Output message to Rmail (mbox) file: (default "
-		     (file-name-nondirectory default-file) "): ")
-	     (file-name-directory default-file)
-	     (abbreviate-file-name default-file))
-	    (file-name-directory default-file))))
-      (setq rmail-default-file
-	    (if (file-directory-p read-file)
-		(expand-file-name
-		 (file-name-nondirectory default-file) read-file)
+  (let* ((default-file
+	   (with-current-buffer rmail-buffer
+	     (expand-file-name
+	      (or (catch 'answer
+		    (dolist (i rmail-output-file-alist)
+		      (goto-char (point-min))
+		      (when (re-search-forward (car i) nil t)
+			(throw 'answer (eval (cdr i))))))
+		  rmail-default-file))))
+	 (read-file
+	  (expand-file-name
+	   (read-file-name
+	    (concat "Output message to Rmail (mbox) file: (default "
+		    (file-name-nondirectory default-file) "): ")
+	    (file-name-directory default-file)
+	    (abbreviate-file-name default-file))
+	   (file-name-directory default-file))))
+    (setq rmail-default-file
+	  (if (file-directory-p read-file)
 	      (expand-file-name
-	       (or read-file (file-name-nondirectory default-file))
-	       (file-name-directory default-file)))))))
+	       (file-name-nondirectory default-file) read-file)
+	    (expand-file-name
+	     (or read-file (file-name-nondirectory default-file))
+	     (file-name-directory default-file))))))
 
 ;;; mbox: ready
 ;;; There are functions elsewhere in Emacs that use this function;
@@ -109,9 +105,10 @@ message up instead of moving forward to the next non-deleted message."
 		  (rmail-delete-message)
 		(rmail-delete-forward))
         (setq count 0))
-    (if (> count 0)
-        (unless (if (not stay) (rmail-next-undeleted-message 1))
-          (setq count 0)))))
+    (when (> count 0)
+      (unless (when (not stay)
+		(rmail-next-undeleted-message 1))
+	(setq count 0)))))
 
 ;;; mbox: deprecated
 ;;;###autoload
@@ -173,8 +170,7 @@ Rmail function, for example by GNUS or Sendmail."
         (dst-buf (find-buffer-visiting file-name))
         (current-message rmail-current-message)
 	(tembuf (get-buffer-create " rmail-output"))
-	(original-headers-p
-	 (and (not ext) (not (rmail-msg-is-pruned)))))
+	(original-headers-p (and (not ext) (not (rmail-msg-is-pruned)))))
     ;; Output each message to the destination file.
     (while (> count 0)
       (save-excursion
@@ -187,60 +183,56 @@ Rmail function, for example by GNUS or Sendmail."
         ;; Deal with MIME --- tbd.
         ;;(when rmail-enable-mime ...
 
-        ;; Determine whether a buffer is already visiting the output
-        ;; file.
-        (if dst-buf
-            ;; The destination file is being visited.  Update it.
-            (progn
-              (set-buffer dst-buf)
-              ;; Determine if the destination file is an Rmail file.
-              (let ((buffer-read-only nil)
-                    (dst-current-message (and (boundp 'rmail-current-message)
-                                              rmail-current-message)))
-                (if dst-current-message
-                    ;; The buffer is an Rmail buffer.  Append the message.
-                    (progn
-                      (widen)
-                      (narrow-to-region (point-max) (point-max))
-                      (insert-buffer-substring src-buf)
-                      (insert "\n")
-                      (rmail-process-new-messages)
-                      (rmail-show-message dst-current-message))
-                  ;; The destination file is not an Rmail file, just
-                  ;; insert at the end.
-                  (goto-char (point-max))
-                  (insert-buffer-substring src-buf))))
-          ;; The destination file is not being visited, just write out
-          ;; the processed message.
-          (write-region (point-min) (point-max) file-name t
-                        (if noattribute 'nomsg))))
+        (if (not dst-buf)
+	    ;; The destination file is not being visited, just write out
+	    ;; the processed message.
+	    (write-region (point-min) (point-max) file-name
+			  t (if noattribute 'nomsg))
+	  ;; The destination file is being visited.  Update it.
+	  (with-current-buffer dst-buf
+	    ;; Determine if the destination file is an Rmail file.
+	    (let ((buffer-read-only nil)
+		  (dst-current-message
+		   (and (boundp 'rmail-current-message)
+			rmail-current-message)))
+	      (if dst-current-message
+		  ;; The buffer is an Rmail buffer.  Append the message.
+		  (progn
+		    (widen)
+		    (narrow-to-region (point-max) (point-max))
+		    (insert-buffer-substring src-buf)
+		    (insert "\n")
+		    (rmail-process-new-messages)
+		    (rmail-show-message dst-current-message))
+		;; The destination file is not an Rmail file, just
+		;; insert at the end.
+		(goto-char (point-max))
+		(insert-buffer-substring src-buf))))))
       ;; Do housekeeping, such as setting the "Filed" attribute, if
       ;; necessary and moving to the next message.
-      (or noattribute
-          (if (equal major-mode 'rmail-mode)
-              (progn
-                (rmail-set-attribute "filed" t current-message)
-                (setq current-message (1+ current-message)))))
+      (unless noattribute
+	(if (equal major-mode 'rmail-mode)
+	    (rmail-set-attribute "filed" t current-message)
+	  (setq current-message (1+ current-message))))
       ;; Determine if Rmail post output operations need to be handled.
-      (or ext
-          ;; They do.  Move to the next non-deleted message.
-          (let ((next-message-p
-                 (if rmail-delete-after-output
-                     (rmail-delete-forward)
-                   (if (> count 1)
-                       (rmail-next-undeleted-message 1))))
-                (num-appended (- orig-count count)))
-            (if (and (> count 1) (not next-message-p))
-                (progn
-                  (error
-                   (save-excursion
-                     (set-buffer src-buf)
-                     (format "Only %d message%s appended" num-appended
-                             (if (= num-appended 1) "" "s"))))
-                  (setq count 0)))))
+      (unless ext
+	;; They do.  Move to the next non-deleted message.
+	(let ((next-message-p
+	       (if rmail-delete-after-output
+		   (rmail-delete-forward)
+		 (when (> count 1)
+		   (rmail-next-undeleted-message 1))))
+	      (num-appended (- orig-count count)))
+	  (when (and (> count 1) (not next-message-p))
+	    (error (save-excursion
+		     (set-buffer src-buf)
+		     (format "Only %d message%s appended"
+			     num-appended
+			     (if (= num-appended 1) "" "s"))))
+	    (setq count 0))))
       ;; Decrement the count for the next iteration.  If an error has
-      ;; occurred, then count will be -1, which is every bit as good
-      ;; as 0.
+      ;; occurred, then count will be -1, which is every bit as good as
+      ;; 0.
       (setq count (1- count)))
     (kill-buffer tembuf)))
 
@@ -249,9 +241,8 @@ Rmail function, for example by GNUS or Sendmail."
   "Write this message body to the file FILE-NAME.
 FILE-NAME defaults, interactively, from the Subject field of the message."
   (interactive
-   (let ((default-file
-	   (or (mail-fetch-field "Subject")
-	       rmail-default-body-file)))
+   (let ((default-file (or (mail-fetch-field "Subject")
+			   rmail-default-body-file)))
      (list (setq rmail-default-body-file
 		 (read-file-name
 		  "Output message body to file: "
@@ -259,9 +250,10 @@ FILE-NAME defaults, interactively, from the Subject field of the message."
 		  default-file
 		  nil default-file)))))
   (setq file-name
-	(expand-file-name file-name
-			  (and rmail-default-body-file
-			       (file-name-directory rmail-default-body-file))))
+	(expand-file-name
+	 file-name
+	 (and rmail-default-body-file
+	      (file-name-directory rmail-default-body-file))))
   (save-excursion
     (goto-char (point-min))
     (search-forward "\n\n")
@@ -269,11 +261,11 @@ FILE-NAME defaults, interactively, from the Subject field of the message."
 	 (not (y-or-n-p (message "File %s exists; overwrite? " file-name)))
 	 (error "Operation aborted"))
     (write-region (point) (point-max) file-name)
-    (if (equal major-mode 'rmail-mode)
-	(rmail-desc-set-attribute rmail-desc-stored-index
-				  t rmail-current-message)))
-  (if rmail-delete-after-output
-      (rmail-delete-forward)))
+    (when (equal major-mode 'rmail-mode)
+      (rmail-desc-set-attribute rmail-desc-stored-index
+				t rmail-current-message)))
+  (when rmail-delete-after-output
+    (rmail-delete-forward)))
 
 ;;; arch-tag: 447117c6-1a9a-4b88-aa43-3101b043e3a4
 ;;; rmailout.el ends here
