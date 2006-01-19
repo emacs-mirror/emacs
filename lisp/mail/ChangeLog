@@ -1,3 +1,8 @@
+2006-01-19  Henrik Enberg  <enberg@printf.se>
+
+	* rmailout.el (rmail-output-read-file-name): Simplify.
+	(rmail-output): Likewise.
+
 2006-01-18  Alex Schroeder  <alex@gnu.org>
 
 	* rmailsum.el (rmail-make-summary-line-1)
