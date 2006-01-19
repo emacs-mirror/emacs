@@ -1,3 +1,7 @@
+2006-01-18  Kenichi Handa  <handa@m17n.org>
+
+	* make-dist: Include etc/charsets in tarball.
+
 2005-05-11  Kenichi Handa  <handa@m17n.org>
 
 	* configure.in: While running cpp on junk.c, include
