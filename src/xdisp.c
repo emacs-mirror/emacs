@@ -20772,12 +20772,17 @@ get_window_cursor_type (w, glyph, width, active_cursor)
     {
       if (w == XWINDOW (echo_area_window))
 	{
-	  *width = FRAME_CURSOR_WIDTH (f);
-	  return FRAME_DESIRED_CURSOR (f);
-	}
+	  if (EQ (b->cursor_type, Qt) || NILP (b->cursor_type))
+	    {
+	      *width = FRAME_CURSOR_WIDTH (f);
+	      return FRAME_DESIRED_CURSOR (f);
+	    }
+	  else
+	    return get_specified_cursor_type (b->cursor_type, width);
 
-      *active_cursor = 0;
-      non_selected = 1;
+	  *active_cursor = 0;
+	  non_selected = 1;
+	}
     }
 
   /* Nonselected window or nonselected frame.  */
