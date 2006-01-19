@@ -325,6 +325,10 @@ Lisp_Object Qtarget_idx;
 Lisp_Object Qinsufficient_source, Qinconsistent_eol, Qinvalid_source;
 Lisp_Object Qinterrupted, Qinsufficient_memory;
 
+/* If a symbol has this property, evaluate the value to define the
+   symbol as a coding system.  */
+static Lisp_Object Qcoding_system_define_form;
+
 int coding_system_require_warning;
 
 Lisp_Object Vselect_safe_coding_system_function;
@@ -7060,7 +7064,13 @@ about coding-system objects.  */)
      (obj)
      Lisp_Object obj;
 {
-  return ((NILP (obj) || CODING_SYSTEM_P (obj)) ? Qt : Qnil);
+  if (NILP (obj)
+      || CODING_SYSTEM_ID (obj) >= 0)
+    return Qt;
+  if (! SYMBOLP (obj)
+      || NILP (Fget (obj, Qcoding_system_define_form)))
+    return Qnil;
+  return Qt;
 }
 
 DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
@@ -7103,7 +7113,14 @@ function `define-coding-system'.  */)
   (coding_system)
      Lisp_Object coding_system;
 {
-  CHECK_SYMBOL (coding_system);
+  Lisp_Object define_form;
+
+  define_form = Fget (coding_system, Qcoding_system_define_form);
+  if (! NILP (define_form))
+    {
+      Fput (coding_system, Qcoding_system_define_form, Qnil);
+      safe_eval (define_form);
+    }
   if (!NILP (Fcoding_system_p (coding_system)))
     return coding_system;
   while (1)
@@ -9322,6 +9339,7 @@ syms_of_coding ()
   DEFSYM (Qinvalid_source, "invalid-source");
   DEFSYM (Qinterrupted, "interrupted");
   DEFSYM (Qinsufficient_memory, "insufficient-memory");
+  DEFSYM (Qcoding_system_define_form, "coding-system-define-form");
 
   defsubr (&Scoding_system_p);
   defsubr (&Sread_coding_system);
