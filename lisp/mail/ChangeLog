@@ -2,6 +2,7 @@
 
 	* rmailhdr.el (rmail-header-get-header): Rewrite to be a
 	convenience wrapper for mail-fetch-field.
+	(rmail-header-hide-headers): Simplify.
 
 	* rmail.el (rmail-process-new-messages): Use
 	rmail-header-get-header instead of mail-fetch-field.
