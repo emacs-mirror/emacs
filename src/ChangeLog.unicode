@@ -1,3 +1,19 @@
+2006-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c: Sync to HEAD for handling autoload-coding-system.
+	(Qcoding_system_define_form): New variable.
+	(syms_of_coding): Intern and staticpro it.
+	(Fcoding_system_p): Check Qcoding_system_define_form.
+	(Fcheck_coding_system): Try to autoload the definition of
+	CODING-SYSTEM.
+	
+	* coding.h (CODING_SYSTEM_P): If ID is not available, call
+	Fcoding_system_p.
+	(CHECK_CODING_SYSTEM): If ID is not available, call
+	Fcheck_coding_system.
+	(CHECK_CODING_SYSTEM_GET_SPEC): Try also Fcheck_coding_system.
+	(CHECK_CODING_SYSTEM_GET_ID): Likewise.
+
 2006-01-17  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (handle_one_xevent): Delete unnecessary code inserted by
