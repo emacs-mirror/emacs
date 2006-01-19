@@ -1485,7 +1485,8 @@ See ")
 		       :help-echo "Read the online help."
 		       "(emacs)Easy Customization")
 	(widget-insert " for more information.\n\n")
-	(widget-insert "Operate on everything in this buffer:\n "))
+	(widget-insert "Operate on all settings in this buffer that \
+are not marked HIDDEN:\n "))
     (widget-insert " "))
   (widget-create 'push-button
 		 :tag "Set for Current Session"
@@ -3323,7 +3324,7 @@ SPEC must be a full face spec."
 (defvar custom-face-menu
   `(("Set for Current Session" custom-face-set)
     ,@(when (or custom-file user-init-file)
-	'(("Save for Future Sessions" custom-face-save-command)))
+	'(("Save for Future Sessions" custom-face-save)))
     ("Undo Edits" custom-redraw
      (lambda (widget)
        (memq (widget-get widget :custom-state) '(modified changed))))
@@ -3448,13 +3449,8 @@ Optional EVENT is the location for the menu."
     (custom-face-state-set widget)
     (custom-redraw-magic widget)))
 
-(defun custom-face-save-command (widget)
-  "Save in `.emacs' the face attributes in WIDGET."
-  (custom-face-save widget)
-  (custom-save-all))
-
 (defun custom-face-save (widget)
-  "Prepare for saving WIDGET's face attributes, but don't write `.emacs'."
+  "Save in `.emacs' the face attributes in WIDGET."
   (let* ((symbol (widget-value widget))
 	 (child (car (widget-get widget :children)))
 	 (value (custom-post-filter-face-spec (widget-value child)))
@@ -3479,6 +3475,10 @@ Optional EVENT is the location for the menu."
     (custom-save-all)
     (custom-face-state-set widget)
     (custom-redraw-magic widget)))
+
+;; For backward compatibility.
+(define-obsolete-function-alias 'custom-face-save-command 'custom-face-save
+  "22.1")
 
 (defun custom-face-reset-saved (widget)
   "Restore WIDGET to the face's default attributes."
