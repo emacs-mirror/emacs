@@ -6242,23 +6242,40 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	    }
 
 	  /* Keysyms directly mapped to supported Unicode characters.  */
-	  if ((keysym >= 0x01000100 && keysym <= 0x010033ff)
+	  if ((keysym >= 0x01000000 && keysym <= 0x010033ff)
 	      || (keysym >= 0x0100e000 && keysym <= 0x0100ffff))
 	    {
-	      int code, charset_id, c1, c2;
+	      int code = keysym & 0xFFFF, charset_id, c1, c2;
 
-	      if (keysym < 0x01002500)
-		charset_id = charset_mule_unicode_0100_24ff,
-		  code = (keysym & 0xFFFF) - 0x100;
-	      else if (keysym < 0x0100e000)
-		charset_id = charset_mule_unicode_2500_33ff,
-		  code = (keysym & 0xFFFF) - 0x2500;
+	      if (code < 0x80)
+		{
+		  inev.ie.kind = ASCII_KEYSTROKE_EVENT;
+		  inev.ie.code = code;
+		}
+	      else if (code < 0x100)
+		{
+		  if (code < 0xA0)
+		    charset_id = CHARSET_8_BIT_CONTROL;
+		  else
+		    charset_id = charset_latin_iso8859_1;
+		  inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+		  inev.ie.code = MAKE_CHAR (charset_id, code, 0);
+		}
 	      else
-		charset_id = charset_mule_unicode_e000_ffff,
-		  code = (keysym & 0xFFFF) - 0xe000;
-	      c1 = (code / 96) + 32, c2 = (code % 96) + 32;
-	      inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
-	      inev.ie.code = MAKE_CHAR (charset_id, c1, c2);
+		{
+		  if (code < 0x2500)
+		    charset_id = charset_mule_unicode_0100_24ff,
+		      code -= 0x100;
+		  else if (code < 0xE000)
+		    charset_id = charset_mule_unicode_2500_33ff,
+		      code -= 0x2500;
+		  else
+		    charset_id = charset_mule_unicode_e000_ffff,
+		      code -= 0xE000;
+		  c1 = (code / 96) + 32, c2 = (code % 96) + 32;
+		  inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+		  inev.ie.code = MAKE_CHAR (charset_id, c1, c2);
+		}
 	      goto done_keysym;
 	    }
 
