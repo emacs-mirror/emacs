@@ -803,11 +803,11 @@ Show the heading too, if it is currently invisible."
   (outline-flag-subtree t))
 
 (defun hide-leaves ()
-  "Hide all body after this heading at deeper levels."
+  "Hide the body after this heading and at deeper levels."
   (interactive)
   (save-excursion
     (outline-back-to-heading)
-    (outline-end-of-heading)
+;;    (outline-end-of-heading)
     (hide-region-body (point) (progn (outline-end-of-subtree) (point)))))
 
 (defun show-subtree ()
