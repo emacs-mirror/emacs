@@ -6,6 +6,11 @@
 	
 2006-01-19  Kenichi Handa  <handa@m17n.org>
 
+	* mail/rmail.el (rmail-enable-mime): Docstring fixed.
+	(rmail-mime-feature): Likewise.
+	(rmail-require-mime-maybe): Use display-warning to show a warning
+	message.
+
 	* international/mule.el (auto-coding-regexp-alist-lookup): New
 	function.
 	(find-auto-coding): Use auto-coding-regexp-alist-lookup.
