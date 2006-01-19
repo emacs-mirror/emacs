@@ -1,3 +1,10 @@
+2006-01-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* spam.el (spam-group-ham-mark-p, spam-group-spam-mark-p)
+	(spam-group-spam-marks, spam-list-articles, spam-group-ham-marks):
+	Revert 2006-01-08 change because the functions will be used in No
+	Gnus.
+
 2006-01-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnrss.el: Update copyright.
