@@ -1,3 +1,9 @@
+2006-01-19  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/cpp.el (cpp-edit-load): Make the order of 
+	listed conditions in a base C code buffer and its associate
+	CPP Edit buffer the same.
+	
 2006-01-19  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (auto-coding-regexp-alist-lookup): New
