@@ -5,6 +5,10 @@
 	(rmail-summary-update-attribute): Deleted.
 	(rmail-summary-update): Simple defun regenerates the entire
 	summary line.
+	(rmail-summary-by-topic): Don't use rmail-current-subject-regexp.
+	(rmail-message-subject-p): Use rmail-header-get-header instead of
+	mail-fetch-field.
+	(rmail-summary-by-senders): Default to current sender.
 
 	* rmailkwd.el (rmail-set-label): Call rmail-summary-update at the
 	end.
