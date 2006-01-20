@@ -1,5 +1,13 @@
 2006-01-20  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32.c (sys_close): If FD is outside [0..MAXDESC) limits, pass it
+	directly to _close.
+	(sys_dup): Protect against new_fd larger than fd_info[] can handle.
+	(sys_read): If FD is outside [0..MAXDESC) limits, pass it directly
+	to _read.
+	(sys_write):  If FD is outside [0..MAXDESC) limits, pass it
+	directly to _write.
+
 	* .gdbinit: Don't dereference Vsystem_type's Lisp_Symbol pointer
 	if it is NULL.
 
