@@ -1,4 +1,12 @@
-2006-01-20  Kenichi Handa  <handa@m17n.org>
+2006-01-20  Naoto Takahashi  <ntakahas@m17n.org>
+
+	* language/ethiopic.el: Copyright fixed.
+	(composition-function-table): Support a new character in Unicode
+	4.1.
+
+	* language/ethio-util.el (ethio-fidel-to-tex-buffer)
+	(ethio-tex-to-fidel-buffer, ethio-composition-function)
+	("ethiopic-tex"): Support new characters in Unicode 4.1.
 
 	* descr-text.el (describe-char): Fix for sync with HEAD.
 
