@@ -1,5 +1,8 @@
 2006-01-20  Henrik Enberg  <enberg@printf.se>
 
+	* rmailsum.el (rmail-summary-get-summary): Make sure sender is no
+	longer than 25 characters.
+
 	* rmailmsc.el (set-rmail-inbox-list): Rewrite to only set inbox
 	list temporarily for a session.
 
