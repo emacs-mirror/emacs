@@ -358,8 +358,14 @@ and the value of the environment variable MAIL overrides it)."
 ;;;###autoload
 (defcustom rmail-inbox-alist nil
   "*Alist of mail files and backup directory names.
-Each element looks like (MAIL-FILE . INBOX-LIST).  Mail files with
-names matching MAIL-FILE will retrieve mail from files in INBOX-LIST."
+Each element has the form (MAIL-FILE INBOX ...).  When running
+rmail on MAIL-FILE, mails in all the INBOX files listed will be
+moved to the MAIL-FILE.  Be sure to fully qualify your MAIL-FILE.
+
+Example setting if procmail delivers all your spam to
+~/Mail/SPAM.in and you read it from the file ~/Mail/SPAM:
+
+\(setq rmail-inbox-alist '((\"~/Mail/SPAM\" \"~/Mail/SPAM.in\")))"
   :type '(alist :key-type file :value-type (repeat file))
   :group 'rmail-retrieve
   :group 'rmail-files)
