@@ -1,3 +1,7 @@
+2006-01-20  Kenichi Handa  <handa@m17n.org>
+
+	* puresize.h (BASE_PURESIZE): Increment to 1190000.
+
 2006-01-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (get_window_cursor_type): Use cursor type specified by
