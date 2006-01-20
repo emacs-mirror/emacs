@@ -1,3 +1,8 @@
+2006-01-20  Henrik Enberg  <enberg@printf.se>
+
+	* rmailmsc.el (set-rmail-inbox-list): Rewrite to only set inbox
+	list temporarily for a session.
+
 2006-01-20  Alex Schroeder  <alex@gnu.org>
 
 	* rmail.el (rmail-show-message): Minor changes: comments.
@@ -9,7 +14,7 @@
 
 2006-01-20  Henrik Enberg  <enberg@printf.se>
 
-	* rmail.el: (rmail-inbox-alist): New variable.
+	* rmail.el (rmail-inbox-alist): New variable.
 	(rmail-get-file-inbox-list): New function.
 	(rmail-perm-variables): Use it.
 	(rmail-parse-file-inboxes): Deleted.
