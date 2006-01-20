@@ -123,7 +123,7 @@ Reference Manual, corresponding to GNU Emacs version @value{EMACSVER}.
                               files are made.
 * Buffers::                 Creating and using buffer objects.
 * Windows::                 Manipulating windows and displaying buffers.
-* Frames::		    Making multiple X windows.
+* Frames::		    Making multiple system-level windows.
 * Positions::               Buffer positions and motion functions.
 * Markers::                 Markers represent positions and update
                               automatically when the text is changed.
