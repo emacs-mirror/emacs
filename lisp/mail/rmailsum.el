@@ -1474,10 +1474,34 @@ KEYWORDS is a comma-separated list of labels."
 	       (funcall sortfun reverse))
       (select-window selwin))))
 
+(defun rmail-summary-get-sender (n)
+  "Return the sender for message N.
+If sender is matches `rmail-user-mail-address-regexp' or
+`user-mail-address', return the to-address instead."
+  (let ((sender (rmail-desc-get-sender n)))
+    (if (or (null sender)
+	    (string-match
+	     (or rmail-user-mail-address-regexp
+		 (concat "^\\("
+			 (regexp-quote (user-login-name))
+			 "\\($\\|@\\)\\|"
+			 (regexp-quote
+			  ;; Don't lose if run from init file where
+			  ;; user-mail-address is not set yet.
+			  (or user-mail-address
+			      (concat (user-login-name) "@"
+				      (or mail-host-address
+					  (system-name)))))
+			 "\\>\\)"))
+	     sender))
+	;; Either no sender known, or it's this user.
+	(let ((to (rmail-header-get-header "to")))
+	  (concat "to: " (mail-strip-quoted-names to)))
+      sender)))
+
 (defun rmail-summary-get-line-count (n)
-  "Return a string containing the count of lines in message N for the
-  summary buffer if the User has enabled line counts, otherwise return
-  an empty string."
+  "Return a string containing the number of lines in message N.
+If `rmail-summary-line-count-flag' is nil, return the empty string."
   (if rmail-summary-line-count-flag
       (let ((lines (rmail-desc-get-line-count n)))
 	(format (cond ((<= lines     9) "   [%d]")
@@ -1488,9 +1512,8 @@ KEYWORDS is a comma-separated list of labels."
     ""))
 
 (defun rmail-summary-get-summary-attributes (n)
-  "Return the attribute character codes to use in the summary buffer
-  for message N: `-' for an unseen message, `D' for a message marked
-  for deletion."
+  "Return the attribute character codes for message N.
+`-' means an unseen message, `D' means marked for deletion."
   (format "%s%s%s%s%s"
           (cond ((rmail-desc-attr-p rmail-desc-unseen-index n) "-")
                 ((rmail-desc-attr-p rmail-desc-deleted-index n) "D")
@@ -1519,7 +1542,7 @@ KEYWORDS is a comma-separated list of labels."
 		     (rmail-summary-get-summary-attributes n)
 		     (concat (rmail-desc-get-day-number n) "-"
 			     (rmail-desc-get-month n))
-		     (rmail-desc-get-sender n)
+		     (rmail-summary-get-sender n)
 		     (rmail-summary-get-line-count n)
 		     (concat str subj)))))
 
