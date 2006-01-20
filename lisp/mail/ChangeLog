@@ -1,3 +1,7 @@
+2006-01-20  Alex Schroeder  <alex@gnu.org>
+
+	* rmail.el (rmail-inbox-alist): Doc.
+
 2006-01-20  Henrik Enberg  <enberg@printf.se>
 
 	* rmailsum.el (rmail-summary-get-sender): New function.
