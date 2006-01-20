@@ -3185,8 +3185,9 @@ for mark off the local mark ring \(this does not affect the global
 mark ring\).  Use \\[pop-global-mark] to jump to a mark off the global
 mark ring \(see `pop-global-mark'\).
 
-Repeating the \\[set-mark-command] command without the prefix jumps to
-the next position off the local (or global) mark ring.
+If `set-mark-command-repeat-pop' is non-nil, repeating
+the \\[set-mark-command] command with no prefix pops the next position
+off the local (or global) mark ring and jumps there.
 
 With a double \\[universal-argument] prefix argument, e.g. \\[universal-argument] \
 \\[universal-argument] \\[set-mark-command], unconditionally
@@ -3734,7 +3735,13 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (or arg (setq arg 1))
   (if (/= arg 1)
       (line-move (1- arg) t))
-  (beginning-of-line 1)
+  
+  ;; Move to beginning-of-line, ignoring fields and invisibles.
+  (skip-chars-backward "^\n")
+  (while (and (not (bobp)) (line-move-invisible-p (1- (point))))
+    (goto-char (previous-char-property-change (1- (point))))
+    (skip-chars-backward "^\n"))
+
   (let ((orig (point)))
     (vertical-motion 0)
     (if (/= orig (point))
@@ -5278,7 +5285,13 @@ front of the list of recently selected ones."
 Select the new buffer in another window.
 Optional second arg NORECORD non-nil means do not put this buffer at
 the front of the list of recently selected ones."
-  (interactive "bClone buffer in other window: ")
+  (interactive
+   (progn
+     (if (get major-mode 'no-clone-indirect)
+	 (error "Cannot indirectly clone a buffer in %s mode" mode-name))
+     (list (if current-prefix-arg
+	       (read-string "BName of indirect buffer: "))
+	   t)))
   (let ((pop-up-windows t))
     (set-buffer buffer)
     (clone-indirect-buffer nil t norecord)))
