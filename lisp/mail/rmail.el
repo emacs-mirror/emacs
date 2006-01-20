@@ -356,6 +356,15 @@ and the value of the environment variable MAIL overrides it)."
   :group 'rmail-files)
 
 ;;;###autoload
+(defcustom rmail-inbox-alist nil
+  "*Alist of mail files and backup directory names.
+Each element looks like (MAIL-FILE . INBOX-LIST).  Mail files with
+names matching MAIL-FILE will retrieve mail from files in INBOX-LIST."
+  :type '(alist :key-type file :value-type (repeat file))
+  :group 'rmail-retrieve
+  :group 'rmail-files)
+
+;;;###autoload
 (defcustom rmail-mail-new-frame nil
   "*Non-nil means Rmail makes a new frame for composing outgoing mail.
 This is handy if you want to preserve the window configuration of
@@ -1165,7 +1174,7 @@ Instead, these commands are available:
   (make-local-variable 'rmail-overlay-list)
   (setq rmail-overlay-list nil)
   (make-local-variable 'rmail-inbox-list)
-  (setq rmail-inbox-list (rmail-parse-file-inboxes))
+  (setq rmail-inbox-list (rmail-get-file-inbox-list))
   ;; Provide default set of inboxes for primary mail file ~/RMAIL.
   (and (null rmail-inbox-list)
        (or (equal buffer-file-name (expand-file-name rmail-file-name))
@@ -1237,24 +1246,17 @@ Instead, these commands are available:
 	  (rmail-show-message rmail-total-messages)
 	  (run-hooks 'rmail-mode-hook)))))
 
-;; NOT DONE
-;; Return a list of files from this buffer's Mail: option.
-;; Does not assume that messages have been parsed.
-;; Just returns nil if buffer does not look like Babyl format.
-(defun rmail-parse-file-inboxes ()
-  (save-excursion
-    (save-restriction
-      (widen)
-      (goto-char 1)
-      (cond ((looking-at "BABYL OPTIONS:")
-	     (search-forward "\n\^_" nil 'move)
-	     (narrow-to-region 1 (point))
-	     (goto-char 1)
-	     (if (search-forward "\nMail:" nil t)
-		 (progn
-		   (narrow-to-region (point) (progn (end-of-line) (point)))
-		   (goto-char (point-min))
-		   (mail-parse-comma-list))))))))
+(defun rmail-get-file-inbox-list ()
+  "Return a list of inbox files for this buffer."
+  (let* ((filename (expand-file-name (buffer-file-name)))
+	 (inboxes (cdr (or (assoc filename rmail-inbox-alist)
+			   (assoc (abbreviate-file-name filename)
+				  rmail-inbox-alist))))
+	 (list nil))
+    (dolist (i inboxes)
+      (when (file-name-absolute-p i)
+	(push (expand-file-name i) list)))
+    (nreverse list)))
 
 ;;; mbox: ready
 (defun rmail-expunge-and-save ()
