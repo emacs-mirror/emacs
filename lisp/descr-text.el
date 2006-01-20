@@ -506,8 +506,7 @@ as well as widgets, buttons, overlays, and text properties."
 				     `(insert-text-button
 				       ,(symbol-name face)
 				       'type 'help-face 'help-args '(,face))))))
-	    ,@(let ((unicodedata (and unicode
-				      (describe-char-unicode-data unicode))))
+	    ,@(let ((unicodedata (describe-char-unicode-data char)))
 		(if unicodedata
 		    (cons (list "Unicode data" " ") unicodedata)))))
     (setq max-width (apply #'max (mapcar #'(lambda (x) 
