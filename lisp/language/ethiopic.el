@@ -1,12 +1,9 @@
 ;;; ethiopic.el --- support for Ethiopic	-*- coding: utf-8-emacs; -*-
 
 ;; Copyright (C) 1997  Free Software Foundation, Inc.
-;; Copyright (C) 1995, 2001
+;; Copyright (C) 1995, 2001, 2006
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
-;; Copyright (C) 2005
-;;   National Institute of Advanced Industrial Science and Technology (AIST)
-;;   Registration Number: H15PRO 110
 
 ;; Keywords: multilingual, Ethiopic
 
@@ -45,10 +42,10 @@
      (r1 *= 94)
      (r2 += r1)
      (if (r2 < 256)
-	 (r1 = ?\x12)
+	 (r1 = #x12)
        (if (r2 < 448)
-	   ((r1 = ?\x13) (r2 -= 256))
-	 ((r1 = ?\xfd) (r2 -= 208))
+	   ((r1 = #x13) (r2 -= 256))
+	 ((r1 = #xfd) (r2 -= 208))
 	 ))))
   "CCL program to encode an Ethiopic code to code point of Ethiopic font.")
 
@@ -84,6 +81,7 @@
 
 ;; For automatic composition
 (aset composition-function-table ?ö ‡Š 'ethio-composition-function)
+(aset composition-function-table ?áŸ 'ethio-composition-function)
 
 (provide 'ethiopic)
 
