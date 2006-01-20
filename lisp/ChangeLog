@@ -1,3 +1,15 @@
+2006-01-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* thumbs.el (thumbs-buffer): New variable.  Make it buffer local.
+	(thumbs-find-image): Move image name and number from buffer name
+	to mode name. Set thumbs-buffer.  Preserve point so that large
+	images remain visible.
+	(thumbs-file-alist): Construct list in thumbs-buffer and reverse
+	order.
+	(thumbs-show-image-num): Get image from thumbs-file-alist.  Set
+	mode name.
+	(thumbs-next-image, thumbs-previous-image): Make them work.
+
 2006-01-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el (custom-buffer-create-internal): State in the text above
