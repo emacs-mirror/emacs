@@ -5,9 +5,9 @@
 ;; Copyright (C) 1997, 1998, 1999, 2001, 2004, 2005
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
-;; Copyright (C) 2005
+;; Copyright (C) 2005, 2006
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
-;;   Registration Number: H15PRO 110
+;;   Registration Number: H15PRO110
 
 ;; Keywords: mule, multilingual, Ethiopic
 
@@ -796,7 +796,7 @@ The 2nd and 3rd arguments BEGIN and END specify the region."
     ;; Special treatment for geminated characters.
     ;; Geminated characters la", etc. change into \geminateG{\laG}, etc.
     (goto-char (point-min))
-    (while (search-forward "����" nil t)
+    (while (re-search-forward "፟\\|����" nil t)
       (setq comp (find-composition (match-beginning 0)))
       (if (null comp)
 	  (replace-match "\\\\geminateG{}" t)
@@ -845,7 +845,7 @@ The 2nd and 3rd arguments BEGIN and END specify the region."
     ;; compose geminated characters
     (goto-char (point-min))
     (while (re-search-forward "\\\\geminateG{\\(\\ce?\\)}" nil t)
-      (replace-match "\\1����"))
+      (replace-match "\\1፟"))
 
     ;; remove redundant braces, if any
     (goto-char (point-min))
@@ -1021,7 +1021,7 @@ With ARG, insert that many delimiters."
 ;;;###autoload
 (defun ethio-composition-function (pos &optional string)
   (setq pos (1- pos))
-  (let ((pattern "\\ce����"))
+  (let ((pattern "\\ce\\(፟\\|����\\)"))
     (if string
 	(if (and (>= pos 0)
 		 (eq (string-match pattern string pos) pos))
@@ -2008,6 +2008,66 @@ mark."
  ("\\lquoteG" ?����) ("\\lquoteG" "«")
  ("\\rquoteG" ?����) ("\\rquoteG" "»")
  ("\\qmarkG" ?����) ("\\qmarkG" "?")
+
+ ;;
+ ;; New characters in Unicode 4.1.
+ ;;
+ ;; In forward conversion, these characters override the old private
+ ;; extensions above.  The old private extensions still keep their
+ ;; reverse conversion.
+ ;;
+
+ ("\\ornamentG" ?፠)
+ ("\\yWaG" ?ዯ)
+ ("\\GWaG" ?ጟ)
+ ("\\MWeG" ?ᎀ)
+ ("\\mWiG" ?ᎁ)
+ ("\\mWEG" ?ᎂ)
+ ("\\mWG" ?ᎃ)
+ ("\\bWeG" ?ᎄ)
+ ("\\bWiG" ?ᎅ)
+ ("\\bWEG" ?ᎆ)
+ ("\\bWG" ?ᎇ)
+ ("\\fWeG" ?ᎈ)
+ ("\\fWiG" ?ᎉ)
+ ("\\fWEG" ?ᎊ)
+ ("\\fWG" ?ᎋ)
+ ("\\pWeG" ?ᎌ)
+ ("\\pWiG" ?ᎍ)
+ ("\\pWEG" ?ᎎ)
+ ("\\pWG" ?ᎏ)
+ ("\\GWeG" ?ⶓ)
+ ("\\GWiG" ?ⶔ)
+ ("\\GWEG" ?ⶕ)
+ ("\\GWG" ?ⶖ)
+ ("\\qqeG" ?ⷀ)
+ ("\\qquG" ?ⷁ)
+ ("\\qqiG" ?ⷂ)
+ ("\\qqaG" ?ⷃ)
+ ("\\qqEG" ?ⷄ)
+ ("\\qqG" ?ⷅ)
+ ("\\qqoG" ?ⷆ)
+ ("\\kkeG" ?ⷈ)
+ ("\\kkuG" ?ⷉ)
+ ("\\kkiG" ?ⷊ)
+ ("\\kkaG" ?ⷋ)
+ ("\\kkEG" ?ⷌ)
+ ("\\kkG" ?ⷍ)
+ ("\\kkoG" ?ⷎ)
+ ("\\XeG" ?ⷐ)
+ ("\\XuG" ?ⷑ)
+ ("\\XiG" ?ⷒ)
+ ("\\XaG" ?ⷓ)
+ ("\\XEG" ?ⷔ)
+ ("\\XG" ?ⷕ)
+ ("\\XoG" ?ⷖ)
+ ("\\ggeG" ?ⷘ)
+ ("\\gguG" ?ⷙ)
+ ("\\ggiG" ?ⷚ)
+ ("\\ggaG" ?ⷛ)
+ ("\\ggEG" ?ⷜ)
+ ("\\ggG" ?ⷝ)
+ ("\\ggoG" ?ⷞ)
  )
 
 ;; The ethiopic-tex package is not used for keyboard input, therefore
