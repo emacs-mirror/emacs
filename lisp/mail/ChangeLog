@@ -1,3 +1,12 @@
+2006-01-20  Alex Schroeder  <alex@gnu.org>
+
+	* rmail.el (rmail-show-message): Minor changes: comments.
+
+	* rmailsum.el (rmail-summary-get-summary): Fix display of
+	keywords.
+	(rmail-summary-rmail-update): Minor changes: If to when, comments,
+	doc string.
+
 2006-01-20  Henrik Enberg  <enberg@printf.se>
 
 	* rmail.el: (rmail-inbox-alist): New variable.

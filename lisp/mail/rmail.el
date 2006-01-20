@@ -2135,19 +2135,12 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
 		     blurb "No following message"))
 	      (t
 	       (setq rmail-current-message n))))
-
-      ;; Index into the Rmail message vector.
       (let ((beg (rmail-desc-get-start n))
 	    (end (rmail-desc-get-end n)))
-
-	;; Narrow the region to message N and display the headers
-	;; appropriately.
         (rmail-header-show-headers)
         (widen)
 	(narrow-to-region beg end)
         (goto-char (point-min))
-
-        ;; Do something here with the coding system, I'm not sure what. -pmr
         (if (re-search-forward "^X-Coding-System: *\\(.*\\)$" nil t)
             (let ((coding-system (intern (match-string 1))))
               (condition-case nil
@@ -2157,19 +2150,10 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
                 (error
                  (setq buffer-file-coding-system nil))))
           (setq buffer-file-coding-system nil))
-
         ;; Clear the "unseen" attribute when we show a message, unless
 	;; it is already cleared.
 	(when (rmail-desc-attr-p rmail-desc-unseen-index n)
 	  (rmail-desc-set-attribute rmail-desc-unseen-index nil n))
-
-;; More code that has been added that I ill understand.
-;;	(walk-windows
-;;	 (function (lambda (window)
-;;		     (if (eq (window-buffer window) (current-buffer))
-;;			 (set-window-point window (point)))))
-;;	 nil t)
-
 	(rmail-display-labels)
 	;; Deal with MIME
 	(if (eq rmail-enable-mime t)
