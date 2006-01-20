@@ -143,8 +143,6 @@ SUBJECT is a string of regexps separated by commas."
   (interactive
    (let* ((subject (with-current-buffer rmail-buffer
 		     (rmail-current-subject)))
-	  (subject-re (with-current-buffer rmail-buffer
-			(rmail-current-subject-regexp)))
 	  (prompt (concat "Topics to summarize by (regexp"
 			  (if subject ", default current subject" "")
 			  "): ")))
@@ -167,18 +165,26 @@ non-nil otherwise."
      (rmail-desc-get-end msg))
     (goto-char (point-min))
     (if whole-message
-        (re-search-forward subject nil t)
-      (string-match subject
-		    (let ((subj (mail-fetch-field "subject")))
-		      (if subj
-			  (funcall rmail-summary-line-decoder subj)
-			""))))))
+	(re-search-forward subject nil t))
+    (string-match subject
+		  (let ((subj (rmail-header-get-header "subject")))
+		    (if subj
+			(funcall rmail-summary-line-decoder subj)
+		      "")))))
 
 ;;;###autoload
 (defun rmail-summary-by-senders (senders)
   "Display a summary of all messages with the given SENDERS.
 SENDERS is a string of names separated by commas."
-  (interactive "sSenders to summarize by: ")
+  (interactive
+   (let* ((sender (when rmail-current-message
+		    (rmail-desc-get-sender rmail-current-message)))
+	  (sender-re (with-current-buffer rmail-buffer
+		       (regexp-quote sender)))
+	  (prompt (concat "Senders to summarize by (regexp"
+			  (if sender ", default current sender" "")
+			  "): ")))
+     (list (read-string prompt nil nil sender))))
   (rmail-new-summary
    (concat "senders " senders)
    (list 'rmail-summary-by-senders senders)
