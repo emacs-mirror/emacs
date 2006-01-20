@@ -5,6 +5,20 @@
 	Revert 2006-01-08 change because the functions will be used in No
 	Gnus.
 
+2006-01-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-bodies.el (mm-decode-body): Don't decode decoded body.
+
+	* mm-uu.el (mm-uu-dissect-text-parts): Dissect dissected parts.
+
+2006-01-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-inlined-types): Add application/pgp.
+	(mm-automatic-display): Ditto.
+
+	* mm-uu.el (mm-uu-dissect-text-parts): Recognize application/pgp
+	part as text.
+
 2006-01-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnrss.el: Update copyright.

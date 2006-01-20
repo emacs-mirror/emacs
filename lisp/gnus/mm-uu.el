@@ -512,6 +512,7 @@ value of `mm-uu-text-plain-type'."
 (defun mm-uu-dissect-text-parts (handle)
   "Dissect text parts and put uu handles into HANDLE."
   (let ((buffer (mm-handle-buffer handle))
+	(case-fold-search t)
 	type children)
     (cond ((stringp buffer)
 	   (dolist (elem (cdr handle))
@@ -519,13 +520,16 @@ value of `mm-uu-text-plain-type'."
 	  ((bufferp buffer)
 	   (when (and (setq type (mm-handle-media-type handle))
 		      (stringp type)
-		      (string-match "\\`text/" type)
+		      ;; Mutt still uses application/pgp even though
+		      ;; it has already been withdrawn.
+		      (string-match "\\`text/\\|\\`application/pgp\\'" type)
 		      (with-current-buffer buffer
 			(setq children
 			      (mm-uu-dissect t (mm-handle-type handle)))))
 	     (kill-buffer buffer)
 	     (setcar handle (car children))
-	     (setcdr handle (cdr children))))
+	     (setcdr handle (cdr children))
+	     (mm-uu-dissect-text-parts handle)))
 	  (t
 	   (dolist (elem handle)
 	     (mm-uu-dissect-text-parts elem))))))
