@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2003, 2004, 2005
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
-;;   Registration Number: H15PRO 110
+;;   Registration Number: H15PRO110
 
 ;; Author: TAKAHASHI Naoto <ntakahas@m17n.org>
 ;; Keywords: mule, multilingual, input method
