@@ -583,30 +583,29 @@ the `unseen' attribute from that message, it sets this flag
 so that if the next motion between messages is in the same Incremental
 Search, the `unseen' attribute is restored.")
 
-;; Show in Rmail the message described by the summary line that point is on,
-;; but only if the Rmail buffer is already visible.
-;; This is a post-command-hook in summary buffers.
 (defun rmail-summary-rmail-update ()
   "Update the Rmail summary buffer.
-Put the cursor on the beginning of the line containing the current
-message and highlight the buffer."
+Put the cursor on the beginning of the line containing the
+current message and highlight the buffer.  Show in Rmail the
+message described by the summary line that point is on, but only
+if the Rmail buffer is already visible.  This is on
+`post-command-hook' in summary buffers."
   (let (buffer-read-only)
     (save-excursion
       ;; If at end of buffer, pretend we are on the last text line.
-      (if (eobp)
-	  (forward-line -1))
-      ;; Determine the message number correpsonding to line point is on.
+      (when (eobp)
+	(forward-line -1))
+      ;; Determine the message number corresponding to line point is on.
       (beginning-of-line)
       (skip-chars-forward " ")
       (let ((msg-num (string-to-number (buffer-substring
 					(point)
 					(progn (skip-chars-forward "0-9")
 					       (point))))))
-
 	;; Always leave `unseen' removed if we get out of isearch mode.
 	;; Don't let a subsequent isearch restore `unseen'.
-	(if (not isearch-mode)
-	    (setq rmail-summary-put-back-unseen nil))
+	(when (not isearch-mode)
+	  (setq rmail-summary-put-back-unseen nil))
 	(or (eq rmail-current-message msg-num)
 	    (let ((window (get-buffer-window rmail-view-buffer t))
 		  (owin (selected-window)))
@@ -625,16 +624,12 @@ message and highlight the buffer."
 		    (setq rmail-summary-put-back-unseen
 			  (member "unseen" (rmail-desc-get-keywords msg-num))))
 		(setq rmail-summary-put-back-unseen nil))
-
 	      ;; Go to the desired message.
 	      (setq rmail-current-message msg-num)
-
 	      ;; Update the summary to show the message has been seen.
-	      (if (= (following-char) ?-)
-		  (progn
-		    (delete-char 1)
-		    (insert " ")))
-
+	      (when (= (following-char) ?-)
+		(delete-char 1)
+		(insert " "))
 	      (if window
 		  ;; Using save-window-excursion would cause the new value
 		  ;; of point to get lost.
@@ -643,8 +638,8 @@ message and highlight the buffer."
 			(select-window window)
 			(rmail-show-message msg-num t))
 		    (select-window owin))
-		(if (buffer-name rmail-buffer)
-		    (save-excursion
+		(when (buffer-name rmail-buffer)
+		  (save-excursion
 		      (set-buffer rmail-buffer)
 		      (rmail-show-message msg-num t))))))
 	(rmail-summary-update-highlight nil)))))
@@ -1507,15 +1502,17 @@ KEYWORDS is a comma-separated list of labels."
 
 (defun rmail-summary-get-summary (n)
   "Return a summary line for message N."
-  (let (keywords str)
+  (let (keywords str subj)
     (dolist (keyword (rmail-desc-get-keywords n))
       (when (and (rmail-keyword-p keyword)
 		 (not (rmail-attribute-p keyword)))
 	(setq keywords (cons keyword keywords))))
-    (setq keywords (nreverse keywords))
-    (setq str (if keywords
+    (setq keywords (nreverse keywords)
+	  str (if keywords
 		  (concat "{ " (mapconcat 'identity keywords " ") " } ")
-		""))
+		"")
+	  subj (replace-regexp-in-string "\\s-+" " "
+					 (rmail-desc-get-subject n)))
     (funcall rmail-summary-line-decoder
 	     (format "%5s%s%6s %25s%s %s\n"
 		     n
@@ -1524,7 +1521,7 @@ KEYWORDS is a comma-separated list of labels."
 			     (rmail-desc-get-month n))
 		     (rmail-desc-get-sender n)
 		     (rmail-summary-get-line-count n)
-		     (concat str (rmail-desc-get-subject n))))))
+		     (concat str subj)))))
 
 (defun rmail-summary-update (n)
   "Rewrite the summary line for message N."
