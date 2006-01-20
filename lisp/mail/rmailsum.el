@@ -1514,7 +1514,7 @@ KEYWORDS is a comma-separated list of labels."
 	  subj (replace-regexp-in-string "\\s-+" " "
 					 (rmail-desc-get-subject n)))
     (funcall rmail-summary-line-decoder
-	     (format "%5s%s%6s %25s%s %s\n"
+	     (format "%5s%s%6s %25.25s%s %s\n"
 		     n
 		     (rmail-summary-get-summary-attributes n)
 		     (concat (rmail-desc-get-day-number n) "-"
