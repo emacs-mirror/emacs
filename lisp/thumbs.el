@@ -153,6 +153,10 @@ this value can let another user see some of your images."
   "Number of current image.")
 (make-variable-buffer-local 'thumbs-image-num)
 
+(defvar thumbs-buffer nil
+  "Name of buffer containing thumbnails associated with image.")
+(make-variable-buffer-local 'thumbs-buffer)
+
 (defvar thumbs-current-dir nil
   "Current directory.")
 
@@ -429,17 +433,22 @@ and SAME-WINDOW to show thumbs in the same window."
 (defalias 'thumbs 'thumbs-show-all-from-dir)
 
 (defun thumbs-find-image (img &optional num otherwin)
-  (funcall
-   (if otherwin 'switch-to-buffer-other-window 'switch-to-buffer)
-   (concat "*Image: " (file-name-nondirectory img) " - "
-	   (number-to-string (or num 0)) "*"))
-  (thumbs-view-image-mode)
-  (let ((inhibit-read-only t))
-    (setq thumbs-current-image-filename img
-	  thumbs-current-tmp-filename nil
-	  thumbs-image-num (or num 0))
-    (delete-region (point-min)(point-max))
-    (thumbs-insert-image img (thumbs-image-type img) 0)))
+  (let ((buffer (current-buffer)))
+    (funcall
+     (if otherwin 'switch-to-buffer-other-window 'switch-to-buffer)
+     "*Image*")
+    (thumbs-view-image-mode)
+    (setq mode-name
+	  (concat "image-view-mode: " (file-name-nondirectory img)
+		  " - " (number-to-string num)))
+    (setq thumbs-buffer buffer)
+    (let ((inhibit-read-only t))
+      (setq thumbs-current-image-filename img
+	    thumbs-current-tmp-filename nil
+	    thumbs-image-num (or num 0))
+      (delete-region (point-min)(point-max))
+      (save-excursion
+	(thumbs-insert-image img (thumbs-image-type img) 0)))))
 
 (defun thumbs-find-image-at-point (&optional img otherwin)
   "Display image IMG for thumbnail at point.
@@ -484,16 +493,17 @@ Open another window."
 
 (defun thumbs-file-alist ()
   "Make an alist of elements (POS . FILENAME) for all images in thumb buffer."
-  (save-excursion
-    (let (list)
-      (goto-char (point-min))
-      (while (not (eobp))
-	(if (thumbs-current-image)
-	    (push (cons (point-marker)
-			(thumbs-current-image))
-		  list))
-	(forward-char 1))
-      list)))
+  (with-current-buffer thumbs-buffer
+    (save-excursion
+      (let (list)
+	(goto-char (point-min))
+	(while (not (eobp))
+	  (if (thumbs-current-image)
+	      (push (cons (point-marker)
+			  (thumbs-current-image))
+		    list))
+	  (forward-char 1))
+	(nreverse list)))))
 
 (defun thumbs-file-list ()
   "Make a list of file names for all images in thumb buffer."
@@ -571,30 +581,32 @@ Open another window."
 (defun thumbs-show-image-num (num)
   "Show the image with number NUM."
   (let ((image-buffer (get-buffer-create "*Image*")))
-    (let ((i (thumbs-current-image)))
+    (let ((img (cdr (nth (1- num) (thumbs-file-alist)))))
       (with-current-buffer image-buffer
-	(thumbs-insert-image i (thumbs-image-type i) 0))
+	(setq mode-name
+	      (concat "image-view-mode: " (file-name-nondirectory img)
+		      " - " (number-to-string num)))
+	(let ((inhibit-read-only t))
+	  (erase-buffer)
+	  (thumbs-insert-image img (thumbs-image-type img) 0)
+	  (goto-char (point-min))))
       (setq thumbs-image-num num
-	    thumbs-current-image-filename i))))
+	    thumbs-current-image-filename img))))
 
 (defun thumbs-next-image ()
   "Show the next image."
   (interactive)
   (let* ((i (1+ thumbs-image-num))
-	 (list (thumbs-file-alist))
-	 (l (caar list)))
-    (while (and (/= i thumbs-image-num) (not (assoc i list)))
-      (setq i (if (>= i l) 1 (1+ i))))
+	 (number (length (thumbs-file-alist))))
+    (if (= i number) (setq i 1))
     (thumbs-show-image-num i)))
 
 (defun thumbs-previous-image ()
   "Show the previous image."
   (interactive)
   (let* ((i (- thumbs-image-num 1))
-	 (list (thumbs-file-alist))
-	 (l (caar list)))
-    (while (and (/= i thumbs-image-num) (not (assoc i list)))
-      (setq i (if (<= i 1) l (1- i))))
+	 (number (length (thumbs-file-alist))))
+    (if (= i 0) (setq i (1- number)))
     (thumbs-show-image-num i)))
 
 (defun thumbs-redraw-buffer ()
