@@ -1,3 +1,10 @@
+2006-01-20  Henrik Enberg  <enberg@printf.se>
+
+	* rmail.el: (rmail-inbox-alist): New variable.
+	(rmail-get-file-inbox-list): New function.
+	(rmail-perm-variables): Use it.
+	(rmail-parse-file-inboxes): Deleted.
+
 2006-01-20  Alex Schroeder  <alex@gnu.org>
 
 	* rmailsum.el (rmail-summary-mode): Fixed typo in doc string and
