@@ -1,5 +1,8 @@
 2006-01-20  Eli Zaretskii  <eliz@gnu.org>
 
+	* lread.c (Fload): Don't leak the file descriptor returned by
+	openp if we are going to signal an error.
+
 	* w32.c (sys_close): If FD is outside [0..MAXDESC) limits, pass it
 	directly to _close.
 	(sys_dup): Protect against new_fd larger than fd_info[] can handle.
