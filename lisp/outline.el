@@ -807,6 +807,7 @@ Show the heading too, if it is currently invisible."
   (interactive)
   (save-excursion
     (outline-back-to-heading)
+;; Turned off to fix bug reported by Otto Maddox on 22 Nov 2005.
 ;;    (outline-end-of-heading)
     (hide-region-body (point) (progn (outline-end-of-subtree) (point)))))
 
