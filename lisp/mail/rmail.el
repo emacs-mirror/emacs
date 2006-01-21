@@ -839,7 +839,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
       (goto-char (point-max))
       (rmail-mode-2)
       ;; setup files coding system
-      (rmail-decode-mbox-file)
+      (rmail-decode-mail-file)
       ;;  We use `run-mail-hook' to remember whether we should run
       ;; `rmail-mode-hook' at the end.
       (setq run-mail-hook t)
@@ -861,26 +861,6 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
     ;; Run any callbacks if the buffer was not in rmail-mode
     (if run-mail-hook
         (run-hooks 'rmail-mode-hook))))
-
-(defun rmail-decode-mbox-file ()
-  "Decode file to a suitable conding system."
-  (when (and (not rmail-enable-mime) rmail-enable-multibyte)
-    (let ((modifiedp (buffer-modified-p))
-	  (buffer-read-only nil)
-	  (coding-system rmail-file-coding-system))
-      (unless (and coding-system (coding-system-p coding-system))
-	(setq coding-system
-	      (car (detect-coding-with-priority
-		    (point-min) (point-max)
-		    '((coding-category-emacs-mule . emacs-mule))))))
-      (unless (memq coding-system '(undecided undecided-unix))
-	(set-buffer-modified-p t) ;; avoid locking when decoding
-	(let ((buffer-undo-list t))
-	  (decode-coding-region (point-min) (point-max) coding-system))
-	(setq coding-system last-coding-system-used))
-      (set-buffer-modified-p modifiedp)
-      (setq buffer-file-coding-system nil)
-      (setq save-buffer-coding-system (or coding-system 'undecided)))))
 
 (defun rmail-initialize-messages ()
   "Initialize message state based on messages in the buffer."
@@ -1700,44 +1680,25 @@ is non-nil if the user has supplied the password interactively.
 	(setq last-coding-system-used
 	      (coding-system-change-eol-conversion coding 0))))
 
-(defun rmail-hex-char-to-integer (character)
-  "Return CHARACTER's value interpreted as a hex digit."
-  (if (and (>= character ?0) (<= character ?9))
-      (- character ?0)
-    (let ((ch (logior character 32)))
-      (if (and (>= ch ?a) (<= ch ?f))
-	  (- ch (- ?a 10))
-	(error "Invalid hex digit `%c'" ch)))))
-
-(defun rmail-hex-string-to-integer (hex-string)
-  "Return decimal integer for HEX-STRING."
-  (let ((hex-num 0)
-	(index 0))
-    (while (< index (length hex-string))
-      (setq hex-num (+ (* hex-num 16)
-		       (rmail-hex-char-to-integer (aref hex-string index))))
-      (setq index (1+ index)))
-    hex-num))
-
-(defun rmail-decode-quoted-printable (from to)
-  "Decode Quoted-Printable in the region between FROM and TO."
-  (interactive "r")
-  (goto-char from)
-  (or (markerp to)
-      (setq to (copy-marker to)))
-  (while (search-forward "=" to t)
-    (cond ((eq (following-char) ?\n)
-	   (delete-char -1)
-	   (delete-char 1))
-	  ((looking-at "[0-9A-F][0-9A-F]")
-	   (let ((byte (rmail-hex-string-to-integer
-			(buffer-substring (point) (+ 2 (point))))))
-	     (delete-region (1- (point)) (+ 2 (point)))
-	     (insert byte)))
-	  ((looking-at "=")
-	   (delete-char 1))
-	  (t
-	   (message "Malformed MIME quoted-printable message")))))
+(defun rmail-decode-mail-file ()
+  "Decode mail file to a suitable conding system."
+  (when (and (not rmail-enable-mime) rmail-enable-multibyte)
+    (let ((modifiedp (buffer-modified-p))
+	  (buffer-read-only nil)
+	  (coding-system rmail-file-coding-system))
+      (unless (and coding-system (coding-system-p coding-system))
+	(setq coding-system
+	      (car (detect-coding-with-priority
+		    (point-min) (point-max)
+		    '((coding-category-emacs-mule . emacs-mule))))))
+      (unless (memq coding-system '(undecided undecided-unix))
+	(set-buffer-modified-p t) ;; avoid locking when decoding
+	(let ((buffer-undo-list t))
+	  (decode-coding-region (point-min) (point-max) coding-system))
+	(setq coding-system last-coding-system-used))
+      (set-buffer-modified-p modifiedp)
+      (setq buffer-file-coding-system nil)
+      (setq save-buffer-coding-system (or coding-system 'undecided)))))
 
 
 ;;;; *** Rmail Message Formatting and Header Manipulation ***
@@ -1966,14 +1927,13 @@ non-nil then do not show any progress messages."
 	  (or rmail-enable-mime
 	      (not rmail-enable-multibyte)
 	      (let ((mime-charset
-		     (if (and rmail-decode-mime-charset
-			      (save-excursion
-				(goto-char start)
-				(search-forward "\n\n" nil t)
-				(let ((case-fold-search t))
-				  (re-search-backward
-				   rmail-mime-charset-pattern
-				   start t))))
+		     (when (and rmail-decode-mime-charset
+				(save-excursion
+				  (goto-char (rmail-header-get-limit))
+				  (let ((case-fold-search t))
+				    (re-search-backward
+				     rmail-mime-charset-pattern
+				     (point-min) t))))
 			 (intern (downcase (match-string 1))))))
 		(rmail-decode-region start (point) mime-charset)))
 

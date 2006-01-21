@@ -1,3 +1,11 @@
+2006-01-21  Henrik Enberg  <enberg@printf.se>
+
+	* rmail.el (rmail-process-new-messages): Simplify.
+	(rmail-decode-quoted-printable): Delete unused function.
+	(rmail-hex-string-to-integer): Likewise.
+	(rmail-hex-char-to-integer): Likewise.
+	(rmail-decode-mail-file): Renamed from `rmail-decode-mbox-file'.
+
 2006-01-21  Alex Schroeder  <alex@gnu.org>
 
 	* rmail.el (rmail-get-new-mail): Doc.
