@@ -146,8 +146,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
   (interactive)
   (delete-region (point-min) (point-max))
   (insert rmail-old-text)
-  (rmail-cease-edit)
-  (rmail-highlight-headers))
+  (rmail-cease-edit))
 
 (provide 'rmailedit)
 
