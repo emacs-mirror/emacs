@@ -1,3 +1,9 @@
+2006-01-21  Alex Schroeder  <alex@gnu.org>
+
+	* rmail.el (rmail-decode-messages): Decoded encoded-words in
+	Subject and From header.
+	(rmail-process-new-messages): Don't decode encoded words here.
+
 2006-01-21  Henrik Enberg  <enberg@printf.se>
 
 	* rmail.el (rmail-process-new-messages): Don't decode messages
