@@ -1736,21 +1736,35 @@ is non-nil if the user has supplied the password interactively.
 	(save-restriction
 	  (narrow-to-region start end)
 	  (goto-char (point-min))
-
+	  ;; Detect messages that have been added with DOS line endings
+	  ;; and convert the line endings for such messages.
+	  (when (save-excursion (end-of-line) (= (preceding-char) ?\r))
+	    (let ((buffer-read-only nil)
+		  (buffer-undo t)
+		  (end-marker (copy-marker end)))
+	      (message
+	       "Processing new messages...(converting line endings)")
+	      (save-excursion
+		(goto-char (point-max))
+		(while (search-backward "\r\n" (point-min) t)
+		  (delete-char 1)))
+	      (setq end (marker-position end-marker))
+	      (set-marker end-marker nil)))
+	  ;; Decode message according to its content type.
 	  (setq last-coding-system-used nil)
-	  (or rmail-enable-mime
-	      (not rmail-enable-multibyte)
-	      (let ((mime-charset
-		     (when (and rmail-decode-mime-charset
-				(save-excursion
-				  (goto-char (rmail-header-get-limit))
-				  (let ((case-fold-search t))
-				    (re-search-backward
-				     rmail-mime-charset-pattern
-				     (point-min) t))))
-		       (intern (downcase (match-string 1))))))
-		(rmail-decode-region start (point) mime-charset)))
-
+	  ;; (or rmail-enable-mime
+	  ;;     (not rmail-enable-multibyte)
+	  (when (and (not rmail-enable-mime) rmail-enable-multibyte)
+	    (let ((mime-charset
+		   (when (and rmail-decode-mime-charset
+			      (save-excursion
+				(goto-char (rmail-header-get-limit))
+				(let ((case-fold-search t))
+				  (re-search-backward
+				   rmail-mime-charset-pattern
+				   (point-min) t))))
+		     (intern (downcase (match-string 1))))))
+	      (rmail-decode-region start (point) mime-charset)))
 	  ;; Add an the X-Coding-System header.
 	  (unless (rmail-header-get-header "X-Coding-System")
 	    (let ((val (symbol-name last-coding-system-used)))
@@ -1961,21 +1975,6 @@ non-nil then do not show any progress messages."
 	  (goto-char start)
 	  ;; Bump the new message counter.
 	  (setq new-message-counter (1+ new-message-counter))
-	  ;; I don't understand why the following is done ... -pmr
-	  ;; Detect messages that have been added with DOS line endings
-	  ;; and convert the line endings for such messages.
-	  (if (save-excursion (end-of-line) (= (preceding-char) ?\r))
-	      (let ((buffer-read-only nil)
-		    (buffer-undo t)
-		    (end-marker (copy-marker end)))
-		(message
-                 "Processing new messages...(converting line endings)")
-		(save-excursion
-		  (goto-char (point-max))
-		  (while (search-backward "\r\n" (point-min) t)
-		    (delete-char 1)))
-		(setq end (marker-position end-marker))
-		(set-marker end-marker nil)))
 
 	  ;; Make sure we have an Rmail BABYL attribute header field.
 	  ;; All we can assume is that the Rmail BABYL header field is
