@@ -1,3 +1,13 @@
+2006-01-21  Henrik Enberg  <enberg@printf.se>
+
+	* rmailsum.el (rmail-summary-get-sender): Doc fix.
+
+	* rmail.el (rmail-redecode-body): Simplify.
+	(rmail-get-inbox-list): Stop on name conflict.
+	(rmail-show-message): Set `rmail-view-buffer' to `rmail-buffer` if
+	not using MIME.  Make sure we go to `point-min' before setting
+	window point as searching for coding header might move point.
+
 2006-01-20  Alex Schroeder  <alex@gnu.org>
 
 	* rmail.el (rmail-inbox-alist): Doc.
