@@ -1,9 +1,18 @@
 2006-01-21  Alex Schroeder  <alex@gnu.org>
 
+	* rmailedit.el (rmail-abort-edit): Don't call
+	rmail-highlight-headers anymore.
+
 	* rmail.el (rmail-next-undeleted-message): Simplify.
 	(rmail-what-message): Deleted since it was never called.
 	(rmail-narrow-to-header): Use the same error message as
 	rmail-header-get-limit.
+	(rmail-highlight-face): Doc.
+	(rmail-font-lock-keywords): Add the stuff necessary to make
+	rmail-highlight-headers obsolete.
+	(rmail-toggle-header, rmail-show-message): Don't call
+	rmail-highlight-headers anymore.
+	(rmail-highlight-headers): Deleted.
 
 	* rmaildesc.el (rmail-desc-set-attribute): Use
 	rmail-header-add-header instead of rmail-header-set-header.
