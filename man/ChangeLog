@@ -1,3 +1,10 @@
+2006-01-15  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+
+	* files.texi (File Aliases): Don't claim that usually separate
+	buffers are created for two file names that name the same data.
+	Mention additional situations where different names mean the same
+	file on disk.
+
 2006-01-19  Richard M. Stallman  <rms@gnu.org>
 
 	* killing.texi (Deletion): Upcase @key argument.
