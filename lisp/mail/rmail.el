@@ -49,6 +49,8 @@
   (require 'rmailhdr)
   (require 'rmailkwd))
 
+(require 'mail-parse)
+
 (defvar deleted-head)
 (defvar font-lock-fontified)
 (defvar mail-abbrev-syntax-table)
@@ -1846,13 +1848,13 @@ LABELS is a regular expression."
 
 ;;;; *** Rmail Message Selection And Support ***
 
-;; mbox: deprecated. -pmr
-(defun rmail-msgend (n)
-  (rmail-desc-get-start n))
-
-;; mbox: deprecated. -pmr
 (defun rmail-msgbeg (n)
+  (rmail-desc-get-start n))
+(make-obsolete 'rmail-msgbeg 'rmail-desc-get-start "22.0")
+
+(defun rmail-msgend (n)
   (rmail-desc-get-end n))
+(make-obsolete 'rmail-msgend 'rmail-desc-get-end "22.0")
 
 (defun rmail-widen-to-current-msgbeg (function)
   "Call FUNCTION with point at start of internal data of current message.
@@ -1984,7 +1986,8 @@ non-nil then do not show any progress messages."
                                      (count-lines start end)
 				     (cadr (mail-extract-address-components
 					    (rmail-header-get-header "from")))
-                                     (rmail-header-get-header "subject")))
+				     (mail-decode-encoded-word-string
+				      (rmail-header-get-header "subject"))))
 			 message-descriptor-list)))))
     ;; Add the new message data lists to the Rmail message descriptor
     ;; vector.
@@ -2180,8 +2183,11 @@ iso-8859, koi8-r, etc."
 		(error "No X-Coding-System header found")))
 	  (rmail-header-hide-headers))))))
 
-;; Find all occurrences of certain fields, and highlight them.
 (defun rmail-highlight-headers ()
+  "Find all occurrences of certain fields, and highlight them.
+The fields highlighted are determined by `rmail-highlighted-headers'.
+The face used is stored in the variable `rmail-highlight-face' and
+defaults to the face `rmail-highlight-face'."
   ;; Do this only if the system supports faces.
   (if (and (fboundp 'internal-find-face)
 	   rmail-highlighted-headers)
