@@ -1,3 +1,8 @@
+2006-01-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calcalg2.el (calc-sum-rec): Fix the sum when the lower
+	limit is 0.
+
 2006-01-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-open-at-point): Fixed bug with matching a
