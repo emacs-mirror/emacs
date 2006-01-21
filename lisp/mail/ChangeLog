@@ -1,3 +1,14 @@
+2006-01-21  Henrik Enberg  <enberg@printf.se>
+
+	* rmail.el (rmail-process-new-messages): Don't decode messages
+	here, Don't lose on missing subject field.
+	(rmail-decode-messages): New function.
+	(rmail): Use it.
+	(rmail-get-new-mail): Likewise.
+
+	* rmailsum.el (rmail-summary-get-sender): Narrow to current
+	message before extracting headers.
+
 2006-01-21  Alex Schroeder  <alex@gnu.org>
 
 	* rmailedit.el (rmail-abort-edit): Don't call
