@@ -1,3 +1,8 @@
+2006-01-21  Alex Schroeder  <alex@gnu.org>
+
+	* rmail.el (rmail-get-new-mail): Doc.
+	(rmail-get-inbox-list): Doc.
+
 2006-01-21  Henrik Enberg  <enberg@printf.se>
 
 	* rmailsum.el (rmail-summary-get-sender): Doc fix.
