@@ -14,6 +14,9 @@
 
 	* rmail.el (rmail-get-new-mail): Doc.
 	(rmail-get-inbox-list): Doc.
+	(rmail-require-mime-maybe): Simplified.
+	(rmail-mode-map): Rewritten using a local binding to agree
+	with "(elisp)Tips for Defining".
 
 2006-01-21  Henrik Enberg  <enberg@printf.se>
 
