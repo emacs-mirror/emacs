@@ -1,3 +1,8 @@
+2006-01-21  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-emacs-popup, flypell-xemacs-popup):
+	Default to disabling the "Save affix" question.
+
 2006-01-21  Marien Zwart  <marienz@gentoo.org>  (tiny change)
 
 	* progmodes/python.el (python-mode) <eldoc-mode-hook>: Pass nil as
