@@ -44,11 +44,9 @@
   (require 'mailabbrev)
   (require 'mule-util))                ; for detect-coding-with-priority
 
-(eval-and-compile
-  (require 'rmaildesc)
-  (require 'rmailhdr)
-  (require 'rmailkwd))
-
+(require 'rmaildesc)
+(require 'rmailhdr)
+(require 'rmailkwd)
 (require 'mail-parse)
 
 (defvar deleted-head)
@@ -329,8 +327,9 @@ See also `rmail-highlight-face'."
   :group 'rmail-headers)
 
 ;;;###autoload
-(defcustom rmail-highlight-face nil "\
-*Face used by Rmail for highlighting headers."
+(defcustom rmail-highlight-face 'bold "\
+*Face used by Rmail for highlighting sender and subject.
+See `rmail-font-lock-keywords'."
   :type '(choice (const :tag "Default" nil)
 		 face)
   :group 'rmail-headers)
@@ -688,10 +687,15 @@ The first parenthesized expression should match the MIME-charset name.")
     (let* ((cite-chars "[>|}]")
 	   (cite-prefix "a-z")
 	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
-      (list '("^\\(From\\|Sender\\|Resent-From\\):"
+      (list '("^\\(Sender\\|Resent-From\\):"
 	      . font-lock-function-name-face)
 	    '("^Reply-To:.*$" . font-lock-function-name-face)
-	    '("^Subject:" . font-lock-comment-face)
+	    '("^\\(From:\\)\\(.*\\(\n[ \t]+.*\\)*\\)"
+	      (1 font-lock-function-name-face)
+	      (2 rmail-highlight-face))
+	    '("^\\(Subject:\\)\\(.*\\(\n[ \t]+.*\\)*\\)"
+	      (1 font-lock-comment-face)
+	      (2 rmail-highlight-face))
 	    '("^X-Spam-Status:" . font-lock-keyword-face)
 	    '("^\\(To\\|Apparently-To\\|Cc\\|Newsgroups\\):"
 	      . font-lock-keyword-face)
@@ -1766,8 +1770,7 @@ unless they also match `rmail-nonignored-headers'."
 With argument ARG, show the message header pruned if ARG is greater than zero;
 otherwise, show it in full."
   (interactive "P")
-  (rmail-header-toggle-visibility arg)
-  (rmail-highlight-headers))
+  (rmail-header-toggle-visibility arg))
 
 (defun rmail-narrow-to-non-pruned-header ()
   "Narrow to the whole (original) header of the current message."
@@ -2105,7 +2108,6 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
 	  (setq rmail-view-buffer rmail-buffer))
 	;; Deal with the message headers and URLs..
 	(rmail-header-hide-headers)
-	(rmail-highlight-headers)
 	(when transient-mark-mode (deactivate-mark))
         ;; Make sure that point in the Rmail window is at the beginning
         ;; of the buffer.
@@ -2183,52 +2185,6 @@ iso-8859, koi8-r, etc."
 		    (rmail-show-message rmail-current-message))
 		(error "No X-Coding-System header found")))
 	  (rmail-header-hide-headers))))))
-
-(defun rmail-highlight-headers ()
-  "Find all occurrences of certain fields, and highlight them.
-The fields highlighted are determined by `rmail-highlighted-headers'.
-The face used is stored in the variable `rmail-highlight-face' and
-defaults to the face `rmail-highlight-face'."
-  ;; Do this only if the system supports faces.
-  (if (and (fboundp 'internal-find-face)
-	   rmail-highlighted-headers)
-      (save-excursion
-	(search-forward "\n\n" nil 'move)
-	(save-restriction
-	  (narrow-to-region (point-min) (point))
-	  (let ((case-fold-search t)
-		(inhibit-read-only t)
-		;; Highlight with boldface if that is available.
-		;; Otherwise use the `highlight' face.
-		(face (or rmail-highlight-face
-			  (if (face-differs-from-default-p 'bold)
-			      'bold 'highlight)))
-		;; List of overlays to reuse.
-		(overlays rmail-overlay-list))
-	    (goto-char (point-min))
-	    (while (re-search-forward rmail-highlighted-headers nil t)
-	      (skip-chars-forward " \t")
-	      (let ((beg (point))
-		    overlay)
-		(while (progn (forward-line 1)
-			      (looking-at "[ \t]")))
-		;; Back up over newline, then trailing spaces or tabs
-		(forward-char -1)
-		(while (member (preceding-char) '(?  ?\t))
-		  (forward-char -1))
-		(if overlays
-		    ;; Reuse an overlay we already have.
-		    (progn
-		      (setq overlay (car overlays)
-			    overlays (cdr overlays))
-		      (overlay-put overlay 'face face)
-		      (move-overlay overlay beg (point)))
-		  ;; Make a new overlay and add it to
-		  ;; rmail-overlay-list.
-		  (setq overlay (make-overlay beg (point)))
-		  (overlay-put overlay 'face face)
-		  (setq rmail-overlay-list
-			(cons overlay rmail-overlay-list))))))))))
 
 ;;; mbox ready
 (defun rmail-auto-file ()
