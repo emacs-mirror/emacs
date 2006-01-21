@@ -1,5 +1,7 @@
 2006-01-21  Henrik Enberg  <enberg@printf.se>
 
+	* rmailsum.el (rmail-message-senders-p): Fix Typo.
+
 	* rmail.el (rmail-process-new-messages): Simplify.
 	(rmail-decode-quoted-printable): Delete unused function.
 	(rmail-hex-string-to-integer): Likewise.
