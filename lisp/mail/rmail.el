@@ -1750,10 +1750,9 @@ is non-nil if the user has supplied the password interactively.
 		  (delete-char 1)))
 	      (setq end (marker-position end-marker))
 	      (set-marker end-marker nil)))
-	  ;; Decode message according to its content type.
+	  ;; Figure out the encoding by looking at the MIME header and
+	  ;; decode the message.
 	  (setq last-coding-system-used nil)
-	  ;; (or rmail-enable-mime
-	  ;;     (not rmail-enable-multibyte)
 	  (when (and (not rmail-enable-mime) rmail-enable-multibyte)
 	    (let ((mime-charset
 		   (when (and rmail-decode-mime-charset
@@ -1765,6 +1764,11 @@ is non-nil if the user has supplied the password interactively.
 				   (point-min) t))))
 		     (intern (downcase (match-string 1))))))
 	      (rmail-decode-region start (point) mime-charset)))
+	  ;; encoded-words in from and subject
+	  (dolist (header '("Subject" "From"))
+	    (let ((value (rmail-header-get-header header)))
+	      (rmail-header-add-header
+	       header (mail-decode-encoded-word-string value))))
 	  ;; Add an the X-Coding-System header.
 	  (unless (rmail-header-get-header "X-Coding-System")
 	    (let ((val (symbol-name last-coding-system-used)))
@@ -2011,9 +2015,8 @@ non-nil then do not show any progress messages."
                                      (count-lines start end)
 				     (cadr (mail-extract-address-components
 					    (rmail-header-get-header "from")))
-				     (mail-decode-encoded-word-string
-				      (or (rmail-header-get-header "subject")
-					  "No Subject Given"))))
+				     (or (rmail-header-get-header "subject")
+					 "none")))
 			 message-descriptor-list)))))
     ;; Add the new message data lists to the Rmail message descriptor
     ;; vector.
