@@ -2268,7 +2268,8 @@ Called when a new message is displayed."
 
 (defun rmail-next-message (n)
   "Show following message whether deleted or not.
-With prefix arg N, moves forward N messages, or backward if N is negative."
+With prefix arg N, moves forward N messages, or backward if N is
+negative."
   (interactive "p")
   (set-buffer rmail-buffer)
   (rmail-maybe-set-message-counters)
@@ -2276,38 +2277,32 @@ With prefix arg N, moves forward N messages, or backward if N is negative."
 
 (defun rmail-previous-message (n)
   "Show previous message whether deleted or not.
-With prefix arg N, moves backward N messages, or forward if N is negative."
+With prefix arg N, moves backward N messages, or forward if N is
+negative."
   (interactive "p")
   (rmail-next-message (- n)))
 
 (defun rmail-next-undeleted-message (n)
   "Show following non-deleted message.
-With prefix arg N, moves forward N non-deleted messages,
-or backward if N is negative.
+With prefix arg N, moves forward N non-deleted messages, or
+backward if N is negative.
 
 Returns t if a new message is being shown, nil otherwise."
   (interactive "p")
   (let ((lastwin rmail-current-message)
 	(current rmail-current-message))
-
-    ;; Handle forward movement looking for an undeleted message.  Move
-    ;; forward a message at a time as long as there are subsequent
-    ;; messages.  Stop if the last message is encountered.
+    ;; Move forwards, remember the last undeleted message seen.
     (while (and (> n 0) (< current rmail-total-messages))
       (setq current (1+ current))
-      (if (not (rmail-desc-deleted-p current))
-	  (setq lastwin current
-		n (1- n))))
-
-    ;; Handle backward movement looking for an undeleted message.
-    ;; Move backward a message at a time as long as there are
-    ;; preceding messages.  Stop if the first message is encountered.
+      (unless (rmail-desc-deleted-p current)
+	(setq lastwin current
+	      n (1- n))))
+    ;; Same thing for moving backwards
     (while (and (< n 0) (> current 1))
       (setq current (1- current))
-      (if (not (rmail-desc-deleted-p current))
-	  (setq lastwin current
-		n (1+ n))))
-
+      (unless (rmail-desc-deleted-p current)
+	(setq lastwin current
+	      n (1+ n))))
     ;; Show the message (even if no movement took place so that the
     ;; delete attribute is marked) and determine the result value.
     (rmail-show-message lastwin)
@@ -2319,7 +2314,6 @@ Returns t if a new message is being shown, nil otherwise."
 	  (message "No following nondeleted message"))
       nil)))
 
-;;; mbox: ready.
 (defun rmail-previous-undeleted-message (n)
   "Show previous non-deleted message.
 With prefix argument N, moves backward N non-deleted messages,
@@ -2327,39 +2321,25 @@ or forward if N is negative."
   (interactive "p")
   (rmail-next-undeleted-message (- n)))
 
-;;; mbox: ready.
 (defun rmail-first-message ()
   "Show first message in file."
   (interactive)
   (rmail-show-message 1))
 
-;;; mbox: ready
 (defun rmail-last-message ()
   "Show last message in file."
   (interactive)
   (rmail-show-message rmail-total-messages))
 
-;;; mbox: not called
-(defun rmail-what-message ()
-  (let ((where (point))
-	(low 1)
-	(high rmail-total-messages)
-	(mid (/ rmail-total-messages 2)))
-    (while (> (- high low) 1)
-      (if (>= where (rmail-desc-get-start mid))
-	  (setq low mid)
-	(setq high mid))
-      (setq mid (+ low (/ (- high low) 2))))
-    (if (>= where (rmail-desc-get-start high)) high low)))
-
 (defun rmail-narrow-to-header (msg)
-  "Narrow to buffer the headers of message number MSG."
+  "Narrow the buffer to the headers of message number MSG."
   (save-excursion
     (let ((start (rmail-desc-get-start msg))
 	  (end (rmail-desc-get-end msg)))
       (widen)
       (goto-char start)
-      (search-forward "\n\n" end)	; error if we don't find it
+      (unless (search-forward "\n\n" end t)
+	(error "Invalid message format."))
       (narrow-to-region start (point)))))
 
 (defun rmail-message-recipients-p (msg recipients &optional primary-only)
