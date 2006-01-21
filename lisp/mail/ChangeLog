@@ -1,3 +1,28 @@
+2006-01-21  Alex Schroeder  <alex@gnu.org>
+
+	* rmail.el (rmail-next-undeleted-message): Simplify.
+	(rmail-what-message): Deleted since it was never called.
+	(rmail-narrow-to-header): Use the same error message as
+	rmail-header-get-limit.
+
+	* rmaildesc.el (rmail-desc-set-attribute): Use
+	rmail-header-add-header instead of rmail-header-set-header.
+
+	* rmailhdr.el (rmail-header-attribute-header)
+	(rmail-header-keyword-header, rmail-header-get-limit): Doc.
+	(rmail-header-add-header): Add inhibit-point-motion-hooks and
+	buffer-undo-list bindings from rmail-header-set-header.  I don't
+	know whether they are necessary, however.
+	(rmail-header-persist-attributes, rmail-header-set-header):
+	Deleted.  rmail-header-add-header does what
+	rmail-header-set-header did, except throw an error if the header
+	was not found.
+
+	* rmail.el (rmail-msgbeg, rmail-msgend): Fix and make obsolete.
+	(rmail-process-new-messages): Use mail-decode-encoded-word-string
+	on the subject.  Requires mail-parse from Gnus.
+	(rmail-highlight-headers): Doc.
+
 2006-01-21  Henrik Enberg  <enberg@printf.se>
 
 	* rmailsum.el (rmail-message-senders-p): Fix Typo.
