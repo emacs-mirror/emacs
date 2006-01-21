@@ -1628,7 +1628,7 @@ normal otherwise."
           (longopts
            (append '(("--funcall") ("--load") ("--insert") ("--kill")
                      ("--directory") ("--eval") ("--execute") ("--no-splash")
-                     ("--find-file") ("--visit") ("--file"))
+                     ("--find-file") ("--visit") ("--file") ("--no-desktop"))
                    (mapcar (lambda (elt)
                              (list (concat "-" (car elt))))
                            command-switch-alist)))
@@ -1727,6 +1727,13 @@ normal otherwise."
 
                 ((equal argi "-kill")
                  (kill-emacs t))
+
+		;; This is for when they use --no-desktop with -q, or
+		;; don't load Desktop in their .emacs.  If desktop.el
+		;; _is_ loaded, it will handle this switch, and we
+		;; won't see it by the time we get here.
+		((equal argi "-no-desktop")
+		 (message "\"--no-desktop\" ignored because the Desktop package is not loaded"))
 
                 ((string-match "^\\+[0-9]+\\'" argi)
                  (setq line (string-to-number argi)))
