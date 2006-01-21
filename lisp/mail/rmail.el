@@ -1987,7 +1987,8 @@ non-nil then do not show any progress messages."
 				     (cadr (mail-extract-address-components
 					    (rmail-header-get-header "from")))
 				     (mail-decode-encoded-word-string
-				      (rmail-header-get-header "subject"))))
+				      (or (rmail-header-get-header "subject")
+					  "No Subject Given"))))
 			 message-descriptor-list)))))
     ;; Add the new message data lists to the Rmail message descriptor
     ;; vector.
