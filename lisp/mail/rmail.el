@@ -1418,12 +1418,14 @@ original copy."
   ;; Pull files off rmail-inbox-list onto files as long as there is no
   ;; name conflict.  A conflict happens when two inbox file names have
   ;; the same last component.
-  (let (list last-names)
-    (dolist (file rmail-inbox-list)
-      (unless (member (file-name-nondirectory file) last-names)
-	(push file list))
-      (push (file-name-nondirectory file) last-names))
-    (nreverse list)))
+  (let (files last-names)
+    (catch 'conflict
+      (dolist (file rmail-inbox-list)
+	(if (member (file-name-nondirectory file) last-names)
+	    (throw 'conflict t)
+	  (push file files))
+	(push (file-name-nondirectory file) last-names)))
+    (nreverse files)))
 
 ;; RLK feature not added in this version:
 ;; argument specifies inbox file or files in various ways.
@@ -2164,12 +2166,14 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
 	;; Deal with MIME
 	(if (eq rmail-enable-mime t)
 	    (funcall rmail-show-mime-function)
+	  (setq rmail-view-buffer rmail-buffer))
 	;; Deal with the message headers and URLs..
 	(rmail-header-hide-headers)
 	(rmail-highlight-headers)
 	(when transient-mark-mode (deactivate-mark))
         ;; Make sure that point in the Rmail window is at the beginning
         ;; of the buffer.
+	(goto-char (point-min))
         (set-window-point (get-buffer-window rmail-buffer) (point))
 	;; Run any User code.
 	(run-hooks 'rmail-show-message-hook)
@@ -2188,9 +2192,8 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
 	  (rmail-auto-file))
         ;; Post back any status messages.
 	(when blurb
-	  (message blurb)))))))
+	  (message blurb))))))
 
-;;; NOT DONE
 (defun rmail-redecode-body (coding)
   "Decode the body of the current message using coding system CODING.
 This is useful with mail messages that have malformed or missing
@@ -2208,49 +2211,42 @@ locking-shift codes are impossible to recover.  This function is meant
 to be used to fix messages encoded with 8-bit encodings, such as
 iso-8859, koi8-r, etc."
   (interactive "zCoding system for re-decoding this message: ")
-  (when (not rmail-enable-mime)
-    (or (eq major-mode 'rmail-mode)
-	(switch-to-buffer rmail-buffer))
-    (save-excursion
-      (unwind-protect
-          (let ((msgbeg (rmail-desc-get-start rmail-current-message))
-                (msgend (rmail-desc-get-end rmail-current-message))
-                x-coding-header)
-            ;; We need the message headers pruned (we later restore
-            ;; the pruned stat to what it was, see the end of
-            ;; unwind-protect form).
-            (rmail-header-show-headers)
-            (narrow-to-region msgbeg msgend)
-            (goto-char (point-min))
-            (if (re-search-forward "^X-Coding-System: *\\(.*\\)$" nil t)
-                (let ((old-coding (intern (match-string 1)))
-                      (buffer-read-only nil))
-                  (check-coding-system old-coding)
-                  ;; Make sure the new coding system uses the same EOL
-                  ;; conversion, to prevent ^M characters from popping
-                  ;; up all over the place.
-                  (setq coding
-                        (coding-system-change-eol-conversion
-                         coding
-                         (coding-system-eol-type old-coding)))
-                  (setq x-coding-header (point-marker))
-                  (narrow-to-region msgbeg msgend)
-                  (encode-coding-region (point) msgend old-coding)
-                  (decode-coding-region (point) msgend coding)
-                  (setq last-coding-system-used coding)
-                  ;; Rewrite the coding-system header according
-                  ;; to what we did.
-                  (goto-char x-coding-header)
-                  (delete-region (point)
-                                 (save-excursion
-                                   (beginning-of-line)
-                                   (point)))
-                  (insert "X-Coding-System: "
-                          (symbol-name last-coding-system-used))
-                  (set-marker x-coding-header nil)
-                  (rmail-show-message))
-              (error "No X-Coding-System header found")))
-        (rmail-header-hide-headers)))))
+  (unless rmail-enable-mime
+    (with-current-buffer rmail-buffer
+      (save-excursion
+	(unwind-protect
+	    (let ((start (rmail-desc-get-start rmail-current-message))
+		  (end (rmail-desc-get-end rmail-current-message))
+		  header)
+	      ;; We need the message headers pruned (we later restore
+	      ;; the pruned stat to what it was, see the end of
+	      ;; unwind-protect form).
+	      (rmail-header-show-headers)
+	      (narrow-to-region start end)
+	      (setq header (rmail-header-get-header "X-Coding-System"))
+	      (if header
+		  (let ((old-coding (intern header))
+			(buffer-read-only nil))
+		    (check-coding-system old-coding)
+		    ;; Make sure the new coding system uses the same EOL
+		    ;; conversion, to prevent ^M characters from popping
+		    ;; up all over the place.
+		    (setq coding
+			  (coding-system-change-eol-conversion
+			   coding
+			   (coding-system-eol-type old-coding)))
+		    ;; Do the actual recoding.
+		    (encode-coding-region start end old-coding)
+		    (decode-coding-region start end coding)
+		    ;; Rewrite the x-coding-system header according to
+		    ;; what we did.
+		    (setq last-coding-system-used coding)
+		    (rmail-header-add-header
+		     "X-Coding-System"
+		     (symbol-name last-coding-system-used))
+		    (rmail-show-message rmail-current-message))
+		(error "No X-Coding-System header found")))
+	  (rmail-header-hide-headers))))))
 
 ;; Find all occurrences of certain fields, and highlight them.
 (defun rmail-highlight-headers ()
