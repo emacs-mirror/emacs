@@ -1,7 +1,7 @@
 /* Display generation from window structure and buffer text.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005 Free Software Foundation, Inc.
+                 2004, 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20779,10 +20779,10 @@ get_window_cursor_type (w, glyph, width, active_cursor)
 	    }
 	  else
 	    return get_specified_cursor_type (b->cursor_type, width);
-
-	  *active_cursor = 0;
-	  non_selected = 1;
 	}
+
+      *active_cursor = 0;
+      non_selected = 1;
     }
 
   /* Nonselected window or nonselected frame.  */
