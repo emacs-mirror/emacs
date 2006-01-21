@@ -1495,8 +1495,11 @@ If sender matches `rmail-user-mail-address-regexp' or
 			 "\\>\\)"))
 	     sender))
 	;; Either no sender known, or it's this user.
-	(let ((to (rmail-header-get-header "to")))
-	  (concat "to: " (mail-strip-quoted-names to)))
+	(save-restriction
+	  (narrow-to-region (rmail-desc-get-start n)
+			    (rmail-desc-get-end n))
+	  (concat "to: " (mail-strip-quoted-names
+			  (rmail-header-get-header "to"))))
       sender)))
 
 (defun rmail-summary-get-line-count (n)
