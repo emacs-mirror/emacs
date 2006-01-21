@@ -1680,12 +1680,12 @@ Variables}.
   For La@TeX{} files, you can use Bib@TeX{} to process the auxiliary
 file for the current buffer's file.  Bib@TeX{} looks up bibliographic
 citations in a data base and prepares the cited references for the
-bibliography section.  The command @kbd{C-c TAB}
+bibliography section.  The command @kbd{C-c @key{TAB}}
 (@code{tex-bibtex-file}) runs the shell command
 (@code{tex-bibtex-command}) to produce a @samp{.bbl} file for the
 current buffer's file.  Generally, you need to do @kbd{C-c C-f}
 (@code{tex-file}) once to generate the @samp{.aux} file, then do
-@kbd{C-c TAB} (@code{tex-bibtex-file}), and then repeat @kbd{C-c C-f}
+@kbd{C-c @key{TAB}} (@code{tex-bibtex-file}), and then repeat @kbd{C-c C-f}
 (@code{tex-file}) twice more to get the cross-references correct.
 
 @findex tex-compile

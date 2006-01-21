@@ -4883,7 +4883,7 @@ our first example again:
  6: @}
 @end example
 
-Let's say point is on line 3 and we hit the @kbd{TAB} key to reindent
+Let's say point is on line 3 and we hit the @key{TAB} key to reindent
 the line.  The syntactic context for that line is:
 
 @example
