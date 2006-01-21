@@ -841,7 +841,10 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 		  (insert-file-contents-literally new-file))
 		(message "Replacing BABYL format with mbox format...done"))
 	    (delete-file old-file)
-	    (delete-file new-file))))
+	    (delete-file new-file)))
+	;; Go through the converted file and decode each message
+	;; according to its mime charset.
+	(rmail-decode-messages))
       (goto-char (point-max))
       (rmail-mode-2)
       ;; setup files coding system
@@ -1455,6 +1458,9 @@ updated file.  It returns t if it got any new messages."
 			rmail-current-message (1+ rmail-total-messages)
 			rmail-total-messages (rmail-desc-get-count))
 		  (run-hooks 'rmail-get-new-mail-hook)
+		  ;; Go through the RMAIL file and decode each message
+		  ;; according to its mime charset.
+		  (rmail-decode-messages)
 		  (save-buffer))
 		;; Delete the old files, now that the RMAIL file is
 		;; saved.
@@ -1713,6 +1719,43 @@ is non-nil if the user has supplied the password interactively.
       (setq buffer-file-coding-system nil)
       (setq save-buffer-coding-system (or coding-system 'undecided)))))
 
+(defun rmail-decode-messages ()
+  (let ((inhibit-read-only t)
+        (case-fold-search nil)
+	(start (point-max))
+	end)
+    ;; Process each message in turn starting from the back and
+    ;; proceeding to the front of the region.  This is especially a good
+    ;; approach since the buffer will likely have new headers added.
+    (widen)
+    (goto-char start)
+    (while (re-search-backward rmail-unix-mail-delimiter nil t)
+      (setq end start)
+      (setq start (point))
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region start end)
+	  (goto-char (point-min))
+
+	  (setq last-coding-system-used nil)
+	  (or rmail-enable-mime
+	      (not rmail-enable-multibyte)
+	      (let ((mime-charset
+		     (when (and rmail-decode-mime-charset
+				(save-excursion
+				  (goto-char (rmail-header-get-limit))
+				  (let ((case-fold-search t))
+				    (re-search-backward
+				     rmail-mime-charset-pattern
+				     (point-min) t))))
+		       (intern (downcase (match-string 1))))))
+		(rmail-decode-region start (point) mime-charset)))
+
+	  ;; Add an the X-Coding-System header.
+	  (unless (rmail-header-get-header "X-Coding-System")
+	    (let ((val (symbol-name last-coding-system-used)))
+	      (rmail-header-add-header "X-Coding-System" val))))))))
+
 
 ;;;; *** Rmail Message Formatting and Header Manipulation ***
 
@@ -1933,26 +1976,6 @@ non-nil then do not show any progress messages."
 		    (delete-char 1)))
 		(setq end (marker-position end-marker))
 		(set-marker end-marker nil)))
-
-	  ;; Decode Message according to charset.
-	  (setq last-coding-system-used nil)
-	  (or rmail-enable-mime
-	      (not rmail-enable-multibyte)
-	      (let ((mime-charset
-		     (when (and rmail-decode-mime-charset
-				(save-excursion
-				  (goto-char (rmail-header-get-limit))
-				  (let ((case-fold-search t))
-				    (re-search-backward
-				     rmail-mime-charset-pattern
-				     (point-min) t))))
-			 (intern (downcase (match-string 1))))))
-		(rmail-decode-region start (point) mime-charset)))
-
-	  ;; Add an X-Coding-System header if we don't have one.
-	  (unless (rmail-header-get-header "X-Coding-System")
-	    (rmail-header-add-header "X-Coding-System"
-				     (symbol-name last-coding-system-used)))
 
 	  ;; Make sure we have an Rmail BABYL attribute header field.
 	  ;; All we can assume is that the Rmail BABYL header field is
