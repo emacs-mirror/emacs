@@ -1476,7 +1476,7 @@ KEYWORDS is a comma-separated list of labels."
 
 (defun rmail-summary-get-sender (n)
   "Return the sender for message N.
-If sender is matches `rmail-user-mail-address-regexp' or
+If sender matches `rmail-user-mail-address-regexp' or
 `user-mail-address', return the to-address instead."
   (let ((sender (rmail-desc-get-sender n)))
     (if (or (null sender)
