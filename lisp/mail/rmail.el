@@ -739,21 +739,16 @@ The first parenthesized expression should match the MIME-charset name.")
 ;; Avoid errors.
 (defvar rmail-use-spam-filter nil)
 
-;;; mbox don't care
 (defun rmail-require-mime-maybe ()
   "Require `rmail-mime-feature' if that is non-nil.
 Signal an error and set `rmail-mime-feature' to nil if the feature
 isn't provided."
-  (when rmail-enable-mime
-    (condition-case err
-	(require rmail-mime-feature)
-      (error
-       (message "Feature `%s' not provided" rmail-mime-feature)
-       (sit-for 1)
-       (setq rmail-enable-mime nil)))))
+  (when (and rmail-enable-mime
+	     (not (require rmail-mime-feature nil t)))
+    (message "Feature `%s' not provided" rmail-mime-feature)
+    (sit-for 1)
+    (setq rmail-enable-mime nil)))
 
-
-;;; mbox ready
 ;;;###autoload
 (defun rmail (&optional file-name-arg)
   "Read and edit incoming mail.
@@ -896,181 +891,142 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
   (rmail-header-show-headers)
   (setq rmail-total-messages (rmail-process-new-messages)))
 
-(defvar rmail-mode-map nil)
-(if rmail-mode-map
-    nil
-  (setq rmail-mode-map (make-keymap))
-  (suppress-keymap rmail-mode-map)
-  (define-key rmail-mode-map "a"      'rmail-add-label)
-  (define-key rmail-mode-map "b"      'rmail-bury)
-  (define-key rmail-mode-map "c"      'rmail-continue)
-  (define-key rmail-mode-map "d"      'rmail-delete-forward)
-  (define-key rmail-mode-map "\C-d"   'rmail-delete-backward)
-  (define-key rmail-mode-map "e"      'rmail-edit-current-message)
-  (define-key rmail-mode-map "f"      'rmail-forward)
-  (define-key rmail-mode-map "g"      'rmail-get-new-mail)
-  (define-key rmail-mode-map "h"      'rmail-summary)
-  (define-key rmail-mode-map "i"      'rmail-input)
-  (define-key rmail-mode-map "j"      'rmail-show-message)
-  (define-key rmail-mode-map "k"      'rmail-kill-label)
-  (define-key rmail-mode-map "l"      'rmail-summary-by-labels)
-  (define-key rmail-mode-map "\e\C-h" 'rmail-summary)
-  (define-key rmail-mode-map "\e\C-l" 'rmail-summary-by-labels)
-  (define-key rmail-mode-map "\e\C-r" 'rmail-summary-by-recipients)
-  (define-key rmail-mode-map "\e\C-s" 'rmail-summary-by-regexp)
-  (define-key rmail-mode-map "\e\C-t" 'rmail-summary-by-topic)
-  (define-key rmail-mode-map "m"      'rmail-mail)
-  (define-key rmail-mode-map "\em"    'rmail-retry-failure)
-  (define-key rmail-mode-map "n"      'rmail-next-undeleted-message)
-  (define-key rmail-mode-map "\en"    'rmail-next-message)
-  (define-key rmail-mode-map "\e\C-n" 'rmail-next-labeled-message)
-  (define-key rmail-mode-map "o"      'rmail-output)
-  (define-key rmail-mode-map "\C-o"   'rmail-output)
-  (define-key rmail-mode-map "p"      'rmail-previous-undeleted-message)
-  (define-key rmail-mode-map "\ep"    'rmail-previous-message)
-  (define-key rmail-mode-map "\e\C-p" 'rmail-previous-labeled-message)
-  (define-key rmail-mode-map "q"      'rmail-quit)
-  (define-key rmail-mode-map "r"      'rmail-reply)
-;; I find I can't live without the default M-r command -- rms.
-;;  (define-key rmail-mode-map "\er"  'rmail-search-backwards)
-  (define-key rmail-mode-map "s"      'rmail-expunge-and-save)
-  (define-key rmail-mode-map "\es"    'rmail-search)
-  (define-key rmail-mode-map "t"      'rmail-toggle-header)
-  (define-key rmail-mode-map "u"      'rmail-undelete-previous-message)
-  (define-key rmail-mode-map "w"      'rmail-output-body-to-file)
-  (define-key rmail-mode-map "x"      'rmail-expunge)
-  (define-key rmail-mode-map "."      'rmail-beginning-of-message)
-  (define-key rmail-mode-map "/"      'rmail-end-of-message)
-  (define-key rmail-mode-map "<"      'rmail-first-message)
-  (define-key rmail-mode-map ">"      'rmail-last-message)
-  (define-key rmail-mode-map " "      'scroll-up)
-  (define-key rmail-mode-map "\177"   'scroll-down)
-  (define-key rmail-mode-map "?"      'describe-mode)
-  (define-key rmail-mode-map "\C-c\C-s\C-d" 'rmail-sort-by-date)
-  (define-key rmail-mode-map "\C-c\C-s\C-s" 'rmail-sort-by-subject)
-  (define-key rmail-mode-map "\C-c\C-s\C-a" 'rmail-sort-by-author)
-  (define-key rmail-mode-map "\C-c\C-s\C-r" 'rmail-sort-by-recipient)
-  (define-key rmail-mode-map "\C-c\C-s\C-c" 'rmail-sort-by-correspondent)
-  (define-key rmail-mode-map "\C-c\C-s\C-l" 'rmail-sort-by-lines)
-  (define-key rmail-mode-map "\C-c\C-s\C-k" 'rmail-sort-by-labels)
-  (define-key rmail-mode-map "\C-c\C-n" 'rmail-next-same-subject)
-  (define-key rmail-mode-map "\C-c\C-p" 'rmail-previous-same-subject))
-
-(define-key rmail-mode-map [menu-bar] (make-sparse-keymap))
-
-(define-key rmail-mode-map [menu-bar classify]
-  (cons "Classify" (make-sparse-keymap "Classify")))
-
-(define-key rmail-mode-map [menu-bar classify input-menu]
-  nil)
-
-(define-key rmail-mode-map [menu-bar classify output-menu]
-  nil)
-
-(define-key rmail-mode-map [menu-bar classify output-body]
-  '("Output body to file..." . rmail-output-body-to-file))
-
-(define-key rmail-mode-map [menu-bar classify output-inbox]
-  '("Output (inbox)..." . rmail-output))
-
-(define-key rmail-mode-map [menu-bar classify output]
-  '("Output (Rmail)..." . rmail-output))
-
-(define-key rmail-mode-map [menu-bar classify kill-label]
-  '("Kill Label..." . rmail-kill-label))
-
-(define-key rmail-mode-map [menu-bar classify add-label]
-  '("Add Label..." . rmail-add-label))
-
-(define-key rmail-mode-map [menu-bar summary]
-  (cons "Summary" (make-sparse-keymap "Summary")))
-
-(define-key rmail-mode-map [menu-bar summary senders]
-  '("By Senders..." . rmail-summary-by-senders))
-
-(define-key rmail-mode-map [menu-bar summary labels]
-  '("By Labels..." . rmail-summary-by-labels))
-
-(define-key rmail-mode-map [menu-bar summary recipients]
-  '("By Recipients..." . rmail-summary-by-recipients))
-
-(define-key rmail-mode-map [menu-bar summary topic]
-  '("By Topic..." . rmail-summary-by-topic))
-
-(define-key rmail-mode-map [menu-bar summary regexp]
-  '("By Regexp..." . rmail-summary-by-regexp))
-
-(define-key rmail-mode-map [menu-bar summary all]
-  '("All" . rmail-summary))
-
-(define-key rmail-mode-map [menu-bar mail]
-  (cons "Mail" (make-sparse-keymap "Mail")))
-
-(define-key rmail-mode-map [menu-bar mail rmail-get-new-mail]
-  '("Get New Mail" . rmail-get-new-mail))
-
-(define-key rmail-mode-map [menu-bar mail lambda]
-  '("----"))
-
-(define-key rmail-mode-map [menu-bar mail continue]
-  '("Continue" . rmail-continue))
-
-(define-key rmail-mode-map [menu-bar mail resend]
-  '("Re-send..." . rmail-resend))
-
-(define-key rmail-mode-map [menu-bar mail forward]
-  '("Forward" . rmail-forward))
-
-(define-key rmail-mode-map [menu-bar mail retry]
-  '("Retry" . rmail-retry-failure))
-
-(define-key rmail-mode-map [menu-bar mail reply]
-  '("Reply" . rmail-reply))
-
-(define-key rmail-mode-map [menu-bar mail mail]
-  '("Mail" . rmail-mail))
-
-(define-key rmail-mode-map [menu-bar delete]
-  (cons "Delete" (make-sparse-keymap "Delete")))
-
-(define-key rmail-mode-map [menu-bar delete expunge/save]
-  '("Expunge/Save" . rmail-expunge-and-save))
-
-(define-key rmail-mode-map [menu-bar delete expunge]
-  '("Expunge" . rmail-expunge))
-
-(define-key rmail-mode-map [menu-bar delete undelete]
-  '("Undelete" . rmail-undelete-previous-message))
-
-(define-key rmail-mode-map [menu-bar delete delete]
-  '("Delete" . rmail-delete-forward))
-
-(define-key rmail-mode-map [menu-bar move]
-  (cons "Move" (make-sparse-keymap "Move")))
-
-(define-key rmail-mode-map [menu-bar move search-back]
-  '("Search Back..." . rmail-search-backwards))
-
-(define-key rmail-mode-map [menu-bar move search]
-  '("Search..." . rmail-search))
-
-(define-key rmail-mode-map [menu-bar move previous]
-  '("Previous Nondeleted" . rmail-previous-undeleted-message))
-
-(define-key rmail-mode-map [menu-bar move next]
-  '("Next Nondeleted" . rmail-next-undeleted-message))
-
-(define-key rmail-mode-map [menu-bar move last]
-  '("Last" . rmail-last-message))
-
-(define-key rmail-mode-map [menu-bar move first]
-  '("First" . rmail-first-message))
-
-(define-key rmail-mode-map [menu-bar move previous]
-  '("Previous" . rmail-previous-message))
-
-(define-key rmail-mode-map [menu-bar move next]
-  '("Next" . rmail-next-message))
+(defvar rmail-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map "a"      'rmail-add-label)
+    (define-key map "b"      'rmail-bury)
+    (define-key map "c"      'rmail-continue)
+    (define-key map "d"      'rmail-delete-forward)
+    (define-key map "\C-d"   'rmail-delete-backward)
+    (define-key map "e"      'rmail-edit-current-message)
+    (define-key map "f"      'rmail-forward)
+    (define-key map "g"      'rmail-get-new-mail)
+    (define-key map "h"      'rmail-summary)
+    (define-key map "i"      'rmail-input)
+    (define-key map "j"      'rmail-show-message)
+    (define-key map "k"      'rmail-kill-label)
+    (define-key map "l"      'rmail-summary-by-labels)
+    (define-key map "\e\C-h" 'rmail-summary)
+    (define-key map "\e\C-l" 'rmail-summary-by-labels)
+    (define-key map "\e\C-r" 'rmail-summary-by-recipients)
+    (define-key map "\e\C-s" 'rmail-summary-by-regexp)
+    (define-key map "\e\C-t" 'rmail-summary-by-topic)
+    (define-key map "m"      'rmail-mail)
+    (define-key map "\em"    'rmail-retry-failure)
+    (define-key map "n"      'rmail-next-undeleted-message)
+    (define-key map "\en"    'rmail-next-message)
+    (define-key map "\e\C-n" 'rmail-next-labeled-message)
+    (define-key map "o"      'rmail-output)
+    (define-key map "\C-o"   'rmail-output)
+    (define-key map "p"      'rmail-previous-undeleted-message)
+    (define-key map "\ep"    'rmail-previous-message)
+    (define-key map "\e\C-p" 'rmail-previous-labeled-message)
+    (define-key map "q"      'rmail-quit)
+    (define-key map "r"      'rmail-reply)
+    ;; I find I can't live without the default M-r command -- rms.
+    ;;  (define-key map "\er"  'rmail-search-backwards)
+    (define-key map "s"      'rmail-expunge-and-save)
+    (define-key map "\es"    'rmail-search)
+    (define-key map "t"      'rmail-toggle-header)
+    (define-key map "u"      'rmail-undelete-previous-message)
+    (define-key map "w"      'rmail-output-body-to-file)
+    (define-key map "x"      'rmail-expunge)
+    (define-key map "."      'rmail-beginning-of-message)
+    (define-key map "/"      'rmail-end-of-message)
+    (define-key map "<"      'rmail-first-message)
+    (define-key map ">"      'rmail-last-message)
+    (define-key map " "      'scroll-up)
+    (define-key map "\177"   'scroll-down)
+    (define-key map "?"      'describe-mode)
+    (define-key map "\C-c\C-s\C-d" 'rmail-sort-by-date)
+    (define-key map "\C-c\C-s\C-s" 'rmail-sort-by-subject)
+    (define-key map "\C-c\C-s\C-a" 'rmail-sort-by-author)
+    (define-key map "\C-c\C-s\C-r" 'rmail-sort-by-recipient)
+    (define-key map "\C-c\C-s\C-c" 'rmail-sort-by-correspondent)
+    (define-key map "\C-c\C-s\C-l" 'rmail-sort-by-lines)
+    (define-key map "\C-c\C-s\C-k" 'rmail-sort-by-labels)
+    (define-key map "\C-c\C-n" 'rmail-next-same-subject)
+    (define-key map "\C-c\C-p" 'rmail-previous-same-subject)
+    (define-key map [menu-bar] (make-sparse-keymap))
+    (define-key map [menu-bar classify]
+      (cons "Classify" (make-sparse-keymap "Classify")))
+    (define-key map [menu-bar classify input-menu]
+      nil)
+    (define-key map [menu-bar classify output-menu]
+      nil)
+    (define-key map [menu-bar classify output-body]
+      '("Output body to file..." . rmail-output-body-to-file))
+    (define-key map [menu-bar classify output-inbox]
+      '("Output (inbox)..." . rmail-output))
+    (define-key map [menu-bar classify output]
+      '("Output (Rmail)..." . rmail-output))
+    (define-key map [menu-bar classify kill-label]
+      '("Kill Label..." . rmail-kill-label))
+    (define-key map [menu-bar classify add-label]
+      '("Add Label..." . rmail-add-label))
+    (define-key map [menu-bar summary]
+      (cons "Summary" (make-sparse-keymap "Summary")))
+    (define-key map [menu-bar summary senders]
+      '("By Senders..." . rmail-summary-by-senders))
+    (define-key map [menu-bar summary labels]
+      '("By Labels..." . rmail-summary-by-labels))
+    (define-key map [menu-bar summary recipients]
+      '("By Recipients..." . rmail-summary-by-recipients))
+    (define-key map [menu-bar summary topic]
+      '("By Topic..." . rmail-summary-by-topic))
+    (define-key map [menu-bar summary regexp]
+      '("By Regexp..." . rmail-summary-by-regexp))
+    (define-key map [menu-bar summary all]
+      '("All" . rmail-summary))
+    (define-key map [menu-bar mail]
+      (cons "Mail" (make-sparse-keymap "Mail")))
+    (define-key map [menu-bar mail rmail-get-new-mail]
+      '("Get New Mail" . rmail-get-new-mail))
+    (define-key map [menu-bar mail lambda]
+      '("----"))
+    (define-key map [menu-bar mail continue]
+      '("Continue" . rmail-continue))
+    (define-key map [menu-bar mail resend]
+      '("Re-send..." . rmail-resend))
+    (define-key map [menu-bar mail forward]
+      '("Forward" . rmail-forward))
+    (define-key map [menu-bar mail retry]
+      '("Retry" . rmail-retry-failure))
+    (define-key map [menu-bar mail reply]
+      '("Reply" . rmail-reply))
+    (define-key map [menu-bar mail mail]
+      '("Mail" . rmail-mail))
+    (define-key map [menu-bar delete]
+      (cons "Delete" (make-sparse-keymap "Delete")))
+    (define-key map [menu-bar delete expunge/save]
+      '("Expunge/Save" . rmail-expunge-and-save))
+    (define-key map [menu-bar delete expunge]
+      '("Expunge" . rmail-expunge))
+    (define-key map [menu-bar delete undelete]
+      '("Undelete" . rmail-undelete-previous-message))
+    (define-key map [menu-bar delete delete]
+      '("Delete" . rmail-delete-forward))
+    (define-key map [menu-bar move]
+      (cons "Move" (make-sparse-keymap "Move")))
+    (define-key map [menu-bar move search-back]
+      '("Search Back..." . rmail-search-backwards))
+    (define-key map [menu-bar move search]
+      '("Search..." . rmail-search))
+    (define-key map [menu-bar move previous]
+      '("Previous Nondeleted" . rmail-previous-undeleted-message))
+    (define-key map [menu-bar move next]
+      '("Next Nondeleted" . rmail-next-undeleted-message))
+    (define-key map [menu-bar move last]
+      '("Last" . rmail-last-message))
+    (define-key map [menu-bar move first]
+      '("First" . rmail-first-message))
+    (define-key map [menu-bar move previous]
+      '("Previous" . rmail-previous-message))
+    (define-key map [menu-bar move next]
+      '("Next" . rmail-next-message))
+    map)
+  "Keymap for `rmail-mode'.")
 
 ;; Rmail mode is suitable only for specially formatted data.
 (put 'rmail-mode 'mode-class 'special)
