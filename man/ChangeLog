@@ -1,3 +1,18 @@
+2006-01-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* widget.texi (User Interface): Use @key for TAB.
+
+	* text.texi (TeX Print): Use @key for TAB.
+
+	* ses.texi (Formulas, Printer functions): Use @key for TAB.
+
+	* kmacro.texi (Keyboard Macro Step-Edit): : Use @key for TAB.
+
+	* ebrowse.texi (Switching to Tree, Symbol Completion): : Use @key
+	for TAB.
+
+	* cc-mode.texi (Indentation Calculation): Use @key for TAB.
+
 2006-01-15  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
 
 	* files.texi (File Aliases): Don't claim that usually separate

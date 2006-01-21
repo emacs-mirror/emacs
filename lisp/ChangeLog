@@ -1,3 +1,7 @@
+2006-01-21  Francesco Potorti`  <pot@gnu.org>
+
+	* mail/rmailout.el (rmail-output): Don't use content-type if it is nil.
+
 2006-01-21  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-emacs-popup, flypell-xemacs-popup):
