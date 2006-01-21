@@ -1415,9 +1415,9 @@ original copy."
 ;;;; *** Rmail input ***
 
 (defun rmail-get-inbox-list ()
-  ;; Pull files off rmail-inbox-list onto files as long as there is no
-  ;; name conflict.  A conflict happens when two inbox file names have
-  ;; the same last component.
+  "Return all files from `rmail-inbox-list' without name conflicts.
+A conflict happens when two inbox file names have the same name
+according to `file-name-nondirectory'."
   (let (files last-names)
     (catch 'conflict
       (dolist (file rmail-inbox-list)
@@ -1427,27 +1427,36 @@ original copy."
 	(push (file-name-nondirectory file) last-names)))
     (nreverse files)))
 
-;; RLK feature not added in this version:
-;; argument specifies inbox file or files in various ways.
-
-;;; DOC NOT DONE
 (defun rmail-get-new-mail (&optional file-name)
-  "Move any new mail from this RMAIL file's inbox files.
-The inbox files can be specified with the file's Mail: option.  The
-variable `rmail-primary-inbox-list' specifies the inboxes for your
-primary RMAIL file if it has no Mail: option.  By default, this is
-your /usr/spool/mail/$USER.
+  "Move any new mail from this mail file's inbox files.
+The inbox files for the primary mail file are determined using
+various means when setting up the buffer.  The list of inbox
+files are stored in `rmail-inbox-list'.
 
-You can also specify the file to get new mail from.  In this case, the
-file of new mail is not changed or deleted.  Noninteractively, you can
-pass the inbox file name as an argument.  Interactively, a prefix
-argument causes us to read a file name and use that file as the inbox.
+The most important variable that determines the value of this
+list is `rmail-inbox-alist' which lists the inbox files for any
+mail files you might be using.
+
+If the above yields no inbox files, and if this is the primary
+mail file as determined by `rmail-file-name', the inbox lists
+otherwise defaults to `rmail-primary-inbox-list' if set, or the
+environment variable MAIL if set, or the user's mail file in
+`rmail-spool-directory'.
+
+This is why, by default, no mail file has inbox files, except for
+the primary mail file ~/RMAIL, which gets its new mail from the
+mail spool.
+
+You can also specify the file to get new mail from interactively.
+A prefix argument will read a file name and use that file as the
+inbox.  Noninteractively, you can pass the inbox file name as an
+argument.
 
 If the variable `rmail-preserve-inbox' is non-nil, new mail will
 always be left in inbox files rather than deleted.
 
-This function runs `rmail-get-new-mail-hook' before saving the updated file.
-It returns t if it got any new messages."
+This function runs `rmail-get-new-mail-hook' before saving the
+updated file.  It returns t if it got any new messages."
   (interactive
    (list (if current-prefix-arg
 	     (read-file-name "Get new mail from file: "))))
