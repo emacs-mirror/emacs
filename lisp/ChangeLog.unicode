@@ -1,3 +1,13 @@
+2006-01-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el: Merge changes from the trunk:
+	(tar-header-block-tokenize): Tighten regexp.
+	(tar-summarize-buffer): Don't clear the modified-p bit if it wasn't
+	cleared before.  Obey default-enable-multibyte-characters.
+	Use mapconcat.
+	(tar-mode-map): Move initialization inside delcaration.
+	(tar-alter-one-field): Don't hardcode point-min==1.
+
 2006-01-20  Naoto Takahashi  <ntakahas@m17n.org>
 
 	* language/ethiopic.el: Copyright fixed.
@@ -24,14 +34,13 @@
 
 	* international/mule-cmds.el (locale-language-names): Add entries
 	for zh_CN.GB2312, zh_CN.GBK, and zh_CN.GB18030.
-	(locale-preferred-coding-systems): Fix entries for Chinese
-	locales.
+	(locale-preferred-coding-systems): Fix entries for Chinese locales.
 
 2005-10-24  Kenichi Handa  <handa@etlken>
 
 	* international/utf-7.el: Delete the definition of utf-7.
-	(utf-7-post-read-conversion, utf-7-pre-write-conversion): Add
-	autoload cookies.
+	(utf-7-post-read-conversion, utf-7-pre-write-conversion):
+	Add autoload cookies.
 
 2005-10-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -53,15 +62,15 @@
 
 	* descr-text.el (describe-char): Sync with the main trunk.
 
-	* international/mule.el (coding-system-get): Check
-	`ascii-incompatible' for backward compatiblity.
+	* international/mule.el (coding-system-get):
+	Check `ascii-incompatible' for backward compatiblity.
 	(set-file-name-coding-system): Signal an error for a coding system
 	not suitable for file name.
 	(set-keyboard-coding-system): Signal an error for a coding system
 	not suitable for keyboard.
 
-	* language/chinese.el (iso-2022-cn, iso-2022-cn-ext): Set
-	:suitable-for-keyboard property to 1.
+	* language/chinese.el (iso-2022-cn, iso-2022-cn-ext):
+	Set :suitable-for-keyboard property to 1.
 
 	* language/japanese.el (iso-2022-jp, iso-2022-jp-2)
 	(iso-2022-jp-2004): Set :suitable-for-keyboard property to 1.
@@ -71,8 +80,7 @@
 
 2005-07-26  Naoto Takahashi  <ntakahas@m17n.org>
 
-	* international/robin.el (robin-define-package): Delete redundant
-	code.
+	* international/robin.el (robin-define-package): Delete redundant code.
 	(robin-add-rule): Allow N-1 reverse conversion.
 
 2005-07-26  Naoto Takahashi  <ntakahas@m17n.org>
@@ -1242,24 +1250,23 @@
 2002-09-08  Dave Love  <fx@gnu.org>
 
 	* language/ind-util.el (ucs-devanagari-to-is13194-alist)
-	(indian-glyph-char, indian-char-glyph): Deleted.
-	(is13194-default-repertory): Renamed from
-	is13194-default-repartory,
+	(indian-glyph-char, indian-char-glyph): Delete.
+	(is13194-default-repertory): Rename from is13194-default-repartory.
 	(iscii-to-ucs-region): Hoist evals from loop.
 
 	* language/devan-util.el (dev-charseq): Avoid indian-glyph-char.
 
 	* language/indian.el (indian-script-table)
-	(ccl-encode-indian-glyph-font): Deleted.
+	(ccl-encode-indian-glyph-font): Delete.
 
-	* international/mule-conf.el (emacs-mule, iso-2022-7bit) 
-	(iso-2022-7bit-ss2, iso-2022-7bit-lock, iso-2022-8bit-ss2) 
+	* international/mule-conf.el (emacs-mule, iso-2022-7bit)
+	(iso-2022-7bit-ss2, iso-2022-7bit-lock, iso-2022-8bit-ss2)
 	(compound-text, ctext-no-compositions): Remove :charset-list.
 
 	* international/mule-cmds.el (language-info-custom-alist): New.
-	(input-method-activate-hook, input-method-inactivate-hook) 
-	(input-method-after-insert-chunk-hook) 
-	(input-method-use-echo-area, set-language-environment-hook) 
+	(input-method-activate-hook, input-method-inactivate-hook)
+	(input-method-after-insert-chunk-hook)
+	(input-method-use-echo-area, set-language-environment-hook)
 	(exit-language-environment-hook): Customize.
 	(find-coding-systems-for-charsets): Rewritten.
 	(default-input-method): Add :link.
@@ -1271,8 +1278,7 @@
 	(cp851): Doc fix.
 	(unicode-bmp): New.
 
-	* case-table.el (set-case-syntax-pair): Remove check on byte
-	lengths.
+	* case-table.el (set-case-syntax-pair): Remove check on byte lengths.
 
 	* language/european.el (cp858): New.
 	("Turkish"): Add special case rules.
@@ -1300,8 +1306,8 @@
 
 2002-08-19  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/characters.el: Fix categories ?A and ?C.  Treat
-	ASCII characters as `latin' script.
+	* international/characters.el: Fix categories ?A and ?C.
+	Treat ASCII characters as `latin' script.
 
 2002-08-18  Kenichi Handa  <handa@etl.go.jp>
 
@@ -1320,24 +1326,23 @@
 
 	* wid-edit.el (character): Use characterp.
 
-	* international/mule-diag.el (describe-coding-system): Add utf-16
-	case.
+	* international/mule-diag.el (describe-coding-system): Add utf-16 case.
 
 	* language/viet-util.el (viet-encode-viscii-char): Use encode-char.
 
-	* language/cyrillic.el ("Tajik", "Bulgarian", "Belarusian"): Add
-	charset.
+	* language/cyrillic.el ("Tajik", "Bulgarian", "Belarusian"):
+	Add charset.
 	("Ukrainian"): New.
 
 	* language/georgian.el (georgian-ps): New coding system.
 
 2002-08-15  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-cmds.el (reset-language-environment): Don't
-	set nonascii-translation-table and nonascii-insert-offset.  Call
-	set-unibyte-charset, not set-primary-charset.
-	(nonascii-translation-table, nonascii-insert-offset): Declare
-	these variable as obsolete ones.
+	* international/mule-cmds.el (reset-language-environment):
+	Don't set nonascii-translation-table and nonascii-insert-offset.
+	Call set-unibyte-charset, not set-primary-charset.
+	(nonascii-translation-table, nonascii-insert-offset):
+	Declare these variable as obsolete ones.
 	(set-language-environment): Call set-unibyte-charset, not
 	set-primary-charset.  Call set-charset-priority with `charset'
 	info of the language environment.
@@ -1348,8 +1353,8 @@
 
 2002-08-02  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/characters.el (next-word-boundary-han): Don't
-	treat katakana following han characters as a part of a word.
+	* international/characters.el (next-word-boundary-han):
+	Don't treat katakana following han characters as a part of a word.
 
 2002-08-01  Kenichi Handa  <handa@etl.go.jp>
 
@@ -1376,14 +1381,14 @@
 	(archive-rename-entry): Encode the filename by
 	archive-file-name-coding-system.
 	(archive-mode-revert): Don't change the buffer's multibyteness.
-	(archive-arc-summarize, archive-lzh-summarize,
-	archive-zoo-summarize): Don't change the buffer's multibyteness.
+	(archive-arc-summarize, archive-lzh-summarize)
+	(archive-zoo-summarize): Don't change the buffer's multibyteness.
 	Decode filenames by archive-file-name-coding-system.
 	(archive-arc-rename-entry, archive-zip-chmod-entry): Don't change
 	the buffer's multibyteness.
 
-	* tar-mode.el (tar-file-name-coding-system): New variable.  Make
-	it permanent-local.p
+	* tar-mode.el (tar-file-name-coding-system): New variable.
+	Make it permanent-local.
 	(tar-header-block-tokenize): Decode filename and linkname by
 	tar-file-name-coding-system.
 	(tar-header-block-checksum): Call multibyte-char-to-unibyte to get
@@ -1392,27 +1397,23 @@
 	`to'.  Delete unnecessary call of position-bytes.
 	(tar-mode): Set tar-file-name-coding-system.  Delete unnecessary
 	call of position-bytes.
-	(tar-extract): Simplified by calling decode-coding-region with
+	(tar-extract): Simplify by calling decode-coding-region with
 	DESTINATION argument.  Don't toggle multibyteness of tar buffer.
 	(tar-copy): Don't toggle multibyteness of tar buffer.
 	(tar-expunge): Likewise.
 	(tar-clear-modification-flags): Delete unnecessary call of
 	position-bytes.
-	(tar-rename-entry): Call tar-alter-one-field with encoded new
-	name.
+	(tar-rename-entry): Call tar-alter-one-field with encoded new name.
 	(tar-alter-one-field): Don't toggle multibyteness of tar buffer.
-	Convert new-data-string by string-to-multibyte before inserting
-	it.
+	Convert new-data-string by string-to-multibyte before inserting it.
 	(tar-subfile-save-buffer): Don't toggle multibyteness of tar
-	buffer.  Simplified by calling encoding-coding-region with
+	buffer.  Simplify by calling encoding-coding-region with
 	DESTINATION argument.
-	(tar-mode-write-file): Delete unnecessary call of
-	byte-to-position.
+	(tar-mode-write-file): Delete unnecessary call of byte-to-position.
 
 2002-07-30  Dave Love  <fx@gnu.org>
 
-	* international/titdic-cnv.el (quail-cxterm-package-ext-info): Doc
-	fix.
+	* international/titdic-cnv.el (quail-cxterm-package-ext-info): Doc fix.
 
 	* emacs-lisp/copyright.el (copyright-regexp): Remove redundancy.
 
@@ -1448,13 +1449,12 @@
 
 2002-07-17  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-util.el (detect-coding-with-priority): Fix
-	the place of using `,' marker in backguote form.
+	* international/mule-util.el (detect-coding-with-priority):
+	Fix the place of using `,' marker in backguote form.
 
 2002-07-12  Dave Love  <fx@gnu.org>
 
-	* international/mule-conf.el (mule-unicode-e000-ffff): Set
-	:max-code.
+	* international/mule-conf.el (mule-unicode-e000-ffff): Set :max-code.
 
 	* international/mule-util.el (with-coding-priority): Fix.
 
@@ -2203,9 +2203,9 @@
 	(coding-spec-XXX-idx): Variables deleted.
 	(coding-system-iso-2022-flags): New variable.
 	(define-coding-system): New function.
-	(transform-make-coding-system-args, make-coding-system): Deleted.
+	(transform-make-coding-system-args, make-coding-system): Delete.
 	(set-coding-priority): Make it obsolete.
-	(after-insert-file-set-buffer-file-coding-system): Adjusted for
+	(after-insert-file-set-buffer-file-coding-system): Adjust for
 	the new coding system structure.
 	(find-new-buffer-file-coding-system): Likewise.
 
@@ -2221,7 +2221,7 @@
 	(sgml-char-names-table): Iteration limit fixed.
 
 	* term/mac-win.el: Deleted unnecessary calls of set-fontset-font.
-	(ccl-encode-mac-roman-font): Deleted.
+	(ccl-encode-mac-roman-font): Delete.
 
 	* Makefile.in (DONTCOMPILE): Add latin1-disp.el, ucs-tables.el,
 	utf-8.el, and utf-8-subst.el as they can't be bytecompiled
