@@ -3,6 +3,9 @@
 	* calc/calcalg2.el (calc-sum-rec): Fix the sum when the lower
 	limit is 0.
 
+	* calc/calc-arith.el (math-add-symb-fancy): Check the length of
+	the correct variable.
+
 2006-01-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-open-at-point): Fixed bug with matching a
