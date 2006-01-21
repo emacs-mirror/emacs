@@ -410,7 +410,7 @@ set to the hyphen character (-)."
 		   (car (cdr (assoc attr-index rmail-desc-attr-alist)))
 		 ?-))
     (aset attributes attr-index code)
-    (rmail-header-persist-attributes attributes)))
+    (rmail-header-add-header rmail-header-attribute-header attributes)))
 
 (defun rmail-desc-set-start (n pos)
   "Set the start position for message N to POS."
