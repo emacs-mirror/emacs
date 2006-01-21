@@ -1350,7 +1350,7 @@ original copy."
 
 ;;;; *** Rmail input ***
 
-(defun rmail-get-inbox-list ()
+(defun rmail-get-inbox-files ()
   "Return all files from `rmail-inbox-list' without name conflicts.
 A conflict happens when two inbox file names have the same name
 according to `file-name-nondirectory'."
@@ -1362,6 +1362,18 @@ according to `file-name-nondirectory'."
 	  (push file files))
 	(push (file-name-nondirectory file) last-names)))
     (nreverse files)))
+
+(defun rmail-delete-inbox-files (files)
+  "Delete all files given in FILES.
+If delete fails, truncate them to zero length."
+  (dolist (file files)
+    (condition-case nil
+	;; First, try deleting.
+	(condition-case nil
+	    (delete-file file)
+	  ;; If we can't delete it, truncate it.
+	  (file-error (write-region (point) (point) file)))
+      (file-error nil))))
 
 (defun rmail-get-new-mail (&optional file-name)
   "Move any new mail from this mail file's inbox files.
@@ -1406,7 +1418,7 @@ updated file.  It returns t if it got any new messages."
   ;; Get rid of all undo records for this buffer.
   (unless (eq buffer-undo-list t)
     (setq buffer-undo-list nil))
-  (let ((files (if file-name (list file-name) (rmail-get-inbox-list)))
+  (let ((files (if file-name (list file-name) (rmail-get-inbox-files)))
 	(rmail-enable-multibyte (default-value 'enable-multibyte-characters))
 	found current-message)
     (condition-case nil
@@ -1430,6 +1442,8 @@ updated file.  It returns t if it got any new messages."
 		(if file-name
 		    (rmail-insert-inbox-text files nil)
 		  (setq delete-files (rmail-insert-inbox-text files t)))
+		;; Process newly found messages and save them into the
+		;; RMAIL file.
 		(unless (equal (point-min) (point-max))
 		  (setq new-messages (rmail-process-new-messages)
 			rmail-current-message (1+ rmail-total-messages)
@@ -1438,14 +1452,7 @@ updated file.  It returns t if it got any new messages."
 		  (save-buffer))
 		;; Delete the old files, now that the RMAIL file is
 		;; saved.
-		(dolist (i delete-files)
-		  (condition-case nil
-		      ;; First, try deleting.
-		      (condition-case nil
-			  (delete-file i)
-			;; If we can't delete it, truncate it.
-			(file-error (write-region (point) (point) i)))
-		    (file-error nil)))))
+		(rmail-delete-inbox-files delete-files)))
 	    (if (= new-messages 0)
 		(progn (goto-char opoint)
 		       (when (or file-name rmail-inbox-list)

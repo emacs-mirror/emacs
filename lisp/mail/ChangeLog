@@ -5,6 +5,10 @@
 	(rmail-hex-string-to-integer): Likewise.
 	(rmail-hex-char-to-integer): Likewise.
 	(rmail-decode-mail-file): Renamed from `rmail-decode-mbox-file'.
+	(rmail-delete-inbox-files): New function factored out of
+	`rmail-get-new-mail'.
+	(rmail-get-new-mail): Use it.
+	(rmail-get-inbox-files): Renamed from `rmail-get-inbox-list'.
 
 2006-01-21  Alex Schroeder  <alex@gnu.org>
 
