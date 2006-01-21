@@ -1,3 +1,12 @@
+2006-01-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/find-func.el (find-definition-noselect)
+	(find-variable-noselect): Search variables in C source code too.
+	(find-function-C-source, find-function-noselect, find-function)
+	(find-function-other-frame, find-variable-noselect, find-variable)
+	(find-variable-other-frame, find-variable-at-point):
+	Fix docstrings.
+
 2006-01-21  Francesco Potorti`  <pot@gnu.org>
 
 	* mail/rmailout.el (rmail-output): Don't use content-type if it is nil.
