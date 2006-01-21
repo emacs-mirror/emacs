@@ -140,7 +140,7 @@ extended to use the GUI features.  This means that your code using the
 widget library will also use the new graphic features automatically.
 @end enumerate
 
-In order to minimize the code that is loaded by users who does not
+In order to minimize the code that is loaded by users who do not
 create any widgets, the code has been split in two files:
 
 @cindex widget library, files
