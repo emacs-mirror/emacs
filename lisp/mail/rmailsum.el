@@ -199,7 +199,7 @@ The From header is tested."
      (rmail-desc-get-start msg)
      (rmail-desc-get-end msg))
     (goto-char (point-min))
-    (string-match senders (or (mail-fetch-field "From") ""))))
+    (string-match sender (or (mail-fetch-field "From") ""))))
 
 ;;;; General making of a summary buffer.
 
