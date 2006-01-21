@@ -26,16 +26,14 @@
 
 ;;; Code:
 
-;; Written by Paul Reilly as part of moving BABYL to inbox/mbox format.
-
 (eval-when-compile
   (require 'mail-utils))
 
 (defconst rmail-header-attribute-header "X-BABYL-V6-ATTRIBUTES"
-  "The header that persists the Rmail attribute data.")
+  "The header that stores the Rmail attribute data.")
 
 (defconst rmail-header-keyword-header "X-BABYL-V6-KEYWORDS"
-  "The header that persists the Rmail keyword data.")
+  "The header that stores the Rmail keyword data.")
 
 (defvar rmail-header-overlay-list nil
   "A list of cached overlays used to make headers hidden or visible.")
@@ -45,14 +43,14 @@
 nil means headers are displayed, t indicates headers are not displayed.")
 
 (defun rmail-header-get-limit ()
-  "Return the end of the headers."
+  "Return the end of the headers.
+The current buffer must show one message.  If you want to narrow
+to the headers of a mail by number, use `rmail-narrow-to-header'
+instead."
   (goto-char (point-min))
   (if (search-forward "\n\n" nil t)
       (1- (point))
     (error "Invalid message format.")))
-
-;;; The following functions are presented alphabetically ordered by
-;;; name.
 
 (defun rmail-header-add-header (header value)
   "Add HEADER to the list of headers and associate VALUE with it.
@@ -62,6 +60,8 @@ instead."
   (save-excursion
     (let* ((inhibit-read-only t)
 	   (case-fold-search t)
+	   (inhibit-point-motion-hooks t)
+	   (buffer-undo-list t)
 	   (limit (rmail-header-get-limit))
 	   start end)
       ;; Search for the given header.  If found, then set it's value.
@@ -169,43 +169,6 @@ The current buffer, possibly narrowed, contains a single message."
 	      (overlay-put overlay 'invisible t)
 	      (overlay-put overlay 'intangible t)
 	      (push overlay rmail-header-overlay-list))))))))
-
-(defun rmail-header-persist-attributes (attributes)
-  "Save ATTRIBUTES in the Rmail BABYL header."
-  (rmail-header-set-header rmail-header-attribute-header attributes))
-
-(defun rmail-header-set-header (header value)
-  "Set the current value of HEADER to VALUE.
-The current buffer, possibly narrowed, contains a single message."
-  (save-excursion
-
-    ;; Enable the buffer to be written, search for the header case
-    ;; insensitively, ignore intangibility and do not record these
-    ;; changes in the undo list.
-    (let ((inhibit-read-only t)
-	  (case-fold-search t)
-	  (inhibit-point-motion-hooks t)
-	  (buffer-undo-list t)
-	  (limit (rmail-header-get-limit))
-	  start end)
-
-      ;; Search for the given header.  If found, then set it's value.
-      ;; If not generate an error.
-      (goto-char (point-min))
-      (if (re-search-forward (format "^%s: " header) limit t)
-
-	  ;; Kill the current value and replace it with the new.
-	  (progn
-	    (setq start (point))
-	    (while (progn
-		     (forward-line 1)
-		     (looking-at "[ \t]+")))
-	    (setq end (point-marker))
-	    (goto-char start)
-	    (insert-and-inherit value)
-	    (kill-region (point) (1- (marker-position end))))
-	;; Generate an error since the header does not exist.
-	(error "Header %s not found." header)))))
 
 (defun rmail-header-show-headers ()
   "Show all headers.
