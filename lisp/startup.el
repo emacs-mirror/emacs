@@ -41,7 +41,9 @@
   :group 'internal)
 
 (defcustom inhibit-splash-screen nil
-  "*Non-nil inhibits the startup screen.
+  "Non-nil inhibits the startup screen.
+It also inhibits display of the initial message in the *scratch* buffer.
+
 This is for use in your personal init file, once you are familiar
 with the contents of the startup screen."
   :type 'boolean
@@ -1087,7 +1089,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
 ")
   "Initial message displayed in *scratch* buffer at startup.
-If this is nil, no message will be displayed."
+If this is nil, no message will be displayed.
+If `inhibit-splash-screen' is non-nil, then no message is displayed,
+regardless of the value of this variable."
   :type '(choice (text :tag "Message")
 		 (const :tag "none" nil))
   :group 'initialization)
