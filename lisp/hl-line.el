@@ -1,7 +1,7 @@
 ;;; hl-line.el --- highlight the current line
 
 ;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Maintainer: FSF
@@ -58,7 +58,7 @@
 ;; it to nil to avoid highlighting specific buffers, when the global
 ;; mode is used.
 
-;; In default whole the line is highlighted. The range of highlighting
+;; By default the whole line is highlighted.  The range of highlighting
 ;; can be changed by defining an appropriate function as the
 ;; buffer-local value of `hl-line-range-function'.
 
@@ -130,7 +130,7 @@ addition to `hl-line-highlight' on `post-command-hook'."
     (remove-hook 'pre-command-hook #'hl-line-unhighlight t)))
 
 (defun hl-line-highlight ()
-  "Active the Hl-Line overlay on the current line."
+  "Activate the Hl-Line overlay on the current line."
   (if hl-line-mode	; Might be changed outside the mode function.
       (progn
         (unless hl-line-overlay
@@ -179,9 +179,9 @@ Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
       (delete-overlay global-hl-line-overlay)))
 
 (defun hl-line-move (overlay)
-  "Move the hl-line-mode overlay.
+  "Move the Hl-Line overlay.
 If `hl-line-range-function' is non-nil, move the OVERLAY to the position
-where the function returns. If `hl-line-range-function' is nil, fill
+where the function returns.  If `hl-line-range-function' is nil, fill
 the line including the point by OVERLAY."
   (let (tmp b e)
     (if hl-line-range-function
