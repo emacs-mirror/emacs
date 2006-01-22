@@ -1,3 +1,11 @@
+2006-01-22  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-rcs.el (vc-rcs-state-heuristic): Use file-attributes with
+	ID-FORMAT `string'.  This allows us to get rid of
+	`vc-user-login-name UID'.
+
+	* vc-sccs.el (vc-sccs-state-heuristic): Likewise.
+
 2006-01-22  John Paul Wallington  <jpw@pobox.com>
 
 	* hl-line.el (hl-line-highlight, hl-line-move): Doc fixes.
