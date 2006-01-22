@@ -1,3 +1,14 @@
+2006-01-22  Henrik Enberg  <enberg@printf.se>
+
+	* rmail.el (rmail): Go back to using find-file for reading in the
+	mail file.  This avoids gratuitous modification of the file.
+	(rmail-decode-region): Doc string, cleanup.
+	(rmail-decode-by-content-type): New function.
+	(rmail-decode-messages): Use it.  Add FROM and TO args and only
+	process messages in that region.
+	(rmail-get-new-mail): Call `rmail-decode-region' before
+	`rmail-process-new-messages'.
+
 2006-01-21  Alex Schroeder  <alex@gnu.org>
 
 	* rmail.el (rmail-decode-messages): Decoded encoded-words in
