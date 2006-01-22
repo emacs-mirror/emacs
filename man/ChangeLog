@@ -1,3 +1,13 @@
+2006-01-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.52.
+
+	* tramp.texi (Frequently Asked Questions): Remove Ange-FTP item.
+	Add Tramp disabling item.  New item for common connection
+	problems.
+	(various): Apply "ftp" as method for the download URL.
+	(Bug Reports): Refer to FAQ for common problems.
+
 2006-01-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* widget.texi (User Interface): Use @key for TAB.

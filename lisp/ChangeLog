@@ -1,3 +1,45 @@
+2006-01-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.52.
+
+	* net/tramp.el, net/tramp-ftp.el, net/tramp-util.el,
+	net/tramp-vc.el: Add code for unloading Tramp.  See comment before
+	`tramp-unload-tramp' for checklist.
+
+	* net/tramp.el: Require `timer-funcs' instead of `timer' if in
+	XEmacs.  Contributed by Steve Youngs <steve@sxemacs.org>.
+	(tramp-unload-file-name-handler-alist)
+	(tramp-unload-tramp): New defuns.
+	(tramp-advice-PC-expand-many-files): New defadvice.
+	(tramp-save-PC-expand-many-files, tramp-setup-complete) Defuns
+	removed.
+	(tramp-handle-expand-file-name): Remove double slash.
+	(tramp-handle-file-attributes-with-ls): Return t as 9th attribute.
+	It doesn't matter, because it will be converted later on.
+	(tramp-handle-file-ownership-preserved-p): Rewritten.  The old
+	implementation was just heuristic.
+	(tramp-post-connection): Set uid and gid properties.
+	(tramp-convert-file-attributes): Set file's gid change bit.
+	(tramp-get-remote-uid, tramp-get-remote-gid): New defuns.
+	(tramp-handle-expand-file-name): Use "~root" for tilde expansion
+	in case of su(do)? methods.  The home directory of the local user
+	will be taken else.
+	(tramp-open-connection-telnet)
+	(tramp-open-connection-rsh, tramp-open-connection-su)
+	(tramp-open-connection-multi): Set PS1 to "$ ".  Otherwise, a
+	local shell prompt could hurt.  Reported by Romain Francoise
+	<romain@orebokech.com>.
+	(tramp-let-maybe): Add `edebug-form-spec' property.
+	(tramp-handle-expand-file-name): Bind `default-directory' locally
+	to "/" in order to avoid problems with UNC shares or Cygwin
+	mounts.
+	(tramp-md5-function): Fix typo in error message.
+
+	* net/tramp-ftp.el (tramp-ftp-enable-ange-ftp): New defun.
+
+	* net/tramp-util.el (top): Apply `ignore' instead of `identity'
+	for byte-compiler pacification.
+
 2006-01-22  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-rcs.el (vc-rcs-state-heuristic): Use file-attributes with
