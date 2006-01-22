@@ -4536,6 +4536,7 @@ Return an updated `non-iso-charset-alist'."
     ;; we can just concat "cp" to the ANSI codepage we get from the system
     ;; and not have to worry about whether it should be "cp" or "windows-".
     (when (coding-system-p w)
+      (define-coding-system-alias c w)
       ;; Compatibility with codepage.el, though cp... are not the
       ;; canonical names.
       (if (not (assq c non-iso-charset-alist))
