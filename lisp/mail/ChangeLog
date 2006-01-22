@@ -1,5 +1,8 @@
 2006-01-22  Henrik Enberg  <enberg@printf.se>
 
+	* rmaildesc.el (rmail-desc-default-attrs): New const.
+	(rmail-desc-get-default-attrs): Deleted.
+
 	* rmail.el (rmail): Go back to using find-file for reading in the
 	mail file.  This avoids gratuitous modification of the file.
 	(rmail-decode-region): Doc string, cleanup.
@@ -9,8 +12,10 @@
 	(rmail-get-new-mail): Call `rmail-decode-region' before
 	`rmail-process-new-messages'.
 	(rmail-fontify-message): Reformat, Doc String.
-	(rmail-ignored-headers): Generate with regexp-opt.
 	(rmail-displayed-headers): Default value set to nil.
+	(rmail-inbox-alist): Add version tag.
+	(rmail-count-screen-lines): Doc string.
+	(rmail-process-new-messages): Use rmail-desc-default-attrs.
 
 2006-01-21  Alex Schroeder  <alex@gnu.org>
 
