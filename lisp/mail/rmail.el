@@ -1775,7 +1775,7 @@ If CODING is nil or an invalid coding system, decode by `undecided'."
   ;; Process each message in turn starting from the back and
   ;; proceeding to the front of the region.  This is especially a good
   ;; approach since the buffer will likely have new headers added.
-  (save-excursion
+  (save-restriction
     (narrow-to-region from to)
     (let ((inhibit-read-only t)
 	  (case-fold-search nil)
