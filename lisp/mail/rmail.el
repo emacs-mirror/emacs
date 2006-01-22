@@ -263,26 +263,21 @@ It is useful to set this variable in the site customization file.")
 
 ;;;###autoload
 (defcustom rmail-ignored-headers
-  (concat "^"
-	  (regexp-opt '("via:" "mail-from:" "origin:" "references:" "sender:"
-			"status:" "received:" "x400-content-type:"
-			"x400-mts-identifier:" "x400-originator:"
-			"x400-received:" "x400-recipients:" "list-archive:"
-			"list-help:" "list-id:" "list-post:" "list-subscribe:"
-			"list-unsubscribe:" "resent-date:" "resent-face:"
-			"resent-message-id:" "resent-openpgp:"
-			"resent-organization:" "resent-x.*:" "message-id:"
-			"summary-line:" "precedence:" "path:" "face:"
-			"delivered-to:" "lines:" "return-path:" "errors-to:"
-			"return-receipt-to:" "content-length:" "content-type:"
-			"content-class:" "content-disposition:"
-			"content-transfer-encoding:" "nntp-posting-host:"
-			"nntp-posting-date:" "user-agent:" "importance:"
-			"envelope-to:" "delivery-date" "openpgp:" "mbox-line:"
-			"cancel-lock:" "in-reply-to:" "comment:"
-			"domainkey-signature:" "mime-version:"
-			"original-recipient:" "x-.*:" "from ")
-		      "\\(?:"))
+  (concat "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^sender:"
+	  "\\|^status:\\|^received:\\|^content-transfer-encoding:"
+	  "\\|^x400-\\(received\\|mts-identifier\\|content-type\\|originator\\|recipients\\):"
+	  "\\|^list-\\(help\\|post\\|subscribe\\|id\\|unsubscribe\\|archive\\):"
+	  "\\|^resent-\\(face\\|x-.*\\|organization\\|openpgp\\|date\\|message-id\\):"
+	  "\\|^thread-\\(topic\\|index\\)"
+	  "\\|^summary-line:\\|^precedence:\\|^message-id:"
+	  "\\|^path:\\|^face:\\|^delivered-to:\\|^lines:"
+	  "\\|^return-path:\\|^errors-to:\\|^return-receipt-to:"
+	  "\\|^content-\\(length\\|type\\|class\\|disposition\\):"
+	  "\\|^nntp-posting-\\(host\\|date\\):\\|^user-agent"
+	  "\\|^importance:\\|^envelope-to:\\|^delivery-date\\|^openpgp:"
+	  "\\|^mbox-line:\\|^cancel-lock:\\|^in-reply-to:\\|^comment:"
+	  "\\|^x-.*:\\|^domainkey-signature:\\|^mime-version:"
+	  "\\|^original-recipient:\\|^from ")
   "*Regexp to match header fields that Rmail should normally hide.
 \(See also `rmail-nonignored-headers', which overrides this regexp.)
 This variable is used for reformatting the message header,
@@ -373,7 +368,8 @@ Example setting if procmail delivers all your spam to
 \(setq rmail-inbox-alist '((\"~/Mail/SPAM\" \"~/Mail/SPAM.in\")))"
   :type '(alist :key-type file :value-type (repeat file))
   :group 'rmail-retrieve
-  :group 'rmail-files)
+  :group 'rmail-files
+  :version "22.1")
 
 ;;;###autoload
 (defcustom rmail-mail-new-frame nil
@@ -1900,8 +1896,8 @@ otherwise, show it in full."
     (goto-char start)))
 
 ;; Lifted from repos-count-screen-lines.
-;; Return number of screen lines between START and END.
 (defun rmail-count-screen-lines (start end)
+  "Return number of screen lines between START and END."
   (save-excursion
     (save-restriction
       (narrow-to-region start end)
@@ -2036,7 +2032,7 @@ non-nil then do not show any progress messages."
 	  (unless attributes
 	    ;; No suitable header exists.  Append the default BABYL
 	    ;; data header for a new message.
-	    (setq attributes (rmail-desc-get-default-attrs))
+	    (setq attributes rmail-desc-default-attrs)
 	    (rmail-header-add-header rmail-header-attribute-header attributes))
           ;; Set up keywords, if any.  The keywords are provided via a
           ;; comma separated list and returned as a list of strings.
