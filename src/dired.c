@@ -1036,11 +1036,11 @@ syms_of_dired ()
 #endif /* VMS */
 
   DEFVAR_LISP ("completion-ignored-extensions", &Vcompletion_ignored_extensions,
-	       doc: /* *Completion ignores filenames ending in any string in this list.
-Directories are ignored if they match any string in this list which
-ends in a slash.
-This variable does not affect lists of possible completions,
-but does affect the commands that actually do completions.  */);
+	       doc: /* Completion ignores file names ending in any string in this list.
+It does not ignore them if all possible completions end in one of
+these strings or when displaying a list of completions.
+It ignores directory names if they match any string in this list which
+ends in a slash.  */);
   Vcompletion_ignored_extensions = Qnil;
 }
 
