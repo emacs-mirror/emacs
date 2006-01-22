@@ -1,3 +1,7 @@
+2006-01-22  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el: Don't make cpXXX as an alias here.
+
 2006-01-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/find-func.el (find-definition-noselect)
