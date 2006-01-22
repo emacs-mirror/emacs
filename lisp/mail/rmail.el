@@ -788,39 +788,64 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	 ;; code conversion, then decode the messages one by one.
 	 (coding-system-for-read (and rmail-enable-multibyte 'raw-text))
 	 run-mail-hook msg-shown new-mail)
-    (when existed
-      (switch-to-buffer existed)
-      (when (eq major-mode 'rmail-edit-mode)
-	(error "Exit Rmail Edit mode before getting new mail")))
-    ;; If no buffer existed, or the file was changed behind our back,
-    ;; get the raw data again.  If we just read in a BABYL file, the
-    ;; conversion will have changed the buffer, thus a user issuing
-    ;; another M-x rmail will reconvert the BABYL file since we're not
-    ;; saving after a conversion.
-    (unless (and existed (verify-visited-file-modtime existed))
-      ;; There used to be mucking with enable-local-variables here,
-      ;; and that was tricky because it was made buffer-local, and
-      ;; binding a variable locally with let is not safe if it has
-      ;; buffer-local bindings.  We also don't want to run any
-      ;; find-file-hooks, as these might tamper with the restrictions,
-      ;; eg. session management.
-      (if existed
-	  ;; quietly revert file if it changed under us
-	  (let ((inhibit-read-only t))
-	    (erase-buffer)
-	    (insert-file-contents-literally file-name)
-	    ;; We need to re-initialize rmail-mode later.
-	    (setq major-mode 'fundamental-mode))
+    ;; This is how we used to do it.  I reverted to the original Rmail
+    ;; way of reading in the mail file, as it's the only way I can think
+    ;; of to avoid needless modification of the mail file.  However, the
+    ;; comments below (some of which appear in the original `rmail' too)
+    ;; indicate that there was problems with that approach, so I'm not
+    ;; sure on what to do.  --enberg
+
+    ;; (when existed
+    ;;   (switch-to-buffer existed)
+    ;;   (when (eq major-mode 'rmail-edit-mode)
+    ;; 	(error "Exit Rmail Edit mode before getting new mail")))
+    ;; ;; If no buffer existed, or the file was changed behind our back,
+    ;; ;; get the raw data again.  If we just read in a BABYL file, the
+    ;; ;; conversion will have changed the buffer, thus a user issuing
+    ;; ;; another M-x rmail will reconvert the BABYL file since we're not
+    ;; ;; saving after a conversion.
+    ;; (unless (and existed (verify-visited-file-modtime existed))
+    ;;   ;; There used to be mucking with enable-local-variables here,
+    ;;   ;; and that was tricky because it was made buffer-local, and
+    ;;   ;; binding a variable locally with let is not safe if it has
+    ;;   ;; buffer-local bindings.  We also don't want to run any
+    ;;   ;; find-file-hooks, as these might tamper with the restrictions,
+    ;;   ;; eg. session management.
+    ;;   (if existed
+    ;; 	  ;; quietly revert file if it changed under us
+    ;; 	  (let ((inhibit-read-only t))
+    ;; 	    (erase-buffer)
+    ;; 	    (insert-file-contents-literally file-name)
+    ;; 	    ;; We need to re-initialize rmail-mode later.
+    ;; 	    (setq major-mode 'fundamental-mode))
+    ;; 	(switch-to-buffer
+    ;; 	 (get-buffer-create (file-name-nondirectory file-name)))
+    ;; 	(when (file-exists-p file-name)
+    ;; 	  (insert-file-contents-literally file-name))
+    ;; 	(setq buffer-file-name file-name)
+    ;; 	;; As we have read a file as raw-text, the buffer is set to
+    ;; 	;; unibyte.  We must make it multibyte if necessary.
+    ;; 	(if (and rmail-enable-multibyte
+    ;; 		 (not enable-multibyte-characters))
+    ;; 	    (set-buffer-multibyte t))))
+
+    (when (and existed (eq major-mode 'rmail-edit-mode))
+      (error "Exit Rmail Edit mode before getting new mail"))
+    (if (and existed (not (verify-visited-file-modtime existed)))
+	(progn
+	  (find-file file-name)
+	  (when (and (verify-visited-file-modtime existed)
+		     (eq major-mode 'rmail-mode))
+	    (setq major-mode 'fundamental-mode)))
 	(switch-to-buffer
-	 (get-buffer-create (file-name-nondirectory file-name)))
-	(when (file-exists-p file-name)
-	  (insert-file-contents-literally file-name))
-	(setq buffer-file-name file-name)
+	 (let ((enable-local-variables nil))
+	   (find-file-noselect file-name)))
 	;; As we have read a file as raw-text, the buffer is set to
 	;; unibyte.  We must make it multibyte if necessary.
-	(if (and rmail-enable-multibyte
-		 (not enable-multibyte-characters))
-	    (set-buffer-multibyte t))))
+	(when (and rmail-enable-multibyte
+		   (not enable-multibyte-characters))
+	  (set-buffer-multibyte t)))
+
     ;; Make sure we're in rmail-mode, even if the buffer did exist and
     ;; the file was not changed.
     (unless (eq major-mode 'rmail-mode)
@@ -844,7 +869,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	    (delete-file new-file)))
 	;; Go through the converted file and decode each message
 	;; according to its mime charset.
-	(rmail-decode-messages))
+	(rmail-decode-messages (point-min) (point-max)))
       (goto-char (point-max))
       (rmail-mode-2)
       ;; setup files coding system
@@ -1454,13 +1479,13 @@ updated file.  It returns t if it got any new messages."
 		;; Process newly found messages and save them into the
 		;; RMAIL file.
 		(unless (equal (point-min) (point-max))
+		  ;; Go through the region and decode each message.
+		  (rmail-decode-messages (point-min) (point-max))
+		  ;; Update state and save buffer
 		  (setq new-messages (rmail-process-new-messages)
 			rmail-current-message (1+ rmail-total-messages)
 			rmail-total-messages (rmail-desc-get-count))
 		  (run-hooks 'rmail-get-new-mail-hook)
-		  ;; Go through the RMAIL file and decode each message
-		  ;; according to its mime charset.
-		  (rmail-decode-messages)
 		  (save-buffer))
 		;; Delete the old files, now that the RMAIL file is
 		;; saved.
@@ -1683,21 +1708,25 @@ is non-nil if the user has supplied the password interactively.
       (message "")
       (setq files (cdr files)))
     delete-files))
+
+;;;; *** Rmail message decoding ***
 
-;; Decode the region specified by FROM and TO by CODING.
-;; If CODING is nil or an invalid coding system, decode by `undecided'.
 (defun rmail-decode-region (from to coding)
-  (if (or (not coding) (not (coding-system-p coding)))
-      (setq coding 'undecided))
+  "Decode the region specified by FROM and TO by CODING.
+If CODING is nil or an invalid coding system, decode by `undecided'."
+  (unless (and coding (coding-system-p coding))
+    (setq coding 'undecided))
   ;; Use -dos decoding, to remove ^M characters left from base64 or
   ;; rogue qp-encoded text.
   (decode-coding-region from to
-			(coding-system-change-eol-conversion coding 1))
+			(coding-system-change-eol-conversion
+			 coding 'dos))
   ;; Don't reveal the fact we used -dos decoding, as users generally
   ;; will not expect the RMAIL buffer to use DOS EOL format.
   (setq buffer-file-coding-system
 	(setq last-coding-system-used
-	      (coding-system-change-eol-conversion coding 0))))
+	      (coding-system-change-eol-conversion
+	       coding 'unix))))
 
 (defun rmail-decode-mail-file ()
   "Decode mail file to a suitable conding system."
@@ -1719,62 +1748,76 @@ is non-nil if the user has supplied the password interactively.
       (setq buffer-file-coding-system nil)
       (setq save-buffer-coding-system (or coding-system 'undecided)))))
 
-(defun rmail-decode-messages ()
-  (let ((inhibit-read-only t)
-        (case-fold-search nil)
-	(start (point-max))
-	end)
-    ;; Process each message in turn starting from the back and
-    ;; proceeding to the front of the region.  This is especially a good
-    ;; approach since the buffer will likely have new headers added.
-    (widen)
-    (goto-char start)
-    (while (re-search-backward rmail-unix-mail-delimiter nil t)
-      (setq end start)
-      (setq start (point))
-      (save-excursion
-	(save-restriction
-	  (narrow-to-region start end)
-	  (goto-char (point-min))
-	  ;; Detect messages that have been added with DOS line endings
-	  ;; and convert the line endings for such messages.
-	  (when (save-excursion (end-of-line) (= (preceding-char) ?\r))
-	    (let ((buffer-read-only nil)
-		  (buffer-undo t)
-		  (end-marker (copy-marker end)))
-	      (message
-	       "Processing new messages...(converting line endings)")
-	      (save-excursion
-		(goto-char (point-max))
-		(while (search-backward "\r\n" (point-min) t)
-		  (delete-char 1)))
-	      (setq end (marker-position end-marker))
-	      (set-marker end-marker nil)))
-	  ;; Figure out the encoding by looking at the MIME header and
-	  ;; decode the message.
-	  (setq last-coding-system-used nil)
-	  (when (and (not rmail-enable-mime) rmail-enable-multibyte)
-	    (let ((mime-charset
-		   (when (and rmail-decode-mime-charset
-			      (save-excursion
-				(goto-char (rmail-header-get-limit))
-				(let ((case-fold-search t))
-				  (re-search-backward
-				   rmail-mime-charset-pattern
-				   (point-min) t))))
-		     (intern (downcase (match-string 1))))))
-	      (rmail-decode-region start (point) mime-charset)))
-	  ;; encoded-words in from and subject
-	  (dolist (header '("Subject" "From"))
-	    (let ((value (rmail-header-get-header header)))
-	      (rmail-header-add-header
-	       header (mail-decode-encoded-word-string value))))
-	  ;; Add an the X-Coding-System header.
-	  (unless (rmail-header-get-header "X-Coding-System")
-	    (let ((val (symbol-name last-coding-system-used)))
-	      (rmail-header-add-header "X-Coding-System" val))))))))
+(defun rmail-decode-by-content-type (from to)
+  "Decode message between FROM and TO according to Content-Type."
+  (when (and (not rmail-enable-mime) rmail-enable-multibyte)
+    (let ((coding-system-used nil)
+	  (case-fold-search t))
+      (save-restriction
+	(narrow-to-region from to)
+	(when (and (not rmail-enable-mime) rmail-enable-multibyte)
+	  (let ((coding
+		 (when (save-excursion
+			 (goto-char (rmail-header-get-limit))
+			 (re-search-backward
+			  rmail-mime-charset-pattern
+			  (point-min) t))
+		   (intern (downcase (match-string 1))))))
+	    (setq coding-system-used (rmail-decode-region
+				      (point-min) (point-max)
+				      coding)))))
+      (setq last-coding-system-used coding-system-used))))
 
-
+;; NB: this function may only be called on a region containing fresh,
+;; never before seen messages.  Using it on old messages will mess up
+;; encoding.
+(defun rmail-decode-messages (from to)
+  ;; Process each message in turn starting from the back and
+  ;; proceeding to the front of the region.  This is especially a good
+  ;; approach since the buffer will likely have new headers added.
+  (save-excursion
+    (narrow-to-region from to)
+    (let ((inhibit-read-only t)
+	  (case-fold-search nil)
+	  (start (point-max))
+	  end)
+      (goto-char start)
+      (while (re-search-backward rmail-unix-mail-delimiter nil t)
+	(setq end start)
+	(setq start (point))
+	(save-excursion
+	  (save-restriction
+	    (narrow-to-region start end)
+	    (goto-char (point-min))
+	    ;; Detect messages that have been added with DOS line endings
+	    ;; and convert the line endings for such messages.
+	    (when (save-excursion (end-of-line) (= (preceding-char) ?\r))
+	      (let ((buffer-read-only nil)
+		    (buffer-undo t)
+		    (end-marker (copy-marker end)))
+		(message
+		 "Processing new messages...(converting line endings)")
+		(save-excursion
+		  (goto-char (point-max))
+		  (while (search-backward "\r\n" (point-min) t)
+		    (delete-char 1)))
+		(setq end (marker-position end-marker))
+		(set-marker end-marker nil)))
+
+	    ;; Decode message according to content type, and make sure we
+	    ;; have a coding-system header.
+	    (let ((coding (rmail-decode-by-content-type
+			   (point-min) (point-max))))
+	      (unless (rmail-header-get-header "X-Coding-System")
+		(rmail-header-add-header "X-Coding-System"
+					 (symbol-name coding))))
+
+	    ;; encoded-words in from and subject
+	    (dolist (header '("Subject" "From"))
+	      (let ((value (rmail-header-get-header header)))
+		(rmail-header-add-header
+		 header (mail-decode-encoded-word-string value))))))))))
+  
 ;;;; *** Rmail Message Formatting and Header Manipulation ***
 
 (defun rmail-clear-headers (&optional ignored-headers)
