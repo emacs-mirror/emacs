@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;;; This package provides low level functions for tracking messages in Rmail.  
+;;; This package provides low level functions for tracking messages in Rmail.
 
 ;;; Code:
 
@@ -76,6 +76,9 @@ where
 (put 'rmail-desc-vector 'permanent-local t)
 
 ;;;; Constants supporting message vector processing.
+
+(defconst rmail-desc-default-attrs "------U"
+  "The default attributes for a new message.")
 
 ;;; Message component indexes.
 
@@ -179,7 +182,7 @@ N is 1 based, i.e. the first message number is 1."
    (nth rmail-desc-beg-index (rmail-desc-get-descriptor n))))
 
 (defun rmail-desc-get-end (n)
-  "Return the position of the end of message N." 
+  "Return the position of the end of message N."
   (if (= n (length rmail-desc-vector))
       (save-restriction
 	(widen)
@@ -207,7 +210,7 @@ The current buffer must be narrowed to message N.  Both
 	  (rmail-header-add-header rmail-header-keyword-header
 				   (mapconcat 'identity keywords ","))
 	  (rmail-header-toggle-visibility display-state))))))
-        
+
 (defun rmail-desc-remove-keyword (keyword n)
   "Remove KEYWORD from the list of keywords for message N.
 The current buffer must be narrowed to message N.  Both
@@ -224,7 +227,7 @@ The current buffer must be narrowed to message N.  Both
 	  (rmail-header-add-header rmail-header-keyword-header
 				   (mapconcat 'identity keywords ","))
 	  (rmail-header-toggle-visibility display-state))))))
-        
+
 (defun rmail-desc-attr-p (attr-index n)
   "Return the state of the the attribute denoted by ATTR-INDEX in
   message N."
@@ -304,10 +307,6 @@ If the attribute is not set, return nil."
   "Return the day of week (Sun .. Sat) from the date associated with message N."
   (nth rmail-desc-date-day-of-week-index
        (nth rmail-desc-date-index (rmail-desc-get-descriptor n))))
-
-(defun rmail-desc-get-default-attrs ()
-  "Return the default attributes for a new message."
-  (format "%s" "------U"))
 
 (defun rmail-desc-get-header-display-state (n)
   "Return t if ignorable headers are being displayed, nil otherwise."
@@ -424,3 +423,5 @@ set to the hyphen character (-)."
     (and (>= curpos beg) (< curpos end))))
 
 (provide 'rmaildesc)
+
+;;; rmaildesc.el ends here
