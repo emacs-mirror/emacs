@@ -3241,17 +3241,18 @@ This has an effect only if a summary buffer exists."
       (and (not modified) (buffer-modified-p) (set-buffer-modified-p nil)))))
 
 (defun rmail-fontify-message ()
-  ;; Fontify the current message if it is not already fontified.
-  (if (text-property-any (point-min) (point-max) 'rmail-fontified nil)
-      (let ((modified (buffer-modified-p))
-	    (buffer-undo-list t) (inhibit-read-only t)
-	    before-change-functions after-change-functions
-	    buffer-file-name buffer-file-truename)
-	(save-excursion
-	  (save-match-data
-	    (add-text-properties (point-min) (point-max) '(rmail-fontified t))
-	    (font-lock-fontify-region (point-min) (point-max))
-	    (and (not modified) (buffer-modified-p) (set-buffer-modified-p nil)))))))
+  "Fontify the current message if it is not already fontified."
+  (when (text-property-any (point-min) (point-max) 'rmail-fontified nil)
+    (let ((modified (buffer-modified-p))
+	  (buffer-undo-list t) (inhibit-read-only t)
+	  before-change-functions after-change-functions
+	  buffer-file-name buffer-file-truename)
+      (save-excursion
+	(save-match-data
+	  (add-text-properties (point-min) (point-max) '(rmail-fontified t))
+	  (font-lock-fontify-region (point-min) (point-max))
+	  (and (not modified) (buffer-modified-p)
+	       (set-buffer-modified-p nil)))))))
 
 ;;; Speedbar support for RMAIL files.
 (eval-when-compile (require 'speedbar))
