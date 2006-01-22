@@ -263,21 +263,26 @@ It is useful to set this variable in the site customization file.")
 
 ;;;###autoload
 (defcustom rmail-ignored-headers
-  (concat "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^sender:"
-	  "\\|^status:\\|^received:\\|^content-transfer-encoding:"
-	  "\\|^x400-\\(received\\|mts-identifier\\|content-type\\|originator\\|recipients\\):"
-	  "\\|^list-\\(help\\|post\\|subscribe\\|id\\|unsubscribe\\|archive\\):"
-	  "\\|^resent-\\(face\\|x.*\\|organization\\|openpgp\\|date\\|message-id\\):"
-	  "\\|^thread-\\(topic\\|index\\)"
-	  "\\|^summary-line:\\|^precedence:"
-	  "\\|^path:\\|^face:\\|^delivered-to:\\|^lines:"
-	  "\\|^return-path:\\|^errors-to:\\|^return-receipt-to:"
-	  "\\|^content-\\(length\\|type\\|class\\|disposition\\):"
-	  "\\|^nntp-posting-\\(host\\|date\\):\\|^user-agent"
-	  "\\|^importance:\\|^envelope-to:\\|^delivery-date\\|^openpgp:"
-	  "\\|^mbox-line:\\|^cancel-lock:\\|^in-reply-to:\\|^comment:"
-	  "\\|^x-.*:\\|^domainkey-signature:\\|^mime-version:"
-	  "\\|^original-recipient:\\|^from ")
+  (concat "^"
+	  (regexp-opt '("via:" "mail-from:" "origin:" "references:" "sender:"
+			"status:" "received:" "x400-content-type:"
+			"x400-mts-identifier:" "x400-originator:"
+			"x400-received:" "x400-recipients:" "list-archive:"
+			"list-help:" "list-id:" "list-post:" "list-subscribe:"
+			"list-unsubscribe:" "resent-date:" "resent-face:"
+			"resent-message-id:" "resent-openpgp:"
+			"resent-organization:" "resent-x.*:" "message-id:"
+			"summary-line:" "precedence:" "path:" "face:"
+			"delivered-to:" "lines:" "return-path:" "errors-to:"
+			"return-receipt-to:" "content-length:" "content-type:"
+			"content-class:" "content-disposition:"
+			"content-transfer-encoding:" "nntp-posting-host:"
+			"nntp-posting-date:" "user-agent:" "importance:"
+			"envelope-to:" "delivery-date" "openpgp:" "mbox-line:"
+			"cancel-lock:" "in-reply-to:" "comment:"
+			"domainkey-signature:" "mime-version:"
+			"original-recipient:" "x-.*:" "from ")
+		      "\\(?:"))
   "*Regexp to match header fields that Rmail should normally hide.
 \(See also `rmail-nonignored-headers', which overrides this regexp.)
 This variable is used for reformatting the message header,
@@ -304,8 +309,7 @@ go to that message and type \\[rmail-toggle-header] twice."
   :group 'rmail-headers)
 
 ;;;###autoload
-(defcustom rmail-displayed-headers "\
-^\\(to\\|from\\|sender\\|cc\\|date\\|subject\\|reply-to\\):[ \t]+"
+(defcustom rmail-displayed-headers nil
   "*Regexp to match Header fields that Rmail should display.
 If nil, display all header fields except those matched by
 `rmail-ignored-headers'."
