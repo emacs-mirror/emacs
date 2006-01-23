@@ -316,6 +316,7 @@ buffer, plus you will have these additional commands:
 Move point @var{count} buttons or editing fields forward.
 @end deffn
 @item @kbd{M-@key{TAB}}
+@itemx @kbd{S-@key{TAB}}
 @deffn Command widget-backward &optional count
 Move point @var{count} buttons or editing fields backward.
 @end deffn
