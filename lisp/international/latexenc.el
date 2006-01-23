@@ -1,6 +1,6 @@
 ;;; latexenc.el --- guess correct coding system in LaTeX files
 
-;; Copyright (C) 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Arne J,Ax(Brgensen <arne@arnested.dk>
 ;; Keywords: mule, coding system, latex
@@ -167,6 +167,7 @@ coding system names is determined from `latex-inputenc-coding-alist'."
                   (setq latexenc-main-file (tex-guess-main-file)))))
             ;; if we found a master/main file get the coding system from it
             (if (and latexenc-main-file
+		     (file-regular-p latexenc-main-file)
                      (file-readable-p latexenc-main-file))
                 (let* ((latexenc-dont-use-tex-guess-main-file-flag t)
                        (latexenc-dont-use-TeX-master-flag t)

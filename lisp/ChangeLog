@@ -1,3 +1,8 @@
+2006-01-23  Arne J,Ax(Brgensen  <arne@arnested.dk>
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Add file-regular-p check.
+
 2006-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (clone-buffer): Don't show the new buffer in the same
