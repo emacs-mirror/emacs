@@ -1,3 +1,23 @@
+2006-01-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* thumbs.el (thumbs-extra-images): New variable.  Make it buffer-local
+	and permanent-local.
+	(thumbs-max-image-number): New variable.  Make it
+	(thumbs-do-thumbs-insertion): Use them
+	(thumbs-per-line): Change default to 4.
+	(thumbs-marked-list): Rename from thumbs-markedL.
+	(thumbs-cleanup-thumbsdir, thumbs-delete-images)
+	(thumbs-rename-images): Use -list instead of L for internal variables.
+	(thumbs-call-convert): Use call-process instead of shell-command.
+	(thumbs-insert-thumb): Add filename as help-echo to each image.
+	(thumbs-show-from-dir): Rename from thumbs-show-all-from-dir.
+	Give dir to thumbs-show-thumbs-list.
+	(thumbs-show-thumbs-list): Set default-directory to that of images.
+	(thumbs-dired-show): Rename from thumbs-dired-show-all.
+	(thumbs-display-thumbs-buffer, thumbs-show-more-images): New functions.
+	(thumbs-mode-map): Bind "+" to thumbs-show-more-images.
+	(thumbs-view-image-mode-map): Bind "^" to thumbs-display-thumbs-buffer.
+
 2006-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ses.el (ses-read-cell): Provide a default value.
