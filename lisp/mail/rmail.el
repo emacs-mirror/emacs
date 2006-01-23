@@ -1838,25 +1838,6 @@ otherwise, show it in full."
   (interactive "P")
   (rmail-header-toggle-visibility arg))
 
-(defun rmail-narrow-to-non-pruned-header ()
-  "Narrow to the whole (original) header of the current message."
-  (let (start end)
-    (narrow-to-region (rmail-desc-get-start rmail-current-message) (point-max))
-    (goto-char (point-min))
-    (forward-line 1)
-    (if (= (following-char) ?1)
-	(progn
-	  (forward-line 1)
-	  (setq start (point))
-	  (search-forward "*** EOOH ***\n")
-	  (setq end (match-beginning 0)))
-      (forward-line 2)
-      (setq start (point))
-      (search-forward "\n\n")
-      (setq end (1- (point))))
-    (narrow-to-region start end)
-    (goto-char start)))
-
 ;; Lifted from repos-count-screen-lines.
 (defun rmail-count-screen-lines (start end)
   "Return number of screen lines between START and END."
@@ -2117,8 +2098,7 @@ non-nil then do not show any progress messages."
   "Handle a \"Mail-Followup-To\" header field with an unknown mailing list.
 Ask the user whether to add that list name to `mail-mailing-lists'."
   (save-restriction
-    (rmail-narrow-to-non-pruned-header)
-    (let ((mail-followup-to (mail-fetch-field "mail-followup-to" nil t)))
+    (let ((mail-followup-to (rmail-header-get-header "mail-followup-to" nil t)))
       (when mail-followup-to
 	(let ((addresses
 	       (split-string
@@ -2165,15 +2145,14 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
         (widen)
 	(narrow-to-region beg end)
         (goto-char (point-min))
-        (if (re-search-forward "^X-Coding-System: *\\(.*\\)$" nil t)
-            (let ((coding-system (intern (match-string 1))))
-              (condition-case nil
-                  (progn
-                    (check-coding-system coding-system)
-                    (setq buffer-file-coding-system coding-system))
-                (error
-                 (setq buffer-file-coding-system nil))))
-          (setq buffer-file-coding-system nil))
+	(condition-case nil
+	    (let* ((coding-system-name (rmail-header-get-header "X-Coding-System"))
+		   (coding-system (intern coding-system-name)))
+	      (check-coding-system coding-system)
+	      (setq buffer-file-coding-system coding-system))
+	  ;; no coding system or invalid coding system
+	  (error
+	   (setq buffer-file-coding-system nil)))
         ;; Clear the "unseen" attribute when we show a message, unless
 	;; it is already cleared.
 	(when (rmail-desc-attr-p rmail-desc-unseen-index n)
@@ -2229,39 +2208,33 @@ iso-8859, koi8-r, etc."
   (unless rmail-enable-mime
     (with-current-buffer rmail-buffer
       (save-excursion
-	(unwind-protect
-	    (let ((start (rmail-desc-get-start rmail-current-message))
-		  (end (rmail-desc-get-end rmail-current-message))
-		  header)
-	      ;; We need the message headers pruned (we later restore
-	      ;; the pruned stat to what it was, see the end of
-	      ;; unwind-protect form).
-	      (rmail-header-show-headers)
-	      (narrow-to-region start end)
-	      (setq header (rmail-header-get-header "X-Coding-System"))
-	      (if header
-		  (let ((old-coding (intern header))
-			(buffer-read-only nil))
-		    (check-coding-system old-coding)
-		    ;; Make sure the new coding system uses the same EOL
-		    ;; conversion, to prevent ^M characters from popping
-		    ;; up all over the place.
-		    (setq coding
-			  (coding-system-change-eol-conversion
-			   coding
-			   (coding-system-eol-type old-coding)))
+	(let ((start (rmail-desc-get-start rmail-current-message))
+	      (end (rmail-desc-get-end rmail-current-message))
+	      header)
+	  (narrow-to-region start end)
+	  (setq header (rmail-header-get-header "X-Coding-System"))
+	  (if header
+	      (let ((old-coding (intern header))
+		    (buffer-read-only nil))
+		(check-coding-system old-coding)
+		;; Make sure the new coding system uses the same EOL
+		;; conversion, to prevent ^M characters from popping
+		;; up all over the place.
+		(setq coding
+		      (coding-system-change-eol-conversion
+		       coding
+		       (coding-system-eol-type old-coding)))
 		    ;; Do the actual recoding.
-		    (encode-coding-region start end old-coding)
-		    (decode-coding-region start end coding)
-		    ;; Rewrite the x-coding-system header according to
-		    ;; what we did.
-		    (setq last-coding-system-used coding)
-		    (rmail-header-add-header
-		     "X-Coding-System"
-		     (symbol-name last-coding-system-used))
-		    (rmail-show-message rmail-current-message))
-		(error "No X-Coding-System header found")))
-	  (rmail-header-hide-headers))))))
+		(encode-coding-region start end old-coding)
+		(decode-coding-region start end coding)
+		;; Rewrite the x-coding-system header according to
+		;; what we did.
+		(setq last-coding-system-used coding)
+		(rmail-header-add-header
+		 "X-Coding-System"
+		 (symbol-name last-coding-system-used))
+		(rmail-show-message rmail-current-message))
+	    (error "No X-Coding-System header found")))))))
 
 ;;; mbox ready
 (defun rmail-auto-file ()
@@ -2732,7 +2705,6 @@ original message into it."
   (interactive)
   (rmail-start-mail t))
 
-;;; mbox: ready -pmr
 (defun rmail-reply (just-sender)
   "Reply to the current message.
 Normally include CC: to all other recipients of original message;
@@ -2743,28 +2715,20 @@ use \\[mail-yank-original] to yank the original message into it."
       (error "No messages in this file"))
   (save-excursion
     (save-restriction
-      (let ((msgnum rmail-current-message)
-            (display-state (rmail-desc-get-header-display-state
-			    rmail-current-message))
-            from reply-to cc subject date to message-id references
-            resent-to resent-cc resent-reply-to)
-        (rmail-header-show-headers)
-        (setq from (mail-fetch-field "from")
-              reply-to (or (mail-fetch-field "reply-to" nil t) from)
-              cc (and (not just-sender)
-                      (mail-fetch-field "cc" nil t))
-              subject (mail-fetch-field "subject")
-              date (mail-fetch-field "date")
-              to (or (mail-fetch-field "to" nil t) "")
-              message-id (mail-fetch-field "message-id")
-              references (mail-fetch-field "references" nil nil t)
-              resent-reply-to (mail-fetch-field "resent-reply-to" nil t)
-              resent-cc (and (not just-sender)
-                             (mail-fetch-field "resent-cc" nil t))
-              resent-to (or (mail-fetch-field "resent-to" nil t) ""))
-;;;	      resent-subject (mail-fetch-field "resent-subject")
-;;;	      resent-date (mail-fetch-field "resent-date")
-;;;	      resent-message-id (mail-fetch-field "resent-message-id")
+      (let* ((msgnum rmail-current-message)
+	     (from (rmail-header-get-header "from"))
+	     (reply-to (or (rmail-header-get-header "reply-to" nil t) from))
+	     (cc (unless just-sender
+		   (rmail-header-get-header "cc" nil t)))
+	     (subject (rmail-header-get-header "subject"))
+	     (date (rmail-header-get-header "date"))
+	     (to (or (rmail-header-get-header "to" nil t) ""))
+	     (message-id (rmail-header-get-header "message-id"))
+	     (references (rmail-header-get-header "references" nil nil t))
+	     (resent-to (rmail-header-get-header "resent-reply-to" nil t))
+	     (resent-cc (unless just-sender
+			  (rmail-header-get-header "resent-cc" nil t)))
+	     (resent-reply-to (or (rmail-header-get-header "resent-to" nil t) "")))
         ;; Merge the resent-to and resent-cc into the to and cc.
         (if (and resent-to (not (equal resent-to "")))
             (if (not (equal to ""))
@@ -2782,24 +2746,20 @@ use \\[mail-yank-original] to yank the original message into it."
                                  (string-match rmail-reply-regexp subject))
                                (substring subject (match-end 0))
                              subject))))
-        ;; Reset the headers display state before switching to the
-        ;; reply buffer.
-        (rmail-header-toggle-visibility (if display-state 1 0))
-
         ;; Now setup the mail reply buffer.
         (rmail-start-mail
          nil
-         ;; Using mail-strip-quoted-names is undesirable with newer mailers
-         ;; since they can handle the names unstripped.
-         ;; I don't know whether there are other mailers that still
-         ;; need the names to be stripped.
+         ;; Using mail-strip-quoted-names is undesirable with newer
+         ;; mailers since they can handle the names unstripped.  I
+         ;; don't know whether there are other mailers that still need
+         ;; the names to be stripped.
          (mail-strip-quoted-names reply-to)
          subject
          (rmail-make-in-reply-to-field from date message-id)
          (if just-sender
              nil
-           ;; mail-strip-quoted-names is NOT necessary for rmail-dont-reply-to
-           ;; to do its job.
+           ;; mail-strip-quoted-names is NOT necessary for
+           ;; rmail-dont-reply-to to do its job.
            (let* ((cc-list (rmail-dont-reply-to
                             (mail-strip-quoted-names
                              (if (null cc) to (concat to ", " cc))))))
@@ -3064,7 +3024,6 @@ typically for purposes of moderating a list."
 (defvar mail-mime-unsent-header "^Content-Type: message/rfc822 *$"
  "A regexp that matches the header of a MIME body part with a failed message.")
 
-;;; NOT DONE
 (defun rmail-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
 For a message rejected by the mail system, extract the interesting headers and
@@ -3082,13 +3041,10 @@ specifying headers which should not be copied into the new message."
   (let ((rmail-this-buffer (current-buffer))
 	(msgnum rmail-current-message)
 	bounce-start bounce-end bounce-indent resending
-	;; Fetch any content-type header in current message
-	;; Must search thru the whole unpruned header.
 	(content-type
 	 (save-excursion
 	   (save-restriction
-	     (rmail-narrow-to-non-pruned-header)
-	     (mail-fetch-field "Content-Type") ))))
+	     (rmail-header-get-header "Content-Type")))))
     (save-excursion
       (goto-char (point-min))
       (let ((case-fold-search t))
