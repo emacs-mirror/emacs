@@ -4148,7 +4148,7 @@ handle_single_display_spec (it, spec, object, position,
 	{
 	  it->method = GET_FROM_STRETCH;
 	  it->object = value;
-	  it->current.pos = it->position = start_pos;
+	  *position = it->position = start_pos;
 	}
 #ifdef HAVE_WINDOW_SYSTEM
       else
@@ -19670,6 +19670,10 @@ produce_stretch_glyph (it)
     ascent = min (max (0, (int)tem), height);
   else
     ascent = (height * FONT_BASE (font)) / FONT_HEIGHT (font);
+
+  if (width > 0 && !it->truncate_lines_p
+      && it->current_x + width > it->last_visible_x)
+    width = it->last_visible_x - it->current_x - 1;
 
   if (width > 0 && height > 0 && it->glyph_row)
     {
