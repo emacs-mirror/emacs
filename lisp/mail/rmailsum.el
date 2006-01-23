@@ -299,17 +299,26 @@ By default, `identity' is set."
   :group 'rmail-summary)
 
 ;;;###autoload
-(defcustom rmail-user-mail-address-regexp nil
+(defcustom rmail-user-mail-address-regexp
+(concat "^\\("
+	(regexp-quote (user-login-name))
+	"\\($\\|@\\)\\|"
+	(regexp-quote
+	 (or user-mail-address
+	     (concat (user-login-name) "@"
+		     (or mail-host-address
+			 (system-name)))))
+	"\\>\\)")
   "*Regexp matching user mail addresses.
 If non-nil, this variable is used to identify the correspondent
-when receiving new mail.  If it matches the address of the sender,
-the recipient is taken as correspondent of a mail.
-If nil \(default value\), your `user-login-name' and `user-mail-address'
-are used to exclude yourself as correspondent.
+when receiving new mail.  If it matches the address of the
+sender, the recipient is taken as correspondent of a mail.  It is
+initialized based on your `user-login-name' and
+`user-mail-address'.
 
-Usually you don't have to set this variable, except if you collect mails
-sent by you under different user names.
-Then it should be a regexp matching your mail addresses.
+Usually you don't have to set this variable, except if you
+collect mails sent by you under different user names.  Then it
+should be a regexp matching your mail addresses.
 
 Setting this variable has an effect only before reading a mail."
   :type '(choice (const :tag "None" nil) regexp)
@@ -1480,20 +1489,7 @@ If sender matches `rmail-user-mail-address-regexp' or
 `user-mail-address', return the to-address instead."
   (let ((sender (rmail-desc-get-sender n)))
     (if (or (null sender)
-	    (string-match
-	     (or rmail-user-mail-address-regexp
-		 (concat "^\\("
-			 (regexp-quote (user-login-name))
-			 "\\($\\|@\\)\\|"
-			 (regexp-quote
-			  ;; Don't lose if run from init file where
-			  ;; user-mail-address is not set yet.
-			  (or user-mail-address
-			      (concat (user-login-name) "@"
-				      (or mail-host-address
-					  (system-name)))))
-			 "\\>\\)"))
-	     sender))
+	    (string-match rmail-user-mail-address-regexp sender))
 	;; Either no sender known, or it's this user.
 	(save-restriction
 	  (narrow-to-region (rmail-desc-get-start n)
