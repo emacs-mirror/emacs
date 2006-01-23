@@ -7543,7 +7543,8 @@ x_catch_errors_unwind (dummy)
   x_error_message = x_error_message->prev;
   free (tmp);
 
-  eassert (dummy == make_number ((EMACS_INT)dpy + (EMACS_INT)x_error_message));
+  eassert (EQ (dummy,
+	       make_number ((EMACS_INT)dpy + (EMACS_INT)x_error_message)));
 
   return Qnil;
 }

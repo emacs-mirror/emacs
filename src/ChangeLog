@@ -1,3 +1,7 @@
+2006-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c (x_catch_errors_unwind): Yet another int/Lisp_Object mixup.
+
 2006-01-23  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (handle_single_display_spec): Fix handling of space
