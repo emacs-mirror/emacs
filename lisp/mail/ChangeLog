@@ -1,4 +1,24 @@
+2006-01-24  Alex Schroeder  <alex@gnu.org>
+
+	* rmailsum.el (rmail-summary-edit-map): Rewrite.
+
 2006-01-23  Alex Schroeder  <alex@gnu.org>
+
+	* rmail.el (rmail-narrow-to-non-pruned-header): Deleted.
+	(rmail-unknown-mail-followup-to, rmail-retry-failure): No longer
+	call rmail-narrow-to-non-pruned-header and replace
+	mail-fetch-field with rmail-header-get-header because that one
+	ignores the intangible property when searching.
+	(rmail-show-message): Simplify x-coding-system handling.
+	(rmail-redecode-body): No longer call rmail-header-show-headers
+	because rmail-header-get-header handles the intanglible property.
+	(rmail-reply): Simplify code at the price of some efficiency when
+	setting up the variable bindings.  No longer toggle visibility of
+	headers, because rmail-header-show-headers is no longer necessary.
+
+	* rmailhdr.el (rmail-header-get-header): Accept more arguments and
+	pass them to mail-fetch-field unchanged.  Bind
+	inhibit-point-motion-hooks to t.
 
 	* rmailsum.el (rmail-user-mail-address-regexp): Compute a default
 	value instead of assuming nil.  Doc.
