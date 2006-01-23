@@ -1,3 +1,40 @@
+2006-01-23  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (link, link-visited): New faces based on default values
+	of `info-xref' and `info-xref-visited'.
+
+	* info.el (info-xref): Inherit from `link'.
+	(info-xref-visited): Inherit from `link-visited'.
+
+	* cus-edit.el (custom-buffer-create-internal): Use widget type
+	`custom-manual' instead of `info-link' and don't set properties
+	`button-face' and `mouse-face' explicitly.
+	(custom-browse-group-tag, custom-browse-variable-tag)
+	(custom-browse-face-tag): Inherit from widget class
+	`custom-group-link' instead of `push-button'.
+	(custom-button-unraised): Inherit from `underline' face.
+	(custom-link): Inherit from `link' face.  Fix doc and group.
+	(custom-add-parent-links, custom-group-value-create): Don't set
+	properties `button-face' and `mouse-face' explicitly for
+	`custom-group-link' widget.
+	(custom-group-link): Add properties `button-face' and `mouse-face'
+	to widget definition.
+	(custom-field-keymap): New variable.  Put `custom-field-keymap' to
+	editable-field's :keymap property.
+	(custom-mode): Fix docstring: substitute keybindings for
+	`widget-forward' and `widget-backward' from `widget-keymap',
+	`widget-complete' from `custom-field-keymap', replace old
+	`Custom-move-and-invoke' with `widget-move-and-invoke'.  Untabify.
+
+	* desktop.el (desktop-load-file): Check for `fboundp' before
+	calling `symbol-function'.
+
+	* simple.el (clone-buffer, clone-indirect-buffer)
+	(clone-indirect-buffer-other-window): Use `read-buffer' instead of
+	`read-string'.  Fix prompts.
+
+	* play/doctor.el (doctor-mode-map): Rename from `doc-mode-map'.
+
 2006-01-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* thumbs.el (thumbs-file-alist): Avoid creating duplicate entries.
