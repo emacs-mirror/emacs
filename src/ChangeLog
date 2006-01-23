@@ -1,3 +1,11 @@
+2006-01-23  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (handle_single_display_spec): Fix handling of space
+	property on char from string: set *position rather than
+	it->current.pos.
+	(produce_stretch_glyph): Reduce width of stretch glyphs so they
+	don't get wider than the window (unless truncate-lines is on).
+
 2006-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xterm.c: Avoid allocating Lisp data from a signal handler.
