@@ -787,7 +787,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	 ;; on reading.  So, at first, we read the file without text
 	 ;; code conversion, then decode the messages one by one.
 	 (coding-system-for-read (and rmail-enable-multibyte 'raw-text))
-	 run-mail-hook msg-shown new-mail)
+	 run-mail-hook msg-shown)
     ;; This is how we used to do it.  I reverted to the original Rmail
     ;; way of reading in the mail file, as it's the only way I can think
     ;; of to avoid needless modification of the mail file.  However, the
@@ -845,7 +845,6 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	(when (and rmail-enable-multibyte
 		   (not enable-multibyte-characters))
 	  (set-buffer-multibyte t)))
-
     ;; Make sure we're in rmail-mode, even if the buffer did exist and
     ;; the file was not changed.
     (unless (eq major-mode 'rmail-mode)
@@ -866,35 +865,58 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 		  (insert-file-contents-literally new-file))
 		(message "Replacing BABYL format with mbox format...done"))
 	    (delete-file old-file)
-	    (delete-file new-file)))
-	;; Go through the converted file and decode each message
-	;; according to its mime charset.
-	(rmail-decode-messages (point-min) (point-max)))
+	    (delete-file new-file))))
       (goto-char (point-max))
       (rmail-mode-2)
-      ;; setup files coding system
-      (rmail-decode-mail-file)
+      ;; Convert all or parts of file to a format Rmail understands
+      (rmail-convert-file)
       ;;  We use `run-mail-hook' to remember whether we should run
       ;; `rmail-mode-hook' at the end.
       (setq run-mail-hook t)
-      ;; Initialize the Rmail state and process any messages in the
-      ;; buffer.
+      ;; Initialize the Rmail state.
       (rmail-initialize-messages))
     ;; Now we're back in business.  The happens even if we had a
     ;; perfectly fine file.
-    (unless file-name-arg
-      (setq new-mail (rmail-get-new-mail)))
-    (when rmail-display-summary
-      (rmail-summary))
-    ;; If new mail was found, display of the correct message was done
-    ;; elsewhere.
-    (unless new-mail
-      (rmail-show-message (or (rmail-first-unseen-message)
-			      rmail-total-messages)))
-    (rmail-construct-io-menu)
-    ;; Run any callbacks if the buffer was not in rmail-mode
-    (if run-mail-hook
-        (run-hooks 'rmail-mode-hook))))
+    (unwind-protect
+	(unless (and (not file-name-arg) (rmail-get-new-mail))
+	  (rmail-show-message (or (rmail-first-unseen-message)
+				  rmail-total-messages)))
+      (when rmail-display-summary
+	(rmail-summary))
+      (rmail-construct-io-menu)
+      ;; Run any callbacks if the buffer was not in rmail-mode
+      (when run-mail-hook
+	(run-hooks 'rmail-mode-hook)))))
+
+(defun rmail-convert-file ()
+  (let ((convert
+	 (save-restriction
+	   (widen)
+	   (let ((case-fold-search nil)
+		 (start (point-max))
+		 end)
+	     (catch 'convert
+	       (goto-char start)
+	       (while (re-search-backward
+		       rmail-unix-mail-delimiter nil t)
+		 (setq end start)
+		 (setq start (point))
+		 (save-excursion
+		   (save-restriction
+		     (narrow-to-region start end)
+		     (goto-char start)
+		     (let ((attribute (rmail-header-get-header
+				       rmail-header-attribute-header))
+			   (coding (rmail-header-get-header
+				    "X-Coding-System")))
+		       (unless (and attribute attribute)
+			 (throw 'convert t)))))))))))
+    (if convert
+	(let ((inhibit-read-only t))
+	  (rmail-convert-mbox-format))
+      (when (and (not rmail-enable-mime)
+		 rmail-enable-multibyte)
+	(rmail-decode-mbox-format)))))
 
 (defun rmail-initialize-messages ()
   "Initialize message state based on messages in the buffer."
@@ -1212,7 +1234,7 @@ Instead, these commands are available:
 	(progn
 	  (set-buffer rmail-buffer)
   	  (rmail-mode-2)
-
+	  (rmail-convert-file)
 	  ;; We have read the file as raw-text, so the buffer is set to
 	  ;; unibyte.  Make it multibyte if necessary.
 	  (if (and rmail-enable-multibyte
@@ -1476,21 +1498,21 @@ updated file.  It returns t if it got any new messages."
 		;; Process newly found messages and save them into the
 		;; RMAIL file.
 		(unless (equal (point-min) (point-max))
-		  ;; Go through the region and decode each message.
-		  (rmail-decode-messages (point-min) (point-max))
-		  ;; Update state and save buffer
-		  (setq new-messages (rmail-process-new-messages)
-			rmail-current-message (1+ rmail-total-messages)
-			rmail-total-messages (rmail-desc-get-count))
-		  (run-hooks 'rmail-get-new-mail-hook)
+		  (setq new-messages (rmail-convert-mbox-format))
+		  (unless (zerop new-messages)
+		    (rmail-process-new-messages)
+		    (setq rmail-current-message (1+ rmail-total-messages)
+			  rmail-total-messages (rmail-desc-get-count)))
 		  (save-buffer))
 		;; Delete the old files, now that the RMAIL file is
 		;; saved.
 		(when delete-files
 		  (rmail-delete-inbox-files delete-files))))
-	    (if (= new-messages 0)
+
+	    (if (zerop new-messages)
 		(when (or file-name rmail-inbox-list)
 		  (message "(No new mail has arrived)"))
+
 	      ;; Process the new messages for spam using the integrated
 	      ;; spam filter.  The spam filter can mark messages for
 	      ;; deletion and can output a message.
@@ -1717,7 +1739,7 @@ If CODING is nil or an invalid coding system, decode by `undecided'."
 	      (coding-system-change-eol-conversion
 	       coding 'unix))))
 
-(defun rmail-decode-mail-file ()
+(defun rmail-decode-mbox-format ()
   "Decode mail file to a suitable conding system."
   (when (and (not rmail-enable-mime) rmail-enable-multibyte)
     (let ((modifiedp (buffer-modified-p))
@@ -1756,56 +1778,6 @@ If CODING is nil or an invalid coding system, decode by `undecided'."
 				      (point-min) (point-max)
 				      coding)))))
       (setq last-coding-system-used coding-system-used))))
-
-;; NB: this function may only be called on a region containing fresh,
-;; never before seen messages.  Using it on old messages will mess up
-;; encoding.
-(defun rmail-decode-messages (from to)
-  ;; Process each message in turn starting from the back and
-  ;; proceeding to the front of the region.  This is especially a good
-  ;; approach since the buffer will likely have new headers added.
-  (save-restriction
-    (narrow-to-region from to)
-    (let ((inhibit-read-only t)
-	  (case-fold-search nil)
-	  (start (point-max))
-	  end)
-      (goto-char start)
-      (while (re-search-backward rmail-unix-mail-delimiter nil t)
-	(setq end start)
-	(setq start (point))
-	(save-excursion
-	  (save-restriction
-	    (narrow-to-region start end)
-	    (goto-char (point-min))
-	    ;; Detect messages that have been added with DOS line endings
-	    ;; and convert the line endings for such messages.
-	    (when (save-excursion (end-of-line) (= (preceding-char) ?\r))
-	      (let ((buffer-read-only nil)
-		    (buffer-undo t)
-		    (end-marker (copy-marker end)))
-		(message
-		 "Processing new messages...(converting line endings)")
-		(save-excursion
-		  (goto-char (point-max))
-		  (while (search-backward "\r\n" (point-min) t)
-		    (delete-char 1)))
-		(setq end (marker-position end-marker))
-		(set-marker end-marker nil)))
-
-	    ;; Decode message according to content type, and make sure we
-	    ;; have a coding-system header.
-	    (let ((coding (rmail-decode-by-content-type
-			   (point-min) (point-max))))
-	      (unless (rmail-header-get-header "X-Coding-System")
-		(rmail-header-add-header "X-Coding-System"
-					 (symbol-name coding))))
-
-	    ;; encoded-words in from and subject
-	    (dolist (header '("Subject" "From"))
-	      (let ((value (rmail-header-get-header header)))
-		(rmail-header-add-header
-		 header (mail-decode-encoded-word-string value))))))))))
 
 ;;;; *** Rmail Message Formatting and Header Manipulation ***
 
@@ -1908,8 +1880,9 @@ otherwise, show it in full."
     ;; Update the mode line to display the keywords, the current
     ;; message index and the total number of messages.
     (setq mode-line-process
-	  (format " %d/%d %s"
-		  rmail-current-message rmail-total-messages result))
+	  (format " %d/%d%s"
+		  rmail-current-message rmail-total-messages
+		  (if keyword-list (concat " " result) "")))
     ;; If rmail-enable-mime is non-nil, we may have to update
     ;; `mode-line-process' of rmail-view-buffer too.
     (if (and rmail-enable-mime
@@ -1984,80 +1957,131 @@ non-nil then do not show any progress messages."
         (case-fold-search nil)
 	(new-message-counter 0)
 	(start (point-max))
-	end attributes keywords message-descriptor-list
-	date coding sender)
+	end date keywords message-descriptor-list)
     (or nomsg (message "Processing new messages..."))
     ;; Process each message in turn starting from the back and
     ;; proceeding to the front of the region.  This is especially a
     ;; good approach since the buffer will likely have new headers
     ;; added.
-    (goto-char start)
-    (while (re-search-backward rmail-unix-mail-delimiter nil t)
-      ;; Cache the message date to facilitate generating a message
-      ;; summary later.  The format is '(DAY-OF-WEEK DAY-NUMBER MON
-      ;; YEAR TIME)
-      (setq date
-	    (list (buffer-substring (match-beginning 2) (match-end 2))
-		  (buffer-substring (match-beginning 4) (match-end 4))
-		  (buffer-substring (match-beginning 3) (match-end 3))
-		  (buffer-substring (match-beginning 7) (match-end 7))
-		  (buffer-substring (match-beginning 5) (match-end 5))))
-      ;;Set start and end to bracket this message.
-      (setq end start)
-      (setq start (point))
-      (save-excursion
-	(save-restriction
-	  (narrow-to-region start end)
-	  (goto-char start)
-	  ;; Bump the new message counter.
-	  (setq new-message-counter (1+ new-message-counter))
+    (save-excursion
+      (goto-char start)
+      (while (re-search-backward rmail-unix-mail-delimiter nil t)
+	;; Cache the message date to facilitate generating a message
+	;; summary later.  The format is '(DAY-OF-WEEK DAY-NUMBER MON
+	;; YEAR TIME)
+	(setq date
+	      (list (buffer-substring (match-beginning 2) (match-end 2))
+		    (buffer-substring (match-beginning 4) (match-end 4))
+		    (buffer-substring (match-beginning 3) (match-end 3))
+		    (buffer-substring (match-beginning 7) (match-end 7))
+		    (buffer-substring (match-beginning 5) (match-end 5))))
+	;;Set start and end to bracket this message.
+	(setq end start)
+	(setq start (point))
+	(save-excursion
+	  (save-restriction
+	    (narrow-to-region start end)
+	    (goto-char start)
+	    ;; Bump the new message counter.
+	    (setq new-message-counter (1+ new-message-counter))
 
-	  ;; Make sure we have an Rmail BABYL attribute header field.
-	  ;; All we can assume is that the Rmail BABYL header field is
-	  ;; in the header section.  It's placement can be modified by
-	  ;; another mailer.
-	  (setq attributes (rmail-header-get-header
-			    rmail-header-attribute-header))
-	  (unless attributes
-	    ;; No suitable header exists.  Append the default BABYL
-	    ;; data header for a new message.
-	    (setq attributes rmail-desc-default-attrs)
-	    (rmail-header-add-header rmail-header-attribute-header attributes))
-          ;; Set up keywords, if any.  The keywords are provided via a
-          ;; comma separated list and returned as a list of strings.
-          (setq keywords (rmail-header-get-keywords))
-          (when keywords
-	    ;; Keywords do exist.  Register them with the keyword
-	    ;; management library.
-	    (rmail-keyword-register-keywords keywords))
+	    ;; Set up keywords, if any.  The keywords are provided via a
+	    ;; comma separated list and returned as a list of strings.
+	    (setq keywords (rmail-header-get-keywords))
+	    (when keywords
+	      ;; Keywords do exist.  Register them with the keyword
+	      ;; management library.
+	      (rmail-keyword-register-keywords keywords))
 
-	  ;; Insure that we have From and Date headers.
-	  ;;(rmail-decode-from-line)
+	    ;; Insure that we have From and Date headers.
+	    ;;(rmail-decode-from-line)
 
-	  ;; Perform User defined filtering.
-	  (save-excursion
-	    (if rmail-message-filter (funcall rmail-message-filter)))
-	  ;; Accumulate the message attributes along with the message
-	  ;; markers and the message date list.
-	  (setq message-descriptor-list
-		(vconcat (list (list (point-min-marker)
-				     attributes
-                                     keywords
-				     date
-                                     (count-lines start end)
-				     (cadr (mail-extract-address-components
-					    (rmail-header-get-header "from")))
-				     (or (rmail-header-get-header "subject")
-					 "none")))
-			 message-descriptor-list)))))
-    ;; Add the new message data lists to the Rmail message descriptor
-    ;; vector.
-    (rmail-desc-add-descriptors message-descriptor-list)
-    ;; Unless requested otherwise, show the number of new messages.
-    ;; Return the number of new messages.
-    (or nomsg (message "Processing new messages...done (%d)"
-		       new-message-counter))
-    new-message-counter))
+	    ;; Perform User defined filtering.
+	    (save-excursion
+	      (if rmail-message-filter (funcall rmail-message-filter)))
+	    ;; Accumulate the message attributes along with the message
+	    ;; markers and the message date list.
+	    (setq message-descriptor-list
+		  (vconcat (list (list (point-min-marker)
+				       (rmail-header-get-header
+					rmail-header-attribute-header)
+				       keywords
+				       date
+				       (count-lines start end)
+				       (cadr (mail-extract-address-components
+					      (rmail-header-get-header "from")))
+				       (or (rmail-header-get-header "subject")
+					   "none")))
+			   message-descriptor-list)))))
+      ;; Add the new message data lists to the Rmail message descriptor
+      ;; vector.
+      (rmail-desc-add-descriptors message-descriptor-list)
+      ;; Unless requested otherwise, show the number of new messages.
+      ;; Return the number of new messages.
+      (or nomsg (message "Processing new messages...done (%d)"
+			 new-message-counter))
+      new-message-counter)))
+
+;; NB: this function may only be called on a region containing fresh,
+;; never before seen messages.  Using it on old messages will mess up
+;; encoding.
+(defun rmail-convert-mbox-format ()
+  (let ((case-fold-search nil)
+	(message-count 0)
+	(start (point-max))
+	end)
+    (save-excursion
+      (goto-char start)
+      (while (re-search-backward rmail-unix-mail-delimiter nil t)
+	(setq end start)
+	(setq start (point))
+	(save-excursion
+	  (save-restriction
+	    (narrow-to-region start end)
+	    (goto-char (point-min))
+	    ;; Bump the new message counter.
+	    (setq message-count (1+ message-count))
+	    ;; Detect messages that have been added with DOS line endings
+	    ;; and convert the line endings for such messages.
+	    (when (save-excursion (end-of-line) (= (preceding-char) ?\r))
+	      (let ((buffer-read-only nil)
+		    (buffer-undo t)
+		    (end-marker (copy-marker end)))
+		(message
+		 "Processing new messages...(converting line endings)")
+		(save-excursion
+		  (goto-char (point-max))
+		  (while (search-backward "\r\n" (point-min) t)
+		    (delete-char 1)))
+		(setq end (marker-position end-marker))
+		(set-marker end-marker nil)))
+
+	    ;; encoded-words in from and subject
+	    (dolist (header '("Subject" "From"))
+	      (let ((value (rmail-header-get-header header)))
+		(rmail-header-add-header
+		 header (mail-decode-encoded-word-string value))))
+
+	    ;; Make sure we have an Rmail BABYL attribute header field.
+	    ;; All we can assume is that the Rmail BABYL header field is
+	    ;; in the header section.  It's placement can be modified by
+	    ;; another mailer.
+	    (let ((attributes (rmail-header-get-header
+			       rmail-header-attribute-header)))
+	      (unless attributes
+		;; No suitable header exists.  Append the default BABYL
+		;; data header for a new message.
+		(rmail-header-add-header rmail-header-attribute-header
+					 rmail-desc-default-attrs)))
+
+	    ;; Decode message according to content type, and make sure we
+	    ;; have a coding-system header.
+	    (let ((coding (rmail-decode-by-content-type
+			   (point-min) (point-max))))
+	      (unless (rmail-header-get-header "X-Coding-System")
+		(rmail-header-add-header "X-Coding-System"
+					 (symbol-name coding)))))))
+      message-count)))
 
 ;;; mbox: deprecated
 (defun rmail-maybe-set-message-counters ()
