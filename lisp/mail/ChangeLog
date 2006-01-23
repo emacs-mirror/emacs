@@ -1,3 +1,18 @@
+2006-01-23  Alex Schroeder  <alex@gnu.org>
+
+	* rmailsum.el (rmail-user-mail-address-regexp): Compute a default
+	value instead of assuming nil.  Doc.
+	(rmail-summary-get-sender): Compare with
+	rmail-user-mail-address-regexp instead of computing the default
+	value.
+
+	* rmail.el (rmail-convert-mbox-format): Decode messages with
+	content-transfer-encoding quoted-printable, because it's easy to
+	do.
+	(rmail-unknown-mail-followup-to): Compare with
+	rmail-user-mail-address-regexp instead of computing the default
+	value.
+
 2006-01-23  Henrik Enberg  <enberg@printf.se>
 
 	* rmail.el (rmail-decode-mbox-format): Rename from

@@ -48,6 +48,7 @@
 (require 'rmailhdr)
 (require 'rmailkwd)
 (require 'mail-parse)
+(require 'qp)
 
 (defvar deleted-head)
 (defvar font-lock-fontified)
@@ -2055,12 +2056,20 @@ non-nil then do not show any progress messages."
 		    (delete-char 1)))
 		(setq end (marker-position end-marker))
 		(set-marker end-marker nil)))
-
-	    ;; encoded-words in from and subject
-	    (dolist (header '("Subject" "From"))
+	    ;; Convert encoded-words in from and subject
+	    (dolist (header '("From" "Subject"))
 	      (let ((value (rmail-header-get-header header)))
 		(rmail-header-add-header
 		 header (mail-decode-encoded-word-string value))))
+	    ;; Convert quoted printable transfer encoding because it
+	    ;; is easy to do.
+	    (let ((encoding (rmail-header-get-header
+			     "content-transfer-encoding")))
+	      (when (and encoding
+			 (string= (downcase encoding)
+				  "quoted-printable"))
+		(quoted-printable-decode-region (rmail-header-get-limit)
+						(point-max))))
 
 	    ;; Make sure we have an Rmail BABYL attribute header field.
 	    ;; All we can assume is that the Rmail BABYL header field is
@@ -2107,35 +2116,22 @@ non-nil then do not show any progress messages."
 (defun rmail-unknown-mail-followup-to ()
   "Handle a \"Mail-Followup-To\" header field with an unknown mailing list.
 Ask the user whether to add that list name to `mail-mailing-lists'."
-   (save-restriction
-     (rmail-narrow-to-non-pruned-header)
-     (let ((mail-followup-to (mail-fetch-field "mail-followup-to" nil t)))
-       (when mail-followup-to
-	 (let ((addresses
-		(split-string
-		 (mail-strip-quoted-names mail-followup-to)
-		 ",[[:space:]]+" t)))
-	   (dolist (addr addresses)
-	     (when (and (not (member addr mail-mailing-lists))
-			(not
-			 ;; taken from rmailsum.el
-			 (string-match
-			  (or rmail-user-mail-address-regexp
-			      (concat "^\\("
-				      (regexp-quote (user-login-name))
-				      "\\($\\|@\\)\\|"
-				      (regexp-quote
-				       (or user-mail-address
-					   (concat (user-login-name) "@"
-						   (or mail-host-address
-						       (system-name)))))
-				      "\\>\\)"))
-			  addr))
-			(y-or-n-p
-			 (format "Add `%s' to `mail-mailing-lists'? "
-				 addr)))
-	       (customize-save-variable 'mail-mailing-lists
-					(cons addr mail-mailing-lists)))))))))
+  (save-restriction
+    (rmail-narrow-to-non-pruned-header)
+    (let ((mail-followup-to (mail-fetch-field "mail-followup-to" nil t)))
+      (when mail-followup-to
+	(let ((addresses
+	       (split-string
+		(mail-strip-quoted-names mail-followup-to)
+		",[[:space:]]+" t)))
+	  (dolist (addr addresses)
+	    (when (and (not (member addr mail-mailing-lists))
+		       (not (string-match rmail-user-mail-address-regexp addr))
+		       (y-or-n-p
+			(format "Add `%s' to `mail-mailing-lists'? "
+				addr)))
+	      (customize-save-variable 'mail-mailing-lists
+				       (cons addr mail-mailing-lists)))))))))
 
 (defun rmail-show-message (&optional n no-summary)
   "Show message number N (prefix argument), counting from start of file.
