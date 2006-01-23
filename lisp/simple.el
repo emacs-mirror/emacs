@@ -5035,8 +5035,8 @@ select the completion near point.\n\n")))))
       (goto-char (point-min))
       (search-forward "\n\n")
       (forward-line 1))))
-
-;; Support keyboard commands to turn on various modifiers.
+
+;;; Support keyboard commands to turn on various modifiers.
 
 ;; These functions -- which are not commands -- each add one modifier
 ;; to the following event.
@@ -5101,7 +5101,7 @@ PREFIX is the string that represents this modifier in an event type symbol."
 (define-key function-key-map [?\C-x ?@ ?a] 'event-apply-alt-modifier)
 (define-key function-key-map [?\C-x ?@ ?S] 'event-apply-shift-modifier)
 (define-key function-key-map [?\C-x ?@ ?c] 'event-apply-control-modifier)
-
+
 ;;;; Keypad support.
 
 ;;; Make the keypad keys act like ordinary typing keys.  If people add
@@ -5196,7 +5196,8 @@ after it has been set up properly in other respects."
 	 (error "Cannot clone a file-visiting buffer"))
      (if (get major-mode 'no-clone)
 	 (error "Cannot clone a buffer in %s mode" mode-name))
-     (list (if current-prefix-arg (read-string "Name: "))
+     (list (if current-prefix-arg
+	       (read-buffer "Name of new cloned buffer: " (current-buffer)))
 	   t)))
   (if buffer-file-name
       (error "Cannot clone a file-visiting buffer"))
@@ -5266,7 +5267,7 @@ front of the list of recently selected ones."
      (if (get major-mode 'no-clone-indirect)
 	 (error "Cannot indirectly clone a buffer in %s mode" mode-name))
      (list (if current-prefix-arg
-	       (read-string "BName of indirect buffer: "))
+	       (read-buffer "Name of indirect buffer: " (current-buffer)))
 	   t)))
   (if (get major-mode 'no-clone-indirect)
       (error "Cannot indirectly clone a buffer in %s mode" mode-name))
@@ -5290,7 +5291,7 @@ the front of the list of recently selected ones."
      (if (get major-mode 'no-clone-indirect)
 	 (error "Cannot indirectly clone a buffer in %s mode" mode-name))
      (list (if current-prefix-arg
-	       (read-string "BName of indirect buffer: "))
+	       (read-buffer "Name of indirect buffer: " (current-buffer)))
 	   t)))
   (let ((pop-up-windows t))
     (set-buffer buffer)
