@@ -21,23 +21,24 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
-;;
-;; Thanks: Alex Schroeder <alex@gnu.org> for maintaining the package at some time
-;;         The peoples at #emacs@freenode.net for numerous help
-;;         RMS for emacs and the GNU project.
-;;
 
 ;;; Commentary:
 
-;; This package create two new mode: thumbs-mode and
-;; thumbs-view-image-mode.  It is used for images browsing and viewing
-;; from within Emacs.  Minimal image manipulation functions are also
-;; available via external programs.
+;; This package create two new modes: thumbs-mode and thumbs-view-image-mode.
+;; It is used for basic browsing and viewing of images from within Emacs.
+;; Minimal image manipulation functions are also available via external
+;; programs.  If you want to do more complex tasks like categorise and tag
+;; your images, use tumme.el
 ;;
 ;; The 'convert' program from 'ImageMagick'
 ;; [URL:http://www.imagemagick.org/] is required.
 ;;
+;; Thanks: Alex Schroeder <alex@gnu.org> for maintaining the package at some
+;;         time.  The peoples at #emacs@freenode.net for numerous help.  RMS
+;;         for emacs and the GNU project.
+;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 ;; CHANGELOG
 ;;
 ;; This is version 2.0
@@ -48,8 +49,8 @@
 ;; That should be a directory containing image files.
 ;; from dired, C-t m enter in thumbs-mode with all marked files
 ;;             C-t a enter in thumbs-mode with all files in current-directory
-;; In thumbs-mode, pressing <return> on a image will bring you in image view mode
-;; for that image.  C-h m will give you a list of available keybinding.
+;; In thumbs-mode, pressing <return> on a image will bring you in image view
+;; mode for that image.  C-h m will give you a list of available keybinding.
 
 ;;; History:
 ;;
@@ -75,13 +76,18 @@
   :type 'string
   :group 'thumbs)
 
-(defcustom thumbs-per-line 5
-  "*Number of thumbnails per line to show in directory."
+(defcustom thumbs-per-line 4
+  "Number of thumbnails per line to show in directory."
+  :type 'integer
+  :group 'thumbs)
+
+(defcustom thumbs-max-image-number 16
+ "Maximum number of images initially displayed in thumbs buffer."
   :type 'integer
   :group 'thumbs)
 
 (defcustom thumbs-thumbsdir-max-size 50000000
-  "Max size for thumbnails directory.
+  "Maximum size for thumbnails directory.
 When it reaches that size (in bytes), a warning is sent."
   :type 'integer
   :group 'thumbs)
@@ -146,6 +152,11 @@ this value can let another user see some of your images."
   "Filename of current image.")
 (make-variable-buffer-local 'thumbs-current-image-filename)
 
+(defvar thumbs-extra-images 1
+  "Counter for showing extra images in thumbs buffer.")
+(make-variable-buffer-local 'thumbs-extra-images)
+(put 'thumbs-extra-images 'permanent-local t)
+
 (defvar thumbs-current-image-size nil
   "Size of current image.")
 
@@ -160,7 +171,7 @@ this value can let another user see some of your images."
 (defvar thumbs-current-dir nil
   "Current directory.")
 
-(defvar thumbs-markedL nil
+(defvar thumbs-marked-list nil
   "List of marked files.")
 
 (defalias 'thumbs-gensym
@@ -203,21 +214,21 @@ Create the thumbnails directory if it does not exist."
 If the total size of all files in `thumbs-thumbsdir' is bigger than
 `thumbs-thumbsdir-max-size', files are deleted until the max size is
 reached."
-  (let* ((filesL
+  (let* ((files-list
 	  (sort
 	   (mapcar
 	    (lambda (f)
-	      (let ((fattribsL (file-attributes f)))
-		`(,(nth 4 fattribsL) ,(nth 7 fattribsL) ,f)))
+	      (let ((fattribs-list (file-attributes f)))
+		`(,(nth 4 fattribs-list) ,(nth 7 fattribs-list) ,f)))
 	    (directory-files (thumbs-thumbsdir) t (image-file-name-regexp)))
 	   '(lambda (l1 l2) (time-less-p (car l1) (car l2)))))
-	 (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) filesL))))
+	 (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) files-list))))
     (while (> dirsize thumbs-thumbsdir-max-size)
       (progn
-	(message "Deleting file %s" (cadr (cdar filesL))))
-      (delete-file (cadr (cdar filesL)))
-      (setq dirsize (- dirsize (car (cdar filesL))))
-      (setq filesL (cdr filesL)))))
+	(message "Deleting file %s" (cadr (cdar files-list))))
+      (delete-file (cadr (cdar files-list)))
+      (setq dirsize (- dirsize (car (cdar files-list))))
+      (setq files-list (cdr files-list)))))
 
 ;; Check the thumbsnail directory size and clean it if necessary.
 (when thumbs-thumbsdir-auto-clean
@@ -242,7 +253,7 @@ ACTION-PREFIX is the symbol to place before the ACTION command
 			 filein
 			 (or output-format "jpeg")
 			 fileout)))
-    (shell-command command)))
+    (call-process shell-file-name nil nil nil "-c" command)))
 
 (defun thumbs-increment-image-size-element (n d)
   "Increment number N by D percent."
@@ -380,57 +391,62 @@ If MARKED is non-nil, the image is marked."
 If MARKED is non-nil, the image is marked."
   (thumbs-insert-image
    (thumbs-make-thumb img) 'jpeg thumbs-relief marked)
-  (put-text-property (1- (point)) (point)
-		     'thumb-image-file img))
+  (add-text-properties (1- (point)) (point)
+		     `(thumb-image-file ,img
+		       help-echo ,(file-name-nondirectory img))))
 
-(defun thumbs-do-thumbs-insertion (L)
-  "Insert all thumbs in list L."
-  (let ((i 0))
-    (dolist (img L)
+(defun thumbs-do-thumbs-insertion (list)
+  "Insert all thumbnails into thumbs buffer."
+  (let* ((i 0)
+	(length (length list))
+	(diff (- length (* thumbs-max-image-number thumbs-extra-images))))
+    (nbutlast list diff)
+    (dolist (img list)
       (thumbs-insert-thumb img
-			   (member img thumbs-markedL))
+			   (member img thumbs-marked-list))
       (when (= 0 (mod (setq i (1+ i)) thumbs-per-line))
 	(newline)))
-    (unless (bobp) (newline))))
+    (unless (bobp) (newline))
+    (if diff (message "Type + to display more images."))))
 
-(defun thumbs-show-thumbs-list (L &optional buffer-name same-window)
+(defun thumbs-show-thumbs-list (list &optional dir same-window)
   (unless (and (display-images-p)
                (image-type-available-p 'jpeg))
     (error "Required image type is not supported in this Emacs session"))
   (funcall (if same-window 'switch-to-buffer 'pop-to-buffer)
-	   (or buffer-name "*THUMB-View*"))
+	   (if dir (concat "*Thumbs: " dir) "*THUMB-View*"))
   (let ((inhibit-read-only t))
     (erase-buffer)
     (thumbs-mode)
-    (thumbs-do-thumbs-insertion L)
+    (if dir (setq default-directory dir))
+    (thumbs-do-thumbs-insertion list)
     (goto-char (point-min))
     (set (make-local-variable 'thumbs-current-dir) default-directory)))
 
 ;;;###autoload
-(defun thumbs-show-all-from-dir (dir &optional reg same-window)
+(defun thumbs-show-from-dir (dir &optional reg same-window)
   "Make a preview buffer for all images in DIR.
 Optional argument REG to select file matching a regexp,
 and SAME-WINDOW to show thumbs in the same window."
   (interactive "DDir: ")
   (thumbs-show-thumbs-list
-   (directory-files dir t
-		    (or reg (image-file-name-regexp)))
-   (concat "*Thumbs: " dir) same-window))
+   (directory-files dir t (or reg (image-file-name-regexp)))
+   dir same-window))
 
 ;;;###autoload
 (defun thumbs-dired-show-marked ()
-  "In dired, make a thumbs buffer with all marked files."
+  "In dired, make a thumbs buffer with marked files."
   (interactive)
   (thumbs-show-thumbs-list (dired-get-marked-files) nil t))
 
 ;;;###autoload
-(defun thumbs-dired-show-all ()
+(defun thumbs-dired-show ()
   "In dired, make a thumbs buffer with all files in current directory."
   (interactive)
-  (thumbs-show-all-from-dir default-directory nil t))
+  (thumbs-show-from-dir default-directory nil t))
 
 ;;;###autoload
-(defalias 'thumbs 'thumbs-show-all-from-dir)
+(defalias 'thumbs 'thumbs-show-from-dir)
 
 (defun thumbs-find-image (img &optional num otherwin)
   (let ((buffer (current-buffer)))
@@ -520,9 +536,9 @@ Open another window."
 (defun thumbs-delete-images ()
   "Delete the image at point (and its thumbnail) (or marked files if any)."
   (interactive)
-  (let ((files (or thumbs-markedL (list (thumbs-current-image)))))
+  (let ((files (or thumbs-marked-list (list (thumbs-current-image)))))
     (if (yes-or-no-p (format "Really delete %d files? " (length files)))
-	(let ((thumbs-fileL (thumbs-file-alist))
+	(let ((thumbs-file-list (thumbs-file-alist))
 	      (inhibit-read-only t))
 	  (dolist (x files)
 	    (let (failure)
@@ -532,24 +548,24 @@ Open another window."
 		    (delete-file (thumbs-thumbname x)))
 		(file-error (setq failure t)))
 	      (unless failure
-		(when (rassoc x thumbs-fileL)
-		  (goto-char (car (rassoc x thumbs-fileL)))
+		(when (rassoc x thumbs-file-list)
+		  (goto-char (car (rassoc x thumbs-file-list)))
 		  (delete-region (point) (1+ (point))))
-		(setq thumbs-markedL
-		      (delq x thumbs-markedL)))))))))
+		(setq thumbs-marked-list
+		      (delq x thumbs-marked-list)))))))))
 
 (defun thumbs-rename-images (newfile)
   "Rename the image at point (and its thumbnail) (or marked files if any)."
   (interactive "FRename to file or directory: ")
-  (let ((files (or thumbs-markedL (list (thumbs-current-image))))
+  (let ((files (or thumbs-marked-list (list (thumbs-current-image))))
 	failures)
     (if (and (not (file-directory-p newfile))
-	     thumbs-markedL)
+	     thumbs-marked-list)
 	(if (file-exists-p newfile)
 	    (error "Renaming marked files to file name `%s'" newfile)
 	  (make-directory newfile t)))
     (if (yes-or-no-p (format "Really rename %d files? " (length files)))
-	(let ((thumbs-fileL (thumbs-file-alist))
+	(let ((thumbs-file-list (thumbs-file-alist))
 	      (inhibit-read-only t))
 	  (dolist (file files)
 	    (let (failure)
@@ -563,11 +579,11 @@ Open another window."
 		(file-error (setq failure t)
 			    (push file failures)))
 	      (unless failure
-		(when (rassoc file thumbs-fileL)
-		  (goto-char (car (rassoc file thumbs-fileL)))
+		(when (rassoc file thumbs-file-list)
+		  (goto-char (car (rassoc file thumbs-file-list)))
 		  (delete-region (point) (1+ (point))))
-		(setq thumbs-markedL
-		      (delq file thumbs-markedL)))))))
+		(setq thumbs-marked-list
+		      (delq file thumbs-marked-list)))))))
     (if failures
 	(display-warning 'file-error
 			 (format "Rename failures for %s into %s"
@@ -594,6 +610,14 @@ Open another window."
       (setq thumbs-image-num num
 	    thumbs-current-image-filename img))))
 
+(defun thumbs-previous-image ()
+  "Show the previous image."
+  (interactive)
+  (let* ((i (- thumbs-image-num 1))
+	 (number (length (thumbs-file-alist))))
+    (if (= i 0) (setq i (1- number)))
+    (thumbs-show-image-num i)))
+
 (defun thumbs-next-image ()
   "Show the next image."
   (interactive)
@@ -602,13 +626,10 @@ Open another window."
     (if (= i number) (setq i 1))
     (thumbs-show-image-num i)))
 
-(defun thumbs-previous-image ()
-  "Show the previous image."
+(defun thumbs-display-thumbs-buffer ()
+  "Display the associated thumbs buffer."
   (interactive)
-  (let* ((i (- thumbs-image-num 1))
-	 (number (length (thumbs-file-alist))))
-    (if (= i 0) (setq i (1- number)))
-    (thumbs-show-image-num i)))
+  (display-buffer thumbs-buffer))
 
 (defun thumbs-redraw-buffer ()
   "Redraw the current thumbs buffer."
@@ -625,7 +646,7 @@ Open another window."
   (let ((elt (thumbs-current-image)))
     (unless elt
       (error "No image here"))
-    (push elt thumbs-markedL)
+    (push elt thumbs-marked-list)
     (let ((inhibit-read-only t))
       (delete-char 1)
       (thumbs-insert-thumb elt t)))
@@ -637,7 +658,7 @@ Open another window."
   (let ((elt (thumbs-current-image)))
     (unless elt
       (error "No image here"))
-    (setq thumbs-markedL (delete elt thumbs-markedL))
+    (setq thumbs-marked-list (delete elt thumbs-marked-list))
     (let ((inhibit-read-only t))
       (delete-char 1)
       (thumbs-insert-thumb elt nil)))
@@ -712,17 +733,24 @@ ACTION and ARG should be a valid convert command."
     (forward-char -1))
   (thumbs-show-name))
 
+(defun thumbs-backward-line ()
+  "Move up one line."
+  (interactive)
+  (forward-line -1)
+  (thumbs-show-name))
+
 (defun thumbs-forward-line ()
   "Move down one line."
   (interactive)
   (forward-line 1)
   (thumbs-show-name))
 
-(defun thumbs-backward-line ()
-  "Move up one line."
-  (interactive)
-  (forward-line -1)
-  (thumbs-show-name))
+(defun thumbs-show-more-images (&optional arg)
+  "Show more than `thumbs-max-image-number' images, if present."
+  (interactive "P")
+  (or arg (setq arg 1))
+  (setq thumbs-extra-images (+ thumbs-extra-images arg))
+  (thumbs-dired-show))
 
 (defun thumbs-show-name ()
   "Show the name of the current file."
@@ -757,6 +785,7 @@ ACTION and ARG should be a valid convert command."
     (define-key map [left] 'thumbs-backward-char)
     (define-key map [up] 'thumbs-backward-line)
     (define-key map [down] 'thumbs-forward-line)
+    (define-key map "+" 'thumbs-show-more-images)
     (define-key map "d" 'thumbs-dired)
     (define-key map "m" 'thumbs-mark)
     (define-key map "u" 'thumbs-unmark)
@@ -772,12 +801,13 @@ ACTION and ARG should be a valid convert command."
   fundamental-mode "thumbs"
   "Preview images in a thumbnails buffer"
   (setq buffer-read-only t)
-  (set (make-local-variable 'thumbs-markedL) nil))
+  (set (make-local-variable 'thumbs-marked-list) nil))
 
 (defvar thumbs-view-image-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [prior] 'thumbs-previous-image)
     (define-key map [next] 'thumbs-next-image)
+    (define-key map "^" 'thumbs-display-thumbs-buffer)
     (define-key map "-" 'thumbs-resize-image-size-down)
     (define-key map "+" 'thumbs-resize-image-size-up)
     (define-key map "<" 'thumbs-rotate-left)
@@ -803,7 +833,7 @@ ACTION and ARG should be a valid convert command."
   (thumbs-call-setroot-command (dired-get-filename)))
 
 ;; Modif to dired mode map
-(define-key dired-mode-map "\C-ta" 'thumbs-dired-show-all)
+(define-key dired-mode-map "\C-ta" 'thumbs-dired-show)
 (define-key dired-mode-map "\C-tm" 'thumbs-dired-show-marked)
 (define-key dired-mode-map "\C-tw" 'thumbs-dired-setroot)
 
