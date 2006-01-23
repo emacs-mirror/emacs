@@ -1,7 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -5244,7 +5244,12 @@ after it has been set up properly in other respects."
       ;; Run any hooks (typically set up by the major mode
       ;; for cloning to work properly).
       (run-hooks 'clone-buffer-hook))
-    (if display-flag (pop-to-buffer new))
+    (if display-flag
+        ;; Presumably the current buffer is shown in the selected frame, so
+        ;; we want to display the clone elsewhere.
+        (let ((same-window-regexps nil)
+              (same-window-buffer-names))
+          (pop-to-buffer new)))
     new))
 
 

@@ -1,3 +1,7 @@
+2006-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (clone-buffer): Don't show the new buffer in the same window.
+
 2006-01-23  Juri Linkov  <juri@jurta.org>
 
 	* faces.el (link, link-visited): New faces based on default values
