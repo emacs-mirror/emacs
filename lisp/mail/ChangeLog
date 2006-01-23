@@ -1,3 +1,7 @@
+2006-01-23  Henrik Enberg  <enberg@printf.se>
+
+	* rmail.el (rmail-get-new-mail): Simplify.
+
 2006-01-22  Henrik Enberg  <enberg@printf.se>
 
 	* rmaildesc.el (rmail-desc-default-attrs): New const.
