@@ -87,14 +87,20 @@ instead."
           (if (re-search-forward (concat "\\(" keyword ",\\|" keyword "$\\)"))
               t)))))
 
-(defun rmail-header-get-header (header)
-  "Return the text value for HEADER, nil if no such header exists.
-The current buffer, possibly narrowed, contains a single message."
+(defun rmail-header-get-header (&rest args)
+  "Return the text value for a header or nil if no such header exists.
+The arguments ARGS are passed to `mail-fetch-field'.  The first
+argument is the header to get.
+
+The current buffer, possibly narrowed, contains a single message.
+Note that it is not necessary to call `rmail-header-show-headers'
+because `inhibit-point-motion-hooks' is locally bound to t."
   (save-excursion
     (save-restriction
-      (let ((limit (rmail-header-get-limit)))
+      (let* ((inhibit-point-motion-hooks t)
+	     (limit (rmail-header-get-limit)))
 	(narrow-to-region (point-min) limit)
-	(mail-fetch-field header)))))
+	(apply 'mail-fetch-field args)))))
 
 (defun rmail-header-get-keywords ()
   "Return the keywords in the current message.
