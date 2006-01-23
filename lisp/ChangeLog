@@ -1,3 +1,7 @@
+2006-01-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* thumbs.el (thumbs-file-alist): Avoid creating duplicate entries.
+
 2006-01-22  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* startup.el (inhibit-splash-screen, initial-scratch-message):
