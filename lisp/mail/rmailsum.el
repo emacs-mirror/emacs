@@ -1066,7 +1066,6 @@ Position it according to WHERE which can be BEG or END"
     ;; Switch windows to the rmail buffer, or switch to it in this window.
     (pop-to-buffer local-rmail-buffer)))
 
-;;; mbox: ready
 (defun rmail-summary-expunge ()
   "Actually erase all deleted messages and recompute summary headers."
   (interactive)
@@ -1074,7 +1073,6 @@ Position it according to WHERE which can be BEG or END"
   (rmail-expunge)
   (set-buffer rmail-summary-buffer))
 
-;;; mbox: ready
 (defun rmail-summary-expunge-and-save ()
   "Expunge and save RMAIL file."
   (interactive)
@@ -1084,7 +1082,6 @@ Position it according to WHERE which can be BEG or END"
   (set-buffer rmail-summary-buffer)
   (set-buffer-modified-p nil))
 
-;;; mbox: ready
 (defun rmail-summary-get-new-mail (&optional file-name)
   "Get new mail and recompute summary headers.
 
@@ -1124,13 +1121,12 @@ argument says to read a file name and use that file as the inbox."
     (end-of-buffer))
   (forward-line -1))
 
-(defvar rmail-summary-edit-map nil)
-(if rmail-summary-edit-map
-    nil
-  (setq rmail-summary-edit-map
-	(nconc (make-sparse-keymap) text-mode-map))
-  (define-key rmail-summary-edit-map "\C-c\C-c" 'rmail-cease-edit)
-  (define-key rmail-summary-edit-map "\C-c\C-]" 'rmail-abort-edit))
+(defvar rmail-summary-edit-map
+  (let ((map (nconc (make-sparse-keymap) text-mode-map)))
+    (define-key map "\C-c\C-c" 'rmail-cease-edit)
+    (define-key map "\C-c\C-]" 'rmail-abort-edit)
+    map)
+  "Mode map to use when editing the rmail summary.")
 
 (defun rmail-summary-edit-current-message ()
   "Edit the contents of this message."
@@ -1216,14 +1212,12 @@ Interactively, empty argument means use same regexp used last time."
 	  (rmail-search regexp n))
       (set-buffer buffer))))
 
-;;; mbox: ready
 (defun rmail-summary-toggle-header ()
   "Show original message header if pruned header currently shown, or vice versa."
   (interactive)
   (with-current-buffer rmail-buffer
     (rmail-toggle-header)))
 
-;;; mbox: ready
 (defun rmail-summary-add-label (label)
   "Add LABEL to labels associated with current Rmail message.
 Completion is performed over known labels when reading."
@@ -1269,7 +1263,6 @@ original message into it."
       (set-buffer rmail-buffer)))
   (rmail-start-mail t))
 
-;;; mbox: ready
 (defun rmail-summary-reply (just-sender)
   "Reply to the current message.
 Normally include CC: to all other recipients of original message;
