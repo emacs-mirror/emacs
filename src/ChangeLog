@@ -1,3 +1,16 @@
+2006-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c: Avoid allocating Lisp data from a signal handler.
+	(x_error_message): New var to replace x_error_message_string.
+	(x_error_catcher, x_catch_errors, x_catch_errors_unwind)
+	(x_check_errors, x_had_errors_p, x_clear_errors, x_error_handler)
+	(syms_of_xterm): Use it instead of x_error_message_string.
+
+	* alloc.c (lisp_align_free): Add an assertion.
+	(make_interval, allocate_string, make_float, Fcons, Fmake_symbol)
+	(allocate_misc): If ENABLE_CHECKING is on, check we're not called from
+	a signal handler.
+
 2006-01-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* dired.c (syms_of_dired) <completion-ignored-extensions>: Doc fix.
