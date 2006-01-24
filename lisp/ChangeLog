@@ -1,3 +1,21 @@
+2006-01-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* thumbs.el (thumbs-new-image-size): New function.
+	(thumbs-increment-image-size-element)
+	(thumbs-decrement-image-size-element, thumbs-increment-image-size)
+	(thumbs-decrement-image-size): Delete.
+	(thumbs-resize-image-1): Rename from thumbs-resize-image.  Keep old
+	temp files and use to resize.
+	(thumbs-resize-image): Rename from thumbs-resize-image-interactive.
+	Use increment argument to enlarge/shrink.  Preserve point.
+	(thumbs-shrink-image): Rename from thumbs-resize-image-size-down.
+	(thumbs-enlarge-image): Rename from thumbs-resize-image-size-up
+	(thumbs-show-thumbs-list): Set thumbs-buffer to current-buffer.
+	(thumbs-mark, thumbs-unmark): Preserve point.
+	(thumbs-modify-image): Keep old temp files and use to modify.
+	Cleanup old temp files at load time.  Preserve point.
+	(thumbs-view-image-mode-map): Use new command names.
+
 2006-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* log-view.el (log-view-minor-wrap): First rev is the one at point.
