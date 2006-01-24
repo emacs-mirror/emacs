@@ -617,11 +617,11 @@ as well as widgets, buttons, overlays, and text properties."
 	(if (not describe-char-unidata-list)
 	    (insert "\nCharacter code properties are not shown: ")
 	  (insert "\nCharacter code properties: "))
-	(widget-create 'link
-		       :notify (lambda (&rest ignore)
-				 (customize-variable
-				  'describe-char-unidata-list))
-		       "customize what to show")
+	(insert-text-button
+	 "customize what to show"
+	 'action (lambda (&rest ignore)
+		   (customize-variable
+		    'describe-char-unidata-list)))
 	(insert "\n")
 	(dolist (elt describe-char-unidata-list)
 	  (let ((val (get-char-code-property char elt))
