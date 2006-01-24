@@ -1,3 +1,8 @@
+2006-01-24  Tobias C. Rittweiler  <tcr@freebits.de>  (tiny change)
+
+	* font-lock.el (lisp-font-lock-keywords-2):
+	Recognize "& keywords" only at word boundaries.
+
 2006-01-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* thumbs.el (thumbs-extra-images): New variable.  Make it buffer-local
