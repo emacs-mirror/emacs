@@ -2126,7 +2126,7 @@ other modes in which C preprocessor directives are used. e.g. `asm-mode' and
        ;; Constant values.
        ("\\<:\\sw+\\>" 0 font-lock-builtin-face)
        ;; ELisp and CLisp `&' keywords as types.
-       ("\\&\\sw+\\>" . font-lock-type-face)
+       ("\\<\\&\\sw+\\>" . font-lock-type-face)
        ;; ELisp regexp grouping constructs
        ((lambda (bound)
           (catch 'found
