@@ -1,3 +1,13 @@
+2006-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/calendar.el: Remove unnecessary leading stars in docstrings.
+	(calendar-week-start-day): Add an :initializer.
+	(calendar-mode-map): Use suppress-keymap, and command remapping.
+	(describe-calendar-mode): Setup xref-stack info for the back button.
+	(calendar-star-date): Insert before delete.
+	(calendar-set-mode-line): Add file-modified info if applicable.
+	(calendar-increment-month): New function.
+
 2006-01-24  Tobias C. Rittweiler  <tcr@freebits.de>  (tiny change)
 
 	* font-lock.el (lisp-font-lock-keywords-2):
