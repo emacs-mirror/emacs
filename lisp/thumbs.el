@@ -3,6 +3,7 @@
 ;; Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jean-Philippe Theberge <jphiltheberge@videotron.ca>
+;; Maintainer: FSF
 ;; Keywords: Multimedia
 
 ;; This file is part of GNU Emacs.
@@ -127,7 +128,7 @@ than `thumbs-thumbsdir-max-size'."
   :group 'thumbs)
 
 (defcustom thumbs-image-resizing-step 10
-  "Step by which to resize image."
+  "Step by which to resize image as a percentage."
   :type 'integer
   :group 'thumbs)
 
@@ -255,73 +256,45 @@ ACTION-PREFIX is the symbol to place before the ACTION command
 			 fileout)))
     (call-process shell-file-name nil nil nil "-c" command)))
 
-(defun thumbs-increment-image-size-element (n d)
-  "Increment number N by D percent."
-  (round (+ n (/ (* d n) 100))))
+(defun thumbs-new-image-size (s increment)
+  "New image (a cons of width x height)."
+  (let ((d (* increment thumbs-image-resizing-step)))
+    (cons
+     (round (+ (car s) (/ (* d (car s)) 100)))
+     (round (+ (cdr s) (/ (* d (cdr s)) 100))))))
 
-(defun thumbs-decrement-image-size-element (n d)
-  "Decrement number N by D percent."
-  (round (- n (/ (* d n) 100))))
-
-(defun thumbs-increment-image-size (s)
-  "Increment S (a cons of width x height)."
-  (cons
-   (thumbs-increment-image-size-element (car s)
-					thumbs-image-resizing-step)
-   (thumbs-increment-image-size-element (cdr s)
-					thumbs-image-resizing-step)))
-
-(defun thumbs-decrement-image-size (s)
-  "Decrement S (a cons of width x height)."
-  (cons
-   (thumbs-decrement-image-size-element (car s)
-					thumbs-image-resizing-step)
-   (thumbs-decrement-image-size-element (cdr s)
-					thumbs-image-resizing-step)))
-
-(defun thumbs-resize-image (&optional increment size)
+(defun thumbs-resize-image-1 (&optional increment size)
   "Resize image in current buffer.
-If INCREMENT is set, make the image bigger, else smaller.
-Or, alternatively, a SIZE may be specified."
-  (interactive)
-  ;; cleaning of old temp file
-  (condition-case nil
-    (apply 'delete-file
-	   (directory-files
-	    (thumbs-temp-dir) t
-	    thumbs-temp-prefix))
-    (error nil))
-  (let ((buffer-read-only nil)
-	(x (if size
-	       size
-	     (if increment
-		 (thumbs-increment-image-size
-		  thumbs-current-image-size)
-	       (thumbs-decrement-image-size
-		thumbs-current-image-size))))
-	(tmp (thumbs-temp-file)))
+If SIZE is specified use it.  Otherwise make the image larger or
+smaller according to whether INCREMENT is 1 or -1."
+  (let* ((buffer-read-only nil)
+	 (old thumbs-current-tmp-filename)
+	 (x (or size
+		(thumbs-new-image-size thumbs-current-image-size increment)))
+	 (tmp (thumbs-temp-file)))
     (erase-buffer)
-    (thumbs-call-convert thumbs-current-image-filename
+    (thumbs-call-convert (or old thumbs-current-image-filename)
 			 tmp "sample"
 			 (concat (number-to-string (car x)) "x"
 				 (number-to-string (cdr x))))
-    (thumbs-insert-image tmp 'jpeg 0)
+    (save-excursion
+      (thumbs-insert-image tmp 'jpeg 0))
     (setq thumbs-current-tmp-filename tmp)))
 
-(defun thumbs-resize-interactive (width height)
+(defun thumbs-resize-image (width height)
   "Resize image interactively to specified WIDTH and HEIGHT."
   (interactive "nWidth: \nnHeight: ")
-  (thumbs-resize-image nil (cons width height)))
+  (thumbs-resize-image-1 nil (cons width height)))
 
-(defun thumbs-resize-image-size-down ()
+(defun thumbs-shrink-image ()
   "Resize image (smaller)."
   (interactive)
-  (thumbs-resize-image nil))
+  (thumbs-resize-image-1 -1))
 
-(defun thumbs-resize-image-size-up ()
+(defun thumbs-enlarge-image ()
   "Resize image (bigger)."
   (interactive)
-  (thumbs-resize-image t))
+  (thumbs-resize-image-1 1))
 
 (defun thumbs-thumbname (img)
   "Return a thumbnail name for the image IMG."
@@ -418,6 +391,7 @@ If MARKED is non-nil, the image is marked."
   (let ((inhibit-read-only t))
     (erase-buffer)
     (thumbs-mode)
+    (setq thumbs-buffer (current-buffer))
     (if dir (setq default-directory dir))
     (thumbs-do-thumbs-insertion list)
     (goto-char (point-min))
@@ -649,7 +623,8 @@ Open another window."
     (push elt thumbs-marked-list)
     (let ((inhibit-read-only t))
       (delete-char 1)
-      (thumbs-insert-thumb elt t)))
+      (save-excursion
+	(thumbs-insert-thumb elt t))))
   (when (eolp) (forward-char)))
 
 (defun thumbs-unmark ()
@@ -661,8 +636,14 @@ Open another window."
     (setq thumbs-marked-list (delete elt thumbs-marked-list))
     (let ((inhibit-read-only t))
       (delete-char 1)
-      (thumbs-insert-thumb elt nil)))
+      (save-excursion
+	(thumbs-insert-thumb elt nil))))
   (when (eolp) (forward-char)))
+
+
+;; cleaning of old temp files
+(mapc 'delete-file
+      (directory-files (thumbs-temp-dir) t thumbs-temp-prefix))
 
 ;; Image modification routines
 
@@ -670,20 +651,16 @@ Open another window."
   "Call convert to do ACTION on image with argument ARG.
 ACTION and ARG should be a valid convert command."
   (interactive "sAction: \nsValue: ")
-  ;; cleaning of old temp file
-  (mapc 'delete-file
-	(directory-files
-	 (thumbs-temp-dir)
-	 t
-	 thumbs-temp-prefix))
-  (let ((buffer-read-only nil)
-	(tmp (thumbs-temp-file)))
+  (let* ((buffer-read-only nil)
+	 (old thumbs-current-tmp-filename)
+	 (tmp (thumbs-temp-file)))
     (erase-buffer)
-    (thumbs-call-convert thumbs-current-image-filename
+    (thumbs-call-convert (or old thumbs-current-image-filename)
 			 tmp
 			 action
 			 (or arg ""))
-    (thumbs-insert-image tmp 'jpeg 0)
+    (save-excursion
+      (thumbs-insert-image tmp 'jpeg 0))
     (setq thumbs-current-tmp-filename tmp)))
 
 (defun thumbs-emboss-image (emboss)
@@ -808,12 +785,12 @@ ACTION and ARG should be a valid convert command."
     (define-key map [prior] 'thumbs-previous-image)
     (define-key map [next] 'thumbs-next-image)
     (define-key map "^" 'thumbs-display-thumbs-buffer)
-    (define-key map "-" 'thumbs-resize-image-size-down)
-    (define-key map "+" 'thumbs-resize-image-size-up)
+    (define-key map "-" 'thumbs-shrink-image)
+    (define-key map "+" 'thumbs-enlarge-image)
     (define-key map "<" 'thumbs-rotate-left)
     (define-key map ">" 'thumbs-rotate-right)
     (define-key map "e" 'thumbs-emboss-image)
-    (define-key map "r" 'thumbs-resize-interactive)
+    (define-key map "r" 'thumbs-resize-image)
     (define-key map "s" 'thumbs-save-current-image)
     (define-key map "q" 'thumbs-kill-buffer)
     (define-key map "w" 'thumbs-set-root)
