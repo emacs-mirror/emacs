@@ -1978,6 +1978,8 @@ allocate_string_data (s, nchars, nbytes)
   old_nbytes = GC_STRING_BYTES (s);
 
   data = b->next_free;
+  b->next_free = (struct sdata *) ((char *) data + needed + GC_STRING_EXTRA);
+
   data->string = s;
   s->data = SDATA_DATA (data);
 #ifdef GC_CHECK_STRING_BYTES
@@ -1990,7 +1992,6 @@ allocate_string_data (s, nchars, nbytes)
   bcopy (string_overrun_cookie, (char *) data + needed,
 	 GC_STRING_OVERRUN_COOKIE_SIZE);
 #endif
-  b->next_free = (struct sdata *) ((char *) data + needed + GC_STRING_EXTRA);
 
   /* If S had already data assigned, mark that as free by setting its
      string back-pointer to null, and recording the size of the data

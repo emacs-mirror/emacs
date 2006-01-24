@@ -1,3 +1,8 @@
+2006-01-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* alloc.c (allocate_string_data): Update next_free immediately, to
+	reduce risk of memory clobberage.
+
 2006-01-24  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* xdisp.c (handle_invisible_prop): Set it->position to fix cursor
