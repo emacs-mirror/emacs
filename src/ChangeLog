@@ -1,3 +1,9 @@
+2006-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* regex.c (IMMEDIATE_QUIT_CHECK): Use it with SYNC_INPUT as well.
+	(re_match_2_internal) <on_failure_jump, on_failure_jump_smart>:
+	Don't check for quit, since any loop will go through fail or jump.
+
 2006-01-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* alloc.c (allocate_string_data): Update next_free immediately, to
