@@ -1,9 +1,10 @@
 2006-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* log-view.el (log-view-minor-wrap): First rev is the one at point.
+
 	* calendar/cal-menu.el: Avoid macros from calendar.el so as to break
 	the nastiest part of the cyclic dependency.
-	(cal-menu-update): Use dotimes.
-	(cal-menu-update): Use calendar-increment-month.
+	(cal-menu-update): Use dotimes and calendar-increment-month.
 
 	* calendar/calendar.el: Remove unnecessary leading stars in docstrings.
 	(calendar-week-start-day): Add an :initializer.

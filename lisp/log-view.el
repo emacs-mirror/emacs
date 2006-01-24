@@ -1,7 +1,7 @@
 ;;; log-view.el --- Major mode for browsing RCS/CVS/SCCS log output
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+;;           Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: rcs sccs cvs log version-control
@@ -225,8 +225,8 @@
 
 (defun log-view-minor-wrap (buf f)
   (let ((data (with-current-buffer buf
-		(let* ((beg (if mark-active (region-beginning) (point)))
-		       (end (if mark-active (region-end) (point)))
+		(let* ((beg (point))
+		       (end (if mark-active (mark) (point)))
 		       (fr (log-view-current-tag beg))
 		       (to (log-view-current-tag end)))
 		  (when (string-equal fr to)
@@ -235,8 +235,11 @@
 		      (log-view-msg-next)
 		      (setq to (log-view-current-tag))))
 		  (cons
-		   (cons (log-view-current-file) to)
-		   (cons (log-view-current-file) fr))))))
+                   ;; The first revision has to be the one at point, for
+                   ;; operations that only take one revision
+                   ;; (e.g. cvs-mode-edit).
+		   (cons (log-view-current-file) fr)
+		   (cons (log-view-current-file) to))))))
     (let ((cvs-branch-prefix (cdar data))
 	  (cvs-secondary-branch-prefix (and (cdar data) (cddr data)))
 	  (cvs-minor-current-files
