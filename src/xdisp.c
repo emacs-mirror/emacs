@@ -3614,6 +3614,11 @@ handle_invisible_prop (it)
 		 skip starting with next_stop.  */
 	      if (invis_p)
 		IT_CHARPOS (*it) = next_stop;
+
+              /* If there are adjacent invisible texts, don't lose the
+                 second one's ellipsis. */
+              if (invis_p == 2)
+                display_ellipsis_p = 1;
 	    }
 	  while (invis_p);
 
@@ -3634,7 +3639,23 @@ handle_invisible_prop (it)
 	      it->stack[it->sp - 1].display_ellipsis_p = display_ellipsis_p;
 	    }
 	  else if (display_ellipsis_p)
-	    setup_for_ellipsis (it, 0);
+            {
+              /* Make sure that the glyphs of the ellipsis will get
+                 correct `charpos' values.  If we would not update
+                 it->position here, the glyphs would belong to the
+                 last visible character _before_ the invisible
+                 text, which confuses `set_cursor_from_row'.
+
+                 We use the last invisible position instead of the
+                 first because this way the cursor is always drawn on
+                 the first "." of the ellipsis, whenever PT is inside
+                 the invisible text.  Otherwise the cursor would be
+                 placed _after_ the ellipsis when the point is after the
+                 first invisible character.  */
+              it->position.charpos = IT_CHARPOS (*it) - 1;
+              it->position.bytepos = CHAR_TO_BYTE (it->position.charpos);
+              setup_for_ellipsis (it, 0);
+            }
 	}
     }
 
@@ -19815,8 +19836,8 @@ calc_line_height_property (it, val, font, boff, override)
 
 /* RIF:
    Produce glyphs/get display metrics for the display element IT is
-   loaded with.  See the description of struct display_iterator in
-   dispextern.h for an overview of struct display_iterator.  */
+   loaded with.  See the description of struct it in dispextern.h
+   for an overview of struct it.  */
 
 void
 x_produce_glyphs (it)

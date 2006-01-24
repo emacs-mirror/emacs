@@ -1,3 +1,10 @@
+2006-01-24  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* xdisp.c (handle_invisible_prop): Set it->position to fix cursor
+	display when point moves across an ellipsis.  If there are
+	adjacent invisible texts, don't lose the second one's ellipsis.
+	(x_produce_glyphs): Doc fix.
+
 2006-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xterm.c (x_catch_errors_unwind): Yet another int/Lisp_Object mixup.
