@@ -1,3 +1,8 @@
+2006-01-24  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Use insert-text-button instead of
+	widget-create for "customize what to show" button.
+
 2006-01-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tar-mode.el: Merge changes from the trunk:
