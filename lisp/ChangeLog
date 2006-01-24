@@ -1,5 +1,10 @@
 2006-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calendar/cal-menu.el: Avoid macros from calendar.el so as to break
+	the nastiest part of the cyclic dependency.
+	(cal-menu-update): Use dotimes.
+	(cal-menu-update): Use calendar-increment-month.
+
 	* calendar/calendar.el: Remove unnecessary leading stars in docstrings.
 	(calendar-week-start-day): Add an :initializer.
 	(calendar-mode-map): Use suppress-keymap, and command remapping.
