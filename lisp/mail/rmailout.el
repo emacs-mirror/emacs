@@ -203,7 +203,8 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 		      (insert msg-string)))))))
 	  (unless noattribute
 	    (when (equal major-mode 'rmail-mode)
-	      (rmail-set-attribute "filed" t)))
+	      (rmail-set-attribute "filed" t)
+	      (rmail-header-hide-headers)))
 	  (setq count (1- count))
 	  (unless from-gnus
 	    (let ((next-message-p
@@ -212,12 +213,9 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 		     (when (> count 0)
 		       (rmail-next-undeleted-message 1))))
 		  (num-appended (- orig-count count)))
-	      (when (and next-message-p original-headers-p)
-		(rmail-toggle-header))
 	      (when (and (> count 0) (not next-message-p))
-		(error (with-current-buffer rmailbuf
-			 (format "Only %d message%s appended" num-appended
-				 (if (= num-appended 1) "" "s"))))
+		(error (format "Only %d message%s appended" num-appended
+			       (if (= num-appended 1) "" "s")))
 		(setq count 0)))))))))
 
 ;;;###autoload
