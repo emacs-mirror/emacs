@@ -300,15 +300,15 @@ By default, `identity' is set."
 
 ;;;###autoload
 (defcustom rmail-user-mail-address-regexp
-(concat "^\\("
-	(regexp-quote (user-login-name))
-	"\\($\\|@\\)\\|"
-	(regexp-quote
-	 (or user-mail-address
-	     (concat (user-login-name) "@"
-		     (or mail-host-address
-			 (system-name)))))
-	"\\>\\)")
+  (concat "^\\("
+	  (regexp-quote (user-login-name))
+	  "\\($\\|@\\)\\|"
+	  (regexp-quote
+	   (or user-mail-address
+	       (concat (user-login-name) "@"
+		       (or mail-host-address
+			   (system-name)))))
+	  "\\>\\)")
   "*Regexp matching user mail addresses.
 If non-nil, this variable is used to identify the correspondent
 when receiving new mail.  If it matches the address of the
@@ -1482,7 +1482,8 @@ If sender matches `rmail-user-mail-address-regexp' or
 `user-mail-address', return the to-address instead."
   (let ((sender (rmail-desc-get-sender n)))
     (if (or (null sender)
-	    (string-match rmail-user-mail-address-regexp sender))
+	    (and rmail-user-mail-address-regexp
+		 (string-match rmail-user-mail-address-regexp sender)))
 	;; Either no sender known, or it's this user.
 	(save-restriction
 	  (narrow-to-region (rmail-desc-get-start n)
