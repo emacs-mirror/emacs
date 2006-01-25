@@ -1,3 +1,16 @@
+2006-01-25  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-user-login-name): Rewritten to handle access via
+	Tramp.
+
+	* vc.el (vc-default-dired-state-info): Pass FILE to
+	vc-user-login-name.
+	(vc-default-update-changelog): Don't use vc-user-login-name, we
+	don't need it here.
+
+	* tramp-vc.el (vc-user-login-name): Comment out defadvice, it is
+	no longer necessary.
+	
 2006-01-25  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (decode-char): Avoid the overhead of
