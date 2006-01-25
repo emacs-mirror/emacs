@@ -7,7 +7,8 @@
 
 	* rmailout.el (rmail-delete-unwanted-fields): Handle mbox format.
 	(rmail-output): Error when target is a BABYL file.  Handle MIME
-	charset.
+	charset.  Make sure headers are properly hidden after output.
+	Avoid pointless with-current-buffer call.
 
 2006-01-24  Alex Schroeder  <alex@gnu.org>
 
