@@ -1,3 +1,14 @@
+2006-01-25  Henrik Enberg  <enberg@printf.se>
+
+	* rmailsum.el (rmail-summary-get-sender): Handle a nil value of
+	rmail-user-mail-address-regexp.
+
+	* rmail.el (rmail-unknown-mail-followup-to): Likewise.
+
+	* rmailout.el (rmail-delete-unwanted-fields): Handle mbox format.
+	(rmail-output): Error when target is a BABYL file.  Handle MIME
+	charset.
+
 2006-01-24  Alex Schroeder  <alex@gnu.org>
 
 	* rmailsum.el (rmail-summary-edit-map): Rewrite.
