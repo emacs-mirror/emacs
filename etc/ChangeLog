@@ -2,6 +2,12 @@
 
 	* images/gud/pstar.xpm: Make background transparent.
 
+2006-01-24  Noah Friedman  <friedman@splode.com>
+
+	* emacs-buffer.gdb: Replace all references to `cdr' field of
+	conses with `u.cdr', per change Andreas Schwab 2005-11-15
+	of src/lisp.h.
+
 2006-01-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: tramp can be removed by M-x tramp-unload-tramp.
