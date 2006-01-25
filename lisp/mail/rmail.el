@@ -2106,7 +2106,9 @@ Ask the user whether to add that list name to `mail-mailing-lists'."
 		",[[:space:]]+" t)))
 	  (dolist (addr addresses)
 	    (when (and (not (member addr mail-mailing-lists))
-		       (not (string-match rmail-user-mail-address-regexp addr))
+		       (and rmail-user-mail-address-regexp
+			    (not (string-match rmail-user-mail-address-regexp
+					       addr)))
 		       (y-or-n-p
 			(format "Add `%s' to `mail-mailing-lists'? "
 				addr)))
