@@ -129,21 +129,14 @@ The Lisp code is executed when the node is selected.")
 (put 'info-menu-5 'face-alias 'info-menu-star)
 
 (defface info-xref
-  '((((min-colors 88)
-      (class color) (background light)) :foreground "blue1" :underline t)
-    (((class color) (background light)) :foreground "blue" :underline t)
-    (((min-colors 88)
-      (class color) (background dark)) :foreground "cyan1" :underline t)
-    (((class color) (background dark)) :foreground "cyan" :underline t)
-    (t :underline t))
-  "Face for Info cross-references."
+  '((t :inherit link))
+  "Face for unvisited Info cross-references."
   :group 'info)
 
 (defface info-xref-visited
-  '((default :inherit info-xref)
-    (((class color) (background light)) :foreground "magenta4")
-    (((class color) (background dark)) :foreground "violet"))
+  '((t :inherit link-visited))
   "Face for visited Info cross-references."
+  :version "22.1"
   :group 'info)
 
 (defcustom Info-fontify-visited-nodes t

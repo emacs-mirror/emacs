@@ -1568,7 +1568,7 @@ keymap.  See GNU Emacs Manual for details.
 @kindex 000 @kbd{C-@@} (@code{set-mark-command})
 Set mark and push previous mark on mark ring (@code{set-mark-command}).
 @item TAB
-@kindex 011 @kbd{TAB} (@code{indent-for-tab-command})
+@kindex 011 TAB (@code{indent-for-tab-command})
 Indent line for current major mode (@code{indent-for-tab-command}).
 @item C-j
 @kindex 012 @kbd{C-j} (@code{newline-and-indent})

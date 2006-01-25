@@ -2,7 +2,7 @@
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Kai Gro,A_(Bjohann <kai.grossjohann@gmx.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -67,8 +67,15 @@
 
 ;; The Tramp version number and bug report address, as prepared by configure.
 (require 'trampver)
+(add-hook 'tramp-unload-hook
+	  '(lambda ()
+	     (when (featurep 'trampver)
+	       (unload-feature 'trampver 'force))))
 
-(require 'timer)
+(if (featurep 'xemacs)
+    (require 'timer-funcs)
+  (require 'timer))
+
 (require 'format-spec)                  ;from Gnus 5.8, also in tar ball
 ;; As long as password.el is not part of (X)Emacs, it shouldn't
 ;; be mandatory
@@ -87,6 +94,10 @@
 
 (autoload 'tramp-uuencode-region "tramp-uu"
   "Implementation of `uuencode' in Lisp.")
+(add-hook 'tramp-unload-hook
+	  '(lambda ()
+	     (when (featurep 'tramp-uu)
+	       (unload-feature 'tramp-uu 'force))))
 
 (unless (fboundp 'uudecode-decode-region)
   (autoload 'uudecode-decode-region "uudecode"))
@@ -110,10 +121,20 @@ Nil means to use a separate filename syntax for Tramp.")
 ;; tramp-ftp supports Ange-FTP only.  Not suited for XEmacs therefore.
 (unless (featurep 'xemacs)
   (eval-after-load "tramp"
-    '(require 'tramp-ftp)))
+    '(progn
+       (require 'tramp-ftp)
+       (add-hook 'tramp-unload-hook
+		 '(lambda ()
+		    (when (featurep 'tramp-ftp)
+		      (unload-feature 'tramp-ftp 'force)))))))
 (when (and tramp-unified-filenames (featurep 'xemacs))
   (eval-after-load "tramp"
-    '(require 'tramp-efs)))
+    '(progn
+       (require 'tramp-efs)
+       (add-hook 'tramp-unload-hook
+		 '(lambda ()
+		    (when (featurep 'tramp-efs)
+		      (unload-feature 'tramp-efs 'force)))))))
 
 ;; tramp-smb uses "smbclient" from Samba.
 ;; Not available under Cygwin and Windows, because they don't offer
@@ -121,7 +142,12 @@ Nil means to use a separate filename syntax for Tramp.")
 ;; UNC file names like "//host/share/localname".
 (unless (memq system-type '(cygwin windows-nt))
   (eval-after-load "tramp"
-    '(require 'tramp-smb)))
+    '(progn
+       (require 'tramp-smb)
+       (add-hook 'tramp-unload-hook
+		 '(lambda ()
+		    (when (featurep 'tramp-smb)
+		      (unload-feature 'tramp-smb 'force)))))))
 
 (eval-when-compile
   (require 'cl)
@@ -1445,7 +1471,7 @@ the visited file modtime.")
 	((fboundp 'md5-encode)
 	 (lambda (x) (base64-encode-string
 		      (funcall (symbol-function 'md5-encode) x))))
-	(t (error "Coulnd't find an `md5' function")))
+	(t (error "Couldn't find an `md5' function")))
   "Function to call for running the MD5 algorithm.")
 
 (defvar tramp-end-of-output
@@ -2012,6 +2038,7 @@ The intent is to protect against `obsolete variable' warnings."
      (let ((,variable ,value))
        ,@body)))
 (put 'tramp-let-maybe 'lisp-indent-function 2)
+(put 'tramp-let-maybe 'edebug-form-spec t)
 
 ;;; Config Manipulation Functions:
 
@@ -2370,8 +2397,8 @@ target of the symlink differ."
      ;; 8. File modes, as a string of ten letters or dashes as in ls -l.
      res-filemodes
      ;; 9. t iff file's gid would change if file were deleted and
-     ;; recreated.
-     nil				;hm?
+     ;; recreated.  Will be set in `tramp-convert-file-attributes'
+     t
      ;; 10. inode number.
      res-inode
      ;; 11. Device number.  Will be replaced by a virtual device number.
@@ -2627,9 +2654,12 @@ of."
 (defun tramp-handle-file-ownership-preserved-p (filename)
   "Like `file-ownership-preserved-p' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (or (not (file-exists-p filename))
-	;; Existing files must be writable.
-	(zerop (tramp-run-test "-O" filename)))))
+    (let ((attributes (file-attributes filename)))
+      ;; Return t if the file doesn't exist, since it's true that no
+      ;; information would be lost by an (attempted) delete and create.
+      (or (null attributes)
+	  (= (nth 2 attributes)
+	     (tramp-get-remote-uid multi-method method user host))))))
 
 ;; Other file name ops.
 
@@ -3487,6 +3517,17 @@ the result will be a local, non-Tramp, filename."
 	(when (string-match "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname)
 	  (let ((uname (match-string 1 localname))
 		(fname (match-string 2 localname)))
+	    ;; We cannot simply apply "~/", because under sudo "~/" is
+	    ;; expanded to the local user home directory but to the
+	    ;; root home directory.  On the other hand, using always
+	    ;; the default user name for tilde expansion is not
+	    ;; appropriate either, because ssh and companions might
+	    ;; use a user name from the config file.
+	    (when (and (string-equal uname "~")
+		       (string-match
+			"\\`su\\(do\\)?\\'"
+			(tramp-find-method multi-method method user host)))
+	      (setq uname (concat uname (or user "root"))))
 	    ;; CCC fanatic error checking?
 	    (set-buffer (tramp-get-buffer multi-method method user host))
 	    (erase-buffer)
@@ -3499,17 +3540,24 @@ the result will be a local, non-Tramp, filename."
 	    (setq uname (buffer-substring (point) (tramp-line-end-position)))
 	    (setq localname (concat uname fname))
 	    (erase-buffer)))
+	;; There might be a double slash, for example when "~/"
+	;; expands to "/". Remove this.
+	(while (string-match "//" localname)
+	  (setq localname (replace-match "/" t t localname)))
 	;; No tilde characters in file name, do normal
 	;; expand-file-name (this does "/./" and "/../").  We bind
-	;; directory-sep-char here for XEmacs on Windows, which
-	;; would otherwise use backslash.
+	;; directory-sep-char here for XEmacs on Windows, which would
+	;; otherwise use backslash.  `default-directory' is bound to
+	;; "/", because on Windows there would be problems with UNC
+	;; shares or Cygwin mounts.
 	(tramp-let-maybe directory-sep-char ?/
-	  (tramp-make-tramp-file-name
-	   multi-method (or method (tramp-find-default-method user host))
-	   user host
-	   (tramp-drop-volume-letter
-	    (tramp-run-real-handler 'expand-file-name
-				    (list localname)))))))))
+	  (let ((default-directory "/"))
+	    (tramp-make-tramp-file-name
+	     multi-method (or method (tramp-find-default-method user host))
+	     user host
+	     (tramp-drop-volume-letter
+	      (tramp-run-real-handler 'expand-file-name
+				      (list localname))))))))))
 
 ;; old version follows.  it uses ".." to cross file handler
 ;; boundaries.
@@ -4294,6 +4342,17 @@ Falls back to normal file name handler if no tramp file name handler exists."
 	     (cons tramp-completion-file-name-regexp
 		   'tramp-completion-file-name-handler))
 
+;;;###autoload
+(defun tramp-unload-file-name-handler-alist ()
+  (setq file-name-handler-alist
+	(delete (rassoc 'tramp-file-name-handler
+			file-name-handler-alist)
+		(delete (rassoc 'tramp-completion-file-name-handler
+				file-name-handler-alist)
+			file-name-handler-alist))))
+
+(add-hook 'tramp-unload-hook 'tramp-unload-file-name-handler-alist)
+
 (defun tramp-repair-jka-compr ()
   "If jka-compr is already loaded, move it to the front of
 `file-name-handler-alist'.  On Emacs 22 or so this will not be
@@ -4353,22 +4412,16 @@ necessary anymore."
 		 (read (current-buffer))))))
 	(list (expand-file-name name))))))
 
-;; Check for complete.el and override PC-expand-many-files if appropriate.
-(eval-and-compile
-  (defun tramp-save-PC-expand-many-files (name))); avoid compiler warning
-
-(defun tramp-setup-complete ()
-  (fset 'tramp-save-PC-expand-many-files
-        (symbol-function 'PC-expand-many-files))
-  (defun PC-expand-many-files (name)
-    (if (tramp-tramp-file-p name)
-        (funcall (symbol-function 'expand-many-files) name)
-      (tramp-save-PC-expand-many-files name))))
-
-;; Why isn't eval-after-load sufficient?
-(if (fboundp 'PC-expand-many-files)
-    (tramp-setup-complete)
-  (eval-after-load "complete" '(tramp-setup-complete)))
+(eval-after-load "complete"
+  '(progn
+     (defadvice PC-expand-many-files
+       (around tramp-advice-PC-expand-many-files (name) activate)
+       "Invoke `tramp-handle-expand-many-files' for tramp files."
+       (if (tramp-tramp-file-p name)
+	   (setq ad-return-value (tramp-handle-expand-many-files name))
+	 ad-do-it))
+     (add-hook 'tramp-unload-hook
+	       '(lambda () (ad-unadvise 'PC-expand-many-files)))))
 
 ;;; File name handler functions for completion mode
 
@@ -4940,6 +4993,9 @@ Function may have 0-3 parameters."
              auto-save-default)
     (auto-save-mode 1)))
 (add-hook 'find-file-hooks 'tramp-set-auto-save t)
+(add-hook 'tramp-unload-hook
+	  '(lambda ()
+	     (remove-hook 'find-file-hooks 'tramp-set-auto-save)))
 
 (defun tramp-run-test (switch filename)
   "Run `test' on the remote system, given a SWITCH and a FILENAME.
@@ -5532,6 +5588,7 @@ Maybe the different regular expressions need to be tuned.
 		   (or user (user-login-name)) host method)
     (let ((process-environment (copy-sequence process-environment)))
       (setenv "TERM" tramp-terminal-type)
+      (setenv "PS1" "$ ")
       (let* ((default-directory (tramp-temporary-file-directory))
 	     ;; If we omit the conditional here, then we would use
 	     ;; `undecided-dos' in some cases.  With the conditional,
@@ -5608,6 +5665,7 @@ arguments, and xx will be used as the host name to connect to.
 	(setq login-args (cons "-p" (cons (match-string 2 host) login-args)))
 	(setq real-host (match-string 1 host)))
       (setenv "TERM" tramp-terminal-type)
+      (setenv "PS1" "$ ")
       (let* ((default-directory (tramp-temporary-file-directory))
 	     ;; If we omit the conditional, we would use
 	     ;; `undecided-dos' in some cases.  With the conditional,
@@ -5659,6 +5717,7 @@ prompt than you do, so it is not at all unlikely that the variable
 		   (or user "<root>") method)
     (let ((process-environment (copy-sequence process-environment)))
       (setenv "TERM" tramp-terminal-type)
+      (setenv "PS1" "$ ")
       (let* ((default-directory (tramp-temporary-file-directory))
 	     ;; If we omit the conditional, we use `undecided-dos' in
 	     ;; some cases.  With the conditional, we use nil in these
@@ -5723,6 +5782,7 @@ log in as u2 to h2."
     (tramp-message 7 "Opening `%s' connection..." multi-method)
     (let ((process-environment (copy-sequence process-environment)))
       (setenv "TERM" tramp-terminal-type)
+      (setenv "PS1" "$ ")
       (let* ((default-directory (tramp-temporary-file-directory))
 	     ;; If we omit the conditional, we use `undecided-dos' in
 	     ;; some cases.  With the conditional, we use nil in these
@@ -6203,8 +6263,17 @@ locale to C and sets up the remote shell search path."
 				   "ln" tramp-remote-path nil)))
     (when ln
       (tramp-set-connection-property "ln" ln multi-method method user host)))
+  ;; Set uid and gid.
   (erase-buffer)
+  (tramp-send-command multi-method method user host "id -u; id -g")
+  (tramp-wait-for-output)
+  (goto-char (point-min))
+  (tramp-set-connection-property
+   "uid" (read (current-buffer)) multi-method method user host)
+  (tramp-set-connection-property
+   "gid" (read (current-buffer)) multi-method method user host)
   ;; Find the right encoding/decoding commands to use.
+  (erase-buffer)
   (unless (tramp-method-out-of-band-p multi-method method user host)
     (tramp-find-inline-encoding multi-method method user host))
   ;; If encoding/decoding command are given, test to see if they work.
@@ -6700,6 +6769,10 @@ Return ATTR."
   (unless (stringp (nth 8 attr))
     ;; Convert file mode bits to string.
     (setcar (nthcdr 8 attr) (tramp-file-mode-from-int (nth 8 attr))))
+  ;; Set file's gid change bit.
+  (setcar (nthcdr 9 attr)
+	  (not (= (nth 3 attr)
+		  (tramp-get-remote-gid multi-method method user host))))
   ;; Set virtual device number.
   (setcar (nthcdr 11 attr)
           (tramp-get-device multi-method method user host))
@@ -6957,6 +7030,12 @@ If both MULTI-METHOD and METHOD are nil, do a lookup in
 (defun tramp-get-remote-ln (multi-method method user host)
   (tramp-get-connection-property "ln" nil multi-method method user host))
 
+(defun tramp-get-remote-uid (multi-method method user host)
+  (tramp-get-connection-property "uid" nil multi-method method user host))
+
+(defun tramp-get-remote-gid (multi-method method user host)
+  (tramp-get-connection-property "gid" nil multi-method method user host))
+
 ;; Get a property of a TRAMP connection.
 (defun tramp-get-connection-property
   (property default multi-method method user host)
@@ -6967,7 +7046,7 @@ If the value is not set for the connection, return `default'"
     (let (error)
       (condition-case nil
 	  (symbol-value (intern (concat "tramp-connection-property-" property)))
-	(error	default)))))
+	(error default)))))
 
 ;; Set a property of a TRAMP connection.
 (defun tramp-set-connection-property
@@ -7045,7 +7124,9 @@ as default."
     "Invoke `tramp-handle-make-auto-save-file-name' for tramp files."
     (if (and (buffer-file-name) (tramp-tramp-file-p (buffer-file-name)))
 	(setq ad-return-value (tramp-handle-make-auto-save-file-name))
-      ad-do-it)))
+      ad-do-it))
+  (add-hook 'tramp-unload-hook
+	    '(lambda () (ad-unadvise 'make-auto-save-file-name))))
 
 ;; In Emacs < 22 and XEmacs < 21.5 autosaved remote files have
 ;; permission 0666 minus umask. This is a security threat.
@@ -7069,7 +7150,10 @@ as default."
 	    (and (featurep 'xemacs)
 		 (= emacs-major-version 21)
 		 (> emacs-minor-version 4)))
-  (add-hook 'auto-save-hook 'tramp-set-auto-save-file-modes))
+  (add-hook 'auto-save-hook 'tramp-set-auto-save-file-modes)
+  (add-hook 'tramp-unload-hook
+	    '(lambda ()
+	       (remove-hook 'auto-save-hook 'tramp-set-auto-save-file-modes))))
 
 (defun tramp-subst-strs-in-string (alist string)
   "Replace all occurrences of the string FROM with TO in STRING.
@@ -7296,7 +7380,9 @@ Only works for Bourne-like shells."
 	      (setq ad-return-value (list name))))
 	;; If it is not a Tramp file, just run the original function.
 	(let ((res ad-do-it))
-	  (setq ad-return-value (or res (list name))))))))
+	  (setq ad-return-value (or res (list name)))))))
+  (add-hook 'tramp-unload-hook
+	    '(lambda () (ad-unadvise 'file-expand-wildcards))))
 
 ;; Tramp version is useful in a number of situations.
 
@@ -7521,6 +7607,25 @@ Therefore, the contents of files might be included in the debug buffer(s).")
 
 (defalias 'tramp-submit-bug 'tramp-bug)
 
+;; Checklist for `tramp-unload-hook'
+;; - Unload all `tramp-*' packages
+;; - Reset `file-name-handler-alist'
+;; - Cleanup hooks where Tramp functions are in
+;; - Cleanup advised functions
+;; - Cleanup autoloads
+;;;###autoload
+(defun tramp-unload-tramp ()
+  (interactive)
+  ;; When Tramp is not loaded yet, its autoloads are still active.
+  (tramp-unload-file-name-handler-alist)
+  ;; ange-ftp settings must be enabled.
+  (when (functionp 'tramp-ftp-enable-ange-ftp)
+    (funcall (symbol-function 'tramp-ftp-enable-ange-ftp)))
+  ;; `tramp-util' unloads also `tramp'.
+  (condition-case nil ;; maybe its not loaded yet.
+      (unload-feature (if (featurep 'tramp-util) 'tramp-util 'tramp) 'force)
+    (error nil)))
+
 (provide 'tramp)
 
 ;; Make sure that we get integration with the VC package.
@@ -7528,7 +7633,12 @@ Therefore, the contents of files might be included in the debug buffer(s).")
 ;; This must come after (provide 'tramp) because tramp-vc.el
 ;; requires tramp.
 (eval-after-load "vc"
-  '(require 'tramp-vc))
+  '(progn
+     (require 'tramp-vc)
+     (add-hook 'tramp-unload-hook
+	       '(lambda ()
+		  (when (featurep 'tramp-vc)
+		    (unload-feature 'tramp-vc 'force))))))
 
 ;;; TODO:
 

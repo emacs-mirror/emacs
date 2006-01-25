@@ -526,6 +526,8 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
 		     'cpp-edit-toggle-unknown)
     (insert (format "\n\n\n%39s: %14s %14s %7s\n\n" "Expression"
 		    "[T]rue Face" "[F]alse Face" "[W]rite"))
+
+    (setq symbols (reverse symbols))
     (while symbols
       (let*  ((symbol (car symbols))
 	      (entry (assoc symbol cpp-edit-list))

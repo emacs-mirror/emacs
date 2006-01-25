@@ -1,7 +1,7 @@
 ;;; tramp-vc.el --- Version control integration for TRAMP.el
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@danann.net>
 ;; Keywords: comm, processes
@@ -220,34 +220,37 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
 ;; Daniel Pittman <daniel@danann.net>
 ;;-(if (fboundp 'vc-call-backend)
 ;;-    () ;; This is the new VC for which we don't have an appropriate advice yet
+;;-)
 (unless (fboundp 'process-file)
-(if (fboundp 'vc-call-backend)
+  (if (fboundp 'vc-call-backend)
+      (defadvice vc-do-command
+	(around tramp-advice-vc-do-command
+		(buffer okstatus command file &rest flags)
+		activate)
+	"Invoke tramp-vc-do-command for tramp files."
+	(let ((file (symbol-value 'file)))    ;pacify byte-compiler
+	  (if (or (and (stringp file)     (tramp-tramp-file-p file))
+		  (and (buffer-file-name) (tramp-tramp-file-p (buffer-file-name))))
+	      (setq ad-return-value
+		    (apply 'tramp-vc-do-command-new buffer okstatus command
+			   file ;(or file (buffer-file-name))
+			   flags))
+	    ad-do-it)))
     (defadvice vc-do-command
       (around tramp-advice-vc-do-command
-              (buffer okstatus command file &rest flags)
-              activate)
+	      (buffer okstatus command file last &rest flags)
+	      activate)
       "Invoke tramp-vc-do-command for tramp files."
-      (let ((file (symbol-value 'file)))    ;pacify byte-compiler
-        (if (or (and (stringp file)     (tramp-tramp-file-p file))
-                (and (buffer-file-name) (tramp-tramp-file-p (buffer-file-name))))
-            (setq ad-return-value
-                  (apply 'tramp-vc-do-command-new buffer okstatus command
-                         file ;(or file (buffer-file-name))
-                         flags))
-          ad-do-it)))
-  (defadvice vc-do-command
-    (around tramp-advice-vc-do-command
-            (buffer okstatus command file last &rest flags)
-            activate)
-    "Invoke tramp-vc-do-command for tramp files."
-    (let ((file (symbol-value 'file)))  ;pacify byte-compiler
-      (if (or (and (stringp file)     (tramp-tramp-file-p file))
-              (and (buffer-file-name) (tramp-tramp-file-p (buffer-file-name))))
-          (setq ad-return-value
-                (apply 'tramp-vc-do-command buffer okstatus command
-                       (or file (buffer-file-name)) last flags))
-        ad-do-it)))))
-;;-)
+      (let ((file (symbol-value 'file)))  ;pacify byte-compiler
+	(if (or (and (stringp file)     (tramp-tramp-file-p file))
+		(and (buffer-file-name) (tramp-tramp-file-p (buffer-file-name))))
+	    (setq ad-return-value
+		  (apply 'tramp-vc-do-command buffer okstatus command
+			 (or file (buffer-file-name)) last flags))
+	  ad-do-it))))
+
+  (add-hook 'tramp-unload-hook
+	    '(lambda () (ad-unadvise 'vc-do-command))))
 
 
 ;; XEmacs uses this to do some of its work. Like vc-do-command, we
@@ -324,6 +327,9 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
                      (or file (buffer-file-name)) args))
       ad-do-it)))
 
+(add-hook 'tramp-unload-hook
+	  '(lambda () (ad-unadvise 'vc-simple-command)))
+
 
 ;; `vc-workfile-unchanged-p'
 ;; This function does not deal well with remote files, so we do the
@@ -363,6 +369,9 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
       (setq ad-return-value
             (tramp-vc-workfile-unchanged-p filename want-differences-if-changed))
     ad-do-it))
+
+(add-hook 'tramp-unload-hook
+	  '(lambda () (ad-unadvise 'vc-workfile-unchanged-p)))
 
 
 ;; Redefine a function from vc.el -- allow tramp files.
@@ -445,6 +454,9 @@ filename we are thinking about..."
 		     (tramp-handle-vc-user-login-name uid)))) ; get the owner name
         ad-do-it)))                     ; else call the original
 
+(add-hook 'tramp-unload-hook
+	  '(lambda () (ad-unadvise 'vc-user-login-name)))
+
 
 ;; Determine the name of the user owning a file.
 (defun tramp-file-owner (filename)
@@ -486,6 +498,9 @@ filename we are thinking about..."
 		     (tramp-file-owner filename)))) ; get the owner name
         ad-do-it)))                     ; else call the original
 
+(add-hook 'tramp-unload-hook
+	  '(lambda () (ad-unadvise 'vc-file-owner)))
+
 
 ;; We need to make the version control software backend version
 ;; information local to the current buffer. This is because each TRAMP
@@ -506,7 +521,11 @@ This makes remote VC work correctly at the cost of some processing time."
              (tramp-tramp-file-p (buffer-file-name)))
     (make-local-variable 'vc-rcs-release)
     (setq vc-rcs-release nil)))
+
 (add-hook 'find-file-hooks 'tramp-vc-setup-for-remote t)
+(add-hook 'tramp-unload-hook
+	  '(lambda ()
+	     (remove-hook 'find-file-hooks 'tramp-vc-setup-for-remote)))
 
 ;; No need to load this again if anyone asks.
 (provide 'tramp-vc)

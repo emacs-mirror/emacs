@@ -1,7 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -3185,8 +3185,9 @@ for mark off the local mark ring \(this does not affect the global
 mark ring\).  Use \\[pop-global-mark] to jump to a mark off the global
 mark ring \(see `pop-global-mark'\).
 
-Repeating the \\[set-mark-command] command without the prefix jumps to
-the next position off the local (or global) mark ring.
+If `set-mark-command-repeat-pop' is non-nil, repeating
+the \\[set-mark-command] command with no prefix pops the next position
+off the local (or global) mark ring and jumps there.
 
 With a double \\[universal-argument] prefix argument, e.g. \\[universal-argument] \
 \\[universal-argument] \\[set-mark-command], unconditionally
@@ -3734,7 +3735,13 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (or arg (setq arg 1))
   (if (/= arg 1)
       (line-move (1- arg) t))
-  (beginning-of-line 1)
+  
+  ;; Move to beginning-of-line, ignoring fields and invisibles.
+  (skip-chars-backward "^\n")
+  (while (and (not (bobp)) (line-move-invisible-p (1- (point))))
+    (goto-char (previous-char-property-change (1- (point))))
+    (skip-chars-backward "^\n"))
+
   (let ((orig (point)))
     (vertical-motion 0)
     (if (/= orig (point))
@@ -5028,8 +5035,8 @@ select the completion near point.\n\n")))))
       (goto-char (point-min))
       (search-forward "\n\n")
       (forward-line 1))))
-
-;; Support keyboard commands to turn on various modifiers.
+
+;;; Support keyboard commands to turn on various modifiers.
 
 ;; These functions -- which are not commands -- each add one modifier
 ;; to the following event.
@@ -5094,7 +5101,7 @@ PREFIX is the string that represents this modifier in an event type symbol."
 (define-key function-key-map [?\C-x ?@ ?a] 'event-apply-alt-modifier)
 (define-key function-key-map [?\C-x ?@ ?S] 'event-apply-shift-modifier)
 (define-key function-key-map [?\C-x ?@ ?c] 'event-apply-control-modifier)
-
+
 ;;;; Keypad support.
 
 ;;; Make the keypad keys act like ordinary typing keys.  If people add
@@ -5189,7 +5196,8 @@ after it has been set up properly in other respects."
 	 (error "Cannot clone a file-visiting buffer"))
      (if (get major-mode 'no-clone)
 	 (error "Cannot clone a buffer in %s mode" mode-name))
-     (list (if current-prefix-arg (read-string "Name: "))
+     (list (if current-prefix-arg
+	       (read-buffer "Name of new cloned buffer: " (current-buffer)))
 	   t)))
   (if buffer-file-name
       (error "Cannot clone a file-visiting buffer"))
@@ -5236,7 +5244,12 @@ after it has been set up properly in other respects."
       ;; Run any hooks (typically set up by the major mode
       ;; for cloning to work properly).
       (run-hooks 'clone-buffer-hook))
-    (if display-flag (pop-to-buffer new))
+    (if display-flag
+        ;; Presumably the current buffer is shown in the selected frame, so
+        ;; we want to display the clone elsewhere.
+        (let ((same-window-regexps nil)
+              (same-window-buffer-names))
+          (pop-to-buffer new)))
     new))
 
 
@@ -5259,7 +5272,7 @@ front of the list of recently selected ones."
      (if (get major-mode 'no-clone-indirect)
 	 (error "Cannot indirectly clone a buffer in %s mode" mode-name))
      (list (if current-prefix-arg
-	       (read-string "BName of indirect buffer: "))
+	       (read-buffer "Name of indirect buffer: " (current-buffer)))
 	   t)))
   (if (get major-mode 'no-clone-indirect)
       (error "Cannot indirectly clone a buffer in %s mode" mode-name))
@@ -5278,7 +5291,13 @@ front of the list of recently selected ones."
 Select the new buffer in another window.
 Optional second arg NORECORD non-nil means do not put this buffer at
 the front of the list of recently selected ones."
-  (interactive "bClone buffer in other window: ")
+  (interactive
+   (progn
+     (if (get major-mode 'no-clone-indirect)
+	 (error "Cannot indirectly clone a buffer in %s mode" mode-name))
+     (list (if current-prefix-arg
+	       (read-buffer "Name of indirect buffer: " (current-buffer)))
+	   t)))
   (let ((pop-up-windows t))
     (set-buffer buffer)
     (clone-indirect-buffer nil t norecord)))

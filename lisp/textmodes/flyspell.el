@@ -2080,7 +2080,8 @@ The word checked is the word at the mouse position."
 				 corrects)
 		       '()))
 	 (affix      (car (cdr (cdr (cdr poss)))))
-	 (base-menu  (let ((save (if (consp affix)
+	 show-affix-info
+	 (base-menu  (let ((save (if (and (consp affix) show-affix-info)
 				     (list
 				      (list (concat "Save affix: " (car affix))
 					    'save)
@@ -2121,7 +2122,8 @@ The word checked is the word at the mouse position."
 				 corrects)
 		       '()))
 	 (affix      (car (cdr (cdr (cdr poss)))))
-	 (menu       (let ((save (if (consp affix)
+	 show-affix-info
+	 (menu       (let ((save (if (and (consp affix) show-affix-info)
 				     (vector
 				      (concat "Save affix: " (car affix))
 				      (list 'flyspell-do-correct

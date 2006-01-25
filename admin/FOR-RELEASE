@@ -50,6 +50,8 @@ invalid pointer from string_free_list.
 
 * BUGS
 
+** Roland.Winkler@physik.uni-erlangen.de's Dec 3 bug report for align.el.
+
 ** Ronan Keryell's Sep 23 bug about "tramp sudo:: and version control on RCS"
 
 ** TCP server processes do not work on Windows.

@@ -1,3 +1,50 @@
+2006-01-23  Juri Linkov  <juri@jurta.org>
+
+	* custom.texi (Easy Customization, Customization Groups)
+	(Browsing Custom): Mention links along with buttons.
+
+	* widget.texi (User Interface): Add S-TAB for widget-backward.
+
+2006-01-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.52.
+
+	* tramp.texi (Frequently Asked Questions): Remove Ange-FTP item.
+	Add Tramp disabling item.  New item for common connection
+	problems.
+	(various): Apply "ftp" as method for the download URL.
+	(Bug Reports): Refer to FAQ for common problems.
+
+2006-01-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* widget.texi (User Interface): Use @key for TAB.
+
+	* text.texi (TeX Print): Use @key for TAB.
+
+	* ses.texi (Formulas, Printer functions): Use @key for TAB.
+
+	* kmacro.texi (Keyboard Macro Step-Edit): : Use @key for TAB.
+
+	* ebrowse.texi (Switching to Tree, Symbol Completion): : Use @key
+	for TAB.
+
+	* cc-mode.texi (Indentation Calculation): Use @key for TAB.
+
+2006-01-15  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+
+	* files.texi (File Aliases): Don't claim that usually separate
+	buffers are created for two file names that name the same data.
+	Mention additional situations where different names mean the same
+	file on disk.
+
+2006-01-19  Richard M. Stallman  <rms@gnu.org>
+
+	* killing.texi (Deletion): Upcase @key argument.
+
+	* custom.texi (Custom Themes): Minor cleanup.
+
+	* programs.texi (Hungry Delete): Upcase @key argument.
+
 2006-01-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi: Update copyright.

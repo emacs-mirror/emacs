@@ -19133,6 +19133,10 @@
 
 	* menu-bar.el (menu-bar-showhide-menu): Rename functions for toggling.
 
+2002-02-10  Stephen J. Turnbull  <stephen@xemacs.org>
+
+	* ediff-init.el (ediff-has-gutter-support): What was this?
+
 2002-02-10  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper-util.el (viper-read-key-sequence): Fix so it'll read
@@ -19141,8 +19145,6 @@
 
 	* viper.el (describe-key, describe-key-briefly): Get rid of
 	viper-events-to-keys.
-
-	* ediff-init.el (ediff-has-gutter-support): Steven Turnbull's patch.
 
 	* ediff-wind.el (ediff-setup-control-frame):
 	Use ediff-has-gutter-support.

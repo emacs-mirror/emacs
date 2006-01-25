@@ -543,7 +543,11 @@ This is set to nil by default.")
   "*If non-nil, RMAIL uses MIME feature.
 If the value is t, RMAIL automatically shows MIME decoded message.
 If the value is neither t nor nil, RMAIL does not show MIME decoded message
-until a user explicitly requires it."
+until a user explicitly requires it.
+
+Even if the value is non-nil, you can't use MIME feature
+if the feature specified by `rmail-mime-feature' is not available
+in your session."
   :type '(choice (const :tag "on" t)
 		 (const :tag "off" nil)
 		 (other :tag "when asked" ask))
@@ -595,7 +599,10 @@ LIMIT is the position specifying the end of header.")
 (defvar rmail-mime-feature 'rmail-mime
   "Feature to require to load MIME support in Rmail.
 When starting Rmail, if `rmail-enable-mime' is non-nil,
-this feature is required with `require'.")
+this feature is required with `require'.
+
+The default value is `rmail-mime'.  This feature is provided by
+the rmail-mime package available at <http://www.m17n.org/rmail-mime/>.")
 
 ;;;###autoload
 (defvar rmail-decode-mime-charset t
@@ -735,8 +742,14 @@ isn't provided."
     (condition-case err
 	(require rmail-mime-feature)
       (error
-       (message "Feature `%s' not provided" rmail-mime-feature)
-       (sit-for 1)
+       (display-warning
+	:warning
+	(format "Although MIME support is requested
+by setting `rmail-enable-mime' to non-nil, the required feature
+`%s' (the value of `rmail-mime-feature')
+is not available in the current session.
+So, the MIME support is turned off for the moment." 
+		rmail-mime-feature))
        (setq rmail-enable-mime nil)))))
 
 

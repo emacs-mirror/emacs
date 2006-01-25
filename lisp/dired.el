@@ -286,6 +286,9 @@ In simple cases, this list contains one element.")
 This is an alist of the form (SUBDIR . SWITCHES).")
 (make-variable-buffer-local 'dired-switches-alist)
 
+(defvaralias 'dired-move-to-filename-regexp
+  'directory-listing-before-filename-regexp)
+
 (defvar dired-subdir-regexp "^. \\([^\n\r]+\\)\\(:\\)[\n\r]"
   "Regexp matching a maybe hidden subdirectory line in `ls -lR' output.
 Subexpression 1 is the subdirectory proper, no trailing colon.
@@ -2514,11 +2517,18 @@ if there are no flagged files."
       (set-window-start w2 1)
       )))
 
-(defvar dired-no-confirm nil
+(defcustom dired-no-confirm nil
   "A list of symbols for commands Dired should not confirm.
 Command symbols are `byte-compile', `chgrp', `chmod', `chown', `compress',
 `copy', `delete', `hardlink', `load', `move', `print', `shell', `symlink',
-`touch' and `uncompress'.")
+`touch' and `uncompress'."
+  :group 'dired
+  :type '(set (const byte-compile) (const chgrp)
+	      (const chmod) (const chown) (const compress)
+	      (const copy) (const delete) (const hardlink)
+	      (const load) (const move) (const print)
+	      (const shell) (const symlink) (const touch)
+	      (const uncompress)))
 
 (defun dired-mark-pop-up (bufname op-symbol files function &rest args)
   "Return FUNCTION's result on ARGS after showing which files are marked.
@@ -3091,9 +3101,9 @@ With optional second arg NO-REVERT, don't refresh the listing afterwards."
   (if (eq major-mode 'dired-mode) (dired-sort-set-modeline))
   (or no-revert (revert-buffer)))
 
-(make-variable-buffer-local
- (defvar dired-subdir-alist-pre-R nil
-   "Value of `dired-subdir-alist' before -R switch added."))
+(defvar dired-subdir-alist-pre-R nil
+  "Value of `dired-subdir-alist' before -R switch added.")
+(make-variable-buffer-local 'dired-subdir-alist-pre-R)
 
 (defun dired-sort-R-check (switches)
   "Additional processing of -R in ls option string SWITCHES.

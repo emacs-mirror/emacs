@@ -653,7 +653,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       Lisp_Object root_window = Fframe_root_window (frame);
       Lisp_Object mini_window = XWINDOW (root_window)->next;
 
-      if (! NILP (mini_window) && !NILP (Fwindow_minibuffer_p (mini_window)))
+      if (! NILP (mini_window) && ! EQ (mini_window, minibuf_window)
+	  && !NILP (Fwindow_minibuffer_p (mini_window)))
 	Fset_window_buffer (mini_window, empty_minibuf, Qnil);
     }
 

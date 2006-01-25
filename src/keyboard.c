@@ -790,6 +790,8 @@ echo_char (c)
 	  else
 	    echo_string = concat2 (echo_string, build_string (" "));
 	}
+      else if (STRINGP (echo_string))
+	echo_string = concat2 (echo_string, build_string (" "));
 
       current_kboard->echo_string
 	= concat2 (echo_string, make_string (buffer, ptr - buffer));
@@ -820,16 +822,16 @@ echo_dash ()
   /* Do nothing if we have already put a dash at the end.  */
   if (SCHARS (current_kboard->echo_string) > 1)
     {
-	  Lisp_Object last_char, prev_char, idx;
+      Lisp_Object last_char, prev_char, idx;
 
-	  idx = make_number (SCHARS (current_kboard->echo_string) - 2);
-	  prev_char = Faref (current_kboard->echo_string, idx);
+      idx = make_number (SCHARS (current_kboard->echo_string) - 2);
+      prev_char = Faref (current_kboard->echo_string, idx);
 
-	  idx = make_number (SCHARS (current_kboard->echo_string) - 1);
-	  last_char = Faref (current_kboard->echo_string, idx);
+      idx = make_number (SCHARS (current_kboard->echo_string) - 1);
+      last_char = Faref (current_kboard->echo_string, idx);
 
-	  if (XINT (last_char) == '-' && XINT (prev_char) != ' ')
-	    return;
+      if (XINT (last_char) == '-' && XINT (prev_char) != ' ')
+	return;
     }
 
   /* Put a dash at the end of the buffer temporarily,

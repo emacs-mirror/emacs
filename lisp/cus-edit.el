@@ -1470,22 +1470,19 @@ See "
 			       (if custom-raised-buttons
 				   "`Raised' text indicates"
 				 "Square brackets indicate")))
-	(widget-create 'info-link
+	(widget-create 'custom-manual
 		       :tag "Custom file"
-		       :button-face 'custom-link
-		       :mouse-face 'highlight
 		       "(emacs)Saving Customizations")
 	(widget-insert
 	 " for information on how to save in a different file.\n
 See ")
-	(widget-create 'info-link
+	(widget-create 'custom-manual
 		       :tag "Help"
-		       :button-face 'custom-link
-		       :mouse-face 'highlight
 		       :help-echo "Read the online help."
 		       "(emacs)Easy Customization")
 	(widget-insert " for more information.\n\n")
-	(widget-insert "Operate on everything in this buffer:\n "))
+	(widget-insert "Operate on all settings in this buffer that \
+are not marked HIDDEN:\n "))
     (widget-insert " "))
   (widget-create 'push-button
 		 :tag "Set for Current Session"
@@ -1496,10 +1493,8 @@ Make your editing in this buffer take effect for this session."
   (if (not custom-buffer-verbose-help)
       (progn
 	(widget-insert " ")
-	(widget-create 'info-link
+	(widget-create 'custom-manual
 		       :tag "Help"
-		       :button-face 'custom-link
-		       :mouse-face 'highlight
 		       :help-echo "Read the online help."
 		       "(emacs)Easy Customization")))
   (when (or custom-file user-init-file)
@@ -1647,7 +1642,7 @@ item in another window.\n\n"))
   (let ((custom-buffer-style 'tree))
     (custom-toggle-parent widget)))
 
-(define-widget 'custom-browse-group-tag 'push-button
+(define-widget 'custom-browse-group-tag 'custom-group-link
   "Show parent in other window when activated."
   :tag "Group"
   :tag-glyph "folder"
@@ -1657,7 +1652,7 @@ item in another window.\n\n"))
   (let ((parent (widget-get widget :parent)))
     (customize-group-other-window (widget-value parent))))
 
-(define-widget 'custom-browse-variable-tag 'push-button
+(define-widget 'custom-browse-variable-tag 'custom-group-link
   "Show parent in other window when activated."
   :tag "Option"
   :tag-glyph "option"
@@ -1667,7 +1662,7 @@ item in another window.\n\n"))
   (let ((parent (widget-get widget :parent)))
     (customize-variable-other-window (widget-value parent))))
 
-(define-widget 'custom-browse-face-tag 'push-button
+(define-widget 'custom-browse-face-tag 'custom-group-link
   "Show parent in other window when activated."
   :tag "Face"
   :tag-glyph "face"
@@ -2009,13 +2004,7 @@ and `face'."
   :group 'custom-faces)
 
 (defface custom-button-unraised
-  '((((min-colors 88)
-      (class color) (background light)) :foreground "blue1" :underline t)
-    (((class color) (background light)) :foreground "blue" :underline t)
-    (((min-colors 88)
-      (class color) (background dark)) :foreground "cyan1" :underline t)
-    (((class color) (background dark)) :foreground "cyan" :underline t)
-    (t :underline t))
+  '((t :inherit underline))
   "Face for custom buffer buttons if `custom-raised-buttons' is nil."
   :version "22.1"
   :group 'custom-faces)
@@ -2070,15 +2059,10 @@ and `face'."
 (put 'custom-state-face 'face-alias 'custom-state)
 
 (defface custom-link
-  '((((min-colors 88)
-      (class color) (background light)) :foreground "blue1" :underline t)
-    (((class color) (background light)) :foreground "blue" :underline t)
-    (((min-colors 88)
-      (class color) (background dark)) :foreground "cyan1" :underline t)
-    (((class color) (background dark)) :foreground "cyan" :underline t)
-    (t :underline t))
-  "Face for Info links in customization buffers."
-  :group 'info)
+  '((t :inherit link))
+  "Face for links in customization buffers."
+  :version "22.1"
+  :group 'custom-faces)
 
 (define-widget 'custom 'default
   "Customize a user option."
@@ -2245,8 +2229,6 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 		  (insert " ")
 		  (push (widget-create-child-and-convert
 			 widget 'custom-group-link
-			 :button-face 'custom-link
-			 :mouse-face 'highlight
 			 :tag (custom-unlispify-tag-name symbol)
 			 symbol)
 			buttons)
@@ -3323,7 +3305,7 @@ SPEC must be a full face spec."
 (defvar custom-face-menu
   `(("Set for Current Session" custom-face-set)
     ,@(when (or custom-file user-init-file)
-	'(("Save for Future Sessions" custom-face-save-command)))
+	'(("Save for Future Sessions" custom-face-save)))
     ("Undo Edits" custom-redraw
      (lambda (widget)
        (memq (widget-get widget :custom-state) '(modified changed))))
@@ -3448,13 +3430,8 @@ Optional EVENT is the location for the menu."
     (custom-face-state-set widget)
     (custom-redraw-magic widget)))
 
-(defun custom-face-save-command (widget)
-  "Save in `.emacs' the face attributes in WIDGET."
-  (custom-face-save widget)
-  (custom-save-all))
-
 (defun custom-face-save (widget)
-  "Prepare for saving WIDGET's face attributes, but don't write `.emacs'."
+  "Save in `.emacs' the face attributes in WIDGET."
   (let* ((symbol (widget-value widget))
 	 (child (car (widget-get widget :children)))
 	 (value (custom-post-filter-face-spec (widget-value child)))
@@ -3479,6 +3456,10 @@ Optional EVENT is the location for the menu."
     (custom-save-all)
     (custom-face-state-set widget)
     (custom-redraw-magic widget)))
+
+;; For backward compatibility.
+(define-obsolete-function-alias 'custom-face-save-command 'custom-face-save
+  "22.1")
 
 (defun custom-face-reset-saved (widget)
   "Restore WIDGET to the face's default attributes."
@@ -3607,6 +3588,8 @@ restoring it to the state of a face that has never been customized."
 
 (define-widget 'custom-group-link 'link
   "Show parent in other window when activated."
+  :button-face 'custom-link
+  :mouse-face 'highlight
   :help-echo "Create customization buffer for this group."
   :action 'custom-group-link-action)
 
@@ -3805,8 +3788,6 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	   (if (eq custom-buffer-style 'links)
 	       (push (widget-create-child-and-convert
 		      widget 'custom-group-link
-		      :button-face 'custom-link
-		      :mouse-face 'highlight
 		      :tag "Go to Group"
 		      symbol)
 		     buttons)
@@ -4400,6 +4381,15 @@ The format is suitable for use with `easy-menu-define'."
     ["Erase Customization" Custom-reset-standard t]
     ["Info" (info "(emacs)Easy Customization") t]))
 
+(defvar custom-field-keymap
+  (let ((map (copy-keymap widget-field-keymap)))
+    (define-key map "\C-c\C-c" 'Custom-set)
+    (define-key map "\C-x\C-s" 'Custom-save)
+    map)
+  "Keymap used inside editable fields in customization buffers.")
+
+(widget-put (get 'editable-field 'widget-type) :keymap custom-field-keymap)
+
 (defun Custom-goto-parent ()
   "Go to the parent group listed at the top of this buffer.
 If several parents are listed, go to the first of them."
@@ -4425,17 +4415,18 @@ If several parents are listed, go to the first of them."
 
 The following commands are available:
 
-Move to next button or editable field.     \\[widget-forward]
-Move to previous button or editable field. \\[widget-backward]
-\\<widget-field-keymap>\
+\\<widget-keymap>\
+Move to next button, link or editable field.     \\[widget-forward]
+Move to previous button, link or editable field. \\[widget-backward]
+\\<custom-field-keymap>\
 Complete content of editable text field.   \\[widget-complete]
 \\<custom-mode-map>\
-Invoke button under the mouse pointer.     \\[Custom-move-and-invoke]
-Invoke button under point.		   \\[widget-button-press]
+Invoke button under the mouse pointer.     \\[widget-move-and-invoke]
+Invoke button under point.                 \\[widget-button-press]
 Set all options from current text.         \\[Custom-set]
 Make values in current text permanent.     \\[Custom-save]
-Make text match actual option values.	   \\[Custom-reset-current]
-Reset options to permanent settings.	   \\[Custom-reset-saved]
+Make text match actual option values.      \\[Custom-reset-current]
+Reset options to permanent settings.       \\[Custom-reset-saved]
 Erase customizations; set options
   and buffer text to the standard values.  \\[Custom-reset-standard]
 
