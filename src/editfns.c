@@ -727,12 +727,12 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 
   if (NILP (Vinhibit_field_text_motion)
       && !EQ (new_pos, old_pos)
-      && (!NILP (Fget_char_property (new_pos, Qfield, Qnil))
-	  || !NILP (Fget_char_property (old_pos, Qfield, Qnil)))
+      && (!NILP (get_pos_property (new_pos, Qfield, Qnil))
+          || !NILP (get_pos_property (old_pos, Qfield, Qnil)))
       && (NILP (inhibit_capture_property)
-	  || NILP (Fget_char_property(old_pos, inhibit_capture_property, Qnil))))
-    /* NEW_POS is not within the same field as OLD_POS; try to
-       move NEW_POS so that it is.  */
+	  || NILP (get_pos_property (old_pos, inhibit_capture_property, Qnil))))
+    /* It is possible that NEW_POS is not within the same field as
+       OLD_POS; try to move NEW_POS so that it is.  */
     {
       int fwd, shortage;
       Lisp_Object field_bound;
@@ -782,9 +782,10 @@ DEFUN ("line-beginning-position",
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
 
-The scan does not cross a field boundary unless doing so would move
-beyond there to a different line; if N is nil or 1, and scan starts at a
-field boundary, the scan stops as soon as it starts.  To ignore field
+This function constrains the returned position to the current field
+unless that would be on a different line than the original,
+unconstrained result.  If N is nil or 1, and a front-sticky field
+starts at point, the scan stops as soon as it starts.  To ignore field
 boundaries bind `inhibit-field-text-motion' to t.
 
 This function does not move point.  */)
@@ -816,9 +817,10 @@ DEFUN ("line-end-position", Fline_end_position, Sline_end_position, 0, 1, 0,
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
 
-The scan does not cross a field boundary unless doing so would move
-beyond there to a different line; if N is nil or 1, and scan starts at a
-field boundary, the scan stops as soon as it starts.  To ignore field
+This function constrains the returned position to the current field
+unless that would be on a different line than the original,
+unconstrained result.  If N is nil or 1, and a rear-sticky field ends
+at point, the scan stops as soon as it starts.  To ignore field
 boundaries bind `inhibit-field-text-motion' to t.
 
 This function does not move point.  */)

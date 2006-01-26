@@ -1,3 +1,13 @@
+2006-01-26  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* editfns.c (Fconstrain_to_field): Use get_pos_property, not
+	Fget_char_property.  Fix bogus comment.
+	(Fline_beginning_position, Fline_end_position): Clarify 
+	confusing doc string.
+
+	* cmds.c (Fbeginning_of_line, Fend_of_line): Clarify confusing doc
+	string.
+
 2006-01-26  Kenichi Handa  <handa@m17n.org>
 
 	* callproc.c (Fcall_process): GCPRO error_file.  Encode infile,
