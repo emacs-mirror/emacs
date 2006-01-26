@@ -1,7 +1,7 @@
 2006-01-26  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
-	* editfns.c (Fconstrain_to_field): Use get_pos_property, not
-	Fget_char_property.  Fix bogus comment.
+	* editfns.c (Fconstrain_to_field): Fix behaviour on field boundaries.
+	(find_field): Set before_field to after_field when pos is at BEGV.
 	(Fline_beginning_position, Fline_end_position): Clarify 
 	confusing doc string.
 
