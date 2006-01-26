@@ -1,3 +1,21 @@
+2006-01-25  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (decode-char): Avoid the overhead of
+	calling utf-lookup-subst-table-for-decode if
+	utf-translate-cjk-mode is nil.
+	(encode-char): Avoid the overhead of calling
+	utf-lookup-subst-table-for-encode if utf-translate-cjk-mode is
+	nil.
+
+2006-01-22  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (make-subsidiary-coding-system): Reset
+	`coding-system-define-form' property of subsidiaries to nil.
+	Avoid duplicated entry in coding-system-alist.
+	(make-coding-system): Avoid duplicated entry in
+	coding-system-alist.
+	(define-coding-system-alias): Likewise.
+
 2006-01-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* completion.el: Minor fixes in introductory comment.
