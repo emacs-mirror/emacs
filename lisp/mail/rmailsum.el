@@ -457,14 +457,11 @@ a negative argument means to delete and move forward."
 (defun rmail-summary-mark-undeleted (n)
   (rmail-summary-mark-deleted n t))
 
-;;; mbox: ready
 (defun rmail-summary-deleted-p (&optional n)
-  (unless n
-    (setq n rmail-current-message)
-    (with-current-buffer rmail-buffer
-      (rmail-desc-deleted-p n))))
+  (unless n (setq n rmail-current-message))
+  (with-current-buffer rmail-buffer
+    (rmail-desc-deleted-p n)))
 
-;;; mbox: not sure.
 (defun rmail-summary-undelete (&optional arg)
   "Undelete current message.
 Optional prefix ARG means undelete ARG previous messages."
@@ -473,19 +470,19 @@ Optional prefix ARG means undelete ARG previous messages."
       (rmail-summary-undelete-many arg)
     (let ((buffer-read-only nil)
 	  (opoint (point)))
-      (end-of-line)
-      (cond ((re-search-backward "\\(^ *[0-9]*\\)\\(D\\)" nil t)
-	     (replace-match "\\1 ")
-	     (rmail-summary-goto-msg)
-	     (if rmail-enable-mime
-		 (set-buffer rmail-buffer)
-	       (pop-to-buffer rmail-buffer))
-	     (and (rmail-message-deleted-p rmail-current-message)
-		  (rmail-undelete-previous-message))
-	     (if rmail-enable-mime
-		 (pop-to-buffer rmail-view-buffer))
-	     (pop-to-buffer rmail-summary-buffer))
-	    (t (goto-char opoint))))))
+      (goto-char (line-end-position))
+      (if (not (re-search-backward "\\(^ *[0-9]*\\)\\(D\\)" nil t))
+	  (goto-char opoint)
+	(replace-match "\\1 ")
+	(rmail-summary-goto-msg)
+	(if rmail-enable-mime
+	    (set-buffer rmail-buffer)
+	  (pop-to-buffer rmail-buffer))
+	(when (rmail-message-deleted-p rmail-current-message)
+	  (rmail-undelete-previous-message))
+	(when rmail-enable-mime
+	  (pop-to-buffer rmail-view-buffer))
+	(pop-to-buffer rmail-summary-buffer)))))
 
 ;;; mbox: ready for testing
 (defun rmail-summary-undelete-many (&optional n)
