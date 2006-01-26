@@ -355,11 +355,11 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
      protected by the caller, so all we really have to worry about is
      buffer.  */
   {
-    struct gcpro gcpro1, gcpro2, gcpro3;
+    struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
     current_dir = current_buffer->directory;
 
-    GCPRO3 (infile, buffer, current_dir);
+    GCPRO4 (infile, buffer, current_dir, error_file);
 
     current_dir
       = expand_and_dir_to_file (Funhandled_file_name_directory (current_dir),
@@ -368,6 +368,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       report_file_error ("Setting current directory",
 			 Fcons (current_buffer->directory, Qnil));
 
+    if (STRING_MULTIBYTE (infile))
+      infile = ENCODE_FILE (infile);
+    if (STRING_MULTIBYTE (current_dir))
+      current_dir = ENCODE_FILE (current_dir);
+    if (STRINGP (error_file) && STRING_MULTIBYTE (error_file))
+      error_file = ENCODE_FILE (error_file);
     UNGCPRO;
   }
 
@@ -376,6 +382,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   filefd = emacs_open (SDATA (infile), O_RDONLY, 0);
   if (filefd < 0)
     {
+      infile = DECODE_FILE (infile);
       report_file_error ("Opening process input file", Fcons (infile, Qnil));
     }
   /* Search for program; barf if not found.  */
@@ -533,13 +540,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 #ifdef MSDOS
 	unlink (tempfile);
 #endif
-	report_file_error ("Cannot redirect stderr",
-			   Fcons ((NILP (error_file)
-				   ? build_string (NULL_DEVICE) : error_file),
-				  Qnil));
+	if (NILP (error_file))
+	  error_file = build_string (NULL_DEVICE);
+	else if (STRINGP (error_file))
+	  error_file = DECODE_FILE (error_file);
+	report_file_error ("Cannot redirect stderr", Fcons (error_file, Qnil));
       }
-
-    current_dir = ENCODE_FILE (current_dir);
 
 #ifdef MAC_OS8
     {
