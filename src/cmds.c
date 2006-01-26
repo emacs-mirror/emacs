@@ -157,10 +157,10 @@ DEFUN ("beginning-of-line", Fbeginning_of_line, Sbeginning_of_line, 0, 1, "p",
 With argument N not nil or 1, move forward N - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 
-This function does not move point across a field boundary unless that
-would move point to a different line than the original, unconstrained
-result.  If N is nil or 1, and a front-sticky field starts at point,
-the point does not move.  To ignore field boundaries bind
+This function constrains point to the current field unless this moves
+point to a different line than the original, unconstrained result.  If
+N is nil or 1, and a front-sticky field starts at point, the point
+does not move.  To ignore field boundaries bind
 `inhibit-field-text-motion' to t, or use the `forward-line' function
 instead.  For instance, `(forward-line 0)' does the same thing as
 `(beginning-of-line)', except that it ignores field boundaries.  */)
@@ -183,11 +183,11 @@ With argument N not nil or 1, move forward N - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
 
-This function does not move point across a field boundary unless that
-would move point to a different line than the original, unconstrained
-result.  If N is nil or 1, and a rear-sticky field ends at point,
-the point does not move.  To ignore field boundaries bind
-`inhibit-field-text-motion' to t.  */)
+This function constrains point to the current field unless this moves
+point to a different line than the original, unconstrained result.  If
+N is nil or 1, and a rear-sticky field ends at point, the point does
+not move.  To ignore field boundaries bind `inhibit-field-text-motion'
+to t.  */)
      (n)
      Lisp_Object n;
 {
