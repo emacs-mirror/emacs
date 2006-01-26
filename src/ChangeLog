@@ -1,3 +1,9 @@
+2006-01-26  Kenichi Handa  <handa@m17n.org>
+
+	* callproc.c (Fcall_process): GCPRO error_file.  Encode infile,
+	current_dir, and error_file.  On reporting an error, decode them
+	back.
+
 2006-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* regex.c (IMMEDIATE_QUIT_CHECK): Use it with SYNC_INPUT as well.
