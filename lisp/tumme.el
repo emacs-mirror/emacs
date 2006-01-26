@@ -3,7 +3,7 @@
 ;; Copyright (C) 2005 Free Software Foundation, Inc.
 ;;
 ;; Version: 0.4.10
-;; Keywords: images, thumbnails, dired
+;; Keywords: multimedia
 ;; Author: Mathias Dahl <mathias.rem0veth1s.dahl@gmail.com>
 
 ;; This file is part of GNU Emacs.
@@ -969,6 +969,7 @@ add a subdirectory."
           (tumme-display-image-mode)))
     buf))
 
+;;;###autoload
 (defun tumme-dired (dir &optional arg)
   "Open directory DIR and create a default window configuration.
 
@@ -1643,6 +1644,7 @@ Resized or in full-size."
   (tumme-define-display-image-mode-keymap)
   (message "tumme-display-image-mode enabled"))
 
+;;;###autoload
 (defun tumme-setup-dired-keybindings ()
   "Setup easy-to-use keybindings for the commands to be used in dired mode.
 Note that n, p and <down> and <up> will be hijacked and bound to
@@ -2601,7 +2603,7 @@ when using per-directory thumbnail file storage"))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(setq tumme-dir-max-size 12300000)
+(defvar tumme-dir-max-size 12300000)
 
 (defun tumme-test ()
   "Clean `tumme-dir' from old thumbnail files.
