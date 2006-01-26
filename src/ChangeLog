@@ -1,3 +1,14 @@
+2006-01-26  Richard M. Stallman  <rms@gnu.org>
+
+	* alloc.c (check_pure_size): Make overflow message an "error message".
+
+	* keymap.c (Fmap_keymap): Doc fix.
+
+	* xfns.c (Fx_create_frame): Put all specified parms into f->param_alist
+	unless they were cleared out.
+
+	* frame.c (x_get_arg): "Clear out" the parm in ALIST if found there.
+
 2006-01-26  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* editfns.c (Fconstrain_to_field): Fix behaviour on field boundaries.

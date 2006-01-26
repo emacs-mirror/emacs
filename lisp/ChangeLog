@@ -1,3 +1,27 @@
+2006-01-26  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-mode): Doc: Use advertised-widget-backward.
+
+	* wid-edit.el (advertised-widget-backward): New alias.
+	(widget-keymap): Use advertised-widget-backward for S-TAB.
+
+	* tumme.el: Correct the keywords.
+	(tumme-dir-max-size): USe defvar.
+	(tumme-setup-dired-keybindings, tumme-dired): Add autoload cookie.
+
+	* simple.el (move-beginning-of-line): Take account of fields.
+	(clone-indirect-buffer-other-window): Take args like
+	clone-indirect-buffer, and work like it.
+
+	* help-fns.el (describe-function): Don't pass `nil' as default.
+
+	* files.el (risky-local-variable-p): Follow var aliases.
+
+	* subr.el (lazy-completion-table): Doc fix.
+
+	* mail/rmailsum.el (rmail-make-summary-line-1): Don't set
+	global binding of `line'.
+
 2006-01-25  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-user-login-name): Rewritten to handle access via
@@ -1962,7 +1986,7 @@
 	(hi-lock-find-patterns, hi-lock-font-lock-hook):
 	Replace hi-lock-buffer-mode with hi-lock-mode.
 
-2005-12-10  Kevin Rodgers  <ihs_4664@ihs.com>
+2005-12-10  Kevin Rodgers  <ihs_4664@yahoo.com>
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol): Regenerate the
 	completion list, even after a partial completion has been
