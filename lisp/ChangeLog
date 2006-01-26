@@ -1,3 +1,10 @@
+2006-01-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* thumbs.el (thumbs-do-thumbs-insertion): Suppress message when
+	there are no more images to display.
+	(thumbs-mark, thumbs-unmark): Revert change so that they move to
+	the next image.
+
 2006-01-26  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-edit.el (custom-mode): Doc: Use advertised-widget-backward.
