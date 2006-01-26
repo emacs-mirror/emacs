@@ -332,9 +332,8 @@ By default, `identity' is set."
 	    (if (looking-at "Summary-line: ")
 		(progn
 		  (goto-char (match-end 0))
-		  (setq line
-			(buffer-substring (point)
-					  (progn (forward-line 1) (point)))))))))
+		  (buffer-substring (point)
+				    (progn (forward-line 1) (point))))))))
     ;; Obsolete status lines lacking a # should be flushed.
     (and line
 	 (not (string-match "#" line))
