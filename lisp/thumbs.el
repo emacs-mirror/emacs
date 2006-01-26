@@ -380,7 +380,7 @@ If MARKED is non-nil, the image is marked."
       (when (= 0 (mod (setq i (1+ i)) thumbs-per-line))
 	(newline)))
     (unless (bobp) (newline))
-    (if diff (message "Type + to display more images."))))
+    (if (> diff 0) (message "Type + to display more images."))))
 
 (defun thumbs-show-thumbs-list (list &optional dir same-window)
   (unless (and (display-images-p)
@@ -623,8 +623,7 @@ Open another window."
     (push elt thumbs-marked-list)
     (let ((inhibit-read-only t))
       (delete-char 1)
-      (save-excursion
-	(thumbs-insert-thumb elt t))))
+      (thumbs-insert-thumb elt t)))
   (when (eolp) (forward-char)))
 
 (defun thumbs-unmark ()
@@ -636,10 +635,8 @@ Open another window."
     (setq thumbs-marked-list (delete elt thumbs-marked-list))
     (let ((inhibit-read-only t))
       (delete-char 1)
-      (save-excursion
-	(thumbs-insert-thumb elt nil))))
+      (thumbs-insert-thumb elt nil)))
   (when (eolp) (forward-char)))
-
 
 ;; cleaning of old temp files
 (mapc 'delete-file
