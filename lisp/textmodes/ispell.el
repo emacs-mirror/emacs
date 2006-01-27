@@ -913,7 +913,9 @@ and added as a submenu of the \"Edit\" menu.")
     (ispell-aspell-add-aliases)
     ;; Add a default entry
     (let* ((english-dict (assoc "en" ispell-dictionary-alist))
-	   (default-dict (cons nil (cdr english-dict))))
+	   (default-dict
+	     (cons nil (or (cdr english-dict)
+			   (cdr (car ispell-dictionary-alist-1))))))
       (push default-dict ispell-dictionary-alist))
     (setq ispell-have-aspell-dictionaries t)))
 
