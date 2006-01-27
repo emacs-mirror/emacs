@@ -156,7 +156,8 @@ coding system names is determined from `latex-inputenc-coding-alist'."
                                        "")
                                  ".tex" ".ltx" ".dtx" ".drv"))
                     (if (and (null latexenc-main-file) ;Stop at first.
-                             (file-exists-p (concat file ext)))
+                             (file-regular-p (concat file ext))
+                             (file-readable-p (concat file ext)))
                         (setq latexenc-main-file (concat file ext)))))))
             ;; try tex-modes tex-guess-main-file
             (when (and (not latexenc-dont-use-tex-guess-main-file-flag)
@@ -167,7 +168,7 @@ coding system names is determined from `latex-inputenc-coding-alist'."
                   (setq latexenc-main-file (tex-guess-main-file)))))
             ;; if we found a master/main file get the coding system from it
             (if (and latexenc-main-file
-		     (file-regular-p latexenc-main-file)
+                     (file-regular-p latexenc-main-file)
                      (file-readable-p latexenc-main-file))
                 (let* ((latexenc-dont-use-tex-guess-main-file-flag t)
                        (latexenc-dont-use-TeX-master-flag t)
