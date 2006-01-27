@@ -1,3 +1,12 @@
+2006-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/latexenc.el: Add a suitable `coding:' tag.
+
+2006-01-27  Arne J,bx(Brgensen  <arne@arnested.dk>
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Make sure latexenc-main-file is a regular file and is readable.
+
 2006-01-27  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-rcs.el (vc-rcs-fetch-master-state, vc-rcs-consult-headers):
