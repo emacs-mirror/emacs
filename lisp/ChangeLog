@@ -1,6 +1,7 @@
 2006-01-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/latexenc.el: Add a suitable `coding:' tag.
+	(latexenc-find-file-coding-system): Undo last change.
 
 2006-01-27  Arne J,bx(Brgensen  <arne@arnested.dk>
 
