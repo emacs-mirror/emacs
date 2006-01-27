@@ -1,3 +1,7 @@
+2006-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* TODO: Make SYNC_INPUT the default.
+
 2006-01-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* images/gud/pstar.xpm: Make background transparent.
