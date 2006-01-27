@@ -58,6 +58,8 @@ to the FSF.
 
 ** Modify allout.el to use overlays, like outline.el.
 
+** M-! M-n should fetch the buffer-file-name as the default.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,
