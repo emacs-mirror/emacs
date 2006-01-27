@@ -660,3 +660,7 @@ The real answer, therefore, is a @code{/reconnect} command:
 @printindex cp
 
 @bye
+
+@ignore
+   arch-tag: 2589e562-3843-4ffc-8c2f-477cbad57c01
+@end ignore
