@@ -1,3 +1,9 @@
+2006-01-27  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-find-aspell-dictionaries): If no
+	English aspell dictionary is installed, use the first entry of
+	ispell-dictionary-alist-1.
+
 2006-01-27  Kevin Rodgers  <ihs_4664@yahoo.com>
 
 	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):

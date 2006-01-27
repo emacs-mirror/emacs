@@ -1,3 +1,8 @@
+2006-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (DIRENTRY_NONEMPTY) [__CYGWIN__]: Don't use d_ino; use
+	the MSDOS definition.
+
 2006-01-26  Richard M. Stallman  <rms@gnu.org>
 
 	* alloc.c (check_pure_size): Make overflow message an "error message".
