@@ -1,3 +1,10 @@
+2006-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* alloc.c (make_interval, allocate_string)
+	(allocate_string_data, make_float, Fcons, allocate_vectorlike)
+	(Fmake_symbol, allocate_misc): Use BLOCK_INPUT when accessing
+	global variables.
+
 2006-01-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.c (DIRENTRY_NONEMPTY) [__CYGWIN__]: Don't use d_ino; use
