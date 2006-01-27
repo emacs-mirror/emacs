@@ -1,4 +1,4 @@
-;;; latexenc.el --- guess correct coding system in LaTeX files
+;;; latexenc.el --- guess correct coding system in LaTeX files -*-coding: iso-2022-7bit -*-
 
 ;; Copyright (C) 2005, 2006 Free Software Foundation, Inc.
 
