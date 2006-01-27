@@ -85,7 +85,8 @@ extern struct direct *readdir ();
 #endif /* not MSDOS */
 #endif /* not SYSV_SYSTEM_DIR */
 
-#ifdef MSDOS
+/* Some versions of Cygwin don't have d_ino in `struct dirent'.  */
+#if defined(MSDOS) || defined(__CYGWIN__)
 #define DIRENTRY_NONEMPTY(p) ((p)->d_name[0] != 0)
 #else
 #define DIRENTRY_NONEMPTY(p) ((p)->d_ino)
