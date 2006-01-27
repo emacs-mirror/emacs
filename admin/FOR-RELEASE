@@ -41,13 +41,6 @@ bitmap usage to a bitmap name, and second level maps bitmap name to
 a bitmap appearence.
 [Assigned to KFS]
 
-* FATAL ERRORS
-
-** Investigate reported crashes in compact_small_strings.
-
-** Investigate reported crashes related to using an
-invalid pointer from string_free_list.
-
 * BUGS
 
 ** Roland.Winkler@physik.uni-erlangen.de's Dec 3 bug report for align.el.
