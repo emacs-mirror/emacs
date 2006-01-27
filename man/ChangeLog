@@ -1,3 +1,11 @@
+2006-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(infodir)/rcirc, rcirc.dvi): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add rcirc.
+
+	* Makefile.in (../info/rcirc, rcirc.dvi): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add rcirc.
+
 2006-01-27  Alex Schroeder  <alex@gnu.org>
 
 	* rcirc.texi: New file.

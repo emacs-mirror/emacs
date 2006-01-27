@@ -1,3 +1,8 @@
+2006-01-27  Kevin Rodgers  <ihs_4664@yahoo.com>
+
+	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):
+	Doc fix.
+
 2006-01-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-vc.el (vc-user-login-name): Wrap defadvice with a test
