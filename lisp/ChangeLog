@@ -1,3 +1,10 @@
+2006-01-27  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-rcs.el (vc-rcs-fetch-master-state, vc-rcs-consult-headers):
+	Pass FILE to vc-user-login-name.
+
+	* vc-sccs.el (vc-sccs-state): Pass FILE to vc-user-login-name.
+
 2006-01-27  Nick Roberts  <nickrob@snap.net.nz>
 
 	* thumbs.el (thumbs-do-thumbs-insertion): Suppress message when
