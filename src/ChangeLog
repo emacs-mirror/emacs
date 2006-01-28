@@ -1,3 +1,7 @@
+2006-01-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* data.c (Fcar, Fcdr): Add links to Elisp manual.
+
 2006-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* alloc.c (make_interval, allocate_string)
@@ -25,7 +29,7 @@
 
 	* editfns.c (Fconstrain_to_field): Fix behaviour on field boundaries.
 	(find_field): Set before_field to after_field when pos is at BEGV.
-	(Fline_beginning_position, Fline_end_position): Clarify 
+	(Fline_beginning_position, Fline_end_position): Clarify
 	confusing doc string.
 
 	* cmds.c (Fbeginning_of_line, Fend_of_line): Clarify confusing doc
