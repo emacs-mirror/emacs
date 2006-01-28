@@ -1,7 +1,11 @@
+2006-01-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* Makefile.in (install-arch-indep, uninstall): Add rcirc.
+
 2006-01-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* info/dir: Untabify the whole file.
-	(Rcirc): New entry.  
+	(Rcirc): New entry.
 
 2006-01-12  Andreas Schwab  <schwab@suse.de>
 
