@@ -1,6 +1,6 @@
 2006-01-28  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* data.c (Fcar, Fcdr): Add links to Elisp manual.
+	* data.c (Fcar, Fcdr): Add links to Elisp manual to the docstrings.
 
 2006-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
