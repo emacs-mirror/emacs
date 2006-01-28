@@ -82,7 +82,7 @@ the end of a list enter infinite loops if given a circular list.
 @dfn{list structure} has come to mean any structure made out of cons
 cells.
 
-  The @sc{cdr} of any nonempty list @var{l} is a list containing all the
+  The @sc{cdr} of any nonempty true list @var{l} is a list containing all the
 elements of @var{l} except the first.
 
   @xref{Cons Cell Type}, for the read and print syntax of cons cells and
