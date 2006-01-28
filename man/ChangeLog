@@ -1,3 +1,8 @@
+2006-01-28  Bj,Av(Brn Lindstr,Av(Bm  <bkhl@elektrubadur.se>
+
+	* rcirc.texi: Some @cindex changes, some changes from @kbd to
+	@key.
+
 2006-01-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(infodir)/rcirc, rcirc.dvi): New targets.
