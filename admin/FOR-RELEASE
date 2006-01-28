@@ -43,8 +43,6 @@ a bitmap appearence.
 
 * BUGS
 
-** Ronan Keryell's Sep 23 bug about "tramp sudo:: and version control on RCS"
-
 ** TCP server processes do not work on Windows.
 
 TCP/IP server processes created with `make-network-process' consume
