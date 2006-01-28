@@ -87,7 +87,6 @@ Hacking and Tweaking
 
 @node Basics, Reference, Top, Top
 @chapter Basics
-@cindex basic usage
 
 This chapter contains a brief introduction to IRC (Internet Relay Chat),
 and a quick tutorial on @code{rcirc}.
@@ -123,7 +122,7 @@ When you connect to the Freenode network
 server @code{irc.freenode.net}.  That server will redirect your client
 to a random server on the network, such as @code{zelazny.freenode.net}.
 
-@cindex channel names
+@cindex channel name
 @cindex # starts a channel name
 Once you're connected, you can send messages to all other users
 connected to the same network, and you can join all channels on the same
@@ -207,7 +206,7 @@ and a channel buffer for each of the channels you wanted to join.
 @cindex talking
 @cindex communicating
 To talk in a channel, just type in what you want to say in a channel
-buffer, and press @kbd{RET}.
+buffer, and press @key{RET}.
 
 @kindex C-c C-c
 @cindex multiline messages
@@ -216,7 +215,7 @@ buffer, and press @kbd{RET}.
 @cindex edit message before sending
 If you want to paste multiple lines, such as source code, you can use
 @kbd{C-c C-c} to edit your message in a separate buffer.  Use @kbd{C-c
-C-c} to finish editing.  You still need to press @kbd{RET} to send it,
+C-c} to finish editing.  You still need to press @key{RET} to send it,
 though.  Generally, IRC users don't like people pasting more than around
 four lines of code, so use with care.
 
@@ -228,7 +227,7 @@ four lines of code, so use with care.
 @cindex modeline tracks activity
 You will note that when other people say things in buffers that are
 currently buried (no window is showing them), the mode line will show
-you the abbreviated channel or nick name.  Use @kbd{C-c C-SPC} to switch
+you the abbreviated channel or nick name.  Use @kbd{C-c C-@key{SPC}} to switch
 to these buffers.
 
 @node Reference, Hacking and Tweaking, Basics, Top
@@ -247,6 +246,7 @@ documentation.
 
 @node rcirc commands, Useful IRC commands, Reference, Reference
 @section rcirc commands
+@cindex rcirc commands
 @cindex commands
 
 @kindex C-h m
@@ -261,7 +261,7 @@ typing them into an @code{rcirc} buffer.
 @cindex typing commands
 @cindex commands
 For instance, instead of using the command @kbd{C-c C-j} to join a new
-channel, you may type this in an @code{rcirc} buffer, and press @kbd{RET}:
+channel, you may type this in an @code{rcirc} buffer, and press @key{RET}:
 
 @example
 /join #emacs
@@ -361,7 +361,7 @@ Starts a one-to-one conversation with another person on the same
 network.  A new buffer will be created for this conversation.  It works
 like a channel with only two members.  (Also @code{/query fsbot}.)
 
-@item C-c RET
+@item C-c @key{RET}
 @kindex C-c RET
 @cindex /msg
 @cindex single message
@@ -399,8 +399,8 @@ commands, such as:
 @cindex idiots online
 This command toggles the ignore status of a nick, if you provide one.
 If you don't provide a nick, the command lists all the nicks you are
-ignoring.  All messages by ignored nicks are -- you guessed it --
-ignored.  Since only ``operators'' can kick people from channels, the
+ignoring.  All messages by ignored nicks are---you guessed it---ignored.
+Since only ``operators'' can kick people from channels, the
 ignore command is often the only way to deal with some of the more
 obnoxious fellows online.  Example: @code{/ignore xah}.
 @end table
@@ -435,7 +435,7 @@ help archive.
 
 @node Configuration, , Useful IRC commands, Reference
 @section Configuration
-@cindex configuration
+@cindex configuring rcirc
 
 These are some variables you can change to configure @code{rcirc} to your
 liking.
