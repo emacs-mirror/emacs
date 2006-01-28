@@ -29,7 +29,7 @@ license to the document, as described in section 6 of the license.
 
 @dircategory Emacs
 @direntry
-* rcirc: (rcirc).  Internet Relay Chat (IRC) client.
+* Rcirc: (rcirc).       Internet Relay Chat (IRC) client.
 @end direntry
 
 @titlepage
@@ -52,12 +52,12 @@ topic channels which are collections of many users, or privately, with
 just one other user.
 
 @menu
-* Basics::                 
-* Reference::                   
-* Hacking and Tweaking::        
-* Key Index::                   
-* Variable Index::              
-* Index::                       
+* Basics::
+* Reference::
+* Hacking and Tweaking::
+* Key Index::
+* Variable Index::
+* Index::
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -92,8 +92,8 @@ This chapter contains a brief introduction to IRC (Internet Relay Chat),
 and a quick tutorial on @code{rcirc}.
 
 @menu
-* Internet Relay Chat::         
-* Getting started with rcirc::  
+* Internet Relay Chat::
+* Getting started with rcirc::
 @end menu
 
 @node Internet Relay Chat, Getting started with rcirc, Basics, Basics
@@ -239,9 +239,9 @@ complete listings of @code{rcirc} features, use Emacs built-in
 documentation.
 
 @menu
-* rcirc commands::              
-* Useful IRC commands::         
-* Configuration::               
+* rcirc commands::
+* Useful IRC commands::
+* Configuration::
 @end menu
 
 @node rcirc commands, Useful IRC commands, Reference, Reference
@@ -500,12 +500,12 @@ the @code{freenode.net} domain.
 Here are some examples of stuff you can do to configure @code{rcirc}.
 
 @menu
-* Skipping /away messages using handlers::  
-* Using fly spell mode::        
-* Scrolling conservatively::    
-* Changing the time stamp format::  
-* Defining a new command::      
-* Reconnecting after you have lost the connection::  
+* Skipping /away messages using handlers::
+* Using fly spell mode::
+* Scrolling conservatively::
+* Changing the time stamp format::
+* Defining a new command::
+* Reconnecting after you have lost the connection::
 @end menu
 
 @node Skipping /away messages using handlers, Using fly spell mode, Hacking and Tweaking, Hacking and Tweaking
@@ -514,7 +514,7 @@ Here are some examples of stuff you can do to configure @code{rcirc}.
 
 @cindex handlers
 @cindex status codes
-The IRC protocol specifies how certain events are signalled from server
+The IRC protocol specifies how certain events are signaled from server
 to client.  These events have numbers and are dealt with using so-called
 handlers.  You can override existing handlers by exploiting the naming
 convention adopted for @code{rcirc}.
@@ -566,7 +566,7 @@ window when possible.  The following snippet uses a local value for
                  8192)))
 @end example
 
-@xref{Scrolling, , Scrolling convervatively, emacs, The GNU Emacs
+@xref{Scrolling, , Scrolling conservatively, emacs, The GNU Emacs
 Manual}, for details.
 
 @node Changing the time stamp format, Defining a new command, Scrolling conservatively, Hacking and Tweaking
