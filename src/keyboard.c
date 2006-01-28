@@ -651,7 +651,8 @@ static Lisp_Object read_char_x_menu_prompt P_ ((int, Lisp_Object *,
 						Lisp_Object, int *));
 static Lisp_Object read_char_x_menu_prompt ();
 static Lisp_Object read_char_minibuf_menu_prompt P_ ((int, int,
-						      Lisp_Object *));
+						      Lisp_Object *,
+                                                      jmp_buf *));
 static Lisp_Object make_lispy_event P_ ((struct input_event *));
 #ifdef HAVE_MOUSE
 static Lisp_Object make_lispy_movement P_ ((struct frame *, Lisp_Object,
@@ -676,6 +677,8 @@ static void handle_interrupt P_ ((void));
 static void timer_start_idle P_ ((void));
 static void timer_stop_idle P_ ((void));
 static void timer_resume_idle P_ ((void));
+
+Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object, int *, jmp_buf *));
 
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
@@ -2685,7 +2688,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, wrong_kboard_j
       && unread_command_char < 0
       && !detect_input_pending_run_timers (0))
     {
-      c = read_char_minibuf_menu_prompt (commandflag, nmaps, maps);
+      c = read_char_minibuf_menu_prompt (commandflag, nmaps, maps,
+                                         wrong_kboard_jmpbuf);
       if (! NILP (c))
 	{
 	  key_already_recorded = 1;
@@ -2874,13 +2878,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, wrong_kboard_j
 	}
     }
 
-  /* Notify the caller if a timer or sentinel or filter in the sit_for
-     calls above have changed the current kboard.  This could happen
-     if they use the minibuffer or start a recursive edit, like the
-     fancy splash screen in server.el's filter.  If this longjmp
-     wasn't here, read_key_sequence would interpret the next key
-     sequence using the wrong translation tables and function
-     keymaps.  */
+  /* Notify the caller if an autosave hook, or a timer, sentinel or
+     filter in the sit_for calls above have changed the current
+     kboard.  This could happen if they use the minibuffer or start a
+     recursive edit, like the fancy splash screen in server.el's
+     filter.  If this longjmp wasn't here, read_key_sequence would
+     interpret the next key sequence using the wrong translation
+     tables and function keymaps.  */
   if (NILP (c) && current_kboard != orig_kboard)
     {
       UNGCPRO;
@@ -3306,7 +3310,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, wrong_kboard_j
 
       cancel_echoing ();
       do
-	c = read_char (0, 0, 0, Qnil, 0, &wrong_kboard_jmpbuf);
+	c = read_char (0, 0, 0, Qnil, 0, wrong_kboard_jmpbuf);
       while (BUFFERP (c));
       /* Remove the help from the frame */
       unbind_to (count, Qnil);
@@ -3316,7 +3320,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, wrong_kboard_j
 	{
 	  cancel_echoing ();
 	  do
-	    c = read_char (0, 0, 0, Qnil, 0, &wrong_kboard_jmpbuf);
+	    c = read_char (0, 0, 0, Qnil, 0, wrong_kboard_jmpbuf);
 	  while (BUFFERP (c));
 	}
     }
@@ -8237,10 +8241,11 @@ static char *read_char_minibuf_menu_text;
 static int read_char_minibuf_menu_width;
 
 static Lisp_Object
-read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
+read_char_minibuf_menu_prompt (commandflag, nmaps, maps, wrong_kboard_jmpbuf)
      int commandflag ;
      int nmaps;
      Lisp_Object *maps;
+     jmp_buf *wrong_kboard_jmpbuf;
 {
   int mapno;
   register Lisp_Object name;
@@ -8463,7 +8468,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
       orig_defn_macro = current_kboard->defining_kbd_macro;
       current_kboard->defining_kbd_macro = Qnil;
       do
-	obj = read_char (commandflag, 0, 0, Qt, 0);
+	obj = read_char (commandflag, 0, 0, Qt, 0, wrong_kboard_jmpbuf);
       while (BUFFERP (obj));
       current_kboard->defining_kbd_macro = orig_defn_macro;
 
