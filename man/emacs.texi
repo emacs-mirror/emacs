@@ -123,7 +123,7 @@ and Sending Mail and Registers and Minibuffer.
 * Glossary::	        The glossary.
 * Antinews::	        Information about Emacs version 21.
 * Mac OS::              Using Emacs in the Mac.
-* MS-DOS::              Using Emacs on MS-DOS (otherwise known as "MS-DOG").
+* MS-DOS::              Using Emacs on MS-DOS and Microsoft Windows.
 * Manifesto::	        What's GNU?  Gnu's Not Unix!
 * Acknowledgments::     Major contributors to GNU Emacs.
 
@@ -272,6 +272,7 @@ The Mark and the Region
 			  when there is one.
 * Momentary Mark::      Enabling Transient Mark mode momentarily.
 * Using Region::	Summary of ways to operate on contents of the region.
+* Selective Undo::      Undoing within a given region.
 * Marking Objects::	Commands to put region around textual units.
 * Mark Ring::		Previous mark positions saved so you can go back there.
 * Global Mark Ring::	Previous mark positions in various buffers.
