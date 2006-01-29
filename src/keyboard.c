@@ -651,8 +651,7 @@ static Lisp_Object read_char_x_menu_prompt P_ ((int, Lisp_Object *,
 						Lisp_Object, int *));
 static Lisp_Object read_char_x_menu_prompt ();
 static Lisp_Object read_char_minibuf_menu_prompt P_ ((int, int,
-						      Lisp_Object *,
-                                                      jmp_buf *));
+						      Lisp_Object *));
 static Lisp_Object make_lispy_event P_ ((struct input_event *));
 #ifdef HAVE_MOUSE
 static Lisp_Object make_lispy_movement P_ ((struct frame *, Lisp_Object,
@@ -678,7 +677,7 @@ static void timer_start_idle P_ ((void));
 static void timer_stop_idle P_ ((void));
 static void timer_resume_idle P_ ((void));
 
-Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object, int *, jmp_buf *));
+Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object, int *));
 
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
@@ -2460,19 +2459,18 @@ do { if (polling_stopped_here) start_polling ();	\
    if we used a mouse menu to read the input, or zero otherwise.  If
    USED_MOUSE_MENU is null, we don't dereference it.
 
-   WRONG_KBOARD_JMPBUF should be a stack context to longjmp to in case
-   we find input on another keyboard.
-   
+   Value is -2 when we find input on another keyboard.  A second call
+   to read_char will read it. 
+
    Value is t if we showed a menu and the user rejected it.  */
 
 Lisp_Object
-read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, wrong_kboard_jmpbuf)
+read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      int commandflag;
      int nmaps;
      Lisp_Object *maps;
      Lisp_Object prev_event;
      int *used_mouse_menu;
-     jmp_buf *wrong_kboard_jmpbuf;
 {
   volatile Lisp_Object c;
   int count;
@@ -2688,8 +2686,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, wrong_kboard_j
       && unread_command_char < 0
       && !detect_input_pending_run_timers (0))
     {
-      c = read_char_minibuf_menu_prompt (commandflag, nmaps, maps,
-                                         wrong_kboard_jmpbuf);
+      c = read_char_minibuf_menu_prompt (commandflag, nmaps, maps);
+
+      if (INTEGERP (c) && XINT (c) == -2)
+        return c;               /* wrong_kboard_jmpbuf */
+
       if (! NILP (c))
 	{
 	  key_already_recorded = 1;
@@ -2742,9 +2743,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, wrong_kboard_j
 	    /* This is going to exit from read_char
 	       so we had better get rid of this frame's stuff.  */
 	    UNGCPRO;
-            if (wrong_kboard_jmpbuf == NULL)
-              abort ();
-	    longjmp (*wrong_kboard_jmpbuf, 1);
+            return make_number (-2); /* wrong_kboard_jmpbuf */
 	  }
       }
 #endif
@@ -2888,9 +2887,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, wrong_kboard_j
   if (NILP (c) && current_kboard != orig_kboard)
     {
       UNGCPRO;
-      if (wrong_kboard_jmpbuf == NULL)
-        abort ();
-      longjmp (*wrong_kboard_jmpbuf, 1);
+      return make_number (-2);  /* wrong_kboard_jmpbuf */
     }
 
   /* If this has become non-nil here, it has been set by a timer
@@ -2941,9 +2938,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, wrong_kboard_j
 	    /* This is going to exit from read_char
 	       so we had better get rid of this frame's stuff.  */
 	    UNGCPRO;
-            if (wrong_kboard_jmpbuf == NULL)
-              abort ();
-	    longjmp (*wrong_kboard_jmpbuf, 1);
+            return make_number (-2); /* wrong_kboard_jmpbuf */
 	  }
     }
 #endif
@@ -2990,9 +2985,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, wrong_kboard_j
 	  /* This is going to exit from read_char
 	     so we had better get rid of this frame's stuff.  */
 	  UNGCPRO;
-          if (wrong_kboard_jmpbuf == NULL)
-            abort ();
-	  longjmp (*wrong_kboard_jmpbuf, 1);
+          return make_number (-2);
 	}
 #endif
     }
@@ -3310,7 +3303,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, wrong_kboard_j
 
       cancel_echoing ();
       do
-	c = read_char (0, 0, 0, Qnil, 0, wrong_kboard_jmpbuf);
+	c = read_char (0, 0, 0, Qnil, 0);
       while (BUFFERP (c));
       /* Remove the help from the frame */
       unbind_to (count, Qnil);
@@ -3320,7 +3313,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, wrong_kboard_j
 	{
 	  cancel_echoing ();
 	  do
-	    c = read_char (0, 0, 0, Qnil, 0, wrong_kboard_jmpbuf);
+	    c = read_char (0, 0, 0, Qnil, 0);
 	  while (BUFFERP (c));
 	}
     }
@@ -8241,11 +8234,10 @@ static char *read_char_minibuf_menu_text;
 static int read_char_minibuf_menu_width;
 
 static Lisp_Object
-read_char_minibuf_menu_prompt (commandflag, nmaps, maps, wrong_kboard_jmpbuf)
+read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
      int commandflag ;
      int nmaps;
      Lisp_Object *maps;
-     jmp_buf *wrong_kboard_jmpbuf;
 {
   int mapno;
   register Lisp_Object name;
@@ -8468,12 +8460,14 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps, wrong_kboard_jmpbuf)
       orig_defn_macro = current_kboard->defining_kbd_macro;
       current_kboard->defining_kbd_macro = Qnil;
       do
-	obj = read_char (commandflag, 0, 0, Qt, 0, wrong_kboard_jmpbuf);
+	obj = read_char (commandflag, 0, 0, Qt, 0);
       while (BUFFERP (obj));
       current_kboard->defining_kbd_macro = orig_defn_macro;
 
       if (!INTEGERP (obj))
 	return obj;
+      else if (XINT (obj) == -2)
+        return obj;
       else
 	ch = XINT (obj);
 
@@ -8838,7 +8832,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   /* Read the first char of the sequence specially, before setting
      up any keymaps, in case a filter runs and switches buffers on us.  */
   first_event = read_char (NILP (prompt), 0, submaps, last_nonmenu_event,
-			   &junk, NULL);
+			   &junk);
 #endif /* GOBBLE_FIRST_EVENT */
 
   orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
@@ -9014,7 +9008,12 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 #ifdef MULTI_KBOARD
 	    KBOARD *interrupted_kboard = current_kboard;
 	    struct frame *interrupted_frame = SELECTED_FRAME ();
-	    if (setjmp (*wrong_kboard_jmpbuf))
+#endif
+	    key = read_char (NILP (prompt), nmaps,
+			     (Lisp_Object *) submaps, last_nonmenu_event,
+			     &used_mouse_menu);
+#ifdef MULTI_KBOARD
+	    if (INTEGERP (key) && XINT (key) == -2) /* wrong_kboard_jmpbuf */
 	      {
 		int found = 0;
 		struct kboard *k;
@@ -9063,9 +9062,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		goto replay_sequence;
 	      }
 #endif
-	    key = read_char (NILP (prompt), nmaps,
-			     (Lisp_Object *) submaps, last_nonmenu_event,
-			     &used_mouse_menu, wrong_kboard_jmpbuf);
 	  }
 
 	  /* read_char returns t when it shows a menu and the user rejects it.

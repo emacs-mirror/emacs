@@ -404,10 +404,6 @@ THINGS TO DO
 ** Understand how `quit_throw_to_read_char' works, and fix any bugs
    that come to light.
 
-** Replace wrong_kboard_jmpbuf with a special return value of
-   read_char.  It is absurd that we use setjmp/longjmp just to return
-   to the immediate caller.
-
 ** See if getcjmp can be eliminated somehow.  Why does Emacs allow
    asynchronous input processing while it's reading input anyway?
 
@@ -1452,6 +1448,11 @@ DIARY OF CHANGES
    `getcjmp' when Emacs was waiting for input when the C-g event
    arrived.)
 
+-- Replace wrong_kboard_jmpbuf with a special return value of
+   read_char.  It is absurd that we use setjmp/longjmp just to return
+   to the immediate caller.
+
+   (Done in patch-500.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
 

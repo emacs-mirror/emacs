@@ -435,7 +435,7 @@ static void substitute_in_interval P_ ((INTERVAL, Lisp_Object));
 
 /* Get a character from the tty.  */
 
-extern Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object, int *, jmp_buf *));
+extern Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object, int *));
 
 /* Read input events until we get one that's acceptable for our purposes.
 
@@ -461,7 +461,6 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
      int no_switch_frame, ascii_required, error_nonascii, input_method;
 {
   volatile register Lisp_Object val, delayed_switch_frame;
-  jmp_buf *volatile wrong_kboard_jmpbuf = alloca (sizeof (jmp_buf));
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -472,12 +471,10 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
 
   /* Read until we get an acceptable event.  */
  retry:
-  setjmp (*wrong_kboard_jmpbuf);
+  do 
+    val = read_char (0, 0, 0, (input_method ? Qnil : Qt), 0);
+  while (INTEGERP (val) && XINT (val) == -2); /* wrong_kboard_jmpbuf */
 
-  val = read_char (0, 0, 0,
-		   (input_method ? Qnil : Qt),
-		   0, wrong_kboard_jmpbuf);
- 
   if (BUFFERP (val))
     goto retry;
 
