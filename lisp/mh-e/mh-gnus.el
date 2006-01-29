@@ -1,4 +1,4 @@
-;;; mh-gnus.el --- Make MH-E compatible with installed version of Gnus.
+;;; mh-gnus.el --- make MH-E compatible with various versions of Gnus
 
 ;; Copyright (C) 2003, 2004, 2006 Free Software Foundation, Inc.
 
@@ -30,18 +30,13 @@
 
 ;;; Code:
 
-;;(message "> mh-gnus")
-(eval-when-compile (require 'mh-acros))
-;;(message "< mh-gnus")
+(require 'mh-e)
 
-;; Load libraries in a non-fatal way in order to see if certain functions are
-;; pre-defined.
-(load "mailabbrev" t t)
-(load "mailcap" t t)
-(load "mm-decode" t t)
-(load "mm-uu" t t)
-(load "mml" t t)
-(load "smiley" t t)
+(require 'gnus-util nil t)
+(require 'mm-bodies nil t)
+(require 'mm-decode nil t)
+(require 'mm-view nil t)
+(require 'mml nil t)
 
 ;; Copy of function from gnus-util.el.
 (mh-defun-compat gnus-local-map-property (map)
@@ -68,12 +63,12 @@
     (mm-insert-inline
      handle
      (concat "\n-- \n"
-	     (ignore-errors
-	       (if (fboundp 'vcard-pretty-print)
-		   (vcard-pretty-print (mm-get-part handle))
-		 (vcard-format-string
-		  (vcard-parse-string (mm-get-part handle)
-				      'vcard-standard-filter))))))))
+             (ignore-errors
+               (if (fboundp 'vcard-pretty-print)
+                   (vcard-pretty-print (mm-get-part handle))
+                 (vcard-format-string
+                  (vcard-parse-string (mm-get-part handle)
+                                      'vcard-standard-filter))))))))
 
 ;; Function from mm-decode.el used in PGP messages. Just define it with older
 ;; Gnus to avoid compiler warning.
@@ -116,6 +111,10 @@
   "Older versions of Emacs don't have this function."
   nil)
 
+(mh-defun-compat mm-uu-dissect-text-parts (handles)
+  "Emacs 21 and XEmacs don't have this function."
+  nil)
+
 ;; Copy of function in mml.el.
 (mh-defun-compat mml-minibuffer-read-disposition (type &optional default)
   (unless default (setq default
@@ -128,7 +127,7 @@
                       '(("attachment") ("inline") (""))
                       nil t nil nil default)))
     (if (not (equal disposition ""))
-	disposition
+        disposition
       default)))
 
 ;; This is mm-save-part from Gnus 5.10 since that function in emacs21.2 is
@@ -157,11 +156,6 @@
   "Find the renderer Gnus is using to display text/html MIME parts."
   (or (and (boundp 'mm-inline-text-html-renderer) mm-inline-text-html-renderer)
       (and (boundp 'mm-text-html-renderer) mm-text-html-renderer)))
-
-(defun mh-mail-abbrev-make-syntax-table ()
-  "Call `mail-abbrev-make-syntax-table' if available."
-  (when (fboundp 'mail-abbrev-make-syntax-table)
-    (mail-abbrev-make-syntax-table)))
 
 (provide 'mh-gnus)
 

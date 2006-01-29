@@ -27,34 +27,19 @@
 
 ;;; Commentary:
 
-;; Internal support for MH-E package.
 ;; Putting these functions in a separate file lets MH-E start up faster,
 ;; since less Lisp code needs to be loaded all at once.
+
+;; Please add the functions in alphabetical order. If only one or two
+;; small support routines are needed, place them with the function;
+;; otherwise, create a separate section for them.
 
 ;;; Change Log:
 
 ;;; Code:
 
-;;(message "> mh-funcs")
-(eval-when-compile (require 'mh-acros))
-(mh-require-cl)
-(require 'mh-buffers)
 (require 'mh-e)
-;;(message "< mh-funcs")
-
-
-
-;;; Scan Line Formats
-
-(defvar mh-note-copied "C"
-  "Messages that have been copied are marked by this character.")
-
-(defvar mh-note-printed "P"
-  "Messages that have been printed are marked by this character.")
-
-
-
-;;; Functions
+(require 'mh-scan)
 
 ;;;###mh-autoload
 (defun mh-burst-digest ()
@@ -213,27 +198,6 @@ Display RANGE after packing, or the entire folder if RANGE is nil."
   (mh-regenerate-headers range))
 
 ;;;###mh-autoload
-(defun mh-pipe-msg (command include-header)
-  "Pipe message through shell command COMMAND.
-
-You are prompted for the Unix command through which you wish to
-run your message. If you give a prefix argument INCLUDE-HEADER to
-this command, the message header is included in the text passed
-to the command."
-  (interactive
-   (list (read-string "Shell command on message: ") current-prefix-arg))
-  (let ((msg-file-to-pipe (mh-msg-filename (mh-get-msg-num t)))
-        (message-directory default-directory))
-    (save-excursion
-      (set-buffer (get-buffer-create mh-temp-buffer))
-      (erase-buffer)
-      (insert-file-contents msg-file-to-pipe)
-      (goto-char (point-min))
-      (if (not include-header) (search-forward "\n\n"))
-      (let ((default-directory message-directory))
-        (shell-command-on-region (point) (point-max) command nil)))))
-
-;;;###mh-autoload
 (defun mh-page-digest ()
   "Display next message in digest."
   (interactive)
@@ -268,6 +232,27 @@ to the command."
     (mh-recenter 0)))
 
 ;;;###mh-autoload
+(defun mh-pipe-msg (command include-header)
+  "Pipe message through shell command COMMAND.
+
+You are prompted for the Unix command through which you wish to
+run your message. If you give a prefix argument INCLUDE-HEADER to
+this command, the message header is included in the text passed
+to the command."
+  (interactive
+   (list (read-string "Shell command on message: ") current-prefix-arg))
+  (let ((msg-file-to-pipe (mh-msg-filename (mh-get-msg-num t)))
+        (message-directory default-directory))
+    (save-excursion
+      (set-buffer (get-buffer-create mh-temp-buffer))
+      (erase-buffer)
+      (insert-file-contents msg-file-to-pipe)
+      (goto-char (point-min))
+      (if (not include-header) (search-forward "\n\n"))
+      (let ((default-directory message-directory))
+        (shell-command-on-region (point) (point-max) command nil)))))
+
+;;;###mh-autoload
 (defun mh-sort-folder (&optional extra-args)
   "Sort folder.
 
@@ -287,21 +272,6 @@ By default, messages are sorted by date. The option
     (mh-scan-folder mh-current-folder "all")
     (cond (threaded-flag (mh-toggle-threads))
           (mh-index-data (mh-index-insert-folder-headers)))))
-
-;;;###mh-autoload
-(defun mh-undo-folder ()
-  "Undo all refiles and deletes in the current folder."
-  (interactive)
-  (cond ((or mh-do-not-confirm-flag
-             (yes-or-no-p "Undo all commands in folder? "))
-         (setq mh-delete-list nil
-               mh-refile-list nil
-               mh-seq-list nil
-               mh-next-direction 'forward)
-         (with-mh-folder-updating (nil)
-           (mh-remove-all-notation)))
-        (t
-         (message "Commands not undone"))))
 
 ;;;###mh-autoload
 (defun mh-store-msg (directory)
@@ -326,7 +296,6 @@ storing the content of these messages."
       (insert-file-contents msg-file-to-store)
       (mh-store-buffer directory))))
 
-;;;###mh-autoload
 (defun mh-store-buffer (directory)
   "Unpack buffer created with \"uudecode\" or \"shar\".
 
@@ -383,48 +352,20 @@ See `mh-store-msg' for a description of DIRECTORY."
             (insert "\n(mh-store finished)\n"))
         (error "Error occurred during execution of %s" command)))))
 
-
-
-;;; Help Functions
-
 ;;;###mh-autoload
-(defun mh-ephem-message (string)
-  "Display STRING in the minibuffer momentarily."
-  (message "%s" string)
-  (sit-for 5)
-  (message ""))
-
-;;;###mh-autoload
-(defun mh-help ()
-  "Display cheat sheet for the MH-E commands."
+(defun mh-undo-folder ()
+  "Undo all refiles and deletes in the current folder."
   (interactive)
-  (with-electric-help
-   (function
-    (lambda ()
-      (insert
-       (substitute-command-keys
-        (mapconcat 'identity (cdr (assoc nil mh-help-messages)) ""))))
-    mh-help-buffer)))
-
-;;;###mh-autoload
-(defun mh-prefix-help ()
-  "Display cheat sheet for the commands of the current prefix in minibuffer."
-  (interactive)
-  ;; We got here because the user pressed a "?", but he pressed a prefix key
-  ;; before that. Since the the key vector starts at index 0, the index of the
-  ;; last keystroke is length-1 and thus the second to last keystroke is at
-  ;; length-2. We use that information to obtain a suitable prefix character
-  ;; from the recent keys.
-  (let* ((keys (recent-keys))
-         (prefix-char (elt keys (- (length keys) 2))))
-    (with-electric-help
-     (function
-      (lambda ()
-        (insert
-         (substitute-command-keys
-          (mapconcat 'identity
-                     (cdr (assoc prefix-char mh-help-messages)) "")))))
-     mh-help-buffer)))
+  (cond ((or mh-do-not-confirm-flag
+             (yes-or-no-p "Undo all commands in folder? "))
+         (setq mh-delete-list nil
+               mh-refile-list nil
+               mh-seq-list nil
+               mh-next-direction 'forward)
+         (with-mh-folder-updating (nil)
+           (mh-remove-all-notation)))
+        (t
+         (message "Commands not undone"))))
 
 (provide 'mh-funcs)
 
