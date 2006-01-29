@@ -523,8 +523,8 @@ DEFUN ("car", Fcar, Scar, 1, 1, 0,
        doc: /* Return the car of LIST.  If arg is nil, return nil.
 Error if arg is not nil and not a cons cell.  See also `car-safe'.
 
-See Info node `(elisp)Cons Cells' for a discussion of basic Lisp
-concepts such as car, cdr, cons cell and list.  */)
+See Info node `(elisp)Cons Cells' for a discussion of related basic
+Lisp concepts such as car, cdr, cons cell and list.  */)
      (list)
      register Lisp_Object list;
 {
@@ -554,8 +554,8 @@ DEFUN ("cdr", Fcdr, Scdr, 1, 1, 0,
        doc: /* Return the cdr of LIST.  If arg is nil, return nil.
 Error if arg is not nil and not a cons cell.  See also `cdr-safe'.
 
-See Info node `(elisp)Cons Cells' for a discussion of basic Lisp
-concepts such as cdr, car, cons cell and list.  */)
+See Info node `(elisp)Cons Cells' for a discussion of related basic
+Lisp concepts such as cdr, car, cons cell and list.  */)
      (list)
      register Lisp_Object list;
 {
