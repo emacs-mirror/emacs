@@ -1,3 +1,38 @@
+2006-01-29  Richard M. Stallman  <rms@gnu.org>
+
+	* screen.texi: Minor cleaups.
+	(Screen): Clean up the intro paragraphs.
+	(Mode Line): Lots of rewriting.  Handle frame-name better.
+	eol-mnemonic-... vars moved out.
+
+	* emacs.texi (Top): Change menu item for MS-DOS node.
+	Update subnode menu.
+
+	* msdog.texi (MS-DOS): Rewrite intro to explain how this
+	chapter relates to Windows.  Title changed.
+
+	* mini.texi: Minor cleanups.
+
+	* mark.texi (Selective Undo): New node, text moved from basic.texi.
+	(Mark): Put it in the menu.
+
+	* entering.texi: Minor cleanups.
+
+	* emacs.texi (Top): Add xref to Mac chapter; explain Windows better.
+	(Intro): Refer to "graphical" terminals, rather than X.
+
+	* display.texi (Display Custom): Add xref to Variables.
+	(Optional Mode Line): eol-mnemonic-... vars moved here.
+
+
+	* commands.texi: Minor cleanups.  Refer to "graphical" terminals,
+	rather than X.
+
+	* cc-mode.texi (Indentation Commands): Inserts newline, not "linefeed".
+
+	* basic.texi: Minor cleanups.
+	(Undo): selective-undo moved.
+
 2006-01-29  Michael Olson  <mwolson@gnu.org>
 
 	* makefile.w32-in ($(infodir)/erc, erc.dvi): New targets.
