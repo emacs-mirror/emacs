@@ -1,3 +1,7 @@
+2006-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* info/dir: Fix last change.
+
 2006-01-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* Makefile.in (install-arch-indep, uninstall): Add rcirc.
