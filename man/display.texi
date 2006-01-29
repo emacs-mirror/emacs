@@ -961,6 +961,16 @@ ordinary entry to the minibuffer does not change any mode lines.
 @code{mode-line-in-non-selected-windows} to @code{nil}; then all mode
 lines are displayed in the @code{mode-line} face.
 
+@vindex eol-mnemonic-unix
+@vindex eol-mnemonic-dos
+@vindex eol-mnemonic-mac
+@vindex eol-mnemonic-undecided
+  You can customize the mode line display for each of the end-of-line
+formats by setting each of the variables @code{eol-mnemonic-unix},
+@code{eol-mnemonic-dos}, @code{eol-mnemonic-mac}, and
+@code{eol-mnemonic-undecided} to any string you find appropriate.
+@xref{Variables}, for an explanation of how to set variables.
+
 @node Text Display
 @section How Text Is Displayed
 @cindex characters (in text)
@@ -1051,8 +1061,11 @@ global-hl-line-mode} enables or disables the same mode globally.
 @node Display Custom
 @section Customization of Display
 
-  This section contains information for customization only.  Beginning
-users should skip it.
+  This section describes variables (@pxref{Variables}) that you can
+change to customize how Emacs displays text.  Beginning users can skip
+it.
+@c the reason for that pxref is because an xref early in the
+@c ``echo area'' section leads here.
 
 @vindex inverse-video
   If the variable @code{inverse-video} is non-@code{nil}, Emacs attempts
