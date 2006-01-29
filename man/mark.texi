@@ -44,6 +44,7 @@ mark in the @dfn{mark ring}.
 			  when there is one.
 * Momentary Mark::      Enabling Transient Mark mode momentarily.
 * Using Region::	Summary of ways to operate on contents of the region.
+* Selective Undo::      Undoing within a given region.
 * Marking Objects::	Commands to put region around textual units.
 * Mark Ring::   	Previous mark positions saved so you can go back there.
 * Global Mark Ring::    Previous mark positions in various buffers.
@@ -297,10 +298,30 @@ Fill it as text with @kbd{M-x fill-region} (@pxref{Filling}).
 Print hardcopy with @kbd{M-x print-region} (@pxref{Printing}).
 @item
 Evaluate it as Lisp code with @kbd{M-x eval-region} (@pxref{Lisp Eval}).
+@item
+Undo changes within it using @kbd{C-u C-x u} (@pxref{Selective Undo}).
 @end itemize
 
   Most commands that operate on the text in the region have the word
 @code{region} in their names.
+
+@node Selective Undo
+@section Selective Undo
+
+@cindex selective undo
+@kindex C-u C-x u
+  Ordinary undo applies to all changes made in the current buffer.  You
+can also perform @dfn{selective undo}, limited to the current region
+(@pxref{Mark}).
+
+  To do this, specify the region you want, then run the @code{undo}
+command with a prefix argument (the value does not matter): @kbd{C-u
+C-x u} or @kbd{C-u C-_}.  This undoes the most recent change in the
+region.  To undo further changes in the same region, repeat the
+@code{undo} command (no prefix argument is needed).  In Transient Mark
+mode (@pxref{Transient Mark}), any use of @code{undo} when there is an
+active region performs selective undo; you do not need a prefix
+argument.
 
 @node Marking Objects
 @section Commands to Mark Textual Objects
