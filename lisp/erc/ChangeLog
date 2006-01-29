@@ -1,0 +1,327 @@
+2006-01-28  Michael Olson  <mwolson@gnu.org>
+
+	* erc-*.el, erc.texi, NEWS: Add Arch taglines as per Emacs
+	guidelines.
+
+	* erc-*.el: Space out copyright years like the rest of Emacs.  Use
+	the Emacs copyright statement.  Refer to ourselves as ERC rather
+	than "Emacs IRC Client", since there are now several IRC clients
+	for Emacs.
+
+	* erc-compat.el (erc-emacs-build-time): Define as a variable.
+
+	* erc-log.el (erc-log-setup-logging): Use write-file-functions.
+
+	* erc-ibuffer.el: Require 'erc.
+
+	* erc-stamp.el (erc-insert-aligned): Only use the special text
+	property when window-system is X.
+
+	* erc.texi: Adapt for inclusion in Emacs.
+
+2006-01-28  Johan Bockgård  <bojohan@users.sourceforge.net>
+
+	* erc.el (erc-format-message): More `cl' breakage; don't use
+	`oddp'.
+
+2006-01-27  Michael Olson  <mwolson@gnu.org>
+
+	* debian/changelog: Update for new release.
+
+	* debian/control (Description): Update.
+
+	* debian/rules: Concatenate ChangeLog for 2005.
+
+	* Makefile (MISC): Include ChangeLog.2005 and erc.texi.
+	(debrelease, release): Copy images directory.
+
+	* NEWS: Spelling fixes.  Add items for recent changes.
+
+	* erc.el (erc): Move call to erc-update-modules before the call to
+	erc-mode.  This should fix a timestamp display issue.
+	(erc-version-string): Release ERC 5.1.
+
+2006-01-26  Michael Olson  <mwolson@gnu.org>
+
+	* erc-stamp.el (erc-insert-aligned): New function that inserts
+	text in an perfectly-aligned way relative to the right margin.  It
+	only works well with Emacs22.  A sane fallback is provided for
+	other versions of Emacs.
+	(erc-insert-timestamp-right): Use the new function.
+
+2006-01-25  Edward O'Connor  <ted@oconnor.cx>
+
+	* erc.el (erc-modules): Ensure that `erc-button-mode' gets enabled
+	before `erc-match-mode'.
+
+	* erc-match.el (match): Append `erc-match-message' to
+	`erc-insert-modify-hook'.
+
+2006-01-25  Michael Olson  <mwolson@gnu.org>
+
+	* FOR-RELEASE: Mark last release requirement as done.
+
+	* Makefile (realclean, distclean): Remove docs.
+
+	* erc.texi: Take care of all pre-5.1 items.
+
+	* erc-backend.el (erc-server-send, erc-server-send-queue): Wrap
+	`process-send-string' in `condition-case' to avoid an error when
+	quitting ERC.
+
+	* erc-stamp.el (erc-insert-timestamp-right): Try to deal with
+	variable-width characters in the timestamp and on the same line.
+	The latter is a kludge, but it seems to work with most of the
+	input I've thrown at it so far.  It's certainly better than going
+	past the end of line consistently when we have variable-width
+	characters on the same line.  When `erc-timestamp-intangible' is
+	non-nil, add intangible properties to the whitespace as well, so
+	that hitting <end> does what you'd expect.
+
+	* erc.el (erc-flood-protect, erc-toggle-flood-control): Update
+	this to only use boolean values for `erc-flood-protect'.  Update
+	documentation.
+	(erc-cmd-QUIT): Set the active buffer to be the server buffer, so
+	that any QUIT-related messages go there.
+	(erc): Try to be more clever about re-using channel buffers when
+	automatically re-connecting.  Thanks to e1f for noticing.
+
+2006-01-23  Michael Olson  <mwolson@gnu.org>
+
+	* ChangeLog.2005: Remove erroneous line.
+
+	* FOR-RELEASE: Make that the Makefile tweaking is complete.
+	(NEWS): Mark as done.
+
+	* Makefile (MANUAL): New option indicating the name of the manual.
+	(PREFIX, ELISPDIR, INFODIR): New options that specify the
+	directories to install lisp code and info manuals to.  PREFIX is
+	used only by ELISPDIR and INFODIR.
+	(all): Call `lisp' and create the manual.
+	(lisp): Compile lisp code.
+	(%.info, %.html): New rules that make Info files and HTML files,
+	respectively, from a TexInfo source.
+	(doc): Create both the Info and HTML versions of the manual.  This
+	is for the user -- we never call it automatically.
+	(install-info): Install Info files.
+	(install-bin): Install compiled and source Lisp files.
+	(todo): Remove, since it seems pointless.
+
+	* NEWS: Update.
+
+	* README: Add Installation instructions.  Tweak layout.
+
+	* erc.texi: Work on some pre-5.1 items.
+
+	* erc-stamp.el, erc-track.el: Move some functions and options in
+	order to get rid of a few compiler warnings.
+
+	* erc.el (erc-modules): Enable readonly by default.  This will
+	prevent new users from accidentally removing old messages, which
+	could be disconcerting.  Also enable stamp by default, since
+	timestamps are a fairly standard feature among IRC clients.
+
+	* erc-button.el: Munge whitespace.
+
+	* erc-identd.el (erc-identd-start): Instead of throwing an error,
+	just try to use the obsolete function.
+
+2006-01-22  Michael Olson  <mwolson@gnu.org>
+
+	* erc-backend.el (erc-decode-string-from-target): Make sure that
+	we have a string as an argument.  If not, coerce it to the empty
+	string.  Hopefully, this will work painlessly around an edge case
+	related to quitting ERC around the same time a message comes in.
+
+2006-01-22  Johan Bockgård  <bojohan@users.sourceforge.net>
+
+	* erc-track.el: Use `(eval-when-compile (require 'cl))' (for
+	`case'). Doc fixes.
+	(erc-find-parsed-property): Simplify.
+	(erc-track-get-active-buffer): Fix logic. Simplify.
+	(erc-track-switch-buffer): Remove unused variable `dir'. Simplify.
+
+	* erc-speak.el: Doc fixes.
+	(erc-speak-region): `propertize' --> `erc-propertize'.
+
+	* erc-dcc.el (erc-dcc-chat-parse-output): `propertize' -->
+	`erc-propertize'.
+
+	* erc-button.el (erc-button-add-button): Take erc-fill-prefix into
+	account when wrapping URLs.
+
+	* erc-bbdb.el (erc-bbdb-elide-display): Doc fix.
+
+	* erc-backend.el (define-erc-response-handler): Doc fix.
+
+2006-01-22  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-update-modules): Use `require' instead of `load',
+	but prevent it from causing errors, in order to preserve the
+	previous behavior.
+
+2006-01-21  Michael Olson  <mwolson@gnu.org>
+
+	* FOR-RELEASE (Source): Mark cl task as done.
+
+	* Makefile (erc-auto.el): Call erc-generate-autoloads rather than
+	generate-autoloads.
+	(erc-auto.el, %.elc): Don't show command, just its output.
+
+	* NEWS: Add items from 2005-01-01 to 2005-08-13.
+
+	* debian/copyright (Copyright): Update.
+
+	* erc-auto.in (erc-generate-autoloads): Rename from
+	generate-autoloads.
+
+	* erc.el, erc-autoaway.el, erc-backend.el: Use
+	erc-server-process-alive instead of erc-process-alive.
+
+	* erc.el, erc-backend.el, erc-ezbounce.el, erc-list.el,
+	erc-log.el, erc-match.el, erc-nets.el, erc-netsplit.el,
+	erc-nicklist.el, erc-nickserv.el, erc-notify.el, erc-pcomplete.el:
+	Use (eval-when-compile 'cl), so that compilation doesn't fail.
+
+	* erc-fill.el, erc-truncate.el: Whitespace munging.
+
+	* erc.el: Update copyright notice.  Remove eval-after-load code.
+	(erc-with-buffer): Docfix.
+	(erc-once-with-server-event, erc-once-with-server-event-global)
+	(erc-with-buffer, erc-with-all-buffers-of-server): Use erc-gensym
+	instead of gensym.
+	(erc-banlist-update): Use erc-delete-if instead of delete-if.
+	(erc): Call `erc-update-modules' here.
+
+	* erc-backend.el: Require 'erc-compat to minimize compiler
+	warnings.
+	(erc-decode-parsed-server-response): Docfix.
+	(erc-server-process-alive): Move here from erc.el and rename from
+	`erc-process-alive'.
+	(erc-server-send, erc-remove-channel-users): Make sure process is
+	alive before sending data to it.
+
+	* erc-bbdb.el: Update copyright years.
+	(erc-bbdb-whois): Remove overexuberant comment.
+
+	* erc-button.el: Require erc-fill, since we make liberal use of
+	`erc-fill-column'.
+
+	* erc-compat.el (erc-const-expr-p, erc-list*, erc-assert): New
+	functions, the latter of which provides an `assert' equivalent.
+	(erc-remove-if-not): New function that provides a simple
+	implementation of `remove-if-not'.
+	(erc-gensym): New function that provides a simple implementation
+	of `gensym'.
+	(erc-delete-if): New function that provides a simple
+	implementation of `delete-if'.
+	(erc-member-if): New function that provides a simple
+	implementation of `member-if'.
+	(field-end): Remove this, since it is unused, and later versions
+	of XEmacs have this function already.
+	(erc-function-arglist): Moved here from erc.el.
+	(erc-delete-dups): New compatibility function for dealing with
+	XEmacs.
+	(erc-subseq): New function copied from cl-extra.el.
+
+	* erc-dcc.el: Require pcomplete during compilation to avoid
+	compiler warnings.
+	(erc-unpack-int, erc-dcc-send-filter)
+	(erc-dcc-get-filter): Use erc-assert instead of assert.
+	(pcomplete/erc-mode/DCC): Use erc-remove-if-not instead of
+	remove-if-not.
+
+	* erc-match.el (erc-log-matches): Fix compiler warning.
+
+	* erc-nicklist.el: Update copyright notice.
+	(erc-nicklist-menu): Change use of caadr to (car (cadr ...)).
+	(erc-nicklist-bitlbee-connected-p): Remove.
+	(erc-nicklist-insert-medium-name-or-icon): Accept channel
+	argument.  Use it to determine whether we are on bitlbee.  Now
+	that bitlbee names its channel "&bitlbee", this is trivial.
+	(erc-nicklist-insert-contents): Pass channel as specified above.
+	Don't try to determine whether we are on bitlbee here.
+	(erc-nicklist-channel-users-info): Use erc-remove-if-not instead
+	of remove-if-not.
+	(erc-nicklist-search-for-nick): Use erc-member-if instead of
+	member-if.
+
+	* erc-notify.el (erc-notify-QUIT): Use erc-delete-if with a
+	partially-evaluated lambda expression instead of `delete' and
+	`find'.
+
+	* erc-track.el: Use erc-assert.
+	(erc-track-modified-channels): Remove use of `return'.
+	(erc-track-modified-channels): Use `cadr' instead of `second',
+	since otherwise we would need yet another eval-when-compile line.
+
+2006-01-19  Michael Olson  <mwolson@gnu.org>
+
+	* erc-backend.el (erc-process-sentinel-1): Remove attempt to
+	detect SIGPIPE, since it doesn't work.
+
+2006-01-10  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc-spelling.el: Updated copyright years.
+	(define-erc-module): Enable/disable `flyspell-mode' for all open
+	ERC buffers as well.
+	(erc-spelling-dictionaries): Reworded customize description.
+
+	* erc.el (erc-command-symbol): New function.
+	(erc-extract-command-from-line): Use `erc-command-symbol'.  This
+	fixes a bug where "Symbol's function definition is void:
+	erc-cmd-LIST" would be shown after typing /list at the prompt (the
+	command was interned because erc-menu.el uses it and is enabled by
+	default whereas erc-list.el is not).
+
+	* NEWS: Started a list of renamed variables.
+
+	* erc.el: Reworded the message sent when defining variable
+	aliases.
+	(erc-command-indicator-face): Doc fix.
+	(erc-modules): Enable the match module by default which makes
+	current nickname highlighting on as the default.
+
+	* erc-button.el: Updated copyright years.
+	(erc-button): New face.
+	(erc-button-face): Use `erc-button'.
+	(erc-button-nickname-face): New customizable variable.
+	(erc-button-add-nickname-buttons, erc-button-add-buttons-1): Send
+	new argument to `erc-button-add-button'.
+	(erc-button-add-button): Doc fix.  Added new argument to function
+	definition, NICK-P.  If it's a nickname, use
+	`erc-button-nickname-face', otherwise use `erc-button-face'.  This
+	makes channel tracking and buttons work better together when
+	`erc-button-buttonize-nicks' is enabled, since there is a nickname
+	on just about every line.
+
+	* erc-track.el (erc-track-use-faces): Doc fix.
+	(erc-track-faces-priority-list): Added `erc-button' to list.
+	(erc-track-priority-faces-only): Doc fix.
+
+2006-01-09  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc-button.el (erc-button-url-regexp): Use `concat' so the
+	regexp is not one long line.
+	(erc-button-alist): Fixed so that customizing works correctly.
+	Reorganized.  Removed lambda functions with more than two lines.
+	Doc fix.
+	(erc-button-describe-symbol, erc-button-beats-to-time): New
+	functions.  Moved from `erc-button-alist'.
+
+2006-01-07  Michael Olson  <mwolson@gnu.org>
+
+	* erc-backend.el (erc-process-sentinel-1): Don't try to re-open a
+	process if a SIGPIPE occurs.  This happens when a new message
+	comes in at the same time a /quit is requested.
+	(erc-process-sentinel): Use string-match rather than string= to do
+	these comparisons.  Matching literal newlines makes me nervous.
+
+	* erc-track.el (erc-track-remove-from-mode-line): Handle case
+	where global-mode-string is not a list.  Emacs22 permits this.
+
+    Copyright (C) 2006 Free Software Foundation, Inc.
+  Copying and distribution of this file, with or without modification,
+  are permitted provided the copyright notice and this notice are preserved.
+
+;; arch-tag: 865a75f6-2bcb-46df-bf0c-b514dadf688a

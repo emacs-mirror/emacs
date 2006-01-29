@@ -1,3 +1,8 @@
+2006-01-29  Michael Olson  <mwolson@gnu.org>
+
+	* Makefile.in (install-arch-indep, uninstall): Add ERC.
+	* info/dir (ERC): New entry.
+
 2006-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* info/dir: Fix last change.
