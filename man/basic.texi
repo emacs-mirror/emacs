@@ -154,9 +154,9 @@ rebind @key{DEL} to other commands.
 clicking the left mouse button where you want to move to.
 
   There are also control and meta characters for cursor motion.  Some
-are equivalent to the arrow keys (these date back to the days before
-terminals had arrow keys, and are usable on terminals which don't have
-them).  Others do more sophisticated things.
+are equivalent to the arrow keys (it is faster to use these control
+keys than move your hand over to the arrow keys).  Others do more
+sophisticated things.
 
 @kindex C-a
 @kindex C-e
@@ -282,8 +282,8 @@ Delete the character after point (@code{delete-char}).
 @item @key{DELETE}
 @itemx @key{BACKSPACE}
 One of these keys, whichever is the large key above the @key{RET} or
-@key{ENTER} key, deletes the character before point, like @key{DEL}.
-If that is @key{BACKSPACE}, and your keyboard also has @key{DELETE},
+@key{ENTER} key, deletes the character before point---it is @key{DEL}.
+If @key{BACKSPACE} is @key{DEL}, and your keyboard also has @key{DELETE},
 then @key{DELETE} deletes forwards, like @kbd{C-d}.
 @item C-k
 Kill to the end of the line (@code{kill-line}).
@@ -330,8 +330,6 @@ Undo one batch of changes---usually, one command worth (@code{undo}).
 @item C-_
 @itemx C-/
 The same.
-@item C-u C-x u
-Undo one batch of changes in the region.
 @end table
 
 @kindex C-x u
@@ -358,20 +356,6 @@ hand, if you want to ignore previous undo commands, use @kbd{M-x
 undo-only}.  This is like @code{undo}, but will not redo changes
 you have just undone.
 
-@cindex selective undo
-@kindex C-u C-x u
-  Ordinary undo applies to all changes made in the current buffer.  You
-can also perform @dfn{selective undo}, limited to the current region
-(@pxref{Mark}).
-To do this, specify the region you want, then run the @code{undo}
-command with a prefix argument (the value does not matter): @kbd{C-u C-x
-u} or @kbd{C-u C-_}.  This undoes the most recent change in the region.
-To undo further changes in the same region, repeat the @code{undo}
-command (no prefix argument is needed).  In Transient Mark mode
-(@pxref{Transient Mark}), any use of @code{undo} when there is an
-active region performs selective undo; you do not need a prefix
-argument.
-
   If you notice that a buffer has been modified accidentally, the
 easiest way to recover is to type @kbd{C-_} repeatedly until the stars
 disappear from the front of the mode line.  At this time, all the
@@ -386,15 +370,20 @@ will see whether it was an intentional change.  If it was an accident,
 leave it undone.  If it was deliberate, redo the change as described
 above.
 
-  Not all buffers record undo information.  Buffers whose names start with
-spaces don't; these buffers are used internally by Emacs and its extensions
-to hold text that users don't normally look at or edit.
+  Normal undo applies to the buffer as a whole.  You can also
+selectively undo changes in any part of the buffer (@pxref{Selective
+Undo}).
 
-  You cannot undo mere cursor motion; only changes in the buffer
-contents save undo information.  However, some cursor motion commands
-set the mark, so if you use these commands from time to time, you can
-move back to the neighborhoods you have moved through by popping the
-mark ring (@pxref{Mark Ring}).
+  Some specialized buffers do not record undo information.  Buffers
+whose names start with spaces never do; these buffers are used
+internally by Emacs and its extensions to hold text that users don't
+normally look at or edit.
+
+  The undo command applies only to changes in the buffer; you can't
+use it to undo mere cursor motion.  However, some cursor motion
+commands set the mark, so if you use these commands from time to time,
+you can move back to the neighborhoods you have moved through by
+popping the mark ring (@pxref{Mark Ring}).
 
 @vindex undo-limit
 @vindex undo-strong-limit
@@ -428,24 +417,26 @@ undo data, then it is probably a bug and you should report it.
   The reason the @code{undo} command has three key bindings, @kbd{C-x
 u}, @kbd{C-_} and @kbd{C-/}, is that it is worthy of a
 single-character key, but @kbd{C-x u} is more straightforward for
-beginners to type.
+beginners to type.  Meanwhile, @kbd{C--} on a text-only terminal is
+really @kbd{C-_}, which makes it a natural and easily typed binding
+for undoing.
 
 @node Basic Files
 @section Files
 
   The commands described above are sufficient for creating and altering
 text in an Emacs buffer; the more advanced Emacs commands just make
-things easier.  But to keep any text permanently you must put it in a
+things easier.  However, to keep any text permanently you must put it in a
 @dfn{file}.  Files are named units of text which are stored by the
 operating system for you to retrieve later by name.  To look at or use
 the contents of a file in any way, including editing the file with
 Emacs, you must specify the file name.
 
-  Consider a file named @file{/usr/rms/foo.c}.  In Emacs, to begin editing
-this file, type
+  Consider a file named @file{test.emacs}.  (We can assume it is in
+your home directory.)  In Emacs, to begin editing this file, type
 
 @example
-C-x C-f /usr/rms/foo.c @key{RET}
+C-x C-f test.emacs @key{RET}
 @end example
 
 @noindent
@@ -459,8 +450,8 @@ copying the contents of the file into the buffer, and then displaying
 the buffer for you to edit.  If you alter the text, you can @dfn{save}
 the new text in the file by typing @kbd{C-x C-s} (@code{save-buffer}).
 This makes the changes permanent by copying the altered buffer contents
-back into the file @file{/usr/rms/foo.c}.  Until you save, the changes
-exist only inside Emacs, and the file @file{foo.c} is unaltered.
+back into the file @file{test.emacs}.  Until you save, the changes
+exist only inside Emacs, and the file @file{test.emacs} is unaltered.
 
   To create a file, just visit the file with @kbd{C-x C-f} as if it
 already existed.  This creates an empty buffer in which you can insert
@@ -777,15 +768,14 @@ holding down modifier keys; @kbd{C-u} works on all terminals.  To type a
 negative argument, type a minus sign after @kbd{C-u}.  Just a minus sign
 without digits normally means @minus{}1.
 
-  @kbd{C-u} followed by a character which is neither a digit nor a minus
-sign has the special meaning of ``multiply by four.''  It multiplies the
-argument for the next command by four.  @kbd{C-u} twice multiplies it by
-sixteen.  Thus, @kbd{C-u C-u C-f} moves forward sixteen characters.  This
-is a good way to move forward ``fast,'' since it moves about 1/5 of a line
-in the usual size screen.  Other useful combinations are @kbd{C-u C-n},
-@kbd{C-u C-u C-n} (move down a good fraction of a screen), @kbd{C-u C-u
-C-o} (make ``a lot'' of blank lines), and @kbd{C-u C-k} (kill four
-lines).@refill
+  @kbd{C-u} without digits or minus sign has the special meaning of
+``four times'': it multiplies the argument for the next command by
+four.  @kbd{C-u C-u} multiplies it by sixteen.  Thus, @kbd{C-u C-u
+C-f} moves forward sixteen characters.  This is a good way to move
+forward ``fast,'' since it moves about 1/5 of a line in the usual size
+screen.  Other useful combinations are @kbd{C-u C-n}, @kbd{C-u C-u
+C-n} (move down a good fraction of a screen), @kbd{C-u C-u C-o} (make
+``a lot'' of blank lines), and @kbd{C-u C-k} (kill four lines).@refill
 
   Some commands care only about whether there is an argument, and not about
 its value.  For example, the command @kbd{M-q} (@code{fill-paragraph}) with
