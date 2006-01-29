@@ -80,7 +80,8 @@ the line with the preceding line.
 
   Emacs can split lines automatically when they become too long, if you
 turn on a special minor mode called @dfn{Auto Fill} mode.
-@xref{Filling}, for how to use Auto Fill mode.
+@xref{Filling}, for how to use Auto Fill mode and other modes for
+@dfn{filling} text.
 
   If you prefer to have text characters replace (overwrite) existing
 text rather than shove it to the right, you can enable Overwrite mode,
@@ -540,17 +541,20 @@ column, some columns at the end of the previous screen line may be
 characters in the ``empty'' columns, just before the @samp{\}
 character that indicates continuation.
 
-  Sometimes it is nice to have Emacs insert newlines automatically when
-a line gets too long.  Continuation on the screen does not do that.  Use
-Auto Fill mode (@pxref{Filling}) if that's what you want.
+  Continued lines can be rather difficult to read, since each line is
+typically broken in the middle of a word.  You can have Emacs insert a
+newline automatically when a line gets too long, by using Auto Fill
+mode.  Another approach, intermediate between continued lines and Auto
+Fill mode, is Long Lines mode, which ensures that wrapping only occurs
+in the spaces between words.  @xref{Filling}.
 
 @cindex truncation
 @cindex line truncation, and fringes
-  As an alternative to continuation, Emacs can display long lines by
-@dfn{truncation}.  This means that all the characters that do not fit
-in the width of the screen or window do not appear at all.  @samp{$}
-in the last column or a small straight arrow in the fringe to the
-right of the window indicates a truncated line.
+  Emacs can also display long lines by @dfn{truncation}.  This means
+that all the characters that do not fit in the width of the screen or
+window do not appear at all.  @samp{$} in the last column or a small
+straight arrow in the fringe to the right of the window indicates a
+truncated line.
 
   @xref{Display Custom}, for more information about line truncation,
 and other variables that affect how text is displayed.
