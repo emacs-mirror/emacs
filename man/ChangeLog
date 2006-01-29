@@ -1,3 +1,8 @@
+2006-01-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (clean): Add newsticker, sieve, pgg, erc and
+	rcirc.
+
 2006-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* basic.texi (Continuation Lines, Inserting Text): Mention
@@ -28,7 +33,6 @@
 
 	* display.texi (Display Custom): Add xref to Variables.
 	(Optional Mode Line): eol-mnemonic-... vars moved here.
-
 
 	* commands.texi: Minor cleanups.  Refer to "graphical" terminals,
 	rather than X.
@@ -98,9 +102,9 @@
 
 	* ses.texi (Formulas, Printer functions): Use @key for TAB.
 
-	* kmacro.texi (Keyboard Macro Step-Edit): : Use @key for TAB.
+	* kmacro.texi (Keyboard Macro Step-Edit): Use @key for TAB.
 
-	* ebrowse.texi (Switching to Tree, Symbol Completion): : Use @key
+	* ebrowse.texi (Switching to Tree, Symbol Completion): Use @key
 	for TAB.
 
 	* cc-mode.texi (Indentation Calculation): Use @key for TAB.
@@ -143,7 +147,7 @@
 
 2006-01-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Agenda commands): Document tags command.
+	* org.texi (Agenda commands): Document tags command.
 
 2006-01-11  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -614,7 +618,7 @@
 
 2005-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus.texi (Group Parameters): Mention new varable
+	* gnus.texi (Group Parameters): Mention new variable
 	gnus-parameters-case-fold-search.
 	(Home Score File): Addition.
 
