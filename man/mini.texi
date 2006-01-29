@@ -114,10 +114,10 @@ ignored in the example above, and you get the file
 the terminal allows it; to disable this, turn off
 @code{file-name-shadow-mode} minor mode.
 
-  If you set @code{insert-default-directory} to @code{nil}, the default
-directory is not inserted in the minibuffer.  This way, the minibuffer
-starts out empty.  But the name you type, if relative, is still
-interpreted with respect to the same default directory.
+  If you set @code{insert-default-directory} to @code{nil}, the
+default directory is never inserted in the minibuffer---so the
+minibuffer starts out empty.  But the name you type, if relative, is
+still interpreted with respect to the same default directory.
 
 @node Minibuffer Edit
 @section Editing in the Minibuffer
@@ -128,17 +128,17 @@ entering.
 
   Since @key{RET} in the minibuffer is defined to exit the minibuffer,
 you can't use it to insert a newline in the minibuffer.  To do that,
-type @kbd{C-o} or @kbd{C-q C-j}.  (On text terminals, newline is
-really the @acronym{ASCII} character control-J.)
+type @kbd{C-o} or @kbd{C-q C-j}.  (The newline character is really the
+@acronym{ASCII} character control-J.)
 
-  The minibuffer has its own window which always has space on the screen
-but acts as if it were not there when the minibuffer is not in use.  When
-the minibuffer is in use, its window is just like the others; you can
-switch to another window with @kbd{C-x o}, edit text in other windows and
-perhaps even visit more files, before returning to the minibuffer to submit
-the argument.  You can kill text in another window, return to the
-minibuffer window, and then yank the text to use it in the argument.
-@xref{Windows}.
+  The minibuffer has its own window, which normally has space on the
+Emacs frame at all times, but it only acts like an Emacs window when
+the minibuffer is really in use.  At those times, its window is much
+like any other Emacs window; you can switch from the minibuffer window
+to another window with @kbd{C-x o}, and edit text in other windows,
+before returning to the minibuffer to submit the argument.  You can
+kill text in another window, return to the minibuffer window, and then
+yank the text to use it in the argument.  @xref{Windows}.
 
 @cindex height of minibuffer
 @cindex size of minibuffer
@@ -389,11 +389,11 @@ lists of completions---those always mention all possible completions.
 
   If an element of the list in @code{completion-ignored-extensions} ends
 in a slash @file{/}, it indicates a subdirectory that should be ignored
-when completing file names.  (Elements of
+when completing file names.  Elements of
 @code{completion-ignored-extensions} which do not end in a slash are
 never considered when a completion candidate is a directory; thus,
 completion returns directories whose names end in @file{.elc} even
-though there's an element @code{".elc"} in the list.)
+though there's an element @code{".elc"} in the list.
 
 @vindex completion-auto-help
   Normally, a completion command that cannot determine even one
@@ -486,12 +486,9 @@ you reuse it; this does not change the history element that you
 ``moved'' to, but your new argument does go at the end of the history
 list in its own right.
 
-  For many minibuffer arguments there is a ``default'' value.  In some
-cases, the minibuffer history commands know the default value.  Then you
-can insert the default value into the minibuffer as text by using
-@kbd{M-n} to move ``into the future'' in the history.  Eventually we
-hope to make this feature available whenever the minibuffer has a
-default value.
+  For many minibuffer arguments there is a ``default'' value.  Then
+you can insert the default value into the minibuffer as text by using
+@kbd{M-n} to move ``into the future'' in the history.
 
 @findex previous-matching-history-element
 @findex next-matching-history-element
