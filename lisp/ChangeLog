@@ -1,3 +1,10 @@
+2006-01-29  Bill Wohler  <wohler@newt.com>
+
+	* Makefile.in (MH_E_SRC): Add mh-compat.el, mh-folder.el,
+	mh-letter.el, mh-limit.el, mh-scan.el, mh-show.el, mh-thread.el,
+	mh-tool-bar.el, mh-xface.el. Remove mh-customize.el, mh-init.el.
+	(mh-autoloads): Don't use comments on otherwise empty lines.
+
 2006-01-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs--format-aux): Implement `middle' alignment as
