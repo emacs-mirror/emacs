@@ -1,3 +1,11 @@
+2006-01-29  Henrik Enberg  <enberg@printf.se>
+
+	* rmailsum.el (rmail-summary-show-message): Reformat.
+	(rmail-summary-get-summary-line): Renamed from
+	`rmail-summary-get-summary'.  Callers updated.
+	(rmail-summary-mode-map): Initialize at definition, Doc fix.
+	(rmail-summary-undelete-many): Simplify.
+
 2006-01-26  Henrik Enberg  <enberg@printf.se>
 
 	* rmailsum.el (rmail-summary-deleted-p): Fix misplaced paren.
