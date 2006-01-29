@@ -361,7 +361,9 @@ clean: mostlyclean
 		 $(infodir)/speedbar* $(infodir)/tramp* \
 		 $(infodir)/ses* $(infodir)/smtpmail* \
 		 $(infodir)/url* $(infodir)/org* \
-		 $(infodir)/flymake*
+		 $(infodir)/flymake* $(infodir)/newsticker* \
+		 $(infodir)/sieve* $(infodir)/pgg* \
+		 $(infodir)/erc* $(infodir)/rcirc*
 
 distclean: clean
 
