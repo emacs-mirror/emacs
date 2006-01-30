@@ -36,10 +36,10 @@
   "The header that stores the Rmail keyword data.")
 
 (defvar rmail-header-overlay-list nil
-  "A list of cached overlays used to make headers hidden or visible.")
+  "List of cached overlays used to make headers hidden or visible.")
 
-(defvar rmail-header-display-mode nil
-  "Records the current header display mode.
+(defvar rmail-header-display-state nil
+  "Records the current header display state.
 nil means headers are displayed, t indicates headers are not displayed.")
 
 (defun rmail-header-get-limit ()
@@ -47,10 +47,11 @@ nil means headers are displayed, t indicates headers are not displayed.")
 The current buffer must show one message.  If you want to narrow
 to the headers of a mail by number, use `rmail-narrow-to-header'
 instead."
-  (goto-char (point-min))
-  (if (search-forward "\n\n" nil t)
-      (1- (point))
-    (error "Invalid message format.")))
+  (save-excursion
+    (goto-char (point-min))
+    (if (search-forward "\n\n" nil t)
+	(1- (point))
+      (error "Invalid message format."))))
 
 (defun rmail-header-add-header (header value)
   "Add HEADER to the list of headers and associate VALUE with it.
@@ -121,20 +122,14 @@ The current buffer, possibly narrowed, contains a single message."
   "Hide ignored headers.  All others will be visible.
 The current buffer, possibly narrowed, contains a single message."
   (save-excursion
-    (let ((case-fold-search t)
+    (rmail-header-show-headers)
+    (let ((overlay-list rmail-header-overlay-list)
 	  (limit (rmail-header-get-limit))
 	  (inhibit-point-motion-hooks t)
-	  ;; start end
-	  visibility-p
-	  ;;overlay
-	  overlay-list)
+	  (case-fold-search t)
+	  visibility-p)
       ;; Record the display state as having headers hidden.
-      (setq rmail-header-display-mode t)
-      ;; Clear the pool of overlays for reuse.
-      (mapcar 'delete-overlay rmail-header-overlay-list)
-      (setq overlay-list rmail-header-overlay-list)
-      ;; Determine whether to use the displayed headers or the ignored
-      ;; headers.
+      (setq rmail-header-display-state t)
       (if rmail-displayed-headers
 	  ;; Set the visibility predicate function to ignore headers
 	  ;; marked for display.
@@ -147,41 +142,39 @@ The current buffer, possibly narrowed, contains a single message."
       (goto-char (point-min))
       (while (re-search-forward "^[^ \t:]+[ :]" limit t)
 	;; Determine if the current header needs to be hidden.
-	(beginning-of-line)
+	(forward-line 0)
 	(if (not (funcall visibility-p))
 	    ;; It does not.  Move point away from this header.
-	    (forward-line 1)
+	    (progn
+	      (forward-line 1)
+	      (while (looking-at "[ \t]+")
+		(forward-line 1)))
 	  ;; It does.  Make this header hidden by setting an overlay
 	  ;; with both the invisible and intangible properties set.
-	  (let ((start (point))
-		overlay)
+	  (let ((start (point)))
 	    ;; Move to end and pick upp any continuation lines on folded
 	    ;; headers.
 	    (forward-line 1)
 	    (while (looking-at "[ \t]+")
 	      (forward-line 1))
-	    ;; (setq end (point))
-	    ;; Use one of the cleared, cached overlays until they
-	    ;; run out.
 	    (if (car overlay-list)
-		;; Use a cached overlay.
-		(progn
-		  (setq overlay (car overlay-list)
-			overlay-list (cdr overlay-list))
-		  (move-overlay overlay start (point)))
+		;; Use one of the cleared, cached overlays.
+		(let ((overlay (car overlay-list)))
+		  (move-overlay overlay start (point))
+		  (setq overlay-list (cdr overlay-list)))
 	      ;; No overlay exists for this header.  Create one and
 	      ;; add it to the cache.
-	      (setq overlay (make-overlay start (point)))
-	      (overlay-put overlay 'invisible t)
-	      (overlay-put overlay 'intangible t)
-	      (push overlay rmail-header-overlay-list))))))))
+	      (let ((overlay (make-overlay start (point))))
+		(overlay-put overlay 'invisible t)
+		(overlay-put overlay 'intangible t)
+		(push overlay rmail-header-overlay-list)))))))))
 
 (defun rmail-header-show-headers ()
   "Show all headers.
 The current buffer, possibly narrowed, contains a single message."
   ;; Remove all the overlays used to control hiding headers.
   (mapcar 'delete-overlay rmail-header-overlay-list)
-  (setq rmail-header-display-mode nil))
+  (setq rmail-header-display-state nil))
 
 (defun rmail-header-toggle-visibility (&optional arg)
   "Toggle the visibility of the ignored headers if ARG is nil.
@@ -189,7 +182,7 @@ Hide the ignored headers if ARG is greater than 0, otherwise show the
 ignored headers.  The current buffer, possibly narrowed, contains a
 single message."
   (cond ((eq arg nil)
-	 (if rmail-header-display-mode
+	 (if rmail-header-display-state
 	     (rmail-header-show-headers)
 	   (rmail-header-hide-headers)))
 	((or (eq arg t) (> arg 0))
