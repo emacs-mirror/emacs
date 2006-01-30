@@ -1,5 +1,21 @@
 2006-01-29  Bill Wohler  <wohler@newt.com>
 
+	* mh-comp.el (mh-insert-fields): Handle nil values. Rmail, at
+	least, will deliver them to us.
+
+	* mh-e.el (mh-after-commands-processed-hook)
+	(mh-before-commands-processed-hook): Specify what sort of requests
+	in docstring.
+
+	* mh-folder.el (mh-folder-mode): Use add-to-list to modify
+	minor-mode-alias.
+
+	* mh-letter.el (mh-letter-menu): Remove. Defvar no longer needed
+	to shush compiler.
+	(mh-letter-mode): Remove Mail menu.
+
+2006-01-29  Bill Wohler  <wohler@newt.com>
+
 	The Great Cleanup
 	Remove circular dependencies. mh-e.el now includes few require
 	statements and stands alone. Other files should need to require
