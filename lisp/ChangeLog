@@ -1,3 +1,10 @@
+2006-01-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* thumbs.el (thumbs-marked-list): Make buffer-local and
+	permanent-local.
+	(thumbs-insert-thumb): Make help-echo non-sticky.
+	(thumbs-file-alist): Use eolp as check for (non)-image.
+
 2006-01-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/org.el (org-allow-space-in-links, org-closed-string)
