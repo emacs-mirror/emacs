@@ -1,3 +1,7 @@
+2006-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* FOR-RELEASE: string allocation bugs fixed.
+
 2005-12-13  Bill Wohler  <wohler@newt.com>
 
 	* FOR-RELEASE: Ensure MH-E 8.0 has been released.

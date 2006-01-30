@@ -1,0 +1,599 @@
+ERC NEWS                                                       -*- outline -*-
+
+* Changes since ERC 5.0.4
+
+** Improve XEmacs compatibility.
+
+** Namespace changes
+
+*** Now ERC doesn't use global variable space.
+Renamed all variables that didn't start with "erc-".
+
+  o `away' is now `erc-away'
+
+  o `current-nick' is now `erc-server-current-nick'
+
+  o `last-peers' is now `erc-server-last-peers'
+
+  o `last-ping-time' is now `erc-server-last-ping-time'
+
+  o `last-sent-time' is now `erc-server-last-sent-time'
+
+  o `lines-sent' is now `erc-server-lines-sent'
+
+  o `quitting' is now `erc-server-quitting'
+
+*** Remove the `with-erc-channel-buffer' function.
+
+** Bugfixes
+
+*** Don't inadvertently destroy face properties.
+
+*** Load erc scripts in a safer way.
+
+*** Don't insert a timestamp if text at point is invisible.
+
+*** Don't hide messages from those in `erc-fools' by default.
+Color their nicks instead.
+
+*** Use a more foolproof method of encoding and decoding strings
+before sending to a channel.
+
+** Backend changes
+
+*** Renamed some server-specific variables
+
+  o `erc-announced-server-name' is now `erc-server-announced-name'
+
+  o `erc-auto-reconnect' is now `erc-server-auto-reconnect'
+
+  o `erc-connect-function' is now `erc-server-connect-function'
+
+  o `erc-default-coding-system' is now `erc-server-coding-system'
+
+  o `erc-duplicate-timeout' is now `erc-server-duplicate-timeout'
+
+  o `erc-duplicates' is now `erc-server-duplicates'
+
+  o `erc-lag' is now `erc-server-lag'
+
+  o `erc-prevent-duplicates' is now `erc-server-prevent-duplicates'
+
+  o `erc-previous-read' is now `erc-server-filter-data'
+
+  o `erc-process' is now `erc-server-process'
+
+  o `erc-ping-handler' is now `erc-server-send-ping-handler'
+
+  o `erc-ping-interval' is now `erc-server-send-ping-interval'
+
+*** Renamed some functions
+
+  o `erc-connect' is now `erc-server-connect'
+
+  o `erc-process-filter' is now `erc-server-filter-function'
+
+  o `erc-send-command' is now `erc-server-send'
+
+  o `erc-send-single-line' is now `erc-send-input'
+
+  o `erc-setup-periodical-server-ping' is now
+    `erc-server-setup-periodical-server-ping'
+
+  o `erc-split-command is now `erc-split-line'
+
+*** New options
+
+  o erc-server-flood-margin, erc-server-flood-penalty: New options
+    that allow tweaking of flood control.
+
+  o erc-split-line-length: The maximum line length of a single
+    message.
+
+*** New variables
+
+  o erc-server-flood-last-message, erc-server-flood-queue,
+    erc-server-flood-timer: Flood control.
+
+  o erc-server-processing-p: Indicate when we're currently processing
+    a message.
+
+*** Remove some options
+
+  o `erc-flood-limit'
+  o `erc-flood-limit2'
+
+** New customization group `erc-server' for dealing with IRC servers.
+
+** ERC can now be installed by doing `make install' from the command line.
+
+** ERC now has a manual in erc.texi.
+Type `make doc' to generate HTML and Info versions of it.
+
+** ERC no longer depends on cl.el.
+Only the macros in cl-macs.el are used.
+
+** Fix an edge case when quitting as new messages come in.
+
+** Make flood protection toggle-able as on/off, removing the 'strict option.
+
+** If possible, re-use channel buffers when reconnecting to a server.
+
+** Text in ERC buffers is now read-only by default.
+To get the previous behavior, 
+
+** Changes and additions to modules
+
+*** Auto-join (erc-autojoin.el)
+
+**** Recognize the Azzurra server.
+
+*** BBDB (erc-bbdb.el)
+
+**** When the user types /WHOIS, ask for a record to merge to.
+
+**** Store the displayed name of a BitlBee contact.
+The new `erc-bbdb-bitlbee-name-field' option specifies the field to use
+to store this information.
+
+**** Don't prompt for a name on /JOIN or /NICK.
+
+*** Button (erc-button.el)
+
+**** Fix customization of `erc-button-alist'
+
+**** New option `erc-button-nickname-face' determines the face to use
+when coloring ERC nicknames.
+
+*** Channel tracking (erc-track.el)
+
+**** Remove channels from the modified channels list if not currently
+connected.  This should remove residue from the mode line after
+quitting ERC.
+
+**** Recognize buttonized text
+
+*** Highlighting (erc-match.el)
+
+**** Highlight current nickname by default.
+
+**** Added the option of beeping when certain matches occur.
+Add `erc-beep-on-match' to `erc-text-matched-hook' to enable
+beeping.  Set the new variable `erc-beep-match-types' which match
+types that make beeps.
+
+*** Nicklist (erc-nicklist.el)
+
+**** Fix a couple of errors.
+
+**** Make sure a stray mouse click doesn't trigger an error.
+
+**** Insert icons from the /images directory next to nicks.
+This indicates their away status.  The location is customizable via
+the new `erc-nicklist-icons-directory' option.
+
+If you do not want these icons, set `erc-nicklist-use-icons' to nil.
+
+*** Nickserv identification (erc-nickserv.el)
+
+**** Recognize Azzurra and OFTC networks.
+
+*** Old completion (erc-complete.el)
+
+**** Disable by default.
+
+*** Programmable completion (erc-pcomplete.el)
+
+**** Enable by default.
+
+*** Timestamps (erc-stamp.el)
+
+**** On Emacs22, align right timestamps perfectly, even if variable-width
+characters are used.  If we aren't using Emacs22, move text farther
+away from the right margin when variable-width characters are used.
+It is considered better to misalign the stamp by a bit than to go past
+the right margin.
+
+**** Enable by default
+
+** New modules
+
+*** Spell-checking (erc-spelling.el)
+
+**** Use flyspell in ERC.
+
+*** Viper compatibility (erc-viper.el)
+
+**** Helps ERC work correctly in viper-mode.
+
+* Fixes since ERC 5.0.3
+
+** Fix a problem with undo in channels.
+
+* Fixes since ERC 5.0.2
+
+** Fix typo in the `ctcp-request-to' entry of the English catalog.
+
+** Debugging with edegug has been made easier in all of the
+erc-with-* and with-erc* macros.
+
+** Non-ASCII character sets should be better supported when sending
+and processing messages.
+
+** A load failure with erc-autoaway.el and Emacs21 has been fixed.
+
+** A few XEmacs warnings were fixed.
+
+** Changes and additions to modules
+
+*** Backend (erc-backend.el)
+
+**** Move the check for hidden messages into `erc-display-message'
+so there isn't so much replicated code.
+
+**** Add `definition-name' property to constructed symbols so that
+`find-function' and `find-variable' will be able to locate them.
+
+**** Make sure logs are inserted info the correct channel buffers.
+There was previously an error when using `erc-insert-log-on-open' in
+combination with autojoin to multiple channels.
+
+*** Button (erc-button.el)
+
+**** The layering of `erc-button-face' on other faces in ERC buffers
+has been improved.
+
+*** Channel tracking (erc-track.el)
+
+**** Use optimal amount of whitespace around modified channels
+indicator.  Previously, there was an additional unnecessary space.
+
+**** Fix an error that occurred when unchecked buffers existed when
+invoking /QUIT.
+
+* Fixes since ERC 5.0.1
+
+** If a channel key is required for a certain channel, ERC will prompt
+for one if `erc-prompt-for-channel-key' is non-nil.
+
+** ERC doesn't try to reconnect if the network connection is refused
+when using `open-network-stream-nowait' as the `erc-connect-function'.
+
+** Messages from multiple servers will not go to the currently active
+buffer.  The messages from each server will be contained in the most
+recently active channel/server buffer that corresponds with the
+server.
+
+** Some text messages were cleaned up slightly.
+
+** Button faces should no longer "cover" other faces.
+
+** Made some XEmacs compatibility fixes.
+
+** Nicknames containing a backslash are now correctly highlighted as
+current-nick and buttonized as nicks.
+
+** `erc-server-select' doesn't offer networks without servers as a
+choice anymore.
+
+** Non-ASCII character support has been improved.
+
+** Changes and additions to modules
+
+*** Menu (erc-menu.el)
+
+**** You can now save logs and truncate buffers from the menu-bar.
+
+* Fixes since ERC 5.0
+
+** Narrowing in ERC buffers no longer causes formatting errors.
+
+** The BBDB module now loads correctly when customizing `erc-modules'.
+
+** The value of `erc-button-face' is now respected.
+
+** Fixed a bug which caused a read-only error during connection.
+
+** Server buffers are now tracked correctly.
+This means that `erc-track-priority-faces-only', `erc-track-exclude',
+and `erc-track-exclude-types' now work with server buffers.
+
+* Changes since ERC 4.0
+
+** Channel members are now stored as a hash-table.
+`erc-server-users' and `erc-channel-users' are now hash-tables, rather
+than alists.  This significantly increases performance, especially in
+large channels.  Each channel member is stored as an `erc-server-user'
+struct, with additional information about the channels they are on
+stored in an `erc-channel-user' struct.  Code using old alist-style
+channel members needs to be updated to work with hash-tables.
+This new code also removes the need for erc-members.el, which has been
+removed.
+
+** The way ERC deals with input from the server has changed.
+All server response code is now in a new file, erc-backend.el.  There
+should be no real user visible changes.  There are, however, a few
+major changes for implementers, and module writers:
+
+*** The PARSED response that all handlers get called with is
+    no longer a vector, but an `erc-response' struct.
+
+    This means LESS MAGIC NUMBERS in the ERC source code, but a few
+    changes in how you get at parsed responses.
+
+    The sender is accessed via `erc-response.sender'.
+
+    The command is accessed via `erc-response.command'.
+
+    The arguments to the command (everything after the command and
+    before the colon) are accessed via `erc-response.command-args'.
+    This is a /list/ of arguments in the order they appear in the
+    unparsed response.
+
+    The contents of the response is accessed via
+    `erc-response.contents'.
+
+    Should, for some reason, you want to do something with the
+    /unparsed/ response, you can get it via `erc-response.unparsed'.
+
+*** The `erc-server-hook-list' mechanism is gone.
+
+    All server response handlers should be defined with
+    `define-erc-response-handler'.  This defines functions and
+    corresponding hook variables.
+
+    The mapping of server commands to hook variables is no longer
+    done via `erc-event-to-hook', but through an #'equal hashtable,
+    `erc-server-responses'.  In order to find a hook you do:
+
+    (erc-get-hook command)
+
+    See the docstring of `define-erc-response-handler' for more
+    information.
+
+*** ALL hook variables have been renamed.
+
+    In accordance with recommendations in the Emacs Lisp manual,
+    the hook variables are no longer called `erc-server-FOO-hook',
+    but rather `erc-server-FOO-functions'.  This is to indicate
+    that the functions they call take arguments.
+
+    All the modules in ERC have been updated to reflect this change,
+    but external module authors should beware.
+
+** The values of `erc-mode-line-format' and `erc-header-line-format'
+are now defined as strings to be formatted using `format-spec'.
+`erc-mode-line-format' does not replace the whole mode-line anymore,
+only `mode-line-buffer-identification' is set.  This way, personal
+mode-line configurations are not modified and all key bindings work as
+expected.  The process status (connecting, closed) is now shown in
+`mode-line-process'.
+
+** Customization of ERC variables has been made easier.  Variables
+have been split into more groups for better organization.
+
+** New variables
+
+  o `erc-send-whitespace-lines' - Set this to send lines even if they
+    are empty.
+
+  o `erc-manual-set-nick-on-bad-nick-p' - If the nickname you chose is
+    already taken or not allowed, your nick is not changed and you can
+    try again manually if this is non-nil.
+
+  o `erc-mode-line-away-status-format' - You can now set what is shown
+    in the mode-line when you are away.
+
+  o `erc-header-line-uses-help-echo-p' - The header-line now uses the
+    help-echo property. You can set this to nil to disable it.
+
+  o `erc-format-query-as-channel-p' - Set this to nil to have messages
+    in the query buffer formatted like private messages.
+
+  o `erc-show-channel-key-p' - The channel key is now shown with the
+    other channel modes in the header line. Set this to nil if you
+    want it hidden.
+
+  o `erc-prompt-for-channel-key' - Set this if you want to be prompted
+    for the channel key (channel's mode is +k) when you call
+    `erc-join-channel' interactively.
+
+  o `erc-kill-server-buffer-on-quit' - If non-nil, kill the server
+    buffer automatically when you quit.
+
+** New hooks
+
+  o `erc-join-hook' - Called when you join a channel.
+
+  o `erc-kick-hook' - Called when you are kicked from a channel. The
+    channel's buffer is sent as an argument to functions called from
+    this hook.
+
+  o `erc-nick-changed-functions' - Whenever your nickname changes
+    successfully, the functions in this hook are run with the
+    arguments NEW-NICK and OLD-NICK.
+
+** New command /WHOAMI - Do a /WHOIS on your current nickname.
+
+** The key binding for changing channel modes is now C-c C-o.
+
+** Removed variables
+
+  o `erc-echo-notices-in-minibuffer-flag' and
+    `erc-echo-notices-in-current-buffer' - You should use
+    `erc-echo-notice-hook' and `erc-echo-notice-always-hook' instead.
+
+  o `erc-prompt-interactive-input' has been removed (commented out)
+    because nickname completion does not work with it.
+
+  o All INFO buffer-related variables and functions have been removed.
+
+** You can now disable modules by setting `erc-modules' with the
+customization interface.
+
+** Changes and additions to modules
+
+*** Autoaway (erc-autoaway.el)
+
+**** New variable `erc-autoaway-no-auto-back-regexp' - Add text which,
+when you type anything matching it, will not automatically discard
+your away status when `erc-auto-discard-away' is non-nil.
+
+*** Filling (erc-fill.el)
+
+**** New variable `erc-fill-variable-maximum-indentation' - Don't
+indent more than this many characters when indenting a message from a
+user with a long nickname.
+
+*** Goodies (erc-goodies.el)
+
+**** Miscellaneous small modules have been moved from erc.el.
+The functions erc-add-scroll-to-bottom, erc-make-read-only,
+erc-send-distinguish-noncommands, erc-interpret-controls, erc-unmorse,
+erc-smiley, and erc-occur, which were defined in the main erc.el file
+have been moved to erc-goodies.el and have mostly been translated to
+the modules scrolltobottom, readonly, noncommands, irccontrols, smiley
+and unmorse.
+
+**** New variables
+
+  o `erc-input-line-position' - The line number to use with
+    `erc-scroll-to-bottom'.
+
+  o `erc-beep-p' - Beep if there is a \C-g control character in a
+    message.
+
+*** Channel lists (erc-list.el)
+
+**** New variable `erc-chanlist-highlight-face' - A face used for
+highlighting the current line.
+
+*** Highlighting (erc-match.el)
+
+**** `erc-current-nick-highlight-type' has new options: 'keyword and
+'nick-or-keyword.
+
+*** Menu (erc-menu.el)
+
+**** The `IRC' menu is now automatically added to `erc-mode' buffers.
+
+*** Networks (erc-nets.el)
+
+**** The functions for determining current network are in this file.
+There were a couple of functions spread about in different files which
+each had a different way of determining the current network.  The
+methods have been combined, and the big list of known networks
+(`erc-networks-alist') is being put to use.  You can access the
+network's name by calling the new function `erc-network'.  This
+returns the name of the current network as a symbol or 'Unknown if it
+could not determine which network it is.
+
+*** Nicklist (erc-nicklist.el)
+
+**** ERC has a new way of displaying nicknames in a channel.
+The new file erc-nicklist.el defines a new command `erc-nicklist'
+which pops up a small Emacs window showing the nicknames of all
+members of the current channel.  The implementation is not complete
+and is rather proof-of-concept for now.  The result is something a bit
+like erc-speedbar, but not quite as invasive, and doesn't require use
+of a new frame.
+
+*** Internet services / Nickserv (erc-nickserv.el)
+
+**** Network detection is now taken care of by erc-nets.el.
+The function `erc-current-network' is deprecated, use `erc-network'
+instead.  The variable `erc-networks' has been removed, use
+`erc-networks-alist'.  The network symbols used in
+`erc-nickserv-alist' now match those in `erc-networks-alist'.
+
+**** New variable `erc-nickserv-identify-mode' - Choose which method
+to use for automatic identification: you can wait for Nickserv to ask
+you to identify (the default), or send an identify message
+automatically after you change your nickname.
+
+*** Speedbar (erc-speedbar.el)
+
+**** New variable `erc-speedbar-sort-users-type' - Sort users in a
+channel by activity, alphabetically, or not at all.
+
+*** Timestamps (erc-stamp.el)
+
+**** `erc-timestamp-only-if-changed-flag' now works when
+`erc-insert-timestamp-function' is set to 'erc-insert-timestamp-left.
+
+**** New variable `erc-timestamp-intangible' - Set this to nil if
+timestamps should not have the 'intangible property.
+
+*** Channel tracking (erc-track.el)
+
+**** Using faces to indicate channel activity in the modeline now works
+in XEmacs.
+
+**** New variables
+
+  o `erc-track-priority-faces-only' - Ignore changes in a channel
+    unless there is a face from the `erc-track-faces-priority-list' in
+    the message.
+
+  o `erc-track-exclude-server-buffer' - Ignore changes in the server
+    buffer.
+
+  o `erc-track-position-in-mode-line' - Set the position in the
+    mode-line where modified channels are shown (only works in GNU
+    Emacs versions above 21.3).
+
+* Changes since ERC 3.0.cvs.20030119
+
+** The module system has again changed a lot.  You can now customize
+  the variable `erc-modules' and define once and for all which
+  extension modules you want to use.  This unfortunately may require
+  you to change your current erc initialisation code a bit, if you
+  have some existing customsations.  On the other hand, this change
+  makes the configuration of extension modules a lot easier for new
+  users.  In theory, you should be able to configure all aspects of
+  ERC by using the customize interface, you should no longer really
+  need to write Lisp code for trivial customizations.
+
+  By default, the following modules are now loaded: (pcomplete
+  netsplit fill track ring button autojoin)
+
+  Please use M-x customize-variable RET erc-modules RET to change the
+  default if it does not suite your needs.
+
+** THe symbol used in `erc-nickserv-passwords' for debian.org IRC servers
+  (formerly called OpenProjects, now FreeNode) has changed from
+  openprojects to freenode.  You may need to update your configuration
+  for a successful automatic nickserv identification.
+
+* Changes since ERC 2.93.cvs.20020819
+
+** New module erc-dcc:
+
+This finally implements DCC.  It requires server sockets to fully work
+in both directions.  This feature is currently only available in Emacs
+21.3.50 (CVS). Here is a short list of what should work though.
+
+** Compatibility:
+  * Emacs 21.2, DCC get, and accepting DCC chat offers.
+  * XEmacs 21, Only accepting DCC chat offers.
+
+** erc is switching to global-minor-modes for activation of submodules.
+
+This allows you to customize such a mode and get automatic loading of
+the module.  No longer putting a lot of require statments in .emacs.
+At least this is the long-term plan, not all modules are converted
+yet.
+
+** The most important user visible change is that you now need to activate
+erc-completion-mode, to get TAB completion.  The new completion code
+is based on pcomplete.  To get the old code, manually load
+erc-complete and bind TAB to erc-complete in erc-mode-map.
+
+To activate completion on startup, put (erc-completion-mode 1) in your
+.emacs file.
+
+Same applies to timestamps.  You no longer need to (require
+'erc-stamp), you can customize the variable `erc-timestamp-mode', and
+the rest should be automatic.
+
+arch-tag: 2b21b387-6cdc-4192-889c-6743cfffdcb1

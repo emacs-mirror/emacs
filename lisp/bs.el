@@ -1332,17 +1332,9 @@ The name of current buffer gets additional text properties
 for mouse highlighting.
 START-BUFFER is the buffer where we started buffer selection.
 ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
-  (let ((name (copy-sequence (buffer-name))))
-    (add-text-properties
-     0 (length name)
-     '(mouse-face highlight
-       help-echo
-       "mouse-2: select this buffer, mouse-3: select in other frame")
-     name)
-    (if (< (length name) bs--name-entry-length)
-	(concat name
-		(make-string (- bs--name-entry-length (length name)) ? ))
-      name)))
+  (propertize (buffer-name)
+              'help-echo "mouse-2: select this buffer, mouse-3: select in other frame"
+              'mouse-face 'highlight))
 
 (defun bs--get-mode-name (start-buffer all-buffers)
   "Return the name of mode of current buffer for Buffer Selection Menu.
@@ -1399,12 +1391,12 @@ normally *buffer-selection*."
 (defun bs--format-aux (string align len)
   "Generate a string with STRING with alignment ALIGN and length LEN.
 ALIGN is one of the symbols `left', `middle', or `right'."
-  (let ((length (length string)))
-    (if (>= length len)
-	string
-      (if (eq 'right align)
-	  (concat (make-string (- len length) ? ) string)
-	(concat string (make-string (- len length) ? ))))))
+  (let* ((width (length string))
+         (len (max len width)))
+    (format (format "%%%s%ds" (if (eq align 'right) "" "-") len)
+            (if (eq align 'middle)
+                (concat (make-string (/ (- len width) 2) ?\s) string)
+              string))))
 
 (defun bs--show-header ()
   "Insert header for Buffer Selection Menu in current buffer."

@@ -1049,6 +1049,7 @@ At most `bibtex-entry-kill-ring-max' items are kept here.")
   "Completion table for BibTeX string keys.
 Initialized from `bibtex-predefined-strings' and `bibtex-string-files'.")
 (make-variable-buffer-local 'bibtex-strings)
+(put 'bibtex-strings 'risky-local-variable t)
 
 (defvar bibtex-reference-keys
   (lazy-completion-table bibtex-reference-keys
@@ -1056,6 +1057,7 @@ Initialized from `bibtex-predefined-strings' and `bibtex-string-files'.")
   "Completion table for BibTeX reference keys.
 The CDRs of the elements are t for header keys and nil for crossref keys.")
 (make-variable-buffer-local 'bibtex-reference-keys)
+(put 'bibtex-reference-keys 'risky-local-variable t)
 
 (defvar bibtex-buffer-last-parsed-tick nil
   "Value of `buffer-modified-tick' last time buffer was parsed for keys.")

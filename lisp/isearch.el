@@ -521,8 +521,8 @@ Type \\[isearch-exit] to exit, leaving point at location found.
 Type LFD (C-j) to match end of line.
 Type \\[isearch-repeat-forward] to search again forward,\
  \\[isearch-repeat-backward] to search again backward.
-Type \\[isearch-yank-word-or-char] to yank word from buffer onto end of search\
- string and search for it.
+Type \\[isearch-yank-word-or-char] to yank next word or character in buffer
+  onto the end of the search string, and search for it.
 Type \\[isearch-del-char] to delete character from end of search string.
 Type \\[isearch-yank-char] to yank char from buffer onto end of search\
  string and search for it.

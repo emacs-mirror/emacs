@@ -526,7 +526,9 @@ find_field (pos, merge_at_boundary, beg_limit, beg, end_limit, end)
     = (XFASTINT (pos) > BEGV
        ? get_char_property_and_overlay (make_number (XINT (pos) - 1),
 					Qfield, Qnil, NULL)
-       : Qnil);
+       /* Using nil here would be a more obvious choice, but it would
+          fail when the buffer starts with a non-sticky field.  */
+       : after_field);
 
   /* See if we need to handle the case where MERGE_AT_BOUNDARY is nil
      and POS is at beginning of a field, which can also be interpreted
@@ -717,7 +719,8 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 {
   /* If non-zero, then the original point, before re-positioning.  */
   int orig_point = 0;
-
+  int fwd, prev_old, prev_new;
+  
   if (NILP (new_pos))
     /* Use the current point, and afterwards, set it.  */
     {
@@ -725,22 +728,39 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
       XSETFASTINT (new_pos, PT);
     }
 
+  CHECK_NUMBER_COERCE_MARKER (new_pos);
+  CHECK_NUMBER_COERCE_MARKER (old_pos);
+
+  fwd = (XFASTINT (new_pos) > XFASTINT (old_pos));
+
+  prev_old = make_number (XFASTINT (old_pos) - 1);
+  prev_new = make_number (XFASTINT (new_pos) - 1);
+  
   if (NILP (Vinhibit_field_text_motion)
       && !EQ (new_pos, old_pos)
-      && (!NILP (Fget_char_property (new_pos, Qfield, Qnil))
-	  || !NILP (Fget_char_property (old_pos, Qfield, Qnil)))
+      && (!NILP (Fget_text_property (new_pos, Qfield, Qnil))
+          || !NILP (Fget_text_property (old_pos, Qfield, Qnil))
+          /* To recognize field boundaries, we must also look at the
+             previous positions; we could use `get_pos_property'
+             instead, but in itself that would fail inside non-sticky
+             fields (like comint prompts).  */
+          || (XFASTINT (new_pos) > BEGV
+              && !NILP (Fget_text_property (prev_new, Qfield, Qnil)))
+          || (XFASTINT (old_pos) > BEGV
+              && !NILP (Fget_text_property (prev_old, Qfield, Qnil))))
       && (NILP (inhibit_capture_property)
-	  || NILP (Fget_char_property(old_pos, inhibit_capture_property, Qnil))))
-    /* NEW_POS is not within the same field as OLD_POS; try to
-       move NEW_POS so that it is.  */
+          /* Field boundaries are again a problem; but now we must
+             decide the case exactly, so we need to call
+             `get_pos_property' as well.  */
+          || (NILP (get_pos_property (old_pos, inhibit_capture_property, Qnil))
+              && (XFASTINT (old_pos) <= BEGV
+                  || NILP (Fget_text_property (old_pos, inhibit_capture_property, Qnil))
+                  || NILP (Fget_text_property (prev_old, inhibit_capture_property, Qnil))))))
+    /* It is possible that NEW_POS is not within the same field as
+       OLD_POS; try to move NEW_POS so that it is.  */
     {
-      int fwd, shortage;
+      int shortage;
       Lisp_Object field_bound;
-
-      CHECK_NUMBER_COERCE_MARKER (new_pos);
-      CHECK_NUMBER_COERCE_MARKER (old_pos);
-
-      fwd = (XFASTINT (new_pos) > XFASTINT (old_pos));
 
       if (fwd)
 	field_bound = Ffield_end (old_pos, escape_from_edge, new_pos);
@@ -782,9 +802,10 @@ DEFUN ("line-beginning-position",
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
 
-The scan does not cross a field boundary unless doing so would move
-beyond there to a different line; if N is nil or 1, and scan starts at a
-field boundary, the scan stops as soon as it starts.  To ignore field
+This function constrains the returned position to the current field
+unless that would be on a different line than the original,
+unconstrained result.  If N is nil or 1, and a front-sticky field
+starts at point, the scan stops as soon as it starts.  To ignore field
 boundaries bind `inhibit-field-text-motion' to t.
 
 This function does not move point.  */)
@@ -816,9 +837,10 @@ DEFUN ("line-end-position", Fline_end_position, Sline_end_position, 0, 1, 0,
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
 
-The scan does not cross a field boundary unless doing so would move
-beyond there to a different line; if N is nil or 1, and scan starts at a
-field boundary, the scan stops as soon as it starts.  To ignore field
+This function constrains the returned position to the current field
+unless that would be on a different line than the original,
+unconstrained result.  If N is nil or 1, and a rear-sticky field ends
+at point, the scan stops as soon as it starts.  To ignore field
 boundaries bind `inhibit-field-text-motion' to t.
 
 This function does not move point.  */)

@@ -2286,7 +2286,9 @@ as an argument to `try-completion'), the function FUN is called with no
 arguments.  FUN must return the completion table that will be stored in VAR.
 If completion is requested in the minibuffer, FUN will be called in the buffer
 from which the minibuffer was entered.  The return value of
-`lazy-completion-table' must be used to initialize the value of VAR."
+`lazy-completion-table' must be used to initialize the value of VAR.
+
+You should give VAR a non-nil `risky-local-variable' property."
   (declare (debug (symbol lambda-expr)))
   (let ((str (make-symbol "string")))
     `(dynamic-completion-table

@@ -1,6 +1,6 @@
 ;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP -*- coding: iso-8859-1; -*-
 
-;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -63,8 +63,40 @@ present for backward compatibility."
 	(a2 (rassq 'ange-ftp-completion-hook-function file-name-handler-alist)))
     (setq file-name-handler-alist
 	  (delete a1 (delete a2 file-name-handler-alist)))))
-(tramp-disable-ange-ftp)
-(eval-after-load "ange-ftp" '(tramp-disable-ange-ftp))
+
+(eval-after-load "ange-ftp"
+  '(when (functionp 'tramp-disable-ange-ftp)
+     (tramp-disable-ange-ftp)))
+
+;;;###autoload
+(defun tramp-ftp-enable-ange-ftp ()
+  ;; The following code is commented out in Ange-FTP.
+
+  ;;; This regexp takes care of real ange-ftp file names (with a slash
+  ;;; and colon).
+  ;;; Don't allow the host name to end in a period--some systems use /.:
+  (or (assoc "^/[^/:]*[^/:.]:" file-name-handler-alist)
+      (setq file-name-handler-alist
+	    (cons '("^/[^/:]*[^/:.]:" . ange-ftp-hook-function)
+		  file-name-handler-alist)))
+
+  ;;; This regexp recognizes absolute filenames with only one component,
+  ;;; for the sake of hostname completion.
+  (or (assoc "^/[^/:]*\\'" file-name-handler-alist)
+      (setq file-name-handler-alist
+	    (cons '("^/[^/:]*\\'" . ange-ftp-completion-hook-function)
+		  file-name-handler-alist)))
+
+  ;;; This regexp recognizes absolute filenames with only one component
+  ;;; on Windows, for the sake of hostname completion.
+  (and (memq system-type '(ms-dos windows-nt))
+       (or (assoc "^[a-zA-Z]:/[^/:]*\\'" file-name-handler-alist)
+	   (setq file-name-handler-alist
+		 (cons '("^[a-zA-Z]:/[^/:]*\\'" .
+			 ange-ftp-completion-hook-function)
+		       file-name-handler-alist)))))
+
+(add-hook 'tramp-ftp-unload-hook 'tramp-ftp-enable-ange-ftp)
 
 ;; Define FTP method ...
 (defcustom tramp-ftp-method "ftp"

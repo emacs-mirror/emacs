@@ -511,21 +511,40 @@ value of `mm-uu-text-plain-type'."
 
 (defun mm-uu-dissect-text-parts (handle)
   "Dissect text parts and put uu handles into HANDLE."
-  (let ((buffer (mm-handle-buffer handle))
-	type children)
+  (let ((buffer (mm-handle-buffer handle)))
     (cond ((stringp buffer)
 	   (dolist (elem (cdr handle))
 	     (mm-uu-dissect-text-parts elem)))
 	  ((bufferp buffer)
-	   (when (and (setq type (mm-handle-media-type handle))
-		      (stringp type)
-		      (string-match "\\`text/" type)
-		      (with-current-buffer buffer
-			(setq children
-			      (mm-uu-dissect t (mm-handle-type handle)))))
-	     (kill-buffer buffer)
-	     (setcar handle (car children))
-	     (setcdr handle (cdr children))))
+	   (let ((type (mm-handle-media-type handle))
+		 (case-fold-search t) ;; string-match
+		 encoding children)
+	     (when (and
+		    (stringp type)
+		    ;; Mutt still uses application/pgp even though
+		    ;; it has already been withdrawn.
+		    (string-match "\\`text/\\|\\`application/pgp\\'" type)
+		    (setq children
+			  (with-current-buffer buffer
+			    (if (setq encoding (mm-handle-encoding handle))
+				;; Inherit the multibyteness of the `buffer'.
+				(with-temp-buffer
+				  (insert-buffer-substring buffer)
+				  (mm-decode-content-transfer-encoding
+				   encoding type)
+				  (mm-uu-dissect t (mm-handle-type handle)))
+			      (mm-uu-dissect t (mm-handle-type handle))))))
+	       ;; Ignore it if a given part is dissected into a single
+	       ;; part of which the type is the same as the given one.
+	       (if (and (<= (length children) 2)
+			(string-equal (mm-handle-media-type (cadr children))
+				      type))
+		   (kill-buffer (mm-handle-buffer (cadr children)))
+		 (kill-buffer buffer)
+		 (setcdr handle (cdr children))
+		 (setcar handle (car children)) ;; "multipart/mixed"
+		 (dolist (elem (cdr children))
+		   (mm-uu-dissect-text-parts elem))))))
 	  (t
 	   (dolist (elem handle)
 	     (mm-uu-dissect-text-parts elem))))))

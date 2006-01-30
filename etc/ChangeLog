@@ -1,3 +1,25 @@
+2006-01-29  Michael Olson  <mwolson@gnu.org>
+
+	* NEWS: Add entry for ERC.
+
+2006-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* TODO: Make SYNC_INPUT the default.
+
+2006-01-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* images/gud/pstar.xpm: Make background transparent.
+
+2006-01-24  Noah Friedman  <friedman@splode.com>
+
+	* emacs-buffer.gdb: Replace all references to `cdr' field of
+	conses with `u.cdr', per change Andreas Schwab 2005-11-15
+	of src/lisp.h.
+
+2006-01-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: tramp can be removed by M-x tramp-unload-tramp.
+
 2006-01-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* e/eterm-color.ti: Re-enable the ri entry. Add kich1.

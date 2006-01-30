@@ -1,5 +1,5 @@
 ;;; mh-alias.el --- MH-E mail alias completion and expansion
-;;
+
 ;; Copyright (C) 1994, 1995, 1996, 1997,
 ;;  2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
@@ -31,24 +31,9 @@
 
 ;;; Code:
 
-;;(message "> mh-alias")
-(eval-when-compile (require 'mh-acros))
-(mh-require-cl)
-(require 'mh-buffers)
 (require 'mh-e)
-;;(message "< mh-alias")
-(load "cmr" t t)                        ; Non-fatal dependency for
-					; completing-read-multiple.
-(eval-when-compile (defvar mail-abbrev-syntax-table))
 
-
-
-;;; Autoloads
-
-(eval-when (compile load eval)
-  (ignore-errors
-    (require 'mailabbrev)
-    (require 'multi-prompt)))
+(mh-require-cl)
 
 (defvar mh-alias-alist 'not-read
   "Alist of MH aliases.")
@@ -61,7 +46,7 @@
 (defvar mh-alias-read-address-map nil)
 (unless mh-alias-read-address-map
   (setq mh-alias-read-address-map
-	(copy-keymap minibuffer-local-completion-map))
+        (copy-keymap minibuffer-local-completion-map))
   (define-key mh-alias-read-address-map
     "," 'mh-alias-minibuffer-confirm-address)
   (define-key mh-alias-read-address-map " " 'self-insert-command))
@@ -76,6 +61,11 @@ need include only system aliases and the passwd file, since personal
 alias files listed in your \"Aliasfile:\" MH profile component are
 automatically included. You can update the alias list manually using
 \\[mh-alias-reload].")
+
+;; Copy of `goto-address-mail-regexp'.
+(defvar mh-address-mail-regexp
+  "[-a-zA-Z0-9._]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
+  "A regular expression probably matching an e-mail address.")
 
 
 
@@ -185,7 +175,6 @@ Exclude all aliases already in `mh-alias-alist' from \"ali\""
         (forward-line 1)))
     passwd-alist))
 
-;;;###mh-autoload
 (defun mh-alias-reload ()
   "Reload MH aliases.
 
@@ -269,11 +258,14 @@ Blind aliases or users from /etc/passwd are not expanded."
    (t
     (mh-alias-ali alias))))
 
+(require 'crm nil t)                   ; completing-read-multiple
+(require 'multi-prompt nil t)
+
 ;;;###mh-autoload
 (defun mh-read-address (prompt)
   "Read an address from the minibuffer with PROMPT."
   (mh-alias-reload-maybe)
-  (if (not mh-alias-alist)		; If still no aliases, just prompt
+  (if (not mh-alias-alist)              ; If still no aliases, just prompt
       (read-string prompt)
     (let* ((minibuffer-local-completion-map mh-alias-read-address-map)
            (completion-ignore-case mh-alias-completion-ignore-case-flag)
@@ -308,8 +300,6 @@ Blind aliases or users from /etc/passwd are not expanded."
               (message "No alias for %s" the-name))))))
   (self-insert-command 1))
 
-(mh-do-in-xemacs (defvar mail-abbrevs))
-
 ;;;###mh-autoload
 (defun mh-alias-letter-expand-alias ()
   "Expand mail alias before point."
@@ -323,9 +313,10 @@ Blind aliases or users from /etc/passwd are not expanded."
              (expansion (mh-alias-expand (buffer-substring begin end))))
         (delete-region begin end)
         (insert expansion)))))
+
 
 
-;;; Adding addresses to alias file.
+;;; Alias File Updating
 
 (defun mh-alias-suggest-alias (string &optional no-comma-swap)
   "Suggest an alias for STRING.
@@ -451,8 +442,8 @@ contains it."
                                      (mh-alias-filenames t)))))
       (cond
        ((not autolist)
-        (error "No writable alias file.
-Set `mh-alias-insert-file' or the \"Aliasfile:\" profile component"))
+        (error "No writable alias file;
+set `mh-alias-insert-file' or the \"Aliasfile:\" profile component"))
        ((not (elt autolist 1))        ; Only one entry, use it
         (car autolist))
        ((or (not alias)
@@ -549,7 +540,6 @@ folder name hint when filing messages."
     (insert (format "%s: %s\n" alias address))
     (save-buffer)))
 
-;;;###mh-autoload
 (defun mh-alias-add-alias (alias address)
   "Add ALIAS for ADDRESS in personal alias file.
 
@@ -602,7 +592,6 @@ filing messages."
            (alias (mh-alias-suggest-alias address)))
       (mh-alias-add-alias alias address))))
 
-;;;###mh-autoload
 (defun mh-alias-add-address-under-point ()
   "Insert an alias for address under point."
   (interactive)
@@ -611,7 +600,19 @@ filing messages."
         (mh-alias-add-alias nil address)
       (message "No email address found under point"))))
 
-;;;###mh-autoload
+;; From goto-addr.el, which we don't want to force-load on users.
+(defun mh-goto-address-find-address-at-point ()
+  "Find e-mail address around or before point.
+
+Then search backwards to beginning of line for the start of an
+e-mail address. If no e-mail address found, return nil."
+  (re-search-backward "[^-_A-z0-9.@]" (line-beginning-position) 'lim)
+  (if (or (looking-at mh-address-mail-regexp) ; already at start
+          (and (re-search-forward mh-address-mail-regexp
+                                  (line-end-position) 'lim)
+               (goto-char (match-beginning 0))))
+      (match-string-no-properties 0)))
+
 (defun mh-alias-apropos (regexp)
   "Show all aliases or addresses that match a regular expression REGEXP."
   (interactive "sAlias regexp: ")
@@ -667,6 +668,21 @@ filing messages."
         (when (not (string-equal passwd-matches ""))
           (princ "\nLocal User Aliases:\n\n")
           (princ passwd-matches))))))
+
+(defun mh-folder-line-matches-show-buffer-p ()
+  "Return t if the message under point in folder-mode is in the show buffer.
+Return nil in any other circumstance (no message under point, no
+show buffer, the message in the show buffer doesn't match."
+  (and (eq major-mode 'mh-folder-mode)
+       (mh-get-msg-num nil)
+       mh-show-buffer
+       (get-buffer mh-show-buffer)
+       (buffer-file-name (get-buffer mh-show-buffer))
+       (string-match ".*/\\([0-9]+\\)$"
+                     (buffer-file-name (get-buffer mh-show-buffer)))
+       (string-equal
+        (match-string 1 (buffer-file-name (get-buffer mh-show-buffer)))
+        (int-to-string (mh-get-msg-num nil)))))
 
 (provide 'mh-alias)
 

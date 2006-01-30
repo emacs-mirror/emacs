@@ -9,6 +9,8 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
+** buffer-offer-save should be a permanent local.
+
 ** revert-buffer should eliminate overlays and the mark.
 
 ** erase-buffer should perhaps disregard read-only properties of text.
@@ -53,6 +55,10 @@ to the FSF.
    and they should create Custom buffers.
 
 ** The toolbar should show keyboard equivalents in its tooltips.
+
+** Modify allout.el to use overlays, like outline.el.
+
+** M-! M-n should fetch the buffer-file-name as the default.
 
 * Important features:
 
@@ -437,6 +443,13 @@ when the body only calls primitives.
    comint-derived mode.  I.e. basically make cmuscheme.el/inf-lisp.el generic.
    For use by sml-mode, python-mode, tex-mode, scheme-mode, lisp-mode,
    haskell-mode, tuareg-mode, ...
+
+** Make SYNC_INPUT the default.
+   All loops using immediate_quit need to be checked to ensure that
+   C-g can interrupt them, in case of an infinite loop.  Once we
+   switch to using SYNC_INPUT, we can remove the BLOCK_INPUTs in the
+   allocation functions (allocate_string etc.) without worrying about
+   data munging.
 
 * Other known bugs:
 

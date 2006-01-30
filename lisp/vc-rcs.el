@@ -152,8 +152,8 @@ For a description of possible values, see `vc-check-master-templates'."
                 (vc-file-setprop file 'vc-checkout-model 'locking))))
           state)
       (if (not (vc-mistrust-permissions file))
-          (let* ((attributes  (file-attributes file))
-                 (owner-uid   (nth 2 attributes))
+          (let* ((attributes  (file-attributes file 'string))
+                 (owner-name  (nth 2 attributes))
                  (permissions (nth 8 attributes)))
             (cond ((string-match ".r-..-..-." permissions)
                    (vc-file-setprop file 'vc-checkout-model 'locking)
@@ -162,7 +162,7 @@ For a description of possible values, see `vc-check-master-templates'."
 		   (if (eq (vc-checkout-model file) 'locking)
 		       (if (file-ownership-preserved-p file)
 			   'edited
-			 (vc-user-login-name owner-uid))
+			 owner-name)
 		     (if (vc-rcs-workfile-is-newer file)
 			 'edited
 		       'up-to-date)))
@@ -818,7 +818,7 @@ file."
             'needs-patch))
 	 ;; locked by the calling user
 	 ((and (stringp locking-user)
-	       (string= locking-user (vc-user-login-name)))
+	       (string= locking-user (vc-user-login-name file)))
 	  (if (or (eq (vc-checkout-model file) 'locking)
 		  workfile-is-latest
 		  (vc-rcs-latest-on-branch-p file workfile-version))
@@ -907,7 +907,8 @@ Returns: nil            if no headers were found
 	  (vc-file-setprop file 'vc-state
 			   (cond
 			    ((eq locking-user 'none) 'up-to-date)
-			    ((string= locking-user (vc-user-login-name)) 'edited)
+			    ((string= locking-user (vc-user-login-name file)) 
+                             'edited)
 			    (t locking-user)))
 	  ;; If the file has headers, we don't want to query the
 	  ;; master file, because that would eliminate all the

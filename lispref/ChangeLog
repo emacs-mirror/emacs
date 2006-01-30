@@ -1,3 +1,36 @@
+2006-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Other Display Specs, Image Descriptors): Image
+	description is a list, not a cons cell.
+
+2006-01-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Cons Cells): Minor correction (the cdr of a dotted
+	list is not necessarily a list).
+
+2006-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Layout Parameters): border-width and
+	internal-border-width belong to the frame, not the window.
+
+2006-01-19  Richard M. Stallman  <rms@gnu.org>
+
+	* nonascii.texi (Translation of Characters): Search cmds use
+	translation-table-for-input.  Automatically made local.
+
+	* markers.texi (Overview of Markers): Count insertion type
+	as one of a marker's attributes.
+
+	* elisp.texi (Top): Menu clarification.
+
+	* display.texi (Other Display Specs): Delete duplicate entry for
+	just a string as display spec.  Move text about recursive display
+	specs on such a string.
+
+	* commands.texi (Key Sequence Input): Clarify.
+	Move num-nonmacro-input-events out.
+	(Reading One Event): num-nonmacro-input-events moved here.
+
 2006-01-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* advice.texi (Simple Advice): Update example to fit argument

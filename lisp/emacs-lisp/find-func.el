@@ -165,7 +165,7 @@ If nil, do not try to find the source code of functions and variables
 defined in C.")
 
 (defun find-function-C-source (fun-or-var file type)
-  "Find the source location where SUBR-OR-VAR is defined in FILE.
+  "Find the source location where FUN-OR-VAR is defined in FILE.
 TYPE should be nil to find a function, or `defvar' to find a variable."
   (unless find-function-C-source-directory
     (setq find-function-C-source-directory
@@ -243,7 +243,7 @@ The search is done in the source for library LIBRARY."
 (defun find-function-noselect (function)
   "Return a pair (BUFFER . POINT) pointing to the definition of FUNCTION.
 
-Finds the Emacs Lisp library containing the definition of FUNCTION
+Finds the source file containing the definition of FUNCTION
 in a buffer and the point of the definition.  The buffer is
 not selected.
 
@@ -335,7 +335,7 @@ Set mark before moving, if the buffer already existed."
 (defun find-function (function)
   "Find the definition of the FUNCTION near point.
 
-Finds the Emacs Lisp library containing the definition of the function
+Finds the source file containing the definition of the function
 near point (selected by `function-called-at-point') in a buffer and
 places point before the definition.
 Set mark before moving, if the buffer already existed.
@@ -356,7 +356,7 @@ See `find-function' for more details."
 
 ;;;###autoload
 (defun find-function-other-frame (function)
-  "Find, in ananother frame, the definition of FUNCTION near point.
+  "Find, in another frame, the definition of FUNCTION near point.
 
 See `find-function' for more details."
   (interactive (find-function-read))
@@ -364,24 +364,25 @@ See `find-function' for more details."
 
 ;;;###autoload
 (defun find-variable-noselect (variable &optional file)
-  "Return a pair `(BUFFER . POINT)' pointing to the definition of SYMBOL.
+  "Return a pair `(BUFFER . POINT)' pointing to the definition of VARIABLE.
 
-Finds the Emacs Lisp library containing the definition of SYMBOL
-in a buffer, and the point of the definition.  It does not switch
-to the buffer or display it.
+Finds the library containing the definition of VARIABLE in a buffer and
+the point of the definition.  The buffer is not selected.
 
 The library where VARIABLE is defined is searched for in FILE or
 `find-function-source-path', if non nil, otherwise in `load-path'."
   (if (not variable)
-      (error "You didn't specify a variable"))
-  (let ((library (or file (symbol-file variable 'defvar))))
-    (find-function-search-for-symbol variable 'defvar library)))
+      (error "You didn't specify a variable")
+    (let ((library (or file
+                       (symbol-file variable 'defvar)
+                       (help-C-file-name variable 'var))))
+      (find-function-search-for-symbol variable 'defvar library))))
 
 ;;;###autoload
 (defun find-variable (variable)
   "Find the definition of the VARIABLE near point.
 
-Finds the Emacs Lisp library containing the definition of the variable
+Finds the library containing the definition of the variable
 near point (selected by `variable-at-point') in a buffer and
 places point before the definition.
 
@@ -403,7 +404,7 @@ See `find-variable' for more details."
 
 ;;;###autoload
 (defun find-variable-other-frame (variable)
-  "Find, in annother frame, the definition of VARIABLE near point.
+  "Find, in another frame, the definition of VARIABLE near point.
 
 See `find-variable' for more details."
   (interactive (find-function-read 'defvar))
@@ -412,18 +413,22 @@ See `find-variable' for more details."
 ;;;###autoload
 (defun find-definition-noselect (symbol type &optional file)
   "Return a pair `(BUFFER . POINT)' pointing to the definition of SYMBOL.
-TYPE says what type of definition: nil for a function,
-`defvar' or `defface' for a variable or face.  This function
-does not switch to the buffer or display it.
+TYPE says what type of definition: nil for a function, `defvar' for a
+variabke, `defface' for a face.  This function does not switch to the
+buffer nor display it.
 
 The library where SYMBOL is defined is searched for in FILE or
 `find-function-source-path', if non nil, otherwise in `load-path'."
-  (if (not symbol)
-      (error "You didn't specify a symbol"))
-  (if (null type)
-      (find-function-noselect symbol)
+  (cond
+   ((not symbol)
+    (error "You didn't specify a symbol"))
+   ((null type)
+    (find-function-noselect symbol))
+   ((eq type 'defvar)
+    (find-variable-noselect symbol file))
+   (t
     (let ((library (or file (symbol-file symbol type))))
-      (find-function-search-for-symbol symbol type library))))
+      (find-function-search-for-symbol symbol type library)))))
 
 ;; For symmetry, this should be called find-face; but some programs
 ;; assume that, if that name is defined, it means something else.
@@ -480,7 +485,7 @@ Set mark before moving, if the buffer already existed."
 
 ;;;###autoload
 (defun find-variable-at-point ()
-  "Find directly the function at point in the other window."
+  "Find directly the variable at point in the other window."
   (interactive)
   (let ((symb (variable-at-point)))
     (when (and symb (not (equal symb 0)))

@@ -3021,6 +3021,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   Lisp_Object parent;
   struct kboard *kb;
 
+  parms = Fcopy_alist (parms);
+
   /* Use this general default value to start with
      until we know if this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;
@@ -3400,6 +3402,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
       && (!FRAMEP (kb->Vdefault_minibuffer_frame)
           || !FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame))))
     kb->Vdefault_minibuffer_frame = frame;
+
+  /* All remaining specified parameters, which have not been "used"
+     by x_get_arg and friends, now go in the misc. alist of the frame.  */
+  for (tem = parms; !NILP (tem); tem = XCDR (tem))
+    if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
+      f->param_alist = Fcons (XCAR (tem), f->param_alist);
 
   UNGCPRO;
 

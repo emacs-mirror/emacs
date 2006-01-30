@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.03
+;; Version: 4.04
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,6 +81,10 @@
 ;;
 ;; Changes since version 4.00:
 ;; ---------------------------
+;; Version 4.04
+;;    - Cleanup tags display in agenda.
+;;    - Bug fixes.
+;;
 ;; Version 4.03
 ;;    - Table alignment fixed for use with wide characters.
 ;;    - `C-c -' leaves cursor in current table line.
@@ -111,7 +115,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.03"
+(defvar org-version "4.04"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -126,7 +130,7 @@
   "Are we using the new outline mode?")
 
 (defgroup org nil
-  "Outline-based notes management and organizer "
+  "Outline-based notes management and organizer."
   :tag "Org"
   :group 'outlines
   :group 'hypermedia
@@ -303,7 +307,7 @@ Changes become only effective after restarting Emacs."
   :type 'string)
 
 (defcustom org-closed-string "CLOSED:"
-  "String ued as the prefix for timestamps logging closing a TODO entry."
+  "String used as the prefix for timestamps logging closing a TODO entry."
   :group 'org-keywords
   :type 'string)
 
@@ -320,13 +324,13 @@ Changes become only effective after restarting Emacs."
 Quoting applies only to the text in the entry following the headline, and does
 not extend beyond the next headline, even if that is lower level.
 An entry can be toggled between QUOTE and normal with
-\\[org-toggle-fixed-width-section]"
+\\[org-toggle-fixed-width-section]."
   :group 'org-keywords
   :type 'string)
 
 (defcustom org-after-todo-state-change-hook nil
   "Hook which is run after the state of a TODO item was changed.
-The new state (a string with a todo keyword, or nil) is available in the
+The new state (a string with a TODO keyword, or nil) is available in the
 Lisp variable `state'."
   :group 'org-keywords
   :type 'hook)
@@ -522,8 +526,8 @@ the entries for specific days."
 (defcustom org-calendar-to-agenda-key [?c]
   "The key to be installed in `calendar-mode-map' for switching to the agenda.
 The command `org-calendar-goto-agenda' will be bound to this key.  The
-default is the character `c' because then`c' can be used to switch back and
-force between agenda and calendar."
+default is the character `c' because then `c' can be used to switch back and
+forth between agenda and calendar."
   :group 'org-agenda
   :type 'sexp)
 
@@ -531,7 +535,7 @@ force between agenda and calendar."
   "Sorting structure for the agenda items of a single day.
 This is a list of symbols which will be used in sequence to determine
 if an entry should be listed before another entry.  The following
-symbols are recognized.
+symbols are recognized:
 
 time-up         Put entries with time-of-day indications first, early first
 time-down       Put entries with time-of-day indications first, late first
@@ -608,7 +612,8 @@ the prefix, you could use:
 
   (setq org-agenda-prefix-format \"  %-11:c% s\")
 
-See also the variable `org-agenda-remove-times-when-in-prefix'."
+See also the variables `org-agenda-remove-times-when-in-prefix' and
+`org-agenda-remove-tags-when-in-prefix'."
   :type 'string
   :group 'org-agenda)
 
@@ -625,9 +630,9 @@ of `org-agenda-prefix-format' or `org-timeline-prefix-format'.")
 (defcustom org-agenda-use-time-grid t
   "Non-nil means, show a time grid in the agenda schedule.
 A time grid is a set of lines for specific times (like every two hours between
-8:00 and 20:00.  The items scheduled for a day at specific times are
+8:00 and 20:00).  The items scheduled for a day at specific times are
 sorted in between these lines.
-For deails about when the grid will be shown, and what it will look like, see
+For details about when the grid will be shown, and what it will look like, see
 the variable `org-agenda-time-grid'."
   :group 'org-agenda
   :type 'boolean)
@@ -691,6 +696,16 @@ agenda entries."
   :group 'org-agenda
   :type 'boolean)
 
+(defcustom org-agenda-remove-tags-when-in-prefix nil
+  "Non-nil means, the tags from copy of headline in agenda.
+When this is the symbol `prefix', only remove tags when
+`org-agenda-prefix-format' contains a `%T' specifier."
+  :group 'org-agenda
+  :type '(choice
+	  (const :tag "Always" t)
+	  (const :tag "Never" nil)
+	  (const :tag "When prefix format contains %T" prefix)))
+
 (defgroup org-structure nil
   "Options concerning structure editing in Org-mode."
   :tag "Org Structure"
@@ -745,7 +760,7 @@ Turning this off makes sparse trees more compact, but also less clear."
 When doing an `org-occur' it is useful to show the headline which
 follows the match, even if they do not match the regexp.  This makes it
 easier to edit directly inside the sparse tree.  However, if you use
-org-occur mainly as an overview, the following headlines are
+`org-occur' mainly as an overview, the following headlines are
 unnecessary clutter."
   :group 'org-structure
   :type 'boolean)
@@ -760,7 +775,7 @@ as possible."
 (defcustom org-level-color-stars-only nil
   "Non-nil means fontify only the stars in each headline.
 When nil, the entire headline is fontified.
-After changin this, requires restart of Emacs to become effective."
+Changing it requires a restart of Emacs to become effective."
   :group 'org-structure
   :type 'boolean)
 
@@ -856,7 +871,7 @@ first line, so it is probably best to use this in combinations with
 
 (defcustom org-tags-column 48
   "The column to which tags should be indented in a headline.
-If this number is positive, it specified the column.  If it is negative,
+If this number is positive, it specifies the column.  If it is negative,
 it means that the tags should be flushright to that column.  For example,
 -79 works well for a normal 80 character screen."
   :group 'org-tags
@@ -872,7 +887,7 @@ the tags are again aligned to `org-tags-column'."
 
 (defcustom org-use-tag-inheritance t
   "Non-nil means, tags in levels apply also for sublevels.
-When nil, only the tags directly give in a specific line apply there.
+When nil, only the tags directly given in a specific line apply there.
 If you turn off this option, you very likely want to turn on the
 companion option `org-tags-match-list-sublevels'."
   :group 'org-tags
@@ -933,7 +948,7 @@ recommend an additional URL: prefix, so the format would be \"<URL:%s>\"."
 When nil, it becomes possible to put several links into a line.
 Note that in tables, a link never extends accross fields, so in a table
 it is always possible to put several links into a line.
-Changing this varable requires a re-launch of Emacs of become effective."
+Changing this variable requires a restart of Emacs to become effective."
   :group 'org-link
   :type 'boolean)
 
@@ -999,7 +1014,7 @@ another window."
 		 (const find-file-other-frame)))))
 
 (defcustom org-usenet-links-prefer-google nil
-  "Non-nil means, `org-store-link' will create web links to google groups.
+  "Non-nil means, `org-store-link' will create web links to Google groups.
 When nil, Gnus will be used for such links.
 Using a prefix arg to the command \\[org-store-link] (`org-store-link')
 negates this setting for the duration of the command."
@@ -1020,7 +1035,7 @@ The default is true, to keep new users from shooting into their own foot."
 
 (defconst org-file-apps-defaults-gnu
   '((t . mailcap))
-  "Default file applications on a UNIX/LINUX system.
+  "Default file applications on a UNIX or GNU/Linux system.
 See `org-file-apps'.")
 
 (defconst org-file-apps-defaults-macosx
@@ -1116,7 +1131,7 @@ When nil, new notes will be filed to the end of a file or entry."
 When nil, such lines will be treated like ordinary lines.
 
 When equal to the symbol `optimized', the table editor will be optimized to
-do the following
+do the following:
 - Use automatic overwrite mode in front of whitespace in table fields.
   This make the structure of the table stay in tact as long as the edited
   field does not exceed the column width.
@@ -1256,7 +1271,7 @@ calls `table-recognize-table'."
     calc-display-working-message t
     )
   "List with Calc mode settings for use in calc-eval for table formulas.
-The list must contain alternating symbols (calc modes variables and values.
+The list must contain alternating symbols (Calc modes variables and values).
 Don't remove any of the default settings, just change the values.  Org-mode
 relies on the variables to be present in the list."
   :group 'org-table-calculation
@@ -1305,7 +1320,7 @@ in table calculations, including symbolics etc."
   :type 'boolean)
 
 (defcustom org-table-allow-automatic-line-recalculation t
-  "Non-nil means, lines makred with |#| or |*| will be recomputed automatically.
+  "Non-nil means, lines marked with |#| or |*| will be recomputed automatically.
 Automatically means, when TAB or RET or C-c C-c are pressed in the line."
   :group 'org-table-calculation
   :type 'boolean)
@@ -1342,7 +1357,7 @@ This should have an association in `org-export-language-setup'."
   :group 'org-export
   :type 'string)
 
-(defcustom org-export-html-style 
+(defcustom org-export-html-style
 "<style type=\"text/css\">
   html {
 	font-family: Times, serif;
@@ -1366,13 +1381,13 @@ This should have an association in `org-export-language-setup'."
   "The default style specification for exported HTML files.
 Since there are different ways of setting style information, this variable
 needs to contain the full HTML structure to provide a style, including the
-surrounding HTML tags.  The style specifications should include definiitons
+surrounding HTML tags.  The style specifications should include definitions
 for new classes todo, done, title, and deadline.  For example, legal values
-would be.
+would be:
 
    <style type=\"text/css\">
-       p {font-weight: normal; color: gray; }
-       h1 {color: black; }
+       p { font-weight: normal; color: gray; }
+       h1 { color: black; }
       .title { text-align: center; }
       .todo, .deadline { color: red; }
       .done { color: green; }
@@ -1468,7 +1483,7 @@ This option can also be set with the +OPTIONS line, e.g. \"@:nil\"."
 (defcustom org-export-with-fixed-width t
   "Non-nil means, lines starting with \":\" will be in fixed width font.
 This can be used to have pre-formatted text, fragments of code etc.  For
-example
+example:
   : ;; Some Lisp examples
   : (while (defc cnt)
   :   (ding))
@@ -1538,7 +1553,7 @@ considered as a single item - so grouping with {} is normally not
 needed.  For example, the following things will be parsed as single
 sub- or superscripts.
 
- 10^24   or   10^tau     several digits will be considered 1 item
+ 10^24   or   10^tau     several digits will be considered 1 item.
  10^-12  or   10^-tau    a leading sign with digits or a word
  x^2-y^3                 will be read as x^2 - y^3, because items are
 			 terminated by almost any nonword/nondigit char.
@@ -1680,7 +1695,7 @@ This file is created with the command \\[org-export-icalendar-all-agenda-files].
     (((class color) (background light)) (:foreground "RosyBrown"))
     (((class color) (background dark)) (:foreground "LightSalmon"))
     (t (:italic t)))
-  "Face used for level 8 headlines."
+  "Face used for special keywords."
   :group 'org-faces)
 
 (defface org-warning ;; font-lock-warning-face
@@ -1742,7 +1757,7 @@ When this is non-nil, the headline after the keyword is set to the
     (((class color) (background light)) (:foreground "Firebrick"))
     (((class color) (background dark)) (:foreground "chocolate1"))
     (t (:bold t :italic t)))
-  "Face for items scheduled previously, and not yet done."
+  "Face for formulas."
   :group 'org-faces)
 
 (defface org-link
@@ -1774,7 +1789,7 @@ When this is non-nil, the headline after the keyword is set to the
     (((class color) (background light)) (:foreground "DarkGoldenrod"))
     (((class color) (background dark)) (:foreground "LightGoldenrod"))
     (t (:bold t :italic t)))
-  "Face used for level 2 headlines."
+  "Face used for time grids."
   :group 'org-faces)
 
 (defvar org-level-faces
@@ -1911,7 +1926,8 @@ When this is non-nil, the headline after the keyword is set to the
   (defvar org-selected-point)
   (defvar calendar-mode-map)
   (defvar remember-save-after-remembering)
-  (defvar remember-data-file))
+  (defvar remember-data-file)
+  (defvar last-arg))
 
 
 ;;; Define the mode
@@ -1926,7 +1942,7 @@ When this is non-nil, the headline after the keyword is set to the
 ;; We use a before-change function to check if a table might need
 ;; an update.
 (defvar org-table-may-need-update t
-  "Indicates of a table might need an update.
+  "Indicates that a table might need an update.
 This variable is set by `org-before-change-function'. `org-table-align'
 sets it back to nil.")
 (defvar org-mode-hook nil)
@@ -1937,7 +1953,7 @@ sets it back to nil.")
 ;;;###autoload
 (define-derived-mode org-mode outline-mode "Org"
   "Outline-based notes management and organizer, alias
-\"Carstens outline-mode for keeping track of everything.\"
+\"Carsten's outline-mode for keeping track of everything.\"
 
 Org-mode develops organizational tasks around a NOTES file which
 contains information about projects as plain text.  Org-mode is
@@ -2201,9 +2217,9 @@ The following commands are available:
 - When point is at the beginning of a headline, rotate the subtree started
   by this line through 3 different states (local cycling)
   1. FOLDED:   Only the main headline is shown.
-  2. CHILDREN: The main headline and the direct children are shown.  From
-	       this state, you can move to one of the children and
-	       zoom in further.
+  2. CHILDREN: The main headline and the direct children are shown.
+               From this state, you can move to one of the children
+               and zoom in further.
   3. SUBTREE:  Show the entire subtree, including body text.
 
 - When there is a numeric prefix, go up to a heading with level ARG, do
@@ -2460,14 +2476,14 @@ or nil."
 
 ;;  FIXME:  It may not be a good idea to temper with the prefix argument...
 (defun org-goto-ret (&optional arg)
-  "Finish org-goto by going to the new location."
+  "Finish `org-goto' by going to the new location."
   (interactive "P")
   (setq org-selected-point (point)
 	current-prefix-arg arg)
   (throw 'exit nil))
 
 (defun org-goto-left ()
-  "Finish org-goto by going to the new location."
+  "Finish `org-goto' by going to the new location."
   (interactive)
   (if (org-on-heading-p)
       (progn
@@ -2478,7 +2494,7 @@ or nil."
     (error "Not on a heading")))
 
 (defun org-goto-right ()
-  "Finish org-goto by going to the new location."
+  "Finish `org-goto' by going to the new location."
   (interactive)
   (if (org-on-heading-p)
       (progn
@@ -2490,7 +2506,7 @@ or nil."
     (error "Not on a heading")))
 
 (defun org-goto-quit ()
-  "Finish org-goto without cursor motion."
+  "Finish `org-goto' without cursor motion."
   (interactive)
   (setq org-selected-point nil)
   (throw 'exit nil))
@@ -2501,8 +2517,7 @@ or nil."
   "To temporarily disable the active region.")
 
 (defun org-insert-heading (&optional force-heading)
-  "Insert a new heading or item with same depth at point.
-If ARG is non-nil"
+  "Insert a new heading or item with same depth at point."
   (interactive "P")
   (when (or force-heading (not (org-insert-item)))
     (let* ((head (save-excursion
@@ -2862,7 +2877,7 @@ If optional TXT is given, check this string instead of the current kill."
   (let ((llt org-plain-list-ordered-item-terminator))
     (save-excursion
       (goto-char (point-at-bol))
-      (looking-at 
+      (looking-at
        (cond
 	((eq llt t)  "\\([ \t]*\\([-+]\\|\\([0-9]+[.)]\\)\\)\\|[ \t]+\\*\\)\\( \\|$\\)")
 	((= llt ?.)  "\\([ \t]*\\([-+]\\|\\([0-9]+\\.\\)\\)\\|[ \t]+\\*\\)\\( \\|$\\)")
@@ -2870,7 +2885,7 @@ If optional TXT is given, check this string instead of the current kill."
 	(t (error "Invalid value of `org-plain-list-ordered-item-terminator'")))))))
 
 (defun org-get-indentation ()
-  "Get the indentation of the current line, ionterpreting tabs."
+  "Get the indentation of the current line, interpreting tabs."
   (save-excursion
     (beginning-of-line 1)
     (skip-chars-forward " \t")
@@ -2880,7 +2895,7 @@ If optional TXT is given, check this string instead of the current kill."
   "Go to the beginning of the current hand-formatted item.
 If the cursor is not in an item, throw an error."
   (let ((pos (point))
-	(limit (save-excursion (org-back-to-heading) 
+	(limit (save-excursion (org-back-to-heading)
 			       (beginning-of-line 2) (point)))
 	ind ind1)
     (if (org-at-item-p)
@@ -2902,7 +2917,7 @@ If the cursor is not in an item, throw an error."
 	(error "Not in an item")))))
 
 (defun org-end-of-item ()
-  "Go to the beginning of the current hand-formatted item.
+  "Go to the end of the current hand-formatted item.
 If the cursor is not in an item, throw an error."
   (let ((pos (point))
 	(limit (save-excursion (outline-next-heading) (point)))
@@ -2922,10 +2937,10 @@ If the cursor is not in an item, throw an error."
 	(beginning-of-line 1)
       (goto-char pos)
       (error "Not in an item"))))
-      
+
 (defun org-move-item-down (arg)
   "Move the plain list item at point down, i.e. swap with following item.
-Subitems (items with larger indentation are considered part of the item,
+Subitems (items with larger indentation) are considered part of the item,
 so this really moves item trees."
   (interactive "p")
   (let (beg end ind ind1 (pos (point)) txt)
@@ -2947,10 +2962,10 @@ so this really moves item trees."
 	  (org-maybe-renumber-ordered-list))
       (goto-char pos)
       (error "Cannot move this item further down"))))
-    
+
 (defun org-move-item-up (arg)
   "Move the plain list item at point up, i.e. swap with previous item.
-Subitems (items with larger indentation are considered part of the item,
+Subitems (items with larger indentation) are considered part of the item,
 so this really moves item trees."
   (interactive "p")
   (let (beg end ind ind1 (pos (point)) txt)
@@ -2983,7 +2998,7 @@ so this really moves item trees."
 	  (org-maybe-renumber-ordered-list))
       (goto-char pos)
       (error "Cannot move this item further up"))))
-    
+
 (defun org-maybe-renumber-ordered-list ()
   "Renumber the ordered list at point if setup allows it.
 This tests the user option `org-auto-renumber-ordered-lists' before
@@ -3006,7 +3021,7 @@ doing the renumbering."
 
 (defun org-renumber-ordered-list (arg)
   "Renumber an ordered plain list.
-Cursor neext to be in the first line of an item, the line that starts
+Cursor next to be in the first line of an item, the line that starts
 with something like \"1.\" or \"2)\"."
   (interactive "p")
   (unless (and (org-at-item-p)
@@ -3294,13 +3309,13 @@ like
      *** TODO Write paper
      *** DONE Call mom
 
-The different keywords are specified in the variable `org-todo-keywords'.  By
-default the available states are \"TODO\" and \"DONE\".
+The different keywords are specified in the variable `org-todo-keywords'.
+By default the available states are \"TODO\" and \"DONE\".
 So for this example: when the item starts with TODO, it is changed to DONE.
 When it starts with DONE, the DONE is removed.  And when neither TODO nor
 DONE are present, add TODO at the beginning of the heading.
 
-With prefix arg, use completion to determined the new state.  With numeric
+With prefix arg, use completion to determine the new state.  With numeric
 prefix arg, switch to that state."
   (interactive "P")
   (save-excursion
@@ -3366,7 +3381,7 @@ prefix arg, switch to that state."
 
 (defun org-log-done (&optional undone)
   "Add a time stamp logging that a TODO entry has been closed.
-When UNDONE is non-nil, remove such a time stamg again."
+When UNDONE is non-nil, remove such a time stamp again."
   (interactive)
   (let (beg end col)
     (save-excursion
@@ -3379,7 +3394,7 @@ When UNDONE is non-nil, remove such a time stamg again."
       (setq end (point))
       (goto-char beg)
       (when (re-search-forward (concat
-				"[\r\n]\\([ \t]*" 
+				"[\r\n]\\([ \t]*"
 				(regexp-quote org-closed-string)
 				" *\\[.*?\\][^\n\r]*[\n\r]?\\)") end t)
 	(delete-region (match-beginning 1) (match-end 1)))
@@ -3390,12 +3405,12 @@ When UNDONE is non-nil, remove such a time stamg again."
 	(when (not (member (char-before) '(?\r ?\n)))
 	  (insert "\n"))
 	(indent-to col)
-	(insert org-closed-string " " 
-		(format-time-string 
+	(insert org-closed-string " "
+		(format-time-string
 		 (concat "[" (substring (cdr org-time-stamp-formats) 1 -1) "]")
 		 (current-time))
 		"\n")))))
-			    
+
 (defun org-show-todo-tree (arg)
   "Make a compact tree which shows all headlines marked with TODO.
 The tree will show the lines where the regexp matches, and all higher
@@ -3445,7 +3460,7 @@ to modify it to the correct date."
 The tree will show the lines where the regexp matches, and all higher
 headlines above the match.  It will also show the heading after the match,
 to make sure editing the matching entry is easy.
-if CALLBACK is non-nil, it is a function which is called to confirm
+If CALLBACK is non-nil, it is a function which is called to confirm
 that the match should indeed be shown."
   (interactive "sRegexp: ")
   (org-remove-occur-highlights nil nil t)
@@ -3491,7 +3506,7 @@ that the match should indeed be shown."
   (if org-xemacs-p (make-extent beg end buffer) (make-overlay beg end buffer)))
 (defun org-delete-overlay (ovl)
   (if org-xemacs-p (delete-extent ovl) (delete-overlay ovl)))
-(defun org-detatch-overlay (ovl) 
+(defun org-detatch-overlay (ovl)
   (if org-xemacs-p (detach-extent ovl) (delete-overlay ovl)))
 (defun org-move-overlay (ovl beg end &optional buffer)
   (if org-xemacs-p
@@ -3512,14 +3527,14 @@ that the match should indeed be shown."
 (defun org-remove-occur-highlights (&optional beg end noremove)
   "Remove the occur highlights from the buffer.
 BEG and END are ignored.  If NOREMOVE is nil, remove this function
-from the before-change-functions in the current buffer."
+from the `before-change-functions' in the current buffer."
   (interactive)
   (mapc 'org-delete-overlay org-occur-highlights)
   (setq org-occur-highlights nil)
   (unless noremove
     (remove-hook 'before-change-functions
 		 'org-remove-occur-highlights 'local)))
-  
+
 ;;; Priorities
 
 (defvar org-priority-regexp ".*?\\(\\[#\\([A-Z]\\)\\] ?\\)"
@@ -3658,7 +3673,7 @@ So these are more for recording a certain time/date."
   "Read a date and make things smooth for the user.
 The prompt will suggest to enter an ISO date, but you can also enter anything
 which will at least partially be understood by `parse-time-string'.
-Unrecognized parts of the date will default to the current day, month ,year,
+Unrecognized parts of the date will default to the current day, month, year,
 hour and minute.  For example,
   3-2-5         --> 2003-02-05
   feb 15        --> currentyear-02-15
@@ -3673,9 +3688,9 @@ but this can be configured with the variables `parse-time-months' and
 
 While prompting, a calendar is popped up - you can also select the
 date with the mouse (button 1).  The calendar shows a period of three
-month.  To scroll it to other months, use the keys `>' and `<'.
+months.  To scroll it to other months, use the keys `>' and `<'.
 If you don't like the calendar, turn it off with
-       \(setq org-popup-calendar-for-date-prompt nil).
+       \(setq org-popup-calendar-for-date-prompt nil)
 
 With optional argument TO-TIME, the date will immediately be converted
 to an internal time.
@@ -4065,7 +4080,7 @@ in the timestamp determines what will be changed."
 (defun org-goto-calendar (&optional arg)
   "Go to the Emacs calendar at the current date.
 If there is a time stamp in the current line, go to that date.
-A prefix ARG can be used force the current date."
+A prefix ARG can be used to force the current date."
   (interactive "P")
   (let ((tsr org-ts-regexp) diff
 	(calendar-move-hook nil)
@@ -4273,10 +4288,10 @@ on to the selected command.  The default selections are:
 a     Call `org-agenda' to display the agenda for the current day or week.
 t     Call `org-todo-list' to display the global todo list.
 T     Call `org-todo-list' to display the global todo list, select only
-      entries with a specific TODO keyword (the user get a prompt).
+      entries with a specific TODO keyword (the user gets a prompt).
 m     Call `org-tags-view' to display headlines with tags matching
       a condition  (the user is prompted for the condition).
-M     like `m', but select only TODO entries, no ordinary headlines.
+M     Like `m', but select only TODO entries, no ordinary headlines.
 
 More commands can be added by configuring the variable
 `org-agenda-custom-commands'.  In particular, specific tags and TODO keyword
@@ -4300,7 +4315,7 @@ next use of \\[org-agenda]) restricted to the current file."
 --------------------------------
 a   Agenda for current week or day
 t   List of all TODO entries             T   Entries with special TODO kwd
-m   Match a TAGS query                   M   Like m, but only TODO entries.
+m   Match a TAGS query                   M   Like m, but only TODO entries
 C   Configure your own agenda commands")
 	(while (setq entry (pop custom))
 	  (setq key (car entry) type (nth 1 entry) string (nth 2 entry))
@@ -4596,10 +4611,10 @@ NDAYS defaults to `org-agenda-ndays'."
 	(catch 'nextfile
 	  (org-check-agenda-file file)
 	  (if org-agenda-show-log
-	      (setq rtn (org-agenda-get-day-entries 
+	      (setq rtn (org-agenda-get-day-entries
 			 file date
 			 :deadline :scheduled :timestamp :closed))
-	    (setq rtn (org-agenda-get-day-entries 
+	    (setq rtn (org-agenda-get-day-entries
 		       file date
 		       :deadline :scheduled :timestamp)))
 	  (setq rtnall (append rtnall rtn))))
@@ -4798,7 +4813,7 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
   (message "Switched to week view"))
 
 (defun org-agenda-day-view ()
-  "Switch to weekly view for agenda."
+  "Switch to daily view for agenda."
   (interactive)
   (org-agenda-check-type t 'agenda)
   (setq org-agenda-ndays 1)
@@ -4822,7 +4837,7 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
   (goto-char (match-beginning 0)))
 
 (defun org-agenda-previous-date-line (&optional arg)
-  "Jump to the next line indicating a date in agenda buffer."
+  "Jump to the previous line indicating a date in agenda buffer."
   (interactive "p")
   (org-agenda-check-type t 'agenda 'timeline)
   (beginning-of-line 1)
@@ -4852,7 +4867,7 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
 	   (if org-agenda-follow-mode "on" "off")))
 
 (defun org-agenda-log-mode ()
-  "Toggle follow mode in an agenda buffer."
+  "Toggle log mode in an agenda buffer."
   (interactive)
   (org-agenda-check-type t 'agenda 'timeline)
   (setq org-agenda-show-log (not org-agenda-show-log))
@@ -4862,7 +4877,7 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
 	   (if org-agenda-show-log "on" "off")))
 
 (defun org-agenda-toggle-diary ()
-  "Toggle follow mode in an agenda buffer."
+  "Toggle diary inclusion in an agenda buffer."
   (interactive)
   (org-agenda-check-type t 'agenda)
   (setq org-agenda-include-diary (not org-agenda-include-diary))
@@ -4872,7 +4887,7 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
 	   (if org-agenda-include-diary "on" "off")))
 
 (defun org-agenda-toggle-time-grid ()
-  "Toggle follow mode in an agenda buffer."
+  "Toggle time grid in an agenda buffer."
   (interactive)
   (org-agenda-check-type t 'agenda)
   (setq org-agenda-use-time-grid (not org-agenda-use-time-grid))
@@ -4944,10 +4959,10 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
 	     entries)))))
 
 (defun org-agenda-cleanup-fancy-diary ()
-  "Remove unwanted stuff in buffer created by fancy-diary-display.
+  "Remove unwanted stuff in buffer created by `fancy-diary-display'.
 This gets rid of the date, the underline under the date, and
 the dummy entry installed by `org-mode' to ensure non-empty diary for each
-date.  Itt also removes lines that contain only whitespace."
+date.  It also removes lines that contain only whitespace."
   (goto-char (point-min))
   (if (looking-at ".*?:[ \t]*")
       (progn
@@ -5020,8 +5035,8 @@ If the current buffer does not, find the first agenda file."
       (find-file (car org-agenda-files)))))
 
 (defun org-agenda-file-to-end (&optional file)
-  "Move/add the current file to the end of the agenda fiole list.
-I the file is not present in the list, it is appended ot the list.  If it is
+  "Move/add the current file to the end of the agenda file list.
+If the file is not present in the list, it is appended to the list.  If it is
 present, it is moved there."
   (interactive)
   (org-agenda-file-to-front 'to-end file))
@@ -5270,6 +5285,27 @@ the documentation of `org-diary'."
 	     (throw 'exit t)))
       nil)))
 
+(defun org-get-tags-at (&optional pos)
+  "Get a list of all headline targs applicable at POS.
+POS defaults to point.  If tags are inherited, the list contains
+the targets in the same sequence as the headlines appear, i.e.
+the tags of the current headline come last."
+  (interactive)
+  (let (tags)
+    (save-excursion
+      (goto-char (or pos (point)))
+      (save-match-data
+	(org-back-to-heading t)
+	(condition-case nil
+	    (while t
+	      (if (looking-at "[^\r\n]+?:\\([a-zA-Z_:]+\\):[ \t]*\\([\n\r]\\|\\'\\)")
+		  (setq tags (append (org-split-string (match-string 1) ":") tags)))
+	      (or org-use-tag-inheritance (error ""))
+	      (org-up-heading-all 1))
+	  (error nil))))
+    (message "%s" tags)
+    tags))
+
 (defun org-agenda-get-todos ()
   "Return the TODO information for agenda display."
   (let* ((props (list 'face nil
@@ -5279,7 +5315,7 @@ the documentation of `org-diary'."
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
 			      (abbreviate-file-name (buffer-file-name)))))
-	 (regexp (concat "[\n\r]\\*+ *\\(" 
+	 (regexp (concat "[\n\r]\\*+ *\\("
 			 (if org-select-this-todo-keyword
 			     (concat "\\<\\(" org-select-this-todo-keyword
 				     "\\)\\>")
@@ -5311,7 +5347,7 @@ the documentation of `org-diary'."
     (nreverse ee)))
 
 (defconst org-agenda-no-heading-message
-  "No heading for this item in buffer or region")
+  "No heading for this item in buffer or region.")
 
 (defun org-agenda-get-timestamps ()
   "Return the date stamp information for agenda display."
@@ -5392,7 +5428,7 @@ the documentation of `org-diary'."
     (nreverse ee)))
 
 (defun org-agenda-get-closed ()
-  "Return the loggedd TODO entries for agenda display."
+  "Return the logged TODO entries for agenda display."
   (let* ((props (list 'mouse-face 'highlight
 		      'keymap org-agenda-keymap
 		      'help-echo
@@ -5543,7 +5579,7 @@ the documentation of `org-diary'."
 		  (if (string-match org-looking-at-done-regexp head)
 		      (setq txt nil)
 		    (setq txt (org-format-agenda-item
-			       (format "Sched.%2dx: " (- 1 diff)) head 
+			       (format "Sched.%2dx: " (- 1 diff)) head
 			       category tags))))
 	      (setq txt org-agenda-no-heading-message))
 	    (when txt
@@ -5636,19 +5672,22 @@ After a match, the following groups carry important information:
 (defvar org-prefix-has-time nil
   "A flag, set by `org-compile-prefix-format'.
 The flag is set if the currently compiled format contains a `%t'.")
+(defvar org-prefix-has-tag nil
+  "A flag, set by `org-compile-prefix-format'.
+The flag is set if the currently compiled format contains a `%T'.")
 
 (defun org-format-agenda-item (extra txt &optional category tags dotime noprefix)
   "Format TXT to be inserted into the agenda buffer.
 In particular, it adds the prefix and corresponding text properties.  EXTRA
 must be a string and replaces the `%s' specifier in the prefix format.
-CATEGORY (string, symbol or nil) may be used to overule the default
-category taken from local variable or file name. It will replace the `%c'
+CATEGORY (string, symbol or nil) may be used to overrule the default
+category taken from local variable or file name.  It will replace the `%c'
 specifier in the format.  DOTIME, when non-nil, indicates that a
 time-of-day should be extracted from TXT for sorting of this entry, and for
 the `%t' specifier in the format.  When DOTIME is a string, this string is
 searched for a time before TXT is.  NOPREFIX is a flag and indicates that
 only the correctly processes TXT should be returned - this is used by
-`org-agenda-change-all-lines'. TAG can be the tag of the headline."
+`org-agenda-change-all-lines'.  TAG can be the tag of the headline."
   (save-match-data
     ;; Diary entries sometimes have extra whitespace at the beginning
     (if (string-match "^ +" txt) (setq txt (replace-match "" nil nil txt)))
@@ -5683,6 +5722,12 @@ only the correctly processes TXT should be returned - this is used by
 	;; Normalize the time(s) to 24 hour
 	(if s1 (setq s1 (org-get-time-of-day s1 'string)))
 	(if s2 (setq s2 (org-get-time-of-day s2 'string))))
+
+      (when (and (or (eq org-agenda-remove-tags-when-in-prefix t)
+		     (and org-agenda-remove-tags-when-in-prefix
+			  org-prefix-has-tag))
+		 (string-match ":[a-zA-Z_:]+:[ \t]*$" txt))
+	(setq txt (replace-match "" t t txt)))
 
       ;; Create the final string
       (if noprefix
@@ -5741,7 +5786,7 @@ only the correctly processes TXT should be returned - this is used by
   "Compile the prefix format into a Lisp form that can be evaluated.
 The resulting form is returned and stored in the variable
 `org-prefix-format-compiled'."
-  (setq org-prefix-has-time nil)
+  (setq org-prefix-has-time nil org-prefix-has-tag nil)
   (let ((start 0) varform vars var (s format)e c f opt)
     (while (string-match "%\\(\\?\\)?\\([-+]?[0-9.]*\\)\\([ .;,:!?=|/<>]?\\)\\([cts]\\)"
 			 s start)
@@ -5752,6 +5797,7 @@ The resulting form is returned and stored in the variable
 	    opt (match-beginning 1)
 	    start (1+ (match-beginning 0)))
       (if (equal var 'time) (setq org-prefix-has-time t))
+      (if (equal var 'tag)  (setq org-prefix-has-tag  t))
       (setq f (concat "%" (match-string 2 s) "s"))
       (if opt
 	  (setq varform
@@ -5786,7 +5832,7 @@ HH:MM."
 		       (string-to-number (match-string 3 s))
 		     0)))
 	    (t1 (concat " "
-			(if (< t0 100) "0" "") (if (< t0 10) "0" "")
+			(if (< t0 100) "0" "") (if (< t0 10)  "0" "")
 			(int-to-string t0))))
        (if string (concat (substring t1 -4 -2) ":" (substring t1 -2)) t0)))))
 
@@ -5795,7 +5841,7 @@ HH:MM."
   (mapconcat 'identity (sort list 'org-entries-lessp) "\n"))
 
 (defsubst org-cmp-priority (a b)
-  "Compare the priorities of string a and b."
+  "Compare the priorities of string A and B."
   (let ((pa (or (get-text-property 1 'priority a) 0))
 	(pb (or (get-text-property 1 'priority b) 0)))
     (cond ((> pa pb) +1)
@@ -5803,7 +5849,7 @@ HH:MM."
 	  (t nil))))
 
 (defsubst org-cmp-category (a b)
-  "Compare the string values of categories of strings a and b."
+  "Compare the string values of categories of strings A and B."
   (let ((ca (or (get-text-property 1 'category a) ""))
 	(cb (or (get-text-property 1 'category b) "")))
     (cond ((string-lessp ca cb) -1)
@@ -5811,7 +5857,7 @@ HH:MM."
 	  (t nil))))
 
 (defsubst org-cmp-time (a b)
-  "Compare the time-of-day values of strings a and b."
+  "Compare the time-of-day values of strings A and B."
   (let* ((def (if org-sort-agenda-notime-is-late 2401 -1))
 	 (ta (or (get-text-property 1 'time-of-day a) def))
 	 (tb (or (get-text-property 1 'time-of-day b) def)))
@@ -5955,7 +6001,7 @@ the same tree node, and the headline of the tree node in the Org-mode file."
     (move-to-column col)))
 
 (defun org-agenda-change-all-lines (newhead hdmarker &optional fixface)
-  "Change all lines in the agenda buffer which match hdmarker.
+  "Change all lines in the agenda buffer which match HDMARKER.
 The new content of the line will be NEWHEAD (as modified by
 `org-format-agenda-item').  HDMARKER is checked with
 `equal' against all `org-hd-marker' text properties in the file.
@@ -6107,7 +6153,7 @@ be used to request time specification in the time stamp."
 
 (defun org-agenda-diary-entry ()
   "Make a diary entry, like the `i' command from the calendar.
-All the standard commands work: block, weekly etc"
+All the standard commands work: block, weekly etc."
   (interactive)
   (org-agenda-check-type t 'agenda 'timeline)
   (require 'diary-lib)
@@ -6246,8 +6292,8 @@ This is a command that has to be installed in `calendar-mode-map'."
   "Scan headline tags with inheritance and produce output ACTION.
 ACTION can be `sparse-tree' or `agenda'.  MATCHER is a Lisp form to be
 evaluated, testing if a given set of tags qualifies a headline for
-inclusion.  When TODO-ONLY is non-nil, only lines with a TDOD keyword
-d are included in the output."
+inclusion.  When TODO-ONLY is non-nil, only lines with a TODO keyword
+are included in the output."
   (let* ((re (concat "[\n\r]" outline-regexp " *\\(\\<\\("
 		     (mapconcat 'regexp-quote
 				(nreverse (cdr (reverse org-todo-keywords)))
@@ -6283,7 +6329,7 @@ d are included in the output."
 	;; add the nex tags
 	(when tags
 	  (setq tags (mapcar 'downcase (org-split-string tags ":"))
-		tags-alist 
+		tags-alist
 		(cons (cons level tags) tags-alist)))
 	;; compile tags for current headline
 	(setq tags-list
@@ -6296,7 +6342,7 @@ d are included in the output."
 	  (if (eq action 'sparse-tree)
 	      (progn
 		(org-show-hierarchy-above))
-	    (setq txt (org-format-agenda-item 
+	    (setq txt (org-format-agenda-item
 		       ""
 		       (concat
 			(if org-tags-match-list-sublevels
@@ -6306,7 +6352,7 @@ d are included in the output."
             (goto-char lspos)
 	    (setq marker (org-agenda-new-marker))
 	    (add-text-properties
-	     0 (length txt) 
+	     0 (length txt)
 	     (append (list 'org-marker marker 'org-hd-marker marker
 			   'category category)
 		     props)
@@ -6357,7 +6403,7 @@ MATCH can contain positive and negative selection of tags, like
 
 ;;;###autoload
 (defun org-tags-view (&optional todo-only match keep-modes)
-  "Show all headlines for all `org-agenda-files' matching a TAGS criterions.
+  "Show all headlines for all `org-agenda-files' matching a TAGS criterion.
 The prefix arg TODO-ONLY limits the search to TODO entries."
   (interactive "P")
   (org-agenda-maybe-reset-markers 'force)
@@ -6381,7 +6427,7 @@ The prefix arg TODO-ONLY limits the search to TODO entries."
     (org-agenda-mode) (setq buffer-read-only nil)
     (set (make-local-variable 'org-agenda-type) 'tags)
     (set (make-local-variable 'org-agenda-redo-command)
-	 (list 'org-tags-view (list 'quote todo-only) 
+	 (list 'org-tags-view (list 'quote todo-only)
 	       (list 'if 'current-prefix-arg nil match) t))
     (setq files (org-agenda-files)
 	  rtnall nil)
@@ -6479,12 +6525,12 @@ With prefix ARG, realign all tags in headings in the current buffer."
     (if (string-match "^\\(.*[-+:&|]\\)\\([^-+:&|]*\\)$" string)
         (setq s1 (match-string 1 string)
               s2 (match-string 2 string))
-      (setq s1 "" s2 string)) 
+      (setq s1 "" s2 string))
     (cond
      ((eq flag nil)
       ;; try completion
       (setq rtn (try-completion s2 ctable))
-      (if (stringp rtn) 
+      (if (stringp rtn)
 	  (concat s1 s2 (substring rtn (length s2))
 		  (if (and org-add-colon-after-tag-completion
 			   (assoc rtn ctable))
@@ -6551,7 +6597,10 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 	  (skip-chars-backward
 	   (concat (if org-allow-space-in-links "^" "^ ")
 		   org-non-link-chars))
-	  (when (looking-at org-link-regexp)
+	  (when (or (looking-at org-link-regexp)
+		    (and (re-search-forward org-link-regexp (point-at-eol) t)
+			 (<= (match-beginning 0) pos)
+			 (>= (match-end 0) pos)))
 	    (setq type (match-string 1)
 		  path (match-string 2))
 	    (throw 'match t)))
@@ -6571,7 +6620,7 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 		(setq path (concat "*" path))))
 	  (throw 'match t))
 	(save-excursion
-	  (when (re-search-forward 
+	  (when (re-search-forward
 		 org-link-regexp
 		 (save-excursion
 		   (condition-case nil
@@ -6585,18 +6634,18 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
       ;; Remove any trailing spaces in path
       (if (string-match " +\\'" path)
 	  (setq path (replace-match "" t t path)))
-      
+
       (cond
-       
+
        ((string= type "tags")
-	(org-tags-view path in-emacs))
+	(org-tags-view in-emacs path))
        ((string= type "camel")
 	(org-link-search
 	 path
 	 (cond ((equal in-emacs '(4)) 'occur)
 	       ((equal in-emacs '(16)) 'org-occur)
 	       (t nil))))
-       
+
        ((string= type "file")
 	(if (string-match "::?\\([0-9]+\\)\\'" path) ;; second : optional
 	    (setq line (string-to-number (match-string 1 path))
@@ -6605,13 +6654,13 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 	      (setq search (match-string 1 path)
 		    path (substring path 0 (match-beginning 0)))))
 	(org-open-file path in-emacs line search))
-       
+
        ((string= type "news")
 	(org-follow-gnus-link path))
-       
+
        ((string= type "bbdb")
 	(org-follow-bbdb-link path))
-       
+
        ((string= type "gnus")
 	(let (group article)
 	  (if (not (string-match "\\`\\([^#]+\\)\\(#\\(.*\\)\\)?" path))
@@ -6619,7 +6668,7 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 	  (setq group (match-string 1 path)
 		article (match-string 3 path))
 	  (org-follow-gnus-link group article)))
-       
+
        ((string= type "vm")
 	(let (folder article)
 	  (if (not (string-match "\\`\\([^#]+\\)\\(#\\(.*\\)\\)?" path))
@@ -6628,7 +6677,7 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 		article (match-string 3 path))
 	  ;; in-emacs is the prefix arg, will be interpreted as read-only
 	  (org-follow-vm-link folder article in-emacs)))
-       
+
        ((string= type "wl")
 	(let (folder article)
 	  (if (not (string-match "\\`\\([^#]+\\)\\(#\\(.*\\)\\)?" path))
@@ -6636,7 +6685,7 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 	  (setq folder (match-string 1 path)
 		article (match-string 3 path))
 	  (org-follow-wl-link folder article)))
-       
+
        ((string= type "rmail")
 	(let (folder article)
 	  (if (not (string-match "\\`\\([^#]+\\)\\(#\\(.*\\)\\)?" path))
@@ -6644,7 +6693,7 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 	  (setq folder (match-string 1 path)
 		article (match-string 3 path))
 	  (org-follow-rmail-link folder article)))
-       
+
        ((string= type "shell")
 	(let ((cmd path))
 	  (while (string-match "@{" cmd)
@@ -6655,7 +6704,7 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 		  (yes-or-no-p (format "Execute \"%s\" in the shell? " cmd)))
 	      (shell-command cmd)
 	    (error "Abort"))))
-       
+
        (t
 	(browse-url-at-point))))))
 
@@ -6664,7 +6713,7 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 When S is a CamelCaseWord, search for a target, or for a sentence containing
 the words.  If S is surrounded by forward slashes, it is interpreted as a
 regular expression.  In org-mode files, this will create an `org-occur'
-sparse tree.  In ordinary files, `occur' will be used to list matched.
+sparse tree.  In ordinary files, `occur' will be used to list matches.
 If the current buffer is in `dired-mode', grep will be used to search
 in all files."
   (let ((case-fold-search t)
@@ -6686,7 +6735,7 @@ in all files."
 	       (setq pre "^\\*+[ \t]*\\(\\sw+\\)?[ \t]*"
 		     post "[ \t]*$"
 		     s (substring s 1)))
-	   (remove-text-properties 
+	   (remove-text-properties
 	    0 (length s)
 	    '(face nil mouse-face nil keymap nil fontified nil) s)
 	   ;; Make a series of regular expressions to find a match
@@ -6743,7 +6792,7 @@ to read."
       (select-window cwin))))
 
 (defun org-camel-to-words (s)
-  "Split \"CamelCaseWords\" to (\"Camel \" \"Case\" \"Words\")."
+  "Split \"CamelCaseWords\" to (\"Camel\" \"Case\" \"Words\")."
   (let ((case-fold-search nil)
 	words)
     (while (string-match "[a-z][A-Z]" s)
@@ -6858,10 +6907,10 @@ If no application is found, Emacs simply visits the file.
 With optional argument IN-EMACS, Emacs will visit the file.
 Optional LINE specifies a line to go to, optional SEARCH a string to
 search for.  If LINE or SEARCH is given, the file will always be
-openen in emacs.
+opened in Emacs.
 If the file does not exist, an error is thrown."
   (setq in-emacs (or in-emacs line search))
-  (let* ((file (if (equal path "") 
+  (let* ((file (if (equal path "")
 		   (buffer-file-name)
 		 (convert-standard-filename (org-expand-file-name path))))
 	 (dfile (downcase file))
@@ -7053,7 +7102,7 @@ For file links, arg negates `org-context-in-file-links'."
 			(org-make-org-heading-camel
 			 (cond
 			  ((org-on-heading-p) nil)
-			  ((org-region-active-p) 
+			  ((org-region-active-p)
 			   (buffer-substring (region-beginning) (region-end)))
 			  (t (buffer-substring (point-at-bol) (point-at-eol))))
 			 )))))
@@ -7066,9 +7115,9 @@ For file links, arg negates `org-context-in-file-links'."
       ;; Add a context string
       (when (org-xor org-context-in-file-links arg)
 	(setq cpltxt
-	      (concat cpltxt "::" 
+	      (concat cpltxt "::"
 		      (org-make-org-heading-camel
-		       (if (org-region-active-p) 
+		       (if (org-region-active-p)
 			   (buffer-substring (region-beginning) (region-end))
 			 (buffer-substring (point-at-bol) (point-at-eol)))))))
       (setq link (org-make-link cpltxt)))
@@ -7246,7 +7295,7 @@ of `org-default-notes-file' is used.
 Then the command offers the headings tree of the selected file in order to
 file the text at a specific location.
 You can either immediately press RET to get the note appended to the
-file.  Or you can use vertical cursor motion and visibility cycling (TAB) to
+file, or you can use vertical cursor motion and visibility cycling (TAB) to
 find a better place.  Then press RET or <left> or <right> in insert the note.
 
 Key      Cursor position   Note gets inserted
@@ -7448,7 +7497,7 @@ SIZE is a string Columns x Rows like for example \"3x2\"."
 The region goes from BEG0 to END0, but these borders will be moved
 slightly, to make sure a beginning of line in the first line is included.
 When NSPACE is non-nil, it indicates the minimum number of spaces that
-separate columns (default: just one space)"
+separate columns (default: just one space)."
   (let* ((beg (min beg0 end0))
 	 (end (max beg0 end0))
 	 (tabsep t)
@@ -8081,11 +8130,11 @@ If TABLE-TYPE is non-nil, also check for table.el-type tables."
     (org-table-modify-formulas 'swap col (if left (1- col) (1+ col)))))
 
 (defun org-table-move-row-down ()
-  "move table row down."
+  "Move table row down."
   (interactive)
   (org-table-move-row nil))
 (defun org-table-move-row-up ()
-  "move table row up."
+  "Move table row up."
   (interactive)
   (org-table-move-row 'up))
 
@@ -8238,7 +8287,7 @@ numerical, a for alphanumeric)."
 (defun org-table-copy-region (beg end &optional cut)
   "Copy rectangular region in table to clipboard.
 A special clipboard is used which can only be accessed
-with `org-table-paste-rectangle'"
+with `org-table-paste-rectangle'."
   (interactive "rP")
   (let* (l01 c01 l02 c02 l1 c1 l2 c2 ic1 ic2
 	 region cols
@@ -8353,7 +8402,7 @@ If there is an active region, and both point and mark are in the same column,
 the text in the column is wrapped to minimum width for the given number of
 lines.  Generally, this makes the table more compact.  A prefix ARG may be
 used to change the number of desired lines.  For example, `C-2 \\[org-table-wrap]'
-formats the selected text to two lines.  If the region was longer than 2
+formats the selected text to two lines.  If the region was longer than two
 lines, the remaining lines remain empty.  A negative prefix argument reduces
 the current number of lines by that amount.  The wrapped text is pasted back
 into the table.  If you formatted it to more lines than it was before, fields
@@ -8500,7 +8549,7 @@ and end of string."
   "Toggle the visibility of table vertical lines.
 The effect is immediate and on all tables in the file.
 With prefix ARG, make lines invisible when ARG is positive, make lines
-visible when ARG is not positive"
+visible when ARG is not positive."
   (interactive "P")
   (let ((action (cond
 		 ((and arg (> (prefix-numeric-value arg) 0)) 'on)
@@ -8614,7 +8663,7 @@ If NLAST is a number, only the NLAST fields will actually be summed."
      (t n))))
 
 (defun org-table-get-vertical-vector (desc &optional tbeg col)
-  "Get a calc vector from a column, accorting to desctiptor DESC.
+  "Get a calc vector from a column, accorting to descriptor DESC.
 Optional arguments TBEG and COL can give the beginning of the table and
 the current column, to avoid unnecessary parsing."
   (save-excursion
@@ -8758,7 +8807,7 @@ the current column, to avoid unnecessary parsing."
 (defun org-table-modify-formulas (action &rest columns)
   "Modify the formulas stored below the current table.
 ACTION can be `remove', `insert', `swap'.  For `swap', two column numbers are
-expected, for the other action only a single column number is needed."
+expected, for the other actions only a single column number is needed."
   (let ((list (org-table-get-stored-formulas))
 	(nmax (length (org-split-string
 		       (buffer-substring (point-at-bol) (point-at-eol))
@@ -8808,7 +8857,7 @@ expected, for the other action only a single column number is needed."
       (setcdr elt s))))
 
 (defun org-table-get-specials ()
-  "Get the column nmaes and local parameters for this table."
+  "Get the column names and local parameters for this table."
   (save-excursion
     (let ((beg (org-table-begin)) (end (org-table-end))
 	  names name fields fields1 field cnt c v line col)
@@ -8871,7 +8920,7 @@ If yes, store the formula and apply it."
 	    (org-table-eval-formula (if named '(4) nil) eq))))))
 
 (defvar org-recalc-commands nil
-  "List of commands triggering the reccalculation of a line.
+  "List of commands triggering the recalculation of a line.
 Will be filled automatically during use.")
 
 (defvar org-recalc-marks
@@ -8886,10 +8935,10 @@ Will be filled automatically during use.")
 (defun org-table-rotate-recalc-marks (&optional newchar)
   "Rotate the recalculation mark in the first column.
 If in any row, the first field is not consistent with a mark,
-insert a new column for the makers.
+insert a new column for the markers.
 When there is an active region, change all the lines in the region,
 after prompting for the marking character.
-After each change, a message will be displayed indication the meaning
+After each change, a message will be displayed indicating the meaning
 of the new mark."
   (interactive)
   (unless (org-at-table-p) (error "Not at a table"))
@@ -8976,12 +9025,12 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
 					 suppress-store)
   "Replace the table field value at the cursor by the result of a calculation.
 
-This function makes use of Dave Gillespie's calc package, in my view the
-most exciting program ever written for GNU Emacs.  So you need to have calc
+This function makes use of Dave Gillespie's Calc package, in my view the
+most exciting program ever written for GNU Emacs.  So you need to have Calc
 installed in order to use this function.
 
 In a table, this command replaces the value in the current field with the
-result of a formula.  It also installes the formula as the \"current\" column
+result of a formula.  It also installs the formula as the \"current\" column
 formula, by storing it in a special line below the table.  When called
 with a `C-u' prefix, the current field must ba a named field, and the
 formula is installed as valid in only this specific field.
@@ -8992,15 +9041,15 @@ history list, and the last used formula is offered as a default.
 These stored formulas are adapted correctly when moving, inserting, or
 deleting columns with the corresponding commands.
 
-The formula can be any algebraic expression understood by the calc package.
+The formula can be any algebraic expression understood by the Calc package.
 For details, see the Org-mode manual.
 
 This function can also be called from Lisp programs and offers
-additional Arguments: EQUATION can be the formula to apply.  If this
+additional arguments: EQUATION can be the formula to apply.  If this
 argument is given, the user will not be prompted.  SUPPRESS-ALIGN is
 used to speed-up recursive calls by by-passing unnecessary aligns.
 SUPPRESS-CONST suppresses the interpretation of constants in the
-formula, assuming that this has been done already outside the fuction.
+formula, assuming that this has been done already outside the function.
 SUPPRESS-STORE means the formula should not be stored, either because
 it is already stored, or because it is a modified equation that should
 not overwrite the stored one."
@@ -9441,8 +9490,8 @@ table editor in arbitrary modes.")
 
 (defun orgtbl-make-binding (fun n &rest keys)
   "Create a function for binding in the table minor mode.
-FUN is the command to call inside a table. N is used to create a unique
-command name. KEYS are keys that should be checked in for a command
+FUN is the command to call inside a table.  N is used to create a unique
+command name.  KEYS are keys that should be checked in for a command
 to execute outside of tables."
   (eval
    (list 'defun
@@ -10611,7 +10660,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 		    start-is-num (match-beginning 4)
 		    starter (if (match-beginning 2) (match-string 2 line))
 		    line (substring line (match-beginning 5)))
-	      (unless (string-match "[^ \t]" line) 
+	      (unless (string-match "[^ \t]" line)
 		;; empty line.  Pretend indentation is large.
 		(setq ind (1+ (or (car local-list-indent) 1))))
 	      (while (and in-local-list
@@ -11917,7 +11966,7 @@ that can be added."
 	      (delete arg buffer-invisibility-spec)))))
 
 (defun org-in-invisibility-spec-p (arg)
-  "Is ARG a member of `buffer-invisibility-spec'?."
+  "Is ARG a member of `buffer-invisibility-spec'?"
   (if (consp buffer-invisibility-spec)
       (member arg buffer-invisibility-spec)
     nil))
@@ -12074,8 +12123,7 @@ When ENTRY is non-nil, show the entire entry."
   ;; trees.  And is uses an invisible-OK argument.
   ;; Under Emacs this is not needed, but the old outline.el needs this fix.
   (org-back-to-heading invisible-OK)
-  (let ((opoint (point))
-	(first t)
+  (let ((first t)
 	(level (funcall outline-level)))
     (while (and (not (eobp))
 		(or first (> (funcall outline-level) level)))
@@ -12148,24 +12196,3 @@ Show the heading too, if it is currently invisible."
 ;;; org.el ends here
 
 
-(defun org-get-tags-at (&optional pos)
-  "Get a list of all headline targs applicable at POS.
-POS defaults to point.  If tags are inherited, the list contains
-the targets in the same sequence as the headlines appear, i.e.
-the tags of the current headline come last."
-  (interactive)
-  (let (tags)
-    (save-excursion
-      (goto-char (or pos (point)))
-      (save-match-data
-	(org-back-to-heading t)
-	(condition-case nil
-	    (while t
-	      (if (looking-at "[^\r\n]+?:\\([a-zA-Z_:]+\\):[ \t]*\\([\n\r]\\|\\'\\)")
-		  (setq tags (append (org-split-string (match-string 1) ":") tags)))
-	      (or org-use-tag-inheritance (error ""))
-	      (org-up-heading-all 1))
-	  (error nil))))
-    (message "%s" tags)
-    tags))
-      

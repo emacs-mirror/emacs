@@ -1,3 +1,129 @@
+2006-01-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (clean): Add newsticker, sieve, pgg, erc and
+	rcirc.
+
+2006-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* basic.texi (Continuation Lines, Inserting Text): Mention
+	longlines mode.
+
+2006-01-29  Richard M. Stallman  <rms@gnu.org>
+
+	* screen.texi: Minor cleaups.
+	(Screen): Clean up the intro paragraphs.
+	(Mode Line): Lots of rewriting.  Handle frame-name better.
+	eol-mnemonic-... vars moved out.
+
+	* emacs.texi (Top): Change menu item for MS-DOS node.
+	Update subnode menu.
+
+	* msdog.texi (MS-DOS): Rewrite intro to explain how this
+	chapter relates to Windows.  Title changed.
+
+	* mini.texi: Minor cleanups.
+
+	* mark.texi (Selective Undo): New node, text moved from basic.texi.
+	(Mark): Put it in the menu.
+
+	* entering.texi: Minor cleanups.
+
+	* emacs.texi (Top): Add xref to Mac chapter; explain Windows better.
+	(Intro): Refer to "graphical" terminals, rather than X.
+
+	* display.texi (Display Custom): Add xref to Variables.
+	(Optional Mode Line): eol-mnemonic-... vars moved here.
+
+	* commands.texi: Minor cleanups.  Refer to "graphical" terminals,
+	rather than X.
+
+	* cc-mode.texi (Indentation Commands): Inserts newline, not "linefeed".
+
+	* basic.texi: Minor cleanups.
+	(Undo): selective-undo moved.
+
+2006-01-29  Michael Olson  <mwolson@gnu.org>
+
+	* makefile.w32-in ($(infodir)/erc, erc.dvi): New targets.
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add ERC.
+
+	* faq.texi (New in Emacs 22): Mention ERC.
+
+2006-01-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* rcirc.texi: Capitalize dir entry for consistency with the entry
+	in info/dir and other entries in the Emacs category.
+	Fix typos.  Delete trailing whitespace.
+
+2006-01-28  Bj,Av(Brn Lindstr,Av(Bm  <bkhl@elektrubadur.se>
+
+	* rcirc.texi: Some @cindex changes, some changes from @kbd to
+	@key.
+
+2006-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(infodir)/rcirc, rcirc.dvi): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add rcirc.
+
+	* Makefile.in (../info/rcirc, rcirc.dvi): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add rcirc.
+
+2006-01-27  Alex Schroeder  <alex@gnu.org>
+
+	* rcirc.texi: New file.
+
+2006-01-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* anti.texi (Antinews): Various corrections and additions.
+
+2006-01-23  Juri Linkov  <juri@jurta.org>
+
+	* custom.texi (Easy Customization, Customization Groups)
+	(Browsing Custom): Mention links along with buttons.
+
+	* widget.texi (User Interface): Add S-TAB for widget-backward.
+
+2006-01-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.52.
+
+	* tramp.texi (Frequently Asked Questions): Remove Ange-FTP item.
+	Add Tramp disabling item.  New item for common connection
+	problems.
+	(various): Apply "ftp" as method for the download URL.
+	(Bug Reports): Refer to FAQ for common problems.
+
+2006-01-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* widget.texi (User Interface): Use @key for TAB.
+
+	* text.texi (TeX Print): Use @key for TAB.
+
+	* ses.texi (Formulas, Printer functions): Use @key for TAB.
+
+	* kmacro.texi (Keyboard Macro Step-Edit): Use @key for TAB.
+
+	* ebrowse.texi (Switching to Tree, Symbol Completion): Use @key
+	for TAB.
+
+	* cc-mode.texi (Indentation Calculation): Use @key for TAB.
+
+2006-01-15  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+
+	* files.texi (File Aliases): Don't claim that usually separate
+	buffers are created for two file names that name the same data.
+	Mention additional situations where different names mean the same
+	file on disk.
+
+2006-01-19  Richard M. Stallman  <rms@gnu.org>
+
+	* killing.texi (Deletion): Upcase @key argument.
+
+	* custom.texi (Custom Themes): Minor cleanup.
+
+	* programs.texi (Hungry Delete): Upcase @key argument.
+
 2006-01-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi: Update copyright.
@@ -21,7 +147,7 @@
 
 2006-01-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Agenda commands): Document tags command.
+	* org.texi (Agenda commands): Document tags command.
 
 2006-01-11  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -492,7 +618,7 @@
 
 2005-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus.texi (Group Parameters): Mention new varable
+	* gnus.texi (Group Parameters): Mention new variable
 	gnus-parameters-case-fold-search.
 	(Home Score File): Addition.
 

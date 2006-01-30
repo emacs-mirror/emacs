@@ -2043,14 +2043,14 @@ other modes in which C preprocessor directives are used. e.g. `asm-mode' and
     `(;; Definitions.
       (,(concat "(\\(def\\("
 		;; Function declarations.
-		"\\(advice\\|varalias\\|alias\\|generic\\|macro\\*?\\|method\\|"
+		"\\(advice\\|alias\\|generic\\|macro\\*?\\|method\\|"
 		"setf\\|subst\\*?\\|un\\*?\\|"
 		"ine-\\(condition\\|"
 		"\\(?:derived\\|\\(?:global-\\)?minor\\|generic\\)-mode\\|"
 		"method-combination\\|setf-expander\\|skeleton\\|widget\\|"
 		"function\\|\\(compiler\\|modify\\|symbol\\)-macro\\)\\)\\|"
 		;; Variable declarations.
-		"\\(const\\(ant\\)?\\|custom\\|face\\|parameter\\|var\\)\\|"
+		"\\(const\\(ant\\)?\\|custom\\|varalias\\|face\\|parameter\\|var\\)\\|"
 		;; Structure declarations.
 		"\\(class\\|group\\|theme\\|package\\|struct\\|type\\)"
 		"\\)\\)\\>"
@@ -2126,7 +2126,7 @@ other modes in which C preprocessor directives are used. e.g. `asm-mode' and
        ;; Constant values.
        ("\\<:\\sw+\\>" 0 font-lock-builtin-face)
        ;; ELisp and CLisp `&' keywords as types.
-       ("\\&\\sw+\\>" . font-lock-type-face)
+       ("\\<\\&\\sw+\\>" . font-lock-type-face)
        ;; ELisp regexp grouping constructs
        ((lambda (bound)
           (catch 'found

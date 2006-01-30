@@ -315,14 +315,16 @@ Return nil if such a character is not supported.
 Currently the only supported coded character set is `ucs' (ISO/IEC
 10646: Universal Multi-Octet Coded Character Set), and the result is
 translated through the translation-table named
-`utf-translation-table-for-decode' or the translation-hash-table named
-`utf-subst-table-for-decode'.
+`utf-translation-table-for-decode', or through the
+translation-hash-table named `utf-subst-table-for-decode'
+\(if `utf-translate-cjk-mode' is non-nil).
 
 Optional argument RESTRICTION specifies a way to map the pair of CCS
 and CODE-POINT to a character.  Currently not supported and just ignored."
   (cond
    ((eq ccs 'ucs)
-    (or (utf-lookup-subst-table-for-decode code-point)
+    (or (and utf-translate-cjk-mode
+	     (utf-lookup-subst-table-for-decode code-point))
 	(let ((c (cond
 		  ((< code-point 160)
 		   code-point)
@@ -352,8 +354,9 @@ Return nil if CHAR is not included in CCS.
 Currently the only supported coded character set is `ucs' (ISO/IEC
 10646: Universal Multi-Octet Coded Character Set), and CHAR is first
 translated through the translation-table named
-`utf-translation-table-for-encode' or the translation-hash-table named
-`utf-subst-table-for-encode'.
+`utf-translation-table-for-encode', or through the
+translation-hash-table named `utf-subst-table-for-encode' \(if
+`utf-translate-cjk-mode' is non-nil).
 
 CHAR should be in one of these charsets:
   ascii, latin-iso8859-1, mule-unicode-0100-24ff, mule-unicode-2500-33ff,
@@ -366,7 +369,8 @@ code-point in CCS.  Currently not supported and just ignored."
 	 (charset (car split))
 	 trans)
     (cond ((eq ccs 'ucs)
-	   (or (utf-lookup-subst-table-for-encode char)
+	   (or (and utf-translate-cjk-mode
+		    (utf-lookup-subst-table-for-encode char))
 	       (let ((table (get 'utf-translation-table-for-encode
 				 'translation-table)))
 		 (setq trans (aref table char))
@@ -620,16 +624,16 @@ It exists just for backward compatibility, and the value is always nil.")
 	(subsidiaries (vector (intern (format "%s-unix" coding-system))
 			      (intern (format "%s-dos" coding-system))
 			      (intern (format "%s-mac" coding-system))))
-	(i 0)
-	temp)
-    (while (< i 3)
-      (put (aref subsidiaries i) 'coding-system coding-spec)
-      (put (aref subsidiaries i) 'eol-type i)
-      (add-to-coding-system-list (aref subsidiaries i))
-      (setq coding-system-alist
-	    (cons (list (symbol-name (aref subsidiaries i)))
-		  coding-system-alist))
-      (setq i (1+ i)))
+	elt)
+    (dotimes (i 3)
+      (setq elt (aref subsidiaries i))
+      (put elt 'coding-system coding-spec)
+      (put elt 'eol-type i)
+      (put elt 'coding-system-define-form nil)
+      (add-to-coding-system-list elt)
+      (or (assoc (symbol-name elt) coding-system-alist)
+	  (setq coding-system-alist
+		(cons (list (symbol-name elt)) coding-system-alist))))
     subsidiaries))
 
 (defun transform-make-coding-system-args (name type &optional doc-string props)
@@ -1082,8 +1086,9 @@ a value of `safe-charsets' in PLIST."
   ;; At last, register CODING-SYSTEM in `coding-system-list' and
   ;; `coding-system-alist'.
   (add-to-coding-system-list coding-system)
-  (setq coding-system-alist (cons (list (symbol-name coding-system))
-				  coding-system-alist))
+  (or (assoc (symbol-name coding-system) coding-system-alist)
+      (setq coding-system-alist (cons (list (symbol-name coding-system))
+				      coding-system-alist)))
 
   ;; For a coding system of cateogory iso-8-1 and iso-8-2, create
   ;; XXX-with-esc variants.
@@ -1114,8 +1119,9 @@ a value of `safe-charsets' in PLIST."
   (put alias 'coding-system (coding-system-spec coding-system))
   (put alias 'coding-system-define-form nil)
   (add-to-coding-system-list alias)
-  (setq coding-system-alist (cons (list (symbol-name alias))
-				  coding-system-alist))
+  (or (assoc (symbol-name alias) coding-system-alist)
+      (setq coding-system-alist (cons (list (symbol-name alias))
+				      coding-system-alist)))
   (let ((eol-type (coding-system-eol-type coding-system)))
     (if (vectorp eol-type)
 	(progn

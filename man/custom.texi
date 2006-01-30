@@ -202,7 +202,7 @@ and set their values, and to save settings permanently in your
 
   The appearance of the example buffers in this section is typically
 different under a window system, since faces are then used to indicate
-buttons and editable fields.
+buttons, links and editable fields.
 
 @menu
 * Groups: Customization Groups.   How settings are classified in a structure.
@@ -256,16 +256,18 @@ line.
 
 @cindex editable fields (customization buffer)
 @cindex buttons (customization buffer)
+@cindex links (customization buffer)
   Most of the text in the customization buffer is read-only, but it
 typically includes some @dfn{editable fields} that you can edit.
-There are also @dfn{buttons}, which do something when you @dfn{invoke}
-them.  To invoke a button, either click on it with @kbd{Mouse-1}, or
-move point to it and type @key{RET}.
+There are also @dfn{buttons} and @dfn{links}, which do something when
+you @dfn{invoke} them.  To invoke a button or a link, either click on
+it with @kbd{Mouse-1}, or move point to it and type @key{RET}.
 
-  For example, the phrase @samp{[Go to Group]} that appears in a
-second-level group is a button.  Invoking it creates a new
-customization buffer, which shows that group and its contents.  This
-is a kind of hypertext link to another group.
+  For example, the phrase @samp{[State]} that appears in
+a second-level group is a button.  It operates on the same
+customization buffer.  The phrase @samp{[Go to Group]} is a kind
+of hypertext link to another group.  Invoking it creates a new
+customization buffer, which shows that group and its contents.
 
   The @code{Emacs} group includes a few settings, but mainly it
 contains other groups, which contain more groups, which contain the
@@ -288,8 +290,8 @@ structure.
 @samp{[+]}.  When the group contents are visible, this button changes to
 @samp{[-]}; invoking that hides the group contents.
 
-  Each setting in this buffer has a button which says @samp{[Group]},
-@samp{[Option]} or @samp{[Face]}.  Invoking this button creates an
+  Each setting in this buffer has a link which says @samp{[Group]},
+@samp{[Option]} or @samp{[Face]}.  Invoking this link creates an
 ordinary customization buffer showing just that group and its
 contents, just that user option, or just that face.  This is the way
 to change settings that you find with @kbd{M-x customize-browse}.
@@ -729,14 +731,15 @@ theme occurring earlier in @code{custom-enabled-themes} takes effect.
 @findex load-theme
 @findex enable-theme
 @findex disable-theme
-  You can also enable a Custom theme with @kbd{M-x enable-theme}.
-This prompts for a theme name in the minibuffer, loads the theme from
-the theme file if necessary, and enables the theme.  An enabled theme
-can be @dfn{disabled} with the command @kbd{M-x disable-theme}; this
-returns the options specified in the theme to their original values.
-To re-enable the theme, call @kbd{M-x enable-theme} again.  If a theme
-file is changed during your Emacs session, you can reload it by
-calling @kbd{M-x load-theme}.  This also enables the theme.
+  You can temporarily enable a Custom theme with @kbd{M-x
+enable-theme}.  This prompts for a theme name in the minibuffer, loads
+the theme from the theme file if necessary, and enables the theme.
+You can @dfn{disabled} any enabled theme with the command @kbd{M-x
+disable-theme}; this returns the options specified in the theme to
+their original values.  To re-enable the theme, type @kbd{M-x
+enable-theme} again.  If a theme file is changed during your Emacs
+session, you can reload it by typing @kbd{M-x load-theme}.  (This also
+enables the theme.)
 
 @node Variables
 @section Variables

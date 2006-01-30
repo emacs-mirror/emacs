@@ -1,6 +1,6 @@
-;;; mh-speed.el --- Speedbar interface for MH-E.
+;;; mh-speed.el --- MH-E speedbar support
 
-;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -25,23 +25,21 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
-;;   Future versions should only use flists.
 
-;; Speedbar support for MH-E package.
+;; Future versions should only use flists.
 
 ;;; Change Log:
 
 ;;; Code:
 
-;;(message "> mh-speed")
-(eval-when-compile (require 'mh-acros))
-(mh-require-cl)
 (require 'mh-e)
+(mh-require-cl)
+
+(require 'gnus-util)
 (require 'speedbar)
 (require 'timer)
-;;(message "< mh-speed")
 
-;; Global variables
+;; Global variables.
 (defvar mh-speed-refresh-flag nil)
 (defvar mh-speed-last-selected-folder nil)
 (defvar mh-speed-folder-map (make-hash-table :test #'equal))
@@ -50,7 +48,10 @@
 (defvar mh-speed-flists-timer nil)
 (defvar mh-speed-partial-line "")
 
-;; Add our stealth update function
+
+
+;;; Speedbar Hook
+
 (unless (member 'mh-speed-stealth-update
                 (cdr (assoc "files" speedbar-stealthy-function-list)))
   ;; Is changing constant lists in elisp safe?
@@ -59,7 +60,132 @@
   (push 'mh-speed-stealth-update
         (cdr (assoc "files" speedbar-stealthy-function-list))))
 
-;; Functions called by speedbar to initialize display...
+
+
+;;; Speedbar Menus
+
+(defvar mh-folder-speedbar-menu-items
+  '("--"
+    ["Visit Folder" mh-speed-view
+     (save-excursion
+       (set-buffer speedbar-buffer)
+       (get-text-property (line-beginning-position) 'mh-folder))]
+    ["Expand Nested Folders" mh-speed-expand-folder
+     (and (get-text-property (line-beginning-position) 'mh-children-p)
+          (not (get-text-property (line-beginning-position) 'mh-expanded)))]
+    ["Contract Nested Folders" mh-speed-contract-folder
+     (and (get-text-property (line-beginning-position) 'mh-children-p)
+          (get-text-property (line-beginning-position) 'mh-expanded))]
+    ["Refresh Speedbar" mh-speed-refresh t])
+  "Extra menu items for speedbar.")
+
+(defvar mh-show-speedbar-menu-items mh-folder-speedbar-menu-items)
+(defvar mh-letter-speedbar-menu-items mh-folder-speedbar-menu-items)
+
+
+
+;;; Speedbar Keys
+
+(defvar mh-folder-speedbar-key-map (speedbar-make-specialized-keymap)
+  "Specialized speedbar keymap for MH-E buffers.")
+
+(gnus-define-keys mh-folder-speedbar-key-map
+  "+"           mh-speed-expand-folder
+  "-"           mh-speed-contract-folder
+  "\r"          mh-speed-view
+  "r"           mh-speed-refresh)
+
+(defvar mh-show-speedbar-key-map mh-folder-speedbar-key-map)
+(defvar mh-letter-speedbar-key-map mh-folder-speedbar-key-map)
+
+
+
+;;; Speedbar Commands
+
+;; Alphabetical.
+
+(defalias 'mh-speed-contract-folder 'mh-speed-toggle)
+
+(defalias 'mh-speed-expand-folder 'mh-speed-toggle)
+
+(defun mh-speed-refresh ()
+  "Regenerates the list of folders in the speedbar.
+
+Run this command if you've added or deleted a folder, or want to
+update the unseen message count before the next automatic
+update."
+  (interactive)
+  (mh-speed-flists t)
+  (mh-speed-invalidate-map ""))
+
+(defun mh-speed-stealth-update (&optional force)
+  "Do stealth update.
+With non-nil FORCE, the update is always carried out."
+  (cond ((save-excursion (set-buffer speedbar-buffer)
+                         (get-text-property (point-min) 'mh-level))
+         ;; Execute this hook and *don't* run anything else
+         (mh-speed-update-current-folder force)
+         nil)
+        ;; Otherwise on to your regular programming
+        (t t)))
+
+(defun mh-speed-toggle (&rest args)
+  "Toggle the display of child folders in the speedbar.
+The optional ARGS from speedbar are ignored."
+  (interactive)
+  (declare (ignore args))
+  (beginning-of-line)
+  (let ((parent (get-text-property (point) 'mh-folder))
+        (kids-p (get-text-property (point) 'mh-children-p))
+        (expanded (get-text-property (point) 'mh-expanded))
+        (level (get-text-property (point) 'mh-level))
+        (point (point))
+        start-region)
+    (speedbar-with-writable
+      (cond ((not kids-p) nil)
+            (expanded
+             (forward-line)
+             (setq start-region (point))
+             (while (and (get-text-property (point) 'mh-level)
+                         (> (get-text-property (point) 'mh-level) level))
+               (let ((folder (get-text-property (point) 'mh-folder)))
+                 (when (gethash folder mh-speed-folder-map)
+                   (set-marker (gethash folder mh-speed-folder-map) nil)
+                   (remhash folder mh-speed-folder-map)))
+               (forward-line))
+             (delete-region start-region (point))
+             (forward-line -1)
+             (speedbar-change-expand-button-char ?+)
+             (add-text-properties
+              (line-beginning-position) (1+ (line-beginning-position))
+              '(mh-expanded nil)))
+            (t
+             (forward-line)
+             (mh-speed-add-buttons parent (1+ level))
+             (goto-char point)
+             (speedbar-change-expand-button-char ?-)
+             (add-text-properties
+              (line-beginning-position) (1+ (line-beginning-position))
+              `(mh-expanded t)))))))
+
+(defun mh-speed-view (&rest args)
+  "Visits the selected folder just as if you had used \\<mh-folder-mode-map>\\[mh-visit-folder].
+The optional ARGS from speedbar are ignored."
+  (interactive)
+  (declare (ignore args))
+  (let* ((folder (get-text-property (line-beginning-position) 'mh-folder))
+         (range (and (stringp folder)
+                     (mh-read-range "Scan" folder t nil nil
+                                    mh-interpret-number-as-range-flag))))
+    (when (stringp folder)
+      (speedbar-with-attached-buffer
+       (mh-visit-folder folder range)
+       (delete-other-windows)))))
+
+
+
+;;; Support Routines
+
 ;;;###mh-autoload
 (defun mh-folder-speedbar-buttons (buffer)
   "Interface function to create MH-E speedbar buffer.
@@ -85,37 +211,6 @@ created."
 (defalias 'mh-show-speedbar-buttons 'mh-folder-speedbar-buttons)
 ;;;###mh-autoload
 (defalias 'mh-letter-speedbar-buttons 'mh-folder-speedbar-buttons)
-
-;; Keymaps for speedbar...
-(defvar mh-folder-speedbar-key-map (speedbar-make-specialized-keymap)
-  "Specialized speedbar keymap for MH-E buffers.")
-(gnus-define-keys mh-folder-speedbar-key-map
-  "+"           mh-speed-expand-folder
-  "-"           mh-speed-contract-folder
-  "\r"          mh-speed-view
-  "r"           mh-speed-refresh)
-
-(defvar mh-show-speedbar-key-map mh-folder-speedbar-key-map)
-(defvar mh-letter-speedbar-key-map mh-folder-speedbar-key-map)
-
-;; Menus for speedbar...
-(defvar mh-folder-speedbar-menu-items
-  '("--"
-    ["Visit Folder" mh-speed-view
-     (save-excursion
-       (set-buffer speedbar-buffer)
-       (get-text-property (line-beginning-position) 'mh-folder))]
-    ["Expand Nested Folders" mh-speed-expand-folder
-     (and (get-text-property (line-beginning-position) 'mh-children-p)
-          (not (get-text-property (line-beginning-position) 'mh-expanded)))]
-    ["Contract Nested Folders" mh-speed-contract-folder
-     (and (get-text-property (line-beginning-position) 'mh-children-p)
-          (get-text-property (line-beginning-position) 'mh-expanded))]
-    ["Refresh Speedbar" mh-speed-refresh t])
-  "Extra menu items for speedbar.")
-
-(defvar mh-show-speedbar-menu-items mh-folder-speedbar-menu-items)
-(defvar mh-letter-speedbar-menu-items mh-folder-speedbar-menu-items)
 
 (defmacro mh-speed-select-attached-frame ()
   "Compatibility macro to handle speedbar versions 0.11a and 0.14beta4."
@@ -167,6 +262,19 @@ The update is always carried out if FORCE is non-nil."
     (when (eq lastf speedbar-frame)
       (setq mh-speed-refresh-flag t))))
 
+(defun mh-speed-highlight (folder face)
+  "Set FOLDER to FACE."
+  (save-excursion
+    (speedbar-with-writable
+      (goto-char (gethash folder mh-speed-folder-map (point)))
+      (beginning-of-line)
+      (if (re-search-forward "([1-9][0-9]*/[0-9]+)" (line-end-position) t)
+          (setq face (mh-speed-bold-face face))
+        (setq face (mh-speed-normal-face face)))
+      (beginning-of-line)
+      (when (re-search-forward "\\[.\\] " (line-end-position) t)
+        (put-text-property (point) (line-end-position) 'face face)))))
+
 (defun mh-speed-normal-face (face)
   "Return normal face for given FACE."
   (cond ((eq face 'mh-speedbar-folder-with-unseen-messages)
@@ -182,30 +290,6 @@ The update is always carried out if FORCE is non-nil."
         ((eq face 'mh-speedbar-selected-folder)
          'mh-speedbar-selected-folder-with-unseen-messages)
         (t face)))
-
-(defun mh-speed-highlight (folder face)
-  "Set FOLDER to FACE."
-  (save-excursion
-    (speedbar-with-writable
-      (goto-char (gethash folder mh-speed-folder-map (point)))
-      (beginning-of-line)
-      (if (re-search-forward "([1-9][0-9]*/[0-9]+)" (line-end-position) t)
-          (setq face (mh-speed-bold-face face))
-        (setq face (mh-speed-normal-face face)))
-      (beginning-of-line)
-      (when (re-search-forward "\\[.\\] " (line-end-position) t)
-        (put-text-property (point) (line-end-position) 'face face)))))
-
-(defun mh-speed-stealth-update (&optional force)
-  "Do stealth update.
-With non-nil FORCE, the update is always carried out."
-  (cond ((save-excursion (set-buffer speedbar-buffer)
-                         (get-text-property (point-min) 'mh-level))
-         ;; Execute this hook and *don't* run anything else
-         (mh-speed-update-current-folder force)
-         nil)
-        ;; Otherwise on to your regular programming
-        (t t)))
 
 (defun mh-speed-goto-folder (folder)
   "Move point to line containing FOLDER.
@@ -295,64 +379,6 @@ uses."
                           mh-level ,level))))))
      folder-list)))
 
-;;;###mh-autoload
-(defun mh-speed-toggle (&rest args)
-  "Toggle the display of child folders in the speedbar.
-The optional ARGS from speedbar are ignored."
-  (interactive)
-  (declare (ignore args))
-  (beginning-of-line)
-  (let ((parent (get-text-property (point) 'mh-folder))
-        (kids-p (get-text-property (point) 'mh-children-p))
-        (expanded (get-text-property (point) 'mh-expanded))
-        (level (get-text-property (point) 'mh-level))
-        (point (point))
-        start-region)
-    (speedbar-with-writable
-      (cond ((not kids-p) nil)
-            (expanded
-             (forward-line)
-             (setq start-region (point))
-             (while (and (get-text-property (point) 'mh-level)
-                         (> (get-text-property (point) 'mh-level) level))
-               (let ((folder (get-text-property (point) 'mh-folder)))
-                 (when (gethash folder mh-speed-folder-map)
-                   (set-marker (gethash folder mh-speed-folder-map) nil)
-                   (remhash folder mh-speed-folder-map)))
-               (forward-line))
-             (delete-region start-region (point))
-             (forward-line -1)
-             (speedbar-change-expand-button-char ?+)
-             (add-text-properties
-              (line-beginning-position) (1+ (line-beginning-position))
-              '(mh-expanded nil)))
-            (t
-             (forward-line)
-             (mh-speed-add-buttons parent (1+ level))
-             (goto-char point)
-             (speedbar-change-expand-button-char ?-)
-             (add-text-properties
-              (line-beginning-position) (1+ (line-beginning-position))
-              `(mh-expanded t)))))))
-
-(defalias 'mh-speed-expand-folder 'mh-speed-toggle)
-(defalias 'mh-speed-contract-folder 'mh-speed-toggle)
-
-;;;###mh-autoload
-(defun mh-speed-view (&rest args)
-  "Visits the selected folder just as if you had used \\<mh-folder-mode-map>\\[mh-visit-folder].
-The optional ARGS from speedbar are ignored."
-  (interactive)
-  (declare (ignore args))
-  (let* ((folder (get-text-property (line-beginning-position) 'mh-folder))
-         (range (and (stringp folder)
-                     (mh-read-range "Scan" folder t nil nil
-                                    mh-interpret-number-as-range-flag))))
-    (when (stringp folder)
-      (speedbar-with-attached-buffer
-       (mh-visit-folder folder range)
-       (delete-other-windows)))))
-
 (defvar mh-speed-current-folder nil)
 (defvar mh-speed-flists-folder nil)
 
@@ -415,6 +441,7 @@ flists is run only for that one folder."
                                    'mh-speed-parse-flists-output)))))))
 
 ;; Copied from mh-make-folder-list-filter...
+;; XXX Refactor to use mh-make-folder-list-filer?
 (defun mh-speed-parse-flists-output (process output)
   "Parse the incremental results from flists.
 PROCESS is the flists process and OUTPUT is the results that must
@@ -506,17 +533,23 @@ be handled next."
           (setq mh-speed-last-selected-folder nil)
           (setq mh-speed-refresh-flag t)))
       (when (equal folder "")
-        (clrhash mh-sub-folders-cache)))))
+        (mh-clear-sub-folders-cache)))))
 
-(defun mh-speed-refresh ()
-  "Regenerates the list of folders in the speedbar.
-
-Run this command if you've added or deleted a folder, or want to
-update the unseen message count before the next automatic
-update."
-  (interactive)
-  (mh-speed-flists t)
-  (mh-speed-invalidate-map ""))
+;; Make it slightly more general to allow for [ ] buttons to be
+;; changed to [+].
+(defun mh-speedbar-change-expand-button-char (char)
+  "Change the expansion button character to CHAR for the current line."
+  (save-excursion
+    (beginning-of-line)
+    (if (re-search-forward "\\[.\\]" (line-end-position) t)
+        (speedbar-with-writable
+          (backward-char 2)
+          (delete-char 1)
+          (insert-char char 1 t)
+          (put-text-property (point) (1- (point)) 'invisible nil)
+          ;; make sure we fix the image on the text here.
+          (mh-funcall-if-exists
+           speedbar-insert-image-button-maybe (- (point) 2) 3)))))
 
 ;;;###mh-autoload
 (defun mh-speed-add-folder (folder)
@@ -545,22 +578,6 @@ The function invalidates the latest ancestor that is present."
       (when (get-text-property (line-beginning-position) 'mh-expanded)
         (mh-speed-toggle))
       (setq mh-speed-refresh-flag t))))
-
-;; Make it slightly more general to allow for [ ] buttons to be changed to
-;; [+].
-(defun mh-speedbar-change-expand-button-char (char)
-  "Change the expansion button character to CHAR for the current line."
-  (save-excursion
-    (beginning-of-line)
-    (if (re-search-forward "\\[.\\]" (line-end-position) t)
-        (speedbar-with-writable
-          (backward-char 2)
-          (delete-char 1)
-          (insert-char char 1 t)
-          (put-text-property (point) (1- (point)) 'invisible nil)
-          ;; make sure we fix the image on the text here.
-          (mh-funcall-if-exists
-           speedbar-insert-image-button-maybe (- (point) 2) 3)))))
 
 (provide 'mh-speed)
 

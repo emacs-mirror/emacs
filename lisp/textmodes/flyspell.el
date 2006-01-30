@@ -427,7 +427,7 @@ property of the major mode name.")
 (defface flyspell-incorrect
   '((((class color)) (:foreground "OrangeRed" :bold t :underline t))
     (t (:bold t)))
-  "Face used for marking a misspelled word in Flyspell."
+  "Face used to display a misspelled word in Flyspell."
   :group 'flyspell)
 ;; backward-compatibility alias
 (put 'flyspell-incorrect-face 'face-alias 'flyspell-incorrect)
@@ -435,7 +435,7 @@ property of the major mode name.")
 (defface flyspell-duplicate
   '((((class color)) (:foreground "Gold3" :bold t :underline t))
     (t (:bold t)))
-  "Face used for marking a misspelled word that appears twice in the buffer.
+  "Face used to display subsequent occurrences of a misspelled word.
 See also `flyspell-duplicate-distance'."
   :group 'flyspell)
 ;; backward-compatibility alias
@@ -531,6 +531,11 @@ in your .emacs file.
     (with-current-buffer buf
       (kill-local-variable 'flyspell-word-cache-word))))
 
+;; Make sure we flush our caches when needed.  Do it here rather than in
+;; flyspell-mode-on, since flyspell-region may be used without ever turning
+;; on flyspell-mode.
+(add-hook 'ispell-kill-ispell-hook 'flyspell-kill-ispell-hook)
+
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-mode-on ...                                             */
 ;;*---------------------------------------------------------------------*/
@@ -542,8 +547,6 @@ in your .emacs file.
   (or ispell-local-dictionary ispell-dictionary
       (if flyspell-default-dictionary
 	  (ispell-change-dictionary flyspell-default-dictionary)))
-  ;; Make sure we flush our caches when needed.
-  (add-hook 'ispell-kill-ispell-hook 'flyspell-kill-ispell-hook)
   ;; we have to force ispell to accept the local definition or
   ;; otherwise it could be too late, the local dictionary may
   ;; be forgotten!
@@ -2077,7 +2080,8 @@ The word checked is the word at the mouse position."
 				 corrects)
 		       '()))
 	 (affix      (car (cdr (cdr (cdr poss)))))
-	 (base-menu  (let ((save (if (consp affix)
+	 show-affix-info
+	 (base-menu  (let ((save (if (and (consp affix) show-affix-info)
 				     (list
 				      (list (concat "Save affix: " (car affix))
 					    'save)
@@ -2118,7 +2122,8 @@ The word checked is the word at the mouse position."
 				 corrects)
 		       '()))
 	 (affix      (car (cdr (cdr (cdr poss)))))
-	 (menu       (let ((save (if (consp affix)
+	 show-affix-info
+	 (menu       (let ((save (if (and (consp affix) show-affix-info)
 				     (vector
 				      (concat "Save affix: " (car affix))
 				      (list 'flyspell-do-correct

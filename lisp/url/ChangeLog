@@ -1,3 +1,9 @@
+2006-01-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-news.el: Move defvars out of eval-when-compile.
+	(url-news-fetch-message-id, url-news-fetch-newsgroup):
+	Use with-current-buffer.
+
 2006-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url.el (url-retrieve-synchronously): Adjust the workaround so as not

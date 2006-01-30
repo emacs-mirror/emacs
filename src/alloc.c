@@ -1,6 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
    Copyright (C) 1985, 1986, 1988, 1993, 1994, 1995, 1997, 1998, 1999,
-      2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+      2000, 2001, 2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1107,6 +1107,9 @@ lisp_align_free (block)
 	}
       eassert ((aligned & 1) == aligned);
       eassert (i == (aligned ? ABLOCKS_SIZE : ABLOCKS_SIZE - 1));
+#ifdef HAVE_POSIX_MEMALIGN
+      eassert ((unsigned long)ABLOCKS_BASE (abase) % BLOCK_ALIGN == 0);
+#endif
       free (ABLOCKS_BASE (abase));
     }
   UNBLOCK_INPUT;
@@ -1421,6 +1424,12 @@ make_interval ()
 {
   INTERVAL val;
 
+  /* eassert (!handling_signal); */
+
+#ifndef SYNC_INPUT
+  BLOCK_INPUT;
+#endif
+
   if (interval_free_list)
     {
       val = interval_free_list;
@@ -1442,6 +1451,11 @@ make_interval ()
 	}
       val = &interval_block->intervals[interval_block_index++];
     }
+
+#ifndef SYNC_INPUT
+  UNBLOCK_INPUT;
+#endif
+
   consing_since_gc += sizeof (struct interval);
   intervals_consed++;
   RESET_INTERVAL (val);
@@ -1839,6 +1853,12 @@ allocate_string ()
 {
   struct Lisp_String *s;
 
+  /* eassert (!handling_signal); */
+
+#ifndef SYNC_INPUT
+  BLOCK_INPUT;
+#endif
+
   /* If the free-list is empty, allocate a new string_block, and
      add all the Lisp_Strings in it to the free-list.  */
   if (string_free_list == NULL)
@@ -1867,6 +1887,10 @@ allocate_string ()
   /* Pop a Lisp_String off the free-list.  */
   s = string_free_list;
   string_free_list = NEXT_FREE_LISP_STRING (s);
+
+#ifndef SYNC_INPUT
+  UNBLOCK_INPUT;
+#endif
 
   /* Probably not strictly necessary, but play it safe.  */
   bzero (s, sizeof *s);
@@ -1915,6 +1939,12 @@ allocate_string_data (s, nchars, nbytes)
   /* Determine the number of bytes needed to store NBYTES bytes
      of string data.  */
   needed = SDATA_SIZE (nbytes);
+  old_data = s->data ? SDATA_OF_STRING (s) : NULL;
+  old_nbytes = GC_STRING_BYTES (s);
+
+#ifndef SYNC_INPUT
+  BLOCK_INPUT;
+#endif
 
   if (nbytes > LARGE_STRING_BYTES)
     {
@@ -1969,10 +1999,13 @@ allocate_string_data (s, nchars, nbytes)
   else
     b = current_sblock;
 
-  old_data = s->data ? SDATA_OF_STRING (s) : NULL;
-  old_nbytes = GC_STRING_BYTES (s);
-
   data = b->next_free;
+  b->next_free = (struct sdata *) ((char *) data + needed + GC_STRING_EXTRA);
+
+#ifndef SYNC_INPUT
+  UNBLOCK_INPUT;
+#endif
+
   data->string = s;
   s->data = SDATA_DATA (data);
 #ifdef GC_CHECK_STRING_BYTES
@@ -1985,7 +2018,6 @@ allocate_string_data (s, nchars, nbytes)
   bcopy (string_overrun_cookie, (char *) data + needed,
 	 GC_STRING_OVERRUN_COOKIE_SIZE);
 #endif
-  b->next_free = (struct sdata *) ((char *) data + needed + GC_STRING_EXTRA);
 
   /* If S had already data assigned, mark that as free by setting its
      string back-pointer to null, and recording the size of the data
@@ -2554,6 +2586,12 @@ make_float (float_value)
 {
   register Lisp_Object val;
 
+  /* eassert (!handling_signal); */
+
+#ifndef SYNC_INPUT
+  BLOCK_INPUT;
+#endif
+
   if (float_free_list)
     {
       /* We use the data field for chaining the free list
@@ -2578,6 +2616,10 @@ make_float (float_value)
       XSETFLOAT (val, &float_block->floats[float_block_index]);
       float_block_index++;
     }
+
+#ifndef SYNC_INPUT
+  UNBLOCK_INPUT;
+#endif
 
   XFLOAT_DATA (val) = float_value;
   eassert (!FLOAT_MARKED_P (XFLOAT (val)));
@@ -2673,6 +2715,12 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 {
   register Lisp_Object val;
 
+  /* eassert (!handling_signal); */
+
+#ifndef SYNC_INPUT
+  BLOCK_INPUT;
+#endif
+
   if (cons_free_list)
     {
       /* We use the cdr for chaining the free list
@@ -2696,6 +2744,10 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
       XSETCONS (val, &cons_block->conses[cons_block_index]);
       cons_block_index++;
     }
+
+#ifndef SYNC_INPUT
+  UNBLOCK_INPUT;
+#endif
 
   XSETCAR (val, car);
   XSETCDR (val, cdr);
@@ -2854,6 +2906,9 @@ allocate_vectorlike (len, type)
   UNBLOCK_INPUT;
 #endif
 
+  /* This gets triggered by code which I haven't bothered to fix.  --Stef  */
+  /* eassert (!handling_signal); */
+
   nbytes = sizeof *p + (len - 1) * sizeof p->contents[0];
   p = (struct Lisp_Vector *) lisp_malloc (nbytes, type);
 
@@ -2867,8 +2922,17 @@ allocate_vectorlike (len, type)
   consing_since_gc += nbytes;
   vector_cells_consed += len;
 
+#ifndef SYNC_INPUT
+  BLOCK_INPUT;
+#endif
+
   p->next = all_vectors;
   all_vectors = p;
+
+#ifndef SYNC_INPUT
+  UNBLOCK_INPUT;
+#endif
+
   ++n_vectors;
   return p;
 }
@@ -3147,6 +3211,12 @@ Its value and function definition are void, and its property list is nil.  */)
 
   CHECK_STRING (name);
 
+  eassert (!handling_signal);
+
+#ifndef SYNC_INPUT
+  BLOCK_INPUT;
+#endif
+
   if (symbol_free_list)
     {
       XSETSYMBOL (val, symbol_free_list);
@@ -3167,6 +3237,10 @@ Its value and function definition are void, and its property list is nil.  */)
       XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index]);
       symbol_block_index++;
     }
+
+#ifndef SYNC_INPUT
+  UNBLOCK_INPUT;
+#endif
 
   p = XSYMBOL (val);
   p->xname = name;
@@ -3227,6 +3301,12 @@ allocate_misc ()
 {
   Lisp_Object val;
 
+  /* eassert (!handling_signal); */
+
+#ifndef SYNC_INPUT
+  BLOCK_INPUT;
+#endif
+
   if (marker_free_list)
     {
       XSETMISC (val, marker_free_list);
@@ -3248,6 +3328,10 @@ allocate_misc ()
       XSETMISC (val, &marker_block->markers[marker_block_index]);
       marker_block_index++;
     }
+
+#ifndef SYNC_INPUT
+  UNBLOCK_INPUT;
+#endif
 
   --total_free_markers;
   consing_since_gc += sizeof (union Lisp_Misc);
@@ -4642,7 +4726,7 @@ void
 check_pure_size ()
 {
   if (pure_bytes_used_before_overflow)
-    message ("Pure Lisp storage overflow (approx. %d bytes needed)",
+    message ("emacs:0:Pure Lisp storage overflow (approx. %d bytes needed)",
 	     (int) (pure_bytes_used + pure_bytes_used_before_overflow));
 }
 

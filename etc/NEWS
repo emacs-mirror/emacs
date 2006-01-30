@@ -1461,8 +1461,8 @@ amount of text shown any more (only a crude approximation of it).
 ** Xterm support:
 
 ---
-*** Emacs now responds to mouse-clicks on the mode-line, header-line and
-display margin, when run in an xterm.
+*** If you enable Xterm Mouse mode, Emacs will respond to mouse clicks
+on the mode line, header line and display margin, when run in an xterm.
 
 ---
 *** Improved key bindings support when running in an xterm.
@@ -1504,6 +1504,17 @@ colors as on X.
 
 * New Modes and Packages in Emacs 22.1
 
+** ERC is now part of the Emacs distribution.
+
+ERC is a powerful, modular, and extensible IRC client for Emacs.
+
+To see what modules are available, type
+M-x customize-option erc-modules RET.
+
+To start an IRC session, type M-x erc-select, and follow the prompts
+for server, port, and nick.
+
+---
 ** Rcirc is now part of the Emacs distribution.
 
 Rcirc is an Internet relay chat (IRC) client.  It supports
@@ -1785,6 +1796,9 @@ If you want to disable Tramp you should set
 
   (setq tramp-default-method "ftp")
 
+Removing Tramp, and re-enabling Ange-FTP, can be achieved by M-x
+tramp-unload-tramp.
+
 ---
 ** The URL package (which had been part of W3) is now part of Emacs.
 
@@ -1876,9 +1890,9 @@ subprocess are controlled by the user options `scheme-trace-command',
 `scheme-untrace-command' and `scheme-expand-current-form'.
 
 ---
-** Makefile mode has submodes for automake, gmake, makepp and BSD make.
+** Makefile mode has submodes for automake, gmake, makepp, BSD make and imake.
 
-The former two couldn't be differentiated before, and the latter two
+The former two couldn't be differentiated before, and the latter three
 are new.  Font-locking is robust now and offers new customizable
 faces.
 
