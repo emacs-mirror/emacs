@@ -656,9 +656,7 @@ perform the operation on all messages in that region.
   (make-local-variable 'hl-line-mode)   ; avoid pollution
   (mh-funcall-if-exists hl-line-mode 1)
   (setq revert-buffer-function 'mh-undo-folder)
-  (or (assq 'mh-showing-mode minor-mode-alist)
-      (setq minor-mode-alist
-            (cons '(mh-showing-mode " Show") minor-mode-alist)))
+  (add-to-list 'minor-mode-alist '(mh-showing-mode " Show"))
   (easy-menu-add mh-folder-sequence-menu)
   (easy-menu-add mh-folder-message-menu)
   (easy-menu-add mh-folder-folder-menu)
