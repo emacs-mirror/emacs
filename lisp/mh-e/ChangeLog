@@ -1,5 +1,8 @@
 2006-01-29  Bill Wohler  <wohler@newt.com>
 
+	* mh-e.el (mh-scan-format-file-check): Allow any non-nil for
+	mh-adaptive-cmd-note-flag.
+
 	* mh-comp.el (sc-cite-original): Remove autoload of "sc" with old
 	docstring. sc-cite-original is autoloaded via loaddefs.el for all
 	supported versions. In addition, the package name "sc" has been

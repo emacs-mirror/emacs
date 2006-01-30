@@ -1851,7 +1851,7 @@ Throw an error if user tries to set `mh-scan-format-file' to
 anything but t when `mh-adaptive-cmd-note-flag' is on. Otherwise,
 set SYMBOL to VALUE."
   (if (and (not (eq value t))
-           (eq mh-adaptive-cmd-note-flag t))
+           mh-adaptive-cmd-note-flag)
       (error "%s %s" "You must turn off `mh-adaptive-cmd-note-flag'"
              "unless you use \"Use MH-E scan Format\"")
     (set-default symbol value)))
