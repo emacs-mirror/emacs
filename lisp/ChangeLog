@@ -47,6 +47,15 @@
 	mh-tool-bar.el, mh-xface.el.  Remove mh-customize.el, mh-init.el.
 	(mh-autoloads): Don't use comments on otherwise empty lines.
 
+2006-01-29  Edward O'Connor  <ted@oconnor.cx>
+
+	* emulation/viper.el (viper-major-mode-modifier-list): Add
+	insert-state and vi-state entries for erc-mode.
+	(viper-go-away, viper-set-hooks): Add and remove
+	viper-comint-mode-hook from erc-mode-hook as appropriate.
+
+	* emulation/viper.el (viper-insert-state-mode-list): Add erc-mode.
+
 2006-01-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs--format-aux): Implement `middle' alignment as
