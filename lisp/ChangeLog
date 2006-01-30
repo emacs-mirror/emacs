@@ -1,3 +1,11 @@
+2006-01-30  John Paul Wallington  <jpw@pobox.com>
+
+	* subr.el (toplevel): Define `cl-assertion-failed' condition here
+	because the `assert' macro signals it at runtime.
+
+	* emacs-lisp/cl.el (toplevel): Remove definition of
+	`cl-assertion-failed' condition.
+
 2006-01-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* thumbs.el (thumbs-marked-list): Make buffer-local and
