@@ -1,3 +1,13 @@
+2006-01-30  Henrik Enberg  <enberg@printf.se>
+
+	* rmailkwd.el (rmail-next-labeled-message): Don't call
+	rmail-maybe-set-message-counters.  Use with-current-buffer.
+
+	* rmailhdr.el (rmail-header-hide-headers): Simplify.
+	(rmail-header-get-limit): Wrap in a save-excursion.
+	(rmail-header-display-state): Renamed from
+	rmail-header-display-mode.
+
 2006-01-29  Henrik Enberg  <enberg@printf.se>
 
 	* rmailsum.el (rmail-summary-show-message): Reformat.
