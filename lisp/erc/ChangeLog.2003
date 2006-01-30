@@ -2138,8 +2138,14 @@
 	behavior - if you think this was the wrong decision, please correct it and
 	I'll remember it for next time.
 
+See ChangeLog.2002 for earlier changes.
+
     Copyright (C) 2003 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;; arch-tag: 808865e1-3cce-4c5b-9997-95a8b7a9d384

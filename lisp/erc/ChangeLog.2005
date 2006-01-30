@@ -1,4 +1,4 @@
-2005-11-23  Johan Bockgård  <bojohan@users.sourceforge.net>
+2005-11-23  Johan BockgÃ¥rd  <bojohan@users.sourceforge.net>
 
 	* erc.el (erc-cmd-SAY): Strip leading space in input line.
 
@@ -135,7 +135,7 @@
 	* erc.el (erc-cmd-KICK, erc-cmd-PART, erc-cmd-QUIT, erc-cmd-TOPIC)
 	(erc-kill-server, erc-kill-channel): Ditto.
 
-2005-09-05  Johan Bockgård  <bojohan@users.sourceforge.net>
+2005-09-05  Johan BockgÃ¥rd  <bojohan@users.sourceforge.net>
 
 	* erc-page.el (erc-ctcp-query-PAGE): (message text) -> (message
 	"%s" text).
@@ -173,7 +173,7 @@
 	invitation, away, channel-list, bad-nick): Rename globally to
 	erc-{name-of-variable}.
 
-2005-09-03  Johan Bockgård  <bojohan@users.sourceforge.net>
+2005-09-03  Johan BockgÃ¥rd  <bojohan@users.sourceforge.net>
 
 	* erc.el (erc-message): Simplify regexp.
 	(erc-cmd-DEOP, erc-cmd-OP): Simplify.
@@ -395,7 +395,7 @@
 	is that the old behavior is re-instated, with the addition of one
 	completing read that happens when you do a /whois.
 
-2005-07-09  Johan Bockgård  <bojohan@users.sourceforge.net>
+2005-07-09  Johan BockgÃ¥rd  <bojohan@users.sourceforge.net>
 
 	* erc.el (erc-process-input-line): Docfix.
 	(erc-update-mode-line-buffer): Use `erc-propertize' instead of
@@ -422,7 +422,7 @@
 
 	* erc-bbdb.el: Add local variables section to preserve tabs, since
 	that is the style used throughout this file.  Apply patch from
-	Edgar Gonçalves as follows.
+	Edgar GonÃ§alves as follows.
 	(erc-bbdb-bitlbee-name-field): New variable that indicates the
 	field name to use for annotating the "displayed name" of a bitlbee
 	contact.
@@ -440,7 +440,7 @@
 
 	* erc-nicklist.el: Add local variables section to preserve tabs,
 	since that is the style used throughout this file.  Apply patch
-	from Edgar Gonçalves as follows.
+	from Edgar GonÃ§alves as follows.
 	(erc-nicklist-use-icons): New option; if non-nil, display an icon
 	instead of the name of the chat medium.
 	(erc-nicklist-icons-directory): New option indicating the path to
@@ -476,7 +476,7 @@
 	(erc-nicklist-channel-users-info): Renamed from
 	`erc-nicklist-channel-nicks'.  Implement sorting voiced users.
 
-2005-06-29  Johan Bockgård  <bojohan+sf@dd.chalmers.se>
+2005-06-29  Johan BockgÃ¥rd  <bojohan+sf@dd.chalmers.se>
 
 	* erc-nickserv.el (erc-nickserv-alist): Fix regexp for Azzurra.
 
@@ -493,7 +493,7 @@
 	* erc-notify.el (erc-notify-JOIN, erc-notify-NICK)
 	(erc-notify-QUIT): Ditto.
 
-2005-06-24  Johan Bockgård  <bojohan+sf@dd.chalmers.se>
+2005-06-24  Johan BockgÃ¥rd  <bojohan+sf@dd.chalmers.se>
 
 	* erc.el (erc-default-coding-system)
 	(erc-handle-user-status-change): Docstring fix.
@@ -524,7 +524,7 @@
 
 	* erc-identd.el (erc-identd-start): Ditto.
 
-2005-06-16  Johan Bockgård  <bojohan+sf@dd.chalmers.se>
+2005-06-16  Johan BockgÃ¥rd  <bojohan+sf@dd.chalmers.se>
 
 	* erc.el (erc-mode-map): Suppress `font-lock-fontify-block' key
 	binding since it destroys face properties.
@@ -608,14 +608,14 @@
 	warnings when running /quit with unchecked buffers, as well as get
 	rid of a stray buffer problem (or so it is hoped).
 
-2005-05-31  Johan Bockgård  <bojohan+sf@dd.chalmers.se>
+2005-05-31  Johan BockgÃ¥rd  <bojohan+sf@dd.chalmers.se>
 
 	* erc-replace.el, erc-speak.el: Clean up comment formatting.
 
 	* erc-ring.el (ring, erc-input-ring-index, erc-clear-input-ring):
 	Clean up docstring formatting.
 
-2005-05-30  Johan Bockgård  <bojohan+sf@dd.chalmers.se>
+2005-05-30  Johan BockgÃ¥rd  <bojohan+sf@dd.chalmers.se>
 
 	* erc.el (erc-cmd-BANLIST, erc-cmd-MASSUNBAN): Delete superfluous
 	arg to `format'.
@@ -627,7 +627,7 @@
 	* erc.el (erc-version-string): Move this up so that it is
 	evaluated before the `require' statements.  Not a major change.
 
-2005-04-27  Johan Bockgård  <bojohan+sf@dd.chalmers.se>
+2005-04-27  Johan BockgÃ¥rd  <bojohan+sf@dd.chalmers.se>
 
 	* erc.el (erc-complete-word): Simplify.
 
@@ -692,7 +692,7 @@
 	(erc-modified-channels-object): Use optimal amount of whitespace
 	around modified channels indicator.
 
-2005-04-02  Johan Bockgård  <bojohan+sf@dd.chalmers.se>
+2005-04-02  Johan BockgÃ¥rd  <bojohan+sf@dd.chalmers.se>
 
 	* erc.el (define-erc-module, erc-with-buffer)
 	(erc-with-all-buffers-of-server, with-erc-channel-buffer): Add
@@ -704,7 +704,7 @@
 
 	* erc-spelling.el: New file.
 
-2005-03-24  Johan Bockgård  <bojohan+sf@dd.chalmers.se>
+2005-03-24  Johan BockgÃ¥rd  <bojohan+sf@dd.chalmers.se>
 
 	* erc-backend.el (define-erc-response-handler): Add
 	`definition-name' property to constructed symbols so that
@@ -807,7 +807,7 @@
 	erc-match.el, erc-nets.el, ChangeLog, NEWS: Merged bug fixes made
 	on release_5_0_branch since 5.0.1 release.
 
-2005-01-24  Johan Bockgård  <bojohan+sf@dd.chalmers.se>
+2005-01-24  Johan BockgÃ¥rd  <bojohan+sf@dd.chalmers.se>
 
 	* erc.el (erc-input-action): Quote `erc-action-history-list' so
 	that input history actually works.
@@ -939,7 +939,7 @@
 	`erc-process' was set, so that channels weren't being marked
 	active correctly upon join; fixed.
 
-2005-01-15  Johan Bockgård  <bojohan+sf@dd.chalmers.se>
+2005-01-15  Johan BockgÃ¥rd  <bojohan+sf@dd.chalmers.se>
 
 	* erc-backend.el (def-edebug-spec): This macro caused problems (in
 	XEmacs). Use its expansion directly.
@@ -1215,8 +1215,14 @@
 	bug where emacs would get stuck in a loop when \C-g was in a
 	message and `erc-beep-p' was set to nil (default setting).
 
+See ChangeLog.2004 for earlier changes.
+
     Copyright (C) 2005 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;; arch-tag: 70f1733a-3e2f-43c2-91c3-d9ace93f82ba

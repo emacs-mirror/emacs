@@ -2594,8 +2594,14 @@
 	  Default it is used for URLs, but other things could be added.
 	  see if you can find another use, erc-button-alist
 
+See ChangeLog.2001 for earlier changes.
+
     Copyright (C) 2002 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;; arch-tag: a6779d5e-99fa-442b-98cf-90e73eb2c272

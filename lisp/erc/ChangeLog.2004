@@ -1226,7 +1226,7 @@
 
 	* erc-stamp.el: Added local variables for file.
 	(erc-away-timestamp-format): Allow nil as a choice in `:type'.
-	(erc-timestamp-intangible): Changed `:type' to boolean.
+	(erc-timestamp-intangible): Changed `:type' to boolean.
 	(erc-timestamp-right-column): Added `:group' and `:type'.
 
 2004-04-28  Diane Murray <disumu@x3y2z1.net>
@@ -1611,7 +1611,7 @@
 
 	* erc.el (erc-network-name): Function definition moved to
 	erc-nets.el.  The functions `erc-determine-network' and
-	`èrc-network' in erc-nets.el do what this did before.  Deprecated.
+	`erc-network' in erc-nets.el do what this did before.  Deprecated.
 	Use (erc-network) instead.
 
 2004-03-08  Diane Murray <disumu@x3y2z1.net>
@@ -1627,7 +1627,7 @@
 	(erc-networks): Removed.  Use `erc-networks-alist' as defined in
 	erc-nets.el.
 	(erc-current-network): Function definition moved to erc-nets.el.
-	The functions `erc-determine-network' and `èrc-network' in
+	The functions `erc-determine-network' and `erc-network' in
 	erc-nets.el do what this did before.  Deprecated.  Use
 	(erc-network) instead.
 
@@ -1950,7 +1950,7 @@
 
 2004-01-20  Lawrence Mitchell <wence@gmx.li>
 
-	* erc.el: From Johan Bockgård <bojohan+news@dd.chalmers.se>:
+	* erc.el: From Johan BockgÃ¥rd <bojohan+news@dd.chalmers.se>:
 	(erc-update-undo-list): New function.  Update `buffer-undo-list'
 	so that calling `undo' in an ERC buffer doesn't mess up the
 	existing text.
@@ -2067,8 +2067,14 @@
 
 	* erc-list.el: Added variable erc-chanlist-mode-hook.
 
+See ChangeLog.2003 for earlier changes.
+
     Copyright (C) 2004 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;; arch-tag: cc606d2d-635b-4b36-829b-a50e3c51e2d1
