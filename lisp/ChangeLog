@@ -7,6 +7,11 @@
 
 2006-01-30  Juanma Barranquero  <lekktu@gmail.com>
 
+	* ediff-mult.el (ediff-meta-buffer-keymap-setup-hook)
+	(ediff-before-session-group-setup-hooks)
+	(ediff-default-filtering-regexp, ediff-meta-mark-equal-files):
+	Fix typos in docstrings.
+
 	* window.el (bw-dir, bw-eqdir, balance-windows)
 	(split-window-keep-point): Fix typos in docstrings.
 
