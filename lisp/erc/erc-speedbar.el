@@ -39,6 +39,7 @@
 (require 'erc)
 (require 'speedbar)
 (condition-case nil (require 'dframe) (error nil))
+(eval-when-compile (require 'cl))
 
 ;;; Customization:
 
@@ -110,7 +111,7 @@ This will add a speedbar major display mode."
 (defun erc-speedbar-buttons (buffer)
   "Create buttons for speedbar in BUFFER."
   (erase-buffer)
-  (let (serverp chanp)
+  (let (serverp chanp queryp)
     (with-current-buffer buffer
       (setq serverp (eq buffer (process-buffer erc-server-process)))
       (setq chanp (erc-channel-p (erc-default-target)))
@@ -338,7 +339,7 @@ The INDENT level is ignored."
 	    (raise-frame (window-frame bwin)))
 	(if speedbar-power-click
 	    (let ((pop-up-frames t)) (select-window (display-buffer buffer)))
-	  (select-frame speedbar-attached-frame)
+	  (dframe-select-attached-frame speedbar-frame)
 	  (switch-to-buffer buffer))))))
 
 (defun erc-speedbar-line-text ()

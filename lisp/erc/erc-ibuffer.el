@@ -32,6 +32,7 @@
 ;;; Code:
 
 (require 'ibuffer)
+(require 'ibuf-ext)
 (require 'erc)
 
 (defgroup erc-ibuffer nil
@@ -51,16 +52,17 @@
   :group 'erc-ibuffer
   :type 'character)
 (defcustom erc-ibuffer-dangerous-host-char ?d
-  "Char used to indicate a channel which had dangerous-host traffic lately (hidden)."
+  "Char used to indicate a channel which had dangerous-host traffic lately
+\(hidden)."
   :group 'erc-ibuffer
   :type 'character)
 
-(ibuffer-define-limiter erc-server
-  (:documentation
-   "Toggle current view to buffers which are related to ERC servers."
-   :description "erc servers"
+(define-ibuffer-filter erc-server
+  "Toggle current view to buffers which are related to ERC servers."
+  (:description "erc servers"
    :reader
-   (let ((regexp (read-from-minibuffer "Limit by server (regexp) (RET for all): ")))
+   (let ((regexp
+	  (read-from-minibuffer "Limit by server (regexp) (RET for all): ")))
      (if (string= regexp "")
 	 ".*"
        regexp)))
@@ -69,7 +71,7 @@
 	 (string-match qualifier (or erc-server-announced-name
 				     erc-session-server)))))
 
-(ibuffer-define-column erc-modified (:name "M")
+(define-ibuffer-column erc-modified (:name "M")
   (if (and (boundp 'erc-track-mode)
 	   erc-track-mode)
       (let ((entry (assq (current-buffer) erc-modified-channels-alist)))
@@ -88,13 +90,13 @@
 	  " "))
     " "))
 
-(ibuffer-define-column erc-server-name (:name "Server")
+(define-ibuffer-column erc-server-name (:name "Server")
   (if (and (boundp 'erc-server-process) (processp erc-server-process))
       (with-current-buffer (process-buffer erc-server-process)
 	(or erc-server-announced-name erc-session-server))
     ""))
 
-(ibuffer-define-column erc-target (:name "Target")
+(define-ibuffer-column erc-target (:name "Target")
   (if (eq major-mode 'erc-mode)
       (cond ((and (boundp 'erc-server-process) (processp erc-server-process)
 		  (eq (current-buffer) (process-buffer erc-server-process)))
@@ -107,13 +109,13 @@
 	    (t "(parted)"))
     (buffer-name)))
 
-(ibuffer-define-column erc-topic (:name "Topic")
+(define-ibuffer-column erc-topic (:name "Topic")
   (if (and (eq major-mode 'erc-mode)
 	   erc-channel-topic)
       (erc-controls-interpret erc-channel-topic)
     ""))
 
-(ibuffer-define-column
+(define-ibuffer-column
  erc-members (:name "Users")
   (if (and (eq major-mode 'erc-mode)
 	   (boundp 'erc-channel-users)
@@ -122,7 +124,7 @@
      (number-to-string (hash-table-size erc-channel-users))
     ""))
 
-(ibuffer-define-column erc-away (:name "A")
+(define-ibuffer-column erc-away (:name "A")
   (if (and (boundp 'erc-server-process)
 	   (processp erc-server-process)
 	   (with-current-buffer (process-buffer erc-server-process)
@@ -130,20 +132,20 @@
       "A"
     " "))
 
-(ibuffer-define-column
+(define-ibuffer-column
  erc-op (:name "O")
   (if (and (eq major-mode 'erc-mode)
 	   (erc-channel-user-op-p (erc-current-nick)))
       "@"
     " "))
 
-(ibuffer-define-column erc-voice (:name "V")
+(define-ibuffer-column erc-voice (:name "V")
   (if (and (eq major-mode 'erc-mode)
 	   (erc-channel-user-voice-p (erc-current-nick)))
       "+"
     " "))
 
-(ibuffer-define-column erc-channel-modes (:name "Mode")
+(define-ibuffer-column erc-channel-modes (:name "Mode")
   (if (and (eq major-mode 'erc-mode)
 	   (or (> (length erc-channel-modes) 0)
 	       erc-channel-user-limit))
@@ -157,13 +159,19 @@
 	mode-name
       "")))
 
-(ibuffer-define-column erc-nick (:name "Nick")
+(define-ibuffer-column erc-nick (:name "Nick")
   (if (eq major-mode 'erc-mode)
       (erc-current-nick)
     ""))
 
-(defvar erc-ibuffer-formats '((mark erc-modified erc-away erc-op erc-voice " " (erc-nick 8 8) " " (erc-target 18 40) (erc-members 5 5 :center) (erc-channel-modes 6 16 :center) " " (erc-server-name 20 30) " " (erc-topic 10 -1))
-			      (mark erc-modified erc-away erc-op erc-voice " " (erc-target 18 40) (erc-members 5 5 :center) (erc-channel-modes 9 20 :center) " " (erc-topic 10 -1))))
+(defvar erc-ibuffer-formats
+  '((mark erc-modified erc-away erc-op erc-voice " " (erc-nick 8 8) " "
+	  (erc-target 18 40) (erc-members 5 5 :center)
+	  (erc-channel-modes 6 16 :center) " " (erc-server-name 20 30) " "
+	  (erc-topic 10 -1))
+    (mark erc-modified erc-away erc-op erc-voice " " (erc-target 18 40)
+	  (erc-members 5 5 :center) (erc-channel-modes 9 20 :center) " "
+	  (erc-topic 10 -1))))
 (setq ibuffer-formats (append ibuffer-formats erc-ibuffer-formats))
 
 (defvar erc-ibuffer-limit-map nil
