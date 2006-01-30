@@ -1540,9 +1540,11 @@ getenv_internal (var, varlen, value, valuelen, frame)
   /* Find the environment in which to search the variable. */
   if (!NILP (frame))
     {
+      Lisp_Object local;
+
       CHECK_FRAME (frame);
       frame = Fframe_with_environment (frame);
-      Lisp_Object local = get_frame_param (XFRAME (frame), Qenvironment);
+      local = get_frame_param (XFRAME (frame), Qenvironment);
       /* Use Vglobal_environment if there is no local environment.  */
       if (!NILP (local))
         environment = local;
