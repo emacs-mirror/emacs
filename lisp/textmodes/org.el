@@ -632,7 +632,7 @@ of `org-agenda-prefix-format' or `org-timeline-prefix-format'.")
 A time grid is a set of lines for specific times (like every two hours between
 8:00 and 20:00).  The items scheduled for a day at specific times are
 sorted in between these lines.
-For deails about when the grid will be shown, and what it will look like, see
+For details about when the grid will be shown, and what it will look like, see
 the variable `org-agenda-time-grid'."
   :group 'org-agenda
   :type 'boolean)
