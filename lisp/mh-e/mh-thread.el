@@ -880,4 +880,5 @@ This function can only be used the folder is threaded."
 ;; sentence-end-double-space: nil
 ;; End:
 
+;; arch-tag: b10e62f5-f028-4e04-873e-89d0e069b3d5
 ;;; mh-thread.el ends here

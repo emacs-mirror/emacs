@@ -416,4 +416,5 @@ This button runs `mh-previous-undeleted-msg'")
 ;; sentence-end-double-space: nil
 ;; End:
 
+;; arch-tag: 28c2436d-bb8d-486a-a8d7-5a4d9cae3513
 ;;; mh-tool-bar.el ends here

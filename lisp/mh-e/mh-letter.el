@@ -1037,4 +1037,5 @@ Otherwise, simply insert MH-INS-STRING before each line."
 ;; sentence-end-double-space: nil
 ;; End:
 
+;; arch-tag: 0548632c-aadb-4e3b-bb80-bbd62ff90bf3
 ;;; mh-letter.el ends here

@@ -326,4 +326,5 @@ The MH command pick is used to do the match."
 ;; sentence-end-double-space: nil
 ;; End:
 
+;; arch-tag: b0d24378-1234-4c42-aa3f-7abad25b40a1
 ;;; mh-limit.el ends here

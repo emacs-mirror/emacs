@@ -69,4 +69,5 @@ can enter in the current list of completions."
 ;; sentence-end-double-space: nil
 ;; End:
 
+;; arch-tag: 577b0eab-a5cd-45e1-8d9f-c1a426f4d73c
 ;;; mh-compat.el ends here
