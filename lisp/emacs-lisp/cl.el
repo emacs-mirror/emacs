@@ -580,9 +580,6 @@ If ALIST is non-nil, the new pairs are prepended to it."
 
 ;;; Miscellaneous.
 
-(put 'cl-assertion-failed 'error-conditions '(error))
-(put 'cl-assertion-failed 'error-message "Assertion failed")
-
 (defvar cl-fake-autoloads nil
   "Non-nil means don't make CL functions autoload.")
 
