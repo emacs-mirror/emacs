@@ -1,5 +1,42 @@
 2006-01-30  Juanma Barranquero  <lekktu@gmail.com>
 
+	* textmodes/org.el (org-allow-space-in-links, org-closed-string)
+	(org-quote-string, org-calendar-to-agenda-key)
+	(org-agenda-sorting-strategy, org-agenda-use-time-grid)
+	(org-show-following-heading, org-tags-column)
+	(org-use-tag-inheritance, org, org-allow-space-in-links)
+	(org-usenet-links-prefer-google, org-file-apps-defaults-gnu)
+	(org-enable-table-editor, org-calc-default-modes)
+	(org-table-allow-automatic-line-recalculation)
+	(org-export-html-style, org-export-with-fixed-width)
+	(org-export-with-sub-superscripts, org-special-keyword)
+	(org-formula, org-time-grid, org-table-may-need-update)
+	(org-mode, org-goto-ret, org-goto-left, org-goto-right)
+	(org-goto-quit, org-get-indentation, org-end-of-item)
+	(org-move-item-down, org-move-item-up)
+	(org-renumber-ordered-list, org-todo, org-log-done, org-occur)
+	(org-remove-occur-highlights, org-read-date, org-goto-calendar)
+	(org-agenda, org-agenda-day-view, org-agenda-previous-date-line)
+	(org-agenda-log-mode, org-agenda-toggle-diary)
+	(org-agenda-toggle-time-grid, org-agenda-cleanup-fancy-diary)
+	(org-agenda-file-to-end, org-agenda-no-heading-message)
+	(org-agenda-get-closed, org-format-agenda-item)
+	(org-cmp-priority, org-cmp-category, org-cmp-time)
+	(org-agenda-change-all-lines, org-agenda-diary-entry)
+	(org-scan-tags, org-after-todo-state-change-hook, org-tags-view)
+	(org-link-search, org-camel-to-words, org-open-file)
+	(org-remember-handler, org-table-convert-region)
+	(org-table-move-row-down, org-table-move-row-up)
+	(org-table-copy-region, org-table-wrap-region)
+	(org-table-toggle-vline-visibility)
+	(org-table-get-vertical-vector, org-table-modify-formulas)
+	(org-table-get-specials, org-recalc-commands)
+	(org-table-rotate-recalc-marks, org-table-eval-formula)
+	(orgtbl-make-binding, org-in-invisibility-spec-p, org-cycle)
+	(org-level-color-stars-only, org-insert-heading):
+	Fix typos in docstrings.
+	(last-arg): Add defvar.
+
 	* makefile.w32-in (WINS): Add erc.
 	(MH_E_SRC): Update (copied from lisp/Makefile.in).
 
