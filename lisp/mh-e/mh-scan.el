@@ -370,7 +370,7 @@ This column will only ever have spaces in it.")
   "The current message (in MH, not in MH-E) is marked by this character.
 See also `mh-scan-cur-msg-number-regexp'.")
 
-(defvar mh-note-copied "C"
+(defvar mh-note-copied ?C
   "Messages that have been copied are marked by this character.")
 
 (defvar mh-note-deleted ?D
@@ -383,7 +383,7 @@ See also `mh-scan-deleted-msg-regexp'.")
 (defvar mh-note-forw ?F
   "Messages that have been forwarded are marked by this character.")
 
-(defvar mh-note-printed "P"
+(defvar mh-note-printed ?P
   "Messages that have been printed are marked by this character.")
 
 (defvar mh-note-refiled ?^

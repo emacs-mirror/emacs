@@ -1,5 +1,9 @@
 2006-01-29  Bill Wohler  <wohler@newt.com>
 
+	* mh-scan.el (mh-note-copied, mh-note-printed): Reorganization
+	revealed character constants that were still strings (closes SF
+	#770772).
+
 	* mh-comp.el (mh-letter-hide-all-skipped-fields)
 	(mh-get-header-field): Move to mh-utils.el so that you can read
 	messages without having to load mh-comp.el and mh-letter.el.
