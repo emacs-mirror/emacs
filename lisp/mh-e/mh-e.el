@@ -2760,7 +2760,7 @@ default tool bar."
 ;;; Hooks (:group 'mh-hooks + group where hook described)
 
 (defcustom mh-after-commands-processed-hook nil
-  "Hook run by \\<mh-folder-mode-map>\\[mh-execute-commands] after performing outstanding requests.
+  "Hook run by \\<mh-folder-mode-map>\\[mh-execute-commands] after performing outstanding refile and delete requests.
 
 Variables that are useful in this hook include
 `mh-folders-changed', which lists which folders were affected by
@@ -2777,7 +2777,7 @@ folder, which is also available in `mh-current-folder'."
   :group 'mh-alias)
 
 (defcustom mh-before-commands-processed-hook nil
-  "Hook run by \\<mh-folder-mode-map>\\[mh-execute-commands] before performing outstanding requests.
+  "Hook run by \\<mh-folder-mode-map>\\[mh-execute-commands] before performing outstanding refile and delete requests.
 
 Variables that are useful in this hook include `mh-delete-list'
 and `mh-refile-list' which can be used to see which changes will
