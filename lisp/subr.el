@@ -1831,6 +1831,12 @@ mode.")
 This variable is meaningful on MS-DOG and Windows NT.
 On those systems, it is automatically local in every buffer.
 On other systems, this variable is normally always nil.")
+
+;; The `assert' macro from the cl package signals
+;; `cl-assertion-failed' at runtime so always define it.
+(put 'cl-assertion-failed 'error-conditions '(error))
+(put 'cl-assertion-failed 'error-message "Assertion failed")
+
 
 ;;;; Misc. useful functions.
 
