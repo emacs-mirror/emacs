@@ -44,29 +44,6 @@
 
 (autoload 'easy-menu-add "easymenu")
 (autoload 'mml-insert-tag "mml")
-(autoload 'sc-cite-original "sc"
-  "Workhorse citing function which performs the initial citation.
-This is callable from the various mail and news readers' reply
-function according to the agreed upon standard.  See `sc-describe'
-for more details.  `sc-cite-original' does not do any yanking of the
-original message but it does require a few things:
-
-     1) The reply buffer is the current buffer.
-
-     2) The original message has been yanked and inserted into the
-        reply buffer.
-
-     3) Verbose mail headers from the original message have been
-        inserted into the reply buffer directly before the text of the
-        original message.
-
-     4) Point is at the beginning of the verbose headers.
-
-     5) Mark is at the end of the body of text to be cited.
-
-For Emacs 19's, the region need not be active (and typically isn't
-when this function is called.  Also, the hook `sc-pre-hook' is run
-before, and `sc-post-hook' is run after the guts of this function.")
 
 
 

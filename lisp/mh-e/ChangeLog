@@ -1,5 +1,10 @@
 2006-01-29  Bill Wohler  <wohler@newt.com>
 
+	* mh-comp.el (sc-cite-original): Remove autoload of "sc" with old
+	docstring. sc-cite-original is autoloaded via loaddefs.el for all
+	supported versions. In addition, the package name "sc" has been
+	made obsolete by "supercite since at least Emacs 21.
+
 	* mh-scan.el (mh-note-copied, mh-note-printed): Reorganization
 	revealed character constants that were still strings (closes SF
 	#770772).
