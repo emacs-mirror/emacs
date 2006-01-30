@@ -1,6 +1,6 @@
 MEMORY POOL SYSTEM KIT README
 
-Richard Brooksby, Ravenbrook Limited, 2002-05-20
+Richard Brooksby, Ravenbrook Limited, updated 2006-01-30
 
 
 CONTENTS
@@ -54,12 +54,12 @@ The MPS Kit is a complete set of sources and documentation to enable
 third parties to use, modify, and adapt the MPS.
 
 For Windows, the kit is distributed as the self-extracting archive
-"mps-kit-1.100.1.exe", and also as the ZIP archive
-"mps-kit-1.100.1.zip", which may be unpacked using WinZip.
+"mps-kit-1.106.1.exe", and also as the ZIP archive
+"mps-kit-1.106.1.zip", which may be unpacked using WinZip.
 
 For Unix and Mac OS X, the integration kit is distributed as the tarball
-"mps-kit-1.100.1.tar.gz".  Unpack it using the command "gunzip -c
-mps-kit-1.100.1.tar.gz | tar xvf -", or by dropping the file onto
+"mps-kit-1.106.1.tar.gz".  Unpack it using the command "gunzip -c
+mps-kit-1.106.1.tar.gz | tar xvf -", or by dropping the file onto
 StuffIt Expander under Mac OS X.
 
 The top-level file "index.html" in the sources indexes many other files,
@@ -252,13 +252,15 @@ B. DOCUMENT HISTORY
 2002-06-18  NB  Minor updates and corrections.
 2002-06-18  RB  Removed obsolete requirement for MASM.
 2002-06-19  NB  Added note on self-extracting archive
+2006-01-30  RHSK  Update from "1.100.1" to "1.106.1".
 
 
 C. COPYRIGHT AND LICENSE
 
-Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
-All rights reserved.  This is an open source license.  Contact
-Ravenbrook for commercial licensing options.
+Copyright (C) 2001-2002, 2006 Ravenbrook Limited 
+<http://www.ravenbrook.com/>.  All rights reserved.  
+This is an open source license.  Contact Ravenbrook 
+for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
