@@ -7,6 +7,9 @@
 
 2006-01-30  Juanma Barranquero  <lekktu@gmail.com>
 
+	* window.el (bw-dir, bw-eqdir, balance-windows)
+	(split-window-keep-point): Fix typos in docstrings.
+
 	* textmodes/org.el (org-allow-space-in-links, org-closed-string)
 	(org-quote-string, org-calendar-to-agenda-key)
 	(org-agenda-sorting-strategy, org-agenda-use-time-grid)
