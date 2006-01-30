@@ -1,5 +1,8 @@
 2006-01-30  Henrik Enberg  <enberg@printf.se>
 
+	* rmail.el (rmail-next-message): Don't Call
+	rmail-maybe-set-message-counters. Use with-current-buffer.
+
 	* rmailkwd.el (rmail-next-labeled-message): Don't call
 	rmail-maybe-set-message-counters.  Use with-current-buffer.
 

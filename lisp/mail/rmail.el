@@ -2280,9 +2280,8 @@ Called when a new message is displayed."
 With prefix arg N, moves forward N messages, or backward if N is
 negative."
   (interactive "p")
-  (set-buffer rmail-buffer)
-  (rmail-maybe-set-message-counters)
-  (rmail-show-message (+ rmail-current-message n)))
+  (with-current-buffer rmail-buffer
+    (rmail-show-message (+ rmail-current-message n))))
 
 (defun rmail-previous-message (n)
   "Show previous message whether deleted or not.
