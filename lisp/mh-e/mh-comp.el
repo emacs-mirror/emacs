@@ -967,19 +967,6 @@ If the field already exists, this function does nothing."
         (unless (looking-at "\\(X-Face\\|Face\\|X-Image-URL\\): ")
           (insert "X-Face: "))))))
 
-;;;###mh-autoload
-(defun mh-letter-hide-all-skipped-fields ()
-  "Hide all skipped fields."
-  (save-excursion
-    (goto-char (point-min))
-    (save-restriction
-      (narrow-to-region (point) (mh-mail-header-end))
-      (while (re-search-forward mh-letter-header-field-regexp nil t)
-        (if (mh-letter-skipped-header-field-p (match-string 1))
-            (mh-letter-toggle-header-field-display -1)
-          (mh-letter-toggle-header-field-display 'long))
-        (beginning-of-line 2)))))
-
 (defun mh-tidy-draft-buffer ()
   "Run when a draft buffer is destroyed."
   (let ((buffer (get-buffer mh-recipients-buffer)))
@@ -1011,21 +998,6 @@ sequence."
            (mh-iterate-on-range nil msg
              (mh-notate nil note
                         (+ mh-cmd-note mh-scan-field-destination-offset)))))))
-
-;;;###mh-autoload
-(defun mh-get-header-field (field)
-  "Find and return the body of FIELD in the mail header.
-Returns the empty string if the field is not in the header of the
-current buffer."
-  (if (mh-goto-header-field field)
-      (progn
-        (skip-chars-forward " \t")      ;strip leading white space in body
-        (let ((start (point)))
-          (mh-header-field-end)
-          (buffer-substring-no-properties start (point))))
-    ""))
-
-(fset 'mh-get-field 'mh-get-header-field) ;MH-E 4 compatibility
 
 (defun mh-insert-header-separator ()
   "Insert `mh-mail-header-separator', if absent."

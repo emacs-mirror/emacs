@@ -1,5 +1,26 @@
 2006-01-29  Bill Wohler  <wohler@newt.com>
 
+	* mh-comp.el (mh-letter-hide-all-skipped-fields)
+	(mh-get-header-field): Move to mh-utils.el so that you can read
+	messages without having to load mh-comp.el and mh-letter.el.
+
+	* mh-letter.el (mh-hidden-header-keymap)
+	(mh-letter-toggle-header-field-display)
+	(mh-letter-skipped-header-field-p)
+	(mh-letter-skip-leading-whitespace-in-header-field)
+	(mh-letter-truncate-header-field): Move to mh-utils.el so that you
+	can read messages without having to load mh-comp.el and
+	mh-letter.el.
+
+	* mh-utils.el (mh-get-header-field)
+	(mh-letter-hide-all-skipped-fields) 
+	(mh-letter-skipped-header-field-p, mh-hidden-header-keymap)
+	(mh-letter-toggle-header-field-display)
+	(mh-letter-skip-leading-whitespace-in-header-field)
+	(mh-letter-truncate-header-field): Move here from mh-comp.el and
+	mh-letter.el so that you can read messages without having to load
+	mh-comp.el and mh-letter.el.
+
 	* mh-comp.el (mh-insert-fields): Handle nil values. Rmail, at
 	least, will deliver them to us.
 

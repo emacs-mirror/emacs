@@ -61,15 +61,6 @@
     (to . mh-alias-letter-expand-alias))
   "Alist of header fields and completion functions to use.")
 
-(defvar mh-hidden-header-keymap
-  (let ((map (make-sparse-keymap)))
-    (mh-do-in-gnu-emacs
-      (define-key map [mouse-2] 'mh-letter-toggle-header-field-display-button))
-    (mh-do-in-xemacs
-      (define-key map '(button2)
-        'mh-letter-toggle-header-field-display-button))
-    map))
-
 (defvar mh-yank-hooks nil
   "Obsolete hook for modifying a citation just inserted in the mail buffer.
 
@@ -593,50 +584,6 @@ point to the last field from anywhere in the body."
           (t (goto-char header-end)
              (forward-line)))))
 
-;;;###mh-autoload
-(defun mh-letter-toggle-header-field-display (arg)
-  "Toggle display of header field at point.
-
-Use this command to display truncated header fields. This command
-is a toggle so entering it again will hide the field. This
-command takes a prefix argument ARG: if negative then the field
-is hidden, if positive then the field is displayed."
-  (interactive (list nil))
-  (when (and (mh-in-header-p)
-             (progn
-               (end-of-line)
-               (re-search-backward mh-letter-header-field-regexp nil t)))
-    (let ((buffer-read-only nil)
-          (modified-flag (buffer-modified-p))
-          (begin (point))
-          end)
-      (end-of-line)
-      (setq end (1- (if (re-search-forward "^[^ \t]" nil t)
-                        (match-beginning 0)
-                      (point-max))))
-      (goto-char begin)
-      ;; Make it clickable...
-      (add-text-properties begin end `(keymap ,mh-hidden-header-keymap
-                                       mouse-face highlight))
-      (unwind-protect
-          (cond ((or (and (not arg)
-                          (text-property-any begin end 'invisible 'vanish))
-                     (and (numberp arg) (>= arg 0))
-                     (and (eq arg 'long) (> (line-beginning-position 5) end)))
-                 (remove-text-properties begin end '(invisible nil))
-                 (search-forward ":" (line-end-position) t)
-                 (mh-letter-skip-leading-whitespace-in-header-field))
-                ;; XXX Redesign to make usable by user. Perhaps use a positive
-                ;; numeric prefix to make that many lines visible.
-                ((eq arg 'long)
-                 (end-of-line 4)
-                 (mh-letter-truncate-header-field end)
-                 (beginning-of-line))
-                (t (end-of-line)
-                   (mh-letter-truncate-header-field end)
-                   (beginning-of-line)))
-        (set-buffer-modified-p modified-flag)))))
-
 (defun mh-open-line ()
   "Insert a newline and leave point before it.
 
@@ -893,24 +840,6 @@ body."
              (forward-line)))))
 
 ;;;###mh-autoload
-(defun mh-letter-skipped-header-field-p (field)
-  "Check if FIELD is to be skipped."
-  (let ((field (downcase field)))
-    (loop for x in mh-compose-skipped-header-fields
-          when (equal (downcase x) field) return t
-          finally return nil)))
-
-(defun mh-letter-skip-leading-whitespace-in-header-field ()
-  "Skip leading whitespace in a header field.
-If the header field doesn't have at least one space after the
-colon then a space character is added."
-  (let ((need-space t))
-    (while (memq (char-after) '(?\t ?\ ))
-      (forward-char)
-      (setq need-space nil))
-    (when need-space (insert " "))))
-
-;;;###mh-autoload
 (defun mh-position-on-field (field &optional ignored)
   "Move to the end of the FIELD in the header.
 Move to end of entire header if FIELD not found.
@@ -980,6 +909,7 @@ Any match found replaces the text from BEGIN to END."
                   (not (null (string-match "\.vcf$" file))))
              (string-equal "text/x-vcard" (mh-file-mime-type file))))))
 
+;;;###mh-autoload
 (defun mh-letter-toggle-header-field-display-button (event)
   "Toggle header field display at location of EVENT.
 This function does the same thing as
@@ -988,15 +918,6 @@ callable from a mouse button."
   (interactive "e")
   (mh-do-at-event-location event
     (mh-letter-toggle-header-field-display nil)))
-
-(defun mh-letter-truncate-header-field (end)
-  "Replace text from current line till END with an ellipsis.
-If the current line is too long truncate a part of it as well."
-  (let ((max-len (min (window-width) 62)))
-    (when (> (+ (current-column) 4) max-len)
-      (backward-char (- (+ (current-column) 5) max-len)))
-    (when (> end (point))
-      (add-text-properties (point) end '(invisible vanish)))))
 
 (defun mh-extract-from-attribution ()
   "Extract phrase or comment from From header field."

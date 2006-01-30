@@ -805,6 +805,21 @@ used in searching."
        (point) (progn (mh-header-field-end)(point))))))
 
 ;;;###mh-autoload
+(defun mh-get-header-field (field)
+  "Find and return the body of FIELD in the mail header.
+Returns the empty string if the field is not in the header of the
+current buffer."
+  (if (mh-goto-header-field field)
+      (progn
+        (skip-chars-forward " \t")      ;strip leading white space in body
+        (let ((start (point)))
+          (mh-header-field-end)
+          (buffer-substring-no-properties start (point))))
+    ""))
+
+(fset 'mh-get-field 'mh-get-header-field) ;MH-E 4 compatibility
+
+;;;###mh-autoload
 (defun mh-goto-header-field (field)
   "Move to FIELD in the message header.
 Move to the end of the FIELD name, which should end in a colon.
@@ -860,6 +875,100 @@ Handles RFC 822 continuation lines."
   (while (looking-at "^[ \t]")
     (forward-line 1))
   (backward-char 1))                    ;to end of previous line
+
+;;;###mh-autoload
+(defun mh-letter-hide-all-skipped-fields ()
+  "Hide all skipped fields."
+  (save-excursion
+    (goto-char (point-min))
+    (save-restriction
+      (narrow-to-region (point) (mh-mail-header-end))
+      (while (re-search-forward mh-letter-header-field-regexp nil t)
+        (if (mh-letter-skipped-header-field-p (match-string 1))
+            (mh-letter-toggle-header-field-display -1)
+          (mh-letter-toggle-header-field-display 'long))
+        (beginning-of-line 2)))))
+
+;;;###mh-autoload
+(defun mh-letter-skipped-header-field-p (field)
+  "Check if FIELD is to be skipped."
+  (let ((field (downcase field)))
+    (loop for x in mh-compose-skipped-header-fields
+          when (equal (downcase x) field) return t
+          finally return nil)))
+
+(defvar mh-hidden-header-keymap
+  (let ((map (make-sparse-keymap)))
+    (mh-do-in-gnu-emacs
+      (define-key map [mouse-2] 'mh-letter-toggle-header-field-display-button))
+    (mh-do-in-xemacs
+      (define-key map '(button2)
+        'mh-letter-toggle-header-field-display-button))
+    map))
+
+;;;###mh-autoload
+(defun mh-letter-toggle-header-field-display (arg)
+  "Toggle display of header field at point.
+
+Use this command to display truncated header fields. This command
+is a toggle so entering it again will hide the field. This
+command takes a prefix argument ARG: if negative then the field
+is hidden, if positive then the field is displayed."
+  (interactive (list nil))
+  (when (and (mh-in-header-p)
+             (progn
+               (end-of-line)
+               (re-search-backward mh-letter-header-field-regexp nil t)))
+    (let ((buffer-read-only nil)
+          (modified-flag (buffer-modified-p))
+          (begin (point))
+          end)
+      (end-of-line)
+      (setq end (1- (if (re-search-forward "^[^ \t]" nil t)
+                        (match-beginning 0)
+                      (point-max))))
+      (goto-char begin)
+      ;; Make it clickable...
+      (add-text-properties begin end `(keymap ,mh-hidden-header-keymap
+                                       mouse-face highlight))
+      (unwind-protect
+          (cond ((or (and (not arg)
+                          (text-property-any begin end 'invisible 'vanish))
+                     (and (numberp arg) (>= arg 0))
+                     (and (eq arg 'long) (> (line-beginning-position 5) end)))
+                 (remove-text-properties begin end '(invisible nil))
+                 (search-forward ":" (line-end-position) t)
+                 (mh-letter-skip-leading-whitespace-in-header-field))
+                ;; XXX Redesign to make usable by user. Perhaps use a positive
+                ;; numeric prefix to make that many lines visible.
+                ((eq arg 'long)
+                 (end-of-line 4)
+                 (mh-letter-truncate-header-field end)
+                 (beginning-of-line))
+                (t (end-of-line)
+                   (mh-letter-truncate-header-field end)
+                   (beginning-of-line)))
+        (set-buffer-modified-p modified-flag)))))
+
+;;;###mh-autoload
+(defun mh-letter-skip-leading-whitespace-in-header-field ()
+  "Skip leading whitespace in a header field.
+If the header field doesn't have at least one space after the
+colon then a space character is added."
+  (let ((need-space t))
+    (while (memq (char-after) '(?\t ?\ ))
+      (forward-char)
+      (setq need-space nil))
+    (when need-space (insert " "))))
+
+(defun mh-letter-truncate-header-field (end)
+  "Replace text from current line till END with an ellipsis.
+If the current line is too long truncate a part of it as well."
+  (let ((max-len (min (window-width) 62)))
+    (when (> (+ (current-column) 4) max-len)
+      (backward-char (- (+ (current-column) 5) max-len)))
+    (when (> end (point))
+      (add-text-properties (point) end '(invisible vanish)))))
 
 ;;;###mh-autoload
 (defun mh-signature-separator-p ()
