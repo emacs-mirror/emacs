@@ -203,33 +203,32 @@ LABELS should be a comma-separated list of label names.
 If LABELS is empty, the last set of labels specified is used.
 With prefix argument N moves forward N messages with these labels."
   (interactive "p\nsMove to next msg with labels: ")
-  (if (string= labels "")
-      (setq labels rmail-last-multi-labels))
-  (or labels
-      (error "No labels to find have been specified previously"))
-  (set-buffer rmail-buffer)
-  (setq rmail-last-multi-labels labels)
-  (rmail-maybe-set-message-counters)
-  (let ((lastwin rmail-current-message)
-	(current rmail-current-message)
-	(regexp (concat ", ?\\("
-			(mail-comma-list-regexp labels)
-			"\\),")))
-    (save-restriction
-      (widen)
-      (while (and (> n 0) (< current rmail-total-messages))
-	(setq current (1+ current))
-	(if (rmail-message-labels-p current regexp)
+  (when (string= labels "")
+    (setq labels rmail-last-multi-labels))
+  (unless labels
+    (error "No labels to find have been specified previously"))
+  (with-current-buffer rmail-buffer
+    (setq rmail-last-multi-labels labels)
+    (let ((lastwin rmail-current-message)
+	  (current rmail-current-message)
+	  (regexp (concat ", ?\\("
+			  (mail-comma-list-regexp labels)
+			  "\\),")))
+      (save-restriction
+	(widen)
+	(while (and (> n 0) (< current rmail-total-messages))
+	  (setq current (1+ current))
+	  (when (rmail-message-labels-p current regexp)
 	    (setq lastwin current n (1- n))))
-      (while (and (< n 0) (> current 1))
-	(setq current (1- current))
-	(if (rmail-message-labels-p current regexp)
+	(while (and (< n 0) (> current 1))
+	  (setq current (1- current))
+	  (when (rmail-message-labels-p current regexp)
 	    (setq lastwin current n (1+ n)))))
-    (rmail-show-message lastwin)
-    (if (< n 0)
+      (rmail-show-message lastwin)
+      (when (< n 0)
 	(message "No previous message with labels %s" labels))
-    (if (> n 0)
-	(message "No following message with labels %s" labels))))
+      (when (> n 0)
+	(message "No following message with labels %s" labels)))))
 
 ;;; arch-tag: b26b3392-99ca-4e1d-933a-dab59b04e9a8
 ;;; rmailkwd.el ends here
