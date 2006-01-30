@@ -84,7 +84,6 @@ semi-obsolete and is only used if `mail-citation-hook' is nil.")
 
 ;;; Letter Menu
 
-(eval-when-compile (defvar mh-letter-menu nil))
 (easy-menu-define
   mh-letter-menu mh-letter-mode-map "Menu for MH-E letter mode."
   '("Letter"
@@ -353,6 +352,11 @@ order).
     ;; ...or the header only
     (setq font-lock-defaults '((mh-show-font-lock-keywords) t))))
   (easy-menu-add mh-letter-menu)
+  ;; Maybe we want to use the existing Mail menu from mail-mode in
+  ;; 9.0; in the mean time, let's remove it since the redundancy will
+  ;; only produce confusion.
+  (define-key mh-letter-mode-map [menu-bar mail] 'undefined)
+  (mh-do-in-xemacs (easy-menu-remove mail-menubar-menu))
   (setq fill-column mh-letter-fill-column)
   ;; If text-mode-hook turned on auto-fill, tune it for messages
   (when auto-fill-function
