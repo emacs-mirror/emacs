@@ -41,7 +41,6 @@ found.  When you have typed enough characters to identify the place you
 want, you can stop.  Depending on what you plan to do next, you may or
 may not need to terminate the search explicitly with @key{RET}.
 
-@c WideCommands
 @table @kbd
 @item C-s
 Incremental search forward (@code{isearch-forward}).
@@ -73,9 +72,9 @@ from the keyboard, and moves point past the next occurrence of those
 characters.  If you type @kbd{C-s} and then @kbd{F}, that puts the
 cursor after the first @samp{F} (the first following the starting point, since
 this is a forward search).  Then if you type an @kbd{O}, you will see
-the cursor move just after the first @samp{FO} (the @samp{F} in that
+the cursor move to just after the first @samp{FO} (the @samp{F} in that
 @samp{FO} may or may not be the first @samp{F}).  After another
-@kbd{O}, the cursor moves after the first @samp{FOO} after the place
+@kbd{O}, the cursor moves to just after the first @samp{FOO} after the place
 where you started the search.  At each step, the buffer text that
 matches the search string is highlighted, if the terminal can do that;
 the current search string is always displayed in the echo area.
@@ -135,19 +134,20 @@ string in the minibuffer without replacing it with items from the
 search ring, type @kbd{M-e}.  Type @kbd{C-s} or @kbd{C-r}
 to terminate editing the string and search for it.
 
-  You can change to searching backwards with @kbd{C-r}.  If a search fails
-because the place you started was too late in the file, you should do this.
-Repeated @kbd{C-r} keeps looking for more occurrences backwards.  A
-@kbd{C-s} starts going forwards again.  @kbd{C-r} in a search can be canceled
+  You can change to searching backwards with @kbd{C-r}.  For instance,
+if you are searching forward but you realize you were looking for
+something above the starting point, you can do this.  Repeated
+@kbd{C-r} keeps looking for more occurrences backwards.  A @kbd{C-s}
+starts going forwards again.  @kbd{C-r} in a search can be canceled
 with @key{DEL}.
 
 @kindex C-r
 @findex isearch-backward
   If you know initially that you want to search backwards, you can use
-@kbd{C-r} instead of @kbd{C-s} to start the search, because @kbd{C-r} as
-a key runs a command (@code{isearch-backward}) to search backward.  A
-backward search finds matches that are entirely before the starting
-point, just as a forward search finds matches that begin after it.
+@kbd{C-r} instead of @kbd{C-s} to start the search, because @kbd{C-r}
+as a key runs a command (@code{isearch-backward}) to search backward.
+A backward search finds matches that end before the starting point,
+just as a forward search finds matches that begin after it.
 
 @node Error in Isearch
 @subsection Errors in Incremental Search
@@ -281,50 +281,46 @@ If you don't like this feature, you can turn it off by setting
 @cindex faces for highlighting search matches
   You can control how this highlighting looks by customizing the faces
 @code{isearch} (used for the current match) and @code{lazy-highlight}
-(for all the other matches).  The latter is also used for other matches
-inside @code{query-replace}.
+(for all the other matches).
 
 @node Isearch Scroll
 @subsection Scrolling During Incremental Search
 
-  Vertical scrolling during incremental search can be enabled by
-setting the customizable variable @code{isearch-allow-scroll} to a
-non-@code{nil} value.
-
-  You can then use the vertical scroll-bar or certain keyboard
+  You can enable the use of vertical scrolling during incremental
+search (without exiting the search) by setting the customizable
+variable @code{isearch-allow-scroll} to a non-@code{nil} value.  This
+applies to using the vertical scroll-bar and to certain keyboard
 commands such as @kbd{@key{PRIOR}} (@code{scroll-down}),
-@kbd{@key{NEXT}} (@code{scroll-up}) and @kbd{C-l} (@code{recenter})
-within the search, thus letting you see more of the text near the
-current match.  You must run these commands via their key sequences to
-stay in the search---typing M-x @var{command-name} will always
-terminate a search.
+@kbd{@key{NEXT}} (@code{scroll-up}) and @kbd{C-l} (@code{recenter}).
+You must run these commands via their key sequences to stay in the
+search---typing @kbd{M-x} will terminate the search.  You can give
+prefix arguments to these commands in the usual way.
 
-  You can give prefix arguments to these commands in the usual way.
-The current match cannot be scrolled out of the window---this is
-intentional.
+  This feature won't let you scroll the current match out of visibility,
+however.
 
-  Several other commands, such as @kbd{C-x 2}
+  The feature also affects some other commands, such as @kbd{C-x 2}
 (@code{split-window-vertically}) and @kbd{C-x ^}
-(@code{enlarge-window}) which don't scroll the window, are
-nevertheless made available under this rubric, since they are likewise
-handy during a search.
+(@code{enlarge-window}) which don't exactly scroll but do affect where
+the text appears on the screen.  In general, it applies to any command
+whose name has a non-@code{nil} @code{isearch-scroll} property.  So you
+can control which commands are affected by changing these properties.
 
-  You can make other commands usable within an incremental search by
-giving the command a non-@code{nil} @code{isearch-scroll} property.
-For example, to make @kbd{C-h l} usable within an incremental search
+  For example, to make @kbd{C-h l} usable within an incremental search
 in all future Emacs sessions, use @kbd{C-h c} to find what command it
-runs.  (You type @kbd{C-h c C-h l}; it says @code{view-lossage}.)  Then
-you can put the following line in your @file{.emacs} file (@pxref{Init File}):
+runs.  (You type @kbd{C-h c C-h l}; it says @code{view-lossage}.)
+Then you can put the following line in your @file{.emacs} file
+(@pxref{Init File}):
 
 @example
 (put 'view-lossage 'isearch-scroll t)
 @end example
 
 @noindent
-This works for commands that don't permanently change point, the
-buffer contents, the match data, the current buffer, or the selected
-window and frame.  The command must not delete the current window and
-must not itself attempt an incremental search.
+This feature can be applied to any command that doesn't permanently
+change point, the buffer contents, the match data, the current buffer,
+or the selected window and frame.  The command must not itself attempt
+an incremental search.
 
 @node Slow Isearch
 @subsection Slow Terminal Incremental Search
@@ -387,7 +383,7 @@ which specifies a word search.
 commands @code{search-forward} and @code{search-backward}.  These
 commands may be bound to keys in the usual manner.  The feature that you
 can get to them via the incremental search commands exists for
-historical reasons, and to avoid the need to find key sequences
+historical reasons, and to avoid the need to find separate key sequences
 for them.
 
 @node Word Search
@@ -427,7 +423,7 @@ by constructing a regular expression and searching for that; see
 @code{word-search-forward} and @code{word-search-backward}.  These
 commands may be bound to keys in the usual manner.  They are available
 via the incremental search commands both for historical reasons and
-to avoid the need to find suitable key sequences for them.
+to avoid the need to find separate key sequences for them.
 
 @node Regexp Search
 @section Regular Expression Search
@@ -468,10 +464,10 @@ defaults.  They also have separate search rings that you can access with
   If you type @key{SPC} in incremental regexp search, it matches any
 sequence of whitespace characters, including newlines.  If you want to
 match just a space, type @kbd{C-q @key{SPC}}.  You can control what a
-bare spece matches by setting the variable
+bare space matches by setting the variable
 @code{search-whitespace-regexp} to the desired regexp.
 
-  Note that adding characters to the regexp in an incremental regexp
+  In some cases, adding characters to the regexp in an incremental regexp
 search can make the cursor move back and start again.  For example, if
 you have searched for @samp{foo} and you add @samp{\|bar}, the cursor
 backs up in case the first @samp{bar} precedes the first @samp{foo}.
@@ -932,7 +928,7 @@ of the pattern and asks you whether to replace it.
   The replace commands normally operate on the text from point to the
 end of the buffer; however, in Transient Mark mode (@pxref{Transient
 Mark}), when the mark is active, they operate on the region.  The
-replace commands all replace one string (or regexp) with one
+basic replace commands replace one string (or regexp) with one
 replacement string.  It is possible to perform several replacements in
 parallel using the command @code{expand-region-abbrevs}
 (@pxref{Expanding Abbrevs}).
@@ -1246,7 +1242,7 @@ Mark mode.
 @findex list-matching-lines
 @findex occur
 @findex multi-occur
-@findex multi-occur-by-filename-regexp
+@findex multi-occur-in-matching-buffers
 @findex how-many
 @findex delete-non-matching-lines
 @findex delete-matching-lines
@@ -1273,19 +1269,21 @@ searched and moves point to the original of the chosen occurrence.
 @kbd{o} and @kbd{C-o} display the match in another window; @kbd{C-o}
 does not select it.
 
-Occur mode supports the @code{next-error} functionality described in
-@ref{Compilation Mode}.
+After using @kbd{M-x occur}, you can use @code{next-error} to visit
+the occurrences found, one by one.  @ref{Compilation Mode}.
 
 @item M-x list-matching-lines
 Synonym for @kbd{M-x occur}.
 
 @item M-x multi-occur @key{RET} @var{buffers} @key{RET} @var{regexp} @key{RET}
 This function is just like @code{occur}, except it is able to search
-through multiple buffers.
+through multiple buffers.  It asks you to specify the buffer names one by one.
 
-@item M-x multi-occur-by-filename-regexp @key{RET} @var{bufregexp} @key{RET} @var{regexp} @key{RET}
+@item M-x multi-occur-in-matching-buffers @key{RET} @var{bufregexp} @key{RET} @var{regexp} @key{RET}
 This function is similar to @code{multi-occur}, except the buffers to
-search are specified by a regexp on their filename.
+search are specified by a regular expression that matches visited
+filenames.  With a prefix argument, it uses the regular expression to match
+buffer names instead.
 
 @item M-x how-many @key{RET} @var{regexp} @key{RET}
 Print the number of matches for @var{regexp} that exist in the buffer
