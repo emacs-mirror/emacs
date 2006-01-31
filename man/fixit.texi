@@ -20,11 +20,125 @@ and earlier changes, back to the limit of the undo information
 available.  @xref{Undo}, for more information.
 
 @menu
+* Undo::        The Undo commands.
 * Kill Errors:: Commands to kill a batch of recently entered text.
 * Transpose::   Exchanging two characters, words, lines, lists...
 * Fixing Case:: Correcting case of last word entered.
 * Spelling::    Apply spelling checker to a word, or a whole file.
 @end menu
+
+@node Undo
+@section Undo
+@cindex undo
+@cindex changes, undoing
+
+  The @dfn{undo} commands undo recent changes in the buffer's text.
+Each buffer records changes individually, and the undo command always
+applies to the current buffer.  You can undo all the changes in a
+buffer for as far as back these records go.  Usually each editing
+command makes a separate entry in the undo records, but some commands
+such as @code{query-replace} divide their changes into multiple
+entries for flexibility in undoing.  Meanwhile, self-inserting
+characters are usually grouped to make undoing less tedious.
+
+@table @kbd
+@item C-x u
+@itemx C-_
+@itemx C-/
+Undo one entry in the current buffer's undo records (@code{undo}).
+@end table
+
+@kindex C-x u
+@kindex C-_
+@kindex C-/
+@findex undo
+  To begin to undo, type the command @kbd{C-x u} (or its aliases,
+@kbd{C-_} or @kbd{C-/}).  This undoes the most recent change in the
+buffer, and moves point back to where it was before that change.
+
+  Consecutive repetitions of @kbd{C-x u} (or its aliases) undo earlier
+and earlier changes in the current buffer, back to the limit of the
+current buffer's undo records.  If all the recorded changes have
+already been undone, the undo command just signals an error.
+
+  If you notice that a buffer has been modified accidentally, the
+easiest way to recover is to type @kbd{C-_} repeatedly until the stars
+disappear from the front of the mode line.  At this time, all the
+modifications you made have been canceled.  Whenever an undo command
+makes the stars disappear from the mode line, it means that the buffer
+contents are the same as they were when the file was last read in or
+saved.
+
+  If you do not remember whether you changed the buffer deliberately,
+type @kbd{C-_} once.  When you see the last change you made undone, you
+will see whether it was an intentional change.  If it was an accident,
+leave it undone.  If it was deliberate, redo the change as described
+below.
+
+@findex undo-only
+  Any command other than an undo command breaks the sequence of undo
+commands.  Starting from that moment, the previous undo commands
+become ordinary changes that you can undo.  Thus, to redo changes you
+have undone, type @kbd{C-f} or any other command that will harmlessly
+break the sequence of undoing, then type undo commands again.  On the
+other hand, if you want to resume undoing, without redoing previous
+undo commands, use @kbd{M-x undo-only}.  This is like @code{undo}, but
+will not redo changes you have just undone.
+
+@cindex selective undo
+@kindex C-u C-x u
+  Ordinary undo applies to all changes made in the current buffer.  You
+can also perform @dfn{selective undo}, limited to the region.
+
+  To do this, specify the region you want, then run the @code{undo}
+command with a prefix argument (the value does not matter): @kbd{C-u
+C-x u} or @kbd{C-u C-_}.  This undoes the most recent change in the
+region.  To undo further changes in the same region, repeat the
+@code{undo} command (no prefix argument is needed).  In Transient Mark
+mode (@pxref{Transient Mark}), any use of @code{undo} when there is an
+active region performs selective undo; you do not need a prefix
+argument.
+
+  Some specialized buffers do not make undo records.  Buffers
+whose names start with spaces never do; these buffers are used
+internally by Emacs and its extensions to hold text that users don't
+normally look at or edit.
+
+@vindex undo-limit
+@vindex undo-strong-limit
+@vindex undo-outer-limit
+@cindex undo limit
+  When the undo records for a buffer becomes too large, Emacs
+discards the oldest undo records from time to time (during garbage
+collection).  You can specify how much undo records to keep by
+setting three variables: @code{undo-limit}, @code{undo-strong-limit},
+and @code{undo-outer-limit}.  Their values are expressed in units of
+bytes of space.
+
+  The variable @code{undo-limit} sets a soft limit: Emacs keeps undo
+data for enough commands to reach this size, and perhaps exceed it,
+but does not keep data for any earlier commands beyond that.  Its
+default value is 20000.  The variable @code{undo-strong-limit} sets a
+stricter limit: a previous command (not the most recent one) which
+pushes the size past this amount is itself forgotten.  The default
+value of @code{undo-strong-limit} is 30000.
+
+  Regardless of the values of those variables, the most recent change
+is never discarded unless it gets bigger than @code{undo-outer-limit}
+(normally 3,000,000).  At that point, Emacs discards the undo data and
+warns you about it.  This is the only situation in which you cannot
+undo the last command.  If this happens, you can increase the value of
+@code{undo-outer-limit} to make it even less likely to happen in the
+future.  But if you didn't expect the command to create such large
+undo data, then it is probably a bug and you should report it.
+@xref{Bugs,, Reporting Bugs}.
+
+  The reason the @code{undo} command has three key bindings, @kbd{C-x
+u}, @kbd{C-_} and @kbd{C-/}, is that it is worthy of a
+single-character key, but @kbd{C-x u} is more straightforward for
+beginners to remember and type.  Meanwhile, @kbd{C--} on a text-only
+terminal is really @kbd{C-_}, which makes it a natural and easily
+typed binding for undoing.
 
 @node Kill Errors
 @section Killing Your Mistakes
@@ -41,7 +155,7 @@ Kill to beginning of sentence (@code{backward-kill-sentence}).
   The @key{DEL} character (@code{delete-backward-char}) is the most
 important correction command.  It deletes the character before point.
 When @key{DEL} follows a self-inserting character command, you can think
-of it as canceling that command.  However, avoid the mistake of thinking
+of it as canceling that command.  However, avoid the confusion of thinking
 of @key{DEL} as a general way to cancel a command!
 
   When your mistake is longer than a couple of characters, it might be
@@ -152,9 +266,9 @@ case-convert it and go on typing.  @xref{Case}.@refill
 
   This section describes the commands to check the spelling of a single
 word or of a portion of a buffer.  These commands work with the spelling
-checker program Ispell, which is not part of Emacs.
+checker programs Aspell and Ispell, which are not part of Emacs.
 @ifinfo
-@xref{Top, Ispell, Overview ispell, ispell, The Ispell Manual}.
+@xref{Top, Aspell,, aspell, The Aspell Manual}.
 @end ifinfo
 
 @table @kbd
@@ -178,9 +292,9 @@ Check and correct spelling of each word in the region.
 Check and correct spelling of each word in a draft mail message,
 excluding cited material.
 @item M-x ispell-change-dictionary @key{RET} @var{dict} @key{RET}
-Restart the Ispell process, using @var{dict} as the dictionary.
+Restart the Aspell or Ispell process, using @var{dict} as the dictionary.
 @item M-x ispell-kill-ispell
-Kill the Ispell subprocess.
+Kill the Aspell or Ispell subprocess.
 @end table
 
 @cindex Flyspell mode
@@ -261,7 +375,7 @@ Accept the incorrect word---treat it as correct, but only in this
 editing session and for this buffer.
 
 @item i
-Insert this word in your private dictionary file so that Ispell will
+Insert this word in your private dictionary file so that Aspell or Ispell will
 consider it correct from now on, even in future sessions.
 
 @item u
@@ -328,26 +442,27 @@ reload your private dictionary if you edit the file outside of Ispell.
 
 @cindex @code{ispell} program
 @findex ispell-kill-ispell
-  Once started, the Ispell subprocess continues to run (waiting for
-something to do), so that subsequent spell checking commands complete
-more quickly.  If you want to get rid of the Ispell process, use
-@kbd{M-x ispell-kill-ispell}.  This is not usually necessary, since the
-process uses no time except when you do spelling correction.
+  Once started, the Aspell or Ispell subprocess continues to run
+(waiting for something to do), so that subsequent spell checking
+commands complete more quickly.  If you want to get rid of the
+process, use @kbd{M-x ispell-kill-ispell}.  This is not usually
+necessary, since the process uses no time except when you do spelling
+correction.
 
 @vindex ispell-dictionary
-  Ispell uses two dictionaries together for spell checking: the
+  Ispell and Aspell use two dictionaries together for spell checking: the
 standard dictionary and your private dictionary.  The variable
 @code{ispell-dictionary} specifies the file name to use for the
 standard dictionary; a value of @code{nil} selects the default
 dictionary.  The command @kbd{M-x ispell-change-dictionary} sets this
-variable and then restarts the Ispell subprocess, so that it will use
+variable and then restarts the subprocess, so that it will use
 a different standard dictionary.
 
 @vindex ispell-complete-word-dict
-  Ispell uses a separate dictionary for word completion.  The variable
-@code{ispell-complete-word-dict} specifies the file name of this
-dictionary.  The completion dictionary must be different because it
-cannot use root and affix information.  For some languages
+  Aspell and Ispell use a separate dictionary for word completion.
+The variable @code{ispell-complete-word-dict} specifies the file name
+of this dictionary.  The completion dictionary must be different
+because it cannot use root and affix information.  For some languages
 there is a spell checking dictionary but no word completion
 dictionary.
 
