@@ -1,3 +1,8 @@
+2006-01-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Use new tool bar functions
+	(gtk_toolbar_insert) so we can have tool bars of different sizes.
+
 2006-01-30  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* data.c (Flistp): Doc fix.
