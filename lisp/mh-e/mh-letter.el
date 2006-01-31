@@ -894,7 +894,7 @@ Any match found replaces the text from BEGIN to END."
            (if (equal word completion)
                (with-output-to-temp-buffer completions-buffer
                  (mh-display-completion-list (all-completions word choices)
-                                             choices))
+                                             word))
              (ignore-errors
                (kill-buffer completions-buffer))
              (delete-region begin end)
