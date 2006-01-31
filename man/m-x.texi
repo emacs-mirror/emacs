@@ -8,10 +8,10 @@
   Every Emacs command has a name that you can use to run it.  Commands
 that are used often, or that must be quick to type, are also bound to
 keys---short sequences of characters---for convenient use.  You can
-run them by name if you don't remember the keys.  Other Emacs commands
-that do not need to be quick are not bound to keys; the only way to
-run them is by name.  @xref{Key Bindings}, for the description of
-how to bind commands to keys.
+run them by typing the keys, or run them by name if you don't remember
+the keys.  Other Emacs commands that do not need to be quick are not
+bound to keys; the only way to run them is by name.  @xref{Key
+Bindings}, for the description of how to bind commands to keys.
 
   By convention, a command name consists of one or more words,
 separated by hyphens; for example, @code{auto-fill-mode} or
@@ -47,9 +47,9 @@ Note that @code{forward-char} is the same command that you invoke with
 the key @kbd{C-f}.  You can run any Emacs command by name using
 @kbd{M-x}, whether or not any keys are bound to it.
 
-  If you type @kbd{C-g} while the command name is being read, you
-cancel the @kbd{M-x} command and get out of the minibuffer, ending up
-at command level.
+  If you type @kbd{C-g} while the command name is being read, that
+cancels the @kbd{M-x} command and exits the minibuffer, so you end up
+back at command level.
 
   To pass a numeric argument to the command you are invoking with
 @kbd{M-x}, specify the numeric argument before the @kbd{M-x}.  @kbd{M-x}
@@ -58,10 +58,11 @@ appears in the prompt while the command name is being read.
 
 @vindex suggest-key-bindings
   If the command you type has a key binding of its own, Emacs mentions
-this in the echo area.  For example, if you type @kbd{M-x
-forward-word}, the message says that you can run the same command more
-easily by typing @kbd{M-f}.  You can turn off these messages by
-setting @code{suggest-key-bindings} to @code{nil}.
+this in the echo area after running the command.  For example, if you
+type @kbd{M-x forward-word}, the message says that you can run the
+same command more easily by typing @kbd{M-f}.  You can turn off these
+messages by setting the variable @code{suggest-key-bindings} to
+@code{nil}.
 
   Normally, when describing in this manual a command that is run by
 name, we omit the @key{RET} that is needed to terminate the name.  Thus
