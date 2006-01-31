@@ -1,3 +1,10 @@
+2006-01-31  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (multi-occur): Doc fix.
+	(multi-occur-in-matching-buffers): Renamed from
+	multi-occur-by-filename-regexp.  Prefix arg says match
+	buffer names instead of file names.
+
 2006-01-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el: Allow non-default values of `bs-header-lines-length'.

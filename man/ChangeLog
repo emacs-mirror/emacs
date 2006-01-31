@@ -1,3 +1,51 @@
+2006-01-31  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Scrolling, Horizontal Scrolling, Follow Mode):
+	Nodes moved to top.
+
+	* display.texi: Minor clarifications.
+	(Display): Rearrange menu.
+	(Standard Faces): Mention query-replace face.
+	(Faces): Simplify.
+	(Font Lock): Simplify face customization info.
+	(Highlight Changes): Node merged into Highlight Interactively.
+	(Highlight Interactively): Much rewriting and cleanup.
+	(Optional Mode Line): Narrowed line number not good for goto-line.
+	Simplify face customization advice.
+	(Text Display): Mention use of escape-glyph face.
+	Move ctl-arrow and tab-width here.
+	(Display Custom): Move no-redraw-on-reenter to end of node.
+
+	* search.texi: Minor clarifications.
+	(Isearch Scroll): Simplify.
+	(Other Repeating Search): Document multi-occur-in-matching-buffers.
+
+	* regs.texi (Registers): Mention bookmarks here.
+
+	* mark.texi: Minor clarifications.
+	(Selective Undo): Node deleted.
+
+	* m-x.texi: Minor clarifications
+
+	* killing.texi: Minor clarifications.
+	Refer to "graphical" terminals, rather than window systems.
+
+	* help.texi: Clarifications.
+	(Help): Don't describe C-h F and C-h K here.
+	(Key Help): Describe C-h K here.
+	(Name Help): Mention Emacs Lisp Intro.
+	Describe C-h F here.
+	(Misc Help): Mention C-h F and C-h K only briefly.
+
+	* fixit.texi (Undo): New node, mostly copied from basic.texi.
+	Selective undo text merged in.
+	(Spelling): Mention Aspell along with Ispell.
+
+	* emacs.texi (Top): Update subnode menus.
+
+	* basic.texi (Basic Undo): Renamed from Undo.  Most of text
+	moved to new Undo node.
+
 2006-01-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (clean): Add newsticker, sieve, pgg, erc and
