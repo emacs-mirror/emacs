@@ -21,7 +21,7 @@ use the tutorial, run Emacs and type @kbd{Control-h t}
 * Moving Point::        How to move the cursor to the place where you want to
 			  change something.
 * Erasing::	        Deleting and killing text.
-* Undo::	        Undoing recent changes in the text.
+* Basic Undo::	        Undoing recent changes in the text.
 * Files: Basic Files.   Visiting, creating, and saving files.
 * Help: Basic Help.     Asking what a character does.
 * Blank Lines::	        Commands to make or delete blank lines.
@@ -312,115 +312,39 @@ line, it kills all the text up to the end of the line.  If you type
 
   @xref{Killing}, for more flexible ways of killing text.
 
-@node Undo
+@node Basic Undo
 @section Undoing Changes
-@cindex undo
-@cindex changes, undoing
 
-  You can undo all the recent changes in the buffer text, up to a
-certain point.  Each buffer records changes individually, and the undo
-command always applies to the current buffer.  Usually each editing
-command makes a separate entry in the undo records, but some commands
-such as @code{query-replace} make many entries, and very simple commands
-such as self-inserting characters are often grouped to make undoing less
-tedious.
+  Emacs records a list of changes made in the buffer text, so you can
+you can undo all the recent changes, as far as the records go.
+Usually each editing command makes a separate entry in the undo
+records, but sometimes an entry covers just part of a command, and
+very simple commands may be grouped.
 
 @table @kbd
 @item C-x u
-Undo one batch of changes---usually, one command worth (@code{undo}).
+Undo one entry of the undo records---usually, one command worth
+(@code{undo}).
 @item C-_
 @itemx C-/
 The same.
 @end table
 
-@kindex C-x u
-@kindex C-_
-@kindex C-/
-@findex undo
   The command @kbd{C-x u} (or @kbd{C-_} or @kbd{C-/}) is how you undo.
 The first time you give this command, it undoes the last change.
 Point moves back to where it was before the command that made the
 change.
 
-  Consecutive repetitions of @kbd{C-_} or @kbd{C-x u} undo earlier and
-earlier changes, back to the limit of the undo information available.
-If all recorded changes have already been undone, the undo command
-displays an error message and does nothing.
-
-@findex undo-only
-  Any command other than an undo command breaks the sequence of undo
-commands.  Starting from that moment, the previous undo commands become
-ordinary changes that you can undo.  Thus, to redo changes you have
-undone, type @kbd{C-f} or any other command that will harmlessly break
-the sequence of undoing, then type more undo commands.  On the other
-hand, if you want to ignore previous undo commands, use @kbd{M-x
-undo-only}.  This is like @code{undo}, but will not redo changes
-you have just undone.
-
-  If you notice that a buffer has been modified accidentally, the
-easiest way to recover is to type @kbd{C-_} repeatedly until the stars
-disappear from the front of the mode line.  At this time, all the
-modifications you made have been canceled.  Whenever an undo command
-makes the stars disappear from the mode line, it means that the buffer
-contents are the same as they were when the file was last read in or
-saved.
-
-  If you do not remember whether you changed the buffer deliberately,
-type @kbd{C-_} once.  When you see the last change you made undone, you
-will see whether it was an intentional change.  If it was an accident,
-leave it undone.  If it was deliberate, redo the change as described
-above.
-
-  Normal undo applies to the buffer as a whole.  You can also
-selectively undo changes in any part of the buffer (@pxref{Selective
-Undo}).
-
-  Some specialized buffers do not record undo information.  Buffers
-whose names start with spaces never do; these buffers are used
-internally by Emacs and its extensions to hold text that users don't
-normally look at or edit.
+  Consecutive repetitions of @kbd{C-x u} (or its aliases) undo earlier
+and earlier changes, back to the limit of the undo information
+available.  If all recorded changes have already been undone, the undo
+command displays an error message and does nothing.
 
   The undo command applies only to changes in the buffer; you can't
 use it to undo mere cursor motion.  However, some cursor motion
 commands set the mark, so if you use these commands from time to time,
 you can move back to the neighborhoods you have moved through by
 popping the mark ring (@pxref{Mark Ring}).
-
-@vindex undo-limit
-@vindex undo-strong-limit
-@vindex undo-outer-limit
-@cindex undo limit
-  When the undo information for a buffer becomes too large, Emacs
-discards the oldest undo information from time to time (during garbage
-collection).  You can specify how much undo information to keep by
-setting three variables: @code{undo-limit}, @code{undo-strong-limit},
-and @code{undo-outer-limit}.  Their values are expressed in units of
-bytes of space.
-
-  The variable @code{undo-limit} sets a soft limit: Emacs keeps undo
-data for enough commands to reach this size, and perhaps exceed it,
-but does not keep data for any earlier commands beyond that.  Its
-default value is 20000.  The variable @code{undo-strong-limit} sets a
-stricter limit: a previous command (not the most recent one) which
-pushes the size past this amount is itself forgotten.  The default
-value of @code{undo-strong-limit} is 30000.
-
-  Regardless of the values of those variables, the most recent change
-is never discarded unless it gets bigger than @code{undo-outer-limit}
-(normally 3,000,000).  At that point, Emacs discards the undo data and
-warns you about it.  This is the only situation in which you cannot
-undo the last command.  If this happens, you can increase the value of
-@code{undo-outer-limit} to make it even less likely to happen in the
-future.  But if you didn't expect the command to create such large
-undo data, then it is probably a bug and you should report it.
-@xref{Bugs,, Reporting Bugs}.
-
-  The reason the @code{undo} command has three key bindings, @kbd{C-x
-u}, @kbd{C-_} and @kbd{C-/}, is that it is worthy of a
-single-character key, but @kbd{C-x u} is more straightforward for
-beginners to type.  Meanwhile, @kbd{C--} on a text-only terminal is
-really @kbd{C-_}, which makes it a natural and easily typed binding
-for undoing.
 
 @node Basic Files
 @section Files
