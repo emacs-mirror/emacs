@@ -1,3 +1,7 @@
+2006-01-31  Alex Schroeder  <alex@gnu.org>
+
+	* rmailmm.el: New file, based on Alexander Pohoyda's code.
+
 2006-01-30  Henrik Enberg  <enberg@printf.se>
 
 	* rmail.el (rmail-next-message): Don't Call
