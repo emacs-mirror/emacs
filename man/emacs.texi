@@ -235,7 +235,7 @@ Basic Editing Commands
 * Moving Point::        How to move the cursor to the place where you want to
 			  change something.
 * Erasing::	        Deleting and killing text.
-* Undo::	        Undoing recent changes in the text.
+* Basic Undo::	        Undoing recent changes in the text.
 * Basic Files::         Visiting, creating, and saving files.
 * Basic Help::          Asking what a character does.
 * Blank Lines::	        Commands to make or delete blank lines.
@@ -307,16 +307,15 @@ Registers
 
 Controlling the Display
 
+* Scrolling::	           Moving text up and down in a window.
+* Horizontal Scrolling::   Moving text left and right in a window.
+* Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::	           How to change the display style using faces.
 * Standard Faces::         Emacs' predefined faces.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
 * Highlight Interactively:: Tell Emacs what text to highlight.
-* Highlight Changes::      Using colors to show where you changed the buffer.
-* Scrolling::	           Moving text up and down in a window.
-* Horizontal Scrolling::   Moving text left and right in a window.
 * Fringes::                Enabling or disabling window fringes.
 * Useless Whitespace::     Showing possibly-spurious trailing whitespace.
-* Follow Mode::            Follow mode lets two windows scroll as one.
 * Selective Display::      Hiding lines with lots of indentation.
 * Optional Mode Line::     Optional mode line display features.
 * Text Display::           How text characters are normally displayed.
