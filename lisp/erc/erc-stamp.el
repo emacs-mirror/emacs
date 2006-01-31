@@ -180,6 +180,14 @@ the correct column."
 	  (integer :tag "Column number")
 	  (const :tag "Unspecified" nil)))
 
+(defcustom erc-timestamp-right-align-by-pixel nil
+  "*If non-nil, insert the right timestamp based on a pixel value.
+This is needed when variable-width text precedes a timestamp.
+Unfortunately, it only works in Emacs 22 and when using the X
+Window System."
+  :group 'erc-stamp
+  :type 'boolean)
+
 (defun erc-insert-timestamp-left (string)
   "Insert timestamps at the beginning of the line."
   (goto-char (point-min))
@@ -195,11 +203,9 @@ the correct column."
   "Insert STRING based on a fraction of the width of the buffer.
 Fraction is roughly (/ POS (window-width)).
 
-If the current version of Emacs doesn't support this, use
+If `erc-timestamp-right-align-by-pixel' is nil, use
 \(- POS FALLBACK) to determine how many spaces to insert."
-  (if (or (featurep 'xemacs)
-	  (< emacs-major-version 22)
-	  (not (eq window-system 'x)))
+  (if (not erc-timestamp-right-align-by-pixel)
       (insert (make-string (- pos fallback) ? ) string)
     (insert " ")
     (let ((offset (floor (* (/ (1- pos) (window-width) 1.0)

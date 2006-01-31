@@ -1,3 +1,11 @@
+2006-01-30  Michael Olson  <mwolson@gnu.org>
+
+	* erc-stamp.el (erc-timestamp-right-align-by-pixel): New option
+	that determines whether to use pixel values to align right
+	timestamps.  The default is not to do so, since it only works with
+	Emacs22 on X, and even then some people have trouble.
+	(erc-insert-aligned): Use `erc-timestamp-right-align-by-pixel'.
+
 2006-01-29  Michael Olson  <mwolson@gnu.org>
 
 	* ChangeLog, ChangeLog.2005, ChangeLog.2004, ChangeLog.2003,
