@@ -180,9 +180,6 @@ return a string representing the column's value."
   :group 'bs-appearance
   :type '(repeat sexp))
 
-(defvar bs--running-in-xemacs (string-match "XEmacs" (emacs-version))
-  "Non-nil when running under XEmacs.")
-
 (defun bs--make-header-match-string ()
   "Return a regexp matching the first line of a Buffer Selection Menu buffer."
   (let ((res "^\\(")
@@ -701,12 +698,7 @@ Return nil if there is no such buffer."
 (defun bs--set-window-height ()
   "Change the height of the selected window to suit the current buffer list."
   (unless (one-window-p t)
-    (shrink-window (- (window-height (selected-window))
-		      ;; window-height in xemacs includes mode-line
-		      (+ (if bs--running-in-xemacs 3 1)
-			 bs-header-lines-length
-			 (min (length bs-current-list)
-			      bs-max-window-height))))))
+    (fit-window-to-buffer (selected-window) bs-max-window-height)))
 
 (defun bs--current-buffer ()
   "Return buffer on current line.
@@ -1011,13 +1003,11 @@ Uses function `vc-toggle-read-only'."
   "Move cursor vertically up one line.
 If on top of buffer list go to last line."
   (interactive "p")
-  (previous-line 1)
-  (if (<= (count-lines 1 (point)) (1- bs-header-lines-length))
-      (progn
-	(goto-char (point-max))
-	(beginning-of-line)
-	(recenter -1))
-    (beginning-of-line)))
+  (if (> (count-lines 1 (point)) bs-header-lines-length)
+      (forward-line -1)
+    (goto-char (point-max))
+    (beginning-of-line)
+    (recenter -1)))
 
 (defun bs-down (arg)
   "Move cursor vertically down ARG lines in Buffer Selection Menu."
@@ -1029,10 +1019,9 @@ If on top of buffer list go to last line."
 (defun bs--down ()
   "Move cursor vertically down one line.
 If at end of buffer list go to first line."
-  (let ((last (line-end-position)))
-    (if (eq last (point-max))
-	(goto-line (1+ bs-header-lines-length))
-      (next-line 1))))
+  (if (eq (line-end-position) (point-max))
+      (goto-line (1+ bs-header-lines-length))
+    (forward-line 1)))
 
 (defun bs-visits-non-file (buffer)
   "Return t or nil whether BUFFER visits no file.
