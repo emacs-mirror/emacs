@@ -82,25 +82,25 @@ loads \"cl\" appropriately."
        (funcall ',function ,@args))))
 
 ;;;###mh-autoload
-(defmacro mh-defun-compat (function arg-list &rest body)
-  "This is a macro to define functions which are not defined.
-It is used for functions which were added to Emacs recently.
-If FUNCTION is not defined then it is defined to have argument
-list, ARG-LIST and body, BODY."
+(defmacro mh-defun-compat (name function arg-list &rest body)
+  "Create function NAME.
+If FUNCTION exists, then NAME becomes an alias for FUNCTION.
+Otherwise, create function NAME with ARG-LIST and BODY."
   (let ((defined-p (fboundp function)))
-    (unless defined-p
-      `(defun ,function ,arg-list ,@body))))
+    (if defined-p
+        `(defalias ',name ',function)
+      `(defun ,name ,arg-list ,@body))))
 (put 'mh-defun-compat 'lisp-indent-function 'defun)
 
 ;;;###mh-autoload
-(defmacro mh-defmacro-compat (function arg-list &rest body)
-  "This is a macro to define functions which are not defined.
-It is used for macros which were added to Emacs recently.
-If FUNCTION is not defined then it is defined to have argument
-list, ARG-LIST and body, BODY."
-  (let ((defined-p (fboundp function)))
-    (unless defined-p
-      `(defmacro ,function ,arg-list ,@body))))
+(defmacro mh-defmacro-compat (name macro arg-list &rest body)
+  "Create macro NAME.
+If MACRO exists, then NAME becomes an alias for MACRO.
+Otherwise, create macro NAME with ARG-LIST and BODY."
+  (let ((defined-p (fboundp macro)))
+    (if defined-p
+        `(defalias ',name ',macro)
+      `(defmacro ,name ,arg-list ,@body))))
 (put 'mh-defmacro-compat 'lisp-indent-function 'defun)
 
 

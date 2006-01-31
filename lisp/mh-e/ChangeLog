@@ -1,3 +1,79 @@
+2006-01-31  Bill Wohler  <wohler@newt.com>
+
+	* mh-acros.el (mh-defun-compat, mh-defmacro-compat): Add name
+	argument since compatibility functions should have our package
+	prefix (mh-) by Emacs convention and to avoid messing up checks
+	for the same functions in other packages. Use explicit argument
+	instead of forming name by adding mh-e prefix so that one can grep
+	and find the definition.
+
+	* mh-alias.el (mh-alias-local-users, mh-alias-reload)
+	(mh-alias-expand, mh-alias-minibuffer-confirm-address): Use
+	mh-assoc-string instead of assoc-string.
+
+	* mh-compat.el (assoc-string): Rename to mh-assoc-string.
+	(mh-mail-abbrev-make-syntax-table, mh-url-hexify-string): Move
+	here from mh-utils.el.
+	(mh-display-completion-list): Move here from mh-comp.el.
+	(mh-face-foreground, mh-face-background): Move here from
+	mh-xface.el.
+	(mh-write-file-functions): Move here from mh-folder.el
+
+	* mh-folder.el (mh-write-file-functions-compat): Move to
+	mh-compat.el and rename to mh-write-file-functions.
+	(mh-folder-mode): Use the new name.
+
+	* mh-gnus.el (gnus-local-map-property): Rename to
+	mh-gnus-local-map-property.
+	(mm-merge-handles): Rename to mh-mm-merge-handles.
+	(mm-set-handle-multipart-parameter): Rename to
+	mh-mm-set-handle-multipart-parameter.
+	(mm-inline-text-vcard): Rename to mh-mm-inline-text-vcard.
+	(mm-possibly-verify-or-decrypt): Rename to
+	mh-mm-possibly-verify-or-decrypt.
+	(mm-handle-multipart-ctl-parameter): Rename to
+	mh-mm-handle-multipart-ctl-parameter.
+	(mm-readable-p): Rename to mh-mm-readable-p.
+	(mm-long-lines-p): Rename to mh-mm-long-lines-p.
+	(mm-keep-viewer-alive-p): Rename to mh-mm-keep-viewer-alive-p.
+	(mm-destroy-parts): Rename to mh-mm-destroy-parts.
+	(mm-uu-dissect-text-parts): Rename to mh-mm-uu-dissect-text-parts.
+	(mml-minibuffer-read-disposition): Rename to
+	mh-mml-minibuffer-read-disposition.
+
+	* mh-identity.el (mh-identity-field-handler): Use mh-assoc-string
+	instead of assoc-string.
+
+	* mh-mime.el (mh-mm-inline-media-tests, mh-mm-inline-message)
+	(mh-mime-display, mh-mime-display-security)
+	(mh-insert-mime-button, mh-insert-mime-security-button)
+	(mh-handle-set-external-undisplayer)
+	(mh-mime-security-press-button, mh-mime-security-show-details)
+	(mh-mml-attach-file, mh-mime-cleanup)
+	(mh-destroy-postponed-handles): Use new mh-* names for
+	compatibility functions.
+
+	* mh-utils.el (mail-abbrev-make-syntax-table): Move to
+	mh-compat.el and rename to mh-mail-abbrev-make-syntax-table.
+	(mh-beginning-of-word): Use the new name.
+	(mh-get-field): Delete ancient alias.
+
+	* mh-xface.el (mh-face-foreground-compat): Move to mh-compat.el
+	and rename to mh-face-foreground
+	(mh-face-background-compat): Move to mh-compat.el
+	and rename to mh-face-background.
+	(mh-face-display-function): Use the new names.
+	(mh-x-image-url-cache-canonicalize): Use mh-url-hexify-string
+	instead of url-hexify-string.
+	(url-unreserved-chars): Move to mh-compat.el and rename to
+	mh-url-unreserved-chars.
+	(url-hexify-string): Move to mh-compat.el and rename to
+	mh-url-hexify-string.
+
+	* mh-letter.el (mh-complete-word): Fix bug in call to
+	mh-display-completion-list. Wrong argument was passed, so
+	completions wouldn't show highlighted prefix.
+
 2006-01-29  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-scan-format-file-check): Allow any non-nil for

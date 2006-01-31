@@ -144,7 +144,7 @@
                 mm-inline-text-html-renderer)
            (and (boundp 'mm-text-html-renderer) mm-text-html-renderer))))
     ("text/x-vcard"
-     mm-inline-text-vcard
+     mh-mm-inline-text-vcard
      (lambda (handle)
        (or (featurep 'vcard)
            (locate-library "vcard"))))
@@ -174,7 +174,7 @@
     ("audio/.*" ignore ignore)
     ("image/.*" ignore ignore)
     ;; Default to displaying as text
-    (".*" mm-inline-text mm-readable-p))
+    (".*" mm-inline-text mh-mm-readable-p))
   "Alist of media types/tests saying whether types can be displayed inline.")
 
 (defvar mh-mime-save-parts-directory nil
@@ -460,10 +460,10 @@ decoding the same message multiple times."
              (setf (gethash handle (mh-mime-handles-cache (mh-buffer-data)))
                    (let ((handles (mm-dissect-buffer nil)))
                      (if handles
-                         (mm-uu-dissect-text-parts handles)
+                         (mh-mm-uu-dissect-text-parts handles)
                        (setq handles (mm-uu-dissect)))
                      (setf (mh-mime-handles (mh-buffer-data))
-                           (mm-merge-handles
+                           (mh-mm-merge-handles
                             handles (mh-mime-handles (mh-buffer-data))))
                      handles))))
 
@@ -527,11 +527,11 @@ parsed and then displayed."
             (if pre-dissected-handles
                 (setq handles pre-dissected-handles)
               (if (setq handles (mm-dissect-buffer nil))
-                  (mm-uu-dissect-text-parts handles)
+                  (mh-mm-uu-dissect-text-parts handles)
                 (setq handles (mm-uu-dissect)))
               (setf (mh-mime-handles (mh-buffer-data))
-                    (mm-merge-handles handles
-                                      (mh-mime-handles (mh-buffer-data))))
+                    (mh-mm-merge-handles handles
+                                         (mh-mime-handles (mh-buffer-data))))
               (unless handles
                 (mh-decode-message-body)))
 
@@ -637,7 +637,7 @@ buttons for alternative parts that are usually suppressed."
     (let ((mh-mime-security-button-line-format
            mh-mime-security-button-end-line-format))
       (mh-insert-mime-security-button handle))
-    (mm-set-handle-multipart-parameter
+    (mh-mm-set-handle-multipart-parameter
      handle 'mh-region (cons (point-min-marker) (point-max-marker)))))
 
 (defun mh-mime-display-single (handle)
@@ -853,7 +853,7 @@ by commands like \"K v\" which operate on individual MIME parts."
     (setq begin (point))
     (gnus-eval-format
      mh-mime-button-line-format mh-mime-button-line-format-alist
-     `(,@(gnus-local-map-property mh-mime-button-map)
+     `(,@(mh-gnus-local-map-property mh-mime-button-map)
          mh-callback mh-mm-display-part
          mh-part ,index
          mh-data ,handle))
@@ -878,7 +878,7 @@ by commands like \"K v\" which operate on individual MIME parts."
 
 (defun mh-insert-mime-security-button (handle)
   "Display buttons for PGP message, HANDLE."
-  (let* ((protocol (mm-handle-multipart-ctl-parameter handle 'protocol))
+  (let* ((protocol (mh-mm-handle-multipart-ctl-parameter handle 'protocol))
          (crypto-type (or (nth 2 (assoc protocol mm-verify-function-alist))
                           (nth 2 (assoc protocol mm-decrypt-function-alist))
                           "Unknown"))
@@ -886,9 +886,9 @@ by commands like \"K v\" which operate on individual MIME parts."
                        (if (equal (car handle) "multipart/signed")
                            " Signed" " Encrypted")
                        " Part"))
-         (info (or (mm-handle-multipart-ctl-parameter handle 'gnus-info)
+         (info (or (mh-mm-handle-multipart-ctl-parameter handle 'gnus-info)
                    "Undecided"))
-         (details (mm-handle-multipart-ctl-parameter handle 'gnus-details))
+         (details (mh-mm-handle-multipart-ctl-parameter handle 'gnus-details))
          pressed-details begin end face)
     (setq details (if details (concat "\n" details) ""))
     (setq pressed-details (if mh-mime-security-button-pressed details ""))
@@ -898,7 +898,7 @@ by commands like \"K v\" which operate on individual MIME parts."
     (gnus-eval-format
      mh-mime-security-button-line-format
      mh-mime-security-button-line-format-alist
-     `(,@(gnus-local-map-property mh-mime-security-button-map)
+     `(,@(mh-gnus-local-map-property mh-mime-security-button-map)
          mh-button-pressed ,mh-mime-security-button-pressed
          mh-callback mh-mime-security-press-button
          mh-line-format ,mh-mime-security-button-line-format
@@ -1065,7 +1065,7 @@ This is only called in recent versions of Gnus. The MIME handles
 are stored in data structures corresponding to MH-E folder buffer
 FOLDER instead of in Gnus (as in the original). The MIME part,
 HANDLE is associated with the undisplayer FUNCTION."
-  (if (mm-keep-viewer-alive-p handle)
+  (if (mh-mm-keep-viewer-alive-p handle)
       (let ((new-handle (copy-sequence handle)))
         (mm-handle-set-undisplayer new-handle function)
         (mm-handle-set-undisplayer handle nil)
@@ -1076,19 +1076,19 @@ HANDLE is associated with the undisplayer FUNCTION."
 
 (defun mh-mime-security-press-button (handle)
   "Callback from security button for part HANDLE."
-  (if (mm-handle-multipart-ctl-parameter handle 'gnus-info)
+  (if (mh-mm-handle-multipart-ctl-parameter handle 'gnus-info)
       (mh-mime-security-show-details handle)
-    (let ((region (mm-handle-multipart-ctl-parameter handle 'mh-region))
+    (let ((region (mh-mm-handle-multipart-ctl-parameter handle 'mh-region))
           point)
       (setq point (point))
       (goto-char (car region))
       (delete-region (car region) (cdr region))
-      (with-current-buffer (mm-handle-multipart-ctl-parameter handle 'buffer)
+      (with-current-buffer (mh-mm-handle-multipart-ctl-parameter handle 'buffer)
         (let* ((mm-verify-option 'known)
                (mm-decrypt-option 'known)
-               (new (mm-possibly-verify-or-decrypt (cdr handle) handle)))
+               (new (mh-mm-possibly-verify-or-decrypt (cdr handle) handle)))
           (unless (eq new (cdr handle))
-            (mm-destroy-parts (cdr handle))
+            (mh-mm-destroy-parts (cdr handle))
             (setcdr handle new))))
       (mh-mime-display-security handle)
       (goto-char point))))
@@ -1098,7 +1098,7 @@ HANDLE is associated with the undisplayer FUNCTION."
 ;; to be no way of getting rid of the inserted text.
 (defun mh-mime-security-show-details (handle)
   "Toggle display of detailed security info for HANDLE."
-  (let ((details (mm-handle-multipart-ctl-parameter handle 'gnus-details)))
+  (let ((details (mh-mm-handle-multipart-ctl-parameter handle 'gnus-details)))
     (when details
       (let ((mh-mime-security-button-pressed
              (not (get-text-property (point) 'mh-button-pressed)))
@@ -1296,7 +1296,7 @@ automatically."
          (type (mh-minibuffer-read-type file))
          (description (mml-minibuffer-read-description))
          (dispos (or disposition
-                     (mml-minibuffer-read-disposition type))))
+                     (mh-mml-minibuffer-read-disposition type))))
     (mml-insert-empty-tag 'part 'type type 'filename file
                           'disposition dispos 'description description)))
 
@@ -1784,7 +1784,7 @@ initialized. Always use the command `mh-have-file-command'.")
     ;; This is for Emacs, what about XEmacs?
     (mh-funcall-if-exists remove-images (point-min) (point-max))
     (when mime-data
-      (mm-destroy-parts (mh-mime-handles mime-data))
+      (mh-mm-destroy-parts (mh-mime-handles mime-data))
       (remhash (current-buffer) mh-globals-hash))))
 
 ;;;###mh-autoload
@@ -1792,7 +1792,7 @@ initialized. Always use the command `mh-have-file-command'.")
   "Free MIME data for externally displayed MIME parts."
   (let ((mime-data (mh-buffer-data)))
     (when mime-data
-      (mm-destroy-parts (mh-mime-handles mime-data)))
+      (mh-mm-destroy-parts (mh-mime-handles mime-data)))
     (remhash (current-buffer) mh-globals-hash)))
 
 (provide 'mh-mime)

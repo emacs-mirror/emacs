@@ -51,11 +51,6 @@ used in lieu of `search' in the CL package."
 
 ;;; General Utilities
 
-(require 'mailabbrev nil t)
-(mh-defun-compat mail-abbrev-make-syntax-table ()
-  "Emacs 21 and XEmacs don't have this function."
-  nil)
-
 ;;;###mh-autoload
 (defun mh-beginning-of-word (&optional n)
   "Return position of the N th word backwards."
@@ -63,7 +58,7 @@ used in lieu of `search' in the CL package."
   (let ((syntax-table (syntax-table)))
     (unwind-protect
         (save-excursion
-          (mail-abbrev-make-syntax-table)
+          (mh-mail-abbrev-make-syntax-table)
           (set-syntax-table mail-abbrev-syntax-table)
           (backward-word n)
           (point))
@@ -816,8 +811,6 @@ current buffer."
           (mh-header-field-end)
           (buffer-substring-no-properties start (point))))
     ""))
-
-(fset 'mh-get-field 'mh-get-header-field) ;MH-E 4 compatibility
 
 ;;;###mh-autoload
 (defun mh-goto-header-field (field)

@@ -59,32 +59,6 @@
                  mh-clean-message-header-flag))
     (funcall mh-show-xface-function)))
 
-(defmacro mh-face-foreground-compat (face &optional frame inherit)
-  "Return the foreground color name of FACE, or nil if unspecified.
-See documentation for `face-foreground' for a description of the
-arguments FACE, FRAME, and INHERIT.
-
-Calls `face-foreground' correctly in older environments. Versions
-of Emacs prior to version 22 lacked an INHERIT argument which
-when t tells `face-foreground' to consider an inherited value for
-the foreground if the face does not define one itself."
-  (if (>= emacs-major-version 22)
-      `(face-foreground ,face ,frame ,inherit)
-    `(face-foreground ,face ,frame)))
-
-(defmacro mh-face-background-compat(face &optional frame inherit)
-  "Return the background color name of face, or nil if unspecified.
-See documentation for `back-foreground' for a description of the
-arguments FACE, FRAME, and INHERIT.
-
-Calls `face-background' correctly in older environments. Versions
-of Emacs prior to version 22 lacked an INHERIT argument which
-when t tells `face-background' to consider an inherited value for
-the background if the face does not define one itself."
-  (if (>= emacs-major-version 22)
-      `(face-background ,face ,frame ,inherit)
-    `(face-background ,face ,frame)))
-
 ;; Shush compiler.
 (eval-when-compile
   (mh-do-in-xemacs (defvar default-enable-multibyte-characters)))
@@ -120,9 +94,9 @@ in this order is used."
                insert-image (create-image
                              raw type t
                              :foreground
-                             (mh-face-foreground-compat 'mh-show-xface nil t)
+                             (mh-face-foreground 'mh-show-xface nil t)
                              :background
-                             (mh-face-background-compat 'mh-show-xface nil t))
+                             (mh-face-background 'mh-show-xface nil t))
                " ")))
           ;; XEmacs
           (mh-do-in-xemacs
@@ -386,40 +360,16 @@ This is only done if `mh-x-image-cache-directory' is nil."
 (defun mh-x-image-url-cache-canonicalize (url)
   "Canonicalize URL.
 Replace the ?/ character with a ?! character and append .png.
-Also replaces special characters with `url-hexify-string' since
-not all characters, such as :, are legal within Windows
-filenames. See URL `http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/naming_a_file.asp'."
+Also replaces special characters with `mh-url-hexify-string'
+since not all characters, such as :, are legal within Windows
+filenames. See URL
+`http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/naming_a_file.asp'."
   (format "%s/%s.png" mh-x-image-cache-directory
-          (url-hexify-string
+          (mh-url-hexify-string
            (with-temp-buffer
              (insert url)
              (mh-replace-string "/" "!")
              (buffer-string)))))
-
-;; Copy of constant from url-util.el in Emacs 22; needed by Emacs 21.
-(if (not (boundp 'url-unreserved-chars))
-    (defconst url-unreserved-chars
-      '(
-        ?a ?b ?c ?d ?e ?f ?g ?h ?i ?j ?k ?l ?m ?n ?o ?p ?q ?r ?s ?t ?u ?v ?w ?x ?y ?z
-        ?A ?B ?C ?D ?E ?F ?G ?H ?I ?J ?K ?L ?M ?N ?O ?P ?Q ?R ?S ?T ?U ?V ?W ?X ?Y ?Z
-        ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9
-        ?- ?_ ?. ?! ?~ ?* ?' ?\( ?\))
-      "A list of characters that are _NOT_ reserved in the URL spec.
-This is taken from RFC 2396."))
-
-(mh-defun-compat url-hexify-string (str)
-  "Escape characters in a string.
-This is a copy of the function of the same name from url-util.el
-in Emacs 22; needed by Emacs 21."
-  (mapconcat
-   (lambda (char)
-     ;; Fixme: use a char table instead.
-     (if (not (memq char url-unreserved-chars))
-         (if (> char 255)
-               (error "Hexifying multibyte character %s" str)
-           (format "%%%02X" char))
-       (char-to-string char)))
-   str ""))
 
 (defun mh-x-image-get-download-state (file)
   "Check the state of FILE by following any symbolic links."
