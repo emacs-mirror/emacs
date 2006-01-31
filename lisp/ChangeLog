@@ -1,3 +1,13 @@
+2006-01-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el: Allow non-default values of `bs-header-lines-length'.
+	(bs--running-in-xemacs): Remove (not needed anymore).
+	(bs--set-window-height): Simplify by using `fit-window-to-buffer'
+	instead of `shrink-window', thus avoiding having to compute the
+	height of the window.
+	(bs--up): Wrap around even when there's no header.
+	(bs--down): Use `forward-line' instead of `next-line'.
+
 2006-01-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-toggle-display): Use file name if possible,
