@@ -789,47 +789,6 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	 ;; code conversion, then decode the messages one by one.
 	 (coding-system-for-read (and rmail-enable-multibyte 'raw-text))
 	 run-mail-hook msg-shown)
-    ;; This is how we used to do it.  I reverted to the original Rmail
-    ;; way of reading in the mail file, as it's the only way I can think
-    ;; of to avoid needless modification of the mail file.  However, the
-    ;; comments below (some of which appear in the original `rmail' too)
-    ;; indicate that there was problems with that approach, so I'm not
-    ;; sure on what to do.  --enberg
-
-    ;; (when existed
-    ;;   (switch-to-buffer existed)
-    ;;   (when (eq major-mode 'rmail-edit-mode)
-    ;; 	(error "Exit Rmail Edit mode before getting new mail")))
-    ;; ;; If no buffer existed, or the file was changed behind our back,
-    ;; ;; get the raw data again.  If we just read in a BABYL file, the
-    ;; ;; conversion will have changed the buffer, thus a user issuing
-    ;; ;; another M-x rmail will reconvert the BABYL file since we're not
-    ;; ;; saving after a conversion.
-    ;; (unless (and existed (verify-visited-file-modtime existed))
-    ;;   ;; There used to be mucking with enable-local-variables here,
-    ;;   ;; and that was tricky because it was made buffer-local, and
-    ;;   ;; binding a variable locally with let is not safe if it has
-    ;;   ;; buffer-local bindings.  We also don't want to run any
-    ;;   ;; find-file-hooks, as these might tamper with the restrictions,
-    ;;   ;; eg. session management.
-    ;;   (if existed
-    ;; 	  ;; quietly revert file if it changed under us
-    ;; 	  (let ((inhibit-read-only t))
-    ;; 	    (erase-buffer)
-    ;; 	    (insert-file-contents-literally file-name)
-    ;; 	    ;; We need to re-initialize rmail-mode later.
-    ;; 	    (setq major-mode 'fundamental-mode))
-    ;; 	(switch-to-buffer
-    ;; 	 (get-buffer-create (file-name-nondirectory file-name)))
-    ;; 	(when (file-exists-p file-name)
-    ;; 	  (insert-file-contents-literally file-name))
-    ;; 	(setq buffer-file-name file-name)
-    ;; 	;; As we have read a file as raw-text, the buffer is set to
-    ;; 	;; unibyte.  We must make it multibyte if necessary.
-    ;; 	(if (and rmail-enable-multibyte
-    ;; 		 (not enable-multibyte-characters))
-    ;; 	    (set-buffer-multibyte t))))
-
     (when (and existed (eq major-mode 'rmail-edit-mode))
       (error "Exit Rmail Edit mode before getting new mail"))
     (if (and existed (not (verify-visited-file-modtime existed)))
@@ -880,8 +839,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
     ;; perfectly fine file.
     (unwind-protect
 	(unless (and (not file-name-arg) (rmail-get-new-mail))
-	  (rmail-show-message (or (rmail-first-unseen-message)
-				  rmail-total-messages)))
+	  (rmail-show-message (rmail-first-unseen-message)))
       (when rmail-display-summary
 	(rmail-summary))
       (rmail-construct-io-menu)
@@ -1223,27 +1181,26 @@ Instead, these commands are available:
 
 ;; Handle M-x revert-buffer done in an rmail-mode buffer.
 (defun rmail-revert (arg noconfirm)
-  (set-buffer rmail-buffer)
-  (let* ((revert-buffer-function (default-value 'revert-buffer-function))
-	 (rmail-enable-multibyte enable-multibyte-characters)
-	 ;; See similar code in `rmail'.
-	 (coding-system-for-read (and rmail-enable-multibyte 'raw-text)))
-    ;; Call our caller again, but this time it does the default thing.
-    (if (revert-buffer arg noconfirm)
-	;; If the user said "yes", and we changed something,
-	;; reparse the messages.
-	(progn
-	  (set-buffer rmail-buffer)
-  	  (rmail-mode-2)
+  (with-current-buffer rmail-buffer
+    (let* ((revert-buffer-function (default-value 'revert-buffer-function))
+	   (rmail-enable-multibyte enable-multibyte-characters)
+	   ;; See similar code in `rmail'.
+	   (coding-system-for-read (and rmail-enable-multibyte 'raw-text)))
+      ;; Call our caller again, but this time it does the default thing.
+      (when (revert-buffer arg noconfirm)
+	;; If the user said "yes", and we changed something, reparse the
+	;; messages.
+	(with-current-buffer rmail-buffer
+	  (rmail-mode-2)
 	  (rmail-convert-file)
 	  ;; We have read the file as raw-text, so the buffer is set to
 	  ;; unibyte.  Make it multibyte if necessary.
-	  (if (and rmail-enable-multibyte
-		   (not enable-multibyte-characters))
-	      (set-buffer-multibyte t))
-          (rmail-initialize-messages)
+	  (when (and rmail-enable-multibyte
+		     (not enable-multibyte-characters))
+	    (set-buffer-multibyte t))
+	  (rmail-initialize-messages)
 	  (rmail-show-message rmail-total-messages)
-	  (run-hooks 'rmail-mode-hook)))))
+	  (run-hooks 'rmail-mode-hook))))))
 
 (defun rmail-get-file-inbox-list ()
   "Return a list of inbox files for this buffer."
@@ -1336,11 +1293,9 @@ original copy."
   (interactive "FRun rmail on RMAIL file: ")
   (rmail filename))
 
-
 ;; This used to scan subdirectories recursively, but someone pointed out
 ;; that if the user wants that, person can put all the files in one dir.
-;; And the recursive scan was slow.  So I took it out.
-;; rms, Sep 1996.
+;; And the recursive scan was slow.  So I took it out.  rms, Sep 1996.
 (defun rmail-find-all-files (start)
   "Return list of file in dir START that match `rmail-secondary-file-regexp'."
   (if (file-accessible-directory-p start)
@@ -2148,13 +2103,13 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
 	(narrow-to-region beg end)
         (goto-char (point-min))
 	(condition-case nil
-	    (let* ((coding-system-name (rmail-header-get-header "X-Coding-System"))
+	    (let* ((coding-system-name
+		    (rmail-header-get-header "X-Coding-System"))
 		   (coding-system (intern coding-system-name)))
 	      (check-coding-system coding-system)
 	      (setq buffer-file-coding-system coding-system))
 	  ;; no coding system or invalid coding system
-	  (error
-	   (setq buffer-file-coding-system nil)))
+	  (error (setq buffer-file-coding-system nil)))
         ;; Clear the "unseen" attribute when we show a message, unless
 	;; it is already cleared.
 	(when (rmail-desc-attr-p rmail-desc-unseen-index n)
@@ -2164,7 +2119,8 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
 	(if (eq rmail-enable-mime t)
 	    (funcall rmail-show-mime-function)
 	  (setq rmail-view-buffer rmail-buffer))
-	;; Deal with the message headers and URLs..
+	(when mail-mailing-lists
+	  (rmail-unknown-mail-followup-to))
 	(rmail-header-hide-headers)
 	(when transient-mark-mode (deactivate-mark))
         ;; Make sure that point in the Rmail window is at the beginning
@@ -2177,13 +2133,12 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
 	;; that buffer.  But don't complain if this message is not
 	;; mentioned in the summary.  Don't do this at all if we were
 	;; called on behalf of cursor motion in the summary buffer.
-	(and (rmail-summary-exists) (not no-summary)
-             (save-excursion
-               (let ((curr-msg rmail-current-message))
-                 ;; Set the summary current message, disabling the
-                 ;; Rmail buffer update.
-                 (set-buffer rmail-summary-buffer)
-                 (rmail-summary-goto-msg curr-msg nil t))))
+	(when (and (rmail-summary-exists) (not no-summary))
+	    (let ((curr-msg rmail-current-message))
+	      ;; Set the summary current message, disabling the Rmail
+	      ;; buffer update.
+	      (with-current-buffer rmail-summary-buffer
+		(rmail-summary-goto-msg curr-msg nil t))))
 	(with-current-buffer rmail-buffer
 	  (rmail-auto-file))
         ;; Post back any status messages.
@@ -2469,15 +2424,15 @@ Interactively, empty argument means use same regexp used last time."
   (rmail-search regexp (- (or n 1))))
 
 (defun rmail-first-unseen-message ()
-  "Show the first message which has not been seen.  If all messages
-have been seen, then show the last message."
+  "Return the first message which has not been seen.  If all messages
+have been seen, then return the last message."
   (let ((current 1)
 	found)
     (while (and (not found) (<= current rmail-total-messages))
       (if (rmail-desc-attr-p rmail-desc-unseen-index current)
 	  (setq found current))
       (setq current (1+ current)))
-    found))
+    (or found rmail-total-messages)))
 
 (defun rmail-current-subject ()
   "Return the current subject.
@@ -2624,33 +2579,23 @@ See also user-option `rmail-confirm-expunge'."
 	(funcall rmail-confirm-expunge
 		 "Erase deleted messages from Rmail file? "))))
 
-;;; mbox: ready
 (defun rmail-only-expunge ()
   "Actually erase all deleted messages in the file."
   (interactive)
   (message "Expunging deleted messages...")
-
   ;; Discard all undo records for this buffer.
   (or (eq buffer-undo-list t) (setq buffer-undo-list nil))
-
   ;; Remove the messages from the buffer and from the Rmail message
   ;; descriptor vector.
   (rmail-desc-prune-deleted-messages 'rmail-expunge-callback)
-
   ;; Update the Rmail message counter, deal with the summary buffer,
   ;; show the current message and update the User status.
   (setq rmail-total-messages (rmail-desc-get-count))
   (rmail-show-message rmail-current-message t)
-  (if rmail-summary-buffer
-      (save-excursion
-        (set-buffer rmail-summary-buffer)
-        (rmail-update-summary)))
+  (when rmail-summary-buffer
+    (with-current-buffer rmail-summary-buffer
+      (rmail-update-summary)))
   (message "Expunging deleted messages...done"))
-
-;;; We'll deal with this later. -pmr
-;;;    (if rmail-enable-mime
-;;;	(goto-char (+ (point-min) opoint))
-;;;      (goto-char (+ (point) opoint))))))
 
 ;;; mbox: ready
 (defun rmail-expunge-callback (n)
