@@ -1031,7 +1031,7 @@ discarded."
   (cond ((and overwrite-flag
               (mh-goto-header-field (concat field ":")))
          (insert " " value)
-         (delete-region (point) (line-end-position)))
+         (delete-region (point) (mh-line-end-position)))
         ((and (not overwrite-flag)
               (mh-regexp-in-field-p (concat "\\b" value "\\b") field))
          ;; Already there, do nothing.

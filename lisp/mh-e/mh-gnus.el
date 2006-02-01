@@ -32,11 +32,11 @@
 
 (require 'mh-e)
 
-(require 'gnus-util nil t)
-(require 'mm-bodies nil t)
-(require 'mm-decode nil t)
-(require 'mm-view nil t)
-(require 'mml nil t)
+(mh-require 'gnus-util nil t)
+(mh-require 'mm-bodies nil t)
+(mh-require 'mm-decode nil t)
+(mh-require 'mm-view nil t)
+(mh-require 'mml nil t)
 
 ;; Copy of function from gnus-util.el.
 (mh-defun-compat mh-gnus-local-map-property gnus-local-map-property (map)
