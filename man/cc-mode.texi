@@ -750,7 +750,7 @@ very useful in this case.
 @item @kbd{C-j} (@code{newline-and-indent})
 @kindex C-j
 @findex newline-and-indent
-Inserts a linefeed and indents the new blank line, ready to start
+Inserts a newline and indents the new blank line, ready to start
 typing.  This is a standard (X)Emacs command.
 
 @item @kbd{C-M-q} (@code{c-indent-exp})

@@ -1,3 +1,136 @@
+2006-01-31  Romain Francoise  <romain@orebokech.com>
+
+	* message.texi (Message Headers): Explain what
+	`message-alternative-emails' does in more detail.
+	Update copyright year.
+
+2006-01-31  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Scrolling, Horizontal Scrolling, Follow Mode):
+	Nodes moved to top.
+
+	* display.texi: Minor clarifications.
+	(Display): Rearrange menu.
+	(Standard Faces): Mention query-replace face.
+	(Faces): Simplify.
+	(Font Lock): Simplify face customization info.
+	(Highlight Changes): Node merged into Highlight Interactively.
+	(Highlight Interactively): Much rewriting and cleanup.
+	(Optional Mode Line): Narrowed line number not good for goto-line.
+	Simplify face customization advice.
+	(Text Display): Mention use of escape-glyph face.
+	Move ctl-arrow and tab-width here.
+	(Display Custom): Move no-redraw-on-reenter to end of node.
+
+	* search.texi: Minor clarifications.
+	(Isearch Scroll): Simplify.
+	(Other Repeating Search): Document multi-occur-in-matching-buffers.
+
+	* regs.texi (Registers): Mention bookmarks here.
+
+	* mark.texi: Minor clarifications.
+	(Selective Undo): Node deleted.
+
+	* m-x.texi: Minor clarifications
+
+	* killing.texi: Minor clarifications.
+	Refer to "graphical" terminals, rather than window systems.
+
+	* help.texi: Clarifications.
+	(Help): Don't describe C-h F and C-h K here.
+	(Key Help): Describe C-h K here.
+	(Name Help): Mention Emacs Lisp Intro.
+	Describe C-h F here.
+	(Misc Help): Mention C-h F and C-h K only briefly.
+
+	* fixit.texi (Undo): New node, mostly copied from basic.texi.
+	Selective undo text merged in.
+	(Spelling): Mention Aspell along with Ispell.
+
+	* emacs.texi (Top): Update subnode menus.
+
+	* basic.texi (Basic Undo): Renamed from Undo.  Most of text
+	moved to new Undo node.
+
+2006-01-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (clean): Add newsticker, sieve, pgg, erc and
+	rcirc.
+
+2006-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* basic.texi (Continuation Lines, Inserting Text): Mention
+	longlines mode.
+
+2006-01-29  Richard M. Stallman  <rms@gnu.org>
+
+	* screen.texi: Minor cleaups.
+	(Screen): Clean up the intro paragraphs.
+	(Mode Line): Lots of rewriting.  Handle frame-name better.
+	eol-mnemonic-... vars moved out.
+
+	* emacs.texi (Top): Change menu item for MS-DOS node.
+	Update subnode menu.
+
+	* msdog.texi (MS-DOS): Rewrite intro to explain how this
+	chapter relates to Windows.  Title changed.
+
+	* mini.texi: Minor cleanups.
+
+	* mark.texi (Selective Undo): New node, text moved from basic.texi.
+	(Mark): Put it in the menu.
+
+	* entering.texi: Minor cleanups.
+
+	* emacs.texi (Top): Add xref to Mac chapter; explain Windows better.
+	(Intro): Refer to "graphical" terminals, rather than X.
+
+	* display.texi (Display Custom): Add xref to Variables.
+	(Optional Mode Line): eol-mnemonic-... vars moved here.
+
+	* commands.texi: Minor cleanups.  Refer to "graphical" terminals,
+	rather than X.
+
+	* cc-mode.texi (Indentation Commands): Inserts newline, not "linefeed".
+
+	* basic.texi: Minor cleanups.
+	(Undo): selective-undo moved.
+
+2006-01-29  Michael Olson  <mwolson@gnu.org>
+
+	* makefile.w32-in ($(infodir)/erc, erc.dvi): New targets.
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add ERC.
+
+	* faq.texi (New in Emacs 22): Mention ERC.
+
+2006-01-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* rcirc.texi: Capitalize dir entry for consistency with the entry
+	in info/dir and other entries in the Emacs category.
+	Fix typos.  Delete trailing whitespace.
+
+2006-01-28  Bj,Av(Brn Lindstr,Av(Bm  <bkhl@elektrubadur.se>
+
+	* rcirc.texi: Some @cindex changes, some changes from @kbd to
+	@key.
+
+2006-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(infodir)/rcirc, rcirc.dvi): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add rcirc.
+
+	* Makefile.in (../info/rcirc, rcirc.dvi): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add rcirc.
+
+2006-01-27  Alex Schroeder  <alex@gnu.org>
+
+	* rcirc.texi: New file.
+
+2006-01-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* anti.texi (Antinews): Various corrections and additions.
+
 2006-01-23  Juri Linkov  <juri@jurta.org>
 
 	* custom.texi (Easy Customization, Customization Groups)
@@ -23,9 +156,9 @@
 
 	* ses.texi (Formulas, Printer functions): Use @key for TAB.
 
-	* kmacro.texi (Keyboard Macro Step-Edit): : Use @key for TAB.
+	* kmacro.texi (Keyboard Macro Step-Edit): Use @key for TAB.
 
-	* ebrowse.texi (Switching to Tree, Symbol Completion): : Use @key
+	* ebrowse.texi (Switching to Tree, Symbol Completion): Use @key
 	for TAB.
 
 	* cc-mode.texi (Indentation Calculation): Use @key for TAB.
@@ -68,7 +201,7 @@
 
 2006-01-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Agenda commands): Document tags command.
+	* org.texi (Agenda commands): Document tags command.
 
 2006-01-11  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -539,7 +672,7 @@
 
 2005-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus.texi (Group Parameters): Mention new varable
+	* gnus.texi (Group Parameters): Mention new variable
 	gnus-parameters-case-fold-search.
 	(Home Score File): Addition.
 

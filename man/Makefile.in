@@ -42,7 +42,7 @@ INFO_TARGETS = ../info/emacs ../info/emacs-xtra ../info/ccmode ../info/cl \
 		../info/idlwave ../info/eudc ../info/ebrowse ../info/pcl-cvs \
 		../info/woman ../info/eshell ../info/org ../info/url \
 		../info/speedbar ../info/tramp ../info/ses ../info/smtpmail \
-		../info/flymake ../info/newsticker
+		../info/flymake ../info/newsticker ../info/rcirc ../info/erc
 DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi emacs-mime.dvi \
                  gnus.dvi message.dvi sieve.dvi pgg.dvi mh-e.dvi \
@@ -50,7 +50,7 @@ DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		 pcl-cvs.dvi woman.dvi eshell.dvi org.dvi url.dvi \
 		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
-                 newsticker.dvi emacs-xtra.dvi
+                 newsticker.dvi emacs-xtra.dvi rcirc.dvi erc.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -326,6 +326,16 @@ flymake.dvi: flymake.texi
 	cd $(srcdir); $(MAKEINFO) newsticker.texi
 newsticker.dvi: newsticker.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/newsticker.texi
+
+../info/rcirc: rcirc.texi
+	cd $(srcdir); $(MAKEINFO) rcirc.texi
+rcirc.dvi: rcirc.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/rcirc.texi
+
+../info/erc: erc.texi
+	cd $(srcdir); $(MAKEINFO) erc.texi
+erc.dvi: erc.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/erc.texi
 
 mostlyclean:
 	rm -f *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*

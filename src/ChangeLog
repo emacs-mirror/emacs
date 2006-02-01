@@ -1,3 +1,60 @@
+2006-01-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Use new tool bar functions
+	(gtk_toolbar_insert) so we can have tool bars of different sizes.
+
+2006-01-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* data.c (Flistp): Doc fix.
+
+2006-01-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fother_window, Fwindow_vscroll, Fset_window_vscroll):
+	Fix typos in docstrings.
+
+2006-01-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* data.c (Fcar, Fcdr): Add links to Elisp manual to the docstrings.
+
+2006-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* alloc.c (make_interval, allocate_string)
+	(allocate_string_data, make_float, Fcons, allocate_vectorlike)
+	(Fmake_symbol, allocate_misc): Use BLOCK_INPUT when accessing
+	global variables.
+
+2006-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (DIRENTRY_NONEMPTY) [__CYGWIN__]: Don't use d_ino; use
+	the MSDOS definition.
+
+2006-01-26  Richard M. Stallman  <rms@gnu.org>
+
+	* alloc.c (check_pure_size): Make overflow message an "error message".
+
+	* keymap.c (Fmap_keymap): Doc fix.
+
+	* xfns.c (Fx_create_frame): Put all specified parms into f->param_alist
+	unless they were cleared out.
+
+	* frame.c (x_get_arg): "Clear out" the parm in ALIST if found there.
+
+2006-01-26  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* editfns.c (Fconstrain_to_field): Fix behaviour on field boundaries.
+	(find_field): Set before_field to after_field when pos is at BEGV.
+	(Fline_beginning_position, Fline_end_position): Clarify
+	confusing doc string.
+
+	* cmds.c (Fbeginning_of_line, Fend_of_line): Clarify confusing doc
+	string.
+
+2006-01-26  Kenichi Handa  <handa@m17n.org>
+
+	* callproc.c (Fcall_process): GCPRO error_file.  Encode infile,
+	current_dir, and error_file.  On reporting an error, decode them
+	back.
+
 2006-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* regex.c (IMMEDIATE_QUIT_CHECK): Use it with SYNC_INPUT as well.

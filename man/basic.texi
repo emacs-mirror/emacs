@@ -21,7 +21,7 @@ use the tutorial, run Emacs and type @kbd{Control-h t}
 * Moving Point::        How to move the cursor to the place where you want to
 			  change something.
 * Erasing::	        Deleting and killing text.
-* Undo::	        Undoing recent changes in the text.
+* Basic Undo::	        Undoing recent changes in the text.
 * Files: Basic Files.   Visiting, creating, and saving files.
 * Help: Basic Help.     Asking what a character does.
 * Blank Lines::	        Commands to make or delete blank lines.
@@ -80,7 +80,8 @@ the line with the preceding line.
 
   Emacs can split lines automatically when they become too long, if you
 turn on a special minor mode called @dfn{Auto Fill} mode.
-@xref{Filling}, for how to use Auto Fill mode.
+@xref{Filling}, for how to use Auto Fill mode and other modes for
+@dfn{filling} text.
 
   If you prefer to have text characters replace (overwrite) existing
 text rather than shove it to the right, you can enable Overwrite mode,
@@ -154,9 +155,9 @@ rebind @key{DEL} to other commands.
 clicking the left mouse button where you want to move to.
 
   There are also control and meta characters for cursor motion.  Some
-are equivalent to the arrow keys (these date back to the days before
-terminals had arrow keys, and are usable on terminals which don't have
-them).  Others do more sophisticated things.
+are equivalent to the arrow keys (it is faster to use these control
+keys than move your hand over to the arrow keys).  Others do more
+sophisticated things.
 
 @kindex C-a
 @kindex C-e
@@ -282,8 +283,8 @@ Delete the character after point (@code{delete-char}).
 @item @key{DELETE}
 @itemx @key{BACKSPACE}
 One of these keys, whichever is the large key above the @key{RET} or
-@key{ENTER} key, deletes the character before point, like @key{DEL}.
-If that is @key{BACKSPACE}, and your keyboard also has @key{DELETE},
+@key{ENTER} key, deletes the character before point---it is @key{DEL}.
+If @key{BACKSPACE} is @key{DEL}, and your keyboard also has @key{DELETE},
 then @key{DELETE} deletes forwards, like @kbd{C-d}.
 @item C-k
 Kill to the end of the line (@code{kill-line}).
@@ -311,141 +312,56 @@ line, it kills all the text up to the end of the line.  If you type
 
   @xref{Killing}, for more flexible ways of killing text.
 
-@node Undo
+@node Basic Undo
 @section Undoing Changes
-@cindex undo
-@cindex changes, undoing
 
-  You can undo all the recent changes in the buffer text, up to a
-certain point.  Each buffer records changes individually, and the undo
-command always applies to the current buffer.  Usually each editing
-command makes a separate entry in the undo records, but some commands
-such as @code{query-replace} make many entries, and very simple commands
-such as self-inserting characters are often grouped to make undoing less
-tedious.
+  Emacs records a list of changes made in the buffer text, so you can
+you can undo all the recent changes, as far as the records go.
+Usually each editing command makes a separate entry in the undo
+records, but sometimes an entry covers just part of a command, and
+very simple commands may be grouped.
 
 @table @kbd
 @item C-x u
-Undo one batch of changes---usually, one command worth (@code{undo}).
+Undo one entry of the undo records---usually, one command worth
+(@code{undo}).
 @item C-_
 @itemx C-/
 The same.
-@item C-u C-x u
-Undo one batch of changes in the region.
 @end table
 
-@kindex C-x u
-@kindex C-_
-@kindex C-/
-@findex undo
   The command @kbd{C-x u} (or @kbd{C-_} or @kbd{C-/}) is how you undo.
 The first time you give this command, it undoes the last change.
 Point moves back to where it was before the command that made the
 change.
 
-  Consecutive repetitions of @kbd{C-_} or @kbd{C-x u} undo earlier and
-earlier changes, back to the limit of the undo information available.
-If all recorded changes have already been undone, the undo command
-displays an error message and does nothing.
+  Consecutive repetitions of @kbd{C-x u} (or its aliases) undo earlier
+and earlier changes, back to the limit of the undo information
+available.  If all recorded changes have already been undone, the undo
+command displays an error message and does nothing.
 
-@findex undo-only
-  Any command other than an undo command breaks the sequence of undo
-commands.  Starting from that moment, the previous undo commands become
-ordinary changes that you can undo.  Thus, to redo changes you have
-undone, type @kbd{C-f} or any other command that will harmlessly break
-the sequence of undoing, then type more undo commands.  On the other
-hand, if you want to ignore previous undo commands, use @kbd{M-x
-undo-only}.  This is like @code{undo}, but will not redo changes
-you have just undone.
-
-@cindex selective undo
-@kindex C-u C-x u
-  Ordinary undo applies to all changes made in the current buffer.  You
-can also perform @dfn{selective undo}, limited to the current region
-(@pxref{Mark}).
-To do this, specify the region you want, then run the @code{undo}
-command with a prefix argument (the value does not matter): @kbd{C-u C-x
-u} or @kbd{C-u C-_}.  This undoes the most recent change in the region.
-To undo further changes in the same region, repeat the @code{undo}
-command (no prefix argument is needed).  In Transient Mark mode
-(@pxref{Transient Mark}), any use of @code{undo} when there is an
-active region performs selective undo; you do not need a prefix
-argument.
-
-  If you notice that a buffer has been modified accidentally, the
-easiest way to recover is to type @kbd{C-_} repeatedly until the stars
-disappear from the front of the mode line.  At this time, all the
-modifications you made have been canceled.  Whenever an undo command
-makes the stars disappear from the mode line, it means that the buffer
-contents are the same as they were when the file was last read in or
-saved.
-
-  If you do not remember whether you changed the buffer deliberately,
-type @kbd{C-_} once.  When you see the last change you made undone, you
-will see whether it was an intentional change.  If it was an accident,
-leave it undone.  If it was deliberate, redo the change as described
-above.
-
-  Not all buffers record undo information.  Buffers whose names start with
-spaces don't; these buffers are used internally by Emacs and its extensions
-to hold text that users don't normally look at or edit.
-
-  You cannot undo mere cursor motion; only changes in the buffer
-contents save undo information.  However, some cursor motion commands
-set the mark, so if you use these commands from time to time, you can
-move back to the neighborhoods you have moved through by popping the
-mark ring (@pxref{Mark Ring}).
-
-@vindex undo-limit
-@vindex undo-strong-limit
-@vindex undo-outer-limit
-@cindex undo limit
-  When the undo information for a buffer becomes too large, Emacs
-discards the oldest undo information from time to time (during garbage
-collection).  You can specify how much undo information to keep by
-setting three variables: @code{undo-limit}, @code{undo-strong-limit},
-and @code{undo-outer-limit}.  Their values are expressed in units of
-bytes of space.
-
-  The variable @code{undo-limit} sets a soft limit: Emacs keeps undo
-data for enough commands to reach this size, and perhaps exceed it,
-but does not keep data for any earlier commands beyond that.  Its
-default value is 20000.  The variable @code{undo-strong-limit} sets a
-stricter limit: a previous command (not the most recent one) which
-pushes the size past this amount is itself forgotten.  The default
-value of @code{undo-strong-limit} is 30000.
-
-  Regardless of the values of those variables, the most recent change
-is never discarded unless it gets bigger than @code{undo-outer-limit}
-(normally 3,000,000).  At that point, Emacs discards the undo data and
-warns you about it.  This is the only situation in which you cannot
-undo the last command.  If this happens, you can increase the value of
-@code{undo-outer-limit} to make it even less likely to happen in the
-future.  But if you didn't expect the command to create such large
-undo data, then it is probably a bug and you should report it.
-@xref{Bugs,, Reporting Bugs}.
-
-  The reason the @code{undo} command has three key bindings, @kbd{C-x
-u}, @kbd{C-_} and @kbd{C-/}, is that it is worthy of a
-single-character key, but @kbd{C-x u} is more straightforward for
-beginners to type.
+  The undo command applies only to changes in the buffer; you can't
+use it to undo mere cursor motion.  However, some cursor motion
+commands set the mark, so if you use these commands from time to time,
+you can move back to the neighborhoods you have moved through by
+popping the mark ring (@pxref{Mark Ring}).
 
 @node Basic Files
 @section Files
 
   The commands described above are sufficient for creating and altering
 text in an Emacs buffer; the more advanced Emacs commands just make
-things easier.  But to keep any text permanently you must put it in a
+things easier.  However, to keep any text permanently you must put it in a
 @dfn{file}.  Files are named units of text which are stored by the
 operating system for you to retrieve later by name.  To look at or use
 the contents of a file in any way, including editing the file with
 Emacs, you must specify the file name.
 
-  Consider a file named @file{/usr/rms/foo.c}.  In Emacs, to begin editing
-this file, type
+  Consider a file named @file{test.emacs}.  (We can assume it is in
+your home directory.)  In Emacs, to begin editing this file, type
 
 @example
-C-x C-f /usr/rms/foo.c @key{RET}
+C-x C-f test.emacs @key{RET}
 @end example
 
 @noindent
@@ -459,8 +375,8 @@ copying the contents of the file into the buffer, and then displaying
 the buffer for you to edit.  If you alter the text, you can @dfn{save}
 the new text in the file by typing @kbd{C-x C-s} (@code{save-buffer}).
 This makes the changes permanent by copying the altered buffer contents
-back into the file @file{/usr/rms/foo.c}.  Until you save, the changes
-exist only inside Emacs, and the file @file{foo.c} is unaltered.
+back into the file @file{test.emacs}.  Until you save, the changes
+exist only inside Emacs, and the file @file{test.emacs} is unaltered.
 
   To create a file, just visit the file with @kbd{C-x C-f} as if it
 already existed.  This creates an empty buffer in which you can insert
@@ -549,17 +465,20 @@ column, some columns at the end of the previous screen line may be
 characters in the ``empty'' columns, just before the @samp{\}
 character that indicates continuation.
 
-  Sometimes it is nice to have Emacs insert newlines automatically when
-a line gets too long.  Continuation on the screen does not do that.  Use
-Auto Fill mode (@pxref{Filling}) if that's what you want.
+  Continued lines can be rather difficult to read, since each line is
+typically broken in the middle of a word.  You can have Emacs insert a
+newline automatically when a line gets too long, by using Auto Fill
+mode.  Another approach, intermediate between continued lines and Auto
+Fill mode, is Long Lines mode, which ensures that wrapping only occurs
+in the spaces between words.  @xref{Filling}.
 
 @cindex truncation
 @cindex line truncation, and fringes
-  As an alternative to continuation, Emacs can display long lines by
-@dfn{truncation}.  This means that all the characters that do not fit
-in the width of the screen or window do not appear at all.  @samp{$}
-in the last column or a small straight arrow in the fringe to the
-right of the window indicates a truncated line.
+  Emacs can also display long lines by @dfn{truncation}.  This means
+that all the characters that do not fit in the width of the screen or
+window do not appear at all.  @samp{$} in the last column or a small
+straight arrow in the fringe to the right of the window indicates a
+truncated line.
 
   @xref{Display Custom}, for more information about line truncation,
 and other variables that affect how text is displayed.
@@ -777,15 +696,14 @@ holding down modifier keys; @kbd{C-u} works on all terminals.  To type a
 negative argument, type a minus sign after @kbd{C-u}.  Just a minus sign
 without digits normally means @minus{}1.
 
-  @kbd{C-u} followed by a character which is neither a digit nor a minus
-sign has the special meaning of ``multiply by four.''  It multiplies the
-argument for the next command by four.  @kbd{C-u} twice multiplies it by
-sixteen.  Thus, @kbd{C-u C-u C-f} moves forward sixteen characters.  This
-is a good way to move forward ``fast,'' since it moves about 1/5 of a line
-in the usual size screen.  Other useful combinations are @kbd{C-u C-n},
-@kbd{C-u C-u C-n} (move down a good fraction of a screen), @kbd{C-u C-u
-C-o} (make ``a lot'' of blank lines), and @kbd{C-u C-k} (kill four
-lines).@refill
+  @kbd{C-u} without digits or minus sign has the special meaning of
+``four times'': it multiplies the argument for the next command by
+four.  @kbd{C-u C-u} multiplies it by sixteen.  Thus, @kbd{C-u C-u
+C-f} moves forward sixteen characters.  This is a good way to move
+forward ``fast,'' since it moves about 1/5 of a line in the usual size
+screen.  Other useful combinations are @kbd{C-u C-n}, @kbd{C-u C-u
+C-n} (move down a good fraction of a screen), @kbd{C-u C-u C-o} (make
+``a lot'' of blank lines), and @kbd{C-u C-k} (kill four lines).@refill
 
   Some commands care only about whether there is an argument, and not about
 its value.  For example, the command @kbd{M-q} (@code{fill-paragraph}) with

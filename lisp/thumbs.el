@@ -174,6 +174,8 @@ this value can let another user see some of your images."
 
 (defvar thumbs-marked-list nil
   "List of marked files.")
+(make-variable-buffer-local 'thumbs-marked-list)
+(put 'thumbs-marked-list 'permanent-local t)
 
 (defalias 'thumbs-gensym
     (if (fboundp 'gensym)
@@ -334,9 +336,9 @@ smaller according to whether INCREMENT is 1 or -1."
 	((string-match ".*\\.tiff?\\'" img) 'tiff)))
 
 (defun thumbs-file-size (img)
-  (let ((i (image-size (find-image `((:type ,(thumbs-image-type img) :file ,img))) t)))
-    (concat (number-to-string (round (car i)))
-	    "x"
+  (let ((i (image-size
+	    (find-image `((:type ,(thumbs-image-type img) :file ,img))) t)))
+    (concat (number-to-string (round (car i))) "x"
 	    (number-to-string (round (cdr i))))))
 
 ;;;###autoload
@@ -366,7 +368,8 @@ If MARKED is non-nil, the image is marked."
    (thumbs-make-thumb img) 'jpeg thumbs-relief marked)
   (add-text-properties (1- (point)) (point)
 		     `(thumb-image-file ,img
-		       help-echo ,(file-name-nondirectory img))))
+		       help-echo ,(file-name-nondirectory img)
+		       rear-nonsticky help-echo)))
 
 (defun thumbs-do-thumbs-insertion (list)
   "Insert all thumbnails into thumbs buffer."
@@ -380,7 +383,7 @@ If MARKED is non-nil, the image is marked."
       (when (= 0 (mod (setq i (1+ i)) thumbs-per-line))
 	(newline)))
     (unless (bobp) (newline))
-    (if diff (message "Type + to display more images."))))
+    (if (> diff 0) (message "Type + to display more images."))))
 
 (defun thumbs-show-thumbs-list (list &optional dir same-window)
   (unless (and (display-images-p)
@@ -488,7 +491,7 @@ Open another window."
       (let (list)
 	(goto-char (point-min))
 	(while (not (eobp))
-	  (unless (= 0 (mod (point) (1+ thumbs-per-line)))
+	  (unless (eolp)
 	    (if (thumbs-current-image)
 		(push (cons (point-marker)
 			    (thumbs-current-image))
@@ -623,8 +626,7 @@ Open another window."
     (push elt thumbs-marked-list)
     (let ((inhibit-read-only t))
       (delete-char 1)
-      (save-excursion
-	(thumbs-insert-thumb elt t))))
+      (thumbs-insert-thumb elt t)))
   (when (eolp) (forward-char)))
 
 (defun thumbs-unmark ()
@@ -636,10 +638,8 @@ Open another window."
     (setq thumbs-marked-list (delete elt thumbs-marked-list))
     (let ((inhibit-read-only t))
       (delete-char 1)
-      (save-excursion
-	(thumbs-insert-thumb elt nil))))
+      (thumbs-insert-thumb elt nil)))
   (when (eolp) (forward-char)))
-
 
 ;; cleaning of old temp files
 (mapc 'delete-file
@@ -777,8 +777,7 @@ ACTION and ARG should be a valid convert command."
 (define-derived-mode thumbs-mode
   fundamental-mode "thumbs"
   "Preview images in a thumbnails buffer"
-  (setq buffer-read-only t)
-  (set (make-local-variable 'thumbs-marked-list) nil))
+  (setq buffer-read-only t))
 
 (defvar thumbs-view-image-mode-map
   (let ((map (make-sparse-keymap)))

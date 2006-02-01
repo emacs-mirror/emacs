@@ -176,7 +176,7 @@ directories.")
 
 (defcustom ediff-default-filtering-regexp nil
   "The default regular expression used as a filename filter in multifile comparisons.
-Should be a sexp. For instance (car ediff-filtering-regexp-history) or nil."
+Should be a sexp.  For instance (car ediff-filtering-regexp-history) or nil."
   :type 'sexp
   :group 'ediff-mult)
 
@@ -219,9 +219,9 @@ This can be toggled with `ediff-toggle-filename-truncation'."
 
 (defcustom ediff-before-session-group-setup-hooks nil
   "*Hooks to run before Ediff arranges the window for group-level operations.
-It is used by commands such as ediff-directories.
+It is used by commands such as `ediff-directories'.
 This hook can be used to save the previous window config, which can be restored
-on ediff-quit, ediff-suspend, or ediff-quit-session-group-hook."
+on `ediff-quit', `ediff-suspend', or `ediff-quit-session-group-hook'."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-after-session-group-setup-hook nil
@@ -242,7 +242,7 @@ ediff-directories, is run."
   :type 'hook
   :group 'ediff-mult)
 (defcustom ediff-meta-buffer-keymap-setup-hook nil
-  "*Hooks run just after setting up the ediff-meta-buffer-map.
+  "*Hooks run just after setting up the `ediff-meta-buffer-map'.
 This keymap controls key bindings in the meta buffer and is a local variable.
 This means that you can set different bindings for different kinds of meta
 buffers."
@@ -363,7 +363,7 @@ buffers."
 	   (file-directory-p (ediff-get-session-objC-name session-info)) t)))
 
 ;; set up the keymap in the meta buffer
-(defun ediff-setup-meta-map()
+(defun ediff-setup-meta-map ()
   (setq ediff-meta-buffer-map (make-sparse-keymap))
   (suppress-keymap ediff-meta-buffer-map)
   (define-key ediff-meta-buffer-map "q" 'ediff-quit-meta-buffer)
@@ -2332,8 +2332,8 @@ If this is a session registry buffer then just bury it."
   "Run through the session list and mark identical files.
 This is used only for sessions that involve 2 or 3 files at the same time.
 ACTION is an optional argument that can be ?h, ?m, ?=, to mark for hiding, mark
-for operation, or simply indicate which are equal files. If it is nil, then
-last-command-char is used to decide which action to take."
+for operation, or simply indicate which are equal files.  If it is nil, then
+`last-command-char' is used to decide which action to take."
   (interactive)
   (if (null action)
       (setq action last-command-char))

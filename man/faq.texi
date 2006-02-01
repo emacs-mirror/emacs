@@ -1146,7 +1146,7 @@ operation on X.  Mouse wheel support is now enabled by default.
 
 @cindex New modes
 Many new modes and packages have been included in Emacs, such as Leim,
-Calc, Tramp and URL, as well as IDO, CUA, rcirc, conf-mode,
+Calc, Tramp and URL, as well as IDO, CUA, rcirc, ERC, conf-mode,
 python-mode, table, tumme, SES, ruler, Flymake, Org, etc.
 
 @cindex Documentation

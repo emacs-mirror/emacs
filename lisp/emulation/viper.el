@@ -458,6 +458,7 @@ unless it is coming up in a wrong Viper state."
   '(internal-ange-ftp-mode
     comint-mode
     inferior-emacs-lisp-mode
+    erc-mode
     eshell-mode
     shell-mode)
   "*A list of major modes that should come up in Vi Insert state."
@@ -494,6 +495,8 @@ unless it is coming up in a wrong Viper state."
     (gnus-summary-mode emacs-state viper-gnus-modifier-map)
     (Info-mode emacs-state viper-slash-and-colon-map)
     (Buffer-menu-mode emacs-state viper-slash-and-colon-map)
+    (erc-mode insert-state viper-comint-mode-modifier-map)
+    (erc-mode vi-state viper-comint-mode-modifier-map)
     )
   "List specifying how to modify the various major modes to enable some Viperisms.
 The list has the structure: ((mode viper-state keymap) (mode viper-state
@@ -768,6 +771,7 @@ It also can't undo some Viper settings."
   ;; remove all hooks set by viper
   (mapatoms 'viper-remove-hooks)
   (remove-hook 'comint-mode-hook 'viper-comint-mode-hook)
+  (remove-hook 'erc-mode-hook 'viper-comint-mode-hook)
   (remove-hook 'minibuffer-setup-hook 'viper-minibuffer-setup-sentinel)
   (remove-hook 'change-major-mode-hook 'viper-major-mode-change-sentinel)
   (remove-hook 'post-command-hook 'viper-minibuffer-post-command-hook)
@@ -913,6 +917,7 @@ It also can't undo some Viper settings."
 
   ;; Emacs shell, ange-ftp, and comint-based modes
   (add-hook 'comint-mode-hook 'viper-comint-mode-hook) ; comint
+  (add-hook 'erc-mode-hook 'viper-comint-mode-hook) ; ERC
 
   (add-hook 'eshell-mode-hook
 	    (lambda () (setq viper-auto-indent nil)))

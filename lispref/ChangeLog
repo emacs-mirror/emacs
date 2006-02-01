@@ -1,3 +1,18 @@
+2006-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Other Display Specs, Image Descriptors): Image
+	description is a list, not a cons cell.
+
+2006-01-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Cons Cells): Minor correction (the cdr of a dotted
+	list is not necessarily a list).
+
+2006-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Layout Parameters): border-width and
+	internal-border-width belong to the frame, not the window.
+
 2006-01-19  Richard M. Stallman  <rms@gnu.org>
 
 	* nonascii.texi (Translation of Characters): Search cmds use

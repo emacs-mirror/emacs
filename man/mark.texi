@@ -87,9 +87,11 @@ button one across a range of text; that puts point where you release the
 mouse button, and sets the mark at the other end of that range.  Or you
 can click mouse button three, which sets the mark at point (like
 @kbd{C-@key{SPC}}) and then moves point where you clicked (like
-@kbd{Mouse-1}).  Both of these methods copy the region into the kill
+@kbd{Mouse-1}).
+
+  Using the mouse to mark a region copies the region into the kill
 ring in addition to setting the mark; that gives behavior consistent
-with other window-driven applications, but if you don't want to modify
+with other window-driven applications.  If you don't want to modify
 the kill ring, you must use keyboard commands to set the mark.
 @xref{Mouse Commands}.
 
@@ -297,6 +299,8 @@ Fill it as text with @kbd{M-x fill-region} (@pxref{Filling}).
 Print hardcopy with @kbd{M-x print-region} (@pxref{Printing}).
 @item
 Evaluate it as Lisp code with @kbd{M-x eval-region} (@pxref{Lisp Eval}).
+@item
+Undo changes within it using @kbd{C-u C-x u} (@pxref{Undo}).
 @end itemize
 
   Most commands that operate on the text in the region have the word
@@ -347,12 +351,12 @@ point.  If the prefix argument is @minus{}@var{n}, @kbd{M-h} also
 marks @var{n} paragraphs, running back form the one surrounding point.
 In that last case, point moves forward to the end of that paragraph,
 and the mark goes at the start of the region.  Repeating the @kbd{M-h}
-command extends the region, just as with @kbd{M-@@} and @kbd{C-M-@@}.
+command extends the region to subsequent paragraphs.
 
   @kbd{C-M-h} (@code{mark-defun}) similarly puts point before, and the
 mark after, the current (or following) major top-level definition, or
-defun (@pxref{Moving by Defuns}).  Repeating @kbd{C-M-h} also extends
-the region.
+defun (@pxref{Moving by Defuns}).  Repeating @kbd{C-M-h} extends
+the region to subsequent defuns.
 
   @kbd{C-x C-p} (@code{mark-page}) puts point before the current page,
 and mark at the end (@pxref{Pages}).  The mark goes after the

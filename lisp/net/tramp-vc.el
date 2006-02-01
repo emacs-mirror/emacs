@@ -436,26 +436,30 @@ filename we are thinking about..."
 	      (t	   (error "tramp-handle-vc-user-login-name cannot cope!")))))))
 
 
-(defadvice vc-user-login-name
-  (around tramp-vc-user-login-name activate)
-  "Support for files on remote machines accessed by TRAMP."
-  ;; We rely on the fact that `file' is bound when this is called.
-  ;; This appears to be the case everywhere in vc.el and vc-hooks.el
-  ;; as of Emacs 20.5.
-  ;;
-  ;; CCC TODO there should be a real solution!  Talk to Andre Spiegel
-  ;; about this.
-  (let ((file (when (boundp 'file)
-                (symbol-value 'file))))    ;pacify byte-compiler
-    (or (and (stringp file)
-             (tramp-tramp-file-p file)	; tramp file
-             (setq ad-return-value
-		   (save-match-data
-		     (tramp-handle-vc-user-login-name uid)))) ; get the owner name
-        ad-do-it)))                     ; else call the original
+;; The following defadvice is no longer necessary after changes in VC
+;; on 2006-01-25, Andre.
 
-(add-hook 'tramp-unload-hook
-	  '(lambda () (ad-unadvise 'vc-user-login-name)))
+(unless (fboundp 'process-file)
+  (defadvice vc-user-login-name
+    (around tramp-vc-user-login-name activate)
+    "Support for files on remote machines accessed by TRAMP."
+    ;; We rely on the fact that `file' is bound when this is called.
+    ;; This appears to be the case everywhere in vc.el and vc-hooks.el
+    ;; as of Emacs 20.5.
+    ;;
+    ;; With Emacs 22, the definition of `vc-user-login-name' has been
+    ;; changed.  It doesn't need to be adviced any longer.
+    (let ((file (when (boundp 'file)
+		  (symbol-value 'file))))    ;pacify byte-compiler
+      (or (and (stringp file)
+	       (tramp-tramp-file-p file)	; tramp file
+	       (setq ad-return-value
+		     (save-match-data
+		       (tramp-handle-vc-user-login-name uid)))) ; get the owner name
+	  ad-do-it)))                     ; else call the original
+
+  (add-hook 'tramp-unload-hook
+	    '(lambda () (ad-unadvise 'vc-user-login-name))))
 
 
 ;; Determine the name of the user owning a file.

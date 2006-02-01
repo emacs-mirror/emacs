@@ -1,4 +1,4 @@
-;;; latexenc.el --- guess correct coding system in LaTeX files
+;;; latexenc.el --- guess correct coding system in LaTeX files -*-coding: iso-2022-7bit -*-
 
 ;; Copyright (C) 2005, 2006 Free Software Foundation, Inc.
 
@@ -167,7 +167,7 @@ coding system names is determined from `latex-inputenc-coding-alist'."
                   (setq latexenc-main-file (tex-guess-main-file)))))
             ;; if we found a master/main file get the coding system from it
             (if (and latexenc-main-file
-		     (file-regular-p latexenc-main-file)
+                     (file-regular-p latexenc-main-file)
                      (file-readable-p latexenc-main-file))
                 (let* ((latexenc-dont-use-tex-guess-main-file-flag t)
                        (latexenc-dont-use-TeX-master-flag t)

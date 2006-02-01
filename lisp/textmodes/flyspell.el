@@ -427,7 +427,7 @@ property of the major mode name.")
 (defface flyspell-incorrect
   '((((class color)) (:foreground "OrangeRed" :bold t :underline t))
     (t (:bold t)))
-  "Face used for marking a misspelled word in Flyspell."
+  "Face used to display a misspelled word in Flyspell."
   :group 'flyspell)
 ;; backward-compatibility alias
 (put 'flyspell-incorrect-face 'face-alias 'flyspell-incorrect)
@@ -435,7 +435,7 @@ property of the major mode name.")
 (defface flyspell-duplicate
   '((((class color)) (:foreground "Gold3" :bold t :underline t))
     (t (:bold t)))
-  "Face used for marking a misspelled word that appears twice in the buffer.
+  "Face used to display subsequent occurrences of a misspelled word.
 See also `flyspell-duplicate-distance'."
   :group 'flyspell)
 ;; backward-compatibility alias

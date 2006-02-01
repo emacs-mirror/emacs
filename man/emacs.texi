@@ -123,7 +123,7 @@ and Sending Mail and Registers and Minibuffer.
 * Glossary::	        The glossary.
 * Antinews::	        Information about Emacs version 21.
 * Mac OS::              Using Emacs in the Mac.
-* MS-DOS::              Using Emacs on MS-DOS (otherwise known as "MS-DOG").
+* MS-DOS::              Using Emacs on MS-DOS and Microsoft Windows.
 * Manifesto::	        What's GNU?  Gnu's Not Unix!
 * Acknowledgments::     Major contributors to GNU Emacs.
 
@@ -235,7 +235,7 @@ Basic Editing Commands
 * Moving Point::        How to move the cursor to the place where you want to
 			  change something.
 * Erasing::	        Deleting and killing text.
-* Undo::	        Undoing recent changes in the text.
+* Basic Undo::	        Undoing recent changes in the text.
 * Basic Files::         Visiting, creating, and saving files.
 * Basic Help::          Asking what a character does.
 * Blank Lines::	        Commands to make or delete blank lines.
@@ -306,16 +306,15 @@ Registers
 
 Controlling the Display
 
+* Scrolling::	           Moving text up and down in a window.
+* Horizontal Scrolling::   Moving text left and right in a window.
+* Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::	           How to change the display style using faces.
 * Standard Faces::         Emacs' predefined faces.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
 * Highlight Interactively:: Tell Emacs what text to highlight.
-* Highlight Changes::      Using colors to show where you changed the buffer.
-* Scrolling::	           Moving text up and down in a window.
-* Horizontal Scrolling::   Moving text left and right in a window.
 * Fringes::                Enabling or disabling window fringes.
 * Useless Whitespace::     Showing possibly-spurious trailing whitespace.
-* Follow Mode::            Follow mode lets two windows scroll as one.
 * Selective Display::      Hiding lines with lots of indentation.
 * Optional Mode Line::     Optional mode line display features.
 * Text Display::           How text characters are normally displayed.
@@ -342,6 +341,7 @@ Replacement Commands
 
 Commands for Fixing Typos
 
+* Undo::                Full details of Emacs undo commands.
 * Kill Errors::         Commands to kill a batch of recently entered text.
 * Transpose::	        Exchanging two characters, words, lines, lists...
 * Fixing Case::         Correcting case of last word entered.
@@ -907,7 +907,7 @@ MS-DOS and Windows 95/98/NT
 
   This manual documents the use and simple customization of the Emacs
 editor.  The reader is not expected to be a programmer; simple
-customizations do not require programming skill.  But the user who is not
+customizations do not require programming skill.  The user who is not
 interested in customizing can ignore the scattered customization hints.
 
   This is primarily a reference manual, but can also be used as a
@@ -959,12 +959,14 @@ TM-165, @cite{A Cookbook for an Emacs}, by Craig Finseth, available from
 Publications Department, Laboratory for Computer Science, 545 Tech Square,
 Cambridge, MA 02139, USA@.  The price today is $3.
 
-This edition of the manual is intended for use with GNU Emacs installed
-on GNU and Unix systems.  GNU Emacs can also be used on VMS, MS-DOS
-(also called MS-DOG), Windows NT, and Windows 95 systems.  Those systems use
-different file name syntax; in addition, VMS and MS-DOS do not support
-all GNU Emacs features.  We don't try to describe VMS usage in this
-manual.  @xref{MS-DOS}, for information about using Emacs on MS-DOS.
+This edition of the manual is intended for use with GNU Emacs
+installed on GNU and Unix systems.  GNU Emacs can also be used on VMS,
+MS-DOS (also called MS-DOG), Microsoft Windows, and Macintosh systems.
+Those systems use different file name syntax; in addition, VMS and
+MS-DOS do not support all GNU Emacs features.  @xref{MS-DOS}, for
+information about using Emacs on MS-DOS and Windows.  @xref{Mac OS},
+for information about using Emacs on Macintosh.  We don't try to
+describe VMS usage in this manual.
 @end iftex
 
 @node Distrib, Intro, Top, Top
@@ -1146,11 +1148,11 @@ can write an extension, anybody can use it afterward.  @xref{Top,
 Emacs Lisp Intro, Preface, eintr, An Introduction to Programming in
 Emacs Lisp}, if you want to learn Emacs Lisp programming.
 
-   When run under the X Window System, Emacs provides its own menus and
-convenient bindings to mouse buttons.  But Emacs can provide many of the
-benefits of a window system on a text-only terminal.  For instance, you
-can look at or edit several files at once, move text between files, and
-edit files while running shell commands.
+   When running on a graphics terminal, Emacs provides its own menus
+and convenient handling of mouse buttons.  But Emacs provides many of
+the benefits of a window system even on a text-only terminal.  For
+instance, you can look at or edit several files at once, move text
+between files, and edit files while running shell commands.
 
 @include screen.texi
 @include commands.texi

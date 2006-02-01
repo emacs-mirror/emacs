@@ -3733,19 +3733,22 @@ If point reaches the beginning or end of buffer, it stops there.
 To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (interactive "p")
   (or arg (setq arg 1))
-  (if (/= arg 1)
-      (line-move (1- arg) t))
   
-  ;; Move to beginning-of-line, ignoring fields and invisibles.
-  (skip-chars-backward "^\n")
-  (while (and (not (bobp)) (line-move-invisible-p (1- (point))))
-    (goto-char (previous-char-property-change (1- (point))))
-    (skip-chars-backward "^\n"))
-
   (let ((orig (point)))
-    (vertical-motion 0)
-    (if (/= orig (point))
-	(goto-char (constrain-to-field (point) orig (/= arg 1) t nil)))))
+
+    ;; Move by lines, if ARG is not 1 (the default).
+    (if (/= arg 1)
+	(line-move (1- arg) t))
+
+    ;; Move to beginning-of-line, ignoring fields and invisibles.
+    (skip-chars-backward "^\n")
+    (while (and (not (bobp)) (line-move-invisible-p (1- (point))))
+      (goto-char (previous-char-property-change (1- (point))))
+      (skip-chars-backward "^\n"))
+
+    ;; Take care of fields.
+    (goto-char (constrain-to-field (point) orig
+				   (/= arg 1) t nil))))
 
 
 ;;; Many people have said they rarely use this feature, and often type
@@ -5286,11 +5289,8 @@ front of the list of recently selected ones."
     buffer))
 
 
-(defun clone-indirect-buffer-other-window (buffer &optional norecord)
-  "Create an indirect buffer that is a twin copy of BUFFER.
-Select the new buffer in another window.
-Optional second arg NORECORD non-nil means do not put this buffer at
-the front of the list of recently selected ones."
+(defun clone-indirect-buffer-other-window (newname display-flag &optional norecord)
+  "Like `clone-indirect-buffer' but display in another window."
   (interactive
    (progn
      (if (get major-mode 'no-clone-indirect)
@@ -5299,8 +5299,7 @@ the front of the list of recently selected ones."
 	       (read-buffer "Name of indirect buffer: " (current-buffer)))
 	   t)))
   (let ((pop-up-windows t))
-    (set-buffer buffer)
-    (clone-indirect-buffer nil t norecord)))
+    (clone-indirect-buffer newname display-flag norecord)))
 
 
 ;;; Handling of Backspace and Delete keys.

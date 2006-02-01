@@ -180,9 +180,6 @@ return a string representing the column's value."
   :group 'bs-appearance
   :type '(repeat sexp))
 
-(defvar bs--running-in-xemacs (string-match "XEmacs" (emacs-version))
-  "Non-nil when running under XEmacs.")
-
 (defun bs--make-header-match-string ()
   "Return a regexp matching the first line of a Buffer Selection Menu buffer."
   (let ((res "^\\(")
@@ -701,12 +698,7 @@ Return nil if there is no such buffer."
 (defun bs--set-window-height ()
   "Change the height of the selected window to suit the current buffer list."
   (unless (one-window-p t)
-    (shrink-window (- (window-height (selected-window))
-		      ;; window-height in xemacs includes mode-line
-		      (+ (if bs--running-in-xemacs 3 1)
-			 bs-header-lines-length
-			 (min (length bs-current-list)
-			      bs-max-window-height))))))
+    (fit-window-to-buffer (selected-window) bs-max-window-height)))
 
 (defun bs--current-buffer ()
   "Return buffer on current line.
@@ -1011,13 +1003,11 @@ Uses function `vc-toggle-read-only'."
   "Move cursor vertically up one line.
 If on top of buffer list go to last line."
   (interactive "p")
-  (previous-line 1)
-  (if (<= (count-lines 1 (point)) (1- bs-header-lines-length))
-      (progn
-	(goto-char (point-max))
-	(beginning-of-line)
-	(recenter -1))
-    (beginning-of-line)))
+  (if (> (count-lines 1 (point)) bs-header-lines-length)
+      (forward-line -1)
+    (goto-char (point-max))
+    (beginning-of-line)
+    (recenter -1)))
 
 (defun bs-down (arg)
   "Move cursor vertically down ARG lines in Buffer Selection Menu."
@@ -1029,10 +1019,9 @@ If on top of buffer list go to last line."
 (defun bs--down ()
   "Move cursor vertically down one line.
 If at end of buffer list go to first line."
-  (let ((last (line-end-position)))
-    (if (eq last (point-max))
-	(goto-line (1+ bs-header-lines-length))
-      (next-line 1))))
+  (if (eq (line-end-position) (point-max))
+      (goto-line (1+ bs-header-lines-length))
+    (forward-line 1)))
 
 (defun bs-visits-non-file (buffer)
   "Return t or nil whether BUFFER visits no file.
@@ -1332,17 +1321,9 @@ The name of current buffer gets additional text properties
 for mouse highlighting.
 START-BUFFER is the buffer where we started buffer selection.
 ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
-  (let ((name (copy-sequence (buffer-name))))
-    (add-text-properties
-     0 (length name)
-     '(mouse-face highlight
-       help-echo
-       "mouse-2: select this buffer, mouse-3: select in other frame")
-     name)
-    (if (< (length name) bs--name-entry-length)
-	(concat name
-		(make-string (- bs--name-entry-length (length name)) ? ))
-      name)))
+  (propertize (buffer-name)
+              'help-echo "mouse-2: select this buffer, mouse-3: select in other frame"
+              'mouse-face 'highlight))
 
 (defun bs--get-mode-name (start-buffer all-buffers)
   "Return the name of mode of current buffer for Buffer Selection Menu.
@@ -1399,12 +1380,12 @@ normally *buffer-selection*."
 (defun bs--format-aux (string align len)
   "Generate a string with STRING with alignment ALIGN and length LEN.
 ALIGN is one of the symbols `left', `middle', or `right'."
-  (let ((length (length string)))
-    (if (>= length len)
-	string
-      (if (eq 'right align)
-	  (concat (make-string (- len length) ? ) string)
-	(concat string (make-string (- len length) ? ))))))
+  (let* ((width (length string))
+         (len (max len width)))
+    (format (format "%%%s%ds" (if (eq align 'right) "" "-") len)
+            (if (eq align 'middle)
+                (concat (make-string (/ (- len width) 2) ?\s) string)
+              string))))
 
 (defun bs--show-header ()
   "Insert header for Buffer Selection Menu in current buffer."

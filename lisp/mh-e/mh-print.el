@@ -30,15 +30,10 @@
 
 ;;; Code:
 
-;;(message "> mh-print")
-(eval-when-compile (require 'mh-acros))
-(mh-require-cl)
+(require 'mh-e)
+(require 'mh-scan)
+
 (require 'ps-print)
-(require 'mh-buffers)
-(require 'mh-utils)
-(require 'mh-funcs)
-(eval-when-compile (require 'mh-seq))
-;;(message "< mh-print")
 
 (defvar mh-ps-print-color-option ps-print-color-p
   "Specify how buffer's text color is printed.
@@ -48,7 +43,7 @@ Valid values are:
    nil         - Do not print colors.
    t           - Print colors.
    black-white - Print colors on black/white printer.
-		 See also `ps-black-white-faces'.
+                 See also `ps-black-white-faces'.
 
 Any other value is treated as t. This variable is initialized
 from `ps-print-color-p'.")
@@ -58,54 +53,6 @@ from `ps-print-color-p'.")
 
 Sensible choices are the functions `ps-spool-buffer' and
 `ps-spool-buffer-with-faces'.")
-
-(defun mh-ps-spool-buffer (buffer)
-  "Spool BUFFER."
-  (save-excursion
-    (set-buffer buffer)
-    (let ((ps-print-color-p mh-ps-print-color-option)
-          (ps-left-header
-           (list
-            (concat "(" (mh-get-header-field "Subject:") ")")
-            (concat "(" (mh-get-header-field "From:") ")")))
-          (ps-right-header
-           (list
-            "/pagenumberstring load"
-            (concat "(" (mh-get-header-field "Date:") ")"))))
-      (funcall mh-ps-print-func))))
-
-(defun mh-ps-spool-msg (msg)
-  "Spool MSG."
-  (let* ((folder mh-current-folder)
-         (buffer (mh-in-show-buffer (mh-show-buffer)
-                   (if (not (equal (mh-msg-filename msg folder)
-                                   buffer-file-name))
-                       (get-buffer-create mh-temp-buffer)))))
-    (unwind-protect
-        (save-excursion
-          (if buffer
-              (let ((mh-show-buffer buffer))
-                (mh-display-msg msg folder)))
-          (mh-ps-spool-buffer (if buffer buffer mh-show-buffer)))
-      (if buffer
-          (kill-buffer buffer)))))
-
-(defun mh-ps-print-range (range file)
-  "Print RANGE to FILE.
-
-This is the function that actually does the work.
-If FILE is nil, then the messages are spooled to the printer."
-  (mh-iterate-on-range msg range
-    (unwind-protect
-        (mh-ps-spool-msg msg))
-    (mh-notate msg mh-note-printed mh-cmd-note))
-  (ps-despool file))
-
-(defun mh-ps-print-preprint (prefix-arg)
-  "Provide a better default file name for `ps-print-preprint'.
-Pass along the PREFIX-ARG to it."
-  (let ((buffer-file-name (format "mh-%s" (substring (buffer-name) 1))))
-    (ps-print-preprint prefix-arg)))
 
 ;;;###mh-autoload
 (defun mh-ps-print-msg (range)
@@ -130,6 +77,48 @@ commands \\[mh-ps-print-toggle-color] and
   (interactive (list (mh-interactive-range "Print")))
   (mh-ps-print-range range nil))
 
+(defun mh-ps-print-range (range file)
+  "Print RANGE to FILE.
+
+This is the function that actually does the work.
+If FILE is nil, then the messages are spooled to the printer."
+  (mh-iterate-on-range msg range
+    (unwind-protect
+        (mh-ps-spool-msg msg))
+    (mh-notate msg mh-note-printed mh-cmd-note))
+  (ps-despool file))
+
+(defun mh-ps-spool-msg (msg)
+  "Spool MSG."
+  (let* ((folder mh-current-folder)
+         (buffer (mh-in-show-buffer (mh-show-buffer)
+                   (if (not (equal (mh-msg-filename msg folder)
+                                   buffer-file-name))
+                       (get-buffer-create mh-temp-buffer)))))
+    (unwind-protect
+        (save-excursion
+          (if buffer
+              (let ((mh-show-buffer buffer))
+                (mh-display-msg msg folder)))
+          (mh-ps-spool-buffer (if buffer buffer mh-show-buffer)))
+      (if buffer
+          (kill-buffer buffer)))))
+
+(defun mh-ps-spool-buffer (buffer)
+  "Spool BUFFER."
+  (save-excursion
+    (set-buffer buffer)
+    (let ((ps-print-color-p mh-ps-print-color-option)
+          (ps-left-header
+           (list
+            (concat "(" (mh-get-header-field "Subject:") ")")
+            (concat "(" (mh-get-header-field "From:") ")")))
+          (ps-right-header
+           (list
+            "/pagenumberstring load"
+            (concat "(" (mh-get-header-field "Date:") ")"))))
+      (funcall mh-ps-print-func))))
+
 ;;;###mh-autoload
 (defun mh-ps-print-msg-file (range file)
   "Print RANGE to FILE\\<mh-folder-mode-map>.
@@ -152,6 +141,12 @@ commands \\[mh-ps-print-toggle-color] and
 \\[mh-ps-print-toggle-faces]."
   (interactive (list (mh-interactive-range "Print") (mh-ps-print-preprint 1)))
   (mh-ps-print-range range file))
+
+(defun mh-ps-print-preprint (prefix-arg)
+  "Provide a better default file name for `ps-print-preprint'.
+Pass along the PREFIX-ARG to it."
+  (let ((buffer-file-name (format "mh-%s" (substring (buffer-name) 1))))
+    (ps-print-preprint prefix-arg)))
 
 ;;;###mh-autoload
 (defun mh-ps-print-toggle-faces ()
@@ -185,8 +180,8 @@ change this setting permanently by customizing the option
        (message "Colors will be printed as black & white"))
    (if (eq mh-ps-print-color-option 'black-white)
        (progn
-	 (setq mh-ps-print-color-option t)
-	 (message "Colors will be printed"))
+         (setq mh-ps-print-color-option t)
+         (message "Colors will be printed"))
      (setq mh-ps-print-color-option nil)
      (message "Colors will not be printed"))))
 

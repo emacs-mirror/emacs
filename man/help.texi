@@ -12,17 +12,19 @@
 @kindex F1
 
   Emacs provides extensive help features accessible through a single
-character, @kbd{C-h}.  @kbd{C-h} is a prefix key that is used for
-commands that display documentation.  The characters that you can type after
-@kbd{C-h} are called @dfn{help options}.  One help option is @kbd{C-h};
-that is how you ask for help about using @kbd{C-h}.  To cancel, type
-@kbd{C-g}.  The function key @key{F1} is equivalent to @kbd{C-h}.
+character, @kbd{C-h} (or @key{F1}).  @kbd{C-h} is a prefix key that is
+used for commands that display documentation.  The characters that you
+can type after @kbd{C-h} are called @dfn{help options}.  One help
+option is @kbd{C-h}; that is how you ask for help about using
+@kbd{C-h}.  To cancel, type @kbd{C-g}.  The function key @key{F1} is
+equivalent to @kbd{C-h}.
 
 @kindex C-h C-h
 @findex help-for-help
   @kbd{C-h C-h} (@code{help-for-help}) displays a list of the possible
-help options, each with a brief description.  Before you type a help
-option, you can use @key{SPC} or @key{DEL} to scroll through the list.
+help options, each with a brief description.  You can look at the
+list, using @key{SPC} and @key{DEL} to scroll through it, then type
+the help option you want.  To cancel, type @kbd{C-g}.
 
   @kbd{C-h} or @key{F1} means ``help'' in various other contexts as
 well.  After a prefix key, it displays a list of the alternatives that
@@ -70,13 +72,6 @@ Finally, you can try looking up a suitable package using keywords
 pertinent to the feature you need.  @xref{Library Keywords}.
 @end table
 
-  To find the documentation of a key sequence or a menu item, type
-@kbd{C-h K} and then type that key sequence or select the menu
-item.  This looks up the description of the command invoked by the key
-or the menu in the appropriate manual (not necessarily the Emacs
-manual).  Likewise, use @kbd{C-h F} for reading documentation of a
-command.
-
 @menu
 * Help Summary::	Brief list of all Help commands.
 * Key Help::		Asking what a key does in Emacs.
@@ -100,7 +95,8 @@ command.
 
   Here is a summary of the Emacs interactive help commands.
 @xref{Help Files}, for other help commands that just display a
-pre-written file of information.
+pre-written file of information.  The character that follows
+@kbd{C-h} is a ``help option.''
 
 @table @kbd
 @item C-h a @var{topics} @key{RET}
@@ -180,7 +176,7 @@ links in @samp{*Help*} buffers (@code{display-local-help}).
 
 @kindex C-h c
 @findex describe-key-briefly
-  The most basic @kbd{C-h} options are @kbd{C-h c}
+  The most basic @kbd{C-h} commands are @kbd{C-h c}
 (@code{describe-key-briefly}) and @w{@kbd{C-h k}} (@code{describe-key}).
 @kbd{C-h c @var{key}} displays in the echo area the name of the command
 that @var{key} is bound to.  For example, @kbd{C-h c C-f} displays
@@ -194,8 +190,19 @@ what @var{key} does.
 displays the documentation string of the command as well as its name.
 This is too big for the echo area, so a window is used for the display.
 
-  @kbd{C-h c} and @kbd{C-h k} work for any sort of key sequences,
-including function keys and mouse events.
+@kindex C-h K
+@findex Info-goto-emacs-key-command-node
+  To find the documentation of a key sequence, type @kbd{C-h K} and
+then enter that key sequence.  This looks up the description of the
+command invoked by the key in whichever manual describes it (this need
+not be the Emacs manual).  @kbd{C-h K} runs the command
+@code{Info-goto-emacs-key-command-node}.
+
+  @kbd{C-h c}, @kbd{C-h k} and @kbd{C-h K} work for any sort of key
+sequences, including function keys, menus, and mouse events.  For
+instance, you can type @kbd{C-h k} and then select a menu item from
+the menu bar, to show the documentation string of the command that
+menu item runs.
 
 @kindex C-h w
 @findex where-is
@@ -256,9 +263,18 @@ variable.  @xref{Variables}.
 hyperlinks to the definition, if you have the source files installed.
 (@xref{Hyperlinking}.)  If you know Lisp (or C), this provides the
 ultimate documentation.  If you don't know Lisp, you should learn it.
-If you are just @emph{using} Emacs, treating Emacs as an object
-(file), then you don't really love it.  For true intimacy with your
-editor, you need to read the source code.
+(The Introduction to Emacs Lisp Programming, available from the FSF
+through fsf.org, is a good way to get started.)  Emacs won't be happy
+if it feels you are just @emph{using} Emacs, treating it as an object
+program.  If you really love Emacs, show that you care by reading the
+source code.
+
+@kindex C-h F
+@findex Info-goto-emacs-command-node
+  To find a specific function's documentation in a manual, use
+@kbd{C-h F} (@code{Info-goto-emacs-command-node}).  This knows
+about various manuals, not just the Emacs manual, and finds the
+right one.
 
 @node Apropos
 @section Apropos
@@ -432,8 +448,8 @@ use:
 the support for a specific language environment.  @xref{Language
 Environments}.  This tells you which languages this language
 environment is useful for, and lists the character sets, coding
-systems, and input methods that go with it.  It also shows some sample
-text to illustrate scripts.
+systems, and input methods that it operates on.  It also shows some
+sample text to illustrate scripts.
 
   The command @kbd{C-h h} (@code{view-hello-file}) displays the file
 @file{etc/HELLO}, which shows how to say ``hello'' in many languages.
@@ -456,9 +472,7 @@ Ops}), plus a few special commands of their own.
 @item @key{SPC}
 Scroll forward.
 @item @key{DEL}
-@itemx @key{BS}
-Scroll backward.  On some keyboards, this key is known as @key{BS} or
-@key{backspace}.
+Scroll backward.
 @item @key{RET}
 Follow a cross reference at point.
 @item @key{TAB}
@@ -521,24 +535,9 @@ have an entry in the top-level Info menu.  It is also handy when you
 need to get to the documentation quickly, and you know the exact name
 of the file.
 
-@kindex C-h F
-@kindex C-h K
-@findex Info-goto-emacs-key-command-node
-@findex Info-goto-emacs-command-node
-  There are two special help commands for accessing Emacs
-documentation through Info.  @kbd{C-h F @var{function} @key{RET}}
-enters Info and goes straight to the documentation of the Emacs
-function @var{function}.  @kbd{C-h K @var{key}} enters Info and goes
-straight to the documentation of the key @var{key}.  These two keys
-run the commands @code{Info-goto-emacs-command-node} and
-@code{Info-goto-emacs-key-command-node}.  You can use @kbd{C-h K} to
-find the documentation of a menu item: just select that menu item when
-@kbd{C-h K} prompts for a key.
-
-  @kbd{C-h F} and @kbd{C-h K} know about commands and keys described
-in manuals other than the Emacs manual.  Thus, they make it easier to
-find the documentation of commands and keys when you are not sure
-which manual describes them, like when using some specialized mode.
+  The help commands @kbd{C-h F @var{function} @key{RET}} and @kbd{C-h
+K @var{key}}, described above, enter Info and go straight to the
+documentation of @var{function} or @var{key}.
 
 @kindex C-h S
 @findex info-lookup-symbol
