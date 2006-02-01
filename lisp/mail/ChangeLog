@@ -1,3 +1,12 @@
+2006-02-01  Henrik Enberg  <enberg@printf.se>
+
+	* rmail.el (rmail-first-unseen-message): Make sure to return the
+	last message if no unseen message was found.  Doc fix.
+	(rmail): Call rmail-first-unseen-message properly.  Remove
+	commented out code.
+	(rmail-show-message): Maybe call rmail-unknown-mail-followup-to.
+	(rmail-revert): Simplify.
+
 2006-01-31  Alex Schroeder  <alex@gnu.org>
 
 	* rmailmm.el: New file, based on Alexander Pohoyda's code.
