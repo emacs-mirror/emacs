@@ -1,5 +1,7 @@
 2006-02-01  Bill Wohler  <wohler@newt.com>
 
+	* mh-search.el (which-func-mode): Shush compiler on Emacs 21 too.
+
 	* mh-alias.el (mh-alias-gecos-name): Use
 	mh-replace-regexp-in-string instead of replace-regexp-in-string.
 	(crm, multi-prompt): Use mh-require instead of require.

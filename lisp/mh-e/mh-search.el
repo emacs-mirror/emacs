@@ -51,7 +51,6 @@
 
 (require 'gnus-util)
 (require 'imenu)
-(mh-require 'which-func nil t)
 
 (defvar mh-searcher nil
   "Cached value of chosen search program.")
@@ -1410,8 +1409,12 @@ being the list of messages originally from that folder."
     (when cur-msg (mh-goto-msg cur-msg t t))
     (set-buffer-modified-p old-buffer-modified-flag)))
 
+(mh-require 'which-func nil t)
+
 ;; Shush compiler.
-(eval-when-compile (mh-do-in-xemacs (defvar which-func-mode)))
+(eval-when-compile
+  (if (or mh-xemacs-flag (< emacs-major-version 22))
+      (defvar which-func-mode)))
 
 ;;;###mh-autoload
 (defun mh-index-create-imenu-index ()
