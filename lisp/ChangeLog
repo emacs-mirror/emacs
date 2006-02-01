@@ -1,3 +1,9 @@
+2006-02-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-convert-file-attributes): Set file's gid
+	change bit only when id-format is 'integer.  Reported by Matt
+	Hodges <M.P.Hodges@rl.ac.uk>.
+
 2006-02-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* hilit-chg.el (highlight-changes-initial-state)
