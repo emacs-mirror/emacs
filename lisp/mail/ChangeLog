@@ -1,3 +1,7 @@
+2006-02-01  Alex Schroeder  <alex@gnu.org>
+
+	* rmail.el (rmail-convert-mbox-format): Handle mails without subject.
+
 2006-02-01  Henrik Enberg  <enberg@printf.se>
 
 	* rmail.el (rmail-first-unseen-message): Make sure to return the
