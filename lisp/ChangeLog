@@ -1,3 +1,10 @@
+2006-02-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hilit-chg.el (highlight-changes-initial-state)
+	(highlight-changes-global-initial-state): Doc fixes.
+	(highlight-changes-global-modes, global-highlight-changes):
+	Fix typos in docstrings.
+
 2006-02-01  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-mode): Mention that CUA enables
