@@ -137,11 +137,14 @@ and showing the image as an image."
 	    (message "Repeat this command to go back to displaying the image")))
     ;; Turn the image data into a real image, but only if the whole file
     ;; was inserted
-    (let* ((data
-	    (string-make-unibyte
-	     (buffer-substring-no-properties (point-min) (point-max))))
-	   (image
-	    (create-image data nil t))
+    (let* ((image
+	    (if (and (buffer-file-name)
+		     (not (buffer-modified-p)))
+		(create-image (buffer-file-name))
+	      (create-image
+	       (string-make-unibyte
+		(buffer-substring-no-properties (point-min) (point-max)))
+	       nil t)))
 	   (props
 	    `(display ,image
 		      intangible ,image

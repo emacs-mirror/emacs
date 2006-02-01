@@ -1,3 +1,12 @@
+2006-01-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* data.c (Flistp): Doc fix.
+
+2006-01-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fother_window, Fwindow_vscroll, Fset_window_vscroll):
+	Fix typos in docstrings.
+
 2006-01-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* data.c (Fcar, Fcdr): Add links to Elisp manual to the docstrings.

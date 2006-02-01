@@ -122,8 +122,8 @@
 
 2006-01-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-group.el (gnus-useful-groups): Use Gmane for ding.  Use
-	nntp for bug archive.
+	* gnus-group.el (gnus-useful-groups): Use Gmane for ding.
+	Use nntp for bug archive.
 
 2006-01-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -162,7 +162,7 @@
 	* gnus-msg.el (gnus-copy-article-buffer): Remove MIME buttons
 	associated with multipart/alternative parts.
 
-2005-12-19  Mark Plaksin <happy@mcplaksin.org>  (tiny change)
+2005-12-19  Mark Plaksin  <happy@mcplaksin.org>  (tiny change)
 
 	* nnrss.el (nnrss-check-group): Put the RSS dc:subject in the
 	article.
@@ -235,7 +235,7 @@
 
 2005-12-09  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>  (tiny change)
 
-	* mm-decode.el (mm-display-external): Add lacked cdr.
+	* mm-decode.el (mm-display-external): Add missing cdr.
 
 2005-12-12  Richard M. Stallman  <rms@gnu.org>
 
@@ -288,7 +288,7 @@
 	* nnmail.el (nnmail-fancy-expiry-target): Protect against invalid
 	date header.
 
-2005-11-16  Boris Samorodov <bsam@ipt.ru>  (tiny patch)
+2005-11-16  Boris Samorodov  <bsam@ipt.ru>  (tiny patch)
 
 	* imap.el (imap-kerberos4-open): Ignore SSL stuff.
 
@@ -329,7 +329,7 @@
 	error.
 	(nntp-retrieve-data): Rethrow new error condition to break out of
 	recursive call to nntp-send-authinfo.
-	
+
 2005-11-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-start.el (gnus-dribble-read-file): Use make-local-variable
@@ -379,8 +379,8 @@
 	(message-insert-courtesy-copy, message-fill-address)
 	(message-fill-header, message-shorten-references)
 	(message-setup-1, message-cancel-news)
-	(message-forward-make-body-plain) (message-forward-make-body-mime)
-	(message-forward-make-body-mml) (message-encode-message-body)
+	(message-forward-make-body-plain, message-forward-make-body-mime)
+	(message-forward-make-body-mml, message-encode-message-body)
 	(message-forward-make-body-digest-plain)
 	(message-forward-make-body-digest-mime)
 	(message-use-alternative-email-as-from): Insert `hard-newline'
@@ -412,7 +412,7 @@
 	whitespace removed in revision 7.8.  Use concatenated string to
 	protect trailing whitespace.
 
-2005-10-27  Jouni K Seppanen <jks@iki.fi>  (tiny change)
+2005-10-27  Jouni K Seppanen  <jks@iki.fi>  (tiny change)
 
 	* nnimap.el (nnimap-search-uids-not-since-is-evil): Add variable.
 	(nnimap-request-expire-articles): Use it to avoid sending 'UID
@@ -511,11 +511,11 @@
 	* message.el (message-expand-group): Pass the common
 	prefix substring of completion to `display-completion-list'.
 
-2005-10-09  Daniel Brockman <daniel@brockman.se>
+2005-10-09  Daniel Brockman  <daniel@brockman.se>
 
 	* format-spec.el (format-spec): Propagate text properties of % spec.
 
-2005-01-21  Derek Atkins <warlord@MIT.EDU>  (tiny change)
+2005-01-21  Derek Atkins  <warlord@MIT.EDU>  (tiny change)
 
 	* pgg-pgp.el (pgg-pgp-decrypt-region): Use passphrase cache.
 
@@ -1777,11 +1777,11 @@
 
 	* nnimap.el (nnimap-retrieve-headers-from-server): Fix last change.
 
-2005-03-10  Arne J,Ax(Brgensen <arne@arnested.dk>  (tiny change)
+2005-03-10  Arne J,Ax(Brgensen  <arne@arnested.dk>  (tiny change)
 
 	* nnimap.el (nnimap-retrieve-headers-from-server): Fix off-by-one flaw.
 
-2005-03-08  Bjorn Solberg <bjorn_ding@hekneby.org>  (tiny change)
+2005-03-08  Bjorn Solberg  <bjorn_ding@hekneby.org>  (tiny change)
 
 	* nnimap.el (nnimap-retrieve-headers-from-server): Sort NOV
 	buffer (since IMAP server might return FETCH response out of
@@ -2352,7 +2352,7 @@
 
 	* legacy-gnus-agent.el
 	(gnus-agent-convert-to-compressed-agentview-prompt):
-	New function. Used internally to only display 'gnus converting
+	New function.  Used internally to only display 'gnus converting
 	files' message when actually necessary.
 
 	* gnus-sum.el: Remove (require 'gnus-agent) as required
@@ -2369,7 +2369,7 @@
 	(gnus-agent-unfetch-articles): New function.
 	(gnus-agent-fetch-headers): Use gnus-agent-braid-nov to validate
 	article numbers even when local .overview file is missing.
-	(gnus-agent-read-article-number): New function. Only accepts
+	(gnus-agent-read-article-number): New function.  Only accepts
 	27-bit article numbers.
 	(gnus-agent-copy-nov-line, gnus-agent-uncached-articles):
 	Use gnus-agent-read-article-number.
@@ -2465,12 +2465,12 @@
 	* gnus-agent.el (gnus-agent-read-agentview): Add a missing arg to
 	error.
 
-2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
 	* gnus-start.el (gnus-convert-old-newsrc): Only write the conversion
 	message to newsrc-dribble when an actual conversion is performed.
 
-2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
 	* gnus-agent.el (gnus-agent-read-local):
 	Bind nnheader-file-coding-system to gnus-agent-file-coding-system to
@@ -2479,9 +2479,9 @@
 	coding-system-for-write, as the with-temp-file macro first prints
 	to a buffer then saves the buffer.
 
-2004-10-18  Kevin Greiner <kgreiner@xpediantsolutions.com>
+2004-10-18  Kevin Greiner  <kgreiner@xpediantsolutions.com>
 
-	* legacy-gnus-agent.el (): New. Provides converters that are only
+	* legacy-gnus-agent.el (): New.  Provides converters that are only
 	loaded when gnus-convert-old-newsrc needs to call them.
 
 	* gnus-agent.el (gnus-agent-read-agentview): Remove support for
@@ -2499,7 +2499,7 @@
 	should be protected from potentially irreversable changes by the
 	function.
 
-2004-10-18  Kevin Greiner <kgreiner@xpediantsolutions.com>
+2004-10-18  Kevin Greiner  <kgreiner@xpediantsolutions.com>
 
 	* gnus-int.el (gnus-request-accept-article): Inform the agent that
 	articles are being added to a group.
@@ -2512,7 +2512,7 @@
 	(gnus-agent-regenerate-group): The REREAD parameter can now be a
 	list of articles that will be marked as unread.
 
-2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
 	* gnus-range.el (gnus-sorted-range-intersection): Now accepts
 	single-interval range of the form (min . max).  Previously the
@@ -2524,18 +2524,18 @@
 	* gnus-sum.el (gnus-summary-highlight-line): Articles stored in
 	the cache, but not the agent, now appear with their usual face.
 
-2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
 	* gnus-sum.el (gnus-adjust-marks): Now correctly handles a list of
 	marks consisting of a single range {for example, (3 . 5)} rather
 	than a list of a single range { ((3 . 5)) }.
 
-2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
 	* gnus-sum.el (gnus-adjust-marks): Avoid splicing null INTO the
 	uncompressed list.
 
-2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
 	* gnus-draft.el (gnus-group-send-queue): Pass the group name
 	"nndraft:queue" along to gnus-draft-send.
@@ -3337,7 +3337,7 @@
 	* gnus-msg.el (gnus-summary-followup-with-original):
 	Document yanking of region when active.
 
-2004-04-13 Kevin Greiner <kgreiner@xpediantsolutions.com>
+2004-04-13 Kevin Greiner  <kgreiner@xpediantsolutions.com>
 
 	* gnus-agent.el: Merged 7.3 through 7.7 updates into branch.
 	Revision 7.2 changes excluded to maintain compatibility with all

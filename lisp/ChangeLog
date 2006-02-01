@@ -1,3 +1,16 @@
+2006-01-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-toggle-display): Use file name if possible,
+	instead of unnecessarily allocating a (possibly huge) lisp string.
+
+2006-01-30  John Paul Wallington  <jpw@pobox.com>
+
+	* subr.el (toplevel): Define `cl-assertion-failed' condition here
+	because the `assert' macro signals it at runtime.
+
+	* emacs-lisp/cl.el (toplevel): Remove definition of
+	`cl-assertion-failed' condition.
+
 2006-01-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* thumbs.el (thumbs-marked-list): Make buffer-local and
@@ -6,6 +19,14 @@
 	(thumbs-file-alist): Use eolp as check for (non)-image.
 
 2006-01-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ediff-mult.el (ediff-meta-buffer-keymap-setup-hook)
+	(ediff-before-session-group-setup-hooks)
+	(ediff-default-filtering-regexp, ediff-meta-mark-equal-files):
+	Fix typos in docstrings.
+
+	* window.el (bw-dir, bw-eqdir, balance-windows)
+	(split-window-keep-point): Fix typos in docstrings.
 
 	* textmodes/org.el (org-allow-space-in-links, org-closed-string)
 	(org-quote-string, org-calendar-to-agenda-key)

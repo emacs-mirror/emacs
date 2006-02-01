@@ -275,7 +275,8 @@ DEFUN ("atom", Fatom, Satom, 1, 1, 0,
 }
 
 DEFUN ("listp", Flistp, Slistp, 1, 1, 0,
-       doc: /* Return t if OBJECT is a list.  This includes nil.  */)
+       doc: /* Return t if OBJECT is a list, that is, a cons cell or nil.
+Otherwise, return nil.  */)
      (object)
      Lisp_Object object;
 {
