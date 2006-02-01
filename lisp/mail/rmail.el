@@ -1995,8 +1995,9 @@ non-nil then do not show any progress messages."
 	    ;; Convert encoded-words in from and subject
 	    (dolist (header '("From" "Subject"))
 	      (let ((value (rmail-header-get-header header)))
-		(rmail-header-add-header
-		 header (mail-decode-encoded-word-string value))))
+		(when value
+		  (rmail-header-add-header
+		   header (mail-decode-encoded-word-string value)))))
 	    ;; Convert quoted printable transfer encoding because it
 	    ;; is easy to do.
 	    (let ((encoding (rmail-header-get-header
