@@ -45,7 +45,7 @@ Insert a tab character.  You can type @kbd{C-q @key{TAB}} to do this.
 
 A tab character is displayed as a stretch of whitespace which extends
 to the next display tab stop position, and the default width of a tab
-stop is eight.  @xref{Display Custom}, for more details.
+stop is eight.  @xref{Text Display}, for more details.
 
 @item
 Insert whitespace up to the next tab stop.  You can set tab stops at
@@ -114,13 +114,13 @@ regard, @kbd{C-M-o} resembles @kbd{C-o}.
 @kindex M-^
 @findex delete-indentation
   To join two lines cleanly, use the @kbd{M-^}
-(@code{delete-indentation}) command.  It deletes the indentation at the
-front of the current line, and the line boundary as well, replacing them
-with a single space.  As a special case (useful for Lisp code) the
-single space is omitted if the characters to be joined are consecutive
-open parentheses or closing parentheses, or if the junction follows
-another newline.  To delete just the indentation of a line, go to the
-beginning of the line and use @kbd{M-\}
+(@code{delete-indentation}) command.  It deletes the indentation at
+the front of the current line, and the line boundary as well,
+replacing them with a single space.  As a special case (useful for
+Lisp code) the single space is omitted if the characters to be joined
+are consecutive open parentheses or closing parentheses, or if the
+junction follows another newline.  To delete just the indentation of a
+line, go to the beginning of the line and use @kbd{M-\}
 (@code{delete-horizontal-space}), which deletes all spaces and tabs
 around the cursor.
 
@@ -140,12 +140,12 @@ shifted left or right so that its first nonblank character appears in
 that column.  @kbd{C-x @key{TAB}} (@code{indent-rigidly}) moves all of
 the lines in the region right by its argument (left, for negative
 arguments).  The whole group of lines moves rigidly sideways, which is
-how the command gets its name.@refill
+how the command gets its name.
 
 @cindex remove indentation
-  If you want to remove all indentation from all of the line in the
-region, invoke @kbd{C-x @key{TAB}} with a large negative argument,
-such as -1000.
+  To remove all indentation from all of the lines in the region,
+invoke @kbd{C-x @key{TAB}} with a large negative argument, such as
+-1000.
 
 @findex indent-relative
   @kbd{M-x indent-relative} indents at point based on the previous line
