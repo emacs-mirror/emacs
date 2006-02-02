@@ -1395,7 +1395,8 @@ You can customize `cua-enable-cua-keys' to completely disable the
 CUA bindings, or `cua-prefix-override-inhibit-delay' to change
 the prefix fallback behavior.
 
-CUA enables `transient-mark-mode' to highlight the region; if you
+CUA mode manages Transient Mark mode internally.  Trying to disable
+Transient Mark mode while CUA mode is enabled does not work; if you
 only want to highlight the region when it is selected using a
 shifted movement key, set `cua-highlight-region-shift-only'."
   :global t
