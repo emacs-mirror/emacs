@@ -1,3 +1,12 @@
+2006-02-02  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuffer.el (ibuffer-compressed-file-name-regexp): New defcustom.
+	(ibuffer-fontification-alist): Use it.
+	(ibuffer-mode-map): Bind `ibuffer-mark-compressed-file-buffers'
+	to "* z" and the Ibuffer Mark menu.
+
+	* ibuf-ext.el (ibuffer-mark-compressed-file-buffers): New command.
+
 2006-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/table.el (*table--cell-describe-mode)
