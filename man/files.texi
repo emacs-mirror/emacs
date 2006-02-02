@@ -143,7 +143,7 @@ file names read as such using the minibuffer.
 
   You can include non-@acronym{ASCII} characters in file names if you set the
 variable @code{file-name-coding-system} to a non-@code{nil} value.
-@xref{Specify Coding}.
+@xref{File Name Coding}.
 
 @node Visiting
 @section Visiting Files
@@ -962,7 +962,7 @@ continuously displayed.  To do this, just move the point to the end of
 the buffer, and it will stay there as the file contents change.
 However, if you are sure that the file will only change by growing at
 the end, use Auto-Revert Tail mode instead
-(@vcode{auto-revert-tail-mode}).  It is more efficient for this.
+(@code{auto-revert-tail-mode}).  It is more efficient for this.
 
 @vindex auto-revert-interval
   The variable @code{auto-revert-interval} controls how often to check
