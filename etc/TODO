@@ -123,6 +123,8 @@ to the FSF.
 
 * Other features we would like:
 
+** Give Tar mode all the features of Archive mode.
+
 ** Create a category of errors called `process-error'
   for some or all errors associated with using subprocesses.
 

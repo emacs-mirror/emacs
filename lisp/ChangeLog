@@ -1,3 +1,9 @@
+2006-02-01  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (move-beginning-of-line): Scan properly for invis change.
+
+	* replace.el (multi-occur-in-matching-buffers): Fix prev change.
+
 2006-02-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-convert-file-attributes): Set file's gid
