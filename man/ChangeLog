@@ -1,3 +1,17 @@
+2006-02-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Frame Parameters): Remove @item for S-Mouse-1; it
+	is not inside the @table.
+
+	* emacs.texi (Top): Correct node name.
+
+	* files.texi (File Names): Fix @xref.
+	(Reverting): Fix typo.
+
+	* mule.texi (International): Correct node name.
+
+	* kmacro.texi (Save Keyboard Macro): Add missing @kbd to @table.
+
 2006-02-01  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs.texi (Top): Update subnode menu.
