@@ -52,6 +52,7 @@
 	(rcirc-cmd-ignore, rcirc-browse-url, rcirc-url-regexp):
 	Fix typos in docstrings.
 	(rcirc-print): "?\ " -> "?\s".
+	(rcirc-cmd-join): Improve argument/docstring consistency.
 
 2006-02-01  Mark A. Hershberger  <mah@everybody.org>
 
