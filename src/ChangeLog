@@ -1,3 +1,8 @@
+2006-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_composition_emacs_mule): Fix handling of
+	incorrect format data.
+
 2006-01-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Use new tool bar functions
