@@ -710,7 +710,6 @@ whether that feature is also in use for the same buffer name.
 @cindex Auto-Lower mode
 
 @kindex S-Mouse-1
-@item S-Mouse-1
   You can specify the font and colors used for text display, and the
 colors for the frame borders, the cursor, and the mouse cursor, by
 customizing the faces @code{default}, @code{border}, @code{cursor} and
