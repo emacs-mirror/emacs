@@ -548,7 +548,7 @@ backup from the previous contents, and arranges to make another from the
 newly saved contents if you save again.
 
 @menu
-* One or More: Numbered Backups. Whether to make one backup file or many.
+* One or Many: Numbered Backups. Whether to make one backup file or many.
 * Names: Backup Names.		How backup files are named.
 * Deletion: Backup Deletion.	Emacs deletes excess numbered backups.
 * Copying: Backup Copying.	Backups can be made by copying or renaming.
