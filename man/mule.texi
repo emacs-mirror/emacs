@@ -93,7 +93,7 @@ to make sure Emacs interprets keyboard input correctly; see
                               write files, and so on.
 * Recognize Coding::        How Emacs figures out which conversion to use.
 * Text Coding::             Choosing conversion to use for file text.
-* Communications Coding::   Coding systems for interprocess communication.
+* Communication Coding::    Coding systems for interprocess communication.
 * File Name Coding::        Coding systems for file @emph{names}.
 * Terminal Coding::         Specifying coding systems for converting
                               terminal input and output.
