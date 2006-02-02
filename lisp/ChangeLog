@@ -1,3 +1,7 @@
+2006-02-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emulation/cua-base.el (cua-mode): Doc fix.
+
 2006-02-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dframe.el (dframe-handle-make-frame-visible)
