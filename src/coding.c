@@ -872,7 +872,7 @@ decode_composition_emacs_mule (coding, src, src_end,
 	  component[ncomponent] = c;
 	}
     }
-  else
+  else if (c >= 0x80)
     {
       /* This may be an old Emacs 20 style format.  See the comment at
 	 the section 2 of this file.  */
@@ -924,6 +924,8 @@ decode_composition_emacs_mule (coding, src, src_end,
       else
 	return 0;
     }
+  else
+    return 0;
 
   if (buf == bufp || dst + (bufp - buf) <= (dst_bytes ? dst_end : src))
     {
