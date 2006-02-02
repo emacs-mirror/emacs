@@ -1,3 +1,10 @@
+2006-02-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hi-lock.el (hi-lock-mode, hi-lock-line-face-buffer)
+	(hi-lock-face-buffer, hi-lock-font-lock-hook)
+	(hi-lock-archaic-interface-message-used)
+	(hi-lock-file-patterns-range): Fix typos in docstrings.
+
 2006-02-01  Mark A. Hershberger  <mah@everybody.org>
 
 	* xml.el (xml-parse-region): Move save-excursion and set-buffer up
