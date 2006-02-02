@@ -431,7 +431,7 @@ register as a counter, incrementing it on each repetition of the macro.
 @node Save Keyboard Macro
 @section Naming and Saving Keyboard Macros
 
-@table
+@table @kbd
 @item C-x C-k n
 Give a command name (for the duration of the Emacs session) to the most
 recently defined keyboard macro (@code{kmacro-name-last-macro}).
