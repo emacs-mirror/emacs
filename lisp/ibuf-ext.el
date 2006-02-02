@@ -1,7 +1,7 @@
 ;;; ibuf-ext.el --- extensions for ibuffer
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -1447,6 +1447,17 @@ You can then feed the file name(s) to other commands with \\[yank]."
    #'(lambda (buf)
        (with-current-buffer buf
 	 (memq major-mode ibuffer-help-buffer-modes)))))
+
+;;;###autoload
+(defun ibuffer-mark-compressed-file-buffers ()
+  "Mark buffers whose associated file is compressed."
+  (interactive)
+  (ibuffer-mark-on-buffer
+   #'(lambda (buf)
+       (with-current-buffer buf
+	 (and buffer-file-name
+	      (string-match ibuffer-compressed-file-name-regexp
+			   buffer-file-name))))))
 
 ;;;###autoload
 (defun ibuffer-mark-old-buffers ()
