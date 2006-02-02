@@ -1,9 +1,34 @@
 2006-02-02  Juanma Barranquero  <lekktu@gmail.com>
 
+	* dframe.el (dframe-handle-make-frame-visible)
+	(dframe-handle-iconify-frame, dframe-get-focus)
+	(dframe-select-attached-frame, dframe-power-click)
+	(dframe-frame-mode): Fix typos in docstrings.
+
+	* ezimage.el (ezimage-mail, ezimage-object-out-of-date)
+	(ezimage-insert-image-button-maybe, ezimage-insert-over-text):
+	Fix typos in docstrings.
+
 	* hi-lock.el (hi-lock-mode, hi-lock-line-face-buffer)
 	(hi-lock-face-buffer, hi-lock-font-lock-hook)
 	(hi-lock-archaic-interface-message-used)
 	(hi-lock-file-patterns-range): Fix typos in docstrings.
+
+	* savehist.el (savehist-loaded, savehist-load, savehist-install)
+	(savehist-autosave, savehist-trim-history): Fix typos in
+	docstrings.
+
+	* mail/mailclient.el (mailclient-place-body-on-clipboard-flag):
+	Fix typo in docstring.
+
+	* net/rcirc.el (rcirc-debug): Fix docstring.
+	(rcirc-fill-column, rcirc-receive-message-hooks)
+	(rcirc-browse-url-map, rcirc-read-only-flag, rcirc-prompt)
+	(rcirc-mode, rcirc-generate-new-buffer-name)
+	(rcirc-startup-channels, rcirc-ignore-update-automatic)
+	(rcirc-cmd-ignore, rcirc-browse-url, rcirc-url-regexp):
+	Fix typos in docstrings.
+	(rcirc-print): "?\ " -> "?\s".
 
 2006-02-01  Mark A. Hershberger  <mah@everybody.org>
 
