@@ -1,3 +1,9 @@
+2006-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/table.el (*table--cell-describe-mode)
+	(*table--cell-describe-bindings): Undo last change since
+	print-help-return-message is not obsoleted by anything at all.
+
 2006-02-02  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emulation/cua-base.el (cua-mode): Doc fix.
@@ -19,8 +25,7 @@
 	(hi-lock-file-patterns-range): Fix typos in docstrings.
 
 	* savehist.el (savehist-loaded, savehist-load, savehist-install)
-	(savehist-autosave, savehist-trim-history): Fix typos in
-	docstrings.
+	(savehist-autosave, savehist-trim-history): Fix typos in docstrings.
 
 	* mail/mailclient.el (mailclient-place-body-on-clipboard-flag):
 	Fix typo in docstring.
@@ -66,7 +71,7 @@
 2006-01-31  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (multi-occur): Doc fix.
-	(multi-occur-in-matching-buffers): Renamed from
+	(multi-occur-in-matching-buffers): Rename from
 	multi-occur-by-filename-regexp.  Prefix arg says match
 	buffer names instead of file names.
 
