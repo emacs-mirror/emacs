@@ -1,3 +1,8 @@
+2006-02-01  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-parse-region): Move save-excursion and set-buffer up
+	before narrow-to-region.
+
 2006-02-01  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (move-beginning-of-line): Scan properly for invis change.
