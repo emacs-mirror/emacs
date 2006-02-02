@@ -306,16 +306,16 @@ is not well-formed XML.
 If PARSE-DTD is non-nil, the DTD is parsed rather than skipped,
 and returned as the first element of the list.
 If PARSE-NS is non-nil, then QNAMES are expanded."
-  (save-excursion
-    (if buffer
-	(set-buffer buffer))
-    (save-restriction
-      (narrow-to-region beg end)
-      ;; Use fixed syntax table to ensure regexp char classes and syntax
-      ;; specs DTRT.
-      (with-syntax-table (standard-syntax-table)
-	(let ((case-fold-search nil)	; XML is case-sensitive.
-	      xml result dtd)
+  ;; Use fixed syntax table to ensure regexp char classes and syntax
+  ;; specs DTRT.
+  (with-syntax-table (standard-syntax-table)
+    (let ((case-fold-search nil)	; XML is case-sensitive.
+ 	  xml result dtd)
+      (save-excursion
+ 	(if buffer
+ 	    (set-buffer buffer))
+ 	(save-restriction
+ 	  (narrow-to-region beg end)
 	  (goto-char (point-min))
 	  (while (not (eobp))
 	    (if (search-forward "<" nil t)
