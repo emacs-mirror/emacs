@@ -30,7 +30,21 @@
 	* mail/mailclient.el (mailclient-place-body-on-clipboard-flag):
 	Fix typo in docstring.
 
-	* net/rcirc.el (rcirc-debug): Fix docstring.
+	* net/newsticker.el (newsticker--decode-iso8601-date)
+	(newsticker--set-customvar, newsticker--buffer-insert-item)
+	(newsticker--do-run-auto-mark-filter)
+	(newsticker--parse-generic-feed): Doc fixes.
+	(newsticker--retrieval-timer-list, newsticker-url-list)
+	(newsticker-hide-immortal-items-in-echo-area)
+	(newsticker-hide-obsolete-items-in-echo-area)
+	(newsticker-new-item-face, newsticker--enclosure)
+	(newsticker-buffer-update, newsticker-w3m-show-inline-images)
+	(newsticker--parse-atom-0.3, newsticker--parse-rss-1.0)
+	(newsticker--parse-generic-feed, newsticker--cache-contains)
+	(newsticker--stat-num-items, newsticker-download-enclosures):
+	Fix typos in docstrings.
+
+	* net/rcirc.el (rcirc-debug): Doc fix.
 	(rcirc-fill-column, rcirc-receive-message-hooks)
 	(rcirc-browse-url-map, rcirc-read-only-flag, rcirc-prompt)
 	(rcirc-mode, rcirc-generate-new-buffer-name)
