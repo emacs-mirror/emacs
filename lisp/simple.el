@@ -3743,7 +3743,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
     ;; Move to beginning-of-line, ignoring fields and invisibles.
     (skip-chars-backward "^\n")
     (while (and (not (bobp)) (line-move-invisible-p (1- (point))))
-      (goto-char (previous-char-property-change (1- (point))))
+      (goto-char (previous-char-property-change (point)))
       (skip-chars-backward "^\n"))
 
     ;; Take care of fields.
