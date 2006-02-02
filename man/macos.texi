@@ -130,7 +130,7 @@ One can still do copy and paste with another application from the Edit
 menu.
 
   On Mac, the role of the coding system for selection that is set by
-@code{set-selection-coding-system} (@pxref{Specify Coding}) is
+@code{set-selection-coding-system} (@pxref{Communication Coding}) is
 two-fold.  First, it is used as a preferred coding system for the
 traditional text flavor that does not specify any particular encodings
 and is mainly used by applications on Mac OS Classic.  Second, it
