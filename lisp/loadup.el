@@ -60,10 +60,10 @@
 (load "widget")
 (load "custom")
 (load "emacs-lisp/map-ynp")
-(load "env")
 (load "cus-start")
 (load "international/mule")
 (load "international/mule-conf.el") ;Don't get confused if someone compiled this by mistake.
+(load "env")
 (load "format")
 (load "bindings")
 (setq load-source-file-function 'load-with-code-conversion)
