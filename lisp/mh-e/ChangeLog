@@ -1,5 +1,9 @@
 2006-02-03  Bill Wohler  <wohler@newt.com>
 
+	* mh-utils.el (mh-image-load-path, mh-image-load-path-called-flag)
+	(mh-image-load-path): Checkdoc fix. Docstring edits. Reduce scope
+	of local variable mh-library-name.
+
 	* mh-e.el (mh-folder-msg-number, mh-folder-refiled, mh-folder-to)
 	(mh-show-cc, mh-show-date, mh-show-header): Replace (min-colors
 	88) with (min-colors 64) in face specifications so that MH-E still
