@@ -583,6 +583,10 @@ themselves to do with minibuffers.  We describe them in this chapter
 so as to keep them near the higher-level completion features that do
 use the minibuffer.
 
+  If you store a completion alist in a variable, you should mark the
+variable as ``risky'' with a non-@code{nil}
+@code{risky-local-variable} property.
+
 @defun try-completion string collection &optional predicate
 This function returns the longest common substring of all possible
 completions of @var{string} in @var{collection}.  The value of

@@ -1375,14 +1375,14 @@ Also, clear the overlay arrow if the current buffer is now hidden."
     (when (not existing-buffer)
       (rcirc-cmd-whois nick))))
 
-(defun-rcirc-command join (args)
+(defun-rcirc-command join (channel)
   "Join CHANNEL."
   (interactive "sJoin channel: ")
-  (let* ((channel (car (split-string args)))
-         (buffer (rcirc-get-buffer-create process channel)))
+  (let ((buffer (rcirc-get-buffer-create process
+                                         (car (split-string channel)))))
     (when (not (eq (selected-window) (minibuffer-window)))
       (funcall rcirc-switch-to-buffer-function buffer))
-    (rcirc-send-string process (concat "JOIN " args))))
+    (rcirc-send-string process (concat "JOIN " channel))))
 
 (defun-rcirc-command part (channel)
   "Part CHANNEL."

@@ -800,17 +800,13 @@ using `make-temp-file', and the generated name is returned."
 	      (archive-name
 	       (or (and archive-subfile-mode (aref archive-subfile-mode 0))
 		   archive)))
-	  (make-directory archive-tmpdir t)
-	  ;; If ARCHIVE includes leading directories, make sure they
-	  ;; exist under archive-tmpdir.
-	  (let ((arch-dir (file-name-directory archive)))
-	    (if arch-dir
-		(make-directory (concat
-				 (file-name-as-directory archive-tmpdir)
-				 arch-dir)
-				t)))
 	  (setq archive-local-name
 		(archive-unique-fname archive-name archive-tmpdir))
+	  ;; Maked sure all the leading directories in
+	  ;; archive-local-name exist under archive-tmpdir, so that
+	  ;; the directory structure recorded in the archive is
+	  ;; reconstructed in the temporary directory.
+	  (make-directory (file-name-directory archive-local-name) t)
 	  (save-restriction
 	    (widen)
 	    (write-region start (point-max) archive-local-name nil 'nomessage))

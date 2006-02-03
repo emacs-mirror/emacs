@@ -4076,7 +4076,7 @@ fit in the cell width the word is folded into the next line.  The
 folded location is marked by a continuation character which is
 specified in the variable `table-word-continuation-char'.
 ")
-      (help-print-return-message))))
+      (print-help-return-message))))
 
 (defun *table--cell-describe-bindings ()
   "Table cell version of `describe-bindings'."
@@ -4094,7 +4094,7 @@ key             binding
 			       (key-description (car binding))
 			       (cdr binding))))
 	      table-cell-bindings)
-      (help-print-return-message))))
+      (print-help-return-message))))
 
 (defun *table--cell-dabbrev-expand (arg)
   "Table cell version of `dabbrev-expand'."

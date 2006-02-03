@@ -64,6 +64,7 @@ The frame is displayed on an MS-DOS terminal.
 * Dialog Boxes::                Displaying a box to ask yes or no.
 * Pointer Shapes::              Specifying the shape of the mouse pointer.
 * Window System Selections::    Transferring text to and from other X clients.
+* Drag and Drop::               Internals of Drag-and-Drop implementation.
 * Color Names::	                Getting the definitions of color names.
 * Text Terminal Colors::        Defining colors for text-only terminals.
 * Resources::		        Getting resource values from the server.
@@ -469,7 +470,7 @@ frame, or control their sizes.
 The width in pixels of the frame's border.
 
 @item internal-border-width
-The distance in pixels between text and the frame's border.
+The distance in pixels between text (or fringe) and the frame's border.
 
 @item vertical-scroll-bars
 Whether the frame has scroll bars for vertical scrolling, and which side
@@ -1684,6 +1685,35 @@ the clipboard as well as the primary selection.  Otherwise they do not
 access the clipboard at all.  The default is @code{nil} on most systems,
 but @code{t} on MS-Windows.
 @end defopt
+
+@node Drag and Drop
+@section Drag and Drop
+
+@vindex x-dnd-test-function
+@vindex x-dnd-known-types
+  When a user drags something from another application over Emacs, that other
+application expects Emacs to tell it if Emacs can handle the data that is
+dragged.  The variable @code{x-dnd-test-function} is used by Emacs to determine
+what to reply.  The default value is @code{x-dnd-default-test-function}
+which accepts drops if the type of the data to be dropped is present in
+@code{x-dnd-known-types}.  You can customize @code{x-dnd-test-function} and/or
+@code{x-dnd-known-types} if you want Emacs to accept or reject drops based
+on some other criteria.
+
+@vindex x-dnd-types-alist
+  If you want to change the way Emacs handles drop of different types
+or add a new type, customize @code{x-dnd-types-alist}.  This requires
+detailed knowledge of what types other applications use for drag and
+drop.
+
+@vindex dnd-protocol-alist
+  When an URL is dropped on Emacs it may be a file, but it may also be
+another URL type (ftp, http, etc.).  Emacs first checks
+@code{dnd-protocol-alist} to determine what to do with the URL.  If
+there is no match there and if @code{browse-url-browser-function} is
+an alist, Emacs looks for a match there.  If no match is found the
+text for the URL is inserted.  If you want to alter Emacs behavior,
+you can customize these variables.
 
 @node Color Names
 @section Color Names

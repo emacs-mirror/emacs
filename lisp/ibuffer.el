@@ -1,7 +1,7 @@
 ;;; ibuffer.el --- operate on buffers like dired
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -142,12 +142,16 @@ elisp byte-compiler."
 
 (defcustom ibuffer-fontification-alist
   `((10 buffer-read-only font-lock-constant-face)
-    (15 (string-match "^*" (buffer-name)) font-lock-keyword-face)
-    (20 (and (string-match "^ " (buffer-name))
+    (15 (and buffer-file-name
+	     (string-match ibuffer-compressed-file-name-regexp
+			   buffer-file-name))
+	font-lock-doc-face)
+    (20 (string-match "^*" (buffer-name)) font-lock-keyword-face)
+    (25 (and (string-match "^ " (buffer-name))
 	     (null buffer-file-name))
 	italic)
-    (25 (memq major-mode ibuffer-help-buffer-modes) font-lock-comment-face)
-    (30 (eq major-mode 'dired-mode) font-lock-function-name-face))
+    (30 (memq major-mode ibuffer-help-buffer-modes) font-lock-comment-face)
+    (35 (eq major-mode 'dired-mode) font-lock-function-name-face))
   "An alist describing how to fontify buffers.
 Each element should be of the form (PRIORITY FORM FACE), where
 PRIORITY is an integer, FORM is an arbitrary form to evaluate in the
@@ -320,6 +324,14 @@ directory, like `default-directory'."
   :type '(repeat function)
   :group 'ibuffer)
 
+(defcustom ibuffer-compressed-file-name-regexp
+  (concat "\\.\\("
+	(regexp-opt '("arj" "bgz" "bz2" "gz" "lzh" "taz" "tgz" "zip" "z"))
+	"\\)$")
+  "Regexp to match compressed file names."
+  :type 'regexp
+  :group 'ibuffer)
+
 (defcustom ibuffer-hook nil
   "Hook run when `ibuffer' is called."
   :type 'hook
@@ -403,6 +415,7 @@ directory, like `default-directory'."
     (define-key map (kbd "* /") 'ibuffer-mark-dired-buffers)
     (define-key map (kbd "* e") 'ibuffer-mark-dissociated-buffers)
     (define-key map (kbd "* h") 'ibuffer-mark-help-buffers)
+    (define-key map (kbd "* z") 'ibuffer-mark-compressed-file-buffers)
     (define-key map (kbd ".") 'ibuffer-mark-old-buffers)
 
     (define-key map (kbd "d") 'ibuffer-mark-for-delete)
@@ -718,6 +731,9 @@ directory, like `default-directory'."
     (define-key-after map [menu-bar mark mark-help-buffers]
       '(menu-item "Mark help buffers" ibuffer-mark-help-buffers
 		  :help "Mark buffers in help-mode"))
+    (define-key-after map [menu-bar mark mark-compressed-file-buffers]
+      '(menu-item "Mark compressed file buffers" ibuffer-mark-compressed-file-buffers
+		  :help "Mark buffers which have a file that is compressed"))
     (define-key-after map [menu-bar mark mark-old-buffers]
       '(menu-item "Mark old buffers" ibuffer-mark-old-buffers
 		  :help "Mark buffers which have not been viewed recently"))
