@@ -5329,6 +5329,10 @@ static int (* get_next_element[NUM_IT_METHODS]) P_ ((struct it *it)) =
    display element from the current position of IT.  Value is zero if
    end of buffer (or C string) is reached.  */
 
+static struct frame *last_escape_glyph_frame = NULL;
+static unsigned last_escape_glyph_face_id = (1 << FACE_ID_BITS);
+static int last_escape_glyph_merged_face_id = 0;
+
 int
 get_next_display_element (it)
      struct it *it;
@@ -5445,11 +5449,19 @@ get_next_display_element (it)
 		       face_id = merge_faces (it->f, Qt, lface_id,
 					      it->face_id);
 		    }
+		  else if (it->f == last_escape_glyph_frame
+			   && it->face_id == last_escape_glyph_face_id)
+		    {
+		      face_id = last_escape_glyph_merged_face_id;
+		    }
 		  else
 		    {
 		      /* Merge the escape-glyph face into the current face.  */
 		      face_id = merge_faces (it->f, Qescape_glyph, 0,
 					     it->face_id);
+		      last_escape_glyph_frame = it->f;
+		      last_escape_glyph_face_id = it->face_id;
+		      last_escape_glyph_merged_face_id = face_id;
 		    }
 
 		  XSETINT (it->ctl_chars[0], g);
@@ -5496,11 +5508,19 @@ get_next_display_element (it)
 		  face_id = merge_faces (it->f, Qt, lface_id,
 					 it->face_id);
 		}
+	      else if (it->f == last_escape_glyph_frame
+		       && it->face_id == last_escape_glyph_face_id)
+		{
+		  face_id = last_escape_glyph_merged_face_id;
+		}
 	      else
 		{
 		  /* Merge the escape-glyph face into the current face.  */
 		  face_id = merge_faces (it->f, Qescape_glyph, 0,
 					 it->face_id);
+		  last_escape_glyph_frame = it->f;
+		  last_escape_glyph_face_id = it->face_id;
+		  last_escape_glyph_merged_face_id = face_id;
 		}
 
 	      /* Handle soft hyphens in the mode where they only get
@@ -5694,6 +5714,8 @@ set_iterator_to_next (it, reseat_p)
 
       if (it->dpvec + it->current.dpvec_index == it->dpend)
 	{
+	  int recheck_faces = it->ellipsis_p;
+
 	  if (it->s)
 	    it->method = GET_FROM_C_STRING;
 	  else if (STRINGP (it->string))
@@ -5716,8 +5738,9 @@ set_iterator_to_next (it, reseat_p)
 	      set_iterator_to_next (it, reseat_p);
 	    }
 
-	  /* Recheck faces after display vector */
-	  it->stop_charpos = IT_CHARPOS (*it);
+	  /* Maybe recheck faces after display vector */
+	  if (recheck_faces)
+	    it->stop_charpos = IT_CHARPOS (*it);
 	}
       break;
 
@@ -10545,6 +10568,8 @@ redisplay_internal (preserve_echo_area)
  retry:
   pause = 0;
   reconsider_clip_changes (w, current_buffer);
+  last_escape_glyph_frame = NULL;
+  last_escape_glyph_face_id = (1 << FACE_ID_BITS);
 
   /* If new fonts have been loaded that make a glyph matrix adjustment
      necessary, do it.  */
