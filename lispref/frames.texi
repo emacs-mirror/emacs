@@ -1714,7 +1714,6 @@ there is no match there and if @code{browse-url-browser-function} is
 an alist, Emacs looks for a match there.  If no match is found the
 text for the URL is inserted.  If you want to alter Emacs behavior,
 you can customize these variables.
-@end ignore
 
 @node Color Names
 @section Color Names
