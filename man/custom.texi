@@ -2029,8 +2029,9 @@ Reference Manual}.
 @cindex startup (init file)
 
   When Emacs is started, it normally loads a Lisp program from the
-file @file{.emacs} or @file{.emacs.el} in your home directory.  We
-call this file your @dfn{init file} because it specifies how to
+file @file{.emacs} or @file{.emacs.el} in your home directory
+(see @ref{General Variables, HOME} if you don't know where that is).
+We call this file your @dfn{init file} because it specifies how to
 initialize Emacs for you.  You can use the command line switch
 @samp{-q} to prevent loading your init file, and @samp{-u} (or
 @samp{--user}) to specify a different user's init file (@pxref{Initial
@@ -2442,11 +2443,12 @@ library.  @xref{Hooks}.
 @node Find Init
 @subsection How Emacs Finds Your Init File
 
-  Normally Emacs uses the environment variable @env{HOME} to find
-@file{.emacs}; that's what @samp{~} means in a file name.  If
-@file{.emacs} is not found inside @file{~/} (nor @file{.emacs.el}),
-Emacs looks for @file{~/.emacs.d/init.el} (which, like
-@file{~/.emacs.el}, can be byte-compiled).
+  Normally Emacs uses the environment variable @env{HOME}
+(@pxref{General Variables, HOME}) to find @file{.emacs}; that's what
+@samp{~} means in a file name.  If @file{.emacs} is not found inside
+@file{~/} (nor @file{.emacs.el}), Emacs looks for
+@file{~/.emacs.d/init.el} (which, like @file{~/.emacs.el}, can be
+byte-compiled).
 
   However, if you run Emacs from a shell started by @code{su}, Emacs
 tries to find your own @file{.emacs}, not that of the user you are
