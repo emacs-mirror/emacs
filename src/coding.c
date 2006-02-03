@@ -8933,8 +8933,11 @@ usage: (define-coding-system-internal ...)  */)
 	  ASET (this_spec, 2, this_eol_type);
 	  Fputhash (this_name, this_spec, Vcoding_system_hash_table);
 	  Vcoding_system_list = Fcons (this_name, Vcoding_system_list);
-	  Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (this_name), Qnil),
-					Vcoding_system_alist);
+	  val = Fassoc (Fsymbol_name (this_name), Vcoding_system_alist);
+	  if (NILP (val))
+	    Vcoding_system_alist
+	      = Fcons (Fcons (Fsymbol_name (this_name), Qnil),
+		       Vcoding_system_alist);
 	}
     }
 
@@ -8944,8 +8947,10 @@ usage: (define-coding-system-internal ...)  */)
 
   Fputhash (name, spec_vec, Vcoding_system_hash_table);
   Vcoding_system_list = Fcons (name, Vcoding_system_list);
-  Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (name), Qnil),
-				Vcoding_system_alist);
+  val = Fassoc (Fsymbol_name (name), Vcoding_system_alist);
+  if (NILP (val))
+    Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (name), Qnil),
+				  Vcoding_system_alist);
 
   {
     int id = coding_categories[category].id;
@@ -9026,7 +9031,7 @@ DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
      (alias, coding_system)
      Lisp_Object alias, coding_system;
 {
-  Lisp_Object spec, aliases, eol_type;
+  Lisp_Object spec, aliases, eol_type, val;
 
   CHECK_SYMBOL (alias);
   CHECK_CODING_SYSTEM_GET_SPEC (coding_system, spec);
@@ -9052,8 +9057,10 @@ DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
 
   Fputhash (alias, spec, Vcoding_system_hash_table);
   Vcoding_system_list = Fcons (alias, Vcoding_system_list);
-  Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (alias), Qnil),
-				Vcoding_system_alist);
+  val = Fassoc (Fsymbol_name (alias), Vcoding_system_alist);
+  if (NILP (val))
+    Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (alias), Qnil),
+				  Vcoding_system_alist);
 
   return Qnil;
 }
