@@ -1,3 +1,9 @@
+2006-02-03  Mark D. Baushke  <mdb@gnu.org>
+
+	* mh-tool-bar.el: Add conditional require of 'tool-bar or 'toolbar
+	for gnu-emacs or xemacs to avoid void-variable tool-bar-map lisp
+	errors if describe-bindings is called before tool-bar-mode is used.
+
 2006-02-03  Peter S Galbraith  <psg@debian.org>
 
 	* mh-compat.el (mh-url-unreserved-chars): Fix typo from

@@ -31,6 +31,10 @@
 ;;; Code:
 
 (require 'mh-e)
+(mh-do-in-gnu-emacs
+  (require 'tool-bar))
+(mh-do-in-xemacs
+  (require 'toolbar))
 
 ;;; Tool Bar Commands
 
