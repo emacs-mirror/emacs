@@ -51,11 +51,6 @@ used in lieu of `search' in the CL package."
 
 ;;; General Utilities
 
-(require 'mailabbrev nil t)
-(mh-defun-compat mail-abbrev-make-syntax-table ()
-  "Emacs 21 and XEmacs don't have this function."
-  nil)
-
 ;;;###mh-autoload
 (defun mh-beginning-of-word (&optional n)
   "Return position of the N th word backwards."
@@ -63,7 +58,7 @@ used in lieu of `search' in the CL package."
   (let ((syntax-table (syntax-table)))
     (unwind-protect
         (save-excursion
-          (mail-abbrev-make-syntax-table)
+          (mh-mail-abbrev-make-syntax-table)
           (set-syntax-table mail-abbrev-syntax-table)
           (backward-word n)
           (point))
@@ -73,7 +68,7 @@ used in lieu of `search' in the CL package."
 (defun mh-colors-available-p ()
   "Check if colors are available in the Emacs being used."
   (or mh-xemacs-flag
-      (let ((color-cells (display-color-cells)))
+      (let ((color-cells (mh-display-color-cells)))
         (and (numberp color-cells) (>= color-cells 8)))))
 
 ;;;###mh-autoload
@@ -507,8 +502,8 @@ not be returned."
     ;; top-level folders; otherwise mh-sub-folders returns all the
     ;; files in / if given an empty string or +.
     (when folder
-      (setq folder (replace-regexp-in-string "^\+" "" folder))
-      (setq folder (replace-regexp-in-string "/*$" "/" folder))
+      (setq folder (mh-replace-regexp-in-string "^\+" "" folder))
+      (setq folder (mh-replace-regexp-in-string "/*$" "/" folder))
       (if (equal folder "")
         (setq folder nil)))
     (loop for f in (mh-sub-folders folder) do
@@ -558,9 +553,10 @@ directories that aren't usually mail folders are hidden."
       (apply #'call-process arg-list)
       (goto-char (point-min))
       (while (not (and (eolp) (bolp)))
-        (goto-char (line-end-position))
-        (let ((start-pos (line-beginning-position))
-              (has-pos (search-backward " has " (line-beginning-position) t)))
+        (goto-char (mh-line-end-position))
+        (let ((start-pos (mh-line-beginning-position))
+              (has-pos (search-backward " has "
+                                        (mh-line-beginning-position) t)))
           (when (integerp has-pos)
             (while (equal (char-after has-pos) ? )
               (decf has-pos))
@@ -575,7 +571,7 @@ directories that aren't usually mail folders are hidden."
                   (setq name (substring name 0 (1- (length name)))))
                 (push
                  (cons name
-                       (search-forward "(others)" (line-end-position) t))
+                       (search-forward "(others)" (mh-line-end-position) t))
                  results))))
           (forward-line 1))))
     (setq results (nreverse results))
@@ -817,8 +813,6 @@ current buffer."
           (buffer-substring-no-properties start (point))))
     ""))
 
-(fset 'mh-get-field 'mh-get-header-field) ;MH-E 4 compatibility
-
 ;;;###mh-autoload
 (defun mh-goto-header-field (field)
   "Move to FIELD in the message header.
@@ -934,10 +928,12 @@ is hidden, if positive then the field is displayed."
       (unwind-protect
           (cond ((or (and (not arg)
                           (text-property-any begin end 'invisible 'vanish))
-                     (and (numberp arg) (>= arg 0))
-                     (and (eq arg 'long) (> (line-beginning-position 5) end)))
+                     (and (numberp arg)
+                          (>= arg 0))
+                     (and (eq arg 'long)
+                          (> (mh-line-beginning-position 5) end)))
                  (remove-text-properties begin end '(invisible nil))
-                 (search-forward ":" (line-end-position) t)
+                 (search-forward ":" (mh-line-end-position) t)
                  (mh-letter-skip-leading-whitespace-in-header-field))
                 ;; XXX Redesign to make usable by user. Perhaps use a positive
                 ;; numeric prefix to make that many lines visible.

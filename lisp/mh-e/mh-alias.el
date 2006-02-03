@@ -125,10 +125,10 @@ COMMA-SEPARATOR is non-nil."
         (setq res (match-string 1 res)))
     ;; Replace "&" with capitalized username
     (if (string-match "&" res)
-        (setq res (replace-regexp-in-string "&" (capitalize username) res)))
+        (setq res (mh-replace-regexp-in-string "&" (capitalize username) res)))
     ;; Remove " character
     (if (string-match "\"" res)
-        (setq res (replace-regexp-in-string "\"" "" res)))
+        (setq res (mh-replace-regexp-in-string "\"" "" res)))
     ;; If empty string, use username instead
     (if (string-equal "" res)
         (setq res username))
@@ -169,7 +169,7 @@ Exclude all aliases already in `mh-alias-alist' from \"ali\""
                     (if (string-equal username realname)
                         (concat "<" username ">")
                       (concat realname " <" username ">"))))
-              (when (not (assoc-string alias-name mh-alias-alist t))
+              (when (not (mh-assoc-string alias-name mh-alias-alist t))
                 (setq passwd-alist (cons (list alias-name alias-translation)
                                          passwd-alist)))))))
         (forward-line 1)))
@@ -198,12 +198,12 @@ been loaded."
       (cond
        ((looking-at "^[ \t]"))          ;Continuation line
        ((looking-at "\\(.+\\): .+: .*$") ; A new -blind- MH alias
-        (when (not (assoc-string (match-string 1) mh-alias-blind-alist t))
+        (when (not (mh-assoc-string (match-string 1) mh-alias-blind-alist t))
           (setq mh-alias-blind-alist
                 (cons (list (match-string 1)) mh-alias-blind-alist))
           (setq mh-alias-alist (cons (list (match-string 1)) mh-alias-alist))))
        ((looking-at "\\(.+\\): .*$")    ; A new MH alias
-        (when (not (assoc-string (match-string 1) mh-alias-alist t))
+        (when (not (mh-assoc-string (match-string 1) mh-alias-alist t))
           (setq mh-alias-alist
                 (cons (list (match-string 1)) mh-alias-alist)))))
       (forward-line 1)))
@@ -214,7 +214,7 @@ been loaded."
           user)
       (while local-users
         (setq user (car local-users))
-        (if (not (assoc-string (car user) mh-alias-alist t))
+        (if (not (mh-assoc-string (car user) mh-alias-alist t))
             (setq mh-alias-alist (append mh-alias-alist (list user))))
         (setq local-users (cdr local-users)))))
   (run-hooks 'mh-alias-reloaded-hook)
@@ -251,15 +251,15 @@ returns the string unchanged if not defined. The same is done here."
   "Return expansion for ALIAS.
 Blind aliases or users from /etc/passwd are not expanded."
   (cond
-   ((assoc-string alias mh-alias-blind-alist t)
+   ((mh-assoc-string alias mh-alias-blind-alist t)
     alias)                              ; Don't expand a blind alias
-   ((assoc-string alias mh-alias-passwd-alist t)
-    (cadr (assoc-string alias mh-alias-passwd-alist t)))
+   ((mh-assoc-string alias mh-alias-passwd-alist t)
+    (cadr (mh-assoc-string alias mh-alias-passwd-alist t)))
    (t
     (mh-alias-ali alias))))
 
-(require 'crm nil t)                   ; completing-read-multiple
-(require 'multi-prompt nil t)
+(mh-require 'crm nil t)                 ; completing-read-multiple
+(mh-require 'multi-prompt nil t)
 
 ;;;###mh-autoload
 (defun mh-read-address (prompt)
@@ -292,7 +292,7 @@ Blind aliases or users from /etc/passwd are not expanded."
       (let* ((case-fold-search t)
              (beg (mh-beginning-of-word))
              (the-name (buffer-substring-no-properties beg (point))))
-        (if (assoc-string the-name mh-alias-alist t)
+        (if (mh-assoc-string the-name mh-alias-alist t)
             (message "%s -> %s" the-name (mh-alias-expand the-name))
           ;; Check if if was a single word likely to be an alias
           (if (and (equal mh-alias-flash-on-comma 1)
@@ -606,12 +606,12 @@ filing messages."
 
 Then search backwards to beginning of line for the start of an
 e-mail address. If no e-mail address found, return nil."
-  (re-search-backward "[^-_A-z0-9.@]" (line-beginning-position) 'lim)
+  (re-search-backward "[^-_A-z0-9.@]" (mh-line-beginning-position) 'lim)
   (if (or (looking-at mh-address-mail-regexp) ; already at start
           (and (re-search-forward mh-address-mail-regexp
-                                  (line-end-position) 'lim)
+                                  (mh-line-end-position) 'lim)
                (goto-char (match-beginning 0))))
-      (match-string-no-properties 0)))
+      (mh-match-string-no-properties 0)))
 
 (defun mh-alias-apropos (regexp)
   "Show all aliases or addresses that match a regular expression REGEXP."

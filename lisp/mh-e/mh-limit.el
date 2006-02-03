@@ -211,7 +211,7 @@ Return number of messages put in the sequence:
             (string-equal "" (match-string 3)))
         (progn (message "No subject line")
                nil)
-      (let ((subject (match-string-no-properties 3))
+      (let ((subject (mh-match-string-no-properties 3))
             (list))
         (if (> (length subject) mh-limit-max-subject-size)
             (setq subject (substring subject 0 mh-limit-max-subject-size)))
@@ -219,7 +219,7 @@ Return number of messages put in the sequence:
           (if all
               (goto-char (point-min)))
           (while (re-search-forward mh-scan-subject-regexp nil t)
-            (let ((this-subject (match-string-no-properties 3)))
+            (let ((this-subject (mh-match-string-no-properties 3)))
               (if (> (length this-subject) mh-limit-max-subject-size)
                   (setq this-subject (substring this-subject
                                                 0 mh-limit-max-subject-size)))
@@ -310,7 +310,7 @@ The MH command pick is used to do the match."
       (while (not (eobp))
         (let ((num (ignore-errors
                      (string-to-number
-                      (buffer-substring (point) (line-end-position))))))
+                      (buffer-substring (point) (mh-line-end-position))))))
           (when num (push num msg-list))
           (forward-line))))
     (if (null msg-list)

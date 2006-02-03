@@ -91,7 +91,7 @@
 
 (defcustom hi-lock-file-patterns-range 10000
   "Limit of search in a buffer for hi-lock patterns.
-When a file is visited and hi-lock mode is on patterns starting
+When a file is visited and hi-lock mode is on, patterns starting
 up to this limit are added to font-lock's patterns.  See documentation
 of functions `hi-lock-mode' and `hi-lock-find-patterns'."
   :type 'integer
@@ -200,7 +200,7 @@ calls."
 
 (defvar hi-lock-archaic-interface-message-used nil
   "True if user alerted that `global-hi-lock-mode' is now the global switch.
-Earlier versions of hi-lock used `hi-lock-mode' as the global switch,
+Earlier versions of hi-lock used `hi-lock-mode' as the global switch;
 the message is issued if it appears that `hi-lock-mode' is used assuming
 that older functionality.  This variable avoids multiple reminders.")
 
@@ -283,10 +283,10 @@ called interactively, are:
   Remove highlighting on matches of REGEXP in current buffer.
 
 \\[hi-lock-write-interactive-patterns]
-  Write active REGEXPs into buffer as comments (if possible). They will
+  Write active REGEXPs into buffer as comments (if possible).  They will
   be read the next time file is loaded or when the \\[hi-lock-find-patterns] command
   is issued.  The inserted regexps are in the form of font lock keywords.
-  (See `font-lock-keywords') They may be edited and re-loaded with \\[hi-lock-find-patterns],
+  (See `font-lock-keywords'.)  They may be edited and re-loaded with \\[hi-lock-find-patterns],
   any valid `font-lock-keywords' form is acceptable.
 
 \\[hi-lock-find-patterns]
@@ -295,12 +295,12 @@ called interactively, are:
 When hi-lock is started and if the mode is not excluded, the
 beginning of the buffer is searched for lines of the form:
   Hi-lock: FOO
-where FOO is a list of patterns. These are added to the font lock keywords
-already present.  The patterns must start before position (number
-of characters into buffer) `hi-lock-file-patterns-range'.  Patterns
-will be read until
+where FOO is a list of patterns.  These are added to the font lock
+keywords already present.  The patterns must start before position
+\(number of characters into buffer) `hi-lock-file-patterns-range'.
+Patterns will be read until
  Hi-lock: end
-is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
+is found.  A mode is excluded if it's in the list `hi-lock-exclude-modes'."
   :group 'hi-lock
   :lighter (:eval (if (or hi-lock-interactive-patterns
 			  hi-lock-file-patterns)
@@ -365,7 +365,7 @@ versions before 22 use the following in your .emacs file:
 Interactively, prompt for REGEXP then FACE.  Buffer-local history
 list maintained for regexps, global history maintained for faces.
 \\<minibuffer-local-map>Use \\[next-history-element] and \\[previous-history-element] to retrieve next or previous history item.
-\(See info node `Minibuffer History')"
+\(See info node `Minibuffer History'.)"
   (interactive
    (list
     (hi-lock-regexp-okay
@@ -390,7 +390,7 @@ list maintained for regexps, global history maintained for faces.
 Interactively, prompt for REGEXP then FACE.  Buffer-local history
 list maintained for regexps, global history maintained for faces.
 \\<minibuffer-local-map>Use \\[next-history-element] and \\[previous-history-element] to retrieve next or previous history item.
-\(See info node `Minibuffer History')"
+\(See info node `Minibuffer History'.)"
   (interactive
    (list
     (hi-lock-regexp-okay
@@ -595,7 +595,7 @@ not suitable."
         (message "Hi-lock added %d patterns." (length all-patterns))))))
 
 (defun hi-lock-font-lock-hook ()
-  "Add hi lock patterns to font-lock's."
+  "Add hi-lock patterns to font-lock's."
   (if font-lock-mode
       (progn
 	(font-lock-add-keywords nil hi-lock-file-patterns t)

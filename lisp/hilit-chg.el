@@ -261,15 +261,15 @@ colors then use this, if you want fancier faces then set
 ;; active or passive mode?
 ;;
 (defcustom highlight-changes-initial-state 'active
-  "*What state (active or passive) `highlight-changes' should start in.
-This is used when `highlight-changes' is called with no argument.
+  "*What state (active or passive) Highlight Changes mode should start in.
+This is used when `highlight-changes-mode' is called with no argument.
 This variable must be set to one of the symbols `active' or `passive'."
   :type '(choice (const :tag "Active" active)
 		 (const :tag "Passive" passive))
   :group 'highlight-changes)
 
 (defcustom highlight-changes-global-initial-state 'passive
-  "*What state `global-highlight-changes' should start in.
+  "*What state global Highlight Changes mode should start in.
 This is used if `global-highlight-changes' is called with no argument.
 This variable must be set to either `active' or `passive'."
   :type '(choice (const :tag "Active" active)
@@ -309,7 +309,7 @@ its name does not begin with ` ' or `*'.
 A value of nil means no buffers are suitable for `global-highlight-changes'
 \(effectively disabling the mode).
 
-Examples:
+Example:
         (c-mode c++-mode)
 means that Highlight Changes mode is turned on for buffers in C and C++
 modes only."
@@ -366,7 +366,7 @@ remove it from existing buffers."
 		  (copy-face 'highlight-changes new-name)
 		(copy-face old-name new-name)
 		))
-	    (setq new-list (append  (list new-name) new-list))
+	    (setq new-list (append (list new-name) new-list))
 	    (setq n (1- n))
 	    (setq p (cdr p)))
 	  (if (equal new-list (widget-value w))
@@ -419,7 +419,7 @@ Otherwise, this list will be constructed when needed from
 
 ;;; Functions...
 
-(defun hilit-chg-map-changes  (func &optional start-position end-position)
+(defun hilit-chg-map-changes (func &optional start-position end-position)
   "Call function FUNC for each region used by Highlight Changes mode."
   ;; if start-position is nil, (point-min) is used
   ;; if end-position is nil, (point-max) is used
@@ -1048,7 +1048,7 @@ changes are made, so \\[highlight-changes-next-change] and
 When called interactively:
 - if no prefix, toggle global Highlight Changes mode on or off
 - if called with a positive prefix (or just C-u) turn it on in active mode
-- if called with a zero prefix  turn it on in passive mode
+- if called with a zero prefix turn it on in passive mode
 - if called with a negative prefix turn it off
 
 When called from a program:

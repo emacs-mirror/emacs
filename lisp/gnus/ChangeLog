@@ -1,8 +1,60 @@
+2006-01-31  Andreas Seltenreich <uwi7@stud.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-group-alist): Use defvar instead of defvoo,
+	there's only one active file for all servers.
+	(nnweb-request-scan): Make sure nnweb-articles is initialized on
+	solid groups.  Gnus might have used a FAST request to select the
+	group.
+	(nnweb-request-group, nnweb-google-parse-1): Don't keep nnweb-type
+	and nnweb-search redundantly in the active file.
+	(nnweb-request-list): Don't list bogus groups.  There can only be
+	one.
+	(nnweb-request-create-group): Don't use ARGS.
+	(nnweb-possibly-change-server, nnweb-request-group): Remove some
+	initialisations.  Let nnoo do the work.
+
+2006-01-31  Romain Francoise  <romain@orebokech.com>
+
+	* message.el (message-alternative-emails): Improve docstring.
+	(message-setup-1): Call `message-use-alternative-email-as-from'
+	after `message-setup-hook' to give it precedence over posting
+	styles, etc.
+	(message-use-alternative-email-as-from): Add docstring.  Remove
+	the original From header if present.
+
+2006-01-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-uu.el (mm-uu-emacs-sources-extract): Say the part has been
+	decoded.
+	(mm-uu-diff-extract): Ditto.
+
+2006-01-31  Kevin Ryde  <user42@zip.com.au>
+
+	* mailcap.el (mailcap-viewer-passes-test): Don't put "(nil t)" into
+	mailcap-viewer-test-cache when there's no 'test clause, since that
+	will invert the meaning of a "nil" test previously determined by
+	mailcap-mailcap-entry-passes-test.
+
+2006-01-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnweb.el (nnweb-google-parse-1): Clarify some comments.
+
+2006-01-30  Andreas Seltenreich <uwi7@stud.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-type-definition, nnweb-google-parse-1)
+	(nnweb-google-create-mapping, nnweb-google-search): Adapt to
+	current Google Groups.
+
+2006-01-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* Makefile.in (clean): New rule.
+	(distclean): Use it.
+
 2006-01-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-uu.el (mm-uu-dissect-text-parts): Ignore it if a given part
 	is dissected into a single part of which the type is the same as
-	the given one.
+	the given one; decode charset.
 
 2006-01-21  Kevin Ryde  <user42@zip.com.au>
 

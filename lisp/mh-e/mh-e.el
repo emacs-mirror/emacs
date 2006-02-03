@@ -6,7 +6,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 7.85+cvs
+;; Version: 7.90+cvs
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -101,7 +101,13 @@
 
 (eval-and-compile
   (defvar mh-xemacs-flag (featurep 'xemacs)
-    "Non-nil means the current Emacs is XEmacs."))
+    "Non-nil means the current Emacs is XEmacs.")
+  (defvar mh-compiling-flag nil
+    "Non-nil means we're compiling."))
+
+(eval-when (compile)
+  (setq mh-compiling-flag t))
+
 (mh-do-in-xemacs
   (require 'mh-xemacs))
 
@@ -115,7 +121,7 @@
 ;; Try to keep variables local to a single file. Provide accessors if
 ;; variables are shared. Use this section as a last resort.
 
-(defconst mh-version "7.85+sans-entropy" "Version number of MH-E.")
+(defconst mh-version "7.90+cvs" "Version number of MH-E.")
 
 ;; Variants
 
@@ -464,7 +470,8 @@ all the strings have been used."
           (let ((arg-list (reverse args))
                 (count 0))
             (while (and (not (eobp)) (< count mh-index-max-cmdline-args))
-              (push (buffer-substring-no-properties (point) (line-end-position))
+              (push (buffer-substring-no-properties (point)
+                                                    (mh-line-end-position))
                     arg-list)
               (incf count)
               (forward-line))
@@ -2970,7 +2977,7 @@ entirely if the display does not support the number of specified
 colors."
   (if mh-min-colors-defined-flag
       spec
-    (let ((cells (display-color-cells))
+    (let ((cells (mh-display-color-cells))
           new-spec)
       ;; Remove entries with min-colors, or delete them if we have fewer colors
       ;; than they specify.

@@ -759,18 +759,9 @@ CONFIG is the window configuration before sending mail."
                        (setq components
                              (expand-file-name mh-comp-formfile mh-lib)))
                       components)
-                     ((file-exists-p
-                       (setq components
-                             (expand-file-name mh-comp-formfile
-                                               ;; What is this mh-etc ??  -sm
-                                               ;; This is dead code, so
-                                               ;; remove it.
-                                        ;(and (boundp 'mh-etc) mh-etc)
-                                               )))
-                      components)
                      (t
-                      (error "Can't find components file \"%s\""
-                             components))))
+                      (error "Can't find %s in %s or %s"
+                             mh-comp-formfile mh-user-path mh-lib))))
                   nil)))
       (mh-insert-fields "To:" to "Subject:" subject "Cc:" cc)
       (goto-char (point-max))
@@ -1040,7 +1031,7 @@ discarded."
   (cond ((and overwrite-flag
               (mh-goto-header-field (concat field ":")))
          (insert " " value)
-         (delete-region (point) (line-end-position)))
+         (delete-region (point) (mh-line-end-position)))
         ((and (not overwrite-flag)
               (mh-regexp-in-field-p (concat "\\b" value "\\b") field))
          ;; Already there, do nothing.

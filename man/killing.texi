@@ -84,8 +84,7 @@ Delete next character (@code{delete-char}).  If your keyboard has a
 binds it to @code{delete-char} as well.
 @item @key{DEL}
 @itemx @key{BS}
-Delete previous character (@code{delete-backward-char}).  Some keyboards
-refer to this key as a ``backspace key'' and label it with a left arrow.
+Delete previous character (@code{delete-backward-char}).
 @item M-\
 Delete spaces and tabs around point (@code{delete-horizontal-space}).
 @item M-@key{SPC}
@@ -112,11 +111,12 @@ kill instead, since they can erase more than one character this way.
 @kindex BACKSPACE
 @kindex BS
 @kindex DELETE
-  Every keyboard has a large key, labeled @key{DEL}, @key{BACKSPACE},
-@key{BS} or @key{DELETE}, which is a short distance above the
+  Every keyboard has a large key which is a short distance above the
 @key{RET} or @key{ENTER} key and is normally used for erasing what you
-have typed.  Regardless of the actual name on the key, in Emacs it is
-equivalent to @key{DEL}---or it should be.
+have typed.  It may be labeled @key{DEL}, @key{BACKSPACE}, @key{BS},
+@key{DELETE}, or even with a left arrow.  Regardless of the label on
+the key, in Emacs it called @key{DEL}, and it should delete one
+character backwards.
 
   Many keyboards (including standard PC keyboards) have a
 @key{BACKSPACE} key a short ways above @key{RET} or @key{ENTER}, and a
@@ -251,22 +251,23 @@ and @kbd{M-d} (@pxref{Words}); balanced expressions, with @kbd{C-M-k}
 @kbd{M-k} (@pxref{Sentences}).@refill
 
 @node Graphical Kill
-@subsection Killing on Graphical Terminals
+@subsection Killing on Graphical Displays
 
-  On multi-window terminals, the most recent kill done in Emacs is
-also the primary selection, if it is more recent than any selection
-you made in another program.  This means that the paste commands of
-other applications with separate windows copy the text that you killed
-in Emacs.  In addition, Emacs yank commands treat other applications'
-selections as part of the kill ring, so you can yank them into Emacs.
+  On graphical displays with window systems, the most recent kill done
+in Emacs is also the primary selection, if it is more recent than any
+selection you made in another program.  This means that the paste
+commands of other window-based applications copy the text that you
+killed in Emacs.  In addition, Emacs yank commands treat other
+applications' selections as part of the kill ring, so you can yank
+them into Emacs.
 
 @cindex Delete Selection mode
 @cindex mode, Delete Selection
 @findex delete-selection-mode
   Many window systems follow the convention that insertion while text
 is selected deletes the selected text.  You can make Emacs behave this
-way by enabling Delete Selection mode, with @kbd{M-x
-delete-selection-mode}, or using Custom.  Another effect of this mode
+way by enabling Delete Selection mode---with @kbd{M-x
+delete-selection-mode} or using Custom.  Another effect of this mode
 is that @key{DEL}, @kbd{C-d} and some other keys, when a selection
 exists, will kill the whole selection.  It also enables Transient Mark
 mode (@pxref{Transient Mark}).
@@ -297,10 +298,10 @@ Save region as last killed text without actually killing it
 Append next kill to last batch of killed text (@code{append-next-kill}).
 @end table
 
-  On window systems, if there is a current selection in some other
-application, and you selected it more recently than you killed any
-text in Emacs, @kbd{C-y} copies the selection instead of text
-killed within Emacs.
+  On graphical displays with window systems, if there is a current
+selection in some other application, and you selected it more recently
+than you killed any text in Emacs, @kbd{C-y} copies the selection
+instead of text killed within Emacs.
 
 @menu
 * Kill Ring::		Where killed text is stored.  Basic yanking.
@@ -601,7 +602,8 @@ move left into the gap.
 rectangle is not stored in the kill ring, but in a special place that
 can only record the most recent rectangle killed.  This is because yanking
 a rectangle is so different from yanking linear text that different yank
-commands have to be used and yank-popping is hard to make sense of.
+commands have to be used.  It is hard to define yank-popping for rectangles,
+so we do not try.
 
 @kindex C-x r y
 @findex yank-rectangle
@@ -665,7 +667,7 @@ applications.  @kbd{C-x} means cut (kill), @kbd{C-c} copy, @kbd{C-v}
 paste (yank), and @kbd{C-z} undo.  Standard Emacs commands like
 @kbd{C-x C-c} still work, because @kbd{C-x} and @kbd{C-c} only take
 effect when the mark is active (and the region is highlighted).
-However, if you don't want these bindings at all, set
+However, if you don't want to override these bindings Emacs at all, set
 @code{cua-enable-cua-keys} to @code{nil}.
 
   In CUA mode, using @kbd{Shift} together with the movement keys
@@ -674,10 +676,10 @@ standard (unshifted) movement keys deactivate the mark, and typed text
 replaces the active region as in Delete-Selection mode
 (@pxref{Graphical Kill}).
 
-  To run a command like @kbd{C-x C-f} while the mark is active, use
-one of the following methods: either hold @kbd{Shift} together with
-the prefix key, e.g. @kbd{S-C-x C-f}, or quickly type the prefix key
-twice, e.g. @kbd{C-x C-x C-f}.
+  To enter an Emacs command like @kbd{C-x C-f} while the mark is
+active, use one of the following methods: either hold @kbd{Shift}
+together with the prefix key, e.g. @kbd{S-C-x C-f}, or quickly type
+the prefix key twice, e.g. @kbd{C-x C-x C-f}.
 
 @cindex rectangle highlighting
   CUA mode provides enhanced rectangle support with visible

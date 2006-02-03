@@ -1,5 +1,5 @@
 GNU Emacs NEWS -- history of user-visible changes.  2003-05-21
-Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005
+Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
           Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -1372,9 +1372,10 @@ the next/previous matching line found by M-x occur.
 +++
 *** The new command `multi-occur' is just like `occur', except it can
 search multiple buffers.  There is also a new command
-`multi-occur-by-filename-regexp' which allows you to specify the
-buffers to search by their filename.  Internally, Occur mode has been
-rewritten, and now uses font-lock, among other changes.
+`multi-occur-in-matching-buffers' which allows you to specify the
+buffers to search by their filenames or buffer names.  Internally,
+Occur mode has been rewritten, and now uses font-lock, among other
+changes.
 
 ** Grep changes:
 
@@ -2977,7 +2978,7 @@ See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 ---
 ** MH-E changes.
 
-Upgraded to MH-E version 7.85. There have been major changes since
+Upgraded to MH-E version 7.90. There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 ** Calendar changes:

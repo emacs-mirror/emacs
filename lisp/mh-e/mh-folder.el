@@ -515,17 +515,8 @@ font-lock is done highlighting.")
          (set-specifier horizontal-scrollbar-visible-p nil
                         (cons (current-buffer) nil)))))
 
-(defmacro mh-write-file-functions-compat ()
-  "Return `write-file-functions' if it exists.
-Otherwise return `local-write-file-hooks'. This macro exists
-purely for compatibility. The former symbol is used in Emacs 21.4
-onward while the latter is used in previous versions and XEmacs."
-  (if (boundp 'write-file-functions)
-      ''write-file-functions            ;Emacs 21.4
-    ''local-write-file-hooks))          ;XEmacs
-
 ;; Register mh-folder-mode as supporting which-function-mode...
-(require 'which-func nil t)
+(mh-require 'which-func nil t)
 (when (boundp 'which-func-modes)
   (add-to-list 'which-func-modes 'mh-folder-mode))
 
@@ -650,8 +641,8 @@ perform the operation on all messages in that region.
   (setq truncate-lines t)
   (auto-save-mode -1)
   (setq buffer-offer-save t)
-  (mh-make-local-hook (mh-write-file-functions-compat))
-  (add-hook (mh-write-file-functions-compat) 'mh-execute-commands nil t)
+  (mh-make-local-hook (mh-write-file-functions))
+  (add-hook (mh-write-file-functions) 'mh-execute-commands nil t)
   (make-local-variable 'revert-buffer-function)
   (make-local-variable 'hl-line-mode)   ; avoid pollution
   (mh-funcall-if-exists hl-line-mode 1)

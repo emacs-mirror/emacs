@@ -1,3 +1,7 @@
+2006-01-30  Simon Josefsson  <jas@extundo.com>
+
+	* erc.el (erc-open-ssl-stream): Use tls.el.
+
 2006-01-30  Michael Olson  <mwolson@gnu.org>
 
 	* erc-stamp.el (erc-timestamp-right-align-by-pixel): New option

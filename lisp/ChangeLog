@@ -1,3 +1,85 @@
+2006-02-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emulation/cua-base.el (cua-mode): Doc fix.
+
+2006-02-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dframe.el (dframe-handle-make-frame-visible)
+	(dframe-handle-iconify-frame, dframe-get-focus)
+	(dframe-select-attached-frame, dframe-power-click)
+	(dframe-frame-mode): Fix typos in docstrings.
+
+	* ezimage.el (ezimage-mail, ezimage-object-out-of-date)
+	(ezimage-insert-image-button-maybe, ezimage-insert-over-text):
+	Fix typos in docstrings.
+
+	* hi-lock.el (hi-lock-mode, hi-lock-line-face-buffer)
+	(hi-lock-face-buffer, hi-lock-font-lock-hook)
+	(hi-lock-archaic-interface-message-used)
+	(hi-lock-file-patterns-range): Fix typos in docstrings.
+
+	* savehist.el (savehist-loaded, savehist-load, savehist-install)
+	(savehist-autosave, savehist-trim-history): Fix typos in
+	docstrings.
+
+	* mail/mailclient.el (mailclient-place-body-on-clipboard-flag):
+	Fix typo in docstring.
+
+	* net/rcirc.el (rcirc-debug): Fix docstring.
+	(rcirc-fill-column, rcirc-receive-message-hooks)
+	(rcirc-browse-url-map, rcirc-read-only-flag, rcirc-prompt)
+	(rcirc-mode, rcirc-generate-new-buffer-name)
+	(rcirc-startup-channels, rcirc-ignore-update-automatic)
+	(rcirc-cmd-ignore, rcirc-browse-url, rcirc-url-regexp):
+	Fix typos in docstrings.
+	(rcirc-print): "?\ " -> "?\s".
+
+2006-02-01  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-parse-region): Move save-excursion and set-buffer up
+	before narrow-to-region.
+
+2006-02-01  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (move-beginning-of-line): Scan properly for invis change.
+
+	* replace.el (multi-occur-in-matching-buffers): Fix prev change.
+
+2006-02-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-convert-file-attributes): Set file's gid
+	change bit only when id-format is 'integer.  Reported by Matt
+	Hodges <M.P.Hodges@rl.ac.uk>.
+
+2006-02-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hilit-chg.el (highlight-changes-initial-state)
+	(highlight-changes-global-initial-state): Doc fixes.
+	(highlight-changes-global-modes, global-highlight-changes):
+	Fix typos in docstrings.
+
+2006-02-01  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-mode): Mention that CUA enables
+	transient-mark-mode in doc string.
+
+2006-01-31  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (multi-occur): Doc fix.
+	(multi-occur-in-matching-buffers): Renamed from
+	multi-occur-by-filename-regexp.  Prefix arg says match
+	buffer names instead of file names.
+
+2006-01-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el: Allow non-default values of `bs-header-lines-length'.
+	(bs--running-in-xemacs): Remove (not needed anymore).
+	(bs--set-window-height): Simplify by using `fit-window-to-buffer'
+	instead of `shrink-window', thus avoiding having to compute the
+	height of the window.
+	(bs--up): Wrap around even when there's no header.
+	(bs--down): Use `forward-line' instead of `next-line'.
+
 2006-01-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-toggle-display): Use file name if possible,

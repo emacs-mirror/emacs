@@ -2062,13 +2062,14 @@ Arguments are as to erc-select."
   "Open an SSL stream to an IRC server.
 The process will be given the name NAME, its target buffer will be
 BUFFER.	 HOST and PORT specify the connection target."
-  (when (require 'ssl)
-    (let ((proc (open-ssl-stream name buffer host port)))
+  (when (require 'tls)
+    (let ((proc (open-tls-stream name buffer host port)))
       ;; Ugly hack, but it works for now. Problem is it is
       ;; very hard to detect when ssl is established, because s_client
       ;; doesn't give any CONNECTIONESTABLISHED kind of message, and
       ;; most IRC servers send nothing and wait for you to identify.
-      (sit-for 5)
+      ;; Disabled when switching to tls.el -- jas
+      ;(sit-for 5)
       proc)))
 
 ;;; Debugging the protocol
