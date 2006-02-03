@@ -1,3 +1,9 @@
+2006-02-03  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Fdefine_coding_system_internal): Avoid a duplicated
+	element in Vcoding_system_alist.
+	(Fdefine_coding_system_alias): Likewise.
+
 2006-01-19  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (handle_one_xevent): Handle keysyms 0x1000000..0x10000FF.
