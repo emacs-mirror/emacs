@@ -1,3 +1,9 @@
+2006-02-03  Jens Petersen  <petersen@redhat.com>  (tiny change)
+
+	* international/mule-cmds.el (set-locale-environment): Add
+	"/usr/share/X11/locale/locale.alias" to search list for xorg-x11
+	libX11.
+
 2006-02-03  Joe Wells  <jbw@macs.hw.ac.uk>  (tiny change)
 
 	* arc-mode.el (archive-maybe-copy): Fix the way directories in the
