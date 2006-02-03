@@ -66,7 +66,7 @@
 
 ;;; Code:
 
-(defconst erc-version-string "Version 5.1 (Emacs 22)"
+(defconst erc-version-string "Version 5.1"
   "ERC version.  This is used by function `erc-version'.")
 
 (eval-when-compile (require 'cl))
@@ -5774,7 +5774,7 @@ P may be an integer or a service name."
 If optional argument HERE is non-nil, insert version number at point."
   (interactive "P")
   (let ((version-string
-	 (format "ERC %s" erc-version-string)))
+	 (format "ERC %s (GNU Emacs %s)" erc-version-string emacs-version)))
     (if here
 	(insert version-string)
       (if (interactive-p)
