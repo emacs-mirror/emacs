@@ -81,6 +81,11 @@ used in lieu of `search' in the CL package."
   "Delete the next LINES lines."
   (delete-region (point) (progn (forward-line lines) (point))))
 
+(defvar mh-image-load-path nil
+  "Directory where images for MH-E are found.
+If nil, then the function mh-image-load-path will search in
+../../etc/images relative to the files in \"lisp/mh-e\".")
+
 (defvar mh-image-load-path-called-flag nil)
 
 ;;;###mh-autoload
@@ -92,14 +97,16 @@ files in \"lisp/mh-e\". If `image-load-path' exists (since Emacs
 there. Otherwise, the images directory is added to the
 `load-path' if it isn't already there."
   (unless mh-image-load-path-called-flag
-    (let (mh-library-name mh-image-load-path)
-      ;; First, find mh-e in the load-path.
-      (setq mh-library-name (locate-library "mh-e"))
-      (if (not mh-library-name)
-        (error "Can not find MH-E in load-path"))
-      (setq mh-image-load-path
-            (expand-file-name (concat (file-name-directory mh-library-name)
-                                      "../../etc/images")))
+    (let (mh-library-name)
+      (when (or (not mh-image-load-path)
+                (not (file-exists-p mh-image-load-path)))
+        ;; First, find mh-e in the load-path.
+        (setq mh-library-name (locate-library "mh-e"))
+        (if (not mh-library-name)
+            (error "Can not find MH-E in load-path"))
+        (setq mh-image-load-path
+              (expand-file-name (concat (file-name-directory mh-library-name)
+                                        "../../etc/images"))))
       (if (not (file-exists-p mh-image-load-path))
           (error "Can not find image directory %s" mh-image-load-path))
       (if (boundp 'image-load-path)

@@ -1,3 +1,12 @@
+2006-02-03  Peter Galbraith  <psg@debian.org>
+
+	* mh-utils.el (mh-image-load-path): New variable to optionally
+	hold the directory where MH-E images are stored.  If nil, then 
+	the function `mh-image-load-path' will find it.  This variable
+	will be used for Debian packaging.
+	(mh-image-load-path function): Use variable `mh-image-load-path'
+	if non-nil and exists.
+
 2006-02-03  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-tool-bar.el: Add conditional require of 'tool-bar or 'toolbar
