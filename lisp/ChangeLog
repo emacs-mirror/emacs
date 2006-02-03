@@ -3,7 +3,7 @@
 	* textmodes/nroff-mode.el (nroff-font-lock-keywords): Don't be
 	greedy to find the closing bracket in \*[...] and similar
 	expressions.  This is a first rough fix -- many additional
-	refinements are necessary to make this nroff mode really usable with
+	refinements are necessary to make nroff mode really usable with
 	groff.
 
 2006-02-03  Jens Petersen  <petersen@redhat.com>  (tiny change)
