@@ -1,3 +1,10 @@
+2006-02-03  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-folder-msg-number, mh-folder-refiled, mh-folder-to)
+	(mh-show-cc, mh-show-date, mh-show-header): Replace (min-colors
+	88) with (min-colors 64) in face specifications so that MH-E still
+	looks good on systems with fewer colors (such as Eric Ding's).
+
 2006-02-03  Peter Galbraith  <psg@debian.org>
 
 	* mh-utils.el (mh-image-load-path): New variable to optionally

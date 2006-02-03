@@ -3037,9 +3037,9 @@ colors."
 
 (defface mh-folder-msg-number
   (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
+   '((((class color) (min-colors 64) (background light))
       (:foreground "snow4"))
-     (((class color) (min-colors 88) (background dark))
+     (((class color) (min-colors 64) (background dark))
       (:foreground "snow3"))
      (((class color))
       (:foreground "cyan"))))
@@ -3050,9 +3050,9 @@ colors."
 
 (defface mh-folder-refiled
   (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
+   '((((class color) (min-colors 64) (background light))
       (:foreground "DarkGoldenrod"))
-     (((class color) (min-colors 88) (background dark))
+     (((class color) (min-colors 64) (background dark))
       (:foreground "LightGoldenrod"))
      (((class color))
       (:foreground "yellow" :weight light))
@@ -3106,9 +3106,9 @@ format `mh-scan-format-nmh' and the regular expression
 
 (defface mh-folder-to
   (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
+   '((((class color) (min-colors 64) (background light))
       (:foreground "RosyBrown"))
-     (((class color) (min-colors 88) (background dark))
+     (((class color) (min-colors 64) (background dark))
       (:foreground "LightSalmon"))
      (((class color))
       (:foreground "green"))
@@ -3146,9 +3146,9 @@ format `mh-scan-format-nmh' and the regular expression
 
 (defface mh-show-cc
   (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
+   '((((class color) (min-colors 64) (background light))
       (:foreground "DarkGoldenrod"))
-     (((class color) (min-colors 88) (background dark))
+     (((class color) (min-colors 64) (background dark))
       (:foreground "LightGoldenrod"))
      (((class color))
       (:foreground "yellow" :weight light))
@@ -3164,9 +3164,9 @@ format `mh-scan-format-nmh' and the regular expression
 
 (defface mh-show-date
   (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
+   '((((class color) (min-colors 64) (background light))
       (:foreground "ForestGreen"))
-     (((class color) (min-colors 88) (background dark))
+     (((class color) (min-colors 64) (background dark))
       (:foreground "PaleGreen"))
      (((class color))
       (:foreground "green"))
@@ -3193,9 +3193,9 @@ format `mh-scan-format-nmh' and the regular expression
 
 (defface mh-show-header
   (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
+   '((((class color) (min-colors 64) (background light))
       (:foreground "RosyBrown"))
-     (((class color) (min-colors 88) (background dark))
+     (((class color) (min-colors 64) (background dark))
       (:foreground "LightSalmon"))
      (((class color))
       (:foreground "green"))
