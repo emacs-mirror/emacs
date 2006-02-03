@@ -1,3 +1,9 @@
+2006-02-04  Alex Schroeder  <alex@gnu.org>
+
+	* rmailmm.el: Renamed all symbols to rmail-mime-*.  Rewrote code
+	such as to modify the buffer instead of using display properties.
+	Fixed bulk handler, and wrote simple test defun for it.
+
 2006-02-01  Alex Schroeder  <alex@gnu.org>
 
 	* rmail.el (rmail-convert-mbox-format): Handle mails without subject.
