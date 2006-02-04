@@ -497,7 +497,8 @@ inside loops."
     (apply 'format args)))
 
 (defun gnus-error (level &rest args)
-  "Beep an error if LEVEL is equal to or less than `gnus-verbose'."
+  "Beep an error if LEVEL is equal to or less than `gnus-verbose'.
+ARGS are passed to `message'."
   (when (<= (floor level) gnus-verbose)
     (apply 'message args)
     (ding)
