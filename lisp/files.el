@@ -2047,6 +2047,9 @@ to decide the buffer's major mode.
 If FUNCTION is nil, then it is not called.  (That is a way of saying
 \"allow `auto-mode-alist' to decide for these files.\")")
 
+(defvar magic-mode-regexp-match-limit 4000
+  "Upper limit on `magic-mode-alist' regexp matches.")
+
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
 
@@ -2120,9 +2123,13 @@ only set the major mode, if that would change it."
     (unless done
       (if (setq done (save-excursion
 		       (goto-char (point-min))
-		       (assoc-default nil magic-mode-alist
-				      (lambda (re dummy)
-					(looking-at re)))))
+		       (save-restriction
+			 (narrow-to-region (point-min)
+					   (min (point-max)
+						(+ (point-min) magic-mode-regexp-match-limit)))
+			 (assoc-default nil magic-mode-alist
+					(lambda (re dummy)
+					  (looking-at re))))))
 	  (set-auto-mode-0 done keep-mode-if-same)
 	;; Compare the filename against the entries in auto-mode-alist.
 	(if buffer-file-name
