@@ -1,3 +1,67 @@
+2006-02-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* custom.texi (Init File, Find Init): Add cross-references to
+	where $HOME is described.
+
+2006-02-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Frame Parameters): Remove @item for S-Mouse-1; it
+	is not inside the @table.
+
+	* emacs.texi (Top): Correct node name.
+
+	* files.texi (File Names): Fix @xref.
+	(Reverting): Fix typo.
+
+	* mule.texi (International): Correct node name.
+
+	* kmacro.texi (Save Keyboard Macro): Add missing @kbd to @table.
+
+2006-02-01  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Update subnode menu.
+
+	* mule.texi: Minor clarifications.
+	Reduce the specific references to X Windows.
+	Refer to "graphical" terminals, rather than window systems.
+	(Text Coding): Renamed from Specify Coding.
+	(Communication Coding, File Name Coding, Terminal Coding):
+	New nodes split out from Text Coding.
+
+	* kmacro.texi: Minor clarifications.
+	(Keyboard Macro Ring): Comment out some excessive commands.
+	(Basic Keyboard Macro): Split up the table, putting part in each node.
+
+	* major.texi: Minor clarifications.
+
+	* misc.texi (Single Shell, Interactive Shell): Fix xrefs.
+
+	* windows.texi: Minor clarifications.
+	(Change Window): Don't describe mode-line mouse cmds here.
+	Add xref to Mode Line Mouse.
+
+	* msdog.texi (Text and Binary, MS-DOS and MULE): Fix xrefs.
+
+	* macos.texi (Mac International): Fix xref.
+
+	* indent.texi: Minor clarifications.
+
+	* frames.texi: Minor clarifications.
+	Reduce the specific references to X Windows.
+	Refer to "graphical" terminals, rather than window systems.
+	(Frame Parameters): Don't mention commands like
+	set-foreground-color.  Just say to customize a face.
+	(Drag and Drop): Lisp-level stuff moved to Emacs Lisp manual.
+
+	* files.texi: Minor clarifications.
+	(Numbered Backups): New node, split out from Backup Names.
+
+	* display.texi (Font Lock): C mode no longer depends on (-in-col-0.
+
+	* cmdargs.texi (General Variables): Fix xref.
+
+	* buffers.texi: Minor clarifications.
+
 2006-01-31  Romain Francoise  <romain@orebokech.com>
 
 	* message.texi (Message Headers): Explain what

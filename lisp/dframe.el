@@ -1,6 +1,7 @@
 ;;; dframe --- dedicate frame support modes
 
-;;; Copyright (C) 1996, 97, 98, 99, 2000, 01, 02, 03, 04, 05 Free Software Foundation
+;;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;    2005 Free Software Foundation
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -299,7 +300,7 @@ This frame is either resurrected, hidden, killed, etc based on
 the value.
 CACHE-VAR is a variable used to cache a cached frame.
 BUFFER-VAR is a variable used to cache the buffer being used in dframe.
-This buffer will have `dframe-mode' run on it.
+This buffer will have `dframe-frame-mode' run on it.
 FRAME-NAME is the name of the frame to create.
 LOCAL-MODE-FN is the function used to call this one.
 PARAMETERS are frame parameters to apply to this dframe.
@@ -606,7 +607,7 @@ The function must take an EVENT.")
 
 (defun dframe-handle-make-frame-visible (e)
   "Handle a `make-frame-visible' event.
-Should enables auto-updating if the last state was also enabled.
+Should enable auto-updating if the last state was also enabled.
 Argument E is the event making the frame visible."
   (interactive "e")
   (let ((f last-event-frame))
@@ -617,7 +618,7 @@ Argument E is the event making the frame visible."
 
 (defun dframe-handle-iconify-frame (e)
   "Handle a `iconify-frame' event.
-Should disables auto-updating if the last state was also enabled.
+Should disable auto-updating if the last state was also enabled.
 Argument E is the event iconifying the frame."
   (interactive "e")
   (let ((f last-event-frame))
@@ -652,7 +653,7 @@ If the selected frame is not in the symbol FRAME-VAR, then FRAME-VAR
 frame is selected.  If the FRAME-VAR is active, then select the
 attached frame.  If FRAME-VAR is nil, ACTIVATOR is called to
 created it.  HOOK is an optional argument of hooks to run when
-selecting FRAME."
+selecting FRAME-VAR."
   (interactive)
   (if (eq (selected-frame) (symbol-value frame-var))
       (if (frame-live-p dframe-attached-frame)
@@ -696,10 +697,10 @@ If optional arg FRAME is nil just return `dframe-attached-frame'."
     dframe-attached-frame))
 
 (defun dframe-select-attached-frame (&optional frame)
-  "Switch to the frame the dframe controlled frame FRAME was started from. If
-optional arg FRAME is nil assume the attached frame is already selected and
-just run the hooks `dframe-after-select-attached-frame-hook'. Return the
-attached frame."
+  "Switch to the frame the dframe controlled frame FRAME was started from.
+If optional arg FRAME is nil assume the attached frame is already selected
+and just run the hooks `dframe-after-select-attached-frame-hook'.  Return
+the attached frame."
   (let ((frame (dframe-attached-frame frame)))
     (if frame (select-frame frame))
     (prog1 frame
@@ -957,7 +958,7 @@ This should be bound to mouse event E."
       (funcall dframe-mouse-position-function)))
 
 (defun dframe-power-click (e)
-  "Activate any `dframe' mouse click as a power click.
+  "Activate any dframe mouse click as a power click.
 A power click will dispose of cached data (if available) or bring a buffer
 up into a different window.
 This should be bound to mouse event E."

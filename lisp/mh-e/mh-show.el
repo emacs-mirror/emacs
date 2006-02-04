@@ -878,7 +878,7 @@ See also `mh-folder-mode'.
 (defun mh-show-addr ()
   "Use `goto-address'."
   (when mh-show-use-goto-addr-flag
-    (require 'goto-addr nil t)
+    (mh-require 'goto-addr nil t)
     (if (fboundp 'goto-address)
         (goto-address))))
 

@@ -29,24 +29,24 @@ one frame.
 
   Each Emacs window displays one Emacs buffer at any time.  A single
 buffer may appear in more than one window; if it does, any changes in
-its text are displayed in all the windows where it appears.  But the
-windows showing the same buffer can show different parts of it, because
-each window has its own value of point.
+its text are displayed in all the windows where it appears.  But these
+windows can show different parts of the buffer, because each window
+has its own value of point.
 
 @cindex selected window
-  At any time, one of the windows is the @dfn{selected window}; the
+  At any time, one Emacs window is the @dfn{selected window}; the
 buffer this window is displaying is the current buffer.  The terminal's
 cursor shows the location of point in this window.  Each other window
 has a location of point as well.  On text-only terminals, there is no
 way to show where those locations are, since the terminal has only one
-cursor.  If you are using a window system, the location of point in a
-non-selected window is indicated by a hollow box.  The cursor in the
+cursor.  On a graphical display, the location of point in a
+non-selected window is indicated by a hollow box; the cursor in the
 selected window is blinking or solid.
 
   Commands to move point affect the value of point for the selected Emacs
-window only.  They do not change the value of point in any other Emacs
-window, even one showing the same buffer.  The same is true for commands
-such as @kbd{C-x b} to change the current buffer in the selected window;
+window only.  They do not change the value of point in other Emacs
+windows, even those showing the same buffer.  The same is true for commands
+such as @kbd{C-x b} to switch buffers in the selected window;
 they do not affect other windows at all.  However, there are other commands
 such as @kbd{C-x 4 b} that select a different window and switch buffers in
 it.  Also, all commands that display information in a window, including
@@ -129,8 +129,7 @@ inevitable.  If this variable is @code{nil}, then @kbd{C-x 2} tries to
 avoid scrolling the text currently visible on the screen, by putting
 point in each window at a position already visible in the window.  It
 also selects whichever window contains the screen line that the cursor
-was previously on.  Some users prefer the latter mode on slow
-terminals.
+was previously on.  Some users prefer that mode on slow terminals.
 
 @node Other Window
 @section Using Other Windows
@@ -283,17 +282,6 @@ Shrink this window if its buffer doesn't need so many lines
 (@code{shrink-window-if-larger-than-buffer}).
 @item C-x +
 Make all windows the same height (@code{balance-windows}).
-@item Drag-Mouse-1
-Dragging a window's mode line up or down with @kbd{Mouse-1} changes
-window heights.
-@item Mouse-2
-@kbd{Mouse-2} in a window's mode line deletes all other windows in the frame
-(@code{mouse-delete-other-windows}).
-@item Mouse-3
-@kbd{Mouse-3} in a window's mode line deletes that window
-(@code{mouse-delete-window}), unless the frame has only one window, in
-which case it buries the current buffer instead and switches to another
-buffer.
 @end table
 
 @kindex C-x 0
@@ -320,19 +308,6 @@ different way; it deletes all the windows except the selected one (and
 the minibuffer); the selected window expands to use the whole frame
 except for the echo area.
 
-  You can also delete a window by clicking on its mode line with
-@kbd{Mouse-3}, and delete all the windows in a frame except one window
-by clicking on that window's mode line with @kbd{Mouse-2}.
-
-  You can also adjust window heights and widths with the mouse.  If
-you press @kbd{Mouse-1} on a mode line, you can drag that mode line up
-or down, changing the heights of the windows above and below it.  If
-you press it on the divider between two consecutive mode lines, you
-can drag that divider right or left, changing the widths of the
-windows to either side.  Note that changing heights and widths with
-the mouse never deletes windows, it just refuses to make any window
-smaller than it can be.
-
 @kindex C-x ^
 @findex enlarge-window
 @kindex C-x @}
@@ -341,7 +316,7 @@ smaller than it can be.
 @vindex window-min-width
   To readjust the division of space among vertically adjacent windows,
 use @kbd{C-x ^} (@code{enlarge-window}).  It makes the currently
-selected window get one line bigger, or as many lines as is specified
+selected window one line bigger, or as many lines as is specified
 with a numeric argument.  With a negative argument, it makes the
 selected window smaller.  @kbd{C-x @}}
 (@code{enlarge-window-horizontally}) makes the selected window wider by
@@ -349,10 +324,10 @@ the specified number of columns.  @kbd{C-x @{}
 (@code{shrink-window-horizontally}) makes the selected window narrower
 by the specified number of columns.
 
-  When you make a window bigger, the space comes from one of its
-neighbors.  If this makes any window too small, it is deleted and its
-space is given to an adjacent window.  The minimum size is specified by
-the variables @code{window-min-height} and @code{window-min-width}.
+  When you make a window bigger, the space comes from its peers.  If
+this makes any window too small, it is deleted and its space is given
+to an adjacent window.  The minimum size is specified by the variables
+@code{window-min-height} and @code{window-min-width}.
 
 @kindex C-x -
 @findex shrink-window-if-larger-than-buffer
@@ -365,6 +340,9 @@ gives the extra lines to other windows in the frame.
 @findex balance-windows
   You can also use @kbd{C-x +} (@code{balance-windows}) to even out the
 heights of all the windows in the selected frame.
+
+  Mouse clicks on the mode line provide another way to change window
+heights and to delete windows.  @xref{Mode Line Mouse}.
 
 @node Window Convenience
 @section Window Handling Convenience Features and Customization

@@ -1,3 +1,24 @@
+2006-02-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-util.el (gnus-error): Describe `args'.
+
+2006-02-03  Andreas Seltenreich <uwi7@stud.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-request-group): Avoid growing overview files.
+
+2006-02-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2231.el (rfc2231-parse-string): Add missing semicolons to
+	segmented lines of parameter value to cope with Thunderbird 1.5
+	bug (cf. https://bugzilla.mozilla.org/show_bug.cgi?id=323318).
+	Suggested by ARISAWA Akihiro <ari@mbf.ocn.ne.jp>.
+	(rfc2231-encode-string): Don't make lines exceeding 76 column.
+
+2006-02-01  Max Froumentin  <max@lapin-bleu.net>  (tiny change)
+
+	* mml.el (mml-generate-mime-1): Correct the order of inline signed
+	parts.
+
 2006-01-31  Andreas Seltenreich <uwi7@stud.uni-karlsruhe.de>
 
 	* nnweb.el (nnweb-group-alist): Use defvar instead of defvoo,

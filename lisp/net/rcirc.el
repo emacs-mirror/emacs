@@ -92,7 +92,7 @@ Each element looks like (SERVER-REGEXP . CHANNEL-LIST)."
 
 (defcustom rcirc-fill-column nil
   "*Column beyond which automatic line-wrapping should happen.
-If nil, use value of `fill-column'.  If frame-width, use the
+If nil, use value of `fill-column'.  If 'frame-width, use the
 maximum frame width."
   :type '(choice (const :tag "Value of `fill-column'")
 		 (const :tag "Full frame width" frame-width)
@@ -128,7 +128,7 @@ Used as the first arg to `format-time-string'."
   :group 'rcirc)
 
 (defcustom rcirc-read-only-flag t
-  "*Non-nil means make text in irc buffers read-only."
+  "*Non-nil means make text in IRC buffers read-only."
   :type 'boolean
   :group 'rcirc)
 
@@ -167,7 +167,7 @@ See also `rcirc-authinfo-file-name'."
   :group 'rcirc)
 
 (defcustom rcirc-prompt "> "
-  "Prompt string to use in irc buffers.
+  "Prompt string to use in IRC buffers.
 
 The following replacements are made:
 %n is your nick.
@@ -354,7 +354,7 @@ last ping."
   "If non-nil, write information to `rcirc-debug-buffer'.")
 (defun rcirc-debug (process text)
   "Add an entry to the debug log including PROCESS and TEXT.
-Debug text is written to `rcirc-debug-buffer' if `rcirc-debug-p'
+Debug text is written to `rcirc-debug-buffer' if `rcirc-debug-flag'
 is non-nil."
   (when rcirc-debug-flag
     (save-excursion
@@ -401,8 +401,8 @@ Functions are called with PROCESS and SENTINEL arguments.")
     ps))
 
 (defvar rcirc-receive-message-hooks nil
-  "Hook functions run when a message is recieved from server.
-Function is called with PROCESS COMMAND SENDER ARGS and LINE.")
+  "Hook functions run when a message is received from server.
+Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
 (defun rcirc-filter (process output)
   "Called when PROCESS receives OUTPUT."
   (rcirc-debug process output)
@@ -587,7 +587,7 @@ If buffer is nil, return the target of the current buffer."
 (define-key global-map (kbd "C-c C-SPC") 'rcirc-next-active-buffer)
 
 (defvar rcirc-browse-url-map (make-sparse-keymap)
-  "Keymap used ror browsing URLs in `rcirc-mode'.")
+  "Keymap used for browsing URLs in `rcirc-mode'.")
 
 (define-key rcirc-browse-url-map (kbd "RET") 'rcirc-browse-url-at-point)
 (define-key rcirc-browse-url-map (kbd "<mouse-2>") 'rcirc-browse-url-at-mouse)
@@ -599,7 +599,7 @@ If buffer is nil, return the target of the current buffer."
   "Hook run when setting up rcirc buffer.")
 
 (defun rcirc-mode (process target)
-  "Major mode for irc channel buffers.
+  "Major mode for IRC channel buffers.
 
 \\{rcirc-mode-map}"
   (kill-all-local-variables)
@@ -722,7 +722,7 @@ If ALL is non-nil, update prompts in all IRC buffers."
 
 (defun rcirc-generate-new-buffer-name (process target)
   "Return a buffer name based on PROCESS and TARGET.
-This is used for the initial name given to irc buffers."
+This is used for the initial name given to IRC buffers."
   (if target
       (concat target "@" (process-name process))
     (concat "*" (process-name process) "*")))
@@ -985,7 +985,7 @@ record activity."
 				     1))	; [
 				 (t 3))		; ***
 			   1)
-			? )))
+			?\s)))
 		  (fill-column (cond ((eq rcirc-fill-column 'frame-width)
 				      (1- (frame-width)))
 				     (rcirc-fill-column
@@ -1046,7 +1046,7 @@ record activity."
 			    process sender response target text)))))
 
 (defun rcirc-startup-channels (server)
-  "Return the list of startup channels for server."
+  "Return the list of startup channels for SERVER."
   (let (channels)
     (dolist (i rcirc-startup-channels-alist)
       (if (string-match (car i) server)
@@ -1127,8 +1127,8 @@ record activity."
               (sort nicks (lambda (x y) (time-less-p (cdr y) (cdr x))))))))
 
 (defun rcirc-ignore-update-automatic (nick)
-  "Remove NICK from  `rcirc-ignore-list'
-if NICK is also on  `rcirc-ignore-list-automatic'."
+  "Remove NICK from `rcirc-ignore-list'
+if NICK is also on `rcirc-ignore-list-automatic'."
   (when (member nick rcirc-ignore-list-automatic)
       (setq rcirc-ignore-list-automatic
 	    (delete nick rcirc-ignore-list-automatic)
@@ -1375,14 +1375,14 @@ Also, clear the overlay arrow if the current buffer is now hidden."
     (when (not existing-buffer)
       (rcirc-cmd-whois nick))))
 
-(defun-rcirc-command join (args)
+(defun-rcirc-command join (channel)
   "Join CHANNEL."
   (interactive "sJoin channel: ")
-  (let* ((channel (car (split-string args)))
-         (buffer (rcirc-get-buffer-create process channel)))
+  (let ((buffer (rcirc-get-buffer-create process
+                                         (car (split-string channel)))))
     (when (not (eq (selected-window) (minibuffer-window)))
       (funcall rcirc-switch-to-buffer-function buffer))
-    (rcirc-send-string process (concat "JOIN " args))))
+    (rcirc-send-string process (concat "JOIN " channel))))
 
 (defun-rcirc-command part (channel)
   "Part CHANNEL."
@@ -1486,10 +1486,10 @@ With a prefix arg, prompt for new topic."
   "Manage the ignore list.
 Ignore NICK, unignore NICK if already ignored, or list ignored
 nicks when no NICK is given.  When listing ignored nicks, the
-ones added to the list automatically are marked with an asterix."
+ones added to the list automatically are marked with an asterisk."
   (interactive "sToggle ignoring of nick: ")
   (if (string= "" nick)
-      (rcirc-print process (rcirc-nick process) "NOTICE" target 
+      (rcirc-print process (rcirc-nick process) "NOTICE" target
 		   (mapconcat
 		    (lambda (nick)
 		      (concat nick
@@ -1511,19 +1511,19 @@ ones added to the list automatically are marked with an asterix."
   (propertize (or string "") 'face face 'rear-nonsticky t))
 
 (defvar rcirc-url-regexp
-  (rx word-boundary 
+  (rx word-boundary
       (or "www."
-	  (and (or "http" "https" "ftp" "file" "gopher" "news" "telnet" "wais" 
+	  (and (or "http" "https" "ftp" "file" "gopher" "news" "telnet" "wais"
 		   "mailto")
 	       "://"
 	       (1+ (char "a-zA-Z0-9_."))
 	       (optional ":" (1+ (char "0-9")))))
       (1+ (char "-a-zA-Z0-9_=!?#$\@~`%&*+|\\/:;.,"))
       (char "-a-zA-Z0-9_=!?#$\@~`%&*+|\\/:;"))
-  "Regexp matching URL's.  Set to nil to disable URL features in rcirc.")
+  "Regexp matching URLs.  Set to nil to disable URL features in rcirc.")
 
 (defun rcirc-browse-url (&optional arg)
-  "Prompt for url to browse based on urls in buffer."
+  "Prompt for URL to browse based on URLs in buffer."
   (interactive)
   (let ((completions (mapcar (lambda (x) (cons x nil)) rcirc-urls))
         (initial-input (car rcirc-urls))
@@ -1559,13 +1559,13 @@ FUNCTION takes 3 arguments, MATCH-START, MATCH-END, and STRING."
   "Return TEXT with properties added based on various patterns."
   ;; ^B
   (setq text
-        (rcirc-map-regexp 
+        (rcirc-map-regexp
 	 (lambda (start end string)
 	   (let ((orig-face (get-text-property start 'face string)))
 	       (add-text-properties
 		start end
 		(list 'face (if (listp orig-face)
-				(append orig-face 
+				(append orig-face
 					(list 'bold))
 			      (list orig-face 'bold))
 		      'rear-nonsticky t)
@@ -1573,7 +1573,7 @@ FUNCTION takes 3 arguments, MATCH-START, MATCH-END, and STRING."
 	   ".*?"
 	   text))
   ;; TODO: deal with ^_ and ^C colors sequences
-  (while (string-match "\\(.*\\)[]\\(.*\\)" text) 
+  (while (string-match "\\(.*\\)[]\\(.*\\)" text)
     (setq text (concat (match-string 1 text)
                        (match-string 2 text))))
   ;; my nick
@@ -1596,7 +1596,7 @@ FUNCTION takes 3 arguments, MATCH-START, MATCH-END, and STRING."
 	   (let ((orig-face (get-text-property start 'face string)))
 	     (add-text-properties start end
 				  (list 'face (if (listp orig-face)
-						  (append orig-face 
+						  (append orig-face
 							  (list 'bold))
 						(list orig-face 'bold))
 					'rear-nonsticky t
@@ -1991,7 +1991,7 @@ Passwords are read from `rcirc-authinfo-file-name' (which see)."
   '((((min-colors 88) (background dark)) (:foreground "cyan1"))
     (((background dark)) (:foreground "cyan"))
     (t (:foreground "dark blue")))
-  "The face to use to highlight prompts."
+  "The face used to highlight prompts."
   :group 'rcirc-faces)
 
 (defface rcirc-mode-line-nick

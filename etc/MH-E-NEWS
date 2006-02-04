@@ -1,10 +1,419 @@
 * COPYRIGHT
 
-Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 	
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
+
+* Changes in MH-E 7.91
+
+Version 7.91 is the second 8.0 beta release and fixes several bugs
+that were uncovered in wider testing.
+
+* Changes in MH-E 7.90
+
+Version 7.90 is the first 8.0 beta release and is a release that has
+finally broken away from some unfortunate legacy decisions in favor of
+something that will be easier to use and support. Many bugs were fixed
+and many features were added, including making the pick search
+equivalent to the other types of searches.
+
+The rewrite of the manual accelerated dramatically in recent months
+and drove the changes in this release. In order to make the
+manual--and hence the software--better, clearer, more consistent, more
+predictable, and easier to understand, many variables and functions
+were renamed. The changes to the user-visible variables are listed
+here. It is our hope that you, dear MH-E user, will embrace the
+changes for the better and forgive us from making so many incompatible
+changes.
+
+If you use undocumented functionality, be sure to read the ChangeLog
+for changes that might affect you.
+
+** New Features in MH-E 7.90
+
+*** Entry Points Have Moved
+
+Emacs 21 users must now add `(require 'mh-autoloads)' because the
+entry points (such as `mh-rmail' and `mh-smail') have moved to
+different files which have made the autoloads that come with Emacs
+inaccurate. This change was necessary because the code was reorganized
+to remove circular dependencies, to make the code more stable and
+maintainable, and to reduce the time to load MH-E.
+
+*** MH-E No Longer Calls install-mh
+
+The new variant detection code makes use of `mhparam' which assumes
+that your MH environment has already been set up. The code to call
+`install-mh', which could no longer be run anyway, was removed.
+
+*** Use run-hook-with-args
+
+We use normal hooks whenever possible and do not use
+`run-hook-with-args' (with one documented exception) (closes SF
+#643702).
+
+*** Merge mh-index.el and mh-pick.el
+
+We merged `mh-index.el' and `mh-pick.el' into a new file
+`mh-search.el'. As part of this process, the old `F s' behavior of
+adding messages to the search sequence has been removed. The `F i'
+keybinding was then renamed to `F s' (`mh-search'). The mode of the
+search-pattern buffer was renamed from MH-Pick to MH-Search. Within
+the MH-Search buffer, the command `C-c C-p' (`mh-pick-do-search') now
+runs pick on the given folder recursively and displays the results in
+a search folder like the other search methods (closes SF #829207).
+
+*** Improve Security of mh-fetch-x-image-url
+
+The default has been changed to "Never Fetch." Those of you who like
+the value of "Ask Before Fetching" will have to customize this option
+(closes SF #831278).
+
+*** Remove Emacs 20 Support
+
+As it turns out, we had already added some code that didn't work on
+Emacs 20. However, now we've formalized it and removed code that was
+present solely for Emacs 20 support (closes SF #1359240).
+
+*** Derive mh-letter-mode from mail-mode
+
+MH-Letter mode is now derived from `mail-mode'. We were able to delete
+a lot of code. In return, there are a few `mail-mode' commands that
+are available that may or may not be useful and the `mail-mode-hook'
+is run (closes SF #1385571).
+
+*** Add Choices to mh-to-field-choices
+
+In MH-Letter mode, you can use the "C-c C-f (mh-to-field)" prefix to
+go to and insert fields. The fields "Reply-To:", "Mail-Reply-To:",
+"Mail-Followup-To:" can now be created via the "C-r", "C-a" (for
+author), and "C-l" keys respectively. The key for the "From:" field
+has been renamed from "C-r" to "C-m" for consistency with `mail-mode'
+(closes SF #1400139).
+
+*** MH-Folder Keymap Changes
+
+The function `mh-ps-print-toggle-mime' was never implemented and the
+functionality in `mh-ps-print-msg-show' was better afforded by
+`mh-ps-print-msg' and `mh-ps-print-msg-file'.
+
+Key          7.4.85                        7.4.90
+
+F i          mh-index-search               -
+F s          mh-search-folder              mh-search
+P A          mh-ps-print-toggle-mime       -
+P M          mh-ps-print-toggle-mime       -
+P s          mh-ps-print-msg-show          -
+
+*** MH-Letter Keymap Changes
+
+The change where `mh-letter-mode' derives from `mail-mode' adds a few
+keybindings. Some are interesting; experiment! Most of the changes
+have to do with the renaming of the functions with "mhn" in them to
+"mh" because nmh doesn't use `mhn'. The names were also made
+consistent with the the family of "mml" functions.
+
+Key          7.4.85                        7.4.90
+
+C-c C-e      mh-edit-mhn                   mh-mh-to-mime
+C-c C-f C-a  -                             mh-to-field
+C-c C-f C-l  -                             mh-to-field
+C-c C-f RET  -                             mh-to-field
+C-c C-f a    -                             mh-to-field
+C-c C-f l    -                             mh-to-field
+C-c C-f m    -                             mh-to-field
+C-c RET C-g  mh-mhn-compose-anon-ftp       mh-mh-compose-anon-ftp
+C-c RET C-t  mh-mhn-compose-external-compressed-tar
+                                           mh-mh-compose-external-compressed-tar
+C-c RET C-u  mh-revert-mhn-edit            mh-mh-to-mime-undo
+C-c RET C-x  mh-mhn-compose-external-type  mh-mh-compose-external-type
+C-c RET g    mh-mhn-compose-anon-ftp       mh-mh-compose-anon-ftp
+C-c RET t    mh-mhn-compose-external-compressed-tar
+                                           mh-mh-compose-external-compressed-tar
+C-c RET u    mh-revert-mhn-edit            mh-mh-to-mime-undo
+C-c RET x    mh-mhn-compose-external-type  mh-mh-compose-external-type
+
+*** MH-Search Keymap Changes
+
+These are the changes associated with the new search mode. The command
+`C-c C-c' (`mh-index-do-search') now performs the standard indexed
+search, while `C-c C-p' (`mh-pick-do-search') runs pick as before,
+only better!
+
+Key          7.4.85                        7.4.90
+
+C-c C-c      mh-do-search                  mh-index-do-search
+C-c TAB      mh-index-do-search            -
+
+** New Variables in MH-E 7.90
+
+*** mh-after-commands-processed-hook
+
+Hook run by `x' (`mh-execute-commands') after performing outstanding
+refile and delete requests.
+
+*** mh-before-commands-processed-hook
+
+Renamed from `mh-folder-updated-hook'. It wasn't clear whether
+`mh-folder-updated-hook' was run before or after the commands were
+executed. We now provide both with clear names.
+
+*** mh-highlight-citation-style
+
+Renamed from `mh-highlight-citation-p' since it wasn't a boolean. The
+new name is also more descriptive.
+
+*** mh-insert-signature-hook
+
+Renamed from `mh-letter-insert-signature-hook' since most of the other
+hooks do not carry the mode in the prefix and because the new name is
+equally clear.
+
+*** mh-kill-folder-suppress-prompt-hooks
+
+Renamed from `mh-kill-folder-suppress-prompt-hook'. By convention,
+abnormal hooks, which this is, either have a -function or -hooks
+suffix.
+
+*** mh-mhl-format-file
+
+Renamed from `mhl-formfile' to put it in the MH-E namespace and to be
+consistent with other similar options.
+
+*** mh-mh-to-mime-hook
+
+Renamed from `mh-edit-mhn-hook'. We have a family of `mh-mml-to-mime'
+functions and variables; the older mhn functions and variables were
+renamed to have a consistent `mh-mh-to-mime' prefix.
+
+*** mh-new-messages-folders
+
+Renamed from `mh-index-new-messages-folders' for clarity.
+
+*** mh-path
+
+Additional list of directories to search for MH.
+
+*** mh-redist-full-contents-flag
+
+On means the `dist' command needs entire letter for redistribution.
+This was previously a variable. It's now an option.
+
+*** mh-search-mode-hook
+
+Renamed from `mh-pick-mode-hook' as part of the
+`mh-index.el'/`mh-pick.el' merge into `mh-search.el'.
+
+*** mh-search-program
+
+Renamed from `mh-index-program' as part of the
+`mh-index.el'/`mh-pick.el' merge into `mh-search.el'.
+
+*** mh-sortm-args
+
+Additional arguments for `sortm'. This was previously an internal
+variable. It's now an user-customizable option.
+
+*** mh-speed-update-interval
+
+Renamed from `mh-speed-flists-interval' for clarity.
+
+*** mh-ticked-messages-folders
+
+Renamed from `mh-index-ticked-messages-folders' for clarity.
+
+*** mh-xemacs-tool-bar-position
+
+Renamed from `mh-xemacs-toolbar-position' per GNU Emacs naming conventions.
+
+*** mh-xemacs-use-tool-bar-flag
+
+Renamed from `mh-xemacs-use-toolbar-flag' per GNU Emacs naming conventions.
+
+*** mh-yank-behavior
+
+Renamed from `mh-yank-from-start-of-msg' for clarity.
+
+** Variables Deleted in MH-E 7.90
+
+*** mail-citation-hook
+
+This is already defined in `sendmail.el'.
+
+*** mh-edit-mhn-hook
+
+Renamed to `mh-mh-to-mime-hook'.
+
+*** mh-folder-updated-hook
+
+Renamed to `mh-before-commands-processed-hook'.
+
+*** mh-highlight-citation-p
+
+Renamed to `mh-highlight-citation-style'.
+
+*** mh-index-new-messages-folders
+
+Renamed to `mh-new-messages-folders'.
+
+*** mh-index-program
+
+Renamed to `mh-search-program'.
+
+*** mh-index-ticked-messages-folders
+
+Renamed to `mh-ticked-messages-folders'.
+
+*** mh-kill-folder-suppress-prompt-hook
+
+Renamed to `mh-kill-folder-suppress-prompt-hooks'.
+
+*** mh-letter-insert-signature-hook
+
+Renamed to `mh-insert-signature-hook'.
+
+*** mhl-formfile
+
+Renamed to `mh-mhl-format-file'.
+
+*** mh-pick-mode-hook
+
+Renamed to `mh-search-mode-hook'.
+
+*** mh-speed-flists-interval
+
+Renamed to `mh-speed-update-interval'.
+
+*** mh-speed-run-flists-flag
+
+Deleted since setting `mh-speed-flists-interval' to 0 accomplishes the
+same thing.
+
+*** mh-xemacs-toolbar-position
+
+Renamed to `mh-xemacs-tool-bar-position'.
+
+*** mh-xemacs-use-toolbar-flag
+
+Renamed to `mh-xemacs-use-tool-bar-flag'.
+
+*** mh-yank-from-start-of-msg
+
+Renamed to `mh-yank-behavior'.
+
+** Bug Fixes in MH-E 7.90
+
+*** Error Message When Trying to Send Using MH-E
+
+This behavior is no longer observed (closes SF #1002103).
+
+*** "Args out of range" Error in Displaying Message
+
+This behavior is no longer observed (closes SF #1227504).
+
+*** Front-and-back Truncation in mailto: Rendering
+
+This behavior is no longer observed (closes SF #1227510).
+
+*** Completions Offered by mh-refile-message Are Not Sorted
+
+This behavior is no longer observed (closes SF #698734).
+
+*** Add Message-ID to Outgoing Messages
+
+If you replied to a message in your `+outbox', an `In-Reply-To:'
+header field was created that broke threading at the recipient's end.
+We now add a `Message-ID:' to outgoing messages which fixes this
+(closes SF #725425).
+
+*** Speedbar Creating New Folders Instead of Visiting Existing 
+
+This was actually fixed in 7.4.3 (closes SF #792300).
+
+*** Args Out of Range
+
+This compilation error was actually fixed in 7.4.3 (closes SF
+#806577).
+
+*** Initialization Fails If ~/Mail Exists
+
+MH-E no longer calls `install-mh' so this issue has gone away (closes
+SF #835192).
+
+*** RETURN Causes Infinite Loop in mh-letter
+
+This behavior is no longer observed (closes SF #887346).
+
+*** Missing Headers When Replying to All
+
+User needed to edit `replgroupcomps' (closes SF #918194).
+
+*** mh-find-path Doesn't Use mhparam
+
+MH-E no longer peeks into the MH profile `~/.mh_profile' directly. It
+uses `mhparam' instead (closes SF #1016027).
+
+*** mh-index-previous-folder Does Not Work Correctly
+
+If your cursor was on an item below a folder heading and you used
+`M-TAB' (`mh-index-previous-folder'), you would move to the previous
+folder heading. This has been fixed (closes SF #1126188).
+
+*** XEmacs Compile Fails
+
+Compiling produced a "Symbol's value as variable is void: require"
+error on all files. This has been fixed. As a bonus, warnings have
+been reduced from hundreds to just a few (closes SF #1127595).
+
+*** buffer-offer-save Permanent Local
+
+There was a movement to make `buffer-offer-save' a permanent local
+which would have meant that we could not set it in `mh-letter-mode'.
+However, this movement was fraught with issues and was postponed
+(closes SF #1184756).
+
+*** Better Handling of Empty cur Sequence
+
+If you refiled a message into a folder and then used `F r'
+(`mh-rescan-folder') in that folder, your cursor would be taken to the
+first message. The cursor now stays where it was (closes SF #1207247).
+
+*** Name of the Draft File in mh-comp.el
+
+MH is documented to use the draft file. If you use a draft file for
+something else (like Sylpheed), then use draft folders (closes SF
+#1231483).
+
+*** Use Standard Default Notation in Prompts
+
+Emacs changed their defaults in prompts from "Prompt: [value]" to
+"Prompt (default value): ". All MH-E prompts have been updated to
+comply with the new standard (closes SF #1275933).
+
+*** Msg Display Broken After Displaying Msg with Inline Image
+
+Messages with inline images no longer trim certain message header
+fields (closes SF #1306141).
+
+*** mh-visit-folder Munges font-lock-keywords
+
+MH-E broke highlighting in Gnus buffers. This was actually a problem
+in CVS Emacs 22 and has been fixed there (closes SF #1393879).
+
+*** Illegal Filename Chars for W32 Filesystems
+
+Windows users who view `X-Image-URL:' images could not cache the
+images since the cached image file names had illegal characters. This
+has been fixed (closes SF #1396499).
+
+*** mh-send Doesn't Handle mml Insertions Via mail-user-agent
+
+Can now forward messages in Gnus if MH-E is your `mail-user-agent'
+(closes SF #1399307).
+
+
 
 * Changes in MH-E 7.85
 
@@ -409,7 +818,7 @@ that you comment them out. The MH detection code has been completely
 rewritten and it is very likely that you no longer to set them and
 their setting may confuse other MH-E settings.
 
-** Variables Deleted in MH-E
+** Variables Deleted in MH-E 7.4.80
 
 Variables that have been removed from MH-E that have not been
 discussed elsewhere are listed here.

@@ -123,6 +123,11 @@ to the FSF.
 
 * Other features we would like:
 
+** Create a category of errors called `user-error' for errors which are
+typically due to pilot errors and should thus be in debug-ignored-errors.
+
+** Give Tar mode all the features of Archive mode.
+
 ** Create a category of errors called `process-error'
   for some or all errors associated with using subprocesses.
 
@@ -419,6 +424,9 @@ when the body only calls primitives.
   in lib-src so that they can be used from the input method
   "japanese".  Currently, most Japanese users are using external
   packages (e.g. tamago, anthy) or an input method via XIM.
+
+** Let LEIM handle the Mode_switch key like XIM does (i.e. a toggle like C-\
+but which can also be used as a modifier).
 
 ** Provide the toolbar on ttys. This could map a bit like tmm-menubar
    for the menubar and buttons could look a bit like those used by customize.

@@ -1,3 +1,19 @@
+2006-02-03  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c: Cache last merged escape glyph face.
+	(last_escape_glyph_frame, last_escape_glyph_face_id)
+	(last_escape_glyph_merged_face_id): New variables.
+	(get_next_display_element): Use/update them.
+	(redisplay_internal): Reset them before redisplay.
+
+	* xdisp.c (set_iterator_to_next): Optimize 2004-12-13 fix.
+	Only recheck faces after displaying ellipsis.
+
+2006-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_composition_emacs_mule): Fix handling of
+	incorrect format data.
+
 2006-01-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Use new tool bar functions

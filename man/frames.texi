@@ -3,29 +3,29 @@
 @c   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames, International, Windows, Top
-@chapter Frames and X Windows
+@chapter Frames and Graphical Displays
 @cindex frames
 
-  When using the X Window System, you can create multiple windows at the
-X level in a single Emacs session.  Each X window that belongs to Emacs
-displays a @dfn{frame} which can contain one or several Emacs windows.
-A frame initially contains a single general-purpose Emacs window which
-you can subdivide vertically or horizontally into smaller windows.  A
-frame normally contains its own echo area and minibuffer, but you can
-make frames that don't have these---they use the echo area and
-minibuffer of another frame.
-
-  Editing you do in one frame also affects the other frames.  For
-instance, if you put text in the kill ring in one frame, you can yank it
-in another frame.  If you exit Emacs through @kbd{C-x C-c} in one frame,
-it terminates all the frames.  To delete just one frame, use @kbd{C-x 5
-0} (that is zero, not @kbd{o}).
+  When using a graphical display, you can create multiple windows at
+the system in a single Emacs session.  Each system-level window that
+belongs to Emacs displays a @dfn{frame} which can contain one or
+several Emacs windows.  A frame initially contains a single
+general-purpose Emacs window which you can subdivide vertically or
+horizontally into smaller windows.  A frame normally contains its own
+echo area and minibuffer, but you can make frames that don't have
+these---they use the echo area and minibuffer of another frame.
 
   To avoid confusion, we reserve the word ``window'' for the
 subdivisions that Emacs implements, and never use it to refer to a
 frame.
 
-  Emacs compiled for MS-DOS emulates some aspects of the window system
+  Editing you do in one frame affects the other frames.  For
+instance, if you put text in the kill ring in one frame, you can yank it
+in another frame.  If you exit Emacs through @kbd{C-x C-c} in one frame,
+it terminates all the frames.  To delete just one frame, use @kbd{C-x 5
+0} (that is zero, not @kbd{o}).
+
+  Emacs compiled for MS-DOS emulates some windowing functionality,
 so that you can use many of the features described in this chapter.
 @xref{MS-DOS Mouse}, for more information.
 
@@ -185,46 +185,46 @@ point.  Then it does not matter where you click, or even which of the
 frame's windows you click on.  The default value is @code{nil}.  This
 variable also affects yanking the secondary selection.
 
-@cindex cutting and X
-@cindex pasting and X
+@cindex cutting
+@cindex pasting
 @cindex X cutting and pasting
-  To copy text to another X window, kill it or save it in the kill ring.
-Under X, this also sets the @dfn{primary selection}.  Then use the
-``paste'' or ``yank'' command of the program operating the other window
-to insert the text from the selection.
+  To copy text to another windowing application, kill it or save it in
+the kill ring.  Then use the ``paste'' or ``yank'' command of the
+other application to insert the text.
 
-  To copy text from another X window, use the ``cut'' or ``copy''
-command of the program operating the other window, to select the text
-you want.  Then yank it in Emacs with @kbd{C-y} or @kbd{Mouse-2}.
-
-  The standard coding system for X selections is
-@code{compound-text-with-extensions}.  To specify another coding
-system for X selections, use @kbd{C-x @key{RET} x} or @kbd{C-x
-@key{RET} X}.  @xref{Specify Coding}.
+  To copy text from another windowing application, use its ``cut'' or
+``copy'' command to select the text you want.  Then yank it in Emacs
+with @kbd{C-y} or @kbd{Mouse-2}.
 
 @cindex primary selection
 @cindex cut buffer
 @cindex selection, primary
 @vindex x-cut-buffer-max
-  When Emacs puts text into the kill ring, or rotates text to the front
-of the kill ring, it sets the @dfn{primary selection} in the X server.
-This is how other X clients can access the text.  Emacs also stores the
-text in the cut buffer, but only if the text is short enough
-(the value of @code{x-cut-buffer-max} specifies the maximum number of
-characters); putting long strings in the cut buffer can be slow.
+  When Emacs puts text into the kill ring, or rotates text to the
+front of the kill ring, it sets the @dfn{primary selection} in the
+window system.  This is how other windowing applications can access
+the text.  On the X Window System, emacs also stores the text in the
+cut buffer, but only if the text is short enough (the value of
+@code{x-cut-buffer-max} specifies the maximum number of characters);
+putting long strings in the cut buffer can be slow.
 
   The commands to yank the first entry in the kill ring actually check
 first for a primary selection in another program; after that, they check
 for text in the cut buffer.  If neither of those sources provides text
 to yank, the kill ring contents are used.
 
+  The standard coding system for X Window System selections is
+@code{compound-text-with-extensions}.  To specify another coding
+system for selections, use @kbd{C-x @key{RET} x} or @kbd{C-x @key{RET}
+X}.  @xref{Communication Coding}.
+
 @node Secondary Selection
 @section Secondary Selection
 @cindex secondary selection
 
   The @dfn{secondary selection} is another way of selecting text using
-X.  It does not use point or the mark, so you can use it to kill text
-without setting point or the mark.
+the X Window System.  It does not use point or the mark, so you can
+use it to kill text without setting point or the mark.
 
 @table @kbd
 @findex mouse-set-secondary
@@ -275,16 +275,15 @@ that matters is which window you click on.  @xref{Mouse Commands}.
 
 @node Clipboard
 @section Using the Clipboard
-@cindex X clipboard
 @cindex clipboard
 @vindex x-select-enable-clipboard
 @findex menu-bar-enable-clipboard
 @cindex OpenWindows
 @cindex Gnome
 
-  Apart from the primary and secondary selection types, X supports a
-@dfn{clipboard} selection type which is used by some applications,
-particularly under OpenWindows and Gnome.
+  Apart from the primary and secondary selection types, Emacs can
+handle the @dfn{clipboard} selection type which is used by some
+applications, particularly under OpenWindows and Gnome.
 
   The command @kbd{M-x menu-bar-enable-clipboard} makes the @code{Cut},
 @code{Paste} and @code{Copy} menu items, as well as the keys of the same
@@ -295,7 +294,7 @@ the Emacs yank functions consult the clipboard before the primary
 selection, and to make the kill functions to store in the clipboard as
 well as the primary selection.  Otherwise they do not access the
 clipboard at all.  Using the clipboard is the default on MS-Windows,
-unlike most systems.
+but not on other systems.
 
 @node Mouse References
 @section Following References with the Mouse
@@ -342,16 +341,16 @@ the mouse.
 
 @vindex mouse-1-click-follows-link
   In Emacs versions before 22, only @kbd{Mouse-2} follows links and
-@kbd{Mouse-1} always sets points.  If you prefer this behavior, set
-the variable @code{mouse-1-click-follows-link} to @code{nil}.  This
-variable also lets you choose various other alternatives for following
-links with the mouse.  Type @kbd{C-h v mouse-1-click-follows-link @key{RET}}
-for more details.
+@kbd{Mouse-1} always sets point.  If you prefer this older behavior,
+set the variable @code{mouse-1-click-follows-link} to @code{nil}.
+This variable also lets you choose various other alternatives for
+following links with the mouse.  Type @kbd{C-h v
+mouse-1-click-follows-link @key{RET}} for more details.
 
 @node Menu Mouse Clicks
 @section Mouse Clicks for Menus
 
-  Mouse clicks modified with the @key{CTRL} and @key{SHIFT} keys
+  Several mouse clicks with the @key{CTRL} and @key{SHIFT} modifiers
 bring up menus.
 
 @table @kbd
@@ -382,7 +381,7 @@ present in the menu bar---not just the mode-specific ones---so that
 you can access them without having to display the menu bar.
 
 @item S-Mouse-1
-This menu is for specifying the frame's principal font.
+This menu is for specifying the frame's default font.
 @end table
 
 @node Mode Line Mouse
@@ -396,17 +395,17 @@ windows.
   Some areas of the mode line, such as the buffer name and the major
 mode name, have their own special mouse bindings.  These areas are
 highlighted when you hold the mouse over them, and information about
-the special bindings will be displayed (@pxref{Tooltips}).
-
-  You can also click on areas of the mode line that do not have
-special mouse bindings of their own.  This has the following effects:
+the special bindings will be displayed (@pxref{Tooltips}).  This
+section's commands do not apply in those areas.
 
 @table @kbd
 @item Mouse-1
 @kindex Mouse-1 @r{(mode line)}
 @kbd{Mouse-1} on a mode line selects the window it belongs to.  By
 dragging @kbd{Mouse-1} on the mode line, you can move it, thus
-changing the height of the windows above and below.
+changing the height of the windows above and below.  Changing heights
+with the mouse in this way never deletes windows, it just refuses to
+make any window smaller than the minimum height.
 
 @item Mouse-2
 @kindex Mouse-2 @r{(mode line)}
@@ -425,7 +424,10 @@ horizontally, above the place in the mode line where you click.
 @end table
 
 @kindex C-Mouse-2 @r{(scroll bar)}
-  @kbd{C-Mouse-2} on a scroll bar splits the corresponding window
+@kindex Mouse-1 @r{(scroll bar)}
+  Using @kbd{Mouse-1} on the divider between two side-by-side mode
+lines, you can move the vertical boundary left or right.  Using
+@kbd{C-Mouse-2} on a scroll bar splits the corresponding window
 vertically.  @xref{Split Window}.
 
 @node Creating Frames
@@ -638,12 +640,12 @@ for all of them!
 @section Special Buffer Frames
 
 @vindex special-display-buffer-names
-  You can make certain chosen buffers, for which Emacs normally creates
-a second window when you have just one window, appear in special frames
-of their own.  To do this, set the variable
-@code{special-display-buffer-names} to a list of buffer names; any
-buffer whose name is in that list automatically gets a special frame,
-when an Emacs command wants to display it ``in another window.''
+  You can make certain chosen buffers, which Emacs normally displays
+in ``another window,'' appear in special frames of their own.  To do
+this, set the variable @code{special-display-buffer-names} to a list
+of buffer names; any buffer whose name is in that list automatically
+gets a special frame, when an Emacs command wants to display it ``in
+another window.''
 
   For example, if you set the variable this way,
 
@@ -664,7 +666,7 @@ frame automatically.
   More generally, you can set @code{special-display-regexps} to a list
 of regular expressions; then a buffer gets its own frame if its name
 matches any of those regular expressions.  (Once again, this applies only
-to buffers that normally get displayed for you in a separate window.)
+to buffers that normally get displayed for you in ``another window.'')
 
 @vindex special-display-frame-alist
   The variable @code{special-display-frame-alist} specifies the frame
@@ -707,79 +709,38 @@ whether that feature is also in use for the same buffer name.
 @cindex Auto-Raise mode
 @cindex Auto-Lower mode
 
-  This section describes commands for altering the display style and
-window management behavior of the selected frame.
+@kindex S-Mouse-1
+  You can specify the font and colors used for text display, and the
+colors for the frame borders, the cursor, and the mouse cursor, by
+customizing the faces @code{default}, @code{border}, @code{cursor} and
+@code{mouse}.  @xref{Face Customization}.  You can also set a frame's
+default font through a pop-up menu.  Press @kbd{S-Mouse-1} to activate
+this menu.
 
-@findex set-foreground-color
-@findex set-background-color
-@findex set-cursor-color
-@findex set-mouse-color
-@findex set-border-color
-@findex auto-raise-mode
-@findex auto-lower-mode
-@cindex colors
+  These commands are available for controlling the window management
+behavior of the selected frame.
+
 @table @kbd
-@item M-x set-foreground-color @key{RET} @var{color} @key{RET}
-Specify color @var{color} for the foreground of the selected frame.
-(This also changes the foreground color of the default face.)  You can
-specify @var{color} either by its symbolic name or by its RGB
-numerical specification@footnote{
-See the X Window System documentation for more details.  On a typical
-GNU or Unix system, the command @kbd{man 7 X} or @kbd{man -s 7 X} will
-display the X manual page that explains how to specify colors.}.
-
-@item M-x set-background-color @key{RET} @var{color} @key{RET}
-Specify color @var{color} for the background of the selected frame.
-(This also changes the background color of the default face.)
-
-@item M-x set-cursor-color @key{RET} @var{color} @key{RET}
-Specify color @var{color} for the cursor of the selected frame.
-
-@item M-x set-mouse-color @key{RET} @var{color} @key{RET}
-Specify color @var{color} for the mouse cursor when it is over the
-selected frame.
-
-@item M-x set-border-color @key{RET} @var{color} @key{RET}
-Specify color @var{color} for the border of the selected frame.
-
-@item M-x list-colors-display
-Display the defined color names and show what the colors look like.
-This command is somewhat slow.  @xref{Colors, list-colors-display,
-Display available colors}.
-
+@findex auto-raise-mode
 @item M-x auto-raise-mode
 Toggle whether or not the selected frame should auto-raise.  Auto-raise
 means that every time you move the mouse onto the frame, it raises the
 frame.
 
-Note that this auto-raise feature is implemented by Emacs itself.  Some
-window managers also implement auto-raise.  If you enable auto-raise for
-Emacs frames in your X window manager, it should work, but it is beyond
-Emacs's control and therefore @code{auto-raise-mode} has no effect on
-it.
+Some window managers also implement auto-raise.  If you enable
+auto-raise for Emacs frames in your window manager, it will work, but
+it is beyond Emacs' control, so @code{auto-raise-mode} has no effect
+on it.
 
+@findex auto-lower-mode
 @item M-x auto-lower-mode
 Toggle whether or not the selected frame should auto-lower.
 Auto-lower means that every time you move the mouse off the frame,
-the frame moves to the bottom of the stack of X windows.
+the frame moves to the bottom of the stack on the screen.
 
 The command @code{auto-lower-mode} has no effect on auto-lower
-implemented by the X window manager.  To control that, you must use
-the appropriate window manager features.
-
-@findex set-frame-font
-@item M-x set-frame-font @key{RET} @var{font} @key{RET}
-@cindex font (principal)
-Specify font @var{font} as the principal font for the selected frame.
-The principal font controls several face attributes of the
-@code{default} face (@pxref{Faces}).  For example, if the principal font
-has a height of 12 pt, all text will be drawn in 12 pt fonts, unless you
-use another face that specifies a different height.  @xref{Font X}, for
-ways to list the available fonts on your system.
-
-@kindex S-Mouse-1
-You can also set a frame's principal font through a pop-up menu.
-Press @kbd{S-Mouse-1} to activate this menu.
+implemented by the window manager.  To control that, you must use the
+appropriate window manager features.
 @end table
 
   In Emacs versions that use an X toolkit, the color-setting and
@@ -800,13 +761,13 @@ Parameters,,, elisp, The Emacs Lisp Reference Manual}.
 @cindex Scroll Bar mode
 @cindex mode, Scroll Bar
 
-  When using X, Emacs normally makes a @dfn{scroll bar} at the left of
-each Emacs window.@footnote{Placing it at the left is usually more
-useful with overlapping frames with text starting at the left margin.}
-The scroll bar runs the height of the window, and shows a moving
-rectangular inner box which represents the portion of the buffer
-currently displayed.  The entire height of the scroll bar represents the
-entire length of the buffer.
+  On graphical displays, Emacs normally makes a @dfn{scroll bar} at
+the left of each Emacs window.@footnote{Placing it at the left is
+usually more useful with overlapping frames with text starting at the
+left margin.}  The scroll bar runs the height of the window, and shows
+a moving rectangular inner box which represents the portion of the
+buffer currently displayed.  The entire height of the scroll bar
+represents the entire length of the buffer.
 
   You can use @kbd{Mouse-2} (normally, the middle button) in the scroll
 bar to move or drag the inner box up and down.  If you move it to the
@@ -826,16 +787,18 @@ window vertically.  The split occurs on the line where you click.
 @findex scroll-bar-mode
 @vindex scroll-bar-mode
   You can enable or disable Scroll Bar mode with the command @kbd{M-x
-scroll-bar-mode}.  With no argument, it toggles the use of scroll bars.
-With an argument, it turns use of scroll bars on if and only if the
-argument is positive.  This command applies to all frames, including
-frames yet to be created.  Customize the variable @code{scroll-bar-mode}
-to control the use of scroll bars at startup.  You can use it to specify
-that they are placed at the right of windows if you prefer that.  You
-have to set this variable through the @samp{Customize} interface
-(@pxref{Easy Customization}).  Otherwise, it will not work properly.
-You can use the X resource @samp{verticalScrollBars} to control the
-initial setting of Scroll Bar mode similarly.  @xref{Resources}.
+scroll-bar-mode}.  With no argument, it toggles the use of scroll
+bars.  With an argument, it turns use of scroll bars on if and only if
+the argument is positive.  This command applies to all frames,
+including frames yet to be created.  Customize the variable
+@code{scroll-bar-mode} to control the use of scroll bars at startup.
+You can use it to specify that they are placed at the right of windows
+if you prefer that.  You have to set this variable through the
+@samp{Customize} interface (@pxref{Easy Customization}), or it will
+not work properly.
+
+  You can also use the X resource @samp{verticalScrollBars} to control
+the initial setting of Scroll Bar mode.  @xref{Resources}.
 
 @findex toggle-scroll-bar
   To enable or disable scroll bars for just the selected frame, use the
@@ -887,37 +850,8 @@ directory displayed in that buffer.
 you prefer to visit the file in a new window in such cases, customize
 the variable @code{dnd-open-file-other-window}.
 
-@ignore
-@c ??? To Lisp manual
-@vindex x-dnd-test-function
-@vindex x-dnd-known-types
-  When a user drags something from another application over Emacs, that other
-application expects Emacs to tell it if Emacs can handle the data that is
-dragged.  The variable @code{x-dnd-test-function} is used by Emacs to determine
-what to reply.  The default value is @code{x-dnd-default-test-function}
-which accepts drops if the type of the data to be dropped is present in
-@code{x-dnd-known-types}.  You can customize @code{x-dnd-test-function} and/or
-@code{x-dnd-known-types} if you want Emacs to accept or reject drops based
-on some other criteria.
-
-@vindex x-dnd-types-alist
-  If you want to change the way Emacs handles drop of different types
-or add a new type, customize @code{x-dnd-types-alist}.  This requires
-detailed knowledge of what types other applications use for drag and
-drop.
-
-@vindex dnd-protocol-alist
-  When an URL is dropped on Emacs it may be a file, but it may also be
-another URL type (ftp, http, etc.).  Emacs first checks
-@code{dnd-protocol-alist} to determine what to do with the URL.  If
-there is no match there and if @code{browse-url-browser-function} is
-an alist, Emacs looks for a match there.  If no match is found the
-text for the URL is inserted.  If you want to alter Emacs behavior,
-you can customize these variables.
-@end ignore
-
-  The drag and drop protocols XDND, Motif and the
-old KDE 1.x protocol are currently supported.
+  The XDND and Motif drag and drop protocols, and the old KDE 1.x
+protocol, are currently supported.
 
 @node Menu Bars
 @section Menu Bars
@@ -941,7 +875,7 @@ with @kbd{C-Mouse-3} on a display which supports pop-up menus.
 
   @xref{Menu Bar}, for information on how to invoke commands with the
 menu bar.  @xref{X Resources}, for how to customize the menu bar
-menus.
+menus' visual appearance.
 
 @node Tool Bars
 @section Tool Bars
@@ -980,25 +914,24 @@ use of dialog boxes.  This also controls whether to use file selection
 windows (but those are not supported on all platforms).
 
 @vindex use-file-dialog
-  A file selection window is a special kind of dialog box for asking for
-file names.
+  A file selection window is a special kind of dialog box for asking
+for file names.  You can customize the variable @code{use-file-dialog}
+to suppress the use of file selection windows, even if you still want
+other kinds of dialogs.  This variable has no effect if you have
+suppressed all dialog boxes with the variable @code{use-dialog-box}.
 
-  You can customize the variable @code{use-file-dialog} to suppress the
-use of file selection windows even if you still want other kinds
-of dialogs.  This variable has no effect if you have suppressed all dialog
-boxes with the variable @code{use-dialog-box}.
+@vindex x-gtk-show-hidden-files
+  For Gtk+ version 2.4 and newer, Emacs use the Gtk+ file chooser
+dialog.  Emacs adds a toggle button that enables and disables showing
+of hidden files (files starting with a dot) in that dialog.  The
+variable @code{x-gtk-show-hidden-files} controls whether to show
+hidden files by default.
 
 @vindex x-use-old-gtk-file-dialog
   For Gtk+ version 2.4 and 2.6, you can make Emacs use the old file dialog
 by setting the variable @code{x-use-old-gtk-file-dialog} to a non-@code{nil}
 value.  If Emacs is built with a Gtk+ version that has only one file dialog,
 the setting of this variable has no effect.
-
-@vindex x-gtk-show-hidden-files
-  For Gtk+ version 2.4 and newer, Emacs use the Gtk+ file chooser dialog.
-Emacs adds a toggle button that enables and disables showing of hidden files
-(files starting with a dot) in that dialog.  This variable controls if
-hidden files should be shown by default or not.
 
 @node Tooltips
 @section Tooltips
@@ -1010,13 +943,13 @@ movement.  There are two types of tooltip: help tooltips and GUD
 tooltips.
 
   @dfn{Help tooltips} typically display over text---including the mode
-line---but may be also available for many other parts of the Emacs
-frame such as the tool bar and menu items.
+line---but are also available for other parts of the Emacs frame, such
+as the tool bar and menu items.
 
 @findex tooltip-mode
-  You can toggle help tooltips (Tooltip mode) with the command
-  @kbd{M-x tooltip-mode}.  When Tooltip mode is disabled, the help text
-is displayed in the echo area instead.
+  You can toggle display of help tooltips (Tooltip mode) with the
+command @kbd{M-x tooltip-mode}.  When Tooltip mode is disabled, the
+help text is displayed in the echo area instead.
 
   @dfn{GUD tooltips} show values of variables.  They are useful when
 you are debugging a program.  @xref{Debugger Operation}.
@@ -1066,11 +999,10 @@ the mode.
 @cindex non-window terminals
 @cindex single-frame terminals
 
-  If your terminal does not have a window system that Emacs supports,
-then it can display only one Emacs frame at a time.  However, you can
-still create multiple Emacs frames, and switch between them.  Switching
-frames on these terminals is much like switching between different
-window configurations.
+  On a text-only terminal, Emacs can display only one Emacs frame at a
+time.  However, you can still create multiple Emacs frames, and switch
+between them.  Switching frames on these terminals is much like
+switching between different window configurations.
 
   Use @kbd{C-x 5 2} to create a new frame and switch to it; use @kbd{C-x
 5 o} to cycle through the existing frames; use @kbd{C-x 5 0} to delete
@@ -1083,20 +1015,20 @@ appears near the beginning of the mode line, in the form
 
 @findex set-frame-name
 @findex select-frame-by-name
-  @samp{F@var{n}} is actually the frame's name.  You can also specify a
-different name if you wish, and you can select a frame by its name.  Use
-the command @kbd{M-x set-frame-name @key{RET} @var{name} @key{RET}} to
-specify a new name for the selected frame, and use @kbd{M-x
-select-frame-by-name @key{RET} @var{name} @key{RET}} to select a frame
-according to its name.  The name you specify appears in the mode line
-when the frame is selected.
+  @samp{F@var{n}} is in fact the frame's initial name.  You can give
+frames more meaningful names if you wish, and you can select a frame
+by its name.  Use the command @kbd{M-x set-frame-name @key{RET}
+@var{name} @key{RET}} to specify a new name for the selected frame,
+and use @kbd{M-x select-frame-by-name @key{RET} @var{name} @key{RET}}
+to select a frame according to its name.  The name you specify appears
+in the mode line when the frame is selected.
 
 @node XTerm Mouse
 @section Using a Mouse in Terminal Emulators
 @cindex xterm, mouse support
 @cindex terminal emulators, mouse support
 
-Some terminal emulators under X support mouse clicks in the terminal
+  Some terminal emulators under X support mouse clicks in the terminal
 window.  In a terminal emulator which is compatible with @code{xterm},
 you can use @kbd{M-x xterm-mouse-mode} to give Emacs control over
 simple use of the mouse---basically, only non-modified single clicks
