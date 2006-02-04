@@ -1,3 +1,9 @@
+2006-02-04  Kevin Rodgers  <ihs_4664@yahoo.com>
+
+	* simple.el (display-message-or-buffer): Count screen lines
+	instead of buffer lines when determining whether the message
+	will fit in the echo area/minibuffer window.
+
 2006-02-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* info.el (Info-index, Info-mode): Improve the description of the
