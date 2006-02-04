@@ -1922,7 +1922,7 @@ and only used if a buffer is displayed."
 	   (let ((lines
 		  (if (= (buffer-size) 0)
 		      0
-		    (count-lines (point-min) (point-max)))))
+		    (count-screen-lines nil nil nil (minibuffer-window)))))
 	     (cond ((= lines 0))
 		   ((and (or (<= lines 1)
 			     (<= lines
