@@ -1,3 +1,7 @@
+2006-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* ldefs-boot.el: Regenerate.
+
 2006-02-03  Werner Lemberg  <wl@gnu.org>
 
 	* textmodes/nroff-mode.el (nroff-font-lock-keywords): Don't be
