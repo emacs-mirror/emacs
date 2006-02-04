@@ -1901,11 +1901,14 @@ the contents are inserted into the buffer anyway.
 
 Optional arguments NOT-THIS-WINDOW and FRAME are as for `display-buffer',
 and only used if a buffer is displayed."
-  (cond ((and (stringp message) (not (string-match "\n" message)))
+  (cond ((and (stringp message)
+	      (not (string-match "\n" message))
+	      (<= (length message) (frame-width)))
 	 ;; Trivial case where we can use the echo area
 	 (message "%s" message))
 	((and (stringp message)
-	      (= (string-match "\n" message) (1- (length message))))
+	      (= (string-match "\n" message) (1- (length message)))
+	      (<= (1- (length message)) (frame-width)))
 	 ;; Trivial case where we can just remove single trailing newline
 	 (message "%s" (substring message 0 (1- (length message)))))
 	(t
