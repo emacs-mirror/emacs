@@ -414,7 +414,7 @@ See `find-variable' for more details."
 (defun find-definition-noselect (symbol type &optional file)
   "Return a pair `(BUFFER . POINT)' pointing to the definition of SYMBOL.
 TYPE says what type of definition: nil for a function, `defvar' for a
-variabke, `defface' for a face.  This function does not switch to the
+variable, `defface' for a face.  This function does not switch to the
 buffer nor display it.
 
 The library where SYMBOL is defined is searched for in FILE or
