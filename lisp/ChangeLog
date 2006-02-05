@@ -1,3 +1,7 @@
+2006-02-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ldefs-boot.el (widget-keymap): Fix corrupted value.
+
 2006-02-05  Kim F. Storm  <storm@cua.dk>
 
 	* files.el (magic-mode-regexp-match-limit): New defvar.
