@@ -1,6 +1,8 @@
 2006-02-04  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* ldefs-boot.el (widget-keymap): Fix corrupted value.
+	* ldefs-boot.el: Regenerate.
+
+	* emacs-lisp/find-func.el (find-definition-noselect): Minor doc fix.
 
 2006-02-05  Kim F. Storm  <storm@cua.dk>
 
