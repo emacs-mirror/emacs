@@ -1,7 +1,7 @@
 ;;; ooutline.el --- outline mode commands for Emacs
 
 ;; Copyright (C) 1986, 1993, 1994, 1997, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: outlines
