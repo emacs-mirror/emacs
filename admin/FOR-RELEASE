@@ -64,7 +64,7 @@ you're going to handle.
 
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
-etc (and subdirs)	working		Thien-Thi Nguyen (ttn(@gnu.org))
+etc (and subdirs)	done		Thien-Thi Nguyen (ttn(@gnu.org))
 leim			working		Kenichi Handa
 lib-src			working		ttn
 lisp			working		ttn
@@ -79,23 +79,23 @@ lisp/language		working		Kenichi Handa
 lisp/mail		working		ttn
 lisp/mh-e		done		Bill Wohler
 lisp/net		working		ttn
-lisp/obsolete		working		ttn
+lisp/obsolete		done		ttn
 lisp/play		done		Romain Francoise
 lisp/progmodes		working		Nick Roberts
 lisp/term		working		ttn
 lisp/textmodes		working		ttn
-lisp/url		working		ttn
-lispintro		working		ttn
+lisp/url		done		ttn
+lispintro		done		ttn
 lispref			working		ttn
-lwlib			working		ttn
-m4			working		ttn
+lwlib			done		ttn
+m4			done		ttn
 mac (and subdirs)	working		ttn
-man			working		ttn
+man			done		ttn
 msdos			working		ttn
 nt (and subdirs)	working		ttn
-oldXMenu		working		ttn
+oldXMenu		done		ttn
 src (and subdirs)	working		ttn
-vms			working		ttn
+vms			done		ttn
 
 ** Check the Emacs manual.
 
