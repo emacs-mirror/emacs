@@ -1,3 +1,7 @@
+2006-02-05  Romain Francoise  <romain@orebokech.com>
+
+	Update copyright notices of all files in the lisp/play directory.
+
 2006-02-04  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* ldefs-boot.el: Regenerate.
