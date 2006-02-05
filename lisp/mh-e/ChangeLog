@@ -1,3 +1,9 @@
+2006-02-04  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-inc-spool-list): Update example for Emacs 22 which
+	has an emacsclient command that supports --eval. I had read that
+	gnudoit was deprecated in favor of gnuclient anyway.
+
 2006-02-04  Eric Ding  <ericding@alum.mit.edu>
 
 	* mh-mime.el (mh-file-mime-type-substitutions): Added entries to
