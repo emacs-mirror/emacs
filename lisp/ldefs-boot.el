@@ -29928,7 +29928,7 @@ Call `insert' with ARGS even if surrounding text is read only.
 
 (defalias (quote advertised-widget-backward) (quote widget-backward))
 
-(defvar widget-keymap (let ((map (make-sparse-keymap))) (define-key map "	" (quote widget-forward)) (define-key map "	" (quote widget-backward)) (define-key map [(shift tab)] (quote advertised-widget-backward)) (define-key map [backtab] (quote widget-backward)) (define-key map [down-mouse-2] (quote widget-button-click)) (define-key map "" (quote widget-button-press)) map) "\
+(defvar widget-keymap (let ((map (make-sparse-keymap))) (define-key map "	" (quote widget-forward)) (define-key map "	" (quote widget-backward)) (define-key map [(shift tab)] (quote advertised-widget-backward)) (define-key map [backtab] (quote widget-backward)) (define-key map [down-mouse-2] (quote widget-button-click)) (define-key map "" (quote widget-button-press)) map) "\
 Keymap containing useful binding for buffers containing widgets.
 Recommended as a parent keymap for modes using widgets.")
 
