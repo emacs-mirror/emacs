@@ -1,7 +1,7 @@
-2006-02-04  Peter S Galbraith  <psg@debian.org>
+2006-02-04  Eric Ding  <ericding@alum.mit.edu>
 
 	* mh-mime.el (mh-file-mime-type-substitutions): Added entries to
-	handle openoffice documents, as provided by Eric Ding.
+	handle OpenOffice documents.
 
 2006-02-03  Bill Wohler  <wohler@newt.com>
 
