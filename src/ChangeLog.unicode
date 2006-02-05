@@ -1,3 +1,7 @@
+2006-02-05  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c: Cancel incorrect synching with HEAD.
+
 2006-02-03  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Fdefine_coding_system_internal): Avoid a duplicated
