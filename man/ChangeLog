@@ -1,3 +1,7 @@
+2006-02-04  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (History): Note that ERC is now included with Emacs.
+
 2006-02-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* custom.texi (Init File, Find Init): Add cross-references to

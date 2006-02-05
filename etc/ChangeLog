@@ -1,3 +1,8 @@
+2006-02-04  Michael Olson  <mwolson@gnu.org>
+
+	* NEWS: Update for ERC 5.1.1.  Use the same wording for headings
+	that Emacs does in its NEWS file.
+
 2006-02-03  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 7.91.
