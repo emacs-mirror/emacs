@@ -1,6 +1,7 @@
 ;;; nnwfm.el --- interfacing with a web forum
 
-;; Copyright (C) 2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2002, 2003, 2004, 2005,
+;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news

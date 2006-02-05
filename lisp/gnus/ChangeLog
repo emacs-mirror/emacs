@@ -1,3 +1,7 @@
+2006-02-05  Romain Francoise  <romain@orebokech.com>
+
+	Update copyright notices of all files in the gnus directory.
+
 2006-02-03  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-util.el (gnus-error): Describe `args'.
