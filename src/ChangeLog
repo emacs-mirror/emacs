@@ -2,6 +2,9 @@
 
 	* editfns.c (Fconstrain_to_field): Fix int/Lisp_Object mixup.
 
+	* lisp.h (XPNTR) [!NO_UNION_TYPE && !HAVE_SHM && !DATA_SEG_BITS]:
+	Cast bitfield value to EMACS_INT, to suppress gcc warning.
+
 2006-02-03  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c: Cache last merged escape glyph face.
