@@ -1039,7 +1039,7 @@ coding_alloc_by_making_gap (coding, bytes)
       make_gap (bytes);
       GAP_SIZE += add; ZV -= add; Z -= add; ZV_BYTE -= add; Z_BYTE -= add;
     }
-  else if (c >= 0x80)
+  else
     {
       Lisp_Object this_buffer;
 
@@ -1308,8 +1308,6 @@ decode_coding_utf_8 (coding)
       *charbuf++ = ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
       coding->errors++;
     }
-  else
-    return 0;
 
  no_more_source:
   coding->consumed_char += consumed_chars_base;
