@@ -719,7 +719,8 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 {
   /* If non-zero, then the original point, before re-positioning.  */
   int orig_point = 0;
-  int fwd, prev_old, prev_new;
+  int fwd;
+  Lisp_Object prev_old, prev_new;
   
   if (NILP (new_pos))
     /* Use the current point, and afterwards, set it.  */
