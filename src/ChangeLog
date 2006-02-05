@@ -5,6 +5,9 @@
 	* lisp.h (XPNTR) [!NO_UNION_TYPE && !HAVE_SHM && !DATA_SEG_BITS]:
 	Cast bitfield value to EMACS_INT, to suppress gcc warning.
 
+	* xrdb.c (malloc, realloc, free) [emacs]: Undefine macros before
+	defining.
+
 2006-02-03  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c: Cache last merged escape glyph face.
