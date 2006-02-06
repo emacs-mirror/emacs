@@ -176,6 +176,23 @@ This is only meaningful if you don't use the implicit checkout model
 	  ((eq svn-state 'needs-patch) "(patch)")
 	  ((eq svn-state 'needs-merge) "(merge)"))))
 
+(defun vc-svn-previous-version (file rev)
+  (let ((newrev (1- (string-to-number rev))))
+    (when (< 0 newrev)
+      (number-to-string newrev))))
+
+(defun vc-svn-next-version (file rev)
+  (let ((newrev (1+ (string-to-number rev))))
+    ;; The "workfile version" is an uneasy conceptual fit under Subversion;
+    ;; we use it as the upper bound until a better idea comes along.  If the
+    ;; workfile version W coincides with the tree's latest revision R, then
+    ;; this check prevents a "no such revision: R+1" error.  Otherwise, it
+    ;; inhibits showing of W+1 through R, which could be considered anywhere
+    ;; from gracious to impolite.
+    (unless (< (string-to-number (vc-file-getprop file 'vc-workfile-version))
+               newrev)
+      (number-to-string newrev))))
+
 
 ;;;
 ;;; State-changing functions
