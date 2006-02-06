@@ -9,6 +9,10 @@
 @c This is used in many places
 @set VER 22.1
 
+@c This file is maintained by Romain Francoise <rfrancoise@gnu.org>.
+@c Feel free to install changes without prior permission (but I'd
+@c appreciate a notice if you do).
+
 @copying
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 Copyright 1994,1995,1996,1997,1998,1999,2000 Reuven M. Lerner@*
@@ -3754,7 +3758,7 @@ Java code.  It is distributed with Emacs, but has
 @email{kyle_jones@@wonderworks.com, Kyle Jones}
 
 @item Latest version
-7.15
+7.19
 
 @item Distribution
 @uref{ftp://ftp.wonderworks.com/pub/vm/vm.tar.gz}

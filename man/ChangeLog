@@ -1,3 +1,8 @@
+2006-02-06  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (VM): VM now at version 7.19.
+	Set myself as maintainer of this file.
+
 2006-02-04  Michael Olson  <mwolson@gnu.org>
 
 	* erc.texi (History): Note that ERC is now included with Emacs.
