@@ -1079,7 +1079,7 @@ openp (path, str, suffixes, storeptr, predicate)
 			    SBYTES (XCAR (tail)));
     }
 
-  string = filename = Qnil;
+  string = filename = encoded_fn = Qnil;
   GCPRO6 (str, string, filename, path, suffixes, encoded_fn);
 
   if (storeptr)
