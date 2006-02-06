@@ -1,4 +1,8 @@
-2006-02-06 Lars Hansen <larsh@soem.dk>
+2006-02-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc-svn.el (vc-svn-previous-version, vc-svn-next-version): New funcs.
+
+2006-02-06  Lars Hansen  <larsh@soem.dk>
 
 	* generic-x.el (etc-fstab-generic-mode): Add file system types
 	cifs and usbdevfs. Allow special chars in file names.
