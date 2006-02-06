@@ -1,3 +1,7 @@
+2006-02-06  Kenichi Handa  <handa@m17n.org>
+
+	* lread.c (openp): Initialized encoded_fn before GCPRO it.
+
 2006-02-05  Ken Raeburn  <raeburn@raeburn.org>
 
 	* editfns.c (Fconstrain_to_field): Fix int/Lisp_Object mixup.
