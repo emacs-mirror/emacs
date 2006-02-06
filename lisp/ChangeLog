@@ -1,5 +1,10 @@
 2006-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/nroff-mode.el: Clean up name space.
+	(nroff-mode-syntax-table): Remove spurious `1' in the syntax of \n.
+	(nroff-mode): Obey the global setting of nroff-electric-mode.
+	(nroff-electric-mode): Use define-minor-mode and derived-mode-p.
+
 	* calendar/calendar.el (calendar-increment-month): Typo in last change.
 
 2006-02-06  Thien-Thi Nguyen  <ttn@gnu.org>
