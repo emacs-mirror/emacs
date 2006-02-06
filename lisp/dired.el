@@ -1247,6 +1247,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "\177" 'dired-unmark-backward)
     (define-key map [remap undo] 'dired-undo)
     (define-key map [remap advertised-undo] 'dired-undo)
+    ;; thumbnail manipulation (tumme)
+    (define-key map "\C-td" 'tumme-display-thumbs)
 
     ;; Make menu bar items.
 
