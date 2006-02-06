@@ -66,35 +66,35 @@ DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
 etc (and subdirs)	done		Thien-Thi Nguyen (ttn(@gnu.org))
 leim			working		Kenichi Handa
-lib-src			working		ttn
-lisp			working		ttn
+lib-src			done		ttn
+lisp			done		ttn
 lisp/calc		done		Jay Belanger
 lisp/calendar		working		Glenn Morris
-lisp/emacs-lisp		working		ttn
-lisp/emulation		working		ttn
-lisp/eshell		working		ttn
+lisp/emacs-lisp		done		ttn
+lisp/emulation		done		ttn
+lisp/eshell		done		ttn
 lisp/gnus		done		Romain Francoise
 lisp/international	working		Kenichi Handa
 lisp/language		working		Kenichi Handa
-lisp/mail		working		ttn
+lisp/mail		done		ttn
 lisp/mh-e		done		Bill Wohler
-lisp/net		working		ttn
+lisp/net		done		ttn
 lisp/obsolete		done		ttn
 lisp/play		done		Romain Francoise
 lisp/progmodes		working		Nick Roberts
-lisp/term		working		ttn
-lisp/textmodes		working		ttn
+lisp/term		done		ttn
+lisp/textmodes		done		ttn
 lisp/url		done		ttn
 lispintro		done		ttn
-lispref			working		ttn
+lispref			done		ttn
 lwlib			done		ttn
 m4			done		ttn
-mac (and subdirs)	working		ttn
+mac (and subdirs)	done		ttn
 man			done		ttn
-msdos			working		ttn
-nt (and subdirs)	working		ttn
+msdos			done		ttn
+nt (and subdirs)	done		ttn
 oldXMenu		done		ttn
-src (and subdirs)	working		ttn
+src (and subdirs)	done		ttn
 vms			done		ttn
 
 ** Check the Emacs manual.
