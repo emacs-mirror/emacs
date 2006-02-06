@@ -1,6 +1,6 @@
 ;;; tumme.el --- use dired to browse and manipulate your images
 ;;
-;; Copyright (C) 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2006 Free Software Foundation, Inc.
 ;;
 ;; Version: 0.4.10
 ;; Keywords: multimedia

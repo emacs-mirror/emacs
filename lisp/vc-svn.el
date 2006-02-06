@@ -1,6 +1,6 @@
 ;;; vc-svn.el --- non-resident support for Subversion version-control
 
-;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -114,7 +114,7 @@ This is only meaningful if you don't use the implicit checkout model
 					   (file-name-directory file)))
     (with-temp-buffer
       (cd (file-name-directory file))
-      (let ((status 
+      (let ((status
              (condition-case nil
                  ;; Ignore all errors.
                  (vc-svn-command t t file "status" "-v")
