@@ -68,7 +68,7 @@ etc (and subdirs)	done		Thien-Thi Nguyen (ttn(@gnu.org))
 leim			working		Kenichi Handa
 lib-src			working		ttn
 lisp			working		ttn
-lisp/calc		done		Jay Belanger	
+lisp/calc		done		Jay Belanger
 lisp/calendar		working		Glenn Morris
 lisp/emacs-lisp		working		ttn
 lisp/emulation		working		ttn
