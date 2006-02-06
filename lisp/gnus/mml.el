@@ -1,7 +1,7 @@
 ;;; mml.el --- A package for parsing and validating MML documents
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -578,7 +578,8 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		  ;; Skip `multipart' and attributes.
 		  (when (and (consp part) (consp (cdr part)))
 		    (insert "\n--" mml-boundary "\n")
-		    (mml-generate-mime-1 part))))
+		    (mml-generate-mime-1 part)
+		    (goto-char (point-max)))))
 	      (insert "\n--" mml-boundary "--\n")))))
        (t
 	(error "Invalid element: %S" cont)))

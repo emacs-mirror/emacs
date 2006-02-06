@@ -1,3 +1,24 @@
+2006-02-05  Ken Raeburn  <raeburn@raeburn.org>
+
+	* editfns.c (Fconstrain_to_field): Fix int/Lisp_Object mixup.
+
+	* lisp.h (XPNTR) [!NO_UNION_TYPE && !HAVE_SHM && !DATA_SEG_BITS]:
+	Cast bitfield value to EMACS_INT, to suppress gcc warning.
+
+	* xrdb.c (malloc, realloc, free) [emacs]: Undefine macros before
+	defining.
+
+2006-02-03  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c: Cache last merged escape glyph face.
+	(last_escape_glyph_frame, last_escape_glyph_face_id)
+	(last_escape_glyph_merged_face_id): New variables.
+	(get_next_display_element): Use/update them.
+	(redisplay_internal): Reset them before redisplay.
+
+	* xdisp.c (set_iterator_to_next): Optimize 2004-12-13 fix.
+	Only recheck faces after displaying ellipsis.
+
 2006-02-02  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_composition_emacs_mule): Fix handling of

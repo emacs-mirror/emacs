@@ -133,7 +133,8 @@ Valid types include `google', `dejanews', and `gmane'.")
 (deffoo nnweb-request-group (group &optional server dont-check)
   (nnweb-possibly-change-server group server)
   (unless (or nnweb-ephemeral-p
-	      dont-check)
+	      dont-check
+	      nnweb-articles)
     (nnweb-read-overview group))
   (cond
    ((not nnweb-articles)

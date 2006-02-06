@@ -1,7 +1,7 @@
 ;;; newcomment.el --- (un)comment regions of buffers
 
 ;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -96,7 +96,7 @@ Major modes should set this variable.")
 
 ;;;###autoload
 (defcustom comment-column 32
-  "*Column to indent right-margin comments to.
+  "Column to indent right-margin comments to.
 Each mode establishes a different default value for this variable; you
 can set the value for a particular mode using that mode's hook.
 Comments might be indented to a value smaller than this in order
@@ -200,7 +200,7 @@ INDENT specifies that the `comment-start' markers should not be put at the
 
 ;;;###autoload
 (defcustom comment-style 'plain
-  "*Style to be used for `comment-region'.
+  "Style to be used for `comment-region'.
 See `comment-styles' for a list of available styles."
   :type (if (boundp 'comment-styles)
 	    `(choice ,@(mapcar (lambda (s) `(const ,(car s))) comment-styles))
@@ -220,7 +220,7 @@ makes the comment easier to read.  Default is 1.  nil means 0."
 
 ;;;###autoload
 (defcustom comment-multi-line nil
-  "*Non-nil means `comment-indent-new-line' continues comments.
+  "Non-nil means `comment-indent-new-line' continues comments.
 That is, it inserts no new terminator or starter.
 This affects `auto-fill-mode', which is the main reason to
 customize this variable.
@@ -1081,7 +1081,8 @@ If the region is active and `transient-mark-mode' is on, call
   case it calls `uncomment-region').
 Else, if the current line is empty, insert a comment and indent it.
 Else if a prefix ARG is specified, call `comment-kill'.
-Else, call `comment-indent'."
+Else, call `comment-indent'.
+You can configure `comment-style' to change the way regions are commented."
   (interactive "*P")
   (comment-normalize-vars)
   (if (and mark-active transient-mark-mode)

@@ -1,7 +1,7 @@
 ;;; gnus-util.el --- utility functions for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
-;;        Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -497,7 +497,8 @@ inside loops."
     (apply 'format args)))
 
 (defun gnus-error (level &rest args)
-  "Beep an error if LEVEL is equal to or less than `gnus-verbose'."
+  "Beep an error if LEVEL is equal to or less than `gnus-verbose'.
+ARGS are passed to `message'."
   (when (<= (floor level) gnus-verbose)
     (apply 'message args)
     (ding)

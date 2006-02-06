@@ -84,9 +84,9 @@ This function returns a list of all the members in the channel, except
 your own nick.  This way if you're named foo and someone is called foobar,
 typing \"f o TAB\" will directly give you foobar.  Use this with
 `erc-nick-completion'."
-  (delete
+  (remove
    (erc-current-nick)
-   (mapcar (function car) (erc-get-channel-user-list))))
+   (erc-get-channel-nickname-list)))
 
 (defcustom erc-nick-completion-postfix ": "
   "*When `erc-complete' is used in the first word after the prompt,
@@ -110,8 +110,7 @@ The type of completion depends on `erc-nick-completion'."
 	 (try-complete-erc-nick old erc-pals))
 	((eq erc-nick-completion 'all)
 	 (try-complete-erc-nick old (append
-				     (mapcar (function car)
-					     (erc-get-channel-user-list))
+				     (erc-get-channel-nickname-list)
 				     (erc-command-list))))
 	((functionp erc-nick-completion)
 	 (try-complete-erc-nick old (funcall erc-nick-completion)))

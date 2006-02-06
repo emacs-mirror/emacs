@@ -484,7 +484,11 @@ extern size_t pure_size;
    in a Lisp object whose data type says it points to something.  */
 #define XPNTR(a) (XUINT (a) | DATA_SEG_BITS)
 #else
-#define XPNTR(a) XUINT (a)
+/* Some versions of gcc seem to consider the bitfield width when
+   issuing the "cast to pointer from integer of different size"
+   warning, so the cast is here to widen the value back to its natural
+   size.  */
+#define XPNTR(a) ((EMACS_INT) XUINT (a))
 #endif
 #endif /* not HAVE_SHM */
 #endif /* no XPNTR */

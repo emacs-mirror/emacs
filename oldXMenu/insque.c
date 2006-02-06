@@ -1,4 +1,5 @@
-/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
+/* Copyright (C) 2002, 2003, 2004, 2005,
+                 2006 Free Software Foundation, Inc.  */
 
 /* This file implements the emacs_insque and emacs_remque functions,
    copies of the insque and remque functions of BSD.  They and all

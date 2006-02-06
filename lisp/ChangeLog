@@ -1,3 +1,45 @@
+2006-02-05  Jay Belanger  <belanger@truman.edu>
+
+	Update copyright notices of the files in lisp/calc.
+
+2006-02-05  Romain Francoise  <romain@orebokech.com>
+
+	Update copyright notices of all files in the lisp/play directory.
+
+2006-02-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ldefs-boot.el: Regenerate.
+
+	* emacs-lisp/find-func.el (find-definition-noselect): Minor doc fix.
+
+2006-02-05  Kim F. Storm  <storm@cua.dk>
+
+	* files.el (magic-mode-regexp-match-limit): New defvar.
+	(set-auto-mode): Use it to limit magic-mode-alist matching.
+
+2006-02-04  Kevin Rodgers  <ihs_4664@yahoo.com>
+
+	* simple.el (display-message-or-buffer): Compare the number of
+	characters to the frame width when determining whether a 1-line
+	message string will fit in the echo area.  Count screen lines
+	instead of buffer lines when determining whether a multi-line
+	message will fit in the echo area/minibuffer window.
+
+2006-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* info.el (Info-index, Info-mode): Improve the description of the
+	`i' command.
+
+	* ldefs-boot.el: Regenerate.
+
+2006-02-03  Werner Lemberg  <wl@gnu.org>
+
+	* textmodes/nroff-mode.el (nroff-font-lock-keywords): Don't be
+	greedy to find the closing bracket in \*[...] and similar
+	expressions.  This is a first rough fix -- many additional
+	refinements are necessary to make nroff mode really usable with
+	groff.
+
 2006-02-03  Jens Petersen  <petersen@redhat.com>  (tiny change)
 
 	* international/mule-cmds.el (set-locale-environment): Add

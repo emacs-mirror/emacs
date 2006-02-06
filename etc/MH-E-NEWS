@@ -6,6 +6,11 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 
+* Changes in MH-E 7.91
+
+Version 7.91 is the second 8.0 beta release and fixes several bugs
+that were uncovered in wider testing.
+
 * Changes in MH-E 7.90
 
 Version 7.90 is the first 8.0 beta release and is a release that has

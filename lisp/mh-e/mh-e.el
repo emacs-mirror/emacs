@@ -6,7 +6,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 7.90+cvs
+;; Version: 7.91+cvs
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -121,7 +121,7 @@
 ;; Try to keep variables local to a single file. Provide accessors if
 ;; variables are shared. Use this section as a last resort.
 
-(defconst mh-version "7.90+cvs" "Version number of MH-E.")
+(defconst mh-version "7.91+cvs" "Version number of MH-E.")
 
 ;; Variants
 
@@ -1521,14 +1521,17 @@ on the \"INS\" button. Enter a \"Spool File\" of \"~/mail/mh-e\", a
 \"Folder\" of \"mh-e\", and a \"Key Binding\" of \"m\".
 
 You can use \"xbuffy\" to automate the incorporation of this mail
-using the \"gnudoit\" command in the \"gnuserv\" package as follows:
+using the Emacs 22 command \"emacsclient\" as follows:
 
     box ~/mail/mh-e
         title mh-e
         origMode
         polltime 10
         headertime 0
-        command gnudoit -q '(mh-inc-spool-mh-e)'"
+        command emacsclient --eval '(mh-inc-spool-mh-e)'
+
+In XEmacs, the command \"gnuclient\" is used in a similar
+fashion."
   :type '(repeat (list (file :tag "Spool File")
                        (string :tag "Folder")
                        (character :tag "Key Binding")))
@@ -3037,9 +3040,9 @@ colors."
 
 (defface mh-folder-msg-number
   (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
+   '((((class color) (min-colors 64) (background light))
       (:foreground "snow4"))
-     (((class color) (min-colors 88) (background dark))
+     (((class color) (min-colors 64) (background dark))
       (:foreground "snow3"))
      (((class color))
       (:foreground "cyan"))))
@@ -3050,9 +3053,9 @@ colors."
 
 (defface mh-folder-refiled
   (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
+   '((((class color) (min-colors 64) (background light))
       (:foreground "DarkGoldenrod"))
-     (((class color) (min-colors 88) (background dark))
+     (((class color) (min-colors 64) (background dark))
       (:foreground "LightGoldenrod"))
      (((class color))
       (:foreground "yellow" :weight light))
@@ -3106,9 +3109,9 @@ format `mh-scan-format-nmh' and the regular expression
 
 (defface mh-folder-to
   (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
+   '((((class color) (min-colors 64) (background light))
       (:foreground "RosyBrown"))
-     (((class color) (min-colors 88) (background dark))
+     (((class color) (min-colors 64) (background dark))
       (:foreground "LightSalmon"))
      (((class color))
       (:foreground "green"))
@@ -3146,9 +3149,9 @@ format `mh-scan-format-nmh' and the regular expression
 
 (defface mh-show-cc
   (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
+   '((((class color) (min-colors 64) (background light))
       (:foreground "DarkGoldenrod"))
-     (((class color) (min-colors 88) (background dark))
+     (((class color) (min-colors 64) (background dark))
       (:foreground "LightGoldenrod"))
      (((class color))
       (:foreground "yellow" :weight light))
@@ -3164,9 +3167,9 @@ format `mh-scan-format-nmh' and the regular expression
 
 (defface mh-show-date
   (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
+   '((((class color) (min-colors 64) (background light))
       (:foreground "ForestGreen"))
-     (((class color) (min-colors 88) (background dark))
+     (((class color) (min-colors 64) (background dark))
       (:foreground "PaleGreen"))
      (((class color))
       (:foreground "green"))
@@ -3193,9 +3196,9 @@ format `mh-scan-format-nmh' and the regular expression
 
 (defface mh-show-header
   (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
+   '((((class color) (min-colors 64) (background light))
       (:foreground "RosyBrown"))
-     (((class color) (min-colors 88) (background dark))
+     (((class color) (min-colors 64) (background dark))
       (:foreground "LightSalmon"))
      (((class color))
       (:foreground "green"))

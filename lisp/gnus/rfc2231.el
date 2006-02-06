@@ -1,7 +1,7 @@
 ;;; rfc2231.el --- Functions for decoding rfc2231 headers
 
-;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2004, 2005,
+;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -53,6 +53,10 @@ The list will be on the form
 	  display-name mailbox c display-string parameters
 	  attribute value type subtype number encoded
 	  prev-attribute prev-encoded)
+      ;; Some mailer (e.g. Thunderbird 1.5) doesn't terminate each
+      ;; line with semicolon when folding a long parameter value.
+      (while (string-match "\\([^\t\n\r ;]\\)[\t ]*\r?\n[\t ]+" string)
+	(setq string (replace-match "\\1;\n " nil nil string)))
       (ietf-drums-init (mail-header-remove-whitespace
 			(mail-header-remove-comments string)))
       (let ((table (copy-syntax-table ietf-drums-syntax-table)))
@@ -191,6 +195,7 @@ These look like \"us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A\"."
 	(special (ietf-drums-token-to-list "*'%\n\t"))
 	(ascii (ietf-drums-token-to-list ietf-drums-text-token))
 	(num -1)
+	(limit (- 74 (length param)))
 	spacep encodep charsetp charset broken)
     (with-temp-buffer
       (insert value)
@@ -209,23 +214,29 @@ These look like \"us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A\"."
       (when charsetp
 	(setq charset (mm-encode-body)))
       (cond
-       ((or encodep charsetp)
+       ((or encodep charsetp
+	    (progn
+	      (end-of-line)
+	      (> (current-column) (if spacep (- limit 2) limit))))
+	(setq limit (- limit 6))
 	(goto-char (point-min))
+	(insert (symbol-name (or charset 'us-ascii)) "''")
 	(while (not (eobp))
-	  (when (> (current-column) 60)
-	    (insert ";\n")
-	    (setq broken t))
 	  (if (or (not (memq (following-char) ascii))
 		  (memq (following-char) control)
 		  (memq (following-char) tspecial)
 		  (memq (following-char) special)
 		  (eq (following-char) ? ))
 	      (progn
+		(when (>= (current-column) (1- limit))
+		  (insert ";\n")
+		  (setq broken t))
 		(insert "%" (format "%02x" (following-char)))
 		(delete-char 1))
+	    (when (> (current-column) limit)
+	      (insert ";\n")
+	      (setq broken t))
 	    (forward-char 1)))
-	(goto-char (point-min))
-	(insert (symbol-name (or charset 'us-ascii)) "''")
 	(goto-char (point-min))
 	(if (not broken)
 	    (insert param "*=")
@@ -235,12 +246,12 @@ These look like \"us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A\"."
 	    (forward-line 1))))
        (spacep
 	(goto-char (point-min))
-	(insert param "=\"")
+	(insert "\n " param "=\"")
 	(goto-char (point-max))
 	(insert "\""))
        (t
 	(goto-char (point-min))
-	(insert param "=")))
+	(insert "\n " param "=")))
       (buffer-string))))
 
 (provide 'rfc2231)

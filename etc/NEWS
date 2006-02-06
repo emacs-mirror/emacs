@@ -2978,7 +2978,7 @@ See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 ---
 ** MH-E changes.
 
-Upgraded to MH-E version 7.90. There have been major changes since
+Upgraded to MH-E version 7.91. There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 ** Calendar changes:
@@ -14793,7 +14793,7 @@ select one of those items.
 Copyright information:
 
 Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-   2005 Free Software Foundation, Inc.
+   2005, 2006 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

@@ -1,6 +1,6 @@
 ;;; erc-stamp.el --- Timestamping for Emacs IRC CLient
 
-;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Keywords: comm, processes, timestamp
@@ -338,4 +338,4 @@ NOW is position of point currently."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 9f6d31bf-61ba-45c5-bdbf-56331486ea27
+;; arch-tag: 57aefab4-63e0-4c48-91d5-6efa145487e0

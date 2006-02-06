@@ -88,6 +88,10 @@ extern char *get_system_name ();
 /* Make sure not to #include anything after these definitions.  Let's
    not step on anyone's prototypes.  */
 #ifdef emacs
+/* darwin.h may have already defined these.  */
+#undef malloc
+#undef realloc
+#undef free
 #define malloc xmalloc
 #define realloc xrealloc
 #define free xfree

@@ -34,7 +34,7 @@
 ;;; Code:
 
 (require 'erc)
-;;; Minor Mode
+(eval-when-compile (require 'cl))
 
 (defgroup erc-autojoin nil
   "Enable autojoining."
