@@ -1,3 +1,7 @@
+2006-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/calendar.el (calendar-increment-month): Typo in last change.
+
 2006-02-06  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* vc-svn.el (vc-svn-previous-version, vc-svn-next-version): New funcs.
@@ -5,7 +9,7 @@
 2006-02-06  Lars Hansen  <larsh@soem.dk>
 
 	* generic-x.el (etc-fstab-generic-mode): Add file system types
-	cifs and usbdevfs. Allow special chars in file names.
+	cifs and usbdevfs.  Allow special chars in file names.
 
 2006-02-05  Jay Belanger  <belanger@truman.edu>
 
@@ -46,13 +50,12 @@
 	* textmodes/nroff-mode.el (nroff-font-lock-keywords): Don't be
 	greedy to find the closing bracket in \*[...] and similar
 	expressions.  This is a first rough fix -- many additional
-	refinements are necessary to make nroff mode really usable with
-	groff.
+	refinements are necessary to make nroff mode really usable with groff.
 
 2006-02-03  Jens Petersen  <petersen@redhat.com>  (tiny change)
 
-	* international/mule-cmds.el (set-locale-environment): Add
-	"/usr/share/X11/locale/locale.alias" to search list for xorg-x11
+	* international/mule-cmds.el (set-locale-environment):
+	Add "/usr/share/X11/locale/locale.alias" to search list for xorg-x11
 	libX11.
 
 2006-02-03  Joe Wells  <jbw@macs.hw.ac.uk>  (tiny change)
