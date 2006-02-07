@@ -1,3 +1,7 @@
+2006-02-07  Mathias Dahl  <brakjoller@hotmail.com>
+
+	* dired.el (dired-mode-map): Added more bindings for tumme.
+
 2006-02-07 +00  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* wdired.el (wdired-mode-map): Use remap.
