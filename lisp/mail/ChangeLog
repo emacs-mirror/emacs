@@ -1,3 +1,14 @@
+2006-02-07  Alex Schroeder  <alex@gnu.org>
+
+	* rmailmm.el (rmail-mime-media-type-handlers-alist): Removed
+	non-existing handlers for the moment.
+	(rmail-mime-text-handler): Do decoding based on the charset
+	parameter.
+	(test-rmail-mime-handler): Test decoding using an 8bit KOI8
+	message.
+	(rmail-mime-handle): Switch to unibyte if content transfer
+	encoding is 8bit.  Strange that it should be necessary.
+
 2006-02-04  Alex Schroeder  <alex@gnu.org>
 
 	* rmailmm.el: Renamed all symbols to rmail-mime-*.  Rewrote code
