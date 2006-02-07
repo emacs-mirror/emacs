@@ -685,7 +685,7 @@ Available options are %p which is replaced by
 number of (positive) degrees to rotate the image, normally 90 or
 270 \(for 90 degrees right and left), %o which is replaced by the
 original image file name and %t which is replaced by
-`tumme-temp-image-file'"
+`tumme-temp-image-file'."
   :type 'string
   :group 'tumme)
 
@@ -778,7 +778,7 @@ line-up means that no automatic line-up will be done."
   :group 'tumme)
 
 (defcustom tumme-display-window-width-correction 1
-  "*Number to be used to correct image display window height.
+  "*Number to be used to correct image display window width.
 Change if the default (1) does not work (i.e. if the image does not
 completely fit)."
   :type 'integer
@@ -786,7 +786,7 @@ completely fit)."
 
 (defcustom tumme-display-window-height-correction 0
   "*Number to be used to correct image display window height.
-Use if the default (0) does not work (i.e. if the image does not
+Change if the default (0) does not work (i.e. if the image does not
 completely fit)."
   :type 'integer
   :group 'tumme)
@@ -819,7 +819,7 @@ dired and you might want to turn it off."
   :group 'tumme)
 
 (defcustom tumme-display-properties-format "%b: %f (%t): %c"
-  "* Display format for thumbnail properties.
+  "*Display format for thumbnail properties.
 %b is replaced with associated dired buffer name, %f with file name
 \(without path) of original image file, %t with the list of tags and %c
 with the comment."
@@ -857,7 +857,7 @@ Used by `tumme-copy-with-exif-file-name'."
 (defun tumme-get-thumbnail-image (file)
   "Return the image descriptor for a thumbnail of image file FILE."
   (unless (string-match (image-file-name-regexp) file)
-    (error "%s is not a valid image file."))
+    (error "%s is not a valid image file" file))
   (let ((thumb-file (tumme-thumb-name file)))
     (unless (and (file-exists-p thumb-file)
 		 (<= (float-time (nth 5 (file-attributes file)))
@@ -1047,7 +1047,7 @@ calling `tumme-restore-window-configuration'."
 (defun tumme-restore-window-configuration ()
   "Restore window configuration.
 Restore any changes to the window configuration made by calling
-`tumme-dired-with-window-configuration'"
+`tumme-dired-with-window-configuration'."
   (interactive)
   (if tumme-saved-window-configuration
       (set-window-configuration tumme-saved-window-configuration)
@@ -1393,7 +1393,7 @@ move ARG lines."
 (defun tumme-format-properties-string (buf file props comment)
   "Format display properties.
 BUF is the associated dired buffer, FILE is the original image file
-name, PROPS is a list of tags and COMMENT is the images files's
+name, PROPS is a list of tags and COMMENT is the image files's
 comment."
   (format-spec
    tumme-display-properties-format
@@ -1823,7 +1823,7 @@ Note that n, p and <down> and <up> will be hijacked and bound to
 (defun tumme-create-thumbs (&optional arg)
   "Create thumbnail images for all marked files in dired.
 With prefix argument ARG, create thumbnails even if they already exist
-\(i.e.  use this to refresh your thumbnails)."
+\(i.e. use this to refresh your thumbnails)."
   (interactive "P")
   (let (curr-file thumb-name files count)
     (setq files (dired-get-marked-files))
@@ -1928,7 +1928,7 @@ See also `tumme-line-up-dynamic'."
 
 (defun tumme-line-up-dynamic ()
   "Line up thumbnails images dynamically.
-Calculate how many thumbnails that fits."
+Calculate how many thumbnails fit."
   (interactive)
   (let* ((char-width (frame-char-width))
         (width (tumme-window-width-pixels (tumme-thumbnail-window)))
@@ -1941,7 +1941,7 @@ Calculate how many thumbnails that fits."
 
 (defun tumme-line-up-interactive ()
   "Line up thumbnails interactively.
-Ask user how many thumbnails that should be displayed per row."
+Ask user how many thumbnails should be displayed per row."
   (interactive)
   (let ((tumme-thumbs-per-row
          (string-to-number (read-string "How many thumbs per row: "))))
@@ -2279,7 +2279,7 @@ browse and tag them using rest of the functionality in `tumme'."
   (tumme-display-thumbnail-original-image))
 
 (defun tumme-display-previous-thumbnail-original ()
-  "Move to previous thumbnail and display  image."
+  "Move to previous thumbnail and display image."
 
   (interactive)
   (tumme-backward-char)
@@ -2598,7 +2598,7 @@ when using per-directory thumbnail file storage"))
     ;; Make sure gallery root exist
     (if (file-exists-p tumme-gallery-dir)
         (if (not (file-directory-p tumme-gallery-dir))
-            (error "Tumme-gallery-dir is not a directory"))
+            (error "tumme-gallery-dir is not a directory"))
       (make-directory tumme-gallery-dir))
     ;; Open index file
     (setq index-buf (find-file
