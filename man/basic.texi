@@ -618,9 +618,9 @@ What to type to input the character in the current input method
 (if it supports the character).
 
 @item
-If you are running Emacs on a window system, the font name and glyph
-code for the character.  If you are running Emacs on a terminal, the
-code(s) sent to the terminal.
+If you are running Emacs on a graphical display, the font name and
+glyph code for the character.  If you are running Emacs on a text-only
+terminal, the code(s) sent to the terminal.
 
 @item
 The character's text properties (@pxref{Text Properties,,,
