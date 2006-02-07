@@ -1,3 +1,16 @@
+2006-02-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tumme.el (tumme-get-thumbnail-image): Add missing arg to `error'.
+	Fix typo in message.
+	(tumme-gallery-generate): Fix typo in `error' message.
+	(tumme-display-window-height-correction)
+	(tumme-display-window-width-correction, tumme-line-up-dynamic)
+	(tumme-line-up-interactive): Dox fixes.
+	(tumme-cmd-rotate-original-options, tumme-display-properties-format)
+	(tumme-restore-window-configuration, tumme-format-properties-string)
+	(tumme-create-thumbs, tumme-display-previous-thumbnail-original):
+	Fix typos in docstrings.
+
 2006-02-07  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
 
 	* wdired.el (wdired-get-filename): Fix bug: Don't re-normalize OLD.
