@@ -17,6 +17,9 @@
 
 2006-02-07  Juanma Barranquero  <lekktu@gmail.com>
 
+	* vc.el (small-temporary-file-directory): Remove defvar; there's
+	a defcustom for it in files.el.
+
 	* tumme.el (tumme-get-thumbnail-image): Add missing arg to `error'.
 	Fix typo in message.
 	(tumme-gallery-generate): Fix typo in `error' message.
