@@ -6,31 +6,22 @@
 
 2006-02-07  Kenichi Handa  <handa@m17n.org>
 
-	* dispextern.h (unibyte_display_via_language_environment): Extern
-	it.
+	* dispextern.h (unibyte_display_via_language_environment): Extern it.
 
-	* xterm.h (unibyte_display_via_language_environment): Delete
-	extern.
-
-	* w32term.h (unibyte_display_via_language_environment): Delete
-	extern.
-
-	* macterm.h (unibyte_display_via_language_environment): Delete
-	extern.
+	* xterm.h (unibyte_display_via_language_environment):
+	* w32term.h (unibyte_display_via_language_environment):
+	* macterm.h (unibyte_display_via_language_environment): Delete extern.
 
 2006-02-07  Kenichi Handa  <handa@m17n.org>
 
-	* term.c (append_glyph): Refer to it->char_to_display instead of
-	it->c.
+	* term.c (append_glyph): Refer to it->char_to_display instead of it->c.
 	(produce_glyphs): Set the character to print in
-	it->char_to_display.  Handle
-	unibyte-display-via-language-environment.
-	(produce_stretch_glyph): Set the character to print in
-	it->char_to_display.
+	it->char_to_display.  Handle unibyte-display-via-language-environment.
+	(produce_stretch_glyph): Set character to print in it->char_to_display.
 
 2006-02-06  Kenichi Handa  <handa@m17n.org>
 
-	* lread.c (openp): Initialized encoded_fn before GCPRO it.
+	* lread.c (openp): Initialize encoded_fn before GCPRO it.
 
 2006-02-05  Ken Raeburn  <raeburn@raeburn.org>
 
