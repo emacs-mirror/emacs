@@ -34,20 +34,15 @@
 
 (defcustom rmail-mime-media-type-handlers-alist
   '(("multipart/.*" rmail-mime-multipart-handler)
-    ("message/rfc822" rmail-mime-toggler-handler)
-    ("message/delivery-status" rmail-mime-entity-hider-handler)
-    ("message/x-body" rmail-mime-entity-hider-handler)
-    ("message/x-command-input" rmail-mime-message/x-command-input-handler)
-    ("message/external-body" rmail-mime-message/external-body-handler)
     ("text/.*" rmail-mime-text-handler)
     ("text/\\(x-\\)?patch" rmail-mime-bulk-handler)
-    ("image/.*" rmail-mime-image-handler)
     ("application/pgp-signature" rmail-mime-application/pgp-signature-handler)
     ("\\(image\\|audio\\|video\\|application\\)/.*" rmail-mime-bulk-handler))
   "Alist of media type handlers, also known as agents.
 Every handler is a list of type (string symbol) where STRING is a
 regular expression to match the media type with and SYMBOL is a
-function to run."
+function to run.  Handlers should return a non-nil value if the
+job is done."
   :type 'list
   :group 'mime)
 
@@ -101,7 +96,26 @@ offer a way to save all attachments at once.")
 (defun rmail-mime-text-handler (content-type
 				content-disposition
 				content-transfer-encoding)
-  "Handle the current buffer as a plain text MIME part.")
+  "Handle the current buffer as a plain text MIME part."
+  (let* ((charset (cdr (assq 'charset (cdr content-type))))
+	 (coding-system (intern (downcase charset))))
+    (when (coding-system-p coding-system)
+      (decode-coding-region (point-min) (point-max) coding-system))))
+
+(defun test-rmail-mime-handler ()
+  "Test of a mail using no MIME parts at all."
+  (let ((mail "To: alex@gnu.org
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
+
+\372\304\322\301\327\323\324\327\325\312\324\305\41"))
+    (switch-to-buffer (get-buffer-create "*test*"))
+    (erase-buffer)
+    (set-buffer-multibyte nil)
+    (insert mail)
+    (rmail-mime-show t)
+    (set-buffer-multibyte t)))
 
 (defun rmail-mime-bulk-handler (content-type
 				content-disposition
@@ -270,7 +284,10 @@ The parsed header value:
 	 (setq content-transfer-encoding nil))
 	((string= content-transfer-encoding "quoted-printable")
 	 (quoted-printable-decode-region (point-min) (point-max))
-	 (setq content-transfer-encoding nil)))
+	 (setq content-transfer-encoding nil))
+	((string= content-transfer-encoding "8bit")
+	 ;; FIXME: Is this the correct way?
+	 (set-buffer-multibyte nil)))
   ;; Inline stuff requires work.  Attachments are handled by the bulk
   ;; handler.
   (if (string= "inline" (car content-disposition))
@@ -294,7 +311,7 @@ shown for the content type message/rfc822.  This function will be
 called recursively if multiple parts are available.
 
 The current buffer must contain a single message.  It will be
-modifed."
+modified."
   (let ((end (point-min))
 	content-type
 	content-transfer-encoding
