@@ -1,3 +1,13 @@
+2006-02-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-tooltip-mode): Remove autoload cookie.
+	User should use hook if desired.
+
+	* progmodes/gdb-ui.el (gdb-post-prompt): Regenerate breakpoints
+	buffer if necessary.
+	(gdb-delete-frame-or-window): New function.
+	(gdb-breakpoints-mode-map): Bind "q" to it.
+
 2006-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/nroff-mode.el: Clean up name space.
