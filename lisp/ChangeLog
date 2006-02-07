@@ -1,8 +1,8 @@
 2006-02-07  Mathias Dahl  <brakjoller@hotmail.com>
 
-	* dired.el (dired-mode-map): Added more bindings for tumme.
+	* dired.el (dired-mode-map): Add more bindings for tumme.
 
-2006-02-07 +00  Stefan Monnier  <monnier@iro.umontreal.ca>
+2006-02-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* wdired.el (wdired-mode-map): Use remap.
 	(wdired-get-filename): Massage.
@@ -18,7 +18,7 @@
 	`tumme-dired'.  Add code to save window configuration.
 	(tumme-restore-window-configuration): New command to restore the
 	window configuration that `tumme-dired-with-window-configuration'
-	saves before it changes the window confguration.
+	saves before it changes the window configuration.
 	(tumme-show-all-from-dir): New command to display thumbnails for
 	all files in a directory entered by the user, like M-x thumbs.
 	(tumme-display-thumbs): Call `pop-to-buffer' after all thumbnails
