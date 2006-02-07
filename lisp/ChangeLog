@@ -1,3 +1,11 @@
+2006-02-07 +00  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* wdired.el (wdired-mode-map): Use remap.
+	(wdired-get-filename): Massage.
+	(wdired-perm-mode-map): Don't copy bindings from wdired-mode-map.
+	(wdired-preprocess-perms, wdired-set-bit, wdired-toggle-bit): Use the
+	`keymap' property rather than `local-map'.
+
 2006-02-07  Mathias Dahl  <brakjoller@hotmail.com>
 
 	* tumme.el (tumme-get-thumbnail-image): New utility function.
