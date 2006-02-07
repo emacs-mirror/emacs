@@ -242,12 +242,11 @@ GNU/Linux platforms, Emacs does that when built with GTK, LessTif, and
 Motif toolkits; on MS-Windows, the GUI version does that by default.
 For information on how to customize this, see @ref{Dialog Boxes}.
 
-  Secondly, Emacs supports the ``drag and drop'' protocol on the X
-window system.  Dropping a file into an ordinary Emacs window visits
-the file using that window.  However, dropping a file into a window
-displaying a Dired buffer moves or copies the file into the displayed
-directory.  For details, see @ref{Drag and Drop}, @ref{Misc Dired
-Features}.
+  Secondly, Emacs supports ``drag and drop''; dropping a file into an
+ordinary Emacs window visits the file using that window.  However,
+dropping a file into a window displaying a Dired buffer moves or
+copies the file into the displayed directory.  For details, see
+@ref{Drag and Drop}, and @ref{Misc Dired Features}.
 
 @cindex creating files
   What if you want to create a new file?  Just visit it.  Emacs displays
