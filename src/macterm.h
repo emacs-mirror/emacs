@@ -206,9 +206,6 @@ extern struct mac_display_info one_mac_display_info;
    FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
 extern Lisp_Object x_display_name_list;
 
-/* A flag to control how to display unibyte 8-bit character.  */
-extern int unibyte_display_via_language_environment;
-
 extern struct x_display_info *x_display_info_for_display P_ ((Display *));
 extern struct x_display_info *x_display_info_for_name P_ ((Lisp_Object));
 

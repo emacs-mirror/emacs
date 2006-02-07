@@ -248,9 +248,6 @@ extern Lisp_Object w32_display_name_list;
 /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
 extern Lisp_Object Vx_pixel_size_width_font_regexp;
 
-/* A flag to control how to display unibyte 8-bit character.  */
-extern int unibyte_display_via_language_environment;
-
 struct w32_display_info *x_display_info_for_name ();
 
 Lisp_Object display_x_get_resource P_ ((struct w32_display_info *,
