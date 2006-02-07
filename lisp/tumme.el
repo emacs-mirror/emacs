@@ -2070,14 +2070,6 @@ With prefix argument ARG, display image in its original size."
           (tumme-display-image file arg)
           (display-buffer tumme-display-image-buffer))))))
 
-(defun obsolete-tumme-display-thumbnail-original-image-and-buffer (&optional arg)
-  "Call `tumme-display-thumbnail-original-image' and display display buffer.
-See command `tumme-display-thumbnail-original-image' for
-details."
-  (interactive "P")
-  (tumme-display-thumbnail-original-image arg)
-  (display-buffer tumme-display-image-buffer))
-
 (defun tumme-display-dired-image (&optional arg)
   "Display current image file.
 See documentation for `tumme-display-image' for more information.
