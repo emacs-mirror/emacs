@@ -323,8 +323,8 @@ non-nil means return old filename."
 	(if old
 	    (setq file (get-text-property beg 'old-name))
 	  (setq end (next-single-property-change (1+ beg) 'end-name))
-	  (setq file (buffer-substring-no-properties (+ 2 beg) end)))
-	(and file (setq file (wdired-normalize-filename file))))
+	  (setq file (buffer-substring-no-properties (+ 2 beg) end))
+          (and file (setq file (wdired-normalize-filename file)))))
       (if (or no-dir old)
 	  file
 	(and file (> (length file) 0)
