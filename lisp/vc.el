@@ -2800,9 +2800,6 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	  (vc-mode-line new)
 	  (set-buffer-modified-p nil)))))
 
-;; Only defined in very recent Emacsen
-(defvar small-temporary-file-directory nil)
-
 ;;;###autoload
 (defun vc-update-change-log (&rest args)
   "Find change log file and add entries from recent version control logs.
