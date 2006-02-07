@@ -3231,7 +3231,6 @@ Treats actions as defuns."
 
 ;;; Customizable settings
 
-;;;###autoload
 (define-minor-mode gud-tooltip-mode
   "Toggle the display of GUD tooltips."
   :global t
