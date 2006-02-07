@@ -1,3 +1,9 @@
+2006-02-08  Miles Bader  <miles@gnu.org>
+
+	* editfns.c (Fconstrain_to_field): Use Fget_char_property instead
+	of Fget_text_property (other field functions word with overlays as
+	well as text-properties).
+
 2006-02-07  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (unibyte_display_via_language_environment): Extern
