@@ -1208,6 +1208,7 @@ displayed."
       (kill-buffer buf)
       (split-string tags ";"))))
 
+;;;###autoload
 (defun tumme-tag-files (arg)
   "Tag marked file(s) in dired.  With prefix ARG, tag file at point."
   (interactive "P")
@@ -1226,6 +1227,7 @@ displayed."
   (tumme-update-property
    'tags (tumme-list-tags (tumme-original-file-name))))
 
+;;;###autoload
 (defun tumme-tag-remove (arg)
   "Remove tag for selected file(s).
 With prefix argument ARG, remove tag from file at point."
@@ -1489,6 +1491,7 @@ You probably want to use this together with
           (select-window window))
       (message "Associated dired buffer not visible"))))
 
+;;;###autoload
 (defun tumme-jump-thumbnail-buffer ()
   "Jump to thumbnail buffer."
   (interactive)
@@ -1887,11 +1890,13 @@ Ask user for number of images to show and the delay in between."
     (if (looking-at " ")
         (delete-char 1))))
 
+;;;###autoload
 (defun tumme-display-thumbs-append ()
   "Append thumbnails to `tumme-thumbnail-buffer'."
   (interactive)
   (tumme-display-thumbs nil t))
 
+;;;###autoload
 (defun tumme-display-thumb ()
   "Shorthard for `tumme-display-thumbs' with prefix argument."
   (interactive)
@@ -1962,6 +1967,7 @@ Ask user how many thumbnails should be displayed per row."
                                tumme-external-viewer
                                file))))))
 
+;;;###autoload
 (defun tumme-dired-display-external ()
   "Display file at point using an external viewer."
   (interactive)
@@ -2070,6 +2076,7 @@ With prefix argument ARG, display image in its original size."
           (tumme-display-image file arg)
           (display-buffer tumme-display-image-buffer))))))
 
+;;;###autoload
 (defun tumme-display-dired-image (&optional arg)
   "Display current image file.
 See documentation for `tumme-display-image' for more information.
@@ -2320,6 +2327,7 @@ browse and tag them using rest of the functionality in `tumme'."
      prop
      value)))
 
+;;;###autoload
 (defun tumme-dired-comment-files ()
   "Add comment to current or marked files in dired."
   (interactive)
@@ -2370,6 +2378,7 @@ browse and tag them using rest of the functionality in `tumme'."
       (kill-buffer buf)
       comment)))
 
+;;;###autoload
 (defun tumme-mark-tagged-files ()
   "Use regexp to mark files with matching tag."
   (interactive)
