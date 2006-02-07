@@ -1,3 +1,22 @@
+2006-02-07  Mathias Dahl  <brakjoller@hotmail.com>
+
+	* tumme.el (tumme-get-thumbnail-image): Added this utility
+	function on request from Chong Yidong.
+	(tumme-dired-with-window-configuration): Renamed `tumme-dired' to
+	this. Added code to save window configuration.
+	(tumme-restore-window-configuration): New command to restore the
+	window confguration that `tumme-dired-with-window-configuration'
+	saves before it changes the window confguration.
+	(tumme-show-all-from-dir): New command to mirror what `thumbs' in
+	thumbs.el does, which is to automatically display thumbnails for
+	all files in a directory entered by the user.
+	(tumme-display-thumbs): Added call to `pop-to-buffer' after all
+	thumbnails have been created.
+	(tumme-display-thumbnail-original-image): Added call to
+	`display-buffer'.
+	(obsolete-tumme-display-thumbnail-original-image-and-buffer):
+	Removed obsolete test function.
+
 2006-02-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* tumme.el (tumme-get-thumbnail-image): Add missing arg to `error'.
