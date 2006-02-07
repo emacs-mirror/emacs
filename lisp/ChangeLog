@@ -1,3 +1,7 @@
+2006-02-07  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+
+	* wdired.el (wdired-get-filename): Fix bug: Don't re-normalize OLD.
+
 2006-02-07  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-tooltip-mode): Remove autoload cookie.
