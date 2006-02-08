@@ -985,7 +985,7 @@ either as escape sequences or as graphics.  They do not normally occur
 in multibyte buffers, but if they do, they are displayed as Latin-1
 graphics.  In unibyte mode, if you enable European display they are
 displayed using their graphics (assuming your terminal supports them),
-otherwise as escape sequences.  @xref{Single-Byte Character Support}.
+otherwise as escape sequences.  @xref{Unibyte Mode}.
 
 @vindex nobreak-char-display
 @cindex no-break space, display
