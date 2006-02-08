@@ -1,10 +1,11 @@
 ;;; printing.el --- printing utilities
 
-;; Copyright (C) 2000, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2003, 2004, 2005,
+;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2005-09-18 05:57:14 deego>
+;; Time-stamp: <2006-02-06 15:06:40 ttn>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.8.4
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/

@@ -1,6 +1,6 @@
 /* Deal with the X Resource Manager.
    Copyright (C) 1990, 1993, 1994, 2000, 2001, 2002, 2003, 2004,
-                 2005 Free Software Foundation, Inc.
+                 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -88,6 +88,10 @@ extern char *get_system_name ();
 /* Make sure not to #include anything after these definitions.  Let's
    not step on anyone's prototypes.  */
 #ifdef emacs
+/* darwin.h may have already defined these.  */
+#undef malloc
+#undef realloc
+#undef free
 #define malloc xmalloc
 #define realloc xrealloc
 #define free xfree

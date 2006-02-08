@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
-@c   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining, Abbrevs, Building, Top
 @chapter Maintaining Programs
@@ -14,6 +14,7 @@ useful for this purpose.
 
 @menu
 * Change Log::	        Maintaining a change history for your program.
+* Format of ChangeLog:: What the change log file looks like.
 * Tags::	        Go direct to any function in your program in one
 			  command.  Tags remembers which file it is in.
 * Emerge::	        A convenient way of merging two versions of a program.
@@ -21,6 +22,14 @@ useful for this purpose.
 
 @node Change Log
 @section Change Logs
+
+  A change log file contains a chronological record of when and why you
+have changed a program, consisting of a sequence of entries describing
+individual changes.  Normally it is kept in a file called
+@file{ChangeLog} in the same directory as the file you are editing, or
+one of its parent directories.  A single @file{ChangeLog} file can
+record changes for all the files in its directory and all its
+subdirectories.
 
 @cindex change log
 @kindex C-x 4 a
@@ -32,25 +41,49 @@ a backup file, it makes an entry appropriate for the file's
 parent---that is useful for making log entries for functions that
 have been deleted in the current version.
 
-  A change log file contains a chronological record of when and why you
-have changed a program, consisting of a sequence of entries describing
-individual changes.  Normally it is kept in a file called
-@file{ChangeLog} in the same directory as the file you are editing, or
-one of its parent directories.  A single @file{ChangeLog} file can
-record changes for all the files in its directory and all its
-subdirectories.
+  @kbd{C-x 4 a} visits the change log file and creates a new entry
+unless the most recent entry is for today's date and your name.  It
+also creates a new item for the current file.  For many languages, it
+can even guess the name of the function or other object that was
+changed.
 
-  You should put a copyright notice and permission notice at the
-end of the change log file.  Here is an example:
+@vindex add-log-keep-changes-together
+  When the variable @code{add-log-keep-changes-together} is
+non-@code{nil}, @kbd{C-x 4 a} adds to any existing item for the file
+rather than starting a new item.
 
-@example
-Copyright 1997, 1998 Free Software Foundation, Inc.
-Copying and distribution of this file, with or without modification, are
-permitted provided the copyright notice and this notice are preserved.
-@end example
+@vindex add-log-always-start-new-record
+  If @code{add-log-always-start-new-record} is non-@code{nil},
+@kbd{C-x 4 a} always makes a new entry, even if the last entry
+was made by you and on the same date.
 
-@noindent
-Of course, you should substitute the proper years and copyright holder.
+@vindex change-log-version-info-enabled
+@vindex change-log-version-number-regexp-list
+@cindex file version in change log entries
+  If the value of the variable @code{change-log-version-info-enabled}
+is non-@code{nil}, @kbd{C-x 4 a} adds the file's version number to the
+change log entry.  It finds the version number by searching the first
+ten percent of the file, using regular expressions from the variable
+@code{change-log-version-number-regexp-list}.
+
+@cindex Change Log mode
+@findex change-log-mode
+  The change log file is visited in Change Log mode.  In this major
+mode, each bunch of grouped items counts as one paragraph, and each
+entry is considered a page.  This facilitates editing the entries.
+@kbd{C-j} and auto-fill indent each new line like the previous line;
+this is convenient for entering the contents of an entry.
+
+@findex change-log-merge
+  You can use the command @kbd{M-x change-log-merge} to merge other
+log files into a buffer in Change Log Mode, preserving the date
+ordering of entries.
+
+  Version control systems are another way to keep track of changes in your
+program and keep a change log.  @xref{Log Buffer}.
+
+@node Format of ChangeLog
+@section Format of ChangeLog
 
   A change log entry starts with a header line that contains the current
 date, your name, and your email address (taken from the variable
@@ -84,90 +117,17 @@ blank line between items.  When items are related (parts of the same
 change, in different places), group them by leaving no blank line
 between them.
 
-  @kbd{C-x 4 a} visits the change log file and creates a new entry
-unless the most recent entry is for today's date and your name.  It
-also creates a new item for the current file.  For many languages, it
-can even guess the name of the function or other object that was
-changed.
+  You should put a copyright notice and permission notice at the
+end of the change log file.  Here is an example:
 
-@vindex add-log-keep-changes-together
-  When the variable @code{add-log-keep-changes-together} is
-non-@code{nil}, @kbd{C-x 4 a} adds to any existing item for the file
-rather than starting a new item.
-
-@vindex change-log-version-info-enabled
-@vindex change-log-version-number-regexp-list
-@cindex file version in change log entries
-  If the value of the variable @code{change-log-version-info-enabled}
-is non-@code{nil}, @kbd{C-x 4 a} adds the file's version number to the
-change log entry.  It finds the version number by searching the first
-ten percent of the file, using regular expressions from the variable
-@code{change-log-version-number-regexp-list}.
-
-@vindex add-log-always-start-new-record
-  If @code{add-log-always-start-new-record} is non-@code{nil},
-@kbd{C-x 4 a} always makes a new entry, even if the last entry
-was made by you and on the same date.
-
-@cindex Change Log mode
-@findex change-log-mode
-  The change log file is visited in Change Log mode.  In this major
-mode, each bunch of grouped items counts as one paragraph, and each
-entry is considered a page.  This facilitates editing the entries.
-@kbd{C-j} and auto-fill indent each new line like the previous line;
-this is convenient for entering the contents of an entry.
-
-@findex change-log-merge
-  You can use the command @kbd{M-x change-log-merge} to merge other
-log files into a buffer in Change Log Mode, preserving the date
-ordering of entries.
-
-@findex change-log-redate
-@cindex converting change log date style
-  Versions of Emacs before 20.1 used a different format for the time of
-the change log entry:
-
-@smallexample
-Fri May 25 11:23:23 1993 Richard Stallman  <rms@@gnu.org>
-@end smallexample
+@example
+Copyright 1997, 1998 Free Software Foundation, Inc.
+Copying and distribution of this file, with or without modification, are
+permitted provided the copyright notice and this notice are preserved.
+@end example
 
 @noindent
-The @kbd{M-x change-log-redate} command converts all the old-style
-date entries in the change log file visited in the current buffer to
-the new format, to make the file uniform in style.  This is handy when
-entries are contributed by many different people, some of whom use old
-versions of Emacs.
-
-  Version control systems are another way to keep track of changes in your
-program and keep a change log.  @xref{Log Buffer}.
-
-@ignore
-@c This is commented out because the command is specific
-@c to maintenance of Emacs itself.
-
-@node Authors
-@section @file{AUTHORS} files
-@cindex @file{AUTHORS} file
-
-  Programs which have many contributors usually include a file named
-@file{AUTHORS} in their distribution, which lists the individual
-contributions.  Emacs has a special command for maintaining the
-@file{AUTHORS} file that is part of the Emacs distribution.
-
-@findex authors
-  The @kbd{M-x authors} command prompts for the name of the root of the
-Emacs source directory.  It then scans @file{ChangeLog} files and Lisp
-source files under that directory for information about authors of
-individual packages, and people who made changes in source files, and
-puts the information it gleans into a buffer named @samp{*Authors*}.
-You can then edit the contents of that buffer and merge it with the
-existing @file{AUTHORS} file.
-
-  Do not assume that this command finds all the contributors; don't
-assume that a person not listed in the output was not a contributor.
-If you merged in someone's contribution and did not put his name
-in the change log, he won't show up in @kbd{M-x authors} either.
-@end ignore
+Of course, you should substitute the proper years and copyright holder.
 
 @node Tags
 @section Tags Tables
@@ -425,15 +385,15 @@ way it was made in the first place.  If the tags table fails to record
 a tag, or records it for the wrong file, then Emacs cannot possibly
 find its definition until you update the tags table.  However, if the
 position recorded in the tags table becomes a little bit wrong (due to
-other editing), the only consequence is a slight delay in finding the
+other editing), the worst consequence is a slight delay in finding the
 tag.  Even if the stored position is very far wrong, Emacs will still
-find the tag, after searching most of the file for it.  Even that
-delay is hardly noticeable with today's computers.
+find the tag, after searching most of the file for it.  That delay is
+hardly noticeable with today's computers.
 
-  So you should update a tags table when you define new tags that you want
-to have listed, or when you move tag definitions from one file to another,
-or when changes become substantial.  Normally there is no need to update
-the tags table after each edit, or even every day.
+   Thus, there is no need to update the tags table after each edit.
+You should update a tags table when you define new tags that you want
+to have listed, or when you move tag definitions from one file to
+another, or when changes become substantial.
 
   One tags table can virtually include another.  Specify the included
 tags file name with the @samp{--include=@var{file}} option when
@@ -480,21 +440,21 @@ place of a file name on the command line.  @code{Etags} will read from
 standard input and mark the produced tags as belonging to the file
 @var{file}.
 
-  @samp{etags --help} prints the list of the languages @code{etags}
+  @samp{etags --help} outputs the list of the languages @code{etags}
 knows, and the file name rules for guessing the language.  It also prints
 a list of all the available @code{etags} options, together with a short
 explanation.  If followed by one or more @samp{--language=@var{lang}}
-options, prints detailed information about how tags are generated for
+options, it outputs detailed information about how tags are generated for
 @var{lang}.
 
 @node Etags Regexps
 @subsection Etags Regexps
 
   The @samp{--regex} option provides a general way of recognizing tags
-based on regexp matching.  You can freely intermix it with file names.
+based on regexp matching.  You can freely intermix this option with
+file names, and each one applies to the source files that follow it.
 If you specify multiple @samp{--regex} options, all of them are used
-in parallel, but each one applies only to the source files that follow
-it.  The syntax is:
+in parallel.  The syntax is:
 
 @smallexample
 --regex=[@var{@{language@}}]/@var{tagregexp}/[@var{nameregexp}/]@var{modifiers}
@@ -537,8 +497,8 @@ Match this regular expression against the whole file, and allow
 @end table
 
   The @samp{-R} option cancels all the regexps defined by preceding
-@samp{--regex} options.  It applies to the file names following it, as
-you can see from the following example:
+@samp{--regex} options.  It too applies to the file names following
+it.  Here's an example:
 
 @smallexample
 etags --regex=/@var{reg1}/i voo.doo --regex=/@var{reg2}/m \
@@ -647,30 +607,25 @@ etags --language=none \
 
 @vindex tags-file-name
 @findex visit-tags-table
-  Emacs has at any time one @dfn{selected} tags table, and all the commands
-for working with tags tables use the selected one.  To select a tags table,
-type @kbd{M-x visit-tags-table}, which reads the tags table file name as an
-argument.  The name @file{TAGS} in the default directory is used as the
-default file name.
+  Emacs has at any time one @dfn{selected} tags table, and all the
+commands for working with tags tables use the selected one.  To select
+a tags table, type @kbd{M-x visit-tags-table}, which reads the tags
+table file name as an argument, with @file{TAGS} in the default
+directory as the default.
 
-  All this command does is store the file name in the variable
-@code{tags-file-name}.  Emacs does not actually read in the tags table
-contents until you try to use them.  Setting this variable yourself is just
-as good as using @code{visit-tags-table}.  The variable's initial value is
-@code{nil}; that value tells all the commands for working with tags tables
-that they must ask for a tags table file name to use.
+  Emacs does not actually read in the tags table contents until you
+try to use them; all @code{visit-tags-table} does is store the file
+name in the variable @code{tags-file-name}, and setting the variable
+yourself is just as good.  The variable's initial value is @code{nil};
+that value tells all the commands for working with tags tables that
+they must ask for a tags table file name to use.
 
   Using @code{visit-tags-table} when a tags table is already loaded
 gives you a choice: you can add the new tags table to the current list
 of tags tables, or start a new list.  The tags commands use all the tags
 tables in the current list.  If you start a new list, the new tags table
 is used @emph{instead} of others.  If you add the new table to the
-current list, it is used @emph{as well as} the others.  When the tags
-commands scan the list of tags tables, they don't always start at the
-beginning of the list; they start with the first tags table (if any)
-that describes the current file, proceed from there to the end of the
-list, and then scan from the beginning of the list until they have
-covered all the tables in the list.
+current list, it is used @emph{as well as} the others.
 
 @vindex tags-table-list
   You can specify a precise list of tags tables by setting the variable
@@ -749,13 +704,13 @@ alternative to @kbd{C-u M-.}.
 @findex find-tag-other-frame
   Like most commands that can switch buffers, @code{find-tag} has a
 variant that displays the new buffer in another window, and one that
-makes a new frame for it.  The former is @kbd{C-x 4 .}, which invokes
-the command @code{find-tag-other-window}.  The latter is @kbd{C-x 5 .},
+makes a new frame for it.  The former is @w{@kbd{C-x 4 .}}, which invokes
+the command @code{find-tag-other-window}.  The latter is @w{@kbd{C-x 5 .}},
 which invokes @code{find-tag-other-frame}.
 
   To move back to places you've found tags recently, use @kbd{C-u -
 M-.}; more generally, @kbd{M-.} with a negative numeric argument.  This
-command can take you to another buffer.  @kbd{C-x 4 .} with a negative
+command can take you to another buffer.  @w{@kbd{C-x 4 .}} with a negative
 argument finds the previous tag location in another window.
 
 @kindex M-*
@@ -781,9 +736,13 @@ that it does regexp matching instead of substring matching.
 @cindex search and replace in multiple files
 @cindex multiple-file search and replace
 
-  The commands in this section visit and search all the files listed in the
-selected tags table, one by one.  For these commands, the tags table serves
-only to specify a sequence of files to search.
+  The commands in this section visit and search all the files listed
+in the selected tags table, one by one.  For these commands, the tags
+table serves only to specify a sequence of files to search.  These
+commands scan the list of tags tables starting with the first tags
+table (if any) that describes the current file, proceed from there to
+the end of the list, and then scan from the beginning of the list
+until they have covered all the tables in the list.
 
 @table @kbd
 @item M-x tags-search @key{RET} @var{regexp} @key{RET}
@@ -846,9 +805,7 @@ continue to exist.
 
   It may have struck you that @code{tags-search} is a lot like
 @code{grep}.  You can also run @code{grep} itself as an inferior of
-Emacs and have Emacs show you the matching lines one by one.  This works
-much like running a compilation; finding the source locations of the
-@code{grep} matches works like finding the compilation errors.
+Emacs and have Emacs show you the matching lines one by one.
 @xref{Grep Searching}.
 
 @node List Tags
@@ -882,9 +839,9 @@ of the tags files together with the tag names.
 
 @vindex tags-tag-face
 @vindex tags-apropos-additional-actions
-You can customize the appearance of the output with the face
-@code{tags-tag-face}.  You can display additional output with @kbd{M-x
-tags-apropos} by customizing the variable
+  You can customize the appearance of the output by setting the
+variable @code{tags-tag-face} to a face.  You can display additional
+output with @kbd{M-x tags-apropos} by customizing the variable
 @code{tags-apropos-additional-actions}---see its documentation for
 details.
 
@@ -896,11 +853,11 @@ name in the buffer.  @xref{Symbol Completion}.
 @cindex Emerge
 @cindex merging files
 
-It's not unusual for programmers to get their signals crossed and modify
-the same program in two different directions.  To recover from this
-confusion, you need to merge the two versions.  Emerge makes this
-easier.  See also @ref{Comparing Files}, for commands to compare
-in a more manual fashion, and @ref{Top, Ediff,, ediff, The Ediff Manual}.
+  It's not unusual for programmers to get their signals crossed and
+modify the same program in two different directions.  To recover from
+this confusion, you need to merge the two versions.  Emerge makes this
+easier.  See also @ref{Comparing Files}, for other ways to compare
+files, and @ref{Top, Ediff,, ediff, The Ediff Manual}.
 
 @menu
 * Overview of Emerge::	How to start Emerge.  Basic concepts.
@@ -918,7 +875,7 @@ in a more manual fashion, and @ref{Top, Ediff,, ediff, The Ediff Manual}.
 @node Overview of Emerge
 @subsection Overview of Emerge
 
-To start Emerge, run one of these four commands:
+  To start Emerge, run one of these four commands:
 
 @table @kbd
 @item M-x emerge-files

@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
-@c   2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Dealing with Common Problems
@@ -158,14 +158,14 @@ erasure key}.  In Emacs, it is supposed to be equivalent to @key{DEL},
 and when Emacs is properly configured for your terminal, it translates
 that key into the character @key{DEL}.
 
-  When Emacs starts up using a window system, it determines
+  When Emacs starts up on a graphical display, it determines
 automatically which key should be @key{DEL}.  In some unusual cases
 Emacs gets the wrong information from the system.  If the usual
 erasure key deletes forwards instead of backwards, that is probably
 what happened---Emacs ought to be treating the @key{DELETE} key as
 @key{DEL}, but it isn't.
 
-  With a window system, if the usual erasure key is labeled
+  On a graphical display, if the usual erasure key is labeled
 @key{BACKSPACE} and there is a @key{DELETE} key elsewhere, but the
 @key{DELETE} key deletes backward instead of forward, that too
 suggests Emacs got the wrong information---but in the opposite sense.
@@ -213,7 +213,7 @@ customize the variable @code{normal-erase-is-backspace}: the value
 @key{DEL}, and @code{nil} specifies the other mode.  @xref{Easy
 Customization}.
 
-  With a window system, it can also happen that the usual erasure key
+  On a graphical display, it can also happen that the usual erasure key
 is labeled @key{BACKSPACE}, there is a @key{DELETE} key elsewhere, and
 both keys delete forward.  This probably means that someone has
 redefined your @key{BACKSPACE} key as a @key{DELETE} key.  With X,
@@ -226,7 +226,7 @@ you simply remove it now.
 @subsection Recursive Editing Levels
 
   Recursive editing levels are important and useful features of Emacs, but
-they can seem like malfunctions to the user who does not understand them.
+they can seem like malfunctions if you do not understand them.
 
   If the mode line has square brackets @samp{[@dots{}]} around the parentheses
 that contain the names of the major and minor modes, you have entered a

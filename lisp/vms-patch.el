@@ -1,7 +1,7 @@
 ;;; vms-patch.el --- override parts of files.el for VMS
 
 ;; Copyright (C) 1986, 1992, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: vms

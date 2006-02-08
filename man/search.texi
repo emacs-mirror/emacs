@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001, 2002,
-@c   2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search, Fixit, Display, Top
 @chapter Searching and Replacement
@@ -737,7 +737,7 @@ specifies a ``shy'' group that does not record the matched substring;
 you can't refer back to it with @samp{\@var{d}}.  This is useful
 in mechanically combining regular expressions, so that you
 can add groups for syntactic purposes without interfering with
-the numbering of the groups that were written by the user.
+the numbering of the groups that are meant to be referred to.
 
 @item \@var{d}
 matches the same text that matched the @var{d}th occurrence of a

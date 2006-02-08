@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
-@c   2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Glossary, Key Index, Intro, Top
 @unnumbered Glossary
@@ -367,7 +367,7 @@ Buttons}.
 
 @item Dribble File
 A dribble file is a file into which Emacs writes all the characters that
-the user types on the keyboard.  Dribble files are used to make a record
+you type on the keyboard.  Dribble files are used to make a record
 for debugging Emacs bugs.  Emacs does not make a dribble file unless you
 tell it to.  @xref{Bugs}.
 
@@ -506,7 +506,7 @@ into Emacs windows (q.v.@:).  When you are using a window system
 but in Emacs a window means something else.
 
 @item Fringe
-On a graphical terminal (q.v.@:), there's a narrow portion of the
+On a graphical display (q.v.@:), there's a narrow portion of the
 frame (q.v.@:) between the text area and the window's border.  Emacs
 displays the fringe using a special face (q.v.@:) called
 @code{fringe}.  @xref{Faces,fringe}.
@@ -557,8 +557,8 @@ letters, digits, punctuation, and spaces; they do not include
 @key{RET} or @key{ESC}.  In Emacs, typing a graphic character inserts
 that character (in ordinary editing modes).  @xref{Inserting Text}.
 
-@item Graphical Terminal
-A graphical terminal is one that can display images and multiple fonts.
+@item Graphical Display
+A graphical display is one that can display images and multiple fonts.
 Usually it also has a window system (q.v.@:).
 
 @item Highlighting
@@ -869,7 +869,7 @@ location in text so that you can move point to that location.
 @item Narrowing
 Narrowing means creating a restriction (q.v.@:) that limits editing in
 the current buffer to only a part of the text in the buffer.  Text
-outside that part is inaccessible to the user until the boundaries are
+outside that part is inaccessible for editing until the boundaries are
 widened again, but it is still there, and saving the file saves it
 all.  @xref{Narrowing}.
 
@@ -982,7 +982,7 @@ one corner and putting the mark at the diagonally opposite corner.
 
 @item Recursive Editing Level
 A recursive editing level is a state in which part of the execution of
-a command involves asking the user to edit some text.  This text may
+a command involves asking you to edit some text.  This text may
 or may not be the same as the text to which the command was applied.
 The mode line indicates recursive editing levels with square brackets
 (@samp{[} and @samp{]}).  @xref{Recursive Edit}.
@@ -1289,8 +1289,10 @@ other editors use the term ``window'' for what we call a `frame'
 (q.v.@:) in Emacs.
 
 @item Window System
-A window system is a graphical terminal (q.v.@:) that can display multiple
-windows for different programs at the same time.
+A window system is software that operates on a graphical display
+(q.v.@:), to subdivide the screen so that multiple applications can
+have their] own windows at the same time.  All modern operating systems
+include a window system.
 
 @item Word Abbrev
 See `abbrev.'

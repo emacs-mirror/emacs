@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
-@c   2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Emacs Invocation, X Resources, GNU Free Documentation License, Top
 @appendix Command Line Arguments for Emacs Invocation
@@ -477,7 +477,7 @@ This variable defaults to @file{~/.bash_history} if you use Bash, to
 @file{~/.sh_history} if you use ksh, and to @file{~/.history}
 otherwise.
 @item HOME
-The location of the user's files in the directory tree; used for
+The location of your files in the directory tree; used for
 expansion of file names starting with a tilde (@file{~}).  On MS-DOS,
 it defaults to the directory from which Emacs was started, with
 @samp{/bin} removed from the end if it was present.  On Windows, the
@@ -525,11 +525,11 @@ environment and coding system.  @xref{Language Environments}.
 @item LOGNAME
 The user's login name.  See also @env{USER}.
 @item MAIL
-The name of the user's system mail inbox.
+The name of your system mail inbox.
 @item MH
 Name of setup file for the mh system.  (The default is @file{~/.mh_profile}.)
 @item NAME
-The real-world name of the user.
+Your real-world name.
 @item NNTPSERVER
 The name of the news server.  Used by the mh and Gnus packages.
 @item ORGANIZATION
@@ -987,7 +987,7 @@ emacs -ms coral -cr 'slate blue' &
 @samp{-rv} option or with the X resource @samp{reverseVideo}.
 
   The @samp{-fg}, @samp{-bg}, and @samp{-rv} options function on
-text-only terminals as well as on window systems.
+text-only terminals as well as on graphical displays.
 
 @node Window Size X
 @appendixsec Options for Window Size and Position
@@ -1165,7 +1165,7 @@ for the initial Emacs frame.
 @appendixsec Icons
 @cindex icons (X Window System)
 
-  Most window managers allow the user to ``iconify'' a frame, removing
+  Most window managers allow you to ``iconify'' a frame, removing
 it from sight, and leaving a small, distinctive ``icon'' window in its
 place.  Clicking on the icon window makes the frame itself appear again.
 If you have many clients running at once, you can avoid cluttering up

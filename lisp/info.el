@@ -1,7 +1,7 @@
 ;;; info.el --- info package for Emacs
 
 ;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
@@ -2775,11 +2775,11 @@ If FILE is nil, check the current Info file."
 
 ;;;###autoload
 (defun Info-index (topic)
-  "Look up a string TOPIC in the index for this file.
+  "Look up a string TOPIC in the index for this manual and go to that entry.
 If there are no exact matches to the specified topic, this chooses
 the first match which is a case-insensitive substring of a topic.
 Use the \\<Info-mode-map>\\[Info-index-next] command to see the other matches.
-Give a blank topic name to go to the Index node itself."
+Give an empty topic name to go to the Index node itself."
   (interactive
    (list
     (let ((Info-complete-menu-buffer (clone-buffer))
@@ -3352,7 +3352,7 @@ Advanced commands:
 \\[Info-search-case-sensitively]	Search through this Info file for specified regexp case-sensitively.
 \\[Info-search-next]	Search for another occurrence of regexp
 	  from a previous \\<Info-mode-map>\\[Info-search] command.
-\\[Info-index]	Look up a topic in this file's Index and move to that node.
+\\[Info-index]	Look up a topic in this manual's Index and move to that index entry.
 \\[Info-index-next]	(comma) Move to the next match from a previous \\<Info-mode-map>\\[Info-index] command.
 \\[info-apropos]	Look for a string in the indices of all manuals.
 \\[Info-goto-node]	Move to node specified by name.

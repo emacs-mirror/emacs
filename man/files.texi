@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
-@c   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files, Buffers, Keyboard Macros, Top
 @chapter File Handling
@@ -242,12 +242,11 @@ GNU/Linux platforms, Emacs does that when built with GTK, LessTif, and
 Motif toolkits; on MS-Windows, the GUI version does that by default.
 For information on how to customize this, see @ref{Dialog Boxes}.
 
-  Secondly, Emacs supports the ``drag and drop'' protocol on the X
-window system.  Dropping a file into an ordinary Emacs window visits
-the file using that window.  However, dropping a file into a window
-displaying a Dired buffer moves or copies the file into the displayed
-directory.  For details, see @ref{Drag and Drop}, @ref{Misc Dired
-Features}.
+  Secondly, Emacs supports ``drag and drop''; dropping a file into an
+ordinary Emacs window visits the file using that window.  However,
+dropping a file into a window displaying a Dired buffer moves or
+copies the file into the displayed directory.  For details, see
+@ref{Drag and Drop}, and @ref{Misc Dired Features}.
 
 @cindex creating files
   What if you want to create a new file?  Just visit it.  Emacs displays

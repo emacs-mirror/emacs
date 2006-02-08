@@ -1,6 +1,7 @@
 ;;; vmsproc.el --- run asynchronous VMS subprocesses under Emacs
 
-;; Copyright (C) 1986, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 2002, 2003, 2004, 2005,
+;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Mukesh Prasad
 ;; Maintainer: FSF

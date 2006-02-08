@@ -1521,14 +1521,17 @@ on the \"INS\" button. Enter a \"Spool File\" of \"~/mail/mh-e\", a
 \"Folder\" of \"mh-e\", and a \"Key Binding\" of \"m\".
 
 You can use \"xbuffy\" to automate the incorporation of this mail
-using the \"gnudoit\" command in the \"gnuserv\" package as follows:
+using the Emacs 22 command \"emacsclient\" as follows:
 
     box ~/mail/mh-e
         title mh-e
         origMode
         polltime 10
         headertime 0
-        command gnudoit -q '(mh-inc-spool-mh-e)'"
+        command emacsclient --eval '(mh-inc-spool-mh-e)'
+
+In XEmacs, the command \"gnuclient\" is used in a similar
+fashion."
   :type '(repeat (list (file :tag "Spool File")
                        (string :tag "Folder")
                        (character :tag "Key Binding")))

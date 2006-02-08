@@ -12,7 +12,7 @@ This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
 updated for Emacs version @value{EMACSVER}.
 
 Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-  2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+  2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -469,7 +469,7 @@ International Character Set Support
                               that cover the whole spectrum of characters.
 * Defining Fontsets::       Defining a new fontset.
 * Undisplayable Characters::When characters don't display.
-* Single-Byte Character Support:: You can pick one European character set
+* Unibyte Mode::            You can pick one European character set
                               to use without multibyte characters.
 * Charsets::                How Emacs groups its internal character codes.
 
@@ -612,9 +612,7 @@ Running Debuggers Under Emacs
 Maintaining Programs
 
 * Change Log::	        Maintaining a change history for your program.
-@ignore
-* Authors::             Maintaining the Emacs @file{AUTHORS} file.
-@end ignore
+* Format of ChangeLog:: What the change log file looks like.
 * Tags::	        Go direct to any function in your program in one
 			  command.  Tags remembers which file it is in.
 * Emerge::	        A convenient way of merging two versions of a program.
@@ -956,12 +954,11 @@ files, which are also distributed along with GNU Emacs.
 editors, all sharing common principles of organization.  For information on
 the underlying philosophy of Emacs and the lessons learned from its
 development, write for a copy of AI memo 519a, @cite{Emacs, the Extensible,
-Customizable Self-Documenting Display Editor}, to Publications Department,
-Artificial Intelligence Lab, 545 Tech Square, Cambridge, MA 02139, USA@.  At
-last report they charge $2.25 per copy.  Another useful publication is LCS
-TM-165, @cite{A Cookbook for an Emacs}, by Craig Finseth, available from
-Publications Department, Laboratory for Computer Science, 545 Tech Square,
-Cambridge, MA 02139, USA@.  The price today is $3.
+Customizable Self-Documenting Display Editor}, is available from
+@url{ftp://publications.ai.mit.edu/ai-publications/pdf/AIM-519A.pdf}.
+Another useful publication is LCS TM-165, @cite{A Cookbook for an
+Emacs}, by Craig Finseth, is available from the MIT libraries in some
+fashion.
 
 This edition of the manual is intended for use with GNU Emacs
 installed on GNU and Unix systems.  GNU Emacs can also be used on VMS,
@@ -1152,11 +1149,12 @@ can write an extension, anybody can use it afterward.  @xref{Top,
 Emacs Lisp Intro, Preface, eintr, An Introduction to Programming in
 Emacs Lisp}, if you want to learn Emacs Lisp programming.
 
-   When running on a graphics terminal, Emacs provides its own menus
+   When running on a graphical display, Emacs provides its own menus
 and convenient handling of mouse buttons.  But Emacs provides many of
-the benefits of a window system even on a text-only terminal.  For
-instance, you can look at or edit several files at once, move text
-between files, and edit files while running shell commands.
+the benefits of a graphical display even on a text-only terminal.  For
+instance, it can highlight parts of a file, display and edit several
+files at once, move text between files, and edit files while running
+shell commands.
 
 @include screen.texi
 @include commands.texi

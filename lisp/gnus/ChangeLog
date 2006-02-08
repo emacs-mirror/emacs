@@ -1,3 +1,51 @@
+2006-02-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-decode-charset): Don't use ignore-errors
+	when calling mail-header-parse-content-type.
+	(article-de-quoted-unreadable): Ditto.
+	(article-de-base64-unreadable): Ditto.
+	(article-wash-html): Ditto.
+
+	* mm-decode.el (mm-dissect-buffer): Don't use ignore-errors when
+	calling mail-header-parse-content-type and
+	mail-header-parse-content-disposition.
+	(mm-find-raw-part-by-type): Don't use ignore-errors when calling
+	mail-header-parse-content-type.
+
+	* mml.el (mml-insert-mime-headers): Use mml-insert-parameter to
+	insert charset and format parameters; encode description after
+	inserting it to buffer.
+	(mml-insert-parameter): Fold lines properly even if a parameter is
+	segmented into two or more lines; change the max column to 76.
+
+	* rfc1843.el (rfc1843-decode-article-body): Don't use
+	ignore-errors when calling mail-header-parse-content-type.
+
+	* rfc2231.el (rfc2231-parse-string): Return at least type if
+	possible; don't cause an error even if it fails in parsing of
+	parameters.  Suggested by ARISAWA Akihiro <ari@mbf.ocn.ne.jp>.
+	(rfc2231-encode-string): Don't break lines at the beginning, leave
+	it to mml-insert-parameter.
+
+	* webmail.el (webmail-yahoo-article): Don't use ignore-errors when
+	calling mail-header-parse-content-type.
+
+2006-02-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* spam-report.el (spam-report-gmane-use-article-number): Improve
+	doc string.
+	(spam-report-gmane-internal): Check if a suitable header was found
+	in the article.
+
+2006-02-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2231.el (rfc2231-parse-string): Revert 2006-02-03 change.
+	(rfc2231-encode-string): Make param*=value always begin with LWSP.
+
+2006-02-05  Romain Francoise  <romain@orebokech.com>
+
+	Update copyright notices of all files in the gnus directory.
+
 2006-02-03  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-util.el (gnus-error): Describe `args'.

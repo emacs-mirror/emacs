@@ -1,3 +1,27 @@
+2006-02-07  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Prefix Command Arguments): Minor cleanup.
+
+	* display.texi: "Graphical display", not window system.
+
+	* functions.texi (What Is a Function): Fix xref.
+
+	* keymaps.texi (Key Lookup): Clarify wrt commands vs other functions.
+	(Changing Key Bindings): Clarify when remapping is better than
+	substitute-key-definition.
+
+2006-02-02  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Basic Completion): Completion alists are risky.
+
+	* keymaps.texi (Active Keymaps): Clarifications.
+	(Searching Keymaps): New node.
+	(Keymaps): Update menu.
+
+	* frames.texi (Layout Parameters): Minor clarification.
+	(Drag and Drop): New node.
+	(Frames): Update menu.
+
 2006-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Other Display Specs, Image Descriptors): Image
@@ -20,6 +44,15 @@
 
 	* markers.texi (Overview of Markers): Count insertion type
 	as one of a marker's attributes.
+
+	* keymaps.texi (Controlling Active Maps): New node, split out of
+	Active Keymaps.
+	(Keymaps): Menu updated.
+	(Active Keymaps): Give pseudocode to explain how the active
+	maps are searched.  current-active-maps and key-binding moved here.
+	(Functions for Key Lookup): current-active-maps and key-binding moved.
+	Clarifications.
+	(Searching the Keymaps): New subnode.
 
 	* elisp.texi (Top): Menu clarification.
 
@@ -4213,7 +4246,7 @@ Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 ;; End:
 
     Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-      2005 Free Software Foundation, Inc.
+      2005, 2006 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

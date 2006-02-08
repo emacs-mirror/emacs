@@ -1,3 +1,123 @@
+2006-02-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* mule.texi (International):
+	* programs.texi (Basic Indent): Fix typos.
+
+	* faq.texi (Meta key does not work in xterm)
+	(Emacs does not display 8-bit characters)
+	(Inputting eight-bit characters):
+	* custom.texi (Minor Modes):
+	* display.texi (Text Display):
+	* commands.texi (Text Characters): Update xrefs.
+
+2006-02-07  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Update subnode menu.
+	Update info on old Emacs papers.
+	(Intro): "Graphical display", not window system.
+
+	* xresources.texi (GTK styles): Minor clarifications.
+
+	* trouble.texi: "Graphical display", not window system.
+	(Stuck Recursive): Minor clarification.
+
+	* text.texi: Minor clarifications.
+	(Sentences): Explain why two-space convention is better.
+	Explain sentence-end-without-period here.
+	(Fill Commands): Not here.
+	(Refill): Node moved down.
+	(Filling): Update menu.
+	(Table Creation, Cell Justification, Column Commands): Clarify.
+
+	* sending.texi: Minor clarifications.
+
+	* search.texi (Regexp Backslash): Clarification.
+
+	* rmail.texi: Minor cleanups.
+	(Rmail): Delete digression about `rmail-mode'.
+	(Rmail Inbox): Delete false advice wrt rmail-primary-inbox-list.
+	(Rmail Files): Mention C-u M-x rmail.
+	(Rmail Reply): Mention References.
+	(Rmail Display): Mention rmail-nonignored-headers.
+
+	* programs.texi: Minor cleanups.
+	(Comment Commands): Mention momentary Transient Mark mode.
+	(Matching): Be more specific about customizing show-paren-mode.
+	(Info Lookup): Don't list the modes that support C-h S.
+	Just say what it does in an unsupported mode.
+	(Man Page): Delete excessive info on customizing woman.
+	(Motion in C): Don't mention c-for/backward-into-nomenclature.
+
+	* abbrevs.texi: Minor clarifications.
+	(Dabbrev Customization): Talk about "dynamic abbrev expansion",
+	not "dynamic abbrevs" as if they were a kind of abbrev.
+
+	* picture.texi (Picture): Minor cleanup.
+
+	* mule.texi (Communication Coding): Say "other applications".
+	(Fontsets): Not specific to X.  Add xref to X Resources.
+	(Unibyte Mode): Renamed from Single-Byte Character Support.
+	"Graphical display", not window system.
+	(International): Update menu.
+
+	* maintaining.texi (Format of ChangeLog):
+	New node, split out from ChangeLog.
+	(ChangeLog): Clarifications in the remaining text.
+	(Create Tags Table, Etags Regexps, Select Tags Table): Cleanups.
+	(Find Tag): Add @w.
+	(Tags Search): Explain tag table order here.  Simplify grep ref.
+	(List Tags): tags-tag-face is a variable, not a face.
+	(Emerge): Cleanups.
+
+	* kmacro.texi (Keyboard Macro Counter): Rewrite for clarity.
+	(Keyboard Macros): Avoid "the user".
+
+	* killing.texi: "Graphical display", not window system.
+
+	* help.texi (Help Echo): "Graphical display", not window system.
+
+	* glossary.texi: Say "you", not "the user".  Say "graphical display".
+
+	* frames.texi: Minor cleanups.  "Graphical display", not window system.
+
+	* files.texi (Visiting): Make drag-and-drop not X-specific.
+
+	* custom.texi: Minor cleanups.  "Graphical display", not window system.
+
+	* cmdargs.texi: Minor cleanups.
+
+	* building.texi (Compilation): Move and split kill-compilation para.
+	Add para about multiple compilers.
+	(Compilation Mode): Commands also available in grep mode and others.
+	Mention C-u C-x ` more tutorially.  Clarify C-x `.
+	(Compilation Shell): Clarify.  Put Bash example first.
+	(Grep Searching): Minor cleanups; add @w.
+	(Debuggers): Minor cleanups.
+	(Starting GUD): Make GDB xgraphical mode issue clearer.
+	(Debugger Operation): Lots of clarifications including
+	GDB tooltip side-effect issue.
+	(Commands of GUD): Clarify.
+	(GUD Customization): Add bashdb-mode-hook.
+	(GDB Graphical Interface): Rewrite for clarity.
+	(GDB User Interface Layout): Rewrite for clarity.
+	(Stack Buffer, Watch Expressions): Likewise.
+	(Other GDB User Interface Buffers): Cleanups.
+	(Lisp Libraries, External Lisp): Cleanup.
+
+	* basic.texi (Position Info): "Graphical displays", rather than
+	window systems.
+
+	* anti.texi: Minor cleanup.
+
+2006-02-06  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (VM): VM now at version 7.19.
+	Set myself as maintainer of this file.
+
+2006-02-04  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (History): Note that ERC is now included with Emacs.
+
 2006-02-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* custom.texi (Init File, Find Init): Add cross-references to
@@ -5123,7 +5243,7 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-      2003, 2004, 2005 Free Software Foundation, Inc.
+      2003, 2004, 2005, 2006 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

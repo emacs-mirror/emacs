@@ -1,6 +1,6 @@
 /* Definitions and headers for communication with X protocol.
    Copyright (C) 1989, 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005 Free Software Foundation, Inc.
+                 2004, 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -418,9 +418,6 @@ extern Lisp_Object x_display_name_list;
 
 /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
 extern Lisp_Object Vx_pixel_size_width_font_regexp;
-
-/* A flag to control how to display unibyte 8-bit character.  */
-extern int unibyte_display_via_language_environment;
 
 extern struct x_display_info *x_display_info_for_display P_ ((Display *));
 extern struct x_display_info *x_display_info_for_name P_ ((Lisp_Object));

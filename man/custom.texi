@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization, Quitting, Amusements, Top
 @chapter Customization
@@ -117,14 +117,14 @@ system crash.  @xref{Auto Save}.
 
   Font-Lock mode automatically highlights certain textual units found in
 programs, such as comments, strings, and function names being defined.
-This requires a window system that can display multiple fonts.
+This requires a graphical display that can show multiple fonts.
 @xref{Faces}.
 
   ISO Accents mode makes the characters @samp{`}, @samp{'}, @samp{"},
 @samp{^}, @samp{/} and @samp{~} combine with the following letter, to
 produce an accented letter in the ISO Latin-1 character set.  The
 newer and more general feature of input methods more or less
-supersedes ISO Accents mode.  @xref{Single-Byte Character Support}.
+supersedes ISO Accents mode.  @xref{Unibyte Mode}.
 
   Outline minor mode provides the same facilities as the major mode
 called Outline mode; but since it is a minor mode instead, you can
@@ -201,7 +201,7 @@ and set their values, and to save settings permanently in your
 @file{~/.emacs} file (@pxref{Init File}).
 
   The appearance of the example buffers in this section is typically
-different under a window system, since faces are then used to indicate
+different under a graphical display, since faces are then used to indicate
 buttons, links and editable fields.
 
 @menu
@@ -2030,7 +2030,7 @@ Reference Manual}.
 
   When Emacs is started, it normally loads a Lisp program from the
 file @file{.emacs} or @file{.emacs.el} in your home directory
-(see @ref{General Variables, HOME} if you don't know where that is).
+(see @ref{General Variables, HOME}, if you don't know where that is).
 We call this file your @dfn{init file} because it specifies how to
 initialize Emacs for you.  You can use the command line switch
 @samp{-q} to prevent loading your init file, and @samp{-u} (or
@@ -2456,7 +2456,7 @@ currently pretending to be.  The idea is that you should get your own
 editor customizations even if you are running as the super user.
 
   More precisely, Emacs first determines which user's init file to use.
-It gets the user name from the environment variables @env{LOGNAME} and
+It gets your user name from the environment variables @env{LOGNAME} and
 @env{USER}; if neither of those exists, it uses effective user-ID.
 If that user name matches the real user-ID, then Emacs uses @env{HOME};
 otherwise, it looks up the home directory corresponding to that user

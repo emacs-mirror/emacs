@@ -1,3 +1,14 @@
+2006-02-04  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-inc-spool-list): Update example for Emacs 22 which
+	has an emacsclient command that supports --eval. I had read that
+	gnudoit was deprecated in favor of gnuclient anyway.
+
+2006-02-04  Eric Ding  <ericding@alum.mit.edu>
+
+	* mh-mime.el (mh-file-mime-type-substitutions): Added entries to
+	handle OpenOffice documents.
+
 2006-02-03  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (Version, mh-version): Add +cvs to version.
@@ -19,7 +30,7 @@
 	88) with (min-colors 64) in face specifications so that MH-E still
 	looks good on systems with fewer colors (such as Eric Ding's).
 
-2006-02-03  Peter Galbraith  <psg@debian.org>
+2006-02-03  Peter S Galbraith  <psg@debian.org>
 
 	* mh-utils.el (mh-image-load-path): New variable to optionally
 	hold the directory where MH-E images are stored.  If nil, then 

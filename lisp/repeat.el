@@ -1,6 +1,7 @@
 ;;; repeat.el --- convenient way to repeat the previous command
 
-;; Copyright (C) 1998, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2002, 2003, 2004, 2005,
+;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Will Mengarini <seldon@eskimo.com>
 ;; Created: Mo 02 Mar 98

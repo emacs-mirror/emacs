@@ -1,6 +1,7 @@
 ;;; ielm.el --- interaction mode for Emacs Lisp
 
-;; Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2002, 2003, 2004, 2005,
+;;   2006 Free Software Foundation, Inc.
 
 ;; Author: David Smith <maa036@lancaster.ac.uk>
 ;; Maintainer: FSF

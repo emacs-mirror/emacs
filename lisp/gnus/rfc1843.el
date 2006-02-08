@@ -1,7 +1,7 @@
 ;;; rfc1843.el --- HZ (rfc1843) decoding
 
 ;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: news HZ HZ+ mail i18n
@@ -149,8 +149,7 @@ ftp://ftp.math.psu.edu/pub/simpson/chinese/hzp/hzp.doc"
 	  (let* ((inhibit-point-motion-hooks t)
 		 (case-fold-search t)
 		 (ct (message-fetch-field "Content-Type" t))
-		 (ctl (and ct (ignore-errors
-				(mail-header-parse-content-type ct)))))
+		 (ctl (and ct (mail-header-parse-content-type ct))))
 	    (if (and ctl (not (string-match "/" (car ctl))))
 		(setq ctl nil))
 	    (goto-char (point-max))

@@ -41,10 +41,13 @@
 N.B.  This is in violation with RFC2047, but it seem to be in common use."
   (rfc2231-parse-string (rfc2047-decode-string string)))
 
-(defun rfc2231-parse-string (string)
+(defun rfc2231-parse-string (string &optional signal-error)
   "Parse STRING and return a list.
 The list will be on the form
- `(name (attribute . value) (attribute . value)...)"
+ `(name (attribute . value) (attribute . value)...)'.
+
+If the optional SIGNAL-ERROR is non-nil, signal an error when this
+function fails in parsing of parameters."
   (with-temp-buffer
     (let ((ttoken (ietf-drums-token-to-list ietf-drums-text-token))
 	  (stoken (ietf-drums-token-to-list ietf-drums-tspecials))
@@ -74,63 +77,68 @@ The list will be on the form
 	(setq type (downcase (buffer-substring
 			      (point) (progn (forward-sexp 1) (point)))))
 	;; Do the params
-	(while (not (eobp))
-	  (setq c (char-after))
-	  (unless (eq c ?\;)
-	    (error "Invalid header: %s" string))
-	  (forward-char 1)
-	  ;; If c in nil, then this is an invalid header, but
-	  ;; since elm generates invalid headers on this form,
-	  ;; we allow it.
-	  (when (setq c (char-after))
-	    (if (and (memq c ttoken)
-		     (not (memq c stoken)))
-		(setq attribute
-		      (intern
-		       (downcase
-			(buffer-substring
-			 (point) (progn (forward-sexp 1) (point))))))
-	      (error "Invalid header: %s" string))
-	    (setq c (char-after))
-	    (when (eq c ?*)
-	      (forward-char 1)
-	      (setq c (char-after))
-	      (if (not (memq c ntoken))
-		  (setq encoded t
-			number nil)
-		(setq number
-		      (string-to-number
-		       (buffer-substring
-			(point) (progn (forward-sexp 1) (point)))))
+	(condition-case err
+	    (progn
+	      (while (not (eobp))
 		(setq c (char-after))
-		(when (eq c ?*)
-		  (setq encoded t)
+		(unless (eq c ?\;)
+		  (error "Invalid header: %s" string))
+		(forward-char 1)
+		;; If c in nil, then this is an invalid header, but
+		;; since elm generates invalid headers on this form,
+		;; we allow it.
+		(when (setq c (char-after))
+		  (if (and (memq c ttoken)
+			   (not (memq c stoken)))
+		      (setq attribute
+			    (intern
+			     (downcase
+			      (buffer-substring
+			       (point) (progn (forward-sexp 1) (point))))))
+		    (error "Invalid header: %s" string))
+		  (setq c (char-after))
+		  (when (eq c ?*)
+		    (forward-char 1)
+		    (setq c (char-after))
+		    (if (not (memq c ntoken))
+			(setq encoded t
+			      number nil)
+		      (setq number
+			    (string-to-number
+			     (buffer-substring
+			      (point) (progn (forward-sexp 1) (point)))))
+		      (setq c (char-after))
+		      (when (eq c ?*)
+			(setq encoded t)
+			(forward-char 1)
+			(setq c (char-after)))))
+		  ;; See if we have any previous continuations.
+		  (when (and prev-attribute
+			     (not (eq prev-attribute attribute)))
+		    (push (cons prev-attribute
+				(if prev-encoded
+				    (rfc2231-decode-encoded-string prev-value)
+				  prev-value))
+			  parameters)
+		    (setq prev-attribute nil
+			  prev-value ""
+			  prev-encoded nil))
+		  (unless (eq c ?=)
+		    (error "Invalid header: %s" string))
 		  (forward-char 1)
-		  (setq c (char-after)))))
-	    ;; See if we have any previous continuations.
-	    (when (and prev-attribute
-		       (not (eq prev-attribute attribute)))
-	      (push (cons prev-attribute
-			  (if prev-encoded
-			      (rfc2231-decode-encoded-string prev-value)
-			    prev-value))
-		    parameters)
-	      (setq prev-attribute nil
-		    prev-value ""
-		    prev-encoded nil))
-	    (unless (eq c ?=)
-	      (error "Invalid header: %s" string))
-	    (forward-char 1)
-	    (setq c (char-after))
-	    (cond
-	     ((eq c ?\")
-	      (setq value
-		    (buffer-substring (1+ (point))
-				      (progn (forward-sexp 1) (1- (point))))))
-	     ((and (or (memq c ttoken)
-		       (> c ?\177)) ;; EXTENSION: Support non-ascii chars.
-		   (not (memq c stoken)))
-	      (setq value (buffer-substring
+		  (setq c (char-after))
+		  (cond
+		   ((eq c ?\")
+		    (setq value (buffer-substring (1+ (point))
+						  (progn
+						    (forward-sexp 1)
+						    (1- (point))))))
+		   ((and (or (memq c ttoken)
+			     ;; EXTENSION: Support non-ascii chars.
+			     (> c ?\177))
+			 (not (memq c stoken)))
+		    (setq value
+			  (buffer-substring
 			   (point)
 			   (progn
 			     (forward-sexp)
@@ -142,25 +150,31 @@ The list will be on the form
 			       (forward-char 1)
 			       (forward-sexp))
 			     (point)))))
-	     (t
-	      (error "Invalid header: %s" string)))
-	    (if number
-		(setq prev-attribute attribute
-		      prev-value (concat prev-value value)
-		      prev-encoded encoded)
-	      (push (cons attribute
-			  (if encoded
-			      (rfc2231-decode-encoded-string value)
-			    value))
-		    parameters))))
+		   (t
+		    (error "Invalid header: %s" string)))
+		  (if number
+		      (setq prev-attribute attribute
+			    prev-value (concat prev-value value)
+			    prev-encoded encoded)
+		    (push (cons attribute
+				(if encoded
+				    (rfc2231-decode-encoded-string value)
+				  value))
+			  parameters))))
 
-	;; Take care of any final continuations.
-	(when prev-attribute
-	  (push (cons prev-attribute
-		      (if prev-encoded
-			  (rfc2231-decode-encoded-string prev-value)
-			prev-value))
-		parameters))
+	      ;; Take care of any final continuations.
+	      (when prev-attribute
+		(push (cons prev-attribute
+			    (if prev-encoded
+				(rfc2231-decode-encoded-string prev-value)
+			      prev-value))
+		      parameters)))
+	  (error
+	   (setq parameters nil)
+	   (if signal-error
+	       (signal (car err) (cdr err))
+	     ;;(message "%s" (error-message-string err))
+	     )))
 
 	(when type
 	  `(,type ,@(nreverse parameters)))))))
@@ -189,12 +203,15 @@ These look like \"us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A\"."
       (buffer-string))))
 
 (defun rfc2231-encode-string (param value)
-  "Return and PARAM=VALUE string encoded according to RFC2231."
+  "Return and PARAM=VALUE string encoded according to RFC2231.
+Use `mml-insert-parameter' or `mml-insert-parameter-string' to insert
+the result of this function."
   (let ((control (ietf-drums-token-to-list ietf-drums-no-ws-ctl-token))
 	(tspecial (ietf-drums-token-to-list ietf-drums-tspecials))
 	(special (ietf-drums-token-to-list "*'%\n\t"))
 	(ascii (ietf-drums-token-to-list ietf-drums-text-token))
 	(num -1)
+	;; Don't make lines exceeding 76 column.
 	(limit (- 74 (length param)))
 	spacep encodep charsetp charset broken)
     (with-temp-buffer
@@ -241,7 +258,7 @@ These look like \"us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A\"."
 	(if (not broken)
 	    (insert param "*=")
 	  (while (not (eobp))
-	    (insert (if (>= num 0) " " "\n ")
+	    (insert (if (>= num 0) " " "")
 		    param "*" (format "%d" (incf num)) "*=")
 	    (forward-line 1))))
        (spacep

@@ -1,6 +1,6 @@
 /* Terminal control module for terminals described by TERMCAP
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1998, 2000, 2001,
-                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+                 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1659,10 +1659,10 @@ static void produce_stretch_glyph P_ ((struct it *));
 
 
 /* Append glyphs to IT's glyph_row.  Called from produce_glyphs for
-   terminal frames if IT->glyph_row != NULL.  IT->c is the character
-   for which to produce glyphs; IT->face_id contains the character's
-   face.  Padding glyphs are appended if IT->c has a IT->pixel_width >
-   1.  */
+   terminal frames if IT->glyph_row != NULL.  IT->char_to_display is
+   the character for which to produce glyphs; IT->face_id contains the
+   character's face.  Padding glyphs are appended if IT->c has a
+   IT->pixel_width > 1.  */
 
 static void
 append_glyph (it)
@@ -1682,7 +1682,7 @@ append_glyph (it)
     {
       glyph->type = CHAR_GLYPH;
       glyph->pixel_width = 1;
-      glyph->u.ch = it->c;
+      glyph->u.ch = it->char_to_display;
       glyph->face_id = it->face_id;
       glyph->padding_p = i > 0;
       glyph->charpos = CHARPOS (it->position);
@@ -1733,6 +1733,9 @@ produce_glyphs (it)
   xassert (it->what == IT_CHARACTER
 	   || it->what == IT_COMPOSITION);
 
+  /* Maybe translate single-byte characters to multibyte.  */
+  it->char_to_display = it->c;
+
   if (it->c >= 040 && it->c < 0177)
     {
       it->pixel_width = it->nglyphs = 1;
@@ -1762,13 +1765,11 @@ produce_glyphs (it)
 	{
 	  int n = nspaces;
 
-	  it->c = ' ';
+	  it->char_to_display = ' ';
 	  it->pixel_width = it->len = 1;
 
 	  while (n--)
 	    append_glyph (it);
-
-	  it->c = '\t';
 	}
 
       it->pixel_width = nspaces;
@@ -1861,17 +1862,15 @@ produce_stretch_glyph (it)
       Lisp_Object o_object = it->object;
       Lisp_Object object = it->stack[it->sp - 1].string;
       int n = width;
-      int c = it->c;
 
       if (!STRINGP (object))
 	object = it->w->buffer;
       it->object = object;
-      it->c = ' ';
+      it->char_to_display = ' ';
       it->pixel_width = it->len = 1;
       while (n--)
 	append_glyph (it);
       it->object = o_object;
-      it->c = c;
     }
   it->pixel_width = width;
   it->nglyphs = width;

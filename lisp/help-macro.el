@@ -1,7 +1,7 @@
 ;;; help-macro.el --- makes command line help such as help-for-help
 
 ;; Copyright (C) 1993, 1994, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Lynn Slater <lrs@indetech.com>
 ;; Maintainer: FSF

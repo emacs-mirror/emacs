@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Basic, Minibuffer, Exiting, Top
 @chapter Basic Editing Commands
@@ -618,9 +618,9 @@ What to type to input the character in the current input method
 (if it supports the character).
 
 @item
-If you are running Emacs on a window system, the font name and glyph
-code for the character.  If you are running Emacs on a terminal, the
-code(s) sent to the terminal.
+If you are running Emacs on a graphical display, the font name and
+glyph code for the character.  If you are running Emacs on a text-only
+terminal, the code(s) sent to the terminal.
 
 @item
 The character's text properties (@pxref{Text Properties,,,

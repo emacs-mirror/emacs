@@ -1,7 +1,7 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
-;;   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -2799,9 +2799,6 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	  (vc-backend new)
 	  (vc-mode-line new)
 	  (set-buffer-modified-p nil)))))
-
-;; Only defined in very recent Emacsen
-(defvar small-temporary-file-directory nil)
 
 ;;;###autoload
 (defun vc-update-change-log (&rest args)

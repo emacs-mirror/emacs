@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001, 2002,
-@c   2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Sending Mail, Rmail, Picture, Top
 @chapter Sending Mail
@@ -93,9 +93,10 @@ header fields, such as @samp{Date} and @samp{Sender}, are created
 automatically when you send the message.  Others, such as the recipient
 names, must be specified by you in order to send the message properly.
 
-  Mail mode provides a few commands to help you edit some header fields,
-and some are preinitialized in the buffer automatically at times.  You can
-insert and edit header fields using ordinary editing commands.
+  In the mail buffer, you can insert and edit header fields using
+ordinary editing commands.  Mail mode provides a commands to help you
+edit some header fields, and some are preinitialized in the buffer
+automatically when appropriate.
 
   The line in the buffer that says
 
@@ -110,7 +111,7 @@ headers precede it.  The delimiter line itself does not appear in the
 message actually sent.  The text used for the delimiter line is controlled
 by the variable @code{mail-header-separator}.
 
-Here is an example of what the headers and text in the mail buffer
+  Here is an example of what the headers and text in the mail buffer
 might look like.
 
 @example
@@ -221,7 +222,7 @@ of places to send the message.  These fields can also have
 continuation lines: one or more lines starting with whitespace,
 following the starting line of the field, are considered part of the
 field.  Here's an example of a @samp{To} field with a continuation
-line:@refill
+line:
 
 @example
 @group
@@ -433,9 +434,8 @@ lowest priority for reselection by default, since you are finished with
 using it.  This is the usual way to send the message.
 
   In a file-visiting buffer, sending the message does not clear the
-modified flag, because only saving the file should do that.  As a
-result, you don't get a warning if you try to send the same message
-twice.
+modified flag, because only saving the file should do that.  Also, you
+don't get a warning if you try to send the same message twice.
 
 @c This is indexed in mule.texi, node "Recognize Coding".
 @c @vindex sendmail-coding-system
