@@ -1,3 +1,8 @@
+2006-02-08  Peter S Galbraith  <psg@debian.org>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Added entries
+	"X-BrightmailFiltered:", "X-Brightmail-Tracker:" and "X-Hashcash"
+
 2006-02-04  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-inc-spool-list): Update example for Emacs 22 which
