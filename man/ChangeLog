@@ -1,3 +1,12 @@
+2006-02-08  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (Top): Remove paragraph about the FAQ being a
+	transitional document, etc.
+	(Searching for/replacing newlines): New node.
+	(Yanking text in isearch): New node.
+	(Inserting text at the beginning of each line): Rename and make
+	more general, mention `M-;' in Message mode.
+
 2006-02-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* mule.texi (International):
