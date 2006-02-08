@@ -1,7 +1,7 @@
 ;;; f90.el --- Fortran-90 mode (free format)
 
-;; Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006  Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -991,6 +991,16 @@ NAME is non-nil only for type."
 			  "?\\([ \t]+\\(\\sw+\\)\\)?\\>"))
       (list (match-string 1) (match-string 3))))
 
+(defsubst f90-looking-at-else-like ()
+  "Return KIND if an ELSE or CASE statement starts after point.
+Returns \"selectcase\", \"elseif\", \"elsewhere\", \"else\", or nil."
+  (when (looking-at f90-else-like-re)
+    (cond ((looking-at "case[ \t]*\\(default\\|\(\\)")
+           "selectcase")
+          ((or (looking-at "else[ \t]*\\(if\\)\\>")
+               (looking-at "else\\(where\\)?\\>"))
+           (concat "else" (match-string 1))))))
+
 (defsubst f90-comment-indent ()
   "Return the indentation to be used for a comment starting at point.
 Used for `comment-indent-function' by F90 mode.
@@ -1430,7 +1440,7 @@ after indenting."
       (skip-chars-forward " \t"))
     (if (looking-at "!")
 	(setq indent (f90-comment-indent))
-      (and f90-smart-end (looking-at "end")
+      (and f90-smart-end (looking-at (concat "end\\|" f90-else-like-re))
            (f90-match-end))
       (setq indent (f90-calculate-indent)))
     (or (= indent (current-column))
@@ -1719,6 +1729,29 @@ Leave point at the end of line."
              (replace-match ""))))
     (or (looking-at "[ \t]*!") (delete-horizontal-space))))
 
+(defun f90-else-like-match (beg-block else-block)
+  "Match else-struct with beg-struct and complete else-struct if possible.
+BEG-BLOCK is the type of block as indicated at the start (e.g., if).
+ELSE-BLOCK is the type of block as indicated at the else (may be nil)."
+  (if (not (member beg-block '("if" "where" "select")))
+      (if beg-block
+          (message "%s block cannot have a %s." beg-block else-block)
+        (message "No beginning for %s." else-block))
+    (let ((else-type (cond
+                      ((string-equal else-block "selectcase") "select")
+                      ((string-match "else\\(if\\|where\\)" else-block)
+                       (match-string 1 else-block)))))
+      (unless (f90-equal-symbols beg-block else-type)
+        (if (or else-type
+                (f90-equal-symbols beg-block "select"))
+            (progn
+              (message "%s does not match %s." else-block beg-block)
+              (end-of-line))
+          (cond ((string-equal beg-block "where")
+                 (message "Inserting %s." beg-block)
+                 (search-forward "else" (line-end-position))
+                 (insert beg-block))))))))
+
 (defun f90-match-end ()
   "From an end block statement, find the corresponding block and name."
   (interactive)
@@ -1726,11 +1759,11 @@ Leave point at the end of line."
         (top-of-window (window-start))
 	(end-point (point))
         (case-fold-search t)
-	matching-beg beg-name end-name beg-block end-block end-struct)
+	matching-beg beg-name beg-block end-struct else-struct)
     (when (save-excursion (beginning-of-line) (skip-chars-forward " \t0-9")
-                          (setq end-struct (f90-looking-at-program-block-end)))
-      (setq end-block (car end-struct)
-            end-name  (car (cdr end-struct)))
+                          (or (setq end-struct
+                                    (f90-looking-at-program-block-end))
+                              (setq else-struct (f90-looking-at-else-like))))
       (save-excursion
         (beginning-of-line)
         (while (and (> count 0)
@@ -1773,7 +1806,10 @@ Leave point at the end of line."
                 beg-name (car (cdr matching-beg)))
           (goto-char end-point)
           (beginning-of-line)
-          (f90-block-match beg-block beg-name end-block end-name))))))
+          (if else-struct
+              (f90-else-like-match beg-block else-struct)
+            (f90-block-match beg-block beg-name
+                             (car end-struct) (cadr end-struct))))))))
 
 (defun f90-insert-end ()
   "Insert a complete end statement matching beginning of present block."
