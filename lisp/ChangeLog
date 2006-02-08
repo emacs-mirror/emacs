@@ -1,3 +1,8 @@
+2006-02-08  Sam Steingold  <sds@gnu.org>
+
+	* net/tramp.el (tramp-maybe-open-connection): Do not wait for
+	output from a dead connection.
+
 2006-02-07  Mathias Dahl  <brakjoller@hotmail.com>
 
 	* dired.el (dired-mode-map): Add more bindings for tumme.
@@ -351,7 +356,7 @@
 	* international/latexenc.el: Add a suitable `coding:' tag.
 	(latexenc-find-file-coding-system): Undo last change.
 
-2006-01-27  Arne J,bx(Brgensen  <arne@arnested.dk>
+2006-01-27  Arne J,Ax(Brgensen  <arne@arnested.dk>
 
 	* international/latexenc.el (latexenc-find-file-coding-system):
 	Make sure latexenc-main-file is a regular file and is readable.

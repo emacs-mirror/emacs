@@ -6482,7 +6482,8 @@ connection if a previous connection has died for some reason."
 		 p (processp p) (memq (process-status p) '(run open)))
 	(tramp-send-command
 	 multi-method method user host "echo are you awake" nil t)
-	(unless (tramp-wait-for-output 10)
+	(unless (and (memq (process-status p) '(run open))
+                     (tramp-wait-for-output 10))
 	  (delete-process p)
 	  (setq p nil))
 	(erase-buffer)))
