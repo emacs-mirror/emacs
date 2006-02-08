@@ -933,8 +933,10 @@ is a keymap, and is treated as a keymap (see above).
 @item
 @cindex @code{lambda} in keymap
 If the @sc{car} of @var{list} is @code{lambda}, then the list is a
-lambda expression.  This is presumed to be a command, and is treated as
-such (see above).
+lambda expression.  This is presumed to be a function, and is treated
+as such (see above).  In order to execute properly as a key binding,
+this function must be a command---it must have an @code{interactive}
+specification.  @xref{Defining Commands}.
 
 @item
 If the @sc{car} of @var{list} is a keymap and the @sc{cdr} is an event
@@ -1282,9 +1284,9 @@ default global map.
 
   The function @code{substitute-key-definition} scans a keymap for
 keys that have a certain binding and rebinds them with a different
-binding.  Another feature you can use for similar effects, but which
-is often cleaner, is to add a binding that remaps a command
-(@pxref{Remapping Commands}).
+binding.  Another feature which is cleaner and can often produce the
+same results to remap one command into another (@pxref{Remapping
+Commands}).
 
 @defun substitute-key-definition olddef newdef keymap &optional oldmap
 @cindex replace bindings
