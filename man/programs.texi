@@ -420,7 +420,7 @@ functions, even inside strings or comments, you must set
 Paren}, for more information on this.
 
   Normally, lines are indented with tabs and spaces.  If you want Emacs
-to use spaces only, set @code{indent-tabs-mode} (@pref{Just Spaces}).
+to use spaces only, set @code{indent-tabs-mode} (@pxref{Just Spaces}).
 
 @node Multi-line Indent
 @subsection Indenting Several Lines
