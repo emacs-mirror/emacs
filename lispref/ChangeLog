@@ -1,3 +1,8 @@
+2006-02-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* modes.texi (%-Constructs): Remove obsolete info about
+	`global-mode-string'.
+
 2006-02-07  Richard M. Stallman  <rms@gnu.org>
 
 	* commands.texi (Prefix Command Arguments): Minor cleanup.
