@@ -1,3 +1,40 @@
+2006-02-08  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-startup-channels-alist): Add
+	irc.freenode.net and #emacs as defaults.
+	(rcirc-ignore-all-activity-flag): Remove variable.
+	(rcirc-authinfo): New variable.
+	(rcirc-authinfo-filename): Remove variable.
+	(rcirc-always-use-server-buffer-flag): New flag.
+	(rcirc): M-x rcirc will automatically connect without prompting.
+	C-u M-x rcirc will prompt.  Use rcirc-connect to create a
+	connection in lisp.
+	(rcirc-process-server-response-1): Remove everything but the nick
+	portion of the sender so it doesn't need to be done everywhere
+	else.  Update related code.
+	(global-map): Remove global keybindings.
+	(rcirc-get-buffer-create): Make sure rcirc-topic is set.
+	(rcirc-send-input): Split into several functions.
+	(rcirc-process-input-line, rcirc-process-message)
+	(rcirc-process-command): New functions.
+	(rcirc-target-buffer): New function to determine where to route
+	messages.
+	(rcirc-user-nick): Save match data.
+	(rcirc-toggle-ignore-buffer-activity)
+	(rcirc-update-activity-string): Remove global ignore
+	functionality, which can be done now by toggling
+	rcirc-track-minor-mode.
+	(rcirc-track-minor-mode-map): New keymap.
+	(rcirc-track-minor-mode): New minor-mode.
+	(ignore): Make the ignore output nicer.  Always print it when
+	adding or removing nicks.
+	(rcirc-url-regexp): Improve.
+	(rcirc-mangle-text): Remove properties before using text in the
+	modeline.
+	(rcirc-authenticate): Authentication data comes from
+	rcirc-authinfo, not the file pointed to by rcirc-authinfo-file.
+	(rcirc-server-prefix): Inherit from rcirc-server.
+
 2006-02-08  Mathias Megyei  <Mathias.Megyei@micronas.com>  (tiny change)
 
 	* Makefile.in (compile): Append "|| true" to the end of the `find'
