@@ -99,7 +99,7 @@ Keyboard macros (strings and vectors) are commands also, even though
 they are not functions.  A symbol is a command if its function
 definition is a command; such symbols can be invoked with @kbd{M-x}.
 The symbol is a function as well if the definition is a function.
-@xref{Command Overview}.
+@xref{Interactive Call}.
 
 @item keystroke command
 @cindex keystroke command
