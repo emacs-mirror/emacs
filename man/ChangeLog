@@ -5206,7 +5206,7 @@
 
 1990-03-21  Jim Kingdon  (kingdon@pogo.ai.mit.edu)
 
-	* emacs.ex: Add @findex grep.
+	* emacs.tex: Add @findex grep.
 
 1989-01-17  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
