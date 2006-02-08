@@ -124,7 +124,7 @@ This requires a graphical display that can show multiple fonts.
 @samp{^}, @samp{/} and @samp{~} combine with the following letter, to
 produce an accented letter in the ISO Latin-1 character set.  The
 newer and more general feature of input methods more or less
-supersedes ISO Accents mode.  @xref{Single-Byte Character Support}.
+supersedes ISO Accents mode.  @xref{Unibyte Mode}.
 
   Outline minor mode provides the same facilities as the major mode
 called Outline mode; but since it is a minor mode instead, you can
