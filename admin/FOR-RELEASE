@@ -69,7 +69,7 @@ leim			working		Kenichi Handa
 lib-src			done		ttn
 lisp			done		ttn
 lisp/calc		done		Jay Belanger
-lisp/calendar		working		Glenn Morris
+lisp/calendar		done		Glenn Morris
 lisp/emacs-lisp		done		ttn
 lisp/emulation		done		ttn
 lisp/eshell		done		ttn
