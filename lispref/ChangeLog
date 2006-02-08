@@ -1,5 +1,9 @@
 2006-02-07  Richard M. Stallman  <rms@gnu.org>
 
+	* commands.texi (Prefix Command Arguments): Minor cleanup.
+
+	* display.texi: "Graphical display", not window system.
+
 	* functions.texi (What Is a Function): Fix xref.
 
 	* keymaps.texi (Key Lookup): Clarify wrt commands vs other functions.
