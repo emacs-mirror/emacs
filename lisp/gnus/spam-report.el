@@ -50,7 +50,11 @@ instead."
   :group 'spam-report)
 
 (defcustom spam-report-gmane-use-article-number t
-  "Whether the article number (faster!) or the header should be used."
+  "Whether the article number (faster!) or the header should be used.
+
+You must set this to nil if you don't read Gmane groups directly
+from news.gmane.org, e.g. when using local newsserver such as
+leafnode."
   :type 'boolean
   :group 'spam-report)
 
