@@ -1,3 +1,8 @@
+2006-02-08  Mathias Megyei  <Mathias.Megyei@micronas.com>  (tiny change)
+
+	* Makefile.in (compile): Append "|| true" to the end of the `find'
+	command, like compile-always does.
+
 2006-02-08  Sam Steingold  <sds@gnu.org>
 
 	* net/tramp.el (tramp-maybe-open-connection): Do not wait for
