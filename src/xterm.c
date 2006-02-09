@@ -6495,6 +6495,12 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	 so update things that depend on mouse position.  */
       if (f && !f->output_data.x->hourglass_p)
 	note_mouse_movement (f, &event.xmotion);
+#ifdef USE_GTK
+      /* We may get an EnterNotify on the buttons in the toolbar.  In that
+         case we moved out of any highlighted area and need to note this.  */
+      if (!f && last_mouse_glyph_frame)
+        note_mouse_movement (last_mouse_glyph_frame, &event);
+#endif
       goto OTHER;
 
     case FocusIn:
@@ -6522,6 +6528,11 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           if (any_help_event_p)
 	    do_help = -1;
         }
+#ifdef USE_GTK
+      /* See comment in EnterNotify above */
+      else if (last_mouse_glyph_frame)
+        note_mouse_movement (last_mouse_glyph_frame, &event);
+#endif
       goto OTHER;
 
     case FocusOut:
