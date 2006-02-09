@@ -1,3 +1,7 @@
+2006-02-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* alloc.c (Fmake_bool_vector, Fpurecopy): Doc fixes.
+
 2006-02-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* window.c (adjust_window_trailing_edge): Check that shrinking
@@ -6,7 +10,7 @@
 2006-02-08  Miles Bader  <miles@gnu.org>
 
 	* editfns.c (Fconstrain_to_field): Use Fget_char_property instead
-	of Fget_text_property (other field functions word with overlays as
+	of Fget_text_property (other field functions work with overlays as
 	well as text-properties).
 
 2006-02-07  Kenichi Handa  <handa@m17n.org>
