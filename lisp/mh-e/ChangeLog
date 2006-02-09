@@ -1,3 +1,8 @@
+2006-02-09  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el(mh-replace-regexp-in-string): Add missing regexp
+	argument.
+
 2006-02-08  Peter S Galbraith  <psg@debian.org>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Added entries
