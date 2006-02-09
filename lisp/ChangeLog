@@ -1,3 +1,8 @@
+2006-02-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-toggle-display): Clear image cache if using
+	filename.
+
 2006-02-09 Masatake YAMATO  <jet@gyve.org>
 
 	* dired-x.el (dired-guess-shell-alist-default): Add .man as
