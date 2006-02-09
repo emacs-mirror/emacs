@@ -1,3 +1,7 @@
+2006-02-08  Peter Doornbosch  <peter.doornbosch@luminis.nl>  (tiny change)
+
+	* vc-svn.el (vc-svn-print-log): Show recent commits as well.
+
 2006-02-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* hilit-chg.el (hilit-chg-update-all-buffers): Use `mapc' instead of
@@ -10,8 +14,8 @@
 
 2006-02-08  Ryan Yeske  <rcyeske@gmail.com>
 
-	* net/rcirc.el (rcirc-startup-channels-alist): Add
-	irc.freenode.net and #emacs as defaults.
+	* net/rcirc.el (rcirc-startup-channels-alist):
+	Add irc.freenode.net and #emacs as defaults.
 	(rcirc-ignore-all-activity-flag): Remove variable.
 	(rcirc-authinfo): New variable.
 	(rcirc-authinfo-filename): Remove variable.
@@ -31,9 +35,8 @@
 	messages.
 	(rcirc-user-nick): Save match data.
 	(rcirc-toggle-ignore-buffer-activity)
-	(rcirc-update-activity-string): Remove global ignore
-	functionality, which can be done now by toggling
-	rcirc-track-minor-mode.
+	(rcirc-update-activity-string): Remove global ignore functionality,
+	which can be done now by toggling rcirc-track-minor-mode.
 	(rcirc-track-minor-mode-map): New keymap.
 	(rcirc-track-minor-mode): New minor-mode.
 	(ignore): Make the ignore output nicer.  Always print it when
