@@ -1,3 +1,7 @@
+2006-02-09  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el: Added a couple of todo items.
+
 2006-02-09 Lars Hansen <larsh@soem.dk>
 
 	* hilit-chg.el: Add highlight-changes-mode to
