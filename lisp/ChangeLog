@@ -7,8 +7,8 @@
 
 	* dired-x.el (dired-guess-shell-alist-default): Add .man as
 	a `dired-man' target.
-	
-	* progmodes/autoconf.el (autoconf-font-lock-keywords): Check start 
+
+	* progmodes/autoconf.el (autoconf-font-lock-keywords): Check start
 	boundary of symbols.
 
 2006-02-08  Peter Doornbosch  <peter.doornbosch@luminis.nl>  (tiny change)
