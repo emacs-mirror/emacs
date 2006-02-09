@@ -1,3 +1,8 @@
+2006-02-10  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-copy-with-exif-file-name): Tried to make
+	  docstring less `colloquial'...
+
 2006-02-09  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el: Added a couple of todo items.
