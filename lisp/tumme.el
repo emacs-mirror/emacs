@@ -524,9 +524,15 @@
 ;; files.
 ;;
 ;; * From thumbs.el: Add an option for clean-up/max-size functionality
-;; for thumbnail directory.
+;;   for thumbnail directory.
 ;;
 ;; * From thumbs.el: Add setroot function.
+;;
+;; * From thumbs.el: Add image resizing, if useful (tumme's automatic
+;;  "image fit" might be enough)
+;;
+;; * From thumbs.el: Add the "modify" commands (emboss, negate,
+;;   monochrome etc).
 ;;
 ;; * Asynchronous creation of thumbnails.
 ;;
