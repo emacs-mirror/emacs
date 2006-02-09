@@ -1027,11 +1027,11 @@ dired."
                   " " dired-guess-shell-znew-switches))
 
    ;; The following four extensions are useful with dired-man ("N" key)
-   (list "\\.[0-9]$" '(progn (require 'man)
+   (list "\\.\\(?:[0-9]\\|man\\)$" '(progn (require 'man)
                              (if (Man-support-local-filenames)
                                  "man -l"
                                "cat * | tbl | nroff -man -h")))
-   (list "\\.[0-9]\\.g?z$" '(progn (require 'man)
+   (list "\\.\\(?:[0-9]\\|man\\)\\.g?z$" '(progn (require 'man)
                                    (if (Man-support-local-filenames)
                                        "man -l"
                                      "gunzip -qc * | tbl | nroff -man -h"))
