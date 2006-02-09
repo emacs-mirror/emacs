@@ -1,3 +1,7 @@
+2006-02-09  Mathias Dahl  <mathias.dah@gmail.com>
+
+	* dired.texi (Tumme): Basic documentation for Tumme added.
+
 2006-02-08  Romain Francoise  <romain@orebokech.com>
 
 	* faq.texi (Top): Remove paragraph about the FAQ being a

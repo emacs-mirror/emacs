@@ -40,6 +40,8 @@ files.
 * Updating: Dired Updating.   Discarding lines for files of no interest.
 * Find: Dired and Find.	      Using `find' to choose the files for Dired.
 * Wdired::                    Operating on files by editing the Dired buffer.
+* Tumme::                     Image file and thumbnail viewing and 
+                              manipulation from the Dired buffer.
 * Misc: Misc Dired Features.  Various other features.
 @end menu
 
@@ -1139,6 +1141,52 @@ However, if you set @code{wdired-allow-to-change-permissions} to
 you can change @samp{-rw-r--r--} to @samp{-rw-rw-rw-} to make a file
 world-writable.  These changes also take effect when you type @kbd{C-c
 C-c}.
+
+@node Tumme
+@section Thumbnail and image file viewing and manipulation
+
+@cindex tumme mode
+  Tumme provides for simple viewing of thumbnails if image files.  It
+also provides viewing of the original file, sized or in full size,
+inside Emacs or in an external viewer.  
+
+  Tumme aims to be both easy to use for a beginner but also powerful
+and useful for an experienced user.
+
+  To try out Tumme, mark some image files in Dired and type @kbd{C-t
+d} (@code{tumme-display-thumbs}).  With point in the thumbnail buffer,
+type @kbd{RET} (@code{tumme-display-thumbnail-original-image}) to
+display a sized version of it.  Use the keys to move around in the
+buffer.  For easy browing, type @kbd{SPC}
+(@code{tumme-display-next-thumbnail-original}) to advance and display
+the next image.  Typing @kbd{SPC}
+(@code{tumme-display-previous-thumbnail-original}) backs up to the
+previous thumbnail and displays the image.
+
+  If you want to see the image in its original size, either provide a
+prefix argument (@kbd{C-u}) before pressing @kbd{RET}, or type
+@kbd{C-return} (@code{tumme-thumbnail-display-external}) to display
+the image in an external viewer.
+
+  If you find in image that you want to delete, type @kbd{d}
+(@code{tumme-flag-thumb-original-file}) and the file will be flagged
+for deletion in the dired buffer.  If you just want to delete the
+thumbnail image from the thumbnail buffer, type @kbd{C-d}
+(@code{tumme-delete-char}).
+
+  More advanced features include commands for using ``tags'' (labels,
+or categories) to tag image files and to search for image files with a
+certain tag.
+
+  The tags put on image files are stored in a database file and can be
+used for marking image files.  For example, you can let Tumme mark all
+files in the current directory tagged with the tag `flowers'.  To tag
+image files, mark them in the dired buffer and type @kbd{C-t t}
+(@code{tumme-tag-files}).  To mark files having a certain tag, type
+@kbd{C-t f} (@code{tumme-mark-tagged-files}).
+
+  Tumme also provide simple image manipulation commands, like rotating
+thumbnails and original image files.
 
 @node Misc Dired Features
 @section Other Dired Features
