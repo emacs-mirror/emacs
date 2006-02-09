@@ -673,7 +673,6 @@ Hook variables:
 	(if new-highlight-changes-mode
 	    ;; mode is turned on -- but may be passive
 	    (progn
-	      (add-to-list 'desktop-locals-to-save 'highlight-changes-mode)
 	      (hilit-chg-set new-highlight-changes-mode)
 	      (or was-on
 		  ;; run highlight-changes-enable-hook once
@@ -1165,6 +1164,8 @@ from `global-highlight-changes' when turning on global Highlight Changes mode."
 
 (add-to-list 'desktop-minor-mode-handlers
              '(highlight-changes-mode . hilit-chg-desktop-restore))
+
+(add-to-list 'desktop-locals-to-save 'highlight-changes-mode)
 
 ;; ===================== debug ==================
 ;; For debug & test use:
