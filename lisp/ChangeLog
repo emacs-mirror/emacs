@@ -1,3 +1,8 @@
+2006-02-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hilit-chg.el (hilit-chg-update-all-buffers): Use `mapc' instead of
+	`mapcar'; return nil.
+
 2006-02-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse-drag-track): Don't change window if we rebind to
