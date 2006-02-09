@@ -52,7 +52,7 @@
   "AC_\\(SUBST\\|DEFINE\\(_UNQUOTED\\)?\\)(\\(\\sw+\\)")
 
 (defvar autoconf-font-lock-keywords
-  `(("A[CHMS]_\\sw+" . font-lock-keyword-face)
+  `(("\\_<A[CHMS]_\\sw+" . font-lock-keyword-face)
     (,autoconf-definition-regexp
      3 font-lock-function-name-face)
     ;; Are any other M4 keywords really appropriate for configure.in,
