@@ -1929,15 +1929,15 @@ indirect_function (object)
 
 DEFUN ("indirect-function", Findirect_function, Sindirect_function, 1, 2, 0,
        doc: /* Return the function at the end of OBJECT's function chain.
-If OBJECT is a symbol, follow all function indirections and return the final
-function binding.
-If OBJECT is not a symbol, just return it.
-If optional arg NOERROR is nil, signal a void-function error if
-the final symbol is unbound.  Otherwise, just return nil is unbound.
+If OBJECT is not a symbol, just return it.  Otherwise, follow all
+function indirections to find the final function binding and return it.
+If the final symbol in the chain is unbound, signal a void-function error.
+Optional arg NOERROR non-nil means to return nil instead of signalling.
 Signal a cyclic-function-indirection error if there is a loop in the
 function chain of symbols.  */)
-(object, noerror)
+     (object, noerror)
      register Lisp_Object object;
+     Lisp_Object noerror;
 {
   Lisp_Object result;
 
