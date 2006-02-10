@@ -1,3 +1,37 @@
+2006-02-09  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el (pgg-gpg-encrypt-region): Don't convert line-endings
+	in elisp.
+	(pgg-gpg-encrypt-symmetric-region): Ditto.
+	(pgg-gpg-sign-region): Ditto.
+
+	* pgg-def.el (pgg-text-mode): New variable.
+
+	* mml2015.el (mml2015-pgg-sign): Enable pgg-text-mode.
+	(mml2015-pgg-encrypt): Ditto.
+
+	* mml1991.el (mml1991-pgg-sign): Enable pgg-text-mode.
+	(mml1991-pgg-encrypt): Ditto.
+
+2006-02-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnfolder.el (nnfolder-insert-newsgroup-line): Use
+	message-make-date instead of current-time-string.
+
+	* mm-view.el (mm-inline-message): Don't set gnus-newsgroup-charset
+	to gnus-decoded which mm-uu might set.
+
+2006-02-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2231.el (rfc2231-parse-string): Sort segmented parameters;
+	don't decode quoted parameters; remove misimported Emacs code.
+	Suggested by ARISAWA Akihiro <ari@mbf.ocn.ne.jp>.
+	(rfc2231-decode-encoded-string): Don't use split-string which
+	behaves differently according to Emacs version; use
+	mm-decode-coding-region to convert charset to coding-system.
+	Suggested by ARISAWA Akihiro <ari@mbf.ocn.ne.jp>.
+	(rfc2231-encode-string): Remove misimported Emacs code.
+
 2006-02-07  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (article-decode-charset): Don't use ignore-errors

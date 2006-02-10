@@ -87,7 +87,9 @@
 	    (buffer-disable-undo)
 	    (erase-buffer)
 	    (if (file-exists-p output-file-name)
-		(let ((coding-system-for-read 'raw-text-dos))
+		(let ((coding-system-for-read (if pgg-text-mode
+						  'raw-text
+						'binary)))
 		  (insert-file-contents output-file-name)))
 	    (set-buffer errors-buffer)
 	    (if (not (equal exit-status 0))
@@ -187,7 +189,8 @@ passphrase cache or user."
                             pgg-gpg-user-id))))
 	 (args
 	  (append
-	   (list "--batch" "--textmode" "--armor" "--always-trust" "--encrypt")
+	   (list "--batch" "--armor" "--always-trust" "--encrypt")
+	   (if pgg-text-mode (list "--textmode"))
 	   (if sign (list "--sign" "--local-user" pgg-gpg-user-id))
 	   (if recipients
 	       (apply #'nconc
@@ -196,8 +199,7 @@ passphrase cache or user."
 			      (append recipients
 				      (if pgg-encrypt-for-me
 					  (list pgg-gpg-user-id)))))))))
-    (pgg-as-lbt start end 'CRLF
-      (pgg-gpg-process-region start end passphrase pgg-gpg-program args))
+    (pgg-gpg-process-region start end passphrase pgg-gpg-program args)
     (when sign
       (with-current-buffer pgg-errors-buffer
 	;; Possibly cache passphrase under, e.g. "jas", for future sign.
@@ -215,9 +217,9 @@ passphrase cache or user."
                          (pgg-read-passphrase
                           "GnuPG passphrase for symmetric encryption: ")))
 	 (args
-	  (append (list "--batch" "--textmode" "--armor" "--symmetric" ))))
-    (pgg-as-lbt start end 'CRLF
-      (pgg-gpg-process-region start end passphrase pgg-gpg-program args))
+	  (append (list "--batch" "--armor" "--symmetric" )
+		  (if pgg-text-mode (list "--textmode")))))
+    (pgg-gpg-process-region start end passphrase pgg-gpg-program args)
     (pgg-process-when-success)))
 
 (defun pgg-gpg-decrypt-region (start end &optional passphrase)
@@ -279,13 +281,13 @@ passphrase cache or user."
                           (format "GnuPG passphrase for %s: " pgg-gpg-user-id)
                           pgg-gpg-user-id)))
 	 (args
-	  (list (if cleartext "--clearsign" "--detach-sign")
-		"--armor" "--batch" "--verbose"
-		"--local-user" pgg-gpg-user-id))
+	  (append (list (if cleartext "--clearsign" "--detach-sign")
+			"--armor" "--batch" "--verbose"
+			"--local-user" pgg-gpg-user-id)
+		  (if pgg-text-mode (list "--textmode"))))
 	 (inhibit-read-only t)
 	 buffer-read-only)
-    (pgg-as-lbt start end 'CRLF
-      (pgg-gpg-process-region start end passphrase pgg-gpg-program args))
+    (pgg-gpg-process-region start end passphrase pgg-gpg-program args)
     (with-current-buffer pgg-errors-buffer
       ;; Possibly cache passphrase under, e.g. "jas", for future sign.
       (pgg-gpg-possibly-cache-passphrase passphrase pgg-gpg-user-id)

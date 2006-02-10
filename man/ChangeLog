@@ -1,3 +1,7 @@
+2006-02-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Gnus Versions): Add history beyond start of Oort.
+
 2006-02-09  Mathias Dahl  <mathias.dah@gmail.com>
 
 	* dired.texi (Tumme): Basic documentation for Tumme added.

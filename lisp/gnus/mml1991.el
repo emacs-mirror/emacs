@@ -229,7 +229,8 @@
   (defvar pgg-output-buffer))
 
 (defun mml1991-pgg-sign (cont)
-  (let (headers cte)
+  (let ((pgg-text-mode t)
+	headers cte)
     ;; Don't sign headers.
     (goto-char (point-min))
     (while (not (looking-at "^$"))
@@ -261,7 +262,8 @@
     t))
 
 (defun mml1991-pgg-encrypt (cont &optional sign)
-  (let (cte)
+  (let ((pgg-text-mode t)
+	cte)
     ;; Strip MIME Content[^ ]: headers since it will be ASCII ARMOURED
     (goto-char (point-min))
     (while (looking-at "^Content[^ ]+:")
