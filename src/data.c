@@ -1927,15 +1927,16 @@ indirect_function (object)
   return hare;
 }
 
-DEFUN ("indirect-function", Findirect_function, Sindirect_function, 1, 1, 0,
+DEFUN ("indirect-function", Findirect_function, Sindirect_function, 1, 2, 0,
        doc: /* Return the function at the end of OBJECT's function chain.
 If OBJECT is a symbol, follow all function indirections and return the final
 function binding.
 If OBJECT is not a symbol, just return it.
-Signal a void-function error if the final symbol is unbound.
+If optional arg NOERROR is nil, signal a void-function error if
+the final symbol is unbound.  Otherwise, just return nil is unbound.
 Signal a cyclic-function-indirection error if there is a loop in the
 function chain of symbols.  */)
-     (object)
+(object, noerror)
      register Lisp_Object object;
 {
   Lisp_Object result;
@@ -1943,7 +1944,9 @@ function chain of symbols.  */)
   result = indirect_function (object);
 
   if (EQ (result, Qunbound))
-    return Fsignal (Qvoid_function, Fcons (object, Qnil));
+    return (NILP (noerror)
+	    ? Fsignal (Qvoid_function, Fcons (object, Qnil))
+	    : Qnil);
   return result;
 }
 

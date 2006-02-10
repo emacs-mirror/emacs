@@ -9700,7 +9700,7 @@ a special event, so ignore the prefix argument and don't clear it.  */)
 
   while (1)
     {
-      final = Findirect_function (cmd);
+      final = Findirect_function (cmd, Qnil);
 
       if (CONSP (final) && (tem = Fcar (final), EQ (tem, Qautoload)))
 	{
