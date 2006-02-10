@@ -6,13 +6,13 @@
 2006-02-10  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el (tumme-copy-with-exif-file-name): Tried to make
-	  docstring less `colloquial'...
+	docstring less `colloquial'...
 
 2006-02-09  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el: Added a couple of todo items.
 
-2006-02-09 Lars Hansen <larsh@soem.dk>
+2006-02-09  Lars Hansen  <larsh@soem.dk>
 
 	* hilit-chg.el: Add highlight-changes-mode to
 	desktop-locals-to-save.
@@ -23,7 +23,7 @@
 	* image-mode.el (image-toggle-display): Clear image cache if using
 	filename.
 
-2006-02-09 Masatake YAMATO  <jet@gyve.org>
+2006-02-09  Masatake YAMATO  <jet@gyve.org>
 
 	* dired-x.el (dired-guess-shell-alist-default): Add .man as
 	a `dired-man' target.
