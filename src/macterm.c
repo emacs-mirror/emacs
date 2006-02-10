@@ -1026,12 +1026,15 @@ static int cg_text_anti_aliasing_threshold = 8;
 static void
 init_cg_text_anti_aliasing_threshold ()
 {
-  Lisp_Object val =
-    Fmac_get_preference (build_string ("AppleAntiAliasingThreshold"),
-			 Qnil, Qnil, Qnil);
+  int threshold;
+  Boolean valid_p;
 
-  if (INTEGERP (val))
-    cg_text_anti_aliasing_threshold = XINT (val);
+  threshold =
+    CFPreferencesGetAppIntegerValue (CFSTR ("AppleAntiAliasingThreshold"),
+				     kCFPreferencesCurrentApplication,
+				     &valid_p);
+  if (valid_p)
+    cg_text_anti_aliasing_threshold = threshold;
 }
 
 static int
@@ -5299,7 +5302,10 @@ mac_define_frame_cursor (f, cursor)
      struct frame *f;
      Cursor cursor;
 {
-  SetThemeCursor (cursor);
+  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
+
+  if (dpyinfo->x_focus_frame == f)
+    SetThemeCursor (cursor);
 }
 
 
@@ -5837,7 +5843,7 @@ x_raise_frame (f)
   if (f->async_visible)
     {
       BLOCK_INPUT;
-      SelectWindow (FRAME_MAC_WINDOW (f));
+      BringToFront (FRAME_MAC_WINDOW (f));
       UNBLOCK_INPUT;
     }
 }
@@ -5851,7 +5857,7 @@ x_lower_frame (f)
   if (f->async_visible)
     {
       BLOCK_INPUT;
-      SendBehind (FRAME_MAC_WINDOW (f), nil);
+      SendBehind (FRAME_MAC_WINDOW (f), NULL);
       UNBLOCK_INPUT;
     }
 }
@@ -5964,7 +5970,6 @@ x_make_frame_visible (f)
 
       f->output_data.mac->asked_for_visible = 1;
 
-      SelectWindow (FRAME_MAC_WINDOW (f));
       CollapseWindow (FRAME_MAC_WINDOW (f), false);
       ShowWindow (FRAME_MAC_WINDOW (f));
     }
@@ -9581,6 +9586,8 @@ XTread_socket (sd, expected, hold_quit)
   /* So people can tell when we have read the available input.  */
   input_signal_count++;
 
+  ++handling_signal;
+
 #if USE_CARBON_EVENTS
   toolbox_dispatcher = GetEventDispatcherTarget ();
 
@@ -10221,6 +10228,7 @@ XTread_socket (sd, expected, hold_quit)
   }
 #endif
 
+  --handling_signal;
   UNBLOCK_INPUT;
   return count;
 }
