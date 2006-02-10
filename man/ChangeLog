@@ -1,3 +1,8 @@
+2006-02-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macos.texi (Mac International): Rename "fontset-mac" to
+	"fontset-standard".
+
 2006-02-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Gnus Versions): Add history beyond start of Oort.

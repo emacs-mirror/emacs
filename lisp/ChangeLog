@@ -1,3 +1,10 @@
+2006-02-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.el (select-frame-set-input-focus): Call x-focus-frame also
+	when window-system is mac.
+
+	* term/mac-win.el (fontset-standard): Rename from "fontset-mac".
+
 2006-02-10  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (substitute-key-definition-key): Pass t for NOERROR to
