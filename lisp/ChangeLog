@@ -3,6 +3,8 @@
 	* desktop.el (desktop-outvar): Fix typo.
 	(desktop-save-buffer-p): Doc fix.
 
+	* subr.el (substitute-key-definition): Fix typo.
+
 2006-02-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* frame.el (select-frame-set-input-focus): Call x-focus-frame also
@@ -26,8 +28,7 @@
 
 2006-02-09  Lars Hansen  <larsh@soem.dk>
 
-	* hilit-chg.el: Add highlight-changes-mode to
-	desktop-locals-to-save.
+	* hilit-chg.el: Add highlight-changes-mode to desktop-locals-to-save.
 	(highlight-changes-mode): Don't change desktop-locals-to-save.
 
 2006-02-09  Chong Yidong  <cyd@stupidchicken.com>
