@@ -1,3 +1,9 @@
+2006-02-11  Mathias Dahl  <brakjoller@hotmail.com>
+
+	* tumme.el (tumme-dir): Changed default value to
+	  "~/.emacs-d/tumme"
+	  (tumme-dir): New function. Copied from thumbs.el.
+
 2006-02-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-outvar): Fix typo.
