@@ -1,3 +1,8 @@
+2006-02-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* data.c (Findirect_function): Rewrite docstring.
+	Fix omission bug: Declare new arg NOERROR.
+
 2006-02-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (x_set_mouse_color): Don't call rif->define_frame_cursor
