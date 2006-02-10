@@ -1,3 +1,8 @@
+2006-02-10  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (substitute-key-definition-key): Pass t for NOERROR to
+	indirect-function instead of using condition-case.
+
 2006-02-10  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el (tumme-copy-with-exif-file-name): Tried to make
