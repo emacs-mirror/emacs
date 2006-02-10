@@ -57,17 +57,17 @@
 ;; are supplied to handle special major and minor modes respectively.
 ;; `desktop-buffer-mode-handlers' is an alist of major mode specific functions
 ;; to restore a desktop buffer. Elements must have the form
-;; 
+;;
 ;;    (MAJOR-MODE . RESTORE-BUFFER-FUNCTION).
-;; 
+;;
 ;; Functions listed are called by `desktop-create-buffer' when `desktop-read'
 ;; evaluates the desktop file. Buffers with a major mode not specified here,
 ;; are restored by the default handler `desktop-restore-file-buffer'.
 ;; `desktop-minor-mode-handlers' is an alist of functions to restore
 ;; non-standard minor modes.  Elements must have the form
-;; 
+;;
 ;;    (MINOR-MODE . RESTORE-FUNCTION).
-;; 
+;;
 ;; Functions are called by `desktop-create-buffer' to restore minor modes.
 ;; Minor modes not specified here, are restored by the standard minor mode
 ;; function.  If you write a module that defines a major or minor mode that
@@ -661,7 +661,7 @@ Not all types of values are supported."
 (defun desktop-outvar (varspec)
   "Output a setq statement for variable VAR to the desktop file.
 The argument VARSPEC may be the variable name VAR (a symbol),
-or a cons cell of the form  (VAR . MAX-SIZE),
+or a cons cell of the form (VAR . MAX-SIZE),
 which means to truncate VAR's value to at most MAX-SIZE elements
 \(if the value is a list) before saving the value."
   (let (var size)
@@ -684,7 +684,8 @@ which means to truncate VAR's value to at most MAX-SIZE elements
 (defun desktop-save-buffer-p (filename bufname mode &rest dummy)
   "Return t if buffer should have its state saved in the desktop file.
 FILENAME is the visited file name, BUFNAME is the buffer name, and
-MODE is the major mode."
+MODE is the major mode.
+\n\(fn FILENAME BUFNAME MODE)"
   (let ((case-fold-search nil))
     (and (not (string-match desktop-buffers-not-to-save bufname))
          (not (memq mode desktop-modes-not-to-save))
