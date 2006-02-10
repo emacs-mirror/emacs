@@ -1,7 +1,7 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
-;; Copyright (C) 1985,1987,1992-2003, 2004, 2005 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1985,1987,1992-2003, 2004, 2005, 2006
+;; Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
