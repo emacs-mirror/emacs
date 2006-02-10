@@ -1918,9 +1918,9 @@ It returns a name of the created fontset."
 ;; characters decoded from mac-roman encoding (ascii, latin-iso8859-1,
 ;; and mule-unicode-xxxx-yyyy) are displayed by a mac-roman font.
 (create-fontset-from-fontset-spec
- "-etl-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-mac,
+ "-etl-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-standard,
 ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
-(fontset-add-mac-fonts "fontset-mac" t)
+(fontset-add-mac-fonts "fontset-standard" t)
 
 ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
 (create-fontset-from-x-resource)
