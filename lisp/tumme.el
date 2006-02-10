@@ -57,8 +57,8 @@
 ;;
 ;;  `tumme' stores the thumbnail files in `tumme-dir' using the file
 ;; name format ORIGNAME.thumb.ORIGEXT.  For example
-;; ~/.tumme/myimage01.thumb.jpg.  The "database" is for now just a
-;; plain text file with the following format:
+;; ~/.emacs.d/tumme/myimage01.thumb.jpg.  The "database" is for now
+;; just a plain text file with the following format:
 ;;
 ;; file-name-non-directory;comment:comment-text;tag1;tag2;tag3;...;tagN
 ;;
@@ -508,6 +508,11 @@
 ;; `thumme-thumb-name', `tumme-create-thumb', etc. His code to get
 ;; speedbar display tumme thumbnails, might be integrated soon.
 ;;
+;; * Changed the default value of `tumme-dir' to "~/.emacs.d/tumme"
+;; and added a new function, `tumme-dir' to handle the creating of
+;; it. Code copied from thumbs.el.
+;;
+;;
 ;; TODO
 ;; ====
 ;;
@@ -572,8 +577,8 @@
   :prefix "tumme-"
   :group 'files)
 
-(defcustom tumme-dir "~/.tumme/"
-  "*Directory where thumbnail images for are stored."
+(defcustom tumme-dir "~/.emacs.d/tumme/"
+  "*Directory where thumbnail images are stored."
   :type 'string
   :group 'tumme)
 
@@ -589,17 +594,17 @@ means that each thumbnail is stored in a subdirectory called
                  (const :tag "Per-directory" per-directory))
   :group 'tumme)
 
-(defcustom tumme-db-file "~/.tumme/.tumme_db"
+(defcustom tumme-db-file "~/.emacs.d/tumme/.tumme_db"
   "*Database file where file names and their associated tags are stored."
   :type 'string
   :group 'tumme)
 
-(defcustom tumme-temp-image-file "~/.tumme/.tumme_temp"
+(defcustom tumme-temp-image-file "~/.emacs.d/tumme/.tumme_temp"
   "*Name of temporary image file used by various commands."
   :type 'string
   :group 'tumme)
 
-(defcustom tumme-gallery-dir "~/.tumme/.tumme_gallery"
+(defcustom tumme-gallery-dir "~/.emacs.d/tumme/.tumme_gallery"
   "*Directory to store generated gallery html pages.
 This path needs to be \"shared\" to the public so that it can access
 the index.html page that tumme creates."
@@ -696,7 +701,7 @@ original image file name and %t which is replaced by
   :group 'tumme)
 
 (defcustom tumme-temp-rotate-image-file
-  "~/.tumme/.tumme_rotate_temp"
+  "~/.emacs.d/tumme/.tumme_rotate_temp"
   "*Temporary file for rotate operations."
   :type 'string
   :group 'tumme)
@@ -851,6 +856,16 @@ before warning the user."
   :type 'integer
   :group 'tumme)
 
+(defun tumme-dir ()
+  "Return the current thumbnails directory (from `tumme-dir').
+Create the thumbnails directory if it does not exist."
+  (let ((tumme-dir (file-name-as-directory
+                    (expand-file-name tumme-dir))))
+    (unless (file-directory-p tumme-dir)
+      (make-directory tumme-dir t)
+      (message "Creating thumbnails directory"))
+    tumme-dir))
+
 (defun tumme-insert-image (file type relief margin)
   "Insert image FILE of image TYPE, using RELIEF and MARGIN, at point."
 
@@ -909,7 +924,7 @@ add a subdirectory."
                    ;; be used here.
                    (setq md5-hash (md5 (file-name-as-directory
                                         (file-name-directory file))))
-                   (file-name-as-directory (expand-file-name tumme-dir)))
+                   (file-name-as-directory (expand-file-name (tumme-dir))))
                   ((eq 'per-directory tumme-thumbnail-storage)
                    (format "%s.tumme/"
                            (file-name-directory f))))
@@ -2710,7 +2725,7 @@ when using per-directory thumbnail file storage"))
 ;;               (let ((fattribs (file-attributes f)))
 ;;                 ;; Get last access time and file size
 ;;                 `(,(nth 4 fattribs) ,(nth 7 fattribs) ,f)))
-;;             (directory-files tumme-dir t ".+\.thumb\..+$"))
+;;             (directory-files (tumme-dir) t ".+\.thumb\..+$"))
 ;;            ;; Sort function. Compare time between two files.
 ;;            '(lambda (l1 l2)
 ;;               (time-less-p (car l1) (car l2)))))
