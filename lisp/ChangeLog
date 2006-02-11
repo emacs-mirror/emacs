@@ -1,5 +1,7 @@
 2006-02-11  Eli Zaretskii  <eliz@gnu.org>
 
+	* menu-bar.el (menu-bar-select-yank): Add a doc string.
+
 	* help.el (describe-key-briefly): Now a wrapper for
 	describe-key-briefly-internal.  Bind enable-disabled-menus-and-buttons
 	to t.  Populate yank-menu if empty.
