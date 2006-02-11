@@ -1,3 +1,7 @@
+2006-02-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* mwheel.el (mouse-wheel-up-event): Doc fix.
+
 2006-02-11  Mathias Dahl  <brakjoller@hotmail.com>
 
 	* tumme.el (tumme-dir): Changed default value to
