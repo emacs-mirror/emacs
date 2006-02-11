@@ -1146,6 +1146,7 @@ C-c}.
 @section Thumbnail and image file viewing and manipulation
 
 @cindex tumme mode
+
   Tumme provides for simple viewing of thumbnails of image files.  It
 provides viewing of the original file, sized or in full size, inside
 Emacs or in an external viewer.
@@ -1159,14 +1160,14 @@ files.  All images in that directory will get thumbnail files created
 for them, and the thumbnails will be displayed in the ``thumbnail
 buffer''.
 
-  Because thumbnails are created on the fly and before they can be
-displayed, the above command might take a long time, especially the
-first time, if the directory contains many image files.  If the number
-of image files is higher than
-@code{tumme-show-all-from-dir-max-files}, the command will be aborted.
-To work around this you can instead mark the files you want to look
-at, using @kbd{m} as usual in Dired, and then type @kbd{C-t d}
-(@code{tumme-display-thumbs}).
+  If the directory contains many image files and becayse thumbnails
+are created on the fly before they can be displayed, the above command
+might take a long time, especially the first time (consecutive
+viewings will use the cached thumbnail files).  Also, if the number of
+image files is higher than @code{tumme-show-all-from-dir-max-files},
+the command will be aborted.  To work around this you can instead mark
+the files you want to look at, using @kbd{m} as usual in Dired, and
+then type @kbd{C-t d} (@code{tumme-display-thumbs}).
 
   Regardless of which command you chose to display the thumbnails, a
 new buffer will open up, displaying thumbnail images of the files that
