@@ -1502,6 +1502,8 @@ for the definition of the menu frame."
 
 (put 'menu-bar-select-yank 'apropos-inhibit t)
 (defun menu-bar-select-yank ()
+  "Insert the stretch of previously-killed text selected from menu.
+The menu shows all the killed text sequences stored in `kill-ring'."
   (interactive "*")
   (push-mark (point))
   (insert last-command-event))
