@@ -1211,9 +1211,13 @@ certain tag, they can be viewed as explained earlier, by typing
 
   You can also tag a file from the thumbnail buffer by typing @kbd{t
 t} and remove it by typing @kbd{t r}.  There is also a special ``tag''
-called ``comment'' for each file.  That is used to enter a comment or
-description about the image.  You comment a file from the thumbnail
-buffer by typing @kbd{c}.  You will be prompted for a comment.
+called ``comment'' for each file (it is not a tag in the exact same
+sense as the other tags, it is handled slightly different).  That is
+used to enter a comment or description about the image.  You comment a
+file from the thumbnail buffer by typing @kbd{c}.  You will be
+prompted for a comment.  Comments can also be added from Dired, and
+then also to multiple files at once, by typing @kbd{C-t c}
+(@code{tumme-dired-comment-files}).
 
   Tumme also provide simple image manipulation commands, like rotating
 thumbnails and original image files.  In the thumbnail buffer, type

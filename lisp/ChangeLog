@@ -1,3 +1,10 @@
+2006-02-12  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-write-tag): Fixed small bug.  File name did not
+	  include path.
+	  (tumme-mark-tagged-files): Fixed bug in regexp used to find rows
+	  matching tag.
+
 2006-02-12  Miles Bader  <miles@gnu.org>
 
 	* net/rcirc.el (rcirc-nick-abbrevs, rcirc-response-formats):
