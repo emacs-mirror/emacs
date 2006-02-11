@@ -1552,28 +1552,28 @@ whitespace either before point or after point in a single operation.
 preprocessor commands.
 
 @table @kbd
-@item C-c C-@key{BS}
-@itemx C-c @key{BS}
+@item C-c C-@key{DEL}
+@itemx C-c @key{DEL}
 @findex c-hungry-backspace
-@kindex C-c C-@key{BS} (C Mode)
-@kindex C-c @key{BS} (C Mode)
+@kindex C-c C-@key{DEL} (C Mode)
+@kindex C-c @key{DEL} (C Mode)
 @code{c-hungry-backspace}---Delete the entire block of whitespace
 preceding point.
 
 @item C-c C-d
-@itemx C-c C-@key{DEL}
-@itemx C-c @key{DEL}
+@itemx C-c C-@key{DELETE}
+@itemx C-c @key{DELETE}
 @findex c-hungry-delete-forward
 @kindex C-c C-d (C Mode)
-@kindex C-c C-@key{DEL} (C Mode)
-@kindex C-c @key{DEL} (C Mode)
+@kindex C-c C-@key{DELETE} (C Mode)
+@kindex C-c @key{DELETE} (C Mode)
 @code{c-hungry-delete-forward}---Delete the entire block of whitespace
 following point.
 @end table
 
   As an alternative to the above commands, you can enable @dfn{hungry
 delete mode}.  When this feature is enabled (indicated by @samp{/h} in
-the mode line after the mode name), a single @key{BS} command deletes
+the mode line after the mode name), a single @key{DEL} command deletes
 all preceding whitespace, not just one space, and a single @kbd{C-c
 C-d} (but @emph{not} @key{DELETE}) deletes all following whitespace.
 
