@@ -1151,7 +1151,7 @@ also provides viewing of the original file, sized or in full size,
 inside Emacs or in an external viewer.  
 
   Tumme aims to be both easy to use for a beginner but also powerful
-and useful for an experienced user.
+and useful to an experienced user.
 
   To try out Tumme, mark some image files in Dired and type @kbd{C-t
 d} (@code{tumme-display-thumbs}).  With point in the thumbnail buffer,
@@ -1159,7 +1159,7 @@ type @kbd{RET} (@code{tumme-display-thumbnail-original-image}) to
 display a sized version of it.  Use the keys to move around in the
 buffer.  For easy browing, type @kbd{SPC}
 (@code{tumme-display-next-thumbnail-original}) to advance and display
-the next image.  Typing @kbd{SPC}
+the next image.  Typing @kbd{DEL}
 (@code{tumme-display-previous-thumbnail-original}) backs up to the
 previous thumbnail and displays the image.
 
