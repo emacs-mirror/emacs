@@ -2308,12 +2308,11 @@ function.  The result is a couple of new files in
 (defun tumme-write-comment (file comment)
   "For FILE, write comment COMMENT in database."
   (save-excursion
-    (let (end buf comment-beg
-              (base-name (file-name-nondirectory file)))
+    (let (end buf comment-beg)
       (setq buf (find-file tumme-db-file))
       (goto-char (point-min))
       (if (search-forward-regexp
-           (format "^%s" base-name) nil t)
+           (format "^%s" file) nil t)
           (progn
             (end-of-line)
             (setq end (point))
@@ -2336,7 +2335,7 @@ function.  The result is a couple of new files in
             (insert (format "comment:%s;" comment)))
         ;; File does not exist in databse - add it.
         (goto-char (point-max))
-        (insert (format "\n%s;comment:%s" base-name comment)))
+        (insert (format "\n%s;comment:%s" file comment)))
       (save-buffer)
       (kill-buffer buf))))
 
@@ -2417,7 +2416,7 @@ matching tags will be marked in the dired buffer."
       (goto-char (point-min))
       ;; Collect matches
       (while (search-forward-regexp
-              (concat "\\(^[^;]+\\);.*" tag ".*$") nil t)
+              (concat "\\(^[^;\n]+\\);.*" tag ".*$") nil t)
         (setq files (append (list (match-string 1)) files)))
       (kill-buffer buf)
       ;; Mark files
