@@ -1,3 +1,9 @@
+2006-02-11  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-buffer-internal): Set mark for ido-insert-buffer.
+	Don't use insert-buffer; do insert-buffer-substring directly.
+	(ido-file-internal): Set mark for ido-insert-file. Use insert-file-1.
+
 2006-02-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* files.el (revert-buffer, recover-file): Replace buffer-read-only
