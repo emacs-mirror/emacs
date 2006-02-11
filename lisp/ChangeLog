@@ -1,3 +1,9 @@
+2006-02-11  Milan Zamazal  <pdm@zamazal.org>
+
+	* progmodes/glasses.el (glasses-separator): Doc fix.
+	(glasses-original-separator): New defcustom.
+	(glasses-make-readable, glasses-convert-to-unreadable): Use it.
+
 2006-02-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* mwheel.el (mouse-wheel-up-event): Doc fix.
