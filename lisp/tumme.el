@@ -516,6 +516,9 @@
 ;; TODO
 ;; ====
 ;;
+;; * Look into supporting the Thumbnail Managing Standard, maybe as a
+;; configurable option.
+;;
 ;; * Support gallery creation when using per-directory thumbnail
 ;; storage.
 ;;
@@ -553,7 +556,8 @@
 ;; `dired-next-line' and `dired-previous-line' figure out if tumme is
 ;; enabled in the current buffer and, if it is, call
 ;; `tumme-dired-next-line' and `tumme-dired-previous-line',
-;; respectively.
+;; respectively. Update: This is partly done; some bindings have now
+;; been added to dired.
 ;;
 ;; * Enhanced gallery creation with basic CSS-support and pagination
 ;; of tag pages with many pictures.
@@ -2365,8 +2369,9 @@ function.  The result is a couple of new files in
   (tumme-display-thumb-properties))
 
 (defun tumme-read-comment (&optional file)
-  "Read comment, optionally using old comment from FILE as initial value."
-
+  "Read comment for an image.
+Read comment for an image, optionally using old comment from FILE
+as initial value."
   (let ((comment
          (read-string
           "Comment: "
@@ -2397,7 +2402,12 @@ function.  The result is a couple of new files in
 
 ;;;###autoload
 (defun tumme-mark-tagged-files ()
-  "Use regexp to mark files with matching tag."
+  "Use regexp to mark files with matching tag.
+A `tag' is a keyword, a piece of meta data, associated with an
+image file and stored in tumme's database file.  This command
+lets you input a regexp and this will be matched against all tags
+on all image files in the database file.  The files that have a
+matching tags will be marked in the dired buffer."
   (interactive)
   (let ((tag (read-string "Mark tagged files (regexp): "))
         (hits 0)
