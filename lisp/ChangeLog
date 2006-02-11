@@ -2,10 +2,10 @@
 
 	* help.el (describe-key-briefly): Now a wrapper for
 	describe-key-briefly-internal.  Bind enable-disabled-menus-and-buttons
-	to t.
+	to t.  Populate yank-menu if empty.
 	(describe-key-briefly-internal): Renamed from describe-key-briefly.
 	(describe-key): Now a wrapper for describe-key-internal.  Bind
-	enable-disabled-menus-and-buttons to t.
+	enable-disabled-menus-and-buttons to t.  Populate yank-menu if empty.
 	(describe-key-internal): Renamed from describe-key.
 
 2006-02-11  Milan Zamazal  <pdm@zamazal.org>
