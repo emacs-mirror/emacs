@@ -1,3 +1,13 @@
+2006-02-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* help.el (describe-key-briefly): Now a wrapper for
+	describe-key-briefly-internal.  Bind enable-disabled-menus-and-buttons
+	to t.
+	(describe-key-briefly-internal): Renamed from describe-key-briefly.
+	(describe-key): Now a wrapper for describe-key-internal.  Bind
+	enable-disabled-menus-and-buttons to t.
+	(describe-key-internal): Renamed from describe-key.
+
 2006-02-11  Milan Zamazal  <pdm@zamazal.org>
 
 	* progmodes/glasses.el (glasses-separator): Doc fix.
