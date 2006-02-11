@@ -1,3 +1,16 @@
+2006-02-12  Miles Bader  <miles@gnu.org>
+
+	* net/rcirc.el (rcirc-nick-abbrevs, rcirc-response-formats):
+	New variables.
+	(rcirc-abbrev-nick): New function.
+	(rcirc-format-response-string): Rewrite to use the formats in
+	`rcirc-response-formats' and expand escape sequences therein.
+	A text-property `rcirc-text' is added over the actual response
+	text to make easy to find inside the returned string.
+	(rcirc-print): When filling, just look for the `rcirc-text'
+	text-property to find the appropriate fill prefix, instead of
+	using hardwired patterns.
+
 2006-02-11  Mathias Dahl  <brakjoller@hotmail.com>
 
 	* tumme.el: Enhanced some docstrings.  Added todo item about
