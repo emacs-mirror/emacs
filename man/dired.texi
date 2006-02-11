@@ -1194,26 +1194,33 @@ for deletion in the dired buffer.  If you just want visually to delete
 the thumbnail image from the thumbnail buffer, type @kbd{C-d}
 (@code{tumme-delete-char}).
 
-  More advanced features include commands for using ``tags'' (another
-name for ``keyword'' or ``label'') to tag image files and to search
-for image files with a certain tag.
+  More advanced features include commands for using ``tags''.  ``Tag''
+is just another word for ``keyword'', ``label'' or ``category''.  In
+short, it is meta data used to categorize an image file.  Commands
+exist to add tags for one or many image files from dired, to mark
+files having a certain tag in Dired and to remove tags from files.
+The tags put on image files are stored in a database file (currently a
+plain text file).
 
-  The tags put on image files are stored in a database file and can be
-used for marking image files.  For example, you can let Tumme mark all
-files in the current directory tagged with the tag `flowers'.  To tag
-image files, mark them in the dired buffer and type @kbd{C-t t}
-(@code{tumme-tag-files}).  To mark files having a certain tag, type
-@kbd{C-t f} (@code{tumme-mark-tagged-files}).
+  To tag image files, mark them in the dired buffer and type @kbd{C-t
+t} (@code{tumme-tag-files}).  You will be prompted for a tag. To mark
+files having a certain tag, type @kbd{C-t f}
+(@code{tumme-mark-tagged-files}). After marking image files with a
+certain tag, they can be viewed as explained earlier, by typing
+@key{C-t d}.
 
-  After marking image files with a certain tag, they can be viewed as
-explained earlier, by typing @key{C-t d}.
+  You can also tag a file from the thumbnail buffer by typing @kbd{t
+t} and remove it by typing @kbd{t r}.  There is also a special ``tag''
+called ``comment'' for each file.  That is used to enter a comment or
+description about the image.  You comment a file from the thumbnail
+buffer by typing @kbd{c}.  You will be prompted for a comment.
 
   Tumme also provide simple image manipulation commands, like rotating
 thumbnails and original image files.  In the thumbnail buffer, type
 @kbd{L} to rotate the original image 90 degrees anti clockwise, and
-@kbd{R} to rotate it 90 degrees clockwise.
-
-
+@kbd{R} to rotate it 90 degrees clockwise.  This rotation will be done
+lossless (the image quality will not be reduced) and needs an external
+utility called JpegTRAN to work.
 
 @node Misc Dired Features
 @section Other Dired Features
