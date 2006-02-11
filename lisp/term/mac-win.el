@@ -1817,7 +1817,7 @@ It returns a name of the created fontset."
 ;; more Latin characters) are displayed by a mac-roman font.
 (create-fontset-from-mac-roman-font
  "-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman" nil
- "-apple-Monaco-normal-r-*-*-12-*-*-*-*-*-fontset-mac")
+ "-apple-Monaco-normal-r-*-*-12-*-*-*-*-*-fontset-standard")
 
 ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
 (create-fontset-from-x-resource)

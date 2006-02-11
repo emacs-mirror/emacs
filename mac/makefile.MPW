@@ -1024,6 +1024,7 @@ shortlisp = ¶
 	{Lisp}help.elc ¶
 	{Lisp}indent.elc ¶
 	{Lisp}isearch.elc ¶
+	{Lisp}rfn-eshadow.elc ¶
 	{Lisp}loadup.el ¶
 	{Lisp}loaddefs.el ¶
 	{Lisp}bindings.elc ¶
@@ -1098,9 +1099,13 @@ SOME_MACHINE_LISP = {Lisp}mouse.elc ¶
   {Lisp}ls-lisp.elc {Lisp}dos-fns.elc ¶
   {Lisp}w32-fns.elc {Lisp}dos-w32.elc ¶
   {Lisp}disp-table.elc {Lisp}dos-vars.elc ¶
-  {Lisp}tooltip.elc ¶
+  {Lisp}tooltip.elc {Lisp}image.elc ¶
+  {Lisp}dnd.elc {Lisp}mwheel.elc ¶
+  {Lisp}tool-bar.elc ¶
+  {Lisp}x-dnd.elc ¶
   {Lisp}international:ccl.elc ¶
-  {Lisp}international:codepage.elc
+  {Lisp}international:codepage.elc ¶
+  {Lisp}international:fontset.elc
 
 Doc Ä {DocTarget}DOC
 

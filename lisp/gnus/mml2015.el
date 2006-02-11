@@ -814,6 +814,7 @@
 	(boundary (mml-compute-boundary cont))
 	(pgg-default-user-id (or (message-options-get 'mml-sender)
 				 pgg-default-user-id))
+	(pgg-text-mode t)
 	entry)
     (unless (pgg-sign-region (point-min) (point-max))
       (pop-to-buffer mml2015-result-buffer)
@@ -841,6 +842,7 @@
 
 (defun mml2015-pgg-encrypt (cont &optional sign)
   (let ((pgg-errors-buffer mml2015-result-buffer)
+	(pgg-text-mode t)
 	(boundary (mml-compute-boundary cont)))
     (unless (pgg-encrypt-region (point-min) (point-max)
 				(split-string

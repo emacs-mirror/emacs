@@ -1,7 +1,58 @@
+2006-02-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* data.c (Findirect_function): Rewrite docstring.
+	Fix omission bug: Declare new arg NOERROR.
+
+2006-02-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (x_set_mouse_color): Don't call rif->define_frame_cursor
+	if window_desc is not set yet.
+	(Fx_create_frame): Remove variable x_frame_name.  Apply 2005-12-07
+	and 2006-01-26 changes for xfns.c.  Call x_iconify_frame if frame
+	parameter `visibility' is `icon'.
+	(Fx_create_frame, x_create_tip_frame): Use "fontset-standard"
+	instead of "fontset-mac".
+	(Fx_focus_frame): New defun.
+	(syms_of_macfns): Defsubr it.
+
+	* macterm.c (mac_define_frame_cursor): Don't change pointer shape
+	for unfocused frame.
+	(x_raise_frame): Call BringToFront instead of SelectWindow.
+	(x_lower_frame): Use NULL instead of nil.
+	(x_make_frame_visible): Don't call SelectWindow.
+	(XTread_socket): Increment handling_signal at the start, decrement
+	it at the end.
+	[USE_CG_TEXT_DRAWING] (init_cg_text_anti_aliasing_threshold): Use
+	CFPreferencesGetAppIntegerValue instead of Fmac_get_preference.
+
+2006-02-10  Kim F. Storm  <storm@cua.dk>
+
+	* data.c (Findirect_function): Add NOERROR arg.  All callers changed
+	to pass Qnil for NOERROR.
+
+	* keymap.c (current_minor_maps_error): Remove.
+	(current_minor_maps): Pass Qt for NOERROR to Findirect_function
+	instead of using internal_condition_case_1+current_minor_maps_error.
+
+2006-02-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Must note mouse movement even for nil
+	frames for GTK, in that case it is the tool bar.  This is so that
+	highlighted text get reset properly.
+
+2006-02-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* alloc.c (Fmake_bool_vector, Fpurecopy): Doc fixes.
+
+2006-02-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* window.c (adjust_window_trailing_edge): Check that shrinking
+	does not set a window to size zero or less.
+
 2006-02-08  Miles Bader  <miles@gnu.org>
 
 	* editfns.c (Fconstrain_to_field): Use Fget_char_property instead
-	of Fget_text_property (other field functions word with overlays as
+	of Fget_text_property (other field functions work with overlays as
 	well as text-properties).
 
 2006-02-07  Kenichi Handa  <handa@m17n.org>

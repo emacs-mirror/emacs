@@ -1,3 +1,11 @@
+2006-02-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* PROBLEMS (Mac OS X): Add QuickTime 7.0.4 / Mac OS X 10.3.9 breakage.
+
+2006-02-09  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* NEWS: New key bindings for Tumme in Dired.
+
 2006-02-05  Jay Belanger  <belanger@truman.edu>
 
 	* calccard.tex: Update copyright year.

@@ -1,3 +1,109 @@
+2006-02-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-outvar): Fix typo.
+	(desktop-save-buffer-p): Doc fix.
+
+	* subr.el (substitute-key-definition): Fix typo.
+
+2006-02-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.el (select-frame-set-input-focus): Call x-focus-frame also
+	when window-system is mac.
+
+	* term/mac-win.el (fontset-standard): Rename from "fontset-mac".
+
+2006-02-10  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (substitute-key-definition-key): Pass t for NOERROR to
+	indirect-function instead of using condition-case.
+
+2006-02-10  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-copy-with-exif-file-name): Tried to make
+	docstring less `colloquial'...
+
+2006-02-09  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el: Added a couple of todo items.
+
+2006-02-09  Lars Hansen  <larsh@soem.dk>
+
+	* hilit-chg.el: Add highlight-changes-mode to desktop-locals-to-save.
+	(highlight-changes-mode): Don't change desktop-locals-to-save.
+
+2006-02-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-toggle-display): Clear image cache if using
+	filename.
+
+2006-02-09  Masatake YAMATO  <jet@gyve.org>
+
+	* dired-x.el (dired-guess-shell-alist-default): Add .man as
+	a `dired-man' target.
+
+	* progmodes/autoconf.el (autoconf-font-lock-keywords): Check start
+	boundary of symbols.
+
+2006-02-08  Peter Doornbosch  <peter.doornbosch@luminis.nl>  (tiny change)
+
+	* vc-svn.el (vc-svn-print-log): Show recent commits as well.
+
+2006-02-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hilit-chg.el (hilit-chg-update-all-buffers): Use `mapc' instead of
+	`mapcar'; return nil.
+
+2006-02-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-track): Don't change window if we rebind to
+	some other event.
+
+2006-02-08  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-startup-channels-alist):
+	Add irc.freenode.net and #emacs as defaults.
+	(rcirc-ignore-all-activity-flag): Remove variable.
+	(rcirc-authinfo): New variable.
+	(rcirc-authinfo-filename): Remove variable.
+	(rcirc-always-use-server-buffer-flag): New flag.
+	(rcirc): M-x rcirc will automatically connect without prompting.
+	C-u M-x rcirc will prompt.  Use rcirc-connect to create a
+	connection in lisp.
+	(rcirc-process-server-response-1): Remove everything but the nick
+	portion of the sender so it doesn't need to be done everywhere
+	else.  Update related code.
+	(global-map): Remove global keybindings.
+	(rcirc-get-buffer-create): Make sure rcirc-topic is set.
+	(rcirc-send-input): Split into several functions.
+	(rcirc-process-input-line, rcirc-process-message)
+	(rcirc-process-command): New functions.
+	(rcirc-target-buffer): New function to determine where to route
+	messages.
+	(rcirc-user-nick): Save match data.
+	(rcirc-toggle-ignore-buffer-activity)
+	(rcirc-update-activity-string): Remove global ignore functionality,
+	which can be done now by toggling rcirc-track-minor-mode.
+	(rcirc-track-minor-mode-map): New keymap.
+	(rcirc-track-minor-mode): New minor-mode.
+	(ignore): Make the ignore output nicer.  Always print it when
+	adding or removing nicks.
+	(rcirc-url-regexp): Improve.
+	(rcirc-mangle-text): Remove properties before using text in the
+	modeline.
+	(rcirc-authenticate): Authentication data comes from
+	rcirc-authinfo, not the file pointed to by rcirc-authinfo-file.
+	(rcirc-server-prefix): Inherit from rcirc-server.
+
+2006-02-08  Mathias Megyei  <Mathias.Megyei@micronas.com>  (tiny change)
+
+	* Makefile.in (compile): Append "|| true" to the end of the `find'
+	command, like compile-always does.
+
+2006-02-08  Sam Steingold  <sds@gnu.org>
+
+	* net/tramp.el (tramp-maybe-open-connection): Do not wait for
+	output from a dead connection.
+
 2006-02-07  Mathias Dahl  <brakjoller@hotmail.com>
 
 	* dired.el (dired-mode-map): Add more bindings for tumme.
@@ -351,7 +457,7 @@
 	* international/latexenc.el: Add a suitable `coding:' tag.
 	(latexenc-find-file-coding-system): Undo last change.
 
-2006-01-27  Arne J,bx(Brgensen  <arne@arnested.dk>
+2006-01-27  Arne J,Ax(Brgensen  <arne@arnested.dk>
 
 	* international/latexenc.el (latexenc-find-file-coding-system):
 	Make sure latexenc-main-file is a regular file and is readable.
