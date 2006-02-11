@@ -77,7 +77,7 @@
       'wheel-down
     (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
 		    mouse-wheel-up-button)))
-  "Event used for scrolling down."
+  "Event used for scrolling up."
   :group 'mouse
   :type 'symbol
   :set 'mouse-wheel-change-button)
