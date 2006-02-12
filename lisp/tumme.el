@@ -589,7 +589,10 @@ Tumme can store thumbnail files in one of two ways and this is
 controlled by this variable.  \"Use tumme dir\" means that the
 thumbnails are stored in a central directory.  \"Per directory\"
 means that each thumbnail is stored in a subdirectory called
-\".tumme\" in the same directory where the image file is."
+\".tumme\" in the same directory where the image file is.
+\"Thumbnail Managing Standard\" means that the thumbnails are
+stored and generated according to the Thumbnail Managing
+Standard."
   :type '(choice :tag "How to store thumbnail files"
                  (const :tag "Thumbnail Managing Standard" standard)
                  (const :tag "Use tumme-dir" use-tumme-dir)
