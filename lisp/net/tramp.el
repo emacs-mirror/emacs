@@ -836,8 +836,10 @@ The default value is to use the same value as `tramp-rsh-end-of-line'."
   :type 'string)
 
 (defcustom tramp-remote-path
-  '("/bin" "/usr/bin" "/usr/sbin" "/usr/local/bin" "/usr/ccs/bin"
-    "/local/bin" "/local/freeware/bin" "/local/gnu/bin"
+  ;; "/usr/xpg4/bin" has been placed first, because on Solaris a POSIX
+  ;; compatible "id" is needed.
+  '("/usr/xpg4/bin" "/bin" "/usr/bin" "/usr/sbin" "/usr/local/bin"
+    "/usr/ccs/bin" "/local/bin" "/local/freeware/bin" "/local/gnu/bin"
     "/usr/freeware/bin" "/usr/pkg/bin" "/usr/contrib/bin")
   "*List of directories to search for executables on remote host.
 Please notify me about other semi-standard directories to include here.
@@ -1735,7 +1737,7 @@ on the remote host.")
 (defvar tramp-perl-encode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2006 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2006 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -1777,7 +1779,7 @@ This string is passed to `format', so percent characters need to be doubled.")
 (defvar tramp-perl-decode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2006 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2006 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
