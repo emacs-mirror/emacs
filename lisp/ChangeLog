@@ -1,9 +1,9 @@
 2006-02-12  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* tumme.el (tumme-write-tag): Fixed small bug.  File name did not
-	  include path.
-	  (tumme-mark-tagged-files): Fixed bug in regexp used to find rows
-	  matching tag.
+	* tumme.el (tumme-write-tag): Fix small bug (file name did not
+	include path).
+	(tumme-mark-tagged-files): Fix bug in regexp used to find rows
+	matching tag.
 
 2006-02-12  Miles Bader  <miles@gnu.org>
 
@@ -20,8 +20,8 @@
 
 2006-02-11  Mathias Dahl  <brakjoller@hotmail.com>
 
-	* tumme.el: Enhanced some docstrings.  Added todo item about
-	  Thumbnail Managing Standard.
+	* tumme.el: Enhance some docstrings.  Add todo item about Thumbnail
+	Managing Standard.
 
 2006-02-11  Kim F. Storm  <storm@cua.dk>
 
@@ -61,9 +61,8 @@
 
 2006-02-11  Mathias Dahl  <brakjoller@hotmail.com>
 
-	* tumme.el (tumme-dir): Changed default value to
-	  "~/.emacs-d/tumme"
-	  (tumme-dir): New function. Copied from thumbs.el.
+	* tumme.el (tumme-dir): Change default value to "~/.emacs.d/tumme/".
+	(tumme-dir): New function.  Copied from thumbs.el.
 
 2006-02-10  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -86,12 +85,12 @@
 
 2006-02-10  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* tumme.el (tumme-copy-with-exif-file-name): Tried to make
-	docstring less `colloquial'...
+	* tumme.el (tumme-copy-with-exif-file-name): Try to make docstring
+	less `colloquial'...
 
 2006-02-09  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* tumme.el: Added a couple of todo items.
+	* tumme.el: Add a couple of todo items.
 
 2006-02-09  Lars Hansen  <larsh@soem.dk>
 
