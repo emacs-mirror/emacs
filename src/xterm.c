@@ -7552,8 +7552,13 @@ static Lisp_Object
 x_catch_errors_unwind (dummy)
      Lisp_Object dummy;
 {
-  Display *dpy = x_error_message->dpy;
+  Display *dpy;
   struct x_error_message_stack *tmp;
+
+  if (!x_error_message)
+    abort ();
+
+  dpy = x_error_message->dpy;
 
   /* The display may have been closed before this function is called.
      Check if it is still open before calling XSync.  */
