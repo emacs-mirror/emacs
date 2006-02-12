@@ -516,9 +516,6 @@
 ;; TODO
 ;; ====
 ;;
-;; * Look into supporting the Thumbnail Managing Standard, maybe as a
-;; configurable option.
-;;
 ;; * Support gallery creation when using per-directory thumbnail
 ;; storage.
 ;;
@@ -579,7 +576,7 @@
 (defgroup tumme nil
   "Use dired to browse your images as thumbnails, and more."
   :prefix "tumme-"
-  :group 'files)
+  :group 'multimedia)
 
 (defcustom tumme-dir "~/.emacs.d/tumme/"
   "*Directory where thumbnail images are stored."
@@ -594,6 +591,7 @@ thumbnails are stored in a central directory.  \"Per directory\"
 means that each thumbnail is stored in a subdirectory called
 \".tumme\" in the same directory where the image file is."
   :type '(choice :tag "How to store thumbnail files"
+                 (const :tag "Thumbnail Managing Standard" standard)
                  (const :tag "Use tumme-dir" use-tumme-dir)
                  (const :tag "Per-directory" per-directory))
   :group 'tumme)
@@ -639,13 +637,13 @@ Used together with `tumme-cmd-create-thumbnail-options'."
   :group 'tumme)
 
 (defcustom tumme-cmd-create-thumbnail-options
-  "%p -size %sx%s \"%f\" -resize %sx%s +profile \"*\" jpeg:\"%t\""
+  "%p -size %wx%h \"%f\" -resize %wx%h +profile \"*\" jpeg:\"%t\""
   "*Format of command used to create thumbnail image.
 Available options are %p which is replaced by
-`tumme-cmd-create-thumbnail-program', %s which is replaced by
-`tumme-thumb-size', %f which is replaced by the file name of the
-original image and %t which is replaced by the file name of the
-thumbnail file."
+`tumme-cmd-create-thumbnail-program', %w which is replaced by
+`tumme-thumb-width', %h which is replaced by `tumme-thumb-height',
+%f which is replaced by the file name of the original image and %t
+which is replaced by the file name of the thumbnail file."
   :type 'string
   :group 'tumme)
 
@@ -657,13 +655,61 @@ Used together with `tumme-cmd-create-temp-image-options'."
   :group 'tumme)
 
 (defcustom tumme-cmd-create-temp-image-options
-  "%p -size %xx%y \"%f\" -resize %xx%y +profile \"*\" jpeg:\"%t\""
+  "%p -size %wx%h \"%f\" -resize %wx%h +profile \"*\" jpeg:\"%t\""
   "*Format of command used to create temporary image for display window.
 Available options are %p which is replaced by
-`tumme-cmd-create-temp-image-program', %x and %y which is replaced by
-the calculated max size for x and y in the image display window, %f
-which is replaced by the file name of the original image and %t which
+`tumme-cmd-create-temp-image-program', %w and %h which is replaced by
+the calculated max size for width and height in the image display window,
+%f which is replaced by the file name of the original image and %t which
 is replaced by the file name of the temporary file."
+  :type 'string
+  :group 'tumme)
+
+(defcustom tumme-cmd-pngnq-program (executable-find "pngnq")
+  "*The file name of the `pngnq' program.
+It quantizes colors of PNG images down to 256 colors."
+  :type '(choice (const :tag "Not Set" nil) string)
+  :group 'tumme)
+
+(defcustom tumme-cmd-pngcrush-program (executable-find "pngcrush")
+  "*The file name of the `pngcrush' program.
+It optimizes the compression of PNG images.  Also it adds PNG textual chunks
+with the information required by the Thumbnail Managing Standard."
+  :type '(choice (const :tag "Not Set" nil) string)
+  :group 'tumme)
+
+(defcustom tumme-cmd-create-standard-thumbnail-command
+  (concat
+   tumme-cmd-create-thumbnail-program " "
+   "-size %wx%h \"%f\" "
+   (unless (or tumme-cmd-pngcrush-program tumme-cmd-pngnq-program)
+     (concat
+      "-set \"Thumb::MTime\" \"%m\" "
+      "-set \"Thumb::URI\" \"file://%f\" "
+      "-set \"Description\" \"Thumbnail of file://%f\" "
+      "-set \"Software\" \"" (emacs-version) "\" "))
+   "-thumbnail %wx%h png:\"%t\""
+   (if tumme-cmd-pngnq-program
+       (concat
+        " ; " tumme-cmd-pngnq-program " -f \"%t\""
+        (unless tumme-cmd-pngcrush-program
+          " ; mv %q %t")))
+   (if tumme-cmd-pngcrush-program
+       (concat
+        (unless tumme-cmd-pngcrush-program
+          " ; cp %t %q")
+        " ; " tumme-cmd-pngcrush-program " -q "
+        "-text b \"Description\" \"Thumbnail of file://%f\" "
+        "-text b \"Software\" \"" (emacs-version) "\" "
+        ;; "-text b \"Thumb::Image::Height\" \"%oh\" "
+        ;; "-text b \"Thumb::Image::Mimetype\" \"%mime\" "
+        ;; "-text b \"Thumb::Image::Width\" \"%ow\" "
+        "-text b \"Thumb::MTime\" \"%m\" "
+        ;; "-text b \"Thumb::Size\" \"%b\" "
+        "-text b \"Thumb::URI\" \"file://%f\" "
+        "%q %t"
+        " ; rm %q")))
+  "*Command to create thumbnails according to the Thumbnail Managing Standard."
   :type 'string
   :group 'tumme)
 
@@ -757,8 +803,19 @@ Used by `tumme-gallery-generate' to leave out \"hidden\" images."
   :type '(repeat string)
   :group 'tumme)
 
-(defcustom tumme-thumb-size 100
-  "Size of thumbnails, in pixels."
+(defcustom tumme-thumb-size (if (eq 'standard tumme-thumbnail-storage) 128 100)
+  "Size of thumbnails, in pixels.
+This is the default size for both `tumme-thumb-width' and `tumme-thumb-height'."
+  :type 'integer
+  :group 'tumme)
+
+(defcustom tumme-thumb-width tumme-thumb-size
+  "Width of thumbnails, in pixels."
+  :type 'integer
+  :group 'tumme)
+
+(defcustom tumme-thumb-height tumme-thumb-size
+  "Height of thumbnails, in pixels."
   :type 'integer
   :group 'tumme)
 
@@ -841,7 +898,11 @@ with the comment."
   :type 'string
   :group 'tumme)
 
-(defcustom tumme-external-viewer "qiv -t"
+(defcustom tumme-external-viewer
+  ;; TODO: use mailcap, dired-guess-shell-alist-default, dired-view-command-alist
+  (cond ((executable-find "display"))
+        ((executable-find "xli"))
+        ((executable-find "qiv") "qiv -t"))
   "*Name of external viewer.
 Including parameters.  Used when displaying original image from
 `tumme-thumbnail-mode'."
@@ -888,8 +949,11 @@ Create the thumbnails directory if it does not exist."
 		 (<= (float-time (nth 5 (file-attributes file)))
 		     (float-time (nth 5 (file-attributes thumb-file)))))
       (tumme-create-thumb file thumb-file))
-    (list 'image :type 'jpeg :file thumb-file
-	  :relief tumme-thumb-relief :margin tumme-thumb-margin)))
+    (create-image thumb-file)
+;;     (list 'image :type 'jpeg
+;;           :file thumb-file
+;; 	  :relief tumme-thumb-relief :margin tumme-thumb-margin)
+    ))
 
 (defun tumme-insert-thumbnail (file original-file-name
                                     associated-dired-buffer)
@@ -898,7 +962,9 @@ Add text properties ORIGINAL-FILE-NAME and ASSOCIATED-DIRED-BUFFER."
   (let (beg end)
     (setq beg (point))
     (tumme-insert-image file
-                        'jpeg
+                        ;; TODO: this should depend on the real file type
+                        (if (eq 'standard tumme-thumbnail-storage)
+                            'png 'jpeg)
                         tumme-thumb-relief
                         tumme-thumb-margin)
     (setq end (point))
@@ -917,38 +983,52 @@ Depending on the value of `tumme-thumbnail-storage', the file
 name will vary.  For central thumbnail file storage, make a
 MD5-hash of the image file's directory name and add that to make
 the thumbnail file name unique.  For per-directory storage, just
-add a subdirectory."
-  (let ((f (expand-file-name file))
-        md5-hash)
-    (format "%s%s%s.thumb.%s"
-            (cond ((eq 'use-tumme-dir tumme-thumbnail-storage)
-                   ;; Is MD5 hashes fast enough? The checksum of a
-                   ;; thumbnail file name need not be that
-                   ;; "cryptographically" good so a faster one could
-                   ;; be used here.
-                   (setq md5-hash (md5 (file-name-as-directory
-                                        (file-name-directory file))))
-                   (file-name-as-directory (expand-file-name (tumme-dir))))
-                  ((eq 'per-directory tumme-thumbnail-storage)
-                   (format "%s.tumme/"
-                           (file-name-directory f))))
-            (file-name-sans-extension
-             (file-name-nondirectory f))
-            (if md5-hash
-                (concat "_" md5-hash)
-              "")
-            (file-name-extension f))))
+add a subdirectory.  For standard storage, produce the file name
+according to the Thumbnail Managing Standard."
+  (cond ((eq 'standard tumme-thumbnail-storage)
+         (expand-file-name
+          (concat "~/.thumbnails/normal/"
+                  (md5 (concat "file://" (expand-file-name file))) ".png")))
+        ((eq 'use-tumme-dir tumme-thumbnail-storage)
+         (let* ((f (expand-file-name file))
+                (md5-hash
+                 ;; Is MD5 hashes fast enough? The checksum of a
+                 ;; thumbnail file name need not be that
+                 ;; "cryptographically" good so a faster one could
+                 ;; be used here.
+                 (md5 (file-name-as-directory (file-name-directory f)))))
+           (format "%s%s%s.thumb.%s"
+                   (file-name-as-directory (expand-file-name (tumme-dir)))
+                   (file-name-sans-extension (file-name-nondirectory f))
+                   (if md5-hash (concat "_" md5-hash) "")
+                   (file-name-extension f))))
+        ((eq 'per-directory tumme-thumbnail-storage)
+         (let ((f (expand-file-name file)))
+           (format "%s%s%s.thumb.%s"
+                   (format "%s.tumme/" (file-name-directory f))
+                   (file-name-sans-extension (file-name-nondirectory f))
+                   (file-name-extension f))))))
 
 (defun tumme-create-thumb (original-file thumbnail-file)
   "For ORIGINAL-FILE, create thumbnail image named THUMBNAIL-FILE."
-  (let* ((size (int-to-string tumme-thumb-size))
+  (let* ((width (int-to-string tumme-thumb-width))
+         (height (int-to-string tumme-thumb-height))
+         (modif-time (format "%.0f" (float-time (nth 5 (file-attributes
+                                                        original-file)))))
+         (thumbnail-nq8-file (replace-regexp-in-string ".png\\'" "-nq8.png"
+                                                       thumbnail-file))
          (command
           (format-spec
-           tumme-cmd-create-thumbnail-options
+           (if (eq 'standard tumme-thumbnail-storage)
+               tumme-cmd-create-standard-thumbnail-command
+             tumme-cmd-create-thumbnail-options)
            (list
             (cons ?p tumme-cmd-create-thumbnail-program)
-            (cons ?s size)
+            (cons ?w width)
+            (cons ?h height)
+            (cons ?m modif-time)
             (cons ?f original-file)
+            (cons ?q thumbnail-nq8-file)
             (cons ?t thumbnail-file))))
          thumbnail-dir)
     (when (not (file-exists-p
@@ -956,6 +1036,40 @@ add a subdirectory."
       (message "Creating thumbnail directory.")
       (make-directory thumbnail-dir))
     (shell-command command nil)))
+
+;;;###autoload
+(defun tumme-dired-insert-marked-thumbs ()
+  "Insert thumbnails before file names of marked files in the dired buffer."
+  (interactive)
+  (dired-map-over-marks
+   (let* ((image-pos (dired-move-to-filename))
+          (image-file (dired-get-filename))
+          (thumb-file (tumme-get-thumbnail-image image-file))
+          overlay)
+     ;; If image is not already added, then add it.
+     (unless (delq nil (mapcar (lambda (o) (overlay-get o 'put-image))
+                               ;; Can't use (overlays-at (point)), BUG?
+                               (overlays-in (point) (1+ (point)))))
+       (put-image thumb-file image-pos)
+       (setq overlay (car (delq nil (mapcar (lambda (o) (and (overlay-get o 'put-image) o))
+                                            (overlays-in (point) (1+ (point)))))))
+       (overlay-put overlay 'image-file image-file)
+       (overlay-put overlay 'thumb-file thumb-file)))
+   nil)
+  (add-hook 'dired-after-readin-hook 'tumme-dired-after-readin-hook nil t))
+
+(defun tumme-dired-after-readin-hook ()
+  "Relocate existing thumbnail overlays in dired buffer after reverting.
+Move them to their corresponding files if they are still exist.
+Otherwise, delete overlays."
+  (mapc (lambda (overlay)
+          (when (overlay-get overlay 'put-image)
+            (let* ((image-file (overlay-get overlay 'image-file))
+                   (image-pos (dired-goto-file image-file)))
+              (if image-pos
+                  (move-overlay overlay image-pos image-pos)
+                (delete-overlay overlay)))))
+        (overlays-in (point-min) (point-max))))
 
 (defun tumme-next-line-and-display ()
   "Move to next dired line and display thumbnail image."
@@ -1966,7 +2080,7 @@ Calculate how many thumbnails fit."
          (/ width
             (+ (* 2 tumme-thumb-relief)
                (* 2 tumme-thumb-margin)
-               tumme-thumb-size char-width))))
+               tumme-thumb-width char-width))))
     (tumme-line-up)))
 
 (defun tumme-line-up-interactive ()
@@ -2058,19 +2172,19 @@ systems it should feel snappy enough.
 If optional argument ORIGINAL-SIZE is non-nil, display image in its
 original size."
   (let ((new-file (expand-file-name tumme-temp-image-file))
-        size-x size-y command ret)
+        width height command ret)
     (setq file (expand-file-name file))
     (if (not original-size)
         (progn
-          (setq size-x (tumme-display-window-width))
-          (setq size-y (tumme-display-window-height))
+          (setq width (tumme-display-window-width))
+          (setq height (tumme-display-window-height))
           (setq command
                 (format-spec
                  tumme-cmd-create-temp-image-options
                  (list
                   (cons ?p tumme-cmd-create-temp-image-program)
-                  (cons ?x size-x)
-                  (cons ?y size-y)
+                  (cons ?w width)
+                  (cons ?h height)
                   (cons ?f file)
                   (cons ?t new-file))))
           (setq ret (shell-command command nil))
