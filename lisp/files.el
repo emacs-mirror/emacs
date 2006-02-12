@@ -2024,18 +2024,19 @@ associated with that interpreter in `interpreter-mode-alist'.")
 (defvar magic-mode-alist
   `(;; The < comes before the groups (but the first) to reduce backtracking.
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
+    ;; We use [ \t\n] instead of `\\s ' to make regex overflow less likely.
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
-	     (comment-re (concat "\\(?:!--" incomment-re "*-->\\s *<\\)")))
-	(concat "\\(?:<\\?xml\\s +[^>]*>\\)?\\s *<"
+	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\n]*<\\)")))
+	(concat "\\(?:<\\?xml[ \t\n]+[^>]*>\\)?[ \t\n]*<"
 		comment-re "*"
-		"\\(?:!DOCTYPE\\s +[^>]*>\\s *<\\s *" comment-re "*\\)?"
+		"\\(?:!DOCTYPE[ \t\n]+[^>]*>[ \t\n]*<[ \t\n]*" comment-re "*\\)?"
 		"[Hh][Tt][Mm][Ll]"))
      . html-mode)
     ;; These two must come after html, because they are more general:
     ("<\\?xml " . xml-mode)
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
-	     (comment-re (concat "\\(?:!--" incomment-re "*-->\\s *<\\)")))
-	(concat "\\s *<" comment-re "*!DOCTYPE "))
+	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\n]*<\\)")))
+	(concat "[ \t\n]*<" comment-re "*!DOCTYPE "))
      . sgml-mode)
     ("%![^V]" . ps-mode)
     ("# xmcd " . conf-unix-mode))
