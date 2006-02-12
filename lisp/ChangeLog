@@ -1,3 +1,15 @@
+2006-02-12  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (substitute-key-definition): Doc fix.
+
+	* simple.el (blink-matching-paren-dont-ignore-comments): Doc fix.
+
+	* files.el (magic-mode-alist): Don't use `\\s ' in regexps.
+
+	* info.el (Info-mode): Doc fix.
+
+	* progmodes/ebrowse.el (ebrowse-global-prefix-key): Change to C-c C-m.
+
 2006-02-12  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-remote-path): Add "/usr/xpg4/bin" on top,
