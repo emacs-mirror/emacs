@@ -1,3 +1,14 @@
+2006-02-12  Michael Olson  <mwolson@gnu.org>
+
+	* erc-autoaway.el, erc-dcc.el, erc-ezbounce.el, erc-fill.el,
+	erc-goodies.el, erc-hecomplete.el, erc-ibuffer.el, erc-identd.el,
+	erc-imenu.el, erc-join.el, erc-lang.el, erc-list.el, erc-log.el,
+	erc-match.el, erc-menu.el, erc-netsplit.el, erc-networks.el,
+	erc-notify.el, erc-page.el, erc-pcomplete.el, erc-replace.el,
+	erc-ring.el, erc-services.el, erc-sound.el, erc-speedbar.el,
+	erc-spelling.el, erc-track.el, erc-truncate.el, erc-xdcc.el: Add
+	2006 to copyright years, to comply with the changed guidelines.
+
 2006-02-11  Michael Olson  <mwolson@gnu.org>
 
 	* erc.el (erc-update-modules): Make some requirements shorter, so
