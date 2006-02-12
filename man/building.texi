@@ -10,7 +10,7 @@
 
   The previous chapter discusses the Emacs commands that are useful for
 making changes in programs.  This chapter deals with commands that assist
-in the larger process of developing and maintaining programs.
+in the larger process of compiling and testing programs.
 
 @menu
 * Compilation::         Compiling programs in languages other
