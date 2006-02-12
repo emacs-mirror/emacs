@@ -1,3 +1,90 @@
+2006-02-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (Venable_disabled_menus_and_buttons): New variable.
+	(syms_of_keyboard): DEVFAR_LISP and initialize it.
+	(parse_tool_bar_item, parse_menu_item): If that variable is
+	non-nil, don't disable menu items and tool-bar buttons.
+
+2006-02-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* doc.c (Fsubstitute_command_keys): Doc fix.
+
+2006-02-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* data.c (Findirect_function): Rewrite docstring.
+	Fix omission bug: Declare new arg NOERROR.
+
+2006-02-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (x_set_mouse_color): Don't call rif->define_frame_cursor
+	if window_desc is not set yet.
+	(Fx_create_frame): Remove variable x_frame_name.  Apply 2005-12-07
+	and 2006-01-26 changes for xfns.c.  Call x_iconify_frame if frame
+	parameter `visibility' is `icon'.
+	(Fx_create_frame, x_create_tip_frame): Use "fontset-standard"
+	instead of "fontset-mac".
+	(Fx_focus_frame): New defun.
+	(syms_of_macfns): Defsubr it.
+
+	* macterm.c (mac_define_frame_cursor): Don't change pointer shape
+	for unfocused frame.
+	(x_raise_frame): Call BringToFront instead of SelectWindow.
+	(x_lower_frame): Use NULL instead of nil.
+	(x_make_frame_visible): Don't call SelectWindow.
+	(XTread_socket): Increment handling_signal at the start, decrement
+	it at the end.
+	[USE_CG_TEXT_DRAWING] (init_cg_text_anti_aliasing_threshold): Use
+	CFPreferencesGetAppIntegerValue instead of Fmac_get_preference.
+
+2006-02-10  Kim F. Storm  <storm@cua.dk>
+
+	* data.c (Findirect_function): Add NOERROR arg.  All callers changed
+	to pass Qnil for NOERROR.
+
+	* keymap.c (current_minor_maps_error): Remove.
+	(current_minor_maps): Pass Qt for NOERROR to Findirect_function
+	instead of using internal_condition_case_1+current_minor_maps_error.
+
+2006-02-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Must note mouse movement even for nil
+	frames for GTK, in that case it is the tool bar.  This is so that
+	highlighted text get reset properly.
+
+2006-02-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* alloc.c (Fmake_bool_vector, Fpurecopy): Doc fixes.
+
+2006-02-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* window.c (adjust_window_trailing_edge): Check that shrinking
+	does not set a window to size zero or less.
+
+2006-02-08  Miles Bader  <miles@gnu.org>
+
+	* editfns.c (Fconstrain_to_field): Use Fget_char_property instead
+	of Fget_text_property (other field functions work with overlays as
+	well as text-properties).
+
+2006-02-07  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (unibyte_display_via_language_environment): Extern it.
+
+	* xterm.h (unibyte_display_via_language_environment):
+	* w32term.h (unibyte_display_via_language_environment):
+	* macterm.h (unibyte_display_via_language_environment): Delete extern.
+
+2006-02-07  Kenichi Handa  <handa@m17n.org>
+
+	* term.c (append_glyph): Refer to it->char_to_display instead of it->c.
+	(produce_glyphs): Set the character to print in
+	it->char_to_display.  Handle unibyte-display-via-language-environment.
+	(produce_stretch_glyph): Set character to print in it->char_to_display.
+
+2006-02-06  Kenichi Handa  <handa@m17n.org>
+
+	* lread.c (openp): Initialize encoded_fn before GCPRO it.
+
 2006-02-05  Ken Raeburn  <raeburn@raeburn.org>
 
 	* editfns.c (Fconstrain_to_field): Fix int/Lisp_Object mixup.
@@ -22409,7 +22496,8 @@ See ChangeLog.9 for earlier changes.
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+    Copyright (C) 2001, 2002, 2003, 2004, 2005,
+	2006 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

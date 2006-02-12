@@ -4,7 +4,8 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006 
+;; Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -77,16 +78,9 @@
 ;;; TODO:
 
 ;; 1) Use MI command -data-read-memory for memory window.
-;; 2) Highlight changed register values (use MI commands
-;;    -data-list-register-values and -data-list-changed-registers instead
-;;    of 'info registers' after release of 22.1.
-;; 3) Use tree-widget.el instead of the speedbar for watch-expressions?
-;; 4) Mark breakpoint locations on scroll-bar of source buffer?
-;; 5) After release of 22.1, use "-var-list-children --all-values"
-;;    and "-stack-list-locals --simple-values" which need GDB 6.1 onwards.
-;; 6) After release of 22.1, use "-var-update --all-values" which needs
-;;    GDB 6.4 onwards.
-;; 7) With gud-print and gud-pstar, print the variable name in the GUD
+;; 2) Use tree-widget.el instead of the speedbar for watch-expressions?
+;; 3) Mark breakpoint locations on scroll-bar of source buffer?
+;; 4) With gud-print and gud-pstar, print the variable name in the GUD
 ;;    buffer instead of the value's history number.
 
 ;;; Code:
@@ -1192,6 +1186,8 @@ happens to be appropriate."
   (unless (or gdb-pending-triggers gdb-first-post-prompt)
     (gdb-get-selected-frame)
     (gdb-invalidate-frames)
+    ;; Regenerate breakpoints buffer in case it has been inadvertantly deleted.
+    (gdb-get-create-buffer 'gdb-breakpoints-buffer)
     (gdb-invalidate-breakpoints)
     ;; Do this through gdb-get-selected-frame -> gdb-frame-handler
     ;; so gdb-frame-address is updated.
@@ -1645,11 +1641,18 @@ static char *magick[] = {
     (define-key map [menu-bar breakpoints] (cons "Breakpoints" menu))
     (define-key map " " 'gdb-toggle-breakpoint)
     (define-key map "D" 'gdb-delete-breakpoint)
-    (define-key map "q" 'kill-this-buffer)
+    ;; Don't bind "q" to kill-this-buffer as we need it for breakpoint icons.
+    (define-key map "q" 'gdb-delete-frame-or-window)
     (define-key map "\r" 'gdb-goto-breakpoint)
     (define-key map [mouse-2] 'gdb-goto-breakpoint)
     (define-key map [follow-link] 'mouse-face)
     map))
+
+(defun gdb-delete-frame-or-window ()
+  "Delete frame if there is only one window.  Otherwise delete the window."
+  (interactive)
+  (if (one-window-p) (delete-frame)
+    (delete-window)))
 
 (defun gdb-breakpoints-mode ()
   "Major mode for gdb breakpoints.
@@ -2965,6 +2968,35 @@ BUFFER nil or omitted means use the current buffer."
       (setq gdb-current-language (match-string 1)))
   (gdb-invalidate-assembler))
 
+
+;; For debugging Emacs only (assumes that usual stack buffer already exists).
+(defun gdb-xbacktrace ()
+  "Generate a full lisp level backtrace with arguments."
+  (interactive)
+  (setq my-frames nil)
+  (with-current-buffer (get-buffer-create "xbacktrace")
+    (erase-buffer))
+  (let (frame-number gdb-frame-number)
+    (with-current-buffer (gdb-get-buffer 'gdb-stack-buffer)
+      (save-excursion
+	(goto-char (point-min))
+	(while (search-forward "in Ffuncall " nil t)
+	  (goto-char (line-beginning-position))
+	  (looking-at "^#\\([0-9]+\\)")
+	  (push (match-string-no-properties 1) my-frames)
+	  (forward-line 1))))
+    (dolist (frame my-frames)
+      (gdb-enqueue-input (list (concat "server frame " frame "\n")
+			       'ignore))
+;    (gdb-enqueue-input (list "server ppargs\n" 'gdb-get-arguments))
+      (gud-basic-call "server ppargs")
+)
+    (gdb-enqueue-input (list (concat "server frame " frame-number "\n")
+			     'ignore))))
+    
+(defun gdb-get-arguments ()
+  (with-current-buffer "xbacktrace"
+    (insert-buffer-substring (gdb-get-buffer 'gdb-partial-output-buffer))))
 
 ;; Code specific to GDB 6.4
 (defconst gdb-source-file-regexp-1 "fullname=\"\\(.*?\\)\"")

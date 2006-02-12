@@ -1,6 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2179,7 +2179,7 @@ EXFUN (Fsymbol_function, 1);
 EXFUN (Fsymbol_plist, 1);
 EXFUN (Fsymbol_name, 1);
 extern Lisp_Object indirect_function P_ ((Lisp_Object));
-EXFUN (Findirect_function, 1);
+EXFUN (Findirect_function, 2);
 EXFUN (Ffset, 2);
 EXFUN (Fsetplist, 2);
 EXFUN (Fsymbol_value, 1);

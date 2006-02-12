@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001,
-@c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/display
 @node Display, System Interface, Processes, Top
@@ -126,7 +126,7 @@ the rightmost column indicates a line that ``wraps'' onto the next line,
 which is also called @dfn{continuing} the line.  (The display table can
 specify alternative indicators; see @ref{Display Tables}.)
 
-  On a window system display, the @samp{$} and @samp{\} indicators are
+  On a graphical display, the @samp{$} and @samp{\} indicators are
 replaced with arrow images displayed in the window fringes
 (@pxref{Fringes}).
 
@@ -1651,13 +1651,13 @@ parts of Emacs text.
 However, if the variable @code{default-line-spacing} is
 non-@code{nil}, it overrides the frame's @code{line-spacing}
 parameter.  An integer value specifies the number of pixels put below
-lines on window systems.  A floating point number specifies the
+lines on graphical displays.  A floating point number specifies the
 spacing relative to the frame's default line height.
 
 @vindex line-spacing
   You can specify the line spacing for all lines in a buffer via the
 buffer-local @code{line-spacing} variable.  An integer value specifies
-the number of pixels put below lines on window systems.  A floating
+the number of pixels put below lines on graphical displays.  A floating
 point number specifies the spacing relative to the default frame line
 height.  This overrides line spacings specified for the frame.
 
@@ -4603,9 +4603,9 @@ command @code{tab-to-tab-stop}.  @xref{Indent Tabs}.
 @tindex indicate-empty-lines
 @cindex fringes, and empty line indication
 When this is non-@code{nil}, Emacs displays a special glyph in the
-fringe of each empty line at the end of the buffer, on terminals that
-support it (window systems).  @xref{Fringes}.
-This variable is automatically buffer-local in every buffer.
+fringe of each empty line at the end of the buffer, on graphical
+displays.  @xref{Fringes}.  This variable is automatically
+buffer-local in every buffer.
 @end defopt
 
 @defvar indicate-buffer-boundaries
@@ -4854,7 +4854,7 @@ on character terminals.  On graphical displays, all glyphs are simple.
 @item @var{string}
 Send the characters in @var{string} to the terminal to output
 this glyph.  This alternative is available on character terminals,
-but not under a window system.
+but not on graphical displays.
 
 @item @var{integer}
 Define this glyph code as an alias for glyph code @var{integer}.  You
@@ -4896,7 +4896,7 @@ This is a synonym for @code{ding}.
 @defopt visible-bell
 This variable determines whether Emacs should flash the screen to
 represent a bell.  Non-@code{nil} means yes, @code{nil} means no.  This
-is effective on a window system, and on a character-only terminal
+is effective on graphical displays, and on text-only terminals
 provided the terminal's Termcap entry defines the visible bell
 capability (@samp{vb}).
 @end defopt

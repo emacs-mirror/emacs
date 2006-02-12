@@ -1,7 +1,7 @@
 ;;; generic-x.el --- A collection of generic modes
 
 ;; Copyright (C) 1997, 1998, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Tue Oct 08 1996
@@ -1706,6 +1706,8 @@ like an INI file.  You can add this hook to `find-file-hook'."
     "reiserfs"
     "romfs"
     "smbfs"
+    "cifs"
+    "usbdevfs"
     "sysv"
     "tmpfs"
     "udf"
@@ -1717,7 +1719,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
     "swap"
     "auto"
     "ignore")
-  '(("^\\([/-A-Za-z0-9_]+\\)\\s-+\\([/-A-Za-z0-9_]+\\)"
+  '(("^\\([^# \t]+\\)\\s-+\\([^# \t]+\\)"
      (1 font-lock-type-face t)
      (2 font-lock-variable-name-face t)))
   '("/etc/[v]*fstab\\'")
@@ -1725,7 +1727,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
    (function
     (lambda ()
       (setq imenu-generic-expression
-	    '((nil "^\\([/-A-Za-z0-9_]+\\)\\s-+" 1))))))))
+	    '((nil "^\\([^# \t]+\\)\\s-+" 1))))))))
 
 ;; From Jacques Duthen <jacques.duthen@sncf.fr>
 (when (memq 'show-tabs-generic-mode generic-extras-enable-list)

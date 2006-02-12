@@ -1,7 +1,7 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
-                 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4286,6 +4286,14 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
 	{
 	  if (!NILP (XWINDOW (window)->next))
 	    {
+              /* This may happen for the minibuffer.  In that case
+                 the window_deletion_count check below does not work.  */
+              if (XINT (CURSIZE (p->next)) - delta <= 0) 
+                {
+                  Fset_window_configuration (old_config);
+                  error ("Cannot adjust window size as specified");
+                }
+
 	      XSETINT (CURBEG (p->next),
 		       XINT (CURBEG (p->next)) + delta);
 	      size_window (p->next, XINT (CURSIZE (p->next)) - delta,

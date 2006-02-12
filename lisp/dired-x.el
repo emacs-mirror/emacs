@@ -8,7 +8,7 @@
 ;; Keywords: dired extensions files
 
 ;; Copyright (C) 1993, 1994, 1997, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1027,11 +1027,11 @@ dired."
                   " " dired-guess-shell-znew-switches))
 
    ;; The following four extensions are useful with dired-man ("N" key)
-   (list "\\.[0-9]$" '(progn (require 'man)
+   (list "\\.\\(?:[0-9]\\|man\\)$" '(progn (require 'man)
                              (if (Man-support-local-filenames)
                                  "man -l"
                                "cat * | tbl | nroff -man -h")))
-   (list "\\.[0-9]\\.g?z$" '(progn (require 'man)
+   (list "\\.\\(?:[0-9]\\|man\\)\\.g?z$" '(progn (require 'man)
                                    (if (Man-support-local-filenames)
                                        "man -l"
                                      "gunzip -qc * | tbl | nroff -man -h"))

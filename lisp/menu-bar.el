@@ -1,7 +1,7 @@
 ;;; menu-bar.el --- define a default menu bar
 
 ;; Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
@@ -1502,6 +1502,8 @@ for the definition of the menu frame."
 
 (put 'menu-bar-select-yank 'apropos-inhibit t)
 (defun menu-bar-select-yank ()
+  "Insert the stretch of previously-killed text selected from menu.
+The menu shows all the killed text sequences stored in `kill-ring'."
   (interactive "*")
   (push-mark (point))
   (insert last-command-event))

@@ -1,7 +1,7 @@
 ;;; mwheel.el --- Wheel mouse support
 
 ;; Copyright (C) 1998, 2000, 2001, 2002, 2002, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 ;; Maintainer: William M. Perry <wmperry@gnu.org>
 ;; Keywords: mouse
 
@@ -77,7 +77,7 @@
       'wheel-down
     (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
 		    mouse-wheel-up-button)))
-  "Event used for scrolling down."
+  "Event used for scrolling up."
   :group 'mouse
   :type 'symbol
   :set 'mouse-wheel-change-button)

@@ -268,7 +268,7 @@ with codes 128 through 255 can also appear in multibyte buffers.
 
   If you disable multibyte characters, then you can use only one
 alphabet of non-@acronym{ASCII} characters, but they all fit in one byte.  They
-use codes 0200 through 0377.  @xref{Single-Byte Character Support}.
+use codes 0200 through 0377.  @xref{Unibyte Mode}.
 
 @ifnottex
 @lowersections

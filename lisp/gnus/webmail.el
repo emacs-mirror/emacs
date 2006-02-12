@@ -637,7 +637,7 @@
 	  (goto-char (point-min))
 	  (delete-blank-lines)
 	  (setq ct (mail-fetch-field "content-type")
-		ctl (ignore-errors (mail-header-parse-content-type ct))
+		ctl (and ct (mail-header-parse-content-type ct))
 		;;cte (mail-fetch-field "content-transfer-encoding")
 		cd (mail-fetch-field "content-disposition")
 		description (mail-fetch-field "content-description")

@@ -1,7 +1,7 @@
 ;;; ido.el --- interactively do things with buffers and files.
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005 Free Software Foundation, Inc.
+;;   2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Based on: iswitchb by Stephen Eglen <stephen@cns.ed.ac.uk>
@@ -2022,9 +2022,10 @@ If INITIAL is non-nil, it specifies the initial input string."
 	(if (eq method 'insert)
 	    (progn
 	      (ido-record-command 'insert-buffer buf)
-	      (with-no-warnings
-		;; we really want to run insert-buffer here
-		(insert-buffer buf)))
+	      (push-mark
+	       (save-excursion
+		 (insert-buffer-substring (get-buffer buf))
+		 (point))))
 	  (ido-visit-buffer buf method t)))
 
        ;; buffer doesn't exist
@@ -2225,9 +2226,10 @@ If INITIAL is non-nil, it specifies the initial input string."
 	 (if ido-find-literal 'insert-file-literally 'insert-file)
 	 filename)
 	(ido-record-work-directory)
-	(if ido-find-literal
-	    (insert-file-contents-literally filename)
-	  (insert-file-contents filename)))
+	(insert-file-1 filename
+		       (if ido-find-literal
+			   #'insert-file-contents-literally
+			 #'insert-file-contents)))
 
        (filename
 	(ido-record-work-file filename)

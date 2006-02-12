@@ -1,8 +1,8 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MS Windows 95/98/Me and NT/2000/XP
-rem   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005
-rem      Free Software Foundation, Inc.
+rem   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+rem      2006 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 

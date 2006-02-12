@@ -1716,6 +1716,22 @@ all channel buffers on all servers."
   "Used to keep track of how many times an attempt at changing nick is made.")
 (make-variable-buffer-local 'erc-nick-change-attempt-count)
 
+(defun erc-migrate-modules (mods)
+  "Migrate old names of ERC modules to new ones."
+  ;; modify `transforms' to specify what needs to be changed
+  ;; each item is in the format '(new .old)
+  (let ((transforms '((pcomplete . completion)))
+	(modules (copy-alist mods)))
+    (dolist (transform transforms)
+      (let ((addp nil))
+	(setq modules (erc-delete-if `(lambda (val)
+					(and (eq val ',(car transform))
+					     (setq addition t)))
+				     modules))
+	(when addp
+	  (add-to-list 'modules (cdr transform)))))
+    (erc-delete-dups modules)))
+
 (defcustom erc-modules '(netsplit fill button match track pcomplete readonly
 				  ring autojoin noncommands irccontrols
 				  stamp)
@@ -1723,6 +1739,9 @@ all channel buffers on all servers."
 If you set the value of this without using `customize' remember to call
 \(erc-update-modules) after you change it.  When using `customize', modules
 removed from the list will be disabled."
+  :get (lambda (sym)
+	 ;; replace outdated names with their newer equivalents
+	 (erc-migrate-modules (symbol-value sym)))
   :set (lambda (sym val)
 	 ;; disable modules which have just been removed
 	 (when (and (boundp 'erc-modules) erc-modules val)
@@ -1732,7 +1751,7 @@ removed from the list will be disabled."
 		 (when (and (fboundp f) (boundp f) (symbol-value f))
 		   (message "Disabling `erc-%s'" module)
 		   (funcall f 0))))))
-	 (set-default sym val)
+	 (set sym val)
 	 ;; this test is for the case where erc hasn't been loaded yet
 	 (when (fboundp 'erc-update-modules)
 	   (erc-update-modules)))
@@ -1753,8 +1772,8 @@ removed from the list will be disabled."
 		     "Notify when the online status of certain users changes"
 		     notify)
 	      (const :tag "Complete nicknames and commands (programmable)"
-		     pcomplete)
-	      (const :tag "Complete nicknames and commands (old)" completion)
+		     completion)
+	      (const :tag "Complete nicknames and commands (old)" hecomplete)
 	      (const :tag "Make displayed lines read-only" readonly)
 	      (const :tag "Replace text in messages" replace)
 	      (const :tag "Enable an input history" ring)
@@ -1781,10 +1800,13 @@ removed from the list will be disabled."
        ;; yuck. perhaps we should bring the filenames into sync?
        ((string= req "erc-completion")
 	(setq req "erc-pcomplete")
-	(setq mod 'pcomplete))
-       ((string= req "erc-services")
-	(setq req "erc-nickserv")
-	(setq mod 'services)))
+	(setq mod 'completion))
+       ((string= req "erc-pcomplete")
+	(setq req "erc-pcomplete")
+	(setq mod 'completion))
+       ((string= req "erc-autojoin")
+	(setq req "erc-join")
+	(setq mod 'autojoin)))
       (condition-case nil
 	  (require (intern req))
 	(error nil))
@@ -3140,12 +3162,6 @@ the message given by REASON."
   "Say the current ERC modes into channel."
   (erc-send-message (format "I'm using the following modules: %s!"
 			    (erc-modes)))
-  t)
-
-(defun erc-cmd-SMV ()
-  "Say the current ERC module versions into channel."
-  (erc-send-message (format "I'm using the following module revisions: %s!"
-			    (erc-version-modules)))
   t)
 
 (defun erc-cmd-DEOP (&rest people)

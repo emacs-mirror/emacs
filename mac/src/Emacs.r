@@ -1,6 +1,6 @@
 /* Resource definitions for GNU Emacs on the Macintosh.
    Copyright (C) 1999, 2000, 2002, 2003, 2004,
-      2005 Free Software Foundation, Inc.
+      2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -222,7 +222,7 @@ resource 'vers' (1) {
 	50,		/* Non-final release # */
 	0,		/* Region code */
 	"22.0.50",	/* Short version number */
-	"22.0.50, Copyright \0xa9 2005 "
+	"22.0.50, Copyright \0xa9 2006 "
 	"Free Software Foundation, Inc." /* Long version number */
 };
 

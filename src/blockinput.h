@@ -1,6 +1,6 @@
 /* blockinput.h - interface to blocking complicated interrupt-driven input.
    Copyright (C) 1989, 1993, 2002, 2003, 2004,
-                 2005 Free Software Foundation, Inc.
+                 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

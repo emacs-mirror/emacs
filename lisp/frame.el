@@ -1,7 +1,7 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
 ;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005 Free Software Foundation, Inc.
+;;   2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -769,7 +769,7 @@ automatically."
     (select-frame frame)
     (raise-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
-    (cond ((eq (window-system frame) 'x)
+    (cond ((memq (window-system frame) '(x max))
 	   (x-focus-frame frame))
 	  ((eq (window-system frame) 'w32)
 	   (w32-focus-frame frame)))

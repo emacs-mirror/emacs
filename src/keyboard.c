@@ -1,7 +1,7 @@
 /* Keyboard and mouse input; editor command loop.
    Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995,
                  1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005 Free Software Foundation, Inc.
+                 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -632,6 +632,11 @@ static EMACS_TIME timer_idleness_start_time;
    of timer_idleness_start_time from when it was idle.  */
 
 static EMACS_TIME timer_last_idleness_start_time;
+
+/* If non-nil, events produced by disabled menu items and tool-bar
+   buttons are not ignored.  Help functions bind this to allow help on
+   those items and buttons.  */
+Lisp_Object Venable_disabled_menus_and_buttons;
 
 
 /* Global variable declarations.  */
@@ -7453,7 +7458,9 @@ parse_menu_item (item, notreal, inmenubar)
       if (SYMBOLP (item))
 	{
 	  tem = Fget (item, Qmenu_enable);
-	  if (!NILP (tem))
+	  if (!NILP (Venable_disabled_menus_and_buttons))
+	    AREF (item_properties, ITEM_PROPERTY_ENABLE) = Qt;
+	  else if (!NILP (tem))
 	    AREF (item_properties, ITEM_PROPERTY_ENABLE) = tem;
 	}
     }
@@ -7482,7 +7489,12 @@ parse_menu_item (item, notreal, inmenubar)
 	      item = XCDR (item);
 
 	      if (EQ (tem, QCenable))
-		AREF (item_properties, ITEM_PROPERTY_ENABLE) = XCAR (item);
+		{
+		  if (!NILP (Venable_disabled_menus_and_buttons))
+		    AREF (item_properties, ITEM_PROPERTY_ENABLE) = Qt;
+		  else
+		    AREF (item_properties, ITEM_PROPERTY_ENABLE) = XCAR (item);
+		}
 	      else if (EQ (tem, QCvisible) && !notreal)
 		{
 		  /* If got a visible property and that evaluates to nil
@@ -8002,8 +8014,13 @@ parse_tool_bar_item (key, item)
       value = XCAR (XCDR (item));
 
       if (EQ (key, QCenable))
-	/* `:enable FORM'.  */
-	PROP (TOOL_BAR_ITEM_ENABLED_P) = value;
+	{
+	  /* `:enable FORM'.  */
+	  if (!NILP (Venable_disabled_menus_and_buttons))
+	    PROP (TOOL_BAR_ITEM_ENABLED_P) = Qt;
+	  else
+	    PROP (TOOL_BAR_ITEM_ENABLED_P) = value;
+	}
       else if (EQ (key, QCvisible))
 	{
 	  /* `:visible FORM'.  If got a visible property and that
@@ -9907,7 +9924,7 @@ a special event, so ignore the prefix argument and don't clear it.  */)
 
   while (1)
     {
-      final = Findirect_function (cmd);
+      final = Findirect_function (cmd, Qnil);
 
       if (CONSP (final) && (tem = Fcar (final), EQ (tem, Qautoload)))
 	{
@@ -11934,6 +11951,14 @@ If the value is not a number, such messages don't time out.  */);
 The value of that variable is passed to `quit-flag' and later causes a
 peculiar kind of quitting.  */);
   Vthrow_on_input = Qnil;
+
+  DEFVAR_LISP ("enable-disabled-menus-and-buttons",
+	       &Venable_disabled_menus_and_buttons,
+	       doc: /* If non-nil, don't ignore events produced by disabled menu items and tool-bar.
+
+Help functions bind this to allow help on disabled menu items
+and tool-bar buttons.  */);
+  Venable_disabled_menus_and_buttons = Qnil;
 }
 
 void

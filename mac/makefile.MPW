@@ -1,6 +1,6 @@
 #    Make file for building GNU Emacs on the Macintosh.
 #    Copyright (C) 1999, 2000, 2002, 2003, 2004,
-#       2005 Free Software Foundation, Inc.
+#       2005, 2006 Free Software Foundation, Inc.
 #
 #    Author: Andrew Choi <akochoi@users.sourceforge.net>
 #
@@ -1039,6 +1039,7 @@ shortlisp = ¶
 	{Lisp}help.elc ¶
 	{Lisp}indent.elc ¶
 	{Lisp}isearch.elc ¶
+	{Lisp}rfn-eshadow.elc ¶
 	{Lisp}loadup.el ¶
 	{Lisp}loaddefs.el ¶
 	{Lisp}bindings.elc ¶
@@ -1113,9 +1114,13 @@ SOME_MACHINE_LISP = {Lisp}mouse.elc ¶
   {Lisp}ls-lisp.elc {Lisp}dos-fns.elc ¶
   {Lisp}w32-fns.elc {Lisp}dos-w32.elc ¶
   {Lisp}disp-table.elc {Lisp}dos-vars.elc ¶
-  {Lisp}tooltip.elc ¶
+  {Lisp}tooltip.elc {Lisp}image.elc ¶
+  {Lisp}dnd.elc {Lisp}mwheel.elc ¶
+  {Lisp}tool-bar.elc ¶
+  {Lisp}x-dnd.elc ¶
   {Lisp}international:ccl.elc ¶
-  {Lisp}international:codepage.elc
+  {Lisp}international:codepage.elc ¶
+  {Lisp}international:fontset.elc
 
 Doc Ä {DocTarget}DOC
 

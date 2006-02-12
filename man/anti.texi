@@ -107,7 +107,7 @@ source code, grep for it.
 
 @item
 The apropos commands will not accept a list of words to match, in
-order to encourage users to be more specific.  Also, the user option
+order to encourage you to be more specific.  Also, the user option
 @code{apropos-sort-by-scores} has been removed.
 
 @item

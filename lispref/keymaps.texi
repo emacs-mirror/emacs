@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999, 2000, 2002, 2003,
-@c   2004, 2005 Free Software Foundation, Inc.
+@c   2004, 2005, 2006 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/keymaps
 @node Keymaps, Modes, Command Loop, Top
@@ -933,8 +933,10 @@ is a keymap, and is treated as a keymap (see above).
 @item
 @cindex @code{lambda} in keymap
 If the @sc{car} of @var{list} is @code{lambda}, then the list is a
-lambda expression.  This is presumed to be a command, and is treated as
-such (see above).
+lambda expression.  This is presumed to be a function, and is treated
+as such (see above).  In order to execute properly as a key binding,
+this function must be a command---it must have an @code{interactive}
+specification.  @xref{Defining Commands}.
 
 @item
 If the @sc{car} of @var{list} is a keymap and the @sc{cdr} is an event
@@ -1282,9 +1284,9 @@ default global map.
 
   The function @code{substitute-key-definition} scans a keymap for
 keys that have a certain binding and rebinds them with a different
-binding.  Another feature you can use for similar effects, but which
-is often cleaner, is to add a binding that remaps a command
-(@pxref{Remapping Commands}).
+binding.  Another feature which is cleaner and can often produce the
+same results to remap one command into another (@pxref{Remapping
+Commands}).
 
 @defun substitute-key-definition olddef newdef keymap &optional oldmap
 @cindex replace bindings

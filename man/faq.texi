@@ -9,6 +9,10 @@
 @c This is used in many places
 @set VER 22.1
 
+@c This file is maintained by Romain Francoise <rfrancoise@gnu.org>.
+@c Feel free to install changes without prior permission (but I'd
+@c appreciate a notice if you do).
+
 @copying
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 Copyright 1994,1995,1996,1997,1998,1999,2000 Reuven M. Lerner@*
@@ -55,12 +59,9 @@ distribution.]
 
 This is the GNU Emacs FAQ, last updated on @today{}.
 
-The FAQ is maintained as a Texinfo document, allowing us to create HTML,
-Info, and TeX documents from a single source file, and is slowly but
-surely being improved.  Please bear with us as we improve on this
-format.  This FAQ is maintained as a part of GNU Emacs.  If you find
-any errors, or have any suggestions, please use @kbd{M-x report-emacs-bug}
-to report them.
+This FAQ is maintained as a part of GNU Emacs.  If you find any errors,
+or have any suggestions, please use @kbd{M-x report-emacs-bug} to report
+them.
 
 @menu
 * FAQ notation::
@@ -1173,6 +1174,8 @@ In addition, Emacs 22 now includes the Emacs Lisp Reference Manual
 * Highlighting a region::
 * Controlling case sensitivity::
 * Wrapping words automatically::
+* Searching for/replacing newlines::
+* Yanking text in isearch::
 * Spell-checkers::
 * Checking TeX and *roff documents::
 * Changing load-path::
@@ -1191,7 +1194,7 @@ In addition, Emacs 22 now includes the Emacs Lisp Reference Manual
 * Valid X resources::
 * Evaluating Emacs Lisp code::
 * Changing the length of a Tab::
-* Inserting > at the beginning of each line::
+* Inserting text at the beginning of each line::
 * Underlining paragraphs::
 * Repeating a command as many times as possible::
 * Forcing the cursor to remain in the same column::
@@ -1530,7 +1533,7 @@ including
 in your @file{.emacs} file.  (Also see @ref{Turning on syntax
 highlighting}.)
 
-@node Controlling case sensitivity, Wrapping words automatically, Highlighting a region, Common requests
+@node Controlling case sensitivity, Searching for/replacing newlines, Highlighting a region, Common requests
 @section How do I control Emacs's case-sensitivity when searching/replacing?
 @cindex @code{case-fold-search}
 @cindex Case sensitivity of searches
@@ -1562,7 +1565,23 @@ mode's hook.  For example:
            (setq case-fold-search nil)))
 @end lisp
 
-@node Wrapping words automatically, Spell-checkers, Controlling case sensitivity, Common requests
+@node Searching for/replacing newlines, Yanking text in isearch, Controlling case sensitivity, Common requests
+@section How do I input a newline character in isearch or query-replace?
+@cindex Searching for newlines
+@cindex Replacing newlines
+
+Use @kbd{C-q C-j}.  For more information, see @inforef{Special Isearch,
+Special Input for Incremental Search, emacs}.
+
+
+@node Yanking text in isearch, Wrapping words automatically, Searching for/replacing newlines, Common requests
+@section How do I copy text from the kill ring into the search string?
+@cindex Yanking text into the search string
+@cindex isearch yanking
+
+Use @kbd{M-y}.  @inforef{Isearch Yank, Isearch Yanking, emacs}.
+
+@node Wrapping words automatically, Spell-checkers, Yanking text in isearch, Common requests
 @section How do I make Emacs wrap words for me?
 @cindex Wrapping word automatically
 @cindex Wrapping lines
@@ -2098,7 +2117,7 @@ about them.
 
 @end itemize
 
-@node Changing the length of a Tab, Inserting > at the beginning of each line, Evaluating Emacs Lisp code, Common requests
+@node Changing the length of a Tab, Inserting text at the beginning of each line, Evaluating Emacs Lisp code, Common requests
 @section How do I change Emacs's idea of the @key{TAB} character's length?
 @cindex Tab length
 @cindex Length of tab character
@@ -2117,8 +2136,9 @@ Do not confuse variable @code{tab-width} with variable
 @key{TAB} characters.  The latter controls what characters are inserted
 when you press the @key{TAB} character in certain modes.
 
-@node Inserting > at the beginning of each line, Underlining paragraphs, Changing the length of a Tab, Common requests
-@section How do I insert @samp{>} at the beginning of every line?
+@node Inserting text at the beginning of each line, Underlining paragraphs, Changing the length of a Tab, Common requests
+@section How do I insert <some text> at the beginning of every line?
+@cindex Prefixing a region with some text
 @cindex Prefix character, inserting in mail/news replies
 @cindex Replies to mail/news, inserting a prefix character
 @cindex @code{mail-yank-prefix}
@@ -2126,7 +2146,7 @@ when you press the @key{TAB} character in certain modes.
 @cindex News replies, inserting a prefix character
 
 To do this to an entire buffer, type @kbd{M-< M-x replace-regexp
-@key{RET} ^ @key{RET} > @key{RET}}.
+@key{RET} ^ @key{RET} your text @key{RET}}.
 
 To do this to a region, use @code{string-insert-rectangle}.
 Set the mark (@kbd{C-@key{SPC}}) at the beginning of the first line you
@@ -2135,13 +2155,12 @@ want to prefix, move the cursor to last line to be prefixed, and type
 buffer, type @kbd{C-x h M-x string-insert-rectangle @key{RET}}.
 
 If you are trying to prefix a yanked mail message with @samp{>}, you
-might want to set the variable @code{mail-yank-prefix}.  Better yet, use
-the Supercite package (@pxref{Supercite}), which provides flexible
-citation for yanked mail and news messages; it is included in Emacs
-since version 19.20.  @xref{Changing the included text prefix}, for
-additional information.
+might want to set the variable @code{mail-yank-prefix}.  In Message
+buffers, you can even use @kbd{M-;} to cite yanked messages (@kbd{M-;}
+runs the function @code{comment-region}, it is a general-purpose
+mechanism to comment regions).
 
-@node Underlining paragraphs, Repeating a command as many times as possible, Inserting > at the beginning of each line, Common requests
+@node Underlining paragraphs, Repeating a command as many times as possible, Inserting text at the beginning of each line, Common requests
 @section How do I insert @samp{_^H} before each character in a region to get an underlined paragraph?
 @cindex Underlining a region of text
 @cindex @code{underline-region}
@@ -3754,7 +3773,7 @@ Java code.  It is distributed with Emacs, but has
 @email{kyle_jones@@wonderworks.com, Kyle Jones}
 
 @item Latest version
-7.15
+7.19
 
 @item Distribution
 @uref{ftp://ftp.wonderworks.com/pub/vm/vm.tar.gz}
@@ -4675,8 +4694,7 @@ terminals.  Non-@acronym{ASCII} keys and mouse events (e.g. @kbd{C-=} and
 @cindex @key{Meta} key and @code{xterm}
 @cindex Xterm and @key{Meta} key
 
-@inforef{Single-Byte Character Support, Single-Byte Character Set
-Support, emacs}.
+@inforef{Unibyte Mode, Single-Byte Character Set Support, emacs}.
 
 If the advice in the Emacs manual fails, try all of these methods before
 asking for further help:
@@ -4776,10 +4794,10 @@ You can get the old behavior by binding @kbd{SPC} to
 @code{minibuffer-complete-word} in the minibuffer, as follows:
 
 @lisp
-(define-key minibuffer-local-filename-completion-map (kbd "SPC") 
+(define-key minibuffer-local-filename-completion-map (kbd "SPC")
   'minibuffer-complete-word)
 
-(define-key minibuffer-local-must-match-filename-map (kbd "SPC") 
+(define-key minibuffer-local-must-match-filename-map (kbd "SPC")
   'minibuffer-complete-word)
 @end lisp
 
@@ -4800,7 +4818,7 @@ You can get the old behavior by binding @kbd{SPC} to
 @cindex Displaying eight-bit characters
 @cindex Eight-bit characters, displaying
 
-@inforef{Single-Byte Character Support, Single-byte Character Set
+@inforef{Unibyte Mode, Single-byte Character Set
 Support, emacs}.  On a Unix, when Emacs runs on a text-only terminal
 display or is invoked with @samp{emacs -nw}, you typically need to use
 @code{set-terminal-coding-system} to tell Emacs what the terminal can
@@ -4817,7 +4835,7 @@ terminal coding system automatically.
 @cindex Input, 8-bit characters
 
 Various methods are available for input of eight-bit characters.  See
-@inforef{Single-Byte Character Support, Single-byte Character Set
+@inforef{Unibyte Mode, Single-byte Character Set
 Support, emacs}.  For more sophisticated methods, @inforef{Input
 Methods, Input Methods, emacs}.
 

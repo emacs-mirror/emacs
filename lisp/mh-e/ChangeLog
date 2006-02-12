@@ -1,3 +1,22 @@
+2006-02-10  Bill Wohler  <wohler@newt.com>
+
+	* mh-search.el (mh-search): Wrap code in (block mh-search ...)
+	rather than use defun*. XEmacs cannot create a proper autoload for
+	a defun*.
+
+2006-02-09  Bill Wohler  <wohler@newt.com>
+
+	* mh-utils.el (mh-folder-list): Don't replace "/*$" with "/" since
+	that causes an infinite loop on XEmacs.
+
+	* mh-compat.el(mh-replace-regexp-in-string): Add missing regexp
+	argument.
+
+2006-02-08  Peter S Galbraith  <psg@debian.org>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Added entries
+	"X-BrightmailFiltered:", "X-Brightmail-Tracker:" and "X-Hashcash"
+
 2006-02-04  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-inc-spool-list): Update example for Emacs 22 which

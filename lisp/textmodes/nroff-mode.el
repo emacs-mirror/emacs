@@ -42,8 +42,9 @@
   :group 'wp
   :prefix "nroff-")
 
+
 (defcustom nroff-electric-mode nil
-  "*Non-nil means automatically closing requests when you insert an open."
+  "Non-nil means automatically closing requests when you insert an open."
   :group 'nroff
   :type 'boolean)
 
@@ -51,10 +52,10 @@
   (let ((map (make-sparse-keymap)))
     (define-key map "\t"  'tab-to-tab-stop)
     (define-key map "\es" 'center-line)
-    (define-key map "\e?" 'count-text-lines)
-    (define-key map "\n"  'electric-nroff-newline)
-    (define-key map "\en" 'forward-text-line)
-    (define-key map "\ep" 'backward-text-line)
+    (define-key map "\e?" 'nroff-count-text-lines)
+    (define-key map "\n"  'nroff-electric-newline)
+    (define-key map "\en" 'nroff-forward-text-line)
+    (define-key map "\ep" 'nroff-backward-text-line)
     map)
   "Major mode keymap for `nroff-mode'.")
 
@@ -66,7 +67,7 @@
     (modify-syntax-entry ?\" "\"  2" st)
     ;; Comments are delimited by \" and newline.
     (modify-syntax-entry ?\\ "\\  1" st)
-    (modify-syntax-entry ?\n ">  1" st)
+    (modify-syntax-entry ?\n ">" st)
     st)
   "Syntax table used while in `nroff-mode'.")
 
@@ -116,7 +117,6 @@ closing requests for requests that are used in matched pairs."
        ;; near the end of large buffers due to searching to buffer's
        ;; beginning.
        '(nroff-font-lock-keywords nil t nil backward-paragraph))
-  (set (make-local-variable 'nroff-electric-mode) nil)
   (set (make-local-variable 'outline-regexp) "\\.H[ ]+[1-7]+ ")
   (set (make-local-variable 'outline-level) 'nroff-outline-level)
   ;; now define a bunch of variables for use by commands in this mode
@@ -138,8 +138,8 @@ closing requests for requests that are used in matched pairs."
     (skip-chars-forward ".H ")
     (string-to-number (buffer-substring (point) (+ 1 (point))))))
 
-;;; Compute how much to indent a comment in nroff/troff source.
-;;; By mit-erl!gildea April 86
+;; Compute how much to indent a comment in nroff/troff source.
+;; By mit-erl!gildea April 86
 (defun nroff-comment-indent ()
   "Compute indent for an nroff/troff comment.
 Puts a full-stop before comments on a line by themselves."
@@ -161,21 +161,21 @@ Puts a full-stop before comments on a line by themselves."
 			      9) 8)))))) ; add 9 to ensure at least two blanks
       (goto-char pt))))
 
-(defun count-text-lines (start end &optional print)
+(defun nroff-count-text-lines (start end &optional print)
   "Count lines in region, except for nroff request lines.
 All lines not starting with a period are counted up.
 Interactively, print result in echo area.
 Noninteractively, return number of non-request lines from START to END."
   (interactive "r\np")
   (if print
-      (message "Region has %d text lines" (count-text-lines start end))
+      (message "Region has %d text lines" (nroff-count-text-lines start end))
     (save-excursion
       (save-restriction
 	(narrow-to-region start end)
 	(goto-char (point-min))
 	(- (buffer-size) (forward-text-line (buffer-size)))))))
 
-(defun forward-text-line (&optional cnt)
+(defun nroff-forward-text-line (&optional cnt)
   "Go forward one nroff text line, skipping lines of nroff requests.
 An argument is a repeat count; if negative, move backward."
   (interactive "p")
@@ -193,11 +193,11 @@ An argument is a repeat count; if negative, move backward."
     (setq cnt (+ cnt 1)))
   cnt)
 
-(defun backward-text-line (&optional cnt)
+(defun nroff-backward-text-line (&optional cnt)
   "Go backward one nroff text line, skipping lines of nroff requests.
 An argument is a repeat count; negative means move forward."
   (interactive "p")
-  (forward-text-line (- cnt)))
+  (nroff-forward-text-line (- cnt)))
 
 (defconst nroff-brace-table
   '((".(b" . ".)b")
@@ -235,7 +235,7 @@ An argument is a repeat count; negative means move forward."
     (".nf" . ".fi")
     (".de" . "..")))
 
-(defun electric-nroff-newline (arg)
+(defun nroff-electric-newline (arg)
   "Insert newline for nroff mode; special if electric-nroff mode.
 In `electric-nroff-mode', if ending a line containing an nroff opening request,
 automatically inserts the matching closing request after point."
@@ -256,23 +256,23 @@ automatically inserts the matching closing request after point."
 	(if needs-nl (insert "\n")))
       (forward-char 1))))
 
-(defun electric-nroff-mode (&optional arg)
+(define-minor-mode nroff-electric-mode
   "Toggle `nroff-electric-newline' minor mode.
 `nroff-electric-newline' forces Emacs to check for an nroff request at the
 beginning of the line, and insert the matching closing request if necessary.
 This command toggles that mode (off->on, on->off), with an argument,
 turns it on iff arg is positive, otherwise off."
-  (interactive "P")
-  (or (eq major-mode 'nroff-mode) (error "Must be in nroff mode"))
-  (or (assq 'nroff-electric-mode minor-mode-alist)
-      (setq minor-mode-alist (append minor-mode-alist
-				     (list '(nroff-electric-mode
-					     " Electric")))))
-  (setq nroff-electric-mode
-	(cond ((null arg) (null nroff-electric-mode))
-	      (t (> (prefix-numeric-value arg) 0)))))
+  :lighter " Electric"
+  (or (derived-mode-p 'nroff-mode) (error "Must be in nroff mode")))
+
+;; Old names that were not namespace clean.
+(define-obsolete-function-alias 'count-text-lines 'nroff-count-text-lines "22.1")
+(define-obsolete-function-alias 'forward-text-line 'nroff-forward-text-line "22.1")
+(define-obsolete-function-alias 'backward-text-line 'nroff-backward-text-line "22.1")
+(define-obsolete-function-alias 'electric-nroff-newline 'nroff-electric-newline "22.1")
+(define-obsolete-function-alias 'electric-nroff-mode 'nroff-electric-mode "22.1")
 
 (provide 'nroff-mode)
 
-;;; arch-tag: 6e276340-6c65-4f65-b4e3-0ca431ddfb6c
+;; arch-tag: 6e276340-6c65-4f65-b4e3-0ca431ddfb6c
 ;;; nroff-mode.el ends here

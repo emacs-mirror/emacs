@@ -1833,6 +1833,12 @@ boundaries during scrolling.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
 
+** Changes in Dired
+*** Bindings for Tumme added
+Several new keybindings, all starting with the C-t prefix, have been
+added to Dired. They are all bound to commands in Tumme. As a starting
+point, mark some image files in a dired buffer and do C-t d to display
+thumbnails of them in a separate buffer.
 ** Changes in Hi Lock:
 
 +++

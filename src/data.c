@@ -1,6 +1,6 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
    Copyright (C) 1985, 1986, 1988, 1993, 1994, 1995, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1984,23 +1984,26 @@ indirect_function (object)
   return hare;
 }
 
-DEFUN ("indirect-function", Findirect_function, Sindirect_function, 1, 1, 0,
+DEFUN ("indirect-function", Findirect_function, Sindirect_function, 1, 2, 0,
        doc: /* Return the function at the end of OBJECT's function chain.
-If OBJECT is a symbol, follow all function indirections and return the final
-function binding.
-If OBJECT is not a symbol, just return it.
-Signal a void-function error if the final symbol is unbound.
+If OBJECT is not a symbol, just return it.  Otherwise, follow all
+function indirections to find the final function binding and return it.
+If the final symbol in the chain is unbound, signal a void-function error.
+Optional arg NOERROR non-nil means to return nil instead of signalling.
 Signal a cyclic-function-indirection error if there is a loop in the
 function chain of symbols.  */)
-     (object)
+     (object, noerror)
      register Lisp_Object object;
+     Lisp_Object noerror;
 {
   Lisp_Object result;
 
   result = indirect_function (object);
 
   if (EQ (result, Qunbound))
-    return Fsignal (Qvoid_function, Fcons (object, Qnil));
+    return (NILP (noerror)
+	    ? Fsignal (Qvoid_function, Fcons (object, Qnil))
+	    : Qnil);
   return result;
 }
 

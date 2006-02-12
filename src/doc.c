@@ -1,6 +1,6 @@
 /* Record indices of function doc strings stored in a file.
    Copyright (C) 1985, 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+                 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -386,7 +386,7 @@ string is passed through `substitute-command-keys'.  */)
 	  !NILP (tem)))
     return Fdocumentation_property (function, Qfunction_documentation, raw);
 
-  fun = Findirect_function (function);
+  fun = Findirect_function (function, Qnil);
   if (SUBRP (fun))
     {
       if (XSUBR (fun)->doc == 0)
@@ -739,7 +739,7 @@ Substrings of the form \\=\\[COMMAND] replaced by either: a keystroke
 sequence that will invoke COMMAND, or "M-x COMMAND" if COMMAND is not
 on any keys.
 Substrings of the form \\=\\{MAPVAR} are replaced by summaries
-\(made by describe-bindings) of the value of MAPVAR, taken as a keymap.
+\(made by `describe-bindings') of the value of MAPVAR, taken as a keymap.
 Substrings of the form \\=\\<MAPVAR> specify to use the value of MAPVAR
 as the keymap for future \\=\\[COMMAND] substrings.
 \\=\\= quotes the following character and is discarded;

@@ -39,7 +39,6 @@ Eli Zaretskii
 	lisp/term/tty-colors.el
 	lisp/international/codepage.el
 
-	man/faq.texi
 	man/msdog.texi
 
 Kenichi Handa
@@ -65,6 +64,12 @@ Miles Bader
 	lisp/image-file.el
 	lisp/minibuf-eldef.el
 	lisp/rfn-eshadow.el
+
+Jay Belanger
+        Calc
+            lisp/calc/*
+            etc/calccard.tex
+            man/calc.texi
 
 ==============================================================================
 2.

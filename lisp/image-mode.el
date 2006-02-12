@@ -1,6 +1,6 @@
 ;;; image-mode.el --- support for visiting image files
 ;;
-;; Copyright (C) 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2006 Free Software Foundation, Inc.
 ;;
 ;; Author: Richard Stallman <rms@gnu.org>
 ;; Keywords: multimedia
@@ -140,7 +140,8 @@ and showing the image as an image."
     (let* ((image
 	    (if (and (buffer-file-name)
 		     (not (buffer-modified-p)))
-		(create-image (buffer-file-name))
+		(progn (clear-image-cache)
+		       (create-image (buffer-file-name)))
 	      (create-image
 	       (string-make-unibyte
 		(buffer-substring-no-properties (point-min) (point-max)))

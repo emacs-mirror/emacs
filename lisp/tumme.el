@@ -1,8 +1,8 @@
 ;;; tumme.el --- use dired to browse and manipulate your images
 ;;
-;; Copyright (C) 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2006 Free Software Foundation, Inc.
 ;;
-;; Version: 0.4.10
+;; Version: 0.4.11
 ;; Keywords: multimedia
 ;; Author: Mathias Dahl <mathias.rem0veth1s.dahl@gmail.com>
 
@@ -57,8 +57,8 @@
 ;;
 ;;  `tumme' stores the thumbnail files in `tumme-dir' using the file
 ;; name format ORIGNAME.thumb.ORIGEXT.  For example
-;; ~/.tumme/myimage01.thumb.jpg.  The "database" is for now just a
-;; plain text file with the following format:
+;; ~/.emacs.d/tumme/myimage01.thumb.jpg.  The "database" is for now
+;; just a plain text file with the following format:
 ;;
 ;; file-name-non-directory;comment:comment-text;tag1;tag2;tag3;...;tagN
 ;;
@@ -127,11 +127,6 @@
 ;;
 ;; LIMITATIONS
 ;; ===========
-;;
-;; * In order to work well, `tumme' require that all your images have
-;; unique names.  The reason is the way thumbnail file names are
-;; generated.  I will probably not fix this problem as my images all
-;; have unique names.
 ;;
 ;; * Supports all image formats that Emacs and convert supports, but
 ;; the thumbnails are hard-coded to JPEG format.
@@ -489,9 +484,40 @@
 ;; * To be included in Emacs 22.
 ;;
 ;;
+;; Version 0.4.11, 2006-MM-DD
+;;
+;; * Changed `tumme-display-thumbs' so that it calls `display-buffer'
+;; after generating the thumbnails and changed
+;; `tumme-display-thumbnail-original-image' to display the image
+;; buffer. These small changes should make it easier for a user to
+;; start using tumme.
+;;
+;; * Added `tumme-show-all-from-dir' to mimic thumbs.el's easy-to-use
+;; `thumbs' command. A new customize option,
+;; `tumme-show-all-from-dir-max-files' was added too.
+;;
+;; * Renamed `tumme-dired' to `tumme-dired-with-window-configuration'
+;; and added code to save the window configuration before messing it
+;; up. The saved window configuration can be restored using the new
+;; command `tumme-restore-window-configuration'.
+;;
+;; * Added `tumme-get-thumbnail-image', created by Chong Yidong. His
+;; own comments: ..., that just takes the original filename and
+;; returns a thumbnail image descriptor.  Then third-party libraries
+;; won't have to muck around with tumme.el's internal functions like
+;; `thumme-thumb-name', `tumme-create-thumb', etc. His code to get
+;; speedbar display tumme thumbnails, might be integrated soon.
+;;
+;; * Changed the default value of `tumme-dir' to "~/.emacs.d/tumme"
+;; and added a new function, `tumme-dir' to handle the creating of
+;; it. Code copied from thumbs.el.
+;;
 ;;
 ;; TODO
 ;; ====
+;;
+;; * Look into supporting the Thumbnail Managing Standard, maybe as a
+;; configurable option.
 ;;
 ;; * Support gallery creation when using per-directory thumbnail
 ;; storage.
@@ -506,9 +532,15 @@
 ;; files.
 ;;
 ;; * From thumbs.el: Add an option for clean-up/max-size functionality
-;; for thumbnail directory.
+;;   for thumbnail directory.
 ;;
 ;; * From thumbs.el: Add setroot function.
+;;
+;; * From thumbs.el: Add image resizing, if useful (tumme's automatic
+;;  "image fit" might be enough)
+;;
+;; * From thumbs.el: Add the "modify" commands (emboss, negate,
+;;   monochrome etc).
 ;;
 ;; * Asynchronous creation of thumbnails.
 ;;
@@ -524,7 +556,8 @@
 ;; `dired-next-line' and `dired-previous-line' figure out if tumme is
 ;; enabled in the current buffer and, if it is, call
 ;; `tumme-dired-next-line' and `tumme-dired-previous-line',
-;; respectively.
+;; respectively. Update: This is partly done; some bindings have now
+;; been added to dired.
 ;;
 ;; * Enhanced gallery creation with basic CSS-support and pagination
 ;; of tag pages with many pictures.
@@ -548,8 +581,8 @@
   :prefix "tumme-"
   :group 'files)
 
-(defcustom tumme-dir "~/.tumme/"
-  "*Directory where thumbnail images for are stored."
+(defcustom tumme-dir "~/.emacs.d/tumme/"
+  "*Directory where thumbnail images are stored."
   :type 'string
   :group 'tumme)
 
@@ -565,17 +598,17 @@ means that each thumbnail is stored in a subdirectory called
                  (const :tag "Per-directory" per-directory))
   :group 'tumme)
 
-(defcustom tumme-db-file "~/.tumme/.tumme_db"
+(defcustom tumme-db-file "~/.emacs.d/tumme/.tumme_db"
   "*Database file where file names and their associated tags are stored."
   :type 'string
   :group 'tumme)
 
-(defcustom tumme-temp-image-file "~/.tumme/.tumme_temp"
+(defcustom tumme-temp-image-file "~/.emacs.d/tumme/.tumme_temp"
   "*Name of temporary image file used by various commands."
   :type 'string
   :group 'tumme)
 
-(defcustom tumme-gallery-dir "~/.tumme/.tumme_gallery"
+(defcustom tumme-gallery-dir "~/.emacs.d/tumme/.tumme_gallery"
   "*Directory to store generated gallery html pages.
 This path needs to be \"shared\" to the public so that it can access
 the index.html page that tumme creates."
@@ -667,12 +700,12 @@ Available options are %p which is replaced by
 number of (positive) degrees to rotate the image, normally 90 or
 270 \(for 90 degrees right and left), %o which is replaced by the
 original image file name and %t which is replaced by
-`tumme-temp-image-file'"
+`tumme-temp-image-file'."
   :type 'string
   :group 'tumme)
 
 (defcustom tumme-temp-rotate-image-file
-  "~/.tumme/.tumme_rotate_temp"
+  "~/.emacs.d/tumme/.tumme_rotate_temp"
   "*Temporary file for rotate operations."
   :type 'string
   :group 'tumme)
@@ -760,7 +793,7 @@ line-up means that no automatic line-up will be done."
   :group 'tumme)
 
 (defcustom tumme-display-window-width-correction 1
-  "*Number to be used to correct image display window height.
+  "*Number to be used to correct image display window width.
 Change if the default (1) does not work (i.e. if the image does not
 completely fit)."
   :type 'integer
@@ -768,7 +801,7 @@ completely fit)."
 
 (defcustom tumme-display-window-height-correction 0
   "*Number to be used to correct image display window height.
-Use if the default (0) does not work (i.e. if the image does not
+Change if the default (0) does not work (i.e. if the image does not
 completely fit)."
   :type 'integer
   :group 'tumme)
@@ -801,7 +834,7 @@ dired and you might want to turn it off."
   :group 'tumme)
 
 (defcustom tumme-display-properties-format "%b: %f (%t): %c"
-  "* Display format for thumbnail properties.
+  "*Display format for thumbnail properties.
 %b is replaced with associated dired buffer name, %f with file name
 \(without path) of original image file, %t with the list of tags and %c
 with the comment."
@@ -821,6 +854,22 @@ Used by `tumme-copy-with-exif-file-name'."
   :type 'string
   :group 'tumme)
 
+(defcustom tumme-show-all-from-dir-max-files 50
+  "*Maximum number of files to show using`tumme-show-all-from-dir'.
+before warning the user."
+  :type 'integer
+  :group 'tumme)
+
+(defun tumme-dir ()
+  "Return the current thumbnails directory (from `tumme-dir').
+Create the thumbnails directory if it does not exist."
+  (let ((tumme-dir (file-name-as-directory
+                    (expand-file-name tumme-dir))))
+    (unless (file-directory-p tumme-dir)
+      (make-directory tumme-dir t)
+      (message "Creating thumbnails directory"))
+    tumme-dir))
+
 (defun tumme-insert-image (file type relief margin)
   "Insert image FILE of image TYPE, using RELIEF and MARGIN, at point."
 
@@ -829,6 +878,18 @@ Used by `tumme-copy-with-exif-file-name'."
                    :relief ,relief
                    :margin ,margin)))
     (insert-image i)))
+
+(defun tumme-get-thumbnail-image (file)
+  "Return the image descriptor for a thumbnail of image file FILE."
+  (unless (string-match (image-file-name-regexp) file)
+    (error "%s is not a valid image file" file))
+  (let ((thumb-file (tumme-thumb-name file)))
+    (unless (and (file-exists-p thumb-file)
+		 (<= (float-time (nth 5 (file-attributes file)))
+		     (float-time (nth 5 (file-attributes thumb-file)))))
+      (tumme-create-thumb file thumb-file))
+    (list 'image :type 'jpeg :file thumb-file
+	  :relief tumme-thumb-relief :margin tumme-thumb-margin)))
 
 (defun tumme-insert-thumbnail (file original-file-name
                                     associated-dired-buffer)
@@ -867,7 +928,7 @@ add a subdirectory."
                    ;; be used here.
                    (setq md5-hash (md5 (file-name-as-directory
                                         (file-name-directory file))))
-                   (file-name-as-directory (expand-file-name tumme-dir)))
+                   (file-name-as-directory (expand-file-name (tumme-dir))))
                   ((eq 'per-directory tumme-thumbnail-storage)
                    (format "%s.tumme/"
                            (file-name-directory f))))
@@ -969,8 +1030,11 @@ add a subdirectory."
           (tumme-display-image-mode)))
     buf))
 
+(defvar tumme-saved-window-configuration nil
+  "Saved window configuration.")
+
 ;;;###autoload
-(defun tumme-dired (dir &optional arg)
+(defun tumme-dired-with-window-configuration (dir &optional arg)
   "Open directory DIR and create a default window configuration.
 
 Convenience command that:
@@ -979,11 +1043,21 @@ Convenience command that:
  - Splits windows in most useful (?) way
  - Set `truncate-lines' to t
 
-If called with prefix argument ARG, skip splitting of windows."
+After the command has finished, you would typically mark some
+image files in dired and type
+\\[tumme-display-thumbs] (`tumme-display-thumbs').
+
+If called with prefix argument ARG, skip splitting of windows.
+
+The current window configuration is saved and can be restored by
+calling `tumme-restore-window-configuration'."
   (interactive "DDirectory: \nP")
   (let ((buf (tumme-create-thumbnail-buffer))
         (buf2 (tumme-create-display-image-buffer)))
+    (setq tumme-saved-window-configuration
+          (current-window-configuration))
     (dired dir)
+    (delete-other-windows)
     (when (not arg)
       (split-window-horizontally)
       (setq truncate-lines t)
@@ -995,6 +1069,16 @@ If called with prefix argument ARG, skip splitting of windows."
         (switch-to-buffer buf2)
         (other-window -2)))))
 
+(defun tumme-restore-window-configuration ()
+  "Restore window configuration.
+Restore any changes to the window configuration made by calling
+`tumme-dired-with-window-configuration'."
+  (interactive)
+  (if tumme-saved-window-configuration
+      (set-window-configuration tumme-saved-window-configuration)
+    (message "No saved window configuration")))
+
+;;;###autoload
 (defun tumme-display-thumbs (&optional arg append)
   "Display thumbnails of all marked files, in `tumme-thumbnail-buffer'.
 If a thumbnail image does not exist for a file, it is created on the
@@ -1038,7 +1122,31 @@ instead of erasing it first."
             ((eq 'none tumme-line-up-method)
              nil)
             (t
-             (tumme-line-up-dynamic))))))
+             (tumme-line-up-dynamic))))
+    (pop-to-buffer tumme-thumbnail-buffer)))
+
+(defun tumme-show-all-from-dir (dir)
+  "Make a preview buffer for all images in DIR and display it.
+If the number of files in DIR matching `image-file-name-regexp'
+exceeds `tumme-show-all-from-dir-max-files', a warning will be
+displayed."
+  (interactive "DDir: ")
+  (dired dir)
+  (dired-mark-files-regexp (image-file-name-regexp))
+  (let ((files (dired-get-marked-files)))
+    (if (or (<= (length files) tumme-show-all-from-dir-max-files)
+            (and (> (length files) tumme-show-all-from-dir-max-files)
+                 (y-or-n-p
+                  (format
+                   "Directory contains more than %d image files.  Proceed? "
+                   tumme-show-all-from-dir-max-files))))
+        (progn
+          (tumme-display-thumbs)
+          (pop-to-buffer tumme-thumbnail-buffer))
+      (message "Cancelled."))))
+
+;;;###autoload
+(defalias 'tumme 'tumme-show-all-from-dir)
 
 (defun tumme-write-tag (files tag)
   "For all FILES, writes TAG to the image database."
@@ -1125,6 +1233,7 @@ instead of erasing it first."
       (kill-buffer buf)
       (split-string tags ";"))))
 
+;;;###autoload
 (defun tumme-tag-files (arg)
   "Tag marked file(s) in dired.  With prefix ARG, tag file at point."
   (interactive "P")
@@ -1143,6 +1252,7 @@ instead of erasing it first."
   (tumme-update-property
    'tags (tumme-list-tags (tumme-original-file-name))))
 
+;;;###autoload
 (defun tumme-tag-remove (arg)
   "Remove tag for selected file(s).
 With prefix argument ARG, remove tag from file at point."
@@ -1310,7 +1420,7 @@ move ARG lines."
 (defun tumme-format-properties-string (buf file props comment)
   "Format display properties.
 BUF is the associated dired buffer, FILE is the original image file
-name, PROPS is a list of tags and COMMENT is the images files's
+name, PROPS is a list of tags and COMMENT is the image files's
 comment."
   (format-spec
    tumme-display-properties-format
@@ -1406,6 +1516,7 @@ You probably want to use this together with
           (select-window window))
       (message "Associated dired buffer not visible"))))
 
+;;;###autoload
 (defun tumme-jump-thumbnail-buffer ()
   "Jump to thumbnail buffer."
   (interactive)
@@ -1804,11 +1915,13 @@ Ask user for number of images to show and the delay in between."
     (if (looking-at " ")
         (delete-char 1))))
 
+;;;###autoload
 (defun tumme-display-thumbs-append ()
   "Append thumbnails to `tumme-thumbnail-buffer'."
   (interactive)
   (tumme-display-thumbs nil t))
 
+;;;###autoload
 (defun tumme-display-thumb ()
   "Shorthard for `tumme-display-thumbs' with prefix argument."
   (interactive)
@@ -1845,7 +1958,7 @@ See also `tumme-line-up-dynamic'."
 
 (defun tumme-line-up-dynamic ()
   "Line up thumbnails images dynamically.
-Calculate how many thumbnails that fits."
+Calculate how many thumbnails fit."
   (interactive)
   (let* ((char-width (frame-char-width))
         (width (tumme-window-width-pixels (tumme-thumbnail-window)))
@@ -1858,7 +1971,7 @@ Calculate how many thumbnails that fits."
 
 (defun tumme-line-up-interactive ()
   "Line up thumbnails interactively.
-Ask user how many thumbnails that should be displayed per row."
+Ask user how many thumbnails should be displayed per row."
   (interactive)
   (let ((tumme-thumbs-per-row
          (string-to-number (read-string "How many thumbs per row: "))))
@@ -1879,6 +1992,7 @@ Ask user how many thumbnails that should be displayed per row."
                                tumme-external-viewer
                                file))))))
 
+;;;###autoload
 (defun tumme-dired-display-external ()
   "Display file at point using an external viewer."
   (interactive)
@@ -1984,8 +2098,10 @@ With prefix argument ARG, display image in its original size."
           (message "No thumbnail at point")
         (if (not file)
             (message "No original file name found")
-          (tumme-display-image file arg))))))
+          (tumme-display-image file arg)
+          (display-buffer tumme-display-image-buffer))))))
 
+;;;###autoload
 (defun tumme-display-dired-image (&optional arg)
   "Display current image file.
 See documentation for `tumme-display-image' for more information.
@@ -2151,21 +2267,17 @@ default value at the prompt."
 
 (defun tumme-copy-with-exif-file-name ()
   "Copy file with unique name to main image directory.
-Copy current or all marked files in dired to a new file in your main
-image directory, using a file name generated by
-`tumme-get-exif-file-name'.  This might or might not be useful for
-other people, but I use it each time I fetch images from my digital
-camera, for copying the images into my main image directory.
+Copy current or all marked files in dired to a new file in your
+main image directory, using a file name generated by
+`tumme-get-exif-file-name'.  A typical usage for this if when
+copying images from a digital camera into the image directory.
 
-Typically I open up the folder where I store my incoming digital
-images, with file names like dscn0319.jpg, dscn0320.jpg etc., mark the
-files I want to copy into my main image directory, and execute this
+ Typically, you would open up the folder with the incoming
+digital images, mark the files to be copied, and execute this
 function.  The result is a couple of new files in
-`tumme-main-image-directory' called 2005_05_08_12_52_00_dscn0319.jpg,
-2005_05_08_14_27_45_dscn0320.jpg etc.
-
-When the images are safely in my main image directory I start to
-browse and tag them using rest of the functionality in `tumme'."
+`tumme-main-image-directory' called
+2005_05_08_12_52_00_dscn0319.jpg,
+2005_05_08_14_27_45_dscn0320.jpg etc."
   (interactive)
   (let (new-name
         (files (dired-get-marked-files)))
@@ -2187,7 +2299,7 @@ browse and tag them using rest of the functionality in `tumme'."
   (tumme-display-thumbnail-original-image))
 
 (defun tumme-display-previous-thumbnail-original ()
-  "Move to previous thumbnail and display  image."
+  "Move to previous thumbnail and display image."
 
   (interactive)
   (tumme-backward-char)
@@ -2236,6 +2348,7 @@ browse and tag them using rest of the functionality in `tumme'."
      prop
      value)))
 
+;;;###autoload
 (defun tumme-dired-comment-files ()
   "Add comment to current or marked files in dired."
   (interactive)
@@ -2256,8 +2369,9 @@ browse and tag them using rest of the functionality in `tumme'."
   (tumme-display-thumb-properties))
 
 (defun tumme-read-comment (&optional file)
-  "Read comment, optionally using old comment from FILE as initial value."
-
+  "Read comment for an image.
+Read comment for an image, optionally using old comment from FILE
+as initial value."
   (let ((comment
          (read-string
           "Comment: "
@@ -2286,8 +2400,14 @@ browse and tag them using rest of the functionality in `tumme'."
       (kill-buffer buf)
       comment)))
 
+;;;###autoload
 (defun tumme-mark-tagged-files ()
-  "Use regexp to mark files with matching tag."
+  "Use regexp to mark files with matching tag.
+A `tag' is a keyword, a piece of meta data, associated with an
+image file and stored in tumme's database file.  This command
+lets you input a regexp and this will be matched against all tags
+on all image files in the database file.  The files that have a
+matching tags will be marked in the dired buffer."
   (interactive)
   (let ((tag (read-string "Mark tagged files (regexp): "))
         (hits 0)
@@ -2506,7 +2626,7 @@ when using per-directory thumbnail file storage"))
     ;; Make sure gallery root exist
     (if (file-exists-p tumme-gallery-dir)
         (if (not (file-directory-p tumme-gallery-dir))
-            (error "Tumme-gallery-dir is not a directory"))
+            (error "Variable tumme-gallery-dir is not a directory"))
       (make-directory tumme-gallery-dir))
     ;; Open index file
     (setq index-buf (find-file
@@ -2555,7 +2675,7 @@ when using per-directory thumbnail file storage"))
               ;; Insert thumbnail with link to full image
               (insert
                (format "<a href=\"%s/%s\"><img src=\"%s/%s\"%s></a>\n"
-                       tumme-gallery-image-root-url file
+                       tumme-gallery-image-root-url (file-name-nondirectory file)
                        tumme-gallery-thumb-image-root-url
                        (file-name-nondirectory (tumme-thumb-name file)) file))
               ;; Insert comment, if any
@@ -2597,38 +2717,53 @@ when using per-directory thumbnail file storage"))
       (error nil))
     (kill-buffer buffer)))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; TEST-SECTION ;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; (defvar tumme-dir-max-size 12300000)
 
-(defvar tumme-dir-max-size 12300000)
+;; (defun tumme-test-clean-old-files ()
+;;   "Clean `tumme-dir' from old thumbnail files.
+;; \"Oldness\" measured using last access time.  If the total size of all
+;; thumbnail files in `tumme-dir' is larger than 'tumme-dir-max-size',
+;; old files are deleted until the max size is reached."
+;;   (let* ((files
+;;           (sort
+;;            (mapcar
+;;             (lambda (f)
+;;               (let ((fattribs (file-attributes f)))
+;;                 ;; Get last access time and file size
+;;                 `(,(nth 4 fattribs) ,(nth 7 fattribs) ,f)))
+;;             (directory-files (tumme-dir) t ".+\.thumb\..+$"))
+;;            ;; Sort function. Compare time between two files.
+;;            '(lambda (l1 l2)
+;;               (time-less-p (car l1) (car l2)))))
+;;          (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) files))))
+;;     (while (> dirsize tumme-dir-max-size)
+;;       (y-or-n-p
+;;        (format "Size of thumbnail directory: %d, delete old file %s? "
+;;                dirsize (cadr (cdar files))))
+;;       (delete-file (cadr (cdar files)))
+;;       (setq dirsize (- dirsize (car (cdar files))))
+;;       (setq files (cdr files)))))
 
-(defun tumme-test ()
-  "Clean `tumme-dir' from old thumbnail files.
-\"Oldness\" measured using last access time.  If the total size of all
-thumbnail files in `tumme-dir' is larger than 'tumme-dir-max-size',
-old files are deleted until the max size is reached."
-  (let* ((files
-          (sort
-           (mapcar
-            (lambda (f)
-              (let ((fattribs (file-attributes f)))
-                ;; Get last access time and file size
-                `(,(nth 4 fattribs) ,(nth 7 fattribs) ,f)))
-            (directory-files tumme-dir t ".+\.thumb\..+$"))
-           ;; Sort function. Compare time between two files.
-           '(lambda (l1 l2)
-              (time-less-p (car l1) (car l2)))))
-         (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) files))))
-    (while (> dirsize tumme-dir-max-size)
-      (y-or-n-p
-       (format "Size of thumbnail directory: %d, delete old file %s? "
-               dirsize (cadr (cdar files))))
-      (delete-file (cadr (cdar files)))
-      (setq dirsize (- dirsize (car (cdar files))))
-      (setq files (cdr files)))))
+;;;;;;;;;;;;;;;;;;;;;;,
+
+;; (defun dired-speedbar-buttons (dired-buffer)
+;;   (when (and (boundp 'tumme-use-speedbar)
+;; 	     tumme-use-speedbar)
+;;     (let ((filename (with-current-buffer dired-buffer
+;; 		      (dired-get-filename))))
+;;       (when (and (not (string-equal filename (buffer-string)))
+;; 		 (string-match (image-file-name-regexp) filename))
+;; 	(erase-buffer)
+;; 	(insert (propertize
+;; 		 filename
+;; 		 'display
+;; 		 (tumme-get-thumbnail-image filename)))))))
+
+;; (setq tumme-use-speedbar t)
 
 (provide 'tumme)
 

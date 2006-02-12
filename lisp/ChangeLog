@@ -1,3 +1,246 @@
+2006-02-12  Miles Bader  <miles@gnu.org>
+
+	* net/rcirc.el (rcirc-nick-abbrevs, rcirc-response-formats):
+	New variables.
+	(rcirc-abbrev-nick): New function.
+	(rcirc-format-response-string): Rewrite to use the formats in
+	`rcirc-response-formats' and expand escape sequences therein.
+	A text-property `rcirc-text' is added over the actual response
+	text to make easy to find inside the returned string.
+	(rcirc-print): When filling, just look for the `rcirc-text'
+	text-property to find the appropriate fill prefix, instead of
+	using hardwired patterns.
+
+2006-02-11  Mathias Dahl  <brakjoller@hotmail.com>
+
+	* tumme.el: Enhanced some docstrings.  Added todo item about
+	  Thumbnail Managing Standard.
+
+2006-02-11  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-buffer-internal): Set mark for ido-insert-buffer.
+	Don't use insert-buffer; do insert-buffer-substring directly.
+	(ido-file-internal): Set mark for ido-insert-file. Use insert-file-1.
+
+2006-02-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* files.el (revert-buffer, recover-file): Replace buffer-read-only
+	with inhibit-read-only.	Suggested by Stefan Monnier.
+	(revert-buffer): Let insert-file-contents discard
+	buffer-undo-list.  Simplify code.
+	(find-file, find-file-existing, revert-buffer): Doc-string fixes.
+
+2006-02-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-select-yank): Add a doc string.
+
+	* help.el (describe-key-briefly): Now a wrapper for
+	describe-key-briefly-internal.  Bind enable-disabled-menus-and-buttons
+	to t.  Populate yank-menu if empty.
+	(describe-key-briefly-internal): Renamed from describe-key-briefly.
+	(describe-key): Now a wrapper for describe-key-internal.  Bind
+	enable-disabled-menus-and-buttons to t.  Populate yank-menu if empty.
+	(describe-key-internal): Renamed from describe-key.
+
+2006-02-11  Milan Zamazal  <pdm@zamazal.org>
+
+	* progmodes/glasses.el (glasses-separator): Doc fix.
+	(glasses-original-separator): New defcustom.
+	(glasses-make-readable, glasses-convert-to-unreadable): Use it.
+
+2006-02-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* mwheel.el (mouse-wheel-up-event): Doc fix.
+
+2006-02-11  Mathias Dahl  <brakjoller@hotmail.com>
+
+	* tumme.el (tumme-dir): Changed default value to
+	  "~/.emacs-d/tumme"
+	  (tumme-dir): New function. Copied from thumbs.el.
+
+2006-02-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-outvar): Fix typo.
+	(desktop-save-buffer-p): Doc fix.
+
+	* subr.el (substitute-key-definition): Fix typo.
+
+2006-02-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.el (select-frame-set-input-focus): Call x-focus-frame also
+	when window-system is mac.
+
+	* term/mac-win.el (fontset-standard): Rename from "fontset-mac".
+
+2006-02-10  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (substitute-key-definition-key): Pass t for NOERROR to
+	indirect-function instead of using condition-case.
+
+2006-02-10  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-copy-with-exif-file-name): Tried to make
+	docstring less `colloquial'...
+
+2006-02-09  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el: Added a couple of todo items.
+
+2006-02-09  Lars Hansen  <larsh@soem.dk>
+
+	* hilit-chg.el: Add highlight-changes-mode to desktop-locals-to-save.
+	(highlight-changes-mode): Don't change desktop-locals-to-save.
+
+2006-02-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-toggle-display): Clear image cache if using
+	filename.
+
+2006-02-09  Masatake YAMATO  <jet@gyve.org>
+
+	* dired-x.el (dired-guess-shell-alist-default): Add .man as
+	a `dired-man' target.
+
+	* progmodes/autoconf.el (autoconf-font-lock-keywords): Check start
+	boundary of symbols.
+
+2006-02-08  Peter Doornbosch  <peter.doornbosch@luminis.nl>  (tiny change)
+
+	* vc-svn.el (vc-svn-print-log): Show recent commits as well.
+
+2006-02-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hilit-chg.el (hilit-chg-update-all-buffers): Use `mapc' instead of
+	`mapcar'; return nil.
+
+2006-02-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-track): Don't change window if we rebind to
+	some other event.
+
+2006-02-08  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-startup-channels-alist):
+	Add irc.freenode.net and #emacs as defaults.
+	(rcirc-ignore-all-activity-flag): Remove variable.
+	(rcirc-authinfo): New variable.
+	(rcirc-authinfo-filename): Remove variable.
+	(rcirc-always-use-server-buffer-flag): New flag.
+	(rcirc): M-x rcirc will automatically connect without prompting.
+	C-u M-x rcirc will prompt.  Use rcirc-connect to create a
+	connection in lisp.
+	(rcirc-process-server-response-1): Remove everything but the nick
+	portion of the sender so it doesn't need to be done everywhere
+	else.  Update related code.
+	(global-map): Remove global keybindings.
+	(rcirc-get-buffer-create): Make sure rcirc-topic is set.
+	(rcirc-send-input): Split into several functions.
+	(rcirc-process-input-line, rcirc-process-message)
+	(rcirc-process-command): New functions.
+	(rcirc-target-buffer): New function to determine where to route
+	messages.
+	(rcirc-user-nick): Save match data.
+	(rcirc-toggle-ignore-buffer-activity)
+	(rcirc-update-activity-string): Remove global ignore functionality,
+	which can be done now by toggling rcirc-track-minor-mode.
+	(rcirc-track-minor-mode-map): New keymap.
+	(rcirc-track-minor-mode): New minor-mode.
+	(ignore): Make the ignore output nicer.  Always print it when
+	adding or removing nicks.
+	(rcirc-url-regexp): Improve.
+	(rcirc-mangle-text): Remove properties before using text in the
+	modeline.
+	(rcirc-authenticate): Authentication data comes from
+	rcirc-authinfo, not the file pointed to by rcirc-authinfo-file.
+	(rcirc-server-prefix): Inherit from rcirc-server.
+
+2006-02-08  Mathias Megyei  <Mathias.Megyei@micronas.com>  (tiny change)
+
+	* Makefile.in (compile): Append "|| true" to the end of the `find'
+	command, like compile-always does.
+
+2006-02-08  Sam Steingold  <sds@gnu.org>
+
+	* net/tramp.el (tramp-maybe-open-connection): Do not wait for
+	output from a dead connection.
+
+2006-02-07  Mathias Dahl  <brakjoller@hotmail.com>
+
+	* dired.el (dired-mode-map): Add more bindings for tumme.
+
+2006-02-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* wdired.el (wdired-mode-map): Use remap.
+	(wdired-get-filename): Massage.
+	(wdired-perm-mode-map): Don't copy bindings from wdired-mode-map.
+	(wdired-preprocess-perms, wdired-set-bit, wdired-toggle-bit): Use the
+	`keymap' property rather than `local-map'.
+
+2006-02-07  Mathias Dahl  <brakjoller@hotmail.com>
+
+	* tumme.el (tumme-get-thumbnail-image): New utility function.
+	Suggested by from Chong Yidong.
+	(tumme-dired-with-window-configuration): Rename from
+	`tumme-dired'.  Add code to save window configuration.
+	(tumme-restore-window-configuration): New command to restore the
+	window configuration that `tumme-dired-with-window-configuration'
+	saves before it changes the window configuration.
+	(tumme-show-all-from-dir): New command to display thumbnails for
+	all files in a directory entered by the user, like M-x thumbs.
+	(tumme-display-thumbs): Call `pop-to-buffer' after all thumbnails
+	have been created.
+	(tumme-display-thumbnail-original-image): Call `display-buffer'.
+	(obsolete-tumme-display-thumbnail-original-image-and-buffer):
+	Remove obsolete test function.
+
+2006-02-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc.el (small-temporary-file-directory): Remove defvar; there's
+	a defcustom for it in files.el.
+
+	* tumme.el (tumme-get-thumbnail-image): Add missing arg to `error'.
+	Fix typo in message.
+	(tumme-gallery-generate): Fix typo in `error' message.
+	(tumme-display-window-height-correction)
+	(tumme-display-window-width-correction, tumme-line-up-dynamic)
+	(tumme-line-up-interactive): Dox fixes.
+	(tumme-cmd-rotate-original-options, tumme-display-properties-format)
+	(tumme-restore-window-configuration, tumme-format-properties-string)
+	(tumme-create-thumbs, tumme-display-previous-thumbnail-original):
+	Fix typos in docstrings.
+
+2006-02-07  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+
+	* wdired.el (wdired-get-filename): Fix bug: Don't re-normalize OLD.
+
+2006-02-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-tooltip-mode): Remove autoload cookie.
+	User should use hook if desired.
+
+	* progmodes/gdb-ui.el (gdb-post-prompt): Regenerate breakpoints
+	buffer if necessary.
+	(gdb-delete-frame-or-window): New function.
+	(gdb-breakpoints-mode-map): Bind "q" to it.
+
+2006-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/nroff-mode.el: Clean up name space.
+	(nroff-mode-syntax-table): Remove spurious `1' in the syntax of \n.
+	(nroff-mode): Obey the global setting of nroff-electric-mode.
+	(nroff-electric-mode): Use define-minor-mode and derived-mode-p.
+
+	* calendar/calendar.el (calendar-increment-month): Typo in last change.
+
+2006-02-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc-svn.el (vc-svn-previous-version, vc-svn-next-version): New funcs.
+
+2006-02-06  Lars Hansen  <larsh@soem.dk>
+
+	* generic-x.el (etc-fstab-generic-mode): Add file system types
+	cifs and usbdevfs.  Allow special chars in file names.
+
 2006-02-05  Jay Belanger  <belanger@truman.edu>
 
 	Update copyright notices of the files in lisp/calc.
@@ -37,13 +280,12 @@
 	* textmodes/nroff-mode.el (nroff-font-lock-keywords): Don't be
 	greedy to find the closing bracket in \*[...] and similar
 	expressions.  This is a first rough fix -- many additional
-	refinements are necessary to make nroff mode really usable with
-	groff.
+	refinements are necessary to make nroff mode really usable with groff.
 
 2006-02-03  Jens Petersen  <petersen@redhat.com>  (tiny change)
 
-	* international/mule-cmds.el (set-locale-environment): Add
-	"/usr/share/X11/locale/locale.alias" to search list for xorg-x11
+	* international/mule-cmds.el (set-locale-environment):
+	Add "/usr/share/X11/locale/locale.alias" to search list for xorg-x11
 	libX11.
 
 2006-02-03  Joe Wells  <jbw@macs.hw.ac.uk>  (tiny change)
@@ -275,7 +517,7 @@
 	* international/latexenc.el: Add a suitable `coding:' tag.
 	(latexenc-find-file-coding-system): Undo last change.
 
-2006-01-27  Arne J,bx(Brgensen  <arne@arnested.dk>
+2006-01-27  Arne J,Ax(Brgensen  <arne@arnested.dk>
 
 	* international/latexenc.el (latexenc-find-file-coding-system):
 	Make sure latexenc-main-file is a regular file and is readable.
@@ -20079,7 +20321,7 @@ See ChangeLog.11 for earlier changes.
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 2005 Free Software Foundation, Inc.
+    Copyright (C) 2005, 2006 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

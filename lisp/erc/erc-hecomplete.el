@@ -1,4 +1,4 @@
-;;; erc-complete.el --- Provides Nick name completion for ERC
+;;; erc-hecomplete.el --- Provides Nick name completion for ERC
 
 ;; Copyright (C) 2001, 2002, 2004 Free Software Foundation, Inc.
 
@@ -24,12 +24,11 @@
 
 ;;; Commentary:
 
-;; This file is obsolete.  Use completion from erc-pcomplete instead.
-;; This file is based on hippie-expand, while the new file is based on
-;; pcomplete.  There is no autoload cookie in this file.  If you want
-;; to use the code in this file, add the following to your ~/.emacs:
+;; This file is considered obsolete.  It is recommended to use
+;; completion from erc-pcomplete instead.
 
-;; (autoload 'erc-complete "erc-complete" "Complete nick at point." t)
+;; This file is based on hippie-expand, while the new file is based on
+;; pcomplete.
 
 ;;; Code:
 
@@ -37,8 +36,13 @@
 (require 'erc-match); for erc-pals
 (require 'hippie-exp); for the hippie expand stuff
 
-;;;###autoload
-(defun erc-complete ()
+;;;###autoload (autoload 'erc-hecomplete-mode "erc-hecomplete" nil t)
+(define-erc-module hecomplete nil
+  "Complete nick at point."
+  ((add-hook 'erc-complete-functions 'erc-hecomplete))
+  ((remove-hook 'erc-complete-functions 'erc-hecomplete)))
+
+(defun erc-hecomplete ()
   "Complete nick at point.
 See `erc-try-complete-nick' for more technical info.
 This function is obsolete, use `erc-pcomplete' instead."
@@ -46,8 +50,8 @@ This function is obsolete, use `erc-pcomplete' instead."
   (let ((hippie-expand-try-functions-list '(erc-try-complete-nick)))
     (hippie-expand nil)))
 
-(defgroup erc-old-complete nil
-  "Nick completion.  Obsolete, use erc-pcomplete instead."
+(defgroup erc-hecomplete nil
+  "Nick completion.  It is recommended to use erc-pcomplete instead."
   :group 'erc)
 
 (defcustom erc-nick-completion 'all
@@ -67,14 +71,14 @@ or you may use an arbitrary lisp expression."
 		 (repeat :tag "List" (string :tag "Nick"))
 		 function
 		 sexp)
-  :group 'erc-old-complete)
+  :group 'erc-hecomplete)
 
 (defcustom erc-nick-completion-ignore-case t
   "*Non-nil means don't consider case significant in nick completion.
 Case will be automatically corrected when non-nil.
 For instance if you type \"dely TAB\" the word completes and changes to
 \"delYsid\"."
-  :group 'erc-old-complete
+  :group 'erc-hecomplete
   :type 'boolean)
 
 (defun erc-nick-completion-exclude-myself ()
@@ -91,7 +95,7 @@ typing \"f o TAB\" will directly give you foobar.  Use this with
 (defcustom erc-nick-completion-postfix ": "
   "*When `erc-complete' is used in the first word after the prompt,
 add this string when a unique expansion was found."
-  :group 'erc-old-complete
+  :group 'erc-hecomplete
   :type 'string)
 
 (defun erc-command-list ()
@@ -209,9 +213,9 @@ Window configurations are stored in
   "Returns t if point is directly after `erc-prompt' when doing completion."
   (erc-at-beginning-of-line-p (he-dabbrev-beg)))
 
-(provide 'erc-complete)
+(provide 'erc-hecomplete)
 
-;;; erc-complete.el ends here
+;;; erc-hecomplete.el ends here
 ;;
 ;; Local Variables:
 ;; indent-tabs-mode: t

@@ -199,20 +199,20 @@ Window System."
     (erc-put-text-property 0 len 'field 'erc-timestamp s)
     (insert s)))
 
-(defun erc-insert-aligned (string pos &optional fallback)
+(defun erc-insert-aligned (string pos)
   "Insert STRING based on a fraction of the width of the buffer.
 Fraction is roughly (/ POS (window-width)).
 
-If `erc-timestamp-right-align-by-pixel' is nil, use
-\(- POS FALLBACK) to determine how many spaces to insert."
+If `erc-timestamp-right-align-by-pixel' is nil, insert STRING at the
+POSth column, without using pixel coordinates."
   (if (not erc-timestamp-right-align-by-pixel)
-      (insert (make-string (- pos fallback) ? ) string)
+      (indent-to pos)
     (insert " ")
     (let ((offset (floor (* (/ (1- pos) (window-width) 1.0)
 			    (nth 2 (window-inside-pixel-edges))))))
       (put-text-property (1- (point)) (point) 'display
-			 `(space :align-to (,offset))))
-    (insert string)))
+			 `(space :align-to (,offset)))))
+  (insert string))
 
 (defun erc-insert-timestamp-right (string)
   "Insert timestamp on the right side of the screen.
@@ -257,14 +257,16 @@ be printed just before the window-width."
 	   indent)
       ;; deal with variable-width characters
       (setq pos (- pos (string-width string))
-	    ;; the following is a kludge that works with most
-	    ;; international input
+	    ;; The following is a kludge that works with most
+	    ;; international input.  It is now only used to calculate
+	    ;; whether to move to the next line before inserting a
+	    ;; stamp.
 	    col (+ col (ceiling (/ (- col (- (point) (point-at-bol))) 1.6))))
       (if (< col pos)
-	  (erc-insert-aligned string pos col)
+	  (erc-insert-aligned string pos)
 	(newline)
-	(setq from (point))
 	(indent-to pos)
+	(setq from (point))
 	(insert string))
       (erc-put-text-property from (1+ (point)) 'field 'erc-timestamp)
       (erc-put-text-property from (1+ (point)) 'rear-nonsticky t)

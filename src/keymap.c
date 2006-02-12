@@ -1,7 +1,7 @@
 /* Manipulation of keymaps
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
                  1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005 Free Software Foundation, Inc.
+                 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -69,7 +69,7 @@ Lisp_Object Vminibuffer_local_completion_map;
 /* keymap used for minibuffers when doing completion in filenames */
 Lisp_Object Vminibuffer_local_filename_completion_map;
 
-/* keymap used for minibuffers when doing completion in filenames 
+/* keymap used for minibuffers when doing completion in filenames
    with require-match*/
 Lisp_Object Vminibuffer_local_must_match_filename_map;
 
@@ -1363,13 +1363,6 @@ silly_event_symbol_error (c)
 static Lisp_Object *cmm_modes = NULL, *cmm_maps = NULL;
 static int cmm_size = 0;
 
-/* Error handler used in current_minor_maps.  */
-static Lisp_Object
-current_minor_maps_error ()
-{
-  return Qnil;
-}
-
 /* Store a pointer to an array of the keymaps of the currently active
    minor modes in *buf, and return the number of maps it contains.
 
@@ -1471,9 +1464,7 @@ current_minor_maps (modeptr, mapptr)
 	      }
 
 	    /* Get the keymap definition--or nil if it is not defined.  */
-	    temp = internal_condition_case_1 (Findirect_function,
-					      XCDR (assoc),
-					      Qerror, current_minor_maps_error);
+	    temp = Findirect_function (XCDR (assoc), Qt);
 	    if (!NILP (temp))
 	      {
 		cmm_modes[i] = var;
@@ -3875,11 +3866,11 @@ don't alter it yourself.  */);
   Vminibuffer_local_completion_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (Vminibuffer_local_completion_map, Vminibuffer_local_map);
 
-  DEFVAR_LISP ("minibuffer-local-filename-completion-map", 
+  DEFVAR_LISP ("minibuffer-local-filename-completion-map",
 	       &Vminibuffer_local_filename_completion_map,
 	       doc: /* Local keymap for minibuffer input with completion for filenames.  */);
   Vminibuffer_local_filename_completion_map = Fmake_sparse_keymap (Qnil);
-  Fset_keymap_parent (Vminibuffer_local_filename_completion_map, 
+  Fset_keymap_parent (Vminibuffer_local_filename_completion_map,
 		      Vminibuffer_local_completion_map);
 
 
@@ -3889,11 +3880,11 @@ don't alter it yourself.  */);
   Fset_keymap_parent (Vminibuffer_local_must_match_map,
 		      Vminibuffer_local_completion_map);
 
-  DEFVAR_LISP ("minibuffer-local-must-match-filename-map", 
+  DEFVAR_LISP ("minibuffer-local-must-match-filename-map",
 	       &Vminibuffer_local_must_match_filename_map,
 	       doc: /* Local keymap for minibuffer input with completion for filenames with exact match.  */);
   Vminibuffer_local_must_match_filename_map = Fmake_sparse_keymap (Qnil);
-  Fset_keymap_parent (Vminibuffer_local_must_match_filename_map, 
+  Fset_keymap_parent (Vminibuffer_local_must_match_filename_map,
 		      Vminibuffer_local_must_match_map);
 
   DEFVAR_LISP ("minor-mode-map-alist", &Vminor_mode_map_alist,

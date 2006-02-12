@@ -1308,7 +1308,7 @@ A negative YR is interpreted as BC; -1 being 1 BC, and so on."
 The return value is a pair (MONTH . YEAR).
 MON defaults to `displayed-month'.  YR defaults to `displayed-year'."
   (unless mon (setq mon displayed-month))
-  (unless yr (setq mon displayed-year))
+  (unless yr (setq yr displayed-year))
   (increment-calendar-month mon yr n)
   (cons mon yr))
 

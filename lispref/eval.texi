@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 2002, 2003, 2004,
-@c   2005 Free Software Foundation, Inc.
+@c   2005, 2006 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/eval
 @node Evaluation, Control Structures, Symbols, Top
@@ -314,16 +314,20 @@ symbol function indirection when calling @code{erste}.
 perform symbol function indirection explicitly.
 
 @c Emacs 19 feature
-@defun indirect-function function
+@defun indirect-function function &optional noerror
 @anchor{Definition of indirect-function}
 This function returns the meaning of @var{function} as a function.  If
 @var{function} is a symbol, then it finds @var{function}'s function
 definition and starts over with that value.  If @var{function} is not a
 symbol, then it returns @var{function} itself.
 
-This function signals a @code{void-function} error if the final
-symbol is unbound and a @code{cyclic-function-indirection} error if
-there is a loop in the chain of symbols.
+This function signals a @code{void-function} error if the final symbol
+is unbound and optional argument @var{noerror} is @code{nil} or
+omitted.  Otherwise, if @var{noerror} is non-@code{nil}, it returns
+@code{nil} if the final symbol is unbound.
+
+It signals a @code{cyclic-function-indirection} error if there is a
+loop in the chain of symbols.
 
 Here is how you could define @code{indirect-function} in Lisp:
 
