@@ -1,3 +1,39 @@
+2006-02-12  Juri Linkov  <juri@jurta.org>
+
+	* tumme.el: Remove todo item about Thumbnail Managing Standard.
+	(tumme) <defgroup>: Change :group to `multimedia'.
+	(tumme-thumbnail-storage): Add choice `standard' for Thumbnail
+	Managing Standard.
+	(tumme-cmd-create-thumbnail-options): Use %w and %h instead of %s.
+	Fix dostring.
+	(tumme-cmd-create-temp-image-options): Use %w and %h instead of %x
+	and %y.  Fix docstring.
+	(tumme-cmd-pngnq-program, tumme-cmd-pngcrush-program)
+	(tumme-cmd-create-standard-thumbnail-command): New user options.
+	(tumme-thumb-size): Set default to 128 if tumme-thumbnail-storage
+	is `standard'.  Fix docstring.
+	(tumme-thumb-width, tumme-thumb-height): New user options.
+	(tumme-external-viewer): Try to find various viewers.
+	(tumme-get-thumbnail-image): Use `create-image' instead of
+	constructing the `image' structure.
+	(tumme-insert-thumbnail): Use `png' if tumme-thumbnail-storage is
+	`standard'.
+	(tumme-thumb-name): Add file name generation for standard storage.
+	Simplify code for other storages.
+	(tumme-thumb-name): Use width %w and height %h instead of size %s.
+	Add modification time %m and thumbnail-nq8 %q.
+	Use `tumme-cmd-create-standard-thumbnail-command' if
+	tumme-thumbnail-storage is `standard'.
+	(tumme-dired-insert-marked-thumbs): New autoload command.
+	(tumme-dired-after-readin-hook): New function.
+	(tumme-line-up-dynamic): Use `tumme-thumb-width' instead of
+	`tumme-thumb-size'.
+	(tumme-display-image): Replace size-x %x and size-y %y with
+	width %w and height %h.
+
+	* dired.el (dired-mode-map): Bind `\C-t\C-t' to
+	`tumme-dired-insert-marked-thumbs'.
+
 2006-02-12  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el (tumme-write-tag): Fix small bug (file name did not
