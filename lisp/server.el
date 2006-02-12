@@ -636,6 +636,10 @@ The following commands are accepted by the client:
 			  (select-frame frame)
 			  (server-client-set client 'frame frame)
 			  (server-client-set client 'terminal (frame-terminal frame))
+
+			  ;; Display *scratch* by default.
+			  (switch-to-buffer (get-buffer-create "*scratch*") 'norecord)
+
 			  (setq dontkill t))
 		      ;; This emacs does not support X.
 		      (server-log "Window system unsupported" proc)
@@ -688,6 +692,9 @@ The following commands are accepted by the client:
 		      (server-client-set client 'frame frame)
 		      (server-client-set client 'tty (terminal-name frame))
 		      (server-client-set client 'terminal (frame-terminal frame))
+
+		      ;; Display *scratch* by default.
+		      (switch-to-buffer (get-buffer-create "*scratch*") 'norecord)
 
 		      ;; Reply with our pid.
 		      (server-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))
@@ -753,8 +760,6 @@ The following commands are accepted by the client:
 
 	      (when frame
 		(with-selected-frame frame
-		  (switch-to-buffer (or (car buffers)
-					(get-buffer-create "*scratch*")))
 		  (display-startup-echo-area-message)
 		  (unless inhibit-splash-screen
 		    (condition-case err
