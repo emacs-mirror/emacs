@@ -1258,6 +1258,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "\C-t." 'tumme-display-thumb)
     (define-key map "\C-tc" 'tumme-dired-comment-files)
     (define-key map "\C-tf" 'tumme-mark-tagged-files)
+    (define-key map "\C-t\C-t" 'tumme-dired-insert-marked-thumbs)
 
     ;; Make menu bar items.
 
