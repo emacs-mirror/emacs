@@ -1,3 +1,18 @@
+2006-02-12  Alex Schroeder  <alex@gnu.org>
+
+	* rmail.el (qp): No longer require it.
+	(rmail-convert-file): Doc.  Removed useless test for coding system
+	header.  Don't call rmail-decode-mbox-format.  Just call
+	rmail-convert-mbox-format.
+	(rmail-decode-mbox-format): Deleted.
+	(rmail-convert-mbox-format): Don't translate quoted printable
+	headers.  Don't handle quoted-printable content-transfer-encoding.
+	No longer add x-coding-system header.
+	(rmail-maybe-set-message-counters): Deleted.
+	(rmail-next-undeleted-message): Add caching of
+	rmail-current-message such that it doesn't break when
+	rmail-show-message switches buffers.
+
 2006-02-07  Alex Schroeder  <alex@gnu.org>
 
 	* rmailmm.el (rmail-mime-media-type-handlers-alist): Removed
