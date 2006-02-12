@@ -41,11 +41,13 @@
   ;; called AFTER the server buffer is initialized.
   ((add-hook 'erc-connect-pre-hook 'erc-spelling-init)
    (mapc (lambda (buffer)
-           (with-current-buffer buffer (erc-spelling-init)))
+           (when buffer
+             (with-current-buffer buffer (erc-spelling-init))))
          (erc-buffer-list)))
   ((remove-hook 'erc-connect-pre-hook 'erc-spelling-init)
    (mapc (lambda (buffer)
-           (with-current-buffer buffer (flyspell-mode 0)))
+           (when buffer
+             (with-current-buffer buffer (flyspell-mode 0))))
          (erc-buffer-list))))
 
 (defcustom erc-spelling-dictionaries nil

@@ -36,8 +36,8 @@
 	["Connect to server..." erc-select t]
 	["Disconnect from server..." erc-quit-server erc-server-connected]
 	"-"
-	["List channels..." erc-cmd-LIST
-	 (and erc-server-connected (fboundp 'erc-cmd-LIST))]
+	["List channels..." erc-list-channels
+	 (and erc-server-connected (fboundp 'erc-list-channels))]
 	["Join channel..." erc-join-channel erc-server-connected]
 	["Start a query..." erc-cmd-QUERY erc-server-connected]
 	"-"

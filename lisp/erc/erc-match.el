@@ -428,24 +428,6 @@ In any of the following situations, MSG is directed at an entry FOOL:
     (or (erc-list-match fools-beg msg)
 	(erc-list-match fools-end msg))))
 
-(defun erc-get-parsed-vector (point)
-  "Return the whole parsed vector on POINT."
-  (get-text-property point 'erc-parsed))
-
-(defun erc-get-parsed-vector-nick (vect)
-  "Return nickname in the parsed vector VECT."
-  (let* ((untreated-nick (and vect (erc-response.sender vect)))
-	 (maybe-nick (when untreated-nick
-		       (car (split-string untreated-nick "!")))))
-    (when (and (not (null maybe-nick))
-	       (erc-is-valid-nick-p maybe-nick))
-      untreated-nick)))
-
-(defun erc-get-parsed-vector-type (vect)
-  "Return message type in the parsed vector VECT."
-  (and vect
-       (erc-response.command vect)))
-
 (defun erc-match-message ()
   "Mark certain keywords in a region.
 Use this defun with `erc-insert-modify-hook'."

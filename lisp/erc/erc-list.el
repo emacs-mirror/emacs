@@ -140,12 +140,19 @@ display the channel list."
   (setq truncate-lines t)
   (add-hook 'post-command-hook 'erc-chanlist-post-command-hook 'append 'local))
 
+;; Define module:
+;;;###autoload (autoload 'erc-list-mode "erc-list")
+(define-erc-module list nil
+  "List channels nicely in a separate buffer."
+  ((defalias 'erc-cmd-LIST 'erc-list-channels))
+  ((defalias 'erc-cmd-LIST 'erc-list-channels-simple)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;###autoload
-(defun erc-cmd-LIST (&rest channel)
+(defun erc-list-channels (&rest channel)
   "Display a buffer containing a list of channels on the current server.
 Optional argument CHANNEL specifies a single channel to list (instead of every
 available channel)."
@@ -162,6 +169,18 @@ available channel)."
 						 "s.  This may take a while."))))
     (erc-chanlist channel))
   t)
+
+(defun erc-list-channels-simple (&optional line)
+  "Send the LIST command to the current server with optional channels LINE."
+  (when (string-match "^\\s-*\\(.*\\)$" line)
+    (let ((channels (match-string 1 line)))
+      (erc-log (format "cmd: LIST: %s" channels))
+      (erc-server-send
+       (if (string= channels "")
+	   "LIST"
+	 (concat "LIST :" channels))))
+    t))
+(put 'erc-list-channels-simple 'do-not-parse-args t)
 
 ;;;###autoload
 (defun erc-chanlist (&optional channels)
