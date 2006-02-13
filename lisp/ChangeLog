@@ -1,3 +1,20 @@
+2006-02-14  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gud-watch, gdb-invalidate-registers-1)
+	(gdb-get-changed-registers): Test value of gud-minor-mode relative
+	to gud-comint-buffer.
+	(gdb-speedbar-expand-node, gdb-locals-mode): Use functions in
+	gdb-ui.el for gdb-mi.el.
+	(gdb-post-prompt, gdb-get-changed-registers): Move test for
+	registers buffer to gdb-get-changed-registers.
+	(gdb-breakpoint-regexp): New regexp.  Allow toggling and
+	deletion of catchpoints (throw and catch).
+	(gdb-toggle-breakpoint, gdb-delete-breakpoint)
+	(gdb-goto-breakpoint): Use it for both gdb-ui and gdb-mi.
+	(gdb-find-file-hook, gdb-set-gud-minor-mode-existing-buffers-1)
+	(gdb-var-list-children-1, gdb-info-breakpoints-custom)
+	(gdb-var-update-1, gdb-invalidate-locals-1): Use also for gdb-mi.
+
 2006-02-13  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-arith.el:  (math-check-known-matrixp): Make sure
