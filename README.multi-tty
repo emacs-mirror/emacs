@@ -402,6 +402,17 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
+** emacsclient -t on the console does not work after sudo:
+
+	# sudo lorentey
+	$ emacsclient -t
+	*ERROR*: Could not open file: /dev/tty1
+
+   The tty can be opened as /dev/tty by emacsclient, but not by Emacs.
+   This seems to be a serious problem.  Currently my only idea is to
+   bring back the ugly pty proxy hack from the initial versions of
+   multi-tty.  Suggestions would be appreciated.
+
 ** Understand how `quit_throw_to_read_char' works, and fix any bugs
    that come to light.
 
