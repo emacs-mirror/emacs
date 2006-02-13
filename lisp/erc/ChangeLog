@@ -1,3 +1,7 @@
+2006-02-13  Michael Olson  <mwolson@gnu.org>
+
+	* erc-dcc.el: Use (eval-when-compile (require 'cl)).
+
 2006-02-12  Michael Olson  <mwolson@gnu.org>
 
 	* erc-autoaway.el, erc-dcc.el, erc-ezbounce.el, erc-fill.el,

@@ -55,7 +55,8 @@
 
 (require 'erc)
 (eval-when-compile
- (require 'pcomplete))
+  (require 'cl)
+  (require 'pcomplete))
 
 (defgroup erc-dcc nil
   "DCC stands for Direct Client Communication, where you and your
