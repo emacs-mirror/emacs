@@ -1,3 +1,7 @@
+2006-02-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (note_mouse_movement): Check for NULL FRAME_X_OUTPUT (frame).
+
 2006-02-12  Richard M. Stallman  <rms@gnu.org>
 
 	* cmds.c (internal_self_insert): Handle weird auto-fill-function.
