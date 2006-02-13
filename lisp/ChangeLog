@@ -1,16 +1,20 @@
+2006-02-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (substitute-key-definition): Doc fix (hide internal arg).
+
 2006-02-12  Miles Bader  <miles@gnu.org>
 
 	* net/rcirc.el (rcirc-format-response-string): Fix small bugs.
 
 2006-02-13  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* tumme.el: Removed history section.  If someone needs the it, it
+	* tumme.el: Remove history section.  If someone needs the it, it
 	can always be found in CVS.
 
 2006-02-12  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* tumme.el (tumme-thumbnail-storage): Updated docstring. Added
-	info about the Thumbnail Managing Standard option.
+	* tumme.el (tumme-thumbnail-storage): Update docstring.  Add info
+	about the Thumbnail Managing Standard option.
 
 2006-02-12  Richard M. Stallman  <rms@gnu.org>
 
@@ -95,7 +99,7 @@
 
 	* ido.el (ido-buffer-internal): Set mark for ido-insert-buffer.
 	Don't use insert-buffer; do insert-buffer-substring directly.
-	(ido-file-internal): Set mark for ido-insert-file. Use insert-file-1.
+	(ido-file-internal): Set mark for ido-insert-file.  Use insert-file-1.
 
 2006-02-11  Martin Rudalics  <rudalics@gmx.at>
 
