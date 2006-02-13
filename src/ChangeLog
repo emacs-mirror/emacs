@@ -1,3 +1,7 @@
+2006-02-13  Richard M. Stallman  <rms@gnu.org>
+
+	* .gdbinit (xwindow): Update the code to show the window box.
+
 2006-02-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (note_mouse_movement): Check for NULL FRAME_X_OUTPUT (frame).

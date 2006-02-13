@@ -1,5 +1,8 @@
 2006-02-13  Richard M. Stallman  <rms@gnu.org>
 
+	* mouse.el (mouse-drag-mode-line-1): Use mouse-drag-move-window-bottom
+	for the minibuffer too, but not if resize-mini-windows will interfere.
+
 	* help.el (describe-key-briefly, describe-key): Do all arg-reading
 	inside `interactive' spec.
 	(describe-key-briefly-internal, describe-key-internal):
