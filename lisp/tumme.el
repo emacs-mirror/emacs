@@ -213,8 +213,8 @@ thumbnails are stored in a central directory.  \"Per directory\"
 means that each thumbnail is stored in a subdirectory called
 \".tumme\" in the same directory where the image file is.
 \"Thumbnail Managing Standard\" means that the thumbnails are
-stored and generated according to the Thumbnail Managing
-Standard."
+stored and generated according to the Thumbnail Managing Standard
+that allows sharing of thumbnails across different programs."
   :type '(choice :tag "How to store thumbnail files"
                  (const :tag "Thumbnail Managing Standard" standard)
                  (const :tag "Use tumme-dir" use-tumme-dir)
@@ -629,8 +629,8 @@ according to the Thumbnail Managing Standard."
                    (file-name-extension f))))
         ((eq 'per-directory tumme-thumbnail-storage)
          (let ((f (expand-file-name file)))
-           (format "%s%s%s.thumb.%s"
-                   (format "%s.tumme/" (file-name-directory f))
+           (format "%s.tumme/%s.thumb.%s"
+                   (file-name-directory f)
                    (file-name-sans-extension (file-name-nondirectory f))
                    (file-name-extension f))))))
 
