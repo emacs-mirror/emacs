@@ -1,3 +1,10 @@
+2006-02-13  Richard M. Stallman  <rms@gnu.org>
+
+	* help.el (describe-key-briefly, describe-key): Do all arg-reading
+	inside `interactive' spec.
+	(describe-key-briefly-internal, describe-key-internal):
+	Functions merged back into their callers.
+	
 2006-02-13  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
 
 	* info.el (info-xref-visited): Inherit from info-xref too.
