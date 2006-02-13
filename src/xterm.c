@@ -3592,9 +3592,8 @@ note_mouse_movement (frame, event)
   last_mouse_motion_event = *event;
   XSETFRAME (last_mouse_motion_frame, frame);
 
-  if (!FRAME_X_OUTPUT (frame)) {
-      return 0;
-  }
+  if (!FRAME_X_OUTPUT (frame))
+    return 0;
 
   if (event->window != FRAME_X_WINDOW (frame))
     {
