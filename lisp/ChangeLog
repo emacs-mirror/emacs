@@ -1,3 +1,7 @@
+2006-02-12  Miles Bader  <miles@gnu.org>
+
+	* net/rcirc.el (rcirc-format-response-string): Fix small bugs.
+
 2006-02-13  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el: Removed history section.  If someone needs the it, it
