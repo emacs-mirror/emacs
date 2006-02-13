@@ -1,3 +1,7 @@
+2006-02-12  Richard M. Stallman  <rms@gnu.org>
+
+	* cmds.c (internal_self_insert): Handle weird auto-fill-function.
+
 2006-02-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (Venable_disabled_menus_and_buttons): New variable.
