@@ -1,3 +1,12 @@
+2006-02-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* display.texi (Standard Faces):
+	* faq.texi (Colors on a TTY):
+	* files.texi (Visiting):
+	* frames.texi (Clipboard):
+	* glossary.texi (Glossary) <Clipboard>:
+	* xresources.texi (X Resources): Mention Mac OS port.
+
 2006-02-12  Karl Berry  <karl@gnu.org>
 
 	* faq.texi (Emacs for Atari ST): use Sch@"auble instead of the
