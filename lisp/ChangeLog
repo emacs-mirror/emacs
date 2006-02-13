@@ -1,3 +1,8 @@
+2006-02-13  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-arith.el:  (math-check-known-matrixp): Make sure
+	expression is a symbol before checking that it is bound.
+
 2006-02-13  Richard M. Stallman  <rms@gnu.org>
 
 	* mouse.el (mouse-drag-mode-line-1): Use mouse-drag-move-window-bottom
