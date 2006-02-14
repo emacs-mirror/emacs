@@ -1003,6 +1003,8 @@ extern void x_clear_area P_ ((Display *, Window, int, int, int, int, int));
 extern void set_vertical_scroll_bar P_ ((struct window *));
 
 extern int x_dispatch_event P_ ((XEvent *, Display *));
+extern unsigned int x_x_to_emacs_modifiers P_ ((struct x_display_info *,
+						unsigned));
 
 /* Defined in xselect.c */
 
