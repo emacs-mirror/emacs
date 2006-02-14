@@ -1784,7 +1784,7 @@ file variables specified in that file.  A variable can be marked as
 @dfn{safe} by setting its @code{safe-local-variable} property.  If the
 property is @code{t}, that variable is always considered safe,
 regardless of the value assigned to it.  The
-@code{safe-local-variable} property can also be a a function taking
+@code{safe-local-variable} property can also be a function taking
 exactly one argument.  In that case, Emacs considers it safe to give
 the variable a certain value if the function returns non-@code{nil}
 when called with that value as argument.  Many commonly-encountered
