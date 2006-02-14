@@ -402,9 +402,9 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
-** emacsclient -t on the console does not work after sudo:
+** emacsclient -t on the console does not work after su:
 
-	# sudo lorentey
+	# su lorentey
 	$ emacsclient -t
 	*ERROR*: Could not open file: /dev/tty1
 

@@ -10909,14 +10909,14 @@ See also `current-input-mode'.  */)
     return Qnil;
   tty = t->display_info.tty;
 
+  if (NILP (quit) || !INTEGERP (quit) || XINT (quit) < 0 || XINT (quit) > 0400)
+    error ("QUIT must be an ASCII character");
+
 #ifndef DOS_NT
   /* this causes startup screen to be restored and messes with the mouse */
   reset_sys_modes (tty);
 #endif
   
-  if (NILP (quit) || !INTEGERP (quit) || XINT (quit) < 0 || XINT (quit) > 0400)
-    error ("QUIT must be an ASCII character");
-
   /* Don't let this value be out of range.  */
   quit_char = XINT (quit) & (tty->meta_key == 0 ? 0177 : 0377);
 
