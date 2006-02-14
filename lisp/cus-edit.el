@@ -1720,6 +1720,7 @@ item in another window.\n\n"))
   :help-echo "Read the manual entry for this option."
   :button-face 'custom-link
   :mouse-face 'highlight
+  :pressed-face 'highlight
   :tag "Manual")
 
 ;;; The `custom-magic' Widget.
@@ -2201,7 +2202,8 @@ Insert PREFIX first if non-nil."
 	(push (widget-create-child-and-convert
 	       widget (car links)
 	       :button-face 'custom-link
-	       :mouse-face 'highlight)
+	       :mouse-face 'highlight
+	       :pressed-face 'highlight)
 	      buttons)
 	(setq links (cdr links))
 	(cond ((null links)
@@ -2247,7 +2249,8 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
                (push (widget-create-child-and-convert
 		      widget (car links)
 		      :button-face 'custom-link
-		      :mouse-face 'highlight)
+		      :mouse-face 'highlight
+		      :pressed-face 'highlight)
                      buttons)
                (setq links (cdr links))
                (cond ((null links)
@@ -3590,6 +3593,7 @@ restoring it to the state of a face that has never been customized."
   "Show parent in other window when activated."
   :button-face 'custom-link
   :mouse-face 'highlight
+  :pressed-face 'highlight
   :help-echo "Create customization buffer for this group."
   :action 'custom-group-link-action)
 

@@ -1,5 +1,12 @@
 2006-02-14  Chong Yidong  <cyd@stupidchicken.com>
 
+	* wid-edit.el (widget-button-click): Use :pressed-face property
+	for overlay face, if it exists.
+
+	* cus-edit.el (custom-manual, custom-add-see-also)
+	(custom-add-parent-links, custom-group-link): Add :pressed-face
+	property to links.
+
 	* files.el (hack-local-variables): Remove ignored variables before
 	checking if any variables need setting.
 
