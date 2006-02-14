@@ -1,3 +1,8 @@
+2006-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (hack-local-variables): Remove ignored variables before
+	checking if any variables need setting.
+
 2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add x-gtk-whole-detached-tool-bar.

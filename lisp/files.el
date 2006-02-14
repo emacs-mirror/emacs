@@ -2439,12 +2439,12 @@ is specified, returning t if it is specified."
       ;; variables (if MODE-ONLY is nil.)
       (if mode-only
 	  result
+	(dolist (ignored ignored-local-variables)
+	  (setq result (assq-delete-all ignored result)))
+	(if (null enable-local-eval)
+	    (setq result (assq-delete-all 'eval result)))
 	(when result
 	  (setq result (nreverse result))
-	  (dolist (ignored ignored-local-variables)
-	    (setq result (assq-delete-all ignored result)))
-	  (if (null enable-local-eval)
-	      (setq result (assq-delete-all 'eval result)))
 	  ;; Find those variables that we may want to save to
 	  ;; `safe-local-variable-values'.
 	  (let (risky-vars unsafe-vars)
