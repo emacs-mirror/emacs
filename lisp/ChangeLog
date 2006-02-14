@@ -1,3 +1,7 @@
+2006-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (where-is): Fix message for remapped commands.
+
 2006-02-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (safe-local-variable-values): New option.
@@ -17,13 +21,13 @@
 	moved to safe-local-variable-p.
 	(hack-one-local-variable): Checks moved to hack-local-variables.
 
-	(byte-compile-dynamic, c-basic-offset, c-file-style,
-	c-indent-level, comment-column, fill-column, fill-prefix,
-	indent-tabs-mode, kept-new-versions, no-byte-compile,
-	no-update-autoloads, outline-regexp, page-delimiter,
-	paragraph-start, paragraph-separate, sentence-end,
-	sentence-end-double-space tab-width, version-control): Add
-	`safe-local-variable' property.
+	(byte-compile-dynamic, c-basic-offset, c-file-style)
+	(c-indent-level, comment-column, fill-column, fill-prefix)
+	(indent-tabs-mode, kept-new-versions, no-byte-compile)
+	(no-update-autoloads, outline-regexp, page-delimiter)
+	(paragraph-start, paragraph-separate, sentence-end)
+	(sentence-end-double-space tab-width, version-control):
+	Add `safe-local-variable' property.
 
 	* find-lisp.el: Delete nonexistent `autocompile' file variable.
 
@@ -49,7 +53,7 @@
 
 2006-02-13  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-arith.el:  (math-check-known-matrixp): Make sure
+	* calc/calc-arith.el (math-check-known-matrixp): Make sure
 	expression is a symbol before checking that it is bound.
 
 2006-02-13  Richard M. Stallman  <rms@gnu.org>
@@ -61,7 +65,7 @@
 	inside `interactive' spec.
 	(describe-key-briefly-internal, describe-key-internal):
 	Functions merged back into their callers.
-	
+
 2006-02-13  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
 
 	* info.el (info-xref-visited): Inherit from info-xref too.
