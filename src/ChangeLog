@@ -1,3 +1,26 @@
+2006-02-13  Richard M. Stallman  <rms@gnu.org>
+
+	* .gdbinit (xwindow): Update the code to show the window box.
+
+2006-02-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (note_mouse_movement): Check for NULL FRAME_X_OUTPUT (frame).
+
+2006-02-12  Richard M. Stallman  <rms@gnu.org>
+
+	* cmds.c (internal_self_insert): Handle weird auto-fill-function.
+
+2006-02-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (Venable_disabled_menus_and_buttons): New variable.
+	(syms_of_keyboard): DEVFAR_LISP and initialize it.
+	(parse_tool_bar_item, parse_menu_item): If that variable is
+	non-nil, don't disable menu items and tool-bar buttons.
+
+2006-02-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* doc.c (Fsubstitute_command_keys): Doc fix.
+
 2006-02-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* data.c (Findirect_function): Rewrite docstring.

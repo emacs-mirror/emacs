@@ -195,6 +195,12 @@ Use /ignore to list them, use /ignore NICK to add or remove a nick."
   :type '(repeat string)
   :group 'rcirc)
 
+(defcustom rcirc-nick-abbrevs nil
+  "List of short replacements for printing nicks."
+  :type '(alist :key-type (string :tag "Nick")
+		:value-type (string :tag "Abbrev"))
+  :group 'rcirc)
+
 (defvar rcirc-ignore-list-automatic ()
   "List of ignored nicks added to `rcirc-ignore-list' because of renaming.
 When an ignored person renames, their nick is added to both lists.
@@ -479,6 +485,11 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
   "Return PROCESS nick."
   (with-rcirc-process-buffer process
     rcirc-nick))
+
+(defun rcirc-abbrev-nick (nick)
+  "If NICK has an entry in `rcirc-nick-abbrevs', return its abbreviation,
+otherwise return NICK."
+  (or (cdr (assoc nick rcirc-nick-abbrevs)) nick))
 
 (defvar rcirc-max-message-length 450
   "Messages longer than this value will be split.")
@@ -895,48 +906,109 @@ Create the buffer if it doesn't exist."
 	buffer
       (process-buffer process))))
 
+(defcustom rcirc-response-formats
+  '(("PRIVMSG" . "%T<%n> %m")
+    ("NOTICE"  . "%T-%n- %m")
+    ("ACTION"  . "%T[%n] %m")
+    ("COMMAND" . "%T%m")
+    ("ERROR"   . "%T%fw!!! %m")
+    (t         . "%T%fp*** %fs%n %r %m"))
+  "An alist of formats used for printing responses.
+The format is looked up using the response-type as a key;
+if no match is found, the default entry (with a key of `t') is used.
+
+The entry's value part should be a string, which is inserted with
+the of the following escape sequences replaced by the described values:
+
+  %m        The message text
+  %n        The sender's nick (with face `rcirc-my-nick' or `rcirc-other-nick')
+  %r        The response-type
+  %T        The timestamp (with face `rcirc-timestamp')
+  %t        The target
+  %fw       Following text uses the face `font-lock-warning-face'
+  %fp       Following text uses the face `rcirc-server-prefix'
+  %fs       Following text uses the face `rcirc-server'
+  %f[FACE]  Following text uses the face FACE
+  %f-       Following text uses the default face
+  %%        A literal `%' character
+"
+  :type '(alist :key-type (choice (string :tag "Type")
+				  (const :tag "Default" t))
+		:value-type string)
+  :group 'rcirc)
+
 (defun rcirc-format-response-string (process sender response target text)
-  (concat (rcirc-facify (format-time-string rcirc-time-format (current-time))
-			'rcirc-timestamp)
-          (cond ((or (string= response "PRIVMSG")
-                     (string= response "NOTICE")
-                     (string= response "ACTION"))
-                 (let (first middle end)
-                   (cond ((string= response "PRIVMSG")
-                          (setq first "<" middle "> "))
-                         ((string= response "NOTICE")
-			  (when sender
-			    (setq first "-" middle "- ")))
-                         (t
-                          (setq first "[" middle " " end "]")))
-                   (concat first
-                           (rcirc-facify (concat
-					  sender
-					  (when target (concat "," target)))
-                                         (if (string= sender
-                                                      (rcirc-nick process))
-                                             'rcirc-my-nick
-                                           'rcirc-other-nick))
-			   middle
-			   (rcirc-mangle-text process text)
-                           end)))
-                ((string= response "COMMAND")
-                 text)
-                ((string= response "ERROR")
-                 (propertize (concat "!!! " text)
-			     'face 'font-lock-warning-face))
-                (t
-                 (rcirc-mangle-text
-                  process
-		  (concat (rcirc-facify "*** " 'rcirc-server-prefix)
-			  (rcirc-facify
-			   (concat
-			    (when (not (string= sender (rcirc-server process)))
-			      (concat sender " "))
-			    (when (zerop (string-to-number response))
-			      (concat response " "))
-			    text)
-			   'rcirc-server)))))))
+  "Return a nicely-formatted response string, incorporating TEXT
+\(and perhaps other arguments).  The specific formatting used
+is found by looking up RESPONSE in `rcirc-response-formats'."
+  (let ((chunks
+	 (split-string (or (cdr (assoc response rcirc-response-formats))
+			   (cdr (assq t rcirc-response-formats)))
+		       "%"))
+	(result "")
+	(face nil)
+	key face-key repl)
+    (when (equal (car chunks) "")
+      (pop chunks))
+    (dolist (chunk chunks)
+      (if (equal chunk "")
+	  (setq key ?%)
+	(setq key (aref chunk 0))
+	(setq chunk (substring chunk 1)))
+      (setq repl
+	    (cond ((eq key ?%)
+		   ;; %% -- literal % character
+		   "%")
+		  ((eq key ?n)
+		   ;; %n -- nick
+		   (rcirc-facify (concat (rcirc-abbrev-nick sender)
+					 (and target (concat "," target)))
+				 (if (string= sender (rcirc-nick process))
+				     'rcirc-my-nick
+				   'rcirc-other-nick)))
+		  ((eq key ?T)
+		   ;; %T -- timestamp
+		   (rcirc-facify
+		    (format-time-string rcirc-time-format (current-time))
+		    'rcirc-timestamp))
+		  ((eq key ?m)
+		   ;; %m -- message text
+		   ;; We add the text property `rcirc-text' to identify this
+		   ;; as the body text.
+		   (propertize
+		    (rcirc-mangle-text process (rcirc-facify text face))
+		    'rcirc-text text))
+		  ((eq key ?t)
+		   ;; %t -- target
+		   (rcirc-facify (or rcirc-target "") face))
+		  ((eq key ?r)
+		   ;; %r -- response
+		   (rcirc-facify response face))
+		  ((eq key ?f)
+		   ;; %f -- change face
+		   (setq face-key (aref chunk 0))
+		   (setq chunk (substring chunk 1))
+		   (cond ((eq face-key ?w)
+			  ;; %fw -- warning face
+			  (setq face 'font-lock-warning-face))
+			 ((eq face-key ?p)
+			  ;; %fp -- server-prefix face
+			  (setq face 'rcirc-server-prefix))
+			 ((eq face-key ?s)
+			  ;; %fs -- warning face
+			  (setq face 'rcirc-server))
+			 ((eq face-key ?-)
+			  ;; %fs -- warning face
+			  (setq face nil))
+			 ((and (eq face-key ?\[)
+			       (string-match "^\\([^]]*\\)[]]" chunk)
+			       (facep (match-string 1 chunk)))
+			  ;; %f[...] -- named face
+			  (setq face (intern (match-string 1 chunk)))
+			  (setq chunk (substring chunk (match-end 0)))))
+		   "")))
+      (setq result (concat result repl (rcirc-facify chunk face))))
+    result))
 
 (defun rcirc-target-buffer (process sender response target text)
   "Return a buffer to print the server response."
@@ -988,38 +1060,31 @@ record activity."
 	  (goto-char rcirc-prompt-start-marker)
 	  (set-marker-insertion-type rcirc-prompt-start-marker t)
 	  (set-marker-insertion-type rcirc-prompt-end-marker t)
-	  (insert
-	   (rcirc-format-response-string process sender response nil text)
-	   (propertize "\n" 'hard t))
-	  (set-marker-insertion-type rcirc-prompt-start-marker nil)
-	  (set-marker-insertion-type rcirc-prompt-end-marker nil)
 
-	  ;; fill the text we just inserted, maybe
-	  (when (and rcirc-fill-flag
-		     (not (string= response "372"))) ;/motd
-	    (let ((fill-prefix
-		   (or rcirc-fill-prefix
-		       (make-string
-			(+ (if rcirc-time-format
-			       (length (format-time-string
-					rcirc-time-format))
-			     0)
-			   (cond ((or (string= response "PRIVMSG")
-				      (string= response "NOTICE"))
-				  (+ (length sender)
-				     2)) ; <>
-				 ((string= response "ACTION")
-				  (+ (length sender)
-				     1))	; [
-				 (t 3))		; ***
-			   1)
-			?\s)))
-		  (fill-column (cond ((eq rcirc-fill-column 'frame-width)
-				      (1- (frame-width)))
-				     (rcirc-fill-column
-				      rcirc-fill-column)
-				     (t fill-column))))
-	      (fill-region fill-start rcirc-prompt-start-marker 'left t)))
+	  (let ((fmted-text
+		 (rcirc-format-response-string process sender response nil
+					       text)))
+
+	    (insert fmted-text (propertize "\n" 'hard t))
+	    (set-marker-insertion-type rcirc-prompt-start-marker nil)
+	    (set-marker-insertion-type rcirc-prompt-end-marker nil)
+
+	    ;; fill the text we just inserted, maybe
+	    (when (and rcirc-fill-flag
+		       (not (string= response "372"))) ;/motd
+	      (let ((fill-prefix
+		     (or rcirc-fill-prefix
+			 (make-string
+			  (or (next-single-property-change 0 'rcirc-text
+							   fmted-text)
+			      8)
+			  ?\s)))
+		    (fill-column (cond ((eq rcirc-fill-column 'frame-width)
+					(1- (frame-width)))
+				       (rcirc-fill-column
+					rcirc-fill-column)
+				       (t fill-column))))
+		(fill-region fill-start rcirc-prompt-start-marker 'left t))))
 
 	  ;; set inserted text to be read-only
 	  (when rcirc-read-only-flag

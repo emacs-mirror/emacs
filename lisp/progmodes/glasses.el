@@ -67,11 +67,29 @@
 
 
 (defcustom glasses-separator "_"
-  "*String to be displayed as a visual separator in unreadable identifiers."
+  "*String to be displayed as a visual separator in identifiers.
+It is used both for adding missing separators and for replacing separators
+defined by `glasses-original-separator'.  If you don't want to add missing
+separators, set `glasses-separator' to an empty string.  If you don't want to
+replace existent separators, set `glasses-original-separator' to an empty
+string."
   :group 'glasses
   :type 'string
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default)
+
+
+(defcustom glasses-original-separator "_"
+  "*String to be displayed as `glasses-separator' in separator positions.
+For instance, if you set it to \"_\" and set `glasses-separator' to \"-\",
+underscore separators are displayed as hyphens.
+If `glasses-original-separator' is an empty string, no such display change is
+performed."
+  :group 'glasses
+  :type 'string
+  :set 'glasses-custom-set
+  :initialize 'custom-initialize-default
+  :version "22.1")
 
 
 (defcustom glasses-face nil
@@ -196,15 +214,20 @@ CATEGORY is the overlay category.  If it is nil, use the `glasses' category."
 	      (overlay-put o 'invisible t)
 	      (overlay-put o 'after-string (downcase (match-string n))))))
         ;; Separator change
-        (unless (string= glasses-separator "_")
+	(when (and (not (string= glasses-original-separator glasses-separator))
+		   (not (string= glasses-original-separator "")))
           (goto-char beg)
-          (while (re-search-forward "[a-zA-Z0-9]\\(_+\\)[a-zA-Z0-9]" end t)
-            (goto-char (match-beginning 1))
-            (while (eql (char-after) ?\_)
-              (let ((o (glasses-make-overlay (point) (1+ (point)))))
-                ;; `concat' ensures the character properties won't merge
-                (overlay-put o 'display (concat glasses-separator)))
-              (forward-char))))
+	  (let ((original-regexp (regexp-quote glasses-original-separator)))
+	    (while (re-search-forward
+		    (format "[a-zA-Z0-9]\\(\\(%s\\)+\\)[a-zA-Z0-9]"
+			    original-regexp)
+		    end t)
+	      (goto-char (match-beginning 1))
+	      (while (looking-at original-regexp)
+		(let ((o (glasses-make-overlay (point) (1+ (point)))))
+		  ;; `concat' ensures the character properties won't merge
+		  (overlay-put o 'display (concat glasses-separator)))
+		(goto-char (match-end 0))))))
 	;; Parentheses
 	(when glasses-separate-parentheses-p
 	  (goto-char beg)
@@ -237,13 +260,13 @@ recognized according to the current value of the variable `glasses-separator'."
 	  (let ((n (if (match-string 1) 1 2)))
 	    (replace-match "" t nil nil n)
 	    (goto-char (match-end n))))
-        (unless (string= glasses-separator "_")
-          (goto-char (point-min))
-          (while (re-search-forward (format "[a-zA-Z0-9]\\(%s+\\)[a-zA-Z0-9]"
-                                            separator)
-                                    nil t)
-            (replace-match "_" nil nil nil 1)
-            (goto-char (match-beginning 1))))
+	(unless (string= glasses-separator glasses-original-separator)
+	  (goto-char (point-min))
+	  (while (re-search-forward (format "[a-zA-Z0-9]\\(%s+\\)[a-zA-Z0-9]"
+					    separator)
+				    nil t)
+	    (replace-match glasses-original-separator nil nil nil 1)
+	    (goto-char (match-beginning 1))))
 	(when glasses-separate-parentheses-p
 	  (goto-char (point-min))
 	  (while (re-search-forward "[a-zA-Z]_*\\( \\)\(" nil t)

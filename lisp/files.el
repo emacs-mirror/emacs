@@ -445,8 +445,13 @@ use `before-save-hook'.")
 (defcustom enable-local-variables t
   "*Control use of local variables in files you visit.
 The value can be t, nil or something else.
-A value of t means file local variables specifications are obeyed;
-nil means they are ignored; anything else means query.
+
+A value of t means file local variables specifications are obeyed
+if all the specified variables are safe.  If any variables are
+not safe, you will be queries before setting them.
+A value of nil means file local variables are ignored.
+Any other value means to always query.
+
 This variable also controls use of major modes specified in
 a -*- line.
 
@@ -1025,7 +1030,7 @@ type M-n to pull it into the minibuffer.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.  You can
-suppress wildcard expansion by setting `find-file-wildcards'.
+suppress wildcard expansion by setting `find-file-wildcards' to nil.
 
 To visit a file without any kind of conversion and without
 automatically choosing a major mode, use \\[find-file-literally]."
@@ -1077,7 +1082,7 @@ expand wildcards (if any) and visit multiple files."
 
 (defun find-file-existing (filename &optional wildcards)
   "Edit the existing file FILENAME.
-Like \\[find-file] but only allow files that exists."
+Like \\[find-file] but only allow a file that exists."
   (interactive (find-file-read-args "Find existing file: " t))
   (unless (file-exists-p filename) (error "%s does not exist" filename))
   (find-file filename wildcards)
@@ -2024,18 +2029,19 @@ associated with that interpreter in `interpreter-mode-alist'.")
 (defvar magic-mode-alist
   `(;; The < comes before the groups (but the first) to reduce backtracking.
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
+    ;; We use [ \t\n] instead of `\\s ' to make regex overflow less likely.
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
-	     (comment-re (concat "\\(?:!--" incomment-re "*-->\\s *<\\)")))
-	(concat "\\(?:<\\?xml\\s +[^>]*>\\)?\\s *<"
+	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\n]*<\\)")))
+	(concat "\\(?:<\\?xml[ \t\n]+[^>]*>\\)?[ \t\n]*<"
 		comment-re "*"
-		"\\(?:!DOCTYPE\\s +[^>]*>\\s *<\\s *" comment-re "*\\)?"
+		"\\(?:!DOCTYPE[ \t\n]+[^>]*>[ \t\n]*<[ \t\n]*" comment-re "*\\)?"
 		"[Hh][Tt][Mm][Ll]"))
      . html-mode)
     ;; These two must come after html, because they are more general:
     ("<\\?xml " . xml-mode)
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
-	     (comment-re (concat "\\(?:!--" incomment-re "*-->\\s *<\\)")))
-	(concat "\\s *<" comment-re "*!DOCTYPE "))
+	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\n]*<\\)")))
+	(concat "[ \t\n]*<" comment-re "*!DOCTYPE "))
      . sgml-mode)
     ("%![^V]" . ps-mode)
     ("# xmcd " . conf-unix-mode))
@@ -2213,42 +2219,79 @@ Otherwise, return nil; point may be changed."
        (goto-char beg)
        end))))
 
-(defun hack-local-variables-confirm (string flag-to-check)
-  (or (eq flag-to-check t)
-      (and flag-to-check
-	   (save-window-excursion
-	     (condition-case nil
-		 (switch-to-buffer (current-buffer))
-	       (error
-		;; If we fail to switch in the selected window,
-		;; it is probably a minibuffer or dedicated window.
-		;; So try another window.
-		(let ((pop-up-frames nil))
-		  ;; Refrain from popping up frames since it can't
-		  ;; be undone by save-window-excursion.
-		  (pop-to-buffer (current-buffer)))))
-	     (save-excursion
-	       (beginning-of-line)
-	       (set-window-start (selected-window) (point)))
-	     (y-or-n-p (format string
-			       (if buffer-file-name
-				   (file-name-nondirectory buffer-file-name)
-				 (concat "buffer " (buffer-name)))))))))
+(defun hack-local-variables-confirm (vars unsafe-vars risky-vars)
+  (if noninteractive
+      nil
+    (let ((name (if buffer-file-name
+		    (file-name-nondirectory buffer-file-name)
+		  (concat "buffer " (buffer-name))))
+	  char)
+      (save-window-excursion
+	(with-output-to-temp-buffer "*Local Variables*"
+	  (if unsafe-vars
+	      (progn (princ "The local variables list in ")
+		     (princ name)
+		     (princ "\ncontains values that may not be safe (*)")
+		     (if risky-vars
+			 (princ ", and variables that are risky (**).")
+		       (princ ".")))
+	    (if risky-vars
+		(progn (princ "The local variables list in ")
+		       (princ name)
+		       (princ "\ncontains variables that are risky (**)."))
+	      (princ "A local variables list is specified in ")
+	      (princ name)
+	      (princ ".")))
+	  (princ "\n\nDo you want to apply it?  You can type
+y  -- to apply the local variables list.
+n  -- to ignore the local variables list.
+!  -- to apply the local variables list, and mark these values (*) as
+      safe (in the future, they can be set automatically.)\n\n")
+	  (dolist (elt vars)
+	    (cond ((member elt unsafe-vars)
+		   (princ "  * "))
+		  ((member elt risky-vars)
+		   (princ " ** "))
+		  (t
+		   (princ "    ")))
+	    (princ (car elt))
+	    (princ " : ")
+	    (princ (cdr elt))
+	    (princ "\n")))
+	(message "Please type y, n, or !: ")
+	(let ((inhibit-quit t)
+	      (cursor-in-echo-area t))
+	  (while (or (not (numberp (setq char (read-event))))
+		     (not (memq (downcase char)
+				'(?! ?y ?n ?\s ?\C-g))))
+	    (message "Please type y, n, or !: "))
+	  (if (= char ?\C-g)
+	      (setq quit-flag nil)))
+	(setq char (downcase char))
+	(when (and (= char ?!) unsafe-vars)
+	  (dolist (elt unsafe-vars)
+	    (push elt safe-local-variable-values))
+	  (customize-save-variable
+	   'safe-local-variable-values
+	   safe-local-variable-values))
+	(or (= char ?!)
+	    (= char ?\s)
+	    (= char ?y))))))
 
 (defun hack-local-variables-prop-line (&optional mode-only)
-  "Set local variables specified in the -*- line.
+  "Return local variables specified in the -*- line.
 Ignore any specification for `mode:' and `coding:';
 `set-auto-mode' should already have handled `mode:',
 `set-auto-coding' should already have handled `coding:'.
-If MODE-ONLY is non-nil, all we do is check whether the major mode
-is specified, returning t if it is specified."
+
+If MODE-ONLY is non-nil, all we do is check whether the major
+mode is specified, returning t if it is specified.  Otherwise,
+return an alist of elements (VAR . VAL), where VAR is a variable
+and VAL is the specified value."
   (save-excursion
     (goto-char (point-min))
-    (let ((result nil)
-	  (end (set-auto-mode-1))
-	  mode-specified
-	  (enable-local-variables
-	   (and local-enable-local-variables enable-local-variables)))
+    (let ((end (set-auto-mode-1))
+	  result mode-specified)
       ;; Parse the -*- line into the RESULT alist.
       ;; Also set MODE-SPECIFIED if we see a spec or `mode'.
       (cond ((not end)
@@ -2278,128 +2321,163 @@ is specified, returning t if it is specified."
 		 ;; so we must do that here as well.
 		 ;; That is inconsistent, but we're stuck with it.
 		 ;; The same can be said for `coding' in set-auto-coding.
-		 (or (equal (downcase (symbol-name key)) "mode")
+		 (or (and (equal (downcase (symbol-name key)) "mode")
+			  (setq mode-specified t))
 		     (equal (downcase (symbol-name key)) "coding")
-		     (setq result (cons (cons key val) result)))
-		 (if (equal (downcase (symbol-name key)) "mode")
-		     (setq mode-specified t))
-		 (skip-chars-forward " \t;")))
-	     (setq result (nreverse result))))
+		     (condition-case nil
+			 (push (cons (if (eq key 'eval)
+					 'eval
+				       (indirect-variable key))
+				     val) result)
+		       (error nil)))
+		 (skip-chars-forward " \t;")))))
 
-      (if mode-only mode-specified
-	(if (and result
-		 (or mode-only
-		     (hack-local-variables-confirm
-		      "Set local variables as specified in -*- line of %s? "
-		      enable-local-variables)))
-	    (let ((enable-local-eval enable-local-eval))
-	      (while result
-		(hack-one-local-variable (car (car result)) (cdr (car result)))
-		(setq result (cdr result)))))
-	nil))))
+      (if mode-only
+	  mode-specified
+	result))))
 
 (defvar hack-local-variables-hook nil
   "Normal hook run after processing a file's local variables specs.
 Major modes can use this to examine user-specified local variables
 in order to initialize other data structure based on them.")
 
+(defcustom safe-local-variable-values nil
+  "List variable-value pairs that are considered safe.
+Each element is a cons cell (VAR . VAL), where VAR is a variable
+symbol and VAL is a value that is considered safe."
+  :group 'find-file
+  :type  'alist)
+
 (defun hack-local-variables (&optional mode-only)
   "Parse and put into effect this buffer's local variables spec.
 If MODE-ONLY is non-nil, all we do is check whether the major mode
 is specified, returning t if it is specified."
-  (let ((mode-specified
-	 ;; If MODE-ONLY is t, we check here for specifying the mode
-	 ;; in the -*- line.  If MODE-ONLY is nil, we process
-	 ;; the -*- line here.
-	 (hack-local-variables-prop-line mode-only))
-	(enable-local-variables
-	 (and local-enable-local-variables enable-local-variables)))
-    ;; Look for "Local variables:" line in last page.
-    (save-excursion
-      (goto-char (point-max))
-      (search-backward "\n\^L" (max (- (point-max) 3000) (point-min)) 'move)
-      (when (let ((case-fold-search t))
-	      (and (search-forward "Local Variables:" nil t)
-		   (or mode-only
-		       (hack-local-variables-confirm
-			"Set local variables as specified at end of %s? "
-			enable-local-variables))))
-	(skip-chars-forward " \t")
-	(let ((enable-local-eval enable-local-eval)
-	      ;; suffix is what comes after "local variables:" in its line.
-	      (suffix
-	       (concat
-		(regexp-quote (buffer-substring (point) (line-end-position)))
-		"$"))
-	      ;; prefix is what comes before "local variables:" in its line.
-	      (prefix
-	       (concat "^" (regexp-quote
-			    (buffer-substring (line-beginning-position)
-					      (match-beginning 0)))))
-	      beg)
+  (let ((enable-local-variables
+	 (and local-enable-local-variables enable-local-variables))
+	result)
+    (when (or mode-only enable-local-variables)
+      (setq result (hack-local-variables-prop-line mode-only))
+      ;; Look for "Local variables:" line in last page.
+      (save-excursion
+	(goto-char (point-max))
+	(search-backward "\n\^L" (max (- (point-max) 3000) (point-min))
+			 'move)
+	(when (let ((case-fold-search t))
+		(search-forward "Local Variables:" nil t))
+	  (skip-chars-forward " \t")
+	  ;; suffix is what comes after "local variables:" in its line.
+	  ;; prefix is what comes before "local variables:" in its line.
+	  (let ((suffix
+		 (concat
+		  (regexp-quote (buffer-substring (point)
+						  (line-end-position)))
+		  "$"))
+		(prefix
+		 (concat "^" (regexp-quote
+			      (buffer-substring (line-beginning-position)
+						(match-beginning 0)))))
+		beg)
 
-	  (forward-line 1)
-	  (let ((startpos (point))
-		endpos
-		(thisbuf (current-buffer)))
-	    (save-excursion
-	      (unless (let ((case-fold-search t))
-			(re-search-forward
-			 (concat prefix "[ \t]*End:[ \t]*" suffix)
-			 nil t))
-		(error "Local variables list is not properly terminated"))
-	      (beginning-of-line)
-	      (setq endpos (point)))
+	    (forward-line 1)
+	    (let ((startpos (point))
+		  endpos
+		  (thisbuf (current-buffer)))
+	      (save-excursion
+		(unless (let ((case-fold-search t))
+			  (re-search-forward
+			   (concat prefix "[ \t]*End:[ \t]*" suffix)
+			   nil t))
+		  (error "Local variables list is not properly terminated"))
+		(beginning-of-line)
+		(setq endpos (point)))
 
-	    (with-temp-buffer
-	      (insert-buffer-substring thisbuf startpos endpos)
-	      (goto-char (point-min))
-	      (subst-char-in-region (point) (point-max) ?\^m ?\n)
-	      (while (not (eobp))
-		;; Discard the prefix.
-		(if (looking-at prefix)
-		    (delete-region (point) (match-end 0))
-		  (error "Local variables entry is missing the prefix"))
-		(end-of-line)
-		;; Discard the suffix.
-		(if (looking-back suffix)
-		    (delete-region (match-beginning 0) (point))
-		  (error "Local variables entry is missing the suffix"))
-		(forward-line 1))
-	      (goto-char (point-min))
+	      (with-temp-buffer
+		(insert-buffer-substring thisbuf startpos endpos)
+		(goto-char (point-min))
+		(subst-char-in-region (point) (point-max) ?\^m ?\n)
+		(while (not (eobp))
+		  ;; Discard the prefix.
+		  (if (looking-at prefix)
+		      (delete-region (point) (match-end 0))
+		    (error "Local variables entry is missing the prefix"))
+		  (end-of-line)
+		  ;; Discard the suffix.
+		  (if (looking-back suffix)
+		      (delete-region (match-beginning 0) (point))
+		    (error "Local variables entry is missing the suffix"))
+		  (forward-line 1))
+		(goto-char (point-min))
 
-	      (while (not (eobp))
-		;; Find the variable name; strip whitespace.
-		(skip-chars-forward " \t")
-		(setq beg (point))
-		(skip-chars-forward "^:\n")
-		(if (eolp) (error "Missing colon in local variables entry"))
-		(skip-chars-backward " \t")
-		(let* ((str (buffer-substring beg (point)))
-		       (var (read str))
-		       val)
-		  ;; Read the variable value.
-		  (skip-chars-forward "^:")
-		  (forward-char 1)
-		  (setq val (read (current-buffer)))
-		  (if mode-only
-		      (if (eq var 'mode)
-			  (setq mode-specified t))
-		    ;; Set the variable.  "Variables" mode and eval are funny.
-		    (with-current-buffer thisbuf
-		      (hack-one-local-variable var val))))
-		(forward-line 1)))))))
-    (unless mode-only
-      (run-hooks 'hack-local-variables-hook))
-    mode-specified))
+		(while (not (eobp))
+		  ;; Find the variable name; strip whitespace.
+		  (skip-chars-forward " \t")
+		  (setq beg (point))
+		  (skip-chars-forward "^:\n")
+		  (if (eolp) (error "Missing colon in local variables entry"))
+		  (skip-chars-backward " \t")
+		  (let* ((str (buffer-substring beg (point)))
+			 (var (read str))
+			 val)
+		    ;; Read the variable value.
+		    (skip-chars-forward "^:")
+		    (forward-char 1)
+		    (setq val (read (current-buffer)))
+		    (if mode-only
+			(if (eq var 'mode)
+			    (setq result t))
+		      (unless (eq var 'coding)
+			(condition-case nil
+			    (push (cons (if (eq var 'eval)
+					    'eval
+					  (indirect-variable var))
+					val) result)
+			  (error nil)))))
+		  (forward-line 1)))))))
 
-(defvar ignored-local-variables ()
+      ;; We've read all the local variables.  Now, return whether the
+      ;; mode is specified (if MODE-ONLY is non-nil), or set the
+      ;; variables (if MODE-ONLY is nil.)
+      (if mode-only
+	  result
+	(when result
+	  (setq result (nreverse result))
+	  (dolist (ignored ignored-local-variables)
+	    (setq result (assq-delete-all ignored result)))
+	  (if (null enable-local-eval)
+	      (setq result (assq-delete-all 'eval result)))
+	  ;; Find those variables that we may want to save to
+	  ;; `safe-local-variable-values'.
+	  (let (risky-vars unsafe-vars)
+	    (dolist (elt result)
+	      (let ((var (car elt))
+		    (val (cdr elt)))
+		(or (eq var 'mode)
+		    (and (eq var 'eval)
+			 (or (eq enable-local-eval t)
+			     (hack-one-local-variable-eval-safep
+			      (eval (quote val)))))
+		    (safe-local-variable-p var val)
+		    (and (risky-local-variable-p var val)
+			 (push elt risky-vars))
+		    (push elt unsafe-vars))))
+	    (if (or (and (eq enable-local-variables t)
+			 (null unsafe-vars)
+			 (null risky-vars))
+		    (hack-local-variables-confirm
+		     result unsafe-vars risky-vars))
+		(dolist (elt result)
+		  (hack-one-local-variable (car elt) (cdr elt)))))
+	  (run-hooks 'hack-local-variables-hook))))))
+
+(defvar ignored-local-variables
+  '(ignored-local-variables safe-local-variable-values)
   "Variables to be ignored in a file's local variable spec.")
 
 ;; Get confirmation before setting these variables as locals in a file.
 (put 'debugger 'risky-local-variable t)
 (put 'enable-local-eval 'risky-local-variable t)
 (put 'ignored-local-variables 'risky-local-variable t)
+(put 'ignored-local-variables 'safe-local-variable-values t)
 (put 'eval 'risky-local-variable t)
 (put 'file-name-handler-alist 'risky-local-variable t)
 (put 'inhibit-quit 'risky-local-variable t)
@@ -2451,27 +2529,68 @@ is specified, returning t if it is specified."
 (put 'display-time-string 'risky-local-variable t)
 (put 'parse-time-rules 'risky-local-variable t)
 
-;; This case is safe because the user gets to check it before it is used.
-(put 'compile-command 'safe-local-variable 'stringp)
+;; Commonly-encountered local variables that are safe:
+(let ((string-or-null (lambda (a) (or (stringp a) (null a)))))
+  (eval
+   `(mapc (lambda (pair)
+	    (put (car pair) 'safe-local-variable (cdr pair)))
+	  '((byte-compile-dynamic . t)
+	    (c-basic-offset     .  integerp)
+	    (c-file-style       .  stringp)
+	    (c-indent-level     .  integerp)
+	    (comment-column     .  integerp)
+	    (compile-command    . ,string-or-null)
+	    (fill-column        .  integerp)
+	    (fill-prefix        . ,string-or-null)
+	    (indent-tabs-mode   .  t)
+	    (kept-new-versions  .  integerp)
+	    (no-byte-compile    .  t)
+	    (no-update-autoloads . t)
+	    (outline-regexp     . ,string-or-null)
+	    (page-delimiter     . ,string-or-null)
+	    (paragraph-start    . ,string-or-null)
+	    (paragraph-separate . ,string-or-null)
+	    (sentence-end       . ,string-or-null)
+	    (sentence-end-double-space . t)
+	    (tab-width          .  integerp)
+	    (version-control    .  t)))))
 
-(defun risky-local-variable-p (sym &optional val)
-  "Non-nil if SYM could be dangerous as a file-local variable with value VAL.
-If VAL is nil or omitted, the question is whether any value might be
-dangerous."
+(defun safe-local-variable-p (sym val)
+  "Non-nil if SYM is safe as a file-local variable with value VAL.
+It is safe if any of these conditions are met:
+
+ * There is a matching entry (SYM . VAL) in the
+   `safe-local-variable-values' user option.
+
+ * The `safe-local-variable' property of SYM is t.
+
+ * The `safe-local-variable' property of SYM is a function that
+   evaluates to a non-nil value with VAL as an argument."
+  (or (member (cons sym val) safe-local-variable-values)
+      (let ((safep (get sym 'safe-local-variable)))
+	(or (eq safep t)
+	    (and (functionp safep)
+		 (funcall safep val))))))
+
+(defun risky-local-variable-p (sym &optional ignored)
+  "Non-nil if SYM could be dangerous as a file-local variable.
+It is dangerous if either of these conditions are met:
+
+ * Its `risky-local-variable' property is non-nil.
+
+ * Its name ends with \"hook(s)\", \"function(s)\", \"form(s)\", \"map\",
+   \"program\", \"command(s)\", \"predicate(s)\", \"frame-alist\",
+   \"mode-alist\", \"font-lock-(syntactic-)keyword*\", or
+   \"map-alist\"."
   ;; If this is an alias, check the base name.
   (condition-case nil
       (setq sym (indirect-variable sym))
     (error nil))
-  (let ((safep (get sym 'safe-local-variable)))
-    (or (get sym 'risky-local-variable)
-	(and (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-commands?$\\|-predicates?$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|-map$\\|-map-alist$"
-			   (symbol-name sym))
-	     (not safep))
-	;; If the safe-local-variable property isn't t or nil,
-	;; then it must return non-nil on the proposed value to be safe.
-	(and (not (memq safep '(t nil)))
-	     (or (null val)
-		 (not (funcall safep val)))))))
+  (or (get sym 'risky-local-variable)
+      (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|\
+-commands?$\\|-predicates?$\\|font-lock-keywords$\\|font-lock-keywords\
+-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|\
+-map$\\|-map-alist$" (symbol-name sym))))
 
 (defcustom safe-local-eval-forms nil
   "*Expressions that are considered \"safe\" in an `eval:' local variable.
@@ -2528,35 +2647,12 @@ asking you for confirmation."
 		      ok)))))))
 
 (defun hack-one-local-variable (var val)
-  "\"Set\" one variable in a local variables spec.
-A few patterns are specified so that any name which matches one
-is considered risky."
+  "Set local variable VAR with value VAL."
   (cond ((eq var 'mode)
 	 (funcall (intern (concat (downcase (symbol-name val))
 				  "-mode"))))
-	((eq var 'coding)
-	 ;; We have already handled coding: tag in set-auto-coding.
-	 nil)
-	((memq var ignored-local-variables)
-	 nil)
-	;; "Setting" eval means either eval it or do nothing.
-	;; Likewise for setting hook variables.
-	((risky-local-variable-p var val)
-	 ;; Permit evalling a put of a harmless property.
-	 ;; if the args do nothing tricky.
-	 (if (or (and (eq var 'eval)
-		      (hack-one-local-variable-eval-safep val))
-		 ;; Permit eval if not root and user says ok.
-		 (and (not (zerop (user-uid)))
-		      (hack-local-variables-confirm
-		       "Process `eval' or hook local variables in %s? "
-		       enable-local-eval)))
-	     (if (eq var 'eval)
-		 (save-excursion (eval val))
-	       (make-local-variable var)
-	       (set var val))
-	   (message "Ignoring risky spec in the local variables list")))
-	;; Ordinary variable, really set it.
+	((eq var 'eval)
+	 (save-excursion (eval val)))
 	(t (make-local-variable var)
 	   ;; Make sure the string has no text properties.
 	   ;; Some text properties can get evaluated in various ways,
@@ -3795,8 +3891,8 @@ sake of backward compatibility.  IGNORE-AUTO is optional, defaulting
 to nil.
 
 Optional second argument NOCONFIRM means don't ask for confirmation at
-all.  (The local variable `revert-without-query', if non-nil, prevents
-confirmation.)
+all.  \(The variable `revert-without-query' offers another way to
+revert buffers without querying for confirmation.)
 
 Optional third argument PRESERVE-MODES non-nil means don't alter
 the files modes.  Normally we reinitialize them using `normal-mode'.
@@ -3831,13 +3927,10 @@ non-nil, it is called instead of rereading visited file contents."
 	       (error "Buffer does not seem to be associated with any file"))
 	      ((or noconfirm
 		   (and (not (buffer-modified-p))
-			(let ((tail revert-without-query)
-			      (found nil))
-			  (while tail
-			    (if (string-match (car tail) file-name)
-				(setq found t))
-			    (setq tail (cdr tail)))
-			  found))
+			(catch 'found
+			  (dolist (regexp revert-without-query)
+			    (when (string-match regexp file-name)
+			      (throw 'found t)))))
 		   (yes-or-no-p (format "Revert buffer from file %s? "
 					file-name)))
 	       (run-hooks 'before-revert-hook)
@@ -3846,50 +3939,51 @@ non-nil, it is called instead of rereading visited file contents."
 	       (and (not auto-save-p)
 		    (not (verify-visited-file-modtime (current-buffer)))
 		    (setq buffer-backed-up nil))
-	       ;; Get rid of all undo records for this buffer.
-	       (or (eq buffer-undo-list t)
-		   (setq buffer-undo-list nil))
 	       ;; Effectively copy the after-revert-hook status,
 	       ;; since after-find-file will clobber it.
 	       (let ((global-hook (default-value 'after-revert-hook))
-		     (local-hook-p (local-variable-p 'after-revert-hook))
-		     (local-hook (and (local-variable-p 'after-revert-hook)
-				      after-revert-hook)))
-		 (let (buffer-read-only
-		       ;; Don't make undo records for the reversion.
-		       (buffer-undo-list t))
-		   (if revert-buffer-insert-file-contents-function
-		       (funcall revert-buffer-insert-file-contents-function
-				file-name auto-save-p)
-		     (if (not (file-exists-p file-name))
-			 (error (if buffer-file-number
-				    "File %s no longer exists!"
-				  "Cannot revert nonexistent file %s")
-				file-name))
-		     ;; Bind buffer-file-name to nil
-		     ;; so that we don't try to lock the file.
-		     (let ((buffer-file-name nil))
-		       (or auto-save-p
-			   (unlock-buffer)))
-		     (widen)
-		     (let ((coding-system-for-read
-			    ;; Auto-saved file shoule be read by Emacs'
-			    ;; internal coding.
-			    (if auto-save-p 'auto-save-coding
-			      (or coding-system-for-read
-				  buffer-file-coding-system-explicit))))
-		       ;; This force after-insert-file-set-coding
-		       ;; (called from insert-file-contents) to set
-		       ;; buffer-file-coding-system to a proper value.
-		       (kill-local-variable 'buffer-file-coding-system)
+		     (local-hook (when (local-variable-p 'after-revert-hook)
+				   after-revert-hook))
+		     (inhibit-read-only t))
+		 (cond
+		  (revert-buffer-insert-file-contents-function
+		   (unless (eq buffer-undo-list t)
+		     ;; Get rid of all undo records for this buffer.
+		     (setq buffer-undo-list nil))
+		   ;; Don't make undo records for the reversion.
+		   (let ((buffer-undo-list t))
+		     (funcall revert-buffer-insert-file-contents-function
+			      file-name auto-save-p)))
+		  ((not (file-exists-p file-name))
+		   (error (if buffer-file-number
+			      "File %s no longer exists!"
+			    "Cannot revert nonexistent file %s")
+			  file-name))
+		  (t
+		   ;; Bind buffer-file-name to nil
+		   ;; so that we don't try to lock the file.
+		   (let ((buffer-file-name nil))
+		     (or auto-save-p
+			 (unlock-buffer)))
+		   (widen)
+		   (let ((coding-system-for-read
+			  ;; Auto-saved file should be read by Emacs'
+			  ;; internal coding.
+			  (if auto-save-p 'auto-save-coding
+			    (or coding-system-for-read
+				buffer-file-coding-system-explicit))))
+		     ;; This force after-insert-file-set-coding
+		     ;; (called from insert-file-contents) to set
+		     ;; buffer-file-coding-system to a proper value.
+		     (kill-local-variable 'buffer-file-coding-system)
 
-		       ;; Note that this preserves point in an intelligent way.
-		       (if preserve-modes
-			   (let ((buffer-file-format buffer-file-format))
-			     (insert-file-contents file-name (not auto-save-p)
-						   nil nil t))
-			 (insert-file-contents file-name (not auto-save-p)
-					       nil nil t)))))
+		     ;; Note that this preserves point in an intelligent way.
+		     (if preserve-modes
+			 (let ((buffer-file-format buffer-file-format))
+			   (insert-file-contents file-name (not auto-save-p)
+						 nil nil t))
+		       (insert-file-contents file-name (not auto-save-p)
+					     nil nil t)))))
 		 ;; Recompute the truename in case changes in symlinks
 		 ;; have changed the truename.
 		 (setq buffer-file-truename
@@ -3897,7 +3991,7 @@ non-nil, it is called instead of rereading visited file contents."
 		 (after-find-file nil nil t t preserve-modes)
 		 ;; Run after-revert-hook as it was before we reverted.
 		 (setq-default revert-buffer-internal-hook global-hook)
-		 (if local-hook-p
+		 (if local-hook
 		     (set (make-local-variable 'revert-buffer-internal-hook)
 			  local-hook)
 		   (kill-local-variable 'revert-buffer-internal-hook))
@@ -3943,7 +4037,7 @@ non-nil, it is called instead of rereading visited file contents."
 		   (insert-directory-safely file-name switches))))
 	     (yes-or-no-p (format "Recover auto save file %s? " file-name)))
 	   (switch-to-buffer (find-file-noselect file t))
-	   (let ((buffer-read-only nil)
+	   (let ((inhibit-read-only t)
 		 ;; Keep the current buffer-file-coding-system.
 		 (coding-system buffer-file-coding-system)
 		 ;; Auto-saved file shoule be read with special coding.

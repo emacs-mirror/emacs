@@ -362,6 +362,7 @@
             ((memq 'matrix (nth 1 decl))
              t)
             ((and (eq (car a) 'var)
+                  (symbolp (nth 2 a))
                   (boundp (nth 2 a))
                   (setq val (symbol-value (nth 2 a))))
              (math-check-known-matrixp val))

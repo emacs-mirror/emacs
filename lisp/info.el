@@ -134,7 +134,7 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defface info-xref-visited
-  '((t :inherit link-visited))
+  '((t :inherit (link-visited info-xref)))
   "Face for visited Info cross-references."
   :version "22.1"
   :group 'info)
@@ -1407,11 +1407,13 @@ any double quotes or backslashes must be escaped (\\\",\\\\)."
 		(concat
 		 " ("
 		 (if (stringp Info-current-file)
-		     (file-name-nondirectory Info-current-file)
+		     (replace-regexp-in-string
+		      "%" "%%" (file-name-nondirectory Info-current-file))
 		   "")
 		 ") "
 		 (if Info-current-node
-		     (propertize Info-current-node
+		     (propertize (replace-regexp-in-string
+				  "%" "%%" Info-current-node)
 				 'face 'mode-line-buffer-id
 				 'help-echo
 				 "mouse-1: scroll forward, mouse-3: scroll back"
@@ -3352,7 +3354,7 @@ Advanced commands:
 \\[Info-search-case-sensitively]	Search through this Info file for specified regexp case-sensitively.
 \\[Info-search-next]	Search for another occurrence of regexp
 	  from a previous \\<Info-mode-map>\\[Info-search] command.
-\\[Info-index]	Look up a topic in this manual's Index and move to that index entry.
+\\[Info-index]	Search for a topic in this manual's Index and go to index entry.
 \\[Info-index-next]	(comma) Move to the next match from a previous \\<Info-mode-map>\\[Info-index] command.
 \\[info-apropos]	Look for a string in the indices of all manuals.
 \\[Info-goto-node]	Move to node specified by name.

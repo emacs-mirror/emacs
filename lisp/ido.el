@@ -2022,9 +2022,10 @@ If INITIAL is non-nil, it specifies the initial input string."
 	(if (eq method 'insert)
 	    (progn
 	      (ido-record-command 'insert-buffer buf)
-	      (with-no-warnings
-		;; we really want to run insert-buffer here
-		(insert-buffer buf)))
+	      (push-mark
+	       (save-excursion
+		 (insert-buffer-substring (get-buffer buf))
+		 (point))))
 	  (ido-visit-buffer buf method t)))
 
        ;; buffer doesn't exist
@@ -2225,9 +2226,10 @@ If INITIAL is non-nil, it specifies the initial input string."
 	 (if ido-find-literal 'insert-file-literally 'insert-file)
 	 filename)
 	(ido-record-work-directory)
-	(if ido-find-literal
-	    (insert-file-contents-literally filename)
-	  (insert-file-contents filename)))
+	(insert-file-1 filename
+		       (if ido-find-literal
+			   #'insert-file-contents-literally
+			 #'insert-file-contents)))
 
        (filename
 	(ido-record-work-file filename)
