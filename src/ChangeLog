@@ -1,4 +1,4 @@
-2006-02-14  Jan Dj,Ad(Brv  <Jan.Djarv@operax.com>
+2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_x_to_emacs_modifiers): Make non-static.
 
