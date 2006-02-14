@@ -1794,7 +1794,7 @@ including @code{fill-column}, @code{fill-prefix}, and
 
 @defopt safe-local-variable-values
 This variable provides another way to mark variables as safe.  It is a
-list of cons cells @var{(var . val)}, where @var{var} is a variable
+list of cons cells @code{(var . val)}, where @var{var} is a variable
 name and @var{val} is a value of that variable that is safe.
 
 When Emacs asks the user whether or not to obey a set of file variable
