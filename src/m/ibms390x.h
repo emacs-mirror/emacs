@@ -158,3 +158,6 @@ NOTE-END */
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
 
 #define XPNTR(a) XUINT (a)
+
+/* arch-tag: 4b87653c-6add-4663-8691-7d9dc17b5519
+   (do not change this comment) */
