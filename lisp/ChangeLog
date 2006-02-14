@@ -1,3 +1,15 @@
+2006-02-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gdb): Improve doc string.
+	(gdb-script-font-lock-keywords): Expand allowed character set.
+
+	* progmodes/gdb-ui.el (gdb-use-separate-io-buffer)
+	(gdb-display-separate-io-buffer, gdb-frame-separate-io-buffer)
+	(gdb-separate-io-interrupt, gdb-separate-io-quit)
+	(gdb-separate-io-stop, gdb-separate-io-eof):
+	Rename from gdb-inferior-* to gdb-separate-*.
+	(gdb-set-gud-minor-mode-existing-buffers-1): Improve doc string.
+
 2006-02-14  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-arith.el (math-check-known-scalarp): Make sure
