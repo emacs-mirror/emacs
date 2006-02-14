@@ -1,3 +1,7 @@
+2006-02-14  Richard M. Stallman  <rms@gnu.org>
+
+	* m/ibms390x.h: New file.
+
 2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_detach_callback): Set show-arrow to the
