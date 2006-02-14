@@ -158,6 +158,10 @@ int x_use_old_gtk_file_dialog;
 
 int x_gtk_show_hidden_files;
 
+/* If non-zero, don't collapse to tool bar when it is detached.  */
+
+int x_gtk_whole_detached_tool_bar;
+
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
 
@@ -5805,6 +5809,12 @@ variable `use-file-dialog'.  */);
 Note that this is just the default, there is a toggle button on the file
 chooser to show or not show hidden files on a case by case basis.  */);
   x_gtk_show_hidden_files = 0;
+
+  DEFVAR_BOOL ("x-gtk-whole-detached-tool-bar", &x_gtk_whole_detached_tool_bar,
+    doc: /* *If non-nil, a detached tool bar is shown in full.
+The default is to just show an arrow and pressing on that arrow shows
+the tool bar buttons.  */);
+  x_gtk_whole_detached_tool_bar = 0;
 
   Fprovide (intern ("x"), Qnil);
 
