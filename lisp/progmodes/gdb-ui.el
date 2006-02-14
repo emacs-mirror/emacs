@@ -855,7 +855,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 (defun gdb-display-separate-io-buffer ()
   "Display IO of inferior in a separate window."
   (interactive)
-  (if gdb-use-inferior-io-buffer
+  (if gdb-use-separate-io-buffer
       (gdb-display-buffer
        (gdb-get-create-buffer 'gdb-inferior-io))))
 
