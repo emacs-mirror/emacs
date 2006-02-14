@@ -1,3 +1,15 @@
+2006-02-14  Jan Dj,Ad(Brv  <Jan.Djarv@operax.com>
+
+	* xterm.c (x_x_to_emacs_modifiers): Make non-static.
+
+	* xterm.h: Declare x_x_to_emacs_modifiers.
+
+	* gtkutil.c (xg_tool_bar_button_cb): New function.
+	(xg_tool_bar_callback): Call x_x_to_emacs_modifiers to
+	store modifiers in event.
+	(update_frame_tool_bar): Connect button-release-event to
+	xg_tool_bar_button_cb.
+
 2006-02-13  Richard M. Stallman  <rms@gnu.org>
 
 	* .gdbinit (xwindow): Update the code to show the window box.
