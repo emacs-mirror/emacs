@@ -27,7 +27,7 @@ installed programs.
 
 ---
 ** You can build Emacs with Gtk+ widgets by specifying `--with-x-toolkit=gtk'
-when you run configure.  This requires Gtk+ 2.0 or newer.  This port
+when you run configure.  This requires Gtk+ 2.4 or newer.  This port
 provides a way to display multilingual text in menus (with some caveats).
 
 ---
@@ -942,7 +942,7 @@ to explicitly specify a fontSet resource for this to work, for example
 ESC, like they do for Gtk+, Mac and W32.
 
 +++
-*** For Gtk+ version 2.4, you can make Emacs use the old file dialog
+*** For the Gtk+ version, you can make Emacs use the old file dialog
 by setting the variable `x-use-old-gtk-file-dialog' to t.  Default is to use
 the new dialog.
 
