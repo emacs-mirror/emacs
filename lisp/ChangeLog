@@ -1,3 +1,11 @@
+2006-02-14  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-arith.el (math-check-known-scalarp): Make sure
+	expression is a symbol before checking that it is bound.
+
+	* calc/calcalg2.el (math-integrate-by-parts): Do a more careful
+	test to see if equation can be solved.
+
 2006-02-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* wid-edit.el (widget-button-click): Use :pressed-face property
