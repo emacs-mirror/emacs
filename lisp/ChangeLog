@@ -1,10 +1,13 @@
 2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* cus-start.el (all): Add x-gtk-whole-detached-tool-bar
+	* cus-start.el (all): Add x-gtk-whole-detached-tool-bar.
 
 2006-02-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help.el (where-is): Fix message for remapped commands.
+
+	* mwheel.el (mouse-wheel-click-event, mouse-wheel-mode):
+	Fix typos in docstrings.
 
 2006-02-13  Chong Yidong  <cyd@stupidchicken.com>
 
