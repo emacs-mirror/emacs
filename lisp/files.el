@@ -2439,34 +2439,35 @@ is specified, returning t if it is specified."
       ;; variables (if MODE-ONLY is nil.)
       (if mode-only
 	  result
-	(setq result (nreverse result))
-	(dolist (ignored ignored-local-variables)
-	  (setq result (assq-delete-all ignored result)))
-	(if (null enable-local-eval)
-	    (setq result (assq-delete-all 'eval result)))
-	;; Find those variables that we may want to save to
-	;; `safe-local-variable-values'.
-	(let (risky-vars unsafe-vars)
-	  (dolist (elt result)
-	    (let ((var (car elt))
-		  (val (cdr elt)))
-	      (or (eq var 'mode)
-		  (and (eq var 'eval)
-		       (or (eq enable-local-eval t)
-			   (hack-one-local-variable-eval-safep
-			    (eval (quote val)))))
-		  (safe-local-variable-p var val)
-		  (and (risky-local-variable-p var val)
-		       (push elt risky-vars))
-		  (push elt unsafe-vars))))
-	  (if (or (and (eq enable-local-variables t)
-		       (null unsafe-vars)
-		       (null risky-vars))
-		  (hack-local-variables-confirm
-		   result unsafe-vars risky-vars))
-	      (dolist (elt result)
-		(hack-one-local-variable (car elt) (cdr elt)))))
-	(run-hooks 'hack-local-variables-hook)))))
+	(when result
+	  (setq result (nreverse result))
+	  (dolist (ignored ignored-local-variables)
+	    (setq result (assq-delete-all ignored result)))
+	  (if (null enable-local-eval)
+	      (setq result (assq-delete-all 'eval result)))
+	  ;; Find those variables that we may want to save to
+	  ;; `safe-local-variable-values'.
+	  (let (risky-vars unsafe-vars)
+	    (dolist (elt result)
+	      (let ((var (car elt))
+		    (val (cdr elt)))
+		(or (eq var 'mode)
+		    (and (eq var 'eval)
+			 (or (eq enable-local-eval t)
+			     (hack-one-local-variable-eval-safep
+			      (eval (quote val)))))
+		    (safe-local-variable-p var val)
+		    (and (risky-local-variable-p var val)
+			 (push elt risky-vars))
+		    (push elt unsafe-vars))))
+	    (if (or (and (eq enable-local-variables t)
+			 (null unsafe-vars)
+			 (null risky-vars))
+		    (hack-local-variables-confirm
+		     result unsafe-vars risky-vars))
+		(dolist (elt result)
+		  (hack-one-local-variable (car elt) (cdr elt)))))
+	  (run-hooks 'hack-local-variables-hook))))))
 
 (defvar ignored-local-variables
   '(ignored-local-variables safe-local-variable-values)
