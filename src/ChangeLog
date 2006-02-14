@@ -1,5 +1,13 @@
 2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_tool_bar_detach_callback): Set show-arrow to the
+	value of x-gtk-whole-detached-tool-bar.
+	(xg_tool_bar_attach_callback): Set show-arrow to FALSE.
+
+	* xfns.c (syms_of_xfns): New variable: x-gtk-whole-detached-tool-bar.
+
+2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
 	* xterm.c (x_x_to_emacs_modifiers): Make non-static.
 
 	* xterm.h: Declare x_x_to_emacs_modifiers.
