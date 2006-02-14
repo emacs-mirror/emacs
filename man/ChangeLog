@@ -1,3 +1,9 @@
+2006-02-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Specifying File Variables, Unsafe File Variables):
+	New nodes, split from File Variables.  Document new file local
+	variable behavior.
+
 2006-02-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* display.texi (Standard Faces):
