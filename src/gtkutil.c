@@ -3314,6 +3314,10 @@ xg_tool_bar_detach_callback (wbox, w, client_data)
      gpointer client_data;
 {
   FRAME_PTR f = (FRAME_PTR) client_data;
+  extern int x_gtk_whole_detached_tool_bar;
+
+  g_object_set (G_OBJECT (w), "show-arrow", !x_gtk_whole_detached_tool_bar,
+		NULL);
 
   if (f)
     {
@@ -3344,6 +3348,7 @@ xg_tool_bar_attach_callback (wbox, w, client_data)
      gpointer client_data;
 {
   FRAME_PTR f = (FRAME_PTR) client_data;
+  g_object_set (G_OBJECT (w), "show-arrow", TRUE, NULL);
 
   if (f)
     {
