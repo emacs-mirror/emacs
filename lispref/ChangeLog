@@ -1,3 +1,7 @@
+2006-02-14  Richard M. Stallman  <rms@gnu.org>
+
+	* variables.texi (File Local Variables): Clarifications.
+
 2006-02-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* variables.texi (File Local Variables): Use @code for a cons
