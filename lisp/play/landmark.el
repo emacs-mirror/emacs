@@ -1694,13 +1694,13 @@ Use \\[describe-mode] for more info."
 
 ;;;_ + Local variables
 
-;;; The following `outline-layout' local variable setting:
+;;; The following `allout-layout' local variable setting:
 ;;;  - closes all topics from the first topic to just before the third-to-last,
 ;;;  - shows the children of the third to last (config vars)
 ;;;  - and the second to last (code section),
 ;;;  - and closes the last topic (this local-variables section).
 ;;;Local variables:
-;;;outline-layout: (0 : -1 -1 0)
+;;;allout-layout: (0 : -1 -1 0)
 ;;;End:
 
 (provide 'landmark)

@@ -1,3 +1,35 @@
+2006-02-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (safe-local-variable-values): New option.
+	(hack-local-variables-prop-line): Return a list of variable-value
+	pairs if MODE-ONLY is non-nil.
+	(hack-local-variables): Construct list of variable-value pairs,
+	and apply or reject them in one go.  Ask for confirmation if
+	variables are not known safe.
+	(hack-local-variables-confirm): Complete rewrite.  Support
+	`safe-local-variable-values'.
+	(enable-local-variables): Update docstring to reflect new
+	behavior.
+	(ignored-local-variables): Ignore ignored-local-variables and
+	safe-local-variable-values.
+	(safe-local-variable-p): New function.
+	(risky-local-variable-p): `safe-local-variable' property check
+	moved to safe-local-variable-p.
+	(hack-one-local-variable): Checks moved to hack-local-variables.
+
+	(byte-compile-dynamic, c-basic-offset, c-file-style,
+	c-indent-level, comment-column, fill-column, fill-prefix,
+	indent-tabs-mode, kept-new-versions, no-byte-compile,
+	no-update-autoloads, outline-regexp, page-delimiter,
+	paragraph-start, paragraph-separate, sentence-end,
+	sentence-end-double-space tab-width, version-control): Add
+	`safe-local-variable' property.
+
+	* find-lisp.el: Delete nonexistent `autocompile' file variable.
+
+	* icomplete.el, play/landmark.el: Change nonexistent
+	`outline-layout' file variable to `allout-layout'.
+
 2006-02-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gud-watch, gdb-invalidate-registers-1)
