@@ -1,3 +1,7 @@
+2006-02-15  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (x_produce_glyphs): Handle composition with TAB.
+
 2006-02-05  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c: Cancel incorrect synching with HEAD.
