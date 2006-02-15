@@ -1194,6 +1194,9 @@ that file, and asks you for confirmation before setting them.  You can
 type @samp{y} or @samp{SPC} to apply the local variables list, or
 @samp{n} to ignore it.
 
+  When Emacs is run in batch mode (@pxref{Initial Options}), it
+assumes that the answer is @samp{n}.
+
   There is a set of file variables and values that are known to be
 safe.  For instance, it is safe to give @code{comment-column} or
 @code{fill-column} any integer value.  If a file specifies only safe
