@@ -5,6 +5,9 @@
 
 	* cus-edit.el (custom-mode-map): Remove mouse-1 binding.
 
+	* cus-theme.el (custom-new-theme-mode-map): Remove mouse-1
+	binding.
+
 	* files.el (hack-local-variables-confirm): Allow scrolling if the
 	file variable list is too long.  Kill temp buffer after use.
 
