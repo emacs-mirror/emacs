@@ -16,7 +16,7 @@
 
 	* gtkutil.c (xg_tool_bar_detach_callback): Set show-arrow to the
 	value of x-gtk-whole-detached-tool-bar.
-	(xg_tool_bar_attach_callback): Set show-arrow to FALSE.
+	(xg_tool_bar_attach_callback): Set show-arrow to TRUE.
 
 	* xfns.c (syms_of_xfns): New variable: x-gtk-whole-detached-tool-bar.
 
