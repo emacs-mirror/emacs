@@ -1045,14 +1045,13 @@ buffer, and sets them to the values specified in the file.
 
 @menu
 * Specifying File Variables:: Specifying file local variables.
-* Unsafe File Variables::     Handling local variables that may not
-                              be safe.
+* Safe File Variables::       Making sure file local variables are safe.
 @end menu
 
 @node Specifying File Variables
 @subsubsection Specifying File Variables
 
-  There are two ways to specify local variable values: in the first
+  There are two ways to specify file local variable values: in the first
 line, or with a local variables list.  Here's how to specify them in the
 first line:
 
@@ -1098,7 +1097,7 @@ variables list and a @samp{-*-} line, Emacs processes @emph{everything}
 in the @samp{-*-} line first, and @emph{everything} in the local
 variables list afterward.
 
-Here is an example of a local variables list:
+  Here is an example of a local variables list:
 
 @example
 ;;; Local Variables: ***
@@ -1179,52 +1178,52 @@ list need not take the time to search the whole file.
 major mode of a buffer according to the file name and contents,
 including the local variables list if any.  @xref{Choosing Modes}.
 
-@node Unsafe File Variables
-@subsubsection Unsafe File Variables
+@node Safe File Variables
+@subsubsection Safety of File Variables
 
-  File variables create a certain amount of risk; when you visit
-someone else's file, its variables could affect your Emacs in
-arbitrary ways.  A special risk is posed by the @code{eval}
-``variable,'' which can potentially execute arbitrary code, and
-certain actual variables such as @code{load-path}.
+  File-local variables can be dangerous; when you visit someone else's
+file, there's no telling what its local variables list could do to
+your Emacs.  Improper values of the @code{eval} ``variable,'' and
+other variables such as @code{load-path}, could execute Lisp code you
+didn't intend to run.
 
-  Therefore, whenever Emacs encounters file variables that are not
-known to be safe, it displays the entire list of variables defined in
-that file, and asks you for confirmation before setting them.  You can
-type @samp{y} or @samp{SPC} to apply the local variables list, or
-@samp{n} to ignore it.
+  Therefore, whenever Emacs encounters file local variable values that
+are not known to be safe, it displays the file's entire local
+variables list, and asks you for confirmation before setting them.
+You can type @kbd{y} or @key{SPC} to put the local variables list into
+effect, or @kbd{n} to ignore it.  When Emacs is run in batch mode
+(@pxref{Initial Options}), it can't really ask you, so it assumes the
+answer @samp{n}.
 
-  When Emacs is run in batch mode (@pxref{Initial Options}), it
-assumes that the answer is @samp{n}.
-
-  There is a set of file variables and values that are known to be
-safe.  For instance, it is safe to give @code{comment-column} or
+  Emacs normally recognizes certain variables/value pairs as safe.
+For instance, it is safe to give @code{comment-column} or
 @code{fill-column} any integer value.  If a file specifies only safe
-variable-value pairs, Emacs will not ask for confirmation before
-setting them.  You can also tell Emacs that a set of variable-value
-pairs is safe, by entering @samp{!} at the file variables confirmation
-prompt.  In that case, Emacs will not ask for confirmation if it
-encounters these variable-value pairs in the future.  You can directly
-edit the list of safe variable-value pairs by customizing
+variable/value pairs, Emacs does not ask for confirmation before
+setting them.  Otherwise, you can tell Emacs to record that all the
+variable/value pairs in the file are safe, by typing @kbd{!} at the
+confirmation prompt.  When Emacs encounters these variable/value pairs
+subsequently, in the same file or others, it will assume they are
+safe.
+
+@vindex safe-local-variable-values
+@cindex risky variable
+  Some variables, such as @code{load-path}, are considered
+particularly @dfn{risky}: there is seldom any reason to specify them
+as local variables, and changing them can be dangerous.  Even if you
+enter @kbd{!} at the confirmation prompt, Emacs will not record any
+values as safe for these variables.  If you really want to record safe
+values for these variables, do it directly by customizing
 @samp{safe-local-variable-values} (@pxref{Easy Customization}).
 
-  Some variables, such as @code{load-path}, are considered
-@dfn{risky}: there is seldom any reason to specify them as file
-variables, and changing them can be dangerous.  Even if you enter
-@samp{!} at the confirmation prompt, Emacs will not save these values
-for the future.  Therefore, you will be prompted each time the
-variable is encountered.  If you really want to allow such a variable,
-you can avoid the prompt by editing @samp{safe-local-variable-values}.
-
-@findex enable-local-variables
+@vindex enable-local-variables
   The variable @code{enable-local-variables} allows you to change the
 way Emacs processes local variables.  Its default value is @code{t},
-which means the behavior described above.  If you set the value to
-@code{nil}, Emacs simply ignores local variables in files.  Any other
-value says to query you about each file that has local variables, even
-if the variables are known to be safe.
+which specifies the behavior described above.  If it is @code{nil},
+Emacs simply ignores all file local variables.  Any other value says
+to query you about each file that has local variables, without trying
+to determine whether the values are known to be safe.
 
-@findex enable-local-eval
+@vindex enable-local-eval
   The variable @code{enable-local-eval} controls whether Emacs
 processes @code{eval} variables.  The three possibilities for the
 variable's value are @code{t}, @code{nil}, and anything else, just as
@@ -1232,7 +1231,7 @@ for @code{enable-local-variables}.  The default is @code{maybe}, which
 is neither @code{t} nor @code{nil}, so normally Emacs does ask for
 confirmation about processes @code{eval} variables.
 
-@findex safe-local-eval-forms
+@vindex safe-local-eval-forms
   The @code{safe-local-eval-forms} is a customizable list of eval
 forms which are safe to eval, so Emacs should not ask for
 confirmation to evaluate these forms.
