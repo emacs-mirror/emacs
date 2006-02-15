@@ -44,7 +44,6 @@
 	* files.el (hack-local-variables): Remove ignored variables before
 	checking if any variables need setting.
 
->>>>>>> 1.9141
 2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add x-gtk-whole-detached-tool-bar.
@@ -237,7 +236,7 @@
 2006-02-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* files.el (revert-buffer, recover-file): Replace buffer-read-only
-	with inhibit-read-only.	Suggested by Stefan Monnier.
+	with inhibit-read-only.  Suggested by Stefan Monnier.
 	(revert-buffer): Let insert-file-contents discard
 	buffer-undo-list.  Simplify code.
 	(find-file, find-file-existing, revert-buffer): Doc-string fixes.
