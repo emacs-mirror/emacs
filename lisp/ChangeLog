@@ -1,3 +1,9 @@
+2006-02-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs-mode): Use `buffer-disable-undo'.
+	(bs--get-file-name): Simplify.
+	(bs-show-in-buffer): Mark the buffer as not modified.
+
 2006-02-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* wid-edit.el (widget-keymap): Bind down-mouse-1 to
