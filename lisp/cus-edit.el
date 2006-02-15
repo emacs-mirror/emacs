@@ -4424,7 +4424,7 @@ Move to previous button, link or editable field. \\[advertised-widget-backward]
 \\<custom-field-keymap>\
 Complete content of editable text field.   \\[widget-complete]
 \\<custom-mode-map>\
-Invoke button under the mouse pointer.     \\[widget-move-and-invoke]
+Invoke button under the mouse pointer.     \\[widget-button-click]
 Invoke button under point.                 \\[widget-button-press]
 Set all options from current text.         \\[Custom-set]
 Make values in current text permanent.     \\[Custom-save]

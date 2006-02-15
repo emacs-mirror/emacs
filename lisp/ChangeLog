@@ -4,6 +4,7 @@
 	widget-button-click.
 
 	* cus-edit.el (custom-mode-map): Remove mouse-1 binding.
+	(custom-mode): Update docstring.
 
 	* cus-theme.el (custom-new-theme-mode-map): Remove mouse-1
 	binding.
