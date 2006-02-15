@@ -20403,6 +20403,7 @@ x_produce_glyphs (it)
 	  int leftmost, rightmost, lowest, highest;
 	  int lbearing, rbearing;
 	  int i, width, ascent, descent;
+	  int fully_padded = 0;
 
 	  cmp->font = (void *) font;
 
@@ -20455,8 +20456,15 @@ x_produce_glyphs (it)
 	    {
 	      int left, right, btm, top;
 	      int ch = COMPOSITION_GLYPH (cmp, i);
-	      int face_id = FACE_FOR_CHAR (it->f, face, ch, pos, it->string);
+	      int face_id;
 
+	      if (ch == '\t')
+		{
+		  fully_padded = 1;
+		  continue;
+		}
+
+	      face_id = FACE_FOR_CHAR (it->f, face, ch, pos, it->string);
 	      face = FACE_FROM_ID (it->f, face_id);
 	      get_char_face_and_encoding (it->f, ch, face->id,
 					  &char2b, it->multibyte_p, 0);
@@ -20597,6 +20605,15 @@ x_produce_glyphs (it)
 	      rightmost -= leftmost;
 	      cmp->lbearing -= leftmost;
 	      cmp->rbearing -= leftmost;
+	    }
+
+	  if (fully_padded)
+	    {
+	      for (i = 0; i < cmp->glyph_len; i++)
+		cmp->offsets[i * 2] -= cmp->lbearing;
+	      rightmost = cmp->rbearing - cmp->lbearing;
+	      cmp->lbearing = 0;
+	      cmp->rbearing = rightmost; 
 	    }
 
 	  cmp->pixel_width = rightmost;
