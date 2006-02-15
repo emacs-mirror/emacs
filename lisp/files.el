@@ -2225,10 +2225,9 @@ Otherwise, return nil; point may be changed."
     (let ((name (if buffer-file-name
 		    (file-name-nondirectory buffer-file-name)
 		  (concat "buffer " (buffer-name))))
-	  char)
+	  prompt char)
       (save-window-excursion
-	(let ((buf (get-buffer-create "*Local Variables*"))
-	      (prompt))
+	(let ((buf (get-buffer-create "*Local Variables*")))
 	  (pop-to-buffer buf)
 	  (set (make-local-variable 'cursor-type) nil)
 	  (erase-buffer)
@@ -2284,6 +2283,7 @@ n  -- to ignore the local variables list.
 	    (customize-save-variable
 	     'safe-local-variable-values
 	     safe-local-variable-values))
+	  (kill-buffer buf)
 	  (or (= char ?!)
 	      (= char ?\s)
 	      (= char ?y)))))))

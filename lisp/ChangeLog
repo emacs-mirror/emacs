@@ -1,7 +1,7 @@
 2006-02-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (hack-local-variables-confirm): Allow scrolling if the
-	file variable list is too long.
+	file variable list is too long.  Kill temp buffer after use.
 
 2006-02-15  Nick Roberts  <nickrob@snap.net.nz>
 
