@@ -1,5 +1,7 @@
 2006-02-14  Richard M. Stallman  <rms@gnu.org>
 
+	* frame.c (x_get_arg): Clear out all occurrences of PARAM in ALIST.
+
 	* m/ibms390x.h: New file.
 
 2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>

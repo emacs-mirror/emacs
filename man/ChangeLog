@@ -1,3 +1,8 @@
+2006-02-14  Richard M. Stallman  <rms@gnu.org>
+
+	* building.texi (GDB User Interface Layout): Don't say `inferior'
+	for program being debugged.
+
 2006-02-15  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB Graphical Interface): Replace
