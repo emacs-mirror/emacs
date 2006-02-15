@@ -860,6 +860,7 @@ button end points."
     (define-key map [(shift tab)] 'advertised-widget-backward)
     (define-key map [backtab] 'widget-backward)
     (define-key map [down-mouse-2] 'widget-button-click)
+    (define-key map [down-mouse-1] 'widget-button-click)
     (define-key map "\C-m" 'widget-button-press)
     map)
   "Keymap containing useful binding for buffers containing widgets.

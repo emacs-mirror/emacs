@@ -4369,7 +4369,6 @@ The format is suitable for use with `easy-menu-define'."
     (define-key map "u" 'Custom-goto-parent)
     (define-key map "n" 'widget-forward)
     (define-key map "p" 'widget-backward)
-    (define-key map [mouse-1] 'widget-move-and-invoke)
     map)
   "Keymap for `custom-mode'.")
 

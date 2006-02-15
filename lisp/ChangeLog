@@ -1,5 +1,10 @@
 2006-02-14  Chong Yidong  <cyd@stupidchicken.com>
 
+	* wid-edit.el (widget-keymap): Bind down-mouse-1 to
+	widget-button-click.
+
+	* cus-edit.el (custom-mode-map): Remove mouse-1 binding.
+
 	* files.el (hack-local-variables-confirm): Allow scrolling if the
 	file variable list is too long.  Kill temp buffer after use.
 
@@ -35,6 +40,7 @@
 	* files.el (hack-local-variables): Remove ignored variables before
 	checking if any variables need setting.
 
+>>>>>>> 1.9141
 2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add x-gtk-whole-detached-tool-bar.
