@@ -3258,9 +3258,9 @@ xg_tool_bar_button_cb (widget, event, user_data)
     GdkEventButton *event;
     gpointer        user_data;
 {
-    g_object_set_data (G_OBJECT (user_data), XG_TOOL_BAR_LAST_MODIFIER,
-                       (gpointer) event->state);
-    return FALSE;
+  g_object_set_data (G_OBJECT (user_data), XG_TOOL_BAR_LAST_MODIFIER,
+                     (gpointer) event->state);
+  return FALSE;
 }
 
 
