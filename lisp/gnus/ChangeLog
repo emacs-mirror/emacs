@@ -1,3 +1,7 @@
+2006-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gnus-cus.el: Revert 2005-10-17 change.
+
 2006-02-10  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.el: Remove bogus comment.
