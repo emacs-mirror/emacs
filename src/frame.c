@@ -3526,7 +3526,14 @@ x_get_arg (dpyinfo, alist, param, attribute, class, type)
 	 so that it won't be "left over" at the end.  */
 #ifdef HAVE_X_WINDOWS /* macfns.c and w32fns.c have not yet
 			 been changed to cope with this.  */
+      Lisp_Object tail;
       XSETCAR (tem, Qnil);
+      /* In case the parameter appears more than once in the alist,
+	 clear it out.  */
+      for (tail = alist; CONSP (tail); tail = XCDR (tail))
+	if (CONSP (XCAR (tail))
+	    && EQ (XCAR (XCAR (tail)), param))
+	  XSETCAR (XCAR (tail), Qnil);
 #endif
     }
   else
