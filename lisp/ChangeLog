@@ -1,3 +1,8 @@
+2006-02-17  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdba): Improve doc string.
+	(menu): Re-order menu items.
+
 2006-02-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* wid-edit.el (widget-button-click): For mouse-1, cancel button
