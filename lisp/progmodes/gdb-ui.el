@@ -203,8 +203,8 @@ other with the source file with the main routine of the inferior.
 If `gdb-many-windows' is t, regardless of the value of
 `gdb-show-main', the layout below will appear unless
 `gdb-use-separate-io-buffer' is nil when the source buffer
-occupies the full width of the frame.  Keybindings are given in
-relevant buffer.
+occupies the full width of the frame.  Keybindings are shown in
+some of the buffers.
 
 Watch expressions appear in the speedbar/slowbar.
 
@@ -217,28 +217,28 @@ See Info node `(emacs)GDB Graphical Interface' for a more
 detailed description of this mode.
 
 
-+--------------------------------------------------------------+
-|                           GDB Toolbar                        |
-+-------------------------------+------------------------------+
-| GUD buffer (I/O of GDB)       | Locals buffer                |
-|                               |                              |
-|                               |                              |
-|                               |                              |
-+-------------------------------+------------------------------+
-| Source buffer                 | I/O buffer (of inferior)     |
-|                               | (comint-mode)                |
-|                               |                              |
-|                               |                              |
-|                               |                              |
-|                               |                              |
-|                               |                              |
-|                               |                              |
-+-------------------------------+------------------------------+
-| Stack buffer                  | Breakpoints buffer           |
-| RET      gdb-frames-select    | SPC    gdb-toggle-breakpoint |
-|                               | RET    gdb-goto-breakpoint   |
-|                               | d      gdb-delete-breakpoint |
-+-------------------------------+------------------------------+"
++----------------------------------------------------------------------+
+|                               GDB Toolbar                            |
++-----------------------------------+----------------------------------+
+| GUD buffer (I/O of GDB)           | Locals buffer                    |
+|                                   |                                  |
+|                                   |                                  |
+|                                   |                                  |
++-----------------------------------+----------------------------------+
+| Source buffer                     | I/O buffer (of debugged program) |
+|                                   | (comint-mode)                    |
+|                                   |                                  |
+|                                   |                                  |
+|                                   |                                  |
+|                                   |                                  |
+|                                   |                                  |
+|                                   |                                  |
++-----------------------------------+----------------------------------+
+| Stack buffer                      | Breakpoints buffer               |
+| RET      gdb-frames-select        | SPC    gdb-toggle-breakpoint     |
+|                                   | RET    gdb-goto-breakpoint       |
+|                                   | D      gdb-delete-breakpoint     |
++-----------------------------------+----------------------------------+"
   ;;
   (interactive (list (gud-query-cmdline 'gdba)))
   ;;
@@ -2461,17 +2461,17 @@ corresponding to the mode line clicked."
 		:visible (memq gud-minor-mode '(gdbmi gdba))))
   (define-key menu [gdb] '("Gdb" . gdb-display-gdb-buffer))
   (define-key menu [threads] '("Threads" . gdb-display-threads-buffer))
-  (define-key menu [memory] '("Memory" . gdb-display-memory-buffer))
-  (define-key menu [disassembly]
-    '("Disassembly" . gdb-display-assembler-buffer))
-  (define-key menu [registers] '("Registers" . gdb-display-registers-buffer))
   (define-key menu [inferior]
     '(menu-item "Inferior IO" gdb-display-separate-io-buffer
 		:enable gdb-use-separate-io-buffer))
-  (define-key menu [locals] '("Locals" . gdb-display-locals-buffer))
-  (define-key menu [frames] '("Stack" . gdb-display-stack-buffer))
+  (define-key menu [memory] '("Memory" . gdb-display-memory-buffer))
+  (define-key menu [registers] '("Registers" . gdb-display-registers-buffer))
+  (define-key menu [disassembly]
+    '("Disassembly" . gdb-display-assembler-buffer))
   (define-key menu [breakpoints]
-    '("Breakpoints" . gdb-display-breakpoints-buffer)))
+    '("Breakpoints" . gdb-display-breakpoints-buffer))
+  (define-key menu [locals] '("Locals" . gdb-display-locals-buffer))
+  (define-key menu [frames] '("Stack" . gdb-display-stack-buffer)))
 
 (let ((menu (make-sparse-keymap "GDB-Frames")))
   (define-key gud-menu-map [frames]
@@ -2480,15 +2480,15 @@ corresponding to the mode line clicked."
   (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
   (define-key menu [threads] '("Threads" . gdb-frame-threads-buffer))
   (define-key menu [memory] '("Memory" . gdb-frame-memory-buffer))
-  (define-key menu [disassembly] '("Disassembiy" . gdb-frame-assembler-buffer))
-  (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
   (define-key menu [inferior]
     '(menu-item "Inferior IO" gdb-frame-separate-io-buffer
 		:enable gdb-use-separate-io-buffer))
-  (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
-  (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer))
+  (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
+  (define-key menu [disassembly] '("Disassembiy" . gdb-frame-assembler-buffer))
   (define-key menu [breakpoints]
-    '("Breakpoints" . gdb-frame-breakpoints-buffer)))
+    '("Breakpoints" . gdb-frame-breakpoints-buffer))
+  (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
+  (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer)))
 
 (let ((menu (make-sparse-keymap "GDB-UI/MI")))
   (define-key gud-menu-map [ui]
