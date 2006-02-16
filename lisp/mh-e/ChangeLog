@@ -1,3 +1,12 @@
+2006-02-16  Bill Wohler  <wohler@newt.com>
+
+	* mh-utils.el (mh-image-load-path): The variables image-load-path
+	or load-path would not get updated if user set mh-image-load-path.
+	Moved tests and add-to-list calls outside of cond so they are
+	applied consistently, even if they are redundant in some
+	circumstances. Efficiency isn't a concern here. Made error
+	messages more user-friendly.
+
 2006-02-15  Peter S Galbraith  <psg@debian.org>
 
 	* mh-compat.el (mh-image-search-load-path): Compatibility code.
