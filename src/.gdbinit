@@ -548,7 +548,16 @@ end
 define xwindow
   xgetptr $
   print (struct window *) $ptr
-  printf "%dx%d+%d+%d\n", $->width, $->height, $->left, $->top
+  set $window = (struct window *) $ptr
+  xgetint $window->total_cols
+  set $width=$int
+  xgetint $window->total_lines
+  set $height=$int
+  xgetint $window->left_col
+  set $left=$int
+  xgetint $window->top_line
+  set $top=$int
+  printf "%dx%d+%d+%d\n", $width, $height, $left, $top
 end
 document xwindow
 Print $ as a window pointer, assuming it is an Emacs Lisp window value.

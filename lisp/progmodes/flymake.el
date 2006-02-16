@@ -339,7 +339,7 @@ Return its file name if found, or nil if not found."
             nil)))))
 
 (defun flymake-fix-file-name (name)
-  "Replace all occurences of '\' with '/'."
+  "Replace all occurrences of '\' with '/'."
   (when name
     (setq name (expand-file-name name))
     (setq name (abbreviate-file-name name))

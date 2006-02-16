@@ -929,7 +929,7 @@ the of the following escape sequences replaced by the described values:
   %fp       Following text uses the face `rcirc-server-prefix'
   %fs       Following text uses the face `rcirc-server'
   %f[FACE]  Following text uses the face FACE
-  %f-        Following text uses the default face
+  %f-       Following text uses the default face
   %%        A literal `%' character
 "
   :type '(alist :key-type (choice (string :tag "Type")
@@ -957,59 +957,56 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 	(setq chunk (substring chunk 1)))
       (setq repl
 	    (cond ((eq key ?%)
-		   ;; %% -- literal % character	;
+		   ;; %% -- literal % character
 		   "%")
 		  ((eq key ?n)
-		   ;; %n -- nick	;
+		   ;; %n -- nick
 		   (rcirc-facify (concat (rcirc-abbrev-nick sender)
 					 (and target (concat "," target)))
 				 (if (string= sender (rcirc-nick process))
 				     'rcirc-my-nick
 				   'rcirc-other-nick)))
 		  ((eq key ?T)
-		   ;; %T -- timestamp	;
+		   ;; %T -- timestamp
 		   (rcirc-facify
 		    (format-time-string rcirc-time-format (current-time))
 		    'rcirc-timestamp))
 		  ((eq key ?m)
-		   ;; %m -- message text ;
-		   ;; We add the text property `rcirc-text' to identify this ;
-		   ;; as the body text.	;
+		   ;; %m -- message text
+		   ;; We add the text property `rcirc-text' to identify this
+		   ;; as the body text.
 		   (propertize
 		    (rcirc-mangle-text process (rcirc-facify text face))
 		    'rcirc-text text))
 		  ((eq key ?t)
-		   ;; %t -- target	;
+		   ;; %t -- target
 		   (rcirc-facify (or rcirc-target "") face))
 		  ((eq key ?r)
-		   ;; %r -- response	;
+		   ;; %r -- response
 		   (rcirc-facify response face))
 		  ((eq key ?f)
-		   ;; %f -- change face	;
+		   ;; %f -- change face
 		   (setq face-key (aref chunk 0))
+		   (setq chunk (substring chunk 1))
 		   (cond ((eq face-key ?w)
-			  ;; %fw -- warning face ;
+			  ;; %fw -- warning face
 			  (setq face 'font-lock-warning-face))
 			 ((eq face-key ?p)
-			  ;; %fp -- server-prefix face ;
+			  ;; %fp -- server-prefix face
 			  (setq face 'rcirc-server-prefix))
 			 ((eq face-key ?s)
-			  ;; %fs -- warning face ;
+			  ;; %fs -- warning face
 			  (setq face 'rcirc-server))
 			 ((eq face-key ?-)
-			  ;; %fs -- warning face ;
+			  ;; %fs -- warning face
 			  (setq face nil))
 			 ((and (eq face-key ?\[)
-			       (string-match "^[[]\\([^]]*\\)[]]" chunk)
+			       (string-match "^\\([^]]*\\)[]]" chunk)
 			       (facep (match-string 1 chunk)))
-			  ;; %f[...] -- named face ;
+			  ;; %f[...] -- named face
 			  (setq face (intern (match-string 1 chunk)))
-			  (setq chunk (substring chunk (match-end 1)))))
-		   (setq chunk (substring chunk 1))
-		   "")
-		  (t
-		   ;; just insert the key literally ;
-		   (rcirc-facify (substring chunk 0 1) face))))
+			  (setq chunk (substring chunk (match-end 0)))))
+		   "")))
       (setq result (concat result repl (rcirc-facify chunk face))))
     result))
 

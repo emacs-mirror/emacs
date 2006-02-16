@@ -1,3 +1,12 @@
+2006-02-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* html2text.el (html2text-remove-tag-list):
+	* spam-stat.el (spam-stat-buffer-words): Fix typo in docstring.
+
+2006-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gnus-cus.el: Revert 2005-10-17 change.
+
 2006-02-10  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.el: Remove bogus comment.

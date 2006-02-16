@@ -36,14 +36,6 @@
 
 ;;; Widgets:
 
-(defvar gnus-custom-map
-  (let ((map (make-keymap)))
-    (set-keymap-parent map widget-keymap)
-    (suppress-keymap map)
-    (define-key map [mouse-1] 'widget-move-and-invoke)
-    map)
-  "Keymap for editing Gnus customization buffers.")
-
 (defun gnus-custom-mode ()
   "Major mode for editing Gnus customization buffers.
 
@@ -59,7 +51,7 @@ if that value is non-nil."
   (kill-all-local-variables)
   (setq major-mode 'gnus-custom-mode
 	mode-name "Gnus Customize")
-  (use-local-map gnus-custom-map)
+  (use-local-map widget-keymap)
   ;; Emacs 21 stuff:
   (when (and (facep 'custom-button-face)
 	     (facep 'custom-button-pressed-face))
@@ -490,7 +482,7 @@ form, but who cares?"
 	    (widget-create 'sexp
 			   :tag "Method"
 			   :value (gnus-info-method info))))
-    (use-local-map gnus-custom-map)
+    (use-local-map widget-keymap)
     (widget-setup)
     (buffer-enable-undo)
     (goto-char (point-min))))
@@ -884,7 +876,7 @@ articles in the thread.
 			 '(repeat :inline t
 				  :tag "Unknown entries"
 				  sexp)))
-    (use-local-map gnus-custom-map)
+    (use-local-map widget-keymap)
     (widget-setup)))
 
 (defun gnus-score-customize-done (&rest ignore)
@@ -1061,7 +1053,7 @@ articles in the thread.
 
       (gnus-agent-cat-prepare-category-field agent-enable-undownloaded-faces)
 
-      (use-local-map gnus-custom-map)
+      (use-local-map widget-keymap)
       (widget-setup)
       (buffer-enable-undo))))
 

@@ -1,6 +1,6 @@
 ;;; erc-dcc.el --- CTCP DCC module for ERC
 
-;; Copyright (C) 1993, 1994, 1995, 1998, 2002, 2003, 2004
+;; Copyright (C) 1993, 1994, 1995, 1998, 2002, 2003, 2004, 2006
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
@@ -29,7 +29,7 @@
 
 ;;; Commentary:
 
-;; This file provides Direct Client-to-Client support for the Emacs IRC Client.
+;; This file provides Direct Client-to-Client support for ERC.
 ;;
 ;; The original code was taken from zenirc-dcc.el, heavily mangled and
 ;; rewritten to support the way how ERC operates.  Server socket support
@@ -55,7 +55,8 @@
 
 (require 'erc)
 (eval-when-compile
- (require 'pcomplete))
+  (require 'cl)
+  (require 'pcomplete))
 
 (defgroup erc-dcc nil
   "DCC stands for Direct Client Communication, where you and your

@@ -1,3 +1,97 @@
+2006-02-15  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc): Move to the end of the buffer when a continued
+	session is detected.  Thanks to e1f and indio for the report and
+	testing a potential fix.
+
+2006-02-14  Michael Olson  <mwolson@gnu.org>
+
+	* debian/changelog: Prepare a new Debian package.
+
+	* Makefile (debprepare): New rule that creates an ERC snapshot
+	directory for use in both new Debian releases and revisions for
+	Debian packages.
+	(debrelease, debrevision-mwolson): Use debprepare.
+
+	* NEWS: Bring up-to-date.
+
+	* erc-stamp.el (erc-insert-timestamp-right): For now, put
+	timestamps before rather than after erc-fill-column when
+	erc-timestamp-right-column is nil.  This way we won't surprise
+	anyone unpleasantly, or so it is hoped.
+
+2006-02-13  Michael Olson  <mwolson@gnu.org>
+
+	* erc-dcc.el: Use (eval-when-compile (require 'cl)).
+
+2006-02-12  Michael Olson  <mwolson@gnu.org>
+
+	* erc-autoaway.el, erc-dcc.el, erc-ezbounce.el, erc-fill.el,
+	erc-goodies.el, erc-hecomplete.el, erc-ibuffer.el, erc-identd.el,
+	erc-imenu.el, erc-join.el, erc-lang.el, erc-list.el, erc-log.el,
+	erc-match.el, erc-menu.el, erc-netsplit.el, erc-networks.el,
+	erc-notify.el, erc-page.el, erc-pcomplete.el, erc-replace.el,
+	erc-ring.el, erc-services.el, erc-sound.el, erc-speedbar.el,
+	erc-spelling.el, erc-track.el, erc-truncate.el, erc-xdcc.el: Add
+	2006 to copyright years, to comply with the changed guidelines.
+
+2006-02-11  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-update-modules): Make some requirements shorter, so
+	that it's easier to see why they are needed.
+
+	* erc-stamp.el (erc-timestamp-use-align-to): Renamed from
+	`erc-timestamp-right-align-by-pixel'.  Set the default based on
+	whether we are in Emacs 22, and using X.  Improve documentation.
+	(erc-insert-aligned): Remove calculation of offset, since
+	:align-to pos works after all.  Unlike the previous solution, this
+	one works when erc-stamp.el is compiled.
+	(erc-insert-timestamp-right): Don't add length of string, and then
+	later remove its displayed width.  This puts timestamps after
+	erc-fill-column when erc-timestamp-right-column is nil, rather
+	than before it.  It also fixes a subtle bug.  Remove use of
+	`current-window', since there is no variable by that name in
+	Emacs21, Emacs22, or XEmacs21 beta.  Check to see whether
+	`erc-fill-column' is non-nil before using it.
+
+2006-02-11  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc-list.el: Define `list' module which sets the alias
+	`erc-cmd-LIST' to `erc-list-channels' when enabled and
+	`erc-list-channels-simple' when disabled.
+	(erc-list-channels): Was `erc-cmd-LIST', renamed.
+	(erc-list-channels-simple): New function.
+
+	* erc.el (erc-modules): Added `list' to enabled modules.  Moved
+	customization options left in source code.
+
+	* erc-menu.el (erc-menu-definition): Use `erc-list-channels'.
+
+	* erc-spelling.el (define-erc-module): Make sure there's a buffer
+	before calling `with-current-buffer'.
+
+2006-02-10  Michael Olson  <mwolson@gnu.org>
+
+	* Makefile (debbuild): Split from debrelease.
+	(debrevision-mwolson): New rule that causes a Debian revision to
+	be built.
+
+	* erc.el (erc-migrate-modules): Use a better algorithm.  Thanks to
+	Johan Bockgård.
+	(erc-modules): Change use of 'pcomplete to 'completion.
+
+2006-02-09  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc.el (erc-get-parsed-vector, erc-get-parsed-vector-nick)
+	(erc-get-parsed-vector-type): Moved here from erc-match.el.
+
+	* erc-match.el (erc-get-parsed-vector, erc-get-parsed-vector-nick)
+	(erc-get-parsed-vector-type): Moved these functions to erc.el
+	since they can be useful outside of the text matching module.
+
+	* erc-dcc.el, erc-stamp.el, erc-xdcc.el: Changed "Emacs IRC Client"
+	to "ERC".
+
 2006-02-07  Michael Olson  <mwolson@gnu.org>
 
 	* ChangeLog.01, ChangeLog.02, ChangeLog.03, ChangeLog.04,

@@ -860,6 +860,7 @@ button end points."
     (define-key map [(shift tab)] 'advertised-widget-backward)
     (define-key map [backtab] 'widget-backward)
     (define-key map [down-mouse-2] 'widget-button-click)
+    (define-key map [down-mouse-1] 'widget-button-click)
     (define-key map "\C-m" 'widget-button-press)
     map)
   "Keymap containing useful binding for buffers containing widgets.
@@ -929,6 +930,8 @@ Recommended as a parent keymap for modes using widgets.")
 	      (save-excursion
 		(goto-char (posn-point (event-start event)))
 		(let* ((overlay (widget-get button :button-overlay))
+		       (pressed-face (or (widget-get button :pressed-face)
+					 widget-button-pressed-face))
 		       (face (overlay-get overlay 'face))
 		       (mouse-face (overlay-get overlay 'mouse-face)))
 		  (unwind-protect
@@ -938,10 +941,8 @@ Recommended as a parent keymap for modes using widgets.")
 		      ;; on when we move over it.
 		      (save-excursion
 			(when face	; avoid changing around image
-			  (overlay-put overlay
-				       'face widget-button-pressed-face)
-			  (overlay-put overlay
-				       'mouse-face widget-button-pressed-face))
+			  (overlay-put overlay 'face pressed-face)
+			  (overlay-put overlay 'mouse-face pressed-face))
 			(unless (widget-apply button :mouse-down-action event)
 			  (let ((track-mouse t))
 			    (while (not (widget-button-release-event-p event))
@@ -951,12 +952,8 @@ Recommended as a parent keymap for modes using widgets.")
 				       (eq (get-char-property pos 'button)
 					   button))
 				  (when face
-				    (overlay-put overlay
-						 'face
-						 widget-button-pressed-face)
-				    (overlay-put overlay
-						 'mouse-face
-						 widget-button-pressed-face))
+				    (overlay-put overlay 'face pressed-face)
+				    (overlay-put overlay 'mouse-face pressed-face))
 				(overlay-put overlay 'face face)
 				(overlay-put overlay 'mouse-face mouse-face)))))
 

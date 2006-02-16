@@ -1,5 +1,41 @@
 ERC NEWS                                                       -*- outline -*-
 
+* Changes in ERC 5.1.2 (unreleased)
+
+** Fix compiler errors in erc-autojoin.el and erc-dcc.el.
+
+** Move to end of prompt when ERC reconnects to a server.
+
+** Changes and additions to modules
+
+*** Spell-checking (erc-spelling.el)
+
+**** Don't spell-check nicks or words that are prefixed with '/'.
+
+**** Remove flyspell properties from words we shouldn't spell-check.
+
+**** Fix an issue that caused the ispell process to reload every time
+we switch to an ERC buffer.
+
+*** Timestamps (erc-stamp.el)
+
+**** Fix an inconsistency in calculating width of right timestamps.
+
+**** Rename option `erc-timestamp-right-align-by-pixel' to
+`erc-timestamp-use-align-to'.  This controls whether to use the more
+fail-proof method of aligning right timestamps, as mentioned below.
+
+**** Fix a right timestamp spacing problem that used to occur when
+erc-stamp.el was byte-compiled.  Now that this is fixed, it is safe to
+use the method that aligns right timestamps perfectly in Emacs22 with
+X.  If the current version of Emacs doesn't support this method, use
+the simpler method, which is prone to alignment issues for math
+symbols and other variable-width text.
+
+A side effect of using this new method is that there will only be one
+space before a right timestamp in any saved logs.  If this is
+unacceptable, set `erc-timestamp-use-align-to' to nil.
+
 * Changes in ERC 5.1.1
 
 ** Fix a requirement on cl.el.

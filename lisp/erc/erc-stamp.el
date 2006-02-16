@@ -1,4 +1,4 @@
-;;; erc-stamp.el --- Timestamping for Emacs IRC CLient
+;;; erc-stamp.el --- Timestamping for ERC messages
 
 ;; Copyright (C) 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
 
@@ -180,11 +180,17 @@ the correct column."
 	  (integer :tag "Column number")
 	  (const :tag "Unspecified" nil)))
 
-(defcustom erc-timestamp-right-align-by-pixel nil
-  "*If non-nil, insert the right timestamp based on a pixel value.
-This is needed when variable-width text precedes a timestamp.
+(defcustom erc-timestamp-use-align-to (and (not (featurep 'xemacs))
+					   (>= emacs-major-version 22)
+					   (eq window-system 'x))
+  "*If non-nil, use the :align-to display property to align the stamp.
+This gives better results when variable-width characters (like
+Asian language characters and math symbols) precede a timestamp.
 Unfortunately, it only works in Emacs 22 and when using the X
-Window System."
+Window System.
+
+A side effect of enabling this is that there will only be one
+space before a right timestamp in any saved logs."
   :group 'erc-stamp
   :type 'boolean)
 
@@ -200,18 +206,15 @@ Window System."
     (insert s)))
 
 (defun erc-insert-aligned (string pos)
-  "Insert STRING based on a fraction of the width of the buffer.
-Fraction is roughly (/ POS (window-width)).
+  "Insert STRING at the POSth column.
 
-If `erc-timestamp-right-align-by-pixel' is nil, insert STRING at the
-POSth column, without using pixel coordinates."
-  (if (not erc-timestamp-right-align-by-pixel)
+If `erc-timestamp-use-align-to' is t, use the :align-to display
+property to get to the POSth column."
+  (if (not erc-timestamp-use-align-to)
       (indent-to pos)
     (insert " ")
-    (let ((offset (floor (* (/ (1- pos) (window-width) 1.0)
-			    (nth 2 (window-inside-pixel-edges))))))
-      (put-text-property (1- (point)) (point) 'display
-			 `(space :align-to (,offset)))))
+    (put-text-property (1- (point)) (point) 'display
+		       (list 'space ':align-to pos)))
   (insert string))
 
 (defun erc-insert-timestamp-right (string)
@@ -237,31 +240,26 @@ be printed just before the window-width."
     (goto-char (point-max))
     (forward-char -1);; before the last newline
     (let* ((current-window (get-buffer-window (current-buffer)))
+	   (str-width (string-width string))
 	   (pos (cond
-		 (erc-timestamp-right-column
-		  (+ erc-timestamp-right-column (length string)))
+		 (erc-timestamp-right-column erc-timestamp-right-column)
 		 ((and (boundp 'erc-fill-mode)
 		       erc-fill-mode
-		       (boundp 'erc-fill-column))
-		  (1+ erc-fill-column))
-		 (current-window
-		  (- (window-width current-window)
-		     1))
+		       (boundp 'erc-fill-column)
+		       erc-fill-column)
+		  (1+ (- erc-fill-column str-width)))
 		 (fill-column
-		  (1+ fill-column))
+		  (1+ (- fill-column str-width)))
 		 (t
-		  (- (window-width)
-		     1))))
+		  (- (window-width) str-width 1))))
 	   (from (point))
 	   (col (current-column))
 	   indent)
-      ;; deal with variable-width characters
-      (setq pos (- pos (string-width string))
-	    ;; The following is a kludge that works with most
-	    ;; international input.  It is now only used to calculate
-	    ;; whether to move to the next line before inserting a
-	    ;; stamp.
-	    col (+ col (ceiling (/ (- col (- (point) (point-at-bol))) 1.6))))
+      ;; The following is a kludge used to calculate whether to move
+      ;; to the next line before inserting a stamp.  It allows for
+      ;; some margin of error if what is displayed on the line differs
+      ;; from the number of characters on the line.
+      (setq col (+ col (ceiling (/ (- col (- (point) (point-at-bol))) 1.6))))
       (if (< col pos)
 	  (erc-insert-aligned string pos)
 	(newline)

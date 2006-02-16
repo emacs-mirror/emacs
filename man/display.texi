@@ -472,7 +472,7 @@ This face determines the colors and font of Emacs's menus.  @xref{Menu
 Bars}.  Setting the font of LessTif/Motif menus is currently not
 supported; attempts to set the font are ignored in this case.
 Likewise, attempts to customize this face in Emacs built with GTK and
-in the MS-Windows port are ignored by the respective GUI toolkits;
+in the MS-Windows/Mac ports are ignored by the respective GUI toolkits;
 you need to use system-wide styles and options to change the
 appearance of the menus.
 @end table

@@ -1,3 +1,49 @@
+2006-02-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.c (x_get_arg): Clear out PARAM in ALIST also on Mac.
+
+	* macfns.c (x_set_menu_bar_lines): Menu bar is always shown on Mac.
+
+	* macmenu.c (set_frame_menubar): Don't call DrawMenuBar.
+
+2006-02-14  Richard M. Stallman  <rms@gnu.org>
+
+	* frame.c (x_get_arg): Clear out all occurrences of PARAM in ALIST.
+
+	* m/ibms390x.h: New file.
+
+2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_detach_callback): Set show-arrow to the
+	value of x-gtk-whole-detached-tool-bar.
+	(xg_tool_bar_attach_callback): Set show-arrow to TRUE.
+
+	* xfns.c (syms_of_xfns): New variable: x-gtk-whole-detached-tool-bar.
+
+2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_x_to_emacs_modifiers): Make non-static.
+
+	* xterm.h: Declare x_x_to_emacs_modifiers.
+
+	* gtkutil.c (xg_tool_bar_button_cb): New function.
+	(xg_tool_bar_callback): Call x_x_to_emacs_modifiers to
+	store modifiers in event.
+	(update_frame_tool_bar): Connect button-release-event to
+	xg_tool_bar_button_cb.
+
+2006-02-13  Richard M. Stallman  <rms@gnu.org>
+
+	* .gdbinit (xwindow): Update the code to show the window box.
+
+2006-02-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (note_mouse_movement): Check for NULL FRAME_X_OUTPUT (frame).
+
+2006-02-12  Richard M. Stallman  <rms@gnu.org>
+
+	* cmds.c (internal_self_insert): Handle weird auto-fill-function.
+
 2006-02-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (Venable_disabled_menus_and_buttons): New variable.
