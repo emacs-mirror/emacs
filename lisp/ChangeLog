@@ -1,3 +1,8 @@
+2006-02-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wid-edit.el (widget-button-click): For mouse-1, cancel button
+	press and perform default action if we get a mouse movement event.
+
 2006-02-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* calendar/icalendar.el (icalendar--get-event-property)
