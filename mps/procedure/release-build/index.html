@@ -132,7 +132,7 @@ version/VERSION/...</code> </blockquote> </li>
 </li>
 
 <li> <p> Submit the tarball and the readme.txt file to Perforce with
-the comment "Adding the MPS Kit tarball and readme.txt file for
+the comment "MPS: adding the MPS Kit tarball and readme.txt file for
 release RELEASE." </p> </li>
 
 </ol>
@@ -146,11 +146,25 @@ release RELEASE." </p> </li>
 
 <li> <p> Sync the version sources to the changelevel you determined in step 2.1.  Sync the version sources to a clean area of the disk, to be sure that there are no extraneous files around. </p> </li>
 
-<li> <p> Launch WinZip and create a new archive called "mps-kit-RELEASE.zip" in the directory "release/RELEASE".  Add the MPS sources by selecting "version/VERSION" and turning on "Include subfolders" option. </p> </li>
+<li> <p> Using the Windows file-browser, copy the version/VERSION directory, paste a copy, and rename it mps-kit-RELEASE. </p></li>
 
-<li> <p> Make a self-extracting archive called "mps-kit-RELEASE.exe" from "mps-kit-RELEASE.zip" (in the same directory), by selcting Actions &rarr; Make .EXE File. </p> </li>
+<li> <p> Use the Info-ZIP command-line utility "zip" to create a new archive of these files, called "mps-kit-RELEASE.zip" in the directory "release/RELEASE": </p> 
+  <blockquote> <pre><code>zip -r  release\RELEASE\mps-kit-RELEASE.zip  mps-kit-RELEASE</code></pre> </blockquote>
+</li>
 
-<li> <p> Add the self-extracting archive and the zip file to Perforce with the comment "Adding the MPS Kit zip file for release RELEASE." </p> </li>
+<li> <p> Make a self-extracting archive called "mps-kit-RELEASE.exe" from "mps-kit-RELEASE.zip" (in the same directory).  The approved way to do this is to prepend the "unzipsfx.exe" extractor (here presumed to be "C:\local\bin\unzipsfx.exe"), and then adjust the offsets in the resulting file: </p>
+  <blockquote> <pre><code>copy /b  C:\local\bin\unzipsfx.exe+release\RELEASE\mps-kit-RELEASE.zip  release\RELEASE\mps-kit-RELEASE.exe
+zip -A  release\RELEASE\mps-kit-RELEASE.exe
+</code></pre> </blockquote>
+</li>
+
+<li> <p> You can check both archives like this: </p> 
+  <blockquote> <pre><code>unzip -tq  release\RELEASE\mps-kit-RELEASE.zip
+unzip -tq  release\RELEASE\mps-kit-RELEASE.exe
+</code></pre> </blockquote>
+</li>
+
+<li> <p> Add the zip file and the self-extracting archive to Perforce with the comment "MPS: adding the MPS Kit zip file for release RELEASE." </p> </li>
 
 </ol>
 
@@ -256,6 +270,16 @@ href="mailto:mps-staff@ravenbrook.com">mps-staff@ravenbrook.com</a>. </p></li>
   <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
 
   <td>Correct readership statement, and direct MPS users to the mps-kit readme.</td>
+
+</tr>
+
+<tr valign="top">
+
+  <td>2006-02-16</td>
+
+  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+
+  <td>Use Info-ZIP (free) for Windows archives, not WinZip.</td>
 
 </tr>
 
