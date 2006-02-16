@@ -293,7 +293,7 @@ it finds"
 ;;  (car (cddr event)))
 
 (defun icalendar--get-event-property (event prop)
-  "For the given EVENT return the value of the first occurence of PROP."
+  "For the given EVENT return the value of the first occurrence of PROP."
   (catch 'found
     (let ((props (car (cddr event))) pp)
       (while props
@@ -304,7 +304,7 @@ it finds"
     nil))
 
 (defun icalendar--get-event-property-attributes (event prop)
-  "For the given EVENT return attributes of the first occurence of PROP."
+  "For the given EVENT return attributes of the first occurrence of PROP."
   (catch 'found
     (let ((props (car (cddr event))) pp)
       (while props
@@ -705,7 +705,7 @@ would be \"pm\"."
   "Export diary file to iCalendar format.
 All diary entries in the file DIARY-FILENAME are converted to iCalendar
 format.  The result is appended to the file ICAL-FILENAME."
-  (interactive "FExport diary data from file: 
+  (interactive "FExport diary data from file:
 Finto iCalendar file: ")
   (save-current-buffer
     (set-buffer (find-file diary-filename))
@@ -1449,8 +1449,8 @@ Argument ICAL-FILENAME output iCalendar file.
 Argument DIARY-FILENAME input `diary-file'.
 Optional argument NON-MARKING determines whether events are created as
 non-marking or not."
-  (interactive "fImport iCalendar data from file: 
-Finto diary file: 
+  (interactive "fImport iCalendar data from file:
+Finto diary file:
 p")
   ;; clean up the diary file
   (save-current-buffer
