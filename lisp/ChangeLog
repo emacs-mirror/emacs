@@ -1,3 +1,12 @@
+2006-02-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calendar/icalendar.el (icalendar--get-event-property)
+	(icalendar--get-event-property-attributes): Fix typos in
+	docstrings.
+
+	* progmodes/flymake.el (flymake-fix-file-name): Fix typo in
+	docstring.
+
 2006-02-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs-mode): Use `buffer-disable-undo'.
