@@ -1,3 +1,11 @@
+2006-02-15  Peter S Galbraith  <psg@debian.org>
+
+	* mh-compat.el (mh-image-search-load-path): Compatibility code.
+	Emacs 21 and XEmacs don't have `image-search-load-path'.
+
+	* mh-utils.el (mh-image-load-path): Don't bail out on error if the
+	images are already found.
+
 2006-02-10  Bill Wohler  <wohler@newt.com>
 
 	* mh-search.el (mh-search): Wrap code in (block mh-search ...)
