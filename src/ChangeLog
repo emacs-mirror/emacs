@@ -1,3 +1,8 @@
+2006-02-17  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (display_mode_element): Call display_string with correct
+	PREC arg (which must be a number of characters, not column width).
+
 2006-02-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* frame.c (x_get_arg): Clear out PARAM in ALIST also on Mac.
