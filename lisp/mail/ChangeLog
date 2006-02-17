@@ -1,3 +1,12 @@
+2006-02-17  Alex Schroeder  <alex@gnu.org>
+
+	* rmailmm.el (rmail-mime-text-handler): Only downcase if charset
+	exists.
+	(rmail-mime-handle): Doc.  Ignore errors when decoding base64.
+	Seems to be common on my system.
+	(rmail-mime-show): Change show-header code.
+	(rmail-mime): New.
+
 2006-02-12  Alex Schroeder  <alex@gnu.org>
 
 	* rmail.el (qp): No longer require it.
