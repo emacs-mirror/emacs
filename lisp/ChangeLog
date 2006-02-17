@@ -1,3 +1,113 @@
+2006-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Use allout invisible-text overlays instead of
+	selective display for concealed text.  Also, lots of general
+	cleanup, and improved compatibility code.
+
+	(allout-version) Incremented, corrected, revised, and refined
+	module commentary.
+
+	(provide 'allout): Moved to the bottom, added a require of overlay.
+
+	(allout-encrypt-unencrypted-on-saves): Defaults to t instead of
+	`except-current'.
+	(allout-write-file-hook-handler): Minimize delay.
+	(count-trailing-whitespace-region): New function so
+	auto-encryption of current topic can resituate cursor exactly.
+	PGP/GPG encryption trims trailing whitespace from lines, which
+	must be accounted for across encryption then decryption.
+
+	(allout-command-prefix): Now defaults to "\C-c<space>" rather than
+	just plain "\C-c", to avoid intruding on user's keybinding space.
+
+	(allout-toggle-current-subtree-encryption): Pass along fetch-pass
+	parameter, so user request to provide a new password is done.
+
+	(allout-outside-normal-auto-fill-function, allout-auto-fill):
+	Refined mechanism for auto-filling behavior while in allout mode.
+
+	(allout-mode): Explicitly specify the mode map in the docstring.
+	Clarify provision for various write-file hook var names.
+	Adjusted for invisible-text overlays instead of	selective-display.
+
+	(allout-depth): Really return 0 if not within any topic.  This
+	rectifies `allout-beginning-of-level' and sequence numbering
+	errors that occur when cutting and pasting numbered topics.
+	Changed from a in-line subst to a regular function, as well.
+
+	(allout-pre-next-prefix): Renamed from allout-pre-next-preface.
+
+	(allout-end-of-subtree, allout-end-of-subtree)
+	(allout-end-of-entry, allout-end-of-current-heading)
+	(allout-next-visible-heading, allout-open-topic, allout-show-entry)
+	(allout-show-children, allout-show-to-offshoot)
+	(allout-hide-current-entry, allout-show-current-entry): Rectified
+	handling of trailing blank lines between items.
+
+	(allout-line-boundary-regexp, set-allout-regexp, allout-depth)
+	(allout-current-depth, allout-unprotected, allout-hidden-p)
+	(allout-on-current-heading-p, allout-listify-exposed)
+	(allout-chart-subtree, allout-goto-prefix)
+	(allout-back-to-current-heading, allout-get-body-text)
+	(allout-snug-back, allout-flag-current-subtree, allout-show-all)
+	(allout-hide-region-body, allout-toggle-subtree-encryption)
+	(allout-encrypt-string, allout-encrypted-key-info)
+	(allout-next-topic-pending-encryption, allout-encrypt-decrypted)
+	(allout-file-vars-section-data): Adjusted for use with
+	invisible-text overlays instead of selective-display.
+
+	(allout-kill-line, allout-kill-topic, allout-yank-processing):
+	Reworked for use with invisible text overlays.
+
+	(allout-current-topic-collapsed-p): New function.
+
+	(allout-hide-current-subtree): Use allout-current-topic-collapsed-p
+	to know when to close the containing topic.
+
+	(allout-pre-command-business, allout-post-command-business):
+	Simplify undo-batching and dynamic isearch exposure.
+
+	(allout-set-overlay-category): New for invisible-text overlays.
+	Sets properties of allout-overlay-category, used by
+	allout-flag-region to set invisible-text overlay properties.
+	(allout-get-invisibility-overlay): Get the first qualifying
+	invisibility overlay, so we can find the extent of it.
+	(allout-back-to-visible-text): Get to just before the beginnining
+	of the current invisibility overlay, if any.
+
+	(allout-overlay-insert-in-front-handler)
+	(allout-overlay-interior-modification-handler)
+	(allout-before-change-handler, allout-isearch-end-handler): New
+	functions to handle extraordinary actions affecting concealed
+	text.
+
+	(allout-flag-region): Use overlays instead of selective-display
+	for invisible text - by inheritence from the properties of
+	allout-overlay-category in mainline emacs, and applied
+	property-by-property in xemacs, some recent versions of which
+	don't inherit the properties from the category.  Provisions to
+	respond to concealed-text edits simplified drastically.
+
+	(allout-isearch-rectification, allout-isearch-was-font-lock)
+	(allout-isearch-expose, allout-enwrap-isearch)
+	(allout-isearch-abort, allout-pre-was-isearching)
+	(allout-isearch-prior-pos, allout-isearch-did-quit)
+	(allout-isearch-dynamic-expose)
+	(allout-hide-current-entry-completely): Functions deleted.
+
+	(allout-undo-aggregation): Explicit undo aggregation no longer
+	necessary due to transition away from selective-display.
+
+	(set-allout-regexp, allout-up-current-level)
+	(allout-next-visible-heading, allout-forward-current-level)
+	(allout-open-topic, allout-reindent-body, allout-rebullet-topic)
+	(allout-kill-line, allout-yank-processing, allout-show-children)
+	(allout-expose-topic, allout-old-expose-topic)
+	(allout-listify-exposed, allout-insert-latex-header)
+	(allout-toggle-subtree-encryption, allout-encrypt-string)
+	(remove-from-invisibility-spec, allout-hide-current-subtree):
+	Ditched unused variables.
+
 2006-02-17  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-change-dictionary):  Call
