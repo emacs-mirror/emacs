@@ -1,3 +1,9 @@
+2006-02-16 Johan Bockg,AC%(Brd <bojohan+mail@dd.chalmers.se> (tiny change)
+
+	* display.texi (Other Display Specs, Image Descriptors): Revert
+	erroneous changes.  The previous description of image-descriptors
+	as `(image . PROPS)' was correct.
+
 2006-02-14  Richard M. Stallman  <rms@gnu.org>
 
 	* variables.texi (File Local Variables): Clarifications.
