@@ -1640,7 +1640,8 @@ If DIRECTION is `backward', search in the reverse direction."
 			    ;; Skip Tag Table node
 			    (save-excursion
 			      (and (search-backward "\^_" nil t)
-				   (looking-at "\^_\nTag Table"))))))
+				   (looking-at
+				    "\^_\n\\(Tag Table\\|Local Variables\\)"))))))
 	    (let ((search-spaces-regexp Info-search-whitespace-regexp))
 	      (if (if backward
 		      (re-search-backward regexp bound t)
@@ -1728,7 +1729,8 @@ If DIRECTION is `backward', search in the reverse direction."
 				  ;; Skip Tag Table node
 				  (save-excursion
 				    (and (search-backward "\^_" nil t)
-					 (looking-at "\^_\nTag Table"))))))
+					 (looking-at
+					  "\^_\n\\(Tag Table\\|Local Variables\\)"))))))
 		  (let ((search-spaces-regexp Info-search-whitespace-regexp))
 		    (if (if backward
 			    (re-search-backward regexp nil t)
