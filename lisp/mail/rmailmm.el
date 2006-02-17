@@ -388,12 +388,13 @@ This calls `rmail-mime-show' to do the real job."
 		  (buffer-substring
 		   (rmail-desc-get-start rmail-current-message)
 		   (rmail-desc-get-end rmail-current-message)))))
-	(inhibit-read-only t))
-    (switch-to-buffer (get-buffer-create "*RMAIL*"))
-    (erase-buffer)
-    (insert data)
-    (rmail-mime-show t)
-    (view-mode 1)))
+	(buf (get-buffer-create "*RMAIL*")))
+    (set-buffer buf)
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (insert data)
+      (rmail-mime-show t))
+    (view-buffer buf)))
 
 (provide 'rmailmm)
 
