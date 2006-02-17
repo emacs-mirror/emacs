@@ -107,8 +107,9 @@
 (defvar gdb-current-language nil)
 (defvar gdb-var-list nil
  "List of variables in watch window.
-Each element has the form (EXPRESSION VARNUM NUMCHILD TYPE VALUE CHANGED-P).")
-(defvar gdb-var-changed nil "Non-nil means that `gdb-var-list' has changed.")
+Each element has the form (EXPRESSION VARNUM NUMCHILD TYPE VALUE STATUS) where
+STATUS is nil (unchanged), `changed' or `out-of-scope'.")
+(defvar gdb-var-changed t "Non-nil means that `gdb-var-list' has changed.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-server-prefix nil)
@@ -454,7 +455,8 @@ With arg, use separate IO iff arg is positive."
 	gdb-current-language nil
 	gdb-frame-number nil
 	gdb-var-list nil
-	gdb-var-changed nil
+	;; Set initially to t to force update.
+	gdb-var-changed t
 	gdb-first-post-prompt t
 	gdb-prompting nil
 	gdb-input-queue nil
@@ -739,8 +741,9 @@ type=\"\\(.*?\\)\"")
 	   'ignore))))
 
 (defcustom gdb-show-changed-values t
-  "If non-nil highlight values that have recently changed in the speedbar.
-The highlighting is done with `font-lock-warning-face'."
+  "If non-nil change the face of out of scope variables and changed values.
+Out of scope variables are suppressed with `shadow' face.
+Changed values are highlighted with the face `font-lock-warning-face'."
   :type 'boolean
   :group 'gud
   :version "22.1")
@@ -3049,11 +3052,11 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
 	  (dolist (var gdb-var-list)
 	    (if (string-equal varnum (cadr var))
 		(progn
-		  (setcar (nthcdr 5 var) t)
-		  (setcar (nthcdr 4 var)
-			  (if (string-equal (match-string 3) "true")
-			      (read (match-string 2))
-			    "*changed*"))
+		  (if (string-equal (match-string 3) "false")
+		      (setcar (nthcdr 5 var) 'out-of-scope)
+		    (setcar (nthcdr 5 var) 'changed)
+		    (setcar (nthcdr 4 var)
+			    (read (match-string 2))))
 		  (setcar (nthcdr num gdb-var-list) var)
 		  (throw 'var-found1 nil)))
 	    (setq num (+ num 1))))))
