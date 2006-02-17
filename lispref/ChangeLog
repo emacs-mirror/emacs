@@ -1,4 +1,4 @@
-2006-02-16 Johan Bockg,AC%(Brd <bojohan+mail@dd.chalmers.se> (tiny change)
+2006-02-16  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* display.texi (Other Display Specs, Image Descriptors): Revert
 	erroneous changes.  The previous description of image-descriptors
