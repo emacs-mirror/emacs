@@ -1,3 +1,8 @@
+2006-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (Fmake_symbol): Comment-out left-over assert from before the
+	addition of the BLOCK_INPUTs.
+
 2006-02-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* window.c (Fset_window_scroll_bars): Doc fix.
