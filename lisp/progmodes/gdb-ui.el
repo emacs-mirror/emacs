@@ -72,8 +72,16 @@
 
 ;; 1) Strings that are watched don't update in the speedbar when their
 ;; contents change.
-;; 2) Watch expressions go out of scope when the inferior is re-run.
-;; 3) Cannot handle multiple debug sessions.
+;; 2) Cannot handle multiple debug sessions.
+
+;;; Problems with watch expressions:
+
+;; 1) They go out of scope when the inferior is re-run.
+;; 2) -var-update reports that an out of scope variable has changed:
+;;    changelist=[{name="var1",in_scope="false"}], but the value can't be accessed.
+;;    (-var-list-children, in contrast allows you to create variable objects of
+;;      the children when they are out of scope and get their values).
+;; 3) VARNUM increments even when vaiable object is not created (maybe trivial).
 
 ;;; TODO:
 
@@ -97,7 +105,9 @@
 (defvar gdb-selected-frame nil)
 (defvar gdb-frame-number nil)
 (defvar gdb-current-language nil)
-(defvar gdb-var-list nil "List of variables in watch window.")
+(defvar gdb-var-list nil
+ "List of variables in watch window.
+Each element has the form (EXPRESSION VARNUM NUMCHILD TYPE VALUE CHANGED-P).")
 (defvar gdb-var-changed nil "Non-nil means that `gdb-var-list' has changed.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 (defvar gdb-overlay-arrow-position nil)
@@ -663,7 +673,7 @@ type=\"\\(.*?\\)\"")
 	   'gdb-var-update-handler))
     (push 'gdb-var-update gdb-pending-triggers)))
 
-(defconst gdb-var-update-regexp "name=\"\\(.*?\\)\"")
+(defconst gdb-var-update-regexp "name=\"\\(.*?\\)\",in_scope=\"\\(.*?\\)\"")
 
 (defun gdb-var-update-handler ()
   (goto-char (point-min))
@@ -1204,7 +1214,6 @@ happens to be appropriate."
       ;; FIXME: with GDB-6 on Darwin, this might very well work.
       ;; Only needed/used with speedbar/watch expressions.
       (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-	(setq gdb-var-changed t)    ; force update
 	(dolist (var gdb-var-list)
 	  (setcar (nthcdr 5 var) nil))
 	(if (string-equal gdb-version "pre-6.4")
@@ -3028,7 +3037,8 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
 	  'gdb-var-update-handler-1))
 	(push 'gdb-var-update gdb-pending-triggers))))
 
-(defconst gdb-var-update-regexp-1 "name=\"\\(.*?\\)\",value=\\(\".*?\"\\),")
+(defconst gdb-var-update-regexp-1
+  "name=\"\\(.*?\\)\",\\(?:value=\\(\".*?\"\\),\\)?in_scope=\"\\(.*?\\)\"")
 
 (defun gdb-var-update-handler-1 ()
   (goto-char (point-min))
@@ -3040,7 +3050,10 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
 	    (if (string-equal varnum (cadr var))
 		(progn
 		  (setcar (nthcdr 5 var) t)
-		  (setcar (nthcdr 4 var) (read (match-string 2)))
+		  (setcar (nthcdr 4 var)
+			  (if (string-equal (match-string 3) "true")
+			      (read (match-string 2))
+			    "*changed*"))
 		  (setcar (nthcdr num gdb-var-list) var)
 		  (throw 'var-found1 nil)))
 	    (setq num (+ num 1))))))
