@@ -3019,7 +3019,9 @@ GNU Emacs and XEmacs from at least 21.5.23 on.")
        (:foreground "snow4"))
       (((class color) (min-colors 64) (background dark))
        (:foreground "snow3"))
-      (((class color))
+      (((class color) (background light))
+       (:foreground "purple"))
+      (((class color) (background dark))
        (:foreground "cyan"))))
     (mh-folder-refiled
      ((((class color) (min-colors 64) (background light))
@@ -3042,9 +3044,9 @@ GNU Emacs and XEmacs from at least 21.5.23 on.")
       (t
        (:bold t))))
     (mh-folder-tick
-     ((((class color) (background dark))
+     ((((class color) (background light))
        (:background "#dddf7e"))
-      (((class color) (background light))
+      (((class color) (background dark))
        (:background "#dddf7e"))
       (t
        (:underline t))))

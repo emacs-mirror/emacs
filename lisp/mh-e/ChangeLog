@@ -1,5 +1,8 @@
 2006-02-17  Bill Wohler  <wohler@newt.com>
 
+	* mh-e.el (mh-folder-msg-number): Use purple on low-color, light
+	backgrounds per Mark's suggestion.
+
 	* mh-utils.el (mh-image-load-path): Fix problem that images on
 	load-path or image-load-path would win over relative paths (newer
 	MH-E or Emacs distribution).
