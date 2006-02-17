@@ -1,3 +1,9 @@
+2006-02-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* allout.el (allout-hidden-p): Move this defsubts before
+	allout-overlay-interior-modification-handler, where it is first
+	used.
+
 2006-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el: Use allout invisible-text overlays instead of
