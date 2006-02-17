@@ -2608,6 +2608,9 @@ always hide."
 	  (article-really-strip-banner
 	   (gnus-parameter-banner gnus-newsgroup-name)))
 	(when gnus-article-address-banner-alist
+	  ;; Note that the From header is decoded here, so it is
+	  ;; required that the *-extract-address-components function
+	  ;; supports non-ASCII text.
 	  (article-really-strip-banner
 	   (let ((from (save-restriction
 			 (widen)
@@ -2615,7 +2618,8 @@ always hide."
 			 (mail-fetch-field "from"))))
 	     (when (and from
 			(setq from
-			      (caar (mail-header-parse-addresses from))))
+			      (cadr (funcall gnus-extract-address-components
+					     from))))
 	       (catch 'found
 		 (dolist (pair gnus-article-address-banner-alist)
 		   (when (string-match (car pair) from)
