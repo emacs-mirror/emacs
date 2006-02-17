@@ -1,3 +1,8 @@
+2006-02-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el: Rearrange functions and variables in the file local
+	variables section.
+
 2006-02-17  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* files.el: Add truncate-lines, ispell-check-comments and
