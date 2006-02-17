@@ -1605,6 +1605,13 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
     allout-mode
     )					; let*
   )  					; defun
+
+;;;_  - Position Assessment
+;;;_   > allout-hidden-p (&optional pos)
+(defsubst allout-hidden-p (&optional pos)
+  "Non-nil if the character after point is invisible."
+  (get-char-property (or pos (point)) 'invisible))
+
 ;;;_  > allout-minor-mode
 (defalias 'allout-minor-mode 'allout-mode)
 
@@ -1746,11 +1753,6 @@ to return the current depth of the most recently matched topic."
 
 ;;;_ #4 Navigation
 
-;;;_  - Position Assessment
-;;;_   > allout-hidden-p (&optional pos)
-(defsubst allout-hidden-p (&optional pos)
-  "Non-nil if the character after point is invisible."
-  (get-char-property (or pos (point)) 'invisible))
 ;;;_   : Location Predicates
 ;;;_    > allout-on-current-heading-p ()
 (defun allout-on-current-heading-p ()
