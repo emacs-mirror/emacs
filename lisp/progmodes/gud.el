@@ -467,10 +467,12 @@ required by the caller."
 					    (concat (car var) "\t" (nth 4 var))
 					    'gdb-edit-value
 					    nil
-					    (if (and (nth 5 var)
-						     gdb-show-changed-values)
-						'font-lock-warning-face
-					      nil) depth)
+		       (if gdb-show-changed-values
+			   (case (nth 5 var)
+				 (changed 'font-lock-warning-face)
+				 (out-of-scope 'shadow)
+				 (nil nil))
+			 nil) depth)
 		  (if (and (cadr var-list)
 			   (string-match (concat varnum "\\.")
 					 (cadr (cadr var-list))))
@@ -493,11 +495,10 @@ required by the caller."
 					  nil nil nil depth))))
 	      (setq var-list (cdr var-list))))
 	  (setq gdb-var-changed nil)))
-       (t (if (and (save-excursion
-		     (goto-char (point-min))
-		     (looking-at "Current Stack:"))
-		   (equal gud-last-last-frame gud-last-speedbar-stackframe))
-	      nil
+       (t (unless (and (save-excursion
+			 (goto-char (point-min))
+			 (looking-at "Current Stack:"))
+		       (equal gud-last-last-frame gud-last-speedbar-stackframe))
 	    (let ((gud-frame-list
 	    (cond ((eq minor-mode 'gdb)
 		   (gud-gdb-get-stackframe buffer))
