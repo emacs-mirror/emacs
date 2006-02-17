@@ -1,3 +1,7 @@
+2006-02-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fset_window_scroll_bars): Doc fix.
+
 2006-02-17  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (display_mode_element): Call display_string with correct
