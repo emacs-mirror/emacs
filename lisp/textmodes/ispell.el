@@ -2604,7 +2604,7 @@ By just answering RET you can find out what the current dictionary is."
 	       (mapcar 'list (ispell-valid-dictionary-list)))
 	  nil t)
 	 current-prefix-arg))
-  (unless arg (ispell-accept-buffer-local-defs))
+  (unless arg (ispell-buffer-local-dict))
   (if (equal dict "default") (setq dict nil))
   ;; This relies on completing-read's bug of returning "" for no match
   (cond ((equal dict "")
