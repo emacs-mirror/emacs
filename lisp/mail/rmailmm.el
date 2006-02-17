@@ -28,6 +28,15 @@
 ;; extensions (mime-display.el and mime.el).  To use, copy a complete
 ;; message into a new buffer and call (mime-show t).
 
+;; To use:
+
+;; (autoload 'rmail-mime "rmailmm"
+;;   "Show MIME message." t)
+;; (add-hook 'rmail-mode-hook    
+;;           (lambda ()
+;;             (define-key rmail-mode-map (kbd "v")
+;;               'rmail-mime)))
+
 ;;; Code:
 
 ;;; Variables
@@ -98,7 +107,8 @@ offer a way to save all attachments at once.")
 				content-transfer-encoding)
   "Handle the current buffer as a plain text MIME part."
   (let* ((charset (cdr (assq 'charset (cdr content-type))))
-	 (coding-system (intern (downcase charset))))
+	 (coding-system (when charset
+			  (intern (downcase charset)))))
     (when (coding-system-p coding-system)
       (decode-coding-region (point-min) (point-max) coding-system))))
 
@@ -255,7 +265,9 @@ This is the epilogue.  It is also to be ignored."))
 			  content-disposition
 			  content-transfer-encoding)
   "Handle the current buffer as a MIME part.
-The current buffer should be narrowed to the respective body.
+The current buffer should be narrowed to the respective body, and
+point should be at the beginning of the body.
+
 CONTENT-TYPE, CONTENT-DISPOSITION, and CONTENT-TRANSFER-ENCODING
 are the values of the respective parsed headers.  The parsed
 headers for CONTENT-TYPE and CONTENT-DISPOSITION have the form
@@ -280,10 +292,11 @@ The parsed header value:
   ;; Handle the content transfer encodings we know.  Unknown transfer
   ;; encodings will be passed on to the various handlers.
   (cond ((string= content-transfer-encoding "base64")
-	 (base64-decode-region (point-min) (point-max))
-	 (setq content-transfer-encoding nil))
+	 (when (ignore-errors
+		 (base64-decode-region (point) (point-max)))
+	   (setq content-transfer-encoding nil)))
 	((string= content-transfer-encoding "quoted-printable")
-	 (quoted-printable-decode-region (point-min) (point-max))
+	 (quoted-printable-decode-region (point) (point-max))
 	 (setq content-transfer-encoding nil))
 	((string= content-transfer-encoding "8bit")
 	 ;; FIXME: Is this the correct way?
@@ -355,11 +368,33 @@ modified."
       (setq content-disposition '("attachment")))
     ;; Hide headers and handle the part.
     (save-restriction
-      (if (or show-headers
-	      (string= (car content-type) "message/rfc822"))
-	  (progn
-	    (rmail-header-hide-headers)
-	    (narrow-to-region end (point-max)))
-	(delete-region (point-min) end))
+      (cond ((string= (car content-type) "message/rfc822")
+	     (rmail-header-hide-headers)
+	     (narrow-to-region end (point-max)))
+	    (show-headers
+	     (rmail-header-hide-headers))
+	    (t
+	     (delete-region (point-min) end)))
       (rmail-mime-handle content-type content-disposition
 			 content-transfer-encoding))))
+
+(defun rmail-mime ()
+  "Copy buffer contents to a temporary buffer and handle MIME.
+This calls `rmail-mime-show' to do the real job."
+  (interactive)
+  (let ((data (with-current-buffer rmail-buffer
+		(save-restriction
+		  (widen)
+		  (buffer-substring
+		   (rmail-desc-get-start rmail-current-message)
+		   (rmail-desc-get-end rmail-current-message)))))
+	(inhibit-read-only t))
+    (switch-to-buffer (get-buffer-create "*RMAIL*"))
+    (erase-buffer)
+    (insert data)
+    (rmail-mime-show t)
+    (view-mode 1)))
+
+(provide 'rmailmm)
+
+;; rmailmm.el ends here
