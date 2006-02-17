@@ -1,3 +1,8 @@
+2006-02-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* files.el: Add truncate-lines, ispell-check-comments and
+	ispell-local-dictionary as safe local variables.
+
 2006-02-18  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-speedbar-buttons): Use shadow face for
