@@ -7,6 +7,11 @@
 
 	* gnus-cus.el: Revert 2005-10-17 change.
 
+2006-02-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-strip-banner): Call
+	article-really-strip-banner only when the regexp match is made.
+
 2006-02-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (article-strip-banner): Use
