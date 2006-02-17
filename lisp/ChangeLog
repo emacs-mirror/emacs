@@ -1,5 +1,16 @@
 2006-02-17  Juri Linkov  <juri@jurta.org>
 
+	* ffap.el (ffap) <defface>: Add explicit face declaration.
+	(ffap-highlight): Use face `ffap' directly instead of checking
+	for its existence.
+
+	* icomplete.el (icomplete-get-keys): Use `t' for the second arg
+	`visible-ok' of `other-buffer' to find the right original buffer.
+
+	* info.el (Info-search): Skip `Local Variables' node.
+
+2006-02-17  Juri Linkov  <juri@jurta.org>
+
 	* info.el (Info-find-file): Check for symbols `apropos', `history',
 	`toc' in the input filename, and return these symbols as is.
 	(Info-find-node-2): Set Info-current-file to symbols `apropos',
