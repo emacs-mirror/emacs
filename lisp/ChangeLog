@@ -1,3 +1,21 @@
+2006-02-17  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-connect): Make all arguments optional, and
+	default to global variable values for unsupplied args.
+	(rcirc-get-buffer-create): Fix bug with setting the target.
+	(rcirc-any-buffer): Rename from rcirc-get-any-buffer, and include
+	test for rcirc-always-use-server-buffer-flag here.
+	(rcirc-response-formats): Add %N, which is a facified nick.  %n
+	uses the default face.  Change the ACTION format string.  If the
+	"nick" is the server, don't print anything for that field.
+	Comment fixes.
+	(rcirc-target-buffer): Don't test
+	rcirc-always-use-server-buffer-flag here.
+	(rcirc-print): Squeeze extra spaces out of the text before message.
+	(rcirc-put-nick-channel): Strip potential "@" char from nick
+	before adding them to nick table.
+	(rcirc-url-regexp): Improve to match address like "foo.com".
+
 2006-02-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* allout.el (allout-hidden-p): Move this defsubts before
