@@ -1,3 +1,14 @@
+2006-02-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-buttons): Use shadow face for
+	out of scope variables.
+	(gud-speedbar-buttons): Use unless.
+
+	* progmodes/gdb-ui.el (gdb-var-list): Update doc string.
+	(gdb-init-1, gdb-var-changed): Set gdb-var-changed to t initially.
+	(gdb-show-changed-values): Also use for out of scope variables.
+	(gdb-var-update-handler-1): Note if variable goes out of scope.
+
 2006-02-17  Ryan Yeske  <rcyeske@gmail.com>
 
 	* net/rcirc.el (rcirc-connect): Make all arguments optional, and
@@ -18,7 +29,7 @@
 
 2006-02-17  Eli Zaretskii  <eliz@gnu.org>
 
-	* allout.el (allout-hidden-p): Move this defsubts before
+	* allout.el (allout-hidden-p): Move this defsubst before
 	allout-overlay-interior-modification-handler, where it is first
 	used.
 
