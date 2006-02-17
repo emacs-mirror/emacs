@@ -98,6 +98,7 @@
   (interactive)
   (let ((article (gnus-summary-article-number))
 	(group gnus-newsgroup-name))
+    (gnus-draft-check-draft-articles (list article))
     (gnus-summary-mark-as-read article gnus-canceled-mark)
     (gnus-draft-setup article group t)
     (set-buffer-modified-p t)
@@ -122,6 +123,7 @@
   (let* ((articles (gnus-summary-work-articles n))
 	 (total (length articles))
 	 article)
+    (gnus-draft-check-draft-articles articles)
     (while (setq article (pop articles))
       (gnus-summary-remove-process-mark article)
       (unless (memq article gnus-newsgroup-unsendable)
@@ -152,7 +154,7 @@
     ;; We read the meta-information that says how and where
     ;; this message is to be sent.
     (save-restriction
-      (message-narrow-to-head)
+      (message-narrow-to-headers)
       (when (re-search-forward
 	     (concat "^" (regexp-quote gnus-agent-target-move-group-header)
 		     ":") nil t)
@@ -258,9 +260,12 @@
 	    (goto-char (point-min))
 	    (search-forward "\n\n")
 	    (forward-char -1)
+	    (save-restriction
+	      (narrow-to-region (point-min) (point))
+	      (setq ga
+		    (message-fetch-field gnus-draft-meta-information-header)))
 	    (insert mail-header-separator)
 	    (forward-line 1)
-	    (setq ga (message-fetch-field gnus-draft-meta-information-header))
 	    (message-set-auto-save-file-name))))
       (gnus-backlog-remove-article group narticle)
       (when (and ga
@@ -284,6 +289,32 @@
 (defun gnus-draft-article-sendable-p (article)
   "Say whether ARTICLE is sendable."
   (not (memq article gnus-newsgroup-unsendable)))
+
+(defun gnus-draft-check-draft-articles (articles)
+  "Check whether the draft articles ARTICLES are under edit."
+  (when (equal gnus-newsgroup-name "nndraft:drafts")
+    (let ((buffers (buffer-list))
+	  file buffs buff)
+      (save-current-buffer
+	(while (and articles
+		    (not buff))
+	  (setq file (nndraft-article-filename (pop articles))
+		buffs buffers)
+	  (while buffs
+	    (set-buffer (setq buff (pop buffs)))
+	    (if (and buffer-file-name
+		     (string-equal (file-truename buffer-file-name)
+				   (file-truename file))
+		     (buffer-modified-p))
+		(setq buffs nil)
+	      (setq buff nil)))))
+      (when buff
+	(let* ((window (get-buffer-window buff t))
+	       (frame (and window (window-frame window))))
+	  (if frame
+	      (gnus-select-frame-set-input-focus frame)
+	    (pop-to-buffer buff t)))
+	(error "The draft %s is under edit" file)))))
 
 (provide 'gnus-draft)
 

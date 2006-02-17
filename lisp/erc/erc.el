@@ -1927,7 +1927,8 @@ Returns the buffer for the given server or channel."
       (goto-char (point-max))
       (insert "\n"))
     (set-marker (process-mark erc-server-process) (point))
-    (unless continued-session
+    (if continued-session
+	(goto-char (point-max))
       (set-marker erc-insert-marker (point))
       (erc-display-prompt)
       (goto-char (point-max)))

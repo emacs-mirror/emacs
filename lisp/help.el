@@ -510,7 +510,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 		(if (> (length keys) 0)
 		    (if remapped
 			(format "%s is remapped to %s which is on %s"
-				definition symbol keys)
+				symbol remapped keys)
 		      (format "%s is on %s" symbol keys))
 		  ;; If this is the command the user asked about,
 		  ;; and it is not on any key, say so.

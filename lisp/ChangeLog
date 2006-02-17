@@ -1,3 +1,95 @@
+2006-02-17  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.el (speedbar-frame-width): Make an inline function
+	instead of a macro.  Use frame-width.
+	(speedbar-try-completion, speedbar-update-contents) 
+	(speedbar-timer-fn): Use consp.
+	(speedbar-update-localized-contents): Try to preserve point.
+
+	* progmodes/gdb-ui.el (gdba, gdb-var-list): Improve doc strings.
+	(menu): Re-order menu items.
+	(gdb-var-update-regexp, gdb-var-update-regexp-1): Match "in_scope"
+	field.
+	(gdb-var-update-handler-1): Use it for GDB 6.4+.
+	(gdb-post-prompt): Speed things by not forcing update.
+
+2006-02-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wid-edit.el (widget-button-click): For mouse-1, cancel button
+	press and perform default action if we get a mouse movement event.
+
+2006-02-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calendar/icalendar.el (icalendar--get-event-property)
+	(icalendar--get-event-property-attributes): Fix typos in
+	docstrings.
+
+	* progmodes/flymake.el (flymake-fix-file-name): Fix typo in
+	docstring.
+
+2006-02-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs-mode): Use `buffer-disable-undo'.
+	(bs--get-file-name): Simplify.
+	(bs-show-in-buffer): Mark the buffer as not modified.
+
+2006-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wid-edit.el (widget-keymap): Bind down-mouse-1 to
+	widget-button-click.
+
+	* cus-edit.el (custom-mode-map): Remove mouse-1 binding.
+	(custom-mode): Update docstring.
+
+	* cus-theme.el (custom-new-theme-mode-map): Remove mouse-1
+	binding.
+
+	* files.el (hack-local-variables-confirm): Allow scrolling if the
+	file variable list is too long.  Kill temp buffer after use.
+
+2006-02-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gdb): Improve doc string.
+	(gdb-script-font-lock-keywords): Expand allowed character set.
+
+	* progmodes/gdb-ui.el (gdb-use-separate-io-buffer)
+	(gdb-display-separate-io-buffer, gdb-frame-separate-io-buffer)
+	(gdb-separate-io-interrupt, gdb-separate-io-quit)
+	(gdb-separate-io-stop, gdb-separate-io-eof):
+	Rename from gdb-inferior-* to gdb-separate-*.
+	(gdb-set-gud-minor-mode-existing-buffers-1): Improve doc string.
+
+2006-02-14  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-arith.el (math-check-known-scalarp): Make sure
+	expression is a symbol before checking that it is bound.
+
+	* calc/calcalg2.el (math-integrate-by-parts): Do a more careful
+	test to see if equation can be solved.
+
+2006-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wid-edit.el (widget-button-click): Use :pressed-face property
+	for overlay face, if it exists.
+
+	* cus-edit.el (custom-manual, custom-add-see-also)
+	(custom-add-parent-links, custom-group-link): Add :pressed-face
+	property to links.
+
+	* files.el (hack-local-variables): Remove ignored variables before
+	checking if any variables need setting.
+
+2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Add x-gtk-whole-detached-tool-bar.
+
+2006-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (where-is): Fix message for remapped commands.
+
+	* mwheel.el (mouse-wheel-click-event, mouse-wheel-mode):
+	Fix typos in docstrings.
+
 2006-02-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (safe-local-variable-values): New option.
@@ -17,13 +109,13 @@
 	moved to safe-local-variable-p.
 	(hack-one-local-variable): Checks moved to hack-local-variables.
 
-	(byte-compile-dynamic, c-basic-offset, c-file-style,
-	c-indent-level, comment-column, fill-column, fill-prefix,
-	indent-tabs-mode, kept-new-versions, no-byte-compile,
-	no-update-autoloads, outline-regexp, page-delimiter,
-	paragraph-start, paragraph-separate, sentence-end,
-	sentence-end-double-space tab-width, version-control): Add
-	`safe-local-variable' property.
+	(byte-compile-dynamic, c-basic-offset, c-file-style)
+	(c-indent-level, comment-column, fill-column, fill-prefix)
+	(indent-tabs-mode, kept-new-versions, no-byte-compile)
+	(no-update-autoloads, outline-regexp, page-delimiter)
+	(paragraph-start, paragraph-separate, sentence-end)
+	(sentence-end-double-space tab-width, version-control):
+	Add `safe-local-variable' property.
 
 	* find-lisp.el: Delete nonexistent `autocompile' file variable.
 
@@ -49,7 +141,7 @@
 
 2006-02-13  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-arith.el:  (math-check-known-matrixp): Make sure
+	* calc/calc-arith.el (math-check-known-matrixp): Make sure
 	expression is a symbol before checking that it is bound.
 
 2006-02-13  Richard M. Stallman  <rms@gnu.org>
@@ -61,7 +153,7 @@
 	inside `interactive' spec.
 	(describe-key-briefly-internal, describe-key-internal):
 	Functions merged back into their callers.
-	
+
 2006-02-13  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
 
 	* info.el (info-xref-visited): Inherit from info-xref too.
@@ -179,7 +271,7 @@
 2006-02-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* files.el (revert-buffer, recover-file): Replace buffer-read-only
-	with inhibit-read-only.	Suggested by Stefan Monnier.
+	with inhibit-read-only.  Suggested by Stefan Monnier.
 	(revert-buffer): Let insert-file-contents discard
 	buffer-undo-list.  Simplify code.
 	(find-file, find-file-existing, revert-buffer): Doc-string fixes.

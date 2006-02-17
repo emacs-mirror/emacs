@@ -828,20 +828,20 @@ displays the following frame layout:
 @example
 +--------------------------------+--------------------------------+
 |                                |                                |
-|  GUD buffer (I/O of GDB)       |     Locals buffer              |
+|   GUD buffer (I/O of GDB)      |   Locals buffer                |
 |                                |                                |
 |--------------------------------+--------------------------------+
 |                                |                                |
-|  Source buffer                 |     I/O buffer (of inferior)   |
+|   Source buffer                |   I/O buffer for debugged pgm  |
 |                                |                                |
 |--------------------------------+--------------------------------+
 |                                |                                |
-|  Stack buffer                  |     Breakpoints buffer         |
+|   Stack buffer                 |   Breakpoints buffer           |
 |                                |                                |
 +--------------------------------+--------------------------------+
 @end example
 
-  However, if @code{gdb-use-inferior-io-buffer} is @code{nil}, the I/O
+  However, if @code{gdb-use-separate-io-buffer} is @code{nil}, the I/O
 buffer does not appear and the source buffer occupies the full width
 of the frame.
 
@@ -972,12 +972,12 @@ for variables defined in compound statements, the default value is
 
 @table @asis
 @item Input/Output Buffer
-@vindex gdb-use-inferior-io-buffer
-If the variable @code{gdb-use-inferior-io-buffer} is non-@code{nil},
+@vindex gdb-use-separate-io-buffer
+If the variable @code{gdb-use-separate-io-buffer} is non-@code{nil},
 the executable program that is being debugged takes its input and
 displays its output here.  Otherwise it uses the GUD buffer for that.
 To toggle whether GUD mode uses this buffer, do @kbd{M-x
-gdb-use-inferior-io-buffer}.  That takes effect when you next
+gdb-use-separate-io-buffer}.  That takes effect when you next
 restart the program you are debugging.
 
 The history and replay commands from Shell mode are available here,

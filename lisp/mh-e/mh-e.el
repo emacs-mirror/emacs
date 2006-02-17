@@ -2968,6 +2968,8 @@ sequence."
 (if (boundp 'facemenu-unlisted-faces)
     (add-to-list 'facemenu-unlisted-faces "^mh-"))
 
+;; Temporary function and data structure used for defining faces.
+;; These will be unbound after the faces are defined.
 (defvar mh-min-colors-defined-flag (and (not mh-xemacs-flag)
                                         (>= emacs-major-version 22))
   "Non-nil means defface supports min-colors display requirement.")
@@ -2999,80 +3001,217 @@ colors."
                 (setq new-spec (cons entry new-spec)))))
       new-spec)))
 
-(defface mh-folder-address '((t (:inherit mh-folder-subject)))
+(defvar mh-inherit-face-flag (assq :inherit custom-face-attributes)
+  "Non-nil means that the `defface' :inherit keyword is available.
+The :inherit keyword is available on all supported versions of
+GNU Emacs and XEmacs from at least 21.5.23 on.")
+
+(defvar mh-face-data
+  '((mh-folder-followup
+     ((((class color) (background light))
+       (:foreground "blue3"))
+      (((class color) (background dark))
+       (:foreground "LightGoldenRod"))
+      (t
+       (:bold t))))
+    (mh-folder-msg-number
+     ((((class color) (min-colors 64) (background light))
+       (:foreground "snow4"))
+      (((class color) (min-colors 64) (background dark))
+       (:foreground "snow3"))
+      (((class color))
+       (:foreground "cyan"))))
+    (mh-folder-refiled
+     ((((class color) (min-colors 64) (background light))
+       (:foreground "DarkGoldenrod"))
+      (((class color) (min-colors 64) (background dark))
+       (:foreground "LightGoldenrod"))
+      (((class color))
+       (:foreground "yellow" :weight light))
+      (((class grayscale) (background light))
+       (:foreground "Gray90" :bold t :italic t))
+      (((class grayscale) (background dark))
+       (:foreground "DimGray" :bold t :italic t))
+      (t
+       (:bold t :italic t))))
+    (mh-folder-subject
+     ((((class color) (background light))
+       (:foreground "blue4"))
+      (((class color) (background dark))
+       (:foreground "yellow"))
+      (t
+       (:bold t))))
+    (mh-folder-tick
+     ((((class color) (background dark))
+       (:background "#dddf7e"))
+      (((class color) (background light))
+       (:background "#dddf7e"))
+      (t
+       (:underline t))))
+    (mh-folder-to
+     ((((class color) (min-colors 64) (background light))
+       (:foreground "RosyBrown"))
+      (((class color) (min-colors 64) (background dark))
+       (:foreground "LightSalmon"))
+      (((class color))
+       (:foreground "green"))
+      (((class grayscale) (background light))
+       (:foreground "DimGray" :italic t))
+      (((class grayscale) (background dark))
+       (:foreground "LightGray" :italic t))
+      (t
+       (:italic t))))
+    (mh-letter-header-field
+     ((((class color) (background light))
+       (:background "gray90"))
+      (((class color) (background dark))
+       (:background "gray10"))
+      (t
+       (:bold t))))
+    (mh-search-folder
+     ((((class color) (background light))
+       (:foreground "dark green" :bold t))
+      (((class color) (background dark))
+       (:foreground "indian red" :bold t))
+      (t
+       (:bold t))))
+    (mh-show-cc
+     ((((class color) (min-colors 64) (background light))
+       (:foreground "DarkGoldenrod"))
+      (((class color) (min-colors 64) (background dark))
+       (:foreground "LightGoldenrod"))
+      (((class color))
+       (:foreground "yellow" :weight light))
+      (((class grayscale) (background light))
+       (:foreground "Gray90" :bold t :italic t))
+      (((class grayscale) (background dark))
+       (:foreground "DimGray" :bold t :italic t))
+      (t
+       (:bold t :italic t))))
+    (mh-show-date
+     ((((class color) (min-colors 64) (background light))
+       (:foreground "ForestGreen"))
+      (((class color) (min-colors 64) (background dark))
+       (:foreground "PaleGreen"))
+      (((class color))
+       (:foreground "green"))
+      (((class grayscale) (background light))
+       (:foreground "Gray90" :bold t))
+      (((class grayscale) (background dark))
+       (:foreground "DimGray" :bold t))
+      (t
+       (:bold t :underline t))))
+    (mh-show-from
+     ((((class color) (background light))
+       (:foreground "red3"))
+      (((class color) (background dark))
+       (:foreground "cyan"))
+      (t
+       (:bold t))))
+    (mh-show-header
+     ((((class color) (min-colors 64) (background light))
+       (:foreground "RosyBrown"))
+      (((class color) (min-colors 64) (background dark))
+       (:foreground "LightSalmon"))
+      (((class color))
+       (:foreground "green"))
+      (((class grayscale) (background light))
+       (:foreground "DimGray" :italic t))
+      (((class grayscale) (background dark))
+       (:foreground "LightGray" :italic t))
+      (t
+       (:italic t))))
+    (mh-show-pgg-bad ((t (:bold t :foreground "DeepPink1"))))
+    (mh-show-pgg-good ((t (:bold t :foreground "LimeGreen"))))
+    (mh-show-pgg-unknown ((t (:bold t :foreground "DarkGoldenrod2"))))
+    (mh-show-signature ((t (:italic t))))
+    (mh-show-to
+     ((((class color) (background light))
+       (:foreground "SaddleBrown"))
+      (((class color) (background dark))
+       (:foreground "burlywood"))
+      (((class grayscale) (background light))
+       (:foreground "DimGray" :underline t))
+      (((class grayscale) (background dark))
+       (:foreground "LightGray" :underline t))
+      (t (:underline t))))
+    (mh-speedbar-folder
+     ((((class color) (background light))
+       (:foreground "blue4"))
+      (((class color) (background dark))
+       (:foreground "light blue"))))
+    (mh-speedbar-selected-folder
+     ((((class color) (background light))
+       (:foreground "red1" :underline t))
+      (((class color) (background dark))
+       (:foreground "red1" :underline t))
+      (t
+       (:underline t))))))
+
+(defun mh-face-data (face &optional inherit)
+  "Return spec for FACE.
+If INHERIT is non-nil and `defface' supports the :inherit
+keyword, return INHERIT literally; otherwise, return spec for FACE.
+
+This isn't a perfect implementation. In the case that
+the :inherit keyword is not supported, any additional attributes
+in the inherit parameter are not added to the returned spec."
+  (if (and inherit mh-inherit-face-flag)
+      inherit
+    (mh-defface-compat (cadr (assoc face mh-face-data)))))
+
+(defface mh-folder-address
+  (mh-face-data 'mh-folder-subject '((t (:inherit mh-folder-subject))))
   "Recipient face."
   :group 'mh-faces
   :group 'mh-folder)
 
 (defface mh-folder-body
-  '((((class color))
-     (:inherit mh-folder-msg-number))
-    (t
-     (:inherit mh-folder-msg-number :italic t)))
+  (mh-face-data 'mh-folder-msg-number
+                '((((class color))
+                   (:inherit mh-folder-msg-number))
+                  (t
+                   (:inherit mh-folder-msg-number :italic t))))
   "Body text face."
   :group 'mh-faces
   :group 'mh-folder)
 
 (defface mh-folder-cur-msg-number
-  '((t
-     (:inherit mh-folder-msg-number :bold t)))
+  (mh-face-data 'mh-folder-msg-number
+                '((t (:inherit mh-folder-msg-number :bold t))))
   "Current message number face."
   :group 'mh-faces
   :group 'mh-folder)
 
-(defface mh-folder-date '((t (:inherit mh-folder-msg-number)))
+(defface mh-folder-date
+  (mh-face-data 'mh-folder-msg-number '((t (:inherit mh-folder-msg-number))))
   "Date face."
   :group 'mh-faces
   :group 'mh-folder)
 
-(defface mh-folder-deleted '((t (:inherit mh-folder-msg-number)))
+(defface mh-folder-deleted
+  (mh-face-data 'mh-folder-msg-number '((t (:inherit mh-folder-msg-number))))
   "Deleted message face."
   :group 'mh-faces
   :group 'mh-folder)
 
-(defface mh-folder-followup
-  '((((class color) (background light))
-     (:foreground "blue3"))
-    (((class color) (background dark))
-     (:foreground "LightGoldenRod"))
-    (t
-     (:bold t)))
+(defface mh-folder-followup (mh-face-data 'mh-folder-followup)
   "\"Re:\" face."
   :group 'mh-faces
   :group 'mh-folder)
 
-(defface mh-folder-msg-number
-  (mh-defface-compat
-   '((((class color) (min-colors 64) (background light))
-      (:foreground "snow4"))
-     (((class color) (min-colors 64) (background dark))
-      (:foreground "snow3"))
-     (((class color))
-      (:foreground "cyan"))))
-
+(defface mh-folder-msg-number (mh-face-data 'mh-folder-msg-number)
   "Message number face."
   :group 'mh-faces
   :group 'mh-folder)
 
-(defface mh-folder-refiled
-  (mh-defface-compat
-   '((((class color) (min-colors 64) (background light))
-      (:foreground "DarkGoldenrod"))
-     (((class color) (min-colors 64) (background dark))
-      (:foreground "LightGoldenrod"))
-     (((class color))
-      (:foreground "yellow" :weight light))
-     (((class grayscale) (background light))
-      (:foreground "Gray90" :bold t :italic t))
-     (((class grayscale) (background dark))
-      (:foreground "DimGray" :bold t :italic t))
-     (t
-      (:bold t :italic t))))
+(defface mh-folder-refiled (mh-face-data 'mh-folder-refiled)
   "Refiled message face."
   :group 'mh-faces
   :group 'mh-folder)
 
-(defface mh-folder-sent-to-me-hint '((t (:inherit mh-folder-date)))
+(defface mh-folder-sent-to-me-hint
+  (mh-face-data 'mh-folder-msg-number '((t (:inherit mh-folder-date))))
   "Fontification hint face in messages sent directly to us.
 The detection of messages sent to us is governed by the scan
 format `mh-scan-format-nmh' and the regular expression
@@ -3080,7 +3219,8 @@ format `mh-scan-format-nmh' and the regular expression
   :group 'mh-faces
   :group 'mh-folder)
 
-(defface mh-folder-sent-to-me-sender '((t (:inherit mh-folder-followup)))
+(defface mh-folder-sent-to-me-sender
+  (mh-face-data 'mh-folder-followup '((t (:inherit mh-folder-followup))))
   "Sender face in messages sent directly to us.
 The detection of messages sent to us is governed by the scan
 format `mh-scan-format-nmh' and the regular expression
@@ -3088,211 +3228,121 @@ format `mh-scan-format-nmh' and the regular expression
   :group 'mh-faces
   :group 'mh-folder)
 
-(defface mh-folder-subject
-  '((((class color) (background light))
-     (:foreground "blue4"))
-    (((class color) (background dark))
-     (:foreground "yellow"))
-    (t
-     (:bold t)))
+(defface mh-folder-subject (mh-face-data 'mh-folder-subject)
   "Subject face."
   :group 'mh-faces
   :group 'mh-folder)
 
-(defface mh-folder-tick
-  '((((class color) (background dark))
-     (:background "#dddf7e"))
-    (((class color) (background light))
-     (:background "#dddf7e"))
-    (t
-     (:underline t)))
+(defface mh-folder-tick (mh-face-data 'mh-folder-tick)
   "Ticked message face."
   :group 'mh-faces
   :group 'mh-folder)
 
-(defface mh-folder-to
-  (mh-defface-compat
-   '((((class color) (min-colors 64) (background light))
-      (:foreground "RosyBrown"))
-     (((class color) (min-colors 64) (background dark))
-      (:foreground "LightSalmon"))
-     (((class color))
-      (:foreground "green"))
-     (((class grayscale) (background light))
-      (:foreground "DimGray" :italic t))
-     (((class grayscale) (background dark))
-      (:foreground "LightGray" :italic t))
-     (t
-      (:italic t))))
+(defface mh-folder-to (mh-face-data 'mh-folder-to)
   "\"To:\" face."
   :group 'mh-faces
   :group 'mh-folder)
 
-(defface mh-search-folder
-  '((((class color) (background light))
-     (:foreground "dark green" :bold t))
-    (((class color) (background dark))
-     (:foreground "indian red" :bold t))
-    (t
-     (:bold t)))
-  "Folder heading face in MH-Folder buffers created by searches."
-  :group 'mh-faces
-  :group 'mh-search)
-
-(defface mh-letter-header-field
-  '((((class color) (background light))
-     (:background "gray90"))
-    (((class color) (background dark))
-     (:background "gray10"))
-    (t
-     (:bold t)))
+(defface mh-letter-header-field (mh-face-data 'mh-letter-header-field)
   "Editable header field value face in draft buffers."
   :group 'mh-faces
   :group 'mh-letter)
 
-(defface mh-show-cc
-  (mh-defface-compat
-   '((((class color) (min-colors 64) (background light))
-      (:foreground "DarkGoldenrod"))
-     (((class color) (min-colors 64) (background dark))
-      (:foreground "LightGoldenrod"))
-     (((class color))
-      (:foreground "yellow" :weight light))
-     (((class grayscale) (background light))
-      (:foreground "Gray90" :bold t :italic t))
-     (((class grayscale) (background dark))
-      (:foreground "DimGray" :bold t :italic t))
-     (t
-      (:bold t :italic t))))
+(defface mh-search-folder (mh-face-data 'mh-search-folder)
+  "Folder heading face in MH-Folder buffers created by searches."
+  :group 'mh-faces
+  :group 'mh-search)
+
+(defface mh-show-cc (mh-face-data 'mh-show-cc)
   "Face used to highlight \"cc:\" header fields."
   :group 'mh-faces
   :group 'mh-show)
 
-(defface mh-show-date
-  (mh-defface-compat
-   '((((class color) (min-colors 64) (background light))
-      (:foreground "ForestGreen"))
-     (((class color) (min-colors 64) (background dark))
-      (:foreground "PaleGreen"))
-     (((class color))
-      (:foreground "green"))
-     (((class grayscale) (background light))
-      (:foreground "Gray90" :bold t))
-     (((class grayscale) (background dark))
-      (:foreground "DimGray" :bold t))
-     (t
-      (:bold t :underline t))))
+(defface mh-show-date (mh-face-data 'mh-show-date)
   "Face used to highlight \"Date:\" header fields."
   :group 'mh-faces
   :group 'mh-show)
 
-(defface mh-show-from
-  '((((class color) (background light))
-     (:foreground "red3"))
-    (((class color) (background dark))
-     (:foreground "cyan"))
-    (t
-     (:bold t)))
+(defface mh-show-from (mh-face-data 'mh-show-from)
   "Face used to highlight \"From:\" header fields."
   :group 'mh-faces
   :group 'mh-show)
 
-(defface mh-show-header
-  (mh-defface-compat
-   '((((class color) (min-colors 64) (background light))
-      (:foreground "RosyBrown"))
-     (((class color) (min-colors 64) (background dark))
-      (:foreground "LightSalmon"))
-     (((class color))
-      (:foreground "green"))
-     (((class grayscale) (background light))
-      (:foreground "DimGray" :italic t))
-     (((class grayscale) (background dark))
-      (:foreground "LightGray" :italic t))
-     (t
-      (:italic t))))
+(defface mh-show-header (mh-face-data 'mh-show-header)
   "Face used to deemphasize less interesting header fields."
   :group 'mh-faces
   :group 'mh-show)
 
-(defface mh-show-pgg-bad '((t (:bold t :foreground "DeepPink1")))
+(defface mh-show-pgg-bad (mh-face-data 'mh-show-pgg-bad)
   "Bad PGG signature face."
   :group 'mh-faces
   :group 'mh-show)
 
-(defface mh-show-pgg-good '((t (:bold t :foreground "LimeGreen")))
+(defface mh-show-pgg-good (mh-face-data 'mh-show-pgg-good)
   "Good PGG signature face."
   :group 'mh-faces
   :group 'mh-show)
 
-(defface mh-show-pgg-unknown '((t (:bold t :foreground "DarkGoldenrod2")))
+(defface mh-show-pgg-unknown (mh-face-data 'mh-show-pgg-unknown)
   "Unknown or untrusted PGG signature face."
   :group 'mh-faces
   :group 'mh-show)
 
-(defface mh-show-signature '((t (:italic t)))
+(defface mh-show-signature (mh-face-data 'mh-show-signature)
   "Signature face."
   :group 'mh-faces
   :group 'mh-show)
 
-(defface mh-show-subject '((t (:inherit mh-folder-subject)))
+(defface mh-show-subject
+  (mh-face-data 'mh-folder-subject '((t (:inherit mh-folder-subject))))
   "Face used to highlight \"Subject:\" header fields."
   :group 'mh-faces
   :group 'mh-show)
 
-(defface mh-show-to
-  '((((class color) (background light))
-     (:foreground "SaddleBrown"))
-    (((class color) (background dark))
-     (:foreground "burlywood"))
-    (((class grayscale) (background light))
-     (:foreground "DimGray" :underline t))
-    (((class grayscale) (background dark))
-     (:foreground "LightGray" :underline t))
-    (t (:underline t)))
+(defface mh-show-to (mh-face-data 'mh-show-to)
   "Face used to highlight \"To:\" header fields."
   :group 'mh-faces
   :group 'mh-show)
 
-(defface mh-show-xface '((t (:inherit (mh-show-from highlight))))
-  "X-Face image face.
+(defface mh-show-xface
+  (mh-face-data 'mh-show-from '((t (:inherit (mh-show-from highlight)))))
+
+"X-Face image face.
 The background and foreground are used in the image."
   :group 'mh-faces
   :group 'mh-show)
 
-(defface mh-speedbar-folder
-  '((((class color) (background light))
-     (:foreground "blue4"))
-    (((class color) (background dark))
-     (:foreground "light blue")))
+(defface mh-speedbar-folder (mh-face-data 'mh-speedbar-folder)
   "Basic folder face."
   :group 'mh-faces
   :group 'mh-speedbar)
 
 (defface mh-speedbar-folder-with-unseen-messages
-  '((t
-     (:inherit mh-speedbar-folder :bold t)))
+  (mh-face-data 'mh-speedbar-folder
+                '((t (:inherit mh-speedbar-folder :bold t))))
   "Folder face when folder contains unread messages."
   :group 'mh-faces
   :group 'mh-speedbar)
 
 (defface mh-speedbar-selected-folder
-  '((((class color) (background light))
-     (:foreground "red1" :underline t))
-    (((class color) (background dark))
-     (:foreground "red1" :underline t))
-    (t
-     (:underline t)))
+  (mh-face-data 'mh-speedbar-selected-folder)
   "Selected folder face."
   :group 'mh-faces
   :group 'mh-speedbar)
 
 (defface mh-speedbar-selected-folder-with-unseen-messages
-  '((t
-     (:inherit mh-speedbar-selected-folder :bold t)))
+  (mh-face-data 'mh-speedbar-selected-folder
+                '((t (:inherit mh-speedbar-selected-folder :bold t))))
   "Selected folder face when folder contains unread messages."
   :group 'mh-faces
   :group 'mh-speedbar)
+
+;; Get rid of temporary functions and data structures.
+(fmakunbound 'mh-defface-compat)
+(fmakunbound 'mh-face-data)
+(makunbound 'mh-face-data)
+(makunbound 'mh-inherit-face-flag)
+(makunbound 'mh-min-colors-defined-flag)
 
 (provide 'mh-e)
 

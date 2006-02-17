@@ -1,3 +1,50 @@
+2006-02-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* html2text.el (html2text-remove-tag-list):
+	* spam-stat.el (spam-stat-buffer-words): Fix typo in docstring.
+
+2006-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gnus-cus.el: Revert 2005-10-17 change.
+
+2006-02-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-strip-banner): Call
+	article-really-strip-banner only when the regexp match is made.
+
+2006-02-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-strip-banner): Use
+	gnus-extract-address-components instead of
+	mail-header-parse-addresses to make it work with non-ASCII text.
+
+	* rfc2231.el (rfc2231-parse-string): Attempt to parse parameter
+	values which are surrounded with \"...\"; make it never cause a
+	Lisp error; give up parsing of parameters if it failed in
+	extracting type.
+
+2006-02-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-make-temp-file): Import the Emacs 22 version of
+	make-temp-file; make it work with Emacs 20 and XEmacs as well.
+
+	* mm-decode.el (mm-display-external): Use the 3rd arg of
+	mm-make-temp-file.
+	(mm-create-image-xemacs): Ditto.
+
+2006-02-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-draft.el (gnus-draft-send): Replace message-narrow-to-head
+	with message-narrow-to-headers.
+	(gnus-draft-setup): Narrow to header to run message-fetch-field.
+	(gnus-draft-check-draft-articles): New function.
+	(gnus-draft-edit-message, gnus-draft-send-message): Use it.
+
+2006-02-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnoo.el (nnoo-declare): Don't generate duplicate entries when
+	re-loading nn* modules.
+
 2006-02-10  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.el: Remove bogus comment.

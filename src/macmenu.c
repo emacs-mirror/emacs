@@ -1701,8 +1701,6 @@ set_frame_menubar (f, first_time, deep_p)
 
   fill_menubar (first_wv->contents);
 
-  DrawMenuBar ();
-
   /* Add event handler so we can detect C-g. */
   install_menu_quit_handler (NULL);
   free_menubar_widget_value_tree (first_wv);

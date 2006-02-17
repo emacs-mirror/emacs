@@ -1741,9 +1741,9 @@ Returns nil if file command not on system."
     ("application/x-zip" "\.sxw" "application/vnd.sun.xml.writer")
     ("application/x-zip" "\.odg" "application/vnd.oasis.opendocument.graphics")
     ("application/x-zip" "\.odi" "application/vnd.oasis.opendocument.image")
-    ("application/x-zip" "\.odp" 
+    ("application/x-zip" "\.odp"
      "application/vnd.oasis.opendocument.presentation")
-    ("application/x-zip" "\.ods" 
+    ("application/x-zip" "\.ods"
      "application/vnd.oasis.opendocument.spreadsheet")
     ("application/x-zip" "\.odt" "application/vnd.oasis.opendocument.text"))
   "Substitutions to make for Content-Type returned from file command.

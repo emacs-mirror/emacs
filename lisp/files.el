@@ -2225,58 +2225,68 @@ Otherwise, return nil; point may be changed."
     (let ((name (if buffer-file-name
 		    (file-name-nondirectory buffer-file-name)
 		  (concat "buffer " (buffer-name))))
-	  char)
+	  prompt char)
       (save-window-excursion
-	(with-output-to-temp-buffer "*Local Variables*"
+	(let ((buf (get-buffer-create "*Local Variables*")))
+	  (pop-to-buffer buf)
+	  (set (make-local-variable 'cursor-type) nil)
+	  (erase-buffer)
 	  (if unsafe-vars
-	      (progn (princ "The local variables list in ")
-		     (princ name)
-		     (princ "\ncontains values that may not be safe (*)")
-		     (if risky-vars
-			 (princ ", and variables that are risky (**).")
-		       (princ ".")))
+	      (insert "The local variables list in " name
+		      "\ncontains values that may not be safe (*)"
+		      (if risky-vars
+			  ", and variables that are risky (**)."
+			"."))
 	    (if risky-vars
-		(progn (princ "The local variables list in ")
-		       (princ name)
-		       (princ "\ncontains variables that are risky (**)."))
-	      (princ "A local variables list is specified in ")
-	      (princ name)
-	      (princ ".")))
-	  (princ "\n\nDo you want to apply it?  You can type
+		(insert "The local variables list in " name
+			"\ncontains variables that are risky (**).")
+	      (insert "A local variables list is specified in " name ".")))
+	  (insert "\n\nDo you want to apply it?  You can type
 y  -- to apply the local variables list.
 n  -- to ignore the local variables list.
 !  -- to apply the local variables list, and mark these values (*) as
       safe (in the future, they can be set automatically.)\n\n")
 	  (dolist (elt vars)
 	    (cond ((member elt unsafe-vars)
-		   (princ "  * "))
+		   (insert "  * "))
 		  ((member elt risky-vars)
-		   (princ " ** "))
+		   (insert " ** "))
 		  (t
-		   (princ "    ")))
-	    (princ (car elt))
-	    (princ " : ")
-	    (princ (cdr elt))
-	    (princ "\n")))
-	(message "Please type y, n, or !: ")
-	(let ((inhibit-quit t)
-	      (cursor-in-echo-area t))
-	  (while (or (not (numberp (setq char (read-event))))
-		     (not (memq (downcase char)
-				'(?! ?y ?n ?\s ?\C-g))))
-	    (message "Please type y, n, or !: "))
-	  (if (= char ?\C-g)
-	      (setq quit-flag nil)))
-	(setq char (downcase char))
-	(when (and (= char ?!) unsafe-vars)
-	  (dolist (elt unsafe-vars)
-	    (push elt safe-local-variable-values))
-	  (customize-save-variable
-	   'safe-local-variable-values
-	   safe-local-variable-values))
-	(or (= char ?!)
-	    (= char ?\s)
-	    (= char ?y))))))
+		   (insert "    ")))
+	    (princ (car elt) buf)
+	    (insert " : ")
+	    (princ (cdr elt) buf)
+	    (insert "\n"))
+	  (if (< (line-number-at-pos) (window-body-height))
+	      (setq prompt "Please type y, n, or !: ")
+	    (goto-char (point-min))
+	    (setq prompt "Please type y, n, or !, or C-v to scroll: "))
+	  (let ((inhibit-quit t)
+		(cursor-in-echo-area t)
+		done)
+	    (while (not done)
+	      (message prompt)
+	      (setq char (read-event))
+	      (if (numberp char)
+		  (if (eq char ?\C-v)
+		      (condition-case nil
+			  (scroll-up)
+			(error (goto-char (point-min))))
+		    (setq done (memq (downcase char)
+				     '(?! ?y ?n ?\s ?\C-g))))))
+	    (if (= char ?\C-g)
+		(setq quit-flag nil)))
+	  (setq char (downcase char))
+	  (when (and (= char ?!) unsafe-vars)
+	    (dolist (elt unsafe-vars)
+	      (add-to-list 'safe-local-variable-values elt))
+	    (customize-save-variable
+	     'safe-local-variable-values
+	     safe-local-variable-values))
+	  (kill-buffer buf)
+	  (or (= char ?!)
+	      (= char ?\s)
+	      (= char ?y)))))))
 
 (defun hack-local-variables-prop-line (&optional mode-only)
   "Return local variables specified in the -*- line.
@@ -2439,12 +2449,12 @@ is specified, returning t if it is specified."
       ;; variables (if MODE-ONLY is nil.)
       (if mode-only
 	  result
+	(dolist (ignored ignored-local-variables)
+	  (setq result (assq-delete-all ignored result)))
+	(if (null enable-local-eval)
+	    (setq result (assq-delete-all 'eval result)))
 	(when result
 	  (setq result (nreverse result))
-	  (dolist (ignored ignored-local-variables)
-	    (setq result (assq-delete-all ignored result)))
-	  (if (null enable-local-eval)
-	      (setq result (assq-delete-all 'eval result)))
 	  ;; Find those variables that we may want to save to
 	  ;; `safe-local-variable-values'.
 	  (let (risky-vars unsafe-vars)

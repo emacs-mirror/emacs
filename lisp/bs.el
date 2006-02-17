@@ -652,6 +652,7 @@ to show always.
   (use-local-map bs-mode-map)
   (make-local-variable 'font-lock-defaults)
   (make-local-variable 'font-lock-verbose)
+  (buffer-disable-undo)
   (setq major-mode 'bs-mode
 	mode-name "Buffer-Selection-Menu"
 	buffer-read-only t
@@ -1164,7 +1165,8 @@ and move point to current buffer."
     (bs--set-window-height)
     (bs--goto-current-buffer)
     (font-lock-fontify-buffer)
-    (bs-apply-sort-faces)))
+    (bs-apply-sort-faces)
+    (set-buffer-modified-p nil)))
 
 (defun bs-next-buffer (&optional buffer-list sorting-p)
   "Return next buffer and buffer list for buffer cycling in BUFFER-LIST.
@@ -1338,16 +1340,11 @@ If current mode is `dired-mode' or `shell-mode' it returns the
 default directory.
 START-BUFFER is the buffer where we started buffer selection.
 ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
-  (let ((string (copy-sequence (if (member major-mode
-					   '(shell-mode dired-mode))
-				   default-directory
-				 (or buffer-file-name "")))))
-    (add-text-properties
-     0 (length string)
-     '(mouse-face highlight
-       help-echo "mouse-2: select this buffer, mouse-3: select in other frame")
-     string)
-    string))
+  (propertize (if (member major-mode '(shell-mode dired-mode))
+                  default-directory
+                (or buffer-file-name ""))
+              'mouse-face 'highlight
+              'help-echo "mouse-2: select this buffer, mouse-3: select in other frame"))
 
 (defun bs--insert-one-entry (buffer)
   "Generate one entry for buffer BUFFER in Buffer Selection Menu.

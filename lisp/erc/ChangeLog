@@ -1,3 +1,25 @@
+2006-02-15  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc): Move to the end of the buffer when a continued
+	session is detected.  Thanks to e1f and indio for the report and
+	testing a potential fix.
+
+2006-02-14  Michael Olson  <mwolson@gnu.org>
+
+	* debian/changelog: Prepare a new Debian package.
+
+	* Makefile (debprepare): New rule that creates an ERC snapshot
+	directory for use in both new Debian releases and revisions for
+	Debian packages.
+	(debrelease, debrevision-mwolson): Use debprepare.
+
+	* NEWS: Bring up-to-date.
+
+	* erc-stamp.el (erc-insert-timestamp-right): For now, put
+	timestamps before rather than after erc-fill-column when
+	erc-timestamp-right-column is nil.  This way we won't surprise
+	anyone unpleasantly, or so it is hoped.
+
 2006-02-13  Michael Olson  <mwolson@gnu.org>
 
 	* erc-dcc.el: Use (eval-when-compile (require 'cl)).

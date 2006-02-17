@@ -293,7 +293,7 @@ it finds"
 ;;  (car (cddr event)))
 
 (defun icalendar--get-event-property (event prop)
-  "For the given EVENT return the value of the first occurence of PROP."
+  "For the given EVENT return the value of the first occurrence of PROP."
   (catch 'found
     (let ((props (car (cddr event))) pp)
       (while props
@@ -304,7 +304,7 @@ it finds"
     nil))
 
 (defun icalendar--get-event-property-attributes (event prop)
-  "For the given EVENT return attributes of the first occurence of PROP."
+  "For the given EVENT return attributes of the first occurrence of PROP."
   (catch 'found
     (let ((props (car (cddr event))) pp)
       (while props

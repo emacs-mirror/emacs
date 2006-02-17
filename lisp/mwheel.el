@@ -91,7 +91,7 @@
 		  mouse-wheel-click-button))
   "Event that should be temporarily inhibited after mouse scrolling.
 The mouse wheel is typically on the mouse-2 button, so it may easily
-happen that text is accidentially yanked into the buffer when
+happen that text is accidentally yanked into the buffer when
 scrolling with the mouse wheel.  To prevent that, this variable can be
 set to the event sent when clicking on the mouse wheel button."
   :group 'mouse
@@ -220,7 +220,7 @@ This should only be bound to mouse buttons 4 and 5."
 (define-minor-mode mouse-wheel-mode
   "Toggle mouse wheel support.
 With prefix argument ARG, turn on if positive, otherwise off.
-Returns non-nil if the new state is enabled."
+Return non-nil if the new state is enabled."
   :global t
   :group 'mouse
   (let* ((dn mouse-wheel-down-event)
