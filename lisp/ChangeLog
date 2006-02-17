@@ -1,3 +1,37 @@
+2006-02-17  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-find-file): Check for symbols `apropos', `history',
+	`toc' in the input filename, and return these symbols as is.
+	(Info-find-node-2): Set Info-current-file to symbols `apropos',
+	`history', `toc' instead of strings.
+	(Info-set-mode-line): For non-string Info-current-file use the
+	symbol's name inside **.
+	(Info-isearch-push-state): Add quote before Info-current-file and
+	Info-current-node.
+	(Info-isearch-pop-state): Use `equal' instead of `string='.
+	(Info-extract-pointer, Info-following-node-name): Use
+	`match-string-no-properties' instead of `match-string'.
+	(Info-up): Check `old-file' for `stringp'.
+	(Info-history): Use `equal' instead of `string-equal'.
+	Check `file' for `stringp'.
+	(Info-history): Use symbol `history' instead of string as first arg
+	of `Info-find-node'.
+	(Info-toc): Check `Info-current-file' for `stringp'.  Use symbol
+	`toc' instead of string.
+	(Info-extract-menu-node-name): Use `buffer-substring-no-properties'
+	instead of `buffer-substring', and `match-string-no-properties'
+	instead of `match-string'.
+	(Info-index-nodes): Check for symbols `apropos', `history', `toc'
+	instead of strings.
+	(info-apropos): Use `Info-find-node' instead of `Info-goto-node'.
+	Use symbol `apropos' instead of string.
+	(Info-copy-current-node-name): Check `Info-current-file' for
+	`stringp' and construct a command with `Info-find-node' from it.
+	(Info-fontify-node): Use `match-string-no-properties' instead of
+	`match-string' and check file names for `stringp'.
+	(Info-desktop-buffer-misc-data): Check for symbols `apropos',
+	`history', `toc' instead of strings.
+
 2006-02-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el: Rearrange functions and variables in the file local
