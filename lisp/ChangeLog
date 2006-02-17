@@ -1,3 +1,9 @@
+2006-02-17  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-change-dictionary):  Call
+	ispell-buffer-local-dict instead of
+	ispell-accept-buffer-local-defs.
+
 2006-02-17  Nick Roberts  <nickrob@snap.net.nz>
 
 	* speedbar.el (speedbar-frame-width): Make an inline function
