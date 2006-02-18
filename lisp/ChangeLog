@@ -1,3 +1,9 @@
+2006-02-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el (help-do-arg-highlight): Recognize also ARG- followed by
+	the opening bracket of the following bracketing pairs: {}, [], (), <>,
+	`' (for example, in the docstring of `windmove-default-keybindings').
+
 2006-02-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-speedbar-buttons): Update properly for
@@ -8,7 +14,7 @@
 	(gdb-var-update-handler): Detect out of scope variables with pre
 	GDB 6.4 too.
 	(gdb-post-prompt): Revert changet 2006-02-17 (force update).
-	Reset status of variable objexts to nil in update handlers.
+	Reset status of variable objects to nil in update handlers.
 	(gdb-var-update-handler-1): Detect when a variable object comes
 	in scope.  setcar on var changes gdb-var-list directly.
 
@@ -187,8 +193,8 @@
 
 	(allout-flag-region): Use overlays instead of selective-display
 	for invisible text - by inheritence from the properties of
-	allout-overlay-category in mainline emacs, and applied
-	property-by-property in xemacs, some recent versions of which
+	allout-overlay-category in mainline Emacs, and applied
+	property-by-property in XEmacs, some recent versions of which
 	don't inherit the properties from the category.  Provisions to
 	respond to concealed-text edits simplified drastically.
 
@@ -218,7 +224,7 @@
 	ispell-buffer-local-dict instead of
 	ispell-accept-buffer-local-defs.
 	(ispell-local-dictionary-alist): Accept as valid any coding-system
-	supported by emacs.
+	supported by Emacs.
 	(ispell-dictionary-alist-3): Esperanto dictionary's coding system
 	changed to iso-8859-3.
 
@@ -226,7 +232,7 @@
 
 	* speedbar.el (speedbar-frame-width): Make an inline function
 	instead of a macro.  Use frame-width.
-	(speedbar-try-completion, speedbar-update-contents) 
+	(speedbar-try-completion, speedbar-update-contents)
 	(speedbar-timer-fn): Use consp.
 	(speedbar-update-localized-contents): Try to preserve point.
 
