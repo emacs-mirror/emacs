@@ -624,7 +624,7 @@ With arg, automatically raise speedbar iff arg is positive."
       (dolist (var gdb-var-list)
 	(if (string-equal varnum (cadr var))
 	    (progn
-	      (if changed (setcar (nthcdr 5 var) t))
+	      (if changed (setcar (nthcdr 5 var) 'changed))
 	      (setcar (nthcdr 4 var) (read (match-string 1)))
 	      (setcar (nthcdr num gdb-var-list) var)
 	      (throw 'var-found nil)))
@@ -679,16 +679,26 @@ type=\"\\(.*?\\)\"")
 
 (defun gdb-var-update-handler ()
   (goto-char (point-min))
+  (dolist (var gdb-var-list)
+    (when (and (eq (car (nthcdr 5 var)) 'out-of-scope)
+	       (not (re-search-forward gdb-var-update-regexp-1 nil t))
+	       (not gdb-var-changed))
+      (setq gdb-var-changed t))
+    (setcar (nthcdr 5 var) nil))
+  (goto-char (point-min))
   (while (re-search-forward gdb-var-update-regexp nil t)
-    (catch 'var-found-1
-      (let ((varnum (match-string 1)))
-	(dolist (var gdb-var-list)
-	  (gdb-enqueue-input
-	   (list
-	    (concat "server interpreter mi \"-var-evaluate-expression "
-		    varnum "\"\n")
-	    `(lambda () (gdb-var-evaluate-expression-handler ,varnum t))))
-	  (throw 'var-found-1 nil)))))
+    (let ((varnum (match-string 1)))
+      (if  (string-equal (match-string 2) "false")
+	  (catch 'var-found
+	    (dolist (var gdb-var-list)
+	      (if (string-equal varnum (cadr var))
+		  (setcar (nthcdr 5 var) 'out-of-scope)
+		(throw 'var-found nil))))
+	(gdb-enqueue-input
+	 (list
+	  (concat "server interpreter mi \"-var-evaluate-expression "
+		  varnum "\"\n")
+	  `(lambda () (gdb-var-evaluate-expression-handler ,varnum t)))))))
   (setq gdb-pending-triggers
 	(delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
@@ -1217,8 +1227,7 @@ happens to be appropriate."
       ;; FIXME: with GDB-6 on Darwin, this might very well work.
       ;; Only needed/used with speedbar/watch expressions.
       (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-	(dolist (var gdb-var-list)
-	  (setcar (nthcdr 5 var) nil))
+	(setq gdb-var-changed t)    ; force update
 	(if (string-equal gdb-version "pre-6.4")
 	    (gdb-var-update)
 	  (gdb-var-update-1)))))
@@ -3045,21 +3054,25 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
 
 (defun gdb-var-update-handler-1 ()
   (goto-char (point-min))
+  (dolist (var gdb-var-list)
+    (when (and (eq (car (nthcdr 5 var)) 'out-of-scope)
+	       (not (re-search-forward gdb-var-update-regexp-1 nil t))
+	       (not gdb-var-changed))
+      (setq gdb-var-changed t))
+    (setcar (nthcdr 5 var) nil))
+  (goto-char (point-min))
   (while (re-search-forward gdb-var-update-regexp-1 nil t)
     (let ((varnum (match-string 1)))
       (catch 'var-found1
-	(let ((num 0))
-	  (dolist (var gdb-var-list)
-	    (if (string-equal varnum (cadr var))
-		(progn
-		  (if (string-equal (match-string 3) "false")
-		      (setcar (nthcdr 5 var) 'out-of-scope)
-		    (setcar (nthcdr 5 var) 'changed)
-		    (setcar (nthcdr 4 var)
-			    (read (match-string 2))))
-		  (setcar (nthcdr num gdb-var-list) var)
-		  (throw 'var-found1 nil)))
-	    (setq num (+ num 1))))))
+	(dolist (var gdb-var-list)
+	  (if (string-equal varnum (cadr var))
+	      (progn
+		(if (string-equal (match-string 3) "false")
+		    (setcar (nthcdr 5 var) 'out-of-scope)
+		  (setcar (nthcdr 5 var) 'changed)
+		  (setcar (nthcdr 4 var)
+			  (read (match-string 2))))
+		(throw 'var-found1 nil))))))
     (setq gdb-var-changed t))
   (setq gdb-pending-triggers
    (delq 'gdb-var-update gdb-pending-triggers))
