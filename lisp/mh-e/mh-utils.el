@@ -131,7 +131,7 @@ See also variable `mh-image-load-path-called-flag'."
       ;; Images in load-path.
       (setq mh-image-load-path
 	    (file-name-directory (locate-library "mh-logo.xpm")))))
-    
+
     (if (not (file-exists-p mh-image-load-path))
         (error "Directory %s in mh-image-load-path does not exist"
                mh-image-load-path))
