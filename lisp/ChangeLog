@@ -1,3 +1,17 @@
+2006-02-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-buttons): Update properly for
+	shadow face.  Don't provide binding to edit variable when it is
+	out of scope.
+
+	* progmodes/gdb-ui.el (gdb-var-evaluate-expression-handler)
+	(gdb-var-update-handler): Detect out of scope variables with pre
+	GDB 6.4 too.
+	(gdb-post-prompt): Revert changet 2006-02-17 (force update).
+	Reset status of variable objexts to nil in update handlers.
+	(gdb-var-update-handler-1): Detect when a variable object comes
+	in scope.  setcar on var changes gdb-var-list directly.
+
 2006-02-17  Juri Linkov  <juri@jurta.org>
 
 	* ffap.el (ffap) <defface>: Add explicit face declaration.
