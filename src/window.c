@@ -2568,7 +2568,10 @@ window_min_size_1 (w, width_p)
   else
     {
       if (width_p)
-	size = window_min_width;
+	size = max (window_min_width,
+		    (MIN_SAFE_WINDOW_WIDTH
+		     + WINDOW_FRINGE_COLS (w)
+		     + WINDOW_SCROLL_BAR_COLS (w)));
       else
 	{
 	  if (MINI_WINDOW_P (w)
