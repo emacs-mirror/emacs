@@ -1,3 +1,8 @@
+2006-02-19  Ryan Yeske  <rcyeske@gmail.com>
+
+	* ffap.el (ffap-read-file-or-url): Bind `completion-ignore-case'
+	to value of `read-file-name-completion-ignore-case'.
+
 2006-02-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.el (customize-mark-as-set): Push to `user' theme.
