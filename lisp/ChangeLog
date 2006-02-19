@@ -1,9 +1,9 @@
 2006-02-19  Chong Yidong  <cyd@stupidchicken.com>
 
-	* custom.el (customize-mark-to-save): Load the symbol's
-	dependencies, so that `standard-value' will be present.
+	* custom.el (customize-mark-as-set): Push to `user' theme.
 
 	* cus-edit.el (custom-save-variables): Allow unthemed values.
+	(customize-set-variable): Push setting to `user' theme.
 
 2006-02-19  Nick Roberts  <nickrob@snap.net.nz>
 
