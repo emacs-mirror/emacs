@@ -43,14 +43,13 @@
 (eval-when-compile (require 'cl)) ; for case macro
 
 (require 'comint)
-(require 'font-lock)
 
 (defvar gdb-active-process)
 (defvar gdb-define-alist)
 (defvar gdb-macro-info)
 (defvar gdb-server-prefix)
 (defvar gdb-show-changed-values)
-(defvar gdb-var-changed)
+(defvar gdb-force-update)
 (defvar gdb-var-list)
 (defvar gdb-speedbar-auto-raise)
 (defvar tool-bar-map)
@@ -444,7 +443,7 @@ required by the caller."
 	  (p (window-point window)))
       (cond
        ((memq minor-mode '(gdbmi gdba))
-	(when (or gdb-var-changed
+	(when (or gdb-force-update
 		  (not (save-excursion
 			 (goto-char (point-min))
 			 (let ((case-fold-search t))
@@ -503,7 +502,7 @@ required by the caller."
 		     (if (and (nth 5 var) gdb-show-changed-values) 'shadow nil)
 		     depth))))
 	      (setq var-list (cdr var-list))))
-	  (setq gdb-var-changed nil)))
+	  (setq gdb-force-update nil)))
        (t (unless (and (save-excursion
 			 (goto-char (point-min))
 			 (looking-at "Current Stack:"))
