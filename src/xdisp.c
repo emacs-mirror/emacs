@@ -9052,14 +9052,15 @@ update_menu_bar (f, save_match_data)
 	  /* Redisplay the menu bar in case we changed it.  */
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
     || defined (USE_GTK)
-	  if (FRAME_WINDOW_P (f)
-#if defined (MAC_OS)
-              /* All frames on Mac OS share the same menubar.  So only the
-                 selected frame should be allowed to set it.  */
-              && f == SELECTED_FRAME ()
+	  if (FRAME_WINDOW_P (f))
+	    {
+#ifdef MAC_OS
+              /* All frames on Mac OS share the same menubar.  So only
+                 the selected frame should be allowed to set it.  */
+              if (f == SELECTED_FRAME ())
 #endif
-	     )
-	    set_frame_menubar (f, 0, 0);
+		set_frame_menubar (f, 0, 0);
+	    }
 	  else
 	    /* On a terminal screen, the menu bar is an ordinary screen
 	       line, and this makes it get updated.  */
