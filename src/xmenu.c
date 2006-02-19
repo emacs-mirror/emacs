@@ -1807,8 +1807,11 @@ digest_single_submenu (start, end, top_level_items)
 	      wv->enabled = 1;
 	      wv->button_type = BUTTON_TYPE_NONE;
 	      wv->help = Qnil;
+	      save_wv = wv;
 	    }
-	  save_wv = wv;
+	  else
+	    save_wv = first_wv;
+
 	  prev_wv = 0;
 	  i += MENU_ITEMS_PANE_LENGTH;
 	}
