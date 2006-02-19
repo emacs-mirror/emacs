@@ -150,18 +150,21 @@ It may be omitted or @code{nil}; then the command is called with no
 arguments.  This leads quickly to an error if the command requires one
 or more arguments.
 
+
 @item
 It may be a Lisp expression that is not a string; then it should be a
 form that is evaluated to get a list of arguments to pass to the
-command.
+command.  Usually this form will call various functions to read input
+from the user, most often through the minibuffer (@pxref{Minibuffer})
+or directly from the keyboard (@pxref{Reading Input}).
 @cindex argument evaluation form
 
-If this expression reads keyboard input (this includes using the
-minibuffer), keep in mind that the integer value of point or the mark
-before reading input may be incorrect after reading input.  This is
-because the current buffer may be receiving subprocess output;
-if subprocess output arrives while the command is waiting for input,
-it could relocate point and the mark.
+Providing point or the mark as an argument value is also common, but
+if you do this @emph{and} read input (whether using the minibuffer or
+not), be sure to get the integer values of point or the mark after
+reading.  The current buffer may be receiving subprocess output; if
+subprocess output arrives while the command is waiting for input, it
+could relocate point and the mark.
 
 Here's an example of what @emph{not} to do:
 
@@ -172,8 +175,8 @@ Here's an example of what @emph{not} to do:
 @end smallexample
 
 @noindent
-Here's how to avoid the problem, by examining point and the mark only
-after reading the keyboard input:
+Here's how to avoid the problem, by examining point and the mark after
+reading the keyboard input:
 
 @smallexample
 (interactive
