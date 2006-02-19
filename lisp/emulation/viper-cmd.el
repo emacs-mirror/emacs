@@ -196,6 +196,15 @@
 	    (viper-save-cursor-color 'before-insert-mode))
 	;; set insert mode cursor color
 	(viper-change-cursor-color viper-insert-state-cursor-color)))
+  (if (eq viper-current-state 'emacs-state)
+      (let ((has-saved-cursor-color-in-emacs-mode
+	     (stringp (viper-get-saved-cursor-color-in-emacs-mode))))
+	(or has-saved-cursor-color-in-emacs-mode
+	    (string= (viper-get-cursor-color) viper-emacs-state-cursor-color)
+	    ;; save current color, if not already saved
+	    (viper-save-cursor-color 'before-emacs-mode))
+	;; set emacs mode cursor color
+	(viper-change-cursor-color viper-emacs-state-cursor-color)))
 
   (if (and (memq this-command '(dabbrev-expand hippie-expand))
 	   (integerp viper-pre-command-point)
@@ -643,9 +652,12 @@
 	(indent-to-left-margin))
     (viper-add-newline-at-eob-if-necessary)
     (viper-adjust-undo)
-    (viper-change-state 'vi-state)
 
-    (viper-restore-cursor-color 'after-insert-mode)
+    (if (eq viper-current-state 'emacs-state)
+	(viper-restore-cursor-color 'after-emacs-mode)
+      (viper-restore-cursor-color 'after-insert-mode))
+
+    (viper-change-state 'vi-state)
 
     ;; Protect against user errors in hooks
     (condition-case conds
@@ -709,9 +721,17 @@
   (or (viper-overlay-p viper-replace-overlay)
       (viper-set-replace-overlay (point-min) (point-min)))
   (viper-hide-replace-overlay)
+
+  (let ((has-saved-cursor-color-in-emacs-mode
+	 (stringp (viper-get-saved-cursor-color-in-emacs-mode))))
+    (or has-saved-cursor-color-in-emacs-mode
+	(string= (viper-get-cursor-color) viper-emacs-state-cursor-color)
+	(viper-save-cursor-color 'before-emacs-mode))
+    (viper-change-cursor-color viper-emacs-state-cursor-color))
+
   (viper-change-state 'emacs-state)
 
-  ;; Protect agains user errors in hooks
+  ;; Protect against user errors in hooks
   (condition-case conds
       (run-hooks 'viper-emacs-state-hook)
     (error
@@ -820,12 +840,12 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 		 ;; The next cmd  and viper-set-unread-command-events
 		 ;; are intended to prevent the input method
 		 ;; from swallowing ^M, ^Q and other special characters
-		 (setq ch (read-char))
+		 (setq ch (read-char-exclusive))
 		 ;; replace ^M with the newline
 		 (if (eq ch ?\C-m) (setq ch ?\n))
 		 ;; Make sure ^V and ^Q work as quotation chars
 		 (if (memq ch '(?\C-v ?\C-q))
-		     (setq ch (read-char)))
+		     (setq ch (read-char-exclusive)))
 		 (viper-set-unread-command-events ch)
 		 (quail-input-method nil)
 
@@ -842,12 +862,12 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 	       ;; same as above but for XEmacs, which doesn't have
 	       ;; quail-input-method
 	       (let (unread-command-events)
-		 (setq ch (read-char))
+		 (setq ch (read-char-exclusive))
 		 ;; replace ^M with the newline
 		 (if (eq ch ?\C-m) (setq ch ?\n))
 		 ;; Make sure ^V and ^Q work as quotation chars
 		 (if (memq ch '(?\C-v ?\C-q))
-		     (setq ch (read-char)))
+		     (setq ch (read-char-exclusive)))
 		 (viper-set-unread-command-events ch)
 		 (quail-start-translation nil)
 
@@ -867,12 +887,12 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 		   (setq ch (aref (read-key-sequence nil) 0)))
 	       (insert ch))
 	      (t
-	       (setq ch (read-char))
+	       (setq ch (read-char-exclusive))
 	       ;; replace ^M with the newline
 	       (if (eq ch ?\C-m) (setq ch ?\n))
 	       ;; Make sure ^V and ^Q work as quotation chars
 	       (if (memq ch '(?\C-v ?\C-q))
-		   (setq ch (read-char)))
+		   (setq ch (read-char-exclusive)))
 	       (insert ch))
 	      )
 	(setq last-command-event
@@ -2131,7 +2151,7 @@ To turn this feature off, set this variable to nil."
 Remove this function from `viper-minibuffer-exit-hook', if this causes
 problems."
   (if (viper-is-in-minibuffer)
-      (progn
+      (let ((inhibit-field-text-motion t))
 	(goto-char (viper-minibuffer-real-start))
 	(end-of-line)
 	(delete-region (point) (point-max)))))

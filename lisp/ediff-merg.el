@@ -26,7 +26,6 @@
 
 ;;; Code:
 
-(provide 'ediff-merg)
 
 ;; compiler pacifier
 (defvar ediff-window-A)
@@ -388,6 +387,9 @@ Combining is done according to the specifications in variable
 	     (string= state-of-merge "prefer-B")
 	     (not (string= reg-B reg-C)))
 	)))
+
+
+(provide 'ediff-merg)
 
 
 ;;; Local Variables:

@@ -1,3 +1,53 @@
+2006-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper-cmd.el (viper-insert-state-post-command-sentinel,
+	viper-change-state-to-vi, viper-change-state-to-emacs): 
+	made aware of cursor coloring in the emacs state.
+	(viper-special-read-and-insert-char): use read-char-exclusive.
+	(viper-minibuffer-trim-tail): workaround for fields in minibuffer.
+	
+	* viper-init.el (viper-emacs-state-cursor-color): new variable.
+	
+	* viper-util.el (viper-save-cursor-color,
+	viper-get-saved-cursor-color-in-replace-mode,
+	viper-get-saved-cursor-color-in-insert-mode,
+	viper-restore-cursor-color): make aware of the cursor color in emacs
+	state.
+	(viper-get-saved-cursor-color-in-emacs-mode): new function.
+	
+	* ediff-diff.el (ediff-ignore-case, ediff-ignore-case-option,
+	ediff-ignore-case-option3, ediff-actual-diff-options,
+	ediff-actual-diff3-options): new variables to control case sensitivity.
+	(ediff-make-diff2-buffer, ediff-setup-fine-diff-regions,
+	ediff-setup-diff-regions3): made aware of case-sensitivity.
+	(ediff-toggle-ignore-case): new function.
+	(ediff-extract-diffs, ediff-extract-diffs3): preserve point in buffers.
+	
+	* ediff-help.el (ediff-long-help-message-narrow2,
+	ediff-long-help-message-compare2, ediff-long-help-message-compare3,
+	ediff-long-help-message-word-mode): add ignore-case command.
+	(ediff-help-for-quick-help): add ignore-case command.
+	
+	* ediff-merg.el: move provide to the end.
+	
+	* ediff-ptch.el: move provide to the end.
+	
+	* ediff-wind.el: move provide to the end.
+	
+	* ediff-mult.el: move provide to the end.
+	(ediff-set-meta-overlay): enable follow-link.
+	
+	* ediff.el: move provide to the end.
+	Break recursive load cycle in eval-when-compile.
+	(ediff-patch-buffer): better heuristics.
+	
+	* ediff-util.el: move provide to the end.
+	Break recursive load cycle in eval-when-compile.
+	(ediff-setup-keymap): add binding for #c. Replaced some defsubsts with
+	defuns.
+	(ediff-submit-report): pass the values of ediff-diff3-program,
+	ediff-diff3-options.
+	
 2006-02-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-fns.el (help-do-arg-highlight): Recognize also ARG- followed by

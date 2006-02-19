@@ -1870,6 +1870,10 @@ application.
 @vindex @code{viper-insert-state-cursor-color}
 If set to a valid color, this will be the cursor color when Viper is in
 insert state.
+@item viper-emacs-state-cursor-color nil
+@vindex @code{viper-emacs-state-cursor-color}
+If set to a valid color, this will be the cursor color when Viper is in
+emacs state.
 @item viper-replace-region-end-delimiter "$"
 A string used to mark the end of replacement regions.  It is used only on
 TTYs or if @code{viper-use-replace-region-delimiters} is non-@code{nil}.

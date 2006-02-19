@@ -26,7 +26,6 @@
 
 ;;; Code:
 
-(provide 'ediff-diff)
 
 ;; compiler pacifier
 (defvar ediff-default-variant)
@@ -129,12 +128,32 @@ are `-I REGEXP', to ignore changes whose lines match the REGEXP."
 
 (defcustom ediff-diff-options ""
   "*Options to pass to `ediff-diff-program'.
-If Unix diff is used as `ediff-diff-program', then the most useful options are
+If Unix diff is used as `ediff-diff-program', then a useful option is
 `-w', to ignore space, and `-i', to ignore case of letters.
-At present, the option `-c' is not allowed."
+Options `-c' and `-i' are not allowed. Case sensitivity can be toggled
+interactively using [ediff-toggle-ignore-case]"
   :set 'ediff-reset-diff-options
   :type 'string
   :group 'ediff-diff)
+
+(ediff-defvar-local ediff-ignore-case nil
+  "*If t, skip over difference regions that differ only in letter case.
+This variable can be set either in .emacs or toggled interactively.
+Use `setq-default' if setting it in .emacs")
+
+(defcustom ediff-ignore-case-option "-i"
+  "*Option that causes the diff program to ignore case of letters."
+  :type 'string
+  :group 'ediff-diff)
+
+(defcustom ediff-ignore-case-option3 ""
+  "*Option that causes the diff3 program to ignore case of letters.
+GNU diff3 doesn't have such an option."
+  :type 'string
+  :group 'ediff-diff)
+
+;; the actual options used in comparison
+(ediff-defvar-local ediff-actual-diff-options "" "")
 
 (defcustom ediff-custom-diff-program ediff-diff-program
   "*Program to use for generating custom diff output for saving it in a file.
@@ -155,6 +174,10 @@ This output is not used by Ediff internally."
   :set 'ediff-reset-diff-options
   :type 'string
   :group 'ediff-diff)
+
+;; the actual options used in comparison
+(ediff-defvar-local ediff-actual-diff3-options "" "")
+
 (defcustom ediff-diff3-ok-lines-regexp
   "^\\([1-3]:\\|====\\|  \\|.*Warning *:\\|.*No newline\\|.*missing newline\\|^\C-m$\\)"
   "*Regexp that matches normal output lines from `ediff-diff3-program'.
@@ -182,7 +205,7 @@ Use `setq-default' if setting it in .emacs")
 This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
-(ediff-defvar-local ediff-auto-refine-limit 1400
+(ediff-defvar-local ediff-auto-refine-limit 14000
   "*Auto-refine only the regions of this size \(in bytes\) or less.")
 
 ;;; General
@@ -227,9 +250,9 @@ one optional arguments, diff-number to refine.")
 ;; ediff-setup-diff-regions-function, which can also have the value
 ;; ediff-setup-diff-regions3, which takes 4 arguments.
 (defun ediff-setup-diff-regions (file-A file-B file-C)
-  ;; looking either for '-c' or a 'c' in a set of clustered non-long options
-  (if (string-match "^-c\\| -c\\|-[^- ]+c" ediff-diff-options)
-      (error "Option `-c' is not allowed in `ediff-diff-options'"))
+  ;; looking for '-c', '-i', or a 'c', 'i' among clustered non-long options
+  (if (string-match "^-[ci]\\| -[ci]\\|-[^- ]+[ci]" ediff-diff-options)
+      (error "Options `-c' and `-i' are not allowed in `ediff-diff-options'"))
 
   ;; create, if it doesn't exist
   (or (ediff-buffer-live-p ediff-diff-buffer)
@@ -266,7 +289,7 @@ one optional arguments, diff-number to refine.")
 	     (ediff-exec-process ediff-diff-program
 				 diff-buffer
 				 'synchronize
-				 ediff-diff-options file1 file2)
+				 ediff-actual-diff-options file1 file2)
 	     (message "")
 	     (ediff-with-current-buffer diff-buffer
 	       (buffer-size))))))
@@ -284,7 +307,9 @@ one optional arguments, diff-number to refine.")
   (let (diff3-job diff-program diff-options ok-regexp diff-list)
     (setq diff3-job ediff-3way-job
 	  diff-program (if diff3-job ediff-diff3-program ediff-diff-program)
-	  diff-options (if diff3-job ediff-diff3-options ediff-diff-options)
+	  diff-options (if diff3-job
+			   ediff-actual-diff3-options
+			 ediff-actual-diff-options)
 	  ok-regexp (if diff3-job
 			ediff-diff3-ok-lines-regexp
 			ediff-diff-ok-lines-regexp))
@@ -366,11 +391,14 @@ one optional arguments, diff-number to refine.")
 	(B-buffer ediff-buffer-B)
 	(C-buffer ediff-buffer-C)
 	(a-prev 1) ; this is needed to set the first diff line correctly
+	(a-prev-pt nil)
 	(b-prev 1)
+	(b-prev-pt nil)
 	(c-prev 1)
+	(c-prev-pt nil)
 	diff-list shift-A shift-B
 	)
-
+    
     ;; diff list contains word numbers, unless changed later
     (setq diff-list (cons (if word-mode 'words 'points)
 			  diff-list))
@@ -382,7 +410,7 @@ one optional arguments, diff-number to refine.")
 	      shift-B
 	      (ediff-overlay-start
 	       (ediff-get-value-according-to-buffer-type 'B bounds))))
-
+    
     ;; reset point in buffers A/B/C
     (ediff-with-current-buffer A-buffer
       (goto-char (if shift-A shift-A (point-min))))
@@ -466,11 +494,13 @@ one optional arguments, diff-number to refine.")
 	       ;; we must disable and then restore longlines-mode
 	       (if (eq longlines-mode-val 1)
 		   (longlines-mode 0))
+	       (goto-char (or a-prev-pt shift-A (point-min)))
 	       (forward-line (- a-begin a-prev))
 	       (setq a-begin-pt (point))
 	       (forward-line (- a-end a-begin))
 	       (setq a-end-pt (point)
-		     a-prev a-end)
+		     a-prev a-end
+		     a-prev-pt a-end-pt)
 	       (if (eq longlines-mode-val 1)
 		   (longlines-mode longlines-mode-val))
 	       ))
@@ -479,11 +509,13 @@ one optional arguments, diff-number to refine.")
 		    (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
 	       (if (eq longlines-mode-val 1)
 		   (longlines-mode 0))
+	       (goto-char (or b-prev-pt shift-B (point-min)))
 	       (forward-line (- b-begin b-prev))
 	       (setq b-begin-pt (point))
 	       (forward-line (- b-end b-begin))
 	       (setq b-end-pt (point)
-		     b-prev b-end)
+		     b-prev b-end
+		     b-prev-pt b-end-pt)
 	       (if (eq longlines-mode-val 1)
 		   (longlines-mode longlines-mode-val))
 	       ))
@@ -493,11 +525,13 @@ one optional arguments, diff-number to refine.")
 			(if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
 		   (if (eq longlines-mode-val 1)
 		       (longlines-mode 0))
+		   (goto-char (or c-prev-pt (point-min)))
 		   (forward-line (- c-begin c-prev))
 		   (setq c-begin-pt (point))
 		   (forward-line (- c-end c-begin))
 		   (setq c-end-pt (point)
-			 c-prev c-end)
+			 c-prev c-end
+			 c-prev-pt c-end-pt)
 		   (if (eq longlines-mode-val 1)
 		       (longlines-mode longlines-mode-val))
 		 )))
@@ -987,8 +1021,11 @@ delimiter regions"))
 	(C-buffer ediff-buffer-C)
 	(anc-buffer ediff-ancestor-buffer)
 	(a-prev 1) ; needed to set the first diff line correctly
+	(a-prev-pt nil)
 	(b-prev 1)
+	(b-prev-pt nil)
 	(c-prev 1)
+	(c-prev-pt nil)
 	(anc-prev 1)
 	diff-list shift-A shift-B shift-C
 	)
@@ -1089,11 +1126,13 @@ delimiter regions"))
 		     ;; we must disable and then restore longlines-mode
 		     (if (eq longlines-mode-val 1)
 			 (longlines-mode 0))
+		     (goto-char (or a-prev-pt shift-A (point-min)))
 		     (forward-line (- a-begin a-prev))
 		     (setq a-begin-pt (point))
 		     (forward-line (- a-end a-begin))
 		     (setq a-end-pt (point)
-			   a-prev a-end)
+			   a-prev a-end
+			   a-prev-pt a-end-pt)
 		     (if (eq longlines-mode-val 1)
 			 (longlines-mode longlines-mode-val))
 		     ))
@@ -1102,11 +1141,13 @@ delimiter regions"))
 			  (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
 		     (if (eq longlines-mode-val 1)
 			 (longlines-mode 0))
+		     (goto-char (or b-prev-pt shift-B (point-min)))
 		     (forward-line (- b-begin b-prev))
 		     (setq b-begin-pt (point))
 		     (forward-line (- b-end b-begin))
 		     (setq b-end-pt (point)
-			   b-prev b-end)
+			   b-prev b-end
+			   b-prev-pt b-end-pt)
 		     (if (eq longlines-mode-val 1)
 			 (longlines-mode longlines-mode-val))
 		     ))
@@ -1115,11 +1156,13 @@ delimiter regions"))
 			  (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
 		     (if (eq longlines-mode-val 1)
 			 (longlines-mode 0))
+		     (goto-char (or c-prev-pt shift-C (point-min)))
 		     (forward-line (- c-begin c-prev))
 		     (setq c-begin-pt (point))
 		     (forward-line (- c-end c-begin))
 		     (setq c-end-pt (point)
-			   c-prev c-end)
+			   c-prev c-end
+			   c-prev-pt c-end-pt)
 		     (if (eq longlines-mode-val 1)
 			 (longlines-mode longlines-mode-val))
 		     ))
@@ -1171,13 +1214,17 @@ delimiter regions"))
 ;; File-C is either the third file to compare (in case of 3-way comparison)
 ;; or it is the ancestor file.
 (defun ediff-setup-diff-regions3 (file-A file-B file-C)
+  ;; looking for '-i' or a 'i' among clustered non-long options
+  (if (string-match "^-i\\| -i\\|-[^- ]+i" ediff-diff-options)
+      (error "Option `-i' is not allowed in `ediff-diff3-options'"))
+
   (or (ediff-buffer-live-p ediff-diff-buffer)
       (setq ediff-diff-buffer
 	    (get-buffer-create (ediff-unique-buffer-name "*ediff-diff" "*"))))
 
   (message "Computing differences ...")
   (ediff-exec-process ediff-diff3-program ediff-diff-buffer 'synchronize
-		      ediff-diff3-options file-A file-B file-C)
+		      ediff-actual-diff3-options file-A file-B file-C)
 
   (ediff-prepare-error-list ediff-diff3-ok-lines-regexp ediff-diff-buffer)
   ;;(message "Computing differences ... done")
@@ -1470,6 +1517,35 @@ affects only files whose names match the expression."
 	  (setq result (cons elt result)))
       (setq file-list-list (cdr file-list-list)))
     (reverse result)))
+
+;; Ignore case handling - some ideas from drew.adams@@oracle.com
+(defun ediff-toggle-ignore-case ()
+  (interactive)
+  (ediff-barf-if-not-control-buffer)
+  (setq ediff-ignore-case (not ediff-ignore-case))
+  (cond (ediff-ignore-case
+	 (setq ediff-actual-diff-options 
+	       (concat ediff-diff-options " " ediff-ignore-case-option)
+	       ediff-actual-diff3-options
+	       (concat ediff-diff3-options " " ediff-ignore-case-option3))
+	 (message "Ignoring regions that differ only in case"))
+	(t
+	 (setq ediff-actual-diff-options ediff-diff-options
+	       ediff-actual-diff3-options ediff-diff3-options)
+	 (message "Ignoring case differences turned OFF")))
+  (cond (ediff-merge-job
+	 (message "Ignoring letter case is too dangerous in merge jobs"))
+	((and ediff-diff3-job (string= ediff-ignore-case-option3 ""))
+	 (message "Ignoring letter case is not supported by this diff3 program"))
+	((and (not ediff-3way-job) (string= ediff-ignore-case-option ""))
+	 (message "Ignoring letter case is not supported by this diff program"))
+	(t
+	 (sit-for 1)
+	 (ediff-update-diffs)))
+  )
+
+
+(provide 'ediff-diff)
 
 
 ;;; Local Variables:
