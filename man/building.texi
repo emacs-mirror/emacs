@@ -1278,7 +1278,8 @@ buffer in Lisp Interaction mode.
 is to use Inferior Emacs-Lisp mode, which provides an interface rather
 like Shell mode (@pxref{Shell Mode}) for evaluating Emacs Lisp
 expressions.  Type @kbd{M-x ielm} to create an @samp{*ielm*} buffer
-which uses this mode.
+which uses this mode.  For more information see that command's
+documentation.
 
 @node External Lisp
 @section Running an External Lisp
