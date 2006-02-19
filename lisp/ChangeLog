@@ -1,3 +1,7 @@
+2006-02-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-save-variables): Allow unthemed values.
+
 2006-02-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el: Don't require font-lock as it's now

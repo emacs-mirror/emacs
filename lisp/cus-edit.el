@@ -4166,7 +4166,9 @@ This function does not save the buffer."
       (mapatoms
        (lambda (symbol)
 	 (if (and (get symbol 'saved-value)
-		  (eq 'user (car (car-safe (get symbol 'theme-value)))))
+		  ;; ignore theme values
+		  (or (null (get symbol 'theme-value))
+		      (eq 'user (caar (get symbol 'theme-value)))))
 	     (nconc saved-list (list symbol)))))
       (setq saved-list (sort (cdr saved-list) 'string<))
       (unless (bolp)
