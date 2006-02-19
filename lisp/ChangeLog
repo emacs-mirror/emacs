@@ -1,5 +1,8 @@
 2006-02-19  Chong Yidong  <cyd@stupidchicken.com>
 
+	* custom.el (customize-mark-to-save): Load the symbol's
+	dependencies, so that `standard-value' will be present.
+
 	* cus-edit.el (custom-save-variables): Allow unthemed values.
 
 2006-02-19  Nick Roberts  <nickrob@snap.net.nz>

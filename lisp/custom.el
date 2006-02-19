@@ -653,6 +653,7 @@ default value.  Otherwise, set it to nil.
 To actually save the value, call `custom-save-all'.
 
 Return non-nil iff the `saved-value' property actually changed."
+  (custom-load-symbol symbol)
   (let* ((get (or (get symbol 'custom-get) 'default-value))
 	 (value (funcall get symbol))
 	 (saved (get symbol 'saved-value))
