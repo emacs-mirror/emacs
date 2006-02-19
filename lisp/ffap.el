@@ -1255,7 +1255,8 @@ which may actually result in an url rather than a filename."
 		    (abbreviate-file-name (expand-file-name guess))
 		    ))
 	  (setq dir (file-name-directory guess))))
-    (let ((minibuffer-completing-file-name t))
+    (let ((minibuffer-completing-file-name t)
+	  (completion-ignore-case read-file-name-completion-ignore-case))
       (setq guess
 	    (completing-read
 	     prompt
