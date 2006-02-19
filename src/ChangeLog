@@ -1,3 +1,23 @@
+2006-02-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (update_menu_bar) [MAC_OS]: Don't set
+	w->update_mode_line if arg F is not the selected frame.
+
+	* macmenu.c (popup_activated_flag, submenu_id)
+	(next_menubar_widget_id): Remove variables.
+	(initialize_frame_menubar): Remove function.
+	(pop_down_menu, mac_menu_show): Simplify save value.
+	(dispose_menus): New function.
+	(pop_down_menu, fill_menubar): Use it.
+	(fill_submenu): Remove function.  All uses changed to fill_menu.
+	(add_menu_item): Remove args SUBMENU and FORCE_DISABLE.  New arg
+	POS.  Don't call SetMenuItemHierarchicalID here.
+	(fill_menu): Add arg SUBMENU_ID.  Return submenu_id that is to be
+	used next.  Call SetMenuItemHierarchicalID here.
+	(fill_menubar): Add arg DEEP_P.  All uses changed.  Clean up menu
+	objects if needed.  Reuse existing menu bar titles if possible.
+	(set_frame_menubar): Don't clean up menu objects here.
+
 2006-02-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.c (window_min_size_1): Ensure room for the scroll bar and
