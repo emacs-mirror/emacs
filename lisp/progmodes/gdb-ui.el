@@ -109,7 +109,8 @@
  "List of variables in watch window.
 Each element has the form (EXPRESSION VARNUM NUMCHILD TYPE VALUE STATUS) where
 STATUS is nil (unchanged), `changed' or `out-of-scope'.")
-(defvar gdb-var-changed t "Non-nil means that `gdb-var-list' has changed.")
+(defvar gdb-force-update t
+ "Non-nil means that view of watch expressions will be updated in the speedbar.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-server-prefix nil)
@@ -455,8 +456,7 @@ With arg, use separate IO iff arg is positive."
 	gdb-current-language nil
 	gdb-frame-number nil
 	gdb-var-list nil
-	;; Set initially to t to force update.
-	gdb-var-changed t
+	gdb-force-update t
 	gdb-first-post-prompt t
 	gdb-prompting nil
 	gdb-input-queue nil
@@ -610,8 +610,7 @@ With arg, automatically raise speedbar iff arg is positive."
 		      (nth 1 var) "\"\n")
 	    (concat "-var-evaluate-expression " (nth 1 var) "\n"))
 	  `(lambda () (gdb-var-evaluate-expression-handler
-		       ,(nth 1 var) nil))))
-	(setq gdb-var-changed t))
+		       ,(nth 1 var) nil)))))
     (if (search-forward "Undefined command" nil t)
 	(message-box "Watching expressions requires gdb 6.0 onwards")
       (message "No symbol \"%s\" in current context." expr))))
@@ -620,16 +619,11 @@ With arg, automatically raise speedbar iff arg is positive."
   (goto-char (point-min))
   (re-search-forward ".*value=\\(\".*\"\\)" nil t)
   (catch 'var-found
-    (let ((num 0))
-      (dolist (var gdb-var-list)
-	(if (string-equal varnum (cadr var))
-	    (progn
-	      (if changed (setcar (nthcdr 5 var) 'changed))
-	      (setcar (nthcdr 4 var) (read (match-string 1)))
-	      (setcar (nthcdr num gdb-var-list) var)
-	      (throw 'var-found nil)))
-	(setq num (+ num 1)))))
-  (setq gdb-var-changed t))
+    (dolist (var gdb-var-list)
+      (when (string-equal varnum (cadr var))
+	(if changed (setcar (nthcdr 5 var) 'changed))
+	(setcar (nthcdr 4 var) (read (match-string 1)))
+	(throw 'var-found nil)))))
 
 (defun gdb-var-list-children (varnum)
   (gdb-enqueue-input
@@ -678,12 +672,7 @@ type=\"\\(.*?\\)\"")
 (defconst gdb-var-update-regexp "name=\"\\(.*?\\)\",in_scope=\"\\(.*?\\)\"")
 
 (defun gdb-var-update-handler ()
-  (goto-char (point-min))
   (dolist (var gdb-var-list)
-    (when (and (eq (car (nthcdr 5 var)) 'out-of-scope)
-	       (not (re-search-forward gdb-var-update-regexp-1 nil t))
-	       (not gdb-var-changed))
-      (setq gdb-var-changed t))
     (setcar (nthcdr 5 var) nil))
   (goto-char (point-min))
   (while (re-search-forward gdb-var-update-regexp nil t)
@@ -691,8 +680,8 @@ type=\"\\(.*?\\)\"")
       (if  (string-equal (match-string 2) "false")
 	  (catch 'var-found
 	    (dolist (var gdb-var-list)
-	      (if (string-equal varnum (cadr var))
-		  (setcar (nthcdr 5 var) 'out-of-scope)
+	      (when (string-equal varnum (cadr var))
+		(setcar (nthcdr 5 var) 'out-of-scope)
 		(throw 'var-found nil))))
 	(gdb-enqueue-input
 	 (list
@@ -734,8 +723,7 @@ type=\"\\(.*?\\)\"")
 	    (setq gdb-var-list (delq var gdb-var-list))
 	    (dolist (varchild gdb-var-list)
 	      (if (string-match (concat (nth 1 var) "\\.") (nth 1 varchild))
-		  (setq gdb-var-list (delq varchild gdb-var-list))))
-	    (setq gdb-var-changed t))))))
+		  (setq gdb-var-list (delq varchild gdb-var-list)))))))))
 
 (defun gdb-edit-value (text token indent)
   "Assign a value to a variable displayed in the speedbar."
@@ -773,7 +761,6 @@ INDENT is the current indentation depth."
 	 (dolist (var gdb-var-list)
 	   (if (string-match (concat token "\\.") (nth 1 var))
 	       (setq gdb-var-list (delq var gdb-var-list))))
-	 (setq gdb-var-changed t)
 	 (with-current-buffer gud-comint-buffer
 	   (speedbar-timer-fn)))))
 
@@ -1227,7 +1214,7 @@ happens to be appropriate."
       ;; FIXME: with GDB-6 on Darwin, this might very well work.
       ;; Only needed/used with speedbar/watch expressions.
       (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-	(setq gdb-var-changed t)    ; force update
+	(setq gdb-force-update t)
 	(if (string-equal gdb-version "pre-6.4")
 	    (gdb-var-update)
 	  (gdb-var-update-1)))))
@@ -2638,6 +2625,8 @@ Kills the gdb buffers and resets the source buffers."
     (setq gdb-overlay-arrow-position nil))
   (setq overlay-arrow-variable-list
 	(delq 'gdb-overlay-arrow-position overlay-arrow-variable-list))
+  (if (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
+      (speedbar-refresh))
   (setq gud-running nil)
   (setq gdb-active-process nil)
   (setq gdb-var-list nil)
@@ -3034,7 +3023,6 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
 			(throw 'child-already-watched nil)))
 		  (push varchild var-list))))
 	  (push var var-list)))
-      (setq gdb-var-changed t)
       (setq gdb-var-list (nreverse var-list)))))
 
 ; Uses "-var-update --all-values".  Needs GDB 6.4 onwards.
@@ -3053,27 +3041,20 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
   "name=\"\\(.*?\\)\",\\(?:value=\\(\".*?\"\\),\\)?in_scope=\"\\(.*?\\)\"")
 
 (defun gdb-var-update-handler-1 ()
-  (goto-char (point-min))
   (dolist (var gdb-var-list)
-    (when (and (eq (car (nthcdr 5 var)) 'out-of-scope)
-	       (not (re-search-forward gdb-var-update-regexp-1 nil t))
-	       (not gdb-var-changed))
-      (setq gdb-var-changed t))
     (setcar (nthcdr 5 var) nil))
   (goto-char (point-min))
   (while (re-search-forward gdb-var-update-regexp-1 nil t)
     (let ((varnum (match-string 1)))
-      (catch 'var-found1
+      (catch 'var-found
 	(dolist (var gdb-var-list)
-	  (if (string-equal varnum (cadr var))
-	      (progn
-		(if (string-equal (match-string 3) "false")
-		    (setcar (nthcdr 5 var) 'out-of-scope)
-		  (setcar (nthcdr 5 var) 'changed)
-		  (setcar (nthcdr 4 var)
-			  (read (match-string 2))))
-		(throw 'var-found1 nil))))))
-    (setq gdb-var-changed t))
+	  (when (string-equal varnum (cadr var))
+	    (if (string-equal (match-string 3) "false")
+		(setcar (nthcdr 5 var) 'out-of-scope)
+	      (setcar (nthcdr 5 var) 'changed)
+	      (setcar (nthcdr 4 var)
+		      (read (match-string 2))))
+	    (throw 'var-found nil))))))
   (setq gdb-pending-triggers
    (delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
