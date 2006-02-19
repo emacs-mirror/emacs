@@ -1,3 +1,20 @@
+2006-02-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el: Don't require font-lock as it's now
+	automatically loaded.
+	(gud-speedbar-buttons): Replace gdb-var-changed with
+	gdb-force-update.
+
+	* progmodes/gdb-ui.el (gdb-force-update): Rename from
+	gdb-var-changed.
+	(gdb-post-prompt): Use it.
+	(gdb-var-create-handler, gdb-var-evaluate-expression-handler)
+	(gdb-var-update-handler, gdb-var-delete)
+	(gdb-speedbar-expand-node, gdb-var-list-children-handler-1)
+	(gdb-var-update-handler-1): Don't set gdb-var-changed, just set
+	gdb-force-update in gdb-post-prompt.
+	(gdb-reset): Clear watch expressions from speedbar when quitting.
+
 2006-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
 	* viper-cmd.el (viper-insert-state-post-command-sentinel,
