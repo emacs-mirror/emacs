@@ -121,7 +121,7 @@ request.")
          (let ((buf (generate-new-buffer " *url-http-temp*")))
            ;; `url-open-stream' needs a buffer in which to do things
            ;; like authentication.  But we use another buffer afterwards.
-           (unwind-protect (url-open-stream host nil host port)
+           (unwind-protect (url-open-stream host buf host port)
              (kill-buffer buf)))))))
 
 ;; Building an HTTP request
