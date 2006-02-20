@@ -4993,6 +4993,8 @@ init_buffer_once ()
   buffer_defaults.vertical_scroll_bar_type = Qt;
   buffer_defaults.indicate_empty_lines = Qnil;
   buffer_defaults.indicate_buffer_boundaries = Qnil;
+  buffer_defaults.fringe_indicator_alist = Qnil;
+  buffer_defaults.fringe_cursor_alist = Qnil;
   buffer_defaults.scroll_up_aggressively = Qnil;
   buffer_defaults.scroll_down_aggressively = Qnil;
   buffer_defaults.display_time = Qnil;
@@ -5064,6 +5066,8 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.vertical_scroll_bar_type, idx); ++idx;
   XSETFASTINT (buffer_local_flags.indicate_empty_lines, idx); ++idx;
   XSETFASTINT (buffer_local_flags.indicate_buffer_boundaries, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.fringe_indicator_alist, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.fringe_cursor_alist, idx); ++idx;
   XSETFASTINT (buffer_local_flags.scroll_up_aggressively, idx); ++idx;
   XSETFASTINT (buffer_local_flags.scroll_down_aggressively, idx); ++idx;
   XSETFASTINT (buffer_local_flags.header_line_format, idx); ++idx;
@@ -5356,6 +5360,16 @@ This is the same as (default-value 'indicate-empty-lines).  */);
 		     &buffer_defaults.indicate_buffer_boundaries,
 		     doc: /* Default value of `indicate-buffer-boundaries' for buffers that don't override it.
 This is the same as (default-value 'indicate-buffer-boundaries).  */);
+
+  DEFVAR_LISP_NOPRO ("default-fringe-indicator-alist",
+		     &buffer_defaults.fringe_indicator_alist,
+		     doc: /* Default value of `fringe-indicator-alist' for buffers that don't override it.
+This is the same as (default-value 'fringe-indicator-alist').  */);
+
+  DEFVAR_LISP_NOPRO ("default-fringe-cursor-alist",
+		     &buffer_defaults.fringe_cursor_alist,
+		     doc: /* Default value of `fringe-cursor-alist' for buffers that don't override it.
+This is the same as (default-value 'fringe-cursor-alist').  */);
 
   DEFVAR_LISP_NOPRO ("default-scroll-up-aggressively",
 		     &buffer_defaults.scroll_up_aggressively,
@@ -5701,6 +5715,40 @@ For example, ((top . left) (t . right)) places the top angle bitmap in
 left fringe, the bottom angle bitmap in right fringe, and both arrow
 bitmaps in right fringe.  To show just the angle bitmaps in the left
 fringe, but no arrow bitmaps, use ((top .  left) (bottom . left)).  */);
+
+  DEFVAR_PER_BUFFER ("fringe-indicator-alist",
+		     &current_buffer->fringe_indicator_alist, Qnil,
+		     doc: /* *Mapping from logical to physical fringe indicator bitmaps.
+The value is an alist where each element (INDICATOR . BITMAPS)
+specifies the fringe bitmaps used to display a specific logical
+fringe indicator.
+
+INDICATOR specifies the logical indicator type which is one of the
+following symbols: `truncation' , `continuation', `overlay-arrow',
+`top', `bottom', `up', `down', `one-line', `empty-line', or `unknown'.
+
+BITMAPS is list of symbols (LEFT RIGHT [LEFT1 RIGHT1]) which specifies
+the actual bitmap shown in the left or right fringe for the logical
+indicator.  LEFT and RIGHT are the bitmaps shown in the left and/or
+right fringe for the specific indicator.  The LEFT1 or RIGHT1 bitmaps
+are used only for the `bottom' and `one-line' indicators when the last
+(only) line in has no final newline.  BITMAPS may also be a single
+symbol which is used in both left and right fringes.  */);
+
+  DEFVAR_PER_BUFFER ("fringe-cursor-alist",
+		     &current_buffer->fringe_cursor_alist, Qnil,
+		     doc: /* *Mapping from logical to physical fringe cursor bitmaps.
+The value is an alist where each element (CURSOR . BITMAP)
+specifies the fringe bitmaps used to display a specific logical
+cursor type in the fringe.
+
+CURSOR specifies the logical cursor type which is one of the following
+symbols: `box' , `hollow', `bar', `hbar', or `hollow-small'.  The last
+one is used to show a hollow cursor on narrow lines display lines
+where the normal hollow cursor will not fit.
+
+BITMAP is the corresponding fringe bitmap shown for the logical
+cursor type.  */);
 
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
 		     &current_buffer->scroll_up_aggressively, Qnil,
