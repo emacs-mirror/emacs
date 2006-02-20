@@ -33,6 +33,10 @@ typedef void *POINTER;
 
 #include "mem-limits.h"
 
+#ifdef HAVE_GETRLIMIT
+#include <sys/resource.h>
+#endif
+
 /*
   Level number of warnings already issued.
   0 -- no warnings issued.
@@ -61,6 +65,19 @@ check_memory_limits ()
   unsigned long five_percent;
   unsigned long data_size;
 
+#ifdef HAVE_GETRLIMIT
+  struct rlimit {
+    rlim_t rlim_cur;
+    rlim_t rlim_max;
+  } rlimit;
+
+  getrlimit (RLIMIT_DATA, &rlimit);
+
+  five_percent = rlimit.rlim_max / 20;
+  data_size = rlimit.rlim_cur;
+
+#else /* not HAVE_GETRLIMIT */
+
   if (lim_data == 0)
     get_lim_data ();
   five_percent = lim_data / 20;
@@ -73,6 +90,8 @@ check_memory_limits ()
 #endif
   cp = (char *) (*__morecore) (0);
   data_size = (char *) cp - (char *) data_space_start;
+
+#endif /* not HAVE_GETRLIMIT */
 
   if (warn_function)
     switch (warnlevel)
