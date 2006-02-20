@@ -455,17 +455,22 @@ required by the caller."
 	  (let ((var-list gdb-var-list) parent)
 	    (while var-list
 	      (let* (char (depth 0) (start 0) (var (car var-list))
-			  (varnum (nth 1 var)) (status (nth 5 var)))
+			  (expr (car var)) (varnum (nth 1 var))
+			  (type (nth 3 var)) (status (nth 5 var)))
+		(put-text-property
+		 0 (length expr) 'face font-lock-variable-name-face expr)
+		(put-text-property
+		 0 (length type) 'face font-lock-type-face type)
 		(while (string-match "\\." varnum start)
 		  (setq depth (1+ depth)
 			start (1+ (match-beginning 0))))
 		(if (eq depth 0) (setq parent nil))
 		(if (or (equal (nth 2 var) "0")
 			(and (equal (nth 2 var) "1")
-			     (string-match "char \\*$" (nth 3 var))))
+			     (string-match "char \\*$" type)))
 		    (speedbar-make-tag-line
 		     'bracket ?? nil nil
-		     (concat (car var) "\t" (nth 4 var))
+		     (concat expr "\t" (nth 4 var))
 		     (if (or parent (eq status 'out-of-scope))
 			 nil 'gdb-edit-value)
 		     nil
@@ -473,33 +478,34 @@ required by the caller."
 			 (or parent (case status
 				      (changed 'font-lock-warning-face)
 				      (out-of-scope 'shadow)
-				      (nil nil)))
-		       nil) depth)
+				      (t t)))
+		       t)
+		     depth)
 		  (if (eq status 'out-of-scope) (setq parent 'shadow))
 		  (if (and (cadr var-list)
 			   (string-match (concat varnum "\\.")
 					 (cadr (cadr var-list))))
 		      (setq char ?-)
 		    (setq char ?+))
-		  (if (string-match "\\*$" (nth 3 var))
+		  (if (string-match "\\*$" type)
 		      (speedbar-make-tag-line
 		       'bracket char
 		       'gdb-speedbar-expand-node varnum
-		       (concat (car var) "\t"
-			       (nth 3 var)"\t"
+		       (concat expr "\t"
+			       type "\t"
 			       (nth 4 var))
 		       (if (or parent status 'out-of-scope)
 			 nil 'gdb-edit-value)
 		       nil
 		       (if (and status gdb-show-changed-values)
-			   'shadow nil)
+			   'shadow t)
 		       depth)
 		    (speedbar-make-tag-line
 		     'bracket char
 		     'gdb-speedbar-expand-node varnum
-		     (concat (car var) "\t" (nth 3 var))
+		     (concat expr "\t" type)
 		     nil nil
-		     (if (and (nth 5 var) gdb-show-changed-values) 'shadow nil)
+		     (if (and status gdb-show-changed-values) 'shadow t)
 		     depth))))
 	      (setq var-list (cdr var-list))))
 	  (setq gdb-force-update nil)))
