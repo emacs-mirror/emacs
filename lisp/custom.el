@@ -690,7 +690,9 @@ Return non-nil iff the `customized-value' property actually changed."
 	    (not (equal value (condition-case nil
 				  (eval (car old))
 				(error nil)))))
-	(put symbol 'customized-value (list (custom-quote value)))
+	(progn (put symbol 'customized-value (list (custom-quote value)))
+	       (custom-push-theme 'theme-value symbol 'user 'set
+				  (custom-quote value)))
       (put symbol 'customized-value nil))
     ;; Changed?
     (not (equal customized (get symbol 'customized-value)))))

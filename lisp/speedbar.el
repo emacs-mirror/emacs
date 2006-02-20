@@ -1019,10 +1019,10 @@ selected.  If the speedbar frame is active, then select the attached frame."
 		    (lambda () (let ((speedbar-update-flag t))
 				 (speedbar-timer-fn)))))
 
-(defmacro speedbar-frame-width ()
+(defsubst speedbar-frame-width ()
   "Return the width of the speedbar frame in characters.
 nil if it doesn't exist."
-  '(window-width (get-buffer-window speedbar-buffer)))
+  (frame-width speedbar-frame))
 
 (defun speedbar-mode ()
   "Major mode for managing a display of directories and tags.
@@ -1708,9 +1708,13 @@ Separators are not active, have no labels, depth, or actions."
 (defun speedbar-make-button (start end face mouse function &optional token)
   "Create a button from START to END, with FACE as the display face.
 MOUSE is the mouse face.  When this button is clicked on FUNCTION
-will be run with the TOKEN parameter (any Lisp object)"
+will be run with the TOKEN parameter (any Lisp object).  If FACE
+is t use the text properties of the string that is passed as an
+argument."
+  (unless (eq face t)
+    (put-text-property start end 'face face))
   (add-text-properties
-   start end `(face ,face mouse-face ,mouse invisible nil
+   start end `(mouse-face ,mouse invisible nil
                speedbar-text ,(buffer-substring-no-properties start end)))
   (if speedbar-use-tool-tips-flag
       (put-text-property start end 'help-echo #'dframe-help-echo))
@@ -2123,7 +2127,7 @@ Groups may optionally contain a position."
   "A wrapper for `try-completion'.
 Passes STRING and ALIST to `try-completion' if ALIST
 passes some tests."
-  (if (and (listp alist) (not (null alist))
+  (if (and (consp alist)
 	   (listp (car alist)) (stringp (car (car alist))))
       (try-completion string alist)
     nil))
@@ -2423,8 +2427,7 @@ name will have the function FIND-FUN and not token."
 
   ;; Choose the correct method of doodling.
   (if (and speedbar-mode-specific-contents-flag
-	   (listp speedbar-special-mode-expansion-list)
-	   speedbar-special-mode-expansion-list
+	   (consp speedbar-special-mode-expansion-list)
 	   (local-variable-p
 	    'speedbar-special-mode-expansion-list
 	    (current-buffer)))
@@ -2463,12 +2466,14 @@ name will have the function FIND-FUN and not token."
 	    )
 	(set-buffer speedbar-buffer)
 	(speedbar-with-writable
-	  (erase-buffer)
-	  (dolist (func funclst)
-	    (setq default-directory cbd)
-	    (funcall func cbd 0))
-	(speedbar-reconfigure-keymaps)
-	(goto-char (point-min)))
+	  (let* ((window (get-buffer-window speedbar-buffer 0))
+		 (p (window-point window)))
+	    (erase-buffer)
+	    (dolist (func funclst)
+	      (setq default-directory cbd)
+	      (funcall func cbd 0))
+	    (speedbar-reconfigure-keymaps)
+	    (set-window-point window p)))
 	))))
 
 (defun speedbar-update-directory-contents ()
@@ -2572,7 +2577,6 @@ This should only be used by modes classified as special."
 	    ;; We do not erase the buffer because these functions may
 	    ;; decide NOT to update themselves.
 	    (funcall func specialbuff)))
-
       (goto-char (point-min))))
   (speedbar-reconfigure-keymaps))
 
@@ -2614,8 +2618,7 @@ Also resets scanner functions."
 		(speedbar-maybe-add-localized-support (current-buffer))
 		;; Update for special mode all the time!
 		(if (and speedbar-mode-specific-contents-flag
-			 (listp speedbar-special-mode-expansion-list)
-			 speedbar-special-mode-expansion-list
+			 (consp speedbar-special-mode-expansion-list)
 			 (local-variable-p
 			  'speedbar-special-mode-expansion-list
 			  (current-buffer)))

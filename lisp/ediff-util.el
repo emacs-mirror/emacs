@@ -26,7 +26,6 @@
 
 ;;; Code:
 
-(provide 'ediff-util)
 
 ;; Compiler pacifier
 (defvar ediff-patch-diagnostics)
@@ -49,6 +48,7 @@
 
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
+    (provide 'ediff-util) ; to break recursive load cycle
     (or (featurep 'ediff-init)
 	(load "ediff-init.el" nil nil 'nosuffix))
     (or (featurep 'ediff-help)
@@ -234,6 +234,7 @@ to invocation.")
   (define-key ediff-mode-map "#"  nil)
   (define-key ediff-mode-map "#h"  'ediff-toggle-regexp-match)
   (define-key ediff-mode-map "#f"  'ediff-toggle-regexp-match)
+  (define-key ediff-mode-map "#c"  'ediff-toggle-ignore-case)
   (or ediff-word-mode
       (define-key ediff-mode-map "##"  'ediff-toggle-skip-similar))
   (define-key ediff-mode-map "o"   nil)
@@ -1133,7 +1134,7 @@ of the current buffer."
 ;;       ))
 
 
-(defsubst ediff-file-checked-out-p (file)
+(defun ediff-file-checked-out-p (file)
   (or (not (featurep 'vc-hooks))
       (and (vc-backend file)
 	   (if (fboundp 'vc-state)
@@ -1143,7 +1144,7 @@ of the current buffer."
 	     (vc-locking-user file))
 	   )))
 
-(defsubst ediff-file-checked-in-p (file)
+(defun ediff-file-checked-in-p (file)
   (and (featurep 'vc-hooks)
        ;; CVS files are considered not checked in
        (not (memq (vc-backend file) '(nil CVS)))
@@ -3079,7 +3080,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	)))
 
 
-(defsubst ediff-highlight-diff (n)
+(defun ediff-highlight-diff (n)
   "Put face on diff N.  Invoked for X displays only."
   (ediff-highlight-diff-in-one-buffer n 'A)
   (ediff-highlight-diff-in-one-buffer n 'B)
@@ -3088,7 +3089,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
   )
 
 
-(defsubst ediff-unhighlight-diff ()
+(defun ediff-unhighlight-diff ()
   "Remove overlays from buffers A, B, and C."
   (ediff-unhighlight-diff-in-one-buffer 'A)
   (ediff-unhighlight-diff-in-one-buffer 'B)
@@ -3097,7 +3098,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
   )
 
 ;; delete highlighting overlays, restore faces to their original form
-(defsubst ediff-unhighlight-diffs-totally ()
+(defun ediff-unhighlight-diffs-totally ()
   (ediff-unhighlight-diffs-totally-in-one-buffer 'A)
   (ediff-unhighlight-diffs-totally-in-one-buffer 'B)
   (ediff-unhighlight-diffs-totally-in-one-buffer 'C)
@@ -3686,7 +3687,7 @@ Ediff Control Panel to restore highlighting."
 	    (>= (point) end))))))
 
 
-(defsubst ediff-get-region-contents (n buf-type ctrl-buf &optional start end)
+(defun ediff-get-region-contents (n buf-type ctrl-buf &optional start end)
   (ediff-with-current-buffer
       (ediff-with-current-buffer ctrl-buf (ediff-get-buffer buf-type))
     (buffer-substring
@@ -3945,6 +3946,7 @@ Ediff Control Panel to restore highlighting."
 	(ediff-device-type (ediff-device-type))
 	varlist salutation buffer-name)
     (setq varlist '(ediff-diff-program ediff-diff-options
+                    ediff-diff3-program ediff-diff3-options
 		    ediff-patch-program ediff-patch-options
 		    ediff-shell
 		    ediff-use-faces
@@ -4299,6 +4301,8 @@ Mail anyway? (y or n) ")
 ;;(ediff-load-version-control 'silent)
 
 (run-hooks 'ediff-load-hook)
+
+(provide 'ediff-util)
 
 
 ;;; Local Variables:

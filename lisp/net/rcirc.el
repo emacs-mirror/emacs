@@ -49,7 +49,7 @@
 (defgroup rcirc nil
   "Simple IRC client."
   :version "22.1"
-  :prefix "rcirc"
+  :prefix "rcirc-"
   :group 'applications)
 
 (defcustom rcirc-server "irc.freenode.net"
@@ -295,16 +295,23 @@ If ARG is non-nil, prompt for a server to connect to."
 (defvar rcirc-topic nil)
 (defvar rcirc-keepalive-timer nil)
 (defvar rcirc-last-server-message-time nil)
-(defun rcirc-connect (server port nick user-name full-name startup-channels)
+(defun rcirc-connect (&optional server port nick user-name full-name startup-channels)
   (add-hook 'window-configuration-change-hook
 	    'rcirc-window-configuration-change)
 
   (save-excursion
     (message "Connecting to %s..." server)
     (let* ((inhibit-eol-conversion)
-           (port-number (if (stringp port)
-                            (string-to-number port)
-                          port))
+           (port-number (if port
+			    (if (stringp port)
+				(string-to-number port)
+			      port)
+			  rcirc-port))
+	   (server (or server rcirc-server))
+	   (nick (or nick rcirc-nick))
+	   (user-name (or user-name rcirc-user-name))
+	   (full-name (or full-name rcirc-user-full-name))
+	   (startup-channels (or startup-channels (rcirc-startup-channels server)))
            (process (open-network-stream server nil server port-number)))
       ;; set up process
       (set-process-coding-system process 'raw-text 'raw-text)
@@ -758,9 +765,9 @@ if there is no existing buffer for TARGET, otherwise return nil."
 Create the buffer if it doesn't exist."
   (let ((buffer (rcirc-get-buffer process target)))
     (if buffer
-	(progn
+	(with-current-buffer buffer
 	  (when (not rcirc-target)
-	    (setq rcirc-target target))
+ 	    (setq rcirc-target target))
 	  buffer)
 	;; create the buffer
 	(with-rcirc-process-buffer process
@@ -896,20 +903,22 @@ Create the buffer if it doesn't exist."
   (kill-buffer (current-buffer))
   (set-window-configuration rcirc-window-configuration))
 
-(defun rcirc-get-any-buffer (process)
+(defun rcirc-any-buffer (process)
   "Return a buffer for PROCESS, either the one selected or the process buffer."
-  (let ((buffer (window-buffer (selected-window))))
-    (if (and buffer
-	     (with-current-buffer buffer
-	       (and (eq major-mode 'rcirc-mode)
-		    (eq rcirc-process process))))
-	buffer
-      (process-buffer process))))
+  (if rcirc-always-use-server-buffer-flag
+      (process-buffer process)
+    (let ((buffer (window-buffer (selected-window))))
+      (if (and buffer
+	       (with-current-buffer buffer
+		 (and (eq major-mode 'rcirc-mode)
+		      (eq rcirc-process process))))
+	  buffer
+	(process-buffer process)))))
 
 (defcustom rcirc-response-formats
-  '(("PRIVMSG" . "%T<%n> %m")
-    ("NOTICE"  . "%T-%n- %m")
-    ("ACTION"  . "%T[%n] %m")
+  '(("PRIVMSG" . "%T<%N> %m")
+    ("NOTICE"  . "%T-%N- %m")
+    ("ACTION"  . "%T[%N %m]")
     ("COMMAND" . "%T%m")
     ("ERROR"   . "%T%fw!!! %m")
     (t         . "%T%fp*** %fs%n %r %m"))
@@ -921,7 +930,8 @@ The entry's value part should be a string, which is inserted with
 the of the following escape sequences replaced by the described values:
 
   %m        The message text
-  %n        The sender's nick (with face `rcirc-my-nick' or `rcirc-other-nick')
+  %n        The sender's nick
+  %N        The sender's nick (with face `rcirc-my-nick' or `rcirc-other-nick')
   %r        The response-type
   %T        The timestamp (with face `rcirc-timestamp')
   %t        The target
@@ -959,13 +969,20 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 	    (cond ((eq key ?%)
 		   ;; %% -- literal % character
 		   "%")
-		  ((eq key ?n)
-		   ;; %n -- nick
-		   (rcirc-facify (concat (rcirc-abbrev-nick sender)
-					 (and target (concat "," target)))
-				 (if (string= sender (rcirc-nick process))
-				     'rcirc-my-nick
-				   'rcirc-other-nick)))
+		  ((or (eq key ?n) (eq key ?N))
+		   ;; %n/%N -- nick
+		   (let ((nick (concat (if (string= (with-rcirc-process-buffer
+							process rcirc-server)
+						    sender)
+					   ""
+					 (rcirc-abbrev-nick sender))
+				       (and target (concat "," target)))))
+		     (rcirc-facify nick
+				   (if (eq key ?n)
+				       face
+				     (if (string= sender (rcirc-nick process))
+					 'rcirc-my-nick
+				       'rcirc-other-nick)))))
 		  ((eq key ?T)
 		   ;; %T -- timestamp
 		   (rcirc-facify
@@ -1015,9 +1032,7 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
   (assert (not (bufferp target)))
   (with-rcirc-process-buffer process
     (cond ((not target)
-	   (if rcirc-always-use-server-buffer-flag
-	       (process-buffer process)
-	     (rcirc-get-any-buffer process)))
+	   (rcirc-any-buffer process))
 	  ((not (rcirc-channel-p target))
 	   ;; message from another user
 	   (if (string= response "PRIVMSG")
@@ -1026,7 +1041,7 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 						  sender))
 	     (rcirc-get-buffer process target t)))
 	  ((or (rcirc-get-buffer process target)
-	       (rcirc-get-any-buffer process))))))
+	       (rcirc-any-buffer process))))))
 
 (defvar rcirc-activity-type nil)
 (make-variable-buffer-local 'rcirc-activity-type)
@@ -1069,22 +1084,26 @@ record activity."
 	    (set-marker-insertion-type rcirc-prompt-start-marker nil)
 	    (set-marker-insertion-type rcirc-prompt-end-marker nil)
 
-	    ;; fill the text we just inserted, maybe
-	    (when (and rcirc-fill-flag
-		       (not (string= response "372"))) ;/motd
-	      (let ((fill-prefix
-		     (or rcirc-fill-prefix
-			 (make-string
-			  (or (next-single-property-change 0 'rcirc-text
-							   fmted-text)
-			      8)
-			  ?\s)))
-		    (fill-column (cond ((eq rcirc-fill-column 'frame-width)
-					(1- (frame-width)))
-				       (rcirc-fill-column
-					rcirc-fill-column)
-				       (t fill-column))))
-		(fill-region fill-start rcirc-prompt-start-marker 'left t))))
+	    (let ((text-start (make-marker)))
+	      (set-marker text-start
+			  (or (next-single-property-change fill-start 
+							   'rcirc-text)
+			      (point-max)))
+	      ;; squeeze spaces out of text before rcirc-text
+	      (fill-region fill-start (1- text-start))
+
+	      ;; fill the text we just inserted, maybe
+	      (when (and rcirc-fill-flag
+			 (not (string= response "372"))) ;/motd
+		(let ((fill-prefix
+		       (or rcirc-fill-prefix
+			   (make-string (- text-start fill-start) ?\s)))
+		      (fill-column (cond ((eq rcirc-fill-column 'frame-width)
+					  (1- (frame-width)))
+					 (rcirc-fill-column
+					  rcirc-fill-column)
+					 (t fill-column))))
+		  (fill-region fill-start rcirc-prompt-start-marker 'left t)))))
 
 	  ;; set inserted text to be read-only
 	  (when rcirc-read-only-flag
@@ -1175,14 +1194,15 @@ record activity."
 
 (defun rcirc-put-nick-channel (process nick channel)
   "Add CHANNEL to list associated with NICK."
-  (with-rcirc-process-buffer process
-    (let* ((chans (gethash nick rcirc-nick-table))
-	   (record (assoc-string channel chans t)))
-      (if record
-          (setcdr record (current-time))
-        (puthash nick (cons (cons channel (current-time))
-                            chans)
-                 rcirc-nick-table)))))
+  (let ((nick (rcirc-user-nick nick)))
+    (with-rcirc-process-buffer process
+      (let* ((chans (gethash nick rcirc-nick-table))
+	     (record (assoc-string channel chans t)))
+	(if record
+	    (setcdr record (current-time))
+	  (puthash nick (cons (cons channel (current-time))
+			      chans)
+		   rcirc-nick-table))))))
 
 (defun rcirc-nick-remove (process nick)
   "Remove NICK from table."
@@ -1613,15 +1633,21 @@ ones added to the list automatically are marked with an asterisk."
   (propertize (or string "") 'face face 'rear-nonsticky t))
 
 (defvar rcirc-url-regexp
-  (rx word-boundary
-      (or "www."
-	  (and (or "http" "https" "ftp" "file" "gopher" "news" "telnet" "wais"
-		   "mailto")
-	       "://"
-	       (1+ (char "a-zA-Z0-9_."))
-	       (optional ":" (1+ (char "0-9")))))
-      (1+ (char "-a-zA-Z0-9_=!?#$\@~`%&*+|\\/:;.,{}[]"))
-      (char "-a-zA-Z0-9_=#$\@~`%&*+|\\/:;{}[]"))
+  (rx-to-string
+   `(and word-boundary
+	 (or "www."
+	     (and (or "http" "https" "ftp" "file" "gopher" "news" "telnet" 
+		      "wais" "mailto")
+		  "://"
+		  (1+ (char "-a-zA-Z0-9_."))
+		  (optional ":" (1+ (char "0-9"))))
+	     (and (1+ (char "-a-zA-Z0-9_."))
+		  (or ".com" ".net" ".org")
+		  word-boundary))
+	 (optional 
+	  (and "/"
+	       (1+ (char "-a-zA-Z0-9_=!?#$\@~`%&*+|\\/:;.,{}[]"))
+	       (char "-a-zA-Z0-9_=#$\@~`%&*+|\\/:;{}[]")))))
   "Regexp matching URLs.  Set to nil to disable URL features in rcirc.")
 
 (defun rcirc-browse-url (&optional arg)

@@ -146,7 +146,7 @@ is minibuffer."
   (if (commandp func-name)
     (save-excursion
       (let* ((sym (intern func-name))
-	     (buf (other-buffer))
+	     (buf (other-buffer nil t))
 	     (map (save-excursion (set-buffer buf) (current-local-map)))
 	     (keys (where-is-internal sym map)))
 	(if keys

@@ -1,3 +1,66 @@
+2006-02-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* regex.c (extend_range_table_work_area): Fix typo.
+
+2006-02-19  Richard M. Stallman  <rms@gnu.org>
+
+	* xterm.c (x_catch_errors): Use xmalloc.
+
+	* regex.c (extend_range_table_work_area): Call xmalloc and xrealloc.
+	(regex_compile): Likewise.
+	(regcomp): Use xmalloc.
+
+	* gtkutil.c (malloc_widget_value): Use xmalloc.
+
+	* vm-limit.c [HAVE_GETRLIMIT]: Include sys/resource.h.
+	(check_memory_limits) [HAVE_GETRLIMIT]: Use getrlimit.
+
+	* xmenu.c (digest_single_submenu): When pane_string is empty,
+	do initialize save_wv.
+
+2006-02-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (update_menu_bar) [MAC_OS]: Don't set
+	w->update_mode_line if arg F is not the selected frame.
+
+	* macmenu.c (popup_activated_flag, submenu_id)
+	(next_menubar_widget_id): Remove variables.
+	(initialize_frame_menubar): Remove function.
+	(pop_down_menu, mac_menu_show): Simplify save value.
+	(dispose_menus): New function.
+	(pop_down_menu, fill_menubar): Use it.
+	(fill_submenu): Remove function.  All uses changed to fill_menu.
+	(add_menu_item): Remove args SUBMENU and FORCE_DISABLE.  New arg
+	POS.  Don't call SetMenuItemHierarchicalID here.
+	(fill_menu): Add arg SUBMENU_ID.  Return submenu_id that is to be
+	used next.  Call SetMenuItemHierarchicalID here.
+	(fill_menubar): Add arg DEEP_P.  All uses changed.  Clean up menu
+	objects if needed.  Reuse existing menu bar titles if possible.
+	(set_frame_menubar): Don't clean up menu objects here.
+
+2006-02-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.c (window_min_size_1): Ensure room for the scroll bar and
+	fringes.
+
+2006-02-17  Romain Francoise  <romain@orebokech.com>
+
+	* puresize.h (BASE_PURESIZE): Increment to 1200000.
+
+2006-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (Fmake_symbol): Comment-out left-over assert from before the
+	addition of the BLOCK_INPUTs.
+
+2006-02-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fset_window_scroll_bars): Doc fix.
+
+2006-02-17  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (display_mode_element): Call display_string with correct
+	PREC arg (which must be a number of characters, not column width).
+
 2006-02-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* frame.c (x_get_arg): Clear out PARAM in ALIST also on Mac.

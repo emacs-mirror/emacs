@@ -6,6 +6,14 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 
+* Changes in MH-E 7.92
+
+Version 7.92, the third 8.0 beta release, removes the "sed -i" in the
+Makefile (SF #1432060), tunes the setting of `mh-image-load-path',
+works around systems that do not have face inheritance, fixes several
+issues with searching on XEmacs, and creates the correct MIME type
+when including OpenOffice documents.
+
 * Changes in MH-E 7.91
 
 Version 7.91 is the second 8.0 beta release and fixes several bugs

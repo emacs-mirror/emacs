@@ -1,4 +1,20 @@
+2006-02-19  Michael Olson  <mwolson@gnu.org>
+
+	* erc-capab.el (erc-capab-send-identify-messages): Make sure some
+	parameters are strings before using them.  Thanks to Alejandro
+	Benitez for the report.
+
+	* erc.el (erc-version-string): Release ERC 5.1.2.
+
+2006-02-19  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc-button.el (erc-button-keymap): Bind `erc-button-previous' to
+	<C-tab>.
+	(erc-button-previous): New function.
+
 2006-02-15  Michael Olson  <mwolson@gnu.org>
+
+	* NEWS: Add category for ERC 5.2.
 
 	* erc.el (erc): Move to the end of the buffer when a continued
 	session is detected.  Thanks to e1f and indio for the report and
@@ -150,7 +166,7 @@
 	* erc-stamp.el: Use new arch tagline, since the other one wasn't
 	being treated properly.
 
-	* erc.el (erc-version-string): Release ERC 5.1.1
+	* erc.el (erc-version-string): Release ERC 5.1.1.
 
 2006-02-03  Zhang Wei  <id.brep@gmail.com>  (tiny change)
 

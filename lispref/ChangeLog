@@ -1,3 +1,26 @@
+2006-02-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* commands.texi (Using Interactive): Fix reference to node
+	"Minibuffers".
+
+2006-02-19  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (High-Level Completion):
+	Add xref to read-input-method-name.
+
+	* files.texi (Relative File Names): Move file-relative-name here.
+	(File Name Expansion): From here.  Minor clarifications.
+
+	* commands.texi (Using Interactive): Add xrefs about reading input.
+	Clarify remarks about that moving point and mark.
+	Put string case before list case.
+
+2006-02-16  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* display.texi (Other Display Specs, Image Descriptors): Revert
+	erroneous changes.  The previous description of image-descriptors
+	as `(image . PROPS)' was correct.
+
 2006-02-14  Richard M. Stallman  <rms@gnu.org>
 
 	* variables.texi (File Local Variables): Clarifications.

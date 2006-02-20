@@ -36,12 +36,12 @@
 (require 'mh-e)
 (require 'mh-scan)
 
+(require 'font-lock)
 (require 'gnus-cite)
 (require 'gnus-util)
+(require 'goto-addr)
 
 (autoload 'mh-make-buffer-data "mh-mime") ;can't be automatically generated
-
-(require 'font-lock)
 
 
 
@@ -818,6 +818,13 @@ operation."
 (define-derived-mode mh-show-mode text-mode "MH-Show"
   "Major mode for showing messages in MH-E.\\<mh-show-mode-map>
 
+Email addresses and URLs in the message are highlighted if the
+option `goto-address-highlight-p' is on, which it is by default.
+To view the web page for a highlighted URL or to send a message
+using a highlighted email address, use the middle mouse button or
+\\[goto-address-at-point]. See Info node `(mh-e)Sending Mail' to
+see how to configure Emacs to send the message using MH-E.
+
 The hook `mh-show-mode-hook' is called upon entry to this mode.
 
 See also `mh-folder-mode'.
@@ -877,10 +884,7 @@ See also `mh-folder-mode'.
 ;;;###mh-autoload
 (defun mh-show-addr ()
   "Use `goto-address'."
-  (when mh-show-use-goto-addr-flag
-    (mh-require 'goto-addr nil t)
-    (if (fboundp 'goto-address)
-        (goto-address))))
+  (goto-address))
 
 ;;;###mh-autoload
 (defun mh-gnus-article-highlight-citation ()

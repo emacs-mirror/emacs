@@ -104,7 +104,6 @@
 
 ;;; Code:
 
-(provide 'ediff-mult)
 
 (defgroup ediff-mult nil
   "Multi-file and multi-buffer processing in Ediff."
@@ -123,7 +122,6 @@
 ;; end pacifier
 
 (require 'ediff-init)
-(require 'ediff-util)
 
 ;; meta-buffer
 (ediff-defvar-local ediff-meta-buffer nil "")
@@ -1473,6 +1471,7 @@ Useful commands:
       (ediff-overlay-put overl 'highlight t))
     (ediff-overlay-put overl 'ediff-meta-info prop)
     (ediff-overlay-put overl 'invisible hidden)
+    (ediff-overlay-put overl 'follow-link t)
     (if (numberp session-number)
 	(ediff-overlay-put overl 'ediff-meta-session-number session-number))))
 
@@ -2383,6 +2382,8 @@ for operation, or simply indicate which are equal files.  If it is nil, then
 	  ))
     ))
 
+
+(provide 'ediff-mult)
 
 
 ;;; Local Variables:

@@ -72,8 +72,16 @@
 
 ;; 1) Strings that are watched don't update in the speedbar when their
 ;; contents change.
-;; 2) Watch expressions go out of scope when the inferior is re-run.
-;; 3) Cannot handle multiple debug sessions.
+;; 2) Cannot handle multiple debug sessions.
+
+;;; Problems with watch expressions:
+
+;; 1) They go out of scope when the inferior is re-run.
+;; 2) -var-update reports that an out of scope variable has changed:
+;;    changelist=[{name="var1",in_scope="false"}], but the value can't be accessed.
+;;    (-var-list-children, in contrast allows you to create variable objects of
+;;      the children when they are out of scope and get their values).
+;; 3) VARNUM increments even when vaiable object is not created (maybe trivial).
 
 ;;; TODO:
 
@@ -97,8 +105,12 @@
 (defvar gdb-selected-frame nil)
 (defvar gdb-frame-number nil)
 (defvar gdb-current-language nil)
-(defvar gdb-var-list nil "List of variables in watch window.")
-(defvar gdb-var-changed nil "Non-nil means that `gdb-var-list' has changed.")
+(defvar gdb-var-list nil
+ "List of variables in watch window.
+Each element has the form (EXPRESSION VARNUM NUMCHILD TYPE VALUE STATUS) where
+STATUS is nil (unchanged), `changed' or `out-of-scope'.")
+(defvar gdb-force-update t
+ "Non-nil means that view of watch expressions will be updated in the speedbar.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-server-prefix nil)
@@ -203,8 +215,8 @@ other with the source file with the main routine of the inferior.
 If `gdb-many-windows' is t, regardless of the value of
 `gdb-show-main', the layout below will appear unless
 `gdb-use-separate-io-buffer' is nil when the source buffer
-occupies the full width of the frame.  Keybindings are given in
-relevant buffer.
+occupies the full width of the frame.  Keybindings are shown in
+some of the buffers.
 
 Watch expressions appear in the speedbar/slowbar.
 
@@ -217,28 +229,28 @@ See Info node `(emacs)GDB Graphical Interface' for a more
 detailed description of this mode.
 
 
-+--------------------------------------------------------------+
-|                           GDB Toolbar                        |
-+-------------------------------+------------------------------+
-| GUD buffer (I/O of GDB)       | Locals buffer                |
-|                               |                              |
-|                               |                              |
-|                               |                              |
-+-------------------------------+------------------------------+
-| Source buffer                 | I/O buffer (of inferior)     |
-|                               | (comint-mode)                |
-|                               |                              |
-|                               |                              |
-|                               |                              |
-|                               |                              |
-|                               |                              |
-|                               |                              |
-+-------------------------------+------------------------------+
-| Stack buffer                  | Breakpoints buffer           |
-| RET      gdb-frames-select    | SPC    gdb-toggle-breakpoint |
-|                               | RET    gdb-goto-breakpoint   |
-|                               | d      gdb-delete-breakpoint |
-+-------------------------------+------------------------------+"
++----------------------------------------------------------------------+
+|                               GDB Toolbar                            |
++-----------------------------------+----------------------------------+
+| GUD buffer (I/O of GDB)           | Locals buffer                    |
+|                                   |                                  |
+|                                   |                                  |
+|                                   |                                  |
++-----------------------------------+----------------------------------+
+| Source buffer                     | I/O buffer (of debugged program) |
+|                                   | (comint-mode)                    |
+|                                   |                                  |
+|                                   |                                  |
+|                                   |                                  |
+|                                   |                                  |
+|                                   |                                  |
+|                                   |                                  |
++-----------------------------------+----------------------------------+
+| Stack buffer                      | Breakpoints buffer               |
+| RET      gdb-frames-select        | SPC    gdb-toggle-breakpoint     |
+|                                   | RET    gdb-goto-breakpoint       |
+|                                   | D      gdb-delete-breakpoint     |
++-----------------------------------+----------------------------------+"
   ;;
   (interactive (list (gud-query-cmdline 'gdba)))
   ;;
@@ -444,7 +456,7 @@ With arg, use separate IO iff arg is positive."
 	gdb-current-language nil
 	gdb-frame-number nil
 	gdb-var-list nil
-	gdb-var-changed nil
+	gdb-force-update t
 	gdb-first-post-prompt t
 	gdb-prompting nil
 	gdb-input-queue nil
@@ -598,8 +610,7 @@ With arg, automatically raise speedbar iff arg is positive."
 		      (nth 1 var) "\"\n")
 	    (concat "-var-evaluate-expression " (nth 1 var) "\n"))
 	  `(lambda () (gdb-var-evaluate-expression-handler
-		       ,(nth 1 var) nil))))
-	(setq gdb-var-changed t))
+		       ,(nth 1 var) nil)))))
     (if (search-forward "Undefined command" nil t)
 	(message-box "Watching expressions requires gdb 6.0 onwards")
       (message "No symbol \"%s\" in current context." expr))))
@@ -608,16 +619,11 @@ With arg, automatically raise speedbar iff arg is positive."
   (goto-char (point-min))
   (re-search-forward ".*value=\\(\".*\"\\)" nil t)
   (catch 'var-found
-    (let ((num 0))
-      (dolist (var gdb-var-list)
-	(if (string-equal varnum (cadr var))
-	    (progn
-	      (if changed (setcar (nthcdr 5 var) t))
-	      (setcar (nthcdr 4 var) (read (match-string 1)))
-	      (setcar (nthcdr num gdb-var-list) var)
-	      (throw 'var-found nil)))
-	(setq num (+ num 1)))))
-  (setq gdb-var-changed t))
+    (dolist (var gdb-var-list)
+      (when (string-equal varnum (cadr var))
+	(if changed (setcar (nthcdr 5 var) 'changed))
+	(setcar (nthcdr 4 var) (read (match-string 1)))
+	(throw 'var-found nil)))))
 
 (defun gdb-var-list-children (varnum)
   (gdb-enqueue-input
@@ -663,20 +669,25 @@ type=\"\\(.*?\\)\"")
 	   'gdb-var-update-handler))
     (push 'gdb-var-update gdb-pending-triggers)))
 
-(defconst gdb-var-update-regexp "name=\"\\(.*?\\)\"")
+(defconst gdb-var-update-regexp "name=\"\\(.*?\\)\",in_scope=\"\\(.*?\\)\"")
 
 (defun gdb-var-update-handler ()
+  (dolist (var gdb-var-list)
+    (setcar (nthcdr 5 var) nil))
   (goto-char (point-min))
   (while (re-search-forward gdb-var-update-regexp nil t)
-    (catch 'var-found-1
-      (let ((varnum (match-string 1)))
-	(dolist (var gdb-var-list)
-	  (gdb-enqueue-input
-	   (list
-	    (concat "server interpreter mi \"-var-evaluate-expression "
-		    varnum "\"\n")
-	    `(lambda () (gdb-var-evaluate-expression-handler ,varnum t))))
-	  (throw 'var-found-1 nil)))))
+    (let ((varnum (match-string 1)))
+      (if  (string-equal (match-string 2) "false")
+	  (catch 'var-found
+	    (dolist (var gdb-var-list)
+	      (when (string-equal varnum (cadr var))
+		(setcar (nthcdr 5 var) 'out-of-scope)
+		(throw 'var-found nil))))
+	(gdb-enqueue-input
+	 (list
+	  (concat "server interpreter mi \"-var-evaluate-expression "
+		  varnum "\"\n")
+	  `(lambda () (gdb-var-evaluate-expression-handler ,varnum t)))))))
   (setq gdb-pending-triggers
 	(delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
@@ -712,8 +723,7 @@ type=\"\\(.*?\\)\"")
 	    (setq gdb-var-list (delq var gdb-var-list))
 	    (dolist (varchild gdb-var-list)
 	      (if (string-match (concat (nth 1 var) "\\.") (nth 1 varchild))
-		  (setq gdb-var-list (delq varchild gdb-var-list))))
-	    (setq gdb-var-changed t))))))
+		  (setq gdb-var-list (delq varchild gdb-var-list)))))))))
 
 (defun gdb-edit-value (text token indent)
   "Assign a value to a variable displayed in the speedbar."
@@ -729,8 +739,9 @@ type=\"\\(.*?\\)\"")
 	   'ignore))))
 
 (defcustom gdb-show-changed-values t
-  "If non-nil highlight values that have recently changed in the speedbar.
-The highlighting is done with `font-lock-warning-face'."
+  "If non-nil change the face of out of scope variables and changed values.
+Out of scope variables are suppressed with `shadow' face.
+Changed values are highlighted with the face `font-lock-warning-face'."
   :type 'boolean
   :group 'gud
   :version "22.1")
@@ -750,7 +761,7 @@ INDENT is the current indentation depth."
 	 (dolist (var gdb-var-list)
 	   (if (string-match (concat token "\\.") (nth 1 var))
 	       (setq gdb-var-list (delq var gdb-var-list))))
-	 (setq gdb-var-changed t)
+	 (setq gdb-force-update t)
 	 (with-current-buffer gud-comint-buffer
 	   (speedbar-timer-fn)))))
 
@@ -1204,9 +1215,7 @@ happens to be appropriate."
       ;; FIXME: with GDB-6 on Darwin, this might very well work.
       ;; Only needed/used with speedbar/watch expressions.
       (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-	(setq gdb-var-changed t)    ; force update
-	(dolist (var gdb-var-list)
-	  (setcar (nthcdr 5 var) nil))
+	(setq gdb-force-update t)
 	(if (string-equal gdb-version "pre-6.4")
 	    (gdb-var-update)
 	  (gdb-var-update-1)))))
@@ -2461,17 +2470,17 @@ corresponding to the mode line clicked."
 		:visible (memq gud-minor-mode '(gdbmi gdba))))
   (define-key menu [gdb] '("Gdb" . gdb-display-gdb-buffer))
   (define-key menu [threads] '("Threads" . gdb-display-threads-buffer))
-  (define-key menu [memory] '("Memory" . gdb-display-memory-buffer))
-  (define-key menu [disassembly]
-    '("Disassembly" . gdb-display-assembler-buffer))
-  (define-key menu [registers] '("Registers" . gdb-display-registers-buffer))
   (define-key menu [inferior]
     '(menu-item "Inferior IO" gdb-display-separate-io-buffer
 		:enable gdb-use-separate-io-buffer))
-  (define-key menu [locals] '("Locals" . gdb-display-locals-buffer))
-  (define-key menu [frames] '("Stack" . gdb-display-stack-buffer))
+  (define-key menu [memory] '("Memory" . gdb-display-memory-buffer))
+  (define-key menu [registers] '("Registers" . gdb-display-registers-buffer))
+  (define-key menu [disassembly]
+    '("Disassembly" . gdb-display-assembler-buffer))
   (define-key menu [breakpoints]
-    '("Breakpoints" . gdb-display-breakpoints-buffer)))
+    '("Breakpoints" . gdb-display-breakpoints-buffer))
+  (define-key menu [locals] '("Locals" . gdb-display-locals-buffer))
+  (define-key menu [frames] '("Stack" . gdb-display-stack-buffer)))
 
 (let ((menu (make-sparse-keymap "GDB-Frames")))
   (define-key gud-menu-map [frames]
@@ -2480,15 +2489,15 @@ corresponding to the mode line clicked."
   (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
   (define-key menu [threads] '("Threads" . gdb-frame-threads-buffer))
   (define-key menu [memory] '("Memory" . gdb-frame-memory-buffer))
-  (define-key menu [disassembly] '("Disassembiy" . gdb-frame-assembler-buffer))
-  (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
   (define-key menu [inferior]
     '(menu-item "Inferior IO" gdb-frame-separate-io-buffer
 		:enable gdb-use-separate-io-buffer))
-  (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
-  (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer))
+  (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
+  (define-key menu [disassembly] '("Disassembiy" . gdb-frame-assembler-buffer))
   (define-key menu [breakpoints]
-    '("Breakpoints" . gdb-frame-breakpoints-buffer)))
+    '("Breakpoints" . gdb-frame-breakpoints-buffer))
+  (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
+  (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer)))
 
 (let ((menu (make-sparse-keymap "GDB-UI/MI")))
   (define-key gud-menu-map [ui]
@@ -2617,6 +2626,8 @@ Kills the gdb buffers and resets the source buffers."
     (setq gdb-overlay-arrow-position nil))
   (setq overlay-arrow-variable-list
 	(delq 'gdb-overlay-arrow-position overlay-arrow-variable-list))
+  (if (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
+      (speedbar-refresh))
   (setq gud-running nil)
   (setq gdb-active-process nil)
   (setq gdb-var-list nil)
@@ -3013,7 +3024,6 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
 			(throw 'child-already-watched nil)))
 		  (push varchild var-list))))
 	  (push var var-list)))
-      (setq gdb-var-changed t)
       (setq gdb-var-list (nreverse var-list)))))
 
 ; Uses "-var-update --all-values".  Needs GDB 6.4 onwards.
@@ -3028,23 +3038,24 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
 	  'gdb-var-update-handler-1))
 	(push 'gdb-var-update gdb-pending-triggers))))
 
-(defconst gdb-var-update-regexp-1 "name=\"\\(.*?\\)\",value=\\(\".*?\"\\),")
+(defconst gdb-var-update-regexp-1
+  "name=\"\\(.*?\\)\",\\(?:value=\\(\".*?\"\\),\\)?in_scope=\"\\(.*?\\)\"")
 
 (defun gdb-var-update-handler-1 ()
+  (dolist (var gdb-var-list)
+    (setcar (nthcdr 5 var) nil))
   (goto-char (point-min))
   (while (re-search-forward gdb-var-update-regexp-1 nil t)
     (let ((varnum (match-string 1)))
-      (catch 'var-found1
-	(let ((num 0))
-	  (dolist (var gdb-var-list)
-	    (if (string-equal varnum (cadr var))
-		(progn
-		  (setcar (nthcdr 5 var) t)
-		  (setcar (nthcdr 4 var) (read (match-string 2)))
-		  (setcar (nthcdr num gdb-var-list) var)
-		  (throw 'var-found1 nil)))
-	    (setq num (+ num 1))))))
-    (setq gdb-var-changed t))
+      (catch 'var-found
+	(dolist (var gdb-var-list)
+	  (when (string-equal varnum (cadr var))
+	    (if (string-equal (match-string 3) "false")
+		(setcar (nthcdr 5 var) 'out-of-scope)
+	      (setcar (nthcdr 5 var) 'changed)
+	      (setcar (nthcdr 4 var)
+		      (read (match-string 2))))
+	    (throw 'var-found nil))))))
   (setq gdb-pending-triggers
    (delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))

@@ -2067,10 +2067,10 @@ extend_range_table_work_area (work_area)
   work_area->allocated += 16 * sizeof (int);
   if (work_area->table)
     work_area->table
-      = (int *) realloc (work_area->table, work_area->allocated);
+      = (int *) xrealloc (work_area->table, work_area->allocated);
   else
     work_area->table
-      = (int *) malloc (work_area->allocated);
+      = (int *) xmalloc (work_area->allocated);
 }
 
 #ifdef emacs
@@ -3608,13 +3608,13 @@ regex_compile (pattern, size, syntax, bufp)
 
 	if (! fail_stack.stack)
 	  fail_stack.stack
-	    = (fail_stack_elt_t *) malloc (fail_stack.size
-					   * sizeof (fail_stack_elt_t));
+	    = (fail_stack_elt_t *) xmalloc (fail_stack.size
+					    * sizeof (fail_stack_elt_t));
 	else
 	  fail_stack.stack
-	    = (fail_stack_elt_t *) realloc (fail_stack.stack,
-					    (fail_stack.size
-					     * sizeof (fail_stack_elt_t)));
+	    = (fail_stack_elt_t *) xrealloc (fail_stack.stack,
+					     (fail_stack.size
+					      * sizeof (fail_stack_elt_t)));
       }
 
     regex_grow_registers (num_regs);
@@ -6292,15 +6292,15 @@ regcomp (preg, pattern, cflags)
   preg->used = 0;
 
   /* Try to allocate space for the fastmap.  */
-  preg->fastmap = (char *) malloc (1 << BYTEWIDTH);
+  preg->fastmap = (char *) xmalloc (1 << BYTEWIDTH);
 
   if (cflags & REG_ICASE)
     {
       unsigned i;
 
       preg->translate
-	= (RE_TRANSLATE_TYPE) malloc (CHAR_SET_SIZE
-				      * sizeof (*(RE_TRANSLATE_TYPE)0));
+	= (RE_TRANSLATE_TYPE) xmalloc (CHAR_SET_SIZE
+				       * sizeof (*(RE_TRANSLATE_TYPE)0));
       if (preg->translate == NULL)
 	return (int) REG_ESPACE;
 

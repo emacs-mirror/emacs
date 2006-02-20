@@ -1867,6 +1867,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	     (set-buffer ,old-buffer)
 	     (set-syntax-table ,old-table)))))))
 
+
 (provide 'ediff-init)
 
 

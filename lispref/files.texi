@@ -1770,6 +1770,32 @@ Unix syntax and VMS syntax.
 @end example
 @end defun
 
+  Given a possibly relative file name, you can convert it to an
+absolute name using @code{expand-file-name} (@pxref{File Name
+Expansion}).  This function converts absolute file names to relative
+names:
+
+@defun file-relative-name filename &optional directory
+This function tries to return a relative name that is equivalent to
+@var{filename}, assuming the result will be interpreted relative to
+@var{directory} (an absolute directory name or directory file name).
+If @var{directory} is omitted or @code{nil}, it defaults to the
+current buffer's default directory.
+
+On some operating systems, an absolute file name begins with a device
+name.  On such systems, @var{filename} has no relative equivalent based
+on @var{directory} if they start with two different device names.  In
+this case, @code{file-relative-name} returns @var{filename} in absolute
+form.
+
+@example
+(file-relative-name "/foo/bar" "/foo/")
+     @result{} "bar"
+(file-relative-name "/foo/bar" "/hack/")
+     @result{} "../foo/bar"
+@end example
+@end defun
+
 @node Directory Names
 @comment  node-name,  next,  previous,  up
 @subsection Directory Names
@@ -1910,16 +1936,13 @@ you must specify the default directory name as well as the file name to
 be expanded.  Expansion also simplifies file names by eliminating
 redundancies such as @file{./} and @file{@var{name}/../}.
 
-In the next two functions, the @var{directory} argument can be either
-a directory name or a directory file name.  @xref{Directory Names}.
-
 @defun expand-file-name filename &optional directory
 This function converts @var{filename} to an absolute file name.  If
 @var{directory} is supplied, it is the default directory to start with
 if @var{filename} is relative.  (The value of @var{directory} should
-itself be an absolute directory name; it may start with @samp{~}.)
-Otherwise, the current buffer's value of @code{default-directory} is
-used.  For example:
+itself be an absolute directory name or directory file name; it may
+start with @samp{~}.)  Otherwise, the current buffer's value of
+@code{default-directory} is used.  For example:
 
 @example
 @group
@@ -1979,27 +2002,6 @@ Assuming that @samp{/tmp/bar} is a symbolic link to the directory
 If you may need to follow symbolic links preceding @samp{..}, you
 should make sure to call @code{file-truename} without prior direct or
 indirect calls to @code{expand-file-name}.  @xref{Truenames}.
-@end defun
-
-@c Emacs 19 feature
-@defun file-relative-name filename &optional directory
-This function does the inverse of expansion---it tries to return a
-relative name that is equivalent to @var{filename} when interpreted
-relative to @var{directory}.  If @var{directory} is omitted or
-@code{nil}, it defaults to the current buffer's default directory.
-
-On some operating systems, an absolute file name begins with a device
-name.  On such systems, @var{filename} has no relative equivalent based
-on @var{directory} if they start with two different device names.  In
-this case, @code{file-relative-name} returns @var{filename} in absolute
-form.
-
-@example
-(file-relative-name "/foo/bar" "/foo/")
-     @result{} "bar"
-(file-relative-name "/foo/bar" "/hack/")
-     @result{} "../foo/bar"
-@end example
 @end defun
 
 @defvar default-directory

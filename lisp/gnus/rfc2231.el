@@ -47,15 +47,45 @@ The list will be on the form
  `(name (attribute . value) (attribute . value)...)'.
 
 If the optional SIGNAL-ERROR is non-nil, signal an error when this
-function fails in parsing of parameters."
+function fails in parsing of parameters.  Otherwise, this function
+must never cause a Lisp error."
   (with-temp-buffer
     (let ((ttoken (ietf-drums-token-to-list ietf-drums-text-token))
 	  (stoken (ietf-drums-token-to-list ietf-drums-tspecials))
 	  (ntoken (ietf-drums-token-to-list "0-9"))
 	  c type attribute encoded number prev-attribute vals
 	  prev-encoded parameters value)
-      (ietf-drums-init (mail-header-remove-whitespace
-			(mail-header-remove-comments string)))
+      (ietf-drums-init
+       (condition-case nil
+	   (mail-header-remove-whitespace
+	    (mail-header-remove-comments string))
+	 ;; The most likely cause of an error is unbalanced parentheses
+	 ;; or double-quotes.  If all parentheses and double-quotes are
+	 ;; quoted meaninglessly with backslashes, removing them might
+	 ;; make it parseable.  Let's try...
+	 (error
+	  (let (mod)
+	    (when (and (string-match "\\\\\"" string)
+		       (not (string-match "\\`\"\\|[^\\]\"" string)))
+	      (setq string (mm-replace-in-string string "\\\\\"" "\"")
+		    mod t))
+	    (when (and (string-match "\\\\(" string)
+		       (string-match "\\\\)" string)
+		       (not (string-match "\\`(\\|[^\\][()]" string)))
+	      (setq string (mm-replace-in-string string "\\\\\\([()]\\)" "\\1")
+		    mod t))
+	    (or (and mod
+		     (ignore-errors
+		       (mail-header-remove-whitespace
+			(mail-header-remove-comments string))))
+		;; Finally, attempt to extract only type.
+		(if (string-match
+		     (concat "\\`[\t\n ]*\\([^" ietf-drums-tspecials "\t\n ]+"
+			     "\\(/[^" ietf-drums-tspecials
+			     "\t\n ]+\\)?\\)\\([\t\n ;]\\|\\'\\)")
+		     string)
+		    (match-string 1 string)
+		  ""))))))
       (let ((table (copy-syntax-table ietf-drums-syntax-table)))
 	(modify-syntax-entry ?\' "w" table)
 	(modify-syntax-entry ?* " " table)
@@ -67,9 +97,12 @@ function fails in parsing of parameters."
 	(set-syntax-table table))
       (setq c (char-after))
       (when (and (memq c ttoken)
-		 (not (memq c stoken)))
-	(setq type (downcase (buffer-substring
-			      (point) (progn (forward-sexp 1) (point)))))
+		 (not (memq c stoken))
+		 (setq type (ignore-errors
+			      (downcase
+			       (buffer-substring (point) (progn
+							   (forward-sexp 1)
+							   (point)))))))
 	;; Do the params
 	(condition-case err
 	    (progn
@@ -180,8 +213,7 @@ function fails in parsing of parameters."
 	     ;;(message "%s" (error-message-string err))
 	     )))
 
-	(when type
-	  `(,type ,@(nreverse parameters)))))))
+	(cons type (nreverse parameters))))))
 
 (defun rfc2231-decode-encoded-string (string)
   "Decode an RFC2231-encoded string.

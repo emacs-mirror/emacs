@@ -26,7 +26,6 @@
 
 ;;; Code:
 
-(provide 'ediff-ptch)
 
 (defgroup ediff-ptch nil
   "Ediff patch support."
@@ -843,6 +842,8 @@ you can still examine the changes via M-x ediff-files"
     ))
 
 
+
+(provide 'ediff-ptch)
 
 
 ;;; Local Variables:
