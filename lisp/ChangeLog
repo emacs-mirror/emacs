@@ -1,3 +1,14 @@
+2006-02-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.el (speedbar-make-button): Keep text properties
+	of string arguments if desired.
+
+	* progmodes/gud.el (gud-speedbar-buttons): Fontify watch
+	expessions.
+
+	* progmodes/gdb-ui.el (gdb-speedbar-expand-node): Force update
+	of speedbar.
+
 2006-02-19  Ryan Yeske  <rcyeske@gmail.com>
 
 	* ffap.el (ffap-read-file-or-url): Bind `completion-ignore-case'
