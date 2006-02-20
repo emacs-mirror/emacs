@@ -205,7 +205,7 @@ string (starting with the first character that is not @samp{*} or
 It may be a Lisp expression that is not a string; then it should be a
 form that is evaluated to get a list of arguments to pass to the
 command.  Usually this form will call various functions to read input
-from the user, most often through the minibuffer (@pxref{Minibuffer})
+from the user, most often through the minibuffer (@pxref{Minibuffers})
 or directly from the keyboard (@pxref{Reading Input}).
 @cindex argument evaluation form
 
