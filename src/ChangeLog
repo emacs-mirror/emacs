@@ -1,5 +1,13 @@
 2006-02-19  Richard M. Stallman  <rms@gnu.org>
 
+	* xterm.c (x_catch_errors): Use xmalloc.
+
+	* regex.c (extend_range_table_work_area): Call xmalloc and xrealloc.
+	(regex_compile): Likewise.
+	(regcomp): Use xmalloc.
+
+	* gtkutil.c (malloc_widget_value): Use xmalloc.
+
 	* vm-limit.c [HAVE_GETRLIMIT]: Include sys/resource.h.
 	(check_memory_limits) [HAVE_GETRLIMIT]: Use getrlimit.
 
