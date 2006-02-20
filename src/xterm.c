@@ -2625,15 +2625,22 @@ x_draw_glyph_string (s)
 {
   int relief_drawn_p = 0;
 
-  /* If S draws into the background of its successor, draw the
-     background of the successor first so that S can draw into it.
+  /* If S draws into the background of its successors, draw the
+     background of the successors first so that S can draw into it.
      This makes S->next use XDrawString instead of XDrawImageString.  */
   if (s->next && s->right_overhang && !s->for_overlaps)
     {
-      xassert (s->next->img == NULL);
-      x_set_glyph_string_gc (s->next);
-      x_set_glyph_string_clipping (s->next);
-      x_draw_glyph_string_background (s->next, 1);
+      int width;
+      struct glyph_string *next;
+
+      for (width = 0, next = s->next; next;
+	   width += next->width, next = next->next)
+	if (next->first_glyph->type != IMAGE_GLYPH)
+	  {
+	    x_set_glyph_string_gc (next);
+	    x_set_glyph_string_clipping (next);
+	    x_draw_glyph_string_background (next, 1);
+	  }
     }
 
   /* Set up S->gc, set clipping and draw S.  */
@@ -2777,32 +2784,46 @@ x_draw_glyph_string (s)
       if (!relief_drawn_p && s->face->box != FACE_NO_BOX)
 	x_draw_glyph_string_box (s);
 
-      if (s->prev && s->prev->right_overhang && s->prev->hl != s->hl)
+      if (s->prev)
 	{
-	  /* As s->prev was drawn while clipped to its own area, we
-	     must draw the right_overhang part using to s->hl now.  */
-	  enum draw_glyphs_face save = s->prev->hl;
+	  struct glyph_string *prev;
 
-	  s->prev->hl = s->hl;
-	  x_set_glyph_string_gc (s->prev);
-	  x_set_glyph_string_clipping_exactly (s, s->prev);
-	  x_draw_glyph_string_foreground (s->prev);
-	  XSetClipMask (s->prev->display, s->prev->gc, None);
-	  s->prev->hl = save;
+	  for (prev = s->prev; prev; prev = prev->prev)
+	    if (prev->hl != s->hl
+		&& prev->x + prev->width + prev->right_overhang > s->x)
+	      {
+		/* As prev was drawn while clipped to its own area, we
+		   must draw the right_overhang part using s->hl now.  */
+		enum draw_glyphs_face save = prev->hl;
+
+		prev->hl = s->hl;
+		x_set_glyph_string_gc (prev);
+		x_set_glyph_string_clipping_exactly (s, prev);
+		x_draw_glyph_string_foreground (prev);
+		XSetClipMask (prev->display, prev->gc, None);
+		prev->hl = save;
+	      }
 	}
 
-      if (s->next && s->next->left_overhang && s->next->hl != s->hl)
+      if (s->next)
 	{
-	  /* As s->next will be drawn while clipped to its own area,
-	     we must draw the left_overhang part using s->hl now.  */
-	  enum draw_glyphs_face save = s->next->hl;
+	  struct glyph_string *next;
 
-	  s->next->hl = s->hl;
-	  x_set_glyph_string_gc (s->next);
-	  x_set_glyph_string_clipping_exactly (s, s->next);
-	  x_draw_glyph_string_foreground (s->next);
-	  XSetClipMask (s->next->display, s->next->gc, None);
-	  s->next->hl = save;
+	  for (next = s->next; next; next = next->next)
+	    if (next->hl != s->hl
+		&& next->x - next->left_overhang && s->next->hl != s->hl)
+	      {
+		/* As next will be drawn while clipped to its own area,
+		   we must draw the left_overhang part using s->hl now.  */
+		enum draw_glyphs_face save = next->hl;
+
+		next->hl = s->hl;
+		x_set_glyph_string_gc (next);
+		x_set_glyph_string_clipping_exactly (s, next);
+		x_draw_glyph_string_foreground (next);
+		XSetClipMask (next->display, next->gc, None);
+		next->hl = save;
+	      }
 	}
     }
 
