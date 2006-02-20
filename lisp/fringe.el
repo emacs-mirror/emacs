@@ -50,23 +50,44 @@
 
 (unless (or (not (boundp 'fringe-bitmaps))
 	    (get 'left-truncation 'fringe))
-  (let ((bitmaps '(left-truncation right-truncation
-		   up-arrow down-arrow
-		   continued-line continuation-line
-		   overlay-arrow
+  (let ((bitmaps '(question-mark
+		   left-arrow right-arrow up-arrow down-arrow
+		   left-curly-arrow right-curly-arrow
+		   left-triangle right-triangle
 		   top-left-angle top-right-angle
 		   bottom-left-angle bottom-right-angle
 		   left-bracket right-bracket
-		   filled-box-cursor hollow-box-cursor hollow-square
-		   bar-cursor hbar-cursor
+		   filled-rectangle hollow-rectangle
+		   filled-square hollow-square
+		   vertical-bar horisontal-bar
 		   empty-line))
-	(bn 2))
+	(bn 1))
     (while bitmaps
       (push (car bitmaps) fringe-bitmaps)
       (put (car bitmaps) 'fringe bn)
       (setq bitmaps (cdr bitmaps)
 	    bn (1+ bn)))))
 
+(setq-default fringe-indicator-alist
+      '((truncation . (left-arrow right-arrow))
+	(continuation . (left-curly-arrow right-curly-arrow))
+	(overlay-arrow . right-triangle)
+	(up . up-arrow)
+	(down . down-arrow)
+	(top . (top-left-angle top-right-angle))
+	(bottom . (bottom-left-angle bottom-right-angle
+		   top-right-angle top-left-angle))
+	(top-bottom . (left-bracket right-bracket
+		       top-right-angle top-left-angle))
+	(empty-line . empty-line)
+	(unknown . question-mark)))
+
+(setq-default fringe-cursor-alist
+      '((box . filled-rectangle)
+	(hollow . hollow-rectangle)
+	(bar . vertical-bar)
+	(hbar . horisontal-bar)
+	(hollow-small . hollow-square)))
 
 ;; Control presence of fringes
 
