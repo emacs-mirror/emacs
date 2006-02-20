@@ -1,3 +1,21 @@
+2006-02-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-alias.el (mh-address-mail-regexp)
+	(mh-goto-address-find-address-at-point): Delete copies from
+	goto-addr.el.
+	(mh-alias-suggest-alias): Use goto-address-mail-regexp instead of
+	mh-address-mail-regexp.
+	(mh-alias-add-address-under-point): Use
+	goto-address-find-address-at-point instead of
+	mh-goto-address-find-address-at-point.
+
+	* mh-e.el (mh-show-use-goto-addr-flag): Delete.
+
+	* mh-show.el (mh-show-mode): Mention goto-address-highlight-p in
+	docstring.
+	(mh-show-addr): Call goto-address unconditionally. User should use
+	goto-address-highlight-p instead of mh-show-use-goto-addr-flag.
+
 2006-02-18  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (Version, mh-version): Add +cvs to version.

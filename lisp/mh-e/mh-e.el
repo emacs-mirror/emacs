@@ -2615,22 +2615,6 @@ message are shown regardless of size."
   :type 'integer
   :group 'mh-show)
 
-(defcustom mh-show-use-goto-addr-flag (and (boundp 'goto-address-highlight-p)
-                                           goto-address-highlight-p)
-  "*Non-nil means highlight URLs and email addresses\\<goto-address-highlight-keymap>.
-
-To send a message using the highlighted email address or to view
-the web page for the highlighted URL, use the middle mouse button
-or \\[goto-address-at-point].
-
-See Info node `(mh-e)Sending Mail' to see how to configure Emacs
-to send the message using MH-E.
-
-The default value of this option comes from the value of
-`goto-address-highlight-p'."
-  :type 'boolean
-  :group 'mh-show)
-
 (defcustom mh-show-use-xface-flag (>= emacs-major-version 21)
   "*Non-nil means display face images in MH-show buffers.
 

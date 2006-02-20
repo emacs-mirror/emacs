@@ -35,6 +35,8 @@
 
 (mh-require-cl)
 
+(require 'goto-addr)
+
 (defvar mh-alias-alist 'not-read
   "Alist of MH aliases.")
 (defvar mh-alias-blind-alist nil
@@ -61,11 +63,6 @@ need include only system aliases and the passwd file, since personal
 alias files listed in your \"Aliasfile:\" MH profile component are
 automatically included. You can update the alias list manually using
 \\[mh-alias-reload].")
-
-;; Copy of `goto-address-mail-regexp'.
-(defvar mh-address-mail-regexp
-  "[-a-zA-Z0-9._]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
-  "A regular expression probably matching an e-mail address.")
 
 
 
@@ -343,7 +340,7 @@ NO-COMMA-SWAP is non-nil."
    ((string-match "^\\(.*\\) +<.*>$" string)
     ;; Some name <somename@foo.bar>  -> recurse -> Some name
     (mh-alias-suggest-alias (match-string 1 string) no-comma-swap))
-   ((string-match (concat mh-address-mail-regexp " +(\\(.*\\))$") string)
+   ((string-match (concat goto-address-mail-regexp " +(\\(.*\\))$") string)
     ;; somename@foo.bar (Some name)  -> recurse -> Some name
     (mh-alias-suggest-alias (match-string 1 string) no-comma-swap))
    ((string-match "^\\(Dr\\|Prof\\)\\.? +\\(.*\\)" string)
@@ -595,23 +592,10 @@ filing messages."
 (defun mh-alias-add-address-under-point ()
   "Insert an alias for address under point."
   (interactive)
-  (let ((address (mh-goto-address-find-address-at-point)))
+  (let ((address (goto-address-find-address-at-point)))
     (if address
         (mh-alias-add-alias nil address)
       (message "No email address found under point"))))
-
-;; From goto-addr.el, which we don't want to force-load on users.
-(defun mh-goto-address-find-address-at-point ()
-  "Find e-mail address around or before point.
-
-Then search backwards to beginning of line for the start of an
-e-mail address. If no e-mail address found, return nil."
-  (re-search-backward "[^-_A-z0-9.@]" (mh-line-beginning-position) 'lim)
-  (if (or (looking-at mh-address-mail-regexp) ; already at start
-          (and (re-search-forward mh-address-mail-regexp
-                                  (mh-line-end-position) 'lim)
-               (goto-char (match-beginning 0))))
-      (mh-match-string-no-properties 0)))
 
 (defun mh-alias-apropos (regexp)
   "Show all aliases or addresses that match a regular expression REGEXP."
