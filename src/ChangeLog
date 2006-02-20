@@ -1,3 +1,11 @@
+2006-02-19  Richard M. Stallman  <rms@gnu.org>
+
+	* vm-limit.c [HAVE_GETRLIMIT]: Include sys/resource.h.
+	(check_memory_limits) [HAVE_GETRLIMIT]: Use getrlimit.
+
+	* xmenu.c (digest_single_submenu): When pane_string is empty,
+	do initialize save_wv.
+
 2006-02-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (update_menu_bar) [MAC_OS]: Don't set
