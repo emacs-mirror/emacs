@@ -1,5 +1,12 @@
 2006-02-20  Kenichi Handa  <handa@m17n.org>
 
+	* xterm.c (x_set_glyph_string_clipping_exactly): New function.
+	(x_draw_glyph_string): Fix drawing of right_overhang and
+	left_overhang around/on cursor.
+
+	* xdisp.c (draw_glyphs): Fix inclusion of right_overwriting
+	glyphs.
+
 	* term.c (produce_glyphs): Sync to HEAD.
 
 2006-02-15  Kenichi Handa  <handa@m17n.org>
