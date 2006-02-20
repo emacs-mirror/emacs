@@ -1777,13 +1777,26 @@ produce_glyphs (it)
     }
   else if (CHAR_BYTE8_P (it->c))
     {
-      /* We must send the raw 8-bit byte as is to the terminal.
-	 Although there's no way to know how many columns it occupies
-	 on a screen, it is a good assumption that a single byte code
-	 has 1-column width.  */
-      it->pixel_width = it->nglyphs = 1;
-      if (it->glyph_row)
-	append_glyph (it);
+      if (unibyte_display_via_language_environment
+	  && (it->c >= 0240))
+	{
+	  it->char_to_display = unibyte_char_to_multibyte (it->c);
+	  it->pixel_width = CHAR_WIDTH (it->char_to_display);
+	  it->nglyphs = it->pixel_width;
+	  if (it->glyph_row)
+	    append_glyph (it);
+	}
+      else
+	{
+	  /* Coming here means that it->c is from display table, thus
+	     we must send the raw 8-bit byte as is to the terminal.
+	     Although there's no way to know how many columns it
+	     occupies on a screen, it is a good assumption that a
+	     single byte code has 1-column width.  */
+	  it->pixel_width = it->nglyphs = 1;
+	  if (it->glyph_row)
+	    append_glyph (it);
+	}
     }
   else
     {
