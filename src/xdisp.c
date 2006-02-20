@@ -19329,6 +19329,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
       if (i >= 0)
 	{
 	  clip_tail = tail;
+	  i++;			/* We must include the Ith glyph.  */
 	  BUILD_GLYPH_STRINGS (end, i, h, t,
 			       DRAW_NORMAL_TEXT, x, last_x);
 	  for (s = h; s; s = s->next)
