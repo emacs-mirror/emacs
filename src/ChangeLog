@@ -1,7 +1,8 @@
 2006-02-20  Chong Yidong  <cyd@stupidchicken.com>
 
-	* regex.c (xmalloc, xrealloc): Define these when not linked to
-	Emacs.
+	* regex.c: Revert 2006-02-19 change.
+	(xmalloc, xrealloc): Define these when not linked to Emacs.
+	Redefine malloc -> xmalloc, realloc -> xrealloc as in Emacs case.
 
 2006-02-19  Luc Teirlinck  <teirllm@auburn.edu>
 
