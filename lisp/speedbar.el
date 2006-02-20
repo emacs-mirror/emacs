@@ -1708,9 +1708,13 @@ Separators are not active, have no labels, depth, or actions."
 (defun speedbar-make-button (start end face mouse function &optional token)
   "Create a button from START to END, with FACE as the display face.
 MOUSE is the mouse face.  When this button is clicked on FUNCTION
-will be run with the TOKEN parameter (any Lisp object)"
+will be run with the TOKEN parameter (any Lisp object).  If FACE
+is t use the text properties of the string that is passed as an
+argument."
+  (unless (eq face t)
+    (put-text-property start end 'face face))
   (add-text-properties
-   start end `(face ,face mouse-face ,mouse invisible nil
+   start end `(mouse-face ,mouse invisible nil
                speedbar-text ,(buffer-substring-no-properties start end)))
   (if speedbar-use-tool-tips-flag
       (put-text-property start end 'help-echo #'dframe-help-echo))
