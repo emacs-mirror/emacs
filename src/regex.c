@@ -2067,10 +2067,10 @@ extend_range_table_work_area (work_area)
   work_area->allocated += 16 * sizeof (int);
   if (work_area->table)
     work_area->table
-      = (int *) realloc (work_area->table, work_area->allocated);
+      = (int *) xrealloc (work_area->table, work_area->allocated);
   else
     work_area->table
-      = (int *) malloc (work_area->allocated);
+      = (int *) xalloc (work_area->allocated);
 }
 
 #ifdef emacs
