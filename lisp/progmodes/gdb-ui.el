@@ -761,6 +761,7 @@ INDENT is the current indentation depth."
 	 (dolist (var gdb-var-list)
 	   (if (string-match (concat token "\\.") (nth 1 var))
 	       (setq gdb-var-list (delq var gdb-var-list))))
+	 (setq gdb-force-update t)
 	 (with-current-buffer gud-comint-buffer
 	   (speedbar-timer-fn)))))
 
