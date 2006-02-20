@@ -1,3 +1,11 @@
+2006-02-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-buttons): Use shadow face for all
+	out of scope components.
+
+	* progmodes/gdb-ui.el (gdb-speedbar-auto-raise): Don't enable by
+	default.
+
 2006-02-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.el (customize-mark-to-save, customize-mark-as-set): Load
