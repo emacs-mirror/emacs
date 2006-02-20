@@ -1,3 +1,16 @@
+2006-02-20  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Fringe Indicators): New section.
+	Move indicate-empty-lines, indicate-buffer-boundaries, and
+	default-indicate-buffer-boundaries here.
+	Add fringe-indicator-alist and default-fringes-indicator-alist.
+	Add list of logical fringe indicator symbols.
+	Update list of standard bitmap names.
+	(Fringe Cursors): New section.
+	Move overflow-newline-into-fringe here.
+	Add fringe-cursor-alist and default-fringes-cursor-alist.
+	Add list of fringe cursor symbols.
+
 2006-02-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* commands.texi (Using Interactive): Fix reference to node

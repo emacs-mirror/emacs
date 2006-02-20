@@ -53,10 +53,8 @@ call server_accept_connection which again calls accept() which returns
 -1 with errno == WSAEWOULDBLOCK (10035) indicating that there is no
 pending connection to accept.
 
-I [KFS] investigated it a little bit and found that it seems that w32 server
-sockets must use WSAAsyncSelect + FD_ACCEPT to request notifications
-of incoming connections -- but exactly how that is done is not for me
-to look at...
+It seems that to fix this, w32 server sockets must use WSAAsyncSelect
++ FD_ACCEPT to request notifications of incoming connections...
 
 
 * DOCUMENTATION

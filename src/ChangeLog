@@ -1,5 +1,7 @@
 2006-02-20  Kim F. Storm  <storm@cua.dk>
 
+	* Makefile.in: Add fringe.elc to WINDOW_SUPPORT.
+
 	* buffer.h (struct buffer): New members fringe_indicator_alist and
 	fringe_cursor_alist.
 

@@ -1,4 +1,11 @@
-2006-02-21  Nick Roberts  <nickrob@snap.net.nz>
+2006-02-20  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.el (fringe-bitmaps): Update to new bitmap names.
+	(fringe-indicator-alist, fringe-cursor-alist): Initialize.
+
+	* loadup.el: Load "fringe" on window systems.
+
+2006-02-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-speedbar-buttons): Use shadow face for all
 	out of scope components.
