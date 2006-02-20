@@ -1176,6 +1176,24 @@ x_set_glyph_string_clipping (s)
 }
 
 
+/* Set SRC's clipping for output of glyph string DST.  This is called
+   when we are drawing DST's left_overhang or right_overhang only in
+   the area of SRC.  */
+
+static void
+x_set_glyph_string_clipping_exactly (src, dst)
+     struct glyph_string *src, *dst;
+{
+  XRectangle r;
+  enum draw_glyphs_face save = src->hl;
+
+  src->hl = DRAW_CURSOR;	/* This foces clipping just this glyph.  */
+  get_glyph_string_clip_rect (src, &r);
+  src->hl = save;
+  XSetClipRectangles (dst->display, dst->gc, 0, 0, &r, 1, Unsorted);
+}
+
+
 /* RIF:
    Compute left and right overhang of glyph string S.  */
 
@@ -2635,6 +2653,12 @@ x_draw_glyph_string (s)
       x_set_glyph_string_clipping (s);
       relief_drawn_p = 1;
     }
+  else if ((s->prev && s->prev->hl != s->hl && s->left_overhang)
+	   || (s->next && s->next->hl != s->hl && s->right_overhang))
+    /* We must clip just this glyph.  left_overhang part has already
+       drawn when s->prev was drawn, and right_overhang part will be
+       drawn later when s->next is drawn. */
+    x_set_glyph_string_clipping_exactly (s, s);
   else
     x_set_glyph_string_clipping (s);
 
@@ -2752,6 +2776,34 @@ x_draw_glyph_string (s)
       /* Draw relief if not yet drawn.  */
       if (!relief_drawn_p && s->face->box != FACE_NO_BOX)
 	x_draw_glyph_string_box (s);
+
+      if (s->prev && s->prev->right_overhang && s->prev->hl != s->hl)
+	{
+	  /* As s->prev was drawn while clipped to its own area, we
+	     must draw the right_overhang part using to s->hl now.  */
+	  enum draw_glyphs_face save = s->prev->hl;
+
+	  s->prev->hl = s->hl;
+	  x_set_glyph_string_gc (s->prev);
+	  x_set_glyph_string_clipping_exactly (s, s->prev);
+	  x_draw_glyph_string_foreground (s->prev);
+	  XSetClipMask (s->prev->display, s->prev->gc, None);
+	  s->prev->hl = save;
+	}
+
+      if (s->next && s->next->left_overhang && s->next->hl != s->hl)
+	{
+	  /* As s->next will be drawn while clipped to its own area,
+	     we must draw the left_overhang part using s->hl now.  */
+	  enum draw_glyphs_face save = s->next->hl;
+
+	  s->next->hl = s->hl;
+	  x_set_glyph_string_gc (s->next);
+	  x_set_glyph_string_clipping_exactly (s, s->next);
+	  x_draw_glyph_string_foreground (s->next);
+	  XSetClipMask (s->next->display, s->next->gc, None);
+	  s->next->hl = save;
+	}
     }
 
   /* Reset clipping.  */
