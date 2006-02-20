@@ -1,3 +1,8 @@
+2006-02-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* commands.texi (Using Interactive): Fix reference to node
+	"Minibuffers".
+
 2006-02-19  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.texi (High-Level Completion):
