@@ -43,44 +43,45 @@
 
 ;; Define the built-in fringe bitmaps and setup default mappings
 
-(let ((bitmaps '(question-mark
-		 left-arrow right-arrow up-arrow down-arrow
-		 left-curly-arrow right-curly-arrow
-		 left-triangle right-triangle
-		 top-left-angle top-right-angle
-		 bottom-left-angle bottom-right-angle
-		 left-bracket right-bracket
-		 filled-rectangle hollow-rectangle
-		 filled-square hollow-square
-		 vertical-bar horizontal-bar
-		 empty-line))
-      (bn 1))
-  (while bitmaps
-    (push (car bitmaps) fringe-bitmaps)
-    (put (car bitmaps) 'fringe bn)
-    (setq bitmaps (cdr bitmaps)
-	  bn (1+ bn))))
+(when (boundp 'fringe-bitmaps)
+  (let ((bitmaps '(question-mark
+		   left-arrow right-arrow up-arrow down-arrow
+		   left-curly-arrow right-curly-arrow
+		   left-triangle right-triangle
+		   top-left-angle top-right-angle
+		   bottom-left-angle bottom-right-angle
+		   left-bracket right-bracket
+		   filled-rectangle hollow-rectangle
+		   filled-square hollow-square
+		   vertical-bar horizontal-bar
+		   empty-line))
+	(bn 1))
+    (while bitmaps
+      (push (car bitmaps) fringe-bitmaps)
+      (put (car bitmaps) 'fringe bn)
+      (setq bitmaps (cdr bitmaps)
+	    bn (1+ bn))))
 
-(setq-default fringe-indicator-alist
-      '((truncation . (left-arrow right-arrow))
-	(continuation . (left-curly-arrow right-curly-arrow))
-	(overlay-arrow . right-triangle)
-	(up . up-arrow)
-	(down . down-arrow)
-	(top . (top-left-angle top-right-angle))
-	(bottom . (bottom-left-angle bottom-right-angle
-		   top-right-angle top-left-angle))
-	(top-bottom . (left-bracket right-bracket
-		       top-right-angle top-left-angle))
-	(empty-line . empty-line)
-	(unknown . question-mark)))
+  (setq-default fringe-indicator-alist
+		'((truncation . (left-arrow right-arrow))
+		  (continuation . (left-curly-arrow right-curly-arrow))
+		  (overlay-arrow . right-triangle)
+		  (up . up-arrow)
+		  (down . down-arrow)
+		  (top . (top-left-angle top-right-angle))
+		  (bottom . (bottom-left-angle bottom-right-angle
+			     top-right-angle top-left-angle))
+		  (top-bottom . (left-bracket right-bracket
+				 top-right-angle top-left-angle))
+		  (empty-line . empty-line)
+		  (unknown . question-mark)))
 
-(setq-default fringe-cursor-alist
-      '((box . filled-rectangle)
-	(hollow . hollow-rectangle)
-	(bar . vertical-bar)
-	(hbar . horizontal-bar)
-	(hollow-small . hollow-square)))
+  (setq-default fringe-cursor-alist
+		'((box . filled-rectangle)
+		  (hollow . hollow-rectangle)
+		  (bar . vertical-bar)
+		  (hbar . horizontal-bar)
+		  (hollow-small . hollow-square))))
 
 
 (defmacro fringe-bitmap-p (symbol)
