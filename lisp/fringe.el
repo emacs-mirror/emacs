@@ -59,7 +59,7 @@
 		   left-bracket right-bracket
 		   filled-rectangle hollow-rectangle
 		   filled-square hollow-square
-		   vertical-bar horisontal-bar
+		   vertical-bar horizontal-bar
 		   empty-line))
 	(bn 1))
     (while bitmaps
@@ -86,7 +86,7 @@
       '((box . filled-rectangle)
 	(hollow . hollow-rectangle)
 	(bar . vertical-bar)
-	(hbar . horisontal-bar)
+	(hbar . horizontal-bar)
 	(hollow-small . hollow-square)))
 
 ;; Control presence of fringes
