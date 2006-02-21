@@ -1,3 +1,11 @@
+2006-02-20  Eric Ding  <ericding@alum.mit.edu>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Added entries
+	"X-Authenticated-Sender:", "X-Barracuda-", "X-EFL-Spamscore",
+	"X-IronPort-AV:", "X-Mail-from:", "X-Mailman-Approved-At:",
+	"X-Resolved-to:", and "X-SA-Exim".  Fixed "X-Bugzilla-" and
+	"X-Roving-" by removing unnecessary "*" at end.
+
 2006-02-19  Bill Wohler  <wohler@newt.com>
 
 	* mh-alias.el (mh-address-mail-regexp)
