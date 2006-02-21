@@ -1,3 +1,13 @@
+2006-02-21  Kenichi Handa  <handa@m17n.org>
+
+	* startup.el (command-line): Use custom-reevaluate-setting for
+	global-auto-composition-mode.
+
+	* composite.el (auto-composition-function): Make it buffer local.
+	(auto-composition-mode): New minor mode.
+	(turn-on-auto-composition-if-enabled): New function.
+	(global-auto-composition-mode): New global minor mode.
+
 2006-01-24  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char): Use insert-text-button instead of
