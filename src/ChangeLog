@@ -1,3 +1,8 @@
+2006-02-21  Giorgos Keramidas  <keramida@ceid.upatras.gr>
+
+	* fringe.c (horizontal_bar_bits): Rename from `horisontal_bar_bits'.
+	(standard_bitmaps): Use it.
+
 2006-02-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (mac_draw_string_common): Remove arg MODE.  New arg
@@ -28,7 +33,7 @@
 	default values are set by pre-loading fringe.el.
 	(syms_of_buffer): defvar_per_buffer new fringe-indicator-alist and
 	fringe-cursor-alist buffer-local variables and defvar_lisp_nopro
-	correspondig default- variables.
+	corresponding default- variables.
 
 	* fringe.c (enum fringe_bitmap_type): Remove.  Change all uses
 	to use `int'.
@@ -46,7 +51,7 @@
 	(hollow_rectangle_bits): Rename from hollow_box_cursor_bits.
 	(filled_square_bits): Added.
 	(vertical_bar_bits): Rename from bar_cursor_bits.
-	(horisontal_bar_bits): Rename from hbar_cursor_bits.
+	(horizontal_bar_bits): Rename from hbar_cursor_bits.
 	(empty_line_bits): Rename from zv_bits.
 	(standard_bitmaps): Update to use new names.
 	(draw_fringe_bitmap_1): Make static.
