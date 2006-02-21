@@ -2722,7 +2722,9 @@ continuation, horizontal scrolling, and the overlay arrow.
 
 @menu
 * Fringe Size/Pos::     Specifying where to put the window fringes.
-* Fringe Bitmaps::      Displaying bitmaps in the window fringes.
+* Fringe Indicators::   Displaying indicator icons in the window fringes.
+* Fringe Cursors::      Displaying cursors in the right fringe.
+* Fringe Bitmaps::      Specifying bitmaps for fringe indicators.
 * Customizing Bitmaps:: Specifying your own bitmaps to use in the fringes.
 * Overlay Arrow::       Display of an arrow to indicate position.
 @end menu
@@ -2774,6 +2776,151 @@ window is used.  The value has the form @code{(@var{left-width}
 @var{right-width} @var{outside-margins})}.
 @end defun
 
+
+@node Fringe Indicators
+@subsection Fringe Indicators
+@cindex fringe indicators
+@cindex indicators, fringe
+
+  The @dfn{fringe indicators} are tiny icons Emacs displays in the
+window fringe (on a graphic display) to indicate truncated or
+continued lines, buffer boundaries, overlay arrow, etc.
+
+@defopt indicate-empty-lines
+@tindex indicate-empty-lines
+@cindex fringes, and empty line indication
+When this is non-@code{nil}, Emacs displays a special glyph in the
+fringe of each empty line at the end of the buffer, on graphical
+displays.  @xref{Fringes}.  This variable is automatically
+buffer-local in every buffer.
+@end defopt
+
+@defvar indicate-buffer-boundaries
+This buffer-local variable controls how the buffer boundaries and
+window scrolling are indicated in the window fringes.
+
+Emacs can indicate the buffer boundaries---that is, the first and last
+line in the buffer---with angle icons when they appear on the screen.
+In addition, Emacs can display an up-arrow in the fringe to show
+that there is text above the screen, and a down-arrow to show
+there is text below the screen.
+
+There are four kinds of basic values:
+
+@table @asis
+@item @code{nil}
+Don't display the icons.
+@item @code{left}
+Display them in the left fringe.
+@item @code{right}
+Display them in the right fringe.
+@item @var{anything-else}
+Display the icon at the top of the window top in the left fringe, and other
+in the right fringe.
+@end table
+
+If value is a cons @code{(@var{angles} . @var{arrows})}, @var{angles}
+controls the angle icons, and @var{arrows} controls the arrows.  Both
+@var{angles} and @var{arrows} work according to the table above.
+Thus, @code{(t .  right)} places the top angle icon in the left
+fringe, the bottom angle icon in the right fringe, and both arrows in
+the right fringe.
+@end defvar
+
+@defvar default-indicate-buffer-boundaries
+The value of this variable is the default value for
+@code{indicate-buffer-boundaries} in buffers that do not override it.
+@end defvar
+
+@defvar fringe-indicator-alist
+This buffer-local variable specifies the mapping from logical fringe
+indicators to the actual bitmaps displayed in the window fringes.
+
+These symbols identify the logical fringe indicators:
+
+@table @asis
+@item Truncation and continuation line indicators:
+@code{truncation}, @code{continuation}.
+
+@item Buffer position indicators:
+@code{up}, @code{down},
+@code{top}, @code{bottom},
+@code{top-bottom}.
+
+@item Empty line indicator:
+@code{empty-line}.
+
+@item Overlay arrow indicator:
+@code{overlay-arrow}.
+
+@item Unknown bitmap indicator:
+@code{unknown}.
+@end table
+
+  The value is an alist where each element @code{(@var{indicator} . @var{bitmaps})}
+specifies the fringe bitmaps used to display a specific logical
+fringe indicator.
+
+Here, @var{indicator} specifies the logical indicator type, and
+@var{bitmaps} is list of symbols @code{(@var{left} @var{right}
+[@var{left1} @var{right1}])} which specifies the actual bitmap shown
+in the left or right fringe for the logical indicator.
+
+The @var{left} and @var{right} symbols specify the bitmaps shown in
+the left and/or right fringe for the specific indicator.  The
+@var{left1} or @var{right1} bitmaps are used only for the `bottom' and
+`top-bottom indicators when the last (only) line in has no final
+newline.  Alternatively, @var{bitmaps} may be a single symbol which is
+used in both left and right fringes.
+
+When @code{fringe-indicator-alist} has a buffer-local value, and there
+is no bitmap defined for a logical indicator, or the bitmap is
+@code{t}, the corresponding value from the (non-local)
+@code{default-fringes-indicator-alist} is used.
+
+To completely hide a specific indicator, set the bitmap to @code{nil}.
+@end defvar
+
+@defvar default-fringes-indicator-alist
+The value of this variable is the default value for
+@code{fringe-indicator-alist} in buffers that do not override it.
+@end defvar
+
+@table @asis
+@item Standard fringe bitmaps for indicators:
+@code{left-arrow}, @code{right-arrow}, @code{up-arrow}, @code{down-arrow},
+@code{left-curly-arrow}, @code{right-curly-arrow},
+@code{left-triangle}, @code{right-triangle},
+@code{top-left-angle}, @code{ top-right-angle},
+@code{bottom-left-angle}, @code{bottom-right-angle},
+@code{left-bracket}, @code{right-bracket},
+@code{filled-rectangle}, @code{hollow-rectangle},
+@code{filled-square}, @code{hollow-square},
+@code{vertical-bar}, @code{horizontal-bar},
+@code{empty-line},
+@code{question-mark}.
+@end table
+
+@node Fringe Cursors
+@subsection Fringe Cursors
+@cindex fringe cursors
+@cindex cursor, fringe
+
+  When a line is exactly as wide as the window, Emacs displays the
+cursor in the right fringe instead of using two lines.  Different
+bitmaps are used to represent the cursor in the fringe depending on
+the current buffer's cursor type.
+
+@table @asis
+@item Logical cursor types:
+@code{box} , @code{hollow}, @code{bar},
+@code{hbar}, @code{hollow-small}.
+@end table
+
+The @code{hollow-small} type is used instead of @code{hollow} when the
+normal @code{hollow-rectangle} bitmap is too tall to fit on a specific
+display line.
+
 @defvar overflow-newline-into-fringe
 If this is non-@code{nil}, lines exactly as wide as the window (not
 counting the final newline character) are not continued.  Instead,
@@ -2781,16 +2928,44 @@ when point is at the end of the line, the cursor appears in the right
 fringe.
 @end defvar
 
+@defvar fringe-cursor-alist
+This variable specifies the mapping from logical cursor type to the
+actual fringe bitmaps displayed in the right fringe.  The value is an
+alist where each element @code{(@var{cursor}. @var{bitmap})} specifies
+the fringe bitmaps used to display a specific logical cursor type in
+the fringe.  Here, @var{cursor} specifies the logical cursor type and
+@var{bitmap} is a symbol specifying the fringe bitmap to be displayed
+for that logical cursor type.
+
+When @code{fringe-cursor-alist} has a buffer-local value, and there is
+no bitmap defined for a cursor type, the corresponding value from the
+(non-local) @code{default-fringes-indicator-alist} is used.
+@end defvar
+
+@defvar default-fringes-cursor-alist
+The value of this variable is the default value for
+@code{fringe-cursor-alist} in buffers that do not override it.
+@end defvar
+
+@table @asis
+@item Standard bitmaps for displaying the cursor in right fringe:
+@code{filled-rectangle}, @code{hollow-rectangle},
+@code{filled-square}, @code{hollow-square},
+@code{vertical-bar}, @code{horizontal-bar}.
+@end table
+
+
 @node Fringe Bitmaps
 @subsection Fringe Bitmaps
 @cindex fringe bitmaps
 @cindex bitmaps, fringe
 
-  The @dfn{fringe bitmaps} are tiny icons Emacs displays in the window
-fringe (on a graphic display) to indicate truncated or continued
-lines, buffer boundaries, overlay arrow, etc.  The fringe bitmaps are
-shared by all frames and windows.  You can redefine the built-in
-fringe bitmaps, and you can define new fringe bitmaps.
+  The @dfn{fringe bitmaps} are the actual bitmaps which represent the
+logical fringe indicators for truncated or continued lines, buffer
+boundaries, overlay arrow, etc.  Fringe bitmap symbols have their own
+name space.  The fringe bitmaps are shared by all frames and windows.
+You can redefine the built-in fringe bitmaps, and you can define new
+fringe bitmaps.
 
   The way to display a bitmap in the left or right fringes for a given
 line in a window is by specifying the @code{display} property for one
@@ -2803,32 +2978,6 @@ colors should be used for displaying the bitmap, instead of the
 default @code{fringe} face.  @var{face} is automatically merged with
 the @code{fringe} face, so normally @var{face} need only specify the
 foreground color for the bitmap.
-
-  These symbols identify the standard fringe bitmaps.  Evaluate
-@code{(require 'fringe)} to define them.  Fringe bitmap symbols have
-their own name space.
-
-@table @asis
-@item Truncation and continuation line bitmaps:
-@code{left-truncation}, @code{right-truncation},
-@code{continued-line}, @code{continuation-line}.
-
-@item Buffer indication bitmaps:
-@code{up-arrow}, @code{down-arrow},
-@code{top-left-angle}, @code{top-right-angle},
-@code{bottom-left-angle}, @code{bottom-right-angle},
-@code{left-bracket}, @code{right-bracket}.
-
-@item Empty line indication bitmap:
-@code{empty-line}.
-
-@item Overlay arrow bitmap:
-@code{overlay-arrow}.
-
-@item Bitmaps for displaying the cursor in right fringe:
-@code{filled-box-cursor}, @code{hollow-box-cursor}, @code{hollow-square},
-@code{bar-cursor}, @code{hbar-cursor}.
-@end table
 
 @defun fringe-bitmaps-at-pos &optional pos window
 This function returns the fringe bitmaps of the display line
@@ -4597,52 +4746,6 @@ is in units of columns, and the default is 8.  Note that this feature
 is completely independent of the user-settable tab stops used by the
 command @code{tab-to-tab-stop}.  @xref{Indent Tabs}.
 @end defopt
-
-@defopt indicate-empty-lines
-@tindex indicate-empty-lines
-@cindex fringes, and empty line indication
-When this is non-@code{nil}, Emacs displays a special glyph in the
-fringe of each empty line at the end of the buffer, on graphical
-displays.  @xref{Fringes}.  This variable is automatically
-buffer-local in every buffer.
-@end defopt
-
-@defvar indicate-buffer-boundaries
-This buffer-local variable controls how the buffer boundaries and
-window scrolling are indicated in the window fringes.
-
-Emacs can indicate the buffer boundaries---that is, the first and last
-line in the buffer---with angle icons when they appear on the screen.
-In addition, Emacs can display an up-arrow in the fringe to show
-that there is text above the screen, and a down-arrow to show
-there is text below the screen.
-
-There are four kinds of basic values:
-
-@table @asis
-@item @code{nil}
-Don't display the icons.
-@item @code{left}
-Display them in the left fringe.
-@item @code{right}
-Display them in the right fringe.
-@item @var{anything-else}
-Display the icon at the top of the window top in the left fringe, and other
-in the right fringe.
-@end table
-
-If value is a cons @code{(@var{angles} . @var{arrows})}, @var{angles}
-controls the angle icons, and @var{arrows} controls the arrows.  Both
-@var{angles} and @var{arrows} work according to the table above.
-Thus, @code{(t .  right)} places the top angle icon in the left
-fringe, the bottom angle icon in the right fringe, and both arrows in
-the right fringe.
-@end defvar
-
-@defvar default-indicate-buffer-boundaries
-The value of this variable is the default value for
-@code{indicate-buffer-boundaries} in buffers that do not override it.
-@end defvar
 
 @node Display Tables
 @section Display Tables

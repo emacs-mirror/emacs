@@ -2303,17 +2303,20 @@ of citations entirely, choose \"None\"."
     "X-AntiAbuse:"                      ; cPanel
     "X-Apparently-From:"                ; MS Outlook
     "X-Apparently-To:"           ; Egroups/yahoogroups mailing list manager
+    "X-Authenticated-Sender:"           ; AT&T Message Center (webmail)
     "X-Authentication-Warning:"         ; sendmail
+    "X-Barracuda-"                      ; Barracuda spam scores
     "X-Beenthere:"                      ; Mailman mailing list manager
     "X-Bogosity:"                       ; bogofilter
     "X-BrightmailFiltered:"             ; Brightmail
     "X-Brightmail-Tracker:"             ; Brightmail
-    "X-Bugzilla-*"                      ; Bugzilla
+    "X-Bugzilla-"                       ; Bugzilla
     "X-Complaints-To:"
     "X-ContentStamp:"                   ; NetZero
     "X-Cron-Env:"
     "X-DMCA"
     "X-Delivered"
+    "X-EFL-Spamscore:"                  ; MIT alumni spam filtering
     "X-ELNK-Trace:"                     ; Earthlink mailer
     "X-Envelope-Date:"                  ; GNU mailutils
     "X-Envelope-From:"
@@ -2337,6 +2340,7 @@ of citations entirely, choose \"None\"."
     "X-Habeas-SWE-9:"                   ; Spam
     "X-Hashcash:"                       ; hashcash
     "X-Info:"                           ; NTMail
+    "X-IronPort-AV:"                    ; IronPort AV
     "X-Juno-"                           ; Juno
     "X-List-Host:"                      ; Unknown mailing list managers
     "X-List-Subscribe:"                 ; Unknown mailing list managers
@@ -2346,12 +2350,14 @@ of citations entirely, choose \"None\"."
     "X-Loop:"                           ; Unknown mailing list managers
     "X-Lumos-SenderID:"                 ; Roving ConstantContact
     "X-MAIL-INFO:"                      ; NetZero
-    "X-MHE-Checksum"                    ; Checksum added during index search
+    "X-MHE-Checksum:"                   ; Checksum added during index search
     "X-MIME-Autoconverted:"             ; sendmail
     "X-MIMETrack:"
     "X-MS-"                             ; MS Outlook
+    "X-Mail-from:"                      ; fastmail.fm
     "X-MailScanner"                     ; ListProc(tm) by CREN
     "X-Mailing-List:"                   ; Unknown mailing list managers
+    "X-Mailman-Approved-At:"            ; Mailman mailing list manager
     "X-Mailman-Version:"                ; Mailman mailing list manager
     "X-Majordomo:"                      ; Majordomo mailing list manager
     "X-Message-Id"
@@ -2380,8 +2386,10 @@ of citations entirely, choose \"None\"."
     "X-Received-Date:"
     "X-Received:"
     "X-Request-"
+    "X-Resolved-to:"                    ; fastmail.fm
     "X-Return-Path-Hint:"               ; Roving ConstantContact
-    "X-Roving-*"                        ; Roving ConstantContact
+    "X-Roving-"                         ; Roving ConstantContact
+    "X-SA-Exim-"                        ; Exim SpamAssassin
     "X-SBClass:"                        ; Spam
     "X-SBNote:"                         ; Spam
     "X-SBPass:"                         ; Spam

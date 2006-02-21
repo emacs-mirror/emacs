@@ -4604,6 +4604,13 @@ or bottom edge of a window.  It does not move other window edges.
 +++
 ** Customizable fringe bitmaps
 
+*** New buffer-local variables `fringe-indicator-alist' and
+`fringe-cursor-alist' maps between logical (internal) fringe indicator
+and cursor symbols and the actual fringe bitmaps to be displayed.
+This decouples the logical meaning of the fringe indicators from the
+physical appearence, as well as allowing different fringe bitmaps to
+be used in different windows showing different buffers.
+
 *** New function `define-fringe-bitmap' can now be used to create new
 fringe bitmaps, as well as change the built-in fringe bitmaps.
 

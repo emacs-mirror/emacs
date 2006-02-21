@@ -542,7 +542,7 @@ With arg, use separate IO iff arg is positive."
 		  (forward-char 2)
 		  (gud-call (concat "until *%a")))))))))
 
-(defcustom gdb-speedbar-auto-raise t
+(defcustom gdb-speedbar-auto-raise nil
   "If non-nil raise speedbar every time display of watch expressions is\
  updated."
   :type 'boolean

@@ -5332,6 +5332,7 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
   int result;
   struct frame *f = SELECTED_FRAME ();
   Lisp_Object file = Qnil;
+  Lisp_Object decoded_file;
   Widget dialog, text, help;
   Arg al[10];
   int ac = 0;
@@ -5472,7 +5473,9 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
   if (NILP (file))
     Fsignal (Qquit, Qnil);
 
-  return unbind_to (count, file);
+  decoded_file = DECODE_FILE (file);
+
+  return unbind_to (count, decoded_file);
 }
 
 #endif /* USE_MOTIF */
@@ -5500,6 +5503,7 @@ directories.  */)
   FRAME_PTR f = SELECTED_FRAME ();
   char *fn;
   Lisp_Object file = Qnil;
+  Lisp_Object decoded_file;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char *cdef_file;
@@ -5540,7 +5544,9 @@ directories.  */)
   if (NILP (file))
     Fsignal (Qquit, Qnil);
 
-  return unbind_to (count, file);
+  decoded_file = DECODE_FILE (file);
+
+  return unbind_to (count, decoded_file);
 }
 
 #endif /* USE_GTK */

@@ -181,6 +181,51 @@ char *malloc ();
 char *realloc ();
 # endif
 
+/* When used in Emacs's lib-src, we need xmalloc and xrealloc. */
+
+void *
+xmalloc (size)
+     size_t size;
+{
+  register void *val;
+  val = (void *) malloc (size);
+  if (!val && size)
+    {
+      write (2, "virtual memory exhausted\n", 25);
+      exit (1);
+    }
+  return val;
+}
+
+void *
+xrealloc (block, size)
+     void *block;
+     size_t size;
+{
+  register void *val;
+  /* We must call malloc explicitly when BLOCK is 0, since some
+     reallocs don't do this.  */
+  if (! block)
+    val = (void *) malloc (size);
+  else
+    val = (void *) realloc (block, size);
+  if (!val && size)
+    {
+      write (2, "virtual memory exhausted\n", 25);
+      exit (1);
+    }
+  return val;
+}
+
+# ifdef malloc
+#  undef malloc
+# endif
+# define malloc xmalloc
+# ifdef realloc
+#  undef realloc
+# endif
+# define realloc xrealloc
+
 /* When used in Emacs's lib-src, we need to get bzero and bcopy somehow.
    If nothing else has been done, use the method below.  */
 # ifdef INHIBIT_STRING_HEADER
@@ -3609,12 +3654,12 @@ regex_compile (pattern, size, syntax, bufp)
 	if (! fail_stack.stack)
 	  fail_stack.stack
 	    = (fail_stack_elt_t *) malloc (fail_stack.size
-					    * sizeof (fail_stack_elt_t));
+					   * sizeof (fail_stack_elt_t));
 	else
 	  fail_stack.stack
 	    = (fail_stack_elt_t *) realloc (fail_stack.stack,
-					     (fail_stack.size
-					      * sizeof (fail_stack_elt_t)));
+					    (fail_stack.size
+					     * sizeof (fail_stack_elt_t)));
       }
 
     regex_grow_registers (num_regs);
@@ -6300,7 +6345,7 @@ regcomp (preg, pattern, cflags)
 
       preg->translate
 	= (RE_TRANSLATE_TYPE) malloc (CHAR_SET_SIZE
-				       * sizeof (*(RE_TRANSLATE_TYPE)0));
+				      * sizeof (*(RE_TRANSLATE_TYPE)0));
       if (preg->translate == NULL)
 	return (int) REG_ESPACE;
 

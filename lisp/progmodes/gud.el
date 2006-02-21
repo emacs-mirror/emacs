@@ -497,7 +497,7 @@ required by the caller."
 		       (if (or parent status 'out-of-scope)
 			 nil 'gdb-edit-value)
 		       nil
-		       (if (and status gdb-show-changed-values)
+		       (if (and (or parent status) gdb-show-changed-values)
 			   'shadow t)
 		       depth)
 		    (speedbar-make-tag-line
@@ -505,7 +505,8 @@ required by the caller."
 		     'gdb-speedbar-expand-node varnum
 		     (concat expr "\t" type)
 		     nil nil
-		     (if (and status gdb-show-changed-values) 'shadow t)
+		     (if (and (or parent status) gdb-show-changed-values)
+			 'shadow t)
 		     depth))))
 	      (setq var-list (cdr var-list))))
 	  (setq gdb-force-update nil)))
