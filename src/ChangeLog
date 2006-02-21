@@ -1,3 +1,8 @@
+2006-02-21  Zhang Wei <brep@newsmth.org>
+
+	* xfns.c (Fx_file_dialog, Motif and GTK): DECODE_FILE before
+	returning it.
+
 2006-02-21  Giorgos Keramidas  <keramida@ceid.upatras.gr>
 
 	* fringe.c (horizontal_bar_bits): Rename from `horisontal_bar_bits'.
