@@ -1,3 +1,9 @@
+2006-02-21  Giorgos Keramidas  <keramida@ceid.upatras.gr>
+
+	* fringe.el (fringe-bitmaps): Rename `horisontal-bar' to
+	`horizontal-bar'.
+	(fringe-cursor-alist): Use `horizontal-bar'.
+
 2006-02-20  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.el (fringe-bitmaps): Update to new bitmap names.
