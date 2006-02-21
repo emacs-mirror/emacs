@@ -447,10 +447,11 @@ use `before-save-hook'.")
 The value can be t, nil or something else.
 
 A value of t means file local variables specifications are obeyed
-if all the specified variables are safe.  If any variables are
-not safe, you will be queries before setting them.
-A value of nil means file local variables are ignored.
-Any other value means to always query.
+if all the specified variable values are safe; if any values are
+not safe, Emacs queries you, once, whether to set them all.
+
+A value of nil means always ignore the file local variables.
+Any other value means always query you once whether to set them all.
 
 This variable also controls use of major modes specified in
 a -*- line.
