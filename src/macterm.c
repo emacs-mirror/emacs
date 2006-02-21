@@ -283,7 +283,7 @@ mac_begin_clip (region)
   if (new_region == NULL)
     new_region = NewRgn ();
 
-  if (region)
+  if (region && !EmptyRgn (region))
     {
       GetClip (saved_port_clip_region);
       SectRgn (saved_port_clip_region, region, new_region);
@@ -295,7 +295,7 @@ static void
 mac_end_clip (region)
      RgnHandle region;
 {
-  if (region)
+  if (region && !EmptyRgn (region))
     SetClip (saved_port_clip_region);
 }
 
@@ -682,26 +682,14 @@ mac_invert_rectangle (f, x, y, width, height)
 
 
 static void
-mac_draw_string_common (f, gc, x, y, buf, nchars, mode, bytes_per_char)
+mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
      struct frame *f;
      GC gc;
      int x, y;
      char *buf;
-     int nchars, mode, bytes_per_char;
+     int nchars, bg_width, bytes_per_char;
 {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-  UInt32 textFlags, savedFlags;
-  if (mac_use_core_graphics) {
-    textFlags = kQDUseCGTextRendering;
-    savedFlags = SwapQDTextFlags(textFlags);
-  }
-#endif
-
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
-
-  RGBForeColor (GC_FORE_COLOR (gc));
-  if (mode != srcOr)
-    RGBBackColor (GC_BACK_COLOR (gc));
 
 #if USE_ATSUI
   if (GC_FONT (gc)->mac_style)
@@ -724,91 +712,144 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, mode, bytes_per_char)
 						nchars,
 						GC_FONT (gc)->mac_style,
 						&text_layout);
-      if (err == noErr)
+      if (err != noErr)
+	return;
+#ifdef MAC_OSX
+      if (!mac_use_core_graphics)
 	{
-#ifdef MAC_OSX
-	  if (!mac_use_core_graphics)
-	    {
 #endif
-	      mac_begin_clip (GC_CLIP_REGION (gc));
-	      MoveTo (x, y);
-	      ATSUDrawText (text_layout,
-			    kATSUFromTextBeginning, kATSUToTextEnd,
-			    kATSUUseGrafPortPenLoc, kATSUUseGrafPortPenLoc);
-	      mac_end_clip (GC_CLIP_REGION (gc));
-#ifdef MAC_OSX
-	    }
-	  else
+	  mac_begin_clip (GC_CLIP_REGION (gc));
+	  RGBForeColor (GC_FORE_COLOR (gc));
+	  if (bg_width)
 	    {
-	      CGrafPtr port;
-	      CGContextRef context;
-	      float port_height = FRAME_PIXEL_HEIGHT (f);
-	      ATSUAttributeTag tags[] = {kATSUCGContextTag};
-	      ByteCount sizes[] = {sizeof (CGContextRef)};
-	      ATSUAttributeValuePtr values[] = {&context};
+	      Rect r;
 
-	      GetPort (&port);
-	      QDBeginCGContext (port, &context);
-	      if (gc->n_clip_rects)
-		{
-		  CGContextTranslateCTM (context, 0, port_height);
-		  CGContextScaleCTM (context, 1, -1);
-		  CGContextClipToRects (context, gc->clip_rects,
-					gc->n_clip_rects);
-		  CGContextScaleCTM (context, 1, -1);
-		  CGContextTranslateCTM (context, 0, -port_height);
-		}
-	      CGContextSetRGBFillColor
-		(context,
-		 RED_FROM_ULONG (gc->xgcv.foreground) / 255.0,
-		 GREEN_FROM_ULONG (gc->xgcv.foreground) / 255.0,
-		 BLUE_FROM_ULONG (gc->xgcv.foreground) / 255.0,
-		 1.0);
-	      err = ATSUSetLayoutControls (text_layout,
-					   sizeof (tags) / sizeof (tags[0]),
-					   tags, sizes, values);
-	      if (err == noErr)
-		ATSUDrawText (text_layout,
-			      kATSUFromTextBeginning, kATSUToTextEnd,
-			      Long2Fix (x), Long2Fix (port_height - y));
-	      CGContextSynchronize (context);
-	      QDEndCGContext (port, &context);
-#if 0
-	      /* This doesn't work on Mac OS X 10.1.  */
-	      ATSUClearLayoutControls (text_layout,
-				       sizeof (tags) / sizeof (tags[0]),
-				       tags);
-#else
-	      ATSUSetLayoutControls (text_layout,
-				     sizeof (tags) / sizeof (tags[0]),
-				     tags, sizes, values);
-#endif
+	      SetRect (&r, x, y - FONT_BASE (GC_FONT (gc)),
+		       x + bg_width, y + FONT_DESCENT (GC_FONT (gc)));
+	      RGBBackColor (GC_BACK_COLOR (gc));
+	      EraseRect (&r);
+	      RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 	    }
+	  MoveTo (x, y);
+	  ATSUDrawText (text_layout,
+			kATSUFromTextBeginning, kATSUToTextEnd,
+			kATSUUseGrafPortPenLoc, kATSUUseGrafPortPenLoc);
+	  mac_end_clip (GC_CLIP_REGION (gc));
+#ifdef MAC_OSX
+	}
+      else
+	{
+	  CGrafPtr port;
+	  CGContextRef context;
+	  float port_height = FRAME_PIXEL_HEIGHT (f);
+	  ATSUAttributeTag tags[] = {kATSUCGContextTag};
+	  ByteCount sizes[] = {sizeof (CGContextRef)};
+	  ATSUAttributeValuePtr values[] = {&context};
+
+	  GetPort (&port);
+	  QDBeginCGContext (port, &context);
+	  if (gc->n_clip_rects || bg_width)
+	    {
+	      CGContextTranslateCTM (context, 0, port_height);
+	      CGContextScaleCTM (context, 1, -1);
+	      if (gc->n_clip_rects)
+		CGContextClipToRects (context, gc->clip_rects,
+				      gc->n_clip_rects);
+	      if (bg_width)
+		{
+		  CGContextSetRGBFillColor
+		    (context,
+		     RED_FROM_ULONG (gc->xgcv.background) / 255.0f,
+		     GREEN_FROM_ULONG (gc->xgcv.background) / 255.0f,
+		     BLUE_FROM_ULONG (gc->xgcv.background) / 255.0f,
+		     1.0);
+		  CGContextFillRect
+		    (context,
+		     CGRectMake (x, y - FONT_BASE (GC_FONT (gc)),
+				 bg_width, FONT_HEIGHT (GC_FONT (gc))));
+		}
+	      CGContextScaleCTM (context, 1, -1);
+	      CGContextTranslateCTM (context, 0, -port_height);
+	    }
+	  CGContextSetRGBFillColor
+	    (context,
+	     RED_FROM_ULONG (gc->xgcv.foreground) / 255.0f,
+	     GREEN_FROM_ULONG (gc->xgcv.foreground) / 255.0f,
+	     BLUE_FROM_ULONG (gc->xgcv.foreground) / 255.0f,
+	     1.0);
+	  err = ATSUSetLayoutControls (text_layout,
+				       sizeof (tags) / sizeof (tags[0]),
+				       tags, sizes, values);
+	  if (err == noErr)
+	    ATSUDrawText (text_layout,
+			  kATSUFromTextBeginning, kATSUToTextEnd,
+			  Long2Fix (x), Long2Fix (port_height - y));
+	  CGContextSynchronize (context);
+	  QDEndCGContext (port, &context);
+#if 0
+	  /* This doesn't work on Mac OS X 10.1.  */
+	  ATSUClearLayoutControls (text_layout,
+				   sizeof (tags) / sizeof (tags[0]), tags);
+#else
+	  ATSUSetLayoutControls (text_layout,
+				 sizeof (tags) / sizeof (tags[0]),
+				 tags, sizes, values);
 #endif
 	}
+#endif	/* MAC_OSX */
     }
   else
+#endif	/* USE_ATSUI */
     {
-#endif
-  TextFont (GC_FONT (gc)->mac_fontnum);
-  TextSize (GC_FONT (gc)->mac_fontsize);
-  TextFace (GC_FONT (gc)->mac_fontface);
-  TextMode (mode);
-
-  mac_begin_clip (GC_CLIP_REGION (gc));
-  MoveTo (x, y);
-  DrawText (buf, 0, nchars * bytes_per_char);
-  mac_end_clip (GC_CLIP_REGION (gc));
-#if USE_ATSUI
-    }
-#endif
-
-  if (mode != srcOr)
-    RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-  if (mac_use_core_graphics)
-    SwapQDTextFlags(savedFlags);
+      UInt32 savedFlags;
+
+      if (mac_use_core_graphics)
+	savedFlags = SwapQDTextFlags (kQDUseCGTextRendering);
 #endif
+      mac_begin_clip (GC_CLIP_REGION (gc));
+      RGBForeColor (GC_FORE_COLOR (gc));
+#ifdef MAC_OS8
+      if (bg_width)
+	{
+	  RGBBackColor (GC_BACK_COLOR (gc));
+	  TextMode (srcCopy);
+	}
+      else
+	TextMode (srcOr);
+#else
+      /* We prefer not to use srcCopy text transfer mode on Mac OS X
+	 because:
+	 - Screen is double-buffered.  (In srcCopy mode, a text is
+	   drawn into an offscreen graphics world first.  So
+	   performance gain cannot be expected.)
+	 - It lowers rendering quality.
+	 - Some fonts leave garbage on cursor movement.  */
+      if (bg_width)
+	{
+	  Rect r;
+
+	  RGBBackColor (GC_BACK_COLOR (gc));
+	  SetRect (&r, x, y - FONT_BASE (GC_FONT (gc)),
+		   x + bg_width, y + FONT_DESCENT (GC_FONT (gc)));
+	  EraseRect (&r);
+	}
+      TextMode (srcOr);
+#endif
+      TextFont (GC_FONT (gc)->mac_fontnum);
+      TextSize (GC_FONT (gc)->mac_fontsize);
+      TextFace (GC_FONT (gc)->mac_fontface);
+      MoveTo (x, y);
+      DrawText (buf, 0, nchars * bytes_per_char);
+      if (bg_width)
+	RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
+      mac_end_clip (GC_CLIP_REGION (gc));
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+      if (mac_use_core_graphics)
+	SwapQDTextFlags(savedFlags);
+#endif
+    }
 }
 
 
@@ -822,7 +863,7 @@ mac_draw_string (f, gc, x, y, buf, nchars)
      char *buf;
      int nchars;
 {
-  mac_draw_string_common (f, gc, x, y, buf, nchars, srcOr, 1);
+  mac_draw_string_common (f, gc, x, y, buf, nchars, 0, 1);
 }
 
 
@@ -836,35 +877,35 @@ mac_draw_string_16 (f, gc, x, y, buf, nchars)
      XChar2b *buf;
      int nchars;
 {
-  mac_draw_string_common (f, gc, x, y, (char *) buf, nchars, srcOr, 2);
+  mac_draw_string_common (f, gc, x, y, (char *) buf, nchars, 0, 2);
 }
 
 
 /* Mac replacement for XDrawImageString.  */
 
 static void
-mac_draw_image_string (f, gc, x, y, buf, nchars)
+mac_draw_image_string (f, gc, x, y, buf, nchars, bg_width)
      struct frame *f;
      GC gc;
      int x, y;
      char *buf;
-     int nchars;
+     int nchars, bg_width;
 {
-  mac_draw_string_common (f, gc, x, y, buf, nchars, srcCopy, 1);
+  mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, 1);
 }
 
 
 /* Mac replacement for XDrawString16.  */
 
 static void
-mac_draw_image_string_16 (f, gc, x, y, buf, nchars)
+mac_draw_image_string_16 (f, gc, x, y, buf, nchars, bg_width)
      struct frame *f;
      GC gc;
      int x, y;
      XChar2b *buf;
-     int nchars;
+     int nchars, bg_width;
 {
-  mac_draw_string_common (f, gc, x, y, (char *) buf, nchars, srcCopy, 2);
+  mac_draw_string_common (f, gc, x, y, (char *) buf, nchars, bg_width, 2);
 }
 
 
@@ -1038,12 +1079,12 @@ init_cg_text_anti_aliasing_threshold ()
 }
 
 static int
-mac_draw_string_cg (f, gc, x, y, buf, nchars)
+mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width)
      struct frame *f;
      GC gc;
      int x, y;
      XChar2b *buf;
-     int nchars;
+     int nchars, bg_width;
 {
   CGrafPtr port;
   float port_height, gx, gy;
@@ -1060,7 +1101,9 @@ mac_draw_string_cg (f, gc, x, y, buf, nchars)
   gx = x;
   gy = port_height - y;
   glyphs = (CGGlyph *)buf;
-  advances = xmalloc (sizeof (CGSize) * nchars);
+  advances = alloca (sizeof (CGSize) * nchars);
+  if (advances == NULL)
+    return 0;
   for (i = 0; i < nchars; i++)
     {
       XCharStruct *pcm = mac_per_char_metric (GC_FONT (gc), buf, 0);
@@ -1072,18 +1115,32 @@ mac_draw_string_cg (f, gc, x, y, buf, nchars)
     }
 
   QDBeginCGContext (port, &context);
-  if (gc->n_clip_rects)
+  if (gc->n_clip_rects || bg_width)
     {
       CGContextTranslateCTM (context, 0, port_height);
       CGContextScaleCTM (context, 1, -1);
-      CGContextClipToRects (context, gc->clip_rects, gc->n_clip_rects);
+      if (gc->n_clip_rects)
+	CGContextClipToRects (context, gc->clip_rects, gc->n_clip_rects);
+      if (bg_width)
+	{
+	  CGContextSetRGBFillColor
+	    (context,
+	     RED_FROM_ULONG (gc->xgcv.background) / 255.0f,
+	     GREEN_FROM_ULONG (gc->xgcv.background) / 255.0f,
+	     BLUE_FROM_ULONG (gc->xgcv.background) / 255.0f,
+	     1.0);
+	  CGContextFillRect
+	    (context,
+	     CGRectMake (gx, y - FONT_BASE (GC_FONT (gc)),
+			 bg_width, FONT_HEIGHT (GC_FONT (gc))));
+	}
       CGContextScaleCTM (context, 1, -1);
       CGContextTranslateCTM (context, 0, -port_height);
     }
   CGContextSetRGBFillColor (context,
-			    RED_FROM_ULONG (gc->xgcv.foreground) / 255.0,
-			    GREEN_FROM_ULONG (gc->xgcv.foreground) / 255.0,
-			    BLUE_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+			    RED_FROM_ULONG (gc->xgcv.foreground) / 255.0f,
+			    GREEN_FROM_ULONG (gc->xgcv.foreground) / 255.0f,
+			    BLUE_FROM_ULONG (gc->xgcv.foreground) / 255.0f,
 			    1.0);
   CGContextSetFont (context, GC_FONT (gc)->cg_font);
   CGContextSetFontSize (context, GC_FONT (gc)->mac_fontsize);
@@ -1101,8 +1158,6 @@ mac_draw_string_cg (f, gc, x, y, buf, nchars)
 #endif
   CGContextSynchronize (context);
   QDEndCGContext (port, &context);
-
-  xfree (advances);
 
   return 1;
 }
@@ -1375,10 +1430,7 @@ mac_set_clip_rectangles (display, gc, rectangles, n)
   if (n == 0)
     {
       if (gc->clip_region)
-	{
-	  DisposeRgn (gc->clip_region);
-	  gc->clip_region = NULL;
-	}
+	SetEmptyRgn (gc->clip_region);
     }
   else
     {
@@ -2322,14 +2374,6 @@ x_clear_glyph_string_rect (s, x, y, w, h)
 }
 
 
-/* We prefer not to use XDrawImageString (srcCopy text transfer mode)
-   on Mac OS X because:
-   - Screen is double-buffered.  (In srcCopy mode, a text is drawn
-     into an offscreen graphics world first.  So performance gain
-     cannot be expected.)
-   - It lowers rendering quality.
-   - Some fonts leave garbage on cursor movement.  */
-
 /* Draw the background of glyph_string S.  If S->background_filled_p
    is non-zero don't draw it.  FORCE_P non-zero means draw the
    background even if it wouldn't be drawn normally.  This is used
@@ -2361,12 +2405,10 @@ x_draw_glyph_string_background (s, force_p)
 	}
       else
 #endif
-#if defined (MAC_OS8) && !USE_ATSUI
         if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
 	       || force_p)
-#endif
 	{
 	  x_clear_glyph_string_rect (s, s->x, s->y + box_line_width,
 				     s->background_width,
@@ -2383,7 +2425,7 @@ static void
 x_draw_glyph_string_foreground (s)
      struct glyph_string *s;
 {
-  int i, x;
+  int i, x, bg_width;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
@@ -2422,7 +2464,6 @@ x_draw_glyph_string_foreground (s)
 	for (i = 0; i < s->nchars; ++i)
 	  char1b[i] = s->char2b[i].byte2;
 
-#if defined (MAC_OS8) && !USE_ATSUI
       /* Draw text with XDrawString if background has already been
 	 filled.  Otherwise, use XDrawImageString.  (Note that
 	 XDrawImageString is usually faster than XDrawString.)  Always
@@ -2430,38 +2471,27 @@ x_draw_glyph_string_foreground (s)
 	 no chance that characters under a box cursor are invisible.  */
       if (s->for_overlaps
 	  || (s->background_filled_p && s->hl != DRAW_CURSOR))
-#endif
-	{
-	  /* Draw characters with 16-bit or 8-bit functions.  */
-	  if (s->two_byte_p
-#if USE_ATSUI
-	      || GC_FONT (s->gc)->mac_style
-#endif
-	      )
-#if USE_CG_TEXT_DRAWING
-	    if (!s->two_byte_p
-		&& mac_draw_string_cg (s->f, s->gc, x, s->ybase - boff,
-				       s->char2b, s->nchars))
-	      ;
-	    else
-#endif
-	    mac_draw_string_16 (s->f, s->gc, x,	s->ybase - boff,
-				s->char2b, s->nchars);
-	  else
-	    mac_draw_string (s->f, s->gc, x, s->ybase - boff,
-			     char1b, s->nchars);
-	}
-#if defined (MAC_OS8) && !USE_ATSUI
+	bg_width = 0;		/* Corresponds to XDrawString.  */
       else
-	{
-	  if (s->two_byte_p)
-	    mac_draw_image_string_16 (s->f, s->gc, x, s->ybase - boff,
-				      s->char2b, s->nchars);
-	  else
-	    mac_draw_image_string (s->f, s->gc, x, s->ybase - boff,
-				   char1b, s->nchars);
-	}
+	bg_width = s->background_width; /* Corresponds to XDrawImageString.  */
+
+      if (s->two_byte_p
+#if USE_ATSUI
+	  || GC_FONT (s->gc)->mac_style
 #endif
+	  )
+#if USE_CG_TEXT_DRAWING
+	if (!s->two_byte_p
+	    && mac_draw_image_string_cg (s->f, s->gc, x, s->ybase - boff,
+					 s->char2b, s->nchars, bg_width))
+	  ;
+	else
+#endif
+	  mac_draw_image_string_16 (s->f, s->gc, x, s->ybase - boff,
+				    s->char2b, s->nchars, bg_width);
+      else
+	mac_draw_image_string (s->f, s->gc, x, s->ybase - boff,
+			       char1b, s->nchars, bg_width);
     }
 }
 
@@ -7837,9 +7867,13 @@ XLoadQueryFont (Display *dpy, char *fontname)
 #if !defined (MAC_OS8) || USE_ATSUI
   /* AppKit and WebKit do some adjustment to the heights of Courier,
      Helvetica, and Times.  This only works on the environments where
-     the XDrawImageString counterpart is never used.  */
-  if (strcmp (family, "courier") == 0 || strcmp (family, "helvetica") == 0
-      || strcmp (family, "times") == 0)
+     srcCopy text transfer mode is never used.  */
+  if (
+#ifdef MAC_OS8			/* implies USE_ATSUI */
+      font->mac_style &&
+#endif
+      (strcmp (family, "courier") == 0 || strcmp (family, "helvetica") == 0
+       || strcmp (family, "times") == 0))
     font->ascent += (font->ascent + font->descent) * .15 + 0.5;
 #endif
 
