@@ -1,3 +1,7 @@
+2006-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (draw_fringe_bitmap): Fix overlay-arrow display.
+
 2006-02-21  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.c (syms_of_fringe) <fringe-bitmaps>: Doc fix.
