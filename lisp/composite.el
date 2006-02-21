@@ -470,7 +470,81 @@ This function is the default value of `auto-composition-function' (which see)."
 	      (put-text-property start pos 'auto-composed t string))
 	  (error nil))))))
 
-(setq auto-composition-function 'auto-compose-chars)
+(make-variable-buffer-local 'auto-composition-function)
+
+(define-minor-mode auto-composition-mode
+  "Toggle Auto Compostion mode.
+With arg, turn Auto Compostion mode off if and only if arg is a non-positive
+number; if arg is nil, toggle Auto Compostion mode; anything else turns Auto
+Compostion on.
+
+When Auto Composition is enabled, text characters are automatically composed
+by functions registered in `composition-function-table' (which see).
+
+You can use Global Auto Composition mode to automagically turn on
+Auto Composition mode in all buffers (this is the default)."
+  nil nil nil
+  (if noninteractive
+      (setq auto-composition-mode nil))
+  (cond (auto-composition-mode
+	 (add-hook 'after-change-functions 'auto-composition-after-change nil t)
+	 (setq auto-composition-function 'auto-compose-chars))
+	(t
+	 (remove-hook 'after-change-functions 'auto-composition-after-change t)
+	 (setq auto-composition-function nil)))
+  (save-buffer-state nil
+    (save-restriction
+      (widen)
+      (remove-text-properties (point-min) (point-max) '(auto-composed nil))
+      (decompose-region (point-min) (point-max)))))
+
+(defun auto-composition-after-change (start end old-len)
+  (when (and auto-composition-mode (not memory-full))
+    (let (func1 func2)
+      (when (and (> start (point-min))
+		 (setq func2 (aref composition-function-table
+				   (char-after (1- start))))
+		 (or (= start (point-max))
+		     (not (setq func1 (aref composition-function-table
+					    (char-after start))))
+		     (eq func1 func2)))
+	(setq start (1- start)
+	      func1 func2)
+	(while (eq func1 func2)
+	  (if (> start (point-min))
+	      (setq start (1- start)
+		    func2 (aref composition-function-table
+				(char-after start)))
+	    (setq func2 nil))))
+      (when (and (< end (point-max))
+		 (setq func2 (aref composition-function-table
+				   (char-after end)))
+		 (or (= end (point-min))
+		     (not (setq func1 (aref composition-function-table
+					    (char-after (1- end)))))
+		     (eq func1 func2)))
+	(setq end (1+ end)
+	      func1 func2)
+	(while (eq func1 func2)
+	  (if (< end (point-max))
+	      (setq func2 (aref composition-function-table
+				(char-after end))
+		    end (1+ end))
+	    (setq func2 nil))))
+      (if (< start end)
+	  (put-text-property start end 'auto-composed nil)))))
+
+(defun turn-on-auto-composition-if-enabled ()
+  (or auto-composition-mode
+      (auto-composition-mode)))
+
+(define-global-minor-mode global-auto-composition-mode
+  auto-composition-mode turn-on-auto-composition-if-enabled
+  :extra-args (dummy)
+  :initialize 'custom-initialize-safe-default
+  :init-value (not (or noninteractive emacs-basic-display))
+  :group 'auto-composition
+  :version "23.1")
 
 (defun toggle-auto-composition (&optional arg)
   "Change whether automatic character composition is enabled in this buffer.
