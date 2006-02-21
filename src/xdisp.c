@@ -18535,14 +18535,24 @@ fill_composite_glyph_string (s, faces, overlaps)
   s->for_overlaps = overlaps;
 
   s->face = faces[s->gidx];
-  s->font = s->face->font;
-  s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
+  if (s->face == NULL)
+    {
+      s->font = NULL;
+      s->font_info = NULL;
+    }
+  else
+    {
+      s->font = s->face->font;
+      s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
+    }
 
   /* For all glyphs of this composition, starting at the offset
      S->gidx, until we reach the end of the definition or encounter a
      glyph that requires the different face, add it to S.  */
   ++s->nchars;
-  for (i = s->gidx + 1; i < s->cmp->glyph_len && faces[i] == s->face; ++i)
+  for (i = s->gidx + 1;
+       i < s->cmp->glyph_len && (faces[i] == s->face || ! faces[i] || ! s->face);
+       ++i)
     ++s->nchars;
 
   /* All glyph strings for the same composition has the same width,
@@ -18562,8 +18572,6 @@ fill_composite_glyph_string (s, faces, overlaps)
 
   /* Adjust base line for subscript/superscript text.  */
   s->ybase += s->first_glyph->voffset;
-
-  xassert (s->face && s->face->gc);
 
   /* This glyph string must always be drawn with 16-bit functions.  */
   s->two_byte_p = 1;
@@ -19100,10 +19108,16 @@ compute_overhangs_and_x (s, x, backward_p)
     for (n = 0; n < glyph_len; n++)					  \
       {									  \
 	int c = COMPOSITION_GLYPH (cmp, n);				  \
-	int this_face_id = FACE_FOR_CHAR (f, base_face, c, -1, Qnil);	  \
-	faces[n] = FACE_FROM_ID (f, this_face_id);			  \
-	get_char_face_and_encoding (f, c, this_face_id, 		  \
+									  \
+	if (c == '\t')							  \
+	  faces[n] = NULL;						  \
+	else								  \
+	  {								  \
+	    int this_face_id = FACE_FOR_CHAR (f, base_face, c, -1, Qnil); \
+	    faces[n] = FACE_FROM_ID (f, this_face_id);			  \
+	    get_char_face_and_encoding (f, c, this_face_id,		  \
 				    char2b + n, 1, 1);			  \
+	  }								  \
       }									  \
     									  \
     /* Make glyph_strings for each glyph sequence that is drawable by	  \
@@ -20462,6 +20476,8 @@ x_produce_glyphs (it)
 	      if (ch == '\t')
 		{
 		  fully_padded = 1;
+		  cmp->offsets[i * 2] = 0;
+		  cmp->offsets[i * 2 + 1] = boff;
 		  continue;
 		}
 
