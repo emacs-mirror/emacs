@@ -3654,12 +3654,12 @@ regex_compile (pattern, size, syntax, bufp)
 	if (! fail_stack.stack)
 	  fail_stack.stack
 	    = (fail_stack_elt_t *) malloc (fail_stack.size
-					    * sizeof (fail_stack_elt_t));
+					   * sizeof (fail_stack_elt_t));
 	else
 	  fail_stack.stack
 	    = (fail_stack_elt_t *) realloc (fail_stack.stack,
-					     (fail_stack.size
-					      * sizeof (fail_stack_elt_t)));
+					    (fail_stack.size
+					     * sizeof (fail_stack_elt_t)));
       }
 
     regex_grow_registers (num_regs);
@@ -6345,7 +6345,7 @@ regcomp (preg, pattern, cflags)
 
       preg->translate
 	= (RE_TRANSLATE_TYPE) malloc (CHAR_SET_SIZE
-				       * sizeof (*(RE_TRANSLATE_TYPE)0));
+				      * sizeof (*(RE_TRANSLATE_TYPE)0));
       if (preg->translate == NULL)
 	return (int) REG_ESPACE;
 
