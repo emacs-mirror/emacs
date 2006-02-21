@@ -1,3 +1,21 @@
+2006-02-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_draw_string_common): Remove arg MODE.  New arg
+	BG_WIDTH.  All uses changed.  Draw background if BG_WIDTH is not zero.
+	(mac_draw_image_string, mac_draw_image_string_16): New arg BG_WIDTH.
+	[USE_CG_TEXT_DRAWING] (mac_draw_image_string_cg): Rename from
+	mac_draw_string_cg.  New arg BG_WIDTH.  All uses changed.  Draw
+	background if BG_WIDTH is not zero.  Use float constants as
+	divisors instead of double.  Use alloca instead of xmalloc/xfree.
+	(x_draw_glyph_string_background, x_draw_glyph_string_foreground)
+	[!MAC_OS8 || USE_ATSUI]: Background may be drawn using
+	mac_draw_image_string* functions.
+	(XLoadQueryFont) [MAC_OS8 && USE_ATSUI]: Don't adjust heights of
+	some fonts when srcCopy text transfer mode might be used.
+	(mac_begin_clip, mac_end_clip): Check if region is empty.
+	(mac_set_clip_rectangles): When resetting clip region, make it
+	empty instead of disposing of it.
+
 2006-02-20  Kim F. Storm  <storm@cua.dk>
 
 	* Makefile.in: Add fringe.elc to WINDOW_SUPPORT.
