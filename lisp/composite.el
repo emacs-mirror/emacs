@@ -472,6 +472,7 @@ This function is the default value of `auto-composition-function' (which see)."
 
 (make-variable-buffer-local 'auto-composition-function)
 
+;;;###autoload
 (define-minor-mode auto-composition-mode
   "Toggle Auto Compostion mode.
 With arg, turn Auto Compostion mode off if and only if arg is a non-positive
@@ -535,9 +536,9 @@ Auto Composition mode in all buffers (this is the default)."
 	  (put-text-property start end 'auto-composed nil)))))
 
 (defun turn-on-auto-composition-if-enabled ()
-  (or auto-composition-mode
-      (auto-composition-mode)))
+  (auto-composition-mode 1))
 
+;;;###autoload
 (define-global-minor-mode global-auto-composition-mode
   auto-composition-mode turn-on-auto-composition-if-enabled
   :extra-args (dummy)
