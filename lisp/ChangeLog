@@ -1,4 +1,10 @@
-2006-02-21  Giorgos Keramidas  <keramida@ceid.upatras.gr>
+2006-02-21  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.el: Cleanup as file is now pre-loaded.
+	(fringe-bitmaps): Initialize unconditionally.
+	(fringe-mode, set-fringe-style): Remove autoload cookies.
+
+2006-02-21  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
 	* fringe.el (fringe-bitmaps): Rename `horisontal-bar' to
 	`horizontal-bar'.

@@ -1,9 +1,13 @@
+2006-02-21  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (syms_of_fringe) <fringe-bitmaps>: Doc fix.
+
 2006-02-21  Zhang Wei <brep@newsmth.org>
 
 	* xfns.c (Fx_file_dialog, Motif and GTK): DECODE_FILE before
 	returning it.
 
-2006-02-21  Giorgos Keramidas  <keramida@ceid.upatras.gr>
+2006-02-21  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
 	* fringe.c (horizontal_bar_bits): Rename from `horisontal_bar_bits'.
 	(standard_bitmaps): Use it.
