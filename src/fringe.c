@@ -411,12 +411,12 @@ static unsigned short filled_square_bits[] = {
 static unsigned short vertical_bar_bits[] = {
    0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0};
 
-/* HBar cursor bitmap.  A horisontal bar; 2 pixels high.  */
+/* HBar cursor bitmap.  A horizontal bar; 2 pixels high.  */
 /*
   xxxxxxx.
   xxxxxxx.
 */
-static unsigned short horisontal_bar_bits[] = {
+static unsigned short horizontal_bar_bits[] = {
   0xfe, 0xfe};
 
 
@@ -471,7 +471,7 @@ struct fringe_bitmap standard_bitmaps[] =
   { FRBITS (filled_square_bits),      8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (hollow_square_bits),      8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (vertical_bar_bits),       8, 0, ALIGN_BITMAP_CENTER, 0 },
-  { FRBITS (horisontal_bar_bits),     8, 0, ALIGN_BITMAP_BOTTOM, 0 },
+  { FRBITS (horizontal_bar_bits),     8, 0, ALIGN_BITMAP_BOTTOM, 0 },
   { FRBITS (empty_line_bits),         8, 3, ALIGN_BITMAP_TOP,    0 },
 };
 
