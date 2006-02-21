@@ -1,3 +1,25 @@
+2006-02-21  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/sh-script.el (sh-mode): Set shell type based on file name
+	if there's no other specific basis.
+
+	* emacs-lisp/unsafep.el (unsafep): Don't treat &rest or &optional
+	as variables at all.
+	(unsafep-variable): Rename arg; doc fix.
+
+	* abbrevlist.el (list-one-abbrev-table): Add autoload.
+
+	* calendar/appt.el (diary-selective-display): Add defvar.
+
+	* sort.el (sort-columns): Use Posix arg syntax for `sort'.
+
+	* isearch.el (search-whitespace-regexp): Fix custom type.
+
+	* help.el (describe-key-briefly): Compute interactive args
+	in same was as before previous change.
+
+	* files.el (enable-local-variables): Doc fix.
+
 2006-02-21  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.el: Cleanup as file is now pre-loaded.
