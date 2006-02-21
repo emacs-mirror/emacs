@@ -28,6 +28,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (defun list-one-abbrev-table (abbrev-table output-buffer)
   "Display alphabetical listing of ABBREV-TABLE in buffer OUTPUT-BUFFER."
   (with-output-to-temp-buffer output-buffer
