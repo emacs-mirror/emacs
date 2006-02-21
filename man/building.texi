@@ -959,7 +959,8 @@ edit it.  Either way, this reads the new value using the minibuffer.
 non-@code{nil} (the default value), Emacs uses
 @code{font-lock-warning-face} to highlight values that have recently
 changed and @code{shadow} face to make variables which have gone out of
-scope less noticeable.
+scope less noticeable.  When a variable goes out of scope you can't
+edit its value.
 
 @vindex gdb-use-colon-colon-notation
   If the variable @code{gdb-use-colon-colon-notation} is
@@ -967,6 +968,12 @@ non-@code{nil}, Emacs uses the @samp{@var{function}::@var{variable}}
 format to display variables in the speedbar.  Since this does not work
 for variables defined in compound statements, the default value is
 @code{nil}.
+
+@vindex gdb-speedbar-auto-raise
+To automatically raise the speedbar every time the display of watch
+expressions updates, set @code{gdb-speedbar-auto-raise} to
+non-@code{nil}.  This can be useful if you are debugging with a full
+screen Emacs frame.
 
 @node Other GDB User Interface Buffers
 @subsubsection Other Buffers
