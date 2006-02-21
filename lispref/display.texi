@@ -2896,7 +2896,7 @@ The value of this variable is the default value for
 @code{left-bracket}, @code{right-bracket},
 @code{filled-rectangle}, @code{hollow-rectangle},
 @code{filled-square}, @code{hollow-square},
-@code{vertical-bar}, @code{horisontal-bar},
+@code{vertical-bar}, @code{horizontal-bar},
 @code{empty-line},
 @code{question-mark}.
 @end table
@@ -2951,7 +2951,7 @@ The value of this variable is the default value for
 @item Standard bitmaps for displaying the cursor in right fringe:
 @code{filled-rectangle}, @code{hollow-rectangle},
 @code{filled-square}, @code{hollow-square},
-@code{vertical-bar}, @code{horisontal-bar}.
+@code{vertical-bar}, @code{horizontal-bar}.
 @end table
 
 
