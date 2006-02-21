@@ -1643,8 +1643,7 @@ If nil, also continue lines which are exactly as wide as the window.  */);
   Voverflow_newline_into_fringe = Qt;
 
   DEFVAR_LISP ("fringe-bitmaps", &Vfringe_bitmaps,
-    doc: /* List of fringe bitmap symbols.
-You must (require 'fringe) to use fringe bitmap symbols in your programs." */);
+    doc: /* List of fringe bitmap symbols.  */);
   Vfringe_bitmaps = Qnil;
 }
 
