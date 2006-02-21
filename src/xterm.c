@@ -1368,7 +1368,7 @@ x_draw_composite_glyph_string_foreground (s)
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
-  if (s->face->box != FACE_NO_BOX
+  if (s->face && s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
     x = s->x + abs (s->face->box_line_width);
   else
@@ -1390,17 +1390,18 @@ x_draw_composite_glyph_string_foreground (s)
   else
     {
       for (i = 0; i < s->nchars; i++, ++s->gidx)
-	{
-	  XDrawString16 (s->display, s->window, s->gc,
-			 x + s->cmp->offsets[s->gidx * 2],
-			 s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-			 s->char2b + i, 1);
-	  if (s->face->overstrike)
+	if (s->face)
+	  {
 	    XDrawString16 (s->display, s->window, s->gc,
-			   x + s->cmp->offsets[s->gidx * 2] + 1,
+			   x + s->cmp->offsets[s->gidx * 2],
 			   s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
 			   s->char2b + i, 1);
-	}
+	    if (s->face->overstrike)
+	      XDrawString16 (s->display, s->window, s->gc,
+			     x + s->cmp->offsets[s->gidx * 2] + 1,
+			     s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
+			     s->char2b + i, 1);
+	  }
     }
 }
 
