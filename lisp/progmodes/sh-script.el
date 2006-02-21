@@ -1438,6 +1438,16 @@ with your script for an edit-interpret-debug cycle."
 		 ((and buffer-file-name
 		       (string-match "\\.m?spec\\'" buffer-file-name))
 		  "rpm")))))
+    (unless interpreter
+      (setq interpreter
+	    (cond ((string-match "[.]sh\\>" buffer-file-name)
+		   "sh")
+		  ((string-match "[.]bash\\>" buffer-file-name)
+		   "bash")
+		  ((string-match "[.]ksh\\>" buffer-file-name)
+		   "ksh")
+		  ((string-match "[.]csh\\>" buffer-file-name)
+		   "csh"))))
     (sh-set-shell (or interpreter sh-shell-file) nil nil))
   (run-mode-hooks 'sh-mode-hook))
 
