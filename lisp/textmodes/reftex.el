@@ -1437,50 +1437,6 @@ When DIE is non-nil, throw an error if file not found."
                          "\\)\\'"))
          (files (if (string-match ext-re file)
                     (cons file nil)
-                  (cons (concat file def-ext) file)))
-         path old-path file1)
-    (cond
-     ((file-name-absolute-p file)
-      (setq file1 
-            (or 
-             (and (car files) (file-regular-p (car files)) (car files))
-             (and (cdr files) (file-regular-p (cdr files)) (cdr files)))))
-     ((and reftex-use-external-file-finders
-           (assoc type reftex-external-file-finders))
-      (setq file1 (reftex-find-file-externally file type master-dir)))
-     (t
-      (while (and (null file1) rec-values)
-        (setq path (reftex-access-search-path
-                    type (pop rec-values) master-dir file))
-        (if (or (null old-path)
-                (not (eq old-path path)))
-            (setq old-path path
-                  path (cons master-dir path)
-                  file1 (or (and (car files)
-                                 (reftex-find-file-on-path 
-                                  (car files) path master-dir))
-                            (and (cdr files)
-                                 (reftex-find-file-on-path 
-                                  (cdr files) path master-dir))))))))
-    (cond (file1 file1)
-          (die (error "No such file: %s" file) nil)
-          (t (message "No such file: %s (ignored)" file) nil))))
-
-
-;; FIXME:  this still needs testing and thinking.
-(defun reftex-locate-file (file type master-dir &optional die)
-  "Find FILE of type TYPE in MASTER-DIR or on the path associcted with TYPE.
-If the file does not have any of the valid extensions for TYPE,
-try first the default extension and only then the naked file name.
-When DIE is non-nil, throw an error if file not found."
-  (let* ((rec-values (if reftex-search-unrecursed-path-first '(nil t) '(t)))
-         (extensions (cdr (assoc type reftex-file-extensions)))
-         (def-ext (car extensions))
-         (ext-re (concat "\\(" 
-                         (mapconcat 'regexp-quote extensions "\\|")
-                         "\\)\\'"))
-         (files (if (string-match ext-re file)
-                    (cons file nil)
 		  (if reftex-try-all-extensions
 		      (append (mapcar (lambda (x) (concat file x))
 				      extensions)

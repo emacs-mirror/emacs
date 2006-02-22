@@ -1,5 +1,8 @@
 2006-02-22  Carsten Dominik  <dominik@science.uva.nl>
 
+	* textmodes/reftex.el (reftex-locate-file): Removed duplicate
+	function.
+
 	* textmodes/reftex-vars.el: (reftex-try-all-extensions): New
 	option.
 
