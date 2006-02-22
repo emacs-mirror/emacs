@@ -1,3 +1,53 @@
+2006-02-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-mark-ring-previous, org-mark-ring-set):
+	New commands.
+	(org-mark-ring): New variable.
+	(org-mark-ring-length): New option.
+	(org-open-at-point, org-goto, org-open-file): Push old position
+	onto the mark ring.
+	(org-add-hook): New function.
+	(org-export-table-remove-special-lines): New option.
+	(org-skip-comments, org-format-org-table-html): Respect new option
+	`org-export-table-remove-special-lines'.
+	(org-open-file): Allow special command configuration for directory
+	link.
+	(org-file-apps): Fixed bugs in customize type, added setting for
+	directories.
+	(org-activate-tags, org-format-agenda-item, org-complete)
+	(org-get-tags-at, org-scan-tags, org-make-tags-matcher)
+	(org-get-tags, org-get-buffer-tags, org-open-at-point)
+	(org-link-search, org-make-org-heading-search-string)
+	(org-make-org-heading-camel): Allow @ and 0-9 as tags characters.
+	(org-radio-targets, org-file-link-context-use-camel-case)
+	(org-activate-camels): New options.
+	(org-update-radio-target-regexp, org-all-targets)
+	(org-make-target-link-regexp, org-activate-target-links): New
+	functions.
+	(org-make-org-heading-search-string): New function.
+	(org-store-link, org-insert-link): Use new option
+	`org-file-link-context-use-camel-case'.
+	(org-activate-camels): Use new option `org-activate-camels'.
+	(org-link-regexp): Added mhe prefix.
+	(org-open-at-point,org-store-link): Support for mhe links.
+	(org-mhe-get-message-id, org-mhe-get-message-folder)
+	(org-mhe-get-header,org-follow-mhe-link): New functions.
+	(org-remove-angle-brackets, org-add-angle-brackets): New
+	functions.
+	(org-bracked-link-regexp): New constant.
+	(org-read-date): Fixed bug that was rejecting all typed dates.
+	(org-link-search): Make hierarchy above visible after a match.
+	(org-follow-bbdb-link): Inhibit electric mode for BBDB.
+	(org-store-link): Fixed bug with link creation when cursor is in
+	an empty line.
+	(org-open-at-point): Fixed bug with matching a link.  Fixed buggy
+	argument sequence in call to `org-view-tags'.
+	(org-compile-prefix-format): Set `org-prefix-has-tag'.
+	(org-prefix-has-tag): New variable.
+	(org-format-agenda-item): Remove tags from headline if
+	appropriate.
+	(org-agenda-remove-tags-when-in-prefix): New option.
+
 2006-02-21  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
 	* ediff-diff.el (ediff-setup-diff-regions, ediff-setup-diff-regions3):
