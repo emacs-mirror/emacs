@@ -1,3 +1,18 @@
+2006-02-22  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (map_charset_chars): Fix for ascii-compatible charset
+	made by a mapping table.
+
+2006-02-21  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (fill_composite_glyph_string): Check s->face is NULL or
+	not.
+	(BUILD_COMPOSITE_GLYPH_STRING): If C is TAB, set s->face to NULL.
+	(x_produce_glyphs): If CH is TAB, set cmp->offsets properly.
+
+	* xterm.c (x_draw_composite_glyph_string_foreground): Check
+	s->face is NULL or not.
+
 2006-02-20  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_set_glyph_string_clipping_exactly): New function.
