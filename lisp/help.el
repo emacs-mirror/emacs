@@ -579,12 +579,8 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	   (setq key (read-key-sequence "Describe key (or click or menu item): "))
 	   (list
 	    key
-	    (prefix-numeric-value current-prefix-arg)
-	    ;; If KEY is a down-event, read the corresponding up-event
-	    ;; and use it as the third argument.
-	    (if (and (consp key) (symbolp (car key))
-		     (memq 'down (cdr (get (car key) 'event-symbol-elements))))
-		(read-event))))
+	    (if current-prefix-arg (prefix-numeric-value current-prefix-arg))
+	    1))
        ;; Put yank-menu back as it was, if we changed it.
        (when saved-yank-menu
 	 (setq yank-menu (copy-sequence saved-yank-menu))

@@ -6,7 +6,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 7.91+cvs
+;; Version: 7.92+cvs
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -121,7 +121,7 @@
 ;; Try to keep variables local to a single file. Provide accessors if
 ;; variables are shared. Use this section as a last resort.
 
-(defconst mh-version "7.91+cvs" "Version number of MH-E.")
+(defconst mh-version "7.92+cvs" "Version number of MH-E.")
 
 ;; Variants
 
@@ -2303,17 +2303,20 @@ of citations entirely, choose \"None\"."
     "X-AntiAbuse:"                      ; cPanel
     "X-Apparently-From:"                ; MS Outlook
     "X-Apparently-To:"           ; Egroups/yahoogroups mailing list manager
+    "X-Authenticated-Sender:"           ; AT&T Message Center (webmail)
     "X-Authentication-Warning:"         ; sendmail
+    "X-Barracuda-"                      ; Barracuda spam scores
     "X-Beenthere:"                      ; Mailman mailing list manager
     "X-Bogosity:"                       ; bogofilter
     "X-BrightmailFiltered:"             ; Brightmail
     "X-Brightmail-Tracker:"             ; Brightmail
-    "X-Bugzilla-*"                      ; Bugzilla
+    "X-Bugzilla-"                       ; Bugzilla
     "X-Complaints-To:"
     "X-ContentStamp:"                   ; NetZero
     "X-Cron-Env:"
     "X-DMCA"
     "X-Delivered"
+    "X-EFL-Spamscore:"                  ; MIT alumni spam filtering
     "X-ELNK-Trace:"                     ; Earthlink mailer
     "X-Envelope-Date:"                  ; GNU mailutils
     "X-Envelope-From:"
@@ -2337,6 +2340,7 @@ of citations entirely, choose \"None\"."
     "X-Habeas-SWE-9:"                   ; Spam
     "X-Hashcash:"                       ; hashcash
     "X-Info:"                           ; NTMail
+    "X-IronPort-AV:"                    ; IronPort AV
     "X-Juno-"                           ; Juno
     "X-List-Host:"                      ; Unknown mailing list managers
     "X-List-Subscribe:"                 ; Unknown mailing list managers
@@ -2346,12 +2350,14 @@ of citations entirely, choose \"None\"."
     "X-Loop:"                           ; Unknown mailing list managers
     "X-Lumos-SenderID:"                 ; Roving ConstantContact
     "X-MAIL-INFO:"                      ; NetZero
-    "X-MHE-Checksum"                    ; Checksum added during index search
+    "X-MHE-Checksum:"                   ; Checksum added during index search
     "X-MIME-Autoconverted:"             ; sendmail
     "X-MIMETrack:"
     "X-MS-"                             ; MS Outlook
+    "X-Mail-from:"                      ; fastmail.fm
     "X-MailScanner"                     ; ListProc(tm) by CREN
     "X-Mailing-List:"                   ; Unknown mailing list managers
+    "X-Mailman-Approved-At:"            ; Mailman mailing list manager
     "X-Mailman-Version:"                ; Mailman mailing list manager
     "X-Majordomo:"                      ; Majordomo mailing list manager
     "X-Message-Id"
@@ -2380,14 +2386,17 @@ of citations entirely, choose \"None\"."
     "X-Received-Date:"
     "X-Received:"
     "X-Request-"
+    "X-Resolved-to:"                    ; fastmail.fm
     "X-Return-Path-Hint:"               ; Roving ConstantContact
-    "X-Roving-*"                        ; Roving ConstantContact
+    "X-Roving-"                         ; Roving ConstantContact
+    "X-SA-Exim-"                        ; Exim SpamAssassin
     "X-SBClass:"                        ; Spam
     "X-SBNote:"                         ; Spam
     "X-SBPass:"                         ; Spam
     "X-SBRule:"                         ; Spam
     "X-SMTP-"
-    "X-Scanned-By"
+    "X-Sasl-enc:"                       ; Apple Mail
+    "X-Scanned-By:"
     "X-Sender:"
     "X-Server-Date:"
     "X-Server-Uuid:"
@@ -2613,22 +2622,6 @@ This option provides an opportunity to skip over large messages
 which may be slow to load. The default value of 0 means that all
 message are shown regardless of size."
   :type 'integer
-  :group 'mh-show)
-
-(defcustom mh-show-use-goto-addr-flag (and (boundp 'goto-address-highlight-p)
-                                           goto-address-highlight-p)
-  "*Non-nil means highlight URLs and email addresses\\<goto-address-highlight-keymap>.
-
-To send a message using the highlighted email address or to view
-the web page for the highlighted URL, use the middle mouse button
-or \\[goto-address-at-point].
-
-See Info node `(mh-e)Sending Mail' to see how to configure Emacs
-to send the message using MH-E.
-
-The default value of this option comes from the value of
-`goto-address-highlight-p'."
-  :type 'boolean
   :group 'mh-show)
 
 (defcustom mh-show-use-xface-flag (>= emacs-major-version 21)
@@ -3019,7 +3012,9 @@ GNU Emacs and XEmacs from at least 21.5.23 on.")
        (:foreground "snow4"))
       (((class color) (min-colors 64) (background dark))
        (:foreground "snow3"))
-      (((class color))
+      (((class color) (background light))
+       (:foreground "purple"))
+      (((class color) (background dark))
        (:foreground "cyan"))))
     (mh-folder-refiled
      ((((class color) (min-colors 64) (background light))
@@ -3042,9 +3037,9 @@ GNU Emacs and XEmacs from at least 21.5.23 on.")
       (t
        (:bold t))))
     (mh-folder-tick
-     ((((class color) (background dark))
+     ((((class color) (background light))
        (:background "#dddf7e"))
-      (((class color) (background light))
+      (((class color) (background dark))
        (:background "#dddf7e"))
       (t
        (:underline t))))

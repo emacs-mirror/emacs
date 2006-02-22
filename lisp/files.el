@@ -447,10 +447,11 @@ use `before-save-hook'.")
 The value can be t, nil or something else.
 
 A value of t means file local variables specifications are obeyed
-if all the specified variables are safe.  If any variables are
-not safe, you will be queries before setting them.
-A value of nil means file local variables are ignored.
-Any other value means to always query.
+if all the specified variable values are safe; if any values are
+not safe, Emacs queries you, once, whether to set them all.
+
+A value of nil means always ignore the file local variables.
+Any other value means always query you once whether to set them all.
 
 This variable also controls use of major modes specified in
 a -*- line.
@@ -2218,6 +2219,129 @@ Otherwise, return nil; point may be changed."
        (setq end (point))
        (goto-char beg)
        end))))
+
+;;; Handling file local variables
+
+(defvar ignored-local-variables
+  '(ignored-local-variables safe-local-variable-values)
+  "Variables to be ignored in a file's local variable spec.")
+
+(defvar hack-local-variables-hook nil
+  "Normal hook run after processing a file's local variables specs.
+Major modes can use this to examine user-specified local variables
+in order to initialize other data structure based on them.")
+
+(defcustom safe-local-variable-values nil
+  "List variable-value pairs that are considered safe.
+Each element is a cons cell (VAR . VAL), where VAR is a variable
+symbol and VAL is a value that is considered safe."
+  :group 'find-file
+  :type  'alist)
+
+(defcustom safe-local-eval-forms nil
+  "*Expressions that are considered safe in an `eval:' local variable.
+Add expressions to this list if you want Emacs to evaluate them, when
+they appear in an `eval' local variable specification, without first
+asking you for confirmation."
+  :group 'find-file
+  :version "22.1"
+  :type '(repeat sexp))
+
+;; Risky local variables:
+(mapc (lambda (var) (put var 'risky-local-variable t))
+      '(after-load-alist
+	auto-mode-alist
+	buffer-auto-save-file-name
+	buffer-file-name
+	buffer-file-truename
+	buffer-undo-list
+	dabbrev-case-fold-search
+	dabbrev-case-replace
+	debugger
+	default-text-properties
+	display-time-string
+	enable-local-eval
+	eval
+	exec-directory
+	exec-path
+	file-name-handler-alist
+	font-lock-defaults
+	format-alist
+	frame-title-format
+	global-mode-string
+	header-line-format
+	icon-title-format
+	ignored-local-variables
+	imenu--index-alist
+	imenu-generic-expression
+	inhibit-quit
+	input-method-alist
+	load-path
+	max-lisp-eval-depth
+	max-specpdl-size
+	minor-mode-alist
+	minor-mode-map-alist
+	minor-mode-overriding-map-alist
+	mode-line-buffer-identification
+	mode-line-format
+	mode-line-modes
+	mode-line-modified
+	mode-line-mule-info
+	mode-line-position
+	mode-line-process
+	mode-name
+	outline-level
+	overriding-local-map
+	overriding-terminal-local-map
+	parse-time-rules
+	process-environment
+	rmail-output-file-alist
+	save-some-buffers-action-alist
+	special-display-buffer-names
+	standard-input
+	standard-output
+	unread-command-events
+	vc-mode))
+
+;; Safe local variables:
+;;
+;; For variables defined by minor modes, put the safety declarations
+;; here, not in the file defining the minor mode (when Emacs visits a
+;; file specifying that local variable, the minor mode file may not be
+;; loaded yet).  For variables defined by major modes, the safety
+;; declarations can go into the major mode's file, since that will be
+;; loaded before file variables are processed.
+
+(let ((string-or-null (lambda (a) (or (stringp a) (null a)))))
+  (eval
+   `(mapc (lambda (pair)
+	    (put (car pair) 'safe-local-variable (cdr pair)))
+	  '((byte-compile-dynamic . t)
+	    (c-basic-offset     .  integerp)
+	    (c-file-style       .  stringp)
+	    (c-indent-level     .  integerp)
+	    (comment-column     .  integerp)
+	    (compile-command    . ,string-or-null)
+	    (fill-column        .  integerp)
+	    (fill-prefix        . ,string-or-null)
+	    (indent-tabs-mode   .  t)
+	    (ispell-check-comments . (lambda (a)
+				       (memq a '(nil t exclusive))))
+	    (ispell-local-dictionary . ,string-or-null)
+	    (kept-new-versions  .  integerp)
+	    (no-byte-compile    .  t)
+	    (no-update-autoloads . t)
+	    (outline-regexp     . ,string-or-null)
+	    (page-delimiter     . ,string-or-null)
+	    (paragraph-start    . ,string-or-null)
+	    (paragraph-separate . ,string-or-null)
+	    (sentence-end       . ,string-or-null)
+	    (sentence-end-double-space . t)
+	    (tab-width          .  integerp)
+	    (truncate-lines     .  t)
+	    (version-control    .  t)))))
+
+(put 'c-set-style 'safe-local-eval-function t)
 
 (defun hack-local-variables-confirm (vars unsafe-vars risky-vars)
   (if noninteractive
@@ -2346,18 +2470,6 @@ and VAL is the specified value."
 	  mode-specified
 	result))))
 
-(defvar hack-local-variables-hook nil
-  "Normal hook run after processing a file's local variables specs.
-Major modes can use this to examine user-specified local variables
-in order to initialize other data structure based on them.")
-
-(defcustom safe-local-variable-values nil
-  "List variable-value pairs that are considered safe.
-Each element is a cons cell (VAR . VAL), where VAR is a variable
-symbol and VAL is a value that is considered safe."
-  :group 'find-file
-  :type  'alist)
-
 (defun hack-local-variables (&optional mode-only)
   "Parse and put into effect this buffer's local variables spec.
 If MODE-ONLY is non-nil, all we do is check whether the major mode
@@ -2479,92 +2591,6 @@ is specified, returning t if it is specified."
 		  (hack-one-local-variable (car elt) (cdr elt)))))
 	  (run-hooks 'hack-local-variables-hook))))))
 
-(defvar ignored-local-variables
-  '(ignored-local-variables safe-local-variable-values)
-  "Variables to be ignored in a file's local variable spec.")
-
-;; Get confirmation before setting these variables as locals in a file.
-(put 'debugger 'risky-local-variable t)
-(put 'enable-local-eval 'risky-local-variable t)
-(put 'ignored-local-variables 'risky-local-variable t)
-(put 'ignored-local-variables 'safe-local-variable-values t)
-(put 'eval 'risky-local-variable t)
-(put 'file-name-handler-alist 'risky-local-variable t)
-(put 'inhibit-quit 'risky-local-variable t)
-(put 'minor-mode-alist 'risky-local-variable t)
-(put 'minor-mode-map-alist 'risky-local-variable t)
-(put 'minor-mode-overriding-map-alist 'risky-local-variable t)
-(put 'overriding-local-map 'risky-local-variable t)
-(put 'overriding-terminal-local-map 'risky-local-variable t)
-(put 'auto-mode-alist 'risky-local-variable t)
-(put 'after-load-alist 'risky-local-variable t)
-(put 'buffer-file-name 'risky-local-variable t)
-(put 'buffer-undo-list 'risky-local-variable t)
-(put 'buffer-auto-save-file-name 'risky-local-variable t)
-(put 'buffer-file-truename 'risky-local-variable t)
-(put 'default-text-properties 'risky-local-variable t)
-(put 'exec-path 'risky-local-variable t)
-(put 'load-path 'risky-local-variable t)
-(put 'exec-directory 'risky-local-variable t)
-(put 'process-environment 'risky-local-variable t)
-(put 'dabbrev-case-fold-search 'risky-local-variable t)
-(put 'dabbrev-case-replace 'risky-local-variable t)
-;; Don't wait for outline.el to be loaded, for the sake of outline-minor-mode.
-(put 'outline-level 'risky-local-variable t)
-(put 'rmail-output-file-alist 'risky-local-variable t)
-(put 'font-lock-defaults 'risky-local-variable t)
-(put 'special-display-buffer-names 'risky-local-variable t)
-(put 'frame-title-format 'risky-local-variable t)
-(put 'global-mode-string 'risky-local-variable t)
-(put 'header-line-format 'risky-local-variable t)
-(put 'icon-title-format 'risky-local-variable t)
-(put 'input-method-alist 'risky-local-variable t)
-(put 'format-alist 'risky-local-variable t)
-(put 'vc-mode 'risky-local-variable t)
-(put 'imenu-generic-expression 'risky-local-variable t)
-(put 'imenu--index-alist 'risky-local-variable t)
-(put 'standard-input 'risky-local-variable t)
-(put 'standard-output 'risky-local-variable t)
-(put 'unread-command-events 'risky-local-variable t)
-(put 'max-lisp-eval-depth 'risky-local-variable t)
-(put 'max-specpdl-size 'risky-local-variable t)
-(put 'mode-line-format 'risky-local-variable t)
-(put 'mode-line-modified 'risky-local-variable t)
-(put 'mode-line-mule-info 'risky-local-variable t)
-(put 'mode-line-buffer-identification 'risky-local-variable t)
-(put 'mode-line-modes 'risky-local-variable t)
-(put 'mode-line-position 'risky-local-variable t)
-(put 'mode-line-process 'risky-local-variable t)
-(put 'mode-name 'risky-local-variable t)
-(put 'display-time-string 'risky-local-variable t)
-(put 'parse-time-rules 'risky-local-variable t)
-
-;; Commonly-encountered local variables that are safe:
-(let ((string-or-null (lambda (a) (or (stringp a) (null a)))))
-  (eval
-   `(mapc (lambda (pair)
-	    (put (car pair) 'safe-local-variable (cdr pair)))
-	  '((byte-compile-dynamic . t)
-	    (c-basic-offset     .  integerp)
-	    (c-file-style       .  stringp)
-	    (c-indent-level     .  integerp)
-	    (comment-column     .  integerp)
-	    (compile-command    . ,string-or-null)
-	    (fill-column        .  integerp)
-	    (fill-prefix        . ,string-or-null)
-	    (indent-tabs-mode   .  t)
-	    (kept-new-versions  .  integerp)
-	    (no-byte-compile    .  t)
-	    (no-update-autoloads . t)
-	    (outline-regexp     . ,string-or-null)
-	    (page-delimiter     . ,string-or-null)
-	    (paragraph-start    . ,string-or-null)
-	    (paragraph-separate . ,string-or-null)
-	    (sentence-end       . ,string-or-null)
-	    (sentence-end-double-space . t)
-	    (tab-width          .  integerp)
-	    (version-control    .  t)))))
-
 (defun safe-local-variable-p (sym val)
   "Non-nil if SYM is safe as a file-local variable with value VAL.
 It is safe if any of these conditions are met:
@@ -2601,17 +2627,6 @@ It is dangerous if either of these conditions are met:
 -commands?$\\|-predicates?$\\|font-lock-keywords$\\|font-lock-keywords\
 -[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|\
 -map$\\|-map-alist$" (symbol-name sym))))
-
-(defcustom safe-local-eval-forms nil
-  "*Expressions that are considered \"safe\" in an `eval:' local variable.
-Add expressions to this list if you want Emacs to evaluate them, when
-they appear in an `eval' local variable specification, without first
-asking you for confirmation."
-  :group 'find-file
-  :version "22.1"
-  :type '(repeat sexp))
-
-(put 'c-set-style 'safe-local-eval-function t)
 
 (defun hack-one-local-variable-quotep (exp)
   (and (consp exp) (eq (car exp) 'quote) (consp (cdr exp))))
@@ -3630,7 +3645,6 @@ This requires the external program `diff' to be in your `exec-path'."
     (?d diff-buffer-with-file
 	"view changes in file"))
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
-(put 'save-some-buffers-action-alist 'risky-local-variable t)
 
 (defvar buffer-save-without-query nil
   "Non-nil means `save-some-buffers' should save this buffer without asking.")

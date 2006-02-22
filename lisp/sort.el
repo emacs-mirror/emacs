@@ -499,8 +499,9 @@ Use \\[untabify] to convert tabs to spaces before sorting."
 	  ;; in the region, since the sort utility would lose the
 	  ;; properties.
 	  (let ((sort-args (list (if reverse "-rt\n" "-t\n")
-				 (concat "+0." (int-to-string col-start))
-				 (concat "-0." (int-to-string col-end)))))
+				 (format "-k1.%d,1.%d"
+					 (1+ col-start)
+					 (1+ col-end)))))
 	    (when sort-fold-case
 	      (push "-f" sort-args))
 	    (apply #'call-process-region beg1 end1 "sort" t t nil sort-args))

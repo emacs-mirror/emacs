@@ -1255,7 +1255,8 @@ which may actually result in an url rather than a filename."
 		    (abbreviate-file-name (expand-file-name guess))
 		    ))
 	  (setq dir (file-name-directory guess))))
-    (let ((minibuffer-completing-file-name t))
+    (let ((minibuffer-completing-file-name t)
+	  (completion-ignore-case read-file-name-completion-ignore-case))
       (setq guess
 	    (completing-read
 	     prompt
@@ -1321,6 +1322,12 @@ which may actually result in an url rather than a filename."
 (defvar ffap-highlight t
   "If non-nil, ffap highlights the current buffer substring.")
 
+(defface ffap
+  '((t :inherit highlight))
+  "Face used to highlight the current buffer substring."
+  :group 'ffap
+  :version "22.1")
+
 (defvar ffap-highlight-overlay nil
   "Overlay used by `ffap-highlight'.")
 
@@ -1344,8 +1351,7 @@ Uses the face `ffap' if it is defined, or else `highlight'."
    (t
     (setq ffap-highlight-overlay
 	  (apply 'make-overlay ffap-string-at-point-region))
-    (overlay-put ffap-highlight-overlay 'face
-		      (if (facep 'ffap) 'ffap 'highlight)))))
+    (overlay-put ffap-highlight-overlay 'face 'ffap))))
 
 
 ;;; Main Entrance (`find-file-at-point' == `ffap'):

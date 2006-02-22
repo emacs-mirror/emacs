@@ -1,3 +1,150 @@
+2006-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (draw_fringe_bitmap): Fix overlay-arrow display.
+
+2006-02-21  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (syms_of_fringe) <fringe-bitmaps>: Doc fix.
+
+2006-02-21  Zhang Wei <brep@newsmth.org>
+
+	* xfns.c (Fx_file_dialog, Motif and GTK): DECODE_FILE before
+	returning it.
+
+2006-02-21  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* fringe.c (horizontal_bar_bits): Rename from `horisontal_bar_bits'.
+	(standard_bitmaps): Use it.
+
+2006-02-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_draw_string_common): Remove arg MODE.  New arg
+	BG_WIDTH.  All uses changed.  Draw background if BG_WIDTH is not zero.
+	(mac_draw_image_string, mac_draw_image_string_16): New arg BG_WIDTH.
+	[USE_CG_TEXT_DRAWING] (mac_draw_image_string_cg): Rename from
+	mac_draw_string_cg.  New arg BG_WIDTH.  All uses changed.  Draw
+	background if BG_WIDTH is not zero.  Use float constants as
+	divisors instead of double.  Use alloca instead of xmalloc/xfree.
+	(x_draw_glyph_string_background, x_draw_glyph_string_foreground)
+	[!MAC_OS8 || USE_ATSUI]: Background may be drawn using
+	mac_draw_image_string* functions.
+	(XLoadQueryFont) [MAC_OS8 && USE_ATSUI]: Don't adjust heights of
+	some fonts when srcCopy text transfer mode might be used.
+	(mac_begin_clip, mac_end_clip): Check if region is empty.
+	(mac_set_clip_rectangles): When resetting clip region, make it
+	empty instead of disposing of it.
+
+2006-02-20  Kim F. Storm  <storm@cua.dk>
+
+	* Makefile.in: Add fringe.elc to WINDOW_SUPPORT.
+
+	* buffer.h (struct buffer): New members fringe_indicator_alist and
+	fringe_cursor_alist.
+
+	* buffer.c (init_buffer_once): Set dummy default values for
+	fringe-indicator-alist and fringe-cursor-alist.  The proper
+	default values are set by pre-loading fringe.el.
+	(syms_of_buffer): defvar_per_buffer new fringe-indicator-alist and
+	fringe-cursor-alist buffer-local variables and defvar_lisp_nopro
+	corresponding default- variables.
+
+	* fringe.c (enum fringe_bitmap_type): Remove.  Change all uses
+	to use `int'.
+	(NO_FRINGE_BITMAP, UNDEF_FRINGE_BITMAP, MAX_STANDARD_FRINGE_BITMAPS):
+	Define explicitly.
+	(Qtruncation, Qcontinuation, Qempty_line, Qtop_bottom)
+	(Qhollow_small): New variables.
+	(syms_of_fringe): Intern and staticpro them.
+	(question_mark_bits): Rename from unknown_bits.
+	(left_curly_arrow_bits): Rename from continuation_bits.
+	(right_curly_arrow_bits): Rename from continued_bits.
+	(left_triangle_bits): Rename from ov_bits.
+	(right_triangle_bits): Added.
+	(filled_rectangle_bits): Rename from filled_box_cursor_bits.
+	(hollow_rectangle_bits): Rename from hollow_box_cursor_bits.
+	(filled_square_bits): Added.
+	(vertical_bar_bits): Rename from bar_cursor_bits.
+	(horizontal_bar_bits): Rename from hbar_cursor_bits.
+	(empty_line_bits): Rename from zv_bits.
+	(standard_bitmaps): Update to use new names.
+	(draw_fringe_bitmap_1): Make static.
+	(get_logical_cursor_bitmap, get_logical_fringe_bitmap): New functions
+	to map from logical cursors and indicators to physical bitmaps.
+	(draw_fringe_bitmap): Resolve fringe cursor and	overlay-arrow
+	bitmaps using symbol names instead of bitmap numbers.
+	(update_window_fringes): Use logical indicator symbol names
+	instead of bitmap numbers for logical.  Add bitmap cache.
+	(LEFT_FRINGE, RIGHT_FRINGE): New helper macros.
+
+2006-02-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* regex.c: Revert 2006-02-19 change.
+	(xmalloc, xrealloc): Define these when not linked to Emacs.
+	Redefine malloc -> xmalloc, realloc -> xrealloc as in Emacs case.
+
+2006-02-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* regex.c (extend_range_table_work_area): Fix typo.
+
+2006-02-19  Richard M. Stallman  <rms@gnu.org>
+
+	* xterm.c (x_catch_errors): Use xmalloc.
+
+	* regex.c (extend_range_table_work_area): Call xmalloc and xrealloc.
+	(regex_compile): Likewise.
+	(regcomp): Use xmalloc.
+
+	* gtkutil.c (malloc_widget_value): Use xmalloc.
+
+	* vm-limit.c [HAVE_GETRLIMIT]: Include sys/resource.h.
+	(check_memory_limits) [HAVE_GETRLIMIT]: Use getrlimit.
+
+	* xmenu.c (digest_single_submenu): When pane_string is empty,
+	do initialize save_wv.
+
+2006-02-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (update_menu_bar) [MAC_OS]: Don't set
+	w->update_mode_line if arg F is not the selected frame.
+
+	* macmenu.c (popup_activated_flag, submenu_id)
+	(next_menubar_widget_id): Remove variables.
+	(initialize_frame_menubar): Remove function.
+	(pop_down_menu, mac_menu_show): Simplify save value.
+	(dispose_menus): New function.
+	(pop_down_menu, fill_menubar): Use it.
+	(fill_submenu): Remove function.  All uses changed to fill_menu.
+	(add_menu_item): Remove args SUBMENU and FORCE_DISABLE.  New arg
+	POS.  Don't call SetMenuItemHierarchicalID here.
+	(fill_menu): Add arg SUBMENU_ID.  Return submenu_id that is to be
+	used next.  Call SetMenuItemHierarchicalID here.
+	(fill_menubar): Add arg DEEP_P.  All uses changed.  Clean up menu
+	objects if needed.  Reuse existing menu bar titles if possible.
+	(set_frame_menubar): Don't clean up menu objects here.
+
+2006-02-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.c (window_min_size_1): Ensure room for the scroll bar and
+	fringes.
+
+2006-02-17  Romain Francoise  <romain@orebokech.com>
+
+	* puresize.h (BASE_PURESIZE): Increment to 1200000.
+
+2006-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (Fmake_symbol): Comment-out left-over assert from before the
+	addition of the BLOCK_INPUTs.
+
+2006-02-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fset_window_scroll_bars): Doc fix.
+
+2006-02-17  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (display_mode_element): Call display_string with correct
+	PREC arg (which must be a number of characters, not column width).
+
 2006-02-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* frame.c (x_get_arg): Clear out PARAM in ALIST also on Mac.

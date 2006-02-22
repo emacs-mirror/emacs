@@ -148,10 +148,10 @@ of symbols with local bindings."
        ((eq fun 'lambda)
 	;;First arg is temporary bindings
 	(mapc #'(lambda (x)
-		  (let ((y (unsafep-variable x t)))
-		    (if y (throw 'unsafep y)))
 		  (or (memq x '(&optional &rest))
-		      (push x unsafep-vars)))
+		      (let ((y (unsafep-variable x t)))
+			(if y (throw 'unsafep y))
+			(push x unsafep-vars))))
 	      (cadr form))
 	(unsafep-progn (cddr form)))
        ((eq fun 'let)
@@ -247,17 +247,16 @@ and throws a reason to `unsafep' if unsafe.  Returns SYM."
     (if reason (throw 'unsafep reason))
     sym))
 
-(defun unsafep-variable (sym global-okay)
-  "Return nil if SYM is safe as a let-binding sym
-\(because it already has a temporary binding or is a non-risky buffer-local
-variable), otherwise a reason why it is unsafe.  Failing to be locally bound
-is okay if GLOBAL-OKAY is non-nil."
+(defun unsafep-variable (sym to-bind)
+  "Return nil if SYM is safe to set or bind, or a reason why not.
+If TO-BIND is nil, check whether SYM is safe to set.
+If TO-BIND is t, check whether SYM is safe to bind."
   (cond
    ((not (symbolp sym))
     `(variable ,sym))
    ((risky-local-variable-p sym nil)
     `(risky-local-variable ,sym))
-   ((not (or global-okay
+   ((not (or to-bind
 	     (memq sym unsafep-vars)
 	     (local-variable-p sym)))
     `(global-variable ,sym))))

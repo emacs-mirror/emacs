@@ -1,4 +1,40 @@
-2006-02-16 Johan Bockg,AC%(Brd <bojohan+mail@dd.chalmers.se> (tiny change)
+2006-02-21  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* display.texi (Fringe Indicators, Fringe Cursors): Fix typos.
+
+	* windows.texi (Window Tree): Fix typo.
+
+2006-02-20  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Fringe Indicators): New section.
+	Move indicate-empty-lines, indicate-buffer-boundaries, and
+	default-indicate-buffer-boundaries here.
+	Add fringe-indicator-alist and default-fringes-indicator-alist.
+	Add list of logical fringe indicator symbols.
+	Update list of standard bitmap names.
+	(Fringe Cursors): New section.
+	Move overflow-newline-into-fringe here.
+	Add fringe-cursor-alist and default-fringes-cursor-alist.
+	Add list of fringe cursor symbols.
+
+2006-02-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* commands.texi (Using Interactive): Fix reference to node
+	"Minibuffers".
+
+2006-02-19  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (High-Level Completion):
+	Add xref to read-input-method-name.
+
+	* files.texi (Relative File Names): Move file-relative-name here.
+	(File Name Expansion): From here.  Minor clarifications.
+
+	* commands.texi (Using Interactive): Add xrefs about reading input.
+	Clarify remarks about that moving point and mark.
+	Put string case before list case.
+
+2006-02-16  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* display.texi (Other Display Specs, Image Descriptors): Revert
 	erroneous changes.  The previous description of image-descriptors

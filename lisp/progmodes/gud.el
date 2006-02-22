@@ -43,14 +43,13 @@
 (eval-when-compile (require 'cl)) ; for case macro
 
 (require 'comint)
-(require 'font-lock)
 
 (defvar gdb-active-process)
 (defvar gdb-define-alist)
 (defvar gdb-macro-info)
 (defvar gdb-server-prefix)
 (defvar gdb-show-changed-values)
-(defvar gdb-var-changed)
+(defvar gdb-force-update)
 (defvar gdb-var-list)
 (defvar gdb-speedbar-auto-raise)
 (defvar tool-bar-map)
@@ -444,7 +443,7 @@ required by the caller."
 	  (p (window-point window)))
       (cond
        ((memq minor-mode '(gdbmi gdba))
-	(when (or gdb-var-changed
+	(when (or gdb-force-update
 		  (not (save-excursion
 			 (goto-char (point-min))
 			 (let ((case-fold-search t))
@@ -453,51 +452,68 @@ required by the caller."
 	  (insert "Watch Expressions:\n")
 	  (if gdb-speedbar-auto-raise
 	      (raise-frame speedbar-frame))
-	  (let ((var-list gdb-var-list))
+	  (let ((var-list gdb-var-list) parent)
 	    (while var-list
-	      (let* (char (depth 0) (start 0)
-		     (var (car var-list)) (varnum (nth 1 var)))
+	      (let* (char (depth 0) (start 0) (var (car var-list))
+			  (expr (car var)) (varnum (nth 1 var))
+			  (type (nth 3 var)) (status (nth 5 var)))
+		(put-text-property
+		 0 (length expr) 'face font-lock-variable-name-face expr)
+		(put-text-property
+		 0 (length type) 'face font-lock-type-face type)
 		(while (string-match "\\." varnum start)
 		  (setq depth (1+ depth)
 			start (1+ (match-beginning 0))))
+		(if (eq depth 0) (setq parent nil))
 		(if (or (equal (nth 2 var) "0")
 			(and (equal (nth 2 var) "1")
-			     (string-match "char \\*$" (nth 3 var))))
-		    (speedbar-make-tag-line 'bracket ?? nil nil
-					    (concat (car var) "\t" (nth 4 var))
-					    'gdb-edit-value
-					    nil
-					    (if (and (nth 5 var)
-						     gdb-show-changed-values)
-						'font-lock-warning-face
-					      nil) depth)
+			     (string-match "char \\*$" type)))
+		    (speedbar-make-tag-line
+		     'bracket ?? nil nil
+		     (concat expr "\t" (nth 4 var))
+		     (if (or parent (eq status 'out-of-scope))
+			 nil 'gdb-edit-value)
+		     nil
+		     (if gdb-show-changed-values
+			 (or parent (case status
+				      (changed 'font-lock-warning-face)
+				      (out-of-scope 'shadow)
+				      (t t)))
+		       t)
+		     depth)
+		  (if (eq status 'out-of-scope) (setq parent 'shadow))
 		  (if (and (cadr var-list)
 			   (string-match (concat varnum "\\.")
 					 (cadr (cadr var-list))))
 		      (setq char ?-)
 		    (setq char ?+))
-		  (if (string-match "\\*$" (nth 3 var))
-		      (speedbar-make-tag-line 'bracket char
-					      'gdb-speedbar-expand-node varnum
-					      (concat (car var) "\t"
-						      (nth 3 var)"\t"
-						      (nth 4 var))
-					      'gdb-edit-value nil
-					      (if (and (nth 5 var)
-						       gdb-show-changed-values)
-						  'font-lock-warning-face
-						nil) depth)
-		  (speedbar-make-tag-line 'bracket char
-					  'gdb-speedbar-expand-node varnum
-					  (concat (car var) "\t" (nth 3 var))
-					  nil nil nil depth))))
+		  (if (string-match "\\*$" type)
+		      (speedbar-make-tag-line
+		       'bracket char
+		       'gdb-speedbar-expand-node varnum
+		       (concat expr "\t"
+			       type "\t"
+			       (nth 4 var))
+		       (if (or parent status 'out-of-scope)
+			 nil 'gdb-edit-value)
+		       nil
+		       (if (and (or parent status) gdb-show-changed-values)
+			   'shadow t)
+		       depth)
+		    (speedbar-make-tag-line
+		     'bracket char
+		     'gdb-speedbar-expand-node varnum
+		     (concat expr "\t" type)
+		     nil nil
+		     (if (and (or parent status) gdb-show-changed-values)
+			 'shadow t)
+		     depth))))
 	      (setq var-list (cdr var-list))))
-	  (setq gdb-var-changed nil)))
-       (t (if (and (save-excursion
-		     (goto-char (point-min))
-		     (looking-at "Current Stack:"))
-		   (equal gud-last-last-frame gud-last-speedbar-stackframe))
-	      nil
+	  (setq gdb-force-update nil)))
+       (t (unless (and (save-excursion
+			 (goto-char (point-min))
+			 (looking-at "Current Stack:"))
+		       (equal gud-last-last-frame gud-last-speedbar-stackframe))
 	    (let ((gud-frame-list
 	    (cond ((eq minor-mode 'gdb)
 		   (gud-gdb-get-stackframe buffer))
