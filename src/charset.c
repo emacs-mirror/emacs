@@ -592,17 +592,6 @@ map_charset_chars (c_function, function, arg,
     {
       if (! CHAR_TABLE_P (CHARSET_ENCODER (charset)))
 	return;
-      if (CHARSET_ASCII_COMPATIBLE_P (charset) && from <= 127)
-	{
-	  range = Fcons (make_number (from), make_number (to));
-	  if (to >= 128)
-	    XSETCAR (range, make_number (127));
-
-	  if (NILP (function))
-	    (*c_function) (arg, range);
-	  else
-	    call2 (function, range, arg);
-	}
       map_char_table_for_charset (c_function, function,
 				  CHARSET_ENCODER (charset), arg,
 				  partial ? charset : NULL, from, to);
