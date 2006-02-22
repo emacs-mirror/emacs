@@ -7,9 +7,9 @@
 @syncodeindex fn cp
 
 @c Version and Contact Info
-@set VERSION 4.30
-@set EDITION 4.30
-@set DATE September 2005
+@set VERSION 4.31
+@set EDITION 4.31
+@set DATE February 2006
 @set AUCTEXSITE @uref{http://www.nongnu.org/auctex/,AUCTeX distribution site}
 @set MAINTAINERSITE @uref{http://www.astro.uva.nl/~dominik/Tools/,maintainers webpage}
 @set MAINTAINER Carsten Dominik
@@ -25,8 +25,7 @@ citations and indices for LaTeX documents with Emacs.
 This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
 @b{Ref@TeX{}} @value{VERSION}
 
-Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2005,
-   2006 Free Software Foundation, Inc.
+Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
