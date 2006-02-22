@@ -1,5 +1,11 @@
 2006-02-22  Carsten Dominik  <dominik@science.uva.nl>
 
+	* textmodes/reftex-vars.el: (reftex-try-all-extensions): New
+	option.
+
+	* textmodes/reftex.el: (reftex-locate-file): Search all extensions
+	if `reftex-try-all-extensions' is set.
+
 	* textmodes/org.el: (org-mark-ring-previous, org-mark-ring-set):
 	New commands.
 	(org-mark-ring): New variable.
