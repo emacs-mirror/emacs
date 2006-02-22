@@ -1,3 +1,7 @@
+2006-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* indent.c (Fvertical_motion): Only try to move back if we can.
+
 2006-02-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macgui.h (struct _XGC) [!MAC_OSX || !USE_ATSUI]: New member
