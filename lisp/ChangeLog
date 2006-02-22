@@ -1,3 +1,14 @@
+2006-02-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-signalled): New variable and function.
+	(gdb-debug-log-ring): Rename from gdb-debug-log and make a ring.
+	(gdb-send, gdb-send-item, gud-gdba-marker-filter): Use it.
+	(gdb-debug-log-length): Customize it's length.
+	(gud-watch, gdb-var-create-handler): Display function::var format
+	but don't use to create variable object.
+	(gdb-var-create-handler): Use message-box in place of message.
+	(gdb-stopped): Call gdb-exited if signalled.
+
 2006-02-22  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/reftex.el (reftex-locate-file): Removed duplicate
