@@ -1,3 +1,22 @@
+2006-02-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h (struct _XGC) [!MAC_OSX || !USE_ATSUI]: New member
+	n_clip_rects.
+
+	* macmenu.c (digest_single_submenu): Apply 2006-02-19 change for
+	xmenu.c.
+
+	* macterm.c (GC_CLIP_REGION): Remove macro.
+	(mac_begin_clip, mac_end_clip): Take arg GC instead of REGION.
+	All uses changed.  Don't do clipping if n_clip_rects is zero.
+	(mac_set_clip_rectangles): Use xassert instead of abort.  Set
+	n_clip_rects.  Don't make clip_region empty when number of
+	clipping rectangles is zero.
+	(mac_reset_clip_rectangles): Set n_clip_rects directly instead of
+	calling mac_set_clip_rectangles.
+	(x_set_toolkit_scroll_bar_thumb): Temporarily hide scroll bar to
+	avoid multiple redraws.
+
 2006-02-22  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.c (draw_fringe_bitmap): Fix overlay-arrow display.
