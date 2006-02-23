@@ -1,3 +1,7 @@
+2006-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help.el (describe-mode): Pass `mode-name' to format-mode-line.
+
 2006-02-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/org.el (org-xemacs-p)
@@ -16,8 +20,8 @@
 	(org-solidify-link-text): New function.
 	(org-add-hook): Use `add-local-hook' instead of `make-local-hook' for
 	XEmacs, just to silence the compiler.
-	(org-export-as-ascii, org-export-as-html-and-open): Use
-	`org-cleaned-string-for-export' and create internal links.
+	(org-export-as-ascii, org-export-as-html-and-open):
+	Use `org-cleaned-string-for-export' and create internal links.
 	(org-follow-mhe-link): Require mh-e, use folder.
 
 2006-02-23  Nick Roberts  <nickrob@snap.net.nz>
@@ -64,7 +68,7 @@
 	option `org-export-table-remove-special-lines'.
 	(org-open-file): Allow special command configuration for
 	directory link.
-	(org-file-apps): Fixed bugs in customize type, added setting
+	(org-file-apps): Fix bugs in customize type, added setting
 	for directories.
 	(org-activate-tags, org-format-agenda-item, org-complete)
 	(org-get-tags-at, org-scan-tags, org-make-tags-matcher)
@@ -80,7 +84,7 @@
 	(org-store-link, org-insert-link): Use new option
 	`org-file-link-context-use-camel-case'.
 	(org-activate-camels): Use new option `org-activate-camels'.
-	(org-link-regexp): Added mhe prefix.
+	(org-link-regexp): Add mhe prefix.
 	(org-open-at-point, org-store-link): Support for mhe links.
 	(org-mhe-get-message-real-folder, org-mhe-get-message-folder)
 	(org-mhe-get-message-folder-from-index, org-mhe-get-message-num)
@@ -88,12 +92,12 @@
 	(org-remove-angle-brackets, org-add-angle-brackets):
 	New functions.
 	(org-bracket-link-regexp): New constant.
-	(org-read-date): Fixed bug that was rejecting all typed dates.
+	(org-read-date): Fix bug that was rejecting all typed dates.
 	(org-link-search): Make hierarchy above visible after a match.
 	(org-follow-bbdb-link): Inhibit electric mode for BBDB.
-	(org-store-link): Fixed bug with link creation when cursor is in
+	(org-store-link): Fix bug with link creation when cursor is in
 	an empty line.
-	(org-open-at-point): Fixed bug with matching a link.
+	(org-open-at-point): Fix bug with matching a link.
 	Fixed buggy argument sequence in call to `org-view-tags'.
 	(org-compile-prefix-format): Set `org-prefix-has-tag'.
 	(org-prefix-has-tag): New variable.
@@ -157,8 +161,8 @@
 
 2006-02-20  Chong Yidong  <cyd@stupidchicken.com>
 
-	* custom.el (customize-mark-to-save, customize-mark-as-set): Load
-	the symbol first.
+	* custom.el (customize-mark-to-save, customize-mark-as-set):
+	Load the symbol first.
 
 2006-02-20  Juanma Barranquero  <lekktu@gmail.com>
 
