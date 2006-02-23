@@ -78,6 +78,7 @@
 ;; Make sure calendar is loaded when we compile this.
 (require 'calendar)
 
+(defvar diary-selective-display)
 
 ;;;###autoload
 (defcustom appt-issue-message t

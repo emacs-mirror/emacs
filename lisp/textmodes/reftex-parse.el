@@ -3,7 +3,7 @@
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: VERSIONTAG
+;; Version: 4.31
 ;;
 
 ;; This file is part of GNU Emacs.

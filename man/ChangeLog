@@ -1,3 +1,10 @@
+2006-02-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* reftex.texi: Version number and date change only.
+
+	* org.texi: (Internal Links): Rewritten to cover the modified
+	linking system.
+
 2006-02-21  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Watch Expressions): Update and describe

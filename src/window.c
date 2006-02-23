@@ -1863,7 +1863,8 @@ MINIBUF neither nil nor t means never include the minibuffer window.  */)
      Lisp_Object frame, minibuf, window;
 {
   if (NILP (window))
-    window = selected_window;
+    window = FRAMEP (frame) ? XFRAME (frame)->selected_window : selected_window;
+  CHECK_WINDOW (window);
   if (NILP (frame))
     frame = selected_frame;
 

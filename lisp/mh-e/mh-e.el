@@ -2395,7 +2395,8 @@ of citations entirely, choose \"None\"."
     "X-SBPass:"                         ; Spam
     "X-SBRule:"                         ; Spam
     "X-SMTP-"
-    "X-Scanned-By"
+    "X-Sasl-enc:"                       ; Apple Mail
+    "X-Scanned-By:"
     "X-Sender:"
     "X-Server-Date:"
     "X-Server-Uuid:"

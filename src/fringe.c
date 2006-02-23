@@ -869,7 +869,7 @@ draw_fringe_bitmap (w, row, left_p)
   if (left_p && row->overlay_arrow_bitmap != NO_FRINGE_BITMAP)
     draw_fringe_bitmap_1 (w, row, 1, 1,
 			  (row->overlay_arrow_bitmap < 0
-			   ? get_logical_cursor_bitmap (w, Qoverlay_arrow)
+			   ? get_logical_fringe_bitmap (w, Qoverlay_arrow, 0, 0)
 			   : row->overlay_arrow_bitmap));
 }
 
