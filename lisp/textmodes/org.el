@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.05
+;; Version: 4.06
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,6 +81,10 @@
 ;;
 ;; Changes since version 4.00:
 ;; ---------------------------
+;; Version 4.06
+;;    - HTML exporter treats targeted internal links.
+;;    - Bug fixes.
+;;
 ;; Version 4.05
 ;;    - Changes to internal link system (thanks to David Wainberg for ideas).
 ;;      - in-file links: [[Search String]] instead of <file:::Search String>
@@ -126,7 +130,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.05"
+(defvar org-version "4.06"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -7211,11 +7215,12 @@ onto the ring."
 (defun org-follow-mhe-link (folder article)
   "Follow an MHE link to FOLDER and ARTICLE."
   (setq article (org-add-angle-brackets article))
-;;  (require 'mh-e)
-  (mh-rmail) ;; mh-e is standard with emacs 22
+  (require 'mh-e)
+  (mh-find-path)
   (let* ((show-buf (concat "show-" folder)))
+    (mh-visit-folder folder)
     (get-buffer-create show-buf)
-    (mh-display-msg
+    (mh-show-msg
      (string-to-number
       (car (split-string 
 	    (with-temp-buffer
@@ -7226,8 +7231,7 @@ onto the ring."
 	       "--message-id"
 	       article)
 	      (buffer-string))
-	    "\n")))
-     folder)
+	    "\n"))))
     (pop-to-buffer show-buf)))
 
 (defun org-open-file (path &optional in-emacs line search)
@@ -10440,6 +10444,45 @@ The list contains HTML entities for Latin-1, Greek and other symbols.
 It is supplemented by a number of commonly used TeX macros with appropriate
 translations.  There is currently no way for users to extend this.")
 
+(defun org-cleaned-string-for-export (string)
+  "Cleanup a buffer substring so that links can be created safely."
+  (interactive)
+  (let* ((cb (current-buffer))
+	 (re-radio (concat "\\([^<]\\)\\(" org-target-link-regexp "\\)"))
+	 rtn)
+    (save-excursion
+      (set-buffer (get-buffer-create " org-mode-tmp"))
+      (erase-buffer)
+      (insert string)
+      (org-mode)
+      ;; Find targets in comments and move them out of comments
+      (goto-char (point-min))
+      (while (re-search-forward "^#.*?\\(<<<?[^>\r\n]+>>>?\\).*" nil t)
+	(replace-match "\\1"))
+      ;; Find matches for radio targets and turn them into links
+      (goto-char (point-min))
+      (while (re-search-forward re-radio nil t)
+	(replace-match "\\1[[\\2]]"))
+      ;; Find all links that contain a newline and put them into a single line
+      (goto-char (point-min))
+      (while (re-search-forward "\\(\\[\\[[^]]*?\\)[ \t]*\n[ \t]*\\([^]]*\\]\\]\\)" nil t)
+	(replace-match "\\1 \\2")
+	(goto-char (match-beginning 0)))
+      ;; Remove comments
+      (goto-char (point-min))
+      (while (re-search-forward "^#.*\n?" nil t)
+	(replace-match ""))
+      (setq rtn (buffer-string)))
+    (kill-buffer " org-mode-tmp")
+    rtn))
+
+(defun org-solidify-link-text (s)
+  "Take link text and make a safe target out of it."
+  (save-match-data
+    (mapconcat
+     'identity
+     (org-split-string s "[ \t\r\n]+") "--")))
+
 (defvar org-last-level nil) ; dynamically scoped variable
 
 (defun org-export-as-ascii (arg)
@@ -10454,7 +10497,10 @@ underlined headlines.  The default is 3."
 	   (if (org-region-active-p) (region-beginning) (point-min))
 	   (if (org-region-active-p) (region-end) (point-max))))
 	 (lines (org-export-find-first-heading-line
-		 (org-skip-comments (org-split-string region "[\r\n]"))))
+		 (org-skip-comments
+		  (org-split-string
+		   (org-cleaned-string-for-export region)
+		   "[\r\n]"))))
 	 (org-startup-with-deadline-check nil)
 	 (level 0) line txt
 	 (umax nil)
@@ -10543,6 +10589,14 @@ underlined headlines.  The default is 3."
     (while (setq line (pop lines))
       ;; Remove the quoted HTML tags.
       (setq line (org-html-expand-for-ascii line))
+      ;; Remove targets
+      (while (string-match "<<<?[^<>]*>>>?[ \t]*\n?" line)
+	(setq line (replace-match "" t t line)))
+      ;; Replace internal links
+      (while (string-match org-bracket-link-regexp line)
+	(setq line (replace-match
+		    (if (match-end 3) "[\\3]" "[\\1]")
+		    t nil line)))
       (cond
        ((string-match "^\\(\\*+\\)[ \t]*\\(.*\\)" line)
 	;; a Headline
@@ -10781,7 +10835,9 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
            (if region-p (region-beginning) (point-min))
            (if region-p (region-end) (point-max))))
          (all_lines
-          (org-skip-comments (org-split-string region "[\r\n]")))
+          (org-skip-comments (org-split-string
+			      (org-cleaned-string-for-export region)
+			      "[\r\n]")))
          (lines (org-export-find-first-heading-line all_lines))
          (level 0) (line "") (origline "") txt todo
          (umax nil)
@@ -10944,7 +11000,26 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 	      (insert "</pre>\n"))
 	    (throw 'nextline nil))
 
-	  ;; Protect the links
+
+	  ;; make targets to anchors
+	  (while (string-match "<<<?\\([^<>]*\\)>>>?[ \t]*\n?" line)
+	    (setq line (replace-match
+			(concat "@<a name=\"" 
+				(org-solidify-link-text (match-string 1 line))
+				"\">\\nbsp@</a>")
+			t t line)))
+	  ;; Replace internal links
+	  (while (string-match org-bracket-link-regexp line)
+	    (setq line (replace-match
+			(concat
+			    "@<a href=\"#" 
+			    (org-solidify-link-text (match-string 1 line))
+			    "\">"
+			    (match-string (if (match-end 3) 3 1) line)
+			    "@</a>")
+			t t line)))
+
+	  ;; Protect the external links
 	  (setq start 0)
 	  (while (string-match org-link-maybe-angles-regexp line start)
 	    (setq start (match-end 0))
@@ -12363,8 +12438,9 @@ work correctly."
 
 (defun org-add-hook (hook function &optional append local)
   "Add-hook, compatible with both Emacsen."
-  (if (and local org-xemacs-p) (make-local-hook hook)) ;; Needed for XEmacs
-  (add-hook hook function append local))
+  (if (and local org-xemacs-p)
+      (add-local-hook hook function append)
+    (add-hook hook function append local)))
 
 (defun org-region-active-p ()
   "Is `transient-mark-mode' on and the region active?
