@@ -423,14 +423,17 @@ years, although there may be some unintentional gaps in coverage.  The
 archive is not particularly well organized or easy to retrieve
 individual postings from, but pretty much everything is there.
 
-The archive is at @uref{ftp://ftp-mailing-list-archives.gnu.org}.
+The archive is at @uref{ftp://lists.gnu.org/}.
 
 The archive can be browsed over the web at
-@uref{http://mail.gnu.org/archive/html/, the GNU mail archive}.
+@uref{http://lists.gnu.org/archive/html/, the GNU mail archive}.
 
 Web-based Usenet search services, such as
-@uref{http://groups.google.com, Google}, also archive the
-@code{gnu.*} groups.
+@uref{http://groups.google.com/groups/dir?sel=33592484, Google}, also
+archive the @code{gnu.*} groups.
+
+You can read the archives of the @code{gnu.*} groups and post new
+messages at @uref{http://gmane.org/, Gmane}.
 
 @node Reporting bugs, Unsubscribing from Emacs lists, Newsgroup archives, General questions
 @section Where should I report bugs and other problems with Emacs?
@@ -439,16 +442,19 @@ Web-based Usenet search services, such as
 @cindex How to submit a bug report
 @cindex Reporting bugs
 
-The correct way to report Emacs bugs is by e-mail to
-@email{bug-gnu-emacs@@gnu.org}.  Anything sent here also appears in the
+The correct way to report Emacs bugs is to use the command
+@kbd{M-x report-emacs-bug}.  It sets up a mail buffer with the
+essential information and the correct e-mail address which is
+@email{bug-gnu-emacs@@gnu.org} for the released versions of Emacs.
+Anything sent to @email{bug-gnu-emacs@@gnu.org} also appears in the
 newsgroup @uref{news:gnu.emacs.bug}, but please use e-mail instead of
 news to submit the bug report.  This ensures a reliable return address
 so you can be contacted for further details.
 
 Be sure to read the ``Bugs'' section of the Emacs manual before reporting
-a bug to bug-gnu-emacs!  The manual describes in detail how to submit a
-useful bug report.  (@xref{On-line manual}, if you don't know how to read the
-manual.)
+a bug!  The manual describes in detail how to submit a useful bug
+report (@pxref{Bugs, , Reporting Bugs, emacs, The GNU Emacs Manual}).
+(@xref{On-line manual}, if you don't know how to read the manual.)
 
 RMS says:
 
@@ -674,6 +680,10 @@ An HTML version of the manual is at
 
 @uref{http://www.gnu.org/software/emacs/manual/emacs.html}
 
+The manual is available in other formats at
+
+@uref{http://www.gnu.org/software/emacs/manual/}
+
 @xref{Learning how to do something}, for how to view the manual on-line.
 
 @node Emacs Lisp documentation, Installing Texinfo documentation, Getting a printed manual, Getting help
@@ -763,12 +773,19 @@ privileges, you have several options:
 
 @itemize @bullet
 @item
-Info files don't actually need to be installed before being used.  You
-can feed a file name to the @code{Info-goto-node} command (invoked by
-pressing @key{g} in Info mode) by typing the name of the file in
-parentheses.  This goes to the node named ``Top'' in that file.  For
-example, to view a Info file named @file{@var{info-file}} in your home
-directory, you can type this:
+Info files don't actually need to be installed before being used.
+You can use a prefix argument for the @code{info} command and specify
+the name of the Info file in the minibuffer.  This goes to the node
+named @samp{Top} in that file.  For example, to view a Info file named
+@file{@var{info-file}} in your home directory, you can type this:
+
+@example
+@kbd{C-u C-h i ~/@var{info-file} @key{RET}}
+@end example
+
+Alternatively, you can feed a file name to the @code{Info-goto-node}
+command (invoked by pressing @key{g} in Info mode) by typing the name
+of the file in parentheses, like this:
 
 @example
 @kbd{C-h i g (~/@var{info-file}) @key{RET}}
@@ -1074,7 +1091,7 @@ conventions}).
 
 Emacs @value{VER} is the current version as of this writing.
 
-@node New in Emacs 20,  New in Emacs 21, Latest version of Emacs, Status of Emacs
+@node New in Emacs 20, New in Emacs 21, Latest version of Emacs, Status of Emacs
 @section What is different about Emacs 20?
 @cindex Differences between Emacs 19 and Emacs 20
 @cindex Emacs 20, new features in
@@ -1122,7 +1139,7 @@ In addition, Emacs 21 supports faces on text-only terminals.  This means
 that you can now have colors when you run Emacs on a GNU/Linux console
 and on @code{xterm} with @kbd{emacs -nw}.
 
-@node New in Emacs 22, , New in Emacs 21, Status of Emacs
+@node New in Emacs 22,  , New in Emacs 21, Status of Emacs
 @section What is different about Emacs 22?
 @cindex Differences between Emacs 21 and Emacs 22
 @cindex Emacs 22, new features in
@@ -1163,8 +1180,8 @@ In addition, Emacs 22 now includes the Emacs Lisp Reference Manual
 @menu
 * Setting up a customization file::
 * Using Customize::
-* Debugging a customization file::
 * Colors on a TTY::
+* Debugging a customization file::
 * Displaying the current line or column::
 * Displaying the current file name in the titlebar::
 * Turning on abbrevs by default::
@@ -1173,9 +1190,9 @@ In addition, Emacs 22 now includes the Emacs Lisp Reference Manual
 * Working with unprintable characters::
 * Highlighting a region::
 * Controlling case sensitivity::
-* Wrapping words automatically::
 * Searching for/replacing newlines::
 * Yanking text in isearch::
+* Wrapping words automatically::
 * Spell-checkers::
 * Checking TeX and *roff documents::
 * Changing load-path::
@@ -1530,8 +1547,7 @@ including
 @end lisp
 
 @noindent
-in your @file{.emacs} file.  (Also see @ref{Turning on syntax
-highlighting}.)
+in your @file{.emacs} file.
 
 @node Controlling case sensitivity, Searching for/replacing newlines, Highlighting a region, Common requests
 @section How do I control Emacs's case-sensitivity when searching/replacing?
@@ -1844,6 +1860,10 @@ In Emacs 21 and later, this is on by default: if the variable
 @code{truncate-lines} is non-@code{nil} in the current buffer, Emacs
 automatically scrolls the display horizontally when point moves off the
 left or right edge of the window.
+
+Note that this is overridden by the variable
+@code{truncate-partial-width-windows} if that variable is non-nil
+and the current buffer is not full-frame width.
 
 In Emacs 20, use the @code{hscroll-mode}.  Here is some information from
 the documentation, available by typing @kbd{C-h f hscroll-mode @key{RET}}:
@@ -2158,7 +2178,7 @@ If you are trying to prefix a yanked mail message with @samp{>}, you
 might want to set the variable @code{mail-yank-prefix}.  In Message
 buffers, you can even use @kbd{M-;} to cite yanked messages (@kbd{M-;}
 runs the function @code{comment-region}, it is a general-purpose
-mechanism to comment regions).
+mechanism to comment regions) (@pxref{Changing the included text prefix}).
 
 @node Underlining paragraphs, Repeating a command as many times as possible, Inserting text at the beginning of each line, Common requests
 @section How do I insert @samp{_^H} before each character in a region to get an underlined paragraph?
@@ -2186,7 +2206,11 @@ If you need to repeat a command a small number of times, you can use
 @cindex Remaining in the same column, regardless of contents
 @cindex Vertical movement in empty documents
 
-@kbd{M-x picture-mode}.
+Use @kbd{M-x picture-mode}.
+
+See also the variable @code{track-eol} and the command
+@code{set-goal-column} bound to @kbd{C-x C-n}
+(@pxref{Moving Point, , , emacs, The GNU Emacs Manual}).
 
 @node Forcing Emacs to iconify itself, Using regular expressions, Forcing the cursor to remain in the same column, Common requests
 @section How do I tell Emacs to iconify itself?
@@ -2240,8 +2264,8 @@ The ``tags'' feature of Emacs includes the command
 files mentioned in the @file{TAGS} file.  @inforef{Tags Search, Tags Search,
 emacs}.
 
-As of Emacs 19.29, Dired mode (@kbd{M-x dired @key{RET}}, or @kbd{C-x
-d}) supports the command @code{dired-do-query-replace}, which allows
+As of Emacs 19.29, Dired mode (@kbd{M-x dired @key{RET}}, or @kbd{C-x d})
+supports the command @code{dired-do-query-replace} (@kbd{Q}), which allows
 users to replace regular expressions in multiple files.
 
 @node Documentation for etags, Disabling backups, Replacing text across multiple files, Common requests
@@ -2601,7 +2625,7 @@ If you are running a version of Emacs before 20.1, get @code{crypt++}
 and saved, allowing you to ignore the different conventions that Unix
 and MS-DOS have for delineating the end of a line.
 
-@node Filling paragraphs with a single space,  Escape sequences in shell output, Editing MS-DOS files, Common requests
+@node Filling paragraphs with a single space, Escape sequences in shell output, Editing MS-DOS files, Common requests
 @section How can I tell Emacs to fill paragraphs with a single space after each period?
 @cindex One space following periods
 @cindex Single space following periods
@@ -2613,7 +2637,7 @@ Add the following line to your @file{.emacs} file:
 (setq sentence-end-double-space nil)
 @end lisp
 
-@node Escape sequences in shell output, , Filling paragraphs with a single space, Common requests
+@node Escape sequences in shell output,  , Filling paragraphs with a single space, Common requests
 @section Why these strange escape sequences from @code{ls} from the Shell mode?
 @cindex Escape sequences in @code{ls} output
 @cindex @code{ls} in Shell mode
@@ -3715,7 +3739,7 @@ Beginning with version 22.1, Emacs supports Mac OS X natively.
 Up-to-date information about GNU software (including Emacs) for VMS is
 available at @uref{http://vms.gnu.org/}.
 
-@node Modes for various languages, , Emacs for VMS and DECwindows, Finding Emacs and related packages
+@node Modes for various languages,  , Emacs for VMS and DECwindows, Finding Emacs and related packages
 @section Where can I get modes for Lex, Yacc/Bison, Bourne shell, csh, C@t{++}, Objective-C, Pascal, Java, and Awk?
 @cindex Awk, mode for
 @cindex @code{awk-mode}
@@ -4782,7 +4806,7 @@ xmodmap -e 'remove mod1 = Mode_switch'
 This will disable the use of the extra keysyms systemwide, which may be
 undesirable if you actually intend to use them.
 
-@node SPC no longer completes file names, , ExtendChar key does not work as Meta, Key bindings
+@node SPC no longer completes file names,  , ExtendChar key does not work as Meta, Key bindings
 @section Why doesn't SPC complete file names anymore?
 @cindex @kbd{SPC} file name completion
 
