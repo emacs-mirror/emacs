@@ -1,3 +1,18 @@
+2006-02-23  Juri Linkov  <juri@jurta.org>
+
+	* compare-w.el (compare-windows-highlight): Add new value
+	`persistent' and change :type from `boolean' to `choice'.
+	(compare-windows-overlays1, compare-windows-overlays2):
+	New internal variables.
+	(compare-windows-highlight): If compare-windows-highlight is
+	`persistent', add current overlays to compare-windows-overlays[12]
+	instead of adding compare-windows-dehighlight to pre-command-hook.
+	(compare-windows-dehighlight): Delete all overlays from
+	compare-windows-overlays[12].
+
+	* info.el (Info-search): Don't bind search-spaces-regexp to
+	Info-search-whitespace-regexp in non-regexp isearch mode.
+
 2006-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help.el (describe-mode): Pass `mode-name' to format-mode-line.
