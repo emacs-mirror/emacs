@@ -1642,7 +1642,9 @@ If DIRECTION is `backward', search in the reverse direction."
 			      (and (search-backward "\^_" nil t)
 				   (looking-at
 				    "\^_\n\\(Tag Table\\|Local Variables\\)"))))))
-	    (let ((search-spaces-regexp Info-search-whitespace-regexp))
+	    (let ((search-spaces-regexp
+		   (if (or (not isearch-mode) isearch-regexp)
+		       Info-search-whitespace-regexp)))
 	      (if (if backward
 		      (re-search-backward regexp bound t)
 		    (re-search-forward regexp bound t))
@@ -1660,7 +1662,9 @@ If DIRECTION is `backward', search in the reverse direction."
       ;; If no subfiles, give error now.
       (if give-up
 	  (if (null Info-current-subfile)
-	      (let ((search-spaces-regexp Info-search-whitespace-regexp))
+	      (let ((search-spaces-regexp
+		     (if (or (not isearch-mode) isearch-regexp)
+			 Info-search-whitespace-regexp)))
 		(if backward
 		    (re-search-backward regexp)
 		  (re-search-forward regexp)))
@@ -1731,7 +1735,9 @@ If DIRECTION is `backward', search in the reverse direction."
 				    (and (search-backward "\^_" nil t)
 					 (looking-at
 					  "\^_\n\\(Tag Table\\|Local Variables\\)"))))))
-		  (let ((search-spaces-regexp Info-search-whitespace-regexp))
+		  (let ((search-spaces-regexp
+			 (if (or (not isearch-mode) isearch-regexp)
+			     Info-search-whitespace-regexp)))
 		    (if (if backward
 			    (re-search-backward regexp nil t)
 			  (re-search-forward regexp nil t))
