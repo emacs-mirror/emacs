@@ -1,3 +1,8 @@
+2006-02-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (update_text_area): Avoid needless redraw of rightmost
+	glyph whose face is extended to the text area end.
+
 2006-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (Fwindow_list): Check `window' before doing XWINDOW.
