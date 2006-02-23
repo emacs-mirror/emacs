@@ -1,3 +1,13 @@
+2006-02-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-cleaned-string-for-export,
+	org-solidify-link-text): New function.
+	(org-add-hook): Use `add-local-hook' instead of `make-local-hook'
+	for XEmacs, just to silence the compiler.
+	(org-export-as-ascii, org-export-as-html-and-open): Use
+	`org-cleaned-string-for-export' and create internal links.
+	(org-follow-mhe-link): Require mh-e, use folder.
+
 2006-02-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-speedbar-buttons): Use shadow face.
