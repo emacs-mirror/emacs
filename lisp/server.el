@@ -107,7 +107,7 @@ Each element is (PROC PROPERTIES...) where PROC is a process object,
 and PROPERTIES is an association list of client properties.")
 
 (defvar server-buffer-clients nil
-  "List of client ids for clients requesting editing of current buffer.")
+  "List of client processes requesting editing of current buffer.")
 (make-variable-buffer-local 'server-buffer-clients)
 ;; Changing major modes should not erase this local.
 (put 'server-buffer-clients 'permanent-local t)
@@ -249,26 +249,35 @@ ENV should be in the same format as `process-environment'."
 (defun server-delete-client (client &optional noframe)
   "Delete CLIENT, including its buffers, terminals and frames.
 If NOFRAME is non-nil, let the frames live.  (To be used from
-`delete-frame-functions'."
+`delete-frame-functions'.)"
+  (server-log (concat "server-delete-client" (if noframe " noframe"))
+	      client)
   ;; Force a new lookup of client (prevents infinite recursion).
   (setq client (server-client
 		(if (listp client) (car client) client)))
   (let ((proc (car client))
 	(buffers (server-client-get client 'buffers)))
     (when client
-      (setq server-clients (delq client server-clients))
 
+      ;; Kill the client's buffers.
       (dolist (buf buffers)
 	(when (buffer-live-p buf)
 	  (with-current-buffer buf
-	    ;; Remove PROC from the clients of each buffer.
-	    (setq server-buffer-clients (delq proc server-buffer-clients))
 	    ;; Kill the buffer if necessary.
-	    (when (and (null server-buffer-clients)
+	    (when (and (equal server-buffer-clients
+			      (list proc))
 		       (or (and server-kill-new-buffers
 				(not server-existing-buffer))
-			   (server-temp-file-p)))
-	      (kill-buffer (current-buffer))))))
+			   (server-temp-file-p))
+		       (not (buffer-modified-p)))
+	      (let (flag)
+		(unwind-protect
+		    (progn (setq server-buffer-clients nil)
+			   (kill-buffer (current-buffer))
+			   (setq flag t))
+		  (unless flag
+		    ;; Restore clients if user pressed C-g in `kill-buffer'.
+		    (setq server-buffer-clients (list proc)))))))))
 
       ;; Delete the client's frames.
       (unless noframe
@@ -279,6 +288,8 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
 	    ;; recursively.
 	    (set-frame-parameter frame 'client nil)
 	    (delete-frame frame))))
+
+      (setq server-clients (delq client server-clients))
 
       ;; Delete the client's tty.
       (let ((terminal (server-client-get client 'terminal)))
@@ -844,7 +855,8 @@ so don't mark these buffers specially, just visit them normally."
 			    (concat "File no longer exists: " filen
 				    ", write buffer to file? "))
 			   (write-file filen))))
-		(setq server-existing-buffer t)
+		(unless server-buffer-clients
+		  (setq server-existing-buffer t))
 		(server-goto-line-column file))
 	    (set-buffer (find-file-noselect filen))
 	    (server-goto-line-column file)

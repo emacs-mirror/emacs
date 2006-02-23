@@ -479,9 +479,15 @@ THINGS TO DO
    multidisplay (and don't mind core dumps), you can edit src/config.h
    and define HAVE_GTK_MULTIDISPLAY there by hand.
    
+	http://bugzilla.gnome.org/show_bug.cgi?id=85715
+
    Update: Han reports that GTK+ version 2.8.9 almost gets display
    disconnects right.  GTK will probably be fully fixed by the time
    multi-tty gets into the trunk.
+
+   Update: I am still having problems with GTK+ 2.8.10.  I have the
+   impression that the various multidisplay fixes will only get
+   released in GTK+ 2.10.
 
 ** Audit `face-valid-attribute-values' usage in customize and
    elsewhere.  Its return value depends on the current window system.
