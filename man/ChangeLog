@@ -1,5 +1,16 @@
 2006-02-23  Juri Linkov  <juri@jurta.org>
 
+	* faq.texi (Common requests): Move `Turning on auto-fill by
+	default' after `Wrapping words automatically'.  Move `Working with
+	unprintable characters' before `Searching for/replacing newlines'.
+	Move `Replacing highlighted text' after `Highlighting a region'.
+	Merge `Repeating commands' and `Repeating a command as many times
+	as possible' into the former.
+	(Packages that do not come with Emacs): Add refs to Gmane and
+	etc/MORE.STUFF.
+
+2006-02-23  Juri Linkov  <juri@jurta.org>
+
 	* faq.texi (Newsgroup archives): Update URLs of GNU mail archives.
 	(Reporting bugs): Suggest using `M-x report-emacs-bug'.
 	Add xref to `(emacs)Reporting Bugs'.
