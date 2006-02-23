@@ -1,3 +1,8 @@
+2006-02-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (help): Revert last part of 2006-02-23 change (deletion
+	of the `provide' call).
+
 2006-02-23  Juri Linkov  <juri@jurta.org>
 
 	* compare-w.el (compare-windows-highlight): Add new value
@@ -290,7 +295,7 @@
 	* progmodes/gdb-ui.el (gdb-var-evaluate-expression-handler)
 	(gdb-var-update-handler): Detect out of scope variables with pre
 	GDB 6.4 too.
-	(gdb-post-prompt): Revert changet 2006-02-17 (force update).
+	(gdb-post-prompt): Revert change from 2006-02-17 (force update).
 	Reset status of variable objects to nil in update handlers.
 	(gdb-var-update-handler-1): Detect when a variable object comes
 	in scope.  setcar on var changes gdb-var-list directly.
