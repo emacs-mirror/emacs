@@ -7,6 +7,9 @@
 	* dispnew.c (update_text_area): Avoid needless redraw of rightmost
 	glyph whose face is extended to the text area end.
 
+	* macterm.c (x_set_toolkit_scroll_bar_thumb): Don't set control
+	values if control is not visible or values are not changed.
+
 2006-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (Fwindow_list): Check `window' before doing XWINDOW.
