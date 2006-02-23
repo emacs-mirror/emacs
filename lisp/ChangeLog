@@ -1,5 +1,18 @@
 2006-02-23  Nick Roberts  <nickrob@snap.net.nz>
 
+	* progmodes/gud.el (gud-speedbar-buttons): Use shadow face.
+	properly.
+
+	* progmodes/gdb-ui.el (gdb-debug-ring-max): Rename from
+	gdb-debug-log-length.
+	(gdb-debug-ring): Rename from gdb-debug-log-ring.  Don't make
+	it a real ring but...
+	(gud-gdba-marker-filter): ...make it work like mark-ring.
+	(gdb-enable-debug): Rename from gdb-enable-debug-log.
+	(gdb-mouse-jump): New function.  Add bindings.
+
+2006-02-23  Nick Roberts  <nickrob@snap.net.nz>
+
 	* progmodes/gdb-ui.el (gdb-signalled): New variable and function.
 	(gdb-debug-log-ring): Rename from gdb-debug-log and make a ring.
 	(gdb-send, gdb-send-item, gud-gdba-marker-filter): Use it.
