@@ -4358,10 +4358,14 @@ update_text_area (w, vpos)
       int overlapping_glyphs_p = current_row->contains_overlapping_glyphs_p;
       int desired_stop_pos = desired_row->used[TEXT_AREA];
 
-      /* If the desired row extends its face to the text area end,
+      /* If the desired row extends its face to the text area end, and
+	 unless the current row also does so at the same position,
 	 make sure we write at least one glyph, so that the face
 	 extension actually takes place.  */
-      if (MATRIX_ROW_EXTENDS_FACE_P (desired_row))
+      if (MATRIX_ROW_EXTENDS_FACE_P (desired_row)
+	  && (desired_stop_pos < current_row->used[TEXT_AREA]
+	      || (desired_stop_pos == current_row->used[TEXT_AREA]
+		  && !MATRIX_ROW_EXTENDS_FACE_P (current_row))))
 	--desired_stop_pos;
 
       stop = min (current_row->used[TEXT_AREA], desired_stop_pos);
@@ -4480,7 +4484,10 @@ update_text_area (w, vpos)
 	     has to be cleared, if and only if we did a write_glyphs
 	     above.  This is made sure by setting desired_stop_pos
 	     appropriately above.  */
-	  xassert (i < desired_row->used[TEXT_AREA]);
+	  xassert (i < desired_row->used[TEXT_AREA]
+		   || ((desired_row->used[TEXT_AREA]
+			== current_row->used[TEXT_AREA])
+		       && MATRIX_ROW_EXTENDS_FACE_P (current_row)));
 	}
       else if (MATRIX_ROW_EXTENDS_FACE_P (current_row))
 	{
