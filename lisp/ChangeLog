@@ -1,3 +1,93 @@
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* CC Mode Update to 5.31.3.
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el (c-postprocess-file-styles): bind
+	inhibit-read-only to t, around the call to
+	c-remove-any-local-eval-or-mode-variables, so that it works on a
+	RO file.
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-awk.el: Correct a typo.
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el, cc-mode.el: Rename c-hungry-backspace to
+	c-hungry-delete-backwards, at the request of RMS.  Leave the old
+	name as an alias.
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el: Correct a typo.
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-defs.el: Update the version number to 5.31.3.
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el (c-electric-brace): Fix clean-up
+	brace-else-brace (error due to mbeg, mend being undefined).
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el: File Local variables: Solve the problem
+	where both `mode' and c-file-offsets are specified: `mode' will
+	overwrite c-f-o's settings:
+	(c-remove-any-local-eval-or-mode-variables): new function.
+	(c-postprocess-file-styles): call the above new function, within
+	c-tentative-buffer-change, to splat `mode' and `eval' before the
+	second hack-local-variables.
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el:
+	[Supersedes patch to cc-engine.el V 1.45]
+	(c-after-change): Protect the match data with save-match-data.  It
+	was getting corrupted by c-after-change-check-<>-operators.
+	
+	* cc-defs.el: [Supersedes patch V1.38]:
+	(top level): Check for a buggy font-lock-compile-keywords ONLY in
+	XEmacs.  GNU Emacs 22 now has a check which would throw an error
+	here.
+
+	* progmodes/cc-awk.el (c-awk-after-change): Protect the match data
+	with save-match-data.  It was being corrupted when Font Lock was
+	not enabled.
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el (c-mode-menu): Add menu items for Electric
+	Mode and Subword Mode.
+
+	* progmodes/cc-engine.el (c-beginning-of-statment-1): Distinguish
+	real labels ("case 1:" or "foo:") from non-labels ("public:").
+	(c-forward-objc-directive): Replace c-forward-token-2 with crude
+	coding; c-f-t-2 doesn't move over a token at EOB.
+
+	* progmodes/cc-defs.el (c-version): Update version number to
+	5.31.2
+
+	* progmodes/cc-cmds.el, cc-mode.el, cc-engine.el
+	(c-update-modeline): Concatenate the minor mode indicators
+	directly onto mode-name, removing c-submode-indicators.
+	Sometimes, c-s-i got separated from the mode name on the mode
+	line.
+
+	* progmodes/cc-cmds.el (c-electric-brace, c-electric-semi&comma,
+	c-electric-colon): Correct doc-strings: "/ln" -> "/la".
+
+2006-02-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el (c-make-init-lang-vars-fun): Improved the
+	error message when there's an evaluation error to show whether
+	it's loaded from source or not.
+	(c-filter-ops): Made it available at runtime too to work when
+	`c-make-init-lang-vars-fun' needs to evaluate from source.
+
 2006-02-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help.el (help): Revert last part of 2006-02-23 change (deletion
