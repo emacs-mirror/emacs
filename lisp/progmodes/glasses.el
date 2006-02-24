@@ -67,7 +67,7 @@
 
 
 (defcustom glasses-separator "_"
-  "*String to be displayed as a visual separator in identifiers.
+  "String to be displayed as a visual separator in identifiers.
 It is used both for adding missing separators and for replacing separators
 defined by `glasses-original-separator'.  If you don't want to add missing
 separators, set `glasses-separator' to an empty string.  If you don't want to
@@ -93,7 +93,7 @@ performed."
 
 
 (defcustom glasses-face nil
-  "*Face to be put on capitals of an identifier looked through glasses.
+  "Face to be put on capitals of an identifier looked through glasses.
 If it is nil, no face is placed at the capitalized letter.
 
 For example, you can set `glasses-separator' to an empty string and
@@ -106,13 +106,13 @@ but will have their capitals in bold."
 
 
 (defcustom glasses-separate-parentheses-p t
-  "*If non-nil, ensure space between an identifier and an opening parenthesis."
+  "If non-nil, ensure space between an identifier and an opening parenthesis."
   :group 'glasses
   :type 'boolean)
 
 
 (defcustom glasses-uncapitalize-p nil
-  "*If non-nil, downcase embedded capital letters in identifiers.
+  "If non-nil, downcase embedded capital letters in identifiers.
 Only identifiers starting with lower case letters are affected, letters inside
 other identifiers are unchanged."
   :group 'glasses
@@ -122,7 +122,7 @@ other identifiers are unchanged."
 
 
 (defcustom glasses-uncapitalize-regexp "[a-z]"
-  "*Regexp matching beginnings of words to be uncapitalized.
+  "Regexp matching beginnings of words to be uncapitalized.
 Only words starting with this regexp are uncapitalized.
 The regexp is case sensitive.
 It has any effect only when `glasses-uncapitalize-p' is non-nil."
@@ -133,7 +133,7 @@ It has any effect only when `glasses-uncapitalize-p' is non-nil."
 
 
 (defcustom glasses-convert-on-write-p nil
-  "*If non-nil, remove separators when writing glasses buffer to a file.
+  "If non-nil, remove separators when writing glasses buffer to a file.
 If you are confused by glasses so much, that you write the separators into code
 during coding, set this variable to t.  The separators will be removed on each
 file write then.
@@ -313,5 +313,5 @@ at places they belong to."
 (provide 'glasses)
 
 
-;;; arch-tag: a3515167-c89e-484f-90a1-d85143e52b12
+;; arch-tag: a3515167-c89e-484f-90a1-d85143e52b12
 ;;; glasses.el ends here

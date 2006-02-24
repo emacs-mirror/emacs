@@ -1,3 +1,7 @@
+2006-02-23  Herbert Euler  <herberteuler@hotmail.com>  (tiny change)
+
+	* TUTORIAL.cn: Fix omission bug: Add dot (ASCII 0x2E) on first line.
+
 2006-02-22  Carsten Dominik  <dominik@science.uva.nl>
 
 	* orgcard.tex: (section{Links}): Rewritten to cover the modified

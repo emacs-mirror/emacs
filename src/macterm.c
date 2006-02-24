@@ -4529,7 +4529,7 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
      int portion, position, whole;
 {
   ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
-  int value, viewsize, maximum, visible_p;
+  int value, viewsize, maximum;
 
   if (whole == 0 || XINT (bar->track_height) == 0)
     value = 0, viewsize = 1, maximum = 0;
@@ -4542,16 +4542,20 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
 
   BLOCK_INPUT;
 
-  /* Temporarily hide the scroll bar to avoid multiple redraws.  */
-  visible_p = IsControlVisible (ch);
-  SetControlVisibility (ch, false, false);
+  if (IsControlVisible (ch)
+      && (GetControlViewSize (ch) != viewsize
+	  || GetControl32BitValue (ch) != value
+	  || GetControl32BitMaximum (ch) != maximum))
+    {
+      /* Temporarily hide the scroll bar to avoid multiple redraws.  */
+      SetControlVisibility (ch, false, false);
 
-  SetControl32BitMinimum (ch, 0);
-  SetControl32BitMaximum (ch, maximum);
-  SetControl32BitValue (ch, value);
-  SetControlViewSize (ch, viewsize);
+      SetControl32BitMaximum (ch, maximum);
+      SetControl32BitValue (ch, value);
+      SetControlViewSize (ch, viewsize);
 
-  SetControlVisibility (ch, visible_p, true);
+      SetControlVisibility (ch, true, true);
+    }
 
   UNBLOCK_INPUT;
 }

@@ -113,10 +113,15 @@ RFC 2646 suggests 66 characters for readability."
   (save-excursion
     (set-buffer (or (current-buffer) buffer))
     (goto-char (point-min))
+    ;; Remove space stuffing.
+    (while (re-search-forward "^ " nil t)
+      (delete-char -1)
+      (forward-line 1))
+    (goto-char (point-min))
     (while (re-search-forward " $" nil t)
       (when (save-excursion
 	      (beginning-of-line)
-	      (looking-at "^\\(>*\\)\\( ?\\)"))
+	      (looking-at "^\\(>+\\)\\( ?\\)"))
 	(let ((quote (match-string 1))
 	      sig)
 	  (if (string= quote "")
@@ -146,7 +151,8 @@ RFC 2646 suggests 66 characters for readability."
 	    (condition-case nil
 		(let ((fill-prefix (when quote (concat quote " ")))
 		      (fill-column (eval fill-flowed-display-column))
-		      filladapt-mode)
+		      filladapt-mode
+		      adaptive-fill-mode)
 		  (fill-region (fill-flowed-point-at-bol)
 			       (min (1+ (fill-flowed-point-at-eol))
 				    (point-max))

@@ -1,3 +1,20 @@
+2006-02-24  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents): When a text is replaced
+	partially, be sure to set point before the inserted characters.
+
+2006-02-23  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+
+	* xfns.c (Fx_file_dialog): Return a decoded file name.
+
+2006-02-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (update_text_area): Avoid needless redraw of rightmost
+	glyph whose face is extended to the text area end.
+
+	* macterm.c (x_set_toolkit_scroll_bar_thumb): Don't set control
+	values if control is not visible or values are not changed.
+
 2006-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (Fwindow_list): Check `window' before doing XWINDOW.

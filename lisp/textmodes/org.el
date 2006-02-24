@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.05
+;; Version: 4.06
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,6 +81,10 @@
 ;;
 ;; Changes since version 4.00:
 ;; ---------------------------
+;; Version 4.06
+;;    - HTML exporter treats targeted internal links.
+;;    - Bug fixes.
+;;
 ;; Version 4.05
 ;;    - Changes to internal link system (thanks to David Wainberg for ideas).
 ;;      - in-file links: [[Search String]] instead of <file:::Search String>
@@ -126,7 +130,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.05"
+(defvar org-version "4.06"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -136,7 +140,7 @@
 ;; versions (Emacs versus XEmacs) and with different versions of outline.el.
 ;; The compatibility code in org.el is based on these two constants.
 (defconst org-xemacs-p (featurep 'xemacs)
-  "Are we running xemacs?")
+  "Are we running XEmacs?")
 (defconst org-noutline-p (featurep 'noutline)
   "Are we using the new outline mode?")
 
@@ -1647,7 +1651,7 @@ Otherwise the buffer will just be saved to a file and stay hidden."
   :type 'boolean)
 
 (defcustom org-export-html-show-new-buffer nil
-  "Non-nil means,  popup buffer containing the exported html text.
+  "Non-nil means, popup buffer containing the exported HTML text.
 Otherwise, the buffer will just be saved to a file and stay hidden."
   :group 'org-export
   :type 'boolean)
@@ -1995,8 +1999,8 @@ When this is non-nil, the headline after the keyword is set to the
 ;; an update.
 (defvar org-table-may-need-update t
   "Indicates that a table might need an update.
-This variable is set by `org-before-change-function'. `org-table-align'
-sets it back to nil.")
+This variable is set by `org-before-change-function'.
+`org-table-align'sets it back to nil.")
 (defvar org-mode-hook nil)
 (defvar org-inhibit-startup nil)        ; Dynamically-scoped param.
 (defvar org-agenda-keep-modes nil)      ; Dynamically-scoped param.
@@ -2656,7 +2660,7 @@ or nil."
 
 (defun org-insert-item ()
   "Insert a new item at the current level.
-Return t when tings worked, nil when we are not in an item."
+Return t when things worked, nil when we are not in an item."
   (when (save-excursion
 	  (condition-case nil
 	      (progn
@@ -3367,7 +3371,7 @@ At all other locations, this simply calls `ispell-complete-word'."
 		    (save-excursion
 		      (goto-char (point-min))
 		      (while (re-search-forward org-todo-line-regexp nil t)
-			(push (list 
+			(push (list
 			       (if org-file-link-context-use-camel-case
 				   (org-make-org-heading-camel (match-string 3) t)
 				 (org-make-org-heading-search-string
@@ -6984,7 +6988,7 @@ to read."
   (interactive)
   (setq pos (or pos (point)))
   (setq org-mark-ring (nthcdr (1- org-mark-ring-length) org-mark-ring))
-  (move-marker (car org-mark-ring) 
+  (move-marker (car org-mark-ring)
 	       (or pos (point))
 	       (or buffer (current-buffer)))
   (message
@@ -7132,14 +7136,14 @@ onto the ring."
 ;; mh-e integration based on planner-mode
 (defun org-mhe-get-message-real-folder ()
   "Return the name of the current message real folder, so if you use
-  sequences, it will now work."
+sequences, it will now work."
   (save-excursion
     (let* ((folder
             (if (equal major-mode 'mh-folder-mode)
                 mh-current-folder
               ;; Refer to the show buffer
               mh-show-folder-buffer))
-           (end-index 
+           (end-index
             (if (boundp 'mh-index-folder)
                 (min (length mh-index-folder) (length folder))))
            )
@@ -7162,8 +7166,7 @@ onto the ring."
       )))
 
 (defun org-mhe-get-message-folder-from-index ()
-  "Returns the name of the message folder in a index folder
-  buffer."
+  "Returns the name of the message folder in a index folder buffer."
   (save-excursion
     (mh-index-previous-folder)
     (if (not (re-search-forward "^\\(+.*\\)$" nil t))
@@ -7171,8 +7174,8 @@ onto the ring."
       (message (match-string 1)))))
 
 (defun org-mhe-get-message-folder ()
-  "Return the name of the current message folder. Be careful if you
-  use sequences."
+  "Return the name of the current message folder.  Be careful if you
+use sequences."
   (save-excursion
     (if (equal major-mode 'mh-folder-mode)
         mh-current-folder
@@ -7180,8 +7183,8 @@ onto the ring."
       mh-show-folder-buffer)))
 
 (defun org-mhe-get-message-num ()
-  "Return the number of the current message. Be careful if you
-  use sequences."
+  "Return the number of the current message.  Be careful if you
+use sequences."
   (save-excursion
     (if (equal major-mode 'mh-folder-mode)
         (mh-get-msg-num nil)
@@ -7189,9 +7192,9 @@ onto the ring."
       (mh-show-buffer-message-number))))
 
 (defun org-mhe-get-header (header)
-  "Return a header of the message in folder mode. This will create a
-  show buffer for the corresponding message. If you have a more clever
-  idea..."
+  "Return a header of the message in folder mode.  This will create a
+show buffer for the corresponding message.  If you have a more clever
+idea..."
   (let* ((folder (org-mhe-get-message-folder))
          (num (org-mhe-get-message-num))
          (buffer (get-buffer-create (concat "show-" folder)))
@@ -7211,13 +7214,14 @@ onto the ring."
 (defun org-follow-mhe-link (folder article)
   "Follow an MHE link to FOLDER and ARTICLE."
   (setq article (org-add-angle-brackets article))
-;;  (require 'mh-e)
-  (mh-rmail) ;; mh-e is standard with emacs 22
+  (require 'mh-e)
+  (mh-find-path)
   (let* ((show-buf (concat "show-" folder)))
+    (mh-visit-folder folder)
     (get-buffer-create show-buf)
-    (mh-display-msg
+    (mh-show-msg
      (string-to-number
-      (car (split-string 
+      (car (split-string
 	    (with-temp-buffer
 	      (call-process
 	       (expand-file-name "pick" mh-progs)
@@ -7226,8 +7230,7 @@ onto the ring."
 	       "--message-id"
 	       article)
 	      (buffer-string))
-	    "\n")))
-     folder)
+	    "\n"))))
     (pop-to-buffer show-buf)))
 
 (defun org-open-file (path &optional in-emacs line search)
@@ -7383,7 +7386,7 @@ For file links, arg negates `org-context-in-file-links'."
 	(setq cpltxt (concat from-header " on: " subject))
 	(setq link (concat cpltxt "\n  "
 			   (org-make-link
-			    "mhe:" (org-mhe-get-message-real-folder) "#" 
+			    "mhe:" (org-mhe-get-message-real-folder) "#"
 			    (org-remove-angle-brackets
 			     (org-mhe-get-header "Message-Id:")))))))
 
@@ -7491,7 +7494,7 @@ For file links, arg negates `org-context-in-file-links'."
       (error "Cannot link to a buffer which is not visiting a file"))
 
      (t (setq link nil)))
-    
+
     (if (and (interactive-p) link)
 	(progn
 	  (setq org-stored-links
@@ -7500,7 +7503,7 @@ For file links, arg negates `org-context-in-file-links'."
       link)))
 
 (defun org-make-org-heading-search-string (&optional string heading)
-  "Make search string for S or current headline."
+  "Make search string for STRING or current headline."
   (interactive)
   (let ((s (or string (org-get-heading))))
     (unless (and string (not heading))
@@ -7521,7 +7524,7 @@ For file links, arg negates `org-context-in-file-links'."
     (mapconcat 'identity (org-split-string s "[ \t]+") " ")))
 
 (defun org-make-org-heading-camel (&optional string heading)
-  "Make a CamelCase string for S or the current headline."
+  "Make a CamelCase string for STRING or the current headline."
   (interactive)
   (let ((s (or string (org-get-heading))))
     (unless (and string (not heading))
@@ -8638,8 +8641,8 @@ Point and mark define the first and last line to include.  Both point and
 mark should be in the column that is used for sorting.  For example, to
 sort according to column 3, put the mark in the first line to sort, in
 table column 3.  Put point into the last line to be included in the sorting,
-also in table column 3. The command will prompt for the sorting method (n for
-numerical, a for alphanumeric)."
+also in table column 3.  The command will prompt for the sorting method
+\(n for numerical, a for alphanumeric)."
   (interactive "r\nsSorting method: [n]=numeric [a]=alpha: ")
   (setq numericp (string-match "[nN]" numericp))
   (org-table-align) ;; Just to be safe
@@ -9478,8 +9481,8 @@ not overwrite the stored one."
 	    (if (= c ?p) (setq modes (org-set-calc-mode 'calc-internal-prec n))
 	      (setq modes (org-set-calc-mode
 			   'calc-float-format
-			   (list (cdr (assoc c '((?n. float) (?f. fix)
-						 (?s. sci) (?e. eng))))
+			   (list (cdr (assoc c '((?n . float) (?f . fix)
+						 (?s . sci) (?e . eng))))
 				 n))))
 	    (setq fmt (replace-match "" t t fmt)))
 	  (while (string-match "[DRFS]" fmt)
@@ -10440,6 +10443,45 @@ The list contains HTML entities for Latin-1, Greek and other symbols.
 It is supplemented by a number of commonly used TeX macros with appropriate
 translations.  There is currently no way for users to extend this.")
 
+(defun org-cleaned-string-for-export (string)
+  "Cleanup a buffer substring so that links can be created safely."
+  (interactive)
+  (let* ((cb (current-buffer))
+	 (re-radio (concat "\\([^<]\\)\\(" org-target-link-regexp "\\)"))
+	 rtn)
+    (save-excursion
+      (set-buffer (get-buffer-create " org-mode-tmp"))
+      (erase-buffer)
+      (insert string)
+      (org-mode)
+      ;; Find targets in comments and move them out of comments
+      (goto-char (point-min))
+      (while (re-search-forward "^#.*?\\(<<<?[^>\r\n]+>>>?\\).*" nil t)
+	(replace-match "\\1"))
+      ;; Find matches for radio targets and turn them into links
+      (goto-char (point-min))
+      (while (re-search-forward re-radio nil t)
+	(replace-match "\\1[[\\2]]"))
+      ;; Find all links that contain a newline and put them into a single line
+      (goto-char (point-min))
+      (while (re-search-forward "\\(\\[\\[[^]]*?\\)[ \t]*\n[ \t]*\\([^]]*\\]\\]\\)" nil t)
+	(replace-match "\\1 \\2")
+	(goto-char (match-beginning 0)))
+      ;; Remove comments
+      (goto-char (point-min))
+      (while (re-search-forward "^#.*\n?" nil t)
+	(replace-match ""))
+      (setq rtn (buffer-string)))
+    (kill-buffer " org-mode-tmp")
+    rtn))
+
+(defun org-solidify-link-text (s)
+  "Take link text and make a safe target out of it."
+  (save-match-data
+    (mapconcat
+     'identity
+     (org-split-string s "[ \t\r\n]+") "--")))
+
 (defvar org-last-level nil) ; dynamically scoped variable
 
 (defun org-export-as-ascii (arg)
@@ -10454,7 +10496,10 @@ underlined headlines.  The default is 3."
 	   (if (org-region-active-p) (region-beginning) (point-min))
 	   (if (org-region-active-p) (region-end) (point-max))))
 	 (lines (org-export-find-first-heading-line
-		 (org-skip-comments (org-split-string region "[\r\n]"))))
+		 (org-skip-comments
+		  (org-split-string
+		   (org-cleaned-string-for-export region)
+		   "[\r\n]"))))
 	 (org-startup-with-deadline-check nil)
 	 (level 0) line txt
 	 (umax nil)
@@ -10543,6 +10588,14 @@ underlined headlines.  The default is 3."
     (while (setq line (pop lines))
       ;; Remove the quoted HTML tags.
       (setq line (org-html-expand-for-ascii line))
+      ;; Remove targets
+      (while (string-match "<<<?[^<>]*>>>?[ \t]*\n?" line)
+	(setq line (replace-match "" t t line)))
+      ;; Replace internal links
+      (while (string-match org-bracket-link-regexp line)
+	(setq line (replace-match
+		    (if (match-end 3) "[\\3]" "[\\1]")
+		    t nil line)))
       (cond
        ((string-match "^\\(\\*+\\)[ \t]*\\(.*\\)" line)
 	;; a Headline
@@ -10781,7 +10834,9 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
            (if region-p (region-beginning) (point-min))
            (if region-p (region-end) (point-max))))
          (all_lines
-          (org-skip-comments (org-split-string region "[\r\n]")))
+          (org-skip-comments (org-split-string
+			      (org-cleaned-string-for-export region)
+			      "[\r\n]")))
          (lines (org-export-find-first-heading-line all_lines))
          (level 0) (line "") (origline "") txt todo
          (umax nil)
@@ -10944,7 +10999,26 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 	      (insert "</pre>\n"))
 	    (throw 'nextline nil))
 
-	  ;; Protect the links
+
+	  ;; make targets to anchors
+	  (while (string-match "<<<?\\([^<>]*\\)>>>?[ \t]*\n?" line)
+	    (setq line (replace-match
+			(concat "@<a name=\""
+				(org-solidify-link-text (match-string 1 line))
+				"\">\\nbsp@</a>")
+			t t line)))
+	  ;; Replace internal links
+	  (while (string-match org-bracket-link-regexp line)
+	    (setq line (replace-match
+			(concat
+			    "@<a href=\"#"
+			    (org-solidify-link-text (match-string 1 line))
+			    "\">"
+			    (match-string (if (match-end 3) 3 1) line)
+			    "@</a>")
+			t t line)))
+
+	  ;; Protect the external links
 	  (setq start 0)
 	  (while (string-match org-link-maybe-angles-regexp line start)
 	    (setq start (match-end 0))
@@ -11122,7 +11196,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 	(org-format-table-table-html-using-table-generate-source olines)))))
 
 (defun org-format-org-table-html (lines)
-  "Format a table into html."
+  "Format a table into HTML."
   (if (string-match "^[ \t]*|-" (car lines)) (setq lines (cdr lines)))
   (setq lines (nreverse lines))
   (if (string-match "^[ \t]*|-" (car lines)) (setq lines (cdr lines)))
@@ -11149,7 +11223,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 				    (string-match "^[ \t]*|[^|]*|" x))
 				(replace-match "|" t t x))))
 		       lines))))))
-  
+
   (let ((head (and org-export-highlight-first-table-line
 		   (delq nil (mapcar
 			      (lambda (x) (string-match "^[ \t]*|-" x))
@@ -11188,7 +11262,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
     newstr))
 
 (defun org-format-table-table-html (lines)
-  "Format a table generated by table.el into html.
+  "Format a table generated by table.el into HTML.
 This conversion does *not* use `table-generate-source' from table.el.
 This has the advantage that Org-mode's HTML conversions can be used.
 But it has the disadvantage, that no cell- or row-spanning is allowed."
@@ -12363,8 +12437,9 @@ work correctly."
 
 (defun org-add-hook (hook function &optional append local)
   "Add-hook, compatible with both Emacsen."
-  (if (and local org-xemacs-p) (make-local-hook hook)) ;; Needed for XEmacs
-  (add-hook hook function append local))
+  (if (and local org-xemacs-p)
+      (add-local-hook hook function append)
+    (add-hook hook function append local)))
 
 (defun org-region-active-p ()
   "Is `transient-mark-mode' on and the region active?

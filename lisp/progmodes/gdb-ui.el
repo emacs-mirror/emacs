@@ -259,20 +259,19 @@ detailed description of this mode.
   (gdb command-line)
   (gdb-init-1))
 
-(defcustom gdb-debug-log-length 128
-  "Length of `gdb-debug-log-ring'."
+(defcustom gdb-debug-ring-max 128
+  "Maximum size of `gdb-debug-ring'."
   :group 'gud
   :type 'integer
   :version "22.1")
 
-(defvar gdb-debug-log-ring (make-ring gdb-debug-log-length)
-  "Ring of commands sent to and replies received from GDB.
-This variable is used to debug GDB-UI.  Just need most recent
-messages and a ring limits the size.")
+(defvar gdb-debug-ring nil
+  "List of commands, most recent first, sent to and replies received from GDB.
+This variable is used to debug GDB-UI.")
 
 ;;;###autoload
-(defcustom gdb-enable-debug-log nil
-  "Non-nil means record the process input and output in `gdb-debug-log-ring'."
+(defcustom gdb-enable-debug nil
+  "Non-nil means record the process input and output in `gdb-debug-ring'."
   :type 'boolean
   :group 'gud
   :version "22.1")
@@ -445,11 +444,21 @@ With arg, use separate IO iff arg is positive."
     'gdb-mouse-set-clear-breakpoint)
   (define-key gud-minor-mode-map [left-fringe mouse-2]
     'gdb-mouse-until)
+  (define-key gud-minor-mode-map [left-margin drag-mouse-1]
+    'gdb-mouse-until)
   (define-key gud-minor-mode-map [left-fringe drag-mouse-1]
     'gdb-mouse-until)
   (define-key gud-minor-mode-map [left-margin mouse-2]
     'gdb-mouse-until)
-  (define-key gud-minor-mode-map [left-margin mouse-3]
+  (define-key gud-minor-mode-map [left-margin C-drag-mouse-1]
+    'gdb-mouse-jump)
+  (define-key gud-minor-mode-map [left-fringe C-drag-mouse-1]
+    'gdb-mouse-jump)
+  (define-key gud-minor-mode-map [left-fringe C-mouse-2]
+    'gdb-mouse-jump)
+  (define-key gud-minor-mode-map [left-margin C-mouse-2]
+    'gdb-mouse-jump)
+   (define-key gud-minor-mode-map [left-margin mouse-3]
     'gdb-mouse-toggle-breakpoint-margin)
   (define-key gud-minor-mode-map [left-fringe mouse-3]
     'gdb-mouse-toggle-breakpoint-fringe)
@@ -479,7 +488,7 @@ With arg, use separate IO iff arg is positive."
 	gdb-error nil
 	gdb-macro-info nil
 	gdb-buffer-fringe-width (car (window-fringes))
-	gdb-debug-log-ring (make-ring gdb-debug-log-length)
+	gdb-debug-ring nil
 	gdb-signalled nil)
 
   (setq gdb-buffer-type 'gdba)
@@ -526,7 +535,9 @@ With arg, use separate IO iff arg is positive."
   (gdb-init-2))
 
 (defun gdb-mouse-until (event)
-  "Execute source lines by dragging the overlay arrow (fringe) with the mouse."
+  "Continue running until a source line past the current line.
+The destination source line can be selected either by clicking with mouse-2
+on the fringe/margin or dragging the arrow with mouse-1 (default bindings)."
   (interactive "e")
   (if gud-overlay-arrow-position
       (let ((start (event-start event))
@@ -551,6 +562,40 @@ With arg, use separate IO iff arg is positive."
 		  (goto-line (line-number-at-pos (posn-point end)))
 		  (forward-char 2)
 		  (gud-call (concat "until *%a")))))))))
+
+(defun gdb-mouse-jump (event)
+  "Set execution address/line.
+The destination source line can be selected either by clicking with mouse-2
+on the fringe/margin or dragging the arrow with mouse-1 (default bindings).
+Unlike gdb-mouse-until the destination address can be before the current
+line, and no execution takes place."
+  (interactive "e")
+  (if gud-overlay-arrow-position
+      (let ((start (event-start event))
+	    (end  (event-end event))
+	    (buffer (marker-buffer gud-overlay-arrow-position)) (line))
+	(if (not (string-match "Machine" mode-name))
+	    (if (equal buffer (window-buffer (posn-window end)))
+		(with-current-buffer buffer
+		  (when (or (equal start end)
+			    (equal (posn-point start)
+				   (marker-position
+				    gud-overlay-arrow-position)))
+		    (setq line (line-number-at-pos (posn-point end)))
+	   (progn (gud-call (concat "tbreak " (number-to-string line)))
+		  (gud-call (concat "jump " (number-to-string line)))))))
+	  (if (equal (marker-buffer gdb-overlay-arrow-position)
+		     (window-buffer (posn-window end)))
+	      (when (or (equal start end)
+			(equal (posn-point start)
+			       (marker-position
+				gdb-overlay-arrow-position)))
+		(save-excursion
+		  (goto-line (line-number-at-pos (posn-point end)))
+		  (forward-char 2)
+		  (progn
+		    (gud-call (concat "tbreak *%a"))
+		    (gud-call (concat "jump *%a"))))))))))
 
 (defcustom gdb-speedbar-auto-raise nil
   "If non-nil raise speedbar every time display of watch expressions is\
@@ -974,7 +1019,7 @@ This filter may simply queue input for a later time."
   (let ((item (concat string "\n")))
     (if gud-running
       (progn
-	(if gdb-enable-debug-log (push (cons 'send item) gdb-debug-log-ring))
+	(if gdb-enable-debug (push (cons 'send item) gdb-debug-ring))
 	(process-send-string proc item))
       (gdb-enqueue-input item))))
 
@@ -997,8 +1042,7 @@ This filter may simply queue input for a later time."
 
 (defun gdb-send-item (item)
   (setq gdb-flush-pending-output nil)
-  (if gdb-enable-debug-log
-      (ring-insert gdb-debug-log-ring (cons 'send-item item)))
+  (if gdb-enable-debug (push (cons 'send-item item) gdb-debug-ring))
   (setq gdb-current-item item)
   (let ((process (get-buffer-process gud-comint-buffer)))
     (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
@@ -1248,8 +1292,10 @@ happens to be appropriate."
   "A gud marker filter for gdb.  Handle a burst of output from GDB."
   (if gdb-flush-pending-output
       nil
-    (if gdb-enable-debug-log
-	(ring-insert gdb-debug-log-ring (cons 'recv string)))
+    (when gdb-enable-debug
+	(push (cons 'recv string) gdb-debug-ring)
+	(if (> (length gdb-debug-ring) gdb-debug-ring-max)
+	  (setcdr (nthcdr (1- gdb-debug-ring-max) gdb-debug-ring) nil)))
     ;; Recall the left over gud-marker-acc from last time.
     (setq gud-marker-acc (concat gud-marker-acc string))
     ;; Start accumulating output for the GUD buffer.
