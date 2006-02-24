@@ -500,43 +500,49 @@ Auto Composition mode in all buffers (this is the default)."
       (decompose-region (point-min) (point-max)))))
 
 (defun auto-composition-after-change (start end old-len)
-  (when (and auto-composition-mode (not memory-full))
-    (let (func1 func2)
-      (when (and (> start (point-min))
-		 (setq func2 (aref composition-function-table
-				   (char-after (1- start))))
-		 (or (= start (point-max))
-		     (not (setq func1 (aref composition-function-table
-					    (char-after start))))
-		     (eq func1 func2)))
-	(setq start (1- start)
-	      func1 func2)
-	(while (eq func1 func2)
-	  (if (> start (point-min))
-	      (setq start (1- start)
-		    func2 (aref composition-function-table
-				(char-after start)))
-	    (setq func2 nil))))
-      (when (and (< end (point-max))
-		 (setq func2 (aref composition-function-table
-				   (char-after end)))
-		 (or (= end (point-min))
-		     (not (setq func1 (aref composition-function-table
-					    (char-after (1- end)))))
-		     (eq func1 func2)))
-	(setq end (1+ end)
-	      func1 func2)
-	(while (eq func1 func2)
-	  (if (< end (point-max))
-	      (setq func2 (aref composition-function-table
-				(char-after end))
-		    end (1+ end))
-	    (setq func2 nil))))
-      (if (< start end)
-	  (put-text-property start end 'auto-composed nil)))))
+  (save-buffer-state nil
+    (if (< start (point-min))
+	(setq start (point-min)))
+    (if (> end (point-max))
+	(setq end (point-max)))
+    (when (and auto-composition-mode (not memory-full))
+      (let (func1 func2)
+	(when (and (> start (point-min))
+		   (setq func2 (aref composition-function-table
+				     (char-after (1- start))))
+		   (or (= start (point-max))
+		       (not (setq func1 (aref composition-function-table
+					      (char-after start))))
+		       (eq func1 func2)))
+	  (setq start (1- start)
+		func1 func2)
+	  (while (eq func1 func2)
+	    (if (> start (point-min))
+		(setq start (1- start)
+		      func2 (aref composition-function-table
+				  (char-after start)))
+	      (setq func2 nil))))
+	(when (and (< end (point-max))
+		   (setq func2 (aref composition-function-table
+				     (char-after end)))
+		   (or (= end (point-min))
+		       (not (setq func1 (aref composition-function-table
+					      (char-after (1- end)))))
+		       (eq func1 func2)))
+	  (setq end (1+ end)
+		func1 func2)
+	  (while (eq func1 func2)
+	    (if (< end (point-max))
+		(setq func2 (aref composition-function-table
+				  (char-after end))
+		      end (1+ end))
+	      (setq func2 nil))))
+	(if (< start end)
+	    (put-text-property start end 'auto-composed nil))))))
 
 (defun turn-on-auto-composition-if-enabled ()
-  (auto-composition-mode 1))
+  (if enable-multibyte-characters
+      (auto-composition-mode 1)))
 
 ;;;###autoload
 (define-global-minor-mode global-auto-composition-mode
