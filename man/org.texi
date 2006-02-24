@@ -4,8 +4,8 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.04
-@set DATE January 2006
+@set VERSION 4.06
+@set DATE February 2006
 
 @dircategory Emacs
 @direntry
@@ -35,7 +35,7 @@
 @copying
 This manual is for Org-mode (version @value{VERSION}).
 
-Copyright @copyright{} 2004, 2005, 2006 Free Software Foundation, Inc.
+Copyright @copyright{} 2004, 2005, 2006 Free Software Foundation
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -126,11 +126,16 @@ Calculations in tables
 
 Hyperlinks
 
-* Internal Links::              CamelCaseWords as internal links
+* Internal Links::              Links to other places in the current file
 * External Links::              URL-like links to the world
 * Managing links::              Creating, inserting and following
 * Search Options::              Linking to a specific location
 * Remember::                    Org-trees store quick notes
+
+Internal Links
+
+* Radio targets::               Make targets trigger links in plain text.
+* CamelCase links::             Activating CamelCase words as links
 
 TODO items
 
@@ -155,12 +160,12 @@ Agenda Views
 * Agenda files::                Files being searched for agenda information
 * Agenda dispatcher::           Keyboard access to agenda views
 * Weekly/Daily Agenda::         The calendar page with current tasks
-* Global TODO list::            All infinished action items
+* Global TODO list::            All unfinished action items
 * Matching headline tags::      Structured information with fine-tuned search
 * Timeline::                    Time-sorted view for single file
 * Agenda commands::             Remote editing of org trees
 
-Weekly/Daily Agenda
+The weekly/daily agenda
 
 * Categories::                  Not all tasks are equal
 * Time-of-day specifications::  How the agenda knows the time
@@ -1314,7 +1319,8 @@ example in mail mode, use
 
 Complex ASCII tables with automatic line wrapping, column- and
 row-spanning, and alignment can be created using the Emacs table
-package by Takaaki Ota (@uref{http://sourceforge.net/projects/table}).
+package by Takaaki Ota (@uref{http://sourceforge.net/projects/table},
+and also part of Emacs 22).
 When @key{TAB} or @kbd{C-c C-c} is pressed in such a table, Org-mode
 will call @command{table-recognize-table} and move the cursor into the
 table.  Inside a table, the keymap of Org-mode is inactive.  In order
@@ -1343,7 +1349,7 @@ Just like HMTL, Org-mode provides links inside a file, and external
 links to other files, Usenet articles, emails and much more.
 
 @menu
-* Internal Links::              CamelCaseWords as internal links
+* Internal Links::              Links to other places in the current file
 * External Links::              URL-like links to the world
 * Managing links::              Creating, inserting and following
 * Search Options::              Linking to a specific location
@@ -1356,44 +1362,73 @@ links to other files, Usenet articles, emails and much more.
 @cindex links, internal
 @cindex CamelCase links
 
-Similar to Wiki implementations, Org-mode interprets words spelled in
-CamelCase (i.e. mixed case with at least one capital letter following
-on a small letter inside the word) as links.  While in Wiki these
-links usually point to another file, in Org-mode they point to a
-target in the current file.  Targets are CamelCased words in double
-angular brackets, and may be located anywhere, also in a comment line.
-For example
+Strings inside double brackets like @samp{[[My Target]]} are links
+that lead to a text search in the current file.  The link can be
+followed with @kbd{C-c C-o} or with a mouse click (@pxref{Managing
+links}).  The preferred match for such a link is a dedicated target:
+The same string in double angular brackets.  Targets may be located
+anywhere, often it is convenient to put them into a comment line, for
+example
 @example
-# <<MyTarget>>
+# <<My Target>>
 @end example
 
-Each occurrence of @samp{MyTarget} in the file is an active link that
-can be followed with @kbd{C-c C-o} or with a mouse click
-(@pxref{Managing links}).  If no dedicated target exists, org-mode will
-search for the words in the link separated by white space, in the
-above example for @samp{my target}.  If the link starts with a star
-like @samp{*MyTarget}, the search is restricted to headlines.
-Org-mode will first try an exact match of a full headline, but then
-move on to more and more lenient searches.  The link @samp{*MyTargets}
-will find any of the following
+If no dedicated target exists, Org-mode will search for the words in
+the link, in the above example for @samp{my target}.  Links starting
+with a star like @samp{*My Target} restrict the search to headlines.
+When searching, Org-mode will first try an exact match, but then move
+on to more and more lenient searches.  For example, the link
+@samp{[[*My Targets]]} will find any of the following
 @example
 ** My targets
 ** TODO my targets are bright
 ** my 20 targets are
 @end example
+It is therefore often not necessary to set a dedicated target.  To
+insert a link targeting a headline, in-buffer completion can be used.
+Just type a star followed by a few optional letters into the buffer
+and press @kbd{M-@key{TAB}}.  All headlines in the current buffer will
+be offered as completions.  @xref{Managing links}, for more commands
+creating links.
+
+Following a link pushes a mark onto Org-mode's own mark ring.  You can
+return to the previous position with @kbd{C-c &}.  Using this command
+several times in direct succession goes back to positions recorded
+earlier.
+
+@menu
+* Radio targets::               Make targets trigger links in plain text.
+* CamelCase links::             Activating CamelCase words as links
+@end menu
+
+@node Radio targets, CamelCase links, Internal Links, Internal Links
+@subsection Radio targets
+
+You can configure Org-mode to link any occurrences of certain target
+names in normal text.  So without explicitly creating a link, the text
+connects to the target radioing its position.  Radio targets are
+enclosed by triple angular brackets.  For example, a target
+@samp{<<<My Target>>>} causes each occurrence of @samp{my target} in
+normal text to become activated as a link.  The Org-mode file is
+scanned automatically for radio targets only when the file is first
+loaded into Emacs.  To update the target list during editing, press
+@kbd{C-c C-c} with the cursor on or at a target.
+
+@node CamelCase links,  , Radio targets, Internal Links
+@subsection CamelCase words as links
 @cindex completion, of CamelCase links
 @cindex CamelCase links, completion of
-It is therefore often not even necessary to set a dedicated target.
-The link will automatically find a target.  If you want to see what
-lines in the current buffer are matched by a given CamelCase link,
-open the link with @kbd{C-u C-c C-o}.  Even if there are several
-matches, org-mode will usually find the right one since it tries
-targets and exact matches first.  To insert links targeting a
-headline, in-buffer completion can be used.  Just type a star followed
-by a few optional letters into the buffer and press @kbd{M-@key{TAB}}.
-CamelCased versions of all headlines in the current buffer will be
-offered as completions.  @xref{Managing links}, for more commands
-creating links.
+
+As an alternative to @samp{[[...]]} links, Org-mode also supports
+CamelCase words as links.  This feature is not turned on by default
+because of the occasional inconsistencies this system suffers from.
+To activate CamelCase words as links, and to make headline completion
+offer CamelCase version of headlines, the following customization is
+needed:
+@lisp
+(setq org-activate-camels t
+      org-file-link-context-use-camel-case t)
+@end lisp
 
 @node External Links, Managing links, Internal Links, Hyperlinks
 @section External Links
@@ -1407,6 +1442,7 @@ creating links.
 @cindex VM links
 @cindex RMAIL links
 @cindex WANDERLUST links
+@cindex MH-E links
 @cindex USENET links
 @cindex SHELL links
 
@@ -1426,6 +1462,8 @@ shows examples for each link type.
 <vm://myself@@some.where.org/folder#id>     @r{VM on remote machine}
 <wl:folder>                                @r{WANDERLUST folder link}
 <wl:folder#id>                             @r{WANDERLUST message link}
+<mhe:folder>                               @r{MH-E folder link}
+<mhe:folder#id>                            @r{MH-E message link}
 <rmail:folder>                             @r{RMAIL folder link}
 <rmail:folder#id>                          @r{RMAIL message link}
 <gnus:group>                               @r{GNUS group link}
@@ -1458,7 +1496,7 @@ VM, RMAIL, WANDERLUST, GNUS and BBDB buffers, the link will point to
 the current article/entry.  For W3 and W3M buffer, the link goes to
 the current URL.  For Org-mode files, the current headline is
 targeted.  For any other files, the link will point to the file, with
-a CamelCase (@pxref{Search Options}) search string pointing to the
+a search string (@pxref{Search Options}) pointing to the
 contents of the current line.  If there is an active region, the
 selected words will form the basis of the search string.  The key
 binding @kbd{C-c l} is only a suggestion - see @ref{Installation and
@@ -1510,6 +1548,20 @@ On links, @kbd{mouse-2} will open the link just like @kbd{C-c C-o} would.
 @kindex mouse-3
 @item mouse-3
 Like @kbd{mouse-2}, but force file links to be opened with Emacs.
+
+@cindex mark ring
+@kindex C-c %
+@item C-c %
+Push the current position onto the mark ring, to be able to return
+easily. Commands following an internal link do this automatically.
+
+@cindex links, returning to
+@kindex C-c &
+@item C-c &
+Jump back to a recorded position.  A position is recorded by the
+commands following internal links, and by @kbd{C-c %}.  Using this
+command several times in direct succession moves through a ring of
+previously recorded positions.
 @end table
 
 
@@ -1525,8 +1577,8 @@ compatibility, line numbers can also follow a single colon.} colon.
 For example:
 @example
 <file:~/code/main.c::255>
-<file:~/xx.org::MyTarget>
-<file:~/xx.org::find me>
+<file:~/xx.org::My Target>
+<file:~/xx.org::*My Target>
 <file:~/xx.org::/regexp/>
 @end example
 @noindent Here is what these options do.
@@ -1534,12 +1586,12 @@ For example:
 @table @code
 @item 255
 Jump to line 255.
-@item MyGoal
-Search for a link target with name MyGoal, or do a text search for
-@samp{my target}, similar to the CamelCase search in internal links,
-see @ref{Internal Links}.
-@item find me
-Do a normal text search for the text @samp{find me}.
+@item My Target
+Search for a link target @samp{<<My Target>>}, or do a text search for
+@samp{my target}, similar to the search in internal links, see
+@ref{Internal Links}.
+@item *My Target
+In an Org-mode file, restrict search to headlines.
 @item /regexp/
 Do a regular expression search for @code{regexp}.  This uses the Emacs
 command @code{occur} to list all matches in a separate window.  If the
@@ -1549,10 +1601,10 @@ sparse tree with the matches.
 @c @code{grep} will be used to search all files in the directory.
 @end table
 
-To use the search options also for a search in the current file, a
-file link with an empty file name can be used.  For example,
-@code{<file:::find me>} does a search for @samp{find me} in the
-current file.
+As a degenerate case, a file link with an empty file name can be used
+to search the current file.  For example, @code{<file:::find me>} does
+a search for @samp{find me} in the current file, just like
+@samp{[[find me]]} would.
 
 @node Remember,  , Search Options, Hyperlinks
 @section Remember
@@ -3248,6 +3300,8 @@ Org-mode would not be what it is without your input.
 
 @itemize @bullet
 @item
+Thomas Baumann contributed the code for links to the MH-E email system.
+@item
 Pavel Chalmoviansky reported bugs and suggested improvements
 related to the agenda treatment of items with specified time.
 @item
@@ -3267,7 +3321,7 @@ Emacs-Lisp compiler happy.
 Tim O'Callaghan suggested in-file links, search options for
 general file links, and TAGS.
 @item
-Oliver Oppitz made useful suggestions.
+Oliver Oppitz suggested multi-state TODO items.
 @item
 Pete Phillips helped the development of the TAGS feature with beta
 testing and suggestions.
@@ -3289,8 +3343,8 @@ Linking to VM/BBDB/GNUS was inspired by Tom Shannon's
 Juergen Vollmer contributed code generating the table of contents
 in HTML output, and other export improvements.
 @item
-David Wainberg suggested to implement an archiving mechanism and helped
-testing.
+David Wainberg suggested the archiving mechanism and shaped the
+internal link system with many suggestions and ideas.
 @item
 Scheduling TODO items was inspired by John Wiegley's @file{planner.el}.
 @item

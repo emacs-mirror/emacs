@@ -1,3 +1,135 @@
+2006-02-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (help): Revert last part of 2006-02-23 change (deletion
+	of the `provide' call).
+
+2006-02-23  Juri Linkov  <juri@jurta.org>
+
+	* compare-w.el (compare-windows-highlight): Add new value
+	`persistent' and change :type from `boolean' to `choice'.
+	(compare-windows-overlays1, compare-windows-overlays2):
+	New internal variables.
+	(compare-windows-highlight): If compare-windows-highlight is
+	`persistent', add current overlays to compare-windows-overlays[12]
+	instead of adding compare-windows-dehighlight to pre-command-hook.
+	(compare-windows-dehighlight): Delete all overlays from
+	compare-windows-overlays[12].
+
+	* info.el (Info-search): Don't bind search-spaces-regexp to
+	Info-search-whitespace-regexp in non-regexp isearch mode.
+
+2006-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help.el (describe-mode): Pass `mode-name' to format-mode-line.
+
+2006-02-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/org.el (org-xemacs-p)
+	(org-export-html-show-new-buffer, org-table-may-need-update)
+	(org-insert-item, org-mhe-get-message-real-folder)
+	(org-mhe-get-message-folder-from-index)
+	(org-mhe-get-message-folder, org-mhe-get-message-num)
+	(org-mhe-get-header, org-make-org-heading-search-string)
+	(org-make-org-heading-camel, org-table-sort-lines)
+	(org-format-org-table-html, org-format-table-table-html):
+	Fix typos in docstrings.
+
+12006-02-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-cleaned-string-for-export)
+	(org-solidify-link-text): New function.
+	(org-add-hook): Use `add-local-hook' instead of `make-local-hook' for
+	XEmacs, just to silence the compiler.
+	(org-export-as-ascii, org-export-as-html-and-open):
+	Use `org-cleaned-string-for-export' and create internal links.
+	(org-follow-mhe-link): Require mh-e, use folder.
+
+2006-02-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-buttons): Use shadow face properly.
+
+	* progmodes/gdb-ui.el (gdb-debug-ring-max): Rename from
+	gdb-debug-log-length.
+	(gdb-debug-ring): Rename from gdb-debug-log-ring.  Don't make
+	it a real ring but...
+	(gud-gdba-marker-filter): ...make it work like mark-ring.
+	(gdb-enable-debug): Rename from gdb-enable-debug-log.
+	(gdb-mouse-jump): New function.  Add bindings.
+
+2006-02-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-signalled): New variable and function.
+	(gdb-debug-log-ring): Rename from gdb-debug-log and make a ring.
+	(gdb-send, gdb-send-item, gud-gdba-marker-filter): Use it.
+	(gdb-debug-log-length): Customize it's length.
+	(gud-watch, gdb-var-create-handler): Display function::var format
+	but don't use to create variable object.
+	(gdb-var-create-handler): Use message-box in place of message.
+	(gdb-stopped): Call gdb-exited if signalled.
+
+2006-02-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex.el (reftex-locate-file): Remove duplicate function.
+
+	* textmodes/reftex-vars.el (reftex-try-all-extensions): New option.
+
+	* textmodes/reftex.el (reftex-locate-file): Search all extensions
+	if `reftex-try-all-extensions' is set.
+
+	* textmodes/org.el (org-mark-ring-push, org-mark-ring-goto):
+	New commands.
+	(org-mark-ring): New variable.
+	(org-mark-ring-length): New option.
+	(org-open-at-point, org-goto, org-open-file): Push old position
+	onto the mark ring.
+	(org-add-hook): New function.
+	(org-export-table-remove-special-lines): New option.
+	(org-skip-comments, org-format-org-table-html): Respect new
+	option `org-export-table-remove-special-lines'.
+	(org-open-file): Allow special command configuration for
+	directory link.
+	(org-file-apps): Fix bugs in customize type, added setting
+	for directories.
+	(org-activate-tags, org-format-agenda-item, org-complete)
+	(org-get-tags-at, org-scan-tags, org-make-tags-matcher)
+	(org-get-tags, org-get-buffer-tags, org-open-at-point)
+	(org-link-search, org-make-org-heading-search-string)
+	(org-make-org-heading-camel): Allow @ and 0-9 as tags characters.
+	(org-radio-targets, org-file-link-context-use-camel-case)
+	(org-activate-camels): New options.
+	(org-update-radio-target-regexp, org-all-targets)
+	(org-make-target-link-regexp, org-activate-target-links):
+	New functions.
+	(org-make-org-heading-search-string): New function.
+	(org-store-link, org-insert-link): Use new option
+	`org-file-link-context-use-camel-case'.
+	(org-activate-camels): Use new option `org-activate-camels'.
+	(org-link-regexp): Add mhe prefix.
+	(org-open-at-point, org-store-link): Support for mhe links.
+	(org-mhe-get-message-real-folder, org-mhe-get-message-folder)
+	(org-mhe-get-message-folder-from-index, org-mhe-get-message-num)
+	(org-mhe-get-header, org-follow-mhe-link): New functions.
+	(org-remove-angle-brackets, org-add-angle-brackets):
+	New functions.
+	(org-bracket-link-regexp): New constant.
+	(org-read-date): Fix bug that was rejecting all typed dates.
+	(org-link-search): Make hierarchy above visible after a match.
+	(org-follow-bbdb-link): Inhibit electric mode for BBDB.
+	(org-store-link): Fix bug with link creation when cursor is in
+	an empty line.
+	(org-open-at-point): Fix bug with matching a link.
+	Fixed buggy argument sequence in call to `org-view-tags'.
+	(org-compile-prefix-format): Set `org-prefix-has-tag'.
+	(org-prefix-has-tag): New variable.
+	(org-format-agenda-item): Remove tags from headline
+	if appropriate.
+	(org-agenda-remove-tags-when-in-prefix): New option.
+
+2006-02-21  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* ediff-diff.el (ediff-setup-diff-regions, ediff-setup-diff-regions3):
+	Fix the regular expressions.
+
 2006-02-21  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/sh-script.el (sh-mode): Set shell type based on file name
@@ -49,8 +181,8 @@
 
 2006-02-20  Chong Yidong  <cyd@stupidchicken.com>
 
-	* custom.el (customize-mark-to-save, customize-mark-as-set): Load
-	the symbol first.
+	* custom.el (customize-mark-to-save, customize-mark-as-set):
+	Load the symbol first.
 
 2006-02-20  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -163,7 +295,7 @@
 	* progmodes/gdb-ui.el (gdb-var-evaluate-expression-handler)
 	(gdb-var-update-handler): Detect out of scope variables with pre
 	GDB 6.4 too.
-	(gdb-post-prompt): Revert changet 2006-02-17 (force update).
+	(gdb-post-prompt): Revert change from 2006-02-17 (force update).
 	Reset status of variable objects to nil in update handlers.
 	(gdb-var-update-handler-1): Detect when a variable object comes
 	in scope.  setcar on var changes gdb-var-list directly.

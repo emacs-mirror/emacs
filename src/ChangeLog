@@ -1,3 +1,43 @@
+2006-02-23  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+
+	* xfns.c (Fx_file_dialog): Return a decoded file name.
+
+2006-02-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (update_text_area): Avoid needless redraw of rightmost
+	glyph whose face is extended to the text area end.
+
+	* macterm.c (x_set_toolkit_scroll_bar_thumb): Don't set control
+	values if control is not visible or values are not changed.
+
+2006-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fwindow_list): Check `window' before doing XWINDOW.
+	The default `window' should not be "on a different frame".
+
+2006-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* indent.c (Fvertical_motion): Only try to move back if we can.
+
+2006-02-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h (struct _XGC) [!MAC_OSX || !USE_ATSUI]: New member
+	n_clip_rects.
+
+	* macmenu.c (digest_single_submenu): Apply 2006-02-19 change for
+	xmenu.c.
+
+	* macterm.c (GC_CLIP_REGION): Remove macro.
+	(mac_begin_clip, mac_end_clip): Take arg GC instead of REGION.
+	All uses changed.  Don't do clipping if n_clip_rects is zero.
+	(mac_set_clip_rectangles): Use xassert instead of abort.
+	Set n_clip_rects.  Don't make clip_region empty when number of
+	clipping rectangles is zero.
+	(mac_reset_clip_rectangles): Set n_clip_rects directly instead of
+	calling mac_set_clip_rectangles.
+	(x_set_toolkit_scroll_bar_thumb): Temporarily hide scroll bar to
+	avoid multiple redraws.
+
 2006-02-22  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.c (draw_fringe_bitmap): Fix overlay-arrow display.
@@ -22,8 +62,8 @@
 	BG_WIDTH.  All uses changed.  Draw background if BG_WIDTH is not zero.
 	(mac_draw_image_string, mac_draw_image_string_16): New arg BG_WIDTH.
 	[USE_CG_TEXT_DRAWING] (mac_draw_image_string_cg): Rename from
-	mac_draw_string_cg.  New arg BG_WIDTH.  All uses changed.  Draw
-	background if BG_WIDTH is not zero.  Use float constants as
+	mac_draw_string_cg.  New arg BG_WIDTH.  All uses changed.
+	Draw background if BG_WIDTH is not zero.  Use float constants as
 	divisors instead of double.  Use alloca instead of xmalloc/xfree.
 	(x_draw_glyph_string_background, x_draw_glyph_string_foreground)
 	[!MAC_OS8 || USE_ATSUI]: Background may be drawn using
@@ -33,6 +73,11 @@
 	(mac_begin_clip, mac_end_clip): Check if region is empty.
 	(mac_set_clip_rectangles): When resetting clip region, make it
 	empty instead of disposing of it.
+
+2006-02-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (store_in_keymap): Change `def' arg to not be `register'.
+	Seems to trigger a bug in gcc-amd64 4.0.2 20051125 (Red Hat 4.0.2-8).
 
 2006-02-20  Kim F. Storm  <storm@cua.dk>
 
@@ -59,10 +104,10 @@
 	(left_curly_arrow_bits): Rename from continuation_bits.
 	(right_curly_arrow_bits): Rename from continued_bits.
 	(left_triangle_bits): Rename from ov_bits.
-	(right_triangle_bits): Added.
+	(right_triangle_bits): Add.
 	(filled_rectangle_bits): Rename from filled_box_cursor_bits.
 	(hollow_rectangle_bits): Rename from hollow_box_cursor_bits.
-	(filled_square_bits): Added.
+	(filled_square_bits): Add.
 	(vertical_bar_bits): Rename from bar_cursor_bits.
 	(horizontal_bar_bits): Rename from hbar_cursor_bits.
 	(empty_line_bits): Rename from zv_bits.

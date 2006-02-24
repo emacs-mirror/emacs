@@ -835,8 +835,9 @@ follows the description of the major mode.)\n\n"))
 	;; Document the major mode.
 	(let ((mode mode-name))
 	  (with-current-buffer standard-output
-	    (insert mode)
-	    (add-text-properties (- (point) (length mode)) (point) '(face bold))))
+            (let ((start (point)))
+              (insert (format-mode-line mode))
+              (add-text-properties start (point) '(face bold)))))
 	(princ " mode:\n")
 	(princ (documentation major-mode)))
       (print-help-return-message))))
@@ -932,7 +933,7 @@ is currently activated with completion."
 ;;; Automatic resizing of temporary buffers.
 
 (defcustom temp-buffer-max-height (lambda (buffer) (/ (- (frame-height) 2) 2))
-  "*Maximum height of a window displaying a temporary buffer.
+  "Maximum height of a window displaying a temporary buffer.
 This is the maximum height (in text lines) which `resize-temp-buffer-window'
 will give to a window displaying a temporary buffer.
 It can also be a function which will be called with the object corresponding
@@ -971,8 +972,7 @@ out of view."
 	 (funcall temp-buffer-max-height (current-buffer))
        temp-buffer-max-height))))
 
-;; Provide this for the sake of define-minor-mode which generates
-;; defcustoms which require 'help'.
+
 (provide 'help)
 
 ;; arch-tag: cf427352-27e9-49b7-9a6f-741ebab02423

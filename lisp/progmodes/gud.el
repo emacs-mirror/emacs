@@ -456,7 +456,8 @@ required by the caller."
 	    (while var-list
 	      (let* (char (depth 0) (start 0) (var (car var-list))
 			  (expr (car var)) (varnum (nth 1 var))
-			  (type (nth 3 var)) (status (nth 5 var)))
+			  (type (nth 3 var)) (value (nth 4 var))
+			  (status (nth 5 var)))
 		(put-text-property
 		 0 (length expr) 'face font-lock-variable-name-face expr)
 		(put-text-property
@@ -470,7 +471,7 @@ required by the caller."
 			     (string-match "char \\*$" type)))
 		    (speedbar-make-tag-line
 		     'bracket ?? nil nil
-		     (concat expr "\t" (nth 4 var))
+		     (concat expr "\t" value)
 		     (if (or parent (eq status 'out-of-scope))
 			 nil 'gdb-edit-value)
 		     nil
@@ -491,14 +492,12 @@ required by the caller."
 		      (speedbar-make-tag-line
 		       'bracket char
 		       'gdb-speedbar-expand-node varnum
-		       (concat expr "\t"
-			       type "\t"
-			       (nth 4 var))
-		       (if (or parent status 'out-of-scope)
+		       (concat expr "\t" type "\t" value)
+		       (if (or parent status)
 			 nil 'gdb-edit-value)
 		       nil
-		       (if (and (or parent status) gdb-show-changed-values)
-			   'shadow t)
+		       (if (and (or parent (eq status 'out-of-scope))
+				gdb-show-changed-values) 'shadow t)
 		       depth)
 		    (speedbar-make-tag-line
 		     'bracket char
