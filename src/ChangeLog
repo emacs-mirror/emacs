@@ -1,3 +1,8 @@
+2006-02-25  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (modify_overlay): Force redisplay if we modify an
+	overlay at the end of the buffer.
+
 2006-02-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): If x_find_image_file returns
