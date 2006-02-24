@@ -376,10 +376,11 @@ as a multilingual text encoded in a coding system set by
 		 coding)))
 
     ;; We are turning off Encoded-kbd mode.
-    (setq key-translation-map saved-key-translation-map
-	  saved-key-translation-map nil)
-    (apply 'set-input-mode saved-input-mode)
-    (setq saved-input-mode nil)))
+    (when saved-input-mode
+      (setq key-translation-map saved-key-translation-map
+	    saved-key-translation-map nil)
+      (apply 'set-input-mode saved-input-mode)
+      (setq saved-input-mode nil))))
 
 (provide 'encoded-kb)
 
