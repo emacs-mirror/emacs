@@ -1,3 +1,9 @@
+2006-02-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_image_for_pixmap): If x_find_image_file returns
+	nil the image file has been removed, in that case use the (cached)
+	pixmap.
+
 2006-02-24  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents): When a text is replaced
