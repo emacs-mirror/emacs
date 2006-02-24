@@ -80,7 +80,7 @@
 (defconst utf7-utf-16-coding-system
   (cond ((mm-coding-system-p 'utf-16-be-no-signature) ; Mule-UCS
 	 'utf-16-be-no-signature)
-	((and (mm-coding-system-p 'utf-16-be) ; Emacs 22.1
+	((and (mm-coding-system-p 'utf-16-be) ; Emacs 21.3, Emacs 22
 	      ;; Avoid versions with BOM.
 	      (= 2 (length (encode-coding-string "a" 'utf-16-be))))
 	 'utf-16-be)
