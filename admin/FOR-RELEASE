@@ -41,9 +41,6 @@ URL/MID: http://mid.gmane.org/v9acdmrcse.fsf@marauder.physik.uni-ulm.de
 ** Ralf Angeli's 4 Jul 2005 bug report about scroll-preserve-screen-position.
 URL/MID: http://mid.gmane.org/877jg6o7k4.fsf@neutrino.iwi.uni-sb.de
 
-** Martin Rudalics' 30 Jan 2006 bug report about overlays at end of buffer.
-URL/MID: http://mid.gmane.org/43DDC6B7.6010003@gmx.at
-
 ** TCP server processes do not work on Windows.
 
 TCP/IP server processes created with `make-network-process' consume
