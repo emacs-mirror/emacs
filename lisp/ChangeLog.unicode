@@ -1,3 +1,10 @@
+2006-02-24  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (auto-composition-after-change): Use
+	save-buffer-state.
+	(turn-on-auto-composition-if-enabled): Don't turn on
+	auto-composition-mode in a unibyte buffer.
+
 2006-02-21  Kenichi Handa  <handa@m17n.org>
 
 	* startup.el (command-line): Use custom-reevaluate-setting for
