@@ -1,3 +1,8 @@
+2006-02-25  John Williams  <jrw@pobox.com>  (tiny change)
+
+	* progmodes/etags.el (tags-completion-table): Do completion from
+	all the tables in the current list, as documented in the manual.
+
 2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
 	* CC Mode Update to 5.31.3.
