@@ -8813,8 +8813,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   int junk;
 #endif
 
-  jmp_buf *volatile wrong_kboard_jmpbuf = alloca (sizeof (jmp_buf));
-
   struct gcpro gcpro1;
 
   GCPRO1 (fake_prefixed_keys);
