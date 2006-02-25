@@ -48,7 +48,7 @@
 	[Supersedes patch to cc-engine.el V 1.45]
 	(c-after-change): Protect the match data with save-match-data.  It
 	was getting corrupted by c-after-change-check-<>-operators.
-	
+
 	* cc-defs.el: [Supersedes patch V1.38]:
 	(top level): Check for a buggy font-lock-compile-keywords ONLY in
 	XEmacs.  GNU Emacs 22 now has a check which would throw an error
@@ -5154,7 +5154,7 @@
 
 2005-11-29  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-wind (ediff-setup-control-frame, ediff-make-wide-display):
+	* ediff-wind.el (ediff-setup-control-frame, ediff-make-wide-display):
 	Preserve user position.
 
 2005-11-28  Luc Teirlinck  <teirllm@auburn.edu>
@@ -5927,13 +5927,13 @@
 
 2005-11-15  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-utils (viper-non-word-characters-reformed-vi): Quote `-' in
-	string.
+	* viper-utils.el (viper-non-word-characters-reformed-vi):
+	Quote `-' in string.
 
 	* viper.el (viper-emacs-state-mode-list): Ensure that
 	rcirc-mode buffers come up in Emacs state.
 
-	* ediff-util (ediff-make-temp-file): Use proper file-name-handler
+	* ediff-util.el (ediff-make-temp-file): Use proper file-name-handler
 	operation.
 
 2005-11-15  Dan Nicolaescu  <dann@ics.uci.edu>

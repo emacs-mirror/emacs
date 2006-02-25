@@ -2916,7 +2916,7 @@
 	(comment-valid-prefix-p): Rename from comment-valid-prefix
 	and fix to actually use its argument.
 
-	* tex-mode (tex-mode-syntax-table): ~ is not whitespace.
+	* tex-mode.el (tex-mode-syntax-table): ~ is not whitespace.
 	(tex-guess-mode): Add `renewcommand'.
 	(tex-mode): Move the autoload to get the correct docstring and usage.
 
@@ -6170,7 +6170,7 @@
 
 	Changes from 2002-02-28:
 
-	* antlr-mode: Version 2.2 is released.
+	* antlr-mode.el: Version 2.2 is released.
 
 	* antlr-mode.el (antlr): Moved to SourceForge.net
 
