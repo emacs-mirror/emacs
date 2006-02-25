@@ -1,3 +1,9 @@
+2006-02-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/sh-script.el (sh-mode): Fix bug: Arrange
+	to use the default shell if filename is not available.
+	Reported by Giorgos Keramidas.
+
 2006-02-25  John Williams  <jrw@pobox.com>  (tiny change)
 
 	* progmodes/etags.el (tags-completion-table): Do completion from
