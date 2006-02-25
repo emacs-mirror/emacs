@@ -2280,6 +2280,7 @@ store_frame_param (f, prop, val)
       if ((BUFFER_LOCAL_VALUEP (valcontents)
   	   || SOME_BUFFER_LOCAL_VALUEP (valcontents))
 	  && XBUFFER_LOCAL_VALUE (valcontents)->check_frame
+	  && XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame
  	  && XFRAME (XBUFFER_LOCAL_VALUE (valcontents)->frame) == f)
  	swap_in_global_binding (prop);
     }
