@@ -1,5 +1,7 @@
 2006-02-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* buffer.c (Foverlay_put): Mark buffer as changed.
+
 	* xterm.h (x_catch_errors) Return value changed to void.
 	(x_uncatch_errors): Unused count argument deleted.
 	

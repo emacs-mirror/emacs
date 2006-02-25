@@ -4094,6 +4094,8 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
 	      == OVERLAY_POSITION (OVERLAY_END (overlay))))
 	Fdelete_overlay (overlay);
     }
+
+  windows_or_buffers_changed++;
   return value;
 }
 
