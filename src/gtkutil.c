@@ -327,6 +327,7 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
      look good in all cases.  */
   Lisp_Object specified_file = Qnil;
   Lisp_Object tail;
+  Lisp_Object file;
   extern Lisp_Object QCfile;
 
   for (tail = XCDR (img->spec);
@@ -335,23 +336,18 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
     if (EQ (XCAR (tail), QCfile))
       specified_file = XCAR (XCDR (tail));
 
-  if (STRINGP (specified_file))
+  /* We already loaded the image once before calling this
+     function, so this only fails if the image file has been removed.
+     In that case, use the pixmap already loaded.  */
+
+  if (STRINGP (specified_file)
+      && STRINGP (file = x_find_image_file (specified_file)))
     {
-      Lisp_Object file = Qnil;
-      struct gcpro gcpro1;
-      GCPRO1 (file);
-
-      file = x_find_image_file (specified_file);
-      /* We already loaded the image once before calling this
-         function, so this should not fail.  */
-      xassert (STRINGP (file) != 0);
-
       if (! old_widget)
         old_widget = GTK_IMAGE (gtk_image_new_from_file (SSDATA (file)));
       else
         gtk_image_set_from_file (old_widget, SSDATA (file));
 
-      UNGCPRO;
       return GTK_WIDGET (old_widget);
     }
 

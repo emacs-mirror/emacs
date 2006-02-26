@@ -1,7 +1,7 @@
 ;;; cc-styles.el --- support for styles in CC Mode
 
-;; Copyright (C) 1985,1987,1992-2003, 2004, 2005, 2006
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2003, 2004, 2005, 2006 Free Software
+;; Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw

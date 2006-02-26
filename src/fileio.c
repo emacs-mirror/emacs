@@ -4397,6 +4397,8 @@ actually used.  */)
 			  same_at_start_charpos, inserted_chars, 0);
       /* Set `inserted' to the number of inserted characters.  */
       inserted = PT - temp;
+      /* Set point before the inserted characters.  */
+      SET_PT_BOTH (temp, same_at_start);
 
       unbind_to (this_count, Qnil);
 

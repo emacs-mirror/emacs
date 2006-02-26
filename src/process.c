@@ -1583,7 +1583,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 #endif
 
   /* Make the process marker point into the process buffer (if any).  */
-  if (!NILP (buffer))
+  if (BUFFERP (buffer))
     set_marker_both (XPROCESS (proc)->mark, buffer,
 		     BUF_ZV (XBUFFER (buffer)),
 		     BUF_ZV_BYTE (XBUFFER (buffer)));
@@ -3355,6 +3355,12 @@ usage: (make-network-process &rest ARGS)  */)
   XSETINT (p->outfd, outch);
   if (is_server && socktype == SOCK_STREAM)
     p->status = Qlisten;
+
+  /* Make the process marker point into the process buffer (if any).  */
+  if (BUFFERP (buffer))
+    set_marker_both (p->mark, buffer,
+		     BUF_ZV (XBUFFER (buffer)),
+		     BUF_ZV_BYTE (XBUFFER (buffer)));
 
 #ifdef NON_BLOCKING_CONNECT
   if (is_non_blocking_client)

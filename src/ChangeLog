@@ -1,3 +1,47 @@
+2006-02-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.h (x_catch_errors) Return value changed to void.
+	(x_uncatch_errors): Unused count argument deleted.
+	
+	* xterm.c (x_catch_errors): Don't use record_unwind_protect, since
+	it can be called in a signal handler.
+	(x_catch_errors_unwind): Function deleted.
+	(x_uncatch_errors): Deallocate last x_error_message_stack struct.
+	(x_check_errors): Call x_uncatch_errors before signalling error.
+
+	(x_load_font, x_term_init, XTmouse_position, handle_one_xevent)
+	(x_connection_closed, x_list_fonts): Use new versions of
+	x_catch_errors and x_uncatch_errors.
+
+	* xselect.c (x_own_selection, x_decline_selection_request)
+	(x_reply_selection_request, x_get_foreign_selection)
+	(Fx_get_atom_name, Fx_send_client_event): Likewise.
+
+	* xfns.c (x_real_positions, x_set_mouse_color, Fx_focus_frame):
+	Likewise.
+
+	* eval.c (record_unwind_protect): Add an assertion.
+
+2006-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (Fmake_network_process): Init the process's mark.
+
+2006-02-25  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (modify_overlay): Force redisplay if we modify an
+	overlay at the end of the buffer.
+
+2006-02-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_image_for_pixmap): If x_find_image_file returns
+	nil the image file has been removed, in that case use the (cached)
+	pixmap.
+
+2006-02-24  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents): When a text is replaced
+	partially, be sure to set point before the inserted characters.
+
 2006-02-23  Zhang Wei  <id.brep@gmail.com>  (tiny change)
 
 	* xfns.c (Fx_file_dialog): Return a decoded file name.

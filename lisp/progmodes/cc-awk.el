@@ -1,7 +1,7 @@
 ;;; cc-awk.el --- AWK specific code within cc-mode.
 
-;; Copyright (C) 1988,94,96,2000, 2001, 2002, 2003, 2004, 2005, 2006
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1988,94,96,2000, 2001, 2002, 2003, 2004, 2005, 2006 Free
+;; Software Foundation, Inc.
 
 ;; Author: Alan Mackenzie <acm@muc.de> (originally based on awk-mode.el)
 ;; Maintainer: FSF
@@ -804,7 +804,7 @@
 (defun c-awk-end-of-change-region (beg end old-len)
   ;; Find the end of the region which needs to be font-locked after a change.
   ;; This is the end of the logical line on which the change happened, either
-  ;; as it was before the change, or as it is now, which ever is later.
+  ;; as it was before the change, or as it is now, whichever is later.
   ;; N.B. point is left undefined.
   ;;
   ;; This function might do hidden buffer changes.
@@ -822,11 +822,12 @@
   (unless (and (boundp 'font-lock-mode) font-lock-mode)
     (save-restriction
       (save-excursion
-        (setq end (c-awk-end-of-change-region beg end old-len))
-        (c-awk-beginning-of-logical-line beg)
-        (c-save-buffer-state nil ; So that read-only status isn't affected.
+	(save-match-data
+	  (setq end (c-awk-end-of-change-region beg end old-len))
+	  (c-awk-beginning-of-logical-line beg)
+	  (c-save-buffer-state nil  ; So that read-only status isn't affected.
                                         ; (e.g. when first loading the buffer)
-          (c-awk-set-syntax-table-properties end))))))
+	    (c-awk-set-syntax-table-properties end)))))))
 
 ;; ACM 2002/5/25.  When font-locking is invoked by a buffer change, the region
 ;; specified by the font-lock after-change function must be expanded to

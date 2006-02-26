@@ -1,3 +1,26 @@
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Rename c-hungry-backspace to
+	c-hungry-delete-backwards, at the request of RMS.  Leave the old
+	name as an alias.
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Correct the definition of c-beginning-of-defun, to
+	include the function header within the defun.
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Correct two typos.
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi (Comment Commands): State that C-u M-; kills any
+	existing comment.
+	(Electric Keys): Add a justification for electric indentation.
+	(Hungry WS Deletion): Clear up the names and complications of the
+	BACKSPACE and DELETE keys.
+	
 2006-02-23  Juri Linkov  <juri@jurta.org>
 
 	* faq.texi (Common requests): Move `Turning on auto-fill by
@@ -809,6 +832,13 @@
 	* killing.texi (CUA Bindings): Describe how to use C-x and C-c as
 	prefix keys even when mark is active.  Decribe that RET moves
 	cursor to next corner in rectangle; clarify insert around rectangle.
+
+2005-12-08  Alan Mackenzie <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: The manual has been extensively revised: the
+	information about using CC Mode has been separated from the larger
+	and more difficult chapters about configuration.  It has been
+	updated for CC Mode 5.31.
 
 2005-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
