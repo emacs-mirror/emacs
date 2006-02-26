@@ -1,8 +1,14 @@
+2006-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (struct specbinding, specpdl_ptr): Remove the volatile
+	qualifier which was trying to avoid the bug that was fixed by
+	yesterday's changes to xterm.c.
+
 2006-02-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.h (x_catch_errors) Return value changed to void.
-	(x_uncatch_errors): Unused count argument deleted.
-	
+	(x_uncatch_errors): Delete unused count argument delete.
+
 	* xterm.c (x_catch_errors): Don't use record_unwind_protect, since
 	it can be called in a signal handler.
 	(x_catch_errors_unwind): Function deleted.

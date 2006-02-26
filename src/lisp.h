@@ -1744,13 +1744,13 @@ typedef Lisp_Object (*specbinding_func) P_ ((Lisp_Object));
 
 struct specbinding
   {
-    volatile Lisp_Object symbol, old_value;
-    volatile specbinding_func func;
+    Lisp_Object symbol, old_value;
+    specbinding_func func;
     Lisp_Object unused;		/* Dividing by 16 is faster than by 12 */
   };
 
 extern struct specbinding *specpdl;
-extern volatile struct specbinding *specpdl_ptr;
+extern struct specbinding *specpdl_ptr;
 extern int specpdl_size;
 
 extern EMACS_INT max_specpdl_size;
