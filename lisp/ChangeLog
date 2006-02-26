@@ -1,3 +1,8 @@
+2006-02-26  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-save-history, ido-load-history): Simplify.  Don't
+	use find-file-noselect to avoid interference from other modes.
+
 2006-02-25  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/sh-script.el (sh-mode): Fix bug: Arrange
