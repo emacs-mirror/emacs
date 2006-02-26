@@ -1,3 +1,8 @@
+2006-02-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* eval.c (specpdl_ptr): Remove volatile qualifier for consistency
+	with lisp.h.
+
 2006-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (struct specbinding, specpdl_ptr): Remove the volatile
