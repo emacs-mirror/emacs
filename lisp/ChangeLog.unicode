@@ -1,5 +1,8 @@
 2006-02-24  Kenichi Handa  <handa@m17n.org>
 
+	* international/encoded-kb.el (encoded-kbd-mode): Check
+	saved-input-mode on turing off Encoded Kbd mode.
+
 	* composite.el (auto-composition-after-change): Use
 	save-buffer-state.
 	(turn-on-auto-composition-if-enabled): Don't turn on
