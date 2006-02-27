@@ -1,3 +1,4 @@
+
 2006-02-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* jka-cmpr-hook.el (jka-compr-compression-info-list)
@@ -217,6 +218,11 @@
 	* textmodes/reftex.el (reftex-locate-file): Search all extensions
 	if `reftex-try-all-extensions' is set.
 
+	* textmodes/reftex-dcr.el (reftex-view-crossref): New argument to
+	fail silently when there is no valid argument at point.
+	(reftex-view-crossref-when-idle): Call `reftex-view-crossref' with
+	`fail-silently' argument.  From a patch by David Reiter.
+	
 	* textmodes/org.el (org-mark-ring-push, org-mark-ring-goto):
 	New commands.
 	(org-mark-ring): New variable.
