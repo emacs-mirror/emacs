@@ -1,3 +1,9 @@
+2006-02-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/kkc.el (kkc-region): Use
+	this-single-command-raw-keys on pushing back an unhandled key
+	sequence.
+
 2006-02-24  Kenichi Handa  <handa@m17n.org>
 
 	* international/encoded-kb.el (encoded-kbd-mode): Check
