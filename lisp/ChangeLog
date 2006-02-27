@@ -1,3 +1,17 @@
+2006-02-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el: New file.
+	(t-mouse-tty): Use with-temp-buffer.  Add more terminal types.
+	(t-mouse-lispy-buffer-posn-from-coords): Remove.  Use the C
+	primitive...
+	(t-mouse-make-event-element): ...posn-at-x-y instead.
+	(t-mouse-make-event): Deal with Fedora Core 3.
+	(t-mouse-make-event): Don't sink the `stupid text mode menubar'.
+	(t-mouse-mouse-position-function): New function.  Use it instead
+	of advising mouse-position.
+	(t-mouse-mode): New minor mode.
+	(t-mouse-stop, t-mouse-run): Remove.  Use t-mouse-mode instead.
+
 2006-02-27  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-holidays): Doc fix.
