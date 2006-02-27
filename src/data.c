@@ -2094,39 +2094,9 @@ bool-vector.  IDX starts at 0.  */)
 	args_out_of_range (array, idx);
       CHECK_NUMBER (newelt);
 
-      if (XINT (newelt) < 0 || ASCII_CHAR_P (XINT (newelt))
-	  || CHAR_BYTE8_P (XINT (newelt)))
-	SSET (array, idxval, XINT (newelt));
-      else
-	{
-	  /* We must relocate the string data while converting it to
-	     multibyte.  */
-	  int idxval_byte, prev_bytes, new_bytes;
-	  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
-	  unsigned char *origstr = SDATA (array), *str;
-	  int nchars, nbytes;
-	  USE_SAFE_ALLOCA;
-
-	  nchars = SCHARS (array);
-	  nbytes = idxval_byte = count_size_as_multibyte (origstr, idxval);
-	  nbytes += count_size_as_multibyte (origstr + idxval,
-					     nchars - idxval);
-	  SAFE_ALLOCA (str, unsigned char *, nbytes);
-	  copy_text (SDATA (array), str, nchars, 0, 1);
-	  PARSE_MULTIBYTE_SEQ (str + idxval_byte, nbytes - idxval_byte,
-			       prev_bytes);
-	  new_bytes = CHAR_STRING (XINT (newelt), p0);
-	  allocate_string_data (XSTRING (array), nchars,
-				nbytes + new_bytes - prev_bytes);
-	  bcopy (str, SDATA (array), idxval_byte);
-	  p1 = SDATA (array) + idxval_byte;
-	  while (new_bytes--)
-	    *p1++ = *p0++;
-	  bcopy (str + idxval_byte + prev_bytes, p1,
-		 nbytes - (idxval_byte + prev_bytes));
-	  SAFE_FREE ();
-	  clear_string_char_byte_cache ();
-	}
+      if (XINT (newelt) >= 0 && ! SINGLE_BYTE_CHAR_P (XINT (newelt)))
+	args_out_of_range (array, newelt);
+      SSET (array, idxval, XINT (newelt));
     }
 
   return newelt;
