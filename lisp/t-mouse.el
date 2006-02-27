@@ -302,4 +302,5 @@ Turn it on to use emacs mouse commands, and off to use t-mouse commands."
 
 (provide 't-mouse)
 
+;; arch-tag: a63163b3-bfbe-4eb2-ab4f-201cd164b05d
 ;;; t-mouse.el ends here
