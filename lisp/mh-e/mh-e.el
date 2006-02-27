@@ -101,12 +101,7 @@
 
 (eval-and-compile
   (defvar mh-xemacs-flag (featurep 'xemacs)
-    "Non-nil means the current Emacs is XEmacs.")
-  (defvar mh-compiling-flag nil
-    "Non-nil means we're compiling."))
-
-(eval-when (compile)
-  (setq mh-compiling-flag t))
+    "Non-nil means the current Emacs is XEmacs."))
 
 (mh-do-in-xemacs
   (require 'mh-xemacs))
