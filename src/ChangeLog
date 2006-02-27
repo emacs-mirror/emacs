@@ -1,3 +1,19 @@
+2006-02-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.h, xterm.c (x_uncatch_errors): Delete unneccessary
+	argument.
+
+	* xterm.c: (x_load_font, x_term_init, XTmouse_position)
+	(handle_one_xevent, x_connection_closed, x_list_fonts): No arg for
+	x_uncatch_errors.
+
+	* xselect.c (x_own_selection, x_decline_selection_request)
+	(x_reply_selection_request, x_get_foreign_selection)
+	(Fx_get_atom_name, Fx_send_client_event): Likewise.
+
+	* xfns.c (x_real_positions, x_set_mouse_color, Fx_focus_frame):
+	Likewise.
+
 2006-02-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* lread.c: Declare Vload_file_rep_suffixes instead of
@@ -28,7 +44,7 @@
 2006-02-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.h (x_catch_errors) Return value changed to void.
-	(x_uncatch_errors): Delete unused count argument delete.
+	(x_uncatch_errors): Delete unused count argument.
 
 	* xterm.c (x_catch_errors): Don't use record_unwind_protect, since
 	it can be called in a signal handler.

@@ -410,7 +410,7 @@ x_own_selection (selection_name, selection_value)
   x_catch_errors (display);
   XSetSelectionOwner (display, selection_atom, selecting_window, time);
   x_check_errors (display, "Can't set selection: %s");
-  x_uncatch_errors (display);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 
   /* Now update the local cache */
@@ -586,7 +586,7 @@ x_decline_selection_request (event)
   x_catch_errors (reply.display);
   XSendEvent (reply.display, reply.requestor, False, 0L, (XEvent *) &reply);
   XFlush (reply.display);
-  x_uncatch_errors (reply.display);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 }
 
@@ -860,7 +860,7 @@ x_reply_selection_request (event, format, data, size, type)
   BLOCK_INPUT;
 
   unbind_to (count, Qnil);
-  x_uncatch_errors (display);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 }
 
@@ -1434,7 +1434,7 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
   BLOCK_INPUT;
   unbind_to (count, Qnil);
   x_check_errors (display, "Cannot get selection: %s");
-  x_uncatch_errors (display);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 
   if (NILP (XCAR (reading_selection_reply)))
@@ -2673,7 +2673,7 @@ If the value is 0 or the atom is not known, return the empty string.  */)
   if (! x_had_errors_p (dpy))
     ret = make_string (name, strlen (name));
 
-  x_uncatch_errors (dpy);
+  x_uncatch_errors ();
 
   if (atom && name) XFree (name);
   if (NILP (ret)) ret = make_string ("", 0);
@@ -2849,7 +2849,7 @@ are ignored.  */)
     XSendEvent (dpyinfo->display, wdest, propagate, mask, &event);
     XFlush (dpyinfo->display);
   }
-  x_uncatch_errors (dpyinfo->display);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 
   return Qnil;
