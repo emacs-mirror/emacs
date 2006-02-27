@@ -1,19 +1,30 @@
 ;;; t-mouse.el --- mouse support within the text terminal
 
-;;; Copyright (C) 1994,1995 Alessandro Rubini <rubini@linux.it>
-;;;               parts are by Ian T Zimmermann <itz@rahul.net>, 1995,1998
-
-;; Maintainer: gpm mailing list: gpm@prosa.it
+;; Authors: Alessandro Rubini and Ian T Zimmerman
+;; Maintainer: Nick Roberts <nickrob@gnu.org>
 ;; Keywords: mouse gpm linux
 
-;;; This program is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
+;; Copyright (C) 1994,1995 Alessandro Rubini <rubini@linux.it>
+;;               parts are by Ian T Zimmermann <itz@rahul.net>, 1995,1998
+;; Copyright (C) 2006 
+;; Free Software Foundation, Inc.
 
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to
-;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -23,11 +34,8 @@
 ;; The "gpm" server runs under Linux, so this package is rather
 ;; Linux-dependent.
 
-;; Developed for GNU Emacs 19.34, likely won't work with many others
-;; too much internals dependent cruft here.
-
-
-(require 'advice)
+;; Modified by Nick Roberts for Emacs 22.  In particular, the mode-line is
+;; now position sensitive.
 
 (defvar t-mouse-process nil 
   "Embeds the process which passes mouse events to emacs.
@@ -69,20 +77,19 @@ Useful for people who play strange games with their keyboard tables.")
 (defun t-mouse-tty ()
   "Returns number of virtual terminal Emacs is running on, as a string.
 For example, \"2\" for /dev/tty2."
-  (let ((buffer (generate-new-buffer "*t-mouse*")))
-    (call-process "ps" nil buffer nil "h" (format "%s" (emacs-pid)))
-    (prog1 (save-excursion
-             (set-buffer buffer)
-             (goto-char (point-min))
-             (if (or
-		  ;; Many versions of "ps", all different....
-		  (re-search-forward " +tty\\(.?[0-9a-f]\\)" nil t)
-		  (re-search-forward "p \\([0-9a-f]\\)" nil t)
-		  (re-search-forward "v0\\([0-9a-f]\\)" nil t)
-		  (re-search-forward "[0-9]+ +\\([0-9]+\\)" nil t)
-		  (re-search-forward "[\\t ]*[0-9]+[\\t ]+\\([0-9]+\\)" nil t))
-                 (buffer-substring (match-beginning 1) (match-end 1))))
-      (kill-buffer buffer))))
+  (with-temp-buffer
+    (call-process "ps" nil t nil "h" (format "%s" (emacs-pid)))
+    (goto-char (point-min))
+    (if (or
+	 ;; Many versions of "ps", all different....
+	 (re-search-forward " +tty\\(.?[0-9a-f]\\)" nil t)
+	 (re-search-forward "p \\([0-9a-f]\\)" nil t)
+	 (re-search-forward "v0\\([0-9a-f]\\)" nil t)
+	 (re-search-forward "[0-9]+ +\\([0-9]+\\)" nil t)
+	 (re-search-forward "[\\t ]*[0-9]+[\\t ]+\\([0-9]+\\)" nil t)
+	 (re-search-forward " +vc/\\(.?[0-9a-f]\\)" nil t)
+	 (re-search-forward " +pts/\\(.?[0-9a-f]\\)" nil t))
+	(buffer-substring (match-beginning 1) (match-end 1)))))
 
 
 ;; due to a horrible kludge in Emacs' keymap handler
@@ -128,62 +135,34 @@ For example, \"2\" for /dev/tty2."
           (put event-sym 'event-kind 'mouse-click)))
     (setq all-sets (cdr all-sets))))
 
-
-;;; This fun is partly Copyright (C) 1994 Per Abrahamsen <abraham@iesd.auc.dk>
-;; This is basically a feeble attempt to mimic what the c function
-;; buffer_posn_from_coords in dispnew.c does.  I wish that function
-;; were exported to Lisp.
-
-(defun t-mouse-lispy-buffer-posn-from-coords (w col line)
-  "Return buffer position of character at COL and LINE within window W.
-COL and LINE are glyph coordinates, relative to W topleft corner."
-  (save-window-excursion
-    (select-window w)
-    (save-excursion
-      (move-to-window-line line)
-      (move-to-column (+ col (current-column)
-                         (if (not (window-minibuffer-p w)) 0
-                           (- (minibuffer-prompt-width)))
-                         (max 0 (1- (window-hscroll)))))
-      (point))))
-
-;; compute one element of the form (WINDOW BUFFERPOS (COL . ROW) TIMESTAMP)
-
 (defun t-mouse-make-event-element (x-dot-y-avec-time)
   (let* ((x-dot-y (nth 0 x-dot-y-avec-time))
          (x (car x-dot-y))
          (y (cdr x-dot-y))
-         (timestamp (nth 1 x-dot-y-avec-time))
          (w (window-at x y))
-         (left-top-right-bottom (window-edges w))
-         (left (nth 0 left-top-right-bottom))
-         (top (nth 1 left-top-right-bottom))
-         (right (nth 2 left-top-right-bottom))
-         (bottom (nth 3 left-top-right-bottom))
-         (coords-or-part (coordinates-in-window-p x-dot-y w)))
-    (cond
-     ((consp coords-or-part)
-      (let ((wx (car coords-or-part)) (wy (cdr coords-or-part)))
-        (if (< wx (- right left 1))
-            (list w 
-                  (t-mouse-lispy-buffer-posn-from-coords w wx wy)
-                  coords-or-part timestamp)
-          (list w 'vertical-scroll-bar
-                (cons (1+ wy) (- bottom top)) timestamp))))
-     ((eq coords-or-part 'mode-line)
-      (list w 'mode-line (cons (- x left) 0) timestamp))
-     ((eq coords-or-part 'vertical-line)
-      (list w 'vertical-line (cons 0 (- y top)) timestamp)))))     
+         (ltrb (window-edges w))
+         (left (nth 0 ltrb))
+         (top (nth 1 ltrb)))
+    (if w (posn-at-x-y (- x left) (- y top) w t)
+      (append (list nil 'menu-bar) (nthcdr 2 (posn-at-x-y x y w t))))))
 
 ;;; This fun is partly Copyright (C) 1994 Per Abrahamsen <abraham@iesd.auc.dk>
-
 (defun t-mouse-make-event ()
   "Makes a Lisp style event from the contents of mouse input accumulator.
 Also trims the accumulator by all the data used to build the event."
   (let (ob (ob-pos (condition-case nil
-                       (read-from-string t-mouse-filter-accumulator)
+		       (progn
+			 ;; this test is just needed for Fedora Core 3
+			 (if (string-match "STILL RUNNING_1\n"
+					   t-mouse-filter-accumulator)
+			     (setq t-mouse-filter-accumulator
+				   (substring
+				    t-mouse-filter-accumulator (match-end 0))))
+			 (read-from-string t-mouse-filter-accumulator))
                      (error nil))))
-    (if (not ob-pos) nil
+    ;; this test is just needed for Fedora Core 3
+    (if (or (eq (car ob-pos) 'STILL) (eq (car ob-pos) '***) (not ob-pos))
+	nil
       (setq ob (car ob-pos))
       (setq t-mouse-filter-accumulator
             (substring t-mouse-filter-accumulator (cdr ob-pos)))
@@ -193,7 +172,6 @@ Also trims the accumulator by all the data used to build the event."
       (let ((event-type (nth 0 ob))
             (current-xy-avec-time (nth 1 ob))
             (type-switch (length ob)))
-
  	(if t-mouse-fix-21
             (let
                 ;;Acquire the event's symbol's name.
@@ -223,8 +201,6 @@ Also trims the accumulator by all the data used to build the event."
         ;;events have many types but fortunately they differ in length
 
         (cond
-         ;;sink all events on the stupid text mode menubar.
-         ((and menu-bar-mode (eq 0 (cdr t-mouse-current-xy))) nil)
          ((= type-switch 4)             ;must be drag
           (let ((count (nth 2 ob))
                 (start-element
@@ -250,7 +226,6 @@ Also trims the accumulator by all the data used to build the event."
                   'mouse-movement)
                 (t-mouse-make-event-element current-xy-avec-time))))))))
 
-
 (defun t-mouse-process-filter (proc string)
   (setq t-mouse-filter-accumulator
         (concat t-mouse-filter-accumulator string))
@@ -264,29 +239,11 @@ Also trims the accumulator by all the data used to build the event."
           (print unread-command-events t-mouse-debug-buffer))
       (setq event (t-mouse-make-event)))))
 
-
-;; this overrides a C function which stupidly assumes (no X => no mouse)
-(defadvice mouse-position (around t-mouse-mouse-position activate)
+(defun t-mouse-mouse-position-function (pos)
   "Return the t-mouse-position unless running with a window system.
 The (secret) scrollbar interface is not implemented yet."
-  (if (not window-system)
-      (setq ad-return-value
-            (cons (selected-frame) t-mouse-current-xy))
-    ad-do-it))
-
-(setq mouse-sel-set-selection-function
-      (function (lambda (type value)
-                  (if (not window-system)
-                      (if (eq 'PRIMARY type) (kill-new value))
-                    (funcall t-mouse-prev-set-selection-function
-                             type value)))))
-
-(setq mouse-sel-get-selection-function
-      (function (lambda (type)
-                  (if (not window-system)
-                      (if (eq 'PRIMARY type)
-                          (current-kill 0) "")
-                    (funcall t-mouse-prev-get-selection-function type)))))
+  (setcdr pos t-mouse-current-xy)
+  pos)
 
 ;; It should be possible to just send SIGTSTP to the inferior with
 ;; stop-process.  That doesn't work; mev receives the signal fine but
@@ -307,35 +264,41 @@ The (secret) scrollbar interface is not implemented yet."
                            ;(continue-process t-mouse-process)
                            (process-send-string t-mouse-process "pop\n")))))
 
-
-;;; User commands
+;;;###autoload
+(define-minor-mode t-mouse-mode
+  "Toggle t-mouse mode.
+With prefix arg, turn t-mouse mode on iff arg is positive.
 
-(defun t-mouse-stop ()
-  "Stop getting mouse events from an asynchronous process."
-  (interactive)
-  (delete-process t-mouse-process)
-  (setq t-mouse-process nil))
-
-(defun t-mouse-run ()
-  "Starts getting a stream of mouse events from an asynchronous process.
-Only works if Emacs is running on a virtual terminal without a window system.
-Returns the newly created asynchronous process."
-  (interactive)
-  (let ((tty (t-mouse-tty))
-        (process-connection-type t))
-    (if (or window-system (not (stringp tty)))
-        (error "Run t-mouse on a virtual terminal without a window system"))
-    (setq t-mouse-process 
-          (start-process "t-mouse" nil
-                         "mev" "-i" "-E" "-C" tty
-                         (if t-mouse-swap-alt-keys
-                             "-M-leftAlt" "-M-rightAlt")
-                         "-e-move" "-dall" "-d-hard"
-                         "-f")))
-  (setq t-mouse-filter-accumulator "")
-  (set-process-filter t-mouse-process 't-mouse-process-filter)
-  (process-kill-without-query t-mouse-process)
-  t-mouse-process)
+Turn it on to use emacs mouse commands, and off to use t-mouse commands."
+  nil " Mouse" nil :global t
+  (if t-mouse-mode
+      ;; Turn it on
+      (unless window-system
+        ;; Starts getting a stream of mouse events from an asynchronous process.
+        ;; Only works if Emacs is running on a virtual terminal without a window system.
+	(progn
+	 (setq mouse-position-function #'t-mouse-mouse-position-function)
+	 (let ((tty (t-mouse-tty))
+	       (process-connection-type t))
+	   (if (not (stringp tty))
+	       (error "Cannot find a virtual terminal."))
+	   (setq t-mouse-process 
+		 (start-process "t-mouse" nil
+				"mev" "-i" "-E" "-C" tty
+				(if t-mouse-swap-alt-keys
+				    "-M-leftAlt" "-M-rightAlt")
+				"-e-move"
+				"-dall" "-d-hard"
+				"-f")))
+	 (setq t-mouse-filter-accumulator "")
+	 (set-process-filter t-mouse-process 't-mouse-process-filter)
+; use commented line instead for emacs 21.4 onwards
+	 (process-kill-without-query t-mouse-process)))
+;	 (set-process-query-on-exit-flag t-mouse-process nil)))
+    ;; Turn it off
+    (setq mouse-position-function nil)
+    (delete-process t-mouse-process)
+    (setq t-mouse-process nil)))
 
 (provide 't-mouse)
 
