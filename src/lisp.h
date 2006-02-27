@@ -2603,6 +2603,7 @@ EXFUN (Fread_from_string, 3);
 EXFUN (Fintern, 2);
 EXFUN (Fintern_soft, 2);
 EXFUN (Fload, 5);
+EXFUN (Fget_load_suffixes, 0);
 EXFUN (Fget_file_char, 0);
 EXFUN (Fread_char, 2);
 EXFUN (Fread_event, 2);
@@ -2614,7 +2615,7 @@ extern Lisp_Object oblookup P_ ((Lisp_Object, const char *, int, int));
 #define LOADHIST_ATTACH(x) \
  if (initialized) Vcurrent_load_list = Fcons (x, Vcurrent_load_list)
 extern Lisp_Object Vcurrent_load_list;
-extern Lisp_Object Vload_history, Vload_suffixes;
+extern Lisp_Object Vload_history, Vload_suffixes, Vload_file_rep_suffixes;
 extern int openp P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 		      Lisp_Object *, Lisp_Object));
 extern int isfloat_string P_ ((char *));
