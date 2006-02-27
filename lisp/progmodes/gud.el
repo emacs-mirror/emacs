@@ -2753,9 +2753,10 @@ Obeying it means displaying in another window the specified file and line."
 	  (with-current-buffer gud-comint-buffer
 	    (gud-find-file true-file)))
 	 (window (and buffer (or (get-buffer-window buffer)
-				   (display-buffer buffer))))
+				 (if (memq gud-minor-mode '(gdbmi gdba))
+				     (gdb-display-source-buffer buffer))
+				 (display-buffer buffer))))
 	 (pos))
-    (message "%s %s" (current-buffer) buffer)
     (if buffer
 	(progn
 	  (with-current-buffer buffer
