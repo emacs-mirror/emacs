@@ -1,5 +1,8 @@
 2006-02-27  Bill Wohler  <wohler@newt.com>
 
+	* mh-e.el (mh-variant): Sync docstring with manual.
+	(cus-face): Require as it is needed by mh-inherit-face-flag.
+
 	* mh-compat.el (mh-display-color-cells): Return 2 if
 	device-color-cells returns nil (closes SF #1436924).
 
