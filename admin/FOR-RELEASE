@@ -41,6 +41,14 @@ URL/MID: http://mid.gmane.org/v9acdmrcse.fsf@marauder.physik.uni-ulm.de
 ** Ralf Angeli's 4 Jul 2005 bug report about scroll-preserve-screen-position.
 URL/MID: http://mid.gmane.org/877jg6o7k4.fsf@neutrino.iwi.uni-sb.de
 
+** Markus Gritsch's report about Emacs looping on Windoze with the following
+.emacs file, and then reduce Emacs frame width to "something quite narrow":
+	(setq-default truncate-lines t)
+	(custom-set-variables
+	 '(hscroll-margin 20)
+	 '(hscroll-step 1)
+	)
+
 ** TCP server processes do not work on Windows.
 
 TCP/IP server processes created with `make-network-process' consume
