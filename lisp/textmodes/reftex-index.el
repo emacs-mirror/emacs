@@ -1034,6 +1034,7 @@ When index is restricted, select the previous section as restriction criterion."
 ;; Index map
 (define-key reftex-index-map (if (featurep 'xemacs) [(button2)] [(mouse-2)])
   'reftex-index-mouse-goto-line-and-hide)
+(define-key reftex-index-map [follow-mouse] 'mouse-face)
 
 (substitute-key-definition
  'next-line 'reftex-index-next reftex-index-map global-map)
