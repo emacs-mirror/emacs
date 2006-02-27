@@ -1,3 +1,7 @@
+2006-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-holidays): Doc fix.
+
 2006-02-27  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el: (gdb-source-window): New variable.
