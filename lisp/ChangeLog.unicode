@@ -1,5 +1,29 @@
 2006-02-27  Kenichi Handa  <handa@m17n.org>
 
+	* language/chinese.el ("Chinese-BIG5"): Set
+	ctext-non-standard-encodings property to "big5-0".
+
+	* international/mule.el (ctext-non-standard-encodings): Initialize
+	to nil.
+	(ctext-non-standard-encodings-alist): Set charset `big5' in the
+	entry for "big5-0".
+	(ctext-non-standard-encodings-table): Return a list instead of
+	char-table.
+	(ctext-pre-write-conversion): Adjusted for the above change.
+
+2006-02-27  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+
+	* international/mule.el (ctext-non-standard-encodings-alist): Add
+	an entry for gbk-0.
+	(ctext-post-read-conversion): Use multibyt-char-to-unibyte to read
+	a row 8-bit.
+
+	* language/chinese.el ("Chinese-GBK"): Set
+	ctext-non-standard-encodings property to "gbk-0".  Add sample-text
+	property.
+
+2006-02-27  Kenichi Handa  <handa@m17n.org>
+
 	* international/kkc.el (kkc-region): Use
 	this-single-command-raw-keys on pushing back an unhandled key
 	sequence.

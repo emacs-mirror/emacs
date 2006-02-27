@@ -1,3 +1,9 @@
+2006-02-27  Kenichi Handa  <handa@m17n.org>
+
+	* data.c (Faset): On setting a character bigger than 255 in a
+	unibyte string, signal an error instead of make the string
+	multibyte.
+
 2006-02-22  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (map_charset_chars): Fix for ascii-compatible charset
