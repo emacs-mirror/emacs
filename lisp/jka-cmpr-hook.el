@@ -40,134 +40,6 @@
   "jka-compr customization."
   :group 'compression)
 
-;; I have this defined so that .Z files are assumed to be in unix
-;; compress format; and .gz files, in gzip format, and .bz2 files in bzip fmt.
-(defcustom jka-compr-compression-info-list
-  ;;[regexp
-  ;; compr-message  compr-prog  compr-args
-  ;; uncomp-message uncomp-prog uncomp-args
-  ;; can-append auto-mode-flag strip-extension-flag file-magic-bytes]
-  '(["\\.Z\\(~\\|\\.~[0-9]+~\\)?\\'"
-     "compressing"    "compress"     ("-c")
-     "uncompressing"  "uncompress"   ("-c")
-     nil t "\037\235"]
-     ;; Formerly, these had an additional arg "-c", but that fails with
-     ;; "Version 0.1pl2, 29-Aug-97." (RedHat 5.1 GNU/Linux) and
-     ;; "Version 0.9.0b, 9-Sept-98".
-    ["\\.bz2\\'"
-     "bzip2ing"        "bzip2"         nil
-     "bunzip2ing"      "bzip2"         ("-d")
-     nil t "BZh"]
-    ["\\.tbz\\'"
-     "bzip2ing"        "bzip2"         nil
-     "bunzip2ing"      "bzip2"         ("-d")
-     nil nil "BZh"]
-    ["\\.tgz\\'"
-     "compressing"        "gzip"         ("-c" "-q")
-     "uncompressing"      "gzip"         ("-c" "-q" "-d")
-     t nil "\037\213"]
-    ["\\.g?z\\(~\\|\\.~[0-9]+~\\)?\\'"
-     "compressing"        "gzip"         ("-c" "-q")
-     "uncompressing"      "gzip"         ("-c" "-q" "-d")
-     t t "\037\213"]
-    ;; dzip is gzip with random access.  Its compression program can't
-    ;; read/write stdin/out, so .dz files can only be viewed without
-    ;; saving, having their contents decompressed with gzip.
-    ["\\.dz\\'"
-     nil              nil            nil
-     "uncompressing"      "gzip"         ("-c" "-q" "-d")
-     nil t "\037\213"])
-
-  "List of vectors that describe available compression techniques.
-Each element, which describes a compression technique, is a vector of
-the form [REGEXP COMPRESS-MSG COMPRESS-PROGRAM COMPRESS-ARGS
-UNCOMPRESS-MSG UNCOMPRESS-PROGRAM UNCOMPRESS-ARGS
-APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS], where:
-
-   regexp                is a regexp that matches filenames that are
-                         compressed with this format
-
-   compress-msg          is the message to issue to the user when doing this
-                         type of compression (nil means no message)
-
-   compress-program      is a program that performs this compression
-                         (nil means visit file in read-only mode)
-
-   compress-args         is a list of args to pass to the compress program
-
-   uncompress-msg        is the message to issue to the user when doing this
-                         type of uncompression (nil means no message)
-
-   uncompress-program    is a program that performs this compression
-
-   uncompress-args       is a list of args to pass to the uncompress program
-
-   append-flag           is non-nil if this compression technique can be
-                         appended
-
-   strip-extension-flag  non-nil means strip the regexp from file names
-                         before attempting to set the mode.
-
-   file-magic-chars      is a string of characters that you would find
-			 at the beginning of a file compressed in this way.
-
-Because of the way `call-process' is defined, discarding the stderr output of
-a program adds the overhead of starting a shell each time the program is
-invoked.
-
-If you set this outside Custom while Auto Compression mode is
-already enabled \(as it is by default), you have to call
-`jka-compr-update' after setting it to properly update other
-variables.  Setting this through Custom does that automatically."
-  :type '(repeat (vector regexp
-			 (choice :tag "Compress Message"
-				 (string :format "%v")
-				 (const :tag "No Message" nil))
-			 (choice :tag "Compress Program"
-				 (string)
-				 (const :tag "None" nil))
-			 (repeat :tag "Compress Arguments" string)
-			 (choice :tag "Uncompress Message"
-				 (string :format "%v")
-				 (const :tag "No Message" nil))
-			 (choice :tag "Uncompress Program"
-				 (string)
-				 (const :tag "None" nil))
-			 (repeat :tag "Uncompress Arguments" string)
-			 (boolean :tag "Append")
-			 (boolean :tag "Strip Extension")
-			 (string :tag "Magic Bytes")))
-  :set 'jka-compr-set
-  :group 'jka-compr)
-
-(defcustom jka-compr-mode-alist-additions
-  (list (cons "\\.tgz\\'" 'tar-mode) (cons "\\.tbz\\'" 'tar-mode))
-  "List of pairs added to `auto-mode-alist' when installing jka-compr.
-Uninstalling jka-compr removes all pairs from `auto-mode-alist' that
-installing added.
-
-If you set this outside Custom while Auto Compression mode is
-already enabled \(as it is by default), you have to call
-`jka-compr-update' after setting it to properly update other
-variables.  Setting this through Custom does that automatically."
-  :type '(repeat (cons string symbol))
-  :set 'jka-compr-set
-  :group 'jka-compr)
-
-(defcustom jka-compr-load-suffixes '(".gz")
-  "List of compression related suffixes to try when loading files.
-Enabling Auto Compression mode appends this list to `load-file-rep-suffixes',
-which see.  Disabling Auto Compression mode removes all suffixes
-from `load-file-rep-suffixes' that enabling added.
-
-If you set this outside Custom while Auto Compression mode is
-already enabled \(as it is by default), you have to call
-`jka-compr-update' after setting it to properly update other
-variables.  Setting this through Custom does that automatically."
-  :type '(repeat string)
-  :set 'jka-compr-set
-  :group 'jka-compr)
-
 ;; List of all the elements we actually added to file-coding-system-alist.
 (defvar jka-compr-added-to-file-coding-system-alist nil)
 
@@ -304,6 +176,134 @@ options through Custom does this automatically."
   "Internal Custom :set function."
   (set-default variable value)
   (jka-compr-update))
+
+;; I have this defined so that .Z files are assumed to be in unix
+;; compress format; and .gz files, in gzip format, and .bz2 files in bzip fmt.
+(defcustom jka-compr-compression-info-list
+  ;;[regexp
+  ;; compr-message  compr-prog  compr-args
+  ;; uncomp-message uncomp-prog uncomp-args
+  ;; can-append auto-mode-flag strip-extension-flag file-magic-bytes]
+  '(["\\.Z\\(~\\|\\.~[0-9]+~\\)?\\'"
+     "compressing"    "compress"     ("-c")
+     "uncompressing"  "uncompress"   ("-c")
+     nil t "\037\235"]
+     ;; Formerly, these had an additional arg "-c", but that fails with
+     ;; "Version 0.1pl2, 29-Aug-97." (RedHat 5.1 GNU/Linux) and
+     ;; "Version 0.9.0b, 9-Sept-98".
+    ["\\.bz2\\'"
+     "bzip2ing"        "bzip2"         nil
+     "bunzip2ing"      "bzip2"         ("-d")
+     nil t "BZh"]
+    ["\\.tbz\\'"
+     "bzip2ing"        "bzip2"         nil
+     "bunzip2ing"      "bzip2"         ("-d")
+     nil nil "BZh"]
+    ["\\.tgz\\'"
+     "compressing"        "gzip"         ("-c" "-q")
+     "uncompressing"      "gzip"         ("-c" "-q" "-d")
+     t nil "\037\213"]
+    ["\\.g?z\\(~\\|\\.~[0-9]+~\\)?\\'"
+     "compressing"        "gzip"         ("-c" "-q")
+     "uncompressing"      "gzip"         ("-c" "-q" "-d")
+     t t "\037\213"]
+    ;; dzip is gzip with random access.  Its compression program can't
+    ;; read/write stdin/out, so .dz files can only be viewed without
+    ;; saving, having their contents decompressed with gzip.
+    ["\\.dz\\'"
+     nil              nil            nil
+     "uncompressing"      "gzip"         ("-c" "-q" "-d")
+     nil t "\037\213"])
+
+  "List of vectors that describe available compression techniques.
+Each element, which describes a compression technique, is a vector of
+the form [REGEXP COMPRESS-MSG COMPRESS-PROGRAM COMPRESS-ARGS
+UNCOMPRESS-MSG UNCOMPRESS-PROGRAM UNCOMPRESS-ARGS
+APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS], where:
+
+   regexp                is a regexp that matches filenames that are
+                         compressed with this format
+
+   compress-msg          is the message to issue to the user when doing this
+                         type of compression (nil means no message)
+
+   compress-program      is a program that performs this compression
+                         (nil means visit file in read-only mode)
+
+   compress-args         is a list of args to pass to the compress program
+
+   uncompress-msg        is the message to issue to the user when doing this
+                         type of uncompression (nil means no message)
+
+   uncompress-program    is a program that performs this compression
+
+   uncompress-args       is a list of args to pass to the uncompress program
+
+   append-flag           is non-nil if this compression technique can be
+                         appended
+
+   strip-extension-flag  non-nil means strip the regexp from file names
+                         before attempting to set the mode.
+
+   file-magic-chars      is a string of characters that you would find
+			 at the beginning of a file compressed in this way.
+
+Because of the way `call-process' is defined, discarding the stderr output of
+a program adds the overhead of starting a shell each time the program is
+invoked.
+
+If you set this outside Custom while Auto Compression mode is
+already enabled \(as it is by default), you have to call
+`jka-compr-update' after setting it to properly update other
+variables.  Setting this through Custom does that automatically."
+  :type '(repeat (vector regexp
+			 (choice :tag "Compress Message"
+				 (string :format "%v")
+				 (const :tag "No Message" nil))
+			 (choice :tag "Compress Program"
+				 (string)
+				 (const :tag "None" nil))
+			 (repeat :tag "Compress Arguments" string)
+			 (choice :tag "Uncompress Message"
+				 (string :format "%v")
+				 (const :tag "No Message" nil))
+			 (choice :tag "Uncompress Program"
+				 (string)
+				 (const :tag "None" nil))
+			 (repeat :tag "Uncompress Arguments" string)
+			 (boolean :tag "Append")
+			 (boolean :tag "Strip Extension")
+			 (string :tag "Magic Bytes")))
+  :set 'jka-compr-set
+  :group 'jka-compr)
+
+(defcustom jka-compr-mode-alist-additions
+  (list (cons "\\.tgz\\'" 'tar-mode) (cons "\\.tbz\\'" 'tar-mode))
+  "List of pairs added to `auto-mode-alist' when installing jka-compr.
+Uninstalling jka-compr removes all pairs from `auto-mode-alist' that
+installing added.
+
+If you set this outside Custom while Auto Compression mode is
+already enabled \(as it is by default), you have to call
+`jka-compr-update' after setting it to properly update other
+variables.  Setting this through Custom does that automatically."
+  :type '(repeat (cons string symbol))
+  :set 'jka-compr-set
+  :group 'jka-compr)
+
+(defcustom jka-compr-load-suffixes '(".gz")
+  "List of compression related suffixes to try when loading files.
+Enabling Auto Compression mode appends this list to `load-file-rep-suffixes',
+which see.  Disabling Auto Compression mode removes all suffixes
+from `load-file-rep-suffixes' that enabling added.
+
+If you set this outside Custom while Auto Compression mode is
+already enabled \(as it is by default), you have to call
+`jka-compr-update' after setting it to properly update other
+variables.  Setting this through Custom does that automatically."
+  :type '(repeat string)
+  :set 'jka-compr-set
+  :group 'jka-compr)
 
 (define-minor-mode auto-compression-mode
   "Toggle automatic file compression and uncompression.
