@@ -1,3 +1,19 @@
+2006-02-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: (gdb-source-window): New variable.
+	Re-introduce the concept of a source window.
+	(gdb-get-buffer-create): Rename from gdb-get-create-buffer for
+	consistency with get-buffer-create.
+	(def-gdb-auto-update-handler, gdb-info-locals-handler)
+	(gdb-data-list-register-values-handler)
+	(gdb-stack-list-locals-handler): Try to preserve window-start as
+	well as window-point.
+	(gdb-display-source-buffer): New function (old concept).
+	(gdb-goto-breakpoint): Use it.
+
+	* progmodes/gud.el (gud-display-line): Use gdb-display-source-buffer
+	for gdb-ui/gdb-mi (old concept).
+
 2006-02-27  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/reftex-index.el (reftex-index-map): Add `follow-mouse'
