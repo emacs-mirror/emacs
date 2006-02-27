@@ -45,6 +45,14 @@ Menu item "Options --> Save Options" not working anymore.
 ** Problems with moving point across invisible text,
 including Ralf Angeli's 21 Feb bug report
 and Martin Rudalics' 14 Feb bug report "Re: moving point and invisible text"
+  
+** Markus Gritsch's report about Emacs looping on Windoze with the following
+.emacs file, and then reduce Emacs frame width to "something quite narrow":
+	(setq-default truncate-lines t)
+	(custom-set-variables
+	 '(hscroll-margin 20)
+	 '(hscroll-step 1)
+	)
 
 ** TCP server processes do not work on Windows.
 
