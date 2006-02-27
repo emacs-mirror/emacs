@@ -136,6 +136,7 @@
 		  (coding-system chinese-big5 chinese-iso-7bit)
 		  (coding-priority chinese-big5 iso-2022-cn chinese-iso-8bit)
 		  (input-method . "chinese-py-punct-b5")
+		  (ctext-non-standard-encodings "big5-0")
 		  (features china-util)
 		  (sample-text . "Cantonese ($(Gemk#(B,$(Gl]N)fc(B)	$ATg3?(B, $ADc:C(B")
 		  (documentation . "Support for Chinese Big5 character set.")
@@ -228,7 +229,9 @@ converted to CNS)."))
 		 (coding-system chinese-gbk)
 		 (coding-priority gbk iso-2022-cn chinese-big5
 				  chinese-iso-8bit) ; fixme?
+		 (ctext-non-standard-encodings "gbk-0")		 
 		 (input-method . "chinese-py-punct") ; fixme?
+		 (sample-text . "Chinese ($BCfJ8(B,$BIaDL$A;0(B,$A::So(B) $(D95$B9%(B")
 		 (features china-util)
 		 (documentation . "Support for Chinese GBK character set."))
  '("Chinese"))
