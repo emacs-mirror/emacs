@@ -1,3 +1,38 @@
+2006-02-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* jka-cmpr-hook.el (jka-compr-compression-info-list)
+	(jka-compr-mode-alist-additions, jka-compr-load-suffixes):
+	Give :set functions to provide automatic updating.
+	Update docstring.  Give compiler defvars early in the file
+	and move the defcustoms to a later spot where all called functions
+	are defined.
+	(jka-compr-file-name-handler-entry): Doc fix.
+	(jka-compr-compression-info-list--internal)
+	(jka-compr-mode-alist-additions--internal)
+	(jka-compr-load-suffixes--internal): New variables.
+	(jka-compr-install): Set the three above variables.
+	Update `load-file-rep-suffixes' instead of `load-suffixes'.
+	(jka-compr-update, jka-compr-set): New functions.
+	(auto-compression-mode): Doc fix.
+
+	* jka-compr.el (jka-compr-uninstall): Replace `mapcar' with `mapc'.
+	Update `load-file-rep-suffixes' instead of `load-suffixes'.
+	Use jka-compr-compression-info-list--internal,
+	jka-compr-mode-alist-additions--internal and
+	jka-compr-load-suffixes--internal.
+
+	* files.el (load-library):
+	* loadhist.el (file-loadhist-lookup):
+	* startup.el (command-line):
+	* subr.el (locate-library):
+	* emacs-lisp/autoload.el (update-directory-autoloads):
+	* emacs-lisp/find-func.el (find-library-suffixes): Use
+	`get-load-suffixes' instead of `load-suffixes'.
+
+	* subr.el (locate-library):
+	* emacs-lisp/find-func.el (find-library-name): Use
+	`load-file-rep-suffixes' instead of '("").
+
 2006-02-26  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-save-history, ido-load-history): Simplify.  Don't

@@ -1,5 +1,21 @@
 2006-02-26  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* lread.c: Declare Vload_file_rep_suffixes instead of
+	deleted variable default_suffixes.
+	(Fget_load_suffixes): New function.
+	(Fload): Use Fget_load_suffixes and Vload_file_rep_suffixes.
+	No longer use deleted variable default_suffixes.  Update docstring.
+	(syms_of_lread): defsubr Sget_load_suffixes.
+	Expand `load-suffixes' docstring.
+	Delete default_suffixes and DEFVAR_LISP the new variable
+	`load-file-rep-suffixes'.
+
+	* w32.c (check_windows_init_file): Use Fget_load_suffixes instead
+	of Vload_suffixes.
+
+	* lisp.h: EXFUN Fget_load_suffixes.
+	Extern Vload_file_rep_suffixes.
+
 	* eval.c (specpdl_ptr): Remove volatile qualifier for consistency
 	with lisp.h.
 
