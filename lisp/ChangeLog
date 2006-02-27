@@ -1,3 +1,13 @@
+2006-02-27  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex-index.el (reftex-index-map): Add `follow-mouse'
+	binding.
+
+	* textmodes/reftex-toc.el (reftex-toc-map): Add `follow-mouse'
+	binding.
+
+	* textmodes/reftex-sel.el (reftex-select-label-map,
+	reftex-select-bib-map): Add `follow-mouse' binding.
 
 2006-02-26  Luc Teirlinck  <teirllm@auburn.edu>
 
