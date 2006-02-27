@@ -512,7 +512,7 @@ The function does NOT recursively descend into subdirectories of the
 directory or directories specified."
   (interactive "DUpdate autoloads from directory: ")
   (let* ((files-re (let ((tmp nil))
-		     (dolist (suf load-suffixes
+		     (dolist (suf (get-load-suffixes)
 				  (concat "^[^=.].*" (regexp-opt tmp t) "\\'"))
 		       (unless (string-match "\\.elc" suf) (push suf tmp)))))
 	 (files (apply 'nconc
