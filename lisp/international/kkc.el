@@ -291,7 +291,7 @@ and the return value is the length of the conversion."
 	      ;; KEYSEQ is not defined in KKC keymap.
 	      ;; Let's put the event back.
 	      (setq unread-input-method-events
-		    (append (string-to-list keyseq)
+		    (append (string-to-list (this-single-command-raw-keys))
 			    unread-input-method-events))
 	      (kkc-terminate))))
 
