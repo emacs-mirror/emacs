@@ -1,3 +1,30 @@
+2006-02-28  Alex Schroeder  <alex@gnu.org>
+
+	* rmailkwd.el (rmail-label-obarray): Deleted.
+	(rmail-attributes): Use an ordinary list of symbols.
+	(rmail-deleted-label): Use an ordinary symbol.
+	(rmail-keywords): Doc, initial value nil.
+	(rmail-keywords, rmail-keyword-init): Deleted defuns.
+	(rmail-attribute-p, rmail-keyword-p, rmail-make-label): Simplify.
+	(rmail-keyword-register-keywords, rmail-install-keyword):
+	Replaced.
+	(rmail-register-keywords, rmail-register-keyword): Replacements.
+	(rmail-add-label, rmail-kill-label): Call set-label with a symbol.
+	(rmail-read-label): Return a string.
+	(rmail-set-label): Rewrote. Call rmail-display-labels always.
+
+	* rmail.el (qp): No longer required.
+	(rmail-convert-file): Don't rmail-enable-multibyte.
+	(rmail-decode-mbox-format): Deleted.
+	(rmail-convert-mbox-format): No converting of qp headings, no
+	decoding of the message body.
+
+	(rmail-maybe-set-message-counters): Deleted.
+	(rmail-next-undeleted-message): Store original message until the
+	end instead of relying on rmail-current-message.
+
+	(rmail-process-new-messages): Use rmail-register-keywords.
+
 2006-02-17  Alex Schroeder  <alex@gnu.org>
 
 	* rmailmm.el (rmail-mime-text-handler): Only downcase if charset
