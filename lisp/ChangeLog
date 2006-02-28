@@ -1,5 +1,8 @@
 2006-02-28  Nick Roberts  <nickrob@snap.net.nz>
 
+	* speedbar.el: Re-instate comments about developing for speedbar
+	[this is what info and gdb-ui use even if better methods exist now].
+
 	* t-mouse.el: New file.
 	(t-mouse-tty): Use with-temp-buffer.  Add more terminal types.
 	(t-mouse-lispy-buffer-posn-from-coords): Remove.  Use the C
