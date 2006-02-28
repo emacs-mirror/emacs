@@ -48,7 +48,6 @@
 (require 'rmailhdr)
 (require 'rmailkwd)
 (require 'mail-parse)
-(require 'qp)
 
 (defvar deleted-head)
 (defvar font-lock-fontified)
@@ -848,6 +847,10 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	(run-hooks 'rmail-mode-hook)))))
 
 (defun rmail-convert-file ()
+  "Convert unconverted messages.
+A message is unconverted if it doesn't have the BABYL header
+specified in `rmail-header-attribute-header'; it is converted
+using `rmail-convert-mbox-format'."
   (let ((convert
 	 (save-restriction
 	   (widen)
@@ -865,17 +868,12 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 		     (narrow-to-region start end)
 		     (goto-char start)
 		     (let ((attribute (rmail-header-get-header
-				       rmail-header-attribute-header))
-			   (coding (rmail-header-get-header
-				    "X-Coding-System")))
-		       (unless (and attribute attribute)
+				       rmail-header-attribute-header)))
+		       (unless attribute
 			 (throw 'convert t)))))))))))
     (if convert
 	(let ((inhibit-read-only t))
-	  (rmail-convert-mbox-format))
-      (when (and (not rmail-enable-mime)
-		 rmail-enable-multibyte)
-	(rmail-decode-mbox-format)))))
+	  (rmail-convert-mbox-format)))))
 
 (defun rmail-initialize-messages ()
   "Initialize message state based on messages in the buffer."
@@ -1695,26 +1693,6 @@ If CODING is nil or an invalid coding system, decode by `undecided'."
 	      (coding-system-change-eol-conversion
 	       coding 'unix))))
 
-(defun rmail-decode-mbox-format ()
-  "Decode mail file to a suitable conding system."
-  (when (and (not rmail-enable-mime) rmail-enable-multibyte)
-    (let ((modifiedp (buffer-modified-p))
-	  (buffer-read-only nil)
-	  (coding-system rmail-file-coding-system))
-      (unless (and coding-system (coding-system-p coding-system))
-	(setq coding-system
-	      (car (detect-coding-with-priority
-		    (point-min) (point-max)
-		    '((coding-category-emacs-mule . emacs-mule))))))
-      (unless (memq coding-system '(undecided undecided-unix))
-	(set-buffer-modified-p t) ;; avoid locking when decoding
-	(let ((buffer-undo-list t))
-	  (decode-coding-region (point-min) (point-max) coding-system))
-	(setq coding-system last-coding-system-used))
-      (set-buffer-modified-p modifiedp)
-      (setq buffer-file-coding-system nil)
-      (setq save-buffer-coding-system (or coding-system 'undecided)))))
-
 (defun rmail-decode-by-content-type (from to)
   "Decode message between FROM and TO according to Content-Type."
   (when (and (not rmail-enable-mime) rmail-enable-multibyte)
@@ -1928,8 +1906,7 @@ non-nil then do not show any progress messages."
 	    (when keywords
 	      ;; Keywords do exist.  Register them with the keyword
 	      ;; management library.
-	      (rmail-keyword-register-keywords keywords))
-
+	      (rmail-register-keywords keywords))
 	    ;; Insure that we have From and Date headers.
 	    ;;(rmail-decode-from-line)
 
@@ -1959,9 +1936,6 @@ non-nil then do not show any progress messages."
 			 new-message-counter))
       new-message-counter)))
 
-;; NB: this function may only be called on a region containing fresh,
-;; never before seen messages.  Using it on old messages will mess up
-;; encoding.
 (defun rmail-convert-mbox-format ()
   (let ((case-fold-search nil)
 	(message-count 0)
@@ -1992,22 +1966,6 @@ non-nil then do not show any progress messages."
 		    (delete-char 1)))
 		(setq end (marker-position end-marker))
 		(set-marker end-marker nil)))
-	    ;; Convert encoded-words in from and subject
-	    (dolist (header '("From" "Subject"))
-	      (let ((value (rmail-header-get-header header)))
-		(when value
-		  (rmail-header-add-header
-		   header (mail-decode-encoded-word-string value)))))
-	    ;; Convert quoted printable transfer encoding because it
-	    ;; is easy to do.
-	    (let ((encoding (rmail-header-get-header
-			     "content-transfer-encoding")))
-	      (when (and encoding
-			 (string= (downcase encoding)
-				  "quoted-printable"))
-		(quoted-printable-decode-region (rmail-header-get-limit)
-						(point-max))))
-
 	    ;; Make sure we have an Rmail BABYL attribute header field.
 	    ;; All we can assume is that the Rmail BABYL header field is
 	    ;; in the header section.  It's placement can be modified by
@@ -2018,20 +1976,8 @@ non-nil then do not show any progress messages."
 		;; No suitable header exists.  Append the default BABYL
 		;; data header for a new message.
 		(rmail-header-add-header rmail-header-attribute-header
-					 rmail-desc-default-attrs)))
-
-	    ;; Decode message according to content type, and make sure we
-	    ;; have a coding-system header.
-	    (let ((coding (rmail-decode-by-content-type
-			   (point-min) (point-max))))
-	      (unless (rmail-header-get-header "X-Coding-System")
-		(rmail-header-add-header "X-Coding-System"
-					 (symbol-name coding)))))))
+					 rmail-desc-default-attrs))))))
       message-count)))
-
-;;; mbox: deprecated
-(defun rmail-maybe-set-message-counters ()
-  )
 
 (defun rmail-beginning-of-message ()
   "Show current message starting from the beginning."
@@ -2194,7 +2140,7 @@ iso-8859, koi8-r, etc."
 		(rmail-show-message rmail-current-message))
 	    (error "No X-Coding-System header found")))))))
 
-;;; mbox ready
+;; FIXME: Double-check this
 (defun rmail-auto-file ()
   "Automatically move a message into a sub-folder based on criteria.
 Called when a new message is displayed."
@@ -2254,6 +2200,7 @@ backward if N is negative.
 Returns t if a new message is being shown, nil otherwise."
   (interactive "p")
   (let ((lastwin rmail-current-message)
+	(original rmail-current-message)
 	(current rmail-current-message))
     ;; Move forwards, remember the last undeleted message seen.
     (while (and (> n 0) (< current rmail-total-messages))
@@ -2270,7 +2217,7 @@ Returns t if a new message is being shown, nil otherwise."
     ;; Show the message (even if no movement took place so that the
     ;; delete attribute is marked) and determine the result value.
     (rmail-show-message lastwin)
-    (if (/= lastwin rmail-current-message)
+    (if (/= lastwin original)
         t
       (if (< n 0)
 	  (message "No previous nondeleted message"))
