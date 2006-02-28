@@ -9,7 +9,7 @@
 	(How Programs Do Loading): Discuss the effects of Auto Compression
 	mode on `load'.
 	(Load Suffixes): New node.
-	(Library Search): Delete description of `load-suffixes': it was
+	(Library Search): Delete description of `load-suffixes'; it was
 	moved to "Load Suffixes".
 	(Autoload, Named Features): Mention `load-suffixes'.
 
