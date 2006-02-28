@@ -1,5 +1,8 @@
 2006-02-27  Bill Wohler  <wohler@newt.com>
 
+	* mh-e.el (mh-default-folder-for-message-function): Sync docstring
+	with manual.
+
 	* mh-mime.el (mh-minibuffer-read-type): Deleted comment in
 	docstring about obsolete variable mh-mime-content-types.
 
