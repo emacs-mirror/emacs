@@ -1,3 +1,9 @@
+2006-02-28  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calccomp.el: (math-compose-tex-matrix):  Add a latex option.
+	(math-compose-expr):  Use latex option when calling
+	`math-compose-tex-matrix' for latex mode.
+
 2006-02-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* speedbar.el: Re-instate comments about developing for speedbar
