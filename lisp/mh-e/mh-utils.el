@@ -526,14 +526,19 @@ number of sub-folders. XXX"
 ;;;###mh-autoload
 (defun mh-folder-list (folder)
   "Return FOLDER and its descendents.
-Returns a list of strings. For example,
+FOLDER may have a + prefix. Returns a list of strings without the
++ prefix. If FOLDER is nil, then all folders are considered. For
+example, if your Mail directory only contains the folders +inbox,
++outbox, +lists, and +lists/mh-e, then
 
-  '(\"inbox\" \"lists\" \"lists/mh-e\").
+  (mh-folder-list nil)
+       => (\"inbox\" \"lists\" \"lists/mh-e\" \"outbox\")
+  (mh-folder-list \"+lists\")
+       => (\"lists/mh-e\")
 
-If folder is nil, then all folders are considered. Respects the
-value of `mh-recursive-folders-flag'. If this flag is nil, and
-the sub-folders have not been explicitly viewed, then they will
-not be returned."
+Respects the value of `mh-recursive-folders-flag'. If this flag
+is nil, and the sub-folders have not been explicitly viewed, then
+they will not be returned."
   (let ((folder-list))
     ;; Normalize folder. Strip leading +. Add trailing slash (done in
     ;; two steps to avoid infinite loops when replacing "/*$" with "/"
@@ -542,16 +547,16 @@ not be returned."
     ;; returns all the files in / if given an empty string or +.
     (when folder
       (setq folder (mh-replace-regexp-in-string "^\+" "" folder))
-      (setq folder (mh-replace-regexp-in-string "/+$" "" folder))
-      (setq folder (concat folder "/"))
-      (if (equal folder "")
-        (setq folder nil)))
+      (setq folder (mh-replace-regexp-in-string "/+$" "" folder)))
+    ;; Add provided folder to list, unless all folders are asked for.
+    (unless (null folder)
+      (setq folder-list (list folder)))
     (loop for f in (mh-sub-folders folder) do
-          (setq folder-list (append folder-list (list (concat folder (car f)))))
-          (if (mh-children-p f)
-              (setq folder-list
-                    (append folder-list
-                            (mh-folder-list (concat folder (car f)))))))
+          (setq folder-list
+                (append folder-list
+                        (if (mh-children-p f)
+                            (mh-folder-list (concat folder "/" (car f)))
+                          (list (concat folder "/" (car f)))))))
     folder-list))
 
 ;;;###mh-autoload

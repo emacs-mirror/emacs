@@ -4,6 +4,11 @@
 	mh-image-directory.
 	(mh-image-load-path): Access mh-image-directory instead of
 	mh-image-load-path.
+	(mh-folder-list): Fix problem with passing in a folder and getting
+	nothing back. Fix problem with passing in empty string and getting
+	the entire filesystem (or infinite loop). Don't append slash to
+	folder. These fixes fix problems observed with the pick search.
+	Thanks to Thomas Baumann for the help (closes SF #1435381).
 
 2006-02-27  Bill Wohler  <wohler@newt.com>
 
