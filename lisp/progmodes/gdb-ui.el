@@ -750,15 +750,15 @@ type=\"\\(.*?\\)\"")
 	(delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
     ;; Dummy command to update speedbar at right time.
-    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-timer-fn))
+    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-refresh))
     ;; Keep gdb-pending-triggers non-nil till end.
-    (push 'gdb-speedbar-timer gdb-pending-triggers)))
+    (push 'gdb-speedbar-refresh gdb-pending-triggers)))
 
-(defun gdb-speedbar-timer-fn ()
+(defun gdb-speedbar-refresh ()
   (setq gdb-pending-triggers
-	(delq 'gdb-speedbar-timer gdb-pending-triggers))
+	(delq 'gdb-speedbar-refresh gdb-pending-triggers))
   (with-current-buffer gud-comint-buffer
-    (speedbar-timer-fn)))
+    (speedbar-refresh)))
 
 (defun gdb-var-delete ()
   "Delete watch expression at point from the speedbar."
@@ -819,9 +819,10 @@ INDENT is the current indentation depth."
 	 (dolist (var gdb-var-list)
 	   (if (string-match (concat token "\\.") (nth 1 var))
 	       (setq gdb-var-list (delq var gdb-var-list))))
-	 (setq gdb-force-update t)
-	 (with-current-buffer gud-comint-buffer
-	   (speedbar-timer-fn)))))
+	 (speedbar-change-expand-button-char ?+)
+	 (speedbar-delete-subblock indent))
+	(t (error "Ooops...  not sure what to do")))
+  (speedbar-center-buffer-smartly))
 
 (defun gdb-get-target-string ()
   (with-current-buffer gud-comint-buffer
@@ -2694,7 +2695,7 @@ This arrangement depends on the value of `gdb-many-windows'."
 
 (defun gdb-reset ()
   "Exit a debugging session cleanly.
-Kills the gdb buffers and resets the source buffers."
+Kills the gdb buffers, and resets variables and the source buffers."
   (dolist (buffer (buffer-list))
     (unless (eq buffer gud-comint-buffer)
       (with-current-buffer buffer
@@ -3144,9 +3145,9 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
    (delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
     ;; dummy command to update speedbar at right time
-    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-timer-fn))
+    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-refresh))
     ;; keep gdb-pending-triggers non-nil till end
-    (push 'gdb-speedbar-timer gdb-pending-triggers)))
+    (push 'gdb-speedbar-refresh gdb-pending-triggers)))
 
 ;; Registers buffer.
 ;;
