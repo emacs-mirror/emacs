@@ -1,3 +1,7 @@
+2006-02-28  Andre Spiegel  <spiegel@gnu.org>
+
+	* files.texi (Old Versions): Clarify operation of C-x v =.
+
 2006-02-27  Simon Josefsson  <jas@extundo.com>
 
 	* emacs-mime.texi (Flowed text): Add mm-fill-flowed.  (Sync
