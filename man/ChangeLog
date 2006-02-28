@@ -1,3 +1,8 @@
+2006-02-27  Simon Josefsson  <jas@extundo.com>
+
+	* emacs-mime.texi (Flowed text): Add mm-fill-flowed.  (Sync
+	2004-01-27 from the trunk).
+
 2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
 	* cc-mode.texi: Rename c-hungry-backspace to

@@ -121,7 +121,7 @@ RFC 2646 suggests 66 characters for readability."
     (while (re-search-forward " $" nil t)
       (when (save-excursion
 	      (beginning-of-line)
-	      (looking-at "^\\(>+\\)\\( ?\\)"))
+	      (looking-at "^\\(>*\\)\\( ?\\)"))
 	(let ((quote (match-string 1))
 	      sig)
 	  (if (string= quote "")
