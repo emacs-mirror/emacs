@@ -2534,20 +2534,19 @@ name will have the function FIND-FUN and not token."
 	(set-buffer speedbar-buffer)
 	(speedbar-with-writable
 	  (let* ((window (get-buffer-window speedbar-buffer 0))
-		 (p (window-point window)))
+		 (p (window-point window))
+		 (start (window-start window)))
 	    (erase-buffer)
 	    (dolist (func funclst)
 	      (setq default-directory cbd)
 	      (funcall func cbd 0))
 	    (speedbar-reconfigure-keymaps)
-	    (set-window-point window p)))
+	    (set-window-point window p)
+	    (set-window-start window start)))
 	))))
 
 (defun speedbar-update-directory-contents ()
   "Update the contents of the speedbar buffer based on the current directory."
-
-  (save-excursion
-
     (let ((cbd (expand-file-name default-directory))
 	  cbd-parent
 	  (funclst (speedbar-initial-expansion-list))
@@ -2608,17 +2607,21 @@ name will have the function FIND-FUN and not token."
 		 (speedbar-directory-line cbd))
 	    ;; Open it.
 	    (speedbar-expand-line)
-	  (erase-buffer)
-	  (cond (use-cache
-		 (setq default-directory
-		       (nth (1- (length speedbar-shown-directories))
-			    speedbar-shown-directories))
-		 (insert (cdr cache)))
-		(t
-	  (dolist (func funclst)
-	    (setq default-directory cbd)
-	    (funcall func cbd 0)))))
-	(goto-char (point-min)))))
+	  (let* ((window (get-buffer-window speedbar-buffer 0))
+		 (p (window-point window))
+		 (start (window-start window)))
+	    (erase-buffer)
+	    (cond (use-cache
+		   (setq default-directory
+			 (nth (1- (length speedbar-shown-directories))
+			      speedbar-shown-directories))
+		   (insert (cdr cache)))
+		  (t
+		   (dolist (func funclst)
+		     (setq default-directory cbd)
+	    (funcall func cbd 0))))
+	    (set-window-point window p)
+	    (set-window-start window start)))))
   (speedbar-reconfigure-keymaps))
 
 (defun speedbar-update-special-contents ()
@@ -2643,8 +2646,7 @@ This should only be used by modes classified as special."
 	  (dolist (func funclst)
 	    ;; We do not erase the buffer because these functions may
 	    ;; decide NOT to update themselves.
-	    (funcall func specialbuff)))
-      (goto-char (point-min))))
+	    (funcall func specialbuff)))))
   (speedbar-reconfigure-keymaps))
 
 (defun speedbar-set-timer (timeout)
