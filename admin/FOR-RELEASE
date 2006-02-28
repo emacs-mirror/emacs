@@ -36,9 +36,6 @@ Assigned to Bill Wohler <wohler@newt.com>.
 ** Reiner Steib's 23 Jan 2006 bug report that tool bar icons don't update.
 URL/MID: http://mid.gmane.org/v9acdmrcse.fsf@marauder.physik.uni-ulm.de
 
-** Ralf Angeli's 4 Jul 2005 bug report about scroll-preserve-screen-position.
-URL/MID: http://mid.gmane.org/877jg6o7k4.fsf@neutrino.iwi.uni-sb.de
-
 ** Problems with moving point across invisible text,
 including Ralf Angeli's 21 Feb bug report
 and Martin Rudalics' 14 Feb bug report "Re: moving point and invisible text"
