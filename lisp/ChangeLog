@@ -1,3 +1,20 @@
+2006-03-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.el (speedbar-update-localized-contents): Try to
+	preserve window-start.
+	(speedbar-update-directory-contents): Try to preserve window-start
+	and window-point.
+	(speedbar-update-special-contents): Don't move back to start of
+	window.
+
+	* progmodes/gdb-ui.el (gdb-speedbar-refresh): Rename from
+	gdb-speedbar-timer-fn.  Use speedbar-refresh instead of
+	speedbar-timer-fn
+	(gdb-var-update-handler, gdb-var-update-handler-1): Use it.
+	(gdb-speedbar-expand-node): Use speedbar-delete-subblock
+	instead of gdb-speedbar-timer-fn.
+	(gdb-edit-value): 
+
 2006-02-28  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calccomp.el: (math-compose-tex-matrix):  Add a latex option.
