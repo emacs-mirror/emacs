@@ -1,3 +1,10 @@
+2006-02-28  Bill Wohler  <wohler@newt.com>
+
+	* mh-utils.el (mh-image-load-path): Rename variable to
+	mh-image-directory.
+	(mh-image-load-path): Access mh-image-directory instead of
+	mh-image-load-path.
+
 2006-02-27  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-default-folder-for-message-function): Sync docstring
