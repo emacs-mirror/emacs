@@ -6185,7 +6185,7 @@ decode_coding (coding)
 	  = coding->charbuf[coding->charbuf_used - carryover + i];
     }
   while (coding->consumed < coding->src_bytes
-	 && ! coding->result);
+	 && coding->result != CODING_RESULT_INSUFFICIENT_MEM);
 
   if (carryover > 0)
     {
