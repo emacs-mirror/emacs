@@ -1430,25 +1430,27 @@ with your script for an edit-interpret-debug cycle."
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   ;; Parse or insert magic number for exec, and set all variables depending
   ;; on the shell thus determined.
-  (let ((interpreter
-	 (save-excursion
-	   (goto-char (point-min))
-	   (cond ((looking-at "#![ \t]?\\([^ \t\n]*/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
-		  (match-string 2))
-		 ((and buffer-file-name
-		       (string-match "\\.m?spec\\'" buffer-file-name))
-		  "rpm")))))
-    (unless interpreter
-      (setq interpreter
-	    (cond ((string-match "[.]sh\\>" buffer-file-name)
-		   "sh")
-		  ((string-match "[.]bash\\>" buffer-file-name)
-		   "bash")
-		  ((string-match "[.]ksh\\>" buffer-file-name)
-		   "ksh")
-		  ((string-match "[.]csh\\>" buffer-file-name)
-		   "csh"))))
-    (sh-set-shell (or interpreter sh-shell-file) nil nil))
+  (sh-set-shell
+   (cond ((save-excursion
+            (goto-char (point-min))
+            (looking-at "#![ \t]?\\([^ \t\n]*/bin/env[ \t]\\)?\\([^ \t\n]+\\)"))
+          (match-string 2))
+         ((not buffer-file-name)
+          sh-shell-file)
+         ;; Checks that use `buffer-file-name' follow.
+         ((string-match "\\.m?spec\\'" buffer-file-name)
+          "rpm")
+         ((string-match "[.]sh\\>" buffer-file-name)
+          "sh")
+         ((string-match "[.]bash\\>" buffer-file-name)
+          "bash")
+         ((string-match "[.]ksh\\>" buffer-file-name)
+          "ksh")
+         ((string-match "[.]csh\\>" buffer-file-name)
+          "csh")
+         (t
+          sh-shell-file))
+   nil nil)
   (run-mode-hooks 'sh-mode-hook))
 
 ;;;###autoload

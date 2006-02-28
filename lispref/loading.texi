@@ -36,6 +36,7 @@ containing Lisp code.
 
 @menu
 * How Programs Do Loading:: The @code{load} function and others.
+* Load Suffixes::           Details about the suffixes that @code{load} tries.
 * Library Search::          Finding a library to load.
 * Loading Non-ASCII::       Non-@acronym{ASCII} characters in Emacs Lisp files.
 * Autoload::                Setting up a function to autoload.
@@ -72,17 +73,27 @@ exists.  (The @code{load} function is not clever about looking at
 @var{filename}.  In the perverse case of a file named @file{foo.el.el},
 evaluation of @code{(load "foo.el")} will indeed find it.)
 
-If the optional argument @var{nosuffix} is non-@code{nil}, then the
-suffixes @samp{.elc} and @samp{.el} are not tried.  In this case, you
-must specify the precise file name you want.  By specifying the precise
-file name and using @code{t} for @var{nosuffix}, you can prevent
-perverse file names such as @file{foo.el.el} from being tried.
+If Auto Compression mode is enabled, as it is by default, then
+if @code{load} can not find a file, it searches for a compressed
+version of the file before trying other file names.  It decompresses
+and loads it if it exists.  It looks for compressed versions by
+appending the suffixes in @code{jka-compr-load-suffixes} to the file
+name.  The value of this variable must be a list of strings. Its
+standard value is @code{(".gz")}.
+
+If the optional argument @var{nosuffix} is non-@code{nil}, then
+@code{load} does not try the suffixes @samp{.elc} and @samp{.el}.  In
+this case, you must specify the precise file name you want, except
+that, if Auto Compression mode is enabled, @code{load} will still use
+@code{jka-compr-load-suffixes} to find compressed versions.  By
+specifying the precise file name and using @code{t} for
+@var{nosuffix}, you can prevent perverse file names such as
+@file{foo.el.el} from being tried.
 
 If the optional argument @var{must-suffix} is non-@code{nil}, then
 @code{load} insists that the file name used must end in either
-@samp{.el} or @samp{.elc}, unless it contains an explicit directory
-name.  If @var{filename} does not contain an explicit directory name,
-and does not end in a suffix, then @code{load} insists on adding one.
+@samp{.el} or @samp{.elc} (possibly extended with a compression
+suffix), unless it contains an explicit directory name.
 
 If @var{filename} is a relative file name, such as @file{foo} or
 @file{baz/foo.bar}, @code{load} searches for the file using the variable
@@ -127,8 +138,10 @@ See below.
 @deffn Command load-file filename
 This command loads the file @var{filename}.  If @var{filename} is a
 relative file name, then the current default directory is assumed.
-@code{load-path} is not used, and suffixes are not appended.  Use this
-command if you wish to specify precisely the file name to load.
+This command does not use @code{load-path}, and does not append
+suffixes.  However, it does look for compressed versions (if Auto
+Compression Mode is enabled).  Use this command if you wish to specify
+precisely the file name to load.
 @end deffn
 
 @deffn Command load-library library
@@ -157,6 +170,53 @@ feature: to pass the function as the @var{read-function} argument to
 
   For information about how @code{load} is used in building Emacs, see
 @ref{Building Emacs}.
+
+@node Load Suffixes
+@section Load Suffixes
+We now describe some technical details about the exact suffixes that
+@code{load} tries.
+
+@defvar load-suffixes
+This is a list of suffixes indicating (compiled or source) Emacs Lisp
+files.  It should not include the empty string.  @code{load} uses
+these suffixes in order when it appends Lisp suffixes to the specified
+file name.  The standard value is @code{(".elc" "el")} which produces
+the behavior described in the previous section.
+@end defvar
+
+@defvar load-file-rep-suffixes
+This is a list of suffixes that indicate representations of the same
+file.  This list should normally start with the empty string.
+When @code{load} searches for a file it appends the suffixes in this
+list, in order, to the file name, before searching for another file.
+
+Enabling Auto Compression mode appends the suffixes in
+@code{jka-compr-load-suffixes} to this list and disabling Auto
+Compression mode removes them again.  The standard value of
+@code{load-file-rep-suffixes} if Auto Compression mode is disabled is
+@code{("")}.  Given that the standard value of
+@code{jka-compr-load-suffixes} is @code{(".gz")}, the standard value
+of @code{load-file-rep-suffixes} if Auto Compression mode is enabled
+is @code{("" ".gz")}.
+@end defvar
+
+@defun get-load-suffixes
+This function returns the list of all suffixes that @code{load} should
+try, in order, when its @var{must-suffix} argument is non-@code{nil}.
+This takes both @code{load-suffixes} and @code{load-file-rep-suffixes}
+into account.  If @code{load-suffixes}, @code{jka-compr-load-suffixes}
+and @code{load-file-rep-suffixes} all have their standard values, this
+function returns @code{(".elc" "elc.gz" ".el" ".el.gz")} if Auto
+Compression mode is enabled and @code{(".elc" ".el")} if Auto
+Compression mode is disabled.
+@end defun
+
+To summarize, if both its @var{nosuffix} and @var{must-suffix}
+arguments are @code{nil}, @code{load} first tries the suffixes in the
+return value of @code{get-load-suffixes} and then those in
+@code{load-file-rep-suffixes}.  If @var{nosuffix} is non-@code{nil},
+it only tries the latter and is @var{must-suffix} is non-@code{nil},
+only the former.
 
 @node Library Search
 @section Library Search
@@ -288,13 +348,6 @@ interactively, the argument @var{interactive-call} is @code{t}, and this
 tells @code{locate-library} to display the file name in the echo area.
 @end deffn
 
-@defvar load-suffixes
-This variable is a list of suffixes (strings) that @code{load} should
-try adding to the specified file name.  The default value is
-@code{(".elc" ".elc.gz" ".el" ".el.gz" ".gz")}.  There is no need to
-include the null suffix.
-@end defvar
-
 @node Loading Non-ASCII
 @section Loading Non-@acronym{ASCII} Characters
 
@@ -362,7 +415,8 @@ specifies the file to load to get the real definition of @var{function}.
 If @var{filename} does not contain either a directory name, or the
 suffix @code{.el} or @code{.elc}, then @code{autoload} insists on adding
 one of these suffixes, and it will not load from a file whose name is
-just @var{filename} with no added suffix.
+just @var{filename} with no added suffix.  (The variable
+@code{load-suffixes} specifies the exact required suffixes.)
 
 The argument @var{docstring} is the documentation string for the
 function.  Specifying the documentation string in the call to
@@ -699,8 +753,10 @@ If the feature is not present, then @code{require} loads @var{filename}
 with @code{load}.  If @var{filename} is not supplied, then the name of
 the symbol @var{feature} is used as the base file name to load.
 However, in this case, @code{require} insists on finding @var{feature}
-with an added suffix; a file whose name is just @var{feature} won't be
-used.
+with an added @samp{el} or @samp{.elc} suffix (possibly extended with
+a compression suffix); a file whose name is just @var{feature} won't
+be used.  (The variable @code{load-suffixes} specifies the exact
+required Lisp suffixes.)
 
 If @var{noerror} is non-@code{nil}, that suppresses errors from actual
 loading of the file.  In that case, @code{require} returns @code{nil}

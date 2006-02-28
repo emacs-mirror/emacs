@@ -1283,8 +1283,9 @@ suffixes to append to @var{filename} when searching.
 suffixes.  If @var{suffixes} is @code{nil}, or @code{("")}, then there
 are no suffixes, and @var{filename} is used only as-is.  Typical
 values of @var{suffixes} are @code{exec-suffixes} (@pxref{Subprocess
-Creation, exec-suffixes}) and @code{load-suffixes} (@pxref{Library
-Search, load-suffixes}).
+Creation, exec-suffixes}), @code{load-suffixes},
+@code{load-file-rep-suffixes} and the return value of the function
+@code{get-load-suffixes} (@pxref{Load Suffixes}).
 
 Typical values for @var{path} are @code{exec-path} (@pxref{Subprocess
 Creation, exec-path}) when looking for executable programs or

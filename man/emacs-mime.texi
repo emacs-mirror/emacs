@@ -983,7 +983,11 @@ together and wrapped after the column decided by
 @code{fill-flowed-display-column}.  The default is to wrap after
 @code{fill-column}.
 
-
+@table @code
+@item mm-fill-flowed
+@vindex mm-fill-flowed
+If non-@code{nil} a format=flowed article will be displayed flowed.
+@end table
 
 
 @node Interface Functions

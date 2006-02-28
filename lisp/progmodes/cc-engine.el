@@ -1,7 +1,7 @@
 ;;; cc-engine.el --- core syntax guessing engine for CC mode
 
-;; Copyright (C) 1985,1987,1992-2003, 2004, 2005, 2006
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2003, 2004, 2005, 2006 Free Software Foundation,
+;; Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -179,8 +179,8 @@
 (make-variable-buffer-local 'c-auto-newline)
 
 ;; Included in the mode line to indicate the active submodes.
-(defvar c-submode-indicators nil)
-(make-variable-buffer-local 'c-submode-indicators)
+;; (defvar c-submode-indicators nil)
+;; (make-variable-buffer-local 'c-submode-indicators)
 
 (defun c-calculate-state (arg prevstate)
   ;; Calculate the new state of PREVSTATE, t or nil, based on arg. If
@@ -525,14 +525,15 @@ also stop at a continuation clause.
 
 Labels are treated as part of the following statements if
 IGNORE-LABELS is non-nil.  (FIXME: Doesn't work if we stop at a known
-statement start keyword.)
+statement start keyword.)  Otherwise, each label is treated as a
+separate statement.
 
-Macros are ignored unless point is within one, in which case the
-content of the macro is treated as normal code.  Aside from any normal
-statement starts found in it, stop at the first token of the content
-in the macro, i.e. the expression of an \"#if\" or the start of the
-definition in a \"#define\".  Also stop at start of macros before
-leaving them.
+Macros are ignored \(i.e. skipped over) unless point is within one, in
+which case the content of the macro is treated as normal code.  Aside
+from any normal statement starts found in it, stop at the first token
+of the content in the macro, i.e. the expression of an \"#if\" or the
+start of the definition in a \"#define\".  Also stop at start of
+macros before leaving them.
 
 Return 'label if stopped at a label, 'same if stopped at the beginning
 of the current statement, 'up if stepped to a containing statement,
@@ -547,8 +548,9 @@ position if that is less ('same is returned in this case).
 
 NOERROR turns off error logging to `c-parsing-error'.
 
-Normally only ';' is considered to delimit statements, but if
-COMMA-DELIM is non-nil then ',' is treated likewise.
+Normally only ';' and virtual semicolons are considered to delimit
+statements, but if COMMA-DELIM is non-nil then ',' is treated
+as a delimiter too.
 
 Note that this function might do hidden buffer changes.  See the
 comment at the start of cc-engine.el for more info."
@@ -883,6 +885,7 @@ comment at the start of cc-engine.el for more info."
 		      ;; barriers in this round.
 		      (sexp-loop-end-pos pos))
 
+		  ;; The following while goes back one sexp per iteration.
 		  (while
 		      (progn
 			(unless (c-safe (c-backward-sexp) t)
@@ -954,7 +957,7 @@ comment at the start of cc-engine.el for more info."
 			    ;; Like a C "continue".  Analyze the next sexp.
 			    (throw 'loop t)))
 
-			sexp-loop-continue-pos)
+			sexp-loop-continue-pos)	; End of "go back a sexp" loop.
 		    (goto-char sexp-loop-continue-pos)
 		    (setq sexp-loop-end-pos sexp-loop-continue-pos
 			  sexp-loop-continue-pos nil))))
@@ -969,17 +972,26 @@ comment at the start of cc-engine.el for more info."
 	      ;; Handle labels.
 	      (unless (eq ignore-labels t)
 		(when (numberp c-maybe-labelp)
-		  ;; `c-crosses-statement-barrier-p' has found a
-		  ;; colon, so we might be in a label now.
-		  (if after-labels-pos
-		      (if (not last-label-pos)
-			  (setq last-label-pos (or tok start)))
-		    (setq after-labels-pos (or tok start)))
-		  (setq c-maybe-labelp t
-			label-good-pos nil))
+		  ;; `c-crosses-statement-barrier-p' has found a colon, so we
+		  ;; might be in a label now.  Have we got a real label
+		  ;; (including a case label) or something like C++'s "public:"?
+		  (if (or (not (looking-at c-nonlabel-token-key)) ; proper label
+			  (save-excursion ; e.g. "case 'a':" ?
+			    (and (c-safe (c-backward-sexp) t)
+				 (looking-at "\\<case\\>")))) ; FIXME!!! this is
+					; wrong for AWK.  2006/1/14.
+		      (progn
+			(if after-labels-pos ; Have we already encountered a label?
+			    (if (not last-label-pos)
+				(setq last-label-pos (or tok start)))
+			  (setq after-labels-pos (or tok start)))
+			(setq c-maybe-labelp t
+			      label-good-pos nil))
+		    (setq c-maybe-labelp nil))) ; bogus "label"
 
-		(when (and (not label-good-pos)
-			   (looking-at c-nonlabel-token-key))
+		(when (and (not label-good-pos)	; i.e. no invalid "label"'s yet
+						; been found.
+			   (looking-at c-nonlabel-token-key)) ; e.g. "while :"
 		  ;; We're in a potential label and it's the first
 		  ;; time we've found something that isn't allowed in
 		  ;; one.
@@ -3993,36 +4005,35 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; This function might do hidden buffer changes.
 
-  (save-match-data
-    (save-excursion
+  (save-excursion
+    (goto-char beg)
+    (when (or (looking-at "[<>]")
+	      (< (skip-chars-backward "<>") 0))
+
       (goto-char beg)
+      (c-beginning-of-current-token)
+      (when (and (< (point) beg)
+		 (looking-at c-<>-multichar-token-regexp)
+		 (< beg (setq beg (match-end 0))))
+	(while (progn (skip-chars-forward "^<>" beg)
+		      (< (point) beg))
+	  (c-clear-char-property (point) 'syntax-table)
+	  (forward-char))))
+
+    (when (< beg end)
+      (goto-char end)
       (when (or (looking-at "[<>]")
 		(< (skip-chars-backward "<>") 0))
 
-	(goto-char beg)
-	(c-beginning-of-current-token)
-	(when (and (< (point) beg)
-		   (looking-at c-<>-multichar-token-regexp)
-		   (< beg (setq beg (match-end 0))))
-	  (while (progn (skip-chars-forward "^<>" beg)
-			(< (point) beg))
-	    (c-clear-char-property (point) 'syntax-table)
-	    (forward-char))))
-
-      (when (< beg end)
 	(goto-char end)
-	(when (or (looking-at "[<>]")
-		  (< (skip-chars-backward "<>") 0))
-
-	  (goto-char end)
-	  (c-beginning-of-current-token)
-	  (when (and (< (point) end)
-		     (looking-at c-<>-multichar-token-regexp)
-		     (< end (setq end (match-end 0))))
-	    (while (progn (skip-chars-forward "^<>" end)
-			  (< (point) end))
-	      (c-clear-char-property (point) 'syntax-table)
-	      (forward-char))))))))
+	(c-beginning-of-current-token)
+	(when (and (< (point) end)
+		   (looking-at c-<>-multichar-token-regexp)
+		   (< end (setq end (match-end 0))))
+	  (while (progn (skip-chars-forward "^<>" end)
+			(< (point) end))
+	    (c-clear-char-property (point) 'syntax-table)
+	    (forward-char)))))))
 
 ;; Dynamically bound variable that instructs `c-forward-type' to also
 ;; treat possible types (i.e. those that it normally returns 'maybe or
@@ -5991,7 +6002,10 @@ y	  ;; True if there's a suffix match outside the outermost
 
 	    ;; Handle the name of the class itself.
 	    (progn
-	      (c-forward-token-2)
+;	      (c-forward-token-2) ; 2006/1/13 This doesn't move if the token's
+;	      at EOB.
+	      (goto-char (match-end 0))
+	      (c-skip-ws-forward)
 	      (c-forward-type))
 
 	    (catch 'break

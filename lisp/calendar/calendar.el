@@ -1190,9 +1190,16 @@ list `other-holidays' in your .emacs file.  Similarly, by setting any
 of `general-holidays', `local-holidays' `christian-holidays',
 `hebrew-holidays', `islamic-holidays', `bahai-holidays',
 `oriental-holidays', or `solar-holidays' to nil in your .emacs file,
-you can eliminate unwanted categories of holidays.  The intention is
-that (in the US) `local-holidays' be set in site-init.el and
-`other-holidays' be set by the user.
+you can eliminate unwanted categories of holidays.
+
+Note that these variables are only used to initialize the default
+value of `calendar-holidays'.  In other words, they only have an
+effect on the displayed holidays if set before the calendar is
+loaded.  After the calendar has been loaded, you must customize
+`calendar-holidays' directly.
+
+The intention is that (in the US) `local-holidays' be set in
+site-init.el and `other-holidays' be set by the user.
 
 Entries on the list are expressions that return (possibly empty) lists of
 items of the form ((month day year) string) of a holiday in the in the

@@ -1,3 +1,20 @@
+2006-02-27  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-default-folder-for-message-function): Sync docstring
+	with manual.
+
+	* mh-mime.el (mh-minibuffer-read-type): Deleted comment in
+	docstring about obsolete variable mh-mime-content-types.
+
+	* mh-e.el (mh-variant): Sync docstring with manual.
+	(cus-face): Require as it is needed by mh-inherit-face-flag.
+
+	* mh-compat.el (mh-display-color-cells): Return 2 if
+	device-color-cells returns nil (closes SF #1436924).
+
+	* mh-e.el (mh-compiling-flag): Delete. No longer needed by
+	mh-display-color-cells.
+
 2006-02-21  Eric Ding  <ericding@alum.mit.edu>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Added entry

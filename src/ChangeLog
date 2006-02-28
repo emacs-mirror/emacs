@@ -1,3 +1,85 @@
+2006-02-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.h, xterm.c (x_uncatch_errors): Delete unneccessary
+	argument.
+
+	* xterm.c: (x_load_font, x_term_init, XTmouse_position)
+	(handle_one_xevent, x_connection_closed, x_list_fonts): No arg for
+	x_uncatch_errors.
+
+	* xselect.c (x_own_selection, x_decline_selection_request)
+	(x_reply_selection_request, x_get_foreign_selection)
+	(Fx_get_atom_name, Fx_send_client_event): Likewise.
+
+	* xfns.c (x_real_positions, x_set_mouse_color, Fx_focus_frame):
+	Likewise.
+
+2006-02-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lread.c: Declare Vload_file_rep_suffixes instead of
+	deleted variable default_suffixes.
+	(Fget_load_suffixes): New function.
+	(Fload): Use Fget_load_suffixes and Vload_file_rep_suffixes.
+	No longer use deleted variable default_suffixes.  Update docstring.
+	(syms_of_lread): defsubr Sget_load_suffixes.
+	Expand `load-suffixes' docstring.
+	Delete default_suffixes and DEFVAR_LISP the new variable
+	`load-file-rep-suffixes'.
+
+	* w32.c (check_windows_init_file): Use Fget_load_suffixes instead
+	of Vload_suffixes.
+
+	* lisp.h: EXFUN Fget_load_suffixes.
+	Extern Vload_file_rep_suffixes.
+
+	* eval.c (specpdl_ptr): Remove volatile qualifier for consistency
+	with lisp.h.
+
+2006-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (struct specbinding, specpdl_ptr): Remove the volatile
+	qualifier which was trying to avoid the bug that was fixed by
+	yesterday's changes to xterm.c.
+
+2006-02-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.h (x_catch_errors) Return value changed to void.
+	(x_uncatch_errors): Delete unused count argument.
+
+	* xterm.c (x_catch_errors): Don't use record_unwind_protect, since
+	it can be called in a signal handler.
+	(x_catch_errors_unwind): Function deleted.
+	(x_uncatch_errors): Deallocate last x_error_message_stack struct.
+	(x_check_errors): Call x_uncatch_errors before signalling error.
+
+	(x_load_font, x_term_init, XTmouse_position, handle_one_xevent)
+	(x_connection_closed, x_list_fonts): Use new versions of
+	x_catch_errors and x_uncatch_errors.
+
+	* xselect.c (x_own_selection, x_decline_selection_request)
+	(x_reply_selection_request, x_get_foreign_selection)
+	(Fx_get_atom_name, Fx_send_client_event): Likewise.
+
+	* xfns.c (x_real_positions, x_set_mouse_color, Fx_focus_frame):
+	Likewise.
+
+	* eval.c (record_unwind_protect): Add an assertion.
+
+2006-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (Fmake_network_process): Init the process's mark.
+
+2006-02-25  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (modify_overlay): Force redisplay if we modify an
+	overlay at the end of the buffer.
+
+2006-02-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_image_for_pixmap): If x_find_image_file returns
+	nil the image file has been removed, in that case use the (cached)
+	pixmap.
+
 2006-02-24  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents): When a text is replaced

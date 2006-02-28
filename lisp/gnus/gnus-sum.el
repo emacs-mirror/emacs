@@ -6452,10 +6452,12 @@ displayed, no centering will be performed."
 	  (setq nlast (if (atom (cadr read)) (cadr read) (caadr read)))
 	  (setq read (cdr read)))))
     ;; And add the last unread articles.
-    (cond ((< first last)
-           (push (cons first last) unread))
-          ((= first last)
-           (push first unread)))
+    (cond ((not (and first last))
+	   nil)
+	  ((< first last)
+	   (push (cons first last) unread))
+	  ((= first last)
+	   (push first unread)))
     ;; Return the sequence of unread articles.
     (delq 0 (nreverse unread))))
 

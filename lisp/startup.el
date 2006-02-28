@@ -652,7 +652,7 @@ opening the first frame (e.g. open a connection to an X server).")
   (let ((lisp-dir
 	 (file-name-directory
 	  (locate-file "simple" load-path
-		       load-suffixes))))
+		       (get-load-suffixes)))))
 
     (setq load-history
 	  (mapcar (lambda (elt)

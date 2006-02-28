@@ -1,3 +1,13 @@
+2006-02-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-sequence-of-unread-articles): Return nil if
+	first or last are nil.
+
+2006-02-24  Simon Josefsson  <jas@extundo.com>
+
+	* flow-fill.el (fill-flowed): Flow-fill unquoted lines too.
+	Merge of 2005-10-26 change from the trunk.
+
 2006-02-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* flow-fill.el (fill-flowed): Bind adaptive-fill-mode to nil.
@@ -863,10 +873,9 @@
 	* pgg-parse.el (top-level): Don't require custom, it is
 	autoloaded.  (To sync with No Gnus.)
 
-2005-05-09  Simon Josefsson  <jas@extundo.com>
+2005-05-09  Georg C. F. Greve  <greve@gnu.org>  (tiny change)
 
-	* pgg-gpg.el (pgg-gpg-possibly-cache-passphrase): Fix PIN caching,
-	tiny patch from "Georg C. F. Greve" <greve@gnu.org>.
+	* pgg-gpg.el (pgg-gpg-possibly-cache-passphrase): Fix PIN caching.
 
 2005-10-08  Simon Josefsson  <jas@extundo.com>
 
@@ -2571,11 +2580,13 @@
 
 	* deuglify.el (gnus-outlook-deuglify): Add :version.
 
-	* html2text.el: Beautify code.  Improve doc strings.  Some checkdoc
-	cleanup.
+	* html2text.el: Beautify code.  Improve doc strings.  Some
+	checkdoc cleanup.
 	(html2text-get-attr, html2text-fix-paragraph): Simplify code.
-	(html2text-format-tag-list): Add "strong" and "em".
-	From "Alfred M. Szmidt" <ams@kemisten.nu> (tiny change).
+
+2004-11-01  Alfred M. Szmidt  <ams@kemisten.nu>  (tiny change)
+
+	* html2text.el (html2text-format-tag-list): Add "strong" and "em".
 
 2004-10-29  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -3436,14 +3447,13 @@
 	Check `starttls-use-gnutls' and pass on to corresponding *-gnutls
 	function if it is set.
 
-2004-08-31  Simon Josefsson  <jas@extundo.com>
+2004-08-30  Andreas Schwab  <schwab@suse.de>
 
 	* rfc2231.el (rfc2231-parse-string): Restore whitespace syntax for
-	?* and ?\; (tiny patch).  From Andreas Schwab <schwab@suse.de>.
+	?* and ?\;.
 
 	* ietf-drums.el (ietf-drums-syntax-table): Set syntax of ?* ?\;
-	and ?\' to symbol instead of whitespace (tiny patch).
-	From Andreas Schwab <schwab@suse.de>.
+	and ?\' to symbol instead of whitespace.
 
 2004-08-31  Jesper Harder  <harder@ifa.au.dk>
 

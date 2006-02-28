@@ -117,7 +117,7 @@ struct specbinding *specpdl;
 
 /* Pointer to first unused element in specpdl.  */
 
-volatile struct specbinding *specpdl_ptr;
+struct specbinding *specpdl_ptr;
 
 /* Maximum size allowed for specpdl allocation */
 
@@ -3199,6 +3199,8 @@ record_unwind_protect (function, arg)
      Lisp_Object (*function) P_ ((Lisp_Object));
      Lisp_Object arg;
 {
+  eassert (!handling_signal);
+
   if (specpdl_ptr == specpdl + specpdl_size)
     grow_specpdl ();
   specpdl_ptr->func = function;

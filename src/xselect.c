@@ -402,7 +402,6 @@ x_own_selection (selection_name, selection_value)
   Time time = last_event_timestamp;
   Atom selection_atom;
   struct x_display_info *dpyinfo;
-  int count;
 
   if (! FRAME_X_P (sf))
     return;
@@ -415,10 +414,10 @@ x_own_selection (selection_name, selection_value)
   selection_atom = symbol_to_x_atom (dpyinfo, display, selection_name);
 
   BLOCK_INPUT;
-  count = x_catch_errors (display);
+  x_catch_errors (display);
   XSetSelectionOwner (display, selection_atom, selecting_window, time);
   x_check_errors (display, "Can't set selection: %s");
-  x_uncatch_errors (display, count);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 
   /* Now update the local cache */
@@ -579,7 +578,6 @@ x_decline_selection_request (event)
      struct input_event *event;
 {
   XSelectionEvent reply;
-  int count;
 
   reply.type = SelectionNotify;
   reply.display = SELECTION_EVENT_DISPLAY (event);
@@ -592,10 +590,10 @@ x_decline_selection_request (event)
   /* The reason for the error may be that the receiver has
      died in the meantime.  Handle that case.  */
   BLOCK_INPUT;
-  count = x_catch_errors (reply.display);
+  x_catch_errors (reply.display);
   XSendEvent (reply.display, reply.requestor, False, 0L, (XEvent *) &reply);
   XFlush (reply.display);
-  x_uncatch_errors (reply.display, count);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 }
 
@@ -698,7 +696,7 @@ x_reply_selection_request (event, format, data, size, type)
   int format_bytes = format/8;
   int max_bytes = SELECTION_QUANTUM (display);
   struct x_display_info *dpyinfo = x_display_info_for_display (display);
-  int count;
+  int count = SPECPDL_INDEX ();
 
   if (max_bytes > MAX_SELECTION_QUANTUM)
     max_bytes = MAX_SELECTION_QUANTUM;
@@ -715,7 +713,7 @@ x_reply_selection_request (event, format, data, size, type)
 
   /* #### XChangeProperty can generate BadAlloc, and we must handle it! */
   BLOCK_INPUT;
-  count = x_catch_errors (display);
+  x_catch_errors (display);
 
 #ifdef TRACE_SELECTION
   {
@@ -868,7 +866,9 @@ x_reply_selection_request (event, format, data, size, type)
      UNBLOCK to enter the event loop and get possible errors delivered,
      and then BLOCK again because x_uncatch_errors requires it.  */
   BLOCK_INPUT;
-  x_uncatch_errors (display, count);
+
+  unbind_to (count, Qnil);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 }
 
@@ -1409,7 +1409,7 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
 
   BLOCK_INPUT;
 
-  count = x_catch_errors (display);
+  x_catch_errors (display);
 
   TRACE2 ("Get selection %s, type %s",
 	  XGetAtomName (display, type_atom),
@@ -1425,6 +1425,8 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
   XSETCAR (reading_selection_reply, Qnil);
 
   frame = some_frame_on_display (dpyinfo);
+
+  count = SPECPDL_INDEX ();
 
   /* If the display no longer has frames, we can't expect
      to get many more selection requests from it, so don't
@@ -1447,8 +1449,9 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
   TRACE1 ("  Got event = %d", !NILP (XCAR (reading_selection_reply)));
 
   BLOCK_INPUT;
+  unbind_to (count, Qnil);
   x_check_errors (display, "Cannot get selection: %s");
-  x_uncatch_errors (display, count);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 
   if (NILP (XCAR (reading_selection_reply)))
@@ -2682,7 +2685,6 @@ If the value is 0 or the atom is not known, return the empty string.  */)
   struct frame *f = check_x_frame (frame);
   char *name = 0;
   Lisp_Object ret = Qnil;
-  int count;
   Display *dpy = FRAME_X_DISPLAY (f);
   Atom atom;
 
@@ -2696,14 +2698,14 @@ If the value is 0 or the atom is not known, return the empty string.  */)
     error ("Wrong type, value must be number or cons");
 
   BLOCK_INPUT;
-  count = x_catch_errors (dpy);
+  x_catch_errors (dpy);
 
   name = atom ? XGetAtomName (dpy, atom) : "";
 
   if (! x_had_errors_p (dpy))
     ret = make_string (name, strlen (name));
 
-  x_uncatch_errors (dpy, count);
+  x_uncatch_errors ();
 
   if (atom && name) XFree (name);
   if (NILP (ret)) ret = make_string ("", 0);
@@ -2803,7 +2805,6 @@ are ignored.  */)
   Lisp_Object cons;
   int size;
   struct frame *f = check_x_frame (from);
-  int count;
   int to_root;
 
   CHECK_STRING (message_type);
@@ -2873,14 +2874,14 @@ are ignored.  */)
      the destination window.  But if we are sending to the root window,
      there is no such client.  Then we set the event mask to 0xffff.  The
      event then goes to clients selecting for events on the root window.  */
-  count = x_catch_errors (dpyinfo->display);
+  x_catch_errors (dpyinfo->display);
   {
     int propagate = to_root ? False : True;
     unsigned mask = to_root ? 0xffff : 0;
     XSendEvent (dpyinfo->display, wdest, propagate, mask, &event);
     XFlush (dpyinfo->display);
   }
-  x_uncatch_errors (dpyinfo->display, count);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 
   return Qnil;

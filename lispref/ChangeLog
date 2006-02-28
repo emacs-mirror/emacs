@@ -1,3 +1,18 @@
+2006-02-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* elisp.texi (Top): Include "Load Suffixes" in the detailed menu.
+
+	* files.texi (Locating Files): Suggest additional values for the
+	SUFFIXES arg of `locate-file'.  Update pxref.
+
+	* loading.texi (Loading): Include new node "Load Suffixes" in menu.
+	(How Programs Do Loading): Discuss the effects of Auto Compression
+	mode on `load'.
+	(Load Suffixes): New node.
+	(Library Search): Delete description of `load-suffixes'; it was
+	moved to "Load Suffixes".
+	(Autoload, Named Features): Mention `load-suffixes'.
+
 2006-02-21  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
 	* display.texi (Fringe Indicators, Fringe Cursors): Fix typos.

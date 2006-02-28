@@ -327,8 +327,8 @@ static void x_update_window_end P_ ((struct window *, int, int));
 void x_delete_display P_ ((struct x_display_info *));
 
 static int x_io_error_quitter P_ ((Display *));
-int x_catch_errors P_ ((Display *));
-void x_uncatch_errors P_ ((Display *, int));
+void x_catch_errors P_ ((Display *));
+void x_uncatch_errors P_ ((void));
 void x_lower_frame P_ ((struct frame *));
 void x_scroll_bar_clear P_ ((struct frame *));
 int x_had_errors_p P_ ((Display *));
@@ -3726,7 +3726,6 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	Window win, child;
 	int win_x, win_y;
 	int parent_x = 0, parent_y = 0;
-	int count;
 
 	win = root;
 
@@ -3734,7 +3733,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	   structure is changing at the same time this function
 	   is running.  So at least we must not crash from them.  */
 
-	count = x_catch_errors (FRAME_X_DISPLAY (*fp));
+	x_catch_errors (FRAME_X_DISPLAY (*fp));
 
 	if (FRAME_X_DISPLAY_INFO (*fp)->grabbed && last_mouse_frame
 	    && FRAME_LIVE_P (last_mouse_frame))
@@ -3803,7 +3802,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	if (x_had_errors_p (FRAME_X_DISPLAY (*fp)))
 	  f1 = 0;
 
-	x_uncatch_errors (FRAME_X_DISPLAY (*fp), count);
+	x_uncatch_errors ();
 
 	/* If not, is it one of our scroll bars?  */
 	if (! f1)
@@ -5726,7 +5725,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                     Display *d = event.xclient.display;
                     /* Catch and ignore errors, in case window has been
                        iconified by a window manager such as GWM.  */
-                    int count = x_catch_errors (d);
+                    x_catch_errors (d);
                     XSetInputFocus (d, event.xclient.window,
                                     /* The ICCCM says this is
                                        the only valid choice.  */
@@ -5735,7 +5734,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                     /* This is needed to detect the error
                        if there is an error.  */
                     XSync (d, False);
-                    x_uncatch_errors (d, count);
+                    x_uncatch_errors ();
                   }
                 /* Not certain about handling scroll bars here */
 #endif /* 0 */
@@ -7483,7 +7482,11 @@ x_text_icon (f, icon_name)
 #define X_ERROR_MESSAGE_SIZE 200
 
 /* If non-nil, this should be a string.
-   It means catch X errors  and store the error message in this string.  */
+   It means catch X errors  and store the error message in this string.
+
+   The reason we use a stack is that x_catch_error/x_uncatch_error can
+   be called from a signal handler.
+*/
 
 struct x_error_message_stack {
   char string[X_ERROR_MESSAGE_SIZE];
@@ -7520,20 +7523,12 @@ x_error_catcher (display, error)
    Calling x_uncatch_errors resumes the normal error handling.  */
 
 void x_check_errors ();
-static Lisp_Object x_catch_errors_unwind ();
 
-int
+void
 x_catch_errors (dpy)
      Display *dpy;
 {
-  int count = SPECPDL_INDEX ();
   struct x_error_message_stack *data = xmalloc (sizeof (*data));
-  Lisp_Object dummy;
-#ifdef ENABLE_CHECKING
-  dummy = make_number ((EMACS_INT)dpy + (EMACS_INT)x_error_message);
-#else
-  dummy = Qnil;
-#endif
 
   /* Make sure any errors from previous requests have been dealt with.  */
   XSync (dpy, False);
@@ -7542,43 +7537,28 @@ x_catch_errors (dpy)
   data->string[0] = 0;
   data->prev = x_error_message;
   x_error_message = data;
-
-  record_unwind_protect (x_catch_errors_unwind, dummy);
-
-  return count;
 }
 
-/* Unbind the binding that we made to check for X errors.  */
+/* Undo the last x_catch_errors call.
+   DPY should be the display that was passed to x_catch_errors.  */
 
-static Lisp_Object
-x_catch_errors_unwind (dummy)
-     Lisp_Object dummy;
+void
+x_uncatch_errors ()
 {
-  Display *dpy;
   struct x_error_message_stack *tmp;
-
-  if (!x_error_message)
-    abort ();
-
-  dpy = x_error_message->dpy;
 
   /* The display may have been closed before this function is called.
      Check if it is still open before calling XSync.  */
-  if (x_display_info_for_display (dpy) != 0)
+  if (x_display_info_for_display (x_error_message->dpy) != 0)
     {
       BLOCK_INPUT;
-      XSync (dpy, False);
+      XSync (x_error_message->dpy, False);
       UNBLOCK_INPUT;
     }
 
   tmp = x_error_message;
   x_error_message = x_error_message->prev;
-  free (tmp);
-
-  eassert (EQ (dummy,
-	       make_number ((EMACS_INT)dpy + (EMACS_INT)x_error_message)));
-
-  return Qnil;
+  xfree (tmp);
 }
 
 /* If any X protocol errors have arrived since the last call to
@@ -7594,7 +7574,12 @@ x_check_errors (dpy, format)
   XSync (dpy, False);
 
   if (x_error_message->string[0])
-    error (format, x_error_message->string);
+    {
+      char string[X_ERROR_MESSAGE_SIZE];
+      bcopy (x_error_message->string, string, X_ERROR_MESSAGE_SIZE);
+      x_uncatch_errors ();
+      error (format, string);
+    }
 }
 
 /* Nonzero if we had any X protocol errors
@@ -7617,19 +7602,6 @@ x_clear_errors (dpy)
      Display *dpy;
 {
   x_error_message->string[0] = 0;
-}
-
-/* Stop catching X protocol errors and let them make Emacs die.
-   DPY should be the display that was passed to x_catch_errors.
-   COUNT should be the value that was returned by
-   the corresponding call to x_catch_errors.  */
-
-void
-x_uncatch_errors (dpy, count)
-     Display *dpy;
-     int count;
-{
-  unbind_to (count, Qnil);
 }
 
 #if 0
@@ -7688,7 +7660,6 @@ x_connection_closed (dpy, error_message)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
-  int count;
   int index = SPECPDL_INDEX ();
 
   error_msg = (char *) alloca (strlen (error_message) + 1);
@@ -7699,7 +7670,7 @@ x_connection_closed (dpy, error_message)
      below.  Otherwise, we might end up with printing ``can't find per
      display information'' in the recursive call instead of printing
      the original message here.  */
-  count = x_catch_errors (dpy);
+  x_catch_errors (dpy);
 
   /* Inhibit redisplay while frames are being deleted. */
   specbind (Qinhibit_redisplay, Qt);
@@ -7785,7 +7756,7 @@ x_connection_closed (dpy, error_message)
       x_delete_display (dpyinfo);
     }
 
-  x_uncatch_errors (dpy, count);
+  x_uncatch_errors ();
 
   if (terminal_list == 0)
     {
@@ -9393,7 +9364,6 @@ x_list_fonts (f, pattern, size, maxnames)
     = f ? FRAME_X_DISPLAY_INFO (f) : x_display_list;
   Display *dpy = dpyinfo->display;
   int try_XLoadQueryFont = 0;
-  int count;
   int allow_auto_scaled_font = 0;
 
   if (size < 0)
@@ -9433,7 +9403,7 @@ x_list_fonts (f, pattern, size, maxnames)
       /* At first, put PATTERN in the cache.  */
 
       BLOCK_INPUT;
-      count = x_catch_errors (dpy);
+      x_catch_errors (dpy);
 
       if (try_XLoadQueryFont)
 	{
@@ -9514,7 +9484,7 @@ x_list_fonts (f, pattern, size, maxnames)
 	    }
 	}
 
-      x_uncatch_errors (dpy, count);
+      x_uncatch_errors ();
       UNBLOCK_INPUT;
 
       if (names)
@@ -9605,7 +9575,7 @@ x_list_fonts (f, pattern, size, maxnames)
 	      XFontStruct *thisinfo;
 
 	      BLOCK_INPUT;
-	      count = x_catch_errors (dpy);
+	      x_catch_errors (dpy);
 	      thisinfo = XLoadQueryFont (dpy,
 					 SDATA (XCAR (tem)));
 	      if (x_had_errors_p (dpy))
@@ -9615,7 +9585,7 @@ x_list_fonts (f, pattern, size, maxnames)
 		  thisinfo = NULL;
 		  x_clear_errors (dpy);
 		}
-	      x_uncatch_errors (dpy, count);
+	      x_uncatch_errors ();
 	      UNBLOCK_INPUT;
 
 	      if (thisinfo)
@@ -9771,7 +9741,6 @@ x_load_font (f, fontname, size)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Lisp_Object font_names;
-  int count;
 
   /* Get a list of all the fonts that match this name.  Once we
      have a list of matching fonts, we compare them against the fonts
@@ -9810,7 +9779,7 @@ x_load_font (f, fontname, size)
       fontname = (char *) SDATA (XCAR (font_names));
 
     BLOCK_INPUT;
-    count = x_catch_errors (FRAME_X_DISPLAY (f));
+    x_catch_errors (FRAME_X_DISPLAY (f));
     font = (XFontStruct *) XLoadQueryFont (FRAME_X_DISPLAY (f), fontname);
     if (x_had_errors_p (FRAME_X_DISPLAY (f)))
       {
@@ -9819,7 +9788,7 @@ x_load_font (f, fontname, size)
 	font = NULL;
 	x_clear_errors (FRAME_X_DISPLAY (f));
       }
-    x_uncatch_errors (FRAME_X_DISPLAY (f), count);
+    x_uncatch_errors ();
     UNBLOCK_INPUT;
     if (!font)
       return NULL;
@@ -10612,7 +10581,6 @@ x_term_init (display_name, xrm_option, resource_name)
     Display *dpy = dpyinfo->display;
     XrmValue d, fr, to;
     Font font;
-    int count;
 
     d.addr = (XPointer)&dpy;
     d.size = sizeof (Display *);
@@ -10620,12 +10588,12 @@ x_term_init (display_name, xrm_option, resource_name)
     fr.size = sizeof (XtDefaultFont);
     to.size = sizeof (Font *);
     to.addr = (XPointer)&font;
-    count = x_catch_errors (dpy);
+    x_catch_errors (dpy);
     if (!XtCallConverter (dpy, XtCvtStringToFont, &d, 1, &fr, &to, NULL))
       abort ();
     if (x_had_errors_p (dpy) || !XQueryFont (dpy, font))
       XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
-    x_uncatch_errors (dpy, count);
+    x_uncatch_errors ();
   }
 #endif
 #endif

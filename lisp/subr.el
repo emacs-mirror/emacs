@@ -1324,12 +1324,13 @@ string.  When run interactively, the argument INTERACTIVE-CALL is t,
 and the file name is displayed in the echo area."
   (interactive (list (completing-read "Locate library: "
 				      'locate-file-completion
-				      (cons load-path load-suffixes))
+				      (cons load-path (get-load-suffixes)))
 		     nil nil
 		     t))
   (let ((file (locate-file library
 			   (or path load-path)
-			   (append (unless nosuffix load-suffixes) '("")))))
+			   (append (unless nosuffix (get-load-suffixes))
+				   load-file-rep-suffixes))))
     (if interactive-call
 	(if file
 	    (message "Library is file %s" (abbreviate-file-name file))

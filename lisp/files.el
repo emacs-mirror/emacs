@@ -699,7 +699,7 @@ This is an interface to the function `load'."
   (interactive
    (list (completing-read "Load library: "
 			  'locate-file-completion
-			  (cons load-path load-suffixes))))
+			  (cons load-path (get-load-suffixes)))))
   (load library))
 
 (defun file-remote-p (file)

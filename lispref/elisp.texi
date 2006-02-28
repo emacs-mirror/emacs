@@ -78,7 +78,7 @@ Cover art by Etienne Suvasa.
 
 @ifnottex
 @node Top, Introduction, (dir), (dir)
-@top Emacs Lisp 
+@top Emacs Lisp
 
 This Info file contains edition @value{VERSION} of the GNU Emacs Lisp
 Reference Manual, corresponding to GNU Emacs version @value{EMACSVER}.
@@ -438,6 +438,7 @@ Writing Customization Definitions
 Loading
 
 * How Programs Do Loading:: The @code{load} function and others.
+* Load Suffixes::           Details about the suffixes that @code{load} tries.
 * Library Search::          Finding a library to load.
 * Loading Non-ASCII::       Non-@acronym{ASCII} characters in Emacs Lisp files.
 * Autoload::                Setting up a function to autoload.
