@@ -1,3 +1,13 @@
+2006-03-01  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Interaction): Added item about `org-mouse.el' by
+	Piotr Zielinski.
+	(Managing links): Documented that also mouse-1 can be used to
+	activate a link.
+	(Headlines, FAQ): Added entry about hiding leading stars.
+	(Miscellaneous): Resorted the sections in this chapter to a more
+	logical sequence.
+
 2006-02-28  Andre Spiegel  <spiegel@gnu.org>
 
 	* files.texi (Old Versions): Clarify operation of C-x v =.
