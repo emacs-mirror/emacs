@@ -1,5 +1,8 @@
 2006-03-02  Nick Roberts  <nickrob@snap.net.nz>
 
+	* dframe.el (dframe-frame-mode): Don't burp when menu-bar-lines
+	is nil.
+
 	* progmodes/gud.el (gud-speedbar-menu-items): Use
 	buffer-local-value and add missing :visible keyword.
 
