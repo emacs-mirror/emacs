@@ -1,5 +1,11 @@
 2006-03-01  Carsten Dominik  <dominik@science.uva.nl>
 
+	* textmodes/reftex-index.el (reftex-index-map): Fixed typo,
+	follow-mouse must be follow-link.
+
+	* textmodes/reftex-toc.el (reftex-toc-map): Fixed typo,
+	follow-mouse must be follow-link.
+
 	* textmodes/org.el: (org-export-as-html): Fixed bugs in HTML
 	formatting: No nested anchors.
 	(org-all-targets): Fixed bug with XEmacs compatibility.
