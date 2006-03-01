@@ -180,7 +180,7 @@ We now describe some technical details about the exact suffixes that
 This is a list of suffixes indicating (compiled or source) Emacs Lisp
 files.  It should not include the empty string.  @code{load} uses
 these suffixes in order when it appends Lisp suffixes to the specified
-file name.  The standard value is @code{(".elc" "el")} which produces
+file name.  The standard value is @code{(".elc" ".el")} which produces
 the behavior described in the previous section.
 @end defvar
 
@@ -206,7 +206,7 @@ try, in order, when its @var{must-suffix} argument is non-@code{nil}.
 This takes both @code{load-suffixes} and @code{load-file-rep-suffixes}
 into account.  If @code{load-suffixes}, @code{jka-compr-load-suffixes}
 and @code{load-file-rep-suffixes} all have their standard values, this
-function returns @code{(".elc" "elc.gz" ".el" ".el.gz")} if Auto
+function returns @code{(".elc" ".elc.gz" ".el" ".el.gz")} if Auto
 Compression mode is enabled and @code{(".elc" ".el")} if Auto
 Compression mode is disabled.
 @end defun
