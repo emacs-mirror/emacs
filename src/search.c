@@ -1209,6 +1209,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	      if (RE && *base_pat == '\\')
 		{
 		  len--;
+		  raw_pattern_size--;
 		  len_byte--;
 		  base_pat++;
 		}
