@@ -89,7 +89,8 @@ With a prefix argument, edit PICK-EXPR.
 
 Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
   (interactive
-   (list (mh-edit-pick-expr (mh-current-message-header-field 'cc))))
+   (list (mh-edit-pick-expr
+          (mh-quote-pick-expr (mh-current-message-header-field 'cc)))))
   (mh-narrow-to-header-field 'cc pick-expr))
 
 ;;;###mh-autoload
@@ -99,7 +100,8 @@ With a prefix argument, edit PICK-EXPR.
 
 Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
   (interactive
-   (list (mh-edit-pick-expr (mh-current-message-header-field 'from))))
+   (list (mh-edit-pick-expr
+          (mh-quote-pick-expr (mh-current-message-header-field 'from)))))
   (mh-narrow-to-header-field 'from pick-expr))
 
 ;;;###mh-autoload
@@ -122,7 +124,8 @@ With a prefix argument, edit PICK-EXPR.
 
 Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
   (interactive
-   (list (mh-edit-pick-expr (mh-current-message-header-field 'subject))))
+   (list (mh-edit-pick-expr
+          (mh-quote-pick-expr (mh-current-message-header-field 'subject)))))
   (mh-narrow-to-header-field 'subject pick-expr))
 
 ;;;###mh-autoload
@@ -132,7 +135,8 @@ With a prefix argument, edit PICK-EXPR.
 
 Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
   (interactive
-   (list (mh-edit-pick-expr (mh-current-message-header-field 'to))))
+   (list (mh-edit-pick-expr
+          (mh-quote-pick-expr (mh-current-message-header-field 'to)))))
   (mh-narrow-to-header-field 'to pick-expr))
 
 

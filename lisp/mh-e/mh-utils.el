@@ -159,6 +159,23 @@ See also variable `mh-image-load-path-called-flag'."
     (funcall function (car list))
     (setq list (cdr list))))
 
+(defvar mh-pick-regexp-chars ".*$["
+  "List of special characters in pick regular expressions.")
+
+;;;###mh-autoload
+(defun mh-quote-pick-expr (pick-expr)
+  "Quote `mh-pick-regexp-chars' in PICK-EXPR.
+PICK-EXPR is a list of strings. Return nil if PICK-EXPR is nil."
+  (let ((quoted-pick-expr))
+    (dolist (string pick-expr)
+      (when (and string
+                 (not (string-equal string "")))
+        (loop for i from 0 to (1- (length mh-pick-regexp-chars)) do
+              (let ((s (string ?\\ (aref mh-pick-regexp-chars i))))
+                (setq string (mh-replace-regexp-in-string s s string t t))))
+        (setq quoted-pick-expr (append quoted-pick-expr (list string)))))
+    quoted-pick-expr))
+
 ;;;###mh-autoload
 (defun mh-replace-string (old new)
   "Replace all occurrences of OLD with NEW in the current buffer.

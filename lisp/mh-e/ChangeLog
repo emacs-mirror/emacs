@@ -1,5 +1,11 @@
 2006-02-28  Bill Wohler  <wohler@newt.com>
 
+	* mh-limit.el (mh-narrow-to-cc, mh-narrow-to-from)
+	(mh-narrow-to-subject, mh-narrow-to-to): Fix inability to narrow
+	to subjects with special characters by quoting regular expression
+	characters in pick expression derived from existing subjects and
+	other fields (closes SF #1432548).
+
 	* mh-utils.el (mh-image-load-path): Rename variable to
 	mh-image-directory.
 	(mh-image-load-path): Access mh-image-directory instead of
@@ -9,6 +15,9 @@
 	the entire filesystem (or infinite loop). Don't append slash to
 	folder. These fixes fix problems observed with the pick search.
 	Thanks to Thomas Baumann for the help (closes SF #1435381).
+	(mh-pick-regexp-chars, mh-quote-pick-expr): New variable and
+	function for quoting pick regular expression characters (closes SF
+	#1432548).
 
 2006-02-27  Bill Wohler  <wohler@newt.com>
 
