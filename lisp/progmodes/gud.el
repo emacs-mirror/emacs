@@ -406,18 +406,18 @@ t means that there is no stack, and we are in display-file mode.")
 
 (defvar gud-speedbar-menu-items
   '(["Jump to stack frame" speedbar-edit-line
-     :visible (with-current-buffer gud-comint-buffer
-		(not (memq gud-minor-mode '(gdbmi gdba))))]
+     :visible (not (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    '(gdbmi gdba)))]
     ["Edit value" speedbar-edit-line
-     :visible (with-current-buffer gud-comint-buffer
-		(memq gud-minor-mode '(gdbmi gdba)))]
+     :visible (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    '(gdbmi gdba))]
     ["Delete expression" gdb-var-delete
-     (with-current-buffer gud-comint-buffer
-       (memq gud-minor-mode '(gdbmi gdba)))]
+     :visible (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    '(gdbmi gdba))]
     ["Auto raise frame" gdb-speedbar-auto-raise
      :style toggle :selected gdb-speedbar-auto-raise
-     :visible (with-current-buffer gud-comint-buffer
-       (memq gud-minor-mode '(gdbmi gdba)))])
+     :visible (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    '(gdbmi gdba))])
   "Additional menu items to add to the speedbar frame.")
 
 ;; Make sure our special speedbar mode is loaded
