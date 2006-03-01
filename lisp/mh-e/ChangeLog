@@ -5,6 +5,8 @@
 	to subjects with special characters by quoting regular expression
 	characters in pick expression derived from existing subjects and
 	other fields (closes SF #1432548).
+	(mh-narrow-to-subject): Remove Re: string from subject so that
+	pick can find originating message (closes SF #1438369).
 
 	* mh-utils.el (mh-image-load-path): Rename variable to
 	mh-image-directory.
