@@ -1,3 +1,10 @@
+2006-03-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* search.c (Fregexp_quote): Do not precede a literal `]' with two
+	backslashes to try to make clear that it has a literal meaning; it
+	does not do that.  (It could close a character alternative
+	containing a backslash.)
+
 2006-02-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xselect.c (x_catch_errors_unwind): New function.
