@@ -1,3 +1,11 @@
+2006-03-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-menu-items): Use
+	buffer-local-value and add missing :visible keyword.
+
+	* progmodes/gdb-ui.el (gdb-speedbar-refresh): Quieten
+	speedbar-refresh.
+
 2006-03-01  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/reftex-index.el (reftex-index-map): `follow-mouse'
