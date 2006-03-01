@@ -1,3 +1,9 @@
+2006-03-01  Alex Schroeder  <alex@gnu.org>
+
+	* rmailsum.el (rmail-summary-kill-label): Use rmail-kill-label
+	instead of calling rmail-set-label, which will call
+	rmail-make-label on the string.
+
 2006-02-28  Alex Schroeder  <alex@gnu.org>
 
 	* rmailkwd.el (rmail-label-obarray): Deleted.
