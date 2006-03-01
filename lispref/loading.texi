@@ -211,12 +211,11 @@ Compression mode is enabled and @code{(".elc" ".el")} if Auto
 Compression mode is disabled.
 @end defun
 
-To summarize, if both its @var{nosuffix} and @var{must-suffix}
-arguments are @code{nil}, @code{load} first tries the suffixes in the
-return value of @code{get-load-suffixes} and then those in
+To summarize, @code{load} normally first tries the suffixes in the
+value of @code{(get-load-suffixes)} and then those in
 @code{load-file-rep-suffixes}.  If @var{nosuffix} is non-@code{nil},
-it only tries the latter and is @var{must-suffix} is non-@code{nil},
-only the former.
+it skips the former group, and if @var{must-suffix} is non-@code{nil},
+it skips the latter group.
 
 @node Library Search
 @section Library Search
