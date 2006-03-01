@@ -752,7 +752,7 @@ If the feature is not present, then @code{require} loads @var{filename}
 with @code{load}.  If @var{filename} is not supplied, then the name of
 the symbol @var{feature} is used as the base file name to load.
 However, in this case, @code{require} insists on finding @var{feature}
-with an added @samp{el} or @samp{.elc} suffix (possibly extended with
+with an added @samp{.el} or @samp{.elc} suffix (possibly extended with
 a compression suffix); a file whose name is just @var{feature} won't
 be used.  (The variable @code{load-suffixes} specifies the exact
 required Lisp suffixes.)
