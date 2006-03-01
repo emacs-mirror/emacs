@@ -1,3 +1,7 @@
+2006-02-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* loading.texi (Load Suffixes): Rephrase last paragraph.
+
 2006-02-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* elisp.texi (Top): Include "Load Suffixes" in the detailed menu.
