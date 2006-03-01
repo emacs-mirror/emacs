@@ -6,21 +6,21 @@
 	* textmodes/reftex-toc.el (reftex-toc-map): `follow-mouse' must be
 	`follow-link'.
 
-	* textmodes/org.el: (org-export-as-html): Fixed bugs in HTML
+	* textmodes/org.el (org-export-as-html): Fix bugs in HTML
 	formatting: No nested anchors.
-	(org-all-targets): Fixed bug with XEmacs compatibility.
+	(org-all-targets): Fix bug with XEmacs compatibility.
 	(org-read-date): Add (require 'parse-time).
-	(org-set-tags): Fixed bug with extra inserted space.
+	(org-set-tags): Fix bug with extra inserted space.
 	(org-export-html-style): Define a style class for targets.
-	(org-agenda-keymap, org-mouse-map): Added a binding for
+	(org-agenda-keymap, org-mouse-map): Add a binding for
 	`follow-link'.
 	(org-hide-leading-stars): New option.
 	(org-hide): New face.
 	(org-set-font-lock-defaults): Allow to hide leading stars.
 	(org-get-legal-level, org-tr-level): New functions.
 	(org-odd-levels-only): New option.
-	(org-level-faces, org-paste-subtree, org-convert-to-odd-levels,
-	org-demote, org-promote): Deal with double-star levels.
+	(org-level-faces, org-paste-subtree, org-convert-to-odd-levels)
+	(org-demote, org-promote): Deal with double-star levels.
 	(org-convert-to-odd-levels): New command.
 
 2006-03-01  Nick Roberts  <nickrob@snap.net.nz>
@@ -38,12 +38,11 @@
 	(gdb-var-update-handler, gdb-var-update-handler-1): Use it.
 	(gdb-speedbar-expand-node): Use speedbar-delete-subblock
 	instead of gdb-speedbar-timer-fn.
-	(gdb-edit-value): 
 
 2006-02-28  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calccomp.el: (math-compose-tex-matrix):  Add a latex option.
-	(math-compose-expr):  Use latex option when calling
+	* calc/calccomp.el (math-compose-tex-matrix): Add a latex option.
+	(math-compose-expr): Use latex option when calling
 	`math-compose-tex-matrix' for latex mode.
 
 2006-02-28  Nick Roberts  <nickrob@snap.net.nz>
@@ -69,7 +68,7 @@
 
 2006-02-27  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el: (gdb-source-window): New variable.
+	* progmodes/gdb-ui.el (gdb-source-window): New variable.
 	Re-introduce the concept of a source window.
 	(gdb-get-buffer-create): Rename from gdb-get-create-buffer for
 	consistency with get-buffer-create.
@@ -91,8 +90,8 @@
 	* textmodes/reftex-toc.el (reftex-toc-map): Add `follow-mouse'
 	binding.
 
-	* textmodes/reftex-sel.el (reftex-select-label-map,
-	reftex-select-bib-map): Add `follow-mouse' binding.
+	* textmodes/reftex-sel.el (reftex-select-label-map)
+	(reftex-select-bib-map): Add `follow-mouse' binding.
 
 2006-02-26  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -151,7 +150,7 @@
 
 2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-mode.el (c-postprocess-file-styles): bind
+	* progmodes/cc-mode.el (c-postprocess-file-styles): Bind
 	inhibit-read-only to t, around the call to
 	c-remove-any-local-eval-or-mode-variables, so that it works on a
 	RO file.
@@ -184,8 +183,8 @@
 	* progmodes/cc-mode.el: File Local variables: Solve the problem
 	where both `mode' and c-file-offsets are specified: `mode' will
 	overwrite c-f-o's settings:
-	(c-remove-any-local-eval-or-mode-variables): new function.
-	(c-postprocess-file-styles): call the above new function, within
+	(c-remove-any-local-eval-or-mode-variables): New function.
+	(c-postprocess-file-styles): Call the above new function, within
 	c-tentative-buffer-change, to splat `mode' and `eval' before the
 	second hack-local-variables.
 
@@ -224,15 +223,15 @@
 	Sometimes, c-s-i got separated from the mode name on the mode
 	line.
 
-	* progmodes/cc-cmds.el (c-electric-brace, c-electric-semi&comma,
-	c-electric-colon): Correct doc-strings: "/ln" -> "/la".
+	* progmodes/cc-cmds.el (c-electric-brace, c-electric-semi&comma)
+	(c-electric-colon): Correct doc-strings: "/ln" -> "/la".
 
 2006-02-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-langs.el (c-make-init-lang-vars-fun): Improved the
+	* progmodes/cc-langs.el (c-make-init-lang-vars-fun): Improve the
 	error message when there's an evaluation error to show whether
 	it's loaded from source or not.
-	(c-filter-ops): Made it available at runtime too to work when
+	(c-filter-ops): Make it available at runtime too to work when
 	`c-make-init-lang-vars-fun' needs to evaluate from source.
 
 2006-02-24  Juanma Barranquero  <lekktu@gmail.com>
@@ -317,7 +316,7 @@
 	fail silently when there is no valid argument at point.
 	(reftex-view-crossref-when-idle): Call `reftex-view-crossref' with
 	`fail-silently' argument.  From a patch by David Reiter.
-	
+
 	* textmodes/org.el (org-mark-ring-push, org-mark-ring-goto):
 	New commands.
 	(org-mark-ring): New variable.
