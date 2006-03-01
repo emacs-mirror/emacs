@@ -3066,7 +3066,7 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 
   for (; in != end; in++)
     {
-      if (*in == '[' || *in == ']'
+      if (*in == '['
 	  || *in == '*' || *in == '.' || *in == '\\'
 	  || *in == '?' || *in == '+'
 	  || *in == '^' || *in == '$')
