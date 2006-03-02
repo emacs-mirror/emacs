@@ -137,7 +137,8 @@ message."
 		       (concat prompt (if rmail-last-label
 					  (concat " (default " default "): ")
 					": "))
-		       rmail-keywords nil nil nil nil default)))))
+		       (mapcar 'list rmail-keywords)
+		       nil nil nil nil default)))))
       (setq rmail-last-label (rmail-make-label result t))
       ;; return the string, not the symbol
       result)))
