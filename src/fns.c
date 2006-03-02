@@ -215,7 +215,7 @@ which is at least the number of distinct elements. */)
 
 DEFUN ("string-bytes", Fstring_bytes, Sstring_bytes, 1, 1, 0,
        doc: /* Return the number of bytes in STRING.
-If STRING is a multibyte string, this is greater than the length of STRING. */)
+If STRING is multibyte, this may be greater than the length of STRING. */)
      (string)
      Lisp_Object string;
 {
