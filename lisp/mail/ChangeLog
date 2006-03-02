@@ -1,3 +1,8 @@
+2006-03-02  Alex Schroeder  <alex@gnu.org>
+
+	* rmailkwd.el (rmail-read-label): Since rmail-keywords is a list
+	of symbols, we need to transform it into an alist for completion.
+
 2006-03-01  Alex Schroeder  <alex@gnu.org>
 
 	* rmailsum.el (rmail-summary-kill-label): Use rmail-kill-label
