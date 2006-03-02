@@ -2963,7 +2963,6 @@ If you want to insert the tree as is, just use \\[yank].
 
 If optional TREE is given, use this text instead of the kill ring."
   (interactive "P")
-  (debug)
   (unless (org-kill-is-subtree-p tree)
     (error
      (substitute-command-keys
