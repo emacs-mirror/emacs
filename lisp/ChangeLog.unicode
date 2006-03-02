@@ -1,3 +1,13 @@
+2006-03-02  Kenichi Handa  <handa@m17n.org>
+
+	* international/ccl.el (ccl-embed-string): Check string length.
+	Set special flag for multibyte character sequence.
+	(ccl-compile-write-string): Don't make str unibyte.
+	(ccl-compile-write-repeat): Likewise.
+	(ccl-compile-write): If the character code doesn't fit in 22-bit
+	(ccl-dump-write-const-string): Check special flag for multibyte
+	character sequence.
+
 2006-02-28  Kenichi Handa  <handa@m17n.org>
 
 	* ps-mule.el (ps-mule-eight-bit-char): Delete this function.

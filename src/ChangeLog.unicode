@@ -1,3 +1,9 @@
+2006-03-02  Kenichi Handa  <handa@m17n.org>
+
+	* ccl.c (CCL_WRITE_STRING): Handle a flag bit for multibyte
+	character sequence.
+	(Fccl_execute_on_string): Use ASET, not XSET.
+
 2006-03-01  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (search_buffer): Fix handling of "\\" in a trivial
