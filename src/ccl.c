@@ -206,10 +206,13 @@ extern int charset_unicode;
 #define CCL_WriteStringJump	0x0A /* Write string and jump:
 					1:A--D--D--R--E--S--S-000XXXXX
 					2:LENGTH
-					3:0000STRIN[0]STRIN[1]STRIN[2]
+					3:000MSTRIN[0]STRIN[1]STRIN[2]
 					...
 					------------------------------
-					write_string (STRING, LENGTH);
+					if (M)
+					  write_multibyte_string (STRING, LENGTH);
+					else
+					  write_string (STRING, LENGTH);
 					IC += ADDRESS;
 					*/
 
@@ -316,13 +319,16 @@ extern int charset_unicode;
 
 #define CCL_WriteConstString	0x14 /* Write a constant or a string:
 					1:CCCCCCCCCCCCCCCCCCCCrrrXXXXX
-					[2:0000STRIN[0]STRIN[1]STRIN[2]]
+					[2:000MSTRIN[0]STRIN[1]STRIN[2]]
 					[...]
 					-----------------------------
 					if (!rrr)
 					  write (CC..C)
 					else
-					  write_string (STRING, CC..C);
+					  if (M)
+					    write_multibyte_string (STRING, CC..C);
+					  else
+					    write_string (STRING, CC..C);
 					  IC += (CC..C + 2) / 3;
 					*/
 
@@ -762,17 +768,23 @@ while(0)
 
 /* Write a string at ccl_prog[IC] of length LEN to the current output
    buffer.  */
-#define CCL_WRITE_STRING(len)				\
-  do {							\
-    int i;						\
-    if (!dst)						\
-      CCL_INVALID_CMD;					\
-    else if (dst + len <= dst_end)			\
-      for (i = 0; i < len; i++)				\
-	*dst++ = ((XFASTINT (ccl_prog[ic + (i / 3)]))	\
-		  >> ((2 - (i % 3)) * 8)) & 0xFF;	\
-    else						\
-      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);		\
+#define CCL_WRITE_STRING(len)					\
+  do {								\
+    int i;							\
+    if (!dst)							\
+      CCL_INVALID_CMD;						\
+    else if (dst + len <= dst_end)				\
+      {								\
+	if (XFASTINT (ccl_prog[ic]) & 0x1000000)		\
+	  for (i = 0; i < len; i++)				\
+	    *dst++ = XFASTINT (ccl_prog[ic + i]) & 0xFFFFFF;	\
+	else							\
+	  for (i = 0; i < len; i++)				\
+	    *dst++ = ((XFASTINT (ccl_prog[ic + (i / 3)]))	\
+		      >> ((2 - (i % 3)) * 8)) & 0xFF;		\
+      }								\
+    else							\
+      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);			\
   } while (0)
 
 /* Read one byte from the current input buffer into Rth register.  */
@@ -2164,8 +2176,8 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
     error ("Error in CCL program at %dth code", ccl.ic);
 
   for (i = 0; i < 8; i++)
-    XSET (XVECTOR (status)->contents[i], Lisp_Int, ccl.reg[i]);
-  XSETINT (XVECTOR (status)->contents[8], ccl.ic);
+    ASET (status, i, make_number (ccl.reg[i]));
+  ASET (status, 8, make_number (ccl.ic));
 
   if (NILP (unibyte_p))
     val = make_multibyte_string ((char *) outbuf, produced_chars,
