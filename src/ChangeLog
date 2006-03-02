@@ -1,3 +1,22 @@
+2006-03-02  Kim F. Storm  <storm@cua.dk>
+
+	* frame.h (struct frame): New member n_tool_bar_rows.
+
+	* xdisp.c: Minimize the unpleasent visual impact of the requirement
+	that non-toolkit tool-bars must occupy an integral number of screen
+	lines, by distributing the rows evenly over the tool-bar screen	area.
+	(Vtool_bar_border): New variable.
+	(syms_of_xdisp): DEFVAR_LISP it.
+	(display_tool_bar_line): Add HEIGHT arg for desired row height.  Make
+	tool-bar row the desired height.  Use default face for border below
+	tool-bar.
+	(tool_bar_lines_needed): Add N_ROWS arg.  Use it to return number of
+	actual tool-bar rows.
+	(redisplay_tool_bar): Calculate f->n_tool_bar_rows initially.
+	Adjust the height of the tool-bar rows to fill tool-bar screen area.
+	(redisplay_tool_bar): Calculate f->n_tool_bar_rows when tool-bar area
+	is resized.
+
 2006-03-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* search.c (Fregexp_quote): Do not precede a literal `]' with two
