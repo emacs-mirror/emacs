@@ -1185,11 +1185,13 @@ x_set_glyph_string_clipping_exactly (src, dst)
      struct glyph_string *src, *dst;
 {
   XRectangle r;
-  enum draw_glyphs_face save = src->hl;
+  struct glyph_string *clip_head = src->clip_head;
+  struct glyph_string *clip_tail = src->clip_tail;
 
-  src->hl = DRAW_CURSOR;	/* This foces clipping just this glyph.  */
+  /* This foces clipping just this glyph string.  */
+  src->clip_head = src->clip_tail = src;
   get_glyph_string_clip_rect (src, &r);
-  src->hl = save;
+  src->clip_head = clip_head, src->clip_tail = clip_tail;
   XSetClipRectangles (dst->display, dst->gc, 0, 0, &r, 1, Unsorted);
 }
 
