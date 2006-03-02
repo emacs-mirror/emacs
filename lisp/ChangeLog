@@ -1,3 +1,8 @@
+2006-03-02  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-paste-subtree): Removed forgotten (debug)
+	form.
+
 2006-03-02  Nick Roberts  <nickrob@snap.net.nz>
 
 	* dframe.el (dframe-frame-mode): Don't burp when menu-bar-lines
