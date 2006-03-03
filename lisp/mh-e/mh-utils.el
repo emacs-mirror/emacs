@@ -82,7 +82,7 @@ used in lieu of `search' in the CL package."
   (delete-region (point) (progn (forward-line lines) (point))))
 
 ;;;###mh-autoload
-(defun mh-image-load-path (library image &optional path)
+(defun mh-image-load-path-for-library (library image &optional path)
   "Return a suitable search path for images of LIBRARY.
 
 Images for LIBRARY are searched for in \"../../etc/images\" and
@@ -91,28 +91,36 @@ Images for LIBRARY are searched for in \"../../etc/images\" and
 
 This function returns value of `load-path' augmented with the
 path to IMAGE.  If PATH is given, it is used instead of
-`load-path'."
+`load-path'.
+
+Here is an example that uses a common idiom to provide
+compatibility with versions of Emacs that lack the variable
+`image-load-path':
+
+  (let ((load-path
+         (image-load-path-for-library \"mh-e\" \"mh-logo.xpm\" 'load-path))
+        (image-load-path
+         (image-load-path-for-library \"mh-e\" \"mh-logo.xpm\" 'image-load-path)))
+    (mh-tool-bar-folder-buttons-init))"
   (unless library (error "No library specified"))
   (unless image   (error "No image specified"))
-  (let ((mh-image-directory))
+  (let ((image-directory))
     (cond
      ;; Try relative setting.
-     ((let (mh-library-name d1ei d2ei)
+     ((let (library-name d1ei d2ei)
         ;; First, find library in the load-path.
-        (setq mh-library-name (locate-library library))
-        (if (not mh-library-name)
+        (setq library-name (locate-library library))
+        (if (not library-name)
             (error "Cannot find library %s in load-path" library))
-        ;; And then set mh-image-directory relative to that.
+        ;; And then set image-directory relative to that.
         (setq
          ;; Go down 2 levels.
          d2ei (expand-file-name
-               (concat (file-name-directory mh-library-name)
-                       "../../etc/images"))
+               (concat (file-name-directory library-name) "../../etc/images"))
          ;; Go down 1 level.
          d1ei (expand-file-name
-               (concat (file-name-directory mh-library-name)
-                       "../etc/images")))
-        (setq mh-image-directory
+               (concat (file-name-directory library-name) "../etc/images")))
+        (setq image-directory
               ;; Set it to nil if image is not found.
               (cond ((file-exists-p (expand-file-name image d2ei)) d2ei)
                     ((file-exists-p (expand-file-name image d1ei)) d1ei)))))
@@ -124,8 +132,8 @@ path to IMAGE.  If PATH is given, it is used instead of
                   ;; Images in load-path.
                   (locate-library image)))
             parent)
-        ;; Since the image might be in a nested directory
-        ;; (for example, mail/attach.pbm), adjust `mh-image-directory'
+        ;; Since the image might be in a nested directory (for
+        ;; example, mail/attach.pbm), adjust `image-directory'
         ;; accordingly.
         (and dir
              (setq dir (file-name-directory dir))
@@ -133,25 +141,20 @@ path to IMAGE.  If PATH is given, it is used instead of
                (while (setq parent (file-name-directory img))
                  (setq img (directory-file-name parent)
                        dir (expand-file-name "../" dir)))
-               (setq mh-image-directory dir))))))
-    ;;
-    (unless (file-exists-p mh-image-directory)
-      (error "Directory %s in mh-image-directory does not exist"
-	     mh-image-directory))
-    (unless (file-exists-p (expand-file-name image mh-image-directory))
-      (error "Directory %s in mh-image-directory does not contain image %s"
-             mh-image-directory image))
+               (setq image-directory dir)))))
+     (t
+      (error "Could not find image %s for library %s" image library)))
+
     ;; Return augmented `image-load-path' or `load-path'.
     (cond ((and path (symbolp path))
-           (nconc (list mh-image-directory)
-                  (delete mh-image-directory
+           (nconc (list image-directory)
+                  (delete image-directory
                           (if (boundp path)
                               (copy-sequence (symbol-value path))
                             nil))))
           (t
-           (nconc (list mh-image-directory)
-                  (delete mh-image-directory
-                          (copy-sequence load-path)))))))
+           (nconc (list image-directory)
+                  (delete image-directory (copy-sequence load-path)))))))
 
 ;;;###mh-autoload
 (defun mh-make-local-vars (&rest pairs)
@@ -203,10 +206,10 @@ Ignores case when searching for OLD."
 (defun mh-logo-display ()
   "Modify mode line to display MH-E logo."
   (mh-do-in-gnu-emacs
-    (let ((load-path
-           (mh-image-load-path "mh-e" "mh-logo.xpm" 'load-path))
-          (image-load-path
-           (mh-image-load-path "mh-e" "mh-logo.xpm" 'image-load-path)))
+    (let ((load-path (mh-image-load-path-for-library
+                      "mh-e" "mh-logo.xpm" 'load-path))
+          (image-load-path (mh-image-load-path-for-library
+                            "mh-e" "mh-logo.xpm" 'image-load-path)))
       (add-text-properties
        0 2
        `(display ,(or mh-logo-cache

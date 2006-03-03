@@ -1,5 +1,16 @@
 2006-03-03  Bill Wohler  <wohler@newt.com>
 
+	* mh-folder.el (mh-folder-mode):  Rename mh-image-load-path to
+	mh-image-load-path-for-library.
+
+	* mh-letter.el (mh-letter-mode): Rename mh-image-load-path to
+	mh-image-load-path-for-library.
+
+	* mh-utils.el (mh-image-load-path): Rename to
+	mh-image-load-path-for-library. Add example to docstring. Rename
+	local variable mh-image-directory to image-directory. Move error
+	checks to default case in cond and simplify.
+
 	* mh-comp.el (mh-send-letter, mh-insert-auto-fields): Sync
 	docstrings with manual.
 
