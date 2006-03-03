@@ -1,3 +1,8 @@
+2006-03-03  Claudio Fontana  <claudio@gnu.org>
+
+	* Makefile.in: Add DESTDIR variable to install target to support
+	staged installations.
+
 2005-12-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(TIT), leim-list.el): Warn that parts of

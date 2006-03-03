@@ -1,3 +1,8 @@
+2006-02-23  Claudio Fontana  <claudio@gnu.org>
+
+	* Makefile.in: Add DESTDIR variable to install and uninstall
+	targets to support staged installations.
+
 2005-12-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (MOUSE_SUPPORT): Add tooltip.elc.

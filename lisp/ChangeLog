@@ -1,3 +1,8 @@
+2006-02-23  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* emacs-lisp/edebug.el (edebug-display): Use `edebug-sit-for-seconds'
+	value instead of a literal constant (1) on more pauses.
+
 2006-03-03  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
 
 	* textmodes/flyspell.el (flyspell-external-point-words): Be
