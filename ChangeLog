@@ -1,4 +1,4 @@
-2006-02-23  Claudio Fontana  <claudio@gnu.org>
+2006-03-03  Claudio Fontana  <claudio@gnu.org>
 
 	* Makefile.in: Add DESTDIR variable to install
 	and uninstall targets to support staged installations.
