@@ -573,7 +573,7 @@ Done when `mouse-set-font' is called."
 	  (if (not (string-match "^fontset-\\(.*\\)$" nickname))
 	      (setq nickname family)
 	    (setq nickname (match-string 1 nickname)))
-	  (if (and size (> (string-to-int size) 0))
+	  (if (and size (> (string-to-number size) 0))
 	      (setq name (format "%s: %s-dot" nickname size))
 	    (setq name nickname))
 	  (and weight
@@ -670,7 +670,7 @@ which case, the corresponding script is decided by the variable
       (error "Invalid fontset spec: %s" fontset-spec))
   (let ((idx (match-end 0))
 	(name (match-string 0 fontset-spec))
-	xlfd-fields script fontlist)
+	xlfd-fields target script fontlist)
     (setq xlfd-fields (x-decompose-font-name name))
     (or xlfd-fields
 	(error "Fontset name \"%s\" not conforming to XLFD" name))
@@ -678,18 +678,19 @@ which case, the corresponding script is decided by the variable
     ;; At first, extract pairs of charset and fontname from FONTSET-SPEC.
     (while (string-match "[, \t\n]*\\([^:]+\\):\\([^,]+\\)" fontset-spec idx)
       (setq idx (match-end 0))
-      (setq script (intern (match-string 1 fontset-spec)))
-      (if (or (eq script 'ascii)
-	      (memq script (char-table-extra-slot char-script-table 0))
-	      (setq script (cdr (assq script charset-script-alist))))
-	  (setq fontlist (cons (list script (match-string 2 fontset-spec))
-			       fontlist))))
+      (setq target (intern (match-string 1 fontset-spec)))
+      (cond ((or (eq target 'ascii)
+		 (memq target (char-table-extra-slot char-script-table 0))
+		 (setq script (cdr (assq script charset-script-alist))))
+	     (push (list script (match-string 2 fontset-spec)) fontlist))
+	    ((charsetp target)
+	     (push (list target (match-string 2 fontset-spec)) fontlist))))
 
     ;; Complement FONTLIST.
     (setq fontlist (x-complement-fontset-spec xlfd-fields fontlist))
 
     ;; Create a fontset.
-    (new-fontset name fontlist)))
+    (new-fontset name (nreverse fontlist))))
 
 (defun create-fontset-from-ascii-font (font &optional resolved-font
 					    fontset-name)
