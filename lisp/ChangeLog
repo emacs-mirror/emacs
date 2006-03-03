@@ -1,5 +1,8 @@
 2006-03-03  Martin Rudalics  <rudalics@gmx.at>
 
+	* cus-edit.el (custom-quote): Remove function, since it has been
+	moved to custom.el.
+
 	* font-lock.el (lisp-font-lock-keywords-2)
 	* emacs-lisp/rx.el (rx-check-any, rx-check-not)
 	* generic-x.el (reg-generic-mode): Quote "]"s in regexps when
