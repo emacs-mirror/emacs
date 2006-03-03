@@ -1,3 +1,8 @@
+2006-03-03  Kenichi Handa  <handa@m17n.org>
+
+	* international/ccl.el (ccl-dump-write-const-string): Fix previous
+	change.
+
 2006-03-02  Kenichi Handa  <handa@m17n.org>
 
 	* international/ccl.el (ccl-embed-string): Check string length.
