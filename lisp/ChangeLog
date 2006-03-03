@@ -1,6 +1,13 @@
+2006-03-03  John Paul Wallington  <jpw@pobox.com>
+
+	* t-mouse.el (t-mouse-drag-start, t-mouse-swap-alt-keys): Doc fix;
+	escape parentheses at beginning of line.
+	(t-mouse-tty, t-mouse-make-event): Doc fix; use imperative.
+	(t-mouse-mode): Remove period from end of error message.
+
 2006-03-03  Agustin Martin  <agustin.martin@hispalinux.es>
 
-	textmodes/flyspell.el (flyspell-process-localwords): Be
+	* textmodes/flyspell.el (flyspell-process-localwords): Be
 	case-sensitive.
 
 2006-03-03  Martin Rudalics  <rudalics@gmx.at>
@@ -33,7 +40,7 @@
 
 2006-03-03  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	allout.el: Restablished intermediate missing comment header to
+	* allout.el: Restablished intermediate missing comment header to
 	preserve outline structure.
 	(allout-beginning-of-current-entry): Wasn't skipping invisible
 	text - fixed.
