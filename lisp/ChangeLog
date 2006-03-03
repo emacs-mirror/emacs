@@ -1,3 +1,8 @@
+2006-03-03  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	textmodes/flyspell.el (flyspell-process-localwords): Be
+	case-sensitive.
+
 2006-03-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* cus-edit.el (custom-quote): Remove function, since it has been
