@@ -2167,13 +2167,15 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	    break;
 	}
 
-      if (ccl.status != CCL_STAT_SUSPEND_BY_SRC)
+      if (ccl.status != CCL_STAT_SUSPEND_BY_SRC
+	  || str_chars == consumed_chars)
 	break;
     }
 
-  if (ccl.status != CCL_STAT_SUCCESS
-      && ccl.status != CCL_STAT_SUSPEND_BY_SRC)
+  if (ccl.status == CCL_STAT_INVALID_CMD)
     error ("Error in CCL program at %dth code", ccl.ic);
+  if (ccl.status == CCL_STAT_QUIT)
+    error ("CCL program interrupted at %dth code", ccl.ic);
 
   for (i = 0; i < 8; i++)
     ASET (status, i, make_number (ccl.reg[i]));
