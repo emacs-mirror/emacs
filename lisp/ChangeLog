@@ -1,4 +1,9 @@
-2006-02-23  Ken Manheimer  <ken.manheimer@gmail.com>
+2006-03-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* midnight.el (clean-buffer-list): Handle case where base-buffer of
+        indirect buffer gets killed before indirect buffer.  Use dolist.
+
+2006-03-03  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* emacs-lisp/edebug.el (edebug-display): Use `edebug-sit-for-seconds'
 	value instead of a literal constant (1) on more pauses.
