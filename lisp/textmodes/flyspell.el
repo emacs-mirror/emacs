@@ -1410,6 +1410,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-process-localwords (misspellings-buffer)
   (let (localwords
+	(case-fold-search nil)
 	(ispell-casechars (ispell-get-casechars)))
     ;; Get localwords from the original buffer
     (save-excursion
