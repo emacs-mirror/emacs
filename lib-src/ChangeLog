@@ -1,7 +1,7 @@
 2006-02-23  Claudio Fontana  <claudio@gnu.org>
 
-	* Makefile.in: Add DESTDIR variable to install and uninstall
-	targets to support staged installations.
+	* Makefile.in (install, uninstall): Add DESTDIR variable to
+	support staged installations.
 
 2005-12-30  Eli Zaretskii  <eliz@gnu.org>
 
