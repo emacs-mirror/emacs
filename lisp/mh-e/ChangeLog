@@ -1,3 +1,33 @@
+2006-03-02  Bill Wohler  <wohler@newt.com>
+
+	* mh-folder.el (mh-tool-bar-init): Autoload.
+	(mh-folder-mode): Call mh-tool-bar-init conditionally in XEmacs.
+	Set scoped variables image-load-path and load-path with updated
+	mh-image-load-path before calling mh-tool-bar-folder-buttons-init.
+
+	* mh-letter.el (mh-tool-bar-init): Autoload.
+	(mh-letter-mode): Call mh-tool-bar-init conditionally in XEmacs.
+	Set scoped variables image-load-path and load-path with updated
+	mh-image-load-path before calling mh-tool-bar-letter-buttons-init.
+
+	* mh-show.el (mh-tool-bar-init): Autoload.
+	(mh-show-mode): Perform tool bar stuff conditionally in XEmacs and
+	GNU Emacs.
+
+	* mh-tool-bar.el (mh-tool-bar-define): Don't quote stuff in error
+	messages per conventions.
+	(mh-tool-bar-folder-buttons-init)
+	(mh-tool-bar-letter-buttons-init): Don't call mh-image-load-path.
+	(mh-tool-bar-define call): Format.
+
+	* mh-utils.el (mh-image-directory,
+	mh-image-load-path-called-flag): Delete.
+	(mh-image-load-path): Incorporate changes from Gnus team. Biggest
+	changes are that it no longer uses/sets mh-image-directory or
+	mh-image-load-path-called-flag, and returns the updated path
+	rather than change it.
+	(mh-logo-display): Change usage of mh-image-load-path.
+
 2006-02-28  Bill Wohler  <wohler@newt.com>
 
 	* mh-limit.el (mh-narrow-to-cc, mh-narrow-to-from)

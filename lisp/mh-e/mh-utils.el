@@ -81,69 +81,77 @@ used in lieu of `search' in the CL package."
   "Delete the next LINES lines."
   (delete-region (point) (progn (forward-line lines) (point))))
 
-(defvar mh-image-directory nil
-  "Directory where images for MH-E are found.
-If nil, then the function `mh-image-load-path' will search for
-the images in \"../../etc/images\" relative to the files in
-\"lisp/mh-e\".")
-
-(defvar mh-image-load-path-called-flag nil
-  "Non-nil means that the function `mh-image-load-path' has been called.
-This variable is used by that function to avoid doing the work repeatedly.")
-
 ;;;###mh-autoload
-(defun mh-image-load-path ()
-  "Ensure that the MH-E images are accessible by `find-image'.
+(defun mh-image-load-path (library image &optional path)
+  "Return a suitable search path for images of LIBRARY.
 
-Images for MH-E are found in \"../../etc/images\" relative to the
-files in \"lisp/mh-e\", in `image-load-path', or in `load-path'.
-This function saves the actual location found in the variable
-`mh-image-directory'. If the images on your system are actually
-located elsewhere, then set the variable `mh-image-directory'
-before starting MH-E.
+Images for LIBRARY are searched for in \"../../etc/images\" and
+\"../etc/images\" relative to the files in \"lisp/LIBRARY\", in
+`image-load-path', or in `load-path'.
 
-If `image-load-path' exists (since Emacs 22), then the contents
-of the variable `mh-image-directory' is added to it if isn't
-already there. Otherwise, the contents of the variable
-`mh-image-directory' is added to the `load-path' if it isn't
-already there.
-
-See also variable `mh-image-load-path-called-flag'."
-  (unless mh-image-load-path-called-flag
+This function returns value of `load-path' augmented with the
+path to IMAGE.  If PATH is given, it is used instead of
+`load-path'."
+  (unless library (error "No library specified"))
+  (unless image   (error "No image specified"))
+  (let ((mh-image-directory))
     (cond
-     (mh-image-directory)               ; user setting exists
-     ((let (mh-library-name)            ; try relative setting
-        ;; First, find mh-e in the load-path.
-        (setq mh-library-name (locate-library "mh-e"))
+     ;; Try relative setting.
+     ((let (mh-library-name d1ei d2ei)
+        ;; First, find library in the load-path.
+        (setq mh-library-name (locate-library library))
         (if (not mh-library-name)
-            (error "Can not find MH-E in load-path"))
+            (error "Cannot find library %s in load-path" library))
         ;; And then set mh-image-directory relative to that.
+        (setq
+         ;; Go down 2 levels.
+         d2ei (expand-file-name
+               (concat (file-name-directory mh-library-name)
+                       "../../etc/images"))
+         ;; Go down 1 level.
+         d1ei (expand-file-name
+               (concat (file-name-directory mh-library-name)
+                       "../etc/images")))
         (setq mh-image-directory
-              (expand-file-name (concat
-                                 (file-name-directory mh-library-name)
-                                 "../../etc/images")))
-        (file-exists-p (expand-file-name "mh-logo.xpm" mh-image-directory))))
-     ((mh-image-search-load-path "mh-logo.xpm")
-      ;; Images in image-load-path.
-      (setq mh-image-directory
-	    (file-name-directory (mh-image-search-load-path "mh-logo.xpm"))))
-     ((locate-library "mh-logo.xpm")
-      ;; Images in load-path.
-      (setq mh-image-directory
-	    (file-name-directory (locate-library "mh-logo.xpm")))))
-
-    (if (not (file-exists-p mh-image-directory))
-        (error "Directory %s in mh-image-directory does not exist"
-               mh-image-directory))
-    (if (not (file-exists-p
-              (expand-file-name "mh-logo.xpm" mh-image-directory)))
-      (error "Directory %s in mh-image-directory does not contain MH-E images"
-             mh-image-directory))
-    (if (boundp 'image-load-path)
-        (add-to-list 'image-load-path mh-image-directory)
-      (add-to-list 'load-path mh-image-directory))
-
-    (setq mh-image-load-path-called-flag t)))
+              ;; Set it to nil if image is not found.
+              (cond ((file-exists-p (expand-file-name image d2ei)) d2ei)
+                    ((file-exists-p (expand-file-name image d1ei)) d1ei)))))
+     ;; Check for images in image-load-path or load-path.
+     ((let ((img image)
+            (dir (or
+                  ;; Images in image-load-path.
+                  (mh-image-search-load-path image)
+                  ;; Images in load-path.
+                  (locate-library image)))
+            parent)
+        ;; Since the image might be in a nested directory
+        ;; (for example, mail/attach.pbm), adjust `mh-image-directory'
+        ;; accordingly.
+        (and dir
+             (setq dir (file-name-directory dir))
+             (progn
+               (while (setq parent (file-name-directory img))
+                 (setq img (directory-file-name parent)
+                       dir (expand-file-name "../" dir)))
+               (setq mh-image-directory dir))))))
+    ;;
+    (unless (file-exists-p mh-image-directory)
+      (error "Directory %s in mh-image-directory does not exist"
+	     mh-image-directory))
+    (unless (file-exists-p (expand-file-name image mh-image-directory))
+      (error "Directory %s in mh-image-directory does not contain image %s"
+             mh-image-directory image))
+    ;; Return augmented `image-load-path' or `load-path'.
+    (cond ((and path (symbolp path))
+           (nconc (list mh-image-directory)
+                  (delete mh-image-directory
+                          (if (boundp path)
+                              (copy-sequence (symbol-value path))
+                            nil))))
+          (t
+           (nconc (list mh-image-directory)
+                  (delete mh-image-directory
+                          (copy-sequence load-path)))))))
 
 ;;;###mh-autoload
 (defun mh-make-local-vars (&rest pairs)
@@ -194,23 +202,26 @@ Ignores case when searching for OLD."
 ;;;###mh-autoload
 (defun mh-logo-display ()
   "Modify mode line to display MH-E logo."
-  (mh-image-load-path)
   (mh-do-in-gnu-emacs
-   (add-text-properties
-    0 2
-    `(display ,(or mh-logo-cache
-                   (setq mh-logo-cache
-                         (mh-funcall-if-exists
-                          find-image '((:type xpm :ascent center
-                                              :file "mh-logo.xpm"))))))
-    (car mode-line-buffer-identification)))
+    (let ((load-path
+           (mh-image-load-path "mh-e" "mh-logo.xpm" 'load-path))
+          (image-load-path
+           (mh-image-load-path "mh-e" "mh-logo.xpm" 'image-load-path)))
+      (add-text-properties
+       0 2
+       `(display ,(or mh-logo-cache
+                      (setq mh-logo-cache
+                            (mh-funcall-if-exists
+                             find-image '((:type xpm :ascent center
+                                                 :file "mh-logo.xpm"))))))
+       (car mode-line-buffer-identification))))
   (mh-do-in-xemacs
-   (setq modeline-buffer-identification
-         (list
-          (if mh-modeline-glyph
-              (cons modeline-buffer-id-left-extent mh-modeline-glyph)
-            (cons modeline-buffer-id-left-extent "XEmacs%N:"))
-          (cons modeline-buffer-id-right-extent " %17b")))))
+    (setq modeline-buffer-identification
+          (list
+           (if mh-modeline-glyph
+               (cons modeline-buffer-id-left-extent mh-modeline-glyph)
+             (cons modeline-buffer-id-left-extent "XEmacs%N:"))
+           (cons modeline-buffer-id-right-extent " %17b")))))
 
 
 
