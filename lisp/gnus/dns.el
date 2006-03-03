@@ -347,7 +347,7 @@ If FULLP, return the entire record returned."
 		     (>= (buffer-size) 2))
 	    (goto-char (point-min))
 	    (delete-region (point) (+ (point) 2)))
-	  (unless (zerop (buffer-size))
+	  (when (>= (buffer-size) 2)
 	    (let ((result (dns-read (buffer-string))))
 	      (if fullp
 		  result

@@ -1,3 +1,56 @@
+2006-03-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-get-part): Don't use
+	mm-with-unibyte-current-buffer.
+
+	* gnus-sum.el (gnus-summary-set-display-table): Don't nix out
+	characters 160 through 255 in Emacs 23.
+
+2006-03-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-generate-mime-1): Encode parts other than text/* or
+	message/* containing non-ASCII text properly.
+
+2006-02-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-with-unibyte-current-buffer): Add note.
+
+2006-02-28  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-gmane-create-mapping): Don't choke on ^M.
+
+2006-02-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnweb.el (nnweb-type-definition, nnweb-gmane-search): Use new
+	nov.php.
+
+2006-02-28  Andreas Seltenreich  <uwi7@stud.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-type-definition, nnweb-gmane-create-mapping)
+	(nnweb-gmane-wash-article, nnweb-gmane-search): Fix Gmane web
+	groups.  Kudos to Olly Betts <olly@survex.com> for providing NOV
+	output on the server side.
+	(nnweb-google-create-mapping): Update regexps and add some
+	progress indication.
+
+2006-02-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-user-fqdn): Remove useless * in doc string.
+
+	* gnus-draft.el (gnus-draft-send): Bind message-signature to avoid
+	unnecessary interaction when sending queued mails.  Reported by
+	TAKAHASHI Yoshio <tkh@jp.fujitsu.com>.
+
+2006-02-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-open-server): Respect gnus-batch-mode.
+	Merge of 2006-02-20 change from the trunk.
+
+2006-02-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dns.el (query-dns): Protect more against buggy tcp output.
+	Merge of 2006-02-20 change from the trunk.
+
 2006-02-27  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-sum.el (gnus-sequence-of-unread-articles): Return nil if
