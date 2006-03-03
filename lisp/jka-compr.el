@@ -662,13 +662,13 @@ and `inhibit-first-line-modes-suffixes' that were added
 by `jka-compr-installed'."
   ;; Delete from inhibit-first-line-modes-suffixes
   ;; what jka-compr-install added.
-  (mapcar
+  (mapc
      (function (lambda (x)
 		 (and (jka-compr-info-strip-extension x)
 		      (setq inhibit-first-line-modes-suffixes
 			    (delete (jka-compr-info-regexp x)
 				    inhibit-first-line-modes-suffixes)))))
-     jka-compr-compression-info-list)
+     jka-compr-compression-info-list--internal)
 
   (let* ((fnha (cons nil file-name-handler-alist))
 	 (last fnha))
@@ -686,7 +686,7 @@ by `jka-compr-installed'."
 
     (while (cdr last)
       (setq entry (car (cdr last)))
-      (if (or (member entry jka-compr-mode-alist-additions)
+      (if (or (member entry jka-compr-mode-alist-additions--internal)
 	      (and (consp (cdr entry))
 		   (eq (nth 2 entry) 'jka-compr)))
 	  (setcdr last (cdr (cdr last)))
@@ -701,12 +701,12 @@ by `jka-compr-installed'."
                 file-coding-system-alist)))
 
   ;; Remove the suffixes that were added by jka-compr.
-  (let ((suffixes nil)
-	(re (jka-compr-build-file-regexp)))
-    (dolist (suffix load-suffixes)
-      (unless (string-match re suffix)
-	(push suffix suffixes)))
-    (setq load-suffixes (nreverse suffixes))))
+  (dolist (suff jka-compr-load-suffixes--internal)
+    (setq load-file-rep-suffixes (delete suff load-file-rep-suffixes)))
+
+  (setq jka-compr-compression-info-list--internal nil
+	jka-compr-mode-alist-additions--internal nil
+	jka-compr-load-suffixes--internal nil))
 
 (provide 'jka-compr)
 

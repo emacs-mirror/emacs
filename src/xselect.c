@@ -55,6 +55,7 @@ static void x_decline_selection_request P_ ((struct input_event *));
 static Lisp_Object x_selection_request_lisp_error P_ ((Lisp_Object));
 static Lisp_Object queue_selection_requests_unwind P_ ((Lisp_Object));
 static Lisp_Object some_frame_on_display P_ ((struct x_display_info *));
+static Lisp_Object x_catch_errors_unwind P_ ((Lisp_Object));
 static void x_reply_selection_request P_ ((struct input_event *, int,
 					   unsigned char *, int, Atom));
 static int waiting_for_other_props_on_window P_ ((Display *, Window));
@@ -410,7 +411,7 @@ x_own_selection (selection_name, selection_value)
   x_catch_errors (display);
   XSetSelectionOwner (display, selection_atom, selecting_window, time);
   x_check_errors (display, "Can't set selection: %s");
-  x_uncatch_errors (display);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 
   /* Now update the local cache */
@@ -586,7 +587,7 @@ x_decline_selection_request (event)
   x_catch_errors (reply.display);
   XSendEvent (reply.display, reply.requestor, False, 0L, (XEvent *) &reply);
   XFlush (reply.display);
-  x_uncatch_errors (reply.display);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 }
 
@@ -610,6 +611,15 @@ x_selection_request_lisp_error (ignore)
       && selection_request_dpyinfo->display)
     x_decline_selection_request (x_selection_current_request);
   return Qnil;
+}
+
+static Lisp_Object
+x_catch_errors_unwind (dummy)
+     Lisp_Object dummy;
+{
+  BLOCK_INPUT;
+  x_uncatch_errors ();
+  UNBLOCK_INPUT;
 }
 
 
@@ -703,8 +713,11 @@ x_reply_selection_request (event, format, data, size, type)
   if (reply.property == None)
     reply.property = reply.target;
 
-  /* #### XChangeProperty can generate BadAlloc, and we must handle it! */
   BLOCK_INPUT;
+  /* The protected block contains wait_for_property_change, which can
+     run random lisp code (process handlers) or signal.  Therefore, we
+     put the x_uncatch_errors call in an unwind.  */
+  record_unwind_protect (x_catch_errors_unwind, Qnil);
   x_catch_errors (display);
 
 #ifdef TRACE_SELECTION
@@ -858,9 +871,8 @@ x_reply_selection_request (event, format, data, size, type)
      UNBLOCK to enter the event loop and get possible errors delivered,
      and then BLOCK again because x_uncatch_errors requires it.  */
   BLOCK_INPUT;
-
+  /* This calls x_uncatch_errors.  */
   unbind_to (count, Qnil);
-  x_uncatch_errors (display);
   UNBLOCK_INPUT;
 }
 
@@ -1370,7 +1382,7 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
   Atom selection_atom = symbol_to_x_atom (dpyinfo, display, selection_symbol);
   Atom type_atom;
   int secs, usecs;
-  int count;
+  int count = SPECPDL_INDEX ();
   Lisp_Object frame;
 
   if (CONSP (target_type))
@@ -1392,6 +1404,10 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
 
   BLOCK_INPUT;
 
+  /* The protected block contains wait_reading_process_output, which
+     can run random lisp code (process handlers) or signal.
+     Therefore, we put the x_uncatch_errors call in an unwind.  */
+  record_unwind_protect (x_catch_errors_unwind, Qnil);
   x_catch_errors (display);
 
   TRACE2 ("Get selection %s, type %s",
@@ -1408,8 +1424,6 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
   XSETCAR (reading_selection_reply, Qnil);
 
   frame = some_frame_on_display (dpyinfo);
-
-  count = SPECPDL_INDEX ();
 
   /* If the display no longer has frames, we can't expect
      to get many more selection requests from it, so don't
@@ -1432,9 +1446,10 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
   TRACE1 ("  Got event = %d", !NILP (XCAR (reading_selection_reply)));
 
   BLOCK_INPUT;
+  if (x_had_errors_p (display))
+    error ("Cannot get selection");
+  /* This calls x_uncatch_errors.  */
   unbind_to (count, Qnil);
-  x_check_errors (display, "Cannot get selection: %s");
-  x_uncatch_errors (display);
   UNBLOCK_INPUT;
 
   if (NILP (XCAR (reading_selection_reply)))
@@ -2655,6 +2670,7 @@ If the value is 0 or the atom is not known, return the empty string.  */)
   Lisp_Object ret = Qnil;
   Display *dpy = FRAME_X_DISPLAY (f);
   Atom atom;
+  int had_errors;
 
   if (INTEGERP (value))
     atom = (Atom) XUINT (value);
@@ -2667,13 +2683,12 @@ If the value is 0 or the atom is not known, return the empty string.  */)
 
   BLOCK_INPUT;
   x_catch_errors (dpy);
-
   name = atom ? XGetAtomName (dpy, atom) : "";
+  had_errors = x_had_errors_p (dpy);
+  x_uncatch_errors ();
 
-  if (! x_had_errors_p (dpy))
+  if (!had_errors)
     ret = make_string (name, strlen (name));
-
-  x_uncatch_errors (dpy);
 
   if (atom && name) XFree (name);
   if (NILP (ret)) ret = make_string ("", 0);
@@ -2849,7 +2864,7 @@ are ignored.  */)
     XSendEvent (dpyinfo->display, wdest, propagate, mask, &event);
     XFlush (dpyinfo->display);
   }
-  x_uncatch_errors (dpyinfo->display);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 
   return Qnil;

@@ -89,7 +89,8 @@ With a prefix argument, edit PICK-EXPR.
 
 Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
   (interactive
-   (list (mh-edit-pick-expr (mh-current-message-header-field 'cc))))
+   (list (mh-edit-pick-expr
+          (mh-quote-pick-expr (mh-current-message-header-field 'cc)))))
   (mh-narrow-to-header-field 'cc pick-expr))
 
 ;;;###mh-autoload
@@ -99,7 +100,8 @@ With a prefix argument, edit PICK-EXPR.
 
 Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
   (interactive
-   (list (mh-edit-pick-expr (mh-current-message-header-field 'from))))
+   (list (mh-edit-pick-expr
+          (mh-quote-pick-expr (mh-current-message-header-field 'from)))))
   (mh-narrow-to-header-field 'from pick-expr))
 
 ;;;###mh-autoload
@@ -119,10 +121,16 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
 (defun mh-narrow-to-subject (&optional pick-expr)
   "Limit to messages with same subject.
 With a prefix argument, edit PICK-EXPR.
+The string Re: is removed from the search.
 
 Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
   (interactive
-   (list (mh-edit-pick-expr (mh-current-message-header-field 'subject))))
+   (list (mh-edit-pick-expr
+          (mh-quote-pick-expr (mh-current-message-header-field 'subject)))))
+  (setq pick-expr
+        (let ((case-fold-search t))
+          (loop for s in pick-expr
+                collect (mh-replace-regexp-in-string "re: *" "" s))))
   (mh-narrow-to-header-field 'subject pick-expr))
 
 ;;;###mh-autoload
@@ -132,7 +140,8 @@ With a prefix argument, edit PICK-EXPR.
 
 Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
   (interactive
-   (list (mh-edit-pick-expr (mh-current-message-header-field 'to))))
+   (list (mh-edit-pick-expr
+          (mh-quote-pick-expr (mh-current-message-header-field 'to)))))
   (mh-narrow-to-header-field 'to pick-expr))
 
 

@@ -1754,13 +1754,13 @@ typedef Lisp_Object (*specbinding_func) P_ ((Lisp_Object));
 
 struct specbinding
   {
-    volatile Lisp_Object symbol, old_value;
-    volatile specbinding_func func;
+    Lisp_Object symbol, old_value;
+    specbinding_func func;
     Lisp_Object unused;		/* Dividing by 16 is faster than by 12 */
   };
 
 extern struct specbinding *specpdl;
-extern volatile struct specbinding *specpdl_ptr;
+extern struct specbinding *specpdl_ptr;
 extern int specpdl_size;
 
 extern EMACS_INT max_specpdl_size;
@@ -2638,6 +2638,7 @@ EXFUN (Fread_from_string, 3);
 EXFUN (Fintern, 2);
 EXFUN (Fintern_soft, 2);
 EXFUN (Fload, 5);
+EXFUN (Fget_load_suffixes, 0);
 EXFUN (Fget_file_char, 0);
 EXFUN (Fread_char, 2);
 EXFUN (Fread_event, 2);
@@ -2649,7 +2650,7 @@ extern Lisp_Object oblookup P_ ((Lisp_Object, const char *, int, int));
 #define LOADHIST_ATTACH(x) \
  if (initialized) Vcurrent_load_list = Fcons (x, Vcurrent_load_list)
 extern Lisp_Object Vcurrent_load_list;
-extern Lisp_Object Vload_history, Vload_suffixes;
+extern Lisp_Object Vload_history, Vload_suffixes, Vload_file_rep_suffixes;
 extern int openp P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 		      Lisp_Object *, Lisp_Object));
 extern int isfloat_string P_ ((char *));

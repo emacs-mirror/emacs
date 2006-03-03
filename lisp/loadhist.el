@@ -60,8 +60,8 @@ A library name is equivalent to the file name that `load-library' would load."
   (let ((symbols (assoc file load-history)))
     ;; Try converting a library name to an absolute file name.
     (and (null symbols)
-	 (let ((absname 
-		(locate-file file load-path load-suffixes)))
+	 (let ((absname
+		(locate-file file load-path (get-load-suffixes))))
 	   (and absname (not (equal absname file))
 		(setq symbols (cdr (assoc absname load-history))))))
     symbols))

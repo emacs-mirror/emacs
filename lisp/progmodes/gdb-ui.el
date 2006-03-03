@@ -71,17 +71,17 @@
 ;;; Known Bugs:
 
 ;; 1) Strings that are watched don't update in the speedbar when their
-;; contents change.
+;; contents change unless the first character changes.
 ;; 2) Cannot handle multiple debug sessions.
+;; 3) Initially, the assembler buffer does not display the cursor at the
+;; current line if the line is not visible in the window (but when testing
+;; gdb-assembler-custom with a lisp debugger it does!).
 
-;;; Problems with watch expressions:
+;;; Problems with watch expressions, GDB/MI:
 
 ;; 1) They go out of scope when the inferior is re-run.
-;; 2) -var-update reports that an out of scope variable has changed:
-;;    changelist=[{name="var1",in_scope="false"}], but the value can't be accessed.
-;;    (-var-list-children, in contrast allows you to create variable objects of
-;;      the children when they are out of scope and get their values).
-;; 3) VARNUM increments even when vaiable object is not created (maybe trivial).
+;; 2) -stack-list-locals has a type field but also prints type in values field.
+;; 3) VARNUM increments even when vairable object is not created (maybe trivial).
 
 ;;; TODO:
 
@@ -124,6 +124,7 @@ and #define directives otherwise.")
   "Non-nil if GDB knows that the inferior includes preprocessor macro info.")
 (defvar gdb-buffer-fringe-width nil)
 (defvar gdb-signalled nil)
+(defvar gdb-source-window nil)
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
@@ -489,7 +490,8 @@ With arg, use separate IO iff arg is positive."
 	gdb-macro-info nil
 	gdb-buffer-fringe-width (car (window-fringes))
 	gdb-debug-ring nil
-	gdb-signalled nil)
+	gdb-signalled nil
+	gdb-source-window nil)
 
   (setq gdb-buffer-type 'gdba)
 
@@ -748,15 +750,17 @@ type=\"\\(.*?\\)\"")
 	(delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
     ;; Dummy command to update speedbar at right time.
-    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-timer-fn))
+    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-refresh))
     ;; Keep gdb-pending-triggers non-nil till end.
-    (push 'gdb-speedbar-timer gdb-pending-triggers)))
+    (push 'gdb-speedbar-refresh gdb-pending-triggers)))
 
-(defun gdb-speedbar-timer-fn ()
+(defun gdb-speedbar-refresh ()
   (setq gdb-pending-triggers
-	(delq 'gdb-speedbar-timer gdb-pending-triggers))
+	(delq 'gdb-speedbar-refresh gdb-pending-triggers))
   (with-current-buffer gud-comint-buffer
-    (speedbar-timer-fn)))
+    (let ((speedbar-verbosity-level 0))
+      (save-excursion
+	(speedbar-refresh)))))
 
 (defun gdb-var-delete ()
   "Delete watch expression at point from the speedbar."
@@ -817,9 +821,10 @@ INDENT is the current indentation depth."
 	 (dolist (var gdb-var-list)
 	   (if (string-match (concat token "\\.") (nth 1 var))
 	       (setq gdb-var-list (delq var gdb-var-list))))
-	 (setq gdb-force-update t)
-	 (with-current-buffer gud-comint-buffer
-	   (speedbar-timer-fn)))))
+	 (speedbar-change-expand-button-char ?+)
+	 (speedbar-delete-subblock indent))
+	(t (error "Ooops...  not sure what to do")))
+  (speedbar-center-buffer-smartly))
 
 (defun gdb-get-target-string ()
   (with-current-buffer gud-comint-buffer
@@ -835,7 +840,7 @@ INDENT is the current indentation depth."
 ;; The usual gdb interaction buffer is given the type `gdba' and
 ;; is constructed specially.
 ;;
-;; Others are constructed by gdb-get-create-buffer and
+;; Others are constructed by gdb-get-buffer-create and
 ;; named according to the rules set forth in the gdb-buffer-rules-assoc
 
 (defvar gdb-buffer-rules-assoc '())
@@ -846,7 +851,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
   (save-excursion
     (gdb-look-for-tagged-buffer key (buffer-list))))
 
-(defun gdb-get-create-buffer (key)
+(defun gdb-get-buffer-create (key)
   "Create a new gdb  buffer of the type specified by KEY.
 The key should be one of the cars in `gdb-buffer-rules-assoc'."
   (or (gdb-get-buffer key)
@@ -924,7 +929,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
   (interactive)
   (if gdb-use-separate-io-buffer
       (gdb-display-buffer
-       (gdb-get-create-buffer 'gdb-inferior-io))))
+       (gdb-get-buffer-create 'gdb-inferior-io))))
 
 (defconst gdb-frame-parameters
   '((height . 14) (width . 80)
@@ -939,7 +944,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
   (if gdb-use-separate-io-buffer
       (let ((special-display-regexps (append special-display-regexps '(".*")))
 	    (special-display-frame-alist gdb-frame-parameters))
-	(display-buffer (gdb-get-create-buffer 'gdb-inferior-io)))))
+	(display-buffer (gdb-get-buffer-create 'gdb-inferior-io)))))
 
 (defvar gdb-inferior-io-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1156,7 +1161,7 @@ This sends the next command (if any) to gdb."
       (setq gdb-output-sink 'user)
       (let ((handler
 	     (car (cdr gdb-current-item))))
-	(with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
+	(with-current-buffer (gdb-get-buffer-create 'gdb-partial-output-buffer)
 	  (funcall handler))))
      (t
       (gdb-resync)
@@ -1248,12 +1253,13 @@ sink to `user' in `gdb-stopping', that is fine."
   "An annotation handler for `post-prompt'.
 This begins the collection of output from the current command if that
 happens to be appropriate."
-  ;; Don't add to queue if there outstanding items or GDB is not known yet.
+  ;; Don't add to queue if there outstanding items or gdb-version is not known
+  ;; yet.
   (unless (or gdb-pending-triggers gdb-first-post-prompt)
     (gdb-get-selected-frame)
     (gdb-invalidate-frames)
     ;; Regenerate breakpoints buffer in case it has been inadvertantly deleted.
-    (gdb-get-create-buffer 'gdb-breakpoints-buffer)
+    (gdb-get-buffer-create 'gdb-breakpoints-buffer)
     (gdb-invalidate-breakpoints)
     ;; Do this through gdb-get-selected-frame -> gdb-frame-handler
     ;; so gdb-frame-address is updated.
@@ -1287,6 +1293,22 @@ happens to be appropriate."
      (t
       (gdb-resync)
       (error "Phase error in gdb-post-prompt (got %s)" sink)))))
+
+;; GUD displays the selected GDB frame.  This might might not be the current
+;; GDB frame (after up, down etc).  If no GDB frame is visible but the last
+;; visited breakpoint is, use that window.
+(defun gdb-display-source-buffer (buffer)
+  (let* ((last-window (if gud-last-last-frame
+			 (get-buffer-window
+			  (gud-find-file (car gud-last-last-frame)))))
+	 (source-window (or last-window
+			    (if (and gdb-source-window
+				     (window-live-p gdb-source-window))
+				gdb-source-window))))
+    (when source-window
+      (setq gdb-source-window source-window)
+      (set-window-buffer source-window buffer))
+    source-window))
 
 (defun gud-gdba-marker-filter (string)
   "A gud marker filter for gdb.  Handle a burst of output from GDB."
@@ -1370,23 +1392,23 @@ happens to be appropriate."
       (error "Bogon output sink %S" sink)))))
 
 (defun gdb-append-to-partial-output (string)
-  (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
+  (with-current-buffer (gdb-get-buffer-create 'gdb-partial-output-buffer)
     (goto-char (point-max))
     (insert string)))
 
 (defun gdb-clear-partial-output ()
-  (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
+  (with-current-buffer (gdb-get-buffer-create 'gdb-partial-output-buffer)
     (erase-buffer)))
 
 (defun gdb-append-to-inferior-io (string)
-  (with-current-buffer (gdb-get-create-buffer 'gdb-inferior-io)
+  (with-current-buffer (gdb-get-buffer-create 'gdb-inferior-io)
     (goto-char (point-max))
     (insert-before-markers string))
   (if (not (string-equal string ""))
-      (gdb-display-buffer (gdb-get-create-buffer 'gdb-inferior-io))))
+      (gdb-display-buffer (gdb-get-buffer-create 'gdb-inferior-io))))
 
 (defun gdb-clear-inferior-io ()
-  (with-current-buffer (gdb-get-create-buffer 'gdb-inferior-io)
+  (with-current-buffer (gdb-get-buffer-create 'gdb-inferior-io)
     (erase-buffer)))
 
 
@@ -1434,11 +1456,13 @@ happens to be appropriate."
        (and buf
 	    (with-current-buffer buf
 	      (let* ((window (get-buffer-window buf 0))
+		     (start (window-start window))
 		     (p (window-point window))
 		    (buffer-read-only nil))
 		(erase-buffer)
-		(insert-buffer-substring (gdb-get-create-buffer
+		(insert-buffer-substring (gdb-get-buffer-create
 					  'gdb-partial-output-buffer))
+		(set-window-start window start)
 		(set-window-point window p)))))
      ;; put customisation here
      (,custom-defun)))
@@ -1688,14 +1712,14 @@ static char *magick[] = {
   "Display status of user-settable breakpoints."
   (interactive)
   (gdb-display-buffer
-   (gdb-get-create-buffer 'gdb-breakpoints-buffer)))
+   (gdb-get-buffer-create 'gdb-breakpoints-buffer)))
 
 (defun gdb-frame-breakpoints-buffer ()
   "Display status of user-settable breakpoints in a new frame."
   (interactive)
   (let ((special-display-regexps (append special-display-regexps '(".*")))
 	(special-display-frame-alist gdb-frame-parameters))
-    (display-buffer (gdb-get-create-buffer 'gdb-breakpoints-buffer))))
+    (display-buffer (gdb-get-buffer-create 'gdb-breakpoints-buffer))))
 
 (defvar gdb-breakpoints-mode-map
   (let ((map (make-sparse-keymap))
@@ -1767,9 +1791,6 @@ static char *magick[] = {
   "Display the breakpoint location specified at current line."
   (interactive (list last-input-event))
   (if event (posn-set-point (event-end event)))
-  ;; Hack to stop gdb-goto-breakpoint displaying in GUD buffer.
-  (let ((window (get-buffer-window gud-comint-buffer)))
-    (if window (save-selected-window  (select-window window))))
   (save-excursion
     (beginning-of-line 1)
     (if (looking-at "\\([0-9]+\\) .+ in .+ at\\s-+\\(\\S-+\\):\\([0-9]+\\)")
@@ -1777,11 +1798,13 @@ static char *magick[] = {
 	      (file  (match-string 2))
 	      (line  (match-string 3)))
 	  (save-selected-window
-	    (let* ((buf (find-file-noselect
+	    (let* ((buffer (find-file-noselect
 			 (if (file-exists-p file) file
 			   (cdr (assoc bptno gdb-location-alist)))))
-		   (window (display-buffer buf)))
-	      (with-current-buffer buf
+		   (window (unless (gdb-display-source-buffer buffer)
+			       (display-buffer buffer))))
+	      (setq gdb-source-window window)
+	      (with-current-buffer buffer
 		(goto-line (string-to-number line))
 		(set-window-point window (point))))))
       (error "No location specified."))))
@@ -1844,14 +1867,14 @@ static char *magick[] = {
   "Display backtrace of current stack."
   (interactive)
   (gdb-display-buffer
-   (gdb-get-create-buffer 'gdb-stack-buffer)))
+   (gdb-get-buffer-create 'gdb-stack-buffer)))
 
 (defun gdb-frame-stack-buffer ()
   "Display backtrace of current stack in a new frame."
   (interactive)
   (let ((special-display-regexps (append special-display-regexps '(".*")))
 	(special-display-frame-alist gdb-frame-parameters))
-    (display-buffer (gdb-get-create-buffer 'gdb-stack-buffer))))
+    (display-buffer (gdb-get-buffer-create 'gdb-stack-buffer))))
 
 (defvar gdb-frames-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1925,14 +1948,14 @@ static char *magick[] = {
   "Display IDs of currently known threads."
   (interactive)
   (gdb-display-buffer
-   (gdb-get-create-buffer 'gdb-threads-buffer)))
+   (gdb-get-buffer-create 'gdb-threads-buffer)))
 
 (defun gdb-frame-threads-buffer ()
   "Display IDs of currently known threads in a new frame."
   (interactive)
   (let ((special-display-regexps (append special-display-regexps '(".*")))
 	(special-display-frame-alist gdb-frame-parameters))
-    (display-buffer (gdb-get-create-buffer 'gdb-threads-buffer))))
+    (display-buffer (gdb-get-buffer-create 'gdb-threads-buffer))))
 
 (defvar gdb-threads-mode-map
   (let ((map (make-sparse-keymap)))
@@ -2061,14 +2084,14 @@ static char *magick[] = {
   "Display integer register contents."
   (interactive)
   (gdb-display-buffer
-   (gdb-get-create-buffer 'gdb-registers-buffer)))
+   (gdb-get-buffer-create 'gdb-registers-buffer)))
 
 (defun gdb-frame-registers-buffer ()
   "Display integer register contents in a new frame."
   (interactive)
   (let ((special-display-regexps (append special-display-regexps '(".*")))
 	(special-display-frame-alist gdb-frame-parameters))
-    (display-buffer (gdb-get-create-buffer 'gdb-registers-buffer))))
+    (display-buffer (gdb-get-buffer-create 'gdb-registers-buffer))))
 
 (defun gdb-all-registers ()
   "Toggle the display of floating-point registers (pre GDB 6.4 only)."
@@ -2077,10 +2100,10 @@ static char *magick[] = {
     (if gdb-all-registers
 	(progn
 	  (setq gdb-all-registers nil)
-	  (with-current-buffer (gdb-get-create-buffer 'gdb-registers-buffer)
+	  (with-current-buffer (gdb-get-buffer-create 'gdb-registers-buffer)
 	    (setq mode-name "Registers")))
       (setq gdb-all-registers t)
-      (with-current-buffer (gdb-get-create-buffer 'gdb-registers-buffer)
+      (with-current-buffer (gdb-get-buffer-create 'gdb-registers-buffer)
 	(setq mode-name "Registers:All")))
     (message (format "Display of floating-point registers %sabled"
 		     (if gdb-all-registers "en" "dis")))
@@ -2385,14 +2408,14 @@ corresponding to the mode line clicked."
   "Display memory contents."
   (interactive)
   (gdb-display-buffer
-   (gdb-get-create-buffer 'gdb-memory-buffer)))
+   (gdb-get-buffer-create 'gdb-memory-buffer)))
 
 (defun gdb-frame-memory-buffer ()
   "Display memory contents in a new frame."
   (interactive)
   (let ((special-display-regexps (append special-display-regexps '(".*")))
 	(special-display-frame-alist gdb-frame-parameters))
-    (display-buffer (gdb-get-create-buffer 'gdb-memory-buffer))))
+    (display-buffer (gdb-get-buffer-create 'gdb-memory-buffer))))
 
 
 ;; Locals buffer.
@@ -2450,12 +2473,15 @@ corresponding to the mode line clicked."
     (and buf
 	 (with-current-buffer buf
 	      (let* ((window (get-buffer-window buf 0))
+		     (start (window-start window))
 		     (p (window-point window))
 		     (buffer-read-only nil))
 		 (erase-buffer)
-		 (insert-buffer-substring (gdb-get-create-buffer
+		 (insert-buffer-substring (gdb-get-buffer-create
 					   'gdb-partial-output-buffer))
-		(set-window-point window p)))))
+		(set-window-start window start)
+		(set-window-point window p))
+)))
   (run-hooks 'gdb-info-locals-hook))
 
 (defvar gdb-locals-mode-map
@@ -2489,14 +2515,14 @@ corresponding to the mode line clicked."
   "Display local variables of current stack and their values."
   (interactive)
   (gdb-display-buffer
-   (gdb-get-create-buffer 'gdb-locals-buffer)))
+   (gdb-get-buffer-create 'gdb-locals-buffer)))
 
 (defun gdb-frame-locals-buffer ()
   "Display local variables of current stack and their values in a new frame."
   (interactive)
   (let ((special-display-regexps (append special-display-regexps '(".*")))
 	(special-display-frame-alist gdb-frame-parameters))
-    (display-buffer (gdb-get-create-buffer 'gdb-locals-buffer))))
+    (display-buffer (gdb-get-buffer-create 'gdb-locals-buffer))))
 
 
 ;;;; Window management
@@ -2619,7 +2645,7 @@ corresponding to the mode line clicked."
     (split-window-horizontally)
     (other-window 1)
     (gdb-set-window-buffer
-     (gdb-get-create-buffer 'gdb-inferior-io)))
+     (gdb-get-buffer-create 'gdb-inferior-io)))
   (other-window 1)
   (gdb-set-window-buffer (gdb-stack-buffer-name))
   (split-window-horizontally)
@@ -2672,7 +2698,7 @@ This arrangement depends on the value of `gdb-many-windows'."
 
 (defun gdb-reset ()
   "Exit a debugging session cleanly.
-Kills the gdb buffers and resets the source buffers."
+Kills the gdb buffers, and resets variables and the source buffers."
   (dolist (buffer (buffer-list))
     (unless (eq buffer gud-comint-buffer)
       (with-current-buffer buffer
@@ -2707,7 +2733,7 @@ buffers."
       (setq gdb-macro-info t))
  (if gdb-many-windows
       (gdb-setup-windows)
-   (gdb-get-create-buffer 'gdb-breakpoints-buffer)
+   (gdb-get-buffer-create 'gdb-breakpoints-buffer)
    (if gdb-show-main
        (let ((pop-up-windows t))
 	 (display-buffer (gud-find-file gdb-main-file))))))
@@ -2960,7 +2986,7 @@ BUFFER nil or omitted means use the current buffer."
   (interactive)
   (setq gdb-previous-frame nil)
   (gdb-display-buffer
-   (gdb-get-create-buffer 'gdb-assembler-buffer)))
+   (gdb-get-buffer-create 'gdb-assembler-buffer)))
 
 (defun gdb-frame-assembler-buffer ()
   "Display disassembly view in a new frame."
@@ -2968,7 +2994,7 @@ BUFFER nil or omitted means use the current buffer."
   (setq gdb-previous-frame nil)
   (let ((special-display-regexps (append special-display-regexps '(".*")))
 	(special-display-frame-alist gdb-frame-parameters))
-    (display-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))))
+    (display-buffer (gdb-get-buffer-create 'gdb-assembler-buffer))))
 
 ;; modified because if gdb-frame-address has changed value a new command
 ;; must be enqueued to update the buffer with the new output
@@ -3122,9 +3148,9 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
    (delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
     ;; dummy command to update speedbar at right time
-    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-timer-fn))
+    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-refresh))
     ;; keep gdb-pending-triggers non-nil till end
-    (push 'gdb-speedbar-timer gdb-pending-triggers)))
+    (push 'gdb-speedbar-refresh gdb-pending-triggers)))
 
 ;; Registers buffer.
 ;;
@@ -3166,11 +3192,14 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
 	      (concat register-values register-string)))
       (let ((buf (gdb-get-buffer 'gdb-registers-buffer)))
 	(with-current-buffer buf
-	  (let ((p (window-point (get-buffer-window buf 0)))
-		(buffer-read-only nil))
+	  (let* ((window (get-buffer-window buf 0))
+		 (start (window-start window))
+		 (p (window-point window))
+		 (buffer-read-only nil))
 	    (erase-buffer)
 	    (insert register-values)
-	    (set-window-point (get-buffer-window buf 0) p))))))
+	    (set-window-start window start)
+	    (set-window-point window p))))))
   (gdb-data-list-register-values-custom))
 
 (defun gdb-data-list-register-values-custom ()
@@ -3255,6 +3284,7 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
     (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
       (and buf (with-current-buffer buf
 		 (let* ((window (get-buffer-window buf 0))
+			(start (window-start window))
 			(p (window-point window))
 			(buffer-read-only nil))
 		   (erase-buffer)
@@ -3270,6 +3300,7 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
 		       (insert 
 			(concat name "\t" (nth 1 local)
 				"\t" (nth 2 local) "\n")))
+		   (set-window-start window start)
 		   (set-window-point window p)))))))
 
 (defun gdb-get-register-names ()

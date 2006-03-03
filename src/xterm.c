@@ -326,7 +326,7 @@ void x_delete_display P_ ((struct x_display_info *));
 
 static int x_io_error_quitter P_ ((Display *));
 void x_catch_errors P_ ((Display *));
-void x_uncatch_errors P_ ((Display *));
+void x_uncatch_errors P_ ((void));
 void x_lower_frame P_ ((struct frame *));
 void x_scroll_bar_clear P_ ((struct frame *));
 int x_had_errors_p P_ ((Display *));
@@ -3877,7 +3877,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	if (x_had_errors_p (FRAME_X_DISPLAY (*fp)))
 	  f1 = 0;
 
-	x_uncatch_errors (FRAME_X_DISPLAY (*fp));
+	x_uncatch_errors ();
 
 	/* If not, is it one of our scroll bars?  */
 	if (! f1)
@@ -5803,7 +5803,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                     /* This is needed to detect the error
                        if there is an error.  */
                     XSync (d, False);
-                    x_uncatch_errors (d);
+                    x_uncatch_errors ();
                   }
                 /* Not certain about handling scroll bars here */
 #endif /* 0 */
@@ -7585,19 +7585,16 @@ x_catch_errors (dpy)
    DPY should be the display that was passed to x_catch_errors.  */
 
 void
-x_uncatch_errors (dpy)
-     Display *dpy;
+x_uncatch_errors ()
 {
   struct x_error_message_stack *tmp;
 
-  eassert (x_error_message && dpy == x_error_message->dpy);
-
   /* The display may have been closed before this function is called.
      Check if it is still open before calling XSync.  */
-  if (x_display_info_for_display (dpy) != 0)
+  if (x_display_info_for_display (x_error_message->dpy) != 0)
     {
       BLOCK_INPUT;
-      XSync (dpy, False);
+      XSync (x_error_message->dpy, False);
       UNBLOCK_INPUT;
     }
 
@@ -7622,7 +7619,7 @@ x_check_errors (dpy, format)
     {
       char string[X_ERROR_MESSAGE_SIZE];
       bcopy (x_error_message->string, string, X_ERROR_MESSAGE_SIZE);
-      x_uncatch_errors (dpy);
+      x_uncatch_errors ();
       error (format, string);
     }
 }
@@ -7782,7 +7779,7 @@ x_connection_closed (dpy, error_message)
   if (dpyinfo)
     x_delete_display (dpyinfo);
 
-  x_uncatch_errors (dpy);
+  x_uncatch_errors ();
 
   if (x_display_list == 0)
     {
@@ -9525,7 +9522,7 @@ x_list_fonts (f, pattern, size, maxnames)
 	    }
 	}
 
-      x_uncatch_errors (dpy);
+      x_uncatch_errors ();
       UNBLOCK_INPUT;
 
       if (names)
@@ -9626,7 +9623,7 @@ x_list_fonts (f, pattern, size, maxnames)
 		  thisinfo = NULL;
 		  x_clear_errors (dpy);
 		}
-	      x_uncatch_errors (dpy);
+	      x_uncatch_errors ();
 	      UNBLOCK_INPUT;
 
 	      if (thisinfo)
@@ -9829,7 +9826,7 @@ x_load_font (f, fontname, size)
 	font = NULL;
 	x_clear_errors (FRAME_X_DISPLAY (f));
       }
-    x_uncatch_errors (FRAME_X_DISPLAY (f));
+    x_uncatch_errors ();
     UNBLOCK_INPUT;
     if (!font)
       return NULL;
@@ -10769,7 +10766,7 @@ x_term_init (display_name, xrm_option, resource_name)
       abort ();
     if (x_had_errors_p (dpy) || !XQueryFont (dpy, font))
       XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
-    x_uncatch_errors (dpy);
+    x_uncatch_errors ();
   }
 #endif
 #endif

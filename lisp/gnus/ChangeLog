@@ -1,3 +1,66 @@
+2006-03-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-get-part): Don't use
+	mm-with-unibyte-current-buffer.
+
+	* gnus-sum.el (gnus-summary-set-display-table): Don't nix out
+	characters 160 through 255 in Emacs 23.
+
+2006-03-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-generate-mime-1): Encode parts other than text/* or
+	message/* containing non-ASCII text properly.
+
+2006-02-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-with-unibyte-current-buffer): Add note.
+
+2006-02-28  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-gmane-create-mapping): Don't choke on ^M.
+
+2006-02-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnweb.el (nnweb-type-definition, nnweb-gmane-search): Use new
+	nov.php.
+
+2006-02-28  Andreas Seltenreich  <uwi7@stud.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-type-definition, nnweb-gmane-create-mapping)
+	(nnweb-gmane-wash-article, nnweb-gmane-search): Fix Gmane web
+	groups.  Kudos to Olly Betts <olly@survex.com> for providing NOV
+	output on the server side.
+	(nnweb-google-create-mapping): Update regexps and add some
+	progress indication.
+
+2006-02-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-user-fqdn): Remove useless * in doc string.
+
+	* gnus-draft.el (gnus-draft-send): Bind message-signature to avoid
+	unnecessary interaction when sending queued mails.  Reported by
+	TAKAHASHI Yoshio <tkh@jp.fujitsu.com>.
+
+2006-02-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-open-server): Respect gnus-batch-mode.
+	Merge of 2006-02-20 change from the trunk.
+
+2006-02-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dns.el (query-dns): Protect more against buggy tcp output.
+	Merge of 2006-02-20 change from the trunk.
+
+2006-02-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-sequence-of-unread-articles): Return nil if
+	first or last are nil.
+
+2006-02-24  Simon Josefsson  <jas@extundo.com>
+
+	* flow-fill.el (fill-flowed): Flow-fill unquoted lines too.
+	Merge of 2005-10-26 change from the trunk.
+
 2006-02-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* flow-fill.el (fill-flowed): Bind adaptive-fill-mode to nil.
@@ -863,10 +926,9 @@
 	* pgg-parse.el (top-level): Don't require custom, it is
 	autoloaded.  (To sync with No Gnus.)
 
-2005-05-09  Simon Josefsson  <jas@extundo.com>
+2005-05-09  Georg C. F. Greve  <greve@gnu.org>  (tiny change)
 
-	* pgg-gpg.el (pgg-gpg-possibly-cache-passphrase): Fix PIN caching,
-	tiny patch from "Georg C. F. Greve" <greve@gnu.org>.
+	* pgg-gpg.el (pgg-gpg-possibly-cache-passphrase): Fix PIN caching.
 
 2005-10-08  Simon Josefsson  <jas@extundo.com>
 
@@ -2571,11 +2633,13 @@
 
 	* deuglify.el (gnus-outlook-deuglify): Add :version.
 
-	* html2text.el: Beautify code.  Improve doc strings.  Some checkdoc
-	cleanup.
+	* html2text.el: Beautify code.  Improve doc strings.  Some
+	checkdoc cleanup.
 	(html2text-get-attr, html2text-fix-paragraph): Simplify code.
-	(html2text-format-tag-list): Add "strong" and "em".
-	From "Alfred M. Szmidt" <ams@kemisten.nu> (tiny change).
+
+2004-11-01  Alfred M. Szmidt  <ams@kemisten.nu>  (tiny change)
+
+	* html2text.el (html2text-format-tag-list): Add "strong" and "em".
 
 2004-10-29  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -3436,14 +3500,13 @@
 	Check `starttls-use-gnutls' and pass on to corresponding *-gnutls
 	function if it is set.
 
-2004-08-31  Simon Josefsson  <jas@extundo.com>
+2004-08-30  Andreas Schwab  <schwab@suse.de>
 
 	* rfc2231.el (rfc2231-parse-string): Restore whitespace syntax for
-	?* and ?\; (tiny patch).  From Andreas Schwab <schwab@suse.de>.
+	?* and ?\;.
 
 	* ietf-drums.el (ietf-drums-syntax-table): Set syntax of ?* ?\;
-	and ?\' to symbol instead of whitespace (tiny patch).
-	From Andreas Schwab <schwab@suse.de>.
+	and ?\' to symbol instead of whitespace.
 
 2004-08-31  Jesper Harder  <harder@ifa.au.dk>
 

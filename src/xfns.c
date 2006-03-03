@@ -667,7 +667,7 @@ x_real_positions (f, xptr, yptr)
       had_errors = x_had_errors_p (FRAME_X_DISPLAY (f));
     }
 
-  x_uncatch_errors (FRAME_X_DISPLAY (f));
+  x_uncatch_errors ();
 
   UNBLOCK_INPUT;
 
@@ -1022,7 +1022,7 @@ x_set_mouse_color (f, arg, oldval)
 
   /* Check and report errors with the above calls.  */
   x_check_errors (dpy, "can't set cursor shape: %s");
-  x_uncatch_errors (dpy);
+  x_uncatch_errors ();
 
   {
     XColor fore_color, back_color;
@@ -3427,7 +3427,7 @@ FRAME nil means use the selected frame.  */)
   x_catch_errors (dpy);
   XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		  RevertToParent, CurrentTime);
-  x_uncatch_errors (dpy);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 
   return Qnil;

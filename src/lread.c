@@ -106,7 +106,7 @@ int load_in_progress;
 Lisp_Object Vsource_directory;
 
 /* Search path and suffixes for files to be loaded. */
-Lisp_Object Vload_path, Vload_suffixes, default_suffixes;
+Lisp_Object Vload_path, Vload_suffixes, Vload_file_rep_suffixes;
 
 /* File name of user's init file.  */
 Lisp_Object Vuser_init_file;
@@ -832,28 +832,64 @@ load_error_handler (data)
   return Qnil;
 }
 
+DEFUN ("get-load-suffixes", Fget_load_suffixes, Sget_load_suffixes, 0, 0, 0,
+       doc: /* Return the suffixes that `load' should try if a suffix is \
+required.
+This uses the variables `load-suffixes' and `load-file-rep-suffixes'.  */)
+     ()
+{
+  Lisp_Object lst = Qnil, suffixes = Vload_suffixes, suffix, ext;
+  while (CONSP (suffixes))
+    {
+      Lisp_Object exts = Vload_file_rep_suffixes;
+      suffix = XCAR (suffixes);
+      suffixes = XCDR (suffixes);
+      while (CONSP (exts))
+	{
+	  ext = XCAR (exts);
+	  exts = XCDR (exts);
+	  lst = Fcons (concat2 (suffix, ext), lst);
+	}
+    }
+  return Fnreverse (lst);
+}
+
 DEFUN ("load", Fload, Sload, 1, 5, 0,
        doc: /* Execute a file of Lisp code named FILE.
 First try FILE with `.elc' appended, then try with `.el',
- then try FILE unmodified (the exact suffixes are determined by
-`load-suffixes').  Environment variable references in FILE
- are replaced with their values by calling `substitute-in-file-name'.
+then try FILE unmodified (the exact suffixes in the exact order are
+determined by  `load-suffixes').  Environment variable references in
+FILE are replaced with their values by calling `substitute-in-file-name'.
 This function searches the directories in `load-path'.
+
 If optional second arg NOERROR is non-nil,
- report no error if FILE doesn't exist.
+report no error if FILE doesn't exist.
 Print messages at start and end of loading unless
- optional third arg NOMESSAGE is non-nil.
+optional third arg NOMESSAGE is non-nil.
 If optional fourth arg NOSUFFIX is non-nil, don't try adding
- suffixes `.elc' or `.el' to the specified name FILE.
+suffixes `.elc' or `.el' to the specified name FILE.
 If optional fifth arg MUST-SUFFIX is non-nil, insist on
- the suffix `.elc' or `.el'; don't accept just FILE unless
- it ends in one of those suffixes or includes a directory name.
+the suffix `.elc' or `.el'; don't accept just FILE unless
+it ends in one of those suffixes or includes a directory name.
+
+If this function fails to find a file, it may look for different
+representations of that file before trying another file.
+It does so by adding the non-empty suffixes in `load-file-rep-suffixes'
+to the file name.  Emacs uses this feature mainly to find compressed
+versions of files when Auto Compression mode is enabled.
+
+The exact suffixes that this function tries out, in the exact order,
+are given by the value of the variable `load-file-rep-suffixes' if
+NOSUFFIX is non-nil and by the return value of the function
+`get-load-suffixes' if MUST-SUFFIX is non-nil.  If both NOSUFFIX and
+MUST-SUFFIX are nil, this function first tries out the latter suffixes
+and then the former.
 
 Loading a file records its definitions, and its `provide' and
 `require' calls, in an element of `load-history' whose
 car is the file name loaded.  See `load-history'.
 
-Return t if file exists.  */)
+Return t if the file exists and loads successfully.  */)
      (file, noerror, nomessage, nosuffix, must_suffix)
      Lisp_Object file, noerror, nomessage, nosuffix, must_suffix;
 {
@@ -930,9 +966,9 @@ Return t if file exists.  */)
 
       fd = openp (Vload_path, file,
 		  (!NILP (nosuffix) ? Qnil
-		   : !NILP (must_suffix) ? Vload_suffixes
-		   : Fappend (2, (tmp[0] = Vload_suffixes,
-				  tmp[1] = default_suffixes,
+		   : !NILP (must_suffix) ? Fget_load_suffixes ()
+		   : Fappend (2, (tmp[0] = Fget_load_suffixes (),
+				  tmp[1] = Vload_file_rep_suffixes,
 				  tmp))),
 		  &found, Qnil);
       UNGCPRO;
@@ -1303,7 +1339,7 @@ openp (path, str, suffixes, storeptr, predicate)
 	fn = (char *) alloca (fn_size = 100 + want_size);
 
       /* Loop over suffixes.  */
-      for (tail = NILP (suffixes) ? default_suffixes : suffixes;
+      for (tail = NILP (suffixes) ? Fcons (build_string (""), Qnil) : suffixes;
 	   CONSP (tail); tail = XCDR (tail))
 	{
 	  int lsuffix = SBYTES (XCAR (tail));
@@ -3979,6 +4015,7 @@ syms_of_lread ()
   defsubr (&Sintern);
   defsubr (&Sintern_soft);
   defsubr (&Sunintern);
+  defsubr (&Sget_load_suffixes);
   defsubr (&Sload);
   defsubr (&Seval_buffer);
   defsubr (&Seval_region);
@@ -4040,13 +4077,27 @@ Initialized based on EMACSLOADPATH environment variable, if any,
 otherwise to default specified by file `epaths.h' when Emacs was built.  */);
 
   DEFVAR_LISP ("load-suffixes", &Vload_suffixes,
-	       doc: /* *List of suffixes to try for files to load.
-This list should not include the empty string.  */);
+	       doc: /* List of suffixes for (compiled or source) Emacs Lisp files.
+This list should not include the empty string.
+`load' and related functions try to append these suffixes, in order,
+to the specified file name if a Lisp suffix is allowed or required.  */);
   Vload_suffixes = Fcons (build_string (".elc"),
 			  Fcons (build_string (".el"), Qnil));
+  DEFVAR_LISP ("load-file-rep-suffixes", &Vload_file_rep_suffixes,
+	       doc: /* List of suffixes that indicate representations of \
+the same file.
+This list should normally start with the empty string.
+
+Enabling Auto Compression mode appends the suffixes in
+`jka-compr-load-suffixes' to this list and disabling Auto Compression
+mode removes them again.  `load' and related functions use this list to
+determine whether they should look for compressed versions of a file
+and, if so, which suffixes they should try to append to the file name
+in order to do so.  However, if you want to customize which suffixes
+the loading functions recognize as compression suffixes, you should
+customize `jka-compr-load-suffixes' rather than the present variable.  */);
   /* We don't use empty_string because it's not initialized yet.  */
-  default_suffixes = Fcons (build_string (""), Qnil);
-  staticpro (&default_suffixes);
+  Vload_file_rep_suffixes = Fcons (build_string (""), Qnil);
 
   DEFVAR_BOOL ("load-in-progress", &load_in_progress,
 	       doc: /* Non-nil iff inside of `load'.  */);

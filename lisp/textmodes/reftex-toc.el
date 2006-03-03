@@ -1011,6 +1011,7 @@ always show the current section in connection with the option
 ;; Table of Contents map
 (define-key reftex-toc-map (if (featurep 'xemacs) [(button2)] [(mouse-2)])
   'reftex-toc-mouse-goto-line-and-hide)
+(define-key reftex-toc-map [follow-link] 'mouse-face)
 
 (substitute-key-definition
  'next-line 'reftex-toc-next reftex-toc-map global-map)

@@ -117,7 +117,7 @@ struct specbinding *specpdl;
 
 /* Pointer to first unused element in specpdl.  */
 
-volatile struct specbinding *specpdl_ptr;
+struct specbinding *specpdl_ptr;
 
 /* Maximum size allowed for specpdl allocation */
 
