@@ -1140,7 +1140,7 @@
       (insert "write \"")
       (while (< i len)
 	(let ((code (ccl-get-next-code)))
-	  (if (logand code #x1000000)
+	  (if (/= (logand code #x1000000) 0)
 	      (progn
 		(insert (logand code #xFFFFFF))
 		(setq i (1+ i)))
