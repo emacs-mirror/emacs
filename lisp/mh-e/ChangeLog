@@ -56,7 +56,7 @@
 	* mh-e.el (mh-default-folder-for-message-function): Sync docstring
 	with manual.
 
-	* mh-mime.el (mh-minibuffer-read-type): Deleted comment in
+	* mh-mime.el (mh-minibuffer-read-type): Delete comment in
 	docstring about obsolete variable mh-mime-content-types.
 
 	* mh-e.el (mh-variant): Sync docstring with manual.
@@ -70,12 +70,12 @@
 
 2006-02-21  Eric Ding  <ericding@alum.mit.edu>
 
-	* mh-e.el (mh-invisible-header-fields-internal): Added entry
+	* mh-e.el (mh-invisible-header-fields-internal): Add entry
 	"X-Sasl-enc:"
 
 2006-02-20  Eric Ding  <ericding@alum.mit.edu>
 
-	* mh-e.el (mh-invisible-header-fields-internal): Added entries
+	* mh-e.el (mh-invisible-header-fields-internal): Add entries
 	"X-Authenticated-Sender:", "X-Barracuda-", "X-EFL-Spamscore",
 	"X-IronPort-AV:", "X-Mail-from:", "X-Mailman-Approved-At:",
 	"X-Resolved-to:", and "X-SA-Exim".  Fixed "X-Bugzilla-" and
@@ -181,7 +181,7 @@
 
 2006-02-04  Eric Ding  <ericding@alum.mit.edu>
 
-	* mh-mime.el (mh-file-mime-type-substitutions): Added entries to
+	* mh-mime.el (mh-file-mime-type-substitutions): Add entries to
 	handle OpenOffice documents.
 
 2006-02-03  Bill Wohler  <wohler@newt.com>
