@@ -1,5 +1,8 @@
 2006-03-03  Kenichi Handa  <handa@m17n.org>
 
+	* international/fontset.el (create-fontset-from-fontset-spec): Fix
+	for the case that a charset is specified as target.
+
 	* international/ccl.el (ccl-dump-write-const-string): Fix previous
 	change.
 
