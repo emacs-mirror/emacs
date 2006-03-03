@@ -1,3 +1,13 @@
+2006-03-03  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	allout.el: Restablished intermediate missing comment header to
+	preserve outline structure.
+	(allout-beginning-of-current-entry): Wasn't skipping invisible
+	text - fixed.
+	(allout-open-topic): Was failing when opening a topic at
+	end-of-buffer - fixed.
+	(allout-minor-mode): Moved nearer to allout-mode function.
+
 2006-03-02  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-paste-subtree): Removed forgotten (debug)
