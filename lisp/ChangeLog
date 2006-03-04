@@ -1,3 +1,7 @@
+2006-03-04  John Paul Wallington  <jpw@pobox.com>
+
+	* wdired.el (toplevel): Require `cl' at compile-time.
+
 2006-03-04  Andreas Schwab  <schwab@suse.de>
 
 	* server.el (server-process-filter): Handle errors during
