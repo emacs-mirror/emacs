@@ -4537,7 +4537,6 @@ encode_coding_ccl (coding)
   int *charbuf_end = charbuf + coding->charbuf_used;
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
-  unsigned char *adjusted_dst_end = dst_end - 1;
   int destination_charbuf[1024];
   int i, produced_chars = 0;
   Lisp_Object attrs, charset_list;
@@ -4548,24 +4547,27 @@ encode_coding_ccl (coding)
   ccl.last_block = coding->mode & CODING_MODE_LAST_BLOCK;
   ccl.dst_multibyte = coding->dst_multibyte;
 
-  while (charbuf < charbuf_end && dst < adjusted_dst_end)
+  while (charbuf < charbuf_end)
     {
-      int dst_bytes = dst_end - dst;
-      if (dst_bytes > 1024)
-	dst_bytes = 1024;
-
       ccl_driver (&ccl, charbuf, destination_charbuf,
-		  charbuf_end - charbuf, dst_bytes, charset_list);
-      charbuf += ccl.consumed;
+		  charbuf_end - charbuf, 1024, charset_list);
       if (multibytep)
-	for (i = 0; i < ccl.produced; i++)
-	  EMIT_ONE_BYTE (destination_charbuf[i] & 0xFF);
+	{
+	  ASSURE_DESTINATION (ccl.produced * 2);
+	  for (i = 0; i < ccl.produced; i++)
+	    EMIT_ONE_BYTE (destination_charbuf[i] & 0xFF);
+	}
       else
 	{
+	  ASSURE_DESTINATION (ccl.produced);
 	  for (i = 0; i < ccl.produced; i++)	
 	    *dst++ = destination_charbuf[i] & 0xFF;
 	  produced_chars += ccl.produced;
 	}
+      charbuf += ccl.consumed;
+      if (ccl.status == CCL_STAT_QUIT
+	  || ccl.status == CCL_STAT_INVALID_CMD)
+	break;
     }
 
   switch (ccl.status)
