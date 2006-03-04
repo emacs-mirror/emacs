@@ -1,3 +1,8 @@
+2006-03-04  Andreas Schwab  <schwab@suse.de>
+
+	* server.el (server-process-filter): Handle errors during
+	evaluation of the argument.
+
 2006-03-03  John Paul Wallington  <jpw@pobox.com>
 
 	* t-mouse.el (t-mouse-drag-start, t-mouse-swap-alt-keys): Doc fix;
