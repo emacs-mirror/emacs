@@ -3098,8 +3098,11 @@ display only a single character."
     (aset table ?\r nil)
     ;; We keep TAB as well.
     (aset table ?\t nil)
-    ;; We nix out any glyphs over 126 that are not set already.
-    (let ((i 256))
+    ;; We nix out any glyphs 127 through 255, or 127 through 159 in
+    ;; Emacs 23, that are not set already.
+    (let ((i (if (ignore-errors (= (make-char 'latin-iso8859-1 160) 160))
+		 160
+	       256)))
       (while (>= (setq i (1- i)) 127)
 	;; Only modify if the entry is nil.
 	(unless (aref table i)

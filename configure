@@ -2136,6 +2136,9 @@ _ACEOF
   s390-*-linux-gnu* )
     machine=ibms390 opsys=gnu-linux
   ;;
+  s390x-*-linux-gnu* )
+    machine=ibms390x opsys=gnu-linux
+  ;;
   rs6000-ibm-aix3.1* | powerpc-ibm-aix3.1*  )
     machine=ibmrs6000 opsys=aix3-1
   ;;

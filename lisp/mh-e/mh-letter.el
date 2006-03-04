@@ -42,8 +42,9 @@
 
 (require 'gnus-util)
 
-;; Dynamically-created function not found in mh-loaddefs.el.
+;; Dynamically-created functions not found in mh-loaddefs.el.
 (autoload 'mh-tool-bar-letter-buttons-init "mh-tool-bar")
+(autoload 'mh-tool-bar-init "mh-tool-bar")
 
 (autoload 'mml-insert-tag "mml")
 
@@ -311,9 +312,16 @@ order).
   (make-local-variable 'mh-sent-from-folder)
   (make-local-variable 'mh-sent-from-msg)
   (mh-do-in-gnu-emacs
-   (unless mh-letter-buttons-init-flag
-     (mh-tool-bar-letter-buttons-init)
-     (setq mh-letter-buttons-init-flag t)))
+    (unless mh-letter-buttons-init-flag
+      (let ((load-path (mh-image-load-path-for-library
+                        "mh-e" "mh-logo.xpm" 'load-path))
+            (image-load-path (mh-image-load-path-for-library
+                              "mh-e" "mh-logo.xpm" 'image-load-path)))
+        (mh-tool-bar-letter-buttons-init)
+        (setq mh-letter-buttons-init-flag t)))
+    (set (make-local-variable 'tool-bar-map) mh-letter-tool-bar-map))
+  (mh-do-in-xemacs
+    (mh-tool-bar-init :letter))
   ;; Set the local value of mh-mail-header-separator according to what is
   ;; present in the buffer...
   (set (make-local-variable 'mh-mail-header-separator)
@@ -328,8 +336,6 @@ order).
 
   ;; Enable undo since a show-mode buffer might have been reused.
   (buffer-enable-undo)
-  (set (make-local-variable 'tool-bar-map) mh-letter-tool-bar-map)
-  (mh-funcall-if-exists mh-tool-bar-init :letter)
   (make-local-variable 'font-lock-defaults)
   (cond
    ((or (equal mh-highlight-citation-style 'font-lock)

@@ -269,6 +269,12 @@ int auto_raise_tool_bar_buttons_p;
 
 int make_cursor_line_fully_visible_p;
 
+/* Margin below tool bar in pixels.  0 or nil means no margin.
+   If value is `internal-border-width' or `border-width',
+   the corresponding frame parameter is used.  */
+
+Lisp_Object Vtool_bar_border;
+
 /* Margin around tool bar buttons in pixels.  */
 
 Lisp_Object Vtool_bar_button_margin;
@@ -839,7 +845,7 @@ static void store_mode_line_noprop_char P_ ((char));
 static int store_mode_line_noprop P_ ((const unsigned char *, int, int));
 static void x_consider_frame_title P_ ((Lisp_Object));
 static void handle_stop P_ ((struct it *));
-static int tool_bar_lines_needed P_ ((struct frame *));
+static int tool_bar_lines_needed P_ ((struct frame *, int *));
 static int single_display_spec_intangible_p P_ ((Lisp_Object));
 static void ensure_echo_area_buffers P_ ((void));
 static Lisp_Object unwind_with_echo_area_buffer P_ ((Lisp_Object));
@@ -950,7 +956,7 @@ static int in_ellipses_for_invisible_text_p P_ ((struct display_pos *,
 static void update_tool_bar P_ ((struct frame *, int));
 static void build_desired_tool_bar_string P_ ((struct frame *f));
 static int redisplay_tool_bar P_ ((struct frame *));
-static void display_tool_bar_line P_ ((struct it *));
+static void display_tool_bar_line P_ ((struct it *, int));
 static void notice_overwritten_cursor P_ ((struct window *,
 					   enum glyph_row_area,
 					   int, int, int, int));
@@ -9429,11 +9435,17 @@ build_desired_tool_bar_string (f)
 }
 
 
-/* Display one line of the tool-bar of frame IT->f.  */
+/* Display one line of the tool-bar of frame IT->f.
+
+   HEIGHT specifies the desired height of the tool-bar line.
+   If the actual height of the glyph row is less than HEIGHT, the
+   row's height is increased to HEIGHT, and the icons are centered
+   vertically in the new height.  */
 
 static void
-display_tool_bar_line (it)
+display_tool_bar_line (it, height)
      struct it *it;
+     int height;
 {
   struct glyph_row *row = it->glyph_row;
   int max_x = it->last_visible_x;
@@ -9489,11 +9501,22 @@ display_tool_bar_line (it)
  out:;
 
   row->displays_text_p = row->used[TEXT_AREA] != 0;
+  /* Use default face for the border below the tool bar.  */
+  if (!row->displays_text_p)
+    it->face_id = DEFAULT_FACE_ID;
   extend_face_to_end_of_line (it);
   last = row->glyphs[TEXT_AREA] + row->used[TEXT_AREA] - 1;
   last->right_box_line_p = 1;
   if (last == row->glyphs[TEXT_AREA])
     last->left_box_line_p = 1;
+
+  /* Make line the desired height and center it vertically.  */
+  if ((height -= it->max_ascent + it->max_descent) > 0)
+    {
+      it->max_ascent += height / 2;
+      it->max_descent += (height + 1) / 2;
+    }
+
   compute_line_metrics (it);
 
   /* If line is empty, make it occupy the rest of the tool-bar.  */
@@ -9517,11 +9540,13 @@ display_tool_bar_line (it)
 
 
 /* Value is the number of screen lines needed to make all tool-bar
-   items of frame F visible.  */
+   items of frame F visible.  The number of actual rows needed is
+   returned in *N_ROWS if non-NULL.  */
 
 static int
-tool_bar_lines_needed (f)
+tool_bar_lines_needed (f, n_rows)
      struct frame *f;
+     int *n_rows;
 {
   struct window *w = XWINDOW (f->tool_bar_window);
   struct it it;
@@ -9537,8 +9562,11 @@ tool_bar_lines_needed (f)
     {
       it.glyph_row = w->desired_matrix->rows;
       clear_glyph_row (it.glyph_row);
-      display_tool_bar_line (&it);
+      display_tool_bar_line (&it, 0);
     }
+
+  if (n_rows)
+    *n_rows = it.vpos;
 
   return (it.current_y + FRAME_LINE_HEIGHT (f) - 1) / FRAME_LINE_HEIGHT (f);
 }
@@ -9568,7 +9596,7 @@ DEFUN ("tool-bar-lines-needed", Ftool_bar_lines_needed, Stool_bar_lines_needed,
       if (f->n_tool_bar_items)
 	{
 	  build_desired_tool_bar_string (f);
-	  nlines = tool_bar_lines_needed (f);
+	  nlines = tool_bar_lines_needed (f, NULL);
 	}
     }
 
@@ -9613,9 +9641,50 @@ redisplay_tool_bar (f)
   build_desired_tool_bar_string (f);
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
 
+  if (f->n_tool_bar_rows == 0)
+    {
+      (void)tool_bar_lines_needed (f, &f->n_tool_bar_rows);
+      if (f->n_tool_bar_rows == 0)
+	f->n_tool_bar_rows = -1;
+    }
+
   /* Display as many lines as needed to display all tool-bar items.  */
-  while (it.current_y < it.last_visible_y)
-    display_tool_bar_line (&it);
+
+  if (f->n_tool_bar_rows > 0)
+    {
+      int border, rows, height, extra;
+
+      if (INTEGERP (Vtool_bar_border))
+	border = XINT (Vtool_bar_border);
+      else if (EQ (Vtool_bar_border, Qinternal_border_width))
+	border = FRAME_INTERNAL_BORDER_WIDTH (f);
+      else if (EQ (Vtool_bar_border, Qborder_width))
+	border = f->border_width;
+      else
+	border = 0;
+      if (border < 0)
+	border = 0;
+
+      rows = f->n_tool_bar_rows;
+      height = (it.last_visible_y - border) / rows;
+      extra = it.last_visible_y - border - height * rows;
+
+      while (it.current_y < it.last_visible_y)
+	{
+	  int h = 0;
+	  if (extra > 0 && rows-- > 0)
+	    {
+	      h = (extra + rows - 1) / rows;
+	      extra -= h;
+	    }
+	  display_tool_bar_line (&it, height + h);
+	}
+    }
+  else
+    {
+      while (it.current_y < it.last_visible_y)
+	display_tool_bar_line (&it, 0);
+    }
 
   /* It doesn't make much sense to try scrolling in the tool-bar
      window, so don't do it.  */
@@ -9648,7 +9717,7 @@ redisplay_tool_bar (f)
       /* Resize windows as needed by changing the `tool-bar-lines'
 	 frame parameter.  */
       if (change_height_p
-	  && (nlines = tool_bar_lines_needed (f),
+	  && (nlines = tool_bar_lines_needed (f, &f->n_tool_bar_rows),
 	      nlines != WINDOW_TOTAL_LINES (w)))
 	{
 	  extern Lisp_Object Qtool_bar_lines;
@@ -23660,6 +23729,14 @@ otherwise.  */);
   DEFVAR_BOOL ("make-cursor-line-fully-visible", &make_cursor_line_fully_visible_p,
     doc: /* *Non-nil means to scroll (recenter) cursor line if it is not fully visible.  */);
   make_cursor_line_fully_visible_p = 1;
+
+  DEFVAR_LISP ("tool-bar-border", &Vtool_bar_border,
+    doc: /* *Border below tool-bar in pixels.
+If an integer, use it as the height of the border.
+If it is one of `internal-border-width' or `border-width', use the
+value of the corresponding frame parameter.
+Otherwise, no border is added below the tool-bar.  */);
+  Vtool_bar_border = Qinternal_border_width;
 
   DEFVAR_LISP ("tool-bar-button-margin", &Vtool_bar_button_margin,
     doc: /* *Margin around tool-bar buttons in pixels.

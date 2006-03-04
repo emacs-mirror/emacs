@@ -1322,7 +1322,8 @@ The list of incorrect words should be in `flyspell-external-ispell-buffer'.
 The buffer to mark them in is `flyspell-large-region-buffer'."
   (let (words-not-found
 	(ispell-otherchars (ispell-get-otherchars))
-	(buffer-scan-pos flyspell-large-region-beg))
+	(buffer-scan-pos flyspell-large-region-beg)
+	(case-fold-search nil))
     (with-current-buffer flyspell-external-ispell-buffer
       (goto-char (point-min))
       ;; Loop over incorrect words, in the order they were reported,
@@ -1409,6 +1410,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-process-localwords (misspellings-buffer)
   (let (localwords
+	(case-fold-search nil)
 	(ispell-casechars (ispell-get-casechars)))
     ;; Get localwords from the original buffer
     (save-excursion

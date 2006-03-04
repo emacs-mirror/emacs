@@ -250,7 +250,7 @@ SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile lispref/Makefile lispintro/Make
 # avoid nuking an existing dir file, so we don't do that here;
 # instead, we have written out explicit code in the `install' targets.
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
-COPYDESTS = ${etcdir} ${lispdir}
+COPYDESTS = $(DESTDIR)${etcdir} $(DESTDIR)${lispdir}
 
 all: ${SUBDIR} leim
 
@@ -375,20 +375,20 @@ install-arch-dep: mkdir
 	    exec_prefix=${exec_prefix} bindir=${bindir} \
 	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
 	    INSTALL_STRIP=${INSTALL_STRIP})
-	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} ${bindir}/$(EMACSFULL)
-	-chmod 1755  ${bindir}/$(EMACSFULL)
-	rm -f ${bindir}/$(EMACS)
-	-ln ${bindir}/$(EMACSFULL) ${bindir}/$(EMACS)
+	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} $(DESTDIR)${bindir}/$(EMACSFULL)
+	-chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL)
+	rm -f $(DESTDIR)${bindir}/$(EMACS)
+	-ln $(DESTDIR)${bindir}/$(EMACSFULL) $(DESTDIR)${bindir}/$(EMACS)
 	-unset CDPATH; \
 	for f in `cd lib-src && echo fns-*.el`; do \
 	  if test -r lib-src/$$f ; then \
-	    ${INSTALL_DATA} lib-src/$$f ${archlibdir}/$$f; \
+	    ${INSTALL_DATA} lib-src/$$f $(DESTDIR)${archlibdir}/$$f; \
 	  else true; fi ; \
 	done
 	if test "${carbon_appdir}" != ""; then \
-	  umask 022; mkdir -p ${carbon_appdir}/Emacs.app; \
+	  umask 022; mkdir -p $(DESTDIR)${carbon_appdir}/Emacs.app; \
 	  (cd mac/Emacs.app; (tar -chf - . | \
-		(cd ${carbon_appdir}/Emacs.app; umask 022; tar -xvf - \
+		(cd $(DESTDIR)${carbon_appdir}/Emacs.app; umask 022; tar -xvf - \
 			&& cat > /dev/null))) || exit 1; \
 	fi
 
@@ -439,86 +439,86 @@ install-arch-indep: mkdir info
 		rm -f  $${subdir}/dired.todo ; \
 	      done) ; \
 	done
-	-rm -f ${lispdir}/subdirs.el
-	$(srcdir)/update-subdirs ${lispdir}
-	if [ -f ${datadir}/emacs/${version}/site-lisp/subdirs.el ]; \
+	-rm -f $(DESTDIR)${lispdir}/subdirs.el
+	$(srcdir)/update-subdirs $(DESTDIR)${lispdir}
+	if [ -f $(DESTDIR)${datadir}/emacs/${version}/site-lisp/subdirs.el ]; \
 	then true; \
 	else \
 	  (echo "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)"; \
 	   echo "    (normal-top-level-add-subdirs-to-load-path))") \
-	    > ${datadir}/emacs/${version}/site-lisp/subdirs.el; \
+	    > $(DESTDIR)${datadir}/emacs/${version}/site-lisp/subdirs.el; \
 	fi
-	chmod a+r ${datadir}/emacs/${version}/site-lisp/subdirs.el
-	-if [ -f ${datadir}/emacs/site-lisp/subdirs.el ]; \
+	chmod a+r $(DESTDIR)${datadir}/emacs/${version}/site-lisp/subdirs.el
+	-if [ -f $(DESTDIR)${datadir}/emacs/site-lisp/subdirs.el ]; \
 	then true; \
 	else \
 	  (echo "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)"; \
 	   echo "    (normal-top-level-add-subdirs-to-load-path))") \
-	    > ${datadir}/emacs/site-lisp/subdirs.el; \
+	    > $(DESTDIR)${datadir}/emacs/site-lisp/subdirs.el; \
 	fi
-	-chmod a+r ${datadir}/emacs/site-lisp/subdirs.el
+	-chmod a+r $(DESTDIR)${datadir}/emacs/site-lisp/subdirs.el
 	-unset CDPATH; \
-	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
+	if [ `(cd ./etc; /bin/pwd)` != `(cd $(DESTDIR)${docdir}; /bin/pwd)` ]; \
 	then \
-	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
+	   echo "Copying etc/DOC-* to $(DESTDIR)${docdir} ..." ; \
 	   (cd ./etc; tar -chf - DOC*) \
-	     |(cd ${docdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
-	   (cd $(docdir); chown $${LOGNAME:-$$USERNAME} DOC*; chmod a+r DOC*; \
+	     |(cd $(DESTDIR)${docdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
+	   (cd $(DESTDIR)$(docdir); chown $${LOGNAME:-$$USERNAME} DOC*; chmod a+r DOC*; \
 	    if test "`echo DOC-*`" != "DOC-*"; then rm DOC; fi); \
 	else true; fi
 	-unset CDPATH; \
 	if [ -r ./lisp ] \
 	   && [ -r ./lisp/simple.el ] \
-	   && [ x`(cd ./lisp; /bin/pwd)` != x`(cd ${lispdir}; /bin/pwd)` ] \
+	   && [ x`(cd ./lisp; /bin/pwd)` != x`(cd $(DESTDIR)${lispdir}; /bin/pwd)` ] \
 	   && [ x`(cd ${srcdir}/lisp; /bin/pwd)` != x`(cd ./lisp; /bin/pwd)` ]; \
 	then \
-	   echo "Copying lisp/*.el and lisp/*.elc to ${lispdir} ..." ; \
+	   echo "Copying lisp/*.el and lisp/*.elc to $(DESTDIR)${lispdir} ..." ; \
 	   (cd lisp; tar -chf - *.el *.elc) \
-	     |(cd ${lispdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
-	   (cd ${lispdir}; find . -exec chown $${LOGNAME:-$$USERNAME} {} ';') ; \
+	     |(cd $(DESTDIR)${lispdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
+	   (cd $(DESTDIR)${lispdir}; find . -exec chown $${LOGNAME:-$$USERNAME} {} ';') ; \
 	else true; fi
 	-unset CDPATH; \
 	if [ -n "${GZIP_PROG}" ]; \
 	then \
 	   echo "Compressing *.el ..." ; \
-	   (cd ${lispdir}; for f in `find . -name "*.elc" -print`; do \
+	   (cd $(DESTDIR)${lispdir}; for f in `find . -name "*.elc" -print`; do \
 		${GZIP_PROG} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
 	    done) \
 	else true; fi
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
-	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
+	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd $(DESTDIR)${infodir} && /bin/pwd)` ]; \
 	then \
-	  (cd ${infodir};  \
+	  (cd $(DESTDIR)${infodir};  \
 	   if [ -f dir ]; then true; \
 	   else	\
 	     (cd $${thisdir}; \
-	      ${INSTALL_DATA} ${srcdir}/info/dir ${infodir}/dir; \
-	      chmod a+r ${infodir}/dir); \
+	      ${INSTALL_DATA} ${srcdir}/info/dir $(DESTDIR)${infodir}/dir; \
+	      chmod a+r $(DESTDIR)${infodir}/dir); \
 	   fi; \
 	   cd ${srcdir}/info ; \
 	   for f in ada-mode* autotype* calc* ccmode* cl* dired-x* ebrowse* ediff* efaq* eintr* elisp* emacs* emacs-mime* emacs-xtra* eshell* eudc* flymake* forms* gnus* idlwave* info* message* mh-e* newsticker* org* pcl-cvs* pgg* reftex* sc* ses* sieve* speedbar* tramp* vip* widget* woman* smtpmail* url* rcirc* erc*; do \
 	     (cd $${thisdir}; \
-	      ${INSTALL_DATA} ${srcdir}/info/$$f ${infodir}/$$f; \
-	      chmod a+r ${infodir}/$$f); \
+	      ${INSTALL_DATA} ${srcdir}/info/$$f $(DESTDIR)${infodir}/$$f; \
+	      chmod a+r $(DESTDIR)${infodir}/$$f); \
 	   done); \
 	else true; fi
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
-	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
+	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd $(DESTDIR)${infodir} && /bin/pwd)` ]; \
 	then \
 	  for f in ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq elisp eintr emacs emacs-mime emacs-xtra eshell eudc flymake forms gnus idlwave info message mh-e newsticker org pcl-cvs pgg reftex sc ses sieve speedbar tramp vip viper widget woman smtpmail url rcirc erc; do \
 	    (cd $${thisdir}; \
-	     ${INSTALL_INFO} --info-dir=${infodir} ${infodir}/$$f); \
+	     ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$f); \
 	  done; \
 	else true; fi
-	-chmod -R a+r ${datadir}/emacs ${COPYDESTS} ${infodir}
+	-chmod -R a+r $(DESTDIR)${datadir}/emacs ${COPYDESTS} $(DESTDIR)${infodir}
 	thisdir=`/bin/pwd`; \
 	cd ${srcdir}/etc; \
 	for page in emacs emacsclient etags ctags ; do \
 	  (cd $${thisdir}; \
-	   ${INSTALL_DATA} ${srcdir}/etc/$${page}.1 ${man1dir}/$${page}${manext}; \
-	   chmod a+r ${man1dir}/$${page}${manext}); \
+	   ${INSTALL_DATA} ${srcdir}/etc/$${page}.1 $(DESTDIR)${man1dir}/$${page}${manext}; \
+	   chmod a+r $(DESTDIR)${man1dir}/$${page}${manext}); \
 	done
 
 ### Install LEIM files.  Although they are machine-independent, we
@@ -537,15 +537,15 @@ install-strip:
 ### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use mkinstalldirs
 ### instead of mkdir.  Not all systems' mkdir programs have the `-p' flag.
 mkdir: FRC
-	if [ -d ${datadir} ]; then true; else \
-	  $(srcdir)/mkinstalldirs ${datadir}; \
-	  chmod a+r ${datadir};\
+	if [ -d $(DESTDIR)${datadir} ]; then true; else \
+	  $(srcdir)/mkinstalldirs $(DESTDIR)${datadir}; \
+	  chmod a+r $(DESTDIR)${datadir};\
 	fi
-	$(srcdir)/mkinstalldirs ${COPYDESTS} ${infodir} ${man1dir} \
-	  ${bindir} ${docdir} ${libexecdir} \
-	  ${datadir}/emacs/site-lisp \
-	  ${datadir}/emacs/${version}/site-lisp \
-	  `echo ${locallisppath} | sed 's/:/ /g'`
+	$(srcdir)/mkinstalldirs ${COPYDESTS} $(DESTDIR)${infodir} $(DESTDIR)${man1dir} \
+	  $(DESTDIR)${bindir} $(DESTDIR)${docdir} $(DESTDIR)${libexecdir} \
+	  $(DESTDIR)${datadir}/emacs/site-lisp \
+	  $(DESTDIR)${datadir}/emacs/${version}/site-lisp \
+	  $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`
 
 ### Delete all the installed files that the `install' target would
 ### create (but not the noninstalled files such as `make all' would
@@ -558,24 +558,24 @@ uninstall:
 	    prefix=${prefix} exec_prefix=${exec_prefix}	\
 	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir})
 	-unset CDPATH; \
-	for dir in ${lispdir} ${etcdir} ; do 		\
+	for dir in $(DESTDIR)${lispdir} $(DESTDIR)${etcdir} ; do 	\
 	  if [ -d $${dir} ]; then			\
 	    case `(cd $${dir} ; /bin/pwd)` in		\
 	      `(cd ${srcdir} ; /bin/pwd)`* ) ;;		\
 	      * ) rm -rf $${dir} ;;			\
 	    esac ;					\
 	    case $${dir} in				\
-	      ${datadir}/emacs/${version}/* )		\
-	        rm -rf ${datadir}/emacs/${version}	\
+	      $(DESTDIR)${datadir}/emacs/${version}/* )		\
+	        rm -rf $(DESTDIR)${datadir}/emacs/${version}	\
 	      ;;					\
 	    esac ;					\
 	  fi ;						\
 	done
-	(cd ${archlibdir} && rm -f fns-*)
-	-rm -rf ${libexecdir}/emacs/${version}
-	(cd ${infodir} && rm -f cl* ada-mode* autotype* calc* ccmode* ebrowse* efaq* eintr elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* tramp* widget* woman* dired-x* ediff* emacs* emacs-xtra* flymake* forms* gnus* info* mh-e* newsticker* org* sc* ses* vip* smtpmail* url* rcirc* erc*)
-	(cd ${man1dir}  && rm -f emacs${manext} emacsclient${manext} etags${manext} ctags${manext})
-	(cd ${bindir}  && rm -f $(EMACSFULL) $(EMACS))
+	(cd $(DESTDIR)${archlibdir} && rm -f fns-*)
+	-rm -rf $(DESTDIR)${libexecdir}/emacs/${version}
+	(cd $(DESTDIR)${infodir} && rm -f cl* ada-mode* autotype* calc* ccmode* ebrowse* efaq* eintr elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* tramp* widget* woman* dired-x* ediff* emacs* emacs-xtra* flymake* forms* gnus* info* mh-e* newsticker* org* sc* ses* vip* smtpmail* url* rcirc* erc*)
+	(cd $(DESTDIR)${man1dir}  && rm -f emacs${manext} emacsclient${manext} etags${manext} ctags${manext})
+	(cd $(DESTDIR)${bindir}  && rm -f $(EMACSFULL) $(EMACS))
 
 
 FRC:

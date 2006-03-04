@@ -422,7 +422,7 @@ CREATE-HOOK are hooks to run after creating a frame."
 			    parameters
 			  (append
 			   parameters
-			   (list (cons 'height (+ mh (frame-height)))))))
+			   (list (cons 'height (+ (or mh 0) (frame-height)))))))
 		       (params
 			;; Only add a guessed width if one is not specified
 			;; in the input parameters.

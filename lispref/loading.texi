@@ -180,7 +180,7 @@ We now describe some technical details about the exact suffixes that
 This is a list of suffixes indicating (compiled or source) Emacs Lisp
 files.  It should not include the empty string.  @code{load} uses
 these suffixes in order when it appends Lisp suffixes to the specified
-file name.  The standard value is @code{(".elc" "el")} which produces
+file name.  The standard value is @code{(".elc" ".el")} which produces
 the behavior described in the previous section.
 @end defvar
 
@@ -206,17 +206,16 @@ try, in order, when its @var{must-suffix} argument is non-@code{nil}.
 This takes both @code{load-suffixes} and @code{load-file-rep-suffixes}
 into account.  If @code{load-suffixes}, @code{jka-compr-load-suffixes}
 and @code{load-file-rep-suffixes} all have their standard values, this
-function returns @code{(".elc" "elc.gz" ".el" ".el.gz")} if Auto
+function returns @code{(".elc" ".elc.gz" ".el" ".el.gz")} if Auto
 Compression mode is enabled and @code{(".elc" ".el")} if Auto
 Compression mode is disabled.
 @end defun
 
-To summarize, if both its @var{nosuffix} and @var{must-suffix}
-arguments are @code{nil}, @code{load} first tries the suffixes in the
-return value of @code{get-load-suffixes} and then those in
+To summarize, @code{load} normally first tries the suffixes in the
+value of @code{(get-load-suffixes)} and then those in
 @code{load-file-rep-suffixes}.  If @var{nosuffix} is non-@code{nil},
-it only tries the latter and is @var{must-suffix} is non-@code{nil},
-only the former.
+it skips the former group, and if @var{must-suffix} is non-@code{nil},
+it skips the latter group.
 
 @node Library Search
 @section Library Search
@@ -753,7 +752,7 @@ If the feature is not present, then @code{require} loads @var{filename}
 with @code{load}.  If @var{filename} is not supplied, then the name of
 the symbol @var{feature} is used as the base file name to load.
 However, in this case, @code{require} insists on finding @var{feature}
-with an added @samp{el} or @samp{.elc} suffix (possibly extended with
+with an added @samp{.el} or @samp{.elc} suffix (possibly extended with
 a compression suffix); a file whose name is just @var{feature} won't
 be used.  (The variable @code{load-suffixes} specifies the exact
 required Lisp suffixes.)

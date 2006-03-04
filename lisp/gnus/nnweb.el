@@ -27,9 +27,6 @@
 
 ;; Note: You need to have `w3' installed for some functions to work.
 
-;; FIXME: Due to changes in the HTML output of Gmane, stuff related to Gmane
-;; web groups (`gnus-group-make-web-group') doesn't work anymore.
-
 ;;; Code:
 
 (eval-when-compile (require 'cl))
@@ -82,7 +79,7 @@ Valid types include `google', `dejanews', and `gmane'.")
      (reference . identity)
      (map . nnweb-gmane-create-mapping)
      (search . nnweb-gmane-search)
-     (address . "http://gmane.org/")
+     (address . "http://search.gmane.org/nov.php")
      (identifier . nnweb-gmane-identity)))
   "Type-definition alist.")
 
@@ -99,7 +96,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (defvoo nnweb-articles nil)
 (defvoo nnweb-buffer nil)
-(defvar nnweb-group-alist nil)
+(defvoo nnweb-group-alist nil)
 (defvoo nnweb-group nil)
 (defvoo nnweb-hashtb nil)
 
@@ -309,22 +306,26 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (defun nnweb-google-wash-article ()
   ;; We have Google's masked e-mail addresses here.  :-/
-  (let ((case-fold-search t))
+  (let ((case-fold-search t)
+	(start-re "<pre>\n *")
+	(end-re "\n *</pre>"))
     (goto-char (point-min))
     (if (save-excursion
 	  (or (re-search-forward "The requested message.*could not be found."
 				 nil t)
-	      (not (and (re-search-forward "^<pre>" nil t)
-			(re-search-forward "^</pre>" nil t)))))
+	      (not (and (re-search-forward start-re nil t)
+			(re-search-forward end-re nil t)))))
 	;; FIXME: Don't know how to indicate "not found".
 	;; Should this function throw an error?  --rsteib
 	(progn
 	  (gnus-message 3 "Requested article not found")
 	  (erase-buffer))
       (delete-region (point-min)
-		     (1+ (re-search-forward "^<pre>" nil t)))
+		     (re-search-forward start-re))
       (goto-char (point-min))
-      (delete-region (- (re-search-forward "^</pre>" nil t) (length "</pre>"))
+      (delete-region (progn
+		       (re-search-forward end-re)
+		       (match-beginning 0))
 		     (point-max))
       (mm-url-decode-entities))))
 
@@ -403,6 +404,7 @@ Valid types include `google', `dejanews', and `gmane'.")
   (save-excursion
     (set-buffer nnweb-buffer)
     (erase-buffer)
+    (nnheader-message 7 "Searching google...")
     (when (funcall (nnweb-definition 'search) nnweb-search)
 	(let ((more t)
 	      (i 0))
@@ -413,15 +415,18 @@ Valid types include `google', `dejanews', and `gmane'.")
 	    (goto-char (point-min))
 	    (incf i 100)
 	    (if (or (not (re-search-forward
-			  "<td><a href=\"\n\\([^>\"]+\\)\"><img src=\"/img/nav_next" nil t))
+			  "<a href=\"\n\\([^>\"]+\\)\"><img src=\"[^\"]+next"
+			  nil t))
 		    (>= i nnweb-max-hits))
 		(setq more nil)
 	      ;; Yup, there are more articles
 	      (setq more (concat (nnweb-definition 'base) (match-string 1)))
 	    (when more
 	      (erase-buffer)
+	      (nnheader-message 7 "Searching google...(%d)" i)
 	      (mm-url-insert more))))
 	  ;; Return the articles in the right order.
+	  (nnheader-message 7 "Searching google...done")
 	  (setq nnweb-articles
 		(sort nnweb-articles 'car-less-than-car))))))
 
@@ -454,46 +459,61 @@ Valid types include `google', `dejanews', and `gmane'.")
   "Perform the search and create a number-to-url alist."
   (save-excursion
     (set-buffer nnweb-buffer)
-    (erase-buffer)
-    (when (funcall (nnweb-definition 'search) nnweb-search)
-      (let ((more t)
-	    (case-fold-search t)
-	    (active (or (cadr (assoc nnweb-group nnweb-group-alist))
-			(cons 1 0)))
-	    subject group url
-	    map)
-	  ;; Remove stuff from the beginning of results
+    (let ((case-fold-search t)
+	  (active (or (cadr (assoc nnweb-group nnweb-group-alist))
+		      (cons 1 0)))
+	  map)
+      (erase-buffer)
+      (nnheader-message 7 "Searching Gmane..." )
+      (when (funcall (nnweb-definition 'search) nnweb-search)
 	(goto-char (point-min))
-	(search-forward "Search Results</h1><ul>" nil t)
-	(delete-region (point-min) (point))
-	(goto-char (point-min))
-	;; Iterate over the actual hits
-	(while (re-search-forward ".*href=\"\\([^\"]+\\)\">\\(.*\\)" nil t)
-	    (setq url (concat "http://gmane.org/" (match-string 1)))
-	    (setq subject (match-string 2))
-	  (unless (nnweb-get-hashtb url)
-	    (push
-	     (list
-	      (incf (cdr active))
-	      (make-full-mail-header
-	       (cdr active) (concat  "(" group ") " subject) nil nil
-	       nil nil 0 0 url))
-	     map)
-	    (nnweb-set-hashtb (cadar map) (car map))))
-	;; Return the articles in the right order.
-	(setq nnweb-articles
-	      (sort (nconc nnweb-articles map) 'car-less-than-car))))))
+	;; Skip the status line
+	(forward-line 1)
+	;; Thanks to Olly Betts we now have NOV lines in our buffer!
+	(while (not (eobp))
+	  (unless (or (eolp) (looking-at "\x0d"))
+	    (let ((header (nnheader-parse-nov)))
+	      (let ((xref (mail-header-xref header))
+		    (from (mail-header-from header))
+		    (subject (mail-header-subject header))
+		    (rfc2047-encoding-type 'mime))
+		(when (string-match " \\([^:]+\\):\\([0-9]+\\)" xref)
+		  (mail-header-set-xref
+		   header
+		   (format "http://article.gmane.org/%s/%s/raw"
+			   (match-string 1 xref)
+			   (match-string 2 xref))))
+
+		;; Add host part to gmane-encrypted addresses
+		(when (string-match "@$" from)
+		  (mail-header-set-from header
+					(concat from "public.gmane.org")))
+
+		(mail-header-set-subject header
+					 (rfc2047-encode-string subject))
+
+		(unless (nnweb-get-hashtb (mail-header-xref header))
+		  (push
+		   (list
+		    (incf (cdr active))
+		    header)
+		   map)
+		  (nnweb-set-hashtb (cadar map) (car map))))))
+	  (forward-line 1)))
+      (nnheader-message 7 "Searching Gmane...done")
+      (setq nnweb-articles
+	    (sort (nconc nnweb-articles map) 'car-less-than-car)))))
 
 (defun nnweb-gmane-wash-article ()
   (let ((case-fold-search t))
     (goto-char (point-min))
-    (re-search-forward "<!--X-Head-of-Message-->" nil t)
-    (delete-region (point-min) (point))
-    (goto-char (point-min))
-    (while (looking-at "^<li><em>\\([^ ]+\\)</em>.*</li>")
-      (replace-match "\\1\\2" t)
-      (forward-line 1))
-    (mm-url-remove-markup)))
+    (when (search-forward "<!--X-Head-of-Message-->" nil t)
+      (delete-region (point-min) (point))
+      (goto-char (point-min))
+      (while (looking-at "^<li><em>\\([^ ]+\\)</em>.*</li>")
+	(replace-match "\\1\\2" t)
+	(forward-line 1))
+      (mm-url-remove-markup))))
 
 (defun nnweb-gmane-search (search)
   (mm-url-insert
@@ -501,10 +521,12 @@ Valid types include `google', `dejanews', and `gmane'.")
     (nnweb-definition 'address)
     "?"
     (mm-url-encode-www-form-urlencoded
-     `(("query" . ,search)))))
+     `(("query" . ,search)
+       ("HITSPERPAGE" . ,(number-to-string nnweb-max-hits))))))
   (setq buffer-file-name nil)
+  (set-buffer-multibyte t)
+  (mm-decode-coding-region (point-min) (point-max) 'utf-8)
   t)
-
 
 (defun nnweb-gmane-identity (url)
   "Return a unique identifier based on URL."

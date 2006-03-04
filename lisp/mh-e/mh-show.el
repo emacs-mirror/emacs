@@ -36,6 +36,9 @@
 (require 'mh-e)
 (require 'mh-scan)
 
+;; Dynamically-created function not found in mh-loaddefs.el.
+(autoload 'mh-tool-bar-init "mh-tool-bar")
+
 (require 'font-lock)
 (require 'gnus-cite)
 (require 'gnus-util)
@@ -830,6 +833,10 @@ The hook `mh-show-mode-hook' is called upon entry to this mode.
 See also `mh-folder-mode'.
 
 \\{mh-show-mode-map}"
+  (mh-do-in-gnu-emacs
+    (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map))
+  (mh-do-in-xemacs
+    (mh-tool-bar-init :show))
   (set (make-local-variable 'mail-header-separator) mh-mail-header-separator)
   (setq paragraph-start (default-value 'paragraph-start))
   (mh-show-unquote-From)
@@ -853,8 +860,6 @@ See also `mh-folder-mode'.
   (if (and mh-xemacs-flag
            font-lock-auto-fontify)
       (turn-on-font-lock))
-  (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map)
-  (mh-funcall-if-exists mh-tool-bar-init :show)
   (when mh-decode-mime-flag
     (mh-make-local-hook 'kill-buffer-hook)
     (add-hook 'kill-buffer-hook 'mh-mime-cleanup nil t))

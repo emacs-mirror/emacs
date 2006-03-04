@@ -71,17 +71,17 @@
 ;;; Known Bugs:
 
 ;; 1) Strings that are watched don't update in the speedbar when their
-;; contents change.
+;; contents change unless the first character changes.
 ;; 2) Cannot handle multiple debug sessions.
+;; 3) Initially, the assembler buffer does not display the cursor at the
+;; current line if the line is not visible in the window (but when testing
+;; gdb-assembler-custom with a lisp debugger it does!).
 
-;;; Problems with watch expressions:
+;;; Problems with watch expressions, GDB/MI:
 
 ;; 1) They go out of scope when the inferior is re-run.
-;; 2) -var-update reports that an out of scope variable has changed:
-;;    changelist=[{name="var1",in_scope="false"}], but the value can't be accessed.
-;;    (-var-list-children, in contrast allows you to create variable objects of
-;;      the children when they are out of scope and get their values).
-;; 3) VARNUM increments even when vaiable object is not created (maybe trivial).
+;; 2) -stack-list-locals has a type field but also prints type in values field.
+;; 3) VARNUM increments even when vairable object is not created (maybe trivial).
 
 ;;; TODO:
 
@@ -750,15 +750,17 @@ type=\"\\(.*?\\)\"")
 	(delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
     ;; Dummy command to update speedbar at right time.
-    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-timer-fn))
+    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-refresh))
     ;; Keep gdb-pending-triggers non-nil till end.
-    (push 'gdb-speedbar-timer gdb-pending-triggers)))
+    (push 'gdb-speedbar-refresh gdb-pending-triggers)))
 
-(defun gdb-speedbar-timer-fn ()
+(defun gdb-speedbar-refresh ()
   (setq gdb-pending-triggers
-	(delq 'gdb-speedbar-timer gdb-pending-triggers))
+	(delq 'gdb-speedbar-refresh gdb-pending-triggers))
   (with-current-buffer gud-comint-buffer
-    (speedbar-timer-fn)))
+    (let ((speedbar-verbosity-level 0))
+      (save-excursion
+	(speedbar-refresh)))))
 
 (defun gdb-var-delete ()
   "Delete watch expression at point from the speedbar."
@@ -819,9 +821,10 @@ INDENT is the current indentation depth."
 	 (dolist (var gdb-var-list)
 	   (if (string-match (concat token "\\.") (nth 1 var))
 	       (setq gdb-var-list (delq var gdb-var-list))))
-	 (setq gdb-force-update t)
-	 (with-current-buffer gud-comint-buffer
-	   (speedbar-timer-fn)))))
+	 (speedbar-change-expand-button-char ?+)
+	 (speedbar-delete-subblock indent))
+	(t (error "Ooops...  not sure what to do")))
+  (speedbar-center-buffer-smartly))
 
 (defun gdb-get-target-string ()
   (with-current-buffer gud-comint-buffer
@@ -1250,7 +1253,8 @@ sink to `user' in `gdb-stopping', that is fine."
   "An annotation handler for `post-prompt'.
 This begins the collection of output from the current command if that
 happens to be appropriate."
-  ;; Don't add to queue if there outstanding items or GDB is not known yet.
+  ;; Don't add to queue if there outstanding items or gdb-version is not known
+  ;; yet.
   (unless (or gdb-pending-triggers gdb-first-post-prompt)
     (gdb-get-selected-frame)
     (gdb-invalidate-frames)
@@ -2694,7 +2698,7 @@ This arrangement depends on the value of `gdb-many-windows'."
 
 (defun gdb-reset ()
   "Exit a debugging session cleanly.
-Kills the gdb buffers and resets the source buffers."
+Kills the gdb buffers, and resets variables and the source buffers."
   (dolist (buffer (buffer-list))
     (unless (eq buffer gud-comint-buffer)
       (with-current-buffer buffer
@@ -3144,9 +3148,9 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
    (delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
     ;; dummy command to update speedbar at right time
-    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-timer-fn))
+    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-refresh))
     ;; keep gdb-pending-triggers non-nil till end
-    (push 'gdb-speedbar-timer gdb-pending-triggers)))
+    (push 'gdb-speedbar-refresh gdb-pending-triggers)))
 
 ;; Registers buffer.
 ;;

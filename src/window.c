@@ -52,6 +52,7 @@ Boston, MA 02110-1301, USA.  */
 
 
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
+Lisp_Object Qscroll_up, Qscroll_down;
 Lisp_Object Qwindow_size_fixed;
 extern Lisp_Object Qleft_margin, Qright_margin;
 
@@ -4723,9 +4724,9 @@ window_scroll_pixel_based (window, n, whole, noerror)
   struct text_pos start;
   Lisp_Object tem;
   int this_scroll_margin;
-  int preserve_y;
   /* True if we fiddled the window vscroll field without really scrolling.   */
   int vscrolled = 0;
+  static int preserve_y = -1;
 
   SET_TEXT_POS_FROM_MARKER (start, w->start);
 
@@ -4789,9 +4790,18 @@ window_scroll_pixel_based (window, n, whole, noerror)
      point in the same window line as it is now, so get that line.  */
   if (!NILP (Vscroll_preserve_screen_position))
     {
-      start_display (&it, w, start);
-      move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
-      preserve_y = it.current_y;
+      /* We preserve the goal pixel coordinate across consecutive
+	 calls to scroll-up or scroll-down.  This avoids the
+	 possibility of point becoming "stuck" on a tall line when
+	 scrolling by one line.  */
+      if (preserve_y < 0
+	  || (current_kboard->Vlast_command != Qscroll_up
+	      && current_kboard->Vlast_command != Qscroll_down))
+	{
+	  start_display (&it, w, start);
+	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
+	  preserve_y = it.current_y;
+	}
     }
   else
     preserve_y = -1;
@@ -4928,10 +4938,9 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	{
 	  /* If we have a header line, take account of it.
 	     This is necessary because we set it.current_y to 0, above.  */
-	  if (WINDOW_WANTS_HEADER_LINE_P (w))
-	    preserve_y -= CURRENT_HEADER_LINE_HEIGHT (w);
-
-	  move_it_to (&it, -1, -1, preserve_y, -1, MOVE_TO_Y);
+	  move_it_to (&it, -1, -1,
+		      preserve_y - (WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0 ),
+		      -1, MOVE_TO_Y);
 	  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 	}
       else
@@ -4985,15 +4994,9 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	{
 	  SET_TEXT_POS_FROM_MARKER (start, w->start);
 	  start_display (&it, w, start);
-#if 0  /* It's wrong to subtract this here
-	  because we called start_display again
-	  and did not alter it.current_y this time.  */
-
-	  /* If we have a header line, take account of it.  */
-	  if (WINDOW_WANTS_HEADER_LINE_P (w))
-	    preserve_y -= CURRENT_HEADER_LINE_HEIGHT (w);
-#endif
-
+	  /* It would be wrong to subtract CURRENT_HEADER_LINE_HEIGHT
+	     here because we called start_display again and did not
+	     alter it.current_y this time.  */
 	  move_it_to (&it, -1, -1, preserve_y, -1, MOVE_TO_Y);
 	  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 	}
@@ -6990,6 +6993,12 @@ init_window ()
 void
 syms_of_window ()
 {
+  Qscroll_up = intern ("scroll-up");
+  staticpro (&Qscroll_up);
+
+  Qscroll_down = intern ("scroll-down");
+  staticpro (&Qscroll_down);
+
   Qwindow_size_fixed = intern ("window-size-fixed");
   staticpro (&Qwindow_size_fixed);
   Fset (Qwindow_size_fixed, Qnil);

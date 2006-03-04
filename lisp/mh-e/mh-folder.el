@@ -36,8 +36,9 @@
 (require 'mh-scan)
 (mh-require-cl)
 
-;; Dynamically-created function not found in mh-loaddefs.el.
+;; Dynamically-created functions not found in mh-loaddefs.el.
 (autoload 'mh-tool-bar-folder-buttons-init "mh-tool-bar")
+(autoload 'mh-tool-bar-init "mh-tool-bar")
 
 (require 'gnus-util)
 (autoload 'message-fetch-field "message")
@@ -589,9 +590,16 @@ perform the operation on all messages in that region.
 
 \\{mh-folder-mode-map}"
   (mh-do-in-gnu-emacs
-   (unless mh-folder-buttons-init-flag
-     (mh-tool-bar-folder-buttons-init)
-     (setq mh-folder-buttons-init-flag t)))
+    (unless mh-folder-buttons-init-flag
+      (let ((load-path (mh-image-load-path-for-library
+                        "mh-e" "mh-logo.xpm" 'load-path))
+            (image-load-path (mh-image-load-path-for-library
+                              "mh-e" "mh-logo.xpm" 'image-load-path)))
+        (mh-tool-bar-folder-buttons-init)
+        (setq mh-folder-buttons-init-flag t)))
+    (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map))
+  (mh-do-in-xemacs
+    (mh-tool-bar-init :folder))
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mh-folder-font-lock-keywords t))
   (make-local-variable 'desktop-save-buffer)
@@ -652,8 +660,6 @@ perform the operation on all messages in that region.
   (easy-menu-add mh-folder-message-menu)
   (easy-menu-add mh-folder-folder-menu)
   (mh-inc-spool-make)
-  (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map)
-  (mh-funcall-if-exists mh-tool-bar-init :folder)
   (mh-set-help mh-folder-mode-help-messages)
   (if (and mh-xemacs-flag
            font-lock-auto-fontify)

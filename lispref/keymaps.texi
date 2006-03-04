@@ -2498,6 +2498,15 @@ This variable specifies the shadow width for tool bar items.
 The value is an integer, a number of pixels.  The default is 1.
 @end defvar
 
+@tindex tool-bar-border
+@defvar tool-bar-border
+This variable specifies the height of the border drawn below the tool
+bar area.  An integer value specifies height as a number of pixels.
+If the value is one of @code{internal-border-width} (the default) or
+@code{border-width}, the tool bar border height corresponds to the
+corresponding frame parameter.
+@end defvar
+
   You can define a special meaning for clicking on a tool bar item with
 the shift, control, meta, etc., modifiers.  You do this by setting up
 additional items that relate to the original item through the fake
