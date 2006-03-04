@@ -49,18 +49,15 @@
 
 2006-03-03  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el: Restablished intermediate missing comment header to
+	* allout.el: Restablish intermediate missing comment header to
 	preserve outline structure.
-	(allout-beginning-of-current-entry): Wasn't skipping invisible
-	text - fixed.
-	(allout-open-topic): Was failing when opening a topic at
-	end-of-buffer - fixed.
-	(allout-minor-mode): Moved nearer to allout-mode function.
+	(allout-beginning-of-current-entry): Skip invisible text.
+	(allout-open-topic): Fix opening a topic at end-of-buffer.
+	(allout-minor-mode): Move nearer to allout-mode function.
 
 2006-03-02  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-paste-subtree): Removed forgotten (debug)
-	form.
+	* textmodes/org.el (org-paste-subtree): Remove (debug) form.
 
 2006-03-02  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -70,16 +67,14 @@
 	* progmodes/gud.el (gud-speedbar-menu-items): Use
 	buffer-local-value and add missing :visible keyword.
 
-	* progmodes/gdb-ui.el (gdb-speedbar-refresh): Quieten
-	speedbar-refresh.
+	* progmodes/gdb-ui.el (gdb-speedbar-refresh): Quieten speedbar-refresh.
 
 2006-03-01  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/reftex-index.el (reftex-index-map): `follow-mouse'
 	must be `follow-link'.
 
-	* textmodes/reftex-toc.el (reftex-toc-map): `follow-mouse' must be
-	`follow-link'.
+	* textmodes/reftex-toc.el (reftex-toc-map): Likewise.
 
 	* textmodes/org.el (org-export-as-html): Fix bugs in HTML
 	formatting: No nested anchors.
@@ -104,8 +99,7 @@
 	preserve window-start.
 	(speedbar-update-directory-contents): Try to preserve window-start
 	and window-point.
-	(speedbar-update-special-contents): Don't move back to start of
-	window.
+	(speedbar-update-special-contents): Don't move back to start of	window.
 
 	* progmodes/gdb-ui.el (gdb-speedbar-refresh): Rename from
 	gdb-speedbar-timer-fn.  Use speedbar-refresh instead of
