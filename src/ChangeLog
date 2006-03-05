@@ -1,3 +1,7 @@
+2006-03-05  Andreas Schwab  <schwab@suse.de>
+
+	* xselect.c (x_catch_errors_unwind): Fix missing return value.
+
 2006-03-02  Kim F. Storm  <storm@cua.dk>
 
 	* frame.h (struct frame): New member n_tool_bar_rows.
