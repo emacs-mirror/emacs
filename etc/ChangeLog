@@ -1,3 +1,9 @@
+2006-03-05  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 7.93.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 7.93.
+
 2006-02-23  Herbert Euler  <herberteuler@hotmail.com>  (tiny change)
 
 	* TUTORIAL.cn: Fix omission bug: Add dot (ASCII 0x2E) on first line.
