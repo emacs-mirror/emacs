@@ -1,5 +1,11 @@
 2006-03-05  Bill Wohler  <wohler@newt.com>
 
+	Release MH-E version 7.93.
+
+	* mh-e.el (Version, mh-version): Update for release 7.93.
+	
+2006-03-05  Bill Wohler  <wohler@newt.com>
+
 	* mh-folder.el (mh-folder-mode): Drop 'load-path argument when
 	calling mh-image-load-path-for-library since this is the default.
 
