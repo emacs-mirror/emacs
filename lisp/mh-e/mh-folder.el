@@ -591,8 +591,7 @@ perform the operation on all messages in that region.
 \\{mh-folder-mode-map}"
   (mh-do-in-gnu-emacs
     (unless mh-folder-buttons-init-flag
-      (let ((load-path (mh-image-load-path-for-library
-                        "mh-e" "mh-logo.xpm" 'load-path))
+      (let ((load-path (mh-image-load-path-for-library "mh-e" "mh-logo.xpm"))
             (image-load-path (mh-image-load-path-for-library
                               "mh-e" "mh-logo.xpm" 'image-load-path)))
         (mh-tool-bar-folder-buttons-init)
