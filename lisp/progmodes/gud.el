@@ -3372,7 +3372,7 @@ For C this would dereference a pointer expression.")
   "The mouse movement event that led to a tooltip display.
 This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
 
-(defun gud-tooltip-dereference ()
+(defun gud-tooltip-dereference (&optional arg)
   "Toggle whether tooltips should show `* expr' or `expr'.
 With arg, dereference expr iff arg is positive."
  (interactive "P")
