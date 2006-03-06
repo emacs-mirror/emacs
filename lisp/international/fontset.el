@@ -676,7 +676,8 @@ which case, the corresponding script is decided by the variable
 	(error "Fontset name \"%s\" not conforming to XLFD" name))
 
     ;; At first, extract pairs of charset and fontname from FONTSET-SPEC.
-    (while (string-match "[, \t\n]*\\([^:]+\\):\\([^,]+\\)" fontset-spec idx)
+    (while (string-match "[, \t\n]*\\([^:]+\\):[ \t]*\\([^,]+\\)" 
+			 fontset-spec idx)
       (setq idx (match-end 0))
       (setq target (intern (match-string 1 fontset-spec)))
       (cond ((or (eq target 'ascii)
@@ -746,6 +747,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 	fontset-spec)
     (while (setq fontset-spec (x-get-resource (format "fontset-%d" idx)
 					      (format "Fontset-%d" idx)))
+      (message "%s" fontset-spec)
       (create-fontset-from-fontset-spec fontset-spec t 'noerror)
       (setq idx (1+ idx)))))
 
