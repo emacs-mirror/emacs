@@ -1,3 +1,7 @@
+2006-03-06  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (Version, mh-version): Add +cvs to version.
+
 2006-03-05  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-search.el (mh-index-update-single-msg): Fix a bug in the
