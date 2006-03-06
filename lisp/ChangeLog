@@ -24,7 +24,7 @@
 	* textmodes/flyspell.el (flyspell-process-localwords): Be
 	case-sensitive.
 
-2006-03-03  Martin Rudalics  <rudalics@gmx.at>x
+2006-03-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* cus-edit.el (custom-quote): Remove function, since it has been
 	moved to custom.el.
