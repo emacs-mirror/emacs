@@ -1,3 +1,8 @@
+2006-03-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/gud.el (gud-jdb-marker-filter): Double quote `[' in
+	regexp for Lisp syntax.
+
 2006-03-04  John Paul Wallington  <jpw@pobox.com>
 
 	* wdired.el (toplevel): Require `cl' at compile-time.
@@ -19,7 +24,7 @@
 	* textmodes/flyspell.el (flyspell-process-localwords): Be
 	case-sensitive.
 
-2006-03-03  Martin Rudalics  <rudalics@gmx.at>
+2006-03-03  Martin Rudalics  <rudalics@gmx.at>x
 
 	* cus-edit.el (custom-quote): Remove function, since it has been
 	moved to custom.el.
