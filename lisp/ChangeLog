@@ -1,8 +1,15 @@
+2006-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.el (describe-key): Properly handle the return value of
+	read-key-sequence when grabbing an up-event.  Cleanup mouse-1
+	remaps.
+
 2006-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* complete.el (PC-expand-many-files): Try be more careful when parsing
 	the shell's output.
 
+>>>>>>> 1.9228
 2006-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* outline.el (hide-sublevels): Provide better interactive default.
