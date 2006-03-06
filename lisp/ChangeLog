@@ -9,7 +9,6 @@
 	* complete.el (PC-expand-many-files): Try be more careful when parsing
 	the shell's output.
 
->>>>>>> 1.9228
 2006-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* outline.el (hide-sublevels): Provide better interactive default.
