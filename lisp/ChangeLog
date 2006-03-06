@@ -9,8 +9,8 @@
 
 2006-03-05  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* progmodes/gud.el (gud-jdb-marker-filter): Double quote `[' in
-	regexp for Lisp syntax.
+	* progmodes/gud.el (gud-jdb-marker-filter): Quote `[' with two
+	backslashes instead of one in regexp.
 	(gud-tooltip-dereference): Add missing optional argument.
 
 2006-03-04  John Paul Wallington  <jpw@pobox.com>
