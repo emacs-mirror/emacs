@@ -1,3 +1,9 @@
+2006-03-05  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-search.el (mh-index-update-single-msg): Fix a bug in the
+	handling of duplicate messages.  The test in cond was too strong
+	and wasn't catching the case where origin-map was nil.
+
 2006-03-05  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 7.93.

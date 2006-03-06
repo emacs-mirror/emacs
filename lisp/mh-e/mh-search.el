@@ -1907,21 +1907,23 @@ copied from. The function updates the hash tables
 
 This function should only be called in the appropriate index
 folder buffer."
-  (cond ((and origin-map (gethash checksum mh-index-checksum-origin-map))
-         (let* ((intermediate (gethash msg origin-map))
-                (ofolder (car intermediate))
-                (omsg (cdr intermediate)))
-           ;; This is most probably a duplicate. So eliminate it.
-           (call-process "rm" nil nil nil
-                         (format "%s%s/%s" mh-user-path
-                                 (substring mh-current-folder 1) msg))
-           (when (gethash ofolder mh-index-data)
-             (remhash omsg (gethash ofolder mh-index-data)))))
+  (cond ((gethash checksum mh-index-checksum-origin-map)
+         (when origin-map
+           (let* ((intermediate (gethash msg origin-map))
+                  (ofolder (car intermediate))
+                  (omsg (cdr intermediate)))
+             ;; This is most probably a duplicate. So eliminate it.
+             (call-process "rm" nil nil nil
+                           (format "%s%s/%s" mh-user-path
+                                   (substring mh-current-folder 1) msg))
+             (when (gethash ofolder mh-index-data)
+               (remhash omsg (gethash ofolder mh-index-data))))))
         (t
          (setf (gethash msg mh-index-msg-checksum-map) checksum)
-         (when origin-map
+         (when (and origin-map (gethash msg origin-map))
            (setf (gethash checksum mh-index-checksum-origin-map)
                  (gethash msg origin-map))))))
+
 
 (provide 'mh-search)
 
