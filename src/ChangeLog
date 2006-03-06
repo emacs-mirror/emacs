@@ -1,3 +1,25 @@
+2006-03-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.h (MAC_AQUA_VERTICAL_SCROLL_BAR_WIDTH)
+	(MAC_AQUA_SMALL_VERTICAL_SCROLL_BAR_WIDTH): New defines.
+
+	* macfns.c (x_default_scroll_bar_color_parameter)
+	(x_set_scroll_bar_foreground, x_set_scroll_bar_background): Remove
+	unnecessary prototypes.
+	(x_set_scroll_bar_default_width): Use
+	MAC_AQUA_VERTICAL_SCROLL_BAR_WIDTH.
+	(mac_set_scroll_bar_width): New function.
+	(mac_frame_parm_handlers): Set it as handler for scroll-bar-width.
+
+	* macterm.c (get_control_part_bounds): Fix type of return value.
+	(x_set_toolkit_scroll_bar_thumb, x_scroll_bar_create)
+	(XTset_vertical_scroll_bar) [USE_TOOLKIT_SCROLL_BARS]: Don't show
+	scroll bar if it is not tall enough to display scroll bar thumb.
+	[USE_CARBON_EVENTS] (mac_convert_event_ref)
+	(mac_handle_command_event, mac_handle_window_event)
+	(mac_handle_mouse_event): Check error code of GetEventParameter.
+	(convert_fn_keycode) [MAC_OSX]: Likewise.
+	
 2006-03-05  Andreas Schwab  <schwab@suse.de>
 
 	* xselect.c (x_catch_errors_unwind): Fix missing return value.
