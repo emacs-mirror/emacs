@@ -2,6 +2,7 @@
 
 	* progmodes/gud.el (gud-jdb-marker-filter): Double quote `[' in
 	regexp for Lisp syntax.
+	(gud-tooltip-dereference): Add missing optional argument.
 
 2006-03-04  John Paul Wallington  <jpw@pobox.com>
 
