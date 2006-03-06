@@ -1,3 +1,8 @@
+2006-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (handle_invisible_prop): Don't update it->position with
+	a buffer position if we're in a display string.
+
 2006-03-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.h (MAC_AQUA_VERTICAL_SCROLL_BAR_WIDTH)
