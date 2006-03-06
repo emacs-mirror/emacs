@@ -2,7 +2,7 @@
 
 	* help.el (describe-key): Properly handle the return value of
 	read-key-sequence when grabbing an up-event.  Cleanup mouse-1
-	remaps.
+	remaps.  Handle string and vector `follow-link' values.
 
 2006-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 

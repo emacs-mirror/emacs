@@ -710,19 +710,26 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	    (when up-event
 	      (let ((type (event-basic-type up-event))
 		    (hdr "\n\n-------------- up event ---------------\n\n")
-		    defn
+		    defn sequence
 		    mouse-1-tricky mouse-1-remapped)
+		(setq sequence (vector up-event))
 		(when (and (eq type 'mouse-1)
 			   (windowp window)
 			   mouse-1-click-follows-link
 			   (not (eq mouse-1-click-follows-link 'double))
-			   (with-current-buffer (window-buffer window)
-			     (mouse-on-link-p (posn-point (event-start up-event)))))
-		  (setq mouse-1-remapped t)
+			   (setq mouse-1-remapped
+				 (with-current-buffer (window-buffer window)
+				   (mouse-on-link-p (posn-point
+						     (event-start up-event))))))
 		  (setq mouse-1-tricky (and (integerp mouse-1-click-follows-link)
 					    (> mouse-1-click-follows-link 0)))
-		  (setcar up-event 'mouse-2))
-		(setq defn (key-binding (vector up-event)))
+		  (cond ((stringp mouse-1-remapped)
+			 (setq sequence mouse-1-remapped))
+			((vectorp mouse-1-remapped)
+			 (setcar up-event (elt mouse-1-remapped 0)))
+			(t (setcar up-event 'mouse-2))))
+		(setq defn (or (string-key-binding sequence)
+			       (key-binding sequence)))
 		(unless (or (null defn) (integerp defn) (equal defn 'undefined))
 		  (princ (if mouse-1-tricky
 			     "\n\n----------------- up-event (short click) ----------------\n\n"
@@ -739,7 +746,8 @@ temporarily enables it to allow getting help on disabled items and buttons."
 		  (describe-function-1 defn))
 		(when mouse-1-tricky
 		  (setcar up-event 'mouse-1)
-		  (setq defn (key-binding (vector up-event)))
+		  (setq defn (or (string-key-binding (vector up-event))
+				 (key-binding (vector up-event))))
 		  (unless (or (null defn) (integerp defn) (eq defn 'undefined))
 		    (princ (or hdr
 			       "\n\n----------------- up-event (long click) ----------------\n\n"))
