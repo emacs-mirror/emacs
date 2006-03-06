@@ -26309,6 +26309,11 @@ Decoding format=flowed was present but not documented in earlier
 versions.
 
 @item
+The option @code{mm-fill-flowed} can be used to disable treatment of
+``format=flowed'' messages.  Also, flowed text is disabled when sending
+inline PGP signed messages.  (New in Gnus 5.10.7)
+
+@item
 Gnus supports the generation of RFC 2298 Disposition Notification requests.
 
 This is invoked with the @kbd{C-c M-n} key binding from message mode.
