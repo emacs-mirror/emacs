@@ -653,7 +653,6 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	     (setq saved-yank-menu (copy-sequence yank-menu))
 	     (menu-bar-update-yank-menu "(any string)" nil))
 	   (setq key (read-key-sequence "Describe key (or click or menu item): "))
-	   (setq foo key)
 	   (list
 	    key
 	    (prefix-numeric-value current-prefix-arg)
@@ -706,7 +705,6 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	    (prin1 defn)
 	    (princ "\n   which is ")
 	    (describe-function-1 defn)
-	    (setq foo up-event)
 	    (when up-event
 	      (let ((type (event-basic-type up-event))
 		    (hdr "\n\n-------------- up event ---------------\n\n")
