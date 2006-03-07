@@ -1,3 +1,7 @@
+2006-03-07  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version number change only.
+
 2006-03-06  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi: Move from SourceForge repository to Savannah. This is

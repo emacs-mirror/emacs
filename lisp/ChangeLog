@@ -1,3 +1,24 @@
+2006-03-07  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: Move defvars out of eval-when-compile.  Use
+	buffer-file-name variable.
+	(org-agenda-file-to-end, org-agenda-file-to-front): Remove unused
+	arg `file'.
+	(org-level-faces): Remove startup dependency.
+	(org-cycle, org-map-tree, org-scan-tags)
+	(org-remember-handler): Don't call `outline-level' directly.
+	(org-mhe-search-all-folders): New option.
+	(org-mhe-get-message-folder-from-index,
+	org-mhe-get-message-folder): Fix indexing search.
+	(org-format-agenda-item): Handle nil TAGS argument.
+	(org-cleaned-string-for-export, org-activate-target-links)
+	(org-make-target-link-regexp): Deal with empty radio target list.
+	(org-tag): New face.
+	(org-get-level-face): New function.
+	(org-set-font-lock-defaults): Simplify setup for headlines.
+	(org-complete): Pass common substring to
+	`display-completion-list'.
+
 2006-03-06  David Ponce  <david@dponce.com>
 
 	* tree-widget.el: Update Commentary header.
