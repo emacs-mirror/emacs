@@ -1,3 +1,10 @@
+2006-03-07  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (DECODE_COMPOSITION_START): If the source is short, set
+	coding->result to CODING_RESULT_INSUFFICIENT_SRC.
+	(decode_coding_gap): Set CODING_MODE_LAST_BLOCK after the call of
+	detect_coding.
+
 2006-03-04  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encode_coding_ccl): Allocate destination dynamically
