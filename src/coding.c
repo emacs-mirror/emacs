@@ -2808,8 +2808,10 @@ detect_coding_iso_2022 (coding, detect_info)
 	    break;							\
 	if (p == src_end - 1)						\
 	  {								\
-	    if (coding->mode & CODING_MODE_LAST_BLOCK)			\
-	      goto invalid_code;					\
+	    /* The current composition doesn't end in the current	\
+	       source.  */						\
+	    record_conversion_result					\
+	      (coding, CODING_RESULT_INSUFFICIENT_SRC);			\
 	    goto no_more_source;					\
 	  }								\
 									\
@@ -6654,11 +6656,11 @@ decode_coding_gap (coding, chars, bytes)
   coding->dst_pos = PT;
   coding->dst_pos_byte = PT_BYTE;
   coding->dst_multibyte = ! NILP (current_buffer->enable_multibyte_characters);
-  coding->mode |= CODING_MODE_LAST_BLOCK;
 
   if (CODING_REQUIRE_DETECTION (coding))
     detect_coding (coding);
 
+  coding->mode |= CODING_MODE_LAST_BLOCK;
   decode_coding (coding);
 
   attrs = CODING_ID_ATTRS (coding->id);
