@@ -4,6 +4,12 @@
 	coding->result to CODING_RESULT_INSUFFICIENT_SRC.
 	(decode_coding_gap): Set CODING_MODE_LAST_BLOCK after the call of
 	detect_coding.
+	(emacs_mule_char): Handle old style (Emacs 20) component character
+	of a composition.
+	(DECODE_EMACS_MULE_COMPOSITION_RULE_20): Fix parsing a composition
+	rule.
+	(DECODE_EMACS_MULE_20_RULEBASE_COMPOSITION): Likewise.
+	(decode_coding_emacs_mule): Handle invalid bytes correctly.
 
 2006-03-04  Kenichi Handa  <handa@m17n.org>
 
