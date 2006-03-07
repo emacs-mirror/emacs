@@ -493,11 +493,15 @@ required by the caller."
 		       'bracket char
 		       'gdb-speedbar-expand-node varnum
 		       (concat expr "\t" type "\t" value)
-		       (if (or parent status)
+		       (if (or parent (eq status 'out-of-scope))
 			 nil 'gdb-edit-value)
 		       nil
-		       (if (and (or parent (eq status 'out-of-scope))
-				gdb-show-changed-values) 'shadow t)
+		       (if gdb-show-changed-values
+			   (or parent (case status
+					    (changed 'font-lock-warning-face)
+					    (out-of-scope 'shadow)
+					    (t t)))
+			 t)
 		       depth)
 		    (speedbar-make-tag-line
 		     'bracket char
