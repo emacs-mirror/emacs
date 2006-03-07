@@ -1446,13 +1446,13 @@ Each element must be one of the names listed in the variable
 
 (defun ctext-non-standard-encodings-table ()
   (let (table)
-    ;; Setup charsets specified in `ctext-non-standard-encodings' and
-    ;; by the key `ctext-non-standard-encodings' for the current
-    ;; language environment.
+    ;; Setup charsets specified by the key
+    ;; `ctext-non-standard-encodings' for the current language
+    ;; environment and in `ctext-non-standard-encodings'.
     (dolist (encoding (append
-			ctext-non-standard-encodings
 			(get-language-info current-language-environment
-					   'ctext-non-standard-encodings)))
+					   'ctext-non-standard-encodings)
+			ctext-non-standard-encodings))
       (let* ((slot (assoc encoding ctext-non-standard-encodings-alist))
 	     (charset (nth 3 slot)))
 	(if (charsetp charset)
@@ -1469,7 +1469,11 @@ Each element must be one of the names listed in the variable
 		 (not (eq charset 'ascii))
 		 (not (string-match "cns11643" (symbol-name charset))))
 	    (push (cons charset nil) table))))
-    table))
+
+    ;; Returned reversed list so that the charsets specified by the
+    ;; key `ctext-non-standard-encodings' for the current language
+    ;; have the highest priority.
+    (nreverse table)))
 
 (defun ctext-pre-write-conversion (from to)
   "Encode characters between FROM and TO as Compound Text w/Extended Segments.
@@ -1528,7 +1532,8 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
 			 (insert (format "\e%%/%d" noctets))
 			 (insert-byte (+ (/ len 128) 128) 1)
 			 (insert-byte (+ (% len 128) 128) 1)
-			 (insert encoding-name))))
+			 (insert encoding-name)
+			 (insert 2))))
 		    ((eq last-encoding-info 'utf-8)
 		     ;; Encode the previous range using UTF-8 encoding
 		     ;; extention.
