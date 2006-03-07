@@ -124,7 +124,8 @@ request.")
            (unwind-protect
                (let ((proc (url-open-stream host buf host port)))
                  ;; Drop the temp buffer link before killing the buffer.
-                 (set-process-buffer proc nil))
+                 (set-process-buffer proc nil)
+                 proc)
              (kill-buffer buf)))))))
 
 ;; Building an HTTP request
