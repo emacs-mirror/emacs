@@ -1,3 +1,11 @@
+2006-03-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-buttons): Allow pointers to
+	be edited and use font-lock-warning-face for any changes.
+
+	* progmodes/gdb-ui.el (gdb-edit-value-handler): New function.
+	(gdb-edit-value): Use it to report any errors.
+
 2006-03-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help.el (describe-key): Remove leftover test code.
