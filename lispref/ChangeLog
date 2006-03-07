@@ -1,3 +1,12 @@
+2006-03-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* searching.texi (Syntax of Regexps): More accurately describe
+	which characters are special in which situations.
+	(Regexp Special): Recommend _not_ to quote `]' or `-' when they
+	are not special.  Describe in detail when `[' and `]' are special.
+	(Regexp Backslash): Plenty of regexps with unbalanced square
+	brackets are valid, so reword that statement.
+
 2006-03-02  Kim F. Storm  <storm@cua.dk>
 
 	* keymaps.texi (Tool Bar): Add tool-bar-border.
