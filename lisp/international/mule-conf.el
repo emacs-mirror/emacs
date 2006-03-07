@@ -1353,7 +1353,7 @@ This coding system does not support extended segments of CTEXT."
   :mnemonic ?x
   :charset-list 'iso-2022
   :designation [(ascii 94) (latin-iso8859-1 katakana-jisx0201 96) nil nil]
-  :flags '(ascii-at-eol ascii-at-cntl
+  :flags '(ascii-at-eol ascii-at-cntl long-form
 			designation locking-shift single-shift composition)
   ;; Fixme: this isn't a valid MIME charset and has to be
   ;; special-cased elsewhere  -- fx
@@ -1390,7 +1390,7 @@ for decoding and encoding files, process I/O, etc."
   :mnemonic ?x
   :charset-list 'iso-2022
   :designation [(ascii 94) (latin-iso8859-1 katakana-jisx0201 96) nil nil]
-  :flags '(ascii-at-eol ascii-at-cntl
+  :flags '(ascii-at-eol ascii-at-cntl long-form
 			designation locking-shift single-shift)
   :post-read-conversion 'ctext-post-read-conversion
   :pre-write-conversion 'ctext-pre-write-conversion)
