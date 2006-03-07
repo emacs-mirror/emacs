@@ -1,3 +1,25 @@
+2006-03-06  David Ponce  <david@dponce.com>
+
+	* tree-widget.el: Update Commentary header.
+	(tree-widget-theme-name): Ignore parent themes.
+	(tree-widget-set-parent-theme): New function.
+	(tree-widget-set-theme): Use it.
+	(tree-widget-set-image-properties): Move definition.  Does nothing
+	if image properties have already been set.
+	(tree-widget-image-properties): Move definition.  Receive an image
+	name.  Set the :pointer property.
+	(tree-widget-lookup-image): Doc fix.  Search in parent themes.
+	Don't set the :pointer image property.
+	(tree-widget-convert-widget): New function.  Handle :dynargs
+	compatibility here.
+	(tree-widget): Use it to :convert-widget.  Add the :expander-p
+	predicate to control when the :expander function is entered.
+	Thanks to Ken Manheimer <ken.manheimer@gmail.com> for the idea.
+	(tree-widget-value-create): Handle :expander-p.  widget-apply
+	:expander.
+	(tree-widget-expander-p): New function.  Default value of the
+	:expander-p property.
+
 2006-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help.el (describe-key): Properly handle the return value of
