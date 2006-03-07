@@ -1,3 +1,9 @@
+2006-03-06  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi: Move from SourceForge repository to Savannah. This is
+	version 7.93, which is a total rewrite from the previous edition
+	1.3 for MH-E version 5.0.2, and corresponds to MH-E version 7.93.
+
 2006-03-03  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Oort Gnus): Add `mm-fill-flowed'.
