@@ -1,3 +1,7 @@
+2006-03-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (describe-key): Remove leftover test code.
+
 2006-03-07  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: Move defvars out of eval-when-compile.  Use
@@ -8,8 +12,8 @@
 	(org-cycle, org-map-tree, org-scan-tags)
 	(org-remember-handler): Don't call `outline-level' directly.
 	(org-mhe-search-all-folders): New option.
-	(org-mhe-get-message-folder-from-index,
-	org-mhe-get-message-folder): Fix indexing search.
+	(org-mhe-get-message-folder-from-index)
+	(org-mhe-get-message-folder): Fix indexing search.
 	(org-format-agenda-item): Handle nil TAGS argument.
 	(org-cleaned-string-for-export, org-activate-target-links)
 	(org-make-target-link-regexp): Deal with empty radio target list.
