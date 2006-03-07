@@ -1702,6 +1702,18 @@ emacs_mule_char (coding, src, nbytes, nchars, id)
     }
   else
     {
+      if (c >= 0xA0)
+	{
+	  /* Old style component character of a compostion.  */
+	  if (c == 0xA0)
+	    {
+	      ONE_MORE_BYTE (c);
+	      c -= 0x80;
+	    }
+	  else
+	    c -= 0x20;
+	}
+
       switch (emacs_mule_bytes[c])
 	{
 	case 2:
@@ -1912,7 +1924,7 @@ detect_coding_emacs_mule (coding, detect_info)
     if (src >= src_end)					\
       goto invalid_code;				\
     ONE_MORE_BYTE_NO_CHECK (c);				\
-    c -= 0x20;						\
+    c -= 0xA0;						\
     if (c < 0 || c >= 81)				\
       goto invalid_code;				\
 							\
@@ -2010,23 +2022,28 @@ detect_coding_emacs_mule (coding, detect_info)
     /* Emacs 20 style format for rule-base composition.  */	\
     /* Store multibyte form of characters to be composed.  */	\
     enum composition_method method = COMPOSITION_WITH_RULE;	\
+    int *charbuf_base = charbuf;				\
     int components[MAX_COMPOSITION_COMPONENTS * 2 - 1];		\
     int *buf = components;					\
     int i, j;							\
-								\
+    								\
     DECODE_EMACS_MULE_COMPOSITION_CHAR (buf);			\
-    for (i = 0; i < MAX_COMPOSITION_COMPONENTS; i++)		\
+    for (i = 1; i < MAX_COMPOSITION_COMPONENTS; i++)		\
       {								\
+	if (*src < 0xA0)					\
+	  break;						\
 	DECODE_EMACS_MULE_COMPOSITION_RULE_20 (buf);		\
 	DECODE_EMACS_MULE_COMPOSITION_CHAR (buf);		\
       }								\
-    if (i < 1 || (buf - components) % 2 == 0)			\
+    if (i <= 1 || (buf - components) % 2 == 0)			\
       goto invalid_code;					\
-    if (charbuf + i + (i / 2) + 1 < charbuf_end)		\
+    if (charbuf + i + (i / 2) + 1 >= charbuf_end)		\
       goto no_more_source;					\
-    ADD_COMPOSITION_DATA (buf, i, method);			\
+    ADD_COMPOSITION_DATA (charbuf, i, method);			\
+    i = i * 2 - 1;						\
     for (j = 0; j < i; j++)					\
       *charbuf++ = components[j];				\
+    charbuf_base[0] -= i;					\
     for (j = 0; j < i; j += 2)					\
       *charbuf++ = components[j];				\
   } while (0)
@@ -2113,6 +2130,8 @@ decode_coding_emacs_mule (coding)
 	  consumed_chars += nchars;
 	  char_offset++;
 	}
+      else
+	goto invalid_code;
       continue;
 
     invalid_code:
