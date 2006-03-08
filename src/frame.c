@@ -766,9 +766,12 @@ affects all frames on the same terminal device.  */)
   Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty_type,
                                                  build_string (t->display_info.tty->type)),
                                           Qnil));
-  Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty,
-                                                 build_string (t->display_info.tty->name)),
-                                          Qnil));
+  if (t->display_info.tty->name != NULL)
+    Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty,
+                                                   build_string (t->display_info.tty->name)),
+                                            Qnil));
+  else
+    Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty, Qnil), Qnil));
   
   /* Make the frame face alist be frame-specific, so that each
      frame could change its face definitions independently.  */
