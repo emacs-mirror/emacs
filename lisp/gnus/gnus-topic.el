@@ -585,6 +585,11 @@ articles in the topic and its subtopics."
        (not (eq (nth 2 type) 'hidden))
        level all-entries unread))
     (gnus-topic-update-unreads (car type) unread)
+    (when gnus-group-update-tool-bar
+      (gnus-put-text-property beg end 'point-entered
+			      'gnus-tool-bar-update)
+      (gnus-put-text-property beg end 'point-left
+			      'gnus-tool-bar-update))
     (goto-char end)
     unread))
 

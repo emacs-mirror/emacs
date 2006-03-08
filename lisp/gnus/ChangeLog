@@ -1,3 +1,12 @@
+2006-03-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-util.el (gnus-tool-bar-update): New function.
+
+	* gnus-group.el (gnus-group-update-tool-bar): New variable.
+	(gnus-group-insert-group-line): Add gnus-tool-bar-update.
+
+	* gnus-topic.el (gnus-topic-prepare-topic): Add gnus-tool-bar-update.
+
 2006-03-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-view.el (mm-w3m-cid-retrieve-1): Check carefully whether
