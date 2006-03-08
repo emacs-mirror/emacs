@@ -1,3 +1,18 @@
+2006-03-08  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (ctext-pre-write-conversion): Produce
+	extra designation sequence for ASCII at the end off extended
+	segment.
+
+2006-03-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (ctext-non-standard-encodings-table):
+	Reverse the returning list.
+	(ctext-pre-write-conversion): Fix encoding with extended segments.
+
+	* international/mule-conf.el (compound-text)
+	(compound-text-with-extensions): Add long-form in :flags.
+
 2006-03-06  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (create-fontset-from-fontset-spec): Fix
