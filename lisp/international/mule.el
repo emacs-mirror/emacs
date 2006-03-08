@@ -1527,6 +1527,11 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
 		       (encode-coding-region last-pos (point) coding-system)
 		       (setq len (+ (length encoding-name) 1
 				    (- (point) last-pos)))
+		       ;; According to the spec of CTEXT, it is not
+		       ;; necessary to produding this extra
+		       ;; designation sequence, but some buggy
+		       ;; application (e.g. crxvt-gb) requires it.
+		       (insert "\e(B")
 		       (save-excursion
 			 (goto-char last-pos)
 			 (insert (format "\e%%/%d" noctets))
