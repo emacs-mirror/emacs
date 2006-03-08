@@ -429,8 +429,9 @@ To record all your input on a file, use `open-dribble-file'."
     (with-current-buffer standard-output
       (goto-char (point-min))
       (while (progn (move-to-column 50) (not (eobp)))
-	(search-forward " " nil t)
-	(insert "\n")))
+        (when (search-forward " " nil t)
+          (delete-char -1))
+        (insert "\n")))
     (print-help-return-message)))
 
 
