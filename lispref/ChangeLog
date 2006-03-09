@@ -1,3 +1,8 @@
+2006-03-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* searching.texi (Regexp Special): Put remark between parentheses
+	to avoid misreading.
+
 2006-03-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* searching.texi (Syntax of Regexps): More accurately describe

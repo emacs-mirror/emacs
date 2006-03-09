@@ -1,3 +1,9 @@
+2006-03-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* search.texi (Regexps): More accurately describe which characters
+	are special in which situations.  Recommend _not_ to quote `]' or
+	`-' when they are not special.
+
 2006-03-07  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Version number change only.
