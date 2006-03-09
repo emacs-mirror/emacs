@@ -310,7 +310,10 @@ If the attribute is not set, return nil."
 
 (defun rmail-desc-get-header-display-state (n)
   "Return t if ignorable headers are being displayed, nil otherwise."
-  (null (overlays-at (rmail-desc-get-start n))))
+  (save-excursion
+    (save-restriction
+      (rmail-narrow-to-header n)
+      (null (overlays-in (point-min) (point-max))))))
 
 (defun rmail-desc-get-keyword (attr-index)
   "Return the keyword string associated with ATTR-INDEX."
