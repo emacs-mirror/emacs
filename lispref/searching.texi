@@ -485,9 +485,9 @@ regular expression may try to match a complex pattern of literal
 @samp{[} and @samp{]}.  In such situations, it sometimes may be
 necessary to carefully parse the regexp from the start to determine
 which square brackets enclose a character alternative.  For example,
-@code{[^][]]}, consists of the complemented character alternative
-@code{[^][]}, which matches any single character that is not a square
-bracket, followed by a literal @samp{]}.
+@code{[^][]]} consists of the complemented character alternative
+@code{[^][]} (which matches any single character that is not a square
+bracket), followed by a literal @samp{]}.
 
 The exact rules are that at the beginning of a regexp, @samp{[} is
 special and @samp{]} not.  This lasts until the first unquoted
