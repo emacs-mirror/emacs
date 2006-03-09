@@ -1605,15 +1605,14 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
     allout-mode
     )					; let*
   )  					; defun
+;;;_  > allout-minor-mode
+(defalias 'allout-minor-mode 'allout-mode)
 
 ;;;_  - Position Assessment
 ;;;_   > allout-hidden-p (&optional pos)
 (defsubst allout-hidden-p (&optional pos)
   "Non-nil if the character after point is invisible."
   (get-char-property (or pos (point)) 'invisible))
-
-;;;_  > allout-minor-mode
-(defalias 'allout-minor-mode 'allout-mode)
 
 ;;;_  > allout-overlay-insert-in-front-handler (ol after beg end
 ;;;                                                &optional prelen)
@@ -1753,6 +1752,7 @@ to return the current depth of the most recently matched topic."
 
 ;;;_ #4 Navigation
 
+;;;_  - Position Assessment
 ;;;_   : Location Predicates
 ;;;_    > allout-on-current-heading-p ()
 (defun allout-on-current-heading-p ()
@@ -2236,9 +2236,10 @@ Returns the value of point."
   "When not already there, position point at beginning of current topic header.
 
 If already there, move cursor to bullet for hot-spot operation.
-\(See `allout-mode' doc string for details on hot-spot operation.)"
+\(See `allout-mode' doc string for details of hot-spot operation.)"
   (interactive)
   (let ((start-point (point)))
+    (move-beginning-of-line 1)
     (allout-end-of-prefix)
     (if (and (interactive-p)
 	     (= (point) start-point))
@@ -2927,7 +2928,9 @@ Nuances:
             ;; Going inwards - double-space if first offspring is
             ;; double-spaced, otherwise snug up.
             (allout-end-of-entry)
-            (line-move 1)
+            (if (eobp)
+                (newline 1)
+              (line-move 1))
             (allout-beginning-of-current-line)
             (backward-char 1)
             (if (bolp)

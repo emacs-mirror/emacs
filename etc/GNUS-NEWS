@@ -355,6 +355,10 @@ in the Agent, it won't get downloaded once more.  Customize
 On composing messages, it is enabled by `use-hard-newlines'.  Decoding
 format=flowed was present but not documented in earlier versions.
 
+** The option `mm-fill-flowed' can be used to disable treatment of
+format=flowed messages.  Also, flowed text is disabled when sending
+inline PGP signed messages.  (New in Gnus 5.10.7)
+
 ** Gnus supports the generation of RFC 2298 Disposition Notification requests.
 
 This is invoked with the C-c M-n key binding from message mode.

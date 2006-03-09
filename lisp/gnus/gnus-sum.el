@@ -3099,7 +3099,7 @@ display only a single character."
     ;; We keep TAB as well.
     (aset table ?\t nil)
     ;; We nix out any glyphs 127 through 255, or 127 through 159 in
-    ;; Emacs 23, that are not set already.
+    ;; Emacs 23 (unicode), that are not set already.
     (let ((i (if (ignore-errors (= (make-char 'latin-iso8859-1 160) 160))
 		 160
 	       256)))

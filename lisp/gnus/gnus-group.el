@@ -1379,6 +1379,18 @@ if it is a string, only list groups matching REGEXP."
 		(gnus-range-difference (list active) (gnus-info-read info))
 		seen))))))
 
+(defcustom gnus-group-update-tool-bar
+  (and (not (featurep 'xemacs))
+       (boundp 'tool-bar-mode)
+       tool-bar-mode
+       ;; Using `redraw-frame' (see `gnus-tool-bar-update') in Emacs 21 might
+       ;; be confusing, so maybe we shouldn't call it by default.
+       (fboundp 'force-window-update))
+  "Force updating the group buffer tool bar."
+  :group 'gnus-group
+  :version "22.1"
+  :type 'boolean)
+
 (defun gnus-group-insert-group-line (gnus-tmp-group gnus-tmp-level
 						    gnus-tmp-marked number
 						    gnus-tmp-method)
@@ -1447,8 +1459,10 @@ if it is a string, only list groups matching REGEXP."
 		   (bbb-grouplens-group-p gnus-tmp-group))
 	      ""))
 	 (buffer-read-only nil)
+	 beg end
 	 header gnus-tmp-header)	; passed as parameter to user-funcs.
     (beginning-of-line)
+    (setq beg (point))
     (gnus-add-text-properties
      (point)
      (prog1 (1+ (point))
@@ -1463,6 +1477,12 @@ if it is a string, only list groups matching REGEXP."
 		  gnus-marked ,gnus-tmp-marked-mark
 		  gnus-indentation ,gnus-group-indentation
 		  gnus-level ,gnus-tmp-level))
+    (setq end (point))
+    (when gnus-group-update-tool-bar
+      (gnus-put-text-property beg end 'point-entered
+			      'gnus-tool-bar-update)
+      (gnus-put-text-property beg end 'point-left
+			      'gnus-tool-bar-update))
     (forward-line -1)
     (when (inline (gnus-visual-p 'group-highlight 'highlight))
       (gnus-run-hooks 'gnus-group-update-hook))

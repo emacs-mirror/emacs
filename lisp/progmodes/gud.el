@@ -399,7 +399,7 @@ t means that there is no stack, and we are in display-file mode.")
 				 gud-speedbar-key-map
 				 gud-expansion-speedbar-buttons))
 
-  (add-to-list 
+  (add-to-list
    'speedbar-mode-functions-list
    '("GUD" (speedbar-item-info . gud-speedbar-item-info)
      (speedbar-line-directory . ignore))))
@@ -493,11 +493,15 @@ required by the caller."
 		       'bracket char
 		       'gdb-speedbar-expand-node varnum
 		       (concat expr "\t" type "\t" value)
-		       (if (or parent status)
+		       (if (or parent (eq status 'out-of-scope))
 			 nil 'gdb-edit-value)
 		       nil
-		       (if (and (or parent (eq status 'out-of-scope))
-				gdb-show-changed-values) 'shadow t)
+		       (if gdb-show-changed-values
+			   (or parent (case status
+					    (changed 'font-lock-warning-face)
+					    (out-of-scope 'shadow)
+					    (t t)))
+			 t)
 		       depth)
 		    (speedbar-make-tag-line
 		     'bracket char
@@ -684,7 +688,7 @@ To run GDB in text command mode, set `gud-gdb-command-name' to
 	   (buffer-name gud-comint-buffer)
 	   (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba)))
       (error "Multiple debugging is only supported with \"gdb --fullname\""))
-				
+
   (gud-common-init command-line nil 'gud-gdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'gdb)
 
@@ -2152,7 +2156,7 @@ nil)
          ;; print line numbers using LOCALE, inserting a comma or a
          ;; period at the thousands positions (how ingenious!).
 
-	 "\\(\[[0-9]+\] \\)*\\([a-zA-Z0-9.$_]+\\)\\.[a-zA-Z0-9$_<>(),]+ \
+	 "\\(\\[[0-9]+] \\)*\\([a-zA-Z0-9.$_]+\\)\\.[a-zA-Z0-9$_<>(),]+ \
 \\(([a-zA-Z0-9.$_]+:\\|line=\\)\\([0-9.,]+\\)"
 	 gud-marker-acc)
 
@@ -3372,7 +3376,7 @@ For C this would dereference a pointer expression.")
   "The mouse movement event that led to a tooltip display.
 This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
 
-(defun gud-tooltip-dereference ()
+(defun gud-tooltip-dereference (&optional arg)
   "Toggle whether tooltips should show `* expr' or `expr'.
 With arg, dereference expr iff arg is positive."
  (interactive "P")

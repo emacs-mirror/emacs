@@ -1,3 +1,31 @@
+2006-03-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-util.el (gnus-tool-bar-update): New function.
+
+	* gnus-group.el (gnus-group-update-tool-bar): New variable.
+	(gnus-group-insert-group-line): Add gnus-tool-bar-update.
+
+	* gnus-topic.el (gnus-topic-prepare-topic): Add gnus-tool-bar-update.
+
+2006-03-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmail.el (nnmail-split-it): Invert match-partial-words behavior
+	if optional last element is specified in splits (FIELD VALUE...).
+
+2006-03-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-w3m-cid-retrieve-1): Check carefully whether
+	handle is multipart when calling it recursively.
+	(mm-w3m-cid-retrieve): Display warning if retrieving fails.
+
+2006-03-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-util.el (mm-with-unibyte-current-buffer): Change "Emacs 23"
+	to "Emacs 23 (unicode)" in doc string.
+
+	* gnus-sum.el (gnus-summary-set-display-table): Change "Emacs 23" to
+	"Emacs 23 (unicode)" in comment.
+
 2006-03-03  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-get-part): Don't use

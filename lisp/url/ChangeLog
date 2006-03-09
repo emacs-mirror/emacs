@@ -1,3 +1,14 @@
+2006-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-http.el (url-http-find-free-connection): Fix braino in last fix.
+
+2006-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-http.el (url-http-find-free-connection): Don't kill the process
+	when killing the temp buffer.
+	(url-http-symbol-value-in-buffer): Massage to make it clear to the
+	byte-compiler that the function is defined.
+
 2006-02-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url.el (url-redirect-buffer): New var.

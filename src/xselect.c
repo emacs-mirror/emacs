@@ -620,6 +620,7 @@ x_catch_errors_unwind (dummy)
   BLOCK_INPUT;
   x_uncatch_errors ();
   UNBLOCK_INPUT;
+  return Qnil;
 }
 
 

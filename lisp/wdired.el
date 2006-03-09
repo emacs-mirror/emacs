@@ -103,6 +103,7 @@
 
 (defvar dired-backup-overwrite) ; Only in Emacs 20.x this is a custom var
 
+(eval-when-compile (require 'cl))
 (require 'dired)
 (autoload 'dired-do-create-files-regexp "dired-aux")
 (autoload 'dired-call-process "dired-aux")

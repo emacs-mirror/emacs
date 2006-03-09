@@ -235,12 +235,15 @@ it easier to verify even very complex regexps.
 
   Regular expressions have a syntax in which a few characters are
 special constructs and the rest are @dfn{ordinary}.  An ordinary
-character is a simple regular expression that matches that character and
-nothing else.  The special characters are @samp{.}, @samp{*}, @samp{+},
-@samp{?}, @samp{[}, @samp{]}, @samp{^}, @samp{$}, and @samp{\}; no new
-special characters will be defined in the future.  Any other character
-appearing in a regular expression is ordinary, unless a @samp{\}
-precedes it.
+character is a simple regular expression that matches that character
+and nothing else.  The special characters are @samp{.}, @samp{*},
+@samp{+}, @samp{?}, @samp{[}, @samp{^}, @samp{$}, and @samp{\}; no new
+special characters will be defined in the future.  The character
+@samp{]} is special if it ends a character alternative (see later).
+The character @samp{-} is special inside a character alternative.  A
+@samp{[:} and balancing @samp{:]} enclose a character class inside a
+character alternative.  Any other character appearing in a regular
+expression is ordinary, unless a @samp{\} precedes it.
 
   For example, @samp{f} is not a special character, so it is ordinary, and
 therefore @samp{f} is a regular expression that matches the string
@@ -467,6 +470,34 @@ meanings make no sense.  For example, @samp{*foo} treats @samp{*} as
 ordinary since there is no preceding expression on which the @samp{*}
 can act.  It is poor practice to depend on this behavior; quote the
 special character anyway, regardless of where it appears.@refill
+
+As a @samp{\} is not special inside a character alternative, it can
+never remove the special meaning of @samp{-} or @samp{]}.  So you
+should not quote these characters when they have no special meaning
+either.  This would not clarify anything, since backslashes can
+legitimately precede these characters where they @emph{have} special
+meaning, as in @code{[^\]} (@code{"[^\\]"} for Lisp string syntax),
+which matches any single character except a backslash.
+
+In practice, most @samp{]} that occur in regular expressions close a
+character alternative and hence are special.  However, occasionally a
+regular expression may try to match a complex pattern of literal
+@samp{[} and @samp{]}.  In such situations, it sometimes may be
+necessary to carefully parse the regexp from the start to determine
+which square brackets enclose a character alternative.  For example,
+@code{[^][]]} consists of the complemented character alternative
+@code{[^][]} (which matches any single character that is not a square
+bracket), followed by a literal @samp{]}.
+
+The exact rules are that at the beginning of a regexp, @samp{[} is
+special and @samp{]} not.  This lasts until the first unquoted
+@samp{[}, after which we are in a character alternative; @samp{[} is
+no longer special (except when it starts a character class) but @samp{]}
+is special, unless it immediately follows the special @samp{[} or that
+@samp{[} followed by a @samp{^}.  This lasts until the next special
+@samp{]} that does not end a character class.  This ends the character
+alternative and restores the ordinary syntax of regular expressions;
+an unquoted @samp{[} is special again and a @samp{]} not.
 
 @node Char Classes
 @subsubsection Character Classes
@@ -740,8 +771,8 @@ with a symbol-constituent character.
 
 @kindex invalid-regexp
   Not every string is a valid regular expression.  For example, a string
-with unbalanced square brackets is invalid (with a few exceptions, such
-as @samp{[]]}), and so is a string that ends with a single @samp{\}.  If
+that ends inside a character alternative without terminating @samp{]}
+is invalid, and so is a string that ends with a single @samp{\}.  If
 an invalid regular expression is passed to any of the search functions,
 an @code{invalid-regexp} error is signaled.
 

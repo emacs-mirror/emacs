@@ -121,7 +121,11 @@ request.")
          (let ((buf (generate-new-buffer " *url-http-temp*")))
            ;; `url-open-stream' needs a buffer in which to do things
            ;; like authentication.  But we use another buffer afterwards.
-           (unwind-protect (url-open-stream host buf host port)
+           (unwind-protect
+               (let ((proc (url-open-stream host buf host port)))
+                 ;; Drop the temp buffer link before killing the buffer.
+                 (set-process-buffer proc nil)
+                 proc)
              (kill-buffer buf)))))))
 
 ;; Building an HTTP request
@@ -1109,15 +1113,15 @@ CBARGS as the arguments."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; file-name-handler stuff from here on out
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(if (not (fboundp 'symbol-value-in-buffer))
-    (defun url-http-symbol-value-in-buffer (symbol buffer
-						   &optional unbound-value)
+(defalias 'url-http-symbol-value-in-buffer
+  (if (fboundp 'symbol-value-in-buffer)
+      'symbol-value-in-buffer
+    (lambda (symbol buffer &optional unbound-value)
       "Return the value of SYMBOL in BUFFER, or UNBOUND-VALUE if it is unbound."
       (with-current-buffer buffer
-	(if (not (boundp symbol))
-	    unbound-value
-	  (symbol-value symbol))))
-  (defalias 'url-http-symbol-value-in-buffer 'symbol-value-in-buffer))
+        (if (not (boundp symbol))
+            unbound-value
+          (symbol-value symbol))))))
 
 (defun url-http-head (url)
   (let ((url-request-method "HEAD")

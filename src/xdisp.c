@@ -3661,8 +3661,11 @@ handle_invisible_prop (it)
                  the invisible text.  Otherwise the cursor would be
                  placed _after_ the ellipsis when the point is after the
                  first invisible character.  */
-              it->position.charpos = IT_CHARPOS (*it) - 1;
-              it->position.bytepos = CHAR_TO_BYTE (it->position.charpos);
+	      if (!STRINGP (it->object))
+		{
+		  it->position.charpos = IT_CHARPOS (*it) - 1;
+		  it->position.bytepos = CHAR_TO_BYTE (it->position.charpos);
+		}
               setup_for_ellipsis (it, 0);
             }
 	}

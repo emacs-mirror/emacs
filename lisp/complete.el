@@ -94,7 +94,7 @@
   :group 'convenience)
 
 (defcustom PC-first-char 'find-file
-  "*Control how the first character of a string is to be interpreted.
+  "Control how the first character of a string is to be interpreted.
 If nil, the first character of a string is not taken literally if it is a word
 delimiter, so that \".e\" matches \"*.e*\".
 If t, the first character of a string is always taken literally even if it is a
@@ -107,13 +107,13 @@ completion."
   :group 'partial-completion)
 
 (defcustom PC-meta-flag t
-  "*If non-nil, TAB means PC completion and M-TAB means normal completion.
+  "If non-nil, TAB means PC completion and M-TAB means normal completion.
 Otherwise, TAB means normal completion and M-TAB means Partial Completion."
   :type 'boolean
   :group 'partial-completion)
 
 (defcustom PC-word-delimiters "-_. "
-  "*A string of characters treated as word delimiters for completion.
+  "A string of characters treated as word delimiters for completion.
 Some arcane rules:
 If `]' is in this string, it must come first.
 If `^' is in this string, it must not come first.
@@ -124,13 +124,13 @@ expression (not containing character ranges like `a-z')."
   :group 'partial-completion)
 
 (defcustom PC-include-file-path '("/usr/include" "/usr/local/include")
-  "*A list of directories in which to look for include files.
+  "A list of directories in which to look for include files.
 If nil, means use the colon-separated path in the variable $INCPATH instead."
   :type '(repeat directory)
   :group 'partial-completion)
 
 (defcustom PC-disable-includes nil
-  "*If non-nil, include-file support in \\[find-file] is disabled."
+  "If non-nil, include-file support in \\[find-file] is disabled."
   :type 'boolean
   :group 'partial-completion)
 
@@ -764,7 +764,13 @@ or properties are considered."
     (erase-buffer)
     (shell-command (concat "echo " name) t)
     (goto-char (point-min))
-    (if (looking-at ".*No match")
+    ;; CSH-style shells were known to output "No match", whereas
+    ;; SH-style shells tend to simply output `name' when no match is found.
+    (if (looking-at (concat ".*No match\\|\\(^\\| \\)\\("
+			    (regexp-quote name)
+			    "\\|"
+			    (regexp-quote (expand-file-name name))
+			    "\\)\\( \\|$\\)"))
 	nil
       (insert "(\"")
       (while (search-forward " " nil t)
@@ -787,7 +793,14 @@ or properties are considered."
 			  "\\)\\'")))
 	(setq p nil)
 	(while files
-	  (or (string-match PC-ignored-regexp (car files))
+          ;; This whole process of going through to shell, to echo, and
+          ;; finally parsing the output is a hack.  It breaks as soon as
+          ;; there are spaces in the file names or when the no-match
+          ;; message changes.  To make up for it, we check that what we read
+          ;; indeed exists, so we may miss some files, but we at least won't
+          ;; list non-existent ones.
+	  (or (not (file-exists-p (car files)))
+	      (string-match PC-ignored-regexp (car files))
 	      (setq p (cons (car files) p)))
 	  (setq files (cdr files)))
 	p))))
