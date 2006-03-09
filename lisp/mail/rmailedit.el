@@ -90,7 +90,8 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
   (setq rmail-old-pruned (rmail-msg-is-pruned))
   (make-local-variable 'rmail-edit-saved-coding-system)
   (setq rmail-edit-saved-coding-system save-buffer-coding-system)
-  (rmail-toggle-header 0)
+  ;; (rmail-toggle-header 0)
+  (rmail-header-show-headers)
   (rmail-edit-mode)
   ;; As the local value of save-buffer-coding-system is deleted by
   ;; rmail-edit-mode, we restore the original value.
@@ -109,15 +110,14 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
 (defun rmail-cease-edit ()
   "Finish editing message; switch back to Rmail proper."
   (interactive)
-  (if (rmail-summary-exists)
-      (save-excursion
-	(set-buffer rmail-summary-buffer)
-	(rmail-summary-enable)))
+  (when (rmail-summary-exists)
+    (with-current-buffer rmail-summary-buffer
+      (rmail-summary-enable)))
   ;; Make sure buffer ends with a newline.
   (save-excursion
     (goto-char (point-max))
-    (if (/= (preceding-char) ?\n)
-	(insert "\n"))
+    (when (/= (preceding-char) ?\n)
+      (insert "\n"))
     ;; Adjust the marker that points to the end of this message, unless
     ;; we're at the last message.
     (when (< rmail-current-message (length rmail-desc-vector))
@@ -130,14 +130,16 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
     ;; As the local value of save-buffer-coding-system is changed by
     ;; rmail-variables, we restore the original value.
     (setq save-buffer-coding-system rmail-edit-saved-coding-system)
-    (if (and (= (length old) (- (point-max) (point-min)))
-	     (string= old (buffer-substring (point-min) (point-max))))
-	()
+    (unless (and (= (length old) (- (point-max) (point-min)))
+		 (string= old (buffer-substring (point-min) (point-max))))
       (setq old nil)
       (rmail-set-attribute "edited" t))
     (save-excursion
       (rmail-show-message)
-      (rmail-toggle-header (if rmail-old-pruned 1 0))))
+      ;; `rmail-show-message' always hides the headers, so we show them
+      ;; here if they were visible before starting the edit.
+      (when rmail-old-pruned
+	(rmail-header-show-headers))))
   (run-hooks 'rmail-mode-hook)
   (setq buffer-read-only t))
 
