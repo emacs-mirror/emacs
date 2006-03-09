@@ -51,7 +51,7 @@ instead."
     (goto-char (point-min))
     (if (search-forward "\n\n" nil t)
 	(1- (point))
-      (error "Invalid message format."))))
+      (error "Invalid message format"))))
 
 (defun rmail-header-add-header (header value)
   "Add HEADER to the list of headers and associate VALUE with it.
