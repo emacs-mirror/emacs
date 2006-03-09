@@ -1,5 +1,8 @@
 2006-03-09  Henrik Enberg  <enberg@printf.se>
 
+	* rmailedit.el (rmail-edit-map): Initialize at definition.  Doc
+	String.
+
 	* rmail.el (rmail-narrow-to-header): Don't end error message with
 	a period.
 

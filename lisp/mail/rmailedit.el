@@ -40,14 +40,13 @@
 
 (defvar rmail-old-text)
 
-(defvar rmail-edit-map nil)
-(if rmail-edit-map
-    nil
-  ;; Make a keymap that inherits text-mode-map.
-  (setq rmail-edit-map (make-sparse-keymap))
-  (set-keymap-parent rmail-edit-map text-mode-map)
-  (define-key rmail-edit-map "\C-c\C-c" 'rmail-cease-edit)
-  (define-key rmail-edit-map "\C-c\C-]" 'rmail-abort-edit))
+(defvar rmail-edit-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map text-mode-map)
+    (define-key map "\C-c\C-c" 'rmail-cease-edit)
+    (define-key map "\C-c\C-]" 'rmail-abort-edit)
+    map)
+  "Keymap for `rmail-edit-mode'.")
 
 ;; Rmail Edit mode is suitable only for specially formatted data.
 (put 'rmail-edit-mode 'mode-class 'special)
@@ -90,7 +89,6 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
   (setq rmail-old-pruned (rmail-msg-is-pruned))
   (make-local-variable 'rmail-edit-saved-coding-system)
   (setq rmail-edit-saved-coding-system save-buffer-coding-system)
-  ;; (rmail-toggle-header 0)
   (rmail-header-show-headers)
   (rmail-edit-mode)
   ;; As the local value of save-buffer-coding-system is deleted by
