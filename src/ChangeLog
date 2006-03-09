@@ -1,3 +1,8 @@
+2006-03-09  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (DECODE_EMACS_MULE_COMPOSITION_CHAR): Fix decoding
+	ASCII component of a composition.
+
 2006-03-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* window.c: Declare preserve_y as a static global variable.
