@@ -2250,7 +2250,7 @@ or forward if N is negative."
       (widen)
       (goto-char start)
       (unless (search-forward "\n\n" end t)
-	(error "Invalid message format."))
+	(error "Invalid message format"))
       (narrow-to-region start (point)))))
 
 (defun rmail-message-recipients-p (msg recipients &optional primary-only)
