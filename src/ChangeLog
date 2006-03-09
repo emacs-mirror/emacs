@@ -1,3 +1,10 @@
+2006-03-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* window.c: Declare preserve_y as a static global variable.
+	(window_scroll_pixel_based): No longer declare preserve_y;
+	it is global now.
+	(syms_of_window): set preserve_y to -1.
+
 2006-03-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* image.c [MAC_OS] (XPutPixel): Set alpha channel bits if pixmap
