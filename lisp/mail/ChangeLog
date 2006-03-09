@@ -1,3 +1,18 @@
+2006-03-09  Henrik Enberg  <enberg@printf.se>
+
+	* rmail.el (rmail-narrow-to-header): Don't end error message with
+	a period.
+
+	* rmailhdr.el (rmail-header-get-limit): Don't end error message
+	with a period.
+
+	* rmaildesc.el (rmail-desc-get-header-display-state): Make sure
+	whole header region is searched for overlays.
+
+	* rmailedit.el (rmail-edit-current-message): Use
+	rmail-head-show-headers instead of rmail-toggle-header.
+	(rmail-cease-edit): Likewise.  Simplify.
+
 2006-03-02  Alex Schroeder  <alex@gnu.org>
 
 	* rmailkwd.el (rmail-read-label): Since rmail-keywords is a list
