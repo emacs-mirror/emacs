@@ -6040,7 +6040,7 @@ produce_composition (coding, charbuf, pos)
       for (i = 0; i < len; i++)
 	{
 	  args[i] = make_number (charbuf[i]);
-	  if (args[i] < 0)
+	  if (charbuf[i] < 0)
 	    return;
 	}
       components = (method == COMPOSITION_WITH_ALTCHARS
@@ -8247,7 +8247,7 @@ DEFUN ("terminal-coding-system",
 
   coding_system = CODING_ID_NAME (terminal_coding.id);
   /* For backward compatibility, return nil if it is `undecided'. */
-  return (coding_system != Qundecided ? coding_system : Qnil);
+  return (! EQ (coding_system, Qundecided) ? coding_system : Qnil);
 }
 
 DEFUN ("set-keyboard-coding-system-internal",
