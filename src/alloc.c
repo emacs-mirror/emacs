@@ -883,6 +883,10 @@ lisp_free (block)
 /* The entry point is lisp_align_malloc which returns blocks of at most    */
 /* BLOCK_BYTES and guarantees they are aligned on a BLOCK_ALIGN boundary.  */
 
+/* Use posix_memalloc if the system has it and we're using the system's
+   malloc (because our gmalloc.c routines don't have posix_memalign although
+   its memalloc could be used).  */
+#define USE_POSIX_MEMALIGN (HAVE_POSIX_MEMALIGN && SYSTEM_MALLOC)
 
 /* BLOCK_ALIGN has to be a power of 2.  */
 #define BLOCK_ALIGN (1 << 10)
@@ -948,7 +952,7 @@ struct ablocks
 #define ABLOCKS_BUSY(abase) ((abase)->blocks[0].abase)
 
 /* Pointer to the (not necessarily aligned) malloc block.  */
-#ifdef HAVE_POSIX_MEMALIGN
+#ifdef USE_POSIX_MEMALIGN
 #define ABLOCKS_BASE(abase) (abase)
 #else
 #define ABLOCKS_BASE(abase) \
@@ -989,7 +993,7 @@ lisp_align_malloc (nbytes, type)
       mallopt (M_MMAP_MAX, 0);
 #endif
 
-#ifdef HAVE_POSIX_MEMALIGN
+#ifdef USE_POSIX_MEMALIGN
       {
 	int err = posix_memalign (&base, BLOCK_ALIGN, ABLOCKS_BYTES);
 	if (err)
@@ -1105,7 +1109,7 @@ lisp_align_free (block)
 	}
       eassert ((aligned & 1) == aligned);
       eassert (i == (aligned ? ABLOCKS_SIZE : ABLOCKS_SIZE - 1));
-#ifdef HAVE_POSIX_MEMALIGN
+#ifdef USE_POSIX_MEMALIGN
       eassert ((unsigned long)ABLOCKS_BASE (abase) % BLOCK_ALIGN == 0);
 #endif
       free (ABLOCKS_BASE (abase));
