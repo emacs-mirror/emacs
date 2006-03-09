@@ -9369,10 +9369,10 @@ Display "multipart/alternative" parts as "multipart/mixed".
 Display "multipart/related" parts as "multipart/mixed".
 
 If displaying "text/html" is discouraged, see
-@code{mm-discouraged-alternatives} in @ref{Display Customization,
-Display Customization, , emacs-mime, Emacs-Mime Manual}.  Images or
-other material inside a "multipart/related" part might be overlooked
-when this variable is @code{nil}.
+@code{mm-discouraged-alternatives}, images or other material inside a
+"multipart/related" part might be overlooked when this variable is
+@code{nil}.  @ref{Display Customization, Display Customization, ,
+emacs-mime, Emacs-Mime Manual}.
 
 @vindex gnus-mime-display-multipart-as-mixed
 @item gnus-mime-display-multipart-as-mixed
@@ -14006,13 +14006,19 @@ splits.  Here are the possible split syntaxes:
 If the split is a string, that will be taken as a group name.  Normal
 regexp match expansion will be done.  See below for examples.
 
-@item (@var{field} @var{value} [- @var{restrict} [@dots{}] ] @var{split})
+@c Don't fold this line.
+@item (@var{field} @var{value} [- @var{restrict} [@dots{}] ] @var{split} [@var{invert-match-partial-words}])
 If the split is a list, the first element of which is a string, then
 store the message as specified by @var{split}, if header @var{field}
 (a regexp) contains @var{value} (also a regexp).  If @var{restrict}
 (yet another regexp) matches some string after @var{field} and before
 the end of the matched @var{value}, the @var{split} is ignored.  If
 none of the @var{restrict} clauses match, @var{split} is processed.
+
+The last element @var{invert-match-partial-words} is optional.  If it is
+not omitted and the value is non-@code{nil}, the match-partial-words
+behavior controlled by the @code{nnmail-split-fancy-match-partial-words}
+variable (see below) will be inverted.  (New in Gnus 5.10.7)
 
 @item (| @var{split} @dots{})
 If the split is a list, and the first element is @code{|} (vertical
@@ -14067,10 +14073,50 @@ If the split is @code{nil}, it is ignored.
 @end table
 
 In these splits, @var{field} must match a complete field name.
-@var{value} must match a complete word according to the fundamental mode
-syntax table.  You can use @code{.*} in the regexps to match partial
-field names or words.  In other words, all @var{value}'s are wrapped in
-@samp{\<} and @samp{\>} pairs.
+
+Normally, @var{value} in these splits must match a complete @emph{word}
+according to the fundamental mode syntax table.  In other words, all
+@var{value}'s will be implicitly surrounded by @code{\<...\>} markers,
+which are word delimiters.  Therefore, if you use the following split,
+for example,
+
+@example
+(any "joe" "joemail")
+@end example
+
+@noindent
+messages sent from @samp{joedavis@@foo.org} will normally not be filed
+in @samp{joemail}.  If you want to alter this behavior, you can use any
+of the following three ways:
+
+@enumerate
+@item
+@vindex nnmail-split-fancy-match-partial-words
+You can set the @code{nnmail-split-fancy-match-partial-words} variable
+to non-@code{nil} in order to ignore word boundaries and instead the
+match becomes more like a grep.  This variable controls whether partial
+words are matched during fancy splitting.  The default value is
+@code{nil}.
+
+Note that it influences all @var{value}'s in your split rules.
+
+@item
+@var{value} beginning with @code{.*} ignores word boundaries in front of
+a word.  Similarly, if @var{value} ends with @code{.*}, word boundaries
+in the rear of a word will be ignored.  For example, the @var{value}
+@code{"@@example\\.com"} does not match @samp{foo@@example.com} but
+@code{".*@@example\\.com"} does.
+
+@item
+You can set the @var{invert-match-partial-words} flag in your split
+rules of the @samp{(@var{field} @var{value} @dots{})} types,
+aforementioned in this section.  If the flag is set, word boundaries on
+both sides of a word are ignored even if
+@code{nnmail-split-fancy-match-partial-words} is @code{nil}.
+Contrarily, if the flag is set, word boundaries are not ignored even if
+@code{nnmail-split-fancy-match-partial-words} is non-@code{nil}.  (New
+in Gnus 5.10.7)
+@end enumerate
 
 @vindex nnmail-split-abbrev-alist
 @var{field} and @var{value} can also be Lisp symbols, in that case
@@ -14117,25 +14163,6 @@ Setting it as non-@code{nil} is useful to avoid the creation of multiple
 groups when users send to an address using different case
 (i.e. mailing-list@@domain vs Mailing-List@@Domain).  The default value
 is @code{t}.
-
-@vindex nnmail-split-fancy-match-partial-words
-@code{nnmail-split-fancy-match-partial-words} controls whether partial
-words are matched during fancy splitting.
-
-Normally, regular expressions given in @code{nnmail-split-fancy} are
-implicitly surrounded by @code{\<...\>} markers, which are word
-delimiters.  If this variable is true, they are not implicitly
-surrounded by anything.
-
-@example
-(any "joe" "joemail")
-@end example
-
-In this example, messages sent from @samp{joedavis@@foo.org} will
-normally not be filed in @samp{joemail}.  With
-@code{nnmail-split-fancy-match-partial-words} set to @code{t},
-however, the match will happen.  In effect, the requirement of a word
-boundary is removed and instead the match becomes more like a grep.
 
 @findex nnmail-split-fancy-with-parent
 @code{nnmail-split-fancy-with-parent} is a function which allows you to
@@ -22295,11 +22322,11 @@ default.
 @item gnus-use-toolbar
 @vindex gnus-use-toolbar
 This variable specifies the position to display the toolbar.  If
-@code{nil}, don't display toolbars.  If it is non-nil, it should be one
-of the symbols @code{default}, @code{top}, @code{bottom}, @code{right},
-and @code{left}.  @code{default} means to use the default toolbar, the
-rest mean to display the toolbar on the place which those names show.
-The default is @code{default}.
+@code{nil}, don't display toolbars.  If it is non-@code{nil}, it should
+be one of the symbols @code{default}, @code{top}, @code{bottom},
+@code{right}, and @code{left}.  @code{default} means to use the default
+toolbar, the rest mean to display the toolbar on the place which those
+names show.  The default is @code{default}.
 
 @item gnus-toolbar-thickness
 @vindex gnus-toolbar-thickness
@@ -26221,6 +26248,8 @@ groups.
 A new file from Raymond Scholz @email{rscholz@@zonix.de} for deuglifying
 broken Outlook (Express) articles.
 
+@c FIXME: `gnus-load' is mentioned in README, which is not included in
+@c CVS.  We should find a better place for this item.
 @item
 @code{(require 'gnus-load)}
 

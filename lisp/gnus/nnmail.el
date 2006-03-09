@@ -1425,11 +1425,12 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 
      ;; Not in cache, compute a regexp for the field/value pair.
      (t
-      (let* ((field (nth 0 split))
-	     (value (nth 1 split))
-	     partial-front
-	     partial-rear
-	     regexp)
+      (let ((field (nth 0 split))
+	    (value (nth 1 split))
+	    (split-rest (cddr split))
+	    partial-front
+	    partial-rear
+	    regexp)
 	(if (symbolp value)
 	    (setq value (cdr (assq value nnmail-split-abbrev-alist))))
 	(if (and (>= (length value) 2)
@@ -1441,7 +1442,13 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 		 (string= ".*" (substring value -2)))
 	    (setq value (substring value 0 -2)
 		  partial-rear ""))
-	(when nnmail-split-fancy-match-partial-words
+	;; Invert the match-partial-words behavior if the optional
+	;; last element is specified.
+	(while (eq (car split-rest) '-)
+	  (setq split-rest (cddr split-rest)))
+	(when (if (cadr split-rest)
+		  (not nnmail-split-fancy-match-partial-words)
+		nnmail-split-fancy-match-partial-words)
 	  (setq partial-front ""
 		partial-rear ""))
 	(setq regexp (concat "^\\(\\("
@@ -1456,7 +1463,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 			     (or partial-rear "\\>")))
 	(push (cons split regexp) nnmail-split-cache)
 	;; Now that it's in the cache, just call nnmail-split-it again
-    ;; on the same split, which will find it immediately in the cache.
+	;; on the same split, which will find it immediately in the cache.
 	(nnmail-split-it split))))))
 
 (defun nnmail-expand-newtext (newtext)

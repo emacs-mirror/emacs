@@ -1,3 +1,20 @@
+2006-03-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi: Markup fix.
+	(Fancy Mail Splitting): Specify new feature.
+
+2006-03-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Fancy Mail Splitting): Improve descriptions about
+	partial-words matching.
+
+2006-03-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* emacs-mime.texi (Display Customization): Reword image/.* stuff.
+
+	* gnus.texi (Oort Gnus): Add note about `gnus-load'.
+	(MIME Commands): Fix mm-discouraged-alternatives.
+
 2006-03-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* search.texi (Regexps): More accurately describe which characters
