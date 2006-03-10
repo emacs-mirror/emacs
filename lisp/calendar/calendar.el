@@ -1195,12 +1195,12 @@ you can eliminate unwanted categories of holidays.
 The aforementioned variables control the holiday choices offered
 by the function `list-holidays' when it is called interactively.
 
-They are also used to initialize the default value of
-`calendar-holidays', which is the default list of holidays used
-by the function `list-holidays' in the non-interactive case.
-Note that these variables have no effect on `calendar-holidays'
-after it has been set (e.g. after the calendar is loaded).  In
-that case, customize `calendar-holidays' directly.
+They also initialize the default value of `calendar-holidays',
+which is the default list of holidays used by the function
+`list-holidays' in the non-interactive case.  Note that these
+variables have no effect on `calendar-holidays' after it has been
+set (e.g. after the calendar is loaded).  In that case, customize
+`calendar-holidays' directly.
 
 The intention is that (in the US) `local-holidays' be set in
 site-init.el and `other-holidays' be set by the user.
