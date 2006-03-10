@@ -1996,24 +1996,24 @@ detect_coding_emacs_mule (coding, detect_info)
   } while (0)
 
 
-#define DECODE_EMACS_MULE_20_RELATIVE_COMPOSITION(c)		\
-  do {								\
-    /* Emacs 20 style format for relative composition.  */	\
-    /* Store multibyte form of characters to be composed.  */	\
-    enum composition_method method = COMPOSITION_RELATIVE;	\
-    int components[MAX_COMPOSITION_COMPONENTS * 2 - 1];		\
-    int *buf = components;					\
-    int i, j;							\
-								\
-    src = src_base;						\
-    ONE_MORE_BYTE (c);		/* skip 0x80 */			\
-    for (i = 0; i < MAX_COMPOSITION_COMPONENTS; i++)		\
-      DECODE_EMACS_MULE_COMPOSITION_CHAR (buf);			\
-    if (i < 2)							\
-      goto invalid_code;					\
-    ADD_COMPOSITION_DATA (charbuf, i, method);			\
-    for (j = 0; j < i; j++)					\
-      *charbuf++ = components[j];				\
+#define DECODE_EMACS_MULE_20_RELATIVE_COMPOSITION(c)			\
+  do {									\
+    /* Emacs 20 style format for relative composition.  */		\
+    /* Store multibyte form of characters to be composed.  */		\
+    enum composition_method method = COMPOSITION_RELATIVE;		\
+    int components[MAX_COMPOSITION_COMPONENTS * 2 - 1];			\
+    int *buf = components;						\
+    int i, j;								\
+    									\
+    src = src_base;							\
+    ONE_MORE_BYTE (c);		/* skip 0x80 */				\
+    for (i = 0; *src >= 0xA0 && i < MAX_COMPOSITION_COMPONENTS; i++)	\
+      DECODE_EMACS_MULE_COMPOSITION_CHAR (buf);				\
+    if (i < 2)								\
+      goto invalid_code;						\
+    ADD_COMPOSITION_DATA (charbuf, i, method);				\
+    for (j = 0; j < i; j++)						\
+      *charbuf++ = components[j];					\
   } while (0)
 
 
