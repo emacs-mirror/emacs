@@ -119,8 +119,12 @@ This function is suitable for execution in a .emacs file."
 (defun list-holidays (y1 y2 &optional l label)
   "Display holidays for years Y1 to Y2 (inclusive).
 
-The optional list of holidays L defaults to `calendar-holidays'.  See the
-documentation for that variable for a description of holiday lists.
+The optional list of holidays L defaults to `calendar-holidays'.
+When called interactively, this command offers a choice of
+holidays, based on the variables `solar-holidays' etc.  See the
+documentation of `calendar-holidays' for a list of the variables
+that control the choices, as well as a description of the format
+of a holiday list.
 
 The optional LABEL is used to label the buffer created."
   (interactive
