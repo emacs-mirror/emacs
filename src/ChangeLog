@@ -1,9 +1,23 @@
+2006-03-10  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (USE_POSIX_MEMALIGN): Fix last change.
+
+2006-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (USE_POSIX_MEMALIGN): New macro.
+	(ABLOCKS_BASE, lisp_align_malloc, lisp_align_free): Use it.
+
+2006-03-09  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (DECODE_EMACS_MULE_COMPOSITION_CHAR): Fix decoding
+	ASCII component of a composition.
+
 2006-03-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* window.c: Declare preserve_y as a static global variable.
 	(window_scroll_pixel_based): No longer declare preserve_y;
 	it is global now.
-	(syms_of_window): set preserve_y to -1.
+	(syms_of_window): Set preserve_y to -1.
 
 2006-03-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -23,10 +37,10 @@
 	(MAC_AQUA_SMALL_VERTICAL_SCROLL_BAR_WIDTH): New defines.
 
 	* macfns.c (x_default_scroll_bar_color_parameter)
-	(x_set_scroll_bar_foreground, x_set_scroll_bar_background): Remove
-	unnecessary prototypes.
-	(x_set_scroll_bar_default_width): Use
-	MAC_AQUA_VERTICAL_SCROLL_BAR_WIDTH.
+	(x_set_scroll_bar_foreground, x_set_scroll_bar_background):
+	Remove unnecessary prototypes.
+	(x_set_scroll_bar_default_width):
+	Use MAC_AQUA_VERTICAL_SCROLL_BAR_WIDTH.
 	(mac_set_scroll_bar_width): New function.
 	(mac_frame_parm_handlers): Set it as handler for scroll-bar-width.
 
@@ -38,7 +52,7 @@
 	(mac_handle_command_event, mac_handle_window_event)
 	(mac_handle_mouse_event): Check error code of GetEventParameter.
 	(convert_fn_keycode) [MAC_OSX]: Likewise.
-	
+
 2006-03-05  Andreas Schwab  <schwab@suse.de>
 
 	* xselect.c (x_catch_errors_unwind): Fix missing return value.
@@ -52,9 +66,9 @@
 	lines, by distributing the rows evenly over the tool-bar screen	area.
 	(Vtool_bar_border): New variable.
 	(syms_of_xdisp): DEFVAR_LISP it.
-	(display_tool_bar_line): Add HEIGHT arg for desired row height.  Make
-	tool-bar row the desired height.  Use default face for border below
-	tool-bar.
+	(display_tool_bar_line): Add HEIGHT arg for desired row height.
+	Make tool-bar row the desired height.  Use default face for border
+	below tool-bar.
 	(tool_bar_lines_needed): Add N_ROWS arg.  Use it to return number of
 	actual tool-bar rows.
 	(redisplay_tool_bar): Calculate f->n_tool_bar_rows initially.
@@ -81,8 +95,7 @@
 
 2006-02-26  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xterm.h, xterm.c (x_uncatch_errors): Delete unneccessary
-	argument.
+	* xterm.h, xterm.c (x_uncatch_errors): Delete unneccessary argument.
 
 	* xterm.c: (x_load_font, x_term_init, XTmouse_position)
 	(handle_one_xevent, x_connection_closed, x_list_fonts): No arg for
