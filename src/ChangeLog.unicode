@@ -1,3 +1,8 @@
+2006-03-10  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (DECODE_EMACS_MULE_20_RELATIVE_COMPOSITION): Fix
+	condition to terminate the loop.
+
 2006-03-09  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (produce_composition): Compare charbuf[i] instead of
