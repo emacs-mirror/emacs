@@ -1,3 +1,7 @@
+2006-03-10  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (USE_POSIX_MEMALIGN): Fix last change.
+
 2006-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* alloc.c (USE_POSIX_MEMALIGN): New macro.
