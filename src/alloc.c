@@ -886,7 +886,9 @@ lisp_free (block)
 /* Use posix_memalloc if the system has it and we're using the system's
    malloc (because our gmalloc.c routines don't have posix_memalign although
    its memalloc could be used).  */
-#define USE_POSIX_MEMALIGN (HAVE_POSIX_MEMALIGN && SYSTEM_MALLOC)
+#if defined (HAVE_POSIX_MEMALIGN) && defined (SYSTEM_MALLOC)
+#define USE_POSIX_MEMALIGN 1
+#endif
 
 /* BLOCK_ALIGN has to be a power of 2.  */
 #define BLOCK_ALIGN (1 << 10)
