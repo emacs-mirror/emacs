@@ -1,3 +1,9 @@
+2006-03-10  Bill Wohler  <wohler@newt.com>
+
+	* image.el (image-load-path-for-library): Merge at least three
+	functions from Gnus and MH-E into this one function that can now
+	be shared.
+
 2006-03-11  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-remove-text-properties): Rename from
