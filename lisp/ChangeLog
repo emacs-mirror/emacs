@@ -1,3 +1,9 @@
+2006-03-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-remove-text-properties): Rename from
+	gdb-remove-mouse-face and remove help-echo too.
+	(gdb-enqueue-input): Correct conditional clause.
+	
 2006-03-10  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-holidays): Doc fix.
