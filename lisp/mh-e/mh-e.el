@@ -808,7 +808,9 @@ Currently known variants are 'MH, 'nmh, and 'mu-mh."
 (defun mh-profile-component (component)
   "Return COMPONENT value from mhparam, or nil if unset."
   (save-excursion
-    (mh-exec-cmd-quiet nil "mhparam" "-components" component)
+    ;; MH and nmh use -components, Mailutils uses -component. Since MH
+    ;; and nmh work with an unambiguous prefix, the `s' is dropped here.
+    (mh-exec-cmd-quiet nil "mhparam" "-component" component)
     (mh-profile-component-value component)))
 
 (defun mh-profile-component-value (component)
