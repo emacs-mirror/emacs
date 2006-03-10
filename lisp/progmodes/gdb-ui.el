@@ -1036,11 +1036,12 @@ This filter may simply queue input for a later time."
 ;; is a query, or other non-top-level prompt.
 
 (defun gdb-enqueue-input (item)
-  (if (and gdb-prompting (not gud-running))
-      (progn
-	(gdb-send-item item)
+  (if (not gud-running)
+      (if gdb-prompting
+	  (progn
+	    (gdb-send-item item)
 	(setq gdb-prompting nil))
-    (push item gdb-input-queue)))
+	(push item gdb-input-queue))))
 
 (defun gdb-dequeue-input ()
   (let ((queue gdb-input-queue))
@@ -1191,7 +1192,7 @@ not GDB."
      ((eq sink 'user)
       (progn
 	(setq gud-running t)
-	(gdb-remove-mouse-face)
+	(gdb-remove-text-properties)
 	(if gdb-use-separate-io-buffer
 	    (setq gdb-output-sink 'inferior))))
      (t
@@ -1302,14 +1303,14 @@ happens to be appropriate."
 (defconst gdb-buffer-list
 '(gdb-stack-buffer gdb-locals-buffer gdb-registers-buffer gdb-threads-buffer))
 
-(defun gdb-remove-mouse-face ()
+(defun gdb-remove-text-properties ()
   (dolist (buffertype gdb-buffer-list)
     (let ((buffer (gdb-get-buffer buffertype)))
       (if buffer
 	  (with-current-buffer buffer
 	    (let ((inhibit-read-only t))
 	      (remove-text-properties
-	       (point-min) (point-max) '(mouse-face))))))))
+	       (point-min) (point-max) '(mouse-face nil help-echo nil))))))))
 
 ;; GUD displays the selected GDB frame.  This might might not be the current
 ;; GDB frame (after up, down etc).  If no GDB frame is visible but the last
