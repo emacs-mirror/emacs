@@ -14007,18 +14007,21 @@ If the split is a string, that will be taken as a group name.  Normal
 regexp match expansion will be done.  See below for examples.
 
 @c Don't fold this line.
-@item (@var{field} @var{value} [- @var{restrict} [@dots{}] ] @var{split} [@var{invert-match-partial-words}])
-If the split is a list, the first element of which is a string, then
-store the message as specified by @var{split}, if header @var{field}
-(a regexp) contains @var{value} (also a regexp).  If @var{restrict}
-(yet another regexp) matches some string after @var{field} and before
-the end of the matched @var{value}, the @var{split} is ignored.  If
-none of the @var{restrict} clauses match, @var{split} is processed.
+@item (@var{field} @var{value} [- @var{restrict} [@dots{}] ] @var{split} [@var{invert-partial}])
+The split can be a list containing at least three elements.  If the
+first element @var{field} (a regexp matching a header) contains
+@var{value} (also a regexp) then store the message as specified by
+@var{split}.
 
-The last element @var{invert-match-partial-words} is optional.  If it is
-not omitted and the value is non-@code{nil}, the match-partial-words
-behavior controlled by the @code{nnmail-split-fancy-match-partial-words}
-variable (see below) will be inverted.  (New in Gnus 5.10.7)
+If @var{restrict} (yet another regexp) matches some string after
+@var{field} and before the end of the matched @var{value}, the
+@var{split} is ignored.  If none of the @var{restrict} clauses match,
+@var{split} is processed.
+
+The last element @var{invert-partial} is optional.  If it is
+non-@code{nil}, the match-partial-words behavior controlled by the
+variable @code{nnmail-split-fancy-match-partial-words} (see below) is
+be inverted.  (New in Gnus 5.10.7)
 
 @item (| @var{split} @dots{})
 If the split is a list, and the first element is @code{|} (vertical
@@ -14108,14 +14111,13 @@ in the rear of a word will be ignored.  For example, the @var{value}
 @code{".*@@example\\.com"} does.
 
 @item
-You can set the @var{invert-match-partial-words} flag in your split
-rules of the @samp{(@var{field} @var{value} @dots{})} types,
-aforementioned in this section.  If the flag is set, word boundaries on
-both sides of a word are ignored even if
-@code{nnmail-split-fancy-match-partial-words} is @code{nil}.
-Contrarily, if the flag is set, word boundaries are not ignored even if
-@code{nnmail-split-fancy-match-partial-words} is non-@code{nil}.  (New
-in Gnus 5.10.7)
+You can set the @var{invert-partial} flag in your split rules of the
+@samp{(@var{field} @var{value} @dots{})} types, aforementioned in this
+section.  If the flag is set, word boundaries on both sides of a word
+are ignored even if @code{nnmail-split-fancy-match-partial-words} is
+@code{nil}.  Contrarily, if the flag is set, word boundaries are not
+ignored even if @code{nnmail-split-fancy-match-partial-words} is
+non-@code{nil}.  (New in Gnus 5.10.7)
 @end enumerate
 
 @vindex nnmail-split-abbrev-alist
@@ -21792,6 +21794,15 @@ There are some variables to customize, of course:
 @vindex gnus-use-nocem
 Set this variable to @code{t} to set the ball rolling.  It is @code{nil}
 by default.
+
+You can also set this variable to a positive number as a group level.
+In that case, Gnus scans NoCeM messages when checking new news if this
+value is not exceeding a group level that you specify as the prefix
+argument to some commands, e.g. @code{gnus},
+@code{gnus-group-get-new-news}, etc.  Otherwise, Gnus does not scan
+NoCeM messages if you specify a group level to those commands.  For
+example, if you use 1 or 2 on the mail groups and the levels on the news
+groups remain the default, 3 is the best choice.
 
 @item gnus-nocem-groups
 @vindex gnus-nocem-groups

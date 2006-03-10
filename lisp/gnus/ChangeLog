@@ -1,3 +1,27 @@
+2006-03-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* smiley.el: Add more test smileys.
+	(smiley-data-directory, smiley-regexp-alist)
+	(gnus-smiley-file-types): Fix doc strings.
+	(smiley-update-cache): Clear smiley-cached-regexp-alist before
+	adding new elements.
+	(smiley-mouse-map): Unused code.  Make it a comment.
+
+2006-03-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-nocem.el (gnus-nocem-scan-groups): Add autoload cookie;
+	scan latest NoCeM messages instead of old ones.
+	(gnus-nocem-check-article): Fix regexps so as to match to PGP
+	delimiters that are recently used.
+	(gnus-nocem-load-cache): Add autoload cookie.
+
+	* gnus.el (gnus-use-nocem): Enable it to be set to also a number.
+
+	* gnus-start.el (gnus-setup-news): Scan NoCeM messages if a group
+	level which is larger than gnus-use-nocem is specified.
+
+	* gnus-group.el (gnus-group-get-new-news): Ditto.
+
 2006-03-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-util.el (gnus-tool-bar-update): New function.

@@ -3622,7 +3622,10 @@ re-scanning.  If ARG is non-nil and not a number, this will force
 
     ;; We might read in new NoCeM messages here.
     (when (and gnus-use-nocem
-	       (null arg))
+	       (or (and (numberp gnus-use-nocem)
+			(numberp arg)
+			(>= arg gnus-use-nocem))
+		   (not arg)))
       (gnus-nocem-scan-groups))
     ;; If ARG is not a number, then we read the active file.
     (when (and arg (not (numberp arg)))
