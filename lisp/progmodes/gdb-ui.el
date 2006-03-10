@@ -257,8 +257,7 @@ detailed description of this mode.
   (interactive (list (gud-query-cmdline 'gdba)))
   ;;
   ;; Let's start with a basic gud-gdb buffer and then modify it a bit.
-  (gdb command-line)
-  (gdb-init-1))
+  (gdb command-line))
 
 (defcustom gdb-debug-ring-max 128
   "Maximum size of `gdb-debug-ring'."
@@ -322,7 +321,7 @@ With arg, use separate IO iff arg is positive."
 	   (buffer-name gud-comint-buffer))
       (condition-case nil
 	  (if gdb-use-separate-io-buffer
-	      (gdb-restore-windows)
+	      (if gdb-many-windows (gdb-restore-windows))
 	    (kill-buffer (gdb-inferior-io-name)))
 	(error nil))))
 
@@ -1037,7 +1036,7 @@ This filter may simply queue input for a later time."
 ;; is a query, or other non-top-level prompt.
 
 (defun gdb-enqueue-input (item)
-  (if gdb-prompting
+  (if (and gdb-prompting (not gud-running))
       (progn
 	(gdb-send-item item)
 	(setq gdb-prompting nil))
@@ -1192,6 +1191,7 @@ not GDB."
      ((eq sink 'user)
       (progn
 	(setq gud-running t)
+	(gdb-remove-mouse-face)
 	(if gdb-use-separate-io-buffer
 	    (setq gdb-output-sink 'inferior))))
      (t
@@ -1298,6 +1298,18 @@ happens to be appropriate."
      (t
       (gdb-resync)
       (error "Phase error in gdb-post-prompt (got %s)" sink)))))
+
+(defconst gdb-buffer-list
+'(gdb-stack-buffer gdb-locals-buffer gdb-registers-buffer gdb-threads-buffer))
+
+(defun gdb-remove-mouse-face ()
+  (dolist (buffertype gdb-buffer-list)
+    (let ((buffer (gdb-get-buffer buffertype)))
+      (if buffer
+	  (with-current-buffer buffer
+	    (let ((inhibit-read-only t))
+	      (remove-text-properties
+	       (point-min) (point-max) '(mouse-face))))))))
 
 ;; GUD displays the selected GDB frame.  This might might not be the current
 ;; GDB frame (after up, down etc).  If no GDB frame is visible but the last
