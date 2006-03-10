@@ -4265,8 +4265,8 @@ static OSStatus set_scroll_bar_timer P_ ((EventTimerInterval));
 static int control_part_code_to_scroll_bar_part P_ ((ControlPartCode));
 static void construct_scroll_bar_click P_ ((struct scroll_bar *, int,
 					    struct input_event *));
-static OSErr get_control_part_bounds P_ ((ControlHandle, ControlPartCode,
-					  Rect *));
+static OSStatus get_control_part_bounds P_ ((ControlHandle, ControlPartCode,
+					     Rect *));
 static void x_scroll_bar_handle_press P_ ((struct scroll_bar *,
 					   ControlPartCode,
 					   struct input_event *));
@@ -4387,7 +4387,7 @@ construct_scroll_bar_click (bar, part, bufp)
   bufp->modifiers = 0;
 }
 
-static OSErr
+static OSStatus
 get_control_part_bounds (ch, part_code, rect)
      ControlHandle ch;
      ControlPartCode part_code;
@@ -4531,7 +4531,10 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
   ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
   int value, viewsize, maximum;
 
-  if (whole == 0 || XINT (bar->track_height) == 0)
+  if (XINT (bar->track_height) == 0)
+    return;
+
+  if (whole == 0)
     value = 0, viewsize = 1, maximum = 0;
   else
     {
@@ -4542,10 +4545,9 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
 
   BLOCK_INPUT;
 
-  if (IsControlVisible (ch)
-      && (GetControlViewSize (ch) != viewsize
-	  || GetControl32BitValue (ch) != value
-	  || GetControl32BitMaximum (ch) != maximum))
+  if (GetControlViewSize (ch) != viewsize
+      || GetControl32BitValue (ch) != value
+      || GetControl32BitMaximum (ch) != maximum)
     {
       /* Temporarily hide the scroll bar to avoid multiple redraws.  */
       SetControlVisibility (ch, false, false);
@@ -4592,7 +4594,12 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
   r.bottom = disp_top + disp_height;
 
 #if TARGET_API_MAC_CARBON
-  ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", width < disp_height,
+  ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p",
+#if USE_TOOLKIT_SCROLL_BARS
+		   false,
+#else
+		   width < disp_height,
+#endif
 		   0, 0, 0, kControlScrollBarProc, (long) bar);
 #else
   ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", width < disp_height,
@@ -4762,6 +4769,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   /* Adjustments according to Inside Macintosh to make it look nice */
   disp_top = top;
   disp_height = height;
+#ifdef MAC_OS8
   if (disp_top == 0)
     {
       disp_top = -1;
@@ -4775,6 +4783,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
   if (sb_left + sb_width == FRAME_PIXEL_WIDTH (f))
     sb_left++;
+#endif
 
   /* Does the scroll bar exist yet?  */
   if (NILP (w->vertical_scroll_bar))
@@ -4810,8 +4819,10 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
           MoveControl (ch, sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM, disp_top);
           SizeControl (ch, sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
 		       disp_height);
+#ifndef USE_TOOLKIT_SCROLL_BARS
 	  if (sb_width < disp_height)
 	    ShowControl (ch);
+#endif
 
           /* Remember new settings.  */
           XSETINT (bar->left, sb_left);
@@ -4829,30 +4840,41 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
   if (NILP (bar->track_top))
-    {
-      ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
-      Rect r0, r1;
+    if (sb_width >= disp_height)
+      {
+	XSETINT (bar->track_top, 0);
+	XSETINT (bar->track_height, 0);
+      }
+    else
+      {
+	ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+	Rect r0, r1;
 
-      BLOCK_INPUT;
+	BLOCK_INPUT;
 
-      SetControl32BitMinimum (ch, 0);
-      SetControl32BitMaximum (ch, 1);
-      SetControlViewSize (ch, 1);
+	SetControl32BitMinimum (ch, 0);
+	SetControl32BitMaximum (ch, 1);
+	SetControlViewSize (ch, 1);
 
-      /* Move the scroll bar thumb to the top.  */
-      SetControl32BitValue (ch, 0);
-      get_control_part_bounds (ch, kControlIndicatorPart, &r0);
+	/* Move the scroll bar thumb to the top.  */
+	SetControl32BitValue (ch, 0);
+	get_control_part_bounds (ch, kControlIndicatorPart, &r0);
 
-      /* Move the scroll bar thumb to the bottom.  */
-      SetControl32BitValue (ch, 1);
-      get_control_part_bounds (ch, kControlIndicatorPart, &r1);
+	/* Move the scroll bar thumb to the bottom.  */
+	SetControl32BitValue (ch, 1);
+	get_control_part_bounds (ch, kControlIndicatorPart, &r1);
 
-      UnionRect (&r0, &r1, &r0);
-      XSETINT (bar->track_top, r0.top);
-      XSETINT (bar->track_height, r0.bottom - r0.top);
+	UnionRect (&r0, &r1, &r0);
+	XSETINT (bar->track_top, r0.top);
+	XSETINT (bar->track_height, r0.bottom - r0.top);
 
-      UNBLOCK_INPUT;
-    }
+	/* Don't show the scroll bar if its height is not enough to
+	   display the scroll bar thumb.  */
+	if (r0.bottom - r0.top > 0)
+	  ShowControl (ch);
+
+	UNBLOCK_INPUT;
+      }
 
   x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole);
 #else /* not USE_TOOLKIT_SCROLL_BARS */
@@ -8387,6 +8409,7 @@ mac_get_mouse_btn (EventRef ref)
    XTread_socket loop).  */
 static Boolean mac_convert_event_ref (EventRef eventRef, EventRecord *eventRec)
 {
+  OSStatus err;
   Boolean result = ConvertEventRefToEventRecord (eventRef, eventRec);
 
   if (result)
@@ -8420,13 +8443,19 @@ static Boolean mac_convert_event_ref (EventRef eventRef, EventRecord *eventRec)
 	    unsigned char char_codes;
 	    UInt32 key_code;
 
-	    eventRec->what = keyDown;
-	    GetEventParameter (eventRef, kEventParamKeyMacCharCodes, typeChar,
-			       NULL, sizeof (char), NULL, &char_codes);
-	    GetEventParameter (eventRef, kEventParamKeyCode, typeUInt32,
-			       NULL, sizeof (UInt32), NULL, &key_code);
-	    eventRec->message = char_codes | ((key_code & 0xff) << 8);
-	    result = 1;
+	    err = GetEventParameter (eventRef, kEventParamKeyMacCharCodes,
+				     typeChar, NULL, sizeof (char),
+				     NULL, &char_codes);
+	    if (err == noErr)
+	      err = GetEventParameter (eventRef, kEventParamKeyCode,
+				       typeUInt32, NULL, sizeof (UInt32),
+				       NULL, &key_code);
+	    if (err == noErr)
+	      {
+		eventRec->what = keyDown;
+		eventRec->message = char_codes | ((key_code & 0xff) << 8);
+		result = 1;
+	      }
 	  }
 	  break;
 
@@ -8442,7 +8471,7 @@ static Boolean mac_convert_event_ref (EventRef eventRef, EventRecord *eventRec)
   if (result)
     {
       /* Need where and when.  */
-      UInt32 mods;
+      UInt32 mods = 0;
 
       GetEventParameter (eventRef, kEventParamMouseLocation, typeQDPoint,
 			 NULL, sizeof (Point), NULL, &eventRec->where);
@@ -8852,8 +8881,7 @@ mac_handle_command_event (next_handler, event, data)
      EventRef event;
      void *data;
 {
-  OSStatus result;
-  OSErr err;
+  OSStatus result, err;
   HICommand command;
   Lisp_Object class_key, id_key, binding;
 
@@ -8861,10 +8889,10 @@ mac_handle_command_event (next_handler, event, data)
   if (result != eventNotHandledErr)
     return result;
 
-  GetEventParameter (event, kEventParamDirectObject, typeHICommand, NULL,
-		     sizeof (HICommand), NULL, &command);
+  err = GetEventParameter (event, kEventParamDirectObject, typeHICommand,
+			   NULL, sizeof (HICommand), NULL, &command);
 
-  if (command.commandID == 0)
+  if (err != noErr || command.commandID == 0)
     return eventNotHandledErr;
 
   /* A HICommand event is mapped to an Apple event whose event class
@@ -8918,12 +8946,14 @@ mac_handle_window_event (next_handler, event, data)
      void *data;
 {
   WindowPtr wp;
-  OSStatus result;
+  OSStatus result, err;
   UInt32 attributes;
   XSizeHints *size_hints;
 
-  GetEventParameter (event, kEventParamDirectObject, typeWindowRef,
-		     NULL, sizeof (WindowPtr), NULL, &wp);
+  err = GetEventParameter (event, kEventParamDirectObject, typeWindowRef,
+			   NULL, sizeof (WindowPtr), NULL, &wp);
+  if (err != noErr)
+    return eventNotHandledErr;
 
   switch (GetEventKind (event))
     {
@@ -8940,8 +8970,11 @@ mac_handle_window_event (next_handler, event, data)
       if (result != eventNotHandledErr)
 	return result;
 
-      GetEventParameter (event, kEventParamAttributes, typeUInt32,
-			 NULL, sizeof (UInt32), NULL, &attributes);
+      err = GetEventParameter (event, kEventParamAttributes, typeUInt32,
+			       NULL, sizeof (UInt32), NULL, &attributes);
+      if (err != noErr)
+	break;
+
       size_hints = FRAME_SIZE_HINTS (mac_window_to_frame (wp));
       if ((attributes & kWindowBoundsChangeUserResize)
 	  && ((size_hints->flags & (PResizeInc | PBaseSize | PMinSize))
@@ -8950,9 +8983,12 @@ mac_handle_window_event (next_handler, event, data)
 	  Rect bounds;
 	  int width, height;
 
-	  GetEventParameter (event, kEventParamCurrentBounds,
-			     typeQDRectangle,
-			     NULL, sizeof (Rect), NULL, &bounds);
+	  err = GetEventParameter (event, kEventParamCurrentBounds,
+				   typeQDRectangle, NULL, sizeof (Rect),
+				   NULL, &bounds);
+	  if (err != noErr)
+	    break;
+
 	  width = bounds.right - bounds.left;
 	  height = bounds.bottom - bounds.top;
 
@@ -9001,7 +9037,7 @@ mac_handle_mouse_event (next_handler, event, data)
      EventRef event;
      void *data;
 {
-  OSStatus result;
+  OSStatus result, err;
 
   switch (GetEventKind (event))
     {
@@ -9017,22 +9053,31 @@ mac_handle_mouse_event (next_handler, event, data)
 	if (result != eventNotHandledErr || read_socket_inev == NULL)
 	  return result;
 
-	GetEventParameter (event, kEventParamWindowRef, typeWindowRef,
-			   NULL, sizeof (WindowRef), NULL, &wp);
+	err = GetEventParameter (event, kEventParamWindowRef, typeWindowRef,
+				 NULL, sizeof (WindowRef), NULL, &wp);
+	if (err != noErr)
+	  break;
+
 	f = mac_window_to_frame (wp);
 	if (f != mac_focus_frame (&one_mac_display_info))
 	  break;
 
-	GetEventParameter (event, kEventParamMouseWheelAxis,
-			   typeMouseWheelAxis, NULL,
-			   sizeof (EventMouseWheelAxis), NULL, &axis);
-	if (axis != kEventMouseWheelAxisY)
+	err = GetEventParameter (event, kEventParamMouseWheelAxis,
+				 typeMouseWheelAxis, NULL,
+				 sizeof (EventMouseWheelAxis), NULL, &axis);
+	if (err != noErr || axis != kEventMouseWheelAxisY)
 	  break;
 
-	GetEventParameter (event, kEventParamMouseWheelDelta, typeSInt32,
-			   NULL, sizeof (SInt32), NULL, &delta);
-	GetEventParameter (event, kEventParamMouseLocation, typeQDPoint,
-			   NULL, sizeof (Point), NULL, &point);
+	err = GetEventParameter (event, kEventParamMouseWheelDelta,
+				 typeSInt32, NULL, sizeof (SInt32),
+				 NULL, &delta);
+	if (err != noErr)
+	  break;
+	err = GetEventParameter (event, kEventParamMouseLocation,
+				 typeQDPoint, NULL, sizeof (Point),
+				 NULL, &point);
+	if (err != noErr)
+	  break;
 	read_socket_inev->kind = WHEEL_EVENT;
 	read_socket_inev->code = 0;
 	read_socket_inev->modifiers =
@@ -9494,13 +9539,13 @@ convert_fn_keycode (EventRef eventRef, int keyCode, int *newCode)
   Fn modifier. That's why we need the table.
 
   */
-
+  OSStatus err;
   UInt32 mods = 0;
   if (!NILP(Vmac_function_modifier))
     {
-      GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32, NULL,
-			 sizeof (UInt32), NULL, &mods);
-      if (mods & kEventKeyModifierFnMask)
+      err = GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32,
+			       NULL, sizeof (UInt32), NULL, &mods);
+      if (err != noErr && mods & kEventKeyModifierFnMask)
 	{  *newCode = fn_keycode_to_xkeysym_table [keyCode & 0x7f];
 
 	  return (*newCode != 0);

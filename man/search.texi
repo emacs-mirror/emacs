@@ -498,11 +498,13 @@ elisp, The Emacs Lisp Reference Manual}.
 special constructs and the rest are @dfn{ordinary}.  An ordinary
 character is a simple regular expression which matches that same
 character and nothing else.  The special characters are @samp{$},
-@samp{^}, @samp{.}, @samp{*}, @samp{+}, @samp{?}, @samp{[}, @samp{]} and
-@samp{\}.  Any other character appearing in a regular expression is
-ordinary, unless a @samp{\} precedes it.  (When you use regular
-expressions in a Lisp program, each @samp{\} must be doubled, see the
-example near the end of this section.)
+@samp{^}, @samp{.}, @samp{*}, @samp{+}, @samp{?}, @samp{[}, and
+@samp{\}.  The character @samp{]} is special if it ends a character
+alternative (see later).  The character @samp{-} is special inside a
+character alternative.  Any other character appearing in a regular
+expression is ordinary, unless a @samp{\} precedes it.  (When you use
+regular expressions in a Lisp program, each @samp{\} must be doubled,
+see the example near the end of this section.)
 
   For example, @samp{f} is not a special character, so it is ordinary, and
 therefore @samp{f} is a regular expression that matches the string
@@ -681,6 +683,14 @@ sense.  For example, @samp{*foo} treats @samp{*} as ordinary since there is
 no preceding expression on which the @samp{*} can act.  It is poor practice
 to depend on this behavior; it is better to quote the special character anyway,
 regardless of where it appears.
+
+As a @samp{\} is not special inside a character alternative, it can
+never remove the special meaning of @samp{-} or @samp{]}.  So you
+should not quote these characters when they have no special meaning
+either.  This would not clarify anything, since backslashes can
+legitimately precede these characters where they @emph{have} special
+meaning, as in @code{[^\]} (@code{"[^\\]"} for Lisp string syntax),
+which matches any single character except a backslash.
 
 @node Regexp Backslash
 @section Backslash in Regular Expressions

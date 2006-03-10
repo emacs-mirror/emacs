@@ -313,8 +313,7 @@ order).
   (make-local-variable 'mh-sent-from-msg)
   (mh-do-in-gnu-emacs
     (unless mh-letter-buttons-init-flag
-      (let ((load-path (mh-image-load-path-for-library
-                        "mh-e" "mh-logo.xpm" 'load-path))
+      (let ((load-path (mh-image-load-path-for-library "mh-e" "mh-logo.xpm"))
             (image-load-path (mh-image-load-path-for-library
                               "mh-e" "mh-logo.xpm" 'image-load-path)))
         (mh-tool-bar-letter-buttons-init)

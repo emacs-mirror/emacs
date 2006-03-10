@@ -516,6 +516,10 @@ struct scroll_bar {
    text from glomming up against the scroll bar */
 #define VERTICAL_SCROLL_BAR_WIDTH_TRIM (0)
 
+/* Variations of possible Aqua scroll bar width.  */
+#define MAC_AQUA_VERTICAL_SCROLL_BAR_WIDTH (15)
+#define MAC_AQUA_SMALL_VERTICAL_SCROLL_BAR_WIDTH (11)
+
 /* Size of hourglass controls */
 #define HOURGLASS_WIDTH 16
 #define HOURGLASS_HEIGHT 16

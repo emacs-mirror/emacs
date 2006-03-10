@@ -796,7 +796,12 @@ type=\"\\(.*?\\)\"")
 	  (concat "server interpreter mi \"-var-assign "
 		  varnum " " value "\"\n")
 	(concat "-var-assign " varnum " " value "\n"))
-	   'ignore))))
+	   `(lambda () (gdb-edit-value-handler ,value))))))
+
+(defun gdb-edit-value-handler (value)
+  (goto-char (point-min))
+  (if (re-search-forward gdb-error-regexp nil t)
+      (message-box "Invalid number or expression (%s)" value)))
 
 (defcustom gdb-show-changed-values t
   "If non-nil change the face of out of scope variables and changed values.

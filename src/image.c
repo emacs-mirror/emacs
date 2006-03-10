@@ -194,7 +194,7 @@ XPutPixel (ximage, x, y, pixel)
       char *base_addr = GetPixBaseAddr (pixmap);
       short row_bytes = GetPixRowBytes (pixmap);
 
-      ((unsigned long *) (base_addr + y * row_bytes))[x] = pixel;
+      ((unsigned long *) (base_addr + y * row_bytes))[x] = 0xff000000 | pixel;
     }
   else if (depth == 1)
     {
@@ -238,7 +238,7 @@ XGetPixel (ximage, x, y)
       char *base_addr = GetPixBaseAddr (pixmap);
       short row_bytes = GetPixRowBytes (pixmap);
 
-      return ((unsigned long *) (base_addr + y * row_bytes))[x];
+      return ((unsigned long *) (base_addr + y * row_bytes))[x] & 0x00ffffff;
     }
   else if (depth == 1)
     {

@@ -217,6 +217,10 @@ Lisp_Object Vscroll_preserve_screen_position;
 
 int window_deletion_count;
 
+/* Used by the function window_scroll_pixel_based */
+
+static int preserve_y;
+
 #if 0 /* This isn't used anywhere.  */
 /* Nonzero means we can split a frame even if it is "unsplittable".  */
 static int inhibit_frame_unsplittable;
@@ -4726,7 +4730,6 @@ window_scroll_pixel_based (window, n, whole, noerror)
   int this_scroll_margin;
   /* True if we fiddled the window vscroll field without really scrolling.   */
   int vscrolled = 0;
-  static int preserve_y = -1;
 
   SET_TEXT_POS_FROM_MARKER (start, w->start);
 
@@ -7023,6 +7026,8 @@ syms_of_window ()
 
   minibuf_selected_window = Qnil;
   staticpro (&minibuf_selected_window);
+
+  preserve_y = -1;
 
   DEFVAR_LISP ("temp-buffer-show-function", &Vtemp_buffer_show_function,
 	       doc: /* Non-nil means call as function to display a help buffer.

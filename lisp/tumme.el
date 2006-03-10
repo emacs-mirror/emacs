@@ -169,13 +169,13 @@
 ;; probably needs rewriting `tumme-display-thumbs' to be more general.
 ;;
 ;; * Find some way of toggling on and off really nice keybindings in
-;; dired (for example, using C-n or <down> instead of C-S-n). Richard
+;; dired (for example, using C-n or <down> instead of C-S-n).  Richard
 ;; suggested that we could keep C-t as prefix for tumme commands as it
-;; is currently not used in dired. He also suggested that
+;; is currently not used in dired.  He also suggested that
 ;; `dired-next-line' and `dired-previous-line' figure out if tumme is
 ;; enabled in the current buffer and, if it is, call
 ;; `tumme-dired-next-line' and `tumme-dired-previous-line',
-;; respectively. Update: This is partly done; some bindings have now
+;; respectively.  Update: This is partly done; some bindings have now
 ;; been added to dired.
 ;;
 ;; * Enhanced gallery creation with basic CSS-support and pagination

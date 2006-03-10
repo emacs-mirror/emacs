@@ -1,3 +1,46 @@
+2006-03-06  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (Version, mh-version): Add +cvs to version.
+
+2006-03-05  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-search.el (mh-index-update-single-msg): Fix a bug in the
+	handling of duplicate messages.  The test in cond was too strong
+	and wasn't catching the case where origin-map was nil.
+
+2006-03-05  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 7.93.
+
+	* mh-e.el (Version, mh-version): Update for release 7.93.
+	
+2006-03-05  Bill Wohler  <wohler@newt.com>
+
+	* mh-folder.el (mh-folder-mode): Drop 'load-path argument when
+	calling mh-image-load-path-for-library since this is the default.
+
+	* mh-letter.el (mh-letter-mode): Ditto.
+
+	* mh-utils.el (mh-logo-display): Ditto.
+
+2006-03-04  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-image-load-path-for-library): Move here from
+	mh-utils.el and wrap with mh-defun-compat since this function will
+	be soon added to image.el.
+	
+	* mh-utils.el (mh-image-load-path-for-library): Move to
+	mh-compat.el.
+	(mh-normalize-folder-name): Add return-nil-if-folder-empty
+	argument which is useful when calling mh-normalize-folder-name to
+	process the folder argument for the folders command.
+	(mh-sub-folders): Use new flag to mh-normalize-folder-name to make
+	this function more robust. It could too easily list the folders in
+	/.
+	(mh-folder-list): Fix a couple of problems pointed out by Thomas
+	Baumann. Set folder to nil if empty. Don't append "/" if folder
+	nil.
+
 2006-03-03  Bill Wohler  <wohler@newt.com>
 
 	* mh-folder.el (mh-folder-mode):  Rename mh-image-load-path to
@@ -36,8 +79,8 @@
 	(mh-tool-bar-letter-buttons-init): Don't call mh-image-load-path.
 	(mh-tool-bar-define call): Format.
 
-	* mh-utils.el (mh-image-directory,
-	mh-image-load-path-called-flag): Delete.
+	* mh-utils.el (mh-image-directory)
+	(mh-image-load-path-called-flag): Delete.
 	(mh-image-load-path): Incorporate changes from Gnus team. Biggest
 	changes are that it no longer uses/sets mh-image-directory or
 	mh-image-load-path-called-flag, and returns the updated path

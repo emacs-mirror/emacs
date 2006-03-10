@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.07
+;; Version: 4.08
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,6 +81,9 @@
 ;;
 ;; Changes since version 4.00:
 ;; ---------------------------
+;; Version 4.08
+;;
+;;
 ;; Version 4.07
 ;;    - Bug fixes.
 ;;    - Leading stars in headlines can be hidden, so make the outline look
@@ -136,7 +139,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.07"
+(defvar org-version "4.08"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -796,7 +799,7 @@ as possible."
 (defcustom org-level-color-stars-only nil
   "Non-nil means fontify only the stars in each headline.
 When nil, the entire headline is fontified.
-Changing it requires restart of Emacs to become effective."
+Changing it requires restart of `font-lock-mode' to become effective."
   :group 'org-structure
   :type 'boolean)
 
@@ -806,7 +809,7 @@ This works by using the face `org-hide' for these stars.  This
 face is white for a light background, and black for a dark
 background.  You may have to customize the face `org-hide' to
 make this work.
-Changing the variable requires restart of Emacs to become effective."
+Changing it requires restart of `font-lock-mode' to become effective."
   :group 'org-structure
   :type 'boolean)
 
@@ -814,7 +817,9 @@ Changing the variable requires restart of Emacs to become effective."
   "Non-nil means, skip even levels and only use odd levels for the outline.
 This has the effect that two stars are being added/taken away in
 promotion/demotion commands.  It also influences how levels are
-handled by the exporters."
+handled by the exporters.
+Changing it requires restart of `font-lock-mode' to become effective
+for fontification." 
   :group 'org-structure
   :type 'boolean)
 
@@ -1156,6 +1161,14 @@ For more examples, see the system specific constants
 			(const :tag "Use system default" default)
 			(string :tag "Command")
 			(sexp :tag "Lisp form")))))
+
+(defcustom org-mhe-search-all-folders nil
+  "Non-nil means, that the search for the mh-message will be extended to 
+all folders if the message cannot be found in the folder given in the link.
+Searching all folders is very effective with one of the search engines 
+supported by MH-E, but will be slow with pick."
+  :group 'org-link
+  :type 'boolean)
 
 (defgroup org-remember nil
   "Options concerning interaction with remember.el."
@@ -1855,6 +1868,14 @@ When this is non-nil, the headline after the keyword is set to the
   "Face for links."
   :group 'org-faces)
 
+(defface org-tag
+  '((((type tty) (class color)) (:foreground "cyan" :weight bold))
+    (((class color) (background light)) (:foreground "Purple" :weight bold))
+    (((class color) (background dark)) (:foreground "Cyan" :weight bold))
+    (t (:bold t)))
+  "Face for links."
+  :group 'org-faces)
+
 (defface org-done ;; font-lock-type-face
   '((((type tty) (class color)) (:foreground "green"))
     (((class color) (background light)) (:foreground "ForestGreen" :bold t))
@@ -1879,25 +1900,10 @@ When this is non-nil, the headline after the keyword is set to the
   "Face used for time grids."
   :group 'org-faces)
 
-(defvar org-level-faces nil)
-
-(when (not org-level-faces)
-  (setq org-level-faces
-	'(
-	  org-level-1
-	  org-level-2
-	  org-level-3
-	  org-level-4
-	  org-level-5
-	  org-level-6
-	  org-level-7
-	  org-level-8
-	  ))
-  (when org-odd-levels-only
-    (setq org-level-faces (apply 'append (mapcar (lambda (x) (list x x))
-						 org-level-faces)))
-    (setq org-level-faces (append (cdr org-level-faces) (list 'org-level-1)))))
-
+(defvar org-level-faces
+  '(org-level-1 org-level-2 org-level-3 org-level-4
+    org-level-5 org-level-6 org-level-7 org-level-8
+    ))
 (defvar org-n-levels (length org-level-faces))
 
 (defun org-set-regexps-and-options ()
@@ -1985,48 +1991,48 @@ When this is non-nil, the headline after the keyword is set to the
 
 ;; Tell the compiler about dynamically scoped variables,
 ;; and variables from other packages
-(eval-when-compile
-  (defvar zmacs-regions)
-  (defvar original-date)
-  (defvar org-transient-mark-mode)
-  (defvar org-old-auto-fill-inhibit-regexp)
-  (defvar orgtbl-mode-menu)
-  (defvar org-html-entities)
-  (defvar org-goto-start-pos)
-  (defvar org-cursor-color)
-  (defvar org-time-was-given)
-  (defvar org-ts-what)
-  (defvar mark-active)
-  (defvar timecnt)
-  (defvar levels-open)
-  (defvar title)
-  (defvar author)
-  (defvar email)
-  (defvar text)
-  (defvar entry)
-  (defvar date)
-  (defvar language)
-  (defvar options)
-  (defvar ans1)
-  (defvar ans2)
-  (defvar starting-day)
-  (defvar include-all-loc)
-  (defvar vm-message-pointer)
-  (defvar vm-folder-directory)
-  (defvar wl-summary-buffer-elmo-folder)
-  (defvar wl-summary-buffer-folder-name)
-  (defvar gnus-group-name)
-  (defvar gnus-article-current)
-  (defvar w3m-current-url)
-  (defvar mh-progs)
-  (defvar mh-current-folder)
-  (defvar mh-show-folder-buffer)
-  (defvar mh-index-folder)
-  (defvar org-selected-point)
-  (defvar calendar-mode-map)
-  (defvar remember-save-after-remembering)
-  (defvar remember-data-file)
-  (defvar last-arg))
+(defvar zmacs-regions)
+(defvar original-date)
+(defvar org-transient-mark-mode)
+(defvar org-old-auto-fill-inhibit-regexp)
+(defvar orgtbl-mode-menu)
+(defvar org-html-entities)
+(defvar org-goto-start-pos)
+(defvar org-cursor-color)
+(defvar org-time-was-given)
+(defvar org-ts-what)
+(defvar mark-active)
+(defvar timecnt)
+(defvar levels-open)
+(defvar title)
+(defvar author)
+(defvar email)
+(defvar text)
+(defvar entry)
+(defvar date)
+(defvar language)
+(defvar options)
+(defvar ans1)
+(defvar ans2)
+(defvar starting-day)
+(defvar include-all-loc)
+(defvar vm-message-pointer)
+(defvar vm-folder-directory)
+(defvar wl-summary-buffer-elmo-folder)
+(defvar wl-summary-buffer-folder-name)
+(defvar gnus-group-name)
+(defvar gnus-article-current)
+(defvar w3m-current-url)
+(defvar mh-progs)
+(defvar mh-current-folder)
+(defvar mh-show-folder-buffer)
+(defvar mh-index-folder)
+(defvar mh-searcher)
+(defvar org-selected-point)
+(defvar calendar-mode-map)
+(defvar remember-save-after-remembering)
+(defvar remember-data-file)
+(defvar last-arg)
 
 ;;; Define the mode
 
@@ -2216,7 +2222,7 @@ The following commands are available:
 
 (defun org-activate-target-links (limit)
   "Run through the buffer and add overlays to target matches."
-  (when org-radio-targets
+  (when (and org-radio-targets org-target-link-regexp)
     (let ((case-fold-search t))
       (if (re-search-forward org-target-link-regexp limit t)
 	  (progn
@@ -2253,16 +2259,17 @@ With optional argument RADIO, only find radio targets."
   "Make regular expression matching all strings in TARGETS.
 The regular expression finds the targets also if there is a line break
 between words."
-  (concat
-   "\\<\\("
-   (mapconcat
-    (lambda (x)
-      (while (string-match " +" x)
-	(setq x (replace-match "\\s-+" t t x)))
-      x)
-    targets
-    "\\|")
-   "\\)\\>"))
+  (and targets
+       (concat
+	"\\<\\("
+	(mapconcat
+	 (lambda (x)
+	   (while (string-match " +" x)
+	     (setq x (replace-match "\\s-+" t t x)))
+	   x)
+	 targets
+	 "\\|")
+	"\\)\\>")))
 
 (defvar org-camel-regexp "\\*?\\<[A-Z]+[a-z]+[A-Z][a-zA-Z]*\\>"
   "Matches CamelCase words, possibly with a star before it.")
@@ -2302,12 +2309,14 @@ between words."
 (defun org-set-font-lock-defaults ()
   (let ((org-font-lock-extra-keywords
 	 (list
+	  '("^\\(\\**\\)\\(\\*\\)\\(.*\\)" (1 (org-get-level-face 1))
+	    (2 (org-get-level-face 2)) (3 (org-get-level-face 3)))
 	  '(org-activate-links (0 'org-link t))
 	  '(org-activate-links2 (0 'org-link t))
 	  '(org-activate-target-links (0 'org-link t))
 	  '(org-activate-dates (0 'org-link t))
 	  '(org-activate-camels (0 'org-link t))
-	  '(org-activate-tags (1 'org-link t))
+	  '(org-activate-tags (1 'org-tag t))
 	  (list (concat "^\\*+[ \t]*" org-not-done-regexp)
 		'(1 'org-warning t))
 	  (list (concat "\\[#[A-Z]\\]") '(0 'org-special-keyword t))
@@ -2334,29 +2343,27 @@ between words."
 	  '("^[ \t]*\\(:.*\\)" (1 'org-table t))
 	  '("| *\\(:?=[^|\n]*\\)" (1 'org-formula t))
 	  '("^[ \t]*| *\\([#!$*_^]\\) *|" (1 'org-formula t))
-	  ))
-	(exp
-	 ;; The font-lock expression for headlines is complicated.  It depends
-	 ;; on two user options, and it needs to determine the level in
-	 ;; order to compute the level.
-	 (cond
-	  ((and org-level-color-stars-only (not org-hide-leading-stars))
-	   '("^\\(\\*+\\).*" 1 (nth (% (- (match-end 1) (match-beginning 1) 1) org-n-levels) org-level-faces) nil t))
-	  ((and (not org-level-color-stars-only) org-hide-leading-stars)
-	   '("^\\(\\**\\)\\(\\*.*\\)" (1 'org-hide) (2 (nth (% (- (match-end 1) (match-beginning 1)) org-n-levels) org-level-faces) nil t)))
-	  ((and org-level-color-stars-only org-hide-leading-stars)
-	   '("^\\(\\**\\)\\(\\*\\).*" (1 'org-hide) (2 (nth (% (- (match-end 1) (match-beginning 1)) org-n-levels) org-level-faces) nil t)))
-	  (t
-	   '("^\\(\\*+\\).*" 0 (nth (% (- (match-end 1) (match-beginning 1) 1) org-n-levels) org-level-faces) nil t)))))
-    
+	  )))
+
     ;; Now set the full font-lock-keywords
     (set (make-local-variable 'org-font-lock-keywords)
-	 (append
-	  (if org-xemacs-p (list exp) (list (cons 'eval (list 'quote exp))))
-	  org-font-lock-extra-keywords))
+	 org-font-lock-extra-keywords)
     (set (make-local-variable 'font-lock-defaults)
 	 '(org-font-lock-keywords t nil nil backward-paragraph))
     (kill-local-variable 'font-lock-keywords) nil))
+
+(defvar org-m nil)
+(defvar org-l nil)
+(defvar org-f nil)
+(defun org-get-level-face (n)
+  "Get the right face for match N in font-lock matching of healdines."
+  (setq org-l (- (match-end 2) (match-beginning 1)))
+  (if org-odd-levels-only (setq org-l (1+ (/ org-l 2))))
+  (setq org-f (nth (1- (% org-l org-n-levels)) org-level-faces))
+  (cond
+   ((eq n 1) (if org-hide-leading-stars 'org-hide org-f))
+   ((eq n 2) org-f)
+   (t (if org-level-color-stars-only nil org-f))))
 
 (defun org-unfontify-region (beg end &optional maybe_loudly)
   "Remove fontification and activation overlays from links."
@@ -2463,7 +2470,7 @@ between words."
       (save-excursion
 	(org-back-to-heading)
 	(outline-up-heading (if (< arg 0) (- arg)
-			      (- (outline-level) arg)))
+			      (- (funcall outline-level) arg)))
 	(org-show-subtree)))
 
      ((save-excursion (beginning-of-line 1) (looking-at outline-regexp))
@@ -2820,7 +2827,7 @@ in the region."
 (defun org-map-tree (fun)
   "Call FUN for every heading underneath the current one."
   (org-back-to-heading)
-  (let ((level (outline-level)))
+  (let ((level (funcall outline-level)))
     (save-excursion
       (funcall fun)
       (while (and (progn
@@ -3301,7 +3308,7 @@ heading be marked DONE, and the current time will be added."
     (if (string-match "\\(.*\\)::\\(.*\\)" org-archive-location)
 	(progn
 	  (setq file (format (match-string 1 org-archive-location)
-			     (file-name-nondirectory (buffer-file-name)))
+			     (file-name-nondirectory buffer-file-name))
 		heading (match-string 2 org-archive-location)))
       (error "Invalid `org-archive-location'"))
     (if (> (length file) 0)
@@ -3468,7 +3475,10 @@ At all other locations, this simply calls `ispell-complete-word'."
 	     (message "Making completion list...")
 	     (let ((list (sort (all-completions pattern table) 'string<)))
 	       (with-output-to-temp-buffer "*Completions*"
-		 (display-completion-list list)))
+		 (condition-case nil
+		     ;; Protection needed for XEmacs and emacs 21
+		     (display-completion-list list pattern)
+		   (error (display-completion-list list)))))
 	     (message "Making completion list...%s" "done"))))))
 
 ;;; Comments, TODO and DEADLINE
@@ -4491,7 +4501,7 @@ first press `1' to indicate that the agenda should be temporarily (until the
 next use of \\[org-agenda]) restricted to the current file."
   (interactive "P")
   (catch 'exit
-    (let ((restrict-ok (and (buffer-file-name) (eq major-mode 'org-mode)))
+    (let ((restrict-ok (and buffer-file-name (eq major-mode 'org-mode)))
 	  (custom org-agenda-custom-commands)
 	  c entry key type string)
       (put 'org-agenda-files 'org-restrict nil)
@@ -4526,7 +4536,7 @@ C   Configure your own agenda commands")
 	(message "")
 	(when (equal c ?1)
 	  (if restrict-ok
-	      (put 'org-agenda-files 'org-restrict (list (buffer-file-name)))
+	      (put 'org-agenda-files 'org-restrict (list buffer-file-name))
 	    (error "Cannot restrict agenda to current buffer"))
 	  (message "Press key for agenda command%s"
 		   (if restrict-ok " (restricted to current file)" ""))
@@ -4650,8 +4660,8 @@ dates."
 	 (dotodo include-all)
 	 (doclosed org-agenda-show-log)
 	 (org-agenda-keep-modes keep-modes)
-	 (entry (buffer-file-name))
-	 (org-agenda-files (list (buffer-file-name)))
+	 (entry buffer-file-name)
+	 (org-agenda-files (list buffer-file-name))
 	 (date (calendar-current-date))
 	 (win (selected-window))
 	 (pos1 (point))
@@ -5178,7 +5188,7 @@ date.  It also removes lines that contain only whitespace."
        "Make the position visible."
        (if (and org-disable-agenda-to-diary  ;; called from org-agenda
 		(stringp string)
-		(buffer-file-name))
+		buffer-file-name)
 	   (setq string (org-modify-diary-entry-string string))))))
 
 (defun org-modify-diary-entry-string (string)
@@ -5190,7 +5200,7 @@ date.  It also removes lines that contain only whitespace."
 	 'help-echo
 	 (format
 	  "mouse-2 or RET jump to diary file %s"
-	  (abbreviate-file-name (buffer-file-name)))
+	  (abbreviate-file-name buffer-file-name))
 	 'org-agenda-diary-link t
 	 'org-marker (org-agenda-new-marker (point-at-bol)))
    string)
@@ -5212,7 +5222,7 @@ If the current buffer visits an agenda file, find the next one in the list.
 If the current buffer does not, find the first agenda file."
   (interactive)
   (let ((files (append org-agenda-files (list (car org-agenda-files))))
-	(tcf (if (buffer-file-name) (file-truename (buffer-file-name))))
+	(tcf (if buffer-file-name (file-truename buffer-file-name)))
 	file)
     (unless files (error "No agenda files"))
     (catch 'exit
@@ -5223,14 +5233,14 @@ If the current buffer does not, find the first agenda file."
 	      (throw 'exit t))))
       (find-file (car org-agenda-files)))))
 
-(defun org-agenda-file-to-end (&optional file)
+(defun org-agenda-file-to-end ()
   "Move/add the current file to the end of the agenda file list.
 If the file is not present in the list, it is appended to the list.  If it is
 present, it is moved there."
   (interactive)
-  (org-agenda-file-to-front 'to-end file))
+  (org-agenda-file-to-front 'to-end))
 
-(defun org-agenda-file-to-front (&optional to-end file)
+(defun org-agenda-file-to-front (&optional to-end)
   "Move/add the current file to the top of the agenda file list.
 If the file is not present in the list, it is added to the front.  If it is
 present, it is moved there.  With optional argument TO-END, add/move to the
@@ -5239,11 +5249,11 @@ end of the list."
   (let ((file-alist (mapcar (lambda (x)
 			      (cons (file-truename x) x))
 			    org-agenda-files))
-	(ctf (file-truename (buffer-file-name)))
+	(ctf (file-truename buffer-file-name))
 	x had)
     (setq x (assoc ctf file-alist) had x)
 
-    (if (not x) (setq x (cons ctf (abbreviate-file-name (buffer-file-name)))))
+    (if (not x) (setq x (cons ctf (abbreviate-file-name buffer-file-name))))
     (if to-end
 	(setq file-alist (append (delq x file-alist) (list x)))
       (setq file-alist (cons x (delq x file-alist))))
@@ -5259,7 +5269,7 @@ end of the list."
 These are the files which are being checked for agenda entries.
 Optional argument FILE means, use this file instead of the current."
   (interactive)
-  (let* ((file (or file (buffer-file-name)))
+  (let* ((file (or file buffer-file-name))
 	 (true-file (file-truename file))
 	 (afile (abbreviate-file-name file))
 	 (files (delq nil (mapcar
@@ -5383,9 +5393,9 @@ function from a program - use `org-agenda-get-day-entries' instead."
       (cond
        ((null org-category)
 	(setq org-category
-	      (if (buffer-file-name)
+	      (if buffer-file-name
 		  (file-name-sans-extension
-		   (file-name-nondirectory (buffer-file-name)))
+		   (file-name-nondirectory buffer-file-name))
 		"???")))
        ((symbolp org-category) (symbol-name org-category))
        (t org-category))
@@ -5482,7 +5492,7 @@ the documentation of `org-diary'."
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
-			      (abbreviate-file-name (buffer-file-name)))))
+			      (abbreviate-file-name buffer-file-name))))
 	 (regexp (concat "[\n\r]\\*+ *\\("
 			 (if org-select-this-todo-keyword
 			     (concat "\\<\\(" org-select-this-todo-keyword
@@ -5524,7 +5534,7 @@ the documentation of `org-diary'."
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
-			      (abbreviate-file-name (buffer-file-name)))))
+			      (abbreviate-file-name buffer-file-name))))
 	 (regexp (regexp-quote
 		  (substring
 		   (format-time-string
@@ -5601,7 +5611,7 @@ the documentation of `org-diary'."
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
-			      (abbreviate-file-name (buffer-file-name)))))
+			      (abbreviate-file-name buffer-file-name))))
 	 (regexp (concat
 		  "\\<" org-closed-string " *\\["
 		  (regexp-quote
@@ -5657,7 +5667,7 @@ the documentation of `org-diary'."
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
-			      (abbreviate-file-name (buffer-file-name)))))
+			      (abbreviate-file-name buffer-file-name))))
 	 (regexp org-deadline-time-regexp)
 	 (todayp (equal date (calendar-current-date))) ; DATE bound by calendar
 	 (d1 (calendar-absolute-from-gregorian date))  ; DATE bound by calendar
@@ -5719,7 +5729,7 @@ the documentation of `org-diary'."
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
-			      (abbreviate-file-name (buffer-file-name)))))
+			      (abbreviate-file-name buffer-file-name))))
 	 (regexp org-scheduled-time-regexp)
 	 (todayp (equal date (calendar-current-date))) ; DATE bound by calendar
 	 (d1 (calendar-absolute-from-gregorian date))  ; DATE bound by calendar
@@ -5768,7 +5778,7 @@ the documentation of `org-diary'."
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
-			      (abbreviate-file-name (buffer-file-name)))))
+			      (abbreviate-file-name buffer-file-name))))
 	 (regexp org-tr-regexp)
 	 (d0 (calendar-absolute-from-gregorian date))
 	 marker hdmarker ee txt d1 d2 s1 s2 timestr category tags)
@@ -5861,11 +5871,11 @@ only the correctly processes TXT should be returned - this is used by
     (if (string-match "^ +" txt) (setq txt (replace-match "" nil nil txt)))
     (let* ((category (or category
 			 org-category
-			 (if (buffer-file-name)
+			 (if buffer-file-name
 			     (file-name-sans-extension
-			      (file-name-nondirectory (buffer-file-name)))
+			      (file-name-nondirectory buffer-file-name))
 			   "")))
-	   (tag (or (nth (1- (length tags)) tags) ""))
+	   (tag (or (nth (1- (or (length tags) 0)) tags) ""))
 	   time              ;; needed for the eval of the prefix format
 	   (ts (if dotime (concat (if (stringp dotime) dotime "") txt)))
 	   (time-of-day (and dotime (org-get-time-of-day ts)))
@@ -6495,7 +6505,7 @@ are included in the output."
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
-			      (abbreviate-file-name (buffer-file-name)))))
+			      (abbreviate-file-name buffer-file-name))))
          lspos
 	 tags tags-list tags-alist (llast 0) rtn level category i txt
 	 todo marker)
@@ -6507,7 +6517,7 @@ are included in the output."
 	(setq todo (if (match-end 1) (match-string 2))
 	      tags (if (match-end 4) (match-string 4)))
 	(goto-char (setq lspos (1+ (match-beginning 0))))
-	(setq level (outline-level)
+	(setq level (funcall outline-level)
 	      category (org-get-category))
 	(setq i llast llast level)
 	;; remove tag lists from same and sublevels
@@ -7232,9 +7242,8 @@ sequences, it will now work."
   "Returns the name of the message folder in a index folder buffer."
   (save-excursion
     (mh-index-previous-folder)
-    (if (not (re-search-forward "^\\(+.*\\)$" nil t))
-        (message "Problem getting folder from index.")
-      (message (match-string 1)))))
+    (re-search-forward "^\\(+.*\\)$" nil t)
+    (message (match-string 1))))
 
 (defun org-mhe-get-message-folder ()
   "Return the name of the current message folder.  Be careful if you
@@ -7278,23 +7287,21 @@ idea..."
   "Follow an MHE link to FOLDER and ARTICLE."
   (setq article (org-add-angle-brackets article))
   (require 'mh-e)
+  (require 'mh-search)
   (mh-find-path)
-  (let* ((show-buf (concat "show-" folder)))
-    (mh-visit-folder folder)
-    (get-buffer-create show-buf)
-    (mh-show-msg
-     (string-to-number
-      (car (split-string
-	    (with-temp-buffer
-	      (call-process
-	       (expand-file-name "pick" mh-progs)
-	       nil t nil
-	       folder
-	       "--message-id"
-	       article)
-	      (buffer-string))
-	    "\n"))))
-    (pop-to-buffer show-buf)))
+  (mh-search-choose)
+  (if (equal mh-searcher 'pick)
+      (progn
+        (mh-search folder (list "--message-id" article))
+        (when (and org-mhe-search-all-folders
+                 (not (org-mhe-get-message-real-folder)))
+          (kill-this-buffer)
+          (mh-search "+" (list "--message-id" article))))
+    (mh-search "+" article))
+  (if (org-mhe-get-message-real-folder)
+      (mh-show-msg 1)
+    (kill-this-buffer)
+    (error "Message not found")))
 
 (defun org-open-file (path &optional in-emacs line search)
   "Open the file at PATH.
@@ -7309,7 +7316,7 @@ opened in Emacs.
 If the file does not exist, an error is thrown."
   (setq in-emacs (or in-emacs line search))
   (let* ((file (if (equal path "")
-		   (buffer-file-name)
+		   buffer-file-name
 		 (convert-standard-filename (org-expand-file-name path))))
 	 (dirp (file-directory-p file))
 	 (dfile (downcase file))
@@ -7345,7 +7352,7 @@ If the file does not exist, an error is thrown."
 	(shell-command (concat cmd " &"))))
      ((or (stringp cmd)
 	  (eq cmd 'emacs))
-      (unless (equal (file-truename file) (file-truename (buffer-file-name)))
+      (unless (equal (file-truename file) (file-truename buffer-file-name))
 	(funcall (cdr (assq 'file org-link-frame-setup)) file))
       (if line (goto-line line)
 	(if search (org-link-search search))))
@@ -7412,7 +7419,7 @@ For file links, arg negates `org-context-in-file-links'."
       (save-excursion
        (vm-select-folder-buffer)
        (let* ((message (car vm-message-pointer))
-	      (folder (buffer-file-name))
+	      (folder buffer-file-name)
 	      (subject (vm-su-subject message))
 	      (author (vm-su-full-name message))
 	      (message-id (vm-su-message-id message)))
@@ -7457,7 +7464,7 @@ For file links, arg negates `org-context-in-file-links'."
       (save-excursion
 	(save-restriction
 	  (rmail-narrow-to-non-pruned-header)
-	  (let ((folder (buffer-file-name))
+	  (let ((folder buffer-file-name)
 		(message-id (mail-fetch-field "message-id"))
 		(author (mail-fetch-field "from"))
 		(subject (mail-fetch-field "subject")))
@@ -7512,7 +7519,7 @@ For file links, arg negates `org-context-in-file-links'."
      ((eq major-mode 'org-mode)
       ;; Just link to current headline
       (setq cpltxt (concat "file:"
-			   (abbreviate-file-name (buffer-file-name))))
+			   (abbreviate-file-name buffer-file-name)))
       ;; Add a context search string
       (when (org-xor org-context-in-file-links arg)
 	;; Check if we are on a target
@@ -7537,10 +7544,10 @@ For file links, arg negates `org-context-in-file-links'."
 	  (setq cpltxt (substring cpltxt 0 -2)))
       (setq link (org-make-link cpltxt)))
 
-     ((buffer-file-name)
+     (buffer-file-name
       ;; Just link to this file here.
       (setq cpltxt (concat "file:"
-			   (abbreviate-file-name (buffer-file-name))))
+			   (abbreviate-file-name buffer-file-name)))
       ;; Add a context string
       (when (org-xor org-context-in-file-links arg)
 	(setq txt (if (org-region-active-p)
@@ -7706,7 +7713,7 @@ is in the current directory or below."
 	       (case-fold-search nil)
 	       (search (match-string 2 link)))
 	  (when (save-match-data
-		  (equal (file-truename (buffer-file-name))
+		  (equal (file-truename buffer-file-name)
 			 (file-truename path)))
 	    ;; We are linking to this same file
 	    (if (and org-file-link-context-use-camel-case
@@ -7835,7 +7842,7 @@ See also the variable `org-reverse-note-order'."
 		  ((and (org-on-heading-p nil) (not current-prefix-arg))
 		   ;; Put it below this entry, at the beg/end of the subtree
 		   (org-back-to-heading)
-		   (setq level (outline-level))
+		   (setq level (funcall outline-level))
 		   (if reversed
 		       (outline-end-of-heading)
 		     (outline-end-of-subtree))
@@ -7868,7 +7875,7 @@ See also the variable `org-reverse-note-order'."
 	(let  ((all org-reverse-note-order)
 	       entry)
 	  (while (setq entry (pop all))
-	    (if (string-match (car entry) (buffer-file-name))
+	    (if (string-match (car entry) buffer-file-name)
 		(throw 'exit (cdr entry))))
 	  nil)))))
 
@@ -10510,7 +10517,8 @@ translations.  There is currently no way for users to extend this.")
   "Cleanup a buffer substring so that links can be created safely."
   (interactive)
   (let* ((cb (current-buffer))
-	 (re-radio (concat "\\([^<]\\)\\(" org-target-link-regexp "\\)"))
+	 (re-radio (and org-target-link-regexp
+			(concat "\\([^<]\\)\\(" org-target-link-regexp "\\)")))
 	 rtn)
     (save-excursion
       (set-buffer (get-buffer-create " org-mode-tmp"))
@@ -10524,8 +10532,9 @@ translations.  There is currently no way for users to extend this.")
 	(replace-match "\\1(INVISIBLE)"))
       ;; Find matches for radio targets and turn them into links
       (goto-char (point-min))
-      (while (re-search-forward re-radio nil t)
-	(replace-match "\\1[[\\2]]"))
+      (when re-radio
+	(while (re-search-forward re-radio nil t)
+	  (replace-match "\\1[[\\2]]")))
       ;; Find all links that contain a newline and put them into a single line
       (goto-char (point-min))
       (while (re-search-forward "\\(\\[\\[[^]]*?\\)[ \t]*\n[ \t]*\\([^]]*\\]\\]\\)" nil t)
@@ -10590,7 +10599,7 @@ underlined headlines.  The default is 3."
 	 (level 0) line txt
 	 (umax nil)
 	 (case-fold-search nil)
-	 (filename (concat (file-name-sans-extension (buffer-file-name))
+	 (filename (concat (file-name-sans-extension buffer-file-name)
 			   ".txt"))
 	 (buffer (find-file-noselect filename))
 	 (levels-open (make-vector org-level-max nil))
@@ -10748,7 +10757,7 @@ underlined headlines.  The default is 3."
 Also removes the first line of the buffer if it specifies a mode,
 and all options lines."
   (interactive)
-  (let* ((filename (concat (file-name-sans-extension (buffer-file-name))
+  (let* ((filename (concat (file-name-sans-extension buffer-file-name)
 			   ".txt"))
 	 (buffer (find-file-noselect filename))
 	 (ore (concat
@@ -10822,7 +10831,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
    org-export-with-sub-superscripts
    org-export-with-emphasize
    org-export-with-TeX-macros
-   (file-name-nondirectory (buffer-file-name))
+   (file-name-nondirectory buffer-file-name)
    (if (equal org-todo-interpretation 'sequence)
        (mapconcat 'identity org-todo-keywords " ")
      "TODO FEEDBACK VERIFY DONE")
@@ -10895,7 +10904,7 @@ The prefix ARG specifies how many levels of the outline should become
 headlines.  The default is 3.  Lower levels will become bulleted lists."
   (interactive "P")
   (org-export-as-html arg 'hidden)
-  (org-open-file (buffer-file-name)))
+  (org-open-file buffer-file-name))
 
 (defun org-export-as-html-batch ()
   "Call `org-export-as-html', may be used in batch processing as
@@ -10927,7 +10936,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
          (lines (org-export-find-first-heading-line all_lines))
          (level 0) (line "") (origline "") txt todo
          (umax nil)
-         (filename (concat (file-name-sans-extension (buffer-file-name))
+         (filename (concat (file-name-sans-extension buffer-file-name)
                            ".html"))
          (buffer (find-file-noselect filename))
          (levels-open (make-vector org-level-max nil))
@@ -11661,7 +11670,7 @@ When LEVEL is non-nil, increase section numbers on that level."
 The iCalendar file will be located in the same directory as the Org-mode
 file, but with extension `.ics'."
   (interactive)
-  (org-export-icalendar nil (buffer-file-name)))
+  (org-export-icalendar nil buffer-file-name))
 
 ;;;###autoload
 (defun org-export-icalendar-all-agenda-files ()
@@ -11698,7 +11707,7 @@ file and store it under the name `org-combined-agenda-icalendar-file'."
 	  (set-buffer (org-get-agenda-file-buffer file))
 	  (setq category (or org-category
 			     (file-name-sans-extension
-			      (file-name-nondirectory (buffer-file-name)))))
+			      (file-name-nondirectory buffer-file-name))))
 	  (if (symbolp category) (setq category (symbol-name category)))
 	  (let ((standard-output ical-buffer))
 	    (if combine
@@ -12842,4 +12851,3 @@ Show the heading too, if it is currently invisible."
 
 ;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
 ;;; org.el ends here
-
