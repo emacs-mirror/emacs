@@ -1259,6 +1259,10 @@ unwind_to_catch (catch, value)
     }
   while (! last_time);
 
+  /* If x_catch_errors was done, turn it off now.
+     (First we give unbind_to a chance to do that.)  */
+  x_fully_uncatch_errors ();
+
   byte_stack_list = catch->byte_stack;
   gcprolist = catch->gcpro;
 #ifdef DEBUG_GCPRO
@@ -1435,10 +1439,10 @@ internal_condition_case (bfun, handlers, hfun)
   struct catchtag c;
   struct handler h;
 
-#if 0 /* We now handle interrupt_input_blocked properly.
-	 What we still do not handle is exiting a signal handler.  */
+  /* Since Fsignal will close off all calls to x_catch_errors,
+     we will get the wrong results if some are not closed now.  */
+  if (x_catching_errors ())
     abort ();
-#endif
 
   c.tag = Qnil;
   c.val = Qnil;
@@ -1480,6 +1484,11 @@ internal_condition_case_1 (bfun, arg, handlers, hfun)
   Lisp_Object val;
   struct catchtag c;
   struct handler h;
+
+  /* Since Fsignal will close off all calls to x_catch_errors,
+     we will get the wrong results if some are not closed now.  */
+  if (x_catching_errors ())
+    abort ();
 
   c.tag = Qnil;
   c.val = Qnil;
@@ -1524,6 +1533,11 @@ internal_condition_case_2 (bfun, nargs, args, handlers, hfun)
   Lisp_Object val;
   struct catchtag c;
   struct handler h;
+
+  /* Since Fsignal will close off all calls to x_catch_errors,
+     we will get the wrong results if some are not closed now.  */
+  if (x_catching_errors ())
+    abort ();
 
   c.tag = Qnil;
   c.val = Qnil;
