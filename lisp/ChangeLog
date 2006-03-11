@@ -1,5 +1,7 @@
 2006-03-11  Eli Zaretskii  <eliz@gnu.org>
 
+	* calendar/holidays.el (list-holidays): Doc fix.
+
 	* international/mule.el (auto-coding-alist): Add .odt
 	(OpenOffice's open document) files.
 
