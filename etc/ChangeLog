@@ -2,7 +2,7 @@
 
 	* NEWS: Document `image-load-path-for-library'. Note that all
 	images have been moved from lisp into etc/images in `find-image'
-	item. Fix typo in `copy-tree'
+	item. Fix typo in `copy-tree'.
 
 2006-03-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
