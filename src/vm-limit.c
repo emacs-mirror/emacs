@@ -32,9 +32,6 @@ typedef void *POINTER;
 #endif
 
 #include "mem-limits.h"
-#include <sys/resource.h>
-
-#define HAVE_GETRLIMIT
 
 #ifdef HAVE_GETRLIMIT
 #include <sys/resource.h>
