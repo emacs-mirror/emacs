@@ -2506,8 +2506,8 @@ yanking point; just return the Nth kill forward."
 (put 'text-read-only 'error-message "Text is read-only")
 
 (defun kill-region (beg end &optional yank-handler)
-  "Kill between point and mark.
-The text is deleted but saved in the kill ring.
+  "Kill (\"cut\") text between point and mark.
+This deletes the text from the buffer and saves it in the kill ring.
 The command \\[yank] can retrieve it from there.
 \(If you want to kill and then yank immediately, use \\[kill-ring-save].)
 
@@ -2690,7 +2690,7 @@ doc string for `insert-for-yank-1', which see."
   nil)
 
 (defun yank (&optional arg)
-  "Reinsert the last stretch of killed text.
+  "Reinsert (\"past") the last stretch of killed text.
 More precisely, reinsert the stretch of killed text most recently
 killed OR yanked.  Put point at end, and set mark at beginning.
 With just \\[universal-argument] as argument, same but put point at beginning (and mark at end).
