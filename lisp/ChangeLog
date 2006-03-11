@@ -1,3 +1,10 @@
+2006-03-11  David Ponce  <david@dponce.com>
+
+	* ispell.el (ispell-find-aspell-dictionaries): Add aliases before
+	merging elements from the standard ispell-dictionary-alist.
+	(ispell-aspell-add-aliases): Add aliases to the passed dictionary
+	alist, and return the new alist.
+
 2006-03-11  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-ignored-headers): Discard DomainKey-Signature.
