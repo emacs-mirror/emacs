@@ -19,6 +19,9 @@
 
 2006-03-11  Agustin Martin  <agustin.martin@hispalinux.es>
 
+	* textmodes/ispell.el (ispell-menu-map-needed) [ispell-message]:
+	Be visible only if major mode is Mail Mode.
+
 	* textmodes/flyspell.el (flyspell-external-point-words)
 	(flyspell-process-localwords): Fix last changes.
 

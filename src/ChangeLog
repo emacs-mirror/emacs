@@ -1,5 +1,11 @@
 2006-03-11  Eli Zaretskii  <eliz@gnu.org>
 
+	* eval.c (unwind_to_catch): Call x_fully_uncatch_errors only if
+	HAVE_X_WINDOWS.
+	(internal_condition_case, internal_condition_case_1)
+	(internal_condition_case_2): Call x_catching_errors only if
+	HAVE_X_WINDOWS.
+
 	* vm-limit.c [HAVE_GETRLIMIT]: Don't define unconditionally.
 	Don't include sys/resource.h unless defined.
 
