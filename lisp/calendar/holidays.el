@@ -120,6 +120,15 @@ This function is suitable for execution in a .emacs file."
   "Display holidays for years Y1 to Y2 (inclusive).
 
 The optional list of holidays L defaults to `calendar-holidays'.
+If you want to control what holidays are displayed, use a
+different list.  For example,
+
+  (list-holidays 2006 2006
+    (append general-holidays local-holidays other-holidays))
+
+will display holidays for the year 2006 defined in the 3
+mentioned lists, and nothing else.
+
 When called interactively, this command offers a choice of
 holidays, based on the variables `solar-holidays' etc.  See the
 documentation of `calendar-holidays' for a list of the variables
