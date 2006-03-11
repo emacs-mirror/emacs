@@ -116,7 +116,7 @@ introduced in Emacs 22."
     `(face-background ,face ,frame ,inherit)))
 
 (mh-defun-compat mh-image-load-path-for-library
-  image-load-path-for-library (library image &optional path)
+  image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images relative to LIBRARY.
 
 Images for LIBRARY are searched for in \"../../etc/images\" and
@@ -124,8 +124,12 @@ Images for LIBRARY are searched for in \"../../etc/images\" and
 well as in `image-load-path' and `load-path'.
 
 This function returns the value of `load-path' augmented with the
-path to IMAGE. If PATH is given, it is used instead of
-`load-path'.
+directory containing IMAGE. If PATH is given, it is used instead
+of `load-path'. If PATH is t, just return the directory that
+contains IMAGE.
+
+If NO-ERROR is non-nil, return nil if a suitable path can't be
+found rather than signaling an error.
 
 Here is an example that uses a common idiom to provide
 compatibility with versions of Emacs that lack the variable
@@ -179,11 +183,19 @@ This function is used by Emacs versions that don't have
                  (setq img (directory-file-name parent)
                        dir (expand-file-name "../" dir)))
                (setq image-directory dir)))))
+     (no-error
+      ;; In this case we will return nil.
+      (message "Could not find image %s for library %s" image library))
      (t
       (error "Could not find image %s for library %s" image library)))
 
-    ;; Return augmented `image-load-path' or `load-path'.
-    (cond ((and path (symbolp path))
+    ;; Return the directory, nil if no-error was non-nil and a
+    ;; suitable path could not be found, or an augmented
+    ;; `image-load-path' or `load-path'.
+    (cond ((or (null image-directory)
+               (eq path t))
+           image-directory)
+          ((and path (symbolp path))
            (nconc (list image-directory)
                   (delete image-directory
                           (if (boundp path)

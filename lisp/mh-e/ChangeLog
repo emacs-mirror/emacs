@@ -4,6 +4,8 @@
 	flag to replace-in-string. This was badly needed by
 	mh-quote-pick-expr in order to properly quote subjects when using
 	/ s on XEmacs (closes SF #1447598).
+	(mh-image-load-path-for-library): Merged changes from Reiner. Add
+	no-error argument. If path t, just return directory.
 
 	* mh-e.el (mh-profile-component): Drop `s' from mhparam
 	-components for Mailutils compatibility (closes SF #1446985).
