@@ -1,3 +1,13 @@
+2006-03-12  Juri Linkov  <juri@jurta.org>
+
+	* battery.el (battery-linux-proc-acpi): Check `capacity' for non-nil
+	before comparing with `low' and `warn'.
+
+	* info.el (Info-dir-remove-duplicates): Move point to the
+	beginning of the current line after deleting the entries from
+	redundant heading.  Use marker for `limit' and compare it with
+	point before calling `re-search-forward'.
+
 2006-03-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* simple.el (yank): Fix typo in docstring.
