@@ -1,3 +1,7 @@
+2006-03-11  Bill Wohler  <wohler@newt.com>
+
+	* display.texi (Defining Images): Add image-load-path-for-library.
+
 2006-03-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* text.texi (Adaptive Fill): Fix Texinfo usage.
