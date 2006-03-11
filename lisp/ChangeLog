@@ -1,3 +1,7 @@
+2006-03-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (yank): Fix typo in docstring.
+
 2006-03-11  Ryan Yeske  <rcyeske@gmail.com>
 
 	* mail/rmailsum.el (rmail-summary-next-msg): Skip deleted

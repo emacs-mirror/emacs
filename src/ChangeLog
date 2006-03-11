@@ -1,3 +1,8 @@
+2006-03-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* window.c: Rename preserve_y to window_scroll_pixel_based_preserve_y.
+	(window_scroll_pixel_based, syms_of_window): Adapt to above change.
+
 2006-03-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_wnd_proc): Ignore middle and extra button events
@@ -39,7 +44,7 @@
 	* xterm.c (x_fully_uncatch_errors, x_catching_errors): New functions.
 
 	* eval.c (unwind_to_catch): Call x_fully_uncatch_errors.
-	(internal_condition_case_1, internal_condition_case_2): 
+	(internal_condition_case_1, internal_condition_case_2):
 	Abort if within unclosed x_catch_errors.
 
 2006-03-11  Romain Francoise  <romain@orebokech.com>
