@@ -232,8 +232,9 @@ The argument STRING is ignored."
   "Replace REGEXP with REP everywhere in STRING and return result.
 This function is used by XEmacs that lacks `replace-regexp-in-string'.
 The function `replace-in-string' is used instead.
-The arguments FIXEDCASE, LITERAL, SUBEXP, and START are ignored."
-  (replace-in-string string regexp rep))
+The arguments FIXEDCASE, SUBEXP, and START, used by
+`replace-in-string' are ignored."
+  (replace-in-string string regexp rep literal))
 
 ;; Copy of constant from url-util.el in Emacs 22; needed by Emacs 21.
 (if (not (boundp 'url-unreserved-chars))

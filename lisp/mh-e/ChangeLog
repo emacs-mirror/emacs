@@ -1,5 +1,10 @@
 2006-03-10  Bill Wohler  <wohler@newt.com>
 
+	* mh-compat.el (mh-replace-regexp-in-string): Pass the literal
+	flag to replace-in-string. This was badly needed by
+	mh-quote-pick-expr in order to properly quote subjects when using
+	/ s on XEmacs (closes SF #1447598).
+
 	* mh-e.el (mh-profile-component): Drop `s' from mhparam
 	-components for Mailutils compatibility (closes SF #1446985).
 
