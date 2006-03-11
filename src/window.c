@@ -217,7 +217,7 @@ int window_deletion_count;
 
 /* Used by the function window_scroll_pixel_based */
 
-static int preserve_y;
+static int window_scroll_pixel_based_preserve_y;
 
 #if 0 /* This isn't used anywhere.  */
 /* Nonzero means we can split a frame even if it is "unsplittable".  */
@@ -4795,17 +4795,17 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	 calls to scroll-up or scroll-down.  This avoids the
 	 possibility of point becoming "stuck" on a tall line when
 	 scrolling by one line.  */
-      if (preserve_y < 0
+      if (window_scroll_pixel_based_preserve_y < 0
 	  || (current_kboard->Vlast_command != Qscroll_up
 	      && current_kboard->Vlast_command != Qscroll_down))
 	{
 	  start_display (&it, w, start);
 	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
-	  preserve_y = it.current_y;
+	  window_scroll_pixel_based_preserve_y = it.current_y;
 	}
     }
   else
-    preserve_y = -1;
+    window_scroll_pixel_based_preserve_y = -1;
 
   /* Move iterator it from start the specified distance forward or
      backward.  The result is the new window start.  */
@@ -4935,12 +4935,13 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	      || EQ (Vscroll_preserve_screen_position, Qt)))
 	/* We found PT at a legitimate height.  Leave it alone.  */
 	;
-      else if (preserve_y >= 0)
+      else if (window_scroll_pixel_based_preserve_y >= 0)
 	{
 	  /* If we have a header line, take account of it.
 	     This is necessary because we set it.current_y to 0, above.  */
 	  move_it_to (&it, -1, -1,
-		      preserve_y - (WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0 ),
+		      window_scroll_pixel_based_preserve_y
+		      - (WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0 ),
 		      -1, MOVE_TO_Y);
 	  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 	}
@@ -4961,7 +4962,8 @@ window_scroll_pixel_based (window, n, whole, noerror)
       int charpos, bytepos;
       int partial_p;
 
-      /* Save our position, for the preserve_y case.  */
+      /* Save our position, for the
+	 window_scroll_pixel_based_preserve_y case.  */
       charpos = IT_CHARPOS (it);
       bytepos = IT_BYTEPOS (it);
 
@@ -4991,14 +4993,15 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	      || EQ (Vscroll_preserve_screen_position, Qt)))
 	/* We found PT before we found the display margin, so PT is ok.  */
 	;
-      else if (preserve_y >= 0)
+      else if (window_scroll_pixel_based_preserve_y >= 0)
 	{
 	  SET_TEXT_POS_FROM_MARKER (start, w->start);
 	  start_display (&it, w, start);
 	  /* It would be wrong to subtract CURRENT_HEADER_LINE_HEIGHT
 	     here because we called start_display again and did not
 	     alter it.current_y this time.  */
-	  move_it_to (&it, -1, -1, preserve_y, -1, MOVE_TO_Y);
+	  move_it_to (&it, -1, -1, window_scroll_pixel_based_preserve_y, -1,
+		      MOVE_TO_Y);
 	  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 	}
       else
@@ -7025,7 +7028,7 @@ syms_of_window ()
   minibuf_selected_window = Qnil;
   staticpro (&minibuf_selected_window);
 
-  preserve_y = -1;
+  window_scroll_pixel_based_preserve_y = -1;
 
   DEFVAR_LISP ("temp-buffer-show-function", &Vtemp_buffer_show_function,
 	       doc: /* Non-nil means call as function to display a help buffer.
