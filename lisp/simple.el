@@ -2690,7 +2690,7 @@ doc string for `insert-for-yank-1', which see."
   nil)
 
 (defun yank (&optional arg)
-  "Reinsert (\"past\") the last stretch of killed text.
+  "Reinsert (\"paste\") the last stretch of killed text.
 More precisely, reinsert the stretch of killed text most recently
 killed OR yanked.  Put point at end, and set mark at beginning.
 With just \\[universal-argument] as argument, same but put point at beginning (and mark at end).
