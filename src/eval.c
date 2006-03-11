@@ -1259,9 +1259,11 @@ unwind_to_catch (catch, value)
     }
   while (! last_time);
 
+#if HAVE_X_WINDOWS
   /* If x_catch_errors was done, turn it off now.
      (First we give unbind_to a chance to do that.)  */
   x_fully_uncatch_errors ();
+#endif
 
   byte_stack_list = catch->byte_stack;
   gcprolist = catch->gcpro;
@@ -1441,8 +1443,10 @@ internal_condition_case (bfun, handlers, hfun)
 
   /* Since Fsignal will close off all calls to x_catch_errors,
      we will get the wrong results if some are not closed now.  */
+#if HAVE_X_WINDOWS
   if (x_catching_errors ())
     abort ();
+#endif
 
   c.tag = Qnil;
   c.val = Qnil;
@@ -1487,8 +1491,10 @@ internal_condition_case_1 (bfun, arg, handlers, hfun)
 
   /* Since Fsignal will close off all calls to x_catch_errors,
      we will get the wrong results if some are not closed now.  */
+#if HAVE_X_WINDOWS
   if (x_catching_errors ())
     abort ();
+#endif
 
   c.tag = Qnil;
   c.val = Qnil;
@@ -1536,8 +1542,10 @@ internal_condition_case_2 (bfun, nargs, args, handlers, hfun)
 
   /* Since Fsignal will close off all calls to x_catch_errors,
      we will get the wrong results if some are not closed now.  */
+#if HAVE_X_WINDOWS
   if (x_catching_errors ())
     abort ();
+#endif
 
   c.tag = Qnil;
   c.val = Qnil;
