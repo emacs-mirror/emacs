@@ -4126,6 +4126,7 @@ should specify the image as follows:
 @end defvar
 
 @defun image-load-path-for-library library image &optional path no-error
+@tindex image-load-path-for-library
 Return a suitable search path for images relative to @var{library}.
 
 Images for @var{library} are searched for in @file{../../etc/images}
