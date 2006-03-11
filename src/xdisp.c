@@ -2029,7 +2029,7 @@ get_phys_cursor_geometry (w, row, glyph, heightp)
 	}
     }
 
-  *heightp = h - 1;
+  *heightp = h;
   return WINDOW_TO_FRAME_PIXEL_Y (w, y);
 }
 
