@@ -1,5 +1,8 @@
 2006-03-11  Eli Zaretskii  <eliz@gnu.org>
 
+	* xterm.c (x_draw_hollow_cursor): Subtract 1 from the last
+	argument of XDrawRectangle.
+
 	* xdisp.c (get_phys_cursor_geometry): Don't decrease height by 1.
 
 	* macterm.c (mac_draw_rectangle): Don't add 1 to width and height.

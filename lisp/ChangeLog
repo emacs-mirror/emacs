@@ -1,3 +1,12 @@
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule.el (auto-coding-alist): Add .odt
+	(OpenOffice's open document) files.
+
+	* files.el (auto-mode-alist): Add .odt (OpenOffice's open
+	document) files.  Mention in the doc string the need to sync with
+	auto-coding-alist.
+
 2006-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (hack-local-variables-confirm): Don't prompt for ! if
