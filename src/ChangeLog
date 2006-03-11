@@ -1,3 +1,8 @@
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* vm-limit.c [HAVE_GETRLIMIT]: Don't define unconditionally.
+	Don't include sys/resource.h unless defined.
+
 2006-03-11  Richard Stallman  <rms@gnu.org>
 
 	* keymap.c (describe_map): Shorten string to indicate shadowed binding.
