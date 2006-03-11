@@ -1,3 +1,14 @@
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (get_phys_cursor_geometry): Don't decrease height by 1.
+
+	* macterm.c (mac_draw_rectangle): Don't add 1 to width and height.
+	(x_draw_glyph_string_foreground)
+	(x_draw_composite_glyph_string_foreground)
+	(x_draw_image_foreground): Don't subtract 1 from width and height
+	arguments to mac_draw_rectangle.
+	(x_draw_hollow_cursor): Add 1 to w->phys_cursor_width.
+
 2006-03-10  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c (USE_POSIX_MEMALIGN): Fix last change.
