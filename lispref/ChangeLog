@@ -1,5 +1,9 @@
 2006-03-11  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* text.texi (Adaptive Fill): Fix Texinfo usage.
+
+	* strings.texi (Creating Strings): Fix Texinfo usage.
+
 	* searching.texi (Regexp Special): Use @samp for regular
 	expressions that are not in Lisp syntax.
 
