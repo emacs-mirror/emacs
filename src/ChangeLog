@@ -1,3 +1,7 @@
+2006-03-11  Romain Francoise  <romain@orebokech.com>
+
+	* process.c (Vprocess_adaptive_read_buffering): Doc fix.
+
 2006-03-11  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
 	* lisp.h: Remove duplicate prototypes.  Make the prototype of
