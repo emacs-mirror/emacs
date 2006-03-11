@@ -1,5 +1,7 @@
 2006-03-11  Richard Stallman  <rms@gnu.org>
 
+	* keymap.c (describe_map): Shorten string to indicate shadowed binding.
+
 	* vm-limit.c (get_lim_data, lim_data, data_space_start):
 	Moved from mem-limits.h.
 	(enum warnlevel): New data type.
