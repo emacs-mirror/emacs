@@ -1872,7 +1872,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ;; `auto-coding-alist' with `no-conversion' coding system.
      ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|[jew]ar\\|xpi\\)\\'" . archive-mode)
      ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|[JEW]AR\\|XPI\\)\\'" . archive-mode)
-     ("\\.sx[dmicw]\\'" . archive-mode)	; OpenOffice.org
+     ("\\.\\(sx[dmicw]\\|odt\\)\\'" . archive-mode)	; OpenOffice.org
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
      ("\\`/tmp/Re" . text-mode)
@@ -1954,6 +1954,9 @@ REGEXP and search the list again for another match.
 
 If the file name matches `inhibit-first-line-modes-regexps',
 then `auto-mode-alist' is not processed.
+
+The extensions whose FUNCTION is `archive-mode' should also
+appear in `auto-coding-alist' with `no-conversion' coding system.
 
 See also `interpreter-mode-alist', which detects executable script modes
 based on the interpreters they specify to run,
