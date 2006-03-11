@@ -1,3 +1,26 @@
+2006-03-11  Miles Bader  <miles@gnu.org>
+
+	* images/mail: New directory.
+	* images/attach.xpm, images/connect.xpm:
+	* images/contact.xpm, images/delete.xpm:
+	* images/describe.xpm, images/disconnect.xpm:
+	* images/exit.xpm, images/gnus/toggle-subscription.xpm:
+	* images/lock-broken.xpm, images/lock-ok.xpm:
+	* images/lock.xpm, images/mail/compose.xpm:
+	* images/mail/copy.xpm, images/mail/forward.xpm:
+	* images/mail/inbox.xpm, images/mail/move.xpm:
+	* images/mail/not-spam.xpm, images/mail/outbox.xpm:
+	* images/mail/preview.xpm, images/mail/reply-all.xpm:
+	* images/mail/reply.xpm, images/mail/save-draft.xpm:
+	* images/mail/save.xpm, images/mail/send.xpm:
+	* images/mail/spam.xpm, images/next-page.xpm:
+	* images/refresh.xpm, images/separator.xpm:
+	* images/sort-ascending.xpm:
+	* images/sort-column-ascending.xpm:
+	* images/sort-criteria.xpm, images/sort-descending.xpm:
+	* images/sort-row-ascending.xpm:
+	New icons, copied from Gnus trunk (originally from Gnome 2.6).
+
 2006-03-11  Bill Wohler  <wohler@newt.com>
 
 	* NEWS: Document `image-load-path-for-library'. Note that all
