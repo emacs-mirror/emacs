@@ -1,3 +1,8 @@
+2006-03-11  Ryan Yeske  <rcyeske@gmail.com>
+
+	* mail/rmailsum.el (rmail-summary-next-msg): Skip deleted
+	messages, where "D" is the 6th character.
+
 2006-03-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (yank): Fix last change.

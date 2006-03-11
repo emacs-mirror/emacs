@@ -1,3 +1,8 @@
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc): Ignore middle and extra button events
+	if a menu is already active (the menubar_active flag is on).
+
 2006-03-11  David Ponce  <david@dponce.com>
 
 	* xfns.c (x_create_tip_frame): Preserve received parms by copying
