@@ -1,3 +1,21 @@
+2006-03-11  Richard Stallman  <rms@gnu.org>
+
+	* vm-limit.c (get_lim_data, lim_data, data_space_start):
+	Moved from mem-limits.h.
+	(enum warnlevel): New data type.
+	(check_memory_limits): Rewrite the logic about warnings.
+	Use standard `struct rlimit'.  Check return values for nonsense.
+	(memory_warnings): Always clear lim_data.
+
+	* mem-limits.h (get_lim_data, lim_data, data_space_start):
+	Moved to vm-limit.c.
+
+	* xterm.c (x_fully_uncatch_errors, x_catching_errors): New functions.
+
+	* eval.c (unwind_to_catch): Call x_fully_uncatch_errors.
+	(internal_condition_case_1, internal_condition_case_2): 
+	Abort if within unclosed x_catch_errors.
+
 2006-03-11  Romain Francoise  <romain@orebokech.com>
 
 	* process.c (Vprocess_adaptive_read_buffering): Doc fix.
