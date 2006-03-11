@@ -1,3 +1,8 @@
+2006-03-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* searching.texi (Regexp Special): Use @samp for regular
+	expressions that are not in Lisp syntax.
+
 2006-03-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* searching.texi (Regexp Special): Put remark between parentheses

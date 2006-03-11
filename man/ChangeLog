@@ -1,3 +1,8 @@
+2006-03-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* search.texi (Regexps): Use @samp for regexp that is not in Lisp
+	syntax.
+
 2006-03-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (NoCeM): Mention gnus-use-nocem can also be a number.
@@ -85,7 +90,7 @@
 	(Electric Keys): Add a justification for electric indentation.
 	(Hungry WS Deletion): Clear up the names and complications of the
 	BACKSPACE and DELETE keys.
-	
+
 2006-02-23  Juri Linkov  <juri@jurta.org>
 
 	* faq.texi (Common requests): Move `Turning on auto-fill by
@@ -130,7 +135,7 @@
 	* emacs.texi: Use @smallbook.
 	(Top): Update ref to Emacs paper, delete ref to Cookbook.
 	Update subnode menu.
-	
+
 	* building.texi (Lisp Interaction): Minor addition.
 
 2006-02-18  Nick Roberts  <nickrob@snap.net.nz>
