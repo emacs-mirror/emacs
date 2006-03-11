@@ -1716,7 +1716,7 @@ Adaptive Fill mode matches this regular expression against the text
 starting after the left margin whitespace (if any) on a line; the
 characters it matches are that line's candidate for the fill prefix.
 
-@w{@samp{"[ \t]*\\([-|#;>*]+[ \t]*\\|(?[0-9]+[.)][ \t]*\\)*"}} is the
+@w{@code{"[ \t]*\\([-|#;>*]+[ \t]*\\|(?[0-9]+[.)][ \t]*\\)*"}} is the
 default value.  This matches a number enclosed in parentheses or
 followed by a period, or certain punctuation characters, or any
 sequence of these intermingled with whitespace.  In particular, it
@@ -1731,7 +1731,7 @@ prefix: the candidate must match this regular expression, or match
 replaces the candidate with a string of spaces ``of the same width''
 as it.
 
-The default value of this variable is @w{@samp{"\\`[ \t]*\\'"}}, which
+The default value of this variable is @w{@code{"\\`[ \t]*\\'"}}, which
 matches only a string of whitespace.  The effect of this default is to
 force the fill prefixes found in one-line paragraphs always to be pure
 whitespace.
