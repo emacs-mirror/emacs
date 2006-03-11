@@ -689,7 +689,7 @@ never remove the special meaning of @samp{-} or @samp{]}.  So you
 should not quote these characters when they have no special meaning
 either.  This would not clarify anything, since backslashes can
 legitimately precede these characters where they @emph{have} special
-meaning, as in @code{[^\]} (@code{"[^\\]"} for Lisp string syntax),
+meaning, as in @samp{[^\]} (@code{"[^\\]"} for Lisp string syntax),
 which matches any single character except a backslash.
 
 @node Regexp Backslash
