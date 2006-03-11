@@ -1086,6 +1086,7 @@ The variable `ispell-library-directory' defines the library location."
 		    :help "Spell-check text in marked region"))
       (define-key ispell-menu-map [ispell-message]
 	'(menu-item "Spell-Check Message" ispell-message
+		    :visible (eq major-mode 'mail-mode)
 		    :help "Skip headers and included message text"))
       (define-key ispell-menu-map [ispell-buffer]
 	'(menu-item "Spell-Check Buffer" ispell-buffer
