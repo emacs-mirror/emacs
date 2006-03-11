@@ -1,3 +1,9 @@
+2006-03-11  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (signal_user_input): New function.
+	(post_character_message): Use it for keyboard input.
+	(w32_msg_pump): Use it for mouse input.
+
 2006-03-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* window.c: Rename preserve_y to window_scroll_pixel_based_preserve_y.
