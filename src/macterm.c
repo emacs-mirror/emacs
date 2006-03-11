@@ -598,7 +598,7 @@ mac_draw_rectangle (f, gc, x, y, width, height)
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   RGBForeColor (GC_FORE_COLOR (gc));
-  SetRect (&r, x, y, x + width + 1, y + height + 1);
+  SetRect (&r, x, y, x + width, y + height);
 
   mac_begin_clip (gc);
   FrameRect (&r); /* using foreground color of gc */
@@ -2436,7 +2436,7 @@ x_draw_glyph_string_foreground (s)
 	{
 	  struct glyph *g = s->first_glyph + i;
 	  mac_draw_rectangle (s->f, s->gc, x, s->y,
-			      g->pixel_width - 1, s->height - 1);
+			      g->pixel_width, s->height);
 	  x += g->pixel_width;
 	}
     }
@@ -2515,7 +2515,7 @@ x_draw_composite_glyph_string_foreground (s)
     {
       if (s->gidx == 0)
 	mac_draw_rectangle (s->f, s->gc, x, s->y,
-			    s->width - 1, s->height - 1);
+			    s->width, s->height);
     }
   else
     {
@@ -3068,15 +3068,15 @@ x_draw_image_foreground (s)
 	      int r = s->img->relief;
 	      if (r < 0) r = -r;
 	      mac_draw_rectangle (s->f, s->gc, x - r, y - r,
-				  s->slice.width + r*2 - 1,
-				  s->slice.height + r*2 - 1);
+				  s->slice.width + r*2,
+				  s->slice.height + r*2);
 	    }
 	}
     }
   else
     /* Draw a rectangle if image could not be loaded.  */
     mac_draw_rectangle (s->f, s->gc, x, y,
-			s->slice.width - 1, s->slice.height - 1);
+			s->slice.width, s->slice.height);
 }
 
 
@@ -5245,7 +5245,7 @@ x_draw_hollow_cursor (w, row)
   /* Compute frame-relative coordinates for phys cursor.  */
   x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
   y = get_phys_cursor_geometry (w, row, cursor_glyph, &h);
-  wd = w->phys_cursor_width;
+  wd = w->phys_cursor_width + 1;
 
   /* The foreground of cursor_gc is typically the same as the normal
      background color, which can cause the cursor box to be invisible.  */
