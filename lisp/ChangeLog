@@ -1,3 +1,8 @@
+2006-03-11  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* progmodes/octave-mod.el (octave-indent-for-comment): Behave
+	according to do string.
+
 2006-03-11  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-external-point-words)
