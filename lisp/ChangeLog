@@ -1,3 +1,7 @@
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (yank): Fix last change.
+
 2006-03-11  David Ponce  <david@dponce.com>
 
 	* ispell.el (ispell-find-aspell-dictionaries): Add aliases before
