@@ -4610,6 +4610,7 @@ unwind_create_tip_frame (frame)
   return deleted;
 }
 
+  parms = Fcopy_alist (parms);
 
 /* Create a frame for a tooltip on the display described by DPYINFO.
    PARMS is a list of frame parameters.  TEXT is the string to

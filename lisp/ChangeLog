@@ -1,3 +1,106 @@
+2006-03-12  Juri Linkov  <juri@jurta.org>
+
+	* battery.el (battery-linux-proc-acpi): Check `capacity' for non-nil
+	before comparing with `low' and `warn'.
+
+	* info.el (Info-dir-remove-duplicates): Move point to the
+	beginning of the current line after deleting the entries from
+	redundant heading.  Use marker for `limit' and compare it with
+	point before calling `re-search-forward'.
+
+2006-03-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (yank): Fix typo in docstring.
+
+2006-03-11  Ryan Yeske  <rcyeske@gmail.com>
+
+	* mail/rmailsum.el (rmail-summary-next-msg): Skip deleted
+	messages, where "D" is the 6th character.
+
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (yank): Fix last change.
+
+2006-03-11  David Ponce  <david@dponce.com>
+
+	* ispell.el (ispell-find-aspell-dictionaries): Add aliases before
+	merging elements from the standard ispell-dictionary-alist.
+	(ispell-aspell-add-aliases): Add aliases to the passed dictionary
+	alist, and return the new alist.
+
+2006-03-11  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-ignored-headers): Discard DomainKey-Signature.
+
+	* eshell/eshell.el (eshell-prefer-to-shell): Variable deleted;
+	the way it is implemented is too unclean.
+
+	* simple.el (kill-region, yank): Doc fix.
+
+	* battery.el (battery-echo-area-format): Doc fix.
+	(battery-mode-line-format): Likewise.
+	(battery-linux-proc-apm, battery-linux-proc-acpi): Likewise.
+	(battery-linux-proc-acpi): Ignore batteries that say "charged".
+
+2006-03-11  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* progmodes/octave-mod.el (octave-indent-for-comment): Behave
+	according to do string.
+
+2006-03-11  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-menu-map-needed) [ispell-message]:
+	Be visible only if major mode is Mail Mode.
+
+	* textmodes/flyspell.el (flyspell-external-point-words)
+	(flyspell-process-localwords): Fix last changes.
+
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* calendar/holidays.el (list-holidays): Doc fix.
+
+	* international/mule.el (auto-coding-alist): Add .odt
+	(OpenOffice's open document) files.
+
+	* files.el (auto-mode-alist): Add .odt (OpenOffice's open
+	document) files.  Mention in the doc string the need to sync with
+	auto-coding-alist.
+
+2006-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (hack-local-variables-confirm): Don't prompt for ! if
+	enable-local-variables is set to always query, or there is no
+	savable variable.
+
+2006-03-10  Bill Wohler  <wohler@newt.com>
+
+	* image.el (image-load-path-for-library): Merge at least three
+	functions from Gnus and MH-E into this one function that can now
+	be shared.
+
+2006-03-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-remove-text-properties): Rename from
+	gdb-remove-mouse-face and remove help-echo too.
+	(gdb-enqueue-input): Correct conditional clause.
+	
+2006-03-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-holidays): Doc fix.
+	* calendar/holidays.el (list-holidays): Doc fix.
+
+2006-03-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdba): Don't call gdb-init-1 explicitly as
+	it gets called in gdb-prompt anyway.
+	(gdb-use-separate-io-buffer): Only restore window arrangement for
+	gdb-many-windows.
+	(gdb-enqueue-input): Make it harder to send GDB input when program
+	is running.
+	(gdb-buffer-list): New variable.
+	(gdb-remove-mouse-face): New function.
+	(gdb-starting): Use it when GDB input won't get sent.
+
 2006-03-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help.el (view-lossage): Remove trailing whitespace before

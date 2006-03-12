@@ -1872,7 +1872,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ;; `auto-coding-alist' with `no-conversion' coding system.
      ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|[jew]ar\\|xpi\\)\\'" . archive-mode)
      ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|[JEW]AR\\|XPI\\)\\'" . archive-mode)
-     ("\\.sx[dmicw]\\'" . archive-mode)	; OpenOffice.org
+     ("\\.\\(sx[dmicw]\\|odt\\)\\'" . archive-mode)	; OpenOffice.org
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
      ("\\`/tmp/Re" . text-mode)
@@ -1954,6 +1954,9 @@ REGEXP and search the list again for another match.
 
 If the file name matches `inhibit-first-line-modes-regexps',
 then `auto-mode-alist' is not processed.
+
+The extensions whose FUNCTION is `archive-mode' should also
+appear in `auto-coding-alist' with `no-conversion' coding system.
 
 See also `interpreter-mode-alist', which detects executable script modes
 based on the interpreters they specify to run,
@@ -2350,6 +2353,7 @@ asking you for confirmation."
     (let ((name (if buffer-file-name
 		    (file-name-nondirectory buffer-file-name)
 		  (concat "buffer " (buffer-name))))
+	  (offer-save (and (eq enable-local-variables t) unsafe-vars))
 	  prompt char)
       (save-window-excursion
 	(let ((buf (get-buffer-create "*Local Variables*")))
@@ -2368,9 +2372,12 @@ asking you for confirmation."
 	      (insert "A local variables list is specified in " name ".")))
 	  (insert "\n\nDo you want to apply it?  You can type
 y  -- to apply the local variables list.
-n  -- to ignore the local variables list.
+n  -- to ignore the local variables list.")
+	  (if offer-save
+	      (insert "
 !  -- to apply the local variables list, and mark these values (*) as
       safe (in the future, they can be set automatically.)\n\n")
+	    (insert "\n\n"))
 	  (dolist (elt vars)
 	    (cond ((member elt unsafe-vars)
 		   (insert "  * "))
@@ -2382,12 +2389,17 @@ n  -- to ignore the local variables list.
 	    (insert " : ")
 	    (princ (cdr elt) buf)
 	    (insert "\n"))
-	  (if (< (line-number-at-pos) (window-body-height))
-	      (setq prompt "Please type y, n, or !: ")
-	    (goto-char (point-min))
-	    (setq prompt "Please type y, n, or !, or C-v to scroll: "))
+	  (setq prompt
+		(format "Please type %s%s: "
+			(if offer-save "y, n, or !" "y or n")
+			(if (< (line-number-at-pos) (window-body-height))
+			    ""
+			  ", or C-v to scroll")))
+	  (goto-char (point-min))
 	  (let ((inhibit-quit t)
 		(cursor-in-echo-area t)
+		(exit-chars
+		 (if offer-save '(?! ?y ?n ?\s ?\C-g) '(?y ?n ?\s ?\C-g)))
 		done)
 	    (while (not done)
 	      (message prompt)
@@ -2397,21 +2409,21 @@ n  -- to ignore the local variables list.
 		      (condition-case nil
 			  (scroll-up)
 			(error (goto-char (point-min))))
-		    (setq done (memq (downcase char)
-				     '(?! ?y ?n ?\s ?\C-g))))))
+		    (setq done (memq (downcase char) exit-chars)))))
 	    (if (= char ?\C-g)
 		(setq quit-flag nil)))
 	  (setq char (downcase char))
-	  (when (and (= char ?!) unsafe-vars)
+	  (when (and offer-save (= char ?!) unsafe-vars)
 	    (dolist (elt unsafe-vars)
 	      (add-to-list 'safe-local-variable-values elt))
 	    ;; When this is called from desktop-restore-file-buffer,
 	    ;; coding-system-for-read may be non-nil.  Reset it before
 	    ;; writing to .emacs.
-	    (let ((coding-system-for-read nil))
-	      (customize-save-variable
-	       'safe-local-variable-values
-	       safe-local-variable-values)))
+	    (if (or custom-file user-init-file)
+		(let ((coding-system-for-read nil))
+		  (customize-save-variable
+		   'safe-local-variable-values
+		   safe-local-variable-values))))
 	  (kill-buffer buf)
 	  (or (= char ?!)
 	      (= char ?\s)

@@ -2732,7 +2732,6 @@ EXFUN (Fbobp, 0);
 EXFUN (Fformat, MANY);
 EXFUN (Fmessage, MANY);
 extern Lisp_Object format2 P_ ((char *, Lisp_Object, Lisp_Object));
-extern Lisp_Object make_buffer_string P_ ((int, int, int));
 EXFUN (Fbuffer_substring, 2);
 EXFUN (Fbuffer_string, 0);
 extern Lisp_Object save_excursion_save P_ ((void));
@@ -2751,7 +2750,6 @@ extern Lisp_Object make_buffer_string P_ ((int, int, int));
 extern Lisp_Object make_buffer_string_both P_ ((int, int, int, int, int));
 extern void init_editfns P_ ((void));
 extern void syms_of_editfns P_ ((void));
-EXFUN (Fcurrent_message, 0);
 extern Lisp_Object Vinhibit_field_text_motion;
 EXFUN (Fconstrain_to_field, 5);
 EXFUN (Ffield_string, 1);
@@ -2849,7 +2847,6 @@ extern Lisp_Object close_file_unwind P_ ((Lisp_Object));
 extern void report_file_error P_ ((const char *, Lisp_Object));
 extern int internal_delete_file P_ ((Lisp_Object));
 extern void syms_of_fileio P_ ((void));
-EXFUN (Fmake_temp_name, 1);
 extern void init_fileio_once P_ ((void));
 extern Lisp_Object make_temp_name P_ ((Lisp_Object, int));
 EXFUN (Fmake_symbolic_link, 3);
@@ -3202,8 +3199,10 @@ EXFUN (Fset_fontset_font, 4);
 /* Defined in xfaces.c */
 extern void syms_of_xfaces P_ ((void));
 
+#ifndef HAVE_GETLOADAVG
 /* Defined in getloadavg.c */
 extern int getloadavg P_ ((double *, int));
+#endif
 
 #ifdef HAVE_X_WINDOWS
 /* Defined in xfns.c */
@@ -3223,9 +3222,6 @@ extern void syms_of_xselect P_ ((void));
 
 /* Defined in xterm.c */
 extern void syms_of_xterm P_ ((void));
-
-/* Defined in getloadavg.c */
-extern int getloadavg P_ ((double [], int));
 
 #ifdef MSDOS
 /* Defined in msdos.c */

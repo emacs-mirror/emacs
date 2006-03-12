@@ -899,14 +899,15 @@ and added as a submenu of the \"Edit\" menu.")
 	 (found
 	  (delq nil 
 		(mapcar #'ispell-aspell-find-dictionary dictionaries))))
+    ;; Ensure aspell's alias dictionary will override standard
+    ;; definitions.
+    (setq found (ispell-aspell-add-aliases found))
     ;; Merge into FOUND any elements from the standard ispell-dictionary-alist
     ;; which have no element in FOUND at all.    
     (dolist (dict ispell-dictionary-alist)
       (unless (assoc (car dict) found)
 	(setq found (nconc found (list dict)))))
     (setq ispell-dictionary-alist found)
-
-    (ispell-aspell-add-aliases)
     ;; Add a default entry
     (let* ((english-dict (assoc "en" ispell-dictionary-alist))
 	   (default-dict
@@ -973,8 +974,9 @@ Assumes that value contains no whitespace."
       (file-error
        nil))))
 
-(defun ispell-aspell-add-aliases ()
-  "Find aspell's dictionary aliases and add them to `ispell-dictionary-alist'."
+(defun ispell-aspell-add-aliases (alist)
+  "Find aspell's dictionary aliases and add them to dictionary ALIST.
+Return the new dictionary alist."
   (let ((aliases (file-expand-wildcards
 		  (concat (or ispell-aspell-dict-dir
 			      (setq ispell-aspell-dict-dir
@@ -987,11 +989,12 @@ Assumes that value contains no whitespace."
 	(when (search-forward-regexp "^add \\([^.]+\\)\\.multi" nil t)
 	  (let* ((aliasname (file-name-sans-extension
 			     (file-name-nondirectory alias-file)))
-		 (already-exists-p (assoc aliasname ispell-dictionary-alist))
+		 (already-exists-p (assoc aliasname alist))
 		 (realname (match-string 1))
-		 (realdict (assoc realname ispell-dictionary-alist)))
+		 (realdict (assoc realname alist)))
 	    (when (and realdict (not already-exists-p))
-	      (push (cons aliasname (cdr realdict)) ispell-dictionary-alist))))))))
+	      (push (cons aliasname (cdr realdict)) alist))))))
+    alist))
 
 (defun ispell-valid-dictionary-list ()
   "Returns a list of valid dictionaries.
@@ -1086,6 +1089,7 @@ The variable `ispell-library-directory' defines the library location."
 		    :help "Spell-check text in marked region"))
       (define-key ispell-menu-map [ispell-message]
 	'(menu-item "Spell-Check Message" ispell-message
+		    :visible (eq major-mode 'mail-mode)
 		    :help "Skip headers and included message text"))
       (define-key ispell-menu-map [ispell-buffer]
 	'(menu-item "Spell-Check Buffer" ispell-buffer

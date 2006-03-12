@@ -3250,6 +3250,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	BOOL up;
 	int button;
 
+	/* Ignore middle and extra buttons as long as the menu is active.  */
+	f = x_window_to_frame (dpyinfo, hwnd);
+	if (f && f->output_data.w32->menubar_active)
+	  return 0;
+
 	if (parse_button (msg, HIWORD (wParam), &button, &up))
 	  {
 	    if (up) ReleaseCapture ();

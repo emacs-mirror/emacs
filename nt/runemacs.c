@@ -138,8 +138,12 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
 
   memset (&start, 0, sizeof (start));
   start.cb = sizeof (start);
-  start.dwFlags = STARTF_USESHOWWINDOW;
+  start.dwFlags = STARTF_USESHOWWINDOW | STARTF_USECOUNTCHARS;
   start.wShowWindow = SW_HIDE;
+  /* Ensure that we don't waste memory if the user has specified a huge
+     default screen buffer for command windows.  */
+  start.dwXCountChars = 80;
+  start.dwYCountChars = 25;
 
   sec_attrs.nLength = sizeof (sec_attrs);
   sec_attrs.lpSecurityDescriptor = NULL;

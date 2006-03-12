@@ -60,6 +60,10 @@ to the FSF.
 
 ** M-! M-n should fetch the buffer-file-name as the default.
 
+** Redesign the load-history data structure so it can cope better
+  with evaluating definitions of the same function from different files,
+  recording which file the latest definition came from.
+  
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,
@@ -437,11 +441,16 @@ but which can also be used as a modifier).
    e.g auto-mode-alist, the right face. [nickrob@snap.net.nz has a patch
    for this for inclusion after 22.1].
 
+** Possibly make `list-holidays' eval items in the calendar-holidays variable.
+   See thread
+   <http://lists.gnu.org/archive/html/emacs-devel/2006-02/msg01034.html>.
+   [rgm@gnu.org will look at this after 22.1]
+
 * Internal changes
 
 ** Replace gmalloc.c with the modified Doug Lea code from the current
   GNU libc so that the special mmapping of buffers can be removed --
-  that apparently loses under Solaris, at least.  [fx has mostly done
+  that apparently loses under Solaris, at least. [fx has mostly done
   this.]
 
 ** Rewrite make-docfile to be clean and maintainable.

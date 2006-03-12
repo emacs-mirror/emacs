@@ -77,6 +77,92 @@ value is used as a list of directories to search.")
        (list (file-name-as-directory (expand-file-name "images" data-directory))
 	     'data-directory 'load-path)))
 
+(defun image-load-path-for-library (library image &optional path no-error)
+  "Return a suitable search path for images relative to LIBRARY.
+
+Images for LIBRARY are searched for in \"../../etc/images\" and
+\"../etc/images\" relative to the files in \"lisp/LIBRARY\" as
+well as in `image-load-path' and `load-path'.
+
+This function returns the value of `load-path' augmented with the
+directory containing IMAGE. If PATH is given, it is used instead
+of `load-path'. If PATH is t, just return the directory that
+contains IMAGE.
+
+If NO-ERROR is non-nil, return nil if a suitable path can't be
+found rather than signaling an error.
+
+Here is an example that uses a common idiom to provide
+compatibility with versions of Emacs that lack the variable
+`image-load-path':
+
+  (let ((load-path
+         (image-load-path-for-library \"mh-e\" \"mh-logo.xpm\"))
+        (image-load-path
+         (image-load-path-for-library \"mh-e\" \"mh-logo.xpm\" 'image-load-path)))
+    (mh-tool-bar-folder-buttons-init))"
+  (unless library (error "No library specified"))
+  (unless image   (error "No image specified"))
+  (let ((image-directory))
+    (cond
+     ;; Try relative setting.
+     ((let (library-name d1ei d2ei)
+        ;; First, find library in the load-path.
+        (setq library-name (locate-library library))
+        (if (not library-name)
+            (error "Cannot find library %s in load-path" library))
+        ;; And then set image-directory relative to that.
+        (setq
+         ;; Go down 2 levels.
+         d2ei (expand-file-name
+               (concat (file-name-directory library-name) "../../etc/images"))
+         ;; Go down 1 level.
+         d1ei (expand-file-name
+               (concat (file-name-directory library-name) "../etc/images")))
+        (setq image-directory
+              ;; Set it to nil if image is not found.
+              (cond ((file-exists-p (expand-file-name image d2ei)) d2ei)
+                    ((file-exists-p (expand-file-name image d1ei)) d1ei)))))
+     ;; Check for images in image-load-path or load-path.
+     ((let ((img image)
+            (dir (or
+                  ;; Images in image-load-path.
+                  (image-search-load-path image)
+                  ;; Images in load-path.
+                  (locate-library image)))
+            parent)
+        ;; Since the image might be in a nested directory (for
+        ;; example, mail/attach.pbm), adjust `image-directory'
+        ;; accordingly.
+        (and dir
+             (setq dir (file-name-directory dir))
+             (progn
+               (while (setq parent (file-name-directory img))
+                 (setq img (directory-file-name parent)
+                       dir (expand-file-name "../" dir)))
+               (setq image-directory dir)))))
+     (no-error
+      ;; In this case we will return nil.
+      (message "Could not find image %s for library %s" image library))
+     (t
+      (error "Could not find image %s for library %s" image library)))
+
+    ;; Return the directory, nil if no-error was non-nil and a
+    ;; suitable path could not be found, or an augmented
+    ;; `image-load-path' or `load-path'.
+    (cond ((or (null image-directory)
+               (eq path t))
+           image-directory)
+          ((and path (symbolp path))
+           (nconc (list image-directory)
+                  (delete image-directory
+                          (if (boundp path)
+                              (copy-sequence (symbol-value path))
+                            nil))))
+          (t
+           (nconc (list image-directory)
+                  (delete image-directory (copy-sequence load-path)))))))
+
 (defun image-jpeg-p (data)
   "Value is non-nil if DATA, a string, consists of JFIF image data.
 We accept the tag Exif because that is the same format."

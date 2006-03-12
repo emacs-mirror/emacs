@@ -1217,6 +1217,10 @@ resources to load all the colors it needs.
 
 A solution is to exit the offending X programs before starting Emacs.
 
+"undefined color" messages can also occur if the RgbPath entry in the
+X configuration file is incorrect, or the rgb.txt file is not where
+X expects to find it.
+
 *** Improving performance with slow X connections.
 
 There are several ways to improve this performance, any subset of which can

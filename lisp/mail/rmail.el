@@ -268,7 +268,7 @@ It is useful to set this variable in the site customization file.")
 	  "\\|^list-id:\\|^list-unsubscribe:\\|^list-archive:"
 	  "\\|^content-length:\\|^nntp-posting-date:\\|^user-agent"
 	  "\\|^importance:\\|^envelope-to:\\|^delivery-date\\|^openpgp:"
-	  "\\|^mbox-line:\\|^cancel-lock:"
+	  "\\|^mbox-line:\\|^cancel-lock:\\|^DomainKey-Signature:"
 	  "\\|^resent-face:\\|^resent-x.*:\\|^resent-organization:\\|^resent-openpgp:"
 
 	  "\\|^x-.*:")
@@ -319,8 +319,14 @@ See also `rmail-highlight-face'."
   :type 'regexp
   :group 'rmail-headers)
 
+(defface rmail-highlight
+  '((t :default highlight))
+  "Face to use for highlighting the most important header fields."
+  :group 'rmail-headers
+  :version "22.1")
+
 ;;;###autoload
-(defcustom rmail-highlight-face nil "\
+(defcustom rmail-highlight-face 'rmail-highlight "\
 *Face used by Rmail for highlighting headers."
   :type '(choice (const :tag "Default" nil)
 		 face)
