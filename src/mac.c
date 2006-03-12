@@ -4829,6 +4829,9 @@ sys_select (n, rfds, wfds, efds, timeout)
 	    return 0;
 	}
 
+#if USE_CG_DRAWING
+      mac_prepare_for_quickdraw (NULL);
+#endif
       /* Avoid initial overhead of RunLoop setup for the case that
 	 some input is already available.  */
       EMACS_SET_SECS_USECS (select_timeout, 0, 0);
