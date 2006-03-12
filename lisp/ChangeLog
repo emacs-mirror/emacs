@@ -1,3 +1,11 @@
+2006-03-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-stack-list-locals-handler): Add local
+	map if value is hexadecimal (an address).
+	(gud-watch): Only search roots for existing watch expressions.
+	(gdb-speedbar-refresh): Bind speedbar-shown-directories to nil to
+	prevent caching problems with speedbar-update-directory-contents.
+
 2006-03-12  Juri Linkov  <juri@jurta.org>
 
 	* battery.el (battery-linux-proc-acpi): Check `capacity' for non-nil
