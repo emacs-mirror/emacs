@@ -122,12 +122,14 @@ main (argc, argv)
 #if 0
   if (argc < 2 || argc > 3)
     {
-      fprintf (stderr, "usage: addpm [/q] [emacs_path [icon_path]]\n");
+      fprintf (stderr, "usage: addpm [-q] [emacs_path [icon_path]]\n");
       exit (1);
     }
 #endif
 
-  if (argc > 1 && argv[1][0] == '/' && argv[1][1] == 'q')
+  if (argc > 1
+      && (argv[1][0] == '/' || argv[1][0] == '-')
+      && argv[1][1] == 'q')
     {
       quiet = 1;
       --argc;
