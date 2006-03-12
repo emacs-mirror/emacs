@@ -8,11 +8,11 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 7.93
+@set VERSION 7.93+cvs
 @c EDITION of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
 @set EDITION
-@set UPDATED 2006-03-05
+@set UPDATED 2006-03-11
 @set UPDATE-MONTH March, 2006
 
 @c Other variables.
@@ -218,8 +218,8 @@ in GNU Emacs 21, as well as XEmacs 21 (except for versions
 21.5.9-21.5.16). It is compatible with MH versions 6.8.4 and higher,
 all versions of nmh, and GNU mailutils 0.4 and higher.}, so you
 shouldn't have to do anything special to use it. This manual covers
-MH-E version @value{VERSION}. @ref{Getting Started} will help you
-decide which version you have.
+MH-E version @value{VERSION}. To help you decide which version you
+have, see @ref{Getting Started}.
 
 If you don't already use GNU Emacs but want to learn more, you can
 read an online tutorial by starting GNU Emacs and typing @kbd{C-h t}
@@ -554,6 +554,17 @@ environment@footnote{See the section
 If you don't, you'll be greeted with the error message: @samp{Install
 MH and run install-mh before running MH-E}.
 
+@cindex @samp{Path:} MH profile component
+@cindex MH profile
+@cindex MH profile component
+@cindex MH profile component, @samp{Path:}
+
+Your MH environment includes your @dfn{MH profile} which is found in
+the file @file{~/.mh_profile}. This file contains a number of @dfn{MH
+profile components}. For example, the @samp{Path:} MH profile
+component contains the path to your mail directory, which is
+@file{~/Mail} by default.
+
 @cindex @samp{Draft-Folder:} MH profile component
 @cindex @samp{Path:} MH profile component
 @cindex @samp{Previous-Sequence:} MH profile component
@@ -886,57 +897,58 @@ to find out how you can:
 
 @itemize @bullet
 @item
-Print your messages (@ref{Printing}).
+Print your messages (@pxref{Printing}).
 @c -------------------------
 @item
-Edit messages and include your signature (@ref{Editing Drafts}).
+Edit messages and include your signature (@pxref{Editing Drafts}).
 @c -------------------------
 @item
-Forward messages (@ref{Forwarding}).
+Forward messages (@pxref{Forwarding}).
 @c -------------------------
 @item
-Read digests (@ref{Digests}).
+Read digests (@pxref{Digests}).
 @c -------------------------
 @item
-Edit bounced messages (@ref{Editing Again}).
+Edit bounced messages (@pxref{Editing Again}).
 @c -------------------------
 @item
-Send multimedia messages (@ref{Adding Attachments}).
+Send multimedia messages (@pxref{Adding Attachments}).
 @c -------------------------
 @item
-Read HTML messages (@ref{HTML}).
+Read HTML messages (@pxref{HTML}).
 @c -------------------------
 @item
-Use @ref{Aliases} and @ref{Identities}.
+Use aliases and identities (see @ref{Aliases}, @pxref{Identities}).
 @c -------------------------
 @item
-Create different views of your mail (@ref{Threading} and @ref{Limits}).
+Create different views of your mail (see @ref{Threading}, @pxref{Limits}).
 @c -------------------------
 @item
-Deal with junk mail (@ref{Junk}).
+Deal with junk mail (@pxref{Junk}).
 @c -------------------------
 @item
-Handle signed and encrypted messages (@ref{Reading PGP} and
-@ref{Sending PGP}).
+Handle signed and encrypted messages (see @ref{Reading PGP},
+@pxref{Sending PGP}).
 @c -------------------------
 @item
 Process mail that was sent with @command{shar} or @command{uuencode}
-(@ref{Files and Pipes}).
+(@pxref{Files and Pipes}).
 @c -------------------------
 @item
-Use sequences conveniently (@ref{Sequences}).
+Use sequences conveniently (@pxref{Sequences}).
 @c -------------------------
 @item
-Use the @ref{Speedbar}, @ref{Tool Bar}, and @ref{Menu Bar}.
+Use the speedbar, tool bar, and menu bar (see @ref{Speedbar}, see @ref{Tool
+Bar}, @pxref{Menu Bar}).
 @c -------------------------
 @item
-Show header fields in different fonts (@ref{Reading Mail}).
+Show header fields in different fonts (@pxref{Reading Mail}).
 @c -------------------------
 @item
-Find previously refiled messages (@ref{Searching}).
+Find previously refiled messages (@pxref{Searching}).
 @c -------------------------
 @item
-Place messages in a file (@ref{Files and Pipes}).
+Place messages in a file (@pxref{Files and Pipes}).
 @end itemize
 
 Remember that you can also use MH commands when you're not running
@@ -1065,7 +1077,8 @@ mh-lpr-command-format @key{RET}}. In the buffer that appears, modify
 the string to the right of the variable. For example, you may change
 the @command{lpr} command with @samp{nenscript -G -r -2 -i'%s'}. Then
 use the @samp{State} combo box and select @samp{Save for Future
-Sessions}. @ref{Printing} talks more about this option.
+Sessions}. To read more about @code{mh-lpr-command-format}, see
+@ref{Printing}.
 
 @vindex mh-bury-show-buffer-flag, example
 
@@ -1084,9 +1097,9 @@ stack.
 
 The text usually says to turn on an option by setting it to a
 @emph{non-@code{nil}} value, because sometimes values other than
-@samp{on} are meaningful (for example, see @code{mh-mhl-format-file},
-described in @ref{Viewing}). Other options, such as hooks, involve a
-little more Emacs Lisp programming expertise.
+@samp{on} are meaningful. An example of this is the variable
+@code{mh-mhl-format-file} (@pxref{Viewing}). Other options, such as
+hooks, involve a little more Emacs Lisp programming expertise.
 
 @cindex @samp{mh} customization group
 @cindex customization group, @samp{mh}
@@ -1262,7 +1275,7 @@ used.
 
 @vtable @code
 @item mh-inc-prog
-Program to incorporate mail (default: @samp{"inc"}).
+Program to incorporate mail (default: @code{"inc"}).
 @c -------------------------
 @item mh-inc-spool-list
 Alternate spool files (default: @code{nil}).
@@ -1306,7 +1319,7 @@ mode line besides, add the following to @file{~/.emacs}:
 @vindex mh-progs
 
 The name of the program that incorporates new mail is stored in
-@code{mh-inc-prog}; it is @samp{"inc"} by default. This program
+@code{mh-inc-prog}; it is @code{"inc"} by default. This program
 generates a one-line summary for each of the new messages. Unless it
 is an absolute pathname, the file is assumed to be in the
 @code{mh-progs} directory (@pxref{Getting Started}). You may also link
@@ -1714,7 +1727,7 @@ On means non-reversible commands do not prompt for confirmation
 @c -------------------------
 @item mh-fetch-x-image-url
 Control fetching of @samp{X-Image-URL:} header field image (default:
-@code{Never Fetch}).
+@samp{Never Fetch}).
 @c -------------------------
 @item mh-graphical-smileys-flag
 On means graphical smileys are displayed (default: @samp{on}).
@@ -1733,14 +1746,14 @@ here).
 Additional header fields to hide (default: @code{nil}).
 @c -------------------------
 @item mh-lpr-command-format
-Command used to print (default: @samp{"lpr -J '%s'"}).
+Command used to print (default: @code{"lpr -J '%s'"}).
 @c -------------------------
 @item mh-max-inline-image-height
-Maximum inline image height if \"Content-Disposition:\" is not
+Maximum inline image height if @samp{Content-Disposition:} is not
 present (default: 0).
 @c -------------------------
 @item mh-max-inline-image-width
-Maximum inline image width if \"Content-Disposition:\" is not
+Maximum inline image width if @samp{Content-Disposition:} is not
 present(default: 0).
 @c -------------------------
 @item mh-mhl-format-file
@@ -1754,12 +1767,16 @@ Default directory to use for @kbd{K a}.
 On means messages should be printed in the background (default:
 @samp{off}).
 @c -------------------------
+@item mh-show-buffer-mode-line-buffer-id
+Format string to produce @code{mode-line-buffer-identification} for
+show buffers (default: @code{"    @{show-%s@} %d"}).
+@c -------------------------
 @item mh-show-maximum-size
 Maximum size of message (in bytes) to display automatically (default:
 0).
 @c -------------------------
 @item mh-show-use-xface-flag
-On means display face images in MH-Show buffers (default: @code{on}).
+On means display face images in MH-Show buffers (default: @samp{on}).
 @c -------------------------
 @item mh-store-default-directory
 Default directory for @kbd{X s} (default: @samp{Current}).
@@ -2074,7 +2091,7 @@ list. Both of these options are disabled if the option
 
 MH-E normally renders signatures and vCards in italics so that the
 body of the message stands out more. MH-E depends on the presence of
-the @dfn{signature separator} (@samp{"-- "}) to do this. You can also
+the @dfn{signature separator} (@code{"-- "}) to do this. You can also
 customize the face @code{mh-show-signature} so the appearance of the
 signature block is more to your liking.
 
@@ -2098,7 +2115,7 @@ For those who like to modify their mode lines, use
 the MH-Show buffers. Place the two escape strings @samp{%s} and
 @samp{%d}, which will display the folder name and the message number,
 respectively, somewhere in the string in that order. The default value
-of @samp{"@{show-%s@} %d"} yields a mode line of
+of @code{"@{show-%s@} %d"} yields a mode line of
 
 @smallexample
 -----@{show-+inbox@} 4      (MH-Show)--Bot--------------------------------
@@ -2344,8 +2361,8 @@ then you'll see a button like this:
 [1. text/html; foo.html]...
 @end example
 
-See @ref{Viewing Attachments} to see how to read the contents of this
-body part.
+To see how to read the contents of this body part, see @ref{Viewing
+Attachments}.
 
 The browser that MH-E uses is determined by the option
 @code{mm-text-html-renderer}. The default setting is set automatically
@@ -2685,7 +2702,7 @@ The command @kbd{P l} uses two options. The option
 performs the actual printing. The string can contain one escape,
 @samp{%s}, which is replaced by the name of the folder and the message
 number and is useful for print job names. The default setting is
-@samp{"lpr -J '%s'"}. I use @samp{"mpage -h'%s' -b Letter -H1of -mlrtb
+@code{"lpr -J '%s'"}. I use @code{"mpage -h'%s' -b Letter -H1of -mlrtb
 -P"} which produces a nice header and adds a bit of margin so the text
 fits within my printer's margins. Normally messages are printed in the
 foreground. If this is slow on your system, you may elect to turn on
@@ -3270,8 +3287,8 @@ after a message is marked to be refiled.
 
 If you are refiling several messages into the same folder, you can use
 the command @kbd{!} (@code{mh-refile-or-write-again}) to repeat the
-last refile or write (see the description of @kbd{>}
-(@code{mh-write-msg-to-file} in @ref{Files and Pipes}). You can use a
+last refile or write (for the description of @kbd{>}
+(@code{mh-write-msg-to-file}), @pxref{Files and Pipes}). You can use a
 range in either case (for example, @kbd{C-u o 1 3 5-7 last:5 frombob
 @key{RET}}, @pxref{Ranges}).
 
@@ -3616,7 +3633,7 @@ On means prompt for header fields when composing a new draft (default:
 @samp{off}).
 @c -------------------------
 @item mh-forward-subject-format
-Format string for forwarded message subject (default: @samp{"%s:
+Format string for forwarded message subject (default: @code{"%s:
 %s"}).
 @c -------------------------
 @item mh-insert-x-mailer-flag
@@ -3692,17 +3709,16 @@ following key bindings to @file{~/.emacs} useful:
 
 From within a MH-Folder buffer, you can simply use the command @kbd{m}
 (@code{mh-send}). However you invoke @code{mh-send}, your letter
-appears in an Emacs buffer whose mode is MH-Letter (see the Figure in
-@ref{Sending Mail Tour} to see what the buffer looks like). MH-Letter
-mode allows you to edit your message, to check the validity of the
-recipients, to insert attachments and other messages into your
-message, and to send the message. We'll go more into depth about
-editing a @dfn{draft}@footnote{I highly recommend that you use a
-@dfn{draft folder} so that you can edit several drafts in parallel. To
-do so, create a folder named @samp{+drafts} for example, and add the
-profile component @samp{Draft-Folder: drafts} (see
-@code{mh-profile}(5)).} (a message you're composing) in just a moment
-(@pxref{Editing Drafts}).
+appears in an Emacs buffer whose mode is MH-Letter (to see what the
+buffer looks like, @pxref{Sending Mail Tour}). MH-Letter mode allows
+you to edit your message, to check the validity of the recipients, to
+insert attachments and other messages into your message, and to send
+the message. We'll go more into depth about editing a
+@dfn{draft}@footnote{I highly recommend that you use a @dfn{draft
+folder} so that you can edit several drafts in parallel. To do so,
+create a folder named @samp{+drafts} for example, and add the profile
+component @samp{Draft-Folder: drafts} (see @code{mh-profile}(5)).} (a
+message you're composing) in just a moment (@pxref{Editing Drafts}).
 
 @vindex mh-compose-prompt-flag
 
@@ -3912,7 +3928,7 @@ is controlled by the option @code{mh-forward-subject-format}. This
 option is a string which includes two escapes (@samp{%s}). The first
 @samp{%s} is replaced with the sender of the original message, and the
 second one is replaced with the original @samp{Subject:}. The default
-value of @samp{"%s: %s"} takes a message with the header:
+value of @code{"%s: %s"} takes a message with the header:
 
 @smallexample
 @group
@@ -4310,11 +4326,11 @@ On means delete any window displaying the message (default: @samp{off}).
 @c -------------------------
 @item mh-extract-from-attribution-verb
 Verb to use for attribution when a message is yanked by @kbd{C-c C-y}
-(default: @samp{"wrote:"}).
+(default: @code{"wrote:"}).
 @c -------------------------
 @item mh-ins-buf-prefix
 String to put before each line of a yanked or inserted message
-(default: @samp{"> "}).
+(default: @code{"> "}).
 @c -------------------------
 @item mh-letter-complete-function
 Function to call when completing outside of address or folder fields
@@ -4328,7 +4344,7 @@ Default method to use in security tags (default: @samp{PGP (MIME)} if
 support for it is available; otherwise @samp{None}).
 @c -------------------------
 @item mh-signature-file-name
-Source of user's signature (default: @samp{"~/.signature"}).
+Source of user's signature (default: @code{"~/.signature"}).
 @c -------------------------
 @item mh-signature-separator-flag
 On means a signature separator should be inserted (default:
@@ -4336,7 +4352,7 @@ On means a signature separator should be inserted (default:
 @c -------------------------
 @item mh-x-face-file
 File containing X-Face or Face header field to insert in outgoing mail.
-(default: @samp{"~/.face"}).
+(default: @code{"~/.face"}).
 @c -------------------------
 @item mh-yank-behavior
 Controls which part of a message is yanked by @kbd{C-c C-y} (default:
@@ -4594,7 +4610,7 @@ the @samp{Custom String} menu item to enter your own verb.
 
 @vindex mh-ins-buf-prefix
 
-The prefix @samp{"> "} is the default setting for the option
+The prefix @code{"> "} is the default setting for the option
 @code{mh-ins-buf-prefix}. I suggest that you not modify this option
 since it is used by many mailers and news readers: messages are far
 easier to read if several included messages have all been indented by
@@ -4727,7 +4743,7 @@ if the buffer contains a separator, may be useful as well.
 @cindex signature separator
 @vindex mh-signature-separator-flag
 
-A signature separator (@samp{"-- "}) will be added if the signature
+A signature separator (@code{"-- "}) will be added if the signature
 block does not contain one and @code{mh-signature-separator-flag} is
 on. It is not recommended that you change this option since various
 mail user agents, including MH-E, use the separator to present the
@@ -5350,7 +5366,7 @@ If @samp{on}, local users are added to alias completion (default:
 @c -------------------------
 @item mh-alias-local-users-prefix
 String prefixed to the real names of users from the password file
-(default: @samp{"local."}.
+(default: @code{"local."}.
 @c -------------------------
 @item mh-alias-passwd-gecos-comma-separator-flag
 On means the GECOS field in the password file uses a comma separator
@@ -5991,7 +6007,7 @@ frame. You can choose from one of @samp{Same As Default Tool Bar},
 @samp{Top}, @samp{Bottom}, @samp{Left}, or @samp{Right}. If this
 variable is set to anything other than @samp{Same As Default Tool Bar}
 and the default tool bar is in a different location, then two tool
-bars will be displayed: the MH-E tool bar and the default tool bar."
+bars will be displayed: the MH-E tool bar and the default tool bar.
 
 @node Searching, Threading, Tool Bar, Top
 @chapter Searching Through Messages
@@ -7059,7 +7075,7 @@ works best for you.
 First, run @samp{spamassassin -t} on every mail message in your
 archive and use @command{gnumeric} to verify that the average plus the
 standard deviation of good mail is under 5, the SpamAssassin default
-for "spam".
+for ``spam''.
 
 Using @command{gnumeric}, sort the messages by score and view the
 messages with the highest score. Determine the score which encompasses
@@ -7370,7 +7386,7 @@ Specifies the format file to pass to the scan program (default:
 @samp{Use MH-E scan Format}).
 @c -------------------------
 @item mh-scan-prog
-Program used to scan messages (default: @samp{"scan"}).
+Program used to scan messages (default: @code{"scan"}).
 @end vtable
 
 @findex mh-set-cmd-note
@@ -7459,7 +7475,7 @@ the @samp{Bcc:} field matches, and @samp{n} if a non-empty
 @vindex mh-scan-prog
 
 The name of the program that generates a listing of one line per
-message is held in @code{mh-scan-prog} (default: @samp{"scan"}).
+message is held in @code{mh-scan-prog} (default: @code{"scan"}).
 Unless this variable contains an absolute pathname, it is assumed to
 be in the @code{mh-progs} directory (@pxref{Getting Started}). You may
 link another program to @command{scan} (see @samp{mh-profile}(5)) to
@@ -7471,22 +7487,21 @@ pick Ranges Sequences} in the MH book.}.
 
 If you change the format of the scan lines you'll need to tell MH-E
 how to parse the new format. As you will see, quite a lot of variables
-are involved to do that. Use @samp{M-x apropos @key{RET} mh-scan.*regexp'}
-to obtain a list of these variables. You will also have to call
-@code{mh-set-cmd-note} if your notations are not in column 4 (columns
-in Emacs start with 0). Note that unlike most of the user options
-described in this manual, these are variables and must be set with
-@code{setq} instead of in a customization buffer. For help with
-regular expressions, see
+are involved to do that. Use @samp{M-x apropos @key{RET}
+mh-scan.*regexp @key{RET}} to obtain a list of these variables. You
+will also have to call @code{mh-set-cmd-note} if your notations are
+not in column 4 (columns in Emacs start with 0). Note that unlike most
+of the user options described in this manual, these are variables and
+must be set with @code{setq} instead of in a customization buffer. For
+help with regular expressions, see
 @ifnothtml
 @ref{Regexps, , Syntax of Regular Expressions, emacs, The
-GNU Emacs Manual}
+GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
-the section
+section
 @uref{http://www.gnu.org/software/emacs/manual/html_node/Regexps.html,
-Syntax of Regular Expressions} in
-@cite{The GNU Emacs Manual}).
+Syntax of Regular Expressions} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
 The first variable has to do with pruning out garbage.
@@ -7501,7 +7516,7 @@ This regular expression describes a valid scan line. This is used to
 eliminate error messages that are occasionally produced by
 @command{inc}@footnote{See the section
 @uref{@value{MH-BOOK-HOME}/reapre.htm, Reading Mail: inc show next
-prev} in the MH book.} or @command{scan} (default: @samp{"^ *[0-9]"}).
+prev} in the MH book.} or @command{scan} (default: @code{"^ *[0-9]"}).
 @end vtable
 
 Next, many variables control how the scan lines are parsed.
@@ -7516,7 +7531,7 @@ This regular expression matches the message body fragment. Note that
 the default setting of @code{mh-folder-font-lock-keywords} expects
 this expression to contain at least one parenthesized expression which
 matches the body text as in the default of
-@samp{"\\(<<\\([^\n]+\\)?\\)"}. If this regular expression is not
+@code{"\\(<<\\([^\n]+\\)?\\)"}. If this regular expression is not
 correct, the body fragment will not be highlighted with the face
 @code{mh-folder-body}.
 @c -------------------------
@@ -7528,7 +7543,7 @@ This regular expression matches the current message. It must match
 from the beginning of the line. Note that the default setting of
 @code{mh-folder-font-lock-keywords} expects this expression to contain
 at least one parenthesized expression which matches the message number
-as in the default of @w{@samp{"^\\( *[0-9]+\\+\\).*"}}. This
+as in the default of @w{@code{"^\\( *[0-9]+\\+\\).*"}}. This
 expression includes the leading space and current message marker
 @samp{+} within the parenthesis since it looks better to highlight
 these items as well. The highlighting is done with the face
@@ -7545,7 +7560,7 @@ anchored to the beginning or the end of the line. Note that the
 default setting of @code{mh-folder-font-lock-keywords} expects this
 expression to contain only one parenthesized expression which matches
 the date field as in the default of
-@samp{"\\([0-9][0-9]/[0-9][0-9]\\)"}. If this regular expression is
+@code{"\\([0-9][0-9]/[0-9][0-9]\\)"}. If this regular expression is
 not correct, the date will not be highlighted with the face
 @code{mh-folder-date}.
 @c -------------------------
@@ -7557,7 +7572,7 @@ This regular expression matches deleted messages. It must match from
 the beginning of the line. Note that the default setting of
 @code{mh-folder-font-lock-keywords} expects this expression to contain
 at least one parenthesized expression which matches the message number
-as in the default of @samp{"^\\( *[0-9]+\\)D"}. This expression
+as in the default of @code{"^\\( *[0-9]+\\)D"}. This expression
 includes the leading space within the parenthesis since it looks
 better to highlight it as well. The highlighting is done with the face
 @code{mh-folder-deleted}. This regular expression should be correct as
@@ -7571,7 +7586,7 @@ This regular expression matches ``good'' messages. It must match from
 the beginning of the line. Note that the default setting of
 @code{mh-folder-font-lock-keywords} expects this expression to contain
 at least one parenthesized expression which matches the message number
-as in the default of @w{@samp{"^\\( *[0-9]+\\)[^D^0-9]"}}. This
+as in the default of @w{@code{"^\\( *[0-9]+\\)[^D^0-9]"}}. This
 expression includes the leading space within the parenthesis since it
 looks better to highlight it as well. The highlighting is done with
 the face @code{mh-folder-msg-number}. This regular expression should
@@ -7581,7 +7596,7 @@ be correct as it is needed by non-fontification functions.
 @item mh-scan-msg-format-regexp
 This regular expression finds the message number width in a scan
 format. Note that the message number must be placed in a parenthesized
-expression as in the default of @samp{"%\\([0-9]*\\)(msg)"}. This
+expression as in the default of @code{"%\\([0-9]*\\)(msg)"}. This
 variable is only consulted if @code{mh-scan-format-file} is set to
 @samp{Use MH-E scan Format}.
 @c -------------------------
@@ -7590,22 +7605,22 @@ variable is only consulted if @code{mh-scan-format-file} is set to
 This is a format string for the width of the message number in a scan
 format. Use @samp{0%d} for zero-filled message numbers. This variable
 is only consulted if @code{mh-scan-format-file} is set to @samp{Use
-MH-E scan Format} (default: @samp{"%d"}).
+MH-E scan Format} (default: @code{"%d"}).
 @c -------------------------
 @item mh-scan-msg-number-regexp
 This regular expression extracts the message number. It must match
 from the beginning of the line. Note that the message number must be
-placed in a parenthesized expression as in the default of @w{@samp{"^
+placed in a parenthesized expression as in the default of @w{@code{"^
 *\\([0-9]+\\)"}}.
 @c -------------------------
 @item mh-scan-msg-overflow-regexp
 This regular expression matches overflowed message numbers (default:
-@samp{"^[?0-9][0-9]"}).
+@code{"^[?0-9][0-9]"}).
 @c -------------------------
 @item mh-scan-msg-search-regexp
 This regular expression matches a particular message. It is a format
 string; use @samp{%d} to represent the location of the message number
-within the expression as in the default of @samp{"^[^0-9]*%d[^0-9]"}.
+within the expression as in the default of @code{"^[^0-9]*%d[^0-9]"}.
 @c -------------------------
 @vindex mh-folder-address
 @vindex mh-folder-font-lock-keywords
@@ -7616,7 +7631,7 @@ Note that the default setting of @code{mh-folder-font-lock-keywords}
 expects this expression to contain two parenthesized expressions. The
 first is expected to match the @samp{To:} that the default scan format
 file generates. The second is expected to match the recipient's name
-as in the default of @samp{"\\(To:\\)\\(..............\\)"}. If this
+as in the default of @code{"\\(To:\\)\\(..............\\)"}. If this
 regular expression is not correct, the @samp{To:} string will not be
 highlighted with the face @code{mh-folder-to} and the recipient will not be
 highlighted with the face @code{mh-folder-address}.
@@ -7629,7 +7644,7 @@ This regular expression matches refiled messages. It must match from
 the beginning of the line. Note that the default setting of
 @code{mh-folder-font-lock-keywords} expects this expression to contain
 at least one parenthesized expression which matches the message number
-as in the default of @w{@samp{"^\\( *[0-9]+\\)\\^"}}. This expression
+as in the default of @w{@code{"^\\( *[0-9]+\\)\\^"}}. This expression
 includes the leading space within the parenthesis since it looks
 better to highlight it as well. The highlighting is done with the face
 @code{mh-folder-refiled}. This regular expression should be correct as
@@ -7647,7 +7662,7 @@ expression to contain at least two parenthesized expressions. The
 first should match the fontification hint (see
 @code{mh-scan-format-nmh}) and the second should match the user name
 as in the default of
-@w{@samp{"^ *[0-9]+.\\([bct]\\).....[ ]*\\(..................\\)"}}.
+@w{@code{"^ *[0-9]+.\\([bct]\\).....[ ]*\\(..................\\)"}}.
 If this regular expression is not correct, the notation hints will not
 be highlighted with the face @code{mh-mh-folder-sent-to-me-hint} and
 the sender will not be highlighted with the face
@@ -7667,8 +7682,8 @@ number after @samp{Re:}, such as in @samp{Re[2]:} (and is thus a
 sub-expression of the first expression). The third is expected to
 match the subject line itself which is highlighted with the face
 @code{mh-folder-subject}. For example, the default is
-@w{@samp{"^ *[0-9]+........[ ]*...................}}@*
-@w{@samp{\\([Rr][Ee]\\(\\[[0-9]+\\]\\)?:\\s-*\\)*\\([^<\n]*\\)"}}.
+@w{@code{"^ *[0-9]+........[ ]*...................}}@*
+@w{@code{\\([Rr][Ee]\\(\\[[0-9]+\\]\\)?:\\s-*\\)*\\([^<\n]*\\)"}}.
 This regular expression should be correct as it is needed by
 non-fontification functions. Note that this example is broken up on
 two lines for readability, but is actually a single string.
@@ -7687,39 +7702,39 @@ Emacs start with 0.
 @c -------------------------
 @item mh-note-copied
 Messages that have been copied are marked by this character (default:
-@samp{?C}).
+@code{?C}).
 @c -------------------------
 @item mh-note-cur
 The current message (in MH, not in MH-E) is marked by this character
-(default: @samp{?+}). See also @code{mh-scan-cur-msg-number-regexp}.
+(default: @code{?+}). See also @code{mh-scan-cur-msg-number-regexp}.
 @c -------------------------
 @item mh-note-deleted
 Messages that have been deleted are marked by this character (default:
-@samp{?D}). See also @code{mh-scan-deleted-msg-regexp}.
+@code{?D}). See also @code{mh-scan-deleted-msg-regexp}.
 @c -------------------------
 @item mh-note-dist
 Messages that have been redistributed are marked by this character
-(default: @samp{?R}).
+(default: @code{?R}).
 @c -------------------------
 @item mh-note-forw
 Messages that have been forwarded are marked by this character
-(default: @samp{?F}).
+(default: @code{?F}).
 @c -------------------------
 @item mh-note-printed
 Messages that have been printed are marked by this character (default:
-@samp{?P}).
+@code{?P}).
 @c -------------------------
 @item mh-note-refiled
 Messages that have been refiled are marked by this character (default:
-@samp{?^}). See also @code{mh-scan-refiled-msg-regexp}.
+@code{?^}). See also @code{mh-scan-refiled-msg-regexp}.
 @c -------------------------
 @item mh-note-repl
 Messages that have been replied to are marked by this character
-(default: @samp{?-}).
+(default: @code{?-}).
 @c -------------------------
 @item mh-note-seq
 Messages in a user-defined sequence are marked by this character
-(default: @samp{?%}). Messages in the @samp{search} sequence are
+(default: @code{?%}). Messages in the @samp{search} sequence are
 marked by this character as well.
 @end vtable
 

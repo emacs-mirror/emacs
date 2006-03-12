@@ -1,3 +1,15 @@
+2006-03-11  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Preface, More About MH-E, Options, HTML, Folders)
+	(Composing, Scan Line Formats): Fix @refs.
+	(Getting Started): Define MH profile and MH profile components.
+	(Incorporating Mail, Reading Mail, Viewing, Printing)
+	(Sending Mail, Forwarding, Editing Drafts, Inserting Letter)
+	(Signature, Aliases, Scan Line Formats): Use @code instead of @samp
+	for string constants.
+	(Tool Bar): Remove spurious quote.
+	(Junk): Use ``...'' instead of "...".
+
 2006-03-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* search.texi (Regexps): Use @samp for regexp that is not in Lisp
