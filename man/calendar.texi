@@ -24,7 +24,7 @@ particular date; @kbd{Mouse-3} brings up a menu of commonly used
 calendar features that are independent of any particular date.  To exit
 the calendar, type @kbd{q}.
 
-The basic features of the Calendar/Diary are described here.
+  This chapter describes the basic calendar features.
 @inforef{Advanced Calendar/Diary Usage,, emacs-xtra}, for information
 about more specialized features.
 
@@ -49,13 +49,13 @@ about more specialized features.
 @section Movement in the Calendar
 
 @cindex moving inside the calendar
-  Calendar mode lets you move through the calendar in logical units of
-time such as days, weeks, months, and years.  If you move outside the
-three months originally displayed, the calendar display ``scrolls''
-automatically through time to make the selected date visible.  Moving to
-a date lets you view its holidays or diary entries, or convert it to other
-calendars; moving longer time periods is also useful simply to scroll the
-calendar.
+  Calendar mode provides commands to move through the calendar in
+logical units of time such as days, weeks, months, and years.  If you
+move outside the three months originally displayed, the calendar
+display ``scrolls'' automatically through time to make the selected
+date visible.  Moving to a date lets you view its holidays or diary
+entries, or convert it to other calendars; moving by long time periods
+is also useful simply to scroll the calendar.
 
 @menu
 * Calendar Unit Motion::      Moving by days, weeks, months, and years.
@@ -117,16 +117,16 @@ moves to the same day in the previous week.
 @findex calendar-forward-year
   The commands for motion by months and years work like those for
 weeks, but move a larger distance.  The month commands @kbd{M-@}} and
-@kbd{M-@{} move forward or backward by an entire month's time.  The
-year commands @kbd{C-x ]} and @w{@kbd{C-x [}} move forward or backward a
+@kbd{M-@{} move forward or backward by an entire month.  The year
+commands @kbd{C-x ]} and @w{@kbd{C-x [}} move forward or backward a
 whole year.
 
   The easiest way to remember these commands is to consider months and
-years analogous to paragraphs and pages of text, respectively.  But the
-commands themselves are not quite analogous.  The ordinary Emacs paragraph
-commands move to the beginning or end of a paragraph, whereas these month
-and year commands move by an entire month or an entire year, which usually
-involves skipping across the end of a month or year.
+years analogous to paragraphs and pages of text, respectively.  But
+the commands themselves are not quite analogous.  The ordinary Emacs
+paragraph commands move to the beginning or end of a paragraph,
+whereas these month and year commands move by an entire month or an
+entire year, keeping the same date within the month or year.
 
   All these commands accept a numeric argument as a repeat count.
 For convenience, the digit keys and the minus sign specify numeric
@@ -313,8 +313,8 @@ Exit from calendar (@code{exit-calendar}).
   To display the number of days elapsed since the start of the year, or
 the number of days remaining in the year, type the @kbd{p d} command
 (@code{calendar-print-day-of-year}).  This displays both of those
-numbers in the echo area.  The number of days elapsed includes the
-selected date.  The number of days remaining does not include that
+numbers in the echo area.  The count of days elapsed includes the
+selected date.  The count of days remaining does not include that
 date.
 
 @kindex C-c C-l @r{(Calendar mode)}
@@ -432,8 +432,7 @@ date in the calendar window and use the @kbd{h} command.  Alternatively,
 click on that date with @kbd{Mouse-2} and then choose @kbd{Holidays}
 from the menu that appears.  Either way, this displays the holidays for
 that date, in the echo area if they fit there, otherwise in a separate
-window.  If the variable @code{view-calendar-holidays-initially} is
-non-@code{nil}, creating the calendar displays holidays in this way.
+window.
 
 @kindex x @r{(Calendar mode)}
 @findex mark-calendar-holidays
@@ -462,9 +461,11 @@ calendar window to scroll that list up and down, respectively.
 @findex holidays
   The command @kbd{M-x holidays} displays the list of holidays for the
 current month and the preceding and succeeding months; this works even
-if you don't have a calendar window.  If you want the list of holidays
-centered around a different month, use @kbd{C-u M-x holidays}, which
-prompts for the month and year.
+if you don't have a calendar window.  If the variable
+@code{view-calendar-holidays-initially} is non-@code{nil}, creating
+the calendar displays holidays in this way.  If you want the list of
+holidays centered around a different month, use @kbd{C-u M-x
+holidays}, which prompts for the month and year.
 
   The holidays known to Emacs include United States holidays and the
 major Christian, Jewish, and Islamic holidays; also the solstices and
@@ -1017,7 +1018,7 @@ following day.
 @kbd{Mouse-2} on the date, and then choose @kbd{Diary entries} from
 the menu that appears.  If the variable
 @code{view-diary-entries-initially} is non-@code{nil}, creating the
-calendar also lists diary entries for the current date (provided the
+calendar lists the diary entries for the current date (provided the
 current date is visible).
 
 @kindex m @r{(Calendar mode)}
@@ -1371,10 +1372,10 @@ begins with a recognizable time of day, Emacs can warn you several
 minutes beforehand that that appointment is pending.  Emacs alerts you
 to the appointment by displaying a message in your chosen format, as
 specified by the variable @code{appt-display-format}.  If the value of
-@code{appt-audible} is non-@code{nil}, an audible reminder is also
-given.  In addition, if @code{appt-display-mode-line} is non-@code{nil},
-Emacs displays the number of minutes to the appointment on the mode
-line.
+@code{appt-audible} is non-@code{nil}, the warning includes an audible
+reminder.  In addition, if @code{appt-display-mode-line} is
+non-@code{nil}, Emacs displays the number of minutes to the
+appointment on the mode line.
 
 @vindex appt-display-duration
 @vindex appt-disp-window-function
@@ -1387,12 +1388,12 @@ give the names of functions used to create and destroy the window,
 respectively.
 
 @findex appt-activate
-  To enable appointment notification, call the function
-@code{appt-activate} with a positive argument.  This sets up an
-appointment list for today from the diary file, giving all diary entries
-found with recognizable times of day, and reminds you just before each
-of them. Calling @code{appt-activate} with a negative argument disables
-the appointment package.  With no argument, it toggles.
+  To enable appointment notification, use the command @kbd{M-x
+appt-activate}.  With a positive argument, it enables notification;
+with a negative argument, it disables notification; with no argument,
+it toggles.  Enabling notification also sets up an appointment list
+for today from the diary file, giving all diary entries found with
+recognizable times of day, and reminds you just before each of them.
 
   For example, suppose the diary file contains these lines:
 
@@ -1404,10 +1405,10 @@ Monday
 
 @vindex appt-message-warning-time
 @noindent
-Then on Mondays, you will be reminded at around 9:20am about your coffee
-break and at around 11:50am about lunch.  How many minutes in advance you
-are first warned is determined by the value of
-@code{appt-message-warning-time}.
+Then on Mondays, you will be reminded at around 9:20am about your
+coffee break and at around 11:50am about lunch.  The variable
+@code{appt-message-warning-time} specifies how many minutes in advance
+to warn you; its default value is 12 (12 minutes).
 
   You can write times in am/pm style (with @samp{12:00am} standing
 for midnight and @samp{12:00pm} standing for noon), or 24-hour
@@ -1416,12 +1417,12 @@ can have a mixture of the two styles.  Times must be at the beginning
 of lines if they are to be recognized.
 
 @vindex appt-display-diary
-  Emacs updates the appointments list from the diary file automatically
-just after midnight.  An update can be forced at any time by
-re-activating the appointment package.  Both these actions also display
-the day's diary buffer, unless you set @code{appt-display-diary} to
-@code{nil}.  The appointments list is also updated whenever the
-diary file is saved.
+  Emacs updates the appointments list from the diary file
+automatically just after midnight.  You can force an update at any
+time by re-enabling appointment notification.  Both these actions also
+display the day's diary buffer, unless you set
+@code{appt-display-diary} to @code{nil}.  The appointments list is
+also updated whenever the diary file is saved.
 
 @findex appt-add
 @findex appt-delete
@@ -1450,11 +1451,11 @@ diary file and iCalendar files, which are defined in ``RFC
 2445---Internet Calendaring and Scheduling Core Object Specification
 (iCalendar)'' (as well as the earlier vCalendar format).
 
-  Importing works for ``ordinary'' (i.e. non-recurring) events, but (at
-present) may not work correctly (if at all) for recurring events.
-Exporting of diary files into iCalendar files should work correctly for
-most diary entries.  Please note that @file{icalendar.el} is work in
-progress, so usage may evolve in future.
+  Importing works for ``ordinary'' (i.e. non-recurring) events, but
+(at present) may not work correctly (if at all) for recurring events.
+Exporting of diary files into iCalendar files should work correctly
+for most diary entries.  This feature is a work in progress, so the
+commands may evolve in future.
 
 @findex icalendar-import-buffer
   The command @code{icalendar-import-buffer} extracts
@@ -1476,7 +1477,7 @@ and adds the results to an Emacs diary file.  For example:
 
 @noindent
 You can use an @code{#include} directive to add the import file contents
-to the main diary file, if these are distinct.  @inforef{Fancy Diary
+to the main diary file, if these are different files.  @inforef{Fancy Diary
 Display,, emacs-xtra}.
 
 @findex icalendar-export-file, icalendar-export-region
@@ -1484,7 +1485,6 @@ Display,, emacs-xtra}.
 Emacs diary file to iCalendar format.  To export only a part of a diary
 file, mark the relevant area, and call @code{icalendar-export-region}.
 In both cases the result is appended to the target file.
-
 
 @node Daylight Savings
 @section Daylight Savings Time
@@ -1560,7 +1560,8 @@ values are 120.
 @cindex timeclock
 
   The timeclock feature adds up time intervals, so you can (for
-instance) keep track of how much time you spend working.
+instance) keep track of how much time you spend working on particular
+projects.
 
 @findex timeclock-in
 @findex timeclock-out
@@ -1586,11 +1587,11 @@ workday in the mode line, either customize the
 @code{t}, or invoke the @kbd{M-x timeclock-modeline-display} command.
 
 @vindex timeclock-ask-before-exiting
-  Terminating the current Emacs session might or might not mean that you
-have stopped working on the project and, by default, Emacs queries this.
-You can, however, set the value of the variable
+  Terminating the current Emacs session might or might not mean that
+you have stopped working on the project and, by default, Emacs asks
+you.  You can, however, set the value of the variable
 @code{timeclock-ask-before-exiting} to @code{nil} (via @kbd{M-x
-customize}) to avoid this behavior; then, only an explicit @kbd{M-x
+customize}) to avoid the question; then, only an explicit @kbd{M-x
 timeclock-out} or @kbd{M-x timeclock-change} will tell Emacs that the
 current interval is over.
 
