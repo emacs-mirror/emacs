@@ -1,3 +1,8 @@
+2006-03-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-start.el (all): Delete :version keyword for members of the
+	fringe group, since the entire group is new in 22.1.
+
 2006-03-13  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-stack-list-locals-handler): Add local
