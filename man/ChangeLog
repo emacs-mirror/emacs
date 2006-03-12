@@ -9,6 +9,7 @@
 	for string constants.
 	(Tool Bar): Remove spurious quote.
 	(Junk): Use ``...'' instead of "...".
+	(Scan Line Formats): Replace @samp with @kbd.
 
 2006-03-11  Luc Teirlinck  <teirllm@auburn.edu>
 

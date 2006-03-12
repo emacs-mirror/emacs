@@ -7487,7 +7487,7 @@ pick Ranges Sequences} in the MH book.}.
 
 If you change the format of the scan lines you'll need to tell MH-E
 how to parse the new format. As you will see, quite a lot of variables
-are involved to do that. Use @samp{M-x apropos @key{RET}
+are involved to do that. Use @kbd{M-x apropos @key{RET}
 mh-scan.*regexp @key{RET}} to obtain a list of these variables. You
 will also have to call @code{mh-set-cmd-note} if your notations are
 not in column 4 (columns in Emacs start with 0). Note that unlike most
