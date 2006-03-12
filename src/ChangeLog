@@ -1,3 +1,32 @@
+2006-03-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h [USE_ATSUI && MAC_OSX]: Define USE_CG_TEXT_DRAWING to 1.
+
+	* macterm.h (struct mac_output) [USE_CG_DRAWING]: New member cg_context.
+	(mac_prepare_for_quickdraw) [USE_CG_DRAWING]: Add prototype.
+
+	* mac.c (sys_select) [USE_CG_DRAWING]: Call mac_prepare_for_quickdraw.
+
+	* macfns.c (x_create_tip_frame): Apply 2006-03-11 change for xfns.c.
+
+	* macterm.c (mac_draw_rectangle, x_draw_glyph_string_foreground)
+	(x_draw_composite_glyph_string_foreground)
+	(x_draw_image_foreground): Undo previous changes.
+	(x_draw_hollow_cursor): Likewise.  Subtract 1 from the last
+	argument of mac_draw_rectangle.
+	(CG_SET_FILL_COLOR, CG_SET_STROKE_COLOR): New macros.
+	(mac_draw_string_common, mac_draw_image_string_cg): Use them.
+	(FRAME_CG_CONTEXT) [USE_CG_DRAWING]: New macro.
+	(mac_begin_cg_clip, mac_end_cg_clip, mac_prepare_for_quickdraw)
+	[USE_CG_DRAWING]: New functions.
+	(mac_draw_line, mac_erase_rectangle, mac_clear_window)
+	(mac_fill_rectangle, mac_draw_rectangle, mac_draw_string_common)
+	(mac_draw_image_string_cg) [USE_CG_DRAWING]: Add Quartz 2D drawing part.
+	(mac_draw_bitmap, mac_invert_rectangle, mac_draw_string_common)
+	(mac_copy_area, mac_scroll_area, x_scroll_bar_create)
+	(x_scroll_bar_remove, XTset_vertical_scroll_bar, x_set_window_size)
+	(XTread_socket) [USE_CG_DRAWING]: Call mac_prepare_for_quickdraw.
+
 2006-03-12  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* xfns.c (x_icon): Disable redundant call to `x_wm_set_window_state'.
@@ -105,7 +134,7 @@
 
 	* image.c [MAC_OS] (XPutPixel): Set alpha channel bits if pixmap
 	depth is 32.
-	 [MAC_OS] (XGetPixel): Strip off alpha channel bits if pixmap
+	[MAC_OS] (XGetPixel): Strip off alpha channel bits if pixmap
 	depth is 32.
 
 2006-03-06  Chong Yidong  <cyd@stupidchicken.com>
