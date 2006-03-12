@@ -72,7 +72,7 @@
   :group 'frames)
 
 
-(defcustom ediff-window-setup-function 'ediff-setup-windows-automatic)
+(defcustom ediff-window-setup-function 'ediff-setup-windows-automatic
   "*Function called to set up windows.
 Ediff provides a choice of three functions: `ediff-setup-windows-plain', for
 doing everything in one frame, `ediff-setup-windows-multiframe', which sets
