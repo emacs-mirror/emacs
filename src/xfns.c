@@ -4610,7 +4610,6 @@ unwind_create_tip_frame (frame)
   return deleted;
 }
 
-  parms = Fcopy_alist (parms);
 
 /* Create a frame for a tooltip on the display described by DPYINFO.
    PARMS is a list of frame parameters.  TEXT is the string to
@@ -4638,6 +4637,8 @@ x_create_tip_frame (dpyinfo, parms, text)
   struct buffer *old_buffer;
 
   check_x ();
+
+  parms = Fcopy_alist (parms);
 
   /* Get the name of the frame to use for resource lookup.  */
   name = x_get_arg (dpyinfo, parms, Qname, "name", "Name", RES_TYPE_STRING);
