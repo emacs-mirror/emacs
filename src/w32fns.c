@@ -4369,17 +4369,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_wm_set_size_hint (f, window_prompting, 0);
   UNBLOCK_INPUT;
 
-  /* Avoid a bug that causes the new frame to never become visible if
-     an echo area message is displayed during the following call1.  */
-  specbind(Qredisplay_dont_pause, Qt);
-
-  /* Set up faces after all frame parameters are known.  This call
-     also merges in face attributes specified for new frames.  If we
-     don't do this, the `menu' face for instance won't have the right
-     colors, and the menu bar won't appear in the specified colors for
-     new frames.  */
-  call1 (Qface_set_after_frame_default, frame);
-
   /* Make the window appear on the frame and enable display, unless
      the caller says not to.  However, with explicit parent, Emacs
      cannot control visibility, so don't try.  */
