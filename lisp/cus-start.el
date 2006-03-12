@@ -52,7 +52,7 @@
 	     (ctl-arrow display boolean)
 	     (truncate-lines display boolean)
 	     (selective-display-ellipses display boolean)
-	     (indicate-empty-lines fringe boolean "21.1")
+	     (indicate-empty-lines fringe boolean)
 	     (indicate-buffer-boundaries
 	      fringe
 	      (choice
@@ -91,8 +91,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			    (const :tag "Do not show" (down . nil))
 			    (const :tag "On the left" (down . left))
 			    (const :tag "On the right" (down . right))))
-	       (other :tag "On left, no arrows" t))
-	      "22.1")
+	       (other :tag "On left, no arrows" t)))
 	     (scroll-up-aggressively windows
 				     (choice (const :tag "off" nil) number)
 				     "21.1")
@@ -174,7 +173,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					    (const :tag "always shown" t)
 					    (other :tag "hidden by keypress" 1)))
 	     ;; fringe.c
-	     (overflow-newline-into-fringe fringe boolean "22.1")
+	     (overflow-newline-into-fringe fringe boolean)
 	     ;; indent.c
 	     (indent-tabs-mode fill boolean)
 	     ;; keyboard.c
