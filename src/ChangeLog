@@ -1,5 +1,8 @@
 2006-03-12  Jason Rumney  <jasonr@gnu.org>
 
+	* w32fns.c (Fx_create_frame): Remove call to
+	Qface_set_after_frame_default. (from xfns.c 2003-05-26)
+
 	* w32menu.c (Fx_popup_menu): Call w32_free_menu_strings when
 	finished with the menu.
 

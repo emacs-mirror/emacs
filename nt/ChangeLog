@@ -1,5 +1,7 @@
 2006-03-12  Jason Rumney  <jasonr@gnu.org>
 
+	* makefile.w32-in (install): Use -q when invoking addpm.
+
 	* addpm.c (main): Accept -q as alternative for /q.
 
 2006-03-11  Jason Rumney  <jasonr@gnu.org>
