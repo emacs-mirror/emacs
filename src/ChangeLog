@@ -1,3 +1,12 @@
+2006-03-12  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c: Sync 2005-10-24 xterm.c changes.
+	(last_mouse_glyph_frame): New var.
+	(note_mouse_movement): Say mouse moved if current frame differs
+	from last_mouse_glyph_frame, and update last_mouse_glyph_frame.
+	(w32_mouse_position): Set last_mouse_glyph_frame.
+	 Remove OLD_REDISPLAY_CODE block.
+
 2006-03-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macgui.h [USE_ATSUI && MAC_OSX]: Define USE_CG_TEXT_DRAWING to 1.
