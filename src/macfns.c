@@ -3591,6 +3591,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   check_mac ();
 
+  parms = Fcopy_alist (parms);
 
 #ifdef MULTI_KBOARD
   kb = dpyinfo->kboard;
