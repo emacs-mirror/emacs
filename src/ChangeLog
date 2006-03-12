@@ -1,5 +1,8 @@
 2006-03-12  Jason Rumney  <jasonr@gnu.org>
 
+	* w32menu.c (Fx_popup_menu): Call w32_free_menu_strings when
+	finished with the menu.
+
 	* w32term.c: Sync 2005-10-24 xterm.c changes.
 	(last_mouse_glyph_frame): New var.
 	(note_mouse_movement): Say mouse moved if current frame differs
