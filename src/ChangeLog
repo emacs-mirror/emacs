@@ -1,3 +1,7 @@
+2006-03-12  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* xfns.c (x_icon): Disable redundant call to `x_wm_set_window_state'.
+
 2006-03-11  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (signal_user_input): New function.
