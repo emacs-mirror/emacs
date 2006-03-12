@@ -71,19 +71,23 @@ add_registry (path)
      char *path;
 {
   HKEY hrootkey = NULL;
-  DWORD dwDisp;
   int i;
   BOOL ok = TRUE;
+
+  /* Previous versions relied on registry settings, but we do not need
+     them any more.  If registry settings are installed from a previous
+     version, replace them to ensure they are the current settings.
+     Otherwise, do nothing.  */
 
   /* Check both the current user and the local machine to see if we
      have any resources.  */
 
-  if (RegCreateKeyEx (HKEY_LOCAL_MACHINE, REG_ROOT,
-		      0, "", REG_OPTION_NON_VOLATILE,
-		      KEY_WRITE, NULL, &hrootkey, &dwDisp) != ERROR_SUCCESS
-      && RegCreateKeyEx (HKEY_CURRENT_USER, REG_ROOT,
-			 0, "", REG_OPTION_NON_VOLATILE,
-			 KEY_WRITE, NULL, &hrootkey, &dwDisp) != ERROR_SUCCESS)
+  if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, REG_ROOT,
+		      REG_OPTION_NON_VOLATILE,
+		      KEY_WRITE, &hrootkey) != ERROR_SUCCESS
+      && RegOpenKeyEx (HKEY_CURRENT_USER, REG_ROOT,
+			 REG_OPTION_NON_VOLATILE,
+			 KEY_WRITE, &hrootkey) != ERROR_SUCCESS)
     {
       return FALSE;
     }
