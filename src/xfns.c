@@ -2830,12 +2830,15 @@ x_icon (f, parms)
   if (! EQ (icon_x, Qunbound))
     x_wm_set_icon_position (f, XINT (icon_x), XINT (icon_y));
 
+#if 0 /* x_get_arg removes the visibility parameter as a side effect,
+         but x_create_frame still needs it.  */
   /* Start up iconic or window? */
   x_wm_set_window_state
     (f, (EQ (x_get_arg (dpyinfo, parms, Qvisibility, 0, 0, RES_TYPE_SYMBOL),
 	     Qicon)
 	 ? IconicState
 	 : NormalState));
+#endif
 
   x_text_icon (f, (char *) SDATA ((!NILP (f->icon_name)
 				     ? f->icon_name
@@ -3169,8 +3172,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
       specbind (Qx_resource_name, name);
     }
 
-  Fmodify_frame_parameters (frame, Fcons (Fcons (Qwindow_system, Qx), Qnil));
-
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
   {
@@ -3409,6 +3410,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   for (tem = parms; !NILP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
       f->param_alist = Fcons (XCAR (tem), f->param_alist);
+
+  store_frame_param (f, Qwindow_system, Qx);
 
   UNGCPRO;
 

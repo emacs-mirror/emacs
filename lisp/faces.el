@@ -1734,14 +1734,14 @@ Value is the new frame created."
 	  (x-handle-reverse-video frame parameters)
 	  (frame-set-background-mode frame)
 	  (face-set-after-frame-default frame)
-	  (if (or (null frame-list) (null visibility-spec))
-	      (make-frame-visible frame)
-	    (modify-frame-parameters frame (list visibility-spec)))
 	  ;; Arrange for the kill and yank functions to set and check the clipboard.
 	  (modify-frame-parameters
 	   frame '((interprogram-cut-function . x-select-text)))
 	  (modify-frame-parameters
 	   frame '((interprogram-paste-function . x-cut-buffer-or-selection-value)))
+	  (if (or (null frame-list) (null visibility-spec))
+	      (make-frame-visible frame)
+	    (modify-frame-parameters frame (list visibility-spec)))
 	  (setq success t))
       (unless success
 	(delete-frame frame)))

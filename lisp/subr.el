@@ -2130,12 +2130,17 @@ See also `with-temp-buffer'."
 The value returned is the value of the last form in BODY.
 See also `with-temp-buffer'."
   (declare (indent 1) (debug t))
-  `(let ((save-selected-frame (selected-frame)))
-     (unwind-protect
-	 (progn (select-frame ,frame)
-		,@body)
-       (if (frame-live-p save-selected-frame)
-	   (select-frame save-selected-frame)))))
+  (let ((old-frame (make-symbol "old-frame"))
+	(old-buffer (make-symbol "old-buffer")))
+    `(let ((,old-frame (selected-frame))
+	   (,old-buffer (current-buffer)))
+       (unwind-protect
+	   (progn (select-frame ,frame)
+		  ,@body)
+	 (if (frame-live-p ,old-frame)
+	     (select-frame ,old-frame))
+	 (if (buffer-live-p ,old-buffer)
+	     (set-buffer ,old-buffer))))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
