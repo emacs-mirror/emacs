@@ -1,3 +1,16 @@
+2006-03-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-link-search): Avoid self-matching of
+	links, allow target text to be distributed over several lines.
+	(org-search-not-link): New function.
+	(org-set-regexps-and-options, org-get-current-options): New
+	startup options.
+	(org-export-as-html): Take odd-level setting from local variable.
+	(org-fontify-emphasized-text): New option.
+	(org-set-font-lock-defaults): Include emphasized text.
+	(org-follow-mhe-link): Allow folder-only links, fix folder name.
+	(org-font-lock): Customize group renamed from `org-faces'.
+
 2006-03-13  John Paul Wallington  <jpw@pobox.com>
 
 	* ibuf-ext.el (ibuffer-never-show-predicates): Add `require'

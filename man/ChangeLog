@@ -1,3 +1,7 @@
+2006-03-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Clean view): Document new startup options.
+
 2006-03-11  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Preface, More About MH-E, Options, HTML, Folders)
