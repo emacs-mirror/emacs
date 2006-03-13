@@ -1,3 +1,11 @@
+2006-03-13  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc) <defgroup>: Add link to manual.
+	(rcirc-print): Mark the start of text at the end of the prompt.
+	(rcirc-track-minor-mode): Add autoload cookie.
+	(rcirc-update-activity-string): Add space to front of mode-line
+	indicator.
+
 2006-03-13  Miles Bader  <miles@gnu.org>
 
 	* net/rcirc.el (rcirc-nick-abbrevs): Variable removed.

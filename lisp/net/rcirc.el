@@ -50,6 +50,7 @@
   "Simple IRC client."
   :version "22.1"
   :prefix "rcirc-"
+  :link '(custom-manual "(rcirc)")
   :group 'applications)
 
 (defcustom rcirc-server "irc.freenode.net"
@@ -872,7 +873,7 @@ Create the buffer if it doesn't exist."
 (defun rcirc-multiline-edit-submit ()
   "Send the text in buffer back to parent buffer."
   (interactive)
-  (assert (and (eq major-mode 'rcirc-multiline-edit-mode)))
+  (assert (eq major-mode 'rcirc-multiline-edit-mode))
   (assert rcirc-parent-buffer)
   (untabify (point-min) (point-max))
   (let ((text (buffer-substring (point-min) (point-max)))
@@ -888,7 +889,7 @@ Create the buffer if it doesn't exist."
 (defun rcirc-multiline-edit-cancel ()
   "Cancel the multiline edit."
   (interactive)
-  (assert (and (eq major-mode 'rcirc-multiline-edit-mode)))
+  (assert (eq major-mode 'rcirc-multiline-edit-mode))
   (kill-buffer (current-buffer))
   (set-window-configuration rcirc-window-configuration))
 
@@ -1077,7 +1078,7 @@ record activity."
 	      (set-marker text-start
 			  (or (next-single-property-change fill-start 
 							   'rcirc-text)
-			      (point-max)))
+			      rcirc-prompt-end-marker))
 	      ;; squeeze spaces out of text before rcirc-text
 	      (fill-region fill-start (1- text-start))
 
@@ -1242,9 +1243,7 @@ if NICK is also on `rcirc-ignore-list-automatic'."
 (define-key rcirc-track-minor-mode-map (kbd "C-c C-@") 'rcirc-next-active-buffer)
 (define-key rcirc-track-minor-mode-map (kbd "C-c C-SPC") 'rcirc-next-active-buffer)
 
-;;; FIXME: the code to insert `rcirc-activity-string' into
-;;; `global-mode-string' isn't called when the mode is activated by
-;;; customize.  I don't know how to set that up.
+;;;###autoload
 (define-minor-mode rcirc-track-minor-mode
   "Global minor mode for tracking activity in rcirc buffers."
   :init-value nil
@@ -1346,7 +1345,7 @@ activity.  Only run if the buffer is not visible and
   (setq rcirc-activity-string
 	(if (not rcirc-activity)
 	       ""
-	  (concat " ["
+	  (concat "-["
 		  (mapconcat
 		   (lambda (b)
 		     (let ((s (rcirc-short-buffer-name b)))
@@ -1355,7 +1354,7 @@ activity.  Only run if the buffer is not visible and
 			     s
 			   (rcirc-facify s 'rcirc-mode-line-nick)))))
 		   rcirc-activity ",")
-		  "]"))))
+		  "]-"))))
 
 (defun rcirc-short-buffer-name (buffer)
   "Return a short name for BUFFER to use in the modeline indicator."
