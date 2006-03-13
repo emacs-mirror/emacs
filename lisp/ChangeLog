@@ -1,3 +1,8 @@
+2006-03-13  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuf-ext.el (ibuffer-never-show-predicates): Add `require'
+	keyword; require `ibuf-ext' feature.  Thanks to Zhang Wei.
+
 2006-03-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-start.el (all): Delete :version keyword for members of the
