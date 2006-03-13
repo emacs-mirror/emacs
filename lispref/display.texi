@@ -4130,16 +4130,17 @@ should specify the image as follows:
 This function returns a suitable search path for images relative to
 @var{library}.
 
-First it searches for the image in a path suitable for @var{library}
-includes @file{../../etc/images} and @file{../etc/images} relative to
-the files in @file{lisp/@var{library}}, as well as in
+First it searches for @var{image} in a path suitable for
+@var{library}, which includes @file{../../etc/images} and
+@file{../etc/images} relative to the library file itself, followed by
 @code{image-load-path} and @code{load-path}.
 
-Then this function returns the value of @code{load-path} augmented
-with the directory that really contains @var{image}.  If @var{path} is
-given, it is used instead of @code{load-path}.  If @var{path} is
-@code{t}, then it returns just the directory that contains
-@var{image}.
+Then this function returns a list of directories which contains first
+the directory in which @var{image} was found, followed by the value of
+@code{load-path}.  If @var{path} is given, it is used instead of
+@code{load-path}.  If @var{path} is @code{t}, then the function just
+returns the directory that contains @var{image}.
+@c ??? Meaningm it does not return a list?
 
 If @var{no-error} is non-@code{nil}, this function returns @code{nil}
 if a suitable path can't be found, rather than signaling an error.
