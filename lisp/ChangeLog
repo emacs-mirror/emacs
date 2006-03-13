@@ -1,3 +1,9 @@
+2006-03-13  Miles Bader  <miles@gnu.org>
+
+	* net/rcirc.el (rcirc-nick-abbrevs): Variable removed.
+	(rcirc-abbrev-nick): Function removed.
+	(rcirc-format-response-string): Don't call `rcirc-abbrev-nick'.
+
 2006-03-13  David Ponce  <david@dponce.com>
 
 	* tree-widget.el: Handle themes across all occurrences of the main

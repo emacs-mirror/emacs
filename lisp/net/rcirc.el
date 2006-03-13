@@ -195,12 +195,6 @@ Use /ignore to list them, use /ignore NICK to add or remove a nick."
   :type '(repeat string)
   :group 'rcirc)
 
-(defcustom rcirc-nick-abbrevs nil
-  "List of short replacements for printing nicks."
-  :type '(alist :key-type (string :tag "Nick")
-		:value-type (string :tag "Abbrev"))
-  :group 'rcirc)
-
 (defvar rcirc-ignore-list-automatic ()
   "List of ignored nicks added to `rcirc-ignore-list' because of renaming.
 When an ignored person renames, their nick is added to both lists.
@@ -492,11 +486,6 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
   "Return PROCESS nick."
   (with-rcirc-process-buffer process
     rcirc-nick))
-
-(defun rcirc-abbrev-nick (nick)
-  "If NICK has an entry in `rcirc-nick-abbrevs', return its abbreviation,
-otherwise return NICK."
-  (or (cdr (assoc nick rcirc-nick-abbrevs)) nick))
 
 (defvar rcirc-max-message-length 450
   "Messages longer than this value will be split.")
@@ -975,7 +964,7 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 							process rcirc-server)
 						    sender)
 					   ""
-					 (rcirc-abbrev-nick sender))
+					 sender)
 				       (and target (concat "," target)))))
 		     (rcirc-facify nick
 				   (if (eq key ?n)
