@@ -77,7 +77,18 @@ introduced by a `%' character in a control string."
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control
 string are substituted as defined by the current value of the variable
-`battery-status-function'."
+`battery-status-function'.  Here are the ones generally available:
+%c Current capacity (mAh or mWh)
+%r Current rate of charge or discharge
+%B Battery status (verbose)
+%b Battery status: empty means high, `-' means low,
+   `!' means critical, and `+' means charging
+%d Temperature (in degrees Celsius)
+%L AC line status (verbose)
+%p Battery load percentage
+%m Remaining time (to charge or discharge) in minutes
+%h Remaining time (to charge or discharge) in hours
+%t Remaining time (to charge or discharge) in the form `h:min'"
   :type '(choice string (const nil))
   :group 'battery)
 
@@ -96,7 +107,18 @@ string are substituted as defined by the current value of the variable
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control
 string are substituted as defined by the current value of the variable
-`battery-status-function'."
+`battery-status-function'.  Here are the ones generally available:
+%c Current capacity (mAh or mWh)
+%r Current rate of charge or discharge
+%B Battery status (verbose)
+%b Battery status: empty means high, `-' means low,
+   `!' means critical, and `+' means charging
+%d Temperature (in degrees Celsius)
+%L AC line status (verbose)
+%p Battery load percentage
+%m Remaining time (to charge or discharge) in minutes
+%h Remaining time (to charge or discharge) in hours
+%t Remaining time (to charge or discharge) in the form `h:min'"
   :type '(choice string (const nil))
   :group 'battery)
 
@@ -196,10 +218,10 @@ The following %-sequences are provided:
 %b Battery status, empty means high, `-' means low,
    `!' means critical, and `+' means charging
 %p Battery load percentage
-%s Remaining time in seconds
-%m Remaining time in minutes
-%h Remaining time in hours
-%t Remaining time in the form `h:min'"
+%s Remaining time (to charge or discharge) in seconds
+%m Remaining time (to charge or discharge) in minutes
+%h Remaining time (to charge or discharge) in hours
+%t Remaining time (to charge or discharge) in the form `h:min'"
   (let (driver-version bios-version bios-interface line-status
 	battery-status battery-status-symbol load-percentage
 	seconds minutes hours remaining-time tem)
@@ -267,9 +289,9 @@ The following %-sequences are provided:
 %d Temperature (in degrees Celsius)
 %L AC line status (verbose)
 %p Battery load percentage
-%m Remaining time in minutes
-%h Remaining time in hours
-%t Remaining time in the form `h:min'"
+%m Remaining time (to charge or discharge) in minutes
+%h Remaining time (to charge or discharge) in hours
+%t Remaining time (to charge or discharge) in the form `h:min'"
   (let ((design-capacity 0)
 	(last-full-capacity 0)
 	full-capacity
@@ -287,7 +309,7 @@ The following %-sequences are provided:
 	(ignore-errors (insert-file-contents (expand-file-name "state" dir)))
 	(when (re-search-forward "present: +yes$" nil t)
 	  (and (re-search-forward "charging state: +\\(.*\\)$" nil t)
-	       (member charging-state '("unknown" nil))
+	       (member charging-state '("unknown" "charged" nil))
 	       ;; On most multi-battery systems, most of the time only one
 	       ;; battery is "charging"/"discharging", the others are
 	       ;; "unknown".
@@ -369,8 +391,8 @@ The following %-sequences are provided:
 					 rate-type)) "N/A"))
 	  (cons ?B (or charging-state "N/A"))
 	  (cons ?b (or (and (string= charging-state "charging") "+")
-		       (and (< capacity low) "!")
-		       (and (< capacity warn) "-")
+		       (and capacity (< capacity low) "!")
+		       (and capacity (< capacity warn) "-")
 		       ""))
 	  (cons ?h (or (and hours (number-to-string hours)) "N/A"))
 	  (cons ?m (or (and minutes (number-to-string minutes)) "N/A"))

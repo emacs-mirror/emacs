@@ -1,3 +1,133 @@
+2006-03-13  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc) <defgroup>: Add link to manual.
+	(rcirc-print): Mark the start of text at the end of the prompt.
+	(rcirc-track-minor-mode): Add autoload cookie.
+	(rcirc-update-activity-string): Add space to front of mode-line
+	indicator.
+
+2006-03-13  Miles Bader  <miles@gnu.org>
+
+	* net/rcirc.el (rcirc-nick-abbrevs): Variable removed.
+	(rcirc-abbrev-nick): Function removed.
+	(rcirc-format-response-string): Don't call `rcirc-abbrev-nick'.
+
+2006-03-13  David Ponce  <david@dponce.com>
+
+	* tree-widget.el: Handle themes across all occurrences of the main
+	themes sub-directory found in tree-widget-themes-load-path.
+	(tree-widget-themes-directory, tree-widget-theme): Doc fix.
+	(tree-widget--locate-sub-directory): Return all occurrences.
+	(tree-widget-themes-path): New function.  Replace
+	tree-widget-themes-directory, and return a list of directories.
+	(tree-widget-set-parent-theme)
+	(tree-widget-lookup-image): Use it.
+
+2006-03-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-link-search): Avoid self-matching of
+	links, allow target text to be distributed over several lines.
+	(org-search-not-link): New function.
+	(org-set-regexps-and-options, org-get-current-options): New
+	startup options.
+	(org-export-as-html): Take odd-level setting from local variable.
+	(org-fontify-emphasized-text): New option.
+	(org-set-font-lock-defaults): Include emphasized text.
+	(org-follow-mhe-link): Allow folder-only links, fix folder name.
+	(org-font-lock): Customize group renamed from `org-faces'.
+
+2006-03-13  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuf-ext.el (ibuffer-never-show-predicates): Add `require'
+	keyword; require `ibuf-ext' feature.  Thanks to Zhang Wei.
+
+2006-03-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-start.el (all): Delete :version keyword for members of the
+	fringe group, since the entire group is new in 22.1.
+
+2006-03-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-stack-list-locals-handler): Add local
+	map if value is hexadecimal (an address).
+	(gud-watch): Only search roots for existing watch expressions.
+	(gdb-speedbar-refresh): Bind speedbar-shown-directories to nil to
+	prevent caching problems with speedbar-update-directory-contents.
+
+2006-03-12  Juri Linkov  <juri@jurta.org>
+
+	* battery.el (battery-linux-proc-acpi): Check `capacity' for non-nil
+	before comparing with `low' and `warn'.
+
+	* info.el (Info-dir-remove-duplicates): Move point to the
+	beginning of the current line after deleting the entries from
+	redundant heading.  Use marker for `limit' and compare it with
+	point before calling `re-search-forward'.
+
+2006-03-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (yank): Fix typo in docstring.
+
+2006-03-11  Ryan Yeske  <rcyeske@gmail.com>
+
+	* mail/rmailsum.el (rmail-summary-next-msg): Skip deleted
+	messages, where "D" is the 6th character.
+
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (yank): Fix last change.
+
+2006-03-11  David Ponce  <david@dponce.com>
+
+	* ispell.el (ispell-find-aspell-dictionaries): Add aliases before
+	merging elements from the standard ispell-dictionary-alist.
+	(ispell-aspell-add-aliases): Add aliases to the passed dictionary
+	alist, and return the new alist.
+
+2006-03-11  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-ignored-headers): Discard DomainKey-Signature.
+
+	* eshell/eshell.el (eshell-prefer-to-shell): Variable deleted;
+	the way it is implemented is too unclean.
+
+	* simple.el (kill-region, yank): Doc fix.
+
+	* battery.el (battery-echo-area-format): Doc fix.
+	(battery-mode-line-format): Likewise.
+	(battery-linux-proc-apm, battery-linux-proc-acpi): Likewise.
+	(battery-linux-proc-acpi): Ignore batteries that say "charged".
+
+2006-03-11  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* progmodes/octave-mod.el (octave-indent-for-comment): Behave
+	according to do string.
+
+2006-03-11  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-menu-map-needed) [ispell-message]:
+	Be visible only if major mode is Mail Mode.
+
+	* textmodes/flyspell.el (flyspell-external-point-words)
+	(flyspell-process-localwords): Fix last changes.
+
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* calendar/holidays.el (list-holidays): Doc fix.
+
+	* international/mule.el (auto-coding-alist): Add .odt
+	(OpenOffice's open document) files.
+
+	* files.el (auto-mode-alist): Add .odt (OpenOffice's open
+	document) files.  Mention in the doc string the need to sync with
+	auto-coding-alist.
+
+2006-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (hack-local-variables-confirm): Don't prompt for ! if
+	enable-local-variables is set to always query, or there is no
+	savable variable.
+
 2006-03-10  Bill Wohler  <wohler@newt.com>
 
 	* image.el (image-load-path-for-library): Merge at least three

@@ -154,8 +154,9 @@ XEmacs.")
 (defcustom tree-widget-themes-directory "tree-widget"
   "*Name of the directory where to look up for image themes.
 When nil use the directory where the tree-widget library is located.
-When a relative name is specified, try to locate that sub directory in
-the locations specified in `tree-widget-themes-load-path'.
+When a relative name is specified, search in all occurrences of that
+sub directory found in the locations specified in
+`tree-widget-themes-load-path'.
 The default is to use the \"tree-widget\" relative name."
   :type '(choice (const :tag "Default" "tree-widget")
                  (const :tag "With the library" nil)
@@ -164,9 +165,9 @@ The default is to use the \"tree-widget\" relative name."
 
 (defcustom tree-widget-theme nil
   "*Name of the theme where to look up for images.
-It must be a sub directory of the directory specified in variable
+It must be a sub directory in the directories specified in variable
 `tree-widget-themes-directory'.  The default theme is \"default\".
-When an image is not found in a theme, it is searched in the default
+When an image is not found in a theme, it is searched in the parent
 theme.
 
 A complete theme must at least contain images with these file names
@@ -275,10 +276,15 @@ The default parent theme is the \"default\" theme."
   (unless (member name (aref tree-widget--theme 0))
     (aset tree-widget--theme 0
           (append (aref tree-widget--theme 0) (list name)))
-    ;; Load the theme setup
-    (let ((default-directory (tree-widget-themes-directory)))
-      (when default-directory
-        (load (expand-file-name "tree-widget-theme-setup" name) t)))))
+    ;; Load the theme setup from the first directory where the theme
+    ;; is found.
+    (catch 'found
+      (dolist (dir (tree-widget-themes-path))
+        (setq dir (expand-file-name name dir))
+        (when (file-accessible-directory-p dir)
+          (throw 'found
+                 (load (expand-file-name
+                        "tree-widget-theme-setup" dir) t)))))))
 
 (defun tree-widget-set-theme (&optional name)
   "In the current buffer, set the theme to use for images.
@@ -304,54 +310,62 @@ Typically it should contain something like this:
       (tree-widget-set-parent-theme name)
       (tree-widget-set-parent-theme "default")))
 
-(defun tree-widget--locate-sub-directory (name path)
-  "Locate the sub-directory NAME in PATH.
-Return the absolute name of the directory found, or nil if not found."
-  (let (dir elt)
-    (while (and (not dir) (consp path))
-      (setq elt  (condition-case nil (eval (car path)) (error nil))
-            path (cdr path))
-      (cond
-       ((stringp elt)
-        (setq dir (expand-file-name name elt))
-        (or (file-accessible-directory-p dir)
-            (setq dir nil)))
-       ((and elt (not (equal elt (car path))))
-        (setq dir (tree-widget--locate-sub-directory name elt)))))
-    dir))
+(defun tree-widget--locate-sub-directory (name path &optional found)
+  "Locate all occurrences of the sub-directory NAME in PATH.
+Return a list of absolute directory names in reverse order, or nil if
+not found."
+  (condition-case err
+      (dolist (elt path)
+        (setq elt (eval elt))
+        (cond
+         ((stringp elt)
+          (and (file-accessible-directory-p
+                (setq elt (expand-file-name name elt)))
+               (push elt found)))
+         (elt
+          (setq found (tree-widget--locate-sub-directory
+                       name (if (atom elt) (list elt) elt) found)))))
+    (error
+     (message "In tree-widget--locate-sub-directory: %s"
+              (error-message-string err))))
+  found)
 
-(defun tree-widget-themes-directory ()
-  "Locate the directory where to search for a theme.
-It is defined in variable `tree-widget-themes-directory'.
-Return the absolute name of the directory found, or nil if the
-specified directory is not accessible."
-  (let ((found (aref tree-widget--theme 1)))
+(defun tree-widget-themes-path ()
+  "Return the path where to search for a theme.
+It is specified in variable `tree-widget-themes-directory'.
+Return a list of absolute directory names, or nil when no directory
+has been found accessible."
+  (let ((path (aref tree-widget--theme 1)))
     (cond
-     ;; The directory was not found.
-     ((eq found 'void)
-      (setq found nil))
-     ;; The directory is available in the cache.
-     (found)
+     ;; No directory was found.
+     ((eq path 'void) nil)
+     ;; The list of directories is available in the cache.
+     (path)
      ;; Use the directory where this library is located.
      ((null tree-widget-themes-directory)
-      (setq found (locate-library "tree-widget"))
-      (when found
-        (setq found (file-name-directory found))
-        (or (file-accessible-directory-p found)
-            (setq found nil))))
+      (when (setq path (locate-library "tree-widget"))
+        (setq path (file-name-directory path))
+        (setq path (and (file-accessible-directory-p path)
+                        (list path)))
+        ;; Store the result in the cache for later use.
+        (aset tree-widget--theme 1 (or path 'void))
+        path))
      ;; Check accessibility of absolute directory name.
      ((file-name-absolute-p tree-widget-themes-directory)
-      (setq found (expand-file-name tree-widget-themes-directory))
-      (or (file-accessible-directory-p found)
-          (setq found nil)))
+      (setq path (expand-file-name tree-widget-themes-directory))
+      (setq path (and (file-accessible-directory-p path)
+                      (list path)))
+      ;; Store the result in the cache for later use.
+      (aset tree-widget--theme 1 (or path 'void))
+      path)
      ;; Locate a sub-directory in `tree-widget-themes-load-path'.
      (t
-      (setq found (tree-widget--locate-sub-directory
-                   tree-widget-themes-directory
-                   tree-widget-themes-load-path))))
-    ;; Store the result in the cache for later use.
-    (aset tree-widget--theme 1 (or found 'void))
-    found))
+      (setq path (nreverse (tree-widget--locate-sub-directory
+                            tree-widget-themes-directory
+                            tree-widget-themes-load-path)))
+      ;; Store the result in the cache for later use.
+      (aset tree-widget--theme 1 (or path 'void))
+      path))))
 
 (defconst tree-widget--cursors
   ;; Pointer shapes when the mouse pointer is over inactive
@@ -391,20 +405,19 @@ Search first in current theme, then in parent themes (see also the
 function `tree-widget-set-parent-theme').
 Return the first image found having a supported format, or nil if not
 found."
-  (let ((default-directory (tree-widget-themes-directory)) file)
-    (when default-directory
-      (catch 'found
-        (dolist (dir (aref tree-widget--theme 0))
-          (dolist (fmt (tree-widget-image-formats))
-            (dolist (ext (cdr fmt))
-              (setq file (expand-file-name (concat name ext) dir))
-              (and (file-readable-p file)
-                   (file-regular-p file)
-                   (throw 'found
-                          (tree-widget-create-image
-                           (car fmt) file
-                           (tree-widget-image-properties name)))))))
-        nil))))
+  (catch 'found
+    (dolist (default-directory (tree-widget-themes-path))
+      (dolist (dir (aref tree-widget--theme 0))
+        (dolist (fmt (tree-widget-image-formats))
+          (dolist (ext (cdr fmt))
+            (setq file (expand-file-name (concat name ext) dir))
+            (and (file-readable-p file)
+                 (file-regular-p file)
+                 (throw 'found
+                        (tree-widget-create-image
+                         (car fmt) file
+                         (tree-widget-image-properties name))))))))
+    nil))
 
 (defun tree-widget-find-image (name)
   "Find the image with NAME in current theme.

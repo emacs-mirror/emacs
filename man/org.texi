@@ -4,7 +4,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.08
+@set VERSION 4.09
 @set DATE March 2006
 
 @dircategory Emacs
@@ -22,6 +22,7 @@
 
 @c Macro definitions
 
+@c FIXME: does not look good in html
 @c Subheadings inside a table.  Need a difference between info and the rest.
 @macro tsubheading{text}
 @ifinfo
@@ -3063,8 +3064,18 @@ to read.  To do this, customize the variable
 @end lisp
 
 @noindent
-and restart emacs (this is necessary to make this change effective).
-The tree then becomes
+or change this on a per-file basis with one of the lines (anywhere in
+the buffer)
+
+@example
+#+STARTUP: showstars
+#+STARTUP: hidestars
+@end example
+@noindent
+Press @kbd{C-c C-c} with the cursor in a @samp{STARTUP} line to activate
+the modifications.  
+
+With stars hidden, the tree becomes:
 
 @example
 * Top level headline
@@ -3101,17 +3112,28 @@ outline level to the next:
 
 @noindent
 In order to make the structure editing and export commands handle this
-convention correctly, use (again a restart of emacs will be needed)
+convention correctly, use
 
 @lisp
 (setq org-odd-levels-only t)
 @end lisp
 
 @noindent
+or set this on a per-file basis with one of the following lines (don't
+forget to press @kbd{C-c C-c} with the cursor in the startup line to
+activate changes immediately).
+
+@example
+#+STARTUP: odd
+#+STARTUP: oddeven
+@end example
+
 You can convert an Org-mode file from single-star-per-level to
 double-star-per-level convention with @kbd{M-x org-convert-to-odd-levels
-RET} in that file.  It is not possible to use this setting on a
-file-local basis, so you need to decide which format to use.
+RET} in that file.  There is no command for the back conversion because
+such a command might merge levels and in this way destroy the
+structure of the tree.
+@c FIXME: Maybe we should have such a command...
 
 @node TTY keys, FAQ, Clean view, Miscellaneous
 @section Using org-mode on a tty
@@ -3130,7 +3152,6 @@ work-around can be better.  For example changing a time stamp is
 really only fun with @kbd{S-@key{cursor}} keys.  On a tty you would
 rather use @kbd{C-c .}  to re-insert the timestamp.
 
-@page
 @multitable @columnfractions 0.15 0.2 0.2
 @item @b{Default} @tab @b{Alternative 1} @tab @b{Alternative 2}
 @item @kbd{S-@key{TAB}}     @tab @kbd{C-u @key{TAB}}       @tab
@@ -3339,7 +3360,7 @@ to have other replacement keys, look at the variable
 @code{org-disputed-keys}.
 @item @file{remember.el} by John Wiegley
 Org mode cooperates with remember, see @ref{Remember}.
-@file{remember.el} is not part of Emacs, find it on the web.
+@file{Remember.el} is not part of Emacs, find it on the web.
 @cindex @file{planner.el}
 @item @file{planner.el} by John Wiegley
 Planner is another tool to plan work and keep track of tasks.  Planner
@@ -3388,7 +3409,7 @@ However, from Org-mode's timeline and agenda buffers (created with
 @kbd{C-c C-r} and @kbd{C-c a}), things do work correctly.
 @item
 You can only make a single word boldface or italic.  To emphasize
-several words in a row, each much have the emphasize markers, like in
+several words in a row, each must have the emphasize markers, like in
 @samp{*three* *bold* *words*}.
 @item
 The exporters work well, but could be made more efficient.
@@ -3451,6 +3472,8 @@ Linking to VM/BBDB/GNUS was inspired by Tom Shannon's
 @item
 Juergen Vollmer contributed code generating the table of contents
 in HTML output, and other export improvements.
+@item
+Chris Wallace provided a patch implementing the @samp{QUOTE} keyword.
 @item
 David Wainberg suggested the archiving mechanism and shaped the
 internal link system with many suggestions and ideas.

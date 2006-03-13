@@ -535,7 +535,7 @@ messages, or backward if NUMBER is negative."
 	(search (if (> number 0) 're-search-forward 're-search-backward))
 	(non-del-msg-found nil))
     (while (and (> count 0) (setq non-del-msg-found
-				  (or (funcall search "^....[^D]" nil t)
+				  (or (funcall search "^.....[^D]" nil t)
 				      non-del-msg-found)))
       (setq count (1- count))))
   (beginning-of-line)

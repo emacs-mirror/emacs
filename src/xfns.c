@@ -2801,12 +2801,15 @@ x_icon (f, parms)
   if (! EQ (icon_x, Qunbound))
     x_wm_set_icon_position (f, XINT (icon_x), XINT (icon_y));
 
+#if 0 /* x_get_arg removes the visibility parameter as a side effect,
+         but x_create_frame still needs it.  */
   /* Start up iconic or window? */
   x_wm_set_window_state
     (f, (EQ (x_get_arg (dpyinfo, parms, Qvisibility, 0, 0, RES_TYPE_SYMBOL),
 	     Qicon)
 	 ? IconicState
 	 : NormalState));
+#endif
 
   x_text_icon (f, (char *) SDATA ((!NILP (f->icon_name)
 				     ? f->icon_name
@@ -4621,6 +4624,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   check_x ();
 
+  parms = Fcopy_alist (parms);
 
 #ifdef MULTI_KBOARD
   kb = dpyinfo->kboard;

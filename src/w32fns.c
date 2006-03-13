@@ -2696,6 +2696,24 @@ w32_msg_worker (dw)
 }
 
 static void
+signal_user_input ()
+{
+  /* Interrupt any lisp that wants to be interrupted by input.  */
+  if (!NILP (Vthrow_on_input))
+    {
+      Vquit_flag = Vthrow_on_input;
+      /* If we're inside a function that wants immediate quits,
+	 do it now.  */
+      if (immediate_quit && NILP (Vinhibit_quit))
+	{
+	  immediate_quit = 0;
+	  QUIT;
+	}
+    }
+}
+
+
+static void
 post_character_message (hwnd, msg, wParam, lParam, modifiers)
      HWND hwnd;
      UINT msg;
@@ -2752,6 +2770,8 @@ post_character_message (hwnd, msg, wParam, lParam, modifiers)
 	   to receive C-g to interrupt the lisp thread.  */
 	cancel_all_deferred_msgs ();
       }
+    else
+      signal_user_input ();
   }
 
   my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
@@ -3251,6 +3271,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	BOOL up;
 	int button;
 
+	/* Ignore middle and extra buttons as long as the menu is active.  */
+	f = x_window_to_frame (dpyinfo, hwnd);
+	if (f && f->output_data.w32->menubar_active)
+	  return 0;
+
 	if (parse_button (msg, HIWORD (wParam), &button, &up))
 	  {
 	    if (up) ReleaseCapture ();
@@ -3266,6 +3291,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      signal_user_input ();
 
       /* Need to return true for XBUTTON messages, false for others,
          to indicate that we processed the message.  */
@@ -3320,11 +3346,13 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
     case WM_MOUSEWHEEL:
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      signal_user_input ();
       return 0;
 
     case WM_DROPFILES:
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      signal_user_input ();
       return 0;
 
     case WM_TIMER:
@@ -3334,6 +3362,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	  if (saved_mouse_button_msg.msg.hwnd)
 	    {
 	      post_msg (&saved_mouse_button_msg);
+	      signal_user_input ();
 	      saved_mouse_button_msg.msg.hwnd = 0;
 	    }
 	  KillTimer (hwnd, mouse_button_timer);
@@ -3836,6 +3865,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	{
 	  wmsg.dwModifiers = w32_get_modifiers ();
 	  my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+	  signal_user_input ();
 	  return 0;
 	}
 
@@ -4339,17 +4369,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   BLOCK_INPUT;
   x_wm_set_size_hint (f, window_prompting, 0);
   UNBLOCK_INPUT;
-
-  /* Avoid a bug that causes the new frame to never become visible if
-     an echo area message is displayed during the following call1.  */
-  specbind(Qredisplay_dont_pause, Qt);
-
-  /* Set up faces after all frame parameters are known.  This call
-     also merges in face attributes specified for new frames.  If we
-     don't do this, the `menu' face for instance won't have the right
-     colors, and the menu bar won't appear in the specified colors for
-     new frames.  */
-  call1 (Qface_set_after_frame_default, frame);
 
   /* Make the window appear on the frame and enable display, unless
      the caller says not to.  However, with explicit parent, Emacs

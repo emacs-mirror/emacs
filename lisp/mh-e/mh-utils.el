@@ -504,7 +504,7 @@ example, if your Mail directory only contains the folders +inbox,
   (mh-folder-list nil)
        => (\"inbox\" \"lists\" \"lists/mh-e\" \"outbox\")
   (mh-folder-list \"+lists\")
-       => (\"lists/mh-e\")
+       => (\"lists\" \"lists/mh-e\")
 
 Respects the value of `mh-recursive-folders-flag'. If this flag
 is nil, and the sub-folders have not been explicitly viewed, then

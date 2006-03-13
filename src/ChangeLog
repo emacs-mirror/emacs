@@ -1,3 +1,129 @@
+2006-03-12  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_create_frame): Remove call to
+	Qface_set_after_frame_default. (from xfns.c 2003-05-26)
+
+	* w32menu.c (Fx_popup_menu): Call w32_free_menu_strings when
+	finished with the menu.
+
+	* w32term.c: Sync 2005-10-24 xterm.c changes.
+	(last_mouse_glyph_frame): New var.
+	(note_mouse_movement): Say mouse moved if current frame differs
+	from last_mouse_glyph_frame, and update last_mouse_glyph_frame.
+	(w32_mouse_position): Set last_mouse_glyph_frame.
+	 Remove OLD_REDISPLAY_CODE block.
+
+2006-03-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h [USE_ATSUI && MAC_OSX]: Define USE_CG_TEXT_DRAWING to 1.
+
+	* macterm.h (struct mac_output) [USE_CG_DRAWING]: New member cg_context.
+	(mac_prepare_for_quickdraw) [USE_CG_DRAWING]: Add prototype.
+
+	* mac.c (sys_select) [USE_CG_DRAWING]: Call mac_prepare_for_quickdraw.
+
+	* macfns.c (x_create_tip_frame): Apply 2006-03-11 change for xfns.c.
+
+	* macterm.c (mac_draw_rectangle, x_draw_glyph_string_foreground)
+	(x_draw_composite_glyph_string_foreground)
+	(x_draw_image_foreground): Undo previous changes.
+	(x_draw_hollow_cursor): Likewise.  Subtract 1 from the last
+	argument of mac_draw_rectangle.
+	(CG_SET_FILL_COLOR, CG_SET_STROKE_COLOR): New macros.
+	(mac_draw_string_common, mac_draw_image_string_cg): Use them.
+	(FRAME_CG_CONTEXT) [USE_CG_DRAWING]: New macro.
+	(mac_begin_cg_clip, mac_end_cg_clip, mac_prepare_for_quickdraw)
+	[USE_CG_DRAWING]: New functions.
+	(mac_draw_line, mac_erase_rectangle, mac_clear_window)
+	(mac_fill_rectangle, mac_draw_rectangle, mac_draw_string_common)
+	(mac_draw_image_string_cg) [USE_CG_DRAWING]: Add Quartz 2D drawing part.
+	(mac_draw_bitmap, mac_invert_rectangle, mac_draw_string_common)
+	(mac_copy_area, mac_scroll_area, x_scroll_bar_create)
+	(x_scroll_bar_remove, XTset_vertical_scroll_bar, x_set_window_size)
+	(XTread_socket) [USE_CG_DRAWING]: Call mac_prepare_for_quickdraw.
+
+2006-03-12  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* xfns.c (x_icon): Disable redundant call to `x_wm_set_window_state'.
+
+2006-03-11  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (signal_user_input): New function.
+	(post_character_message): Use it for keyboard input.
+	(w32_msg_pump): Use it for mouse input.
+
+2006-03-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* window.c: Rename preserve_y to window_scroll_pixel_based_preserve_y.
+	(window_scroll_pixel_based, syms_of_window): Adapt to above change.
+
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc): Ignore middle and extra button events
+	if a menu is already active (the menubar_active flag is on).
+
+2006-03-11  David Ponce  <david@dponce.com>
+
+	* xfns.c (x_create_tip_frame): Preserve received parms by copying
+	them.
+
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c: Add x_fully_uncatch_errors and x_catching_errors to
+	the list of unused display error handling functions.
+
+	* eval.c (unwind_to_catch): Call x_fully_uncatch_errors only if
+	HAVE_X_WINDOWS.
+	(internal_condition_case, internal_condition_case_1)
+	(internal_condition_case_2): Call x_catching_errors only if
+	HAVE_X_WINDOWS.
+
+	* vm-limit.c [HAVE_GETRLIMIT]: Don't define unconditionally.
+	Don't include sys/resource.h unless defined.
+
+2006-03-11  Richard Stallman  <rms@gnu.org>
+
+	* keymap.c (describe_map): Shorten string to indicate shadowed binding.
+
+	* vm-limit.c (get_lim_data, lim_data, data_space_start):
+	Moved from mem-limits.h.
+	(enum warnlevel): New data type.
+	(check_memory_limits): Rewrite the logic about warnings.
+	Use standard `struct rlimit'.  Check return values for nonsense.
+	(memory_warnings): Always clear lim_data.
+
+	* mem-limits.h (get_lim_data, lim_data, data_space_start):
+	Moved to vm-limit.c.
+
+	* xterm.c (x_fully_uncatch_errors, x_catching_errors): New functions.
+
+	* eval.c (unwind_to_catch): Call x_fully_uncatch_errors.
+	(internal_condition_case_1, internal_condition_case_2):
+	Abort if within unclosed x_catch_errors.
+
+2006-03-11  Romain Francoise  <romain@orebokech.com>
+
+	* process.c (Vprocess_adaptive_read_buffering): Doc fix.
+
+2006-03-11  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* lisp.h: Remove duplicate prototypes.  Make the prototype of
+	getloadavg be conditioned on HAVE_GETLOADAVG being undefined.
+
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_draw_hollow_cursor): Subtract 1 from the last
+	argument of XDrawRectangle.
+
+	* xdisp.c (get_phys_cursor_geometry): Don't decrease height by 1.
+
+	* macterm.c (mac_draw_rectangle): Don't add 1 to width and height.
+	(x_draw_glyph_string_foreground)
+	(x_draw_composite_glyph_string_foreground)
+	(x_draw_image_foreground): Don't subtract 1 from width and height
+	arguments to mac_draw_rectangle.
+	(x_draw_hollow_cursor): Add 1 to w->phys_cursor_width.
+
 2006-03-10  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c (USE_POSIX_MEMALIGN): Fix last change.
@@ -23,7 +149,7 @@
 
 	* image.c [MAC_OS] (XPutPixel): Set alpha channel bits if pixmap
 	depth is 32.
-	 [MAC_OS] (XGetPixel): Strip off alpha channel bits if pixmap
+	[MAC_OS] (XGetPixel): Strip off alpha channel bits if pixmap
 	depth is 32.
 
 2006-03-06  Chong Yidong  <cyd@stupidchicken.com>

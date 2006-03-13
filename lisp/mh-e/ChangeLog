@@ -1,4 +1,16 @@
+2006-03-12  Bill Wohler  <wohler@newt.com>
+
+	* mh-utils.el (mh-folder-list): Fix docstring (closes SF
+	#1448498).
+
 2006-03-10  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-replace-regexp-in-string): Pass the literal
+	flag to replace-in-string. This was badly needed by
+	mh-quote-pick-expr in order to properly quote subjects when using
+	/ s on XEmacs (closes SF #1447598).
+	(mh-image-load-path-for-library): Merged changes from Reiner. Add
+	no-error argument. If path t, just return directory.
 
 	* mh-e.el (mh-profile-component): Drop `s' from mhparam
 	-components for Mailutils compatibility (closes SF #1446985).

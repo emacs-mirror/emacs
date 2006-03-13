@@ -334,6 +334,11 @@ struct mac_output {
 
   /* Hints for the size and the position of a window.  */
   XSizeHints *size_hints;
+
+#if USE_CG_DRAWING
+  /* Quartz 2D graphics context.  */
+  CGContextRef cg_context;
+#endif
 };
 
 typedef struct mac_output mac_output;
@@ -566,6 +571,9 @@ extern void mac_unload_font P_ ((struct mac_display_info *, XFontStruct *));
 extern OSErr install_window_handler P_ ((WindowPtr));
 extern void remove_window_handler P_ ((WindowPtr));
 extern Lisp_Object mac_make_lispy_event_code P_ ((int));
+#if USE_CG_DRAWING
+extern void mac_prepare_for_quickdraw P_ ((struct frame *));
+#endif
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0

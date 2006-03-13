@@ -210,6 +210,7 @@ int last_scroll_bar_drag_pos;
 /* Where the mouse was last time we reported a mouse event.  */
 
 static RECT last_mouse_glyph;
+static FRAME_PTR last_mouse_glyph_frame;
 static Lisp_Object last_mouse_press_frame;
 
 int w32_num_mouse_buttons;
@@ -3372,11 +3373,13 @@ note_mouse_movement (frame, msg)
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
       note_mouse_highlight (frame, -1, -1);
+      last_mouse_glyph_frame = 0;
       return 1;
     }
 
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  if (mouse_x < last_mouse_glyph.left
+  if (frame != last_mouse_glyph_frame
+      || mouse_x < last_mouse_glyph.left
       || mouse_x >= last_mouse_glyph.right
       || mouse_y < last_mouse_glyph.top
       || mouse_y >= last_mouse_glyph.bottom)
@@ -3389,6 +3392,7 @@ note_mouse_movement (frame, msg)
 	 to keep track of the mouse for help_echo and highlighting at
 	 other times.  */
       remember_mouse_glyph (frame, mouse_x, mouse_y, &last_mouse_glyph);
+      last_mouse_glyph_frame = frame;
       return 1;
     }
 
@@ -3512,19 +3516,9 @@ w32_mouse_position (fp, insist, bar_window, part, x, y, time)
 	       on it, i.e. into the same rectangles that matrices on
 	       the frame are divided into.  */
 
-#if OLD_REDISPLAY_CODE
-	    int ignore1, ignore2;
-
-	    ScreenToClient (FRAME_W32_WINDOW (f1), &pt);
-
-	    pixel_to_glyph_coords (f1, pt.x, pt.y, &ignore1, &ignore2,
-				   &last_mouse_glyph,
-				   FRAME_W32_DISPLAY_INFO (f1)->grabbed
-				   || insist);
-#else
 	    ScreenToClient (FRAME_W32_WINDOW (f1), &pt);
 	    remember_mouse_glyph (f1, pt.x, pt.y, &last_mouse_glyph);
-#endif
+	    last_mouse_glyph_frame = f1;
 
 	    *bar_window = Qnil;
 	    *part = 0;
@@ -5387,6 +5381,8 @@ x_error_catcher (display, error)
 x_catch_errors (dpy)
 x_catch_errors_unwind (old_val)
 x_check_errors (dpy, format)
+x_fully_uncatch_errors ()
+x_catching_errors ()
 x_had_errors_p (dpy)
 x_clear_errors (dpy)
 x_uncatch_errors (dpy, count)

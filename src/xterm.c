@@ -7234,7 +7234,7 @@ x_draw_hollow_cursor (w, row)
 
   /* Set clipping, draw the rectangle, and reset clipping again.  */
   x_clip_to_row (w, row, TEXT_AREA, gc);
-  XDrawRectangle (dpy, FRAME_X_WINDOW (f), gc, x, y, wd, h);
+  XDrawRectangle (dpy, FRAME_X_WINDOW (f), gc, x, y, wd, h - 1);
   XSetClipMask (dpy, gc, None);
 }
 
@@ -7644,6 +7644,23 @@ x_clear_errors (dpy)
      Display *dpy;
 {
   x_error_message->string[0] = 0;
+}
+
+/* Close off all unclosed x_catch_errors calls.  */
+
+void
+x_fully_uncatch_errors ()
+{
+  while (x_error_message)
+    x_uncatch_errors ();
+}
+
+/* Nonzero if x_catch_errors has been done and not yet canceled.  */
+
+int
+x_catching_errors ()
+{
+  return x_error_message != 0;
 }
 
 #if 0

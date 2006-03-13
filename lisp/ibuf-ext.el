@@ -74,6 +74,7 @@ If a regexp, then it will be matched against the buffer's name.
 If a function, it will be called with the buffer as an argument, and
 should return non-nil if this buffer should not be shown."
   :type '(repeat (choice regexp function))
+  :require 'ibuf-ext
   :group 'ibuffer)
 
 (defcustom ibuffer-always-show-predicates nil

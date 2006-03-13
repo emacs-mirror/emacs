@@ -301,11 +301,37 @@ Also display the main routine in the disassembly buffer if present."
   :group 'gud
   :version "22.1")
 
+(defcustom gdb-many-windows nil
+  "Nil means just pop up the GUD buffer unless `gdb-show-main' is t.
+In this case it starts with two windows: one displaying the GUD
+buffer and the other with the source file with the main routine
+of the inferior.  Non-nil means display the layout shown for
+`gdba'."
+  :type 'boolean
+  :group 'gud
+  :version "22.1")
+
 (defcustom gdb-use-separate-io-buffer nil
   "Non-nil means display output from the inferior in a separate buffer."
   :type 'boolean
   :group 'gud
   :version "22.1")
+
+(defun gdb-many-windows (arg)
+  "Toggle the number of windows in the basic arrangement.
+With arg, display additional buffers iff arg is positive."
+  (interactive "P")
+  (setq gdb-many-windows
+	(if (null arg)
+	    (not gdb-many-windows)
+	  (> (prefix-numeric-value arg) 0)))
+  (message (format "Display of other windows %sabled"
+		   (if gdb-many-windows "en" "dis")))
+  (if (and gud-comint-buffer
+	   (buffer-name gud-comint-buffer))
+      (condition-case nil
+	  (gdb-restore-windows)
+	(error nil))))
 
 (defun gdb-use-separate-io-buffer (arg)
   "Toggle separate IO for inferior.
@@ -631,7 +657,8 @@ With arg, automatically raise speedbar iff arg is positive."
     (let ((expr (tooltip-identifier-from-point (point))))
       (catch 'already-watched
 	(dolist (var gdb-var-list)
-	  (if (string-equal expr (car var)) (throw 'already-watched nil)))
+	  (unless (string-match "\\." (nth 1 var))
+	    (if (string-equal expr (car var)) (throw 'already-watched nil))))
 	(set-text-properties 0 (length expr) nil expr)
 	(gdb-enqueue-input
 	 (list
@@ -757,7 +784,8 @@ type=\"\\(.*?\\)\"")
   (setq gdb-pending-triggers
 	(delq 'gdb-speedbar-refresh gdb-pending-triggers))
   (with-current-buffer gud-comint-buffer
-    (let ((speedbar-verbosity-level 0))
+    (let ((speedbar-verbosity-level 0)
+	  (speedbar-shown-directories nil))
       (save-excursion
 	(speedbar-refresh)))))
 
@@ -2671,32 +2699,6 @@ corresponding to the mode line clicked."
   (gdb-set-window-buffer (gdb-breakpoints-buffer-name))
   (other-window 1))
 
-(defcustom gdb-many-windows nil
-  "Nil means just pop up the GUD buffer unless `gdb-show-main' is t.
-In this case it starts with two windows: one displaying the GUD
-buffer and the other with the source file with the main routine
-of the inferior.  Non-nil means display the layout shown for
-`gdba'."
-  :type 'boolean
-  :group 'gud
-  :version "22.1")
-
-(defun gdb-many-windows (arg)
-  "Toggle the number of windows in the basic arrangement.
-With arg, display additional buffers iff arg is positive."
-  (interactive "P")
-  (setq gdb-many-windows
-	(if (null arg)
-	    (not gdb-many-windows)
-	  (> (prefix-numeric-value arg) 0)))
-  (message (format "Display of other windows %sabled"
-		   (if gdb-many-windows "en" "dis")))
-  (if (and gud-comint-buffer
-	   (buffer-name gud-comint-buffer))
-      (condition-case nil
-	  (gdb-restore-windows)
-	(error nil))))
-
 (defun gdb-restore-windows ()
   "Restore the basic arrangement of windows used by gdba.
 This arrangement depends on the value of `gdb-many-windows'."
@@ -3309,7 +3311,7 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
 		   (dolist (local locals-list)
 		     (setq name (car local))
 		     (if (or (not (nth 2 local))
-			     (string-match "\\*$" (nth 1 local)))
+			     (string-match "\\0x" (nth 2 local)))
 		       (add-text-properties 0 (length name)
 			    `(mouse-face highlight
 			      help-echo "mouse-2: create watch expression"

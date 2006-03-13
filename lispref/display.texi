@@ -4125,6 +4125,36 @@ should specify the image as follows:
 @end example
 @end defvar
 
+@defun image-load-path-for-library library image &optional path no-error
+@tindex image-load-path-for-library
+Return a suitable search path for images relative to @var{library}.
+
+Images for @var{library} are searched for in @file{../../etc/images}
+and @file{../etc/images} relative to the files in
+@file{lisp/@var{library}} as well as in @code{image-load-path} and
+@var{load-path}.
+
+This function returns the value of @code{load-path} augmented with the
+directory containing @var{image}. If @var{path} is given, it is used
+instead of @code{load-path}. If @code{path} is @code{t}, just return
+the directory that contains @var{image}.
+
+If @var{no-error} is non-nil, this function returns @code{nil} if a
+suitable path can't be found rather than signaling an error.
+
+Here is an example that uses a common idiom to provide compatibility
+with versions of Emacs that lack the variable @code{image-load-path}:
+
+@example
+(let ((load-path
+       (image-load-path-for-library "mh-e" "mh-logo.xpm"))
+      (image-load-path
+       (image-load-path-for-library "mh-e" "mh-logo.xpm"
+                                    'image-load-path)))
+  (mh-tool-bar-folder-buttons-init))
+@end example
+@end defun
+
 @node Showing Images
 @subsection Showing Images
 
