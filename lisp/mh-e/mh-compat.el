@@ -119,30 +119,30 @@ introduced in Emacs 22."
   image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images relative to LIBRARY.
 
-Images for LIBRARY are searched for in \"../../etc/images\" and
-\"../etc/images\" relative to the files in \"lisp/LIBRARY\" as
-well as in `image-load-path' and `load-path'.
+First it searches for IMAGE in a path suitable for LIBRARY, which
+includes \"../../etc/images\" and \"../etc/images\" relative to
+the library file itself, followed by `image-load-path' and
+`load-path'.
 
-This function returns the value of `load-path' augmented with the
-directory containing IMAGE. If PATH is given, it is used instead
-of `load-path'. If PATH is t, just return the directory that
-contains IMAGE.
+Then this function returns a list of directories which contains
+first the directory in which IMAGE was found, followed by the
+value of `load-path'. If PATH is given, it is used instead of
+`load-path'.
 
-If NO-ERROR is non-nil, return nil if a suitable path can't be
-found rather than signaling an error.
+If NO-ERROR is non-nil and a suitable path can't be found, don't
+signal an error. Instead, return a list of directories as before,
+except that nil appears in place of the image directory.
 
 Here is an example that uses a common idiom to provide
 compatibility with versions of Emacs that lack the variable
 `image-load-path':
 
-  (let ((load-path
-         (image-load-path-for-library \"mh-e\" \"mh-logo.xpm\"))
-        (image-load-path
-         (image-load-path-for-library \"mh-e\" \"mh-logo.xpm\" 'image-load-path)))
-    (mh-tool-bar-folder-buttons-init))
+    ;; Avoid errors on Emacsen without `image-load-path'.
+    (if (not (boundp 'image-load-path)) (defvar image-load-path nil))
 
-This function is used by Emacs versions that don't have
-`image-load-path-for-library'."
+    (let* ((load-path (image-load-path-for-library \"mh-e\" \"mh-logo.xpm\"))
+           (image-load-path (cons (car load-path) image-load-path)))
+      (mh-tool-bar-folder-buttons-init))"
   (unless library (error "No library specified"))
   (unless image   (error "No image specified"))
   (let ((image-directory))
@@ -184,26 +184,13 @@ This function is used by Emacs versions that don't have
                        dir (expand-file-name "../" dir)))
                (setq image-directory dir)))))
      (no-error
-      ;; In this case we will return nil.
       (message "Could not find image %s for library %s" image library))
      (t
       (error "Could not find image %s for library %s" image library)))
 
-    ;; Return the directory, nil if no-error was non-nil and a
-    ;; suitable path could not be found, or an augmented
-    ;; `image-load-path' or `load-path'.
-    (cond ((or (null image-directory)
-               (eq path t))
-           image-directory)
-          ((and path (symbolp path))
-           (nconc (list image-directory)
-                  (delete image-directory
-                          (if (boundp path)
-                              (copy-sequence (symbol-value path))
-                            nil))))
-          (t
-           (nconc (list image-directory)
-                  (delete image-directory (copy-sequence load-path)))))))
+    ;; Return an augmented `path' or `load-path'.
+    (nconc (list image-directory)
+           (delete image-directory (copy-sequence (or path load-path))))))
 
 (mh-defun-compat mh-image-search-load-path
   image-search-load-path (file &optional path)

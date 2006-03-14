@@ -131,9 +131,8 @@ Ignores case when searching for OLD."
 (defun mh-logo-display ()
   "Modify mode line to display MH-E logo."
   (mh-do-in-gnu-emacs
-    (let ((load-path (mh-image-load-path-for-library "mh-e" "mh-logo.xpm"))
-          (image-load-path (mh-image-load-path-for-library
-                            "mh-e" "mh-logo.xpm" 'image-load-path)))
+    (let* ((load-path (mh-image-load-path-for-library "mh-e" "mh-logo.xpm"))
+           (image-load-path (cons (car load-path) image-load-path)))
       (add-text-properties
        0 2
        `(display ,(or mh-logo-cache
