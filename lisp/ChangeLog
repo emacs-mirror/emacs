@@ -1,3 +1,9 @@
+2006-03-14  Bill Wohler  <wohler@newt.com>
+
+	* image.el (image-load-path-for-library): Pass value of path
+	rather than symbol. Always return list of directories. Guarantee
+	that image directory comes first.
+
 2006-03-14  Alan Mackenzie  <acm@muc.de>
 
 	* font-core.el: New function/variable
