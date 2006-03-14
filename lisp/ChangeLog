@@ -1,3 +1,22 @@
+2006-03-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-list): Change order of first two
+	elements.
+	(gdb-find-watch-expression): Make it work for arrays too.  Follow
+	change to gdb-var-list.
+	(gud-watch): Allow the user to enter variable name with a prexix
+	arg.  Create keybindings.
+	(gdb-var-create-handler, gdb-var-evaluate-expression-handler)
+	(gdb-var-list-children-handler, gdb-var-update-handler)
+	(gdb-var-delete, gdb-edit-value, gdb-speedbar-expand-node)
+	(gdb-var-list-children-handler-1, gdb-var-update-handler-1):
+	Follow change to gdb-var-list.
+	(gdb-starting): Don't show the overlay arrows when program is
+	running.
+
+	* progmodes/gud.el (gud-speedbar-buttons): Follow change to
+	gdb-var-list.
+
 2006-03-14  Bill Wohler  <wohler@newt.com>
 
 	* image.el (image-load-path-for-library): Pass value of path
@@ -32,8 +51,8 @@
 
 2006-03-13  Miles Bader  <miles@gnu.org>
 
-	* net/rcirc.el (rcirc-nick-abbrevs): Variable removed.
-	(rcirc-abbrev-nick): Function removed.
+	* net/rcirc.el (rcirc-nick-abbrevs): Remove variable.
+	(rcirc-abbrev-nick): Remove function.
 	(rcirc-format-response-string): Don't call `rcirc-abbrev-nick'.
 
 2006-03-13  David Ponce  <david@dponce.com>
