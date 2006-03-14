@@ -1,3 +1,7 @@
+2006-03-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_uncatch_errors): Block input for entire function.
+
 2006-03-12  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_create_frame): Remove call to
