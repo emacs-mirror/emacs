@@ -140,10 +140,9 @@
                  data-directory)))
       (and dir (list dir (expand-file-name "images" dir))))
     )
-  "List of locations where to search for the themes sub-directory.
-Each element is an expression that will be evaluated to return a
-single directory or a list of directories to search.
-
+  "List of locations in which to search for the themes sub-directory.
+Each element is an expression that will be recursively evaluated until
+it returns a single directory or a list of directories.
 The default is to search in the `load-path' first, then in the
 \"images\" sub directory in the data directory, then in the data
 directory.
@@ -152,23 +151,22 @@ Emacs, and what `(locate-data-directory \"tree-widget\")' returns on
 XEmacs.")
 
 (defcustom tree-widget-themes-directory "tree-widget"
-  "*Name of the directory where to look up for image themes.
+  "*Name of the directory in which to look for an image theme.
 When nil use the directory where the tree-widget library is located.
-When a relative name is specified, search in all occurrences of that
-sub directory found in the locations specified in
-`tree-widget-themes-load-path'.
+When it is a relative name, search in all occurrences of that sub
+directory in the path specified by `tree-widget-themes-load-path'.
 The default is to use the \"tree-widget\" relative name."
   :type '(choice (const :tag "Default" "tree-widget")
-                 (const :tag "With the library" nil)
+                 (const :tag "Where is this library" nil)
                  (directory :format "%{%t%}:\n%v"))
   :group 'tree-widget)
 
 (defcustom tree-widget-theme nil
-  "*Name of the theme where to look up for images.
-It must be a sub directory in the directories specified in variable
-`tree-widget-themes-directory'.  The default theme is \"default\".
-When an image is not found in a theme, it is searched in the parent
-theme.
+  "*Name of the theme in which to look for images.
+This is a sub directory of the themes directory specified by the
+`tree-widget-themes-directory' option.
+The default theme is \"default\".  When an image is not found in a
+theme, it is searched in its parent theme.
 
 A complete theme must at least contain images with these file names
 with a supported extension (see also `tree-widget-image-formats'):
