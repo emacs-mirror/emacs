@@ -1,3 +1,8 @@
+2006-03-14  Kenichi Handa  <handa@m17n.org>
+
+	* keyboard.c (read_char): Check if C is a character or not before
+	looking up Vkeyboard_translate_table.
+
 2006-03-10  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (DECODE_EMACS_MULE_20_RELATIVE_COMPOSITION): Fix
