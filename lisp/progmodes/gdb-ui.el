@@ -81,7 +81,7 @@
 
 ;; 1) They go out of scope when the inferior is re-run.
 ;; 2) -stack-list-locals has a type field but also prints type in values field.
-;; 3) VARNUM increments even when vairable object is not created (maybe trivial).
+;; 3) VARNUM increments even when variable object is not created (maybe trivial).
 
 ;;; TODO:
 
@@ -107,7 +107,7 @@
 (defvar gdb-current-language nil)
 (defvar gdb-var-list nil
  "List of variables in watch window.
-Each element has the form (EXPRESSION VARNUM NUMCHILD TYPE VALUE STATUS) where
+Each element has the form (VARNUM EXPRESSION NUMCHILD TYPE VALUE STATUS) where
 STATUS is nil (unchanged), `changed' or `out-of-scope'.")
 (defvar gdb-force-update t
  "Non-nil means that view of watch expressions will be updated in the speedbar.")
@@ -417,12 +417,20 @@ With arg, use separate IO iff arg is positive."
 
 (defun gdb-find-watch-expression ()
   (let* ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list))
-	 (varno (nth 1 var)) (expr))
-    (string-match "\\(var[0-9]+\\)\\.\\(.*\\)" varno)
-    (dolist (var1 gdb-var-list)
-      (if (string-equal (nth 1 var1) (match-string 1 varno))
-	  (setq expr (concat (car var1) "." (match-string 2 varno)))))
-    expr))
+	 (varnum (car var)) expr array)
+    (string-match "\\(var[0-9]+\\)\\.\\(.*\\)" varnum)
+    (let ((var1 (assoc (match-string 1 varnum) gdb-var-list)) var2 varnumlet
+	  (component-list (split-string (match-string 2 varnum) "\\." t)))
+      (setq expr (nth 1 var1))
+      (setq varnumlet (car var1))
+      (dolist (component component-list)
+	(setq var2 (assoc varnumlet gdb-var-list))
+	(setq expr (concat expr
+			   (if (string-match ".*\\[[0-9]+\\]$" (nth 3 var2))
+			       (concat "[" component "]")
+			     (concat "." component))))
+	(setq varnumlet (concat varnumlet "." component)))
+      expr)))
 
 (defun gdb-init-1 ()
   (set (make-local-variable 'gud-minor-mode) 'gdba)
@@ -648,24 +656,36 @@ With arg, automatically raise speedbar iff arg is positive."
   :group 'gud
   :version "22.1")
 
-(defun gud-watch (&optional event)
-  "Watch expression at point."
-  (interactive (list last-input-event))
-  (if event (posn-set-point (event-end event)))
-  (require 'tooltip)
-  (save-selected-window
-    (let ((expr (tooltip-identifier-from-point (point))))
-      (catch 'already-watched
-	(dolist (var gdb-var-list)
-	  (unless (string-match "\\." (nth 1 var))
-	    (if (string-equal expr (car var)) (throw 'already-watched nil))))
-	(set-text-properties 0 (length expr) nil expr)
-	(gdb-enqueue-input
-	 (list
-	  (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
-	      (concat "server interpreter mi \"-var-create - * "  expr "\"\n")
-	    (concat"-var-create - * "  expr "\n"))
-	  `(lambda () (gdb-var-create-handler ,expr))))))))
+(define-key gud-minor-mode-map "\C-c\C-w" 'gud-watch)
+(define-key global-map (concat gud-key-prefix "\C-w") 'gud-watch)
+
+(defun gud-watch (&optional arg event)
+  "Watch expression at point.
+With arg, enter name of variable to be watched in the minibuffer."
+  (interactive (list current-prefix-arg last-input-event))
+  (let ((minor-mode (buffer-local-value 'gud-minor-mode gud-comint-buffer)))
+    (if (memq minor-mode '(gdbmi gdba))
+	(progn
+	  (if event (posn-set-point (event-end event)))
+	  (require 'tooltip)
+	  (save-selected-window
+	    (let ((expr (if arg
+			    (read-string "Name of variable: ")
+			  (tooltip-identifier-from-point (point)))))
+	      (catch 'already-watched
+		(dolist (var gdb-var-list)
+		  (unless (string-match "\\." (car var))
+		    (if (string-equal expr (nth 1 var))
+			(throw 'already-watched nil))))
+		(set-text-properties 0 (length expr) nil expr)
+		(gdb-enqueue-input
+		 (list
+		  (if (eq minor-mode 'gdba)
+		      (concat
+		       "server interpreter mi \"-var-create - * "  expr "\"\n")
+		    (concat"-var-create - * "  expr "\n"))
+		  `(lambda () (gdb-var-create-handler ,expr))))))))
+      (message "gud-watch is a no-op in this mode."))))
 
 (defconst gdb-var-create-regexp
   "name=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",type=\"\\(.*?\\)\"")
@@ -674,11 +694,11 @@ With arg, automatically raise speedbar iff arg is positive."
   (goto-char (point-min))
   (if (re-search-forward gdb-var-create-regexp nil t)
       (let ((var (list
+		  (match-string 1)
 		  (if (and (string-equal gdb-current-language "c")
 			   gdb-use-colon-colon-notation gdb-selected-frame)
 		      (setq expr (concat gdb-selected-frame "::" expr))
 		    expr)
-		  (match-string 1)
 		  (match-string 2)
 		  (match-string 3)
 		  nil nil)))
@@ -691,10 +711,10 @@ With arg, automatically raise speedbar iff arg is positive."
 	 (list
 	  (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
 	      (concat "server interpreter mi \"-var-evaluate-expression "
-		      (nth 1 var) "\"\n")
-	    (concat "-var-evaluate-expression " (nth 1 var) "\n"))
+		      (car var) "\"\n")
+	    (concat "-var-evaluate-expression " (car var) "\n"))
 	  `(lambda () (gdb-var-evaluate-expression-handler
-		       ,(nth 1 var) nil)))))
+		       ,(car var) nil)))))
     (if (search-forward "Undefined command" nil t)
 	(message-box "Watching expressions requires gdb 6.0 onwards")
       (message-box "No symbol \"%s\" in current context." expr))))
@@ -702,12 +722,10 @@ With arg, automatically raise speedbar iff arg is positive."
 (defun gdb-var-evaluate-expression-handler (varnum changed)
   (goto-char (point-min))
   (re-search-forward ".*value=\\(\".*\"\\)" nil t)
-  (catch 'var-found
-    (dolist (var gdb-var-list)
-      (when (string-equal varnum (cadr var))
-	(if changed (setcar (nthcdr 5 var) 'changed))
-	(setcar (nthcdr 4 var) (read (match-string 1)))
-	(throw 'var-found nil)))))
+  (let ((var (assoc varnum gdb-var-list)))
+    (when var
+      (if changed (setcar (nthcdr 5 var) 'changed))
+      (setcar (nthcdr 4 var) (read (match-string 1))))))
 
 (defun gdb-var-list-children (varnum)
   (gdb-enqueue-input
@@ -723,26 +741,25 @@ type=\"\\(.*?\\)\"")
   (let ((var-list nil))
     (catch 'child-already-watched
       (dolist (var gdb-var-list)
-	(if (string-equal varnum (cadr var))
+	(if (string-equal varnum (car var))
 	    (progn
 	      (push var var-list)
 	      (while (re-search-forward gdb-var-list-children-regexp nil t)
-		(let ((varchild (list (match-string 2)
-				      (match-string 1)
+		(let ((varchild (list (match-string 1)
+				      (match-string 2)
 				      (match-string 3)
 				      (match-string 4)
 				      nil nil)))
-		  (dolist (var1 gdb-var-list)
-		    (if (string-equal (cadr var1) (cadr varchild))
-			(throw 'child-already-watched nil)))
+		  (if (assoc (car varchild) gdb-var-list)
+		      (throw 'child-already-watched nil))
 		  (push varchild var-list)
 		  (gdb-enqueue-input
 		   (list
 		    (concat
 		     "server interpreter mi \"-var-evaluate-expression "
-		     (nth 1 varchild) "\"\n")
+		     (car varchild) "\"\n")
 		    `(lambda () (gdb-var-evaluate-expression-handler
-				 ,(nth 1 varchild) nil)))))))
+				 ,(car varchild) nil)))))))
 	  (push var var-list)))
       (setq gdb-var-list (nreverse var-list)))))
 
@@ -762,11 +779,8 @@ type=\"\\(.*?\\)\"")
   (while (re-search-forward gdb-var-update-regexp nil t)
     (let ((varnum (match-string 1)))
       (if  (string-equal (match-string 2) "false")
-	  (catch 'var-found
-	    (dolist (var gdb-var-list)
-	      (when (string-equal varnum (cadr var))
-		(setcar (nthcdr 5 var) 'out-of-scope)
-		(throw 'var-found nil))))
+	  (let ((var (assoc varnum gdb-var-list)))
+	    (if var (setcar (nthcdr 5 var) 'out-of-scope)))
 	(gdb-enqueue-input
 	 (list
 	  (concat "server interpreter mi \"-var-evaluate-expression "
@@ -796,10 +810,14 @@ type=\"\\(.*?\\)\"")
 	    '(gdbmi gdba))
       (let ((text (speedbar-line-text)))
 	(string-match "\\(\\S-+\\)" text)
-	(let* ((expr (match-string 1 text))
-	       (var (assoc expr gdb-var-list))
-	       (varnum (cadr var)))
-	  (unless (string-match "\\." varnum)
+	(let ((expr (match-string 1 text)) var varnum)
+	  (catch 'expr-found
+	    (dolist (var1 gdb-var-list)
+	      (when (string-equal expr (nth 1 var1))
+		(setq var var1)
+		(setq varnum (car var1))
+		(throw 'expr-found nil))))
+	  (unless (string-match "\\." (car var))
 	    (gdb-enqueue-input
 	     (list
 	      (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
@@ -809,13 +827,13 @@ type=\"\\(.*?\\)\"")
 		   'ignore))
 	    (setq gdb-var-list (delq var gdb-var-list))
 	    (dolist (varchild gdb-var-list)
-	      (if (string-match (concat (nth 1 var) "\\.") (nth 1 varchild))
+	      (if (string-match (concat (car var) "\\.") (car varchild))
 		  (setq gdb-var-list (delq varchild gdb-var-list)))))))))
 
 (defun gdb-edit-value (text token indent)
   "Assign a value to a variable displayed in the speedbar."
   (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
-	 (varnum (cadr var)) (value))
+	 (varnum (car var)) (value))
     (setq value (read-string "New value: "))
     (gdb-enqueue-input
      (list
@@ -851,7 +869,7 @@ INDENT is the current indentation depth."
 	   (gdb-var-list-children-1 token)))
 	((string-match "-" text)	;contract this node
 	 (dolist (var gdb-var-list)
-	   (if (string-match (concat token "\\.") (nth 1 var))
+	   (if (string-match (concat token "\\.") (car var))
 	       (setq gdb-var-list (delq var gdb-var-list))))
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
@@ -1221,6 +1239,8 @@ not GDB."
       (progn
 	(setq gud-running t)
 	(gdb-remove-text-properties)
+	(setq gud-overlay-arrow-position nil)
+	(setq gdb-overlay-arrow-position nil)
 	(if gdb-use-separate-io-buffer
 	    (setq gdb-output-sink 'inferior))))
      (t
@@ -3117,19 +3137,18 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
   (let ((var-list nil))
     (catch 'child-already-watched
       (dolist (var gdb-var-list)
-	(if (string-equal varnum (cadr var))
+	(if (string-equal varnum (car var))
 	    (progn
 	      (push var var-list)
 	      (while (re-search-forward gdb-var-list-children-regexp-1 nil t)
-		(let ((varchild (list (match-string 2)
-				      (match-string 1)
+		(let ((varchild (list (match-string 1)
+				      (match-string 2)
 				      (match-string 3)
 				      (match-string 5)
 				      (read (match-string 4))
 				      nil)))
-		  (dolist (var1 gdb-var-list)
-		    (if (string-equal (cadr var1) (cadr varchild))
-			(throw 'child-already-watched nil)))
+		  (if (assoc (car varchild) gdb-var-list)
+		      (throw 'child-already-watched nil))
 		  (push varchild var-list))))
 	  (push var var-list)))
       (setq gdb-var-list (nreverse var-list)))))
@@ -3154,16 +3173,14 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
     (setcar (nthcdr 5 var) nil))
   (goto-char (point-min))
   (while (re-search-forward gdb-var-update-regexp-1 nil t)
-    (let ((varnum (match-string 1)))
-      (catch 'var-found
-	(dolist (var gdb-var-list)
-	  (when (string-equal varnum (cadr var))
-	    (if (string-equal (match-string 3) "false")
-		(setcar (nthcdr 5 var) 'out-of-scope)
-	      (setcar (nthcdr 5 var) 'changed)
-	      (setcar (nthcdr 4 var)
-		      (read (match-string 2))))
-	    (throw 'var-found nil))))))
+    (let* ((varnum (match-string 1))
+	   (var (assoc varnum gdb-var-list)))
+      (when var
+	(if (string-equal (match-string 3) "false")
+	    (setcar (nthcdr 5 var) 'out-of-scope)
+	  (setcar (nthcdr 5 var) 'changed)
+	  (setcar (nthcdr 4 var)
+		  (read (match-string 2)))))))
   (setq gdb-pending-triggers
    (delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
