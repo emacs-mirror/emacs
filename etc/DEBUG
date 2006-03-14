@@ -245,6 +245,25 @@ and, assuming that "xtype" says that args[0] is a symbol:
 
    xsymbol
 
+** Using GDB in Emacs
+
+Debugging with GDB in Emacs offers some advantages over the command line (See
+the GDB Graphical Interface node of the Emacs manual).  There are also some
+features available just for debugging Emacs:
+
+1) The command gud-pp isavailable on the tool bar (the `pp' icon) and allows
+   the user to print the s-expression of the variable at point, in the GUD
+   buffer.
+
+2) Pressing `p' on a component of a watch expression that is a lisp object
+   in the speedbar prints its s-expression in the GUD buffer.
+
+3) The STOP button on the tool bar is adjusted so that it sends SIGTSTP
+   instead of the usual SIGINT.
+
+4) The command gud-pv has the global binding 'C-x C-a C-v' and prints the
+   value of the lisp variable at point.
+
 ** Debugging what happens while preloading and dumping Emacs
 
 Type `gdb temacs' and start it with `r -batch -l loadup dump'.
