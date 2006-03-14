@@ -4138,22 +4138,21 @@ First it searches for @var{image} in a path suitable for
 Then this function returns a list of directories which contains first
 the directory in which @var{image} was found, followed by the value of
 @code{load-path}.  If @var{path} is given, it is used instead of
-@code{load-path}.  If @var{path} is @code{t}, then the function just
-returns the directory that contains @var{image}.
-@c ??? Meaningm it does not return a list?
+@code{load-path}.
 
-If @var{no-error} is non-@code{nil}, this function returns @code{nil}
-if a suitable path can't be found, rather than signaling an error.
+If @var{no-error} is non-@code{nil} and a suitable path can't be
+found, don't signal an error.  Instead, return a list of directories as
+before, except that @code{nil} appears in place of the image directory.
 
 Here is an example that uses a common idiom to provide compatibility
 with versions of Emacs that lack the variable @code{image-load-path}:
 
 @example
-(let ((load-path
-       (image-load-path-for-library "mh-e" "mh-logo.xpm"))
-      (image-load-path
-       (image-load-path-for-library "mh-e" "mh-logo.xpm"
-                                    'image-load-path)))
+;; Avoid errors on Emacsen without `image-load-path'.
+(if (not (boundp 'image-load-path)) (defvar image-load-path nil))
+
+(let* ((load-path (image-load-path-for-library "mh-e" "mh-logo.xpm"))
+       (image-load-path (cons (car load-path) image-load-path)))
   (mh-tool-bar-folder-buttons-init))
 @end example
 @end defun

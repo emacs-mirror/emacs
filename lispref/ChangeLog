@@ -1,3 +1,8 @@
+2006-03-14  Bill Wohler  <wohler@newt.com>
+
+	* display.texi (Defining Images): In image-load-path-for-library,
+	always return list of directories.  Update example.
+
 2006-03-14  Alan Mackenzie  <acm@muc.de>
 
 	* modes.texi: New node, "Region to Fontify" (for Font Lock).
