@@ -1,3 +1,16 @@
+2006-03-14  Alan Mackenzie  <acm@muc.de>
+
+	* font-core.el: New function/variable
+	font-lock-extend-region\(-function\)?.
+
+	* font-lock.el (font-lock-after-change-function): Call
+	font-lock-extend-region.  Obey font-lock-lines-before.
+	(font-lock-default-fontify-region): Remove reference to
+	font-lock-lines-before.
+
+	* jit-lock.el (jit-lock-after-change): Call
+	font-lock-extend-region.  Obey font-lock-lines-before.
+
 2006-03-14  David Ponce  <david@dponce.com>
 
 	* tree-widget.el (tree-widget-themes-load-path)

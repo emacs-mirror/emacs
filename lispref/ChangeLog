@@ -1,3 +1,10 @@
+2006-03-14  Alan Mackenzie  <acm@muc.de>
+
+	* modes.texi: New node, "Region to Fontify" (for Font Lock).
+	This describes font-lock-extend-region-function.
+	("Other Font Lock Variables"): move "font-lock-lines-before" to
+	the new node "Region to Fontify".
+
 2006-03-13  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Invisible Text): The impossible position is
