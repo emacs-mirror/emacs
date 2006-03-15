@@ -1,3 +1,29 @@
+2006-03-14  Ken Manheimer  <ken.manheimer@gmail.com>
+
+        * allout.el: Increment version to 2.2.1 in file commentary.
+
+        (allout-version): Increment to 2.2.1.
+
+        (allout-default-layout): New customization variable, used when the
+        file lacks a specific allout-layout.  Uses allout-layout-type for
+        recursively nested definition.
+
+        (allout-layout-type): Widget defining allout layouts, necessary for
+        self-recursive definition.
+
+        (allout-mode): Incorporate allout-default-layout as fallback for
+        allout-layout.
+
+        (allout-layout): Mark as 'safe-local-variable', and refer mention
+        fallback to `allout-default-layout' in absence of a specified value.
+        (allout-passphrase-verifier-string)
+        (allout-passphrase-hint-string): Mark as 'safe-local-variable'.
+
+        (allout-file-passphrase-verifier-string): Obsolete variable, removed.
+
+        (allout-get-encryption-passphrase-verifier): Use correct name of
+        passphrase verifier in docstring.
+
 2006-03-15  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-list): Change order of first two
