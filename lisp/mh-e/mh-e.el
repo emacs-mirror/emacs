@@ -325,9 +325,6 @@ Name of the Previous sequence.")
 
 ;; Etc. (alphabetical)
 
-;; Avoid errors on Emacsen without image-load-path.
-(if (not (boundp 'image-load-path)) (defvar image-load-path nil))
-
 (defvar mh-flists-present-flag nil
   "Non-nil means that we have \"flists\".")
 
