@@ -6,7 +6,7 @@
 ;; Author: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: 2.2
+;; Version: 2.2.1
 ;; Keywords: outlines wp languages
 
 ;; This file is part of GNU Emacs.
@@ -126,38 +126,72 @@ this variable."
                 (const :tag "Mode only" "activate")
                 (const :tag "Off" nil))
   :group 'allout)
-;;;_  = allout-layout
-(defvar allout-layout nil
-  "*Layout specification and provisional mode trigger for allout outlines.
+;;;_  = allout-default-layout
+(defcustom allout-default-layout '(-2 : 0)
+  "*Default allout outline layout specification.
 
-Buffer-specific.
+This setting specifies the outline exposure to use when
+`allout-layout' has the local value `t'.  This docstring describes the
+layout specifications.
 
-A list value specifies a default layout for the current buffer, to be
-applied upon activation of `allout-mode'.  Any non-nil value will
-automatically trigger `allout-mode' \(provided `allout-init' has been called
-to enable this behavior).
+A list value specifies a default layout for the current buffer,
+to be applied upon activation of `allout-mode'.  Any non-nil
+value will automatically trigger `allout-mode', provided
+`allout-init' has been called to enable this behavior.
 
-See the docstring for `allout-init' for details on setting up for
-auto-mode-activation, and for `allout-expose-topic' for the format of
-the layout specification.
+The types of elements in the layout specification are:
 
-You can associate a particular outline layout with a file by setting
-this var via the file's local variables.  For example, the following
-lines at the bottom of an Emacs Lisp file:
+ integer - dictate the relative depth to open the corresponding topic(s),
+           where:
+         - negative numbers force the topic to be closed before opening
+           to the absolute value of the number, so all siblings are open
+           only to that level.
+         - positive numbers open to the relative depth indicated by the
+           number, but do not force already opened subtopics to be closed.
+         - 0 means to close topic - hide all subitems.
+ :   - repeat spec - apply the preceeding element to all siblings at
+       current level, *up to* those siblings that would be covered by specs
+       following the `:' on the list.  Ie, apply to all topics at level but
+       trailing ones accounted for by trailing specs.  \(Only the first of
+       multiple colons at the same level is honored - later ones are ignored.)
+ *   - completely exposes the topic, including bodies
+ +   - exposes all subtopics, but not the bodies
+ -   - exposes the body of the corresponding topic, but not subtopics
+ list - a nested layout spec, to be applied intricately to its
+        corresponding item(s)
 
-;;;Local variables:
-;;;allout-layout: \(0 : -1 -1 0)
-;;;End:
+Examples:
+ '(-2 : 0)
+	Collapse the top-level topics to show their children and
+        grandchildren, but completely collapse the final top-level topic.
+ '(-1 () : 1 0)
+	Close the first topic so only the immediate subtopics are shown,
+        leave the subsequent topics exposed as they are until the second
+	second to last topic, which is exposed at least one level, and
+        completely close the last topic.
+ '(-2 : -1 *)
+        Expose children and grandchildren of all topics at current
+	level except the last two; expose children of the second to
+	last and completely expose the last one, including its subtopics.
 
-will, modulo the above-mentioned conditions, cause the mode to be
-activated when the file is visited, followed by the equivalent of
-`\(allout-expose-topic 0 : -1 -1 0)'.  \(This is the layout used for
-the allout.el source file.)
+See `allout-expose-topic' for more about the exposure process.
 
 Also, allout's mode-specific provisions will make topic prefixes default
 to the comment-start string, if any, of the language of the file.  This
-is modulo the setting of `allout-use-mode-specific-leader', which see.")
-(make-variable-buffer-local 'allout-layout)
+is modulo the setting of `allout-use-mode-specific-leader', which see."
+  :type 'allout-layout-type
+  :group 'allout)
+;;;_  : allout-layout-type
+(define-widget 'allout-layout-type 'lazy
+  "Allout layout format customization basic building blocks."
+  :type '(repeat
+          (choice (integer :tag "integer (<= zero is strict)")
+                  (const :tag ": (repeat prior)" :)
+                  (const :tag "* (completely expose)" *)
+                  (const :tag "+ (expose all offspring, headlines only)" +)
+                  (const :tag "- (expose topic body but not offspring)" -)
+                  (allout-layout-type :tag "<Nested layout>"))))
+
 ;;;_  = allout-show-bodies
 (defcustom allout-show-bodies nil
   "*If non-nil, show entire body when exposing a topic, rather than
@@ -590,7 +624,7 @@ For details, see `allout-toggle-current-subtree-encryption's docstring."
 ;;;_ #1 Internal Outline Formatting and Configuration
 ;;;_  : Version
 ;;;_   = allout-version
-(defvar allout-version "2.2"
+(defvar allout-version "2.2.1"
   "Version of currently loaded outline package.  \(allout.el)")
 ;;;_   > allout-version
 (defun allout-version (&optional here)
@@ -604,6 +638,36 @@ For details, see `allout-toggle-current-subtree-encryption's docstring."
 ;;;_   = allout-mode
 (defvar allout-mode nil "Allout outline mode minor-mode flag.")
 (make-variable-buffer-local 'allout-mode)
+;;;_   = allout-layout nil
+(defvar allout-layout nil            ; LEAVE GLOBAL VALUE NIL - see docstring.
+  "Buffer-specific setting for allout layout.
+
+In buffers where this is non-nil \(and if `allout-init' has been run, to
+enable this behavior), `allout-mode' will be automatically activated.  The
+layout dictated by the value will be used to set the initial exposure when
+`allout-mode' is activated.
+
+\*You should not setq-default this variable non-nil unless you want every
+visited file to be treated as an allout file.*
+
+The value would typically be set by a file local variable.  For
+example, the following lines at the bottom of an Emacs Lisp file:
+
+;;;Local variables:
+;;;allout-layout: \(0 : -1 -1 0)
+;;;End:
+
+dictate activation of `allout-mode' mode when the file is visited
+\(presuming allout-init was already run), followed by the
+equivalent of `\(allout-expose-topic 0 : -1 -1 0)'.  \(This is
+the layout used for the allout.el source file.)
+
+`allout-default-layout' describes the specification format.
+`allout-layout' can additionally have the value `t', in which
+case the value of `allout-default-layout' is used.")
+(make-variable-buffer-local 'allout-layout)
+(put 'allout-layout 'safe-local-variable t)
+
 ;;;_  : Topic header format
 ;;;_   = allout-regexp
 (defvar allout-regexp ""
@@ -973,11 +1037,6 @@ wrapped within allout's automatic fill-prefix setting.")
   "Horrible hack used to prevent invalid multiple triggering of outline
 mode from prop-line file-var activation.  Used by `allout-mode' function
 to track repeats.")
-;;;_   = allout-file-passphrase-verifier-string
-(defvar allout-file-passphrase-verifier-string nil
-  "Name for use as a file variable for verifying encryption passphrase
-across sessions.")
-(make-variable-buffer-local 'allout-file-passphrase-verifier-string)
 ;;;_   = allout-passphrase-verifier-string
 (defvar allout-passphrase-verifier-string nil
   "Setting used to test solicited encryption passphrases against the one
@@ -993,6 +1052,7 @@ The verifier string is retained as an Emacs file variable, as well as in
 the emacs buffer state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-verifier-string)
+(put 'allout-passphrase-verifier-string 'safe-local-variable t)
 ;;;_   = allout-passphrase-hint-string
 (defvar allout-passphrase-hint-string ""
   "Variable used to retain reminder string for file's encryption passphrase.
@@ -1004,6 +1064,7 @@ The hint is retained as an Emacs file variable, as well as in the emacs buffer
 state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-hint-string)
+(put 'allout-passphrase-hint-string 'safe-local-variable t)
 (setq-default allout-passphrase-hint-string "")
 ;;;_   = allout-after-save-decrypt
 (defvar allout-after-save-decrypt nil
@@ -1578,30 +1639,33 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
       (allout-infer-body-reindent))
      )					; cond
 
-    (if (and do-layout
-	     allout-auto-activation
-	     (listp allout-layout)
-	     (and (not (eq allout-auto-activation 'activate))
-		  (if (eq allout-auto-activation 'ask)
-		      (if (y-or-n-p (format "Expose %s with layout '%s'? "
-					    (buffer-name)
-					    allout-layout))
-			  t
-			(message "Skipped %s layout." (buffer-name))
-			nil)
-		    t)))
-	(save-excursion
-	  (message "Adjusting '%s' exposure..." (buffer-name))
-	  (goto-char 0)
-	  (allout-this-or-next-heading)
-	  (condition-case err
-	      (progn
-		(apply 'allout-expose-topic (list allout-layout))
-		(message "Adjusting '%s' exposure... done." (buffer-name)))
-	    ;; Problem applying exposure - notify user, but don't
-	    ;; interrupt, eg, file visit:
-	    (error (message "%s" (car (cdr err)))
-		   (sit-for 1)))))
+    (let ((use-layout (if (listp allout-layout)
+                          allout-layout
+                        allout-default-layout)))
+      (if (and do-layout
+               allout-auto-activation
+               use-layout
+               (and (not (eq allout-auto-activation 'activate))
+                    (if (eq allout-auto-activation 'ask)
+                        (if (y-or-n-p (format "Expose %s with layout '%s'? "
+                                              (buffer-name)
+                                              use-layout))
+                            t
+                          (message "Skipped %s layout." (buffer-name))
+                          nil)
+                      t)))
+          (save-excursion
+            (message "Adjusting '%s' exposure..." (buffer-name))
+            (goto-char 0)
+            (allout-this-or-next-heading)
+            (condition-case err
+                (progn
+                  (apply 'allout-expose-topic (list use-layout))
+                  (message "Adjusting '%s' exposure... done." (buffer-name)))
+              ;; Problem applying exposure - notify user, but don't
+              ;; interrupt, eg, file visit:
+              (error (message "%s" (car (cdr err)))
+                     (sit-for 1))))))
     allout-mode
     )					; let*
   )  					; defun
@@ -1660,7 +1724,7 @@ internal functions use this feature cohesively bunch changes."
             (if (not
                  (yes-or-no-p
                   (substitute-command-keys
-                   (concat "Modify this concealed text?  (\"no\" aborts,"
+                   (concat "Modify concealed text?  (\"no\" just aborts,"
                            " \\[keyboard-quit] also reconceals) "))))
                 (progn (goto-char start)
                        (error "Concealed-text change refused.")))
@@ -1676,7 +1740,7 @@ See allout-overlay-interior-modification-handler for details.
 
 This before-change handler is used only where modification-hooks
 overlay property is not supported."
-  (if (not allout-mode)
+  (if (not (allout-mode-p))
       nil
     (allout-overlay-interior-modification-handler nil nil beg end nil)))
 ;;;_  > allout-isearch-end-handler (&optional overlay)
@@ -2561,7 +2625,6 @@ command/keystrokes to relocate the cursor off of a bullet character to
 return to regular interpretation of self-insert characters."
 
   (if (not (allout-mode-p))
-      ;; Shouldn't be invoked if not in allout-mode, but just in case:
       nil
     ;; Hot-spot navigation provisions:
     (if (and (eq this-command 'self-insert-command)
@@ -2595,7 +2658,7 @@ return to regular interpretation of self-insert characters."
 		      this-command mapped-binding)))))))
 ;;;_   > allout-find-file-hook ()
 (defun allout-find-file-hook ()
-  "Activate `allout-mode' when `allout-auto-activation', `allout-layout' non-nil.
+  "Activate `allout-mode' on non-nil `allout-auto-activation', `allout-layout'.
 
 See `allout-init' for setup instructions."
   (if (and allout-auto-activation
@@ -3415,7 +3478,7 @@ depth, however."
   (if (or (not (allout-mode-p))
           (not (bolp))
           (not (looking-at allout-regexp)))
-      ;; Above conditions do not obtain - just do a regular kill:
+      ;; Just do a regular kill:
       (kill-line arg)
     ;; Ah, have to watch out for adjustments:
     (let* ((beg (point))
@@ -3889,7 +3952,7 @@ If optional INCLUDE-SINGLE-LINERS is true, then include single-line
 topics \(which intrinsically can be considered both collapsed and
 not\), as collapsed.  Otherwise they are considered uncollapsed."
   (save-excursion
-      (and 
+      (and
        (= (progn (allout-back-to-current-heading)
                  (move-end-of-line 1)
                  (point))
@@ -5068,7 +5131,7 @@ Returns the resulting string, or nil if the transformation fails."
   )
 ;;;_  > allout-obtain-passphrase (for-key cache-id prompt-id key-type
 ;;;                                       allout-buffer retried fetch-pass)
-(defun allout-obtain-passphrase (for-key cache-id prompt-id key-type 
+(defun allout-obtain-passphrase (for-key cache-id prompt-id key-type
                                          allout-buffer retried fetch-pass)
   "Obtain passphrase for a key from the cache or else from the user.
 
@@ -5242,7 +5305,7 @@ An error is raised if the text is not encrypted."
                            nil nil 0 passphrase))
   )
 ;;;_  > allout-update-passphrase-mnemonic-aids (for-key passphrase
-;;;                                                     outline-buffer) 
+;;;                                                     outline-buffer)
 (defun allout-update-passphrase-mnemonic-aids (for-key passphrase
                                                        outline-buffer)
   "Update passphrase verifier and hint strings if necessary.
@@ -5298,7 +5361,7 @@ are preserved on Emacs local file variables,
 (defun allout-get-encryption-passphrase-verifier ()
   "Return text of the encrypt passphrase verifier, unmassaged, or nil if none.
 
-Derived from value of `allout-file-passphrase-verifier-string'."
+Derived from value of `allout-passphrase-verifier-string'."
 
   (let ((verifier-string (and (boundp 'allout-passphrase-verifier-string)
                               allout-passphrase-verifier-string)))
@@ -5457,7 +5520,7 @@ setup for auto-startup."
       (insert (concat "Dummy outline topic header - see"
                       "`allout-mode' docstring: `^Hm'."))
       (allout-adjust-file-variable
-       "allout-layout" (format "%s" (or allout-layout '(-1 : 0)))))))
+       "allout-layout" (or allout-layout '(-1 : 0))))))
 ;;;_  > allout-file-vars-section-data ()
 (defun allout-file-vars-section-data ()
   "Return data identifying the file-vars section, or nil if none.
@@ -5708,13 +5771,7 @@ which are part of the text that an image rests on.)
 
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
-To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
-
-This function does not move point across a field boundary unless that
-would move point to a different line than the original, unconstrained
-result.  If N is nil or 1, and a front-sticky field starts at point,
-the point does not move.  To ignore field boundaries bind
-`inhibit-field-text-motion' to t."
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
       (interactive "p")
       (or arg (setq arg 1))
       (if (/= arg 1)
@@ -5730,7 +5787,7 @@ the point does not move.  To ignore field boundaries bind
           (skip-chars-backward "^\n"))
         (vertical-motion 0)
         (if (/= orig (point))
-            (goto-char (constrain-to-field (point) orig (/= arg 1) t nil)))))
+            (goto-char orig))))
 )
 ;;;_  > move-end-of-line if necessary - older emacs, xemacs
 (if (not (fboundp 'move-end-of-line))
@@ -5741,13 +5798,7 @@ which are part of the text that an image rests on.)
 
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
-To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
-
-This function does not move point across a field boundary unless that
-would move point to a different line than the original, unconstrained
-result.  If N is nil or 1, and a rear-sticky field ends at point,
-the point does not move.  To ignore field boundaries bind
-`inhibit-field-text-motion' to t."
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
       (interactive "p")
       (or arg (setq arg 1))
       (let ((orig (point))
@@ -5777,8 +5828,7 @@ the point does not move.  To ignore field boundaries bind
                   (setq arg 1)
                 (setq done t)))))
         (if (/= orig (point))
-            (goto-char (constrain-to-field (point) orig (/= arg 1) t
-                                           nil)))))
+            (goto-char orig))))
   )
 ;;;_  > line-move-invisible-p if necessary
 (if (not (fboundp 'line-move-invisible-p))
