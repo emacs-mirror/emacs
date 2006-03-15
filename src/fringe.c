@@ -1689,10 +1689,14 @@ init_fringe ()
     }
 }
 
-#ifdef HAVE_NTGUI
+#if defined (WINDOWS_NT) || defined (MAC_OS)
 
 void
+#ifdef WINDOWS_NT
 w32_init_fringe ()
+#else  /* MAC_OS */
+mac_init_fringe ()
+#endif
 {
   int bt;
 
@@ -1705,7 +1709,9 @@ w32_init_fringe ()
       rif->define_fringe_bitmap (bt, fb->bits, fb->height, fb->width);
     }
 }
+#endif
 
+#ifdef WINDOWS_NT
 void
 w32_reset_fringes ()
 {
