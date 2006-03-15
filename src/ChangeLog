@@ -1,3 +1,8 @@
+2006-03-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fringe.c (w32_init_fringe, w32_reset_fringes): Restore to being
+	conditional on HAVE_NTGUI, not WINDOWS_NT.
+
 2006-03-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dispextern.h (mac_init_fringe) [MAC_OS]: Add prototype.

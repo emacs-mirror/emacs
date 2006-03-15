@@ -1,6 +1,6 @@
 2006-03-15  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-insert-centered): Use `string-width' to
+	* textmodes/org.el (org-insert-centered): Use `string-width' to
 	make underlining work for wide characters.
 	(org-goto-map, org-agenda-mode-map, org-mode-map): Explicitly bind
 	TAB to `org-cycle', to make sure that no binding in
@@ -54,7 +54,7 @@
 2006-03-14  Bill Wohler  <wohler@newt.com>
 
 	* image.el (image-load-path-for-library): Pass value of path
-	rather than symbol. Always return list of directories. Guarantee
+	rather than symbol.  Always return list of directories.  Guarantee
 	that image directory comes first.
 
 2006-03-14  Alan Mackenzie  <acm@muc.de>
@@ -102,11 +102,11 @@
 
 2006-03-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-link-search): Avoid self-matching of
+	* textmodes/org.el (org-link-search): Avoid self-matching of
 	links, allow target text to be distributed over several lines.
 	(org-search-not-link): New function.
-	(org-set-regexps-and-options, org-get-current-options): New
-	startup options.
+	(org-set-regexps-and-options, org-get-current-options):
+	New startup options.
 	(org-export-as-html): Take odd-level setting from local variable.
 	(org-fontify-emphasized-text): New option.
 	(org-set-font-lock-defaults): Include emphasized text.
@@ -177,8 +177,8 @@
 
 2006-03-11  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
 
-	* progmodes/octave-mod.el (octave-indent-for-comment): Behave
-	according to do string.
+	* progmodes/octave-mod.el (octave-indent-for-comment):
+	Behave according to do string.
 
 2006-03-11  Agustin Martin  <agustin.martin@hispalinux.es>
 
@@ -216,7 +216,7 @@
 	* progmodes/gdb-ui.el (gdb-remove-text-properties): Rename from
 	gdb-remove-mouse-face and remove help-echo too.
 	(gdb-enqueue-input): Correct conditional clause.
-	
+
 2006-03-10  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-holidays): Doc fix.
