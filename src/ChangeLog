@@ -9,7 +9,7 @@
 
 2006-03-15  Juanma Barranquero  <lekktu@gmail.com>
 
-	* fringe.c (w32_init_fringe, w32_reset_fringes): Restore to being
+	* fringe.c (w32_init_fringe, w32_reset_fringes): Revert to being
 	conditional on HAVE_NTGUI, not WINDOWS_NT.
 
 2006-03-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
@@ -35,7 +35,7 @@
 2006-03-12  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_create_frame): Remove call to
-	Qface_set_after_frame_default. (from xfns.c 2003-05-26)
+	Qface_set_after_frame_default (from xfns.c 2003-05-26).
 
 	* w32menu.c (Fx_popup_menu): Call w32_free_menu_strings when
 	finished with the menu.
@@ -257,9 +257,9 @@
 
 	* xterm.h, xterm.c (x_uncatch_errors): Delete unneccessary argument.
 
-	* xterm.c: (x_load_font, x_term_init, XTmouse_position)
-	(handle_one_xevent, x_connection_closed, x_list_fonts): No arg for
-	x_uncatch_errors.
+	* xterm.c (x_load_font, x_term_init, XTmouse_position)
+	(handle_one_xevent, x_connection_closed, x_list_fonts):
+	No arg for x_uncatch_errors.
 
 	* xselect.c (x_own_selection, x_decline_selection_request)
 	(x_reply_selection_request, x_get_foreign_selection)
@@ -387,7 +387,7 @@
 
 	* fringe.c (syms_of_fringe) <fringe-bitmaps>: Doc fix.
 
-2006-02-21  Zhang Wei <brep@newsmth.org>
+2006-02-21  Zhang Wei  <brep@newsmth.org>
 
 	* xfns.c (Fx_file_dialog, Motif and GTK): DECODE_FILE before
 	returning it.
