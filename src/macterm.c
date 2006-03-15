@@ -281,6 +281,11 @@ extern void menubar_selection_callback (FRAME_PTR, int);
 #if USE_CG_DRAWING
 #define FRAME_CG_CONTEXT(f)	((f)->output_data.mac->cg_context)
 
+/* Fringe bitmaps.  */
+
+static int max_fringe_bmp = 0;
+static CGImageRef *fringe_bmp = 0;
+
 static CGContextRef
 mac_begin_cg_clip (f, gc)
      struct frame *f;
@@ -509,6 +514,44 @@ mac_clear_window (f)
 
 /* Mac replacement for XCopyArea.  */
 
+#if USE_CG_DRAWING
+static void
+mac_draw_cg_image (image, f, gc, src_x, src_y, width, height,
+		   dest_x, dest_y, overlay_p)
+     CGImageRef image;
+     struct frame *f;
+     GC gc;
+     int src_x, src_y;
+     unsigned int width, height;
+     int dest_x, dest_y, overlay_p;
+{
+  CGContextRef context;
+  float port_height = FRAME_PIXEL_HEIGHT (f);
+  CGRect dest_rect = CGRectMake (dest_x, dest_y, width, height);
+
+  context = mac_begin_cg_clip (f, gc);
+  if (!overlay_p)
+    {
+      CG_SET_FILL_COLOR (context, gc->xgcv.background);
+      CGContextFillRect (context, dest_rect);
+    }
+  CGContextClipToRect (context, dest_rect);
+  CGContextScaleCTM (context, 1, -1);
+  CGContextTranslateCTM (context, 0, -port_height);
+  if (CGImageIsMask (image))
+    CG_SET_FILL_COLOR (context, gc->xgcv.foreground);
+  CGContextDrawImage (context,
+		      CGRectMake (dest_x - src_x,
+				  port_height - (dest_y - src_y
+						 + CGImageGetHeight (image)),
+				  CGImageGetWidth (image),
+				  CGImageGetHeight (image)),
+		      image);
+  mac_end_cg_clip (f);
+}
+
+#else  /* !USE_CG_DRAWING */
+
 static void
 mac_draw_bitmap (f, gc, x, y, width, height, bits, overlay_p)
      struct frame *f;
@@ -524,9 +567,6 @@ mac_draw_bitmap (f, gc, x, y, width, height, bits, overlay_p)
   bitmap.baseAddr = (char *)bits;
   SetRect (&(bitmap.bounds), 0, 0, width, height);
 
-#if USE_CG_DRAWING
-  mac_prepare_for_quickdraw (f);
-#endif
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   RGBForeColor (GC_FORE_COLOR (gc));
@@ -552,6 +592,7 @@ mac_draw_bitmap (f, gc, x, y, width, height, bits, overlay_p)
 
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 }
+#endif	/* !USE_CG_DRAWING */
 
 
 /* Mac replacement for XCreateBitmapFromBitmapData.  */
@@ -2001,9 +2042,12 @@ x_draw_fringe_bitmap (w, row, p)
 #endif
     }
 
-  if (p->which)
+  if (p->which
+#if USE_CG_DRAWING
+      && p->which < max_fringe_bmp
+#endif
+      )
     {
-      unsigned short *bits = p->bits + p->dh;
       XGCValues gcv;
 
       XGetGCValues (display, face->gc, GCForeground, &gcv);
@@ -2012,14 +2056,64 @@ x_draw_fringe_bitmap (w, row, p)
 		       ? (p->overlay_p ? face->background
 			  : f->output_data.mac->cursor_pixel)
 		       : face->foreground));
+#if USE_CG_DRAWING
+      mac_draw_cg_image (fringe_bmp[p->which], f, face->gc, 0, p->dh,
+			 p->wd, p->h, p->x, p->y, p->overlay_p);
+#else
       mac_draw_bitmap (f, face->gc, p->x, p->y,
-		       p->wd, p->h, bits, p->overlay_p);
+		       p->wd, p->h, p->bits + p->dh, p->overlay_p);
+#endif
       XSetForeground (display, face->gc, gcv.foreground);
     }
 
   mac_reset_clip_rectangles (display, face->gc);
 }
 
+#if USE_CG_DRAWING
+static void
+mac_define_fringe_bitmap (which, bits, h, wd)
+     int which;
+     unsigned short *bits;
+     int h, wd;
+{
+  unsigned short *mask_bits;
+  int i;
+  CGDataProviderRef provider;
+
+  if (which >= max_fringe_bmp)
+    {
+      i = max_fringe_bmp;
+      max_fringe_bmp = which + 20;
+      fringe_bmp = (CGImageRef *) xrealloc (fringe_bmp, max_fringe_bmp * sizeof (CGImageRef));
+      while (i < max_fringe_bmp)
+	fringe_bmp[i++] = 0;
+    }
+
+  for (i = 0; i < h; i++)
+    bits[i] = ~bits[i];
+  provider = CGDataProviderCreateWithData (NULL, bits,
+					   sizeof (unsigned short) * h, NULL);
+  if (provider)
+    {
+      fringe_bmp[which] = CGImageMaskCreate (wd, h, 1, 1,
+					     sizeof (unsigned short),
+					     provider, NULL, 0);
+      CGDataProviderRelease (provider);
+    }
+}
+
+static void
+mac_destroy_fringe_bitmap (which)
+     int which;
+{
+  if (which >= max_fringe_bmp)
+    return;
+
+  if (fringe_bmp[which])
+    CGImageRelease (fringe_bmp[which]);
+  fringe_bmp[which] = 0;
+}
+#endif
 
 
 /* This is called when starting Emacs and when restarting after
@@ -10892,8 +10986,13 @@ static struct redisplay_interface x_redisplay_interface =
   x_get_glyph_overhangs,
   x_fix_overlapping_area,
   x_draw_fringe_bitmap,
+#if USE_CG_DRAWING
+  mac_define_fringe_bitmap,
+  mac_destroy_fringe_bitmap,
+#else
   0, /* define_fringe_bitmap */
   0, /* destroy_fringe_bitmap */
+#endif
   mac_per_char_metric,
   mac_encode_char,
   mac_compute_glyph_string_overhangs,
@@ -10969,6 +11068,11 @@ mac_initialize ()
     MakeMeTheFrontProcess ();
 #endif
 #endif
+
+#if USE_CG_DRAWING
+  mac_init_fringe ();
+#endif
+
   UNBLOCK_INPUT;
 }
 
