@@ -1,3 +1,19 @@
+2006-03-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (mac_init_fringe) [MAC_OS]: Add prototype.
+
+	* fringe.c (mac_init_fringe) [MAC_OS]: New function.
+
+	* macterm.c (mac_initialize) [USE_CG_DRAWING]: Call mac_init_fringe.
+	(max_fringe_bmp, fringe_bmp) [USE_CG_DRAWING]: New variables.
+	(mac_define_fringe_bitmap, mac_destroy_fringe_bitmap)
+	(mac_draw_cg_image) [USE_CG_DRAWING]: New functions.
+	(mac_draw_bitmap) [USE_CG_DRAWING]: Remove function.
+	(x_draw_fringe_bitmap) [USE_CG_DRAWING]: Use mac_draw_cg_image
+	instead of mac_draw_bitmap.
+	(x_redisplay_interface) [USE_CG_DRAWING]: Set handlers for
+	define_fringe_bitmap and destroy_fringe_bitmap.
+
 2006-03-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.c (x_uncatch_errors): Block input for entire function.
