@@ -1,3 +1,10 @@
+2006-03-15  Bill Wohler  <wohler@newt.com>
+
+	* display.texi (Defining Images): Fix example in
+	image-load-path-for-library by not recommending that one binds
+	image-load-path. Just defvar it to placate compiler and only use
+	it if previously defined.
+
 2006-03-14  Bill Wohler  <wohler@newt.com>
 
 	* display.texi (Defining Images): In image-load-path-for-library,
