@@ -1,3 +1,12 @@
+2006-03-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (extend_face_to_end_of_line): Always add space glyph to
+	empty row.  Fixes memory corruption revealed by 2006-03-02 change.
+	(display_tool_bar_line): Skip empty tool-bar line if HEIGHT < 0.
+	(tool_bar_lines_needed): Fix tool-bar display in case the tool-bar
+	width is exactly the same as the window width.  Don't count a final
+	empty tool-bar line (pass HEIGHT = -1 to display_tool_bar_line).
+
 2006-03-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* fringe.c (w32_init_fringe, w32_reset_fringes): Restore to being
