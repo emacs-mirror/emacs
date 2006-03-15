@@ -1,3 +1,18 @@
+2006-03-14  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi: Add index entries around each paragraph rather than
+	depend on entries from beginning of node. Doing so ensures that
+	index entries are less likely to be forgotten if text is cut and
+	pasted, and are necessary anyway if the references are on a
+	separate page. It seems that makeinfo is now (v. 4.8) only
+	producing one index entry per node, so there is no longer any
+	excuse not to. Use subheading instead of heading. The incorrect
+	use of heading produced very large fonts in Info--as large as the
+	main heading.
+	(From Bill Wohler): MH-E never did appear in Emacs 21--MH-E
+	versions 6 and 7 appeared *around* the time of these Emacs
+	releases.
+
 2006-03-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Clean view): Document new startup options.
