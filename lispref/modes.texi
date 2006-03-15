@@ -2731,16 +2731,6 @@ on an earlier line.
 You can enlarge (or even reduce) the region to fontify by setting either
 of the following variables:
 
-@defvar font-lock-lines-before
-This variable specifies the number of extra lines to consider when
-refontifying the buffer after each text change.  Font lock begins
-refontifying from that number of lines before the changed region.  The
-default is 0, but using a larger value can be useful for coping with
-multi-line patterns.  This variable is ignored whenever
-@code{font-lock-extend-region-function} is set and returns a
-non-@code{nil} value.
-@end defvar
-
 @defvar font-lock-extend-region-function
 This buffer-local variable is either @code{nil} or is a function that
 determines the region to fontify, which Emacs then calls after each

@@ -1,3 +1,11 @@
+2006-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-lines-before): Delete variable, subsumed by
+	the new extend-region feature.
+	(font-lock-after-change-function): Update correspondingly.
+	* jit-lock.el (jit-lock-after-change): Update correspondingly.
+	* progmodes/grep.el (font-lock-lines-before): Don't disable.
+
 2006-03-15  Bill Wohler  <wohler@newt.com>
 
 	* image.el (image-load-path-for-library): Fix example by not

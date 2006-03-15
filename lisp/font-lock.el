@@ -281,12 +281,6 @@ If a number, only buffers greater than this size have fontification messages."
 		 (other :tag "always" t)
 		 (integer :tag "size"))
   :group 'font-lock)
-
-(defcustom font-lock-lines-before 0
-  "*Number of lines before the changed text to include in refontification."
-  :type 'integer
-  :group 'font-lock
-  :version "22.1")
 
 
 ;; Originally these variable values were face names such as `bold' etc.
@@ -1098,9 +1092,8 @@ what properties to clear before refontifying a region.")
 	    ;; Fontify the region the major mode has specified.
 	    (setq beg (car region) end (cdr region))
 	  ;; Fontify the whole lines which enclose the region.
-	  (setq beg (progn (goto-char beg)
-			   (forward-line (- font-lock-lines-before)))
-		end (progn (goto-char end) (forward-line 1) (point))))
+	  (setq beg (progn (goto-char beg) (line-beginning-position))
+		end (progn (goto-char end) (line-beginning-position 2))))
 	(font-lock-fontify-region beg end)))))
 
 (defun font-lock-fontify-block (&optional arg)

@@ -571,7 +571,7 @@ will take place when text is fontified stealthily."
 	 (setq start (if region
 			 (car region)
 		       (goto-char start)
-		       (line-beginning-position (- 1 font-lock-lines-before))))
+		       (line-beginning-position)))
 
 	 ;; If we're in text that matches a multi-line font-lock pattern,
 	 ;; make sure the whole text will be redisplayed.

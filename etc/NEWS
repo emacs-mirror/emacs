@@ -873,11 +873,6 @@ fontification in Info, remove `turn-on-font-lock' from
 `Info-mode-hook'.
 
 +++
-*** font-lock-lines-before specifies a number of lines before the
-current line that should be refontified when you change the buffer.
-The default value is 1.
-
-+++
 *** font-lock: in modes like C and Lisp where the fontification assumes that
 an open-paren in column 0 is always outside of any string or comment,
 font-lock now highlights any such open-paren-in-column-zero in bold-red
