@@ -174,7 +174,7 @@ Used to grey out relevant togolbar icons.")
 		  :enable (and (not gud-running)
 			       (memq gud-minor-mode
 				     '(gdbmi gdba gdb dbx xdb jdb pdb bashdb))))
-    ([pp]	menu-item "Print the emacs s-expression" gud-pp
+    ([pp]	menu-item "Print S-expression" gud-pp
                   :enable (and (not gud-running)
 				  gdb-active-process)
 		  :visible (and (string-equal
@@ -234,9 +234,6 @@ Used to grey out relevant togolbar icons.")
 		     (gud-run . "gud/run")
 		     (gud-go . "gud/go")
 		     (gud-stop-subjob . "gud/stop")
-		     ;; gud-s, gud-si etc. instead of gud-step,
-		     ;; gud-stepi, to avoid file-name clashes on DOS
-		     ;; 8+3 filesystems.
 		     (gud-cont . "gud/cont")
 		     (gud-until . "gud/until")
 		     (gud-next . "gud/next")
@@ -455,7 +452,7 @@ required by the caller."
 	  (let ((var-list gdb-var-list) parent)
 	    (while var-list
 	      (let* (char (depth 0) (start 0) (var (car var-list))
-			  (expr (car var)) (varnum (nth 1 var))
+			  (varnum (car var)) (expr (nth 1 var))
 			  (type (nth 3 var)) (value (nth 4 var))
 			  (status (nth 5 var)))
 		(put-text-property
@@ -483,9 +480,9 @@ required by the caller."
 		       t)
 		     depth)
 		  (if (eq status 'out-of-scope) (setq parent 'shadow))
-		  (if (and (cadr var-list)
+		  (if (and (nth 1 var-list)
 			   (string-match (concat varnum "\\.")
-					 (cadr (cadr var-list))))
+					 (car (nth 1 var-list))))
 		      (setq char ?-)
 		    (setq char ?+))
 		  (if (string-match "\\*$" type)

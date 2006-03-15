@@ -800,15 +800,15 @@ explicitly ignore invisible newlines if
 @code{line-move-ignore-invisible} is non-@code{nil} (the default), but
 only because they are explicitly programmed to do so.
 
-  However, if a command ends with point inside or immediately after
+  However, if a command ends with point inside or immediately before
 invisible text, the main editing loop moves point further forward or
 further backward (in the same direction that the command already moved
 it) until that condition is no longer true.  Thus, if the command
 moved point back into an invisible range, Emacs moves point back to
-the beginning of that range, following the previous visible character.
-If the command moved point forward into an invisible range, Emacs
-moves point forward past the first visible character that follows the
-invisible text.
+the beginning of that range, and then back one more character.  If the
+command moved point forward into an invisible range, Emacs moves point
+forward up to the first visible character that follows the invisible
+text.
 
   Incremental search can make invisible overlays visible temporarily
 and/or permanently when a match includes invisible text.  To enable
@@ -4127,30 +4127,32 @@ should specify the image as follows:
 
 @defun image-load-path-for-library library image &optional path no-error
 @tindex image-load-path-for-library
-Return a suitable search path for images relative to @var{library}.
+This function returns a suitable search path for images relative to
+@var{library}.
 
-Images for @var{library} are searched for in @file{../../etc/images}
-and @file{../etc/images} relative to the files in
-@file{lisp/@var{library}} as well as in @code{image-load-path} and
-@var{load-path}.
+First it searches for @var{image} in a path suitable for
+@var{library}, which includes @file{../../etc/images} and
+@file{../etc/images} relative to the library file itself, followed by
+@code{image-load-path} and @code{load-path}.
 
-This function returns the value of @code{load-path} augmented with the
-directory containing @var{image}. If @var{path} is given, it is used
-instead of @code{load-path}. If @code{path} is @code{t}, just return
-the directory that contains @var{image}.
+Then this function returns a list of directories which contains first
+the directory in which @var{image} was found, followed by the value of
+@code{load-path}.  If @var{path} is given, it is used instead of
+@code{load-path}.
 
-If @var{no-error} is non-nil, this function returns @code{nil} if a
-suitable path can't be found rather than signaling an error.
+If @var{no-error} is non-@code{nil} and a suitable path can't be
+found, don't signal an error.  Instead, return a list of directories as
+before, except that @code{nil} appears in place of the image directory.
 
 Here is an example that uses a common idiom to provide compatibility
 with versions of Emacs that lack the variable @code{image-load-path}:
 
 @example
-(let ((load-path
-       (image-load-path-for-library "mh-e" "mh-logo.xpm"))
-      (image-load-path
-       (image-load-path-for-library "mh-e" "mh-logo.xpm"
-                                    'image-load-path)))
+;; Avoid errors on Emacsen without `image-load-path'.
+(if (not (boundp 'image-load-path)) (defvar image-load-path nil))
+
+(let* ((load-path (image-load-path-for-library "mh-e" "mh-logo.xpm"))
+       (image-load-path (cons (car load-path) image-load-path)))
   (mh-tool-bar-folder-buttons-init))
 @end example
 @end defun

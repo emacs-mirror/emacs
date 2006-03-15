@@ -1039,7 +1039,7 @@ a very meaningful entity to highlight.")
 	  (when font-lock-syntax-table
 	    (set-syntax-table font-lock-syntax-table))
           (goto-char beg)
-          (setq beg (line-beginning-position (- 1 font-lock-lines-before)))
+	  (setq beg (line-beginning-position))
 	  ;; check to see if we should expand the beg/end area for
 	  ;; proper multiline matches
 	  (when (and (> beg (point-min))
@@ -1090,13 +1090,18 @@ what properties to clear before refontifying a region.")
 ;; Called when any modification is made to buffer text.
 (defun font-lock-after-change-function (beg end old-len)
   (let ((inhibit-point-motion-hooks t)
-	(inhibit-quit t))
+	(inhibit-quit t)
+	(region (font-lock-extend-region beg end old-len)))
     (save-excursion
       (save-match-data
-	;; Rescan between start of lines enclosing the region.
-	(font-lock-fontify-region
-	 (progn (goto-char beg) (forward-line 0) (point))
-	 (progn (goto-char end) (forward-line 1) (point)))))))
+	(if region
+	    ;; Fontify the region the major mode has specified.
+	    (setq beg (car region) end (cdr region))
+	  ;; Fontify the whole lines which enclose the region.
+	  (setq beg (progn (goto-char beg)
+			   (forward-line (- font-lock-lines-before)))
+		end (progn (goto-char end) (forward-line 1) (point))))
+	(font-lock-fontify-region beg end)))))
 
 (defun font-lock-fontify-block (&optional arg)
   "Fontify some lines the way `font-lock-fontify-buffer' would.

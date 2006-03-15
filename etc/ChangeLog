@@ -1,3 +1,7 @@
+2006-03-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* DEBUG (Note): Describe features for debugging with GDB in Emacs.
+
 2006-03-11  Miles Bader  <miles@gnu.org>
 
 	* images/mail: New directory.

@@ -1,3 +1,21 @@
+2006-03-14  Bill Wohler  <wohler@newt.com>
+
+	* display.texi (Defining Images): In image-load-path-for-library,
+	always return list of directories.  Update example.
+
+2006-03-14  Alan Mackenzie  <acm@muc.de>
+
+	* modes.texi: New node, "Region to Fontify" (for Font Lock).
+	This describes font-lock-extend-region-function.
+	("Other Font Lock Variables"): move "font-lock-lines-before" to
+	the new node "Region to Fontify".
+
+2006-03-13  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Invisible Text): The impossible position is
+	now before the invisible text, not after.
+	(Defining Images): Clean up last change.
+
 2006-03-11  Bill Wohler  <wohler@newt.com>
 
 	* display.texi (Defining Images): Add image-load-path-for-library.

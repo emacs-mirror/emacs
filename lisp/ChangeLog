@@ -1,3 +1,128 @@
+2006-03-14  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Increment version to 2.2.1 in file commentary.
+
+	(allout-version): Increment to 2.2.1.
+
+	(allout-default-layout): New customization variable, used when the
+	file lacks a specific allout-layout.  Uses allout-layout-type for
+	recursively nested definition.
+
+	(allout-layout-type): Widget defining allout layouts, necessary for
+	self-recursive definition.
+
+	(allout-mode): Incorporate allout-default-layout as fallback for
+	allout-layout.
+
+	(allout-layout): Mark as 'safe-local-variable', and refer mention
+	fallback to `allout-default-layout' in absence of a specified value.
+	(allout-passphrase-verifier-string)
+	(allout-passphrase-hint-string): Mark as 'safe-local-variable'.
+
+	(allout-file-passphrase-verifier-string): Obsolete variable, removed.
+
+	(allout-get-encryption-passphrase-verifier): Use correct name of
+	passphrase verifier in docstring.
+
+2006-03-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-list): Change order of first two
+	elements.
+	(gdb-find-watch-expression): Make it work for arrays too.  Follow
+	change to gdb-var-list.
+	(gud-watch): Allow the user to enter variable name with a prexix
+	arg.  Create keybindings.
+	(gdb-var-create-handler, gdb-var-evaluate-expression-handler)
+	(gdb-var-list-children-handler, gdb-var-update-handler)
+	(gdb-var-delete, gdb-edit-value, gdb-speedbar-expand-node)
+	(gdb-var-list-children-handler-1, gdb-var-update-handler-1):
+	Follow change to gdb-var-list.
+	(gdb-starting): Don't show the overlay arrows when program is
+	running.
+
+	* progmodes/gud.el (gud-speedbar-buttons): Follow change to
+	gdb-var-list.
+
+2006-03-14  Bill Wohler  <wohler@newt.com>
+
+	* image.el (image-load-path-for-library): Pass value of path
+	rather than symbol. Always return list of directories. Guarantee
+	that image directory comes first.
+
+2006-03-14  Alan Mackenzie  <acm@muc.de>
+
+	* font-core.el: New function/variable
+	font-lock-extend-region\(-function\)?.
+
+	* font-lock.el (font-lock-after-change-function): Call
+	font-lock-extend-region.  Obey font-lock-lines-before.
+	(font-lock-default-fontify-region): Remove reference to
+	font-lock-lines-before.
+
+	* jit-lock.el (jit-lock-after-change): Call
+	font-lock-extend-region.  Obey font-lock-lines-before.
+
+2006-03-14  David Ponce  <david@dponce.com>
+
+	* tree-widget.el (tree-widget-themes-load-path)
+	(tree-widget-themes-directory, tree-widget-theme): Doc fix.
+
+2006-03-13  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc) <defgroup>: Add link to manual.
+	(rcirc-print): Mark the start of text at the end of the prompt.
+	(rcirc-track-minor-mode): Add autoload cookie.
+	(rcirc-update-activity-string): Add space to front of mode-line
+	indicator.
+
+2006-03-13  Miles Bader  <miles@gnu.org>
+
+	* net/rcirc.el (rcirc-nick-abbrevs): Remove variable.
+	(rcirc-abbrev-nick): Remove function.
+	(rcirc-format-response-string): Don't call `rcirc-abbrev-nick'.
+
+2006-03-13  David Ponce  <david@dponce.com>
+
+	* tree-widget.el: Handle themes across all occurrences of the main
+	themes sub-directory found in tree-widget-themes-load-path.
+	(tree-widget-themes-directory, tree-widget-theme): Doc fix.
+	(tree-widget--locate-sub-directory): Return all occurrences.
+	(tree-widget-themes-path): New function.  Replace
+	tree-widget-themes-directory, and return a list of directories.
+	(tree-widget-set-parent-theme)
+	(tree-widget-lookup-image): Use it.
+
+2006-03-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-link-search): Avoid self-matching of
+	links, allow target text to be distributed over several lines.
+	(org-search-not-link): New function.
+	(org-set-regexps-and-options, org-get-current-options): New
+	startup options.
+	(org-export-as-html): Take odd-level setting from local variable.
+	(org-fontify-emphasized-text): New option.
+	(org-set-font-lock-defaults): Include emphasized text.
+	(org-follow-mhe-link): Allow folder-only links, fix folder name.
+	(org-font-lock): Customize group renamed from `org-faces'.
+
+2006-03-13  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuf-ext.el (ibuffer-never-show-predicates): Add `require'
+	keyword; require `ibuf-ext' feature.  Thanks to Zhang Wei.
+
+2006-03-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-start.el (all): Delete :version keyword for members of the
+	fringe group, since the entire group is new in 22.1.
+
+2006-03-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-stack-list-locals-handler): Add local
+	map if value is hexadecimal (an address).
+	(gud-watch): Only search roots for existing watch expressions.
+	(gdb-speedbar-refresh): Bind speedbar-shown-directories to nil to
+	prevent caching problems with speedbar-update-directory-contents.
+
 2006-03-12  Juri Linkov  <juri@jurta.org>
 
 	* battery.el (battery-linux-proc-acpi): Check `capacity' for non-nil

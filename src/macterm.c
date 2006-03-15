@@ -268,6 +268,72 @@ extern void menubar_selection_callback (FRAME_PTR, int);
 #define GC_BACK_COLOR(gc)	(&(gc)->back_color)
 #define GC_FONT(gc)		((gc)->xgcv.font)
 #define FRAME_NORMAL_GC(f)	((f)->output_data.mac->normal_gc)
+#define CG_SET_FILL_COLOR(context, color)			\
+  CGContextSetRGBFillColor (context,					\
+			    RED_FROM_ULONG (color) / 255.0f,		\
+			    GREEN_FROM_ULONG (color) / 255.0f,		\
+			    BLUE_FROM_ULONG (color) / 255.0f, 1.0f)
+#define CG_SET_STROKE_COLOR(context, color)		\
+  CGContextSetRGBStrokeColor (context,					\
+			      RED_FROM_ULONG (color) / 255.0f,		\
+			      GREEN_FROM_ULONG (color) / 255.0f,	\
+			      BLUE_FROM_ULONG (color) / 255.0f, 1.0f)
+#if USE_CG_DRAWING
+#define FRAME_CG_CONTEXT(f)	((f)->output_data.mac->cg_context)
+
+static CGContextRef
+mac_begin_cg_clip (f, gc)
+     struct frame *f;
+     GC gc;
+{
+  CGContextRef context = FRAME_CG_CONTEXT (f);
+
+  if (!context)
+    {
+      QDBeginCGContext (GetWindowPort (FRAME_MAC_WINDOW (f)), &context);
+      FRAME_CG_CONTEXT (f) = context;
+    }
+
+  CGContextSaveGState (context);
+  CGContextTranslateCTM (context, 0, FRAME_PIXEL_HEIGHT (f));
+  CGContextScaleCTM (context, 1, -1);
+  if (gc && gc->n_clip_rects)
+    CGContextClipToRects (context, gc->clip_rects, gc->n_clip_rects);
+
+  return context;
+}
+
+static void
+mac_end_cg_clip (f)
+     struct frame *f;
+{
+  CGContextRestoreGState (FRAME_CG_CONTEXT (f));
+}
+
+void
+mac_prepare_for_quickdraw (f)
+     struct frame *f;
+{
+  if (f == NULL)
+    {
+      Lisp_Object rest, frame;
+      FOR_EACH_FRAME (rest, frame)
+	if (FRAME_MAC_P (XFRAME (frame)))
+	  mac_prepare_for_quickdraw (XFRAME (frame));
+    }
+  else
+    {
+      CGContextRef context = FRAME_CG_CONTEXT (f);
+
+      if (context)
+	{
+	  CGContextSynchronize (context);
+	  QDEndCGContext (GetWindowPort (FRAME_MAC_WINDOW (f)),
+			  &FRAME_CG_CONTEXT (f));
+	}
+    }
+}
+#endif
 
 static RgnHandle saved_port_clip_region = NULL;
 
@@ -318,6 +384,18 @@ mac_draw_line (f, gc, x1, y1, x2, y2)
      GC gc;
      int x1, y1, x2, y2;
 {
+#if USE_CG_DRAWING
+  CGContextRef context;
+
+  context = mac_begin_cg_clip (f, gc);
+  CG_SET_STROKE_COLOR (context, gc->xgcv.foreground);
+  CGContextBeginPath (context);
+  CGContextMoveToPoint (context, x1 + 0.5f, y1 + 0.5f);
+  CGContextAddLineToPoint (context, x2 + 0.5f, y2 + 0.5f);
+  CGContextClosePath (context);
+  CGContextStrokePath (context);
+  mac_end_cg_clip (f);
+#else
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   RGBForeColor (GC_FORE_COLOR (gc));
@@ -326,6 +404,7 @@ mac_draw_line (f, gc, x1, y1, x2, y2)
   MoveTo (x1, y1);
   LineTo (x2, y2);
   mac_end_clip (gc);
+#endif
 }
 
 void
@@ -359,6 +438,14 @@ mac_erase_rectangle (f, gc, x, y, width, height)
      int x, y;
      unsigned int width, height;
 {
+#if USE_CG_DRAWING
+  CGContextRef context;
+
+  context = mac_begin_cg_clip (f, gc);
+  CG_SET_FILL_COLOR (context, gc->xgcv.background);
+  CGContextFillRect (context, CGRectMake (x, y, width, height));
+  mac_end_cg_clip (f);
+#else
   Rect r;
 
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
@@ -371,6 +458,7 @@ mac_erase_rectangle (f, gc, x, y, width, height)
   mac_end_clip (gc);
 
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
+#endif
 }
 
 
@@ -391,6 +479,16 @@ static void
 mac_clear_window (f)
      struct frame *f;
 {
+#if USE_CG_DRAWING
+  CGContextRef context;
+  GC gc = FRAME_NORMAL_GC (f);
+
+  context = mac_begin_cg_clip (f, NULL);
+  CG_SET_FILL_COLOR (context, gc->xgcv.background);
+  CGContextFillRect (context, CGRectMake (0, 0, FRAME_PIXEL_WIDTH (f),
+					  FRAME_PIXEL_HEIGHT (f)));
+  mac_end_cg_clip (f);
+#else
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
@@ -405,6 +503,7 @@ mac_clear_window (f)
 #else /* not TARGET_API_MAC_CARBON */
   EraseRect (&(FRAME_MAC_WINDOW (f)->portRect));
 #endif /* not TARGET_API_MAC_CARBON */
+#endif
 }
 
 
@@ -425,6 +524,9 @@ mac_draw_bitmap (f, gc, x, y, width, height, bits, overlay_p)
   bitmap.baseAddr = (char *)bits;
   SetRect (&(bitmap.bounds), 0, 0, width, height);
 
+#if USE_CG_DRAWING
+  mac_prepare_for_quickdraw (f);
+#endif
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   RGBForeColor (GC_FORE_COLOR (gc));
@@ -571,6 +673,14 @@ mac_fill_rectangle (f, gc, x, y, width, height)
      int x, y;
      unsigned int width, height;
 {
+#if USE_CG_DRAWING
+  CGContextRef context;
+
+  context = mac_begin_cg_clip (f, gc);
+  CG_SET_FILL_COLOR (context, gc->xgcv.foreground);
+  CGContextFillRect (context, CGRectMake (x, y, width, height));
+  mac_end_cg_clip (f);
+#else
   Rect r;
 
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
@@ -581,6 +691,7 @@ mac_fill_rectangle (f, gc, x, y, width, height)
   mac_begin_clip (gc);
   PaintRect (&r); /* using foreground color of gc */
   mac_end_clip (gc);
+#endif
 }
 
 
@@ -593,16 +704,26 @@ mac_draw_rectangle (f, gc, x, y, width, height)
      int x, y;
      unsigned int width, height;
 {
+#if USE_CG_DRAWING
+  CGContextRef context;
+
+  context = mac_begin_cg_clip (f, gc);
+  CG_SET_STROKE_COLOR (context, gc->xgcv.foreground);
+  CGContextStrokeRect (context,
+		       CGRectMake (x + 0.5f, y + 0.5f, width, height));
+  mac_end_cg_clip (f);
+#else
   Rect r;
 
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   RGBForeColor (GC_FORE_COLOR (gc));
-  SetRect (&r, x, y, x + width, y + height);
+  SetRect (&r, x, y, x + width + 1, y + height + 1);
 
   mac_begin_clip (gc);
   FrameRect (&r); /* using foreground color of gc */
   mac_end_clip (gc);
+#endif
 }
 
 
@@ -672,6 +793,9 @@ mac_invert_rectangle (f, x, y, width, height)
 {
   Rect r;
 
+#if USE_CG_DRAWING
+  mac_prepare_for_quickdraw (f);
+#endif
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   SetRect (&r, x, y, x + width, y + height);
@@ -717,6 +841,9 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
       if (!mac_use_core_graphics)
 	{
 #endif
+#if USE_CG_DRAWING
+	  mac_prepare_for_quickdraw (f);
+#endif
 	  mac_begin_clip (gc);
 	  RGBForeColor (GC_FORE_COLOR (gc));
 	  if (bg_width)
@@ -745,6 +872,9 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
 	  ByteCount sizes[] = {sizeof (CGContextRef)};
 	  ATSUAttributeValuePtr values[] = {&context};
 
+#if USE_CG_DRAWING
+	  context = mac_begin_cg_clip (f, gc);
+#else
 	  GetPort (&port);
 	  QDBeginCGContext (port, &context);
 	  if (gc->n_clip_rects || bg_width)
@@ -754,14 +884,10 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
 	      if (gc->n_clip_rects)
 		CGContextClipToRects (context, gc->clip_rects,
 				      gc->n_clip_rects);
+#endif
 	      if (bg_width)
 		{
-		  CGContextSetRGBFillColor
-		    (context,
-		     RED_FROM_ULONG (gc->xgcv.background) / 255.0f,
-		     GREEN_FROM_ULONG (gc->xgcv.background) / 255.0f,
-		     BLUE_FROM_ULONG (gc->xgcv.background) / 255.0f,
-		     1.0);
+		  CG_SET_FILL_COLOR (context, gc->xgcv.background);
 		  CGContextFillRect
 		    (context,
 		     CGRectMake (x, y - FONT_BASE (GC_FONT (gc)),
@@ -769,13 +895,10 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
 		}
 	      CGContextScaleCTM (context, 1, -1);
 	      CGContextTranslateCTM (context, 0, -port_height);
+#if !USE_CG_DRAWING
 	    }
-	  CGContextSetRGBFillColor
-	    (context,
-	     RED_FROM_ULONG (gc->xgcv.foreground) / 255.0f,
-	     GREEN_FROM_ULONG (gc->xgcv.foreground) / 255.0f,
-	     BLUE_FROM_ULONG (gc->xgcv.foreground) / 255.0f,
-	     1.0);
+#endif
+	  CG_SET_FILL_COLOR (context, gc->xgcv.foreground);
 	  err = ATSUSetLayoutControls (text_layout,
 				       sizeof (tags) / sizeof (tags[0]),
 				       tags, sizes, values);
@@ -783,8 +906,13 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
 	    ATSUDrawText (text_layout,
 			  kATSUFromTextBeginning, kATSUToTextEnd,
 			  Long2Fix (x), Long2Fix (port_height - y));
+#if USE_CG_DRAWING
+	  mac_end_cg_clip (f);
+	  context = NULL;
+#else
 	  CGContextSynchronize (context);
 	  QDEndCGContext (port, &context);
+#endif
 #if 0
 	  /* This doesn't work on Mac OS X 10.1.  */
 	  ATSUClearLayoutControls (text_layout,
@@ -805,6 +933,9 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
 
       if (mac_use_core_graphics)
 	savedFlags = SwapQDTextFlags (kQDUseCGTextRendering);
+#endif
+#if USE_CG_DRAWING
+      mac_prepare_for_quickdraw (f);
 #endif
       mac_begin_clip (gc);
       RGBForeColor (GC_FORE_COLOR (gc));
@@ -1113,6 +1244,9 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width)
       buf++;
     }
 
+#if USE_CG_DRAWING
+  context = mac_begin_cg_clip (f, gc);
+#else
   QDBeginCGContext (port, &context);
   if (gc->n_clip_rects || bg_width)
     {
@@ -1120,14 +1254,10 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width)
       CGContextScaleCTM (context, 1, -1);
       if (gc->n_clip_rects)
 	CGContextClipToRects (context, gc->clip_rects, gc->n_clip_rects);
+#endif
       if (bg_width)
 	{
-	  CGContextSetRGBFillColor
-	    (context,
-	     RED_FROM_ULONG (gc->xgcv.background) / 255.0f,
-	     GREEN_FROM_ULONG (gc->xgcv.background) / 255.0f,
-	     BLUE_FROM_ULONG (gc->xgcv.background) / 255.0f,
-	     1.0);
+	  CG_SET_FILL_COLOR (context, gc->xgcv.background);
 	  CGContextFillRect
 	    (context,
 	     CGRectMake (gx, y - FONT_BASE (GC_FONT (gc)),
@@ -1135,12 +1265,10 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width)
 	}
       CGContextScaleCTM (context, 1, -1);
       CGContextTranslateCTM (context, 0, -port_height);
+#if !USE_CG_DRAWING
     }
-  CGContextSetRGBFillColor (context,
-			    RED_FROM_ULONG (gc->xgcv.foreground) / 255.0f,
-			    GREEN_FROM_ULONG (gc->xgcv.foreground) / 255.0f,
-			    BLUE_FROM_ULONG (gc->xgcv.foreground) / 255.0f,
-			    1.0);
+#endif
+  CG_SET_FILL_COLOR (context, gc->xgcv.foreground);
   CGContextSetFont (context, GC_FONT (gc)->cg_font);
   CGContextSetFontSize (context, GC_FONT (gc)->mac_fontsize);
   if (GC_FONT (gc)->mac_fontsize <= cg_text_anti_aliasing_threshold)
@@ -1155,8 +1283,12 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width)
       gx += advances[i].width;
     }
 #endif
+#if USE_CG_DRAWING
+  mac_end_cg_clip (f);
+#else
   CGContextSynchronize (context);
   QDEndCGContext (port, &context);
+#endif
 
   return 1;
 }
@@ -1176,6 +1308,9 @@ mac_copy_area (src, f, gc, src_x, src_y, width, height, dest_x, dest_y)
 {
   Rect src_r, dest_r;
 
+#if USE_CG_DRAWING
+  mac_prepare_for_quickdraw (f);
+#endif
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
@@ -1220,6 +1355,9 @@ mac_copy_area_with_mask (src, mask, f, gc, src_x, src_y,
 {
   Rect src_r, dest_r;
 
+#if USE_CG_DRAWING
+  mac_prepare_for_quickdraw (f);
+#endif
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
@@ -1269,6 +1407,9 @@ mac_scroll_area (f, gc, src_x, src_y, width, height, dest_x, dest_y)
   RgnHandle dummy = NewRgn ();	/* For avoiding update events.  */
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
+#if USE_CG_DRAWING
+  mac_prepare_for_quickdraw (f);
+#endif
   ScrollWindowRect (FRAME_MAC_WINDOW (f),
 		    &src_r, dest_x - src_x, dest_y - src_y,
 		    kScrollWindowNoOptions, dummy);
@@ -1527,6 +1668,9 @@ x_flush (f)
 {
 #if TARGET_API_MAC_CARBON
   BLOCK_INPUT;
+#if USE_CG_DRAWING
+  mac_prepare_for_quickdraw (f);
+#endif
   if (f)
     QDFlushPortBuffer (GetWindowPort (FRAME_MAC_WINDOW (f)), NULL);
   else
@@ -2436,7 +2580,7 @@ x_draw_glyph_string_foreground (s)
 	{
 	  struct glyph *g = s->first_glyph + i;
 	  mac_draw_rectangle (s->f, s->gc, x, s->y,
-			      g->pixel_width, s->height);
+			      g->pixel_width - 1, s->height - 1);
 	  x += g->pixel_width;
 	}
     }
@@ -2515,7 +2659,7 @@ x_draw_composite_glyph_string_foreground (s)
     {
       if (s->gidx == 0)
 	mac_draw_rectangle (s->f, s->gc, x, s->y,
-			    s->width, s->height);
+			    s->width - 1, s->height - 1);
     }
   else
     {
@@ -3068,15 +3212,15 @@ x_draw_image_foreground (s)
 	      int r = s->img->relief;
 	      if (r < 0) r = -r;
 	      mac_draw_rectangle (s->f, s->gc, x - r, y - r,
-				  s->slice.width + r*2,
-				  s->slice.height + r*2);
+				  s->slice.width + r*2 - 1,
+				  s->slice.height + r*2 - 1);
 	    }
 	}
     }
   else
     /* Draw a rectangle if image could not be loaded.  */
     mac_draw_rectangle (s->f, s->gc, x, y,
-			s->slice.width, s->slice.height);
+			s->slice.width - 1, s->slice.height - 1);
 }
 
 
@@ -4593,6 +4737,9 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
   r.right = left + width;
   r.bottom = disp_top + disp_height;
 
+#if USE_CG_DRAWING
+  mac_prepare_for_quickdraw (f);
+#endif
 #if TARGET_API_MAC_CARBON
   ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p",
 #if USE_TOOLKIT_SCROLL_BARS
@@ -4719,6 +4866,9 @@ x_scroll_bar_remove (bar)
 
   BLOCK_INPUT;
 
+#if USE_CG_DRAWING
+  mac_prepare_for_quickdraw (f);
+#endif
   /* Destroy the Mac scroll bar control  */
   DisposeControl (SCROLL_BAR_CONTROL_HANDLE (bar));
 
@@ -4815,6 +4965,9 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	     for them on the frame, we have to clear "under" them.  */
 	  mac_clear_area (f, left, top, width, height);
 
+#if USE_CG_DRAWING
+	  mac_prepare_for_quickdraw (f);
+#endif
           HideControl (ch);
           MoveControl (ch, sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM, disp_top);
           SizeControl (ch, sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
@@ -5245,7 +5398,7 @@ x_draw_hollow_cursor (w, row)
   /* Compute frame-relative coordinates for phys cursor.  */
   x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
   y = get_phys_cursor_geometry (w, row, cursor_glyph, &h);
-  wd = w->phys_cursor_width + 1;
+  wd = w->phys_cursor_width;
 
   /* The foreground of cursor_gc is typically the same as the normal
      background color, which can cause the cursor box to be invisible.  */
@@ -5259,7 +5412,7 @@ x_draw_hollow_cursor (w, row)
 
   /* Set clipping, draw the rectangle, and reset clipping again.  */
   x_clip_to_row (w, row, TEXT_AREA, gc);
-  mac_draw_rectangle (f, gc, x, y, wd, h);
+  mac_draw_rectangle (f, gc, x, y, wd, h - 1);
   mac_reset_clip_rectangles (dpy, gc);
 }
 
@@ -5786,8 +5939,13 @@ x_set_window_size (f, change_gravity, cols, rows)
   SizeWindow (FRAME_MAC_WINDOW (f), pixelwidth, pixelheight, 0);
 #if TARGET_API_MAC_CARBON
   if (f->output_data.mac->hourglass_control)
-    MoveControl (f->output_data.mac->hourglass_control,
-		 pixelwidth - HOURGLASS_WIDTH, 0);
+    {
+#if USE_CG_DRAWING
+      mac_prepare_for_quickdraw (f);
+#endif
+      MoveControl (f->output_data.mac->hourglass_control,
+		   pixelwidth - HOURGLASS_WIDTH, 0);
+    }
 #endif
 
   /* Now, strictly speaking, we can't be sure that this is accurate,
@@ -9672,7 +9830,11 @@ XTread_socket (sd, expected, hold_quit)
 #if USE_CARBON_EVENTS
   toolbox_dispatcher = GetEventDispatcherTarget ();
 
-  while (!ReceiveNextEvent (0, NULL, kEventDurationNoWait,
+  while (
+#if USE_CG_DRAWING
+	 mac_prepare_for_quickdraw (NULL),
+#endif
+	 !ReceiveNextEvent (0, NULL, kEventDurationNoWait,
 			    kEventRemoveFromQueue, &eventRef))
 #else /* !USE_CARBON_EVENTS */
   while (mac_wait_next_event (&er, 0, true))

@@ -819,8 +819,10 @@ cached information about equivalent key sequences.  */)
     }
 
 #ifdef HAVE_MENUS
-  /* If resources from a previous popup menu exist yet, does nothing
-     until the `menu_free_timer' has freed them (see w32fns.c).
+  /* If resources from a previous popup menu still exist, does nothing
+     until the `menu_free_timer' has freed them (see w32fns.c). This
+     can occur if you press ESC or click outside a menu without selecting
+     a menu item.
   */
   if (current_popup_menu)
     {
@@ -837,6 +839,8 @@ cached information about equivalent key sequences.  */)
   UNBLOCK_INPUT;
 
   discard_menu_items ();
+  w32_free_menu_strings (FRAME_W32_WINDOW (f));
+
 #endif /* HAVE_MENUS */
 
   UNGCPRO;
