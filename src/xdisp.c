@@ -9438,7 +9438,12 @@ build_desired_tool_bar_string (f)
    HEIGHT specifies the desired height of the tool-bar line.
    If the actual height of the glyph row is less than HEIGHT, the
    row's height is increased to HEIGHT, and the icons are centered
-   vertically in the new height.  */
+   vertically in the new height.
+
+   If HEIGHT is -1, we are counting needed tool-bar lines, so don't
+   count a final empty row in case the tool-bar width exactly matches
+   the window width.
+*/
 
 static void
 display_tool_bar_line (it, height)
@@ -9462,7 +9467,12 @@ display_tool_bar_line (it, height)
 
       /* Get the next display element.  */
       if (!get_next_display_element (it))
-	break;
+	{
+	  /* Don't count empty row if we are counting needed tool-bar lines.  */
+	  if (height < 0 && !it->hpos)
+	    return;
+	  break;
+	}
 
       /* Produce glyphs.  */
       x_before = it->current_x;
@@ -9560,11 +9570,12 @@ tool_bar_lines_needed (f, n_rows)
     {
       it.glyph_row = w->desired_matrix->rows;
       clear_glyph_row (it.glyph_row);
-      display_tool_bar_line (&it, 0);
+      display_tool_bar_line (&it, -1);
     }
 
+  /* f->n_tool_bar_rows == 0 means "unknown"; -1 means no tool-bar.  */
   if (n_rows)
-    *n_rows = it.vpos;
+    *n_rows = it.vpos > 0 ? it.vpos : -1;
 
   return (it.current_y + FRAME_LINE_HEIGHT (f) - 1) / FRAME_LINE_HEIGHT (f);
 }
@@ -9640,11 +9651,7 @@ redisplay_tool_bar (f)
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
 
   if (f->n_tool_bar_rows == 0)
-    {
-      (void)tool_bar_lines_needed (f, &f->n_tool_bar_rows);
-      if (f->n_tool_bar_rows == 0)
-	f->n_tool_bar_rows = -1;
-    }
+    (void)tool_bar_lines_needed (f, &f->n_tool_bar_rows);
 
   /* Display as many lines as needed to display all tool-bar items.  */
 
@@ -15358,6 +15365,7 @@ extend_face_to_end_of_line (it)
     face = FACE_FROM_ID (f, it->face_id);
 
   if (FRAME_WINDOW_P (f)
+      && it->glyph_row->displays_text_p
       && face->box == FACE_NO_BOX
       && face->background == FRAME_BACKGROUND_PIXEL (f)
       && !face->stipple)
