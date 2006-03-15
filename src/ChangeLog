@@ -45,7 +45,7 @@
 	(note_mouse_movement): Say mouse moved if current frame differs
 	from last_mouse_glyph_frame, and update last_mouse_glyph_frame.
 	(w32_mouse_position): Set last_mouse_glyph_frame.
-	 Remove OLD_REDISPLAY_CODE block.
+	Remove OLD_REDISPLAY_CODE block.
 
 2006-03-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -223,7 +223,7 @@
 
 	* xdisp.c: Minimize the unpleasent visual impact of the requirement
 	that non-toolkit tool-bars must occupy an integral number of screen
-	lines, by distributing the rows evenly over the tool-bar screen	area.
+	lines, by distributing the rows evenly over the tool-bar screen area.
 	(Vtool_bar_border): New variable.
 	(syms_of_xdisp): DEFVAR_LISP it.
 	(display_tool_bar_line): Add HEIGHT arg for desired row height.
@@ -456,7 +456,7 @@
 	(draw_fringe_bitmap_1): Make static.
 	(get_logical_cursor_bitmap, get_logical_fringe_bitmap): New functions
 	to map from logical cursors and indicators to physical bitmaps.
-	(draw_fringe_bitmap): Resolve fringe cursor and	overlay-arrow
+	(draw_fringe_bitmap): Resolve fringe cursor and overlay-arrow
 	bitmaps using symbol names instead of bitmap numbers.
 	(update_window_fringes): Use logical indicator symbol names
 	instead of bitmap numbers for logical.  Add bitmap cache.
