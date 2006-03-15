@@ -1,3 +1,11 @@
+2006-03-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-insert-centered): Use `string-width' to
+	make underlining work for wide characters.
+	(org-goto-map, org-agenda-mode-map, org-mode-map): Explicitly bind
+	TAB to `org-cycle', to make sure that no binding in
+	`outline-mode-map' can supercede it.
+
 2006-03-14  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el: Increment version to 2.2.1 in file commentary.
