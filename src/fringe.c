@@ -1689,10 +1689,10 @@ init_fringe ()
     }
 }
 
-#if defined (WINDOWS_NT) || defined (MAC_OS)
+#if defined (HAVE_NTGUI) || defined (MAC_OS)
 
 void
-#ifdef WINDOWS_NT
+#ifdef HAVE_NTGUI
 w32_init_fringe ()
 #else  /* MAC_OS */
 mac_init_fringe ()
@@ -1711,7 +1711,7 @@ mac_init_fringe ()
 }
 #endif
 
-#ifdef WINDOWS_NT
+#ifdef HAVE_NTGUI
 void
 w32_reset_fringes ()
 {
