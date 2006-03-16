@@ -1,3 +1,7 @@
+2006-03-16  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-edit-input): Use selected match, if any.
+
 2006-03-16  Bill Wohler  <wohler@newt.com>
 
 	* image.el (image-load-path-for-library): Prefer user's images in
@@ -14,7 +18,7 @@
 	(gdb-force-mode-line-update): New function.
 	(gdb-resync, gdb-starting, gdb-signal, gdb-exited, gdb-stopped)
 	(gdb-exited): Use them.
-	(gdb-signal): New fuction. 
+	(gdb-signal): New fuction.
 	(gdb-annotation-rules): Provide a rule for it.
 
 2006-03-16  Kenichi Handa  <handa@m17n.org>
