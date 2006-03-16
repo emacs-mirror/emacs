@@ -1,3 +1,20 @@
+2006-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [MAC_OS] (XPutPixel, XGetPixel)
+	[!WORDS_BIG_ENDIAN && USE_CG_DRAWING]: Don't use specialized
+	version when depth is 32.
+	(mac_create_cg_image_from_image) [MAC_OS && USE_CG_DRAWING]: New
+	function.
+	(prepare_image_for_display) [MAC_OS && USE_CG_DRAWING]: Use it.
+	(x_clear_image_1) [MAC_OS && USE_CG_DRAWING]: Release CGImage.
+
+	* macterm.c (XCreatePixmap) [!WORDS_BIG_ENDIAN && USE_CG_DRAWING]:
+	Create GWorld in ARGB pixel format.
+	(mac_copy_area, mac_copy_area_with_mask) [USE_CG_DRAWING]: Remove
+	functions.
+	(x_draw_image_foreground) [USE_CG_DRAWING]: Use mac_draw_cg_image
+	instead of mac_copy_area/mac_copy_area_with_mask.
+
 2006-03-15  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (extend_face_to_end_of_line): Always add space glyph to
