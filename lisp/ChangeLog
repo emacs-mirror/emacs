@@ -1,3 +1,14 @@
+2006-03-17  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gud-watch): Provide completion.
+	(gdb-continuation): New variable.
+	(gdb-send): Deal with continuation lines.
+
+	* progmodes/gud.el (gud-gdb-complete-command)
+	(gud-gdb-run-command-fetch-lines): Adapt for use with watch
+	expressions.
+	(gud-tooltip-mode): Use buffer-local value.
+
 2006-03-16  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-edit-input): Use selected match, if any.
