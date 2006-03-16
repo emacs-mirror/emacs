@@ -4127,10 +4127,10 @@ should specify the image as follows:
 
 @defun image-load-path-for-library library image &optional path no-error
 @tindex image-load-path-for-library
-This function returns a suitable search path for images relative to
-@var{library}.
+This function returns a suitable search path for images used by the
+Lisp package @var{library}.
 
-First it searches for @var{image} in @code{image-load-path} (excluding
+It searches for @var{image} in @code{image-load-path} (excluding
 @file{@code{data-directory}/images}) and @code{load-path}, followed by
 a path suitable for @var{library}, which includes
 @file{../../etc/images} and @file{../etc/images} relative to the
