@@ -1,5 +1,7 @@
 2006-03-16  Bill Wohler  <wohler@newt.com>
 
+	* mh-e.el (mh-list-to-string-1): Use dolist.
+
 	* mh-compat.el (mh-image-load-path-for-library): Prefer user's
 	images.
 
