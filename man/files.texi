@@ -3037,8 +3037,8 @@ typically the result of a failed merge from a version control system
 mode provides commands to resolve conflicts by selecting specific
 changes.
 
-  See also @ref{Emerge}, and @ref{Top,,, ediff, The Ediff Manual}, for
-convenient facilities for merging two similar files.
+  @inforef{Emerge,, emacs-xtra} for the Emerge facility, which
+provides a powerful interface for merging files.
 
 @node Misc File Ops
 @section Miscellaneous File Operations
