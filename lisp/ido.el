@@ -1973,7 +1973,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 (defun ido-edit-input ()
   "Edit absolute file name entered so far with ido; terminate by RET."
   (interactive)
-  (setq ido-text-init ido-text)
+  (setq ido-text-init (if ido-matches (car ido-matches) ido-text))
   (setq ido-exit 'edit)
   (exit-minibuffer))
 
