@@ -1,3 +1,12 @@
+2006-03-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-inferior-status): New variable.
+	(gdb-force-mode-line-update): New function.
+	(gdb-resync, gdb-starting, gdb-signal, gdb-exited, gdb-stopped)
+	(gdb-exited): Use them.
+	(gdb-signal): New fuction. 
+	(gdb-annotation-rules): Provide a rule for it.
+
 2006-03-16  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (auto-coding-regexp-alist): Add entries
