@@ -1,3 +1,7 @@
+2006-03-16  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Defining Images): Minor cleanup.
+
 2006-03-16  Bill Wohler  <wohler@newt.com>
 
 	* display.texi (Defining Images): In image-load-path-for-library,
