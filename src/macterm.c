@@ -653,7 +653,15 @@ XCreatePixmap (display, w, width, height, depth)
   SetPortWindowPort (w);
 
   SetRect (&r, 0, 0, width, height);
-  err = NewGWorld (&pixmap, depth, &r, NULL, NULL, 0);
+#if !defined (WORDS_BIG_ENDIAN) && USE_CG_DRAWING
+  if (depth == 1)
+#endif
+    err = NewGWorld (&pixmap, depth, &r, NULL, NULL, 0);
+#if !defined (WORDS_BIG_ENDIAN) && USE_CG_DRAWING
+  else
+    /* CreateCGImageFromPixMaps requires ARGB format.  */
+    err = QTNewGWorld (&pixmap, k32ARGBPixelFormat, &r, NULL, NULL, 0);
+#endif
   if (err != noErr)
     return NULL;
   return pixmap;
@@ -1336,6 +1344,7 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width)
 #endif
 
 
+#if !USE_CG_DRAWING
 /* Mac replacement for XCopyArea: dest must be window.  */
 
 static void
@@ -1349,9 +1358,6 @@ mac_copy_area (src, f, gc, src_x, src_y, width, height, dest_x, dest_y)
 {
   Rect src_r, dest_r;
 
-#if USE_CG_DRAWING
-  mac_prepare_for_quickdraw (f);
-#endif
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
@@ -1396,9 +1402,6 @@ mac_copy_area_with_mask (src, mask, f, gc, src_x, src_y,
 {
   Rect src_r, dest_r;
 
-#if USE_CG_DRAWING
-  mac_prepare_for_quickdraw (f);
-#endif
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
@@ -1431,6 +1434,7 @@ mac_copy_area_with_mask (src, mask, f, gc, src_x, src_y,
 
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 }
+#endif	/* !USE_CG_DRAWING */
 
 
 /* Mac replacement for XCopyArea: used only for scrolling.  */
@@ -3285,15 +3289,26 @@ x_draw_image_foreground (s)
     {
       x_set_glyph_string_clipping (s);
 
+#if USE_CG_DRAWING
+      mac_draw_cg_image (s->img->data.ptr_val,
+			 s->f, s->gc, s->slice.x, s->slice.y,
+			 s->slice.width, s->slice.height, x, y, 1);
+#endif
       if (s->img->mask)
+#if !USE_CG_DRAWING
 	mac_copy_area_with_mask (s->img->pixmap, s->img->mask,
 				 s->f, s->gc, s->slice.x, s->slice.y,
 				 s->slice.width, s->slice.height, x, y);
+#else
+	;
+#endif
       else
 	{
+#if !USE_CG_DRAWING
 	  mac_copy_area (s->img->pixmap,
 			 s->f, s->gc, s->slice.x, s->slice.y,
 			 s->slice.width, s->slice.height, x, y);
+#endif
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
