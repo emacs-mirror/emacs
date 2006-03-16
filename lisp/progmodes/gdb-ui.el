@@ -125,6 +125,7 @@ and #define directives otherwise.")
 (defvar gdb-buffer-fringe-width nil)
 (defvar gdb-signalled nil)
 (defvar gdb-source-window nil)
+(defvar gdb-inferior-status nil)
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
@@ -317,6 +318,16 @@ of the inferior.  Non-nil means display the layout shown for
   :group 'gud
   :version "22.1")
 
+(defun gdb-force-mode-line-update (status)
+  (let ((buffer gud-comint-buffer))
+    (if (and buffer (buffer-name buffer))
+	(with-current-buffer buffer
+	  (setq mode-line-process
+		(format ":%s [%s]"
+			(process-status (get-buffer-process buffer)) status))
+	  ;; Force mode line redisplay soon.
+	  (force-mode-line-update)))))
+    
 (defun gdb-many-windows (arg)
   "Toggle the number of windows in the basic arrangement.
 With arg, display additional buffers iff arg is positive."
@@ -524,7 +535,8 @@ With arg, use separate IO iff arg is positive."
 	gdb-buffer-fringe-width (car (window-fringes))
 	gdb-debug-ring nil
 	gdb-signalled nil
-	gdb-source-window nil)
+	gdb-source-window nil
+	gdb-inferior-status nil)
 
   (setq gdb-buffer-type 'gdba)
 
@@ -1152,7 +1164,7 @@ This filter may simply queue input for a later time."
     ("starting" gdb-starting)
     ("exited" gdb-exited)
     ("signalled" gdb-signalled)
-    ("signal" gdb-stopping)
+    ("signal" gdb-signal)
     ("breakpoint" gdb-stopping)
     ("watchpoint" gdb-stopping)
     ("frame-begin" gdb-frame-begin)
@@ -1164,6 +1176,7 @@ This filter may simply queue input for a later time."
 (defun gdb-resync()
   (setq gdb-flush-pending-output t)
   (setq gud-running nil)
+  (gdb-force-mode-line-update "stopped")
   (setq gdb-output-sink 'user)
   (setq gdb-input-queue nil)
   (setq gdb-pending-triggers nil)
@@ -1238,6 +1251,8 @@ not GDB."
      ((eq sink 'user)
       (progn
 	(setq gud-running t)
+	(setq gdb-inferior-status "running")
+	(gdb-force-mode-line-update gdb-inferior-status)
 	(gdb-remove-text-properties)
 	(setq gud-overlay-arrow-position nil)
 	(setq gdb-overlay-arrow-position nil)
@@ -1246,6 +1261,11 @@ not GDB."
      (t
       (gdb-resync)
       (error "Unexpected `starting' annotation")))))
+
+(defun gdb-signal (ignored)
+  (setq gdb-inferior-status "signal")
+  (gdb-force-mode-line-update gdb-inferior-status)
+  (gdb-stopping ignored))
 
 (defun gdb-stopping (ignored)
   "An annotation handler for `breakpoint' and other annotations.
@@ -1269,6 +1289,8 @@ directives."
   (setq gdb-active-process nil)
   (setq gud-overlay-arrow-position nil)
   (setq gdb-overlay-arrow-position nil)
+  (setq gdb-inferior-status "exited")
+  (gdb-force-mode-line-update gdb-inferior-status)
   (gdb-stopping ignored))
 
 (defun gdb-signalled (ignored)
@@ -1290,6 +1312,9 @@ directives."
 It is just like `gdb-stopping', except that if we already set the output
 sink to `user' in `gdb-stopping', that is fine."
   (setq gud-running nil)
+  (unless (member gdb-inferior-status '("exited" "signal"))
+    (setq gdb-inferior-status "stopped")
+    (gdb-force-mode-line-update gdb-inferior-status))
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'inferior)
