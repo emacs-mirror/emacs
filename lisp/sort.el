@@ -121,6 +121,7 @@ it defaults to `<', otherwise it defaults to `string<'."
 (defun sort-build-lists (nextrecfun endrecfun startkeyfun endkeyfun)
   (let ((sort-lists ())
 	(start-rec nil)
+	(inhibit-field-text-motion t)
 	done key)
     ;; Loop over sort records.
     ;(goto-char (point-min)) -- it is the caller's responsibility to
