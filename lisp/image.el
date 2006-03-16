@@ -81,10 +81,11 @@ value is used as a list of directories to search.")
 (defun image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images relative to LIBRARY.
 
-First it searches for IMAGE in a path suitable for LIBRARY, which
-includes \"../../etc/images\" and \"../etc/images\" relative to
-the library file itself, followed by `image-load-path' and
-`load-path'.
+First it searches for IMAGE in `image-load-path' (excluding
+\"`data-directory'/images\") and `load-path', followed by a path
+suitable for LIBRARY, which includes \"../../etc/images\" and
+\"../etc/images\" relative to the library file itself, and then
+in \"`data-directory'/images\".
 
 Then this function returns a list of directories which contains
 first the directory in which IMAGE was found, followed by the
@@ -109,8 +110,36 @@ compatibility with versions of Emacs that lack the variable
       (mh-tool-bar-folder-buttons-init))"
   (unless library (error "No library specified"))
   (unless image   (error "No image specified"))
-  (let ((image-directory))
+  (let (image-directory image-directory-load-path)
+    ;; Check for images in image-load-path or load-path.
+    (let ((img image)
+          (dir (or
+                ;; Images in image-load-path.
+                (image-search-load-path image)
+                ;; Images in load-path.
+                (locate-library image)))
+          parent)
+      ;; Since the image might be in a nested directory (for
+      ;; example, mail/attach.pbm), adjust `image-directory'
+      ;; accordingly.
+      (when dir
+        (setq dir (file-name-directory dir))
+        (while (setq parent (file-name-directory img))
+          (setq img (directory-file-name parent)
+                dir (expand-file-name "../" dir))))
+      (setq image-directory-load-path dir))
+
+    ;; If `image-directory-load-path' isn't Emacs' image directory,
+    ;; it's probably a user preference, so use it. Then use a
+    ;; relative setting if possible; otherwise, use
+    ;; `image-directory-load-path'.
     (cond
+     ;; User-modified image-load-path?
+     ((and image-directory-load-path
+           (not (equal image-directory-load-path
+                       (file-name-as-directory
+                        (expand-file-name "images" data-directory)))))
+      (setq image-directory image-directory-load-path))
      ;; Try relative setting.
      ((let (library-name d1ei d2ei)
         ;; First, find library in the load-path.
@@ -120,33 +149,20 @@ compatibility with versions of Emacs that lack the variable
         ;; And then set image-directory relative to that.
         (setq
          ;; Go down 2 levels.
-         d2ei (expand-file-name
-               (concat (file-name-directory library-name) "../../etc/images"))
+         d2ei (file-name-as-directory
+               (expand-file-name
+                (concat (file-name-directory library-name) "../../etc/images")))
          ;; Go down 1 level.
-         d1ei (expand-file-name
-               (concat (file-name-directory library-name) "../etc/images")))
+         d1ei (file-name-as-directory
+               (expand-file-name
+                (concat (file-name-directory library-name) "../etc/images"))))
         (setq image-directory
               ;; Set it to nil if image is not found.
               (cond ((file-exists-p (expand-file-name image d2ei)) d2ei)
                     ((file-exists-p (expand-file-name image d1ei)) d1ei)))))
-     ;; Check for images in image-load-path or load-path.
-     ((let ((img image)
-            (dir (or
-                  ;; Images in image-load-path.
-                  (image-search-load-path image)
-                  ;; Images in load-path.
-                  (locate-library image)))
-            parent)
-        ;; Since the image might be in a nested directory (for
-        ;; example, mail/attach.pbm), adjust `image-directory'
-        ;; accordingly.
-        (and dir
-             (setq dir (file-name-directory dir))
-             (progn
-               (while (setq parent (file-name-directory img))
-                 (setq img (directory-file-name parent)
-                       dir (expand-file-name "../" dir)))
-               (setq image-directory dir)))))
+     ;; Use Emacs' image directory.
+     (image-directory-load-path
+      (setq image-directory image-directory-load-path))
      (no-error
       (message "Could not find image %s for library %s" image library))
      (t
