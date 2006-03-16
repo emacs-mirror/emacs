@@ -1,3 +1,17 @@
+2006-03-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* locate.el (locate-command, locate-make-command-line)
+	(locate-fcodes-file, locate-update-command)
+	(locate-prompt-for-command, locate, locate-with-filter)
+	(locate-get-file-positions): Doc fixes.
+	(locate-buffer-name, locate-header-face): Remove leading `*' in
+	defcustom.
+	(locate-filter-output): Use `keep-lines' instead of its alias
+	`delete-non-matching-lines'.
+	(locate-get-filename, locate-get-dirname): Add introductory comment.
+	(locate-find-directory-other-window): Give appropriate error
+	message if used outside main listing.
+
 2006-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-lines-before): Delete variable, subsumed by
