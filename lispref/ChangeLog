@@ -1,3 +1,8 @@
+2006-03-16  Bill Wohler  <wohler@newt.com>
+
+	* display.texi (Defining Images): In image-load-path-for-library,
+	prefer user's images.
+
 2006-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* modes.texi (Region to Fontify): Remove font-lock-lines-before.

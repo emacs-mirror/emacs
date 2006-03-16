@@ -4130,10 +4130,11 @@ should specify the image as follows:
 This function returns a suitable search path for images relative to
 @var{library}.
 
-First it searches for @var{image} in a path suitable for
-@var{library}, which includes @file{../../etc/images} and
-@file{../etc/images} relative to the library file itself, followed by
-@code{image-load-path} and @code{load-path}.
+First it searches for @var{image} in @code{image-load-path} (excluding
+@file{@code{data-directory}/images}) and @code{load-path}, followed by
+a path suitable for @var{library}, which includes
+@file{../../etc/images} and @file{../etc/images} relative to the
+library file itself, and then in @file{@code{data-directory}/images}.
 
 Then this function returns a list of directories which contains first
 the directory in which @var{image} was found, followed by the value of
