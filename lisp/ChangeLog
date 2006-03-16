@@ -1,3 +1,8 @@
+2006-03-16  Kenichi Handa  <handa@m17n.org>
+
+	* sort.el (sort-build-lists): Temporarily bind
+	inhibit-field-text-motion to t.
+
 2006-03-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* locate.el (locate-command, locate-make-command-line)
