@@ -1,5 +1,10 @@
 2006-03-16  Bill Wohler  <wohler@newt.com>
 
+	* mh-comp.el (mh-send-letter): Use split-string to break up
+	mh-send-args (closes SF #1448604).
+	(mh-compose-and-send-mail): Use run-hook-with-args for
+	mh-compose-letter-function.
+
 	* mh-e.el (mh-list-to-string-1): Use dolist.
 
 	* mh-compat.el (mh-image-load-path-for-library): Prefer user's
