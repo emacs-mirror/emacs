@@ -1,3 +1,8 @@
+2006-03-16  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-image-load-path-for-library): Prefer user's
+	images.
+
 2006-03-15  Bill Wohler  <wohler@newt.com>
 
 	* mh-compat.el (mh-image-load-path-for-library): Fix example by
