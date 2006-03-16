@@ -536,7 +536,8 @@ With arg, use separate IO iff arg is positive."
 	gdb-debug-ring nil
 	gdb-signalled nil
 	gdb-source-window nil
-	gdb-inferior-status nil)
+	gdb-inferior-status nil
+	gdb-continuation nil)
 
   (setq gdb-buffer-type 'gdba)
 
@@ -682,7 +683,8 @@ With arg, enter name of variable to be watched in the minibuffer."
 	  (require 'tooltip)
 	  (save-selected-window
 	    (let ((expr (if arg
-			    (read-string "Name of variable: ")
+			    (completing-read "Name of variable: "
+					     'gud-gdb-complete-command)
 			  (tooltip-identifier-from-point (point)))))
 	      (catch 'already-watched
 		(dolist (var gdb-var-list)
@@ -1076,6 +1078,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 ;;
 ;; These lists are consumed tail first.
 ;;
+(defvar gdb-continuation nil)
 
 (defun gdb-send (proc string)
   "A comint send filter for gdb.
@@ -1083,12 +1086,15 @@ This filter may simply queue input for a later time."
   (with-current-buffer gud-comint-buffer
     (let ((inhibit-read-only t))
       (remove-text-properties (point-min) (point-max) '(face))))
-  (let ((item (concat string "\n")))
-    (if gud-running
-      (progn
-	(if gdb-enable-debug (push (cons 'send item) gdb-debug-ring))
-	(process-send-string proc item))
-      (gdb-enqueue-input item))))
+  (if (string-match "\\\\$" string)
+      (setq gdb-continuation (concat gdb-continuation string "\n"))
+    (let ((item (concat gdb-continuation string "\n")))
+      (if gud-running
+	  (progn
+	    (if gdb-enable-debug (push (cons 'send item) gdb-debug-ring))
+	    (process-send-string proc item))
+	(gdb-enqueue-input item)))
+    (setq gdb-continuation nil)))
 
 ;; Note: Stuff enqueued here will be sent to the next prompt, even if it
 ;; is a query, or other non-top-level prompt.
