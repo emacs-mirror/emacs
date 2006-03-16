@@ -1,5 +1,8 @@
 2006-03-16  Kenichi Handa  <handa@m17n.org>
 
+	* international/mule.el (auto-coding-regexp-alist): Add entries
+	for Unicode BOM.
+
 	* sort.el (sort-build-lists): Temporarily bind
 	inhibit-field-text-motion to t.
 
