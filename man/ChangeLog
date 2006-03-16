@@ -10,7 +10,8 @@
 	* files.texi (Comparing Files): Xref to Emerge in emacs-xtra.
 
 	* picture.texi: File deleted.
-	* Makefile.in: Remove picture.texi.
+	* Makefile.in:
+	* makefile.w32-in: Remove picture.texi.
 
 	* text.texi (Text): Xref to Picture Mode in emacs-xtra.
 	* abbrevs.texi (Abbrevs):
