@@ -11,8 +11,8 @@
 @set VERSION 7.93
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
-@set EDITION , 3rd Edition
-@set UPDATED 2006-03-14
+@set EDITION , 4th Edition
+@set UPDATED 2006-03-17
 @set UPDATE-MONTH March, 2006
 
 @c Other variables.
@@ -664,30 +664,29 @@ get the big picture, and then you can read the manual as you wish.
 @node Sending Mail Tour, Reading Mail Tour, Tour Through MH-E, Tour Through MH-E
 @section Sending Mail
 
+@cindex MH-Letter mode
+@cindex mode
+@cindex modes, MH-Letter
 @cindex sending mail
 @findex mh-smail
 @kindex M-x mh-smail
 
 Let's start our tour by sending ourselves a message which we can later
 read and process. Enter @kbd{M-x mh-smail} to invoke the MH-E program
-to send messages. You will be prompted in the minibuffer by
-@samp{To:}. Enter your login name. The next prompt is @samp{Cc:}. Hit
-@key{RET} to indicate that no carbon copies are to be sent. At the
-@samp{Subject:} prompt, enter @kbd{Test} or anything else that comes
-to mind.
+to send messages. Your message appears in an Emacs buffer whose
+mode@footnote{A @dfn{mode} changes Emacs to make it easier to edit a
+particular type of text.} is MH-Letter.
 
-@cindex MH-Letter mode
-@cindex modes, MH-Letter
-@cindex mode
+Enter your login name in the @samp{To:} header field. Press the
+@key{TAB} twice to move the cursor past the @samp{Cc:} field, since no
+carbon copies are to be sent, and on to the @samp{Subject:} field.
+Enter @kbd{Test} or anything else that comes to mind.
 
-Once you've specified the recipients and subject, your message appears
-in an Emacs buffer whose mode@footnote{A @dfn{mode} changes Emacs to
-make it easier to edit a particular type of text.} is MH-Letter. Enter
-some text in the body of the message, using normal Emacs commands. You
-should now have something like this@footnote{If you're running Emacs
-under the X Window System, then you would also see a menu bar. Under
-Emacs 21, you would also see a tool bar. I've left out the menu bar and
-tool bar in all of the example screens.}:
+Press @key{TAB} again to move the cursor to the body of the message.
+Enter some text, using normal Emacs commands. You should now have
+something like this@footnote{If you're running Emacs under the X
+Window System, then you would also see a menu bar and a tool bar. I've
+left out the menu bar and tool bar in all of the example screens.}:
 
 @cartouche
 @smallexample
@@ -697,16 +696,17 @@ tool bar in all of the example screens.}:
 
 
 
---:--  *scratch*   (Lisp Interaction)--L1--All-------------------------
+--:--  *scratch*   All L1     (Lisp Interaction)-------------------------
 To: wohler
 cc:
 Subject: Test
+X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
 --------
 This is a test message to get the wheels churning...#
 
 
---:** @{draft@}   (MH-Letter)--L5--All-----------------------------------
-
+--:**  @{draft@}   All L5     (MH-Letter)----------------------------------
+Type C-c C-c to send message, C-C ? for help
 @end smallexample
 @end cartouche
 @i{MH-E message composition window}
@@ -780,19 +780,18 @@ You should see the scan line for your message, and perhaps others. Use
   3 t08/24 root       received fax files on Wed Aug 24 11:00:13 PDT 1
 # 4+t08/24 To:wohler  Test<<This is a test message to get the wheels
 
--:%%  @{+inbox@} 4 msgs (1-4)   (MH-Folder Show)--L4--Bot--------------
+-:%%  @{+inbox/select@} 4 msgs (1-4)   Bot L4     (MH-Folder Show)---------
 To: wohler
 Subject: Test
-Date: Wed, 24 Aug 1994 13:01:13 -0700
+X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
+Date: Fri, 17 Mar 2006 10:49:11 -0800
 From: Bill Wohler <wohler@@stop.mail-abuse.org>
 
 This is a test message to get the wheels churning...
 
 
 
-
-
---:--  @{show-+inbox@} 4   (MH-Show)--L1--All---------------------------
+--:--  @{show-+inbox@} 4   All L1     (MH-Show)----------------------------
 
 @end smallexample
 @end cartouche
@@ -816,31 +815,37 @@ ourselves. Ensure that the cursor is still on the same line as your
 test message and type @kbd{r}. You are prompted in the minibuffer with
 @samp{Reply to whom:}. Here MH-E is asking whether you'd like to reply
 to the original sender only, to the sender and primary recipients, or
-to the sender and all recipients. If you simply hit @key{RET}, you'll
-reply only to the sender. Hit @key{RET} now.
+to the sender and all recipients. You can press @key{TAB} to see these
+choices. If you simply press @key{RET}, you'll reply only to the
+sender. Press @key{RET} now.
 
 You'll find yourself in an Emacs buffer similar to that when you were
 sending the original message, like this:
 
 @cartouche
 @smallexample
-To: wohler
-Subject: Re: Test
-In-reply-to: Bill Wohler's message of Wed, 24 Aug 1994 13:01:13 -0700
-             <199408242001.NAA00505@@stop.mail-abuse.org>
+To: 
+cc: 
+Subject: Re: Test 
+In-reply-to: <31054.1142621351@@stop.mail-abuse.org> 
+References: <31054.1142621351@@stop.mail-abuse.org>
+Comments: In-reply-to Bill Wohler <wohler@@stop.mail-abuse.org>
+   message dated "Fri, 17 Mar 2006 10:49:11 -0800."
+X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
 --------
 #
 
---:--  @{draft@}   (MH-Letter)--L11--Bot---------------------------------
+--:--  @{draft@}  All L10     (MH-Letter)----------------------------------
 To: wohler
 Subject: Test
-Date: Wed, 24 Aug 1994 13:01:13 -0700
+X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
+Date: Fri, 17 Mar 2006 10:49:11 -0800
 From: Bill Wohler <wohler@@stop.mail-abuse.org>
 
 This is a test message to get the wheels churning...
 
---:--  @{show-+inbox@} 4   (MH-Show)--L1--All----------------------------
-Composing a reply...done
+--:--  @{show-+inbox@} 4   All L1     (MH-Show)----------------------------
+Type C-c C-c to send message, C-c ? for help
 @end smallexample
 @end cartouche
 @i{Composition window during reply}
@@ -1418,9 +1423,9 @@ mode line as well, add the following to @file{~/.emacs}:
 
 @findex display-time
 
-@lisp
+@smalllisp
 (display-time)
-@end lisp
+@end smalllisp
 
 @cindex @command{inc}
 @cindex incorporating
@@ -2297,9 +2302,9 @@ other graphical widgets. @xref{Viewing}.
 
 Attachments in MH-E are indicated by @dfn{buttons} like this:
 
-@example
+@smallexample
 [1. image/jpeg; foo.jpg]...
-@end example
+@end smallexample
 
 @findex mh-next-button
 @findex mh-press-button
@@ -2488,9 +2493,9 @@ expect if the entire message is HTML, or there is an inline HTML body
 part. However, if there is an HTML body part that is an attachment,
 then you'll see a button like this:
 
-@example
+@smallexample
 [1. text/html; foo.html]...
-@end example
+@end smallexample
 
 To see how to read the contents of this body part, see @ref{Viewing
 Attachments}.
@@ -3682,7 +3687,7 @@ searching.
 
 @quotation
 Use this hook with care. If there is a bug in your hook which returns
-@code{t} on @samp{+inbox} and you hit @kbd{k} by accident in the
+@code{t} on @samp{+inbox} and you press @kbd{k} by accident in the
 @code{+inbox} folder, you will not be happy.
 @end quotation
 @sp 1
@@ -3774,9 +3779,9 @@ mh-smail} directly, or from the command line like this:
 
 @cindex starting from command line
 
-@example
+@smallexample
 $ @kbd{emacs -f mh-smail}
-@end example
+@end smallexample
 
 @findex goto-address-at-point
 @vindex mail-user-agent
@@ -4781,23 +4786,23 @@ quotes match the value of @code{mh-ins-buf-prefix} (@pxref{Inserting
 Letter}). For example, let's assume you have the following in your
 draft:
 
-@example
+@smallexample
 @group
 > Hopefully this gives you an idea of what I'm currently doing. I'm \
 not sure yet whether I'm completely satisfied with my setup, but    \
 it's worked okay for me so far.
 @end group
-@end example
+@end smallexample
 
 Running @kbd{M-q} on this paragraph produces:
 
-@example
+@smallexample
 @group
 > Hopefully this gives you an idea of what I'm currently doing. I'm not
 > sure yet whether I'm completely satisfied with my setup, but it's
 > worked okay for me so far.
 @end group
-@end example
+@end smallexample
 
 @findex mh-open-line
 @findex open-line
@@ -4812,7 +4817,7 @@ column as it was. This is useful when breaking up paragraphs in
 replies. For example, if this command was used when point was after
 the first period in the paragraph above, the result would be this:
 
-@example
+@smallexample
 @group
 > Hopefully this gives you an idea of what I'm currently doing.
 
@@ -4820,7 +4825,7 @@ the first period in the paragraph above, the result would be this:
 > sure yet whether I'm completely satisfied with my setup, but it's
 > worked okay for me so far.
 @end group
-@end example
+@end smallexample
 
 @node Inserting Letter, Inserting Messages, Editing Message, Editing Drafts
 @section Inserting Letter to Which You're Replying
@@ -4839,7 +4844,7 @@ attribution, yanking a portion of text from the message to which
 you're replying, and inserting @code{mh-ins-buf-prefix} (@samp{> })
 before each line.
 
-@example
+@smallexample
 @group
 Michael W Thelen <thelenm@@stop.mail-abuse.org> wrote:
 
@@ -4847,7 +4852,7 @@ Michael W Thelen <thelenm@@stop.mail-abuse.org> wrote:
 > sure yet whether I'm completely satisfied with my setup, but it's
 > worked okay for me so far.
 @end group
-@end example
+@end smallexample
 
 @vindex mh-extract-from-attribution-verb
 
@@ -5318,7 +5323,7 @@ When you are finished editing a @sc{mime} message, it might look like this:
 
 
 
---:%%  @{+inbox@} 4 msgs (1-4)   (MH-Folder Show)--L4--Bot---------------
+--:%%  @{+inbox@} 4 msgs (1-4)   Bot L4     (MH-Folder Show)---------------
 To: wohler
 cc:
 Subject: Test of MIME
@@ -5328,7 +5333,7 @@ Here is the SETI@@Home logo:
 <#part type="image/x-xpm" filename="~/lib/images/setiathome.xpm"
 disposition=inline description="SETI@@home logo">
 <#/part>
---:**  @{draft@}   (MH-Letter)--L8--All----------------------------------
+--:**  @{draft@}   All L8     (MH-Letter)----------------------------------
 
 @end smallexample
 @end cartouche
@@ -5355,6 +5360,7 @@ details from the user.
 To: wohler
 cc:
 Subject: Test of MIME
+X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
 MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="=-=-="
 --------
@@ -5369,8 +5375,8 @@ Content-Disposition: inline; filename=setiathome.xpm
 Content-Transfer-Encoding: base64
 Content-Description: SETI@@home logo
 
-LyogWFBNICovCnN0YXRpYyBjaGFyICogc2V0aWF0aG9tZV94cG1bXSA9IHsKIjQ1IDQ1IDc2NCAy
---:--  @{draft@}   (MH-Letter)--L2--Top----------------------------------
+LyogWFBNICovCnN0YXRpYyBjaGFyICogc2V0aWF0aG9tZV94cG1bXSA9IHsKIjQ1IDQ1IDc2N
+--:--  @{draft@}   Top L1     (MH-Letter)----------------------------------
 
 @end smallexample
 @end cartouche
@@ -5447,25 +5453,25 @@ following commands to do so any time before sending your message.
 The command @kbd{C-c C-m C-s} (@code{mh-mml-secure-message-sign})
 inserts the following tag:
 
-@example
+@smallexample
 <#secure method=pgpmime mode=sign>
-@end example
+@end smallexample
 
 This is used to sign your message digitally. Likewise, the command
 @kbd{C-c C-m C-e} (@code{mh-mml-secure-message-encrypt}) inserts the
 following tag:
 
-@example
+@smallexample
 <#secure method=pgpmime mode=encrypt>
-@end example
+@end smallexample
 
 This is used to encrypt your message. Finally, the command @kbd{C-c
 C-m s e} (@code{mh-mml-secure-message-signencrypt}) inserts the
 following tag:
 
-@example
+@smallexample
 <#secure method=pgpmime mode=signencrypt>
-@end example
+@end smallexample
 
 @findex mh-mml-unsecure-message
 @kindex C-c C-m C-n
@@ -5703,10 +5709,10 @@ make case significant which can be used to segregate completion of
 your aliases. You might use uppercase for mailing lists and lowercase
 for people. For example, you might have:
 
-@example
+@smallexample
 mark.baushke: Mark Baushke <mdb@@stop.mail-abuse.org>
 MH-E: MH-E Mailing List <mh-e-devel@@stop.mail-abuse.org>
-@end example
+@end smallexample
 
 When this option is turned off, if you were to type @kbd{M} in the
 @samp{To:} field and then @kbd{M-@key{TAB}}, then you'd get the list;
@@ -5767,9 +5773,9 @@ The prefix @samp{local.} can be modified via the option
 
 For example, consider the following password file entry:
 
-@example
+@smallexample
 psg:x:1000:1000:Peter S Galbraith,,,:/home/psg:/bin/tcsh
-@end example
+@end smallexample
 
 @vindex mh-alias-local-users-prefix
 
@@ -5839,7 +5845,8 @@ other prefixes to organize your aliases or disambiguate entries. You
 might use prefixes for locales, jobs, or activities. For example, I
 have:
 
-@example
+@smallexample
+@group
 ; Work
 attensity.don.mitchell: Don Mitchell <dmitchell@@stop.mail-abuse.com>
 isharp.don.mitchell: Don Mitchell <donaldsmitchell@@stop.mail-abuse.com>
@@ -5851,7 +5858,8 @@ sailing.mike.maloney: Mike Maloney <mmaloney@@stop.mail-abuse.com>
 ; Personal
 ariane.kolkmann: Ariane Kolkmann <ArianeKolkmann@@stop.mail-abuse.com>
 ...
-@end example
+@end group
+@end smallexample
 
 Using prefixes instead of postfixes helps you explore aliases during
 completion. If you forget the name of an old dive buddy, you can enter
@@ -6566,12 +6574,13 @@ Next, an MH-Search buffer appears where you can enter search criteria.
 
 @cartouche
 @smallexample
-From: #
+From:
 To:
 Cc:
 Date:
 Subject:
 --------
+#
 
 
 
@@ -6580,9 +6589,8 @@ Subject:
 
 
 
-
---:**  search-pattern   (MH-Search)--L1--All-----------------------------
-
+--:**  search-pattern   All L7     (MH-Search)---------------------------
+Type C-c C-c to search messages, C-c C-p to use pick, C-c ? for help
 @end smallexample
 @end cartouche
 @i{Search window}
@@ -8280,9 +8288,9 @@ which displays the sender, the subject, and the message number. This
 format places a @samp{+} after the message number for the current
 message according to MH; it also uses that column for notations.
 
-@example
+@smallexample
 %20(decode(friendly@{from@})) %50(decode@{subject@})  %4(msg)%<(cur)+%| %>
-@end example
+@end smallexample
 
 @vindex mh-adaptive-cmd-note-flag
 @vindex mh-scan-format-file
@@ -8298,9 +8306,9 @@ least display the output of scan in your MH-Folder buffer.
 
 @vindex mh-scan-valid-regexp, example
 
-@lisp
+@smalllisp
 (setq mh-scan-valid-regexp "[0-9]+[+D^ ]$")
-@end lisp
+@end smalllisp
 
 Now, in order to get rid of the @samp{Cursor not pointing to message}
 message, you need to tell MH-E how to access the message number. You
@@ -8310,18 +8318,18 @@ the first place.
 @vindex mh-scan-msg-number-regexp, example
 @vindex mh-scan-msg-search-regexp, example
 
-@lisp
+@smalllisp
 (setq mh-scan-msg-number-regexp "^.* \\([0-9]+\\)[+D^ ]$")
 (setq mh-scan-msg-search-regexp " %d[+D^ ]$")
-@end lisp
+@end smalllisp
 
 In order to get the next and previous commands working, add this.
 
 @vindex mh-scan-good-msg-regexp, example
 
-@lisp
+@smalllisp
 (setq mh-scan-good-msg-regexp "^.* \\([0-9]+\\)[+D^ ]$")
-@end lisp
+@end smalllisp
 
 Note that the current message isn't marked with a @samp{+} when moving
 between the next and previous messages. Here is the code required to
@@ -8330,20 +8338,20 @@ get this working.
 @vindex set-mh-cmd-note, example
 @vindex mh-scan-cur-msg-number-regexp, example
 
-@lisp
+@smalllisp
 (set-mh-cmd-note 76)
 (setq mh-scan-cur-msg-number-regexp "^.* \\([0-9]+\\)\\+$")
-@end lisp
+@end smalllisp
 
 Finally, add the following to delete and refile messages.
 
 @vindex mh-scan-deleted-msg-regexp, example
 @vindex mh-scan-refiled-msg-regexp, example
 
-@lisp
+@smalllisp
 (setq mh-scan-deleted-msg-regexp "^.* \\([0-9]+\\)D$")
 (setq mh-scan-refiled-msg-regexp "^.* \\([0-9]+\\)\\^$")
-@end lisp
+@end smalllisp
 
 This is just a bare minimum; it's best to adjust all of the regular
 expressions to ensure that MH-E and highlighting perform well.
@@ -8439,9 +8447,9 @@ If your version of @command{rcvstore} doesn't add messages to the
 @samp{unseen} sequence by default, add the following line to your MH
 profile:
 
-@example
+@smallexample
 Unseen-Sequence: unseen
-@end example
+@end smallexample
 
 Now view your new messages with the speedbar (@pxref{Speedbar}) or with
 @kbd{F n} (@code{mh-index-new-messages}). @xref{Folders}.
@@ -8489,14 +8497,14 @@ Next add the following to @file{~/.procmailrc}. If you don't subscribe
 to the GnuCash mailing list, substitute one to which you are
 subscribed.
 
-@example
+@smallexample
 MAILDIR=$HOME/`mhparam Path`
 # Place mail sent to the GnuCash mailing list in gnucash.spool, where
 # Gnus will pick it up.
 :0:
 * ^TO.*gnucash.*@.*gnucash.org
 gnucash.spool
-@end example
+@end smallexample
 
 Wait for some messages to appear in @file{gnucash.spool} and run Gnus
 with @kbd{M-x gnus @key{RET}}. To view the folder created in the

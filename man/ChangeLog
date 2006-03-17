@@ -1,3 +1,11 @@
+2006-03-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi: Use smallexample and smalllisp consistenly.
+	(Sending Mail Tour): Update method of entering
+	addresses and subject.
+	(Sending Mail Tour, Reading Mail Tour, Processing Mail Tour)
+	(Adding Attachments, Searching): Update screenshots for Emacs 22.
+
 2006-03-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-xtra.texi (Top): Avoid ugly continuation line in
