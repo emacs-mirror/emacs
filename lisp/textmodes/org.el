@@ -448,7 +448,7 @@ In the calendar, the date can be selected with mouse-1.  However, the
 minibuffer will also be active, and you can simply enter the date as well.
 When nil, only the minibuffer will be available."
   :group 'org-time
-  :type 'number)
+  :type 'boolean)
 
 (defcustom org-calendar-follow-timestamp-change t
   "Non-nil means, make the calendar window follow timestamp changes.
