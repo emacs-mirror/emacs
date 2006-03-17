@@ -1,3 +1,8 @@
+2006-03-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (customize-changed-options): Mention explicit
+	version number as default in prompt.
+
 2006-03-17  Bill Wohler  <wohler@newt.com>
 
 	* image.el (image-load-path-for-library): Minor docstring fix.
