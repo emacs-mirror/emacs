@@ -1092,7 +1092,11 @@ or default values have changed since the previous major Emacs release.
 With argument SINCE-VERSION (a string), customize all settings
 that were added or redefined since that version."
 
-  (interactive "sCustomize options changed, since version (default all versions): ")
+  (interactive
+   (list
+    (read-from-minibuffer
+     (format "Customize options changed, since version (default %s): "
+	     customize-changed-options-previous-release))))
   (if (equal since-version "")
       (setq since-version nil)
     (unless (condition-case nil
