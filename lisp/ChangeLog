@@ -1,3 +1,7 @@
+2006-03-17  Bill Wohler  <wohler@newt.com>
+
+	* image.el (image-load-path-for-library): Minor docstring fix.
+
 2006-03-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-read-date): Include subgroup 5 into
