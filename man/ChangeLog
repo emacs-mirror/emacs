@@ -1,3 +1,8 @@
+2006-03-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-xtra.texi (Top): Avoid ugly continuation line in
+	menu in the standalone Info reader.
+
 2006-03-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-xtra.texi (Emerge, Picture Mode. Fortran): New chapters,
