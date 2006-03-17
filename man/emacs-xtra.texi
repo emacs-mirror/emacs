@@ -59,7 +59,8 @@ license to the document, as described in section 6 of the license.
 * Autorevert::                    Auto Reverting non-file buffers.
 * Subdir switches::               Subdirectory switches in Dired.
 * Advanced Calendar/Diary Usage:: Advanced Calendar/Diary customization.
-* Emerge::                        A convenient way of merging two versions of a program.
+* Emerge::                        A convenient way of merging two versions
+                                    of a program.
 * Picture Mode::                  Editing pictures made up of characters
                                     using the quarter-plane screen model.
 * Fortran::                       Fortran mode and its special features.
