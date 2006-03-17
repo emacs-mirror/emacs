@@ -2,6 +2,7 @@
 
 	* textmodes/org.el (org-read-date): Include subgroup 5 into
 	replacement text.
+	(org-popup-calendar-for-date-prompt): Fix customization type.
 
 2006-03-17  Nick Roberts  <nickrob@snap.net.nz>
 
