@@ -117,9 +117,9 @@ introduced in Emacs 22."
 
 (mh-defun-compat mh-image-load-path-for-library
   image-load-path-for-library (library image &optional path no-error)
-  "Return a suitable search path for images relative to LIBRARY.
+  "Return a suitable search path for images used by the Lisp package LIBRARY.
 
-First it searches for IMAGE in `image-load-path' (excluding
+It searches for IMAGE in `image-load-path' (excluding
 \"`data-directory'/images\") and `load-path', followed by a path
 suitable for LIBRARY, which includes \"../../etc/images\" and
 \"../etc/images\" relative to the library file itself, and then
