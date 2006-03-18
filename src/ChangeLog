@@ -1,3 +1,19 @@
+2006-03-18  Nozomu Ando  <nand@mac.com>
+
+	* m/pmax.h (BROKEN_NOCOMBRELOC) [__NetBSD__]: Define.
+	(LIB_STANDARD, START_FILES) [__NetBSD__]: Don't define.
+	(START_FILES, RUN_TIME_REMAP, UNEXEC) [__NetBSD__, __OpenBSD__]:
+	Don't redefine.
+
+	* m/mips.h: Don't use unexmips on NetBSD.
+	(LIBS_MACHINE): Move definition lower, so it doesn't use
+	LD_SWITCH_MACHINE, START_FILES, LIB_STANDARD, LIBS_TERMCAP,
+	C_SWITCH_MACHINE, and C_DEBUG_SWITCH.
+
+	* unexelf.c [BROKEN_NOCOMBRELOC]: Include assert.h.
+	(unexec) [BROKEN_NOCOMBRELOC]: Handle platforms whose nocombreloc
+	option is broken (e.g., MIPS/NetBSD).
+
 2006-03-18  Craig McDaniel  <craigmcd@gmail.com>  (tiny change)
 
 	* sheap.c (STATIC_HEAP_SIZE): Enlarge STATIC_HEAP_SIZE to 12MB.

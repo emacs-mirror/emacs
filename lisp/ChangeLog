@@ -1,3 +1,8 @@
+2006-03-18  Ben North  <ben@redfrontdoor.org>  (tiny change)
+
+	* isearch.el (isearch-other-meta-char): Handle user bindings for
+	shifted control characters.
+
 2006-03-18  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-skip-region-alist): Add "_+" to the
