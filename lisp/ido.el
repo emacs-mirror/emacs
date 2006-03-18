@@ -613,6 +613,7 @@ A tramp file name uses the following syntax: /method:user@host:filename."
 
 (defcustom ido-cache-ftp-work-directory-time 1.0
   "*Maximum time to cache contents of an ftp directory (in hours).
+Use C-l in prompt to refresh list.
 If zero, ftp directories are not cached."
   :type 'number
   :group 'ido)
@@ -627,6 +628,18 @@ equivalent function, e.g. `find-file' rather than `ido-find-file'."
 (defcustom ido-slow-ftp-host-regexps nil
   "*List of regexps matching slow ftp hosts (see `ido-slow-ftp-hosts')."
   :type '(repeat regexp)
+  :group 'ido)
+
+(defcustom ido-unc-hosts nil
+  "*List of known UNC host names to complete after initial //."
+  :type '(repeat string)
+  :group 'ido)
+
+(defcustom ido-cache-unc-host-shares-time 8.0
+  "*Maximum time to cache shares of an UNC host (in hours).
+Use C-l in prompt to refresh list.
+If zero, unc host shares are not cached."
+  :type 'number
   :group 'ido)
 
 (defcustom ido-max-work-file-list 10
@@ -1103,6 +1116,16 @@ it doesn't interfere with other minibuffer usage.")
        (string-match "\\`/[^/]+[@:]\\'"
 		     (or dir ido-current-directory))))
 
+(defun ido-is-unc-root (&optional dir)
+  (and ido-unc-hosts
+       (string-equal "//"
+		     (or dir ido-current-directory))))
+
+(defun ido-is-unc-host (&optional dir)
+  (and ido-unc-hosts
+       (string-match "\\`//[^/]+/\\'"
+		     (or dir ido-current-directory))))
+
 (defun ido-is-root-directory (&optional dir)
   (setq dir (or dir ido-current-directory))
   (or
@@ -1148,6 +1171,12 @@ it doesn't interfere with other minibuffer usage.")
        (or (not time)
 	   (< (- (ido-time-stamp) time) ido-cache-ftp-work-directory-time))))
 
+(defun ido-cache-unc-valid (&optional time)
+  (and (numberp ido-cache-unc-host-shares-time)
+       (> ido-cache-unc-host-shares-time 0)
+       (or (not time)
+	   (< (- (ido-time-stamp) time) ido-cache-unc-host-shares-time))))
+
 (defun ido-may-cache-directory (&optional dir)
   (setq dir (or dir ido-current-directory))
   (cond
@@ -1157,10 +1186,11 @@ it doesn't interfere with other minibuffer usage.")
 	 (or ido-enable-tramp-completion
 	     (memq system-type '(windows-nt ms-dos))))
     nil)
-   ((not (ido-is-ftp-directory dir))
-    t)
-   ((ido-cache-ftp-valid)
-    t)))
+   ((ido-is-unc-host dir)
+    (ido-cache-unc-valid))
+   ((ido-is-ftp-directory dir)
+    (ido-cache-ftp-valid))
+   (t t)))
 
 (defun ido-pp (list &optional sep)
   (let ((print-level nil) (eval-expression-print-level nil)
@@ -1262,15 +1292,21 @@ Removes badly formatted data and ignored directories."
 			    (and
 			     (stringp dir)
 			     (consp time)
-			     (if (integerp (car time))
-				 (and (/= (car time) 0)
-				      (integerp (car (cdr time)))
-				      (/= (car (cdr time)) 0)
-				      (ido-may-cache-directory dir))
-			       (and (eq (car time) 'ftp)
-				    (numberp (cdr time))
+			     (cond
+			      ((integerp (car time))
+			       (and (/= (car time) 0)
+				    (integerp (car (cdr time)))
+				    (/= (car (cdr time)) 0)
+				    (ido-may-cache-directory dir)))
+			      ((eq (car time) 'ftp)
+			       (and (numberp (cdr time))
 				    (ido-is-ftp-directory dir)
 				    (ido-cache-ftp-valid (cdr time))))
+			      ((eq (car time) 'unc)
+			       (and (numberp (cdr time))
+				    (ido-is-unc-host dir)
+				    (ido-cache-unc-valid (cdr time))))
+			      (t nil))
 			     (let ((s files) (ok t))
 			       (while s
 				 (if (stringp (car s))
@@ -1535,6 +1571,7 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
   ;; connect on incomplete tramp paths (after entring just method:).
   (let ((ido-enable-tramp-completion nil))
     (and (ido-final-slash dir)
+	 (not (ido-is-unc-host dir))
 	 (file-directory-p dir)
 	 (not (file-readable-p dir)))))
 
@@ -1545,6 +1582,7 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
   (let ((ido-enable-tramp-completion nil))
     (and (numberp ido-max-directory-size)
 	 (ido-final-slash dir)
+	 (not (ido-is-unc-host dir))
 	 (file-directory-p dir)
 	 (> (nth 7 (file-attributes dir)) ido-max-directory-size))))
 
@@ -1560,8 +1598,18 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
     (unless (and ido-enable-tramp-completion
 		 (string-match "\\`/[^/]*@\\'" dir))
       (setq dir (ido-final-slash dir t))))
-  (if (equal dir ido-current-directory)
-      nil
+  (if (get-buffer ido-completion-buffer)
+      (kill-buffer ido-completion-buffer))
+  (cond
+   ((equal dir ido-current-directory)
+    nil)
+   ((ido-is-unc-root dir)
+    (ido-trace "unc" dir)
+    (setq ido-current-directory dir)
+    (setq ido-directory-nonreadable nil)
+    (setq ido-directory-too-big nil)
+    t)
+   (t
     (ido-trace "cd" dir)
     (setq ido-current-directory dir)
     (if (get-buffer ido-completion-buffer)
@@ -1569,7 +1617,7 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
     (setq ido-directory-nonreadable (ido-nonreadable-directory-p dir))
     (setq ido-directory-too-big (and (not ido-directory-nonreadable)
 				     (ido-directory-too-big-p dir)))
-    t))
+    t)))
 
 (defun ido-set-current-home (&optional dir)
   ;; Set ido's current directory to user's home directory
@@ -1940,6 +1988,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 	      (setq ido-exit 'fallback
 		    done t)
 	    (setq ido-set-default-item t)))
+
 	 ((or (string-match "[/\\][^/\\]" ido-selected)
 	      (and (memq system-type '(windows-nt ms-dos))
 		   (string-match "\\`.:" ido-selected)))
@@ -3184,36 +3233,52 @@ for first matching file."
 (defun ido-file-name-all-completions (dir)
   ;; Return name of all files in DIR
   ;; Uses and updates ido-dir-file-cache
-  (if (and (numberp ido-max-dir-file-cache) (> ido-max-dir-file-cache 0)
-	   (stringp dir) (> (length dir) 0)
-	   (ido-may-cache-directory dir))
-      (let* ((cached (assoc dir ido-dir-file-cache))
+  (cond
+   ((ido-is-unc-root dir)
+    (mapcar
+     (lambda (host)
+       (if (string-match "/\\'" host) host (concat host "/")))
+     ido-unc-hosts))
+   ((and (numberp ido-max-dir-file-cache) (> ido-max-dir-file-cache 0)
+	 (stringp dir) (> (length dir) 0)
+	 (ido-may-cache-directory dir))
+    (let* ((cached (assoc dir ido-dir-file-cache))
 	     (ctime (nth 1 cached))
 	     (ftp (ido-is-ftp-directory dir))
-	     (attr (if ftp nil (file-attributes dir)))
+	     (unc (ido-is-unc-host dir))
+	     (attr (if (or ftp unc) nil (file-attributes dir)))
 	     (mtime (nth 5 attr))
 	     valid)
 	(when cached 	    ; should we use the cached entry ?
-	  (if ftp
-	      (setq valid (and (eq (car ctime) 'ftp)
-			       (ido-cache-ftp-valid (cdr ctime))))
+	  (cond
+	   (ftp
+	    (setq valid (and (eq (car ctime) 'ftp)
+			     (ido-cache-ftp-valid (cdr ctime)))))
+	   (unc
+	    (setq valid (and (eq (car ctime) 'unc)
+			     (ido-cache-unc-valid (cdr ctime)))))
+	   (t
 	    (if attr
 		(setq valid (and (= (car ctime) (car mtime))
-				 (= (car (cdr ctime)) (car (cdr mtime)))))))
-	  (if (not valid)
-	      (setq ido-dir-file-cache (delq cached ido-dir-file-cache)
-		    cached nil)))
+				 (= (car (cdr ctime)) (car (cdr mtime))))))))
+	  (unless valid
+	    (setq ido-dir-file-cache (delq cached ido-dir-file-cache)
+		  cached nil)))
 	(unless cached
-	  (if (and ftp (file-readable-p dir))
-	      (setq mtime (cons 'ftp (ido-time-stamp))))
+	  (cond
+	   (unc
+	    (setq mtime (cons 'unc (ido-time-stamp))))
+	   ((and ftp (file-readable-p dir))
+	    (setq mtime (cons 'ftp (ido-time-stamp)))))
 	  (if mtime
 	      (setq cached (cons dir (cons mtime (ido-file-name-all-completions-1 dir)))
 		    ido-dir-file-cache (cons cached ido-dir-file-cache)))
 	  (if (> (length ido-dir-file-cache) ido-max-dir-file-cache)
 	      (setcdr (nthcdr (1- ido-max-dir-file-cache) ido-dir-file-cache) nil)))
 	(and cached
-	     (cdr (cdr cached))))
-    (ido-file-name-all-completions-1 dir)))
+	     (cdr (cdr cached)))))
+   (t
+    (ido-file-name-all-completions-1 dir))))
 
 (defun ido-remove-cached-dir (dir)
   ;; Remove dir from ido-dir-file-cache
@@ -3227,7 +3292,8 @@ for first matching file."
 (defun ido-make-file-list-1 (dir &optional merged)
   ;; Return list of non-ignored files in DIR
   ;; If MERGED is non-nil, each file is cons'ed with DIR
-  (and (or (ido-is-tramp-root dir) (file-directory-p dir))
+  (and (or (ido-is-tramp-root dir) (ido-is-unc-root dir)
+	   (file-directory-p dir))
        (delq nil
 	     (mapcar
 	      (lambda (name)
@@ -3956,10 +4022,16 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	  )
 
 	 ((= (length contents) 1)
-	  (when (and (ido-is-tramp-root) (string-equal contents "/"))
+	  (cond
+	   ((and (ido-is-tramp-root) (string-equal contents "/"))
 	    (ido-set-current-directory ido-current-directory contents)
 	    (setq refresh t))
-	  )
+	   ((and ido-unc-hosts (string-equal contents "/")
+		 (let ((ido-enable-tramp-completion nil))
+		   (ido-is-root-directory)))
+	    (ido-set-current-directory "//")
+	    (setq refresh t))
+	  ))
 
 	 ((and (string-match (if ido-enable-tramp-completion "..[:@]\\'" "..:\\'") contents)
 	       (ido-is-root-directory)) ;; Ange-ftp or tramp
