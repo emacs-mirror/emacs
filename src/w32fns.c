@@ -7937,8 +7937,12 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
  ***********************************************************************/
 
 DEFUN ("w32-select-font", Fw32_select_font, Sw32_select_font, 0, 2, 0,
-       doc: /* Select a font using the W32 font dialog.
-Returns an X font string corresponding to the selection.  */)
+       doc: /* Select a font for the named FRAME using the W32 font dialog.
+Returns an X-style font string corresponding to the selection.
+
+If FRAME is omitted or nil, it defaults to the selected frame.
+If INCLUDE-PROPORTIONAL is non-nil, include proportional fonts
+in the font selection dialog. */)
   (frame, include_proportional)
      Lisp_Object frame, include_proportional;
 {
