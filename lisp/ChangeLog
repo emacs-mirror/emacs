@@ -1,3 +1,22 @@
+2006-03-18  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-cache-ftp-work-directory-time): Doc fix.
+	(ido-unc-hosts): New user option to explicitly define list of know
+	UNC-style hosts for completion.
+	(ido-cache-unc-host-shares-time): New user option.
+	(ido-is-unc-root, ido-is-unc-host, ido-cache-unc-valid): New
+	helper functions for UNC file-name support.
+	(ido-may-cache-directory): Check for UNC host.  Simplify.
+	(ido-wash-history): Clean out old UNC hosts.
+	(ido-nonreadable-directory-p): UNC hosts are always readable.
+	(ido-directory-too-big-p): UNC hosts are never too big.
+	(ido-set-current-directory): Handle UNC root path.
+	(ido-file-name-all-completions): Complete UNC host names from
+	ido-unc-hosts list.  Cache UNC host shares.
+	(ido-make-file-list-1): Don't filter UNC root.
+	(ido-exhibit): Check for // in root directory, and switch to UNC
+	mode by setting ido-current-directory to //.
+
 2006-03-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el (customize-changed-options): Mention explicit
