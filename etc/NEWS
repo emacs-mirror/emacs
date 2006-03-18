@@ -159,6 +159,10 @@ in the other directories in `load-path'.  (-L is short for --directory.)
 ** The command line option --no-windows has been changed to
 --no-window-system.  The old one still works, but is deprecated.
 
+---
+** If the environment variable DISPLAY specifies an unreachable X display,
+Emacs will now startup as if invoked with the --no-window-system option.
+
 +++
 ** The -f option, used from the command line to call a function,
 now reads arguments for the function interactively if it is
