@@ -1,3 +1,7 @@
+2006-03-18  Craig McDaniel  <craigmcd@gmail.com>  (tiny change)
+
+	* sheap.c (STATIC_HEAP_SIZE): Enlarge STATIC_HEAP_SIZE to 12MB.
+
 2006-03-18  Vivek Dasmohapatra  <vivek@etla.org>  (tiny change)
 
 	* emacs.c (main): If user asks for a display that is unavailable,
