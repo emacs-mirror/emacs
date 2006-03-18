@@ -506,22 +506,44 @@ the machine where you started GDB and use the debugger from there.
 The array `last_marked' (defined on alloc.c) can be used to display up
 to 500 last objects marked by the garbage collection process.
 Whenever the garbage collector marks a Lisp object, it records the
-pointer to that object in the `last_marked' array.  The variable
-`last_marked_index' holds the index into the `last_marked' array one
-place beyond where the pointer to the very last marked object is
-stored.
+pointer to that object in the `last_marked' array, which is maintained
+as a circular buffer.  The variable `last_marked_index' holds the
+index into the `last_marked' array one place beyond where the pointer
+to the very last marked object is stored.
 
 The single most important goal in debugging GC problems is to find the
 Lisp data structure that got corrupted.  This is not easy since GC
 changes the tag bits and relocates strings which make it hard to look
 at Lisp objects with commands such as `pr'.  It is sometimes necessary
 to convert Lisp_Object variables into pointers to C struct's manually.
-Use the `last_marked' array and the source to reconstruct the sequence
-that objects were marked.
 
-Once you discover the corrupted Lisp object or data structure, it is
-useful to look at it in a fresh Emacs session and compare its contents
-with a session that you are debugging.
+Use the `last_marked' array and the source to reconstruct the sequence
+that objects were marked.  In general, you need to correlate the
+values recorded in the `last_marked' array with the corresponding
+stack frames in the backtrace, beginning with the innermost frame.
+Some subroutines of `mark_object' are invoked recursively, others loop
+over portions of the data structure and mark them as they go.  By
+looking at the code of those routines and comparing the frames in the
+backtrace with the values in `last_marked', you will be able to find
+connections between the values in `last_marked'.  E.g., when GC finds
+a cons cell, it recursively marks its car and its cdr.  Similar things
+happen with properties of symbols, elements of vectors, etc.  Use
+these connections to reconstruct the data structure that was being
+marked, paying special attention to the strings and names of symbols
+that you encounter: these strings and symbol names can be used to grep
+the sources to find out what high-level symbols and global variables
+are involved in the crash.
+
+Once you discover the corrupted Lisp object or data structure, grep
+the sources for its uses and try to figure out what could cause the
+corruption.  If looking at the sources doesn;t help, you could try
+setting a watchpoint on the corrupted data, and see what code modifies
+it in some invalid way.  (Obviously, this technique is only useful for
+data that is modified only very rarely.)
+
+It is also useful to look at the corrupted object or data structure in
+a fresh Emacs session and compare its contents with a session that you
+are debugging.
 
 ** Debugging problems with non-ASCII characters
 
