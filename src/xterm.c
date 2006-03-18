@@ -10122,9 +10122,10 @@ x_display_ok (display)
 {
     int dpy_ok = 1;
     Display *dpy;
-    char *display_name = display || getenv("DISPLAY");
 
-    if (!display_name)
+    if (!display)
+      display = getenv("DISPLAY");
+    if (!display)
       return 0;
 
     if ((dpy = XOpenDisplay (display)))

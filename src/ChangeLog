@@ -1,3 +1,7 @@
+2006-03-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_display_ok): Fix minor bug and compilation warnings.
+
 2006-03-18  Nozomu Ando  <nand@mac.com>
 
 	* m/pmax.h (BROKEN_NOCOMBRELOC) [__NetBSD__]: Define.
