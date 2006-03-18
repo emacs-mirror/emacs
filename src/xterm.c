@@ -10116,6 +10116,24 @@ get_bits_and_offset (mask, bits, offset)
   *bits = nr;
 }
 
+int
+x_display_ok (display)
+    const char * display;
+{
+    int dpy_ok = 1;
+    Display *dpy;
+    char *display_name = display || getenv("DISPLAY");
+
+    if (!display_name)
+      return 0;
+
+    if ((dpy = XOpenDisplay (display)))
+      XCloseDisplay (dpy);
+    else
+      dpy_ok = 0;
+    return dpy_ok;
+}
+
 struct x_display_info *
 x_term_init (display_name, xrm_option, resource_name)
      Lisp_Object display_name;
