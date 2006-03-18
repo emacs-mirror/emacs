@@ -13,8 +13,12 @@ NOTE-END  */
 #ifndef __MIPSEB__
 #undef WORDS_BIG_ENDIAN
 #endif
+#if defined (__NetBSD__)
+#define BROKEN_NOCOMBRELOC
+#else
 #undef LIB_STANDARD
 #undef START_FILES
+#endif
 #undef COFF
 #undef TERMINFO
 #define MAIL_USE_FLOCK
@@ -24,18 +28,12 @@ NOTE-END  */
 #ifdef MACH
 #define START_FILES pre-crt0.o /usr/lib/crt0.o
 #else
+#if !defined (__NetBSD__)
 /* This line starts being needed with ultrix 4.0.  */
 /* You must delete it for version 3.1.  */
 #define START_FILES pre-crt0.o /usr/lib/cmplrs/cc/crt0.o
 #endif
-
-#if defined (__NetBSD__) || defined (__OpenBSD__)
-#undef START_FILES
-#define START_FILES pre-crt0.o /usr/lib/crt0.o
-#undef RUN_TIME_REMAP
-#undef UNEXEC
-#define UNEXEC unexelf.o
-#endif /* NetBSD || OpenBSD */
+#endif
 
 /* Supposedly the following will overcome a kernel bug.  */
 #undef LD_SWITCH_MACHINE
