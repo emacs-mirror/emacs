@@ -1201,7 +1201,7 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
   "Select an Emacs font from a list of known good fonts and fontsets.
 
 If `w32-use-w32-font-dialog' is non-nil (the default), use the Windows
-font dialog to display the list of possible fonts. Otherwise use a
+font dialog to display the list of possible fonts.  Otherwise use a
 pop-up menu (like Emacs does on other platforms) initialized with
 the fonts in `w32-fixed-font-alist'.
 If `w32-list-proportional-fonts' is non-nil, add proportional fonts
