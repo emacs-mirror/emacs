@@ -1,6 +1,7 @@
 2006-03-18  Craig McDaniel  <craigmcd@gmail.com>  (tiny change)
 
 	* sheap.c (STATIC_HEAP_SIZE): Enlarge STATIC_HEAP_SIZE to 12MB.
+	Remove the HAVE_X_WINDOWS conditional.
 
 2006-03-18  Vivek Dasmohapatra  <vivek@etla.org>  (tiny change)
 
