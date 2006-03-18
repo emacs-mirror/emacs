@@ -1,3 +1,7 @@
+2006-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fw32_select_font): Doc fix.
+
 2006-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* image.c [MAC_OS] (XPutPixel, XGetPixel)
