@@ -4062,13 +4062,12 @@ to whom?}. You have several choices here.
 @tab
 The person who sent the message. This is the default, so @key{RET} is
 sufficient.
-
+@c -------------------------
 @item @kbd{to}
 @tab
 Replies to the sender, plus all recipients in the @samp{To:} header field.
-
-@item @kbd{all}
-@itemx @kbd{cc}
+@c -------------------------
+@item @kbd{cc}@*@kbd{all}
 @tab
 Forms a reply to the addresses in the @samp{Mail-Followup-To:} header
 field if one exists; otherwise forms a reply to the sender, plus all
