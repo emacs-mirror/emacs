@@ -1,3 +1,8 @@
+2006-03-19  Bill Wohler  <wohler@newt.com>
+
+	* image.el (image-load-path-for-library): Shorten first line in
+	docstring.
+
 2006-03-18  Ben North  <ben@redfrontdoor.org>  (tiny change)
 
 	* isearch.el (isearch-other-meta-char): Handle user bindings for
