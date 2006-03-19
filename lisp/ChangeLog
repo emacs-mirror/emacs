@@ -1,3 +1,20 @@
+2006-03-19  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-include-OPTkey)
+	(bibtex-entry-field-alist, bibtex-generate-url-list): Mark as
+	risky.
+	(bibtex-autokey-name-case-convert)
+	(bibtex-autokey-titleword-case-convert): Make these the aliases
+	for the following two variables.
+	(bibtex-autokey-name-case-convert-function)
+	(bibtex-autokey-titleword-case-convert-function): Make these the
+	real names.
+	(bibtex-font-lock-keywords): Make bibtex-font-lock-url and
+	bibtex-font-lock-crossref sublists.
+	(bibtex-mode): Revert 2005-12-30 change (which made
+	completion-ignore-case buffer-local).
+	(bibtex-url): Simplify
+
 2006-03-19  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-rect.el (cua--highlight-rectangle): Set overlay
