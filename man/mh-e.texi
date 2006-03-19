@@ -4057,7 +4057,10 @@ to whom?}. You have several choices here.
 
 @quotation
 @multitable @columnfractions .20 .80
-@headitem Response @tab Reply Goes To
+@c @headitem Response @tab Reply Goes To
+@c XXX @headitem not yet supported by SourceForge's texi2pdf.
+@item @b{Response} @tab @b{Reply Goes To}
+@c -------------------------
 @item @kbd{from}
 @tab
 The person who sent the message. This is the default, so @key{RET} is
