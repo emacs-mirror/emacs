@@ -1,7 +1,7 @@
 2006-03-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-stopped): Even when there is no source
-	annotation gud-overlay-arrow-position is redisplayed.
+	annotation ensure gud-overlay-arrow-position is redisplayed.
 
 2006-03-19  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
