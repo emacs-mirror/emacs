@@ -2596,6 +2596,12 @@ of BibTeX entry to kill ring (bound to C-c C-t).
 bibtex-autokey-expand-strings control the expansion of strings when
 extracting the content of a BibTeX field.
 
+*** The variables `bibtex-autokey-name-case-convert' and
+`bibtex-autokey-titleword-case-convert' have been renamed to
+`bibtex-autokey-name-case-convert-function' and
+`bibtex-autokey-titleword-case-convert-function'. The old names are
+still available as aliases.
+
 +++
 ** In Enriched mode, `set-left-margin' and `set-right-margin' are now
 by default bound to `C-c [' and `C-c ]' instead of the former `C-c C-l'
