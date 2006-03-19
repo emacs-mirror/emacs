@@ -1318,6 +1318,8 @@ directives."
 It is just like `gdb-stopping', except that if we already set the output
 sink to `user' in `gdb-stopping', that is fine."
   (setq gud-running nil)
+  (unless (or gud-overlay-arrow-position gud-last-frame)
+    (gud-display-line (car gud-last-last-frame) (cdr gud-last-last-frame)))
   (unless (member gdb-inferior-status '("exited" "signal"))
     (setq gdb-inferior-status "stopped")
     (gdb-force-mode-line-update gdb-inferior-status))
