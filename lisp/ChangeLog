@@ -1,3 +1,8 @@
+2006-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-rect.el (cua--highlight-rectangle): Set overlay
+	cursor property value to 2 (to align with C level change).
+
 2006-03-19  Bill Wohler  <wohler@newt.com>
 
 	* image.el (image-load-path-for-library): Shorten first line in

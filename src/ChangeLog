@@ -1,3 +1,10 @@
+2006-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (set_cursor_from_row): Fix cursor property on overlay	string,
+	so it doesn't associate overlay string with following glyph by default.
+	Allow integer property value to specify explicit number of buffer
+	positions associate with overlay string.
+
 2006-03-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.c (x_display_ok): Fix minor bug and compilation warnings.
