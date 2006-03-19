@@ -799,8 +799,8 @@ If command is repeated at same position, delete the rectangle."
 				(if cua--virtual-edges-debug ?, ?\s))
 			       'face rface))
 		     (if (cua--rectangle-right-side)
-			 (put-text-property (1- (length ms)) (length ms) 'cursor t ms)
-		       (put-text-property 0 1 'cursor t ms))
+			 (put-text-property (1- (length ms)) (length ms) 'cursor 2 ms)
+		       (put-text-property 0 1 'cursor 2 ms))
 		     (setq bs (concat bs ms))
 		     (setq rface nil))
  		    (t
@@ -810,8 +810,8 @@ If command is repeated at same position, delete the rectangle."
 				(if cua--virtual-edges-debug ?~ ?\s))
 			       'face rface))
 		     (if (cua--rectangle-right-side)
-			 (put-text-property (1- (length as)) (length as) 'cursor t as)
-		       (put-text-property 0 1 'cursor t as))
+			 (put-text-property (1- (length as)) (length as) 'cursor 2 as)
+		       (put-text-property 0 1 'cursor 2 as))
 		     (if (/= pr le)
 			 (setq e (1- e))))))))
 	     ;; Trim old leading overlays.
