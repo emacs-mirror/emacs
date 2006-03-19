@@ -1,3 +1,8 @@
+2006-03-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-image-load-path-for-library): Shorten first line in
+	docstring.
+
 2006-03-17  Bill Wohler  <wohler@newt.com>
 
 	* mh-compat.el (mh-image-load-path-for-library): Minor docstring
