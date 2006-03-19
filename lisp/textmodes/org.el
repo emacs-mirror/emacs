@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.09
+;; Version: 4.10
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,6 +81,9 @@
 ;;
 ;; Changes since version 4.00:
 ;; ---------------------------
+;; Version 4.10
+;;    - Bug fixes.
+;;
 ;; Version 4.09
 ;;    - Bug fixes.
 ;;    - Small improvements to font-lock support.
@@ -145,7 +148,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.09"
+(defvar org-version "4.10"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -445,7 +448,7 @@ In the calendar, the date can be selected with mouse-1.  However, the
 minibuffer will also be active, and you can simply enter the date as well.
 When nil, only the minibuffer will be available."
   :group 'org-time
-  :type 'number)
+  :type 'boolean)
 
 (defcustom org-calendar-follow-timestamp-change t
   "Non-nil means, make the calendar window follow timestamp changes.
@@ -1739,7 +1742,8 @@ Changing this variable requires a restart of Emacs to take effect."
   :type 'boolean)
 
 (defface org-hide
-  '((((type tty) (class color)) (:foreground "blue" :weight bold))
+  '(
+    (((type tty) (class color)) (:foreground "white"))
     (((class color) (background light)) (:foreground "white"))
     (((class color) (background dark)) (:foreground "black"))
 ;    (((class color) (background light)) (:foreground "grey90"))
@@ -2589,6 +2593,7 @@ Optional argument N means, put the headline into the Nth line of the window."
 (define-key org-goto-map [(?q)]     'org-goto-quit)
 (define-key org-goto-map [(control ?g)] 'org-goto-quit)
 (define-key org-goto-map "\C-i" 'org-cycle)
+(define-key org-goto-map [(tab)] 'org-cycle)
 (define-key org-goto-map [(down)] 'outline-next-visible-heading)
 (define-key org-goto-map [(up)] 'outline-previous-visible-heading)
 (define-key org-goto-map "n" 'outline-next-visible-heading)
@@ -4001,8 +4006,8 @@ used to insert the time stamp into the buffer to include the time."
 		month (string-to-number (match-string 3 ans))
 		day (string-to-number (match-string 4 ans)))
 	  (if (< year 100) (setq year (+ 2000 year)))
-	  (setq ans (replace-match (format "%04d-%02d-%02d" year month day)
-				   t t ans))))
+	  (setq ans (replace-match (format "%04d-%02d-%02d\\5" year month day)
+				   t nil ans))))
     (setq tl (parse-time-string ans)
 	  year (or (nth 5 tl) (string-to-number (format-time-string "%Y")))
 	  month (or (nth 4 tl) (string-to-number (format-time-string "%m")))
@@ -4377,6 +4382,7 @@ The following commands are available:
    (list 'org-agenda-mode-hook)))
 
 (define-key org-agenda-mode-map "\C-i"     'org-agenda-goto)
+(define-key org-agenda-mode-map [(tab)]    'org-agenda-goto)
 (define-key org-agenda-mode-map "\C-m"     'org-agenda-switch-to)
 (define-key org-agenda-mode-map " "        'org-agenda-show)
 (define-key org-agenda-mode-map "\C-c\C-t" 'org-agenda-todo)
@@ -10801,11 +10807,11 @@ underlined headlines.  The default is 3."
 
 (defun org-insert-centered (s &optional underline)
   "Insert the string S centered and underline it with character UNDERLINE."
-  (let ((ind (max (/ (- 80 (length s)) 2) 0)))
+  (let ((ind (max (/ (- 80 (string-width s)) 2) 0)))
     (insert (make-string ind ?\ ) s "\n")
     (if underline
 	(insert (make-string ind ?\ )
-		(make-string (length s) underline)
+		(make-string (string-width s) underline)
 		"\n"))))
 
 (defun org-ascii-level-start (level title umax)
@@ -11915,6 +11921,7 @@ a time), or the day by one (if it does not contain a time)."
 
 ;; TAB key with modifiers
 (define-key org-mode-map "\C-i"       'org-cycle)
+(define-key org-mode-map [(tab)]      'org-cycle)
 (define-key org-mode-map [(meta tab)] 'org-complete)
 (define-key org-mode-map "\M-\C-i"    'org-complete)            ; for tty emacs
 ;; The following line is necessary under Suse GNU/Linux
@@ -12925,4 +12932,3 @@ Show the heading too, if it is currently invisible."
 
 ;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
 ;;; org.el ends here
-

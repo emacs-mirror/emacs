@@ -1,3 +1,8 @@
+2006-03-18  Andre Spiegel  <spiegel@gnu.org>
+
+	* vcdiff: Use "echo" as a default for $echo, otherwise we'll
+	execute $DIFF twice, and once with the wrong options.
+
 2006-02-23  Claudio Fontana  <claudio@gnu.org>
 
 	* Makefile.in (install, uninstall): Add DESTDIR variable to

@@ -1198,11 +1198,15 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 ;; (set-fontset-font nil (make-char 'japanese-jisx0208-1978) '("*" . "JISX0208-SJIS"))
 
 (defun mouse-set-font (&rest fonts)
-  "Select a font.
+  "Select an Emacs font from a list of known good fonts and fontsets.
+
 If `w32-use-w32-font-dialog' is non-nil (the default), use the Windows
-font dialog to get the matching FONTS. Otherwise use a pop-up menu
-\(like Emacs on other platforms) initialized with the fonts in
-`w32-fixed-font-alist'."
+font dialog to display the list of possible fonts.  Otherwise use a
+pop-up menu (like Emacs does on other platforms) initialized with
+the fonts in `w32-fixed-font-alist'.
+If `w32-list-proportional-fonts' is non-nil, add proportional fonts
+to the list in the font selection dialog (the fonts listed by the
+pop-up menu are unaffected by `w32-list-proportional-fonts')."
   (interactive
    (if w32-use-w32-font-dialog
        (let ((chosen-font (w32-select-font (selected-frame)

@@ -51,6 +51,12 @@ Then the formatting appears on the screen in Emacs while you edit.
 @xref{Formatted Text}.
 @end iftex
 
+@cindex ASCII art
+  If you need to edit pictures made out of text characters (commonly
+referred to as ``ASCII art''), use @kbd{M-x edit-picture} to enter
+Picture mode, a special major mode for editing such pictures.
+@inforef{Picture Mode,, emacs-xtra}.
+
 @cindex skeletons
 @cindex templates
 @cindex autotyping

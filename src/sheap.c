@@ -26,11 +26,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include <unistd.h>
 
-#ifdef HAVE_X_WINDOWS
-#define STATIC_HEAP_SIZE	(8 * 1024 * 1024)
-#else
-#define STATIC_HEAP_SIZE	(8 * 1024 * 1024)
-#endif
+#define STATIC_HEAP_SIZE	(12 * 1024 * 1024)
 
 int debug_sheap = 0;
 

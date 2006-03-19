@@ -8,11 +8,11 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 7.93+cvs
-@c EDITION of the manual. It is either empty for the first edition or
+@set VERSION 7.93
+@c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
-@set EDITION
-@set UPDATED 2006-03-11
+@set EDITION , 4th Edition
+@set UPDATED 2006-03-17
 @set UPDATE-MONTH March, 2006
 
 @c Other variables.
@@ -203,6 +203,7 @@ History of MH-E
 
 @cindex Emacs
 @cindex Unix commands, Emacs
+@cindex preface
 
 This manual introduces another interface to the MH mail system that is
 accessible through the GNU Emacs editor, namely, @emph{MH-E}. MH-E is
@@ -220,6 +221,9 @@ all versions of nmh, and GNU mailutils 0.4 and higher.}, so you
 shouldn't have to do anything special to use it. This manual covers
 MH-E version @value{VERSION}. To help you decide which version you
 have, see @ref{Getting Started}.
+
+@findex help-with-tutorial
+@kindex C-h t
 
 If you don't already use GNU Emacs but want to learn more, you can
 read an online tutorial by starting GNU Emacs and typing @kbd{C-h t}
@@ -241,10 +245,13 @@ If more information is needed, you can go to the Unix manual pages of
 the individual MH commands. When the name is not obvious, I'll guide
 you to a relevant MH manual page that describes the action more fully.
 
+@cindex info
+@kindex C-h i
+
 This manual is available in both Info and online formats. The Info
 version is distributed with Emacs and can be accessed with the
-@command{info} command (@samp{info mh-e}) or within Emacs (@kbd{M-x
-info @key{RET} m mh-e @key{RET}}). The online version is available at
+@command{info} command (@samp{info mh-e}) or within Emacs (@kbd{C-h i
+m mh-e @key{RET}}). The online version is available at
 @uref{http://mh-e.sourceforge.net/manual/, SourceForge}. Another great
 online resource is the book @uref{http://www.ics.uci.edu/~mh/book/,
 @cite{MH & nmh: Email for Users & Programmers}} (also known as
@@ -265,8 +272,11 @@ Bill Wohler <@i{wohler at newt.com}>@*
 @chapter GNU Emacs Terms and Conventions
 
 @cindex Emacs
-@cindex Emacs, terms and conventions
+@cindex Emacs, conventions
+@cindex Emacs, terms
 @cindex Unix commands, Emacs
+@cindex conventions, Emacs
+@cindex terms, Emacs
 
 If you're an experienced Emacs user, you can skip the following
 conventions and definition of terms and go directly to the next
@@ -325,6 +335,7 @@ earlier of Emacs, you will need to use the @key{DEL} key.}.
 
 @cindex Emacs, prefix argument
 @cindex prefix argument
+@kindex C-u
 
 A @dfn{prefix argument} allows you to pass an argument to any Emacs
 function. To pass an argument, type @kbd{C-u} before the Emacs command
@@ -348,8 +359,11 @@ numerical argument before entering the command.
 @end quotation
 @sp 1
  
+@cindex @file{.emacs}
 @cindex Emacs, variables
+@cindex files, @file{.emacs}
 @cindex variables
+@findex setq
 
 Emacs uses @dfn{variables} to hold values. These can be changed via
 calls to the function @code{setq} in @file{~/.emacs}.
@@ -392,9 +406,11 @@ See section
 Face Customization} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
+@cindex abnormal hooks
 @cindex hooks
 @cindex normal hooks
-@cindex abnormal hooks
+@findex add-hook
+@findex customize-option
 
 Commands often offer @dfn{hooks} which enable you to extend or modify
 the way a command works. 
@@ -409,10 +425,11 @@ Hooks} in @cite{The GNU Emacs Manual}
 @end ifhtml
 for a description about @dfn{normal hooks} and @dfn{abnormal hooks}.
 MH-E uses normal hooks in nearly all cases, so you can assume that we
-are talking about normal hooks unless we explicitly mention that a hook
-is abnormal. We also follow the conventions described in that section:
-the name of the abnormal hooks end in @code{-hooks} and all the rest
-of the MH-E hooks end in @code{-hook}.
+are talking about normal hooks unless we explicitly mention that a
+hook is abnormal. We also follow the conventions described in that
+section: the name of the abnormal hooks end in @code{-hooks} and all
+the rest of the MH-E hooks end in @code{-hook}. You can add hooks with
+either @code{customize-option} or @code{add-hook}.
 
 @cindex Emacs, mark
 @cindex Emacs, point
@@ -420,6 +437,8 @@ of the MH-E hooks end in @code{-hook}.
 @cindex mark
 @cindex point
 @cindex region
+@kindex C-@@
+@kindex C-@key{SPC}
 
 There are several other terms that are used in Emacs that you should
 know. The @dfn{point} is where the cursor currently is. You can save
@@ -430,14 +449,16 @@ commands operate on regions, such as those for deleting text or
 filling paragraphs. A mark can be set with @kbd{C-@@} (or
 @kbd{C-@key{SPC}}).
 
+@cindex completion
 @cindex Emacs, completion
 @cindex Emacs, file completion
 @cindex Emacs, folder completion
 @cindex Emacs, minibuffer
-@cindex completion
 @cindex file completion
 @cindex folder completion
 @cindex minibuffer
+@kindex SPC
+@kindex TAB
 
 The @dfn{minibuffer} is the bottom line of the Emacs window, where all
 prompting and multiple-character input is directed. You can use
@@ -455,6 +476,10 @@ Completion} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 Note that @key{SPC} cannot be used for completing filenames and
 folders.
+
+@findex help-with-tutorial
+@kindex C-h t
+@kindex M-x
 
 The minibuffer is also where you enter Emacs function names after
 typing @kbd{M-x}. For example, in the preface, I mentioned that you
@@ -518,6 +543,14 @@ message, @samp{Cannot find the commands `inc' and `mhl' and the file
 MH-E, and you may need to install MH too. However, newer versions of
 MH-E are better at finding MH if it is on your system.}.
 
+@cindex @command{mhparam}
+@cindex MH commands, @command{mhparam}
+@vindex exec-path
+@vindex mh-path
+@vindex mh-sys-path
+@vindex mh-variant
+@vindex mh-variant-in-use
+
 The option @code{mh-variant} specifies the variant used by MH-E
 (@pxref{Options}). The default setting of this option is
 @samp{Auto-detect} which means that MH-E will automatically choose the
@@ -525,14 +558,22 @@ first of nmh, MH, or GNU mailutils that it finds in the directories
 listed in @code{mh-path} (which you can customize),
 @code{mh-sys-path}, and @code{exec-path}. If MH-E can't find MH at
 all, you may have to customize @code{mh-path} and add the directory in
-which the command @code{mhparam} is located. If, on the other hand,
+which the command @command{mhparam} is located. If, on the other hand,
 you have both nmh and mailutils installed (for example) and
 @code{mh-variant-in-use} was initialized to nmh but you want to use
 mailutils, then you can set @code{mh-variant} to @samp{mailutils}.
 
+@vindex mh-flists-present-flag
+@vindex mh-lib
+@vindex mh-lib-progs
+@vindex mh-progs
+
 When @code{mh-variant} is changed, MH-E resets @code{mh-progs},
 @code{mh-lib}, @code{mh-lib-progs}, @code{mh-flists-present-flag}, and
 @code{mh-variant-in-use} accordingly.
+
+@cindex @file{.emacs}
+@cindex files, @file{.emacs}
 
 @sp 1
 @center @strong{NOTE}
@@ -565,14 +606,14 @@ profile components}. For example, the @samp{Path:} MH profile
 component contains the path to your mail directory, which is
 @file{~/Mail} by default.
 
-@cindex @samp{Draft-Folder:} MH profile component
-@cindex @samp{Path:} MH profile component
-@cindex @samp{Previous-Sequence:} MH profile component
-@cindex @samp{Unseen-Sequence:} MH profile component
 @cindex MH profile component, @samp{Draft-Folder:}
 @cindex MH profile component, @samp{Path:}
 @cindex MH profile component, @samp{Previous-Sequence:}
 @cindex MH profile component, @samp{Unseen-Sequence:}
+@cindex @samp{Draft-Folder:} MH profile component
+@cindex @samp{Path:} MH profile component
+@cindex @samp{Previous-Sequence:} MH profile component
+@cindex @samp{Unseen-Sequence:} MH profile component
 @findex mh-find-path
 @vindex mh-draft-folder
 @vindex mh-find-path-hook
@@ -597,6 +638,10 @@ between MH and MH-E.
 @node Tour Through MH-E, Using This Manual, Getting Started, Top
 @chapter Tour Through MH-E
 
+@cindex introduction
+@cindex tour
+@cindex tutorial
+
 This chapter introduces some of the terms you'll need to know and then
 takes you on a tour of MH-E@footnote{The keys mentioned in these
 chapters refer to the default key bindings. If you've changed the
@@ -619,29 +664,29 @@ get the big picture, and then you can read the manual as you wish.
 @node Sending Mail Tour, Reading Mail Tour, Tour Through MH-E, Tour Through MH-E
 @section Sending Mail
 
+@cindex MH-Letter mode
+@cindex mode
+@cindex modes, MH-Letter
 @cindex sending mail
 @findex mh-smail
+@kindex M-x mh-smail
 
 Let's start our tour by sending ourselves a message which we can later
 read and process. Enter @kbd{M-x mh-smail} to invoke the MH-E program
-to send messages. You will be prompted in the minibuffer by
-@samp{To:}. Enter your login name. The next prompt is @samp{Cc:}. Hit
-@key{RET} to indicate that no carbon copies are to be sent. At the
-@samp{Subject:} prompt, enter @kbd{Test} or anything else that comes
-to mind.
+to send messages. Your message appears in an Emacs buffer whose
+mode@footnote{A @dfn{mode} changes Emacs to make it easier to edit a
+particular type of text.} is MH-Letter.
 
-@cindex MH-Letter mode
-@cindex modes, MH-Letter
-@cindex mode
+Enter your login name in the @samp{To:} header field. Press the
+@key{TAB} twice to move the cursor past the @samp{Cc:} field, since no
+carbon copies are to be sent, and on to the @samp{Subject:} field.
+Enter @kbd{Test} or anything else that comes to mind.
 
-Once you've specified the recipients and subject, your message appears
-in an Emacs buffer whose mode@footnote{A @dfn{mode} changes Emacs to
-make it easier to edit a particular type of text.} is MH-Letter. Enter
-some text in the body of the message, using normal Emacs commands. You
-should now have something like this@footnote{If you're running Emacs
-under the X Window System, then you would also see a menu bar. Under
-Emacs 21, you would also see a tool bar. I've left out the menu bar and
-tool bar in all of the example screens.}:
+Press @key{TAB} again to move the cursor to the body of the message.
+Enter some text, using normal Emacs commands. You should now have
+something like this@footnote{If you're running Emacs under the X
+Window System, then you would also see a menu bar and a tool bar. I've
+left out the menu bar and tool bar in all of the example screens.}:
 
 @cartouche
 @smallexample
@@ -651,16 +696,17 @@ tool bar in all of the example screens.}:
 
 
 
---:--  *scratch*   (Lisp Interaction)--L1--All-------------------------
+--:--  *scratch*   All L1     (Lisp Interaction)-------------------------
 To: wohler
 cc:
 Subject: Test
+X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
 --------
 This is a test message to get the wheels churning...#
 
 
---:** @{draft@}   (MH-Letter)--L5--All-----------------------------------
-
+--:**  @{draft@}   All L5     (MH-Letter)----------------------------------
+Type C-c C-c to send message, C-C ? for help
 @end smallexample
 @end cartouche
 @i{MH-E message composition window}
@@ -671,7 +717,10 @@ present or the body of your message will be considered to be part of
 the header.
 
 @cindex help
+@findex describe-mode
+@kindex C-c ?
 @kindex C-c C-c
+@kindex C-h m
 
 There are several commands specific to MH-Letter mode@footnote{You can
 get quick help for the commands used most often with @kbd{C-c ?} or
@@ -690,6 +739,7 @@ message. Type @kbd{C-c C-c} now. That's all there is to it!
 @cindex modes, MH-Folder
 @cindex reading mail
 @findex mh-rmail
+@kindex M-x mh-rmail
 
 To read the mail you've just sent yourself, enter @kbd{M-x mh-rmail}.
 This incorporates the new mail and puts the output from
@@ -702,10 +752,15 @@ pick Ranges Sequences} in the MH book.} which prints a one-line
 summary of each message) into a buffer called @samp{+inbox} whose
 major mode is MH-Folder.
 
+@findex mh-rmail
+@kindex F r
+@kindex M-x mh-rmail
+
 @sp 1
 @center @strong{NOTE}
 
 @quotation
+
 The @kbd{M-x mh-rmail} command will show you only new mail, not mail
 you have already read. If you were to run this tour again, you would
 use @kbd{F r} to pull all your messages into MH-E.
@@ -725,19 +780,18 @@ You should see the scan line for your message, and perhaps others. Use
   3 t08/24 root       received fax files on Wed Aug 24 11:00:13 PDT 1
 # 4+t08/24 To:wohler  Test<<This is a test message to get the wheels
 
--:%%  @{+inbox@} 4 msgs (1-4)   (MH-Folder Show)--L4--Bot--------------
+-:%%  @{+inbox/select@} 4 msgs (1-4)   Bot L4     (MH-Folder Show)---------
 To: wohler
 Subject: Test
-Date: Wed, 24 Aug 1994 13:01:13 -0700
+X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
+Date: Fri, 17 Mar 2006 10:49:11 -0800
 From: Bill Wohler <wohler@@stop.mail-abuse.org>
 
 This is a test message to get the wheels churning...
 
 
 
-
-
---:--  @{show-+inbox@} 4   (MH-Show)--L1--All---------------------------
+--:--  @{show-+inbox@} 4   All L1     (MH-Show)----------------------------
 
 @end smallexample
 @end cartouche
@@ -753,6 +807,7 @@ If you typed a long message, you can view subsequent pages with
 @section Processing Mail
 
 @cindex processing mail
+@kindex @key{RET}
 @kindex r
 
 The first thing we want to do is reply to the message that we sent
@@ -760,37 +815,52 @@ ourselves. Ensure that the cursor is still on the same line as your
 test message and type @kbd{r}. You are prompted in the minibuffer with
 @samp{Reply to whom:}. Here MH-E is asking whether you'd like to reply
 to the original sender only, to the sender and primary recipients, or
-to the sender and all recipients. If you simply hit @key{RET}, you'll
-reply only to the sender. Hit @key{RET} now.
+to the sender and all recipients. You can press @key{TAB} to see these
+choices. If you simply press @key{RET}, you'll reply only to the
+sender. Press @key{RET} now.
 
 You'll find yourself in an Emacs buffer similar to that when you were
 sending the original message, like this:
 
 @cartouche
 @smallexample
-To: wohler
-Subject: Re: Test
-In-reply-to: Bill Wohler's message of Wed, 24 Aug 1994 13:01:13 -0700
-             <199408242001.NAA00505@@stop.mail-abuse.org>
+To: 
+cc: 
+Subject: Re: Test 
+In-reply-to: <31054.1142621351@@stop.mail-abuse.org> 
+References: <31054.1142621351@@stop.mail-abuse.org>
+Comments: In-reply-to Bill Wohler <wohler@@stop.mail-abuse.org>
+   message dated "Fri, 17 Mar 2006 10:49:11 -0800."
+X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
 --------
 #
 
---:--  @{draft@}   (MH-Letter)--L11--Bot---------------------------------
+--:--  @{draft@}  All L10     (MH-Letter)----------------------------------
 To: wohler
 Subject: Test
-Date: Wed, 24 Aug 1994 13:01:13 -0700
+X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
+Date: Fri, 17 Mar 2006 10:49:11 -0800
 From: Bill Wohler <wohler@@stop.mail-abuse.org>
 
 This is a test message to get the wheels churning...
 
---:--  @{show-+inbox@} 4   (MH-Show)--L1--All----------------------------
-Composing a reply...done
+--:--  @{show-+inbox@} 4   All L1     (MH-Show)----------------------------
+Type C-c C-c to send message, C-c ? for help
 @end smallexample
 @end cartouche
 @i{Composition window during reply}
 
+@findex backward-char
+@findex forward-char
+@findex next-line
+@findex previous-line
+@kindex C-b
 @kindex C-c C-c
 @kindex C-c C-f C-t
+@kindex C-f
+@kindex C-n
+@kindex C-p
+@kindex @key{BS}
 
 By default, MH will not add you to the address list of your replies,
 so if you find that the @samp{To:} header field is missing, don't
@@ -802,7 +872,10 @@ move around with the arrow keys or with @kbd{C-p}
 delete the previous character with @key{BS}. When you're finished
 editing your message, send it with @kbd{C-c C-c} as before.
 
+@cindex @command{refile}
+@cindex MH commands, @command{refile}
 @cindex folders
+@kindex @key{SPC}
 @kindex o
 
 You'll often want to save messages that were sent to you in an
@@ -820,9 +893,11 @@ in a moment.
 
 @cindex MH-Folder mode
 @cindex modes, MH-Folder
-@kindex @key{RET}
 @kindex d
 @kindex i
+@kindex @key{RET}
+@kindex n
+@kindex p
 @kindex x
 
 Your previous reply is now waiting in the system mailbox. You
@@ -837,6 +912,7 @@ command.
 
 @findex mh-smail
 @kindex m
+@kindex M-x mh-smail
 
 If you want to send another message you can use @kbd{m} instead of
 @kbd{M-x mh-smail}. So go ahead, send some mail to your friends!
@@ -846,6 +922,7 @@ If you want to send another message you can use @kbd{m} instead of
 @findex describe-mode
 @kindex ?
 @kindex C-h m
+@kindex F ?
 
 You can get a quick reminder about these commands by typing @kbd{?}.
 This lists several @dfn{prefix characters}. To list the commands
@@ -858,6 +935,8 @@ available with the @kbd{C-h m} (@code{describe-mode}) command.
 
 @cindex Emacs, quitting
 @cindex quitting
+@kindex C-x C-c
+@kindex x
 
 You may now wish to exit @command{emacs} entirely. Use @kbd{C-x C-c}
 to exit @command{emacs}. If you exited without running @kbd{x} in the
@@ -866,6 +945,9 @@ to exit @command{emacs}. If you exited without running @kbd{x} in the
 perform any refiles and deletes that you did there.
 
 @findex mh-rmail
+@kindex C-x b
+@kindex C-x k
+@kindex M-x mh-rmail
 @kindex q
 
 If you don't want to leave Emacs, you can type @kbd{q} to bury (hide)
@@ -968,6 +1050,10 @@ about every MH-E command and option.
 @findex mh-help
 @kindex ?
 @kindex C-c ?
+@kindex C-h C-h
+@kindex C-h C-k i
+@kindex C-h i
+@kindex C-h m
 
 There are many commands, but don't get intimidated. There are command
 summaries at the beginning of each chapter. In case you have or would
@@ -998,7 +1084,8 @@ possible. That way you will get the same behavior inside and outside
 GNU Emacs. Note that MH-E does not provide hooks for customizations
 that can be done in MH; this omission is intentional.
 
-@cindex Emacs, Emacs Lisp manual
+@cindex Emacs Lisp Manual
+@cindex Emacs, Emacs Lisp Manual
 @cindex Emacs, info
 @cindex Emacs, online help
 @cindex info
@@ -1080,6 +1167,12 @@ use the @samp{State} combo box and select @samp{Save for Future
 Sessions}. To read more about @code{mh-lpr-command-format}, see
 @ref{Printing}.
 
+@cindex nil
+@cindex off, option
+@cindex on, option
+@cindex option, turning on and off
+@cindex t
+@findex customize-option
 @vindex mh-bury-show-buffer-flag, example
 
 Options can also hold boolean values. In Emacs Lisp, the boolean
@@ -1095,14 +1188,16 @@ the @samp{Erase Customization} menu item to reset the option to the
 default, which places the MH-Show buffer at the bottom of the buffer
 stack.
 
+@vindex mh-mhl-format-file, example
+
 The text usually says to turn on an option by setting it to a
 @emph{non-@code{nil}} value, because sometimes values other than
 @samp{on} are meaningful. An example of this is the variable
 @code{mh-mhl-format-file} (@pxref{Viewing}). Other options, such as
 hooks, involve a little more Emacs Lisp programming expertise.
 
-@cindex @samp{mh} customization group
 @cindex customization group, @samp{mh}
+@cindex @samp{mh} customization group
 @findex customize-group
 @findex mh-customize
 
@@ -1117,13 +1212,15 @@ customization group is to use @kbd{M-x mh-customize @key{RET}}.
 
 @c Sync with mh-folder-mode docstring.
 
-@cindex ranges
 @cindex message abbreviations
 @cindex message ranges
+@cindex ranges
 
 Many commands that operate on individual messages, such as
 @code{mh-forward} or @code{mh-refile-msg} take a @code{RANGE}
 argument. This argument can be used in several ways.
+
+@kindex C-u, with ranges
 
 If you provide the prefix argument @kbd{C-u} to these commands, then
 you will be prompted for the message range. This can be any valid MH
@@ -1156,9 +1253,9 @@ For example, a range that shows all of these things is @samp{1 2 3
 
 @vindex transient-mark-mode
 
-If the option @code{transient-mark-mode} is set to @code{t} and you
-set a region in the MH-Folder buffer, then the MH-E command will
-perform the operation on all messages in that region.
+If the option @code{transient-mark-mode} is turned on and you set a
+region in the MH-Folder buffer, then the MH-E command will perform the
+operation on all messages in that region.
 
 @cindex @samp{mh-range} customization group
 @cindex customization group, @samp{mh-range}
@@ -1171,6 +1268,8 @@ affects how ranges are interpreted.
 On means interpret a number as a range (default: @samp{on}).
 @end vtable
 
+@vindex mh-interpret-number-as-range-flag
+
 Since one of the most frequent ranges used is @samp{last:N}, MH-E will
 interpret input such as @samp{200} as @samp{last:200} if the
 @code{mh-interpret-number-as-range-flag} option is on (which is the
@@ -1180,6 +1279,8 @@ default). If you need to scan just the message 200, then use the range
 @node Folder Selection,  , Ranges, Using This Manual
 @section Folder Selection
 
+@cindex completion, folders
+@cindex folders, completion
 @cindex folders, selecting
 
 When you choose a folder in MH-E via a command such as @kbd{o}
@@ -1195,8 +1296,8 @@ Completion} in @cite{The GNU Emacs Manual}).
 In addition, MH-E has several ways of choosing a suitable default so
 that the folder can often be selected with a single @key{RET} key.
 
-@cindex @samp{mh-folder-selection} customization group
 @cindex customization group, @samp{mh-folder-selection}
+@cindex @samp{mh-folder-selection} customization group
 
 The @samp{mh-folder-selection} customization group contains some
 options which are used to help with this.
@@ -1217,6 +1318,8 @@ On means guessed folder name must exist to be used (default:
 Prefix used for folder names generated from aliases (default: @code{""}).
 @end vtable
 
+@vindex mh-default-folder-for-message-function
+
 You can set the option @code{mh-default-folder-for-message-function}
 to a function that provides a default folder for the message to be
 refiled. When this function is called, the current buffer contains the
@@ -1230,6 +1333,7 @@ Otherwise, the name of the destination folder is derived from the
 sender as follows:
 
 @enumerate
+@vindex mh-default-folder-list
 @item
 The folder name associated with the first address found in the list
 @code{mh-default-folder-list} is used. Each element in this list
@@ -1237,11 +1341,14 @@ contains a @samp{Check Recipient} item. If this item is turned on,
 then the address is checked against the recipient instead of the
 sender. This is useful for mailing lists.
 @c -------------------------
+@vindex mh-default-folder-prefix
 @item
 An alias prefixed by @code{mh-default-folder-prefix} corresponding to
 the address is used. The prefix is used to prevent clutter in your
 mail directory. @xref{Aliases}.
 @end enumerate
+
+@vindex mh-default-folder-must-exist-flag
 
 If the derived folder does not exist, and
 @code{mh-default-folder-must-exist-flag} is @code{t}, then the last
@@ -1252,7 +1359,9 @@ same project folder.
 @node Incorporating Mail, Reading Mail, Using This Manual, Top
 @chapter Incorporating Your Mail
 
+@cindex @samp{Folder} menu
 @cindex incorporating
+@cindex menu, @samp{Folder}
 
 This chapter talks about getting mail from your system mailbox into
 your MH @samp{+inbox} folder. The following command accomplishes that
@@ -1284,10 +1393,15 @@ Alternate spool files (default: @code{nil}).
 The following hook is available.
 
 @vtable @code
+@findex mh-inc-folder
 @item mh-inc-folder-hook
-Hook run by @samp{mh-inc-folder} after incorporating mail into a
+Hook run by @code{mh-inc-folder} after incorporating mail into a
 folder (default: @code{nil}).
 @end vtable
+
+@cindex @samp{+inbox}
+@findex mh-inc-folder
+@kindex i
 
 If at any time you receive new mail, incorporate the new mail into
 your @samp{+inbox} buffer with @kbd{i} (@code{mh-inc-folder}). Note
@@ -1305,17 +1419,18 @@ example, @kbd{C-u i ~/mbox @key{RET} +tmp @key{RET}}).
 
 Emacs can notify you when you have new mail by displaying @samp{Mail}
 in the mode line. To enable this behavior, and to have a clock in the
-mode line besides, add the following to @file{~/.emacs}:
+mode line as well, add the following to @file{~/.emacs}:
 
 @findex display-time
 
-@lisp
+@smalllisp
 (display-time)
-@end lisp
+@end smalllisp
 
 @cindex @command{inc}
-@cindex MH commands, @command{inc}
 @cindex incorporating
+@cindex MH commands, @command{inc}
+@vindex mh-inc-prog
 @vindex mh-progs
 
 The name of the program that incorporates new mail is stored in
@@ -1329,6 +1444,8 @@ a file to @command{inc} that uses a different format (see
 prev} and @uref{@value{MH-BOOK-HOME}/mhstr.htm, MH Format Strings} in
 the MH book). You'll then need to modify several variables
 appropriately (@pxref{Scan Line Formats}).
+
+@vindex mh-inc-spool-list
 
 You can use the @code{mh-inc-spool-list} variable to direct MH-E to
 retrieve mail from arbitrary spool files other than your system
@@ -1350,6 +1467,9 @@ MAILDIR=$HOME/mail
 * ^From mh-e-devel-admin@@stop.mail-abuse.org
 mh-e
 @end smallexample
+
+@findex mh-inc-spool-*
+@kindex I *
 
 In order to incorporate @file{~/mail/mh-e} into @samp{+mh-e} with an
 @kbd{I m} (@code{mh-inc-spool-mh-e}) command, customize this option,
@@ -1379,6 +1499,10 @@ box ~/mail/mh-e
 
 In XEmacs, the command @command{gnuclient} is used in a similar
 fashion.
+
+@findex mh-inc-folder
+@kindex i
+@vindex mh-inc-folder-hook
 
 You can set the hook @code{mh-inc-folder-hook}, which is called after
 new mail is incorporated by the @kbd{i} (@code{mh-inc-folder})
@@ -1410,13 +1534,16 @@ the message numbers from outside of MH-E.
 @node Reading Mail, Folders, Incorporating Mail, Top
 @chapter Reading Your Mail
 
+@cindex @samp{+inbox}
 @cindex MH-Folder mode
 @cindex MH-Show mode
 @cindex modes, MH-Folder
 @cindex modes, MH-Show
 @cindex reading mail
-@cindex scan lines
 @findex mh-rmail
+@kindex M-x mh-rmail
+@kindex F r
+@kindex F v
 
 The MH-E entry point for reading mail is @kbd{M-x mh-rmail}. This
 command incorporates your mail and creates a buffer called
@@ -1426,6 +1553,12 @@ to see your old mail as well, use @kbd{F r} to pull all your messages
 into MH-E. Or, give a prefix argument to @code{mh-rmail} so it will
 prompt you for folder to visit like @kbd{F v} (for example, @kbd{C-u
 M-x mh-rmail @key{RET} bob @key{RET}}). @xref{Folders}.}.
+
+@cindex @command{scan}
+@cindex @samp{Message} menu
+@cindex MH commands, @command{scan}
+@cindex menu, @samp{Message}
+@cindex scan lines
 
 The @samp{+inbox} buffer contains @dfn{scan lines}, which are one-line
 summaries of each incorporated message. You can perform most MH
@@ -1880,6 +2013,8 @@ header fields that mailers add to a message, but if you wish to see
 all of them, use the command @kbd{,} (comma;
 @code{mh-header-display}).
 
+@vindex mh-show-maximum-size
+
 The option @code{mh-show-maximum-size} provides an opportunity to skip
 over large messages which may be slow to load. The default value of 0
 means that all message are shown regardless of size.
@@ -1901,8 +2036,8 @@ interesting, header fields.
 
 @cindex regular expressions, @code{mh-invisible-header-fields}
 @vindex mh-clean-message-header-flag
-@vindex mh-invisible-header-fields-default
 @vindex mh-invisible-header-fields
+@vindex mh-invisible-header-fields-default
 
 Normally messages are delivered with a handful of uninteresting header
 fields. These are hidden by turning on the option
@@ -1918,12 +2053,12 @@ entire class of fields that start with the same prefix. If you think a
 header field should be generally ignored, report a bug (@pxref{Bug
 Reports}).
 
-@cindex @samp{Face:} header field
-@cindex @samp{X-Face:} header field
-@cindex @samp{X-Image-URL:} header field
 @cindex header field, @samp{Face:}
 @cindex header field, @samp{X-Face:}
 @cindex header field, @samp{X-Image-URL:}
+@cindex @samp{Face:} header field
+@cindex @samp{X-Face:} header field
+@cindex @samp{X-Image-URL:} header field
 @vindex mh-show-use-xface-flag
 
 MH-E can display the content of @samp{Face:}, @samp{X-Face:}, and
@@ -2022,9 +2157,9 @@ parse the header. Note that @command{mhl} is always used for printing
 and forwarding; in this case, the value of @code{mh-mhl-format-file}
 is consulted if you have specified a format file.
 
-@vindex mh-highlight-citation-style
 @cindex citations, highlighting
 @cindex highlighting citations
+@vindex mh-highlight-citation-style
 
 If the sender of the message has cited other messages in his message,
 then MH-E will highlight these citations to emphasize the sender's
@@ -2047,9 +2182,9 @@ highlighting of citations entirely, choose @samp{None}.
 Email addresses and URLs in the message are highlighted if the option
 @code{goto-address-highlight-p} is on, which it is by default. To view
 the web page for a highlighted URL or to send a message using a
-highlighted email address, use @kbd{Mouse-2} or @kbd{C-c @key{RET}}.
-See @ref{Sending Mail}, to see how to configure Emacs to send the
-message using MH-E.
+highlighted email address, use @kbd{Mouse-2} or @kbd{C-c @key{RET}}
+(@code{goto-address-at-point}). @xref{Sending Mail}, to see how to
+configure Emacs to send the message using MH-E.
 
 @cindex boldface, showing
 @cindex emphasis
@@ -2106,9 +2241,9 @@ thing called after messages are displayed. It's used to affect the
 behavior of MH-E in general or when @code{mh-show-mode-hook} is too
 early.
 
-@vindex mh-show-buffer-mode-line-buffer-id
 @cindex MH-Show mode
 @cindex modes, MH-Show
+@vindex mh-show-buffer-mode-line-buffer-id
 
 For those who like to modify their mode lines, use
 @code{mh-show-buffer-mode-line-buffer-id} to modify the mode line in
@@ -2124,13 +2259,13 @@ of @code{"@{show-%s@} %d"} yields a mode line of
 @node Viewing Attachments, HTML, Viewing, Reading Mail
 @section Viewing Attachments
 
+@cindex attachments
+@cindex body parts
 @cindex @command{mhshow}
 @cindex @command{show}
 @cindex MH commands, @command{mhshow}
 @cindex MH commands, @command{show}
 @cindex MIME
-@cindex attachments
-@cindex body parts
 @cindex multimedia mail
 
 MH has the ability to display @dfn{@sc{mime}} (Multipurpose Internet
@@ -2164,20 +2299,21 @@ option also controls the display of quoted-printable messages and
 other graphical widgets. @xref{Viewing}.
 
 @cindex buttons
-@kindex Mouse-1
-@kindex Mouse-2
-@kindex @key{RET}
-@findex mh-press-button
+
+Attachments in MH-E are indicated by @dfn{buttons} like this:
+
+@smallexample
+[1. image/jpeg; foo.jpg]...
+@end smallexample
+
 @findex mh-next-button
+@findex mh-press-button
 @findex mh-prev-button
+@kindex @key{RET}
 @kindex K @key{TAB}
 @kindex K S-@key{TAB}
-
-Attachments in MH-E are indicated by buttons like this:
-
-@example
-[1. image/jpeg; foo.jpg]...
-@end example
+@kindex Mouse-1
+@kindex Mouse-2
 
 To view the contents of the button, use either @kbd{Mouse-1} or
 @kbd{Mouse-2} on the button or @key{RET} (@code{mh-press-button}) when
@@ -2231,7 +2367,6 @@ default for the viewer by calling the Emacs function
 
 @cindex attachments, saving
 @cindex saving attachments
-
 @findex mh-folder-save-mime-part
 @kindex K o
 
@@ -2260,6 +2395,8 @@ argument (as in @kbd{C-u K a}) in which case you are prompted for the
 directory. These directories may be superseded by MH profile
 components, since this function calls on @command{mhstore}
 (@command{mhn}) to do the work.
+
+@vindex mh-mime-save-parts-default-directory
 
 The default value for the option
 @code{mh-mime-save-parts-default-directory} is @samp{Prompt Always} so
@@ -2292,9 +2429,9 @@ permanently by turning on the option
 MH-E cannot display all attachments inline however. It can display
 text (including @sc{html}) and images.
 
-@cindex @samp{Content-Disposition:} header field
 @cindex header field, @samp{Content-Disposition:}
 @cindex inline images
+@cindex @samp{Content-Disposition:} header field
 @vindex mh-max-inline-image-height
 @vindex mh-max-inline-image-width
 
@@ -2348,7 +2485,6 @@ in the @cite{The Gnus Manual}.
 
 @cindex HTML
 @cindex Gnus
-@vindex mm-text-html-renderer
 
 MH-E can display messages that have been sent in HTML@footnote{This
 feature depends on a version of Gnus that is at least 5.10.}. The
@@ -2357,12 +2493,14 @@ expect if the entire message is HTML, or there is an inline HTML body
 part. However, if there is an HTML body part that is an attachment,
 then you'll see a button like this:
 
-@example
+@smallexample
 [1. text/html; foo.html]...
-@end example
+@end smallexample
 
 To see how to read the contents of this body part, see @ref{Viewing
 Attachments}.
+
+@vindex mm-text-html-renderer
 
 The browser that MH-E uses is determined by the option
 @code{mm-text-html-renderer}. The default setting is set automatically
@@ -2373,12 +2511,17 @@ how to use it. In particular, find and disable the option to render
 images as this can tip off spammers that the email address they have
 used is valid.
 
+@vindex mm-text-html-renderer
+
 If you're confused about which @code{mm-text-html-renderer} to use,
 here's a brief description of each, sorted by popularity, that
 includes the results of a quick poll of MH-E users from 2005-12-23.
 
 @table @asis
-
+@cindex browser, @samp{w3m}
+@cindex @samp{w3m}
+@kindex Mouse-2
+@kindex S-Mouse-2
 @item @samp{w3m} 7
 The @samp{w3m} browser requires an external program. It's quick,
 produces pretty nice output, and best of all, it's the only browser
@@ -2389,6 +2532,8 @@ handles tables well and actually respects the table's width parameter
 (which can cause text to wrap if the author didn't anticipate that the
 page would be viewed in Emacs).
 @c -------------------------
+@cindex browser, @samp{w3m-standalone}
+@cindex @samp{w3m-standalone}
 @item @samp{w3m-standalone} 3
 This browser, along with @samp{nil} for the external browser, are the
 only choices that work without having to download a separate lisp
@@ -2398,6 +2543,8 @@ wider than the Emacs frame. This browser was the only one not to
 handle the escape @samp{&ndash;} (it printed a @samp{?}), but it did
 render @samp{&reg;}.
 @c -------------------------
+@cindex browser, @samp{links}
+@cindex @samp{links}
 @item @samp{links} 1
 The @samp{links} browser requires an external program. It's quick, and
 produces nicer output than @samp{lynx} on single column mails in
@@ -2406,6 +2553,8 @@ on multi-column tables as some lines wrap. At least it fits in 80
 columns and thus seems better than @samp{w3} and
 @samp{w3m-standalone}. Converts escapes such as @samp{&reg;} to (R).
 @c -------------------------
+@cindex browser, @samp{lynx}
+@cindex @samp{lynx}
 @item @samp{lynx} 1
 The @samp{lynx} browser requires an external program. It's quick and
 produces pretty decent output but it doesn't show links. It doesn't
@@ -2419,6 +2568,8 @@ This choice obviously requires an external browser. Like
 HTML messages have a button for the body part which you can view with
 @kbd{K v} (@code{mh-folder-toggle-mime-part}).
 @c -------------------------
+@cindex browser, @samp{w3}
+@cindex @samp{w3}
 @item @samp{w3} 0
 This choice does not require an external program as all of the
 rendering is done in lisp. You do need to get the package separately.
@@ -2431,6 +2582,8 @@ can follow links, but you have to find them first as they are not
 highlighted. Performs well on single-column tables and handles escapes
 such as @samp{&reg;}.
 @c -------------------------
+@cindex browser, @samp{html2text}
+@cindex @samp{html2text}
 @item @samp{html2text} 0
 The @samp{html2text} browser requires an external program. I noticed
 that it can do some nasty things with simple HTML mails (like filling
@@ -2438,6 +2591,8 @@ the entire message as if it were one paragraph, including signature).
 On another message, it displayed half of the HTML tags for some
 reason.
 @end table
+
+@vindex mm-text-html-renderer
 
 For a couple more sources of information about
 @code{mm-text-html-renderer},
@@ -2459,10 +2614,10 @@ documentation for the Gnus command @kbd{W h} (see section
 @cindex digests
 @findex mh-page-digest
 @findex mh-page-digest-backwards
-@kindex @key{BS}
-@kindex @key{SPC}
 @kindex D @key{BS}
 @kindex D @key{SPC}
+@kindex @key{BS}
+@kindex @key{SPC}
 
 A digest is a message that contains other messages. Special MH-E
 commands let you read digests conveniently. You can use @key{SPC} and
@@ -2476,8 +2631,8 @@ use @kbd{D @key{BS}} (@code{mh-page-digest-backwards}).
 @cindex MH-Folder Show mode
 @cindex modes, MH-Folder Show
 @findex mh-burst-digest
-@kindex D b
 @kindex d
+@kindex D b
 @kindex t
 
 Another handy command is @kbd{D b} (@code{mh-burst-digest}). This
@@ -2639,6 +2794,8 @@ See
 @findex mh-ps-print-msg-file
 @kindex P f
 @kindex P p
+@vindex mh-lpr-command-format
+@vindex mh-print-background-flag
 
 To print messages in MH-E, use the command @kbd{P p}
 (@code{mh-ps-print-msg}). You can print all the messages in a range
@@ -2694,6 +2851,9 @@ formatted with @command{mhl}@footnote{See the section
 @uref{@value{MH-BOOK-HOME}/shomes.htm#Usisho, Using mhl} in the MH
 book.} and printed with the @command{lpr} command.
 
+@kindex P f
+@kindex P l
+@kindex P p
 @vindex mh-lpr-command-format
 @vindex mh-print-background-flag
 
@@ -2716,11 +2876,10 @@ commands @kbd{P p} or @kbd{P f}.
 
 @cindex files
 @cindex pipes
-
 @findex mh-refile-or-write-again
 @findex mh-write-msg-to-file
-@kindex !
 @kindex >
+@kindex !
 
 MH-E does offer a couple of commands that are not a part of MH@. The
 first one, @kbd{>} (@code{mh-write-msg-to-file}), writes a message to
@@ -2733,6 +2892,7 @@ can be made with the command @kbd{!}
 
 @findex mh-pipe-msg
 @kindex |
+@kindex l
 
 You can also pipe the message through a Unix shell command with the
 command @kbd{|} (@code{mh-pipe-msg}). You are prompted for the Unix
@@ -2761,6 +2921,8 @@ like to change the initial default directory, customize the option
 directory for storing the content of these messages.
 
 @findex mh-store-buffer
+@kindex @key{RET}
+@kindex X s
 
 By the way, @kbd{X s} calls the Emacs Lisp function
 @code{mh-store-buffer}. I mention this because you can use it directly
@@ -2781,11 +2943,11 @@ typing @kbd{M-x mh-store-buffer @key{RET} ~ @key{RET}}.
 @findex mh-next-unread-msg
 @findex mh-previous-undeleted-msg
 @findex mh-previous-unread-msg
+@kindex g
 @kindex M-<
 @kindex M->
 @kindex M-n
 @kindex M-p
-@kindex g
 @kindex n
 @kindex p
 
@@ -2809,6 +2971,7 @@ message with @kbd{M-<} (@code{mh-first-msg}) and @kbd{M->}
 @findex previous-line
 @kindex C-n
 @kindex C-p
+@kindex @key{RET}
 
 You can also use the Emacs commands @kbd{C-p} (@code{previous-line})
 and @kbd{C-n} (@code{next-line}) to move up and down the scan lines in
@@ -2818,6 +2981,8 @@ the MH-Folder window. These commands can be used in conjunction with
 @cindex deleting messages
 @findex mh-delete-msg
 @kindex d
+@kindex n
+@kindex p
 
 To mark a message for deletion, use the command @kbd{d}
 (@code{mh-delete-msg}). A @samp{D} is placed by the message in the
@@ -2839,7 +3004,11 @@ the message.
 
 @findex mh-delete-subject
 @findex mh-delete-subject-or-thread
+@findex mh-thread-delete
+@findex mh-undo
 @kindex k
+@kindex T d
+@kindex u
 
 And to delete more messages faster, you can use @kbd{k}
 (@code{mh-delete-subject-or-thread}) to delete all the messages with
@@ -2878,6 +3047,8 @@ the command @kbd{M} (@code{mh-modify}). It displays the raw message in
 an editable buffer. When you are done editing, save and kill the
 buffer as you would any other.
 
+@findex mh-kill-folder
+@findex mh-pack-folder
 @vindex mh-do-not-confirm-flag
 
 Commands such as @code{mh-pack-folder} prompt to confirm whether to
@@ -2977,7 +3148,11 @@ original configuration is displayed.
 @node Folders, Sending Mail, Reading Mail, Top
 @chapter Organizing Your Mail with Folders
 
+@cindex @samp{Folder} menu
+@cindex @samp{Message} menu
 @cindex folders
+@cindex menu, @samp{Folder}
+@cindex menu, @samp{Message}
 @cindex using folders
 
 This chapter discusses the things you can do with folders within MH-E.
@@ -3231,6 +3406,8 @@ Ticked message face.
 @samp{To:} face.
 @end vtable
 
+@vindex mh-folder-mode-hook
+
 The hook @code{mh-folder-mode-hook} is called when visiting a new
 folder in MH-Folder mode. This could be used to set your own key
 bindings, for example:
@@ -3285,6 +3462,9 @@ create folders. If you specify a folder that does not exist, you will
 be prompted to create it. The hook @code{mh-refile-msg-hook} is called
 after a message is marked to be refiled.
 
+@findex mh-write-msg-to-file
+@kindex !
+
 If you are refiling several messages into the same folder, you can use
 the command @kbd{!} (@code{mh-refile-or-write-again}) to repeat the
 last refile or write (for the description of @kbd{>}
@@ -3294,6 +3474,8 @@ range in either case (for example, @kbd{C-u o 1 3 5-7 last:5 frombob
 
 @cindex expunging refiles and deletes
 @cindex undoing refiles and deletes
+@findex mh-undo
+@kindex u
 
 If you've deleted a message or refiled it, but changed your mind, you
 can cancel the action before you've executed it. Use @kbd{u}
@@ -3301,8 +3483,14 @@ can cancel the action before you've executed it. Use @kbd{u}
 You can also undo refiles and deletes for messages that are found in a
 given range (@pxref{Ranges}).
 
+@findex mh-undo-folder
+@kindex F u
+
 Alternatively, you can use @kbd{F u} (@code{mh-undo-folder}) to undo
 all refiles and deletes in the current folder.
+
+@findex mh-execute-commands
+@kindex x
 
 If you've marked messages to be deleted or refiled and you want to go
 ahead and delete or refile the messages, use @kbd{x}
@@ -3311,6 +3499,10 @@ numbering of the messages (such as @kbd{F r} or @kbd{F p}) will ask if
 you want to process refiles or deletes first and then either run
 @kbd{x} for you or undo the pending refiles and deletes, which are
 lost.
+
+@kindex x
+@vindex mh-after-commands-processed-hook
+@vindex mh-before-commands-processed-hook
 
 The command @kbd{x} runs @code{mh-before-commands-processed-hook}
 before the commands are processed and
@@ -3323,6 +3515,10 @@ hook include @code{mh-folders-changed}, which lists which folders were
 affected by deletes and refiles. This list will always include the
 current folder @code{mh-current-folder}.
 
+@findex mh-copy-msg
+@kindex c
+@kindex o
+
 If you wish to copy a message to another folder, you can use the
 command @kbd{c} (@code{mh-copy-msg}) (see the @option{-link} argument
 to @command{refile}(1)). Like the command @kbd{o}, this command
@@ -3331,12 +3527,14 @@ range (@pxref{Ranges}). Note that unlike the command @kbd{o}, the copy
 takes place immediately. The original copy remains in the current
 folder.
 
-@cindex MH-Folder Show mode
-@cindex MH-Folder mode
 @cindex junk mail
+@cindex MH-Folder mode
+@cindex MH-Folder Show mode
 @cindex modes, MH-Folder
 @cindex modes, MH-Folder Show
 @cindex spam
+@findex mh-toggle-showing
+@kindex t
 
 The command @kbd{t} (@code{mh-toggle-showing}) switches between
 MH-Folder mode and MH-Folder Show mode@footnote{For you Emacs wizards,
@@ -3351,6 +3549,7 @@ folder for later examination.
 @cindex modes, MH-Folder
 @cindex modes, MH-Show
 @cindex moving between messages
+@kindex t
 @vindex mh-recenter-summary-flag
 
 When you use @kbd{t} to toggle between show mode and scan mode, the
@@ -3359,6 +3558,10 @@ Setting @code{mh-recenter-summary-flag} to a non-@code{nil} value
 causes the toggle to display as many scan lines as possible, with the
 cursor at the middle. The effect of @code{mh-recenter-summary-flag} is
 rather useful, but it can be annoying on a slow network connection.
+
+@findex mh-visit-folder
+@kindex F v
+@vindex mh-large-folder
 
 When you want to read the messages that you have refiled into folders,
 use the command @kbd{F v} (@code{mh-visit-folder}) to visit the
@@ -3373,15 +3576,18 @@ to specify the range and @code{mh-large-folder} is ignored. Note that
 this command can also be used to create folders. If you specify a
 folder that does not exist, you will be prompted to create it.
 
+@findex mh-search
+@kindex F s
+
 If you forget where you've refiled your messages, you can find them
 using @kbd{F s} (@code{mh-search}). @xref{Searching}.
 
 @cindex @command{procmail}
 @cindex @command{rcvstore}
-@cindex @samp{unseen} sequence
 @cindex MH commands, @command{rcvstore}
-@cindex Unix commands, @command{procmail}
+@cindex @samp{unseen} sequence
 @cindex sequence, @samp{unseen}
+@cindex Unix commands, @command{procmail}
 @cindex unseen messages, viewing
 @findex mh-index-new-messages
 @kindex F n
@@ -3399,6 +3605,9 @@ folders, or nothing to search all folders.
 @cindex @samp{tick} sequence
 @cindex sequence, @samp{tick}
 @cindex ticked messages, viewing
+@findex mh-index-ticked-messages
+@kindex F '
+@vindex mh-ticked-messages-folders
 
 If you have ticked messages (@pxref{Sequences}), you can display them
 using the command @kbd{F '} (@code{mh-index-ticked-messages}). All
@@ -3417,14 +3626,28 @@ You can display messages in any sequence with the command @kbd{F q}
 With a prefix argument, enter a space-separated list of folders at the
 prompt, or nothing to search all folders.
 
+@vindex mh-new-messages-folders
+@vindex mh-recursive-folders-flag
+@vindex mh-ticked-messages-folders
+
 Set the options @code{mh-new-messages-folders} and
 @code{mh-ticked-messages-folders} to @samp{Inbox} to search the
 @samp{+inbox} folder or @samp{All} to search all of the top level
 folders. Otherwise, list the folders that should be searched with the
 @samp{Choose Folders} menu item. See @code{mh-recursive-folders-flag}.
 
-@cindex @samp{*MH-E Folders*}
 @cindex buffers, @samp{*MH-E Folders*}
+@cindex @samp{*MH-E Folders*}
+@findex mh-kill-folder
+@findex mh-list-folders
+@findex mh-pack-folder
+@findex mh-rescan-folder
+@findex mh-sort-folder
+@kindex F k
+@kindex F l
+@kindex F p
+@kindex F r
+@kindex F S
 
 Other commands you can perform on folders include: @kbd{F l}
 (@code{mh-list-folders}), to place a listing of all the folders in
@@ -3439,11 +3662,16 @@ to rescan the folder, which is useful to grab all messages in your
 you don't want to rescan the entire folder, the commands @kbd{F r} or
 @kbd{F p} will accept a range (@pxref{Ranges}).
 
+@kindex @key{TAB}
+@vindex mh-recursive-folders-flag
+
 By default, operations on folders work only one level at a time. Set
 @code{mh-recursive-folders-flag} to non-@code{nil} to operate on all
 folders. This mostly means that you'll be able to see all your folders
 when you press @key{TAB} when prompted for a folder name.
 
+@findex mh-search-p
+@kindex k
 @vindex mh-kill-folder-suppress-prompt-hooks
 
 The hook @code{mh-kill-folder-suppress-prompt-hooks} is an abnormal
@@ -3459,17 +3687,19 @@ searching.
 
 @quotation
 Use this hook with care. If there is a bug in your hook which returns
-@code{t} on @samp{+inbox} and you hit @kbd{k} by accident in the
+@code{t} on @samp{+inbox} and you press @kbd{k} by accident in the
 @code{+inbox} folder, you will not be happy.
 @end quotation
 @sp 1
 
 @cindex @command{sortm}
 @cindex @file{.mh_profile}
-@cindex @samp{sortm:} MH profile component
+@cindex files, @file{.mh_profile}
 @cindex MH commands, @command{sortm}
 @cindex MH profile component, @samp{sortm:}
-@cindex files, @file{.mh_profile}
+@cindex @samp{sortm:} MH profile component
+@kindex F S
+@vindex mh-sortm-args
 
 The option @code{mh-sortm-args} holds extra arguments to pass on to
 the command @command{sortm}@footnote{See the section
@@ -3481,7 +3711,8 @@ This option may be used to provide an alternate view. For example,
 
 @cindex exiting
 @cindex quitting
-@findex mh-rmail
+@findex mh-quit
+@kindex q
 
 When you want to quit using MH-E and go back to editing, you can use
 the @kbd{q} (@code{mh-quit}) command. This buries the buffers of the
@@ -3492,18 +3723,20 @@ buffers whose name begins with @samp{ *mh-} or @samp{*MH-E }
 selecting the @samp{+inbox} buffer or by running @kbd{M-x mh-rmail}
 again.
 
+@findex mh-execute-commands
+@kindex q
 @vindex mh-before-quit-hook
 @vindex mh-quit-hook
 
 The two hooks @code{mh-before-quit-hook} and @code{mh-quit-hook} are
-called by @kbd{q} (@code{mh-quit}). The former one is called before
-the quit occurs, so you might use it to perform any MH-E operations;
-you could perform some query and abort the quit or call
-@code{mh-execute-commands}, for example. The latter is not run in an
-MH-E context, so you might use it to modify the window setup. For
-example, if the window configuration was saved as in the example in
-@ref{Miscellaneous Commands and Options}, you would also want to set
-@code{mh-quit-hook} to the following:
+called by @kbd{q}. The former one is called before the quit occurs, so
+you might use it to perform any MH-E operations; you could perform
+some query and abort the quit or call @code{mh-execute-commands}, for
+example. The latter is not run in an MH-E context, so you might use it
+to modify the window setup. For example, if the window configuration
+was saved as in the example in @ref{Miscellaneous Commands and
+Options}, you would also want to set @code{mh-quit-hook} to the
+following:
 
 @c XXX Replace this with my example for killing the mail buffers.
 
@@ -3525,8 +3758,8 @@ example, if the window configuration was saved as in the example in
 
 @cindex folders, renaming
 @cindex renaming folders
+@findex dired
 @findex dired-do-rename
-@kindex R
 
 You can use dired to manipulate the folders themselves. For example, I
 renamed my @samp{+out} folder to the more common @samp{+outbox} by
@@ -3539,15 +3772,16 @@ moving my cursor to @samp{out} and using the command @kbd{R}
 
 @cindex sending mail
 @findex mh-smail
+@kindex M-x mh-smail
 
 You can send a mail message in several ways. You can call @kbd{M-x
 mh-smail} directly, or from the command line like this:
 
 @cindex starting from command line
 
-@example
+@smallexample
 $ @kbd{emacs -f mh-smail}
-@end example
+@end smallexample
 
 @findex goto-address-at-point
 @vindex mail-user-agent
@@ -3556,6 +3790,9 @@ There are some commands that need to send a mail message, such as
 @code{goto-address-at-point}. You can configure Emacs to have these
 commands use MH-E by setting the option @code{mail-user-agent} to
 @samp{Emacs interface to MH}.
+
+@cindex @samp{Message} menu
+@cindex menu, @samp{Message}
 
 From within MH-E's MH-Folder mode, other methods of sending mail are
 available as well. These can also be found in the @samp{Message} menu.
@@ -3688,6 +3925,8 @@ in the following sections.
 @cindex sending mail
 @findex mh-smail
 @findex mh-smail-other-window
+@kindex M-x mh-smail
+@kindex M-x mh-smail-other-window
 
 Outside of an MH-Folder buffer, you must call either @kbd{M-x
 mh-smail} or @kbd{M-x mh-smail-other-window} to compose a new message.
@@ -3701,8 +3940,8 @@ following key bindings to @file{~/.emacs} useful:
 (global-set-key "\C-x4m" 'mh-smail-other-window)
 @end smalllisp
 
-@cindex MH-Letter mode
 @cindex draft folder
+@cindex MH-Letter mode
 @cindex modes, MH-Letter
 @findex mh-send
 @kindex m
@@ -3726,8 +3965,8 @@ If you prefer to be prompted for the recipient and subject fields
 before the MH-Letter buffer appears, turn on the option
 @code{mh-compose-prompt-flag}.
 
-@cindex @samp{X-Mailer:} header field
 @cindex header field, @samp{X-Mailer:}
+@cindex @samp{X-Mailer:} header field
 @vindex mh-insert-x-mailer-flag
 
 MH-E adds an @samp{X-Mailer:} header field to the header that includes
@@ -3738,8 +3977,10 @@ participate in our marketing, you can turn off the option
 @cindex @command{repl}
 @cindex @file{components}
 @cindex MH commands, @command{repl}
+@cindex MH-Letter mode
 @cindex Mail mode
 @cindex files, @file{components}
+@cindex modes, MH-Letter
 @cindex modes, Mail
 @vindex mail-mode-hook
 @vindex mh-letter-mode-hook
@@ -3754,9 +3995,7 @@ order) before @code{mh-letter-mode-hook}.}. For example, you may wish
 to modify the header after @command{repl} has done its work, or you
 may have a complicated @file{components} file and need to tell MH-E
 where the cursor should go. Here's an example of how you would use
-this hook. You can add the hook using @code{add-hook} or by running
-@kbd{M-x customize-option @key{RET} mh-letter-mode-hook
-@key{RET}}---all of the other hooks are set in a similar fashion.
+this hook.
 
 @findex mh-insert-signature, example
 
@@ -3780,8 +4019,6 @@ this hook. You can add the hook using @code{add-hook} or by running
     (goto-char (point-max))             ; @r{go to end of message to}
     (mh-insert-signature)))             ;   @r{insert signature}
 
-(add-hook 'mh-letter-mode-hook 'my-mh-letter-mode-hook)
-
 @i{Prepare draft for editing via mh-letter-mode-hook}
 
 @end group
@@ -3791,6 +4028,7 @@ The function, @code{add-enriched-text} is defined in the example in
 @ref{Adding Attachments}.
 
 @vindex mh-compose-letter-function
+@vindex mh-letter-mode-hook
 
 The second hook, a function really, is
 @code{mh-compose-letter-function}. Like @code{mh-letter-mode-hook}, it
@@ -3869,6 +4107,8 @@ no effect.
 Another way to include the message automatically in your draft is to
 use @samp{repl: -filter repl.filter} in your MH profile.
 
+@vindex mh-reply-show-message-flag
+
 If you include the message automatically, you can hide the MH-Show
 buffer by turning off the option @code{mh-reply-show-message-flag}.
 
@@ -3888,9 +4128,9 @@ recipients in the draft.
 @section Forwarding Mail
 
 @cindex @command{forw}
-@cindex MH commands, @command{forw}
 @cindex draft
 @cindex forwarding
+@cindex MH commands, @command{forw}
 @findex mh-forward
 @kindex f
 @vindex mh-forward-hook
@@ -3906,9 +4146,9 @@ All of the messages in the range are inserted into your draft. The
 hook @code{mh-forward-hook} is called on the draft.
 
 @cindex @file{.mh_profile}
-@cindex @samp{forw:} MH profile component
-@cindex MH profile component, @samp{forw:}
 @cindex files, @file{.mh_profile}
+@cindex MH profile component, @samp{forw:}
+@cindex @samp{forw:} MH profile component
 @vindex mh-compose-forward-as-mime-flag
 
 By default, the option @code{mh-compose-forward-as-mime-flag} is on
@@ -3959,6 +4199,9 @@ does it add your name to the @samp{From:} header field. It appears to
 the recipient as if the message had come from the original sender.
 When you run this command, you are prompted for the recipients.
 
+@findex mh-edit-again
+@kindex e
+
 For more information on redistributing messages, see
 @command{dist}(1). Also investigate the command @kbd{e}
 (@code{mh-edit-again}) for another way to redistribute messages
@@ -3985,7 +4228,9 @@ a message that has been redistributed before, turn off this option.
 @cindex files, @file{draft}
 @cindex re-editing drafts
 @findex mh-edit-again
+@kindex F v drafts
 @kindex e
+@kindex n
 
 If you don't complete a draft for one reason or another, and if the
 draft buffer is no longer available, you can pick your draft up again
@@ -3995,11 +4240,14 @@ folders, you'll need to visit the draft folder with @kbd{F v drafts
 @key{RET}}, use @kbd{n} to move to the appropriate message, and then
 use @kbd{e} to prepare the message for editing.
 
+@kindex e
+
 The @kbd{e} command can also be used to take messages that were sent
 to you and to send them to more people.
 
 @cindex Mailer-Daemon
 @findex mh-extract-rejected-mail
+@kindex C-c C-c
 @kindex E
 
 Don't use @kbd{e} to re-edit a message from a @i{Mailer-Daemon} who
@@ -4012,9 +4260,11 @@ send the message again with @kbd{C-c C-c}.
 @node Editing Drafts, Aliases, Sending Mail, Top
 @chapter Editing a Draft
 
+@cindex @samp{Letter} menu
 @cindex MH-Letter mode
 @cindex draft
 @cindex editing draft
+@cindex menu, @samp{Letter}
 @cindex modes, MH-Letter
 
 When you edit a message that you want to send (called a @dfn{draft} in
@@ -4449,8 +4699,8 @@ draft. @xref{Folder Selection}.
 @findex indent-relative
 @findex mh-letter-next-header-field-or-indent
 @findex mh-letter-previous-header-field
-@kindex S-@key{TAB}
 @kindex @key{TAB}
+@kindex S-@key{TAB}
 @vindex mh-compose-skipped-header-fields
 @vindex mh-letter-header-field
 
@@ -4476,8 +4726,10 @@ take point to the last field from anywhere in the body.
 @findex mh-letter-complete-or-space
 @findex mh-letter-confirm-address
 @kindex , (comma)
-@kindex M-@key{TAB}
 @kindex @key{SPC}
+@kindex M-@key{TAB}
+@vindex mh-alias-flash-on-comma
+@vindex mh-compose-space-does-completion-flag
 @vindex mh-letter-complete-function
 
 If the field contains addresses (for example, @samp{To:} or
@@ -4496,10 +4748,11 @@ press the comma, the command @code{mh-letter-confirm-address} flashes
 the alias expansion in the minibuffer if
 @code{mh-alias-flash-on-comma} is turned on.
 
-@kindex C-c C-t
-@findex mh-letter-toggle-header-field-display
 @c XXX Document the replacement for the inaccessible 'long argument.
  
+@findex mh-letter-toggle-header-field-display
+@kindex C-c C-t
+
 Use the command @kbd{C-c C-t}
 @code{mh-letter-toggle-header-field-display} to display truncated
 header fields. This command is a toggle so entering it again will hide
@@ -4533,23 +4786,23 @@ quotes match the value of @code{mh-ins-buf-prefix} (@pxref{Inserting
 Letter}). For example, let's assume you have the following in your
 draft:
 
-@example
+@smallexample
 @group
 > Hopefully this gives you an idea of what I'm currently doing. I'm \
 not sure yet whether I'm completely satisfied with my setup, but    \
 it's worked okay for me so far.
 @end group
-@end example
+@end smallexample
 
 Running @kbd{M-q} on this paragraph produces:
 
-@example
+@smallexample
 @group
 > Hopefully this gives you an idea of what I'm currently doing. I'm not
 > sure yet whether I'm completely satisfied with my setup, but it's
 > worked okay for me so far.
 @end group
-@end example
+@end smallexample
 
 @findex mh-open-line
 @findex open-line
@@ -4564,7 +4817,7 @@ column as it was. This is useful when breaking up paragraphs in
 replies. For example, if this command was used when point was after
 the first period in the paragraph above, the result would be this:
 
-@example
+@smallexample
 @group
 > Hopefully this gives you an idea of what I'm currently doing.
 
@@ -4572,7 +4825,7 @@ the first period in the paragraph above, the result would be this:
 > sure yet whether I'm completely satisfied with my setup, but it's
 > worked okay for me so far.
 @end group
-@end example
+@end smallexample
 
 @node Inserting Letter, Inserting Messages, Editing Message, Editing Drafts
 @section Inserting Letter to Which You're Replying
@@ -4582,6 +4835,7 @@ the first period in the paragraph above, the result would be this:
 @cindex yanking messages
 @findex mh-yank-cur-msg
 @kindex C-c C-y
+@vindex mh-ins-buf-prefix
 
 It is often useful to insert a snippet of text from a letter that
 someone mailed to provide some context for your reply. The command
@@ -4590,7 +4844,7 @@ attribution, yanking a portion of text from the message to which
 you're replying, and inserting @code{mh-ins-buf-prefix} (@samp{> })
 before each line.
 
-@example
+@smallexample
 @group
 Michael W Thelen <thelenm@@stop.mail-abuse.org> wrote:
 
@@ -4598,7 +4852,7 @@ Michael W Thelen <thelenm@@stop.mail-abuse.org> wrote:
 > sure yet whether I'm completely satisfied with my setup, but it's
 > worked okay for me so far.
 @end group
-@end example
+@end smallexample
 
 @vindex mh-extract-from-attribution-verb
 
@@ -4608,7 +4862,9 @@ followed by the content of the option
 @samp{wrote:}, @samp{a écrit:}, and @samp{schrieb:}. You can also use
 the @samp{Custom String} menu item to enter your own verb.
 
+@vindex mail-citation-hook
 @vindex mh-ins-buf-prefix
+@vindex mh-yank-behavior
 
 The prefix @code{"> "} is the default setting for the option
 @code{mh-ins-buf-prefix}. I suggest that you not modify this option
@@ -4624,9 +4880,11 @@ You can also turn on the @code{mh-delete-yanked-msg-window-flag}
 option to delete the window containing the original message after
 yanking it to make more room on your screen for your reply.
 
-@vindex mh-yank-behavior
 @cindex Emacs, packages, supercite
 @cindex supercite package
+@kindex r
+@vindex mail-citation-hook
+@vindex mh-yank-behavior
 
 You can control how the message to which you are replying is yanked
 into your reply using @code{mh-yank-behavior}. To include the entire
@@ -4644,10 +4902,15 @@ Choose @samp{Invoke supercite}@footnote{@emph{Supercite} is a
 full-bodied, full-featured, citation package that comes standard with
 Emacs.} to pass the entire message and header through supercite.
 
+@vindex mh-extract-from-attribution-verb
+
 If the @samp{Body With Attribution} setting is used, then the message
 minus the header is yanked and a simple attribution line is added at
 the top using the value of the option
 @code{mh-extract-from-attribution-verb}. This is the default.
+
+@kindex C-c C-y
+@vindex mh-delete-yanked-msg-window-flag
 
 If the @samp{Invoke supercite} or @samp{Body With Attribution}
 settings are used, the @samp{-noformat} argument is passed to the
@@ -4660,12 +4923,16 @@ People who use the automatic variants tend to turn on the option
 @code{mh-delete-yanked-msg-window-flag} as well so that the show
 window is never displayed.
 
+@vindex mh-yank-behavior
+
 If the show buffer has a region, the option @code{mh-yank-behavior} is
 ignored unless its value is one of @samp{Attribution} variants in
 which case the attribution is added to the yanked region.
 
 @findex trivial-cite
 @vindex mail-citation-hook
+@vindex mh-ins-buf-prefix
+@vindex mh-yank-behavior
 
 If this isn't enough, you can gain full control over the appearance of
 the included text by setting @code{mail-citation-hook} to a function
@@ -4676,6 +4943,10 @@ the hook. The function can find the citation between point and mark
 and it should leave point and mark around the modified citation text
 for the next hook function. The standard prefix
 @code{mh-ins-buf-prefix} is not added if this hook is set.
+
+@cindex Emacs, packages, trivial-cite
+@cindex trivial-cite package
+@vindex mh-yank-behavior
 
 For example, if you use the hook function
 @uref{http://shasta.cs.uiuc.edu/~lrclause/tc.html,
@@ -4691,6 +4962,7 @@ For example, if you use the hook function
 @kindex C-c C-i
 @vindex mh-ins-buf-prefix
 @vindex mh-invisible-header-fields-compiled
+@vindex mh-yank-behavior
 
 Messages can be inserted with @kbd{C-c C-i} (@code{mh-insert-letter}).
 This command prompts you for the folder and message number, which
@@ -4717,8 +4989,8 @@ letter and point after it.
 You can insert your signature at the current cursor location with the
 command @kbd{C-c C-s} (@code{mh-insert-signature}).
 
-@cindex @file{.signature}
 @cindex files, @file{.signature}
+@cindex @file{.signature}
 @cindex vCard
 @vindex mh-signature-file-name
 
@@ -4728,6 +5000,7 @@ option @code{mh-signature-file-name}. This file may contain a
 @dfn{vCard} in which case an attachment is added with the vCard.
 
 @findex mh-signature-separator-p
+@vindex mh-signature-file-name
 @vindex mh-signature-separator
 @vindex mh-signature-separator-regexp
 
@@ -4751,6 +5024,7 @@ signature differently, and to suppress the signature when replying or
 yanking a letter into a draft.
 
 @vindex mh-insert-signature-hook
+@vindex mh-signature-file-name
 
 The hook @code{mh-insert-signature-hook} is run after the signature is
 inserted. Hook functions may access the actual name of the file or the
@@ -4802,6 +5076,8 @@ resolution, color, @samp{Face:} header field.
 The URL of any image can be used for the @samp{X-Image-URL:} field and
 no processing of the image is required.
 
+@vindex mh-x-face-file
+
 To prevent the setting of any of these header fields, either set
 @code{mh-x-face-file} to @code{nil}, or simply ensure that the file
 defined by this option doesn't exist.
@@ -4825,6 +5101,8 @@ protocol@footnote{@sc{mime} is defined in
 @sc{mime} protocol allows you to incorporate images, sound, video,
 binary files, and even commands that fetch a file with @samp{ftp} when
 your recipient reads the message!
+
+@kindex C-c C-m
 
 If you were to create a multimedia message with plain MH commands, you
 would insert @command{mhbuild} or @command{mhn} directives (henceforth
@@ -4871,8 +5149,8 @@ whereas others require you to enter one.
 
 @cindex @command{file}
 @cindex @file{/etc/mime.types}
-@cindex Unix commands, @command{file}
 @cindex files, @file{/etc/mime.types}
+@cindex Unix commands, @command{file}
 @findex mailcap-mime-types
 
 In the cases where MH-E can do so, it will determine the media type
@@ -4952,16 +5230,17 @@ You may also be interested in investigating @code{sgml-mode}.
 
 @subheading Including Files
 
+@cindex attachments, inserting
+@cindex images
 @cindex MIME, images
 @cindex MIME, sound
 @cindex MIME, video
-@cindex attachments, inserting
-@cindex images
 @cindex sound
 @cindex video
 @findex mh-compose-insertion
 @kindex C-c C-m C-i
 @kindex C-c C-m i
+@vindex mh-compose-insertion
 
 Binaries, images, sound, and video can be inserted in your message
 with the command @kbd{C-c C-m C-i} (@code{mh-compose-insertion}). You
@@ -5004,7 +5283,9 @@ host and filename, the media type, and the content description.
 @cindex MIME, @command{tar}
 @cindex Unix commands, @command{ftp}
 @cindex Unix commands, @command{tar}
+@findex mh-mh-compose-anon-ftp
 @findex mh-mh-compose-external-compressed-tar
+@kindex C-c C-m C-g
 @kindex C-c C-m C-t
 @kindex C-c C-m t
 
@@ -5042,7 +5323,7 @@ When you are finished editing a @sc{mime} message, it might look like this:
 
 
 
---:%%  @{+inbox@} 4 msgs (1-4)   (MH-Folder Show)--L4--Bot---------------
+--:%%  @{+inbox@} 4 msgs (1-4)   Bot L4     (MH-Folder Show)---------------
 To: wohler
 cc:
 Subject: Test of MIME
@@ -5052,7 +5333,7 @@ Here is the SETI@@Home logo:
 <#part type="image/x-xpm" filename="~/lib/images/setiathome.xpm"
 disposition=inline description="SETI@@home logo">
 <#/part>
---:**  @{draft@}   (MH-Letter)--L8--All----------------------------------
+--:**  @{draft@}   All L8     (MH-Letter)----------------------------------
 
 @end smallexample
 @end cartouche
@@ -5065,6 +5346,9 @@ disposition=inline description="SETI@@home logo">
 Typically, you send a message with attachments just like any other
 message (@pxref{Sending Message}).
 
+@findex mh-mml-to-mime
+@kindex C-c C-m C-m
+
 However, you may take a sneak preview of the @sc{mime} encoding if you
 wish by running the command @kbd{C-c C-m C-m} (@code{mh-mml-to-mime}).
 The following screen shows the @sc{mime} encoding specified by the
@@ -5076,6 +5360,7 @@ details from the user.
 To: wohler
 cc:
 Subject: Test of MIME
+X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
 MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="=-=-="
 --------
@@ -5090,12 +5375,14 @@ Content-Disposition: inline; filename=setiathome.xpm
 Content-Transfer-Encoding: base64
 Content-Description: SETI@@home logo
 
-LyogWFBNICovCnN0YXRpYyBjaGFyICogc2V0aWF0aG9tZV94cG1bXSA9IHsKIjQ1IDQ1IDc2NCAy
---:--  @{draft@}   (MH-Letter)--L2--Top----------------------------------
+LyogWFBNICovCnN0YXRpYyBjaGFyICogc2V0aWF0aG9tZV94cG1bXSA9IHsKIjQ1IDQ1IDc2N
+--:--  @{draft@}   Top L1     (MH-Letter)----------------------------------
 
 @end smallexample
 @end cartouche
 @i{MH-E @sc{mime} draft ready to send}
+
+@cindex undo effects of mh-mml-to-mime
 
 This action can be undone by running @kbd{C-_} (@code{undo}).
 
@@ -5103,9 +5390,11 @@ This action can be undone by running @kbd{C-_} (@code{undo}).
 @cindex @command{mhn}
 @cindex MH commands, @command{mhbuild}
 @cindex MH commands, @command{mhn}
+@cindex undo effects of mh-mh-to-mime
 @findex mh-mh-to-mime
 @findex mh-mh-to-mime-undo
 @kindex C-c C-e
+@kindex C-c C-m C-m
 @kindex C-c C-m C-u
 @kindex C-c C-m u
 
@@ -5120,6 +5409,7 @@ file. You are prompted to confirm this action, but you can avoid the
 confirmation by adding an argument (for example, @kbd{C-u C-c C-m
 C-u}).
 
+@kindex C-c C-e
 @vindex mh-mh-to-mime-args
 
 If you wish to pass additional arguments to @command{mhbuild}
@@ -5129,13 +5419,14 @@ check into the message by setting @code{mh-mh-to-mime-args} to
 @samp{-check}. The recipient of your message can then run
 @samp{mhbuild -check} on the message---@command{mhbuild}
 (@command{mhn}) will complain if the message has been corrupted on the
-way. The command @kbd{C-c C-e} (@code{mh-mh-to-mime}) only consults
-this option when given a prefix argument (as in @kbd{C-u C-c C-e}).
+way. The command @kbd{C-c C-e} only consults this option when given a
+prefix argument (as in @kbd{C-u C-c C-e}).
 
+@kindex C-c C-e
 @vindex mh-mh-to-mime-hook
 
 The hook @code{mh-mh-to-mime-hook} is called after the message has
-been formatted by @kbd{C-c C-e} (@code{mh-mh-to-mime})
+been formatted by @kbd{C-c C-e}.
 
 @node Sending PGP, Checking Recipients, Adding Attachments, Editing Drafts
 @section Signing and Encrypting Messages
@@ -5162,29 +5453,30 @@ following commands to do so any time before sending your message.
 The command @kbd{C-c C-m C-s} (@code{mh-mml-secure-message-sign})
 inserts the following tag:
 
-@example
+@smallexample
 <#secure method=pgpmime mode=sign>
-@end example
+@end smallexample
 
 This is used to sign your message digitally. Likewise, the command
 @kbd{C-c C-m C-e} (@code{mh-mml-secure-message-encrypt}) inserts the
 following tag:
 
-@example
+@smallexample
 <#secure method=pgpmime mode=encrypt>
-@end example
+@end smallexample
 
 This is used to encrypt your message. Finally, the command @kbd{C-c
 C-m s e} (@code{mh-mml-secure-message-signencrypt}) inserts the
 following tag:
 
-@example
+@smallexample
 <#secure method=pgpmime mode=signencrypt>
-@end example
+@end smallexample
 
 @findex mh-mml-unsecure-message
 @kindex C-c C-m C-n
 @kindex C-c C-m n
+@vindex mh-mml-method-default
 
 This is used to sign and encrypt your message. In each of these cases,
 a proper multipart message is created for you when you send the
@@ -5218,8 +5510,8 @@ See
 @cite{The PGG Manual}}.
 @end ifhtml
 
-@cindex @samp{Fcc:} header field
 @cindex header field, @samp{Fcc:}
+@cindex @samp{Fcc:} header field
 @vindex pgg-encrypt-for-me
 
 In particular, I turn on the option @code{pgg-encrypt-for-me} so that
@@ -5249,8 +5541,8 @@ whatnow Program} in the MH book.}.
 @node Sending Message, Killing Draft, Checking Recipients, Editing Drafts
 @section Sending a Message
 
-@cindex @samp{*MH-E Mail Delivery*}
 @cindex buffers, @samp{*MH-E Mail Delivery*}
+@cindex @samp{*MH-E Mail Delivery*}
 @cindex sending mail
 @findex mh-send-letter
 @kindex C-c C-c
@@ -5263,6 +5555,8 @@ Delivery*} (@pxref{Miscellaneous}).
 
 @cindex sending mail
 @cindex spell check
+@findex ispell-message
+@kindex C-c C-c
 @vindex mh-before-send-letter-hook
 
 The hook @code{mh-before-send-letter-hook} is run at the beginning of
@@ -5381,12 +5675,14 @@ Hook run by @code{mh-alias-reload} after loading aliases (default:
 @code{nil}).
 @end vtable
 
-@heading Adding Addresses to Draft
+@subheading Adding Addresses to Draft
 
 You can use aliases when you are adding recipients to a message.
 
 @findex minibuffer-complete
 @kindex @key{TAB}
+@vindex mh-alias-expand-aliases-flag
+@vindex mh-compose-prompt-flag
 
 In order to use minibuffer prompting for recipients and the subject
 line in the minibuffer, turn on the option
@@ -5396,9 +5692,16 @@ line in the minibuffer, turn on the option
 on the option @code{mh-alias-expand-aliases-flag} if you want these
 aliases to be expanded to their respective addresses in the draft.
 
+@findex mh-letter-complete
+@findex mh-letter-complete-or-space
+@kindex @key{SPC}
+@kindex M-@key{TAB}
+
 Otherwise, you can complete aliases in the header of the draft with
 @kbd{M-@key{TAB}} (@code{mh-letter-complete}) or @key{SPC}
 (@code{mh-letter-complete-or-space}).
+
+@vindex mh-alias-completion-ignore-case-flag
 
 As MH ignores case in the aliases, so too does MH-E. However, you may
 turn off the option @code{mh-alias-completion-ignore-case-flag} to
@@ -5406,10 +5709,10 @@ make case significant which can be used to segregate completion of
 your aliases. You might use uppercase for mailing lists and lowercase
 for people. For example, you might have:
 
-@example
+@smallexample
 mark.baushke: Mark Baushke <mdb@@stop.mail-abuse.org>
 MH-E: MH-E Mailing List <mh-e-devel@@stop.mail-abuse.org>
-@end example
+@end smallexample
 
 When this option is turned off, if you were to type @kbd{M} in the
 @samp{To:} field and then @kbd{M-@key{TAB}}, then you'd get the list;
@@ -5417,6 +5720,11 @@ if you started with @kbd{m} and then entered @kbd{M-@key{TAB}}, then
 you'd get Mark's address. Note that this option affects completion
 only. If you were to enter @kbd{Mark.Baushke}, it would still be
 identified with your @samp{mark.baushke} alias.
+
+@findex mh-alias-minibuffer-confirm-address
+@findex mh-letter-confirm-address
+@vindex mh-alias-flash-on-comma
+@vindex mh-compose-prompt-flag
 
 To verify that the alias you've entered is valid, the alias will be
 displayed in the minibuffer when you type a comma
@@ -5431,7 +5739,7 @@ Alias}, and @samp{Don't Flash Nor Warn If No Alias}.
 For another way to verify the alias expansion, see @ref{Checking
 Recipients}.
 
-@heading Loading Aliases
+@subheading Loading Aliases
 
 @cindex @command{ali}
 @cindex @file{/etc/nmh/MailAliases}
@@ -5457,15 +5765,19 @@ These aliases have the form @samp{local.@var{first.last}} if a real
 name is present in the password file. Otherwise, the alias will have
 the form @samp{local.@var{login}}.
 
+@vindex mh-alias-local-users-prefix
+
 The prefix @samp{local.} can be modified via the option
 @code{mh-alias-local-users-prefix}. This option can also be set to
 @samp{Use Login}.
 
 For example, consider the following password file entry:
 
-@example
+@smallexample
 psg:x:1000:1000:Peter S Galbraith,,,:/home/psg:/bin/tcsh
-@end example
+@end smallexample
+
+@vindex mh-alias-local-users-prefix
 
 The following settings of option @code{mh-alias-local-users-prefix}
 will produce the associated aliases:
@@ -5481,6 +5793,8 @@ peter.galbraith
 psg
 @end table
 
+@vindex mh-alias-passwd-gecos-comma-separator-flag
+
 In the example above, commas are used to separate different values
 within the so-called GECOS field. This is a fairly common usage.
 However, in the rare case that the GECOS field in your password file
@@ -5488,8 +5802,9 @@ is not separated by commas and whose contents may contain commas, you
 can turn the option @code{mh-alias-passwd-gecos-comma-separator-flag}
 off.
 
-@cindex @samp{ypcat passwd}
 @cindex NIS, obtaining local aliases from
+@cindex @samp{ypcat passwd}
+@vindex mh-alias-local-users
 
 If you're on a system with thousands of users you don't know, and the
 loading of local aliases slows MH-E down noticeably, then the local
@@ -5498,17 +5813,24 @@ alias feature can be disabled by turning off the option
 executed to generate the password file. For example, use @samp{ypcat
 passwd} to obtain the NIS password file.
 
+@findex mh-alias-reload
+@kindex M-x mh-alias-reload
+@vindex mh-alias-reloaded-hook
+
 Since aliases are updated frequently, MH-E reloads aliases
 automatically whenever an alias lookup occurs if an alias source has
 changed. However, you can reload your aliases manually by calling the
 command @kbd{M-x mh-alias-reload} directly. This command runs
 @code{mh-alias-reloaded-hook} after the aliases have been loaded.
 
-@heading Adding Aliases
+@subheading Adding Aliases
 
 In the past, you have manually added aliases to your alias file(s)
 listed in your @samp{Aliasfile:} profile component. MH-E provides
 other methods for maintaining your alias file(s).
+
+@findex mh-alias-add-alias
+@kindex M-x mh-alias-add-alias
 
 You can use the @kbd{M-x mh-alias-add-alias} command which will prompt
 you for the alias and address that you would like to add. If the alias
@@ -5523,7 +5845,8 @@ other prefixes to organize your aliases or disambiguate entries. You
 might use prefixes for locales, jobs, or activities. For example, I
 have:
 
-@example
+@smallexample
+@group
 ; Work
 attensity.don.mitchell: Don Mitchell <dmitchell@@stop.mail-abuse.com>
 isharp.don.mitchell: Don Mitchell <donaldsmitchell@@stop.mail-abuse.com>
@@ -5535,11 +5858,15 @@ sailing.mike.maloney: Mike Maloney <mmaloney@@stop.mail-abuse.com>
 ; Personal
 ariane.kolkmann: Ariane Kolkmann <ArianeKolkmann@@stop.mail-abuse.com>
 ...
-@end example
+@end group
+@end smallexample
 
 Using prefixes instead of postfixes helps you explore aliases during
 completion. If you forget the name of an old dive buddy, you can enter
 @samp{div} and then @key{SPC} to get a listing of all your dive buddies.
+
+@kindex M-x mh-alias-add-address-under-point
+@kindex M-x mh-alias-grab-from-field
 
 An alias for the sender of the current message is added automatically
 by clicking on the @samp{Grab From alias} tool bar button or by running
@@ -5548,24 +5875,33 @@ recipients of the current message are added by placing your cursor
 over the desired recipient and giving the @kbd{M-x
 mh-alias-add-address-under-point} command.
 
+@vindex mh-alias-insert-file
+@vindex mh-alias-insertion-location
+
 The options @code{mh-alias-insert-file} and
 @code{mh-alias-insertion-location} controls how and where these aliases
 are inserted.
 
-The default setting of this option is @samp{Use Aliasfile Profile
-Component}. This option can also hold the name of a file or a list a
-file names. If this option is set to a list of file names, or the
-@samp{Aliasfile:} profile component contains more than one file name,
-MH-E will prompt for one of them.
+@vindex mh-alias-insert-file
+
+The default setting of option @code{mh-alias-insert-file} is @samp{Use
+Aliasfile Profile Component}. This option can also hold the name of a
+file or a list a file names. If this option is set to a list of file
+names, or the @samp{Aliasfile:} profile component contains more than
+one file name, MH-E will prompt for one of them.
+
+@vindex mh-alias-insertion-location
 
 The option @code{mh-alias-insertion-location} is set to
 @samp{Alphabetical} by default. If you organize your alias file in
 other ways, then the settings @samp{Top} and @samp{Bottom} might be
 more appropriate.
 
-@heading Querying Aliases
+@subheading Querying Aliases
 
 @cindex regular expressions, @code{mh-alias-apropos}
+@findex mh-alias-apropos
+@kindex M-x mh-alias-apropos
 
 If you can't quite remember an alias, you can use @kbd{M-x
 mh-alias-apropos} to show all aliases or addresses that match a
@@ -5590,6 +5926,9 @@ Syntax of Regular Expressions} in
 MH-E supports the concept of multiple personalities or identities.
 This means that you can easily have a different header and signature
 at home and at work.
+
+@cindex @samp{Identity} menu
+@cindex menu, @samp{Identity}
 
 A couple of commands are used to insert identities in MH-Letter mode
 which are also found in the @samp{Identity} menu.
@@ -5639,6 +5978,8 @@ Some of the common header fields that people change depending on the
 context are the @samp{From:} and @samp{Organization:} fields, as well
 as the signature.
 
+@vindex mh-identity-list
+
 This is done by customizing the option @code{mh-identity-list}. In the
 customization buffer for this option, click on the @samp{INS} button
 and enter a label such as @samp{Home} or @samp{Work}. Then click on
@@ -5682,18 +6023,21 @@ Specify a different key to sign or encrypt messages.
 
 @cindex Identity menu
 @cindex menu, Identity
+@findex mh-insert-identity
+@kindex C-c C-d
 
 You can select the identities you have added via the menu called
 @samp{Identity} in the MH-Letter buffer. You can also use @kbd{C-c
 C-d} (@code{mh-insert-identity}). To clear the fields and signature
 added by the identity, select the @samp{None} identity.
 
-@cindex @samp{Identity > Save as Default} menu item
+@cindex menu item, @samp{Identity > Customize Identities}
 @cindex menu item, @samp{Identity > Save as Default}
-@cindex @samp{Identity > Set Default for Session} menu item
 @cindex menu item, @samp{Identity > Set Default for Session}
 @cindex @samp{Identity > Customize Identities} menu item
-@cindex menu item, @samp{Identity > Customize Identities}
+@cindex @samp{Identity > Save as Default} menu item
+@cindex @samp{Identity > Set Default for Session} menu item
+@vindex mh-identity-default
 
 The @samp{Identity} menu contains two other items to save you from
 having to set the identity on every message. The menu item @samp{Set
@@ -5706,6 +6050,7 @@ need to add another identity, the menu item @samp{Customize
 Identities} is available for your convenience.
 
 @cindex regular expressions, @code{mh-auto-fields-list}
+@vindex mh-auto-fields-list
 
 The option @code{mh-auto-fields-list} can also be used to set the
 identity depending on the recipient to provide even more control. To
@@ -5754,6 +6099,10 @@ reply.
 Other header fields may be added using this menu item. 
 @end table
 
+@findex mh-insert-auto-fields
+@kindex C-c M-d
+@vindex mh-auto-fields-prompt-flag
+
 These fields can only be added after the recipient is known. Because
 you can continue to add recipients as you edit the draft, MH-E waits
 until the message is sent to perform the auto-insertions. This seems
@@ -5770,9 +6119,15 @@ the header contains one or more recipients, you may run the command
 manually. However, if you use this command, the automatic insertion
 when the message is sent is disabled.
 
+@vindex mh-auto-fields-list
+@vindex mh-identity-list
+
 You should avoid using the same header field in
 @code{mh-auto-fields-list} and @code{mh-identity-list} definitions
 that may apply to the same message as the result is undefined.
+
+@vindex mh-identity-handlers
+@vindex mh-identity-list
 
 The option @code{mh-identity-handlers} is used to change the way that
 fields, signatures, and attributions in @code{mh-identity-list} are
@@ -5781,6 +6136,8 @@ an existing handler function associated with the field you want to
 change with the name of a function you have written. You can also
 click on an @samp{INS} button and insert a field of your choice and
 the name of the function you have written to handle it. 
+
+@vindex mh-identity-list
 
 The @samp{Field} field can be any field that you've used in your
 @code{mh-identity-list}. The special fields @samp{:attribution-verb},
@@ -5802,6 +6159,10 @@ containing the value for the field is given.
 
 @cindex folder navigation
 @cindex speedbar
+@findex mh-visit-folder
+@kindex F v
+@kindex M-x speedbar
+@kindex Mouse-2
 
 You can also use the speedbar 
 @ifnothtml
@@ -5848,6 +6209,10 @@ you've added or deleted a folder, or want to update the unseen message
 count before the next automatic update (@code{mh-speed-refresh}).
 @end table
 
+@findex delete-frame
+@kindex C-x 5 0
+@kindex Mouse-3
+
 You can click on @kbd{Mouse-3} to bring up a context menu that
 contains these items. Dismiss the speedbar with @kbd{C-x 5 0}
 (@code{delete-frame}).
@@ -5890,8 +6255,12 @@ Selected folder face when folder contains unread messages.
 @node Menu Bar, Tool Bar, Speedbar, Top
 @chapter The Menu Bar
 
-@cindex menu bar
-
+@cindex @samp{Folder} menu
+@cindex @samp{Identity} menu
+@cindex @samp{Letter} menu
+@cindex @samp{Message} menu
+@cindex @samp{Search} menu
+@cindex @samp{Sequence} menu
 @cindex Folder menu
 @cindex Identity menu
 @cindex Letter menu
@@ -5901,12 +6270,19 @@ Selected folder face when folder contains unread messages.
 @cindex Message menu
 @cindex Search menu
 @cindex Sequence menu
+@cindex menu bar
 @cindex menu, Folder
 @cindex menu, Identity
 @cindex menu, Letter
 @cindex menu, Message
 @cindex menu, Search
 @cindex menu, Sequence
+@cindex menu, @samp{Folder}
+@cindex menu, @samp{Identity}
+@cindex menu, @samp{Letter}
+@cindex menu, @samp{Message}
+@cindex menu, @samp{Search}
+@cindex menu, @samp{Sequence}
 @cindex modes, MH-Folder
 @cindex modes, MH-Letter
 @cindex modes, MH-Search
@@ -5940,8 +6316,6 @@ and you can also browse all of the items under the index entry
 @chapter The Tool Bar
 
 @cindex tool bar
-@cindex @samp{mh-tool-bar} customization group
-@cindex customization group, @samp{mh-tool-bar}
 
 Emacs also provides a graphical tool bar. For a description of the
 tool bar, please
@@ -5953,6 +6327,9 @@ see the section
 @uref{http://www.gnu.org/software/emacs/manual/html_node/Tool-Bars.html,
 Tool Bars} in @cite{The GNU Emacs Manual}.
 @end ifhtml
+
+@cindex @samp{mh-tool-bar} customization group
+@cindex customization group, @samp{mh-tool-bar}
 
 MH-E adds several icons to this tool bar; you can modify the MH-E
 aspects of the tool bar via the @samp{mh-tool-bar} customization group.
@@ -5981,6 +6358,9 @@ In GNU Emacs, icons for some of MH-E's functions are added to the tool
 bar. In XEmacs, you have the opportunity to create a separate tool bar for
 the MH-E icons.
 
+@vindex mh-tool-bar-folder-buttons
+@vindex mh-tool-bar-letter-buttons
+
 In either case, you can select which of these functions you'd like to
 see by customizing the options @code{mh-tool-bar-folder-buttons} and
 @code{mh-tool-bar-letter-buttons}. As you probably guessed, the former
@@ -5989,17 +6369,24 @@ mode. Both of these options present you with a list of functions;
 check the functions whose icons you want to see and clear the check
 boxes for those you don't.
 
+@findex mh-search
+@vindex mh-tool-bar-search-function
+
 The function associated with the searching icon can be set via the
 option @code{mh-tool-bar-search-function}. By default, this is set to
 @code{mh-search}. @xref{Searching}. You can also choose @samp{Other
 Function} from the @samp{Value Menu} and enter a function of your own
 choosing.
 
+@vindex mh-xemacs-use-tool-bar-flag
+
 XEmacs provides a couple of extra options. The first,
 @code{mh-xemacs-use-tool-bar-flag}, controls whether to show the MH-E
 icons at all. By default, this option is turned on if the window
 system supports tool bars. If your system doesn't support tool bars,
 then you won't be able to turn on this option.
+
+@vindex mh-xemacs-tool-bar-position
 
 The second extra option is @code{mh-xemacs-tool-bar-position} which
 controls the placement of the tool bar along the four edges of the
@@ -6012,8 +6399,9 @@ bars will be displayed: the MH-E tool bar and the default tool bar.
 @node Searching, Threading, Tool Bar, Top
 @chapter Searching Through Messages
 
+@cindex @samp{Search} menu
+@cindex menu, @samp{Search}
 @cindex searching
-
 @findex mh-search
 @kindex F s
 
@@ -6157,11 +6545,17 @@ The following face is available.
 Folder heading face in MH-Folder buffers created by searches.
 @end vtable
 
+@findex mh-search-folder
+@kindex F s
+
 The command @kbd{F s} (@code{mh-search-folder}) helps you find
 messages in your entire corpus of mail. You can search for messages to
 or from a particular person or about a particular subject. In fact,
 you can also search for messages containing selected strings in any
 arbitrary header field or any string found within the messages.
+
+@cindex @command{pick}
+@cindex MH commands, @command{pick}
 
 Out of the box, MH-E uses @command{pick} to find messages. With a
 little extra effort, you can set an indexing program which rewards you
@@ -6180,12 +6574,13 @@ Next, an MH-Search buffer appears where you can enter search criteria.
 
 @cartouche
 @smallexample
-From: #
+From:
 To:
 Cc:
 Date:
 Subject:
 --------
+#
 
 
 
@@ -6194,9 +6589,8 @@ Subject:
 
 
 
-
---:**  search-pattern   (MH-Search)--L1--All-----------------------------
-
+--:**  search-pattern   All L7     (MH-Search)---------------------------
+Type C-c C-c to search messages, C-c C-p to use pick, C-c ? for help
 @end smallexample
 @end cartouche
 @i{Search window}
@@ -6229,32 +6623,39 @@ kosciusko
 @end group
 @end smallexample
 
+@findex mh-to-field
+@kindex C-c C-f C-t
+
 As with MH-Letter mode, MH-Search provides commands like @kbd{C-c C-f
 C-t} (@code{mh-to-field}) to help you fill in the blanks.
 @xref{Editing Message}.
+
+@kindex F s
+@vindex mh-search-mode-hook
 
 If you find that you do the same thing over and over when editing the
 search template, you may wish to bind some shortcuts to keys. This can
 be done with the variable @code{mh-search-mode-hook}, which is called
 when @kbd{F s} is run on a new pattern.
 
-@cindex @samp{+mhe-index}
-@cindex folders, @samp{+mhe-index}
 @findex mh-index-do-search
-@findex mh-index-next-folder
-@findex mh-index-previous-folder
 @findex mh-pick-do-search
-@kindex @key{TAB}
 @kindex C-c C-c
-@kindex F s
-@kindex S-@key{TAB}
-@vindex mh-search-folder
+@kindex C-c C-p
 
 To perform the search, type @kbd{C-c C-c} (@code{mh-index-do-search}).
 Sometimes you're searching for text that is either not indexed, or
 hasn't been indexed yet. In this case you can override the default
 method with the pick method by running the command @kbd{C-c C-p}
 (@code{mh-pick-do-search}).
+
+@cindex folders, @samp{+mhe-index}
+@cindex @samp{+mhe-index}
+@findex mh-index-next-folder
+@findex mh-index-previous-folder
+@kindex @key{TAB}
+@kindex S-@key{TAB}
+@vindex mh-search-folder
 
 The messages that are found are put in a temporary sub-folder of
 @samp{+mhe-index} and are displayed in an MH-Folder buffer. This
@@ -6266,6 +6667,11 @@ headings using the commands @kbd{@key{TAB}}
 (@code{mh-index-next-folder}) and @kbd{S-@key{TAB}}
 (@code{mh-index-previous-folder}).
 
+@findex mh-index-visit-folder
+@findex mh-rescan-folder
+@kindex F r
+@kindex v
+
 In addition, the command @kbd{v} (@code{mh-index-visit-folder}) can be
 used to visit the folder of the message at point. Initially, only the
 messages that matched the search criteria are displayed in the folder.
@@ -6275,9 +6681,14 @@ command @kbd{v} is useful to find the actual message number of an
 interesting message, or to view surrounding messages with the command
 @kbd{F r} @code{mh-rescan-folder}. @xref{Folders}.
 
+@findex mh-kill-folder
+@kindex F k
+
 Because this folder is temporary, you'll probably get in the habit of
 killing it when you're done with @kbd{F k} (@code{mh-kill-folder}).
 @xref{Folders}.
+
+@kindex F s
 
 You can regenerate the results by running @kbd{F s} with a prefix
 argument.
@@ -6434,7 +6845,7 @@ Use the following command line to generate the swish index. Run this
 daily from cron:
 
 @smallexample
-    swish-e -c /home/user/Mail/.swish/config
+swish-e -c /home/user/Mail/.swish/config
 @end smallexample
 
 @subsection mairix
@@ -6536,6 +6947,10 @@ header field. Other ways to organize messages in a folder include
 limiting (@pxref{Limits}) or using full-text indexed searches
 (@pxref{Searching}).
 
+@cindex root, in threads
+@cindex siblings, in threads
+@cindex ancestor, in threads
+
 A thread begins with a single message called a @dfn{root}. All replies
 to the same message are @dfn{siblings} of each other. Any message that
 has replies to it is an @dfn{ancestor} of those replies.
@@ -6581,6 +6996,9 @@ Display previous sibling (@code{mh-thread-previous-sibling}).
 Display ancestor of current message (@code{mh-thread-ancestor}).
 @end table
 
+@cindex @samp{mh-thread} customization group
+@cindex customization group, @samp{mh-thread}
+
 The @samp{mh-thread} customization group contains one option.
 
 @vtable @code
@@ -6588,12 +7006,24 @@ The @samp{mh-thread} customization group contains one option.
 On means new folders start in threaded mode (default: @samp{off}).
 @end vtable
 
+@findex mh-toggle-threads
+@kindex T t
+@vindex mh-large-folder
+@vindex mh-show-threads-flag
+
 Threading large number of messages can be time consuming so the option
 @code{mh-show-threads-flag} is turned off by default. If you turn on
 this option, then threading will be done only if the number of
 messages being threaded is less than @code{mh-large-folder}. In any
 event, threading can be turned on (and off) with the command @kbd{T t}
 (@code{mh-toggle-threads}).
+
+@findex mh-thread-ancestor
+@findex mh-thread-next-sibling
+@findex mh-thread-previous-sibling
+@kindex T n
+@kindex T p
+@kindex T u
 
 There are a few commands to help you navigate threads. If you do not
 care for the way a particular thread has turned, you can move up the
@@ -6604,6 +7034,13 @@ chain of messages with the command @kbd{T u}
 sibling, skipping the sub-threads. The command @kbd{T u} can also take
 a prefix argument to jump to the message that started everything.
 
+@findex mh-delete-subject-or-thread
+@findex mh-thread-delete
+@findex mh-thread-refile
+@kindex k
+@kindex T d
+@kindex T o
+
 There are threaded equivalents for the commands that delete and refile
 messages. For example, @kbd{T o} (@code{mh-thread-refile}) refiles the
 current message and all its children. Similarly, the command @kbd{T d}
@@ -6612,11 +7049,13 @@ children. These commands do not refile or delete sibling messages.
 @xref{Navigating}, for a description of the similar command @kbd{k}
 (@code{mh-delete-subject-or-thread}).
 
+@vindex mh-large-folder
+
 If you find that threading is too slow, it may be that you have
-@code{mh-large-folder} set too high. Threading is one of the few
+@code{mh-large-folder} set too high. Also, threading is one of the few
 features of MH-E that really benefits from compiling. If you haven't
-compiled MH-E, I encourage you to do so@footnote{If you're not sure
-if MH-E has been byte-compiled, you could try running @samp{locate
+compiled MH-E, I encourage you to do so@footnote{If you're not sure if
+MH-E has been byte-compiled, you could try running @samp{locate
 mh-thread.elc} or otherwise find MH-E on your system and ensure that
 @file{mh-thread.elc} exists. If you have multiple versions and you
 find that one is compiled but the other is not, then go into your
@@ -6695,18 +7134,32 @@ All of the limiting commands above refine the display in some way.
 
 @cindex @command{pick}
 @cindex MH commands, @command{pick}
+@findex mh-narrow-to-cc
+@findex mh-narrow-to-from
+@findex mh-narrow-to-subject
+@findex mh-narrow-to-to
+@kindex / c
+@kindex / m
+@kindex / s
+@kindex / t
 
-The commands @kbd{/ c}, @code{/ m}, @code{/ s}, and @code{/ t}
-restrict the display to messages matching the content of the
-respective field in the current message. However, you can give any of
-these a prefix argument to edit the @command{pick} expression used to
-narrow the view@footnote{See @command{pick}(1) or the section
+The commands @kbd{/ c} (@code{mh-narrow-to-cc}), @kbd{/ m}
+(@code{mh-narrow-to-from}), @kbd{/ s} (@code{mh-narrow-to-subject}),
+and @kbd{/ t} (@code{mh-narrow-to-to}) restrict the display to
+messages matching the content of the respective field in the current
+message. However, you can give any of these a prefix argument to edit
+the @command{pick} expression used to narrow the view@footnote{See
+@command{pick}(1) or the section
 @uref{@value{MH-BOOK-HOME}/finpic.htm, Finding Messages with pick} in
 the MH book.}.
 
 @cindex @samp{tick} sequence
 @cindex sequence, @samp{tick}
 @cindex ticked messages, viewing
+@findex mh-narrow-to-range
+@findex mh-narrow-to-tick
+@kindex / '
+@kindex / g
 
 You can also limit the display to messages in the @samp{tick} sequence
 with the command @kbd{/ '} (@code{mh-narrow-to-tick}).
@@ -6714,12 +7167,17 @@ with the command @kbd{/ '} (@code{mh-narrow-to-tick}).
 @samp{tick} sequence. Use the @kbd{/ g} (@code{mh-narrow-to-range})
 command to limit the display to messages in a range (@pxref{Ranges}).
 
+@findex mh-widen
+@kindex / w
+
 Each limit can be undone in turn with the @kbd{/ w} (@code{mh-widen})
 command. Give this command a prefix argument to remove all limits.
 
 @node Sequences, Junk, Limits, Top
 @chapter Using Sequences
 
+@cindex @samp{Sequence} menu
+@cindex menu, @samp{Sequence}
 @cindex sequences
 
 For the whole scoop on MH sequences, refer to
@@ -6835,6 +7293,8 @@ Hook run after the unseen sequence has been updated (default: @code{nil}).
 
 @cindex @command{pick}
 @cindex MH commands, @command{pick}
+@findex mh-put-msg-in-seq
+@kindex S p
 
 To place a message in a sequence, use @kbd{S p}
 (@code{mh-put-msg-in-seq}). Give @kbd{S p} a range and you can add all
@@ -6844,11 +7304,18 @@ S p SourceSequence @key{RET} DestSequence @key{RET}}, @pxref{Ranges}).
 @cindex @samp{tick} sequence
 @cindex sequence, @samp{tick}
 @cindex ticking messages
+@findex mh-index-ticked-messages
+@findex mh-toggle-tick
+@kindex '
+@kindex F '
+@kindex S p
 
 One specific use of the @kbd{S p} command is @kbd{'}
 (@code{mh-toggle-tick}) which adds messages to the @samp{tick}
-sequence. This sequence can be viewed later with the @kbd{F '} command
-(@pxref{Folders}).
+sequence. This sequence can be viewed later with the @kbd{F '}
+(@code{mh-index-ticked-messages}) command (@pxref{Folders}).
+
+@vindex mh-tick-seq
 
 You can customize the option @code{mh-tick-seq} if you already use the
 @samp{tick} sequence for your own use. You can also disable all of the
@@ -6857,6 +7324,12 @@ there isn't much advantage to that.
 
 @cindex MH-Folder mode
 @cindex modes, MH-Folder
+@findex mh-narrow-to-seq
+@findex mh-narrow-to-tick
+@findex mh-widen
+@kindex S '
+@kindex S n
+@kindex S w
 
 Once you've placed some messages in a sequence, you may wish to narrow
 the field of view to just those messages in the sequence you've
@@ -6869,8 +7342,12 @@ sequence, use @kbd{S '} (@code{mh-narrow-to-tick}). When you want to
 widen the view to all your messages again, use @kbd{S w}
 (@code{mh-widen}).
 
-@cindex @samp{*MH-E Sequences*}
 @cindex buffers, @samp{*MH-E Sequences*}
+@cindex @samp{*MH-E Sequences*}
+@findex mh-list-sequences
+@findex mh-msg-is-in-seq
+@kindex S l
+@kindex S s
 
 You can see which sequences in which a message appears with the
 command @kbd{S s} (@code{mh-msg-is-in-seq}). Use a prefix argument to
@@ -6880,17 +7357,24 @@ folder (default is current folder) with @kbd{S l}
 (@code{mh-list-sequences}). The list appears in a buffer named
 @samp{*MH-E Sequences*} (@pxref{Miscellaneous}).
 
-@cindex @samp{Previous-Sequence:} MH profile component
-@cindex @samp{cur} sequence
 @cindex MH profile component, @samp{Previous-Sequence:}
-@cindex sequence, @samp{Previous-Sequence}
+@cindex @samp{cur} sequence
+@cindex @samp{Previous-Sequence:} MH profile component
 @cindex sequence, @samp{cur}
+@cindex sequence, @samp{Previous-Sequence}
+@vindex mh-refile-preserves-sequences-flag
 
 If a message is in any sequence (except
 @samp{Previous-Sequence:}@footnote{See @samp{mh-profile}(5)).} and
 @samp{cur}) when it is refiled, then it will still be in those
 sequences in the destination folder. If this behavior is not desired,
 then turn off the option @code{mh-refile-preserves-sequences-flag}.
+
+@findex mh-delete-msg-from-seq
+@findex mh-delete-seq
+@kindex d
+@kindex S d
+@kindex S k
 
 If you want to remove a message (or range, @pxref{Ranges}) from a
 sequence, use @kbd{S d} (@code{mh-delete-msg-from-seq}). If you want
@@ -6901,8 +7385,18 @@ you want to delete the messages, use @kbd{C-u d} (@pxref{Reading
 Mail}).
 
 @cindex @samp{Unseen-Sequence:} MH profile component
+@cindex @samp{cur} sequence
+@cindex @samp{tick} sequence
 @cindex MH profile component, @samp{Unseen-Sequence:}
 @cindex sequence, @samp{Unseen-Sequence}
+@cindex sequence, @samp{cur}
+@cindex sequence, @samp{tick}
+@findex mh-update-sequences
+@kindex M-x mh-update-sequences
+@kindex q
+@kindex x
+@vindex mh-tick-seq
+@vindex mh-update-sequences-after-mh-show-flag
 
 Three sequences are maintained internally by MH-E and pushed out to MH
 when a message is shown. They include the sequence specified by your
@@ -6923,6 +7417,8 @@ from the unseen sequence.
 
 @cindex @command{mark}
 @cindex MH commands, @command{mark}
+@kindex S n
+@kindex S w
 
 With the exceptions of @kbd{S n} and @kbd{S w}, the underlying MH
 command dealing with sequences is @command{mark}@footnote{See the
@@ -7005,12 +7501,18 @@ away. This chapter describes briefly how to configure these programs
 to work well with MH-E and how to use MH-E's interface that provides
 continuing education for these programs.
 
+@vindex mh-junk-program
+
 The default setting of the option @code{mh-junk-program} is
 @samp{Auto-detect} which means that MH-E will automatically choose one
 of SpamAssassin, bogofilter, or SpamProbe in that order. If, for
 example, you have both SpamAssassin and bogofilter installed and you
 want to use bogofilter, then you can set this option to
 @samp{Bogofilter}.
+
+@findex mh-junk-blacklist
+@kindex J b
+@vindex mh-junk-disposition
 
 The command @kbd{J b} (@code{mh-junk-blacklist}) trains the spam
 program in use with the content of the range (@pxref{Ranges}) and then
@@ -7019,10 +7521,15 @@ handles the message(s) as specified by the option
 @samp{Delete Spam} but you can also specify the name of the folder
 which is useful for building a corpus of spam for training purposes.
 
+@findex mh-junk-whitelist
+@kindex J w
+
 In contrast, the command @kbd{J w} (@code{mh-junk-whitelist})
 reclassifies a range of messages (@pxref{Ranges}) as ham if it were
 incorrectly classified as spam. It then refiles the message into the
 @file{+inbox} folder.
+
+@vindex mh-junk-background
 
 By default, the programs are run in the foreground, but this can be
 slow when junking large numbers of messages. If you have enough memory
@@ -7035,7 +7542,10 @@ MH-E can work with.
 @cindex @file{.procmailrc}
 @cindex files, @file{.procmailrc}
 
-@heading SpamAssassin
+@subheading SpamAssassin
+
+@cindex Spamassassin
+@cindex spam filters, Spamassassin
 
 SpamAssassin is one of the more popular spam filtering programs. Get
 it from your local distribution or from the
@@ -7088,6 +7598,11 @@ the @samp{+spam} folder for later review. The major weakness of
 rules-based filters is a plethora of false positives so it is
 worthwhile to check.
 
+@findex mh-junk-blacklist
+@findex mh-junk-whitelist
+@kindex J b
+@kindex J w
+
 If SpamAssassin classifies a message incorrectly, or is unsure, you can
 use the MH-E commands @kbd{J b} (@code{mh-junk-blacklist}) and
 @kbd{J w} (@code{mh-junk-whitelist}).
@@ -7133,7 +7648,10 @@ done by adding the following to your @file{crontab}:
 0 * * * *	sa-learn --rebuild > /dev/null 2>&1
 @end smallexample
 
-@heading Bogofilter
+@subheading Bogofilter
+
+@cindex bogofilter
+@cindex spam filters, bogofilter
 
 Bogofilter is a Bayesian spam filtering program. Get it from your
 local distribution or from the
@@ -7179,6 +7697,11 @@ spam/.
 spam/unsure/.
 @end smallexample
 
+@findex mh-junk-blacklist
+@findex mh-junk-whitelist
+@kindex J b
+@kindex J w
+
 If bogofilter classifies a message incorrectly, or is unsure, you can
 use the MH-E commands @kbd{J b} (@code{mh-junk-blacklist}) and @kbd{J
 w} (@code{mh-junk-whitelist}) to update bogofilter's training.
@@ -7195,7 +7718,10 @@ mv wordlist.db.new wordlist.db
 The @cite{Bogofilter tuning HOWTO} describes how you can fine-tune
 bogofilter.
 
-@heading SpamProbe
+@subheading SpamProbe
+
+@cindex SpamProbe
+@cindex spam filters, SpamProbe
 
 SpamProbe is a Bayesian spam filtering program. Get it from your local
 distribution or from the @uref{http://spamprobe.sourceforge.net,
@@ -7222,11 +7748,16 @@ SCORE=| spamprobe receive
 spam/.
 @end smallexample
 
+@findex mh-junk-blacklist
+@findex mh-junk-whitelist
+@kindex J b
+@kindex J w
+
 If SpamProbe classifies a message incorrectly, you can use the MH-E
 commands @kbd{J b} (@code{mh-junk-blacklist}) and @kbd{J w}
 (@code{mh-junk-whitelist}) to update SpamProbe's training.
 
-@heading Other Things You Can Do
+@subheading Other Things You Can Do
 
 There are a couple of things that you can add to @file{~/.procmailrc}
 in order to filter out a lot of spam and viruses. The first is to
@@ -7286,10 +7817,11 @@ Display version information about MH-E and the MH mail handling
 system.
 @end ftable
 
-@cindex @samp{*MH-E Info*}
-@cindex MH-E version
 @cindex buffers, @samp{*MH-E Info*}
+@cindex MH-E version
+@cindex @samp{*MH-E Info*}
 @cindex version
+@kindex M-x mh-version
 
 One command worth noting is @kbd{M-x mh-version}. You can compare the
 version this command prints to the latest release (@pxref{Getting
@@ -7297,7 +7829,7 @@ MH-E}). The output of @kbd{M-x mh-version}, found in a buffer named
 @samp{*MH-E Info*}, should usually be included with any bug report you
 submit (@pxref{Bug Reports}).
 
-@heading MH-E Buffers
+@subheading MH-E Buffers
 
 Besides the MH-Folder, MH-Show, and MH-Letter buffers, MH-E creates
 several other buffers. They are:
@@ -7354,7 +7886,7 @@ This buffer contains the output of @kbd{S l}
 @c -------------------------
 @cindex @samp{*mh-temp*}
 @cindex buffers, @samp{*mh-temp*}
-@item *mh-temp
+@item *mh-temp*
 This is a scratch, ephemeral, buffer used by MH-E functions. Note that
 it is hidden because the first character in the name is a space.
 You'll generally not have any need for this buffer.
@@ -7389,9 +7921,7 @@ Specifies the format file to pass to the scan program (default:
 Program used to scan messages (default: @code{"scan"}).
 @end vtable
 
-@findex mh-set-cmd-note
 @vindex mh-adaptive-cmd-note-flag
-@vindex mh-scan-format-file
 
 There are a couple of caveats when creating your own scan format file.
 First, MH-E will not work if your scan lines do not include message
@@ -7401,6 +7931,9 @@ the option @code{mh-adaptive-cmd-note-flag} or the threading features
 (@pxref{Threading}).
 
 @cindex message numbers
+@findex mh-set-cmd-note
+@vindex mh-adaptive-cmd-note-flag
+@vindex mh-scan-format-file
 
 If you've created your own format to handle long message numbers,
 you'll be pleased to know you no longer need it since MH-E adapts its
@@ -7411,8 +7944,10 @@ and call @code{mh-set-cmd-note} with the width specified by your
 format file (see @code{mh-scan-format-file}). For example, the default
 width is 4, so you would use @samp{(mh-set-cmd-note 4)}.
 
-@vindex mh-scan-format-nmh
+@vindex mh-adaptive-cmd-note-flag
+@vindex mh-scan-format-file
 @vindex mh-scan-format-mh
+@vindex mh-scan-format-nmh
 
 The default setting for @code{mh-scan-format-file} is @samp{Use MH-E
 scan Format}. This means that the format string will be taken from the
@@ -7424,6 +7959,10 @@ the same output as you would get if you ran @command{scan} from the
 shell. If you have a format file that you want MH-E to use but not MH,
 you can set this option to @samp{Specify a scan Format File} and enter
 the name of your format file.
+
+@vindex mh-scan-format-file
+@vindex mh-scan-format-mh
+@vindex mh-scan-format-nmh
 
 The scan format that MH-E uses when @code{mh-scan-format-file} is set
 to its default of @samp{Use MH-E scan Format} is held in the variables
@@ -7448,8 +7987,9 @@ The value of @code{mh-scan-format-nmh} is:
  "%(decode@{subject@})%<@{body@}<<%@{body@}%>")
 @end smallexample
 
-@cindex RFC 2047, decoding
 @cindex decoding RFC 2047
+@cindex RFC 2047, decoding
+@vindex mh-scan-format-mh
 
 The setting for @code{mh-scan-format-mh} is similar, except that MH
 doesn't have the function @code{decode} (which is used to decode RFC
@@ -7484,6 +8024,8 @@ produce a different type of listing@footnote{See the section
 pick Ranges Sequences} in the MH book.}.
 
 @cindex regular expressions, scan line formats
+@findex mh-set-cmd-note
+@findex setq
 
 If you change the format of the scan lines you'll need to tell MH-E
 how to parse the new format. As you will see, quite a lot of variables
@@ -7520,8 +8062,6 @@ prev} in the MH book.} or @command{scan} (default: @code{"^ *[0-9]"}).
 @end vtable
 
 Next, many variables control how the scan lines are parsed.
-
-@vindex mh-folder-font-lock-keywords
 
 @vtable @code
 @vindex mh-folder-body
@@ -7693,6 +8233,8 @@ Finally, there are a slew of variables that control how MH-E annotates
 the scan lines.
 
 @vtable @code
+@findex mh-set-cmd-note
+@vindex mh-adaptive-cmd-note-flag
 @item mh-cmd-note
 Column for notations (default: 4). This variable should be set with
 the function @code{mh-set-cmd-note}. This variable may be updated
@@ -7704,10 +8246,12 @@ Emacs start with 0.
 Messages that have been copied are marked by this character (default:
 @code{?C}).
 @c -------------------------
+@vindex mh-scan-cur-msg-number-regexp
 @item mh-note-cur
 The current message (in MH, not in MH-E) is marked by this character
 (default: @code{?+}). See also @code{mh-scan-cur-msg-number-regexp}.
 @c -------------------------
+@vindex mh-scan-deleted-msg-regexp
 @item mh-note-deleted
 Messages that have been deleted are marked by this character (default:
 @code{?D}). See also @code{mh-scan-deleted-msg-regexp}.
@@ -7724,6 +8268,7 @@ Messages that have been forwarded are marked by this character
 Messages that have been printed are marked by this character (default:
 @code{?P}).
 @c -------------------------
+@vindex mh-scan-refiled-msg-regexp
 @item mh-note-refiled
 Messages that have been refiled are marked by this character (default:
 @code{?^}). See also @code{mh-scan-refiled-msg-regexp}.
@@ -7743,10 +8288,12 @@ which displays the sender, the subject, and the message number. This
 format places a @samp{+} after the message number for the current
 message according to MH; it also uses that column for notations.
 
-@example
+@smallexample
 %20(decode(friendly@{from@})) %50(decode@{subject@})  %4(msg)%<(cur)+%| %>
-@end example
+@end smallexample
 
+@vindex mh-adaptive-cmd-note-flag
+@vindex mh-scan-format-file
 @vindex mh-scan-format-file, example
 
 The first thing you have to do is tell MH-E to use this file.
@@ -7759,9 +8306,9 @@ least display the output of scan in your MH-Folder buffer.
 
 @vindex mh-scan-valid-regexp, example
 
-@lisp
+@smalllisp
 (setq mh-scan-valid-regexp "[0-9]+[+D^ ]$")
-@end lisp
+@end smalllisp
 
 Now, in order to get rid of the @samp{Cursor not pointing to message}
 message, you need to tell MH-E how to access the message number. You
@@ -7771,18 +8318,18 @@ the first place.
 @vindex mh-scan-msg-number-regexp, example
 @vindex mh-scan-msg-search-regexp, example
 
-@lisp
+@smalllisp
 (setq mh-scan-msg-number-regexp "^.* \\([0-9]+\\)[+D^ ]$")
 (setq mh-scan-msg-search-regexp " %d[+D^ ]$")
-@end lisp
+@end smalllisp
 
 In order to get the next and previous commands working, add this.
 
 @vindex mh-scan-good-msg-regexp, example
 
-@lisp
+@smalllisp
 (setq mh-scan-good-msg-regexp "^.* \\([0-9]+\\)[+D^ ]$")
-@end lisp
+@end smalllisp
 
 Note that the current message isn't marked with a @samp{+} when moving
 between the next and previous messages. Here is the code required to
@@ -7791,20 +8338,20 @@ get this working.
 @vindex set-mh-cmd-note, example
 @vindex mh-scan-cur-msg-number-regexp, example
 
-@lisp
+@smalllisp
 (set-mh-cmd-note 76)
 (setq mh-scan-cur-msg-number-regexp "^.* \\([0-9]+\\)\\+$")
-@end lisp
+@end smalllisp
 
 Finally, add the following to delete and refile messages.
 
 @vindex mh-scan-deleted-msg-regexp, example
 @vindex mh-scan-refiled-msg-regexp, example
 
-@lisp
+@smalllisp
 (setq mh-scan-deleted-msg-regexp "^.* \\([0-9]+\\)D$")
 (setq mh-scan-refiled-msg-regexp "^.* \\([0-9]+\\)\\^$")
-@end lisp
+@end smalllisp
 
 This is just a bare minimum; it's best to adjust all of the regular
 expressions to ensure that MH-E and highlighting perform well.
@@ -7900,9 +8447,9 @@ If your version of @command{rcvstore} doesn't add messages to the
 @samp{unseen} sequence by default, add the following line to your MH
 profile:
 
-@example
+@smallexample
 Unseen-Sequence: unseen
-@end example
+@end smallexample
 
 Now view your new messages with the speedbar (@pxref{Speedbar}) or with
 @kbd{F n} (@code{mh-index-new-messages}). @xref{Folders}.
@@ -7931,9 +8478,10 @@ Select the @samp{Several files in a directory} value, check the
 @samp{Path} box and enter @file{~/Mail} to tell Gnus where to find
 your mail.
 @c -------------------------
+@vindex mail-user-agent
 @item message-mail-user-agent
 In order to send mail within Gnus using MH-E, set this option to
-@samp{mail-user-agent} and set the @samp{mail-user-agent} option to
+@samp{mail-user-agent} and set the @code{mail-user-agent} option to
 @samp{Emacs interface to MH}.
 @c -------------------------
 @item nnmail-keep-last-article
@@ -7949,14 +8497,14 @@ Next add the following to @file{~/.procmailrc}. If you don't subscribe
 to the GnuCash mailing list, substitute one to which you are
 subscribed.
 
-@example
+@smallexample
 MAILDIR=$HOME/`mhparam Path`
 # Place mail sent to the GnuCash mailing list in gnucash.spool, where
 # Gnus will pick it up.
 :0:
 * ^TO.*gnucash.*@.*gnucash.org
 gnucash.spool
-@end example
+@end smallexample
 
 Wait for some messages to appear in @file{gnucash.spool} and run Gnus
 with @kbd{M-x gnus @key{RET}}. To view the folder created in the
@@ -7981,8 +8529,9 @@ I also point out some additional sources of information.
 @node Bug Reports, Mailing Lists, Odds and Ends, Odds and Ends
 @appendixsec Bug Reports
 
-@cindex SourceForge
 @cindex bugs
+@cindex SourceForge
+@kindex M-x mh-version
 
 Bug reports should be filed at
 @uref{https://sourceforge.net/bugs/?group_id=13357, SourceForge}. You
@@ -8040,7 +8589,6 @@ distribution in @file{miscellany/mh-e}.
 @cindex change log
 @cindex release notes
 
-@c intentionally wordy to avoid overfull hbox
 New MH-E releases are always available for downloading at
 @uref{https://sourceforge.net/project/showfiles.php?group_id=13357,
 SourceForge} before they appear in an Emacs release. You can read the
@@ -8050,11 +8598,12 @@ change log to see if you are interested in what the given release of
 MH-E has to offer (although we have no doubt that you will be
 extremely interested in all new releases).
 
-@cindex @samp{MH-E-NEWS}
-@cindex @samp{README}
 @cindex files, @samp{MH-E-NEWS}
 @cindex files, @samp{README}
 @cindex news
+@cindex @samp{MH-E-NEWS}
+@cindex @samp{README}
+@kindex M-x mh-version
 
 After you download and extract the MH-E tarball, read the
 @file{README} file and @file{MH-E-NEWS}. These correspond to the
@@ -8247,20 +8796,24 @@ was incorporated into @w{Emacs 19.29}.
 After a long break, Stephen handed the reins over to me in 2000. I
 moved the project to a new site called SourceForge and organized a
 great team of developers. Our first release in late 2001 was version
-6. It appeared in Emacs 21.2 and had menus and tool bar buttons.
+6. It appeared around the time of Emacs 21.2 and had menus and tool
+bar buttons.
 
 Then, indexed searches, improved MIME handling, a speedbar, multiple
 identities, alias completion, an index view of unseen messages, spam
 software support, Face and X-Image-URL header field support, Fcc
 completion, arbitrary range handling, and draft form editing were
-introduced in the version 7 series in Emacs 21.4 (2004).
+introduced in the version 7 series around the time of Emacs 21.4
+(2004). Still, Emacs itself contained version 5 of MH-E released back
+in 1994.
 
 Version 8 development was mostly driven by the rewrite of the manual.
 It also brought mailutils support, S/MIME support, picon support, and
 an improved interface for hiding header fields. The CVS repository was
 migrated from SourceForge to Savannah (only for those files that were
 already part of Emacs) and the software was completely reorganized to
-push back two decades of entropy. It appeared in Emacs 22.1 (2006).
+push back two decades of entropy. Version 8 will appear in Emacs 22.1,
+expected to be released in 2006.
 
 Bill Wohler, February 2006
 

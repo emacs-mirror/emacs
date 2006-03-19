@@ -1,9 +1,63 @@
 		      Building and Installing Emacs
 		on Windows NT/2K/XP and Windows 95/98/ME
 
-  Copyright (C) 2001, 2002, 2003, 2004, 2005,
-     2006 Free Software Foundation, Inc.
+  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006
+    Free Software Foundation, Inc.
   See the end of the file for copying permissions.
+
+* For the impatient
+
+  Here are the concise instructions for configuring and building the
+  native Win32 binary of Emacs on Windows, for those who want to skip
+  the complex explanations and ``just do it'':
+
+  1. Change to the `nt' directory (the directory of this file):
+
+       cd nt
+
+  2. Run configure.bat.  From the COMMAND.COM/CMD.EXE command prompt:
+
+       configure
+
+     from a Unixy shell prompt:
+
+       cmd /c configure.bat
+     or
+       command.com /c configure.bat
+
+  3. Run the Make utility suitable for your environment.  If you build
+     with the Microsoft's Visual C compiler:
+
+       nmake
+
+     For the development environments based on GNU GCC (MinGW, MSYS,
+     Cygwin), depending on how Make is called, it could be:
+
+       make
+     or
+       gnumake
+     or
+       gmake
+
+     (If you are building from CVS, say "make bootstrap" or "nmake
+     bootstrap" instead.)
+
+  4. Generate the Info manuals (only if you are building out of CVS):
+
+     make info
+
+     (change "make" to "nmake" if you use MSVC).
+
+  5. Install the produced binaries:
+
+     make install
+
+  That's it!
+
+  If these short instructions somehow fail, read the rest of this
+  file.
+
+* Preliminaries
 
   If you used WinZip to unpack the distribution, we suggest to
   remove the files and unpack again with a different program!
@@ -28,12 +82,19 @@
   "touch.exe" in your path, and that it will create files that do not
   yet exist.
 
+* Supported development environments
+
   To compile Emacs, you will need either Microsoft Visual C++ 2.0 or
   later and nmake, or a Windows port of GCC 2.95 or later with MinGW
   and W32 API support and a port of GNU Make.  You can use the Cygwin
   ports of GCC, but Emacs requires the MinGW headers and libraries to
   build (latest versions of the Cygwin toolkit, at least since v1.3.3,
   include the MinGW headers and libraries as an integral part).
+
+  The rest of this file assumes you have a working development
+  environment.  If you just installed  such an environment, try
+  building a trivial C "Hello world" program, and see if it works.  If
+  it doesn't work, resolve that problem first!
 
   If you use the MinGW port of GCC and GNU Make to build Emacs, there
   are some compatibility issues wrt Make and the shell that is run by
@@ -90,33 +151,38 @@
   and other useful Posix utilities can be obtained from one of several
   projects:
 
+  * http://gnuwin32.sourceforge.net/              ( GnuWin32 )
   * http://www.mingw.org/                         ( MinGW    )
   * http://www.cygwin.com/                        ( Cygwin   )
   * http://unxutils.sourceforge.net/              ( UnxUtils )
-  * http://gnuwin32.sourceforge.net/              ( GnuWin32 )
 
   If you build Emacs on Windows 9X or ME, not on Windows 2K/XP or
-  Windows NT, we suggest to install the Cygwin port of Bash.
+  Windows NT, we suggest to install the Cygwin port of Bash.  That is
+  because the native Windows shell COMMAND.COM is too limited; the
+  Emacs build procedure tries very hard to support even such limited
+  shells, but as none of the Windows developers of Emacs work on
+  Windows 9x, we cannot guarantee that it works without a more
+  powerful shell.
 
   Additional instructions and help for building Emacs on Windows can be
   found at the Emacs Wiki:
 
-  http://www.emacswiki.org/cgi-bin/wiki/WThirtyTwoInstallationKit
+    http://www.emacswiki.org/cgi-bin/wiki/WThirtyTwoInstallationKit
 
   and at this URL:
 
-  http://ourcomments.org/Emacs/w32-build-emacs.html
+    http://ourcomments.org/Emacs/w32-build-emacs.html
 
 * Configuring
 
   Configuration of Emacs is now handled by running configure.bat in the
-  nt subdirectory.  It will detect which compiler you have available,
+  `nt' subdirectory.  It will detect which compiler you have available,
   and generate makefiles accordingly.  You can override the compiler
   detection, and control optimization and debug settings, by specifying
   options on the command line when invoking configure.
 
   To configure Emacs to build with GCC or MSVC, whichever is available,
-  simply change to the nt subdirectory and run `configure' with no
+  simply change to the `nt' subdirectory and run `configure.bat' with no
   options.  To see what options are available, run `configure --help'.
 
   N.B.  It is normal to see a few error messages output while configure
@@ -169,13 +235,21 @@
 
   After running configure, simply run the appropriate `make' program for
   your compiler to build Emacs.  For MSVC, this is nmake; for GCC, it is
-  GNU make.
+  GNU make.  (If you are building out of CVS, say "make bootstrap" or
+  "nmake bootstrap" instead.)
 
   As the files are compiled, you will see some warning messages
   declaring that some functions don't return a value, or that some data
   conversions will be lossy, etc.  You can safely ignore these messages.
   The warnings may be fixed in the main FSF source at some point, but
   until then we will just live with them.
+
+  If you are building from CVS, the following commands will produce
+  the Info manuals (which are not part of the CVS repository):
+
+    make info
+  or
+    nmake info
 
 * Installing
 

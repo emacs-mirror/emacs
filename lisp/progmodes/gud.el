@@ -174,7 +174,7 @@ Used to grey out relevant togolbar icons.")
 		  :enable (and (not gud-running)
 			       (memq gud-minor-mode
 				     '(gdbmi gdba gdb dbx xdb jdb pdb bashdb))))
-    ([pp]	menu-item "Print the emacs s-expression" gud-pp
+    ([pp]	menu-item "Print S-expression" gud-pp
                   :enable (and (not gud-running)
 				  gdb-active-process)
 		  :visible (and (string-equal
@@ -234,9 +234,6 @@ Used to grey out relevant togolbar icons.")
 		     (gud-run . "gud/run")
 		     (gud-go . "gud/go")
 		     (gud-stop-subjob . "gud/stop")
-		     ;; gud-s, gud-si etc. instead of gud-step,
-		     ;; gud-stepi, to avoid file-name clashes on DOS
-		     ;; 8+3 filesystems.
 		     (gud-cont . "gud/cont")
 		     (gud-until . "gud/until")
 		     (gud-next . "gud/next")
@@ -455,7 +452,7 @@ required by the caller."
 	  (let ((var-list gdb-var-list) parent)
 	    (while var-list
 	      (let* (char (depth 0) (start 0) (var (car var-list))
-			  (expr (car var)) (varnum (nth 1 var))
+			  (varnum (car var)) (expr (nth 1 var))
 			  (type (nth 3 var)) (value (nth 4 var))
 			  (status (nth 5 var)))
 		(put-text-property
@@ -483,9 +480,9 @@ required by the caller."
 		       t)
 		     depth)
 		  (if (eq status 'out-of-scope) (setq parent 'shadow))
-		  (if (and (cadr var-list)
+		  (if (and (nth 1 var-list)
 			   (string-match (concat varnum "\\.")
-					 (cadr (cadr var-list))))
+					 (car (nth 1 var-list))))
 		      (setq char ?-)
 		    (setq char ?+))
 		  (if (string-match "\\*$" type)
@@ -743,14 +740,18 @@ To run GDB in text command mode, set `gud-gdb-command-name' to
 
 (defvar gud-comint-buffer nil)
 
-(defun gud-gdb-complete-command ()
+(defun gud-gdb-complete-command (&optional command a b)
   "Perform completion on the GDB command preceding point.
 This is implemented using the GDB `complete' command which isn't
 available with older versions of GDB."
   (interactive)
-  (let* ((end (point))
-	 (command (buffer-substring (comint-line-beginning-position) end))
-	 (command-word
+  (if command
+      ;; Used by gud-watch in mini-buffer.
+      (setq command (concat "p " command))
+    ;; Used in GUD buffer.
+    (let ((end (point)))
+      (setq command (buffer-substring (comint-line-beginning-position) end))))
+  (let* ((command-word
 	  ;; Find the word break.  This match will always succeed.
 	  (and (string-match "\\(\\`\\| \\)\\([^ ]*\\)\\'" command)
 	       (substring command (match-beginning 2))))
@@ -869,13 +870,14 @@ It is passed through FILTER before we look at it."
 
 (defun gud-gdb-run-command-fetch-lines (command buffer &optional skip)
   "Run COMMAND, and return the list of lines it outputs.
-BUFFER is the GUD buffer in which to run the command.
+BUFFER is the current buffer which may be the GUD buffer in which to run.
 SKIP is the number of chars to skip on each lines, it defaults to 0."
-  (with-current-buffer buffer
-    (if (save-excursion
-	  (goto-char (point-max))
-	  (forward-line 0)
-	  (not (looking-at comint-prompt-regexp)))
+  (with-current-buffer gud-comint-buffer
+    (if (and (eq gud-comint-buffer buffer)
+	     (save-excursion
+	       (goto-char (point-max))
+	       (forward-line 0)
+	       (not (looking-at comint-prompt-regexp))))
 	nil
       ;; Much of this copied from GDB complete, but I'm grabbing the stack
       ;; frame instead.
@@ -884,12 +886,13 @@ SKIP is the number of chars to skip on each lines, it defaults to 0."
 	    (gud-gdb-fetch-lines-string nil)
 	    (gud-gdb-fetch-lines-break (or skip 0))
 	    (gud-marker-filter
-	     `(lambda (string) (gud-gdb-fetch-lines-filter string ',gud-marker-filter))))
+	     `(lambda (string)
+		(gud-gdb-fetch-lines-filter string ',gud-marker-filter))))
 	;; Issue the command to GDB.
 	(gud-basic-call command)
 	;; Slurp the output.
 	(while gud-gdb-fetch-lines-in-progress
-	  (accept-process-output (get-buffer-process buffer)))
+	  (accept-process-output (get-buffer-process gud-comint-buffer)))
 	(nreverse gud-gdb-fetched-lines)))))
 
 
@@ -3273,11 +3276,10 @@ Treats actions as defuns."
     (remove-hook 'tooltip-hook 'gud-tooltip-tips)
     (define-key global-map [mouse-movement] 'ignore)))
   (gud-tooltip-activate-mouse-motions-if-enabled)
-  (if (and
-       gud-comint-buffer
-       (buffer-name gud-comint-buffer); gud-comint-buffer might be killed
-       (with-current-buffer gud-comint-buffer
-	(memq gud-minor-mode '(gdbmi gdba))))
+  (if (and gud-comint-buffer
+	   (buffer-name gud-comint-buffer); gud-comint-buffer might be killed
+	   (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		 '(gdbmi gdba)))
       (if gud-tooltip-mode
 	  (progn
 	    (dolist (buffer (buffer-list))

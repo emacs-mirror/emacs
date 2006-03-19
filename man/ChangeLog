@@ -1,3 +1,56 @@
+2006-03-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi: Use smallexample and smalllisp consistenly.
+	(Sending Mail Tour): Update method of entering
+	addresses and subject.
+	(Sending Mail Tour, Reading Mail Tour, Processing Mail Tour)
+	(Adding Attachments, Searching): Update screenshots for Emacs 22.
+
+2006-03-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-xtra.texi (Top): Avoid ugly continuation line in
+	menu in the standalone Info reader.
+
+2006-03-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-xtra.texi (Emerge, Picture Mode. Fortran): New chapters,
+	moved here from Emacs manual.
+
+	* programs.texi (Fortran): Section moved to emacs-xtra.
+	(Program Modes): Xref to Fortran in emacs-xtra.
+
+	* maintaining.texi (Emerge): Moved to emacs-xtra.
+	* files.texi (Comparing Files): Xref to Emerge in emacs-xtra.
+
+	* picture.texi: File deleted.
+	* Makefile.in:
+	* makefile.w32-in: Remove picture.texi.
+
+	* text.texi (Text): Xref to Picture Mode in emacs-xtra.
+	* abbrevs.texi (Abbrevs):
+	* sending.texi (Sending Mail): Picture node removed.
+
+	* emacs.texi (Top): Update node listings.
+
+2006-03-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version number change only.
+
+2006-03-14  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi: Add index entries around each paragraph rather than
+	depend on entries from beginning of node. Doing so ensures that
+	index entries are less likely to be forgotten if text is cut and
+	pasted, and are necessary anyway if the references are on a
+	separate page. It seems that makeinfo is now (v. 4.8) only
+	producing one index entry per node, so there is no longer any
+	excuse not to. Use subheading instead of heading. The incorrect
+	use of heading produced very large fonts in Info--as large as the
+	main heading.
+	(From Bill Wohler): MH-E never did appear in Emacs 21--MH-E
+	versions 6 and 7 appeared *around* the time of these Emacs
+	releases.
+
 2006-03-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Clean view): Document new startup options.

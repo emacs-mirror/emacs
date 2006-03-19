@@ -1,3 +1,53 @@
+2006-03-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-image-load-path-for-library): Minor docstring
+	fix.
+
+2006-03-16  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-send-letter): Use split-string to break up
+	mh-send-args (closes SF #1448604).
+	(mh-compose-and-send-mail): Use run-hook-with-args for
+	mh-compose-letter-function.
+
+	* mh-e.el (mh-list-to-string-1): Use dolist.
+
+	* mh-compat.el (mh-image-load-path-for-library): Prefer user's
+	images.
+
+2006-03-15  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-image-load-path-for-library): Fix example by
+	not recommending that one binds image-load-path. Just defvar it to
+	placate compiler and only use it if previously defined.
+
+	* mh-e.el (image-load-path): Don't bind!
+
+	* mh-folder.el (mh-folder-mode): Only use image-load-path if
+	previously defined.
+
+	* mh-letter.el (mh-letter-mode): Ditto.
+
+	* mh-utils.el (mh-logo-display): Ditto.
+
+2006-03-14  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-image-load-path-for-library): Incorporate
+	changes from image-load-path-for-library, which are:
+	(image-load-path-for-library): Pass value of path rather than
+	symbol. Always return list of directories. Guarantee that image
+	directory comes first.
+
+	* mh-e.el (image-load-path): Define on those Emacsen that lack it
+	to avoid compile and run-time errors.	
+
+	* mh-folder.el (mh-folder-mode): Use new idiom for setting
+	image-load-path.
+
+	* mh-letter.el (mh-letter-mode): Ditto. 
+
+	* mh-utils.el (mh-logo-display): Ditto.
+
 2006-03-12  Bill Wohler  <wohler@newt.com>
 
 	* mh-utils.el (mh-folder-list): Fix docstring (closes SF

@@ -6,7 +6,6 @@
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
 ;; Keywords: completion convenience
-;; location: http://www.anc.ed.ac.uk/~stephen/emacs/
 
 ;; This file is part of GNU Emacs.
 

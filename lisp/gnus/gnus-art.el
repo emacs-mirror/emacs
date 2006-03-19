@@ -49,6 +49,7 @@
 (autoload 'gnus-button-mailto "gnus-msg")
 (autoload 'gnus-button-reply "gnus-msg" nil t)
 (autoload 'parse-time-string "parse-time" nil nil)
+(autoload 'mm-extern-cache-contents "mm-extern")
 
 (defgroup gnus-article nil
   "Article display."
@@ -4151,6 +4152,9 @@ Deleting parts may malfunction or destroy the article; continue? ")
 	  (insert "Content-Type: " (mm-handle-media-type data))
 	  (mml-insert-parameter-string (cdr (mm-handle-type data))
 				       '(charset))
+	  ;; Add a filename for the sake of saving the part again.
+	  (mml-insert-parameter
+	   (mail-header-encode-parameter "name" (file-name-nondirectory file)))
 	  (insert "\n")
 	  (insert "Content-ID: " (message-make-message-id) "\n")
 	  (insert "Content-Transfer-Encoding: binary\n")
@@ -4330,6 +4334,10 @@ Deleting parts may malfunction or destroy the article; continue? ")
   (gnus-article-check-buffer)
   (let ((handle (get-text-property (point) 'gnus-data)))
     (when handle
+      (when (equal (mm-handle-media-type handle) "message/external-body")
+	(unless (mm-handle-cache handle)
+	  (mm-extern-cache-contents handle))
+	(setq handle (mm-handle-cache handle)))
       (setq handle
 	    (mm-make-handle (mm-handle-buffer handle)
 			    (cons mime-type (cdr (mm-handle-type handle)))
@@ -4889,13 +4897,18 @@ If displaying \"text/html\" is discouraged \(see
 	(let ((id (1+ (length gnus-article-mime-handle-alist)))
 	      beg)
 	  (push (cons id handle) gnus-article-mime-handle-alist)
+	  (when (and display
+		     (equal (mm-handle-media-supertype handle) "message"))
+	    (insert-char
+	     ?\n
+	     (cond ((not (bolp)) 2)
+		   ((or (bobp) (eq (char-before (1- (point))) ?\n)) 0)
+		   (t 1))))
 	  (when (or (not display)
 		    (not (gnus-unbuttonized-mime-type-p type)))
-	    ;(gnus-article-insert-newline)
 	    (gnus-insert-mime-button
 	     handle id (list (or display (and not-attachment text))))
 	    (gnus-article-insert-newline)
-	    ;(gnus-article-insert-newline)
 	    ;; Remember modify the number of forward lines.
 	    (setq move t))
 	  (setq beg (point))
@@ -5313,14 +5326,15 @@ not have a face in `gnus-article-boring-faces'."
 	     (boundp 'gnus-article-boring-faces)
 	     (symbol-value 'gnus-article-boring-faces))
     (save-excursion
-      (catch 'only-boring
-	(while (re-search-forward "\\b\\w\\w" nil t)
-	  (forward-char -1)
-	  (when (not (gnus-intersection
-		      (gnus-faces-at (point))
-		      (symbol-value 'gnus-article-boring-faces)))
-	    (throw 'only-boring nil)))
-	(throw 'only-boring t)))))
+      (let ((inhibit-point-motion-hooks t))
+	(catch 'only-boring
+	  (while (re-search-forward "\\b\\w\\w" nil t)
+	    (forward-char -1)
+	    (when (not (gnus-intersection
+			(gnus-faces-at (point))
+			(symbol-value 'gnus-article-boring-faces)))
+	      (throw 'only-boring nil)))
+	  (throw 'only-boring t))))))
 
 (defun gnus-article-refer-article ()
   "Read article specified by message-id around point."

@@ -103,8 +103,6 @@ Text Mode
 Outline Mode
 @TeX{} Mode
 Formatted Text
-Fortran Mode
-Fortran Indentation
 Shell Command History
 
 The ones for Dired and Rmail have had the items turned into :: items
@@ -182,8 +180,6 @@ Advanced Features
 * Maintaining::         Features for maintaining large programs.
 * Abbrevs::	        How to define text abbreviations to reduce
 			  the number of characters you must type.
-* Picture::	        Editing pictures made up of characters
-			  using the quarter-plane screen model.
 * Sending Mail::        Sending mail in Emacs.
 * Rmail::	        Reading mail in Emacs.
 * Dired::	        You can ``edit'' a directory to manage files in it.
@@ -525,7 +521,6 @@ Editing Programs
 * Misc for Programs::   Other Emacs features useful for editing programs.
 * C Modes::             Special commands of C, C++, Objective-C,
                           Java, and Pike modes.
-* Fortran::             Fortran mode and its special features.
 * Asm Mode::            Asm mode and its special features.
 
 Top-Level Definitions, or Defuns
@@ -572,15 +567,6 @@ C and Related Modes
 * Other C Commands::    Filling comments, viewing expansion of macros,
                           and other neat features.
 
-Fortran Mode
-
-* Fortran Motion::	Moving point by statements or subprograms.
-* Fortran Indent::	Indentation commands for Fortran.
-* Fortran Comments::	Inserting and aligning comments.
-* Fortran Autofill::	Auto fill minor mode for Fortran.
-* Fortran Columns::	Measuring columns for valid Fortran.
-* Fortran Abbrev::	Built-in abbrevs for Fortran keywords.
-
 Compiling and Testing Programs
 
 * Compilation::		Compiling programs in languages other
@@ -615,7 +601,6 @@ Maintaining Large Programs
 * Format of ChangeLog:: What the change log file looks like.
 * Tags::	        Go direct to any function in your program in one
 			  command.  Tags remembers which file it is in.
-* Emerge::	        A convenient way of merging two versions of a program.
 
 Tags Tables
 
@@ -627,19 +612,6 @@ Tags Tables
 * Tags Search::		Using a tags table for searching and replacing.
 * List Tags::		Listing and finding tags defined in a file.
 
-Merging Files with Emerge
-
-* Overview of Emerge::	How to start Emerge.  Basic concepts.
-* Submodes of Emerge::	Fast mode vs. Edit mode.
-			  Skip Prefers mode and Auto Advance mode.
-* State of Difference::	You do the merge by specifying state A or B
-			  for each difference.
-* Merge Commands::	Commands for selecting a difference,
-			  changing states of differences, etc.
-* Exiting Emerge::	What to do when you've finished the merge.
-* Combining in Emerge::	    How to keep both alternatives for a difference.
-* Fine Points of Emerge::   Misc.
-
 Abbrevs
 
 * Abbrev Concepts::     Fundamentals of defined abbrevs.
@@ -649,14 +621,6 @@ Abbrevs
 * Saving Abbrevs::      Saving the entire list of abbrevs for another session.
 * Dynamic Abbrevs::     Abbreviations for words already in the buffer.
 * Dabbrev Customization:: What is a word, for dynamic abbrevs.  Case handling.
-
-Editing Pictures
-
-* Basic Picture::	Basic concepts and simple commands of Picture Mode.
-* Insert in Picture::	Controlling direction of cursor motion
-			  after "self-inserting" characters.
-* Tabs in Picture::	Various features for tab stops and indentation.
-* Rectangles in Picture:: Clearing and superimposing rectangles.
 
 Sending Mail
 
@@ -1179,7 +1143,6 @@ shell commands.
 @include building.texi
 @include maintaining.texi
 @include abbrevs.texi
-@include picture.texi
 @include sending.texi
 @include rmail.texi
 @include dired.texi

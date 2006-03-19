@@ -1,3 +1,11 @@
+2006-03-18  Claudio Fontana  <claudio@gnu.org>
+
+	* Makefile.in (INFO_FILES): New variable, contains all Info file names.
+	(install-arch-indep, uninstall): Use $(INFO_FILES) to specify files
+	to be installed/uninstalled.
+	(uninstall): Invoke "$(INSTALL_INFO) --remove" to remove references
+	to Info files installed by Emacs.
+
 2006-03-03  Claudio Fontana  <claudio@gnu.org>
 
 	* Makefile.in (install, uninstall): Add DESTDIR variable to

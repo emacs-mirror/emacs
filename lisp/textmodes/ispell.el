@@ -1295,9 +1295,10 @@ The last occurring definition in the buffer will be used.")
     ("^%!PS-Adobe-[123].0"	 . "\n%%EOF\n")
     ("^---* \\(Start of \\)?[Ff]orwarded [Mm]essage"
      . "^---* End of [Ff]orwarded [Mm]essage")
-    ;; Matches e-mail addresses, file names, http addresses, etc.  The `-+'
-    ;; pattern necessary for performance reasons when `-' part of word syntax.
-    ("\\(--+\\|\\(/\\w\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)")
+    ;; Matches e-mail addresses, file names, http addresses, etc.  The
+    ;; `-+' `_+' patterns are necessary for performance reasons when
+    ;; `-' or `_' part of word syntax.
+    ("\\(--+\\|_+\\|\\(/\\w\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)")
     ;; above checks /.\w sequences
     ;;("\\(--+\\|\\(/\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)")
     ;; This is a pretty complex regexp.  It can be simplified to the following:

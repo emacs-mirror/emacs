@@ -1,3 +1,199 @@
+2006-03-18  Ben North  <ben@redfrontdoor.org>  (tiny change)
+
+	* isearch.el (isearch-other-meta-char): Handle user bindings for
+	shifted control characters.
+
+2006-03-18  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-skip-region-alist): Add "_+" to the
+	part that matches email addresses, file names, etc.
+
+2006-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (mouse-set-font): Mention
+	w32-list-proportional-fonts in the doc string.
+
+2006-03-18  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-cache-ftp-work-directory-time): Doc fix.
+	(ido-unc-hosts): New user option to explicitly define list of know
+	UNC-style hosts for completion.
+	(ido-cache-unc-host-shares-time): New user option.
+	(ido-is-unc-root, ido-is-unc-host, ido-cache-unc-valid): New
+	helper functions for UNC file-name support.
+	(ido-may-cache-directory): Check for UNC host.  Simplify.
+	(ido-wash-history): Clean out old UNC hosts.
+	(ido-nonreadable-directory-p): UNC hosts are always readable.
+	(ido-directory-too-big-p): UNC hosts are never too big.
+	(ido-set-current-directory): Handle UNC root path.
+	(ido-file-name-all-completions): Complete UNC host names from
+	ido-unc-hosts list.  Cache UNC host shares.
+	(ido-make-file-list-1): Don't filter UNC root.
+	(ido-exhibit): Check for // in root directory, and switch to UNC
+	mode by setting ido-current-directory to //.
+
+2006-03-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (customize-changed-options): Mention explicit
+	version number as default in prompt.
+
+2006-03-17  Bill Wohler  <wohler@newt.com>
+
+	* image.el (image-load-path-for-library): Minor docstring fix.
+
+2006-03-17  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-read-date): Include subgroup 5 into
+	replacement text.
+	(org-popup-calendar-for-date-prompt): Fix customization type.
+
+2006-03-17  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gud-watch): Provide completion.
+	(gdb-continuation): New variable.
+	(gdb-send): Deal with continuation lines.
+
+	* progmodes/gud.el (gud-gdb-complete-command)
+	(gud-gdb-run-command-fetch-lines): Adapt for use with watch
+	expressions.
+	(gud-tooltip-mode): Use buffer-local value.
+
+2006-03-16  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-edit-input): Use selected match, if any.
+
+2006-03-16  Bill Wohler  <wohler@newt.com>
+
+	* image.el (image-load-path-for-library): Prefer user's images in
+	image-load-path.
+
+2006-03-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* mouse.el (mouse-drag-vertical-line): Use window-inside-edges
+	when checking for attempt to drag leftmost or rightmost scrollbar.
+
+2006-03-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-inferior-status): New variable.
+	(gdb-force-mode-line-update): New function.
+	(gdb-resync, gdb-starting, gdb-signal, gdb-exited, gdb-stopped)
+	(gdb-exited): Use them.
+	(gdb-signal): New fuction.
+	(gdb-annotation-rules): Provide a rule for it.
+
+2006-03-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (auto-coding-regexp-alist): Add entries
+	for Unicode BOM.
+
+	* sort.el (sort-build-lists): Temporarily bind
+	inhibit-field-text-motion to t.
+
+2006-03-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* locate.el (locate-command, locate-make-command-line)
+	(locate-fcodes-file, locate-update-command)
+	(locate-prompt-for-command, locate, locate-with-filter)
+	(locate-get-file-positions): Doc fixes.
+	(locate-buffer-name, locate-header-face): Remove leading `*' in
+	defcustom.
+	(locate-filter-output): Use `keep-lines' instead of its alias
+	`delete-non-matching-lines'.
+	(locate-get-filename, locate-get-dirname): Add introductory comment.
+	(locate-find-directory-other-window): Give appropriate error
+	message if used outside main listing.
+
+2006-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-lines-before): Delete variable, subsumed by
+	the new extend-region feature.
+	(font-lock-after-change-function): Update correspondingly.
+	* jit-lock.el (jit-lock-after-change): Update correspondingly.
+	* progmodes/grep.el (font-lock-lines-before): Don't disable.
+
+2006-03-15  Bill Wohler  <wohler@newt.com>
+
+	* image.el (image-load-path-for-library): Fix example by not
+	recommending that one binds image-load-path. Just defvar it to
+	placate compiler and only use it if previously defined.
+
+2006-03-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-insert-centered): Use `string-width' to
+	make underlining work for wide characters.
+	(org-goto-map, org-agenda-mode-map, org-mode-map): Explicitly bind
+	TAB to `org-cycle', to make sure that no binding in
+	`outline-mode-map' can supercede it.
+
+2006-03-14  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Increment version to 2.2.1 in file commentary.
+
+	(allout-version): Increment to 2.2.1.
+
+	(allout-default-layout): New customization variable, used when the
+	file lacks a specific allout-layout.  Uses allout-layout-type for
+	recursively nested definition.
+
+	(allout-layout-type): Widget defining allout layouts, necessary for
+	self-recursive definition.
+
+	(allout-mode): Incorporate allout-default-layout as fallback for
+	allout-layout.
+
+	(allout-layout): Mark as 'safe-local-variable', and refer mention
+	fallback to `allout-default-layout' in absence of a specified value.
+	(allout-passphrase-verifier-string)
+	(allout-passphrase-hint-string): Mark as 'safe-local-variable'.
+
+	(allout-file-passphrase-verifier-string): Obsolete variable, removed.
+
+	(allout-get-encryption-passphrase-verifier): Use correct name of
+	passphrase verifier in docstring.
+
+2006-03-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-list): Change order of first two
+	elements.
+	(gdb-find-watch-expression): Make it work for arrays too.  Follow
+	change to gdb-var-list.
+	(gud-watch): Allow the user to enter variable name with a prexix
+	arg.  Create keybindings.
+	(gdb-var-create-handler, gdb-var-evaluate-expression-handler)
+	(gdb-var-list-children-handler, gdb-var-update-handler)
+	(gdb-var-delete, gdb-edit-value, gdb-speedbar-expand-node)
+	(gdb-var-list-children-handler-1, gdb-var-update-handler-1):
+	Follow change to gdb-var-list.
+	(gdb-starting): Don't show the overlay arrows when program is
+	running.
+
+	* progmodes/gud.el (gud-speedbar-buttons): Follow change to
+	gdb-var-list.
+
+2006-03-14  Bill Wohler  <wohler@newt.com>
+
+	* image.el (image-load-path-for-library): Pass value of path
+	rather than symbol.  Always return list of directories.  Guarantee
+	that image directory comes first.
+
+2006-03-14  Alan Mackenzie  <acm@muc.de>
+
+	* font-core.el: New function/variable
+	font-lock-extend-region\(-function\)?.
+
+	* font-lock.el (font-lock-after-change-function): Call
+	font-lock-extend-region.  Obey font-lock-lines-before.
+	(font-lock-default-fontify-region): Remove reference to
+	font-lock-lines-before.
+
+	* jit-lock.el (jit-lock-after-change): Call
+	font-lock-extend-region.  Obey font-lock-lines-before.
+
+2006-03-14  David Ponce  <david@dponce.com>
+
+	* tree-widget.el (tree-widget-themes-load-path)
+	(tree-widget-themes-directory, tree-widget-theme): Doc fix.
+
 2006-03-13  Ryan Yeske  <rcyeske@gmail.com>
 
 	* net/rcirc.el (rcirc) <defgroup>: Add link to manual.
@@ -8,8 +204,8 @@
 
 2006-03-13  Miles Bader  <miles@gnu.org>
 
-	* net/rcirc.el (rcirc-nick-abbrevs): Variable removed.
-	(rcirc-abbrev-nick): Function removed.
+	* net/rcirc.el (rcirc-nick-abbrevs): Remove variable.
+	(rcirc-abbrev-nick): Remove function.
 	(rcirc-format-response-string): Don't call `rcirc-abbrev-nick'.
 
 2006-03-13  David Ponce  <david@dponce.com>
@@ -25,11 +221,11 @@
 
 2006-03-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-link-search): Avoid self-matching of
+	* textmodes/org.el (org-link-search): Avoid self-matching of
 	links, allow target text to be distributed over several lines.
 	(org-search-not-link): New function.
-	(org-set-regexps-and-options, org-get-current-options): New
-	startup options.
+	(org-set-regexps-and-options, org-get-current-options):
+	New startup options.
 	(org-export-as-html): Take odd-level setting from local variable.
 	(org-fontify-emphasized-text): New option.
 	(org-set-font-lock-defaults): Include emphasized text.
@@ -100,8 +296,8 @@
 
 2006-03-11  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
 
-	* progmodes/octave-mod.el (octave-indent-for-comment): Behave
-	according to do string.
+	* progmodes/octave-mod.el (octave-indent-for-comment):
+	Behave according to do string.
 
 2006-03-11  Agustin Martin  <agustin.martin@hispalinux.es>
 
@@ -139,7 +335,7 @@
 	* progmodes/gdb-ui.el (gdb-remove-text-properties): Rename from
 	gdb-remove-mouse-face and remove help-echo too.
 	(gdb-enqueue-input): Correct conditional clause.
-	
+
 2006-03-10  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-holidays): Doc fix.

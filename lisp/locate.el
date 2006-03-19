@@ -122,7 +122,26 @@
   :group 'external)
 
 (defcustom locate-command "locate"
-  "*The executable program used to search a database of files."
+  "Executable program for searching a database of files.
+The Emacs commands `locate' and `locate-with-filter' use this.
+The value should be a program that can be called from a shell
+with one argument, SEARCH-STRING.  The program determines which
+database it searches.  The output of the program should consist
+of those file names in the database that match SEARCH-STRING,
+listed one per line, possibly with leading or trailing
+whitespace.  If the output is in another form, you may have to
+redefine the function `locate-get-file-positions'.
+
+The program may interpret SEARCH-STRING as a literal string, a
+shell pattern or a regular expression.  The exact rules of what
+constitutes a match may also depend on the program.
+
+The standard value of this variable is \"locate\".
+This program normally searches a database of all files on your
+system, or of all files that you have access to.  Consult the
+documentation of that program for the details about how it determines
+which file names match SEARCH-STRING.  (Those details vary highly with
+the version.)"
   :type 'string
   :group 'locate)
 
@@ -133,22 +152,34 @@
   "The history list used by the \\[locate-with-filter] command.")
 
 (defcustom locate-make-command-line 'locate-default-make-command-line
-  "*Function used to create the locate command line."
+  "Function used to create the locate command line.
+The Emacs commands `locate' and `locate-with-filter' use this.
+This function should take one argument, a string (the name to find)
+and return a list of strings.  The first element of the list should be
+the name of a command to be executed by a shell, the remaining elements
+should be the arguments to that command (including the name to find)."
   :type 'function
   :group 'locate)
 
 (defcustom locate-buffer-name "*Locate*"
-  "*Name of the buffer to show results from the \\[locate] command."
+  "Name of the buffer to show results from the \\[locate] command."
   :type 'string
   :group 'locate)
 
 (defcustom locate-fcodes-file nil
-  "*File name for the database of file names."
+  "File name for the database of file names used by `locate'.
+If non-nil, `locate' uses this name in the header of the `*Locate*'
+buffer.  If nil, it mentions no file name in that header.
+
+Just setting this variable does not actually change the database
+that `locate' searches.  The executive program that the Emacs
+function `locate' uses, as given by the variables `locate-command'
+or `locate-make-command-line', determines the database."
   :type '(choice (const :tag "None" nil) file)
   :group 'locate)
 
 (defcustom locate-header-face nil
-  "*Face used to highlight the locate header."
+  "Face used to highlight the locate header."
   :type '(choice (const :tag "None" nil) face)
   :group 'locate)
 
@@ -161,12 +192,12 @@ This should contain the \"-l\" switch, but not the \"-F\" or \"-b\" switches."
   :version "22.1")
 
 (defcustom locate-update-command "updatedb"
-  "The command used to update the locate database."
+  "The executable program used to update the locate database."
   :type 'string
   :group 'locate)
 
 (defcustom locate-prompt-for-command nil
-  "If non-nil, the locate command prompts for a command to run.
+  "If non-nil, the `locate' command prompts for a command to run.
 Otherwise, that behavior is invoked via a prefix argument."
   :group 'locate
   :type 'boolean
@@ -191,7 +222,22 @@ Otherwise, that behavior is invoked via a prefix argument."
 ;;;###autoload
 (defun locate (search-string &optional filter)
   "Run the program `locate', putting results in `*Locate*' buffer.
-With prefix arg, prompt for the locate command to run."
+Pass it SEARCH-STRING as argument.  Interactively, prompt for SEARCH-STRING.
+With prefix arg, prompt for the exact shell command to run instead.
+
+This program searches for those file names in a database that match
+SEARCH-STRING and normally outputs all matching absolute file names,
+one per line.  The database normally consists of all files on your
+system, or of all files that you have access to.  Consult the
+documentation of the program for the details about how it determines
+which file names match SEARCH-STRING.  (Those details vary highly with
+the version.)
+
+You can specify another program for this command to run by customizing
+the variables `locate-command' or `locate-make-command-line'.
+
+The main use of FILTER is to implement `locate-with-filter'.  See
+the docstring of that function for its meaning."
   (interactive
       (list
        (if (or (and current-prefix-arg
@@ -255,10 +301,17 @@ With prefix arg, prompt for the locate command to run."
 
 ;;;###autoload
 (defun locate-with-filter (search-string filter)
-  "Run the locate command with a filter.
+  "Run the executable program `locate' with a filter.
+This function is similar to the function `locate', which see.
+The difference is that, when invoked interactively, the present function
+prompts for both SEARCH-STRING and FILTER.  It passes SEARCH-STRING
+to the locate executable program.  It produces a `*Locate*' buffer
+that lists only those lines in the output of the locate program that
+contain a match for the regular expression FILTER; this is often useful
+to constrain a big search.
 
-The filter is a regular expression. Only results matching the filter are
-shown; this is often useful to constrain a big search."
+When called from Lisp, this function is identical with `locate',
+except that FILTER is not optional."
   (interactive
    (list (read-from-minibuffer "Locate: " nil nil
 			       nil 'locate-history-list)
@@ -269,7 +322,7 @@ shown; this is often useful to constrain a big search."
 (defun locate-filter-output (filter)
   "Filter output from the locate command."
   (goto-char (point-min))
-  (delete-non-matching-lines filter))
+  (keep-lines filter))
 
 (defvar locate-mode-map nil
   "Local keymap for Locate mode buffers.")
@@ -303,6 +356,15 @@ shown; this is often useful to constrain a big search."
   "The amount of indentation for each file.")
 
 (defun locate-get-file-positions ()
+  "Return list of start and end of the file name on the current line.
+This is a list of two buffer positions.
+
+You should only call this function on lines that contain a file name
+listed by the locate program.  Inside inserted subdirectories, or if
+there is no file name on the current line, the return value is
+meaningless.  You can check whether the current line contains a file
+listed by the locate program, using the function
+`locate-main-listing-line-p'."
   (save-excursion
     (end-of-line)
     (let ((eol (point)))
@@ -320,6 +382,12 @@ shown; this is often useful to constrain a big search."
 	 1
        0)))
 
+;; You should only call this function on lines that contain a file name
+;; listed by the locate program.  Inside inserted subdirectories, or if
+;; there is no file name on the current line, the return value is
+;; meaningless.  You can check whether the current line contains a file
+;; listed by the locate program, using the function
+;; `locate-main-listing-line-p'.
 (defun locate-get-filename ()
   (let ((pos    (locate-get-file-positions))
 	(lineno (locate-current-line-number)))
@@ -516,8 +584,16 @@ Database is updated using the shell command in `locate-update-command'."
 (defun locate-find-directory-other-window ()
   "Visit the directory of the file named on this line in other window."
   (interactive)
-  (find-file-other-window (locate-get-dirname)))
+  (if (locate-main-listing-line-p)
+      (find-file-other-window (locate-get-dirname))
+    (message "This command only works inside main listing.")))
 
+;; You should only call this function on lines that contain a file name
+;; listed by the locate program.  Inside inserted subdirectories, or if
+;; there is no file name on the current line, the return value is
+;; meaningless.  You can check whether the current line contains a file
+;; listed by the locate program, using the function
+;; `locate-main-listing-line-p'.
 (defun locate-get-dirname ()
   "Return the directory name of the file mentioned on this line."
   (let (file (filepos (locate-get-file-positions)))

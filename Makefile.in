@@ -134,6 +134,11 @@ man1dir=$(mandir)/man1
 # since there are now many packages documented with the texinfo
 # system, it is inappropriate to imply that it is part of Emacs.
 infodir=@infodir@
+INFO_FILES=ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq \
+           elisp eintr emacs emacs-mime emacs-xtra eshell eudc flymake \
+           forms gnus idlwave info message mh-e newsticker org pcl-cvs \
+           pgg reftex sc ses sieve speedbar tramp vip viper widget     \
+           woman smtpmail url rcirc erc
 
 # Directory for local state files for all programs.
 localstatedir=@localstatedir@
@@ -497,19 +502,20 @@ install-arch-indep: mkdir info
 	      chmod a+r $(DESTDIR)${infodir}/dir); \
 	   fi; \
 	   cd ${srcdir}/info ; \
-	   for f in ada-mode* autotype* calc* ccmode* cl* dired-x* ebrowse* ediff* efaq* eintr* elisp* emacs* emacs-mime* emacs-xtra* eshell* eudc* flymake* forms* gnus* idlwave* info* message* mh-e* newsticker* org* pcl-cvs* pgg* reftex* sc* ses* sieve* speedbar* tramp* vip* widget* woman* smtpmail* url* rcirc* erc*; do \
-	     (cd $${thisdir}; \
-	      ${INSTALL_DATA} ${srcdir}/info/$$f $(DESTDIR)${infodir}/$$f; \
-	      chmod a+r $(DESTDIR)${infodir}/$$f); \
+	   for elt in $(INFO_FILES); do \
+	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
+	        ${INSTALL_DATA} $$f $(DESTDIR)${infodir}/$$f; \
+	        chmod a+r $(DESTDIR)${infodir}/$$f; \
+	      done; \
 	   done); \
 	else true; fi
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd $(DESTDIR)${infodir} && /bin/pwd)` ]; \
 	then \
-	  for f in ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq elisp eintr emacs emacs-mime emacs-xtra eshell eudc flymake forms gnus idlwave info message mh-e newsticker org pcl-cvs pgg reftex sc ses sieve speedbar tramp vip viper widget woman smtpmail url rcirc erc; do \
+	  for elt in $(INFO_FILES); do \
 	    (cd $${thisdir}; \
-	     ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$f); \
+	     ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	  done; \
 	else true; fi
 	-chmod -R a+r $(DESTDIR)${datadir}/emacs ${COPYDESTS} $(DESTDIR)${infodir}
@@ -573,7 +579,13 @@ uninstall:
 	done
 	(cd $(DESTDIR)${archlibdir} && rm -f fns-*)
 	-rm -rf $(DESTDIR)${libexecdir}/emacs/${version}
-	(cd $(DESTDIR)${infodir} && rm -f cl* ada-mode* autotype* calc* ccmode* ebrowse* efaq* eintr elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* tramp* widget* woman* dired-x* ediff* emacs* emacs-xtra* flymake* forms* gnus* info* mh-e* newsticker* org* sc* ses* vip* smtpmail* url* rcirc* erc*)
+	(cd $(DESTDIR)${infodir} && \
+	  for elt in $(INFO_FILES); do \
+	    $(INSTALL_INFO) --remove --info-dir=. $$elt; \
+	    for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
+	      rm -f $$f; \
+	    done; \
+	  done;)
 	(cd $(DESTDIR)${man1dir}  && rm -f emacs${manext} emacsclient${manext} etags${manext} ctags${manext})
 	(cd $(DESTDIR)${bindir}  && rm -f $(EMACSFULL) $(EMACS))
 

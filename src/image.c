@@ -189,6 +189,7 @@ XPutPixel (ximage, x, y, pixel)
   PixMapHandle pixmap = GetGWorldPixMap (ximage);
   short depth = GetPixDepth (pixmap);
 
+#if defined (WORDS_BIG_ENDIAN) || !USE_CG_DRAWING
   if (depth == 32)
     {
       char *base_addr = GetPixBaseAddr (pixmap);
@@ -196,7 +197,9 @@ XPutPixel (ximage, x, y, pixel)
 
       ((unsigned long *) (base_addr + y * row_bytes))[x] = 0xff000000 | pixel;
     }
-  else if (depth == 1)
+  else
+#endif
+ if (depth == 1)
     {
       char *base_addr = GetPixBaseAddr (pixmap);
       short row_bytes = GetPixRowBytes (pixmap);
@@ -233,6 +236,7 @@ XGetPixel (ximage, x, y)
   PixMapHandle pixmap = GetGWorldPixMap (ximage);
   short depth = GetPixDepth (pixmap);
 
+#if defined (WORDS_BIG_ENDIAN) || !USE_CG_DRAWING
   if (depth == 32)
     {
       char *base_addr = GetPixBaseAddr (pixmap);
@@ -240,7 +244,9 @@ XGetPixel (ximage, x, y)
 
       return ((unsigned long *) (base_addr + y * row_bytes))[x] & 0x00ffffff;
     }
-  else if (depth == 1)
+  else
+#endif
+  if (depth == 1)
     {
       char *base_addr = GetPixBaseAddr (pixmap);
       short row_bytes = GetPixRowBytes (pixmap);
@@ -272,6 +278,49 @@ XDestroyImage (ximg)
 {
   UnlockPixels (GetGWorldPixMap (ximg));
 }
+
+#if USE_CG_DRAWING
+static CGImageRef
+mac_create_cg_image_from_image (f, img)
+     struct frame *f;
+     struct image *img;
+{
+  Pixmap mask;
+  CGImageRef result = NULL;
+
+  BLOCK_INPUT;
+  if (img->mask)
+    mask = img->mask;
+  else
+    {
+      mask = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			    img->width, img->height, 1);
+      if (mask)
+	{
+	  CGrafPtr old_port;
+	  GDHandle old_gdh;
+	  Rect r;
+
+	  GetGWorld (&old_port, &old_gdh);
+	  SetGWorld (mask, NULL);
+	  BackColor (blackColor); /* Don't mask.  */
+	  SetRect (&r, 0, 0, img->width, img->height);
+	  EraseRect (&r);
+	  SetGWorld (old_port, old_gdh);
+	}
+    }
+  if (mask)
+    {
+      CreateCGImageFromPixMaps (GetGWorldPixMap (img->pixmap),
+				GetGWorldPixMap (mask), &result);
+      if (mask != img->mask)
+	XFreePixmap (FRAME_X_DISPLAY (f), mask);
+    }
+  UNBLOCK_INPUT;
+
+  return result;
+}
+#endif /* USE_CG_DRAWING */
 #endif /* MAC_OS */
 
 
@@ -1206,6 +1255,18 @@ prepare_image_for_display (f, img)
      type dependent loader function.  */
   if (img->pixmap == NO_PIXMAP && !img->load_failed_p)
     img->load_failed_p = img->type->load (f, img) == 0;
+
+#if defined (MAC_OS) && USE_CG_DRAWING
+  if (!img->load_failed_p && img->data.ptr_val == NULL)
+    {
+      img->data.ptr_val = mac_create_cg_image_from_image (f, img);
+      if (img->data.ptr_val == NULL)
+	{
+	  img->load_failed_p = 1;
+	  img->type->free (f, img);
+	}
+    }
+#endif
 }
 
 
@@ -1452,6 +1513,14 @@ x_clear_image_1 (f, img, pixmap_p, mask_p, colors_p)
       img->colors = NULL;
       img->ncolors = 0;
     }
+
+#if defined (MAC_OS) && USE_CG_DRAWING
+  if (img->data.ptr_val)
+    {
+      CGImageRelease (img->data.ptr_val);
+      img->data.ptr_val = NULL;
+    }
+#endif
 }
 
 /* Free X resources of image IMG which is used on frame F.  */

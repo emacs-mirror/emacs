@@ -2337,6 +2337,8 @@ Search-based fontification happens second.
 * Font Lock Basics::            Overview of customizing Font Lock.
 * Search-based Fontification::  Fontification based on regexps.
 * Customizing Keywords::        Customizing search-based fontification.
+* Region to Fontify::           Controlling which region gets refontified
+                                  after a buffer change.
 * Other Font Lock Variables::   Additional customization facilities.
 * Levels of Font Lock::         Each mode can define alternative levels
                                   so that the user can select more or less.
@@ -2717,6 +2719,36 @@ C mode @emph{and} all modes derived from it, do this instead:
       font-lock-keyword-face)))))
 @end smallexample
 
+@node Region to Fontify
+@subsection Region to Fontify after a Buffer Change
+
+  When a buffer is changed, the region that Font Lock refontifies is by
+default the smallest sequence of whole lines that spans the change.
+While this works well most of the time, sometimes it doesn't---for
+example, when a buffer change has changed the syntactic meaning of text
+on an earlier line.
+
+You can enlarge (or even reduce) the region to fontify by setting either
+of the following variables:
+
+@defvar font-lock-extend-region-function
+This buffer-local variable is either @code{nil} or is a function that
+determines the region to fontify, which Emacs then calls after each
+buffer change.
+
+The function is given three parameters, the standard @var{beg},
+@var{end}, and @var{old-len} from after-change-functions (@pxref{Change
+Hooks}).  It should return either a cons of the beginning and end buffer
+positions (in that order) of the region to fontify, or @code{nil} (which
+directs the caller to fontify the default region).  This function need
+not preserve point or the match-data, but must preserve the current
+restriction.  The region it returns may start or end in the middle of a
+line.
+
+Since this function is called after every buffer change, it should be
+reasonably fast.
+@end defvar
+
 @node Other Font Lock Variables
 @subsection Other Font Lock Variables
 
@@ -2770,14 +2802,6 @@ function should print status messages.  The default value is
 Function to use for unfontifying a region.  It should take two
 arguments, the beginning and end of the region.  The default value is
 @code{font-lock-default-unfontify-region}.
-@end defvar
-
-@defvar font-lock-lines-before
-This variable specifies the number of extra lines to consider when
-refontifying the buffer after each text change.  Font lock begins
-refontifying from that number of lines before the changed region.  The
-default is 0, but using a larger value can be useful for coping with
-multi-line patterns.
 @end defvar
 
 @ignore

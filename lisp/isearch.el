@@ -1692,12 +1692,15 @@ Isearch mode."
 	     (and (integerp main-event)
 		  (memq 'shift mods)
 		  (memq 'control mods)
-		  (lookup-key isearch-mode-map
-			      (let ((copy (copy-sequence key)))
-				(aset copy 0
-				      (- main-event (- ?\C-\S-a ?\C-a)))
-				copy)
-			      nil)))
+		  (not (memq (lookup-key isearch-mode-map
+					 (let ((copy (copy-sequence key)))
+					   (aset copy 0
+						 (- main-event
+						    (- ?\C-\S-a ?\C-a)))
+					   copy)
+					 nil)
+			     '(nil
+			       isearch-other-control-char)))))
 	   (setcar keylist (- main-event (- ?\C-\S-a ?\C-a)))
 	   (cancel-kbd-macro-events)
 	   (apply 'isearch-unread keylist))

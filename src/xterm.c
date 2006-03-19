@@ -7589,18 +7589,17 @@ x_uncatch_errors ()
 {
   struct x_error_message_stack *tmp;
 
+  BLOCK_INPUT;
+
   /* The display may have been closed before this function is called.
      Check if it is still open before calling XSync.  */
   if (x_display_info_for_display (x_error_message->dpy) != 0)
-    {
-      BLOCK_INPUT;
-      XSync (x_error_message->dpy, False);
-      UNBLOCK_INPUT;
-    }
+    XSync (x_error_message->dpy, False);
 
   tmp = x_error_message;
   x_error_message = x_error_message->prev;
   xfree (tmp);
+  UNBLOCK_INPUT;
 }
 
 /* If any X protocol errors have arrived since the last call to
@@ -10343,6 +10342,25 @@ get_bits_and_offset (mask, bits, offset)
 
   *offset = off;
   *bits = nr;
+}
+
+int
+x_display_ok (display)
+    const char * display;
+{
+    int dpy_ok = 1;
+    Display *dpy;
+
+    if (!display)
+      display = getenv("DISPLAY");
+    if (!display)
+      return 0;
+
+    if ((dpy = XOpenDisplay (display)))
+      XCloseDisplay (dpy);
+    else
+      dpy_ok = 0;
+    return dpy_ok;
 }
 
 struct x_display_info *
