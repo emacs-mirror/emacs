@@ -11604,7 +11604,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  x += glyph->pixel_width;
 	  ++glyph;
 	  if (cursor_from_overlay_pos
-	      && last_pos > cursor_from_overlay_pos)
+	      && last_pos >= cursor_from_overlay_pos)
 	    {
 	      cursor_from_overlay_pos = 0;
 	      cursor = 0;
@@ -11618,10 +11618,12 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  /* Skip all glyphs from string.  */
 	  do
 	    {
+	      Lisp_Object cprop;
 	      int pos;
 	      if ((cursor == NULL || glyph > cursor)
-		  && !NILP (Fget_char_property (make_number ((glyph)->charpos),
-						Qcursor, (glyph)->object))
+		  && (cprop = Fget_char_property (make_number ((glyph)->charpos),
+						  Qcursor, (glyph)->object),
+		      !NILP (cprop))
 		  && (pos = string_buffer_position (w, glyph->object,
 						    string_before_pos),
 		      (pos == 0	  /* From overlay */
@@ -11632,14 +11634,15 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 		     Add 1 to last_pos so that if point corresponds to the
 		     glyph right after the overlay, we still use a 'cursor'
 		     property found in that overlay.  */
-		  cursor_from_overlay_pos = pos == 0 ? last_pos+1 : 0;
+		  cursor_from_overlay_pos = (pos ? 0 : last_pos
+					     + (INTEGERP (cprop) ? XINT (cprop) : 0));
 		  cursor = glyph;
 		  cursor_x = x;
 		}
 	      x += glyph->pixel_width;
 	      ++glyph;
 	    }
-	  while (glyph < end && STRINGP (glyph->object));
+	  while (glyph < end && EQ (glyph->object, string_start->object));
 	}
     }
 
