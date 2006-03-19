@@ -11,8 +11,8 @@
 @set VERSION 7.93
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
-@set EDITION , 4th Edition
-@set UPDATED 2006-03-17
+@set EDITION , 5th Edition
+@set UPDATED 2006-03-19
 @set UPDATE-MONTH March, 2006
 
 @c Other variables.
@@ -22,7 +22,7 @@
 @c Copyright
 @copying
 This is version @value{VERSION}@value{EDITION} of @cite{The MH-E
-Manual}, last updated @value{UPDATED}
+Manual}, last updated @value{UPDATED}.
 
 Copyright @copyright{} 1995,
   2001, 2002, 2003, 2005, 2006 Free Software Foundation, Inc.
@@ -4055,31 +4055,45 @@ command.
 When you reply to a message, you are first prompted with @samp{Reply
 to whom?}. You have several choices here.
 
-@smallexample
-@group
-@b{Response}     @b{Reply Goes To}
+@quotation
+@multitable @columnfractions .20 .80
+@headitem Response @tab Reply Goes To
+@item @kbd{from}
+@tab
+The person who sent the message. This is the default, so @key{RET} is
+sufficient.
 
-@kbd{from}         @r{The person who sent the message.  This is the default,}
-             @r{so @key{RET} is sufficient.}
+@item @kbd{to}
+@tab
+Replies to the sender, plus all recipients in the @samp{To:} header field.
 
-@kbd{to}           @r{Replies to the sender, plus all recipients in the}
-             @r{@samp{To:} header field.}
-
-@kbd{all}
-@kbd{cc}           @r{Forms a reply to the sender, plus all recipients.}
-@end group
-@end smallexample
+@item @kbd{all}
+@itemx @kbd{cc}
+@tab
+Forms a reply to the addresses in the @samp{Mail-Followup-To:} header
+field if one exists; otherwise forms a reply to the sender, plus all
+recipients.
+@end multitable
+@end quotation
 
 @cindex @command{repl}
 @cindex MH commands, @command{repl}
+@vindex mh-reply-default-reply-to
 
 Depending on your answer, @command{repl}@footnote{See the section
 @uref{@value{MH-BOOK-HOME}/reprep.htm, Replying to Messages: repl} in
 the MH book.} is given a different argument to form your reply.
 Specifically, a choice of @kbd{from} or none at all runs @samp{repl
 -nocc all}, and a choice of @kbd{to} runs @samp{repl -cc to}. Finally,
-either @kbd{cc} or @kbd{all} runs @samp{repl -cc all -nocc me}.
+either @kbd{cc} or @kbd{all} runs @samp{repl -cc all -nocc me}. If you
+find that most of the time you specify one of these choices when you
+reply to a message, you can change the option
+@code{mh-reply-default-reply-to} from its default value of
+@samp{Prompt} to one of the choices listed above. You can always edit
+the recipients in the draft.
 
+@cindex @samp{repl:} MH profile component
+@cindex MH profile component, @samp{repl:}
 @cindex MH-Letter mode
 @cindex MH-Show mode
 @cindex draft
@@ -4088,7 +4102,10 @@ either @kbd{cc} or @kbd{all} runs @samp{repl -cc all -nocc me}.
 
 Two windows are then created. One window contains the message to which
 you are replying in an MH-Show buffer. Your draft, in MH-Letter mode
-(@pxref{Editing Drafts}), is in the other window.
+(@pxref{Editing Drafts}), is in the other window. If the reply draft
+was not one that you expected, check the things that affect the
+behavior of @command{repl} which include the @samp{repl:} profile
+component and the @file{replcomps} and @file{replgroupcomps} files.
 
 If you supply a prefix argument (as in @kbd{C-u r}), the message you
 are replying to is inserted in your reply after having first been run
@@ -4114,15 +4131,6 @@ buffer by turning off the option @code{mh-reply-show-message-flag}.
 
 If you wish to customize the header or other parts of the reply draft,
 please see @command{repl}(1) and @code{mh-format}(5).
-
-@vindex mh-reply-default-reply-to
-
-The @code{mh-reply-default-reply-to} option is set to @samp{Prompt} by
-default so that you are prompted for the recipient of a reply. If you
-find that most of the time that you specify @kbd{cc} when you reply to
-a message, set this option to @samp{cc}. Other choices include
-@samp{from}, @samp{to}, or @samp{all}. You can always edit the
-recipients in the draft.
 
 @node Forwarding, Redistributing, Replying, Sending Mail
 @section Forwarding Mail

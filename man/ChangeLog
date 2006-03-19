@@ -1,3 +1,10 @@
+2006-03-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Replying): Document Mail-Followup-To. Change
+	manually-formatted table to multitable. Add debugging info. Move
+	description of mh-reply-default-reply-to into paragraph that
+	describes its values.
+
 2006-03-17  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi: Use smallexample and smalllisp consistenly.
