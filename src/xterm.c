@@ -10204,11 +10204,9 @@ x_term_init (display_name, xrm_option, resource_name)
 
         /* Load our own gtkrc if it exists.  */
         {
-          struct gcpro gcpro1, gcpro2;
           char *file = "~/.emacs.d/gtkrc";
           Lisp_Object s, abs_file;
 
-          GCPRO2 (s, abs_file);
           s = make_string (file, strlen (file));
           abs_file = Fexpand_file_name (s, Qnil);
 
