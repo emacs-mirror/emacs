@@ -1488,7 +1488,7 @@ main (argc, argv
     skip_args = count_before;
 
     /* Do not be lenient if the user explicitly asked for a named display.  */
-    if (display_arg != 1 && !x_display_ok (displayname))
+    if (display_arg == 1 && !x_display_ok (displayname))
       {
 	fprintf (stderr, "Display %s unavailable, simulating -nw\n",
 		 displayname);
