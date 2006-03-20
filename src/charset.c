@@ -1042,6 +1042,8 @@ usage: (define-charset-internal ...)  */)
       emacs_mule_charset[charset.emacs_mule_id] = CHARSET_FROM_ID (id);
       if (charset.emacs_mule_id < 0xA0)
 	emacs_mule_bytes[charset.emacs_mule_id] = charset.dimension + 1;
+      else
+	emacs_mule_bytes[charset.emacs_mule_id] = charset.dimension + 2;
       if (new_definition_p)
 	Vemacs_mule_charset_list = nconc2 (Vemacs_mule_charset_list,
 					   Fcons (make_number (id), Qnil));
