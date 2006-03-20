@@ -10123,12 +10123,8 @@ x_display_ok (display)
     int dpy_ok = 1;
     Display *dpy;
 
-    if (!display)
-      display = getenv("DISPLAY");
-    if (!display)
-      return 0;
-
-    if ((dpy = XOpenDisplay (display)))
+    dpy = XOpenDisplay (display);
+    if (dpy)
       XCloseDisplay (dpy);
     else
       dpy_ok = 0;

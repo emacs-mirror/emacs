@@ -1,3 +1,11 @@
+2006-03-20  Andreas Schwab  <schwab@suse.de>
+
+	* dispnew.c (init_display): Check DISPLAY here.
+
+	* emacs.c (main): Don't check here.
+
+	* xterm.c (x_display_ok): Don't use DISPLAY env var.
+
 2006-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (window_scroll_pixel_based): Yet another int/Lisp_Object

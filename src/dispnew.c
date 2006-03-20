@@ -6664,6 +6664,13 @@ init_display ()
 #endif
 
       display_arg = (display != 0 && *display != 0);
+
+      if (display_arg && !x_display_ok (display))
+	{
+	  fprintf (stderr, "Display %s unavailable, simulating -nw\n",
+		   display);
+	  inhibit_window_system = 1;
+	}
     }
 
   if (!inhibit_window_system && display_arg
