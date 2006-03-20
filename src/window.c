@@ -4796,8 +4796,8 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	 possibility of point becoming "stuck" on a tall line when
 	 scrolling by one line.  */
       if (window_scroll_pixel_based_preserve_y < 0
-	  || (current_kboard->Vlast_command != Qscroll_up
-	      && current_kboard->Vlast_command != Qscroll_down))
+	  || (!EQ (current_kboard->Vlast_command, Qscroll_up)
+	      && !EQ (current_kboard->Vlast_command, Qscroll_down)))
 	{
 	  start_display (&it, w, start);
 	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);

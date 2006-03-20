@@ -1,11 +1,15 @@
+2006-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (window_scroll_pixel_based): Yet another int/Lisp_Object
+	mixup (YAILOM).
+
 2006-03-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs.c (main): Fix last change.
 
 2006-03-20  Kenichi Handa  <handa@m17n.org>
 
-	* fileio.c (Fwrite_region): Set visit_file to Qnil before GCPRO
-	it.
+	* fileio.c (Fwrite_region): Set visit_file to Qnil before GCPRO it.
 
 	* keymap.c (map_keymap): Set tail to Qnil before GCPRO it.
 
@@ -63,15 +67,15 @@
 	* image.c [MAC_OS] (XPutPixel, XGetPixel)
 	[!WORDS_BIG_ENDIAN && USE_CG_DRAWING]: Don't use specialized
 	version when depth is 32.
-	(mac_create_cg_image_from_image) [MAC_OS && USE_CG_DRAWING]: New
-	function.
+	(mac_create_cg_image_from_image) [MAC_OS && USE_CG_DRAWING]:
+	New function.
 	(prepare_image_for_display) [MAC_OS && USE_CG_DRAWING]: Use it.
 	(x_clear_image_1) [MAC_OS && USE_CG_DRAWING]: Release CGImage.
 
 	* macterm.c (XCreatePixmap) [!WORDS_BIG_ENDIAN && USE_CG_DRAWING]:
 	Create GWorld in ARGB pixel format.
-	(mac_copy_area, mac_copy_area_with_mask) [USE_CG_DRAWING]: Remove
-	functions.
+	(mac_copy_area, mac_copy_area_with_mask) [USE_CG_DRAWING]:
+	Remove functions.
 	(x_draw_image_foreground) [USE_CG_DRAWING]: Use mac_draw_cg_image
 	instead of mac_copy_area/mac_copy_area_with_mask.
 
@@ -175,8 +179,7 @@
 
 2006-03-11  David Ponce  <david@dponce.com>
 
-	* xfns.c (x_create_tip_frame): Preserve received parms by copying
-	them.
+	* xfns.c (x_create_tip_frame): Preserve received parms by copying them.
 
 2006-03-11  Eli Zaretskii  <eliz@gnu.org>
 
@@ -197,14 +200,14 @@
 	* keymap.c (describe_map): Shorten string to indicate shadowed binding.
 
 	* vm-limit.c (get_lim_data, lim_data, data_space_start):
-	Moved from mem-limits.h.
+	Move from mem-limits.h.
 	(enum warnlevel): New data type.
 	(check_memory_limits): Rewrite the logic about warnings.
 	Use standard `struct rlimit'.  Check return values for nonsense.
 	(memory_warnings): Always clear lim_data.
 
 	* mem-limits.h (get_lim_data, lim_data, data_space_start):
-	Moved to vm-limit.c.
+	Move to vm-limit.c.
 
 	* xterm.c (x_fully_uncatch_errors, x_catching_errors): New functions.
 
