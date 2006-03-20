@@ -1,5 +1,7 @@
 2006-03-20  Richard Stallman  <rms@gnu.org>
 
+	* simple.el (set-mark-command): Doc fix.
+
 	* files.el (display-buffer-other-frame): New command.
 	(ctl-x-4-map): Bind C-x 5 C-o to it.
 

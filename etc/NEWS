@@ -324,6 +324,11 @@ cycle for each frame, using the frame-local buffer list.
 converts whitespace around point to N spaces.
 
 ---
+** C-x 5 C-o displays a specified buffer in another frame
+but does not switch to that frame.  It's the multi-frame
+analogue of C-x 4 C-o.
+
+---
 ** New commands to operate on pairs of open and close characters:
 `insert-pair', `delete-pair', `raise-sexp'.
 
