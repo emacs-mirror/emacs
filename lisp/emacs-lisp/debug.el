@@ -660,10 +660,9 @@ Complete list of commands:
 For the cross-reference format, see `help-make-xrefs'."
   (interactive "d")
   (require 'help-mode)
-  ;; Ideally we'd just do (call-interactively 'help-follow-symbol)
-  ;; except that this assumes we're already in a *Help* buffer and
-  ;; reuses it, so it ends up incorrectly "reusing" the *Backtrace*
-  ;; buffer to show the help info.
+  ;; Ideally we'd just do (call-interactively 'help-follow) except that this
+  ;; assumes we're already in a *Help* buffer and reuses it, so it ends up
+  ;; incorrectly "reusing" the *Backtrace* buffer to show the help info.
   (unless pos
     (setq pos (point)))
   (unless (push-button pos)
