@@ -1,3 +1,20 @@
+2006-03-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help-mode.el (help-follow-symbol): New function.  Essentially
+	identical to the old `help-follow', but do not let `push-button'
+	do the work when on an xref.
+	(help-mode-map): Bind `help-follow-symbol' to "C-c C-c".
+
+	* emacs-lisp/debug.el (debug-help-follow): Adapt comment to above
+	change.
+
+2006-03-19  Richard Stallman  <rms@gnu.org>
+
+	* help-mode.el (help-xref-symbol-regexp): Make no xref for symbol
+	preceded by the word `program'.
+	(help-follow-mouse, help-follow): Throw error if not on xref.
+	Delete no longer used args.
+
 2006-03-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-stopped): Even when there is no source

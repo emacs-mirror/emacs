@@ -1,3 +1,7 @@
+2006-03-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help.texi (Help Mode): Document "C-c C-c".
+
 2006-03-19  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Replying): Document Mail-Followup-To. Change
