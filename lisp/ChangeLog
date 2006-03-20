@@ -1,3 +1,8 @@
+2006-03-20  Richard Stallman  <rms@gnu.org>
+
+	* files.el (display-buffer-other-frame): New command.
+	(ctl-x-4-map): Bind C-x 5 C-o to it.
+
 2006-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* jit-lock.el (jit-lock-function): Check for the actual defer-timer
