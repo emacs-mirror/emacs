@@ -5,9 +5,6 @@
 	do the work when on an xref.
 	(help-mode-map): Bind `help-follow-symbol' to "C-c C-c".
 
-	* emacs-lisp/debug.el (debug-help-follow): Adapt comment to above
-	change.
-
 2006-03-19  Richard Stallman  <rms@gnu.org>
 
 	* help-mode.el (help-xref-symbol-regexp): Make no xref for symbol
