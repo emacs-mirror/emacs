@@ -1,3 +1,9 @@
+2006-03-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Documentation Tips): One can now also write `command'
+	in front of a quoted symbol in a docstring to prevent making a
+	hyperlink.
+
 2006-03-19  Alan Mackenzie  <acm@muc.de>
 
 	* text.texi (Special Properties): Clarify the definition of
