@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006 
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006
 ;; Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -327,7 +327,7 @@ of the inferior.  Non-nil means display the layout shown for
 			(process-status (get-buffer-process buffer)) status))
 	  ;; Force mode line redisplay soon.
 	  (force-mode-line-update)))))
-    
+
 (defun gdb-many-windows (arg)
   "Toggle the number of windows in the basic arrangement.
 With arg, display additional buffers iff arg is positive."
@@ -2135,7 +2135,7 @@ static char *magick[] = {
 	    (unless (string-equal (match-string 0) "The")
 	      (put-text-property start (match-end 0)
 				 'face font-lock-variable-name-face)
-	      (add-text-properties start end 
+	      (add-text-properties start end
 		                   '(help-echo "mouse-2: edit value"
 				     mouse-face highlight))))
 	  (forward-line 1))))))
@@ -2788,7 +2788,7 @@ Kills the gdb buffers, and resets variables and the source buffers."
     (setq gdb-overlay-arrow-position nil))
   (setq overlay-arrow-variable-list
 	(delq 'gdb-overlay-arrow-position overlay-arrow-variable-list))
-  (setcdr (assoc 'overlay-arrow fringe-indicator-alist)	'right-triangle)
+  (setq fringe-indicator-alist '((overlay-arrow . right-triangle)))
   (if (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
       (speedbar-refresh))
   (setq gud-running nil)
@@ -3119,10 +3119,10 @@ BUFFER nil or omitted means use the current buffer."
 	    (position (marker-position gud-overlay-arrow-position)))
 	(when buffer
 	  (with-current-buffer buffer
-	    (setcdr (assoc 'overlay-arrow fringe-indicator-alist)
-		    (if (string-equal gdb-frame-number "0")
-			'right-triangle
-		      'hollow-right-triangle))
+	    (setq fringe-indicator-alist
+		  (if (string-equal gdb-frame-number "0")
+		      nil
+		    '((overlay-arrow . hollow-right-triangle))))
 	    (setq gud-overlay-arrow-position (make-marker))
 	    (set-marker gud-overlay-arrow-position position)))))
   (goto-char (point-min))
@@ -3169,7 +3169,7 @@ is set in them."
   (gdb-enqueue-input
    (list
     (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
-	(concat "server interpreter mi \"-var-list-children --all-values "  
+	(concat "server interpreter mi \"-var-list-children --all-values "
 		varnum "\"\n")
       (concat "-var-list-children --all-values " varnum "\n"))
     `(lambda () (gdb-var-list-children-handler-1 ,varnum)))))
@@ -3298,7 +3298,7 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
 	    (unless (string-equal (match-string 0) "No registers.")
 	      (put-text-property start (match-end 0)
 				 'face font-lock-variable-name-face)
-	      (add-text-properties start end 
+	      (add-text-properties start end
 		                   '(help-echo "mouse-2: edit value"
 				     mouse-face highlight))))
 	  (forward-line 1))))))
@@ -3380,7 +3380,7 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
 			      help-echo "mouse-2: create watch expression"
 			      local-map ,gdb-locals-watch-map-1)
 			    name))
-		       (insert 
+		       (insert
 			(concat name "\t" (nth 1 local)
 				"\t" (nth 2 local) "\n")))
 		   (set-window-start window start)
