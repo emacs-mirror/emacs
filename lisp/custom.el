@@ -819,7 +819,8 @@ See `custom-known-themes' for a list of known themes."
 			 (not (equal (eval (car (get symbol 'standard-value)))
 				     (symbol-value symbol)))))
 		(setq old (list (list 'changed (symbol-value symbol))))
-	      (if (facep symbol)
+	      (if (and (facep symbol)
+		       (not (face-spec-match-p symbol (get symbol 'face-defface-spec))))
 		  (setq old (list (list 'changed (list
 		    (append '(t) (custom-face-attributes-get symbol nil)))))))))
 	(put symbol prop (cons (list theme value) old))

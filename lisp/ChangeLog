@@ -1,3 +1,13 @@
+2006-03-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-face-set): Call custom-push-theme before
+	face-spec set so that `changed' theme is correctly saved.
+	(custom-face-reset-standard): Reset to recalculated face rather
+	than defface spec.
+
+	* custom.el (custom-push-theme): Only save `changed' theme if the
+	current face does not match the defface specs.
+
 2006-03-21  Simon Josefsson  <jas@extundo.com>
 
 	* pgg-gpg.el: Ideas below based on patch from Sascha Wilde
