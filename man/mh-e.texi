@@ -3497,8 +3497,7 @@ ahead and delete or refile the messages, use @kbd{x}
 (@code{mh-execute-commands}). Many MH-E commands that may affect the
 numbering of the messages (such as @kbd{F r} or @kbd{F p}) will ask if
 you want to process refiles or deletes first and then either run
-@kbd{x} for you or undo the pending refiles and deletes, which are
-lost.
+@kbd{x} for you or undo the pending refiles and deletes.
 
 @kindex x
 @vindex mh-after-commands-processed-hook
@@ -3552,12 +3551,13 @@ folder for later examination.
 @kindex t
 @vindex mh-recenter-summary-flag
 
-When you use @kbd{t} to toggle between show mode and scan mode, the
-MH-Show buffer is hidden and the MH-Folder buffer is left alone.
-Setting @code{mh-recenter-summary-flag} to a non-@code{nil} value
-causes the toggle to display as many scan lines as possible, with the
-cursor at the middle. The effect of @code{mh-recenter-summary-flag} is
-rather useful, but it can be annoying on a slow network connection.
+When you use @kbd{t} to toggle from MH-Folder Show mode to MH-Folder
+mode, the MH-Show buffer is hidden and the MH-Folder buffer is left
+alone. Setting @code{mh-recenter-summary-flag} to a non-@code{nil}
+value causes the toggle to display as many scan lines as possible,
+with the cursor at the middle. The effect of
+@code{mh-recenter-summary-flag} is rather useful, but it can be
+annoying on a slow network connection.
 
 @findex mh-visit-folder
 @kindex F v
@@ -3583,8 +3583,6 @@ If you forget where you've refiled your messages, you can find them
 using @kbd{F s} (@code{mh-search}). @xref{Searching}.
 
 @cindex @command{procmail}
-@cindex @command{rcvstore}
-@cindex MH commands, @command{rcvstore}
 @cindex @samp{unseen} sequence
 @cindex sequence, @samp{unseen}
 @cindex Unix commands, @command{procmail}
@@ -3593,14 +3591,14 @@ using @kbd{F s} (@code{mh-search}). @xref{Searching}.
 @kindex F n
 @vindex mh-new-messages-folders
 
-If you use a program such as @command{procmail} to use
-@command{rcvstore} to file your incoming mail automatically, you can
-display new, unseen, messages using the command @kbd{F n}
-(@code{mh-index-new-messages}). All messages in the @samp{unseen}
-sequence from the folders in @code{mh-new-messages-folders} are
-listed. However, this list of folders can be overridden with a prefix
-argument: with a prefix argument, enter a space-separated list of
-folders, or nothing to search all folders.
+If you use a program such as @command{procmail} to file your incoming
+mail automatically, you can display new, unseen, messages using the
+command @kbd{F n} (@code{mh-index-new-messages}). All messages in the
+@samp{unseen} sequence from the folders in
+@code{mh-new-messages-folders} are listed. However, this list of
+folders can be overridden with a prefix argument: with a prefix
+argument, enter a space-separated list of folders, or nothing to
+search all folders.
 
 @cindex @samp{tick} sequence
 @cindex sequence, @samp{tick}
