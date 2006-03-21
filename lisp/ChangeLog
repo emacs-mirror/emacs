@@ -1,6 +1,6 @@
 2006-03-21  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-open-at-point): Fixed bug in wiki-stype
+	* textmodes/org.el: (org-open-at-point): Fixed bug in wiki-style
 	bracket links.
 
 2006-03-21  Kim F. Storm  <storm@cua.dk>
