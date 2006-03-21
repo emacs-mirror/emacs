@@ -1549,7 +1549,45 @@ Type \\[describe-distribution] for information on getting the latest version."))
 
 (defun display-startup-echo-area-message ()
   (let ((resize-mini-windows t))
-    (message "%s" (startup-echo-area-message))))
+    (or noninteractive ;(input-pending-p) init-file-had-error
+	;; t if the init file says to inhibit the echo area startup message.
+	(and inhibit-startup-echo-area-message
+	     user-init-file
+	     (or (and (get 'inhibit-startup-echo-area-message 'saved-value)
+		      (equal inhibit-startup-echo-area-message
+			     (if (equal init-file-user "")
+				 (user-login-name)
+			       init-file-user)))
+		 ;; Wasn't set with custom; see if .emacs has a setq.
+		 (let ((buffer (get-buffer-create " *temp*")))
+		   (prog1
+		       (condition-case nil
+			   (save-excursion
+			     (set-buffer buffer)
+			     (insert-file-contents user-init-file)
+			     (re-search-forward
+			      (concat
+			       "([ \t\n]*setq[ \t\n]+"
+			       "inhibit-startup-echo-area-message[ \t\n]+"
+			       (regexp-quote
+				(prin1-to-string
+				 (if (equal init-file-user "")
+				     (user-login-name)
+				   init-file-user)))
+			       "[ \t\n]*)")
+			      nil t))
+			 (error nil))
+		     (kill-buffer buffer)))))
+	;; display-splash-screen at the end of command-line-1 calls
+	;; use-fancy-splash-screens-p. This can cause image.el to be
+	;; loaded, putting "Loading image... done" in the echo area.
+	;; This hides startup-echo-area-message. So
+	;; use-fancy-splash-screens-p is called here simply to get the
+	;; loading of image.el (if needed) out of the way before
+	;; display-startup-echo-area-message runs.
+	(progn
+	  (use-fancy-splash-screens-p)
+	  (message "%s" (startup-echo-area-message))))))
 
 
 (defun display-splash-screen ()
@@ -1564,45 +1602,7 @@ normal otherwise."
 	(normal-splash-screen))))
 
 (defun command-line-1 (command-line-args-left)
-  (or noninteractive (input-pending-p) init-file-had-error
-      ;; t if the init file says to inhibit the echo area startup message.
-      (and inhibit-startup-echo-area-message
-	   user-init-file
-	   (or (and (get 'inhibit-startup-echo-area-message 'saved-value)
-		    (equal inhibit-startup-echo-area-message
-			   (if (equal init-file-user "")
-			       (user-login-name)
-			     init-file-user)))
-	       ;; Wasn't set with custom; see if .emacs has a setq.
-	       (let ((buffer (get-buffer-create " *temp*")))
-		 (prog1
-		     (condition-case nil
-			 (save-excursion
-			   (set-buffer buffer)
-			   (insert-file-contents user-init-file)
-			   (re-search-forward
-			    (concat
-			     "([ \t\n]*setq[ \t\n]+"
-			     "inhibit-startup-echo-area-message[ \t\n]+"
-			     (regexp-quote
-			      (prin1-to-string
-			       (if (equal init-file-user "")
-				   (user-login-name)
-				 init-file-user)))
-			     "[ \t\n]*)")
-			    nil t))
-		       (error nil))
-		   (kill-buffer buffer)))))
-      ;; display-splash-screen at the end of command-line-1 calls
-      ;; use-fancy-splash-screens-p. This can cause image.el to be
-      ;; loaded, putting "Loading image... done" in the echo area.
-      ;; This hides startup-echo-area-message. So
-      ;; use-fancy-splash-screens-p is called here simply to get the
-      ;; loading of image.el (if needed) out of the way before
-      ;; display-startup-echo-area-message runs.
-      (progn
-        (use-fancy-splash-screens-p)
-        (display-startup-echo-area-message)))
+  (display-startup-echo-area-message)
 
   ;; Delay 2 seconds after an init file error message
   ;; was displayed, so user can read it.
