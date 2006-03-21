@@ -10039,6 +10039,10 @@ static XrmOptionDescRec emacs_options[] = {
 
 static int x_initialized;
 
+#ifdef HAVE_X_SM
+static int x_session_initialized;
+#endif
+
 #ifdef MULTI_KBOARD
 /* Test whether two display-name strings agree up to the dot that separates
    the screen number from the server number.  */
@@ -10607,7 +10611,7 @@ x_term_init (display_name, xrm_option, resource_name)
 
 #ifdef HAVE_X_SM
   /* Only do this for the first display.  */
-  if (x_initialized == 1)
+  if (!x_session_initialized++)
     x_session_initialize (dpyinfo);
 #endif
 
@@ -10792,6 +10796,9 @@ x_initialize ()
   last_tool_bar_item = -1;
   any_help_event_p = 0;
   ignore_next_mouse_click_timeout = 0;
+#ifdef HAVE_X_SM
+  x_session_initialized = 0;
+#endif
 
 #ifdef USE_GTK
   current_count = -1;
