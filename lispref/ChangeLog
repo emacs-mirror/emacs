@@ -1,3 +1,7 @@
+2006-03-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* display.texi (Fringe Indicators): Fix typos.
+
 2006-03-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* tips.texi (Documentation Tips): One can now also write `program'

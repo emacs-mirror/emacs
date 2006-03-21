@@ -1,3 +1,16 @@
+2006-03-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* diff-mode.el (diff-function): Make it inherit from diff-header
+	instead of diff-context.
+
+	* progmodes/gdb-ui.el (hollow-right-triangle): Define as fringe
+	bitmap.
+	(gdb-info-stack-custom): Rename from gdb-info-frames-custom and
+	change names in macro above for consistency.
+	(gdb-frame-handler): Use hollow-right-triangle for all selected
+	frames which except the innermost (where execution has stopped).
+	(gdb-reset): Reset buffer-local values of overlay-arrow.
+
 2006-03-20  Richard Stallman  <rms@gnu.org>
 
 	* simple.el (set-mark-command): Doc fix.
