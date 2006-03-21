@@ -6833,8 +6833,8 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 	    (while (string-match " *\n *" link)
 	      (setq link (replace-match " " t t link)))
 	    (if (string-match org-link-regexp link)
-		(setq type (match-string 1)
-		      path (match-string 2))
+		(setq type (match-string 1 link)
+		      path (match-string 2 link))
 	      (setq type "thisfile"
 		    path link))
 	    (throw 'match t)))
@@ -6892,6 +6892,10 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 	  (setq path (replace-match "" t t path)))
 
       (cond
+
+       ((member type '("http" "https" "ftp" "mailto" "news"))
+	;; give these to some browser
+	(browse-url (concat type ":" path)))
 
        ((string= type "tags")
 	(org-tags-view in-emacs path))
