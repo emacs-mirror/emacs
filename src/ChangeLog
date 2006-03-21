@@ -1,3 +1,9 @@
+2006-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (draw_fringe_bitmap): Don't calculate default overlay arrow
+	bitmap here, but ...
+	(update_window_fringes): ... here, so we can test if it has changed.
+
 2006-03-20  Andreas Schwab  <schwab@suse.de>
 
 	* dispnew.c (init_display): Check DISPLAY here.

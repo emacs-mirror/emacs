@@ -1,3 +1,9 @@
+2006-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/gdb-ui.el (gdb-reset): Set buffer local value of
+	fringe-indicator-alist instead of modifying global value.
+	(gdb-frame-handler): Likewise.
+
 2006-03-21  Nick Roberts  <nickrob@snap.net.nz>
 
 	* diff-mode.el (diff-function): Make it inherit from diff-header
