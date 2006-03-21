@@ -1661,10 +1661,13 @@ static char *magick[] = {
 (defvar breakpoint-disabled-icon nil
   "Icon for disabled breakpoint in display margin.")
 
-;; Bitmap for breakpoint in fringe
 (and (display-images-p)
+     ;; Bitmap for breakpoint in fringe
      (define-fringe-bitmap 'breakpoint
-       "\x3c\x7e\xff\xff\xff\xff\x7e\x3c"))
+       "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
+     ;; Bitmap for gud-overlay-arrow in fringe
+     (define-fringe-bitmap 'hollow-right-triangle
+       "\xe0\x90\x88\x84\x84\x88\x90\xe0"))
 
 (defface breakpoint-enabled
   '((t
@@ -1920,11 +1923,11 @@ static char *magick[] = {
 
 (def-gdb-auto-updated-buffer gdb-stack-buffer
   gdb-invalidate-frames
-  "server where\n"
-  gdb-info-frames-handler
-  gdb-info-frames-custom)
+  "server info stack\n"
+  gdb-info-stack-handler
+  gdb-info-stack-custom)
 
-(defun gdb-info-frames-custom ()
+(defun gdb-info-stack-custom ()
   (with-current-buffer (gdb-get-buffer 'gdb-stack-buffer)
     (save-excursion
       (let ((buffer-read-only nil)
@@ -1985,7 +1988,7 @@ static char *magick[] = {
     map))
 
 (defun gdb-frames-mode ()
-  "Major mode for gdb frames.
+  "Major mode for gdb call stack.
 
 \\{gdb-frames-mode-map}"
   (kill-all-local-variables)
@@ -2066,15 +2069,13 @@ static char *magick[] = {
     map))
 
 (defvar gdb-threads-font-lock-keywords
-  '(
-    (") +\\([^ ]+\\) ("  (1 font-lock-function-name-face))
+  '((") +\\([^ ]+\\) ("  (1 font-lock-function-name-face))
     ("in \\([^ ]+\\) ("  (1 font-lock-function-name-face))
-    ("\\(\\(\\sw\\|[_.]\\)+\\)="  (1 font-lock-variable-name-face))
-    )
+    ("\\(\\(\\sw\\|[_.]\\)+\\)="  (1 font-lock-variable-name-face)))
   "Font lock keywords used in `gdb-threads-mode'.")
 
 (defun gdb-threads-mode ()
-  "Major mode for gdb frames.
+  "Major mode for gdb threads.
 
 \\{gdb-threads-mode-map}"
   (kill-all-local-variables)
@@ -2787,6 +2788,7 @@ Kills the gdb buffers, and resets variables and the source buffers."
     (setq gdb-overlay-arrow-position nil))
   (setq overlay-arrow-variable-list
 	(delq 'gdb-overlay-arrow-position overlay-arrow-variable-list))
+  (setcdr (assoc 'overlay-arrow fringe-indicator-alist)	'right-triangle)
   (if (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
       (speedbar-refresh))
   (setq gud-running nil)
@@ -3112,6 +3114,17 @@ BUFFER nil or omitted means use the current buffer."
   (goto-char (point-min))
   (if (re-search-forward  "Stack level \\([0-9]+\\)" nil t)
       (setq gdb-frame-number (match-string 1)))
+  (if gud-overlay-arrow-position
+      (let ((buffer (marker-buffer gud-overlay-arrow-position))
+	    (position (marker-position gud-overlay-arrow-position)))
+	(when buffer
+	  (with-current-buffer buffer
+	    (setcdr (assoc 'overlay-arrow fringe-indicator-alist)
+		    (if (string-equal gdb-frame-number "0")
+			'right-triangle
+		      'hollow-right-triangle))
+	    (setq gud-overlay-arrow-position (make-marker))
+	    (set-marker gud-overlay-arrow-position position)))))
   (goto-char (point-min))
   (if (re-search-forward
        ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*?\\);? " nil t)
