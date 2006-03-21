@@ -1,3 +1,42 @@
+2006-03-21  Daniel Pittman <daniel@rimspace.net>
+
+	* nnimap.el (nnimap-request-update-info-internal): Optimize.
+	Don't `gnus-uncompress-range' to avoid excessive memory usage.
+
+2006-03-21  Simon Josefsson  <jas@extundo.com>
+
+	* pgg-gpg.el: Ideas below based on patch from Sascha Wilde
+	<wilde@sha-bang.de>.
+	(pgg-gpg-use-agent): New variable.
+	(pgg-gpg-process-region): Use it.
+	(pgg-gpg-encrypt-region): Likewise.
+	(pgg-gpg-encrypt-symmetric-region): Likewise.
+	(pgg-gpg-decrypt-region): Likewise.
+	(pgg-gpg-sign-region): Likewise.
+	(pgg-gpg-possibly-cache-passphrase): Don't cache a nil password.
+
+2006-03-21  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-agent.el (gnus-agent-queue-mail): Fix custom tag for `t'.
+
+	* spam.el (spam-mark-new-messages-in-spam-group-as-spam): Add
+	comment on version.
+
+2006-03-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* spam.el (spam-mark-new-messages-in-spam-group-as-spam): New
+	variable.
+	(spam-mark-junk-as-spam-routine): Use it.  Allow to disable
+	assigning the spam-mark to new messages.
+
+2006-03-20  Adam Sj,Ax(Bgren  <asjo@koldfront.dk>  (tiny change)
+
+	(spam-ham-copy-or-move-routine): Don't declare `todo' twice.
+
+2006-03-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* smiley.el: Add missing test smiley.
+
 2006-03-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-with-part): New macro.

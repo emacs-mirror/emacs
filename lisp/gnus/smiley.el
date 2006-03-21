@@ -42,6 +42,7 @@
 ;; indifferent       :-|
 ;; wry               :-/  :-\
 ;; sad               :-(
+;; frown             :-{
 ;; evil              >:-)
 ;; cry               ;-(
 ;; dead              X-)
