@@ -1967,8 +1967,8 @@ The files @samp{file1} and @samp{file2} are under version control,
 have also been checked in to the repository---you need to merge them
 with the work file before you can check it in.
 
-@vindex{vc-stay-local}
-@vindex{vc-cvs-stay-local}
+@vindex vc-stay-local
+@vindex vc-cvs-stay-local
   In the above, if the repository were on a remote machine, VC would
 only contact it when the variable @code{vc-stay-local} (or
 @code{vc-cvs-stay-local}) is nil (@pxref{CVS Options}).  This is
