@@ -1,3 +1,15 @@
+2006-03-21  Simon Josefsson  <jas@extundo.com>
+
+	* pgg-gpg.el: Ideas below based on patch from Sascha Wilde
+	<wilde@sha-bang.de>.
+	(pgg-gpg-use-agent): New variable.
+	(pgg-gpg-process-region): Use it.
+	(pgg-gpg-encrypt-region): Likewise.
+	(pgg-gpg-encrypt-symmetric-region): Likewise.
+	(pgg-gpg-decrypt-region): Likewise.
+	(pgg-gpg-sign-region): Likewise.
+	(pgg-gpg-possibly-cache-passphrase): Don't cache a nil password.
+
 2006-03-21  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-open-at-point): Fixed bug in wiki-style
