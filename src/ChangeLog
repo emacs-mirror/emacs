@@ -1,3 +1,10 @@
+2006-03-22  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Faccept_process_output): Fix to comply with lisp reference.
+	Change arg "timeout" to "seconds" and allow both integer and float value.
+	Change arg "timeout-msec" to "millisec" and interpret" as milliseconds
+	rather than microseconds.  Fix doc string accordingly.
+
 2006-03-21  Ken Raeburn  <raeburn@raeburn.org>
 
 	* xdisp.c (store_next_glyph): Renamed from append_glyph.
