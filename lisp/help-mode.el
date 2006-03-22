@@ -40,7 +40,7 @@
 
 (define-key help-mode-map [mouse-2] 'help-follow-mouse)
 (define-key help-mode-map "\C-c\C-b" 'help-go-back)
-(define-key help-mode-map "\C-c\C-c" 'help-follow)
+(define-key help-mode-map "\C-c\C-c" 'help-follow-symbol)
 ;; Documentation only, since we use minor-mode-overriding-map-alist.
 (define-key help-mode-map "\r" 'help-follow)
 
@@ -233,10 +233,10 @@ Commands:
   "Label to use by `help-make-xrefs' for the go-back reference.")
 
 (defconst help-xref-symbol-regexp
-  (purecopy (concat "\\(\\<\\(\\(variable\\|option\\)\\|"
-		    "\\(function\\|command\\)\\|"
-		    "\\(face\\)\\|"
-		    "\\(symbol\\)\\|"
+  (purecopy (concat "\\(\\<\\(\\(variable\\|option\\)\\|"  ; Link to var
+		    "\\(function\\|command\\)\\|"          ; Link to function
+		    "\\(face\\)\\|"			   ; Link to face
+		    "\\(symbol\\|program\\)\\|"		   ; Don't link
 		    "\\(source \\(?:code \\)?\\(?:of\\|for\\)\\)\\)"
 		    "[ \t\n]+\\)?"
 		    ;; Note starting with word-syntax character:
@@ -584,15 +584,6 @@ help buffer."
 
 ;; Navigation/hyperlinking with xrefs
 
-(defun help-follow-mouse (click)
-  "Follow the cross-reference that you CLICK on."
-  (interactive "e")
-  (let* ((start (event-start click))
-	 (window (car start))
-	 (pos (car (cdr start))))
-    (with-current-buffer (window-buffer window)
-      (help-follow pos))))
-
 (defun help-xref-go-back (buffer)
   "From BUFFER, go back to previous help buffer text using `help-xref-stack'."
   (let (item position method args)
@@ -627,26 +618,38 @@ a proper [back] button."
   (let ((help-xref-following t))
     (apply function args)))
 
-(defun help-follow (&optional pos)
-  "Follow cross-reference at POS, defaulting to point.
+;; The doc string is meant to explain what buttons do.
+(defun help-follow-mouse ()
+  "Follow the cross-reference that you click on."
+  (interactive)
+  (error "No cross-reference here"))
+
+;; The doc string is meant to explain what buttons do.
+(defun help-follow ()
+  "Follow cross-reference at point.
 
 For the cross-reference format, see `help-make-xrefs'."
+  (interactive)
+  (error "No cross-reference here"))
+
+(defun help-follow-symbol (&optional pos)
+  "In help buffer, show docs for symbol at POS, defaulting to point.
+Show all docs for that symbol as either a variable, function or face."
   (interactive "d")
   (unless pos
     (setq pos (point)))
-  (unless (push-button pos)
-    ;; check if the symbol under point is a function or variable
-    (let ((sym
-	   (intern
-	    (save-excursion
-	      (goto-char pos) (skip-syntax-backward "w_")
-	      (buffer-substring (point)
-				(progn (skip-syntax-forward "w_")
-				       (point)))))))
-      (when (or (boundp sym)
-		(get sym 'variable-documentation)
-		(fboundp sym) (facep sym))
-	(help-do-xref pos #'help-xref-interned (list sym))))))
+  ;; check if the symbol under point is a function, variable or face
+  (let ((sym
+	 (intern
+	  (save-excursion
+	    (goto-char pos) (skip-syntax-backward "w_")
+	    (buffer-substring (point)
+			      (progn (skip-syntax-forward "w_")
+				     (point)))))))
+    (when (or (boundp sym)
+	      (get sym 'variable-documentation)
+	      (fboundp sym) (facep sym))
+      (help-do-xref pos #'help-xref-interned (list sym)))))
 
 (defun help-insert-string (string)
   "Insert STRING to the help buffer and install xref info for it.

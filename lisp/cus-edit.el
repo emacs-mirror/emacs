@@ -1092,7 +1092,11 @@ or default values have changed since the previous major Emacs release.
 With argument SINCE-VERSION (a string), customize all settings
 that were added or redefined since that version."
 
-  (interactive "sCustomize options changed, since version (default all versions): ")
+  (interactive
+   (list
+    (read-from-minibuffer
+     (format "Customize options changed, since version (default %s): "
+	     customize-changed-options-previous-release))))
   (if (equal since-version "")
       (setq since-version nil)
     (unless (condition-case nil
@@ -3408,12 +3412,12 @@ Optional EVENT is the location for the menu."
       ;; Make the comment invisible by hand if it's empty
       (custom-comment-hide comment-widget))
     (put symbol 'customized-face value)
+    (custom-push-theme 'theme-face symbol 'user 'set value)
     (if (face-spec-choose value)
 	(face-spec-set symbol value)
       ;; face-set-spec ignores empty attribute lists, so just give it
       ;; something harmless instead.
       (face-spec-set symbol '((t :foreground unspecified))))
-    (custom-push-theme 'theme-face symbol 'user 'set value)
     (put symbol 'customized-face-comment comment)
     (put symbol 'face-comment comment)
     (custom-face-state-set widget)
@@ -3486,13 +3490,17 @@ restoring it to the state of a face that has never been customized."
     (put symbol 'customized-face nil)
     (put symbol 'customized-face-comment nil)
     (custom-push-theme 'theme-face symbol 'user 'reset)
+    (face-spec-set symbol value)
     (custom-theme-recalc-face symbol)
     (when (or (get symbol 'saved-face) (get symbol 'saved-face-comment))
       (put symbol 'saved-face nil)
       (put symbol 'saved-face-comment nil)
       (custom-save-all))
     (put symbol 'face-comment nil)
-    (widget-value-set child value)
+    (widget-value-set child
+		      (custom-pre-filter-face-spec
+		       (list (list t (custom-face-attributes-get
+				      symbol nil)))))
     ;; This call manages the comment visibility
     (widget-value-set comment-widget "")
     (custom-face-state-set widget)

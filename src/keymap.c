@@ -692,6 +692,7 @@ map_keymap (map, fun, args, data, autoload)
   struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object tail;
 
+  tail = Qnil;
   GCPRO3 (map, args, tail);
   map = get_keymap (map, 1, autoload);
   for (tail = (CONSP (map) && EQ (Qkeymap, XCAR (map))) ? XCDR (map) : map;

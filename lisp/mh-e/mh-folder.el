@@ -525,6 +525,7 @@ font-lock is done highlighting.")
 (eval-when-compile
   (defvar desktop-save-buffer)
   (defvar font-lock-auto-fontify)
+  (defvar image-load-path)
   (mh-do-in-xemacs (defvar font-lock-defaults)))
 
 (defvar mh-folder-buttons-init-flag nil)
@@ -592,7 +593,9 @@ perform the operation on all messages in that region.
   (mh-do-in-gnu-emacs
     (unless mh-folder-buttons-init-flag
       (let* ((load-path (mh-image-load-path-for-library "mh-e" "mh-logo.xpm"))
-             (image-load-path (cons (car load-path) image-load-path)))
+             (image-load-path (cons (car load-path)
+                                    (when (boundp 'image-load-path)
+                                      image-load-path))))
         (mh-tool-bar-folder-buttons-init)
         (setq mh-folder-buttons-init-flag t)))
     (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map))

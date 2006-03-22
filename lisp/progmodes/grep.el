@@ -33,8 +33,6 @@
 
 (require 'compile)
 
-(defvar font-lock-lines-before)
-
 
 (defgroup grep nil
   "Run compiler as inferior of Emacs, parse error messages."
@@ -536,10 +534,7 @@ temporarily highlight in visited source lines."
        grep-regexp-alist)
   (set (make-local-variable 'compilation-process-setup-function)
        'grep-process-setup)
-  (set (make-local-variable 'compilation-disable-input) t)
-  ;; Set `font-lock-lines-before' to 0 to not refontify the previous
-  ;; line where grep markers may be already removed.
-  (set (make-local-variable 'font-lock-lines-before) 0))
+  (set (make-local-variable 'compilation-disable-input) t))
 
 ;;;###autoload
 (defun grep-find (command-args)

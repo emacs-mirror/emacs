@@ -10074,6 +10074,10 @@ static XrmOptionDescRec emacs_options[] = {
 
 static int x_initialized;
 
+#ifdef HAVE_X_SM
+static int x_session_initialized;
+#endif
+
 #ifdef MULTI_KBOARD
 /* Test whether two display-name strings agree up to the dot that separates
    the screen number from the server number.  */
@@ -10149,6 +10153,21 @@ get_bits_and_offset (mask, bits, offset)
 
   *offset = off;
   *bits = nr;
+}
+
+int
+x_display_ok (display)
+    const char * display;
+{
+    int dpy_ok = 1;
+    Display *dpy;
+
+    dpy = XOpenDisplay (display);
+    if (dpy)
+      XCloseDisplay (dpy);
+    else
+      dpy_ok = 0;
+    return dpy_ok;
 }
 
 struct x_display_info *
@@ -10233,11 +10252,9 @@ x_term_init (display_name, xrm_option, resource_name)
 
         /* Load our own gtkrc if it exists.  */
         {
-          struct gcpro gcpro1, gcpro2;
           char *file = "~/.emacs.d/gtkrc";
           Lisp_Object s, abs_file;
 
-          GCPRO2 (s, abs_file);
           s = make_string (file, strlen (file));
           abs_file = Fexpand_file_name (s, Qnil);
 
@@ -10899,6 +10916,9 @@ x_initialize ()
   last_tool_bar_item = -1;
   any_help_event_p = 0;
   ignore_next_mouse_click_timeout = 0;
+#ifdef HAVE_X_SM
+  x_session_initialized = 0;
+#endif
 
 #ifdef USE_GTK
   current_count = -1;

@@ -325,9 +325,6 @@ Name of the Previous sequence.")
 
 ;; Etc. (alphabetical)
 
-;; Avoid errors on Emacsen without image-load-path.
-(if (not (boundp 'image-load-path)) (defvar image-load-path nil))
-
 (defvar mh-flists-present-flag nil
   "Non-nil means that we have \"flists\".")
 
@@ -430,20 +427,20 @@ gnus-version)
 
 (defun mh-list-to-string-1 (l)
   "Flatten the list L and make every element of the new list into a string."
-  (let ((new-list nil))
-    (while l
-      (cond ((null (car l)))
-            ((symbolp (car l))
-             (setq new-list (cons (symbol-name (car l)) new-list)))
-            ((numberp (car l))
-             (setq new-list (cons (int-to-string (car l)) new-list)))
-            ((equal (car l) ""))
-            ((stringp (car l)) (setq new-list (cons (car l) new-list)))
-            ((listp (car l))
-             (setq new-list (nconc (mh-list-to-string-1 (car l))
-                                   new-list)))
-            (t (error "Bad element in `mh-list-to-string': %s" (car l))))
-      (setq l (cdr l)))
+  (let (new-list)
+    (dolist (element l)
+      (cond ((null element))
+            ((symbolp element)
+             (push (symbol-name element) new-list))
+            ((numberp element)
+             (push (int-to-string element) new-list))
+            ((equal element ""))
+            ((stringp element)
+             (push element new-list))
+            ((listp element)
+             (setq new-list (nconc (mh-list-to-string-1 element) new-list)))
+            (t
+             (error "Bad element: %s" element))))
     new-list))
 
 

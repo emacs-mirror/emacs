@@ -1,3 +1,65 @@
+2006-03-21  Daniel Pittman <daniel@rimspace.net>
+
+	* nnimap.el (nnimap-request-update-info-internal): Optimize.
+	Don't `gnus-uncompress-range' to avoid excessive memory usage.
+
+2006-03-21  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-agent.el (gnus-agent-queue-mail): Fix custom tag for `t'.
+
+	* spam.el (spam-mark-new-messages-in-spam-group-as-spam): Add
+	comment on version.
+
+2006-03-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* spam.el (spam-mark-new-messages-in-spam-group-as-spam): New
+	variable.
+	(spam-mark-junk-as-spam-routine): Use it.  Allow to disable
+	assigning the spam-mark to new messages.
+
+2006-03-20  Adam Sj,Ax(Bgren  <asjo@koldfront.dk>  (tiny change)
+
+	(spam-ham-copy-or-move-routine): Don't declare `todo' twice.
+
+2006-03-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* smiley.el: Add missing test smiley.
+
+2006-03-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-with-part): New macro.
+	(mm-get-part): Use it; work with message/external-body as well.
+	(mm-save-part): Treat name and filename equally.
+
+	* mm-extern.el (mm-extern-cache-contents): New function.
+	(mm-inline-external-body): Use it; force the part to be displayed;
+	move undisplayer added to the cached handle to the parent.
+
+	* gnus-art.el (gnus-mime-save-part-and-strip): Add name parameter.
+	(gnus-mime-view-part-as-type): Work with message/external-body.
+
+	* gnus-util.el (gnus-tool-bar-update): Bind tool-bar-mode.
+
+2006-03-15  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* gnus-art.el (gnus-article-only-boring-p): Bind
+	inhibit-point-motion-hooks to avoid infinite loop when entering
+	intangible text.  Reported by Ralf Wachinger
+	<rwnewsmampfer@geekmail.de>.
+
+2006-03-14  Simon Josefsson  <jas@extundo.com>
+
+	* message.el (message-unique-id): Don't use message-number-base36
+	if (user-uid) is a float.  Reported by Bjorn Solberg
+	<bjorn_ding1@hekneby.org>.
+
+2006-03-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-uu.el (mm-uu-dissect): Dissect all parts correctly.
+
+	* gnus-art.el (gnus-mime-display-single): Make sure there is an
+	empty line between a part and a message part.
+
 2006-03-10  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* smiley.el: Add more test smileys.

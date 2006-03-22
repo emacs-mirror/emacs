@@ -1,3 +1,38 @@
+2006-03-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* display.texi (Fringe Indicators): Fix typos.
+
+2006-03-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Documentation Tips): One can now also write `program'
+	in front of a quoted symbol in a docstring to prevent making a
+	hyperlink.
+
+2006-03-19  Alan Mackenzie  <acm@muc.de>
+
+	* text.texi (Special Properties): Clarify the definition of
+	'fontified.
+
+2006-03-16  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Defining Images): Minor cleanup.
+
+2006-03-16  Bill Wohler  <wohler@newt.com>
+
+	* display.texi (Defining Images): In image-load-path-for-library,
+	prefer user's images.
+
+2006-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Region to Fontify): Remove font-lock-lines-before.
+
+2006-03-15  Bill Wohler  <wohler@newt.com>
+
+	* display.texi (Defining Images): Fix example in
+	image-load-path-for-library by not recommending that one binds
+	image-load-path. Just defvar it to placate compiler and only use
+	it if previously defined.
+
 2006-03-14  Bill Wohler  <wohler@newt.com>
 
 	* display.texi (Defining Images): In image-load-path-for-library,
@@ -7,7 +42,7 @@
 
 	* modes.texi: New node, "Region to Fontify" (for Font Lock).
 	This describes font-lock-extend-region-function.
-	("Other Font Lock Variables"): move "font-lock-lines-before" to
+	("Other Font Lock Variables"): Move "font-lock-lines-before" to
 	the new node "Region to Fontify".
 
 2006-03-13  Richard Stallman  <rms@gnu.org>
@@ -104,9 +139,9 @@
 
 2006-02-16  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
-	* display.texi (Other Display Specs, Image Descriptors): Revert
-	erroneous changes.  The previous description of image-descriptors
-	as `(image . PROPS)' was correct.
+	* display.texi (Other Display Specs, Image Descriptors):
+	Revert erroneous changes.  The previous description of
+	image-descriptors as `(image . PROPS)' was correct.
 
 2006-02-14  Richard M. Stallman  <rms@gnu.org>
 
@@ -157,8 +192,8 @@
 
 2006-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
-	* display.texi (Other Display Specs, Image Descriptors): Image
-	description is a list, not a cons cell.
+	* display.texi (Other Display Specs, Image Descriptors):
+	Image description is a list, not a cons cell.
 
 2006-01-28  Luc Teirlinck  <teirllm@auburn.edu>
 

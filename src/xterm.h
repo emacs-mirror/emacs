@@ -423,6 +423,7 @@ extern struct x_display_info *x_display_info_for_display P_ ((Display *));
 extern struct x_display_info *x_display_info_for_name P_ ((Lisp_Object));
 
 extern struct x_display_info *x_term_init P_ ((Lisp_Object, char *, char *));
+extern int x_display_ok  P_ ((const char *));
 
 extern Lisp_Object x_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
 extern void select_visual P_ ((struct x_display_info *));

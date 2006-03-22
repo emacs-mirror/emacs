@@ -287,7 +287,7 @@ use `mh-send-prog' to tell MH-E the name."
            (set-buffer draft-buffer))   ; for annotation below
           (t
            (mh-exec-cmd-daemon mh-send-prog nil "-nodraftfolder" "-noverbose"
-                               mh-send-args file-name)))
+                               (split-string mh-send-args) file-name)))
     (if mh-annotate-char
         (mh-annotate-msg mh-sent-from-msg
                          mh-sent-from-folder
@@ -580,14 +580,16 @@ You have several choices here.
 
      Response     Reply Goes To
 
-     from         The person who sent the message.  This is the
+     from         The person who sent the message. This is the
                   default, so <RET> is sufficient.
 
      to           Replies to the sender, plus all recipients in the
                   \"To:\" header field.
 
-     all
-     cc           Forms a reply to the sender, plus all recipients.
+     all cc       Forms a reply to the addresses in the
+                  \"Mail-Followup-To:\" header field if one
+                  exists; otherwise forms a reply to the sender,
+                  plus all recipients.
 
 Depending on your answer, \"repl\" is given a different argument
 to form your reply. Specifically, a choice of \"from\" or none at
@@ -597,7 +599,11 @@ all runs \"repl -nocc all\", and a choice of \"to\" runs \"repl
 
 Two windows are then created. One window contains the message to
 which you are replying in an MH-Show buffer. Your draft, in
-MH-Letter mode (see `mh-letter-mode'), is in the other window.
+MH-Letter mode (*note `mh-letter-mode'), is in the other window.
+If the reply draft was not one that you expected, check the
+things that affect the behavior of \"repl\" which include the
+\"repl:\" profile component and the \"replcomps\" and
+\"replgroupcomps\" files.
 
 If you supply a prefix argument INCLUDEP, the message you are
 replying to is inserted in your reply after having first been run
@@ -895,15 +901,7 @@ letter."
   (mh-logo-display)
   (mh-make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook 'mh-tidy-draft-buffer nil t)
-  (if (and (boundp 'mh-compose-letter-function)
-           mh-compose-letter-function)
-      ;; run-hooks will not pass arguments.
-      (let ((value mh-compose-letter-function))
-        (if (and (listp value) (not (eq (car value) 'lambda)))
-            (while value
-              (funcall (car value) to subject cc)
-              (setq value (cdr value)))
-          (funcall mh-compose-letter-function to subject cc)))))
+  (run-hook-with-args 'mh-compose-letter-function to subject cc))
 
 (defun mh-insert-x-mailer ()
   "Append an X-Mailer field to the header.

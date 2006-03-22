@@ -2876,12 +2876,12 @@ used in both left and right fringes.
 When @code{fringe-indicator-alist} has a buffer-local value, and there
 is no bitmap defined for a logical indicator, or the bitmap is
 @code{t}, the corresponding value from the (non-local)
-@code{default-fringes-indicator-alist} is used.
+@code{default-fringe-indicator-alist} is used.
 
 To completely hide a specific indicator, set the bitmap to @code{nil}.
 @end defvar
 
-@defvar default-fringes-indicator-alist
+@defvar default-fringe-indicator-alist
 The value of this variable is the default value for
 @code{fringe-indicator-alist} in buffers that do not override it.
 @end defvar
@@ -2891,7 +2891,7 @@ The value of this variable is the default value for
 @code{left-arrow}, @code{right-arrow}, @code{up-arrow}, @code{down-arrow},
 @code{left-curly-arrow}, @code{right-curly-arrow},
 @code{left-triangle}, @code{right-triangle},
-@code{top-left-angle}, @code{ top-right-angle},
+@code{top-left-angle}, @code{top-right-angle},
 @code{bottom-left-angle}, @code{bottom-right-angle},
 @code{left-bracket}, @code{right-bracket},
 @code{filled-rectangle}, @code{hollow-rectangle},
@@ -4127,13 +4127,14 @@ should specify the image as follows:
 
 @defun image-load-path-for-library library image &optional path no-error
 @tindex image-load-path-for-library
-This function returns a suitable search path for images relative to
-@var{library}.
+This function returns a suitable search path for images used by the
+Lisp package @var{library}.
 
-First it searches for @var{image} in a path suitable for
-@var{library}, which includes @file{../../etc/images} and
-@file{../etc/images} relative to the library file itself, followed by
-@code{image-load-path} and @code{load-path}.
+It searches for @var{image} in @code{image-load-path} (excluding
+@file{@code{data-directory}/images}) and @code{load-path}, followed by
+a path suitable for @var{library}, which includes
+@file{../../etc/images} and @file{../etc/images} relative to the
+library file itself, and then in @file{@code{data-directory}/images}.
 
 Then this function returns a list of directories which contains first
 the directory in which @var{image} was found, followed by the value of
@@ -4148,11 +4149,13 @@ Here is an example that uses a common idiom to provide compatibility
 with versions of Emacs that lack the variable @code{image-load-path}:
 
 @example
-;; Avoid errors on Emacsen without `image-load-path'.
-(if (not (boundp 'image-load-path)) (defvar image-load-path nil))
+;; Shush compiler.
+(defvar image-load-path)
 
 (let* ((load-path (image-load-path-for-library "mh-e" "mh-logo.xpm"))
-       (image-load-path (cons (car load-path) image-load-path)))
+       (image-load-path (cons (car load-path)
+                              (when (boundp 'image-load-path)
+                                image-load-path))))
   (mh-tool-bar-folder-buttons-init))
 @end example
 @end defun

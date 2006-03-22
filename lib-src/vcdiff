@@ -29,7 +29,7 @@ usage="$0: Usage: vcdiff [--brief] [-q] [-r<sid1>] [-r<sid2>] [diffopts] sccsfil
 
 PATH=$PATH:/usr/ccs/bin:/usr/sccs:/usr/xpg4/bin # common SCCS hangouts
 
-echo=
+echo="echo"
 sid1= sid2=
 
 for f
@@ -96,7 +96,7 @@ do
 				workfile=$rev2
 			esac
 		then
-			$echo $DIFF $options $sid1 $sid2 $workfile >&2
+			$echo $DIFF $options $rev1 $workfile >&2
 			$DIFF $options $rev1 $workfile
 			s=$?
 		fi

@@ -2994,9 +2994,25 @@ that all text between the character and where the mouse is have the same
 
 @item fontified
 @kindex fontified @r{(text property)}
-This property, if non-@code{nil}, says that text in the buffer has
-had faces assigned automatically by a feature such as Font-Lock mode.
-@xref{Auto Faces}.
+This property says whether the text has had faces assigned to it by
+font locking.  The display engine tests it to decide whether a buffer
+portion needs refontifying before display.  @xref{Auto Faces}.  It
+takes one of these three values---other values are invalid:
+
+@table @asis
+@item @code{nil}
+Font locking is disabled, or the @code{face} properties on the text,
+if any, are invalid.
+
+@item The symbol @code{defer}
+This value states that the text's @code{face} properties are invalid
+and marks it for deferred fontification.  It is used only when ``just
+in time'' font locking is enabled.
+
+@item @code{t}
+The @code{face} properties, or lack of them, on the text are currently
+valid.
+@end table
 
 @item display
 @kindex display @r{(text property)}

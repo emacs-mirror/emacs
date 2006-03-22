@@ -1,3 +1,42 @@
+2006-03-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-reply): Sync docstring with manual.
+
+	* mh-compat.el (mh-image-load-path-for-library): Shorten first line in
+	docstring.
+
+2006-03-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-image-load-path-for-library): Minor docstring
+	fix.
+
+2006-03-16  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-send-letter): Use split-string to break up
+	mh-send-args (closes SF #1448604).
+	(mh-compose-and-send-mail): Use run-hook-with-args for
+	mh-compose-letter-function.
+
+	* mh-e.el (mh-list-to-string-1): Use dolist.
+
+	* mh-compat.el (mh-image-load-path-for-library): Prefer user's
+	images.
+
+2006-03-15  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-image-load-path-for-library): Fix example by
+	not recommending that one binds image-load-path. Just defvar it to
+	placate compiler and only use it if previously defined.
+
+	* mh-e.el (image-load-path): Don't bind!
+
+	* mh-folder.el (mh-folder-mode): Only use image-load-path if
+	previously defined.
+
+	* mh-letter.el (mh-letter-mode): Ditto.
+
+	* mh-utils.el (mh-logo-display): Ditto.
+
 2006-03-14  Bill Wohler  <wohler@newt.com>
 
 	* mh-compat.el (mh-image-load-path-for-library): Incorporate

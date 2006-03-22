@@ -1459,6 +1459,9 @@ Return nil otherwise."
 				 display))
 	      display)))))
 
+(eval-when-compile
+  (defvar tool-bar-mode))
+
 (defun gnus-tool-bar-update (&rest ignore)
   "Update the tool bar."
   (when (and (boundp 'tool-bar-mode)

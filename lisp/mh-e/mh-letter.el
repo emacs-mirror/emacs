@@ -278,7 +278,9 @@ searching for `mh-mail-header-separator' in the buffer."
 (defvar mh-letter-buttons-init-flag nil)
 
 ;; Shush compiler.
-(eval-when-compile (mh-do-in-xemacs (defvar font-lock-defaults)))
+(eval-when-compile
+  (defvar image-load-path)
+  (mh-do-in-xemacs (defvar font-lock-defaults)))
 
 ;; Ensure new buffers won't get this mode if default-major-mode is nil.
 (put 'mh-letter-mode 'mode-class 'special)
@@ -314,7 +316,9 @@ order).
   (mh-do-in-gnu-emacs
     (unless mh-letter-buttons-init-flag
       (let* ((load-path (mh-image-load-path-for-library "mh-e" "mh-logo.xpm"))
-             (image-load-path (cons (car load-path) image-load-path)))
+             (image-load-path (cons (car load-path)
+                                    (when (boundp 'image-load-path)
+                                      image-load-path))))
         (mh-tool-bar-letter-buttons-init)
         (setq mh-letter-buttons-init-flag t)))
     (set (make-local-variable 'tool-bar-map) mh-letter-tool-bar-map))

@@ -1,3 +1,141 @@
+2006-03-21  Ken Raeburn  <raeburn@raeburn.org>
+
+	* xdisp.c (store_next_glyph): Renamed from append_glyph.
+	(generate_stretch_glyph): Renamed from produce_stretch_glyph.
+	All callers changed accordingly.
+
+2006-03-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c: x_session_initialized new variable.
+	(x_term_init): Use x_session_initialized to check if
+	x_session_initialize should be called.
+	(x_initialize): Initialize x_session_initialized.
+
+2006-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (draw_fringe_bitmap): Don't calculate default overlay arrow
+	bitmap here, but ...
+	(update_window_fringes): ... here, so we can test if it has changed.
+
+2006-03-20  Andreas Schwab  <schwab@suse.de>
+
+	* dispnew.c (init_display): Check DISPLAY here.
+
+	* emacs.c (main): Don't check here.
+
+	* xterm.c (x_display_ok): Don't use DISPLAY env var.
+
+2006-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (window_scroll_pixel_based): Yet another int/Lisp_Object
+	mixup (YAILOM).
+
+2006-03-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (main): Fix last change.
+
+2006-03-20  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Fwrite_region): Set visit_file to Qnil before GCPRO it.
+
+	* keymap.c (map_keymap): Set tail to Qnil before GCPRO it.
+
+	* xfns.c (xg_set_icon): Remove unnecessary GCPRO.
+
+	* xterm.c (x_term_init): Remove unnecessary GCPRO.
+
+2006-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (set_cursor_from_row): Fix cursor property on overlay	string,
+	so it doesn't associate overlay string with following glyph by default.
+	Allow integer property value to specify explicit number of buffer
+	positions associate with overlay string.
+
+2006-03-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_display_ok): Fix minor bug and compilation warnings.
+
+2006-03-18  Nozomu Ando  <nand@mac.com>
+
+	* m/pmax.h (BROKEN_NOCOMBRELOC) [__NetBSD__]: Define.
+	(LIB_STANDARD, START_FILES) [__NetBSD__]: Don't define.
+	(START_FILES, RUN_TIME_REMAP, UNEXEC) [__NetBSD__, __OpenBSD__]:
+	Don't redefine.
+
+	* m/mips.h: Don't use unexmips on NetBSD.
+	(LIBS_MACHINE): Move definition lower, so it doesn't use
+	LD_SWITCH_MACHINE, START_FILES, LIB_STANDARD, LIBS_TERMCAP,
+	C_SWITCH_MACHINE, and C_DEBUG_SWITCH.
+
+	* unexelf.c [BROKEN_NOCOMBRELOC]: Include assert.h.
+	(unexec) [BROKEN_NOCOMBRELOC]: Handle platforms whose nocombreloc
+	option is broken (e.g., MIPS/NetBSD).
+
+2006-03-18  Craig McDaniel  <craigmcd@gmail.com>  (tiny change)
+
+	* sheap.c (STATIC_HEAP_SIZE): Enlarge STATIC_HEAP_SIZE to 12MB.
+	Remove the HAVE_X_WINDOWS conditional.
+
+2006-03-18  Vivek Dasmohapatra  <vivek@etla.org>  (tiny change)
+
+	* emacs.c (main): If user asks for a display that is unavailable,
+	simulate -nw.
+
+	* xterm.c (x_display_ok): New function.
+
+	* xterm.h: Add prototype for x_display_ok.
+
+2006-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fw32_select_font): Doc fix.
+
+2006-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [MAC_OS] (XPutPixel, XGetPixel)
+	[!WORDS_BIG_ENDIAN && USE_CG_DRAWING]: Don't use specialized
+	version when depth is 32.
+	(mac_create_cg_image_from_image) [MAC_OS && USE_CG_DRAWING]:
+	New function.
+	(prepare_image_for_display) [MAC_OS && USE_CG_DRAWING]: Use it.
+	(x_clear_image_1) [MAC_OS && USE_CG_DRAWING]: Release CGImage.
+
+	* macterm.c (XCreatePixmap) [!WORDS_BIG_ENDIAN && USE_CG_DRAWING]:
+	Create GWorld in ARGB pixel format.
+	(mac_copy_area, mac_copy_area_with_mask) [USE_CG_DRAWING]:
+	Remove functions.
+	(x_draw_image_foreground) [USE_CG_DRAWING]: Use mac_draw_cg_image
+	instead of mac_copy_area/mac_copy_area_with_mask.
+
+2006-03-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (extend_face_to_end_of_line): Always add space glyph to
+	empty row.  Fixes memory corruption revealed by 2006-03-02 change.
+	(display_tool_bar_line): Skip empty tool-bar line if HEIGHT < 0.
+	(tool_bar_lines_needed): Fix tool-bar display in case the tool-bar
+	width is exactly the same as the window width.  Don't count a final
+	empty tool-bar line (pass HEIGHT = -1 to display_tool_bar_line).
+
+2006-03-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fringe.c (w32_init_fringe, w32_reset_fringes): Revert to being
+	conditional on HAVE_NTGUI, not WINDOWS_NT.
+
+2006-03-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (mac_init_fringe) [MAC_OS]: Add prototype.
+
+	* fringe.c (mac_init_fringe) [MAC_OS]: New function.
+
+	* macterm.c (mac_initialize) [USE_CG_DRAWING]: Call mac_init_fringe.
+	(max_fringe_bmp, fringe_bmp) [USE_CG_DRAWING]: New variables.
+	(mac_define_fringe_bitmap, mac_destroy_fringe_bitmap)
+	(mac_draw_cg_image) [USE_CG_DRAWING]: New functions.
+	(mac_draw_bitmap) [USE_CG_DRAWING]: Remove function.
+	(x_draw_fringe_bitmap) [USE_CG_DRAWING]: Use mac_draw_cg_image
+	instead of mac_draw_bitmap.
+	(x_redisplay_interface) [USE_CG_DRAWING]: Set handlers for
+	define_fringe_bitmap and destroy_fringe_bitmap.
+
 2006-03-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.c (x_uncatch_errors): Block input for entire function.
@@ -5,7 +143,7 @@
 2006-03-12  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_create_frame): Remove call to
-	Qface_set_after_frame_default. (from xfns.c 2003-05-26)
+	Qface_set_after_frame_default (from xfns.c 2003-05-26).
 
 	* w32menu.c (Fx_popup_menu): Call w32_free_menu_strings when
 	finished with the menu.
@@ -15,7 +153,7 @@
 	(note_mouse_movement): Say mouse moved if current frame differs
 	from last_mouse_glyph_frame, and update last_mouse_glyph_frame.
 	(w32_mouse_position): Set last_mouse_glyph_frame.
-	 Remove OLD_REDISPLAY_CODE block.
+	Remove OLD_REDISPLAY_CODE block.
 
 2006-03-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -68,8 +206,7 @@
 
 2006-03-11  David Ponce  <david@dponce.com>
 
-	* xfns.c (x_create_tip_frame): Preserve received parms by copying
-	them.
+	* xfns.c (x_create_tip_frame): Preserve received parms by copying them.
 
 2006-03-11  Eli Zaretskii  <eliz@gnu.org>
 
@@ -90,14 +227,14 @@
 	* keymap.c (describe_map): Shorten string to indicate shadowed binding.
 
 	* vm-limit.c (get_lim_data, lim_data, data_space_start):
-	Moved from mem-limits.h.
+	Move from mem-limits.h.
 	(enum warnlevel): New data type.
 	(check_memory_limits): Rewrite the logic about warnings.
 	Use standard `struct rlimit'.  Check return values for nonsense.
 	(memory_warnings): Always clear lim_data.
 
 	* mem-limits.h (get_lim_data, lim_data, data_space_start):
-	Moved to vm-limit.c.
+	Move to vm-limit.c.
 
 	* xterm.c (x_fully_uncatch_errors, x_catching_errors): New functions.
 
@@ -193,7 +330,7 @@
 
 	* xdisp.c: Minimize the unpleasent visual impact of the requirement
 	that non-toolkit tool-bars must occupy an integral number of screen
-	lines, by distributing the rows evenly over the tool-bar screen	area.
+	lines, by distributing the rows evenly over the tool-bar screen area.
 	(Vtool_bar_border): New variable.
 	(syms_of_xdisp): DEFVAR_LISP it.
 	(display_tool_bar_line): Add HEIGHT arg for desired row height.
@@ -227,9 +364,9 @@
 
 	* xterm.h, xterm.c (x_uncatch_errors): Delete unneccessary argument.
 
-	* xterm.c: (x_load_font, x_term_init, XTmouse_position)
-	(handle_one_xevent, x_connection_closed, x_list_fonts): No arg for
-	x_uncatch_errors.
+	* xterm.c (x_load_font, x_term_init, XTmouse_position)
+	(handle_one_xevent, x_connection_closed, x_list_fonts):
+	No arg for x_uncatch_errors.
 
 	* xselect.c (x_own_selection, x_decline_selection_request)
 	(x_reply_selection_request, x_get_foreign_selection)
@@ -357,7 +494,7 @@
 
 	* fringe.c (syms_of_fringe) <fringe-bitmaps>: Doc fix.
 
-2006-02-21  Zhang Wei <brep@newsmth.org>
+2006-02-21  Zhang Wei  <brep@newsmth.org>
 
 	* xfns.c (Fx_file_dialog, Motif and GTK): DECODE_FILE before
 	returning it.
@@ -426,7 +563,7 @@
 	(draw_fringe_bitmap_1): Make static.
 	(get_logical_cursor_bitmap, get_logical_fringe_bitmap): New functions
 	to map from logical cursors and indicators to physical bitmaps.
-	(draw_fringe_bitmap): Resolve fringe cursor and	overlay-arrow
+	(draw_fringe_bitmap): Resolve fringe cursor and overlay-arrow
 	bitmaps using symbol names instead of bitmap numbers.
 	(update_window_fringes): Use logical indicator symbol names
 	instead of bitmap numbers for logical.  Add bitmap cache.

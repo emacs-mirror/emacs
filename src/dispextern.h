@@ -2722,6 +2722,9 @@ void compute_fringe_widths P_ ((struct frame *, int));
 void w32_init_fringe P_ ((void));
 void w32_reset_fringes P_ ((void));
 #endif
+#ifdef MAC_OS
+void mac_init_fringe P_ ((void));
+#endif
 
 /* Defined in image.c */
 

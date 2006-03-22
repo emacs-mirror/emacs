@@ -1127,18 +1127,12 @@ function is generally only called when Gnus is shutting down."
 	  (let (seen unseen)
 	    ;; read info could contain articles marked unread by other
 	    ;; imap clients!  we correct this
-	    (setq seen (gnus-uncompress-range (gnus-info-read info))
-		  unseen (imap-search "UNSEEN UNDELETED")
-		  seen (gnus-set-difference seen unseen)
-		  ;; seen might lack articles marked as read by other
-		  ;; imap clients! we correct this
-		  seen (append seen (imap-search "SEEN"))
-		  ;; remove dupes
-		  seen (sort seen '<)
-		  seen (gnus-compress-sequence seen t)
-		  ;; we can't return '(1) since this isn't a "list of ranges",
-		  ;; and we can't return '((1)) since g-list-of-unread-articles
-		  ;; is buggy so we return '((1 . 1)).
+	    (setq unseen (gnus-compress-sequence
+			  (imap-search "UNSEEN UNDELETED"))
+		  seen (gnus-range-difference (gnus-info-read info) unseen)
+		  seen (gnus-range-add seen
+				       (gnus-compress-sequence
+					(imap-search "SEEN")))
 		  seen (if (and (integerp (car seen))
 				(null (cdr seen)))
 			   (list (cons (car seen) (car seen)))

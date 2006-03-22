@@ -867,10 +867,7 @@ draw_fringe_bitmap (w, row, left_p)
   draw_fringe_bitmap_1 (w, row, left_p, overlay, NO_FRINGE_BITMAP);
 
   if (left_p && row->overlay_arrow_bitmap != NO_FRINGE_BITMAP)
-    draw_fringe_bitmap_1 (w, row, 1, 1,
-			  (row->overlay_arrow_bitmap < 0
-			   ? get_logical_fringe_bitmap (w, Qoverlay_arrow, 0, 0)
-			   : row->overlay_arrow_bitmap));
+    draw_fringe_bitmap_1 (w, row, 1, 1, row->overlay_arrow_bitmap);
 }
 
 
@@ -1151,6 +1148,9 @@ update_window_fringes (w, keep_current_p)
 	      cur->right_fringe_face_id = right_face_id;
 	    }
 	}
+
+      if (row->overlay_arrow_bitmap < 0)
+	row->overlay_arrow_bitmap = get_logical_fringe_bitmap (w, Qoverlay_arrow, 0, 0);
 
       if (row->overlay_arrow_bitmap != cur->overlay_arrow_bitmap)
 	{
@@ -1695,10 +1695,14 @@ init_fringe ()
     }
 }
 
-#ifdef HAVE_NTGUI
+#if defined (HAVE_NTGUI) || defined (MAC_OS)
 
 void
+#ifdef HAVE_NTGUI
 w32_init_fringe ()
+#else  /* MAC_OS */
+mac_init_fringe ()
+#endif
 {
   int bt;
 
@@ -1711,7 +1715,9 @@ w32_init_fringe ()
       rif->define_fringe_bitmap (bt, fb->bits, fb->height, fb->width);
     }
 }
+#endif
 
+#ifdef HAVE_NTGUI
 void
 w32_reset_fringes ()
 {

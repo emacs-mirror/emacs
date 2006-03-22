@@ -15293,7 +15293,7 @@ When the marks file is used (which it is by default), @code{nnfolder}
 servers have the property that you may backup them using @code{tar} or
 similar, and later be able to restore them into Gnus (by adding the
 proper @code{nnfolder} server) and have all your marks be preserved.
-Marks for a group is usually stored in a file named as the mbox file
+Marks for a group are usually stored in a file named as the mbox file
 with @code{.mrk} concatenated to it (but see
 @code{nnfolder-marks-file-suffix}) within the @code{nnfolder}
 directory.  Individual @code{nnfolder} groups are also possible to

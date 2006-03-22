@@ -1593,7 +1593,10 @@ and the contents of `file-coding-system-alist'."
 		       (symbol :tag "Coding system"))))
 
 (defcustom auto-coding-regexp-alist
-  '(("^BABYL OPTIONS:[ \t]*-\\*-[ \t]*rmail[ \t]*-\\*-" . no-conversion))
+  '(("^BABYL OPTIONS:[ \t]*-\\*-[ \t]*rmail[ \t]*-\\*-" . no-conversion)
+    ("\\`\xFE\xFF" . utf-16be-with-signature)
+    ("\\`\xFF\xFE" . utf-16le-with-signature)
+    ("\\`\xEF\xBB\xBF" . utf-8))
   "Alist of patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).
 A file whose first bytes match REGEXP is decoded by CODING-SYSTEM on reading.

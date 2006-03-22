@@ -1,12 +1,78 @@
+2006-03-21  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Folders): Various edits.
+
+2006-03-20  Romain Francoise  <romain@orebokech.com>
+
+	* gnus.texi (Mail Folders): Grammar fix.
+
+2006-03-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.texi (VC Dired Mode): Remove misplaced brackets.
+
+2006-03-21  Andre Spiegel  <spiegel@gnu.org>
+
+	* files.texi: Various updates and clarifications in the VC
+	chapter.
+
+2006-03-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help.texi (Help Mode): Document "C-c C-c".
+
+2006-03-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Replying): Document Mail-Followup-To.  Change
+	manually-formatted table to multitable.  Add debugging info.
+	Move description of mh-reply-default-reply-to into paragraph
+	that describes its values.
+
+2006-03-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi: Use smallexample and smalllisp consistenly.
+	(Sending Mail Tour): Update method of entering
+	addresses and subject.
+	(Sending Mail Tour, Reading Mail Tour, Processing Mail Tour)
+	(Adding Attachments, Searching): Update screenshots for Emacs 22.
+
+2006-03-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-xtra.texi (Top): Avoid ugly continuation line in
+	menu in the standalone Info reader.
+
+2006-03-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-xtra.texi (Emerge, Picture Mode. Fortran): New chapters,
+	moved here from Emacs manual.
+
+	* programs.texi (Fortran): Section moved to emacs-xtra.
+	(Program Modes): Xref to Fortran in emacs-xtra.
+
+	* maintaining.texi (Emerge): Moved to emacs-xtra.
+	* files.texi (Comparing Files): Xref to Emerge in emacs-xtra.
+
+	* picture.texi: File deleted.
+	* Makefile.in:
+	* makefile.w32-in: Remove picture.texi.
+
+	* text.texi (Text): Xref to Picture Mode in emacs-xtra.
+	* abbrevs.texi (Abbrevs):
+	* sending.texi (Sending Mail): Picture node removed.
+
+	* emacs.texi (Top): Update node listings.
+
+2006-03-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version number change only.
+
 2006-03-14  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi: Add index entries around each paragraph rather than
-	depend on entries from beginning of node. Doing so ensures that
+	depend on entries from beginning of node.  Doing so ensures that
 	index entries are less likely to be forgotten if text is cut and
 	pasted, and are necessary anyway if the references are on a
-	separate page. It seems that makeinfo is now (v. 4.8) only
+	separate page.  It seems that makeinfo is now (v. 4.8) only
 	producing one index entry per node, so there is no longer any
-	excuse not to. Use subheading instead of heading. The incorrect
+	excuse not to.  Use subheading instead of heading.  The incorrect
 	use of heading produced very large fonts in Info--as large as the
 	main heading.
 	(From Bill Wohler): MH-E never did appear in Emacs 21--MH-E
@@ -73,9 +139,10 @@
 
 2006-03-06  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.texi: Move from SourceForge repository to Savannah. This is
-	version 7.93, which is a total rewrite from the previous edition
-	1.3 for MH-E version 5.0.2, and corresponds to MH-E version 7.93.
+	* mh-e.texi: Move from SourceForge repository to Savannah.
+	This is version 7.93, which is a total rewrite from the previous
+	edition 1.3 for MH-E version 5.0.2, and corresponds to MH-E
+	version 7.93.
 
 2006-03-03  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -83,12 +150,12 @@
 
 2006-03-01  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Interaction): Added item about `org-mouse.el' by
+	* org.texi (Interaction): Add item about `org-mouse.el' by
 	Piotr Zielinski.
-	(Managing links): Documented that also mouse-1 can be used to
+	(Managing links): Document that also mouse-1 can be used to
 	activate a link.
-	(Headlines, FAQ): Added entry about hiding leading stars.
-	(Miscellaneous): Resorted the sections in this chapter to a more
+	(Headlines, FAQ): Add entry about hiding leading stars.
+	(Miscellaneous): Resort the sections in this chapter to a more
 	logical sequence.
 
 2006-02-28  Andre Spiegel  <spiegel@gnu.org>
@@ -154,7 +221,7 @@
 
 	* reftex.texi: Version number and date change only.
 
-	* org.texi: (Internal Links): Rewritten to cover the modified
+	* org.texi (Internal Links): Rewrite to cover the modified
 	linking system.
 
 2006-02-21  Nick Roberts  <nickrob@snap.net.nz>
@@ -935,7 +1002,7 @@
 	prefix keys even when mark is active.  Decribe that RET moves
 	cursor to next corner in rectangle; clarify insert around rectangle.
 
-2005-12-08  Alan Mackenzie <bug-cc-mode@gnu.org>
+2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
 	* cc-mode.texi: The manual has been extensively revised: the
 	information about using CC Mode has been separated from the larger
