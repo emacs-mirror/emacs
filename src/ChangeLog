@@ -1,5 +1,10 @@
 2006-03-22  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c: Undo 2006-03-21 change.
+
+	* term.c: Define aliases for append_glyph and produce_stretch_glyph
+	when `static' is defined to avoid name clash with those in xdisp.c.
+
 	* process.c (Faccept_process_output): Fix to comply with lisp reference.
 	Change arg "timeout" to "seconds" and allow both integer and float value.
 	Change arg "timeout-msec" to "millisec" and interpret" as milliseconds
