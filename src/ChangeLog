@@ -1,3 +1,9 @@
+2006-03-21  Ken Raeburn  <raeburn@raeburn.org>
+
+	* xdisp.c (store_next_glyph): Renamed from append_glyph.
+	(generate_stretch_glyph): Renamed from produce_stretch_glyph.
+	All callers changed accordingly.
+
 2006-03-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c: x_session_initialized new variable.
