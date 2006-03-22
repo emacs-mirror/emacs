@@ -1,4 +1,4 @@
-2006-03-22  Simon Josefsson  <jas@extundo.com>
+2006-03-22  Sascha Wilde  <wilde@sha-bang.de>
 
 	* pgg-gpg.el (pgg-gpg-use-agent): Disable by default.
 	(pgg-gpg-update-agent): New function.
