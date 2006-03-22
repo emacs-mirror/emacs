@@ -3838,62 +3838,60 @@ DEFUN ("accept-process-output", Faccept_process_output, Saccept_process_output,
 It is read into the process' buffers or given to their filter functions.
 Non-nil arg PROCESS means do not return until some output has been received
 from PROCESS.
-Non-nil second arg TIMEOUT and third arg TIMEOUT-MSECS are number of
-seconds and microseconds to wait; return after that much time whether
-or not there is input.
+
+Non-nil second arg SECONDS and third arg MILLISEC are number of
+seconds and milliseconds to wait; return after that much time whether
+or not there is input.  If SECONDS is a floating point number,
+it specifies a fractional number of seconds to wait.
+
 If optional fourth arg JUST-THIS-ONE is non-nil, only accept output
 from PROCESS, suspending reading output from other processes.
 If JUST-THIS-ONE is an integer, don't run any timers either.
 Return non-nil iff we received any output before the timeout expired.  */)
-     (process, timeout, timeout_msecs, just_this_one)
-     register Lisp_Object process, timeout, timeout_msecs, just_this_one;
+     (process, seconds, millisec, just_this_one)
+     register Lisp_Object process, seconds, millisec, just_this_one;
 {
-  int seconds;
-  int useconds;
+  int secs, usecs = 0;
 
   if (! NILP (process))
     CHECK_PROCESS (process);
   else
     just_this_one = Qnil;
 
-  if (! NILP (timeout_msecs))
+  if (!NILP (seconds))
     {
-      CHECK_NUMBER (timeout_msecs);
-      useconds = XINT (timeout_msecs);
-      if (!INTEGERP (timeout))
-	XSETINT (timeout, 0);
+      if (INTEGERP (seconds))
+	secs = XINT (seconds);
+      else if (FLOATP (seconds))
+	{
+	  double timeout = XFLOAT_DATA (seconds);
+	  secs = (int) timeout;
+	  usecs = (int) ((timeout - (double) secs) * 1000000);
+	}
+      else
+	wrong_type_argument (Qnumberp, seconds);
 
-      {
-	int carry = useconds / 1000000;
+      if (INTEGERP (millisec))
+	{
+	  int carry;
+	  usecs += XINT (millisec) * 1000;
+	  carry = usecs / 1000000;
+	  secs += carry;
+	  if ((usecs -= carry * 1000000) < 0)
+	    {
+	      secs--;
+	      usecs += 1000000;
+	    }
+	}
 
-	XSETINT (timeout, XINT (timeout) + carry);
-	useconds -= carry * 1000000;
-
-	/* I think this clause is necessary because C doesn't
-	   guarantee a particular rounding direction for negative
-	   integers.  */
-	if (useconds < 0)
-	  {
-	    XSETINT (timeout, XINT (timeout) - 1);
-	    useconds += 1000000;
-	  }
-      }
+      if (secs < 0 || (secs == 0 && usecs == 0))
+	secs = -1, usecs = 0;
     }
   else
-    useconds = 0;
-
-  if (! NILP (timeout))
-    {
-      CHECK_NUMBER (timeout);
-      seconds = XINT (timeout);
-      if (seconds < 0 || (seconds == 0 && useconds == 0))
-	seconds = -1;
-    }
-  else
-    seconds = NILP (process) ? -1 : 0;
+    secs = NILP (process) ? -1 : 0;
 
   return
-    (wait_reading_process_output (seconds, useconds, 0, 0,
+    (wait_reading_process_output (secs, usecs, 0, 0,
 				  Qnil,
 				  !NILP (process) ? XPROCESS (process) : NULL,
 				  NILP (just_this_one) ? 0 :
