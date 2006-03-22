@@ -1,3 +1,12 @@
+2006-03-22  Simon Josefsson  <jas@extundo.com>
+
+	* pgg-gpg.el (pgg-gpg-use-agent): Disable by default.
+	(pgg-gpg-update-agent): New function.
+	(pgg-gpg-use-agent-p): New function.
+	(pgg-gpg-process-region, pgg-gpg-encrypt-region)
+	(pgg-gpg-encrypt-symmetric-region, pgg-gpg-decrypt-region)
+	(pgg-gpg-sign-region): Use it.
+
 2006-03-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-face-set): Call custom-push-theme before
