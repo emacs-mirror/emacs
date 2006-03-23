@@ -1,3 +1,8 @@
+2006-03-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-map-articles): Don't funcall symbol macro.
+	Reported by Ralf Wachinger <rwachinger@gmx.de>.
+
 2006-03-23  Kenichi Handa  <handa@m17n.org>
 
 	* rfc2231.el (rfc2231-encode-string): Use mm-disable-multibyte
