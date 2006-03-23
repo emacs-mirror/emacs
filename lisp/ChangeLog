@@ -1,3 +1,13 @@
+2006-03-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-continuation): Declare earlier to
+	prevent compiler warnings.
+	(gdb-stopped): Check for gud-last-last-frame (case: signal).
+	(breakpoint-disabled): Make lighter for contrast with overlay
+	arrow.
+	(gdb-assembler-custom): Use hollow-right-triangle for assembler
+	buffer too.
+
 2006-03-23  Reiner Steib  <reinersteib+gmane@imap.cc>
 
 	* pgg-gpg.el (pgg-gpg-update-agent): Check for
@@ -214,7 +224,7 @@
 	(gdb-force-mode-line-update): New function.
 	(gdb-resync, gdb-starting, gdb-signal, gdb-exited, gdb-stopped)
 	(gdb-exited): Use them.
-	(gdb-signal): New fuction.
+	(gdb-signal): New function.
 	(gdb-annotation-rules): Provide a rule for it.
 
 2006-03-16  Kenichi Handa  <handa@m17n.org>
