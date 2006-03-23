@@ -1,3 +1,11 @@
+2006-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-insert-mime): Ignore cached contents of
+	message/external-body part.
+
+	* mm-decode.el (mm-get-part): Add optional 'no-cache' argument.
+	(mm-insert-part): Ditto.
+
 2006-03-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-map-articles): Don't funcall symbol macro.
