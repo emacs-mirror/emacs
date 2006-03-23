@@ -1,3 +1,10 @@
+2006-03-23  Romain Francoise  <romain@orebokech.com>
+
+	* ibuf-ext.el (ibuffer-read-filter-group-name):
+	Use `ibuffer-generate-filter-groups' to make completion list match
+	the filter groups that are really displayed in the Ibuffer buffer.
+	(ibuffer-generate-filter-groups): Add new args noempty, nodefault.
+
 2006-03-23  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (sort-coding-systems): Describe that
