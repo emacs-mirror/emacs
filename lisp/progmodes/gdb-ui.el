@@ -126,6 +126,7 @@ and #define directives otherwise.")
 (defvar gdb-signalled nil)
 (defvar gdb-source-window nil)
 (defvar gdb-inferior-status nil)
+(defvar gdb-continuation nil)
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
@@ -1078,7 +1079,6 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 ;;
 ;; These lists are consumed tail first.
 ;;
-(defvar gdb-continuation nil)
 
 (defun gdb-send (proc string)
   "A comint send filter for gdb.
@@ -1318,7 +1318,8 @@ directives."
 It is just like `gdb-stopping', except that if we already set the output
 sink to `user' in `gdb-stopping', that is fine."
   (setq gud-running nil)
-  (unless (or gud-overlay-arrow-position gud-last-frame)
+  (unless (or gud-overlay-arrow-position gud-last-frame
+	      (not gud-last-last-frame))
     (gud-display-line (car gud-last-last-frame) (cdr gud-last-last-frame)))
   (unless (member gdb-inferior-status '("exited" "signal"))
     (setq gdb-inferior-status "stopped")
@@ -1680,8 +1681,7 @@ static char *magick[] = {
   ;; We use different values of grey for different background types,
   ;; so that on low-color displays it will end up as something visible
   ;; if it has to be approximated.
-  '((((background dark))  :foreground "grey60")
-    (((background light)) :foreground "grey40"))
+  '((t :foreground  "grey70"))
   "Face for disabled breakpoint icon in fringe."
   :group 'gud)
 
@@ -2987,6 +2987,10 @@ BUFFER nil or omitted means use the current buffer."
 		  (progn
 		    (setq pos (point))
 		    (beginning-of-line)
+		    (setq fringe-indicator-alist
+			  (if (string-equal gdb-frame-number "0")
+			      nil
+			    '((overlay-arrow . hollow-right-triangle))))
 		    (or gdb-overlay-arrow-position
 			(setq gdb-overlay-arrow-position (make-marker)))
 		    (set-marker gdb-overlay-arrow-position
