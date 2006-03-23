@@ -1,3 +1,10 @@
+2006-03-23  Kenichi Handa  <handa@m17n.org>
+
+	* rfc2231.el (rfc2231-decode-encoded-string): Work on unibyte
+	buffer and then decode the buffer text if necessary.
+	(rfc2231-encode-string): Be sure to work on multibyte buffer at
+	first, and after mm-encode-body, change the buffer to unibyte.
+	
 2006-03-21  Daniel Pittman <daniel@rimspace.net>
 
 	* nnimap.el (nnimap-request-update-info-internal): Optimize.
