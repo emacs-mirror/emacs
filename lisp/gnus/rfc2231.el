@@ -268,7 +268,7 @@ the result of this function."
 	(forward-char 1))
       (when charsetp
 	(setq charset (mm-encode-body)))
-      (set-buffer-multibyte nil)
+      (mm-disable-multibyte)
       (cond
        ((or encodep charsetp
 	    (progn
