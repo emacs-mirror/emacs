@@ -358,18 +358,21 @@ passphrase cache or user."
 
 (defun pgg-gpg-update-agent ()
   "Try to connet to gpg-agent and send UPDATESTARTUPTTY."
-  (let* ((agent-info (getenv "GPG_AGENT_INFO")) 
-	 (socket (and agent-info
-		      (string-match "^\\([^:]*\\)" agent-info)
-		      (match-string 1 agent-info)))
-	 (conn (and socket
-		    (make-network-process :name "gpg-agent-process"
-					  :host 'local :family 'local
-					  :service socket))))
-    (when (and conn (eq (process-status conn) 'open))
-      (process-send-string conn "UPDATESTARTUPTTY\n")
-      (delete-process conn)
-      t)))
+  (if (fboundp 'make-network-process)
+      (let* ((agent-info (getenv "GPG_AGENT_INFO"))
+	     (socket (and agent-info
+			  (string-match "^\\([^:]*\\)" agent-info)
+			  (match-string 1 agent-info)))
+	     (conn (and socket
+			(make-network-process :name "gpg-agent-process"
+					      :host 'local :family 'local
+					      :service socket))))
+	(when (and conn (eq (process-status conn) 'open))
+	  (process-send-string conn "UPDATESTARTUPTTY\n")
+	  (delete-process conn)
+	  t))
+    ;; We can't check, so assume gpg-agent is up.
+    t))
 
 (defun pgg-gpg-use-agent-p ()
   "Return t if `pgg-gpg-use-agent' is t and gpg-agent is available."

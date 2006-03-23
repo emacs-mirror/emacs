@@ -1,3 +1,9 @@
+2006-03-23  Reiner Steib  <reinersteib+gmane@imap.cc>
+
+	* pgg-gpg.el (pgg-gpg-update-agent): Check for
+	make-network-process, so we can use the same code in Gnus v5-10
+	too and have this file fully synchronized with that release.
+
 2006-03-23  Romain Francoise  <romain@orebokech.com>
 
 	* ibuf-ext.el (ibuffer-read-filter-group-name):
