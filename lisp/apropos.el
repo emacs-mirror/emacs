@@ -168,7 +168,8 @@ If value is `verbose', the computed score is shown for each match."
 (defvar apropos-synonyms '(
   ("find" "open" "edit")
   ("kill" "cut")
-  ("yank" "paste"))
+  ("yank" "paste")
+  ("region" "selection"))
   "List of synonyms known by apropos.
 Each element is a list of words where the first word is the standard emacs
 term, and the rest of the words are alternative terms.")
