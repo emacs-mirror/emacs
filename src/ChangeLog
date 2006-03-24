@@ -1,3 +1,23 @@
+2006-03-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c: Do not use ctime, since it has undefined behavior
+	with out-of-range time stamps.  This fixes a bug where
+	(current-time-string '(2814749767106 0)) would make Emacs dump
+	core on 64-bit Solaris 8.  The fix is to use localtime+asctime
+	(checking for in-range results) instead of ctime.  Please see
+	<http://www.opengroup.org/austin/mailarchives/ag/msg09294.html>
+	for more details about this portability problem.
+	(TM_YEAR_BASE): Move up, so the changes below can use it.
+	(Fdecode_time, Fencode_time): Use TM_YEAR_BASE instead of 1900.
+	(Fdecode_time): Cast tm_year to EMACS_INT, to avoid overflow when
+	int is narrower than EMACS_INT.
+	(Fcurrent_time_string): As with Fformat_time_string, report an
+	invalid time specification if the argument is invalid.  Also,
+	check for out-of-range time stamps; this prevents a buffer overrun
+	that causes Emacs to dump core on 64-bit Solaris sparc, and it
+	preserves the historic behavior of always returning a fixed-size
+	string.
+
 2006-03-24  Kim F. Storm  <storm@cua.dk>
 
 	* xterm.c (handle_one_xevent):

@@ -72,6 +72,8 @@ Boston, MA 02110-1301, USA.  */
 extern char **environ;
 #endif
 
+#define TM_YEAR_BASE 1900
+
 extern size_t emacs_strftimeu P_ ((char *, size_t, const char *,
 				   const struct tm *, int));
 static int tm_diff P_ ((struct tm *, struct tm *));
@@ -721,7 +723,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
   int orig_point = 0;
   int fwd;
   Lisp_Object prev_old, prev_new;
-  
+
   if (NILP (new_pos))
     /* Use the current point, and afterwards, set it.  */
     {
@@ -736,7 +738,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 
   prev_old = make_number (XFASTINT (old_pos) - 1);
   prev_new = make_number (XFASTINT (new_pos) - 1);
-  
+
   if (NILP (Vinhibit_field_text_motion)
       && !EQ (new_pos, old_pos)
       && (!NILP (Fget_char_property (new_pos, Qfield, Qnil))
@@ -1722,7 +1724,7 @@ DOW and ZONE.)  */)
   XSETFASTINT (list_args[2], decoded_time->tm_hour);
   XSETFASTINT (list_args[3], decoded_time->tm_mday);
   XSETFASTINT (list_args[4], decoded_time->tm_mon + 1);
-  XSETINT (list_args[5], decoded_time->tm_year + 1900);
+  XSETINT (list_args[5], TM_YEAR_BASE + (EMACS_INT) decoded_time->tm_year);
   XSETFASTINT (list_args[6], decoded_time->tm_wday);
   list_args[7] = (decoded_time->tm_isdst)? Qt : Qnil;
 
@@ -1778,7 +1780,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   tm.tm_hour = XINT (args[2]);
   tm.tm_mday = XINT (args[3]);
   tm.tm_mon = XINT (args[4]) - 1;
-  tm.tm_year = XINT (args[5]) - 1900;
+  tm.tm_year = XINT (args[5]) - TM_YEAR_BASE;
   tm.tm_isdst = -1;
 
   if (CONSP (zone))
@@ -1844,19 +1846,22 @@ but this is considered obsolete.  */)
 {
   time_t value;
   char buf[30];
+  struct tm *tm;
   register char *tem;
 
   if (! lisp_time_argument (specified_time, &value, NULL))
-    value = -1;
-  tem = (char *) ctime (&value);
+    error ("Invalid time specification");
+  tm = localtime (&value);
+  if (! (tm && -999 - TM_YEAR_BASE <= tm->tm_year
+	 && tm->tm_year <= 9999 - TM_YEAR_BASE))
+    error ("Specified time is not representable");
+  tem = asctime (tm);
 
   strncpy (buf, tem, 24);
   buf[24] = 0;
 
   return build_string (buf);
 }
-
-#define TM_YEAR_BASE 1900
 
 /* Yield A - B, measured in seconds.
    This function is copied from the GNU C Library.  */
