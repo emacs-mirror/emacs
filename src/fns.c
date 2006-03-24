@@ -5114,6 +5114,12 @@ sxhash_list (list, depth)
 	hash = SXHASH_COMBINE (hash, hash2);
       }
 
+  if (!NILP (list))
+    {
+      unsigned hash2 = sxhash (list, depth + 1);
+      hash = SXHASH_COMBINE (hash, hash2);
+    }
+
   return hash;
 }
 
