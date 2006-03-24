@@ -2,7 +2,6 @@
 
 	* xterm.c (handle_one_xevent):
 	* w32term.c (w32_read_socket):
-	* msdos.c (dos_rawgetc):
 	* macterm.c (XTread_socket): Don't let key-press clear mouse face
 	on in toolbar window if mouse-highlight is an integer.
 
