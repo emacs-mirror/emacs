@@ -1,3 +1,18 @@
+2006-03-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (enum mac_menu_kind): New enum.
+	(min_menu_id): New variable.
+	(POPUP_SUBMENU_ID, MIN_POPUP_SUBMENU_ID, MIN_MENU_ID)
+	(MIN_SUBMENU_ID): Remove defines.  All uses are replaced with
+	min_menu_id and enumerators in enum mac_menu_kind.
+	(fill_menu, dispose_menus, install_menu_quit_handler): New arg KIND.
+	All uses changed.  Add range check for menu ID.
+	(fill_menubar): Add range check for menu ID.
+	[HAVE_CANCELMENUTRACKING] (menu_quit_handler): Check error code of
+	GetEventParameter.
+	(set_frame_menubar, mac_menu_show): Call install_menu_quit_handler
+	for each menu kind.
+
 2006-03-22  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c: Undo 2006-03-21 change.
