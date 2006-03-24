@@ -1,3 +1,8 @@
+2006-03-24  Romain Francoise  <romain@orebokech.com>
+
+	* files.el (ctl-x-5-map): Really bind C-x 5 C-o to
+	`display-buffer-other-frame'.
+
 2006-03-24  Kim F. Storm  <storm@cua.dk>
 
 	* apropos.el (apropos-synonyms): Add selection => region.
