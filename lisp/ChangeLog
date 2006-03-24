@@ -1,3 +1,17 @@
+2006-03-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-regexp)
+	(gdb-var-list-children-regexp, gdb-var-update-regexp)
+	(gdb-var-list-children-regexp-1, gdb-var-update-regexp-1)
+	(gdb-data-list-register-values-regexp)
+	(gdb-stack-list-locals-regexp, gdb-stack-list-locals-handler): 
+	Future proof against new fields being added to MI output.
+	(gdb-send): Don't treat backslashes for program input as
+	continuations.
+	(gdb-assembler-handler): Don't use window-start for this handler.
+	(gdb-frame-handler): Don't change to hollow arrow if overlay
+	arrow doesn't move to new frame.
+
 2006-03-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-continuation): Declare earlier to
