@@ -703,7 +703,7 @@ With arg, enter name of variable to be watched in the minibuffer."
       (message "gud-watch is a no-op in this mode."))))
 
 (defconst gdb-var-create-regexp
-  "name=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",type=\"\\(.*?\\)\"")
+  "\\^done,name=\"\\(.*?\\)\",.*numchild=\"\\(.*?\\)\",.*type=\"\\(.*?\\)\"")
 
 (defun gdb-var-create-handler (expr)
   (goto-char (point-min))
@@ -748,8 +748,8 @@ With arg, enter name of variable to be watched in the minibuffer."
 	 `(lambda () (gdb-var-list-children-handler ,varnum)))))
 
 (defconst gdb-var-list-children-regexp
- "name=\"\\(.*?\\)\",exp=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",\
-type=\"\\(.*?\\)\"")
+ "child={.*?name=\"\\(.*?\\)\",.*?exp=\"\\(.*?\\)\",.*?\
+numchild=\"\\(.*?\\)\",.*?type=\"\\(.*?\\)\".*?}")
 
 (defun gdb-var-list-children-handler (varnum)
   (goto-char (point-min))
@@ -785,7 +785,9 @@ type=\"\\(.*?\\)\"")
 	   'gdb-var-update-handler))
     (push 'gdb-var-update gdb-pending-triggers)))
 
-(defconst gdb-var-update-regexp "name=\"\\(.*?\\)\",in_scope=\"\\(.*?\\)\"")
+(defconst gdb-var-update-regexp
+  "{.*?name=\"\\(.*?\\)\",.*?in_scope=\"\\(.*?\\)\",.*?\
+type_changed=\".*?\".*?}")
 
 (defun gdb-var-update-handler ()
   (dolist (var gdb-var-list)
@@ -1086,15 +1088,16 @@ This filter may simply queue input for a later time."
   (with-current-buffer gud-comint-buffer
     (let ((inhibit-read-only t))
       (remove-text-properties (point-min) (point-max) '(face))))
-  (if (string-match "\\\\$" string)
-      (setq gdb-continuation (concat gdb-continuation string "\n"))
-    (let ((item (concat gdb-continuation string "\n")))
-      (if gud-running
-	  (progn
+    (if gud-running
+	(progn
+	  (let ((item (concat string "\n")))
 	    (if gdb-enable-debug (push (cons 'send item) gdb-debug-ring))
-	    (process-send-string proc item))
-	(gdb-enqueue-input item)))
-    (setq gdb-continuation nil)))
+	    (process-send-string proc item)))
+      (if (string-match "\\\\$" string)
+	  (setq gdb-continuation (concat gdb-continuation string "\n"))
+	(let ((item (concat gdb-continuation string "\n")))
+	  (gdb-enqueue-input item)
+	  (setq gdb-continuation nil)))))
 
 ;; Note: Stuff enqueued here will be sent to the next prompt, even if it
 ;; is a query, or other non-top-level prompt.
@@ -2969,10 +2972,24 @@ BUFFER nil or omitted means use the current buffer."
 		      'gdb-assembler-buffer-name
 		      'gdb-assembler-mode)
 
-(def-gdb-auto-update-handler gdb-assembler-handler
-  gdb-invalidate-assembler
-  gdb-assembler-buffer
-  gdb-assembler-custom)
+;; We can't use def-gdb-auto-update-handler because we don't want to use
+;; window-start but keep the overlay arrow/current line visible.
+(defun gdb-assembler-handler ()
+  (setq gdb-pending-triggers
+	(delq 'gdb-invalidate-assembler
+	      gdb-pending-triggers))
+     (let ((buf (gdb-get-buffer 'gdb-assembler-buffer)))
+       (and buf
+	    (with-current-buffer buf
+	      (let* ((window (get-buffer-window buf 0))
+		     (p (window-point window))
+		    (buffer-read-only nil))
+		(erase-buffer)
+		(insert-buffer-substring (gdb-get-buffer-create
+					  'gdb-partial-output-buffer))
+		(set-window-point window p)))))
+     ;; put customisation here
+     (gdb-assembler-custom))
 
 (defun gdb-assembler-custom ()
   (let ((buffer (gdb-get-buffer 'gdb-assembler-buffer))
@@ -3118,20 +3135,10 @@ BUFFER nil or omitted means use the current buffer."
   (goto-char (point-min))
   (if (re-search-forward  "Stack level \\([0-9]+\\)" nil t)
       (setq gdb-frame-number (match-string 1)))
-  (if gud-overlay-arrow-position
-      (let ((buffer (marker-buffer gud-overlay-arrow-position))
-	    (position (marker-position gud-overlay-arrow-position)))
-	(when buffer
-	  (with-current-buffer buffer
-	    (setq fringe-indicator-alist
-		  (if (string-equal gdb-frame-number "0")
-		      nil
-		    '((overlay-arrow . hollow-right-triangle))))
-	    (setq gud-overlay-arrow-position (make-marker))
-	    (set-marker gud-overlay-arrow-position position)))))
   (goto-char (point-min))
   (if (re-search-forward
-       ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*?\\);? " nil t)
+    ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*?\\) (\\(\\S-*?\\):[0-9]+?);? "
+       nil t)
       (progn
 	(setq gdb-selected-frame (match-string 2))
 	(if (gdb-get-buffer 'gdb-locals-buffer)
@@ -3141,6 +3148,16 @@ BUFFER nil or omitted means use the current buffer."
 	    (with-current-buffer (gdb-get-buffer 'gdb-assembler-buffer)
 	      (setq mode-name (concat "Machine:" gdb-selected-frame))))
 	(setq gdb-frame-address (match-string 1))))
+  (if gud-overlay-arrow-position
+      (let ((buffer (marker-buffer gud-overlay-arrow-position))
+	    (position (marker-position gud-overlay-arrow-position)))
+	(when (and buffer (string-equal (buffer-name buffer) (match-string 3)))
+	  (with-current-buffer buffer
+	    (setq fringe-indicator-alist
+		  (if (string-equal gdb-frame-number "0")
+		      nil
+		    '((overlay-arrow . hollow-right-triangle))))
+	    (set-marker gud-overlay-arrow-position position)))))
   (goto-char (point-min))
   (if (re-search-forward " source language \\(\\S-*\\)\." nil t)
       (setq gdb-current-language (match-string 1)))
@@ -3179,8 +3196,8 @@ is set in them."
     `(lambda () (gdb-var-list-children-handler-1 ,varnum)))))
 
 (defconst gdb-var-list-children-regexp-1
-  "name=\"\\(.+?\\)\",exp=\"\\(.+?\\)\",numchild=\"\\(.+?\\)\",\
-value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
+  "child={.*?name=\"\\(.+?\\)\",.*?exp=\"\\(.+?\\)\",.*?\
+numchild=\"\\(.+?\\)\",.*?value=\\(\".*?\"\\),.*?type=\"\\(.+?\\)\".*?}")
 
 (defun gdb-var-list-children-handler-1 (varnum)
   (goto-char (point-min))
@@ -3216,7 +3233,8 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
 	(push 'gdb-var-update gdb-pending-triggers))))
 
 (defconst gdb-var-update-regexp-1
-  "name=\"\\(.*?\\)\",\\(?:value=\\(\".*?\"\\),\\)?in_scope=\"\\(.*?\\)\"")
+  "{.*?name=\"\\(.*?\\)\",.*?\\(?:value=\\(\".*?\"\\),\\)?.*?\
+in_scope=\"\\(.*?\\)\".*?}")
 
 (defun gdb-var-update-handler-1 ()
   (dolist (var gdb-var-list)
@@ -3253,7 +3271,7 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
     gdb-data-list-register-values-handler)
 
 (defconst gdb-data-list-register-values-regexp
-  "number=\"\\(.*?\\)\",value=\"\\(.*?\\)\"")
+  "{.*?number=\"\\(.*?\\)\",.*?value=\"\\(.*?\\)\".*?}")
 
 (defun gdb-data-list-register-values-handler ()
   (setq gdb-pending-triggers (delq 'gdb-invalidate-registers-1
@@ -3346,7 +3364,7 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
   gdb-stack-list-locals-handler)
 
 (defconst gdb-stack-list-locals-regexp
-  "name=\"\\(.*?\\)\",type=\"\\(.*?\\)\"")
+  "{.*?name=\"\\(.*?\\)\",.*?type=\"\\(.*?\\)\"")
 
 (defvar gdb-locals-watch-map-1
   (let ((map (make-sparse-keymap)))
@@ -3365,7 +3383,7 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
       (let ((local (list (match-string 1)
 			 (match-string 2)
 			 nil)))
-	(if (looking-at ",value=\\(\".*\"\\)}")
+	(if (looking-at ",value=\\(\".*\"\\).*?}")
 	    (setcar (nthcdr 2 local) (read (match-string 1))))
 	(push local locals-list)))
     (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
