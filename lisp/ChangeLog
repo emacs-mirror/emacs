@@ -1,3 +1,13 @@
+2006-03-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.el (select-frame-by-name): Call x-focus-frame also when
+	window-system is mac.
+
+	* term/mac-win.el: Adjust Courier font specifications in
+	x-fixed-font-alist.
+	(mac-select-convert-to-string): Use utf-16be-mac or utf-16le-mac
+	when directly encoding to UTF-16 in native byte order, no BOM.
+
 2006-03-25  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-rectangle-mark-key): New defcustom.
