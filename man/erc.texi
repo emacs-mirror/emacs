@@ -6,7 +6,7 @@
 
 @dircategory Emacs
 @direntry
-* ERC: (erc).  Powerful, modular, and extensible IRC client for Emacs.
+* ERC: (erc).           Powerful, modular, and extensible IRC client for Emacs.
 @end direntry
 
 @syncodeindex fn cp

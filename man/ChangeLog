@@ -1,3 +1,15 @@
+2006-03-25  Karl Berry  <karl@gnu.org>
+
+	* ada-mode.texi, autotype.texi, calc.texi, cc-mode.texi, cl.texi,
+	dired-x.texi, ebrowse.texi, ediff.texi, emacs-mime.texi,
+	emacs-xtra.texi, emacs.texi, erc.texi, eshell.texi, eudc.texi,
+	faq.texi, forms.texi, gnu.texi, gnus.texi, idlwave.texi,
+	info.texi, message.texi, mh-e.texi, pcl-cvs.texi, pgg.texi,
+	rcirc.texi, reftex.texi, sc.texi, ses.texi, sieve.texi,
+	speedbar.texi, url.texi, vip.texi, viper.texi, widget.texi,
+	woman.texi: (1) use @copyright{} instead of (C) in typeset text;
+	(2) do not indent copyright year list (or anything else).
+
 2006-03-21  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Folders): Various edits.
