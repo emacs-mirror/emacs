@@ -58,8 +58,14 @@ define xgettype
 end
 
 # Set up something to print out s-expressions.
+# We save and restore print_output_debug_flag to prevent the w32 port
+# from calling OutputDebugString, which causes GDB to display each
+# character twice (yuk!).
 define pr
+  set $output_debug = print_output_debug_flag
+  set print_output_debug_flag = 0
   set debug_print ($)
+  set print_output_debug_flag = $output_debug
 end
 document pr
 Print the emacs s-expression which is $.
@@ -69,7 +75,10 @@ end
 # Print out s-expressions
 define pp
   set $tmp = $arg0
+  set $output_debug = print_output_debug_flag
+  set print_output_debug_flag = 0
   set safe_debug_print ($tmp)
+  set print_output_debug_flag = $output_debug
 end
 document pp
 Print the argument as an emacs s-expression
@@ -81,7 +90,10 @@ define pp1
   set $tmp = $arg0
   echo $arg0
   printf " = "
+  set $output_debug = print_output_debug_flag
+  set print_output_debug_flag = 0
   set safe_debug_print ($tmp)
+  set print_output_debug_flag = $output_debug
 end
 document pp1
 Print the argument as an emacs s-expression
@@ -94,7 +106,10 @@ end
 # Print value of lisp variable
 define pv
   set $tmp = "$arg0"
+  set $output_debug = print_output_debug_flag
+  set print_output_debug_flag = 0
   set safe_debug_print ( find_symbol_value (intern ($tmp)))
+  set print_output_debug_flag = $output_debug
 end
 document pv
 Print the value of the lisp variable given as argument.
@@ -106,7 +121,10 @@ define pv1
   set $tmp = "$arg0"
   echo $arg0
   printf " = "
+  set $output_debug = print_output_debug_flag
+  set print_output_debug_flag = 0
   set safe_debug_print (find_symbol_value (intern ($tmp)))
+  set print_output_debug_flag = $output_debug
 end
 document pv1
 Print the value of the lisp variable given as argument.
