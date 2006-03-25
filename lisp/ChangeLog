@@ -1,3 +1,9 @@
+2006-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (tool-bar-map): Defvar it.
+	(rmail-tool-bar-map): Tool-bar buttons for Rmail.
+	(rmail-perm-variables): Make rmail-tool-bar-map a local variable.
+
 2006-03-25  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
 
 	* help.el (print-help-return-message): Suggest to use
