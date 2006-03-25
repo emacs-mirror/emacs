@@ -1,3 +1,12 @@
+2006-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (pr, pp, pp1, pv, pv1): Force print_output_debug_flag
+	to zero before calling debug_print or safe_debug_print.
+
+	* print.c (print_output_debug_flag): New global variable.
+	(Fexternal_debugging_output) [WINDOWSNT]: Don't call
+	OutputDebugString if print_output_debug_flag is zero.
+
 2006-03-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* editfns.c (TM_YEAR_BASE): Move up, so the changes below can use it.
