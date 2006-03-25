@@ -1,3 +1,12 @@
+2006-03-25  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-rectangle-mark-key): New defcustom.
+	(cua--init-keymaps): Use it instead of fixed C-return.
+	(cua-mode): Set after it.
+
+	* emulation/cua-rect.el (cua--init-rectangles): Use
+	cua-rectangle-mark-key instead of fixed C-return.
+
 2006-03-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdba): Revert 2006-03-10 change for case of
@@ -13,7 +22,7 @@
 
 	* apropos.el (apropos-synonyms): Add selection => region.
 
-2006-03-25  Nick Roberts  <nickrob@snap.net.nz>
+2006-03-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-create-regexp)
 	(gdb-var-list-children-regexp, gdb-var-update-regexp)
