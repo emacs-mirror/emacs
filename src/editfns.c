@@ -1724,6 +1724,8 @@ DOW and ZONE.)  */)
   XSETFASTINT (list_args[2], decoded_time->tm_hour);
   XSETFASTINT (list_args[3], decoded_time->tm_mday);
   XSETFASTINT (list_args[4], decoded_time->tm_mon + 1);
+  /* On 64-bit machines an int is narrower than EMACS_INT, thus the
+     cast below avoids overflow in int arithmetics.  */
   XSETINT (list_args[5], TM_YEAR_BASE + (EMACS_INT) decoded_time->tm_year);
   XSETFASTINT (list_args[6], decoded_time->tm_wday);
   list_args[7] = (decoded_time->tm_isdst)? Qt : Qnil;
@@ -1851,7 +1853,16 @@ but this is considered obsolete.  */)
 
   if (! lisp_time_argument (specified_time, &value, NULL))
     error ("Invalid time specification");
+  /* Do not use ctime, since it has undefined behavior with
+     out-of-range time stamps.  This avoids a core dump triggered by
+     (current-time-string '(2814749767106 0)) on 64-bit Solaris 8. See
+     <http://www.opengroup.org/austin/mailarchives/ag/msg09294.html>
+     for more details about this portability problem.  */
   tm = localtime (&value);
+  /* Checking for out-of-range time stamps avoids buffer overruns that
+     cause core dump on some systems (e.g., 64-bit Solaris), and also
+     preserves the historic behavior of always returning a fixed-size
+     24-character string.  */
   if (! (tm && -999 - TM_YEAR_BASE <= tm->tm_year
 	 && tm->tm_year <= 9999 - TM_YEAR_BASE))
     error ("Specified time is not representable");
