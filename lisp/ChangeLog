@@ -1,3 +1,9 @@
+2006-03-25  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+
+	* help.el (print-help-return-message): Suggest to use
+	display-buffer instead of switch-to-buffer-other-window to restore
+	the previous window without selecting it.
+
 2006-03-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* frame.el (select-frame-by-name): Call x-focus-frame also when
