@@ -78,13 +78,15 @@
 ;; gdb-assembler-custom with a lisp debugger it does!).
 
 ;;; Problems with watch expressions, GDB/MI:
-
 ;; 1) They go out of scope when the inferior is re-run.
 ;; 2) -stack-list-locals has a type field but also prints type in values field.
-;; 3) VARNUM increments even when variable object is not created (maybe trivial).
+;; 3) VARNUM increments even when variable object is not created
+;;    (maybe trivial).
+
+;; Known Bugs:
+;; 1) M-x gdb doesn't work with "run" command in .gdbinit, use M-x gdba instead.
 
 ;;; TODO:
-
 ;; 1) Use MI command -data-read-memory for memory window.
 ;; 2) Use tree-widget.el instead of the speedbar for watch-expressions?
 ;; 3) Mark breakpoint locations on scroll-bar of source buffer?
@@ -259,7 +261,8 @@ detailed description of this mode.
   (interactive (list (gud-query-cmdline 'gdba)))
   ;;
   ;; Let's start with a basic gud-gdb buffer and then modify it a bit.
-  (gdb command-line))
+  (gdb command-line)
+  (gdb-init-1))
 
 (defcustom gdb-debug-ring-max 128
   "Maximum size of `gdb-debug-ring'."
@@ -703,7 +706,7 @@ With arg, enter name of variable to be watched in the minibuffer."
       (message "gud-watch is a no-op in this mode."))))
 
 (defconst gdb-var-create-regexp
-  "\\^done,name=\"\\(.*?\\)\",.*numchild=\"\\(.*?\\)\",.*type=\"\\(.*?\\)\"")
+  "name=\"\\(.*?\\)\",.*numchild=\"\\(.*?\\)\",.*type=\"\\(.*?\\)\"")
 
 (defun gdb-var-create-handler (expr)
   (goto-char (point-min))
