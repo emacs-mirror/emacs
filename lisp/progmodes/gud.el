@@ -683,6 +683,7 @@ To run GDB in text command mode, set `gud-gdb-command-name' to
 
   (if (and gud-comint-buffer
 	   (buffer-name gud-comint-buffer)
+	   (get-buffer-process gud-comint-buffer)
 	   (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba)))
       (error "Multiple debugging is only supported with \"gdb --fullname\""))
 
