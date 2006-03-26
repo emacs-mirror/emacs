@@ -1,3 +1,8 @@
+2006-03-26  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/gud.el (gdb): Only complain about multiple debugging
+	when the gdb process is still running.
+
 2006-03-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (tool-bar-map): Defvar it.
