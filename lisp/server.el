@@ -493,6 +493,9 @@ The following commands are accepted by the server:
 `-env NAME=VALUE'
   An environment variable on the client side.
 
+`-dir DIRNAME'
+  The current working directory of the client process.
+
 `-current-frame'
   Forbid the creation of new frames.
 
@@ -520,15 +523,15 @@ The following commands are accepted by the server:
 `-tty DEVICENAME TYPE'
   Open a new tty frame at the client.
 
-`-resume'
-  Resume this tty frame. The client sends this string when it
-  gets the SIGCONT signal and it is the foreground process on its
-  controlling tty.
-
 `-suspend'
   Suspend this tty frame.  The client sends this string in
   response to SIGTSTP and SIGTTOU.  The server must cease all I/O
   on this tty until it gets a -resume command.
+
+`-resume'
+  Resume this tty frame. The client sends this string when it
+  gets the SIGCONT signal and it is the foreground process on its
+  controlling tty.
 
 `-ignore COMMENT'
   Do nothing, but put the comment in the server
@@ -581,6 +584,7 @@ The following commands are accepted by the client:
 		display		     ; Open the frame on this display.
 		dontkill       ; t if the client should not be killed.
 		env
+		dir
 		(files nil)
 		(lineno 1)
 		(columnno 0))
@@ -650,6 +654,7 @@ The following commands are accepted by the client:
 
 			  ;; Display *scratch* by default.
 			  (switch-to-buffer (get-buffer-create "*scratch*") 'norecord)
+			  (if dir (setq default-directory dir))
 
 			  (setq dontkill t))
 		      ;; This emacs does not support X.
@@ -706,6 +711,7 @@ The following commands are accepted by the client:
 
 		      ;; Display *scratch* by default.
 		      (switch-to-buffer (get-buffer-create "*scratch*") 'norecord)
+		      (if dir (setq default-directory dir))
 
 		      ;; Reply with our pid.
 		      (server-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))
@@ -759,6 +765,14 @@ The following commands are accepted by the client:
 		    ;; XXX Variables should be encoded as in getenv/setenv.
 		    (setq request (substring request (match-end 0)))
 		    (setq env (cons var env))))
+
+		 ;; -dir DIRNAME:  The cwd of the emacsclient process.
+		 ((and (equal "-dir" arg) (string-match "\\([^ ]+\\) " request))
+		  (setq dir (server-unquote-arg (match-string 1 request)))
+		  (setq request (substring request (match-end 0)))
+		  (if coding-system
+		      (setq dir (decode-coding-string dir coding-system)))
+		  (setq dir (command-line-normalize-file-name dir)))
 
 		 ;; Unknown command.
 		 (t (error "Unknown command: %s" arg)))))

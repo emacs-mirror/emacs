@@ -1487,5 +1487,12 @@ DIARY OF CHANGES
 
    (Done in patch-537.)
 
+-- The `default-directory' variable should somehow be set to the
+   cwd of the emacsclient process when the user runs emacsclient
+   without file arguments.  Perhaps it is OK to just override the
+   directory of the *scratch* buffer.
+
+   (Done in patch-539.)
+
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
 
