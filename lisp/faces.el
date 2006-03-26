@@ -1725,7 +1725,6 @@ the X resource ``reverseVideo'' is present, handle that.
 Value is the new frame created."
   (setq parameters (x-handle-named-frame-geometry parameters))
   (let ((visibility-spec (assq 'visibility parameters))
-	(frame-list (frame-list))
 	(frame (x-create-frame `((visibility . nil) . ,parameters)))
 	success)
     (unwind-protect
@@ -1739,7 +1738,11 @@ Value is the new frame created."
 	   frame '((interprogram-cut-function . x-select-text)))
 	  (modify-frame-parameters
 	   frame '((interprogram-paste-function . x-cut-buffer-or-selection-value)))
-	  (if (or (null frame-list) (null visibility-spec))
+	  ;; Make sure the tool-bar is ready to be enabled.  The
+	  ;; `tool-bar-lines' frame parameter will not take effect
+	  ;; without this call.
+	  (tool-bar-setup frame)
+	  (if (null visibility-spec)
 	      (make-frame-visible frame)
 	    (modify-frame-parameters frame (list visibility-spec)))
 	  (setq success t))

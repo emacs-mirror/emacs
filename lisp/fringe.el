@@ -104,40 +104,13 @@ This is usually invoked when setting `fringe-mode' via customize."
 See `fringe-mode' for possible values and their effect."
   (setq fringe-mode value)
 
-  ;; Apply it to default-frame-alist.
-  (let ((parameter (assq 'left-fringe default-frame-alist)))
-    (if (consp parameter)
-	(setcdr parameter (if (consp fringe-mode)
-			      (car fringe-mode)
-			    fringe-mode))
-      (setq default-frame-alist
-	    (cons (cons 'left-fringe (if (consp fringe-mode)
-					 (car fringe-mode)
-				       fringe-mode))
-		  default-frame-alist))))
-  (let ((parameter (assq 'right-fringe default-frame-alist)))
-    (if (consp parameter)
-	(setcdr parameter (if (consp fringe-mode)
-			      (cdr fringe-mode)
-			    fringe-mode))
-      (setq default-frame-alist
-	    (cons (cons 'right-fringe (if (consp fringe-mode)
-					  (cdr fringe-mode)
-					fringe-mode))
-		  default-frame-alist))))
-
-  ;; Apply it to existing frames.
-  (let ((frames (frame-list)))
-    (while frames
-      (modify-frame-parameters
-       (car frames)
-       (list (cons 'left-fringe (if (consp fringe-mode)
-				    (car fringe-mode)
-				  fringe-mode))
-	     (cons 'right-fringe (if (consp fringe-mode)
-				     (cdr fringe-mode)
-				   fringe-mode))))
-      (setq frames (cdr frames)))))
+  (modify-all-frames-parameters
+   (list (cons 'left-fringe (if (consp fringe-mode)
+				(car fringe-mode)
+			      fringe-mode))
+	 (cons 'right-fringe (if (consp fringe-mode)
+				 (cdr fringe-mode)
+			       fringe-mode)))))
 
 ;; For initialization of fringe-mode, take account of changes
 ;; made explicitly to default-frame-alist.

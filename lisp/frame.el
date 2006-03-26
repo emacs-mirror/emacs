@@ -41,14 +41,14 @@ as its argument.")
 
 (defvar window-system-default-frame-alist nil
   "Alist of window-system dependent default frame parameters.
-These may be set in your init file, like this:
+You can set this in your `.emacs' file; for example,
 
     ;; Disable menubar and toolbar on the console, but enable them under X.
     (setq window-system-default-frame-alist
           '((x (menu-bar-lines . 1) (tool-bar-lines . 1))
             (nil (menu-bar-lines . 0) (tool-bar-lines . 0))))
 
-Also see `default-frame-alist'.")
+Parameters specified here supersede the values given in `default-frame-alist'.")
 
 ;; The initial value given here used to ask for a minibuffer.
 ;; But that's not necessary, because the default is to have one.
@@ -268,13 +268,21 @@ there (in decreasing order of priority)."
   ;; parameter in default-frame-alist in a dumped Emacs, which is not
   ;; what we want.
   (when (and (boundp 'tool-bar-mode)
-	     (not noninteractive))
+ 	     (not noninteractive))
     (let ((default (assq 'tool-bar-lines default-frame-alist)))
       (if default
-	  (setq tool-bar-mode (not (eq (cdr default) 0)))
-	(setq default-frame-alist
-	      (cons (cons 'tool-bar-lines (if tool-bar-mode 1 0))
-		    default-frame-alist)))))
+ 	  (setq tool-bar-mode (not (eq (cdr default) 0)))
+	;; If Emacs was started on a tty, changing default-frame-alist
+	;; would disable the toolbar on X frames created later.  We
+	;; want to keep the default of showing a toolbar under X even
+	;; in this case.
+	;;
+	;; If the user explicitly called `tool-bar-mode' in .emacs,
+	;; then default-frame-alist is already changed anyway.
+	(when initial-window-system
+	  (setq default-frame-alist
+		(cons (cons 'tool-bar-lines (if tool-bar-mode 1 0))
+		      default-frame-alist))))))
 
   ;; Creating and deleting frames may shift the selected frame around,
   ;; and thus the current buffer.  Protect against that.  We don't
@@ -545,19 +553,25 @@ there (in decreasing order of priority)."
 (defun modify-all-frames-parameters (alist)
   "Modify all current and future frames' parameters according to ALIST.
 This changes `default-frame-alist' and possibly `initial-frame-alist'.
+Furthermore, this function removes all parameters in ALIST from
+`window-system-default-frame-alist'.
 See help of `modify-frame-parameters' for more information."
-  (let (element)			;; temp
-    (dolist (frame (frame-list))
-      (modify-frame-parameters frame alist))
+  (dolist (frame (frame-list))
+    (modify-frame-parameters frame alist))
 
-    (dolist (pair alist)		;; conses to add/replace
-      ;; initial-frame-alist needs setting only when
-      ;; frame-notice-user-settings is true
-      (and frame-notice-user-settings
-	   (setq element (assoc (car pair) initial-frame-alist))
-	   (setq initial-frame-alist (delq element initial-frame-alist)))
-      (and (setq element (assoc (car pair) default-frame-alist))
-	   (setq default-frame-alist (delq element default-frame-alist)))))
+  (dolist (pair alist) ;; conses to add/replace
+    ;; initial-frame-alist needs setting only when
+    ;; frame-notice-user-settings is true.
+    (and frame-notice-user-settings
+	 (setq initial-frame-alist
+	       (assq-delete-all (car pair) initial-frame-alist)))
+    (setq default-frame-alist
+	  (assq-delete-all (car pair) default-frame-alist))
+    ;; Remove any similar settings from the window-system specific
+    ;; parameters---they would override default-frame-alist.
+    (dolist (w window-system-default-frame-alist)
+      (setcdr w (assq-delete-all (car pair) (cdr w)))))
+
   (and frame-notice-user-settings
        (setq initial-frame-alist (append initial-frame-alist alist)))
   (setq default-frame-alist (append default-frame-alist alist)))

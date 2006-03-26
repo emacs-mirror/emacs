@@ -4373,6 +4373,7 @@ These may be set in your init file, like this:
 These override values given in window system configuration data,
  including X Windows' defaults database.
 For values specific to the first Emacs frame, see `initial-frame-alist'.
+For window-system specific values, see `window-system-default-frame-alist'.
 For values specific to the separate minibuffer frame, see
  `minibuffer-frame-alist'.
 The `menu-bar-lines' element of the list controls whether new frames
