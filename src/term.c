@@ -25,9 +25,8 @@ Boston, MA 02110-1301, USA.  */
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-
+#include <errno.h>
 #include <sys/file.h>
-
 #include <unistd.h>             /* For isatty. */
 
 #if HAVE_TERMIOS_H
@@ -2074,7 +2073,7 @@ is not on a tty device.  */)
 {
   struct terminal *t = get_terminal (terminal, 1);
 
-  if (t->type != output_termcap || t->display_info.tty->name)
+  if (t->type != output_termcap || strcmp (t->display_info.tty->name, "/dev/tty"))
     return Qnil;
   else
     return Qt;
@@ -2193,9 +2192,11 @@ the currently selected frame. */)
 
       fd = emacs_open (t->display_info.tty->name, O_RDWR | O_NOCTTY, 0);
 
-      /* XXX What if open fails? */
+      if (fd == -1)
+        error ("Can not reopen tty device %s: %s", t->display_info.tty->name, strerror (errno));
 
-      dissociate_if_controlling_tty (fd);
+      if (strcmp (t->display_info.tty->name, "/dev/tty"))
+        dissociate_if_controlling_tty (fd);
       
       t->display_info.tty->output = fdopen (fd, "w+");
       t->display_info.tty->input = t->display_info.tty->output;
@@ -2303,14 +2304,15 @@ static void maybe_fatal();
 struct terminal *
 init_tty (char *name, char *terminal_type, int must_succeed)
 {
-  char *area;
+  char *area = NULL;
   char **address = &area;
   char *buffer = NULL;
   int buffer_size = 4096;
-  register char *p;
+  register char *p = NULL;
   int status;
-  struct tty_display_info *tty;
-  struct terminal *terminal;
+  struct tty_display_info *tty = NULL;
+  struct terminal *terminal = NULL;
+  int ctty = 0;                 /* 1 if asked to open controlling tty. */
 
   if (!terminal_type)
     maybe_fatal (must_succeed, 0, 0,
@@ -2377,58 +2379,55 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   terminal->delete_frame_hook = &delete_tty_output;
   terminal->delete_terminal_hook = &delete_tty;
   
-  if (name)
-    {
-      int fd;
-      FILE *file;
+  if (name == NULL)
+    name = "/dev/tty";
+  if (!strcmp (name, "/dev/tty"))
+    ctty = 1;
+
+  {
+    int fd;
+    FILE *file;
 
 #ifdef O_IGNORE_CTTY
+    if (!ctty)
       /* Open the terminal device.  Don't recognize it as our
          controlling terminal, and don't make it the controlling tty
          if we don't have one at the moment.  */
       fd = emacs_open (name, O_RDWR | O_IGNORE_CTTY | O_NOCTTY, 0);
+    else
 #else
       /* Alas, O_IGNORE_CTTY is a GNU extension that seems to be only
-         defined on Hurd.  On other systems, we need to dissociate
-         ourselves from the controlling tty when we want to open a
-         frame on the same terminal.  */
-
+         defined on Hurd.  On other systems, we need to explicitly
+         dissociate ourselves from the controlling tty when we want to
+         open a frame on the same terminal.  */
       fd = emacs_open (name, O_RDWR | O_NOCTTY, 0);
-
 #endif /* O_IGNORE_CTTY */
 
-      if (fd < 0)
-        {
-          delete_tty (terminal);
-          error ("Could not open file: %s", name);
-        }
-      if (!isatty (fd))
-        {
-          close (fd);
-          error ("Not a tty device: %s", name);
-        }
+    if (fd < 0)
+      maybe_fatal (must_succeed, buffer, terminal,
+                   "Could not open file: %s",
+                   "Could not open file: %s",
+                   name);
+    if (!isatty (fd))
+      {
+        close (fd);
+        maybe_fatal (must_succeed, buffer, terminal,
+                     "Not a tty device: %s",
+                     "Not a tty device: %s",
+                     name);
+      }
 
+#ifndef O_IGNORE_CTTY
+    if (!ctty)
       dissociate_if_controlling_tty (fd);
-      
-      file = fdopen (fd, "w+");
-      tty->name = xstrdup (name);
-      terminal->name = xstrdup (name);
-      tty->input = file;
-      tty->output = file;
-    }
-  else
-    {
-      if (no_controlling_tty)
-        {
-          /* Opening a frame on stdout is unsafe if we have
-             disconnected our controlling terminal. */
-          error ("There is no controlling terminal any more");
-        }
-      tty->name = 0;
-      terminal->name = xstrdup (ttyname (0));
-      tty->input = stdin;
-      tty->output = stdout;
-    }
+#endif
+
+    file = fdopen (fd, "w+");
+    tty->name = xstrdup (name);
+    terminal->name = xstrdup (name);
+    tty->input = file;
+    tty->output = file;
+  }
 
   tty->type = xstrdup (terminal_type);
 
