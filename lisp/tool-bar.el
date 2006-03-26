@@ -62,6 +62,16 @@ conveniently adding tool bar items."
 	   (tool-bar-setup))))
 
 ;;;###autoload
+;; Used in the Show/Hide menu, to have the toggle reflect the current frame.
+(defun toggle-tool-bar-mode-from-frame (&optional arg)
+  "Toggle tool bar on or off, based on the status of the current frame.
+See `tool-bar-mode' for more information."
+  (interactive (list (or current-prefix-arg 'toggle)))
+  (if (eq arg 'toggle)
+      (tool-bar-mode (if (> (frame-parameter nil 'tool-bar-lines) 0) 0 1))
+    (tool-bar-mode arg)))
+
+;;;###autoload
 ;; We want to pretend the toolbar by standard is on, as this will make
 ;; customize consider disabling the toolbar a customization, and save
 ;; that.  We could do this for real by setting :init-value above, but

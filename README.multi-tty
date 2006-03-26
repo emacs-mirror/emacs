@@ -404,17 +404,6 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
-** `tool-bar-mode', `scroll-bar-mode', `menu-bar-mode' and
-   'fringe-mode' are modes global to the entire Emacs session, not
-   just a single frame or a single terminal.  This means that their
-   status sometimes differs from what's actually displayed on the
-   screen.  As a consequence, the Options | Show/Hide menu sometimes
-   shows incorrect status, and you have to select an option twice for
-   it to have any visible effect on the current frame.
-
-   Change Emacs so that the status of the items in the Options |
-   Show/Hide menu correspond to the current frame.
-
 ** emacsclient -t on the console does not work after su:
 
 	# su lorentey
@@ -1484,6 +1473,19 @@ DIARY OF CHANGES
    to the immediate caller.
 
    (Done in patch-500.)
+
+-- `tool-bar-mode', `scroll-bar-mode', `menu-bar-mode' and
+   'fringe-mode' are modes global to the entire Emacs session, not
+   just a single frame or a single terminal.  This means that their
+   status sometimes differs from what's actually displayed on the
+   screen.  As a consequence, the Options | Show/Hide menu sometimes
+   shows incorrect status, and you have to select an option twice for
+   it to have any visible effect on the current frame.
+
+   Change Emacs so that the status of the items in the Options |
+   Show/Hide menu correspond to the current frame.
+
+   (Done in patch-537.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
 
