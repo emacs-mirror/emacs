@@ -48,7 +48,7 @@
   :group 'emacsbug
   :type 'string)
 
-(defcustom report-emacs-bug-pretest-address "emacs-pretest-bug@gnu.org"
+(defcustom report-emacs-bug-pretest-address "multi-tty@lists.fnord.hu"
   "*Address of mailing list for GNU Emacs pretest bugs."
   :group 'emacsbug
   :type 'string)
