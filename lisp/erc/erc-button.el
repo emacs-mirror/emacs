@@ -216,7 +216,7 @@ PAR is a number of a regexp grouping whose text will be passed to
         (define-key map (kbd "<button2>") 'erc-button-click-button)
       (define-key map (kbd "<mouse-2>") 'erc-button-click-button))
     (define-key map (kbd "TAB") 'erc-button-next)
-    (define-key map (kbd "<C-tab>") 'erc-button-previous)
+    (define-key map (kbd "<backtab>") 'erc-button-previous)
     (set-keymap-parent map erc-mode-map)
     map)
   "Local keymap for ERC buttons.")

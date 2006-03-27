@@ -46,6 +46,7 @@
 			     system-type (user-login-name)))
 	(process-send-eof erc-identd-process)))))
 
+;;;###autoload
 (defun erc-identd-start (&optional port)
   "Start an identd server listening to port 8113.
 Port 113 (auth) will need to be redirected to port 8113 on your
@@ -60,15 +61,14 @@ system."
 	(setq port (string-to-number port))))
   (if erc-identd-process
       (delete-process erc-identd-process))
-  (if (fboundp 'make-network-process)
-      (setq erc-identd-process
-	    (make-network-process :name "identd"
-				  :buffer (generate-new-buffer "identd")
-				  :service port :server t :noquery t
-				  :filter 'erc-identd-filter))
-    (open-network-stream-server "identd" (generate-new-buffer "identd")
-				port nil 'erc-identd-filter)))
+  (setq erc-identd-process
+	(make-network-process :name "identd"
+			      :buffer (generate-new-buffer "identd")
+			      :host 'local :service port
+			      :server t :noquery t
+			      :filter 'erc-identd-filter)))
 
+;;;###autoload
 (defun erc-identd-stop (&rest ignore)
   (interactive)
   (when erc-identd-process
