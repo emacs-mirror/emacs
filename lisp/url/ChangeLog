@@ -1,3 +1,9 @@
+2006-03-27  Romain Francoise  <romain@orebokech.com>
+
+	* url-irc.el (url-irc-rcirc, url-irc-erc): New functions.
+	(url-irc-function): Add rcirc and ERC to the list of IRC clients.
+	Default to rcirc, since ZenIRC isn't part of Emacs.
+
 2006-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-http.el (url-http-find-free-connection): Fix braino in last fix.

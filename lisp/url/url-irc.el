@@ -33,15 +33,17 @@
 
 (defconst url-irc-default-port 6667 "Default port for IRC connections")
 
-(defcustom url-irc-function 'url-irc-zenirc
+(defcustom url-irc-function 'url-irc-rcirc
   "*Function to actually open an IRC connection.
-Should be a function that takes several argument:
+Should be a function that takes several arguments:
     HOST - the hostname of the IRC server to contact
     PORT - the port number of the IRC server to contact
  CHANNEL - What channel on the server to visit right away (can be nil)
     USER - What username to use
 PASSWORD - What password to use"
-  :type '(choice (const :tag "ZEN IRC" :value 'url-irc-zenirc)
+  :type '(choice (const :tag "rcirc" :value url-irc-rcirc)
+		 (const :tag "ERC" :value url-irc-erc)
+		 (const :tag "ZEN IRC" :value url-irc-zenirc)
 		 (function :tag "Other"))
   :group 'url)
 
@@ -59,6 +61,16 @@ PASSWORD - What password to use"
       (insert "/join " channel)
       (zenirc-send-line))))
 
+(defun url-irc-rcirc (host port channel user password)
+  (let ((chan (when channel (concat "#" channel))))
+    (rcirc-connect host port user nil nil (when chan (list chan)))
+    (when chan
+      (switch-to-buffer (concat chan "@" host)))))
+
+(defun url-irc-erc (host port channel user password)
+  (erc-select :server host :port port :nick user :password password)
+  (erc-join-channel channel))
+
 ;;;###autoload
 (defun url-irc (url)
   (let* ((host (url-host url))
@@ -74,7 +86,7 @@ PASSWORD - What password to use"
 	(setq chan nil))
     (funcall url-irc-function host port chan user pass)
     nil))
-    
+
 (provide 'url-irc)
 
 ;;; arch-tag: 2e5eecf8-9eb3-436b-9fbd-c26f2fb2bf3e
