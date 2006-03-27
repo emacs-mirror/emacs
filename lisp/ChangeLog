@@ -5,7 +5,7 @@
 
 2006-03-27  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-get-level-face): Fixed bug with level
+	* textmodes/org.el (org-get-level-face): Fix bug with level
 	counting.
 
 2006-03-26  Andreas Schwab  <schwab@suse.de>
@@ -134,7 +134,7 @@
 
 2006-03-21  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-open-at-point): Fixed bug in wiki-style
+	* textmodes/org.el (org-open-at-point): Fix bug in wiki-style
 	bracket links.
 
 2006-03-21  Kim F. Storm  <storm@cua.dk>
@@ -335,7 +335,7 @@
 2006-03-15  Bill Wohler  <wohler@newt.com>
 
 	* image.el (image-load-path-for-library): Fix example by not
-	recommending that one binds image-load-path. Just defvar it to
+	recommending that one binds image-load-path.  Just defvar it to
 	placate compiler and only use it if previously defined.
 
 2006-03-15  Carsten Dominik  <dominik@science.uva.nl>
