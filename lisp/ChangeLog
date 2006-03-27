@@ -1,3 +1,7 @@
+2006-03-27  Romain Francoise  <romain@orebokech.com>
+
+	* net/rcirc.el (rcirc-connect): Add autoload cookie.
+
 2006-03-27  Daiki Ueno  <ueno@unixuser.org>
 
 	* pgg-gpg.el: Invoke gpg asynchronous, to avoid querying for
