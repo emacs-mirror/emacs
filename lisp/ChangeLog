@@ -1,3 +1,8 @@
+2006-03-27  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-get-level-face): Fixed bug with level
+	counting.
+
 2006-03-26  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/gud.el (gdb): Only complain about multiple debugging
