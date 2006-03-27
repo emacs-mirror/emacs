@@ -2,6 +2,8 @@
 
 	* net/rcirc.el (rcirc-connect): Add autoload cookie.
 
+	* ldefs-boot.el: Update.
+
 2006-03-27  Daiki Ueno  <ueno@unixuser.org>
 
 	* pgg-gpg.el: Invoke gpg asynchronous, to avoid querying for
