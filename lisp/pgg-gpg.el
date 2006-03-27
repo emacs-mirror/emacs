@@ -4,8 +4,7 @@
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
-;; Symmetric encryption and gpg-agent support added by: 
-;;   Sascha Wilde <wilde@sha-bang.de>
+;; Symmetric encryption support added by: Sascha Wilde <wilde@sha-bang.de>
 ;; Created: 1999/10/28
 ;; Keywords: PGP, OpenPGP, GnuPG
 
@@ -29,7 +28,6 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)				; for gpg macros
   (require 'pgg))
 
 (defgroup pgg-gpg ()
@@ -60,85 +58,183 @@
 (defvar pgg-gpg-user-id nil
   "GnuPG ID of your default identity.")
 
-(defun pgg-gpg-process-region (start end passphrase program args)
-  (let* ((use-agent (pgg-gpg-use-agent-p)) 
-	 (output-file-name (pgg-make-temp-file "pgg-output"))
+(defvar pgg-gpg-user-id-alist nil
+  "An alist mapping from key ID to user ID.")
+
+(defvar pgg-gpg-read-point nil)
+(defvar pgg-gpg-output-file-name nil)
+(defvar pgg-gpg-pending-status-list nil)
+(defvar pgg-gpg-key-id nil)
+(defvar pgg-gpg-passphrase nil)
+(defvar pgg-gpg-debug nil)
+
+(defun pgg-gpg-start-process (args)
+  (let* ((output-file-name (pgg-make-temp-file "pgg-output"))
 	 (args
-	  `("--status-fd" "2"
-	    ,@(if use-agent '("--use-agent")
-		(if passphrase '("--passphrase-fd" "0")))
-	    "--yes" ; overwrite
-	    "--output" ,output-file-name
-	    ,@pgg-gpg-extra-args ,@args))
-	 (output-buffer pgg-output-buffer)
-	 (errors-buffer pgg-errors-buffer)
-	 (orig-mode (default-file-modes))
+	  (append (list "--no-tty"
+			"--status-fd" "1"
+			"--command-fd" "0"
+			"--yes" ; overwrite
+			"--output" output-file-name)
+		  (if pgg-gpg-use-agent '("--use-agent"))
+		  pgg-gpg-extra-args
+		  args))
+	 (coding-system-for-write 'binary)
 	 (process-connection-type nil)
-	 exit-status)
-    (with-current-buffer (get-buffer-create errors-buffer)
-      (buffer-disable-undo)
-      (erase-buffer))
+	 (orig-mode (default-file-modes))
+	 default-enable-multibyte-characters
+	 (buffer (generate-new-buffer " *pgg-gpg*"))
+	 process)
+    (with-current-buffer buffer
+      (make-local-variable 'pgg-gpg-read-point)
+      (setq pgg-gpg-read-point (point-min))
+      (make-local-variable 'pgg-gpg-output-file-name)
+      (setq pgg-gpg-output-file-name output-file-name)
+      (make-local-variable 'pgg-gpg-pending-status-list)
+      (setq pgg-gpg-pending-status-list nil)
+      (make-local-variable 'pgg-gpg-key-id)
+      (setq pgg-gpg-key-id nil)
+      (make-local-variable 'pgg-gpg-passphrase)
+      (setq pgg-gpg-passphrase nil))
     (unwind-protect
 	(progn
 	  (set-default-file-modes 448)
-	  (let ((coding-system-for-write 'binary)
-		(input (buffer-substring-no-properties start end))
-		(default-enable-multibyte-characters nil))
-	    (with-temp-buffer
-	      (when passphrase
-		(insert passphrase "\n"))
-	      (insert input)
-	      (setq exit-status
-		    (apply #'call-process-region (point-min) (point-max) program
-			   nil errors-buffer nil args))))
-	  (with-current-buffer (get-buffer-create output-buffer)
-	    (buffer-disable-undo)
-	    (erase-buffer)
-	    (if (file-exists-p output-file-name)
-		(let ((coding-system-for-read (if pgg-text-mode
-						  'raw-text
-						'binary)))
-		  (insert-file-contents output-file-name)))
-	    (set-buffer errors-buffer)
-	    (if (not (equal exit-status 0))
-		(insert (format "\n%s exited abnormally: '%s'\n"
-				program exit-status)))))
-      (if (file-exists-p output-file-name)
-	  (delete-file output-file-name))
-      (set-default-file-modes orig-mode))))
+	  (setq process
+		(apply #'start-process "pgg-gpg" buffer pgg-gpg-program args)))
+      (set-default-file-modes orig-mode))
+    (set-process-filter process #'pgg-gpg-process-filter)
+    (set-process-sentinel process #'pgg-gpg-process-sentinel)
+    process))
 
-(defun pgg-gpg-possibly-cache-passphrase (passphrase &optional key notruncate)
-  (if (and passphrase
-	   pgg-cache-passphrase
-	   (progn
-	     (goto-char (point-min))
-	     (re-search-forward "^\\[GNUPG:] \\(GOOD_PASSPHRASE\\>\\)\\|\\(SIG_CREATED\\)" nil t)))
-      (pgg-add-passphrase-to-cache
-       (or key
-	   (progn
-	     (goto-char (point-min))
-	     (if (re-search-forward
-		  "^\\[GNUPG:] NEED_PASSPHRASE\\(_PIN\\)? \\w+ ?\\w*" nil t)
-		 (substring (match-string 0) -8))))
-       passphrase
-       notruncate)))
+(defun pgg-gpg-process-filter (process input)
+  (save-excursion
+    (if pgg-gpg-debug
+	(save-excursion
+	  (set-buffer (get-buffer-create  " *pgg-gpg-debug*"))
+	  (goto-char (point-max))
+	  (insert input)))
+    (set-buffer (process-buffer process))
+    (goto-char (point-max))
+    (insert input)
+    (goto-char pgg-gpg-read-point)
+    (beginning-of-line)
+    (while (looking-at ".*\n")		;the input line is finished
+      (save-excursion
+	(if (looking-at "\\[GNUPG:] \\([A-Z_]+\\)\\>.*")
+	    (let* ((status (match-string 1))
+		   (symbol (intern-soft (concat "pgg-gpg-status-" status)))
+		   (entry (member status pgg-gpg-pending-status-list)))
+	      (if entry
+		  (setq pgg-gpg-pending-status-list
+			(delq (car entry)
+			      pgg-gpg-pending-status-list)))
+	      (if (and symbol
+		       (fboundp symbol))
+		  (funcall symbol process (buffer-substring (match-beginning 1)
+							    (match-end 0)))))))
+      (forward-line))
+    (setq pgg-gpg-read-point (point))))
 
-(defvar pgg-gpg-all-secret-keys 'unknown)
+(defun pgg-gpg-process-sentinel (process status)
+  (set-process-filter process nil)
+  (save-excursion
+    ;; Copy the contents of process-buffer to pgg-errors-buffer.
+    (set-buffer (get-buffer-create pgg-errors-buffer))
+    (buffer-disable-undo)
+    (erase-buffer)
+    (when (buffer-live-p (process-buffer process))
+      (insert-buffer-substring (process-buffer process))
+      (goto-char (point-min))
+      (delete-matching-lines "^\\[GNUPG:] ")
+      (goto-char (point-min))
+      (while (re-search-forward "^gpg: " nil t)
+	(replace-match "")))
+    ;; Read the contents of the output file to pgg-output-buffer.
+    (set-buffer (get-buffer-create pgg-output-buffer))
+    (buffer-disable-undo)
+    (erase-buffer)
+    (if (and (equal status "finished\n")
+	     (buffer-live-p (process-buffer process)))
+	(let ((output-file-name (with-current-buffer (process-buffer process)
+				  pgg-gpg-output-file-name)))
+	  (when (file-exists-p output-file-name)
+	    (let ((coding-system-for-read (if pgg-text-mode
+					      'raw-text
+					    'binary)))
+	      (insert-file-contents output-file-name))
+	    (delete-file output-file-name))))))
 
-(defun pgg-gpg-lookup-all-secret-keys ()
-  "Return all secret keys present in secret key ring."
-  (when (eq pgg-gpg-all-secret-keys 'unknown)
-    (setq pgg-gpg-all-secret-keys '())
-    (let ((args (list "--with-colons" "--no-greeting" "--batch"
-		      "--list-secret-keys")))
-      (with-temp-buffer
-	(apply #'call-process pgg-gpg-program nil t nil args)
+(defun pgg-gpg-wait-for-status (process status-list)
+  (with-current-buffer (process-buffer process)
+    (setq pgg-gpg-pending-status-list status-list)
+    (while (and (eq (process-status process) 'run)
+		pgg-gpg-pending-status-list)
+      (accept-process-output process 1))))
+
+(defun pgg-gpg-wait-for-completion (process &optional status-list)
+  (process-send-eof process)
+  (while (eq (process-status process) 'run)
+    (sit-for 0.1))
+  (save-excursion
+    (set-buffer (process-buffer process))
+    (setq status-list (copy-sequence status-list))
+    (let ((pointer status-list))
+      (while pointer
 	(goto-char (point-min))
-	(while (re-search-forward
-		"^\\(sec\\|pub\\):[^:]*:[^:]*:[^:]*:\\([^:]*\\)" nil t)
-	  (push (substring (match-string 2) 8)
-		pgg-gpg-all-secret-keys)))))
-  pgg-gpg-all-secret-keys)
+	(unless (re-search-forward
+		 (concat "^\\[GNUPG:] " (car pointer) "\\>")
+		 nil t)
+	  (setq status-list (delq (car pointer) status-list)))
+	(setq pointer (cdr pointer))))
+    (kill-buffer (process-buffer process))
+    status-list))
+
+(defun pgg-gpg-status-USERID_HINT (process line)
+  (if (string-match "\\`USERID_HINT \\([^ ]+\\) \\(.*\\)" line)
+      (let* ((key-id (match-string 1 line))
+	     (user-id (match-string 2 line))
+	     (entry (assoc key-id pgg-gpg-user-id-alist)))
+	(if entry
+	    (setcdr entry user-id)
+	  (setq pgg-gpg-user-id-alist (cons (cons key-id user-id)
+					    pgg-gpg-user-id-alist))))))
+
+(defun pgg-gpg-status-NEED_PASSPHRASE (process line)
+  (if (string-match "\\`NEED_PASSPHRASE \\([^ ]+\\)" line)
+      (setq pgg-gpg-key-id (match-string 1 line))))
+
+(defun pgg-gpg-status-NEED_PASSPHRASE_SYM (process line)
+  (setq pgg-gpg-key-id 'SYM))
+
+(defun pgg-gpg-status-NEED_PASSPHRASE_PIN (process line)
+  (setq pgg-gpg-key-id 'PIN))
+
+(defun pgg-gpg-status-GET_HIDDEN (process line)
+  (let ((entry (assoc pgg-gpg-key-id pgg-gpg-user-id-alist)))
+    (if (setq pgg-gpg-passphrase
+	      (if (eq pgg-gpg-key-id 'SYM)
+		  (pgg-read-passphrase
+		   "GnuPG passphrase for symmetric encryption: ")
+		(pgg-read-passphrase
+		 (format "GnuPG passphrase for %s: "
+			 (if entry
+			     (cdr entry)
+			   pgg-gpg-key-id))
+		 (if (eq pgg-gpg-key-id 'PIN)
+		     "PIN"
+		   pgg-gpg-key-id))))
+	(process-send-string process (concat pgg-gpg-passphrase "\n")))))
+
+(defun pgg-gpg-status-GOOD_PASSPHRASE (process line)
+  (when (and pgg-gpg-passphrase
+	     (stringp pgg-gpg-key-id))
+    (pgg-add-passphrase-to-cache pgg-gpg-key-id pgg-gpg-passphrase)
+    (setq pgg-gpg-passphrase nil)))
+
+(defun pgg-gpg-status-BAD_PASSPHRASE (process line)
+  (when pgg-gpg-passphrase
+    (fillarray pgg-gpg-passphrase 0)
+    (setq pgg-gpg-passphrase nil)))
 
 (defun pgg-gpg-lookup-key (string &optional type)
   "Search keys associated with STRING."
@@ -152,52 +248,15 @@
 			     nil t)
 	  (substring (match-string 2) 8)))))
 
-(defun pgg-gpg-lookup-key-owner (string &optional all)
-  "Search keys associated with STRING and return owner of identified key.
-
-The value may be just the bare key id, or it may be a combination of the
-user name associated with the key and the key id, with the key id enclosed
-in \"<...>\" angle brackets.
-
-Optional ALL non-nil means search all keys, including secret keys."
-  (let ((args (list "--with-colons" "--no-greeting" "--batch"
-		    (if all "--list-secret-keys" "--list-keys")
-		    string))
-	(key-regexp (concat "^\\(sec\\|pub\\)"
-			    ":[^:]*:[^:]*:[^:]*:\\([^:]*\\):[^:]*"
-			    ":[^:]*:[^:]*:[^:]*:\\([^:]*\\):")))
-    (with-temp-buffer
-      (apply #'call-process pgg-gpg-program nil t nil args)
-      (goto-char (point-min))
-      (if (re-search-forward key-regexp
-			     nil t)
-	  (match-string 3)))))
-
-(defun pgg-gpg-key-id-from-key-owner (key-owner)
-  (cond ((not key-owner) nil)
-	;; Extract bare key id from outermost paired angle brackets, if any:
-	((string-match "[^<]*<\\(.+\\)>[^>]*" key-owner)
-	 (substring key-owner (match-beginning 1)(match-end 1)))
-	(key-owner)))
-
 (defun pgg-gpg-encrypt-region (start end recipients &optional sign passphrase)
   "Encrypt the current region between START and END.
 
-If optional argument SIGN is non-nil, do a combined sign and encrypt.
-
-If optional PASSPHRASE is not specified, it will be obtained from the
-passphrase cache or user."
+If optional argument SIGN is non-nil, do a combined sign and encrypt."
   (let* ((pgg-gpg-user-id (or pgg-gpg-user-id pgg-default-user-id))
-	 (passphrase (or passphrase
-			 (when (and sign (not (pgg-gpg-use-agent-p)))
-			   (pgg-read-passphrase
-			    (format "GnuPG passphrase for %s: "
-				    pgg-gpg-user-id)
-			    pgg-gpg-user-id))))
 	 (args
 	  (append
-	   (list "--batch" "--armor" "--always-trust" "--encrypt")
-	   (if pgg-text-mode (list "--textmode"))
+	   '("--armor" "--always-trust" "--encrypt")
+	   (if pgg-text-mode '("--textmode"))
 	   (if sign (list "--sign" "--local-user" pgg-gpg-user-id))
 	   (if recipients
 	       (apply #'nconc
@@ -205,178 +264,71 @@ passphrase cache or user."
 				(list pgg-gpg-recipient-argument rcpt))
 			      (append recipients
 				      (if pgg-encrypt-for-me
-					  (list pgg-gpg-user-id)))))))))
-    (pgg-gpg-process-region start end passphrase pgg-gpg-program args)
-    (when sign
-      (with-current-buffer pgg-errors-buffer
-	;; Possibly cache passphrase under, e.g. "jas", for future sign.
-	(pgg-gpg-possibly-cache-passphrase passphrase pgg-gpg-user-id)
-	;; Possibly cache passphrase under, e.g. B565716F, for future decrypt.
-	(pgg-gpg-possibly-cache-passphrase passphrase)))
-    (pgg-process-when-success)))
+					  (list pgg-gpg-user-id))))))))
+	 (process (pgg-gpg-start-process args)))
+    (if (and sign (not pgg-gpg-use-agent))
+	(pgg-gpg-wait-for-status process '("GOOD_PASSPHRASE")))
+    (process-send-region process start end)
+    (pgg-gpg-wait-for-completion process '("SIG_CREATED" "END_ENCRYPTION"))))
 
 (defun pgg-gpg-encrypt-symmetric-region (start end &optional passphrase)
-  "Encrypt the current region between START and END with symmetric cipher.
-
-If optional PASSPHRASE is not specified, it will be obtained from the
-passphrase cache or user."
-  (let* ((passphrase (or passphrase
-			 (when (not (pgg-gpg-use-agent-p))
-			   (pgg-read-passphrase
-			    "GnuPG passphrase for symmetric encryption: "))))
-	 (args
-	  (append (list "--batch" "--armor" "--symmetric" )
-		  (if pgg-text-mode (list "--textmode")))))
-    (pgg-gpg-process-region start end passphrase pgg-gpg-program args)
-    (pgg-process-when-success)))
+  "Encrypt the current region between START and END with symmetric cipher."
+  (let* ((args
+	  (append '("--armor" "--symmetric")
+		  (if pgg-text-mode '("--textmode"))))
+	 (process (pgg-gpg-start-process args)))
+    (pgg-gpg-wait-for-status process '("BEGIN_ENCRYPTION"))
+    (process-send-region process start end)
+    (pgg-gpg-wait-for-completion process '("END_ENCRYPTION"))))
 
 (defun pgg-gpg-decrypt-region (start end &optional passphrase)
-  "Decrypt the current region between START and END.
-
-If optional PASSPHRASE is not specified, it will be obtained from the
-passphrase cache or user."
-  (let* ((current-buffer (current-buffer))
-	 (message-keys (with-temp-buffer
-			 (insert-buffer-substring current-buffer)
-			 (pgg-decode-armor-region (point-min) (point-max))))
-	 (secret-keys (pgg-gpg-lookup-all-secret-keys))
-	 ;; XXX the user is stuck if they need to use the passphrase for
-	 ;;     any but the first secret key for which the message is
-	 ;;     encrypted.  ideally, we would incrementally give them a
-	 ;;     chance with subsequent keys each time they fail with one.
-	 (key (pgg-gpg-select-matching-key message-keys secret-keys))
-	 (key-owner (and key (pgg-gpg-lookup-key-owner key t)))
-	 (key-id (pgg-gpg-key-id-from-key-owner key-owner))
-	 (pgg-gpg-user-id (or key-id key
-			      pgg-gpg-user-id pgg-default-user-id))
-	 (passphrase (or passphrase
-			 (when (not (pgg-gpg-use-agent-p))
-			   (pgg-read-passphrase
-			    (format (if (pgg-gpg-symmetric-key-p message-keys)
-					"Passphrase for symmetric decryption: "
-				      "GnuPG passphrase for %s: ")
-				    (or key-owner "??"))
-			    pgg-gpg-user-id))))
-	 (args '("--batch" "--decrypt")))
-    (pgg-gpg-process-region start end passphrase pgg-gpg-program args)
-    (with-current-buffer pgg-errors-buffer
-      (pgg-gpg-possibly-cache-passphrase passphrase pgg-gpg-user-id)
-      (goto-char (point-min))
-      (re-search-forward "^\\[GNUPG:] DECRYPTION_OKAY\\>" nil t))))
-
-;;;###autoload
-(defun pgg-gpg-symmetric-key-p (message-keys)
-  "True if decoded armor MESSAGE-KEYS has symmetric encryption indicator."
-  (let (result)
-    (dolist (key message-keys result)
-      (when (and (eq (car key) 3)
-		 (member '(symmetric-key-algorithm) key))
-	(setq result key)))))
-
-(defun pgg-gpg-select-matching-key (message-keys secret-keys)
-  "Choose a key from MESSAGE-KEYS that matches one of the keys in SECRET-KEYS."
-  (loop for message-key in message-keys
-	for message-key-id = (and (equal (car message-key) 1)
-				  (cdr (assq 'key-identifier
-					     (cdr message-key))))
-	for key = (and message-key-id (pgg-lookup-key message-key-id 'encrypt))
-	when (and key (member key secret-keys)) return key))
+  "Decrypt the current region between START and END."
+  (let* ((args '("--decrypt"))
+	 (process (pgg-gpg-start-process args)))
+    (process-send-region process start end)
+    (pgg-gpg-wait-for-status process '("BEGIN_DECRYPTION"))
+    (pgg-gpg-wait-for-completion process '("GOODSIG" "DECRYPTION_OKAY"))))
 
 (defun pgg-gpg-sign-region (start end &optional cleartext passphrase)
   "Make detached signature from text between START and END."
   (let* ((pgg-gpg-user-id (or pgg-gpg-user-id pgg-default-user-id))
-	 (passphrase (or passphrase
-			 (when (not (pgg-gpg-use-agent-p))
-			   (pgg-read-passphrase
-			    (format "GnuPG passphrase for %s: "
-				    pgg-gpg-user-id)
-			    pgg-gpg-user-id))))
 	 (args
 	  (append (list (if cleartext "--clearsign" "--detach-sign")
-			"--armor" "--batch" "--verbose"
+			"--armor" "--verbose"
 			"--local-user" pgg-gpg-user-id)
-		  (if pgg-text-mode (list "--textmode"))))
-	 (inhibit-read-only t)
-	 buffer-read-only)
-    (pgg-gpg-process-region start end passphrase pgg-gpg-program args)
-    (with-current-buffer pgg-errors-buffer
-      ;; Possibly cache passphrase under, e.g. "jas", for future sign.
-      (pgg-gpg-possibly-cache-passphrase passphrase pgg-gpg-user-id)
-      ;; Possibly cache passphrase under, e.g. B565716F, for future decrypt.
-      (pgg-gpg-possibly-cache-passphrase passphrase))
-    (pgg-process-when-success)))
+		  (if pgg-text-mode '("--textmode"))))
+	 (process (pgg-gpg-start-process args)))
+    (unless pgg-gpg-use-agent
+      (pgg-gpg-wait-for-status process '("GOOD_PASSPHRASE")))
+    (process-send-region process start end)
+    (pgg-gpg-wait-for-completion process '("SIG_CREATED"))))
 
 (defun pgg-gpg-verify-region (start end &optional signature)
   "Verify region between START and END as the detached signature SIGNATURE."
-  (let ((args '("--batch" "--verify")))
+  (let ((args '("--verify"))
+	process)
     (when (stringp signature)
       (setq args (append args (list signature))))
-    (setq args (append args '("-")))
-    (pgg-gpg-process-region start end nil pgg-gpg-program args)
-    (with-current-buffer pgg-errors-buffer
-      (goto-char (point-min))
-      (while (re-search-forward "^gpg: \\(.*\\)\n" nil t)
-	(with-current-buffer pgg-output-buffer
-	  (insert-buffer-substring pgg-errors-buffer
-				   (match-beginning 1) (match-end 0)))
-	(delete-region (match-beginning 0) (match-end 0)))
-      (goto-char (point-min))
-      (re-search-forward "^\\[GNUPG:] GOODSIG\\>" nil t))))
+    (setq process (pgg-gpg-start-process (append args '("-"))))
+    (process-send-region process start end)
+    (pgg-gpg-wait-for-completion process '("GOODSIG"))))
 
 (defun pgg-gpg-insert-key ()
   "Insert public key at point."
   (let* ((pgg-gpg-user-id (or pgg-gpg-user-id pgg-default-user-id))
-	 (args (list "--batch" "--export" "--armor"
-		     pgg-gpg-user-id)))
-    (pgg-gpg-process-region (point)(point) nil pgg-gpg-program args)
+	 (args (list "--export" "--armor"
+		     pgg-gpg-user-id))
+	 (process (pgg-gpg-start-process args)))
+    (pgg-gpg-wait-for-completion process)
     (insert-buffer-substring pgg-output-buffer)))
 
 (defun pgg-gpg-snarf-keys-region (start end)
   "Add all public keys in region between START and END to the keyring."
-  (let ((args '("--import" "--batch" "-")) status)
-    (pgg-gpg-process-region start end nil pgg-gpg-program args)
-    (set-buffer pgg-errors-buffer)
-    (goto-char (point-min))
-    (when (re-search-forward "^\\[GNUPG:] IMPORT_RES\\>" nil t)
-      (setq status (buffer-substring (match-end 0)
-				     (progn (end-of-line)(point)))
-	    status (vconcat (mapcar #'string-to-number (split-string status))))
-      (erase-buffer)
-      (insert (format "Imported %d key(s).
-\tArmor contains %d key(s) [%d bad, %d old].\n"
-		      (+ (aref status 2)
-			 (aref status 10))
-		      (aref status 0)
-		      (aref status 1)
-		      (+ (aref status 4)
-			 (aref status 11)))
-	      (if (zerop (aref status 9))
-		  ""
-		"\tSecret keys are imported.\n")))
-    (append-to-buffer pgg-output-buffer (point-min)(point-max))
-    (pgg-process-when-success)))
-
-(defun pgg-gpg-update-agent ()
-  "Try to connet to gpg-agent and send UPDATESTARTUPTTY."
-  (if (fboundp 'make-network-process)
-      (let* ((agent-info (getenv "GPG_AGENT_INFO"))
-	     (socket (and agent-info
-			  (string-match "^\\([^:]*\\)" agent-info)
-			  (match-string 1 agent-info)))
-	     (conn (and socket
-			(make-network-process :name "gpg-agent-process"
-					      :host 'local :family 'local
-					      :service socket))))
-	(when (and conn (eq (process-status conn) 'open))
-	  (process-send-string conn "UPDATESTARTUPTTY\n")
-	  (delete-process conn)
-	  t))
-    ;; We can't check, so assume gpg-agent is up.
-    t))
-
-(defun pgg-gpg-use-agent-p ()
-  "Return t if `pgg-gpg-use-agent' is t and gpg-agent is available."
-  (and pgg-gpg-use-agent (pgg-gpg-update-agent)))
+  (let* ((args '("--import" "-"))
+	 (process (pgg-gpg-start-process args))
+	 status)
+    (process-send-region process start end)
+    (pgg-gpg-wait-for-completion process '("IMPORT_RES"))))
 
 (provide 'pgg-gpg)
 

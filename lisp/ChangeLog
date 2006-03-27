@@ -1,3 +1,11 @@
+2006-03-27  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el: Invoke gpg asynchronous, to avoid querying for
+	passphrases when it is not needed.
+	(pgg-gpg-use-agent): Add, to hard code that pgg shouldn't wait for
+	passphrase stuff from gpg, should only be necessary when you use
+	gpg with a smartcard.
+
 2006-03-27  Nick Roberts  <nickrob@snap.net.nz>
 
 	* comint.el (comint-dynamic-list-completions): Allow user to
