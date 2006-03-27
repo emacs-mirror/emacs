@@ -1,3 +1,8 @@
+2006-03-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* comint.el (comint-dynamic-list-completions): Allow user to
+	select *Completions* buffer.
+
 2006-03-27  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-get-level-face): Fixed bug with level
