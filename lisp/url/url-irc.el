@@ -69,7 +69,8 @@ PASSWORD - What password to use"
 
 (defun url-irc-erc (host port channel user password)
   (erc-select :server host :port port :nick user :password password)
-  (erc-join-channel channel))
+  (when channel
+    (erc-join-channel channel)))
 
 ;;;###autoload
 (defun url-irc (url)
