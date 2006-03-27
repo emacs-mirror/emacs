@@ -1,3 +1,13 @@
+2006-03-27  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (Emacs/W3): Rename from `w3-mode'.  Mention that
+	Emacs/W3 needs a new maintainer.
+	(Ispell): Update author and version info.
+	(Mailcrypt): Mention PGG.
+	(New in Emacs 22): Add PGG to the list of new packages.
+	Include minor changes from "Ramprasad B" <ramprasad_i82@yahoo.com>
+	updating dead URLs.
+
 2006-03-25  Karl Berry  <karl@gnu.org>
 
 	* ada-mode.texi, autotype.texi, calc.texi, cc-mode.texi, cl.texi,
