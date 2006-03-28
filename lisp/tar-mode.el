@@ -397,7 +397,8 @@ MODE should be an integer which is a file mode value."
 		(unless (file-directory-p name)
 		  (write-region start end name))
 		(set-file-modes name (tar-header-mode tokens))))))
-      (set-buffer-multibyte multibyte))))
+      (if multibyte
+	  (set-buffer-multibyte 'to)))))
 
 (defun tar-summarize-buffer ()
   "Parse the contents of the tar file in the current buffer.
@@ -448,7 +449,8 @@ is visible (and the real data of the buffer is hidden)."
           (progress-reporter-done progress-reporter)
         (message "Warning: premature EOF parsing tar file")))
     ;; Obey the user's preference for the use of uni/multibytes.
-    (set-buffer-multibyte default-enable-multibyte-characters)
+    (if default-enable-multibyte-characters
+	(set-buffer-multibyte 'to))
     (goto-char (point-min))
     (let ((inhibit-read-only t)
           ;; Collect summary lines and insert them all at once since tar files
