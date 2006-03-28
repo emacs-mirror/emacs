@@ -18,7 +18,7 @@
 #
 # Please e-mail changes to terminfo@thyrsus.com; the old termcap@berkeley.edu
 # address is no longer valid.  The latest version can always be found at
-# <http://www.tuxedo.org/terminfo>.
+# <http://catb.org/esr/terminfo/termtypes.ti.gz>.
 #
 # PURPOSE OF THIS FILE:
 #
@@ -34,7 +34,7 @@
 # termcap/terminfo versions.
 #
 # Pointers to related resources (including the ncurses distribution) may
-# be found at <http://www.tuxedo.org/terminfo>.
+# be found at <http://catb.org/esr/terminfo/termtypes.ti.gz>.
 #
 # INTERNATIONALIZATION:
 #
@@ -2200,7 +2200,7 @@ crt|crt-vt220|CRT 2.3 emulating VT220:\
 	:st=\EH:u6=\E[%i%d;%dR:u7=\E[6n:u8=\E[?1;2c:u9=\E[c:\
 	:tc=vt220:tc=ecma+color:
 
-# PuTTY 0.51 (released 14 December 2000)
+# PuTTY 0.58 (released 05 April 2005)
 # http://www.chiark.greenend.org.uk/~sgtatham/putty/
 #
 # This emulates vt100 + vt52 (plus a few vt220 features:  ech, SRM, DECTCEM, as
