@@ -118,7 +118,7 @@
   Programs for handling the distribution file formats can be found in
   the utilities directory: 
 
-    ftp://ftp.gnu.org/gnu/windows/emacs/utilities
+    http://mirrors.sunsite.dk/gnu/windows/emacs/utilities/
 
   For gzipped tar files, you will need either gunzip.exe and tar.exe
   together, or djtarnt.exe.  djtarnt.exe can also unpack .zip files.  I
@@ -226,7 +226,7 @@
   related to the Windows port of Emacs.  For information about the
   list, see this Web page:
 
-	http://mail.gnu.org/mailman/listinfo/help-emacs-windows
+	http://lists.gnu.org/mailman/listinfo/help-emacs-windows
 
   To ask questions on the mailing list, send email to
   help-emacs-windows@gnu.org.  (You don't need to subscribe for that.)

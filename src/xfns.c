@@ -789,11 +789,8 @@ xg_set_icon (f, file)
     FRAME_PTR f;
     Lisp_Object file;
 {
-  struct gcpro gcpro1;
   int result = 0;
   Lisp_Object found;
-
-  GCPRO1 (found);
 
   found = x_find_image_file (file);
 

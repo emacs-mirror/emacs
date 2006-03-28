@@ -30,6 +30,7 @@ if [ "$answer" ]; then newtag=$answer; fi
 exec > $outfile
 
 cat <<EOF
+
 There is a new pretest available in
 
   <ftp://alpha.gnu.org/gnu/emacs/pretest/emacs-$NEW.tar.gz>

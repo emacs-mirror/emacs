@@ -1,3 +1,32 @@
+2006-03-28  Bill Wohler  <wohler@newt.com>
+
+	* mh-tool-bar.el: Use clipboard-kill-region,
+	clipboard-kill-ring-save, and clipboard-yank instead of undo,
+	kill-region, and menu-bar-kill-ring-save respectively. In
+	MH-Letter mode, move save-buffer and mh-fully-kill-draft icons in
+	front of mh-compose-insertion to be consistent with other mailers,
+	such as Evolution. In MH-Folder mode, move vanilla reply icon to
+	the left of the other reply icons. Use mail/inbox icon instead of
+	mail, next-page instead of page-down, delete instead of close,
+	mail/move instead of mail/refile, data-save instead of execute,
+	mail/flag-for-followup instead of highlight, contact instead of
+	mail/alias, open instead of fld-open, zoom-out instead of widen.
+
+	* mh-folder.el (mh-execute-commands, mh-rescan-folder): 
+	* mh-funcs.el (mh-pack-folder): Sync docstrings with manual.
+
+2006-03-27  Eric Ding  <ericding@alum.mit.edu>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Add entries
+	"X-AOL-IP:" and "X-MB-Message-" (AOL WebMail)
+
+2006-03-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-reply): Sync docstring with manual.
+
+	* mh-compat.el (mh-image-load-path-for-library): Shorten first line in
+	docstring.
+
 2006-03-17  Bill Wohler  <wohler@newt.com>
 
 	* mh-compat.el (mh-image-load-path-for-library): Minor docstring

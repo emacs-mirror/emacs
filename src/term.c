@@ -1654,6 +1654,12 @@ term_get_fkeys_1 ()
 		       Character Display Information
  ***********************************************************************/
 
+/* Avoid name clash with functions defined in xterm.c */
+#ifdef static
+#define append_glyph append_glyph_term
+#define produce_stretch_glyph produce_stretch_glyph_term
+#endif
+
 static void append_glyph P_ ((struct it *));
 static void produce_stretch_glyph P_ ((struct it *));
 

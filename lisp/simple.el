@@ -3196,6 +3196,9 @@ With a double \\[universal-argument] prefix argument, e.g. \\[universal-argument
 \\[universal-argument] \\[set-mark-command], unconditionally
 set mark where point is.
 
+Setting the mark also sets the \"region\", which is the closest
+equivalent in Emacs to what some editors call the \"selection\".
+
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."
   (interactive "P")

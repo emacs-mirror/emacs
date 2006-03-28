@@ -53,10 +53,6 @@ Boston, MA 02110-1301, USA.  */
 #include "buffer.h"
 #include "window.h"
 
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
-#endif
-
 #include "systty.h"
 #include "blockinput.h"
 #include "syssignal.h"
@@ -1490,14 +1486,6 @@ main (argc, argv
 
     /* Don't actually discard this arg.  */
     skip_args = count_before;
-
-    /* Do not be lenient if the user explicitly asked for a named display.  */
-    if (display_arg != 1 && !x_display_ok (displayname))
-      {
-	fprintf (stderr, "Display %s unavailable, simulating -nw\n",
-		 displayname);
-	inhibit_window_system = 1;
-      }
   }
 #endif
 

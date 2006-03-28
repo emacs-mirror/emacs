@@ -14,7 +14,8 @@
 @c appreciate a notice if you do).
 
 @copying
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+Copyright @copyright{} 2001, 2002, 2003, 2004, 2005, 2006 Free
+Software Foundation, Inc.@*
 Copyright 1994,1995,1996,1997,1998,1999,2000 Reuven M. Lerner@*
 Copyright 1992,1993 Steven Byrnes@*
 Copyright 1990,1991,1992 Joseph Brian Wells@*
@@ -310,7 +311,7 @@ consortium of computer vendors which develops commercial software for
 Unix systems.
 
 The word ``free'' in the title of the Free Software Foundation refers to
-``freedom,'' not ``zero dollars.''  Anyone can charge any price for
+``freedom,'' not ``zero cost.''  Anyone can charge any price for
 GPL-covered software that they want to.  However, in practice, the
 freedom enforced by the GPL leads to low prices, because you can always
 get the software for less money from someone else, since everyone has
@@ -1165,7 +1166,7 @@ operation on X.  Mouse wheel support is now enabled by default.
 @cindex New modes
 Many new modes and packages have been included in Emacs, such as Leim,
 Calc, Tramp and URL, as well as IDO, CUA, rcirc, ERC, conf-mode,
-python-mode, table, tumme, SES, ruler, Flymake, Org, etc.
+python-mode, table, tumme, SES, ruler, Flymake, Org, PGG, etc.
 
 @cindex Documentation
 @cindex Emacs Lisp Manual
@@ -3489,7 +3490,7 @@ For a long time, the Emacs Lisp Archive provided a central repository
 for Emacs packages.  Sadly, it has not been active for some time,
 although you can still access the old files at
 
-@uref{ftp://ftp.cis.ohio-state.edu/pub/emacs-lisp/WWW/index.html}
+@uref{http://www.club.cc.cmu.edu/pub/gnu/elisp-archive/}
 
 Read the file @file{etc/MORE.STUFF} for more information about
 external packages.
@@ -3637,7 +3638,8 @@ lack certain features, such as the Emacs Lisp extension language.
 @cindex Windows 9X, ME, NT, 2K, and CE, Emacs for
 
 For information on Emacs for Windows 95 and NT, read the FAQ produced by
-@email{voelker@@cs.washington.edu, Geoff Voelker}, available at
+@email{voelker@@cs.washington.edu, Geoff Voelker} and currently maintained
+by @email{ramprasad_i82@@yahoo.com, Ramprasad B}, available at
 
 @uref{http://www.gnu.org/software/emacs/windows/ntemacs.html}
 
@@ -3658,17 +3660,17 @@ You will need MSVC 6.0 and a Windows CE SDK to build this port.
 
 Emacs 20.6 is ported for emx on OS/2 2.0 or 2.1, and is available at
 
-@uref{ftp://hobbes.nmsu.edu/pub/os2/apps/editors/emacs/e206*.zip}
+@uref{ftp://hobbes.nmsu.edu/pub/os2/apps/editors/emacs/}
 
 @noindent
 and also at
 
-@uref{http://archiv.leo.org/pub/comp/os/os2/leo/gnu/emacs%2d20/}
+@uref{http://www.dotemacs.de/os2/emacs.html}
 
 Instructions for installation, basic setup, and other useful information
 for OS/2 users of Emacs can be found at
 
-@uref{http://userpage.fu-berlin.de/~oheiabbd/emacs/emacs206-os2.html}
+@uref{http://home.snafu.de/ohei/emacs/emacs206-os2.html}
 
 @node Emacs for Atari ST, Emacs for the Amiga , Emacs for OS/2, Finding Emacs and related packages
 @section Where can I get Emacs for my Atari ST?
@@ -3699,7 +3701,7 @@ beta version of Emacs 19.25 for the Amiga.  You can get the binary at
 Emacs.app is a NeXTSTEP version of Emacs 19.34 which supports colors,
 menus, and multiple frames.  You can get it from
 
-@uref{ftp://next-ftp.peak.org/pub/next/apps/emacs/Emacs_for_NeXTstep.4.20a1.NIHS.b.tar.gz}
+@uref{ftp://next-ftp.peak.org/pub/next-ftp/next/apps/emacs/Emacs_for_NeXTstep.4.20a1.NIHS.b.tar.gz}
 
 @node Emacs for Apple computers, Emacs for VMS and DECwindows, Emacs for NeXTSTEP, Finding Emacs and related packages
 @section Where can I get Emacs for my Apple computer?
@@ -3718,7 +3720,7 @@ Beginning with version 22.1, Emacs supports Mac OS X natively.
 @cindex VMS, Emacs for
 
 Up-to-date information about GNU software (including Emacs) for VMS is
-available at @uref{http://vms.gnu.org/}.
+available at @uref{http://www.lp.se/gnu-vms/}.
 
 @node Modes for various languages,  , Emacs for VMS and DECwindows, Finding Emacs and related packages
 @section Where can I get modes for Lex, Yacc/Bison, Bourne shell, csh, C@t{++}, Objective-C, Pascal, Java, and Awk?
@@ -3758,7 +3760,7 @@ Java code.  It is distributed with Emacs, but has
 * AUCTeX::
 * BBDB::
 * Ispell::
-* w3-mode::
+* Emacs/W3::
 * EDB::
 * Mailcrypt::
 * JDE::
@@ -3874,7 +3876,7 @@ better than the one distributed with Emacs:
 4.3
 
 @item Distribution
-@uref{ftp://archive.cis.ohio-state.edu/pub/emacs-lisp/old-archive/modes/vip-mode.tar.Z}
+@uref{ftp://www.club.cc.cmu.edu/pub/gnu/elisp-archive/modes/vip-mode.tar.Z}
 
 @end table
 
@@ -3946,7 +3948,7 @@ Release announcements: @email{bbdb-announce-request@@lists.sourceforge.net}
 
 @end table
 
-@node Ispell, w3-mode, BBDB, Major packages and programs
+@node Ispell, Emacs/W3, BBDB, Major packages and programs
 @section Ispell --- spell checker in C with interface for Emacs
 @cindex Spell-checker
 @cindex Checking spelling
@@ -3955,33 +3957,24 @@ Release announcements: @email{bbdb-announce-request@@lists.sourceforge.net}
 @table @b
 
 @item Author
-@email{geoff@@itcorp.com, Geoff Kuenning}
+@email{geoff@@cs.hmc.edu, Geoff Kuenning}
 
 @item Latest version
-3.1.20
+3.3.02
 
 @item Distribution
-@uref{ftp://ftp.cs.ucla.edu/pub/ispell/ispell-3.1.20.tar.gz}@*
+@uref{http://fmg-www.cs.ucla.edu/geoff/tars/ispell-3.3.02.tar.gz}@*
 
 @item Web site
 @uref{http://fmg-www.cs.ucla.edu/geoff/ispell.html}
 
 @end table
 
-@itemize @bullet
-
-@item
-Do not ask Geoff to send you the latest version of Ispell. He does not
-have free e-mail.
-
-@item
 This Ispell program is distinct from GNU Ispell 4.0. GNU Ispell 4.0 is
 no longer a supported product.
 
-@end itemize
-
-@node w3-mode, EDB, Ispell, Major packages and programs
-@section w3-mode --- A World Wide Web browser inside of Emacs
+@node Emacs/W3, EDB, Ispell, Major packages and programs
+@section Emacs/W3 --- A World Wide Web browser inside of Emacs
 @cindex WWW browser
 @cindex Web browser
 @cindex HTML browser in Emacs
@@ -3990,22 +3983,26 @@ no longer a supported product.
 @table @b
 
 @item Author
-@email{wmperry@@spry.com, Bill Perry}
+@email{wmperry@@gnu.org, Bill Perry}
+
+@item Maintainer
+Emacs/W3 needs a maintainer. It has lain dormant for several years. If
+you would like to take over the project, please contact
+@email{maintainers@@gnu.org}.
 
 @item Latest version
-4.0pre.39
+4.0pre.47
 
 @item Distribution
-@uref{ftp://ftp.cs.indiana.edu/pub/elisp/w3/w3.tar.gz}
+@uref{http://savannah.gnu.org/projects/w3}
 
 @item Mailing lists
-Receive announcements from @email{w3-announce-request@@indiana.edu}@*
-Become a beta tester at @email{w3-beta-request@@indiana.edu}@*
-Help to develop @code{w3-mode} at @email{w3-dev@@indiana.edu}
+Receive announcements from @email{w3-announce@@gnu.org}@*
+Help to develop Emacs/W3 at @email{w3-dev@@gnu.org}
 
 @end table
 
-@node EDB, Mailcrypt, w3-mode, Major packages and programs
+@node EDB, Mailcrypt, Emacs/W3, Major packages and programs
 @section EDB --- Database program for Emacs; replaces forms editing modes
 @cindex EDB
 @cindex Database
@@ -4052,6 +4049,11 @@ Help to develop @code{w3-mode} at @email{w3-dev@@indiana.edu}
 
 @end table
 
+Note that a new package called PGG is bundled with Emacs starting with
+version 22.1.  It is a modern interface to various PGP implementations,
+including @uref{http://www.gnupg.org/, The GNU Privacy Guard} and
+supports symmetric encryption.
+
 @node JDE, Patch, Mailcrypt, Major packages and programs
 @section JDE --- Integrated development environment for Java
 @cindex Java development environment
@@ -4063,14 +4065,15 @@ Help to develop @code{w3-mode} at @email{w3-dev@@indiana.edu}
 @item Author
 @email{paulk@@mathworks.com, Paul Kinnucan}
 
-@item Mailing list
-jde-subscribe@@sunsite.auc.dk
-
 @item Latest version
-2.1.1
+2.3.5
 
 @item Web site
-@uref{http://sunsite.auc.dk/jde/}
+@uref{http://jdee.sunsite.dk/}
+
+@item Mailing lists
+Subscription requests to @email{jde-subscribe@@sunsite.dk}@*
+Receive announcements from @email{jde-announce-subscribe@@sunsite.dk}
 
 @end table
 

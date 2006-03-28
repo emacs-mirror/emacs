@@ -767,7 +767,7 @@ If there is no frame by that name, signal an error."
     (raise-frame frame)
     (select-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
-    (cond ((eq window-system 'x)
+    (cond ((memq window-system '(x mac))
 	   (x-focus-frame frame))
 	  ((eq window-system 'w32)
 	   (w32-focus-frame frame)))

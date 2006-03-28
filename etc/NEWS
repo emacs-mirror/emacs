@@ -399,6 +399,11 @@ cycle for each frame, using the frame-local buffer list.
 converts whitespace around point to N spaces.
 
 ---
+** C-x 5 C-o displays a specified buffer in another frame
+but does not switch to that frame.  It's the multi-frame
+analogue of C-x 4 C-o.
+
+---
 ** New commands to operate on pairs of open and close characters:
 `insert-pair', `delete-pair', `raise-sexp'.
 
@@ -1262,7 +1267,7 @@ fontset appropriately.
 *** Custom themes are collections of customize options.  Create a
 custom theme with M-x customize-create-theme.  Use M-x load-theme to
 load and enable a theme, and M-x disable-theme to disable it.  Use M-x
-enable-theme to renable a disabled theme.
+enable-theme to enable a disabled theme.
 
 +++
 *** The commands M-x customize-face and M-x customize-face-other-window
@@ -1335,7 +1340,7 @@ of marked files with the value entered in the minibuffer.
 control substitution of the file names only when they are surrounded
 by whitespace.  This means you can now use them as shell wildcards
 too.  If you want to use just plain `*' as a wildcard, type `*""'; the
-doublequotes make no difference in the shell, but they prevent
+double quotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
 
 +++
@@ -1490,7 +1495,7 @@ people knowing `find-grep-dired' would probably expect it.
 settings, for grep commands only.
 
 +++
-*** New option `grep-highlight-matches' highlightes matches in *grep*
+*** New option `grep-highlight-matches' highlights matches in *grep*
 buffer.  It uses a special feature of some grep programs which accept
 --color option to output markers around matches.  When going to the next
 match with `next-error' the exact match is highlighted in the source
@@ -1734,7 +1739,7 @@ to increment the SOA serial.
 filenames being entered by the user in the minibuffer are displayed, so
 that it's clear when part of the entered filename will be ignored due to
 emacs' filename parsing rules.  The ignored portion can be made dim,
-invisible, or otherwise less visually noticable.  The display method can
+invisible, or otherwise less visually noticeable.  The display method can
 be displayed by customizing the variable `file-name-shadow-properties'.
 
 +++
@@ -1923,12 +1928,15 @@ boundaries during scrolling.
 * Changes in Specialized Modes and Packages in Emacs 22.1:
 
 ** Changes in Dired
+
++++
 *** Bindings for Tumme added
 Several new keybindings, all starting with the C-t prefix, have been
 added to Dired. They are all bound to commands in Tumme. As a starting
 point, mark some image files in a dired buffer and do C-t d to display
 thumbnails of them in a separate buffer.
-** Changes in Hi Lock:
+
+** Changes in Hi Lock
 
 +++
 *** hi-lock-mode now only affects a single buffer, and a new function
@@ -2061,7 +2069,7 @@ with the number appended to the `*info*' buffer name (e.g. "*info*<2>").
 Before leaving the initial Info node isearch fails once with the error
 message [initial node], and with subsequent C-s/C-r continues through
 other nodes.  When isearch fails for the rest of the manual, it wraps
-aroung the whole manual to the top/final node.  The user option
+around the whole manual to the top/final node.  The user option
 `Info-isearch-search' controls whether to use Info-search for isearch,
 or the default isearch search function that wraps around the current
 Info node.
@@ -2671,6 +2679,12 @@ of BibTeX entry to kill ring (bound to C-c C-t).
 bibtex-autokey-expand-strings control the expansion of strings when
 extracting the content of a BibTeX field.
 
+*** The variables `bibtex-autokey-name-case-convert' and
+`bibtex-autokey-titleword-case-convert' have been renamed to
+`bibtex-autokey-name-case-convert-function' and
+`bibtex-autokey-titleword-case-convert-function'. The old names are
+still available as aliases.
+
 +++
 ** In Enriched mode, `set-left-margin' and `set-right-margin' are now
 by default bound to `C-c [' and `C-c ]' instead of the former `C-c C-l'
@@ -2841,7 +2855,7 @@ idle).
 
 ---
 *** New customizable variables:
-  - desktop-save. Determins whether the desktop should be saved when it is
+  - desktop-save. Determines whether the desktop should be saved when it is
     killed.
   - desktop-file-name-format. Format in which desktop file names should be saved.
   - desktop-path. List of directories in which to lookup the desktop file.
@@ -2967,7 +2981,7 @@ specified to etags, variables are tags also.
 The new keywords are def, newcommand, renewcommand, newenvironment and
 renewenvironment.
 
-*** Honour #line directives.
+*** Honor #line directives.
 
 When Etags parses an input file that contains C preprocessor's #line
 directives, it creates tags using the file name and line number
@@ -3190,7 +3204,7 @@ obsolete; use `dframe-update-speed' instead.
 ---
 ** sql changes.
 
-*** The variable `sql-product' controls the highlightng of different
+*** The variable `sql-product' controls the highlighting of different
 SQL dialects.  This variable can be set globally via Customize, on a
 buffer-specific basis via local variable settings, or for the current
 session using the new SQL->Product submenu.  (This menu replaces the
@@ -3251,7 +3265,7 @@ Keyword highlighting of Postgres 7.3 is implemented.  Prompting for
 the username and the pgsql `-U' option is added.
 
 *** MySQL support is enhanced.
-Keyword higlighting of MySql 4.0 is implemented.
+Keyword highlighting of MySql 4.0 is implemented.
 
 *** Imenu support has been enhanced to locate tables, views, indexes,
 packages, procedures, functions, triggers, sequences, rules, and
@@ -3387,7 +3401,7 @@ automatically.  The game uses faces for better visual feedback.
 
 To enable this, set `calculator-output-radix' non-nil.  In this mode a
 separator character is used every few digits, making it easier to see
-byte boundries etc.  For more info, see the documentation of the
+byte boundaries etc.  For more info, see the documentation of the
 variable `calculator-radix-grouping-mode'.
 
 ---
@@ -3494,7 +3508,7 @@ any customizations.
 Previous versions of Emacs erred on the side of having a usable Emacs
 through telnet, even though that was inconvenient if you use Emacs in
 a local console window with a scrollback buffer. The default value of
-w32-use-full-screen-buffer is now nil, which favours local console
+w32-use-full-screen-buffer is now nil, which favors local console
 windows. Recent versions of Windows telnet also work well with this
 setting. If you are using an older telnet server then Emacs detects
 that the console window dimensions that are reported are not sane, and
@@ -3648,7 +3662,7 @@ names.  Usually that default is right, but not always.
 
 A quit inside the body of `with-local-quit' is caught by the
 `with-local-quit' form itself, but another quit will happen later once
-the code that has inhibitted quitting exits.
+the code that has inhibited quitting exits.
 
 This is for use around potentially blocking or long-running code
 inside timer functions and `post-command-hook' functions.
@@ -3837,7 +3851,7 @@ give up and return LIMIT.
 
 +++
 *** Function `pos-visible-in-window-p' now returns the pixel coordinates
-and partial visiblity state of the corresponding row, if the PARTIALLY
+and partial visibility state of the corresponding row, if the PARTIALLY
 arg is non-nil.
 
 +++
@@ -4157,7 +4171,7 @@ of text properties as well as the character code.
 by `syntax-after').
 
 +++
-*** The new function `syntax-ppss' rovides an efficient way to find the
+*** The new function `syntax-ppss' provides an efficient way to find the
 current syntactic context at point.
 
 ** File operation changes:
@@ -4290,7 +4304,7 @@ saying to put all inputs in the history list, even empty ones.
 
 +++
 *** The `read-file-name' function now takes an additional argument which
-specifies a predicate which the file name read must satify.  The
+specifies a predicate which the file name read must satisfy.  The
 new variable `read-file-name-predicate' contains the predicate argument
 while reading the file name from the minibuffer; the predicate in this
 variable is used by read-file-name-internal to filter the completion list.
@@ -4682,14 +4696,14 @@ or bottom edge of a window.  It does not move other window edges.
 `fringe-cursor-alist' maps between logical (internal) fringe indicator
 and cursor symbols and the actual fringe bitmaps to be displayed.
 This decouples the logical meaning of the fringe indicators from the
-physical appearence, as well as allowing different fringe bitmaps to
+physical appearance, as well as allowing different fringe bitmaps to
 be used in different windows showing different buffers.
 
 *** New function `define-fringe-bitmap' can now be used to create new
 fringe bitmaps, as well as change the built-in fringe bitmaps.
 
 To change a built-in bitmap, do (require 'fringe) and use the symbol
-identifing the bitmap such as `left-truncation' or `continued-line'.
+identifying the bitmap such as `left-truncation' or `continued-line'.
 
 *** New function `destroy-fringe-bitmap' deletes a fringe bitmap
 or restores a built-in one to its default value.
@@ -4790,7 +4804,7 @@ does that, this value cannot be accurate.
 *** You can define multiple overlay arrows via the new
 variable `overlay-arrow-variable-list'.
 
-It contains a list of varibles which contain overlay arrow position
+It contains a list of variables which contain overlay arrow position
 markers, including the original `overlay-arrow-position' variable.
 
 Each variable on this list can have individual `overlay-arrow-string'
@@ -4884,7 +4898,7 @@ of the text area.  One of the above window elements (except `text')
 can also be used with :align-to to specify that the position is
 relative to the left edge of the given area.  Once the base offset for
 a relative position has been set (by the first occurrence of one of
-these symbols), further occurences of these symbols are interpreted as
+these symbols), further occurrences of these symbols are interpreted as
 the width of the area.
 
 For example, to align to the center of the left-margin, use
@@ -4987,7 +5001,7 @@ is to use the `arrow' (non-text) pointer.  Other choices are `text'
 
 +++
 *** The mouse pointer shape over ordinary text or images can now be
-controlled/overriden via the `pointer' text property.
+controlled/overridden via the `pointer' text property.
 
 ** Mouse event enhancements:
 

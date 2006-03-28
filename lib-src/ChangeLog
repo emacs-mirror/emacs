@@ -1,3 +1,10 @@
+2006-03-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* b2m.c: Include <limits.h>.
+	(TM_YEAR_IN_ASCTIME_RANGE): New macro.
+	(main): Check for out-of-range time stamps.
+	* fakemail.c: Likewise.
+
 2006-03-18  Andre Spiegel  <spiegel@gnu.org>
 
 	* vcdiff: Use "echo" as a default for $echo, otherwise we'll

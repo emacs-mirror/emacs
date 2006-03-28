@@ -1103,9 +1103,12 @@ external if displayed external."
 (put 'mm-with-part 'lisp-indent-function 1)
 (put 'mm-with-part 'edebug-form-spec '(body))
 
-(defun mm-get-part (handle)
-  "Return the contents of HANDLE as a string."
-  (if (equal (mm-handle-media-type handle) "message/external-body")
+(defun mm-get-part (handle &optional no-cache)
+  "Return the contents of HANDLE as a string.
+If NO-CACHE is non-nil, cached contents of a message/external-body part
+are ignored."
+  (if (and (not no-cache)
+	   (equal (mm-handle-media-type handle) "message/external-body"))
       (progn
 	(unless (mm-handle-cache handle)
 	  (mm-extern-cache-contents handle))
@@ -1114,8 +1117,10 @@ external if displayed external."
     (mm-with-part handle
       (buffer-string))))
 
-(defun mm-insert-part (handle)
-  "Insert the contents of HANDLE in the current buffer."
+(defun mm-insert-part (handle &optional no-cache)
+  "Insert the contents of HANDLE in the current buffer.
+If NO-CACHE is non-nil, cached contents of a message/external-body part
+are ignored."
   (save-excursion
     (insert
      (cond ((eq (mail-content-type-get (mm-handle-type handle) 'charset)
@@ -1123,9 +1128,9 @@ external if displayed external."
 	    (with-current-buffer (mm-handle-buffer handle)
 	      (buffer-string)))
 	   ((mm-multibyte-p)
-	    (mm-string-as-multibyte (mm-get-part handle)))
+	    (mm-string-as-multibyte (mm-get-part handle no-cache)))
 	   (t
-	    (mm-get-part handle))))))
+	    (mm-get-part handle no-cache))))))
 
 (defun mm-file-name-delete-whitespace (file-name)
   "Remove all whitespace characters from FILE-NAME."

@@ -990,6 +990,20 @@ documentation for additional customization information."
     (pop-to-buffer buffer t norecord)
     (raise-frame (window-frame (selected-window)))))
 
+(defun display-buffer-other-frame (buffer)
+  "Switch to buffer BUFFER in another frame.
+This uses the function `display-buffer' as a subroutine; see its
+documentation for additional customization information."
+  (interactive "BDisplay buffer in other frame: ")
+  (let ((pop-up-frames t)
+	same-window-buffer-names same-window-regexps
+        (old-window (selected-window))
+	new-window)
+    (setq new-window (display-buffer buffer t))
+    (lower-frame (window-frame new-window))
+    (make-frame-invisible (window-frame old-window))
+    (make-frame-visible (window-frame old-window))))
+
 (defvar find-file-default nil
   "Used within `find-file-read-args'.")
 
@@ -5137,6 +5151,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 (define-key ctl-x-5-map "f" 'find-file-other-frame)
 (define-key ctl-x-5-map "\C-f" 'find-file-other-frame)
 (define-key ctl-x-5-map "r" 'find-file-read-only-other-frame)
+(define-key ctl-x-5-map "\C-o" 'display-buffer-other-frame)
 
 ;; arch-tag: bc68d3ea-19ca-468b-aac6-3a4a7766101f
 ;;; files.el ends here

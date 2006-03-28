@@ -4974,6 +4974,7 @@ This does code conversion according to the value of
   if (!NILP (start) && !STRINGP (start))
     validate_region (&start, &end);
 
+  visit_file = Qnil;
   GCPRO5 (start, filename, visit, visit_file, lockname);
 
   filename = Fexpand_file_name (filename, Qnil);

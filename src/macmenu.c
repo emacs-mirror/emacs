@@ -62,10 +62,17 @@ Boston, MA 02110-1301, USA.  */
 
 #include "dispextern.h"
 
-#define POPUP_SUBMENU_ID 235
-#define MIN_POPUP_SUBMENU_ID 512
-#define MIN_MENU_ID 256
-#define MIN_SUBMENU_ID 1
+enum mac_menu_kind {		/* Menu ID range  */
+  MAC_MENU_APPLE,		/* 0 (Reserved by Apple) */
+  MAC_MENU_MENU_BAR,		/* 1 .. 234       */
+  MAC_MENU_POPUP,		/* 235            */
+  MAC_MENU_DRIVER,		/* 236 .. 255 (Reserved) */
+  MAC_MENU_MENU_BAR_SUB,	/* 256 .. 16383   */
+  MAC_MENU_POPUP_SUB,		/* 16384 .. 32767 */
+  MAC_MENU_END			/* 32768          */
+};
+
+static const min_menu_id[] = {0, 1, 235, 236, 256, 16384, 32768};
 
 #define DIALOG_WINDOW_RESOURCE 130
 
@@ -189,9 +196,9 @@ static void single_keymap_panes P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 static void list_of_panes P_ ((Lisp_Object));
 static void list_of_items P_ ((Lisp_Object));
 
-static int fill_menu P_ ((MenuHandle, widget_value *, int));
+static int fill_menu P_ ((MenuHandle, widget_value *, enum mac_menu_kind, int));
 static void fill_menubar P_ ((widget_value *, int));
-static void dispose_menus P_ ((int));
+static void dispose_menus P_ ((enum mac_menu_kind, int));
 
 
 /* This holds a Lisp vector that holds the results of decoding
@@ -1387,19 +1394,21 @@ menu_quit_handler (nextHandler, theEvent, userData)
      EventRef theEvent;
      void* userData;
 {
+  OSStatus err;
   UInt32 keyCode;
   UInt32 keyModifiers;
   extern int mac_quit_char_modifiers;
   extern int mac_quit_char_keycode;
 
-  GetEventParameter (theEvent, kEventParamKeyCode,
-                     typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode);
+  err = GetEventParameter (theEvent, kEventParamKeyCode,
+			   typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode);
 
-  GetEventParameter (theEvent, kEventParamKeyModifiers,
-                     typeUInt32, NULL, sizeof(UInt32),
-                     NULL, &keyModifiers);
+  if (err == noErr)
+    err = GetEventParameter (theEvent, kEventParamKeyModifiers,
+			     typeUInt32, NULL, sizeof(UInt32),
+			     NULL, &keyModifiers);
 
-  if (keyCode == mac_quit_char_keycode
+  if (err == noErr && keyCode == mac_quit_char_keycode
       && keyModifiers == mac_quit_char_modifiers)
     {
       MenuRef menu = userData != 0
@@ -1414,35 +1423,29 @@ menu_quit_handler (nextHandler, theEvent, userData)
 }
 #endif /* HAVE_CANCELMENUTRACKING */
 
-/* Add event handler for MENU_HANDLE so we can detect C-g.
-   If MENU_HANDLE is NULL, install handler for all menus in the menu bar.
+/* Add event handler to all menus that belong to KIND so we can detect C-g.
+   MENU_HANDLE is the root menu of the tracking session to dismiss
+   when C-g is detected.  NULL means the menu bar.
    If CancelMenuTracking isn't available, do nothing.  */
 
 static void
-install_menu_quit_handler (MenuHandle menu_handle)
+install_menu_quit_handler (kind, menu_handle)
+     enum mac_menu_kind kind;
+     MenuHandle menu_handle;
 {
 #ifdef HAVE_CANCELMENUTRACKING
   EventTypeSpec typesList[] = { { kEventClassKeyboard, kEventRawKeyDown } };
-  int i = MIN_MENU_ID;
-  MenuHandle menu = menu_handle ? menu_handle : GetMenuHandle (i);
+  int id;
 
-  while (menu != NULL)
+  for (id = min_menu_id[kind]; id < min_menu_id[kind + 1]; id++)
     {
+      MenuHandle menu = GetMenuHandle (id);
+
+      if (menu == NULL)
+	break;
       InstallMenuEventHandler (menu, menu_quit_handler,
 			       GetEventTypeCount (typesList),
                                typesList, menu_handle, NULL);
-      if (menu_handle) break;
-      menu = GetMenuHandle (++i);
-    }
-
-  i = menu_handle ? MIN_POPUP_SUBMENU_ID : MIN_SUBMENU_ID;
-  menu = GetMenuHandle (i);
-  while (menu != NULL)
-    {
-      InstallMenuEventHandler (menu, menu_quit_handler,
-			       GetEventTypeCount (typesList),
-                               typesList, menu_handle, NULL);
-      menu = GetMenuHandle (++i);
     }
 #endif /* HAVE_CANCELMENUTRACKING */
 }
@@ -1677,7 +1680,8 @@ set_frame_menubar (f, first_time, deep_p)
   fill_menubar (first_wv->contents, deep_p);
 
   /* Add event handler so we can detect C-g. */
-  install_menu_quit_handler (NULL);
+  install_menu_quit_handler (MAC_MENU_MENU_BAR, NULL);
+  install_menu_quit_handler (MAC_MENU_MENU_BAR_SUB, NULL);
   free_menubar_widget_value_tree (first_wv);
 
   UNBLOCK_INPUT;
@@ -1700,7 +1704,7 @@ pop_down_menu (arg)
 {
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
   FRAME_PTR f = p->pointer;
-  MenuHandle menu = GetMenuHandle (POPUP_SUBMENU_ID);
+  MenuHandle menu = GetMenuHandle (min_menu_id[MAC_MENU_POPUP]);
 
   BLOCK_INPUT;
 
@@ -1709,8 +1713,8 @@ pop_down_menu (arg)
   FRAME_MAC_DISPLAY_INFO (f)->grabbed = 0;
 
   /* delete all menus */
-  dispose_menus (MIN_POPUP_SUBMENU_ID);
-  DeleteMenu (POPUP_SUBMENU_ID);
+  dispose_menus (MAC_MENU_POPUP_SUB, 0);
+  DeleteMenu (min_menu_id[MAC_MENU_POPUP]);
   DisposeMenu (menu);
 
   UNBLOCK_INPUT;
@@ -1944,9 +1948,10 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
     }
 
   /* Actually create the menu.  */
-  menu = NewMenu (POPUP_SUBMENU_ID, "\p");
+  menu = NewMenu (min_menu_id[MAC_MENU_POPUP], "\p");
   InsertMenu (menu, -1);
-  fill_menu (menu, first_wv->contents, MIN_POPUP_SUBMENU_ID);
+  fill_menu (menu, first_wv->contents, MAC_MENU_POPUP_SUB,
+	     min_menu_id[MAC_MENU_POPUP_SUB]);
 
   /* Free the widget_value objects we used to specify the
      contents.  */
@@ -1966,7 +1971,8 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   record_unwind_protect (pop_down_menu, make_save_value (f, 0));
 
   /* Add event handler so we can detect C-g. */
-  install_menu_quit_handler (menu);
+  install_menu_quit_handler (MAC_MENU_POPUP, menu);
+  install_menu_quit_handler (MAC_MENU_POPUP_SUB, menu);
 
   /* Display the menu.  */
   menu_item_choice = PopUpMenuSelect (menu, pos.v, pos.h, 0);
@@ -2437,9 +2443,10 @@ add_menu_item (menu, pos, wv)
 /* Construct native Mac OS menu based on widget_value tree.  */
 
 static int
-fill_menu (menu, wv, submenu_id)
+fill_menu (menu, wv, kind, submenu_id)
      MenuHandle menu;
      widget_value *wv;
+     enum mac_menu_kind kind;
      int submenu_id;
 {
   int pos;
@@ -2447,13 +2454,13 @@ fill_menu (menu, wv, submenu_id)
   for (pos = 1; wv != NULL; wv = wv->next, pos++)
     {
       add_menu_item (menu, pos, wv);
-      if (wv->contents)
+      if (wv->contents && submenu_id < min_menu_id[kind + 1])
 	{
 	  MenuHandle submenu = NewMenu (submenu_id, "\pX");
 
 	  InsertMenu (submenu, -1);
 	  SetMenuItemHierarchicalID (menu, pos, submenu_id);
-	  submenu_id = fill_menu (submenu, wv->contents, submenu_id + 1);
+	  submenu_id = fill_menu (submenu, wv->contents, kind, submenu_id + 1);
 	}
     }
 
@@ -2477,8 +2484,8 @@ fill_menubar (wv, deep_p)
   /* Clean up the menu bar when filled by the entire menu trees.  */
   if (deep_p)
     {
-      dispose_menus (MIN_MENU_ID);
-      dispose_menus (MIN_SUBMENU_ID);
+      dispose_menus (MAC_MENU_MENU_BAR, 0);
+      dispose_menus (MAC_MENU_MENU_BAR_SUB, 0);
 #if !TARGET_API_MAC_CARBON
       title_changed_p = 1;
 #endif
@@ -2486,8 +2493,10 @@ fill_menubar (wv, deep_p)
 
   /* Fill menu bar titles and submenus.  Reuse the existing menu bar
      titles as much as possible to minimize redraw (if !deep_p).  */
-  submenu_id = MIN_SUBMENU_ID;
-  for (id = MIN_MENU_ID; wv != NULL; wv = wv->next, id++)
+  submenu_id = min_menu_id[MAC_MENU_MENU_BAR_SUB];
+  for (id = min_menu_id[MAC_MENU_MENU_BAR];
+       wv != NULL && id < min_menu_id[MAC_MENU_MENU_BAR + 1];
+       wv = wv->next, id++)
     {
       strncpy (title, wv->name, 255);
       title[255] = '\0';
@@ -2523,12 +2532,13 @@ fill_menubar (wv, deep_p)
 	}
 
       if (wv->contents)
-        submenu_id = fill_menu (menu, wv->contents, submenu_id);
+        submenu_id = fill_menu (menu, wv->contents, MAC_MENU_MENU_BAR_SUB,
+				submenu_id);
     }
 
-  if (GetMenuHandle (id))
+  if (id < min_menu_id[MAC_MENU_MENU_BAR + 1] && GetMenuHandle (id))
     {
-      dispose_menus (id);
+      dispose_menus (MAC_MENU_MENU_BAR, id);
 #if !TARGET_API_MAC_CARBON
       title_changed_p = 1;
 #endif
@@ -2540,17 +2550,22 @@ fill_menubar (wv, deep_p)
 #endif
 }
 
+/* Dispose of menus that belong to KIND, and remove them from the menu
+   list.  ID is the lower bound of menu IDs that will be processed.  */
+
 static void
-dispose_menus (id)
+dispose_menus (kind, id)
+     enum mac_menu_kind kind;
      int id;
 {
-  MenuHandle menu;
-
-  while ((menu = GetMenuHandle (id)) != NULL)
+  for (id = max (id, min_menu_id[kind]); id < min_menu_id[kind + 1]; id++)
     {
+      MenuHandle menu = GetMenuHandle (id);
+
+      if (menu == NULL)
+	break;
       DeleteMenu (id);
       DisposeMenu (menu);
-      id++;
     }
 }
 

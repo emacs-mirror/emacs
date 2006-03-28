@@ -511,9 +511,11 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 		   buf
 		   (cdr filter))))))))))
 
-(defun ibuffer-generate-filter-groups (bmarklist)
-  (let ((filter-group-alist (append ibuffer-filter-groups
-				       (list (cons "Default" nil)))))
+(defun ibuffer-generate-filter-groups (bmarklist &optional noempty nodefault)
+  (let ((filter-group-alist (if nodefault
+				ibuffer-filter-groups
+			      (append ibuffer-filter-groups
+				      (list (cons "Default" nil))))))
 ;;     (dolist (hidden ibuffer-hidden-filter-groups)
 ;;       (setq filter-group-alist (ibuffer-delete-alist
 ;; 				   hidden filter-group-alist)))
@@ -529,11 +531,13 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	    (aset vec i hip-crowd)
 	    (incf i)
 	    (setq bmarklist lamers))))
-      (let ((ret nil))
+      (let (ret)
 	(dotimes (j i ret)
-	  (push (cons (car (nth j filter-group-alist))
-		      (aref vec j))
-		ret))))))
+	  (let ((bufs (aref vec j)))
+	    (unless (and noempty (null bufs))
+	      (push (cons (car (nth j filter-group-alist))
+			  bufs)
+		    ret))))))))
 
 ;;;###autoload
 (defun ibuffer-filters-to-filter-group (name)
@@ -575,11 +579,19 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 (defun ibuffer-read-filter-group-name (msg &optional nodefault noerror)
   (when (and (not noerror) (null ibuffer-filter-groups))
     (error "No filter groups active"))
-  (let ((groups (mapcar #'car ibuffer-filter-groups)))
-    (completing-read msg (if nodefault
-			     groups
-			   (cons "Default" groups))
-		     nil t)))
+  ;; `ibuffer-generate-filter-groups' returns all non-hidden filter
+  ;; groups, possibly excluding empty groups or Default.
+  ;; We add `ibuffer-hidden-filter-groups' to the list, excluding
+  ;; Default if necessary.
+  (completing-read msg (nconc
+			(ibuffer-generate-filter-groups
+			 (ibuffer-current-state-list)
+			 (not ibuffer-show-empty-filter-groups)
+			 nodefault)
+			(if nodefault
+			    (remove "Default" ibuffer-hidden-filter-groups)
+			  ibuffer-hidden-filter-groups))
+		   nil t))
 
 ;;;###autoload
 (defun ibuffer-decompose-filter-group (group)

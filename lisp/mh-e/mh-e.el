@@ -2295,6 +2295,7 @@ of citations entirely, choose \"None\"."
     "Ua-Content-Id:"                    ; X400
 ;;  "User-Agent:"                       ; Similar to X-Mailer, so display it.
     "Via:"                              ; MH
+    "X-AOL-IP:"                         ; AOL WebMail
     "X-Abuse-Info:"
     "X-Abuse-and-DMCA-"
     "X-Accept-Language:"
@@ -2351,6 +2352,7 @@ of citations entirely, choose \"None\"."
     "X-Loop:"                           ; Unknown mailing list managers
     "X-Lumos-SenderID:"                 ; Roving ConstantContact
     "X-MAIL-INFO:"                      ; NetZero
+    "X-MB-Message-"                     ; AOL WebMail
     "X-MHE-Checksum:"                   ; Checksum added during index search
     "X-MIME-Autoconverted:"             ; sendmail
     "X-MIMETrack:"

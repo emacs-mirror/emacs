@@ -132,14 +132,14 @@ can be found:
   . libxpm for XPM:   ftp://ftp.x.org/contrib/libraries/
 		      Get version 3.4k or later, which lets Emacs
 		      use its own color allocation functions.
-  . libpng for PNG:   ftp://www.libpng.org/pub/png/
-  . libz (for PNG):   http://www.info-zip.org/pub/infozip/zlib/
+  . libpng for PNG:   ftp://ftp.simplesystems.org/pub/libpng/png/
+  . libz (for PNG):   http://www.zlib.net/
   . libjpeg for JPEG: ftp://ftp.uu.net/graphics/jpeg/
                       Get version 6b -- 6a is reported to fail in
                       Emacs.
   . libtiff for TIFF: http://www.libtiff.org/
   . libungif for GIF:
-      http://prtr-13.ucsc.edu/~badger/software/libungif/index.shtml
+      http://sourceforge.net/projects/libungif
       Ensure you get version 4.1.0b1 or higher of libungif -- a bug in
       4.1.0 can crash Emacs.
 
@@ -157,7 +157,7 @@ must do this yourself.
 
 To take proper advantage of Emacs 21's mule-unicode charsets, you need
 a suitable font.  For `Unicode' (ISO 10646) fonts for X, see
-<URL:http://dvdeug.dhis.org/unifont.html> (packaged in Debian),
+<URL:http://czyborra.com/unifont/> (packaged in Debian),
 <URL:http://openlab.ring.gr.jp/efont/> (packaged in Debian).  (In
 recent Debian versions, there is an extensive `misc-fixed' iso10646-1
 in the default X installation.)  Perhaps also see
@@ -166,7 +166,7 @@ in the default X installation.)  Perhaps also see
 <URL:http://czyborra.com/charsets/> has basic fonts for Emacs's
 ISO-8859 charsets.
 
-XFree86 release 4 (from <URL:ftp://ftp.xfree86.org/> and mirrors)
+XFree86 release 4 (from <URL:ftp://ftp.xfree86.org/pub/XFree86/> and mirrors)
 contains font support for most, if not all, of the charsets that Emacs
 currently supports, including iso10646-1 encoded fonts for use with
 the mule-unicode charsets.  The font files should also be usable with
@@ -176,7 +176,7 @@ etc/PROBLEMS.
 
 BDF fonts etl-unicode.tar.gz used by ps-print and ps-mule to print
 Unicode characters are available from <URL:ftp://ftp.x.org/contrib/fonts/>
-and <URL:ftp://ftp.xfree86.org/pub/X.Org/contrib/fonts/>.
+and <URL:ftp://ftp.xfree86.org/pub/mirror/X.Org/contrib/fonts/>.
 
 * GNU/Linux development packages
 

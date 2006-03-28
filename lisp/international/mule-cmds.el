@@ -409,6 +409,7 @@ The function `sort-coding-systems' use it.")
 
 (defun sort-coding-systems (codings)
   "Sort coding system list CODINGS by a priority of each coding system.
+Returns the sorted list.  CODINGS is modified by side effects.
 
 If a coding system is most preferred, it has the highest priority.
 Otherwise, a coding system corresponds to some MIME charset has higher

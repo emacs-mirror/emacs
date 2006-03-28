@@ -4,7 +4,7 @@
   of GNU Emacs for Windows NT/2000/XP and Windows 95/98/Me.  This
   distribution can be found on the ftp.gnu.org server and its mirrors:
 
-	ftp://ftp.gnu.org/gnu/windows/emacs/
+	ftp://ftp.gnu.org/gnu/emacs/windows/
 
   This server contains other distributions, including the full Emacs
   source distribution and the lisp source distribution, as well as older
@@ -12,10 +12,9 @@
 
   Answers to frequently asked questions, and further information about
   this port of GNU Emacs and related software packages can be found via
-  http or ftp:
+  http:
 
 	http://www.gnu.org/software/emacs/windows/ntemacs.html
-	ftp://ftp.gnu.org/gnu/windows/emacs/docs/ntemacs.html
 
 * Preliminaries
 
@@ -138,12 +137,12 @@
   related to the Windows port of Emacs.  For information about the
   list, see this Web page:
 
-	http://mail.gnu.org/mailman/listinfo/help-emacs-windows
+	http://lists.gnu.org/mailman/listinfo/help-emacs-windows
 
   To ask questions on the mailing list, send email to
   help-emacs-windows@gnu.org.  (You don't need to subscribe for that.)
   To subscribe to the list or unsubscribe from it, fill the form you
-  find at http://mail.gnu.org/mailman/listinfo/help-emacs-windows as
+  find at http://lists.gnu.org/mailman/listinfo/help-emacs-windows as
   explained there.
 
   Another valuable source of information and help which should not be

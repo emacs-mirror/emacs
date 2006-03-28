@@ -1336,7 +1336,8 @@ in `selection-converter-alist', which see."
 	      (setq str (or s
 			    (encode-coding-string str
 						  (if (eq (byteorder) ?B)
-						      'utf-16be 'utf-16le))))))
+						      'utf-16be-mac
+						    'utf-16le-mac))))))
 	   ((eq type 'com.apple.traditional-mac-plain-text)
 	    (let ((encodables (find-coding-systems-string str))
 		  (rest mac-script-code-coding-systems))
@@ -1808,6 +1809,22 @@ It returns a name of the created fontset."
 	(setq base-family nil))
     (new-fontset fontset-name (list (cons 'ascii resolved-font)))
     (fontset-add-mac-fonts fontset-name base-family)))
+
+;; Adjust Courier font specifications in x-fixed-font-alist.
+(let ((courier-fonts (assoc "Courier" x-fixed-font-alist)))
+  (if courier-fonts
+      (dolist (label-fonts (cdr courier-fonts))
+	(setcdr label-fonts
+		(mapcar
+		 (lambda (font)
+		   (if (string-match "\\`-adobe-courier-\\([^-]*\\)-\\(.\\)-\\(.*\\)-iso8859-1\\'" font)
+		       (replace-match
+			(if (string= (match-string 2 font) "o")
+			    "-*-courier-\\1-i-\\3-*-*"
+			  "-*-courier-\\1-\\2-\\3-*-*")
+			t nil font)
+		     font))
+		 (cdr label-fonts))))))
 
 ;; Setup the default fontset.
 (setup-default-fontset)

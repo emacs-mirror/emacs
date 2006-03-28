@@ -170,7 +170,7 @@ in interactive use.
 
 This command will ask if you want to process refiles or deletes
 first and then either run \\[mh-execute-commands] for you or undo
-the pending refiles and deletes, which are lost."
+the pending refiles and deletes."
   (interactive (list (if current-prefix-arg
                          (mh-read-range "Scan" mh-current-folder t nil t
                                         mh-interpret-number-as-range-flag)

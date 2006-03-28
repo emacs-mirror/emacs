@@ -2876,12 +2876,12 @@ used in both left and right fringes.
 When @code{fringe-indicator-alist} has a buffer-local value, and there
 is no bitmap defined for a logical indicator, or the bitmap is
 @code{t}, the corresponding value from the (non-local)
-@code{default-fringes-indicator-alist} is used.
+@code{default-fringe-indicator-alist} is used.
 
 To completely hide a specific indicator, set the bitmap to @code{nil}.
 @end defvar
 
-@defvar default-fringes-indicator-alist
+@defvar default-fringe-indicator-alist
 The value of this variable is the default value for
 @code{fringe-indicator-alist} in buffers that do not override it.
 @end defvar
@@ -2891,7 +2891,7 @@ The value of this variable is the default value for
 @code{left-arrow}, @code{right-arrow}, @code{up-arrow}, @code{down-arrow},
 @code{left-curly-arrow}, @code{right-curly-arrow},
 @code{left-triangle}, @code{right-triangle},
-@code{top-left-angle}, @code{ top-right-angle},
+@code{top-left-angle}, @code{top-right-angle},
 @code{bottom-left-angle}, @code{bottom-right-angle},
 @code{left-bracket}, @code{right-bracket},
 @code{filled-rectangle}, @code{hollow-rectangle},

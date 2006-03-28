@@ -7,8 +7,8 @@
 @syncodeindex pg cp
 
 @copying
-Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -11913,7 +11913,8 @@ So here's a new example:
       '((".*"
          (signature-file "~/.signature")
          (name "User Name")
-         ("X-Home-Page" (getenv "WWW_HOME"))
+         (x-face-file "~/.xface")
+         (x-url (getenv "WWW_HOME"))
          (organization "People's Front Against MWM"))
         ("^rec.humor"
          (signature my-funny-signature-randomizer))
@@ -15293,7 +15294,7 @@ When the marks file is used (which it is by default), @code{nnfolder}
 servers have the property that you may backup them using @code{tar} or
 similar, and later be able to restore them into Gnus (by adding the
 proper @code{nnfolder} server) and have all your marks be preserved.
-Marks for a group is usually stored in a file named as the mbox file
+Marks for a group are usually stored in a file named as the mbox file
 with @code{.mrk} concatenated to it (but see
 @code{nnfolder-marks-file-suffix}) within the @code{nnfolder}
 directory.  Individual @code{nnfolder} groups are also possible to
@@ -22098,8 +22099,10 @@ foreground and background colors of the displayed X-Faces.  The
 default colors are black and white.
 @end table
 
-Gnus provides a few convenience functions and variables to allow
-easier insertion of X-Face headers in outgoing messages.
+If you use posting styles, you can use an @code{x-face-file} entry in
+@code{gnus-posting-styles}, @xref{Posting Styles}.  If you don't, Gnus
+provides a few convenience functions and variables to allow easier
+insertion of X-Face headers in outgoing messages.
 
 @findex gnus-random-x-face
 @vindex gnus-convert-pbm-to-x-face-command

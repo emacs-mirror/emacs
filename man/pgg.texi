@@ -6,10 +6,10 @@
 
 
 @copying
-This file describes the PGG.
+This file describes PGG, an Emacs interface to various PGP implementations.
 
-Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
-Copyright (C) 2001 Daiki Ueno.
+Copyright @copyright{} 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+Copyright @copyright{} 2001 Daiki Ueno.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

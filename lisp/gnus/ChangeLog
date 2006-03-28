@@ -1,3 +1,55 @@
+2006-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-insert-mime): Ignore cached contents of
+	message/external-body part.
+
+	* mm-decode.el (mm-get-part): Add optional 'no-cache' argument.
+	(mm-insert-part): Ditto.
+
+2006-03-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-map-articles): Don't funcall symbol macro.
+	Reported by Ralf Wachinger <rwachinger@gmx.de>.
+
+2006-03-23  Kenichi Handa  <handa@m17n.org>
+
+	* rfc2231.el (rfc2231-encode-string): Use mm-disable-multibyte
+	instead of set-buffer-multibyte.
+
+2006-03-23  Kenichi Handa  <handa@m17n.org>
+
+	* rfc2231.el (rfc2231-decode-encoded-string): Work on unibyte
+	buffer and then decode the buffer text if necessary.
+	(rfc2231-encode-string): Be sure to work on multibyte buffer at
+	first, and after mm-encode-body, change the buffer to unibyte.
+
+2006-03-21  Daniel Pittman <daniel@rimspace.net>
+
+	* nnimap.el (nnimap-request-update-info-internal): Optimize.
+	Don't `gnus-uncompress-range' to avoid excessive memory usage.
+
+2006-03-21  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-agent.el (gnus-agent-queue-mail): Fix custom tag for `t'.
+
+	* spam.el (spam-mark-new-messages-in-spam-group-as-spam): Add
+	comment on version.
+
+2006-03-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* spam.el (spam-mark-new-messages-in-spam-group-as-spam): New
+	variable.
+	(spam-mark-junk-as-spam-routine): Use it.  Allow to disable
+	assigning the spam-mark to new messages.
+
+2006-03-20  Adam Sj,Ax(Bgren  <asjo@koldfront.dk>  (tiny change)
+
+	(spam-ham-copy-or-move-routine): Don't declare `todo' twice.
+
+2006-03-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* smiley.el: Add missing test smiley.
+
 2006-03-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-with-part): New macro.

@@ -301,7 +301,7 @@ Only applies to the current buffer."
 This function is added to `fontification-functions' when `jit-lock-mode'
 is active."
   (when (and jit-lock-mode (not memory-full))
-    (if (null jit-lock-defer-time)
+    (if (null jit-lock-defer-timer)
 	;; No deferral.
 	(jit-lock-fontify-now start (+ start jit-lock-chunk-size))
       ;; Record the buffer for later fontification.
@@ -510,7 +510,7 @@ This functions is called after Emacs has been idle for
 		   (setq pos (next-single-property-change pos 'fontified)))))))))
     (setq jit-lock-defer-buffers nil)
     ;; Force fontification of the visible parts.
-    (let ((jit-lock-defer-time nil))
+    (let ((jit-lock-defer-timer nil))
       ;; (message "Jit-Defer Now")
       (sit-for 0)
       ;; (message "Jit-Defer Done")

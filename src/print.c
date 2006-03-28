@@ -183,6 +183,9 @@ static int max_print;
 
 void print_interval ();
 
+/* GDB resets this to zero on W32 to disable OutputDebugString calls.  */
+int print_output_debug_flag = 1;
+
 
 /* Low level output routines for characters and strings */
 
@@ -909,10 +912,11 @@ to make it write to the debugging output.  */)
 
 #ifdef WINDOWSNT
   /* Send the output to a debugger (nothing happens if there isn't one).  */
-  {
-    char buf[2] = {(char) XINT (character), '\0'};
-    OutputDebugString (buf);
-  }
+  if (print_output_debug_flag)
+    {
+      char buf[2] = {(char) XINT (character), '\0'};
+      OutputDebugString (buf);
+    }
 #endif
 
   return character;

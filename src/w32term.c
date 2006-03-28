@@ -4411,7 +4411,8 @@ w32_read_socket (sd, expected, hold_quit)
 
 	  if (f && !f->iconified)
 	    {
-	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
+	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+		  && !EQ (f->tool_bar_window, dpyinfo->mouse_face_window))
 		{
 		  clear_mouse_face (dpyinfo);
 		  dpyinfo->mouse_face_hidden = 1;
@@ -4434,7 +4435,8 @@ w32_read_socket (sd, expected, hold_quit)
 
 	  if (f && !f->iconified)
 	    {
-	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
+	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+		  && !EQ (f->tool_bar_window, dpyinfo->mouse_face_window))
 		{
 		  clear_mouse_face (dpyinfo);
 		  dpyinfo->mouse_face_hidden = 1;

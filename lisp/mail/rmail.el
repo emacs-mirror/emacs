@@ -51,6 +51,7 @@
 (defvar rsf-beep)
 (defvar rsf-sleep-after-message)
 (defvar total-messages)
+(defvar tool-bar-map)
 
 ; These variables now declared in paths.el.
 ;(defvar rmail-spool-directory "/usr/spool/mail/"
@@ -1127,6 +1128,38 @@ Note:    it means the file has no messages in it.\n\^_")))
 
 (define-key rmail-mode-map [menu-bar move next]
   '("Next" . rmail-next-message))
+
+;; Rmail toolbar
+(defvar rmail-tool-bar-map
+  (if (display-graphic-p)
+      (let ((map (make-sparse-keymap)))
+	(tool-bar-local-item-from-menu 'rmail-get-new-mail "mail/inbox"
+				       map rmail-mode-map)
+	(tool-bar-local-item-from-menu 'rmail-next-undeleted-message "right-arrow"
+				       map rmail-mode-map)
+	(tool-bar-local-item-from-menu 'rmail-previous-undeleted-message "left-arrow"
+				       map rmail-mode-map)
+	(tool-bar-local-item-from-menu 'rmail-search "search"
+				       map rmail-mode-map)
+	(tool-bar-local-item-from-menu 'rmail-input "open"
+				       map rmail-mode-map)
+	(tool-bar-local-item-from-menu 'rmail-mail "mail/compose"
+				       map rmail-mode-map)
+	(tool-bar-local-item-from-menu 'rmail-reply "mail/reply-all"
+				       map rmail-mode-map)
+	(tool-bar-local-item-from-menu 'rmail-forward "mail/forward"
+				       map rmail-mode-map)
+	(tool-bar-local-item-from-menu 'rmail-delete-forward "close"
+				       map rmail-mode-map)
+	(tool-bar-local-item-from-menu 'rmail-output "mail/move"
+				       map rmail-mode-map)
+	(tool-bar-local-item-from-menu 'rmail-output-body-to-file "mail/save"
+				       map rmail-mode-map)
+	(tool-bar-local-item-from-menu 'rmail-expunge "delete"
+				       map rmail-mode-map)
+	map)))
+
+
 
 ;; Rmail mode is suitable only for specially formatted data.
 (put 'rmail-mode 'mode-class 'special)
@@ -1254,6 +1287,7 @@ Instead, these commands are available:
 			   (concat rmail-spool-directory
 				   (user-login-name)))))))
   (make-local-variable 'rmail-keywords)
+  (set (make-local-variable 'tool-bar-map) rmail-tool-bar-map)
   ;; this gets generated as needed
   (setq rmail-keywords nil))
 

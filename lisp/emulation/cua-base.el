@@ -370,6 +370,22 @@ and after the region marked by the rectangle to search."
 		 (other :tag "Enabled" t))
   :group 'cua)
 
+(defcustom cua-rectangle-mark-key [(control return)]
+  "Global key used to toggle the cua rectangle mark."
+  :set #'(lambda (symbol value)
+	   (set symbol value)
+	   (when (and (boundp 'cua--keymaps-initalized)
+		      cua--keymaps-initalized)
+	     (define-key cua-global-keymap value
+	       'cua-set-rectangle-mark)
+	     (when (boundp 'cua--rectangle-keymap)
+	       (define-key cua--rectangle-keymap value
+		 'cua-clear-rectangle-mark)
+	       (define-key cua--region-keymap value
+		 'cua-toggle-rectangle-mark))))
+  :type 'key-sequence
+  :group 'cua)
+
 (defcustom cua-rectangle-modifier-key 'meta
   "*Modifier key used for rectangle commands bindings.
 On non-window systems, always use the meta modifier.
@@ -1275,7 +1291,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	    cua-rectangle-modifier-key
 	  'meta))
   ;; C-return always toggles rectangle mark
-  (define-key cua-global-keymap [(control return)]	'cua-set-rectangle-mark)
+  (define-key cua-global-keymap cua-rectangle-mark-key	'cua-set-rectangle-mark)
   (unless (eq cua--rectangle-modifier-key 'meta)
     (cua--M/H-key cua-global-keymap ?\s			'cua-set-rectangle-mark)
     (define-key cua-global-keymap
@@ -1401,7 +1417,8 @@ only want to highlight the region when it is selected using a
 shifted movement key, set `cua-highlight-region-shift-only'."
   :global t
   :group 'cua
-  :set-after '(cua-enable-modeline-indications cua-rectangle-modifier-key)
+  :set-after '(cua-enable-modeline-indications
+	       cua-rectangle-mark-key cua-rectangle-modifier-key)
   :require 'cua-base
   :link '(emacs-commentary-link "cua-base.el")
   (setq mark-even-if-inactive t)
