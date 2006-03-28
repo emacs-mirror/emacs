@@ -1,3 +1,8 @@
+2006-03-28  Bill Wohler  <wohler@newt.com>
+
+	* mh-folder.el (mh-execute-commands, mh-rescan-folder): 
+	* mh-funcs.el (mh-pack-folder): Sync docstrings with manual.
+
 2006-03-27  Eric Ding  <ericding@alum.mit.edu>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Add entries

@@ -722,7 +722,7 @@ Many MH-E commands that may affect the numbering of the
 messages (such as \\[mh-rescan-folder] or \\[mh-pack-folder])
 will ask if you want to process refiles or deletes first and then
 either run this command for you or undo the pending refiles and
-deletes, which are lost.
+deletes.
 
 This function runs `mh-before-commands-processed-hook' before the
 commands are processed and `mh-after-commands-processed-hook'
@@ -1130,7 +1130,7 @@ interactive use.
 
 This command will ask if you want to process refiles or deletes first
 and then either run \\[mh-execute-commands] for you or undo the
-pending refiles and deletes, which are lost.
+pending refiles and deletes.
 
 In a program, the processing of outstanding commands is not performed
 if DONT-EXEC-PENDING is non-nil."
