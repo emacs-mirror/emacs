@@ -69,7 +69,7 @@ For each step, check for possible errors.
     ftp://alpha.gnu.org/gnu/emacs/pretest/ for a pretest, at
     ftp://ftp.gnu.org/gnu/emacs/ for a release.
 
-14. For a pretest, let Richard Stallman know about the new pretest and
+14. For a pretest, let Richard Stallman <rms@gnu.org> know about the new pretest and
     tell him to announce it using the announcement you prepared.  Remind
     him to set a Reply-to header to <emacs-pretest-bug@gnu.org>.
     For a release, Richard should prepare the announcement himself,
