@@ -40,6 +40,7 @@ Boston, MA 02110-1301, USA.  */
 #else
 # include <pwd.h>
 #endif /* not VMS */
+#include <sys/stat.h>
 
 #include <signal.h>
 #include <errno.h>
