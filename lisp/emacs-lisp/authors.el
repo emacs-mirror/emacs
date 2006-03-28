@@ -51,7 +51,8 @@ files.")
      "<Daniel.Pfeiffer@Informatik.START.dbp.de>")
     ("David Gillespie" "Dave Gillespie")
     ("David K,Ae(Bgedal" "David K..edal")
-    ("David M. Koppelman" "David M. Koppelman, Koppel@Ee.Lsu.Edu")
+    ("David M. Koppelman" "David M. Koppelman, Koppel@Ee.Lsu.Edu"
+     "David Koppelman")
     ("David M. Smith" "David Smith" "David M Smith")
     ("Ed L. Cashin" "Ed L Cashin")
     ("Edward M. Reingold" "Ed Reingold" "Edward M Reingold"
@@ -79,6 +80,7 @@ files.")
     ("Jay K. Adams" "jka@ece.cmu.edu" "Jay Adams")
     ("J,Ai(Br,At(Bme Marant" "J,bi(Br,bt(Bme Marant" "Jerome Marant")
     ("Jens-Ulrik Holger Petersen" "Jens-Ulrik Petersen")
+    ("Jeremy Bertram Maitin-Shepard" "Jeremy Maitin-Shepard")
     ("Johan Bockg,Ae(Brd" "Johan Bockgard")
     ("John W. Eaton" "John Eaton")
     ("Jonathan I. Kamens" "Jonathan Kamens")
@@ -163,7 +165,7 @@ listed.")
   '("external-lisp"
     "lock" "share-lib" "local-lisp"
     "noleim-Makefile.in"
-    "NEWS" "PROBLEMS" "FAQ")
+    "NEWS" "PROBLEMS" "FAQ" "AUTHORS")
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
 
