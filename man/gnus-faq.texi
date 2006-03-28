@@ -52,7 +52,7 @@ a subscriber, your submissions will automatically pass.  You can
 also subscribe to the list by sending a blank email to
 @email{faq-discuss-subscribe@@my.gnus.org, faq-discuss-subscribe@@my.gnus.org}
 and @uref{http://mail1.kens.com/cgi-bin/ezmlm-browse?command=monthbythread%26list=faq-discuss, browse
-the archive}.
+the archive (BROKEN)}.
 
 @node FAQ - Changes
 @subheading Changes
@@ -1551,12 +1551,19 @@ Now you only have to tell Gnus to include the X-face in your postings by saying
 (setq message-default-headers
         (with-temp-buffer
           (insert "X-Face: ")
-          (insert-file-contents "~/.xemacs/xface")
+          (insert-file-contents "~/.xface")
           (buffer-string)))
 @end example
 @noindent
 
-in ~/.gnus.el.
+in ~/.gnus.el.  If you use Gnus 5.10, you can simply add an entry
+
+@example
+(x-face-file "~/.xface")
+@end example
+@noindent
+
+to gnus-posting-styles.
 
 @node [5.9]
 @subsubheading Question 5.9
@@ -2121,11 +2128,15 @@ Which mailing lists and newsgroups are there?
 
 @subsubheading Answer
 
-There's the newsgroup gnu.emacs.gnus (pull it from
-e.g. news.gnus.org) which deals with general questions and the
-ding mailing list (ding@@gnus.org) dealing with development of
+There's the newsgroup gnu.emacs.gnus
+(also available as
+@uref{http://dir.gmane.org/gmane.emacs.gnus.user, 
+gmane.emacs.gnus.user})
+which deals with general Gnus questions.
+The ding mailing list (ding@@gnus.org) deals with development of
 Gnus. You can read the ding list via NNTP, too under the name
-gmane.emacs.gnus.general from news.gmane.org.
+@uref{http://dir.gmane.org/gmane.emacs.gnus.general, 
+gmane.emacs.gnus.general} from news.gmane.org.
 
 If you want to stay in the big8,
 news.software.newssreaders is also read by some Gnus
