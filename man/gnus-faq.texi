@@ -233,10 +233,10 @@ Which version of Emacs do I need?
 
 @subsubheading Answer
 
-Gnus 5.10 requires an Emacs version that is greater
-than or equal to Emacs 20.7 or XEmacs 21.1. The
-development versions of Gnus (aka No Gnus) require Emacs
-21 or XEmacs 21.4.
+Gnus 5.10 requires an Emacs version that is greater than or equal
+to Emacs 20.7 or XEmacs 21.1.
+The development versions of Gnus (aka No Gnus) requires Emacs 21
+or XEmacs 21.4.
 
 @node [1.7]
 @subsubheading Question 1.7
@@ -1197,26 +1197,26 @@ from using them):
 @example
 (setq nnmail-split-methods
   '(("duplicates" "^Gnus-Warning:.*duplicate")
-    ("XEmacs-NT" "^\\(To:\\|CC:\\).*localpart@@xemacs.bla.*")
-    ("Gnus-Tut" "^\\(To:\\|CC:\\).*localpart@@socha.bla.*")
-    ("tcsh" "^\\(To:\\|CC:\\).*localpart@@mx.gw.bla.*")
-    ("BAfH" "^\\(To:\\|CC:\\).*localpart@@.*uni-muenchen.bla.*")
+    ("XEmacs-NT" "^\\(To:\\|CC:\\).*localpart@@xemacs.invalid.*")
+    ("Gnus-Tut" "^\\(To:\\|CC:\\).*localpart@@socha.invalid.*")
+    ("tcsh" "^\\(To:\\|CC:\\).*localpart@@mx.gw.invalid.*")
+    ("BAfH" "^\\(To:\\|CC:\\).*localpart@@.*uni-muenchen.invalid.*")
     ("Hamster-src" "^\\(CC:\\|To:\\).*hamster-sourcen@@yahoogroups.\\(de\\|com\\).*")
-    ("Tagesschau" "^From: tagesschau <localpart@@www.tagesschau.bla>$")
-    ("Replies" "^\\(CC:\\|To:\\).*localpart@@Frank-Schmitt.bla.*")
-    ("EK" "^From:.*\\(localpart@@privateprovider.bla\\|localpart@@workplace.bla\\).*")
+    ("Tagesschau" "^From: tagesschau <localpart@@www.tagesschau.invalid>$")
+    ("Replies" "^\\(CC:\\|To:\\).*localpart@@Frank-Schmitt.invalid.*")
+    ("EK" "^From:.*\\(localpart@@privateprovider.invalid\\|localpart@@workplace.invalid\\).*")
     ("Spam" "^Content-Type:.*\\(ks_c_5601-1987\\|EUC-KR\\|big5\\|iso-2022-jp\\).*")
     ("Spam" "^Subject:.*\\(This really work\\|XINGA\\|ADV:\\|XXX\\|adult\\|sex\\).*")
     ("Spam" "^Subject:.*\\(\=\?ks_c_5601-1987\?\\|\=\?euc-kr\?\\|\=\?big5\?\\).*")
     ("Spam" "^X-Mailer:\\(.*BulkMailer.*\\|.*MIME::Lite.*\\|\\)")
     ("Spam" "^X-Mailer:\\(.*CyberCreek Avalanche\\|.*http\:\/\/GetResponse\.com\\)")
     ("Spam" "^From:.*\\(verizon\.net\\|prontomail\.com\\|money\\|ConsumerDirect\\).*")
-    ("Spam" "^Delivered-To: GMX delivery to spamtrap@@gmx.bla$")
+    ("Spam" "^Delivered-To: GMX delivery to spamtrap@@gmx.invalid$")
     ("Spam" "^Received: from link2buy.com")
-    ("Spam" "^CC: .*azzrael@@t-online.bla")
+    ("Spam" "^CC: .*azzrael@@t-online.invalid")
     ("Spam" "^X-Mailer-Version: 1.50 BETA")
-    ("Uni" "^\\(CC:\\|To:\\).*localpart@@uni-koblenz.bla.*")
-    ("Inbox" "^\\(CC:\\|To:\\).*\\(my\ name\\|address@@one.bla\\|adress@@two.bla\\)")
+    ("Uni" "^\\(CC:\\|To:\\).*localpart@@uni-koblenz.invalid.*")
+    ("Inbox" "^\\(CC:\\|To:\\).*\\(my\ name\\|address@@one.invalid\\|adress@@two.invalid\\)")
     ("Spam" "")))
 @end example
 @noindent
@@ -1314,7 +1314,7 @@ This example should make the syntax clear:
 (setq gnus-posting-styles
   '((".*"
      (name "Frank Schmitt")
-     (address "me@@there.bla")
+     (address "me@@there.invalid")
      (organization "Hamme net, kren mer och nimmi")
      (signature-file "~/.signature")
      ("X-SampleHeader" "foobar")
@@ -1366,21 +1366,21 @@ at the bottom.
 
 @example
 (setq gnus-posting-styles
-  '((".*"  ;;default
-     (name "Frank Schmitt")
-     (organization "Hamme net, kren mer och nimmi")
-     (signature-file "~/.signature")    )
-    ((message-news-p)  ;;Usenet news?
-     (address "mySpamTrap@@Frank-Schmitt.bla")
-     ("Reply-To" "hereRealRepliesOnlyPlease@@Frank-Schmitt.bla")    )
-    ((message-mail-p)  ;;mail?
-     (address "usedForMails@@Frank-Schmitt.bla")    )
-    ("^gmane" ;;this is mail, too in fact
-     (address "usedForMails@@Frank-Schmitt.net")
-     ("Reply-To" nil)    )
-    ("^gmane.mail.spam.spamassassin.general$"
-     (eval (setq mail-envelope-from "Azzrael@@rz-online.de"))
-     (address "Azzrael@@rz-online.de")) ))
+      '((".*" ;;default
+         (name "Frank Schmitt")
+         (organization "Hamme net, kren mer och nimmi")
+         (signature-file "~/.signature"))
+        ((message-news-p) ;;Usenet news?
+         (address "mySpamTrap@@Frank-Schmitt.invalid")
+         (reply-to "hereRealRepliesOnlyPlease@@Frank-Schmitt.invalid"))
+        ((message-mail-p) ;;mail?
+         (address "usedForMails@@Frank-Schmitt.invalid"))
+        ("^gmane" ;;this is mail, too in fact
+         (address "usedForMails@@Frank-Schmitt.invalid")
+         (reply-to nil))
+        ("^gmane\\.mail\\.spam\\.spamassassin\\.general$"
+         (eval (set (make-local-variable 'message-sendmail-envelope-from)
+                    "Azzrael@@rz-online.de")))))
 @end example
 @noindent
 
@@ -1464,7 +1464,7 @@ You can store your mail addresses in a ~/.mailrc file using a simple
 alias syntax:
 
 @example
-alias al	"Al <al@@english-heritage.bla>"
+alias al	"Al <al@@english-heritage.invalid>"
 @end example
 @noindent
 
@@ -1495,8 +1495,8 @@ place them in ~/.emacs:
 (setq bbdb-north-american-phone-numbers-p nil)
 ;;Tell bbdb about your email address:
 (setq bbdb-user-mail-names
-      (regexp-opt '("Your.Email@@here.bla"
-                    "Your.other@@mail.there.bla")))
+      (regexp-opt '("Your.Email@@here.invalid"
+                    "Your.other@@mail.there.invalid")))
 ;;cycling while completing email addresses
 (setq bbdb-complete-name-allow-cycling t)
 ;;No popup-buffers
