@@ -1,3 +1,8 @@
+2006-03-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (File Name Cache): Make it clear that the cache is
+	not persistent.
+
 2006-03-27  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-faq.texi: Use .invalid.
