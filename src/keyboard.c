@@ -7581,7 +7581,7 @@ Lisp_Object QCimage;
 /* Function prototypes.  */
 
 static void init_tool_bar_items P_ ((Lisp_Object));
-static void process_tool_bar_item P_ ((Lisp_Object, Lisp_Object));
+static void process_tool_bar_item P_ ((Lisp_Object, Lisp_Object, void*, Lisp_Object));
 static int parse_tool_bar_item P_ ((Lisp_Object, Lisp_Object));
 static void append_tool_bar_item P_ ((void));
 
@@ -7659,17 +7659,7 @@ tool_bar_items (reuse, nitems)
 
 	keymap = get_keymap (access_keymap (maps[i], Qtool_bar, 1, 0, 1), 0, 1);
 	if (CONSP (keymap))
-	  {
-	    Lisp_Object tail;
-
-	    /* KEYMAP is a list `(keymap (KEY . BINDING) ...)'.  */
-	    for (tail = keymap; CONSP (tail); tail = XCDR (tail))
-	      {
-		Lisp_Object keydef = XCAR (tail);
-		if (CONSP (keydef))
-		  process_tool_bar_item (XCAR (keydef), XCDR (keydef));
-	      }
-	  }
+	  map_keymap (keymap, process_tool_bar_item, Qnil, NULL, 1);
       }
 
   Vinhibit_quit = oquit;
@@ -7681,8 +7671,9 @@ tool_bar_items (reuse, nitems)
 /* Process the definition of KEY which is DEF.  */
 
 static void
-process_tool_bar_item (key, def)
-     Lisp_Object key, def;
+process_tool_bar_item (key, def, args, data)
+     Lisp_Object key, def, data;
+     void *args;
 {
   int i;
   extern Lisp_Object Qundefined;

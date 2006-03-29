@@ -1,3 +1,8 @@
+2006-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (tool_bar_items): Use map_keymap.
+	(process_tool_bar_item): Add dummy args to fit the required interface.
+
 2006-03-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (pr, pp, pp1, pv, pv1): Force print_output_debug_flag
@@ -13,8 +18,7 @@
 	(Fdecode_time, Fencode_time): Use TM_YEAR_BASE instead of 1900.
 	(Fdecode_time): Cast tm_year to EMACS_INT.
 	(Fcurrent_time_string): Report an invalid time specification if
-	the argument is invalid.  Also, check for out-of-range time
-	stamps.
+	the argument is invalid.  Also, check for out-of-range time stamps.
 
 2006-03-24  Kim F. Storm  <storm@cua.dk>
 
@@ -54,8 +58,8 @@
 
 2006-03-21  Ken Raeburn  <raeburn@raeburn.org>
 
-	* xdisp.c (store_next_glyph): Renamed from append_glyph.
-	(generate_stretch_glyph): Renamed from produce_stretch_glyph.
+	* xdisp.c (store_next_glyph): Rename from append_glyph.
+	(generate_stretch_glyph): Rename from produce_stretch_glyph.
 	All callers changed accordingly.
 
 2006-03-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
@@ -896,8 +900,8 @@
 
 	* editfns.c (Fconstrain_to_field): Fix behaviour on field boundaries.
 	(find_field): Set before_field to after_field when pos is at BEGV.
-	(Fline_beginning_position, Fline_end_position): Clarify
-	confusing doc string.
+	(Fline_beginning_position, Fline_end_position):
+	Clarify confusing doc string.
 
 	* cmds.c (Fbeginning_of_line, Fend_of_line): Clarify confusing doc
 	string.
