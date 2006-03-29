@@ -1,3 +1,7 @@
+2006-03-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (process_tool_bar_item): Reorder dummy args.
+
 2006-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (tool_bar_items): Use map_keymap.
@@ -1830,7 +1834,7 @@
 2005-11-11  David Reitter  <david.reitter@gmail.com>
 
 	* macterm.c (syms_of_macterm): Remove macCtrlKey, macShiftKey,
-	macMetaKey, macAltKey. Introduce Qctrl, Qmeta,
+	macMetaKey, macAltKey.  Introduce Qctrl, Qmeta,
 	Vmac_control_modifier / mac-control-modifier,
 	Vmac_option_modifier / mac-option-modifier,
 	Vmac_command_modifier / mac-command-modifier.
