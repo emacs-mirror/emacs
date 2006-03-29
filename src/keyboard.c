@@ -7581,7 +7581,7 @@ Lisp_Object QCimage;
 /* Function prototypes.  */
 
 static void init_tool_bar_items P_ ((Lisp_Object));
-static void process_tool_bar_item P_ ((Lisp_Object, Lisp_Object, void*, Lisp_Object));
+static void process_tool_bar_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object, void*));
 static int parse_tool_bar_item P_ ((Lisp_Object, Lisp_Object));
 static void append_tool_bar_item P_ ((void));
 
@@ -7671,7 +7671,7 @@ tool_bar_items (reuse, nitems)
 /* Process the definition of KEY which is DEF.  */
 
 static void
-process_tool_bar_item (key, def, args, data)
+process_tool_bar_item (key, def, data, args)
      Lisp_Object key, def, data;
      void *args;
 {
