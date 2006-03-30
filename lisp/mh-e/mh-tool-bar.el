@@ -321,7 +321,9 @@ where,
         :group 'mh-tool-bar :set 'mh-tool-bar-folder-buttons-set
         :type '(set ,@(loop for x in folder-buttons
                             for y in folder-docs
-                            collect `(const :tag ,y ,x))))
+                            collect `(const :tag ,y ,x)))
+        ;;:package-version '(MH-E "7.1")
+        )
        (custom-declare-variable
         'mh-tool-bar-letter-buttons
         '(list ,@(mapcar (lambda (x) `(quote ,x)) letter-defaults))
@@ -329,7 +331,9 @@ where,
         :group 'mh-tool-bar :set 'mh-tool-bar-letter-buttons-set
         :type '(set ,@(loop for x in letter-buttons
                             for y in letter-docs
-                            collect `(const :tag ,y ,x)))))))
+                            collect `(const :tag ,y ,x)))
+        ;;:package-version '(MH-E "7.1")
+       ))))
 
 (mh-tool-bar-define
  ((:folder mh-inc-folder mh-mime-save-parts
