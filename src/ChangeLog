@@ -1,3 +1,7 @@
+2006-03-30  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (x_term_init): Delete superfluous UNGCPRO.
+
 2006-03-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* keyboard.c (process_tool_bar_item): Reorder dummy args.
