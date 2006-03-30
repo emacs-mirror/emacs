@@ -12,7 +12,7 @@
 PFM = o1alcc
 PFMDEFS = -D_ANSI_C_SOURCE
 
-MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmo1.c \
+MPMPF = lockan.c than.c vmo1.c \
         proto1.c prmcan.c span.c
 MPMS = sso1al.s
 

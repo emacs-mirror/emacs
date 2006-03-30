@@ -10,7 +10,7 @@
 
 PFM = sos8cx
 
-MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmso.c \
+MPMPF = lockan.c than.c vmso.c \
         protso.c prmcan.c span.c
 SWPF = than.c vmso.c protsw.c prmcan.c ssan.c
 LIBS = -lm

@@ -5,7 +5,7 @@
 
 PFM = sus8gc
 
-MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmsu.c \
+MPMPF = lockan.c than.c vmsu.c \
         protsu.c prmcan.c span.c
 MPMS = sssus8.s
 

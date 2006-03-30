@@ -8,7 +8,7 @@
 PFM = iam4cc
 PFMDEFS = -n32
 
-MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmi5.c \
+MPMPF = lockan.c than.c vmi5.c \
         protan.c prmcan.c ssan.c span.c
 SWPF = than.c vmi5.c protsw.c prmcan.c ssan.c
 
