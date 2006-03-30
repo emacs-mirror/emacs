@@ -23800,7 +23800,7 @@ before automatic hscrolling will horizontally scroll the window.  */);
 
   DEFVAR_LISP ("hscroll-step", &Vhscroll_step,
     doc: /* *How many columns to scroll the window when point gets too close to the edge.
-When point is less than `automatic-hscroll-margin' columns from the window
+When point is less than `hscroll-margin' columns from the window
 edge, automatic hscrolling will scroll the window by the amount of columns
 determined by this variable.  If its value is a positive integer, scroll that
 many columns.  If it's a positive floating-point number, it specifies the
