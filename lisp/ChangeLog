@@ -1,3 +1,8 @@
+2006-03-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-system-coding-system): Define and use after
+	Mac-specific coding systems are ready.
+
 2006-03-27  Romain Francoise  <romain@orebokech.com>
 
 	* net/rcirc.el (rcirc-connect): Add autoload cookie.
