@@ -1,3 +1,9 @@
+2006-03-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-cache-unc-host-shares-time)
+	(ido-max-work-file-list, ido-switch-buffer):
+	Fix typos in docstrings.
+
 2006-03-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-system-coding-system): Define and use after
