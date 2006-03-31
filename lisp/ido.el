@@ -630,9 +630,28 @@ equivalent function, e.g. `find-file' rather than `ido-find-file'."
   :type '(repeat regexp)
   :group 'ido)
 
+(defvar ido-unc-hosts-cache t
+  "Cached value from ido-unc-hosts function.")
+
 (defcustom ido-unc-hosts nil
-  "*List of known UNC host names to complete after initial //."
-  :type '(repeat string)
+  "*List of known UNC host names to complete after initial //.
+If value is a function, that function is called to search network for
+hosts on first use of UNC path."
+  :type '(choice (repeat :tag "List of UNC host names" string)
+		 (function-item :tag "Use `NET VIEW'"
+				:value ido-unc-hosts-net-view)
+		 (function :tag "Your own function"))
+  :set #'(lambda (symbol value)
+	   (set symbol value)
+	   (setq ido-unc-hosts-cache t))
+  :group 'ido)
+
+(defcustom ido-ignore-unc-host-regexps nil
+  "*List of regexps matching UNC hosts to ignore."
+  :type '(repeat regexp)
+  :set #'(lambda (symbol value)
+	   (set symbol value)
+	   (setq ido-unc-hosts-cache t))
   :group 'ido)
 
 (defcustom ido-cache-unc-host-shares-time 8.0
@@ -1111,18 +1130,58 @@ it doesn't interfere with other minibuffer usage.")
 	  (pop-to-buffer b t t)
 	  (setq truncate-lines t)))))
 
+(defun ido-unc-hosts (&optional query)
+  "Return list of UNC host names."
+  (cond
+   ((listp ido-unc-hosts)
+    ido-unc-hosts)		;; static list or nil
+   ((listp ido-unc-hosts-cache)
+    ido-unc-hosts-cache)	;; result of net search
+   ((and query (fboundp ido-unc-hosts))
+    (message "Searching for UNC hosts...")
+    (let ((hosts (funcall ido-unc-hosts)) host re-list re)
+      (setq ido-unc-hosts-cache nil)
+      (while hosts
+	(setq host (downcase (car hosts))
+	      hosts (cdr hosts)
+	      re-list ido-ignore-unc-host-regexps)
+	(while re-list
+	  (setq re (car re-list)
+		re-list (cdr re-list))
+	  (if (string-match re host)
+	      (setq re-list nil
+		    host nil)))
+	(if host
+	    (setq ido-unc-hosts-cache (cons host ido-unc-hosts-cache)))))
+    (message nil)
+    (setq ido-unc-hosts-cache
+	  (sort ido-unc-hosts-cache #'string<)))
+   (query
+    (setq ido-unc-hosts-cache nil))
+   (t (fboundp ido-unc-hosts))))
+
+(defun ido-unc-hosts-net-view ()
+  "Query network for list of UNC host names using `NET VIEW'."
+  (let (hosts)
+    (with-temp-buffer
+      (shell-command "net view" t)
+      (goto-char (point-min))
+      (while (re-search-forward "^\\\\\\\\\\([[:graph:]]+\\)" nil t)
+	(setq hosts (cons (match-string 1) hosts))))
+    hosts))
+
 (defun ido-is-tramp-root (&optional dir)
   (and ido-enable-tramp-completion
        (string-match "\\`/[^/]+[@:]\\'"
 		     (or dir ido-current-directory))))
 
 (defun ido-is-unc-root (&optional dir)
-  (and ido-unc-hosts
+  (and (ido-unc-hosts)
        (string-equal "//"
 		     (or dir ido-current-directory))))
 
 (defun ido-is-unc-host (&optional dir)
-  (and ido-unc-hosts
+  (and (ido-unc-hosts)
        (string-match "\\`//[^/]+/\\'"
 		     (or dir ido-current-directory))))
 
@@ -3238,7 +3297,7 @@ for first matching file."
     (mapcar
      (lambda (host)
        (if (string-match "/\\'" host) host (concat host "/")))
-     ido-unc-hosts))
+     (ido-unc-hosts t)))
    ((and (numberp ido-max-dir-file-cache) (> ido-max-dir-file-cache 0)
 	 (stringp dir) (> (length dir) 0)
 	 (ido-may-cache-directory dir))
@@ -4026,7 +4085,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	   ((and (ido-is-tramp-root) (string-equal contents "/"))
 	    (ido-set-current-directory ido-current-directory contents)
 	    (setq refresh t))
-	   ((and ido-unc-hosts (string-equal contents "/")
+	   ((and (ido-unc-hosts) (string-equal contents "/")
 		 (let ((ido-enable-tramp-completion nil))
 		   (ido-is-root-directory)))
 	    (ido-set-current-directory "//")
