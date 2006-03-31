@@ -1,3 +1,8 @@
+2006-03-31  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-strip-package-version): Move before use to avoid
+	compiler error.	
+
 2006-03-30  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-defcustom, mh-defface, mh-defgroup): Macros to

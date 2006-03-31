@@ -895,6 +895,19 @@ necessary and can actually cause problems."
 
 ;; Temporary function and data structure used customization.
 ;; These will be unbound after the options are defined.
+(defun mh-strip-package-version (args)
+  "Strip :package-version keyword and its value from ARGS.
+In Emacs versions that support the :package-version keyword,
+ARGS is returned unchanged."
+  (if (boundp 'customize-package-emacs-version-alist)
+      args
+    (let (seen)
+      (loop for keyword in args
+            if (cond ((eq keyword ':package-version) (setq seen t) nil)
+                     (seen (setq seen nil) nil)
+                     (t t))
+            collect keyword))))
+
 (defmacro mh-defgroup (symbol members doc &rest args)
   "Declare SYMBOL as a customization group containing MEMBERS.
 See documentation for `defgroup' for a description of the arguments
@@ -924,19 +937,6 @@ keyword, introduced in Emacs 22."
   (declare (doc-string 3))
   `(defface ,face ,spec ,doc ,@(mh-strip-package-version args)))
 (put 'mh-defface 'lisp-indent-function 'defun)
-
-(defun mh-strip-package-version (args)
-  "Strip :package-version keyword and its value from ARGS.
-In Emacs versions that support the :package-version keyword,
-ARGS is returned unchanged."
-  (if (boundp 'customize-package-emacs-version-alist)
-      args
-    (let (seen)
-      (loop for keyword in args
-            if (cond ((eq keyword ':package-version) (setq seen t) nil)
-                     (seen (setq seen nil) nil)
-                     (t t))
-            collect keyword))))
 
 
 
