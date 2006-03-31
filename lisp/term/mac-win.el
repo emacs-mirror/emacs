@@ -1103,15 +1103,6 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
     )
   "Alist of Mac script codes vs Emacs coding systems.")
 
-(defconst mac-system-coding-system
-  (let ((base (or (cdr (assq mac-system-script-code
-			     mac-script-code-coding-systems))
-		  'mac-roman)))
-    (if (eq system-type 'darwin)
-	base
-      (coding-system-change-eol-conversion base 'mac)))
-  "Coding system derived from the system script code.")
-
 (defun mac-add-charset-info (xlfd-charset mac-text-encoding)
   "Add a character set to display with Mac fonts.
 Create an entry in `mac-charset-info-alist'.
@@ -1152,9 +1143,6 @@ correspoinding TextEncodingBase value."
 (define-key special-event-map [language-change] 'mac-handle-language-change)
 
 ;;;; Selections
-
-;; Setup to use the Mac clipboard.
-(set-selection-coding-system mac-system-coding-system)
 
 ;;; We keep track of the last text selected here, so we can check the
 ;;; current selection against it, and avoid passing back our own text
@@ -1895,6 +1883,17 @@ It returns a name of the created fontset."
 
 ;; Enable CLIPBOARD copy/paste through menu bar commands.
 (menu-bar-enable-clipboard)
+
+(defconst mac-system-coding-system
+  (let ((base (or (cdr (assq mac-system-script-code
+			     mac-script-code-coding-systems))
+		  'mac-roman)))
+    (if (eq system-type 'darwin)
+	base
+      (coding-system-change-eol-conversion base 'mac)))
+  "Coding system derived from the system script code.")
+
+(set-selection-coding-system mac-system-coding-system)
 
 (defun mac-drag-n-drop (event)
   "Edit the files listed in the drag-n-drop EVENT.

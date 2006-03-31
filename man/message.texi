@@ -67,9 +67,10 @@ Message mode buffers.
 * Key Index::         List of Message mode keys.
 @end menu
 
-This manual corresponds to Message v5.10.6.  Message is distributed
-with the Gnus distribution bearing the same version number as this
-manual.
+@c Adjust ../Makefile.in if you change the following lines:
+Message is distributed with Gnus.  The Gnus distribution
+@c
+corresponding to this manual is Gnus v5.10.6.
 
 
 @node Interface

@@ -49,6 +49,7 @@ license to the document, as described in section 6 of the license.
 \makeindex
 \begin{document}
 
+% Adjust ../Makefile.in if you change the following line:
 \newcommand{\gnusversionname}{Gnus v5.10.6}
 \newcommand{\gnuschaptername}{}
 \newcommand{\gnussectionname}{}
@@ -358,6 +359,7 @@ can be gotten by any nefarious means you can think of---@acronym{NNTP}, local
 spool or your mbox file.  All at the same time, if you want to push your
 luck.
 
+@c Adjust ../Makefile.in if you change the following line:
 This manual corresponds to Gnus v5.10.6.
 
 @end ifinfo
