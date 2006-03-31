@@ -638,14 +638,14 @@ equivalent function, e.g. `find-file' rather than `ido-find-file'."
 (defcustom ido-cache-unc-host-shares-time 8.0
   "*Maximum time to cache shares of an UNC host (in hours).
 Use C-l in prompt to refresh list.
-If zero, unc host shares are not cached."
+If zero, UNC host shares are not cached."
   :type 'number
   :group 'ido)
 
 (defcustom ido-max-work-file-list 10
   "*Maximum number of names of recently opened files to record.
 This is the list the file names (sans directory) which have most recently
-been opened. See `ido-work-file-list' and `ido-save-directory-list-file'."
+been opened.  See `ido-work-file-list' and `ido-save-directory-list-file'."
   :type 'integer
   :group 'ido)
 
@@ -3734,7 +3734,7 @@ default is to show it in the same window, unless it is already visible
 in another frame.
 
 As you type in a string, all of the buffers matching the string are
-displayed if substring-matching is used \(default). Look at
+displayed if substring-matching is used \(default).  Look at
 `ido-enable-prefix' and `ido-toggle-prefix'.  When you have found the
 buffer you want, it can then be selected.  As you type, most keys have
 their normal keybindings, except for the following: \\<ido-buffer-completion-map>
