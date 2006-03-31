@@ -1,3 +1,8 @@
+2006-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-util.el (cvs-insert-strings): Fix bug with strings longer than
+	wwidth.
+
 2006-03-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-cache-unc-host-shares-time, ido-report-no-match)
@@ -439,11 +444,6 @@
 
 	* tree-widget.el (tree-widget-themes-load-path)
 	(tree-widget-themes-directory, tree-widget-theme): Doc fix.
-
-2006-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* pcvs-util.el (cvs-insert-strings): Fix bug with strings longer than
-	wwidth.
 
 2006-03-13  Ryan Yeske  <rcyeske@gmail.com>
 
