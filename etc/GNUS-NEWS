@@ -357,7 +357,11 @@ format=flowed was present but not documented in earlier versions.
 
 ** The option `mm-fill-flowed' can be used to disable treatment of
 format=flowed messages.  Also, flowed text is disabled when sending
-inline PGP signed messages.  (New in Gnus 5.10.7)
+inline PGP signed messages.  (New in Gnus 5.10.8)
+
+** The tool bar icons are now (de)activated correctly in the group
+buffer, see the variable `gnus-group-update-tool-bar'.  It's default
+value depends on your Emacs version.  (New in Gnus 5.10.8)
 
 ** Gnus supports the generation of RFC 2298 Disposition Notification requests.
 
