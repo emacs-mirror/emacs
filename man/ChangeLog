@@ -1,3 +1,27 @@
+2006-03-31  Richard Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Update subnode menu.
+
+	* help.texi (Help Mode): Cleanup.
+
+	* dired.texi: Many cleanups.
+	(Dired Deletion): Describe dired-recursive-deletes.
+	(Operating on Files): dired-create-directory moved.
+	(Misc Dired Features): Moved to here.
+	(Tumme): Node moved to misc.texi.
+
+	* custom.texi: Many cleanups.
+	(Minor Modes): Don't mention ISO Accents Mode.
+	(Examining): Update C-h v output example.
+	(Hooks): Add index and  xref for add-hook.
+	(Locals): Delete list of vars that are always per-buffer.  Rearrange.
+	(Local Keymaps): Don't mention lisp-mode-map, c-mode-map.
+
+	* misc.texi: Many cleanups.
+	(beginning): Add to summary of topics.
+	(Shell): Put eshell xref at the end.  Remove eshell from table.
+	(Thumbnails): New node.
+
 2006-03-31  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.texi, gnus.texi: Bump version to 5.11.
@@ -134,6 +158,10 @@
 2006-03-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Clean view): Document new startup options.
+
+2006-03-12  Richard Stallman  <rms@gnu.org>
+
+	* calendar.texi: Various cleanups.
 
 2006-03-11  Bill Wohler  <wohler@newt.com>
 
