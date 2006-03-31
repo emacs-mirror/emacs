@@ -891,7 +891,7 @@ Must be set before enabling ido mode."
   :group 'ido)
 
 (defcustom ido-read-file-name-as-directory-commands '()
-  "List of commands which uses read-file-name to read a directory name.
+  "List of commands which uses `read-file-name' to read a directory name.
 When `ido-everywhere' is non-nil, the commands in this list will read
 the directory using `ido-read-directory-name'."
   :type '(repeat symbol)
@@ -988,7 +988,7 @@ Copied from `icomplete-eoinput'.")
   "List of files currently matching `ido-text'.")
 
 (defvar ido-report-no-match t
-  "Report [No Match] when no completions matches ido-text.")
+  "Report [No Match] when no completions matches `ido-text'.")
 
 (defvar ido-exit nil
   "Flag to monitor how `ido-find-file' exits.
@@ -1699,7 +1699,7 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
 ;;       the relevant function is called (find-file, write-file, etc).
 
 (defun ido-read-internal (item prompt history &optional default require-match initial)
-  "Perform the ido-read-buffer and ido-read-file-name functions.
+  "Perform the `ido-read-buffer' and `ido-read-file-name' functions.
 Return the name of a buffer or file selected.
 PROMPT is the prompt to give to the user.
 DEFAULT if given is the default directory to start with.
@@ -3757,7 +3757,7 @@ in a separate window.
 \\[ido-toggle-prefix] Toggle between substring and prefix matching.
 \\[ido-toggle-case] Toggle case-sensitive searching of buffer names.
 \\[ido-completion-help] Show list of matching buffers in separate window.
-\\[ido-enter-find-file] Drop into ido-find-file.
+\\[ido-enter-find-file] Drop into `ido-find-file'.
 \\[ido-kill-buffer-at-head] Kill buffer at head of buffer list.
 \\[ido-toggle-ignore] Toggle ignoring buffers listed in `ido-ignore-buffers'."
   (interactive)
