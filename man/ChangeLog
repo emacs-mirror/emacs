@@ -1,3 +1,7 @@
+2006-03-31  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.texi, gnus.texi: Bump version to 5.11.
+
 2006-03-29  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Top): Add comment about version line.

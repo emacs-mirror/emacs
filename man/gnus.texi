@@ -50,7 +50,7 @@ license to the document, as described in section 6 of the license.
 \begin{document}
 
 % Adjust ../Makefile.in if you change the following line:
-\newcommand{\gnusversionname}{Gnus v5.10.6}
+\newcommand{\gnusversionname}{Gnus v5.11}
 \newcommand{\gnuschaptername}{}
 \newcommand{\gnussectionname}{}
 
@@ -360,7 +360,7 @@ spool or your mbox file.  All at the same time, if you want to push your
 luck.
 
 @c Adjust ../Makefile.in if you change the following line:
-This manual corresponds to Gnus v5.10.6.
+This manual corresponds to Gnus v5.11.
 
 @end ifinfo
 
