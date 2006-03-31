@@ -260,7 +260,7 @@ availability).
 
 If `--with-x-toolkit=gtk' is specified, you can tell configure where
 to search for GTK by specifying `--with-pkg-config-prog=PATH' where
-PATH is the pathname to pkg-config.  Note that GTK version 2.0 or
+PATH is the pathname to pkg-config.  Note that GTK version 2.4 or
 newer is required for Emacs.
 
 The `--with-gcc' option specifies that the build process should
