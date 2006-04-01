@@ -17640,7 +17640,8 @@ delete the draft message.
 
 ;;;***
 
-;;;### (autoloads (mh-version) "mh-e" "mh-e/mh-e.el" (17454 30995))
+;;;### (autoloads (mh-strip-package-version mh-version) "mh-e" "mh-e/mh-e.el"
+;;;;;;  (17454 45382))
 ;;; Generated autoloads from mh-e/mh-e.el
 
 (put (quote mh-progs) (quote risky-local-variable) t)
@@ -17653,6 +17654,13 @@ delete the draft message.
 Display version information about MH-E and the MH mail handling system.
 
 \(fn)" t nil)
+
+(autoload (quote mh-strip-package-version) "mh-e" "\
+Strip :package-version keyword and its value from ARGS.
+In Emacs versions that support the :package-version keyword,
+ARGS is returned unchanged.
+
+\(fn ARGS)" nil nil)
 
 ;;;***
 
@@ -30577,7 +30585,7 @@ Zone-mode does two things:
 ;;;;;;  "url/url-nfs.el" "url/url-proxy.el" "url/url-vars.el" "url/vc-dav.el"
 ;;;;;;  "vc-hooks.el" "vcursor.el" "version.el" "vms-patch.el" "vmsproc.el"
 ;;;;;;  "vt-control.el" "vt100-led.el" "w32-fns.el" "w32-vars.el"
-;;;;;;  "widget.el" "window.el" "x-dnd.el") (17454 31067 173423))
+;;;;;;  "widget.el" "window.el" "x-dnd.el") (17454 45486 164469))
 
 ;;;***
 

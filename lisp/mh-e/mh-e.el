@@ -925,6 +925,7 @@ keyword, introduced in Emacs 22."
   `(defface ,face ,spec ,doc ,@(mh-strip-package-version args)))
 (put 'mh-defface 'lisp-indent-function 'defun)
 
+;;;###autoload
 (defun mh-strip-package-version (args)
   "Strip :package-version keyword and its value from ARGS.
 In Emacs versions that support the :package-version keyword,
@@ -937,6 +938,7 @@ ARGS is returned unchanged."
                      (seen (setq seen nil) nil)
                      (t t))
             collect keyword))))
+
 
 
 
