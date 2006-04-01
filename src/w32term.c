@@ -5828,8 +5828,8 @@ x_free_frame_resources (f)
 
   free_frame_menubar (f);
 
-  unload_color (f, f->output_data.x->foreground_pixel);
-  unload_color (f, f->output_data.x->background_pixel);
+  unload_color (f, FRAME_FOREGROUND_PIXEL (f));
+  unload_color (f, FRAME_BACKGROUND_PIXEL (f));
   unload_color (f, f->output_data.w32->cursor_pixel);
   unload_color (f, f->output_data.w32->cursor_foreground_pixel);
   unload_color (f, f->output_data.w32->border_pixel);

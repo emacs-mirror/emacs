@@ -4732,7 +4732,7 @@ x_scroll_bar_create (w, top, left, width, height)
 
     a.background_pixel = f->output_data.x->scroll_bar_background_pixel;
     if (a.background_pixel == -1)
-      a.background_pixel = f->output_data.x->background_pixel;
+      a.background_pixel = FRAME_BACKGROUND_PIXEL (f);
 
     a.event_mask = (ButtonPressMask | ButtonReleaseMask
 		    | ButtonMotionMask | PointerMotionHintMask
@@ -4906,7 +4906,7 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
     /* Restore the foreground color of the GC if we changed it above.  */
     if (f->output_data.x->scroll_bar_foreground_pixel != -1)
       XSetForeground (FRAME_X_DISPLAY (f), gc,
-		      f->output_data.x->foreground_pixel);
+		      FRAME_FOREGROUND_PIXEL (f));
 
     /* Draw the empty space below the handle.  Note that we can't
        clear zero-height areas; that means "clear to end of window." */

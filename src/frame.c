@@ -588,11 +588,11 @@ make_terminal_frame (struct terminal *terminal)
 	 for the black color.  Other frames all inherit their pixels
 	 from what's already in the_only_x_display.  */
       if ((!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame)))
-	  && f->output_data.x->background_pixel == 0
-	  && f->output_data.x->foreground_pixel == 0)
+	  && FRAME_BACKGROUND_PIXEL (f) == 0
+	  && FRAME_FOREGROUND_PIXEL (f) == 0)
 	{
-	  f->output_data.x->background_pixel = FACE_TTY_DEFAULT_BG_COLOR;
-	  f->output_data.x->foreground_pixel = FACE_TTY_DEFAULT_FG_COLOR;
+	  FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
+	  FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
 	}
     }
   else

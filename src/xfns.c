@@ -2680,7 +2680,7 @@ x_window (f)
   XSetWindowAttributes attributes;
   unsigned long attribute_mask;
 
-  attributes.background_pixel = f->output_data.x->background_pixel;
+  attributes.background_pixel = FRAME_BACKGROUND_PIXEL (f);
   attributes.border_pixel = f->output_data.x->border_pixel;
   attributes.bit_gravity = StaticGravity;
   attributes.backing_store = NotUseful;

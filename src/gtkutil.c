@@ -811,7 +811,7 @@ xg_create_frame_widgets (f)
 
   /* Since GTK clears its window by filling with the background color,
      we must keep X and GTK background in sync.  */
-  xg_pix_to_gcolor (wfixed, f->output_data.x->background_pixel, &bg);
+  xg_pix_to_gcolor (wfixed, FRAME_BACKGROUND_PIXEL (f), &bg);
   gtk_widget_modify_bg (wfixed, GTK_STATE_NORMAL, &bg);
 
   /* Also, do not let any background pixmap to be set, this looks very
