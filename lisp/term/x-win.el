@@ -1171,24 +1171,28 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 (defun x-setup-function-keys (frame)
   "Set up `function-key-map' on FRAME for the X window system."
-  ;; Map certain keypad keys into ASCII characters that people usually expect.
-  (with-selected-frame frame
-    (define-key local-function-key-map [backspace] [127])
-    (define-key local-function-key-map [delete] [127])
-    (define-key local-function-key-map [tab] [?\t])
-    (define-key local-function-key-map [linefeed] [?\n])
-    (define-key local-function-key-map [clear] [?\C-l])
-    (define-key local-function-key-map [return] [?\C-m])
-    (define-key local-function-key-map [escape] [?\e])
-    (define-key local-function-key-map [M-backspace] [?\M-\d])
-    (define-key local-function-key-map [M-delete] [?\M-\d])
-    (define-key local-function-key-map [M-tab] [?\M-\t])
-    (define-key local-function-key-map [M-linefeed] [?\M-\n])
-    (define-key local-function-key-map [M-clear] [?\M-\C-l])
-    (define-key local-function-key-map [M-return] [?\M-\C-m])
-    (define-key local-function-key-map [M-escape] [?\M-\e])
-    (define-key local-function-key-map [iso-lefttab] [backtab])
-    (define-key local-function-key-map [S-iso-lefttab] [backtab])))
+  ;; Don't do this twice on the same display, or it would break
+  ;; normal-erase-is-backspace-mode.
+  (unless (terminal-parameter frame 'x-setup-function-keys)
+    ;; Map certain keypad keys into ASCII characters that people usually expect.
+    (with-selected-frame frame
+      (define-key local-function-key-map [backspace] [127])
+      (define-key local-function-key-map [delete] [127])
+      (define-key local-function-key-map [tab] [?\t])
+      (define-key local-function-key-map [linefeed] [?\n])
+      (define-key local-function-key-map [clear] [?\C-l])
+      (define-key local-function-key-map [return] [?\C-m])
+      (define-key local-function-key-map [escape] [?\e])
+      (define-key local-function-key-map [M-backspace] [?\M-\d])
+      (define-key local-function-key-map [M-delete] [?\M-\d])
+      (define-key local-function-key-map [M-tab] [?\M-\t])
+      (define-key local-function-key-map [M-linefeed] [?\M-\n])
+      (define-key local-function-key-map [M-clear] [?\M-\C-l])
+      (define-key local-function-key-map [M-return] [?\M-\C-m])
+      (define-key local-function-key-map [M-escape] [?\M-\e])
+      (define-key local-function-key-map [iso-lefttab] [backtab])
+      (define-key local-function-key-map [S-iso-lefttab] [backtab]))
+    (set-terminal-parameter frame 'x-setup-function-keys t)))
 
 ;; These tell read-char how to convert
 ;; these special chars to ASCII.
