@@ -611,6 +611,7 @@ dnl see the `changequote' comment above.
   ;;
   hppa*-hp-hpux1[1-9]* )
     machine=hp800 opsys=hpux11
+    CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
   ;;
 
   hppa*-*-linux-gnu* )
@@ -2840,7 +2841,7 @@ if test "${REL_ALLOC}" = "yes" ; then
 fi
 
 AH_TOP([/* GNU Emacs site configuration template file.
-   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2002, 2004
+   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2002, 2004, 2005, 2006
              Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
