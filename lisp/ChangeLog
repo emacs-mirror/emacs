@@ -1,3 +1,7 @@
+2006-04-02  Drew Adams  <drew.adams@oracle.com>  (tiny change)
+
+	* speedbar.el (speedbar-after-create-hook): Doc fix.
+
 2006-04-02  Michael Ernst  <mernst@alum.mit.edu>
 
 	* shell.el (shell-directory-tracker)
