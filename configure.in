@@ -2180,7 +2180,7 @@ fi
 ### Is -lXaw3d available?
 HAVE_XAW3D=no
 if test "${HAVE_X11}" = "yes"; then
-  if test "${USE_X_TOOLKIT}" != "none"; then
+  if test "${USE_X_TOOLKIT}" != "none" && test "${with_toolkit_scroll_bars}" != "no"; then
     dnl Fixme: determine what Scrollbar.h needs to avoid compilation
     dnl errors from the test without the `-'.
     AC_CHECK_HEADER(X11/Xaw3d/Scrollbar.h,
