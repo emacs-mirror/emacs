@@ -574,7 +574,7 @@ Otherwise, one argument `-i' is passed to the shell.
 ;;; 2. It cannot infallibly deal with command sequences, though it does well
 ;;;    with these and with ignoring commands forked in another shell with ()s.
 ;;; 3. More generally, any complex command is going to throw it. Otherwise,
-;;;    you'd have to build an entire shell interpreter in emacs lisp.  Failing
+;;;    you'd have to build an entire shell interpreter in Emacs Lisp.  Failing
 ;;;    that, there's no way to catch shell commands where cd's are buried
 ;;;    inside conditional expressions, aliases, and so forth.
 ;;;
@@ -608,7 +608,7 @@ It watches for cd, pushd and popd commands and sets the buffer's
 default directory to track these commands.
 
 You may toggle this tracking on and off with M-x dirtrack-mode.
-If emacs gets confused, you can resync with the shell with M-x dirs.
+If Emacs gets confused, you can resync with the shell with M-x dirs.
 
 See variables `shell-cd-regexp', `shell-chdrive-regexp', `shell-pushd-regexp',
 and  `shell-popd-regexp', while `shell-pushd-tohome', `shell-pushd-dextract',
@@ -929,7 +929,7 @@ See `shell-command-regexp'."
 (defun shell-dynamic-complete-command ()
   "Dynamically complete the command at point.
 This function is similar to `comint-dynamic-complete-filename', except that it
-searches `exec-path' (minus the trailing emacs library path) for completion
+searches `exec-path' (minus the trailing Emacs library path) for completion
 candidates.  Note that this may not be the same as the shell's idea of the
 path.
 
