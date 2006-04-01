@@ -1,3 +1,8 @@
+2006-04-02  Michael Ernst  <mernst@alum.mit.edu>
+
+	* shell.el (shell-directory-tracker)
+	(shell-dynamic-complete-command): Doc fixes.
+
 2006-04-01  Matt Hodges  <MPHodges@member.fsf.org>
 
 	* pcomplete.el (pcomplete-show-completions): Recognize TAB on text
