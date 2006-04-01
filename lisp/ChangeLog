@@ -15205,7 +15205,7 @@
 	* add-log.el (change-log-font-lock-keywords): Make the regexp for
 	date lines stricter.
 
-2005-06-10  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+2005-06-10  Zhang Wei  <id.brep@gmail.com>
 
 	* term/x-win.el (x-clipboard-yank): Use x-selection-value instead
 	of x-get-selection.
