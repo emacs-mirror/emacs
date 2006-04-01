@@ -895,18 +895,18 @@ necessary and can actually cause problems."
 
 ;; Temporary function and data structure used customization.
 ;; These will be unbound after the options are defined.
-(defun mh-strip-package-version (args)
+(defmacro mh-strip-package-version (args)
   "Strip :package-version keyword and its value from ARGS.
 In Emacs versions that support the :package-version keyword,
 ARGS is returned unchanged."
-  (if (boundp 'customize-package-emacs-version-alist)
-      args
-    (let (seen)
-      (loop for keyword in args
-            if (cond ((eq keyword ':package-version) (setq seen t) nil)
-                     (seen (setq seen nil) nil)
-                     (t t))
-            collect keyword))))
+  `(if (boundp 'customize-package-emacs-version-alist)
+       ,args
+     (let (seen)
+       (loop for keyword in ,args
+             if (cond ((eq keyword ':package-version) (setq seen t) nil)
+                      (seen (setq seen nil) nil)
+                      (t t))
+             collect keyword))))
 
 (defmacro mh-defgroup (symbol members doc &rest args)
   "Declare SYMBOL as a customization group containing MEMBERS.
@@ -3115,46 +3115,12 @@ sequence."
 (if (boundp 'facemenu-unlisted-faces)
     (add-to-list 'facemenu-unlisted-faces "^mh-"))
 
-;; Temporary function and data structure used for defining faces.
-;; These will be unbound after the faces are defined.
-(defvar mh-min-colors-defined-flag (and (not mh-xemacs-flag)
-                                        (>= emacs-major-version 22))
-  "Non-nil means `defface' supports min-colors display requirement.")
-
-(defun mh-defface-compat (spec)
-  "Convert SPEC for defface if necessary to run on older platforms.
-Modifies SPEC in place and returns it. See `defface' for the spec definition.
-
-When `mh-min-colors-defined-flag' is nil, this function finds
-display entries with \"min-colors\" requirements and either
-removes the \"min-colors\" requirement or strips the display
-entirely if the display does not support the number of specified
-colors."
-  (if mh-min-colors-defined-flag
-      spec
-    (let ((cells (mh-display-color-cells))
-          new-spec)
-      ;; Remove entries with min-colors, or delete them if we have fewer colors
-      ;; than they specify.
-      (loop for entry in (reverse spec) do
-            (let ((requirement (if (eq (car entry) t)
-                                   nil
-                                 (assoc 'min-colors (car entry)))))
-              (if requirement
-                  (when (>= cells (nth 1 requirement))
-                    (setq new-spec (cons (cons (delq requirement (car entry))
-                                               (cdr entry))
-                                         new-spec)))
-                (setq new-spec (cons entry new-spec)))))
-      new-spec)))
-
-(require 'cus-face)
-
-(defvar mh-inherit-face-flag (assq :inherit custom-face-attributes)
-  "Non-nil means that the `defface' :inherit keyword is available.
-The :inherit keyword is available on all supported versions of
-GNU Emacs and XEmacs from at least 21.5.23 on.")
-
+;; To add a new face:
+;; 1. Add entry to variable mh-face-data.
+;; 2. Create face using mh-defface (which removes min-color spec and
+;;    :package-version keyword where these are not supported),
+;;    accessing face data with function mh-face-data.
+;; 3. Add inherit argument to function mh-face-data if applicable.
 (defvar mh-face-data
   '((mh-folder-followup
      ((((class color) (background light))
@@ -3297,19 +3263,61 @@ GNU Emacs and XEmacs from at least 21.5.23 on.")
       (((class color) (background dark))
        (:foreground "red1" :underline t))
       (t
-       (:underline t))))))
+       (:underline t)))))
+  "MH-E face data.
+Used by function `mh-face-data' which returns spec that is
+consumed by `mh-defface'.")
+
+(require 'cus-face)
+
+(defvar mh-inherit-face-flag (assq :inherit custom-face-attributes)
+  "Non-nil means that the `defface' :inherit keyword is available.
+The :inherit keyword is available on all supported versions of
+GNU Emacs and XEmacs from at least 21.5.23 on.")
+
+(defvar mh-min-colors-defined-flag (and (not mh-xemacs-flag)
+                                        (>= emacs-major-version 22))
+  "Non-nil means `defface' supports min-colors display requirement.")
 
 (defun mh-face-data (face &optional inherit)
   "Return spec for FACE.
-If INHERIT is non-nil and `defface' supports the :inherit
-keyword, return INHERIT literally; otherwise, return spec for FACE.
+See `defface' for the spec definition.
 
-This isn't a perfect implementation. In the case that
-the :inherit keyword is not supported, any additional attributes
-in the inherit parameter are not added to the returned spec."
-  (if (and inherit mh-inherit-face-flag)
-      inherit
-    (mh-defface-compat (cadr (assoc face mh-face-data)))))
+If INHERIT is non-nil and `defface' supports the :inherit
+keyword, return INHERIT literally; otherwise, return spec for
+FACE from the variable `mh-face-data'. This isn't a perfect
+implementation. In the case that the :inherit keyword is not
+supported, any additional attributes in the inherit parameter are
+not added to the returned spec.
+
+Furthermore, when `mh-min-colors-defined-flag' is nil, this
+function finds display entries with \"min-colors\" requirements
+and either removes the \"min-colors\" requirement or strips the
+display entirely if the display does not support the number of
+specified colors."
+  (let ((spec
+         (if (and inherit mh-inherit-face-flag)
+             inherit
+           (or (cadr (assq face mh-face-data))
+               (error "Could not find %s in mh-face-data" face)))))
+
+    (if mh-min-colors-defined-flag
+        spec
+      (let ((cells (mh-display-color-cells))
+            new-spec)
+        ;; Remove entries with min-colors, or delete them if we have
+        ;; fewer colors than they specify.
+        (loop for entry in (reverse spec) do
+              (let ((requirement (if (eq (car entry) t)
+                                     nil
+                                   (assq 'min-colors (car entry)))))
+                (if requirement
+                    (when (>= cells (nth 1 requirement))
+                      (setq new-spec (cons (cons (delq requirement (car entry))
+                                                 (cdr entry))
+                                           new-spec)))
+                  (setq new-spec (cons entry new-spec)))))
+        new-spec))))
 
 (mh-defface mh-folder-address
   (mh-face-data 'mh-folder-subject '((t (:inherit mh-folder-subject))))
@@ -3520,9 +3528,9 @@ The background and foreground are used in the image."
 ;; Get rid of temporary functions and data structures.
 (fmakunbound 'mh-defcustom)
 (fmakunbound 'mh-defface)
-(fmakunbound 'mh-defface-compat)
 (fmakunbound 'mh-defgroup)
 (fmakunbound 'mh-face-data)
+(fmakunbound 'mh-strip-package-version)
 (makunbound 'mh-face-data)
 (makunbound 'mh-inherit-face-flag)
 (makunbound 'mh-min-colors-defined-flag)

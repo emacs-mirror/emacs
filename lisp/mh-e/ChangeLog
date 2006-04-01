@@ -1,7 +1,9 @@
 2006-03-31  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-strip-package-version): Move before use to avoid
-	compiler error.	
+	compiler error. Make macro, also to avoid compiler error.
+	(mh-defface-compat): Incorporate body into mh-face-data and
+	delete.
 
 2006-03-30  Bill Wohler  <wohler@newt.com>
 
