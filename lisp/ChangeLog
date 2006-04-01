@@ -1,3 +1,8 @@
+2006-04-01  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* pcomplete.el (pcomplete-show-completions): Recognize TAB on text
+	terminals.
+
 2006-04-01  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-unc-hosts-cache): New defvar.

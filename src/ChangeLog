@@ -1,3 +1,7 @@
+2006-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure: Regenerated.
+
 2006-03-31  Kenichi Handa  <handa@m17n.org>
 
 	* xfns.c (xg_set_icon): Delete superfluous UNGCPRO.
