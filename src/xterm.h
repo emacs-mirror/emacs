@@ -521,8 +521,10 @@ struct x_output
 
   /* Pixel values used for various purposes.
      border_pixel may be -1 meaning use a gray tile.  */
+#if 0 /* These are also defined in struct frame.  Use that instead.  */
   unsigned long background_pixel;
   unsigned long foreground_pixel;
+#endif
   unsigned long cursor_pixel;
   unsigned long border_pixel;
   unsigned long mouse_pixel;

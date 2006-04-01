@@ -865,8 +865,8 @@ x_set_foreground_color (f, arg, oldval)
   unsigned long fg, old_fg;
 
   fg = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
-  old_fg = x->foreground_pixel;
-  x->foreground_pixel = fg;
+  old_fg = FRAME_FOREGROUND_PIXEL (f);
+  FRAME_FOREGROUND_PIXEL (f) = fg;
 
   if (FRAME_X_WINDOW (f) != 0)
     {
@@ -903,8 +903,8 @@ x_set_background_color (f, arg, oldval)
   unsigned long bg;
 
   bg = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
-  unload_color (f, x->background_pixel);
-  x->background_pixel = bg;
+  unload_color (f, FRAME_BACKGROUND_PIXEL (f));
+  FRAME_BACKGROUND_PIXEL (f) = bg;
 
   if (FRAME_X_WINDOW (f) != 0)
     {
@@ -952,13 +952,13 @@ x_set_mouse_color (f, arg, oldval)
   Cursor cursor, nontext_cursor, mode_cursor, hand_cursor;
   Cursor hourglass_cursor, horizontal_drag_cursor;
   unsigned long pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
-  unsigned long mask_color = x->background_pixel;
+  unsigned long mask_color = FRAME_BACKGROUND_PIXEL (f);
 
   /* Don't let pointers be invisible.  */
   if (mask_color == pixel)
     {
       x_free_colors (f, &pixel, 1);
-      pixel = x_copy_color (f, x->foreground_pixel);
+      pixel = x_copy_color (f, FRAME_FOREGROUND_PIXEL (f));
     }
 
   unload_color (f, x->mouse_pixel);
@@ -1101,13 +1101,13 @@ x_set_cursor_color (f, arg, oldval)
       fore_pixel_allocated_p = 1;
     }
   else
-    fore_pixel = x->background_pixel;
+    fore_pixel = FRAME_BACKGROUND_PIXEL (f);
 
   pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
   pixel_allocated_p = 1;
 
   /* Make sure that the cursor color differs from the background color.  */
-  if (pixel == x->background_pixel)
+  if (pixel == FRAME_BACKGROUND_PIXEL (f))
     {
       if (pixel_allocated_p)
 	{
@@ -1123,7 +1123,7 @@ x_set_cursor_color (f, arg, oldval)
 	      x_free_colors (f, &fore_pixel, 1);
 	      fore_pixel_allocated_p = 0;
 	    }
-	  fore_pixel = x->background_pixel;
+	  fore_pixel = FRAME_BACKGROUND_PIXEL (f);
 	}
     }
 
@@ -2868,8 +2868,8 @@ x_make_gc (f)
 
   /* Normal video */
   gc_values.font = FRAME_FONT (f)->fid;
-  gc_values.foreground = f->output_data.x->foreground_pixel;
-  gc_values.background = f->output_data.x->background_pixel;
+  gc_values.foreground = FRAME_FOREGROUND_PIXEL (f);
+  gc_values.background = FRAME_BACKGROUND_PIXEL (f);
   gc_values.line_width = 0;	/* Means 1 using fast algorithm.  */
   f->output_data.x->normal_gc
     = XCreateGC (FRAME_X_DISPLAY (f),
@@ -2878,8 +2878,8 @@ x_make_gc (f)
 		 &gc_values);
 
   /* Reverse video style.  */
-  gc_values.foreground = f->output_data.x->background_pixel;
-  gc_values.background = f->output_data.x->foreground_pixel;
+  gc_values.foreground = FRAME_BACKGROUND_PIXEL (f);
+  gc_values.background = FRAME_FOREGROUND_PIXEL (f);
   f->output_data.x->reverse_gc
     = XCreateGC (FRAME_X_DISPLAY (f),
 		 FRAME_X_WINDOW (f),
@@ -2887,7 +2887,7 @@ x_make_gc (f)
 		 &gc_values);
 
   /* Cursor has cursor-color background, background-color foreground.  */
-  gc_values.foreground = f->output_data.x->background_pixel;
+  gc_values.foreground = FRAME_BACKGROUND_PIXEL (f);
   gc_values.background = f->output_data.x->cursor_pixel;
   gc_values.fill_style = FillOpaqueStippled;
   gc_values.stipple
@@ -2911,8 +2911,8 @@ x_make_gc (f)
     = (XCreatePixmapFromBitmapData
        (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
 	gray_bits, gray_width, gray_height,
-	f->output_data.x->foreground_pixel,
-	f->output_data.x->background_pixel,
+	FRAME_FOREGROUND_PIXEL (f),
+	FRAME_BACKGROUND_PIXEL (f),
 	DefaultDepth (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f))));
 
   UNBLOCK_INPUT;
@@ -3116,8 +3116,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
     /* Function x_decode_color can signal an error.  Make
        sure to initialize color slots so that we won't try
        to free colors we haven't allocated.  */
-    f->output_data.x->foreground_pixel = -1;
-    f->output_data.x->background_pixel = -1;
+    FRAME_FOREGROUND_PIXEL (f) = -1;
+    FRAME_BACKGROUND_PIXEL (f) = -1;
     f->output_data.x->cursor_pixel = -1;
     f->output_data.x->cursor_foreground_pixel = -1;
     f->output_data.x->border_pixel = -1;
@@ -3125,9 +3125,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
     black = build_string ("black");
     GCPRO1 (black);
-    f->output_data.x->foreground_pixel
+    FRAME_FOREGROUND_PIXEL (f)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
-    f->output_data.x->background_pixel
+    FRAME_BACKGROUND_PIXEL (f)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     f->output_data.x->cursor_pixel
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
@@ -4698,8 +4698,8 @@ x_create_tip_frame (dpyinfo, parms, text)
     /* Function x_decode_color can signal an error.  Make
        sure to initialize color slots so that we won't try
        to free colors we haven't allocated.  */
-    f->output_data.x->foreground_pixel = -1;
-    f->output_data.x->background_pixel = -1;
+    FRAME_FOREGROUND_PIXEL (f) = -1;
+    FRAME_BACKGROUND_PIXEL (f) = -1;
     f->output_data.x->cursor_pixel = -1;
     f->output_data.x->cursor_foreground_pixel = -1;
     f->output_data.x->border_pixel = -1;
@@ -4707,9 +4707,9 @@ x_create_tip_frame (dpyinfo, parms, text)
 
     black = build_string ("black");
     GCPRO1 (black);
-    f->output_data.x->foreground_pixel
+    FRAME_FOREGROUND_PIXEL (f)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
-    f->output_data.x->background_pixel
+    FRAME_BACKGROUND_PIXEL (f)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     f->output_data.x->cursor_pixel
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));

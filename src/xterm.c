@@ -2888,8 +2888,8 @@ XTflash (f)
       XGCValues values;
 
       values.function = GXxor;
-      values.foreground = (f->output_data.x->foreground_pixel
-			   ^ f->output_data.x->background_pixel);
+      values.foreground = (FRAME_FOREGROUND_PIXEL (f)
+			   ^ FRAME_BACKGROUND_PIXEL (f));
 
       gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		      GCFunction | GCForeground, &values);
@@ -9017,8 +9017,8 @@ x_free_frame_resources (f)
 	XDestroyWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 #endif /* !USE_X_TOOLKIT */
 
-      unload_color (f, f->output_data.x->foreground_pixel);
-      unload_color (f, f->output_data.x->background_pixel);
+      unload_color (f, FRAME_FOREGROUND_PIXEL (f));
+      unload_color (f, FRAME_BACKGROUND_PIXEL (f));
       unload_color (f, f->output_data.x->cursor_pixel);
       unload_color (f, f->output_data.x->cursor_foreground_pixel);
       unload_color (f, f->output_data.x->border_pixel);

@@ -404,8 +404,11 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
-** emacsclient -t on the console does not work after su:
+** emacsclient -t on the console does not work after su.  You have to
+   use non-root accounts or start as root to see this.
 
+   	Login: root
+	Password:
 	# su lorentey
 	$ emacsclient -t
 	*ERROR*: Could not open file: /dev/tty1
@@ -414,6 +417,12 @@ THINGS TO DO
    This seems to be a serious problem.  Currently my only idea is to
    bring back the ugly pty proxy hack from the initial versions of
    multi-tty.  Suggestions would be appreciated.
+
+   Update: we could change emacsclient to pass its open file
+   descriptor to the Emacs process.  Unfortunately, this requires a
+   new Lisp-level Emacs API, and as file descriptors are not otherwise
+   exported to Lisp, this approach seems at least as ugly as the pty
+   proxy idea.
 
 ** Understand how `quit_throw_to_read_char' works, and fix any bugs
    that come to light.
@@ -1493,6 +1502,20 @@ DIARY OF CHANGES
    directory of the *scratch* buffer.
 
    (Done in patch-539.)
+
+-- The borders on tooltip frames on X are messed up.  More
+   specifically, the frame's internal border (internal-border-width
+   frame parameter) is not filled with the correct background color.
+
+   It seems the border contents are drawn onto by the
+   update_single_window call in `x-show-tip'.  After some debugging, I
+   think the window's background color is not set up
+   correctly---calling `x_clear_area' fills the specified area with
+   black, not light yellow.
+
+   (Done in patch-544.  A background_pixel field was defined both in
+   struct frame and struct x_output, and Emacs got confused between
+   them.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
 
