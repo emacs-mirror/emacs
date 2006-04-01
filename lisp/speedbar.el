@@ -503,7 +503,7 @@ hierarchy would be replaced with the new directory."
   :type 'hook)
 
 (defcustom speedbar-after-create-hook '(speedbar-frame-reposition-smartly)
-  "*Hooks called before popping up the speedbar frame."
+  "*Hooks called after popping up the speedbar frame."
   :group 'speedbar
   :type 'hook)
 
