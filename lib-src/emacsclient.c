@@ -45,6 +45,25 @@ Boston, MA 02110-1301, USA.  */
 #include <signal.h>
 #include <errno.h>
 
+/* From lisp.h */
+#ifndef DIRECTORY_SEP
+#define DIRECTORY_SEP '/'
+#endif
+#ifndef IS_DIRECTORY_SEP
+#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
+#endif
+#ifndef IS_DEVICE_SEP
+#ifndef DEVICE_SEP
+#define IS_DEVICE_SEP(_c_) 0
+#else
+#define IS_DEVICE_SEP(_c_) ((_c_) == DEVICE_SEP)
+#endif
+#endif
+#ifndef IS_ANY_SEP
+#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_))
+#endif
+
+
 
 char *getenv (), *getwd ();
 char *(getcwd) ();
