@@ -1,3 +1,51 @@
+2006-03-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Top): Add comment about version line.
+
+	* message.texi (Top): Ditto.  Change to take named versions into
+	account.
+
+2006-03-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Posting Styles): Add x-face-file to example.
+	(X-Face): Refer to posting styles.
+
+	* gnus-faq.texi ([5.8]): Add x-face-file.
+	([8.4]): Add links to gmane.emacs.gnus.user and
+	gmane.emacs.gnus.general.
+
+2006-03-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (File Name Cache): Make it clear that the cache is
+	not persistent.
+
+2006-03-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi: Use .invalid.
+	([5.4]): Fix gnus-posting-styles example.
+
+2006-03-27  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (Emacs/W3): Rename from `w3-mode'.  Mention that
+	Emacs/W3 needs a new maintainer.
+	(Ispell): Update author and version info.
+	(Mailcrypt): Mention PGG.
+	(New in Emacs 22): Add PGG to the list of new packages.
+	Include minor changes from "Ramprasad B" <ramprasad_i82@yahoo.com>
+	updating dead URLs.
+
+2006-03-25  Karl Berry  <karl@gnu.org>
+
+	* ada-mode.texi, autotype.texi, calc.texi, cc-mode.texi, cl.texi,
+	dired-x.texi, ebrowse.texi, ediff.texi, emacs-mime.texi,
+	emacs-xtra.texi, emacs.texi, erc.texi, eshell.texi, eudc.texi,
+	faq.texi, forms.texi, gnu.texi, gnus.texi, idlwave.texi,
+	info.texi, message.texi, mh-e.texi, pcl-cvs.texi, pgg.texi,
+	rcirc.texi, reftex.texi, sc.texi, ses.texi, sieve.texi,
+	speedbar.texi, url.texi, vip.texi, viper.texi, widget.texi,
+	woman.texi: (1) use @copyright{} instead of (C) in typeset text;
+	(2) do not indent copyright year list (or anything else).
+
 2006-03-21  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Folders): Various edits.

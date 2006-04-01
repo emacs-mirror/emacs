@@ -19401,7 +19401,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
    Called from x_produce_glyphs when IT->glyph_row is non-null.  */
 
 static INLINE void
-store_next_glyph (it)
+append_glyph (it)
      struct it *it;
 {
   struct glyph *glyph;
@@ -19725,7 +19725,7 @@ append_stretch_glyph (it, object, width, height, ascent)
    ASCENT must be in the range 0 <= ASCENT <= 100.  */
 
 static void
-generate_stretch_glyph (it)
+produce_stretch_glyph (it)
      struct it *it;
 {
   /* (space :width WIDTH :height HEIGHT ...)  */
@@ -20151,7 +20151,7 @@ x_produce_glyphs (it)
 					it->ascent + it->descent, ascent);
 		}
 	      else
-		store_next_glyph (it);
+		append_glyph (it);
 
 	      /* If characters with lbearing or rbearing are displayed
 		 in this line, record that fact in a flag of the
@@ -20333,7 +20333,7 @@ x_produce_glyphs (it)
 	  take_vertical_position_into_account (it);
 
 	  if (it->glyph_row)
-	    store_next_glyph (it);
+	    append_glyph (it);
 	}
       it->multibyte_p = saved_multibyte_p;
     }
@@ -20613,7 +20613,7 @@ x_produce_glyphs (it)
   else if (it->what == IT_IMAGE)
     produce_image_glyph (it);
   else if (it->what == IT_STRETCH)
-    generate_stretch_glyph (it);
+    produce_stretch_glyph (it);
 
   /* Accumulate dimensions.  Note: can't assume that it->descent > 0
      because this isn't true for images with `:ascent 100'.  */
@@ -23819,7 +23819,7 @@ before automatic hscrolling will horizontally scroll the window.  */);
 
   DEFVAR_LISP ("hscroll-step", &Vhscroll_step,
     doc: /* *How many columns to scroll the window when point gets too close to the edge.
-When point is less than `automatic-hscroll-margin' columns from the window
+When point is less than `hscroll-margin' columns from the window
 edge, automatic hscrolling will scroll the window by the amount of columns
 determined by this variable.  If its value is a positive integer, scroll that
 many columns.  If it's a positive floating-point number, it specifies the

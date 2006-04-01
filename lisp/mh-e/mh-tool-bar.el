@@ -321,7 +321,9 @@ where,
         :group 'mh-tool-bar :set 'mh-tool-bar-folder-buttons-set
         :type '(set ,@(loop for x in folder-buttons
                             for y in folder-docs
-                            collect `(const :tag ,y ,x))))
+                            collect `(const :tag ,y ,x)))
+        ;;:package-version '(MH-E "7.1")
+        )
        (custom-declare-variable
         'mh-tool-bar-letter-buttons
         '(list ,@(mapcar (lambda (x) `(quote ,x)) letter-defaults))
@@ -329,20 +331,26 @@ where,
         :group 'mh-tool-bar :set 'mh-tool-bar-letter-buttons-set
         :type '(set ,@(loop for x in letter-buttons
                             for y in letter-docs
-                            collect `(const :tag ,y ,x)))))))
+                            collect `(const :tag ,y ,x)))
+        ;;:package-version '(MH-E "7.1")
+       ))))
 
 (mh-tool-bar-define
- ((:folder mh-inc-folder mh-mime-save-parts mh-previous-undeleted-msg
-           mh-page-msg  mh-next-undeleted-msg mh-delete-msg mh-refile-msg
+ ((:folder mh-inc-folder mh-mime-save-parts
+           mh-previous-undeleted-msg mh-page-msg
+           mh-next-undeleted-msg mh-delete-msg mh-refile-msg
            mh-undo mh-execute-commands mh-toggle-tick mh-reply
            mh-alias-grab-from-field mh-send mh-rescan-folder
            mh-tool-bar-search mh-visit-folder
-           mh-tool-bar-customize mh-tool-bar-folder-help mh-widen)
-  (:letter mh-send-letter mh-compose-insertion ispell-message save-buffer
-           undo kill-region menu-bar-kill-ring-save yank mh-fully-kill-draft
-           mh-tool-bar-customize mh-tool-bar-letter-help))
+           mh-tool-bar-customize mh-tool-bar-folder-help
+           mh-widen)
+  (:letter mh-send-letter save-buffer mh-fully-kill-draft
+           mh-compose-insertion ispell-message undo
+           clipboard-kill-region clipboard-kill-ring-save
+           clipboard-yank mh-tool-bar-customize
+           mh-tool-bar-letter-help))
  ;; Folder/Show buffer buttons
- (mh-inc-folder (folder) "mail" "Incorporate new mail in Inbox
+ (mh-inc-folder (folder) "mail/inbox" "Incorporate new mail in Inbox
 This button runs `mh-inc-folder' which drags any
 new mail into your Inbox folder")
  (mh-mime-save-parts (folder) "attach" "Save MIME parts from this message
@@ -351,30 +359,30 @@ different parts into separate files")
  (mh-previous-undeleted-msg (folder) "left-arrow"
                             "Go to the previous undeleted message
 This button runs `mh-previous-undeleted-msg'")
- (mh-page-msg (folder) "page-down" "Page the current message forwards
+ (mh-page-msg (folder) "next-page" "Page the current message forwards
 This button runs `mh-page-msg'")
  (mh-next-undeleted-msg (folder) "right-arrow" "Go to the next undeleted message
 The button runs `mh-next-undeleted-msg'")
- (mh-delete-msg (folder) "close" "Mark this message for deletion
+ (mh-delete-msg (folder) "delete" "Mark this message for deletion
 This button runs `mh-delete-msg'")
- (mh-refile-msg (folder) "mail/refile" "Refile this message
+ (mh-refile-msg (folder) "mail/move" "Refile this message
 This button runs `mh-refile-msg'")
  (mh-undo (folder) "undo" "Undo last operation
 This button runs `undo'"
           (mh-outstanding-commands-p))
- (mh-execute-commands (folder) "execute" "Perform moves and deletes
+ (mh-execute-commands (folder) "data-save" "Perform moves and deletes
 This button runs `mh-execute-commands'"
                       (mh-outstanding-commands-p))
- (mh-toggle-tick (folder) "highlight" "Toggle tick mark
+ (mh-toggle-tick (folder) "mail/flag-for-followup" "Toggle tick mark
 This button runs `mh-toggle-tick'")
  (mh-toggle-showing (folder) "show" "Toggle showing message
 This button runs `mh-toggle-showing'")
+ (mh-reply (folder) "mail/reply" "Reply to this message
+This button runs `mh-reply'")
  (mh-tool-bar-reply-from (folder) "mail/reply-from" "Reply to \"from\"")
  (mh-tool-bar-reply-to (folder) "mail/reply-to" "Reply to \"to\"")
  (mh-tool-bar-reply-all (folder) "mail/reply-all" "Reply to \"all\"")
- (mh-reply (folder) "mail/reply" "Reply to this message
-This button runs `mh-reply'")
- (mh-alias-grab-from-field (folder) "mail/alias" "Grab From alias
+ (mh-alias-grab-from-field (folder) "contact" "Create alias for sender
 This button runs `mh-alias-grab-from-field'"
                            (and (mh-extract-from-header-value)
                                 (not (mh-alias-for-from-p))))
@@ -386,19 +394,22 @@ This button runs `mh-rescan-folder'")
 This button runs `mh-pack-folder'")
  (mh-tool-bar-search (folder) "search" "Search
 This button runs `mh-tool-bar-search-function'")
- (mh-visit-folder (folder) "fld-open" "Visit other folder
+ (mh-visit-folder (folder) "open" "Visit other folder
 This button runs `mh-visit-folder'")
  ;; Letter buffer buttons
  (mh-send-letter (letter) "mail/send" "Send this letter")
- (mh-compose-insertion (letter) "attach" "Insert attachment")
- (ispell-message (letter) "spell" "Check spelling")
  (save-buffer (letter) "save" "Save current buffer to its file"
               (buffer-modified-p))
+ (mh-fully-kill-draft (letter) "delete" "Kill this draft")
+ (mh-compose-insertion (letter) "attach" "Insert attachment")
+ (ispell-message (letter) "spell" "Check spelling")
  (undo (letter) "undo" "Undo last operation")
- (kill-region (letter) "cut" "Cut (kill) text in region")
- (menu-bar-kill-ring-save (letter) "copy" "Copy text in region")
- (yank (letter) "paste" "Paste (yank) text cut or copied earlier")
- (mh-fully-kill-draft (letter) "close" "Kill this draft")
+ (clipboard-kill-region (letter) "cut"
+  "Cut (kill) text in region")
+ (clipboard-kill-ring-save (letter) "copy"
+  "Copy text in region")
+ (clipboard-yank (letter) "paste"
+  "Paste (yank) text cut or copied earlier")
  ;; Common buttons
  (mh-tool-bar-customize (folder letter) "preferences" "MH-E Preferences")
  (mh-tool-bar-folder-help (folder) "help" "Help! (general help)
@@ -406,7 +417,7 @@ This button runs `info'")
  (mh-tool-bar-letter-help (letter) "help" "Help! (general help)
 This button runs `info'")
  ;; Folder narrowed to sequence buttons
- (mh-widen (sequence) "widen" "Widen from the sequence
+ (mh-widen (sequence) "zoom-out" "Widen from the sequence
 This button runs `mh-widen'"))
 
 (provide 'mh-tool-bar)

@@ -21,9 +21,9 @@
 @ifnottex
 This file documents the URL loading package.
 
-Copyright (C) 1996, 1997, 1998, 1999, 2002, 2004,
-   2005, 2006 Free Software Foundation, Inc.
-Copyright (C) 1993, 1994, 1995, 1996  William M. Perry
+Copyright @copyright{} 1996, 1997, 1998, 1999, 2002, 2004,
+2005, 2006 Free Software Foundation, Inc.@*
+Copyright @copyright{} 1993, 1994, 1995, 1996  William M. Perry
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
@@ -52,7 +52,7 @@ License.''
 @vskip 0pt plus 1filll
 Copyright @copyright{} 1993, 1994, 1995, 1996 William M. Perry@*
 Copyright @copyright{} 1996, 1997, 1998, 1999, 2002, 2003, 2004,
-   2005, 2006 Free Software Foundation, Inc.
+2005, 2006 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or

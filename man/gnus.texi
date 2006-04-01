@@ -7,8 +7,8 @@
 @syncodeindex pg cp
 
 @copying
-Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -49,6 +49,7 @@ license to the document, as described in section 6 of the license.
 \makeindex
 \begin{document}
 
+% Adjust ../Makefile.in if you change the following line:
 \newcommand{\gnusversionname}{Gnus v5.10.6}
 \newcommand{\gnuschaptername}{}
 \newcommand{\gnussectionname}{}
@@ -358,6 +359,7 @@ can be gotten by any nefarious means you can think of---@acronym{NNTP}, local
 spool or your mbox file.  All at the same time, if you want to push your
 luck.
 
+@c Adjust ../Makefile.in if you change the following line:
 This manual corresponds to Gnus v5.10.6.
 
 @end ifinfo
@@ -11913,7 +11915,8 @@ So here's a new example:
       '((".*"
          (signature-file "~/.signature")
          (name "User Name")
-         ("X-Home-Page" (getenv "WWW_HOME"))
+         (x-face-file "~/.xface")
+         (x-url (getenv "WWW_HOME"))
          (organization "People's Front Against MWM"))
         ("^rec.humor"
          (signature my-funny-signature-randomizer))
@@ -22098,8 +22101,10 @@ foreground and background colors of the displayed X-Faces.  The
 default colors are black and white.
 @end table
 
-Gnus provides a few convenience functions and variables to allow
-easier insertion of X-Face headers in outgoing messages.
+If you use posting styles, you can use an @code{x-face-file} entry in
+@code{gnus-posting-styles}, @xref{Posting Styles}.  If you don't, Gnus
+provides a few convenience functions and variables to allow easier
+insertion of X-Face headers in outgoing messages.
 
 @findex gnus-random-x-face
 @vindex gnus-convert-pbm-to-x-face-command

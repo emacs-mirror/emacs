@@ -1,3 +1,28 @@
+2006-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-insert-mime): Ignore cached contents of
+	message/external-body part.
+
+	* mm-decode.el (mm-get-part): Add optional 'no-cache' argument.
+	(mm-insert-part): Ditto.
+
+2006-03-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-map-articles): Don't funcall symbol macro.
+	Reported by Ralf Wachinger <rwachinger@gmx.de>.
+
+2006-03-23  Kenichi Handa  <handa@m17n.org>
+
+	* rfc2231.el (rfc2231-encode-string): Use mm-disable-multibyte
+	instead of set-buffer-multibyte.
+
+2006-03-23  Kenichi Handa  <handa@m17n.org>
+
+	* rfc2231.el (rfc2231-decode-encoded-string): Work on unibyte
+	buffer and then decode the buffer text if necessary.
+	(rfc2231-encode-string): Be sure to work on multibyte buffer at
+	first, and after mm-encode-body, change the buffer to unibyte.
+
 2006-03-21  Daniel Pittman <daniel@rimspace.net>
 
 	* nnimap.el (nnimap-request-update-info-internal): Optimize.

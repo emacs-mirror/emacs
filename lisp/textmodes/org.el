@@ -2383,7 +2383,7 @@ between words."
   "Get the right face for match N in font-lock matching of healdines."
   (setq org-l (- (match-end 2) (match-beginning 1)))
   (if org-odd-levels-only (setq org-l (1+ (/ org-l 2))))
-  (setq org-f (nth (1- (% org-l org-n-levels)) org-level-faces))
+  (setq org-f (nth (% (1- org-l) org-n-levels) org-level-faces))
   (cond
    ((eq n 1) (if org-hide-leading-stars 'org-hide org-f))
    ((eq n 2) org-f)

@@ -227,7 +227,7 @@ These look like:
   (let ((coding-system (mm-charset-to-coding-system (match-string 2 string)))
 	;;(language (match-string 3 string))
 	(value (match-string 4 string)))
-    (mm-with-multibyte-buffer
+    (mm-with-unibyte-buffer
       (insert value)
       (goto-char (point-min))
       (while (search-forward "%" nil t)
@@ -236,9 +236,9 @@ These look like:
 	     (string-to-number (buffer-substring (point) (+ (point) 2)) 16)
 	   (delete-region (1- (point)) (+ (point) 2)))))
       ;; Decode using the charset, if any.
-      (unless (memq coding-system '(nil ascii))
-	(mm-decode-coding-region (point-min) (point-max) coding-system))
-      (buffer-string))))
+      (if (memq coding-system '(nil ascii))
+	  (buffer-string)
+	(mm-decode-coding-string (buffer-string) coding-system)))))
 
 (defun rfc2231-encode-string (param value)
   "Return and PARAM=VALUE string encoded according to RFC2231.
@@ -252,7 +252,7 @@ the result of this function."
 	;; Don't make lines exceeding 76 column.
 	(limit (- 74 (length param)))
 	spacep encodep charsetp charset broken)
-    (with-temp-buffer
+    (mm-with-multibyte-buffer
       (insert value)
       (goto-char (point-min))
       (while (not (eobp))
@@ -268,6 +268,7 @@ the result of this function."
 	(forward-char 1))
       (when charsetp
 	(setq charset (mm-encode-body)))
+      (mm-disable-multibyte)
       (cond
        ((or encodep charsetp
 	    (progn

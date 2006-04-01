@@ -6096,7 +6096,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
       f = x_any_window_to_frame (dpyinfo, event.xkey.window);
 
-      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
+      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+	  && !EQ (f->tool_bar_window, dpyinfo->mouse_face_window))
         {
           clear_mouse_face (dpyinfo);
           dpyinfo->mouse_face_hidden = 1;
@@ -10260,8 +10261,6 @@ x_term_init (display_name, xrm_option, resource_name)
 
           if (! NILP (abs_file) && !NILP (Ffile_readable_p (abs_file)))
             gtk_rc_parse (SDATA (abs_file));
-
-          UNGCPRO;
         }
 
         XSetErrorHandler (x_error_handler);

@@ -3417,9 +3417,9 @@ file by name, without having to remember exactly where it is located.
 When typing a file name in the minibuffer, @kbd{C-@key{tab}}
 (@code{file-cache-minibuffer-complete}) completes it using the file
 name cache.  If you repeat @kbd{C-@key{tab}}, that cycles through the
-possible completions of what you had originally typed.  Note that the
-@kbd{C-@key{tab}} character cannot be typed on most text-only
-terminals.
+possible completions of what you had originally typed.  (However, note
+that the @kbd{C-@key{tab}} character cannot be typed on most text-only
+terminals.)
 
   The file name cache does not fill up automatically.  Instead, you
 load file names into the cache using these commands:
@@ -3443,6 +3443,10 @@ of directory names.
 @item M-x file-cache-clear-cache @key{RET}
 Clear the cache; that is, remove all file names from it.
 @end table
+
+  The file name cache is not persistent: it is kept and maintained
+only for the duration of the Emacs session.  You can view the contents
+of the cache with the @code{file-cache-display} command.
 
 @node File Conveniences
 @section Convenience Features for Finding Files

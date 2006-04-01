@@ -5168,7 +5168,7 @@ only these files will be asked to be saved."
 (define-key ctl-x-5-map "f" 'find-file-other-frame)
 (define-key ctl-x-5-map "\C-f" 'find-file-other-frame)
 (define-key ctl-x-5-map "r" 'find-file-read-only-other-frame)
-(define-key ctl-x-4-map "\C-o" 'display-buffer-other-frame)
+(define-key ctl-x-5-map "\C-o" 'display-buffer-other-frame)
 
 ;; arch-tag: bc68d3ea-19ca-468b-aac6-3a4a7766101f
 ;;; files.el ends here

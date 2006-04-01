@@ -8,8 +8,8 @@
 @copying
 This file documents Message, the Emacs message composition mode.
 
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-   2005, 2006 Free Software Foundation, Inc.
+Copyright @copyright{} 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+2004, 2005, 2006 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -67,9 +67,10 @@ Message mode buffers.
 * Key Index::         List of Message mode keys.
 @end menu
 
-This manual corresponds to Message v5.10.6.  Message is distributed
-with the Gnus distribution bearing the same version number as this
-manual.
+@c Adjust ../Makefile.in if you change the following lines:
+Message is distributed with Gnus.  The Gnus distribution
+@c
+corresponding to this manual is Gnus v5.10.6.
 
 
 @node Interface

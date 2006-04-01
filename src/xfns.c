@@ -827,7 +827,6 @@ xg_set_icon (f, file)
       UNBLOCK_INPUT;
     }
 
-  UNGCPRO;
   return result;
 }
 

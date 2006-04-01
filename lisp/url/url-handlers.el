@@ -151,6 +151,8 @@ the arguments that would have been passed to OPERATION."
 (put 'substitute-in-file-name 'url-file-handlers 'url-file-handler-identity)
 (put 'file-name-absolute-p 'url-file-handlers (lambda (&rest ignored) t))
 (put 'expand-file-name 'url-file-handlers 'url-handler-expand-file-name)
+(put 'directory-file-name 'url-file-handlers 'url-handler-directory-file-name)
+;; (put 'file-name-as-directory 'url-file-handlers 'url-handler-file-name-as-directory)
 
 ;; These are operations that we do not support yet (DAV!!!)
 (put 'file-writable-p 'url-file-handlers 'ignore)
@@ -160,9 +162,26 @@ the arguments that would have been passed to OPERATION."
 (put 'vc-registered 'url-file-handlers 'ignore)
 
 (defun url-handler-expand-file-name (file &optional base)
+  ;; When we see "/foo/bar" in a file whose working dir is "http://bla/bla",
+  ;; there are two interpretations possible: either it's a local "/foo/bar"
+  ;; or it's "http:/bla/foo/bar".  When working with URLs, the second
+  ;; interpretation is the right one, but when working with Emacs file
+  ;; names, the first is preferred.
   (if (file-name-absolute-p file)
       (expand-file-name file "/")
     (url-expand-file-name file base)))
+
+;; directory-file-name and file-name-as-directory are kind of hard to
+;; implement really right for URLs since URLs can have repeated / chars.
+;; We'd want the following behavior:
+;; idempotence: (d-f-n (d-f-n X) == (d-f-n X)
+;; idempotence: (f-n-a-d (f-n-a-d X) == (f-n-a-d X)
+;; reversible:  (d-f-n (f-n-a-d (d-f-n X))) == (d-f-n X)
+;; reversible:  (f-n-a-d (d-f-n (f-n-a-d X))) == (f-n-a-d X)
+(defun url-handler-directory-file-name (dir)
+  ;; When there's more than a single /, just don't touch the slashes at all.
+  (if (string-match "//\\'" dir) dir
+    (url-run-real-handler 'directory-file-name (list dir))))
 
 ;; The actual implementation
 ;;;###autoload
@@ -193,7 +212,7 @@ A prefix arg makes KEEP-TIME non-nil."
   "Copy URL into a temporary file on this machine.
 Returns the name of the local copy, or nil, if FILE is directly
 accessible."
-  (let ((filename (make-temp-name "url")))
+  (let ((filename (make-temp-file "url")))
     (url-copy-file url filename)
     filename))
 

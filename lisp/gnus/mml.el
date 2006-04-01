@@ -793,7 +793,7 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
       (unless (setq textp (equal (mm-handle-media-supertype handle) "text"))
 	(save-excursion
 	  (set-buffer (setq buffer (mml-generate-new-buffer " *mml*")))
-	  (mm-insert-part handle)
+	  (mm-insert-part handle 'no-cache)
 	  (if (setq mmlp (equal (mm-handle-media-type handle)
 				"message/rfc822"))
 	      (mime-to-mml)))))

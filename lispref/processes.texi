@@ -1309,12 +1309,6 @@ subprocess output.
 
 The argument @var{seconds} need not be an integer.  If it is a floating
 point number, this function waits for a fractional number of seconds.
-Some systems support only a whole number of seconds; on these systems,
-@var{seconds} is rounded down.
-
-Not all operating systems support waiting periods other than multiples
-of a second; on those that do not, you get an error if you specify
-nonzero @var{millisec}.
 
 @c Emacs 22.1 feature
 If @var{process} is a process, and the argument @var{just-this-one} is

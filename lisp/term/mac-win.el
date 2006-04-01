@@ -1103,15 +1103,6 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
     )
   "Alist of Mac script codes vs Emacs coding systems.")
 
-(defconst mac-system-coding-system
-  (let ((base (or (cdr (assq mac-system-script-code
-			     mac-script-code-coding-systems))
-		  'mac-roman)))
-    (if (eq system-type 'darwin)
-	base
-      (coding-system-change-eol-conversion base 'mac)))
-  "Coding system derived from the system script code.")
-
 (defun mac-add-charset-info (xlfd-charset mac-text-encoding)
   "Add a character set to display with Mac fonts.
 Create an entry in `mac-charset-info-alist'.
@@ -1152,9 +1143,6 @@ correspoinding TextEncodingBase value."
 (define-key special-event-map [language-change] 'mac-handle-language-change)
 
 ;;;; Selections
-
-;; Setup to use the Mac clipboard.
-(set-selection-coding-system mac-system-coding-system)
 
 ;;; We keep track of the last text selected here, so we can check the
 ;;; current selection against it, and avoid passing back our own text
@@ -1336,7 +1324,8 @@ in `selection-converter-alist', which see."
 	      (setq str (or s
 			    (encode-coding-string str
 						  (if (eq (byteorder) ?B)
-						      'utf-16be 'utf-16le))))))
+						      'utf-16be-mac
+						    'utf-16le-mac))))))
 	   ((eq type 'com.apple.traditional-mac-plain-text)
 	    (let ((encodables (find-coding-systems-string str))
 		  (rest mac-script-code-coding-systems))
@@ -1896,6 +1885,22 @@ It returns a name of the created fontset."
     (fontset-add-mac-fonts fontset t)
     fontset))
 
+;; Adjust Courier font specifications in x-fixed-font-alist.
+(let ((courier-fonts (assoc "Courier" x-fixed-font-alist)))
+  (if courier-fonts
+      (dolist (label-fonts (cdr courier-fonts))
+	(setcdr label-fonts
+		(mapcar
+		 (lambda (font)
+		   (if (string-match "\\`-adobe-courier-\\([^-]*\\)-\\(.\\)-\\(.*\\)-iso8859-1\\'" font)
+		       (replace-match
+			(if (string= (match-string 2 font) "o")
+			    "-*-courier-\\1-i-\\3-*-*"
+			  "-*-courier-\\1-\\2-\\3-*-*")
+			t nil font)
+		     font))
+		 (cdr label-fonts))))))
+
 ;; Setup the default fontset.
 (setup-default-fontset)
 (cond ((x-list-fonts "*-iso10646-1")
@@ -2006,6 +2011,17 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 
 ;; Enable CLIPBOARD copy/paste through menu bar commands.
 (menu-bar-enable-clipboard)
+
+(defconst mac-system-coding-system
+  (let ((base (or (cdr (assq mac-system-script-code
+			     mac-script-code-coding-systems))
+		  'mac-roman)))
+    (if (eq system-type 'darwin)
+	base
+      (coding-system-change-eol-conversion base 'mac)))
+  "Coding system derived from the system script code.")
+
+(set-selection-coding-system mac-system-coding-system)
 
 (defun mac-drag-n-drop (event)
   "Edit the files listed in the drag-n-drop EVENT.

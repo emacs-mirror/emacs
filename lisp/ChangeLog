@@ -1,3 +1,134 @@
+2006-03-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-system-coding-system): Define and use after
+	Mac-specific coding systems are ready.
+
+2006-03-27  Romain Francoise  <romain@orebokech.com>
+
+	* net/rcirc.el (rcirc-connect): Add autoload cookie.
+
+	* ldefs-boot.el: Update.
+
+2006-03-27  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el: Invoke gpg asynchronous, to avoid querying for
+	passphrases when it is not needed.
+	(pgg-gpg-use-agent): Add, to hard code that pgg shouldn't wait for
+	passphrase stuff from gpg, should only be necessary when you use
+	gpg with a smartcard.
+
+2006-03-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* comint.el (comint-dynamic-list-completions): Allow user to
+	select *Completions* buffer.
+
+2006-03-27  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-get-level-face): Fix bug with level
+	counting.
+
+2006-03-26  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/gud.el (gdb): Only complain about multiple debugging
+	when the gdb process is still running.
+
+2006-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (tool-bar-map): Defvar it.
+	(rmail-tool-bar-map): Tool-bar buttons for Rmail.
+	(rmail-perm-variables): Make rmail-tool-bar-map a local variable.
+
+2006-03-25  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+
+	* help.el (print-help-return-message): Suggest to use
+	display-buffer instead of switch-to-buffer-other-window to restore
+	the previous window without selecting it.
+
+2006-03-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.el (select-frame-by-name): Call x-focus-frame also when
+	window-system is mac.
+
+	* term/mac-win.el: Adjust Courier font specifications in
+	x-fixed-font-alist.
+	(mac-select-convert-to-string): Use utf-16be-mac or utf-16le-mac
+	when directly encoding to UTF-16 in native byte order, no BOM.
+
+2006-03-25  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-rectangle-mark-key): New defcustom.
+	(cua--init-keymaps): Use it instead of fixed C-return.
+	(cua-mode): Set after it.
+
+	* emulation/cua-rect.el (cua--init-rectangles): Use
+	cua-rectangle-mark-key instead of fixed C-return.
+
+2006-03-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdba): Revert 2006-03-10 change for case of
+	"run" in .gdbinit.
+	(gdb-var-create-regexp): Remove "^done" prefix for gdb-mi.el.
+
+2006-03-24  Romain Francoise  <romain@orebokech.com>
+
+	* files.el (ctl-x-5-map): Really bind C-x 5 C-o to
+	`display-buffer-other-frame'.
+
+2006-03-24  Kim F. Storm  <storm@cua.dk>
+
+	* apropos.el (apropos-synonyms): Add selection => region.
+
+2006-03-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-regexp)
+	(gdb-var-list-children-regexp, gdb-var-update-regexp)
+	(gdb-var-list-children-regexp-1, gdb-var-update-regexp-1)
+	(gdb-data-list-register-values-regexp)
+	(gdb-stack-list-locals-regexp, gdb-stack-list-locals-handler):
+	Future proof against new fields being added to MI output.
+	(gdb-send): Don't treat backslashes for program input as
+	continuations.
+	(gdb-assembler-handler): Don't use window-start for this handler.
+	(gdb-frame-handler): Don't change to hollow arrow if overlay
+	arrow doesn't move to new frame.
+
+2006-03-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-continuation): Declare earlier to
+	prevent compiler warnings.
+	(gdb-stopped): Check for gud-last-last-frame (case: signal).
+	(breakpoint-disabled): Make lighter for contrast with overlay
+	arrow.
+	(gdb-assembler-custom): Use hollow-right-triangle for assembler
+	buffer too.
+
+2006-03-23  Reiner Steib  <reinersteib+gmane@imap.cc>
+
+	* pgg-gpg.el (pgg-gpg-update-agent): Check for
+	make-network-process, so we can use the same code in Gnus v5-10
+	too and have this file fully synchronized with that release.
+
+2006-03-23  Romain Francoise  <romain@orebokech.com>
+
+	* ibuf-ext.el (ibuffer-read-filter-group-name):
+	Use `ibuffer-generate-filter-groups' to make completion list match
+	the filter groups that are really displayed in the Ibuffer buffer.
+	(ibuffer-generate-filter-groups): Add new args noempty, nodefault.
+
+2006-03-23  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (sort-coding-systems): Describe that
+	the argument is modified in docstring.
+
+2006-03-22  Sascha Wilde  <wilde@sha-bang.de>
+
+	* pgg-gpg.el (pgg-gpg-use-agent): Disable by default.
+	(pgg-gpg-update-agent): New function.
+	(pgg-gpg-use-agent-p): New function.
+	(pgg-gpg-process-region, pgg-gpg-encrypt-region)
+	(pgg-gpg-encrypt-symmetric-region, pgg-gpg-decrypt-region)
+	(pgg-gpg-sign-region): Use it.
+
 2006-03-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-face-set): Call custom-push-theme before
@@ -22,7 +153,7 @@
 
 2006-03-21  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-open-at-point): Fixed bug in wiki-style
+	* textmodes/org.el (org-open-at-point): Fix bug in wiki-style
 	bracket links.
 
 2006-03-21  Kim F. Storm  <storm@cua.dk>
@@ -187,7 +318,7 @@
 	(gdb-force-mode-line-update): New function.
 	(gdb-resync, gdb-starting, gdb-signal, gdb-exited, gdb-stopped)
 	(gdb-exited): Use them.
-	(gdb-signal): New fuction.
+	(gdb-signal): New function.
 	(gdb-annotation-rules): Provide a rule for it.
 
 2006-03-16  Kenichi Handa  <handa@m17n.org>
@@ -223,7 +354,7 @@
 2006-03-15  Bill Wohler  <wohler@newt.com>
 
 	* image.el (image-load-path-for-library): Fix example by not
-	recommending that one binds image-load-path. Just defvar it to
+	recommending that one binds image-load-path.  Just defvar it to
 	placate compiler and only use it if previously defined.
 
 2006-03-15  Carsten Dominik  <dominik@science.uva.nl>
