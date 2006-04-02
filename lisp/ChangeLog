@@ -1,3 +1,40 @@
+2006-04-02  Drew Adams  <drew.adams@oracle.com>  (tiny change)
+
+	* speedbar.el (speedbar-after-create-hook): Doc fix.
+
+2006-04-02  Michael Ernst  <mernst@alum.mit.edu>
+
+	* shell.el (shell-directory-tracker)
+	(shell-dynamic-complete-command): Doc fixes.
+
+2006-04-01  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* pcomplete.el (pcomplete-show-completions): Recognize TAB on text
+	terminals.
+
+2006-04-01  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-unc-hosts-cache): New defvar.
+	(ido-unc-hosts): If value of defcustom is a function, call it to
+	get list of UNC hosts.  Add function-item choices to specify
+	ido-unc-hosts-net-view or user function.
+	(ido-ignore-unc-host-regexps): New defcustom.
+	(ido-unc-hosts-net-view, ido-unc-hosts): New functions.
+	(ido-is-unc-root, ido-is-unc-host, ido-file-name-all-completions)
+	(ido-exhibit): Call ido-unc-hosts to get list of UNC hosts.
+
+2006-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-util.el (cvs-insert-strings): Fix bug with strings longer than
+	wwidth.
+
+2006-03-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-cache-unc-host-shares-time, ido-report-no-match)
+	(ido-max-work-file-list, ido-switch-buffer)
+	(ido-read-file-name-as-directory-commands):
+	Fix typos in docstrings.
+
 2006-03-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-system-coding-system): Define and use after
@@ -432,11 +469,6 @@
 
 	* tree-widget.el (tree-widget-themes-load-path)
 	(tree-widget-themes-directory, tree-widget-theme): Doc fix.
-
-2006-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* pcvs-util.el (cvs-insert-strings): Fix bug with strings longer than
-	wwidth.
 
 2006-03-13  Ryan Yeske  <rcyeske@gmail.com>
 
@@ -15172,7 +15204,7 @@
 	* add-log.el (change-log-font-lock-keywords): Make the regexp for
 	date lines stricter.
 
-2005-06-10  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+2005-06-10  Zhang Wei  <id.brep@gmail.com>
 
 	* term/x-win.el (x-clipboard-yank): Use x-selection-value instead
 	of x-get-selection.

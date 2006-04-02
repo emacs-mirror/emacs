@@ -50,7 +50,7 @@ license to the document, as described in section 6 of the license.
 \begin{document}
 
 % Adjust ../Makefile.in if you change the following line:
-\newcommand{\gnusversionname}{Gnus v5.10.6}
+\newcommand{\gnusversionname}{Gnus v5.11}
 \newcommand{\gnuschaptername}{}
 \newcommand{\gnussectionname}{}
 
@@ -360,7 +360,7 @@ spool or your mbox file.  All at the same time, if you want to push your
 luck.
 
 @c Adjust ../Makefile.in if you change the following line:
-This manual corresponds to Gnus v5.10.6.
+This manual corresponds to Gnus v5.11.
 
 @end ifinfo
 
@@ -17540,16 +17540,16 @@ group have to be alive (i.e., subscribed or unsubscribed).  Killed or
 zombie groups can't be component groups for @code{nnvirtual} groups.
 
 @vindex nnvirtual-always-rescan
-If the @code{nnvirtual-always-rescan} is non-@code{nil},
-@code{nnvirtual} will always scan groups for unread articles when
-entering a virtual group.  If this variable is @code{nil} (which is the
-default) and you read articles in a component group after the virtual
-group has been activated, the read articles from the component group
-will show up when you enter the virtual group.  You'll also see this
-effect if you have two virtual groups that have a component group in
-common.  If that's the case, you should set this variable to @code{t}.
-Or you can just tap @code{M-g} on the virtual group every time before
-you enter it---it'll have much the same effect.
+If the @code{nnvirtual-always-rescan} variable is non-@code{nil} (which
+is the default), @code{nnvirtual} will always scan groups for unread
+articles when entering a virtual group.  If this variable is @code{nil}
+and you read articles in a component group after the virtual group has
+been activated, the read articles from the component group will show up
+when you enter the virtual group.  You'll also see this effect if you
+have two virtual groups that have a component group in common.  If
+that's the case, you should set this variable to @code{t}.  Or you can
+just tap @code{M-g} on the virtual group every time before you enter
+it---it'll have much the same effect.
 
 @code{nnvirtual} can have both mail and news groups as component groups.
 When responding to articles in @code{nnvirtual} groups, @code{nnvirtual}

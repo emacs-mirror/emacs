@@ -3545,6 +3545,15 @@ the command `undefined'.  (In earlier Emacs versions, it used
 `risky-local-variable' property is nil.
 
 ---
+The function `comint-send-input' now accepts 3 optional arguments:
+
+  (comint-send-input &optional no-newline artificial)
+
+Callers sending input not from the user should use bind the 3rd
+argument `artificial' to a non-nil value, to prevent Emacs from
+deleting the part of subprocess output that matches the input.
+
+---
 ** Support for Mocklisp has been removed.
 
 +++
