@@ -829,6 +829,21 @@ directory, like `default-directory'."
     (define-key map (kbd "RET") 'ibuffer-interactive-filter-by-mode)
     map))
 
+(defvar ibuffer-name-header-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(mouse-1)] 'ibuffer-do-sort-by-alphabetic)
+    map))
+
+(defvar ibuffer-size-header-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(mouse-1)] 'ibuffer-do-sort-by-size)
+    map))
+
+(defvar ibuffer-mode-header-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(mouse-1)] 'ibuffer-do-sort-by-major-mode)
+    map))
+
 (defvar ibuffer-mode-filter-group-map
   (let ((map (make-sparse-keymap)))
     (define-key map [(mouse-1)] 'ibuffer-mouse-toggle-mark)
@@ -1666,6 +1681,7 @@ If point is on a group name, this function operates on that group."
 
 (define-ibuffer-column name
   (:inline t
+   :header-mouse-map ibuffer-name-header-map
    :props
    ('mouse-face 'highlight 'keymap ibuffer-name-map
 		'ibuffer-name-column t
@@ -1682,6 +1698,7 @@ If point is on a group name, this function operates on that group."
 
 (define-ibuffer-column size
   (:inline t
+   :header-mouse-map ibuffer-size-header-map
    :summarizer
    (lambda (column-strings)
      (let ((total 0))
@@ -1695,6 +1712,7 @@ If point is on a group name, this function operates on that group."
 
 (define-ibuffer-column mode
   (:inline t
+   :header-mouse-map ibuffer-mode-header-map
    :props
    ('mouse-face 'highlight
 		'keymap ibuffer-mode-name-map
@@ -2009,12 +2027,18 @@ the value of point at the beginning of the line for that buffer."
 		  (setq min (- min)))
 		(let* ((name (or (get sym 'ibuffer-column-name)
 				 (error "Unknown column %s in ibuffer-formats" sym)))
-		       (len (length name)))
-		  (if (< len min)
-		      (ibuffer-format-column name
-					     (- min len)
-					     align)
-		    name))))))
+		       (len (length name))
+		       (hmap (get sym 'header-mouse-map))
+		       (strname (if (< len min)
+				    (ibuffer-format-column name
+							   (- min len)
+							   align)
+				  name)))
+		  (when hmap
+		    (setq
+		     strname 
+		     (propertize strname 'mouse-face 'highlight 'keymap hmap)))
+		  strname)))))
 	 (add-text-properties opos (point) `(ibuffer-title-header t))
 	 (insert "\n")
 	 ;; Add the underlines

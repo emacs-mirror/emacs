@@ -75,8 +75,8 @@ During evaluation of body, bind `it' to the value returned by TEST."
 ;; (put 'ibuffer-save-marks 'lisp-indent-function 0)
 
 ;;;###autoload
-(defmacro* define-ibuffer-column (symbol (&key name inline props
-					       summarizer) &rest body)
+(defmacro* define-ibuffer-column (symbol (&key name inline props summarizer 
+					       header-mouse-map) &rest body)
   "Define a column SYMBOL for use with `ibuffer-formats'.
 
 BODY will be called with `buffer' bound to the buffer object, and
@@ -115,6 +115,7 @@ change its definition, you should explicitly call
 	    ,(if (stringp name)
 		 name
 	       (capitalize (symbol-name symbol))))
+       ,(if header-mouse-map `(put (quote ,sym) 'header-mouse-map ,header-mouse-map))
        ,(if summarizer
 	    ;; Store the name of the summarizing function.
 	    `(put (quote ,sym) 'ibuffer-column-summarizer

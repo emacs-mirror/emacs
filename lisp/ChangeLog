@@ -1,3 +1,15 @@
+2006-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ibuf-macs.el (define-ibuffer-column): Add a new key:
+	header-mouse-map. 
+
+	* ibuffer.el (ibuffer-name-header-map, ibuffer-size-header-map)
+	(ibuffer-mode-header-map): New keymaps.
+	(ibuffer-update-title-and-summary): Enable mouse face highlighting
+	and keybindings for column headers.
+	(name,size,mode) <define-ibuffer-column>: Add a header-mouse-map
+	property.
+
 2006-04-02  Drew Adams  <drew.adams@oracle.com>  (tiny change)
 
 	* speedbar.el (speedbar-after-create-hook): Doc fix.
