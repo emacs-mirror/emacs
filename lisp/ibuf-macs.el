@@ -90,6 +90,9 @@ the text, such as `mouse-face'.  And SUMMARIZER, if given, is a
 function which will be passed a list of all the strings in its column;
 it should return a string to display at the bottom.
 
+If HEADER-MOUSE-MAP is given, it will be used as a keymap for the
+title of the column.
+
 Note that this macro expands into a `defun' for a function named
 ibuffer-make-column-NAME.  If INLINE is non-nil, then the form will be
 inlined into the compiled format versions.  This means that if you
