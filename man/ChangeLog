@@ -1,3 +1,8 @@
+2006-04-02  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Getting Started, Junk, Bug Reports)
+	(MH FAQ and Support): Fix URLs.
+
 2006-03-31  Romain Francoise  <romain@orebokech.com>
 
 	* gnus.texi (Virtual Groups): `nnvirtual-always-rescan' defaults

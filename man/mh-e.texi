@@ -11,9 +11,9 @@
 @set VERSION 7.93
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
-@set EDITION , 5th Edition
-@set UPDATED 2006-03-19
-@set UPDATE-MONTH March, 2006
+@set EDITION , 6th Edition
+@set UPDATED 2006-04-02
+@set UPDATE-MONTH April, 2006
 
 @c Other variables.
 @set MH-BOOK-HOME http://www.ics.uci.edu/~mh/book/mh
@@ -591,9 +591,9 @@ actually cause problems.
 If you've never run MH before, you need to run @command{install-mh}
 from the shell before you continue. This sets up your personal MH
 environment@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/setup.htm, Setting Up MH} in the MH book.}.
-If you don't, you'll be greeted with the error message: @samp{Install
-MH and run install-mh before running MH-E}.
+@uref{@value{MH-BOOK-HOME}/../overall/setup.htm, Setting Up MH} in the
+MH book.}. If you don't, you'll be greeted with the error message:
+@samp{Install MH and run install-mh before running MH-E}.
 
 @cindex @samp{Path:} MH profile component
 @cindex MH profile
@@ -7502,7 +7502,7 @@ Spam program that MH-E should use (default: @samp{Auto-detect}).
 @cindex spam filters, Spamassassin
 @cindex spam filters, bogofilter
 
-MH-E depends on @uref{http://www.spamassassin.org/, SpamAssassin},
+MH-E depends on @uref{http://spamassassin.apache.org/, SpamAssassin},
 @uref{http://bogofilter.sourceforge.net/, bogofilter}, or
 @uref{http://spamprobe.sourceforge.net/, SpamProbe} to throw the dreck
 away. This chapter describes briefly how to configure these programs
@@ -7557,7 +7557,7 @@ MH-E can work with.
 
 SpamAssassin is one of the more popular spam filtering programs. Get
 it from your local distribution or from the
-@uref{http://spamassassin.org/, SpamAssassin web site}.
+@uref{http://spamassassin.apache.org/, SpamAssassin web site}.
 
 To use SpamAssassin, add the following recipes to @file{~/.procmailrc}:
 
@@ -8542,12 +8542,12 @@ I also point out some additional sources of information.
 @kindex M-x mh-version
 
 Bug reports should be filed at
-@uref{https://sourceforge.net/bugs/?group_id=13357, SourceForge}. You
-need to be a SourceForge user to submit bug reports, but this is easy
-enough to do that it shouldn't be a restriction for you. Please
-include the output of @kbd{M-x mh-version} (@pxref{Miscellaneous}) in
-any bug report you send unless you're 110% positive we won't ask for
-it.
+@uref{https://sourceforge.net/tracker/?group_id=13357&atid=113357,
+SourceForge}. You need to be a SourceForge user to submit bug reports,
+but this is easy enough to do that it shouldn't be a restriction for
+you. Please include the output of @kbd{M-x mh-version}
+(@pxref{Miscellaneous}) in any bug report you send unless you're 110%
+positive we won't ask for it.
 
 @node Mailing Lists, MH FAQ and Support, Bug Reports, Odds and Ends
 @appendixsec MH-E Mailing Lists
@@ -8577,10 +8577,10 @@ itself which you will find useful.
 @cindex support
 
 You can find FAQs on MH-E at the
-@uref{https://sourceforge.net/support/?group_id=13357, Support
-Requests} page on SourceForge. If you don't find the answer to your
-question, file a support request and your question will become a new
-FAQ!
+@uref{https://sourceforge.net/tracker/?group_id=13357&atid=213357,
+Support Requests} page on SourceForge. If you don't find the answer to
+your question, file a support request and your question will become a
+new FAQ!
 
 @node Getting MH-E,  , MH FAQ and Support, Odds and Ends
 @appendixsec Getting MH-E
