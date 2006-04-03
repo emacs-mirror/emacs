@@ -107,33 +107,34 @@
     process))
 
 (defun pgg-gpg-process-filter (process input)
-  (save-excursion
-    (if pgg-gpg-debug
-	(save-excursion
-	  (set-buffer (get-buffer-create  " *pgg-gpg-debug*"))
-	  (goto-char (point-max))
-	  (insert input)))
-    (set-buffer (process-buffer process))
-    (goto-char (point-max))
-    (insert input)
-    (goto-char pgg-gpg-read-point)
-    (beginning-of-line)
-    (while (looking-at ".*\n")		;the input line is finished
+  (if (buffer-live-p (process-buffer process))
       (save-excursion
-	(if (looking-at "\\[GNUPG:] \\([A-Z_]+\\)\\>.*")
-	    (let* ((status (match-string 1))
-		   (symbol (intern-soft (concat "pgg-gpg-status-" status)))
-		   (entry (member status pgg-gpg-pending-status-list)))
-	      (if entry
-		  (setq pgg-gpg-pending-status-list
-			(delq (car entry)
-			      pgg-gpg-pending-status-list)))
-	      (if (and symbol
-		       (fboundp symbol))
-		  (funcall symbol process (buffer-substring (match-beginning 1)
-							    (match-end 0)))))))
-      (forward-line))
-    (setq pgg-gpg-read-point (point))))
+	(if pgg-gpg-debug
+	    (save-excursion
+	      (set-buffer (get-buffer-create  " *pgg-gpg-debug*"))
+	      (goto-char (point-max))
+	      (insert input)))
+	(set-buffer (process-buffer process))
+	(goto-char (point-max))
+	(insert input)
+	(goto-char pgg-gpg-read-point)
+	(beginning-of-line)
+	(while (looking-at ".*\n")	;the input line is finished
+	  (save-excursion
+	    (if (looking-at "\\[GNUPG:] \\([A-Z_]+\\)\\>.*")
+		(let* ((status (match-string 1))
+		       (symbol (intern-soft (concat "pgg-gpg-status-" status)))
+		       (entry (member status pgg-gpg-pending-status-list)))
+		  (if entry
+		      (setq pgg-gpg-pending-status-list
+			    (delq (car entry)
+				  pgg-gpg-pending-status-list)))
+		  (if (and symbol
+			   (fboundp symbol))
+		      (funcall symbol process (buffer-substring (match-beginning 1)
+								(match-end 0)))))))
+	  (forward-line))
+	(setq pgg-gpg-read-point (point)))))
 
 (defun pgg-gpg-process-sentinel (process status)
   (set-process-filter process nil)
@@ -145,7 +146,7 @@
     (when (buffer-live-p (process-buffer process))
       (insert-buffer-substring (process-buffer process))
       (goto-char (point-min))
-      (delete-matching-lines "^\\[GNUPG:] ")
+      ;(delete-matching-lines "^\\[GNUPG:] ")
       (goto-char (point-min))
       (while (re-search-forward "^gpg: " nil t)
 	(replace-match "")))
@@ -175,19 +176,20 @@
   (process-send-eof process)
   (while (eq (process-status process) 'run)
     (sit-for 0.1))
-  (save-excursion
-    (set-buffer (process-buffer process))
-    (setq status-list (copy-sequence status-list))
-    (let ((pointer status-list))
-      (while pointer
-	(goto-char (point-min))
-	(unless (re-search-forward
-		 (concat "^\\[GNUPG:] " (car pointer) "\\>")
-		 nil t)
-	  (setq status-list (delq (car pointer) status-list)))
-	(setq pointer (cdr pointer))))
-    (kill-buffer (process-buffer process))
-    status-list))
+  (if (buffer-live-p (process-buffer process))
+      (save-excursion
+	(set-buffer (process-buffer process))
+	(setq status-list (copy-sequence status-list))
+	(let ((pointer status-list))
+	  (while pointer
+	    (goto-char (point-min))
+	    (unless (re-search-forward
+		     (concat "^\\[GNUPG:] " (car pointer) "\\>")
+		     nil t)
+	      (setq status-list (delq (car pointer) status-list)))
+	    (setq pointer (cdr pointer))))
+	(kill-buffer (process-buffer process))
+	status-list)))
 
 (defun pgg-gpg-status-USERID_HINT (process line)
   (if (string-match "\\`USERID_HINT \\([^ ]+\\) \\(.*\\)" line)

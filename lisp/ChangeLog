@@ -1,3 +1,11 @@
+2006-04-03  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el (pgg-gpg-process-filter)
+	(pgg-gpg-wait-for-completion): Check if buffer is alive.
+
+	* pgg-gpg.el (pgg-gpg-process-sentinel): Don't remove GNUPG:
+	lines, temporary fix.
+
 2006-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ibuf-macs.el (define-ibuffer-column): Document the new parameter.
