@@ -1,3 +1,9 @@
+2006-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* startup.el (normal-splash-screen): Only set mode-line-format in the
+	splash buffer, so as not to interfere when debugging the code.
+	Ignore errors when switching buffer.
+
 2006-04-03  Romain Francoise  <romain@orebokech.com>
 
 	* dired.el (dired-dnd-protocol-alist): Fix typo.
@@ -110,8 +116,7 @@
 
 2006-03-27  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-get-level-face): Fix bug with level
-	counting.
+	* textmodes/org.el (org-get-level-face): Fix bug with level counting.
 
 2006-03-26  Andreas Schwab  <schwab@suse.de>
 
@@ -6421,7 +6426,7 @@
 
 2005-11-24  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-export-plain-list-max-depth): Renamed from
+	* textmodes/org.el (org-export-plain-list-max-depth): Rename from
 	`org-export-local-list-max-depth'.  Change default value to 3.
 	(org-auto-renumber-ordered-lists)
 	(org-plain-list-ordered-item-terminator): New options.
