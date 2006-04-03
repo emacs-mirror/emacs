@@ -459,9 +459,9 @@ user agent sends mail.  It should be set to a function.  The default
 is @code{sendmail-send-it}, which delivers mail using the Sendmail
 installation on the local host.  To send mail through a SMTP server,
 set it to @code{smtpmail-send-it} and set up the Emacs SMTP library
-(@pxref{Top,, Sending mail via SMTP,smtpmail}).  A third option is
-@code{feedmail-send-it}, see the commentary section of the
-@file{feedmail.el} package for more information.
+(@pxref{Top,,Emacs SMTP Library, Sending mail via SMTP,smtpmail}).  A
+third option is @code{feedmail-send-it}, see the commentary section of
+the @file{feedmail.el} package for more information.
 
 @node Header Editing
 @subsection Mail Header Editing

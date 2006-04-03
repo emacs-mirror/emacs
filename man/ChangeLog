@@ -1,5 +1,7 @@
 2006-04-02  Karl Berry  <karl@gnu.org>
 
+	* sending.texi (Mail Sending): pxref to Top needs five args.
+
 	* texinfo.tex: update to current version (2006-03-21.13).
 
 2006-04-02  Bill Wohler  <wohler@newt.com>
