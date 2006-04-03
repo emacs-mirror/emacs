@@ -1,3 +1,7 @@
+2006-04-02  Karl Berry  <karl@gnu.org>
+
+	* texinfo.tex: update to current version (2006-03-21.13).
+
 2006-04-02  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Getting Started, Junk, Bug Reports)
