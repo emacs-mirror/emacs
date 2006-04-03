@@ -1,3 +1,7 @@
+2006-04-03  Romain Francoise  <romain@orebokech.com>
+
+	* dired.el (dired-dnd-protocol-alist): Fix typo.
+
 2006-04-03  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* savehist.el (savehist): Add :version.
