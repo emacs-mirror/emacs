@@ -56,6 +56,7 @@
 
 (defgroup savehist nil
   "Save minibuffer history."
+  :version "22.1"
   :group 'minibuffer)
 
 ;;;###autoload
@@ -88,6 +89,11 @@ non-nil.
 User options should be saved with the customize interface.  This
 list is useful for saving automatically updated variables that are not
 minibuffer histories, such as `compile-command' or `kill-ring'."
+  :type '(repeat variable)
+  :group 'savehist)
+
+(defcustom savehist-ignored-variables nil ;; '(command-history)
+  "*List of additional variables not to save."
   :type '(repeat variable)
   :group 'savehist)
 
@@ -371,9 +377,12 @@ trimming of history lists to `history-length' items."
 	(error nil))))))
 
 (defun savehist-minibuffer-hook ()
-  ;; XEmacs sets minibuffer-history-variable to t to mean "no history
-  ;; is being recorded".
-  (unless (eq minibuffer-history-variable t)
+  (when (memq minibuffer-history-variable savehist-ignored-variables)
+    (debug nil minibuffer-history-variable))
+  (unless (or (eq minibuffer-history-variable t)
+	      ;; XEmacs sets minibuffer-history-variable to t to mean "no
+	      ;; history is being recorded".
+	      (memq minibuffer-history-variable savehist-ignored-variables))
     (add-to-list 'savehist-minibuffer-history-variables
 		 minibuffer-history-variable)))
 

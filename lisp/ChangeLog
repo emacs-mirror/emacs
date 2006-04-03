@@ -1,5 +1,10 @@
 2006-04-03  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* savehist.el (savehist): Add :version.
+	(savehist-ignored-variables): New variable.
+	(savehist-minibuffer-hook): Don't save variables listed in
+	`savehist-ignored-variables'.
+
 	* dired.el (dired-dnd-protocol-alist): Mention that change does
 	only apply to new buffers in doc string.
 
