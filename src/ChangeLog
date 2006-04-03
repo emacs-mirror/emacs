@@ -1,3 +1,8 @@
+2006-04-03  Kenichi Handa  <handa@m17n.org>
+
+	* image.c: Include "charset.h" and "coding.h".
+	(x_find_image_file): Return an encoded file name.
+
 2006-04-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure: Regenerated.
