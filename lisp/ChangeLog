@@ -1,3 +1,10 @@
+2006-04-03  Lennart Borgman  <lennart.borgman.073@student.lu.se>  (tiny change)
+
+	* recentf.el (recentf-open-files-item): Include newline in button
+	field, so opening a file will work, when the point is at the end
+	of the file name.  Allow, for example, to [i]search a file by
+	extension and just push RET to open it.
+
 2006-04-03  Daiki Ueno  <ueno@unixuser.org>
 
 	* pgg-gpg.el (pgg-gpg-process-filter)
