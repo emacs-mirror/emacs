@@ -1165,7 +1165,7 @@ IGNORE other arguments."
            :button-prefix ""
            :button-suffix ""
            :button-face default
-           :format "%[%t%]\n"
+           :format "%[%t\n%]"
            :help-echo ,(concat "Open " (cdr menu-element))
            :action recentf-open-files-action
            ,(cdr menu-element))))
