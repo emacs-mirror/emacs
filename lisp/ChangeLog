@@ -1,3 +1,8 @@
+2006-04-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* dired.el (dired-dnd-protocol-alist): Mention that change does
+	only apply to new buffers in doc string.
+
 2006-04-03  Lennart Borgman  <lennart.borgman.073@student.lu.se>  (tiny change)
 
 	* recentf.el (recentf-open-files-item): Include newline in button
