@@ -377,8 +377,6 @@ trimming of history lists to `history-length' items."
 	(error nil))))))
 
 (defun savehist-minibuffer-hook ()
-  (when (memq minibuffer-history-variable savehist-ignored-variables)
-    (debug nil minibuffer-history-variable))
   (unless (or (eq minibuffer-history-variable t)
 	      ;; XEmacs sets minibuffer-history-variable to t to mean "no
 	      ;; history is being recorded".
