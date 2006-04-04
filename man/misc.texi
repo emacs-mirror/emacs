@@ -2360,8 +2360,8 @@ find the one you select (@code{ffap-menu}).
 @cindex thumbnails
 
   Tumme is a facility for browsing image files.  It provides viewing
-of the original file, either as a thumbnail or in full size, inside
-Emacs or in an external viewer.
+the images either as thumbnails or in full size, either inside Emacs
+or through an external viewer.
 
   To enter Tumme, type @kbd{M-x tumme}.  It prompts for a directory;
 specify one that has images files.  This creates thumbnails for all
