@@ -1,3 +1,7 @@
+2006-04-04  Simon Josefsson  <jas@extundo.com>
+
+	* gnus.texi (Security): Improve.
+
 2006-04-03  Richard Stallman  <rms@gnu.org>
 
 	* misc.texi (Thumbnails): Minor cleanup.

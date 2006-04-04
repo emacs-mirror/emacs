@@ -10655,8 +10655,8 @@ or newer is recommended.
 
 @end enumerate
 
-More information on how to set things up can be found in the message
-manual (@pxref{Security, ,Security, message, Message Manual}).
+The variables that control security functionality on reading messages
+include:
 
 @table @code
 @item mm-verify-option
@@ -10687,6 +10687,15 @@ deprecated.
 
 @end table
 
+By default the buttons that display security information are not
+shown, because they clutter reading the actual e-mail.  You can type
+@kbd{K b} manually to display the information.  Use the
+@code{gnus-buttonized-mime-types} and
+@code{gnus-unbuttonized-mime-types} variables to control this
+permanently.  @ref{MIME Commands} for further details, and hints on
+how to customize these variables to always display security
+information.
+
 @cindex snarfing keys
 @cindex importing PGP keys
 @cindex PGP key ring import
@@ -10706,6 +10715,10 @@ application/pgp-keys; gpg --import --interactive --verbose; needsterminal
 @noindent
 This happens to also be the default action defined in
 @code{mailcap-mime-data}.
+
+More information on how to set things for sending outgoing signed and
+encrypted messages up can be found in the message manual
+(@pxref{Security, ,Security, message, Message Manual}).
 
 @node Mailing List
 @section Mailing List
