@@ -2367,8 +2367,8 @@ or through an external viewer.
 specify one that has images files.  This creates thumbnails for all
 the images in that directory, and displays them all in the ``thumbnail
 buffer''.  This takes a long time if the directory contains many image
-files, and it won't operate if the number of image files exceeds
-@code{tumme-show-all-from-dir-max-files}.
+files, and it asks for confirmation if the number of image files
+exceeds @code{tumme-show-all-from-dir-max-files}.
 
 @kindex C-t d @r{(Tumme)}
 @findex tumme-display-thumbs
