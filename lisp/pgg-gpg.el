@@ -82,7 +82,6 @@
 	 (coding-system-for-write 'binary)
 	 (process-connection-type nil)
 	 (orig-mode (default-file-modes))
-	 default-enable-multibyte-characters
 	 (buffer (generate-new-buffer " *pgg-gpg*"))
 	 process)
     (with-current-buffer buffer

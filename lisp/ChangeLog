@@ -1,3 +1,12 @@
+2006-03-29  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el (pgg-gpg-start-process): Don't bind
+	default-enable-multibyte-characters.  This reverts the change from
+	revision 6.17 which is no longer necessary because the passphrase
+	is sent separately now.  GnuPG messages are unreadable under
+	multibyte locales with default-enable-multibyte-characters set to
+	nil.
+
 2006-04-04  Andreas Schwab  <schwab@suse.de>
 
 	* files.el: Mark `left-margin', `byte-compile-dynamic-docstrings'
