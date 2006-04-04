@@ -1,3 +1,8 @@
+2006-04-04  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el: Clean up process buffers every time gpg processes
+	complete.
+
 2006-04-04  Kenichi Handa  <handa@m17n.org>
 
 	* sort.el (sort-build-lists): Don't bind inhibit-field-text-motion

@@ -107,13 +107,13 @@
     process))
 
 (defun pgg-gpg-process-filter (process input)
+  (if pgg-gpg-debug
+      (save-excursion
+	(set-buffer (get-buffer-create  " *pgg-gpg-debug*"))
+	(goto-char (point-max))
+	(insert input)))
   (if (buffer-live-p (process-buffer process))
       (save-excursion
-	(if pgg-gpg-debug
-	    (save-excursion
-	      (set-buffer (get-buffer-create  " *pgg-gpg-debug*"))
-	      (goto-char (point-max))
-	      (insert input)))
 	(set-buffer (process-buffer process))
 	(goto-char (point-max))
 	(insert input)
@@ -131,39 +131,39 @@
 				  pgg-gpg-pending-status-list)))
 		  (if (and symbol
 			   (fboundp symbol))
-		      (funcall symbol process (buffer-substring (match-beginning 1)
-								(match-end 0)))))))
+		      (funcall symbol process (buffer-substring
+					       (match-beginning 1)
+					       (match-end 0)))))))
 	  (forward-line))
 	(setq pgg-gpg-read-point (point)))))
 
 (defun pgg-gpg-process-sentinel (process status)
-  (set-process-filter process nil)
-  (save-excursion
-    ;; Copy the contents of process-buffer to pgg-errors-buffer.
-    (set-buffer (get-buffer-create pgg-errors-buffer))
-    (buffer-disable-undo)
-    (erase-buffer)
-    (when (buffer-live-p (process-buffer process))
-      (insert-buffer-substring (process-buffer process))
-      (goto-char (point-min))
-      ;(delete-matching-lines "^\\[GNUPG:] ")
-      (goto-char (point-min))
-      (while (re-search-forward "^gpg: " nil t)
-	(replace-match "")))
-    ;; Read the contents of the output file to pgg-output-buffer.
-    (set-buffer (get-buffer-create pgg-output-buffer))
-    (buffer-disable-undo)
-    (erase-buffer)
-    (if (and (equal status "finished\n")
-	     (buffer-live-p (process-buffer process)))
-	(let ((output-file-name (with-current-buffer (process-buffer process)
-				  pgg-gpg-output-file-name)))
-	  (when (file-exists-p output-file-name)
-	    (let ((coding-system-for-read (if pgg-text-mode
-					      'raw-text
-					    'binary)))
-	      (insert-file-contents output-file-name))
-	    (delete-file output-file-name))))))
+  (if (buffer-live-p (process-buffer process))
+      (save-excursion
+	(set-buffer (process-buffer process))
+	(when pgg-gpg-passphrase
+	  (fillarray pgg-gpg-passphrase 0)
+	  (setq pgg-gpg-passphrase nil))
+	;; Copy the contents of process-buffer to pgg-errors-buffer.
+	(set-buffer (get-buffer-create pgg-errors-buffer))
+	(buffer-disable-undo)
+	(erase-buffer)
+	(insert-buffer-substring (process-buffer process))
+	;; Read the contents of the output file to pgg-output-buffer.
+	(set-buffer (get-buffer-create pgg-output-buffer))
+	(buffer-disable-undo)
+	(erase-buffer)
+	(if (equal status "finished\n")
+	    (let ((output-file-name
+		   (with-current-buffer (process-buffer process)
+		     pgg-gpg-output-file-name)))
+	      (when (file-exists-p output-file-name)
+		(let ((coding-system-for-read (if pgg-text-mode
+						  'raw-text
+						'binary)))
+		  (insert-file-contents output-file-name))
+		(delete-file output-file-name))))
+	(kill-buffer (process-buffer process)))))
 
 (defun pgg-gpg-wait-for-status (process status-list)
   (with-current-buffer (process-buffer process)
@@ -172,24 +172,12 @@
 		pgg-gpg-pending-status-list)
       (accept-process-output process 1))))
 
-(defun pgg-gpg-wait-for-completion (process &optional status-list)
+(defun pgg-gpg-wait-for-completion (process)
   (process-send-eof process)
   (while (eq (process-status process) 'run)
-    (sit-for 0.1))
-  (if (buffer-live-p (process-buffer process))
-      (save-excursion
-	(set-buffer (process-buffer process))
-	(setq status-list (copy-sequence status-list))
-	(let ((pointer status-list))
-	  (while pointer
-	    (goto-char (point-min))
-	    (unless (re-search-forward
-		     (concat "^\\[GNUPG:] " (car pointer) "\\>")
-		     nil t)
-	      (setq status-list (delq (car pointer) status-list)))
-	    (setq pointer (cdr pointer))))
-	(kill-buffer (process-buffer process))
-	status-list)))
+    ;; We can't use accept-process-output instead of sit-for here
+    ;; because it may cause an interrupt during the sentinel execution.
+    (sit-for 0.1)))
 
 (defun pgg-gpg-status-USERID_HINT (process line)
   (if (string-match "\\`USERID_HINT \\([^ ]+\\) \\(.*\\)" line)
@@ -271,7 +259,12 @@ If optional argument SIGN is non-nil, do a combined sign and encrypt."
     (if (and sign (not pgg-gpg-use-agent))
 	(pgg-gpg-wait-for-status process '("GOOD_PASSPHRASE")))
     (process-send-region process start end)
-    (pgg-gpg-wait-for-completion process '("SIG_CREATED" "END_ENCRYPTION"))))
+    (pgg-gpg-wait-for-completion process)
+    (save-excursion
+      (set-buffer (get-buffer-create pgg-errors-buffer))
+      (goto-char (point-max))
+      (not (null (re-search-backward "^\\[GNUPG:] END_ENCRYPTION\\>"
+				     nil t))))))
 
 (defun pgg-gpg-encrypt-symmetric-region (start end &optional passphrase)
   "Encrypt the current region between START and END with symmetric cipher."
@@ -281,7 +274,12 @@ If optional argument SIGN is non-nil, do a combined sign and encrypt."
 	 (process (pgg-gpg-start-process args)))
     (pgg-gpg-wait-for-status process '("BEGIN_ENCRYPTION"))
     (process-send-region process start end)
-    (pgg-gpg-wait-for-completion process '("END_ENCRYPTION"))))
+    (pgg-gpg-wait-for-completion process)
+    (save-excursion
+      (set-buffer (get-buffer-create pgg-errors-buffer))
+      (goto-char (point-max))
+      (not (null (re-search-backward "^\\[GNUPG:] END_ENCRYPTION\\>"
+				     nil t))))))
 
 (defun pgg-gpg-decrypt-region (start end &optional passphrase)
   "Decrypt the current region between START and END."
@@ -289,7 +287,12 @@ If optional argument SIGN is non-nil, do a combined sign and encrypt."
 	 (process (pgg-gpg-start-process args)))
     (process-send-region process start end)
     (pgg-gpg-wait-for-status process '("BEGIN_DECRYPTION"))
-    (pgg-gpg-wait-for-completion process '("GOODSIG" "DECRYPTION_OKAY"))))
+    (pgg-gpg-wait-for-completion process)
+    (save-excursion
+      (set-buffer (get-buffer-create pgg-errors-buffer))
+      (goto-char (point-max))
+      (not (null (re-search-backward "^\\[GNUPG:] DECRYPTION_OKAY\\>"
+				     nil t))))))
 
 (defun pgg-gpg-sign-region (start end &optional cleartext passphrase)
   "Make detached signature from text between START and END."
@@ -303,7 +306,12 @@ If optional argument SIGN is non-nil, do a combined sign and encrypt."
     (unless pgg-gpg-use-agent
       (pgg-gpg-wait-for-status process '("GOOD_PASSPHRASE")))
     (process-send-region process start end)
-    (pgg-gpg-wait-for-completion process '("SIG_CREATED"))))
+    (pgg-gpg-wait-for-completion process)
+    (save-excursion
+      (set-buffer (get-buffer-create pgg-errors-buffer))
+      (goto-char (point-max))
+      (not (null (re-search-backward "^\\[GNUPG:] SIG_CREATED\\>"
+				     nil t))))))
 
 (defun pgg-gpg-verify-region (start end &optional signature)
   "Verify region between START and END as the detached signature SIGNATURE."
@@ -313,7 +321,12 @@ If optional argument SIGN is non-nil, do a combined sign and encrypt."
       (setq args (append args (list signature))))
     (setq process (pgg-gpg-start-process (append args '("-"))))
     (process-send-region process start end)
-    (pgg-gpg-wait-for-completion process '("GOODSIG"))))
+    (pgg-gpg-wait-for-completion process)
+    (save-excursion
+      (set-buffer (get-buffer-create pgg-errors-buffer))
+      (goto-char (point-max))
+      (not (null (re-search-backward "^\\[GNUPG:] GOODSIG\\>"
+				     nil t))))))
 
 (defun pgg-gpg-insert-key ()
   "Insert public key at point."
@@ -330,7 +343,12 @@ If optional argument SIGN is non-nil, do a combined sign and encrypt."
 	 (process (pgg-gpg-start-process args))
 	 status)
     (process-send-region process start end)
-    (pgg-gpg-wait-for-completion process '("IMPORT_RES"))))
+    (pgg-gpg-wait-for-completion process)
+    (save-excursion
+      (set-buffer (get-buffer-create pgg-errors-buffer))
+      (goto-char (point-max))
+      (not (null (re-search-backward "^\\[GNUPG:] IMPORT_RES\\>"
+				     nil t))))))
 
 (provide 'pgg-gpg)
 
