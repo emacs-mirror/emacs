@@ -1,3 +1,15 @@
+2006-04-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* man.el (Man-mode-map): Restore the \r binding.
+	(Man-abstract-xref-man-page): If Man-target-string is a function,
+	call it.
+	(Man-highlight-references): Use Man-default-man-entry to get the
+	target. Deal with xrefs too.
+	(Man-highlight-references0): Don't call the target function.
+
+	* woman.el (WoMan-xref-man-page): Strip the section number, woman
+	cannot deal with it.
+
 2006-04-04  Daiki Ueno  <ueno@unixuser.org>
 
 	* pgg-gpg.el: Clean up process buffers every time gpg processes

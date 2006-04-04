@@ -428,7 +428,13 @@
 (require 'button)
 (define-button-type 'WoMan-xref-man-page 
   :supertype 'Man-abstract-xref-man-page
-  'func 'woman)
+  'func (lambda (arg)
+	  (woman
+	   ;; `woman' cannot deal with arguments that contain a
+	   ;; section name, like close(2), so strip the section name.
+	   (if (string-match Man-reference-regexp arg)
+	       (subqstring arg 0 (match-end 1))
+	     arg))))
 
 (eval-when-compile			; to avoid compiler warnings
   (require 'dired)
