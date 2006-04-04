@@ -1,3 +1,8 @@
+2006-04-04  Andreas Schwab  <schwab@suse.de>
+
+	* files.el: Mark `left-margin', `byte-compile-dynamic-docstrings'
+	and `byte-compile-warnings' as `safe-local-variable'.
+
 2006-04-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* man.el (Man-mode-map): Restore the \r binding.
