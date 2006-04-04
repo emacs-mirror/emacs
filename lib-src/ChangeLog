@@ -1,3 +1,13 @@
+2006-04-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* b2m.c (main): Don't include <limits.h>.
+	(TM_YEAR_BASE): New macro.
+	(TM_YEAR_IN_ASCTIME_RANGE): Don't define if already defined, so
+	that s/ files can override this.  Use the more-conservative range
+	1000-9999.
+	(main): Check for asctime returning NULL.
+	* fakemail.c: Likewise.
+
 2006-03-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* b2m.c: Include <limits.h>.

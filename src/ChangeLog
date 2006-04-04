@@ -1,3 +1,13 @@
+2006-04-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c (TM_YEAR_IN_ASCTIME_RANGE): New macro, identical to
+	../lib-src/b2m.c and ../lib-src/editfns.c.
+	(Fcurrent_time_string): Use it.
+	Document that the year might not consume 4 columns if it's outside
+	the range 1000-9999.
+	Check for asctime failure.
+	Don't assume that the output string length is always exactly 24.
+
 2006-04-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (XTread_socket): Initialize variable `f' before its use.

@@ -26,7 +26,6 @@
 #undef static
 #endif
 
-#include <limits.h>
 #include <stdio.h>
 #include <time.h>
 #include <sys/types.h>
@@ -45,15 +44,13 @@
 
 typedef int logical;
 
-/* True if TM_YEAR is a struct tm's tm_year value that is acceptable
-   to asctime.  Glibc asctime returns a useful string unless TM_YEAR
-   is nearly INT_MAX, but the C Standard lets C libraries overrun a
-   buffer if TM_YEAR needs more than 4 bytes.  */
-#ifdef __GLIBC__
-# define TM_YEAR_IN_ASCTIME_RANGE(tm_year) ((tm_year) <= INT_MAX - 1900)
-#else
+#define TM_YEAR_BASE 1900
+
+/* Nonzero if TM_YEAR is a struct tm's tm_year value that causes
+   asctime to have well-defined behavior.  */
+#ifndef TM_YEAR_IN_ASCTIME_RANGE
 # define TM_YEAR_IN_ASCTIME_RANGE(tm_year) \
-    (-999 - 1900 <= (tm_year) && (tm_year) <= 9999 - 1900)
+    (1000 - TM_YEAR_BASE <= (tm_year) && (tm_year) <= 9999 - TM_YEAR_BASE)
 #endif
 
 /*
@@ -148,9 +145,9 @@ main (argc, argv)
      Don't use 'ctime', as that might dump core if the hardware clock
      is set to a bizarre value.  */
   tm = localtime (&ltoday);
-  if (! (tm && TM_YEAR_IN_ASCTIME_RANGE (tm->tm_year)))
+  if (! (tm && TM_YEAR_IN_ASCTIME_RANGE (tm->tm_year)
+	 && (today = asctime (tm))))
     fatal ("current time is out of range");
-  today = asctime (tm);
   data.size = 200;
   data.buffer = xnew (200, char);
 
