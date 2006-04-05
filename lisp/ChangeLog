@@ -1,3 +1,8 @@
+2006-04-05  Kim F. Storm  <storm@cua.dk>
+
+	* startup.el (fancy-splash-screens): Set emulation-mode-map-alists
+	to nil while displaying slash screen.
+
 2006-04-05  Daiki Ueno  <ueno@unixuser.org>
 
 	* pgg-gpg.el (pgg-gpg-encrypt-region, pgg-gpg-sign-region): Wait
@@ -92,7 +97,7 @@
 2006-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ibuf-macs.el (define-ibuffer-column): Add a new key:
-	header-mouse-map. 
+	header-mouse-map.
 
 	* ibuffer.el (ibuffer-name-header-map, ibuffer-size-header-map)
 	(ibuffer-mode-header-map): New keymaps.
