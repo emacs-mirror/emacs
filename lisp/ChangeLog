@@ -1,3 +1,8 @@
+2006-04-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Setup cases of Latin, Greek, and
+	Cyrillic characters in CJK charsets.
+
 2006-03-29  Daiki Ueno  <ueno@unixuser.org>
 
 	* pgg-gpg.el (pgg-gpg-start-process): Don't bind
