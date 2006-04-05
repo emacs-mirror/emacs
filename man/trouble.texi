@@ -34,25 +34,25 @@ Abort all recursive editing levels that are currently executing.
 Cancel a previously made change in the buffer contents (@code{undo}).
 @end table
 
-  There are two ways of canceling commands which are not finished
-executing: @dfn{quitting} with @kbd{C-g}, and @dfn{aborting} with
-@kbd{C-]} or @kbd{M-x top-level}.  Quitting cancels a partially typed
-command or one which is already running.  Aborting exits a recursive
-editing level and cancels the command that invoked the recursive edit.
+  There are two ways of canceling a command before it has finished:
+@dfn{quitting} with @kbd{C-g}, and @dfn{aborting} with @kbd{C-]} or
+@kbd{M-x top-level}.  Quitting cancels a partially typed command, or
+one which is still running.  Aborting exits a recursive editing level
+and cancels the command that invoked the recursive edit.
 (@xref{Recursive Edit}.)
 
 @cindex quitting
 @kindex C-g
-  Quitting with @kbd{C-g} is used for getting rid of a partially typed
+  Quitting with @kbd{C-g} is the way to get rid of a partially typed
 command, or a numeric argument that you don't want.  It also stops a
 running command in the middle in a relatively safe way, so you can use
 it if you accidentally give a command which takes a long time.  In
-particular, it is safe to quit out of killing; either your text will
-@emph{all} still be in the buffer, or it will @emph{all} be in the kill
-ring (or maybe both).  Quitting an incremental search does special
-things documented under searching; in general, it may take two
-successive @kbd{C-g} characters to get out of a search
-(@pxref{Incremental Search}).
+particular, it is safe to quit out of a kill command; either your text
+will @emph{all} still be in the buffer, or it will @emph{all} be in
+the kill ring, or maybe both.  Quitting an incremental search does
+special things, documented under searching; it may take two successive
+@kbd{C-g} characters to get out of a search (@pxref{Incremental
+Search}).
 
   On MS-DOS, the character @kbd{C-@key{BREAK}} serves as a quit character
 like @kbd{C-g}.  The reason is that it is not feasible, on MS-DOS, to
@@ -63,7 +63,7 @@ with the user.  By contrast, it @emph{is} feasible to recognize
 @findex keyboard-quit
   @kbd{C-g} works by setting the variable @code{quit-flag} to @code{t}
 the instant @kbd{C-g} is typed; Emacs Lisp checks this variable
-frequently and quits if it is non-@code{nil}.  @kbd{C-g} is only
+frequently, and quits if it is non-@code{nil}.  @kbd{C-g} is only
 actually executed as a command if you type it while Emacs is waiting for
 input.  In that case, the command it runs is @code{keyboard-quit}.
 
@@ -72,15 +72,15 @@ the first @kbd{C-g} is recognized, you activate the ``emergency
 escape'' feature and return to the shell.  @xref{Emergency Escape}.
 
 @cindex NFS and quitting
-  There may be times when you cannot quit.  When Emacs is waiting for
-the operating system to do something, quitting is impossible unless
-special pains are taken for the particular system call within Emacs
-where the waiting occurs.  We have done this for the system calls that
-users are likely to want to quit from, but it's possible you will find
-another.  In one very common case---waiting for file input or output
-using NFS---Emacs itself knows how to quit, but many NFS implementations
-simply do not allow user programs to stop waiting for NFS when the NFS
-server is hung.
+  There are some situations where you cannot quit.  When Emacs is
+waiting for the operating system to do something, quitting is
+impossible unless special pains are taken for the particular system
+call within Emacs where the waiting occurs.  We have done this for the
+system calls that users are likely to want to quit from, but it's
+possible you will a case not handled.  In one very common
+case---waiting for file input or output using NFS---Emacs itself knows
+how to quit, but many NFS implementations simply do not allow user
+programs to stop waiting for NFS when the NFS server is hung.
 
 @cindex aborting recursive edit
 @findex abort-recursive-edit
@@ -96,16 +96,16 @@ recursive edit.
 
 @findex keyboard-escape-quit
 @kindex ESC ESC ESC
-  The command @kbd{@key{ESC} @key{ESC} @key{ESC}}
-(@code{keyboard-escape-quit}) can either quit or abort.  This key was
-defined because @key{ESC} is used to ``get out'' in many PC programs.
-It can cancel a prefix argument, clear a selected region, or get out of
-a Query Replace, like @kbd{C-g}.  It can get out of the minibuffer or a
-recursive edit, like @kbd{C-]}.  It can also get out of splitting the
-frame into multiple windows, like @kbd{C-x 1}.  One thing it cannot do,
-however, is stop a command that is running.  That's because it executes
-as an ordinary command, and Emacs doesn't notice it until it is ready
-for a command.
+  The sequence @kbd{@key{ESC} @key{ESC} @key{ESC}}
+(@code{keyboard-escape-quit}) can either quit or abort.  (We defined
+it this way because @key{ESC} means ``get out'' in many PC programs.)
+It can cancel a prefix argument, clear a selected region, or get out
+of a Query Replace, like @kbd{C-g}.  It can get out of the minibuffer
+or a recursive edit, like @kbd{C-]}.  It can also get out of splitting
+the frame into multiple windows, as with @kbd{C-x 1}.  One thing it
+cannot do, however, is stop a command that is running.  That's because
+it executes as an ordinary command, and Emacs doesn't notice it until
+it is ready for the next command.
 
 @findex top-level
   The command @kbd{M-x top-level} is equivalent to ``enough'' @kbd{C-]}
@@ -181,10 +181,10 @@ isn't.
   In all of those cases, the immediate remedy is the same: use the
 command @kbd{M-x normal-erase-is-backspace-mode}.  This toggles
 between the two modes that Emacs supports for handling @key{DEL}, so
-if Emacs starts in the wrong mode, it should switch to the right mode.
-On a text-only terminal, if you want to ask for help when @key{BS} is
-treated as @key{DEL}, use @key{F1}; @kbd{C-?} may also work, if it
-sends character code 127.
+if Emacs starts in the wrong mode, this should switch to the right
+mode.  On a text-only terminal, if you want to ask for help when
+@key{BS} is treated as @key{DEL}, use @key{F1}; @kbd{C-?} may also
+work, if it sends character code 127.
 
 @findex normal-erase-is-backspace-mode
   To fix the problem automatically for every Emacs session, you can
@@ -244,25 +244,24 @@ the entire screen.  If the screen appears correct after this, the
 problem was entirely in the previous screen update.  (Otherwise, see
 the following section.)
 
-  Display updating problems often result from an incorrect termcap entry
-for the terminal you are using.  The file @file{etc/TERMS} in the Emacs
-distribution gives the fixes for known problems of this sort.
-@file{INSTALL} contains general advice for these problems in one of its
-sections.  Very likely there is simply insufficient padding for certain
-display operations.  To investigate the possibility that you have this sort
-of problem, try Emacs on another terminal made by a different manufacturer.
-If problems happen frequently on one kind of terminal but not another kind,
-it is likely to be a bad termcap entry, though it could also be due to a
-bug in Emacs that appears for terminals that have or that lack specific
-features.
+  Display updating problems often result from an incorrect terminfo
+entry for the terminal you are using.  The file @file{etc/TERMS} in
+the Emacs distribution gives the fixes for known problems of this
+sort.  @file{INSTALL} contains general advice for these problems in
+one of its sections.  To investigate the possibility that you have
+this sort of problem, try Emacs on another terminal made by a
+different manufacturer.  If problems happen frequently on one kind of
+terminal but not another kind, it is likely to be a bad terminfo entry,
+though it could also be due to a bug in Emacs that appears for
+terminals that have or that lack specific features.
 
 @node Text Garbled
 @subsection Garbage in the Text
 
-  If @kbd{C-l} shows that the text is wrong, try undoing the changes to it
-using @kbd{C-x u} until it gets back to a state you consider correct.  Also
-try @kbd{C-h l} to find out what command you typed to produce the observed
-results.
+  If @kbd{C-l} shows that the text is wrong, first type @kbd{C-h l} to
+see what commands you typed to produce the observed results.  Then try
+undoing the changes step by step using @kbd{C-x u}, until it gets back
+to a state you consider correct.
 
   If a large portion of text appears to be missing at the beginning or
 end of the buffer, check for the word @samp{Narrow} in the mode line.
@@ -342,12 +341,13 @@ session files, each with its date.  You must choose which session to
 recover from.  Typically the one you want is the most recent one.  Move
 point to the one you choose, and type @kbd{C-c C-c}.
 
-  Then @code{recover-session} asks about each of the files that you were
-editing during that session; it asks whether to recover that file.  If
-you answer @kbd{y} for a file, it shows the dates of that file and its
-auto-save file, then asks once again whether to recover that file.  For
-the second question, you must confirm with @kbd{yes}.  If you do, Emacs
-visits the file but gets the text from the auto-save file.
+  Then @code{recover-session} considers each of the files that you
+were editing during that session; for each such file, it asks whether
+to recover that file.  If you answer @kbd{y} for a file, it shows the
+dates of that file and its auto-save file, then asks once again
+whether to recover that file.  For the second question, you must
+confirm with @kbd{yes}.  If you do, Emacs visits the file but gets the
+text from the auto-save file.
 
   When @code{recover-session} is done, the files you've chosen to
 recover are present in Emacs buffers.  You should then save them.  Only
@@ -360,6 +360,9 @@ have recorded important changes, you can use the
 retrieve them from a core dump--provided that a core dump was saved,
 and that the Emacs executable was not stripped of its debugging
 symbols.
+
+  As soon as you get the core dump, rename it to another name such as
+@file{core.emacs}, so that another crash won't overwrite it.
 
   To use this script, run @code{gdb} with the file name of your Emacs
 executable and the file name of the core dump, e.g. @samp{gdb
@@ -375,16 +378,18 @@ not make a backup of its old contents.
 @node Emergency Escape
 @subsection Emergency Escape
 
-  Because at times there have been bugs causing Emacs to loop without
-checking @code{quit-flag}, a special feature causes Emacs to be suspended
-immediately if you type a second @kbd{C-g} while the flag is already set,
-so you can always get out of GNU Emacs.  Normally Emacs recognizes and
-clears @code{quit-flag} (and quits!) quickly enough to prevent this from
-happening.  (On MS-DOS and compatible systems, type @kbd{C-@key{BREAK}}
-twice.)
+  On text-only terminals, the @dfn{emergency escape} feature suspends
+Emacs immediately if you type @kbd{C-g} a second time before Emacs can
+actually respond to the first one by quitting.  This is so you can
+always get out of GNU Emacs no matter how badly it might be hung.
+When things are working properly, Emacs recognizes and handles the
+first @kbd{C-g} so fast that the second one won't trigger emergency
+escape.  However, if some problem prevents Emacs from handling the
+first @kbd{C-g} properly, then the second one will get you back to the
+shell.
 
-  When you resume Emacs after a suspension caused by multiple @kbd{C-g}, it
-asks two questions before going back to what it had been doing:
+  When you resume Emacs after a suspension caused by emergency escape,
+it asks two questions before going back to what it had been doing:
 
 @example
 Auto-save? (y or n)
@@ -394,29 +399,31 @@ Abort (and dump core)? (y or n)
 @noindent
 Answer each one with @kbd{y} or @kbd{n} followed by @key{RET}.
 
-  Saying @kbd{y} to @samp{Auto-save?} causes immediate auto-saving of all
-modified buffers in which auto-saving is enabled.
+  Saying @kbd{y} to @samp{Auto-save?} causes immediate auto-saving of
+all modified buffers in which auto-saving is enabled.  Saying @kbd{n}
+skips this.
 
-  Saying @kbd{y} to @samp{Abort (and dump core)?} causes an illegal instruction to be
-executed, dumping core.  This is to enable a wizard to figure out why Emacs
-was failing to quit in the first place.  Execution does not continue
-after a core dump.  If you answer @kbd{n}, execution does continue.  With
-luck, GNU Emacs will ultimately check @code{quit-flag} and quit normally.
-If not, and you type another @kbd{C-g}, it is suspended again.
+  Saying @kbd{y} to @samp{Abort (and dump core)?} causes Emacs to
+crash, dumping core.  This is to enable a wizard to figure out why
+Emacs was failing to quit in the first place.  Execution does not
+continue after a core dump.
+
+  If you answer this question @kbd{n}, Emacs execution resumes.  With
+luck, Emacs will ultimately do the requested quit.  If not, each
+subsequent @kbd{C-g} invokes emergency escape again.
 
   If Emacs is not really hung, just slow, you may invoke the double
-@kbd{C-g} feature without really meaning to.  Then just resume and answer
-@kbd{n} to both questions, and you will arrive at your former state.
-Presumably the quit you requested will happen soon.
+@kbd{C-g} feature without really meaning to.  Then just resume and
+answer @kbd{n} to both questions, and you will get back to the former
+state.  The quit you requested will happen by and by.
 
-  The double @kbd{C-g} feature is turned off when Emacs is running under
-the X Window System, since you can use the window manager to kill Emacs
-or to create another window and run another program.
+  Emergency escape is active only for text terminals.  On a graphical
+display that supports multiple windows, you can use the window manager
+to kill Emacs, or to switch to some other program.
 
-  On MS-DOS and compatible systems, the emergency escape feature is
-sometimes unavailable, even if you press @kbd{C-@key{BREAK}} twice, when
-some system call (MS-DOS or BIOS) hangs, or when Emacs is stuck in a
-very tight endless loop (in C code, @strong{not} in Lisp code).
+  On MS-DOS, you must type @kbd{C-@key{BREAK}} (twice) to cause
+emergency escape---but there are cases where it won't work, when
+system call hangs or when Emacs is stuck in a tight loop in C code.
 
 @node Total Frustration
 @subsection Help for Total Frustration
@@ -433,9 +440,9 @@ you.
 @findex doctor
   Second, type @kbd{M-x doctor @key{RET}}.
 
-  The doctor will help you feel better.  Each time you say something to
-the doctor, you must end it by typing @key{RET} @key{RET}.  This lets
-the doctor know you are finished.
+  The Emacs psychotherapist will help you feel better.  Each time you
+say something to the psychotherapist, you must end it by typing
+@key{RET} @key{RET}.  This indicates you are finished typing.
 
 @node Bugs, Contributing, Lossage, Top
 @section Reporting Bugs
@@ -467,9 +474,10 @@ work-around, or give you additional information about related issues.
 @node Bug Criteria
 @subsection When Is There a Bug
 
-  If Emacs executes an illegal instruction, or dies with an operating
-system error message that indicates a problem in the program (as opposed to
-something like ``disk full''), then it is certainly a bug.
+  If Emacs accesses an invalid memory location (``segmentation
+fault''), or exits with an operating system error message that
+indicates a problem in the program (as opposed to something like
+``disk full''), then it is certainly a bug.
 
   If Emacs updates the display in a way that does not correspond to what is
 in the buffer, then it is certainly a bug.  If a command seems to do the
@@ -502,9 +510,10 @@ come to such a conclusion out of ignorance of some of the existing
 features.  It is probably best not to complain about such a problem
 until you have checked the documentation in the usual ways, feel
 confident that you understand it, and know for certain that what you
-want is not available.  If you are not sure what the command is
-supposed to do after a careful reading of the manual, check the index
-and glossary for any terms that may be unclear.
+want is not available.  Ask other Emacs users, too.  If you are not
+sure what the command is supposed to do after a careful reading of the
+manual, check the index and glossary for any terms that may be
+unclear.
 
   If after careful rereading of the manual you still do not understand
 what the command should do, that indicates a bug in the manual, which
@@ -533,10 +542,10 @@ implemented, they will be useless; meanwhile, lacking the facts, we will
 have no real information about the bug.
 
   For example, suppose that you type @kbd{C-x C-f /glorp/baz.ugh
-@key{RET}}, visiting a file which (you know) happens to be rather large,
-and Emacs displayed @samp{I feel pretty today}.  The best way to report
-the bug is with a sentence like the preceding one, because it gives all
-the facts.
+@key{RET}}, visiting a file which (you know) happens to be rather
+large, and Emacs displays @samp{I feel pretty today}.  The best way to
+report the bug is with a sentence like the preceding one, because it
+gives all the facts.
 
   A bad way would be to assume that the problem is due to the size of
 the file and say, ``I visited a large file, and Emacs displayed @samp{I
@@ -559,7 +568,7 @@ characters you typed since starting the Emacs session.
 you @emph{know} that it makes no difference which visiting command is used.
 Similarly, rather than saying ``if I have three characters on the line,''
 say ``after I type @kbd{@key{RET} A B C @key{RET} C-p},'' if that is
-the way you entered the text.@refill
+the way you entered the text.
 
   So please don't guess any explanations when you report a bug.  If you
 want to actually @emph{debug} the problem, and report explanations that
@@ -590,19 +599,6 @@ in order to ask you for more information.  If your data is more than
 500,000 bytes, please don't include it directly in the bug report;
 instead, offer to send it on request, or make it available by ftp and
 say where.
-
-  If you can't send electronic mail, then mail the bug report on paper
-or machine-readable media to this address:
-
-@format
-GNU Emacs Bugs
-Free Software Foundation
-51 Franklin Street, Fifth Floor
-Boston, MA 02110-1301 USA
-@end format
-
-  We do not promise to fix the bug; but if the bug is serious,
-or ugly, or easy to fix, chances are we will want to.
 
 @findex report-emacs-bug
   A convenient way to send a bug report for Emacs is to use the command
@@ -658,7 +654,7 @@ The complete text of any files needed to reproduce the bug.
   If you can tell us a way to cause the problem without visiting any files,
 please do so.  This makes it much easier to debug.  If you do need files,
 make sure you arrange for us to see their exact contents.  For example, it
-can often matter whether there are spaces at the ends of lines, or a
+can matter whether there are spaces at the ends of lines, or a
 newline after the last line in the buffer (nothing ought to care whether
 the last line is terminated, but try telling the bugs that).
 
@@ -668,7 +664,7 @@ The precise commands we need to type to reproduce the bug.
 @findex open-dribble-file
 @cindex dribble file
 @cindex logging keystrokes
-  The easy way to record the input to Emacs precisely is to write a
+The easy way to record the input to Emacs precisely is to write a
 dribble file.  To start the file, execute the Lisp expression
 
 @example
@@ -705,7 +701,7 @@ Emacs displays the screen for the first time.
 
 Be warned: it is often difficult, and sometimes impossible, to fix a
 terminal-dependent bug without access to a terminal of the type that
-stimulates the bug.@refill
+stimulates the bug.
 
 @item
 If non-@acronym{ASCII} text or internationalization is relevant, the locale that
@@ -765,7 +761,7 @@ part.
 @pindex Edebug
 To make a backtrace for the error, use @kbd{M-x toggle-debug-on-error}
 before the error happens (that is to say, you must give that command
-and then make the bug happen).  This causes the error to run the Lisp
+and then make the bug happen).  This causes the error to start the Lisp
 debugger, which shows you a backtrace.  Copy the text of the
 debugger's backtrace into the bug report.  @xref{Debugger,, The Lisp
 Debugger, elisp, the Emacs Lisp Reference Manual}, for information on
@@ -1028,11 +1024,9 @@ new function, all you need to say about it is that it is new.  If you
 feel that the purpose needs explaining, it probably does---but put the
 explanation in comments in the code.  It will be more useful there.
 
-Please read the @file{ChangeLog} files in the @file{src} and @file{lisp}
-directories to see what sorts of information to put in, and to learn the
-style that we use.  If you would like your name to appear in the header
-line, showing who made the change, send us the header line.
-@xref{Change Log}.
+Please read the @file{ChangeLog} files in the @file{src} and
+@file{lisp} directories to see what sorts of information to put in,
+and to learn the style that we use.  @xref{Change Log}.
 
 @item
 When you write the fix, keep in mind that we can't install a change that
@@ -1071,8 +1065,8 @@ rest of Emacs.
 
 The development version of Emacs can be downloaded from the CVS
 repository where it is actively maintained by a group of developers.
-See the Emacs project page http://savannah.gnu.org/projects/emacs/ for
-details.
+See the Emacs project page
+@url{http://savannah.gnu.org/projects/emacs/} for details.
 
 @node Service, Copying, Contributing, Top
 @section How To Get Help with GNU Emacs
