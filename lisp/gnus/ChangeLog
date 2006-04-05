@@ -1,3 +1,9 @@
+2006-04-04  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-google-create-mapping): Update regexp.  Some
+	whitespace was matched into the url, which broke browsing hits
+	> 100 when mm-url-use-external was nil.
+
 2006-03-31  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-group.el (gnus-group-update-tool-bar): Add :initialize and
