@@ -1,5 +1,13 @@
 2006-04-04  Richard Stallman  <rms@gnu.org>
 
+	* trouble.texi: Various cleanups.
+	(Checklist): Don't bother saying how to snail a bug report.
+	(Emergency Escape): Much rewriting.
+	(After a Crash): Rename the core dump immediately.
+	(Total Frustration): Call it a psychotherapist.
+	(Bug Criteria): Avoid "illegal instruction".
+	(Sending Patches): We always put the contributor's name in.
+
 	* misc.texi (Thumbnails): Minor correction.
 
 2006-04-04  Simon Josefsson  <jas@extundo.com>
