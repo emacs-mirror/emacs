@@ -1,5 +1,11 @@
 2006-04-05  Kim F. Storm  <storm@cua.dk>
 
+	* ido.el (ido-mode): Set after ido-unc-hosts and
+	ido-ignore-unc-host-regexps.
+	(ido-save-history): Save ido-unc-hosts-cache.
+	(ido-load-history): Load ido-unc-hosts-cache.
+	(ido-reread-directory): Refresh unc hosts cache in // dir.
+
 	* startup.el (fancy-splash-screens): Set emulation-mode-map-alists
 	to nil while displaying slash screen.
 
