@@ -1333,6 +1333,7 @@ mouse."
 	(fancy-splash-outer-buffer (current-buffer))
 	splash-buffer
 	(old-minor-mode-map-alist minor-mode-map-alist)
+	(old-emulation-mode-map-alists emulation-mode-map-alists)
 	(frame (fancy-splash-frame))
 	timer)
     (save-selected-window
@@ -1351,6 +1352,7 @@ mouse."
 	      (setq cursor-type nil
 		    display-hourglass nil
 		    minor-mode-map-alist nil
+		    emulation-mode-map-alists nil
 		    buffer-undo-list t
 		    mode-line-format (propertize "---- %b %-"
 						 'face '(:weight bold))
@@ -1362,7 +1364,8 @@ mouse."
 	      (recursive-edit))
 	  (cancel-timer timer)
 	  (setq display-hourglass old-hourglass
-		minor-mode-map-alist old-minor-mode-map-alist)
+		minor-mode-map-alist old-minor-mode-map-alist
+		emulation-mode-map-alists old-emulation-mode-map-alists)
 	  (kill-buffer splash-buffer))))))
 
 (defun fancy-splash-frame ()
