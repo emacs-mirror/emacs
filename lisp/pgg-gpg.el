@@ -256,7 +256,7 @@ If optional argument SIGN is non-nil, do a combined sign and encrypt."
 					  (list pgg-gpg-user-id))))))))
 	 (process (pgg-gpg-start-process args)))
     (if (and sign (not pgg-gpg-use-agent))
-	(pgg-gpg-wait-for-status process '("GOOD_PASSPHRASE")))
+	(pgg-gpg-wait-for-status process '("BEGIN_SIGNING" "GOOD_PASSPHRASE")))
     (process-send-region process start end)
     (pgg-gpg-wait-for-completion process)
     (save-excursion
@@ -303,7 +303,7 @@ If optional argument SIGN is non-nil, do a combined sign and encrypt."
 		  (if pgg-text-mode '("--textmode"))))
 	 (process (pgg-gpg-start-process args)))
     (unless pgg-gpg-use-agent
-      (pgg-gpg-wait-for-status process '("GOOD_PASSPHRASE")))
+      (pgg-gpg-wait-for-status process '("BEGIN_SIGNING" "GOOD_PASSPHRASE")))
     (process-send-region process start end)
     (pgg-gpg-wait-for-completion process)
     (save-excursion
