@@ -360,7 +360,10 @@ use either \\[customize] or the function `ido-mode'."
   :initialize 'custom-initialize-set
   :require 'ido
   :link '(emacs-commentary-link "ido.el")
-  :set-after '(ido-save-directory-list-file)
+  :set-after '(ido-save-directory-list-file
+	       ;; These clear ido-unc-hosts-cache, so set them
+	       ;; before loading history file.
+	       ido-unc-hosts ido-ignore-unc-host-regexps)
   :type '(choice (const :tag "Turn on only buffer" buffer)
                  (const :tag "Turn on only file" file)
                  (const :tag "Turn on both buffer and file" both)
@@ -1280,6 +1283,9 @@ it doesn't interfere with other minibuffer usage.")
 	    (ido-pp 'ido-work-directory-list)
 	    (ido-pp 'ido-work-file-list)
 	    (ido-pp 'ido-dir-file-cache "\n\n ")
+	    (if (listp ido-unc-hosts-cache)
+		(ido-pp 'ido-unc-hosts-cache)
+	      (insert "\n;; ----- ido-unc-hosts-cache -----\nt\n"))
 	    (insert "\n")
 	    (write-file ido-save-directory-list-file nil))
 	(kill-buffer buf)))))
@@ -1301,7 +1307,8 @@ With prefix argument, reload history unconditionally."
 		    (setq ido-last-directory-list (read (current-buffer))
 			  ido-work-directory-list (read (current-buffer))
 			  ido-work-file-list (read (current-buffer))
-			  ido-dir-file-cache (read (current-buffer)))
+			  ido-dir-file-cache (read (current-buffer))
+			  ido-unc-hosts-cache (read (current-buffer)))
 		  (error nil)))
 	    (kill-buffer buf)))))
   (ido-wash-history))
@@ -2582,7 +2589,9 @@ timestamp has not changed (e.g. with ftp or on Windows)."
   (interactive)
   (if (and ido-mode (eq ido-cur-item 'file))
       (progn
-	(ido-remove-cached-dir ido-current-directory)
+	(if (ido-is-unc-root)
+	    (setq ido-unc-hosts-cache t)
+	  (ido-remove-cached-dir ido-current-directory))
 	(setq ido-text-init ido-text)
 	(setq ido-rotate-temp t)
 	(setq ido-exit 'refresh)
