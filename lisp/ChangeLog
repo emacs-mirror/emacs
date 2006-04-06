@@ -1,3 +1,16 @@
+2006-04-06  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-mode): Remove ido-ignore-unc-host-regexps from
+	the :set-after list.
+	(ido-downcase-unc-hosts): New user option.  Default on.
+	(ido-ignore-unc-host-regexps): Don't reset ido-unc-hosts-cache
+	when it is set, as regexps are now applied on the fly.
+	(ido-unc-hosts): Keep all known hosts in ido-unc-hosts-cache.
+	Make C-a DTRT--filter hosts through ido-ignore-unc-host-regexps
+	on the fly, but only when ido-process-ignore-lists is set.
+	Do case insensitive filtering if ido-downcase-unc-hosts is set.
+	Only downcase names if ido-downcase-unc-hosts is set.
+
 2006-04-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-unc-hosts-cache): Fix typo in docstring.
