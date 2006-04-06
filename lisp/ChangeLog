@@ -1,3 +1,22 @@
+2006-04-06  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlwave.el: Updated to IDLWAVE version 6.0.  See
+	idlwave.org.
+
+	* progmodes/idlw-shell.el: Updated to IDLWAVE version 6.0.  See
+	idlwave.org.  Includes code to obsolete idlw-rinfo.el.
+
+	* progmodes/idlw-help.el: Updated to IDLWAVE version 6.0.  See
+	idlwave.org.
+
+	* progmodes/idlw-complete-structtag.el: Updated to IDLWAVE
+	version 6.0 (minimal changes).  See idlwave.org.
+
+	* progmodes/idlw-toolbar.el: Updated to IDLWAVE version
+	6.0 (minimal changes).  See idlwave.org.
+
+	* progmodes/idlw-rinfo.el: File obsoleted and removed.
+
 2006-04-06  Romain Francoise  <romain@orebokech.com>
 
 	* pgg-gpg.el: Sync back with Gnus 5.10, reverting changes that add

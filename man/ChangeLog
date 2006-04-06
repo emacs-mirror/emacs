@@ -1,3 +1,9 @@
+2006-04-06  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* idlwave.texi: Updated for IDLWAVE version 6.0, factoring out
+	blocks not suitable for inclusion with Emacs using variable
+	PARTOFEMACS.
+
 2006-04-05  Richard Stallman  <rms@gnu.org>
 
 	* emacs.texi (Top): Update subnode menu.
