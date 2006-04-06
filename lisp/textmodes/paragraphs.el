@@ -163,7 +163,7 @@ function `sentence-end'.  You should always use this function
 to obtain the value of this variable."
   :group 'paragraphs
   :type '(choice regexp (const :tag "Use default value" nil)))
-;;;###autoload(put 'sentence-end 'safe-local-variable (lambda (a) (or (stringp a) (null a))))
+;;;###autoload(put 'sentence-end 'safe-local-variable 'string-or-null-p)
 
 (defcustom sentence-end-base "[.?!][]\"'$B!I$,1r}(B)}]*"
   "*Regexp matching the basic end of a sentence, not including following space."

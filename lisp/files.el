@@ -2322,13 +2322,22 @@ asking you for confirmation."
 
 ;; Safe local variables:
 ;;
-;; For variables defined by minor modes, put the safety declarations
-;; here, not in the file defining the minor mode (when Emacs visits a
-;; file specifying that local variable, the minor mode file may not be
-;; loaded yet).  For variables defined by major modes, the safety
-;; declarations can go into the major mode's file, since that will be
-;; loaded before file variables are processed.
+;; For variables defined by major modes, the safety declarations can go into
+;; the major mode's file, since that will be loaded before file variables are
+;; processed.
+;;
+;; For variables defined by minor modes, put the safety declarations in the
+;; file defining the minor mode after the defcustom/defvar using an autoload
+;; cookie, e.g.:
+;;
+;;   ;;;###autoload(put 'variable 'safe-local-variable 'stringp)
+;;
+;; Otherwise, when Emacs visits a file specifying that local variable, the
+;; minor mode file may not be loaded yet.
+;;
+;; For variables defined in the C source code the declaration should go here:
 
+;; FIXME: Some variables should be moved according to the rules above.
 (let ((string-or-null (lambda (a) (or (stringp a) (null a)))))
   (eval
    `(mapc (lambda (pair)
@@ -2340,15 +2349,15 @@ asking you for confirmation."
 	    (c-file-style       .  stringp)
 	    (c-indent-level     .  integerp)
 	    (comment-column     .  integerp)
-	    (compile-command    . ,string-or-null)
+	    (compile-command    .  string-or-null-p)
 	    (fill-column        .  integerp)
-	    (fill-prefix        . ,string-or-null)
+	    (fill-prefix        .  string-or-null-p)
 	    (indent-tabs-mode   .  t)
 	    (kept-new-versions  .  integerp)
 	    (left-margin        .  t)
 	    (no-byte-compile    .  t)
 	    (no-update-autoloads . t)
-	    (outline-regexp     . ,string-or-null)
+	    (outline-regexp     .  string-or-null-p)
 	    (tab-width          .  integerp) ;; C source code
 	    (truncate-lines     .  t) ;; C source code
 	    (version-control    .  t)))))

@@ -1,3 +1,14 @@
+2006-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* subr.el (string-or-null-p): New function.
+
+	* textmodes/paragraphs.el (sentence-end): Use string-or-null-p.
+
+	* textmodes/ispell.el (ispell-local-dictionary): Use
+	string-or-null-p.
+
+	* files.el: Update comment about safe-local-variable declarations.
+
 2006-04-06  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* progmodes/idlwave.el: Updated to IDLWAVE version 6.0.  See

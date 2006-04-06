@@ -462,7 +462,7 @@ is automatically set when defined in the file with either
   :type '(choice string
 		 (const :tag "default" nil))
   :group 'ispell)
-;;;###autoload(put 'ispell-local-dictionary 'safe-local-variable (lambda (a) (or (stringp a) (null a))))
+;;;###autoload(put 'ispell-local-dictionary 'safe-local-variable 'string-or-null-p)
 
 (make-variable-buffer-local 'ispell-local-dictionary)
 
