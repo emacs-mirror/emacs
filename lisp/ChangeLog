@@ -1,3 +1,9 @@
+2006-04-06  Romain Francoise  <romain@orebokech.com>
+
+	* pgg-gpg.el: Sync back with Gnus 5.10, reverting changes that add
+	symmetric encryption features and a new asynchronous interface to
+	GnuPG.  This new version is version 1.4, plus whitespace changes.
+
 2006-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* files.el: Move some `safe-local-variable' declarations to the
