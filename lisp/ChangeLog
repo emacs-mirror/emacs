@@ -1251,7 +1251,7 @@
 	(org-format-org-table-html, org-format-table-table-html):
 	Fix typos in docstrings.
 
-12006-02-23  Carsten Dominik  <dominik@science.uva.nl>
+2006-02-23  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-cleaned-string-for-export)
 	(org-solidify-link-text): New function.
