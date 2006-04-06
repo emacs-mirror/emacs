@@ -137,7 +137,6 @@ in the Emacs distribution.  Type @kbd{C-h C-f} to read the FAQ; type
 * Stuck Recursive::       `[...]' in mode line around the parentheses.
 * Screen Garbled::        Garbage on the screen.
 * Text Garbled::          Garbage in the text.
-* Unasked-for Search::    Spontaneous entry to incremental search.
 * Memory Full::           How to cope when you run out of memory.
 * After a Crash::         Recovering editing in an Emacs session that crashed.
 * Emergency Escape::      Emergency escape---
@@ -268,42 +267,6 @@ end of the buffer, check for the word @samp{Narrow} in the mode line.
 If it appears, the text you don't see is probably still present, but
 temporarily off-limits.  To make it accessible again, type @kbd{C-x n
 w}.  @xref{Narrowing}.
-
-@node Unasked-for Search
-@subsection Spontaneous Entry to Incremental Search
-
-  If Emacs spontaneously displays @samp{I-search:} at the bottom of the
-screen, it means that the terminal is sending @kbd{C-s} and @kbd{C-q}
-according to the poorly designed xon/xoff ``flow control'' protocol.
-
-  If this happens to you, your best recourse is to put the terminal in a
-mode where it will not use flow control, or give it so much padding that
-it will never send a @kbd{C-s}.  (One way to increase the amount of
-padding is to set the variable @code{baud-rate} to a larger value.  Its
-value is the terminal output speed, measured in the conventional units
-of baud.)
-
-@cindex flow control
-@cindex xon-xoff
-@findex enable-flow-control
-  If you don't succeed in turning off flow control, the next best thing
-is to tell Emacs to cope with it.  To do this, call the function
-@code{enable-flow-control}.
-
-@findex enable-flow-control-on
-  Typically there are particular terminal types with which you must use
-flow control.  You can conveniently ask for flow control on those
-terminal types only, using @code{enable-flow-control-on}.  For example,
-if you find you must use flow control on VT-100 and H19 terminals, put
-the following in your @file{.emacs} file:
-
-@example
-(enable-flow-control-on "vt100" "h19")
-@end example
-
-  When flow control is enabled, you must type @kbd{C-\} to get the
-effect of a @kbd{C-s}, and type @kbd{C-^} to get the effect of a
-@kbd{C-q}.
 
 @node Memory Full
 @subsection Running out of Memory
