@@ -361,9 +361,9 @@ use either \\[customize] or the function `ido-mode'."
   :require 'ido
   :link '(emacs-commentary-link "ido.el")
   :set-after '(ido-save-directory-list-file
-	       ;; These clear ido-unc-hosts-cache, so set them
+	       ;; This will clear ido-unc-hosts-cache, so set it
 	       ;; before loading history file.
-	       ido-unc-hosts ido-ignore-unc-host-regexps)
+	       ido-unc-hosts)
   :type '(choice (const :tag "Turn on only buffer" buffer)
                  (const :tag "Turn on only file" file)
                  (const :tag "Turn on both buffer and file" both)
@@ -649,12 +649,15 @@ hosts on first use of UNC path."
 	   (setq ido-unc-hosts-cache t))
   :group 'ido)
 
+(defcustom ido-downcase-unc-hosts t
+  "*Non-nil if UNC host names should be downcased."
+  :type 'boolean
+  :group 'ido)
+
 (defcustom ido-ignore-unc-host-regexps nil
-  "*List of regexps matching UNC hosts to ignore."
+  "*List of regexps matching UNC hosts to ignore.
+Case is ignored if `ido-downcase-unc-hosts' is set."
   :type '(repeat regexp)
-  :set #'(lambda (symbol value)
-	   (set symbol value)
-	   (setq ido-unc-hosts-cache t))
   :group 'ido)
 
 (defcustom ido-cache-unc-host-shares-time 8.0
@@ -1135,33 +1138,40 @@ it doesn't interfere with other minibuffer usage.")
 
 (defun ido-unc-hosts (&optional query)
   "Return list of UNC host names."
-  (cond
-   ((listp ido-unc-hosts)
-    ido-unc-hosts)		;; static list or nil
-   ((listp ido-unc-hosts-cache)
-    ido-unc-hosts-cache)	;; result of net search
-   ((and query (fboundp ido-unc-hosts))
-    (message "Searching for UNC hosts...")
-    (let ((hosts (funcall ido-unc-hosts)) host re-list re)
-      (setq ido-unc-hosts-cache nil)
-      (while hosts
-	(setq host (downcase (car hosts))
-	      hosts (cdr hosts)
-	      re-list ido-ignore-unc-host-regexps)
-	(while re-list
-	  (setq re (car re-list)
-		re-list (cdr re-list))
-	  (if (string-match re host)
-	      (setq re-list nil
-		    host nil)))
-	(if host
-	    (setq ido-unc-hosts-cache (cons host ido-unc-hosts-cache)))))
-    (message nil)
-    (setq ido-unc-hosts-cache
-	  (sort ido-unc-hosts-cache #'string<)))
-   (query
-    (setq ido-unc-hosts-cache nil))
-   (t (fboundp ido-unc-hosts))))
+  (let ((hosts
+	 (cond
+	  ((listp ido-unc-hosts)
+	   ido-unc-hosts)		;; static list or nil
+	  ((listp ido-unc-hosts-cache)
+	   ido-unc-hosts-cache)	;; result of net search
+	  ((and query (fboundp ido-unc-hosts))
+	   (message (propertize "Searching for UNC hosts..." 'face 'highlight))
+	   (setq ido-unc-hosts-cache (funcall ido-unc-hosts))
+	   (message nil)
+	   ido-unc-hosts-cache)
+	  (query
+	   (setq ido-unc-hosts-cache nil))
+	  (t (fboundp ido-unc-hosts)))))
+    (when query
+      (let ((case-fold-search ido-downcase-unc-hosts)
+	    res host re-list re)
+	(while hosts
+	  (setq host (car hosts)
+		hosts (cdr hosts)
+		re-list (and ido-process-ignore-lists
+			     ido-ignore-unc-host-regexps))
+	  (while re-list
+	    (setq re (car re-list)
+		  re-list (cdr re-list))
+	    (if (string-match re host)
+		(setq re-list nil
+		      host nil)))
+	  (when host
+	    (when ido-downcase-unc-hosts
+	      (setq host (downcase host)))
+	    (setq res (cons host res))))
+	(setq hosts (sort res #'string<))))
+    hosts))
 
 (defun ido-unc-hosts-net-view ()
   "Query network for list of UNC host names using `NET VIEW'."
