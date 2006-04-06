@@ -267,6 +267,7 @@ Warning!  Not checking comments, when a comment start is embedded in strings,
 may produce undesired results."
   :type '(choice (const exclusive) (const :tag "off" nil) (const :tag "on" t))
   :group 'ispell)
+;;;###autoload(put 'ispell-check-comments 'safe-local-variable (lambda (a) (memq a '(nil t exclusive))))
 
 (defcustom ispell-query-replace-choices nil
   "*Corrections made throughout region when non-nil.
@@ -461,6 +462,7 @@ is automatically set when defined in the file with either
   :type '(choice string
 		 (const :tag "default" nil))
   :group 'ispell)
+;;;###autoload(put 'ispell-local-dictionary 'safe-local-variable (lambda (a) (or (stringp a) (null a))))
 
 (make-variable-buffer-local 'ispell-local-dictionary)
 

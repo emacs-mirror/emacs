@@ -1,3 +1,26 @@
+2006-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* files.el: Move some `safe-local-variable' declarations to the
+	respective files.
+
+	* textmodes/ispell.el (ispell-check-comments)
+	(ispell-local-dictionary): Mark as safe.
+
+	* abbrev.el (abbrev-mode): Mark as safe.
+
+	* add-log.el (change-log-default-name): Mark as safe.
+
+	* textmodes/reftex-vars.el (reftex-vref-is-default)
+	(reftex-fref-is-default, reftex-level-indent)
+	(reftex-guess-label-type): Mark as safe.
+
+	* textmodes/fill.el (colon-double-space): Mark as safe.
+
+	* textmodes/paragraphs.el (paragraph-start, paragraph-separate)
+	(sentence-end-double-space, sentence-end-without-period)
+	(sentence-end-without-space, sentence-end, sentence-end-base)
+	(page-delimiter, paragraph-ignore-fill-prefix): Mark as safe.
+
 2006-04-06  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-mode): Remove ido-ignore-unc-host-regexps from

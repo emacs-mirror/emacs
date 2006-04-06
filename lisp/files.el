@@ -2344,21 +2344,13 @@ asking you for confirmation."
 	    (fill-column        .  integerp)
 	    (fill-prefix        . ,string-or-null)
 	    (indent-tabs-mode   .  t)
-	    (ispell-check-comments . (lambda (a)
-				       (memq a '(nil t exclusive))))
-	    (ispell-local-dictionary . ,string-or-null)
 	    (kept-new-versions  .  integerp)
 	    (left-margin        .  t)
 	    (no-byte-compile    .  t)
 	    (no-update-autoloads . t)
 	    (outline-regexp     . ,string-or-null)
-	    (page-delimiter     . ,string-or-null)
-	    (paragraph-start    . ,string-or-null)
-	    (paragraph-separate . ,string-or-null)
-	    (sentence-end       . ,string-or-null)
-	    (sentence-end-double-space . t)
-	    (tab-width          .  integerp)
-	    (truncate-lines     .  t)
+	    (tab-width          .  integerp) ;; C source code
+	    (truncate-lines     .  t) ;; C source code
 	    (version-control    .  t)))))
 
 (put 'c-set-style 'safe-local-eval-function t)
