@@ -1,5 +1,5 @@
 ;;; idlw-toolbar.el --- a debugging toolbar for IDLWAVE
-;; Copyright (c) 1999, 2000, 2001, 2002, 2004 
+;; Copyright (c) 1999, 2000, 2001, 2002, 2004, 2005, 2006
 ;; Free Software Foundation
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
