@@ -1,3 +1,9 @@
+2006-04-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-unc-hosts-cache): Fix typo in docstring.
+
+	* woman.el (WoMan-xref-man-page): Fix call to `substring'.
+
 2006-04-05  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-mode): Set after ido-unc-hosts and
