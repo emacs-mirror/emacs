@@ -1,3 +1,10 @@
+2006-04-05  Richard Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Update subnode menu.
+
+	* trouble.texi (Unasked-for Search): Node deleted.
+	(Lossage): Delete from menu.
+
 2006-04-04  Richard Stallman  <rms@gnu.org>
 
 	* trouble.texi: Various cleanups.
