@@ -1,3 +1,8 @@
+2006-04-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* killing.texi (Rectangles): Add index entry for marking a
+	rectangle.
+
 2006-04-06  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* idlwave.texi: Updated for IDLWAVE version 6.0, factoring out
