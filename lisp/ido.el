@@ -634,7 +634,7 @@ equivalent function, e.g. `find-file' rather than `ido-find-file'."
   :group 'ido)
 
 (defvar ido-unc-hosts-cache t
-  "Cached value from ido-unc-hosts function.")
+  "Cached value from `ido-unc-hosts' function.")
 
 (defcustom ido-unc-hosts nil
   "*List of known UNC host names to complete after initial //.
