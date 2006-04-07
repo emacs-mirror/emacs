@@ -74,7 +74,7 @@ static mps_pool_debug_option_s freecheckOptions =
 static void *test(void *arg, size_t haveAmbigous)
 {
   mps_pool_t pool;
-  mps_root_t exactRoot, ambigRoot;
+  mps_root_t exactRoot, ambigRoot = NULL;
   size_t lastStep = 0, i, r;
   unsigned long objs;
   mps_ap_t busy_ap;
