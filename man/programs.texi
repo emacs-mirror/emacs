@@ -387,9 +387,10 @@ the characters around it.
 @findex newline-and-indent
   When entering lines of new code, use @kbd{C-j}
 (@code{newline-and-indent}), which inserts a newline and then adjusts
-indentation after it.  Thus, @kbd{C-j} at the end of a line creates a
-blank line with appropriate indentation.  In programming language
-modes, it is equivalent to @key{RET} @key{TAB}.
+indentation after it.  (It also deletes any trailing whitespace which
+remains before the new newline.)  Thus, @kbd{C-j} at the end of a line
+creates a blank line with appropriate indentation.  In programming
+language modes, it is equivalent to @key{RET} @key{TAB}.
 
   @key{TAB} indents a line that starts within a parenthetical grouping
 under the preceding line within the grouping, or the text after the
