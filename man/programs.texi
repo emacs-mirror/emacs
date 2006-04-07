@@ -360,7 +360,8 @@ usual conventions of the language you are editing.
 @item @key{TAB}
 Adjust indentation of current line.
 @item C-j
-Equivalent to @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
+Insert a newline, then adjust indentation of following line
+(@code{newline-and-indent}).
 @end table
 
 @kindex TAB @r{(programming modes)}
@@ -385,9 +386,10 @@ the characters around it.
 @kindex C-j
 @findex newline-and-indent
   When entering lines of new code, use @kbd{C-j}
-(@code{newline-and-indent}), which is equivalent to @key{RET}
-followed by @key{TAB}.  @kbd{C-j} at the end of a line creates a
-blank line and then gives it the appropriate indentation.
+(@code{newline-and-indent}), which inserts a newline and then adjusts
+indentation after it.  Thus, @kbd{C-j} at the end of a line creates a
+blank line with appropriate indentation.  In programming language
+modes, it is equivalent to @key{RET} @key{TAB}.
 
   @key{TAB} indents a line that starts within a parenthetical grouping
 under the preceding line within the grouping, or the text after the
