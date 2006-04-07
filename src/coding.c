@@ -6150,7 +6150,7 @@ produce_annotation (coding, pos)
    same buffer as CODING->dst_object, CODING->src_pos must be
    negative.
 
-   If CODING->src_object is a string, CODING->src_pos in an index to
+   If CODING->src_object is a string, CODING->src_pos is an index to
    that string.
 
    If CODING->src_object is nil, CODING->source must already point to
