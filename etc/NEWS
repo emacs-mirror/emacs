@@ -3629,7 +3629,6 @@ If it is non-nil, the function lists only faces matching this regexp.
 
 Return t if OBJECT is a string or nil.  Otherwise, return nil.
 
-
 ** Lisp code indentation features:
 
 +++
