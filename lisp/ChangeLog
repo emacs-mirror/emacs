@@ -1,3 +1,10 @@
+2006-04-07  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (eval-expression): Doc fix.
+
+	* emacs-lisp/lisp-mode.el (eval-print-last-sexp, eval-last-sexp)
+	(eval-defun): Doc fixes.
+
 2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* pgg-gpg.el: Revert to revision 1.8 to allow the use of
