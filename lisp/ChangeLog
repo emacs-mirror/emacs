@@ -1,3 +1,8 @@
+2006-04-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-init-2): Set current filename using
+	GDB list command without argument for greater generality.
+
 2006-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* subr.el (string-or-null-p): New function.
