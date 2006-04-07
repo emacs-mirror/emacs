@@ -5623,6 +5623,8 @@ decode_eol (coding)
 
       if (NILP (coding->dst_object))
 	{
+	  /* Start deleting '\r' from the tail to minimize the memory
+	     movement.  */
 	  for (p = pend - 2; p >= pbeg; p--)
 	    if (*p == '\r')
 	      {
@@ -5632,15 +5634,22 @@ decode_eol (coding)
 	}
       else
 	{
-	  for (p = pend - 2; p >= pbeg; p--)
-	    if (*p == '\r')
-	      {
-		int pos_byte = coding->dst_pos_byte + (p - pbeg);
-		int pos = BYTE_TO_CHAR (pos_byte);
-		
-		del_range_2 (pos, pos_byte, pos + 1, pos_byte + 1, 0);
-		n++;
-	      }
+	  int pos_byte = coding->dst_pos_byte;
+	  int pos = coding->dst_pos;
+	  int pos_end = pos + coding->produced_char - 1;
+
+	  while (pos < pos_end)
+	    {
+	      p = BYTE_POS_ADDR (pos_byte);
+	      if (*p == '\r' && p[1] == '\n')
+		{
+		  del_range_2 (pos, pos_byte, pos + 1, pos_byte + 1, 0);
+		  n++;
+		  pos_end--;
+		}
+	      pos++;
+	      pos_byte += BYTES_BY_CHAR_HEAD (*p);
+	    }
 	}
       coding->produced -= n;
       coding->produced_char -= n;
@@ -6258,13 +6267,13 @@ decode_coding (coding)
       coding->consumed = coding->src_bytes;
     }
 
+  if (! EQ (CODING_ID_EOL_TYPE (coding->id), Qunix))
+    decode_eol (coding);
   if (BUFFERP (coding->dst_object))
     {
       current_buffer->undo_list = undo_list;
       record_insert (coding->dst_pos, coding->produced_char);
     }
-  if (! EQ (CODING_ID_EOL_TYPE (coding->id), Qunix))
-    decode_eol (coding);
   return coding->result;
 }
 
