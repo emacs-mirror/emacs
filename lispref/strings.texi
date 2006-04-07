@@ -102,6 +102,11 @@ This function returns @code{t} if @var{object} is a string, @code{nil}
 otherwise.
 @end defun
 
+@defun string-or-null-p object
+This function returns @code{t} if @var{object} is a string or nil,
+@code{nil} otherwise.
+@end defun
+
 @defun char-or-string-p object
 This function returns @code{t} if @var{object} is a string or a
 character (i.e., an integer), @code{nil} otherwise.
