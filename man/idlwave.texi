@@ -18,7 +18,6 @@
 @set AUTHOREMAIL jdsmith@@as.arizona.edu
 @set MAINTAINER J.D. Smith
 @set MAINTAINEREMAIL jdsmith@@as.arizona.edu
-@set PARTOFEMACS
 @set IDLWAVEHOMEPAGE http://idlwave.org/
 @c %**end of header
 @finalout
@@ -101,9 +100,6 @@ Interactive Data Language (IDL), and running IDL as an inferior shell.
 * Getting Started::             Tutorial
 * The IDLWAVE Major Mode::      The mode for editing IDL programs
 * The IDLWAVE Shell::           The mode for running IDL as an inferior program
-@ifclear PARTOFEMACS
-* Installation::                How to Install or Upgrade               
-@end ifclear
 * Acknowledgements::            Who did what
 * Sources of Routine Info::     How does IDLWAVE know about routine XYZ     
 * HTML Help Browser Tips::      
@@ -182,13 +178,6 @@ Debugging IDL Programs
 * Walking the Calling Stack::   
 * Electric Debug Mode::         
 
-@ifclear PARTOFEMACS
-Installation
-
-* Installing IDLWAVE::          How to install the distribution
-* Installing Online Help::      Where to get the additional files needed
-@end ifclear
-
 Sources of Routine Info
 
 * Routine Definitions::         Where IDL Routines are defined.
@@ -217,12 +206,7 @@ Catalogs
 @cindex Feature overview
 
 IDLWAVE is a package which supports editing source files written in
-the Interactive Data Language (IDL@c
-@ifclear PARTOFEMACS
-@footnote{IDL is a registered
-trademark of Research Systems, Inc.}@c
-@end ifclear
-), and running IDL as an inferior shell@footnote{IDLWAVE can also be used
+the Interactive Data Language (IDL), and running IDL as an inferior shell@footnote{IDLWAVE can also be used
 for editing source files for the related WAVE/CL language, but with only
 limited support.}.  It is a feature-rich replacement for the IDLDE
 development environment included with IDL, and uses the full power of
@@ -429,14 +413,10 @@ be discovered by reading the entire manual, or hovering over the
 shoulder of your nearest IDLWAVE guru for a few days.
 
 It is assumed that you have access to Emacs or XEmacs with the full
-IDLWAVE package including online help@c
-@ifclear PARTOFEMACS
-@ (@pxref{Installation})@c
-@end ifclear
-.  We also assume that you are familiar with Emacs and can read the
-nomenclature of key presses in Emacs (in particular, @kbd{C} stands
-for @key{CONTROL} and @kbd{M} for @key{META} (often the @key{ALT} key
-carries this functionality)).
+IDLWAVE package including online help.  We also assume that you are
+familiar with Emacs and can read the nomenclature of key presses in
+Emacs (in particular, @kbd{C} stands for @key{CONTROL} and @kbd{M} for
+@key{META} (often the @key{ALT} key carries this functionality)).
 
 Open a new source file by typing:
 
@@ -2404,14 +2384,7 @@ Normal hook.  Executed when a buffer is put into @code{idlwave-mode}.
 Normal hook.  Executed when @file{idlwave.el} is loaded.
 @end defopt
 
-@ifset PARTOFEMACS
 @node The IDLWAVE Shell, Acknowledgements, The IDLWAVE Major Mode, Top
-@end ifset
-
-@ifclear PARTOFEMACS
-@node The IDLWAVE Shell, Installation, The IDLWAVE Major Mode, Top
-@end ifclear
-
 @chapter The IDLWAVE Shell
 @cindex IDLWAVE shell
 @cindex Major mode, @code{idlwave-shell-mode}
@@ -3316,69 +3289,7 @@ examine command strings to send, after all instances of @code{___}
 (three underscores) are replaced by the indicated expression.
 @end defopt
 
-
-@ifclear PARTOFEMACS
-@node Installation, Acknowledgements, The IDLWAVE Shell, Top
-@chapter Installation
-@cindex Installation
-
-@menu
-* Installing IDLWAVE::          How to install the distribution
-* Installing Online Help::      Where to get the additional files needed
-@end menu
-
-@node Installing IDLWAVE, Installing Online Help, Installation, Installation
-@section Installing IDLWAVE
-
-@cindex FTP site
-@cindex URL, homepage for IDLWAVE
-@cindex Homepage for IDLWAVE
-@cindex IDLWAVE, homepage
-@cindex XEmacs package IDLWAVE
-@cindex Emacs, distributed with IDLWAVE
-IDLWAVE is part of Emacs 21.1 and later.  It is also an XEmacs package
-and can be installed from
-@uref{ftp://ftp.xemacs.org/pub/xemacs/packages/,the XEmacs ftp site}
-with the normal package management system on XEmacs 21.  You can also
-download IDLWAVE and install it yourself from
-@uref{@value{IDLWAVEHOMEPAGE}, the maintainers webpage}.  Follow the
-instructions in the INSTALL file.
-
-@node Installing Online Help,  , Installing IDLWAVE, Installation
-@section Installing Online Help
-@cindex Installing online help
-@cindex Online Help, Installation
-
-Starting with IDL v6.2, all necessary online help files and routine
-information are distributed directly with IDL.  Nothing additional is
-required.
-
-For version of IDL prior to 6.2 (and IDLWAVE prior to version 6.0), if
-you want to use the online help display, an additional set of files
-(HTML versions of the IDL documentation) must be installed.  These files
-can also be downloaded from @uref{@value{IDLWAVEHOMEPAGE}, the
-maintainers webpage}.  You need to place the files somewhere on your
-system and tell IDLWAVE where they are with:
-
-@lisp
-; e.g. /usr/local/etc/
-(setq idlwave-html-help-location "/path/to/help/dir/") 
-@end lisp
-
-@noindent The default location is @file{/usr/local/etc}, and if you
-install the directory there, you do not need to set this variable.  Note
-that the help package only changes with new versions of the IDL
-documentation, and need not be updated unless your version of IDL
-changes.  Since the help system is distributed with IDL starting at
-version 6.2, no new help packages will be created for these versions.
-
-@node Acknowledgements, Sources of Routine Info, Installation, Top
-@end ifclear
-
-@ifset PARTOFEMACS
 @node Acknowledgements, Sources of Routine Info, The IDLWAVE Shell, Top
-@end ifset
-
 @chapter Acknowledgements
 @cindex Acknowledgements
 @cindex Maintainer, of IDLWAVE
@@ -3877,12 +3788,7 @@ for the IDL system routines, and links to relevant sections of the HTML
 documentation.  The Online Help feature of IDLWAVE requires HTML
 versions of the IDL manuals to be available; the HTML documentation is
 not distributed with IDLWAVE by default, but must be downloaded
-separately@c
-@ifclear PARTOFEMACS
-@ from @uref{@value{IDLWAVEHOMEPAGE}, the maintainers
-webpage}@c
-@end ifclear
-.
+separately.
 
 The HTML files and related images can be produced from the
 @file{idl.chm} HTMLHelp file distributed with IDL using the free
@@ -4252,11 +4158,6 @@ place, and this is the source of the error.  If you recompile (or just
 "make; make install") from source, it should resolve this problem.
 Another option is to recompile the @file{idlw*.el} files by hand using
 @kbd{M-x byte-compile-file}.  
-@ifclear PARTOFEMACS
-Why not take the opportunity to grab the
-latest IDLWAVE version at @uref{@value{IDLWAVEHOMEPAGE}, the
-maintainers webpage}.
-@end ifclear
 
 @item @strong{@kbd{M-@key{TAB}} doesn't complete words, it switches
 windows on my desktop.}
@@ -4382,11 +4283,7 @@ you downloaded.  You need to ensure you download a ``downgrade kit'' if
 you are using anything older than the latest HTML help package.  A new
 help package apppears with each IDL release (assuming the documentation
 is updated).  
-@ifclear PARTOFEMACS
-See @uref{@value{IDLWAVEHOMEPAGE}, the maintainers
-webpage} for more.  
-@end ifclear
-Note that, starting with IDL 6.2, the HTML help and its catalog are
+Starting with IDL 6.2, the HTML help and its catalog are
 distributed with IDL, and so should never be inconsistent.
 
 @item @strong{I get errors such as @samp{void-variable
