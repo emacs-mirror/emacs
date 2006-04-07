@@ -2,6 +2,7 @@
 
 	* programs.texi (Comments, Comment Commands, Options for Comments)
 	(Multi-Line Comments): "Align", not "indent".
+	(Basic Indent): C-j deletes trailing whitespace before the newline.
 
 2006-04-06  Richard Stallman  <rms@gnu.org>
 
