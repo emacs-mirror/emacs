@@ -1,3 +1,7 @@
+2006-04-06  Richard Stallman  <rms@gnu.org>
+
+	* programs.texi (Basic Indent): Clarify relationship of C-j to TAB.
+
 2006-04-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* killing.texi (Rectangles): Add index entry for marking a
