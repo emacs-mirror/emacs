@@ -1,3 +1,8 @@
+2006-04-07  Richard Stallman  <rms@gnu.org>
+
+	* programs.texi (Comments, Comment Commands, Options for Comments)
+	(Multi-Line Comments): "Align", not "indent".
+
 2006-04-06  Richard Stallman  <rms@gnu.org>
 
 	* idlwave.texi: Delete the blocks "not suitable for inclusion with
