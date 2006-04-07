@@ -3624,6 +3624,12 @@ This is useful in packages that can be preloaded.
 
 If it is non-nil, the function lists only faces matching this regexp.
 
++++
+*** New function `string-or-null-p'.
+
+Return t if OBJECT is a string or nil.  Otherwise, return nil.
+
+
 ** Lisp code indentation features:
 
 +++
