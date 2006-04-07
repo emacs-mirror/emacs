@@ -4,7 +4,8 @@
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
-;; Symmetric encryption added by: Sascha Wilde <wilde@sha-bang.de>
+;; Symmetric encryption and gpg-agent support added by: 
+;;   Sascha Wilde <wilde@sha-bang.de>
 ;; Created: 1999/10/28
 ;; Keywords: PGP, OpenPGP, GnuPG
 
@@ -51,14 +52,21 @@
   :type '(choice (const :tag "New `--recipient' option" "--recipient")
 		 (const :tag "Old `--remote-user' option" "--remote-user")))
 
+(defcustom pgg-gpg-use-agent nil
+  "Whether to use gnupg agent for key caching."
+  :group 'pgg-gpg
+  :type 'boolean)
+
 (defvar pgg-gpg-user-id nil
   "GnuPG ID of your default identity.")
 
 (defun pgg-gpg-process-region (start end passphrase program args)
-  (let* ((output-file-name (pgg-make-temp-file "pgg-output"))
+  (let* ((use-agent (pgg-gpg-use-agent-p)) 
+	 (output-file-name (pgg-make-temp-file "pgg-output"))
 	 (args
 	  `("--status-fd" "2"
-	    ,@(if passphrase '("--passphrase-fd" "0"))
+	    ,@(if use-agent '("--use-agent")
+		(if passphrase '("--passphrase-fd" "0")))
 	    "--yes" ; overwrite
 	    "--output" ,output-file-name
 	    ,@pgg-gpg-extra-args ,@args))
@@ -100,7 +108,8 @@
       (set-default-file-modes orig-mode))))
 
 (defun pgg-gpg-possibly-cache-passphrase (passphrase &optional key notruncate)
-  (if (and pgg-cache-passphrase
+  (if (and passphrase
+	   pgg-cache-passphrase
 	   (progn
 	     (goto-char (point-min))
 	     (re-search-forward "^\\[GNUPG:] \\(GOOD_PASSPHRASE\\>\\)\\|\\(SIG_CREATED\\)" nil t)))
@@ -180,7 +189,7 @@ If optional PASSPHRASE is not specified, it will be obtained from the
 passphrase cache or user."
   (let* ((pgg-gpg-user-id (or pgg-gpg-user-id pgg-default-user-id))
 	 (passphrase (or passphrase
-			 (when sign
+			 (when (and sign (not (pgg-gpg-use-agent-p)))
 			   (pgg-read-passphrase
 			    (format "GnuPG passphrase for %s: "
 				    pgg-gpg-user-id)
@@ -212,8 +221,9 @@ passphrase cache or user."
 If optional PASSPHRASE is not specified, it will be obtained from the
 passphrase cache or user."
   (let* ((passphrase (or passphrase
-			 (pgg-read-passphrase
-			  "GnuPG passphrase for symmetric encryption: ")))
+			 (when (not (pgg-gpg-use-agent-p))
+			   (pgg-read-passphrase
+			    "GnuPG passphrase for symmetric encryption: "))))
 	 (args
 	  (append (list "--batch" "--armor" "--symmetric" )
 		  (if pgg-text-mode (list "--textmode")))))
@@ -240,12 +250,13 @@ passphrase cache or user."
 	 (pgg-gpg-user-id (or key-id key
 			      pgg-gpg-user-id pgg-default-user-id))
 	 (passphrase (or passphrase
-			 (pgg-read-passphrase
-			  (format (if (pgg-gpg-symmetric-key-p message-keys)
-				      "Passphrase for symmetric decryption: "
-				    "GnuPG passphrase for %s: ")
-				  (or key-owner "??"))
-			  pgg-gpg-user-id)))
+			 (when (not (pgg-gpg-use-agent-p))
+			   (pgg-read-passphrase
+			    (format (if (pgg-gpg-symmetric-key-p message-keys)
+					"Passphrase for symmetric decryption: "
+				      "GnuPG passphrase for %s: ")
+				    (or key-owner "??"))
+			    pgg-gpg-user-id))))
 	 (args '("--batch" "--decrypt")))
     (pgg-gpg-process-region start end passphrase pgg-gpg-program args)
     (with-current-buffer pgg-errors-buffer
@@ -275,9 +286,11 @@ passphrase cache or user."
   "Make detached signature from text between START and END."
   (let* ((pgg-gpg-user-id (or pgg-gpg-user-id pgg-default-user-id))
 	 (passphrase (or passphrase
-			 (pgg-read-passphrase
-			  (format "GnuPG passphrase for %s: " pgg-gpg-user-id)
-			  pgg-gpg-user-id)))
+			 (when (not (pgg-gpg-use-agent-p))
+			   (pgg-read-passphrase
+			    (format "GnuPG passphrase for %s: "
+				    pgg-gpg-user-id)
+			    pgg-gpg-user-id))))
 	 (args
 	  (append (list (if cleartext "--clearsign" "--detach-sign")
 			"--armor" "--batch" "--verbose"
@@ -342,6 +355,28 @@ passphrase cache or user."
 		"\tSecret keys are imported.\n")))
     (append-to-buffer pgg-output-buffer (point-min)(point-max))
     (pgg-process-when-success)))
+
+(defun pgg-gpg-update-agent ()
+  "Try to connet to gpg-agent and send UPDATESTARTUPTTY."
+  (if (fboundp 'make-network-process)
+      (let* ((agent-info (getenv "GPG_AGENT_INFO"))
+	     (socket (and agent-info
+			  (string-match "^\\([^:]*\\)" agent-info)
+			  (match-string 1 agent-info)))
+	     (conn (and socket
+			(make-network-process :name "gpg-agent-process"
+					      :host 'local :family 'local
+					      :service socket))))
+	(when (and conn (eq (process-status conn) 'open))
+	  (process-send-string conn "UPDATESTARTUPTTY\n")
+	  (delete-process conn)
+	  t))
+    ;; We can't check, so assume gpg-agent is up.
+    t))
+
+(defun pgg-gpg-use-agent-p ()
+  "Return t if `pgg-gpg-use-agent' is t and gpg-agent is available."
+  (and pgg-gpg-use-agent (pgg-gpg-update-agent)))
 
 (provide 'pgg-gpg)
 
