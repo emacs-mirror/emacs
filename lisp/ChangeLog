@@ -1,7 +1,12 @@
+2006-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-form): Don't call
+	cl-byte-compile-compiler-macro unless it exists.
+
 2006-04-08  Eli Zaretskii  <eliz@gnu.org>
 
-	* files.el (hack-local-variables-confirm) <offer-save>: Clarify
-	message text.  Suggested by Ralf Angeli.
+	* files.el (hack-local-variables-confirm) <offer-save>:
+	Clarify message text.  Suggested by Ralf Angeli.
 
 2006-04-08  Michael Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
 
@@ -388,8 +393,8 @@
 	(cua--init-keymaps): Use it instead of fixed C-return.
 	(cua-mode): Set after it.
 
-	* emulation/cua-rect.el (cua--init-rectangles): Use
-	cua-rectangle-mark-key instead of fixed C-return.
+	* emulation/cua-rect.el (cua--init-rectangles):
+	Use cua-rectangle-mark-key instead of fixed C-return.
 
 2006-03-25  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -425,8 +430,7 @@
 	* progmodes/gdb-ui.el (gdb-continuation): Declare earlier to
 	prevent compiler warnings.
 	(gdb-stopped): Check for gud-last-last-frame (case: signal).
-	(breakpoint-disabled): Make lighter for contrast with overlay
-	arrow.
+	(breakpoint-disabled): Make lighter for contrast with overlay arrow.
 	(gdb-assembler-custom): Use hollow-right-triangle for assembler
 	buffer too.
 
