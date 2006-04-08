@@ -1,3 +1,65 @@
+2006-04-08  Ryan Yeske  <rcyeske@gmail.com>
+
+	* rcirc.el (rcirc-default-server): Rename from rcirc-server.
+	(rcirc-default-port): Rename from rcirc-port.
+	(rcirc-default-nick): Rename from rcirc-nick.
+	(rcirc-default-user-name): Rename from rcirc-user-name.
+	(rcirc-default-user-full-name): Rename from rcirc-user-full-name.
+	(rcirc-low-priority-flag): New variable.
+	(rcirc-decode-coding-system): New defcustom.
+	(rcirc-encode-coding-system): New defcustom.
+	(rcirc-coding-system-alist): New defcustom.
+	(rcirc-multiline-major-mode): New defcustom.
+	(rcirc-nick): New internal variable.
+	(rcirc-process): Remove variable.
+	(rcirc-server-buffer): New variable.
+	(rcirc): Update to use rcirc-default-* variables above.
+	(rcirc-connect): Do not add window-configuration-hook-here.
+	(rcirc-server): New internal variable.
+	(rcirc-connect): Do not send keepalive pings if
+	rcirc-keepalive-seconds is nil.
+	(with-rcirc-server-buffer): New macro.
+	(rcirc-send-string): Encode with rcirc-encode-coding-system.
+	(rcirc-server-name): Rename from rcirc-server.
+	(rcirc-buffer-process): New function.
+	(rcirc-buffer-nick): New function.
+	(rcirc-buffer-target): Remove function.
+	(set-rcirc-decode-coding-system, set-rcirc-encode-coding-system):
+	New commands.
+	(rcirc-mode-map): Change binding of C-c C-l to
+	rcirc-toggle-low-priority.
+	(rcirc-mode): Initialize coding system based on
+	rcirc-coding-system-alist.  New change-major-mode-hook to part the
+	channel on a mode change.  Make kill-buffer-hook buffer-local.
+	(rcirc-change-major-mode-hook): New function.
+	(rcirc-clean-up-buffer): Rename from rcirc-kill-buffer-hook-1.
+	(rcirc-last-post-time): New variable.
+	(rcirc-process-message): Store the last time user posted a message
+	to this target.
+	(rcirc-multiline-minor-mode): New mode.
+	(rcirc-multiline-minor-mode-map): New mode map.
+	(rcirc-edit-multiline): Put multiline-edit buffer in
+	rcirc-multiline-major-mode along with rcirc-multiline-minor-mode.
+	(rcirc-print): Any line starting with an ignored nick will be
+	ignored.
+	(rcirc-print): Decode using rcirc-decode-coding-system.
+	(rcirc-track-minor-mode): Update global-mode-string when disabling
+	this mode.
+	(minor-mode-alist): add LowPri indicator.
+	(rcirc-toggle-low-priority): New function.
+	(rcirc-last-non-irc-buffer): Prefix arg now no means switch to
+	next lowpriority buffer with activity.
+	(rcirc-record-activity): Sort buffers in rcirc-activity by the
+	last time the user posted a message in to the target.
+	(rcirc-update-activity-string): New formatting for low priority
+	buffers.
+	(rcirc-split-activity): New function.
+	(rcirc-handler-PART, rcirc-handler-KICK)
+	(rcirc-handler-PART-or-KICK): Kick responses are printed properly.
+	(rcirc-nick-away-alist): New variable.
+	(rcirc-handler-301): New handler.  Away messages are printed once
+	per change.
+
 2006-04-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* info.el (Info-follow-nearest-node): Doc fix.
