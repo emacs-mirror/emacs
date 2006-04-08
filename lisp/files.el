@@ -2392,8 +2392,8 @@ y  -- to apply the local variables list.
 n  -- to ignore the local variables list.")
 	  (if offer-save
 	      (insert "
-!  -- to apply the local variables list, and mark these values (*) as
-      safe (in the future, they can be set automatically.)\n\n")
+!  -- to apply the local variables list, and permanently mark these
+      values (*) as safe (in the future, they will be set automatically.)\n\n")
 	    (insert "\n\n"))
 	  (dolist (elt vars)
 	    (cond ((member elt unsafe-vars)
