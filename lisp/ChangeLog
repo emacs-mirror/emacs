@@ -1,5 +1,7 @@
 2006-04-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* info.el (Info-follow-nearest-node): Doc fix.
+
 	* international/mule-cmds.el (set-locale-environment): Make sure
 	the coding-system preferred by the locale's language has the same
 	EOL conversion type as the original buffer-file-coding-system.
