@@ -23,6 +23,10 @@ Boston, MA 02110-1301, USA.  */
 #include <stdio.h>
 #include <limits.h>		/* For CHAR_BIT.  */
 
+#ifdef STDC_HEADERS
+#include <stddef.h>		/* For offsetof, used by PSEUDOVECSIZE. */
+#endif
+
 #ifdef ALLOC_DEBUG
 #undef INLINE
 #endif
