@@ -1,3 +1,7 @@
+2006-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fx_show_tip): Add 3 to the 5th arg of SetWindowPos.
+
 2006-04-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* editfns.c (TM_YEAR_IN_ASCTIME_RANGE): New macro, identical to
