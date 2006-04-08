@@ -1,3 +1,7 @@
+2006-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h (report_file_error): Mark as NO_RETURN.
+
 2006-04-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* alloc.c [STDC_HEADERS]: Include stddef.h.
