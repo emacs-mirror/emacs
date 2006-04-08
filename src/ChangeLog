@@ -1,3 +1,26 @@
+2006-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.h (struct Lisp_Process): Replace Lisp_Objects `pid',
+	`raw_status_high', and `raw_status_low' with plain integers, and move
+	them to the end of the structure.
+
+	* alloc.c (allocate_process): Use PSEUDOVECSIZE to initialize the
+	pseudovector's size field so only the Lisp_Object fields get GC'd.
+
+	* process.c (update_status, make_process, Fdelete_process)
+	(Fprocess_status, list_processes_1, start_process_unwind)
+	(create_process, Fmake_network_process, server_accept_connection)
+	(wait_reading_process_output, send_process, Fprocess_running_child_p)
+	(process_send_signal, proc_encode_coding_system, Fprocess_send_eof)
+	(sigchld_handler, status_notify): Adjust to new non-Lisp fields for
+	`pid' and `raw_status'.
+	(Fprocess_id, Fsignal_process): Same, and additionally use floats when
+	representing PIDs that are larger than most-positive-fixnum.
+
+	* keymap.c (describe_map): Only use XINT if we checked INTEGERP.
+
+	* lisp.h (OFFSETOF, PSEUDOVECSIZE): New macros.
+
 2006-04-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (Fx_show_tip): Add 3 to the 5th arg of SetWindowPos.
