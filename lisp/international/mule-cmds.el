@@ -2496,6 +2496,8 @@ See also `locale-charset-language-names', `locale-language-names',
 	     (locale-name-match locale locale-language-names))
 	    (charset-language-name
 	     (locale-name-match locale locale-charset-language-names))
+	    (default-eol-type (coding-system-eol-type
+			       default-buffer-file-coding-system))
 	    (coding-system
 	     (or (locale-name-match locale locale-preferred-coding-systems)
 		 (when locale
@@ -2515,6 +2517,13 @@ See also `locale-charset-language-names', `locale-language-names',
 	  ;; use what listed in locale-charset-language-names.
 	  (if (not language-name)
 	      (setq language-name charset-language-name)))
+
+	;; If a specific EOL conversion was specified in the default
+	;; buffer-file-coding-system, preserve it in the coding system
+	;; we will be using from now on.
+	(if (memq default-eol-type '(0 1 2 unix dos mac))
+	    (setq coding-system (coding-system-change-eol-conversion
+				 coding-system default-eol-type)))
 
 	(when language-name
 
