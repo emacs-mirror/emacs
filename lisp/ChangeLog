@@ -1,3 +1,8 @@
+2006-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (hack-local-variables-confirm) <offer-save>: Clarify
+	message text.  Suggested by Ralf Angeli.
+
 2006-04-08  Michael Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
 
 	* rect.el (kill-rectangle): Don't barf if `kill-read-only-ok' is set.

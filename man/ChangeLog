@@ -1,3 +1,7 @@
+2006-04-08  Kevin Ryde  <user42@zip.com.au>
+
+	* text.texi (Fill Commands): fill-nobreak-predicate is now a hook.
+
 2006-04-07  Richard Stallman  <rms@gnu.org>
 
 	* programs.texi (Comments, Comment Commands, Options for Comments)
