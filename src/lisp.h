@@ -713,6 +713,13 @@ struct Lisp_String
   ((int)((char*)&((type*)0)->field - (char*)0))
 #endif
 
+struct Lisp_Vector
+  {
+    EMACS_INT size;
+    struct Lisp_Vector *next;
+    Lisp_Object contents[1];
+  };
+
 /* If a struct is made to look like a vector, this macro returns the length
    of the shortest vector that would hold that struct.  */
 #define VECSIZE(type) ((sizeof (type) - (sizeof (struct Lisp_Vector)  \
@@ -724,15 +731,8 @@ struct Lisp_String
    at the end and we need to compute the number of Lisp_Object fields (the
    ones that the GC needs to trace).  */
 #define PSEUDOVECSIZE(type, nonlispfield) \
-  ((offsetof(type, nonlispfield) - offsetof(struct Lisp_Vector, contents[0])) \
+  ((OFFSETOF(type, nonlispfield) - OFFSETOF(struct Lisp_Vector, contents[0])) \
    / sizeof (Lisp_Object))
-
-struct Lisp_Vector
-  {
-    EMACS_INT size;
-    struct Lisp_Vector *next;
-    Lisp_Object contents[1];
-  };
 
 /* A char table is a kind of vectorlike, with contents are like a
    vector but with a few other slots.  For some purposes, it makes
