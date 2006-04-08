@@ -1,3 +1,7 @@
+2006-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-fun.el (gnus): Require it for gnus-directory.
+
 2006-04-04  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	* nnweb.el (nnweb-google-create-mapping): Update regexp.  Some
@@ -2143,6 +2147,10 @@
 	* nnrss.el (nnrss-fetch): Signal an error if w3-parse-buffer also
 	failed.
 
+2005-04-06  Joakim Verona  <joakim@verona.se>  (tiny change)
+
+	* nnrss.el (nnrss-read-group-data): Fix off-by-one error.
+
 2005-04-06  Jesper Harder  <harder@ifa.au.dk>
 
 	* mm-util.el (mm-subst-char-in-string): Support inplace.
@@ -2153,9 +2161,8 @@
 	(nnrss-request-delete-group): Use nnrss-make-filename.
 	(nnrss-read-server-data): Use nnrss-make-filename; use load.
 	(nnrss-save-server-data): Use nnrss-make-filename; use gnus-prin1.
-	(nnrss-read-group-data): Fix off-by-one error.  From Joakim Verona
-	<joakim@verona.se>; hash on description if link is missing; use
-	nnrss-make-filename; use load.
+	(nnrss-read-group-data): hash on description if link is missing;
+	use nnrss-make-filename; use load.
 	(nnrss-save-group-data): Use nnrss-make-filename; use gnus-prin1.
 	(nnrss-make-filename): New function.
 	(nnrss-close): New function.
@@ -2304,11 +2311,10 @@
 	* nnmaildir.el (nnmaildir-request-accept-article):
 	Use `nnheader-cancel-timer' for compatibility with current XEmacs.
 
-2005-03-13  Steve Youngs  <steve@sxemacs.org>
+2005-03-13  Andrey Slusar  <anrays@gmail.com>  (tiny change)
 
 	* gnus.el: Don't try and mark `gnus-agent-save-groups' as an
 	autoloaded function.
-	From: Andrey Slusar <anrays@gmail.com>.
 
 2005-03-13  Steve Youngs  <steve@sxemacs.org>
 
@@ -2670,6 +2676,11 @@
 	article buffer with a draft file.  This is a temporary measure
 	against the 2004-08-22 change to gnus-article-edit-mode.
 
+2004-11-02  From Ilya N. Golubev  <gin@mo.msk.ru>.
+
+	* mm-util.el (mm-mime-mule-charset-alist): Add the windows-1251
+	entry.
+
 2004-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* html2text.el (html2text-get-attr): Remove unused argument `tag'.
@@ -2678,11 +2689,9 @@
 	* mm-util.el (mm-enrich-utf-8-by-mule-ucs): Fix cleaning of
 	after-load-alist.
 
-	* mm-util.el (mm-mime-mule-charset-alist): Add the windows-1251
-	entry.  From Ilya N. Golubev <gin@mo.msk.ru>.
-	(mm-enrich-utf-8-by-mule-ucs): New function run when Mule-UCS is
-	loaded under XEmacs.
-	(): Don't make duplicated entries in mm-mime-mule-charset-alist.
+	* mm-util.el (mm-enrich-utf-8-by-mule-ucs): New function run when
+	Mule-UCS is loaded under XEmacs.
+	(mm-mime-mule-charset-alist): Avoid duplicated entries.
 
 	* mm-util.el (mm-coding-system-p): Return a coding-system.
 	(mm-mime-mule-charset-alist): Use shift_jis instead of
@@ -3288,6 +3297,10 @@
 
 	* mm-decode.el (mm-copy-to-buffer): Don't use set-buffer-multibyte.
 
+2004-09-26  Christian Neukirchen  <chneukirchen@yahoo.de>  (tiny change)
+
+	* mm-util.el (mm-image-load-path): Handle nil in load-path.
+
 2004-09-26  Jesper Harder  <harder@ifa.au.dk>
 
 	* gnus-msg.el (gnus-post-news): Use blank Newsgroups line if
@@ -3316,9 +3329,6 @@
 
 	* gnus-cache.el (gnus-cache-save-buffers): Check if buffer is
 	alive.  Reported by Laurent Martelli <laurent@aopsys.com>.
-
-	* mm-util.el (mm-image-load-path): Handle nil in load-path.
-	From Christian Neukirchen <chneukirchen@yahoo.de>.
 
 	* html2text.el (html2text-replace-list): Add &amp; and &apos;.
 
@@ -3543,7 +3553,8 @@
 
 	* gnus-sum.el (gnus-summary-insert-subject): Remove list identifiers.
 
-	From Hiroshi Fujishima <pooh@nature.tsukuba.ac.jp> (tiny change).
+2004-09-03  Hiroshi Fujishima <pooh@nature.tsukuba.ac.jp>  (tiny change)
+
 	* spam-stat.el (spam-stat-reduce-size): Set spam-stat-dirty.
 	(spam-stat-save): Accept prefix argument.
 
@@ -3566,7 +3577,7 @@
 
 	* pgg-pgp.el (pgg-pgp-verify-region): Clean up.
 
-2004-05-19  Michael Schierl  <schierlm-usenet@gmx.de>
+2004-05-19  Michael Schierl  <schierlm-usenet@gmx.de>  (tiny change)
 
 	* pgg-pgp.el (pgg-pgp-verify-region): Default when signature
 	isn't a string.
@@ -3685,8 +3696,25 @@
 
 	* gnus-agent.el (gnus-agent-restore-gcc): Use ^ and regexp-quote.
 
-	* gnus-sum.el (gnus-newsgroup-variables): Doc fix (tiny change).
-	From Helmut Waitzmann <Helmut.Waitzmann@web.de>.
+2004-08-30  Helmut Waitzmann  <Helmut.Waitzmann@web.de>  (tiny change)
+
+	* gnus-sum.el (gnus-newsgroup-variables): Doc fix.
+
+2004-08-26  YAGI Tatsuya <ynyaaa@ybb.ne.jp>  (tiny change)
+
+	* gnus-art.el (gnus-article-next-page): Fix the way to find a real
+	end-of-buffer.
+
+2004-08-26  Stefan Wiens <s.wi@gmx.net>  (tiny change)
+
+	* gnus-sum.el (gnus-read-header): Don't remove a header for the
+	parent article of a sparse article in the thread hashtb.
+
+2004-08-26  David Hedbor <dhedbor@real.com>  (tiny change)
+
+	* nnmail.el (nnmail-split-lowercase-expanded): New user option.
+	(nnmail-expand-newtext): Lowercase expanded entries if
+	nnmail-split-lowercase-expanded is non-nil.
 
 	* gnus-agent.el (gnus-agent-regenerate-group): Activate the group
 	when the group's active is not available.
@@ -3694,8 +3722,6 @@
 	* gnus-art.el (article-hide-headers): Refer to the values for
 	gnus-ignored-headers and gnus-visible-headers in the summary
 	buffer since a user may have set them as group parameters.
-	(gnus-article-next-page): Fix the way to find a real end-of-buffer
-	(tiny change).  From YAGI Tatsuya <ynyaaa@ybb.ne.jp>.
 	(gnus-article-read-summary-keys): Restore new window-start and
 	hscroll to summary window.
 	(gnus-prev-page-map): Remove duplicated one.
@@ -3723,10 +3749,6 @@
 
 	* gnus-spec.el (gnus-update-format): Replace pp-to-string with
 	gnus-pp-to-string.
-
-	* gnus-sum.el (gnus-read-header): Don't remove a header for the
-	parent article of a sparse article in the thread hashtb.
-	From Stefan Wiens <s.wi@gmx.net>.
 
 	* gnus-util.el (gnus-bind-print-variables): New macro.
 	(gnus-prin1): Use it.
@@ -3766,11 +3788,6 @@
 	(nndoc-forward-type-p): Recognize envelope From_.
 	(nndoc-rfc822-forward-generate-article): New function.
 	(nndoc-rfc822-forward-generate-head): New function.
-
-	From David Hedbor <dhedbor@real.com>.
-	* nnmail.el (nnmail-split-lowercase-expanded): New user option.
-	(nnmail-expand-newtext): Lowercase expanded entries if
-	nnmail-split-lowercase-expanded is non-nil.
 
 	* score-mode.el (gnus-score-pretty-print): Replace pp with gnus-pp.
 

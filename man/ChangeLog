@@ -1,3 +1,21 @@
+2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Summary Buffer Lines): Add `*'.
+
+2006-04-07  Jochen K,A|(Bpper  <jochen@fhi-berlin.mpg.de>
+
+	* gnus.texi (Group Parameters): Mention
+	gnus-permanently-visible-groups.
+
+2006-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Face): Fix typo.
+
+2006-04-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (X-Face): Clarify.
+	(Face): Need Emacs with PNG support.
+
 2006-04-08  Kevin Ryde  <user42@zip.com.au>
 
 	* text.texi (Fill Commands): fill-nobreak-predicate is now a hook.

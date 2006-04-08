@@ -2758,6 +2758,9 @@ If the group parameter list has the element @code{(visible . t)},
 that group will always be visible in the Group buffer, regardless
 of whether it has any unread articles.
 
+This parameter cannot be set via @code{gnus-parameters}. See
+@code{gnus-permanently-visible-groups} as an alternative.
+
 @item broken-reply-to
 @cindex broken-reply-to
 Elements like @code{(broken-reply-to . t)} signals that @code{Reply-To}
@@ -3035,8 +3038,9 @@ parameters (@pxref{Topic Parameters}).
 
 @vindex gnus-parameters
 Group parameters can be set via the @code{gnus-parameters} variable too.
-But some variables, such as @code{visible}, have no effect.  For
-example:
+But some variables, such as @code{visible}, have no effect (For this
+case see @code{gnus-permanently-visible-groups} as an alternative.).
+For example:
 
 @lisp
 (setq gnus-parameters
@@ -4675,6 +4679,8 @@ article has any children.
 The line number.
 @item O
 Download mark.
+@item *
+Desired cursor position (instead of after first colon).
 @item &user-date;
 Age sensitive date format.  Various date format is defined in
 @code{gnus-user-date-format-alist}.
@@ -22073,10 +22079,20 @@ readers.
 @end iftex
 @c @anchor{X-Face}
 
-Decoding an @code{X-Face} header either requires an Emacs that has
+Viewing an @code{X-Face} header either requires an Emacs that has
 @samp{compface} support (which most XEmacs versions has), or that you
-have @samp{compface} installed on your system.  If either is true,
-Gnus will default to displaying @code{X-Face} headers.
+have suitable conversion or display programs installed.  If your Emacs
+has image support the default action is to display the face before the
+@code{From} header.  If there's no native @code{X-Face} support, Gnus
+will try to convert the @code{X-Face} header using external programs
+from the @code{pbmplus} package and friends.  For XEmacs it's faster if
+XEmacs has been compiled with @code{X-Face} support.  The default action
+under Emacs without image support is to fork off the @code{display}
+program.
+
+On a GNU/Linux system, the @code{display} program is from the
+ImageMagick package.  For external conversion programs look for packages
+with names like @code{netpbm}, @code{libgr-progs} and @code{compface}.
 
 The variable that controls this is the
 @code{gnus-article-x-face-command} variable.  If this variable is a
@@ -22084,21 +22100,6 @@ string, this string will be executed in a sub-shell.  If it is a
 function, this function will be called with the face as the argument.
 If the @code{gnus-article-x-face-too-ugly} (which is a regexp) matches
 the @code{From} header, the face will not be shown.
-
-The default action under Emacs without image support is to fork off the
-@code{display} program@footnote{@code{display} is from the ImageMagick
-package.  For the @code{uncompface} and @code{icontopbm} programs look
-for a package like @code{compface} or @code{faces-xface} on a GNU/Linux
-system.} to view the face.
-
-Under XEmacs or Emacs 21+ with suitable image support, the default
-action is to display the face before the @code{From} header.  (It's
-nicer if XEmacs has been compiled with @code{X-Face} support---that
-will make display somewhat faster.  If there's no native @code{X-Face}
-support, Gnus will try to convert the @code{X-Face} header using
-external programs from the @code{pbmplus} package and
-friends.@footnote{On a GNU/Linux system look for packages with names
-like @code{netpbm}, @code{libgr-progs} and @code{compface}.})
 
 (Note: @code{x-face} is used in the variable/function names, not
 @code{xface}).
@@ -22117,7 +22118,9 @@ default colors are black and white.
 If you use posting styles, you can use an @code{x-face-file} entry in
 @code{gnus-posting-styles}, @xref{Posting Styles}.  If you don't, Gnus
 provides a few convenience functions and variables to allow easier
-insertion of X-Face headers in outgoing messages.
+insertion of X-Face headers in outgoing messages.  You also need the
+above mentioned ImageMagick, netpbm or other image conversion packages
+(depending the values of the variables below) for these functions.
 
 @findex gnus-random-x-face
 @vindex gnus-convert-pbm-to-x-face-command
@@ -22164,7 +22167,7 @@ Using the last function would be something like this:
 @subsection Face
 @cindex face
 
-@c #### FIXME: faces and x-faces'implementations should really be harmonized.
+@c #### FIXME: faces and x-faces' implementations should really be harmonized.
 
 @code{Face} headers are essentially a funkier version of @code{X-Face}
 ones. They describe a 48x48 pixel colored image that's supposed to
@@ -22175,6 +22178,13 @@ represent the author of the message.
 The contents of a @code{Face} header must be a base64 encoded PNG image.
 See @uref{http://quimby.gnus.org/circus/face/} for the precise
 specifications.
+
+Viewing an @code{Face} header requires an Emacs that is able to display
+PNG images.
+@c Maybe add this:
+@c (if (featurep 'xemacs)
+@c     (featurep 'png)
+@c   (image-type-available-p 'png))
 
 Gnus provides a few convenience functions and variables to allow
 easier insertion of Face headers in outgoing messages.
