@@ -1,3 +1,7 @@
+2006-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.h (PSEUDOVECSIZE): Fix last change.
+
 2006-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.h (struct Lisp_Process): Replace Lisp_Objects `pid',
