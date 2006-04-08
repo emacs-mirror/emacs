@@ -3,6 +3,7 @@
 	* international/mule-cmds.el (set-locale-environment): Make sure
 	the coding-system preferred by the locale's language has the same
 	EOL conversion type as the original buffer-file-coding-system.
+	(locale-language-names): Add a few MS Windows language codes.
 
 2006-04-07  Richard Stallman  <rms@gnu.org>
 
