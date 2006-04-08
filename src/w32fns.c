@@ -7668,9 +7668,12 @@ Text larger than the specified size is clipped.  */)
     AdjustWindowRect (&rect, f->output_data.w32->dwStyle,
 		      FRAME_EXTERNAL_MENU_BAR (f));
 
-    /* Position and size tooltip, and put it in the topmost group.  */
+    /* Position and size tooltip, and put it in the topmost group.
+       The add-on of 3 to the 5th argument is a kludge: without it,
+       some fonts cause the last character of the tip to be truncated,
+       for some obscure reason.  */
     SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOPMOST,
-		  root_x, root_y, rect.right - rect.left,
+		  root_x, root_y, rect.right - rect.left + 3,
 		  rect.bottom - rect.top, SWP_NOACTIVATE);
 
     /* Ensure tooltip is on top of other topmost windows (eg menus).  */
