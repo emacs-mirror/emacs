@@ -3297,6 +3297,14 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       return (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONUP);
 
     case WM_MOUSEMOVE:
+      /* Ignore mouse movements as long as the menu is active.  These
+	 movements are processed by the window manager anyway, and
+	 it's wrong to handle them as if they happened on the
+	 underlying frame.  */
+      f = x_window_to_frame (dpyinfo, hwnd);
+      if (f && f->output_data.w32->menubar_active)
+	return 0;
+
       /* If the mouse has just moved into the frame, start tracking
 	 it, so we will be notified when it leaves the frame.  Mouse
 	 tracking only works under W98 and NT4 and later. On earlier
