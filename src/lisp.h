@@ -297,7 +297,11 @@ enum pvec_type
 #endif
 };
 
-/* For convenience, we also store the number of elements in these bits.  */
+/* For convenience, we also store the number of elements in these bits.
+   Note that this size is not necessarily the memory-footprint size, but
+   only the number of Lisp_Object fields (that need to be traced by the GC).
+   The distinction is used e.g. by Lisp_Process which places extra
+   non-Lisp_Object fields at the end of the structure.  */
 #define PSEUDOVECTOR_SIZE_MASK 0x1ff
 
 /* Number of bits to put in each character in the internal representation
