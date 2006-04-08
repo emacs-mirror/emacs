@@ -1,3 +1,8 @@
+2006-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) <WM_MOUSEMOVE>: Ignore mouse movements
+	if a menu is active on this frame.
+
 2006-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* lisp.h (report_file_error): Mark as NO_RETURN.
