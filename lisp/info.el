@@ -3046,9 +3046,9 @@ At end of the node's text, moves to the next node, or up if none."
 If point is on a reference, follow that reference.  Otherwise,
 if point is in a menu item description, follow that menu item.
 
-If fork is non-nil (interactively with a prefix arg), show the node in
+If FORK is non-nil (interactively with a prefix arg), show the node in
 a new Info buffer.
-If fork is a string, it is the name to use for the new buffer."
+If FORK is a string, it is the name to use for the new buffer."
   (interactive "P")
   (or (Info-try-follow-nearest-node fork)
       (when (save-excursion
