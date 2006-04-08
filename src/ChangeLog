@@ -1,5 +1,7 @@
 2006-04-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* alloc.c [STDC_HEADERS]: Include stddef.h.
+
 	* lisp.h (PSEUDOVECSIZE): Fix last change.
 
 2006-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
