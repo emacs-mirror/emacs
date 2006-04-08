@@ -1,3 +1,10 @@
+2006-04-08  Michael Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+
+	* rect.el (kill-rectangle): Don't barf if `kill-read-only-ok' is set.
+	(delete-extract-rectangle-line): Use `filter-buffer-substring'
+	instead of `buffer-substring' and `delete-region'.  (Most of the
+	code actually copied from `kill-region'.)
+
 2006-04-08  Ryan Yeske  <rcyeske@gmail.com>
 
 	* rcirc.el (rcirc-default-server): Rename from rcirc-server.
