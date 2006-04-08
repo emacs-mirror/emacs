@@ -2135,6 +2135,7 @@ of `buffer-file-coding-system' set by this function."
     ("cy" "Welsh" iso-8859-14)
     ("da" . "Latin-1") ; Danish
     ("de" "German" iso-8859-1)
+    ; dv Divehi
     ; dz Bhutani
     ("el" "Greek" iso-8859-7)
     ;; Users who specify "en" explicitly typically want Latin-1, not ASCII.
@@ -2296,6 +2297,10 @@ of `buffer-file-coding-system' set by this function."
     ("jp" . "Japanese") ; e.g. MS Windows
     ("chs" . "Chinese-GB") ; MS Windows Chinese Simplified
     ("cht" . "Chinese-BIG5") ; MS Windows Chinese Traditional
+    ("gbz" . "UTF-8") ; MS Windows Dari Persian
+    ("div" . "UTF-8") ; MS Windows Divehi (Maldives)
+    ("wee" . "Latin-2") ; MS Windows Lower Sorbian
+    ("wen" . "Latin-2") ; MS Windows Upper Sorbian
     ))
   "Alist of locale regexps vs the corresponding languages and coding systems.
 Each element has these form:
