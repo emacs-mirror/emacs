@@ -1,3 +1,9 @@
+2006-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment): Make sure
+	the coding-system preferred by the locale's language has the same
+	EOL conversion type as the original buffer-file-coding-system.
+
 2006-04-07  Richard Stallman  <rms@gnu.org>
 
 	* simple.el (eval-expression): Doc fix.
