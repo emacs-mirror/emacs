@@ -557,11 +557,11 @@ two spaces for the end of a sentence, as explained above.  @xref{Sentences}.
 fill commands put two spaces after a colon.
 
 @vindex fill-nobreak-predicate
-  The variable @code{fill-nobreak-predicate} specifies additional
-conditions for where line-breaking is allowed.  Its value is either
-@code{nil} or a Lisp function; the function is called with no
+  The variable @code{fill-nobreak-predicate} is a hook (an abnormal
+hook, @pxref{Hooks}) specifying additional conditions where
+line-breaking is not allowed.  Each function is called with no
 arguments, with point at a place where Emacs is considering breaking
-the line.  If the function returns a non-@code{nil} value, then that's
+the line.  If a function returns a non-@code{nil} value, then that's
 a bad place to break the line.  Two standard functions you can use are
 @code{fill-single-word-nobreak-p} (don't break after the first word of
 a sentence or before the last) and @code{fill-french-nobreak-p} (don't
