@@ -3032,7 +3032,7 @@ extern void syms_of_frame P_ ((void));
 extern Lisp_Object decode_env_path P_ ((char *, char *));
 extern Lisp_Object Vinvocation_name, Vinvocation_directory;
 extern Lisp_Object Vinstallation_directory, empty_string;
-EXFUN (Fkill_emacs, 1) NO_RETURN;
+EXFUN (Fkill_emacs, 1);
 #if HAVE_SETLOCALE
 void fixup_locale P_ ((void));
 void synchronize_system_messages_locale P_ ((void));
