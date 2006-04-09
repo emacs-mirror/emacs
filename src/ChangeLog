@@ -4,7 +4,6 @@
 
 	* lisp.h (args_out_of_range, args_out_of_range_3)
 	(Fkill_buffer): Likewise.
-	
 
 2006-04-08  Eli Zaretskii  <eliz@gnu.org>
 
