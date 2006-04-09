@@ -769,7 +769,7 @@ Save a copy in register 0 if `cua-delete-copy-to-register-0' is non-nil."
   (let ((start (mark)) (end (point)))
     (or (<= start end)
 	(setq start (prog1 end (setq end start))))
-    (setq cua--last-deleted-region-text (buffer-substring start end))
+    (setq cua--last-deleted-region-text (filter-buffer-substring start end))
     (if cua-delete-copy-to-register-0
 	(set-register ?0 cua--last-deleted-region-text))
     (delete-region start end)
@@ -858,7 +858,7 @@ If global mark is active, copy from register or one character."
       (if regtxt
 	  (cua--insert-at-global-mark regtxt)
 	(when (not (eobp))
-	  (cua--insert-at-global-mark (buffer-substring (point) (+ (point) count)))
+	  (cua--insert-at-global-mark (filter-buffer-substring (point) (+ (point) count)))
 	  (forward-char count))))
      (buffer-read-only
       (message "Cannot paste into a read-only buffer"))
@@ -875,7 +875,7 @@ If global mark is active, copy from register or one character."
 		(setq paste-lines (cua--delete-rectangle))
 		(if (= paste-lines 1)
 		    (setq paste-lines nil))) ;; paste all
-	    (if (string= (buffer-substring (point) (mark))
+	    (if (string= (filter-buffer-substring (point) (mark))
 			 (car kill-ring))
 		(current-kill 1))
 	    (cua-delete-region)))
@@ -950,7 +950,7 @@ of text."
 		  (setq s (car u) e (cdr u)))))))
 	  (setq cua--repeat-replace-text
 		(cond ((and s e (<= s e) (= s (mark t)))
-		       (buffer-substring-no-properties s e))
+		       (filter-buffer-substring s e nil t))
 		      ((and (null s) (eq u elt)) ;; nothing inserted
 		       "")
 		      (t
