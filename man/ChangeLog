@@ -7,6 +7,12 @@
 
 2006-04-09  Karl Berry  <karl@gnu.org>
 
+	* msdog.texi, emacs-xtra.texi: move all the MS-DOS material to
+	emacs-xtra.texi, leaving only MS Windows information.
+	* building.texi, emacs.texi, frames.texi, gnu.texi, macos.texi,
+	msdog.texi, mule.texi, trouble.texi: change cross-references and
+	node names.
+
 	* emacs.texi: move @summarycontents and @contents to the beginning
 	of the file.
 

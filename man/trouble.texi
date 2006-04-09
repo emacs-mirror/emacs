@@ -58,7 +58,8 @@ Search}).
 like @kbd{C-g}.  The reason is that it is not feasible, on MS-DOS, to
 recognize @kbd{C-g} while a command is running, between interactions
 with the user.  By contrast, it @emph{is} feasible to recognize
-@kbd{C-@key{BREAK}} at all times.  @xref{MS-DOS Keyboard}.
+@kbd{C-@key{BREAK}} at all times.  @xref{MS-DOS Keyboard,,,emacs-xtra,
+Specialized Emacs Features}.
 
 @findex keyboard-quit
   @kbd{C-g} works by setting the variable @code{quit-flag} to @code{t}
