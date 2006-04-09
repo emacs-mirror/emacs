@@ -381,7 +381,7 @@
 ;; code fragments, general interest, etc.:
 ;;   Jari Aalto <jari.aalto@cs.tpu.fi>
 ;;   Dean Andrews <dean@dra.com>
-;;   Juanma Barranquero <barranquero@laley-actualidad.es>
+;;   Juanma Barranquero <lekktu@gmail.com>
 ;;   Karl Berry <kb@cs.umb.edu>
 ;;   Jim Chapman <jchapman@netcomuk.co.uk>
 ;;   Kin Cho <kin@neoscale.com>
@@ -426,9 +426,15 @@
 
 (require 'man)
 (require 'button)
-(define-button-type 'WoMan-xref-man-page 
+(define-button-type 'WoMan-xref-man-page
   :supertype 'Man-abstract-xref-man-page
-  'func 'woman)
+  'func (lambda (arg)
+	  (woman
+	   ;; `woman' cannot deal with arguments that contain a
+	   ;; section name, like close(2), so strip the section name.
+	   (if (string-match Man-reference-regexp arg)
+	       (substring arg 0 (match-end 1))
+	     arg))))
 
 (eval-when-compile			; to avoid compiler warnings
   (require 'dired)

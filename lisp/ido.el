@@ -360,7 +360,10 @@ use either \\[customize] or the function `ido-mode'."
   :initialize 'custom-initialize-set
   :require 'ido
   :link '(emacs-commentary-link "ido.el")
-  :set-after '(ido-save-directory-list-file)
+  :set-after '(ido-save-directory-list-file
+	       ;; This will clear ido-unc-hosts-cache, so set it
+	       ;; before loading history file.
+	       ido-unc-hosts)
   :type '(choice (const :tag "Turn on only buffer" buffer)
                  (const :tag "Turn on only file" file)
                  (const :tag "Turn on both buffer and file" both)
@@ -631,7 +634,7 @@ equivalent function, e.g. `find-file' rather than `ido-find-file'."
   :group 'ido)
 
 (defvar ido-unc-hosts-cache t
-  "Cached value from ido-unc-hosts function.")
+  "Cached value from `ido-unc-hosts' function.")
 
 (defcustom ido-unc-hosts nil
   "*List of known UNC host names to complete after initial //.
@@ -646,12 +649,15 @@ hosts on first use of UNC path."
 	   (setq ido-unc-hosts-cache t))
   :group 'ido)
 
+(defcustom ido-downcase-unc-hosts t
+  "*Non-nil if UNC host names should be downcased."
+  :type 'boolean
+  :group 'ido)
+
 (defcustom ido-ignore-unc-host-regexps nil
-  "*List of regexps matching UNC hosts to ignore."
+  "*List of regexps matching UNC hosts to ignore.
+Case is ignored if `ido-downcase-unc-hosts' is set."
   :type '(repeat regexp)
-  :set #'(lambda (symbol value)
-	   (set symbol value)
-	   (setq ido-unc-hosts-cache t))
   :group 'ido)
 
 (defcustom ido-cache-unc-host-shares-time 8.0
@@ -1132,33 +1138,40 @@ it doesn't interfere with other minibuffer usage.")
 
 (defun ido-unc-hosts (&optional query)
   "Return list of UNC host names."
-  (cond
-   ((listp ido-unc-hosts)
-    ido-unc-hosts)		;; static list or nil
-   ((listp ido-unc-hosts-cache)
-    ido-unc-hosts-cache)	;; result of net search
-   ((and query (fboundp ido-unc-hosts))
-    (message "Searching for UNC hosts...")
-    (let ((hosts (funcall ido-unc-hosts)) host re-list re)
-      (setq ido-unc-hosts-cache nil)
-      (while hosts
-	(setq host (downcase (car hosts))
-	      hosts (cdr hosts)
-	      re-list ido-ignore-unc-host-regexps)
-	(while re-list
-	  (setq re (car re-list)
-		re-list (cdr re-list))
-	  (if (string-match re host)
-	      (setq re-list nil
-		    host nil)))
-	(if host
-	    (setq ido-unc-hosts-cache (cons host ido-unc-hosts-cache)))))
-    (message nil)
-    (setq ido-unc-hosts-cache
-	  (sort ido-unc-hosts-cache #'string<)))
-   (query
-    (setq ido-unc-hosts-cache nil))
-   (t (fboundp ido-unc-hosts))))
+  (let ((hosts
+	 (cond
+	  ((listp ido-unc-hosts)
+	   ido-unc-hosts)		;; static list or nil
+	  ((listp ido-unc-hosts-cache)
+	   ido-unc-hosts-cache)	;; result of net search
+	  ((and query (fboundp ido-unc-hosts))
+	   (message (propertize "Searching for UNC hosts..." 'face 'highlight))
+	   (setq ido-unc-hosts-cache (funcall ido-unc-hosts))
+	   (message nil)
+	   ido-unc-hosts-cache)
+	  (query
+	   (setq ido-unc-hosts-cache nil))
+	  (t (fboundp ido-unc-hosts)))))
+    (when query
+      (let ((case-fold-search ido-downcase-unc-hosts)
+	    res host re-list re)
+	(while hosts
+	  (setq host (car hosts)
+		hosts (cdr hosts)
+		re-list (and ido-process-ignore-lists
+			     ido-ignore-unc-host-regexps))
+	  (while re-list
+	    (setq re (car re-list)
+		  re-list (cdr re-list))
+	    (if (string-match re host)
+		(setq re-list nil
+		      host nil)))
+	  (when host
+	    (when ido-downcase-unc-hosts
+	      (setq host (downcase host)))
+	    (setq res (cons host res))))
+	(setq hosts (sort res #'string<))))
+    hosts))
 
 (defun ido-unc-hosts-net-view ()
   "Query network for list of UNC host names using `NET VIEW'."
@@ -1280,6 +1293,9 @@ it doesn't interfere with other minibuffer usage.")
 	    (ido-pp 'ido-work-directory-list)
 	    (ido-pp 'ido-work-file-list)
 	    (ido-pp 'ido-dir-file-cache "\n\n ")
+	    (if (listp ido-unc-hosts-cache)
+		(ido-pp 'ido-unc-hosts-cache)
+	      (insert "\n;; ----- ido-unc-hosts-cache -----\nt\n"))
 	    (insert "\n")
 	    (write-file ido-save-directory-list-file nil))
 	(kill-buffer buf)))))
@@ -1301,7 +1317,8 @@ With prefix argument, reload history unconditionally."
 		    (setq ido-last-directory-list (read (current-buffer))
 			  ido-work-directory-list (read (current-buffer))
 			  ido-work-file-list (read (current-buffer))
-			  ido-dir-file-cache (read (current-buffer)))
+			  ido-dir-file-cache (read (current-buffer))
+			  ido-unc-hosts-cache (read (current-buffer)))
 		  (error nil)))
 	    (kill-buffer buf)))))
   (ido-wash-history))
@@ -2582,7 +2599,9 @@ timestamp has not changed (e.g. with ftp or on Windows)."
   (interactive)
   (if (and ido-mode (eq ido-cur-item 'file))
       (progn
-	(ido-remove-cached-dir ido-current-directory)
+	(if (ido-is-unc-root)
+	    (setq ido-unc-hosts-cache t)
+	  (ido-remove-cached-dir ido-current-directory))
 	(setq ido-text-init ido-text)
 	(setq ido-rotate-temp t)
 	(setq ido-exit 'refresh)

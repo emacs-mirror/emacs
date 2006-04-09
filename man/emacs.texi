@@ -801,7 +801,6 @@ Dealing with Emacs Trouble
 * Stuck Recursive::     `[...]' in mode line around the parentheses.
 * Screen Garbled::      Garbage on the screen.
 * Text Garbled::        Garbage in the text.
-* Unasked-for Search::  Spontaneous entry to incremental search.
 * Memory Full::         How to cope when you run out of memory.
 * After a Crash::       Recovering editing in an Emacs session that crashed.
 * Emergency Escape::    Emergency escape---

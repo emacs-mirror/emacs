@@ -298,7 +298,11 @@ enum pvec_type
 #endif
 };
 
-/* For convenience, we also store the number of elements in these bits.  */
+/* For convenience, we also store the number of elements in these bits.
+   Note that this size is not necessarily the memory-footprint size, but
+   only the number of Lisp_Object fields (that need to be traced by the GC).
+   The distinction is used e.g. by Lisp_Process which places extra
+   non-Lisp_Object fields at the end of the structure.  */
 #define PSEUDOVECTOR_SIZE_MASK 0x1ff
 
 /* Number of bits to put in each character in the internal representation
@@ -705,12 +709,12 @@ struct Lisp_String
     unsigned char *data;
   };
 
-/* If a struct is made to look like a vector, this macro returns the length
-   of the shortest vector that would hold that struct.  */
-#define VECSIZE(type) ((sizeof (type) - (sizeof (struct Lisp_Vector)  \
-                                         - sizeof (Lisp_Object))      \
-                        + sizeof(Lisp_Object) - 1) /* round up */     \
-		       / sizeof (Lisp_Object))
+#ifdef offsetof
+#define OFFSETOF(type,field) offsetof(type,field)
+#else
+#define OFFSETOF(type,field) \
+  ((int)((char*)&((type*)0)->field - (char*)0))
+#endif
 
 struct Lisp_Vector
   {
@@ -718,6 +722,20 @@ struct Lisp_Vector
     struct Lisp_Vector *next;
     Lisp_Object contents[1];
   };
+
+/* If a struct is made to look like a vector, this macro returns the length
+   of the shortest vector that would hold that struct.  */
+#define VECSIZE(type) ((sizeof (type) - (sizeof (struct Lisp_Vector)  \
+                                         - sizeof (Lisp_Object))      \
+                        + sizeof(Lisp_Object) - 1) /* round up */     \
+		       / sizeof (Lisp_Object))
+
+/* Like VECSIZE, but used when the pseudo-vector has non-Lisp_Object fields
+   at the end and we need to compute the number of Lisp_Object fields (the
+   ones that the GC needs to trace).  */
+#define PSEUDOVECSIZE(type, nonlispfield) \
+  ((OFFSETOF(type, nonlispfield) - OFFSETOF(struct Lisp_Vector, contents[0])) \
+   / sizeof (Lisp_Object))
 
 /* A char-table is a kind of vectorlike, with contents are like a
    vector but with a few other slots.  For some purposes, it makes
@@ -2880,7 +2898,7 @@ EXFUN (Ffile_readable_p, 1);
 EXFUN (Ffile_executable_p, 1);
 EXFUN (Fread_file_name, 6);
 extern Lisp_Object close_file_unwind P_ ((Lisp_Object));
-extern void report_file_error P_ ((const char *, Lisp_Object));
+extern void report_file_error P_ ((const char *, Lisp_Object)) NO_RETURN;
 extern int internal_delete_file P_ ((Lisp_Object));
 extern void syms_of_fileio P_ ((void));
 extern void init_fileio_once P_ ((void));

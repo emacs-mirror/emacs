@@ -2322,40 +2322,44 @@ asking you for confirmation."
 
 ;; Safe local variables:
 ;;
-;; For variables defined by minor modes, put the safety declarations
-;; here, not in the file defining the minor mode (when Emacs visits a
-;; file specifying that local variable, the minor mode file may not be
-;; loaded yet).  For variables defined by major modes, the safety
-;; declarations can go into the major mode's file, since that will be
-;; loaded before file variables are processed.
+;; For variables defined by major modes, the safety declarations can go into
+;; the major mode's file, since that will be loaded before file variables are
+;; processed.
+;;
+;; For variables defined by minor modes, put the safety declarations in the
+;; file defining the minor mode after the defcustom/defvar using an autoload
+;; cookie, e.g.:
+;;
+;;   ;;;###autoload(put 'variable 'safe-local-variable 'stringp)
+;;
+;; Otherwise, when Emacs visits a file specifying that local variable, the
+;; minor mode file may not be loaded yet.
+;;
+;; For variables defined in the C source code the declaration should go here:
 
+;; FIXME: Some variables should be moved according to the rules above.
 (let ((string-or-null (lambda (a) (or (stringp a) (null a)))))
   (eval
    `(mapc (lambda (pair)
 	    (put (car pair) 'safe-local-variable (cdr pair)))
 	  '((byte-compile-dynamic . t)
+	    (byte-compile-dynamic-docstrings . t)
+	    (byte-compile-warnings . t)
 	    (c-basic-offset     .  integerp)
 	    (c-file-style       .  stringp)
 	    (c-indent-level     .  integerp)
 	    (comment-column     .  integerp)
-	    (compile-command    . ,string-or-null)
+	    (compile-command    .  string-or-null-p)
 	    (fill-column        .  integerp)
-	    (fill-prefix        . ,string-or-null)
+	    (fill-prefix        .  string-or-null-p)
 	    (indent-tabs-mode   .  t)
-	    (ispell-check-comments . (lambda (a)
-				       (memq a '(nil t exclusive))))
-	    (ispell-local-dictionary . ,string-or-null)
 	    (kept-new-versions  .  integerp)
+	    (left-margin        .  t)
 	    (no-byte-compile    .  t)
 	    (no-update-autoloads . t)
-	    (outline-regexp     . ,string-or-null)
-	    (page-delimiter     . ,string-or-null)
-	    (paragraph-start    . ,string-or-null)
-	    (paragraph-separate . ,string-or-null)
-	    (sentence-end       . ,string-or-null)
-	    (sentence-end-double-space . t)
-	    (tab-width          .  integerp)
-	    (truncate-lines     .  t)
+	    (outline-regexp     .  string-or-null-p)
+	    (tab-width          .  integerp) ;; C source code
+	    (truncate-lines     .  t) ;; C source code
 	    (version-control    .  t)))))
 
 (put 'c-set-style 'safe-local-eval-function t)
@@ -2388,8 +2392,8 @@ y  -- to apply the local variables list.
 n  -- to ignore the local variables list.")
 	  (if offer-save
 	      (insert "
-!  -- to apply the local variables list, and mark these values (*) as
-      safe (in the future, they can be set automatically.)\n\n")
+!  -- to apply the local variables list, and permanently mark these
+      values (*) as safe (in the future, they will be set automatically.)\n\n")
 	    (insert "\n\n"))
 	  (dolist (elt vars)
 	    (cond ((member elt unsafe-vars)

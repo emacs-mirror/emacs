@@ -644,13 +644,66 @@ Set mark after inserted text."
 
 
 
+;;; MH-E Customization Support Routines
+
+;; Shush compiler (Emacs 21 and XEmacs).
+(defvar customize-package-emacs-version-alist)
+
+;; Temporary function and data structure used customization.
+;; These will be unbound after the options are defined.
+(defmacro mh-strip-package-version (args)
+  "Strip :package-version keyword and its value from ARGS.
+In Emacs versions that support the :package-version keyword,
+ARGS is returned unchanged."
+  `(if (boundp 'customize-package-emacs-version-alist)
+       ,args
+     (let (seen)
+       (loop for keyword in ,args
+             if (cond ((eq keyword ':package-version) (setq seen t) nil)
+                      (seen (setq seen nil) nil)
+                      (t t))
+             collect keyword))))
+
+(defmacro mh-defgroup (symbol members doc &rest args)
+  "Declare SYMBOL as a customization group containing MEMBERS.
+See documentation for `defgroup' for a description of the arguments
+SYMBOL, MEMBERS, DOC and ARGS.
+This macro is used by Emacs versions that lack the :package-version
+keyword, introduced in Emacs 22."
+  (declare (doc-string 3))
+  `(defgroup ,symbol ,members ,doc ,@(mh-strip-package-version args)))
+(put 'mh-defgroup 'lisp-indent-function 'defun)
+
+(defmacro mh-defcustom (symbol value doc &rest args)
+  "Declare SYMBOL as a customizable variable that defaults to VALUE.
+See documentation for `defcustom' for a description of the arguments
+SYMBOL, VALUE, DOC and ARGS.
+This macro is used by Emacs versions that lack the :package-version
+keyword, introduced in Emacs 22."
+  (declare (doc-string 3))
+  `(defcustom ,symbol ,value ,doc ,@(mh-strip-package-version args)))
+(put 'mh-defcustom 'lisp-indent-function 'defun)
+
+(defmacro mh-defface (face spec doc &rest args)
+  "Declare FACE as a customizable face that defaults to SPEC.
+See documentation for `defface' for a description of the arguments
+FACE, SPEC, DOC and ARGS.
+This macro is used by Emacs versions that lack the :package-version
+keyword, introduced in Emacs 22."
+  (declare (doc-string 3))
+  `(defface ,face ,spec ,doc ,@(mh-strip-package-version args)))
+(put 'mh-defface 'lisp-indent-function 'defun)
+
+
+
 ;;; Variant Support
 
-(defcustom mh-path nil
+(mh-defcustom mh-path nil
   "*Additional list of directories to search for MH.
 See `mh-variant'."
   :group 'mh-e
-  :type '(repeat (directory)))
+  :type '(repeat (directory))
+  :package-version '(MH-E "8.0"))
 
 (defun mh-variants ()
   "Return a list of installed variants of MH on the system.
@@ -859,7 +912,7 @@ finally GNU mailutils."
                (mapconcat '(lambda (x) (format "%s" (car x)))
                           (mh-variants) " or "))))))
 
-(defcustom mh-variant 'autodetect
+(mh-defcustom mh-variant 'autodetect
   "*Specifies the variant used by MH-E.
 
 The default setting of this option is \"Auto-detect\" which means
@@ -884,59 +937,8 @@ necessary and can actually cause problems."
   :set (lambda (symbol value)
          (set-default symbol value)     ;Done in mh-variant-set-variant!
          (mh-variant-set value))
-  :group 'mh-e)
-
-
-
-;;; MH-E Customization Support Routines
-
-;; Shush compiler (Emacs 21 and XEmacs).
-(defvar customize-package-emacs-version-alist)
-
-;; Temporary function and data structure used customization.
-;; These will be unbound after the options are defined.
-(defmacro mh-strip-package-version (args)
-  "Strip :package-version keyword and its value from ARGS.
-In Emacs versions that support the :package-version keyword,
-ARGS is returned unchanged."
-  `(if (boundp 'customize-package-emacs-version-alist)
-       ,args
-     (let (seen)
-       (loop for keyword in ,args
-             if (cond ((eq keyword ':package-version) (setq seen t) nil)
-                      (seen (setq seen nil) nil)
-                      (t t))
-             collect keyword))))
-
-(defmacro mh-defgroup (symbol members doc &rest args)
-  "Declare SYMBOL as a customization group containing MEMBERS.
-See documentation for `defgroup' for a description of the arguments
-SYMBOL, MEMBERS, DOC and ARGS.
-This macro is used by Emacs versions that lack the :package-version
-keyword, introduced in Emacs 22."
-  (declare (doc-string 3))
-  `(defgroup ,symbol ,members ,doc ,@(mh-strip-package-version args)))
-(put 'mh-defgroup 'lisp-indent-function 'defun)
-
-(defmacro mh-defcustom (symbol value doc &rest args)
-  "Declare SYMBOL as a customizable variable that defaults to VALUE.
-See documentation for `defcustom' for a description of the arguments
-SYMBOL, VALUE, DOC and ARGS.
-This macro is used by Emacs versions that lack the :package-version
-keyword, introduced in Emacs 22."
-  (declare (doc-string 3))
-  `(defcustom ,symbol ,value ,doc ,@(mh-strip-package-version args)))
-(put 'mh-defcustom 'lisp-indent-function 'defun)
-
-(defmacro mh-defface (face spec doc &rest args)
-  "Declare FACE as a customizable face that defaults to SPEC.
-See documentation for `defface' for a description of the arguments
-FACE, SPEC, DOC and ARGS.
-This macro is used by Emacs versions that lack the :package-version
-keyword, introduced in Emacs 22."
-  (declare (doc-string 3))
-  `(defface ,face ,spec ,doc ,@(mh-strip-package-version args)))
-(put 'mh-defface 'lisp-indent-function 'defun)
+  :group 'mh-e
+  :package-version '(MH-E "8.0"))
 
 
 

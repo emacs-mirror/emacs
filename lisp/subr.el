@@ -1916,6 +1916,12 @@ a system-dependent default device name is used."
 				 "\\" (substring argument end (1+ end)))
 		  start (1+ end)))
 	  (concat result (substring argument start)))))))
+
+(defun string-or-null-p (object)
+  "Return t if OBJECT is a string or nil.
+Otherwise, return nil."
+  (or (stringp object) (null object)))
+
 
 ;;;; Support for yanking and text properties.
 

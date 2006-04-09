@@ -3362,7 +3362,7 @@ describe_map (map, prefix, elt_describer, partial, shadow,
       if (INTEGERP (vect[i].event))
 	{
 	  while (i + 1 < slots_used
-		 && XINT (vect[i + 1].event) == XINT (vect[i].event) + 1
+		 && EQ (vect[i+1].event, make_number (XINT (vect[i].event) + 1))
 		 && !NILP (Fequal (vect[i + 1].definition, definition))
 		 && vect[i].shadowed == vect[i + 1].shadowed)
 	    i++;

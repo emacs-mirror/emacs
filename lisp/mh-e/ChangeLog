@@ -1,3 +1,8 @@
+2006-04-07  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-path, mh-variant): Define with mh-defcustom and add
+	:package-version keyword.
+
 2006-03-31  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-strip-package-version): Move before use to avoid

@@ -1,3 +1,12 @@
+2006-04-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* display.texi (Other Display Specs): Arrange a @code{DOTTED-LIST} to
+	be on one line to help makeinfo not render two spaces after the dot.
+
+2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* strings.texi (Predicates for Strings): Add string-or-null-p.
+
 2006-03-28  Kim F. Storm  <storm@cua.dk>
 
 	* processes.texi (Accepting Output): Remove obsolete (and incorrect)

@@ -1,71 +1,43 @@
-The following icons are from GNOME 2.6:
+All of the following icons are not part of Emacs, but distributed and
+used by Emacs.
 
-    attach.xpm (stock_attach)
-    connect.xpm (stock_connect)
-    contact.xpm (stock_contact)
-    delete.xpm (stock_delete)
-    describe.xpm (stock_properties)
-    disconnect.xpm (stock_disconnect)
-    exit.xpm (stock_exit)
-    lock-broken.xpm (stock_lock_broken)
-    lock-ok.xpm (stock_lock_ok)
-    lock.xpm (stock_lock)
-    next-page.xpm (stock_next-page)
-    refresh.xpm (stock_refresh)
-    sort-ascending.xpm (stock_sort-ascending)
-    sort-column-ascending.xpm (stock_sort-column-ascending)
-    sort-criteria.xpm (stock_sort-criteria)
-    sort-descending.xpm (stock_sort-descending)
-    sort-row-ascending.xpm (stock_sort-row-ascending)
+* The following icons are from GTK+ 2.x:
 
-    gnus/toggle-subscription.xpm (stock_task-recurring)
+    close.xpm copy.xpm cut.xpm find-replace.xpm help.xpm home.xpm
+    index.xpm jump-to.xpm left-arrow.xpm new.xpm open.xpm paste.xpm
+    preferences.xpm print.xpm refresh.xpm right-arrow.xpm save.xpm
+    saveas.xpm search.xpm sort-ascending.xpm sort-descending.xpm
+    spell.xpm undo.xpm up-arrow.xpm
 
-    mail/compose.xpm (stock_mail-compose)
-    mail/copy.xpm (stock_mail-copy)
-    mail/forward.xpm (stock_mail-forward)
-    mail/inbox.xpm (stock_inbox)
-    mail/move.xpm (stock_mail-move)
-    mail/not-spam.xpm (stock_not-spam)
-    mail/outbox.xpm (stock_outbox)
-    mail/reply-all.xpm (stock_mail-reply-to-all)
-    mail/reply.xpm (stock_mail-reply)
-    mail/save-draft.xpm (stock_mail-handling)
-    mail/send.xpm (stock_mail-send)
-    mail/spam.xpm (stock_spam)
+    back-arrow.xpm and fwd-arrow.xpm are slightly modified undo and redo.
 
+    diropen.xpm is file-manager.png from Gnome hicolor theme.
 
-The following icons were contributed by Adam Sjøgren <asjo@koldfront.dk>:
+* The following icons are from GNOME 2.x:
 
-    mail/preview.xpm (combining stock_mail and stock_zoom)
-    mail/save.xpm    (combining stock_mail, stock_save and stock_convert) 
+    attach.xpm connect.xpm contact.xpm data-save.xpm delete.xpm
+    describe.xpm disconnect.xpm exit.xpm gnus/toggle-subscription.xpm
+    lock-broken.xpm lock-ok.xpm lock.xpm mail/compose.xpm
+    mail/copy.xpm mail/flag-for-followup.xpm mail/forward.xpm
+    mail/inbox.xpm mail/move.xpm mail/not-spam.xpm mail/outbox.xpm
+    mail/preview.xpm mail/reply-all.xpm mail/reply.xpm
+    mail/save-draft.xpm mail/save.xpm mail/send.xpm mail/spam.xpm
+    next-page.xpm refresh.xpm separator.xpm sort-ascending.xpm
+    sort-column-ascending.xpm sort-criteria.xpm sort-descending.xpm
+    sort-row-ascending.xpm zoom-in.xpm zoom-out.xpm 
 
+* Note that the default GTK icons were not overridden by the GNOME theme
+due to a bug which was fixed in GNOME 2.15.  Once GNOME 2.16 is in wide
+circulation, then the GTK icons should be replaced with the equivalent
+GNOME icons.
 
-The folling icon are duplicated from Emacs 22.  They are either not present in
-Emacs 21 or look different there.
+* Recipe for Creating PBM Versions
 
-    cancel.xpm
-    copy.xpm
-    diropen.xpm
-    help.xpm
-    left-arrow.xpm
-    paste.xpm
-    print.xpm
-    redo.xpm
-    right-arrow.xpm
-    save.xpm
-    search.xpm
-    separator.xpm
+1. Edit .xpm image in GIMP.
+2. Image > Mode > Indexed. Check Use Black/White Palette and No
+   Color Dithering.
+3. File > Save As file.xbm.
+4. Run xbmtopbm < file.xbm > file.pbm.
 
-The GNOME's stock_*.png files were converted to XPM using the following GIMP
-script:
+Thanks to jan.h.d@swipnet.se for the help.
 
-;; -*- scheme -*-
-;; Put this file in ~/.gimp-*/scripts/
-;; gimp -i -b '(rs-save-as-xpm "foo.png" "foo.xpm" 127)'  '(gimp-quit 0)'
-(define (rs-save-as-xpm filename filename2 threshold)
-  (let* ((image (car (gimp-file-load RUN-NONINTERACTIVE filename filename)))
-	 (drawable (car (gimp-image-get-active-layer image))))
-    (file-xpm-save RUN-NONINTERACTIVE image drawable
-		   filename2 filename2 threshold)
-    (gimp-image-delete image)))
-;; end

@@ -121,9 +121,6 @@ it defaults to `<', otherwise it defaults to `string<'."
 (defun sort-build-lists (nextrecfun endrecfun startkeyfun endkeyfun)
   (let ((sort-lists ())
 	(start-rec nil)
-	;; To avoid such functins as `end-of-line' being affected by
-	;; fields.
-	(inhibit-field-text-motion t)
 	done key)
     ;; Loop over sort records.
     ;(goto-char (point-min)) -- it is the caller's responsibility to
@@ -205,7 +202,9 @@ the sort order."
     (save-restriction
       (narrow-to-region beg end)
       (goto-char (point-min))
-      (sort-subr reverse 'forward-line 'end-of-line))))
+      (let ;; To make `end-of-line' and etc. to ignore fields.
+	  ((inhibit-field-text-motion t))
+	(sort-subr reverse 'forward-line 'end-of-line)))))
 
 ;;;###autoload
 (defun sort-paragraphs (reverse beg end)
@@ -271,25 +270,27 @@ With a negative arg, sorts by the ARGth field counted from the right.
 Called from a program, there are three arguments:
 FIELD, BEG and END.  BEG and END specify region to sort."
   (interactive "p\nr")
-  (sort-fields-1 field beg end
-		 (lambda ()
-		   (sort-skip-fields field)
-		   (let* ((case-fold-search t)
-			  (base
-			   (if (looking-at "\\(0x\\)[0-9a-f]\\|\\(0\\)[0-7]")
-			       (cond ((match-beginning 1)
-				      (goto-char (match-end 1))
-				      16)
-				     ((match-beginning 2)
-				      (goto-char (match-end 2))
-				      8)
-				     (t nil)))))
-		     (string-to-number (buffer-substring (point)
-							 (save-excursion
-							   (forward-sexp 1)
-							   (point)))
-				       (or base sort-numeric-base))))
-		 nil))
+  (let ;; To make `end-of-line' and etc. to ignore fields.
+      ((inhibit-field-text-motion t))
+    (sort-fields-1 field beg end
+		   (lambda ()
+		     (sort-skip-fields field)
+		     (let* ((case-fold-search t)
+			    (base
+			     (if (looking-at "\\(0x\\)[0-9a-f]\\|\\(0\\)[0-7]")
+				 (cond ((match-beginning 1)
+					(goto-char (match-end 1))
+					16)
+				       ((match-beginning 2)
+					(goto-char (match-end 2))
+					8)
+				       (t nil)))))
+		       (string-to-number (buffer-substring (point)
+							   (save-excursion
+							     (forward-sexp 1)
+							     (point)))
+					 (or base sort-numeric-base))))
+		   nil)))
 
 ;;;;;###autoload
 ;;(defun sort-float-fields (field beg end)
@@ -322,11 +323,13 @@ FIELD, BEG and END.  BEG and END specify region to sort.
 The variable `sort-fold-case' determines whether alphabetic case affects
 the sort order."
   (interactive "p\nr")
-  (sort-fields-1 field beg end
-		 (function (lambda ()
-			     (sort-skip-fields field)
-			     nil))
-		 (function (lambda () (skip-chars-forward "^ \t\n")))))
+  (let ;; To make `end-of-line' and etc. to ignore fields.
+      ((inhibit-field-text-motion t))
+    (sort-fields-1 field beg end
+		   (function (lambda ()
+			       (sort-skip-fields field)
+			       nil))
+		   (function (lambda () (skip-chars-forward "^ \t\n"))))))
 
 (defun sort-fields-1 (field beg end startkeyfun endkeyfun)
   (let ((tbl (syntax-table)))
@@ -471,7 +474,9 @@ it uses the `sort' utility program, which doesn't understand tabs.
 Use \\[untabify] to convert tabs to spaces before sorting."
   (interactive "P\nr")
   (save-excursion
-    (let (beg1 end1 col-beg1 col-end1 col-start col-end)
+    (let ;; To make `end-of-line' and etc. to ignore fields.
+	((inhibit-field-text-motion t)
+	 beg1 end1 col-beg1 col-end1 col-start col-end)
       (goto-char (min beg end))
       (setq col-beg1 (current-column))
       (beginning-of-line)
