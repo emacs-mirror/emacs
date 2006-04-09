@@ -135,17 +135,6 @@
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?Y #x2721 #x277E)
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?C #x3021 #x7E7E)
 
-(let ((tbl (standard-case-table)))
-  (dotimes (i 26)
-    (set-case-syntax-pair (make-char 'chinese-gb2312 #x23 (+ #x41 i))
-			  (make-char 'chinese-gb2312 #x23 (+ #x61 i)) tbl))
-  (dotimes (i 24)
-    (set-case-syntax-pair (make-char 'chinese-gb2312 #x26 (+ #x21 i))
-			  (make-char 'chinese-gb2312 #x26 (+ #x41 i)) tbl))
-  (dotimes (i 33)
-    (set-case-syntax-pair (make-char 'chinese-gb2312 #x27 (+ #x21 i))
-			  (make-char 'chinese-gb2312 #x27 (+ #x51 i)) tbl)))
-
 ;; Chinese character set (BIG5)
 
 (map-charset-chars #'modify-category-entry 'big5 ?c)
@@ -435,17 +424,6 @@
       (if uc (modify-category-entry uc ?v))
       (if lc (modify-category-entry lc ?v)))
     (setq i (1+ i))))
-
-(let ((tbl (standard-case-table)))
-  (dotimes (i 22)
-    (set-case-syntax-pair (decode-big5-char (+ #xA2CF i))
-			  (decode-big5-char (+ #xA2CF i 26)) tbl))
-  (dotimes (i 4)
-    (set-case-syntax-pair (decode-big5-char (+ #xA2E4 i))
-			  (decode-big5-char (+ #xA340 i)) tbl))
-  (dotimes (i 24)
-    (set-case-syntax-pair (decode-big5-char (+ #xA344 i))
-			  (decode-big5-char (+ #xA344 i 24)) tbl)))
 
 
 ;; Latin
