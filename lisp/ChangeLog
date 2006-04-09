@@ -1,3 +1,15 @@
+2006-04-09  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-entry-update): New optional arg
+	entry-type.  Add field delimiters to numerical fields if they are
+	not present.
+
+2006-04-09  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-find-text-internal): Add new element
+	string-const to return value.
+	(bibtex-remove-delimiters): Use it.
+	
 2006-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-form): Don't call
