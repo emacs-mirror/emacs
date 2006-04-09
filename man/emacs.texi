@@ -73,7 +73,12 @@ Boston, MA 02110-1301 USA
 Cover art by Etienne Suvasa.
 
 @end titlepage
-@page
+
+
+@summarycontents
+@contents
+
+
 @ifnottex
 @node Top, Distrib, (dir), (dir)
 @top The Emacs Editor
@@ -1604,8 +1609,6 @@ Public License instead of this License.
 @unnumbered Concept Index
 @printindex cp
 
-@summarycontents
-@contents
 @bye
 
 @ignore

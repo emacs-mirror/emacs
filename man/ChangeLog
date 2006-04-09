@@ -1,3 +1,8 @@
+2006-04-09  Karl Berry  <karl@gnu.org>
+
+	* emacs.texi: move @summarycontents and @contents to the beginning
+	of the file.
+
 2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Summary Buffer Lines): Add `*'.
