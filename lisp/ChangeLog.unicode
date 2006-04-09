@@ -1,3 +1,8 @@
+2006-04-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Cancel unnecessary sync code for
+	HEAD.
+
 2006-03-28  Kenichi Handa  <handa@m17n.org>
 
 	* tar-mode.el (tar-untar-buffer, tar-summarize-buffer): Call
