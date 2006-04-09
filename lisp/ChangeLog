@@ -1,3 +1,17 @@
+2006-04-10  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (filter-buffer-substring): Add NOPROPS arg, so
+	it can also replace buffer-substring-no-properties.
+
+	* emulation/cua-base.el (cua-delete-region, cua-paste)
+	(cua-repeat-replace-region): Use filter-buffer-substring.
+
+	* emulation/cua-gmrk.el (cua-copy-region-to-global-mark)
+	(cua-cut-region-to-global-mark): Likewise.
+
+	* emulation/cua-rect.el (cua--extract-rectangle)
+	(cua-incr-rectangle, cua--rectangle-aux-replace): Likewise.
+
 2006-04-09  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-entry-update): New optional arg
@@ -9,7 +23,7 @@
 	* textmodes/bibtex.el (bibtex-find-text-internal): Add new element
 	string-const to return value.
 	(bibtex-remove-delimiters): Use it.
-	
+
 2006-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-form): Don't call

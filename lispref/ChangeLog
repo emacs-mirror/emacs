@@ -1,3 +1,8 @@
+2006-04-10  Kim F. Storm  <storm@cua.dk>
+
+	* text.texi (Buffer Contents): Add NOPROPS arg to
+	filter-buffer-substring.
+
 2006-04-08  Kevin Ryde  <user42@zip.com.au>
 
 	* os.texi (Command-Line Arguments): Update xref to emacs manual
