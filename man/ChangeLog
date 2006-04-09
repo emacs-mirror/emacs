@@ -1,3 +1,10 @@
+2006-04-09  Kevin Ryde  <user42@zip.com.au>
+
+	* org.texi (Formula syntax): Typo in node name of calc-eval xref.
+
+	* sending.texi (Mail Sending): In send-mail-function @pxref smtpmail,
+	put info and printed manual names the right way around.
+
 2006-04-09  Karl Berry  <karl@gnu.org>
 
 	* emacs.texi: move @summarycontents and @contents to the beginning
