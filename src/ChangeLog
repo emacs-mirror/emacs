@@ -1,3 +1,9 @@
+2006-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* puresize.h (pure_write_error): Mark as NO_RETURN.
+
+	* lisp.h (args_out_of_range, args_out_of_range_3): Likewise.
+
 2006-04-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_wnd_proc) <WM_MOUSEMOVE>: Ignore mouse movements
