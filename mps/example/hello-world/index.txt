@@ -243,7 +243,12 @@ bytes and a pointer to the first byte:
         exit(1);
       }
 
-      res = mps_arena_create(&ArenaDemo, mps_arena_class_cl(), cbBlock, pBlock);
+      res = mps_arena_create(
+        &ArenaDemo,
+        mps_arena_class_cl(),
+        cbBlock,
+        pBlock
+      );
       switch (res) {
         case MPS_RES_OK:
           break;
@@ -251,7 +256,10 @@ bytes and a pointer to the first byte:
           printf("mps_arena_create: cbBlock too small\n");
           exit(2);
         case MPS_RES_FAIL:
-          printf("mps_arena_create: refused; see MPS reference manual\n");
+          printf(
+            "mps_arena_create: refused; "
+            "see MPS reference manual\n"
+          );
           exit(2);
       }
 
@@ -365,7 +373,12 @@ Here is code to create an arena, and create an MV class pool within it:
           exit(1);
         }
 
-        res = mps_arena_create(&ArenaDemo, mps_arena_class_cl(), cbBlock, pBlock);
+        res = mps_arena_create(
+          &ArenaDemo,
+          mps_arena_class_cl(),
+          cbBlock,
+          pBlock
+        );
         if (res != MPS_RES_OK) {
           printf("mps_arena_create: failed with res %d.\n", res);
           exit(2);
@@ -381,14 +394,24 @@ Here is code to create an arena, and create an MV class pool within it:
         
         size_t cbPoolFree = 0;
 
-        res = mps_pool_create(&PoolDemo, ArenaDemo, mps_class_mv(), cbPoolExtend, cbObjectAvg, cbPoolMax);
+        res = mps_pool_create(
+          &PoolDemo,
+          ArenaDemo,
+          mps_class_mv(),
+          cbPoolExtend,
+          cbObjectAvg,
+          cbPoolMax
+        );
         if (res != MPS_RES_OK) {
           printf("mps_pool_create: failed with res %d.\n", res);
           exit(2);
         }
         
         cbPoolFree = mps_mv_free_size(PoolDemo);
-        printf("PoolDemo has %lu bytes free.\n", (unsigned long)cbPoolFree);
+        printf(
+          "PoolDemo has %lu bytes free.\n",
+          (unsigned long)cbPoolFree
+        );
       }
 
       /* rest of program */
@@ -432,7 +455,10 @@ out.
     static void reportPoolmv(mps_pool_t Pool)
     {
         size_t cbPoolFree = mps_mv_free_size(Pool);
-        printf("Pool has %lu bytes free.\n", (unsigned long)cbPoolFree);
+        printf(
+          "Pool has %lu bytes free.\n",
+          (unsigned long)cbPoolFree
+        );
     }
     
     int main(void)
@@ -453,7 +479,12 @@ out.
           exit(1);
         }
 
-        res = mps_arena_create(&ArenaDemo, mps_arena_class_cl(), cbBlock, pBlock);
+        res = mps_arena_create(
+          &ArenaDemo,
+          mps_arena_class_cl(),
+          cbBlock,
+          pBlock
+        );
         if (res != MPS_RES_OK) {
           printf("mps_arena_create: failed with res %d.\n", res);
           exit(2);
@@ -469,7 +500,14 @@ out.
         
         size_t cbPoolFree = 0;
 
-        res = mps_pool_create(&PoolDemo, ArenaDemo, mps_class_mv(), cbPoolExtend, cbObjectAvg, cbPoolMax);
+        res = mps_pool_create(
+          &PoolDemo,
+          ArenaDemo,
+          mps_class_mv(),
+          cbPoolExtend,
+          cbObjectAvg,
+          cbPoolMax
+        );
         if (res != MPS_RES_OK) {
           printf("mps_pool_create: failed with res %d.\n", res);
           exit(2);
@@ -504,7 +542,10 @@ out.
         }
       }
 
-      printf("Successfully allocated some memory with mps_alloc(), in an MV pool, in a CL arena.\n");
+      printf(
+        "Success: The hello-world example code successfully allocated\n"
+        "some memory using mps_alloc(), in an MV pool, in a CL arena.\n"
+      );
       return 0;
     }
 
