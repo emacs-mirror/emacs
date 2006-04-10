@@ -1,5 +1,8 @@
 2006-04-09  Richard Stallman  <rms@gnu.org>
 
+	* mail/rmail.el (rmail-mime-charset-pattern): Ignore format and delsp
+	specs while looking for charset.
+
 	* textmodes/picture.el (picture-mode-exit): Run picture-mode-exit-hook.
 
 	* play/landmark.el (lm-font-lock-face-O, lm-font-lock-face-X):
