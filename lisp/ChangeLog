@@ -1,5 +1,16 @@
 2006-04-10  Bill Wohler  <wohler@newt.com>
 
+	* custom.el (defcustom, custom-handle-keyword): Add
+	:package-version keyword.
+	(custom-add-package-version): New function. Sets value of new
+	property 'custom-package-version from :package-version keyword.
+
+	* cus-edit.el (customize-package-emacs-version-alist): New
+	variable.
+	(customize-changed-options): Add check for custom-package-version.
+	(customize-package-emacs-version): New function to look up Emacs
+	version corresponding to the given package version.
+
 	* emacs-lisp/find-func.el (find-function-regexp): Allow dashes in
 	defun name, in similar fashion to find-variable-regexp.
 

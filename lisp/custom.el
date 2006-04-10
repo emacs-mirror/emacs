@@ -268,6 +268,12 @@ The following keywords are meaningful:
         VALUE should be a string specifying that the variable was
         first introduced, or its default value was changed, in Emacs
         version VERSION.
+:package-version
+        VALUE should be a list with the form (PACKAGE VERSION)
+        specifying that the variable was first introduced, or its
+        default value was changed, in PACKAGE version VERSION.  This
+        keyword takes priority over :version.  The PACKAGE and VERSION
+        must appear in the alist `customize-package-emacs-version-alist'.
 :tag LABEL
         Use LABEL, a string, instead of the item's name, to label the item
         in customization menus and buffers.
@@ -489,6 +495,8 @@ Fourth argument TYPE is the custom option type."
 	 (custom-add-to-group value symbol type))
 	((eq keyword :version)
 	 (custom-add-version symbol value))
+	((eq keyword :package-version)
+	 (custom-add-package-version symbol value))
 	((eq keyword :link)
 	 (custom-add-link symbol value))
 	((eq keyword :load)
@@ -539,6 +547,10 @@ For other custom types, this has no effect."
 (defun custom-add-version (symbol version)
   "To the custom option SYMBOL add the version VERSION."
   (put symbol 'custom-version (purecopy version)))
+
+(defun custom-add-package-version (symbol version)
+  "To the custom option SYMBOL add the package version VERSION."
+  (put symbol 'custom-package-version (purecopy version)))
 
 (defun custom-add-load (symbol load)
   "To the custom option SYMBOL add the dependency LOAD.
