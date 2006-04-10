@@ -229,7 +229,7 @@ The search is done in the source for library LIBRARY."
 	    (goto-char (point-min))
 	    (if (or (re-search-forward regexp nil t)
 		    (re-search-forward
-		     (concat "^([^ ]+" find-function-space-re "['(]"
+		     (concat "^([^ ]+" find-function-space-re "['(]?"
 			     (regexp-quote (symbol-name symbol))
 			     "\\_>")
 		     nil t))

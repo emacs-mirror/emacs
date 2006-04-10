@@ -1,3 +1,8 @@
+2006-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/find-func.el (find-function-search-for-symbol): Fix regexp
+	so the defined var/fun doesn't need to be quoted.
+
 2006-04-10  Richard Stallman  <rms@gnu.org>
 
 	* finder.el (finder-mode-map): Add n and p bindings.
@@ -108,12 +113,11 @@
 	(rcirc-multiline-minor-mode-map): New mode map.
 	(rcirc-edit-multiline): Put multiline-edit buffer in
 	rcirc-multiline-major-mode along with rcirc-multiline-minor-mode.
-	(rcirc-print): Any line starting with an ignored nick will be
-	ignored.
+	(rcirc-print): Ignore any line starting with an ignored nick.
 	(rcirc-print): Decode using rcirc-decode-coding-system.
 	(rcirc-track-minor-mode): Update global-mode-string when disabling
 	this mode.
-	(minor-mode-alist): add LowPri indicator.
+	(minor-mode-alist): Add LowPri indicator.
 	(rcirc-toggle-low-priority): New function.
 	(rcirc-last-non-irc-buffer): Prefix arg now no means switch to
 	next lowpriority buffer with activity.
@@ -146,8 +150,7 @@
 
 2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* pgg-gpg.el: Revert to revision 1.8 to allow the use of
-	gpg-agent.
+	* pgg-gpg.el: Revert to revision 1.8 to allow the use of gpg-agent.
 
 2006-04-07  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -160,21 +163,20 @@
 
 	* textmodes/paragraphs.el (sentence-end): Use string-or-null-p.
 
-	* textmodes/ispell.el (ispell-local-dictionary): Use
-	string-or-null-p.
+	* textmodes/ispell.el (ispell-local-dictionary): Use string-or-null-p.
 
 	* files.el: Update comment about safe-local-variable declarations.
 
 2006-04-06  J.D. Smith  <jdsmith@as.arizona.edu>
 
-	* progmodes/idlwave.el: Updated to IDLWAVE version 6.0.  See
-	idlwave.org.
+	* progmodes/idlwave.el: Updated to IDLWAVE version 6.0.
+	See idlwave.org.
 
-	* progmodes/idlw-shell.el: Updated to IDLWAVE version 6.0.  See
-	idlwave.org.  Includes code to obsolete idlw-rinfo.el.
+	* progmodes/idlw-shell.el: Updated to IDLWAVE version 6.0.
+	See idlwave.org.  Includes code to obsolete idlw-rinfo.el.
 
-	* progmodes/idlw-help.el: Updated to IDLWAVE version 6.0.  See
-	idlwave.org.
+	* progmodes/idlw-help.el: Updated to IDLWAVE version 6.0.
+	See idlwave.org.
 
 	* progmodes/idlw-complete-structtag.el: Updated to IDLWAVE
 	version 6.0 (minimal changes).  See idlwave.org.
@@ -245,8 +247,8 @@
 
 2006-04-05  Daiki Ueno  <ueno@unixuser.org>
 
-	* pgg-gpg.el (pgg-gpg-encrypt-region, pgg-gpg-sign-region): Wait
-	for BEGIN_SIGNING too, new in GnuPG 1.4.3.
+	* pgg-gpg.el (pgg-gpg-encrypt-region, pgg-gpg-sign-region):
+	Wait for BEGIN_SIGNING too, new in GnuPG 1.4.3.
 
 2006-04-05  Kenichi Handa  <handa@m17n.org>
 
@@ -259,8 +261,7 @@
 	default-enable-multibyte-characters.  This reverts the change from
 	revision 6.17 which is no longer necessary because the passphrase
 	is sent separately now.  GnuPG messages are unreadable under
-	multibyte locales with default-enable-multibyte-characters set to
-	nil.
+	multibyte locales with default-enable-multibyte-characters set to nil.
 
 2006-04-04  Andreas Schwab  <schwab@suse.de>
 
