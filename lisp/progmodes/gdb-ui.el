@@ -524,6 +524,7 @@ With arg, use separate IO iff arg is positive."
 	gdb-frame-number nil
 	gdb-var-list nil
 	gdb-force-update t
+	gdb-main-file nil
 	gdb-first-post-prompt t
 	gdb-prompting nil
 	gdb-input-queue nil
@@ -580,8 +581,7 @@ With arg, use separate IO iff arg is positive."
 
 (defun gdb-get-version ()
   (goto-char (point-min))
-  (if (and (re-search-forward gdb-error-regexp nil t)
-	   (string-match ".*(missing implementation)" (match-string 1)))
+  (if (re-search-forward "Undefined\\( mi\\)* command:" nil t)
       (setq gdb-version "pre-6.4")
     (setq gdb-version "6.4+"))
   (gdb-init-2))
@@ -2746,7 +2746,11 @@ corresponding to the mode line clicked."
   (switch-to-buffer
        (if gud-last-last-frame
 	   (gud-find-file (car gud-last-last-frame))
-	 (gud-find-file gdb-main-file)))
+	 (if gdb-main-file
+	     (gud-find-file gdb-main-file)
+	   ;; Put buffer list in window if we
+	   ;; can't find a source file.
+	   (list-buffers-noselect))))
   (when gdb-use-separate-io-buffer
     (split-window-horizontally)
     (other-window 1)
@@ -3139,19 +3143,18 @@ BUFFER nil or omitted means use the current buffer."
   (if (re-search-forward  "Stack level \\([0-9]+\\)" nil t)
       (setq gdb-frame-number (match-string 1)))
   (goto-char (point-min))
-  (if (re-search-forward
-    ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*?\\) (\\(\\S-*?\\):[0-9]+?);? "
-       nil t)
-      (progn
-	(setq gdb-selected-frame (match-string 2))
-	(if (gdb-get-buffer 'gdb-locals-buffer)
-	    (with-current-buffer (gdb-get-buffer 'gdb-locals-buffer)
-	      (setq mode-name (concat "Locals:" gdb-selected-frame))))
-	(if (gdb-get-buffer 'gdb-assembler-buffer)
-	    (with-current-buffer (gdb-get-buffer 'gdb-assembler-buffer)
-	      (setq mode-name (concat "Machine:" gdb-selected-frame))))
-	(setq gdb-frame-address (match-string 1))))
-  (if gud-overlay-arrow-position
+  (when (re-search-forward ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(\\S-+?\\)\
+\\(?: (\\(\\S-+?\\):[0-9]+?)\\)*;? "
+     nil t)
+    (setq gdb-selected-frame (match-string 2))
+    (if (gdb-get-buffer 'gdb-locals-buffer)
+	(with-current-buffer (gdb-get-buffer 'gdb-locals-buffer)
+	  (setq mode-name (concat "Locals:" gdb-selected-frame))))
+    (if (gdb-get-buffer 'gdb-assembler-buffer)
+	(with-current-buffer (gdb-get-buffer 'gdb-assembler-buffer)
+	  (setq mode-name (concat "Machine:" gdb-selected-frame))))
+    (setq gdb-frame-address (match-string 1))
+    (if (and (match-string 3) gud-overlay-arrow-position)
       (let ((buffer (marker-buffer gud-overlay-arrow-position))
 	    (position (marker-position gud-overlay-arrow-position)))
 	(when (and buffer (string-equal (buffer-name buffer) (match-string 3)))
@@ -3160,9 +3163,9 @@ BUFFER nil or omitted means use the current buffer."
 		  (if (string-equal gdb-frame-number "0")
 		      nil
 		    '((overlay-arrow . hollow-right-triangle))))
-	    (set-marker gud-overlay-arrow-position position)))))
+	    (set-marker gud-overlay-arrow-position position))))))
   (goto-char (point-min))
-  (if (re-search-forward " source language \\(\\S-*\\)\." nil t)
+  (if (re-search-forward " source language \\(\\S-+\\)\." nil t)
       (setq gdb-current-language (match-string 1)))
   (gdb-invalidate-assembler))
 
@@ -3281,11 +3284,12 @@ in_scope=\"\\(.*?\\)\".*?}")
 				   gdb-pending-triggers))
   (goto-char (point-min))
   (if (re-search-forward gdb-error-regexp nil t)
-      (with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
-	(let ((buffer-read-only nil))
-	  (erase-buffer)
-	  (insert (match-string 1))
-	  (goto-char (point-min))))
+      (let ((err (match-string 1)))
+	(with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
+	  (let ((buffer-read-only nil))
+	    (erase-buffer)
+	    (insert err)
+	    (goto-char (point-min)))))
     (let ((register-list (reverse gdb-register-names))
 	  (register nil) (register-string nil) (register-values nil))
       (goto-char (point-min))
