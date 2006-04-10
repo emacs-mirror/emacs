@@ -74,6 +74,13 @@ extern char **environ;
 
 #define TM_YEAR_BASE 1900
 
+/* Nonzero if TM_YEAR is a struct tm's tm_year value that causes
+   asctime to have well-defined behavior.  */
+#ifndef TM_YEAR_IN_ASCTIME_RANGE
+# define TM_YEAR_IN_ASCTIME_RANGE(tm_year) \
+    (1000 - TM_YEAR_BASE <= (tm_year) && (tm_year) <= 9999 - TM_YEAR_BASE)
+#endif
+
 extern size_t emacs_strftimeu P_ ((char *, size_t, const char *,
 				   const struct tm *, int));
 static int tm_diff P_ ((struct tm *, struct tm *));
@@ -1833,7 +1840,8 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 0,
        doc: /* Return the current time, as a human-readable string.
 Programs can use this function to decode a time,
-since the number of columns in each field is fixed.
+since the number of columns in each field is fixed
+if the year is in the range 1000-9999.
 The format is `Sun Sep 16 01:03:52 1973'.
 However, see also the functions `decode-time' and `format-time-string'
 which provide a much more powerful and general facility.
@@ -1847,31 +1855,23 @@ but this is considered obsolete.  */)
      Lisp_Object specified_time;
 {
   time_t value;
-  char buf[30];
   struct tm *tm;
   register char *tem;
 
   if (! lisp_time_argument (specified_time, &value, NULL))
     error ("Invalid time specification");
-  /* Do not use ctime, since it has undefined behavior with
-     out-of-range time stamps.  This avoids a core dump triggered by
-     (current-time-string '(2814749767106 0)) on 64-bit Solaris 8. See
-     <http://www.opengroup.org/austin/mailarchives/ag/msg09294.html>
-     for more details about this portability problem.  */
+
+  /* Convert to a string, checking for out-of-range time stamps.
+     Don't use 'ctime', as that might dump core if VALUE is out of
+     range.  */
   tm = localtime (&value);
-  /* Checking for out-of-range time stamps avoids buffer overruns that
-     cause core dump on some systems (e.g., 64-bit Solaris), and also
-     preserves the historic behavior of always returning a fixed-size
-     24-character string.  */
-  if (! (tm && -999 - TM_YEAR_BASE <= tm->tm_year
-	 && tm->tm_year <= 9999 - TM_YEAR_BASE))
+  if (! (tm && TM_YEAR_IN_ASCTIME_RANGE (tm->tm_year) && (tem = asctime (tm))))
     error ("Specified time is not representable");
-  tem = asctime (tm);
 
-  strncpy (buf, tem, 24);
-  buf[24] = 0;
+  /* Remove the trailing newline.  */
+  tem[strlen (tem) - 1] = '\0';
 
-  return build_string (buf);
+  return build_string (tem);
 }
 
 /* Yield A - B, measured in seconds.

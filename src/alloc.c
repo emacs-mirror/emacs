@@ -23,6 +23,10 @@ Boston, MA 02110-1301, USA.  */
 #include <stdio.h>
 #include <limits.h>		/* For CHAR_BIT.  */
 
+#ifdef STDC_HEADERS
+#include <stddef.h>		/* For offsetof, used by PSEUDOVECSIZE. */
+#endif
+
 #ifdef ALLOC_DEBUG
 #undef INLINE
 #endif
@@ -3005,13 +3009,17 @@ allocate_frame ()
 struct Lisp_Process *
 allocate_process ()
 {
-  EMACS_INT len = VECSIZE (struct Lisp_Process);
-  struct Lisp_Vector *v = allocate_vectorlike (len, MEM_TYPE_PROCESS);
+  /* Memory-footprint of the object in nb of Lisp_Object fields.  */
+  EMACS_INT memlen = VECSIZE (struct Lisp_Process);
+  /* Size if we only count the actual Lisp_Object fields (which need to be
+     traced by the GC).  */
+  EMACS_INT lisplen = PSEUDOVECSIZE (struct Lisp_Process, pid);
+  struct Lisp_Vector *v = allocate_vectorlike (memlen, MEM_TYPE_PROCESS);
   EMACS_INT i;
 
-  for (i = 0; i < len; ++i)
+  for (i = 0; i < lisplen; ++i)
     v->contents[i] = Qnil;
-  v->size = len;
+  v->size = lisplen;
 
   return (struct Lisp_Process *) v;
 }
@@ -5563,6 +5571,10 @@ mark_object (arg)
 	  if (size & PSEUDOVECTOR_FLAG)
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 
+	  /* Note that this size is not the memory-footprint size, but only
+	     the number of Lisp_Object fields that we should trace.
+	     The distinction is used e.g. by Lisp_Process which places extra
+	     non-Lisp_Object fields at the end of the structure.  */
 	  for (i = 0; i < size; i++) /* and then mark its elements */
 	    mark_object (ptr->contents[i]);
 	}

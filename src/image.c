@@ -39,6 +39,8 @@ Boston, MA 02110-1301, USA.  */
 #include "blockinput.h"
 #include "systime.h"
 #include <epaths.h>
+#include "charset.h"
+#include "coding.h"
 
 
 #ifdef HAVE_X_WINDOWS
@@ -2248,8 +2250,8 @@ static unsigned char *slurp_file P_ ((char *, int *));
 
 
 /* Find image file FILE.  Look in data-directory, then
-   x-bitmap-file-path.  Value is the full name of the file found, or
-   nil if not found.  */
+   x-bitmap-file-path.  Value is the encoded full name of the file
+   found, or nil if not found.  */
 
 Lisp_Object
 x_find_image_file (file)
@@ -2269,7 +2271,10 @@ x_find_image_file (file)
   if (fd == -1)
     file_found = Qnil;
   else
-    close (fd);
+    {
+      file_found = ENCODE_FILE (file_found);
+      close (fd);
+    }
 
   UNGCPRO;
   return file_found;

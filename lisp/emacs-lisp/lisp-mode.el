@@ -443,6 +443,9 @@ if that value is non-nil.")
 (defun eval-print-last-sexp ()
   "Evaluate sexp before point; print value into current buffer.
 
+If `eval-expression-debug-on-error' is non-nil, which is the default,
+this command arranges for all errors to enter the debugger.
+
 Note that printing the result is controlled by the variables
 `eval-expression-print-length' and `eval-expression-print-level',
 which see."
@@ -614,7 +617,10 @@ With argument, print output into current buffer."
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
-Interactively, with prefix argument, print output into current buffer."
+Interactively, with prefix argument, print output into current buffer.
+
+If `eval-expression-debug-on-error' is non-nil, which is the default,
+this command arranges for all errors to enter the debugger."
   (interactive "P")
   (if (null eval-expression-debug-on-error)
       (eval-last-sexp-1 eval-last-sexp-arg-internal)
@@ -721,6 +727,9 @@ evaluating it this way resets the variable using its initial value
 expression even if the variable already has some other value.
 \(Normally `defvar' and `defcustom' do not alter the value if there
 already is one.)
+
+If `eval-expression-debug-on-error' is non-nil, which is the default,
+this command arranges for all errors to enter the debugger.
 
 With a prefix argument, instrument the code for Edebug.
 

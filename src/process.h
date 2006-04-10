@@ -51,8 +51,6 @@ struct Lisp_Process
     Lisp_Object log;
     /* Buffer that output is going to */
     Lisp_Object buffer;
-    /* Number of this process */
-    Lisp_Object pid;
     /* t if this is a real child process.
        For a net connection, it is a plist based on the arguments to make-network-process.  */
     Lisp_Object childp;
@@ -63,10 +61,6 @@ struct Lisp_Process
     /* Non-nil means kill silently if Emacs is exited.
        This is the inverse of the `query-on-exit' flag.  */
     Lisp_Object kill_without_query;
-    /* Record the process status in the raw form in which it comes from `wait'.
-       This is to avoid consing in a signal handler.  */
-    Lisp_Object raw_status_low;
-    Lisp_Object raw_status_high;
     /* Symbol indicating status of process.
        This may be a symbol: run, open, or closed.
        Or it may be a list, whose car is stop, exit or signal
@@ -112,6 +106,19 @@ struct Lisp_Process
     Lisp_Object read_output_delay;
     /* Skip reading this process on next read.  */
     Lisp_Object read_output_skip;
+
+    /* After this point, there are no Lisp_Objects any more.  */
+
+    /* Number of this process.
+       allocate_process assumes this is the first non-Lisp_Object field.
+       A value 0 is used for pseudo-processes such as network connections.  */
+    pid_t pid;
+    /* Record the process status in the raw form in which it comes from `wait'.
+       This is to avoid consing in a signal handler.  The `raw_status_new'
+       flag indicates that `raw_status' contains a new status that still
+       needs to be synced to `status'.  */
+    int raw_status_new : 1;
+    int raw_status;
 };
 
 /* Every field in the preceding structure except for the first two

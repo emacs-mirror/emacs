@@ -2135,6 +2135,7 @@ of `buffer-file-coding-system' set by this function."
     ("cy" "Welsh" iso-8859-14)
     ("da" . "Latin-1") ; Danish
     ("de" "German" iso-8859-1)
+    ; dv Divehi
     ; dz Bhutani
     ("el" "Greek" iso-8859-7)
     ;; Users who specify "en" explicitly typically want Latin-1, not ASCII.
@@ -2296,6 +2297,10 @@ of `buffer-file-coding-system' set by this function."
     ("jp" . "Japanese") ; e.g. MS Windows
     ("chs" . "Chinese-GB") ; MS Windows Chinese Simplified
     ("cht" . "Chinese-BIG5") ; MS Windows Chinese Traditional
+    ("gbz" . "UTF-8") ; MS Windows Dari Persian
+    ("div" . "UTF-8") ; MS Windows Divehi (Maldives)
+    ("wee" . "Latin-2") ; MS Windows Lower Sorbian
+    ("wen" . "Latin-2") ; MS Windows Upper Sorbian
     ))
   "Alist of locale regexps vs the corresponding languages and coding systems.
 Each element has these form:
@@ -2501,6 +2506,8 @@ See also `locale-charset-language-names', `locale-language-names',
 	     (locale-name-match locale locale-language-names))
 	    (charset-language-name
 	     (locale-name-match locale locale-charset-language-names))
+	    (default-eol-type (coding-system-eol-type
+			       default-buffer-file-coding-system))
 	    (coding-system
 	     (or (locale-name-match locale locale-preferred-coding-systems)
 		 (when locale
@@ -2520,6 +2527,13 @@ See also `locale-charset-language-names', `locale-language-names',
 	  ;; use what listed in locale-charset-language-names.
 	  (if (not language-name)
 	      (setq language-name charset-language-name)))
+
+	;; If a specific EOL conversion was specified in the default
+	;; buffer-file-coding-system, preserve it in the coding system
+	;; we will be using from now on.
+	(if (memq default-eol-type '(0 1 2 unix dos mac))
+	    (setq coding-system (coding-system-change-eol-conversion
+				 coding-system default-eol-type)))
 
 	(when language-name
 

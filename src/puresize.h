@@ -65,7 +65,7 @@ Boston, MA 02110-1301, USA.  */
   { if (PURE_P (obj))	  \
       pure_write_error (); }
 
-extern void pure_write_error P_ ((void));
+extern void pure_write_error P_ ((void)) NO_RETURN;
 
 /* Define PURE_P.  */
 

@@ -1,3 +1,18 @@
+2006-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure: Regenerated.
+
+2006-04-01  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
+
+	* configure.in (HAVE_XAW3D): Disable Xaw3d check if
+	--without-toolkit-scroll-bars was specified.
+
+2006-04-01  Christoph Bauer  <Christoph.Bauer@lms-gmbh.de>  (tiny change)
+
+	* configure.in (hppa*-hp-hpux1[1-9]*): Add
+	-D_INCLUDE__STDC_A1_SOURCE to CFLAGS.  Update Copyright years
+	written to src/config.in.
+
 2006-03-18  Claudio Fontana  <claudio@gnu.org>
 
 	* Makefile.in (INFO_FILES): New variable, contains all Info file names.

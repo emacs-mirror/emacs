@@ -1,3 +1,82 @@
+2006-04-09  Richard Stallman  <rms@gnu.org>
+
+	* lisp.h (Fkill_emacs): Undo previous change.
+
+2006-04-08  Richard Stallman  <rms@gnu.org>
+
+	* search.c (boyer_moore): Test ch >= 0400, not >.
+
+2006-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* puresize.h (pure_write_error): Mark as NO_RETURN.
+
+	* lisp.h (args_out_of_range, args_out_of_range_3)
+
+2006-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) <WM_MOUSEMOVE>: Ignore mouse movements
+	if a menu is active on this frame.
+
+2006-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h (report_file_error): Mark as NO_RETURN.
+
+2006-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* alloc.c [STDC_HEADERS]: Include stddef.h.
+
+	* lisp.h (PSEUDOVECSIZE): Fix last change.
+
+2006-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.h (struct Lisp_Process): Replace Lisp_Objects `pid',
+	`raw_status_high', and `raw_status_low' with plain integers, and move
+	them to the end of the structure.
+
+	* alloc.c (allocate_process): Use PSEUDOVECSIZE to initialize the
+	pseudovector's size field so only the Lisp_Object fields get GC'd.
+
+	* process.c (update_status, make_process, Fdelete_process)
+	(Fprocess_status, list_processes_1, start_process_unwind)
+	(create_process, Fmake_network_process, server_accept_connection)
+	(wait_reading_process_output, send_process, Fprocess_running_child_p)
+	(process_send_signal, proc_encode_coding_system, Fprocess_send_eof)
+	(sigchld_handler, status_notify): Adjust to new non-Lisp fields for
+	`pid' and `raw_status'.
+	(Fprocess_id, Fsignal_process): Same, and additionally use floats when
+	representing PIDs that are larger than most-positive-fixnum.
+
+	* keymap.c (describe_map): Only use XINT if we checked INTEGERP.
+
+	* lisp.h (OFFSETOF, PSEUDOVECSIZE): New macros.
+
+2006-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fx_show_tip): Add 3 to the 5th arg of SetWindowPos.
+
+2006-04-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c (TM_YEAR_IN_ASCTIME_RANGE): New macro, identical to
+	../lib-src/b2m.c and ../lib-src/editfns.c.
+	(Fcurrent_time_string): Use it.
+	Document that the year might not consume 4 columns if it's outside
+	the range 1000-9999.
+	Check for asctime failure.
+	Don't assume that the output string length is always exactly 24.
+
+2006-04-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (XTread_socket): Initialize variable `f' before its use.
+
+2006-04-03  Kenichi Handa  <handa@m17n.org>
+
+	* image.c: Include "charset.h" and "coding.h".
+	(x_find_image_file): Return an encoded file name.
+
+2006-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure: Regenerated.
+
 2006-03-31  Kenichi Handa  <handa@m17n.org>
 
 	* xfns.c (xg_set_icon): Delete superfluous UNGCPRO.

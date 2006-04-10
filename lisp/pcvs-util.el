@@ -157,10 +157,11 @@ Uses columns to keep the listing readable but compact."
       (setq tab-width colwidth)
       ;; The insertion should be "sensible" no matter what choices were made.
       (dolist (str strings)
-	(unless (bolp) (insert " \t"))
-	(when (< wwidth (+ (max colwidth (length str)) (current-column)))
-	  (delete-char -2) (insert "\n"))
-	(insert str)))))
+	(unless (bolp)
+          (insert " \t")
+          (when (< wwidth (+ (max colwidth (length str)) (current-column)))
+            (delete-char -2) (insert "\n")))
+        (insert str)))))
 
 
 (defun cvs-file-to-string (file &optional oneline args)
@@ -357,7 +358,8 @@ If ARG is nil toggle the PREFIX's value between its 0th default and nil
   and reset the persistence."
   (let* ((prefix (symbol-value (cvs-prefix-sym sym)))
 	 (numarg (if (integerp arg) arg 0))
-	 (defs (cvs-flags-defaults prefix)))
+	 ;; (defs (cvs-flags-defaults prefix))
+         )
 
     ;; set persistence if requested
     (when (> (prefix-numeric-value arg) 9)

@@ -10455,6 +10455,8 @@ XTread_socket (sd, expected, hold_quit)
 
 	    ObscureCursor ();
 
+	    f = mac_focus_frame (dpyinfo);
+
 	    if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
 		&& !EQ (f->tool_bar_window, dpyinfo->mouse_face_window))
 	      {
@@ -10500,7 +10502,7 @@ XTread_socket (sd, expected, hold_quit)
 	  inev.modifiers |= (extra_keyboard_modifiers
 			     & (meta_modifier | alt_modifier
 				| hyper_modifier | super_modifier));
-	  XSETFRAME (inev.frame_or_window, mac_focus_frame (dpyinfo));
+	  XSETFRAME (inev.frame_or_window, f);
 	  break;
 
 	case kHighLevelEvent:

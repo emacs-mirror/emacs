@@ -414,10 +414,10 @@ update_status (p)
      struct Lisp_Process *p;
 {
   union { int i; WAITTYPE wt; } u;
-  u.i = XFASTINT (p->raw_status_low) + (XFASTINT (p->raw_status_high) << 16);
+  eassert (p->raw_status_new);
+  u.i = p->raw_status;
   p->status = status_convert (u.wt);
-  p->raw_status_low = Qnil;
-  p->raw_status_high = Qnil;
+  p->raw_status_new = 0;
 }
 
 /*  Convert a process status word in Unix format to
@@ -619,11 +619,10 @@ make_process (name)
 
   XSETINT (p->infd, -1);
   XSETINT (p->outfd, -1);
-  XSETFASTINT (p->pid, 0);
   XSETFASTINT (p->tick, 0);
   XSETFASTINT (p->update_tick, 0);
-  p->raw_status_low = Qnil;
-  p->raw_status_high = Qnil;
+  p->pid = 0;
+  p->raw_status_new = 0;
   p->status = Qrun;
   p->mark = Fmake_marker ();
 
@@ -789,8 +788,7 @@ nil, indicating the current buffer's process.  */)
   process = get_process (process);
   p = XPROCESS (process);
 
-  p->raw_status_low = Qnil;
-  p->raw_status_high = Qnil;
+  p->raw_status_new = 0;
   if (NETCONN1_P (p))
     {
       p->status = Fcons (Qexit, Fcons (make_number (0), Qnil));
@@ -840,7 +838,7 @@ nil, indicating the current buffer's process.  */)
     return process;
 
   p = XPROCESS (process);
-  if (!NILP (p->raw_status_low))
+  if (p->raw_status_new)
     update_status (p);
   status = p->status;
   if (CONSP (status))
@@ -865,7 +863,7 @@ If PROCESS has not yet exited or died, return 0.  */)
      register Lisp_Object process;
 {
   CHECK_PROCESS (process);
-  if (!NILP (XPROCESS (process)->raw_status_low))
+  if (XPROCESS (process)->raw_status_new)
     update_status (XPROCESS (process));
   if (CONSP (XPROCESS (process)->status))
     return XCAR (XCDR (XPROCESS (process)->status));
@@ -880,7 +878,9 @@ For a network connection, this value is nil.  */)
      register Lisp_Object process;
 {
   CHECK_PROCESS (process);
-  return XPROCESS (process)->pid;
+  return (XPROCESS (process)->pid
+	  ? make_fixnum_or_float (XPROCESS (process)->pid)
+	  : Qnil);
 }
 
 DEFUN ("process-name", Fprocess_name, Sprocess_name, 1, 1, 0,
@@ -1362,7 +1362,7 @@ list_processes_1 (query_only)
       Finsert (1, &p->name);
       Findent_to (i_status, minspace);
 
-      if (!NILP (p->raw_status_low))
+      if (p->raw_status_new)
 	update_status (p);
       symbol = p->status;
       if (CONSP (p->status))
@@ -1734,7 +1734,7 @@ start_process_unwind (proc)
     abort ();
 
   /* Was PROC started successfully?  */
-  if (XINT (XPROCESS (proc)->pid) <= 0)
+  if (XPROCESS (proc)->pid <= 0)
     remove_process (proc);
 
   return Qnil;
@@ -1945,7 +1945,7 @@ create_process (process, new_argv, current_dir)
      in the table after this function has returned; if it does
      it might cause call-process to hang and subsequent asynchronous
      processes to get their return values scrambled.  */
-  XSETINT (XPROCESS (process)->pid, -1);
+  XPROCESS (process)->pid = -1;
 
   BLOCK_INPUT;
 
@@ -2136,7 +2136,7 @@ create_process (process, new_argv, current_dir)
   else
     {
       /* vfork succeeded.  */
-      XSETFASTINT (XPROCESS (process)->pid, pid);
+      XPROCESS (process)->pid = pid;
 
 #ifdef WINDOWSNT
       register_child (pid, inchannel);
@@ -3354,7 +3354,7 @@ usage: (make-network-process &rest ARGS)  */)
     p->kill_without_query = Qt;
   if ((tem = Fplist_get (contact, QCstop), !NILP (tem)))
     p->command = Qt;
-  p->pid = Qnil;
+  p->pid = 0;
   XSETINT (p->infd, inch);
   XSETINT (p->outfd, outch);
   if (is_server && socktype == SOCK_STREAM)
@@ -4070,7 +4070,7 @@ server_accept_connection (server, channel)
   p->sentinel = ps->sentinel;
   p->filter = ps->filter;
   p->command = Qnil;
-  p->pid = Qnil;
+  p->pid = 0;
   XSETINT (p->infd, s);
   XSETINT (p->outfd, s);
   p->status = Qrun;
@@ -4370,9 +4370,9 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 
       /* Don't wait for output from a non-running process.  Just
          read whatever data has already been received.  */
-      if (wait_proc != 0 && !NILP (wait_proc->raw_status_low))
+      if (wait_proc && wait_proc->raw_status_new)
 	update_status (wait_proc);
-      if (wait_proc != 0
+      if (wait_proc
 	  && ! EQ (wait_proc->status, Qrun)
 	  && ! EQ (wait_proc->status, Qconnect))
 	{
@@ -4756,7 +4756,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 		  /* Preserve status of processes already terminated.  */
 		  XSETINT (XPROCESS (proc)->tick, ++process_tick);
 		  deactivate_process (proc);
-		  if (!NILP (XPROCESS (proc)->raw_status_low))
+		  if (XPROCESS (proc)->raw_status_new)
 		    update_status (XPROCESS (proc));
 		  if (EQ (XPROCESS (proc)->status, Qrun))
 		    XPROCESS (proc)->status
@@ -5293,7 +5293,7 @@ send_process (proc, buf, len, object)
   VMS_PROC_STUFF *vs, *get_vms_process_pointer();
 #endif /* VMS */
 
-  if (! NILP (p->raw_status_low))
+  if (p->raw_status_new)
     update_status (p);
   if (! EQ (p->status, Qrun))
     error ("Process %s not running", SDATA (p->name));
@@ -5557,8 +5557,7 @@ send_process (proc, buf, len, object)
       proc = process_sent_to;
       p = XPROCESS (proc);
 #endif
-      p->raw_status_low = Qnil;
-      p->raw_status_high = Qnil;
+      p->raw_status_new = 0;
       p->status = Fcons (Qexit, Fcons (make_number (256), Qnil));
       XSETINT (p->tick, ++process_tick);
       deactivate_process (proc);
@@ -5673,7 +5672,7 @@ return t unconditionally.  */)
 
   gid = emacs_get_tty_pgrp (p);
 
-  if (gid == XFASTINT (p->pid))
+  if (gid == p->pid)
     return Qnil;
   return Qt;
 }
@@ -5720,7 +5719,7 @@ process_send_signal (process, signo, current_group, nomsg)
   /* If we are using pgrps, get a pgrp number and make it negative.  */
   if (NILP (current_group))
     /* Send the signal to the shell's process group.  */
-    gid = XFASTINT (p->pid);
+    gid = p->pid;
   else
     {
 #ifdef SIGNALS_VIA_CHARACTERS
@@ -5839,7 +5838,7 @@ process_send_signal (process, signo, current_group, nomsg)
       if (gid == -1)
 	/* If we can't get the information, assume
 	   the shell owns the tty.  */
-	gid = XFASTINT (p->pid);
+	gid = p->pid;
 
       /* It is not clear whether anything really can set GID to -1.
 	 Perhaps on some system one of those ioctls can or could do so.
@@ -5849,12 +5848,12 @@ process_send_signal (process, signo, current_group, nomsg)
 #else  /* ! defined (TIOCGPGRP ) */
       /* Can't select pgrps on this system, so we know that
 	 the child itself heads the pgrp.  */
-      gid = XFASTINT (p->pid);
+      gid = p->pid;
 #endif /* ! defined (TIOCGPGRP ) */
 
       /* If current_group is lambda, and the shell owns the terminal,
 	 don't send any signal.  */
-      if (EQ (current_group, Qlambda) && gid == XFASTINT (p->pid))
+      if (EQ (current_group, Qlambda) && gid == p->pid)
 	return;
     }
 
@@ -5862,8 +5861,7 @@ process_send_signal (process, signo, current_group, nomsg)
     {
 #ifdef SIGCONT
     case SIGCONT:
-      p->raw_status_low = Qnil;
-      p->raw_status_high = Qnil;
+      p->raw_status_new = 0;
       p->status = Qrun;
       XSETINT (p->tick, ++process_tick);
       if (!nomsg)
@@ -5882,7 +5880,7 @@ process_send_signal (process, signo, current_group, nomsg)
 #endif
     case SIGKILL:
 #ifdef VMS
-      sys$forcex (&(XFASTINT (p->pid)), 0, 1);
+      sys$forcex (&(p->pid), 0, 1);
       whoosh:
 #endif
       flush_pending_output (XINT (p->infd));
@@ -5894,7 +5892,7 @@ process_send_signal (process, signo, current_group, nomsg)
      obvious alternative.  */
   if (no_pgrp)
     {
-      kill (XFASTINT (p->pid), signo);
+      kill (p->pid, signo);
       return;
     }
 
@@ -5907,7 +5905,7 @@ process_send_signal (process, signo, current_group, nomsg)
     }
   else
     {
-      gid = - XFASTINT (p->pid);
+      gid = - p->pid;
       kill (gid, signo);
     }
 #else /* ! defined (TIOCSIGSEND) */
@@ -6027,11 +6025,17 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
      (process, sigcode)
      Lisp_Object process, sigcode;
 {
-  Lisp_Object pid;
+  pid_t pid;
 
   if (INTEGERP (process))
     {
-      pid = process;
+      pid = XINT (process);
+      goto got_it;
+    }
+
+  if (FLOATP (process))
+    {
+      pid = (pid_t) XFLOAT (process);
       goto got_it;
     }
 
@@ -6040,8 +6044,8 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
       Lisp_Object tem;
       if (tem = Fget_process (process), NILP (tem))
 	{
-	  pid = Fstring_to_number (process, make_number (10));
-	  if (XINT (pid) != 0)
+	  pid = XINT (Fstring_to_number (process, make_number (10)));
+	  if (pid > 0)
 	    goto got_it;
 	}
       process = tem;
@@ -6054,7 +6058,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
 
   CHECK_PROCESS (process);
   pid = XPROCESS (process)->pid;
-  if (!INTEGERP (pid) || XINT (pid) <= 0)
+  if (pid <= 0)
     error ("Cannot signal process %s", SDATA (XPROCESS (process)->name));
 
  got_it:
@@ -6173,7 +6177,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
 
 #undef handle_signal
 
-  return make_number (kill (XINT (pid), XINT (sigcode)));
+  return make_number (kill (pid, XINT (sigcode)));
 }
 
 DEFUN ("process-send-eof", Fprocess_send_eof, Sprocess_send_eof, 0, 1, 0,
@@ -6197,7 +6201,7 @@ text to PROCESS after you call this function.  */)
   coding = proc_encode_coding_system[XINT (XPROCESS (proc)->outfd)];
 
   /* Make sure the process is really alive.  */
-  if (! NILP (XPROCESS (proc)->raw_status_low))
+  if (XPROCESS (proc)->raw_status_new)
     update_status (XPROCESS (proc));
   if (! EQ (XPROCESS (proc)->status, Qrun))
     error ("Process %s not running", SDATA (XPROCESS (proc)->name));
@@ -6222,7 +6226,7 @@ text to PROCESS after you call this function.  */)
 	 for communication with the subprocess, call shutdown to cause EOF.
 	 (In some old system, shutdown to socketpair doesn't work.
 	 Then we just can't win.)  */
-      if (NILP (XPROCESS (proc)->pid)
+      if (XPROCESS (proc)->pid == 0
 	  || XINT (XPROCESS (proc)->outfd) == XINT (XPROCESS (proc)->infd))
 	shutdown (XINT (XPROCESS (proc)->outfd), 1);
       /* In case of socketpair, outfd == infd, so don't close it.  */
@@ -6359,7 +6363,7 @@ sigchld_handler (signo)
 	{
 	  proc = XCDR (XCAR (tail));
 	  p = XPROCESS (proc);
-	  if (GC_EQ (p->childp, Qt) && XINT (p->pid) == pid)
+	  if (GC_EQ (p->childp, Qt) && p->pid == pid)
 	    break;
 	  p = 0;
 	}
@@ -6371,7 +6375,7 @@ sigchld_handler (signo)
 	  {
 	    proc = XCDR (XCAR (tail));
 	    p = XPROCESS (proc);
-	    if (GC_INTEGERP (p->pid) && XINT (p->pid) == -1)
+	    if (p->pid == -1)
 	      break;
 	    p = 0;
 	  }
@@ -6384,8 +6388,8 @@ sigchld_handler (signo)
 
 	  XSETINT (p->tick, ++process_tick);
 	  u.wt = w;
-	  XSETINT (p->raw_status_low, u.i & 0xffff);
-	  XSETINT (p->raw_status_high, u.i >> 16);
+	  p->raw_status = u.i;
+	  p->raw_status_new = 1;
 
 	  /* If process has terminated, stop waiting for its output.  */
 	  if ((WIFSIGNALED (w) || WIFEXITED (w))
@@ -6582,7 +6586,7 @@ status_notify (deleting_process)
 	  buffer = p->buffer;
 
 	  /* Get the text to use for the message.  */
-	  if (!NILP (p->raw_status_low))
+	  if (p->raw_status_new)
 	    update_status (p);
 	  msg = status_message (p);
 

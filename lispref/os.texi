@@ -404,8 +404,9 @@ remaining command-line arguments in the variable
 arguments is in @code{command-line-args}.)
 
 The command-line arguments are parsed by the @code{command-line-1}
-function in the @file{startup.el} file.  See also @ref{Command
-Arguments, , Command Line Arguments, emacs, The GNU Emacs Manual}.
+function in the @file{startup.el} file.  See also @ref{Emacs
+Invocation, , Command Line Arguments for Emacs Invocation, emacs, The
+GNU Emacs Manual}.
 @end defvar
 
 @defvar command-line-args

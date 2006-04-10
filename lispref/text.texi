@@ -205,7 +205,7 @@ This is like @code{buffer-substring}, except that it does not copy text
 properties, just the characters themselves.  @xref{Text Properties}.
 @end defun
 
-@defun filter-buffer-substring start end &optional delete
+@defun filter-buffer-substring start end &optional delete noprops
 This function passes the buffer text between @var{start} and @var{end}
 through the filter functions specified by the variable
 @code{buffer-substring-filters}, and returns the value from the last
@@ -217,7 +217,12 @@ If @var{delete} is non-@code{nil}, this function deletes the text
 between @var{start} and @var{end} after copying it, like
 @code{delete-and-extract-region}.
 
-Lisp code should use this function instead of @code{buffer-substring}
+If @var{noprops} is non-@code{nil}, the final string returned does not
+include text properties, while the string passed through the filters
+still includes text properties from the buffer text.
+
+Lisp code should use this function instead of @code{buffer-substring},
+@code{buffer-substring-no-properties},
 or @code{delete-and-extract-region} when copying into user-accessible
 data structures such as the kill-ring, X clipboard, and registers.
 Major and minor modes can add functions to

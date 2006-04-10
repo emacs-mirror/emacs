@@ -1,3 +1,374 @@
+2006-04-09  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-mime-charset-pattern): Ignore format and delsp
+	specs while looking for charset.
+
+	* textmodes/picture.el (picture-mode-exit): Run picture-mode-exit-hook.
+
+	* play/landmark.el (lm-font-lock-face-O, lm-font-lock-face-X):
+	Make them faces.
+	(lm-font-lock-keywords): Update appropriately.
+
+2006-04-10  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (filter-buffer-substring): Add NOPROPS arg, so
+	it can also replace buffer-substring-no-properties.
+
+	* emulation/cua-base.el (cua-delete-region, cua-paste)
+	(cua-repeat-replace-region): Use filter-buffer-substring.
+
+	* emulation/cua-gmrk.el (cua-copy-region-to-global-mark)
+	(cua-cut-region-to-global-mark): Likewise.
+
+	* emulation/cua-rect.el (cua--extract-rectangle)
+	(cua-incr-rectangle, cua--rectangle-aux-replace): Likewise.
+
+2006-04-09  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-entry-update): New optional arg
+	entry-type.  Add field delimiters to numerical fields if they are
+	not present.
+
+2006-04-09  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-find-text-internal): Add new element
+	string-const to return value.
+	(bibtex-remove-delimiters): Use it.
+
+2006-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-form): Don't call
+	cl-byte-compile-compiler-macro unless it exists.
+
+2006-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (hack-local-variables-confirm) <offer-save>:
+	Clarify message text.  Suggested by Ralf Angeli.
+
+2006-04-08  Michael Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+
+	* rect.el (kill-rectangle): Don't barf if `kill-read-only-ok' is set.
+	(delete-extract-rectangle-line): Use `filter-buffer-substring'
+	instead of `buffer-substring' and `delete-region'.  (Most of the
+	code actually copied from `kill-region'.)
+
+2006-04-08  Ryan Yeske  <rcyeske@gmail.com>
+
+	* rcirc.el (rcirc-default-server): Rename from rcirc-server.
+	(rcirc-default-port): Rename from rcirc-port.
+	(rcirc-default-nick): Rename from rcirc-nick.
+	(rcirc-default-user-name): Rename from rcirc-user-name.
+	(rcirc-default-user-full-name): Rename from rcirc-user-full-name.
+	(rcirc-low-priority-flag): New variable.
+	(rcirc-decode-coding-system): New defcustom.
+	(rcirc-encode-coding-system): New defcustom.
+	(rcirc-coding-system-alist): New defcustom.
+	(rcirc-multiline-major-mode): New defcustom.
+	(rcirc-nick): New internal variable.
+	(rcirc-process): Remove variable.
+	(rcirc-server-buffer): New variable.
+	(rcirc): Update to use rcirc-default-* variables above.
+	(rcirc-connect): Do not add window-configuration-hook-here.
+	(rcirc-server): New internal variable.
+	(rcirc-connect): Do not send keepalive pings if
+	rcirc-keepalive-seconds is nil.
+	(with-rcirc-server-buffer): New macro.
+	(rcirc-send-string): Encode with rcirc-encode-coding-system.
+	(rcirc-server-name): Rename from rcirc-server.
+	(rcirc-buffer-process): New function.
+	(rcirc-buffer-nick): New function.
+	(rcirc-buffer-target): Remove function.
+	(set-rcirc-decode-coding-system, set-rcirc-encode-coding-system):
+	New commands.
+	(rcirc-mode-map): Change binding of C-c C-l to
+	rcirc-toggle-low-priority.
+	(rcirc-mode): Initialize coding system based on
+	rcirc-coding-system-alist.  New change-major-mode-hook to part the
+	channel on a mode change.  Make kill-buffer-hook buffer-local.
+	(rcirc-change-major-mode-hook): New function.
+	(rcirc-clean-up-buffer): Rename from rcirc-kill-buffer-hook-1.
+	(rcirc-last-post-time): New variable.
+	(rcirc-process-message): Store the last time user posted a message
+	to this target.
+	(rcirc-multiline-minor-mode): New mode.
+	(rcirc-multiline-minor-mode-map): New mode map.
+	(rcirc-edit-multiline): Put multiline-edit buffer in
+	rcirc-multiline-major-mode along with rcirc-multiline-minor-mode.
+	(rcirc-print): Any line starting with an ignored nick will be
+	ignored.
+	(rcirc-print): Decode using rcirc-decode-coding-system.
+	(rcirc-track-minor-mode): Update global-mode-string when disabling
+	this mode.
+	(minor-mode-alist): add LowPri indicator.
+	(rcirc-toggle-low-priority): New function.
+	(rcirc-last-non-irc-buffer): Prefix arg now no means switch to
+	next lowpriority buffer with activity.
+	(rcirc-record-activity): Sort buffers in rcirc-activity by the
+	last time the user posted a message in to the target.
+	(rcirc-update-activity-string): New formatting for low priority
+	buffers.
+	(rcirc-split-activity): New function.
+	(rcirc-handler-PART, rcirc-handler-KICK)
+	(rcirc-handler-PART-or-KICK): Kick responses are printed properly.
+	(rcirc-nick-away-alist): New variable.
+	(rcirc-handler-301): New handler.  Away messages are printed once
+	per change.
+
+2006-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* info.el (Info-follow-nearest-node): Doc fix.
+
+	* international/mule-cmds.el (set-locale-environment): Make sure
+	the coding-system preferred by the locale's language has the same
+	EOL conversion type as the original buffer-file-coding-system.
+	(locale-language-names): Add a few MS Windows language codes.
+
+2006-04-07  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (eval-expression): Doc fix.
+
+	* emacs-lisp/lisp-mode.el (eval-print-last-sexp, eval-last-sexp)
+	(eval-defun): Doc fixes.
+
+2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pgg-gpg.el: Revert to revision 1.8 to allow the use of
+	gpg-agent.
+
+2006-04-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-init-2): Set current filename using
+	GDB list command without argument for greater generality.
+
+2006-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* subr.el (string-or-null-p): New function.
+
+	* textmodes/paragraphs.el (sentence-end): Use string-or-null-p.
+
+	* textmodes/ispell.el (ispell-local-dictionary): Use
+	string-or-null-p.
+
+	* files.el: Update comment about safe-local-variable declarations.
+
+2006-04-06  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlwave.el: Updated to IDLWAVE version 6.0.  See
+	idlwave.org.
+
+	* progmodes/idlw-shell.el: Updated to IDLWAVE version 6.0.  See
+	idlwave.org.  Includes code to obsolete idlw-rinfo.el.
+
+	* progmodes/idlw-help.el: Updated to IDLWAVE version 6.0.  See
+	idlwave.org.
+
+	* progmodes/idlw-complete-structtag.el: Updated to IDLWAVE
+	version 6.0 (minimal changes).  See idlwave.org.
+
+	* progmodes/idlw-toolbar.el: Updated to IDLWAVE version
+	6.0 (minimal changes).  See idlwave.org.
+
+	* progmodes/idlw-rinfo.el: File obsoleted and removed.
+
+2006-04-06  Romain Francoise  <romain@orebokech.com>
+
+	* pgg-gpg.el: Sync back with Gnus 5.10, reverting changes that add
+	symmetric encryption features and a new asynchronous interface to
+	GnuPG.  This new version is version 1.4, plus whitespace changes.
+
+2006-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* files.el: Move some `safe-local-variable' declarations to the
+	respective files.
+
+	* textmodes/ispell.el (ispell-check-comments)
+	(ispell-local-dictionary): Mark as safe.
+
+	* abbrev.el (abbrev-mode): Mark as safe.
+
+	* add-log.el (change-log-default-name): Mark as safe.
+
+	* textmodes/reftex-vars.el (reftex-vref-is-default)
+	(reftex-fref-is-default, reftex-level-indent)
+	(reftex-guess-label-type): Mark as safe.
+
+	* textmodes/fill.el (colon-double-space): Mark as safe.
+
+	* textmodes/paragraphs.el (paragraph-start, paragraph-separate)
+	(sentence-end-double-space, sentence-end-without-period)
+	(sentence-end-without-space, sentence-end, sentence-end-base)
+	(page-delimiter, paragraph-ignore-fill-prefix): Mark as safe.
+
+2006-04-06  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-mode): Remove ido-ignore-unc-host-regexps from
+	the :set-after list.
+	(ido-downcase-unc-hosts): New user option.  Default on.
+	(ido-ignore-unc-host-regexps): Don't reset ido-unc-hosts-cache
+	when it is set, as regexps are now applied on the fly.
+	(ido-unc-hosts): Keep all known hosts in ido-unc-hosts-cache.
+	Make C-a DTRT--filter hosts through ido-ignore-unc-host-regexps
+	on the fly, but only when ido-process-ignore-lists is set.
+	Do case insensitive filtering if ido-downcase-unc-hosts is set.
+	Only downcase names if ido-downcase-unc-hosts is set.
+
+2006-04-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-unc-hosts-cache): Fix typo in docstring.
+
+	* woman.el (WoMan-xref-man-page): Fix call to `substring'.
+
+2006-04-05  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-mode): Set after ido-unc-hosts and
+	ido-ignore-unc-host-regexps.
+	(ido-save-history): Save ido-unc-hosts-cache.
+	(ido-load-history): Load ido-unc-hosts-cache.
+	(ido-reread-directory): Refresh unc hosts cache in // dir.
+
+	* startup.el (fancy-splash-screens): Set emulation-mode-map-alists
+	to nil while displaying slash screen.
+
+2006-04-05  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el (pgg-gpg-encrypt-region, pgg-gpg-sign-region): Wait
+	for BEGIN_SIGNING too, new in GnuPG 1.4.3.
+
+2006-04-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Setup cases of Latin, Greek, and
+	Cyrillic characters in CJK charsets.
+
+2006-03-29  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el (pgg-gpg-start-process): Don't bind
+	default-enable-multibyte-characters.  This reverts the change from
+	revision 6.17 which is no longer necessary because the passphrase
+	is sent separately now.  GnuPG messages are unreadable under
+	multibyte locales with default-enable-multibyte-characters set to
+	nil.
+
+2006-04-04  Andreas Schwab  <schwab@suse.de>
+
+	* files.el: Mark `left-margin', `byte-compile-dynamic-docstrings'
+	and `byte-compile-warnings' as `safe-local-variable'.
+
+2006-04-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* man.el (Man-mode-map): Restore the \r binding.
+	(Man-abstract-xref-man-page): If Man-target-string is a function,
+	call it.
+	(Man-highlight-references): Use Man-default-man-entry to get the
+	target. Deal with xrefs too.
+	(Man-highlight-references0): Don't call the target function.
+
+	* woman.el (WoMan-xref-man-page): Strip the section number, woman
+	cannot deal with it.
+
+2006-04-04  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el: Clean up process buffers every time gpg processes
+	complete.
+
+2006-04-04  Kenichi Handa  <handa@m17n.org>
+
+	* sort.el (sort-build-lists): Don't bind inhibit-field-text-motion
+	here.
+	(sort-lines, sort-numeric-fields, sort-fields, sort-columns):
+	Temporarily bind inhibit-field-text-motion to t.
+
+2006-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* startup.el (normal-splash-screen): Only set mode-line-format in the
+	splash buffer, so as not to interfere when debugging the code.
+	Ignore errors when switching buffer.
+
+2006-04-03  Romain Francoise  <romain@orebokech.com>
+
+	* dired.el (dired-dnd-protocol-alist): Fix typo.
+
+2006-04-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* savehist.el (savehist): Add :version.
+	(savehist-ignored-variables): New variable.
+	(savehist-minibuffer-hook): Don't save variables listed in
+	`savehist-ignored-variables'.
+
+	* dired.el (dired-dnd-protocol-alist): Mention that change does
+	only apply to new buffers in doc string.
+
+2006-04-03  Lennart Borgman  <lennart.borgman.073@student.lu.se>  (tiny change)
+
+	* recentf.el (recentf-open-files-item): Include newline in button
+	field, so opening a file will work, when the point is at the end
+	of the file name.  Allow, for example, to [i]search a file by
+	extension and just push RET to open it.
+
+2006-04-03  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el (pgg-gpg-process-filter)
+	(pgg-gpg-wait-for-completion): Check if buffer is alive.
+
+	* pgg-gpg.el (pgg-gpg-process-sentinel): Don't remove GNUPG:
+	lines, temporary fix.
+
+2006-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ibuf-macs.el (define-ibuffer-column): Document the new parameter.
+
+2006-04-02  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compilation-message-face): Make it defcustom.
+
+2006-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ibuf-macs.el (define-ibuffer-column): Add a new key:
+	header-mouse-map.
+
+	* ibuffer.el (ibuffer-name-header-map, ibuffer-size-header-map)
+	(ibuffer-mode-header-map): New keymaps.
+	(ibuffer-update-title-and-summary): Enable mouse face highlighting
+	and keybindings for column headers.
+	(name,size,mode) <define-ibuffer-column>: Add a header-mouse-map
+	property.
+
+2006-04-02  Drew Adams  <drew.adams@oracle.com>  (tiny change)
+
+	* speedbar.el (speedbar-after-create-hook): Doc fix.
+
+2006-04-02  Michael Ernst  <mernst@alum.mit.edu>
+
+	* shell.el (shell-directory-tracker)
+	(shell-dynamic-complete-command): Doc fixes.
+
+2006-04-01  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* pcomplete.el (pcomplete-show-completions): Recognize TAB on text
+	terminals.
+
+2006-04-01  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-unc-hosts-cache): New defvar.
+	(ido-unc-hosts): If value of defcustom is a function, call it to
+	get list of UNC hosts.  Add function-item choices to specify
+	ido-unc-hosts-net-view or user function.
+	(ido-ignore-unc-host-regexps): New defcustom.
+	(ido-unc-hosts-net-view, ido-unc-hosts): New functions.
+	(ido-is-unc-root, ido-is-unc-host, ido-file-name-all-completions)
+	(ido-exhibit): Call ido-unc-hosts to get list of UNC hosts.
+
+2006-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-util.el (cvs-insert-strings): Fix bug with strings longer than
+	wwidth.
+
+2006-03-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-cache-unc-host-shares-time, ido-report-no-match)
+	(ido-max-work-file-list, ido-switch-buffer)
+	(ido-read-file-name-as-directory-commands):
+	Fix typos in docstrings.
+
 2006-03-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-system-coding-system): Define and use after
@@ -24,8 +395,7 @@
 
 2006-03-27  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-get-level-face): Fix bug with level
-	counting.
+	* textmodes/org.el (org-get-level-face): Fix bug with level counting.
 
 2006-03-26  Andreas Schwab  <schwab@suse.de>
 
@@ -60,8 +430,8 @@
 	(cua--init-keymaps): Use it instead of fixed C-return.
 	(cua-mode): Set after it.
 
-	* emulation/cua-rect.el (cua--init-rectangles): Use
-	cua-rectangle-mark-key instead of fixed C-return.
+	* emulation/cua-rect.el (cua--init-rectangles):
+	Use cua-rectangle-mark-key instead of fixed C-return.
 
 2006-03-25  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -97,8 +467,7 @@
 	* progmodes/gdb-ui.el (gdb-continuation): Declare earlier to
 	prevent compiler warnings.
 	(gdb-stopped): Check for gud-last-last-frame (case: signal).
-	(breakpoint-disabled): Make lighter for contrast with overlay
-	arrow.
+	(breakpoint-disabled): Make lighter for contrast with overlay arrow.
 	(gdb-assembler-custom): Use hollow-right-triangle for assembler
 	buffer too.
 
@@ -432,11 +801,6 @@
 
 	* tree-widget.el (tree-widget-themes-load-path)
 	(tree-widget-themes-directory, tree-widget-theme): Doc fix.
-
-2006-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* pcvs-util.el (cvs-insert-strings): Fix bug with strings longer than
-	wwidth.
 
 2006-03-13  Ryan Yeske  <rcyeske@gmail.com>
 
@@ -1028,7 +1392,7 @@
 	(org-format-org-table-html, org-format-table-table-html):
 	Fix typos in docstrings.
 
-12006-02-23  Carsten Dominik  <dominik@science.uva.nl>
+2006-02-23  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-cleaned-string-for-export)
 	(org-solidify-link-text): New function.
@@ -6340,7 +6704,7 @@
 
 2005-11-24  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-export-plain-list-max-depth): Renamed from
+	* textmodes/org.el (org-export-plain-list-max-depth): Rename from
 	`org-export-local-list-max-depth'.  Change default value to 3.
 	(org-auto-renumber-ordered-lists)
 	(org-plain-list-ordered-item-terminator): New options.
@@ -15187,7 +15551,7 @@
 	* add-log.el (change-log-font-lock-keywords): Make the regexp for
 	date lines stricter.
 
-2005-06-10  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+2005-06-10  Zhang Wei  <id.brep@gmail.com>
 
 	* term/x-win.el (x-clipboard-yank): Use x-selection-value instead
 	of x-get-selection.

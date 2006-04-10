@@ -1,3 +1,138 @@
+2006-04-09  Kevin Ryde  <user42@zip.com.au>
+
+	* org.texi (Formula syntax): Typo in node name of calc-eval xref.
+
+	* sending.texi (Mail Sending): In send-mail-function @pxref smtpmail,
+	put info and printed manual names the right way around.
+
+2006-04-09  Karl Berry  <karl@gnu.org>
+
+	* msdog.texi, emacs-xtra.texi: move all the MS-DOS material to
+	emacs-xtra.texi, leaving only MS Windows information.
+	* building.texi, emacs.texi, frames.texi, gnu.texi, macos.texi,
+	msdog.texi, mule.texi, trouble.texi: change cross-references and
+	node names.
+
+	* emacs.texi: move @summarycontents and @contents to the beginning
+	of the file.
+
+2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Summary Buffer Lines): Add `*'.
+
+2006-04-07  Jochen K,A|(Bpper  <jochen@fhi-berlin.mpg.de>
+
+	* gnus.texi (Group Parameters): Mention
+	gnus-permanently-visible-groups.
+
+2006-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Face): Fix typo.
+
+2006-04-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (X-Face): Clarify.
+	(Face): Need Emacs with PNG support.
+
+2006-04-08  Kevin Ryde  <user42@zip.com.au>
+
+	* text.texi (Fill Commands): fill-nobreak-predicate is now a hook.
+
+2006-04-07  Richard Stallman  <rms@gnu.org>
+
+	* programs.texi (Comments, Comment Commands, Options for Comments)
+	(Multi-Line Comments): "Align", not "indent".
+	(Basic Indent): C-j deletes trailing whitespace before the newline.
+
+2006-04-06  Richard Stallman  <rms@gnu.org>
+
+	* idlwave.texi: Delete the blocks "not suitable for inclusion with
+	Emacs".
+
+	* programs.texi (Basic Indent): Clarify relationship of C-j to TAB.
+
+2006-04-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* killing.texi (Rectangles): Add index entry for marking a
+	rectangle.
+
+2006-04-06  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* idlwave.texi: Updated for IDLWAVE version 6.0, factoring out
+	blocks not suitable for inclusion with Emacs using variable
+	PARTOFEMACS.
+
+2006-04-05  Richard Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Update subnode menu.
+
+	* trouble.texi (Unasked-for Search): Node deleted.
+	(Lossage): Delete from menu.
+
+2006-04-04  Richard Stallman  <rms@gnu.org>
+
+	* trouble.texi: Various cleanups.
+	(Checklist): Don't bother saying how to snail a bug report.
+	(Emergency Escape): Much rewriting.
+	(After a Crash): Rename the core dump immediately.
+	(Total Frustration): Call it a psychotherapist.
+	(Bug Criteria): Avoid "illegal instruction".
+	(Sending Patches): We always put the contributor's name in.
+
+	* misc.texi (Thumbnails): Minor correction.
+
+2006-04-04  Simon Josefsson  <jas@extundo.com>
+
+	* gnus.texi (Security): Improve.
+
+2006-04-03  Richard Stallman  <rms@gnu.org>
+
+	* misc.texi (Thumbnails): Minor cleanup.
+
+2006-04-02  Karl Berry  <karl@gnu.org>
+
+	* sending.texi (Mail Sending): pxref to Top needs five args.
+
+	* texinfo.tex: update to current version (2006-03-21.13).
+
+2006-04-02  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Getting Started, Junk, Bug Reports)
+	(MH FAQ and Support): Fix URLs.
+
+2006-03-31  Romain Francoise  <romain@orebokech.com>
+
+	* gnus.texi (Virtual Groups): `nnvirtual-always-rescan' defaults
+	to t, not nil (and has for the past eight years).
+
+2006-03-31  Richard Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Update subnode menu.
+
+	* help.texi (Help Mode): Cleanup.
+
+	* dired.texi: Many cleanups.
+	(Dired Deletion): Describe dired-recursive-deletes.
+	(Operating on Files): dired-create-directory moved.
+	(Misc Dired Features): Moved to here.
+	(Tumme): Node moved to misc.texi.
+
+	* custom.texi: Many cleanups.
+	(Minor Modes): Don't mention ISO Accents Mode.
+	(Examining): Update C-h v output example.
+	(Hooks): Add index and  xref for add-hook.
+	(Locals): Delete list of vars that are always per-buffer.  Rearrange.
+	(Local Keymaps): Don't mention lisp-mode-map, c-mode-map.
+
+	* misc.texi: Many cleanups.
+	(beginning): Add to summary of topics.
+	(Shell): Put eshell xref at the end.  Remove eshell from table.
+	(Thumbnails): New node.
+
+2006-03-31  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.texi, gnus.texi: Bump version to 5.11.
+
 2006-03-29  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Top): Add comment about version line.
@@ -130,6 +265,10 @@
 2006-03-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Clean view): Document new startup options.
+
+2006-03-12  Richard Stallman  <rms@gnu.org>
+
+	* calendar.texi: Various cleanups.
 
 2006-03-11  Bill Wohler  <wohler@newt.com>
 

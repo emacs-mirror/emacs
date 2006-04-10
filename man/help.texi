@@ -512,11 +512,11 @@ the help text.  @key{TAB} (@code{help-next-ref}) moves point down to the
 next cross reference.  Use @kbd{S-@key{TAB}} to move point up to the
 previous cross reference (@code{help-previous-ref}).
 
-To view all documentation about a symbol, whether quoted or not, move
-point over the symbol and type @kbd{C-c C-c}
+  You can view all documentation about any symbol name that appears in
+the text, by moving point to the symbol name and typing @kbd{C-c C-c}
 (@code{help-follow-symbol}).  This shows all available documentation
-about the symbol as a variable, function or face.  Just like for
-quoted cross references, you can use @kbd{C-c C-b} to retrace your steps.
+about the symbol as a variable, function and/or face.  @kbd{C-c C-b}
+works in this case also, to retrace your steps.
 
 @node Misc Help
 @section Other Help Commands

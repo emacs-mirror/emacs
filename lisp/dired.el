@@ -206,7 +206,8 @@ with the buffer narrowed to the listing."
     ("^file:"    . dired-dnd-handle-local-file))
   "The functions to call when a drop in `dired-mode' is made.
 See `dnd-protocol-alist' for more information.  When nil, behave
-as in other buffers."
+as in other buffers.  Changing this option is effective only for
+new dired buffers."
   :type '(choice (repeat (cons (regexp) (function)))
 		 (const :tag "Behave as in other buffers" nil))
   :version "22.1"

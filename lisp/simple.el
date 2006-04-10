@@ -1038,7 +1038,10 @@ display the result of expression evaluation."
 Value is also consed on to front of the variable `values'.
 Optional argument EVAL-EXPRESSION-INSERT-VALUE, if non-nil, means
 insert the result into the current buffer instead of printing it in
-the echo area."
+the echo area.
+
+If `eval-expression-debug-on-error' is non-nil, which is the default,
+this command arranges for all errors to enter the debugger."
   (interactive
    (list (read-from-minibuffer "Eval: "
 			       nil read-expression-map t
@@ -2317,7 +2320,7 @@ return value of `filter-buffer-substring'.
 
 If this variable is nil, no filtering is performed.")
 
-(defun filter-buffer-substring (beg end &optional delete)
+(defun filter-buffer-substring (beg end &optional delete noprops)
   "Return the buffer substring between BEG and END, after filtering.
 The buffer substring is passed through each of the filter
 functions in `buffer-substring-filters', and the value from the
@@ -2327,21 +2330,36 @@ is nil, the buffer substring is returned unaltered.
 If DELETE is non-nil, the text between BEG and END is deleted
 from the buffer.
 
+If NOPROPS is non-nil, final string returned does not include
+text properties, while the string passed to the filters still
+includes text properties from the buffer text.
+
 Point is temporarily set to BEG before calling
 `buffer-substring-filters', in case the functions need to know
 where the text came from.
 
-This function should be used instead of `buffer-substring' or
-`delete-and-extract-region' when you want to allow filtering to
-take place.  For example, major or minor modes can use
-`buffer-substring-filters' to extract characters that are special
-to a buffer, and should not be copied into other buffers."
-  (save-excursion
-    (goto-char beg)
-    (let ((string (if delete (delete-and-extract-region beg end)
-                    (buffer-substring beg end))))
-      (dolist (filter buffer-substring-filters string)
-        (setq string (funcall filter string))))))
+This function should be used instead of `buffer-substring',
+`buffer-substring-no-properties', or `delete-and-extract-region'
+when you want to allow filtering to take place.  For example,
+major or minor modes can use `buffer-substring-filters' to
+extract characters that are special to a buffer, and should not
+be copied into other buffers."
+  (cond
+   ((or delete buffer-substring-filters)
+    (save-excursion
+      (goto-char beg)
+      (let ((string (if delete (delete-and-extract-region beg end)
+		      (buffer-substring beg end))))
+	(dolist (filter buffer-substring-filters)
+	  (setq string (funcall filter string)))
+	(if noprops
+	    (set-text-properties 0 (length string) nil string))
+	string)))
+   (noprops
+    (buffer-substring-no-properties beg end))
+   (t
+    (buffer-substring beg end))))
+
 
 ;;;; Window system cut and paste hooks.
 
@@ -3731,7 +3749,7 @@ If point reaches the beginning or end of buffer, it stops there.
 To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (interactive "p")
   (or arg (setq arg 1))
-  
+
   (let ((orig (point)))
 
     ;; Move by lines, if ARG is not 1 (the default).

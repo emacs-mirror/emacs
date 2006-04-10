@@ -143,7 +143,7 @@ With prefix argument, don't jump to global mark when cancelling it."
       (let ((src-buf (current-buffer)))
 	(save-excursion
 	  (if (equal (marker-buffer cua--global-mark-marker) src-buf)
-	      (let ((text (buffer-substring-no-properties start end)))
+	      (let ((text (filter-buffer-substring start end nil t)))
 		(goto-char (marker-position cua--global-mark-marker))
 		(insert text))
 	    (set-buffer (marker-buffer cua--global-mark-marker))
@@ -167,7 +167,7 @@ With prefix argument, don't jump to global mark when cancelling it."
 	      (if (and (< start (marker-position cua--global-mark-marker))
 		       (< (marker-position cua--global-mark-marker) end))
 		  (message "Can't move region into itself")
-		(let ((text (buffer-substring-no-properties start end))
+		(let ((text (filter-buffer-substring start end nil t))
 		      (p1 (copy-marker start))
 		      (p2 (copy-marker end)))
 		  (goto-char (marker-position cua--global-mark-marker))

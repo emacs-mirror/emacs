@@ -2093,6 +2093,7 @@ _ACEOF
   ;;
   hppa*-hp-hpux1[1-9]* )
     machine=hp800 opsys=hpux11
+    CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
   ;;
 
   hppa*-*-linux-gnu* )
@@ -11230,7 +11231,7 @@ fi
 ### Is -lXaw3d available?
 HAVE_XAW3D=no
 if test "${HAVE_X11}" = "yes"; then
-  if test "${USE_X_TOOLKIT}" != "none"; then
+  if test "${USE_X_TOOLKIT}" != "none" && test "${with_toolkit_scroll_bars}" != "no"; then
             echo "$as_me:$LINENO: checking for X11/Xaw3d/Scrollbar.h" >&5
 echo $ECHO_N "checking for X11/Xaw3d/Scrollbar.h... $ECHO_C" >&6
 if test "${ac_cv_header_X11_Xaw3d_Scrollbar_h+set}" = set; then

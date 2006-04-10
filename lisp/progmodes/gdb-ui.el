@@ -571,9 +571,9 @@ With arg, use separate IO iff arg is positive."
 	   'gdb-set-gud-minor-mode-existing-buffers-1))
     (setq gdb-locals-font-lock-keywords gdb-locals-font-lock-keywords-2))
 
-  ;; find source file and compilation directory here
-  (gdb-enqueue-input (list "server list main\n"   'ignore))   ; C program
-  (gdb-enqueue-input (list "server list MAIN__\n" 'ignore))   ; Fortran program
+  ;; Find source file and compilation directory here.
+  ;; Works for C, C++, Fortran and Ada but not Java (GDB 6.4)
+  (gdb-enqueue-input (list "server list\n" 'ignore))
   (gdb-enqueue-input (list "server info source\n" 'gdb-source-info))
 
   (run-hooks 'gdba-mode-hook))

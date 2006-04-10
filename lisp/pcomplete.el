@@ -978,7 +978,9 @@ Typing SPC flushes the help buffer."
 		(set-window-configuration pcomplete-last-window-config)
 		(setq pcomplete-last-window-config nil)
 		(throw 'done nil))
-	       ((event-matches-key-specifier-p event 'tab)
+	       ((or (event-matches-key-specifier-p event 'tab)
+                    ;; Needed on a terminal
+                    (event-matches-key-specifier-p event 9))
 		(save-selected-window
 		  (select-window (get-buffer-window "*Completions*"))
 		  (if (pos-visible-in-window-p (point-max))

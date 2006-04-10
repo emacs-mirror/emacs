@@ -2765,9 +2765,15 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		(byte-compile-warn "`%s' used from Lisp code\n\
 That command is designed for interactive use only" fn))
 	   (if (and handler
-		    (or (not (byte-compile-version-cond
-			      byte-compile-compatibility))
-			(not (get (get fn 'byte-opcode) 'emacs19-opcode))))
+                    ;; Make sure that function exists.  This is important
+                    ;; for CL compiler macros since the symbol may be
+                    ;; `cl-byte-compile-compiler-macro' but if CL isn't
+                    ;; loaded, this function doesn't exist.
+                    (or (not (memq handler '(cl-byte-compile-compiler-macro)))
+                        (fboundp handler))
+		    (not (and (byte-compile-version-cond
+                               byte-compile-compatibility)
+                              (get (get fn 'byte-opcode) 'emacs19-opcode))))
                (funcall handler form)
 	     (when (memq 'callargs byte-compile-warnings)
 	       (if (memq fn '(custom-declare-group custom-declare-variable custom-declare-face))
