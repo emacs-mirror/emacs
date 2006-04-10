@@ -1,3 +1,7 @@
+2006-04-10  Richard Stallman  <rms@gnu.org>
+
+	* finder.el (finder-mode-map): Add n and p bindings.
+
 2006-04-10  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-init-1): Re-initialise gdb-main-file to nil.
