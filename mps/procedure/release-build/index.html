@@ -59,7 +59,7 @@
 
 <ol>
 
-<li><p> Choose a release name of the form "VERSION.N" (for example,
+<li><p> Choose a RELEASE name of the form "VERSION.N" (for example,
 0.3.0). VERSION is the number of the version you're releasing.  N is the
 first unused release number (starting at zero).  Look in the index of
 releases (release/index.html) for existing release numbers for your
@@ -77,11 +77,17 @@ and the correct release name. </p> </li>
     and check strings that contain copyright dates, etc.
 </p> </li>
 
-<li><p> <strong>Submit <code>readme.txt</code> 
-and <code>version.c</code> 
+<li><p> Please update
+    <code>version/<i>VERSION</i>/example/hello-world/index.txt</code>, 
+    so that it works with the RELEASE you are creating
+    (eg. 1.106.1 &rarr; 1.106.2).
+</p> </li>
+
+<li><p> <strong>Submit <code>readme.txt</code>, 
+<code>version.c</code>, and other changed files
 to Perforce before you continue.</strong> </p></li>
 
-<li><p> Determine the changelevel at which you're going to make the
+<li><p> Determine the CHANGELEVEL at which you're going to make the
 release.  This will usually be the latest submitted changelevel on the
 version branch; to get it, use p4 changes with a max of 1 (one):</p> <blockquote> <code>p4 changes -m 1
 version/VERSION/...</code> </blockquote> </li>
@@ -97,7 +103,7 @@ version/VERSION/...</code> </blockquote> </li>
 
 <li>
 
-  <p> Sync the version sources to the changelevel you determined in step 2.1.  Sync the version sources to a clean area of the disk, to be sure that there are no extraneous files around. </p>
+  <p> Sync the version sources to the CHANGELEVEL you determined in step 2.1.  Sync the version sources to a clean area of the disk, to be sure that there are no extraneous files around. </p>
 
   <blockquote> <code>
     p4 sync version/VERSION/...#none <br />
@@ -144,7 +150,7 @@ release RELEASE." </p> </li>
 
 <ol>
 
-<li> <p> Sync the version sources to the changelevel you determined in step 2.1.  Sync the version sources to a clean area of the disk, to be sure that there are no extraneous files around. </p> </li>
+<li> <p> Sync the version sources to the CHANGELEVEL you determined in step 2.1.  Sync the version sources to a clean area of the disk, to be sure that there are no extraneous files around. </p> </li>
 
 <li> <p> Launch WinZip and create a new archive called "mps-kit-RELEASE.zip" in the directory "release/RELEASE".  Add the MPS sources by selecting "version/VERSION" and turning on "Include subfolders" option. </p> </li>
 
