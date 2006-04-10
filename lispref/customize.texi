@@ -130,6 +130,25 @@ any effect unless the code which implements the mode is loaded.
 This option specifies that the item was first introduced in Emacs
 version @var{version}, or that its default value was changed in that
 version.  The value @var{version} must be a string.
+
+@item :package-version '(@var{package} @var{version})
+This option specifies that the item was first introduced in
+@var{package} version @var{version}, or that its default value was
+changed in that version.  This keyword takes priority over :version.
+The @var{package} and @var{version} must appear in the alist
+@code{customize-package-emacs-version-alist}.  This alist maps packages
+to alists that map all package versions used with the
+@code{:package-version} keyword to Emacs versions.  Packages are
+symbols and versions are strings.  For example, the MH-E package
+updates this alist with the following:
+
+@smallexample
+(add-to-list 'customize-package-emacs-version-alist
+             '(MH-E ("6.0" "22.1") ("6.1" "22.1") ("7.0" "22.1")
+                    ("7.1" "22.1") ("7.2" "22.1") ("7.3" "22.1")
+                    ("7.4" "22.1") ("8.0" "22.1")))
+@end smallexample
+
 @end table
 
 @node Group Definitions
