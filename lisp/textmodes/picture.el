@@ -758,8 +758,9 @@ they are not defaultly assigned to keys."
 
 (defun picture-mode-exit (&optional nostrip)
   "Undo `picture-mode' and return to previous major mode.
-With no argument strips whitespace from end of every line in Picture buffer
-  otherwise just return to previous mode."
+With no argument, strip whitespace from end of every line in Picture buffer;
+  otherwise, just return to previous mode.
+Runs `picture-mode-exit-hook' at the end."
   (interactive "P")
   (if (not (eq major-mode 'picture-mode))
       (error "You aren't editing a Picture")
@@ -769,7 +770,8 @@ With no argument strips whitespace from end of every line in Picture buffer
     (setq major-mode picture-mode-old-major-mode)
     (kill-local-variable 'tab-stop-list)
     (setq truncate-lines picture-mode-old-truncate-lines)
-    (force-mode-line-update)))
+    (force-mode-line-update)
+    (run-hooks 'picture-mode-exit-hook)))
 
 (provide 'picture)
 
