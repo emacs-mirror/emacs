@@ -1538,7 +1538,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	  (goto-char (point-min))
 	  (save-window-excursion
 	    (switch-to-buffer (current-buffer))
-	    (sit-for 120))))
+	    (sit-for 120)))
     ;; Unwind ... ensure splash buffer is killed
     (kill-buffer "GNU Emacs"))))
 
