@@ -365,6 +365,9 @@ Boston, MA 02110-1301, USA.  */
 #define ftruncate _chsize
 #define getw	  _getw
 #define getpid    _getpid
+#ifdef _MSC_VER
+typedef int pid_t;
+#endif
 #define isatty    _isatty
 #define logb      _logb
 #define _longjmp  longjmp
