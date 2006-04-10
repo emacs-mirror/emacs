@@ -1,3 +1,9 @@
+2006-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment): Fix last
+	change for when the locale's preferences don't specify any
+	encoding.
+
 2006-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/find-func.el (find-function-search-for-symbol): Fix regexp

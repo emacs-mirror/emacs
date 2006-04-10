@@ -1,3 +1,7 @@
+2006-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (pid_t) [_MSC_VER]: New typedef.
+
 2006-04-10  Romain Francoise  <romain@orebokech.com>
 
 	* xrdb.c (gethomedir): Use xstrdup.
