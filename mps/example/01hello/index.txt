@@ -1,16 +1,27 @@
-# Confidential: no.  Readership: MPS users.  Status: incomplete.
+# Confidential: no.  Readership: MPS users.  Status: complete.
 # Author: RHSK 2006-02-17.  Copyright (C) 2006 Ravenbrook Limited 
 # <http://www.ravenbrook.com/>.  All rights reserved.  
+# See end of file for license.
 # $Id$
-#	You can use rundoccode.py to automatically extract and run the 
-#	code snippets in this document.
 
 
-This document shows you how to call the MPS from your code.  
+This is the "hello-world" example; it shows you how to call the MPS from your code.  
 
-To begin using the MPS, get a copy of the MPS-kit.  (You've probably already got this, but if not look at <http://www.ravenbrook.com/>).  You can skip the MPS-kit readme.txt file for now.  
+To begin, get a copy of the MPS-kit from:
+  <http://www.ravenbrook.com/project/mps/release/>
 
-[Insert: instructions and layout of directory for the rest of this demo: where to put the MPS-kit]
+Unpack the MPS-kit.  (You don't need to compile anything yet, so you can skip the MPS-kit readme.txt file for now).  
+
+The MPS-kit unpacks to a directory named "mps-kit-1.106.2" (or similar), with subdirectories like this:
+
+    mps-kit-1.106.2/
+        code/
+        design/
+        example/
+        manual/
+        procedure/
+        test/
+        tool/
 
 The MPS is a software library, implemented in C.  The types, functions, macros, constants, etc (collectively called "facilities") are declared in the MPS header files: your code must '#include' the MPS header files for the facilities you use.  The facilities are implemented in the MPS libraries: your code must link with the libraries containing the facilities you use.  The examples below show how to do this.  
 
@@ -27,11 +38,13 @@ Here is a tiny C program to #include the "mps.h" header file and check that it c
     
     int main(void)
     {
-      mps_arena_class_t ArenaClassDemo;
+      mps_arena_t ArenaDemo;
       return 0;  /* success */
     }
 
-The "mps.h" header file declares the major (non-optional) MPS facilities, and all MPS client code needs to #include it.  Find the "mps.h" header file in the "code" subdirectory of the MPS-kit.  
+The "mps.h" header file declares the major (non-optional) MPS facilities, and all MPS client code needs to #include it.  Find the "mps.h" header file in the "code" subdirectory of the MPS-kit:
+
+    mps-kit-1.106.2/code/mps.h
 
 For now, just put a copy of "mps.h" into a working directory where you can try the following examples.  Now you can compile and run "01checkmpsheader.c".  On Unix you might use:
 
@@ -65,6 +78,7 @@ The "mps_arena_class_cl" function is declared in the additional MPS header file 
     
     int main(void)
     {
+      mps_arena_t ArenaDemo;
       mps_arena_class_t ArenaClassDemo = NULL;
     
       ArenaClassDemo = mps_arena_class_cl();
@@ -86,7 +100,7 @@ The MPS library: "mps.a"
 
 The MPS library is available on many platforms: Windows, many Unixes, Mac OS X, etc.  See the MPS-kit readme.txt file for details.  For example, to compile the MPS library for Mac OS X, you might use this:
 
-    % cd mps-kit-1.106.1/code; make -f xcppgc.gmk VARIETY=ci mps.a
+    % cd mps-kit-1.106.2/code; make -f xcppgc.gmk VARIETY=ci mps.a
 
 Briefly: "-f xcppgc.gmk" tells the buildsystem to use the makefile for Mac OS X ("xc"), for the PowerPC architecture ("pp"), using the GCC compiler ("gc").  "VARIETY=ci" tells it to build the 'cool internal' variety, which includes asserts and other run-time checks.  
 
@@ -96,7 +110,7 @@ There is nothing magical about "mps.a": it is just a collection of object files 
 
 However, when we try to link with it, we find that the MPS library itself has dependencies:
 
-    % gcc  02checkarenaclassheader.c  mps-kit-1.106.1/code/xcppgc/ci/mps.a
+    % gcc  02checkarenaclassheader.c  mps-kit-1.106.2/code/xcppgc/ci/mps.a
     % # (this will fail)
 
 
@@ -111,11 +125,11 @@ We don't have to write our own plinth: the MPS-kit includes an example plinth th
 
 To build the example plinth for Mac OS X, use:
 
-    % cd mps-kit-1.106.1/code; make -f xcppgc.gmk VARIETY=ci mpsplan.a
+    % cd mps-kit-1.106.2/code; make -f xcppgc.gmk VARIETY=ci mpsplan.a
 
 Now we can link and run our simple demo file:
 
-    % gcc  02checkarenaclassheader.c  mps-kit-1.106.1/code/xcppgc/ci/mps.a  mps-kit-1.106.1/code/xcppgc/ci/mpsplan.a
+    % gcc  02checkarenaclassheader.c  mps-kit-1.106.2/code/xcppgc/ci/mps.a  mps-kit-1.106.2/code/xcppgc/ci/mpsplan.a
     % ./a.out && echo "success"
 
 
@@ -181,7 +195,7 @@ Look up the reference manual entry for mps_arena_class_cl() at <http://www.raven
 
 To run this file:
 
-    % gcc  03arena_create.c  mps-kit-1.106.1/code/xcppgc/ci/mps.a  mps-kit-1.106.1/code/xcppgc/ci/mpsplan.a
+    % gcc  03arena_create.c  mps-kit-1.106.2/code/xcppgc/ci/mps.a  mps-kit-1.106.2/code/xcppgc/ci/mpsplan.a
     % ./a.out
 
 
@@ -196,19 +210,17 @@ The functions we need are "mps_class_mv()" and "mps_pool_create()" -- these are 
 
 Put a copy of "mpscmv.h" into your working directory ("mpsc" stands for "MPS (pool) Class"; "MV" is the name of the pool class).  It declares the "mps_class_mv" function, and some useful pool-class-specific functions.  We will use "mps_class_mv()" and "mps_mv_free_size()".  
 
-If you attempt to look up the reference manual entries for "mps_class_mv()" and "mps_pool_create()", you will find they are missing.  [Section 4][] of the reference manual lists them as valid client-callable functions, but currently undocumented.  Don't despair.  Look in the "code" subdirectory of the MPS-kit, and find the file "poolmv.h".  
+If you attempt to look up the reference manual entries for "mps_class_mv()" and "mps_pool_create()", you will find they are missing.  Section 4 of the reference manual lists them as valid client-callable functions, but currently undocumented:
 
-  [Section 4]: <http://www.ravenbrook.com/project/mps/master/manual/reference/#section-4>
+  <http://www.ravenbrook.com/project/mps/master/manual/reference/#section-4>
 
-[RefMan: document "mps_class_mv" and and "mps_pool_create"]
+Don't despair.  Look in the "code" subdirectory of the MPS-kit, and find the file "poolmv.h".  
 
 The "poolmv.h" file is internal to the MPS, and contains part of the implementation of the "MV" pool class.  The MPS tries hard to keep its external interface (header files beginning "mps...") separate from its internal details.  Where the external documentation is lacking, you can look at internal materials such as design documentation, implementation files, and module test files, but be aware that you have crossed over to the 'internal world' of the MPS.  Two differences you may notice in internal code are that the types used are different, and function names are different.  It should go without saying that your client code should never rely on the particular details of the MPS implementation.  If you (as an MPS user writing client code) find yourself needing to look inside the MPS implementation, that suggests there is a fault in the external documentation: please contact us and let us know.  
 
 The parameters used to create a pool of class "MV" are discussed in the comments at the top of the "poolmv.h" file.  When creating a pool of class "MV", mps_pool_create requires three extra arguments, which hold tuning parameters that help the pool to perform its tasks efficiently.  The first and third arguments relate to the size of the pool; the second argument relates to the size of objects in the pool.  (See the comments in "poolmv.h" for more detail).  
 
-All three arguments are counts of bytes.  The correct type for client code to specify counts of bytes is "size_t".  (Note that it is incorrect to use the "Size" type -- this is an MPS-internal type).  
-
-[How do I know that "size_t" is the correct type?  Boo for varargs.]
+All three arguments are counts of bytes.  The correct type for client code to specify counts of bytes is "size_t".  (This is not documented; it ought to be documented under "mps_class_mv" in the reference manual.  Note that it is incorrect to use the "Size" type -- this is an MPS-internal type.)
 
 Finally, note that:
 "mpscmv.h" is an 'external' header file -- part of the interface to the MPS, which you #include.
@@ -279,7 +291,7 @@ Here is code to create an arena, and create an MV class pool within it:
 
 Compiling and running this produces the possibly surprising result that the freshly-created pool has zero (0) bytes free:
 
-    % gcc  04pool_create.c  mps-kit-1.106.1/code/xcppgc/ci/mps.a  mps-kit-1.106.1/code/xcppgc/ci/mpsplan.a
+    % gcc  04pool_create.c  mps-kit-1.106.2/code/xcppgc/ci/mps.a  mps-kit-1.106.2/code/xcppgc/ci/mpsplan.a
     % ./a.out
     % # (should say: "PoolDemo has 0 bytes free.")
 
@@ -383,10 +395,59 @@ Finally, we can now allocate some memory!  We use the simple "mps_alloc" functio
 
 To compile and run this:
 
-    % gcc  05alloc.c  mps-kit-1.106.1/code/xcppgc/ci/mps.a  mps-kit-1.106.1/code/xcppgc/ci/mpsplan.a
+    % gcc  05alloc.c  mps-kit-1.106.2/code/xcppgc/ci/mps.a  mps-kit-1.106.2/code/xcppgc/ci/mpsplan.a
     % ./a.out
     % # (should say: "PoolDemo has 0 bytes free.")
     % # (and then:   "PoolDemo has NNNN bytes free.", where NNNN depends on platform.)
     % # (and then:   "hello, world")
+
+That's the end of this example code.
+
+
+DOCUMENT HISTORY
+
+2006-02-17  RHSK  Created from scratch, referencing version/1.106.1
+2006-04-10  RHSK  Tidy for release; refer to version/1.106.2
+
+
+COPYRIGHT AND LICENSE
+
+Copyright (C) 2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved.  This is an open source license.  Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains.
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 [END]
