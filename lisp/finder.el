@@ -104,6 +104,8 @@
     (define-key map [mouse-2]	'finder-mouse-select)
     (define-key map "\C-m"	'finder-select)
     (define-key map "?"	'finder-summary)
+    (define-key map "n" 'next-line)
+    (define-key map "p" 'previous-line)
     (define-key map "q"	'finder-exit)
     (define-key map "d"	'finder-list-keywords)
     map))
