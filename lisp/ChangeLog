@@ -1,3 +1,11 @@
+2006-04-09  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/picture.el (picture-mode-exit): Run picture-mode-exit-hook.
+
+	* play/landmark.el (lm-font-lock-face-O, lm-font-lock-face-X):
+	Make them faces.
+	(lm-font-lock-keywords): Update appropriately.
+
 2006-04-10  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (filter-buffer-substring): Add NOPROPS arg, so
