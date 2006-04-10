@@ -3692,6 +3692,12 @@ variables, including buffer-local and frame-local variables.
 ** defcustom changes:
 
 +++
+*** The package-version keyword has been added to provide
+`customize-changed-options' functionality to packages in the future.
+Developers who make use of this keyword must also update the new
+variable `customize-package-emacs-version-alist'.
+
++++
 *** The new customization type `float' requires a floating point number.
 
 ** String changes:
