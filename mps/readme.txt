@@ -50,7 +50,9 @@ This document is not confidential.
 
 This is release 1.106.2, made on 2006-04-11.
 
-Changes from release 1.106.1 include:
+Changes from release 1.106.1:
+
+No functional changes to MPS implementation code.
 
 Fixed <http://www.ravenbrook.com/project/mps/issue/job001352/>
   - the "mps.a" library does not (now) contain plinth files;
