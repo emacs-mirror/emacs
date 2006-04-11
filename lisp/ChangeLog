@@ -1,5 +1,11 @@
 2006-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* hexl.el (hexl-isearch-search-function): Fix regexp-building code to
+	quote special chars, and make the trick work on the hex part of the
+	buffer as well.
+	(hexl-mode, hexl-save-buffer, hexl-mode-exit)
+	(hexl-maybe-dehexlify-buffer): Use restore-buffer-modified-p.
+
 	* startup.el (normal-splash-screen): Fix last change so we don't wait
 	2 minutes if we don't show the splash screen.
 
