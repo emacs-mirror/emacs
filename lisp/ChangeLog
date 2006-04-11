@@ -1,6 +1,13 @@
+2006-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-ensure-vc-buffer): Only change current-buffer, not the
+	window configuration.
+	(vc-annotate-display-select): Select the buffer so that current-buffer
+	(and selected-window) is the output buffer at the end of vc-annotate.
+
 2006-04-11  J.D. Smith  <jdsmith@as.arizona.edu>
 
-	* vc.el (vc-annotate-color-map): Added custom TTY color map for
+	* vc.el (vc-annotate-color-map): Add custom TTY color map for
 	8-color terminals, to use all of the colors in a sensible order.
 	256-color terminals work well with the standard map.
 	(vc-annotate-lines): Only strip the first color character if it

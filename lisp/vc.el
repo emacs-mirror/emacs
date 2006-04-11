@@ -886,7 +886,7 @@ However, before executing BODY, find FILE, and after BODY, save buffer."
   (if vc-dired-mode
       (set-buffer (find-file-noselect (dired-get-filename)))
     (while vc-parent-buffer
-      (pop-to-buffer vc-parent-buffer))
+      (set-buffer vc-parent-buffer))
     (if (not buffer-file-name)
 	(error "Buffer %s is not associated with a file" (buffer-name))
       (if (not (vc-backend buffer-file-name))
@@ -3047,9 +3047,7 @@ BUFFER.  `vc-annotate-display-mode' specifies the highlighting mode to
 use; you may override this using the second optional arg MODE."
   (interactive)
   (if mode (setq vc-annotate-display-mode mode))
-  (when buffer
-    (set-buffer buffer)
-    (display-buffer buffer))
+  (pop-to-buffer (or buffer (current-buffer)))
   (cond ((null vc-annotate-display-mode)
          ;; The ratio is global, thus relative to the global color-map.
          (kill-local-variable 'vc-annotate-color-map)
