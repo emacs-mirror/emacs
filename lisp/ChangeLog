@@ -4,6 +4,11 @@
 	:package-version keyword.
 	(custom-add-package-version): New function. Sets value of new
 	property 'custom-package-version from :package-version keyword.
+	(defcustom): Create Common Keywords section in docstring.
+	(defface, defgroup): Replace definitions of a select few keywords
+	with a reference to the Common Keywords in defcustom.
+	(defcustom, defface, defgroup): Replace reference to Customization
+	chapter in manual with hyperlink.
 
 	* cus-edit.el (customize-package-emacs-version-alist): New
 	variable.

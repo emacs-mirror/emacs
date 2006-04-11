@@ -203,8 +203,27 @@ The following keywords are meaningful:
 
 :type	VALUE should be a widget type for editing the symbol's value.
 :options VALUE should be a list of valid members of the widget type.
+:initialize
+	VALUE should be a function used to initialize the
+	variable.  It takes two arguments, the symbol and value
+	given in the `defcustom' call.  The default is
+	`custom-initialize-reset'.
+:set	VALUE should be a function to set the value of the symbol.
+	It takes two arguments, the symbol to set and the value to
+	give it.  The default choice of function is `custom-set-default'.
+:get	VALUE should be a function to extract the value of symbol.
+	The function takes one argument, a symbol, and should return
+	the current value for that symbol.  The default choice of function
+	is `custom-default-value'.
+:require
+	VALUE should be a feature symbol.  If you save a value
+	for this option, then when your `.emacs' file loads the value,
+	it does (require VALUE) first.
+
+The following common keywords are also meaningful.
+
 :group  VALUE should be a customization group.
-        Add SYMBOL to that group.
+        Add SYMBOL (or FACE with `defface') to that group.
 :link LINK-DATA
         Include an external link after the documentation string for this
         item.  This is a sentence containing an active field which
@@ -248,22 +267,6 @@ The following keywords are meaningful:
 
         An item can have more than one external link; however, most items
         have none at all.
-:initialize
-	VALUE should be a function used to initialize the
-	variable.  It takes two arguments, the symbol and value
-	given in the `defcustom' call.  The default is
-	`custom-initialize-reset'.
-:set	VALUE should be a function to set the value of the symbol.
-	It takes two arguments, the symbol to set and the value to
-	give it.  The default choice of function is `custom-set-default'.
-:get	VALUE should be a function to extract the value of symbol.
-	The function takes one argument, a symbol, and should return
-	the current value for that symbol.  The default choice of function
-	is `custom-default-value'.
-:require
-	VALUE should be a feature symbol.  If you save a value
-	for this option, then when your `.emacs' file loads the value,
-	it does (require VALUE) first.
 :version
         VALUE should be a string specifying that the variable was
         first introduced, or its default value was changed, in Emacs
@@ -292,8 +295,8 @@ to load a file defining variables with this form, or with
 _outside_ any bindings for these variables.  \(`defvar' and
 `defconst' behave similarly in this respect.)
 
-Read the section about customization in the Emacs Lisp manual for more
-information."
+See Info node `(elisp) Customization' in the Emacs Lisp manual
+for more information."
   (declare (doc-string 3))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
@@ -320,10 +323,8 @@ The remaining arguments should have the form
 
    [KEYWORD VALUE]...
 
-The following KEYWORDs are defined:
-
-:group  VALUE should be a customization group.
-        Add FACE to that group.
+For a list of valid keywords, see the common keywords listed in
+`defcustom'.
 
 SPEC should be an alist of the form ((DISPLAY ATTS)...).
 
@@ -374,8 +375,8 @@ corresponding ITEMs.  These are the defined REQ values:
   the function `display-supports-face-attributes-p' for more
   information on exactly how testing is done.
 
-Read the section about customization in the Emacs Lisp manual for more
-information."
+See Info node `(elisp) Customization' in the Emacs Lisp manual
+for more information."
   (declare (doc-string 3))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
@@ -432,16 +433,11 @@ The remaining arguments should have the form
 
    [KEYWORD VALUE]...
 
-The following KEYWORDs are defined:
+For a list of valid keywords, see the common keywords listed in
+`defcustom'.
 
-:group   VALUE should be a customization group.
-         Add SYMBOL to that group.
-
-:version VALUE should be a string specifying that the group was introduced
-         in Emacs version VERSION.
-
-Read the section about customization in the Emacs Lisp manual for more
-information."
+See Info node `(elisp) Customization' in the Emacs Lisp manual
+for more information."
   (declare (doc-string 3))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
