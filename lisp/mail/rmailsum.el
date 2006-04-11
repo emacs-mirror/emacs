@@ -1166,7 +1166,7 @@ Completion is performed over known labels when reading."
   (interactive (list (with-current-buffer rmail-buffer
 		       (rmail-read-label "Kill label" t))))
   (with-current-buffer rmail-buffer
-    (rmail-kill-label label nil)))
+    (rmail-kill-label label)))
 
 ;;;; *** Rmail Summary Mailing Commands ***
 
