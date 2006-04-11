@@ -1,3 +1,35 @@
+2006-04-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-button-valid-localpart-regexp): Exclude `@'.
+
+2006-04-11  Arne J,Ax(Brgensen  <arne@arnested.dk>
+
+	* gnus-sieve.el (gnus-sieve-generate): Delete from the start of
+	the sieve region.
+
+2006-04-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.el: Gnus v5.10.8 is released.
+
+2006-04-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnslashdot.el (nnslashdot-retrieve-headers-1): Fix up to new
+	layout.
+
+	* rfc2047.el (rfc2047-decode-encoded-words): Don't message about
+	unknown charset.
+
+	* message.el (message-header-synonyms): Add Original-To to the
+	default.
+
+	* gnus-sum.el (gnus-get-newsgroup-headers-xover): group is an
+	optional parameter.
+
+2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pgg-gpg.el: Revert to revision 7.15 to allow the use of
+	gpg-agent.
+
 2006-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-fun.el (gnus): Require it for gnus-directory.

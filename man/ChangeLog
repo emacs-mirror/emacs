@@ -1,3 +1,12 @@
+2006-04-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi, gnus-faq.texi, message.texi: Gnus v5.10.8 is released.
+
+2006-04-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Misc Group Stuff, Summary Buffer, Article Keymap)
+	(Server Commands): Key `v' is reserved for users.
+
 2006-04-11  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* files.texi (Old Versions): Update description of vc-annotate's
