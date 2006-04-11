@@ -1,3 +1,8 @@
+2006-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* startup.el (normal-splash-screen): Fix last change so we don't wait
+	2 minutes if we don't show the splash screen.
+
 2006-04-11  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-export-plain-list-max-depth)
@@ -17,14 +22,14 @@
 	(org-table-create-or-convert-from-region): New commands
 	(org-table-toggle-vline-visibility): Command removed.
 	(org-table-convert-region): Made a command.
-	(orgtbl-deleta-backward-char,orgtbl-delete-char): Commands
-	removed, replaced with the normal org- functions.
+	(orgtbl-deleta-backward-char,orgtbl-delete-char): Remove commands.
+	Replace with the normal org- functions.
 	(org-self-insert-command): Don't trigger realign unnecessarily
 	when blanking a field that is not full.
 	(org-mode): `Set buffer-invisibility-spec' for links.
 	(org-activate-links2): Hide link part and only show descriptive
 	part of the link.
-	(org-insert-link): Modified for new linking system.
+	(org-insert-link): Modify for new linking system.
 	(org-store-link): Store description separately, for use by
 	`org-insert-link'.
 	(org-table-align): Use `org-string-width'.
@@ -67,8 +72,7 @@
 2006-04-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/mule-cmds.el (set-locale-environment): Fix last
-	change for when the locale's preferences don't specify any
-	encoding.
+	change for when the locale's preferences don't specify any encoding.
 
 2006-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -1534,17 +1534,15 @@ Type \\[describe-distribution] for information on getting the latest version."))
           ;; Display the input that we set up in the buffer.
           (set-buffer-modified-p nil)
           (goto-char (point-min))
-          (save-window-excursion
-            (condition-case nil
-                (switch-to-buffer (current-buffer))
-              ;; In case we're in a dedicated or minibuffer-only window.
-              (error
-               ;; There's no point is using pop-to-buffer since creating
-               ;; a new frame will generate enough events that the
-               ;; subsequent `sit-for' will immediately return anyway.
-               ;; (pop-to-buffer (current-buffer))
-               ))
-            (sit-for 120)))
+          (if (or (window-minibuffer-p)
+                  (window-dedicated-p (selected-window)))
+              ;; There's no point is using pop-to-buffer since creating
+              ;; a new frame will generate enough events that the
+              ;; subsequent `sit-for' will immediately return anyway.
+              nil ;; (pop-to-buffer (current-buffer))
+            (save-window-excursion
+              (switch-to-buffer (current-buffer))
+              (sit-for 120))))
       ;; Unwind ... ensure splash buffer is killed
       (kill-buffer "GNU Emacs"))))
 
