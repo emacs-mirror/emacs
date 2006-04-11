@@ -1922,8 +1922,8 @@ non-nil then do not show any progress messages."
 				       keywords
 				       date
 				       (count-lines start end)
-				       (cadr (mail-extract-address-components
-					      (rmail-header-get-header "from")))
+				       (cadr (mail-extract-address-components; does not like nil
+					      (or (rmail-header-get-header "from") "")))
 				       (or (rmail-header-get-header "subject")
 					   "none")))
 			   message-descriptor-list)))))
