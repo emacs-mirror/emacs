@@ -1,3 +1,13 @@
+2006-04-11  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* vc.el (vc-annotate-color-map): Added custom TTY color map for
+	8-color terminals, to use all of the colors in a sensible order.
+	256-color terminals work well with the standard map.
+	(vc-annotate-lines): Only strip the first color character if it
+	is "#", to allow for terminal-style named colors.
+	(vc-annotate-warp-version): Pass buf to `goto-line' to ensure
+	the correct buffer is scrolled.
+
 2006-04-11  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file):
@@ -66,6 +76,19 @@
 	(org-remember-handler): Correctly preserve heading if present.
 	(org-table-insert-row, org-table-insert-hline): Deal with
 	invisible characters.
+
+2006-04-10  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* vc.el (vc-annotate-display-mode): Made default 'fullscale.
+	(vc-annotate-color-map): New 18 element constant
+	value/saturation, rotating hue colormap, from red->blue.
+	(vc-annotate-mode-menu): "Default" -> "By Color Map Range".
+	(vc-annotate-display-select): Switch to annotate-mode elsewhere.
+	(vc-annotate): To avoid killing the required local variables,
+	set them before the end of `with-output-to-temp-buffer', and
+	after first switching to annotate-mode.
+	(vc-annotate-warp-version): Add buffer argument in goto-line to
+	ensure annotation, not source, is scrolled.
 
 2006-04-10  Bill Wohler  <wohler@newt.com>
 

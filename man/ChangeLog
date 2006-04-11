@@ -1,3 +1,8 @@
+2006-04-11  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* files.texi (Old Versions): Update description of vc-annotate's
+	use of color to indicate date ranges.
+
 2006-04-11  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Link format): New section, emphasis on bracket links.
