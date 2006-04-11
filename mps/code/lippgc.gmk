@@ -7,7 +7,7 @@
 
 PFM = lippgc
 
-MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmli.c \
+MPMPF = lockan.c than.c vmli.c \
         protan.c prmcan.c ssan.c span.c
 
 LIBS = -lm
