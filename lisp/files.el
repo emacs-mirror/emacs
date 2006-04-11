@@ -444,14 +444,19 @@ use `before-save-hook'.")
 
 (defcustom enable-local-variables t
   "*Control use of local variables in files you visit.
-The value can be t, nil or something else.
+The value can be t, nil, :safe, or something else.
 
 A value of t means file local variables specifications are obeyed
 if all the specified variable values are safe; if any values are
 not safe, Emacs queries you, once, whether to set them all.
+\(When you say yes to certain values, they are remembered as safe.)
 
-A value of nil means always ignore the file local variables.
+:safe means set the safe variables, and ignore the rest.
+nil means always ignore the file local variables.
+
 Any other value means always query you once whether to set them all.
+\(When you say yes to certain values, they are remembered as safe, but
+this has no effect when `enable-local-variables' is \"something else\".)
 
 This variable also controls use of major modes specified in
 a -*- line.
@@ -460,6 +465,7 @@ The command \\[normal-mode], when used interactively,
 always obeys file local variable specifications and the -*- line,
 and ignores this variable."
   :type '(choice (const :tag "Obey" t)
+		 (const :tag "Safe Only" :safe)
 		 (const :tag "Ignore" nil)
 		 (other :tag "Query" other))
   :group 'find-file)
@@ -1779,8 +1785,7 @@ Uses the visited file name, the -*- line, and the local variables spec.
 
 This function is called automatically from `find-file'.  In that case,
 we may set up the file-specified mode and local variables,
-depending on the value of `enable-local-variables': if it is t, we do;
-if it is nil, we don't; otherwise, we query.
+depending on the value of `enable-local-variables'.
 In addition, if `local-enable-local-variables' is nil, we do
 not set local variables (though we do notice a mode specified with -*-.)
 
@@ -2413,8 +2418,7 @@ n  -- to ignore the local variables list.")
 			    ""
 			  ", or C-v to scroll")))
 	  (goto-char (point-min))
-	  (let ((inhibit-quit t)
-		(cursor-in-echo-area t)
+	  (let ((cursor-in-echo-area t)
 		(exit-chars
 		 (if offer-save '(?! ?y ?n ?\s ?\C-g) '(?y ?n ?\s ?\C-g)))
 		done)
@@ -2426,9 +2430,7 @@ n  -- to ignore the local variables list.")
 		      (condition-case nil
 			  (scroll-up)
 			(error (goto-char (point-min))))
-		    (setq done (memq (downcase char) exit-chars)))))
-	    (if (= char ?\C-g)
-		(setq quit-flag nil)))
+		    (setq done (memq (downcase char) exit-chars))))))
 	  (setq char (downcase char))
 	  (when (and offer-save (= char ?!) unsafe-vars)
 	    (dolist (elt unsafe-vars)
@@ -2616,13 +2618,22 @@ is specified, returning t if it is specified."
 		    (and (risky-local-variable-p var val)
 			 (push elt risky-vars))
 		    (push elt unsafe-vars))))
-	    (if (or (and (eq enable-local-variables t)
-			 (null unsafe-vars)
-			 (null risky-vars))
-		    (hack-local-variables-confirm
-		     result unsafe-vars risky-vars))
+	    (if (eq enable-local-variables :safe)
+		;; If caller wants only the safe variables,
+		;; install only them.
 		(dolist (elt result)
-		  (hack-one-local-variable (car elt) (cdr elt)))))
+		  (unless (or (memq (car elt) unsafe-vars)
+			      (memq (car elt) risky-vars))
+		    (hack-one-local-variable (car elt) (cdr elt))))
+	      ;; Query, except in the case where all are known safe
+	      ;; if the user wants no quuery in that case.
+	      (if (or (and (eq enable-local-variables t)
+			   (null unsafe-vars)
+			   (null risky-vars))
+		      (hack-local-variables-confirm
+		       result unsafe-vars risky-vars))
+		  (dolist (elt result)
+		    (hack-one-local-variable (car elt) (cdr elt))))))
 	  (run-hooks 'hack-local-variables-hook))))))
 
 (defun safe-local-variable-p (sym val)
