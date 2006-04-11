@@ -1,3 +1,11 @@
+2006-04-11  Alex Schroeder  <alex@gnu.org>
+
+	* rmailsum.el (rmail-summary-kill-label): Call rmail-kill-label
+	with only one argument.
+
+	* rmail.el (rmail-process-new-messages): Handle missing From
+	line (usually spam).
+
 2006-03-09  Henrik Enberg  <enberg@printf.se>
 
 	* rmailedit.el (rmail-edit-map): Initialize at definition.  Doc
