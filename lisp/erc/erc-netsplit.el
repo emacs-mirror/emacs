@@ -64,7 +64,8 @@ sever buffer."
   :group 'erc-netsplit
   :type 'boolean)
 
-(defcustom erc-netsplit-regexp "^[^ @!\"]+\\.[^ @!]+ [^ @!]+\\.[^ @!\"]+$"
+(defcustom erc-netsplit-regexp
+  "^[^ @!\"\n]+\\.[^ @!\n]+ [^ @!\n]+\\.[^ @!\"\n]+$"
   "This regular expression should match quit reasons produced
 by netsplits."
   :group 'erc-netsplit
@@ -131,7 +132,7 @@ join from that split has been detected or not.")
 (defun erc-netsplit-MODE (proc parsed)
   "Hide mode changes from servers."
   ;; regexp matches things with a . in them, and no ! or @ in them.
-  (when (string-match "^[^@!]+\\.[^@!]+$" (erc-response.sender parsed))
+  (when (string-match "^[^@!\n]+\\.[^@!\n]+$" (erc-response.sender parsed))
     (and erc-netsplit-debug
 	 (erc-display-message
 	  parsed 'notice (process-buffer proc)
