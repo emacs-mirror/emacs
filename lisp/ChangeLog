@@ -1,5 +1,8 @@
 2006-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* loadhist.el (unload-feature): A bit of sanity check of
+	load-history entries.  Cancel timer-vars before unbinding them.
+
 	* hexl.el (hexl-isearch-search-function): Fix regexp-building code to
 	quote special chars, and make the trick work on the hex part of the
 	buffer as well.

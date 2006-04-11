@@ -32,6 +32,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defun feature-symbols (feature)
   "Return the file and list of definitions associated with FEATURE.
 The value is actually the element of `load-history'
@@ -207,23 +209,29 @@ such as redefining an Emacs function."
 	  (elp-restore-function elt))))
     (dolist (x unload-hook-features-list)
       (if (consp x)
-	  (cond
+	  (case (car x)
 	   ;; Remove any feature names that this file provided.
-	   ((eq (car x) 'provide)
+	   (provide
 	    (setq features (delq (cdr x) features)))
-	   ((eq (car x) 'defun)
+	   (defun
 	    (let ((fun (cdr x)))
 	      (when (fboundp fun)
 		(when (fboundp 'ad-unadvise)
 		  (ad-unadvise fun))
-		(fmakunbound fun)
 		(let ((aload (get fun 'autoload)))
-		  (when aload
-		    (fset fun (cons 'autoload aload))))))))
+		  (if aload
+                      (fset fun (cons 'autoload aload))
+                    (fmakunbound fun))))))
+           (require nil)
+           (t (message "Unexpected element %s in load-history" x)))
 	;; Kill local values as much as possible.
 	(dolist (buf (buffer-list))
 	  (with-current-buffer buf
+            (if (and (boundp x) (timerp (symbol-value x)))
+                (cancel-timer (symbol-value x)))
 	    (kill-local-variable x)))
+        (if (and (boundp x) (timerp (symbol-value x)))
+            (cancel-timer (symbol-value x)))
 	;; Get rid of the default binding if we can.
 	(unless (local-variable-if-set-p x)
 	  (makunbound x))))
@@ -232,5 +240,5 @@ such as redefining an Emacs function."
 
 (provide 'loadhist)
 
-;;; arch-tag: 70bb846a-c413-4f01-bf88-78dba4ac0798
+;; arch-tag: 70bb846a-c413-4f01-bf88-78dba4ac0798
 ;;; loadhist.el ends here
