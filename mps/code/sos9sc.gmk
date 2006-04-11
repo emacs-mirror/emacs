@@ -7,7 +7,7 @@
 
 PFM = sos9sc
 
-MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmso.c \
+MPMPF = lockan.c than.c vmso.c \
         protso.c prmcan.c span.c
 MPMS = sssos8.s # s9 is backward-compatible with s8 here
 SWPF = than.c vmso.c protsw.c prmcan.c ssan.c
