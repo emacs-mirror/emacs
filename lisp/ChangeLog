@@ -1,3 +1,13 @@
+2006-04-11  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file):
+	Bind enable-local-variables to :safe, and make normal-mode obey it.
+
+	* files.el (enable-local-variables): Allow value :safe.
+	(normal-mode): Doc fix.
+	(hack-local-variables): Implement enable-local-variables = :safe.
+	(hack-local-variables-confirm): Don't prevent quitting.
+
 2006-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* loadhist.el (unload-feature): A bit of sanity check of
