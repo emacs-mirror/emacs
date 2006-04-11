@@ -1,12 +1,12 @@
 2006-04-11  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-export-plain-list-max-depth)
+	* textmodes/org.el (org-export-plain-list-max-depth)
 	(org-table-spaces-around-separators)
 	(org-radio-targets, org-activate-camels)
 	(org-table-spaces-around-invisible-separators): Options removed.
 	(org-time-stamp-rounding-minutes, org-remember-templates)
-	(org-ellipsis, org-activate-links, org-descriptive-links): New
-	options.
+	(org-ellipsis, org-activate-links, org-descriptive-links):
+	New options.
 	(org-remember-apply-template, org-current-time)
 	(org-finish-edit-table-field)
 	(org-link-unescape, org-link-escape)
@@ -45,9 +45,9 @@
 
 2006-04-10  Bill Wohler  <wohler@newt.com>
 
-	* custom.el (defcustom, custom-handle-keyword): Add
-	:package-version keyword.
-	(custom-add-package-version): New function. Sets value of new
+	* custom.el (defcustom, custom-handle-keyword):
+	Add :package-version keyword.
+	(custom-add-package-version): New function.  Sets value of new
 	property 'custom-package-version from :package-version keyword.
 	(defcustom): Create Common Keywords section in docstring.
 	(defface, defgroup): Replace definitions of a select few keywords
@@ -55,8 +55,8 @@
 	(defcustom, defface, defgroup): Replace reference to Customization
 	chapter in manual with hyperlink.
 
-	* cus-edit.el (customize-package-emacs-version-alist): New
-	variable.
+	* cus-edit.el (customize-package-emacs-version-alist):
+	New variable.
 	(customize-changed-options): Add check for custom-package-version.
 	(customize-package-emacs-version): New function to look up Emacs
 	version corresponding to the given package version.
