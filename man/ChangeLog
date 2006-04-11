@@ -1,3 +1,9 @@
+2006-04-11  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Link format): New section, emphasis on bracket links.
+	(External links): Document bracket links.
+	(FAQ): Expanded to cover shell links and the new link format.
+
 2006-04-09  Kevin Ryde  <user42@zip.com.au>
 
 	* org.texi (Formula syntax): Typo in node name of calc-eval xref.

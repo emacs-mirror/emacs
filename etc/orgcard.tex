@@ -1,4 +1,6 @@
-% Reference Card for Org Mode 4.10
+% Reference Card for Org Mode
+\def\orgversionnumber{4.21}
+\def\year{2006}
 %
 %**start of header
 \newcount\columnsperpage
@@ -57,9 +59,6 @@
 %
 % Thanks to Paul Rubin, Bob Chassell, Len Tower, and Richard Mlynarik
 % for their many good ideas.
-
-\def\orgversionnumber{4.10}
-\def\year{2006}
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
   \centerline{\small \copyright\ 2004, 2005, 2006\ Free Software Foundation, Inc.
@@ -367,10 +366,8 @@ To set archive location for current file, add a line like$^3$:
 \key{insert SCHEDULED timestamp}{C-c C-s}
 \key{create sparse tree with all deadlines due}{C-c C-w}
 \key{the time between 2 dates in a time range}{C-c C-y}
-\key{change timestamp at cursor by $-1$ day}{S-LEFT$^4$}
-\key{change timestamp at cursor by $+1$ day}{S-RIGHT$^4$}
-\key{change year/month/day at cursor by $-1$}{S-DOWN$^4$}
-\key{change year/month/day at cursor by $+1$}{S-UP$^4$}
+\key{change timestamp at cursor by $\pm 1$ day}{S-RIGHT/LEFT$^4$}
+\key{change year/month/day at cursor by $\pm 1$}{S-UP/DOWN$^4$}
 \key{access the calendar for the current date}{C-c >}
 \key{insert timestamp matching date in calendar}{C-c <}
 \key{access agenda for current date}{C-c C-o}
@@ -386,6 +383,7 @@ To set archive location for current file, add a line like$^3$:
 \key{globally store link to the current location}{C-c l$^2$}
 \key{insert a link (TAB completes stored links)}{C-c C-l}
 \key{insert file link with file name completion}{C-u C-c C-l}
+\key{edit (also hidden part of) link at point}{C-c C-l}
 
 \key{open file links in emacs (\kbd{C-u} : in emacs)}{C-c C-o}
 \key{open link at point (3: in emacs)}{mouse-2/3}
@@ -399,24 +397,26 @@ To set archive location for current file, add a line like$^3$:
 \key{\kbd{<<<My Target>>>}}{\rm radio target$^3$}
 \key{\kbd{[[*this text]]}}{\rm find headline}
 \metax{\kbd{[[this text]]}}{\rm find target or text in buffer}
+\metax{\kbd{[[this text][description]]}}{\rm optional link text}
 
 {\bf External Links}
 
-\key{\kbd{<file:/home/dominik/img/mars.jpg>}}{\rm file, absolute}
-\key{\kbd{<file:papers/last.pdf>}}{\rm file, relative}
-\key{\kbd{<file:projects.org::*that text>}}{\rm find headline}
-\key{\kbd{<file:projects.org::find me>}}{\rm find tgt/string}
-\key{\kbd{<file:projects.org::/regexp/>}}{\rm regexp search}
-\key{\kbd{<http://www.astro.uva.nl/~dominik>}}{\rm on the web}
-\key{\kbd{<mailto:adent@galaxy.net>}}{\rm EMail address}
-\key{\kbd{<news:comp.emacs>}}{\rm Usenet group}
-\key{\kbd{<bbdb:Richard Stallman>}}{\rm BBDB person}
-\key{\kbd{<shell:ls *.org>}}{\rm shell command}
-\key{\kbd{<gnus:group>}}{\rm GNUS group}
-\key{\kbd{<gnus:group\#id>}}{\rm GNUS message}
-\key{\kbd{<vm|wl|mhe|rmail:folder>}}{\rm Mail folder}
-\key{\kbd{<vm|wl|mhe|rmail:folder\#id>}}{\rm Mail message}
-%\key{\kbd{<vm://myself@some.where.org/folder\#id>}}{\rm VM remote}
+\key{\kbd{file:/home/dominik/img/mars.jpg}}{\rm file, absolute}
+\key{\kbd{file:papers/last.pdf}}{\rm file, relative}
+\key{\kbd{file:projects.org::*that text}}{\rm find headline}
+\key{\kbd{file:projects.org::find me}}{\rm find tgt/string}
+\key{\kbd{file:projects.org::/regexp/}}{\rm regexp search}
+\key{\kbd{http://www.astro.uva.nl/~dominik}}{\rm on the web}
+\key{\kbd{mailto:adent@galaxy.net}}{\rm EMail address}
+\key{\kbd{news:comp.emacs}}{\rm Usenet group}
+\key{\kbd{bbdb:Richard Stallman}}{\rm BBDB person}
+\key{\kbd{shell:ls *.org}}{\rm shell command}
+\key{\kbd{gnus:group}}{\rm GNUS group}
+\key{\kbd{gnus:group\#id}}{\rm GNUS message}
+\key{\kbd{vm|wl|mhe|rmail:folder}}{\rm Mail folder}
+\key{\kbd{vm|wl|mhe|rmail:folder\#id}}{\rm Mail message}
+\metax{\kbd{[[external link][description]]}}{\rm optional link text}
+%\key{\kbd{vm://myself@some.where.org/folder\#id}}{\rm VM remote}
 
 \section{Tables}
 
@@ -425,11 +425,10 @@ To set archive location for current file, add a line like$^3$:
 
 {\bf Creating a table}
 
-\metax{insert a new Org-mode table}{M-x org-table-create}
-\metax{... or just start typing, e.g.}{|Name|Phone|Age RET |- TAB}
-\key{convert region to table}{C-c C-c}
-\key{... separator at least 3 spaces}{C-3 C-c C-c}
-%\key{... prompt for separator regexp}{C-u C-c C-c}
+%\metax{insert a new Org-mode table}{M-x org-table-create}
+\metax{just start typing, e.g.}{|Name|Phone|Age RET |- TAB}
+\key{convert region to table}{C-c |}
+\key{... separator at least 3 spaces}{C-3 C-c |}
 
 {\bf Commands available inside tables}
 
@@ -465,9 +464,7 @@ Outside of tables, the same keys may have other functionality.
 \key{paste rectangular region}{C-c C-x C-y}
 \key{fill paragraph across selected cells}{C-c C-q}
 
-{\bf Calculations}
-
-These need the Emacs calc package installed.
+{\bf Calculations} (in combination with Emacs \kbd{calc} package)
 
 \key{set and eval column formula}{C-c =}
 \key{set and eval named-field formula}{C-u C-c =}
@@ -475,8 +472,8 @@ These need the Emacs calc package installed.
 \key{re-apply all stored equations to current line}{C-c *}
 \key{re-apply all stored equations to entire table}{C-u C-c *}
 
-\kbd{TAB}, \kbd{RET} and \kbd{C-c C-c} trigger automatic recalculation
-in lines starting with: {\tt | \# |}.
+%\kbd{TAB}, \kbd{RET} and \kbd{C-c C-c} trigger automatic recalculation
+%in lines starting with: {\tt | \# |}.
 
 \key{rotate calculation mark through \# * ! \^ \_ \$}{C-\#}
 
@@ -484,9 +481,9 @@ in lines starting with: {\tt | \# |}.
 \key{sum numbers in current column/rectangle}{C-c +}
 \key{copy down with increment}{S-RET$^4$}
 
-A formula can also be typed directly into into a field and will
-executed by \kbd{TAB}, \kbd{RET} and \kbd{C-c C-c}.  A leading \kbd{=}
-introduces a column formula, \kbd{:=} a named-field formula.
+Formulas typed in field are executed by \kbd{TAB},
+\kbd{RET} and \kbd{C-c C-c}.  \kbd{=} introduces a column
+formula, \kbd{:=} a named-field formula.
 
 \key{Example: Add Col1 and Col2}{=\$1+\$2}
 \key{... with printf format specification}{=\$1+\$2;\%.2f}
@@ -496,7 +493,9 @@ introduces a column formula, \kbd{:=} a named-field formula.
 
 {\bf Miscellaneous}
 
-\key{toggle visibility of vertical lines}{C-c |}
+\key{to limit column width to \kbd{N} characters, use}{...| <N> |...}
+\key{edit the current field in a separate window}{C-c `}
+\key{make current field fully visible}{C-u TAB}
 \metax{export as tab-separated file}{M-x org-table-export}
 \metax{import tab-separated file}{M-x org-table-import}
 

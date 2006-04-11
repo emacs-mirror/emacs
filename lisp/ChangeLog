@@ -1,3 +1,48 @@
+2006-04-11  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-export-plain-list-max-depth)
+	(org-table-spaces-around-separators)
+	(org-radio-targets, org-activate-camels)
+	(org-table-spaces-around-invisible-separators): Options removed.
+	(org-time-stamp-rounding-minutes, org-remember-templates)
+	(org-ellipsis, org-activate-links, org-descriptive-links): New
+	options.
+	(org-remember-apply-template, org-current-time)
+	(org-finish-edit-table-field)
+	(org-link-unescape, org-link-escape)
+	(org-string-width, org-table-clean-line, org-html-do-expand)
+	(org-edit-agenda-file-list, org-store-new-agenda-file-list)
+	(org-read-agenda-file-list): New functions.
+	(org-table-edit-field)
+	(org-table-create-or-convert-from-region): New commands
+	(org-table-toggle-vline-visibility): Command removed.
+	(org-table-convert-region): Made a command.
+	(orgtbl-deleta-backward-char,orgtbl-delete-char): Commands
+	removed, replaced with the normal org- functions.
+	(org-self-insert-command): Don't trigger realign unnecessarily
+	when blanking a field that is not full.
+	(org-mode): `Set buffer-invisibility-spec' for links.
+	(org-activate-links2): Hide link part and only show descriptive
+	part of the link.
+	(org-insert-link): Modified for new linking system.
+	(org-store-link): Store description separately, for use by
+	`org-insert-link'.
+	(org-table-align): Use `org-string-width'.
+	(defgroup): Completely new group structure for custom variables.
+	(org-agenda-files): Option: Single file name allowed.  Function:
+	Optional argument unrestrited means ignore any restricitons.
+	(org-install-agenda-files-menu): Find a buffer in Org-mode before
+	trying to modify the menu.  Use generalized access to
+	`org-agenda-files.'
+	(org-agenda-list, org-todo-list, org-cycle-agenda-files)
+	(org-agenda-file-to-front, org-remove-file, org-diary)
+	(org-tags-view, org-export-icalendar-all-agenda-files)
+	(org-export-icalendar-combine-agenda-files): Use generalized
+	access to `org-agenda-files'.
+	(org-remember-handler): Correctly preserve heading if present.
+	(org-table-insert-row, org-table-insert-hline): Deal with
+	invisible characters.
+
 2006-04-10  Bill Wohler  <wohler@newt.com>
 
 	* custom.el (defcustom, custom-handle-keyword): Add
