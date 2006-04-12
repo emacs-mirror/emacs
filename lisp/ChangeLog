@@ -1,3 +1,7 @@
+2006-04-12  Romain Francoise  <romain@orebokech.com>
+
+	* subr.el (read-passwd): Bind `message-log-max' to nil.
+
 2006-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/perl-mode.el (perl-indent-new-calculate):
