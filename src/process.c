@@ -6234,6 +6234,8 @@ text to PROCESS after you call this function.  */)
       emacs_close (XINT (XPROCESS (proc)->outfd));
 #endif /* not HAVE_SHUTDOWN */
       new_outfd = emacs_open (NULL_DEVICE, O_WRONLY, 0);
+      if (new_outfd < 0)
+	abort ();
       old_outfd = XINT (XPROCESS (proc)->outfd);
 
       if (!proc_encode_coding_system[new_outfd])
