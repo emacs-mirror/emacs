@@ -1,3 +1,7 @@
+2006-04-12  Richard Stallman  <rms@gnu.org>
+
+	* search.texi: Clean up previous change.
+
 2006-04-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* search.texi (Regexp Backslash, Regexp Replace): Add index
