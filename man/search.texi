@@ -752,7 +752,8 @@ the numbering of the groups that are meant to be referred to.
 @item \@var{d}
 @cindex back reference, in regexp
 matches the same text that matched the @var{d}th occurrence of a
-@samp{\( @dots{} \)} construct (a.k.a.@: @dfn{back reference}).
+@samp{\( @dots{} \)} construct.  This is called a @dfn{back
+reference}.
 
 After the end of a @samp{\( @dots{} \)} construct, the matcher remembers
 the beginning and end of the text matched by that construct.  Then,
@@ -1009,10 +1010,11 @@ it can refer to all or part of what is matched by the @var{regexp}.
 @samp{\&} in @var{newstring} stands for the entire match being
 replaced.  @samp{\@var{d}} in @var{newstring}, where @var{d} is a
 digit, stands for whatever matched the @var{d}th parenthesized
-grouping in @var{regexp} (a.k.a.@: ``back reference'').  @samp{\#}
-refers to the count of replacements already made in this command, as a
-decimal number.  In the first replacement, @samp{\#} stands for
-@samp{0}; in the second, for @samp{1}; and so on.  For example,
+grouping in @var{regexp}.  (This is called a ``back reference''.)
+@samp{\#} refers to the count of replacements already made in this
+command, as a decimal number.  In the first replacement, @samp{\#}
+stands for @samp{0}; in the second, for @samp{1}; and so on.  For
+example,
 
 @example
 M-x replace-regexp @key{RET} c[ad]+r @key{RET} \&-safe @key{RET}
