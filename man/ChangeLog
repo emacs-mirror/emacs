@@ -1,3 +1,15 @@
+2006-04-11  Karl Berry  <karl@gnu.org>
+
+        * emacs-xtra.texi, emacs.texi (Dired under VC, VC Dired Commands,
+         Remote Repositories, Version Backups, Local Version Control,
+         Snapshots, Making and Using Snapshots, Snapshot Caveats,
+         Miscellaneous Commands and Features of VC, Change Logs and VC,
+         Renaming VC Work Files and Master Files,
+         Inserting Version Control Headers, Customizing VC, General Options,
+         Options for RCS and SCCS, Options specific for CVS): move all
+	 these nodes to emacs-xtra.texi, for brevity.
+	 * cmdargs.texi, files.texi: change cross-references.
+
 2006-04-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi, gnus-faq.texi, message.texi: Gnus v5.10.8 is released.
