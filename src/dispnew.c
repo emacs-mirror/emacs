@@ -6654,7 +6654,7 @@ init_display ()
      try to use X, and die with an error message if that doesn't work.  */
 
 #ifdef HAVE_X_WINDOWS
-  if (! display_arg)
+  if (! inhibit_window_system && ! display_arg)
     {
       char *display;
 #ifdef VMS
