@@ -1910,7 +1910,7 @@ get_glyph_string_clip_rects (s, rects, n)
     }
 
   if ((s->for_overlaps & OVERLAPS_BOTH) == 0
-      || (s->for_overlaps & OVERLAPS_BOTH) == OVERLAPS_BOTH && n == 1)
+      || ((s->for_overlaps & OVERLAPS_BOTH) == OVERLAPS_BOTH && n == 1))
     {
 #ifdef CONVERT_FROM_XRECT
       CONVERT_FROM_XRECT (r, *rects);
@@ -1936,23 +1936,27 @@ get_glyph_string_clip_rects (s, rects, n)
 	{
 	  rs[i] = r;
 	  if (r.y + r.height > row_y)
-	    if (r.y < row_y)
-	      rs[i].height = row_y - r.y;
-	    else
-	      rs[i].height = 0;
+	    {
+	      if (r.y < row_y)
+		rs[i].height = row_y - r.y;
+	      else
+		rs[i].height = 0;
+	    }
 	  i++;
 	}
       if (s->for_overlaps & OVERLAPS_SUCC)
 	{
 	  rs[i] = r;
 	  if (r.y < row_y + s->row->visible_height)
-	    if (r.y + r.height > row_y + s->row->visible_height)
-	      {
-		rs[i].y = row_y + s->row->visible_height;
-		rs[i].height = r.y + r.height - rs[i].y;
-	      }
-	    else
-	      rs[i].height = 0;
+	    {
+	      if (r.y + r.height > row_y + s->row->visible_height)
+		{
+		  rs[i].y = row_y + s->row->visible_height;
+		  rs[i].height = r.y + r.height - rs[i].y;
+		}
+	      else
+		rs[i].height = 0;
+	    }
 	  i++;
 	}
 
@@ -14864,7 +14868,7 @@ dump_glyph_row (row, vpos, glyphs)
 {
   if (glyphs != 1)
     {
-      fprintf (stderr, "Row Start   End Used oEI><\\CTZFesm     X    Y    W    H    V    A    P\n");
+      fprintf (stderr, "Row Start   End Used oE><\\CTZFesm     X    Y    W    H    V    A    P\n");
       fprintf (stderr, "======================================================================\n");
 
       fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d\
