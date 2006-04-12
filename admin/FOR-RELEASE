@@ -76,7 +76,7 @@ you're going to handle.
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
 etc (and subdirs)	done		Thien-Thi Nguyen (ttn(@gnu.org))
-leim			working		Kenichi Handa
+leim			done		Kenichi Handa
 lib-src			done		ttn
 lisp			done		ttn
 lisp/calc		done		Jay Belanger
@@ -85,8 +85,8 @@ lisp/emacs-lisp		done		ttn
 lisp/emulation		done		ttn
 lisp/eshell		done		ttn
 lisp/gnus		done		Romain Francoise
-lisp/international	working		Kenichi Handa
-lisp/language		working		Kenichi Handa
+lisp/international	done		Kenichi Handa
+lisp/language		done		Kenichi Handa
 lisp/mail		done		ttn
 lisp/mh-e		done		Bill Wohler
 lisp/net		done		ttn

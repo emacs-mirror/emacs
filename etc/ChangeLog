@@ -1,3 +1,7 @@
+2006-04-12  Kenichi Handa  <handa@m17n.org>
+
+	* PROBLEMS (C-SPC fails ...): Explicitly say fcitx in the header.
+
 2006-04-11  Carsten Dominik  <dominik@science.uva.nl>
 
 	* orgcard.tex: (section{Tables}): Document column narrowing.
