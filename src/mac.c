@@ -28,7 +28,9 @@ Boston, MA 02110-1301, USA.  */
 
 #include "lisp.h"
 #include "process.h"
-#undef init_process
+#ifdef MAC_OSX
+#undef select
+#endif
 #include "systime.h"
 #include "sysselect.h"
 #include "blockinput.h"
@@ -79,8 +81,10 @@ static ComponentInstance as_scripting_component;
 /* The single script context used for all script executions.  */
 static OSAID as_script_context;
 
+#ifndef MAC_OSX
 static OSErr posix_pathname_to_fsspec P_ ((const char *, FSSpec *));
 static OSErr fsspec_to_posix_pathname P_ ((const FSSpec *, char *, int));
+#endif
 
 /* When converting from Mac to Unix pathnames, /'s in folder names are
    converted to :'s.  This function, used in copying folder names,
@@ -1222,7 +1226,7 @@ parse_value (p)
 		       && '0' <= P[1] && P[1] <= '7'
 		       && '0' <= P[2] && P[2] <= '7')
 		{
-		  *q++ = (P[0] - '0' << 6) + (P[1] - '0' << 3) + (P[2] - '0');
+		  *q++ = ((P[0] - '0') << 6) + ((P[1] - '0') << 3) + (P[2] - '0');
 		  P += 3;
 		}
 	      else
@@ -2789,7 +2793,7 @@ link (const char *name1, const char *name2)
 /* Determine the path name of the file specified by VREFNUM, DIRID,
    and NAME and place that in the buffer PATH of length
    MAXPATHLEN.  */
-int
+static int
 path_from_vol_dir_name (char *path, int man_path_len, short vol_ref_num,
 			long dir_id, ConstStr255Param name)
 {
@@ -2834,6 +2838,8 @@ path_from_vol_dir_name (char *path, int man_path_len, short vol_ref_num,
 }
 
 
+#ifndef MAC_OSX
+
 static OSErr
 posix_pathname_to_fsspec (ufn, fs)
      const char *ufn;
@@ -2865,8 +2871,6 @@ fsspec_to_posix_pathname (fs, ufn, ufnbuflen)
   else
     return fnfErr;
 }
-
-#ifndef MAC_OSX
 
 int
 readlink (const char *path, char *buf, int bufsiz)
@@ -3124,8 +3128,7 @@ get_temp_dir_name ()
   short vol_ref_num;
   long dir_id;
   OSErr err;
-  Str255 dir_name, full_path;
-  CInfoPBRec cpb;
+  Str255 full_path;
   char unix_dir_name[MAXPATHLEN+1];
   DIR *dir;
 
@@ -3217,8 +3220,7 @@ get_path_to_system_folder ()
   short vol_ref_num;
   long dir_id;
   OSErr err;
-  Str255 dir_name, full_path;
-  CInfoPBRec cpb;
+  Str255 full_path;
   static char system_folder_unix_name[MAXPATHLEN+1];
   DIR *dir;
 
@@ -3947,7 +3949,6 @@ DEFUN ("mac-get-file-creator", Fmac_get_file_creator, Smac_get_file_creator, 1, 
 #else
   FSSpec fss;
 #endif
-  OSType cCode;
   Lisp_Object result = Qnil;
   CHECK_STRING (filename);
 
@@ -4002,7 +4003,6 @@ DEFUN ("mac-get-file-type", Fmac_get_file_type, Smac_get_file_type, 1, 1, 0,
 #else
   FSSpec fss;
 #endif
-  OSType cCode;
   Lisp_Object result = Qnil;
   CHECK_STRING (filename);
 
@@ -4296,11 +4296,6 @@ Each type should be a string of length 4 or the symbol
   Lisp_Object result = Qnil;
   DescType src_desc_type, dst_desc_type;
   AEDesc dst_desc;
-#ifdef MAC_OSX
-  FSRef fref;
-#else
-  FSSpec fs;
-#endif
 
   CHECK_STRING (src_data);
   if (EQ (src_type, Qundecoded_file_name))
@@ -4422,18 +4417,20 @@ otherwise.  */)
     }
 
   if (NILP (key))
-    if (EQ (format, Qxml))
-      {
-	CFDataRef data = CFPropertyListCreateXMLData (NULL, plist);
-	if (data == NULL)
-	  goto out;
-	result = cfdata_to_lisp (data);
-	CFRelease (data);
-      }
-    else
-      result =
-	cfproperty_list_to_lisp (plist, EQ (format, Qt),
-				 NILP (hash_bound) ? -1 : XINT (hash_bound));
+    {
+      if (EQ (format, Qxml))
+	{
+	  CFDataRef data = CFPropertyListCreateXMLData (NULL, plist);
+	  if (data == NULL)
+	    goto out;
+	  result = cfdata_to_lisp (data);
+	  CFRelease (data);
+	}
+      else
+	result =
+	  cfproperty_list_to_lisp (plist, EQ (format, Qt),
+				   NILP (hash_bound) ? -1 : XINT (hash_bound));
+    }
 
  out:
   if (app_plist)
@@ -4701,7 +4698,6 @@ mac_get_system_locale ()
 
 
 #ifdef MAC_OSX
-#undef select
 
 extern int inhibit_window_system;
 extern int noninteractive;
