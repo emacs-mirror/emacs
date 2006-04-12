@@ -153,7 +153,6 @@ static ScrapFlavorType
 get_flavor_type_from_symbol (sym)
      Lisp_Object sym;
 {
-  ScrapFlavorType val;
   Lisp_Object str = Fget (sym, Qmac_ostype);
 
   if (STRINGP (str) && SBYTES (str) == 4)
@@ -322,17 +321,19 @@ get_scrap_private_timestamp (scrap, timestamp)
 
   err = GetScrapFlavorFlags (scrap, SCRAP_FLAVOR_TYPE_EMACS_TIMESTAMP, &flags);
   if (err == noErr)
-    if (!(flags & kScrapFlavorMaskSenderOnly))
-      err = noTypeErr;
-    else
-      {
-	Size size = sizeof (*timestamp);
+    {
+      if (!(flags & kScrapFlavorMaskSenderOnly))
+	err = noTypeErr;
+      else
+	{
+	  Size size = sizeof (*timestamp);
 
-	err = GetScrapFlavorData (scrap, SCRAP_FLAVOR_TYPE_EMACS_TIMESTAMP,
-				  &size, timestamp);
-	if (err == noErr && size != sizeof (*timestamp))
-	  err = noTypeErr;
-      }
+	  err = GetScrapFlavorData (scrap, SCRAP_FLAVOR_TYPE_EMACS_TIMESTAMP,
+				    &size, timestamp);
+	  if (err == noErr && size != sizeof (*timestamp))
+	    err = noTypeErr;
+	}
+    }
 #else  /* !TARGET_API_MAC_CARBON */
   Handle handle;
   SInt32 size, offset;
@@ -683,18 +684,20 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
 
   err = get_scrap_from_symbol (selection_symbol, 0, &scrap);
   if (err == noErr && scrap)
-    if (EQ (target_type, QTARGETS))
-      {
-	result = get_scrap_target_type_list (scrap);
-	result = Fvconcat (1, &result);
-      }
-    else
-      {
-	result = get_scrap_string (scrap, target_type);
-	if (STRINGP (result))
-	  Fput_text_property (make_number (0), make_number (SBYTES (result)),
-			      Qforeign_selection, target_type, result);
-      }
+    {
+      if (EQ (target_type, QTARGETS))
+	{
+	  result = get_scrap_target_type_list (scrap);
+	  result = Fvconcat (1, &result);
+	}
+      else
+	{
+	  result = get_scrap_string (scrap, target_type);
+	  if (STRINGP (result))
+	    Fput_text_property (make_number (0), make_number (SBYTES (result)),
+				Qforeign_selection, target_type, result);
+	}
+    }
 
   UNBLOCK_INPUT;
 
@@ -1009,7 +1012,7 @@ defer_apple_events (apple_event, reply)
   /* Mac OS 10.3 Xcode manual says AESuspendTheCurrentEvent makes
      copies of the Apple event and the reply, but Mac OS 10.4 Xcode
      manual says it doesn't.  Anyway we create copies of them and save
-     it in `deferred_apple_events'.  */
+     them in `deferred_apple_events'.  */
   if (err == noErr)
     {
       if (deferred_apple_events.buf == NULL)
@@ -1123,11 +1126,8 @@ DEFUN ("mac-process-deferred-apple-events", Fmac_process_deferred_apple_events, 
        doc: /* Process Apple events that are deferred at the startup time.  */)
   ()
 {
-  OSErr err;
   Lisp_Object result = Qnil;
-  long i, count;
-  AppleEvent apple_event, reply;
-  AEKeyword keyword;
+  long i;
 
   if (mac_ready_for_apple_events)
     return Qnil;
@@ -1207,14 +1207,16 @@ copy_scrap_flavor_data (from_scrap, to_scrap, flavor_type)
 	break;
     }
   if (err == noErr)
-    if (buf == NULL)
-      err = memFullErr;
-    else
-      {
-	err = PutScrapFlavor (to_scrap, flavor_type, kScrapFlavorMaskNone,
-			      size, buf);
-	xfree (buf);
-      }
+    {
+      if (buf == NULL)
+	err = memFullErr;
+      else
+	{
+	  err = PutScrapFlavor (to_scrap, flavor_type, kScrapFlavorMaskNone,
+				size, buf);
+	  xfree (buf);
+	}
+    }
 
   return err;
 }
