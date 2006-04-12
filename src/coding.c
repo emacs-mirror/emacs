@@ -3621,7 +3621,7 @@ setup_coding_system (coding_system, coding)
 	= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
     }
   else
-    coding->eol_type = CODING_EOL_LF;
+    coding->eol_type = system_eol_type;
 
   coding_type = XVECTOR (coding_spec)->contents[0];
   /* Try short cut.  */
@@ -3922,7 +3922,7 @@ setup_coding_system (coding_system, coding)
   coding->type = coding_type_no_conversion;
   coding->category_idx = CODING_CATEGORY_IDX_BINARY;
   coding->common_flags = 0;
-  coding->eol_type = CODING_EOL_LF;
+  coding->eol_type = NILP (coding_system) ? system_eol_type : CODING_EOL_LF;
   coding->pre_write_conversion = coding->post_read_conversion = Qnil;
   return -1;
 }
