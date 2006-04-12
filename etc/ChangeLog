@@ -1,3 +1,17 @@
+2006-04-11  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: (section{Tables}): Document column narrowing.
+	(section{Links}): Document bracket links.
+
+2006-04-11  Kenichi Handa  <handa@m17n.org>
+
+	* PROBLEMS (C-SPC fails ...): Add description for fcitx.
+
+2006-04-10  Bill Wohler  <wohler@newt.com>
+
+	* NEWS: Add package-version keyword to `defcustom' and mention
+	associated variable `customize-package-emacs-version-alist'.
+
 2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* NEWS: Add string-or-null-p.

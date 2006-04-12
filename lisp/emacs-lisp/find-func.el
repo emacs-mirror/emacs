@@ -64,7 +64,7 @@
   (concat
    "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
 ine\\(?:-global\\)?-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|\
-foo\\|[^cfgv]\\w+\\*?\\)\\|easy-mmode-define-[a-z-]+\\|easy-menu-define\\|\
+foo\\|[^cfgv]\\(\\w\\|\\s_\\)+\\*?\\)\\|easy-mmode-define-[a-z-]+\\|easy-menu-define\\|\
 menu-bar-make-toggle\\)"
    find-function-space-re
    "\\('\\|\(quote \\)?%s\\(\\s-\\|$\\|\(\\|\)\\)")
@@ -229,7 +229,7 @@ The search is done in the source for library LIBRARY."
 	    (goto-char (point-min))
 	    (if (or (re-search-forward regexp nil t)
 		    (re-search-forward
-		     (concat "^([^ ]+" find-function-space-re "['(]"
+		     (concat "^([^ ]+" find-function-space-re "['(]?"
 			     (regexp-quote (symbol-name symbol))
 			     "\\_>")
 		     nil t))

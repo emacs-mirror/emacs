@@ -1,3 +1,23 @@
+2006-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h (wrong_type_argument): Mark as NO_RETURN.
+
+	* data.c (wrong_type_argument): Try to avoid compiler warnings due
+	to the fact the function is now marked as NO_RETURN.
+
+2006-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (pid_t) [_MSC_VER]: New typedef.
+
+2006-04-10  Romain Francoise  <romain@orebokech.com>
+
+	* xrdb.c (gethomedir): Use xstrdup.
+
+2006-04-10  Andreas Schwab  <schwab@suse.de>
+
+	* xrdb.c (gethomedir): Make sure to always return a pointer that
+	can be passed to free.
+
 2006-04-09  Richard Stallman  <rms@gnu.org>
 
 	* lisp.h (Fkill_emacs): Undo previous change.

@@ -33,6 +33,10 @@ Assigned to Bill Wohler <wohler@newt.com>.
 
 * BUGS
 
+** Stefan Monnier's March 20 bug report about 3d boxes in header line.
+
+** Is there a basic problem with cl-byte-compile-compiler-macro?
+
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
 .emacs file, and then reduce Emacs frame width to "something quite narrow":
 	(setq-default truncate-lines t)

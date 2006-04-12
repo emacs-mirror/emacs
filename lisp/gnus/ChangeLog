@@ -1,3 +1,56 @@
+2006-04-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-view-part-as-charset): Ignore charset
+	that the part specifies.
+
+	* mm-decode.el (mm-display-part): Work with external parts and
+	usual parts similarly.
+
+	* mm-extern.el (mm-inline-external-body): Use mm-display-part
+	instead of gnus-display-mime.
+
+	* gnus-uu.el (gnus-uu-save-article): Put mml tags instead of part
+	tag to summarized topics part in order to encode non-ASCII text.
+
+2006-04-12  Kenichi Handa  <handa@m17n.org>
+
+	* rfc2231.el (rfc2231-decode-encoded-string): Work on unibyte
+	buffer and then decode the buffer text if necessary.
+	(rfc2231-encode-string): Be sure to work on multibyte buffer at
+	first, and after mm-encode-body, change the buffer to unibyte.
+
+2006-04-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-button-valid-localpart-regexp): Exclude `@'.
+
+2006-04-11  Arne J,Ax(Brgensen  <arne@arnested.dk>
+
+	* gnus-sieve.el (gnus-sieve-generate): Delete from the start of
+	the sieve region.
+
+2006-04-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.el: Gnus v5.10.8 is released.
+
+2006-04-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnslashdot.el (nnslashdot-retrieve-headers-1): Fix up to new
+	layout.
+
+	* rfc2047.el (rfc2047-decode-encoded-words): Don't message about
+	unknown charset.
+
+	* message.el (message-header-synonyms): Add Original-To to the
+	default.
+
+	* gnus-sum.el (gnus-get-newsgroup-headers-xover): group is an
+	optional parameter.
+
+2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pgg-gpg.el: Revert to revision 7.15 to allow the use of
+	gpg-agent.
+
 2006-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-fun.el (gnus): Require it for gnus-directory.

@@ -399,10 +399,6 @@ Version Control
 * Old Versions::        Examining and comparing old versions.
 * Secondary VC Commands:: The commands used a little less frequently.
 * Branches::            Multiple lines of development.
-* Remote Repositories:: Efficient access to remote CVS servers.
-* Snapshots::           Sets of file versions treated as a unit.
-* Miscellaneous VC::    Various other commands and features of VC.
-* Customizing VC::      Variables that change VC's behavior.
 
 Using Multiple Buffers
 

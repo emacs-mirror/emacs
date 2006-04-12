@@ -1,3 +1,152 @@
+2006-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-indent-new-calculate):
+	Recompute parse-start after jumping backward by a whole sexp.
+
+2006-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-ensure-vc-buffer): Only change current-buffer, not the
+	window configuration.
+	(vc-annotate-display-select): Select the buffer so that current-buffer
+	(and selected-window) is the output buffer at the end of vc-annotate.
+
+2006-04-11  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* vc.el (vc-annotate-color-map): Add custom TTY color map for
+	8-color terminals, to use all of the colors in a sensible order.
+	256-color terminals work well with the standard map.
+	(vc-annotate-lines): Only strip the first color character if it
+	is "#", to allow for terminal-style named colors.
+	(vc-annotate-warp-version): Pass buf to `goto-line' to ensure
+	the correct buffer is scrolled.
+
+2006-04-11  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file):
+	Bind enable-local-variables to :safe, and make normal-mode obey it.
+
+	* files.el (enable-local-variables): Allow value :safe.
+	(normal-mode): Doc fix.
+	(hack-local-variables): Implement enable-local-variables = :safe.
+	(hack-local-variables-confirm): Don't prevent quitting.
+
+2006-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* loadhist.el (unload-feature): A bit of sanity check of
+	load-history entries.  Cancel timer-vars before unbinding them.
+
+	* hexl.el (hexl-isearch-search-function): Fix regexp-building code to
+	quote special chars, and make the trick work on the hex part of the
+	buffer as well.
+	(hexl-mode, hexl-save-buffer, hexl-mode-exit)
+	(hexl-maybe-dehexlify-buffer): Use restore-buffer-modified-p.
+
+	* startup.el (normal-splash-screen): Fix last change so we don't wait
+	2 minutes if we don't show the splash screen.
+
+2006-04-11  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-export-plain-list-max-depth)
+	(org-table-spaces-around-separators)
+	(org-radio-targets, org-activate-camels)
+	(org-table-spaces-around-invisible-separators): Options removed.
+	(org-time-stamp-rounding-minutes, org-remember-templates)
+	(org-ellipsis, org-activate-links, org-descriptive-links):
+	New options.
+	(org-remember-apply-template, org-current-time)
+	(org-finish-edit-table-field)
+	(org-link-unescape, org-link-escape)
+	(org-string-width, org-table-clean-line, org-html-do-expand)
+	(org-edit-agenda-file-list, org-store-new-agenda-file-list)
+	(org-read-agenda-file-list): New functions.
+	(org-table-edit-field)
+	(org-table-create-or-convert-from-region): New commands
+	(org-table-toggle-vline-visibility): Command removed.
+	(org-table-convert-region): Made a command.
+	(orgtbl-deleta-backward-char,orgtbl-delete-char): Remove commands.
+	Replace with the normal org- functions.
+	(org-self-insert-command): Don't trigger realign unnecessarily
+	when blanking a field that is not full.
+	(org-mode): `Set buffer-invisibility-spec' for links.
+	(org-activate-links2): Hide link part and only show descriptive
+	part of the link.
+	(org-insert-link): Modify for new linking system.
+	(org-store-link): Store description separately, for use by
+	`org-insert-link'.
+	(org-table-align): Use `org-string-width'.
+	(defgroup): Completely new group structure for custom variables.
+	(org-agenda-files): Option: Single file name allowed.  Function:
+	Optional argument unrestrited means ignore any restricitons.
+	(org-install-agenda-files-menu): Find a buffer in Org-mode before
+	trying to modify the menu.  Use generalized access to
+	`org-agenda-files.'
+	(org-agenda-list, org-todo-list, org-cycle-agenda-files)
+	(org-agenda-file-to-front, org-remove-file, org-diary)
+	(org-tags-view, org-export-icalendar-all-agenda-files)
+	(org-export-icalendar-combine-agenda-files): Use generalized
+	access to `org-agenda-files'.
+	(org-remember-handler): Correctly preserve heading if present.
+	(org-table-insert-row, org-table-insert-hline): Deal with
+	invisible characters.
+
+2006-04-10  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* vc.el (vc-annotate-display-mode): Made default 'fullscale.
+	(vc-annotate-color-map): New 18 element constant
+	value/saturation, rotating hue colormap, from red->blue.
+	(vc-annotate-mode-menu): "Default" -> "By Color Map Range".
+	(vc-annotate-display-select): Switch to annotate-mode elsewhere.
+	(vc-annotate): To avoid killing the required local variables,
+	set them before the end of `with-output-to-temp-buffer', and
+	after first switching to annotate-mode.
+	(vc-annotate-warp-version): Add buffer argument in goto-line to
+	ensure annotation, not source, is scrolled.
+
+2006-04-10  Bill Wohler  <wohler@newt.com>
+
+	* custom.el (defcustom, custom-handle-keyword):
+	Add :package-version keyword.
+	(custom-add-package-version): New function.  Sets value of new
+	property 'custom-package-version from :package-version keyword.
+	(defcustom): Create Common Keywords section in docstring.
+	(defface, defgroup): Replace definitions of a select few keywords
+	with a reference to the Common Keywords in defcustom.
+	(defcustom, defface, defgroup): Replace reference to Customization
+	chapter in manual with hyperlink.
+
+	* cus-edit.el (customize-package-emacs-version-alist):
+	New variable.
+	(customize-changed-options): Add check for custom-package-version.
+	(customize-package-emacs-version): New function to look up Emacs
+	version corresponding to the given package version.
+
+	* emacs-lisp/find-func.el (find-function-regexp): Allow dashes in
+	defun name, in similar fashion to find-variable-regexp.
+
+2006-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment): Fix last
+	change for when the locale's preferences don't specify any encoding.
+
+2006-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/find-func.el (find-function-search-for-symbol): Fix regexp
+	so the defined var/fun doesn't need to be quoted.
+
+2006-04-10  Richard Stallman  <rms@gnu.org>
+
+	* finder.el (finder-mode-map): Add n and p bindings.
+
+2006-04-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-init-1): Re-initialise gdb-main-file to nil.
+	(gdb-get-version): Make it work for pre "interpreter mi" (GDB 5.3?).
+	(gdb-setup-windows): Put something in source window if we can't find
+	the source file.
+	(gdb-frame-handler): Make it work again with just assembly.
+	(gdb-data-list-register-values-handler): Make it work when there is
+	no stack.
+
 2006-04-09  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-mime-charset-pattern): Ignore format and delsp
@@ -94,12 +243,11 @@
 	(rcirc-multiline-minor-mode-map): New mode map.
 	(rcirc-edit-multiline): Put multiline-edit buffer in
 	rcirc-multiline-major-mode along with rcirc-multiline-minor-mode.
-	(rcirc-print): Any line starting with an ignored nick will be
-	ignored.
+	(rcirc-print): Ignore any line starting with an ignored nick.
 	(rcirc-print): Decode using rcirc-decode-coding-system.
 	(rcirc-track-minor-mode): Update global-mode-string when disabling
 	this mode.
-	(minor-mode-alist): add LowPri indicator.
+	(minor-mode-alist): Add LowPri indicator.
 	(rcirc-toggle-low-priority): New function.
 	(rcirc-last-non-irc-buffer): Prefix arg now no means switch to
 	next lowpriority buffer with activity.
@@ -132,8 +280,7 @@
 
 2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* pgg-gpg.el: Revert to revision 1.8 to allow the use of
-	gpg-agent.
+	* pgg-gpg.el: Revert to revision 1.8 to allow the use of gpg-agent.
 
 2006-04-07  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -146,21 +293,20 @@
 
 	* textmodes/paragraphs.el (sentence-end): Use string-or-null-p.
 
-	* textmodes/ispell.el (ispell-local-dictionary): Use
-	string-or-null-p.
+	* textmodes/ispell.el (ispell-local-dictionary): Use string-or-null-p.
 
 	* files.el: Update comment about safe-local-variable declarations.
 
 2006-04-06  J.D. Smith  <jdsmith@as.arizona.edu>
 
-	* progmodes/idlwave.el: Updated to IDLWAVE version 6.0.  See
-	idlwave.org.
+	* progmodes/idlwave.el: Updated to IDLWAVE version 6.0.
+	See idlwave.org.
 
-	* progmodes/idlw-shell.el: Updated to IDLWAVE version 6.0.  See
-	idlwave.org.  Includes code to obsolete idlw-rinfo.el.
+	* progmodes/idlw-shell.el: Updated to IDLWAVE version 6.0.
+	See idlwave.org.  Includes code to obsolete idlw-rinfo.el.
 
-	* progmodes/idlw-help.el: Updated to IDLWAVE version 6.0.  See
-	idlwave.org.
+	* progmodes/idlw-help.el: Updated to IDLWAVE version 6.0.
+	See idlwave.org.
 
 	* progmodes/idlw-complete-structtag.el: Updated to IDLWAVE
 	version 6.0 (minimal changes).  See idlwave.org.
@@ -231,8 +377,8 @@
 
 2006-04-05  Daiki Ueno  <ueno@unixuser.org>
 
-	* pgg-gpg.el (pgg-gpg-encrypt-region, pgg-gpg-sign-region): Wait
-	for BEGIN_SIGNING too, new in GnuPG 1.4.3.
+	* pgg-gpg.el (pgg-gpg-encrypt-region, pgg-gpg-sign-region):
+	Wait for BEGIN_SIGNING too, new in GnuPG 1.4.3.
 
 2006-04-05  Kenichi Handa  <handa@m17n.org>
 
@@ -245,8 +391,7 @@
 	default-enable-multibyte-characters.  This reverts the change from
 	revision 6.17 which is no longer necessary because the passphrase
 	is sent separately now.  GnuPG messages are unreadable under
-	multibyte locales with default-enable-multibyte-characters set to
-	nil.
+	multibyte locales with default-enable-multibyte-characters set to nil.
 
 2006-04-04  Andreas Schwab  <schwab@suse.de>
 

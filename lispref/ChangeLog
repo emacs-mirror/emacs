@@ -1,3 +1,7 @@
+2006-04-10  Bill Wohler  <wohler@newt.com>
+
+	* customize.texi (Common Keywords): Add :package-version.
+
 2006-04-10  Kim F. Storm  <storm@cua.dk>
 
 	* text.texi (Buffer Contents): Add NOPROPS arg to

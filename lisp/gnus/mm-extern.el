@@ -157,25 +157,11 @@ If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing."
     (save-excursion
       (save-restriction
 	(narrow-to-region (point) (point))
-	(let* ((type (regexp-quote
-		      (mm-handle-media-type (mm-handle-cache handle))))
-	       ;; Force the part to be displayed (but if there is no
-	       ;; method to display, a user will be prompted to save).
-	       ;; See `gnus-mime-display-single'.
-	       (mm-inline-override-types nil)
-	       (mm-attachment-override-types
-		(cons type mm-attachment-override-types))
-	       (mm-automatic-display (cons type mm-automatic-display))
-	       (mm-automatic-external-display
-		(cons type mm-automatic-external-display))
-	       ;; Suppress adding of button to the cached part.
-	       (gnus-inhibit-mime-unbuttonizing nil))
-	  (gnus-display-mime (mm-handle-cache handle)))
-	;; Move undisplayer added to the cached handle to the parent.
-	(mm-handle-set-undisplayer
-	 handle
-	 (mm-handle-undisplayer (mm-handle-cache handle)))
-	(mm-handle-set-undisplayer (mm-handle-cache handle) nil)))))
+	(mm-display-part (mm-handle-cache handle))))
+    ;; Move undisplayer added to the cached handle to the parent.
+    (mm-handle-set-undisplayer
+     handle (mm-handle-undisplayer (mm-handle-cache handle)))
+    (mm-handle-set-undisplayer (mm-handle-cache handle) nil)))
 
 (provide 'mm-extern)
 

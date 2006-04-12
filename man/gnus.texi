@@ -4043,6 +4043,22 @@ happens.  You just have to be careful if you do stuff like that.
 
 @table @kbd
 
+@item v
+@kindex v (Group)
+@cindex keys, reserved for users (Group)
+The key @kbd{v} is reserved for users.  You can bind it key to some
+function or better use it as a prefix key.  For example:
+
+@lisp
+(define-key gnus-group-mode-map (kbd "v j d")
+  (lambda ()
+    (interactive)
+    (gnus-group-jump-to-group "nndraft:drafts")))
+@end lisp
+
+On keys reserved for users in Emacs and on keybindings in general
+@xref{Keymaps, Keymaps, , emacs, The Emacs Editor}.
+
 @item ^
 @kindex ^ (Group)
 @findex gnus-group-enter-server-mode
@@ -4437,6 +4453,14 @@ The most common way to a summary buffer is to select a group from the
 group buffer (@pxref{Selecting a Group}).
 
 You can have as many summary buffers open as you wish.
+
+@kindex v (Summary)
+@cindex keys, reserved for users (Summary)
+The key @kbd{v} is reserved for users.  You can bind it key to some
+function or better use it as a prefix key.  For example:
+@lisp
+(define-key gnus-summary-mode-map (kbd "v -") "LrS") ;; lower subthread
+@end lisp
 
 @menu
 * Summary Buffer Format::       Deciding how the summary buffer is to look.
@@ -11242,6 +11266,11 @@ buffer, which means that you don't actually have to have a summary
 buffer displayed while reading.  You can do it all from the article
 buffer.
 
+@kindex v (Article)
+@cindex keys, reserved for users (Article)
+The key @kbd{v} is reserved for users.  You can bind it key to some
+function or better use it as a prefix key.
+
 A few additional keystrokes are available:
 
 @table @kbd
@@ -12271,6 +12300,12 @@ Also @pxref{Formatting Variables}.
 @cindex server commands
 
 @table @kbd
+
+@item v
+@kindex v (Server)
+@cindex keys, reserved for users (Server)
+The key @kbd{v} is reserved for users.  You can bind it key to some
+function or better use it as a prefix key.
 
 @item a
 @kindex a (Server)

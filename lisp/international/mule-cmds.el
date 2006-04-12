@@ -2531,7 +2531,9 @@ See also `locale-charset-language-names', `locale-language-names',
 	;; If a specific EOL conversion was specified in the default
 	;; buffer-file-coding-system, preserve it in the coding system
 	;; we will be using from now on.
-	(if (memq default-eol-type '(0 1 2 unix dos mac))
+	(if (and (memq default-eol-type '(0 1 2 unix dos mac))
+		 coding-system
+		 (coding-system-p coding-system))
 	    (setq coding-system (coding-system-change-eol-conversion
 				 coding-system default-eol-type)))
 

@@ -2749,7 +2749,8 @@ prefix FORCE is given."
     (message-carefully-insert-headers headers)))
 
 (defcustom message-header-synonyms
-  '((To Cc Bcc))
+  '((To Cc Bcc)
+    (Original-To))
   "List of lists of header synonyms.
 E.g., if this list contains a member list with elements `Cc' and `To',
 then `message-carefully-insert-headers' will not insert a `To' header
