@@ -2322,7 +2322,9 @@ get_lisp_to_sockaddr_size (address, familyp)
 }
 
 /* Convert an address object (vector or string) to an internal sockaddr.
-   Format of address has already been validated by size_lisp_to_sockaddr.  */
+   Address format has already been validated by get_lisp_to_sockaddr_size,
+   but just to be nice, we return without doing anything
+   if FAMILY is not valid.  */
 
 static void
 conv_lisp_to_sockaddr (family, address, sa, len)
@@ -2366,6 +2368,7 @@ conv_lisp_to_sockaddr (family, address, sa, len)
 	  return;
 	}
 #endif
+      return;
     }
   else if (STRINGP (address))
     {
