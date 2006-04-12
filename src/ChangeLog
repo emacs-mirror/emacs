@@ -85,11 +85,11 @@
 	* xfaces.c (Finternal_merge_in_global_face, try_font_list): Add
 	explicit braces to avoid ambiguous `else'.
 
-2006-04-11  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org> (tiny change)
+2006-04-11  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
 
 	* dispnew.c (init_display): Don't init X display if the user asked
 	for a non-X display.
-	
+
 2006-04-12  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (setup_coding_system): Use system_eol_type for default
