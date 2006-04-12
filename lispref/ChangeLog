@@ -1,3 +1,8 @@
+2006-04-12  Bill Wohler  <wohler@newt.com>
+
+	* customize.texi (Common Keywords): Move description of
+	customize-package-emacs-version-alist to @defvar.
+
 2006-04-10  Bill Wohler  <wohler@newt.com>
 
 	* customize.texi (Common Keywords): Add :package-version.

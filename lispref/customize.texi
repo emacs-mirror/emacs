@@ -136,10 +136,17 @@ This option specifies that the item was first introduced in
 @var{package} version @var{version}, or that its default value was
 changed in that version.  This keyword takes priority over :version.
 The @var{package} and @var{version} must appear in the alist
-@code{customize-package-emacs-version-alist}.  This alist maps packages
-to alists that map all package versions used with the
-@code{:package-version} keyword to Emacs versions.  Packages are
-symbols and versions are strings.  For example, the MH-E package
+@code{customize-package-emacs-version-alist}.
+
+@end table
+
+Packages that use the @code{:package-version} keyword must also update
+the @code{customize-package-emacs-version-alist} variable.
+
+@defvar customize-package-emacs-version-alist
+This alist maps packages to alists that map all package versions used
+with the @code{:package-version} keyword to Emacs versions.  Packages
+are symbols and versions are strings.  For example, the MH-E package
 updates this alist with the following:
 
 @smallexample
@@ -148,8 +155,7 @@ updates this alist with the following:
                     ("7.1" "22.1") ("7.2" "22.1") ("7.3" "22.1")
                     ("7.4" "22.1") ("8.0" "22.1")))
 @end smallexample
-
-@end table
+@end defvar
 
 @node Group Definitions
 @section Defining Custom Groups
