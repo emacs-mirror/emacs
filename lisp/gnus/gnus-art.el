@@ -4477,19 +4477,29 @@ are decompressed."
 specified charset."
   (interactive (list nil current-prefix-arg))
   (gnus-article-check-buffer)
-  (let* ((handle (or handle (get-text-property (point) 'gnus-data)))
-	 contents charset
-	 (b (point))
-	 (inhibit-read-only t))
+  (let ((handle (or handle (get-text-property (point) 'gnus-data)))
+	(fun (get-text-property (point) 'gnus-callback))
+	(gnus-newsgroup-ignored-charsets 'gnus-all)
+	gnus-newsgroup-charset type charset)
     (when handle
       (if (mm-handle-undisplayer handle)
 	  (mm-remove-part handle))
-      (let ((gnus-newsgroup-charset
-	     (or (cdr (assq arg
-			    gnus-summary-show-article-charset-alist))
-		 (mm-read-coding-system "Charset: ")))
-	  (gnus-newsgroup-ignored-charsets 'gnus-all))
-	(gnus-article-press-button)))))
+      (when fun
+	(setq gnus-newsgroup-charset
+	      (or (cdr (assq arg gnus-summary-show-article-charset-alist))
+		  (mm-read-coding-system "Charset: ")))
+	;; Strip the charset parameter from `handle'.
+	(setq type (mm-handle-type
+		    (if (equal (mm-handle-media-type handle)
+			       "message/external-body")
+			(progn
+			  (unless (mm-handle-cache handle)
+			    (mm-extern-cache-contents handle))
+			  (mm-handle-cache handle))
+		      handle))
+	      charset (assq 'charset (cdr type)))
+	(delq charset type)
+	(funcall fun handle)))))
 
 (defun gnus-mime-view-part-externally (&optional handle)
   "View the MIME part under point with an external viewer."

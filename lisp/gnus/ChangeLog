@@ -1,3 +1,24 @@
+2006-04-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-view-part-as-charset): Ignore charset
+	that the part specifies.
+
+	* mm-decode.el (mm-display-part): Work with external parts and
+	usual parts similarly.
+
+	* mm-extern.el (mm-inline-external-body): Use mm-display-part
+	instead of gnus-display-mime.
+
+	* gnus-uu.el (gnus-uu-save-article): Put mml tags instead of part
+	tag to summarized topics part in order to encode non-ASCII text.
+
+2006-04-12  Kenichi Handa  <handa@m17n.org>
+
+	* rfc2231.el (rfc2231-decode-encoded-string): Work on unibyte
+	buffer and then decode the buffer text if necessary.
+	(rfc2231-encode-string): Be sure to work on multibyte buffer at
+	first, and after mm-encode-body, change the buffer to unibyte.
+
 2006-04-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-art.el (gnus-button-valid-localpart-regexp): Exclude `@'.
