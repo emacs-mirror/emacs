@@ -906,7 +906,7 @@ Boston, MA 02110-1301, USA.  */
 /* #undef mbstate_t */
 
 /* Define to `int' if <sys/types.h> does not define. */
-/* #undef pid_t */
+#define pid_t int
 
 /* Define to any substitute for sys_siglist. */
 /* #undef sys_siglist */
