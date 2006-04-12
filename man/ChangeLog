@@ -1,3 +1,8 @@
+2006-04-11  Richard Stallman  <rms@gnu.org>
+
+	* custom.texi (Safe File Variables):
+	Document enable-local-variables = :safe.
+
 2006-04-11  Karl Berry  <karl@gnu.org>
 
         * emacs-xtra.texi, emacs.texi (Dired under VC, VC Dired Commands,

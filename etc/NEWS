@@ -3967,6 +3967,12 @@ A file local variables list cannot specify a string with text
 properties--any specified text properties are discarded.
 
 +++
+*** The variable `enable-local-variables' controls how local variable
+lists are handled.  t, the default, specifies the standard querying
+behavior.  :safe means use only safe values, and ignore the rest.
+nil means ignore them all.  Anything else means always query.
+
++++
 *** The variable `safe-local-eval-forms' specifies a list of forms that
 are ok to evaluate when they appear in an `eval' local variables
 specification.  Normally Emacs asks for confirmation before evaluating
@@ -10789,9 +10795,6 @@ SNMPv2 MIBs.  It has entries on `auto-mode-alist'.
 *** The package sql.el provides a major mode, M-x sql-mode, for
 editing SQL files, and M-x sql-interactive-mode for interacting with
 SQL interpreters.  It has an entry on `auto-mode-alist'.
-
-*** M-x highlight-changes-mode provides a minor mode displaying buffer
-changes with a special face.
 
 *** ispell4.el has been deleted.  It got in the way of ispell.el and
 this was hard to fix reliably.  It has long been obsolete -- use
