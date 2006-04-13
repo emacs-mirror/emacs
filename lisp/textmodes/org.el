@@ -5977,7 +5977,6 @@ the documentation of `org-diary'."
 				       (if scheduledp "Scheduled: " ""))
 			       (match-string 1) category tags timestr)))
 		(setq txt org-agenda-no-heading-message))
-	      (debug)
 	      (setq priority (org-get-priority txt))
 	      (org-add-props txt props
 		'org-marker marker 'org-hd-marker hdmarker)
