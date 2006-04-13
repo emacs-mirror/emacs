@@ -4998,6 +4998,8 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes)
   coding->consumed = coding->consumed_char = 0;
   coding->errors = 0;
   coding->result = CODING_FINISH_NORMAL;
+  if (coding->eol_type == CODING_EOL_UNDECIDED)
+    coding->eol_type = system_eol_type;
 
   switch (coding->type)
     {
