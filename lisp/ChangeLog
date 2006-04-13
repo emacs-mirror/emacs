@@ -1,3 +1,10 @@
+2006-04-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-display-shell-command-buffer): New defvar.
+	(tramp-handle-shell-command): Display output buffer only when
+	`tramp-display-shell-command-buffer' is true.
+	(tramp-handle-process-file): Set `tramp-display-shell-command-buffer'.
+
 2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-set-autofill-regexps): Set only the local
