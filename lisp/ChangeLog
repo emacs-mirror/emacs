@@ -1,3 +1,8 @@
+2006-04-13  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc.el (vc-annotate): Arrange for point to end up at the same
+	line number as in the original, but only when using a new buffer.
+
 2006-04-12  Davis Herring  <herring@lanl.gov>  (tiny change)
 
 	* files.el (hack-one-local-variable-eval-safep): Recognize
@@ -21,7 +26,7 @@
 
 2006-04-13  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-existing-buffers): 
+	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-existing-buffers):
 	GDB 6.1+ gives full filename for "info sources" so use
 	file-name-nondirectory.
 
