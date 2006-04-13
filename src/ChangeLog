@@ -1,5 +1,15 @@
 2006-04-13  Kenichi Handa  <handa@m17n.org>
 
+	* coding.c (setup_coding_system): If eol-type is not yet decided
+	and system_eol_type is not LF, set CODING_REQUIRE_ENCODING_MASK.
+	If coding_system is nil, return 0.
+	(code_convert_region1): Even if coding_system is nil, don't skip
+	conversion if system_eol_type is not LF.
+	(code_convert_string1): Likewise.
+	(code_convert_string_norecord): Likewise.
+
+2006-04-13  Kenichi Handa  <handa@m17n.org>
+
 	* coding.c (setup_coding_system): Fix previous change.
 	(encode_coding): If eol_type is not yet decided, use
 	system_eol_type.
