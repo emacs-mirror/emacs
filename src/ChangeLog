@@ -1,3 +1,7 @@
+2006-04-13  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (setup_coding_system): Fix previous change.
+
 2006-04-13  Nick Roberts  <nickrob@snap.net.nz>
 
 	* xdisp.c (note_mouse_highlight): Add help echo for dragging vertical
