@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.22
+;; Version: 4.23
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,6 +81,9 @@
 ;;
 ;; Changes since version 4.00:
 ;; ---------------------------
+;; Version 4.23
+;;    - Bug fixes.
+;;
 ;; Version 4.22
 ;;    - Bug fixes.
 ;;    - In agenda buffer, mouse-1 no longer follows link.
@@ -2181,7 +2184,9 @@ Changing this variable requires a restart of Emacs to take effect."
 	     ((equal key "STARTUP")
 	      (let ((opts (org-split-string value splitre))
 		    (set '(("fold" org-startup-folded t)
+			   ("overview" org-startup-folded t)
 			   ("nofold" org-startup-folded nil)
+			   ("showall" org-startup-folded nil)
 			   ("content" org-startup-folded content)
 			   ("hidestars" org-hide-leading-stars t)
 			   ("showstars" org-hide-leading-stars nil)
@@ -7690,6 +7695,28 @@ folders."
       (kill-this-buffer)
       (error "Message not found"))))
 
+(defun org-upgrade-old-links (&optional query-description)
+  "Transfer old <...> style links to new [[...]] style links.
+With arg query-description, ask at each match for a description text to use
+for this link."
+  (interactive (list (y-or-n-p "Would you like to be queried for a description at each link?")))
+  (save-excursion
+    (goto-char (point-min))
+    (let ((re (concat "\\([^[]\\)<\\(" 
+		      "\\(" (mapconcat 'identity org-link-types "\\|") 
+		      "\\):"
+		      "[^" org-non-link-chars "]+\\)>"))
+	  l1 l2 (cnt 0))
+      (while (re-search-forward re nil t)
+	(setq cnt (1+ cnt)
+	      l1 (org-match-string-no-properties 2)
+	      l2 (save-match-data (org-link-escape l1)))
+	(when query-description (setq l1 (read-string "Desc: " l1)))
+	(if (equal l1 l2)
+	    (replace-match (concat (match-string 1) "[[" l1 "]]") t t)
+	  (replace-match (concat (match-string 1) "[[" l2 "][" l1 "]]") t t)))
+      (message "%d matches have beed treated" cnt))))
+
 (defun org-open-file (path &optional in-emacs line search)
   "Open the file at PATH.
 First, this expands any special file name abbreviations.  Then the
@@ -11397,7 +11424,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
        (mapconcat 'identity org-todo-keywords " ")
      "Me Jason Marie DONE")
    (cdr (assoc org-startup-folded
-	       '((nil . "nofold")(t . "fold")(content . "content"))))
+	       '((nil . "showall") (t . "overview") (content . "content"))))
    (if org-startup-with-deadline-check "dlcheck" "nodlcheck")
    (if org-odd-levels-only "odd" "oddeven")
    (if org-hide-leading-stars "hidestars" "showstars")
@@ -12217,6 +12244,89 @@ file, but with extension `.ics'."
   (interactive)
   (org-export-icalendar nil buffer-file-name))
 
+(defun org-export-as-xml ()
+  "Export current buffer as XOXO XML buffer."
+  (interactive)
+  (cond ((eq org-export-xml-type 'xoxo)
+	 (org-export-as-xoxo (current-buffer)))))
+
+(defun org-export-as-xoxo-insert-into (buffer &rest output)
+  (with-current-buffer buffer
+    (apply 'insert output)))
+
+(defun org-export-as-xoxo (&optional buffer)
+  "Export the org buffer as XOXO.
+The XOXO buffer is named *xoxo-<source buffer name>*"
+  (interactive (list (current-buffer)))
+  ;; A quickie abstraction
+
+  ;; Output everything as XOXO
+  (with-current-buffer (get-buffer buffer)
+    (goto-char (point-min))  ;; CD:  beginning-of-buffer is not allowed.
+    (let* ((filename (concat (file-name-sans-extension buffer-file-name)
+			     ".xml"))
+	   (out (find-file-noselect filename))
+	   (last-level 1)
+	   (hanging-li nil))
+      ;; Check the output buffer is empty.
+      (with-current-buffer out (erase-buffer))
+      ;; Kick off the output
+      (org-export-as-xoxo-insert-into out "<ol class='xoxo'>\n")
+      (while (re-search-forward "^\\(\\*+\\) \\(.+\\)" (point-max) 't)
+        (let* ((hd (match-string-no-properties 1))
+               (level (length hd))
+               (text (concat
+                      (match-string-no-properties 2)
+                      (save-excursion
+                        (goto-char (match-end 0))
+                        (let ((str ""))
+                          (catch 'loop
+                            (while 't
+                              (forward-line)
+                              (if (looking-at "^[ \t]\\(.*\\)")
+                                  (setq str (concat str (match-string-no-properties 1)))
+                                (throw 'loop str)))))))))
+
+          ;; Handle level rendering
+          (cond
+           ((> level last-level)
+            (org-export-as-xoxo-insert-into out "\n<ol>\n"))
+
+           ((< level last-level)
+            (dotimes (- (- last-level level) 1)
+              (if hanging-li
+                  (org-export-as-xoxo-insert-into out "</li>\n"))
+              (org-export-as-xoxo-insert-into out "</ol>\n"))
+            (when hanging-li
+              (org-export-as-xoxo-insert-into out "</li>\n")
+              (setq hanging-li nil)))
+
+           ((equal level last-level)
+            (if hanging-li
+                (org-export-as-xoxo-insert-into out "</li>\n")))
+           )
+
+          (setq last-level level)
+
+          ;; And output the new li
+          (setq hanging-li 't)
+          (if (equal ?+ (elt text 0))
+              (org-export-as-xoxo-insert-into out "<li class='" (substring text 1) "'>")
+            (org-export-as-xoxo-insert-into out "<li>" text))))
+
+      ;; Finally finish off the ol
+      (dotimes (- last-level 1)
+        (if hanging-li
+            (org-export-as-xoxo-insert-into out "</li>\n"))
+        (org-export-as-xoxo-insert-into out "</ol>\n"))
+
+      ;; Finish the buffer off and clean it up.
+      (switch-to-buffer-other-window out)
+      (indent-region (point-min) (point-max))
+      (save-buffer)
+      (goto-char (point-min))
+      )))
+
 ;;;###autoload
 (defun org-export-icalendar-all-agenda-files ()
   "Export all files in `org-agenda-files' to iCalendar .ics files.
@@ -12782,8 +12892,7 @@ This command does many different things, depending on context:
   the entire table.
 
 - If the cursor is inside a table created by the table.el package,
-  activate that table.  Otherwise, if the cursor is at a normal table
-  created with org.el, re-align that table.
+  activate that table.
 
 - If the current buffer is a remember buffer, close note and file it.
   with a prefix argument, file it without further interaction to the default
@@ -13407,7 +13516,6 @@ Show the heading too, if it is currently invisible."
        (or (match-beginning 1) (point-max)))
      (if org-noutline-p nil ?\n))))
 
-
 (defun org-make-options-regexp (kwds)
   "Make a regular expression for keyword lines."
   (concat
@@ -13441,113 +13549,6 @@ Show the heading too, if it is currently invisible."
 
 (run-hooks 'org-load-hook)
 
-;; Experimental code
-;; FIXME: Move this code when it is ready.
-
-(defun org-upgrade-old-links (&optional query-description)
-  "Transfer old <...> style links to new [[...]] style links.
-With arg query-description, ask at each match for a description text to use
-for this link."
-  (interactive (list (y-or-n-p "Would you like to be queried for a description at each link?")))
-  (save-excursion
-    (goto-char (point-min))
-    (let ((re (concat "\\([^[]\\)<\\(" 
-		      "\\(" (mapconcat 'identity org-link-types "\\|") 
-		      "\\):"
-		      "[^" org-non-link-chars "]+\\)>"))
-	  l1 l2 (cnt 0))
-      (while (re-search-forward re nil t)
-	(setq cnt (1+ cnt)
-	      l1 (org-match-string-no-properties 2)
-	      l2 (save-match-data (org-link-escape l1)))
-	(when query-description (setq l1 (read-string "Desc: " l1)))
-	(if (equal l1 l2)
-	    (replace-match (concat (match-string 1) "[[" l1 "]]") t t)
-	  (replace-match (concat (match-string 1) "[[" l2 "][" l1 "]]") t t)))
-      (message "%d matches have beed treated" cnt))))
-
-(defun org-export-as-xml ()
-  "Export current buffer as XOXO XML buffer."
-  (interactive)
-  (cond ((eq org-export-xml-type 'xoxo)
-	 (org-export-as-xoxo (current-buffer)))))
-
-(defun org-export-as-xoxo-insert-into (buffer &rest output)
-  (with-current-buffer buffer
-    (apply 'insert output)))
-
-(defun org-export-as-xoxo (&optional buffer)
-  "Export the org buffer as XOXO.
-The XOXO buffer is named *xoxo-<source buffer name>*"
-  (interactive (list (current-buffer)))
-  ;; A quickie abstraction
-
-  ;; Output everything as XOXO
-  (with-current-buffer (get-buffer buffer)
-    (goto-char (point-min))  ;; CD:  beginning-of-buffer is not allowed.
-    (let* ((filename (concat (file-name-sans-extension buffer-file-name)
-			     ".xml"))
-	   (out (find-file-noselect filename))
-	   (last-level 1)
-	   (hanging-li nil))
-      ;; Check the output buffer is empty.
-      (with-current-buffer out (erase-buffer))
-      ;; Kick off the output
-      (org-export-as-xoxo-insert-into out "<ol class='xoxo'>\n")
-      (while (re-search-forward "^\\(\\*+\\) \\(.+\\)" (point-max) 't)
-        (let* ((hd (match-string-no-properties 1))
-               (level (length hd))
-               (text (concat
-                      (match-string-no-properties 2)
-                      (save-excursion
-                        (goto-char (match-end 0))
-                        (let ((str ""))
-                          (catch 'loop
-                            (while 't
-                              (forward-line)
-                              (if (looking-at "^[ \t]\\(.*\\)")
-                                  (setq str (concat str (match-string-no-properties 1)))
-                                (throw 'loop str)))))))))
-
-          ;; Handle level rendering
-          (cond
-           ((> level last-level)
-            (org-export-as-xoxo-insert-into out "\n<ol>\n"))
-
-           ((< level last-level)
-            (dotimes (- (- last-level level) 1)
-              (if hanging-li
-                  (org-export-as-xoxo-insert-into out "</li>\n"))
-              (org-export-as-xoxo-insert-into out "</ol>\n"))
-            (when hanging-li
-              (org-export-as-xoxo-insert-into out "</li>\n")
-              (setq hanging-li nil)))
-
-           ((equal level last-level)
-            (if hanging-li
-                (org-export-as-xoxo-insert-into out "</li>\n")))
-           )
-
-          (setq last-level level)
-
-          ;; And output the new li
-          (setq hanging-li 't)
-          (if (equal ?+ (elt text 0))
-              (org-export-as-xoxo-insert-into out "<li class='" (substring text 1) "'>")
-            (org-export-as-xoxo-insert-into out "<li>" text))))
-
-      ;; Finally finish off the ol
-      (dotimes (- last-level 1)
-        (if hanging-li
-            (org-export-as-xoxo-insert-into out "</li>\n"))
-        (org-export-as-xoxo-insert-into out "</ol>\n"))
-
-      ;; Finish the buffer off and clean it up.
-      (switch-to-buffer-other-window out)
-      (indent-region (point-min) (point-max))
-      (save-buffer)
-      (goto-char (point-min))
-      )))
-
 ;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
 ;;; org.el ends here
+
