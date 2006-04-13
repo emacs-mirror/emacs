@@ -2689,12 +2689,14 @@ It is dangerous if either of these conditions are met:
       (and (eq (car exp) 'put)
 	   (hack-one-local-variable-quotep (nth 1 exp))
 	   (hack-one-local-variable-quotep (nth 2 exp))
-	   (memq (nth 1 (nth 2 exp))
-		 '(lisp-indent-hook))
-	   ;; Only allow safe values of lisp-indent-hook;
-	   ;; not functions.
-	   (or (numberp (nth 3 exp))
-	       (equal (nth 3 exp) ''defun)))
+	   (let ((prop (nth 1 (nth 2 exp))) (val (nth 3 exp)))
+	     (cond ((eq prop 'lisp-indent-hook)
+		    ;; Only allow safe values of lisp-indent-hook;
+		    ;; not functions.
+		    (or (numberp val) (equal val ''defun)))
+		   ((eq prop 'edebug-form-spec)
+		    ;; Only allow indirect form specs.
+		    (edebug-basic-spec val)))))
       ;; Allow expressions that the user requested.
       (member exp safe-local-eval-forms)
       ;; Certain functions can be allowed with safe arguments
