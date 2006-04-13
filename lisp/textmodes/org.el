@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.21
+;; Version: 4.22
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,8 +81,10 @@
 ;;
 ;; Changes since version 4.00:
 ;; ---------------------------
-;; Version 4.21
+;; Version 4.22
 ;;    - Bug fixes.
+;;    - In agenda buffer, mouse-1 no longer follows link.
+;;      See `org-agenda-mouse-1-follows-link' and `org-mouse-1-follows-link'.
 ;;
 ;; Version 4.20
 ;;    - Links use now the [[link][description]] format by default.
@@ -174,7 +176,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.21"
+(defvar org-version "4.22"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -870,6 +872,13 @@ Needs to be set before org.el is loaded."
   :group 'org-link-follow
   :type 'boolean)
 
+(defcustom org-mouse-1-follows-link t
+  "Non-nil means, mouse-1 on a link will follow the link.
+A longer mouse click will still set point.  Does not wortk on XEmacs.
+Needs to be set before org.el is loaded."
+  :group 'org-link-follow
+  :type 'boolean)
+
 (defcustom org-mark-ring-length 4
   "Number of different positions to be recorded in the ring
 Changing this requires a restart of Emacs to work correctly."
@@ -1301,21 +1310,28 @@ forth between agenda and calendar."
   :tag "Org Agenda Window Setup"
   :group 'org-agenda)
 
+(defcustom org-agenda-mouse-1-follows-link nil
+  "Non-nil means, mouse-1 on a link will follow the link in the agenda.
+A longer mouse click will still set point.  Does not wortk on XEmacs.
+Needs to be set before org.el is loaded."
+  :group 'org-agenda-setup
+  :type 'boolean)
+
 (defcustom org-select-timeline-window t
   "Non-nil means, after creating a timeline, move cursor into Timeline window.
 When nil, cursor will remain in the current window."
-  :group 'org-agenda-window-setup
+  :group 'org-agenda-setup
   :type 'boolean)
 
 (defcustom org-select-agenda-window t
   "Non-nil means, after creating an agenda, move cursor into Agenda window.
 When nil, cursor will remain in the current window."
-  :group 'org-agenda-window-setup
+  :group 'org-agenda-setup
   :type 'boolean)
 
 (defcustom org-fit-agenda-window t
   "Non-nil means, change window size of agenda to fit content."
-  :group 'org-agenda-window-setup
+  :group 'org-agenda-setup
   :type 'boolean)
 
 (defgroup org-agenda-display nil
@@ -2406,7 +2422,8 @@ that will be added to PLIST.  Returns the string that was modified."
   (if (featurep 'xemacs) [button2] [mouse-2]) 'org-open-at-mouse)
 (define-key org-mouse-map
   (if (featurep 'xemacs) [button3] [mouse-3]) 'org-find-file-at-mouse)
-(define-key org-mouse-map [follow-link] 'mouse-face)
+(when org-mouse-1-follows-link
+  (define-key org-mouse-map [follow-link] 'mouse-face))
 (when org-tab-follows-link
   (define-key org-mouse-map [(tab)] 'org-open-at-point)
   (define-key org-mouse-map "\C-i" 'org-open-at-point))
@@ -4249,7 +4266,7 @@ used to insert the time stamp into the buffer to include the time."
 	   ;; the range start.
 	   (if (save-excursion
 		 (re-search-backward
-		  (concat org-ts-regexp "--\\=")
+		  (concat org-ts-regexp "--\\=") ; FIXME: exactly two minuses?
 		  (- (point) 20) t))
 	       (apply
 		'encode-time
@@ -4769,7 +4786,8 @@ The following commands are available:
   (if (featurep 'xemacs) [(button2)] [(mouse-2)]) 'org-agenda-goto-mouse)
 (define-key org-agenda-keymap
   (if (featurep 'xemacs) [(button3)] [(mouse-3)]) 'org-agenda-show-mouse)
-(define-key org-agenda-keymap [follow-link] 'mouse-face)
+(when org-agenda-mouse-1-follows-link
+  (define-key org-agenda-keymap [follow-link] 'mouse-face))
 (easy-menu-define org-agenda-menu org-agenda-mode-map "Agenda menu"
   '("Agenda"
     ("Agenda Files")
@@ -5522,7 +5540,7 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
 	 (org-disable-agenda-to-diary t))
     (save-excursion
       (save-window-excursion
-	(list-diary-entries date 1)))
+	(list-diary-entries date 1)))  ;; Keep this name for now, compatibility
     (if (not (get-buffer fancy-diary-buffer))
 	(setq entries nil)
       (with-current-buffer fancy-diary-buffer
@@ -5954,6 +5972,7 @@ the documentation of `org-diary'."
 				       (if scheduledp "Scheduled: " ""))
 			       (match-string 1) category tags timestr)))
 		(setq txt org-agenda-no-heading-message))
+	      (debug)
 	      (setq priority (org-get-priority txt))
 	      (org-add-props txt props
 		'org-marker marker 'org-hd-marker hdmarker)
@@ -5966,7 +5985,7 @@ the documentation of `org-diary'."
 		    (org-add-props txt nil
 		      'face 'org-scheduled-today
 		      'undone-face 'org-scheduled-today 'done-face 'org-done
-		      'category category priority (+ 99 priority))
+		      'category category 'priority (+ 99 priority))
 		  (org-add-props txt nil 'priority priority 'category category)))
 	      (push txt ee))
 	    (outline-next-heading))))
@@ -6227,7 +6246,8 @@ only the correctly processes TXT should be returned - this is used by
 			     (file-name-sans-extension
 			      (file-name-nondirectory buffer-file-name))
 			   "")))
-	   (tag (or (nth (1- (or (length tags) 0)) tags) ""))
+	   (tag (if tags (nth (1- (length tags)) tags) ""))
+	   ;;(tag (or (nth (1- (or (length tags) 0)) tags) ""))  FIXME: rm
 	   time              ;; needed for the eval of the prefix format
 	   (ts (if dotime (concat (if (stringp dotime) dotime "") txt)))
 	   (time-of-day (and dotime (org-get-time-of-day ts)))
@@ -10153,7 +10173,8 @@ $1->    %s\n" orig formula form))
 			    (org-table-align)))))
 
 (defun org-table-recalculate (&optional all noalign)
-  "Recalculate the current table line by applying all stored formulas."
+  "Recalculate the current table line by applying all stored formulas.
+With prefix arg ALL, do this for all lines in the table."
   (interactive "P")
   (or (memq this-command org-recalc-commands)
       (setq org-recalc-commands (cons this-command org-recalc-commands)))
@@ -12742,19 +12763,37 @@ See the individual commands for more information."
     (org-paste-subtree arg)))
 
 (defun org-ctrl-c-ctrl-c (&optional arg)
-  "Call realign table, or recognize a table.el table, or update keywords.
-When the cursor is inside a table created by the table.el package,
-activate that table.  Otherwise, if the cursor is at a normal table
-created with org.el, re-align that table.  This command works even if
-the automatic table editor has been turned off.
+  "Set tags in headline, or update according to changed information at point.
 
-If the cursor is in a headline, prompt for tags and insert them into
-the current line, aligned to `org-tags-column'.  When in a headline and
-called with prefix arg, realign all tags in the current buffer.
+This command does many different things, depending on context:
 
-If the cursor is in one of the special #+KEYWORD lines, this triggers
-scanning the buffer for these lines and updating the information.
-If the cursor is on a #+TBLFM line, re-apply the formulae to the table."
+- If the cursor is in a headline, prompt for tags and insert them
+  into the current line, aligned to `org-tags-column'.  When called
+  with prefix arg, realign all tags in the current buffer.
+
+- If the cursor is in one of the special #+KEYWORD lines, this
+  triggers scanning the buffer for these lines and updating the
+  information. 
+
+- If the cursor is inside a table, realign the table.  This command
+  works even if the automatic table editor has been turned off.
+
+- If the cursor is on a #+TBLFM line, re-apply the formulas to
+  the entire table.
+
+- If the cursor is inside a table created by the table.el package,
+  activate that table.  Otherwise, if the cursor is at a normal table
+  created with org.el, re-align that table.
+
+- If the current buffer is a remember buffer, close note and file it.
+  with a prefix argument, file it without further interaction to the default
+  location.
+
+- If the cursor is on a <<<target>>>, update radio targets and corresponding
+  links in this buffer.
+
+- If the cursor is on a numbered item in a plain list, renumber the
+  ordered list."
   (interactive "P")
   (let  ((org-enable-table-editor t))
     (cond
@@ -13505,7 +13544,7 @@ The XOXO buffer is named *xoxo-<source buffer name>*"
 
       ;; Finish the buffer off and clean it up.
       (switch-to-buffer-other-window out)
-      (indent-region (point-min) (point-max) nil)
+      (indent-region (point-min) (point-max))
       (save-buffer)
       (goto-char (point-min))
       )))
@@ -13513,3 +13552,4 @@ The XOXO buffer is named *xoxo-<source buffer name>*"
 ;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
 ;;; org.el ends here
 
+  
