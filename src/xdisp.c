@@ -22358,7 +22358,10 @@ note_mouse_highlight (f, x, y)
     }
 
   if (part == ON_VERTICAL_BORDER)
-    cursor = FRAME_X_OUTPUT (f)->horizontal_drag_cursor;
+    {
+      cursor = FRAME_X_OUTPUT (f)->horizontal_drag_cursor;
+      help_echo_string = make_string ("drag-mouse-1: resize", 20);
+    }
   else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE
 	   || part == ON_SCROLL_BAR)
     cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
