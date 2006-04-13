@@ -1,3 +1,15 @@
+2006-04-12  Davis Herring  <herring@lanl.gov>  (tiny change)
+
+	* files.el (hack-one-local-variable-eval-safep): Recognize
+	`edebug-form-spec' for `put', but only if it passes
+	`edebug-basic-spec'.  Generalize `put' handling.
+
+	* emacs-lisp/edebug.el (edebug-basic-spec): New function for
+	vetting file-local form specs.
+
+	* allout.el (allout-layout): Autoload its `safe-local-variable'
+	property.
+
 2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-ctrl-c-ctrl-c): Improved documentation
