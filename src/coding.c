@@ -5256,6 +5256,8 @@ shrink_encoding_region (beg, end, coding, str)
   if (coding->type == coding_type_ccl
       || coding->eol_type == CODING_EOL_CRLF
       || coding->eol_type == CODING_EOL_CR
+      || (coding->eol_type == CODING_EOL_UNDECIDED
+	  && system_eol_type != CODING_EOL_LF)
       || (coding->cmp_data && coding->cmp_data->used > 0))
     {
       /* We can't skip any data.  */
