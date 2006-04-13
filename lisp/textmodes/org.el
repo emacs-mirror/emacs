@@ -179,7 +179,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.22"
+(defvar org-version "4.23"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
