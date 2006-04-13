@@ -4,7 +4,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.21
+@set VERSION 4.22
 @set DATE April 2006
 
 @dircategory Emacs
@@ -22,8 +22,7 @@
 
 @c Macro definitions
 
-@c FIXME: does not look good in html
-@c Subheadings inside a table.  Need a difference between info and the rest.
+@c Subheadings inside a table.
 @macro tsubheading{text}
 @ifinfo
 @subsubheading \text\
@@ -3371,12 +3370,10 @@ activate changes immediately).
 #+STARTUP: oddeven
 @end example
 
-You can convert an Org-mode file from single-star-per-level to
-the double-star-per-level convention with @kbd{M-x org-convert-to-odd-levels
-RET} in that file.  There is no command for the back conversion because
-such a command might merge levels and in this way destroy the
-structure of the tree.
-@c FIXME: Maybe we should have such a command...
+You can convert an Org-mode file from single-star-per-level to the
+double-star-per-level convention with @kbd{M-x org-convert-to-odd-levels
+RET} in that file.  The reverse operation is @kbd{M-x
+org-convert-to-oddeven-levels}.
 
 @node TTY keys, FAQ, Clean view, Miscellaneous
 @section Using org-mode on a tty
