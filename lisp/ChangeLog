@@ -1,3 +1,12 @@
+2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-ctrl-c-ctrl-c): Improved documentation
+	string.
+	(org-agenda-mouse-1-follows-link)
+	(org-mouse-1-follows-link): New options.
+	(org-format-agenda-item): Fixed bug if TAGS is nil.
+	(org-agenda-get-scheduled): Quote `priority' symbol in plist.
+
 2006-04-13  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-existing-buffers): 
