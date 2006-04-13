@@ -417,7 +417,8 @@ With arg, use separate IO iff arg is positive."
   (goto-char (point-min))
   (when (search-forward "read in on demand:" nil t)
     (while (re-search-forward gdb-source-file-regexp nil t)
-      (push (or (match-string 1) (match-string 2)) gdb-source-file-list))
+      (push (file-name-nondirectory (or (match-string 1) (match-string 2)))
+	    gdb-source-file-list))
     (dolist (buffer (buffer-list))
       (with-current-buffer buffer
 	(when (and buffer-file-name
