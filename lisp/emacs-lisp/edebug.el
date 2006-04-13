@@ -258,6 +258,20 @@ Both SYMBOL and SPEC are unevaluated. The SPEC can be 0, t, a symbol
     edebug-form-spec
     ))
 
+;;;###autoload
+(defun edebug-basic-spec (spec)
+  "Return t if SPEC uses only extant spec symbols.
+An extant spec symbol is a symbol that is not a function and has a
+`edebug-form-spec' property."
+  (cond ((listp spec)
+	 (catch 'basic
+	   (while spec
+	     (unless (edebug-basic-spec (car spec)) (throw 'basic nil))
+	     (setq spec (cdr spec)))
+	   t))
+	((symbolp spec)
+	 (unless (functionp spec) (get spec 'edebug-form-spec)))))
+
 ;;; Utilities
 
 ;; Define edebug-gensym - from old cl.el
