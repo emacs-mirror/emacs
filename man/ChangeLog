@@ -1,6 +1,11 @@
 2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: (Updating settings): New section.
+	(Visibility cycling): Better names for the startup folding
+	options.
+	(Exporting): Completely restructured.
+	(The very busy C-c C-c key): New section.
+	(Summary of in-buffer settings): New section.
 
 2006-04-12  Richard Stallman  <rms@gnu.org>
 
