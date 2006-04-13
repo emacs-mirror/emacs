@@ -3621,7 +3621,7 @@ setup_coding_system (coding_system, coding)
 	= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
     }
   else
-    coding->eol_type = system_eol_type;
+    coding->eol_type = CODING_EOL_LF;
 
   coding_type = XVECTOR (coding_spec)->contents[0];
   /* Try short cut.  */
