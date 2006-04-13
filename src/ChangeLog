@@ -5,6 +5,8 @@
 
 2006-04-12  Richard Stallman  <rms@gnu.org>
 
+	* keyboard.c (read_key_sequence): Explicitly avoid keybuf[-1].
+
 	* process.c (conv_lisp_to_sockaddr): If FAMILY unknown, just return.
 	(Fprocess_send_eof): Abort if fail to open null device.
 
