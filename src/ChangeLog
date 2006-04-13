@@ -3,6 +3,8 @@
 	* coding.c (setup_coding_system): Fix previous change.
 	(encode_coding): If eol_type is not yet decided, use
 	system_eol_type.
+	(shrink_encoding_region): If eol_type is not yet decided and
+	system_eol_type is not LF, don't shrink.
 
 2006-04-13  Nick Roberts  <nickrob@snap.net.nz>
 
