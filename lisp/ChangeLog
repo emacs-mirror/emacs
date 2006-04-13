@@ -1,3 +1,9 @@
+2006-04-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-existing-buffers): 
+	GDB 6.1+ gives full filename for "info sources" so use
+	file-name-nondirectory.
+
 2006-04-12  Romain Francoise  <romain@orebokech.com>
 
 	* subr.el (read-passwd): Bind `message-log-max' to nil.
