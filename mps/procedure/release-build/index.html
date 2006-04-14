@@ -59,7 +59,7 @@
 
 <ol>
 
-<li><p> Choose a release name of the form "VERSION.N" (for example,
+<li><p> Choose a RELEASE name of the form "VERSION.N" (for example,
 0.3.0). VERSION is the number of the version you're releasing.  N is the
 first unused release number (starting at zero).  Look in the index of
 releases (release/index.html) for existing release numbers for your
@@ -69,19 +69,25 @@ version. </p></li>
 contains an up-to-date description of the release you intend to build
 and the correct release name. </p> </li>
 
-<li><p> Check that the version string that gets compiled-in to the 
-	MPS library is correct. It is:
-	<code>version/<i>VERSION</i>/code/version.c</code>. 
-	[This procedure should also tell you how to check it, and 
-	whether and how 
-to modify it, but currently it does not.  It may help to look at 
-<code>version/<i>VERSION</i>/design/version-library/index.html</code>.  
-RHSK 2005-10-31] </p> </li>
+<li><p> In
+    <code>version/<i>VERSION</i>/code/version.c</code>, 
+    set 
+    <code>MPS_RELEASE</code>
+    to the correct value (see the rules in the comments), 
+    and check strings that contain copyright dates, etc.
+</p> </li>
 
-<li><p> <strong>Submit <code>readme.txt</code> to Perforce
-before you continue.</strong> </p></li>
+<li><p> Please update
+    <code>version/<i>VERSION</i>/example/hello-world/index.txt</code>, 
+    so that it works with the RELEASE you are creating
+    (eg. 1.106.1 &rarr; 1.106.2).
+</p> </li>
 
-<li><p> Determine the changelevel at which you're going to make the
+<li><p> <strong>Submit <code>readme.txt</code>, 
+<code>version.c</code>, and other changed files
+to Perforce before you continue.</strong> </p></li>
+
+<li><p> Determine the CHANGELEVEL at which you're going to make the
 release.  This will usually be the latest submitted changelevel on the
 version branch; to get it, use p4 changes with a max of 1 (one):</p> <blockquote> <code>p4 changes -m 1
 version/VERSION/...</code> </blockquote> </li>
@@ -97,7 +103,7 @@ version/VERSION/...</code> </blockquote> </li>
 
 <li>
 
-  <p> Sync the version sources to the changelevel you determined in step 2.1.  Sync the version sources to a clean area of the disk, to be sure that there are no extraneous files around. </p>
+  <p> Sync the version sources to the CHANGELEVEL you determined in step 2.1.  Sync the version sources to a clean area of the disk, to be sure that there are no extraneous files around. </p>
 
   <blockquote> <code>
     p4 sync version/VERSION/...#none <br />
@@ -144,7 +150,7 @@ release RELEASE." </p> </li>
 
 <ol>
 
-<li> <p> Sync the version sources to the changelevel you determined in step 2.1.  Sync the version sources to a clean area of the disk, to be sure that there are no extraneous files around. </p> </li>
+<li> <p> Sync the version sources to the CHANGELEVEL you determined in step 2.1.  Sync the version sources to a clean area of the disk, to be sure that there are no extraneous files around. </p> </li>
 
 <li> <p> Using the Windows file-browser, copy the version/VERSION directory, paste a copy, and rename it mps-kit-RELEASE. </p></li>
 
@@ -189,8 +195,26 @@ correct set of known and fixed issues can be derived. </p></li>
 <li><p> Submit these changes with the comment "MPS: registered release
 RELEASE."  </p></li>
 
-<li><p> Inform the project manager and staff by e-mail to <a
-href="mailto:mps-staff@ravenbrook.com">mps-staff@ravenbrook.com</a>. </p></li>
+<li>
+  <p>
+    Edit the main MPS Project index page at
+    <code>//info.ravenbrook.com/project/mps/index.html</code>,
+    to refer to the new release:
+  </p> 
+  <ul>
+    <li> update links to 'the latest release' or 
+      'download' (important); 
+    </li>
+    <li> consider updating the 'project status' section. </li>
+  </ul>
+</li>
+
+<li><p>
+  Inform the project manager and staff by e-mail to <a
+  href="mailto:mps-staff@ravenbrook.com">mps-staff@ravenbrook.com</a>.
+  Consider announcing the new release by e-mail to 
+  <a href="mailto:mps-discussion@ravenbrook.com">mps-discussion@ravenbrook.com</a>.
+</p></li>
 
 </ol>
 
