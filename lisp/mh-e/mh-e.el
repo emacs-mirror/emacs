@@ -109,6 +109,26 @@
 (require 'mh-buffers)
 (require 'mh-compat)
 
+(mh-font-lock-add-keywords
+ 'emacs-lisp-mode
+ (eval-when-compile
+   `((,(concat "(\\("
+               ;; Function declarations (use font-lock-function-name-face).
+               "\\(mh-def\\(un\\|macro\\)-compat\\)\\|"
+               ;; Variable declarations (use font-lock-variable-name-face).
+               "\\(mh-def\\(custom\\|face\\)\\)\\|"
+               ;; Group declarations (use font-lock-type-face).
+               "\\(mh-defgroup\\)"
+               "\\)\\>"
+               ;; Any whitespace and defined object.
+               "[ \t'\(]*"
+               "\\(setf[ \t]+\\sw+)\\|\\sw+\\)?")
+      (1 font-lock-keyword-face)
+      (7 (cond ((match-beginning 2) font-lock-function-name-face)
+               ((match-beginning 4) font-lock-variable-name-face)
+               (t font-lock-type-face))
+         nil t)))))
+
 
 
 ;;; Global Variables

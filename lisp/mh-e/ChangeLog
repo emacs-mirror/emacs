@@ -1,3 +1,11 @@
+2006-04-14  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-font-lock-add-keywords): New alias for
+	font-lock-add-keywords. Returns nil on XEmacs.	
+
+	* mh-e.el: Add MH-E function and variable keywords such as
+	mh-defun-compat and mh-defcustom to font-lock-keywords.	
+
 2006-04-13  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (customize-package-emacs-version-alist)
