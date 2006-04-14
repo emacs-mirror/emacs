@@ -135,6 +135,7 @@ version.  The value @var{version} must be a string.
 This option specifies that the item was first introduced in
 @var{package} version @var{version}, or that its default value was
 changed in that version.  This keyword takes priority over :version.
+The value of @var{package} is a symbol and @var{version} is a string.
 The @var{package} and @var{version} must appear in the alist
 @code{customize-package-emacs-version-alist}.  Since @var{package} must
 be unique and the user might see it in an error message, a good choice
