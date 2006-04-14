@@ -1,7 +1,11 @@
+2006-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-langs.el (c-mode-menu):
+	Don't presume c-subword-mode is bound.
+
 2006-04-13  Bill Wohler  <wohler@newt.com>
 
-	* cus-edit.el (customize-package-emacs-version-alist): Update
-	docstring.
+	* cus-edit.el (customize-package-emacs-version-alist): Update docstring.
 	(customize-package-emacs-version): Use cdr instead of cadr now
 	that alists use dotted pairs.
 
@@ -26,8 +30,8 @@
 
 2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-set-regexps-and-options,
-	org-get-current-options): Better names for the startup folding
+	* textmodes/org.el: (org-set-regexps-and-options)
+	(org-get-current-options): Better names for the startup folding
 	options.
 
 2006-04-13  Thien-Thi Nguyen  <ttn@gnu.org>
@@ -37,8 +41,8 @@
 
 2006-04-12  Davis Herring  <herring@lanl.gov>  (tiny change)
 
-	* files.el (hack-one-local-variable-eval-safep): Recognize
-	`edebug-form-spec' for `put', but only if it passes
+	* files.el (hack-one-local-variable-eval-safep):
+	Recognize `edebug-form-spec' for `put', but only if it passes
 	`edebug-basic-spec'.  Generalize `put' handling.
 
 	* emacs-lisp/edebug.el (edebug-basic-spec): New function for
@@ -49,11 +53,10 @@
 
 2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-ctrl-c-ctrl-c): Improved documentation
-	string.
+	* textmodes/org.el: (org-ctrl-c-ctrl-c): Improve documentation string.
 	(org-agenda-mouse-1-follows-link)
 	(org-mouse-1-follows-link): New options.
-	(org-format-agenda-item): Fixed bug if TAGS is nil.
+	(org-format-agenda-item): Fix bug if TAGS is nil.
 	(org-agenda-get-scheduled): Quote `priority' symbol in plist.
 
 2006-04-13  Nick Roberts  <nickrob@snap.net.nz>
