@@ -63,9 +63,9 @@ END OF PROCEDURE
 
 COPYRIGHT AND LICENSE
 
-Copyright (C) 2005-6 Ravenbrook Limited <http://www.ravenbrook.com/>.
-All rights reserved.  This is an open source license.  Contact
-Ravenbrook for commercial licensing options.
+Copyright (C) 2005-2006 Ravenbrook Limited.  All rights reserved.
+<http://www.ravenbrook.com/>.  This is an open source license.
+Contact Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
