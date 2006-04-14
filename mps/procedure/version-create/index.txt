@@ -53,6 +53,7 @@ Always edit version/A.BBB/index.html, eg. (case-sensitive):
   "of the Master version"  ->  "of Version A.BBB"
   "Master"  ->  "Version A.BBB"
 Less importantly, edit various other files.  See change 30260.  
+Please do edit version/A.BBB/example/hello-world/index.txt.
 
 7. Do an empty-integrate of these changes back on to the masters, so P4 thinks it's done and doesn't keep suggesting it:
   p4 integrate -r -b mps/version/A.BBB <Files Edited Master->Version>
@@ -62,9 +63,9 @@ END OF PROCEDURE
 
 COPYRIGHT AND LICENSE
 
-Copyright (C) 2005 Ravenbrook Limited <http://www.ravenbrook.com/>.
-All rights reserved.  This is an open source license.  Contact
-Ravenbrook for commercial licensing options.
+Copyright (C) 2005-2006 Ravenbrook Limited.  All rights reserved.
+<http://www.ravenbrook.com/>.  This is an open source license.
+Contact Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
