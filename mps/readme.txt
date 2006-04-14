@@ -48,14 +48,39 @@ This document is not confidential.
 
 2. WHAT'S NEW; STATUS
 
-(In a release of the MPS-Kit, this section summarises what is new for 
-that release.)
+(In Master sources, this is a good place to accumulate a succinct
+record of changes.  In a release of the MPS-Kit, this section becomes
+the summary of what is new for that release.)
 
-For further details of this release (and earlier and later releases), 
-consult <http://www.ravenbrook.com/project/mps/release/>.  To see 
-details of what is new in each release, click the "Fixed issues" links 
-on that page.  To see the reported defects (including defects found 
-after the release was made), click the "Known issues" links.
+This is release 1.106.2, made on 2006-04-11.
+
+Changes from release 1.106.1:
+
+No functional changes to MPS implementation code.
+
+Fixed <http://www.ravenbrook.com/project/mps/issue/job001352/>
+  - the "mps.a" library does not (now) contain plinth files;
+  - therefore, if your MPS client code needs the example plinth
+    ("mpsplan.a"), you must link with it explicitly to obtain 
+    _mps_lib_assert_fail, _mps_clock, etc;
+  - the default "all" build now succeeds on Unix-like platforms
+    (in 1.106.1 the "all" build only worked on Mac OS X).
+
+Fixed <http://www.ravenbrook.com/project/mps/issue/job000605/>
+Fixed <http://www.ravenbrook.com/project/mps/issue/job001366/>
+  - the default Windows "all" build now works with Visual C++ 6.0.
+
+Work on <http://www.ravenbrook.com/project/mps/issue/job001365/>
+  - hopefully fixed some build problems with Visual C++ 7.0.
+
+Fixed <http://www.ravenbrook.com/project/mps/issue/job001367/>
+  - there is a "hello-world" example of using the MPS, in:
+      example/hello-world/index.txt
+
+See:
+  <http://www.ravenbrook.com/project/mps/release/>
+for further details of this release (including defects found), and 
+details of earlier and later releases.  
 
 For more information about the status and progress of the MPS project, 
 consult the project home-page: <http://www.ravenbrook.com/project/mps/>.
@@ -67,17 +92,21 @@ The MPS Kit is a complete set of sources and documentation to enable
 third parties to use, modify, and adapt the MPS.
 
 For Windows, the kit is distributed as the self-extracting archive
-"mps-kit-1.100.1.exe", and also as the ZIP archive
-"mps-kit-1.100.1.zip", which may be unpacked using WinZip.
+"mps-kit-1.106.2.exe", and also as the ZIP archive
+"mps-kit-1.106.2.zip", which may be unpacked using WinZip.
 
 For Unix and Mac OS X, the integration kit is distributed as the tarball
-"mps-kit-1.100.1.tar.gz".  Unpack it using the command "gunzip -c
-mps-kit-1.100.1.tar.gz | tar xvf -", or by dropping the file onto
+"mps-kit-1.106.2.tar.gz".  Unpack it using the command "gunzip -c
+mps-kit-1.106.2.tar.gz | tar xvf -", or by dropping the file onto
 StuffIt Expander under Mac OS X.
 
 The top-level file "index.html" in the sources indexes many other files,
 and is a good place to start.  You should read the user manuals and the
 high level design documents.
+
+A quick start to writing code that uses the MPS is the "hello-world" 
+example:
+    example/hello-world/index.txt
 
 
 4. THE STRUCTURE OF THE KIT
@@ -261,19 +290,22 @@ Richard Brooksby; Ravenbrook Limited; 2002-06-18;
 
 B. DOCUMENT HISTORY
 
-2002-05-20  RB   Original author: Richard Brooksby, Ravenbrook Limited.
-2002-05-20  RB   Created based on template from P4DTI project.
-2002-06-18  NB   Minor updates and corrections.
-2002-06-18  RB   Removed obsolete requirement for MASM.
-2002-06-19  NB   Added note on self-extracting archive
-2006-03-30  RHSK Add section 2: What's new.
+2002-05-20  RB    Original author: Richard Brooksby, Ravenbrook Limited.
+2002-05-20  RB    Created based on template from P4DTI project.
+2002-06-18  NB    Minor updates and corrections.
+2002-06-18  RB    Removed obsolete requirement for MASM.
+2002-06-19  NB    Added note on self-extracting archive
+2006-01-30  RHSK  Update from "1.100.1" to "1.106.1".
+2006-03-30  RHSK  Add section 2: What's new.
+2006-04-11  RHSK  Update from "1.106.1" to "1.106.2".
+2006-04-14  RHSK  Merge updates from version/1.106 back to master.
 
 
 C. COPYRIGHT AND LICENSE
 
-Copyright (C) 2001-2002, 2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
-All rights reserved.  This is an open source license.  Contact
-Ravenbrook for commercial licensing options.
+Copyright (C) 2001-2002, 2006 Ravenbrook Limited.  All rights reserved.
+<http://www.ravenbrook.com/>.  This is an open source license.  
+Contact Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
