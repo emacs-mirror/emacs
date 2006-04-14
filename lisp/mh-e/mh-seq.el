@@ -134,7 +134,7 @@ you want to delete the messages, use \"\\[universal-argument]
       (apply #'mh-speed-flists t folders-changed))))
 
 ;; Shush compiler.
-(eval-when-compile (defvar view-exit-action))
+(defvar view-exit-action)
 
 ;;;###mh-autoload
 (defun mh-list-sequences ()

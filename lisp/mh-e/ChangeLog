@@ -1,5 +1,16 @@
 2006-04-14  Bill Wohler  <wohler@newt.com>
 
+	* mh-funcs.el (view-exit-action): No need to wrap defvar with
+	eval-when-compile when shushing compiler.
+
+	* mh-mime.el (mh-identity-pgg-default-user-id): Ditto.
+
+	* mh-seq.el (view-exit-action): Ditto.
+
+	* mh-show.el (font-lock-auto-fontify): Ditto.
+
+	* mh-utils.el (mh-speed-flists-cache): Ditto
+
 	* mh-compat.el (mh-font-lock-add-keywords): New alias for
 	font-lock-add-keywords. Returns nil on XEmacs.	
 

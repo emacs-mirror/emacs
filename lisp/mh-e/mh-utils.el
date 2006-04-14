@@ -657,7 +657,7 @@ See `expand-file-name' for description of DEFAULT."
 (defvar mh-folder-hist nil)
 
 ;; Shush compiler.
-(eval-when-compile (defvar mh-speed-flists-cache))
+(defvar mh-speed-flists-cache)
 
 (defvar mh-allow-root-folder-flag nil
   "Non-nil means \"+\" is an acceptable folder name.

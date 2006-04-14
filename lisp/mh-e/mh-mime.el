@@ -1537,7 +1537,7 @@ a prefix argument NOCONFIRM."
     (after-find-file nil)))
 
 ;; Shush compiler.
-(eval-when-compile (defvar mh-identity-pgg-default-user-id))
+(defvar mh-identity-pgg-default-user-id)
 
 ;;;###mh-autoload
 (defun mh-mml-secure-message-encrypt (method)
