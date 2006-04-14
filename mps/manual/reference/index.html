@@ -1,6 +1,8 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN""http://www.w3.org/TR/2000/REC-xhtml1-20000126/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html 
+ PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transisitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
@@ -913,7 +915,7 @@ soon as possible.</p>
 <code><a href="#MPS_FIX2">MPS_FIX2</a></code></p>
 
 
-<h3>constant <code><a id="MPS_RES_LIMIT" name="MPS_RES_LIMIT">MPS_RES_LIMIT</a></code></h3>
+<h3>constant <code><a id="MPS_RES_LIMIT_detailed" name="MPS_RES_LIMIT_detailed">MPS_RES_LIMIT</a></code></h3>
 
 
 <h4>Name</h4>
@@ -962,7 +964,7 @@ documentation of that function for details.</p>
 <code><a href="#mps_res_t">mps_res_t</a></code></p>
 
 
-<h3>constant <code><a id="MPS_RES_MEMORY" name="MPS_RES_MEMORY">MPS_RES_MEMORY</a></code></h3>
+<h3>constant <code><a id="MPS_RES_MEMORY_detailed" name="MPS_RES_MEMORY_detailed">MPS_RES_MEMORY</a></code></h3>
 
 
 <h4>Name</h4>
@@ -1019,7 +1021,7 @@ href="#MPS_RES_MEMORY">MPS_RES_MEMORY</a></code>.</p>
 href="#MPS_RES_COMMIT_LIMIT">MPS_RES_COMMIT_LIMIT</a></code></p>
 
 
-<h3><code><a id="MPS_RES_PARAM" name="MPS_RES_PARAM">MPS_RES_PARAM</a></code></h3>
+<h3>constant <code><a id="MPS_RES_PARAM_detailed" name="MPS_RES_PARAM_detailed">MPS_RES_PARAM</a></code></h3>
 
 
 <h4>Name</h4>
@@ -4110,7 +4112,7 @@ mps_addr_t addr); </code></p>
 <h4>Returned Values</h4>
 
 <p>A boolean.  Returns true if the address is managed by the arena,
-false otherwise.
+false otherwise.</p>
 
 
 <h4>Resources</h4>
@@ -4153,7 +4155,7 @@ reliable results call this function whilst the arena is parked.
 <p>
 
 <code><a href="#mps_arena_clamp">mps_arena_park</a> used to park an
-arena</code>,
+arena</code></p>
 
 <h4>Notes</h4>
 
@@ -4786,7 +4788,7 @@ If the client has changed the exposed data then
 href="#mps_arena_unsafe_restore_protection">mps_arena_unsafe_restore_protection</a></code>
 must not be called - simply call <code><a
 href="#mps_arena_release">mps_arena_release</a></code> to continue normal
-collections</a>.
+collections.
 </p>
 
 <p>
@@ -6929,7 +6931,7 @@ The heap walker arranges to apply this
 function to all objects on the heap, see
 <code><a
 href="#mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code>
-for details.
+for details.</p>
 
 
 <h4>Example</h4>
@@ -8740,9 +8742,9 @@ href="#mps_stack_scan_ambig">mps_stack_scan_ambig</a></code></p>
 
 <p><code><a id="MPS_RES_RESOURCE" name="MPS_RES_RESOURCE">MPS_RES_RESOURCE</a></code>: A needed resource could not be obtained. Which resource, depends on thecall. Compare with <code><a href="#MPS_RES_MEMORY">MPS_RES_MEMORY</a></code>, which is a special case of this.</p>
 
-<p><code><a id="MPS_RES_MEMORY" name="MPS_RES_MEMORY">MPS_RES_MEMORY</a></code>: Needed memory (committed memory, not address space) could not be obtained.</p>
+<p><code><a id="MPS_RES_MEMORY" name="MPS_RES_MEMORY">MPS_RES_MEMORY</a></code>: Needed memory (committed memory, not address space) could not be obtained. (A <a href="#MPS_RES_MEMORY_detailed">more detailed explanation</a>).</p>
 
-<p><code><a id="MPS_RES_LIMIT" name="MPS_RES_LIMIT">MPS_RES_LIMIT</a></code>: An internal limitation was reached. For example, the maximum number ofsomething was reached.</p>
+<p><code><a id="MPS_RES_LIMIT" name="MPS_RES_LIMIT">MPS_RES_LIMIT</a></code>: An internal limitation was reached. For example, the maximum number ofsomething was reached. (A <a href="#MPS_RES_LIMIT_detailed">more detailed explanation</a>).</p>
 
 <p><code><a id="MPS_RES_UNIMPL" name="MPS_RES_UNIMPL">MPS_RES_UNIMPL</a></code>: The operation, or some vital part of it, is unimplemented. This might bereturned by functions that are no longer supported, or by operations that are included for futureexpansion, but not yet supported.</p>
 
@@ -8750,7 +8752,7 @@ href="#mps_stack_scan_ambig">mps_stack_scan_ambig</a></code></p>
 
 <p><code><a id="MPS_RES_COMMIT_LIMIT" name="MPS_RES_COMMIT_LIMIT">MPS_RES_COMMIT_LIMIT</a></code>: The arena's commit limit would have been exceeded as a result of(explicit or implicit) allocation. See protocol.arena.commit.</p>
 
-<p><code><a id="MPS_RES_PARAM" name="MPS_RES_PARAM">MPS_RES_PARAM</a></code>: A parameter of the operation was invalid.</p>
+<p><code><a id="MPS_RES_PARAM" name="MPS_RES_PARAM">MPS_RES_PARAM</a></code>: A parameter of the operation was invalid. (A <a href="#MPS_RES_PARAM_detailed">more detailed explanation</a>).</p>
 
 
 <h4>A</h4>
@@ -9081,7 +9083,7 @@ typedef struct {
 void InitThread(ThreadLocals *thr)
 {
   /* This is a hack to find the bottom of the stack. */
-  void *stackBottom=&stackBottom;
+  void *stackBottom=&amp;stackBottom;
 
   mps_thread_reg(&amp;thr-&gt;thread, arena);
   mps_root_create_reg(&amp;thr-&gt;mmRoot, arena, MPS_RANK_AMBIG, (mps_rm_t) 0,
@@ -9971,7 +9973,7 @@ typedef struct {
 void InitThread(ThreadLocals *thr)
 {
   /* This is a hack to find the bottom of the stack. */
-  void *stackBottom=&stackBottom;
+  void *stackBottom=&amp;stackBottom;
 
   mps_thread_reg(&amp;thr-&gt;thread, arena);
   mps_root_create_reg(&amp;thr-&gt;mmRoot, arena, MPS_RANK_AMBIG, (mps_rm_t)0,
