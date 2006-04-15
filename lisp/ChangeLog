@@ -1,7 +1,7 @@
 2006-04-15  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* calendar/appt.el (appt-add): Check whether an appointment is
-	  already present in appt-time-msg-list.  Simplify code.
+	already present in appt-time-msg-list.  Simplify code.
 
 2006-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
