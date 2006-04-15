@@ -498,11 +498,11 @@ The time should be in either 24 hour format or am/pm format."
   (interactive "sTime (hh:mm[am/pm]): \nsMessage: ")
   (unless (string-match appt-time-regexp new-appt-time)
     (error "Unacceptable time-string"))
-  (let* ((appt-time-string (concat new-appt-time " " new-appt-msg))
-         (appt-time (list (appt-convert-time new-appt-time)))
-         (time-msg (list appt-time appt-time-string t)))
-    (setq appt-time-msg-list (nconc appt-time-msg-list (list time-msg)))
-    (setq appt-time-msg-list (appt-sort-list appt-time-msg-list))))
+  (let ((time-msg (list (list (appt-convert-time new-appt-time))
+                        (concat new-appt-time " " new-appt-msg) t)))
+    (unless (member time-msg appt-time-msg-list)
+      (setq appt-time-msg-list
+            (appt-sort-list (nconc appt-time-msg-list (list time-msg)))))))
 
 ;;;###autoload
 (defun appt-delete ()
