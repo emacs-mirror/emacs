@@ -117,7 +117,7 @@ introduced in Emacs 22."
 
 (mh-defun-compat mh-font-lock-add-keywords font-lock-add-keywords
   (mode keywords &optional how)
-  "XEmacs does not have `image-search-load-path'.
+  "XEmacs does not have `font-lock-add-keywords'.
 This function returns nil on that system.")
 
 (mh-defun-compat mh-image-load-path-for-library

@@ -1,3 +1,7 @@
+2006-04-15  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-font-lock-add-keywords): Fix typo in docstring.
+
 2006-04-14  Bill Wohler  <wohler@newt.com>
 
 	* mh-funcs.el (view-exit-action): No need to wrap defvar with
