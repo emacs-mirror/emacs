@@ -1,3 +1,7 @@
+2006-04-15  Romain Francoise  <romain@orebokech.com>
+
+	* puresize.h (BASE_PURESIZE): Increment to 1210000.
+
 2006-04-13  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
 
 	* print.c (Fprin1_to_string): Mention in the `doc' that the
