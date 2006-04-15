@@ -11,6 +11,34 @@
 
 	* mh-utils.el (mh-speed-flists-cache): Ditto
 
+	* mh-acros.el (struct, x, y):  No need to wrap defvar with
+	eval-when-compile when shushing compiler, even when
+	mh-do-in-xemacs or another construct is used.
+
+	* mh-comp.el (sendmail-coding-system): Ditto.
+
+	* mh-e.el (mark-active): Ditto.
+
+	* mh-folder.el (desktop-save-buffer, font-lock-auto-fontify)
+	(image-load-path, font-lock-defaults): Ditto.
+
+	* mh-letter.el (image-load-path, font-lock-defaults): Ditto.
+
+	* mh-mime.el (dots, type, ov)
+	(mm-verify-function-alist, mm-decrypt-function-alist)
+	(pressed-details): Ditto.
+
+	* mh-search.el (pick-folder, mh-do-in-xemacs)
+	(mh-mairix-folder, mh-flists-search-folders)
+	(which-func-mode, mh-speed-flists-inhibit-flag): Ditto.
+
+	* mh-seq.el (tool-bar-mode): Ditto.
+
+	* mh-utils.el (completion-root-regexp)
+	(minibuffer-completing-file-name): Ditto.
+
+	* mh-xface.el (default-enable-multibyte-characters): Ditto.
+
 	* mh-compat.el (mh-font-lock-add-keywords): New alias for
 	font-lock-add-keywords. Returns nil on XEmacs.	
 

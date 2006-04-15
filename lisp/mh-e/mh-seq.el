@@ -202,7 +202,7 @@ MESSAGE appears."
                         " "))))
 
 ;; Shush compiler.
-(eval-when-compile (mh-do-in-xemacs (defvar tool-bar-mode)))
+(defvar tool-bar-mode)                  ; XEmacs
 
 ;;;###mh-autoload
 (defun mh-narrow-to-seq (sequence)

@@ -522,11 +522,10 @@ font-lock is done highlighting.")
   (add-to-list 'which-func-modes 'mh-folder-mode))
 
 ;; Shush compiler.
-(eval-when-compile
-  (defvar desktop-save-buffer)
-  (defvar font-lock-auto-fontify)
-  (defvar image-load-path)
-  (mh-do-in-xemacs (defvar font-lock-defaults)))
+(defvar desktop-save-buffer)
+(defvar font-lock-auto-fontify)
+(defvar image-load-path)
+(defvar font-lock-defaults)             ; XEmacs
 
 (defvar mh-folder-buttons-init-flag nil)
 
