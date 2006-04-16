@@ -1,3 +1,7 @@
+2006-04-16  Romain Francoise  <romain@orebokech.com>
+
+	* puresize.h (BASE_PURESIZE): Decrement back to 1200000.
+
 2006-04-16  Andreas Schwab  <schwab@suse.de>
 
 	* puresize.h (PURESIZE_RATIO): Reduce to 10/6.
