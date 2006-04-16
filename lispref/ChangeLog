@@ -1,3 +1,8 @@
+2006-04-15  Michael Olson  <mwolson@gnu.org>
+
+	* processes.texi (Transaction Queues): Mention the new optional
+	`delay-question' argument for `tq-enqueue'.
+
 2006-04-13  Bill Wohler  <wohler@newt.com>
 
 	* customize.texi (Common Keywords): Use dotted notation for

@@ -1,3 +1,15 @@
+2006-04-15  Michael Olson  <mwolson@gnu.org>
+
+	* emacs-lisp/tq.el: Improve comments.
+	(tq-queue-head-question): New accessor function.
+	(tq-queue-head-regexp, tq-queue-head-closure, tq-queue-head-fn):
+	Update for modified queue structure.
+	(tq-queue-add): Accept `question' argument.
+	(tq-queue-pop): If a question is pending, send it.
+	(tq-enqueue): Accept new optional argument `delay-question'.  If
+	this is non-nil, and at least one other question is pending a
+	response, queue the question rather than sending it immediately.
+
 2006-04-15  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* calendar/appt.el (appt-add): Check whether an appointment is
