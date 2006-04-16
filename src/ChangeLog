@@ -1,3 +1,7 @@
+2006-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (SYSTEM_PURESIZE_EXTRA): Reduce to 24000.
+
 2006-04-16  Romain Francoise  <romain@orebokech.com>
 
 	* puresize.h (BASE_PURESIZE): Decrement back to 1200000.
