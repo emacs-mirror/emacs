@@ -662,6 +662,8 @@ coordinates_in_window (w, x, y)
 	{
 	  if (!WINDOW_LEFTMOST_P (w) && abs (*x - x0) < grabbable_width)
 	    {
+	      /* Convert X and Y to window relative coordinates.
+		 Vertical border is at the left edge of window.  */
 	      *x = max (0, *x - x0);
 	      *y -= top_y;
 	      return ON_VERTICAL_BORDER;
@@ -671,6 +673,8 @@ coordinates_in_window (w, x, y)
 	{
 	  if (abs (*x - x1) < grabbable_width)
 	    {
+	      /* Convert X and Y to window relative coordinates.
+		 Vertical border is at the right edge of window.  */
 	      *x = min (x1, *x) - x0;
 	      *y -= top_y;
 	      return ON_VERTICAL_BORDER;
@@ -717,6 +721,8 @@ coordinates_in_window (w, x, y)
 	  && !WINDOW_RIGHTMOST_P (w)
 	  && (abs (*x - right_x) < grabbable_width))
 	{
+	  /* Convert X and Y to window relative coordinates.
+	     Vertical border is at the right edge of window.  */
 	  *x = min (right_x, *x) - left_x;
 	  *y -= top_y;
 	  return ON_VERTICAL_BORDER;
@@ -2027,7 +2033,7 @@ window_loop (type, obj, mini, frames)
 	       `obj & 1' means consider only full-width windows.
 	       `obj & 2' means consider also dedicated windows. */
 	    if (((XINT (obj) & 1) && !WINDOW_FULL_WIDTH_P (w))
-		|| (!(XINT (obj) & 2) && EQ (w->dedicated, Qt))
+		|| (!(XINT (obj) & 2) && !NILP (w->dedicated))
 		/* Minibuffer windows are always ignored.  */
 		|| MINI_WINDOW_P (w))
 	      break;
@@ -2082,7 +2088,7 @@ window_loop (type, obj, mini, frames)
 	  case GET_LARGEST_WINDOW:
 	    { /* nil `obj' means to ignore dedicated windows.  */
 	      /* Ignore dedicated windows and minibuffers.  */
-	      if (MINI_WINDOW_P (w) || (NILP (obj) && EQ (w->dedicated, Qt)))
+	      if (MINI_WINDOW_P (w) || (NILP (obj) && !NILP (w->dedicated)))
 		break;
 
 	      if (NILP (best_window))
@@ -4868,7 +4874,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	{
 	  if (it.current_y < it.last_visible_y
 	      && (it.current_y + it.max_ascent + it.max_descent
-		  >= it.last_visible_y))
+		  > it.last_visible_y))
 	    {
 	      /* The last line was only partially visible, make it fully
 		 visible.  */
