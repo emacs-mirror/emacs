@@ -3,6 +3,8 @@
 	* window.c (coordinates_in_window): On the vertical border,
 	calculate the row number measured from the top of the window, not
 	the top of the frame.
+	(window_loop): Test w->dedicated with !NILP instead of EQ Qt.
+	(window_scroll_pixel_based): Fix off-by-one bug in 2002-12-23 change.
 
 2006-04-16  Eli Zaretskii  <eliz@gnu.org>
 
