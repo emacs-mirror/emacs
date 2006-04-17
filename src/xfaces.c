@@ -5358,7 +5358,6 @@ free_realized_face (f, face)
 	      x_free_gc (f, face->gc);
 	      face->gc = 0;
 	    }
-
 	  free_face_colors (f, face);
 	  x_destroy_bitmap (f, face->stipple);
 	}
@@ -5381,6 +5380,30 @@ prepare_face_for_display (f, face)
 #ifdef HAVE_WINDOW_SYSTEM
   xassert (FRAME_WINDOW_P (f));
 
+#ifdef HAVE_XFT
+  if (face->xft_draw == 0)
+    {
+      BLOCK_INPUT;
+      XColor colors[2];
+      face->xft_draw = XftDrawCreate (FRAME_X_DISPLAY (f),
+                                      FRAME_X_WINDOW (f),
+                                      FRAME_X_DISPLAY_INFO (f)->visual,
+                                      FRAME_X_DISPLAY_INFO (f)->cmap);
+      colors[0].pixel = face->xft_fg.pixel = face->foreground;
+      colors[1].pixel = face->xft_bg.pixel = face->background;
+      
+      XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->cmap,
+                    colors, 2);
+      face->xft_fg.color.alpha = face->xft_fg.color.alpha = 0xffff;
+      face->xft_fg.color.red = colors[0].red;
+      face->xft_fg.color.green = colors[0].green;
+      face->xft_fg.color.blue = colors[0].blue;
+      face->xft_bg.color.red = colors[1].red;
+      face->xft_bg.color.green = colors[1].green;
+      face->xft_bg.color.blue = colors[1].blue;
+      UNBLOCK_INPUT;
+    }
+#endif
   if (face->gc == 0)
     {
       XGCValues xgcv;
@@ -5392,10 +5415,14 @@ prepare_face_for_display (f, face)
       xgcv.graphics_exposures = False;
 #endif
       /* The font of FACE may be null if we couldn't load it.  */
+      if (!face->font)
+        fprintf (stderr, "%s: font is NULL\n", __func__);
       if (face->font)
 	{
 #ifdef HAVE_X_WINDOWS
+#ifndef HAVE_XFT
 	  xgcv.font = face->font->fid;
+#endif
 #endif
 #ifdef WINDOWSNT
 	  xgcv.font = face->font;
@@ -5403,7 +5430,9 @@ prepare_face_for_display (f, face)
 #ifdef MAC_OS
 	  xgcv.font = face->font;
 #endif
+#ifndef HAVE_XFT
 	  mask |= GCFont;
+#endif
 	}
 
       BLOCK_INPUT;
@@ -5520,6 +5549,15 @@ clear_face_gcs (c)
       for (i = BASIC_FACE_ID_SENTINEL; i < c->used; ++i)
 	{
 	  struct face *face = c->faces_by_id[i];
+#ifdef HAVE_XFT
+          if (face && face->xft_draw)
+            {
+              BLOCK_INPUT;
+              XftDrawDestroy (face->xft_draw);
+              UNBLOCK_INPUT;
+              face->xft_draw = 0;
+            }
+#endif
 	  if (face && face->gc)
 	    {
 	      x_free_gc (c->f, face->gc);
@@ -6835,6 +6873,9 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
 	      }
 	  }
 
+#ifndef HAVE_XFT
+      /* KOKO: overstrike only works with non-aliased fonts.  How to figure
+         out if a font is aliased?  It is in the XFT properties.  */
       if (needs_overstrike)
 	{
 	  enum xlfd_weight want_weight = specified[XLFD_WEIGHT];
@@ -6852,6 +6893,7 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
 		*needs_overstrike = 1;
 	    }
 	}
+#endif
     }
 
   if (font_scalable_p (best))
@@ -7163,6 +7205,7 @@ realize_default_face (f)
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object frame_font;
   struct face *face;
+  int do_font = 0;
 
   /* If the `default' face is not yet known, create it.  */
   lface = lface_from_face_name (f, Qdefault, 0);
@@ -7184,6 +7227,7 @@ realize_default_face (f)
       set_lface_from_font_name (f, lface, frame_font,
                                 f->default_face_done_p, 1);
       f->default_face_done_p = 1;
+      do_font = 1;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -7253,6 +7297,11 @@ realize_default_face (f)
   check_lface (lface);
   bcopy (XVECTOR (lface)->contents, attrs, sizeof attrs);
   face = realize_face (c, attrs, DEFAULT_FACE_ID);
+#ifdef HAVE_WINDOW_SYSTEM
+#warning "Must get face parameters and font cache right"
+  if (do_font)
+    face->font = FRAME_FONT (f);
+#endif
   return 1;
 }
 

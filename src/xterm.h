@@ -31,6 +31,16 @@ Boston, MA 02110-1301, USA.  */
 #include <X11/Xatom.h>
 #include <X11/Xresource.h>
 
+#ifndef X_FONT_TYPE_DECL
+#define X_FONT_TYPE_DECL
+#ifdef HAVE_XFT
+#include <X11/Xft/Xft.h>
+typedef XftFont x_font_type;
+#else
+typedef XFontStruct x_font_type;
+#endif
+#endif /* not X_FONT_TYPE_DECL */
+
 #ifdef USE_X_TOOLKIT
 #include <X11/StringDefs.h>
 #include <X11/IntrinsicP.h>	/* CoreP.h needs this */
@@ -106,7 +116,11 @@ typedef GtkWidget *xt_or_gtk_widget;
 #define WHITE_PIX_DEFAULT(f) WhitePixel (FRAME_X_DISPLAY (f), \
 					 XScreenNumberOfScreen (FRAME_X_SCREEN (f)))
 
+#ifdef HAVE_XFT
+#define FONT_WIDTH(f)	((f)->max_advance_width)
+#else
 #define FONT_WIDTH(f)	((f)->max_bounds.width)
+#endif
 #define FONT_HEIGHT(f)	((f)->ascent + (f)->descent)
 #define FONT_BASE(f)    ((f)->ascent)
 #define FONT_DESCENT(f) ((f)->descent)
@@ -513,7 +527,7 @@ struct x_output
   int icon_bitmap;
 
   /* Default ASCII font of this frame.  */
-  XFontStruct *font;
+  x_font_type *font;
 
   /* The baseline offset of the default ASCII font.  */
   int baseline_offset;

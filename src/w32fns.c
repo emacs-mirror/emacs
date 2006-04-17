@@ -65,7 +65,8 @@ extern double atof ();
 extern int w32_console_toggle_lock_key P_ ((int, Lisp_Object));
 extern void w32_menu_display_help P_ ((HWND, HMENU, UINT, UINT));
 extern void w32_free_menu_strings P_ ((HWND));
-extern XCharStruct *w32_per_char_metric P_ ((XFontStruct *, wchar_t *, int));
+extern XCharStruct *w32_per_char_metric P_ ((FRAME_PTR f,
+                                             XFontStruct *, wchar_t *, int));
 
 extern int quit_char;
 
@@ -4630,7 +4631,7 @@ w32_load_system_font (f,fontname,size)
       {
 	wchar_t space = 32;
 	XCharStruct* pcm;
-	pcm = w32_per_char_metric (font, &space, ANSI_FONT);
+	pcm = w32_per_char_metric (f, font, &space, ANSI_FONT);
 	if (pcm)
 	  fontp->space_width = pcm->width;
 	else

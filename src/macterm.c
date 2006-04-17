@@ -260,7 +260,8 @@ static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
 					    unsigned long *));
 
 static int is_emacs_window P_ ((WindowPtr));
-static XCharStruct *mac_per_char_metric P_ ((XFontStruct *, XChar2b *, int));
+static XCharStruct *mac_per_char_metric P_ ((FRAME_PTR,
+                                             XFontStruct *, XChar2b *, int));
 static void XSetFont P_ ((Display *, GC, XFontStruct *));
 
 /* Defined in macmenu.h.  */
@@ -1222,7 +1223,7 @@ mac_text_extents_16 (font_struct, string, nchars, overall_return)
 
   for (i = 0; i < nchars; i++)
     {
-      pcm = mac_per_char_metric (font_struct, string, 0);
+      pcm = mac_per_char_metric (0, font_struct, string, 0);
       if (pcm == NULL)
 	width += FONT_WIDTH (font_struct);
       else
@@ -1287,7 +1288,7 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width)
     return 0;
   for (i = 0; i < nchars; i++)
     {
-      XCharStruct *pcm = mac_per_char_metric (GC_FONT (gc), buf, 0);
+      XCharStruct *pcm = mac_per_char_metric (f, GC_FONT (gc), buf, 0);
 
       advances[i].width = pcm->width;
       advances[i].height = 0;
@@ -2259,7 +2260,8 @@ x_per_char_metric (font, char2b)
  */
 
 static XCharStruct *
-mac_per_char_metric (font, char2b, font_type)
+mac_per_char_metric (f, font, char2b, font_type)
+     FRAME_PTR f;
      XFontStruct *font;
      XChar2b *char2b;
      int font_type;
@@ -8314,7 +8316,7 @@ x_load_font (f, fontname, size)
 	XCharStruct *pcm;
 
 	char2b.byte1 = 0x00, char2b.byte2 = 0x20;
-	pcm = mac_per_char_metric (font, &char2b, 0);
+	pcm = mac_per_char_metric (0, font, &char2b, 0);
 	if (pcm)
 	  fontp->space_width = pcm->width;
 	else
@@ -8324,7 +8326,7 @@ x_load_font (f, fontname, size)
 	  {
 	    int width = pcm->width;
 	    for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
-	      if ((pcm = mac_per_char_metric (font, &char2b, 0)) != NULL)
+	      if ((pcm = mac_per_char_metric (0, font, &char2b, 0)) != NULL)
 		width += pcm->width;
 	    fontp->average_width = width / 95;
 	  }

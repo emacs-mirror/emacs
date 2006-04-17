@@ -869,7 +869,8 @@ w32_reset_terminal_modes (void)
 
 /* Function prototypes of this page.  */
 
-XCharStruct *w32_per_char_metric P_ ((XFontStruct *, wchar_t *, int));
+XCharStruct *w32_per_char_metric P_ ((FRAME_PTR f,
+				      XFontStruct *, wchar_t *, int));
 static int w32_encode_char P_ ((int, wchar_t *, struct font_info *,
 				struct charset *, int *));
 
@@ -1018,7 +1019,8 @@ w32_native_per_char_metric (font, char2b, font_type, pcm)
 
 
 XCharStruct *
-w32_per_char_metric (font, char2b, font_type)
+w32_per_char_metric (f, font, char2b, font_type)
+     FRAME_PTR f;
      XFontStruct *font;
      wchar_t *char2b;
      int /* enum w32_char_font_type */ font_type;

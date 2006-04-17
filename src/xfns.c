@@ -2831,21 +2831,25 @@ x_make_gc (f)
      struct frame *f;
 {
   XGCValues gc_values;
-
+  unsigned mask;
   BLOCK_INPUT;
 
   /* Create the GCs of this frame.
      Note that many default values are used.  */
 
   /* Normal video */
+  mask = GCLineWidth | GCForeground | GCBackground;
+#ifndef HAVE_XFT
   gc_values.font = FRAME_FONT (f)->fid;
+  mask |= GCFont;
+#endif
   gc_values.foreground = f->output_data.x->foreground_pixel;
   gc_values.background = f->output_data.x->background_pixel;
   gc_values.line_width = 0;	/* Means 1 using fast algorithm.  */
   f->output_data.x->normal_gc
     = XCreateGC (FRAME_X_DISPLAY (f),
 		 FRAME_X_WINDOW (f),
-		 GCLineWidth | GCFont | GCForeground | GCBackground,
+		 mask,
 		 &gc_values);
 
   /* Reverse video style.  */
@@ -2854,7 +2858,7 @@ x_make_gc (f)
   f->output_data.x->reverse_gc
     = XCreateGC (FRAME_X_DISPLAY (f),
 		 FRAME_X_WINDOW (f),
-		 GCFont | GCForeground | GCBackground | GCLineWidth,
+		 mask,
 		 &gc_values);
 
   /* Cursor has cursor-color background, background-color foreground.  */
@@ -2865,10 +2869,14 @@ x_make_gc (f)
     = XCreateBitmapFromData (FRAME_X_DISPLAY (f),
 			     FRAME_X_DISPLAY_INFO (f)->root_window,
 			     cursor_bits, 16, 16);
+  mask = GCForeground | GCBackground
+    | GCFillStyle /* | GCStipple */ | GCLineWidth;
+#ifndef HAVE_XFT
+    mask |= GCFont;
+#endif
   f->output_data.x->cursor_gc
     = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		 (GCFont | GCForeground | GCBackground
-		  | GCFillStyle /* | GCStipple */ | GCLineWidth),
+		 mask,
 		 &gc_values);
 
   /* Reliefs.  */
@@ -3180,7 +3188,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #ifdef USE_LUCID
   /* Prevent lwlib/xlwmenu.c from crashing because of a bug
      whereby it fails to get any font.  */
+#warning "xlwmenu_default_font??"
+#if 0
   xlwmenu_default_font = FRAME_FONT (f);
+#endif
 #endif
 
   x_default_parameter (f, parms, Qborder_width, make_number (2),

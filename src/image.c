@@ -28,6 +28,15 @@ Boston, MA 02110-1301, USA.  */
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_PNG
+
+#if defined HAVE_LIBPNG_PNG_H
+# include <libpng/png.h>
+#else
+# include <png.h>
+#endif
+#endif
+
 /* This makes the fields of a Display accessible, in Xlib header files.  */
 
 #define XLIB_ILLEGAL_ACCESS
