@@ -73,7 +73,12 @@ Boston, MA 02110-1301 USA
 Cover art by Etienne Suvasa.
 
 @end titlepage
-@page
+
+
+@summarycontents
+@contents
+
+
 @ifnottex
 @node Top, Distrib, (dir), (dir)
 @top The Emacs Editor
@@ -122,7 +127,7 @@ and Sending Mail and Registers and Minibuffer.
 * Glossary::	        The glossary.
 * Antinews::	        Information about Emacs version 21.
 * Mac OS::              Using Emacs in the Mac.
-* MS-DOS::              Using Emacs on MS-DOS and Microsoft Windows.
+* Emacs and Microsoft Windows::  Using Emacs on Microsoft Windows.
 * Manifesto::	        What's GNU?  Gnu's Not Unix!
 * Acknowledgments::     Major contributors to GNU Emacs.
 
@@ -394,10 +399,6 @@ Version Control
 * Old Versions::        Examining and comparing old versions.
 * Secondary VC Commands:: The commands used a little less frequently.
 * Branches::            Multiple lines of development.
-* Remote Repositories:: Efficient access to remote CVS servers.
-* Snapshots::           Sets of file versions treated as a unit.
-* Miscellaneous VC::    Various other commands and features of VC.
-* Customizing VC::      Variables that change VC's behavior.
 
 Using Multiple Buffers
 
@@ -855,16 +856,9 @@ Emacs and Mac OS
 * Mac Font Specs::      Specifying fonts on Mac.
 * Mac Functions::       Mac-specific Lisp functions.
 
-MS-DOS and Windows 95/98/NT
+Emacs and Microsoft Windows
 
-* MS-DOS Keyboard::     Keyboard usage on MS-DOS.
-* MS-DOS Mouse::        Mouse usage on MS-DOS.
-* MS-DOS Display::      Fonts, frames and display size on MS-DOS.
-* MS-DOS File Names::   File-name conventions on MS-DOS.
 * Text and Binary::     Text files on MS-DOS use CRLF to separate lines.
-* MS-DOS Printing::     How to specify the printer on MS-DOS.
-* MS-DOS and MULE::     Support for internationalization on MS-DOS.
-* MS-DOS Processes::    Running subprocesses on MS-DOS.
 * Windows Processes::   Running subprocesses on Windows.
 * Windows System Menu:: Controlling what the ALT key does.
 @end menu
@@ -926,10 +920,10 @@ This edition of the manual is intended for use with GNU Emacs
 installed on GNU and Unix systems.  GNU Emacs can also be used on VMS,
 MS-DOS (also called MS-DOG), Microsoft Windows, and Macintosh systems.
 Those systems use different file name syntax; in addition, VMS and
-MS-DOS do not support all GNU Emacs features.  @xref{MS-DOS}, for
-information about using Emacs on MS-DOS and Windows.  @xref{Mac OS},
-for information about using Emacs on Macintosh.  We don't try to
-describe VMS usage in this manual.
+MS-DOS do not support all GNU Emacs features.  @xref{Emacs and
+Microsoft Windows}, for information about using Emacs on Windows.
+@xref{Mac OS}, for information about using Emacs on Macintosh.  We
+don't try to describe VMS usage in this manual.
 @end iftex
 
 @node Distrib, Intro, Top, Top
@@ -1604,8 +1598,6 @@ Public License instead of this License.
 @unnumbered Concept Index
 @printindex cp
 
-@summarycontents
-@contents
 @bye
 
 @ignore

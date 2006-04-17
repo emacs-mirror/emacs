@@ -1,6 +1,6 @@
 ;;; pypunct-b5.el --- Quail packages for Chinese (pinyin + extra symbols) -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1997, 2000
+;; Copyright (C) 1997, 2000, 2003
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 

@@ -661,12 +661,20 @@ coordinates_in_window (w, x, y)
 	  || WINDOW_RIGHTMOST_P (w))
 	{
 	  if (!WINDOW_LEFTMOST_P (w) && abs (*x - x0) < grabbable_width)
-	    return ON_VERTICAL_BORDER;
+	    {
+	      *x = max (0, *x - x0);
+	      *y -= top_y;
+	      return ON_VERTICAL_BORDER;
+	    }
 	}
       else
 	{
 	  if (abs (*x - x1) < grabbable_width)
-	    return ON_VERTICAL_BORDER;
+	    {
+	      *x = min (x1, *x) - x0;
+	      *y -= top_y;
+	      return ON_VERTICAL_BORDER;
+	    }
 	}
 
       if (*x < x0 || *x >= x1)
@@ -708,7 +716,11 @@ coordinates_in_window (w, x, y)
 	  && !WINDOW_HAS_VERTICAL_SCROLL_BAR (w)
 	  && !WINDOW_RIGHTMOST_P (w)
 	  && (abs (*x - right_x) < grabbable_width))
-	return ON_VERTICAL_BORDER;
+	{
+	  *x = min (right_x, *x) - left_x;
+	  *y -= top_y;
+	  return ON_VERTICAL_BORDER;
+	}
     }
   else
     {
@@ -720,6 +732,8 @@ coordinates_in_window (w, x, y)
 	{
 	  /* On the border on the right side of the window?  Assume that
 	     this area begins at RIGHT_X minus a canonical char width.  */
+	  *x = min (right_x, *x) - left_x;
+	  *y -= top_y;
 	  return ON_VERTICAL_BORDER;
 	}
     }

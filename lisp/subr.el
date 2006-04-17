@@ -1540,7 +1540,8 @@ by doing (clear-string STRING)."
       (let ((pass nil)
 	    (c 0)
 	    (echo-keystrokes 0)
-	    (cursor-in-echo-area t))
+	    (cursor-in-echo-area t)
+	    (message-log-max nil))
 	(add-text-properties 0 (length prompt)
 			     minibuffer-prompt-properties prompt)
 	(while (progn (message "%s%s"

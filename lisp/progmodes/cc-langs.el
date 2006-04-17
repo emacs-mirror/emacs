@@ -267,7 +267,8 @@ the evaluated constant value at compile time."
        ["Hungry delete"         c-toggle-hungry-state
 	:style toggle :selected c-hungry-delete-key]
        ["Subword mode"          c-subword-mode
-	:style toggle :selected c-subword-mode])))
+	:style toggle :selected (and (boundp 'c-subword-mode)
+                                     c-subword-mode)])))
 
 
 ;;; Syntax tables.

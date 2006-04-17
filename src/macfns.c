@@ -1024,7 +1024,7 @@ Lisp_Object
 x_to_mac_color (colorname)
      char * colorname;
 {
-  register Lisp_Object tail, ret = Qnil;
+  register Lisp_Object ret = Qnil;
 
   BLOCK_INPUT;
 
@@ -1359,7 +1359,6 @@ x_set_mouse_color (f, arg, oldval)
      Lisp_Object arg, oldval;
 {
   struct x_output *x = f->output_data.x;
-  Display *dpy = FRAME_MAC_DISPLAY (f);
   Cursor cursor, nontext_cursor, mode_cursor, hand_cursor;
   Cursor hourglass_cursor, horizontal_drag_cursor;
   unsigned long pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
@@ -2387,7 +2386,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   struct mac_display_info *dpyinfo = NULL;
   Lisp_Object parent;
   struct kboard *kb;
-  static int x_frame_count = 2;  /* begins at 2 because terminal frame is F1 */
 
   check_mac ();
 
@@ -2910,23 +2908,25 @@ If omitted or nil, that stands for the selected frame's display.  */)
   BLOCK_INPUT;
   err = Gestalt (gestaltSystemVersion, &response);
   if (err == noErr)
-    if (response >= 0x00001040)
-      {
-	err = Gestalt ('sys1', &major); /* gestaltSystemVersionMajor */
-	if (err == noErr)
-	  err = Gestalt ('sys2', &minor); /* gestaltSystemVersionMinor */
-	if (err == noErr)
-	  err = Gestalt ('sys3', &bugfix); /* gestaltSystemVersionBugFix */
-      }
-    else
-      {
-	bugfix = response & 0xf;
-	response >>= 4;
-	minor = response & 0xf;
-	response >>= 4;
-	/* convert BCD to int */
-	major = response - (response >> 4) * 6;
-      }
+    {
+      if (response >= 0x00001040)
+	{
+	  err = Gestalt ('sys1', &major); /* gestaltSystemVersionMajor */
+	  if (err == noErr)
+	    err = Gestalt ('sys2', &minor); /* gestaltSystemVersionMinor */
+	  if (err == noErr)
+	    err = Gestalt ('sys3', &bugfix); /* gestaltSystemVersionBugFix */
+	}
+      else
+	{
+	  bugfix = response & 0xf;
+	  response >>= 4;
+	  minor = response & 0xf;
+	  response >>= 4;
+	  /* convert BCD to int */
+	  major = response - (response >> 4) * 6;
+	}
+    }
   UNBLOCK_INPUT;
 
   if (err != noErr)
@@ -3208,6 +3208,14 @@ DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
     Lisp_Object display, on;
 {
   return Qnil;
+}
+
+/* x_sync is a no-op on Mac.  */
+
+void
+x_sync (f)
+     FRAME_PTR f;
+{
 }
 
 
@@ -4187,7 +4195,6 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char filename[MAXPATHLEN];
-  int default_filter_index = 1; /* 1: All Files, 2: Directories only  */
   static NavEventUPP mac_nav_event_callbackUPP = NULL;
 
   GCPRO6 (prompt, dir, default_filename, mustmatch, file, only_dir_p);

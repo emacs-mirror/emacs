@@ -1,3 +1,33 @@
+2006-04-15  Michael Olson  <mwolson@gnu.org>
+
+	* processes.texi (Transaction Queues): Mention the new optional
+	`delay-question' argument for `tq-enqueue'.
+
+2006-04-13  Bill Wohler  <wohler@newt.com>
+
+	* customize.texi (Common Keywords): Use dotted notation for
+	:package-version value. Specify its values. Improve documentation
+	for customize-package-emacs-version-alist.
+
+2006-04-12  Bill Wohler  <wohler@newt.com>
+
+	* customize.texi (Common Keywords): Move description of
+	customize-package-emacs-version-alist to @defvar.
+
+2006-04-10  Bill Wohler  <wohler@newt.com>
+
+	* customize.texi (Common Keywords): Add :package-version.
+
+2006-04-10  Kim F. Storm  <storm@cua.dk>
+
+	* text.texi (Buffer Contents): Add NOPROPS arg to
+	filter-buffer-substring.
+
+2006-04-08  Kevin Ryde  <user42@zip.com.au>
+
+	* os.texi (Command-Line Arguments): Update xref to emacs manual
+	"Command Arguments" -> "Emacs Invocation", per change there.
+
 2006-04-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* display.texi (Other Display Specs): Arrange a @code{DOTTED-LIST} to

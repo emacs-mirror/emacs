@@ -666,6 +666,7 @@ the layout used for the allout.el source file.)
 `allout-layout' can additionally have the value `t', in which
 case the value of `allout-default-layout' is used.")
 (make-variable-buffer-local 'allout-layout)
+;;;###autoload
 (put 'allout-layout 'safe-local-variable t)
 
 ;;;_  : Topic header format

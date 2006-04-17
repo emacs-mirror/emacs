@@ -211,22 +211,24 @@
 (defvar lm-emacs-won ()
   "*For making font-lock use the winner's face for the line.")
 
-(defvar lm-font-lock-face-O
-  (if (display-color-p)
-      (list (facemenu-get-face 'fg:red) 'bold))
-  "*Face to use for Emacs' O.")
+(defface lm-font-lock-face-O '((((class color)) :foreground "red")
+			       (t :weight bold))
+  "*Face to use for Emacs' O."
+  :version "22.1"
+  :group 'lm)
 
-(defvar lm-font-lock-face-X
-  (if (display-color-p)
-      (list (facemenu-get-face 'fg:green) 'bold))
-  "*Face to use for your X.")
+(defface lm-font-lock-face-X '((((class color)) :foreground "green")
+			       (t :weight bold))
+  "*Face to use for your X."
+  :version "22.1"
+  :group 'lm)
 
 (defvar lm-font-lock-keywords
-  '(("O" . lm-font-lock-face-O)
-    ("X" . lm-font-lock-face-X)
+  '(("O" . 'lm-font-lock-face-O)
+    ("X" . 'lm-font-lock-face-X)
     ("[-|/\\]" 0 (if lm-emacs-won
-		     lm-font-lock-face-O
-		   lm-font-lock-face-X)))
+		     'lm-font-lock-face-O
+		   'lm-font-lock-face-X)))
   "*Font lock rules for Lm.")
 
 (put 'lm-mode 'front-sticky

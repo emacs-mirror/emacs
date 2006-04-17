@@ -142,7 +142,7 @@
 	  (setq article (if (and article (< start article)) article start))
 	  (goto-char point)
 	  (while (re-search-forward
-		  "<a name=\"\\([0-9]+\\)\">\\([^<]+\\)</a>.*\n.*score:\\([^)]+\\))"
+		  "<a name=\"\\([0-9]+\\)\">\\([^<]+\\)</a>.*\n.*\n.*score:\\([^)]+\\))"
 		  nil t)
 	    (setq cid (match-string 1)
 		  subject (match-string 2)

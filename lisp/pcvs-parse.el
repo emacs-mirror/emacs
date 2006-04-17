@@ -271,8 +271,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 	;; on the current branch (either because it only exists in other
 	;; branches, or because it's been removed).
 	(if (ignore-errors
-	      (with-current-buffer
-		  (find-file-noselect (expand-file-name
+	      (with-temp-buffer
+		(insert-file-contents (expand-file-name
 				       ".cvsignore" (file-name-directory dir)))
 		(goto-char (point-min))
 		(re-search-forward

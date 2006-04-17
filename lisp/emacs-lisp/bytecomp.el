@@ -1650,8 +1650,12 @@ The value is non-nil if there were no errors, nil if errors."
       ;; If they change the file name, then change it for the output also.
       (let ((buffer-file-name filename)
 	    (default-major-mode 'emacs-lisp-mode)
+	    ;; Ignore unsafe local variables.
+	    ;; We only care about a few of them for our purposes.
+	    (enable-local-variables :safe)
 	    (enable-local-eval nil))
-        (normal-mode)
+	;; Arg of t means don't alter enable-local-variables.
+        (normal-mode t)
         (setq filename buffer-file-name))
       ;; Set the default directory, in case an eval-when-compile uses it.
       (setq default-directory (file-name-directory filename)))

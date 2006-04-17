@@ -5,7 +5,7 @@
 
 ;; This file is part of GNU Emacs.
 
-;; Maintainer's Time-stamp: <2006-02-06 15:11:58 ttn>
+;; Maintainer's Time-stamp: <2006-04-12 20:30:56 rms>
 ;; Maintainer: Stephen Gildea <gildea@stop.mail-abuse.org>
 ;; Keywords: tools
 
@@ -93,6 +93,7 @@ historical default."
   :type 'string
   :group 'time-stamp
   :version "20.1")
+;;;###autoload(put 'time-stamp-format 'safe-local-variable 'stringp)
 
 (defcustom time-stamp-active t
   "*Non-nil to enable time-stamping of buffers by \\[time-stamp].
@@ -150,7 +151,7 @@ Do not change `time-stamp-line-limit', `time-stamp-start',
 incompatible with other people's files!  If you must change them for some
 application, do so in the local variables section of the time-stamped file
 itself.")
-
+;;;###autoload(put 'time-stamp-line-limit 'safe-local-variable 'integerp)
 
 (defvar time-stamp-start "Time-stamp:[ \t]+\\\\?[\"<]+"    ;Do not change!
   "Regexp after which the time stamp is written by \\[time-stamp].
@@ -163,7 +164,7 @@ Do not change `time-stamp-line-limit', `time-stamp-start',
 incompatible with other people's files!  If you must change them for some
 application, do so in the local variables section of the time-stamped file
 itself.")
-
+;;;###autoload(put 'time-stamp-start 'safe-local-variable t)
 
 (defvar time-stamp-end "\\\\?[\">]"    ;Do not change!
   "Regexp marking the text after the time stamp.
@@ -183,6 +184,7 @@ Do not change `time-stamp-start', `time-stamp-end', `time-stamp-pattern',
 or `time-stamp-inserts-lines' for yourself or you will be incompatible
 with other people's files!  If you must change them for some application,
 do so in the local variables section of the time-stamped file itself.")
+;;;###autoload(put 'time-stamp-end 'safe-local-variable t)
 
 
 (defvar time-stamp-inserts-lines nil    ;Do not change!
@@ -199,6 +201,7 @@ Do not change `time-stamp-end' or `time-stamp-inserts-lines' for
 yourself or you will be incompatible with other people's files!
 If you must change them for some application, do so in the local
 variables section of the time-stamped file itself.")
+;;;###autoload(put 'time-stamp-inserts-lines 'safe-local-variable t)
 
 
 (defvar time-stamp-count 1		;Do not change!
@@ -209,6 +212,7 @@ Do not change `time-stamp-count' for yourself or you will be
 incompatible with other people's files!  If you must change it for
 some application, do so in the local variables section of the
 time-stamped file itself.")
+;;;###autoload(put 'time-stamp-count 'safe-local-variable 'integerp)
 
 
 (defvar time-stamp-pattern nil		;Do not change!
@@ -244,6 +248,7 @@ Do not change `time-stamp-pattern' `time-stamp-line-limit',
 incompatible with other people's files!  If you must change them for
 some application, do so only in the local variables section of the
 time-stamped file itself.")
+;;;###autoload(put 'time-stamp-pattern 'safe-local-variable 'stringp)
 
 
 

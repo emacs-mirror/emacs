@@ -605,7 +605,7 @@ system; for example, to visit a file encoded in codepage 850, type
 @key{RET}}@footnote{
 In the MS-DOS port of Emacs, you need to create a @code{cp@var{nnn}}
 coding system with @kbd{M-x codepage-setup}, before you can use it.
-@xref{MS-DOS and MULE}.}.
+@xref{MS-DOS and MULE,,,emacs-extra,Specialized Emacs Features}.}.
 
   In addition to converting various representations of non-@acronym{ASCII}
 characters, a coding system can perform end-of-line conversion.  Emacs

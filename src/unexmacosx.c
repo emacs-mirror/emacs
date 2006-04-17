@@ -100,7 +100,11 @@ Boston, MA 02110-1301, USA.  */
 #if defined (__ppc__)
 #include <mach-o/ppc/reloc.h>
 #endif
-#if defined (HAVE_MALLOC_MALLOC_H)
+#include <config.h>
+#undef malloc
+#undef realloc
+#undef free
+#ifdef HAVE_MALLOC_MALLOC_H
 #include <malloc/malloc.h>
 #else
 #include <objc/malloc.h>
@@ -558,7 +562,7 @@ print_load_command (struct load_command *lc)
 static void
 read_load_commands ()
 {
-  int n, i, j;
+  int i;
 
   if (!unexec_read (&mh, sizeof (struct mach_header)))
     unexec_error ("cannot read mach-o header");
@@ -680,7 +684,6 @@ copy_data_segment (struct load_command *lc)
   struct section *sectp;
   int j;
   unsigned long header_offset, file_offset, old_file_offset;
-  struct region_t *r;
 
   printf ("Writing segment %-16.16s at %#8x - %#8x (sz: %#8x)\n",
 	  scp->segname, scp->fileoff, scp->fileoff + scp->filesize,

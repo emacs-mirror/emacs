@@ -27,17 +27,55 @@
 
 ;;; Commentary:
 
-;; manages receiving a stream asynchronously,
-;; parsing it into transactions, and then calling
-;; handler functions
+;; This file manages receiving a stream asynchronously, parsing it
+;; into transactions, and then calling the associated handler function
+;; upon the completion of each transaction.
 
 ;; Our basic structure is the queue/process/buffer triple.  Each entry
-;; of the queue is a regexp/closure/function triple.  We buffer
-;; bytes from the process until we see the regexp at the head of the
-;; queue.  Then we call the function with the closure and the
-;; collected bytes.
+;; of the queue part is a list of question, regexp, closure, and
+;; function that is consed to the last element.
+
+;; A transaction queue may be created by calling `tq-create'.
+
+;; A request may be added to the queue by calling `tq-enqueue'.  If
+;; the `delay-question' argument is non-nil, we will wait to send the
+;; question to the process until it has finished sending other input.
+;; Otherwise, once a request is enqueued, we send the given question
+;; immediately to the process.
+
+;; We then buffer bytes from the process until we see the regexp that
+;; was provided in the call to `tq-enqueue'.  Then we call the
+;; provided function with the closure and the collected bytes.  If we
+;; have indicated that the question from the next transaction was not
+;; sent immediately, send it at this point, awaiting the response.
 
 ;;; Code:
+
+;;; Accessors
+
+;; This part looks like (queue . (process . buffer))
+(defun tq-queue               (tq) (car tq))
+(defun tq-process             (tq) (car (cdr tq)))
+(defun tq-buffer              (tq) (cdr (cdr tq)))
+
+;; The structure of `queue' is as follows
+;; ((question regexp closure . fn)
+;;  <other queue entries>)
+;; question: string to send to the process
+(defun tq-queue-head-question (tq) (car (car (tq-queue tq))))
+;; regexp: regular expression that matches the end of a response from
+;; the process
+(defun tq-queue-head-regexp   (tq) (car (cdr (car (tq-queue tq)))))
+;; closure: additional data to pass to function
+(defun tq-queue-head-closure  (tq) (car (cdr (cdr (car (tq-queue tq))))))
+;; fn: function to call upon receiving a complete response from the
+;; process
+(defun tq-queue-head-fn       (tq) (cdr (cdr (cdr (car (tq-queue tq))))))
+
+;; Determine whether queue is empty
+(defun tq-queue-empty         (tq) (not (tq-queue tq)))
+
+;;; Core functionality
 
 ;;;###autoload
 (defun tq-create (process)
@@ -54,33 +92,37 @@ to a tcp server on another machine."
 			   (tq-filter ',tq string)))
     tq))
 
-;;; accessors
-(defun tq-queue   (tq) (car tq))
-(defun tq-process (tq) (car (cdr tq)))
-(defun tq-buffer  (tq) (cdr (cdr tq)))
-
-(defun tq-queue-add (tq re closure fn)
+(defun tq-queue-add (tq question re closure fn)
   (setcar tq (nconc (tq-queue tq)
-		    (cons (cons re (cons closure fn)) nil)))
+		    (cons (cons question (cons re (cons closure fn))) nil)))
   'ok)
 
-(defun tq-queue-head-regexp  (tq) (car (car (tq-queue tq))))
-(defun tq-queue-head-fn      (tq) (cdr (cdr (car (tq-queue tq)))))
-(defun tq-queue-head-closure (tq) (car (cdr (car (tq-queue tq)))))
-(defun tq-queue-empty        (tq) (not (tq-queue tq)))
-(defun tq-queue-pop          (tq) (setcar tq (cdr (car tq))) (null (car tq)))
+(defun tq-queue-pop (tq)
+  (setcar tq (cdr (car tq)))
+  (let ((question (tq-queue-head-question tq)))
+    (when question
+      (process-send-string (tq-process tq) question)))
+  (null (car tq)))
 
-
-;;; must add to queue before sending!
-(defun tq-enqueue (tq question regexp closure fn)
+(defun tq-enqueue (tq question regexp closure fn &optional delay-question)
   "Add a transaction to transaction queue TQ.
 This sends the string QUESTION to the process that TQ communicates with.
-When the corresponding answer comes back, we call FN
-with two arguments: CLOSURE, and the answer to the question.
+
+When the corresponding answer comes back, we call FN with two
+arguments: CLOSURE, which may contain additional data that FN
+needs, and the answer to the question.
+
 REGEXP is a regular expression to match the entire answer;
-that's how we tell where the answer ends."
-  (tq-queue-add tq regexp closure fn)
-  (process-send-string (tq-process tq) question))
+that's how we tell where the answer ends.
+
+If DELAY-QUESTION is non-nil, delay sending this question until
+the process has finished replying to any previous questions.
+This produces more reliable results with some processes."
+  (let ((sendp (or (not delay-question)
+		   (not (tq-queue-head-question tq)))))
+    (tq-queue-add tq (unless sendp question) regexp closure fn)
+    (when sendp
+      (process-send-string (tq-process tq) question))))
 
 (defun tq-close (tq)
   "Shut down transaction queue TQ, terminating the process."

@@ -1,3 +1,191 @@
+2006-04-17  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (coordinates_in_window): On the vertical border,
+	calculate the row number measured from the top of the window, not
+	the top of the frame.
+
+2006-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (SYSTEM_PURESIZE_EXTRA): Reduce to 24000.
+
+2006-04-16  Romain Francoise  <romain@orebokech.com>
+
+	* puresize.h (BASE_PURESIZE): Decrement back to 1200000.
+
+2006-04-16  Andreas Schwab  <schwab@suse.de>
+
+	* puresize.h (PURESIZE_RATIO): Reduce to 10/6.
+
+2006-04-15  Romain Francoise  <romain@orebokech.com>
+
+	* puresize.h (BASE_PURESIZE): Increment to 1210000.
+
+2006-04-13  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+
+	* print.c (Fprin1_to_string): Mention in the `doc' that the
+	behavior is modified by `print-level' and `print-length'.
+
+2006-04-13  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (setup_coding_system): If eol-type is not yet decided
+	and system_eol_type is not LF, set CODING_REQUIRE_ENCODING_MASK.
+	If coding_system is nil, return 0.
+	(code_convert_region1): Even if coding_system is nil, don't skip
+	conversion if system_eol_type is not LF.
+	(code_convert_string1): Likewise.
+	(code_convert_string_norecord): Likewise.
+
+2006-04-13  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (setup_coding_system): Fix previous change.
+	(encode_coding): If eol_type is not yet decided, use
+	system_eol_type.
+	(shrink_encoding_region): If eol_type is not yet decided and
+	system_eol_type is not LF, don't shrink.
+
+2006-04-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xdisp.c (note_mouse_highlight): Add help echo for dragging vertical
+	line.
+
+2006-04-12  Richard Stallman  <rms@gnu.org>
+
+	* keyboard.c (read_key_sequence): Explicitly avoid keybuf[-1].
+
+	* process.c (conv_lisp_to_sockaddr): If FAMILY unknown, just return.
+	(Fprocess_send_eof): Abort if fail to open null device.
+
+2006-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* fns.c [HAVE_MENUS && MAC_OS]: Include macterm.h.
+
+	* image.c [MAC_OS] (xpm_load_image): Add parentheses around
+	assignment used as truth value.  Add explicit braces to avoid
+	ambiguous `else'.
+	[MAC_OS] (gif_load): Remove unused variable `gcpro1'.
+
+	* lisp.h (syms_of_fontset, Fset_fontset_font): Put extern and
+	EXFUN in #ifdef HAVE_WINDOW_SYSTEM.
+	(syms_of_xfns, syms_of_xsmfns, syms_of_xselect, syms_of_xterm):
+	Put externs in #ifdef HAVE_X_WINDOWS.
+	(syms_of_macfns, syms_of_macselect, syms_of_macterm)
+	(syms_of_macmenu, syms_of_mac) [MAC_OS]: Add externs.
+	(init_mac_osx_environment) [MAC_OSX]: Add extern.
+
+	* mac.c (init_process): Remove undef.
+	(select) [MAC_OSX]: Undefine before including sysselect.h.
+	(posix_pathname_to_fsspec, fsspec_to_posix_pathname) [MAC_OSX]:
+	Remove functions and prototypes.
+	(parse_value): Add parentheses around + inside shift.
+	(path_from_vol_dir_name): Make static.
+	(get_temp_dir_name): Remove unused variables `cpb' and `dir_name'.
+	[!MAC_OSX] (get_path_to_system_folder): Likewise.
+	(Fmac_get_file_creator, Fmac_get_file_type): Remove unused
+	variable `cCode'.
+	(Fmac_coerce_ae_data): Remove unused variables `fref' and `fs'.
+	(Fmac_get_preference): Add explicit braces to avoid ambiguous `else'.
+
+	* macfns.c (x_to_mac_color): Remove unused variable `tail'.
+	(x_set_mouse_color): Remove unused variable `dpy'.
+	(Fx_create_frame): Remove unused variable `x_frame_count'.
+	(Fx_server_version): Add explicit braces to avoid ambiguous `else'.
+	(x_sync): Move from macterm.c.
+	(Fx_file_dialog): Remove unused variable `default_filter_index'.
+
+	* macmenu.c (min_menu_id): Make element type explicit.
+
+	* macselect.c (get_flavor_type_from_symbol): Remove unused
+	variable `val'.
+	(get_scrap_private_timestamp, x_get_foreign_selection)
+	(copy_scrap_flavor_data): Add explicit braces to avoid ambiguous `else'.
+	(Fmac_process_deferred_apple_events): Remove unused variables
+	`keyword', `reply', `apple_event', `count', and `err'.
+
+	* macterm.c: Don't include gnu.h.
+	(x_io_error_quitter, x_draw_image_foreground_1): Remove prototypes.
+	(x_sync): Move to macfns.c.
+	[USE_CG_DRAWING] (mac_define_fringe_bitmap): Remove unused
+	variable `mask_bits'.
+	(mac_compute_glyph_string_overhangs): Avoid ambiguous `else'.
+	(x_draw_image_glyph_string): Remove unused variable `pixmap'.
+	(x_mac_to_emacs_modifiers): Remove function.
+	(XTset_vertical_scroll_bar, mac_handle_visibility_change)
+	(x_make_frame_visible, xlfdpat_create, mac_handle_command_event):
+	Add explicit braces to avoid ambiguous `else'.
+	(x_make_frame_visible): Remove unused variables `type',
+	`original_top', and `original_left'.
+	(mac_do_list_fonts, XTread_socket): Add parentheses around && within ||.
+	(x_load_font): Remove unused variables `full_name', and `value'.
+	(do_get_menus, do_init_managers, do_check_ram_size) [!MAC_OS8]:
+	Remove functions.
+	(do_zoom_window): Reorganize variables with respect to conditionals.
+	(init_command_handler): Remove unused variable `err'.
+	[MAC_OSX] (mac_check_bundle): Remove unused variable `child'.
+
+	* macterm.h (x_set_mouse_position, x_set_mouse_pixel_position)
+	(x_make_frame_invisible, x_iconify_frame, x_free_frame_resources)
+	(x_destroy_window, x_wm_set_size_hint, x_delete_display, XFreeGC)
+	(do_menu_choice, have_menus_p, x_real_positions)
+	(x_set_menu_bar_lines, x_pixel_width, x_pixel_height, x_char_width)
+	(x_char_height, x_sync, x_set_tool_bar_lines, x_activate_menubar)
+	(free_frame_menubar): Add externs.
+
+	* unexmacosx.c: Include config.h before using HAVE_MALLOC_MALLOC_H.
+	(malloc, realloc, free): Add undefs.
+	(read_load_commands): Remove unused variable `n' and `j'.
+	(copy_data_segment): Remove unused variable `r'.
+
+	* xdisp.c (get_glyph_string_clip_rects): Add parentheses around &&
+	within ||.  Add explicit braces to avoid ambiguous `else'.
+	(dump_glyph_row): Remove label for `inverse_p' from legend.
+
+	* xfaces.c (Finternal_merge_in_global_face, try_font_list): Add
+	explicit braces to avoid ambiguous `else'.
+
+2006-04-11  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+
+	* dispnew.c (init_display): Don't init X display if the user asked
+	for a non-X display.
+
+2006-04-12  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (setup_coding_system): Use system_eol_type for default
+	coding->eol_type.
+
+2006-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h (wrong_type_argument): Mark as NO_RETURN.
+
+	* data.c (wrong_type_argument): Try to avoid compiler warnings due
+	to the fact the function is now marked as NO_RETURN.
+
+2006-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (pid_t) [_MSC_VER]: New typedef.
+
+2006-04-10  Romain Francoise  <romain@orebokech.com>
+
+	* xrdb.c (gethomedir): Use xstrdup.
+
+2006-04-10  Andreas Schwab  <schwab@suse.de>
+
+	* xrdb.c (gethomedir): Make sure to always return a pointer that
+	can be passed to free.
+
+2006-04-09  Richard Stallman  <rms@gnu.org>
+
+	* lisp.h (Fkill_emacs): Undo previous change.
+
+2006-04-08  Richard Stallman  <rms@gnu.org>
+
+	* search.c (boyer_moore): Test ch >= 0400, not >.
+
+2006-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* puresize.h (pure_write_error): Mark as NO_RETURN.
+
+	* lisp.h (args_out_of_range, args_out_of_range_3)
+
 2006-04-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_wnd_proc) <WM_MOUSEMOVE>: Ignore mouse movements

@@ -5063,10 +5063,12 @@ Default face attributes override any local face attributes.  */)
   gvec = XVECTOR (global_lface)->contents;
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (! UNSPECIFIEDP (gvec[i]))
-      if (IGNORE_DEFFACE_P (gvec[i]))
-	lvec[i] = Qunspecified;
-      else
-	lvec[i] = gvec[i];
+      {
+	if (IGNORE_DEFFACE_P (gvec[i]))
+	  lvec[i] = Qunspecified;
+	else
+	  lvec[i] = gvec[i];
+      }
 
   return Qnil;
 }

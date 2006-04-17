@@ -759,7 +759,8 @@ DEFUN ("prin1-to-string", Fprin1_to_string, Sprin1_to_string, 1, 2, 0,
        doc: /* Return a string containing the printed representation of OBJECT.
 OBJECT can be any Lisp object.  This function outputs quoting characters
 when necessary to make output that `read' can handle, whenever possible,
-unless the optional second argument NOESCAPE is non-nil.
+unless the optional second argument NOESCAPE is non-nil.  For complex objects,
+the behavior is controlled by `print-level' and `print-length', which see.
 
 OBJECT is any of the Lisp data types: a number, a string, a symbol,
 a list, a buffer, a window, a frame, etc.

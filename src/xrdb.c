@@ -315,7 +315,7 @@ gethomedir ()
     }
 
   if (ptr == NULL)
-    return "/";
+    return xstrdup ("/");
 
   copy = (char *) malloc (strlen (ptr) + 2);
   strcpy (copy, ptr);

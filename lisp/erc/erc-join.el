@@ -92,7 +92,7 @@ servers, presumably in the same domain."
 		   (or erc-server-announced-name erc-session-server))))
     (when (erc-current-nick-p nick)
       (when (and erc-autojoin-domain-only
-		 (string-match "[^.]+\\.\\([^.]+\\.[^.]+\\)$" server))
+		 (string-match "[^.\n]+\\.\\([^.\n]+\\.[^.\n]+\\)$" server))
 	(setq server (match-string 1 server)))
       (let ((elem (assoc server erc-autojoin-channels-alist)))
 	(if elem
@@ -115,7 +115,7 @@ servers, presumably in the same domain."
 		   (or erc-server-announced-name erc-session-server))))
     (when (erc-current-nick-p nick)
       (when (and erc-autojoin-domain-only
-		 (string-match "[^.]+\\.\\([^.]+\\.[^.]+\\)$" server))
+		 (string-match "[^.\n]+\\.\\([^.\n]+\\.[^.\n]+\\)$" server))
 	(setq server (match-string 1 server)))
       (let ((elem (assoc server erc-autojoin-channels-alist)))
 	(when elem

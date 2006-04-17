@@ -1,3 +1,77 @@
+2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Updating settings): New section.
+	(Visibility cycling): Better names for the startup folding
+	options.
+	(Exporting): Completely restructured.
+	(The very busy C-c C-c key): New section.
+	(Summary of in-buffer settings): New section.
+
+2006-04-12  Richard Stallman  <rms@gnu.org>
+
+	* search.texi: Clean up previous change.
+
+2006-04-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.texi (Regexp Backslash, Regexp Replace): Add index
+	entries for ``back reference'' and mention the term itself in the
+	text.
+
+2006-04-11  Richard Stallman  <rms@gnu.org>
+
+	* custom.texi (Safe File Variables):
+	Document enable-local-variables = :safe.
+
+2006-04-11  Karl Berry  <karl@gnu.org>
+
+        * emacs-xtra.texi, emacs.texi (Dired under VC, VC Dired Commands,
+         Remote Repositories, Version Backups, Local Version Control,
+         Snapshots, Making and Using Snapshots, Snapshot Caveats,
+         Miscellaneous Commands and Features of VC, Change Logs and VC,
+         Renaming VC Work Files and Master Files,
+         Inserting Version Control Headers, Customizing VC, General Options,
+         Options for RCS and SCCS, Options specific for CVS): move all
+	 these nodes to emacs-xtra.texi, for brevity.
+	 * cmdargs.texi, files.texi: change cross-references.
+
+2006-04-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi, gnus-faq.texi, message.texi: Gnus v5.10.8 is released.
+
+2006-04-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Misc Group Stuff, Summary Buffer, Article Keymap)
+	(Server Commands): Key `v' is reserved for users.
+
+2006-04-11  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* files.texi (Old Versions): Update description of vc-annotate's
+	use of color to indicate date ranges.
+
+2006-04-11  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Link format): New section, emphasis on bracket links.
+	(External links): Document bracket links.
+	(FAQ): Expanded to cover shell links and the new link format.
+
+2006-04-09  Kevin Ryde  <user42@zip.com.au>
+
+	* org.texi (Formula syntax): Typo in node name of calc-eval xref.
+
+	* sending.texi (Mail Sending): In send-mail-function @pxref smtpmail,
+	put info and printed manual names the right way around.
+
+2006-04-09  Karl Berry  <karl@gnu.org>
+
+	* msdog.texi, emacs-xtra.texi: move all the MS-DOS material to
+	emacs-xtra.texi, leaving only MS Windows information.
+	* building.texi, emacs.texi, frames.texi, gnu.texi, macos.texi,
+	msdog.texi, mule.texi, trouble.texi: change cross-references and
+	node names.
+
+	* emacs.texi: move @summarycontents and @contents to the beginning
+	of the file.
+
 2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Summary Buffer Lines): Add `*'.

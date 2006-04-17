@@ -1,7 +1,7 @@
 ;;; latin-alt.el --- Quail package for inputting various European characters -*-coding: utf-8;-*-
 
 ;; Copyright (C) 1997, 1998, 2001, 2002  Free Software Foundation, Inc.
-;; Copyright (C) 1997, 1999
+;; Copyright (C) 1999
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
