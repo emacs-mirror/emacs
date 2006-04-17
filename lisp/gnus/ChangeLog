@@ -1,5 +1,20 @@
 2006-04-17  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	[ Merge from Gnus trunk. ]
+
+	* mm-util.el (mm-charset-synonym-alist): Improve doc string.
+	(mm-charset-override-alist): New variable.
+	(mm-charset-to-coding-system): Use it.
+	(mm-codepage-setup): New helper function.
+	(mm-charset-eval-alist): New variable.
+	(mm-charset-to-coding-system): Use mm-charset-eval-alist.  Warn
+	about unknown charsets.  Add allow-override.  Use
+	`mm-charset-override-alist' only when decoding.
+	(mm-detect-mime-charset-region): Use :mime-charset.
+
+	* mm-bodies.el (mm-decode-body, mm-decode-string): Call
+	`mm-charset-to-coding-system' with allow-override argument.
+
 	* message.el (message-tool-bar-zap-list, message-tool-bar)
 	(message-tool-bar-gnome, message-tool-bar-retro): New variables.
 	(message-tool-bar-local-item-from-menu): Remove.

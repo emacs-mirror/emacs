@@ -177,6 +177,29 @@ system object in XEmacs."
       ;; no-MULE XEmacs:
       (car (memq cs (mm-get-coding-system-list))))))
 
+(defun mm-codepage-setup (number &optional alias)
+  "Create a coding system cpNUMBER.
+The coding system is created using `codepage-setup'.  If ALIAS is
+non-nil, an alias is created and added to
+`mm-charset-synonym-alist'.  If ALIAS is a string, it's used as
+the alias.  Else windows-NUMBER is used."
+  (interactive
+   (let ((completion-ignore-case t)
+	 (candidates (cp-supported-codepages)))
+     (list (completing-read "Setup DOS Codepage: (default 437) " candidates
+			    nil t nil nil "437"))))
+  (when alias
+    (setq alias (if (stringp alias)
+		    (intern alias)
+		  (intern (format "windows-%s" number)))))
+  (let* ((cp (intern (format "cp%s" number))))
+    (unless (mm-coding-system-p cp)
+      (codepage-setup number))
+    (when (and alias
+	       ;; Don't add alias if setup of cp failed.
+	       (mm-coding-system-p cp))
+      (add-to-list 'mm-charset-synonym-alist (cons alias cp)))))
+
 (defvar mm-charset-synonym-alist
   `(
     ;; Not in XEmacs, but it's not a proper MIME charset anyhow.
@@ -200,8 +223,61 @@ system object in XEmacs."
     ,@(if (and (not (mm-coding-system-p 'windows-1250))
 	       (mm-coding-system-p 'cp1250))
 	  '((windows-1250 . cp1250)))
+    ;; A Microsoft misunderstanding.
+    ,@(if (and (not (mm-coding-system-p 'unicode))
+	       (mm-coding-system-p 'utf-16-le))
+	  '((unicode . utf-16-le)))
+    ;; A Microsoft misunderstanding.
+    ,@(unless (mm-coding-system-p 'ks_c_5601-1987)
+	(if (mm-coding-system-p 'cp949)
+	    '((ks_c_5601-1987 . cp949))
+	  '((ks_c_5601-1987 . euc-kr))))
     )
-  "A mapping from invalid charset names to the real charset names.")
+  "A mapping from unknown or invalid charset names to the real charset names.")
+
+(defcustom mm-charset-override-alist
+  `((iso-8859-1 . windows-1252))
+  "A mapping from undesired charset names to their replacement.
+
+You may add pairs like (iso-8859-1 . windows-1252) here,
+i.e. treat iso-8859-1 as windows-1252.  windows-1252 is a
+superset of iso-8859-1."
+  :type '(list (set :inline t
+		    (const (iso-8859-1 . windows-1252))
+		    (const (undecided  . windows-1252)))
+	       (repeat :inline t
+		       :tag "Other options"
+		       (cons (symbol :tag "From charset")
+			     (symbol :tag "To charset"))))
+  :version "23.0" ;; No Gnus
+  :group 'mime)
+
+(defcustom mm-charset-eval-alist
+  (if (featurep 'xemacs)
+      nil ;; I don't know what would be useful for XEmacs.
+    '(;; Emacs 21 offers 1250 1251 1253 1257.  Emacs 22 provides autoloads for
+      ;; 1250-1258 (i.e. `mm-codepage-setup' does nothing).
+      (windows-1250 . (mm-codepage-setup 1250 t))
+      (windows-1251 . (mm-codepage-setup 1251 t))
+      (windows-1253 . (mm-codepage-setup 1253 t))
+      (windows-1257 . (mm-codepage-setup 1257 t))))
+  "An alist of (CHARSET . FORM) pairs.
+If an article is encoded in an unknown CHARSET, FORM is
+evaluated.  This allows to load additional libraries providing
+charsets on demand.  If supported by your Emacs version, you
+could use `autoload-coding-system' here."
+  :version "23.0" ;; No Gnus
+  :type '(list (set :inline t
+		    (const (windows-1250 . (mm-codepage-setup 1250 t)))
+		    (const (windows-1251 . (mm-codepage-setup 1251 t)))
+		    (const (windows-1253 . (mm-codepage-setup 1253 t)))
+		    (const (windows-1257 . (mm-codepage-setup 1257 t)))
+		    (const (cp850 . (mm-codepage-setup 850 nil))))
+	       (repeat :inline t
+		       :tag "Other options"
+		       (cons (symbol :tag "charset")
+			     (symbol :tag "form"))))
+  :group 'mime)
 
 (defvar mm-binary-coding-system
   (cond
@@ -426,11 +502,17 @@ mail with multiple parts is preferred to sending a Unicode one.")
 	(pop alist))
       out)))
 
-(defun mm-charset-to-coding-system (charset &optional lbt)
+(defun mm-charset-to-coding-system (charset &optional lbt
+					    allow-override)
   "Return coding-system corresponding to CHARSET.
 CHARSET is a symbol naming a MIME charset.
 If optional argument LBT (`unix', `dos' or `mac') is specified, it is
-used as the line break code type of the coding system."
+used as the line break code type of the coding system.
+
+If ALLOW-OVERRIDE is given, use `mm-charset-override-alist' to
+map undesired charset names to their replacement.  This should
+only be used for decoding, not for encoding."
+  ;; OVERRIDE is used (only) in `mm-decode-body' and `mm-decode-string'.
   (when (stringp charset)
     (setq charset (intern (downcase charset))))
   (when lbt
@@ -442,6 +524,11 @@ used as the line break code type of the coding system."
    ((or (null (mm-get-coding-system-list))
 	(not (fboundp 'coding-system-get)))
     charset)
+   ;; Check override list quite early.  Should only used for decoding, not for
+   ;; encoding!
+   ((and allow-override
+	 (let ((cs (cdr (assq charset mm-charset-override-alist))))
+	   (and cs (mm-coding-system-p cs) cs))))
    ;; ascii
    ((eq charset 'us-ascii)
     'ascii)
@@ -454,9 +541,27 @@ used as the line break code type of the coding system."
 ;;; 	 (eq charset (coding-system-get charset 'mime-charset))
 	 )
     charset)
+   ;; Eval expressions from `mm-charset-eval-alist'
+   ((let* ((el (assq charset mm-charset-eval-alist))
+	   (cs (car el))
+	   (form (cdr el)))
+      (and cs
+	   form
+	   (prog2
+	       ;; Avoid errors...
+	       (condition-case nil (eval form) (error nil))
+	       ;; (message "Failed to eval `%s'" form))
+	       (mm-coding-system-p cs)
+	     (message "Added charset `%s' via `mm-charset-eval-alist'" cs))
+	   cs)))
    ;; Translate invalid charsets.
    ((let ((cs (cdr (assq charset mm-charset-synonym-alist))))
-      (and cs (mm-coding-system-p cs) cs)))
+      (and cs
+	   (mm-coding-system-p cs)
+	   ;; (message
+	   ;;  "Using synonym `%s' from `mm-charset-synonym-alist' for `%s'"
+	   ;;  cs charset)
+	   cs)))
    ;; Last resort: search the coding system list for entries which
    ;; have the right mime-charset in case the canonical name isn't
    ;; defined (though it should be).
@@ -468,6 +573,11 @@ used as the line break code type of the coding system."
 		 (eq charset (or (coding-system-get c :mime-charset)
 				 (coding-system-get c 'mime-charset))))
 	    (setq cs c)))
+      (unless cs
+	;; Warn the user about unknown charset:
+	(if (fboundp 'gnus-message)
+	    (gnus-message 7 "Unknown charset: %s" charset)
+	  (message "Unknown charset: %s" charset)))
       cs))))
 
 (defsubst mm-replace-chars-in-string (string from to)
@@ -1070,7 +1180,8 @@ If SUFFIX is non-nil, add that at the end of the file name."
     (defun mm-detect-mime-charset-region (start end)
       "Detect MIME charset of the text in the region between START and END."
       (let ((cs (mm-detect-coding-region start end)))
-	(coding-system-get cs 'mime-charset)))
+	(or (coding-system-get cs :mime-charset)
+	    (coding-system-get cs 'mime-charset))))
   (defun mm-detect-mime-charset-region (start end)
     "Detect MIME charset of the text in the region between START and END."
     (let ((cs (mm-detect-coding-region start end)))
