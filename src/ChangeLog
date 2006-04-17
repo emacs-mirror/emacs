@@ -1,3 +1,9 @@
+2006-04-17  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (coordinates_in_window): On the vertical border,
+	calculate the row number measured from the top of the window, not
+	the top of the frame.
+
 2006-04-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* s/ms-w32.h (SYSTEM_PURESIZE_EXTRA): Reduce to 24000.
