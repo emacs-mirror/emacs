@@ -604,8 +604,8 @@ An alternative value is \" . \", if you use a font with a narrow period."
 		   (narrow-to-region (point-min) limit)
 		   (condition-case nil (scan-lists (point) 1 1) (error nil)))))
 	(store-match-data (if end
-			      (list (match-beginning 0) end beg end))
-			  (list beg beg beg beg))))
+			      (list (match-beginning 0) end beg end)
+                            (list beg beg beg beg)))))
     t))
 
 (defconst tex-font-lock-keywords-3
