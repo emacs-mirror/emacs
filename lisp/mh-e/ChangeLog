@@ -1,3 +1,17 @@
+2006-04-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-utils.el (mh-sub-folders-actual): Mention that folder must
+	have been processed by mh-normalize-folder-name.
+	(mh-folder-completion-function): Handle completion of folders with
+	absolute names. Also, when flag is t, display complete folder name
+	to provide proper highlighting in Emacs 22 now that
+	minibuffer-completing-file-name is nil (closes SF #1470518).
+	(mh-folder-completing-read): No longer set
+	minibuffer-completing-file-name to t. This was causing "Can't set
+	current directory errors" when browsing absolute file names.
+	Another benefit of this change is that SPC can be used for
+	completion again (closes SF #1470518).
+
 2006-04-15  Bill Wohler  <wohler@newt.com>
 
 	* mh-compat.el (mh-font-lock-add-keywords): Fix typo in docstring.
