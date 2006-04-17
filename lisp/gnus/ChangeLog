@@ -1,3 +1,13 @@
+2006-04-12  Ralf Angeli  <angeli@iwi.uni-sb.de>
+
+	* flow-fill.el (fill-flowed): Remove trailing space from blank
+	quoted lines.
+
+2006-04-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-article-mode): Set
+	cursor-in-non-selected-windows to nil.
+
 2006-04-12  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mime-view-part-as-charset): Ignore charset
