@@ -1,3 +1,7 @@
+2006-04-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.53.
+
 2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: (Updating settings): New section.

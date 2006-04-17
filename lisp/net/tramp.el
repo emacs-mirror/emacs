@@ -4344,6 +4344,7 @@ Falls back to normal file name handler if no tramp file name handler exists."
 ;;;###autoload
 (add-to-list 'file-name-handler-alist
 	     (cons tramp-file-name-regexp 'tramp-file-name-handler))
+;;;###autoload
 (add-to-list 'file-name-handler-alist
 	     (cons tramp-completion-file-name-regexp
 		   'tramp-completion-file-name-handler))
@@ -4458,24 +4459,28 @@ necessary anymore."
      file)
     (member (match-string 1 file) (mapcar 'car tramp-methods)))
    ((or (equal last-input-event 'tab)
-	;; Emacs
-	(and (integerp last-input-event)
-	     (not (event-modifiers last-input-event))
-	     (or (char-equal last-input-event ?\?)
-		 (char-equal last-input-event ?\t) ; handled by 'tab already?
-		 (char-equal last-input-event ?\ )))
+  	;; Emacs
+  	(and (integerp last-input-event)
+	     (or
+	      ;; ?\t has event-modifier 'control
+	      (char-equal last-input-event ?\t)
+	      (and (not (event-modifiers last-input-event))
+		   (or (char-equal last-input-event ?\?)
+		       (char-equal last-input-event ?\ )))))
 	;; XEmacs
 	(and (featurep 'xemacs)
-	     (not (event-modifiers last-input-event))
-	     (or (char-equal
-		  (funcall (symbol-function 'event-to-character)
-			   last-input-event) ?\?)
-		 (char-equal
-		  (funcall (symbol-function 'event-to-character)
-			   last-input-event) ?\t)
-		 (char-equal
-		  (funcall (symbol-function 'event-to-character)
-			   last-input-event) ?\ ))))
+	     (or
+	      ;; ?\t has event-modifier 'control
+	      (char-equal
+	       (funcall (symbol-function 'event-to-character)
+			last-input-event) ?\t)
+	      (and (not (event-modifiers last-input-event))
+		   (or (char-equal
+			(funcall (symbol-function 'event-to-character)
+				 last-input-event) ?\?)
+		       (char-equal
+			(funcall (symbol-function 'event-to-character)
+				 last-input-event) ?\ ))))))
     t)))
 
 (defun tramp-completion-handle-file-exists-p (filename)

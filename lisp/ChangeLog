@@ -1,3 +1,22 @@
+2006-04-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.53.
+
+	* net/tramp.el (tramp-completion-mode): ?\t has event-modifier
+	'control.  Reported by Matthias Förste
+	<slashdevslashnull@gmx.net>.
+	(tramp-completion-file-name-handler): Add autoload cookie for
+	adding to `file-name-handler-alist'.
+
+	* net/tramp-smb.el (tramp-smb-wait-for-output): Wait always for
+	the prompt.  If it returns earlier (when detecting an error
+	message), the rest of the output will merge accidently with the
+	output of the next command.  Reported by M Jared Finder
+	<jared@hpalace.com>.
+
+	* net/tramp-vc.el (vc-user-login-name): Wrap defadvice with a test
+	for `process-file', in order to let it work for older Emacsen too.
+
 2006-04-17  Ralf Angeli  <angeli@iwi.uni-sb.de>
 
 	* textmodes/tex-mode.el (tex-font-lock-match-suscript): New function.
@@ -2933,7 +2952,7 @@
 	(vc-default-update-changelog): Don't use vc-user-login-name, we
 	don't need it here.
 
-	* tramp-vc.el (vc-user-login-name): Comment out defadvice, it is
+	* net/tramp-vc.el (vc-user-login-name): Comment out defadvice, it is
 	no longer necessary.
 
 2006-01-25  Kenichi Handa  <handa@m17n.org>
