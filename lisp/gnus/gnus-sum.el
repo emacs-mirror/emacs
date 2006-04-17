@@ -38,6 +38,7 @@
 (require 'gnus-int)
 (require 'gnus-undo)
 (require 'gnus-util)
+(require 'gmm-utils)
 (require 'mm-decode)
 (require 'nnoo)
 
@@ -2546,47 +2547,161 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 
 (defvar gnus-summary-tool-bar-map nil)
 
-;; Emacs 21 tool bar.  Should be no-op otherwise.
-(defun gnus-summary-make-tool-bar ()
-  (if (and (fboundp 'tool-bar-add-item-from-menu)
-	   (default-value 'tool-bar-mode)
-	   (not gnus-summary-tool-bar-map))
-      (setq gnus-summary-tool-bar-map
-	    (let ((tool-bar-map (make-sparse-keymap))
-		  (load-path (mm-image-load-path)))
-	      (tool-bar-add-item-from-menu
-	       'gnus-summary-prev-unread "prev-ur" gnus-summary-mode-map)
-	      (tool-bar-add-item-from-menu
-	       'gnus-summary-next-unread "next-ur" gnus-summary-mode-map)
-	      (tool-bar-add-item-from-menu
-	       'gnus-summary-post-news "post" gnus-summary-mode-map)
-	      (tool-bar-add-item-from-menu
-	       'gnus-summary-followup-with-original "fuwo" gnus-summary-mode-map)
-	      (tool-bar-add-item-from-menu
-	       'gnus-summary-followup "followup" gnus-summary-mode-map)
-	      (tool-bar-add-item-from-menu
-	       'gnus-summary-reply-with-original "reply-wo" gnus-summary-mode-map)
-	      (tool-bar-add-item-from-menu
-	       'gnus-summary-reply "reply" gnus-summary-mode-map)
-	      (tool-bar-add-item-from-menu
-	       'gnus-summary-caesar-message "rot13" gnus-summary-mode-map)
-	      (tool-bar-add-item-from-menu
-	       'gnus-uu-decode-uu "uu-decode" gnus-summary-mode-map)
-	      (tool-bar-add-item-from-menu
-	       'gnus-summary-save-article-file "save-aif" gnus-summary-mode-map)
-	      (tool-bar-add-item-from-menu
-	       'gnus-summary-save-article "save-art" gnus-summary-mode-map)
-	      (tool-bar-add-item-from-menu
-	       'gnus-uu-post-news "uu-post" gnus-summary-mode-map)
-	      (tool-bar-add-item-from-menu
-	       'gnus-summary-catchup "catchup" gnus-summary-mode-map)
-	      (tool-bar-add-item-from-menu
-	       'gnus-summary-catchup-and-exit "cu-exit" gnus-summary-mode-map)
-	      (tool-bar-add-item-from-menu
-	       'gnus-summary-exit "exit-summ" gnus-summary-mode-map)
-	      tool-bar-map)))
-  (if gnus-summary-tool-bar-map
-      (set (make-local-variable 'tool-bar-map) gnus-summary-tool-bar-map)))
+;; Note: The :set function in the `gnus-summary-tool-bar*' variables will only
+;; affect _new_ message buffers.  We might add a function that walks thru all
+;; summary-mode buffers and force the update.
+(defun gnus-summary-tool-bar-update (&optional symbol value)
+  "Update summary mode toolbar.
+Setter function for custom variables."
+  (setq-default gnus-summary-tool-bar-map nil)
+  (when symbol
+    ;; When used as ":set" function:
+    (set-default symbol value))
+  (when (gnus-buffer-live-p gnus-summary-buffer)
+    (with-current-buffer gnus-summary-buffer
+      (gnus-summary-make-tool-bar))))
+
+(defcustom gnus-summary-tool-bar (if (eq gmm-tool-bar-style 'gnome)
+				     'gnus-summary-tool-bar-gnome
+				   'gnus-summary-tool-bar-retro)
+  "Specifies the Gnus summary tool bar.
+
+It can be either a list or a symbol refering to a list.  See
+`gmm-tool-bar-from-list' for the format of the list.  The
+default key map is `gnus-summary-mode-map'.
+
+Pre-defined symbols include `gnus-summary-tool-bar-gnome' and
+`gnus-summary-tool-bar-retro'."
+  :type '(choice (const :tag "GNOME style" gnus-summary-tool-bar-gnome)
+		 (const :tag "Retro look"  gnus-summary-tool-bar-retro)
+		 (repeat :tag "User defined list" gmm-tool-bar-item)
+		 (symbol))
+  :version "23.0" ;; No Gnus
+  :initialize 'custom-initialize-default
+  :set 'gnus-summary-tool-bar-update
+  :group 'gnus-summary)
+
+(defcustom gnus-summary-tool-bar-gnome
+  '((gnus-summary-post-news "mail/compose" nil)
+    (gnus-summary-insert-new-articles "mail/inbox" nil
+				      :visible (or (not gnus-agent)
+						   gnus-plugged))
+    (gnus-summary-reply-with-original "mail/reply")
+    (gnus-summary-reply "mail/reply" nil :visible nil)
+    (gnus-summary-followup-with-original "mail/reply-all")
+    (gnus-summary-followup "mail/reply-all" nil :visible nil)
+    (gnus-summary-mail-forward "mail/forward")
+    (gnus-summary-save-article "mail/save")
+    (gnus-summary-search-article-forward "search" nil :visible nil)
+    (gnus-summary-print-article "print")
+    (gnus-summary-tick-article-forward "flag-followup" nil :visible nil)
+    ;; Some new commands that may need more suitable icons:
+    (gnus-summary-save-newsrc "save" nil :visible nil)
+    ;; (gnus-summary-show-article "stock_message-display" nil :visible nil)
+    (gnus-summary-prev-article "left-arrow")
+    (gnus-summary-next-article "right-arrow")
+    (gnus-summary-next-page "next-page")
+    ;; (gnus-summary-enter-digest-group "right_arrow" nil :visible nil)
+    ;;
+    ;; Maybe some sort-by-... could be added:
+    ;; (gnus-summary-sort-by-author "sort-a-z" nil :visible nil)
+    ;; (gnus-summary-sort-by-date "sort-1-9" nil :visible nil)
+    (gnus-summary-mark-as-expirable
+     "delete" nil
+     :visible (gnus-check-backend-function 'request-expire-articles
+					   gnus-newsgroup-name))
+    (gnus-summary-mark-as-spam
+     "mail/spam" t
+     :visible (and (fboundp 'spam-group-ham-contents-p)
+		   (spam-group-ham-contents-p gnus-newsgroup-name))
+     :help "Mark as spam")
+    (gnus-summary-mark-as-read-forward
+     "mail/not-spam" nil
+     :visible (and (fboundp 'spam-group-spam-contents-p)
+		   (spam-group-spam-contents-p gnus-newsgroup-name)))
+    ;;
+    (gnus-summary-exit "exit")
+    (gmm-customize-mode "preferences" t :help "Edit mode preferences")
+    (gnus-info-find-node "help"))
+  "List of functions for the summary tool bar (GNOME style).
+
+See `gmm-tool-bar-from-list' for the format of the list."
+  :type '(repeat gmm-tool-bar-item)
+  :version "23.0" ;; No Gnus
+  :initialize 'custom-initialize-default
+  :set 'gnus-summary-tool-bar-update
+  :group 'gnus-summary)
+
+(defcustom gnus-summary-tool-bar-retro
+  '((gnus-summary-prev-unread-article "gnus/prev-ur")
+    (gnus-summary-next-unread-article "gnus/next-ur")
+    (gnus-summary-post-news "gnus/post")
+    (gnus-summary-followup-with-original "gnus/fuwo")
+    (gnus-summary-followup "gnus/followup")
+    (gnus-summary-reply-with-original "gnus/reply-wo")
+    (gnus-summary-reply "gnus/reply")
+    (gnus-summary-caesar-message "gnus/rot13")
+    (gnus-uu-decode-uu "gnus/uu-decode")
+    (gnus-summary-save-article-file "gnus/save-aif")
+    (gnus-summary-save-article "gnus/save-art")
+    (gnus-uu-post-news "gnus/uu-post")
+    (gnus-summary-catchup "gnus/catchup")
+    (gnus-summary-catchup-and-exit "gnus/cu-exit")
+    (gnus-summary-exit "gnus/exit-summ")
+    ;; Some new command that may need more suitable icons:
+    (gnus-summary-print-article "gnus/print" nil :visible nil)
+    (gnus-summary-mark-as-expirable "gnus/close" nil :visible nil)
+    (gnus-summary-save-newsrc "gnus/save" nil :visible nil)
+    ;; (gnus-summary-enter-digest-group "gnus/right_arrow" nil :visible nil)
+    (gnus-summary-search-article-forward "gnus/search" nil :visible nil)
+    ;; (gnus-summary-insert-new-articles "gnus/paste" nil :visible nil)
+    ;; (gnus-summary-toggle-threads "gnus/open" nil :visible nil)
+    ;;
+    (gnus-info-find-node "gnus/help" nil :visible nil))
+  "List of functions for the summary tool bar (retro look).
+
+See `gmm-tool-bar-from-list' for the format of the list."
+  :type '(repeat gmm-tool-bar-item)
+  :version "23.0" ;; No Gnus
+  :initialize 'custom-initialize-default
+  :set 'gnus-summary-tool-bar-update
+  :group 'gnus-summary)
+
+(defcustom gnus-summary-tool-bar-zap-list t
+  "List of icon items from the global tool bar.
+These items are not displayed in the Gnus summary mode tool bar.
+
+See `gmm-tool-bar-from-list' for the format of the list."
+  :type 'gmm-tool-bar-zap-list
+  :version "23.0" ;; No Gnus
+  :initialize 'custom-initialize-default
+  :set 'gnus-summary-tool-bar-update
+  :group 'gnus-summary)
+
+(defvar image-load-path)
+
+(defun gnus-summary-make-tool-bar (&optional force)
+  "Make a summary mode tool bar from `gnus-summary-tool-bar'.
+When FORCE, rebuild the tool bar."
+  (when (and (not (featurep 'xemacs))
+	     (boundp 'tool-bar-mode)
+	     tool-bar-mode
+	     (or (not gnus-summary-tool-bar-map) force))
+    (let* ((load-path
+	    (gmm-image-load-path-for-library "gnus"
+					     "mail/save.xpm"
+					     nil t))
+           (image-load-path (cons (car load-path)
+                                  (when (boundp 'image-load-path)
+                                    image-load-path)))
+	   (map (gmm-tool-bar-from-list gnus-summary-tool-bar
+					gnus-summary-tool-bar-zap-list
+					'gnus-summary-mode-map)))
+      (when map
+	;; Need to set `gnus-summary-tool-bar-map' because `gnus-article-mode'
+	;; uses it's value.
+	(setq gnus-summary-tool-bar-map map))))
+  (set (make-local-variable 'tool-bar-map) gnus-summary-tool-bar-map))
 
 (defun gnus-score-set-default (var value)
   "A version of set that updates the GNU Emacs menu-bar."

@@ -1,3 +1,27 @@
+2006-04-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-tool-bar-zap-list, message-tool-bar)
+	(message-tool-bar-gnome, message-tool-bar-retro): New variables.
+	(message-tool-bar-local-item-from-menu): Remove.
+	(message-tool-bar-map): Replace by `message-make-tool-bar'.
+	(message-make-tool-bar): New function.
+	(message-mode): Use `message-make-tool-bar'.
+
+	* gnus-sum.el (gnus-summary-tool-bar)
+	(gnus-summary-tool-bar-gnome, gnus-summary-tool-bar-retro)
+	(gnus-summary-tool-bar-zap-list): New variables.
+	(gnus-summary-make-tool-bar): Complete rewrite using
+	`gmm-tool-bar-from-list'.
+
+	* gnus-group.el (gnus-group-tool-bar, gnus-group-tool-bar-gnome)
+	(gnus-group-tool-bar-retro, gnus-group-tool-bar-zap-list): New
+	variables.
+	(gnus-group-make-tool-bar): Complete rewrite using
+	`gmm-tool-bar-from-list'.
+	(gnus-group-tool-bar-update): New function.
+
+	* gmm-utils.el: New file.
+
 2006-04-12  Ralf Angeli  <angeli@iwi.uni-sb.de>
 
 	* flow-fill.el (fill-flowed): Remove trailing space from blank
