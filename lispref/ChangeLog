@@ -1,3 +1,8 @@
+2006-04-17  Romain Francoise  <romain@orebokech.com>
+
+	* variables.texi (Local Variables): Update the default value of
+	`max-specpdl-size'.
+
 2006-04-15  Michael Olson  <mwolson@gnu.org>
 
 	* processes.texi (Transaction Queues): Mention the new optional
