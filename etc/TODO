@@ -15,9 +15,6 @@ to the FSF.
 ** Make vc-checkin avoid reverting the buffer if has not changed after
    the checkin. Comparing (md5 BUFFER) to (md5 FILE) should be enough.
 
-** Make vc-annotate show place the cursor in the annotate buffer at the
-   same line as the current buffer.
-
 ** buffer-offer-save should be a permanent local.
 
 ** revert-buffer should eliminate overlays and the mark.
