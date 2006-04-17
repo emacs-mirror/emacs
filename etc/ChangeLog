@@ -23,7 +23,7 @@
 2006-03-28  Bill Wohler  <wohler@newt.com>
 
 	* images/README: Update with following information.
-	
+
 	* images/data-save.xpm, images/mail/flag-for-followup.xpm:
 	* images/zoom-in.xpm, images/zoom-out.xpm: New images from GNOME
 	2.12.
@@ -32,27 +32,27 @@
 	* images/mail/flag-for-followup.pbm, images/mail/inbox.pbm:
 	* images/mail/move.pbm, images/next-page.pbm, images/zoom-out.pbm:
 	New bitmaps for new images.
-	
-        * images/refresh.xpm, images/sort-ascending.xpm,
+
+	* images/refresh.xpm, images/sort-ascending.xpm,
 	* images/sort-descending.xpm: Update with GTK 2.x images. Note
 	that the default GTK icons are not overridden by the GNOME theme
 	due to a bug which was fixed in GNOME 2.15. Once GNOME 2.16 is in
 	wide circulation, then the GTK icons should be replaced with the
 	equivalent GNOME icons. Until then, we should be consistent with
 	GTK first, then GNOME.
-	
-        * images/mail/repack.xpm, images/mail/reply-from.xpm:
+
+	* images/mail/repack.xpm, images/mail/reply-from.xpm:
 	* images/mail/reply-to.xpm, images/search-replace.xpm:
 	* images/separator.xpm, images/show.xpm: Update custom icons to be
 	closer to their GNOME counterparts.
-	
-        * images/attach.pbm, images/exit.pbm, images/mail/compose.pbm:
+
+	* images/attach.pbm, images/exit.pbm, images/mail/compose.pbm:
 	* images/mail/repack.pbm, images/mail/reply-all.pbm:
 	* images/mail/reply-from.pbm, images/mail/reply-to.pbm:
 	* images/mail/reply.pbm, images/mail/send.pbm, images/show.pbm:
 	* images/search-replace.pbm: Update bitmaps.
-	
-        * images/execute.pbm, images/execute.xpm, images/fld-open.pbm:
+
+	* images/execute.pbm, images/execute.xpm, images/fld-open.pbm:
 	* images/fld-open.xpm, images/highlight.pbm, images/highlight.xpm:
 	* images/mail.pbm, images/mail.xpm, images/mail/alias.pbm:
 	* images/mail/alias.xpm, images/mail/refile.pbm:
