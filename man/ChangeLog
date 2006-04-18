@@ -1,3 +1,8 @@
+2006-04-18  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* misc.texi (Shell Ring): Added notes on saved input when
+	navigating off the end of the history list.  
+
 2006-04-18  Chong Yidong  <cyd@mit.edu>
 
 	* misc.texi (Shell Options): Correct default value of
