@@ -3547,16 +3547,6 @@ The background and foreground are used in the image."
   :group 'mh-speedbar
   :package-version '(MH-E . "8.0"))
 
-;; Get rid of temporary functions and data structures.
-(fmakunbound 'defcustom-mh)
-(fmakunbound 'defface-mh)
-(fmakunbound 'defgroup-mh)
-(fmakunbound 'mh-face-data)
-(fmakunbound 'mh-strip-package-version)
-(makunbound 'mh-face-data)
-(makunbound 'mh-inherit-face-flag)
-(makunbound 'mh-min-colors-defined-flag)
-
 (provide 'mh-e)
 
 ;; Local Variables:
