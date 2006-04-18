@@ -1,7 +1,7 @@
 2006-04-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-refcard.tex: Bump version to 5.11.  Remove duplicate
-	\def's.
+	\def's.  Update date.
 
 2006-04-18  Bill Wohler  <wohler@newt.com>
 
