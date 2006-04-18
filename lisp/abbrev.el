@@ -202,7 +202,7 @@ Optional second argument QUIETLY non-nil means don't display a message."
     (read-file-name (format "Read abbrev file (default %s): "
 			    abbrev-file-name)
 		    nil abbrev-file-name t)))
-  (load file nil quietly)
+  (load (or file abbrev-file-name) nil quietly)
   (setq abbrevs-changed nil))
 
 (defun quietly-read-abbrev-file (&optional file)

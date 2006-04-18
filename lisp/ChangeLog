@@ -1,3 +1,8 @@
+2006-04-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* abbrev.el (read-abbrev-file): Use abbrev-file-name if optional
+	file is nil.
+
 2006-04-18  Richard Stallman  <rms@gnu.org>
 
 	* tooltip.el (tooltip-mode, tooltip-use-echo-area): Doc fixes.
