@@ -1,5 +1,8 @@
 2006-04-17  Bill Wohler  <wohler@newt.com>
 
+	* mh-comp.el (mh-insert-x-mailer): Strip build number from
+	version in X-Mailer field (closes SF #1466481).
+
 	* mh-acros.el (mh-defun-compat): Rename to defun-mh in order that
 	variables and functions with the same name are found correctly by
 	find-func (invoked by clicking on the filename link in the *Help*
