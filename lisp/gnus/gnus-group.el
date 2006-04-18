@@ -1009,7 +1009,7 @@ Pre-defined symbols include `gnus-group-tool-bar-gnome' and
 		 (const :tag "Retro look" gnus-group-tool-bar-retro)
 		 (repeat :tag "User defined list" gmm-tool-bar-item)
 		 (symbol))
-  :version "23.0" ;; No Gnus
+  :version "22.1" ;; Gnus 5.10.9
   :initialize 'custom-initialize-default
   :set 'gnus-group-tool-bar-update
   :group 'gnus-group)
@@ -1050,7 +1050,7 @@ Pre-defined symbols include `gnus-group-tool-bar-gnome' and
 
 See `gmm-tool-bar-from-list' for the format of the list."
   :type '(repeat gmm-tool-bar-item)
-  :version "23.0" ;; No Gnus
+  :version "22.1" ;; Gnus 5.10.9
   :initialize 'custom-initialize-default
   :set 'gnus-group-tool-bar-update
   :group 'gnus-group)
@@ -1069,7 +1069,7 @@ See `gmm-tool-bar-from-list' for the format of the list."
 
 See `gmm-tool-bar-from-list' for the format of the list."
   :type '(repeat gmm-tool-bar-item)
-  :version "23.0" ;; No Gnus
+  :version "22.1" ;; Gnus 5.10.9
   :initialize 'custom-initialize-default
   :set 'gnus-group-tool-bar-update
   :group 'gnus-group)
@@ -1080,7 +1080,7 @@ These items are not displayed in the Gnus group mode tool bar.
 
 See `gmm-tool-bar-from-list' for the format of the list."
   :type 'gmm-tool-bar-zap-list
-  :version "23.0" ;; No Gnus
+  :version "22.1" ;; Gnus 5.10.9
   :initialize 'custom-initialize-default
   :set 'gnus-group-tool-bar-update
   :group 'gnus-group)
@@ -1480,11 +1480,10 @@ if it is a string, only list groups matching REGEXP."
 		seen))))))
 
 ;; Moving through the Group buffer (in topic mode) e.g. with C-n doesn't
-;; update the state (enabled/disabled) of the icon
-;; `gnus-group-describe-group'.  After `C-l' the state is correct.  See the
-;; following report on emacs-devel
+;; update the state (enabled/disabled) of the icon `gnus-group-describe-group'
+;; automatically.  After `C-l' the state is correct.  See the following report
+;; on emacs-devel
 ;; <http://thread.gmane.org/v9acdmrcse.fsf@marauder.physik.uni-ulm.de>:
-
 ;; From: Reiner Steib
 ;; Subject: tool bar icons not updated according to :active condition
 ;; Newsgroups: gmane.emacs.devel

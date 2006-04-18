@@ -1,3 +1,7 @@
+2006-04-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Emacsen): Don't support Emacs 20.7 and XEmacs 21.1.
+
 2006-04-17  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Folders): Updated mh-before-quit-hook and

@@ -2576,7 +2576,7 @@ Pre-defined symbols include `gnus-summary-tool-bar-gnome' and
 		 (const :tag "Retro look"  gnus-summary-tool-bar-retro)
 		 (repeat :tag "User defined list" gmm-tool-bar-item)
 		 (symbol))
-  :version "23.0" ;; No Gnus
+  :version "22.1" ;; Gnus 5.10.9
   :initialize 'custom-initialize-default
   :set 'gnus-summary-tool-bar-update
   :group 'gnus-summary)
@@ -2627,7 +2627,7 @@ Pre-defined symbols include `gnus-summary-tool-bar-gnome' and
 
 See `gmm-tool-bar-from-list' for the format of the list."
   :type '(repeat gmm-tool-bar-item)
-  :version "23.0" ;; No Gnus
+  :version "22.1" ;; Gnus 5.10.9
   :initialize 'custom-initialize-default
   :set 'gnus-summary-tool-bar-update
   :group 'gnus-summary)
@@ -2662,7 +2662,7 @@ See `gmm-tool-bar-from-list' for the format of the list."
 
 See `gmm-tool-bar-from-list' for the format of the list."
   :type '(repeat gmm-tool-bar-item)
-  :version "23.0" ;; No Gnus
+  :version "22.1" ;; Gnus 5.10.9
   :initialize 'custom-initialize-default
   :set 'gnus-summary-tool-bar-update
   :group 'gnus-summary)
@@ -2673,7 +2673,7 @@ These items are not displayed in the Gnus summary mode tool bar.
 
 See `gmm-tool-bar-from-list' for the format of the list."
   :type 'gmm-tool-bar-zap-list
-  :version "23.0" ;; No Gnus
+  :version "22.1" ;; Gnus 5.10.9
   :initialize 'custom-initialize-default
   :set 'gnus-summary-tool-bar-update
   :group 'gnus-summary)
