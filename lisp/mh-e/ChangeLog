@@ -190,7 +190,7 @@
 	(mh-scan-line-formats, mh-search, mh-sending-mail)
 	(mh-sequences, mh-show, mh-speedbar, mh-thread, mh-tool-bar)
 	(mh-hooks, mh-faces): Add :package-version keyword to these
-	groups.
+	groups (closes SF #1452724).
 	(mh-alias-completion-ignore-case-flag)
 	(mh-alias-expand-aliases-flag, mh-alias-flash-on-comma)
 	(mh-alias-insert-file, mh-alias-insertion-location)
@@ -236,7 +236,7 @@
 	(mh-show-use-xface-flag, mh-store-default-directory)
 	(mh-summary-height, mh-speed-update-interval)
 	(mh-show-threads-flag, mh-tool-bar-search-function): Add
-	:package-version keyword to these options.
+	:package-version keyword to these options (closes SF #1452724).
 	(mh-after-commands-processed-hook)
 	(mh-alias-reloaded-hook, mh-before-commands-processed-hook)
 	(mh-before-quit-hook, mh-before-send-letter-hook)
@@ -247,7 +247,7 @@
 	(mh-mh-to-mime-hook, mh-search-mode-hook, mh-quit-hook)
 	(mh-refile-msg-hook, mh-show-hook, mh-show-mode-hook)
 	(mh-unseen-updated-hook): Add :package-version keyword to these
-	hooks.
+	hooks (closes SF #1452724).
 	(mh-min-colors-defined-flag)
 	(mh-folder-address, mh-folder-body, mh-folder-cur-msg-number)
 	(mh-folder-date, mh-folder-deleted, mh-folder-followup)
@@ -261,10 +261,10 @@
 	(mh-speedbar-folder, mh-speedbar-folder-with-unseen-messages)
 	(mh-speedbar-selected-folder)
 	(mh-speedbar-selected-folder-with-unseen-messages): : Add
-	:package-version keyword to these faces.
+	:package-version keyword to these faces (closes SF #1452724).
 
 	* mh-tool-bar.el (mh-tool-bar-define): Added commented-out
-	:package-version keywords.
+	:package-version keywords (closes SF #1452724).
 
 2006-03-28  Bill Wohler  <wohler@newt.com>
 
