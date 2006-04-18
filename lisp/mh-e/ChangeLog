@@ -1,5 +1,19 @@
 2006-04-17  Bill Wohler  <wohler@newt.com>
 
+	* mh-acros.el (mh-defun-compat): Rename to defun-mh in order that
+	variables and functions with the same name are found correctly by
+	find-func (invoked by clicking on the filename link in the *Help*
+	buffer).
+	(mh-defmacro-compat): Rename to defmacro-mh. Ditto.
+	* mh-e.el: (mh-defgroup): Rename to defgroup-mh. Ditto.
+	(mh-defcustom): Rename to defcustom-mh. Ditto.
+	(mh-defface): Rename to defface-mh. Ditto.
+	(mh-font-lock-add-keywords): Make changes according to these
+	renamings.
+
+	* mh-e.el, mh-compat.el, mh-gnus.el: Use the new names (closes SF
+	#1472029).
+
 	* mh-utils.el (mh-sub-folders-actual): Mention that folder must
 	have been processed by mh-normalize-folder-name.
 	(mh-folder-completion-function): Handle completion of folders with
