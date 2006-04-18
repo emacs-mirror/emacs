@@ -4344,7 +4344,6 @@ Falls back to normal file name handler if no tramp file name handler exists."
 ;;;###autoload
 (add-to-list 'file-name-handler-alist
 	     (cons tramp-file-name-regexp 'tramp-file-name-handler))
-;;;###autoload
 (add-to-list 'file-name-handler-alist
 	     (cons tramp-completion-file-name-regexp
 		   'tramp-completion-file-name-handler))
