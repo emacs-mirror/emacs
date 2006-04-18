@@ -1,3 +1,21 @@
+2006-04-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c (x_create_bitmap_from_data) [MAC_OS]: Don't check return
+	value of xmalloc.
+
+	* mac.c (mac_coerce_file_name_ptr, mac_coerce_file_name_desc)
+	(create_apple_event_from_event_ref, xrm_get_preference_database)
+	(cfstring_create_normalized): Don't check return value of xmalloc.
+
+	* macselect.c (get_scrap_target_type_list, defer_apple_events)
+	(copy_scrap_flavor_data, mac_handle_service_event): Don't check
+	return value of xmalloc/xrealloc.
+
+	* macterm.c (XCreateGC, x_per_char_metric, xlfdpat_create)
+	(init_font_name_table, init_font_name_table, mac_do_list_fonts)
+	(XLoadQueryFont, mac_store_apple_event): Don't check
+	return value of xmalloc.
+
 2006-04-17  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (coordinates_in_window): On the vertical border,
