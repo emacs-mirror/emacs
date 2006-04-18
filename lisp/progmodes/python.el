@@ -1744,6 +1744,14 @@ lines count as headers.
        #'python-eldoc-function)
   (add-hook 'eldoc-mode-hook
 	    '(lambda () (run-python nil t)) nil t) ; need it running
+  (unless (assoc 'pyhon-mode hs-special-modes-alist)
+    (setq 
+     hs-special-modes-alist 
+     (cons (list 
+	    'python-mode "^\\s-*def\\>" nil "#" 
+	    (lambda (arg)(python-end-of-defun)(skip-chars-backward " \t\n")) 
+	    nil)
+    hs-special-modes-alist)))
   (if (featurep 'hippie-exp)
       (set (make-local-variable 'hippie-expand-try-functions-list)
 	   (cons 'python-try-complete hippie-expand-try-functions-list)))
