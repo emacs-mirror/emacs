@@ -9,6 +9,8 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
+** whitespace-cleanup should work only on the region if the region is active.
+
 ** Distribute a bar cursor of width > 1 evenly between the two glyphs
    on each side of the bar (what to do at the edges?).
 
