@@ -1,3 +1,7 @@
+2006-04-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* imenu.el (imenu--index-alist): Balance parentheses.
+
 2006-04-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/python.el (python-mode): Add support for
