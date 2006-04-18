@@ -441,7 +441,7 @@ The function `imenu--subalist-p' tests an element and returns t
 if it is a sub-alist.
 
 There is one simple element with negative POSITION; selecting that
-element recalculates the buffer's index alist."
+element recalculates the buffer's index alist.")
 
 (make-variable-buffer-local 'imenu--index-alist)
 
