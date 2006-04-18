@@ -1,5 +1,11 @@
 2006-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/tcl.el (tcl-send-string, tcl-send-region):
+	Use forward-line so as to get to BOL even in the presence of fields.
+	(tcl-eval-region): Strip surrounding space to avoid multiple prompts
+	in return.
+	(inferior-tcl): Tell tclsh to work in interactive mode.
+
 	* complete.el (partial-completion-mode):
 	Use 'choose-completion-string-functions to make sure that
 	choose-completion fills the minibuffer properly.
