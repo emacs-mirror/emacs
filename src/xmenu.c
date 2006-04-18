@@ -2180,21 +2180,27 @@ set_frame_menubar (f, first_time, deep_p)
       /* If there has been no change in the Lisp-level contents
 	 of the menu bar, skip redisplaying it.  Just exit.  */
 
+      /* Compare the new menu items with the ones computed last time.  */
       for (i = 0; i < previous_menu_items_used; i++)
 	if (menu_items_used == i
 	    || (!EQ (previous_items[i], XVECTOR (menu_items)->contents[i])))
 	  break;
       if (i == menu_items_used && i == previous_menu_items_used && i != 0)
 	{
+	  /* The menu items have not changed.  Don't bother updating
+	     the menus in any form, since it would be a no-op.  */
 	  free_menubar_widget_value_tree (first_wv);
 	  discard_menu_items ();
 	  unbind_to (specpdl_count, Qnil);
 	  return;
 	}
 
+      /* The menu items are different, so store them in the frame.  */
       f->menu_bar_vector = menu_items;
       f->menu_bar_items_used = menu_items_used;
 
+      /* This calls restore_menu_items to restore menu_items, etc.,
+	 as they were outside.  */
       unbind_to (specpdl_count, Qnil);
 
       /* Now GC cannot happen during the lifetime of the widget_value,
