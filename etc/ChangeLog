@@ -1,3 +1,7 @@
+2006-04-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: Version number change only.
+
 2006-04-12  Kenichi Handa  <handa@m17n.org>
 
 	* PROBLEMS (C-SPC fails ...): Explicitly say fcitx in the header.

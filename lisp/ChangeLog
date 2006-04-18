@@ -1,3 +1,12 @@
+2006-04-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-insert-heading): Insert heading before
+	current if at beginning of line.
+	(org-todo, org-date): New faces.
+	(org-table-align): Make sure tooltip window contains full text.
+	(org-no-properties): New defsubst.
+	(org-set-font-lock-defaults): Use new faces.
+
 2006-04-18  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-speedbar-item-info): Display frame address
