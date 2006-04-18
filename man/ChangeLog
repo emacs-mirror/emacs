@@ -1,3 +1,9 @@
+2006-04-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Folders): Updated mh-before-quit-hook and
+	mh-quit-hook example with code that removes the buffers rather
+	than just bury them.
+
 2006-04-18  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Watch Expressions): Update.
