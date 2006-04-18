@@ -1,3 +1,16 @@
+2006-04-18  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* comint.el (comint-previous-input): Don't clobber input line
+	when moving off either end of the input history ring.
+	(comint-delete-input): New function, used by
+	`comint-previous-input' and others.
+	(comint-previous-matching-input): Use
+	`coming-delete-input'. Save the partial input if leaving the
+	edit line.  Goto point-max before deleting input to avoid
+	partial input fragments hanging around.
+	(comint-restore-input): New function, used by
+	`comint-previous-input', and bound to [C-c C-g].
+
 2006-04-18  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* imenu.el (imenu--index-alist): Balance parentheses.
