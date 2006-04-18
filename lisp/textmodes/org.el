@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.23
+;; Version: 4.24
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,6 +81,9 @@
 ;;
 ;; Changes since version 4.00:
 ;; ---------------------------
+;; Version 4.24
+;;    - Bug fixes.
+;;
 ;; Version 4.23
 ;;    - Bug fixes.
 ;;
@@ -179,7 +182,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.23"
+(defvar org-version "4.24"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -232,7 +235,11 @@ uninteresting.  Also tables look terrible when wrapped."
 (defcustom org-startup-align-all-tables nil
   "Non-nil means, align all tables when visiting a file.
 This is useful when the column width in tables is forced with <N> cookies
-in table fields.  Such tables will look correct only after the first re-align."
+in table fields.  Such tables will look correct only after the first re-align.
+This can also be configured on a per-file basis by adding one of
+the following lines anywhere in the buffer:
+   #+STARTUP: align
+   #+STARTUP: noalign"
   :group 'org-startup
   :type 'boolean)
 
@@ -242,7 +249,6 @@ This means, if you start editing an org file, you will get an
 immediate reminder of any due deadlines.
 This can also be configured on a per-file basis by adding one of
 the following lines anywhere in the buffer:
-
    #+STARTUP: dlcheck
    #+STARTUP: nodlcheck"
   :group 'org-startup
@@ -396,7 +402,12 @@ This has the effect that two stars are being added/taken away in
 promotion/demotion commands.  It also influences how levels are
 handled by the exporters.
 Changing it requires restart of `font-lock-mode' to become effective
-for fontification also in regions already fontified."
+for fontification also in regions already fontified.
+You may also set this on a per-file basis by adding one of the following
+lines to the buffer:
+
+   #+STARTUP: odd
+   #+STARTUP: oddeven"
   :group 'org-edit-structure
   :group 'org-font-lock
   :type 'boolean)
@@ -1124,7 +1135,7 @@ closing date."
   :type 'boolean)
 
 (defgroup org-priorities nil
-  "Keywords in Org-mode."
+  "Priorities in Org-mode."
   :tag "Org Priorities"
   :group 'org-todo)
 
@@ -1179,7 +1190,7 @@ moved to the new date."
   :type 'boolean)
 
 (defgroup org-tags nil
-  "Options concerning startup of Org-mode."
+  "Options concerning tags in Org-mode."
   :tag "Org Tags"
   :group 'org)
 
@@ -1903,7 +1914,12 @@ face is white for a light background, and black for a dark
 background.  You may have to customize the face `org-hide' to
 make this work.
 Changing it requires restart of `font-lock-mode' to become effective
-also in regions already fontified."
+also in regions already fontified.
+You may also set this on a per-file basis by adding one of the following
+lines to the buffer:
+
+   #+STARTUP: hidestars
+   #+STARTUP: showstars"
   :group 'org-font-lock
   :type 'boolean)
 
@@ -2070,12 +2086,29 @@ Changing this variable requires a restart of Emacs to take effect."
   "Face for links."
   :group 'org-faces)
 
+(defface org-date
+  '((((type tty) (class color)) (:foreground "cyan" :weight bold))
+    (((class color) (background light)) (:foreground "Purple" :underline t))
+    (((class color) (background dark)) (:foreground "Cyan" :underline t))
+    (t (:bold t)))
+  "Face for links."
+  :group 'org-faces)
+
 (defface org-tag
   '((((type tty) (class color)) (:weight bold))
     (((class color) (background light)) (:weight bold))
     (((class color) (background dark)) (:weight bold))
     (t (:bold t)))
   "Face for tags."
+  :group 'org-faces)
+
+(defface org-todo ;; font-lock-warning-face
+  '((((type tty) (class color)) (:foreground "red"))
+    (((class color) (background light)) (:foreground "Red" :bold t))
+    (((class color) (background dark)) (:foreground "Red1" :bold t))
+;    (((class color) (background dark)) (:foreground "Pink" :bold t))
+    (t (:inverse-video t :bold t)))
+  "Face for TODO keywords."
   :group 'org-faces)
 
 (defface org-done ;; font-lock-type-face
@@ -2400,6 +2433,10 @@ The following commands are available:
 	s)
     (match-string-no-properties num string)))
 
+(defsubst org-no-properties (s)
+  (remove-text-properties 0 (length s) org-rm-props s)
+  s)
+
 (defun org-current-time ()
   "Current time, possibly rounded to `org-time-stamp-rounding-minutes'."
   (if (> org-time-stamp-rounding-minutes 0)
@@ -2530,7 +2567,9 @@ that will be added to PLIST.  Returns the string that was modified."
 (defun org-activate-bracket-links (limit)
   "Run through the buffer and add overlays to bracketed links."
   (if (re-search-forward org-bracket-link-regexp limit t)
-      (let* ((help (concat "LINK: " (org-match-string-no-properties 1)))
+      (let* ((help (concat "LINK: "
+			   (org-match-string-no-properties 1)))
+	     ;; FIXME: above we should remove the escapes.
 	     (ip (list 'invisible 'org-link 'intangible t 'rear-nonsticky t
 		       'keymap org-mouse-map 'mouse-face 'highlight
 		       'help-echo help))
@@ -2678,13 +2717,13 @@ between words."
 	   (if (memq 'plain lk) '(org-activate-plain-links (0 'org-link t)))
 	   (if (memq 'bracket lk) '(org-activate-bracket-links (0 'org-link t)))
 	   (if (memq 'radio lk) '(org-activate-target-links (0 'org-link t)))
-	   (if (memq 'date lk) '(org-activate-dates (0 'org-link t)))
+	   (if (memq 'date lk) '(org-activate-dates (0 'org-date t)))
 	   (if (memq 'camel lk) '(org-activate-camels (0 'org-link t)))
 	   (if (memq 'tag lk) '(org-activate-tags (1 'org-tag prepend)))
 	   (if org-table-limit-column-width
 	       '(org-hide-wide-columns (0 nil append)))
 	   (list (concat "^\\*+[ \t]*" org-not-done-regexp)
-		 '(1 'org-warning t))
+		 '(1 'org-todo t))
 	   (list (concat "\\[#[A-Z]\\]") '(0 'org-special-keyword t))
 	   (list (concat "\\<" org-deadline-string) '(0 'org-special-keyword t))
 	   (list (concat "\\<" org-scheduled-string) '(0 'org-special-keyword t))
@@ -2705,7 +2744,7 @@ between words."
 	   '("| *\\(:?=[^|\n]*\\)" (1 'org-formula t))
 	   '("^[ \t]*| *\\([#!$*_^]\\) *|" (1 'org-formula t))
 	   (if org-format-transports-properties-p
-	       '("| *\\(<[0-9]+>\\) *|" (1 'org-formula t)))
+	       '("| *\\(<[0-9]+>\\) *" (1 'org-formula t)))
 	   )))
     (setq org-font-lock-extra-keywords (delq nil org-font-lock-extra-keywords))
     ;; Now set the full font-lock-keywords
@@ -3070,7 +3109,10 @@ or nil."
 		     (error (outline-next-heading)))
 		   (prog1 (match-string 0)
 		     (funcall outline-level)))))
-      (unless (bolp) (newline))
+      (if (and (bolp) 
+	       (save-excursion (backward-char 1) (not (org-invisible-p))))
+	  (open-line 1)
+	(newline))
       (insert head)
       (if (looking-at "[ \t]*")
 	  (replace-match " "))
@@ -6251,7 +6293,6 @@ only the correctly processes TXT should be returned - this is used by
 			      (file-name-nondirectory buffer-file-name))
 			   "")))
 	   (tag (if tags (nth (1- (length tags)) tags) ""))
-	   ;;(tag (or (nth (1- (or (length tags) 0)) tags) ""))  FIXME: rm
 	   time              ;; needed for the eval of the prefix format
 	   (ts (if dotime (concat (if (stringp dotime) dotime "") txt)))
 	   (time-of-day (and dotime (org-get-time-of-day ts)))
@@ -7306,7 +7347,10 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 			   (format "Execute \"%s\" in shell? "
 				   (org-add-props cmd nil
 				     'face 'org-warning))))
-	      (shell-command cmd)
+	      (progn
+		(message "Executing %s..." cmd)
+		(shell-command cmd)
+		(message "Executing %s...done" cmd))
 	    (error "Abort"))))
 
        (t
@@ -8665,7 +8709,7 @@ This is being used to correctly align a single field after TAB or RET.")
 			   (> (org-string-width xx) fmax))
 		  (org-add-props xx nil
 		    'help-echo
-		    (concat "Clipped table field, use C-c ` to edit. Full value is:\n" (copy-sequence xx)))
+		    (concat "Clipped table field, use C-c ` to edit. Full value is:\n" (org-no-properties (copy-sequence xx))))
 		  (setq f1 (min fmax (or (string-match org-bracket-link-regexp xx) fmax)))
 		  (unless (> f1 1)
 		    (error "Cannot narrow field starting with wide link \"%s\""
@@ -11765,8 +11809,9 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 			      (concat "<img src=\"" thefile "\"/>")
 			    (concat "<a href=\"" thefile "\">" desc "</a>")))))
 	     ((member type '("bbdb" "vm" "wl" "mhe" "rmail" "gnus" "shell"))
-	      (setq rpl (concat "<i>&lt;" type ":" path "&gt;</i>"))))
-	    ;; FIXME: We get to see the escaped links!!!!!
+	      (setq rpl (concat "<i>&lt;" type ":"
+				(save-match-data (org-link-unescape path))
+				"&gt;</i>"))))
 	    (setq line (replace-match rpl t t line)
 		  start (+ start (length rpl))))
 	  ;; TODO items
