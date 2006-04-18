@@ -1,3 +1,14 @@
+2006-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* complete.el (partial-completion-mode):
+	Use 'choose-completion-string-functions to make sure that
+	choose-completion fills the minibuffer properly.
+
+	* complete.el (PC-old-read-file-name-internal): Remove.
+	(PC-read-include-file-name-internal): Remove.  Turn it into an advice
+	of read-file-name-internal.
+	(partial-completion-mode): Enable/disable this advice.
+
 2006-04-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/tramp.el (tramp-completion-file-name-handler): Revert change
@@ -30,8 +41,7 @@
 	Sync with Tramp 2.0.53.
 
 	* net/tramp.el (tramp-completion-mode): ?\t has event-modifier
-	'control.  Reported by Matthias F,bv(Brste
-	<slashdevslashnull@gmx.net>.
+	'control.  Reported by Matthias F,bv(Brste <slashdevslashnull@gmx.net>.
 	(tramp-completion-file-name-handler): Add autoload cookie for
 	adding to `file-name-handler-alist'.
 
