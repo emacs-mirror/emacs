@@ -1,3 +1,10 @@
+2006-04-20  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): If current window start is not at	the
+	beginning of a line, select a new window start if buffer is modified
+	and window start is in the modified region, but the first change is
+	before window start.
+
 2006-04-18  Richard Stallman  <rms@gnu.org>
 
 	* xmenu.c (restore_menu_items, save_menu_items): New fns.
