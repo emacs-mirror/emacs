@@ -12860,6 +12860,33 @@ redisplay_window (window, just_this_one_p)
 	       || (XFASTINT (w->last_modified) >= MODIFF
 		   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)))
     {
+
+      /* If first window line is a continuation line, and window start
+	 is inside the modified region, but the first change is before
+	 current window start, we must select a new window start.*/
+      if (NILP (w->start_at_line_beg))
+	{
+	  /* Make sure beg_unchanged and end_unchanged are up to date.
+	     Do it only if buffer has really changed.  This may or may
+	     not have been done by try_window_id (see which) already. */
+	  if (MODIFF > SAVE_MODIFF
+	      /* This seems to happen sometimes after saving a buffer.  */
+	      || BEG_UNCHANGED + END_UNCHANGED > Z_BYTE)
+	    {
+	      if (GPT - BEG < BEG_UNCHANGED)
+		BEG_UNCHANGED = GPT - BEG;
+	      if (Z - GPT < END_UNCHANGED)
+		END_UNCHANGED = Z - GPT;
+	    }
+
+	  if (CHARPOS (startp) > BEG + BEG_UNCHANGED
+	      && CHARPOS (startp) <= Z - END_UNCHANGED)
+	    {
+	      centering_position = 0;
+	      goto recenter;
+	    }
+	}
+
 #if GLYPH_DEBUG
       debug_method_add (w, "same window start");
 #endif
