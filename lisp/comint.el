@@ -465,7 +465,6 @@ executed once when the buffer is created."
     (define-key map "\C-c\C-l" 	  'comint-dynamic-list-input-ring)
     (define-key map "\C-c\C-n" 	  'comint-next-prompt)
     (define-key map "\C-c\C-p" 	  'comint-previous-prompt)
-    (define-key map "\C-c\C-j" 	  'comint-restore-input)
     (define-key map "\C-c\C-d" 	  'comint-send-eof)
     (define-key map "\C-c\C-s" 	  'comint-write-output)
     (define-key map "\C-c." 	  'comint-insert-previous-argument)
