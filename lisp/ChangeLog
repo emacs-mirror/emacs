@@ -216,7 +216,6 @@
 
 	* subr.el (read-passwd): Bind `message-log-max' to nil.
 
->>>>>>> 1.9411
 2006-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/perl-mode.el (perl-indent-new-calculate):
