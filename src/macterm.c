@@ -77,7 +77,6 @@ Boston, MA 02110-1301, USA.  */
 #include "termhooks.h"
 #include "termopts.h"
 #include "termchar.h"
-#include "gnu.h"
 #include "disptab.h"
 #include "buffer.h"
 #include "window.h"
@@ -215,7 +214,6 @@ QDGlobals qd;  /* QuickDraw global information structure.  */
 
 struct mac_display_info *mac_display_info_for_display (Display *);
 static void x_update_window_end P_ ((struct window *, int, int));
-static int x_io_error_quitter P_ ((Display *));
 int x_catch_errors P_ ((Display *));
 void x_uncatch_errors P_ ((Display *, int));
 void x_lower_frame P_ ((struct frame *));
@@ -1510,11 +1508,8 @@ XCreateGC (display, window, mask, xgcv)
 {
   GC gc = xmalloc (sizeof (*gc));
 
-  if (gc)
-    {
-      bzero (gc, sizeof (*gc));
-      XChangeGC (display, gc, mask, xgcv);
-    }
+  bzero (gc, sizeof (*gc));
+  XChangeGC (display, gc, mask, xgcv);
 
   return gc;
 }
@@ -1696,14 +1691,6 @@ XSetWindowBackground (display, w, color)
     }
 #endif
 }
-
-/* x_sync is a no-op on Mac.  */
-void
-x_sync (f)
-     void *f;
-{
-}
-
 
 /* Flush display of frame F, or of all frames if F is null.  */
 
@@ -2080,7 +2067,6 @@ mac_define_fringe_bitmap (which, bits, h, wd)
      unsigned short *bits;
      int h, wd;
 {
-  unsigned short *mask_bits;
   int i;
   CGDataProviderRef provider;
 
@@ -2171,21 +2157,17 @@ x_per_char_metric (font, char2b)
       if (*row == NULL)
 	{
 	  *row = xmalloc (sizeof (XCharStructRow));
-	  if (*row)
-	    bzero (*row, sizeof (XCharStructRow));
+	  bzero (*row, sizeof (XCharStructRow));
 	}
-      if (*row)
+      pcm = (*row)->per_char + char2b->byte2;
+      if (!XCHARSTRUCTROW_CHAR_VALID_P (*row, char2b->byte2))
 	{
-	  pcm = (*row)->per_char + char2b->byte2;
-	  if (!XCHARSTRUCTROW_CHAR_VALID_P (*row, char2b->byte2))
-	    {
-	      BLOCK_INPUT;
-	      mac_query_char_extents (font->mac_style,
-				      (char2b->byte1 << 8) + char2b->byte2,
-				      NULL, NULL, pcm, NULL);
-	      UNBLOCK_INPUT;
-	      XCHARSTRUCTROW_SET_CHAR_VALID (*row, char2b->byte2);
-	    }
+	  BLOCK_INPUT;
+	  mac_query_char_extents (font->mac_style,
+				  (char2b->byte1 << 8) + char2b->byte2,
+				  NULL, NULL, pcm, NULL);
+	  UNBLOCK_INPUT;
+	  XCHARSTRUCTROW_SET_CHAR_VALID (*row, char2b->byte2);
 	}
     }
   else
@@ -2366,7 +2348,6 @@ static void x_setup_relief_colors P_ ((struct glyph_string *));
 static void x_draw_image_glyph_string P_ ((struct glyph_string *));
 static void x_draw_image_relief P_ ((struct glyph_string *));
 static void x_draw_image_foreground P_ ((struct glyph_string *));
-static void x_draw_image_foreground_1 P_ ((struct glyph_string *, Pixmap));
 static void x_clear_glyph_string_rect P_ ((struct glyph_string *, int,
 					   int, int, int));
 static void x_draw_relief_rect P_ ((struct frame *, int, int, int, int,
@@ -2567,34 +2548,36 @@ static void
 mac_compute_glyph_string_overhangs (s)
      struct glyph_string *s;
 {
-  if (s->cmp == NULL
-      && s->first_glyph->type == CHAR_GLYPH)
-    if (!s->two_byte_p
+  if (!(s->cmp == NULL
+	&& s->first_glyph->type == CHAR_GLYPH))
+    return;
+
+  if (!s->two_byte_p
 #if USE_ATSUI
-	|| s->font->mac_style
+      || s->font->mac_style
 #endif
-	)
-      {
-	XCharStruct cs;
+      )
+    {
+      XCharStruct cs;
 
-	mac_text_extents_16 (s->font, s->char2b, s->nchars, &cs);
-	s->right_overhang = cs.rbearing > cs.width ? cs.rbearing - cs.width : 0;
-	s->left_overhang = cs.lbearing < 0 ? -cs.lbearing : 0;
-      }
-    else
-      {
-	Rect r;
-	MacFontStruct *font = s->font;
+      mac_text_extents_16 (s->font, s->char2b, s->nchars, &cs);
+      s->right_overhang = cs.rbearing > cs.width ? cs.rbearing - cs.width : 0;
+      s->left_overhang = cs.lbearing < 0 ? -cs.lbearing : 0;
+    }
+  else
+    {
+      Rect r;
+      MacFontStruct *font = s->font;
 
-	TextFont (font->mac_fontnum);
-	TextSize (font->mac_fontsize);
-	TextFace (font->mac_fontface);
+      TextFont (font->mac_fontnum);
+      TextSize (font->mac_fontsize);
+      TextFace (font->mac_fontface);
 
-	QDTextBounds (s->nchars * 2, (char *)s->char2b, &r);
+      QDTextBounds (s->nchars * 2, (char *)s->char2b, &r);
 
-	s->right_overhang = r.right > s->width ? r.right - s->width : 0;
-	s->left_overhang = r.left < 0 ? -r.left : 0;
-      }
+      s->right_overhang = r.right > s->width ? r.right - s->width : 0;
+      s->left_overhang = r.left < 0 ? -r.left : 0;
+    }
 }
 
 
@@ -3430,7 +3413,6 @@ x_draw_image_glyph_string (s)
   int box_line_hwidth = abs (s->face->box_line_width);
   int box_line_vwidth = max (s->face->box_line_width, 0);
   int height;
-  Pixmap pixmap = 0;
 
   height = s->height - 2 * box_line_vwidth;
 
@@ -4176,142 +4158,6 @@ x_frame_rehighlight (dpyinfo)
 
 
 
-/* Keyboard processing - modifier keys, vendor-specific keysyms, etc.  */
-
-#if 0 /* MAC_TODO */
-/* Initialize mode_switch_bit and modifier_meaning.  */
-static void
-x_find_modifier_meanings (dpyinfo)
-     struct x_display_info *dpyinfo;
-{
-  int min_code, max_code;
-  KeySym *syms;
-  int syms_per_code;
-  XModifierKeymap *mods;
-
-  dpyinfo->meta_mod_mask = 0;
-  dpyinfo->shift_lock_mask = 0;
-  dpyinfo->alt_mod_mask = 0;
-  dpyinfo->super_mod_mask = 0;
-  dpyinfo->hyper_mod_mask = 0;
-
-#ifdef HAVE_X11R4
-  XDisplayKeycodes (dpyinfo->display, &min_code, &max_code);
-#else
-  min_code = dpyinfo->display->min_keycode;
-  max_code = dpyinfo->display->max_keycode;
-#endif
-
-  syms = XGetKeyboardMapping (dpyinfo->display,
-			      min_code, max_code - min_code + 1,
-			      &syms_per_code);
-  mods = XGetModifierMapping (dpyinfo->display);
-
-  /* Scan the modifier table to see which modifier bits the Meta and
-     Alt keysyms are on.  */
-  {
-    int row, col;	/* The row and column in the modifier table.  */
-
-    for (row = 3; row < 8; row++)
-      for (col = 0; col < mods->max_keypermod; col++)
-	{
-	  KeyCode code
-	    = mods->modifiermap[(row * mods->max_keypermod) + col];
-
-	  /* Zeroes are used for filler.  Skip them.  */
-	  if (code == 0)
-	    continue;
-
-	  /* Are any of this keycode's keysyms a meta key?  */
-	  {
-	    int code_col;
-
-	    for (code_col = 0; code_col < syms_per_code; code_col++)
-	      {
-		int sym = syms[((code - min_code) * syms_per_code) + code_col];
-
-		switch (sym)
-		  {
-		  case XK_Meta_L:
-		  case XK_Meta_R:
-		    dpyinfo->meta_mod_mask |= (1 << row);
-		    break;
-
-		  case XK_Alt_L:
-		  case XK_Alt_R:
-		    dpyinfo->alt_mod_mask |= (1 << row);
-		    break;
-
-		  case XK_Hyper_L:
-		  case XK_Hyper_R:
-		    dpyinfo->hyper_mod_mask |= (1 << row);
-		    break;
-
-		  case XK_Super_L:
-		  case XK_Super_R:
-		    dpyinfo->super_mod_mask |= (1 << row);
-		    break;
-
-		  case XK_Shift_Lock:
-		    /* Ignore this if it's not on the lock modifier.  */
-		    if ((1 << row) == LockMask)
-		      dpyinfo->shift_lock_mask = LockMask;
-		    break;
-		  }
-	      }
-	  }
-	}
-  }
-
-  /* If we couldn't find any meta keys, accept any alt keys as meta keys.  */
-  if (! dpyinfo->meta_mod_mask)
-    {
-      dpyinfo->meta_mod_mask = dpyinfo->alt_mod_mask;
-      dpyinfo->alt_mod_mask = 0;
-    }
-
-  /* If some keys are both alt and meta,
-     make them just meta, not alt.  */
-  if (dpyinfo->alt_mod_mask & dpyinfo->meta_mod_mask)
-    {
-      dpyinfo->alt_mod_mask &= ~dpyinfo->meta_mod_mask;
-    }
-
-  XFree ((char *) syms);
-  XFreeModifiermap (mods);
-}
-
-#endif /* MAC_TODO */
-
-/* Convert between the modifier bits X uses and the modifier bits
-   Emacs uses.  */
-
-static unsigned int
-x_mac_to_emacs_modifiers (dpyinfo, state)
-     struct x_display_info *dpyinfo;
-     unsigned short state;
-{
-  return (((state & shiftKey) ? shift_modifier : 0)
-	  | ((state & controlKey) ? ctrl_modifier : 0)
-	  | ((state & cmdKey) ? meta_modifier : 0)
-	  | ((state & optionKey) ? alt_modifier : 0));
-}
-
-#if 0 /* MAC_TODO */
-static unsigned short
-x_emacs_to_x_modifiers (dpyinfo, state)
-     struct x_display_info *dpyinfo;
-     unsigned int state;
-{
-  return (  ((state & alt_modifier)	? dpyinfo->alt_mod_mask   : 0)
-	  | ((state & super_modifier)	? dpyinfo->super_mod_mask : 0)
-	  | ((state & hyper_modifier)	? dpyinfo->hyper_mod_mask : 0)
-	  | ((state & shift_modifier)	? ShiftMask        : 0)
-	  | ((state & ctrl_modifier)	? ControlMask      : 0)
-	  | ((state & meta_modifier)	? dpyinfo->meta_mod_mask  : 0));
-}
-#endif /* MAC_TODO */
-
 /* Convert a keysym to its name.  */
 
 char *
@@ -5102,41 +4948,43 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
   if (NILP (bar->track_top))
-    if (sb_width >= disp_height)
-      {
-	XSETINT (bar->track_top, 0);
-	XSETINT (bar->track_height, 0);
-      }
-    else
-      {
-	ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
-	Rect r0, r1;
+    {
+      if (sb_width >= disp_height)
+	{
+	  XSETINT (bar->track_top, 0);
+	  XSETINT (bar->track_height, 0);
+	}
+      else
+	{
+	  ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+	  Rect r0, r1;
 
-	BLOCK_INPUT;
+	  BLOCK_INPUT;
 
-	SetControl32BitMinimum (ch, 0);
-	SetControl32BitMaximum (ch, 1);
-	SetControlViewSize (ch, 1);
+	  SetControl32BitMinimum (ch, 0);
+	  SetControl32BitMaximum (ch, 1);
+	  SetControlViewSize (ch, 1);
 
-	/* Move the scroll bar thumb to the top.  */
-	SetControl32BitValue (ch, 0);
-	get_control_part_bounds (ch, kControlIndicatorPart, &r0);
+	  /* Move the scroll bar thumb to the top.  */
+	  SetControl32BitValue (ch, 0);
+	  get_control_part_bounds (ch, kControlIndicatorPart, &r0);
 
-	/* Move the scroll bar thumb to the bottom.  */
-	SetControl32BitValue (ch, 1);
-	get_control_part_bounds (ch, kControlIndicatorPart, &r1);
+	  /* Move the scroll bar thumb to the bottom.  */
+	  SetControl32BitValue (ch, 1);
+	  get_control_part_bounds (ch, kControlIndicatorPart, &r1);
 
-	UnionRect (&r0, &r1, &r0);
-	XSETINT (bar->track_top, r0.top);
-	XSETINT (bar->track_height, r0.bottom - r0.top);
+	  UnionRect (&r0, &r1, &r0);
+	  XSETINT (bar->track_top, r0.top);
+	  XSETINT (bar->track_height, r0.bottom - r0.top);
 
-	/* Don't show the scroll bar if its height is not enough to
-	   display the scroll bar thumb.  */
-	if (r0.bottom - r0.top > 0)
-	  ShowControl (ch);
+	  /* Don't show the scroll bar if its height is not enough to
+	     display the scroll bar thumb.  */
+	  if (r0.bottom - r0.top > 0)
+	    ShowControl (ch);
 
-	UNBLOCK_INPUT;
-      }
+	  UNBLOCK_INPUT;
+	}
+    }
 
   x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole);
 #else /* not USE_TOOLKIT_SCROLL_BARS */
@@ -6205,10 +6053,12 @@ mac_handle_visibility_change (f)
   struct input_event buf;
 
   if (IsWindowVisible (wp))
-    if (IsWindowCollapsed (wp))
-      iconified = 1;
-    else
-      visible = 1;
+    {
+      if (IsWindowCollapsed (wp))
+	iconified = 1;
+      else
+	visible = 1;
+    }
 
   if (!f->async_visible && visible)
     {
@@ -6254,9 +6104,6 @@ void
 x_make_frame_visible (f)
      struct frame *f;
 {
-  Lisp_Object type;
-  int original_top, original_left;
-
   BLOCK_INPUT;
 
   if (! FRAME_VISIBLE_P (f))
@@ -6267,27 +6114,29 @@ x_make_frame_visible (f)
 	 before the window gets really visible.  */
       if (! FRAME_ICONIFIED_P (f)
 	  && ! f->output_data.mac->asked_for_visible)
+	{
 #if TARGET_API_MAC_CARBON
-	if (!(FRAME_SIZE_HINTS (f)->flags & (USPosition | PPosition)))
-	  {
-	    struct frame *sf = SELECTED_FRAME ();
-	    if (!FRAME_MAC_P (sf))
-	      RepositionWindow (FRAME_MAC_WINDOW (f), NULL,
-				kWindowCenterOnMainScreen);
-	    else
-	      RepositionWindow (FRAME_MAC_WINDOW (f),
-				FRAME_MAC_WINDOW (sf),
+	  if (!(FRAME_SIZE_HINTS (f)->flags & (USPosition | PPosition)))
+	    {
+	      struct frame *sf = SELECTED_FRAME ();
+	      if (!FRAME_MAC_P (sf))
+		RepositionWindow (FRAME_MAC_WINDOW (f), NULL,
+				  kWindowCenterOnMainScreen);
+	      else
+		RepositionWindow (FRAME_MAC_WINDOW (f),
+				  FRAME_MAC_WINDOW (sf),
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-				kWindowCascadeStartAtParentWindowScreen
+				  kWindowCascadeStartAtParentWindowScreen
 #else
-				kWindowCascadeOnParentWindowScreen
+				  kWindowCascadeOnParentWindowScreen
 #endif
-				);
-	    x_real_positions (f, &f->left_pos, &f->top_pos);
-	  }
-	else
+				  );
+	      x_real_positions (f, &f->left_pos, &f->top_pos);
+	    }
+	  else
 #endif
-	  x_set_offset (f, f->left_pos, f->top_pos, 0);
+	    x_set_offset (f, f->left_pos, f->top_pos, 0);
+	}
 
       f->output_data.mac->asked_for_visible = 1;
 
@@ -6707,12 +6556,7 @@ xlfdpat_create (pattern)
   struct xlfdpat_block *blk;
 
   pat = xmalloc (sizeof (struct xlfdpat));
-  if (pat == NULL)
-    goto error;
-
   pat->buf = xmalloc (strlen (pattern) + 1);
-  if (pat->buf == NULL)
-    goto error;
 
   /* Normalize the pattern string and store it to `pat->buf'.  */
   nblocks = 0;
@@ -6730,15 +6574,17 @@ xlfdpat_create (pattern)
 	else
 	  {
 	    if (last_char == '?')
-	      if (anychar_head > pat->buf && *(anychar_head - 1) == '*')
-		/*  ...*??* -> ...*??  */
-		continue;
-	      else
-		/*  ...a??* -> ...a*??  */
-		{
-		  *anychar_head++ = '*';
-		  c = '?';
-		}
+	      {
+		if (anychar_head > pat->buf && *(anychar_head - 1) == '*')
+		  /*  ...*??* -> ...*??  */
+		  continue;
+		else
+		  /*  ...a??* -> ...a*??  */
+		  {
+		    *anychar_head++ = '*';
+		    c = '?';
+		  }
+	      }
 	    nblocks++;
 	  }
       else if (c == '?')
@@ -6774,8 +6620,6 @@ xlfdpat_create (pattern)
     }
 
   pat->blocks = xmalloc (sizeof (struct xlfdpat_block) * nblocks);
-  if (pat->blocks == NULL)
-    goto error;
 
   /* Divide the normalized pattern into blocks.  */
   p = pat->buf;
@@ -7235,9 +7079,10 @@ init_font_name_table ()
 			 Qnil, Qnil, Qnil);;
       err = ATSUFontCount (&nfonts);
       if (err == noErr)
-	font_ids = xmalloc (sizeof (ATSUFontID) * nfonts);
-      if (font_ids)
-	err = ATSUGetFontIDs (font_ids, nfonts, NULL);
+	{
+	  font_ids = xmalloc (sizeof (ATSUFontID) * nfonts);
+	  err = ATSUGetFontIDs (font_ids, nfonts, NULL);
+	}
       if (err == noErr)
 	for (i = 0; i < nfonts; i++)
 	  {
@@ -7247,8 +7092,6 @@ init_font_name_table ()
 	    if (err != noErr)
 	      continue;
 	    name = xmalloc (name_len + 1);
-	    if (name == NULL)
-	      continue;
 	    name[name_len] = '\0';
 	    err = ATSUFindFontName (font_ids[i], kFontFamilyName,
 				    kFontMacintoshPlatform, kFontNoScript,
@@ -7569,7 +7412,7 @@ mac_do_list_fonts (pattern, maxnames)
       if (xlfdpat_match (pat, font_name_table[i]))
 	{
 	  font_list = Fcons (build_string (font_name_table[i]), font_list);
-	  if (exact || maxnames > 0 && ++n_fonts >= maxnames)
+	  if (exact || (maxnames > 0 && ++n_fonts >= maxnames))
 	    break;
 	}
       else if (scl_val[XLFD_SCL_PIXEL_SIZE] > 0
@@ -7578,8 +7421,6 @@ mac_do_list_fonts (pattern, maxnames)
 	  int former_len = ptr - font_name_table[i];
 
 	  scaled = xmalloc (strlen (font_name_table[i]) + 20 + 1);
-	  if (scaled == NULL)
-	    continue;
 	  memcpy (scaled, font_name_table[i], former_len);
 	  sprintf (scaled + former_len,
 		   "-%d-%d-72-72-m-%d-%s",
@@ -7592,7 +7433,7 @@ mac_do_list_fonts (pattern, maxnames)
 	    {
 	      font_list = Fcons (build_string (scaled), font_list);
 	      xfree (scaled);
-	      if (exact || maxnames > 0 && ++n_fonts >= maxnames)
+	      if (exact || (maxnames > 0 && ++n_fonts >= maxnames))
 		  break;
 	    }
 	  else
@@ -7912,18 +7753,8 @@ XLoadQueryFont (Display *dpy, char *fontname)
       font->max_char_or_byte2 = 0xff;
 
       font->bounds.rows = xmalloc (sizeof (XCharStructRow *) * 0x100);
-      if (font->bounds.rows == NULL)
-	{
-	  mac_unload_font (&one_mac_display_info, font);
-	  return NULL;
-	}
       bzero (font->bounds.rows, sizeof (XCharStructRow *) * 0x100);
       font->bounds.rows[0] = xmalloc (sizeof (XCharStructRow));
-      if (font->bounds.rows[0] == NULL)
-	{
-	  mac_unload_font (&one_mac_display_info, font);
-	  return NULL;
-	}
       bzero (font->bounds.rows[0], sizeof (XCharStructRow));
 
 #if USE_CG_TEXT_DRAWING
@@ -7945,9 +7776,10 @@ XLoadQueryFont (Display *dpy, char *fontname)
       }
 
       if (font->cg_font)
-	font->cg_glyphs = xmalloc (sizeof (CGGlyph) * 0x100);
-      if (font->cg_glyphs)
-	bzero (font->cg_glyphs, sizeof (CGGlyph) * 0x100);
+	{
+	  font->cg_glyphs = xmalloc (sizeof (CGGlyph) * 0x100);
+	  bzero (font->cg_glyphs, sizeof (CGGlyph) * 0x100);
+	}
 #endif
       space_bounds = font->bounds.rows[0]->per_char + 0x20;
       err = mac_query_char_extents (font->mac_style, 0x20,
@@ -8093,11 +7925,6 @@ XLoadQueryFont (Display *dpy, char *fontname)
 
 	  font->bounds.per_char =
 	    xmalloc (sizeof (XCharStruct) * (0xff - 0x20 + 1));
-	  if (font->bounds.per_char == NULL)
-	    {
-	      mac_unload_font (&one_mac_display_info, font);
-	      return NULL;
-	    }
 	  bzero (font->bounds.per_char,
 		 sizeof (XCharStruct) * (0xff - 0x20 + 1));
 
@@ -8241,10 +8068,8 @@ x_load_font (f, fontname, size)
 
   /* Load the font and add it to the table.  */
   {
-    char *full_name;
     struct MacFontStruct *font;
     struct font_info *fontp;
-    unsigned long value;
     int i;
 
     fontname = (char *) SDATA (XCAR (font_names));
@@ -8756,6 +8581,7 @@ static Boolean mac_convert_event_ref (EventRef eventRef, EventRecord *eventRec)
 
 #endif
 
+#ifdef MAC_OS8
 static void
 do_get_menus (void)
 {
@@ -8817,6 +8643,7 @@ do_check_ram_size (void)
       exit (1);
     }
 }
+#endif /* MAC_OS8 */
 
 static void
 do_window_update (WindowPtr win)
@@ -8998,42 +8825,41 @@ do_grow_window (WindowPtr w, EventRecord *e)
 static void
 do_zoom_window (WindowPtr w, int zoom_in_or_out)
 {
-  GrafPtr save_port;
   Rect zoom_rect, port_rect;
-  Point top_left;
-  int w_title_height, columns, rows, width, height;
+  int columns, rows, width, height;
   struct frame *f = mac_window_to_frame (w);
   struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-
 #if TARGET_API_MAC_CARBON
-  {
-    Point standard_size;
+  Point standard_size;
 
-    standard_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
-    standard_size.v = dpyinfo->height;
+  standard_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
+  standard_size.v = dpyinfo->height;
 
-    if (IsWindowInStandardState (w, &standard_size, &zoom_rect))
-      zoom_in_or_out = inZoomIn;
-    else
-      {
-	/* Adjust the standard size according to character boundaries.  */
+  if (IsWindowInStandardState (w, &standard_size, &zoom_rect))
+    zoom_in_or_out = inZoomIn;
+  else
+    {
+      /* Adjust the standard size according to character boundaries.  */
 
-	columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, zoom_rect.right - zoom_rect.left);
-	rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, zoom_rect.bottom - zoom_rect.top);
-	standard_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, columns);
-	standard_size.v = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
-	GetWindowBounds (w, kWindowContentRgn, &port_rect);
-	if (IsWindowInStandardState (w, &standard_size, &zoom_rect)
-	    && port_rect.left == zoom_rect.left
-	    && port_rect.top == zoom_rect.top)
-	  zoom_in_or_out = inZoomIn;
-	else
-	  zoom_in_or_out = inZoomOut;
-      }
+      columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, zoom_rect.right - zoom_rect.left);
+      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, zoom_rect.bottom - zoom_rect.top);
+      standard_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, columns);
+      standard_size.v = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
+      GetWindowBounds (w, kWindowContentRgn, &port_rect);
+      if (IsWindowInStandardState (w, &standard_size, &zoom_rect)
+	  && port_rect.left == zoom_rect.left
+	  && port_rect.top == zoom_rect.top)
+	zoom_in_or_out = inZoomIn;
+      else
+	zoom_in_or_out = inZoomOut;
+    }
 
-    ZoomWindowIdeal (w, zoom_in_or_out, &standard_size);
-  }
+  ZoomWindowIdeal (w, zoom_in_or_out, &standard_size);
 #else /* not TARGET_API_MAC_CARBON */
+  GrafPtr save_port;
+  Point top_left;
+  int w_title_height;
+
   GetPort (&save_port);
 
   SetPortWindowPort (w);
@@ -9101,15 +8927,12 @@ mac_store_apple_event (class, id, desc)
      Lisp_Object class, id;
      const AEDesc *desc;
 {
-  OSErr err = noErr;
+  OSErr err;
   struct input_event buf;
   AEDesc *desc_copy;
 
   desc_copy = xmalloc (sizeof (AEDesc));
-  if (desc_copy == NULL)
-    err = memFullErr;
-  else
-    err = AEDuplicateDesc (desc, desc_copy);
+  err = AEDuplicateDesc (desc, desc_copy);
   if (err == noErr)
     {
       EVENT_INIT (buf);
@@ -9168,26 +8991,27 @@ mac_handle_command_event (next_handler, event, data)
   mac_find_apple_event_spec (0, command.commandID,
 			     &class_key, &id_key, &binding);
   if (!NILP (binding) && !EQ (binding, Qundefined))
-    if (INTEGERP (binding))
-      return XINT (binding);
-    else
-      {
-	AppleEvent apple_event;
-	UInt32 modifiers;
-	static EventParamName names[] = {kEventParamDirectObject,
-					 kEventParamKeyModifiers};
-	static EventParamType types[] = {typeHICommand,
-					 typeUInt32};
-	err = create_apple_event_from_event_ref (event, 2, names, types,
-						 &apple_event);
-	if (err == noErr)
-	  {
-	    err = mac_store_apple_event (class_key, id_key, &apple_event);
-	    AEDisposeDesc (&apple_event);
-	  }
-	if (err == noErr)
-	  return noErr;
-      }
+    {
+      if (INTEGERP (binding))
+	return XINT (binding);
+      else
+	{
+	  AppleEvent apple_event;
+	  static EventParamName names[] = {kEventParamDirectObject,
+					   kEventParamKeyModifiers};
+	  static EventParamType types[] = {typeHICommand,
+					   typeUInt32};
+	  err = create_apple_event_from_event_ref (event, 2, names, types,
+						   &apple_event);
+	  if (err == noErr)
+	    {
+	      err = mac_store_apple_event (class_key, id_key, &apple_event);
+	      AEDisposeDesc (&apple_event);
+	    }
+	  if (err == noErr)
+	    return noErr;
+	}
+    }
 
   return eventNotHandledErr;
 }
@@ -9195,7 +9019,6 @@ mac_handle_command_event (next_handler, event, data)
 static OSErr
 init_command_handler ()
 {
-  OSErr err = noErr;
   EventTypeSpec specs[] = {{kEventClassCommand, kEventCommandProcess}};
   static EventHandlerUPP handle_command_eventUPP = NULL;
 
@@ -10071,18 +9894,18 @@ XTread_socket (sd, expected, hold_quit)
 		    XSETINT (inev.x, mouse_loc.h);
 		    XSETINT (inev.y, mouse_loc.v);
 
-		    if (dpyinfo->grabbed && tracked_scroll_bar
-			|| ch != 0
+		    if ((dpyinfo->grabbed && tracked_scroll_bar)
+			|| (ch != 0
 #ifndef USE_TOOLKIT_SCROLL_BARS
-			/* control_part_code becomes kControlNoPart if
- 			   a progress indicator is clicked.  */
-			&& control_part_code != kControlNoPart
+			    /* control_part_code becomes kControlNoPart if
+			       a progress indicator is clicked.  */
+			    && control_part_code != kControlNoPart
 #else  /* USE_TOOLKIT_SCROLL_BARS */
 #ifdef MAC_OSX
-			&& control_kind.kind == kControlKindScrollBar
+			    && control_kind.kind == kControlKindScrollBar
 #endif	/* MAC_OSX */
 #endif	/* USE_TOOLKIT_SCROLL_BARS */
-			)
+			    ))
 		      {
 			struct scroll_bar *bar;
 
@@ -10882,7 +10705,6 @@ mac_check_bundle()
   extern int inhibit_window_system;
   extern int noninteractive;
   CFBundleRef appsBundle;
-  pid_t child;
 
   /* No need to test if already -nw*/
   if (inhibit_window_system || noninteractive)

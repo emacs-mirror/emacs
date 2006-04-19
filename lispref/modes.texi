@@ -2174,10 +2174,9 @@ An element can also look like this:
 (@var{menu-title} @var{regexp} @var{index} @var{function} @var{arguments}@dots{})
 @end example
 
-Like in the previous case, each match for this element creates an
-index item.  However, if this index item is selected by the user, it
-calls @var{function} with arguments consisting of the item name, the
-buffer position, and @var{arguments}.
+Each match for this element creates an index item, and when the index
+item is selected by the user, it calls @var{function} with arguments
+consisting of the item name, the buffer position, and @var{arguments}.
 
 For Emacs Lisp mode, @code{imenu-generic-expression} could look like
 this:

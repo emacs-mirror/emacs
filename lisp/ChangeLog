@@ -1,3 +1,225 @@
+2006-04-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/python.el (python-mode): Fix typo.
+
+2006-04-18  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* comint.el (comint-previous-input): Don't clobber input line
+	when moving off either end of the input history ring.
+	(comint-delete-input): New function, used by
+	`comint-previous-input' and others.
+	(comint-previous-matching-input): Use
+	`coming-delete-input'. Save the partial input if leaving the
+	edit line.  Goto point-max before deleting input to avoid
+	partial input fragments hanging around.
+	(comint-restore-input): New function, used by
+	`comint-previous-input', and bound to "C-c C-j".
+
+2006-04-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* imenu.el (imenu--index-alist): Balance parentheses.
+
+2006-04-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/python.el (python-mode): Add support for
+	hs-minor-mode.
+
+2006-04-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* abbrev.el (read-abbrev-file): Use abbrev-file-name if optional
+	file is nil.
+
+2006-04-18  Richard Stallman  <rms@gnu.org>
+
+	* tooltip.el (tooltip-mode, tooltip-use-echo-area): Doc fixes.
+
+	* imenu.el (imenu-create-index-function, imenu--index-alist)
+	(imenu--last-menubar-index-alist, imenu--make-index-alist)
+	(imenu-default-create-index-function, imenu--generic-function):
+	Doc fixes.
+
+	* image-mode.el (image-toggle-display): Handle tar and arc subfiles.
+
+	* help-mode.el (help-mode): Set view-exit-action to delete window.
+
+	* env.el (setenv): Get rid of arg UNSET.  Interactive unsetting
+	now works by passing nil as arg.
+
+	* apropos.el (apropos-print): Don't do where-is on self-insert-command.
+
+	* abbrev.el (edit-abbrevs-redefine): Temporarily widen.
+	(read-abbrev-file): Provide default when reading filename.
+
+	* files.el (enable-local-variables): Allow :all as value.
+	(hack-local-variables): Implement that value.
+	(safe-local-variable-values, safe-local-eval-forms)
+	(enable-local-variables): Mark as risky.
+	(find-file-visit-truename, kept-old-versions): Mark safe.
+
+	* time-stamp.el (time-stamp-format, time-stamp-line-limit)
+	(time-stamp-start, time-stamp-end, time-stamp-inserts-lines)
+	(time-stamp-count, time-stamp-pattern): Add safe-local-variable prop.
+
+2006-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/tcl.el (tcl-send-string, tcl-send-region):
+	Use forward-line so as to get to BOL even in the presence of fields.
+	(tcl-eval-region): Strip surrounding space to avoid multiple prompts
+	in return.
+	(inferior-tcl): Tell tclsh to work in interactive mode.
+
+	* complete.el (partial-completion-mode):
+	Use 'choose-completion-string-functions to make sure that
+	choose-completion fills the minibuffer properly.
+
+	* complete.el (PC-old-read-file-name-internal): Remove.
+	(PC-read-include-file-name-internal): Remove.  Turn it into an advice
+	of read-file-name-internal.
+	(partial-completion-mode): Enable/disable this advice.
+
+2006-04-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/tramp.el (tramp-completion-file-name-handler): Revert change
+	of 2006-04-17.
+
+2006-04-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-insert-heading): Insert heading before
+	current if at beginning of line.
+	(org-todo, org-date): New faces.
+	(org-table-align): Make sure tooltip window contains full text.
+	(org-no-properties): New defsubst.
+	(org-set-font-lock-defaults): Use new faces.
+
+2006-04-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-item-info): Display frame address
+	for root variables.
+
+	* progmodes/gdb-ui.el (gdb-pc-address): Rename from gdb-frame-address.
+	(gdb-frame-address): Re-use to identify frame for watch expression.
+	(gdb-var-list, gdb-var-create-handler): Add frame address for root
+	variables.
+	(gdb-init-1, gdb-source, gdb-post-prompt, )
+	(gdb-assembler-custom, gdb-invalidate-assembler): Use gdb-pc-address.
+	(gdb-frame-handler): Get gdb-frame-address.
+
+2006-04-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.53.
+
+	* net/tramp.el (tramp-completion-mode): ?\t has event-modifier
+	'control.  Reported by Matthias F,bv(Brste <slashdevslashnull@gmx.net>.
+	(tramp-completion-file-name-handler): Add autoload cookie for
+	adding to `file-name-handler-alist'.
+
+	* net/tramp-smb.el (tramp-smb-wait-for-output): Wait always for
+	the prompt.  If it returns earlier (when detecting an error
+	message), the rest of the output will merge accidently with the
+	output of the next command.  Reported by M Jared Finder
+	<jared@hpalace.com>.
+
+	* net/tramp-vc.el (vc-user-login-name): Wrap defadvice with a test
+	for `process-file', in order to let it work for older Emacsen too.
+
+2006-04-17  Ralf Angeli  <angeli@iwi.uni-sb.de>
+
+	* textmodes/tex-mode.el (tex-font-lock-match-suscript): New function.
+	(tex-font-lock-keywords-3): Use it.
+
+2006-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-add): New function.
+	(comment-region-default, comment-dwim): Use it.
+
+2006-04-15  Michael Olson  <mwolson@gnu.org>
+
+	* emacs-lisp/tq.el: Improve comments.
+	(tq-queue-head-question): New accessor function.
+	(tq-queue-head-regexp, tq-queue-head-closure, tq-queue-head-fn):
+	Update for modified queue structure.
+	(tq-queue-add): Accept `question' argument.
+	(tq-queue-pop): If a question is pending, send it.
+	(tq-enqueue): Accept new optional argument `delay-question'.
+	If this is non-nil, and at least one other question is pending a
+	response, queue the question rather than sending it immediately.
+
+2006-04-15  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* calendar/appt.el (appt-add): Check whether an appointment is
+	already present in appt-time-msg-list.  Simplify code.
+
+2006-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-langs.el (c-mode-menu):
+	Don't presume c-subword-mode is bound.
+
+2006-04-13  Bill Wohler  <wohler@newt.com>
+
+	* cus-edit.el (customize-package-emacs-version-alist): Update docstring.
+	(customize-package-emacs-version): Use cdr instead of cadr now
+	that alists use dotted pairs.
+
+	* custom.el (defcustom): Fix docstring for :package-version.
+
+2006-04-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-display-shell-command-buffer): New defvar.
+	(tramp-handle-shell-command): Display output buffer only when
+	`tramp-display-shell-command-buffer' is true.
+	(tramp-handle-process-file): Set `tramp-display-shell-command-buffer'.
+
+2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-set-autofill-regexps): Set only the local
+	values of `adaptive-fill-regexp' and `adaptive-fill-function'.
+
+2006-04-13  Romain Francoise  <romain@orebokech.com>
+
+	* pcvs-parse.el (cvs-parse-table): Use `with-temp-buffer' to avoid
+	leaving temporary .cvsignore buffers behind.
+
+2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-set-regexps-and-options)
+	(org-get-current-options): Better names for the startup folding
+	options.
+
+2006-04-13  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc.el (vc-annotate): Arrange for point to end up at the same
+	line number as in the original, but only when using a new buffer.
+
+2006-04-12  Davis Herring  <herring@lanl.gov>  (tiny change)
+
+	* files.el (hack-one-local-variable-eval-safep):
+	Recognize `edebug-form-spec' for `put', but only if it passes
+	`edebug-basic-spec'.  Generalize `put' handling.
+
+	* emacs-lisp/edebug.el (edebug-basic-spec): New function for
+	vetting file-local form specs.
+
+	* allout.el (allout-layout): Autoload its `safe-local-variable'
+	property.
+
+2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-ctrl-c-ctrl-c): Improve documentation string.
+	(org-agenda-mouse-1-follows-link)
+	(org-mouse-1-follows-link): New options.
+	(org-format-agenda-item): Fix bug if TAGS is nil.
+	(org-agenda-get-scheduled): Quote `priority' symbol in plist.
+
+2006-04-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-existing-buffers):
+	GDB 6.1+ gives full filename for "info sources" so use
+	file-name-nondirectory.
+
+2006-04-12  Romain Francoise  <romain@orebokech.com>
+
+	* subr.el (read-passwd): Bind `message-log-max' to nil.
+
 2006-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/perl-mode.el (perl-indent-new-calculate):
@@ -2835,7 +3057,7 @@
 	(vc-default-update-changelog): Don't use vc-user-login-name, we
 	don't need it here.
 
-	* tramp-vc.el (vc-user-login-name): Comment out defadvice, it is
+	* net/tramp-vc.el (vc-user-login-name): Comment out defadvice, it is
 	no longer necessary.
 
 2006-01-25  Kenichi Handa  <handa@m17n.org>

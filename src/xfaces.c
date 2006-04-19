@@ -4991,10 +4991,12 @@ Default face attributes override any local face attributes.  */)
   gvec = XVECTOR (global_lface)->contents;
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (! UNSPECIFIEDP (gvec[i]))
-      if (IGNORE_DEFFACE_P (gvec[i]))
-	lvec[i] = Qunspecified;
-      else
-	lvec[i] = gvec[i];
+      {
+	if (IGNORE_DEFFACE_P (gvec[i]))
+	  lvec[i] = Qunspecified;
+	else
+	  lvec[i] = gvec[i];
+      }
 
   return Qnil;
 }
@@ -6814,20 +6816,22 @@ try_font_list (f, attrs, family, registry, fonts, prefer_face_family)
 
 #ifdef MAC_OS
   if (nfonts == 0 && STRINGP (try_family) && STRINGP (registry))
-    if (xstricmp (SDATA (registry), "mac-roman") == 0)
-      /* When realizing the default face and a font spec does not
-	 matched exactly, Emacs looks for ones with the same registry
-	 as the default font.  On the Mac, this is mac-roman, which
-	 does not work if the family is -etl-fixed, e.g.  The
-	 following widens the choices and fixes that problem.  */
-      nfonts = try_alternative_families (f, try_family, Qnil, fonts);
-    else if (SBYTES (try_family) > 0
-	     && SREF (try_family, SBYTES (try_family) - 1) != '*')
-      /* Some Central European/Cyrillic font family names have the
-	 Roman counterpart name as their prefix.  */
-      nfonts = try_alternative_families (f, concat2 (try_family,
-						     build_string ("*")),
-					 registry, fonts);
+    {
+      if (xstricmp (SDATA (registry), "mac-roman") == 0)
+	/* When realizing the default face and a font spec does not
+	   matched exactly, Emacs looks for ones with the same registry
+	   as the default font.  On the Mac, this is mac-roman, which
+	   does not work if the family is -etl-fixed, e.g.  The
+	   following widens the choices and fixes that problem.  */
+	nfonts = try_alternative_families (f, try_family, Qnil, fonts);
+      else if (SBYTES (try_family) > 0
+	       && SREF (try_family, SBYTES (try_family) - 1) != '*')
+	/* Some Central European/Cyrillic font family names have the
+	   Roman counterpart name as their prefix.  */
+	nfonts = try_alternative_families (f, concat2 (try_family,
+						       build_string ("*")),
+					   registry, fonts);
+    }
 #endif
 
   if (EQ (try_family, family))

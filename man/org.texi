@@ -4,7 +4,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.21
+@set VERSION 4.24
 @set DATE April 2006
 
 @dircategory Emacs
@@ -22,8 +22,7 @@
 
 @c Macro definitions
 
-@c FIXME: does not look good in html
-@c Subheadings inside a table.  Need a difference between info and the rest.
+@c Subheadings inside a table.
 @macro tsubheading{text}
 @ifinfo
 @subsubheading \text\
@@ -183,21 +182,24 @@ The weekly/daily agenda
 
 Exporting
 
-* ASCII export::                Export as a structured ASCII file
-* HTML export::                 Export as an HTML file
-* iCalendar export::            Create calendar entries.
+* ASCII export::                Exporting to plain ASCII
+* HTML export::                 Exporting to HTML
+* XML export::                  Exporting to XML
+* iCalendar export::            Exporting in iCalendar format
+* Text interpretation::         How the exporter looks at the file
 
-HTML export
+Text interpretation by the exporter
 
-* HTML formatting::             Interpretation of the buffer content
-* Export options::              How to influence exports
-* Comment lines::               Lines which will not be exported
+* Comment lines::               Some lines will not be exported
+* Enhancing text::              Subscripts, symbols and more
+* Export options::              How to influence the export settings
 
 Miscellaneous
 
 * Completion::                  M-TAB knows what you need
 * Customization::               Adapting Org-mode to your taste
-* Updating settings::           How to tell Org-mode that settings have changed
+* Summary of in-buffer settings::  Using special lines to set options
+* The very busy C-c C-c key::   When in doubt, press C-c C-c
 * Clean view::                  Getting rid of leading stars in the outline
 * TTY keys::                    Using Org-mode on a tty
 * FAQ::                         Frequently asked questions
@@ -451,9 +453,9 @@ per-file basis by adding one of the following lines anywhere in the
 buffer:
 
 @example
-#+STARTUP: fold
-#+STARTUP: nofold
+#+STARTUP: overview
 #+STARTUP: content
+#+STARTUP: showall
 @end example
 
 @node Motion, Structure editing, Visibility cycling, Document Structure
@@ -786,8 +788,8 @@ unpredictable for you, configure the variables
 Convert the active region to table. If every line contains at least one
 TAB character, the function assumes that the material is tab separated.
 If not, lines are split at whitespace into fields.  You can use a prefix
-argument to indicate the minimum number of consequtive spaces required
-to indentify a field separator (default: just one).@* 
+argument to indicate the minimum number of consecutive spaces required
+to identify a field separator (default: just one).@* 
 If there is no active region, this command creates an empty Org-mode
 table.  However, it's easier to just start typing, like
 @kbd{|Name|Phone|Age @key{RET} |- @key{TAB}}.
@@ -982,7 +984,7 @@ it off with
 
 The width of columns is automatically determined by the table editor.
 Sometimes a single field or a few fields need to carry more text,
-leading to unconveniently wide columns.  To limit@footnote{This feature
+leading to inconveniently wide columns.  To limit@footnote{This feature
 does not work on XEmacs.} the width of a column, one field anywhere in
 the column must carry the string @samp{<N>} where @samp{N} is an integer
 specifying the width of the column in characters.  The next re-align
@@ -1054,7 +1056,7 @@ A formula can be any algebraic expression understood by the Emacs
 @file{calc} package.  Note that @file{calc} has the slightly
 non-standard convention that @samp{/} has lower precedence than
 @samp{*}, so that @samp{a/b*c} is interpreted as @samp{a/(b*c)}.  Before
-evaluation by @code{calc-eval} (@pxref{Calling Calc from Your Lisp
+evaluation by @code{calc-eval} (@pxref{Calling Calc from Your
 Programs,calc-eval,Calling calc from Your Lisp Programs,calc,GNU Emacs
 Calc Manual}), variable substitution takes place:
 
@@ -2888,20 +2890,33 @@ visit org files will not be removed.
 @chapter Exporting
 @cindex exporting
 
-For printing and sharing of notes, Org-mode documents can be exported
-as ASCII or HTML files.  To incorporate entries with associated times
-like deadlines or appointments into a desktop calendar program like
-iCal, Org-mode can also produce extracts in the iCalendar format.
+Org-mode documents can be exported into a variety of other formats.  For
+printing and sharing of notes, ASCII export produces a readable and
+simple version of an Org-mode file.  HTML export allows to publish a
+notes file on the web, while the XML format provides a solid base for
+exchange with a broad range of other applications.  To incorporate
+entries with associated times like deadlines or appointments into a
+desktop calendar program like iCal, Org-mode can also produce extracts
+in the iCalendar format.  Currently Org-mode only supports export, not
+import of these different formats.
+
+When exporting, Org-mode uses special conventions to enrich the output
+produced.  @xref{Text interpretation}, for more details.
 
 @menu
-* ASCII export::                Export as a structured ASCII file
-* HTML export::                 Export as an HTML file
-* iCalendar export::            Create calendar entries.
+* ASCII export::                Exporting to plain ASCII
+* HTML export::                 Exporting to HTML
+* XML export::                  Exporting to XML
+* iCalendar export::            Exporting in iCalendar format
+* Text interpretation::         How the exporter looks at the file
 @end menu
 
 @node ASCII export, HTML export, Exporting, Exporting
 @section ASCII export
 @cindex ASCII export
+
+ASCII export produces an simple and very readable version of an Org-mode
+file.
 
 @cindex region, active
 @cindex active region
@@ -2926,11 +2941,9 @@ at a different level, specify it with a prefix argument.  For example,
 @end example
 
 @noindent
-creates only top level headlines and does the rest as items.  Lines
-starting with @samp{#} and subtrees starting with the word @samp{COMMENT}
-will not be exported.
+creates only top level headlines and does the rest as items.
 
-@node HTML export, iCalendar export, ASCII export, Exporting
+@node HTML export, XML export, ASCII export, Exporting
 @section HTML export
 @cindex HTML export
 
@@ -2948,12 +2961,6 @@ Export as HTML file @file{myfile.html}.
 @kindex C-c C-x b
 @item C-c C-x b
 Export as HTML file and open it with a browser.
-@kindex C-c C-x t
-@item C-c C-x t
-Insert template with export options, see below.
-@kindex C-c :
-@item C-c :
-Toggle fixed-width for entry (QUOTE) or region, see below.
 @end table
 
 @cindex headline levels, for exporting
@@ -2969,118 +2976,10 @@ at a different level, specify it with a prefix argument.  For example,
 @noindent
 creates two levels of headings and does the rest as items.
 
-@menu
-* HTML formatting::             Interpretation of the buffer content
-* Export options::              How to influence exports
-* Comment lines::               Lines which will not be exported
-@end menu
-
-@node HTML formatting, Export options, HTML export, HTML export
-@subsection HTML formatting
-
-Not all text is transferred literally to the exported HTML file.  The
-exporter implements the following interpretation:
-
-@itemize @bullet
-
-@cindex hand-formatted lists
-@cindex lists, hand-formatted
-@item
-Hand-formatted lists with @samp{-}, @samp{*} or @samp{+} as
-bullet, or with @samp{1.} or @samp{2)} as enumerator will be recognized and
-transformed into HTML lists.  See @xref{Plain Lists}.
-
-@cindex underlined text
-@cindex bold text
-@cindex italic text
-@item
-You can make words @b{*bold*}, @i{/italic/}, and _underlined_
-
-@cindex @TeX{} interpretation
-@item
-Simple @TeX{}-like math constructs are interpreted:
-
-@cindex completion, of @TeX{} symbols
-@itemize @minus
-@item
-@samp{10^22} and @samp{J_n} are super- and subscripts.  You can quote
-@samp{^} and @samp{_} with a backslash: @samp{\_} and @samp{\^}
-@item
-@samp{\alpha} indicates a Greek letter, @samp{\to} an arrow.  You can
-use completion for these macros, just type @samp{\} and maybe a few
-letters, and press @kbd{M-@key{TAB}} to see possible completions.
-@end itemize
-
-@cindex tables, export to HTML
-@item
-Tables are transformed into HTML tables.  Data fields before the first
-horizontal separator line will be formatted as table header fields.
-
-@cindex fixed width
-@item
-If a headline starts with the word @samp{QUOTE}, the text below the
-headline will be typeset as fixed-width, to allow quoting of computer
-codes etc.  Lines starting with @samp{:} are also typeset in
-fixed-width font.
-
-@cindex HTML tags
-@item
 If you want to include HTML tags which should be interpreted as such,
 mark them with a @samp{@@} like in @samp{@@<b>bold text@@</b>}.
 Plain @samp{<} and @samp{>} are always transformed to @samp{&lt;} and
 @samp{&gt;} in HTML export.
-@end itemize
-
-If these conversions conflict with your habits of typing ASCII text,
-they can all be turned off with corresponding variables.
-
-@node Export options, Comment lines, HTML formatting, HTML export
-@subsection Export options
-@cindex options, for export
-
-@cindex completion, of option keywords
-The exporter recognizes special lines in the buffer which provide
-additional information.  These lines may be put anywhere in the file.
-The whole set of lines can be inserted into the buffer with @kbd{C-c
-C-x t}.  For individual lines, a good way to make sure the keyword is
-correct is to type @samp{#+} and then use @kbd{M-@key{TAB}} completion
-(@pxref{Completion}).
-
-@example
-#+TITLE:     the title to be shown (default is the buffer name)
-#+AUTHOR:    the author (default taken from @code{user-full-name})
-#+EMAIL:     his/her email address (default from @code{user-mail-address})
-#+LANGUAGE:  language for HTML, e.g. @samp{en} (@code{org-export-default-language})
-#+TEXT:      Some descriptive text to be inserted at the beginning.
-#+TEXT:      Several lines may be given.
-#+OPTIONS:   H:2  num:t  toc:t  \n:nil  @:t  ::t  |:t  ^:t  *:nil  TeX:t
-@end example
-
-@noindent
-The OPTIONS line is a compact form to specify export settings.  Here
-you can:
-@cindex headline levels
-@cindex section-numbers
-@cindex table of contents
-@cindex linebreak preservation
-@cindex quoted html tags
-@cindex fixed-width sections
-@cindex tables
-@cindex @TeX{}-like syntax for sub- and superscripts
-@cindex emphasized text
-@cindex @TeX{} macros
-@example
-H:      @r{set the number of headline levels for export}
-num:    @r{turn on/off section-numbers}
-toc:    @r{turn on/off table of contents}
-\n:     @r{turn on/off linebreak-preservation}
-@@:      @r{turn on/off quoted html tags}
-::      @r{turn on/off fixed-width sections}
-|:      @r{turn on/off tables}
-^:      @r{turn on/off @TeX{}-like syntax for sub- and superscripts.}
-*:      @r{turn on/off emphasized text (bold, italic, underlined)}
-TeX:    @r{turn on/off @TeX{} macros}
-@end example
 
 You can also give style information for the exported file.  The
 default specification can be configured through the option
@@ -3100,28 +2999,25 @@ end of the outline tree.  For example:
 @end example
 
 Remember to execute @kbd{M-x normal-mode} after changing this to make
-the new style visible to Emacs.  This command reastarts org-mode for the
-current buffer and forces Emacs to re-evaluate the loval variables
+the new style visible to Emacs.  This command restarts org-mode for the
+current buffer and forces Emacs to re-evaluate the local variables
 section in the buffer.
 
-@node Comment lines,  , Export options, HTML export
-@subsection Comment lines
-@cindex comment lines
-@cindex exporting, not
+@node XML export, iCalendar export, HTML export, Exporting
+@section XML export
+@cindex XML export
 
-Lines starting with @samp{#} in column zero are treated as comments
-and will never be exported.  Also entire subtrees starting with the
-word @samp{COMMENT} will never be exported.  Finally, any text before
-the first headline will not be exported either.  This applies also for
-ASCII export.
+Org-mode contains an XML exporter that produces XOXO-style XML.
+Currently, this exporter only handles the general outline structure and
+does not interpret any additional Org-mode features.
 
 @table @kbd
-@kindex C-c ;
-@item C-c ;
-Toggle the COMMENT keyword at the beginning of an entry.
+@kindex C-c C-x C-x
+@item C-c C-x C-x
+Export as XML file @file{myfile.xml}.
 @end table
 
-@node iCalendar export,  , HTML export, Exporting
+@node iCalendar export, Text interpretation, XML export, Exporting
 @section iCalendar export
 @cindex iCalendar export
 
@@ -3170,13 +3066,164 @@ to make iCal re-read the calendar files each time a new version of
    "osascript -e 'tell application \"iCal\" to reload calendars'")))
 @end lisp
 
+@node Text interpretation,  , iCalendar export, Exporting
+@section Text interpretation by the exporter
+
+The exporter backends interpret additional structure in the Org-mode file
+in order to produce better output.
+
+@menu
+* Comment lines::               Some lines will not be exported
+* Enhancing text::              Subscripts, symbols and more
+* Export options::              How to influence the export settings
+@end menu
+
+@node Comment lines, Enhancing text, Text interpretation, Text interpretation
+@subsection Comment lines
+@cindex comment lines
+@cindex exporting, not
+
+Lines starting with @samp{#} in column zero are treated as comments
+and will never be exported.  Also entire subtrees starting with the
+word @samp{COMMENT} will never be exported.  Finally, any text before
+the first headline will not be exported either.
+
+@table @kbd
+@kindex C-c ;
+@item C-c ;
+Toggle the COMMENT keyword at the beginning of an entry.
+@end table
+
+
+
+@node Enhancing text, Export options, Comment lines, Text interpretation
+@subsection Enhancing text for export
+@cindex enhancing text
+@cindex richer text
+
+Some of the export backends of Org-mode allow for sophisticated text
+formatting, this is true in particular for the HTML backend.  Org-mode
+has a number of typing conventions that allow to produce a richly
+formatted output.
+
+
+@itemize @bullet
+
+@cindex hand-formatted lists
+@cindex lists, hand-formatted
+@item
+Plain lists @samp{-}, @samp{*} or @samp{+} as bullet, or with @samp{1.}
+or @samp{2)} as enumerator will be recognized and transformed if the
+backend supports lists.  See @xref{Plain Lists}.
+
+@cindex underlined text
+@cindex bold text
+@cindex italic text
+@item
+You can make words @b{*bold*}, @i{/italic/}, and _underlined_
+
+@cindex @TeX{} interpretation
+@item
+Simple @TeX{}-like math constructs are interpreted:
+
+@cindex completion, of @TeX{} symbols
+@itemize @minus
+@item
+@samp{10^22} and @samp{J_n} are super- and subscripts.  You can quote
+@samp{^} and @samp{_} with a backslash: @samp{\_} and @samp{\^}
+@item
+@samp{\alpha} indicates a Greek letter, @samp{\to} an arrow.  You can
+use completion for these macros, just type @samp{\} and maybe a few
+letters, and press @kbd{M-@key{TAB}} to see possible completions.
+@end itemize
+
+@cindex tables, export
+@item
+Tables are transformed into native tables under the exporter, if the
+export backend supports this. Data fields before the first horizontal
+separator line will be formatted as table header fields.
+
+@cindex fixed width
+@item
+If a headline starts with the word @samp{QUOTE}, the text below the
+headline will be typeset as fixed-width, to allow quoting of computer
+codes etc.  Lines starting with @samp{:} are also typeset in
+fixed-width font.
+@table @kbd
+@kindex C-c :
+@item C-c :
+Toggle fixed-width for entry (QUOTE) or region, see below.
+@end table
+@end itemize
+
+If these conversions conflict with your habits of typing ASCII text,
+they can all be turned off with corresponding variables (see the
+customization group @code{org-export-general}, and the following section
+which explains how to set export options with special lines in a
+buffer.
+
+@node Export options,  , Enhancing text, Text interpretation
+@subsection Export options
+@cindex options, for export
+
+@cindex completion, of option keywords
+The exporter recognizes special lines in the buffer which provide
+additional information.  These lines may be put anywhere in the file.
+The whole set of lines can be inserted into the buffer with @kbd{C-c
+C-x t}.  For individual lines, a good way to make sure the keyword is
+correct is to type @samp{#+} and then use @kbd{M-@key{TAB}} completion
+(@pxref{Completion}).
+
+@table @kbd
+@kindex C-c C-x t
+@item C-c C-x t
+Insert template with export options, see example below.
+@end table
+
+@example
+#+TITLE:     the title to be shown (default is the buffer name)
+#+AUTHOR:    the author (default taken from @code{user-full-name})
+#+EMAIL:     his/her email address (default from @code{user-mail-address})
+#+LANGUAGE:  language for HTML, e.g. @samp{en} (@code{org-export-default-language})
+#+TEXT:      Some descriptive text to be inserted at the beginning.
+#+TEXT:      Several lines may be given.
+#+OPTIONS:   H:2  num:t  toc:t  \n:nil  @:t  ::t  |:t  ^:t  *:nil  TeX:t
+@end example
+
+@noindent
+The OPTIONS line is a compact form to specify export settings.  Here
+you can:
+@cindex headline levels
+@cindex section-numbers
+@cindex table of contents
+@cindex linebreak preservation
+@cindex quoted html tags
+@cindex fixed-width sections
+@cindex tables
+@cindex @TeX{}-like syntax for sub- and superscripts
+@cindex emphasized text
+@cindex @TeX{} macros
+@example
+H:      @r{set the number of headline levels for export}
+num:    @r{turn on/off section-numbers}
+toc:    @r{turn on/off table of contents}
+\n:     @r{turn on/off linebreak-preservation}
+@@:      @r{turn on/off quoted html tags}
+::      @r{turn on/off fixed-width sections}
+|:      @r{turn on/off tables}
+^:      @r{turn on/off @TeX{}-like syntax for sub- and superscripts.}
+*:      @r{turn on/off emphasized text (bold, italic, underlined)}
+TeX:    @r{turn on/off @TeX{} macros}
+@end example
+
 @node Miscellaneous, Index, Exporting, Top
 @chapter Miscellaneous
 
 @menu
 * Completion::                  M-TAB knows what you need
 * Customization::               Adapting Org-mode to your taste
-* Updating settings::           How to tell Org-mode that settings have changed
+* Summary of in-buffer settings::  Using special lines to set options
+* The very busy C-c C-c key::   When in doubt, press C-c C-c
 * Clean view::                  Getting rid of leading stars in the outline
 * TTY keys::                    Using Org-mode on a tty
 * FAQ::                         Frequently asked questions
@@ -3229,7 +3276,7 @@ Elsewhere, complete dictionary words using ispell.
 @end table
 
 
-@node Customization, Updating settings, Completion, Miscellaneous
+@node Customization, Summary of in-buffer settings, Completion, Miscellaneous
 @section Customization
 @cindex customization
 @cindex options, for customization
@@ -3239,43 +3286,112 @@ There are more than 100 variables that can be used to customize
 Org-mode.  For the sake of compactness of the manual, we are not
 describing the variables here.  A structured overview of customization
 variables is available with @kbd{M-x org-customize}.  Or select
-@code{Browse Org Group} from the @code{Org->Customization} menu.
+@code{Browse Org Group} from the @code{Org->Customization} menu.  Many
+settings can also be activated on a per-file basis, by putting special
+lines into the buffer (@pxref{Summary of in-buffer settings}).
 
-@node Updating settings, Clean view, Customization, Miscellaneous
-@section Updating settings after changes
-@cindex updating, after setting changes
+@node Summary of in-buffer settings, The very busy C-c C-c key, Customization, Miscellaneous
+@section Summary of in-buffer settings
+@cindex in-buffer settings
+@cindex special keywords
+
+Org-mode uses special lines in the buffer to define settings on a
+per-file basis.  These lines start with a @samp{#+} followed by a
+keyword, a colon, and then individual words defining a setting.  Several
+settings words con be in the same line, but you can also have multiple
+lines for the keyword.  While these settings are described throughout
+the manual, here is a summary.  After changing any of those lines in the
+buffer, press @kbd{C-c C-c} with the cursor still in the line to
+activate the changes immediately.  Otherwise they become effective only
+when the file is visited again in a new Emacs session.
+
+@table @kbd
+@item #+STARTUP:
+This line sets options to be used at startup of org-mode, when an
+Org-mode file is being visited.  The first set of options deals with the
+initial visibility of the outline tree.  The corresponding variable for
+global default settings is @code{org-startup-folded}, with a default
+value @code{t}, which means @code{overview}.
+@example
+overview   @r{top-level headlines only}
+content    @r{all headlines}
+showall    @r{no folding at all, show everything}
+@end example
+Then there are options for aligning tables upon visiting a file.  This
+is useful in files containing narrowed table columns.  The corresponding
+variable is @code{org-startup-align-all-tables}, with a default value
+@code{nil}. 
+@example
+align      @r{align all tables}
+noalign    @r{don't align table on startup}
+@end example
+Here are the options for hiding leading stars in outline headings.  The
+corresponding variables are @code{org-hide-leading-stars} and
+@code{org-odd-levels-only}, both with a default setting @code{nil}
+(meaning @code{showstars} and @code{oddeven}).
+@example
+hidestars  @r{make all but one of the stars starting a headline invisible.}
+showstars  @r{show all stars starting a headline}
+odd        @r{allow only odd outline levels (1,3,...)}
+oddeven    @r{allow all outline levels}
+@end example
+@item #+SEQ_TODO:   #+TYP_TODO:
+These lines that the TODO keywords and their interpretation in the
+current file.  The corresponding variables are @code{org-todo-keywords}
+and @code{org-todo-interpretation}.
+@item #+CATEGORY:
+This line sets the category for the agenda file.  The category applies
+for all subsequent lines until the next @samp{#+CATEGORY} line, or the
+end of the file.
+@item #+TBLFM:
+This line contains the formulas for the table directly above the line.
+@item #+TITLE:, #+AUTHOR:, #+EMAIL:, #+LANGUAGE:, #+TEXT:, #+OPTIONS:
+These line provide setting for exporting files.  For more details see
+@ref{Export options}.
+@end table
+
+@node The very busy C-c C-c key, Clean view, Summary of in-buffer settings, Miscellaneous
+@section The very busy C-c C-c key
 @kindex C-c C-c
 
-Org-mode uses special lines in the buffer to set file-local values for a
-number of user options.  When such settings are changed, you need to
-inform Org-mode that something has be modified and that it should
-recheck the buffer for setting.  This is done with the command @kbd{C-c
-C-c} in the following situations:
+The key @kbd{C-c C-c} has many purposes in org-mode, which are all
+mentioned scattered throughout this manual.  One specific function of
+this key is to add @emph{tags} to a headline (@pxref{Tags}).  In many
+other circumstances it means something like @emph{Hey Org-mode, look
+here and update according to what you see here}.  Here is a summary what
+this means in different contexts.
 
-@itemize @bullet
+@itemize @minus
+@c @item
+@c If the cursor is in a headline, prompt for tags and insert them
+@c into the current line, aligned to `org-tags-column'.  When called
+@c with prefix arg, realign all tags in the current buffer.
 @item
-After changing any of the special buffer lines starting with @samp{#+},
-for example @samp{#+STARTUP}, @samp{#+CATEGORY}.  Org-mode will then
-read these settings and activate them (see @ref{Visibility cycling},
-@ref{Narrow columns}, @ref{Clean view}, @ref{Per file keywords},
-@ref{Categories})
+If the cursor is in one of the special #+KEYWORD lines, this
+triggers scanning the buffer for these lines and updating the
+information. 
 @item
-After editing by hand a @samp{#+TBLFM} line containing formulas for a
-table.  When pressing @kbd{C-c C-c} in that line, all formulas are
-re-applied to the entire table (@pxref{Editing/debugging formulas}).
+If the cursor is inside a table, realign the table.  This command
+works even if the automatic table editor has been turned off.
 @item
-In a table, @kbd{C-c C-c} does force a re-align, even if the table
-editor is turned off (@pxref{Built-in table editor})
+If the cursor is on a #+TBLFM line, re-apply the formulas to
+the entire table.
 @item
-In an ordered plain list, @kbd{C-c C-c} forces a renumbering of the list
-(@pxref{Plain Lists}).
+If the cursor is inside a table created by the @file{table.el} package,
+activate that table.
 @item
-After adding a new radio target @samp{<<<New target>>>}, @kbd{C-c C-c}
-must be used with the cursor on that target to activate it throughout
-the buffer.
+If the current buffer is a remember buffer, close note and file it.
+with a prefix argument, file it without further interaction to the default
+location.
+@item
+If the cursor is on a <<<target>>>, update radio targets and corresponding
+links in this buffer.
+@item
+If the cursor is on a numbered item in a plain list, renumber the
+ordered list.
 @end itemize
 
-@node Clean view, TTY keys, Updating settings, Miscellaneous
+@node Clean view, TTY keys, The very busy C-c C-c key, Miscellaneous
 @section A cleaner outline view
 @cindex hiding leading stars
 @cindex clean outline view
@@ -3371,12 +3487,10 @@ activate changes immediately).
 #+STARTUP: oddeven
 @end example
 
-You can convert an Org-mode file from single-star-per-level to
-the double-star-per-level convention with @kbd{M-x org-convert-to-odd-levels
-RET} in that file.  There is no command for the back conversion because
-such a command might merge levels and in this way destroy the
-structure of the tree.
-@c FIXME: Maybe we should have such a command...
+You can convert an Org-mode file from single-star-per-level to the
+double-star-per-level convention with @kbd{M-x org-convert-to-odd-levels
+RET} in that file.  The reverse operation is @kbd{M-x
+org-convert-to-oddeven-levels}.
 
 @node TTY keys, FAQ, Clean view, Miscellaneous
 @section Using org-mode on a tty
@@ -3448,8 +3562,8 @@ attached to the old style using angular brackets and no hiding of the
 link text.  Please give them back to me, don't tell me it is not
 possible!}@*
 @c
-Would I let you down like that?  If you must (even if I don't understand
-why), you can do this
+Would I let you down like that?  If you must, you can do this
+
 @lisp
 (setq org-link-style 'plain
       org-link-format "<%s>")
@@ -3574,12 +3688,14 @@ You may also select specific files with
 &%%(org-diary) ~/path/to/another/org-file.org
 @end example
 
-If you now launch the calendar and press @kbd{d} to display a diary,
-the headlines of entries containing a timestamp, date range, schedule,
-or deadline referring to the selected date will be listed.  Just like
-in Org-mode's agenda view, the diary for @emph{today} contains
-additional entries for overdue deadlines and scheduled items.  See
-also the documentation of the @command{org-diary} function.
+If you now launch the calendar and press @kbd{d} to display a diary, the
+headlines of entries containing a timestamp, date range, schedule, or
+deadline referring to the selected date will be listed.  Just like in
+Org-mode's agenda view, the diary for @emph{today} contains additional
+entries for overdue deadlines and scheduled items.  See also the
+documentation of the @command{org-diary} function.  Under XEmacs, it is
+not possible to jump back from the diary to the org, this works only in
+the agenda buffer.
 
 @end enumerate
 
@@ -3594,9 +3710,9 @@ Org-mode can cooperate with the following packages:
 @item @file{org-mouse.el} by Piotr Zielinski
 This package implements extended mouse functionality for Org-mode.  It
 allows you to cycle visibility and to edit the document structure with
-the mouse.  It also provides a context-sensitive menu that changes
-depending on the context of a mouse-click.  Use a search engine to find
-this package on the web.
+the mouse.  Best of all, it provides a context-sensitive menu on
+@key{mouse-3} that changes depending on the context of a mouse-click.
+Use a search engine to find this package on the web.
 @cindex @file{table.el}
 @item @file{table.el} by Takaaki Ota
 Org mode cooperates with table.el, see @ref{table.el}.  @file{table.el}
@@ -3687,12 +3803,6 @@ Recalculating a table line applies the formulas from left to right.
 If a formula uses @emph{calculated} fields further down the row,
 multiple recalculation may be needed to get all fields consistent.
 @item
-Under XEmacs, if Org-mode entries are included into the diary, it is
-not possible to jump back from the diary to the org file.  Apparently,
-the text properties are lost when the fancy-diary-display is used.
-However, from Org-mode's timeline and agenda buffers (created with
-@kbd{C-c C-r} and @kbd{C-c a}), things do work correctly.
-@item
 You can only make a single word boldface or italic.  To emphasize
 several words in a row, each must have the emphasize markers, like in
 @samp{*three* *bold* *words*}.
@@ -3724,6 +3834,8 @@ Pavel Chalmoviansky influenced the agenda treatment of items with
 specified time.
 @item
 Sacha Chua suggested to copy some linking code from Planner.
+@item
+Kees Dullemond inspired the use of narrowed tabled columns.
 @item
 Christian Egli converted the documentation into TeXInfo format, patched
 CSS formatting into the HTML exporter, and inspired the agenda.

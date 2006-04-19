@@ -1,3 +1,172 @@
+2006-04-18  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (defcustom-mh, defface-mh, defgroup-mh, mh-face-data)
+	(mh-strip-package-version, mh-face-data, mh-inherit-face-flag)
+	(mh-min-colors-defined-flag): Do not unbind these macros and
+	variables. Nice idea, but too many nasty side-effects. These
+	macros are needed by [Cc]ustom-make-dependencies when creating the
+	MH-E customization groups in mh-cus-load.el. These disappeared
+	when the macros above were introduced. Besides, if a developer
+	were to try to show the help for a macro or variable they were
+	looking at and got [No match] when they did so, that would be bad.
+
+2006-04-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-insert-x-mailer): Strip build number from
+	version in X-Mailer field (closes SF #1466481).
+
+	* mh-acros.el (mh-defun-compat): Rename to defun-mh in order that
+	variables and functions with the same name are found correctly by
+	find-func (invoked by clicking on the filename link in the *Help*
+	buffer).
+	(mh-defmacro-compat): Rename to defmacro-mh. Ditto.
+	* mh-e.el: (mh-defgroup): Rename to defgroup-mh. Ditto.
+	(mh-defcustom): Rename to defcustom-mh. Ditto.
+	(mh-defface): Rename to defface-mh. Ditto.
+	(mh-font-lock-add-keywords): Make changes according to these
+	renamings.
+
+	* mh-e.el, mh-compat.el, mh-gnus.el: Use the new names (closes SF
+	#1472029).
+
+	* mh-utils.el (mh-sub-folders-actual): Mention that folder must
+	have been processed by mh-normalize-folder-name.
+	(mh-folder-completion-function): Handle completion of folders with
+	absolute names. Also, when flag is t, display complete folder name
+	to provide proper highlighting in Emacs 22 now that
+	minibuffer-completing-file-name is nil (closes SF #1470518).
+	(mh-folder-completing-read): No longer set
+	minibuffer-completing-file-name to t. This was causing "Can't set
+	current directory errors" when browsing absolute file names.
+	Another benefit of this change is that SPC can be used for
+	completion again (closes SF #1470518).
+
+2006-04-15  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-font-lock-add-keywords): Fix typo in docstring.
+
+2006-04-14  Bill Wohler  <wohler@newt.com>
+
+	* mh-funcs.el (view-exit-action): No need to wrap defvar with
+	eval-when-compile when shushing compiler.
+
+	* mh-mime.el (mh-identity-pgg-default-user-id): Ditto.
+
+	* mh-seq.el (view-exit-action): Ditto.
+
+	* mh-show.el (font-lock-auto-fontify): Ditto.
+
+	* mh-utils.el (mh-speed-flists-cache): Ditto
+
+	* mh-acros.el (struct, x, y):  No need to wrap defvar with
+	eval-when-compile when shushing compiler, even when
+	mh-do-in-xemacs or another construct is used.
+
+	* mh-comp.el (sendmail-coding-system): Ditto.
+
+	* mh-e.el (mark-active): Ditto.
+
+	* mh-folder.el (desktop-save-buffer, font-lock-auto-fontify)
+	(image-load-path, font-lock-defaults): Ditto.
+
+	* mh-letter.el (image-load-path, font-lock-defaults): Ditto.
+
+	* mh-mime.el (dots, type, ov)
+	(mm-verify-function-alist, mm-decrypt-function-alist)
+	(pressed-details): Ditto.
+
+	* mh-search.el (pick-folder, mh-do-in-xemacs)
+	(mh-mairix-folder, mh-flists-search-folders)
+	(which-func-mode, mh-speed-flists-inhibit-flag): Ditto.
+
+	* mh-seq.el (tool-bar-mode): Ditto.
+
+	* mh-utils.el (completion-root-regexp)
+	(minibuffer-completing-file-name): Ditto.
+
+	* mh-xface.el (default-enable-multibyte-characters): Ditto.
+
+	* mh-compat.el (mh-font-lock-add-keywords): New alias for
+	font-lock-add-keywords. Returns nil on XEmacs.	
+
+	* mh-e.el: Add MH-E function and variable keywords such as
+	mh-defun-compat and mh-defcustom to font-lock-keywords.	
+
+2006-04-13  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (customize-package-emacs-version-alist)
+	(mh-e, mh-alias, mh-folder, mh-folder-selection)
+	(mh-identity, mh-inc, mh-junk, mh-letter, mh-ranges)
+	(mh-scan-line-formats, mh-search, mh-sending-mail, )
+	(mh-sequences, mh-show, mh-speedbar, mh-thread, mh-tool-bar)
+	(mh-hooks, mh-faces, mh-alias-completion-ignore-case-flag)
+	(mh-alias-expand-aliases-flag, mh-alias-flash-on-comma)
+	(mh-alias-insert-file, mh-alias-insertion-location)
+	(mh-alias-local-users, mh-alias-local-users-prefix)
+	(mh-alias-passwd-gecos-comma-separator-flag)
+	(mh-new-messages-folders, mh-ticked-messages-folders)
+	(mh-large-folder, mh-recenter-summary-flag)
+	(mh-recursive-folders-flag, mh-sortm-args)
+	(mh-default-folder-for-message-function, )
+	(mh-default-folder-list, mh-default-folder-must-exist-flag)
+	(mh-default-folder-prefix, mh-identity-list)
+	(mh-auto-fields-list, mh-auto-fields-prompt-flag)
+	(mh-identity-default, mh-identity-handlers, mh-inc-prog)
+	(mh-inc-spool-list, mh-junk-background, mh-junk-disposition)
+	(mh-junk-program, mh-compose-insertion)
+	(mh-compose-skipped-header-fields)
+	(mh-compose-space-does-completion-flag)
+	(mh-delete-yanked-msg-window-flag)
+	(mh-extract-from-attribution-verb, mh-ins-buf-prefix)
+	(mh-letter-complete-function, mh-letter-fill-column)
+	(mh-mml-method-default, mh-signature-file-name)
+	(mh-signature-separator-flag, mh-x-face-file, )
+	(mh-yank-behavior, mh-interpret-number-as-range-flag)
+	(mh-adaptive-cmd-note-flag, mh-scan-format-file, mh-scan-prog)
+	(mh-search-program, mh-compose-forward-as-mime-flag)
+	(mh-compose-letter-function, mh-compose-prompt-flag)
+	(mh-forward-subject-format, mh-insert-x-mailer-flag)
+	(mh-redist-full-contents-flag, mh-reply-default-reply-to)
+	(mh-reply-show-message-flag, )
+	(mh-refile-preserves-sequences-flag, mh-tick-seq)
+	(mh-update-sequences-after-mh-show-flag)
+	(mh-bury-show-buffer-flag, mh-clean-message-header-flag)
+	(mh-decode-mime-flag, )
+	(mh-display-buttons-for-alternatives-flag)
+	(mh-display-buttons-for-inline-parts-flag)
+	(mh-do-not-confirm-flag, mh-fetch-x-image-url)
+	(mh-graphical-smileys-flag, mh-graphical-emphasis-flag)
+	(mh-highlight-citation-style, mh-invisible-header-fields)
+	(mh-invisible-header-fields-default, mh-lpr-command-format)
+	(mh-max-inline-image-height, mh-max-inline-image-width)
+	(mh-mhl-format-file, mh-mime-save-parts-default-directory)
+	(mh-print-background-flag, mh-show-maximum-size)
+	(mh-show-use-xface-flag, mh-store-default-directory)
+	(mh-summary-height, mh-speed-update-interval)
+	(mh-show-threads-flag, mh-tool-bar-search-function)
+	(mh-defcustom, mh-after-commands-processed-hook)
+	(mh-alias-reloaded-hook, mh-before-commands-processed-hook)
+	(mh-before-quit-hook, mh-before-send-letter-hook)
+	(mh-delete-msg-hook, mh-find-path-hook, mh-folder-mode-hook)
+	(mh-forward-hook, mh-inc-folder-hook, )
+	(mh-insert-signature-hook, )
+	(mh-kill-folder-suppress-prompt-hooks, mh-letter-mode-hook)
+	(mh-mh-to-mime-hook, mh-search-mode-hook, mh-quit-hook)
+	(mh-refile-msg-hook, mh-show-hook, mh-show-mode-hook)
+	(mh-unseen-updated-hook, mh-folder-address, mh-folder-body)
+	(mh-folder-cur-msg-number, mh-folder-date, mh-folder-deleted)
+	(mh-folder-followup, mh-folder-msg-number, mh-folder-refiled)
+	(mh-folder-sent-to-me-hint, mh-folder-sent-to-me-sender)
+	(mh-folder-subject, mh-folder-tick, mh-folder-to)
+	(mh-letter-header-field, mh-search-folder, mh-show-cc)
+	(mh-show-date, mh-show-from, mh-show-header, mh-show-pgg-bad)
+	(mh-show-pgg-good, mh-show-pgg-unknown, mh-show-signature)
+	(mh-show-subject, mh-show-to, mh-show-xface, )
+	(mh-speedbar-folder, mh-speedbar-folder-with-unseen-messages)
+	(mh-speedbar-selected-folder)
+	(mh-speedbar-selected-folder-with-unseen-messages): Use dotted
+	notation in :package-version keyword.
+
 2006-04-07  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-path, mh-variant): Define with mh-defcustom and add
@@ -21,7 +190,7 @@
 	(mh-scan-line-formats, mh-search, mh-sending-mail)
 	(mh-sequences, mh-show, mh-speedbar, mh-thread, mh-tool-bar)
 	(mh-hooks, mh-faces): Add :package-version keyword to these
-	groups.
+	groups (closes SF #1452724).
 	(mh-alias-completion-ignore-case-flag)
 	(mh-alias-expand-aliases-flag, mh-alias-flash-on-comma)
 	(mh-alias-insert-file, mh-alias-insertion-location)
@@ -67,7 +236,7 @@
 	(mh-show-use-xface-flag, mh-store-default-directory)
 	(mh-summary-height, mh-speed-update-interval)
 	(mh-show-threads-flag, mh-tool-bar-search-function): Add
-	:package-version keyword to these options.
+	:package-version keyword to these options (closes SF #1452724).
 	(mh-after-commands-processed-hook)
 	(mh-alias-reloaded-hook, mh-before-commands-processed-hook)
 	(mh-before-quit-hook, mh-before-send-letter-hook)
@@ -78,7 +247,7 @@
 	(mh-mh-to-mime-hook, mh-search-mode-hook, mh-quit-hook)
 	(mh-refile-msg-hook, mh-show-hook, mh-show-mode-hook)
 	(mh-unseen-updated-hook): Add :package-version keyword to these
-	hooks.
+	hooks (closes SF #1452724).
 	(mh-min-colors-defined-flag)
 	(mh-folder-address, mh-folder-body, mh-folder-cur-msg-number)
 	(mh-folder-date, mh-folder-deleted, mh-folder-followup)
@@ -92,10 +261,10 @@
 	(mh-speedbar-folder, mh-speedbar-folder-with-unseen-messages)
 	(mh-speedbar-selected-folder)
 	(mh-speedbar-selected-folder-with-unseen-messages): : Add
-	:package-version keyword to these faces.
+	:package-version keyword to these faces (closes SF #1452724).
 
 	* mh-tool-bar.el (mh-tool-bar-define): Added commented-out
-	:package-version keywords.
+	:package-version keywords (closes SF #1452724).
 
 2006-03-28  Bill Wohler  <wohler@newt.com>
 

@@ -825,7 +825,9 @@ being used to highlight the signature in a MIME part."
 ;;; Button Display
 
 ;; Shush compiler.
-(eval-when-compile (mh-do-in-xemacs (defvar dots) (defvar type) (defvar ov)))
+(defvar dots)                           ; XEmacs
+(defvar type)                           ; XEmacs
+(defvar ov)                             ; XEmacs
 
 (defun mh-insert-mime-button (handle index displayed)
   "Insert MIME button for HANDLE.
@@ -870,12 +872,9 @@ by commands like \"K v\" which operate on individual MIME parts."
       (mh-funcall-if-exists overlay-put ov 'evaporate t))))
 
 ;; Shush compiler.
-(eval-when-compile
-  (when (< emacs-major-version 22)
-    (defvar  mm-verify-function-alist)
-    (defvar  mm-decrypt-function-alist))
-  (mh-do-in-xemacs
-    (defvar pressed-details)))
+(defvar mm-verify-function-alist)       ; < Emacs 22
+(defvar mm-decrypt-function-alist)      ; < Emacs 22
+(defvar pressed-details)                ; XEmacs
 
 (defun mh-insert-mime-security-button (handle)
   "Display buttons for PGP message, HANDLE."
@@ -1537,7 +1536,7 @@ a prefix argument NOCONFIRM."
     (after-find-file nil)))
 
 ;; Shush compiler.
-(eval-when-compile (defvar mh-identity-pgg-default-user-id))
+(defvar mh-identity-pgg-default-user-id)
 
 ;;;###mh-autoload
 (defun mh-mml-secure-message-encrypt (method)

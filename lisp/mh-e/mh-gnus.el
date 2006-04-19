@@ -39,19 +39,19 @@
 (mh-require 'mml nil t)
 
 ;; Copy of function from gnus-util.el.
-(mh-defun-compat mh-gnus-local-map-property gnus-local-map-property (map)
+(defun-mh mh-gnus-local-map-property gnus-local-map-property (map)
   "Return a list suitable for a text property list specifying keymap MAP."
   (cond (mh-xemacs-flag (list 'keymap map))
         ((>= emacs-major-version 21) (list 'keymap map))
         (t (list 'local-map map))))
 
 ;; Copy of function from mm-decode.el.
-(mh-defun-compat mh-mm-merge-handles mm-merge-handles (handles1 handles2)
+(defun-mh mh-mm-merge-handles mm-merge-handles (handles1 handles2)
   (append (if (listp (car handles1)) handles1 (list handles1))
           (if (listp (car handles2)) handles2 (list handles2))))
 
 ;; Copy of function from mm-decode.el.
-(mh-defun-compat mh-mm-set-handle-multipart-parameter
+(defun-mh mh-mm-set-handle-multipart-parameter
   mm-set-handle-multipart-parameter (handle parameter value)
   ;; HANDLE could be a CTL.
   (if handle
@@ -59,7 +59,7 @@
                          (car handle))))
 
 ;; Copy of function from mm-view.el.
-(mh-defun-compat mh-mm-inline-text-vcard mm-inline-text-vcard (handle)
+(defun-mh mh-mm-inline-text-vcard mm-inline-text-vcard (handle)
   (let (buffer-read-only)
     (mm-insert-inline
      handle
@@ -73,17 +73,17 @@
 
 ;; Function from mm-decode.el used in PGP messages. Just define it with older
 ;; Gnus to avoid compiler warning.
-(mh-defun-compat mh-mm-possibly-verify-or-decrypt
+(defun-mh mh-mm-possibly-verify-or-decrypt
   mm-possibly-verify-or-decrypt (parts ctl)
   nil)
 
 ;; Copy of macro in mm-decode.el.
-(mh-defmacro-compat mh-mm-handle-multipart-ctl-parameter
+(defmacro-mh mh-mm-handle-multipart-ctl-parameter
   mm-handle-multipart-ctl-parameter (handle parameter)
   `(get-text-property 0 ,parameter (car ,handle)))
 
 ;; Copy of function in mm-decode.el.
-(mh-defun-compat mh-mm-readable-p mm-readable-p (handle)
+(defun-mh mh-mm-readable-p mm-readable-p (handle)
   "Say whether the content of HANDLE is readable."
   (and (< (with-current-buffer (mm-handle-buffer handle)
             (buffer-size)) 10000)
@@ -93,7 +93,7 @@
               (not (mh-mm-long-lines-p 76))))))
 
 ;; Copy of function in mm-bodies.el.
-(mh-defun-compat mh-mm-long-lines-p mm-long-lines-p (length)
+(defun-mh mh-mm-long-lines-p mm-long-lines-p (length)
   "Say whether any of the lines in the buffer is longer than LENGTH."
   (save-excursion
     (goto-char (point-min))
@@ -105,21 +105,21 @@
     (and (> (current-column) length)
          (current-column))))
 
-(mh-defun-compat mh-mm-keep-viewer-alive-p mm-keep-viewer-alive-p (handle)
+(defun-mh mh-mm-keep-viewer-alive-p mm-keep-viewer-alive-p (handle)
   ;; Released Gnus doesn't keep handles associated with externally displayed
   ;; MIME parts. So this will always return nil.
   nil)
 
-(mh-defun-compat mh-mm-destroy-parts mm-destroy-parts (list)
+(defun-mh mh-mm-destroy-parts mm-destroy-parts (list)
   "Older versions of Emacs don't have this function."
   nil)
 
-(mh-defun-compat mh-mm-uu-dissect-text-parts mm-uu-dissect-text-parts (handles)
+(defun-mh mh-mm-uu-dissect-text-parts mm-uu-dissect-text-parts (handles)
   "Emacs 21 and XEmacs don't have this function."
   nil)
 
 ;; Copy of function in mml.el.
-(mh-defun-compat mh-mml-minibuffer-read-disposition
+(defun-mh mh-mml-minibuffer-read-disposition
   mml-minibuffer-read-disposition (type &optional default)
   (unless default (setq default
                         (if (and (string-match "\\`text/" type)

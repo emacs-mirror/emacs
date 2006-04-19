@@ -37,6 +37,7 @@
   (defvar gnus-list-identifiers)) ; gnus-sum is required where necessary
 (require 'canlock)
 (require 'mailheader)
+(require 'gmm-utils)
 (require 'nnheader)
 ;; This is apparently necessary even though things are autoloaded.
 ;; Because we dynamically bind mail-abbrev-mode-regexp, we'd better
@@ -2529,7 +2530,7 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
     (set (make-local-variable 'font-lock-defaults)
 	 '(message-font-lock-keywords t))
     (if (boundp 'tool-bar-map)
-	(set (make-local-variable 'tool-bar-map) (message-tool-bar-map))))
+	(set (make-local-variable 'tool-bar-map) (message-make-tool-bar))))
   (easy-menu-add message-mode-menu message-mode-map)
   (easy-menu-add message-mode-field-menu message-mode-map)
   (gnus-make-local-hook 'after-change-functions)
@@ -6586,53 +6587,123 @@ which specify the range to operate on."
 
 ;; Support for toolbar
 (eval-when-compile
-  (defvar tool-bar-map)
   (defvar tool-bar-mode))
 
-(defun message-tool-bar-local-item-from-menu (command icon in-map &optional from-map &rest props)
-  ;; We need to make tool bar entries in local keymaps with
-  ;; `tool-bar-local-item-from-menu' in Emacs >= 22
-  (if (fboundp 'tool-bar-local-item-from-menu)
-      (tool-bar-local-item-from-menu command icon in-map from-map props)
-    (tool-bar-add-item-from-menu command icon from-map props)))
+;; Note: The :set function in the `message-tool-bar*' variables will only
+;; affect _new_ message buffers.  We might add a function that walks thru all
+;; message-mode buffers and force the update.
+(defun message-tool-bar-update (&optional symbol value)
+  "Update message mode toolbar.
+Setter function for custom variables."
+  (setq-default message-tool-bar-map nil)
+  (when symbol
+    ;; When used as ":set" function:
+    (set-default symbol value)))
 
-(defun message-tool-bar-map ()
-  (or message-tool-bar-map
-      (setq message-tool-bar-map
-	    (and
-	     (condition-case nil (require 'tool-bar) (error nil))
-	     (fboundp 'tool-bar-add-item-from-menu)
+(defcustom message-tool-bar (if (eq gmm-tool-bar-style 'gnome)
+				'message-tool-bar-gnome
+			      'message-tool-bar-retro)
+  "Specifies the message mode tool bar.
+
+It can be either a list or a symbol refering to a list.  See
+`gmm-tool-bar-from-list' for the format of the list.  The
+default key map is `message-mode-map'.
+
+Pre-defined symbols include `message-tool-bar-gnome' and
+`message-tool-bar-retro'."
+  :type '(repeat gmm-tool-bar-list-item)
+  :type '(choice (const :tag "GNOME style" message-tool-bar-gnome)
+		 (const :tag "Retro look"  message-tool-bar-retro)
+		 (repeat :tag "User defined list" gmm-tool-bar-item)
+		 (symbol))
+  :version "22.1" ;; Gnus 5.10.9
+  :initialize 'custom-initialize-default
+  :set 'message-tool-bar-update
+  :group 'message)
+
+(defcustom message-tool-bar-gnome
+  '((ispell-message "spell" nil
+		    :visible (or (not (boundp 'flyspell-mode))
+				 (not flyspell-mode)))
+    (flyspell-buffer "spell" t
+		     :visible (and (boundp 'flyspell-mode)
+				   flyspell-mode)
+		     :help "Flyspell whole buffer")
+    (gmm-ignore "separator")
+    (message-send-and-exit "mail/send")
+    (message-dont-send "mail/save-draft")
+    (message-kill-buffer "close") ;; stock_cancel
+    (mml-attach-file "attach" mml-mode-map)
+    (mml-preview "mail/preview" mml-mode-map)
+    ;; (mml-secure-message-sign-encrypt "lock" mml-mode-map :visible nil)
+    (message-insert-importance-high "important" nil :visible nil)
+    (message-insert-importance-low "unimportant" nil :visible nil)
+    (message-insert-disposition-notification-to "receipt" nil :visible nil)
+    (gmm-customize-mode "preferences" t :help "Edit mode preferences")
+    (message-info "help" t :help "Message manual"))
+  "List of items for the message tool bar (GNOME style).
+
+See `gmm-tool-bar-from-list' for details on the format of the list."
+  :type '(repeat gmm-tool-bar-item)
+  :version "22.1" ;; Gnus 5.10.9
+  :initialize 'custom-initialize-default
+  :set 'message-tool-bar-update
+  :group 'message)
+
+(defcustom message-tool-bar-retro
+  '(;; Old Emacs 21 icon for consistency.
+    (message-send-and-exit "gnus/mail_send")
+    (message-kill-buffer "close")
+    (message-dont-send "cancel")
+    (mml-attach-file "attach" mml-mode-map)
+    (ispell-message "spell")
+    (mml-preview "preview" mml-mode-map)
+    (message-insert-importance-high "gnus/important")
+    (message-insert-importance-low "gnus/unimportant")
+    (message-insert-disposition-notification-to "gnus/receipt"))
+  "List of items for the message tool bar (retro style).
+
+See `gmm-tool-bar-from-list' for details on the format of the list."
+  :type '(repeat gmm-tool-bar-item)
+  :version "22.1" ;; Gnus 5.10.9
+  :initialize 'custom-initialize-default
+  :set 'message-tool-bar-update
+  :group 'message)
+
+(defcustom message-tool-bar-zap-list
+  '(new-file open-file dired kill-buffer write-file
+	     print-buffer customize help)
+  "List of icon items from the global tool bar.
+These items are not displayed on the message mode tool bar.
+
+See `gmm-tool-bar-from-list' for the format of the list."
+  :type 'gmm-tool-bar-zap-list
+  :version "22.1" ;; Gnus 5.10.9
+  :initialize 'custom-initialize-default
+  :set 'message-tool-bar-update
+  :group 'message)
+
+(defvar image-load-path)
+
+(defun message-make-tool-bar (&optional force)
+  "Make a message mode tool bar from `message-tool-bar-list'.
+When FORCE, rebuild the tool bar."
+  (when (and (not (featurep 'xemacs))
+	     (boundp 'tool-bar-mode)
 	     tool-bar-mode
-	     (let ((tool-bar-map (copy-keymap tool-bar-map))
-		   (load-path (mm-image-load-path)))
-	       ;; Zap some items which aren't so relevant and take
-	       ;; up space.
-	       (dolist (key '(print-buffer kill-buffer save-buffer
-					   write-file dired open-file))
-		 (define-key tool-bar-map (vector key) nil))
-	       (message-tool-bar-local-item-from-menu
-		'message-send-and-exit "mail/send" tool-bar-map message-mode-map)
-	       (message-tool-bar-local-item-from-menu
-		'message-kill-buffer "close" tool-bar-map message-mode-map)
-	       (message-tool-bar-local-item-from-menu
-		    'message-dont-send "cancel" tool-bar-map message-mode-map)
-	       (message-tool-bar-local-item-from-menu
-		'mml-attach-file "attach" tool-bar-map mml-mode-map)
-	       (message-tool-bar-local-item-from-menu
-		'ispell-message "spell" tool-bar-map message-mode-map)
-	       (message-tool-bar-local-item-from-menu
-		'mml-preview "preview"
-		tool-bar-map mml-mode-map)
-	       (message-tool-bar-local-item-from-menu
-		'message-insert-importance-high "important"
-		tool-bar-map message-mode-map)
-	       (message-tool-bar-local-item-from-menu
-		'message-insert-importance-low "unimportant"
-		tool-bar-map message-mode-map)
-	       (message-tool-bar-local-item-from-menu
-		'message-insert-disposition-notification-to "receipt"
-		tool-bar-map message-mode-map)
-	       tool-bar-map)))))
+	     (or (not message-tool-bar-map) force))
+    (setq message-tool-bar-map
+	  (let* ((load-path
+		  (gmm-image-load-path-for-library "message"
+						   "mail/save-draft.xpm"
+						   nil t))
+		 (image-load-path (cons (car load-path)
+					(when (boundp 'image-load-path)
+					  image-load-path))))
+	    (gmm-tool-bar-from-list message-tool-bar
+				    message-tool-bar-zap-list
+				    'message-mode-map))))
+  message-tool-bar-map)
 
 ;;; Group name completion.
 

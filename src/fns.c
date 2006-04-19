@@ -48,9 +48,12 @@ Boston, MA 02110-1301, USA.  */
 #include "frame.h"
 #include "window.h"
 #include "blockinput.h"
-#include "termhooks.h"  /* For display->kboard reference in terminal-local-value. */
-#if defined (HAVE_MENUS) && defined (HAVE_X_WINDOWS)
+#ifdef HAVE_MENUS
+#if defined (HAVE_X_WINDOWS)
 #include "xterm.h"
+#elif defined (MAC_OS)
+#include "macterm.h"
+#endif
 #endif
 
 #ifndef NULL

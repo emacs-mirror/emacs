@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.21
+;; Version: 4.24
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,8 +81,16 @@
 ;;
 ;; Changes since version 4.00:
 ;; ---------------------------
-;; Version 4.21
+;; Version 4.24
 ;;    - Bug fixes.
+;;
+;; Version 4.23
+;;    - Bug fixes.
+;;
+;; Version 4.22
+;;    - Bug fixes.
+;;    - In agenda buffer, mouse-1 no longer follows link.
+;;      See `org-agenda-mouse-1-follows-link' and `org-mouse-1-follows-link'.
 ;;
 ;; Version 4.20
 ;;    - Links use now the [[link][description]] format by default.
@@ -174,7 +182,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.21"
+(defvar org-version "4.24"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -227,7 +235,11 @@ uninteresting.  Also tables look terrible when wrapped."
 (defcustom org-startup-align-all-tables nil
   "Non-nil means, align all tables when visiting a file.
 This is useful when the column width in tables is forced with <N> cookies
-in table fields.  Such tables will look correct only after the first re-align."
+in table fields.  Such tables will look correct only after the first re-align.
+This can also be configured on a per-file basis by adding one of
+the following lines anywhere in the buffer:
+   #+STARTUP: align
+   #+STARTUP: noalign"
   :group 'org-startup
   :type 'boolean)
 
@@ -237,7 +249,6 @@ This means, if you start editing an org file, you will get an
 immediate reminder of any due deadlines.
 This can also be configured on a per-file basis by adding one of
 the following lines anywhere in the buffer:
-
    #+STARTUP: dlcheck
    #+STARTUP: nodlcheck"
   :group 'org-startup
@@ -391,7 +402,12 @@ This has the effect that two stars are being added/taken away in
 promotion/demotion commands.  It also influences how levels are
 handled by the exporters.
 Changing it requires restart of `font-lock-mode' to become effective
-for fontification also in regions already fontified."
+for fontification also in regions already fontified.
+You may also set this on a per-file basis by adding one of the following
+lines to the buffer:
+
+   #+STARTUP: odd
+   #+STARTUP: oddeven"
   :group 'org-edit-structure
   :group 'org-font-lock
   :type 'boolean)
@@ -870,6 +886,13 @@ Needs to be set before org.el is loaded."
   :group 'org-link-follow
   :type 'boolean)
 
+(defcustom org-mouse-1-follows-link t
+  "Non-nil means, mouse-1 on a link will follow the link.
+A longer mouse click will still set point.  Does not wortk on XEmacs.
+Needs to be set before org.el is loaded."
+  :group 'org-link-follow
+  :type 'boolean)
+
 (defcustom org-mark-ring-length 4
   "Number of different positions to be recorded in the ring
 Changing this requires a restart of Emacs to work correctly."
@@ -1112,7 +1135,7 @@ closing date."
   :type 'boolean)
 
 (defgroup org-priorities nil
-  "Keywords in Org-mode."
+  "Priorities in Org-mode."
   :tag "Org Priorities"
   :group 'org-todo)
 
@@ -1167,7 +1190,7 @@ moved to the new date."
   :type 'boolean)
 
 (defgroup org-tags nil
-  "Options concerning startup of Org-mode."
+  "Options concerning tags in Org-mode."
   :tag "Org Tags"
   :group 'org)
 
@@ -1301,21 +1324,28 @@ forth between agenda and calendar."
   :tag "Org Agenda Window Setup"
   :group 'org-agenda)
 
+(defcustom org-agenda-mouse-1-follows-link nil
+  "Non-nil means, mouse-1 on a link will follow the link in the agenda.
+A longer mouse click will still set point.  Does not wortk on XEmacs.
+Needs to be set before org.el is loaded."
+  :group 'org-agenda-setup
+  :type 'boolean)
+
 (defcustom org-select-timeline-window t
   "Non-nil means, after creating a timeline, move cursor into Timeline window.
 When nil, cursor will remain in the current window."
-  :group 'org-agenda-window-setup
+  :group 'org-agenda-setup
   :type 'boolean)
 
 (defcustom org-select-agenda-window t
   "Non-nil means, after creating an agenda, move cursor into Agenda window.
 When nil, cursor will remain in the current window."
-  :group 'org-agenda-window-setup
+  :group 'org-agenda-setup
   :type 'boolean)
 
 (defcustom org-fit-agenda-window t
   "Non-nil means, change window size of agenda to fit content."
-  :group 'org-agenda-window-setup
+  :group 'org-agenda-setup
   :type 'boolean)
 
 (defgroup org-agenda-display nil
@@ -1884,7 +1914,12 @@ face is white for a light background, and black for a dark
 background.  You may have to customize the face `org-hide' to
 make this work.
 Changing it requires restart of `font-lock-mode' to become effective
-also in regions already fontified."
+also in regions already fontified.
+You may also set this on a per-file basis by adding one of the following
+lines to the buffer:
+
+   #+STARTUP: hidestars
+   #+STARTUP: showstars"
   :group 'org-font-lock
   :type 'boolean)
 
@@ -2051,12 +2086,29 @@ Changing this variable requires a restart of Emacs to take effect."
   "Face for links."
   :group 'org-faces)
 
+(defface org-date
+  '((((type tty) (class color)) (:foreground "cyan" :weight bold))
+    (((class color) (background light)) (:foreground "Purple" :underline t))
+    (((class color) (background dark)) (:foreground "Cyan" :underline t))
+    (t (:bold t)))
+  "Face for links."
+  :group 'org-faces)
+
 (defface org-tag
   '((((type tty) (class color)) (:weight bold))
     (((class color) (background light)) (:weight bold))
     (((class color) (background dark)) (:weight bold))
     (t (:bold t)))
   "Face for tags."
+  :group 'org-faces)
+
+(defface org-todo ;; font-lock-warning-face
+  '((((type tty) (class color)) (:foreground "red"))
+    (((class color) (background light)) (:foreground "Red" :bold t))
+    (((class color) (background dark)) (:foreground "Red1" :bold t))
+;    (((class color) (background dark)) (:foreground "Pink" :bold t))
+    (t (:inverse-video t :bold t)))
+  "Face for TODO keywords."
   :group 'org-faces)
 
 (defface org-done ;; font-lock-type-face
@@ -2165,7 +2217,9 @@ Changing this variable requires a restart of Emacs to take effect."
 	     ((equal key "STARTUP")
 	      (let ((opts (org-split-string value splitre))
 		    (set '(("fold" org-startup-folded t)
+			   ("overview" org-startup-folded t)
 			   ("nofold" org-startup-folded nil)
+			   ("showall" org-startup-folded nil)
 			   ("content" org-startup-folded content)
 			   ("hidestars" org-hide-leading-stars t)
 			   ("showstars" org-hide-leading-stars nil)
@@ -2379,6 +2433,10 @@ The following commands are available:
 	s)
     (match-string-no-properties num string)))
 
+(defsubst org-no-properties (s)
+  (remove-text-properties 0 (length s) org-rm-props s)
+  s)
+
 (defun org-current-time ()
   "Current time, possibly rounded to `org-time-stamp-rounding-minutes'."
   (if (> org-time-stamp-rounding-minutes 0)
@@ -2406,7 +2464,8 @@ that will be added to PLIST.  Returns the string that was modified."
   (if (featurep 'xemacs) [button2] [mouse-2]) 'org-open-at-mouse)
 (define-key org-mouse-map
   (if (featurep 'xemacs) [button3] [mouse-3]) 'org-find-file-at-mouse)
-(define-key org-mouse-map [follow-link] 'mouse-face)
+(when org-mouse-1-follows-link
+  (define-key org-mouse-map [follow-link] 'mouse-face))
 (when org-tab-follows-link
   (define-key org-mouse-map [(tab)] 'org-open-at-point)
   (define-key org-mouse-map "\C-i" 'org-open-at-point))
@@ -2508,7 +2567,9 @@ that will be added to PLIST.  Returns the string that was modified."
 (defun org-activate-bracket-links (limit)
   "Run through the buffer and add overlays to bracketed links."
   (if (re-search-forward org-bracket-link-regexp limit t)
-      (let* ((help (concat "LINK: " (org-match-string-no-properties 1)))
+      (let* ((help (concat "LINK: "
+			   (org-match-string-no-properties 1)))
+	     ;; FIXME: above we should remove the escapes.
 	     (ip (list 'invisible 'org-link 'intangible t 'rear-nonsticky t
 		       'keymap org-mouse-map 'mouse-face 'highlight
 		       'help-echo help))
@@ -2656,13 +2717,13 @@ between words."
 	   (if (memq 'plain lk) '(org-activate-plain-links (0 'org-link t)))
 	   (if (memq 'bracket lk) '(org-activate-bracket-links (0 'org-link t)))
 	   (if (memq 'radio lk) '(org-activate-target-links (0 'org-link t)))
-	   (if (memq 'date lk) '(org-activate-dates (0 'org-link t)))
+	   (if (memq 'date lk) '(org-activate-dates (0 'org-date t)))
 	   (if (memq 'camel lk) '(org-activate-camels (0 'org-link t)))
 	   (if (memq 'tag lk) '(org-activate-tags (1 'org-tag prepend)))
 	   (if org-table-limit-column-width
 	       '(org-hide-wide-columns (0 nil append)))
 	   (list (concat "^\\*+[ \t]*" org-not-done-regexp)
-		 '(1 'org-warning t))
+		 '(1 'org-todo t))
 	   (list (concat "\\[#[A-Z]\\]") '(0 'org-special-keyword t))
 	   (list (concat "\\<" org-deadline-string) '(0 'org-special-keyword t))
 	   (list (concat "\\<" org-scheduled-string) '(0 'org-special-keyword t))
@@ -2683,7 +2744,7 @@ between words."
 	   '("| *\\(:?=[^|\n]*\\)" (1 'org-formula t))
 	   '("^[ \t]*| *\\([#!$*_^]\\) *|" (1 'org-formula t))
 	   (if org-format-transports-properties-p
-	       '("| *\\(<[0-9]+>\\) *|" (1 'org-formula t)))
+	       '("| *\\(<[0-9]+>\\) *" (1 'org-formula t)))
 	   )))
     (setq org-font-lock-extra-keywords (delq nil org-font-lock-extra-keywords))
     ;; Now set the full font-lock-keywords
@@ -3048,7 +3109,10 @@ or nil."
 		     (error (outline-next-heading)))
 		   (prog1 (match-string 0)
 		     (funcall outline-level)))))
-      (unless (bolp) (newline))
+      (if (and (bolp) 
+	       (save-excursion (backward-char 1) (not (org-invisible-p))))
+	  (open-line 1)
+	(newline))
       (insert head)
       (if (looking-at "[ \t]*")
 	  (replace-match " "))
@@ -4249,7 +4313,7 @@ used to insert the time stamp into the buffer to include the time."
 	   ;; the range start.
 	   (if (save-excursion
 		 (re-search-backward
-		  (concat org-ts-regexp "--\\=")
+		  (concat org-ts-regexp "--\\=") ; FIXME: exactly two minuses?
 		  (- (point) 20) t))
 	       (apply
 		'encode-time
@@ -4769,7 +4833,8 @@ The following commands are available:
   (if (featurep 'xemacs) [(button2)] [(mouse-2)]) 'org-agenda-goto-mouse)
 (define-key org-agenda-keymap
   (if (featurep 'xemacs) [(button3)] [(mouse-3)]) 'org-agenda-show-mouse)
-(define-key org-agenda-keymap [follow-link] 'mouse-face)
+(when org-agenda-mouse-1-follows-link
+  (define-key org-agenda-keymap [follow-link] 'mouse-face))
 (easy-menu-define org-agenda-menu org-agenda-mode-map "Agenda menu"
   '("Agenda"
     ("Agenda Files")
@@ -5156,7 +5221,7 @@ NDAYS defaults to `org-agenda-ndays'."
 			 (d (- nt n1)))
 		    (- sd (+ (if (< d 0) 7 0) d)))))
 	 (day-numbers (list start))
-;FIXME	 (inhibit-redisplay t)
+	 (inhibit-redisplay t)
 	 s e rtn rtnall file date d start-pos end-pos todayp nd)
     (setq org-agenda-redo-command
 	  (list 'org-agenda-list (list 'quote include-all) start-day ndays t))
@@ -5522,7 +5587,7 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
 	 (org-disable-agenda-to-diary t))
     (save-excursion
       (save-window-excursion
-	(list-diary-entries date 1)))
+	(list-diary-entries date 1)))  ;; Keep this name for now, compatibility
     (if (not (get-buffer fancy-diary-buffer))
 	(setq entries nil)
       (with-current-buffer fancy-diary-buffer
@@ -5966,7 +6031,7 @@ the documentation of `org-diary'."
 		    (org-add-props txt nil
 		      'face 'org-scheduled-today
 		      'undone-face 'org-scheduled-today 'done-face 'org-done
-		      'category category priority (+ 99 priority))
+		      'category category 'priority (+ 99 priority))
 		  (org-add-props txt nil 'priority priority 'category category)))
 	      (push txt ee))
 	    (outline-next-heading))))
@@ -6227,7 +6292,7 @@ only the correctly processes TXT should be returned - this is used by
 			     (file-name-sans-extension
 			      (file-name-nondirectory buffer-file-name))
 			   "")))
-	   (tag (or (nth (1- (or (length tags) 0)) tags) ""))
+	   (tag (if tags (nth (1- (length tags)) tags) ""))
 	   time              ;; needed for the eval of the prefix format
 	   (ts (if dotime (concat (if (stringp dotime) dotime "") txt)))
 	   (time-of-day (and dotime (org-get-time-of-day ts)))
@@ -7282,7 +7347,10 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 			   (format "Execute \"%s\" in shell? "
 				   (org-add-props cmd nil
 				     'face 'org-warning))))
-	      (shell-command cmd)
+	      (progn
+		(message "Executing %s..." cmd)
+		(shell-command cmd)
+		(message "Executing %s...done" cmd))
 	    (error "Abort"))))
 
        (t
@@ -7669,6 +7737,28 @@ folders."
         (mh-show-msg 1)
       (kill-this-buffer)
       (error "Message not found"))))
+
+(defun org-upgrade-old-links (&optional query-description)
+  "Transfer old <...> style links to new [[...]] style links.
+With arg query-description, ask at each match for a description text to use
+for this link."
+  (interactive (list (y-or-n-p "Would you like to be queried for a description at each link?")))
+  (save-excursion
+    (goto-char (point-min))
+    (let ((re (concat "\\([^[]\\)<\\(" 
+		      "\\(" (mapconcat 'identity org-link-types "\\|") 
+		      "\\):"
+		      "[^" org-non-link-chars "]+\\)>"))
+	  l1 l2 (cnt 0))
+      (while (re-search-forward re nil t)
+	(setq cnt (1+ cnt)
+	      l1 (org-match-string-no-properties 2)
+	      l2 (save-match-data (org-link-escape l1)))
+	(when query-description (setq l1 (read-string "Desc: " l1)))
+	(if (equal l1 l2)
+	    (replace-match (concat (match-string 1) "[[" l1 "]]") t t)
+	  (replace-match (concat (match-string 1) "[[" l2 "][" l1 "]]") t t)))
+      (message "%d matches have beed treated" cnt))))
 
 (defun org-open-file (path &optional in-emacs line search)
   "Open the file at PATH.
@@ -8619,7 +8709,7 @@ This is being used to correctly align a single field after TAB or RET.")
 			   (> (org-string-width xx) fmax))
 		  (org-add-props xx nil
 		    'help-echo
-		    (concat "Clipped table field, use C-c ` to edit. Full value is:\n" (copy-sequence xx)))
+		    (concat "Clipped table field, use C-c ` to edit. Full value is:\n" (org-no-properties (copy-sequence xx))))
 		  (setq f1 (min fmax (or (string-match org-bracket-link-regexp xx) fmax)))
 		  (unless (> f1 1)
 		    (error "Cannot narrow field starting with wide link \"%s\""
@@ -10153,7 +10243,8 @@ $1->    %s\n" orig formula form))
 			    (org-table-align)))))
 
 (defun org-table-recalculate (&optional all noalign)
-  "Recalculate the current table line by applying all stored formulas."
+  "Recalculate the current table line by applying all stored formulas.
+With prefix arg ALL, do this for all lines in the table."
   (interactive "P")
   (or (memq this-command org-recalc-commands)
       (setq org-recalc-commands (cons this-command org-recalc-commands)))
@@ -11376,7 +11467,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
        (mapconcat 'identity org-todo-keywords " ")
      "Me Jason Marie DONE")
    (cdr (assoc org-startup-folded
-	       '((nil . "nofold")(t . "fold")(content . "content"))))
+	       '((nil . "showall") (t . "overview") (content . "content"))))
    (if org-startup-with-deadline-check "dlcheck" "nodlcheck")
    (if org-odd-levels-only "odd" "oddeven")
    (if org-hide-leading-stars "hidestars" "showstars")
@@ -11718,8 +11809,9 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 			      (concat "<img src=\"" thefile "\"/>")
 			    (concat "<a href=\"" thefile "\">" desc "</a>")))))
 	     ((member type '("bbdb" "vm" "wl" "mhe" "rmail" "gnus" "shell"))
-	      (setq rpl (concat "<i>&lt;" type ":" path "&gt;</i>"))))
-	    ;; FIXME: We get to see the escaped links!!!!!
+	      (setq rpl (concat "<i>&lt;" type ":"
+				(save-match-data (org-link-unescape path))
+				"&gt;</i>"))))
 	    (setq line (replace-match rpl t t line)
 		  start (+ start (length rpl))))
 	  ;; TODO items
@@ -12195,6 +12287,89 @@ The iCalendar file will be located in the same directory as the Org-mode
 file, but with extension `.ics'."
   (interactive)
   (org-export-icalendar nil buffer-file-name))
+
+(defun org-export-as-xml ()
+  "Export current buffer as XOXO XML buffer."
+  (interactive)
+  (cond ((eq org-export-xml-type 'xoxo)
+	 (org-export-as-xoxo (current-buffer)))))
+
+(defun org-export-as-xoxo-insert-into (buffer &rest output)
+  (with-current-buffer buffer
+    (apply 'insert output)))
+
+(defun org-export-as-xoxo (&optional buffer)
+  "Export the org buffer as XOXO.
+The XOXO buffer is named *xoxo-<source buffer name>*"
+  (interactive (list (current-buffer)))
+  ;; A quickie abstraction
+
+  ;; Output everything as XOXO
+  (with-current-buffer (get-buffer buffer)
+    (goto-char (point-min))  ;; CD:  beginning-of-buffer is not allowed.
+    (let* ((filename (concat (file-name-sans-extension buffer-file-name)
+			     ".xml"))
+	   (out (find-file-noselect filename))
+	   (last-level 1)
+	   (hanging-li nil))
+      ;; Check the output buffer is empty.
+      (with-current-buffer out (erase-buffer))
+      ;; Kick off the output
+      (org-export-as-xoxo-insert-into out "<ol class='xoxo'>\n")
+      (while (re-search-forward "^\\(\\*+\\) \\(.+\\)" (point-max) 't)
+        (let* ((hd (match-string-no-properties 1))
+               (level (length hd))
+               (text (concat
+                      (match-string-no-properties 2)
+                      (save-excursion
+                        (goto-char (match-end 0))
+                        (let ((str ""))
+                          (catch 'loop
+                            (while 't
+                              (forward-line)
+                              (if (looking-at "^[ \t]\\(.*\\)")
+                                  (setq str (concat str (match-string-no-properties 1)))
+                                (throw 'loop str)))))))))
+
+          ;; Handle level rendering
+          (cond
+           ((> level last-level)
+            (org-export-as-xoxo-insert-into out "\n<ol>\n"))
+
+           ((< level last-level)
+            (dotimes (- (- last-level level) 1)
+              (if hanging-li
+                  (org-export-as-xoxo-insert-into out "</li>\n"))
+              (org-export-as-xoxo-insert-into out "</ol>\n"))
+            (when hanging-li
+              (org-export-as-xoxo-insert-into out "</li>\n")
+              (setq hanging-li nil)))
+
+           ((equal level last-level)
+            (if hanging-li
+                (org-export-as-xoxo-insert-into out "</li>\n")))
+           )
+
+          (setq last-level level)
+
+          ;; And output the new li
+          (setq hanging-li 't)
+          (if (equal ?+ (elt text 0))
+              (org-export-as-xoxo-insert-into out "<li class='" (substring text 1) "'>")
+            (org-export-as-xoxo-insert-into out "<li>" text))))
+
+      ;; Finally finish off the ol
+      (dotimes (- last-level 1)
+        (if hanging-li
+            (org-export-as-xoxo-insert-into out "</li>\n"))
+        (org-export-as-xoxo-insert-into out "</ol>\n"))
+
+      ;; Finish the buffer off and clean it up.
+      (switch-to-buffer-other-window out)
+      (indent-region (point-min) (point-max))
+      (save-buffer)
+      (goto-char (point-min))
+      )))
 
 ;;;###autoload
 (defun org-export-icalendar-all-agenda-files ()
@@ -12742,19 +12917,36 @@ See the individual commands for more information."
     (org-paste-subtree arg)))
 
 (defun org-ctrl-c-ctrl-c (&optional arg)
-  "Call realign table, or recognize a table.el table, or update keywords.
-When the cursor is inside a table created by the table.el package,
-activate that table.  Otherwise, if the cursor is at a normal table
-created with org.el, re-align that table.  This command works even if
-the automatic table editor has been turned off.
+  "Set tags in headline, or update according to changed information at point.
 
-If the cursor is in a headline, prompt for tags and insert them into
-the current line, aligned to `org-tags-column'.  When in a headline and
-called with prefix arg, realign all tags in the current buffer.
+This command does many different things, depending on context:
 
-If the cursor is in one of the special #+KEYWORD lines, this triggers
-scanning the buffer for these lines and updating the information.
-If the cursor is on a #+TBLFM line, re-apply the formulae to the table."
+- If the cursor is in a headline, prompt for tags and insert them
+  into the current line, aligned to `org-tags-column'.  When called
+  with prefix arg, realign all tags in the current buffer.
+
+- If the cursor is in one of the special #+KEYWORD lines, this
+  triggers scanning the buffer for these lines and updating the
+  information. 
+
+- If the cursor is inside a table, realign the table.  This command
+  works even if the automatic table editor has been turned off.
+
+- If the cursor is on a #+TBLFM line, re-apply the formulas to
+  the entire table.
+
+- If the cursor is inside a table created by the table.el package,
+  activate that table.
+
+- If the current buffer is a remember buffer, close note and file it.
+  with a prefix argument, file it without further interaction to the default
+  location.
+
+- If the cursor is on a <<<target>>>, update radio targets and corresponding
+  links in this buffer.
+
+- If the cursor is on a numbered item in a plain list, renumber the
+  ordered list."
   (interactive "P")
   (let  ((org-enable-table-editor t))
     (cond
@@ -13091,9 +13283,10 @@ With optional NODE, go directly to that node."
   ;; through to `fill-paragraph' when appropriate.
   (set (make-local-variable 'fill-paragraph-function) 'org-fill-paragraph)
   ;; Adaptive filling: To get full control, first make sure that
-  ;; `adaptive-fill-regexp' never matches.  Then install our won matcher.
-  (setq adaptive-fill-regexp "\000")
-  (setq adaptive-fill-function 'org-adaptive-fill-function))
+  ;; `adaptive-fill-regexp' never matches.  Then install our own matcher.
+  (set (make-local-variable 'adaptive-fill-regexp) "\000")
+  (set (make-local-variable 'adaptive-fill-function)
+       'org-adaptive-fill-function))
 
 (defun org-fill-paragraph (&optional justify)
   "Re-align a table, pass through to fill-paragraph if no table."
@@ -13368,7 +13561,6 @@ Show the heading too, if it is currently invisible."
        (or (match-beginning 1) (point-max)))
      (if org-noutline-p nil ?\n))))
 
-
 (defun org-make-options-regexp (kwds)
   "Make a regular expression for keyword lines."
   (concat
@@ -13401,114 +13593,6 @@ Show the heading too, if it is currently invisible."
 (provide 'org)
 
 (run-hooks 'org-load-hook)
-
-;; Experimental code
-;; FIXME: Move this code when it is ready.
-
-(defun org-upgrade-old-links (&optional query-description)
-  "Transfer old <...> style links to new [[...]] style links.
-With arg query-description, ask at each match for a description text to use
-for this link."
-  (interactive (list (y-or-n-p "Would you like to be queried for a description at each link?")))
-  (save-excursion
-    (goto-char (point-min))
-    (let ((re (concat "\\([^[]\\)<\\(" 
-		      "\\(" (mapconcat 'identity org-link-types "\\|") 
-		      "\\):"
-		      "[^" org-non-link-chars "]+\\)>"))
-	  l1 l2 (cnt 0))
-      (while (re-search-forward re nil t)
-	(setq cnt (1+ cnt)
-	      l1 (org-match-string-no-properties 2)
-	      l2 (save-match-data (org-link-escape l1)))
-	(when query-description (setq l1 (read-string "Desc: " l1)))
-	(if (equal l1 l2)
-	    (replace-match (concat (match-string 1) "[[" l1 "]]") t t)
-	  (replace-match (concat (match-string 1) "[[" l2 "][" l1 "]]") t t)))
-      (message "%d matches have beed treated" cnt))))
-
-(defun org-export-as-xml ()
-  "Export current buffer as XOXO XML buffer."
-  (interactive)
-  (cond ((eq org-export-xml-type 'xoxo)
-	 (org-export-as-xoxo (current-buffer)))))
-
-(defun org-export-as-xoxo-insert-into (buffer &rest output)
-  (with-current-buffer buffer
-    (apply 'insert output)))
-
-(defun org-export-as-xoxo (&optional buffer)
-  "Export the org buffer as XOXO.
-The XOXO buffer is named *xoxo-<source buffer name>*"
-  (interactive (list (current-buffer)))
-  ;; A quickie abstraction
-
-  ;; Output everything as XOXO
-  (with-current-buffer (get-buffer buffer)
-    (goto-char (point-min))  ;; CD:  beginning-of-buffer is not allowed.
-    (let* ((filename (concat (file-name-sans-extension buffer-file-name)
-			     ".xml"))
-	   (out (find-file-noselect filename))
-	   (last-level 1)
-	   (hanging-li nil))
-      ;; Check the output buffer is empty.
-      (with-current-buffer out (erase-buffer))
-      ;; Kick off the output
-      (org-export-as-xoxo-insert-into out "<ol class='xoxo'>\n")
-      (while (re-search-forward "^\\(\\*+\\) \\(.+\\)" (point-max) 't)
-        (let* ((hd (match-string-no-properties 1))
-               (level (length hd))
-               (text (concat
-                      (match-string-no-properties 2)
-                      (save-excursion
-                        (goto-char (match-end 0))
-                        (let ((str ""))
-                          (catch 'loop
-                            (while 't
-                              (forward-line)
-                              (if (looking-at "^[ \t]\\(.*\\)")
-                                  (setq str (concat str (match-string-no-properties 1)))
-                                (throw 'loop str)))))))))
-
-          ;; Handle level rendering
-          (cond
-           ((> level last-level)
-            (org-export-as-xoxo-insert-into out "\n<ol>\n"))
-
-           ((< level last-level)
-            (dotimes (- (- last-level level) 1)
-              (if hanging-li
-                  (org-export-as-xoxo-insert-into out "</li>\n"))
-              (org-export-as-xoxo-insert-into out "</ol>\n"))
-            (when hanging-li
-              (org-export-as-xoxo-insert-into out "</li>\n")
-              (setq hanging-li nil)))
-
-           ((equal level last-level)
-            (if hanging-li
-                (org-export-as-xoxo-insert-into out "</li>\n")))
-           )
-
-          (setq last-level level)
-
-          ;; And output the new li
-          (setq hanging-li 't)
-          (if (equal ?+ (elt text 0))
-              (org-export-as-xoxo-insert-into out "<li class='" (substring text 1) "'>")
-            (org-export-as-xoxo-insert-into out "<li>" text))))
-
-      ;; Finally finish off the ol
-      (dotimes (- last-level 1)
-        (if hanging-li
-            (org-export-as-xoxo-insert-into out "</li>\n"))
-        (org-export-as-xoxo-insert-into out "</ol>\n"))
-
-      ;; Finish the buffer off and clean it up.
-      (switch-to-buffer-other-window out)
-      (indent-region (point-min) (point-max) nil)
-      (save-buffer)
-      (goto-char (point-min))
-      )))
 
 ;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
 ;;; org.el ends here

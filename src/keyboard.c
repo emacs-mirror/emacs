@@ -9684,6 +9684,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   /* Don't downcase the last character if the caller says don't.
      Don't downcase it if the result is undefined, either.  */
   if ((dont_downcase_last || first_binding >= nmaps)
+      && t > 0
       && t - 1 == original_uppercase_position)
     keybuf[t - 1] = original_uppercase;
 

@@ -3584,6 +3584,10 @@ the result will be a local, non-Tramp, filename."
   "Global variable keeping asynchronous process object.
 Used in `tramp-handle-shell-command'")
 
+(defvar tramp-display-shell-command-buffer t
+  "Whether to display output buffer of `shell-command'.
+This is necessary for handling DISPLAY of `process-file'.")
+
 (defun tramp-handle-shell-command (command &optional output-buffer error-buffer)
   "Like `shell-command' for tramp files.
 This will break if COMMAND prints a newline, followed by the value of
@@ -3692,7 +3696,8 @@ This will break if COMMAND prints a newline, followed by the value of
 	      (skip-chars-forward "^ ")
 	      (setq status (read (current-buffer)))))
 	  (unless (zerop (buffer-size))
-	    (display-buffer output-buffer))
+	    (when tramp-display-shell-command-buffer
+	      (display-buffer output-buffer)))
 	  status))
     ;; The following is only executed if something strange was
     ;; happening.  Emit a helpful message and do it anyway.
@@ -3707,11 +3712,10 @@ This will break if COMMAND prints a newline, followed by the value of
   (when (and (numberp buffer) (zerop buffer))
     (error "Implementation does not handle immediate return"))
   (when (consp buffer) (error "Implementation does not handle error files"))
-  (shell-command
-   (mapconcat 'tramp-shell-quote-argument
-              (cons program args)
-              " ")
-   buffer))
+  (let ((tramp-display-shell-command-buffer display))
+    (shell-command
+     (mapconcat 'tramp-shell-quote-argument (cons program args) " ")
+     buffer)))
 
 ;; File Editing.
 
@@ -4454,24 +4458,28 @@ necessary anymore."
      file)
     (member (match-string 1 file) (mapcar 'car tramp-methods)))
    ((or (equal last-input-event 'tab)
-	;; Emacs
-	(and (integerp last-input-event)
-	     (not (event-modifiers last-input-event))
-	     (or (char-equal last-input-event ?\?)
-		 (char-equal last-input-event ?\t) ; handled by 'tab already?
-		 (char-equal last-input-event ?\ )))
+  	;; Emacs
+  	(and (integerp last-input-event)
+	     (or
+	      ;; ?\t has event-modifier 'control
+	      (char-equal last-input-event ?\t)
+	      (and (not (event-modifiers last-input-event))
+		   (or (char-equal last-input-event ?\?)
+		       (char-equal last-input-event ?\ )))))
 	;; XEmacs
 	(and (featurep 'xemacs)
-	     (not (event-modifiers last-input-event))
-	     (or (char-equal
-		  (funcall (symbol-function 'event-to-character)
-			   last-input-event) ?\?)
-		 (char-equal
-		  (funcall (symbol-function 'event-to-character)
-			   last-input-event) ?\t)
-		 (char-equal
-		  (funcall (symbol-function 'event-to-character)
-			   last-input-event) ?\ ))))
+	     (or
+	      ;; ?\t has event-modifier 'control
+	      (char-equal
+	       (funcall (symbol-function 'event-to-character)
+			last-input-event) ?\t)
+	      (and (not (event-modifiers last-input-event))
+		   (or (char-equal
+			(funcall (symbol-function 'event-to-character)
+				 last-input-event) ?\?)
+		       (char-equal
+			(funcall (symbol-function 'event-to-character)
+				 last-input-event) ?\ ))))))
     t)))
 
 (defun tramp-completion-handle-file-exists-p (filename)

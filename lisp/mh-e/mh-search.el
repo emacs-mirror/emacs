@@ -324,7 +324,7 @@ folder containing the index search results."
                        count (> (hash-table-count msg-hash) 0)))))))
 
 ;; Shush compiler.
-(eval-when-compile (mh-do-in-xemacs (defvar pick-folder)))
+(defvar pick-folder)                    ; XEmacs
 
 (defun mh-search-folder (folder window-config)
   "Search FOLDER for messages matching a pattern.
@@ -404,10 +404,8 @@ or nothing to search all folders."
   (mh-index-sequenced-messages folders mh-tick-seq))
 
 ;; Shush compiler.
-(eval-when-compile
-  (mh-do-in-xemacs
-    (defvar mh-mairix-folder)
-    (defvar mh-flists-search-folders)))
+(defvar mh-mairix-folder)               ; XEmacs
+(defvar mh-flists-search-folders)       ; XEmacs
 
 ;;;###mh-autoload
 (defun mh-index-sequenced-messages (folders sequence)
@@ -1414,9 +1412,7 @@ being the list of messages originally from that folder."
 (mh-require 'which-func nil t)
 
 ;; Shush compiler.
-(eval-when-compile
-  (if (or mh-xemacs-flag (< emacs-major-version 22))
-      (defvar which-func-mode)))
+(defvar which-func-mode)                ; < Emacs 22, XEmacs
 
 ;;;###mh-autoload
 (defun mh-index-create-imenu-index ()
@@ -1441,7 +1437,7 @@ being the list of messages originally from that folder."
   mh-index-data)
 
 ;; Shush compiler
-(eval-when-compile (if mh-xemacs-flag (defvar mh-speed-flists-inhibit-flag)))
+(defvar mh-speed-flists-inhibit-flag)   ; XEmacs
 
 ;;;###mh-autoload
 (defun mh-index-execute-commands ()

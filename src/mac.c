@@ -28,7 +28,9 @@ Boston, MA 02110-1301, USA.  */
 
 #include "lisp.h"
 #include "process.h"
-#undef init_process
+#ifdef MAC_OSX
+#undef select
+#endif
 #include "systime.h"
 #include "sysselect.h"
 #include "blockinput.h"
@@ -79,8 +81,10 @@ static ComponentInstance as_scripting_component;
 /* The single script context used for all script executions.  */
 static OSAID as_script_context;
 
+#ifndef MAC_OSX
 static OSErr posix_pathname_to_fsspec P_ ((const char *, FSSpec *));
 static OSErr fsspec_to_posix_pathname P_ ((const FSSpec *, char *, int));
+#endif
 
 /* When converting from Mac to Unix pathnames, /'s in folder names are
    converted to :'s.  This function, used in copying folder names,
@@ -449,15 +453,10 @@ mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
       char *buf;
 
       buf = xmalloc (data_size + 1);
-      if (buf)
-	{
-	  memcpy (buf, data_ptr, data_size);
-	  buf[data_size] = '\0';
-	  err = posix_pathname_to_fsspec (buf, &fs);
-	  xfree (buf);
-	}
-      else
-	err = memFullErr;
+      memcpy (buf, data_ptr, data_size);
+      buf[data_size] = '\0';
+      err = posix_pathname_to_fsspec (buf, &fs);
+      xfree (buf);
       if (err == noErr)
 	err = AECoercePtr (typeFSS, &fs, sizeof (FSSpec), to_type, result);
 #endif
@@ -485,14 +484,11 @@ mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
 	    {
 	      size = AEGetDescDataSize (&desc);
 	      buf = xmalloc (size);
-	      if (buf)
-		{
-		  err = AEGetDescData (&desc, buf, size);
-		  if (err == noErr)
-		    url = CFURLCreateWithBytes (NULL, buf, size,
-						kCFStringEncodingUTF8, NULL);
-		  xfree (buf);
-		}
+	      err = AEGetDescData (&desc, buf, size);
+	      if (err == noErr)
+		url = CFURLCreateWithBytes (NULL, buf, size,
+					    kCFStringEncodingUTF8, NULL);
+	      xfree (buf);
 	      AEDisposeDesc (&desc);
 	    }
 	}
@@ -577,21 +573,16 @@ mac_coerce_file_name_desc (from_desc, to_type, handler_refcon, result)
       data_size = GetHandleSize (from_desc->dataHandle);
 #endif
       data_ptr = xmalloc (data_size);
-      if (data_ptr)
-	{
 #if TARGET_API_MAC_CARBON
-	  err = AEGetDescData (from_desc, data_ptr, data_size);
+      err = AEGetDescData (from_desc, data_ptr, data_size);
 #else
-	  memcpy (data_ptr, *(from_desc->dataHandle), data_size);
+      memcpy (data_ptr, *(from_desc->dataHandle), data_size);
 #endif
-	  if (err == noErr)
-	    err = mac_coerce_file_name_ptr (from_type, data_ptr,
-					    data_size, to_type,
-					    handler_refcon, result);
-	  xfree (data_ptr);
-	}
-      else
-	err = memFullErr;
+      if (err == noErr)
+	err = mac_coerce_file_name_ptr (from_type, data_ptr,
+					data_size, to_type,
+					handler_refcon, result);
+      xfree (data_ptr);
     }
 
   if (err != noErr)
@@ -687,8 +678,6 @@ create_apple_event_from_event_ref (event, num_params, names, types, result)
 	if (err != noErr)
 	  break;
 	buf = xmalloc (size);
-	if (buf == NULL)
-	  break;
 	err = GetEventParameter (event, names[i], types[i], NULL,
 				 size, NULL, buf);
 	if (err == noErr)
@@ -1222,7 +1211,7 @@ parse_value (p)
 		       && '0' <= P[1] && P[1] <= '7'
 		       && '0' <= P[2] && P[2] <= '7')
 		{
-		  *q++ = (P[0] - '0' << 6) + (P[1] - '0' << 3) + (P[2] - '0');
+		  *q++ = ((P[0] - '0') << 6) + ((P[1] - '0') << 3) + (P[2] - '0');
 		  P += 3;
 		}
 	      else
@@ -1592,8 +1581,6 @@ xrm_get_preference_database (application)
 
   count = CFSetGetCount (key_set);
   keys = xmalloc (sizeof (CFStringRef) * count);
-  if (keys == NULL)
-    goto out;
   CFSetGetValues (key_set, (const void **)keys);
   for (index = 0; index < count; index++)
     {
@@ -2789,7 +2776,7 @@ link (const char *name1, const char *name2)
 /* Determine the path name of the file specified by VREFNUM, DIRID,
    and NAME and place that in the buffer PATH of length
    MAXPATHLEN.  */
-int
+static int
 path_from_vol_dir_name (char *path, int man_path_len, short vol_ref_num,
 			long dir_id, ConstStr255Param name)
 {
@@ -2834,6 +2821,8 @@ path_from_vol_dir_name (char *path, int man_path_len, short vol_ref_num,
 }
 
 
+#ifndef MAC_OSX
+
 static OSErr
 posix_pathname_to_fsspec (ufn, fs)
      const char *ufn;
@@ -2865,8 +2854,6 @@ fsspec_to_posix_pathname (fs, ufn, ufnbuflen)
   else
     return fnfErr;
 }
-
-#ifndef MAC_OSX
 
 int
 readlink (const char *path, char *buf, int bufsiz)
@@ -3124,8 +3111,7 @@ get_temp_dir_name ()
   short vol_ref_num;
   long dir_id;
   OSErr err;
-  Str255 dir_name, full_path;
-  CInfoPBRec cpb;
+  Str255 full_path;
   char unix_dir_name[MAXPATHLEN+1];
   DIR *dir;
 
@@ -3217,8 +3203,7 @@ get_path_to_system_folder ()
   short vol_ref_num;
   long dir_id;
   OSErr err;
-  Str255 dir_name, full_path;
-  CInfoPBRec cpb;
+  Str255 full_path;
   static char system_folder_unix_name[MAXPATHLEN+1];
   DIR *dir;
 
@@ -3947,7 +3932,6 @@ DEFUN ("mac-get-file-creator", Fmac_get_file_creator, Smac_get_file_creator, 1, 
 #else
   FSSpec fss;
 #endif
-  OSType cCode;
   Lisp_Object result = Qnil;
   CHECK_STRING (filename);
 
@@ -4002,7 +3986,6 @@ DEFUN ("mac-get-file-type", Fmac_get_file_type, Smac_get_file_type, 1, 1, 0,
 #else
   FSSpec fss;
 #endif
-  OSType cCode;
   Lisp_Object result = Qnil;
   CHECK_STRING (filename);
 
@@ -4296,11 +4279,6 @@ Each type should be a string of length 4 or the symbol
   Lisp_Object result = Qnil;
   DescType src_desc_type, dst_desc_type;
   AEDesc dst_desc;
-#ifdef MAC_OSX
-  FSRef fref;
-#else
-  FSSpec fs;
-#endif
 
   CHECK_STRING (src_data);
   if (EQ (src_type, Qundecoded_file_name))
@@ -4422,18 +4400,20 @@ otherwise.  */)
     }
 
   if (NILP (key))
-    if (EQ (format, Qxml))
-      {
-	CFDataRef data = CFPropertyListCreateXMLData (NULL, plist);
-	if (data == NULL)
-	  goto out;
-	result = cfdata_to_lisp (data);
-	CFRelease (data);
-      }
-    else
-      result =
-	cfproperty_list_to_lisp (plist, EQ (format, Qt),
-				 NILP (hash_bound) ? -1 : XINT (hash_bound));
+    {
+      if (EQ (format, Qxml))
+	{
+	  CFDataRef data = CFPropertyListCreateXMLData (NULL, plist);
+	  if (data == NULL)
+	    goto out;
+	  result = cfdata_to_lisp (data);
+	  CFRelease (data);
+	}
+      else
+	result =
+	  cfproperty_list_to_lisp (plist, EQ (format, Qt),
+				   NILP (hash_bound) ? -1 : XINT (hash_bound));
+    }
 
  out:
   if (app_plist)
@@ -4550,11 +4530,8 @@ cfstring_create_normalized (str, symbol)
       if (in_text == NULL)
 	{
 	  buffer = xmalloc (sizeof (UniChar) * length);
-	  if (buffer)
-	    {
-	      CFStringGetCharacters (str, CFRangeMake (0, length), buffer);
-	      in_text = buffer;
-	    }
+	  CFStringGetCharacters (str, CFRangeMake (0, length), buffer);
+	  in_text = buffer;
 	}
 
       if (in_text)
@@ -4562,15 +4539,12 @@ cfstring_create_normalized (str, symbol)
       while (err == noErr)
 	{
 	  out_buf = xmalloc (out_size);
-	  if (out_buf == NULL)
-	    err = mFulErr;
-	  else
-	    err = ConvertFromUnicodeToText (uni, length * sizeof (UniChar),
-					    in_text,
-					    kUnicodeDefaultDirectionMask,
-					    0, NULL, NULL, NULL,
-					    out_size, &out_read, &out_len,
-					    out_buf);
+	  err = ConvertFromUnicodeToText (uni, length * sizeof (UniChar),
+					  in_text,
+					  kUnicodeDefaultDirectionMask,
+					  0, NULL, NULL, NULL,
+					  out_size, &out_read, &out_len,
+					  out_buf);
 	  if (err == noErr && out_read < length * sizeof (UniChar))
 	    {
 	      xfree (out_buf);
@@ -4701,7 +4675,6 @@ mac_get_system_locale ()
 
 
 #ifdef MAC_OSX
-#undef select
 
 extern int inhibit_window_system;
 extern int noninteractive;

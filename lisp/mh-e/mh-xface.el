@@ -60,8 +60,7 @@
     (funcall mh-show-xface-function)))
 
 ;; Shush compiler.
-(eval-when-compile
-  (mh-do-in-xemacs (defvar default-enable-multibyte-characters)))
+(defvar default-enable-multibyte-characters) ; XEmacs
 
 (defun mh-face-display-function ()
   "Display a Face, X-Face, or X-Image-URL header field.

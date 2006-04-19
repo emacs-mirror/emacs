@@ -94,15 +94,10 @@ Use `$$' to insert a single dollar sign."
 
 ;; Fixme: Should the environment be recoded if LC_CTYPE &c is set?
 
-(defun setenv (variable &optional value unset substitute-env-vars frame)
+(defun setenv (variable &optional value substitute-env-vars frame)
   "Set the value of the environment variable named VARIABLE to VALUE.
 VARIABLE should be a string.  VALUE is optional; if not provided or
 nil, the environment variable VARIABLE will be removed.
-UNSET if non-nil means to remove VARIABLE from the environment.
-SUBSTITUTE-ENV-VARS, if non-nil, means to substitute environment
-variables in VALUE with `substitute-env-vars', where see.
-Value is the new value if VARIABLE, or nil if removed from the
-environment.
 
 Interactively, a prefix argument means to unset the variable, and
 otherwise the current value (if any) of the variable appears at
@@ -116,6 +111,13 @@ modifying either `global-environment' or the environment
 belonging to the selected frame, depending on the value of
 `local-environment-variables'.
 
+SUBSTITUTE-ENV-VARS, if non-nil, means to substitute environment
+variables in VALUE with `substitute-env-vars', which see.
+This is normally used only for interactive calls.
+
+The return value is the new value of VARIABLE, or nil if
+it was removed from the environment.
+
 If optional parameter FRAME is non-nil, then it should be a a
 frame.  If the specified frame has its own set of environment
 variables, this function will modify VARIABLE in it.  Note that
@@ -127,7 +129,7 @@ As a special case, setting variable `TZ' calls `set-time-zone-rule' as
 a side-effect."
   (interactive
    (if current-prefix-arg
-       (list (read-envvar-name "Clear environment variable: " 'exact) nil t)
+       (list (read-envvar-name "Clear environment variable: " 'exact) nil)
      (let* ((var (read-envvar-name "Set environment variable: " nil))
 	    (value (getenv var)))
        (when value
@@ -137,7 +139,6 @@ a side-effect."
 	     (read-from-minibuffer (format "Set %s to value: " var)
 				   nil nil nil 'setenv-history
 				   value)
-	     nil
 	     t))))
   (if (and (multibyte-string-p variable) locale-coding-system)
       (let ((codings (find-coding-systems-string (concat variable value))))
@@ -145,10 +146,9 @@ a side-effect."
 		    (memq (coding-system-base locale-coding-system) codings))
 	  (error "Can't encode `%s=%s' with `locale-coding-system'"
 		 variable (or value "")))))
-  (if unset
-      (setq value nil)
-    (if substitute-env-vars
-	(setq value (substitute-env-vars value))))
+  (and value
+       substitute-env-vars
+       (setq value (substitute-env-vars value)))
   (if (multibyte-string-p variable)
       (setq variable (encode-coding-string variable locale-coding-system)))
   (if (and value (multibyte-string-p value))

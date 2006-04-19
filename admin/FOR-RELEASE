@@ -37,6 +37,9 @@ Assigned to Bill Wohler <wohler@newt.com>.
 
 ** Is there a basic problem with cl-byte-compile-compiler-macro?
 
+** Recalculate the tool bar height after changing the default font.
+(Bug report by Yamamoto Mistuharu, 31 Mar 2006)
+
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
 .emacs file, and then reduce Emacs frame width to "something quite narrow":
 	(setq-default truncate-lines t)
@@ -76,7 +79,7 @@ you're going to handle.
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
 etc (and subdirs)	done		Thien-Thi Nguyen (ttn(@gnu.org))
-leim			working		Kenichi Handa
+leim			done		Kenichi Handa
 lib-src			done		ttn
 lisp			done		ttn
 lisp/calc		done		Jay Belanger
@@ -85,8 +88,8 @@ lisp/emacs-lisp		done		ttn
 lisp/emulation		done		ttn
 lisp/eshell		done		ttn
 lisp/gnus		done		Romain Francoise
-lisp/international	working		Kenichi Handa
-lisp/language		working		Kenichi Handa
+lisp/international	done		Kenichi Handa
+lisp/language		done		Kenichi Handa
 lisp/mail		done		ttn
 lisp/mh-e		done		Bill Wohler
 lisp/net		done		ttn

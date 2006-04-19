@@ -465,8 +465,10 @@ extern char *get_emacs_configuration_options (void);
 #endif
 #include <string.h>
 
-/* We need a little extra space, see ../../lisp/loadup.el */
-#define SYSTEM_PURESIZE_EXTRA 137500
+/* We need a little extra space, see ../../lisp/loadup.el.
+   The number below comes from 22038 bytes worth (as of 2006-04)
+   of w32-specific files loaded by loadup.el, plus 2K spare.  */
+#define SYSTEM_PURESIZE_EXTRA 24000
 
 /* For unexec to work on Alpha systems, we need to put Emacs'
    initialized data into a separate section from the CRT initialized

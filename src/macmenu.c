@@ -72,7 +72,7 @@ enum mac_menu_kind {		/* Menu ID range  */
   MAC_MENU_END			/* 32768          */
 };
 
-static const min_menu_id[] = {0, 1, 235, 236, 256, 16384, 32768};
+static const int min_menu_id[] = {0, 1, 235, 236, 256, 16384, 32768};
 
 #define DIALOG_WINDOW_RESOURCE 130
 

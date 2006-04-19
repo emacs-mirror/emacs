@@ -24870,16 +24870,17 @@ Gnus should work on:
 @itemize @bullet
 
 @item
-Emacs 20.7 and up.
+Emacs 21.1 and up.
 
 @item
-XEmacs 21.1 and up.
+XEmacs 21.4 and up.
 
 @end itemize
 
 This Gnus version will absolutely not work on any Emacsen older than
 that.  Not reliably, at least.  Older versions of Gnus may work on older
-Emacs versions.
+Emacs versions.  Particularly, Gnus 5.10.8 should also work on Emacs
+20.7 and XEmacs 21.1.
 
 There are some vague differences between Gnus on the various
 platforms---XEmacs features more graphics (a logo and a toolbar)---but

@@ -31,11 +31,6 @@ these functions are called in a special way (they are passed arguments,
 or their values are used). The variables whose names end in
 @samp{-function} have single functions as their values.
 
-(In older Emacs versions, some normal hooks had names ending in
-@samp{-hooks} or @samp{-functions}, and some abnormal hooks had names
-ending in @samp{-hook}.  We have renamed all of these to conform to
-the above conventions.)
-
 @c We need to xref to where each hook is documented or else document
 @c it here.
 

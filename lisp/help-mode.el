@@ -197,6 +197,7 @@ Commands:
   (view-mode)
   (make-local-variable 'view-no-disable-on-exit)
   (setq view-no-disable-on-exit t)
+  (setq view-exit-action (lambda (buffer) (delete-window)))
   (run-mode-hooks 'help-mode-hook))
 
 ;;;###autoload

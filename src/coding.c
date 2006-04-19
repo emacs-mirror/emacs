@@ -3603,6 +3603,8 @@ setup_coding_system (coding_system, coding)
     {
       coding->eol_type = CODING_EOL_UNDECIDED;
       coding->common_flags = CODING_REQUIRE_DETECTION_MASK;
+      if (system_eol_type != CODING_EOL_LF)
+	coding->common_flags |= CODING_REQUIRE_ENCODING_MASK;
     }
   else if (XFASTINT (eol_type) == 1)
     {
@@ -3918,9 +3920,12 @@ setup_coding_system (coding_system, coding)
   coding->type = coding_type_no_conversion;
   coding->category_idx = CODING_CATEGORY_IDX_BINARY;
   coding->common_flags = 0;
-  coding->eol_type = CODING_EOL_LF;
+  coding->eol_type = NILP (coding_system) ? system_eol_type : CODING_EOL_LF;
+  if (coding->eol_type != CODING_EOL_LF)
+    coding->common_flags
+      |= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
   coding->pre_write_conversion = coding->post_read_conversion = Qnil;
-  return -1;
+  return NILP (coding_system) ? 0 : -1;
 }
 
 /* Free memory blocks allocated for storing composition information.  */
@@ -4994,6 +4999,8 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes)
   coding->consumed = coding->consumed_char = 0;
   coding->errors = 0;
   coding->result = CODING_FINISH_NORMAL;
+  if (coding->eol_type == CODING_EOL_UNDECIDED)
+    coding->eol_type = system_eol_type;
 
   switch (coding->type)
     {
@@ -5250,6 +5257,8 @@ shrink_encoding_region (beg, end, coding, str)
   if (coding->type == coding_type_ccl
       || coding->eol_type == CODING_EOL_CRLF
       || coding->eol_type == CODING_EOL_CR
+      || (coding->eol_type == CODING_EOL_UNDECIDED
+	  && system_eol_type != CODING_EOL_LF)
       || (coding->cmp_data && coding->cmp_data->used > 0))
     {
       /* We can't skip any data.  */
@@ -7105,7 +7114,7 @@ code_convert_region1 (start, end, coding_system, encodep)
   from = XFASTINT (start);
   to = XFASTINT (end);
 
-  if (NILP (coding_system))
+  if (NILP (coding_system) && system_eol_type == CODING_EOL_LF)
     return make_number (to - from);
 
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
@@ -7160,7 +7169,7 @@ code_convert_string1 (string, coding_system, nocopy, encodep)
   CHECK_STRING (string);
   CHECK_SYMBOL (coding_system);
 
-  if (NILP (coding_system))
+  if (NILP (coding_system) && system_eol_type == CODING_EOL_LF)
     return (NILP (nocopy) ? Fcopy_sequence (string) : string);
 
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
@@ -7219,7 +7228,7 @@ code_convert_string_norecord (string, coding_system, encodep)
   CHECK_STRING (string);
   CHECK_SYMBOL (coding_system);
 
-  if (NILP (coding_system))
+  if (NILP (coding_system) && system_eol_type == CODING_EOL_LF)
     return string;
 
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)

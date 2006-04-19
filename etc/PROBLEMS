@@ -991,7 +991,7 @@ xmodmap command to the xdm setup script for that display.
 
 Use the shell command `xset bc' to make the old X Menu package work.
 
-*** C-SPC fails to work on Fedora GNU/Linux (or with some input method).
+*** C-SPC fails to work on Fedora GNU/Linux (or with fcitx input method).
 
 Fedora Core 4 steals the C-SPC key by default for the `iiimx' program
 which is the input method for some languages.  It blocks Emacs users

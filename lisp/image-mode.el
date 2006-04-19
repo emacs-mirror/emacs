@@ -139,7 +139,11 @@ and showing the image as an image."
     ;; was inserted
     (let* ((image
 	    (if (and (buffer-file-name)
-		     (not (buffer-modified-p)))
+		     (not (buffer-modified-p))
+		     (not (and (boundp 'archive-superior-buffer)
+			       archive-superior-buffer))
+		     (not (and (boundp 'tar-superior-buffer)
+			       tar-superior-buffer)))
 		(progn (clear-image-cache)
 		       (create-image (buffer-file-name)))
 	      (create-image

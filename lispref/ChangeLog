@@ -1,3 +1,35 @@
+2006-04-18  Richard Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Explain when the package's
+	prefix should appear later on (not at the start of the name).
+
+	* searching.texi (String Search): Clarify effect of NOERROR.
+
+	* modes.texi (Imenu): Clarify what special items do.
+
+	* hooks.texi (Standard Hooks): Delete text about old hook names.
+
+2006-04-17  Romain Francoise  <romain@orebokech.com>
+
+	* variables.texi (Local Variables): Update the default value of
+	`max-specpdl-size'.
+
+2006-04-15  Michael Olson  <mwolson@gnu.org>
+
+	* processes.texi (Transaction Queues): Mention the new optional
+	`delay-question' argument for `tq-enqueue'.
+
+2006-04-13  Bill Wohler  <wohler@newt.com>
+
+	* customize.texi (Common Keywords): Use dotted notation for
+	:package-version value. Specify its values. Improve documentation
+	for customize-package-emacs-version-alist.
+
+2006-04-12  Bill Wohler  <wohler@newt.com>
+
+	* customize.texi (Common Keywords): Move description of
+	customize-package-emacs-version-alist to @defvar.
+
 2006-04-10  Bill Wohler  <wohler@newt.com>
 
 	* customize.texi (Common Keywords): Add :package-version.
@@ -43,8 +75,7 @@
 
 2006-03-19  Alan Mackenzie  <acm@muc.de>
 
-	* text.texi (Special Properties): Clarify the definition of
-	'fontified.
+	* text.texi (Special Properties): Clarify `fontified' property.
 
 2006-03-16  Richard Stallman  <rms@gnu.org>
 

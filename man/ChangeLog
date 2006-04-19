@@ -1,3 +1,54 @@
+2006-04-18  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* misc.texi (Shell Ring): Added notes on saved input when
+	navigating off the end of the history list.  
+
+2006-04-18  Chong Yidong  <cyd@mit.edu>
+
+	* misc.texi (Shell Options): Correct default value of
+	comint-scroll-show-maximum-output.
+
+2006-04-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Formula syntax): Fixed link to Calc Manual.
+
+2006-04-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Emacsen): Don't support Emacs 20.7 and XEmacs 21.1.
+
+2006-04-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Folders): Updated mh-before-quit-hook and
+	mh-quit-hook example with code that removes the buffers rather
+	than just bury them.
+
+2006-04-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Watch Expressions): Update.
+
+2006-04-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.53.
+
+2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Updating settings): New section.
+	(Visibility cycling): Better names for the startup folding
+	options.
+	(Exporting): Completely restructured.
+	(The very busy C-c C-c key): New section.
+	(Summary of in-buffer settings): New section.
+
+2006-04-12  Richard Stallman  <rms@gnu.org>
+
+	* search.texi: Clean up previous change.
+
+2006-04-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.texi (Regexp Backslash, Regexp Replace): Add index
+	entries for ``back reference'' and mention the term itself in the
+	text.
+
 2006-04-11  Richard Stallman  <rms@gnu.org>
 
 	* custom.texi (Safe File Variables):

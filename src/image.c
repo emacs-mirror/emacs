@@ -201,7 +201,7 @@ XPutPixel (ximage, x, y, pixel)
     }
   else
 #endif
- if (depth == 1)
+  if (depth == 1)
     {
       char *base_addr = GetPixBaseAddr (pixmap);
       short row_bytes = GetPixRowBytes (pixmap);
@@ -444,8 +444,6 @@ x_create_bitmap_from_data (f, bits, width, height)
   id = x_allocate_bitmap_record (f);
 #ifdef MAC_OS
   dpyinfo->bitmaps[id - 1].bitmap_data = (char *) xmalloc (height * width);
-  if (! dpyinfo->bitmaps[id - 1].bitmap_data)
-    return -1;
   bcopy (bits, dpyinfo->bitmaps[id - 1].bitmap_data, height * width);
 #endif  /* MAC_OS */
 
@@ -4381,7 +4379,7 @@ xpm_load_image (f, img, contents, end)
 	  if (color == NULL)
 	    goto failure;
 
-	  while (str = strtok (NULL, " \t"))
+	  while ((str = strtok (NULL, " \t")) != NULL)
 	    {
 	      next_key = xpm_str_to_color_key (str);
 	      if (next_key >= 0)
@@ -4409,17 +4407,21 @@ xpm_load_image (f, img, contents, end)
 	  Lisp_Object specified_color = Fassoc (symbol_color, color_symbols);
 
 	  if (CONSP (specified_color) && STRINGP (XCDR (specified_color)))
-	    if (xstricmp (SDATA (XCDR (specified_color)), "None") == 0)
-	      color_val = Qt;
-	    else if (x_defined_color (f, SDATA (XCDR (specified_color)),
-				      &cdef, 0))
-	      color_val = make_number (cdef.pixel);
+	    {
+	      if (xstricmp (SDATA (XCDR (specified_color)), "None") == 0)
+		color_val = Qt;
+	      else if (x_defined_color (f, SDATA (XCDR (specified_color)),
+					&cdef, 0))
+		color_val = make_number (cdef.pixel);
+	    }
 	}
       if (NILP (color_val) && max_key > 0)
-	if (xstricmp (max_color, "None") == 0)
-	  color_val = Qt;
-	else if (x_defined_color (f, max_color, &cdef, 0))
-	  color_val = make_number (cdef.pixel);
+	{
+	  if (xstricmp (max_color, "None") == 0)
+	    color_val = Qt;
+	  else if (x_defined_color (f, max_color, &cdef, 0))
+	    color_val = make_number (cdef.pixel);
+	}
       if (!NILP (color_val))
 	(*put_color_table) (color_table, beg, chars_per_pixel, color_val);
 
@@ -7848,7 +7850,6 @@ gif_load (f, img)
   int width, height;
   XImagePtr ximg;
   TimeValue time;
-  struct gcpro gcpro1;
   int ino;
   CGrafPtr old_port;
   GDHandle old_gdh;

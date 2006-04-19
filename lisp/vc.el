@@ -3107,7 +3107,11 @@ colors. `vc-annotate-background' specifies the background color."
   (vc-ensure-vc-buffer)
   (setq vc-annotate-display-mode display-mode) ;Not sure why.  --Stef
   (let* ((temp-buffer-name (format "*Annotate %s (rev %s)*" (buffer-name) rev))
-         (temp-buffer-show-function 'vc-annotate-display-select))
+         (temp-buffer-show-function 'vc-annotate-display-select)
+         ;; If BUF is specified, we presume the caller maintains current line,
+         ;; so we don't need to do it here.  This implementation may give
+         ;; strange results occasionally in the case of REV != WORKFILE-REV.
+         (current-line (unless buf (line-number-at-pos))))
     (message "Annotating...")
     ;; If BUF is specified it tells in which buffer we should put the
     ;; annotations.  This is used when switching annotations to another
@@ -3129,6 +3133,8 @@ colors. `vc-annotate-background' specifies the background color."
         (set (make-local-variable 'vc-annotate-parent-rev) rev)
         (set (make-local-variable 'vc-annotate-parent-display-mode)
              display-mode)))
+    (when current-line
+      (goto-line current-line temp-buffer-name))
     (message "Annotating... done")))
 
 (defun vc-annotate-prev-version (prefix)
@@ -3310,8 +3316,8 @@ The annotations are relative to the current time, unless overridden by OFFSET."
       (let* ((color (or (vc-annotate-compcar difference vc-annotate-color-map)
 			(cons nil vc-annotate-very-old-color)))
 	     ;; substring from index 1 to remove any leading `#' in the name
-	     (face-name (concat "vc-annotate-face-" 
-				(if (string-equal 
+	     (face-name (concat "vc-annotate-face-"
+				(if (string-equal
 				     (substring (cdr color) 0 1) "#")
 				    (substring (cdr color) 1)
 				  (cdr color))))

@@ -272,11 +272,14 @@ The following common keywords are also meaningful.
         first introduced, or its default value was changed, in Emacs
         version VERSION.
 :package-version
-        VALUE should be a list with the form (PACKAGE VERSION)
+        VALUE should be a list with the form (PACKAGE . VERSION)
         specifying that the variable was first introduced, or its
         default value was changed, in PACKAGE version VERSION.  This
         keyword takes priority over :version.  The PACKAGE and VERSION
         must appear in the alist `customize-package-emacs-version-alist'.
+        Since PACKAGE must be unique and the user might see it in an
+        error message, a good choice is the official name of the
+        package, such as MH-E or Gnus.
 :tag LABEL
         Use LABEL, a string, instead of the item's name, to label the item
         in customization menus and buffers.

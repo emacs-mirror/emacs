@@ -374,8 +374,9 @@ t means that there is no stack, and we are in display-file mode.")
 (defun gud-speedbar-item-info ()
   "Display the data type of the watch expression element."
   (let ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list)))
-    (if (nth 4 var)
-	(speedbar-message "%s" (nth 3 var)))))
+    (if (nth 6 var)
+	(speedbar-message "%s: %s" (nth 6 var) (nth 3 var))
+      (speedbar-message "%s" (nth 3 var)))))
 
 (defun gud-install-speedbar-variables ()
   "Install those variables used by speedbar to enhance gud/gdb."
