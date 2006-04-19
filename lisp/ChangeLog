@@ -1,3 +1,7 @@
+2006-04-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/python.el (python-mode): Fix typo.
+
 2006-04-18  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* comint.el (comint-previous-input): Don't clobber input line

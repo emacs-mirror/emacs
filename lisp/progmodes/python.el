@@ -1744,7 +1744,7 @@ lines count as headers.
        #'python-eldoc-function)
   (add-hook 'eldoc-mode-hook
 	    '(lambda () (run-python nil t)) nil t) ; need it running
-  (unless (assoc 'pyhon-mode hs-special-modes-alist)
+  (unless (assoc 'python-mode hs-special-modes-alist)
     (setq 
      hs-special-modes-alist 
      (cons (list 
