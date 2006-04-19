@@ -151,7 +151,7 @@ where,
              (doc (if (string-match "\\(.*\\)\n" full-doc)
                       (match-string 1 full-doc)
                     full-doc))
-             (enable-expr (or (nth 4 button) t))
+             (enable-expr (if (eql (length button) 4) t (nth 4 button)))
              (modes (nth 1 button))
              functions show-sym)
         (when (memq 'letter modes) (setq functions `(:letter ,name)))
@@ -318,7 +318,8 @@ where,
         'mh-tool-bar-folder-buttons
         '(list ,@(mapcar (lambda (x) `(quote ,x)) folder-defaults))
         "List of buttons to include in MH-Folder tool bar."
-        :group 'mh-tool-bar :set 'mh-tool-bar-folder-buttons-set
+        :group 'mh-tool-bar
+        :set 'mh-tool-bar-folder-buttons-set
         :type '(set ,@(loop for x in folder-buttons
                             for y in folder-docs
                             collect `(const :tag ,y ,x)))
@@ -328,7 +329,8 @@ where,
         'mh-tool-bar-letter-buttons
         '(list ,@(mapcar (lambda (x) `(quote ,x)) letter-defaults))
         "List of buttons to include in MH-Letter tool bar."
-        :group 'mh-tool-bar :set 'mh-tool-bar-letter-buttons-set
+        :group 'mh-tool-bar
+        :set 'mh-tool-bar-letter-buttons-set
         :type '(set ,@(loop for x in letter-buttons
                             for y in letter-docs
                             collect `(const :tag ,y ,x)))
