@@ -6,6 +6,8 @@
 
 2006-04-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* progmodes/sh-script.el (sh-shell): Mark as safe.
+
 	* newcomment.el (comment-start, comment-start-skip)
 	(comment-end-skip, comment-end): Mark as safe.
 
