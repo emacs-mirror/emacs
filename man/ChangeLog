@@ -1,3 +1,13 @@
+2006-04-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Spam Statistics Package): Fix typo in @pxref.
+	(Splitting mail using spam-stat): Fix @xref.
+
+2006-04-20  Chong Yidong <cyd@stupidchicken.com>
+
+	* gnus.texi (Spam Package): Major revision of the text.  Previouly
+	this node was "Filtering Spam Using The Spam ELisp Package".
+
 2006-04-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: (Time stamps): Better explanation of the purpose of
@@ -8,7 +18,7 @@
 2006-04-18  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* misc.texi (Shell Ring): Added notes on saved input when
-	navigating off the end of the history list.  
+	navigating off the end of the history list.
 
 2006-04-18  Chong Yidong  <cyd@mit.edu>
 
