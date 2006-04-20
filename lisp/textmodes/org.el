@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.24
+;; Version: 4.25
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,6 +81,12 @@
 ;;
 ;; Changes since version 4.00:
 ;; ---------------------------
+;; Version 4.25
+;;    - Revision of the font-lock faces section, with better tty support.
+;;    - TODO keywords in Agenda buffer are fontified.
+;;    - Export converts links between .org files to links between .html files.
+;;    - Better support for bold/italic/underline emphasis.
+;;
 ;; Version 4.24
 ;;    - Bug fixes.
 ;;
@@ -182,7 +188,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.24"
+(defvar org-version "4.25"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -192,7 +198,7 @@
 ;; of outline.el.
 (defconst org-noutline-p (featurep 'noutline)
   "Are we using the new outline mode?")
-(defconst org-xemacs-p (featurep 'xemacs))
+(defconst org-xemacs-p (featurep 'xemacs))  ;; FIXME: used by external code?
 (defconst org-format-transports-properties-p
   (let ((x "a"))
     (add-text-properties 0 1 '(test t) x)
@@ -1829,6 +1835,18 @@ you can \"misuse\" it to add arbitrary text to the header."
   :group 'org-export-html
   :type 'string)
 
+(defcustom org-export-html-link-org-files-as-html t
+  "Non-nil means, make file links to `file.org' point to `file.html'.
+When org-mode is exporting an org-mode file to HTML, links to
+non-html files are directly put into a href tag in HTML.
+However, links to other Org-mode files (recognized by the
+extension `.org.) should become links to the corresponding html
+file, assuming that the linked org-mode file will also be
+converted to HTML.
+When nil, the links still point to the plain `.org' file."
+  :group 'org-export-html
+  :type 'boolean)
+
 (defcustom org-export-html-inline-images t
   "Non-nil means, inline images into exported HTML pages.
 The link will still be to the original location of the image file.
@@ -1942,205 +1960,246 @@ Changing this variable requires a restart of Emacs to take effect."
   :tag "Org Faces"
   :group 'org-font-lock)
 
+(defun org-compatible-face (specs)
+  "Make a compatible face specification.
+XEmacs and Emacs 21 do not know about the `min-colors' attribute.
+For them we convert a (min-colors 8) entry to a `tty' entry and move it
+to the top of the list.  The `min-colors' attribute will be removed from
+any other entries, and any resulting duplicates will be removed entirely."
+  (if (or (featurep 'xemacs) (< emacs-major-version 22))
+      (let (r e a)
+	(while (setq e (pop specs))
+	  (cond
+	   ((memq (car e) '(t default)) (push e r))
+	   ((setq a (member '(min-colors 8) (car e)))
+	    (nconc r (list (cons (cons '(type tty) (delq (car a) (car e)))
+				 (cdr e)))))
+	   ((setq a (assq 'min-colors (car e)))
+	    (setq e (cons (delq a (car e)) (cdr e)))
+	    (or (assoc (car e) r) (push e r)))
+	   (t (or (assoc (car e) r) (push e r)))))
+	(nreverse r))
+    specs))
+
 (defface org-hide
-  '(
-    (((type tty) (class color)) (:foreground "white"))
-    (((class color) (background light)) (:foreground "white"))
-    (((class color) (background dark)) (:foreground "black"))
-    (t (:inverse-video nil)))
-  "Face used for level 1 headlines."
+  '((((background light)) (:foreground "white"))
+    (((background dark)) (:foreground "black")))
+  "Face used to hide leading stars in headlines.
+The forground color of this face should be equal to the background
+color of the frame."
   :group 'org-faces)
 
 (defface org-level-1 ;; font-lock-function-name-face
-  '((((type tty) (class color)) (:foreground "blue" :weight bold))
-    (((class color) (background light)) (:foreground "Blue"))
-    (((class color) (background dark)) (:foreground "LightSkyBlue"))
-    (t (:inverse-video t :bold t)))
+  (org-compatible-face
+   '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
+     (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
+     (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
+     (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
+     (((class color) (min-colors 8)) (:foreground "blue" :bold t))
+     (t (:bold t))))
   "Face used for level 1 headlines."
   :group 'org-faces)
 
 (defface org-level-2 ;; font-lock-variable-name-face
-  '((((type tty) (class color)) (:foreground "yellow" :weight light))
-    (((class color) (background light)) (:foreground "DarkGoldenrod"))
-    (((class color) (background dark)) (:foreground "LightGoldenrod"))
-    (t (:bold t :italic t)))
+  (org-compatible-face
+   '((((class color) (min-colors 16) (background light)) (:foreground "DarkGoldenrod"))
+     (((class color) (min-colors 16) (background dark))  (:foreground "LightGoldenrod"))
+     (((class color) (min-colors 8)  (background light)) (:foreground "yellow"))
+     (((class color) (min-colors 8)  (background dark))  (:foreground "yellow" :bold t))
+     (t (:bold t))))
   "Face used for level 2 headlines."
   :group 'org-faces)
 
 (defface org-level-3 ;; font-lock-keyword-face
-  '((((type tty) (class color)) (:foreground "cyan" :weight bold))
-    (((class color) (background light)) (:foreground "Purple"))
-    (((class color) (background dark)) (:foreground "Cyan"))
-    (t (:bold t)))
+  (org-compatible-face
+   '((((class color) (min-colors 88) (background light)) (:foreground "Purple"))
+     (((class color) (min-colors 88) (background dark))  (:foreground "Cyan1"))
+     (((class color) (min-colors 16) (background light)) (:foreground "Purple"))
+     (((class color) (min-colors 16) (background dark))  (:foreground "Cyan"))
+     (((class color) (min-colors 8)  (background light)) (:foreground "purple" :bold t))
+     (((class color) (min-colors 8)  (background dark))  (:foreground "cyan" :bold t))
+     (t (:bold t))))
   "Face used for level 3 headlines."
   :group 'org-faces)
 
 (defface org-level-4   ;; font-lock-comment-face
-  '((((type tty pc) (class color) (background light)) (:foreground "red"))
-    (((type tty pc) (class color) (background dark)) (:foreground "red1"))
-    (((class color) (background light)) (:foreground "Firebrick"))
-    (((class color) (background dark)) (:foreground "chocolate1"))
-    (t (:bold t :italic t)))
+  (org-compatible-face
+   '((((class color) (min-colors 88) (background light)) (:foreground "Firebrick"))
+     (((class color) (min-colors 88) (background dark))  (:foreground "chocolate1"))
+     (((class color) (min-colors 16) (background light)) (:foreground "red"))
+     (((class color) (min-colors 16) (background dark))  (:foreground "red1"))
+     (((class color) (min-colors 8) (background light))  (:foreground "red" :bold t))
+     (((class color) (min-colors 8) (background dark))   (:foreground "red" :bold t))
+     (t (:bold t))))
   "Face used for level 4 headlines."
   :group 'org-faces)
 
 (defface org-level-5 ;; font-lock-type-face
-  '((((type tty) (class color)) (:foreground "green"))
-    (((class color) (background light)) (:foreground "ForestGreen"))
-    (((class color) (background dark)) (:foreground "PaleGreen"))
-    (t (:bold t :underline t)))
+  (org-compatible-face
+   '((((class color) (min-colors 16) (background light)) (:foreground "ForestGreen"))
+     (((class color) (min-colors 16) (background dark)) (:foreground "PaleGreen"))
+     (((class color) (min-colors 8)) (:foreground "green"))))
   "Face used for level 5 headlines."
   :group 'org-faces)
 
 (defface org-level-6 ;; font-lock-constant-face
-  '((((type tty) (class color)) (:foreground "magenta"))
-    (((class color) (background light)) (:foreground "CadetBlue"))
-    (((class color) (background dark)) (:foreground "Aquamarine"))
-    (t (:bold t :underline t)))
+  (org-compatible-face
+   '((((class color) (min-colors 16) (background light)) (:foreground "CadetBlue"))
+     (((class color) (min-colors 16) (background dark)) (:foreground "Aquamarine"))
+     (((class color) (min-colors 8)) (:foreground "magenta"))))
   "Face used for level 6 headlines."
   :group 'org-faces)
 
 (defface org-level-7 ;; font-lock-builtin-face
-  '((((type tty) (class color)) (:foreground "blue" :weight light))
-    (((class color) (background light)) (:foreground "Orchid"))
-    (((class color) (background dark)) (:foreground "LightSteelBlue"))
-    (t (:bold t)))
+  (org-compatible-face
+   '((((class color) (min-colors 16) (background light)) (:foreground "Orchid"))
+     (((class color) (min-colors 16) (background dark)) (:foreground "LightSteelBlue"))
+     (((class color) (min-colors 8)) (:foreground "blue"))))  ;; FIXME: for dark bg?
   "Face used for level 7 headlines."
   :group 'org-faces)
 
 (defface org-level-8 ;; font-lock-string-face
-  '((((type tty) (class color)) (:foreground "green"))
-    (((class color) (background light)) (:foreground "RosyBrown"))
-    (((class color) (background dark)) (:foreground "LightSalmon"))
-    (t (:italic t)))
+  (org-compatible-face
+   '((((class color) (min-colors 16) (background light)) (:foreground "RosyBrown"))
+     (((class color) (min-colors 16) (background dark)) (:foreground "LightSalmon"))
+     (((class color) (min-colors 8)) (:foreground "green"))))
   "Face used for level 8 headlines."
   :group 'org-faces)
 
 (defface org-special-keyword ;; font-lock-string-face
-  '((((type tty) (class color)) (:foreground "green"))
-    (((class color) (background light)) (:foreground "RosyBrown"))
-    (((class color) (background dark)) (:foreground "LightSalmon"))
-    (t (:italic t)))
+  (org-compatible-face
+   '((((class color) (min-colors 16) (background light)) (:foreground "RosyBrown"))
+     (((class color) (min-colors 16) (background dark)) (:foreground "LightSalmon"))
+     (t (:italic t))))
   "Face used for special keywords."
   :group 'org-faces)
 
 (defface org-warning ;; font-lock-warning-face
-  '((((type tty) (class color)) (:foreground "red"))
-    (((class color) (background light)) (:foreground "Red" :bold t))
-    (((class color) (background dark)) (:foreground "Red1" :bold t))
-;    (((class color) (background dark)) (:foreground "Pink" :bold t))
-    (t (:inverse-video t :bold t)))
+  (org-compatible-face
+   '((((class color) (min-colors 16) (background light)) (:foreground "Red1" :bold t))
+     (((class color) (min-colors 16) (background dark))  (:foreground "Pink" :bold t))
+     (((class color) (min-colors 8)  (background light)) (:foreground "red"  :bold t))
+     (((class color) (min-colors 8)  (background dark))  (:foreground "red"  :bold t))
+     (t (:bold t))))
   "Face for deadlines and TODO keywords."
   :group 'org-faces)
 
 (defface org-headline-done ;; font-lock-string-face
-  '((((type tty) (class color)) (:foreground "green"))
-    (((class color) (background light)) (:foreground "RosyBrown"))
-    (((class color) (background dark)) (:foreground "LightSalmon"))
-    (t (:italic t)))
-  "Face used to indicate that a headline is DONE.  See also the variable
-`org-fontify-done-headline'."
-  :group 'org-faces)
-
-;; Inheritance does not work for xemacs. So we just copy...
-
-(defface org-deadline-announce
-  '((((type tty) (class color)) (:foreground "blue" :weight bold))
-    (((class color) (background light)) (:foreground "Blue"))
-    (((class color) (background dark)) (:foreground "LightSkyBlue"))
-    (t (:inverse-video t :bold t)))
-  "Face for upcoming deadlines."
-  :group 'org-faces)
-
-(defface org-scheduled-today
-  '((((type tty) (class color)) (:foreground "green"))
-    (((class color) (background light)) (:foreground "DarkGreen"))
-    (((class color) (background dark)) (:foreground "PaleGreen"))
-    (t (:bold t :underline t)))
-  "Face for items scheduled for a certain day."
-  :group 'org-faces)
-
-(defface org-scheduled-previously
-  '((((type tty pc) (class color) (background light)) (:foreground "red"))
-    (((type tty pc) (class color) (background dark)) (:foreground "red1"))
-    (((class color) (background light)) (:foreground "Firebrick"))
-    (((class color) (background dark)) (:foreground "chocolate1"))
-    (t (:bold t :italic t)))
-  "Face for items scheduled previously, and not yet done."
-  :group 'org-faces)
-
-(defface org-formula
-  '((((type tty pc) (class color) (background light)) (:foreground "red"))
-    (((type tty pc) (class color) (background dark)) (:foreground "red1"))
-    (((class color) (background light)) (:foreground "Firebrick"))
-    (((class color) (background dark)) (:foreground "chocolate1"))
-    (t (:bold t :italic t)))
-  "Face for formulas."
+  (org-compatible-face
+   '((((class color) (min-colors 16) (background light)) (:foreground "RosyBrown"))
+     (((class color) (min-colors 16) (background dark)) (:foreground "LightSalmon"))
+     (((class color) (min-colors 8)  (background light)) (:bold nil))))
+  "Face used to indicate that a headline is DONE.
+This face is only used if `org-fontify-done-headline' is set."
   :group 'org-faces)
 
 (defface org-link
-  '((((type tty) (class color)) (:foreground "cyan" :weight bold))
-    (((class color) (background light)) (:foreground "Purple" :underline t))
+  '((((class color) (background light)) (:foreground "Purple" :underline t))
     (((class color) (background dark)) (:foreground "Cyan" :underline t))
-    (t (:bold t)))
+    (t (:underline t)))
   "Face for links."
   :group 'org-faces)
 
 (defface org-date
-  '((((type tty) (class color)) (:foreground "cyan" :weight bold))
-    (((class color) (background light)) (:foreground "Purple" :underline t))
+  '((((class color) (background light)) (:foreground "Purple" :underline t))
     (((class color) (background dark)) (:foreground "Cyan" :underline t))
-    (t (:bold t)))
+    (t (:underline t)))
   "Face for links."
   :group 'org-faces)
 
 (defface org-tag
-  '((((type tty) (class color)) (:weight bold))
-    (((class color) (background light)) (:weight bold))
-    (((class color) (background dark)) (:weight bold))
-    (t (:bold t)))
+  '((t (:bold t)))
   "Face for tags."
   :group 'org-faces)
 
 (defface org-todo ;; font-lock-warning-face
-  '((((type tty) (class color)) (:foreground "red"))
-    (((class color) (background light)) (:foreground "Red" :bold t))
-    (((class color) (background dark)) (:foreground "Red1" :bold t))
-;    (((class color) (background dark)) (:foreground "Pink" :bold t))
-    (t (:inverse-video t :bold t)))
+  (org-compatible-face
+   '((((class color) (min-colors 16) (background light)) (:foreground "Red1" :bold t))
+     (((class color) (min-colors 16) (background dark))  (:foreground "Pink" :bold t))
+     (((class color) (min-colors 8)  (background light)) (:foreground "red"  :bold t))
+     (((class color) (min-colors 8)  (background dark))  (:foreground "red"  :bold t))
+     (t (:inverse-video t :bold t))))
   "Face for TODO keywords."
   :group 'org-faces)
 
 (defface org-done ;; font-lock-type-face
-  '((((type tty) (class color)) (:foreground "green"))
-    (((class color) (background light)) (:foreground "ForestGreen" :bold t))
-    (((class color) (background dark)) (:foreground "PaleGreen" :bold t))
-    (t (:bold t :underline t)))
+  (org-compatible-face
+   '((((class color) (min-colors 16) (background light)) (:foreground "ForestGreen"))
+     (((class color) (min-colors 16) (background dark)) (:foreground "PaleGreen"))
+     (((class color) (min-colors 8)) (:foreground "green"))
+     (t (:bold t))))
   "Face used for DONE."
   :group 'org-faces)
 
 (defface org-table ;; font-lock-function-name-face
-  '((((type tty) (class color)) (:foreground "blue" :weight bold))
-    (((class color) (background light)) (:foreground "Blue"))
-    (((class color) (background dark)) (:foreground "LightSkyBlue"))
-    (t (:inverse-video t :bold t)))
+  (org-compatible-face
+   '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
+     (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
+     (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
+     (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
+     (((class color) (min-colors 8)  (background light)) (:foreground "blue"))
+     (((class color) (min-colors 8)  (background dark)))))
   "Face used for tables."
   :group 'org-faces)
 
+(defface org-formula
+  (org-compatible-face
+   '((((class color) (min-colors 88) (background light)) (:foreground "Firebrick"))
+     (((class color) (min-colors 88) (background dark)) (:foreground "chocolate1"))
+     (((class color) (min-colors 8)  (background light)) (:foreground "red"))
+     (((class color) (min-colors 8)  (background dark)) (:foreground "red"))
+     (t (:bold t :italic t))))
+  "Face for formulas."
+  :group 'org-faces)
+
+(defface org-scheduled-today
+  (org-compatible-face
+   '((((class color) (min-colors 88) (background light)) (:foreground "DarkGreen"))
+     (((class color) (min-colors 88) (background dark)) (:foreground "PaleGreen"))
+     (((class color) (min-colors 8)) (:foreground "green"))
+     (t (:bold t :italic t))))
+  "Face for items scheduled for a certain day."
+  :group 'org-faces)
+
+(defface org-scheduled-previously
+  (org-compatible-face
+   '((((class color) (min-colors 88) (background light)) (:foreground "Firebrick"))
+     (((class color) (min-colors 88) (background dark)) (:foreground "chocolate1"))
+     (((class color) (min-colors 8)  (background light)) (:foreground "red"))
+     (((class color) (min-colors 8)  (background dark)) (:foreground "red" :bold t))
+     (t (:bold t))))
+  "Face for items scheduled previously, and not yet done."
+  :group 'org-faces)
+
 (defface org-time-grid ;; font-lock-variable-name-face
-  '((((type tty) (class color)) (:foreground "yellow" :weight light))
-    (((class color) (background light)) (:foreground "DarkGoldenrod"))
-    (((class color) (background dark)) (:foreground "LightGoldenrod"))
-    (t (:bold t :italic t)))
+  (org-compatible-face
+   '((((class color) (min-colors 16) (background light)) (:foreground "DarkGoldenrod"))
+     (((class color) (min-colors 16) (background dark)) (:foreground "LightGoldenrod"))
+     (((class color) (min-colors 8)) (:foreground "yellow" :weight light)))) ; FIXME: turn off???
   "Face used for time grids."
   :group 'org-faces)
 
-(defvar org-level-faces
+(defconst org-level-faces
   '(org-level-1 org-level-2 org-level-3 org-level-4
     org-level-5 org-level-6 org-level-7 org-level-8
     ))
-(defvar org-n-levels (length org-level-faces))
+(defconst org-n-levels (length org-level-faces))
 
+(defconst org-bold-re
+  (if (featurep 'xemacs)
+      "\\([ ]\\|^\\)\\(\\*\\(\\w[a-zA-Z0-9-_ ]*?\\w\\)\\*\\)\\([ ,.]\\|$\\)"
+    "\\([ ]\\|^\\)\\(\\*\\(\\w[[:word:] -_]*?\\w\\)\\*\\)\\([ ,.]\\|$\\)")
+  "Regular expression for bold emphasis.")
+(defconst org-italic-re
+  (if (featurep 'xemacs)
+      "\\([ ]\\|^\\)\\(/\\(\\w[a-zA-Z0-9-_ ]*?\\w\\)/\\)\\([ ,.]\\|$\\)"
+    "\\([ ]\\|^\\)\\(/\\(\\w[[:word:] -_]*?\\w\\)/\\)\\([ ,.]\\|$\\)")
+  "Regular expression for italic emphasis.")
+(defconst org-underline-re
+  (if (featurep 'xemacs)
+      "\\([ ]\\|^\\)\\(_\\(\\w[a-zA-Z0-9-_ ]*?\\w\\)_\\)\\([ ,.]\\|$\\)"
+    "\\([ ]\\|^\\)\\(_\\(\\w[[:word:] -_]*?\\w\\)_\\)\\([ ,.]\\|$\\)")
+  "Regular expression for underline emphasis.")
 
 ;; Variables for pre-computed regular expressions, all buffer local
 (defvar org-done-string nil
@@ -2215,6 +2274,7 @@ Changing this variable requires a restart of Emacs to take effect."
 	      (setq int 'type
 		    kwds (append kwds (org-split-string value splitre))))
 	     ((equal key "STARTUP")
+              (debug)
 	      (let ((opts (org-split-string value splitre))
 		    (set '(("fold" org-startup-folded t)
 			   ("overview" org-startup-folded t)
@@ -2728,9 +2788,12 @@ between words."
 	   (list (concat "\\<" org-deadline-string) '(0 'org-special-keyword t))
 	   (list (concat "\\<" org-scheduled-string) '(0 'org-special-keyword t))
 	   (list (concat "\\<" org-closed-string) '(0 'org-special-keyword t))
-	   (if em '("\\(\\W\\|^\\)\\(\\*\\w+\\*\\)\\(\\W\\|$\\)" 2 'bold prepend))
-	   (if em '("\\(\\W\\|^\\)\\(/\\w+/\\)\\(\\W\\|$\\)"     2 'italic prepend))
-	   (if em '("\\(\\W\\|^\\)\\(_\\w+_\\)\\(\\W\\|$\\)"     2 'underline prepend))
+;	   (if em '("\\(\\W\\|^\\)\\(\\*\\w+\\*\\)\\(\\W\\|$\\)" 2 'bold prepend))
+;	   (if em '("\\(\\W\\|^\\)\\(/\\w+/\\)\\(\\W\\|$\\)"     2 'italic prepend))
+;	   (if em '("\\(\\W\\|^\\)\\(_\\w+_\\)\\(\\W\\|$\\)"     2 'underline prepend))
+	   (if em (list org-bold-re 2 ''bold 'prepend))
+	   (if em (list org-italic-re 2 ''italic 'prepend))
+	   (if em (list org-underline-re 2 ''underline 'prepend))
 	   (list (concat "^\\*+[ \t]*\\<\\(" org-comment-string
 			 "\\|" org-quote-string "\\)\\>")
 		 '(1 'org-special-keyword t))
@@ -3109,13 +3172,14 @@ or nil."
 		     (error (outline-next-heading)))
 		   (prog1 (match-string 0)
 		     (funcall outline-level)))))
-      (if (and (bolp) 
-	       (save-excursion (backward-char 1) (not (org-invisible-p))))
-	  (open-line 1)
-	(newline))
+      (cond 
+       ((and (org-on-heading-p) (bolp) 
+	     (save-excursion (backward-char 1) (not (org-invisible-p))))
+	(open-line 1))
+       ((bolp) nil)
+       (t (newline)))
       (insert head)
-      (if (looking-at "[ \t]*")
-	  (replace-match " "))
+      (just-one-space)
       (run-hooks 'org-insert-heading-hook))))
 
 (defun org-insert-item ()
@@ -3128,8 +3192,20 @@ Return t when things worked, nil when we are not in an item."
 		(org-at-item-p)
 		t)
 	    (error nil)))
-    (unless (bolp) (newline))
-    (insert (match-string 0))
+    (let* ((bul (match-string 0))
+	   (eow (save-excursion (beginning-of-line 1) (looking-at "[ \t]*")
+				(match-end 0)))
+	   (eowcol (save-excursion (goto-char eow) (current-column))))
+      (cond
+       ((and (org-at-item-p) (<= (point) eow))
+	;; before the bullet
+	(beginning-of-line 1)
+	(open-line 1))
+       ((<= (point) eow)
+	(beginning-of-line 1))
+       (t (newline)))
+      (insert bul)
+      (just-one-space))
     (org-maybe-renumber-ordered-list)
     t))
 
@@ -5335,7 +5411,8 @@ for a keyword.  A numeric prefix directly selects the Nth keyword in
 	 (completion-ignore-case t)
 	 (org-select-this-todo-keyword
 	  (if (stringp arg) arg
-	    (and arg (integerp arg) (nth (1- arg) org-todo-keywords))))
+	    (and arg (integerp arg) (> arg 0)
+                 (nth (1- arg) org-todo-keywords))))
 	 rtn rtnall files file pos)
     (when (equal arg '(4))
       (setq org-select-this-todo-keyword
@@ -5935,6 +6012,7 @@ the documentation of `org-diary'."
   "Return the TODO information for agenda display."
   (let* ((props (list 'face nil
 		      'done-face 'org-done
+		      'org-not-done-regexp org-not-done-regexp
 		      'mouse-face 'highlight
 		      'keymap org-agenda-keymap
 		      'help-echo
@@ -5975,6 +6053,7 @@ the documentation of `org-diary'."
 (defun org-agenda-get-timestamps ()
   "Return the date stamp information for agenda display."
   (let* ((props (list 'face nil
+		      'org-not-done-regexp org-not-done-regexp
 		      'mouse-face 'highlight
 		      'keymap org-agenda-keymap
 		      'help-echo
@@ -6040,6 +6119,7 @@ the documentation of `org-diary'."
 (defun org-agenda-get-closed ()
   "Return the logged TODO entries for agenda display."
   (let* ((props (list 'mouse-face 'highlight
+		      'org-not-done-regexp org-not-done-regexp
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
@@ -6091,6 +6171,7 @@ the documentation of `org-diary'."
   "Return the deadline information for agenda display."
   (let* ((wdays org-deadline-warning-days)
 	 (props (list 'mouse-face 'highlight
+		      'org-not-done-regexp org-not-done-regexp
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
@@ -6146,6 +6227,7 @@ the documentation of `org-diary'."
 (defun org-agenda-get-scheduled ()
   "Return the scheduled information for agenda display."
   (let* ((props (list 'face 'org-scheduled-previously
+		      'org-not-done-regexp org-not-done-regexp
 		      'undone-face 'org-scheduled-previously
 		      'done-face 'org-done
 		      'mouse-face 'highlight
@@ -6195,6 +6277,7 @@ the documentation of `org-diary'."
 (defun org-agenda-get-blocks ()
   "Return the date-range information for agenda display."
   (let* ((props (list 'face nil
+		      'org-not-done-regexp org-not-done-regexp
 		      'mouse-face 'highlight
 		      'keymap org-agenda-keymap
 		      'help-echo
@@ -6430,7 +6513,24 @@ HH:MM."
 
 (defun org-finalize-agenda-entries (list)
   "Sort and concatenate the agenda items."
+  (setq list (mapcar 'org-agenda-highlight-todo list))
   (mapconcat 'identity (sort list 'org-entries-lessp) "\n"))
+
+(defun org-agenda-highlight-todo (x)
+  (let (re)
+    (if (eq x 'line)
+	(save-excursion
+	  (beginning-of-line 1)
+	  (setq re (get-text-property (point) 'org-not-done-regexp))
+	  (goto-char (+ (point) (get-text-property (point) 'prefix-length)))
+	  (and (looking-at (concat "[ \t]*" re))
+	       (add-text-properties (match-beginning 0) (match-end 0)
+				    '(face org-todo))))
+      (setq re (get-text-property 0 'org-not-done-regexp x))
+      (and re (string-match re x)
+	   (add-text-properties (match-beginning 0) (match-end 0)
+				'(face org-todo) x))
+      x)))
 
 (defsubst org-cmp-priority (a b)
   "Compare the priorities of string A and B."
@@ -6582,7 +6682,7 @@ the same tree node, and the headline of the tree node in the Org-mode file."
 	(and (outline-next-heading)
 	     (org-flag-heading nil)))   ; show the next heading
       (org-todo arg)
-      (forward-char 1)
+      (and (bolp) (forward-char 1))
       (setq newhead (org-get-heading))
       (save-excursion
 	(org-back-to-heading)
@@ -6622,12 +6722,13 @@ the new TODO state."
 		(replace-match new t t)
 		(beginning-of-line 1)
 		(add-text-properties (point-at-bol) (point-at-eol) props)
-		(if fixface
-		    (add-text-properties
-		     (point-at-bol) (point-at-eol)
-		     (list 'face
-			   (if org-last-todo-state-is-todo
-			       undone-face done-face))))
+		(when fixface
+		  (add-text-properties
+		   (point-at-bol) (point-at-eol)
+		   (list 'face
+			 (if org-last-todo-state-is-todo
+			     undone-face done-face)))
+		  (org-agenda-highlight-todo 'line))
 		(beginning-of-line 1))
 	    (error "Line update did not work")))
 	(beginning-of-line 0)))))
@@ -7804,7 +7905,11 @@ If the file does not exist, an error is thrown."
 	  (setq cmd 'emacs))))
     (cond
      ((and (stringp cmd) (not (string-match "^\\s-*$" cmd)))
-      (setq cmd (format cmd (concat "\"" file "\"")))
+;      (setq cmd (format cmd (concat "\"" file "\"")))
+      ;; FIXME: normalize use of quotes
+      (if (string-match "['\"]%s['\"]" cmd)
+	  (setq cmd (replace-match "'%s'" t t cmd)))
+      (setq cmd (format cmd file))
       (save-window-excursion
 	(shell-command (concat cmd " &"))))
      ((or (stringp cmd)
@@ -8198,12 +8303,16 @@ is in the current directory or below."
      (complete-file
       ;; Completing read for file names.
       (setq file (read-file-name "File: "))
-      (let ((pwd (file-name-as-directory (expand-file-name "."))))
+      (let ((pwd (file-name-as-directory (expand-file-name ".")))
+	    (pwd1 (file-name-as-directory (abbreviate-file-name
+					   (expand-file-name ".")))))
 	(cond
 	 ((equal complete-file '(16))
 	  (setq link (org-make-link
 		      "file:"
 		      (abbreviate-file-name (expand-file-name file)))))
+	 ((string-match (concat "^" (regexp-quote pwd1) "\\(.+\\)") file)
+	  (setq link  (org-make-link "file:" (match-string 1 file))))
 	 ((string-match (concat "^" (regexp-quote pwd) "\\(.+\\)")
 			(expand-file-name file))
 	  (setq link  (org-make-link
@@ -11796,14 +11905,27 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 	      ;; FILE link
 	      (let* ((filename path)
 		     (abs-p (file-name-absolute-p filename))
-		     (thefile (if abs-p (expand-file-name filename) filename))
-		     (thefile (save-match-data
-				(if (string-match ":[0-9]+$" thefile)
-				    (replace-match "" t t thefile)
-				  thefile)))
-		     (file-is-image-p
-		      (save-match-data
-			(string-match (org-image-file-name-regexp) thefile))))
+		     thefile file-is-image-p search)
+		(save-match-data
+		  (if (string-match "::\\(.*\\)" filename)
+		      (setq search (match-string 1 filename)
+			    filename (replace-match "" nil nil filename)))
+		  (setq file-is-image-p 
+			(string-match (org-image-file-name-regexp) filename))
+		  (setq thefile (if abs-p (expand-file-name filename) filename))
+		  (when (and org-export-html-link-org-files-as-html
+			     (string-match "\\.org$" thefile))
+		    (setq thefile (concat (substring thefile 0
+						     (match-beginning 0))
+					  ".html"))
+		    (if (and search
+			     ;; make sure this is can be used as target search
+			     (not (string-match "^[0-9]*$" search))
+			     (not (string-match "^\\*" search))
+			     (not (string-match "^/.*/$" search)))
+			(setq thefile (concat thefile "#" 
+					      (org-solidify-link-text
+					       (org-link-unescape search)))))))
 		(setq rpl (if (and org-export-html-inline-images
 				   file-is-image-p)
 			      (concat "<img src=\"" thefile "\"/>")
@@ -12156,15 +12278,24 @@ stacked delimiters is N.  Escaping delimiters is not possible."
       (setq string (replace-match (match-string 1 string) t t string))))
   string)
 
+;(defun org-export-html-convert-emphasize (string)
+;  (let (c (s 0))
+;    (while (string-match "\\(\\W\\|^\\)\\([*/_]\\)\\(\\w+\\)\\2\\(\\W\\|$\\)" string s)
+;      (setq c (cdr (assoc (match-string 2 string)
+;			  '(("*" . "b") ("/" . "i") ("_" . "u"))))
+;	    s (+ (match-end 0) 3)
+;	    string (replace-match
+;		    (concat "\\1<" c ">\\3</" c ">\\4") t nil string)))
+;    string))
+
 (defun org-export-html-convert-emphasize (string)
-  (let (c (s 0))
-    (while (string-match "\\(\\W\\|^\\)\\([*/_]\\)\\(\\w+\\)\\2\\(\\W\\|$\\)" string s)
-      (setq c (cdr (assoc (match-string 2 string)
-			  '(("*" . "b") ("/" . "i") ("_" . "u"))))
-	    s (+ (match-end 0) 3)
-	    string (replace-match
-		    (concat "\\1<" c ">\\3</" c ">\\4") t nil string)))
-    string))
+  (while (string-match org-italic-re string)
+    (setq string (replace-match "\\1<i>\\3</i>\\4" t nil string)))
+  (while (string-match org-bold-re string)
+    (setq string (replace-match "\\1<b>\\3</b>\\4" t nil string)))
+  (while (string-match org-underline-re string)
+    (setq string (replace-match "\\1<u>\\3</u>\\4" t nil string)))
+  string)
 
 (defun org-parse-key-lines ()
   "Find the special key lines with the information for exporters."
