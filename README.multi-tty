@@ -424,6 +424,9 @@ THINGS TO DO
    exported to Lisp, this approach seems at least as ugly as the pty
    proxy idea.
 
+** lisp/vc.el depends on the terminal type during load time.
+   `vc-annotate-color-map' is one example that needs to be fixed.
+
 ** Understand how `quit_throw_to_read_char' works, and fix any bugs
    that come to light.
 
