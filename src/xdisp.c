@@ -12689,8 +12689,6 @@ redisplay_window (window, just_this_one_p)
       /* IT may overshoot PT if text at PT is invisible.  */
       else if (IT_CHARPOS (it) > PT && CHARPOS (startp) <= PT)
 	w->force_start = Qt;
-
-
     }
 
   /* Handle case where place to start displaying has been specified,
@@ -12882,7 +12880,9 @@ redisplay_window (window, just_this_one_p)
 	  if (CHARPOS (startp) > BEG + BEG_UNCHANGED
 	      && CHARPOS (startp) <= Z - END_UNCHANGED)
 	    {
-	      centering_position = 0;
+	      /* There doesn't seems to be a simple way to find a new
+		 window start that is near the old window start, so
+		 we just recenter.  */
 	      goto recenter;
 	    }
 	}
