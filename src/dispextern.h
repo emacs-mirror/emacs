@@ -2957,7 +2957,7 @@ extern void produce_glyphs P_ ((struct it *));
 extern void produce_special_glyphs P_ ((struct it *, enum display_element_type));
 extern int tty_capable_p P_ ((struct tty_display_info *, unsigned, unsigned long, unsigned long));
 extern void set_tty_color_mode P_ ((struct frame *, Lisp_Object));
-extern struct terminal *get_tty_terminal P_ ((Lisp_Object terminal));
+extern struct terminal *get_tty_terminal P_ ((Lisp_Object, int));
 extern struct terminal *get_named_tty P_ ((char *));
 EXFUN (Ftty_type, 1);
 extern void create_tty_output P_ ((struct frame *));

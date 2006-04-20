@@ -617,9 +617,7 @@ version control backend imposes itself."
 
 ;; Annotate customization
 (defcustom vc-annotate-color-map
-  (if (and (not window-system)
-	   (tty-display-color-p)
-	   (<= (display-color-cells) 8))
+  (if (and (tty-display-color-p) (<= (display-color-cells) 8))
       ;; A custom sorted TTY colormap
       (let* ((colors
 	      (sort

@@ -6318,7 +6318,7 @@ currently selected frame.  */)
      Lisp_Object string;
      Lisp_Object terminal;
 {
-  struct terminal *t = get_tty_terminal (terminal);
+  struct terminal *t = get_tty_terminal (terminal, 1);
   struct tty_display_info *tty;
 
   /* ??? Perhaps we should do something special for multibyte strings here.  */

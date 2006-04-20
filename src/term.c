@@ -1842,7 +1842,7 @@ is not on a tty device.  */)
      (terminal)
      Lisp_Object terminal;
 {
-  struct terminal *t = get_tty_terminal (terminal);
+  struct terminal *t = get_tty_terminal (terminal, 0);
   if (!t)
     return Qnil;
   else
@@ -1855,12 +1855,12 @@ DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
        doc: /* Return the number of colors supported by the tty device TERMINAL.
 
 TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  This function always returns nil if TERMINAL
+frame's terminal).  This function always returns 0 if TERMINAL
 is not on a tty device.  */)
      (terminal)
      Lisp_Object terminal;
 {
-  struct terminal *t = get_tty_terminal (terminal);
+  struct terminal *t = get_tty_terminal (terminal, 0);
   if (!t)
     return make_number (0);
   else
@@ -2009,15 +2009,20 @@ set_tty_color_mode (f, val)
 /* Return the tty display object specified by TERMINAL. */
 
 struct terminal *
-get_tty_terminal (Lisp_Object terminal)
+get_tty_terminal (Lisp_Object terminal, int throw)
 {
-  struct terminal *t = get_terminal (terminal, 0);
+  struct terminal *t = get_terminal (terminal, throw);
 
   if (t && t->type == output_initial)
-    t = NULL;
+    return NULL;
 
   if (t && t->type != output_termcap)
-    error ("Device %d is not a termcap terminal device", t->id);
+    {
+      if (throw)
+        error ("Device %d is not a termcap terminal device", t->id);
+      else
+        return NULL;
+    }
 
   return t;
 }
@@ -2128,7 +2133,7 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
      (tty)
      Lisp_Object tty;
 {
-  struct terminal *t = get_tty_terminal (tty);
+  struct terminal *t = get_tty_terminal (tty, 1);
   FILE *f;
   
   if (!t)
@@ -2185,7 +2190,7 @@ the currently selected frame. */)
      (tty)
      Lisp_Object tty;
 {
-  struct terminal *t = get_tty_terminal (tty);
+  struct terminal *t = get_tty_terminal (tty, 1);
   int fd;
 
   if (!t)
