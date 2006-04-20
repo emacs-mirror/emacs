@@ -1,3 +1,7 @@
+2006-04-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xdisp.c (note_mouse_highlight): Use build_string.
+
 2006-04-20  Lars Hansen  <larsh@soem.dk>
 
 	* textprop.c (Fremove_list_of_text_properties): Ensure

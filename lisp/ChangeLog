@@ -1,3 +1,9 @@
+2006-04-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-data-list-register-values-handler): 
+	Use font-lock-warning-face for any errors e.g. no stack.
+	(gdb-stack-list-locals-handler): Display any errors e.g. no stack.
+
 2006-04-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* newcomment.el (comment-start, comment-start-skip)
