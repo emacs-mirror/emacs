@@ -1,3 +1,10 @@
+2006-04-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Time stamps): Better explanation of the purpose of
+	different time stamps.
+	(Structure editing, Plain lists): More details on how new items
+	and headings are inserted.
+
 2006-04-18  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* misc.texi (Shell Ring): Added notes on saved input when
