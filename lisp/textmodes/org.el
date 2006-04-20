@@ -2274,7 +2274,6 @@ This face is only used if `org-fontify-done-headline' is set."
 	      (setq int 'type
 		    kwds (append kwds (org-split-string value splitre))))
 	     ((equal key "STARTUP")
-              (debug)
 	      (let ((opts (org-split-string value splitre))
 		    (set '(("fold" org-startup-folded t)
 			   ("overview" org-startup-folded t)
