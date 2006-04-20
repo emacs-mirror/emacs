@@ -1602,10 +1602,12 @@ Return t if any property was actually removed, nil otherwise.  */)
 	}
     }
 
-  if (BUFFERP (object))
-    modify_region (XBUFFER (object), XINT (start), XINT (end));
-
-  /* We are at the beginning of an interval, with len to scan */
+  /* We are at the beginning of an interval, with len to scan.
+     The flag `modified' records if changes have been made.
+     When object is a buffer, we must call modify_region before changes are
+     made and signal_after_change when we are done.
+     We call modify_region before calling remove_properties iff modified == 0,
+     and we call signal_after_change before returning iff modified != 0. */
   for (;;)
     {
       if (i == 0)
@@ -1614,10 +1616,20 @@ Return t if any property was actually removed, nil otherwise.  */)
       if (LENGTH (i) >= len)
 	{
 	  if (! interval_has_some_properties_list (properties, i))
-	    return modified ? Qt : Qnil;
+	    if (modified)
+	      {
+		if (BUFFERP (object))
+		  signal_after_change (XINT (start), XINT (end) - XINT (start),
+				       XINT (end) - XINT (start));
+		return Qt;
+	      }
+	    else
+	      return Qnil;
 
 	  if (LENGTH (i) == len)
 	    {
+	      if (!modified && BUFFERP (object))
+		modify_region (XBUFFER (object), XINT (start), XINT (end));
 	      remove_properties (Qnil, properties, i, object);
 	      if (BUFFERP (object))
 		signal_after_change (XINT (start), XINT (end) - XINT (start),
@@ -1629,6 +1641,8 @@ Return t if any property was actually removed, nil otherwise.  */)
 	  unchanged = i;
 	  i = split_interval_left (i, len);
 	  copy_properties (unchanged, i);
+	  if (!modified && BUFFERP (object))
+	    modify_region (XBUFFER (object), XINT (start), XINT (end));
 	  remove_properties (Qnil, properties, i, object);
 	  if (BUFFERP (object))
 	    signal_after_change (XINT (start), XINT (end) - XINT (start),
@@ -1636,8 +1650,14 @@ Return t if any property was actually removed, nil otherwise.  */)
 	  return Qt;
 	}
 
+      if (interval_has_some_properties_list (properties, i))
+	{
+	  if (!modified && BUFFERP (object))
+	    modify_region (XBUFFER (object), XINT (start), XINT (end));
+	  remove_properties (Qnil, properties, i, object);
+	  modified = 1;
+	}
       len -= LENGTH (i);
-      modified += remove_properties (Qnil, properties, i, object);
       i = next_interval (i);
     }
 }
