@@ -1,5 +1,7 @@
 2006-04-20  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (redisplay_window): Fix last change.
+
 	* xdisp.c (redisplay_window): If current window start is not at	the
 	beginning of a line, select a new window start if buffer is modified
 	and window start is in the modified region, but the first change is
