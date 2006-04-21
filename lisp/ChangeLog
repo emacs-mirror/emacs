@@ -4,6 +4,7 @@
 	allout.el.
 	(org-open-at-point): Remove the "...done" message to keep output
 	in the echo area visible.
+	(org-export-as-xoxo): Fix call to `indent-region'.
 
 2006-04-21  Kevin Ryde  <user42@zip.com.au>
 
