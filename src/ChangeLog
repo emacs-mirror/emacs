@@ -1,3 +1,21 @@
+2006-04-21  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct image): New member `corners'.
+	(TOP_CORNER, LEFT_CORNER, BOT_CORNER, RIGHT_CORNER): New macros.
+
+	* image.c (four_corners_best): New arg CORNERS specifies what pixels
+	to look at in case image has margin.
+	(x_create_bitmap_mask): Pass NULL for CORNERS to four_corners_best.
+	(image_background, image_background_transparent)
+	(x_build_heuristic_mask): Pass img->corners to four_corners_best.
+	(gif_load): Set img->corners according to image's margin spec.
+	Use img->corners values directly where applicable.
+	Save image extension data in img->data.lisp_val.
+	(gif_clear_image): New function to free img->data.lisp_val.
+	(gif_type): Use it instead of generic x_clear_image.
+	(Fimage_extension_data): New defun.
+	(syms_of_image): Defsubr it.
+
 2006-04-21  John Sullivan  <john@wjsullivan.net>  (tiny change)
 
 	* window.c (Fdisplay_buffer): Doc fix.
