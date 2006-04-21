@@ -1,3 +1,18 @@
+2006-04-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-util.el (gnus-replace-in-string): Prefer
+	replace-regexp-in-string over of replace-in-string.
+
+2006-04-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el: Bind tool-bar-mode instead of tool-bar-map.
+
+	* gnus-sum.el: Ditto.
+
+	* gnus-util.el (gnus-select-frame-set-input-focus): Use
+	select-frame-set-input-focus if it is available in XEmacs; use
+	definition defined in Emacs 22 for old Emacsen.
+
 2006-04-17  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	[ Merge from Gnus trunk. ]
