@@ -1,3 +1,18 @@
+2006-04-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [MAC_OS] (xpm_load_image): Fill in background field
+	while we have ximg handy.
+
+	* macmenu.c (restore_menu_items, save_menu_items): New functions
+	from xmenu.c.
+	(set_frame_menubar, digest_single_submenu): Apply 2006-04-18
+	changes for xmenu.c.
+
+	* macterm.c (x_per_char_metric): Return NULL if glyph width is 0.
+	(add_mac_font_name): New function.
+	(init_font_name_table): Use it.  Adopt the first found font from
+	those having the same family name.
+
 2006-04-21  Nick Roberts  <nickrob@snap.net.nz>
 
 	* xdisp.c (note_mouse_highlight): Use build_string.
@@ -51,8 +66,8 @@
 
 	* macterm.c (XCreateGC, x_per_char_metric, xlfdpat_create)
 	(init_font_name_table, init_font_name_table, mac_do_list_fonts)
-	(XLoadQueryFont, mac_store_apple_event): Don't check
-	return value of xmalloc.
+	(XLoadQueryFont, mac_store_apple_event): Don't check return value
+	of xmalloc.
 
 2006-04-17  Kim F. Storm  <storm@cua.dk>
 
