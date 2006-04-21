@@ -1,5 +1,11 @@
 2006-04-21  Bill Wohler  <wohler@newt.com>
 
+	Release MH-E version 7.94.
+
+	* mh-e.el (Version, mh-version): Update for release 7.94.
+
+2006-04-21  Bill Wohler  <wohler@newt.com>
+
 	* mh-letter.el (mh-insert-letter): If a message number isn't
 	given, throw an error rather than using a potentially incorrect
 	message number (closes SF #1473729). In addition, use the cur
