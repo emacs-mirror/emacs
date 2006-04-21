@@ -1,3 +1,10 @@
+2006-04-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/antlr-mode.el (antlr-default):
+	* cus-edit.el (custom-documentation):
+	* faces.el (scroll-bar, border, cursor, mouse): Avoid nil spec
+	in defface.
+
 2006-04-21  Kim F. Storm  <storm@cua.dk>
 
 	* image.el (image-type): New defun split out of create-image.
