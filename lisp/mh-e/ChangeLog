@@ -1,3 +1,35 @@
+2006-04-20  Bill Wohler  <wohler@newt.com>
+
+	* mh-tool-bar.el (image-load-path): Define to shush compiler.
+	(mh-buffer-exists-p): Move inside mh-do-in-gnu-emacs since it
+	isn't used outside of it.
+	(mh-tool-bar-folder-buttons-init,
+	mh-tool-bar-letter-buttons-init): Update load-path/image-load-path
+	before setting buttons. This code used to be in
+	mh-folder-mode/mh-letter-mode but this was the wrong place since
+	mh-tool-bar-*-buttons-init can also be called when customizing the
+	buttons.
+	(mh-tool-bar-update): New function which updates tool-bar-map in
+	all of the MH-E buffers after customizing the buttons (closes SF
+	#1452718).
+	(mh-tool-bar-folder-buttons-set, mh-tool-bar-letter-buttons-set):
+	Call it (closes SF #1452718).
+
+	* mh-folder.el (mh-folder-buttons-init-flag): Delete. Use
+	mh-folder-tool-bar-map instead.
+	(image-load-path): Delete. No longer used.
+	(mh-folder-mode): Moved setting of image-load-path into
+	mh-tool-bar-folder-buttons-init.
+
+	* mh-letter.el (mh-letter-buttons-init-flag): Delete. Use
+	mh-letter-tool-bar-map instead.
+	(image-load-path): Delete. No longer used.
+	(mh-letter-mode): Moved setting of image-load-path into
+	mh-tool-bar-letter-buttons-init.
+
+	* mh-seq.el (mh-narrow-to-seq, mh-widen): Use with-current-buffer
+	instead of set-buffer.
+
 2006-04-19  Bill Wohler  <wohler@newt.com>
 
 	* mh-tool-bar.el (mh-tool-bar-define): Fix enable-expr so that one
