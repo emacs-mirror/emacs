@@ -1,3 +1,10 @@
+2006-04-21  Kevin Ryde  <user42@zip.com.au>
+
+	* international/mule.el (keyboard-coding-system): defcustom
+	info-link fixes: "Specify Coding" has been split, keyboard now in
+	"Terminal Coding", and "Single-Byte Character Support" is now
+	"Unibyte Mode".
+
 2006-04-21  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-data-list-register-values-handler): 

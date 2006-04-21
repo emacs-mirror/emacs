@@ -1,3 +1,7 @@
+2006-04-21  John Sullivan  <john@wjsullivan.net>  (tiny change)
+
+	* window.c (Fdisplay_buffer): Doc fix.
+
 2006-04-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* s/ms-w32.h (SYSTEM_PURESIZE_EXTRA): Increase to 25000.
