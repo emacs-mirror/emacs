@@ -4460,6 +4460,10 @@ xpm_load_image (f, img, contents, end)
   img->width = width;
   img->height = height;
 
+  /* Maybe fill in the background field while we have ximg handy. */
+  if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
+    IMAGE_BACKGROUND (img, f, ximg);
+
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
   if (have_mask)
