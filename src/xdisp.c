@@ -12862,7 +12862,8 @@ redisplay_window (window, just_this_one_p)
       /* If first window line is a continuation line, and window start
 	 is inside the modified region, but the first change is before
 	 current window start, we must select a new window start.*/
-      if (NILP (w->start_at_line_beg))
+      if (NILP (w->start_at_line_beg)
+	  && CHARPOS (startp) > BEGV)
 	{
 	  /* Make sure beg_unchanged and end_unchanged are up to date.
 	     Do it only if buffer has really changed.  This may or may
