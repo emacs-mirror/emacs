@@ -303,6 +303,37 @@ discard_menu_items ()
     }
 }
 
+/* This undoes save_menu_items, and it is called by the specpdl unwind
+   mechanism.  */
+
+static Lisp_Object
+restore_menu_items (saved)
+     Lisp_Object saved;
+{
+  menu_items = XCAR (saved);
+  menu_items_allocated = (VECTORP (menu_items) ? ASIZE (menu_items) : 0);
+  saved = XCDR (saved);
+  menu_items_used = XINT (XCAR (saved));
+  saved = XCDR (saved);
+  menu_items_n_panes = XINT (XCAR (saved));
+  saved = XCDR (saved);  
+  menu_items_submenu_depth = XINT (XCAR (saved));
+}
+
+/* Push the whole state of menu_items processing onto the specpdl.
+   It will be restored when the specpdl is unwound.  */
+
+static void
+save_menu_items ()
+{
+  Lisp_Object saved = list4 (menu_items,
+			     make_number (menu_items_used),
+			     make_number (menu_items_n_panes),
+			     make_number (menu_items_submenu_depth));
+  record_unwind_protect (restore_menu_items, saved);
+  menu_items = Qnil;
+}
+
 /* Make the menu_items vector twice as large.  */
 
 static void
@@ -313,6 +344,7 @@ grow_menu_items ()
   old = menu_items;
 
   menu_items_allocated *= 2;
+
   menu_items = Fmake_vector (make_number (menu_items_allocated), Qnil);
   bcopy (XVECTOR (old)->contents, XVECTOR (menu_items)->contents,
 	 old_size * sizeof (Lisp_Object));
@@ -1185,6 +1217,7 @@ digest_single_submenu (start, end, top_level_items)
   int i;
   int submenu_depth = 0;
   widget_value **submenu_stack;
+  int panes_seen = 0;
 
   submenu_stack
     = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
@@ -1230,6 +1263,8 @@ digest_single_submenu (start, end, top_level_items)
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
 	  char *pane_string;
+
+	  panes_seen++;
 
 	  pane_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_NAME];
 	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
@@ -1277,6 +1312,10 @@ digest_single_submenu (start, end, top_level_items)
 	  /* Create a new item within current pane.  */
 	  Lisp_Object item_name, enable, descrip, def, type, selected;
 	  Lisp_Object help;
+
+	  /* All items should be contained in panes.  */
+	  if (panes_seen == 0)
+	    abort ();
 
 	  item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
 	  enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
@@ -1529,6 +1568,8 @@ set_frame_menubar (f, first_time, deep_p)
 
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
+      save_menu_items ();
+
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
       submenu_start = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
@@ -1588,22 +1629,32 @@ set_frame_menubar (f, first_time, deep_p)
 	}
 
       set_buffer_internal_1 (prev);
-      unbind_to (specpdl_count, Qnil);
 
       /* If there has been no change in the Lisp-level contents
 	 of the menu bar, skip redisplaying it.  Just exit.  */
 
+      /* Compare the new menu items with the ones computed last time.  */
       for (i = 0; i < previous_menu_items_used; i++)
 	if (menu_items_used == i
 	    || (!EQ (previous_items[i], XVECTOR (menu_items)->contents[i])))
 	  break;
       if (i == menu_items_used && i == previous_menu_items_used && i != 0)
 	{
+	  /* The menu items have not changed.  Don't bother updating
+	     the menus in any form, since it would be a no-op.  */
 	  free_menubar_widget_value_tree (first_wv);
 	  discard_menu_items ();
-
+	  unbind_to (specpdl_count, Qnil);
 	  return;
 	}
+
+      /* The menu items are different, so store them in the frame.  */
+      f->menu_bar_vector = menu_items;
+      f->menu_bar_items_used = menu_items_used;
+
+      /* This calls restore_menu_items to restore menu_items, etc.,
+	 as they were outside.  */
+      unbind_to (specpdl_count, Qnil);
 
       /* Now GC cannot happen during the lifetime of the widget_value,
 	 so it's safe to store data from a Lisp_String.  */
@@ -1619,9 +1670,6 @@ set_frame_menubar (f, first_time, deep_p)
 	  wv = wv->next;
 	}
 
-      f->menu_bar_vector = menu_items;
-      f->menu_bar_items_used = menu_items_used;
-      discard_menu_items ();
     }
   else
     {
