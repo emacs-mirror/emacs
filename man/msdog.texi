@@ -11,7 +11,7 @@
 Windows.  Some of these peculiarities are also relevant to Microsoft's
 older MS-DOS ``operating system'' (also known as ``MS-DOG'').
 However, Emacs features that are relevant @emph{only} to MS-DOS are
-now described in a separate manual (@inforef{MS-DOG,, emacs-xtra}).
+described in a separate manual (@inforef{MS-DOG,, emacs-xtra}).
 
   The behavior of Emacs on MS-Windows is reasonably similar to what is
 documented in the rest of the manual, including support for long file
