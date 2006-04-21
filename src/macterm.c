@@ -2230,7 +2230,11 @@ x_per_char_metric (font, char2b)
 #endif
 
   return ((pcm == NULL
-	   || (pcm->width == 0 && (pcm->rbearing - pcm->lbearing) == 0))
+	   || (pcm->width == 0
+#if 0 /* Show hollow boxes for zero-width glyphs such as combining diacritics.  */
+	       && (pcm->rbearing - pcm->lbearing) == 0
+#endif
+	       ))
 	  ? NULL : pcm);
 }
 
@@ -7042,6 +7046,25 @@ add_font_name_table_entry (char *font_name)
   font_name_table[font_name_count++] = font_name;
 }
 
+static void
+add_mac_font_name (name, size, style, charset)
+     char *name;
+     int size;
+     Style style;
+     char *charset;
+{
+  if (size > 0)
+    add_font_name_table_entry (mac_to_x_fontname (name, size, style, charset));
+  else
+    {
+      add_font_name_table_entry (mac_to_x_fontname (name, 0, style, charset));
+      add_font_name_table_entry (mac_to_x_fontname (name, 0, italic, charset));
+      add_font_name_table_entry (mac_to_x_fontname (name, 0, bold, charset));
+      add_font_name_table_entry (mac_to_x_fontname (name, 0, italic | bold,
+						    charset));
+    }
+}
+
 /* Sets up the table font_name_table to contain the list of all fonts
    in the system the first time the table is used so that the Resource
    Manager need not be accessed every time this information is
@@ -7067,16 +7090,21 @@ init_font_name_table ()
 			   text_encoding_info_alist)))
     {
       OSErr err;
+      struct Lisp_Hash_Table *h;
+      unsigned hash_code;
       ItemCount nfonts, i;
       ATSUFontID *font_ids = NULL;
-      Ptr name, prev_name = NULL;
+      Ptr name;
       ByteCount name_len;
+      Lisp_Object family;
 
       atsu_font_id_hash =
 	make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
 			 make_float (DEFAULT_REHASH_SIZE),
 			 make_float (DEFAULT_REHASH_THRESHOLD),
 			 Qnil, Qnil, Qnil);;
+      h = XHASH_TABLE (atsu_font_id_hash);
+
       err = ATSUFontCount (&nfonts);
       if (err == noErr)
 	{
@@ -7098,32 +7126,19 @@ init_font_name_table ()
 				    kFontNoLanguage, name_len, name,
 				    NULL, NULL);
 	    if (err == noErr)
-	      decode_mac_font_name (name, name_len + 1, Qnil);
-	    if (err == noErr
-		&& *name != '.'
-		&& (prev_name == NULL
-		    || strcmp (name, prev_name) != 0))
 	      {
-		static char *cs = "iso10646-1";
-
-		add_font_name_table_entry (mac_to_x_fontname (name, 0,
-							      normal, cs));
-		add_font_name_table_entry (mac_to_x_fontname (name, 0,
-							      italic, cs));
-		add_font_name_table_entry (mac_to_x_fontname (name, 0,
-							      bold, cs));
-		add_font_name_table_entry (mac_to_x_fontname (name, 0,
-							      italic | bold, cs));
-		Fputhash (make_unibyte_string (name, name_len),
-			  long_to_cons (font_ids[i]), atsu_font_id_hash);
-		xfree (prev_name);
-		prev_name = name;
+		decode_mac_font_name (name, name_len + 1, Qnil);
+		family = make_unibyte_string (name, name_len);
+		if (*name != '.'
+		    && hash_lookup (h, family, &hash_code) < 0)
+		  {
+		    add_mac_font_name (name, 0, normal, "iso10646-1");
+		    hash_put (h, family, long_to_cons (font_ids[i]),
+			      hash_code);
+		  }
 	      }
-	    else
-	      xfree (name);
+	    xfree (name);
 	  }
-      if (prev_name)
-	xfree (prev_name);
       if (font_ids)
 	xfree (font_ids);
     }
@@ -7151,16 +7166,16 @@ init_font_name_table ()
       FMFontSize size;
       TextEncoding encoding;
       TextEncodingBase sc;
-      Lisp_Object text_encoding_info;
+      Lisp_Object text_encoding_info, family;
 
       if (FMGetFontFamilyName (ff, name) != noErr)
-	break;
+	continue;
       p2cstr (name);
       if (*name == '.')
 	continue;
 
       if (FMGetFontFamilyTextEncoding (ff, &encoding) != noErr)
-	break;
+	continue;
       sc = GetTextEncodingBase (encoding);
       text_encoding_info = assq_no_quit (make_number (sc),
 					 text_encoding_info_alist);
@@ -7169,13 +7184,15 @@ init_font_name_table ()
 					   text_encoding_info_alist);
       decode_mac_font_name (name, sizeof (name),
 			    XCAR (XCDR (text_encoding_info)));
-      fm_font_family_alist = Fcons (Fcons (build_string (name),
-					   make_number (ff)),
+      family = build_string (name);
+      if (!NILP (Fassoc (family, fm_font_family_alist)))
+	continue;
+      fm_font_family_alist = Fcons (Fcons (family, make_number (ff)),
 				    fm_font_family_alist);
 
       /* Point the instance iterator at the current font family.  */
       if (FMResetFontFamilyInstanceIterator (ff, &ffii) != noErr)
-	break;
+	continue;
 
       while (FMGetNextFontFamilyInstance (&ffii, &font, &style, &size)
 	     == noErr)
@@ -7184,27 +7201,7 @@ init_font_name_table ()
 
 	  if (size > 0 || style == normal)
 	    for (; !NILP (rest); rest = XCDR (rest))
-	      {
-		char *cs = SDATA (XCAR (rest));
-
-		if (size == 0)
-		  {
-		    add_font_name_table_entry (mac_to_x_fontname (name, size,
-								  style, cs));
-		    add_font_name_table_entry (mac_to_x_fontname (name, size,
-								  italic, cs));
-		    add_font_name_table_entry (mac_to_x_fontname (name, size,
-								  bold, cs));
-		    add_font_name_table_entry (mac_to_x_fontname (name, size,
-								  italic | bold,
-								  cs));
-		  }
-		else
-		  {
-		    add_font_name_table_entry (mac_to_x_fontname (name, size,
-								  style, cs));
-		  }
-	      }
+	      add_mac_font_name (name, size, style, SDATA (XCAR (rest)));
 	}
     }
 
@@ -7224,7 +7221,7 @@ init_font_name_table ()
   Str255 name;
   struct FontAssoc *fat;
   struct AsscEntry *assc_entry;
-  Lisp_Object text_encoding_info_alist, text_encoding_info;
+  Lisp_Object text_encoding_info_alist, text_encoding_info, family;
   struct gcpro gcpro1;
 
   GetPort (&port);  /* save the current font number used */
@@ -7243,7 +7240,7 @@ init_font_name_table ()
       GetResInfo (font_handle, &id, &type, name);
       GetFNum (name, &fontnum);
       p2cstr (name);
-      if (fontnum == 0)
+      if (fontnum == 0 || *name == '.')
 	continue;
 
       TextFont (fontnum);
@@ -7255,8 +7252,10 @@ init_font_name_table ()
 					   text_encoding_info_alist);
       decode_mac_font_name (name, sizeof (name),
 			    XCAR (XCDR (text_encoding_info)));
-      fm_font_family_alist = Fcons (Fcons (build_string (name),
-					   make_number (fontnum)),
+      family = build_string (name);
+      if (!NILP (Fassoc (family, fm_font_family_alist)))
+	continue;
+      fm_font_family_alist = Fcons (Fcons (family, make_number (fontnum)),
 				    fm_font_family_alist);
       do
 	{
@@ -7277,14 +7276,9 @@ init_font_name_table ()
 		  Lisp_Object rest = XCDR (XCDR (text_encoding_info));
 
 		  for (; !NILP (rest); rest = XCDR (rest))
-		    {
-		      char *cs = SDATA (XCAR (rest));
-
-		      add_font_name_table_entry (mac_to_x_fontname (name,
-								    assc_entry->fontSize,
-								    assc_entry->fontStyle,
-								    cs));
-		    }
+		    add_mac_font_name (name, assc_entry->fontSize,
+				       assc_entry->fontStyle,
+				       SDATA (XCAR (rest)));
 		}
 	    }
 
