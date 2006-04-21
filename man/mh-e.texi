@@ -8,11 +8,11 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 7.93
+@set VERSION 7.94
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
-@set EDITION , 7th Edition
-@set UPDATED 2006-04-17
+@set EDITION 
+@set UPDATED 2006-04-21
 @set UPDATE-MONTH April, 2006
 
 @c Other variables.

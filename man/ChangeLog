@@ -1,3 +1,10 @@
+2006-04-21  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 7.94.
+	
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 7.94.
+
 2006-04-21  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Many small fixes.
