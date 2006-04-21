@@ -6,6 +6,90 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 
+* Changes in MH-E 7.94
+
+Version 7.94, the first 8.0 release candidate, fixes a bunch of bugs,
+incorporates new features introduced in Emacs 22.1, improves folder
+completion, and spruces up the tool bar.
+
+** New Features in MH-E 7.94
+
+*** Add :package-version Keyword to Options
+
+This `defcustom', `defgroup', and `defface' keyword was introduced in
+Emacs 22.1. MH-E has been extended to take advantage of it. With this
+keyword, you can now use `M-x customize-changed-options' to see what
+options in MH-E have changed between versions of Emacs. In a future
+version of Emacs, you'll be able to see changes between MH-E versions
+as well (closes SF #1452724).
+
+** Bug Fixes in MH-E 7.94
+
+*** mhparam -components Fails on mailutils
+
+This error prevented MH-E from loading when using GNU mailutils. GNU
+mailutils drops the `s' in this argument, so we did too since
+-component still works in nmh and MH (closes SF #1446985).
+
+*** "/ s" Still Has Problems With []'d Mail
+
+On XEmacs, subjects that had special characters would prevent `/ s'
+from narrowing to the given subject. These characters are now quoted
+correctly in XEmacs (closes SF #1447598).
+
+*** Incorrect Example in mh-folder-list Docstring
+
+This has been fixed (closes SF #1448498).
+
+*** Variable mh-send-args Is a String, Not a List
+
+This was causing errors when sending under GNU mailutils. The internal
+variable `mh-send-args' is now a list which fixes the problem (closes
+SF #1448604).
+
+*** Update Icons
+
+Most of the tool bar icons have been replaced by GTK or GNOME 2 icons
+(closes SF #1452715).
+
+*** Can't customize tool bar for current session
+
+If you customized `mh-tool-bar-folder-buttons' or
+`mh-tool-bar-letter-buttons', and clicked Set for Current Session, the
+tool bar was not updated. This has been fixed (closes SF #1452718).
+
+*** Strip Build Number From emacs-version in X-Mailer
+
+This has been done (closes SF #1466481).
+
+*** mh-folder-completion-function Problems
+
+One could not longer browse folders outside of the standard MH Mail
+directory. This has been fixed. As a beneficial side-effect, you can
+once again use SPC to complete folders (closes SF #1470518).
+
+*** Rename Function and Variable Definers
+
+If you had ever shown help for an MH-E symbol that was both a function
+or variable, you might have found that the hyperlink to the file
+brought you to the wrong definition. This has been fixed by renaming
+the macros `mh-defgroup', `mh-defcustom', `mh-defface',
+`mh-defun-compat', and `mh-defmacro-compat' to `defgroup-mh',
+`defcustom-mh', `defface-mh', `defun-mh', `defmacro-mh' respectively
+(closes SF #1472029).
+
+*** mh-insert-letter Uses Wrong Default
+
+If you had used `C-c TAB' (`mh-insert-letter') to insert a letter into
+your draft, specified a different folder, and chose the default
+message number, you got the wrong message. This has been fixed (closes
+SF #1473729).
+
+*** "echo -e" in Makefile Causes Solaris 10 Problem
+
+This construct has been replaced with printf, which is reputed to be
+more portable (closes SF #1467222, #1473908).
+
 * Changes in MH-E 7.93
 
 Version 7.93, the fourth 8.0 beta release, fixes a handful of bugs in
