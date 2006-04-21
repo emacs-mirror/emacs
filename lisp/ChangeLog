@@ -231,7 +231,7 @@
 	* vc.el (vc-annotate): Arrange for point to end up at the same
 	line number as in the original, but only when using a new buffer.
 
-2006-04-12  Davis Herring  <herring@lanl.gov>  (tiny change)
+2006-04-12  Stuart Herring  <herring@lanl.gov>  (tiny change)
 
 	* files.el (hack-one-local-variable-eval-safep):
 	Recognize `edebug-form-spec' for `put', but only if it passes
@@ -4595,7 +4595,7 @@
 	display-multi-frame-p, use selected-frame when menu-updating-frame
 	is nil.
 
-2005-12-20  Davis Herring  <herring@lanl.gov>  (tiny change)
+2005-12-20  Stuart Herring  <herring@lanl.gov>  (tiny change)
 
 	* align.el (align-rules-list): Use [ \t] instead of \s-
 	for column separators in text mode.
