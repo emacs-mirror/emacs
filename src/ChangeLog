@@ -1,3 +1,7 @@
+2006-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (SYSTEM_PURESIZE_EXTRA): Increase to 25000.
+
 2006-04-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* image.c [MAC_OS] (xpm_load_image): Fill in background field
