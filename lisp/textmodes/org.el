@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.25
+;; Version: 4.26
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -79,8 +79,11 @@
 ;; excellent reference card made by Philip Rooke.  This card can be found
 ;; in the etc/ directory of Emacs 22.
 ;;
-;; Changes since version 4.00:
+;; Changes since version 4.10:
 ;; ---------------------------
+;; Version 4.26
+;;    - Bug fixes.
+;;
 ;; Version 4.25
 ;;    - Revision of the font-lock faces section, with better tty support.
 ;;    - TODO keywords in Agenda buffer are fontified.
@@ -119,60 +122,6 @@
 ;;      `org-time-stamp-rounding-minutes'.
 ;;    - Bug fixes (there are *always* more bugs).
 ;;
-;; Version 4.10
-;;    - Bug fixes.
-;;
-;; Version 4.09
-;;    - Bug fixes.
-;;    - Small improvements to font-lock support.
-;;    - MHE support finalized.
-;;
-;; Version 4.08
-;;    - Bug fixes.
-;;    - Improved MHE support
-;;
-;; Version 4.07
-;;    - Bug fixes.
-;;    - Leading stars in headlines can be hidden, so make the outline look
-;;      cleaner.
-;;    - Mouse-1 can be used to follow links.
-;;
-;; Version 4.06
-;;    - HTML exporter treats targeted internal links.
-;;    - Bug fixes.
-;;
-;; Version 4.05
-;;    - Changes to internal link system (thanks to David Wainberg for ideas).
-;;      - in-file links: [[Search String]] instead of <file:::Search String>
-;;      - automatic links to "radio targets".
-;;      - CamelCase not longer active by default, configure org-activate-camels
-;;        if you want to turn it back on.
-;;      - After following a link, `C-c &' jumps back to it.
-;;    - MH-E link support (thanks to Thomas Baumann).
-;;    - Special table lines are no longer exported.
-;;    - Bug fixes and minor improvements.
-;;
-;; Version 4.04
-;;    - Cleanup tags display in agenda.
-;;    - Bug fixes.
-;;
-;; Version 4.03
-;;    - Table alignment fixed for use with wide characters.
-;;    - `C-c -' leaves cursor in current table line.
-;;    - The current TAG can be incorporated into the agenda prefix.
-;;      See option `org-agenda-prefix-format' for details.
-;;
-;; Version 4.02
-;;    - Minor bug fixes and improvements around tag searches.
-;;    - XEmacs compatibility fixes.
-;;
-;; Version 4.01
-;;    - Tags can also be set remotely from agenda buffer.
-;;    - Boolean logic for tag searches.
-;;    - Additional agenda commands can be configured through the variable
-;;      `org-agenda-custom-commands'.
-;;    - Minor bug fixes.
-;;
 ;;; Code:
 
 (eval-when-compile 
@@ -188,7 +137,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.25"
+(defvar org-version "4.26"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -198,7 +147,7 @@
 ;; of outline.el.
 (defconst org-noutline-p (featurep 'noutline)
   "Are we using the new outline mode?")
-(defconst org-xemacs-p (featurep 'xemacs))  ;; FIXME: used by external code?
+(defconst org-xemacs-p (featurep 'xemacs)) ; not used by org.el itself
 (defconst org-format-transports-properties-p
   (let ((x "a"))
     (add-text-properties 0 1 '(test t) x)
@@ -2383,7 +2332,10 @@ This face is only used if `org-fontify-done-headline' is set."
 (defvar orgtbl-mode) ; defined later in this file
 ;;; Define the mode
 
-(defvar org-mode-map (copy-keymap outline-mode-map)
+(defvar org-mode-map 
+  (if (and (not (keymapp outline-mode-map)) (featurep 'allout))
+      (error "Conflict with outdated version of allout.el.  Load org.el before allout.el, or ugrade to newer allout, for example by switching to Emacs 22.")
+    (copy-keymap outline-mode-map))
   "Keymap for Org-mode.")
 
 (defvar org-struct-menu) ; defined later in this file
@@ -7448,9 +7400,8 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 				   (org-add-props cmd nil
 				     'face 'org-warning))))
 	      (progn
-		(message "Executing %s..." cmd)
-		(shell-command cmd)
-		(message "Executing %s...done" cmd))
+		(message "Executing %s" cmd)
+		(shell-command cmd))
 	    (error "Abort"))))
 
        (t
@@ -7904,8 +7855,7 @@ If the file does not exist, an error is thrown."
 	  (setq cmd 'emacs))))
     (cond
      ((and (stringp cmd) (not (string-match "^\\s-*$" cmd)))
-;      (setq cmd (format cmd (concat "\"" file "\"")))
-      ;; FIXME: normalize use of quotes
+      ;; Normalize use of quote, this can vary.
       (if (string-match "['\"]%s['\"]" cmd)
 	  (setq cmd (replace-match "'%s'" t t cmd)))
       (setq cmd (format cmd file))
@@ -8958,10 +8908,10 @@ Optional argument NEW may specify text to replace the current field content."
 		    e (not (= (match-beginning 2) (match-end 2))))
 	      (setq f (format (if num " %%%ds %s" " %%-%ds %s")
 			      l (if e "|" (setq org-table-may-need-update t) ""))
-		    n (format f s t t))
+		    n (format f s))
 	      (if new
-		  (if (<= (length new) l)
-		      (setq n (format f new t t))  ;; FIXME: why t t?????
+		  (if (<= (length new) l)      ;; FIXME: length -> str-width?
+		      (setq n (format f new t t))  ;; FIXME: t t?
 		    (setq n (concat new "|") org-table-may-need-update t)))
 	      (or (equal n o)
 		  (let (org-table-may-need-update)
@@ -12277,16 +12227,6 @@ stacked delimiters is N.  Escaping delimiters is not possible."
       (setq string (replace-match (match-string 1 string) t t string))))
   string)
 
-;(defun org-export-html-convert-emphasize (string)
-;  (let (c (s 0))
-;    (while (string-match "\\(\\W\\|^\\)\\([*/_]\\)\\(\\w+\\)\\2\\(\\W\\|$\\)" string s)
-;      (setq c (cdr (assoc (match-string 2 string)
-;			  '(("*" . "b") ("/" . "i") ("_" . "u"))))
-;	    s (+ (match-end 0) 3)
-;	    string (replace-match
-;		    (concat "\\1<" c ">\\3</" c ">\\4") t nil string)))
-;    string))
-
 (defun org-export-html-convert-emphasize (string)
   (while (string-match org-italic-re string)
     (setq string (replace-match "\\1<i>\\3</i>\\4" t nil string)))
@@ -12719,6 +12659,8 @@ a time), or the day by one (if it does not contain a time)."
 (define-key org-mode-map [?\C-c ?\C-x (right)] 'org-shiftright)
 
 ;; All the other keys
+
+(define-key org-mode-map "\C-c\C-a" 'show-all)  ; in case allout messed up.
 (define-key org-mode-map "\C-c$"    'org-archive-subtree)
 (define-key org-mode-map "\C-c\C-j" 'org-goto)
 (define-key org-mode-map "\C-c\C-t" 'org-todo)
