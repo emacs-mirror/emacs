@@ -12436,7 +12436,7 @@ The XOXO buffer is named *xoxo-<source buffer name>*"
 
       ;; Finish the buffer off and clean it up.
       (switch-to-buffer-other-window out)
-      (indent-region (point-min) (point-max))
+      (indent-region (point-min) (point-max) nil)
       (save-buffer)
       (goto-char (point-min))
       )))
