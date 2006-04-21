@@ -1,5 +1,9 @@
 2006-04-21  Bill Wohler  <wohler@newt.com>
 
+	* mh-e.el (Version, mh-version): Add +cvs to version.
+
+2006-04-21  Bill Wohler  <wohler@newt.com>
+
 	Release MH-E version 7.94.
 
 	* mh-e.el (Version, mh-version): Update for release 7.94.
