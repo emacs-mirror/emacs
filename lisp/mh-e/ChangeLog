@@ -1,3 +1,83 @@
+2006-04-20  Bill Wohler  <wohler@newt.com>
+
+	* mh-tool-bar.el (image-load-path): Define to shush compiler.
+	(mh-buffer-exists-p): Move inside mh-do-in-gnu-emacs since it
+	isn't used outside of it.
+	(mh-tool-bar-folder-buttons-init,
+	mh-tool-bar-letter-buttons-init): Update load-path/image-load-path
+	before setting buttons. This code used to be in
+	mh-folder-mode/mh-letter-mode but this was the wrong place since
+	mh-tool-bar-*-buttons-init can also be called when customizing the
+	buttons.
+	(mh-tool-bar-update): New function which updates tool-bar-map in
+	all of the MH-E buffers after customizing the buttons (closes SF
+	#1452718).
+	(mh-tool-bar-folder-buttons-set, mh-tool-bar-letter-buttons-set):
+	Call it (closes SF #1452718).
+
+	* mh-folder.el (mh-folder-buttons-init-flag): Delete. Use
+	mh-folder-tool-bar-map instead.
+	(image-load-path): Delete. No longer used.
+	(mh-folder-mode): Moved setting of image-load-path into
+	mh-tool-bar-folder-buttons-init.
+
+	* mh-letter.el (mh-letter-buttons-init-flag): Delete. Use
+	mh-letter-tool-bar-map instead.
+	(image-load-path): Delete. No longer used.
+	(mh-letter-mode): Moved setting of image-load-path into
+	mh-tool-bar-letter-buttons-init.
+
+	* mh-seq.el (mh-narrow-to-seq, mh-widen): Use with-current-buffer
+	instead of set-buffer.
+
+2006-04-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-tool-bar.el (mh-tool-bar-define): Fix enable-expr so that one
+	can permanently disable a button (such as a separator) with nil.
+
+2006-04-18  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (defcustom-mh, defface-mh, defgroup-mh, mh-face-data)
+	(mh-strip-package-version, mh-face-data, mh-inherit-face-flag)
+	(mh-min-colors-defined-flag): Do not unbind these macros and
+	variables. Nice idea, but too many nasty side-effects. These
+	macros are needed by [Cc]ustom-make-dependencies when creating the
+	MH-E customization groups in mh-cus-load.el. These disappeared
+	when the macros above were introduced. Besides, if a developer
+	were to try to show the help for a macro or variable they were
+	looking at and got [No match] when they did so, that would be bad.
+
+2006-04-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-insert-x-mailer): Strip build number from
+	version in X-Mailer field (closes SF #1466481).
+
+	* mh-acros.el (mh-defun-compat): Rename to defun-mh in order that
+	variables and functions with the same name are found correctly by
+	find-func (invoked by clicking on the filename link in the *Help*
+	buffer).
+	(mh-defmacro-compat): Rename to defmacro-mh. Ditto.
+	* mh-e.el: (mh-defgroup): Rename to defgroup-mh. Ditto.
+	(mh-defcustom): Rename to defcustom-mh. Ditto.
+	(mh-defface): Rename to defface-mh. Ditto.
+	(mh-font-lock-add-keywords): Make changes according to these
+	renamings.
+
+	* mh-e.el, mh-compat.el, mh-gnus.el: Use the new names (closes SF
+	#1472029).
+
+	* mh-utils.el (mh-sub-folders-actual): Mention that folder must
+	have been processed by mh-normalize-folder-name.
+	(mh-folder-completion-function): Handle completion of folders with
+	absolute names. Also, when flag is t, display complete folder name
+	to provide proper highlighting in Emacs 22 now that
+	minibuffer-completing-file-name is nil (closes SF #1470518).
+	(mh-folder-completing-read): No longer set
+	minibuffer-completing-file-name to t. This was causing "Can't set
+	current directory errors" when browsing absolute file names.
+	Another benefit of this change is that SPC can be used for
+	completion again (closes SF #1470518).
+
 2006-04-15  Bill Wohler  <wohler@newt.com>
 
 	* mh-compat.el (mh-font-lock-add-keywords): Fix typo in docstring.
@@ -147,7 +227,7 @@
 	(mh-scan-line-formats, mh-search, mh-sending-mail)
 	(mh-sequences, mh-show, mh-speedbar, mh-thread, mh-tool-bar)
 	(mh-hooks, mh-faces): Add :package-version keyword to these
-	groups.
+	groups (closes SF #1452724).
 	(mh-alias-completion-ignore-case-flag)
 	(mh-alias-expand-aliases-flag, mh-alias-flash-on-comma)
 	(mh-alias-insert-file, mh-alias-insertion-location)
@@ -193,7 +273,7 @@
 	(mh-show-use-xface-flag, mh-store-default-directory)
 	(mh-summary-height, mh-speed-update-interval)
 	(mh-show-threads-flag, mh-tool-bar-search-function): Add
-	:package-version keyword to these options.
+	:package-version keyword to these options (closes SF #1452724).
 	(mh-after-commands-processed-hook)
 	(mh-alias-reloaded-hook, mh-before-commands-processed-hook)
 	(mh-before-quit-hook, mh-before-send-letter-hook)
@@ -204,7 +284,7 @@
 	(mh-mh-to-mime-hook, mh-search-mode-hook, mh-quit-hook)
 	(mh-refile-msg-hook, mh-show-hook, mh-show-mode-hook)
 	(mh-unseen-updated-hook): Add :package-version keyword to these
-	hooks.
+	hooks (closes SF #1452724).
 	(mh-min-colors-defined-flag)
 	(mh-folder-address, mh-folder-body, mh-folder-cur-msg-number)
 	(mh-folder-date, mh-folder-deleted, mh-folder-followup)
@@ -218,10 +298,10 @@
 	(mh-speedbar-folder, mh-speedbar-folder-with-unseen-messages)
 	(mh-speedbar-selected-folder)
 	(mh-speedbar-selected-folder-with-unseen-messages): : Add
-	:package-version keyword to these faces.
+	:package-version keyword to these faces (closes SF #1452724).
 
 	* mh-tool-bar.el (mh-tool-bar-define): Added commented-out
-	:package-version keywords.
+	:package-version keywords (closes SF #1452724).
 
 2006-03-28  Bill Wohler  <wohler@newt.com>
 

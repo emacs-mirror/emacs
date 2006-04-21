@@ -3391,7 +3391,7 @@ describe_map (map, prefix, elt_describer, partial, shadow,
       if (vect[i].shadowed)
 	{
 	  SET_PT (PT - 1);
-	  insert_string ("  (shadowed)");
+	  insert_string ("\n  (that binding is currently shadowed by another mode)");
 	  SET_PT (PT + 1);
 	}
     }

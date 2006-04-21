@@ -912,7 +912,10 @@ The versions of MH-E, Emacs, and MH are shown."
           (format "MH-E %s; %s; %sEmacs %s"
                   mh-version mh-variant-in-use
                   (if mh-xemacs-flag "X" "GNU ")
-                  (cond ((not mh-xemacs-flag) emacs-version)
+                  (cond ((not mh-xemacs-flag)
+                         (string-match "[0-9]+\\.[0-9]+\\(\\.[0-9]+\\)?"
+                                       emacs-version)
+                         (match-string 0 emacs-version))
                         ((string-match "[0-9.]*\\( +\([ a-z]+[0-9]+\)\\)?"
                                        emacs-version)
                          (match-string 0 emacs-version))

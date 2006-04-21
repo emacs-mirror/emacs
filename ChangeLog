@@ -1,3 +1,7 @@
+2006-04-20 Ramprasad B <ramprasad_i82@yahoo.com>
+
+	* Copyright (sources/emacs): updated copyright year(s)
+	
 2006-04-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure: Regenerated.
@@ -6225,7 +6229,7 @@
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002
+    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2006
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.

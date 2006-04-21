@@ -556,10 +556,18 @@ nested folders within them."
                 sub-folders)
       sub-folders)))
 
+;; FIXME: This function does not do well if FOLDER does not exist. It
+;; then changes the context to that folder which causes problems down
+;; the line. Since a folder in the cache could later be deleted, it
+;; would be good for mh-sub-folders-actual to return nil in this case
+;; so that mh-sub-folders could delete it from the cache. This
+;; function could protect itself by using a temporary context.
 (defun mh-sub-folders-actual (folder)
   "Execute the command folders to return the sub-folders of FOLDER.
 Filters out the folder names that start with \".\" so that
-directories that aren't usually mail folders are hidden."
+directories that aren't usually mail folders are hidden.
+Expects FOLDER to have already been normalized with
+  (mh-normalize-folder-name folder nil nil t)"
   (let ((arg-list `(,(expand-file-name "folders" mh-progs)
                     nil (t nil) nil "-noheader" "-norecurse" "-nototal"
                     ,@(if (stringp folder) (list folder) ())))
@@ -683,36 +691,44 @@ This variable should never be set.")
 (defun mh-folder-completion-function (name predicate flag)
   "Programmable completion for folder names.
 NAME is the partial folder name that has been input. PREDICATE if
-non-nil is a function that is used to filter the possible choices
-and FLAG determines whether the completion is over."
+non-nil is a function that is used to filter the possible
+choices. FLAG is nil to indicate `try-completion', t for
+`all-completions', or the symbol lambda for `test-completion'.
+See Info node `(elisp) Programmed Completion' for details."
   (let* ((orig-name name)
+         ;; After normalization, name is nil, +, or +something. If a
+         ;; trailing slash is present, it is preserved.
          (name (mh-normalize-folder-name name nil t))
          (last-slash (mh-search-from-end ?/ name))
-         (last-complete (if last-slash (substring name 0 last-slash) nil))
+         ;; nil if + or +folder; +folder/ if slash present.
+         (last-complete (if last-slash (substring name 0 (1+ last-slash)) nil))
+         ;; Either +folder/remainder, +remainder, or "".
          (remainder (cond (last-complete (substring name (1+ last-slash)))
-                          ((and (> (length name) 0) (equal (aref name 0) ?+))
-                           (substring name 1))
+                          (name (substring name 1))
                           (t ""))))
     (cond ((eq flag nil)
-           (let ((try-res (try-completion
-                           name
-                           (mapcar (lambda (x)
-                                     (cons (if (not last-complete)
-                                               (concat "+" (car x))
-                                             (concat last-complete "/" (car x)))
-                                           (cdr x)))
-                                   (mh-sub-folders last-complete t))
-                           predicate)))
+           (let ((try-res
+                  (try-completion
+                   name
+                   (mapcar (lambda (x)
+                             (cons (concat (or last-complete "+") (car x))
+                                   (cdr x)))
+                    (mh-sub-folders last-complete t))
+                   predicate)))
              (cond ((eq try-res nil) nil)
                    ((and (eq try-res t) (equal name orig-name)) t)
                    ((eq try-res t) name)
                    (t try-res))))
           ((eq flag t)
-           (all-completions
-            remainder (mh-sub-folders last-complete t) predicate))
+           (mapcar (lambda (x)
+                     (concat (or last-complete "+") x))
+                   (all-completions
+                    remainder (mh-sub-folders last-complete t) predicate)))
           ((eq flag 'lambda)
-           (let ((path (concat mh-user-path
-                               (substring (mh-normalize-folder-name name) 1))))
+           (let ((path (concat (unless (and (> (length name) 1)
+                                            (eq (aref name 1) ?/))
+                                 mh-user-path)
+                               (substring name 1))))
              (cond (mh-allow-root-folder-flag (file-exists-p path))
                    ((equal path mh-user-path) nil)
                    (t (file-exists-p path))))))))
@@ -726,8 +742,7 @@ and FLAG determines whether the completion is over."
 If ALLOW-ROOT-FOLDER-FLAG is non-nil then \"+\" is allowed to be
 a folder name corresponding to `mh-user-path'."
   (mh-normalize-folder-name
-   (let ((minibuffer-completing-file-name t)
-         (completion-root-regexp "^[+/]")
+   (let ((completion-root-regexp "^[+/]")
          (minibuffer-local-completion-map mh-folder-completion-map)
          (mh-allow-root-folder-flag allow-root-folder-flag))
      (completing-read prompt 'mh-folder-completion-function nil nil nil

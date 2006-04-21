@@ -1510,11 +1510,8 @@ XCreateGC (display, window, mask, xgcv)
 {
   GC gc = xmalloc (sizeof (*gc));
 
-  if (gc)
-    {
-      bzero (gc, sizeof (*gc));
-      XChangeGC (display, gc, mask, xgcv);
-    }
+  bzero (gc, sizeof (*gc));
+  XChangeGC (display, gc, mask, xgcv);
 
   return gc;
 }
@@ -2163,21 +2160,17 @@ x_per_char_metric (font, char2b)
       if (*row == NULL)
 	{
 	  *row = xmalloc (sizeof (XCharStructRow));
-	  if (*row)
-	    bzero (*row, sizeof (XCharStructRow));
+	  bzero (*row, sizeof (XCharStructRow));
 	}
-      if (*row)
+      pcm = (*row)->per_char + char2b->byte2;
+      if (!XCHARSTRUCTROW_CHAR_VALID_P (*row, char2b->byte2))
 	{
-	  pcm = (*row)->per_char + char2b->byte2;
-	  if (!XCHARSTRUCTROW_CHAR_VALID_P (*row, char2b->byte2))
-	    {
-	      BLOCK_INPUT;
-	      mac_query_char_extents (font->mac_style,
-				      (char2b->byte1 << 8) + char2b->byte2,
-				      NULL, NULL, pcm, NULL);
-	      UNBLOCK_INPUT;
-	      XCHARSTRUCTROW_SET_CHAR_VALID (*row, char2b->byte2);
-	    }
+	  BLOCK_INPUT;
+	  mac_query_char_extents (font->mac_style,
+				  (char2b->byte1 << 8) + char2b->byte2,
+				  NULL, NULL, pcm, NULL);
+	  UNBLOCK_INPUT;
+	  XCHARSTRUCTROW_SET_CHAR_VALID (*row, char2b->byte2);
 	}
     }
   else
@@ -6582,12 +6575,7 @@ xlfdpat_create (pattern)
   struct xlfdpat_block *blk;
 
   pat = xmalloc (sizeof (struct xlfdpat));
-  if (pat == NULL)
-    goto error;
-
   pat->buf = xmalloc (strlen (pattern) + 1);
-  if (pat->buf == NULL)
-    goto error;
 
   /* Normalize the pattern string and store it to `pat->buf'.  */
   nblocks = 0;
@@ -6651,8 +6639,6 @@ xlfdpat_create (pattern)
     }
 
   pat->blocks = xmalloc (sizeof (struct xlfdpat_block) * nblocks);
-  if (pat->blocks == NULL)
-    goto error;
 
   /* Divide the normalized pattern into blocks.  */
   p = pat->buf;
@@ -7112,9 +7098,10 @@ init_font_name_table ()
 			 Qnil, Qnil, Qnil);;
       err = ATSUFontCount (&nfonts);
       if (err == noErr)
-	font_ids = xmalloc (sizeof (ATSUFontID) * nfonts);
-      if (font_ids)
-	err = ATSUGetFontIDs (font_ids, nfonts, NULL);
+	{
+	  font_ids = xmalloc (sizeof (ATSUFontID) * nfonts);
+	  err = ATSUGetFontIDs (font_ids, nfonts, NULL);
+	}
       if (err == noErr)
 	for (i = 0; i < nfonts; i++)
 	  {
@@ -7124,8 +7111,6 @@ init_font_name_table ()
 	    if (err != noErr)
 	      continue;
 	    name = xmalloc (name_len + 1);
-	    if (name == NULL)
-	      continue;
 	    name[name_len] = '\0';
 	    err = ATSUFindFontName (font_ids[i], kFontFamilyName,
 				    kFontMacintoshPlatform, kFontNoScript,
@@ -7455,8 +7440,6 @@ mac_do_list_fonts (pattern, maxnames)
 	  int former_len = ptr - font_name_table[i];
 
 	  scaled = xmalloc (strlen (font_name_table[i]) + 20 + 1);
-	  if (scaled == NULL)
-	    continue;
 	  memcpy (scaled, font_name_table[i], former_len);
 	  sprintf (scaled + former_len,
 		   "-%d-%d-72-72-m-%d-%s",
@@ -7789,18 +7772,8 @@ XLoadQueryFont (Display *dpy, char *fontname)
       font->max_char_or_byte2 = 0xff;
 
       font->bounds.rows = xmalloc (sizeof (XCharStructRow *) * 0x100);
-      if (font->bounds.rows == NULL)
-	{
-	  mac_unload_font (&one_mac_display_info, font);
-	  return NULL;
-	}
       bzero (font->bounds.rows, sizeof (XCharStructRow *) * 0x100);
       font->bounds.rows[0] = xmalloc (sizeof (XCharStructRow));
-      if (font->bounds.rows[0] == NULL)
-	{
-	  mac_unload_font (&one_mac_display_info, font);
-	  return NULL;
-	}
       bzero (font->bounds.rows[0], sizeof (XCharStructRow));
 
 #if USE_CG_TEXT_DRAWING
@@ -7822,9 +7795,10 @@ XLoadQueryFont (Display *dpy, char *fontname)
       }
 
       if (font->cg_font)
-	font->cg_glyphs = xmalloc (sizeof (CGGlyph) * 0x100);
-      if (font->cg_glyphs)
-	bzero (font->cg_glyphs, sizeof (CGGlyph) * 0x100);
+	{
+	  font->cg_glyphs = xmalloc (sizeof (CGGlyph) * 0x100);
+	  bzero (font->cg_glyphs, sizeof (CGGlyph) * 0x100);
+	}
 #endif
       space_bounds = font->bounds.rows[0]->per_char + 0x20;
       err = mac_query_char_extents (font->mac_style, 0x20,
@@ -7970,11 +7944,6 @@ XLoadQueryFont (Display *dpy, char *fontname)
 
 	  font->bounds.per_char =
 	    xmalloc (sizeof (XCharStruct) * (0xff - 0x20 + 1));
-	  if (font->bounds.per_char == NULL)
-	    {
-	      mac_unload_font (&one_mac_display_info, font);
-	      return NULL;
-	    }
 	  bzero (font->bounds.per_char,
 		 sizeof (XCharStruct) * (0xff - 0x20 + 1));
 
@@ -8979,15 +8948,12 @@ mac_store_apple_event (class, id, desc)
      Lisp_Object class, id;
      const AEDesc *desc;
 {
-  OSErr err = noErr;
+  OSErr err;
   struct input_event buf;
   AEDesc *desc_copy;
 
   desc_copy = xmalloc (sizeof (AEDesc));
-  if (desc_copy == NULL)
-    err = memFullErr;
-  else
-    err = AEDuplicateDesc (desc, desc_copy);
+  err = AEDuplicateDesc (desc, desc_copy);
   if (err == noErr)
     {
       EVENT_INIT (buf);

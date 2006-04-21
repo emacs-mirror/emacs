@@ -594,20 +594,24 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	'(face subscript display (raise -0.3))
       '(face superscript display (raise +0.3)))))
 
+(defun tex-font-lock-match-suscript (limit)
+  "Match subscript and superscript patterns up to LIMIT."
+  (when (re-search-forward "[_^] *\\([^\n\\{}]\\|\
+\\\\\\([a-zA-Z@]+\\|[^ \t\n]\\)\\|{[^\\{]*}\\|\\({\\)\\)" limit t)
+    (when (match-end 3)
+      (let ((beg (match-beginning 3))
+	    (end (save-restriction
+		   (narrow-to-region (point-min) limit)
+		   (condition-case nil (scan-lists (point) 1 1) (error nil)))))
+	(store-match-data (if end
+			      (list (match-beginning 0) end beg end)
+                            (list beg beg beg beg)))))
+    t))
+
 (defconst tex-font-lock-keywords-3
   (append tex-font-lock-keywords-2
-   (eval-when-compile
-     (let ((general "\\([a-zA-Z@]+\\|[^ \t\n]\\)")
-	   (slash "\\\\")
-	   ;; This is not the same regexp as before: it has a `+' removed.
-	   ;; The + makes the matching faster in the above cases (where we can
-	   ;; exit as soon as the match fails) but would make this matching
-	   ;; degenerate to nasty complexity (because we try to match the
-	   ;; closing brace, which forces trying all matching combinations).
-	   (arg "{\\(?:[^{}\\]\\|\\\\.\\|{[^}]*}\\)*"))
-       `((,(concat "[_^] *\\([^\n\\{}#]\\|" slash general "\\|#[0-9]\\|" arg "}\\)")
-	  (1 (tex-font-lock-suscript (match-beginning 0))
-	     append))))))
+	  '((tex-font-lock-match-suscript
+	     (1 (tex-font-lock-suscript (match-beginning 0)) append))))
   "Experimental expressions to highlight in TeX modes.")
 
 (defvar tex-font-lock-keywords tex-font-lock-keywords-1

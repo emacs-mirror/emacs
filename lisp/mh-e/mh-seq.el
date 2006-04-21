@@ -238,8 +238,7 @@ When you want to widen the view to all your messages again, use
                (set (make-local-variable 'tool-bar-map)
                     mh-folder-seq-tool-bar-map)
                (when (buffer-live-p (get-buffer mh-show-buffer))
-                 (save-excursion
-                   (set-buffer (get-buffer mh-show-buffer))
+                 (with-current-buffer mh-show-buffer
                    (set (make-local-variable 'tool-bar-map)
                         mh-show-seq-tool-bar-map))))
              (push 'widen mh-view-ops)))
@@ -371,8 +370,7 @@ remove all limits and sequence restrictions."
   (when (and (null mh-folder-view-stack) (boundp 'tool-bar-mode) tool-bar-mode)
     (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map)
     (when (buffer-live-p (get-buffer mh-show-buffer))
-      (save-excursion
-        (set-buffer (get-buffer mh-show-buffer))
+      (with-current-buffer mh-show-buffer
         (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map)))))
 
 

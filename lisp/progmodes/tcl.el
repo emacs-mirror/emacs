@@ -1042,7 +1042,7 @@ Returns nil if line starts inside a string, t if in a comment."
 (defun tcl-send-string (proc string)
   (with-current-buffer (process-buffer proc)
     (goto-char (process-mark proc))
-    (beginning-of-line)
+    (forward-line 0)             ;Not (beginning-of-line) because of fields.
     (if (looking-at comint-prompt-regexp)
 	(set-marker inferior-tcl-delete-prompt-marker (point))))
   (comint-send-string proc string))
@@ -1050,7 +1050,7 @@ Returns nil if line starts inside a string, t if in a comment."
 (defun tcl-send-region (proc start end)
   (with-current-buffer (process-buffer proc)
     (goto-char (process-mark proc))
-    (beginning-of-line)
+    (forward-line 0)             ;Not (beginning-of-line) because of fields.
     (if (looking-at comint-prompt-regexp)
 	(set-marker inferior-tcl-delete-prompt-marker (point))))
   (comint-send-region proc start end))
@@ -1080,7 +1080,11 @@ See variable `inferior-tcl-buffer'."
 Prefix argument means switch to the Tcl buffer afterwards."
   (interactive "r\nP")
   (let ((proc (inferior-tcl-proc)))
-    (tcl-send-region proc start end)
+    (tcl-send-region
+     proc
+     ;; Strip leading and trailing whitespace.
+     (save-excursion (goto-char start) (skip-chars-forward " \t\n") (point))
+     (save-excursion (goto-char end) (skip-chars-backward " \t\n") (point)))
     (tcl-send-string proc "\n")
     (if and-go (switch-to-tcl t))))
 
@@ -1149,7 +1153,12 @@ See documentation for function `inferior-tcl-mode' for more information."
   (unless (comint-check-proc "*inferior-tcl*")
     (set-buffer (apply (function make-comint) "inferior-tcl" cmd nil
 		       tcl-command-switches))
-    (inferior-tcl-mode))
+    (inferior-tcl-mode)
+    ;; Make tclsh display a prompt on ms-windows (or under Unix, when a tty
+    ;; wasn't used).  Doesn't affect wish, unfortunately.
+    (unless (process-tty-name (inferior-tcl-proc))
+      (tcl-send-string (inferior-tcl-proc)
+                       "set ::tcl_interactive 1; concat\n")))
   (set (make-local-variable 'tcl-application) cmd)
   (setq inferior-tcl-buffer "*inferior-tcl*")
   (pop-to-buffer "*inferior-tcl*"))

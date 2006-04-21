@@ -11,8 +11,8 @@
 @set VERSION 7.93
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
-@set EDITION , 6th Edition
-@set UPDATED 2006-04-02
+@set EDITION , 7th Edition
+@set UPDATED 2006-04-17
 @set UPDATE-MONTH April, 2006
 
 @c Other variables.
@@ -3724,33 +3724,36 @@ again.
 @findex mh-execute-commands
 @kindex q
 @vindex mh-before-quit-hook
+@vindex mh-before-quit-hook, example
 @vindex mh-quit-hook
+@vindex mh-quit-hook, example
 
 The two hooks @code{mh-before-quit-hook} and @code{mh-quit-hook} are
 called by @kbd{q}. The former one is called before the quit occurs, so
 you might use it to perform any MH-E operations; you could perform
 some query and abort the quit or call @code{mh-execute-commands}, for
 example. The latter is not run in an MH-E context, so you might use it
-to modify the window setup. For example, if the window configuration
-was saved as in the example in @ref{Miscellaneous Commands and
-Options}, you would also want to set @code{mh-quit-hook} to the
-following:
-
-@c XXX Replace this with my example for killing the mail buffers.
-
-@vindex mh-quit-hook, example
+to modify the window setup. If you find that @kbd{q} buries a lot of
+buffers that you would rather remove, you can use both
+@code{mh-before-quit-hook} and @code{mh-quit-hook} to accomplish that.
 
 @smalllisp
 @group
-(defun my-mh-quit-hook ()
-  "Clear window configuration variables as the MH window is gone."
-  (setq my-mh-screen-saved nil)
-  (setq my-mh-screen nil)
-  (if my-normal-screen
-      (set-window-configuration my-normal-screen))
-  (setq my-normal-screen nil))
+(defvar my-mh-folder-buffer-to-delete nil
+  "Folder buffer that is being quit.")
 
-@i{Clean up window setup in mh-quit-hook}
+(defun my-mh-before-quit-hook ()
+  "Save folder buffer that is to be deleted."
+  (setq my-mh-folder-buffer-to-delete (current-buffer)))
+
+(defun my-mh-quit-hook ()
+  "Kill folder buffer rather than just bury it."
+  (set-buffer my-mh-folder-buffer-to-delete)
+  (if (get-buffer mh-show-buffer)
+      (kill-buffer mh-show-buffer))
+  (kill-buffer (current-buffer)))
+
+@i{Kill MH-Folder buffer instead of burying it}
 @end group
 @end smalllisp
 

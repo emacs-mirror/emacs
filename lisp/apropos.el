@@ -908,6 +908,7 @@ If non-nil TEXT is a string that will be printed as a heading."
 	  ;; Calculate key-bindings if we want them.
 	  (and do-keys
 	       (commandp symbol)
+	       (not (eq symbol 'self-insert-command))
 	       (indent-to 30 1)
 	       (if (let ((keys
 			  (save-excursion

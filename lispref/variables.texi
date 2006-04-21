@@ -276,7 +276,7 @@ that Lisp avoids infinite recursion on an ill-defined function.
 @code{max-lisp-eval-depth} provides another limit on depth of nesting.
 @xref{Definition of max-lisp-eval-depth,, Eval}.
 
-The default value is 600.  Entry to the Lisp debugger increases the
+The default value is 1000.  Entry to the Lisp debugger increases the
 value, if there is little room left, to make sure the debugger itself
 has room to execute.
 @end defvar

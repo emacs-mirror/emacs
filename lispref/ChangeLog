@@ -1,3 +1,19 @@
+2006-04-18  Richard Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Explain when the package's
+	prefix should appear later on (not at the start of the name).
+
+	* searching.texi (String Search): Clarify effect of NOERROR.
+
+	* modes.texi (Imenu): Clarify what special items do.
+
+	* hooks.texi (Standard Hooks): Delete text about old hook names.
+
+2006-04-17  Romain Francoise  <romain@orebokech.com>
+
+	* variables.texi (Local Variables): Update the default value of
+	`max-specpdl-size'.
+
 2006-04-15  Michael Olson  <mwolson@gnu.org>
 
 	* processes.texi (Transaction Queues): Mention the new optional
@@ -59,8 +75,7 @@
 
 2006-03-19  Alan Mackenzie  <acm@muc.de>
 
-	* text.texi (Special Properties): Clarify the definition of
-	'fontified.
+	* text.texi (Special Properties): Clarify `fontified' property.
 
 2006-03-16  Richard Stallman  <rms@gnu.org>
 

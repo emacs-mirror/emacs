@@ -1,8 +1,66 @@
+2006-04-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xdisp.c (note_mouse_highlight): Use build_string.
+
+2006-04-20  Lars Hansen  <larsh@soem.dk>
+
+	* textprop.c (Fremove_list_of_text_properties): Ensure
+	modify_region is called only when buffer is modified and that
+	signal_after_change is allways called in that case.
+
+	* print.c (PRINTFINISH): Call signal_after_change.
+
+2006-04-20  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): Fix last change.
+
+	* xdisp.c (redisplay_window): If current window start is not at	the
+	beginning of a line, select a new window start if buffer is modified
+	and window start is in the modified region, but the first change is
+	before window start.
+
+2006-04-18  Richard Stallman  <rms@gnu.org>
+
+	* xmenu.c (restore_menu_items, save_menu_items): New fns.
+	(set_frame_menubar): Use save_menu_items.  Save updated vector in
+	the frame before unwinding it.  Don't use unuse_menu_items.  Don't
+	use discard_menu_items.
+	(digest_single_submenu): Abort if an item is not in a pane.
+	(init_menu_items): Put the error check at the top.
+
+	* keymap.c (describe_map): Make "shadowed" warning more verbose.
+
+	* window.c (adjust_window_trailing_edge): Correctly distinguish
+	series vs parallel cases, even when window has no parent.
+
+	* abbrev.c (record_symbol): New function.
+	(Finsert_abbrev_table_description): Sort the abbrevs alphabetically.
+
+2006-04-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c (x_create_bitmap_from_data) [MAC_OS]: Don't check return
+	value of xmalloc.
+
+	* mac.c (mac_coerce_file_name_ptr, mac_coerce_file_name_desc)
+	(create_apple_event_from_event_ref, xrm_get_preference_database)
+	(cfstring_create_normalized): Don't check return value of xmalloc.
+
+	* macselect.c (get_scrap_target_type_list, defer_apple_events)
+	(copy_scrap_flavor_data, mac_handle_service_event): Don't check
+	return value of xmalloc/xrealloc.
+
+	* macterm.c (XCreateGC, x_per_char_metric, xlfdpat_create)
+	(init_font_name_table, init_font_name_table, mac_do_list_fonts)
+	(XLoadQueryFont, mac_store_apple_event): Don't check
+	return value of xmalloc.
+
 2006-04-17  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (coordinates_in_window): On the vertical border,
 	calculate the row number measured from the top of the window, not
 	the top of the frame.
+	(window_loop): Test w->dedicated with !NILP instead of EQ Qt.
+	(window_scroll_pixel_based): Fix off-by-one bug in 2002-12-23 change.
 
 2006-04-16  Eli Zaretskii  <eliz@gnu.org>
 

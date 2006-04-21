@@ -1,6 +1,6 @@
 ;; leim-ext.el -- extra leim configulation	-*- coding:iso-2022-7bit; -*-
 
-;; Copyright (C) 2004
+;; Copyright (C) 2004, 2006
 ;;   Free Software Foundation, Inc.
 ;; Copyright (C) 2004, 2005
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)

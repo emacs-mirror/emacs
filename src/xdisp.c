@@ -12784,8 +12784,6 @@ redisplay_window (window, just_this_one_p)
       /* IT may overshoot PT if text at PT is invisible.  */
       else if (IT_CHARPOS (it) > PT && CHARPOS (startp) <= PT)
 	w->force_start = Qt;
-
-
     }
 
   /* Handle case where place to start displaying has been specified,
@@ -12955,6 +12953,35 @@ redisplay_window (window, just_this_one_p)
 	       || (XFASTINT (w->last_modified) >= MODIFF
 		   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)))
     {
+
+      /* If first window line is a continuation line, and window start
+	 is inside the modified region, but the first change is before
+	 current window start, we must select a new window start.*/
+      if (NILP (w->start_at_line_beg))
+	{
+	  /* Make sure beg_unchanged and end_unchanged are up to date.
+	     Do it only if buffer has really changed.  This may or may
+	     not have been done by try_window_id (see which) already. */
+	  if (MODIFF > SAVE_MODIFF
+	      /* This seems to happen sometimes after saving a buffer.  */
+	      || BEG_UNCHANGED + END_UNCHANGED > Z_BYTE)
+	    {
+	      if (GPT - BEG < BEG_UNCHANGED)
+		BEG_UNCHANGED = GPT - BEG;
+	      if (Z - GPT < END_UNCHANGED)
+		END_UNCHANGED = Z - GPT;
+	    }
+
+	  if (CHARPOS (startp) > BEG + BEG_UNCHANGED
+	      && CHARPOS (startp) <= Z - END_UNCHANGED)
+	    {
+	      /* There doesn't seems to be a simple way to find a new
+		 window start that is near the old window start, so
+		 we just recenter.  */
+	      goto recenter;
+	    }
+	}
+
 #if GLYPH_DEBUG
       debug_method_add (w, "same window start");
 #endif
@@ -22535,7 +22562,7 @@ note_mouse_highlight (f, x, y)
   if (part == ON_VERTICAL_BORDER)
     {
       cursor = FRAME_X_OUTPUT (f)->horizontal_drag_cursor;
-      help_echo_string = make_string ("drag-mouse-1: resize", 20);
+      help_echo_string = build_string ("drag-mouse-1: resize");
     }
   else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE
 	   || part == ON_SCROLL_BAR)

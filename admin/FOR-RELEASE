@@ -37,6 +37,9 @@ Assigned to Bill Wohler <wohler@newt.com>.
 
 ** Is there a basic problem with cl-byte-compile-compiler-macro?
 
+** Recalculate the tool bar height after changing the default font.
+(Bug report by Yamamoto Mistuharu, 31 Mar 2006)
+
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
 .emacs file, and then reduce Emacs frame width to "something quite narrow":
 	(setq-default truncate-lines t)

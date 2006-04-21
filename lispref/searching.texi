@@ -86,6 +86,10 @@ upper bound and returns @code{nil}.  (It would be more consistent now to
 return the new position of point in that case, but some existing
 programs may depend on a value of @code{nil}.)
 
+The argument @var{noerror} only affects valid searches which fail to
+find a match.  Invalid arguments cause errors regardless of
+@var{noerror}.
+
 If @var{repeat} is supplied (it must be a positive number), then the
 search is repeated that many times (each time starting at the end of the
 previous time's match).  If these successive searches succeed, the

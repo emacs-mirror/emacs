@@ -83,6 +83,9 @@ When INCLUDE-FLAG is non-nil, include message body being replied to."
 
 ;;; Tool Bar Creation
 
+;; Shush compiler.
+(defvar image-load-path)
+
 (defmacro mh-tool-bar-define (defaults &rest buttons)
   "Define a tool bar for MH-E.
 DEFAULTS is the list of buttons that are present by default. It
@@ -151,7 +154,7 @@ where,
              (doc (if (string-match "\\(.*\\)\n" full-doc)
                       (match-string 1 full-doc)
                     full-doc))
-             (enable-expr (or (nth 4 button) t))
+             (enable-expr (if (eql (length button) 4) t (nth 4 button)))
              (modes (nth 1 button))
              functions show-sym)
         (when (memq 'letter modes) (setq functions `(:letter ,name)))
@@ -178,7 +181,7 @@ where,
                                     (t 'folder-vectors)))
                  (list (cond ((eq type :letter) 'mh-tool-bar-letter-buttons)
                              (t 'mh-tool-bar-folder-buttons)))
-                 (key (intern (concat "mh-" type1 "tool-bar-" name-str)))
+                 (key (intern (concat "mh-" type1 "-tool-bar-" name-str)))
                  (setter (intern (concat type1 "-button-setter")))
                  (mbuttons (cond ((eq type :letter) 'letter-buttons)
                                  ((eq type :show) 'show-buttons)
@@ -209,50 +212,79 @@ where,
       (unless (memq x letter-buttons)
         (error "Letter defaults contains unknown button %s" x)))
     `(eval-when (compile load eval)
-       (defun mh-buffer-exists-p (mode)
-         "Test whether a buffer with major mode MODE is present."
-         (loop for buf in (buffer-list)
-               when (save-excursion
-                      (set-buffer buf)
-                      (eq major-mode mode))
-               return t))
-
        ;; GNU Emacs tool bar specific code
        (mh-do-in-gnu-emacs
+         (defun mh-buffer-exists-p (mode)
+           "Test whether a buffer with major mode MODE is present."
+           (loop for buf in (buffer-list)
+                 when (with-current-buffer buf
+                        (eq major-mode mode))
+                 return t))
          ;; Tool bar initialization functions
          (defun mh-tool-bar-folder-buttons-init ()
            (when (mh-buffer-exists-p 'mh-folder-mode)
-             (setq mh-folder-tool-bar-map
-                   (let ((tool-bar-map (make-sparse-keymap)))
-                     ,@(nreverse folder-button-setter)
-                     tool-bar-map))
-             (setq mh-show-tool-bar-map
-                   (let ((tool-bar-map (make-sparse-keymap)))
-                     ,@(nreverse show-button-setter)
-                     tool-bar-map))
-             (setq mh-show-seq-tool-bar-map
-                   (let ((tool-bar-map (copy-keymap mh-show-tool-bar-map)))
-                     ,@(nreverse show-seq-button-setter)
-                     tool-bar-map))
-             (setq mh-folder-seq-tool-bar-map
-                   (let ((tool-bar-map (copy-keymap mh-folder-tool-bar-map)))
-                     ,@(nreverse sequence-button-setter)
-                     tool-bar-map))))
+             (let* ((load-path (mh-image-load-path-for-library "mh-e"
+                                                               "mh-logo.xpm"))
+                    (image-load-path (cons (car load-path)
+                                           (when (boundp 'image-load-path)
+                                             image-load-path))))
+               (setq mh-folder-tool-bar-map
+                     (let ((tool-bar-map (make-sparse-keymap)))
+                       ,@(nreverse folder-button-setter)
+                       tool-bar-map))
+               (setq mh-folder-seq-tool-bar-map
+                     (let ((tool-bar-map (copy-keymap mh-folder-tool-bar-map)))
+                       ,@(nreverse sequence-button-setter)
+                       tool-bar-map))
+               (setq mh-show-tool-bar-map
+                     (let ((tool-bar-map (make-sparse-keymap)))
+                       ,@(nreverse show-button-setter)
+                       tool-bar-map))
+               (setq mh-show-seq-tool-bar-map
+                     (let ((tool-bar-map (copy-keymap mh-show-tool-bar-map)))
+                       ,@(nreverse show-seq-button-setter)
+                       tool-bar-map)))))
          (defun mh-tool-bar-letter-buttons-init ()
            (when (mh-buffer-exists-p 'mh-letter-mode)
-             (setq mh-letter-tool-bar-map
-                   (let ((tool-bar-map (make-sparse-keymap)))
-                     ,@(nreverse letter-button-setter)
-                     tool-bar-map))))
+             (let* ((load-path (mh-image-load-path-for-library "mh-e"
+                                                               "mh-logo.xpm"))
+                    (image-load-path (cons (car load-path)
+                                           (when (boundp 'image-load-path)
+                                             image-load-path))))
+               (setq mh-letter-tool-bar-map
+                     (let ((tool-bar-map (make-sparse-keymap)))
+                       ,@(nreverse letter-button-setter)
+                       tool-bar-map)))))
          ;; Custom setter functions
+         (defun mh-tool-bar-update (mode default-map sequence-map)
+           "Update `tool-bar-map' in all buffers of MODE.
+Use SEQUENCE-MAP if display is limited; DEFAULT-MAP otherwise."
+           (loop for buf in (buffer-list)
+                 do (with-current-buffer buf
+                      (if (eq mode major-mode)
+                          (let ((map (if mh-folder-view-stack
+                                         sequence-map
+                                       default-map)))
+                            ;; Yes, make-local-variable is necessary since we
+                            ;; get here during initialization when loading
+                            ;; mh-e.el, after the +inbox buffer has been
+                            ;; created, but before mh-folder-mode has run and
+                            ;; created the local map.
+                            (set (make-local-variable 'tool-bar-map) map))))))
          (defun mh-tool-bar-folder-buttons-set (symbol value)
            "Construct tool bar for `mh-folder-mode' and `mh-show-mode'."
            (set-default symbol value)
-           (mh-tool-bar-folder-buttons-init))
+           (mh-tool-bar-folder-buttons-init)
+           (mh-tool-bar-update 'mh-folder-mode mh-folder-tool-bar-map
+                               mh-folder-seq-tool-bar-map)
+           (mh-tool-bar-update 'mh-show-mode mh-show-tool-bar-map
+                               mh-show-seq-tool-bar-map))
          (defun mh-tool-bar-letter-buttons-set (symbol value)
            "Construct tool bar for `mh-letter-mode'."
            (set-default symbol value)
-           (mh-tool-bar-letter-buttons-init)))
+           (mh-tool-bar-letter-buttons-init)
+           (mh-tool-bar-update 'mh-letter-mode mh-letter-tool-bar-map
+                               mh-letter-tool-bar-map)))
        ;; XEmacs specific code
        (mh-do-in-xemacs
          (defvar mh-tool-bar-folder-vector-map
@@ -318,7 +350,8 @@ where,
         'mh-tool-bar-folder-buttons
         '(list ,@(mapcar (lambda (x) `(quote ,x)) folder-defaults))
         "List of buttons to include in MH-Folder tool bar."
-        :group 'mh-tool-bar :set 'mh-tool-bar-folder-buttons-set
+        :group 'mh-tool-bar
+        :set 'mh-tool-bar-folder-buttons-set
         :type '(set ,@(loop for x in folder-buttons
                             for y in folder-docs
                             collect `(const :tag ,y ,x)))
@@ -328,7 +361,8 @@ where,
         'mh-tool-bar-letter-buttons
         '(list ,@(mapcar (lambda (x) `(quote ,x)) letter-defaults))
         "List of buttons to include in MH-Letter tool bar."
-        :group 'mh-tool-bar :set 'mh-tool-bar-letter-buttons-set
+        :group 'mh-tool-bar
+        :set 'mh-tool-bar-letter-buttons-set
         :type '(set ,@(loop for x in letter-buttons
                             for y in letter-docs
                             collect `(const :tag ,y ,x)))

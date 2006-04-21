@@ -1994,7 +1994,7 @@ is non-nil if the user has supplied the password interactively.
 					   (re-search-backward
 					    rmail-mime-charset-pattern
 					    start t))))
-				  (intern (downcase (match-string 1))))))
+				  (intern (downcase (match-string 2))))))
 			 (rmail-decode-region start (point) mime-charset)))))
 	       ;; Add an X-Coding-System: header if we don't have one.
 	       (save-excursion
@@ -2155,7 +2155,7 @@ is non-nil if the user has supplied the password interactively.
 				       (re-search-backward
 					rmail-mime-charset-pattern
 					start t))))
-			      (intern (downcase (match-string 1))))))
+			      (intern (downcase (match-string 2))))))
 		     (rmail-decode-region start (point) mime-charset)))
 	       (save-excursion
 		 (goto-char start)

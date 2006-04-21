@@ -662,6 +662,8 @@ coordinates_in_window (w, x, y)
 	{
 	  if (!WINDOW_LEFTMOST_P (w) && abs (*x - x0) < grabbable_width)
 	    {
+	      /* Convert X and Y to window relative coordinates.
+		 Vertical border is at the left edge of window.  */
 	      *x = max (0, *x - x0);
 	      *y -= top_y;
 	      return ON_VERTICAL_BORDER;
@@ -671,6 +673,8 @@ coordinates_in_window (w, x, y)
 	{
 	  if (abs (*x - x1) < grabbable_width)
 	    {
+	      /* Convert X and Y to window relative coordinates.
+		 Vertical border is at the right edge of window.  */
 	      *x = min (x1, *x) - x0;
 	      *y -= top_y;
 	      return ON_VERTICAL_BORDER;
@@ -717,6 +721,8 @@ coordinates_in_window (w, x, y)
 	  && !WINDOW_RIGHTMOST_P (w)
 	  && (abs (*x - right_x) < grabbable_width))
 	{
+	  /* Convert X and Y to window relative coordinates.
+	     Vertical border is at the right edge of window.  */
 	  *x = min (right_x, *x) - left_x;
 	  *y -= top_y;
 	  return ON_VERTICAL_BORDER;
@@ -2027,7 +2033,7 @@ window_loop (type, obj, mini, frames)
 	       `obj & 1' means consider only full-width windows.
 	       `obj & 2' means consider also dedicated windows. */
 	    if (((XINT (obj) & 1) && !WINDOW_FULL_WIDTH_P (w))
-		|| (!(XINT (obj) & 2) && EQ (w->dedicated, Qt))
+		|| (!(XINT (obj) & 2) && !NILP (w->dedicated))
 		/* Minibuffer windows are always ignored.  */
 		|| MINI_WINDOW_P (w))
 	      break;
@@ -2082,7 +2088,7 @@ window_loop (type, obj, mini, frames)
 	  case GET_LARGEST_WINDOW:
 	    { /* nil `obj' means to ignore dedicated windows.  */
 	      /* Ignore dedicated windows and minibuffers.  */
-	      if (MINI_WINDOW_P (w) || (NILP (obj) && EQ (w->dedicated, Qt)))
+	      if (MINI_WINDOW_P (w) || (NILP (obj) && !NILP (w->dedicated)))
 		break;
 
 	      if (NILP (best_window))
@@ -4269,16 +4275,28 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
 
   while (1)
     {
+      Lisp_Object first_parallel = Qnil;
+
       p = XWINDOW (window);
       parent = p->parent;
 
-      /* Make sure there is a following window.  */
-      if (NILP (parent)
-	  && (horiz_flag ? 1
-	      : NILP (XWINDOW (window)->next)))
+      if (NILP (XWINDOW (window)->next))
 	{
 	  Fset_window_configuration (old_config);
 	  error ("No other window following this one");
+	}
+
+      /* See if this level has windows in parallel in the specified
+	 direction.  If so, set FIRST_PARALLEL to the first one.  */
+      if (horiz_flag)
+	{
+	  if (! NILP (parent) && !NILP (XWINDOW (parent)->vchild))
+	    first_parallel = XWINDOW (parent)->vchild;
+	}
+      else
+	{
+	  if (! NILP (parent) && !NILP (XWINDOW (parent)->hchild))
+	    first_parallel = XWINDOW (parent)->hchild;
 	}
 
       /* Don't make this window too small.  */
@@ -4298,12 +4316,11 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
 	       XINT (CURSIZE (window)) + delta);
 
       /* If this window has following siblings in the desired dimension,
-	 make them smaller.
+	 make them smaller, and exit the loop.
+
 	 (If we reach the top of the tree and can never do this,
 	 we will fail and report an error, above.)  */
-      if (horiz_flag
-	  ? !NILP (XWINDOW (parent)->hchild)
-	  : !NILP (XWINDOW (parent)->vchild))
+      if (NILP (first_parallel))
 	{
 	  if (!NILP (XWINDOW (window)->next))
 	    {
@@ -4325,9 +4342,7 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
       else
 	/* Here we have a chain of parallel siblings, in the other dimension.
 	   Change the size of the other siblings.  */
-	for (child = (horiz_flag
-		      ? XWINDOW (parent)->vchild
-		      : XWINDOW (parent)->hchild);
+	for (child = first_parallel;
 	     ! NILP (child);
 	     child = XWINDOW (child)->next)
 	  if (! EQ (child, window))
@@ -4868,7 +4883,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	{
 	  if (it.current_y < it.last_visible_y
 	      && (it.current_y + it.max_ascent + it.max_descent
-		  >= it.last_visible_y))
+		  > it.last_visible_y))
 	    {
 	      /* The last line was only partially visible, make it fully
 		 visible.  */
