@@ -2089,7 +2089,7 @@ and `face'."
       'custom-button-pressed
     'custom-button-pressed-unraised))
 
-(defface custom-documentation nil
+(defface custom-documentation '((t nil))
   "Face used for documentation strings in customization buffers."
   :group 'custom-faces)
 ;; backward-compatibility alias
