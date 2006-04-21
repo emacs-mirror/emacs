@@ -393,24 +393,26 @@ message is not indented, and \"> \" is not inserted before each line.
 This command leaves the mark before the letter and point after it."
   (interactive
    (let* ((folder
-           (mh-prompt-for-folder "Message from"
-                                 mh-sent-from-folder nil))
+           (mh-prompt-for-folder "Message from" mh-sent-from-folder nil))
           (default
-            (if (and (equal folder mh-sent-from-folder)
-                     (numberp mh-sent-from-msg))
-                mh-sent-from-msg
+            (if (equal folder mh-sent-from-folder)
+                (or mh-sent-from-msg (nth 0 (mh-translate-range folder "cur")))
               (nth 0 (mh-translate-range folder "cur"))))
           (message
            (read-string (concat "Message number"
                                 (or (and default
                                          (format " (default %d): " default))
-                                    ": ")))))
+                                    ": "))
+                        nil nil
+                        (if (numberp default)
+                            (int-to-string default)
+                          default))))
      (list folder message current-prefix-arg)))
+  (if (equal message "")
+      (error "No message number given"))
   (save-restriction
     (narrow-to-region (point) (point))
     (let ((start (point-min)))
-      (if (and (equal message "") (numberp mh-sent-from-msg))
-          (setq message (int-to-string mh-sent-from-msg)))
       (insert-file-contents
        (expand-file-name message (mh-expand-file-name folder)))
       (when (not verbatim)

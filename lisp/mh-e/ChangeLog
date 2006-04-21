@@ -1,3 +1,13 @@
+2006-04-21  Bill Wohler  <wohler@newt.com>
+
+	* mh-letter.el (mh-insert-letter): If a message number isn't
+	given, throw an error rather than using a potentially incorrect
+	message number (closes SF #1473729). In addition, use the cur
+	message if mh-sent-from-msg is nil (when sending a message, in
+	contrast to replying). Move conversion of int to string into
+	interactive stanza so body can assume variables are of proper
+	type.
+
 2006-04-20  Bill Wohler  <wohler@newt.com>
 
 	* mh-tool-bar.el (image-load-path): Define to shush compiler.
