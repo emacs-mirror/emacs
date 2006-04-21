@@ -1,5 +1,8 @@
 2006-04-21  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (redisplay_window): Fix last change.  Don't recenter if
+	window start is at BEGV.
+
 	* dispextern.h (struct image): New member `corners'.
 	(TOP_CORNER, LEFT_CORNER, BOT_CORNER, RIGHT_CORNER): New macros.
 

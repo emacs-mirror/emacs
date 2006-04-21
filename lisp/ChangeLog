@@ -1,3 +1,8 @@
+2006-04-21  Kim F. Storm  <storm@cua.dk>
+
+	* image.el (image-type): New defun split out of create-image.
+	(create-image): Use it.
+
 2006-04-21  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-mode-map): Catch conflict with old
@@ -15,7 +20,7 @@
 
 2006-04-21  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-data-list-register-values-handler): 
+	* progmodes/gdb-ui.el (gdb-data-list-register-values-handler):
 	Use font-lock-warning-face for any errors e.g. no stack.
 	(gdb-stack-list-locals-handler): Display any errors e.g. no stack.
 
