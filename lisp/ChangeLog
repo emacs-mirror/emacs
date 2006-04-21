@@ -1,3 +1,10 @@
+2006-04-21  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-mode-map): Catch conflict with old
+	allout.el.
+	(org-open-at-point): Remove the "...done" message to keep output
+	in the echo area visible.
+
 2006-04-21  Kevin Ryde  <user42@zip.com.au>
 
 	* international/mule.el (keyboard-coding-system): defcustom
