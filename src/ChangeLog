@@ -1,3 +1,7 @@
+2006-04-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1205000.
+
 2006-04-21  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (redisplay_window): Fix last change.  Don't recenter if
