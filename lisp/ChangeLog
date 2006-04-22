@@ -51,25 +51,25 @@
 2006-04-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-deadline-announce): Face removed.
-        (org-level-faces, org-n-levels): Converted to constant.
-        (org-compatible-face): New function.
-        (org-hide, org-level-1, org-level-2, org-level-3, org-level-4)
-        (org-level-5, org-level-6, org-level-7, org-level-8)
-        (org-special-keyword, org-warning, org-headline-done, org-link)
-        (org-date, org-tag, org-todo, org-done, org-table, org-formula)
-        (org-scheduled-today, org-scheduled-previously, org-time-grid):
+	(org-level-faces, org-n-levels): Converted to constant.
+	(org-compatible-face): New function.
+	(org-hide, org-level-1, org-level-2, org-level-3, org-level-4)
+	(org-level-5, org-level-6, org-level-7, org-level-8)
+	(org-special-keyword, org-warning, org-headline-done, org-link)
+	(org-date, org-tag, org-todo, org-done, org-table, org-formula)
+	(org-scheduled-today, org-scheduled-previously, org-time-grid):
 	Face definition revised for better color tty support.
-        (org-bold-re, org-italic-re, org-underline-re): New constants.
-        (org-set-font-lock-defaults): Use the new constants.
-        (org-agenda-highlight-todo): New function.
-        (org-agenda-todo): Fixed bug with point at end of line.
-        (org-agenda-change-all-lines, org-finalize-agenda-entries):
+	(org-bold-re, org-italic-re, org-underline-re): New constants.
+	(org-set-font-lock-defaults): Use the new constants.
+	(org-agenda-highlight-todo): New function.
+	(org-agenda-todo): Fixed bug with point at end of line.
+	(org-agenda-change-all-lines, org-finalize-agenda-entries):
 	Fontify TODO keywords.
-        (org-insert-link): Preserve relative path in ../ links.
-        (org-export-as-html): Convert links pointing to .org files into
+	(org-insert-link): Preserve relative path in ../ links.
+	(org-export-as-html): Convert links pointing to .org files into
 	links that will work beteen the exported HTML files.
-        (org-todo-list): Fix bug when arg=0.
-        (org-insert-heading): More fine-tuning.
+	(org-todo-list): Fix bug when arg=0.
+	(org-insert-heading): More fine-tuning.
 
 2006-04-19  Romain Francoise  <romain@orebokech.com>
 
