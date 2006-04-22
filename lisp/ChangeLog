@@ -1,3 +1,9 @@
+2006-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-menu.el (calendar-mode-map): Refer to
+	`diary-view-entries' rather than alias `view-diary-entries'.
+	* calendar/diary-lib.el (view-other-diary-entries): Ditto.
+
 2006-04-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* progmodes/antlr-mode.el (antlr-default):
