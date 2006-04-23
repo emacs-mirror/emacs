@@ -4337,19 +4337,34 @@ Falls back to normal file name handler if no tramp file name handler exists."
 	(save-match-data (apply (cdr fn) args))
       (tramp-completion-run-real-handler operation args))))
 
+;; Register in `file-name-handler-alist'.
+;; `tramp-completion-file-name-handler' must not be active when temacs
+;; dumps.  And it makes no sense in batch mode anyway.
 ;;;###autoload
-(put 'tramp-completion-file-name-handler 'safe-magic t)
+(defun tramp-register-file-name-handlers ()
+  "Add tramp file name handlers to `file-name-handler-alist'."
+  (unless noninteractive
+    (add-to-list 'file-name-handler-alist
+		 (cons tramp-file-name-regexp 'tramp-file-name-handler))
+    (add-to-list 'file-name-handler-alist
+		 (cons tramp-completion-file-name-regexp
+		       'tramp-completion-file-name-handler))
+    (put 'tramp-completion-file-name-handler 'safe-magic t)))
 
-;; Register in file name handler alist
-;;;###autoload
-(add-to-list 'file-name-handler-alist
-	     (cons tramp-file-name-regexp 'tramp-file-name-handler))
-(add-to-list 'file-name-handler-alist
-	     (cons tramp-completion-file-name-regexp
-		   'tramp-completion-file-name-handler))
+;; LAMBDA function used temporarily, because older/other versions of
+;; Tramp don't know of `tramp-register-file-name-handlers'.  Can be
+;; replaced once that DEFUN is established.  Relevant for Emacs 22 only.
+;;;###;autoload(add-hook 'emacs-startup-hook 'tramp-register-file-name-handlers)
+;;;###autoload(add-hook
+;;;###autoload 'emacs-startup-hook
+;;;###autoload '(lambda ()
+;;;###autoload    (condition-case nil
+;;;###autoload        (funcall 'tramp-register-file-name-handlers)
+;;;###autoload      (error nil))))
+(tramp-register-file-name-handlers)
 
 ;;;###autoload
-(defun tramp-unload-file-name-handler-alist ()
+(defun tramp-unload-file-name-handlers ()
   (setq file-name-handler-alist
 	(delete (rassoc 'tramp-file-name-handler
 			file-name-handler-alist)
@@ -4357,7 +4372,7 @@ Falls back to normal file name handler if no tramp file name handler exists."
 				file-name-handler-alist)
 			file-name-handler-alist))))
 
-(add-hook 'tramp-unload-hook 'tramp-unload-file-name-handler-alist)
+(add-hook 'tramp-unload-hook 'tramp-unload-file-name-handlers)
 
 (defun tramp-repair-jka-compr ()
   "If jka-compr is already loaded, move it to the front of
@@ -7629,7 +7644,7 @@ Therefore, the contents of files might be included in the debug buffer(s).")
 (defun tramp-unload-tramp ()
   (interactive)
   ;; When Tramp is not loaded yet, its autoloads are still active.
-  (tramp-unload-file-name-handler-alist)
+  (tramp-unload-file-name-handlers)
   ;; ange-ftp settings must be enabled.
   (when (functionp 'tramp-ftp-enable-ange-ftp)
     (funcall (symbol-function 'tramp-ftp-enable-ange-ftp)))

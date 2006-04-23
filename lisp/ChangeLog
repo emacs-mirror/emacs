@@ -1,3 +1,10 @@
+2006-04-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-register-file-name-handlers): New defun.
+	Added with autoload cookie.
+	(tramp-unload-file-name-handlers): Renamed from
+	`tramp-unload-file-name-handler-alist'.
+
 2006-04-23  Romain Francoise  <romain@orebokech.com>
 
 	* comint.el (comint-match-partial-filename): Doc fix.
