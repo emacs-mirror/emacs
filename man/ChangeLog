@@ -1,3 +1,8 @@
+2006-04-23  Richard Stallman  <rms@gnu.org>
+
+	* xresources.texi (Face Resources): Split table into font resources
+	and the rest.  Combine similar attributes for brevity.
+
 2006-04-21  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E manual version 7.94.
