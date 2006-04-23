@@ -1,4 +1,5 @@
-2006-04-23  Lars Hansen <larsh@soem.dk>
+2006-04-23  Lars Hansen  <larsh@soem.dk>
+
 	* editfns.c (find_field): Fix comment.
 	(Ffield_beginning): Fix bug when POS is at field beginning.
 
