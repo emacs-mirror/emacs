@@ -4,8 +4,8 @@
 	matrices to force recalculation of tool-bar height after font change.
 
 	* xdisp.c (tool_bar_lines_needed): New local `temp_row' for clarity.
-	(tool_bar_lines_needed): Clear it when done, so we don't accidentally
-	draw a second copy of the tool-bar after resetting f->n_tool_bar_rows.
+	Clear it when done, so we don't accidentally draw a second copy of
+	the tool-bar after resetting f->n_tool_bar_rows.
 	(redisplay_tool_bar): Update tool-bar-lines frame parameter whenever
 	we recalculate f->n_tool_bar_rows.
 
