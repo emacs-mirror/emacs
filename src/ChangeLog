@@ -1,5 +1,8 @@
 2006-04-24  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (fill_stretch_glyph_string): Set s->nchars = 1 for code which
+	does last_glyph=s->first_glyph+s->nchars-1, e.g. if stretch has relief.
+
 	* frame.c (x_set_font): Clear f->n_tool_bar_rows and current frame
 	matrices to force recalculation of tool-bar height after font change.
 
