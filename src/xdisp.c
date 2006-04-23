@@ -18732,6 +18732,7 @@ fill_stretch_glyph_string (s, row, area, start, end)
   s->font = s->face->font;
   s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
   s->width = glyph->pixel_width;
+  s->nchars = 1;
   voffset = glyph->voffset;
 
   for (++glyph;
