@@ -1,5 +1,9 @@
 2006-04-23  Richard Stallman  <rms@gnu.org>
 
+	* emacs.texi [TeX]: Use xresmini.texi instead of xresources.texi.
+
+	* xresmini.texi: New file.
+
 	* xresources.texi (Face Resources): Split table into font resources
 	and the rest.  Combine similar attributes for brevity.
 
