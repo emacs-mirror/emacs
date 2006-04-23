@@ -1,3 +1,7 @@
+2006-04-23  Lars Hansen <larsh@soem.dk>
+	* editfns.c (find_field): Fix comment.
+	(Ffield_beginning): Fix bug when POS is at field beginning.
+
 2006-04-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1205000.
