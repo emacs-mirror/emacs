@@ -1,3 +1,14 @@
+2006-04-24  Kim F. Storm  <storm@cua.dk>
+
+	* frame.c (x_set_font): Clear f->n_tool_bar_rows and current frame
+	matrices to force recalculation of tool-bar height after font change.
+
+	* xdisp.c (tool_bar_lines_needed): New local `temp_row' for clarity.
+	(tool_bar_lines_needed): Clear it when done, so we don't accidentally
+	draw a second copy of the tool-bar after resetting f->n_tool_bar_rows.
+	(redisplay_tool_bar): Update tool-bar-lines frame parameter whenever
+	we recalculate f->n_tool_bar_rows.
+
 2006-04-23  Lars Hansen  <larsh@soem.dk>
 
 	* editfns.c (find_field): Fix comment.
