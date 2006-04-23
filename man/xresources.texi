@@ -301,12 +301,10 @@ program outputs information saying which ones.
 @node Face Resources
 @appendixsec X Resources for Faces
 
-  You can also use resources to customize the appearance of particular
+  You can use resources to customize the appearance of particular
 faces (@pxref{Faces}):
 
 @table @code
-@item @var{face}.attributeFont
-Font for face @var{face}.
 @item @var{face}.attributeForeground
 Foreground color for face @var{face}.
 @item @var{face}.attributeBackground
@@ -314,49 +312,45 @@ Background color for face @var{face}.
 @item @var{face}.attributeUnderline
 Underline flag for face @var{face}.  Use @samp{on} or @samp{true} for
 yes.
-@item @var{face}.attributeFamily
-Font family for face @var{face}.
-@item @var{face}.attributeWidth
-Relative proportional width of the font to use for face @var{face}.
-It should be one of @code{ultra-condensed}, @code{extra-condensed},
-@code{condensed}, @code{semi-condensed}, @code{normal},
-@code{semi-expanded}, @code{expanded}, @code{extra-expanded}, or
-@code{ultra-expanded}.
-@item @var{face}.attributeHeight
-Height of the font to use for face @var{face}: either an integer
-specifying the height in units of 1/10@dmn{pt}, or a floating point
-number that specifies a scale factor to scale the underlying face's
-default font, or a function to be called with the default height which
-will return a new height.
-@item @var{face}.attributeWeight
-A weight to use for the face @var{face}.  It must be one of
-@code{ultra-bold}, @code{extra-bold}, @code{bold},
-@code{semi-bold}, @code{normal}, @code{semi-light}, @code{light},
-@code{extra-light}, @code{ultra-light}.
-@item @var{face}.attributeSlant
-The slant to use for the font of face @var{face}.  It must be one of
-@code{italic}, @code{oblique}, @code{normal},
-@code{reverse-italic}, or @code{reverse-oblique}.
 @item @var{face}.attributeStrikeThrough
-Whether the face @var{face} should be drawn with a line striking
-through the characters.
-@item @var{face}.attributeOverline
-Whether the characters in the face @var{face} should be overlined.
-@item @var{face}.attributeBox
-Whether to draw a box around the characters in face @var{face}.
-@item @var{face}.attributeInverse
-Whether to display the characters in face @var{face} in inverse
-video.
+@itemx @var{face}.attributeOverline
+@itemx @var{face}.attributeBox
+@itemx @var{face}.attributeInverse
+Likewise, for other boolean font attributes.
 @item @var{face}.attributeStipple
 The name of a pixmap data file to use for the stipple pattern, or
 @code{false} to not use stipple for the face @var{face}.
 @item @var{face}.attributeBackgroundPixmap
 The background pixmap for the face @var{face}.  Should be a name of a
 pixmap file or @code{false}.
+@item @var{face}.attributeFont
+Font name (full XFD name or valid X abbreviation) for face @var{face}.
+Instead of this, you can specify the font through separate attributes.
+@end table
+
+  Instead of using @code{attributeFont} to specify a font name, you can
+select a font through these separate attributes:
+
+@table @code
+@item @var{face}.attributeFamily
+Font family for face @var{face}.
+@item @var{face}.attributeHeight
+Height of the font to use for face @var{face}: either an integer
+specifying the height in units of 1/10@dmn{pt}, or a floating point
+number that specifies a scale factor to scale the underlying face's
+default font, or a function to be called with the default height which
+will return a new height.
+@item @var{face}.attributeWidth
+@itemx @var{face}.attributeWeight
+@itemx @var{face}.attributeSlant
+Each of these resources corresponds to a like-named font attribute,
+and you write the resource value the same as the symbol you would use
+for the font attribute value.
 @item @var{face}.attributeBold
-Whether to draw the characters in the face @var{face} as bold.
+Bold flag for face @var{face}---instead of @code{attributeWeight}.  Use @samp{on} or @samp{true} for
+yes.
 @item @var{face}.attributeItalic
-Whether to draw the characters in the face @var{face} as italic.
+Italic flag for face @var{face}---instead of @code{attributeSlant}.
 @end table
 
 @node Lucid Resources
