@@ -9562,20 +9562,22 @@ tool_bar_lines_needed (f, n_rows)
 {
   struct window *w = XWINDOW (f->tool_bar_window);
   struct it it;
+  struct glyph_row *temp_row = w->desired_matrix->rows;
 
   /* Initialize an iterator for iteration over
      F->desired_tool_bar_string in the tool-bar window of frame F.  */
-  init_iterator (&it, w, -1, -1, w->desired_matrix->rows, TOOL_BAR_FACE_ID);
+  init_iterator (&it, w, -1, -1, temp_row, TOOL_BAR_FACE_ID);
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_TOTAL_COLS (f) * FRAME_COLUMN_WIDTH (f);
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
 
   while (!ITERATOR_AT_END_P (&it))
     {
-      it.glyph_row = w->desired_matrix->rows;
-      clear_glyph_row (it.glyph_row);
+      clear_glyph_row (temp_row);
+      it.glyph_row = temp_row;
       display_tool_bar_line (&it, -1);
     }
+  clear_glyph_row (temp_row);
 
   /* f->n_tool_bar_rows == 0 means "unknown"; -1 means no tool-bar.  */
   if (n_rows)
@@ -9655,7 +9657,29 @@ redisplay_tool_bar (f)
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
 
   if (f->n_tool_bar_rows == 0)
-    (void)tool_bar_lines_needed (f, &f->n_tool_bar_rows);
+    {
+      int nlines;
+
+      if ((nlines = tool_bar_lines_needed (f, &f->n_tool_bar_rows),
+	   nlines != WINDOW_TOTAL_LINES (w)))
+	{
+	  extern Lisp_Object Qtool_bar_lines;
+	  Lisp_Object frame;
+	  int old_height = WINDOW_TOTAL_LINES (w);
+
+	  XSETFRAME (frame, f);
+	  clear_glyph_matrix (w->desired_matrix);
+	  Fmodify_frame_parameters (frame,
+				    Fcons (Fcons (Qtool_bar_lines,
+						  make_number (nlines)),
+					   Qnil));
+	  if (WINDOW_TOTAL_LINES (w) != old_height)
+	    {
+	      fonts_changed_p = 1;
+	      return 1;
+	    }
+	}
+    }
 
   /* Display as many lines as needed to display all tool-bar items.  */
 
