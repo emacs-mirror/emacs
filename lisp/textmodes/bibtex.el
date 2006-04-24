@@ -3303,7 +3303,7 @@ Otherwise, use `set-buffer'.  DISPLAY is t when called interactively."
               (display (message "Key `%s' not found" key)))
         found)
 
-    (let* (case-fold-search
+    (let* ((case-fold-search t)
            (pnt (save-excursion
                   (goto-char (or start (point-min)))
                   (if (re-search-forward (concat "^[ \t]*\\("
