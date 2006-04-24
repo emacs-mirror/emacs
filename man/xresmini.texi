@@ -297,3 +297,7 @@ The margin of the menu bar, in characters.  Default is 1.
 @appendixsec GTK resources
 
 @c  Waiting for contents
+
+@ignore
+   arch-tag: e1856f29-2482-42c0-a990-233cdccd1f21
+@end ignore
