@@ -19865,32 +19865,36 @@ produce_stretch_glyph (it)
       && it->current_x + width > it->last_visible_x)
     width = it->last_visible_x - it->current_x - 1;
 
-  if (width > 0 && height > 0 && it->glyph_row)
+  if (width > 0 && height > 0)
     {
-      Lisp_Object object = it->stack[it->sp - 1].string;
-      if (!STRINGP (object))
-	object = it->w->buffer;
-      append_stretch_glyph (it, object, width, height, ascent);
+
+      if (face->box != FACE_NO_BOX && face->box_line_width != 0)
+	{
+	  if (face->box_line_width > 0)
+	    {
+	      ascent += face->box_line_width;
+	      height += face->box_line_width * 2;
+	    }
+
+	  if (it->start_of_box_run_p)
+	    width += abs (face->box_line_width);
+	  if (it->end_of_box_run_p)
+	    width += abs (face->box_line_width);
+	}
+
+      if (it->glyph_row)
+	{
+	  Lisp_Object object = it->stack[it->sp - 1].string;
+	  if (!STRINGP (object))
+	    object = it->w->buffer;
+	  append_stretch_glyph (it, object, width, height, ascent);
+	}
     }
 
   it->pixel_width = width;
   it->ascent = it->phys_ascent = ascent;
   it->descent = it->phys_descent = height - it->ascent;
   it->nglyphs = width > 0 && height > 0 ? 1 : 0;
-
-  if (width > 0 && height > 0 && face->box != FACE_NO_BOX)
-    {
-      if (face->box_line_width > 0)
-	{
-	  it->ascent += face->box_line_width;
-	  it->descent += face->box_line_width;
-	}
-
-      if (it->start_of_box_run_p)
-	it->pixel_width += abs (face->box_line_width);
-      if (it->end_of_box_run_p)
-	it->pixel_width += abs (face->box_line_width);
-    }
 
   take_vertical_position_into_account (it);
 }
