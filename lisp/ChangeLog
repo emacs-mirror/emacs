@@ -103,7 +103,7 @@
 	edit line.  Goto point-max before deleting input to avoid
 	partial input fragments hanging around.
 	(comint-restore-input): New function, used by
-	`comint-previous-input', and bound to "C-c C-j".
+	`comint-previous-input'.
 
 2006-04-18  Luc Teirlinck  <teirllm@auburn.edu>
 
