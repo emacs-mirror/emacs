@@ -2,6 +2,7 @@
 
 	* xdisp.c (fill_stretch_glyph_string): Set s->nchars = 1 for code which
 	does last_glyph=s->first_glyph+s->nchars-1, e.g. if stretch has relief.
+	(produce_stretch_glyph): Include face box in stretch glyph size.
 
 	* frame.c (x_set_font): Clear f->n_tool_bar_rows and current frame
 	matrices to force recalculation of tool-bar height after font change.
