@@ -1,3 +1,7 @@
+2006-04-25  Miles Bader  <miles@gnu.org>
+
+	* editfns.c (Ffield_beginning, find_field): Undo change of 2006-04-23.
+
 2006-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.h: Include headers for pid_t.

@@ -497,15 +497,18 @@ get_pos_property (position, prop, object)
    BEG_LIMIT and END_LIMIT serve to limit the ranged of the returned
    results; they do not effect boundary behavior.
 
-   If MERGE_AT_BOUNDARY is nonzero, then if POS is at the very last
-   position of a field, then the end of the next field is returned
-   instead of the end of POS's field (since the end of a field is
-   actually also the beginning of the next input field, this behavior
-   is sometimes useful).  Additionally in the MERGE_AT_BOUNDARY
+   If MERGE_AT_BOUNDARY is nonzero, then if POS is at the very first
+   position of a field, then the beginning of the previous field is
+   returned instead of the beginning of POS's field (since the end of a
+   field is actually also the beginning of the next input field, this
+   behavior is sometimes useful).  Additionally in the MERGE_AT_BOUNDARY
    true case, if two fields are separated by a field with the special
    value `boundary', and POS lies within it, then the two separated
    fields are considered to be adjacent, and POS between them, when
-   finding the beginning and ending of the "merged" field.  */
+   finding the beginning and ending of the "merged" field.
+
+   Either BEG or END may be 0, in which case the corresponding value
+   is not stored.  */
 
 static void
 find_field (pos, merge_at_boundary, beg_limit, beg, end_limit, end)
@@ -671,14 +674,9 @@ is before LIMIT, then LIMIT will be returned instead.  */)
      (pos, escape_from_edge, limit)
      Lisp_Object pos, escape_from_edge, limit;
 {
-  int beg, end;
-  find_field (pos, escape_from_edge, limit, &beg, Qnil, &end);
-  /* When pos is at a field boundary and escape_from_edge (merge_at_boundary)
-     is nil, find_field returns the *previous* field. In this case we return
-     end instead of beg. */
-  return make_number (NILP (escape_from_edge)
-                      && XFASTINT (pos) == end
-                      && end != ZV ? end : beg);
+  int beg;
+  find_field (pos, escape_from_edge, limit, &beg, Qnil, 0);
+  return make_number (beg);
 }
 
 DEFUN ("field-end", Ffield_end, Sfield_end, 0, 3, 0,
