@@ -1,3 +1,9 @@
+2006-04-25  Bill Wohler  <wohler@newt.com>
+
+	* mh-letter.el (mh-folder-expand-at-point): Fix folder completion.
+	Folders returned by mh-folder-completion-function no longer need
+	adornment (closes SF #1476270).
+
 2006-04-21  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (Version, mh-version): Add +cvs to version.

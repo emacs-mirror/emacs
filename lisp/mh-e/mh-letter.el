@@ -866,15 +866,12 @@ downcasing the field name."
   "Do folder name completion in Fcc header field."
   (let* ((end (point))
          (beg (mh-beginning-of-word))
-         (folder (buffer-substring beg end))
+         (folder (buffer-substring-no-properties beg end))
          (leading-plus (and (> (length folder) 0) (equal (aref folder 0) ?+)))
-         (last-slash (mh-search-from-end ?/ folder))
-         (prefix (and last-slash (substring folder 0 last-slash)))
-         (choices (mapcar #'(lambda (x)
-                              (list (cond (prefix (format "%s/%s" prefix x))
-                                          (leading-plus (format "+%s" x))
-                                          (t x))))
+         (choices (mapcar (lambda (x) (list x))
                           (mh-folder-completion-function folder nil t))))
+    (unless leading-plus
+      (setq folder (concat "+" folder)))
     (mh-complete-word folder choices beg end)))
 
 ;;;###mh-autoload
