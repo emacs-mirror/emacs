@@ -1,3 +1,14 @@
+2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* add-log.el: Remove spurious * in docstrings.
+	(add-log-time-zone-rule): Rename from change-log-time-zone-rule.
+	(add-change-log-entry): Use it here, since it's not specific
+	to iso8601.
+	(add-log-iso8601-time-string): Don't use it here any more.
+	(change-log-indent-text, change-log-indent): Rename from add-log-*.
+
+	* abbrev.el (abbrev-mode): Tighten up a bit the safety predicate.
+
 2006-04-25  Ryan Yeske  <rcyeske@gmail.com>
 
 	* net/rcirc.el (rcirc-print): Revert last change with ignored nicks.
@@ -23,7 +34,7 @@
 
 	* net/tramp.el (tramp-register-file-name-handlers): New defun.
 	Added with autoload cookie.
-	(tramp-unload-file-name-handlers): Renamed from
+	(tramp-unload-file-name-handlers): Rename from
 	`tramp-unload-file-name-handler-alist'.
 
 2006-04-23  Romain Francoise  <romain@orebokech.com>
@@ -50,8 +61,7 @@
 
 2006-04-21  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-mode-map): Catch conflict with old
-	allout.el.
+	* textmodes/org.el (org-mode-map): Catch conflict with old allout.el.
 	(org-open-at-point): Remove the "...done" message to keep output
 	in the echo area visible.
 	(org-export-as-xoxo): Fix call to `indent-region'.
@@ -79,7 +89,7 @@
 2006-04-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-deadline-announce): Face removed.
-	(org-level-faces, org-n-levels): Converted to constant.
+	(org-level-faces, org-n-levels): Convert to constant.
 	(org-compatible-face): New function.
 	(org-hide, org-level-1, org-level-2, org-level-3, org-level-4)
 	(org-level-5, org-level-6, org-level-7, org-level-8)
@@ -90,7 +100,7 @@
 	(org-bold-re, org-italic-re, org-underline-re): New constants.
 	(org-set-font-lock-defaults): Use the new constants.
 	(org-agenda-highlight-todo): New function.
-	(org-agenda-todo): Fixed bug with point at end of line.
+	(org-agenda-todo): Fix bug with point at end of line.
 	(org-agenda-change-all-lines, org-finalize-agenda-entries):
 	Fontify TODO keywords.
 	(org-insert-link): Preserve relative path in ../ links.
@@ -114,12 +124,11 @@
 	when moving off either end of the input history ring.
 	(comint-delete-input): New function, used by
 	`comint-previous-input' and others.
-	(comint-previous-matching-input): Use
-	`coming-delete-input'. Save the partial input if leaving the
+	(comint-previous-matching-input):
+	Use `coming-delete-input'.  Save the partial input if leaving the
 	edit line.  Goto point-max before deleting input to avoid
 	partial input fragments hanging around.
-	(comint-restore-input): New function, used by
-	`comint-previous-input'.
+	(comint-restore-input): New function, used by `comint-previous-input'.
 
 2006-04-18  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -127,8 +136,7 @@
 
 2006-04-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* progmodes/python.el (python-mode): Add support for
-	hs-minor-mode.
+	* progmodes/python.el (python-mode): Add support for hs-minor-mode.
 
 2006-04-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -206,7 +214,7 @@
 	(gdb-frame-address): Re-use to identify frame for watch expression.
 	(gdb-var-list, gdb-var-create-handler): Add frame address for root
 	variables.
-	(gdb-init-1, gdb-source, gdb-post-prompt, )
+	(gdb-init-1, gdb-source, gdb-post-prompt)
 	(gdb-assembler-custom, gdb-invalidate-assembler): Use gdb-pc-address.
 	(gdb-frame-handler): Get gdb-frame-address.
 
