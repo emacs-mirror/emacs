@@ -1,3 +1,9 @@
+2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (store_in_keymap): Change `def' arg to not be `register'.
+	Seems to trigger a bug in gcc-amd64 4.0.2 20051125 (Red Hat 4.0.2-8):
+	keymap.c:895: error: address of register variable `def' requested.
+
 2006-04-26  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (construct_mouse_wheel): Handle negative coordinates.
@@ -991,11 +997,6 @@
 	(mac_begin_clip, mac_end_clip): Check if region is empty.
 	(mac_set_clip_rectangles): When resetting clip region, make it
 	empty instead of disposing of it.
-
-2006-02-20  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* keymap.c (store_in_keymap): Change `def' arg to not be `register'.
-	Seems to trigger a bug in gcc-amd64 4.0.2 20051125 (Red Hat 4.0.2-8).
 
 2006-02-20  Kim F. Storm  <storm@cua.dk>
 

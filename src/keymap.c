@@ -866,7 +866,7 @@ static Lisp_Object
 store_in_keymap (keymap, idx, def)
      Lisp_Object keymap;
      register Lisp_Object idx;
-     register Lisp_Object def;
+     Lisp_Object def;
 {
   /* Flush any reverse-map cache.  */
   where_is_cache = Qnil;
