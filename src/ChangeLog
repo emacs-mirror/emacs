@@ -1,5 +1,7 @@
 2006-04-26  Jason Rumney  <jasonr@gnu.org>
 
+	* w32term.c (construct_mouse_wheel): Handle negative coordinates.
+
 	* w32fns.c (w32_wnd_proc) <WM_LBUTTONDOWN, WM_RBUTTONDOWN>:
 	<WM_LBUTTONUP, WM_RBUTTONUP>: Call signal_user_input in the cases
 	where we preempt mouse_button_timer.
