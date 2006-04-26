@@ -107,36 +107,19 @@ telling us which (X)Emacs version you're using."
 
   (defvar c-subword-mode-map
     (let ((map (make-sparse-keymap)))
-      (substitute-key-definition 'forward-word
-				 'c-forward-subword
-				 map global-map)
-      (substitute-key-definition 'backward-word
-				 'c-backward-subword
-				 map global-map)
-      (substitute-key-definition 'mark-word
-				 'c-mark-subword
-				 map global-map)
-    
-      (substitute-key-definition 'kill-word
-				 'c-kill-subword
-				 map global-map)
-      (substitute-key-definition 'backward-kill-word
-				 'c-backward-kill-subword
-				 map global-map)
-    
-      (substitute-key-definition 'transpose-words
-				 'c-transpose-subwords
-				 map global-map)
-    
-      (substitute-key-definition 'capitalize-word
-				 'c-capitalize-subword
-				 map global-map)
-      (substitute-key-definition 'upcase-word
-				 'c-upcase-subword
-				 map global-map)
-      (substitute-key-definition 'downcase-word
-				 'c-downcase-subword
-				 map global-map)
+      (dolist (cmd '(forward-word backward-word mark-word
+                     kill-word backward-kill-word
+                     transpose-words
+                     capitalize-word upcase-word downcase-word))
+        (let ((othercmd (let ((name (symbol-name cmd)))
+                          (string-match "\\(.*-\\)\\(word.*\\)" name)
+                          (intern (concat "c-"
+                                          (match-string 1 name)
+                                          "sub"
+                                          (match-string 2 name))))))
+          (if (fboundp 'command-remapping)
+              (define-key map (vector 'remap cmd) othercmd)
+            (substitute-key-definition cmd othercmd map global-map))))
       map)
     "Keymap used in command `c-subword-mode' minor mode.")
 
@@ -308,5 +291,5 @@ Optional argument ARG is the same as for `upcase-word'."
 
 (cc-provide 'cc-subword)
 
-;;; arch-tag: 2be9d294-7f30-4626-95e6-9964bb93c7a3
+;; arch-tag: 2be9d294-7f30-4626-95e6-9964bb93c7a3
 ;;; cc-subword.el ends here

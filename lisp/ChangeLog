@@ -1,5 +1,7 @@
 2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/cc-subword.el (c-subword-mode-map): Use command remapping.
+
 	* add-log.el (add-log-iso8601-time-zone): Make parameter optional.
 	(add-log-iso8601-time-string): Fix call to format-time-string.
 
