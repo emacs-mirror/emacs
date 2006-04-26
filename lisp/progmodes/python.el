@@ -292,9 +292,9 @@ The criteria are that the previous line ends in a backslash outside
 comments and strings, or that the bracket/paren nesting depth is nonzero."
   (or (and (eq ?\\ (char-before (line-end-position 0)))
 	   (not (syntax-ppss-context (syntax-ppss))))
-      (/= 0 (syntax-ppss-depth
-	     (save-excursion	  ; syntax-ppss with arg changes point
-	       (syntax-ppss (line-beginning-position)))))))
+      (< 0 (syntax-ppss-depth
+            (save-excursion	  ; syntax-ppss with arg changes point
+              (syntax-ppss (line-beginning-position)))))))
 
 (defun python-comment-line-p ()
   "Return non-nil iff current line has only a comment."
@@ -719,7 +719,10 @@ expressions."
 	(python-beginning-of-string)
 	;; Skip forward out of nested brackets.
 	(condition-case ()		; beware invalid syntax
-	    (progn (backward-up-list (syntax-ppss-depth (syntax-ppss))) t)
+	    (let ((depth (syntax-ppss-depth (syntax-ppss))))
+              ;; Beware negative depths.
+              (if (> depth 0) (backward-up-list depth))
+              t)
 	  (error (throw 'foo nil))))))
   (back-to-indentation))
 
@@ -1755,7 +1758,6 @@ lines count as headers.
   (if (featurep 'hippie-exp)
       (set (make-local-variable 'hippie-expand-try-functions-list)
 	   (cons 'python-try-complete hippie-expand-try-functions-list)))
-  (unless font-lock-mode (font-lock-mode 1))
   (when python-guess-indent (python-guess-indent))
   (set (make-local-variable 'python-command) python-python-command)
   (unless (boundp 'python-mode-running)	; kill the recursion from jython-mode

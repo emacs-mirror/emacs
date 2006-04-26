@@ -1,5 +1,9 @@
 2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/python.el (python-continuation-line-p)
+	(python-beginning-of-statement): syntax-ppss may return
+	a negative depth.
+
 	* time-stamp.el (time-stamp-start, time-stamp-end)
 	(time-stamp-inserts-lines): Tighten up a bit the safety predicate.
 
