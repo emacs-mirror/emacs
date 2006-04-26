@@ -1,3 +1,19 @@
+2006-04-25  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-print): Revert last change with ignored nicks.
+	(rcirc-toggle-low-priority): Doc fix.
+	(rcirc-handler-NOTICE): Remove beginning of line anchor in
+	ChanServ regexp.
+	(rcirc-startup-channels-alist): Connect to #rcirc by default, not
+	#emacs.
+	(rcirc-bright-nick-regexp, rcirc-dim-nick-regexp): Add variables.
+	(rcirc-decode-coding-system): Use utf-8 as the default.
+	(rcirc-multiline-minor-mode): Set the fill-column.
+	(rcirc-format-response-string): Display bright and dim nicks.
+	(rcirc-browse-url): Update interactive spec to fill ARG.
+	(rcirc-bright-nick, rcirc-dim-nick): Add faces.
+	(rcirc-print): Ignore dim-nick messages wrt modeline-activity.
+
 2006-04-24  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* textmodes/bibtex.el (bibtex-find-entry): Don't demand matching

@@ -74,13 +74,13 @@
   :group 'rcirc)
 
 (defcustom rcirc-default-user-full-name (if (string= (user-full-name) "")
-				 rcirc-user-name
-			       (user-full-name))
+					    rcirc-user-name
+					  (user-full-name))
   "The full name sent to the server when connecting."
   :type 'string
   :group 'rcirc)
 
-(defcustom rcirc-startup-channels-alist '(("^irc.freenode.net$" "#emacs"))
+(defcustom rcirc-startup-channels-alist '(("^irc.freenode.net$" "#rcirc"))
   "Alist of channels to join at startup.
 Each element looks like (SERVER-REGEXP . CHANNEL-LIST)."
   :type '(alist :key-type string :value-type (repeat string))
@@ -206,6 +206,18 @@ When an ignored person renames, their nick is added to both lists.
 Nicks will be removed from the automatic list on follow-up renamings or
 parts.")
 
+(defcustom rcirc-bright-nick-regexp nil
+  "Regexp matching nicks to be emphasized.
+See `rcirc-bright-nick' face."
+  :type 'regexp
+  :group 'rcirc)
+
+(defcustom rcirc-dim-nick-regexp nil
+  "Regexp matching nicks to be deemphasized.
+See `rcirc-dim-nick' face."
+  :type 'regexp
+  :group 'rcirc)
+
 (defcustom rcirc-print-hooks nil
   "Hook run after text is printed.
 Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
@@ -217,7 +229,7 @@ Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
   :type 'boolean
   :group 'rcirc)
 
-(defcustom rcirc-decode-coding-system 'undecided
+(defcustom rcirc-decode-coding-system 'utf-8
   "Coding system used to decode incoming irc messages."
   :type 'coding-system
   :group 'rcirc)
@@ -546,7 +558,7 @@ With no argument or nil as argument, use the current buffer."
     (with-current-buffer rcirc-server-buffer
       (or rcirc-nick rcirc-default-nick))))
 
-(defvar rcirc-max-message-length 450
+(defvar rcirc-max-message-length 420
   "Messages longer than this value will be split.")
 
 (defun rcirc-send-message (process target message &optional noticep)
@@ -955,7 +967,8 @@ Create the buffer if it doesn't exist."
   :global nil
   :group 'rcirc
   (make-local-variable 'rcirc-parent-buffer)
-  (put 'rcirc-parent-buffer 'permanent-local t))
+  (put 'rcirc-parent-buffer 'permanent-local t)
+  (setq fill-column rcirc-max-message-length))
 
 (defun rcirc-multiline-minor-submit ()
   "Send the text in buffer back to parent buffer."
@@ -1029,6 +1042,7 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 	 (split-string (or (cdr (assoc response rcirc-response-formats))
 			   (cdr (assq t rcirc-response-formats)))
 		       "%"))
+	(sender (or sender ""))
 	(result "")
 	(face nil)
 	key face-key repl)
@@ -1054,9 +1068,16 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 		     (rcirc-facify nick
 				   (if (eq key ?n)
 				       face
-				     (if (string= sender (rcirc-nick process))
-					 'rcirc-my-nick
-				       'rcirc-other-nick)))))
+				     (cond ((string= sender (rcirc-nick process))
+					    'rcirc-my-nick)
+					   ((and rcirc-bright-nick-regexp
+						 (string-match rcirc-bright-nick-regexp sender))
+					    'rcirc-bright-nick)
+					   ((and rcirc-dim-nick-regexp
+						 (string-match rcirc-dim-nick-regexp sender))
+					    'rcirc-dim-nick)
+					   (t
+					    'rcirc-other-nick))))))
 		  ((eq key ?T)
 		   ;; %T -- timestamp
 		   (rcirc-facify
@@ -1130,8 +1151,9 @@ record activity."
   (or text (setq text ""))
   (unless (or (member sender rcirc-ignore-list)
 	      (member (with-syntax-table rcirc-nick-syntax-table
-			(when (string-match "^\\([^/]\\w*\\)\\b" text)
-			  (match-string 1 text))) rcirc-ignore-list))
+			(when (string-match "^\\([^/]\\w*\\)[:,]" text)
+			  (match-string 1 text)))
+		      rcirc-ignore-list))
     (let* ((buffer (rcirc-target-buffer process sender response target text))
 	   (inhibit-read-only t))
       (with-current-buffer buffer
@@ -1222,10 +1244,12 @@ record activity."
 				       (regexp-quote (rcirc-nick process))
 				       "\\b")
 			       text)))
-	    (when (or (not rcirc-ignore-buffer-activity-flag)
-		      ;; always notice when our nick is mentioned, even
-		      ;; if ignoring channel activity
-		      nick-match)
+	    (when (if rcirc-ignore-buffer-activity-flag
+		      ;; - Always notice when our nick is mentioned
+		      nick-match
+		    ;; - Never bother us if a dim-nick spoke
+		    (not (and rcirc-dim-nick-regexp sender
+			      (string-match rcirc-dim-nick-regexp sender))))
 	      (rcirc-record-activity
 	       (current-buffer)
 	       (when (or nick-match (and (not (rcirc-channel-p rcirc-target))
@@ -1375,7 +1399,7 @@ if NICK is also on `rcirc-ignore-list-automatic'."
   (force-mode-line-update))
 
 (defun rcirc-toggle-low-priority ()
-  "Toggle the value of `rcirc-ignore-buffer-activity-flag'."
+  "Toggle the value of `rcirc-low-priority-flag'."
   (interactive)
   (setq rcirc-low-priority-flag
 	(not rcirc-low-priority-flag))
@@ -1788,7 +1812,7 @@ ones added to the list automatically are marked with an asterisk."
 
 (defun rcirc-browse-url (&optional arg)
   "Prompt for URL to browse based on URLs in buffer."
-  (interactive)
+  (interactive "P")
   (let ((completions (mapcar (lambda (x) (cons x nil)) rcirc-urls))
         (initial-input (car rcirc-urls))
         (history (cdr rcirc-urls)))
@@ -1910,7 +1934,7 @@ FUNCTION takes 3 arguments, MATCH-START, MATCH-END, and STRING."
 		   (cond ((rcirc-channel-p target)
 			  target)
 			 ;;; -ChanServ- [#gnu] Welcome...
-			 ((string-match "^\\[\\(#[^ ]+\\)\\]" message)
+			 ((string-match "\\[\\(#[^\] ]+\\)\\]" message)
 			  (match-string 1 message))
 			 (sender
 			  (if (string= sender (rcirc-server-name process))
@@ -2209,6 +2233,25 @@ Passwords are stored in `rcirc-authinfo' (which see)."
     (((class color) (min-colors 8)) (:foreground "yellow" :weight light))
     (t (:weight bold :slant italic)))
   "The face used to highlight other messages."
+  :group 'rcirc-faces)
+
+(defface rcirc-bright-nick
+  '((((class grayscale) (background light))
+     (:foreground "LightGray" :weight bold :underline t))
+    (((class grayscale) (background dark))
+     (:foreground "Gray50" :weight bold :underline t))
+    (((class color) (min-colors 88) (background light)) (:foreground "CadetBlue"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "Aquamarine"))
+    (((class color) (min-colors 16) (background light)) (:foreground "CadetBlue"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "Aquamarine"))
+    (((class color) (min-colors 8)) (:foreground "magenta"))
+    (t (:weight bold :underline t)))
+  "Face used for nicks matched by `rcirc-bright-nick-regexp'."
+  :group 'rcirc-faces)
+
+(defface rcirc-dim-nick
+  '((t :inherit default))
+  "Face used for nicks matched by `rcirc-dim-nick-regexp'."
   :group 'rcirc-faces)
 
 (defface rcirc-server			; font-lock-comment-face
