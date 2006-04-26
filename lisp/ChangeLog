@@ -1,5 +1,8 @@
 2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* allout.el (allout-layout, allout-passphrase-verifier-string)
+	(allout-passphrase-hint-string): Tighten up a bit the safety predicate.
+
 	* textmodes/reftex-vars.el (reftex-vref-is-default)
 	(reftex-fref-is-default, reftex-guess-label-type):
 	Tighten up a bit the safety predicate.

@@ -667,7 +667,7 @@ the layout used for the allout.el source file.)
 case the value of `allout-default-layout' is used.")
 (make-variable-buffer-local 'allout-layout)
 ;;;###autoload
-(put 'allout-layout 'safe-local-variable t)
+(put 'allout-layout 'safe-local-variable (lambda (x) (or (listp x) (symbolp x))))
 
 ;;;_  : Topic header format
 ;;;_   = allout-regexp
@@ -1053,7 +1053,7 @@ The verifier string is retained as an Emacs file variable, as well as in
 the emacs buffer state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-verifier-string)
-(put 'allout-passphrase-verifier-string 'safe-local-variable t)
+(put 'allout-passphrase-verifier-string 'safe-local-variable 'stringp)
 ;;;_   = allout-passphrase-hint-string
 (defvar allout-passphrase-hint-string ""
   "Variable used to retain reminder string for file's encryption passphrase.
@@ -1065,7 +1065,7 @@ The hint is retained as an Emacs file variable, as well as in the emacs buffer
 state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-hint-string)
-(put 'allout-passphrase-hint-string 'safe-local-variable t)
+(put 'allout-passphrase-hint-string 'safe-local-variable 'stringp)
 (setq-default allout-passphrase-hint-string "")
 ;;;_   = allout-after-save-decrypt
 (defvar allout-after-save-decrypt nil
