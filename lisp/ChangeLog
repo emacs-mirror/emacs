@@ -1,8 +1,11 @@
 2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/fill.el (colon-double-space): Tighten up the safety pred.
+
 	* progmodes/python.el (python-continuation-line-p)
 	(python-beginning-of-statement): syntax-ppss may return
 	a negative depth.
+	(python-mode): Don't forcefully enable font-lock.
 
 	* time-stamp.el (time-stamp-start, time-stamp-end)
 	(time-stamp-inserts-lines): Tighten up a bit the safety predicate.
