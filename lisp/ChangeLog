@@ -1,5 +1,9 @@
 2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/reftex-vars.el (reftex-vref-is-default)
+	(reftex-fref-is-default, reftex-guess-label-type):
+	Tighten up a bit the safety predicate.
+
 	* textmodes/paragraphs.el (sentence-end-double-space)
 	(sentence-end-without-period, sentence-end-without-space)
 	(page-delimiter, paragraph-ignore-fill-prefix):
