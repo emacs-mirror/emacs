@@ -295,7 +295,7 @@ It takes the same format as the TZ argument of `set-time-zone-rule'.
 If nil, use local time.
 If t, use universal time.")
 
-(defun add-log-iso8601-time-zone (time)
+(defun add-log-iso8601-time-zone (&optional time)
   (let* ((utc-offset (or (car (current-time-zone time)) 0))
 	 (sign (if (< utc-offset 0) ?- ?+))
 	 (sec (abs utc-offset))
@@ -311,7 +311,8 @@ If t, use universal time.")
 (defvar add-log-iso8601-with-time-zone nil)
 
 (defun add-log-iso8601-time-string ()
-  (let ((time (format-time-string "%Y-%m-%d" (eq t add-log-time-zone-rule))))
+  (let ((time (format-time-string "%Y-%m-%d"
+                                  nil (eq t add-log-time-zone-rule))))
     (if add-log-iso8601-with-time-zone
         (concat time " " (add-log-iso8601-time-zone))
       time)))
