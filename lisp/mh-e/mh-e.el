@@ -2526,6 +2526,7 @@ of citations entirely, choose \"None\"."
     "X-Originating-IP:"                 ; Hotmail
     "X-Postfilter:"
     "X-Priority:"                       ; MS Outlook
+    "X-Provags-ID:"
     "X-Qotd-"                           ; User added
     "X-RM"
     "X-Received-Date:"
