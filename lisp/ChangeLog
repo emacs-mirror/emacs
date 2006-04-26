@@ -12,7 +12,7 @@
 2006-04-26  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/asm-mode.el (asm-mode, asm-mode-syntax-table):
-	Add support for "//" style comments. Remove `b' flag
+	Add support for "//" style comments.  Remove `b' flag
 	from ?* in `asm-mode-syntax-table'.
 
 2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -134,7 +134,7 @@
 
 2006-04-20  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-deadline-announce): Face removed.
+	* textmodes/org.el (org-deadline-announce): Face removed.
 	(org-level-faces, org-n-levels): Convert to constant.
 	(org-compatible-face): New function.
 	(org-hide, org-level-1, org-level-2, org-level-3, org-level-4)
@@ -341,7 +341,7 @@
 
 2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-set-regexps-and-options)
+	* textmodes/org.el (org-set-regexps-and-options)
 	(org-get-current-options): Better names for the startup folding
 	options.
 
@@ -364,7 +364,7 @@
 
 2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-ctrl-c-ctrl-c): Improve documentation string.
+	* textmodes/org.el (org-ctrl-c-ctrl-c): Improve documentation string.
 	(org-agenda-mouse-1-follows-link)
 	(org-mouse-1-follows-link): New options.
 	(org-format-agenda-item): Fix bug if TAGS is nil.
