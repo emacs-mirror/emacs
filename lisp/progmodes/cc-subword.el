@@ -91,8 +91,8 @@
 ;; Don't complain about the `define-minor-mode' form if it isn't defined.
 (cc-bytecomp-defvar c-subword-mode)
 
-;;; Autoload directives must be on the top level, so we construct an
-;;; autoload form instead.
+;; Autoload directives must be on the top level, so we construct an
+;; autoload form instead.
 ;;;###autoload (autoload 'c-subword-mode "cc-subword" "Mode enabling subword movement and editing keys." t)
 
 (if (not (fboundp 'define-minor-mode))
