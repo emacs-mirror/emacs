@@ -1,5 +1,12 @@
 2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* follow.el: Use (featurep 'xemacs) everywhere.
+	(follow-mode): Use define-minor-mode.
+	(follow-mode-map): Move initialization into the declaration.
+	Use command remapping.
+	(follow-emacs-version-xemacs-p): Remove.
+	(follow-submit-feedback): Remove.
+
 	* allout.el (allout-layout, allout-passphrase-verifier-string)
 	(allout-passphrase-hint-string): Tighten up a bit the safety predicate.
 
