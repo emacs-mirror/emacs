@@ -1,3 +1,12 @@
+2006-04-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pgg.texi (Caching passphrase): Fix markup and typos.  Simplify.
+
+2006-04-26  Sascha Wilde  <wilde@sha-bang.de>
+
+	* pgg.texi (Caching passphrase): Added documentation for
+	pgg-gpg-use-agent.
+
 2006-04-24  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Getting Started): Made it more explicit that you need

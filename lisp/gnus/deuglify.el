@@ -234,14 +234,12 @@
   :version "22.1"
   :group 'gnus)
 
-;;;###autoload
 (defcustom gnus-outlook-deuglify-unwrap-min 45
   "Minimum length of the cited line above the (possibly) wrapped line."
   :version "22.1"
   :type 'integer
   :group 'gnus-outlook-deuglify)
 
-;;;###autoload
 (defcustom gnus-outlook-deuglify-unwrap-max 95
   "Maximum length of the cited line after unwrapping."
   :version "22.1"
@@ -288,7 +286,6 @@
   :type 'string
   :group 'gnus-outlook-deuglify)
 
-;;;###autoload
 (defcustom gnus-outlook-display-hook nil
   "A hook called after an deuglified article has been prepared.
 It is run after `gnus-article-prepare-hook'."
