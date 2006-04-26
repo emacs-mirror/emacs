@@ -1,5 +1,10 @@
 2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/paragraphs.el (sentence-end-double-space)
+	(sentence-end-without-period, sentence-end-without-space)
+	(page-delimiter, paragraph-ignore-fill-prefix):
+	Tighten up a bit the safety predicate.
+
 	* textmodes/fill.el (colon-double-space): Tighten up the safety pred.
 
 	* progmodes/python.el (python-continuation-line-p)
