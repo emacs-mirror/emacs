@@ -672,7 +672,8 @@ the parse:
 
 @enumerate 0
 @item
-The depth in parentheses, counting from 0.
+The depth in parentheses, counting from 0.  Beware, it can
+become negative if there are more closing parens than opening ones.
 
 @item
 @cindex innermost containing parentheses
