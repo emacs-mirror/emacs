@@ -216,33 +216,47 @@ accessible."
     (url-copy-file url filename)
     filename))
 
+(defun url-insert (buffer &optional beg end)
+  "Insert the body of a URL object.
+BUFFER should be a complete URL buffer as returned by `url-retrieve'.
+If the headers specify a coding-system, it is applied to the body before it is inserted.
+Returns a list of the form (SIZE CHARSET), where SIZE is the size in bytes
+of the inserted text and CHARSET is the charset that was specified in the header,
+or nil if none was found.
+BEG and END can be used to only insert a subpart of the body.
+They count bytes from the beginning of the body."
+  (let* ((handle (with-current-buffer buffer (mm-dissect-buffer t)))
+         (data (with-current-buffer (mm-handle-buffer handle)
+                 (if beg
+                     (buffer-substring (+ (point-min) beg)
+                                       (if end (+ (point-min) end) (point-max)))
+		   (buffer-string))))
+         (charset (mail-content-type-get (mm-handle-type handle)
+                                          'charset)))
+    (mm-destroy-parts handle)
+    (if charset
+        (insert (mm-decode-string data (mm-charset-to-coding-system charset)))
+      (insert data))
+    (list (length data) charset)))
+
 ;;;###autoload
 (defun url-insert-file-contents (url &optional visit beg end replace)
-  (let ((buffer (url-retrieve-synchronously url))
-	(handle nil)
-	(charset nil)
-	(data nil))
+  (let ((buffer (url-retrieve-synchronously url)))
     (if (not buffer)
 	(error "Opening input file: No such file or directory, %s" url))
     (if visit (setq buffer-file-name url))
-    (with-current-buffer buffer
-      (setq handle (mm-dissect-buffer t))
-      (set-buffer (mm-handle-buffer handle))
-      (setq data (if beg (buffer-substring beg end)
-		   (buffer-string))))
-    (kill-buffer buffer)
-    (mm-destroy-parts handle)
-    (if replace (delete-region (point-min) (point-max)))
     (save-excursion
-      (setq charset (mail-content-type-get (mm-handle-type handle)
-					     'charset))
-      (let ((start (point)))
-	(if charset
-	    (insert (mm-decode-string data (mm-charset-to-coding-system charset)))
-	  (progn
-	    (insert data)
-	    (decode-coding-inserted-region start (point) url visit beg end replace)))))
-    (list url (length data))))
+      (let* ((start (point))
+             (size-and-charset (url-insert buffer beg end)))
+        (kill-buffer buffer)
+        (when replace
+          (delete-region (point-min) start)
+          (delete-region (point) (point-max)))
+        (unless (cadr size-and-charset)
+          ;; If the headers don't specify any particular charset, use the
+          ;; usual heuristic/rules that we apply to files.
+          (decode-coding-inserted-region start (point) url visit beg end replace))
+        (list url (car size-and-charset))))))
 
 (defun url-file-name-completion (url directory)
   (error "Unimplemented"))
