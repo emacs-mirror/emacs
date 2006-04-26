@@ -1,5 +1,8 @@
 2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* time-stamp.el (time-stamp-start, time-stamp-end)
+	(time-stamp-inserts-lines): Tighten up a bit the safety predicate.
+
 	* add-log.el: Remove spurious * in docstrings.
 	(add-log-time-zone-rule): Rename from change-log-time-zone-rule.
 	(add-change-log-entry): Use it here, since it's not specific

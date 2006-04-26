@@ -164,7 +164,7 @@ Do not change `time-stamp-line-limit', `time-stamp-start',
 incompatible with other people's files!  If you must change them for some
 application, do so in the local variables section of the time-stamped file
 itself.")
-;;;###autoload(put 'time-stamp-start 'safe-local-variable t)
+;;;###autoload(put 'time-stamp-start 'safe-local-variable 'stringp)
 
 (defvar time-stamp-end "\\\\?[\">]"    ;Do not change!
   "Regexp marking the text after the time stamp.
@@ -184,7 +184,7 @@ Do not change `time-stamp-start', `time-stamp-end', `time-stamp-pattern',
 or `time-stamp-inserts-lines' for yourself or you will be incompatible
 with other people's files!  If you must change them for some application,
 do so in the local variables section of the time-stamped file itself.")
-;;;###autoload(put 'time-stamp-end 'safe-local-variable t)
+;;;###autoload(put 'time-stamp-end 'safe-local-variable 'stringp)
 
 
 (defvar time-stamp-inserts-lines nil    ;Do not change!
@@ -201,7 +201,7 @@ Do not change `time-stamp-end' or `time-stamp-inserts-lines' for
 yourself or you will be incompatible with other people's files!
 If you must change them for some application, do so in the local
 variables section of the time-stamped file itself.")
-;;;###autoload(put 'time-stamp-inserts-lines 'safe-local-variable t)
+;;;###autoload(put 'time-stamp-inserts-lines 'safe-local-variable 'symbolp)
 
 
 (defvar time-stamp-count 1		;Do not change!
