@@ -1,3 +1,13 @@
+2006-04-26  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-user-optional-fields): Mark as
+	risky.
+
+2006-04-26  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-url): New optional arg no-browse.
+	Return the URL or nil if none can be generated.
+
 2006-04-27  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-comint-buffer): Move forward to stop
