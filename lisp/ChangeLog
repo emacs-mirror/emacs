@@ -1,3 +1,18 @@
+2006-04-17  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Remove local autoload declaration for
+	pgg-gpg-symmetric-key-p, since that's now done in pgg-gpg.el.
+	(allout-show-bodies, allout-header-prefix, allout-primary-bullet)
+	(allout-plain-bullets-string, allout-distinctive-bullets-string)
+	(allout-use-mode-specific-leader, allout-old-style-prefixes)
+	(allout-stylish-prefixes, allout-numbered-bullet)
+	(allout-file-xref-bullet, allout-presentation-padding)
+	(allout-use-hanging-indents, allout-reindent-bodies): Mark as
+	safe-local-variable with suitable value spec, and add autoload
+	cookie for loaddefs inclusion.  We now use an explicit spec everywhere.
+	(move-beginning-of-line, move-end-of-line): Repair so these compat
+	functions now actually resituate the point, when appropriate.
+
 2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cc-subword.el (c-subword-mode-map): Use command remapping.
