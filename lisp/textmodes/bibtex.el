@@ -103,6 +103,7 @@ CROSSREF-OPTIONAL lists in `bibtex-entry-field-alist' (which see)."
                                        (choice :tag "Init" :value ""
                                                string
                                                function))))))
+(put 'bibtex-user-optional-fields 'risky-local-variable t)
 
 (defcustom bibtex-entry-format
   '(opts-or-alts required-fields numerical-fields)
