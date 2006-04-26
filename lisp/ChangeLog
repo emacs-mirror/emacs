@@ -1,3 +1,10 @@
+2006-04-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-comint-buffer): Move forward to stop
+	byte compiler warnings.
+	(gud-basic-call, gud-find-expr): Let user select an expression
+	for printing.  Print expression as well as value in GUD buffer.
+
 2006-04-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el: Remove local autoload declaration for
