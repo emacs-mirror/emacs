@@ -1,3 +1,9 @@
+2006-04-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) <WM_LBUTTONDOWN, WM_RBUTTONDOWN>:
+	<WM_LBUTTONUP, WM_RBUTTONUP>: Call signal_user_input in the cases
+	where we preempt mouse_button_timer.
+
 2006-04-25  Miles Bader  <miles@gnu.org>
 
 	* editfns.c (Ffield_beginning, find_field): Undo change of 2006-04-23.
