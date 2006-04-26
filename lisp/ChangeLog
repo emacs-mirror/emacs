@@ -1,6 +1,10 @@
+2006-04-26  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (posn-string, posn-image, posn-object): Doc fix.
+
 2006-04-26  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/asm-mode.el (asm-mode, asm-mode-syntax-table): 
+	* progmodes/asm-mode.el (asm-mode, asm-mode-syntax-table):
 	Add support for "//" style comments. Remove `b' flag
 	from ?* in `asm-mode-syntax-table'.
 
