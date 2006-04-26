@@ -4331,11 +4331,12 @@ An error is signaled if point is outside key or BibTeX field."
             "\n")
     (goto-char endpos)))
 
-(defun bibtex-url (&optional pos)
+(defun bibtex-url (&optional pos no-browse)
   "Browse a URL for the BibTeX entry at point.
 Optional POS is the location of the BibTeX entry.
 The URL is generated using the schemes defined in `bibtex-generate-url-list'
-\(see there\).  Then the URL is passed to `browse-url'."
+\(see there\).  Then the URL is passed to `browse-url' unless NO-BROWSE is nil.
+Return the URL or nil if none can be generated."
   (interactive)
   (save-excursion
     (if pos (goto-char pos))
@@ -4370,8 +4371,10 @@ The URL is generated using the schemes defined in `bibtex-generate-url-list'
                           (error "Match failed: %s" field)))
                       (if fmt (apply 'format fmt (nreverse obj))
                         (apply 'concat (nreverse obj)))))
-          (browse-url (message "%s" url))))
-      (unless url (message "No URL known.")))))
+          (if (interactive-p) (message "%s" url))
+          (unless no-browse (browse-url url))))
+      (if (and (not url) (interactive-p)) (message "No URL known."))
+      url)))
 
 
 ;; Make BibTeX a Feature
