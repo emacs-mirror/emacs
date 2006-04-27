@@ -1616,6 +1616,15 @@ normal otherwise."
   (when init-file-had-error
     (sit-for 2))
 
+  (when (and pure-space-overflow
+	     (not noninteractive))
+    (display-warning
+     'initialization
+     "Building Emacs overflowed pure space."
+     ;; FIXME: Tell the user what kind of problems are possible and how to fix
+     ;; the overflow.
+     :warning))
+
   (when command-line-args-left
     ;; We have command args; process them.
     (let ((dir command-line-default-directory)
