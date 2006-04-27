@@ -1,3 +1,8 @@
+2006-04-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc-embed.el (calc-embedded-make-info): Use `math-read-expr' to
+	read expression when `math-read-big-expr' doesn't work.
+
 2006-04-27  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* startup.el (command-line-1): Display warning when
