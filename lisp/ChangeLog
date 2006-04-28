@@ -1,3 +1,34 @@
+2006-04-28  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (defgroup grep): Doc fix.
+	(grep-auto-highlight): Remove.
+	(grep-template): New defcustom.
+	(grep-find-template): Rename from grep-tree-template.
+	(grep-files-aliases): Rename from grep-tree-files-aliases.
+	Remove "all" alias, add "l" alias.
+	(grep-tree-ignore-case, grep-tree-ignore-CVS-directories): Remove.
+	(grep-find-ignored-directories): New defcustom to replace
+	grep-tree-ignore-CVS-directories, to facilitate ignoring
+	subdirectories for multiple version control systems.
+	(grep-mode-map): Add Recursive grep item to GREP menu.
+	(grep-regexp-history, grep-files-history): New defvars.
+	(grep-probe): New helper function.
+	(grep-compute-defaults): Use it to simplify code.
+	Adapt to name changes.
+	Use `.' as base in grep-find-template rather than <D>.
+	(grep): Remove superfluous highlight-regexp arg.  Fix doc.
+	Call grep-compute-defaults unconditionally.
+	(grep-expand-keywords): New defconst.
+	(grep-expand-template): Rename from grep-expand-command-macros.
+	Simplify via grep-expand-keywords.  Look at case-fold-search instead
+	of grep-tree-ignore-case to add -i option.
+	Bind case-fold-search to nil while matching keywords.
+	(grep-tree-last-regexp, grep-tree-last-files): Remove.
+	(grep-read-regexp, grep-read-files): New helper functions.
+	(rgrep): Rename from grep-tree.  Rework to use proper histories.
+	Adapt to changes in defcustoms and functions above.
+	(lgrep): New command, as grep, but using same interactive api as rgrep.
+
 2006-04-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-completion-file-name-handler): Disable
