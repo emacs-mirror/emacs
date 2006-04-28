@@ -301,7 +301,7 @@ alist, then use comment-start string, if any, then use default \(`.').
 Set to the symbol for either of `allout-mode-leaders' or
 `comment-start' to use only one of them, respectively.
 
-Value nil means to always use the default \(`.').t
+Value nil means to always use the default \(`.').
 
 comment-start strings that do not end in spaces are tripled, and an
 `_' underscore is tacked on the end, to distinguish them from regular
