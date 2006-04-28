@@ -335,10 +335,12 @@ treating the matches reported by @code{grep} as if they were ``errors.''
 
 @table @kbd
 @item M-x grep
+@item M-x lgrep
 Run @code{grep} asynchronously under Emacs, with matching lines
 listed in the buffer named @samp{*grep*}.
 @item M-x grep-find
 @itemx M-x find-grep
+@itemx M-x rgrep
 Run @code{grep} via @code{find}, with user-specified arguments, and
 collect output in the buffer named @samp{*grep*}.
 @item M-x kill-grep
@@ -372,6 +374,27 @@ find-grep}) is similar to @kbd{M-x grep}, but it supplies a different
 initial default for the command---one that runs both @code{find} and
 @code{grep}, so as to search every file in a directory tree.  See also
 the @code{find-grep-dired} command, in @ref{Dired and Find}.
+
+@findex lgrep
+@findex rgrep
+  The commands @kbd{M-x lgrep} (local grep) and @kbd{M-x rgrep}
+(recursive grep) are more user-friendly versions of @code{grep} and
+@code{grep-find}, which prompt separately for the regular expression
+to match, the files to search, and the base directory for the search
+(rgrep only).  Case sensitivitivy of the search is controlled by the
+current value of @code{case-fold-search}.
+
+These commands build the shell commands based on the variables
+@code{grep-template} (for @code{lgrep}) and @code{grep-find-template}
+(for @code{rgrep}).
+
+The files to search can use aliases defined in the variable
+@code{grep-files-aliases}.
+
+Subdirectories listed in the variable
+@code{grep-find-ignored-directories} such as those typically used by
+various version control systems, like CVS and arch, are automatically
+skipped by @code{rgrep}.
 
 @node Flymake
 @section Finding Syntax Errors On The Fly
@@ -676,7 +699,7 @@ This key is available only in the GUD interaction buffer.
 @kindex C-c C-f @r{(GUD)}
 @itemx C-x C-a C-f
 @findex gud-finish
-Run the program until the selected stack frame returns or 
+Run the program until the selected stack frame returns or
 stops for some other reason (@code{gud-finish}).
 
 @item C-x C-a C-j
