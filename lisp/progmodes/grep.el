@@ -599,10 +599,13 @@ substitution string.  Note dynamic scoping of variables.")
 
 (defun grep-read-files (regexp)
   "Read files arg for interactive grep."
-  (let* ((default
-	   (or (and (stringp (buffer-file-name))
-		    (let ((fn (file-name-nondirectory (buffer-file-name)))
-			  (aliases grep-files-aliases)
+  (let* ((bn (or (buffer-file-name) (buffer-name)))
+	 (fn (and bn
+		  (stringp bn)
+		  (file-name-nondirectory bn)))
+	 (default
+	   (or (and fn
+		    (let ((aliases grep-files-aliases)
 			  alias)
 		      (while aliases
 			(setq alias (car aliases)
@@ -611,10 +614,14 @@ substitution string.  Note dynamic scoping of variables.")
 			    (setq aliases nil)
 			  (setq alias nil)))
 		      (cdr alias)))
-	       (car grep-files-history)))
+	       (and fn
+		    (let ((ext (file-name-extension fn)))
+		      (and ext (concat "*." ext))))))
 	 (files (read-string
 		 (concat "Search for \"" regexp
-			 "\" in files (default " default "): ")
+			 "\" in files"
+			 (if default (concat " (default " default ")"))
+			 ": ")
 		 nil 'grep-files-history default)))
     (and files
 	 (or (cdr (assoc files grep-files-aliases))
