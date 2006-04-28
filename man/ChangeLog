@@ -1,16 +1,19 @@
+2006-04-29  Kim F. Storm  <storm@cua.dk>
+
+	* building.texi (Grep Searching): Add lgrep and rgrep.
+
 2006-04-26  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* pgg.texi (Caching passphrase): Fix markup and typos.  Simplify.
 
 2006-04-26  Sascha Wilde  <wilde@sha-bang.de>
 
-	* pgg.texi (Caching passphrase): Added documentation for
-	pgg-gpg-use-agent.
+	* pgg.texi (Caching passphrase): Add pgg-gpg-use-agent.
 
 2006-04-24  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.texi (Getting Started): Made it more explicit that you need
-	to install MH, and also included pointers to current MH implementations.
+	* mh-e.texi (Getting Started): Make it more explicit that you need
+	to install MH.  Add pointers to current MH implementations.
 
 2006-04-23  Richard Stallman  <rms@gnu.org>
 
@@ -24,14 +27,14 @@
 2006-04-21  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E manual version 7.94.
-	
+
 	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
 	release 7.94.
 
 2006-04-21  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Many small fixes.
-	(Handling links): Renamed from "Managing links".
+	(Handling links): Rename from "Managing links".
 
 2006-04-21  Eli Zaretskii  <eliz@gnu.org>
 
@@ -57,7 +60,7 @@
 
 2006-04-20  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Time stamps): Better explanation of the purpose of
+	* org.texi (Time stamps): Better explanation of the purpose of
 	different time stamps.
 	(Structure editing, Plain lists): More details on how new items
 	and headings are inserted.
@@ -74,7 +77,7 @@
 
 2006-04-18  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Formula syntax): Fixed link to Calc Manual.
+	* org.texi (Formula syntax): Fixed link to Calc Manual.
 
 2006-04-17  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -96,7 +99,7 @@
 
 2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Updating settings): New section.
+	* org.texi (Updating settings): New section.
 	(Visibility cycling): Better names for the startup folding
 	options.
 	(Exporting): Completely restructured.
