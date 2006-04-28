@@ -465,7 +465,6 @@ executed once when the buffer is created."
     (define-key map "\C-c\C-l" 	  'comint-dynamic-list-input-ring)
     (define-key map "\C-c\C-n" 	  'comint-next-prompt)
     (define-key map "\C-c\C-p" 	  'comint-previous-prompt)
-    (define-key map "\C-c\C-j" 	  'comint-restore-input)
     (define-key map "\C-c\C-d" 	  'comint-send-eof)
     (define-key map "\C-c\C-s" 	  'comint-write-output)
     (define-key map "\C-c." 	  'comint-insert-previous-argument)
@@ -2704,7 +2703,7 @@ interpreter (e.g., the percent notation of cmd.exe on NT)."
     name))
 
 (defun comint-match-partial-filename ()
-  "Return the filename at point, or nil if non is found.
+  "Return the filename at point, or nil if none is found.
 Environment variables are substituted.  See `comint-word'."
   (let ((filename (comint-word comint-file-name-chars)))
     (and filename (comint-substitute-in-file-name

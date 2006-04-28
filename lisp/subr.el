@@ -851,19 +851,23 @@ and `event-end' functions."
   (nth 3 position))
 
 (defsubst posn-string (position)
-  "Return the string object of POSITION, or nil if a buffer position.
+  "Return the string object of POSITION.
+Value is a cons (STRING . STRING-POS), or nil if not a string.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (nth 4 position))
 
 (defsubst posn-image (position)
-  "Return the image object of POSITION, or nil if a not an image.
+  "Return the image object of POSITION.
+Value is an list (image ...), or nil if not an image.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (nth 7 position))
 
 (defsubst posn-object (position)
   "Return the object (image or string) of POSITION.
+Value is a list (image ...) for an image object, a cons cell
+\(STRING . STRING-POS) for a string object, and nil for a buffer position.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (or (posn-image position) (posn-string position)))

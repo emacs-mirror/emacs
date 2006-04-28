@@ -307,7 +307,7 @@ when selecting a different article."
     "application/pkcs7-signature" "application/x-pkcs7-mime"
     "application/pkcs7-mime"
     ;; Mutt still uses this even though it has already been withdrawn.
-    "application/pgp")
+    "application/pgp\\'")
   "A list of MIME types to be displayed automatically."
   :type '(repeat regexp)
   :group 'mime-display)

@@ -825,7 +825,9 @@ same regexp used last time.
 
   When you find the previous input you want, you can resubmit it by
 typing @key{RET}, or you can edit it first and then resubmit it if you
-wish.
+wish.  Any partial input you were composing before navigating the
+history list is restored when you go to the beginning or end of the
+history ring.
 
   Often it is useful to reexecute several successive shell commands that
 were previously executed in sequence.  To do this, first find and

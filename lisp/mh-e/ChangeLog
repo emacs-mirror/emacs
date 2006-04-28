@@ -1,3 +1,71 @@
+2006-04-26  Eric Ding  <ericding@alum.mit.edu>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Add entry
+	"X-Provags-ID:"
+
+2006-04-25  Bill Wohler  <wohler@newt.com>
+
+	* mh-letter.el (mh-folder-expand-at-point): Fix folder completion.
+	Folders returned by mh-folder-completion-function no longer need
+	adornment (closes SF #1476270).
+
+2006-04-21  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (Version, mh-version): Add +cvs to version.
+
+2006-04-21  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 7.94.
+
+	* mh-e.el (Version, mh-version): Update for release 7.94.
+
+2006-04-21  Bill Wohler  <wohler@newt.com>
+
+	* mh-letter.el (mh-insert-letter): If a message number isn't
+	given, throw an error rather than using a potentially incorrect
+	message number (closes SF #1473729). In addition, use the cur
+	message if mh-sent-from-msg is nil (when sending a message, in
+	contrast to replying). Move conversion of int to string into
+	interactive stanza so body can assume variables are of proper
+	type.
+
+2006-04-20  Bill Wohler  <wohler@newt.com>
+
+	* mh-tool-bar.el (image-load-path): Define to shush compiler.
+	(mh-buffer-exists-p): Move inside mh-do-in-gnu-emacs since it
+	isn't used outside of it.
+	(mh-tool-bar-folder-buttons-init,
+	mh-tool-bar-letter-buttons-init): Update load-path/image-load-path
+	before setting buttons. This code used to be in
+	mh-folder-mode/mh-letter-mode but this was the wrong place since
+	mh-tool-bar-*-buttons-init can also be called when customizing the
+	buttons.
+	(mh-tool-bar-update): New function which updates tool-bar-map in
+	all of the MH-E buffers after customizing the buttons (closes SF
+	#1452718).
+	(mh-tool-bar-folder-buttons-set, mh-tool-bar-letter-buttons-set):
+	Call it (closes SF #1452718).
+
+	* mh-folder.el (mh-folder-buttons-init-flag): Delete. Use
+	mh-folder-tool-bar-map instead.
+	(image-load-path): Delete. No longer used.
+	(mh-folder-mode): Moved setting of image-load-path into
+	mh-tool-bar-folder-buttons-init.
+
+	* mh-letter.el (mh-letter-buttons-init-flag): Delete. Use
+	mh-letter-tool-bar-map instead.
+	(image-load-path): Delete. No longer used.
+	(mh-letter-mode): Moved setting of image-load-path into
+	mh-tool-bar-letter-buttons-init.
+
+	* mh-seq.el (mh-narrow-to-seq, mh-widen): Use with-current-buffer
+	instead of set-buffer.
+
+2006-04-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-tool-bar.el (mh-tool-bar-define): Fix enable-expr so that one
+	can permanently disable a button (such as a separator) with nil.
+
 2006-04-18  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (defcustom-mh, defface-mh, defgroup-mh, mh-face-data)

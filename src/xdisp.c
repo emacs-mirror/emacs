@@ -9563,20 +9563,22 @@ tool_bar_lines_needed (f, n_rows)
 {
   struct window *w = XWINDOW (f->tool_bar_window);
   struct it it;
+  struct glyph_row *temp_row = w->desired_matrix->rows;
 
   /* Initialize an iterator for iteration over
      F->desired_tool_bar_string in the tool-bar window of frame F.  */
-  init_iterator (&it, w, -1, -1, w->desired_matrix->rows, TOOL_BAR_FACE_ID);
+  init_iterator (&it, w, -1, -1, temp_row, TOOL_BAR_FACE_ID);
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_TOTAL_COLS (f) * FRAME_COLUMN_WIDTH (f);
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
 
   while (!ITERATOR_AT_END_P (&it))
     {
-      it.glyph_row = w->desired_matrix->rows;
-      clear_glyph_row (it.glyph_row);
+      clear_glyph_row (temp_row);
+      it.glyph_row = temp_row;
       display_tool_bar_line (&it, -1);
     }
+  clear_glyph_row (temp_row);
 
   /* f->n_tool_bar_rows == 0 means "unknown"; -1 means no tool-bar.  */
   if (n_rows)
@@ -9656,7 +9658,29 @@ redisplay_tool_bar (f)
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
 
   if (f->n_tool_bar_rows == 0)
-    (void)tool_bar_lines_needed (f, &f->n_tool_bar_rows);
+    {
+      int nlines;
+
+      if ((nlines = tool_bar_lines_needed (f, &f->n_tool_bar_rows),
+	   nlines != WINDOW_TOTAL_LINES (w)))
+	{
+	  extern Lisp_Object Qtool_bar_lines;
+	  Lisp_Object frame;
+	  int old_height = WINDOW_TOTAL_LINES (w);
+
+	  XSETFRAME (frame, f);
+	  clear_glyph_matrix (w->desired_matrix);
+	  Fmodify_frame_parameters (frame,
+				    Fcons (Fcons (Qtool_bar_lines,
+						  make_number (nlines)),
+					   Qnil));
+	  if (WINDOW_TOTAL_LINES (w) != old_height)
+	    {
+	      fonts_changed_p = 1;
+	      return 1;
+	    }
+	}
+    }
 
   /* Display as many lines as needed to display all tool-bar items.  */
 
@@ -12697,8 +12721,6 @@ redisplay_window (window, just_this_one_p)
       /* IT may overshoot PT if text at PT is invisible.  */
       else if (IT_CHARPOS (it) > PT && CHARPOS (startp) <= PT)
 	w->force_start = Qt;
-
-
     }
 
   /* Handle case where place to start displaying has been specified,
@@ -12868,6 +12890,36 @@ redisplay_window (window, just_this_one_p)
 	       || (XFASTINT (w->last_modified) >= MODIFF
 		   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)))
     {
+
+      /* If first window line is a continuation line, and window start
+	 is inside the modified region, but the first change is before
+	 current window start, we must select a new window start.*/
+      if (NILP (w->start_at_line_beg)
+	  && CHARPOS (startp) > BEGV)
+	{
+	  /* Make sure beg_unchanged and end_unchanged are up to date.
+	     Do it only if buffer has really changed.  This may or may
+	     not have been done by try_window_id (see which) already. */
+	  if (MODIFF > SAVE_MODIFF
+	      /* This seems to happen sometimes after saving a buffer.  */
+	      || BEG_UNCHANGED + END_UNCHANGED > Z_BYTE)
+	    {
+	      if (GPT - BEG < BEG_UNCHANGED)
+		BEG_UNCHANGED = GPT - BEG;
+	      if (Z - GPT < END_UNCHANGED)
+		END_UNCHANGED = Z - GPT;
+	    }
+
+	  if (CHARPOS (startp) > BEG + BEG_UNCHANGED
+	      && CHARPOS (startp) <= Z - END_UNCHANGED)
+	    {
+	      /* There doesn't seems to be a simple way to find a new
+		 window start that is near the old window start, so
+		 we just recenter.  */
+	      goto recenter;
+	    }
+	}
+
 #if GLYPH_DEBUG
       debug_method_add (w, "same window start");
 #endif
@@ -18694,6 +18746,7 @@ fill_stretch_glyph_string (s, row, area, start, end)
   s->font = s->face->font;
   s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
   s->width = glyph->pixel_width;
+  s->nchars = 1;
   voffset = glyph->voffset;
 
   for (++glyph;
@@ -19838,20 +19891,6 @@ produce_stretch_glyph (it)
   it->ascent = it->phys_ascent = ascent;
   it->descent = it->phys_descent = height - it->ascent;
   it->nglyphs = width > 0 && height > 0 ? 1 : 0;
-
-  if (width > 0 && height > 0 && face->box != FACE_NO_BOX)
-    {
-      if (face->box_line_width > 0)
-	{
-	  it->ascent += face->box_line_width;
-	  it->descent += face->box_line_width;
-	}
-
-      if (it->start_of_box_run_p)
-	it->pixel_width += abs (face->box_line_width);
-      if (it->end_of_box_run_p)
-	it->pixel_width += abs (face->box_line_width);
-    }
 
   take_vertical_position_into_account (it);
 }
@@ -22373,7 +22412,7 @@ note_mouse_highlight (f, x, y)
   if (part == ON_VERTICAL_BORDER)
     {
       cursor = FRAME_X_OUTPUT (f)->horizontal_drag_cursor;
-      help_echo_string = make_string ("drag-mouse-1: resize", 20);
+      help_echo_string = build_string ("drag-mouse-1: resize");
     }
   else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE
 	   || part == ON_SCROLL_BAR)

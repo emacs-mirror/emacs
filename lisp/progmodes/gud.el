@@ -83,6 +83,8 @@ Supported debuggers include gdb, sdb, dbx, xdb, perldb, pdb (Python), jdb, and b
 (defvar gud-minor-mode nil)
 (put 'gud-minor-mode 'permanent-local t)
 
+(defvar gud-comint-buffer nil)
+
 (defvar gud-keep-buffer nil)
 
 (defun gud-symbol (sym &optional soft minor-mode)
@@ -739,8 +741,6 @@ To run GDB in text command mode, set `gud-gdb-command-name' to
 
 ;; The completion list is constructed by the process filter.
 (defvar gud-gdb-fetched-lines)
-
-(defvar gud-comint-buffer nil)
 
 (defun gud-gdb-complete-command (&optional command a b)
   "Perform completion on the GDB command preceding point.
@@ -2889,8 +2889,11 @@ Obeying it means displaying in another window the specified file and line."
       (set-buffer gud-comint-buffer)
       (save-restriction
 	(widen)
-	(goto-char (process-mark proc))
-	(forward-line 0)
+	(if (marker-position gud-delete-prompt-marker)
+	    ;; We get here when printing an expression.
+	    (goto-char gud-delete-prompt-marker)
+	  (goto-char (process-mark proc))
+	  (forward-line 0))
 	(if (looking-at comint-prompt-regexp)
 	    (set-marker gud-delete-prompt-marker (point)))
 	(if (memq gud-minor-mode '(gdbmi gdba))
@@ -2911,7 +2914,21 @@ Obeying it means displaying in another window the specified file and line."
 (defvar gud-find-expr-function 'gud-find-c-expr)
 
 (defun gud-find-expr (&rest args)
-  (apply gud-find-expr-function args))
+  (let ((expr (if (and transient-mark-mode mark-active)
+		  (buffer-substring (region-beginning) (region-end))
+		(apply gud-find-expr-function args))))
+    (save-match-data
+      (if (string-match "\n" expr)
+	  (error "Expression must not include a newline"))
+      (with-current-buffer gud-comint-buffer
+	(save-excursion
+	  (goto-char (process-mark (get-buffer-process gud-comint-buffer)))
+	  (forward-line 0)
+	  (when (looking-at comint-prompt-regexp)
+	    (set-marker gud-delete-prompt-marker (point))
+	    (set-marker-insertion-type gud-delete-prompt-marker t))
+	  (insert (concat  expr " = ")))))
+    expr))
 
 ;; The next eight functions are hacked from gdbsrc.el by
 ;; Debby Ayers <ayers@asc.slb.com>,

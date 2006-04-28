@@ -6,7 +6,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 7.93+cvs
+;; Version: 7.94+cvs
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -136,7 +136,7 @@
 ;; Try to keep variables local to a single file. Provide accessors if
 ;; variables are shared. Use this section as a last resort.
 
-(defconst mh-version "7.93+cvs" "Version number of MH-E.")
+(defconst mh-version "7.94+cvs" "Version number of MH-E.")
 
 ;; Variants
 
@@ -2526,6 +2526,7 @@ of citations entirely, choose \"None\"."
     "X-Originating-IP:"                 ; Hotmail
     "X-Postfilter:"
     "X-Priority:"                       ; MS Outlook
+    "X-Provags-ID:"
     "X-Qotd-"                           ; User added
     "X-RM"
     "X-Received-Date:"

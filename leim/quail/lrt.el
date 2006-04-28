@@ -1,6 +1,6 @@
 ;;; lrt.el --- Quail package for inputting Lao characters by LRT method  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1998  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2006  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1999
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021

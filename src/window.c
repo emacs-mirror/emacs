@@ -3439,7 +3439,7 @@ displaying BUFFER, then simply raise that frame.
 The variables `special-display-buffer-names',
 `special-display-regexps', `same-window-buffer-names', and
 `same-window-regexps' customize how certain buffer names are handled.
-The latter two take effect only if NOT-THIS-WINDOW is t.
+The latter two take effect only if NOT-THIS-WINDOW is nil.
 
 If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.

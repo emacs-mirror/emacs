@@ -352,7 +352,9 @@ Return that buffer."
     ((eq mm-verify-option 'never) nil)
     ((eq mm-verify-option 'always) t)
     ((eq mm-verify-option 'known) t)
-    (t (y-or-n-p "Verify pgp signed part? ")))))
+    (t (prog1
+	   (y-or-n-p "Verify pgp signed part? ")
+	 (message ""))))))
 
 (eval-when-compile
   (defvar gnus-newsgroup-charset))
@@ -403,15 +405,44 @@ Return that buffer."
     ((eq mm-decrypt-option 'never) nil)
     ((eq mm-decrypt-option 'always) t)
     ((eq mm-decrypt-option 'known) t)
-    (t (y-or-n-p "Decrypt pgp encrypted part? ")))))
+    (t (prog1
+	   (y-or-n-p "Decrypt pgp encrypted part? ")
+	 (message ""))))))
 
 (defun mm-uu-pgp-encrypted-extract-1 (handles ctl)
-  (let ((buf (mm-uu-copy-to-buffer (point-min) (point-max))))
-    (if (mm-uu-pgp-encrypted-test)
-	(with-current-buffer buf
-	  (mml2015-clean-buffer)
-	  (funcall (mml2015-clear-decrypt-function))))
-    (list (mm-make-handle buf mm-uu-text-plain-type))))
+  (let ((buf (mm-uu-copy-to-buffer (point-min) (point-max)))
+	(first t)
+	charset)
+    ;; Make sure there's a blank line between header and body.
+    (with-current-buffer buf
+      (goto-char (point-min))
+      (while (prog2
+		 (forward-line 1)
+		 (if first
+		     (looking-at "[^\t\n ]+:")
+		   (looking-at "[^\t\n ]+:\\|[\t ]"))
+	       (setq first nil)))
+      (unless (memq (char-after) '(?\n nil))
+	(insert "\n"))
+      (save-restriction
+	(narrow-to-region (point-min) (point))
+	(setq charset (mail-fetch-field "charset")))
+      (if (and (mm-uu-pgp-encrypted-test)
+	       (progn
+		 (mml2015-clean-buffer)
+		 (funcall (mml2015-clear-decrypt-function))
+		 (equal (mm-handle-multipart-ctl-parameter mm-security-handle
+							   'gnus-info)
+			"OK")))
+	  (progn
+	    ;; Decode charset.
+	    (when (and (or charset
+			   (setq charset gnus-newsgroup-charset))
+		       (setq charset (mm-charset-to-coding-system charset))
+		       (not (eq charset 'ascii)))
+	      (mm-decode-coding-region (point-min) (point-max) charset))
+	    (list (mm-make-handle buf mm-uu-text-plain-type)))
+	(list (mm-make-handle buf '("application/pgp-encrypted")))))))
 
 (defun mm-uu-pgp-encrypted-extract ()
   (let ((mm-security-handle (list (format "multipart/encrypted"))))

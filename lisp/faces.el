@@ -2190,19 +2190,19 @@ used to display the prompt text."
   :group 'frames
   :group 'basic-faces)
 
-(defface scroll-bar '()
+(defface scroll-bar '((t nil))
   "Basic face for the scroll bar colors under X."
   :version "21.1"
   :group 'frames
   :group 'basic-faces)
 
-(defface border '()
+(defface border '((t nil))
   "Basic face for the frame border under X."
   :version "21.1"
   :group 'frames
   :group 'basic-faces)
 
-(defface cursor '()
+(defface cursor '((t nil))
   "Basic face for the cursor color under X.
 Note: Other faces cannot inherit from the cursor face."
   :version "21.1"
@@ -2211,7 +2211,7 @@ Note: Other faces cannot inherit from the cursor face."
 
 (put 'cursor 'face-no-inherit t)
 
-(defface mouse '()
+(defface mouse '((t nil))
   "Basic face for the mouse color under X."
   :version "21.1"
   :group 'mouse

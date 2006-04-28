@@ -1,3 +1,17 @@
+2006-04-21  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 7.94.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 7.94.
+
+2006-04-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* NEWS: Mention t-mouse.el.  Touch up description of gdb-ui.el.
+
+2006-04-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: Version number change only.
+
 2006-04-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-refcard.tex: Bump version to 5.11.  Remove duplicate

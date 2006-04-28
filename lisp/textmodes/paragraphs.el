@@ -128,7 +128,7 @@ regexp describing the end of a sentence, when the value of the variable
 `sentence-end' is nil.  See Info node `(elisp)Standard Regexps'."
   :type 'boolean
   :group 'fill)
-;;;###autoload(put 'sentence-end-double-space 'safe-local-variable t)
+;;;###autoload(put 'sentence-end-double-space 'safe-local-variable 'symbolp)
 
 (defcustom sentence-end-without-period nil
   "*Non-nil means a sentence will end without a period.
@@ -140,7 +140,7 @@ regexp describing the end of a sentence, when the value of the variable
 `sentence-end' is nil.  See Info node `(elisp)Standard Regexps'."
   :type 'boolean
   :group 'fill)
-;;;###autoload(put 'sentence-end-without-period 'safe-local-variable t)
+;;;###autoload(put 'sentence-end-without-period 'safe-local-variable 'symbolp)
 
 (defcustom sentence-end-without-space
   "$B!#!%!)!*$A!##.#?#!$(0!$!%!)!*$(G!$!%!)!*(B"
@@ -151,7 +151,7 @@ regexp describing the end of a sentence, when the value of the variable
 `sentence-end' is nil.  See Info node `(elisp)Standard Regexps'."
   :group 'paragraphs
   :type 'string)
-;;;###autoload(put 'sentence-end-without-space 'safe-local-variable t)
+;;;###autoload(put 'sentence-end-without-space 'safe-local-variable 'symbolp)
 
 (defcustom sentence-end nil
   "*Regexp describing the end of a sentence.
@@ -198,14 +198,14 @@ in between.  See Info node `(elisp)Standard Regexps'."
   "*Regexp describing line-beginnings that separate pages."
   :group 'paragraphs
   :type 'regexp)
-;;;###autoload(put 'page-delimiter 'safe-local-variable t)
+;;;###autoload(put 'page-delimiter 'safe-local-variable 'stringp)
 
 (defcustom paragraph-ignore-fill-prefix nil
   "*Non-nil means the paragraph commands are not affected by `fill-prefix'.
 This is desirable in modes where blank lines are the paragraph delimiters."
   :group 'paragraphs
   :type 'boolean)
-;;;###autoload(put 'paragraph-ignore-fill-prefix 'safe-local-variable t)
+;;;###autoload(put 'paragraph-ignore-fill-prefix 'safe-local-variable 'symbolp)
 
 (defun forward-paragraph (&optional arg)
   "Move forward to end of paragraph.

@@ -7,7 +7,6 @@
 ;; Maintainer: FSF (Anders' email bounces, Sep 2005)
 ;; Created: 1995-05-25
 ;; Keywords: display, window, minor-mode, convenience
-;; Last Changed: 1999-11-17
 
 ;; This file is part of GNU Emacs.
 
@@ -46,14 +45,14 @@
 ;;   movement commands.
 ;;
 ;; Follow mode comes to its prime when a large screen and two
-;; side-by-side window are used. The user can, with the help of Follow
+;; side-by-side window are used.  The user can, with the help of Follow
 ;; mode, use two full-height windows as though they would have been
-;; one. Imagine yourself editing a large function, or section of text,
+;; one.  Imagine yourself editing a large function, or section of text,
 ;; and being able to use 144 lines instead of the normal 72... (your
 ;; mileage may vary).
 
 ;; To test this package, make sure `follow' is loaded, or will be
-;; autoloaded when activated (see below). Then do the following:
+;; autoloaded when activated (see below).  Then do the following:
 ;;
 ;; * Find your favorite file (preferably a long one).
 ;;
@@ -77,13 +76,13 @@
 ;;		    +----------+----------+
 ;;
 ;;   As you can see, the right-hand window starts at line 73, the line
-;;   immediately below the end of the left-hand window. As long as
+;;   immediately below the end of the left-hand window.  As long as
 ;;   `follow-mode' is active, the two windows will follow eachother!
 ;;
 ;; * Play around and enjoy! Scroll one window and watch the other.
-;;   Jump to the beginning or end. Press `Cursor down' at the last
-;;   line of the left-hand window. Enter new lines into the
-;;   text. Enter long lines spanning several lines, or several
+;;   Jump to the beginning or end.  Press `Cursor down' at the last
+;;   line of the left-hand window.  Enter new lines into the
+;;   text.  Enter long lines spanning several lines, or several
 ;;   windows.
 ;;
 ;; * Should you find `Follow' mode annoying, just type
@@ -146,7 +145,7 @@
 ;; Usage:
 ;;
 ;; To activate issue the command "M-x follow-mode"
-;; and press return. To deactivate, do it again.
+;; and press return.  To deactivate, do it again.
 ;;
 ;; The following is a list of commands useful when follow-mode is active.
 ;;
@@ -197,7 +196,7 @@
 ;;    in the same frame. (My apoligies to you who can't use frames.)
 ;;
 ;; 2) Bind `follow-mode' to key so you can turn it off whenever
-;;    you want to view two locations. Of course, `follow' mode can
+;;    you want to view two locations.  Of course, `follow' mode can
 ;;    be reactivated by hitting the same key again.
 ;;
 ;;    Example from my ~/.emacs:
@@ -208,7 +207,7 @@
 ;;
 ;; In an ideal world, follow mode would have been implemented in the
 ;; kernel of the display routines, making sure that the windows (using
-;; follow mode) ALWAYS are aligned. On planet earth, however, we must
+;; follow mode) ALWAYS are aligned.  On planet earth, however, we must
 ;; accept a solution where we ALMOST ALWAYS can make sure that the
 ;; windows are aligned.
 ;;
@@ -222,7 +221,7 @@
 ;;
 ;; Note that only the selected window is checked, for the reason of
 ;; efficiency and code complexity. (I.e. it is possible to make a
-;; non-selected windows unaligned. It will, however, pop right back
+;; non-selected windows unaligned.  It will, however, pop right back
 ;; when it is selected.)
 
 ;;}}}
@@ -259,7 +258,7 @@
 (eval-when-compile
   (if (or (featurep 'bytecomp)
 	  (featurep 'byte-compile))
-      (cond ((string-match "XEmacs" emacs-version)
+      (cond ((featurep 'xemacs)
 	     ;; Make XEmacs shut up!  I'm using standard Emacs
 	     ;; functions, they are NOT obsolete!
 	     (if (eq (get 'force-mode-line-update 'byte-compile)
@@ -278,53 +277,202 @@
   :group 'windows
   :group 'convenience)
 
-(defvar follow-mode nil
-  "Variable indicating if Follow mode is active.")
-
 (defcustom follow-mode-hook nil
-  "*Hooks to run when follow-mode is turned on."
+  "Hooks to run when follow-mode is turned on."
   :type 'hook
   :group 'follow)
 
 (defcustom follow-mode-off-hook nil
-  "*Hooks to run when follow-mode is turned off."
+  "Hooks to run when follow-mode is turned off."
   :type 'hook
   :group 'follow)
 
-(defvar follow-mode-map nil
-  "*Minor mode keymap for Follow mode.")
+
+;;{{{ Keymap/Menu
+
+;; Define keys for the follow-mode minor mode map and replace some
+;; functions in the global map.  All `follow' mode special functions
+;; can be found on (the somewhat cumbersome) "C-c . <key>"
+;; (Control-C dot <key>). (As of Emacs 19.29 the keys
+;; C-c <punctuation character> are reserved for minor modes.)
+;;
+;; To change the prefix, redefine `follow-mode-prefix' before
+;; `follow' is loaded, or see the section on `follow-mode-hook'
+;; above for an example of how to bind the keys the way you like.
+;;
+;; Please note that the keymap is defined the first time this file is
+;; loaded.  Also note that the only legal way to manipulate the
+;; keymap is to use `define-key'.  Don't change it using `setq' or
+;; similar!
+
+(defcustom follow-mode-prefix "\C-c."
+  "Prefix key to use for follow commands in Follow mode.
+The value of this variable is checked as part of loading Follow mode.
+After that, changing the prefix key requires manipulating keymaps."
+  :type 'string
+  :group 'follow)
+
+(defvar follow-mode-map
+  (let ((mainmap (make-sparse-keymap))
+        (map (make-sparse-keymap)))
+    (define-key map "\C-v"	'follow-scroll-up)
+    (define-key map "\M-v"	'follow-scroll-down)
+    (define-key map "v"		'follow-scroll-down)
+    (define-key map "1"		'follow-delete-other-windows-and-split)
+    (define-key map "b"		'follow-switch-to-buffer)
+    (define-key map "\C-b"	'follow-switch-to-buffer-all)
+    (define-key map "\C-l"	'follow-recenter)
+    (define-key map "<"		'follow-first-window)
+    (define-key map ">"		'follow-last-window)
+    (define-key map "n"		'follow-next-window)
+    (define-key map "p"		'follow-previous-window)
+
+    (define-key mainmap follow-mode-prefix map)
+
+    ;; Replace the standard `end-of-buffer', when in Follow Mode.  (I
+    ;; don't see the point in trying to replace every function that
+    ;; could be enhanced in Follow mode.  End-of-buffer is a special
+    ;; case since it is very simple to define and it greatly enhances
+    ;; the look and feel of Follow mode.)
+    (define-key mainmap [remap end-of-buffer] 'follow-end-of-buffer)
+
+    ;;
+    ;; The menu.
+    ;;
+
+    (if (not (featurep 'xemacs))
+
+	;;
+	;; Emacs
+	;;
+	(let ((menumap (funcall (symbol-function 'make-sparse-keymap)
+                                "Follow"))
+	      (count 0)
+	      id)
+	  (mapcar
+	   (function
+	    (lambda (item)
+	      (setq id
+		    (or (cdr item)
+			(progn
+			  (setq count (+ count 1))
+			  (intern (format "separator-%d" count)))))
+	      (define-key menumap (vector id) item)
+	      (or (eq id 'follow-mode)
+		  (put id 'menu-enable 'follow-mode))))
+	   ;; In reverse order:
+	   '(("Toggle Follow mode" . follow-mode)
+	     ("--")
+	     ("Recenter"           . follow-recenter)
+	     ("--")
+	     ("Previous Window"    . follow-previous-window)
+	     ("Next Windows"       . follow-next-window)
+	     ("Last Window"        . follow-last-window)
+	     ("First Window"       . follow-first-window)
+	     ("--")
+	     ("Switch To Buffer (all windows)"
+              . follow-switch-to-buffer-all)
+	     ("Switch To Buffer"   . follow-switch-to-buffer)
+	     ("--")
+	     ("Delete Other Windows and Split"
+              . follow-delete-other-windows-and-split)
+	     ("--")
+	     ("Scroll Down"        . follow-scroll-down)
+	     ("Scroll Up"          . follow-scroll-up)))
+
+	  ;; If there is a `tools' menu, we use it.  However, we can't add a
+	  ;; minor-mode specific item to it (it's broken), so we make the
+	  ;; contents ghosted when not in use, and add ourselves to the
+	  ;; global map.  If no `tools' menu is present, just make a
+	  ;; top-level menu visible when the mode is activated.
+
+	  (let ((tools-map (lookup-key (current-global-map) [menu-bar tools]))
+		(last nil))
+	    (if (sequencep tools-map)
+		(progn
+		  ;; Find the last entry in the menu and store it in `last'.
+		  (mapcar (function
+			   (lambda (x)
+			     (setq last (or (cdr-safe
+					     (cdr-safe
+					      (cdr-safe x)))
+					    last))))
+			  tools-map)
+		  (if last
+		      (progn
+			(funcall (symbol-function 'define-key-after)
+                                 tools-map [separator-follow] '("--") last)
+			(funcall (symbol-function 'define-key-after)
+				 tools-map [follow] (cons "Follow" menumap)
+				 'separator-follow))
+		    ;; Didn't find the last item, Adding to the top of
+		    ;; tools.  (This will probably never happend...)
+		    (define-key (current-global-map) [menu-bar tools follow]
+		      (cons "Follow" menumap))))
+	      ;; No tools menu, add "Follow" to the menubar.
+	      (define-key mainmap [menu-bar follow]
+		(cons "Follow" menumap)))))
+
+      ;;
+      ;; XEmacs.
+      ;;
+
+      ;; place the menu in the `Tools' menu.
+      (let ((menu '("Follow"
+		    :filter follow-menu-filter
+		    ["Scroll Up" follow-scroll-up t]
+		    ["Scroll Down" follow-scroll-down t]
+		    ["Delete Other Windows and Split"
+		     follow-delete-other-windows-and-split t]
+		    ["Switch To Buffer" follow-switch-to-buffer t]
+		    ["Switch To Buffer (all windows)"
+		     follow-switch-to-buffer-all t]
+		    ["First Window" follow-first-window t]
+		    ["Last Window" follow-last-window t]
+		    ["Next Windows" follow-next-window t]
+		    ["Previous Window" follow-previous-window t]
+		    ["Recenter" follow-recenter t]
+		    ["Deactivate" follow-mode t])))
+
+	;; Why not just `(set-buffer-menubar current-menubar)'?  The
+	;; question is a very good question.  The reason is that under
+	;; Emacs, neither `set-buffer-menubar' nor
+	;; `current-menubar' is defined, hence the byte-compiler will
+	;; warn.
+	(funcall (symbol-function 'set-buffer-menubar)
+		 (symbol-value 'current-menubar))
+	(funcall (symbol-function 'add-submenu) '("Tools") menu))
+
+      ;; When the mode is not activated, only one item is visible:
+      ;; "Activate".
+      (defun follow-menu-filter (menu)
+	(if follow-mode
+	    menu
+	  '(["Activate          " follow-mode t]))))
+    
+    mainmap)
+  "Minor mode keymap for Follow mode.")
+
+;;}}}
 
 (defcustom follow-mode-line-text " Follow"
-  "*Text shown in the mode line when Follow mode is active.
+  "Text shown in the mode line when Follow mode is active.
 Defaults to \" Follow\".  Examples of other values
 are \" Fw\", or simply \"\"."
   :type 'string
   :group 'follow)
 
 (defcustom follow-auto nil
-  "*Non-nil activates Follow mode whenever a file is loaded."
+  "Non-nil activates Follow mode whenever a file is loaded."
   :type 'boolean
   :group 'follow)
 
-(defcustom follow-mode-prefix "\C-c."
-  "*Prefix key to use for follow commands in Follow mode.
-The value of this variable is checked as part of loading Follow mode.
-After that, changing the prefix key requires manipulating keymaps."
-  :type 'string
-  :group 'follow)
-
-(defcustom follow-intercept-processes
-  (fboundp 'start-process)
-  "*When non-nil, Follow Mode will monitor process output."
+(defcustom follow-intercept-processes (fboundp 'start-process)
+  "When non-nil, Follow Mode will monitor process output."
   :type 'boolean
   :group 'follow)
 
-(defvar follow-emacs-version-xemacs-p
-  (string-match "XEmacs" emacs-version)
-  "Non-nil when running under XEmacs.")
-
-(defvar follow-avoid-tail-recenter-p
-  (not follow-emacs-version-xemacs-p)
+(defvar follow-avoid-tail-recenter-p (not (featurep 'xemacs))
   "*When non-nil, patch emacs so that tail windows won't be recentered.
 
 A \"tail window\" is a window that displays only the end of
@@ -381,38 +529,6 @@ Used by `follow-window-size-change'.")
   "Cache used by `follow-window-start-end'.")
 
 ;;}}}
-;;{{{ Bug report
-
-(eval-when-compile (require 'reporter))
-
-(defun follow-submit-feedback ()
-  "Submit feedback on Follow mode to the author: andersl@andersl.com"
-  (interactive)
-  (require 'reporter)
-  (and (y-or-n-p "Do you really want to submit a report on Follow mode? ")
-       (reporter-submit-bug-report
-	"Anders Lindgren <andersl@andersl.com>"
-	"follow.el"
-	'(post-command-hook
-	  pre-command-hook
-	  window-size-change-functions
-	  window-scroll-functions
-	  follow-mode-hook
-	  follow-mode-off-hook
-	  follow-auto
-	  follow-intercept-processes
-	  follow-avoid-tail-recenter-p
-	  follow-process-filter-alist)
-	nil
-	nil
-	(concat
-	 "Hi Anders!\n\n"
-	 "(I have read the section on how to report bugs in the "
-	 "Emacs manual.)\n\n"
-	 "Even though I know you are busy, I thought you might "
-	 "want to know...\n\n"))))
-
-;;}}}
 ;;{{{ Debug messages
 
 ;; This inline function must be as small as possible!
@@ -425,189 +541,10 @@ Used by `follow-window-size-change'.")
       (apply 'message args)))
 
 ;;}}}
-
-;;{{{ Keymap/Menu
-
-;;; Define keys for the follow-mode minor mode map and replace some
-;;; functions in the global map.  All `follow' mode special functions
-;;; can be found on (the somewhat cumbersome) "C-c . <key>"
-;;; (Control-C dot <key>). (As of Emacs 19.29 the keys
-;;; C-c <punctuation character> are reserved for minor modes.)
-;;;
-;;; To change the prefix, redefine `follow-mode-prefix' before
-;;; `follow' is loaded, or see the section on `follow-mode-hook'
-;;; above for an example of how to bind the keys the way you like.
-;;;
-;;; Please note that the keymap is defined the first time this file is
-;;; loaded.  Also note that the only legal way to manipulate the
-;;; keymap is to use `define-key'.  Don't change it using `setq' or
-;;; similar!
-
-
-(if follow-mode-map
-    nil
-  (setq follow-mode-map (make-sparse-keymap))
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-v"	'follow-scroll-up)
-    (define-key map "\M-v"	'follow-scroll-down)
-    (define-key map "v"		'follow-scroll-down)
-    (define-key map "1"		'follow-delete-other-windows-and-split)
-    (define-key map "b"		'follow-switch-to-buffer)
-    (define-key map "\C-b"	'follow-switch-to-buffer-all)
-    (define-key map "\C-l"	'follow-recenter)
-    (define-key map "<"		'follow-first-window)
-    (define-key map ">"		'follow-last-window)
-    (define-key map "n"		'follow-next-window)
-    (define-key map "p"		'follow-previous-window)
-
-    (define-key follow-mode-map follow-mode-prefix map)
-
-    ;; Replace the standard `end-of-buffer', when in Follow Mode.  (I
-    ;; don't see the point in trying to replace every function that
-    ;; could be enhanced in Follow mode.  End-of-buffer is a special
-    ;; case since it is very simple to define and it greatly enhances
-    ;; the look and feel of Follow mode.)
-    ;;
-    ;; (The function `substitute-key-definition' does not work
-    ;; in all versions of Emacs.)
-    (mapcar
-     (function
-      (lambda (pair)
-	(let ((old (car pair))
-	      (new (cdr pair)))
-	  (mapcar (function (lambda (key)
-			      (define-key follow-mode-map key new)))
-		  (where-is-internal old global-map)))))
-     '((end-of-buffer      . follow-end-of-buffer)
-       (fkey-end-of-buffer . follow-end-of-buffer)))
-
-    ;;;
-    ;;; The menu.
-    ;;;
-
-    (if (not follow-emacs-version-xemacs-p)
-
-	;;
-	;; Emacs
-	;;
-	(let ((menumap (funcall (symbol-function 'make-sparse-keymap)
-			"Follow"))
-	      (count 0)
-	      id)
-	  (mapcar
-	   (function
-	    (lambda (item)
-	      (setq id
-		    (or (cdr item)
-			(progn
-			  (setq count (+ count 1))
-			  (intern (format "separator-%d" count)))))
-	      (define-key menumap (vector id) item)
-	      (or (eq id 'follow-mode)
-		  (put id 'menu-enable 'follow-mode))))
-	   ;; In reverse order:
-	   '(("Toggle Follow mode" . follow-mode)
-	     ("--")
-	     ("Recenter"           . follow-recenter)
-	     ("--")
-	     ("Previous Window"    . follow-previous-window)
-	     ("Next Windows"       . follow-next-window)
-	     ("Last Window"        . follow-last-window)
-	     ("First Window"       . follow-first-window)
-	     ("--")
-	     ("Switch To Buffer (all windows)"
-	                           . follow-switch-to-buffer-all)
-	     ("Switch To Buffer"   . follow-switch-to-buffer)
-	     ("--")
-	     ("Delete Other Windows and Split"
-	                           . follow-delete-other-windows-and-split)
-	     ("--")
-	     ("Scroll Down"        . follow-scroll-down)
-	     ("Scroll Up"          . follow-scroll-up)))
-
-	  ;; If there is a `tools' meny, we use it. However, we can't add a
-	  ;; minor-mode specific item to it (it's broken), so we make the
-	  ;; contents ghosted when not in use, and add ourselves to the
-	  ;; global map.  If no `tools' menu is present, just make a
-	  ;; top-level menu visible when the mode is activated.
-
-	  (let ((tools-map (lookup-key (current-global-map) [menu-bar tools]))
-		(last nil))
-	    (if (sequencep tools-map)
-		(progn
-		  ;; Find the last entry in the menu and store it in `last'.
-		  (mapcar (function
-			   (lambda (x)
-			     (setq last (or (cdr-safe
-					     (cdr-safe
-					      (cdr-safe x)))
-					    last))))
-			  tools-map)
-		  (if last
-		      (progn
-			(funcall (symbol-function 'define-key-after)
-				  tools-map [separator-follow] '("--") last)
-			(funcall (symbol-function 'define-key-after)
-				 tools-map [follow] (cons "Follow" menumap)
-				 'separator-follow))
-		    ;; Didn't find the last item, Adding to the top of
-		    ;; tools.  (This will probably never happend...)
-		    (define-key (current-global-map) [menu-bar tools follow]
-		      (cons "Follow" menumap))))
-	      ;; No tools menu, add "Follow" to the menubar.
-	      (define-key follow-mode-map [menu-bar follow]
-		(cons "Follow" menumap)))))
-
-      ;;
-      ;; XEmacs.
-      ;;
-
-      ;; place the menu in the `Tools' menu.
-      (let ((menu '("Follow"
-		    :filter follow-menu-filter
-		    ["Scroll Up" follow-scroll-up t]
-		    ["Scroll Down" follow-scroll-down t]
-		    ["Delete Other Windows and Split"
-		     follow-delete-other-windows-and-split t]
-		    ["Switch To Buffer" follow-switch-to-buffer t]
-		    ["Switch To Buffer (all windows)"
-		     follow-switch-to-buffer-all t]
-		    ["First Window" follow-first-window t]
-		    ["Last Window" follow-last-window t]
-		    ["Next Windows" follow-next-window t]
-		    ["Previous Window" follow-previous-window t]
-		    ["Recenter" follow-recenter t]
-		    ["Deactivate" follow-mode t])))
-
-	;; Why not just `(set-buffer-menubar current-menubar)'?  The
-	;; question is a very good question.  The reason is that under
-	;; Emacs, neither `set-buffer-menubar' nor
-	;; `current-menubar' is defined, hence the byte-compiler will
-	;; warn.
-	(funcall (symbol-function 'set-buffer-menubar)
-		 (symbol-value 'current-menubar))
-	(funcall (symbol-function 'add-submenu) '("Tools") menu))
-
-      ;; When the mode is not activated, only one item is visible:
-      ;; "Activate".
-      (defun follow-menu-filter (menu)
-	(if follow-mode
-	    menu
-	  '(["Activate          " follow-mode t]))))))
-
-
-;;; Register the follow mode keymap.
-(or (assq 'follow-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist
-	  (cons (cons 'follow-mode follow-mode-map) minor-mode-map-alist)))
-
-;;}}}
 ;;{{{ Cache
 
-(let ((cmds follow-cache-command-list))
-  (while cmds
-    (put (car cmds) 'follow-mode-use-cache t)
-    (setq cmds (cdr cmds))))
+(dolist (cmd follow-cache-command-list)
+  (put cmd 'follow-mode-use-cache t))
 
 ;;}}}
 
@@ -615,20 +552,20 @@ Used by `follow-window-size-change'.")
 
 ;;;###autoload
 (defun turn-on-follow-mode ()
-  "Turn on Follow mode. Please see the function `follow-mode'."
+  "Turn on Follow mode.  Please see the function `follow-mode'."
   (interactive)
   (follow-mode 1))
 
 
 ;;;###autoload
 (defun turn-off-follow-mode ()
-  "Turn off Follow mode. Please see the function `follow-mode'."
+  "Turn off Follow mode.  Please see the function `follow-mode'."
   (interactive)
   (follow-mode -1))
 
-
+(put 'follow-mode 'permanent-local t)
 ;;;###autoload
-(defun follow-mode (arg)
+(define-minor-mode follow-mode
   "Minor mode that combines windows into one tall virtual window.
 
 The feeling of a \"virtual window\" has been accomplished by the use
@@ -665,39 +602,21 @@ is called.  When turned off, `follow-mode-off-hook' is called.
 
 Keys specific to Follow mode:
 \\{follow-mode-map}"
-  (interactive "P")
-  (make-local-variable 'follow-mode)
-  (put 'follow-mode 'permanent-local t)
-  (let ((follow-mode-orig follow-mode))
-    (setq follow-mode
-	  (if (null arg)
-	      (not follow-mode)
-	    (> (prefix-numeric-value arg) 0)))
-    (if (and follow-mode follow-intercept-processes)
-	(follow-intercept-process-output))
-    (cond ((and follow-mode (not follow-mode-orig)) ; On
-	   ;; XEmacs: If this is non-nil, the window will scroll before
-	   ;; the point will have a chance to get into the next window.
-	   (if (boundp 'scroll-on-clipped-lines)
-	       (set 'scroll-on-clipped-lines nil))
-	   (force-mode-line-update)
-	   (add-hook 'post-command-hook 'follow-post-command-hook t)
-	   (run-hooks 'follow-mode-hook))
+  :keymap follow-mode-map
+  (if (and follow-mode follow-intercept-processes)
+      (follow-intercept-process-output))
+  (cond (follow-mode ; On
+         ;; XEmacs: If this is non-nil, the window will scroll before
+         ;; the point will have a chance to get into the next window.
+         (if (boundp 'scroll-on-clipped-lines)
+             (setq scroll-on-clipped-lines nil))
+         (force-mode-line-update)
+         (add-hook 'post-command-hook 'follow-post-command-hook t)
+         (run-hooks 'follow-mode-hook))
 
-	  ((and (not follow-mode) follow-mode-orig) ; Off
-	   (force-mode-line-update)
-	   (run-hooks 'follow-mode-off-hook)))))
-
-
-;; Register follow-mode as a minor mode.
-
-(if (fboundp 'add-minor-mode)
-    ;; XEmacs
-    (funcall (symbol-function 'add-minor-mode)
-	     'follow-mode 'follow-mode-line-text)
-  (or (assq 'follow-mode minor-mode-alist)
-      (setq minor-mode-alist
-	    (cons '(follow-mode follow-mode-line-text) minor-mode-alist))))
+        ((not follow-mode) ; Off
+         (force-mode-line-update)
+         (run-hooks 'follow-mode-off-hook))))
 
 ;;}}}
 ;;{{{ Find file hook
@@ -1033,7 +952,7 @@ window, normally is the end plus one.
 If WIN is nil, the selected window is used.
 
 Returns (end-pos end-of-buffer-p)"
-  (if follow-emacs-version-xemacs-p
+  (if (featurep 'xemacs)
       ;; XEmacs can calculate the end of the window by using
       ;; the 'guarantee options. GOOD!
       (let ((end (window-end win t)))
@@ -1511,7 +1430,7 @@ non-first windows in Follow Mode."
 ;;}}}
 ;;{{{ Post Command Hook
 
-;;; The magic little box. This function is called after every command.
+;; The magic little box. This function is called after every command.
 
 ;; This is not as complicated as it seems. It is simply a list of common
 ;; display situations and the actions to take, plus commands for redrawing
@@ -1735,17 +1654,17 @@ non-first windows in Follow Mode."
 
 ;;;; Scroll-bar support code.
 
-;;; Why is it needed? Well, if the selected window is in follow mode,
-;;; all its follower stick to it blindly. If one of them is scrolled,
-;;; it immediately returns to the original position when the mouse is
-;;; released. If the selected window is not a follower of the dragged
-;;; window the windows will be unaligned.
+;; Why is it needed? Well, if the selected window is in follow mode,
+;; all its follower stick to it blindly. If one of them is scrolled,
+;; it immediately returns to the original position when the mouse is
+;; released. If the selected window is not a follower of the dragged
+;; window the windows will be unaligned.
 
-;;; The advices doesn't get compiled. Aestetically, this might be a
-;;; problem but in practical life it isn't.
+;; The advices doesn't get compiled. Aestetically, this might be a
+;; problem but in practical life it isn't.
 
-;;; Discussion: Now when the other windows in the chain follow the
-;;; dragged, should we really select it?
+;; Discussion: Now when the other windows in the chain follow the
+;; dragged, should we really select it?
 
 (cond ((fboundp 'scroll-bar-drag)
        ;;;
@@ -1851,29 +1770,29 @@ WINDOW can be an object or a window."
 ;;}}}
 ;;{{{ Process output
 
-;;; The following sections installs a spy that listens to process
-;;; output and tries to reposition the windows whose buffers are in
-;;; Follow mode.  We play safe as much as possible...
-;;;
-;;; When follow-mode is activated all active processes are
-;;; intercepted.  All new processes that change their filter function
-;;; using `set-process-filter' are also intercepted.  The reason is
-;;; that a process can cause a redisplay recentering "tail" windows.
-;;; Note that it doesn't hurt to spy on more processes than needed.
-;;;
-;;; Technically, we set the process filter to `follow-generic-filter'.
-;;; The original filter is stored in `follow-process-filter-alist'.
-;;; Our generic filter calls the original filter, or inserts the
-;;; output into the buffer, if the buffer originally didn't have an
-;;; output filter.  It also makes sure that the windows connected to
-;;; the buffer are aligned.
-;;;
-;;; Discussion: How do we find processes that don't call
-;;; `set-process-filter'?  (How often are processes created in a
-;;; buffer after Follow mode are activated?)
-;;;
-;;; Discussion: Should we also advice `process-filter' to make our
-;;; filter invisible to others?
+;; The following sections installs a spy that listens to process
+;; output and tries to reposition the windows whose buffers are in
+;; Follow mode.  We play safe as much as possible...
+;;
+;; When follow-mode is activated all active processes are
+;; intercepted.  All new processes that change their filter function
+;; using `set-process-filter' are also intercepted.  The reason is
+;; that a process can cause a redisplay recentering "tail" windows.
+;; Note that it doesn't hurt to spy on more processes than needed.
+;;
+;; Technically, we set the process filter to `follow-generic-filter'.
+;; The original filter is stored in `follow-process-filter-alist'.
+;; Our generic filter calls the original filter, or inserts the
+;; output into the buffer, if the buffer originally didn't have an
+;; output filter.  It also makes sure that the windows connected to
+;; the buffer are aligned.
+;;
+;; Discussion: How do we find processes that don't call
+;; `set-process-filter'?  (How often are processes created in a
+;; buffer after Follow mode are activated?)
+;;
+;; Discussion: Should we also advice `process-filter' to make our
+;; filter invisible to others?
 
 ;;{{{ Advice for `set-process-filter'
 
@@ -1980,7 +1899,7 @@ connected to processes.
 
 The only reason to call this function is if the Follow mode spy filter
 would interfere with some other package.  If this happens, please
-report this using the `follow-submit-feedback' function."
+report this using the `report-emacs-bug' function."
   (interactive)
   (follow-tidy-process-filter-alist)
   (let ((list (process-list)))
@@ -1999,12 +1918,12 @@ report this using the `follow-submit-feedback' function."
 ;;}}}
 ;;{{{ The filter
 
-;;; The following section is a naive method to make buffers with
-;;; process output to work with Follow mode. Whenever the start of the
-;;; window displaying the buffer is moved, we moves it back to its
-;;; original position and try to select a new window.  (If we fail,
-;;; the normal redisplay functions of Emacs will scroll it right
-;;; back!)
+;; The following section is a naive method to make buffers with
+;; process output to work with Follow mode. Whenever the start of the
+;; window displaying the buffer is moved, we moves it back to its
+;; original position and try to select a new window.  (If we fail,
+;; the normal redisplay functions of Emacs will scroll it right
+;; back!)
 
 (defun follow-generic-filter (proc output)
   "Process output filter for process connected to buffers in Follow mode."
@@ -2219,7 +2138,7 @@ report this using the `follow-submit-feedback' function."
 ;; unless we are in `slow-search-mode', i.e. only a few lines
 ;; of text is visible.
 
-(if follow-emacs-version-xemacs-p
+(if (featurep 'xemacs)
     (defadvice isearch-done (before follow-isearch-done activate)
       (if (and (boundp 'follow-mode)
 	       follow-mode
@@ -2235,28 +2154,28 @@ report this using the `follow-submit-feedback' function."
 ;;}}}
 ;;{{{ Tail window handling
 
-;;; In Emacs (not XEmacs) windows showing nothing are sometimes
-;;; recentered.  When in Follow Mode, this is not desireable for
-;;; non-first windows in the window chain.  This section tries to
-;;; make the windows stay where they should be.
-;;;
-;;; If the display is updated, all windows starting at (point-max) are
-;;; going to be recentered at the next redisplay, unless we do a
-;;; read-and-write cycle to update the `force' flag inside the windows.
-;;;
-;;; In 19.30, a new varible `window-scroll-functions' is called every
-;;; time a window is recentered.  It is not perfect for our situation,
-;;; since when it is called for a tail window, it is to late.  However,
-;;; if it is called for another window, we can try to update our
-;;; windows.
-;;;
-;;; By patching `sit-for' we can make sure that to catch all explicit
-;;; updates initiated by lisp programs.  Internal calls, on the other
-;;; hand, are not handled.
-;;;
-;;; Please note that the function `follow-avoid-tail-recenter' is also
-;;; called from other places, e.g. `post-command-hook' and
-;;; `post-command-idle-hook'.
+;; In Emacs (not XEmacs) windows showing nothing are sometimes
+;; recentered.  When in Follow Mode, this is not desireable for
+;; non-first windows in the window chain.  This section tries to
+;; make the windows stay where they should be.
+;;
+;; If the display is updated, all windows starting at (point-max) are
+;; going to be recentered at the next redisplay, unless we do a
+;; read-and-write cycle to update the `force' flag inside the windows.
+;;
+;; In 19.30, a new varible `window-scroll-functions' is called every
+;; time a window is recentered.  It is not perfect for our situation,
+;; since when it is called for a tail window, it is to late.  However,
+;; if it is called for another window, we can try to update our
+;; windows.
+;;
+;; By patching `sit-for' we can make sure that to catch all explicit
+;; updates initiated by lisp programs.  Internal calls, on the other
+;; hand, are not handled.
+;;
+;; Please note that the function `follow-avoid-tail-recenter' is also
+;; called from other places, e.g. `post-command-hook' and
+;; `post-command-idle-hook'.
 
 ;; If this function is called it is too late for this window, but
 ;; we might save other windows from being recentered.
@@ -2328,9 +2247,9 @@ This prevents `mouse-drag-region' from messing things up."
 
 ;;{{{ The end
 
-;;;
-;;; We're done!
-;;;
+;;
+;; We're done!
+;;
 
 (provide 'follow)
 

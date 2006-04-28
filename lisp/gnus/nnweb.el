@@ -307,8 +307,8 @@ Valid types include `google', `dejanews', and `gmane'.")
 (defun nnweb-google-wash-article ()
   ;; We have Google's masked e-mail addresses here.  :-/
   (let ((case-fold-search t)
-	(start-re "<pre>\n *")
-	(end-re "\n *</pre>"))
+	(start-re "<pre>[\r\n ]*")
+	(end-re "[\r\n ]*</pre>"))
     (goto-char (point-min))
     (if (save-excursion
 	  (or (re-search-forward "The requested message.*could not be found."

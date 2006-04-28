@@ -3399,6 +3399,11 @@ x_set_font (f, arg, oldval)
       else if (!NILP (Fequal (result, oldval)))
         return;
 
+      /* Recalculate toolbar height.  */
+      f->n_tool_bar_rows = 0;
+      /* Ensure we redraw it.  */
+      clear_current_matrices (f);
+
       store_frame_param (f, Qfont, result);
       recompute_basic_faces (f);
     }

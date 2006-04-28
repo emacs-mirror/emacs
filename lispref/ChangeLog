@@ -1,3 +1,7 @@
+2006-04-26  Richard Stallman  <rms@gnu.org>
+
+	* syntax.texi (Parsing Expressions): Minor cleanup.
+
 2006-04-18  Richard Stallman  <rms@gnu.org>
 
 	* tips.texi (Coding Conventions): Explain when the package's

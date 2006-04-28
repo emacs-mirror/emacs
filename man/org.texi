@@ -4,7 +4,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.24
+@set VERSION 4.26
 @set DATE April 2006
 
 @dircategory Emacs
@@ -76,13 +76,13 @@ Software Foundation raise funds for GNU development.''
 
 @menu
 * Introduction::                Getting started
-* Document Structure::          A tree works like your brain
+* Document structure::          A tree works like your brain
 * Tables::                      Pure magic for quick formatting
 * Hyperlinks::                  Notes in context
 * TODO items::                  Every tree branch can be a TODO item
 * Timestamps::                  Assign date and time to items
 * Tags::                        Tagging headlines and matching sets of tags
-* Agenda Views::                Collecting information into views
+* Agenda views::                Collecting information into views
 * Exporting::                   Sharing and publishing of notes
 * Miscellaneous::               All the rest which did not fit elsewhere
 * Index::                       The fast road to specific information
@@ -97,7 +97,7 @@ Introduction
 * Installation and activation::  How to install Org-mode
 * Feedback::                    Bug reports, ideas, patches etc.
 
-Document Structure
+Document structure
 
 * Outlines::                    Org-mode is based on outline-mode
 * Headlines::                   How to typeset org-tree headlines
@@ -106,7 +106,7 @@ Document Structure
 * Structure editing::           Changing sequence and level of headlines
 * Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
-* Plain Lists::                 Editing hand-formatted lists
+* Plain lists::                 Editing hand-formatted lists
 
 Tables
 
@@ -130,7 +130,7 @@ Hyperlinks
 * Link format::                 How links in Org-mode are formatted
 * Internal links::              Links to other places in the current file
 * External links::              URL-like links to the world
-* Managing links::              Creating, inserting and following
+* Handling links::              Creating, inserting and following
 * Search Options::              Linking to a specific location
 * Remember::                    Org-trees store quick notes
 
@@ -163,11 +163,11 @@ Tags
 * Setting tags::                How to assign tags to a headline
 * Tag searches::                Searching for combinations of tags
 
-Agenda Views
+Agenda views
 
 * Agenda files::                Files being searched for agenda information
 * Agenda dispatcher::           Keyboard access to agenda views
-* Weekly/Daily Agenda::         The calendar page with current tasks
+* Weekly/Daily agenda::         The calendar page with current tasks
 * Global TODO list::            All unfinished action items
 * Matching headline tags::      Structured information with fine-tuned search
 * Timeline::                    Time-sorted view for single file
@@ -210,7 +210,7 @@ Miscellaneous
 @end detailmenu
 @end menu
 
-@node Introduction, Document Structure, Top, Top
+@node Introduction, Document structure, Top, Top
 @chapter Introduction
 @cindex introduction
 
@@ -242,10 +242,10 @@ structured ASCII file, as HTML, or (todo and agenda items only) as an
 iCalendar file.
 
 Org-mode keeps simple things simple.  When first fired up, it should
-feel like a simple but easy to use outliner.  Complexity is not
-imposed, but a large amount of functionality is available when you
-need it.  Org-mode can be used on different levels and in different
-ways, for example:
+feel like a simple, easy to use outliner.  Complexity is not imposed,
+but a large amount of functionality is available when you need it.
+Org-mode can be used on different levels and in different ways, for
+example:
 
 @example
 @r{@bullet{} as an outline extension with visibility cycling and structure editing}
@@ -339,7 +339,7 @@ with clear information about:
 @end enumerate
 @noindent Thank you for helping to improve this mode.
 
-@node Document Structure, Tables, Introduction, Top
+@node Document structure, Tables, Introduction, Top
 @chapter Document Structure
 @cindex document structure
 @cindex structure of document
@@ -355,10 +355,10 @@ edit the structure of the document.
 * Structure editing::           Changing sequence and level of headlines
 * Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
-* Plain Lists::                 Editing hand-formatted lists
+* Plain lists::                 Editing hand-formatted lists
 @end menu
 
-@node Outlines, Headlines, Document Structure, Document Structure
+@node Outlines, Headlines, Document structure, Document structure
 @section Outlines
 @cindex outlines
 @cindex outline-mode
@@ -373,7 +373,7 @@ outlines by compressing the entire show/hide functionality into a
 single command @command{org-cycle}, which is bound to the @key{TAB}
 key.
 
-@node Headlines, Visibility cycling, Outlines, Document Structure
+@node Headlines, Visibility cycling, Outlines, Document structure
 @section Headlines
 @cindex headlines
 @cindex outline tree
@@ -396,7 +396,7 @@ example:
 outline that has whitespace followed by a single star as headline
 starters.  @ref{Clean view} describes a setup to realize this.
 
-@node Visibility cycling, Motion, Headlines, Document Structure
+@node Visibility cycling, Motion, Headlines, Document structure
 @section Visibility cycling
 @cindex cycling, visibility
 @cindex visibility cycling
@@ -458,7 +458,7 @@ buffer:
 #+STARTUP: showall
 @end example
 
-@node Motion, Structure editing, Visibility cycling, Document Structure
+@node Motion, Structure editing, Visibility cycling, Document structure
 @section Motion
 @cindex motion, between headlines
 @cindex jumping, to headlines
@@ -491,7 +491,7 @@ the original buffer, and the headings hierarchy above it is made
 visible.
 @end table
 
-@node Structure editing, Archiving, Motion, Document Structure
+@node Structure editing, Archiving, Motion, Document structure
 @section Structure editing
 @cindex structure editing
 @cindex headline, promotion and demotion
@@ -507,9 +507,14 @@ visible.
 @kindex M-@key{RET}
 @item M-@key{RET}
 Insert new heading with same level as current.  If the cursor is in a
-plain list item, a new item is created.  To force creation of a new
-headline, use a prefix arg, or first press @key{RET} to get to the
-beginning of the next line.
+plain list item, a new item is created (@pxref{Plain lists}).  To force
+creation of a new headline, use a prefix arg, or first press @key{RET}
+to get to the beginning of the next line.  When this command is used in
+the middle of a line, the line is split and the rest of the line becomes
+the new headline.  If the command is used at the beginning of a
+headline, the new headline is created before the current line.  It at
+the beginning of any other line, the content of that line is made the
+new heading.
 @kindex M-S-@key{RET}
 @item M-S-@key{RET}
 Insert new TODO entry with same level as current heading.
@@ -559,7 +564,7 @@ just after the last headline to change.  Note that when the cursor is
 inside a table (@pxref{Tables}), the Meta-Cursor keys have different
 functionality.
 
-@node Archiving, Sparse trees, Structure editing, Document Structure
+@node Archiving, Sparse trees, Structure editing, Document structure
 @section Archiving
 @cindex archiving
 @cindex filing subtrees
@@ -583,7 +588,7 @@ this, see the documentation string of the variable
 agenda, archiving to a different file is a good way to keep archived
 trees from contributing agenda items.
 
-@node Sparse trees, Plain Lists, Archiving, Document Structure
+@node Sparse trees, Plain lists, Archiving, Document structure
 @section Sparse trees
 @cindex sparse trees
 @cindex trees, sparse
@@ -637,14 +642,14 @@ C-v} creates a sparse TODO tree (@pxref{TODO basics}).
 To print a sparse tree, you can use the Emacs command
 @code{ps-print-buffer-with-faces} which does not print invisible parts
 of the document @footnote{This does not work under XEmacs, because
-XEmacs uses selective display for outlining, not text properties}.
+XEmacs uses selective display for outlining, not text properties.}.
 Or you can use the command @kbd{C-c C-x v} to copy the visible part of
 the document to another file (extension @file{.txt}) which can then be
 printed in any desired way.
 
 
-@node Plain Lists,  , Sparse trees, Document Structure
-@section Plain Lists
+@node Plain lists,  , Sparse trees, Document structure
+@section Plain lists
 @cindex plain lists
 @cindex lists, plain
 @cindex lists, ordered
@@ -673,6 +678,7 @@ ends before the next line that is indented like the bullet/number, or
 less.  For example:
 
 @example
+@group
 ** Lord of the Rings
 My favorite scenes are (in this order)
 1. Eowyns fight with the witch king
@@ -682,6 +688,8 @@ My favorite scenes are (in this order)
 3. Peter Jackson being shot by Legolas
     - on DVD only
    He makes a really funny face when it happens.
+But in the end, not individual scenes matter but the film as a whole.
+@end group
 @end example
 
 Org-mode supports these lists by tuning filling and wrapping commands
@@ -699,7 +707,14 @@ always subordinate to real headlines, the hierarchies remain
 completely separated.
 @kindex M-@key{RET}
 @item M-@key{RET}
-Insert new item at current level.  With prefix arg, for a new heading.
+Insert new item at current level.  With prefix arg, force a new heading
+(@pxref{Structure editing}).  If this command is used in the middle of a
+line, the line is @emph{split} and the rest of the line becomes the new
+item.  If this command is executed in the @emph{whitespace before a bullet or
+number}, the new item is created @emph{before} the current item.  If the
+command is executed in the white space before the text that is part of
+an item but does not contain the bullet, a bullet is added to the
+current line.
 @kindex M-S-@key{up}
 @kindex M-S-@key{down}
 @item M-S-@key{up}
@@ -722,7 +737,7 @@ the command chain with a cursor motion or so.
 Renumber the ordered list at the cursor.
 @end table
 
-@node Tables, Hyperlinks, Document Structure, Top
+@node Tables, Hyperlinks, Document structure, Top
 @chapter Tables
 @cindex tables
 @cindex editing tables
@@ -986,9 +1001,10 @@ The width of columns is automatically determined by the table editor.
 Sometimes a single field or a few fields need to carry more text,
 leading to inconveniently wide columns.  To limit@footnote{This feature
 does not work on XEmacs.} the width of a column, one field anywhere in
-the column must carry the string @samp{<N>} where @samp{N} is an integer
-specifying the width of the column in characters.  The next re-align
-will then set the width of this column to no more than this value.
+the column may contain just the string @samp{<N>} where @samp{N} is an
+integer specifying the width of the column in characters.  The next
+re-align will then set the width of this column to no more than this
+value.
 
 @example
 |---+------------------------------|               |---+--------|
@@ -1360,7 +1376,7 @@ links to other files, Usenet articles, emails and much more.
 * Link format::                 How links in Org-mode are formatted
 * Internal links::              Links to other places in the current file
 * External links::              URL-like links to the world
-* Managing links::              Creating, inserting and following
+* Handling links::              Creating, inserting and following
 * Search Options::              Linking to a specific location
 * Remember::                    Org-trees store quick notes
 @end menu
@@ -1401,26 +1417,28 @@ internal structure of all links, use the menu entry
 @cindex links, internal
 @cindex CamelCase links
 
-If the link text does not look like a URL, links are considered to be
-internal in the current file.  Links such as @samp{[[My Target]]} or
-@samp{[[My Target][Find my target]]} lead to a text search in the
-current file.  The link can be followed with @kbd{C-c C-o} when the
-cursor is on the link, or with a mouse click (@pxref{Managing links}).
-The preferred match for such a link is a dedicated target: The same
-string in double angular brackets.  Targets may be located anywhere,
-often it is convenient to put them into a comment line, for example
+If the link does not look like a URL, it is considered to be internal in
+the current file.  Links such as @samp{[[My Target]]} or @samp{[[My
+Target][Find my target]]} lead to a text search in the current file.
+The link can be followed with @kbd{C-c C-o} when the cursor is on the
+link, or with a mouse click (@pxref{Handling links}).  The preferred
+match for such a link is a dedicated target: The same string in double
+angular brackets.  Targets may be located anywhere, often it is
+convenient to put them into a comment line, for example
 
 @example
 # <<My Target>>
 @end example
 
+@noindent In HTML export (@pxref{HTML export}), such targets will become
+named anchors for direct access through @samp{http} links.
+
 If no dedicated target exists, Org-mode will search for the words in the
-link, often removing the need for a dedicated target.  In the above
-example the search would be for @samp{my target}.  Links starting with a
-star like @samp{*My Target} restrict the search to headlines.  When
-searching, Org-mode will first try an exact match, but then move on to
-more and more lenient searches.  For example, the link @samp{[[*My
-Targets]]} will find any of the following:
+link.  In the above example the search would be for @samp{my target}.
+Links starting with a star like @samp{*My Target} restrict the search to
+headlines.  When searching, Org-mode will first try an exact match, but
+then move on to more and more lenient searches.  For example, the link
+@samp{[[*My Targets]]} will find any of the following:
 
 @example
 ** My targets
@@ -1431,7 +1449,7 @@ Targets]]} will find any of the following:
 To insert a link targeting a headline, in-buffer completion can be used.
 Just type a star followed by a few optional letters into the buffer and
 press @kbd{M-@key{TAB}}.  All headlines in the current buffer will be
-offered as completions.  @xref{Managing links}, for more commands
+offered as completions.  @xref{Handling links}, for more commands
 creating links.
 
 Following a link pushes a mark onto Org-mode's own mark ring.  You can
@@ -1469,7 +1487,7 @@ the option @code{org-activate-links}.  A CamelCase word then leads to a
 text search such that @samp{CamelCaseLink} is equivalent to
 @samp{[[camel case link]]}.
 
-@node External links, Managing links, Internal links, Hyperlinks
+@node External links, Handling links, Internal links, Hyperlinks
 @section External links
 @cindex links, external
 @cindex external links
@@ -1525,8 +1543,8 @@ as links.  If spaces must be part of the link (for example in
 @samp{bbdb:Richard Stallman}) or to remove ambiguities about the end of
 the link, enclose them in angular brackets.
 
-@node Managing links, Search Options, External links, Hyperlinks
-@section Managing links
+@node Handling links, Search Options, External links, Hyperlinks
+@section Handling links
 
 Org-mode provides methods to create a link in the correct syntax, to
 insert it into an org-mode file, and to follow the link.
@@ -1537,15 +1555,17 @@ insert it into an org-mode file, and to follow the link.
 @item C-c l
 Store a link to the current location.  This is a @emph{global} command
 which can be used in any buffer to create a link.  The link will be
-stored for later insertion into an Org-mode buffer (see below).  For VM,
-RMAIL, WANDERLUST, MH-E, GNUS and BBDB buffers, the link will point to
-the current article/entry.  For W3 and W3M buffers, the link goes to the
-current URL.  For Org-mode files, the current headline is targeted.  For
-any other files, the link will point to the file, with a search string
-(@pxref{Search Options}) pointing to the contents of the current line.
-If there is an active region, the selected words will form the basis of
-the search string.  The key binding @kbd{C-c l} is only a suggestion -
-see @ref{Installation and activation}.
+stored for later insertion into an Org-mode buffer (see below).  For
+Org-mode files, if there is a @samp{<<target>>} at the cursor, the link
+points to the target.  Otherwise it points to the current headline.  For
+VM, RMAIL, WANDERLUST, MH-E, GNUS and BBDB buffers, the link will
+indicate to the current article/entry.  For W3 and W3M buffers, the link
+goes to the current URL.  For any other files, the link will point to
+the file, with a search string (@pxref{Search Options}) pointing to the
+contents of the current line.  If there is an active region, the
+selected words will form the basis of the search string.  The key
+binding @kbd{C-c l} is only a suggestion - see @ref{Installation and
+activation}.
 
 @kindex C-c C-l
 @cindex link completion
@@ -1556,12 +1576,12 @@ Insert a link.  This prompts for a link to be inserted into the buffer.
 You can just type a link, using text for an internal link, or one of the
 link type prefixes mentioned in the examples above.  Through completion,
 all links stored during the current session can be accessed.  The link
-will be formatted as given in the variable @code{org-link-format} and
-inserted into the buffer, along with a descriptive text.  Note that you
-don't have to use this command to insert a link.  Links in Org-mode are
-plain text, and you can type or paste them straight into the buffer.
-By using this command, the links are automatically enclosed in double
-brackets, and you will be asked for the optional descriptive text.
+will be inserted into the buffer, along with a descriptive text.  Note
+that you don't have to use this command to insert a link.  Links in
+Org-mode are plain text, and you can type or paste them straight into
+the buffer.  By using this command, the links are automatically enclosed
+in double brackets, and you will be asked for the optional descriptive
+text.
 
 @kindex C-u C-c C-l
 @cindex file name completion
@@ -1571,9 +1591,10 @@ When @kbd{C-c C-l} is called with a @kbd{C-u} prefix argument, a link to
 a file will be inserted and you may use file name completion to select
 the name of the file.  The path to the file is inserted relative to the
 directory of the current org file, if the linked file is in the current
-directory or in a subdirectory of it.  Otherwise an absolute path, if
-possible with @samp{~/} for your home directory is used.  You can force
-an absolute path with two @kbd{C-u} prefixes.
+directory or in a subdirectory of it, or if the path is written relative
+to the current directory using @samp{../}.  Otherwise an absolute path
+is used, if possible with @samp{~/} for your home directory.  You can
+force an absolute path with two @kbd{C-u} prefixes.
 
 @item C-c C-l @r{with cursor on existing link}
 When the cursor is on an existing link, @kbd{C-c C-l} allows to edit the
@@ -1622,7 +1643,7 @@ previously recorded positions.
 @end table
 
 
-@node Search Options, Remember, Managing links, Hyperlinks
+@node Search Options, Remember, Handling links, Hyperlinks
 @section Search options in file links
 @cindex search option in file links
 @cindex file links, searching
@@ -1648,7 +1669,9 @@ Jump to line 255.
 @item My Target
 Search for a link target @samp{<<My Target>>}, or do a text search for
 @samp{my target}, similar to the search in internal links, see
-@ref{Internal links}.
+@ref{Internal links}.  In HTML export (@pxref{HTML export}), such a file
+link will become an html reference to the corresponding named anchor in
+the linked file.
 @item *My Target
 In an Org-mode file, restrict search to headlines.
 @item /regexp/
@@ -1821,13 +1844,13 @@ numerical prefix N, show the tree for the Nth keyword in the variable
 @kindex C-c a t
 @item C-c a t
 Show the global TODO list.  This collects the TODO items from all
-agenda files (@pxref{Agenda Views}) into a single buffer.  The buffer is in
+agenda files (@pxref{Agenda views}) into a single buffer.  The buffer is in
 @code{agenda-mode}, so there are commands to examine and manipulate
 the TODO entries directly from that buffer (@pxref{Agenda commands}).
 @xref{Global TODO list}, for more information.
-@item @code{org-agenda-include-all-todo}
-If you would like to have all your TODO items listed as part of your
-agenda, customize the variable @code{org-agenda-include-all-todo}.
+@c @item @code{org-agenda-include-all-todo}
+@c If you would like to have all your TODO items listed as part of your
+@c agenda, customize the variable @code{org-agenda-include-all-todo}.
 @end table
 
 @node Progress logging, TODO extensions, TODO basics, TODO items
@@ -1847,7 +1870,7 @@ C-t} in the Org-mode buffer or @kbd{t} in the agenda buffer, a line
 @samp{CLOSED: [timestamp]} will be inserted just after the headline.
 If you turn the entry back into a TODO item again through further
 state cycling, that line will be removed again.  In the timeline
-(@pxref{Timeline}) and in the agenda (@pxref{Weekly/Daily Agenda}),
+(@pxref{Timeline}) and in the agenda (@pxref{Weekly/Daily agenda}),
 you can then use the @kbd{L} key to display the TODO items closed on
 each day, giving you an overview of what has been done on a day.
 
@@ -1989,7 +2012,7 @@ headline, like this
 With its standard setup, Org-mode supports priorities @samp{A},
 @samp{B}, and @samp{C}.  @samp{A} is the highest priority.  An entry
 without a cookie is treated as priority @samp{B}.  Priorities make a
-difference only in the agenda (@pxref{Weekly/Daily Agenda}).
+difference only in the agenda (@pxref{Weekly/Daily agenda}).
 
 @table @kbd
 @kindex @kbd{C-c ,}
@@ -2034,14 +2057,16 @@ A time stamp is a specification of a date (possibly with time) in a
 special format, either @samp{<2003-09-16 Tue>} or @samp{<2003-09-16
 Tue 09:39>}.  A time stamp can appear anywhere in the headline or body
 of an org-tree entry.  Its presence allows entries to be shown on specific
-dates in the agenda (@pxref{Weekly/Daily Agenda}).  We distinguish:
+dates in the agenda (@pxref{Weekly/Daily agenda}).  We distinguish:
 
 @table @var
 @cindex timestamp
 @item TIMESTAMP
-A simple time stamp just assigns a date/time to an item.  In the
-timeline and agenda displays, the headline of the entry will be shown
-exactly on that date.
+A simple time stamp just assigns a date/time to an item.  This is just
+like writing down an appointment in a paper agenda, or like writing down
+an event in a diary, when you want to take not of when something
+happened.  In the timeline and agenda displays, the headline of an entry
+associated with a plain time stamp will be shown exactly on that date.
 
 @item TIMERANGE
 @cindex timerange
@@ -2053,6 +2078,21 @@ example:
 @example
 ** Meeting in Amsterdam
    <2004-08-23 Mon>--<2004-08-26 Thu>
+@end example
+
+@item SCHEDULED
+@cindex SCHEDULED keyword
+If a time stamp is preceded by the word @samp{SCHEDULED:}, it means you
+are planning to start working on that task on the given date. So this is
+not about recording an event, but about planning your work.  The
+headline will be listed under the given date.  In addition, a reminder
+that the scheduled date has passed will be present in the compilation
+for @emph{today}, until the entry is marked DONE.  I.e., the task will
+automatically be forwarded until completed.
+
+@example
+*** TODO Call Trillian for a date on New Years Eve.
+    SCHEDULED: <2004-12-25 Sat>
 @end example
 
 @item DEADLINE
@@ -2069,15 +2109,6 @@ continuing until the entry is marked DONE.  An example:
     The editor in charge is <bbdb:Ford Prefect>
     DEADLINE: <2004-02-29 Sun>
 @end example
-
-@item SCHEDULED
-@cindex SCHEDULED keyword
-If a time stamp is preceded by the word @samp{SCHEDULED:}, it means
-you are planning to start working on that task on the given date.  The
-headline will be listed under the given date.  In addition, a reminder
-that the scheduled date has passed will be present in the compilation
-for @emph{today}, until the entry is marked DONE.  I.e., the
-task will automatically be forwarded.
 @end table
 
 @node Creating timestamps,  , Time stamps, Timestamps
@@ -2120,7 +2151,7 @@ instead.
 @kindex C-c C-o
 @item C-c C-o
 Access the agenda for the date given by the time stamp at point
-(@pxref{Weekly/Daily Agenda}).
+(@pxref{Weekly/Daily agenda}).
 
 @kindex C-c C-d
 @item C-c C-d
@@ -2207,7 +2238,7 @@ One month back.
 Choose date in calendar (only if nothing typed into minibuffer).
 @end table
 
-@node Tags, Agenda Views, Timestamps, Top
+@node Tags, Agenda views, Timestamps, Top
 @chapter Tags
 @cindex tags
 @cindex headline tagging
@@ -2311,7 +2342,7 @@ tagged @samp{:WORK:} or @samp{:LAPTOP:}.  The string
 @samp{WORK|LAPTOP&NIGHT} requires that the @samp{:LAPTOP:} lines are
 also tagged @samp{NIGHT}.
 
-@node Agenda Views, Exporting, Tags, Top
+@node Agenda views, Exporting, Tags, Top
 @chapter Agenda Views
 @cindex agenda views
 
@@ -2345,14 +2376,14 @@ edit these files remotely.
 @menu
 * Agenda files::                Files being searched for agenda information
 * Agenda dispatcher::           Keyboard access to agenda views
-* Weekly/Daily Agenda::         The calendar page with current tasks
+* Weekly/Daily agenda::         The calendar page with current tasks
 * Global TODO list::            All unfinished action items
 * Matching headline tags::      Structured information with fine-tuned search
 * Timeline::                    Time-sorted view for single file
 * Agenda commands::             Remote editing of org trees
 @end menu
 
-@node Agenda files, Agenda dispatcher, Agenda Views, Agenda Views
+@node Agenda files, Agenda dispatcher, Agenda views, Agenda views
 @section Agenda files
 
 The information to be shown is collected from all @emph{agenda files},
@@ -2385,7 +2416,7 @@ Cycle through agenda file list, visiting one file after the other.
 The Org menu contains the current list of files and can be used
 to visit any of them.
 
-@node Agenda dispatcher, Weekly/Daily Agenda, Agenda files, Agenda Views
+@node Agenda dispatcher, Weekly/Daily agenda, Agenda files, Agenda views
 @section The agenda dispatcher
 @cindex agenda dispatcher
 @cindex dispatching agenda commands
@@ -2400,7 +2431,7 @@ letter is required to execute a command.  The dispatcher offers the
 following default commands:
 @table @kbd
 @item a
-Create the calendar-like agenda (@pxref{Weekly/Daily Agenda}).
+Create the calendar-like agenda (@pxref{Weekly/Daily agenda}).
 @item t / T
 Create a list of all TODO items (@pxref{Global TODO list}).
 @item m / M
@@ -2438,7 +2469,7 @@ f} to create a sparse tree with all entries containing the word
 @samp{FIXME}.  For more information, look at the documentation string
 of the variable @code{org-agenda-custom-commands}.
 
-@node Weekly/Daily Agenda, Global TODO list, Agenda dispatcher, Agenda Views
+@node Weekly/Daily agenda, Global TODO list, Agenda dispatcher, Agenda views
 @section The weekly/daily agenda
 @cindex agenda
 
@@ -2468,7 +2499,7 @@ commands}.
 * Sorting of agenda items::     The order of things
 @end menu
 
-@node Categories, Time-of-day specifications, Weekly/Daily Agenda, Weekly/Daily Agenda
+@node Categories, Time-of-day specifications, Weekly/Daily agenda, Weekly/Daily agenda
 @subsection Categories
 
 @cindex category
@@ -2485,7 +2516,7 @@ for the text below it (but the first category also applies to any text
 before the first CATEGORY line).  The display in the agenda buffer looks
 best if the category is not longer than 10 characters.
 
-@node Time-of-day specifications, Calendar/Diary integration, Categories, Weekly/Daily Agenda
+@node Time-of-day specifications, Calendar/Diary integration, Categories, Weekly/Daily agenda
 @subsection Time-of-Day Specifications
 
 Org-mode checks each agenda item for a time-of-day specification.  The
@@ -2533,7 +2564,7 @@ The time grid can be turned on and off with the variable
 @code{org-agenda-time-grid}.
 
 
-@node Calendar/Diary integration, Sorting of agenda items, Time-of-day specifications, Weekly/Daily Agenda
+@node Calendar/Diary integration, Sorting of agenda items, Time-of-day specifications, Weekly/Daily agenda
 @subsection Calendar/Diary integration
 @cindex calendar integration
 @cindex diary integration
@@ -2564,7 +2595,7 @@ Sunrise/Sunset times, show lunar phases and to convert to other
 calendars, respectively.  @kbd{c} can be used to switch back and forth
 between calendar and agenda.
 
-@node Sorting of agenda items,  , Calendar/Diary integration, Weekly/Daily Agenda
+@node Sorting of agenda items,  , Calendar/Diary integration, Weekly/Daily agenda
 @subsection Sorting of agenda items
 @cindex sorting, of agenda items
 @cindex priorities, of agenda items
@@ -2583,7 +2614,7 @@ Sorting can be customized using the variable
 @code{org-agenda-sorting-strategy}.
 
 
-@node Global TODO list, Matching headline tags, Weekly/Daily Agenda, Agenda Views
+@node Global TODO list, Matching headline tags, Weekly/Daily agenda, Agenda views
 @section The global TODO list
 @cindex global TODO list
 @cindex TODO list, global
@@ -2595,7 +2626,7 @@ collected into a single place.
 @kindex C-c a t
 @item C-c a t
 Show the global TODO list.  This collects the TODO items from all
-agenda files (@pxref{Agenda Views}) into a single buffer.  The buffer is in
+agenda files (@pxref{Agenda views}) into a single buffer.  The buffer is in
 @code{agenda-mode}, so there are commands to examine and manipulate
 the TODO entries directly from that buffer (@pxref{Agenda commands}).
 @xref{Global TODO list}, for more information.
@@ -2616,7 +2647,7 @@ Remote editing of TODO items means that you can change the state of a
 TODO entry with a single key press.  The commands available in the
 TODO list are described in @ref{Agenda commands}.
 
-@node Matching headline tags, Timeline, Global TODO list, Agenda Views
+@node Matching headline tags, Timeline, Global TODO list, Agenda views
 @section Matching headline tags
 @cindex matching, of tags
 @cindex tags view
@@ -2643,7 +2674,7 @@ and force checking subitems (see variable
 The commands available in the tags list are described in @ref{Agenda
 commands}.
 
-@node Timeline, Agenda commands, Matching headline tags, Agenda Views
+@node Timeline, Agenda commands, Matching headline tags, Agenda views
 @section Timeline for a single file
 @cindex single file summary
 @cindex agenda, for single file
@@ -2669,7 +2700,7 @@ When called with a @kbd{C-u} prefix, all unfinished TODO entries
 The commands available in the timeline buffer are listed in
 @ref{Agenda commands}.
 
-@node Agenda commands,  , Timeline, Agenda Views
+@node Agenda commands,  , Timeline, Agenda views
 @section Commands in the agenda buffer
 @cindex commands, in agenda buffer
 
@@ -2886,7 +2917,7 @@ visit org files will not be removed.
 
 @end table
 
-@node Exporting, Miscellaneous, Agenda Views, Top
+@node Exporting, Miscellaneous, Agenda views, Top
 @chapter Exporting
 @cindex exporting
 
@@ -3003,6 +3034,9 @@ the new style visible to Emacs.  This command restarts org-mode for the
 current buffer and forces Emacs to re-evaluate the local variables
 section in the buffer.
 
+@c FIXME: More about header and footer styles
+@c FIXME: Talk about links and targets.
+
 @node XML export, iCalendar export, HTML export, Exporting
 @section XML export
 @cindex XML export
@@ -3114,7 +3148,7 @@ formatted output.
 @item
 Plain lists @samp{-}, @samp{*} or @samp{+} as bullet, or with @samp{1.}
 or @samp{2)} as enumerator will be recognized and transformed if the
-backend supports lists.  See @xref{Plain Lists}.
+backend supports lists.  See @xref{Plain lists}.
 
 @cindex underlined text
 @cindex bold text
@@ -3323,7 +3357,7 @@ variable is @code{org-startup-align-all-tables}, with a default value
 @code{nil}. 
 @example
 align      @r{align all tables}
-noalign    @r{don't align table on startup}
+noalign    @r{don't align tables on startup}
 @end example
 Here are the options for hiding leading stars in outline headings.  The
 corresponding variables are @code{org-hide-leading-stars} and
@@ -3346,7 +3380,7 @@ end of the file.
 @item #+TBLFM:
 This line contains the formulas for the table directly above the line.
 @item #+TITLE:, #+AUTHOR:, #+EMAIL:, #+LANGUAGE:, #+TEXT:, #+OPTIONS:
-These line provide setting for exporting files.  For more details see
+These lines provide setting for exporting files.  For more details see
 @ref{Export options}.
 @end table
 
@@ -3534,10 +3568,24 @@ rather use @kbd{C-c .}  to re-insert the timestamp.
 @cindex FAQ
 
 @enumerate
+
+@cindex allout.el, conflict with
+@cindex @code{keymapp nil} error
+@item @b{When I try to use Org-mode, I always get
+@code{(wrong-type-argument keymapp nil)}}.@*
+This is a conflict with an outdated version of the @file{allout.el}
+package which pretends to be also the standard outline-mode but is not.
+This happens with older versions of @file{allout.el}, for example the
+one distributed with Emacs 21.  Upgrade to Emacs 22 and this problem
+will disappear.  If for some reason you cannot do this, make sure that
+org.el is loaded @emph{before} @file{allout.el}, for example by putting
+@code{(require 'org)} early enough into your @file{.emacs} file.
+
 @item @b{Org-mode seems to be a useful default mode for the various
 @file{README} files I have scattered through my directories.  How do I
-turn it on for all @file{README} files?}@*
-@c
+turn it on for all @file{README} files?}
+@c @*
+
 @example
 (add-to-list 'auto-mode-alist '("README$" . org-mode))
 @end example
@@ -3555,7 +3603,7 @@ convention that hides the link part and the brackets, only showing the
 description part.  How can I convert my old links to this new format?}@*
 @c
 Execute once in each Org-mode file: @kbd{M-x org-upgrade-old-links}.
-The replaces angular brackets with the link format.
+This replaces angular brackets with the new link format.
 
 @item @b{I don't care if you find the new bracket links great, I am
 attached to the old style using angular brackets and no hiding of the
@@ -3860,6 +3908,9 @@ Matthias Rempe (Oelde) provided ideas, Windows support, and quality
 control.
 @item
 Kevin Rogers contributed code to access VM files on remote hosts.
+@item
+Frank Ruell solved the mystery of the @code{keymapp nil} bug, a conflict
+with @file{allout.el}.
 @item
 Philip Rooke created the Org-mode reference card and provided lots of feedback.
 @item

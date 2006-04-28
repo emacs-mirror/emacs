@@ -799,7 +799,8 @@ Various
 * Moderation::                  What to do if you're a moderator.
 * Image Enhancements::          Modern versions of Emacs/XEmacs can display images.
 * Fuzzy Matching::              What's the big fuzz?
-* Thwarting Email Spam::        A how-to on avoiding unsolicited commercial email.
+* Thwarting Email Spam::        Simple ways to avoid unsolicited commercial email.
+* Spam Package::                A package for filtering and processing spam.
 * Other modes::                 Interaction with other modes.
 * Various Various::             Things that are really various.
 
@@ -818,7 +819,8 @@ Image Enhancements
 
 * X-Face::                      Display a funky, teensy black-and-white image.
 * Face::                        Display a funkier, teensier colored image.
-* Smileys::                     Show all those happy faces the way they were meant to be shown.
+* Smileys::                     Show all those happy faces the way they were
+                                  meant to be shown.
 * Picons::                      How to display pictures of what you're reading.
 * XVarious::                    Other XEmacsy Gnusey variables.
 
@@ -828,28 +830,19 @@ Thwarting Email Spam
 * Anti-Spam Basics::            Simple steps to reduce the amount of spam.
 * SpamAssassin::                How to use external anti-spam tools.
 * Hashcash::                    Reduce spam by burning CPU time.
-* Filtering Spam Using The Spam ELisp Package::
-* Filtering Spam Using Statistics with spam-stat::
 
-Filtering Spam Using The Spam ELisp Package
+Spam Package
 
-* Spam ELisp Package Sequence of Events::
-* Spam ELisp Package Filtering of Incoming Mail::
-* Spam ELisp Package Global Variables::
-* Spam ELisp Package Configuration Examples::
-* Blacklists and Whitelists::
-* BBDB Whitelists::
-* Gmane Spam Reporting::
-* Anti-spam Hashcash Payments::
-* Blackholes::
-* Regular Expressions Header Matching::
-* Bogofilter::
-* ifile spam filtering::
-* spam-stat spam filtering::
-* SpamOracle::
-* Extending the Spam ELisp package::
+* Spam Package Introduction::
+* Filtering Incoming Mail::
+* Detecting Spam in Groups::
+* Spam and Ham Processors::
+* Spam Package Configuration Examples::
+* Spam Back Ends::
+* Extending the Spam package::
+* Spam Statistics Package::
 
-Filtering Spam Using Statistics with spam-stat
+Spam Statistics Package
 
 * Creating a spam-stat dictionary::
 * Splitting mail using spam-stat::
@@ -20797,7 +20790,8 @@ four days, Gnus will decay the scores four times, for instance.
 * Fetching a Group::            Starting Gnus just to read a group.
 * Image Enhancements::          Modern versions of Emacs/XEmacs can display images.
 * Fuzzy Matching::              What's the big fuzz?
-* Thwarting Email Spam::        A how-to on avoiding unsolicited commercial email.
+* Thwarting Email Spam::        Simple ways to avoid unsolicited commercial email.
+* Spam Package::                A package for filtering and processing spam.
 * Other modes::                 Interaction with other modes.
 * Various Various::             Things that are really various.
 @end menu
@@ -22479,8 +22473,6 @@ This is annoying.  Here's what you can do about it.
 * Anti-Spam Basics::            Simple steps to reduce the amount of spam.
 * SpamAssassin::                How to use external anti-spam tools.
 * Hashcash::                    Reduce spam by burning CPU time.
-* Filtering Spam Using The Spam ELisp Package::
-* Filtering Spam Using Statistics with spam-stat::
 @end menu
 
 @node The problem of spam
@@ -22796,41 +22788,107 @@ hashcash cookies, it is expected that this is performed by your hand
 customized mail filtering scripts.  Improvements in this area would be
 a useful contribution, however.
 
-@node Filtering Spam Using The Spam ELisp Package
-@subsection Filtering Spam Using The Spam ELisp Package
+@node Spam Package
+@section Spam Package
 @cindex spam filtering
 @cindex spam
 
-The idea behind @file{spam.el} is to have a control center for spam detection
-and filtering in Gnus.  To that end, @file{spam.el} does two things: it
-filters new mail, and it analyzes mail known to be spam or ham.
-@dfn{Ham} is the name used throughout @file{spam.el} to indicate
-non-spam messages.
+The Spam package provides Gnus with a centralized mechanism for
+detecting and filtering spam.  It filters new mail, and processes
+messages according to whether they are spam or ham.  (@dfn{Ham} is the
+name used throughout this manual to indicate non-spam messages.)
+
+@menu
+* Spam Package Introduction::
+* Filtering Incoming Mail::
+* Detecting Spam in Groups::
+* Spam and Ham Processors::
+* Spam Package Configuration Examples::
+* Spam Back Ends::
+* Extending the Spam package::
+* Spam Statistics Package::
+@end menu
+
+@node Spam Package Introduction
+@subsection Spam Package Introduction
+@cindex spam filtering
+@cindex spam filtering sequence of events
+@cindex spam
+
+You must read this section to understand how the Spam package works.
+Do not skip, speed-read, or glance through this section.
 
 @cindex spam-initialize
-First of all, you @strong{must} run the function
-@code{spam-initialize} to autoload @code{spam.el} and to install the
-@code{spam.el} hooks.  There is one exception: if you use the
-@code{spam-use-stat} (@pxref{spam-stat spam filtering}) setting, you
-should turn it on before @code{spam-initialize}:
+@vindex spam-use-stat
+To use the Spam package, you @strong{must} first run the function
+@code{spam-initialize}:
 
 @example
-(setq spam-use-stat t) ;; if needed
 (spam-initialize)
 @end example
 
-So, what happens when you load @file{spam.el}?
+This autoloads @code{spam.el} and installs the various hooks necessary
+to let the Spam package do its job.  In order to make use of the Spam
+package, you have to set up certain group parameters and variables,
+which we will describe below.  All of the variables controlling the
+Spam package can be found in the @samp{spam} customization group.
 
-First, some hooks will get installed by @code{spam-initialize}.  There
-are some hooks for @code{spam-stat} so it can save its databases, and
-there are hooks so interesting things will happen when you enter and
-leave a group.  More on the sequence of events later (@pxref{Spam
-ELisp Package Sequence of Events}).
+There are two ``contact points'' between the Spam package and the rest
+of Gnus: checking new mail for spam, and leaving a group.
 
-You get the following keyboard commands:
+Checking new mail for spam is done in one of two ways: while splitting
+incoming mail, or when you enter a group.
+
+The first way, checking for spam while splitting incoming mail, is
+suited to mail back ends such as @code{nnml} or @code{nnimap}, where
+new mail appears in a single spool file.  The Spam package processes
+incoming mail, and sends mail considered to be spam to a designated
+``spam'' group.  @xref{Filtering Incoming Mail}.
+
+The second way is suited to back ends such as @code{nntp}, which have
+no incoming mail spool, or back ends where the server is in charge of
+splitting incoming mail.  In this case, when you enter a Gnus group,
+the unseen or unread messages in that group are checked for spam.
+Detected spam messages are marked as spam.  @xref{Detecting Spam in
+Groups}.
+
+@cindex spam back ends
+In either case, you have to tell the Spam package what method to use
+to detect spam messages.  There are several methods, or @dfn{spam back
+ends} (not to be confused with Gnus back ends!) to choose from: spam
+``blacklists'' and ``whitelists'', dictionary-based filters, and so
+forth.  @xref{Spam Back Ends}.
+
+In the Gnus summary buffer, messages that have been identified as spam
+always appear with a @samp{$} symbol.
+
+The Spam package divides Gnus groups into three categories: ham
+groups, spam groups, and unclassified groups.  You should mark each of
+the groups you subscribe to as either a ham group or a spam group,
+using the @code{spam-contents} group parameter (@pxref{Group
+Parameters}).  Spam groups have a special property: when you enter a
+spam group, all unseen articles are marked as spam.  Thus, mail split
+into a spam group is automatically marked as spam.
+
+Identifying spam messages is only half of the Spam package's job.  The
+second half comes into play whenever you exit a group buffer.  At this
+point, the Spam package does several things:
+
+First, it calls @dfn{spam and ham processors} to process the articles
+according to whether they are spam or ham.  There is a pair of spam
+and ham processors associated with each spam back end, and what the
+processors do depends on the back end.  At present, the main role of
+spam and ham processors is for dictionary-based spam filters: they add
+the contents of the messages in the group to the filter's dictionary,
+to improve its ability to detect future spam.  The @code{spam-process}
+group parameter specifies what spam processors to use.  @xref{Spam and
+Ham Processors}.
+
+If the spam filter failed to mark a spam message, you can mark it
+yourself, so that the message is processed as spam when you exit the
+group:
 
 @table @kbd
-
 @item M-d
 @itemx M s x
 @itemx S x
@@ -22838,189 +22896,103 @@ You get the following keyboard commands:
 @kindex S x
 @kindex M s x
 @findex gnus-summary-mark-as-spam
-@code{gnus-summary-mark-as-spam}.
-
-Mark current article as spam, showing it with the @samp{$} mark.
-Whenever you see a spam article, make sure to mark its summary line
-with @kbd{M-d} before leaving the group.  This is done automatically
-for unread articles in @emph{spam} groups.
-
-@item M s t
-@itemx S t
-@kindex M s t
-@kindex S t
-@findex spam-bogofilter-score
-@code{spam-bogofilter-score}.
-
-You must have Bogofilter installed for that command to work properly.
-
-@xref{Bogofilter}.
-
+@findex gnus-summary-mark-as-spam
+Mark current article as spam, showing it with the @samp{$} mark
+(@code{gnus-summary-mark-as-spam}).
 @end table
 
-Also, when you load @file{spam.el}, you will be able to customize its
-variables.  Try @code{customize-group} on the @samp{spam} variable
-group.
+@noindent
+Similarly, you can unmark an article if it has been erroneously marked
+as spam.  @xref{Setting Marks}.
 
-@menu
-* Spam ELisp Package Sequence of Events::
-* Spam ELisp Package Filtering of Incoming Mail::
-* Spam ELisp Package Global Variables::
-* Spam ELisp Package Configuration Examples::
-* Blacklists and Whitelists::
-* BBDB Whitelists::
-* Gmane Spam Reporting::
-* Anti-spam Hashcash Payments::
-* Blackholes::
-* Regular Expressions Header Matching::
-* Bogofilter::
-* ifile spam filtering::
-* spam-stat spam filtering::
-* SpamOracle::
-* Extending the Spam ELisp package::
-@end menu
-
-@node Spam ELisp Package Sequence of Events
-@subsubsection Spam ELisp Package Sequence of Events
-@cindex spam filtering
-@cindex spam filtering sequence of events
-@cindex spam
-
-You must read this section to understand how @code{spam.el} works.
-Do not skip, speed-read, or glance through this section.
-
-There are two @emph{contact points}, if you will, between
-@code{spam.el} and the rest of Gnus: checking new mail for spam, and
-leaving a group.
-
-Getting new mail is done in one of two ways.  You can either split
-your incoming mail or you can classify new articles as ham or spam
-when you enter the group.
-
-Splitting incoming mail is better suited to mail backends such as
-@code{nnml} or @code{nnimap} where new mail appears in a single file
-called a @dfn{Spool File}.  See @xref{Spam ELisp Package Filtering of
-Incoming Mail}.
-
-For backends such as @code{nntp} there is no incoming mail spool, so
-an alternate mechanism must be used.  This may also happen for
-backends where the server is in charge of splitting incoming mail, and
-Gnus does not do further splitting.  The @code{spam-autodetect} and
-@code{spam-autodetect-methods} group parameters (accessible with
-@kbd{G c} and @kbd{G p} as usual), and the corresponding variables
-@code{gnus-spam-autodetect-methods} and
-@code{gnus-spam-autodetect-methods} (accessible with @kbd{M-x
-customize-variable} as usual).
-
-When @code{spam-autodetect} is used, it hooks into the process of
-entering a group.  Thus, entering a group with unseen or unread
-articles becomes the substitute for checking incoming mail.  Whether
-only unseen articles or all unread articles will be processed is
-determined by the @code{spam-autodetect-recheck-messages}.  When set
-to @code{t}, unread messages will be rechecked.
-
-@code{spam-autodetect} grants the user at once more and less control
-of spam filtering.  The user will have more control over each group's
-spam methods, so for instance the @samp{ding} group may have
-@code{spam-use-BBDB} as the autodetection method, while the
-@samp{suspect} group may have the @code{spam-use-blacklist} and
-@code{spam-use-bogofilter} methods enabled.  Every article detected to
-be spam will be marked with the spam mark @samp{$} and processed on
-exit from the group as normal spam.  The user has less control over
-the @emph{sequence} of checks, as he might with @code{spam-split}.
-
-When the newly split mail goes into groups, or messages are
-autodetected to be ham or spam, those groups must be exited (after
-entering, if needed) for further spam processing to happen.  It
-matters whether the group is considered a ham group, a spam group, or
-is unclassified, based on its @code{spam-content} parameter
-(@pxref{Spam ELisp Package Global Variables}).  Spam groups have the
-additional characteristic that, when entered, any unseen or unread
-articles (depending on the @code{spam-mark-only-unseen-as-spam}
-variable) will be marked as spam.  Thus, mail split into a spam group
-gets automatically marked as spam when you enter the group.
-
-So, when you exit a group, the @code{spam-processors} are applied, if
-any are set, and the processed mail is moved to the
-@code{ham-process-destination} or the @code{spam-process-destination}
-depending on the article's classification.  If the
-@code{ham-process-destination} or the @code{spam-process-destination},
-whichever is appropriate, are @code{nil}, the article is left in the
-current group.
-
-If a spam is found in any group (this can be changed to only non-spam
-groups with @code{spam-move-spam-nonspam-groups-only}), it is
-processed by the active @code{spam-processors} (@pxref{Spam ELisp
-Package Global Variables}) when the group is exited.  Furthermore, the
-spam is moved to the @code{spam-process-destination} (@pxref{Spam
-ELisp Package Global Variables}) for further training or deletion.
-You have to load the @code{gnus-registry.el} package and enable the
-@code{spam-log-to-registry} variable if you want spam to be processed
-no more than once.  Thus, spam is detected and processed everywhere,
-which is what most people want.  If the
-@code{spam-process-destination} is @code{nil}, the spam is marked as
-expired, which is usually the right thing to do.
-
-If spam can not be moved---because of a read-only backend such as
-@acronym{NNTP}, for example, it will be copied.
-
-If a ham mail is found in a ham group, as determined by the
-@code{ham-marks} parameter, it is processed as ham by the active ham
-@code{spam-processor} when the group is exited.  With the variables
+Normally, a ham message found in a non-ham group is not processed as
+ham---the rationale is that it should be moved into a ham group for
+further processing (see below).  However, you can force these articles
+to be processed as ham by setting
 @code{spam-process-ham-in-spam-groups} and
-@code{spam-process-ham-in-nonham-groups} the behavior can be further
-altered so ham found anywhere can be processed.  You have to load the
-@code{gnus-registry.el} package and enable the
-@code{spam-log-to-registry} variable if you want ham to be processed
-no more than once.  Thus, ham is detected and processed only when
-necessary, which is what most people want.  More on this in
-@xref{Spam ELisp Package Configuration Examples}.
+@code{spam-process-ham-in-nonham-groups}.
 
-If ham can not be moved---because of a read-only backend such as
-@acronym{NNTP}, for example, it will be copied.
+@vindex gnus-ham-process-destinations
+@vindex gnus-spam-process-destinations
+The second thing that the Spam package does when you exit a group is
+to move ham articles out of spam groups, and spam articles out of ham
+groups.  Ham in a spam group is moved to the group specified by the
+variable @code{gnus-ham-process-destinations}, or the group parameter
+@code{ham-process-destination}.  Spam in a ham group is moved to the
+group specified by the variable @code{gnus-spam-process-destinations},
+or the group parameter @code{spam-process-destination}.  If these
+variables are not set, the articles are left in their current group.
+If an article cannot not be moved (e.g., with a read-only backend such
+as @acronym{NNTP}), it is copied.
+
+If an article is moved to another group, it is processed again when
+you visit the new group.  Normally, this is not a problem, but if you
+want each article to be processed only once, load the
+@code{gnus-registry.el} package and set the variable
+@code{spam-log-to-registry} to @code{t}.  @xref{Spam Package
+Configuration Examples}.
+
+Normally, spam groups ignore @code{gnus-spam-process-destinations}.
+However, if you set @code{spam-move-spam-nonspam-groups-only} to
+@code{nil}, spam will also be moved out of spam groups, depending on
+the @code{spam-process-destination} parameter.
+
+The final thing the Spam package does is to mark spam articles as
+expired, which is usually the right thing to do.
 
 If all this seems confusing, don't worry.  Soon it will be as natural
 as typing Lisp one-liners on a neural interface@dots{} err, sorry, that's
 50 years in the future yet.  Just trust us, it's not so bad.
 
-@node Spam ELisp Package Filtering of Incoming Mail
-@subsubsection Spam ELisp Package Filtering of Incoming Mail
+@node Filtering Incoming Mail
+@subsection Filtering Incoming Mail
 @cindex spam filtering
 @cindex spam filtering incoming mail
 @cindex spam
 
-To use the @file{spam.el} facilities for incoming mail filtering, you
-must add the following to your fancy split list
-@code{nnmail-split-fancy} or @code{nnimap-split-fancy}:
+To use the Spam package to filter incoming mail, you must first set up
+fancy mail splitting.  @xref{Fancy Mail Splitting}.  The Spam package
+defines a special splitting function that you can add to your fancy
+split variable (either @code{nnmail-split-fancy} or
+@code{nnimap-split-fancy}, depending on your mail back end):
 
 @example
 (: spam-split)
 @end example
 
-Note that the fancy split may be called @code{nnmail-split-fancy} or
-@code{nnimap-split-fancy}, depending on whether you use the nnmail or
-nnimap back ends to retrieve your mail.
+@vindex spam-split-group
+@noindent
+The @code{spam-split} function scans incoming mail according to your
+chosen spam back end(s), and sends messages identified as spam to a
+spam group.  By default, the spam group is a group named @samp{spam},
+but you can change this by customizing @code{spam-split-group}.  Make
+sure the contents of @code{spam-split-group} are an unqualified group
+name.  For instance, in an @code{nnimap} server @samp{your-server},
+the value @samp{spam} means @samp{nnimap+your-server:spam}.  The value
+@samp{nnimap+server:spam} is therefore wrong---it gives the group
+@samp{nnimap+your-server:nnimap+server:spam}.
 
-Also, @code{spam-split} will not modify incoming mail in any way.
+@code{spam-split} does not modify the contents of messages in any way.
 
-The @code{spam-split} function will process incoming mail and send the
-mail considered to be spam into the group name given by the variable
-@code{spam-split-group}.  By default that group name is @samp{spam},
-but you can customize @code{spam-split-group}.  Make sure the contents
-of @code{spam-split-group} are an @emph{unqualified} group name, for
-instance in an @code{nnimap} server @samp{your-server} the value
-@samp{spam} will turn out to be @samp{nnimap+your-server:spam}.  The
-value @samp{nnimap+server:spam}, therefore, is wrong and will
-actually give you the group
-@samp{nnimap+your-server:nnimap+server:spam} which may or may not
-work depending on your server's tolerance for strange group names.
+@vindex nnimap-split-download-body
+Note for IMAP users: if you use the @code{spam-check-bogofilter},
+@code{spam-check-ifile}, and @code{spam-check-stat} spam back ends,
+you should also set set the variable @code{nnimap-split-download-body}
+to @code{t}.  These spam back ends are most useful when they can
+``scan'' the full message body.  By default, the nnimap back end only
+retrieves the message headers; @code{nnimap-split-download-body} tells
+it to retrieve the message bodies as well.  We don't set this by
+default because it will slow @acronym{IMAP} down, and that is not an
+appropriate decision to make on behalf of the user.  @xref{Splitting
+in IMAP}.
 
-You can also give @code{spam-split} a parameter,
-e.g. @code{spam-use-regex-headers} or @code{"maybe-spam"}.  Why is
-this useful?
-
-Take these split rules (with @code{spam-use-regex-headers} and
-@code{spam-use-blackholes} set):
+You have to specify one or more spam back ends for @code{spam-split}
+to use, by setting the @code{spam-use-*} variables.  @xref{Spam Back
+Ends}.  Normally, @code{spam-split} simply uses all the spam back ends
+you enabled in this way.  However, you can tell @code{spam-split} to
+use only some of them.  Why this is useful?  Suppose you are using the
+@code{spam-use-regex-headers} and @code{spam-use-blackholes} spam back
+ends, and the following split rule:
 
 @example
  nnimap-split-fancy '(|
@@ -23030,21 +23002,23 @@ Take these split rules (with @code{spam-use-regex-headers} and
                       "mail")
 @end example
 
-Now, the problem is that you want all ding messages to make it to the
-ding folder.  But that will let obvious spam (for example, spam
-detected by SpamAssassin, and @code{spam-use-regex-headers}) through,
-when it's sent to the ding list.  On the other hand, some messages to
-the ding list are from a mail server in the blackhole list, so the
-invocation of @code{spam-split} can't be before the ding rule.
+@noindent
+The problem is that you want all ding messages to make it to the ding
+folder.  But that will let obvious spam (for example, spam detected by
+SpamAssassin, and @code{spam-use-regex-headers}) through, when it's
+sent to the ding list.  On the other hand, some messages to the ding
+list are from a mail server in the blackhole list, so the invocation
+of @code{spam-split} can't be before the ding rule.
 
-You can let SpamAssassin headers supersede ding rules, but all other
-@code{spam-split} rules (including a second invocation of the
-regex-headers check) will be after the ding rule:
+The solution is to let SpamAssassin headers supersede ding rules, and
+perform the other @code{spam-split} rules (including a second
+invocation of the regex-headers check) after the ding rule.  This is
+done by passing a parameter to @code{spam-split}:
 
 @example
 nnimap-split-fancy
       '(|
-        ;; @r{all spam detected by @code{spam-use-regex-headers} goes to @samp{regex-spam}}
+        ;; @r{spam detected by @code{spam-use-regex-headers} goes to @samp{regex-spam}}
         (: spam-split "regex-spam" 'spam-use-regex-headers)
         (any "ding" "ding")
         ;; @r{all other spam detected by spam-split goes to @code{spam-split-group}}
@@ -23053,58 +23027,68 @@ nnimap-split-fancy
         "mail")
 @end example
 
+@noindent
 This lets you invoke specific @code{spam-split} checks depending on
-your particular needs, and to target the results of those checks to a
+your particular needs, and target the results of those checks to a
 particular spam group.  You don't have to throw all mail into all the
 spam tests.  Another reason why this is nice is that messages to
 mailing lists you have rules for don't have to have resource-intensive
 blackhole checks performed on them.  You could also specify different
 spam checks for your nnmail split vs. your nnimap split.  Go crazy.
 
-You should still have specific checks such as
-@code{spam-use-regex-headers} set to @code{t}, even if you
-specifically invoke @code{spam-split} with the check.  The reason is
-that when loading @file{spam.el}, some conditional loading is done
-depending on what @code{spam-use-xyz} variables you have set.  This
-is usually not critical, though.
+You should set the @code{spam-use-*} variables for whatever spam back
+ends you intend to use.  The reason is that when loading
+@file{spam.el}, some conditional loading is done depending on what
+@code{spam-use-xyz} variables you have set.  @xref{Spam Back Ends}.
 
-@emph{Note for IMAP users}
+@c @emph{TODO: spam.el needs to provide a uniform way of training all the
+@c statistical databases.  Some have that functionality built-in, others
+@c don't.}
 
-The boolean variable @code{nnimap-split-download-body} needs to be
-set, if you want to split based on the whole message instead of just
-the headers.  By default, the nnimap back end will only retrieve the
-message headers.  If you use @code{spam-check-bogofilter},
-@code{spam-check-ifile}, or @code{spam-check-stat} (the splitters that
-can benefit from the full message body), you should set this variable.
-It is not set by default because it will slow @acronym{IMAP} down, and
-that is not an appropriate decision to make on behalf of the user.
+@node Detecting Spam in Groups
+@subsection Detecting Spam in Groups
 
-@xref{Splitting in IMAP}.
+To detect spam when visiting a group, set the group's
+@code{spam-autodetect} and @code{spam-autodetect-methods} group
+parameters.  These are accessible with @kbd{G c} or @kbd{G p}, as
+usual (@pxref{Group Parameters}).
 
-@emph{TODO: spam.el needs to provide a uniform way of training all the
-statistical databases.  Some have that functionality built-in, others
-don't.}
+You should set the @code{spam-use-*} variables for whatever spam back
+ends you intend to use.  The reason is that when loading
+@file{spam.el}, some conditional loading is done depending on what
+@code{spam-use-xyz} variables you have set.
 
-@node Spam ELisp Package Global Variables
-@subsubsection Spam ELisp Package Global Variables
+By default, only unseen articles are processed for spam.  You can
+force Gnus to recheck all messages in the group by setting the
+variable @code{spam-autodetect-recheck-messages} to @code{t}.
+
+If you use the @code{spam-autodetect} method of checking for spam, you
+can specify different spam detection methods for different groups.
+For instance, the @samp{ding} group may have @code{spam-use-BBDB} as
+the autodetection method, while the @samp{suspect} group may have the
+@code{spam-use-blacklist} and @code{spam-use-bogofilter} methods
+enabled.  Unlike with @code{spam-split}, you don't have any control
+over the @emph{sequence} of checks, but this is probably unimportant.
+
+@node Spam and Ham Processors
+@subsection Spam and Ham Processors
 @cindex spam filtering
 @cindex spam filtering variables
 @cindex spam variables
 @cindex spam
 
 @vindex gnus-spam-process-newsgroups
-The concepts of ham processors and spam processors are very important.
-Ham processors and spam processors for a group can be set with the
-@code{spam-process} group parameter, or the
-@code{gnus-spam-process-newsgroups} variable.  Ham processors take
-mail known to be non-spam (@emph{ham}) and process it in some way so
-that later similar mail will also be considered non-spam.  Spam
-processors take mail known to be spam and process it so similar spam
-will be detected later.
+Spam and ham processors specify special actions to take when you exit
+a group buffer.  Spam processors act on spam messages, and ham
+processors on ham messages.  At present, the main role of these
+processors is to update the dictionaries of dictionary-based spam back
+ends such as Bogofilter (@pxref{Bogofilter}) and the Spam Statistics
+package (@pxref{Spam Statistics Filtering}).
 
-The format of the spam or ham processor entry used to be a symbol,
-but now it is a @sc{cons} cell.  See the individual spam processor entries
-for more information.
+The spam and ham processors that apply to each group are determined by
+the group's@code{spam-process} group parameter.  If this group
+parameter is not defined, they are determined by the variable
+@code{gnus-spam-process-newsgroups}.
 
 @vindex gnus-spam-newsgroup-contents
 Gnus learns from the spam you get.  You have to collect your spam in
@@ -23258,8 +23242,8 @@ When autodetecting spam, this variable tells @code{spam.el} whether
 only unseen articles or all unread articles should be checked for
 spam.  It is recommended that you leave it off.
 
-@node Spam ELisp Package Configuration Examples
-@subsubsection Spam ELisp Package Configuration Examples
+@node Spam Package Configuration Examples
+@subsection Spam Package Configuration Examples
 @cindex spam filtering
 @cindex spam filtering configuration examples
 @cindex spam configuration examples
@@ -23384,11 +23368,11 @@ bogofilter or DCC).
 
 Because of the @code{gnus-group-spam-classification-spam} entry, all
 messages are marked as spam (with @code{$}).  When I find a false
-positive, I mark the message with some other ham mark (@code{ham-marks},
-@ref{Spam ELisp Package Global Variables}).  On group exit, those
-messages are copied to both groups, @samp{INBOX} (where I want to have
-the article) and @samp{training.ham} (for training bogofilter) and
-deleted from the @samp{spam.detected} folder.
+positive, I mark the message with some other ham mark
+(@code{ham-marks}, @ref{Spam and Ham Processors}).  On group exit,
+those messages are copied to both groups, @samp{INBOX} (where I want
+to have the article) and @samp{training.ham} (for training bogofilter)
+and deleted from the @samp{spam.detected} folder.
 
 The @code{gnus-article-sort-by-chars} entry simplifies detection of
 false positives for me.  I receive lots of worms (sweN, @dots{}), that all
@@ -23423,6 +23407,29 @@ because I don't read the groups directly from news.gmane.org, but
 through my local news server (leafnode).  I.e. the article numbers are
 not the same as on news.gmane.org, thus @code{spam-report.el} has to check
 the @code{X-Report-Spam} header to find the correct number.
+
+@node Spam Back Ends
+@subsection Spam Back Ends
+@cindex spam back ends
+
+The spam package offers a variety of back ends for detecting spam.
+Each back end defines a set of methods for detecting spam
+(@pxref{Filtering Incoming Mail}, @pxref{Detecting Spam in Groups}),
+and a pair of spam and ham processors (@pxref{Spam and Ham
+Processors}).
+
+@menu
+* Blacklists and Whitelists::
+* BBDB Whitelists::
+* Gmane Spam Reporting::
+* Anti-spam Hashcash Payments::
+* Blackholes::
+* Regular Expressions Header Matching::
+* Bogofilter::
+* ifile spam filtering::
+* Spam Statistics Filtering::
+* SpamOracle::
+@end menu
 
 @node Blacklists and Whitelists
 @subsubsection Blacklists and Whitelists
@@ -23728,6 +23735,15 @@ You should not enable this if you use @code{spam-use-bogofilter-headers}.
 
 @end defvar
 
+@table @kbd
+@item M s t
+@itemx S t
+@kindex M s t
+@kindex S t
+@findex spam-bogofilter-score
+Get the Bogofilter spamicity score (@code{spam-bogofilter-score}).
+@end table
+
 @defvar spam-use-bogofilter-headers
 
 Set this variable if you want @code{spam-split} to use Eric Raymond's
@@ -23829,19 +23845,20 @@ purpose.  A ham and a spam processor are provided, plus the
 should be used.  The 1.2.1 version of ifile was used to test this
 functionality.
 
-@node spam-stat spam filtering
-@subsubsection spam-stat spam filtering
+@node Spam Statistics Filtering
+@subsubsection Spam Statistics Filtering
 @cindex spam filtering
 @cindex spam-stat, spam filtering
 @cindex spam-stat
 @cindex spam
 
-@xref{Filtering Spam Using Statistics with spam-stat}.
+This back end uses the Spam Statistics Emacs Lisp package to perform
+statistics-based filtering (@pxref{Spam Statistics Package}).  Before
+using this, you may want to perform some additional steps to
+initialize your Spam Statistics dictionary.  @xref{Creating a
+spam-stat dictionary}.
 
 @defvar spam-use-stat
-
-Enable this variable if you want @code{spam-split} to use
-spam-stat.el, an Emacs Lisp statistical analyzer.
 
 @end defvar
 
@@ -23902,18 +23919,17 @@ One possibility is to run SpamOracle as a @code{:prescript} from the
 @xref{Mail Source Specifiers}, (@pxref{SpamAssassin}).  This method has
 the advantage that the user can see the @emph{X-Spam} headers.
 
-The easiest method is to make @file{spam.el} (@pxref{Filtering Spam
-Using The Spam ELisp Package}) call SpamOracle.
+The easiest method is to make @file{spam.el} (@pxref{Spam Package})
+call SpamOracle.
 
 @vindex spam-use-spamoracle
 To enable SpamOracle usage by @file{spam.el}, set the variable
 @code{spam-use-spamoracle} to @code{t} and configure the
-@code{nnmail-split-fancy} or @code{nnimap-split-fancy} as described in
-the section @xref{Filtering Spam Using The Spam ELisp Package}.  In
-this example the @samp{INBOX} of an nnimap server is filtered using
-SpamOracle.  Mails recognized as spam mails will be moved to
-@code{spam-split-group}, @samp{Junk} in this case.  Ham messages stay
-in @samp{INBOX}:
+@code{nnmail-split-fancy} or @code{nnimap-split-fancy}.  @xref{Spam
+Package}.  In this example the @samp{INBOX} of an nnimap server is
+filtered using SpamOracle.  Mails recognized as spam mails will be
+moved to @code{spam-split-group}, @samp{Junk} in this case.  Ham
+messages stay in @samp{INBOX}:
 
 @example
 (setq spam-use-spamoracle t
@@ -23945,14 +23961,14 @@ database to live somewhere special, set
 
 SpamOracle employs a statistical algorithm to determine whether a
 message is spam or ham.  In order to get good results, meaning few
-false hits or misses, SpamOracle needs training.  SpamOracle learns the
-characteristics of your spam mails.  Using the @emph{add} mode
+false hits or misses, SpamOracle needs training.  SpamOracle learns
+the characteristics of your spam mails.  Using the @emph{add} mode
 (training mode) one has to feed good (ham) and spam mails to
-SpamOracle.  This can be done by pressing @kbd{|} in the Summary buffer
-and pipe the mail to a SpamOracle process or using @file{spam.el}'s
-spam- and ham-processors, which is much more convenient.  For a
-detailed description of spam- and ham-processors, @xref{Filtering Spam
-Using The Spam ELisp Package}.
+SpamOracle.  This can be done by pressing @kbd{|} in the Summary
+buffer and pipe the mail to a SpamOracle process or using
+@file{spam.el}'s spam- and ham-processors, which is much more
+convenient.  For a detailed description of spam- and ham-processors,
+@xref{Spam Package}.
 
 @defvar gnus-group-spam-exit-processor-spamoracle
 Add this symbol to a group's @code{spam-process} parameter by
@@ -24001,8 +24017,8 @@ the user marks some messages as spam messages, these messages will be
 processed by SpamOracle.  The processor sends the messages to
 SpamOracle as new samples for spam.
 
-@node Extending the Spam ELisp package
-@subsubsection Extending the Spam ELisp package
+@node Extending the Spam package
+@subsection Extending the Spam package
 @cindex spam filtering
 @cindex spam elisp package, extending
 @cindex extending the spam elisp package
@@ -24109,9 +24125,8 @@ to the @code{spam-autodetect-methods} group parameter in
 
 @end enumerate
 
-
-@node Filtering Spam Using Statistics with spam-stat
-@subsection Filtering Spam Using Statistics with spam-stat
+@node Spam Statistics Package
+@subsection Spam Statistics Package
 @cindex Paul Graham
 @cindex Graham, Paul
 @cindex naive Bayesian spam filtering
@@ -24138,7 +24153,11 @@ non-spam mail.  Use the 15 most conspicuous words, compute the total
 probability of the mail being spam.  If this probability is higher
 than a certain threshold, the mail is considered to be spam.
 
-Gnus supports this kind of filtering.  But it needs some setting up.
+The Spam Statistics package adds support to Gnus for this kind of
+filtering.  It can be used as one of the back ends of the Spam package
+(@pxref{Spam Package}), or by itself.
+
+Before using the Spam Statistics package, you need to set it up.
 First, you need two collections of your mail, one with spam, one with
 non-spam.  Then you need to create a dictionary using these two
 collections, and save it.  And last but not least, you need to use
@@ -24224,8 +24243,10 @@ The filename used to store the dictionary.  This defaults to
 @node Splitting mail using spam-stat
 @subsubsection Splitting mail using spam-stat
 
-In order to use @code{spam-stat} to split your mail, you need to add the
-following to your @file{~/.gnus.el} file:
+This section describes how to use the Spam statistics
+@emph{independently} of the @xref{Spam Package}.
+
+First, add the following to your @file{~/.gnus.el} file:
 
 @lisp
 (require 'spam-stat)

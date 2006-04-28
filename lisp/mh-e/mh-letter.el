@@ -275,10 +275,7 @@ searching for `mh-mail-header-separator' in the buffer."
 
 ;;; MH-Letter Mode
 
-(defvar mh-letter-buttons-init-flag nil)
-
 ;; Shush compiler.
-(defvar image-load-path)
 (defvar font-lock-defaults)             ; XEmacs
 
 ;; Ensure new buffers won't get this mode if default-major-mode is nil.
@@ -313,13 +310,8 @@ order).
   (make-local-variable 'mh-sent-from-folder)
   (make-local-variable 'mh-sent-from-msg)
   (mh-do-in-gnu-emacs
-    (unless mh-letter-buttons-init-flag
-      (let* ((load-path (mh-image-load-path-for-library "mh-e" "mh-logo.xpm"))
-             (image-load-path (cons (car load-path)
-                                    (when (boundp 'image-load-path)
-                                      image-load-path))))
-        (mh-tool-bar-letter-buttons-init)
-        (setq mh-letter-buttons-init-flag t)))
+    (unless mh-letter-tool-bar-map
+      (mh-tool-bar-letter-buttons-init))
     (set (make-local-variable 'tool-bar-map) mh-letter-tool-bar-map))
   (mh-do-in-xemacs
     (mh-tool-bar-init :letter))
@@ -401,24 +393,26 @@ message is not indented, and \"> \" is not inserted before each line.
 This command leaves the mark before the letter and point after it."
   (interactive
    (let* ((folder
-           (mh-prompt-for-folder "Message from"
-                                 mh-sent-from-folder nil))
+           (mh-prompt-for-folder "Message from" mh-sent-from-folder nil))
           (default
-            (if (and (equal folder mh-sent-from-folder)
-                     (numberp mh-sent-from-msg))
-                mh-sent-from-msg
+            (if (equal folder mh-sent-from-folder)
+                (or mh-sent-from-msg (nth 0 (mh-translate-range folder "cur")))
               (nth 0 (mh-translate-range folder "cur"))))
           (message
            (read-string (concat "Message number"
                                 (or (and default
                                          (format " (default %d): " default))
-                                    ": ")))))
+                                    ": "))
+                        nil nil
+                        (if (numberp default)
+                            (int-to-string default)
+                          default))))
      (list folder message current-prefix-arg)))
+  (if (equal message "")
+      (error "No message number given"))
   (save-restriction
     (narrow-to-region (point) (point))
     (let ((start (point-min)))
-      (if (and (equal message "") (numberp mh-sent-from-msg))
-          (setq message (int-to-string mh-sent-from-msg)))
       (insert-file-contents
        (expand-file-name message (mh-expand-file-name folder)))
       (when (not verbatim)
@@ -872,15 +866,12 @@ downcasing the field name."
   "Do folder name completion in Fcc header field."
   (let* ((end (point))
          (beg (mh-beginning-of-word))
-         (folder (buffer-substring beg end))
+         (folder (buffer-substring-no-properties beg end))
          (leading-plus (and (> (length folder) 0) (equal (aref folder 0) ?+)))
-         (last-slash (mh-search-from-end ?/ folder))
-         (prefix (and last-slash (substring folder 0 last-slash)))
-         (choices (mapcar #'(lambda (x)
-                              (list (cond (prefix (format "%s/%s" prefix x))
-                                          (leading-plus (format "+%s" x))
-                                          (t x))))
+         (choices (mapcar (lambda (x) (list x))
                           (mh-folder-completion-function folder nil t))))
+    (unless leading-plus
+      (setq folder (concat "+" folder)))
     (mh-complete-word folder choices beg end)))
 
 ;;;###mh-autoload

@@ -603,7 +603,9 @@ x_destroy_all_bitmaps (dpyinfo)
 /* Useful functions defined in the section
    `Image type independent image structures' below. */
 
-static unsigned long four_corners_best P_ ((XImagePtr ximg, unsigned long width,
+static unsigned long four_corners_best P_ ((XImagePtr ximg,
+					    int *corners,
+					    unsigned long width,
 					    unsigned long height));
 
 static int x_create_x_image_and_pixmap P_ ((struct frame *f, int width, int height,
@@ -657,7 +659,7 @@ x_create_bitmap_mask (f, id)
       return -1;
     }
 
-  bg = four_corners_best (ximg, width, height);
+  bg = four_corners_best (ximg, NULL, width, height);
 
   for (y = 0; y < ximg->height; ++y)
     {
@@ -732,7 +734,7 @@ Lisp_Object Qxbm;
 /* Keywords.  */
 
 extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
-extern Lisp_Object QCdata, QCtype;
+extern Lisp_Object QCdata, QCtype, Qcount;
 extern Lisp_Object Qcenter;
 Lisp_Object QCascent, QCmargin, QCrelief;
 Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
@@ -1141,6 +1143,27 @@ or omitted means use the selected frame.  */)
   return mask;
 }
 
+DEFUN ("image-extension-data", Fimage_extension_data, Simage_extension_data, 1, 2, 0,
+       doc: /* Return extension data for image SPEC.
+FRAME is the frame on which the image will be displayed.  FRAME nil
+or omitted means use the selected frame.  */)
+     (spec, frame)
+     Lisp_Object spec, frame;
+{
+  Lisp_Object ext;
+
+  ext = Qnil;
+  if (valid_image_p (spec))
+    {
+      struct frame *f = check_x_frame (frame);
+      int id = lookup_image (f, spec);
+      struct image *img = IMAGE_FROM_ID (f, id);
+      ext = img->data.lisp_val;
+    }
+
+  return ext;
+}
+
 
 /***********************************************************************
 		 Image type independent image structures
@@ -1171,6 +1194,7 @@ make_image (spec, hash)
   img->data.lisp_val = Qnil;
   img->ascent = DEFAULT_IMAGE_ASCENT;
   img->hash = hash;
+  img->corners[BOT_CORNER] = -1;  /* Full image */
   return img;
 }
 
@@ -1322,30 +1346,41 @@ image_ascent (img, face, slice)
    On W32, XIMG is assumed to a device context with the bitmap selected.  */
 
 static RGB_PIXEL_COLOR
-four_corners_best (ximg, width, height)
+four_corners_best (ximg, corners, width, height)
      XImagePtr_or_DC ximg;
+     int *corners;
      unsigned long width, height;
 {
-  RGB_PIXEL_COLOR corners[4], best;
+  RGB_PIXEL_COLOR corner_pixels[4], best;
   int i, best_count;
 
-  /* Get the colors at the corners of ximg.  */
-  corners[0] = GET_PIXEL (ximg, 0, 0);
-  corners[1] = GET_PIXEL (ximg, width - 1, 0);
-  corners[2] = GET_PIXEL (ximg, width - 1, height - 1);
-  corners[3] = GET_PIXEL (ximg, 0, height - 1);
-
+  if (corners && corners[BOT_CORNER] >= 0)
+    {
+      /* Get the colors at the corner_pixels of ximg.  */
+      corner_pixels[0] = GET_PIXEL (ximg, corners[LEFT_CORNER], corners[TOP_CORNER]);
+      corner_pixels[1] = GET_PIXEL (ximg, corners[RIGHT_CORNER] - 1, corners[TOP_CORNER]);
+      corner_pixels[2] = GET_PIXEL (ximg, corners[RIGHT_CORNER] - 1, corners[BOT_CORNER] - 1);
+      corner_pixels[3] = GET_PIXEL (ximg, corners[LEFT_CORNER], corners[BOT_CORNER] - 1);
+    }
+  else
+    {
+      /* Get the colors at the corner_pixels of ximg.  */
+      corner_pixels[0] = GET_PIXEL (ximg, 0, 0);
+      corner_pixels[1] = GET_PIXEL (ximg, width - 1, 0);
+      corner_pixels[2] = GET_PIXEL (ximg, width - 1, height - 1);
+      corner_pixels[3] = GET_PIXEL (ximg, 0, height - 1);
+    }
   /* Choose the most frequently found color as background.  */
   for (i = best_count = 0; i < 4; ++i)
     {
       int j, n;
 
       for (j = n = 0; j < 4; ++j)
-	if (corners[i] == corners[j])
+	if (corner_pixels[i] == corner_pixels[j])
 	  ++n;
 
       if (n > best_count)
-	best = corners[i], best_count = n;
+	best = corner_pixels[i], best_count = n;
     }
 
   return best;
@@ -1404,7 +1439,7 @@ image_background (img, f, ximg)
 #endif /* !HAVE_NTGUI */
 	}
 
-      img->background = four_corners_best (ximg, img->width, img->height);
+      img->background = four_corners_best (ximg, img->corners, img->width, img->height);
 
       if (free_ximg)
 	Destroy_Image (ximg, prev);
@@ -1449,7 +1484,7 @@ image_background_transparent (img, f, mask)
 	    }
 
 	  img->background_transparent
-	    = (four_corners_best (mask, img->width, img->height) == PIX_MASK_RETAIN);
+	    = (four_corners_best (mask, img->corners, img->width, img->height) == PIX_MASK_RETAIN);
 
 	  if (free_mask)
 	    Destroy_Image (mask, prev);
@@ -4462,6 +4497,10 @@ xpm_load_image (f, img, contents, end)
   img->width = width;
   img->height = height;
 
+  /* Maybe fill in the background field while we have ximg handy. */
+  if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
+    IMAGE_BACKGROUND (img, f, ximg);
+
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
   if (have_mask)
@@ -5356,7 +5395,7 @@ x_build_heuristic_mask (f, img, how)
     }
 
   if (use_img_background)
-    bg = four_corners_best (ximg, img->width, img->height);
+    bg = four_corners_best (ximg, img->corners, img->width, img->height);
 
   /* Set all bits in mask_img to 1 whose color in ximg is different
      from the background color bg.  */
@@ -7449,6 +7488,7 @@ tiff_load (f, img)
 
 static int gif_image_p P_ ((Lisp_Object object));
 static int gif_load P_ ((struct frame *f, struct image *img));
+static void gif_clear_image P_ ((struct frame *f, struct image *img));
 
 /* The symbol `gif' identifying images of this type.  */
 
@@ -7497,9 +7537,21 @@ static struct image_type gif_type =
   &Qgif,
   gif_image_p,
   gif_load,
-  x_clear_image,
+  gif_clear_image,
   NULL
 };
+
+/* Free X resources of GIF image IMG which is used on frame F.  */
+
+static void
+gif_clear_image (f, img)
+     struct frame *f;
+     struct image *img;
+{
+  /* IMG->data.ptr_val may contain extension data.  */
+  img->data.lisp_val = Qnil;
+  x_clear_image (f, img);
+}
 
 /* Return non-zero if OBJECT is a valid GIF image specification.  */
 
@@ -7621,7 +7673,7 @@ gif_load (f, img)
   GifFileType *gif;
   struct gcpro gcpro1;
   Lisp_Object image;
-  int ino, image_left, image_top, image_width, image_height;
+  int ino, image_height, image_width;
   gif_memory_source memsrc;
   unsigned char *raster;
 
@@ -7698,17 +7750,19 @@ gif_load (f, img)
       return 0;
     }
 
-  image_top = gif->SavedImages[ino].ImageDesc.Top;
-  image_left = gif->SavedImages[ino].ImageDesc.Left;
-  image_width = gif->SavedImages[ino].ImageDesc.Width;
+  img->corners[TOP_CORNER] = gif->SavedImages[ino].ImageDesc.Top;
+  img->corners[LEFT_CORNER] = gif->SavedImages[ino].ImageDesc.Left;
   image_height = gif->SavedImages[ino].ImageDesc.Height;
+  img->corners[BOT_CORNER] = img->corners[TOP_CORNER] + image_height;
+  image_width = gif->SavedImages[ino].ImageDesc.Width;
+  img->corners[RIGHT_CORNER] = img->corners[LEFT_CORNER] + image_width;
 
   width = img->width = max (gif->SWidth,
 			    max (gif->Image.Left + gif->Image.Width,
-				 image_left + image_width));
+				 img->corners[RIGHT_CORNER]));
   height = img->height = max (gif->SHeight,
 			      max (gif->Image.Top + gif->Image.Height,
-				   image_top + image_height));
+				   img->corners[BOT_CORNER]));
 
   if (!check_image_size (f, width, height))
     {
@@ -7751,19 +7805,19 @@ gif_load (f, img)
      requires more than can be done here (see the gif89 spec,
      disposal methods).  Let's simply assume that the part
      not covered by a sub-image is in the frame's background color.  */
-  for (y = 0; y < image_top; ++y)
+  for (y = 0; y < img->corners[TOP_CORNER]; ++y)
     for (x = 0; x < width; ++x)
       XPutPixel (ximg, x, y, FRAME_BACKGROUND_PIXEL (f));
 
-  for (y = image_top + image_height; y < height; ++y)
+  for (y = img->corners[BOT_CORNER]; y < height; ++y)
     for (x = 0; x < width; ++x)
       XPutPixel (ximg, x, y, FRAME_BACKGROUND_PIXEL (f));
 
-  for (y = image_top; y < image_top + image_height; ++y)
+  for (y = img->corners[TOP_CORNER]; y < img->corners[BOT_CORNER]; ++y)
     {
-      for (x = 0; x < image_left; ++x)
+      for (x = 0; x < img->corners[LEFT_CORNER]; ++x)
 	XPutPixel (ximg, x, y, FRAME_BACKGROUND_PIXEL (f));
-      for (x = image_left + image_width; x < width; ++x)
+      for (x = img->corners[RIGHT_CORNER]; x < width; ++x)
 	XPutPixel (ximg, x, y, FRAME_BACKGROUND_PIXEL (f));
     }
 
@@ -7793,8 +7847,8 @@ gif_load (f, img)
 	  for (x = 0; x < image_width; x++)
 	    {
 	      int i = raster[(y * image_width) + x];
-	      XPutPixel (ximg, x + image_left, row + image_top,
-			 pixel_colors[i]);
+	      XPutPixel (ximg, x + img->corners[LEFT_CORNER],
+			 row + img->corners[TOP_CORNER], pixel_colors[i]);
 	    }
 
 	  row += interlace_increment[pass];
@@ -7806,9 +7860,28 @@ gif_load (f, img)
 	for (x = 0; x < image_width; ++x)
 	  {
 	    int i = raster[y * image_width + x];
-	    XPutPixel (ximg, x + image_left, y + image_top, pixel_colors[i]);
+	    XPutPixel (ximg, x + img->corners[LEFT_CORNER],
+		       y + img->corners[TOP_CORNER], pixel_colors[i]);
 	  }
     }
+
+  /* Save GIF image extension data for `image-extension-data'.
+     Format is (count IMAGES FUNCTION "BYTES" ...).  */
+  img->data.lisp_val = Qnil;
+  if (gif->SavedImages[ino].ExtensionBlockCount > 0)
+    {
+      ExtensionBlock *ext = gif->SavedImages[ino].ExtensionBlocks;
+      for (i = 0; i < gif->SavedImages[ino].ExtensionBlockCount; i++, ext++)
+	/* Append (... FUNCTION "BYTES") */
+	img->data.lisp_val = Fcons (make_unibyte_string (ext->Bytes, ext->ByteCount),
+				    Fcons (make_number (ext->Function),
+					   img->data.lisp_val));
+      img->data.lisp_val = Fnreverse (img->data.lisp_val);
+    }
+  if (gif->ImageCount > 1)
+    img->data.lisp_val = Fcons (Qcount,
+				Fcons (make_number (gif->ImageCount),
+				       img->data.lisp_val));
 
   fn_DGifCloseFile (gif);
 
@@ -8555,6 +8628,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   defsubr (&Sclear_image_cache);
   defsubr (&Simage_size);
   defsubr (&Simage_mask_p);
+  defsubr (&Simage_extension_data);
 
 #if GLYPH_DEBUG
   defsubr (&Simagep);

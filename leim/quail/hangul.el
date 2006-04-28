@@ -1,6 +1,6 @@
 ;;; hangul.el --- Quail package for inputting Korean Hangul characters  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2006  Free Software Foundation, Inc.
 ;; Copyright (C) 1997
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021

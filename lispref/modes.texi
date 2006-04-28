@@ -2336,8 +2336,6 @@ Search-based fontification happens second.
 * Font Lock Basics::            Overview of customizing Font Lock.
 * Search-based Fontification::  Fontification based on regexps.
 * Customizing Keywords::        Customizing search-based fontification.
-* Region to Fontify::           Controlling which region gets refontified
-                                  after a buffer change.
 * Other Font Lock Variables::   Additional customization facilities.
 * Levels of Font Lock::         Each mode can define alternative levels
                                   so that the user can select more or less.
@@ -2347,6 +2345,8 @@ Search-based fontification happens second.
 * Syntactic Font Lock::         Fontification based on syntax tables.
 * Setting Syntax Properties::   Defining character syntax based on context
                                   using the Font Lock mechanism.
+* Multi line Font Lock Elements:: How to coerce Font Lock into properly
+                                  highlighting multiline elements.
 @end menu
 
 @node Font Lock Basics
@@ -2623,16 +2623,9 @@ this value of @code{font-lock-keywords} is used in a buffer.
 Its value should have one of the forms described in this table.
 @end table
 
-@vindex font-lock-multiline
 @strong{Warning:} Do not design an element of @code{font-lock-keywords}
-to match text which spans lines; this does not work reliably.  While
-@code{font-lock-fontify-buffer} handles multi-line patterns correctly,
-updating when you edit the buffer does not, since it considers text one
-line at a time.  If you have patterns that typically only span one
-line but can occasionally span two or three, such as
-@samp{<title>...</title>}, you can ask Font Lock to be more careful by
-setting @code{font-lock-multiline} to @code{t}.  But it still will not
-work in all cases.
+to match text which spans lines; this does not work reliably.
+For details, see @xref{Multi line Font Lock Elements}.
 
 You can use @var{case-fold} in @code{font-lock-defaults} to specify
 the value of @code{font-lock-keywords-case-fold-search} which says
@@ -2717,36 +2710,6 @@ C mode @emph{and} all modes derived from it, do this instead:
      ("\\<\\(and\\|or\\|not\\)\\>" .
       font-lock-keyword-face)))))
 @end smallexample
-
-@node Region to Fontify
-@subsection Region to Fontify after a Buffer Change
-
-  When a buffer is changed, the region that Font Lock refontifies is by
-default the smallest sequence of whole lines that spans the change.
-While this works well most of the time, sometimes it doesn't---for
-example, when a buffer change has changed the syntactic meaning of text
-on an earlier line.
-
-You can enlarge (or even reduce) the region to fontify by setting either
-of the following variables:
-
-@defvar font-lock-extend-region-function
-This buffer-local variable is either @code{nil} or is a function that
-determines the region to fontify, which Emacs then calls after each
-buffer change.
-
-The function is given three parameters, the standard @var{beg},
-@var{end}, and @var{old-len} from after-change-functions (@pxref{Change
-Hooks}).  It should return either a cons of the beginning and end buffer
-positions (in that order) of the region to fontify, or @code{nil} (which
-directs the caller to fontify the default region).  This function need
-not preserve point or the match-data, but must preserve the current
-restriction.  The region it returns may start or end in the middle of a
-line.
-
-Since this function is called after every buffer change, it should be
-reasonably fast.
-@end defvar
 
 @node Other Font Lock Variables
 @subsection Other Font Lock Variables
@@ -3050,6 +3013,90 @@ strings.
 
 Major modes normally set this variable with @var{other-vars} in
 @code{font-lock-defaults}.
+@end defvar
+
+@node Multi line Font Lock Elements
+@subsection Multi line Font Lock Elements
+@cindex multi line font lock
+
+Normally, Font Lock elements specified via @code{font-lock-keywords}
+should not match across multiple lines.  If they do, Font Lock may
+fail to highlight them properly.  This is fundamentally due to the
+fact that Font Lock does not always look at the whole buffer at
+a time, for obvious performance reasons, and instead only looks
+at a small chunk at a time.  In order for the highlight to be correct,
+a chunk should not straddle an element matched by
+@code{font-lock-keywords}.  The default heuristic used for this is to
+start and end chunks at the beginning resp. end of a line.
+
+To work around this limitations, a few tools are provided.
+
+@menu
+* Font Lock Multiline::         Marking multiline chunks with a text property
+* Region to Fontify::           Controlling which region gets refontified
+                                  after a buffer change.
+@end menu
+
+@node Font Lock Multiline
+@subsubsection Font Lock Multiline
+
+In order to make it possible to properly highlight elements that span
+multiple lines, Font Lock obeys a special text property
+@code{font-lock-multiline} which if non-@code{nil} indicates that this
+piece of text is part of a multiline construct.  So when Font Lock is
+asked to highlight a region, it first verifies the two boundaries and
+extends them as needed so they do not fall in the middle of a piece of
+text marked with the @code{font-lock-multiline} property.
+Immediately after that, it also erases all @code{font-lock-multiline}
+properties from the region it is about to highlight, so it is the
+responsability of the highlighting specification (mostly
+@code{font-lock-keywords}) to make sure that this property is re-added
+where needed so as to inform the next round of Font Locking of the
+presence of a multiline construct.
+
+It is important to understand that the @code{font-lock-multiline}
+property should preferably only be used on Font Lock elements of
+moderate size: every time that text is modified within the multiline
+elements (or nearby), the whole multiline element will be completely
+re-highlighted, so if its size is large, the time to font-lock may
+render editing painfully slow.
+
+@defvar font-lock-multiline
+If the @code{font-lock-multiline} variable is set to @code{t}, Font
+Lock will try to automatically add the @code{font-lock-multiline}
+property on the keywords that span several lines.  This is no silver
+bullet however since it slows down Font Lock somewhat, and still does
+not always find all multiline constructs, especially when used with
+Jit Lock, which is enabled by default.
+@end defvar
+
+@node Region to Fontify
+@subsubsection Region to Fontify after a Buffer Change
+
+  When a buffer is changed, the region that Font Lock refontifies is by
+default the smallest sequence of whole lines that spans the change.
+While this works well most of the time, sometimes it doesn't---for
+example, when a buffer change has changed the syntactic meaning of text
+on an earlier line.
+
+You can enlarge (or even reduce) the region to fontify by setting @c either of
+the following variables:
+
+@defvar font-lock-extend-region-function
+This buffer-local variable is either @code{nil} or is a function that
+determines the region to fontify, which Emacs then calls after each
+buffer change.
+
+The function is given three parameters, the standard @var{beg},
+@var{end}, and @var{old-len} from after-change-functions (@pxref{Change
+Hooks}).  It should return either a cons of the beginning and end buffer
+positions (in that order) of the region to fontify, or @code{nil} (which
+directs the caller to fontify the default region).  This function needs
+to preserve point, the match-data, and the current restriction.
+The region it returns may start or end in the middle of a line.
+
+Since this function is called after every buffer change, it should be
+reasonably fast.
 @end defvar
 
 @node Desktop Save Mode

@@ -118,8 +118,7 @@ linked Emacs under SunOS 4.x"
 				 url-gateway-nslookup-program host))
 	    (res host))
 	(set-process-query-on-exit-flag proc nil)
-	(save-excursion
-	  (set-buffer (process-buffer proc))
+	(with-current-buffer (process-buffer proc)
 	  (while (memq (process-status proc) '(run open))
 	    (accept-process-output proc))
 	  (goto-char (point-min))
@@ -168,8 +167,7 @@ linked Emacs under SunOS 4.x"
 (defun url-open-telnet (name buffer host service)
   (if (not (stringp service))
       (setq service (int-to-string service)))
-  (save-excursion
-    (set-buffer (get-buffer-create buffer))
+  (with-current-buffer (get-buffer-create buffer)
     (erase-buffer)
     (let ((proc (start-process name buffer "telnet" "-8"))
 	  (case-fold-search t))
@@ -261,11 +259,15 @@ Will not make a connection if `url-gateway-unplugged' is non-nil."
 			 (otherwise
 			  (error "Bad setting of url-gateway-method: %s"
 				 url-gateway-method)))))
-	(error
-	 (setq conn nil)))
+        ;; Ignoring errors here seems wrong.  E.g. it'll throw away the
+        ;; error signalled two lines above.  It was also found inconvenient
+        ;; during debugging.
+	;; (error
+	;;  (setq conn nil))
+	)
       conn)))
 
 (provide 'url-gw)
 
-;;; arch-tag: 1c4c0317-6d03-45b8-b3f3-838bd8f9d838
+;; arch-tag: 1c4c0317-6d03-45b8-b3f3-838bd8f9d838
 ;;; url-gw.el ends here

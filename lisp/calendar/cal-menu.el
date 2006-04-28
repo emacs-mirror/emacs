@@ -89,7 +89,7 @@
 (define-key calendar-mode-map [menu-bar diary mark]
  '("Mark All" . mark-diary-entries))
 (define-key calendar-mode-map [menu-bar diary view]
-  '("Cursor Date" . view-diary-entries))
+  '("Cursor Date" . diary-view-entries))
 (define-key calendar-mode-map [menu-bar diary view]
   '("Other File" . view-other-diary-entries))
 

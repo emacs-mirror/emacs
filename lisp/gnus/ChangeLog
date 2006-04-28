@@ -1,3 +1,57 @@
+2006-04-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* deuglify.el (gnus-outlook-deuglify-unwrap-min)
+	(gnus-outlook-deuglify-unwrap-max): Remove autoload.
+
+	* mml-sec.el (mml-secure-method): New internal variable.
+	(mml-secure-sign, mml-secure-encrypt, mml-secure-message-sign)
+	(mml-secure-message-sign-encrypt, mml-secure-message-encrypt): New
+	functions using mml-secure-method.  Sync from the trunk.
+
+	* mml.el (mml-mode-map): Add key bindings for those functions.
+	(mml-menu): Simplify security menu entries.  Suggested by Jesper
+	Harder <harder@myrealbox.com>.  Sync from the trunk.
+
+	* message.el (message-valid-fqdn-regexp): Add TLDs .cat, jobs,
+	.mobi and .travel.  Remove .nato, .bitnet and .uucp.
+	(message-in-body-p): New function.  Sync from the trunk.
+
+	* mml.el (mml-mode, mml-dnd-protocol-alist)
+	(mml-dnd-attach-options, mml-dnd-attach-file)
+	(mml-attach-file, mml-attach-buffer, mml-attach-external): Sync
+	DND support and use of message-in-body-p from the trunk.
+
+2006-04-25  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-google-wash-article): Sync up to new Google
+	HTML.
+
+2006-04-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-uu.el (mm-uu-pgp-signed-test): Erase prompt.
+	(mm-uu-pgp-encrypted-test): Ditto.
+	(mm-uu-pgp-encrypted-extract-1): Make sure there's a blank line
+	between header and body; return application/pgp-encrypted handle
+	if decryption failed; decode decrypted body by charset.
+
+	* mm-decode.el (mm-automatic-display): Don't make application/pgp
+	element match to application/pgp-*.
+
+2006-04-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-util.el (gnus-replace-in-string): Prefer
+	replace-regexp-in-string over of replace-in-string.
+
+2006-04-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el: Bind tool-bar-mode instead of tool-bar-map.
+
+	* gnus-sum.el: Ditto.
+
+	* gnus-util.el (gnus-select-frame-set-input-focus): Use
+	select-frame-set-input-focus if it is available in XEmacs; use
+	definition defined in Emacs 22 for old Emacsen.
+
 2006-04-17  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	[ Merge from Gnus trunk. ]

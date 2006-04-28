@@ -1,7 +1,71 @@
+2006-04-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pgg.texi (Caching passphrase): Fix markup and typos.  Simplify.
+
+2006-04-26  Sascha Wilde  <wilde@sha-bang.de>
+
+	* pgg.texi (Caching passphrase): Added documentation for
+	pgg-gpg-use-agent.
+
+2006-04-24  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Getting Started): Made it more explicit that you need
+	to install MH, and also included pointers to current MH implementations.
+
+2006-04-23  Richard Stallman  <rms@gnu.org>
+
+	* emacs.texi [TeX]: Use xresmini.texi instead of xresources.texi.
+
+	* xresmini.texi: New file.
+
+	* xresources.texi (Face Resources): Split table into font resources
+	and the rest.  Combine similar attributes for brevity.
+
+2006-04-21  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 7.94.
+	
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 7.94.
+
+2006-04-21  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Many small fixes.
+	(Handling links): Renamed from "Managing links".
+
+2006-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-xtra.texi (MS-DOS File Names): Remove section about
+	backslashes and case-insensitivity in file names (moved to the
+	main manual).
+	(MS-DOS Printing): Move most of the text to the main manual.
+
+	* msdog.texi (Windows Files, Windows HOME, MS-Windows Printing):
+	New nodes.
+	(Windows Processes, Windows System Menu): Add index entries and
+	fix wording.
+
+2006-04-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Spam Statistics Package): Fix typo in @pxref.
+	(Splitting mail using spam-stat): Fix @xref.
+
+2006-04-20  Chong Yidong <cyd@stupidchicken.com>
+
+	* gnus.texi (Spam Package): Major revision of the text.  Previouly
+	this node was "Filtering Spam Using The Spam ELisp Package".
+
+2006-04-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Time stamps): Better explanation of the purpose of
+	different time stamps.
+	(Structure editing, Plain lists): More details on how new items
+	and headings are inserted.
+
 2006-04-18  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* misc.texi (Shell Ring): Added notes on saved input when
-	navigating off the end of the history list.  
+	navigating off the end of the history list.
 
 2006-04-18  Chong Yidong  <cyd@mit.edu>
 

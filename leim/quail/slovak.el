@@ -1,6 +1,6 @@
 ;;; slovak.el --- Quail package for inputting Slovak  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1998, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001, 2006 Free Software Foundation, Inc.
 
 ;; Authors: Tibor ,B)(Bimko <tibor.simko@fmph.uniba.sk>
 ;;	Milan Zamazal <pdm@zamazal.org>
