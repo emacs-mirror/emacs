@@ -1404,20 +1404,35 @@ changes.
 There's a new separate package grep.el, with its own submenu and
 customization group.
 
----
-*** M-x grep provides highlighting support.
-
-Hits are fontified in green, and hits in binary files in orange.  Grep buffers
-can be saved and automatically revisited.
-
 +++
 *** `grep-find' is now also available under the name `find-grep' where
 people knowing `find-grep-dired' would probably expect it.
 
++++
+*** New commands `lgrep' (local grep) and `rgrep' (recursive grep) are
+more user-friendly versions of `grep' and `grep-find', which prompt
+separately for the regular expression to match, the files to search,
+and the base directory for the search (rgrep only).  Case sensitivitivy
+of the search is controlled by the current value of `case-fold-search'.
+
+These commands build the shell commands based on the new variables
+`grep-template' (lgrep) and `grep-find-template' (rgrep).
+
+The files to search can use aliases defined in `grep-files-aliases'.
+
+Subdirectories listed in `grep-find-ignored-directories' such as those
+typically used by various version control systems, like CVS and arch,
+are automatically skipped by `rgrep'.
+
 ---
-*** The new variables `grep-window-height', `grep-auto-highlight', and
-`grep-scroll-output' override the corresponding compilation mode
-settings, for grep commands only.
+*** The grep commands provide highlighting support.
+
+Hits are fontified in green, and hits in binary files in orange.  Grep buffers
+can be saved and automatically revisited.
+
+---
+*** The new variables `grep-window-height' and `grep-scroll-output' override
+the corresponding compilation mode settings, for grep commands only.
 
 +++
 *** New option `grep-highlight-matches' highlights matches in *grep*
