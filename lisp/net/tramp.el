@@ -4324,24 +4324,34 @@ Fall back to normal file name handler if no Tramp handler exists."
 		  (tramp-run-real-handler operation args))))))
       (setq tramp-locked tl))))
 
+;; Preload this DEFUN with the progn trick.  This avoids cyclic
+;; loading, because the `load-in-progress' check can be performed.
 ;;;###autoload
-(defun tramp-completion-file-name-handler (operation &rest args)
+(progn (defun tramp-completion-file-name-handler (operation &rest args)
   "Invoke tramp file name completion handler.
 Falls back to normal file name handler if no tramp file name handler exists."
 ;;   (setq tramp-debug-buffer t)
 ;;   (tramp-message 1 "%s %s" operation args)
 ;;   (tramp-message 1 "%s %s\n%s"
 ;; 		 operation args (with-output-to-string (backtrace)))
-  (let ((fn (assoc operation tramp-completion-file-name-handler-alist)))
-    (if fn
-	(save-match-data (apply (cdr fn) args))
-      (tramp-completion-run-real-handler operation args))))
+  (if load-in-progress
+      ;; We are while loading Tramp.
+      (let (file-name-handler-alist)
+	(apply operation args))
+    ;; If Tramp is not loaded yet, do it now.
+    (require 'tramp)
+    (let ((fn (assoc operation tramp-completion-file-name-handler-alist)))
+      (if fn
+	  (save-match-data (apply (cdr fn) args))
+	(tramp-completion-run-real-handler operation args))))))
 
 ;; Register in `file-name-handler-alist'.
 ;; `tramp-completion-file-name-handler' must not be active when temacs
-;; dumps.  And it makes no sense in batch mode anyway.
+;; dumps.  And it makes no sense in batch mode anyway.  This must be
+;; an autoloaded DEFSUBST, because Tramp would be loaded otherwise
+;; applying the `after-init-hook'.
 ;;;###autoload
-(defun tramp-register-file-name-handlers ()
+(defsubst tramp-register-file-name-handlers ()
   "Add tramp file name handlers to `file-name-handler-alist'."
   (unless noninteractive
     (add-to-list 'file-name-handler-alist
@@ -4349,18 +4359,20 @@ Falls back to normal file name handler if no tramp file name handler exists."
     (add-to-list 'file-name-handler-alist
 		 (cons tramp-completion-file-name-regexp
 		       'tramp-completion-file-name-handler))
-    (put 'tramp-completion-file-name-handler 'safe-magic t)))
+    (put 'tramp-completion-file-name-handler 'safe-magic t)
+    ;; If jka-compr is already loaded, move it to the front of
+    ;; `file-name-handler-alist'.
+    (let ((jka (rassoc 'jka-compr-handler file-name-handler-alist)))
+      (when jka
+	(setq file-name-handler-alist
+	      (cons jka (delete jka file-name-handler-alist)))))))
 
-;; LAMBDA function used temporarily, because older/other versions of
-;; Tramp don't know of `tramp-register-file-name-handlers'.  Can be
-;; replaced once that DEFUN is established.  Relevant for Emacs 22 only.
-;;;###;autoload(add-hook 'emacs-startup-hook 'tramp-register-file-name-handlers)
+;; `tramp-register-file-name-handlers' cannot be autoloaded as-it-is,
+;; because the `noninteractive' check would prevent functionality to
+;; be dumped in temacs.
 ;;;###autoload(add-hook
-;;;###autoload 'emacs-startup-hook
-;;;###autoload '(lambda ()
-;;;###autoload    (condition-case nil
-;;;###autoload        (funcall 'tramp-register-file-name-handlers)
-;;;###autoload      (error nil))))
+;;;###autoload 'after-init-hook
+;;;###autoload '(lambda () (tramp-register-file-name-handlers)))
 (tramp-register-file-name-handlers)
 
 ;;;###autoload
@@ -4373,16 +4385,6 @@ Falls back to normal file name handler if no tramp file name handler exists."
 			file-name-handler-alist))))
 
 (add-hook 'tramp-unload-hook 'tramp-unload-file-name-handlers)
-
-(defun tramp-repair-jka-compr ()
-  "If jka-compr is already loaded, move it to the front of
-`file-name-handler-alist'.  On Emacs 22 or so this will not be
-necessary anymore."
-  (let ((jka (rassoc 'jka-compr-handler file-name-handler-alist)))
-    (when jka
-      (setq file-name-handler-alist
-	    (cons jka (delete jka file-name-handler-alist))))))
-(tramp-repair-jka-compr)
 
 
 ;;; Interactions with other packages:

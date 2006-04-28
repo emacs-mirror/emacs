@@ -1,3 +1,12 @@
+2006-04-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-completion-file-name-handler): Disable
+	Tramp's functionality while loading Tramp itself.
+	(tramp-register-file-name-handlers): That's a defsubst now.  Code
+	from `tramp-repair-jka-compr' moved here.  Apply it via
+	`after-init-hook'.
+	(tramp-repair-jka-compr): Removed.
+
 2006-04-27  Jay Belanger  <belanger@truman.edu>
 
 	* calc-embed.el (calc-embedded-make-info): Use `math-read-expr' to
