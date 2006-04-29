@@ -6,6 +6,19 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 
+* Changes in MH-E 7.95
+
+Version 7.95, the second 8.0 release candidate, fixes a single bug.
+It would be good to check this version ASAP since the Emacs pretest is
+coming in days: if no showstopper problems are found in this version
+it will be promoted to 8.0 before the pretest. Thanks for your help!
+
+** Bug Fixes in MH-E 7.95
+
+*** Folder Completion Fails in fcc: Field
+
+This has been fixed (closes SF #1476270).
+
 * Changes in MH-E 7.94
 
 Version 7.94, the first 8.0 release candidate, fixes a bunch of bugs,
