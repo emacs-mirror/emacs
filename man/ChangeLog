@@ -1,3 +1,7 @@
+2006-04-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* custom.texi (Examining): Update C-h v output example.
+
 2006-04-29  Kim F. Storm  <storm@cua.dk>
 
 	* building.texi (Grep Searching): Add lgrep and rgrep.
