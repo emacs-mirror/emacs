@@ -1778,13 +1778,12 @@ measures to prevent this.
 
 @cindex safe local variable
   You can specify safe values for a variable with a
-@code{safe-local-variable} property.  If the property is @code{t},
-setting that variable in a file is always considered safe, regardless
-of the value used.  If the property is a function of one argument,
-then any value is safe if the function returns non-@code{nil} given
-that value.  Many commonly encountered file variables standardly have
-@code{safe-local-variable} properties, including @code{fill-column},
-@code{fill-prefix}, and @code{indent-tabs-mode}.
+@code{safe-local-variable} property.  The property has to be
+a function of one argument; any value is safe if the function
+returns non-@code{nil} given that value.  Many commonly encountered
+file variables standardly have @code{safe-local-variable} properties,
+including @code{fill-column}, @code{fill-prefix}, and
+@code{indent-tabs-mode}.
 
 @defopt safe-local-variable-values
 This variable provides another way to mark some variable values as
