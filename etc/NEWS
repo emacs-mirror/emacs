@@ -3645,9 +3645,10 @@ This is useful in packages that can be preloaded.
 If it is non-nil, the function lists only faces matching this regexp.
 
 +++
-*** New function `string-or-null-p'.
+*** New functions `string-or-null-p' and `booleanp'.
 
-Return t if OBJECT is a string or nil.  Otherwise, return nil.
+`string-or-null-p' returns non-nil iff OBJECT is a string or nil.
+`booleanp' returns non-nil iff OBJECT is a t or nil.
 
 ** Lisp code indentation features:
 
