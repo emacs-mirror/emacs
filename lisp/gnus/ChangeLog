@@ -1,3 +1,39 @@
+2006-04-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* lpath.el: Don't fbind string-as-multibyte for XEmacs.
+
+	* pgg-gpg.el (pgg-string-to-multibyte): Remove.
+	(pgg-gpg-process-region): Revert.
+
+	* pgg-pgp.el (pgg-pgp-process-region): Revert.
+	(pgg-pgp-lookup-key): Revert.
+
+	* pgg-pgp5.el (pgg-pgp5-process-region): Revert.
+	(pgg-pgp5-lookup-key): Revert.
+
+	* pgg.el (pgg-fetch-key): Revert.
+
+2006-04-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* lpath.el: Fbind make-network-process for both Emacs and XEmacs;
+	fbind string-as-multibyte for XEmacs.
+
+	* mml1991.el (mml1991-pgg-sign): No need to load pgg.el, which is
+	always loaded by way of gnus-art.el -> mm-uu.el -> mml2015.el.
+	(mml1991-pgg-encrypt): Ditto.
+
+	* pgg-gpg.el (pgg-string-to-multibyte): New function.
+	(pgg-gpg-process-region): Make sure pgg-output-buffer is always
+	a multibyte buffer.
+
+	* pgg-pgp.el (pgg-pgp-process-region): Ditto.
+	(pgg-pgp-lookup-key): Ditto.
+
+	* pgg-pgp5.el (pgg-pgp5-process-region): Ditto.
+	(pgg-pgp5-lookup-key): Ditto.
+
+	* pgg.el (pgg-fetch-key): Ditto.
+
 2006-04-26  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* deuglify.el (gnus-outlook-deuglify-unwrap-min)
@@ -20,6 +56,18 @@
 	(mml-dnd-attach-options, mml-dnd-attach-file)
 	(mml-attach-file, mml-attach-buffer, mml-attach-external): Sync
 	DND support and use of message-in-body-p from the trunk.
+
+2006-04-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml1991.el (mml1991-pgg-sign): Make sure to load pgg.el before
+	binding pgg-* variables; reimplement the section which prevents
+	MIME header from being signed.
+	(mml1991-pgg-encrypt): Make sure to load pgg.el before binding
+	pgg-text-mode; remove a blank line at the top of body.
+
+	* mm-uu.el (mm-uu-pgp-encrypted-extract-1): Don't remove blank
+	lines at the top of body; use gnus-newsgroup-charset if there's no
+	Charset header.
 
 2006-04-25  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
