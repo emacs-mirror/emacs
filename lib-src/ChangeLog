@@ -1,5 +1,7 @@
 2006-04-29  Richard Stallman  <rms@gnu.org>
 
+	* movemail.c (main): Check for negative value from `read'.
+
 	* fakemail.c (read_header): Give fatal error if input has no header.
 
 2006-04-02  Paul Eggert  <eggert@cs.ucla.edu>
