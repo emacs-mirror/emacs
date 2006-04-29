@@ -3029,7 +3029,51 @@ a chunk should not straddle an element matched by
 @code{font-lock-keywords}.  The default heuristic used for this is to
 start and end chunks at the beginning resp. end of a line.
 
-To work around this limitations, a few tools are provided.
+In order for Font Lock to properly highlight elements that span
+multiple lines, the package author has to ensure two things: correct
+@emph{discovery} and correct @emph{re}highlighting.  The first ensures
+that Font Lock finds all multiline elements.  The second ensures that
+Font Lock will correctly re-highlight all the relevant text when
+a multiline element is changed, e.g. causing some of the text that was
+previously part of a multiline element to not be part of it any more.
+The two aspects are closely related and often getting one of the two
+to work will appear to make the other also work.  But both aspects
+have to be taken care of for the multiline elements to be
+reliably highlighted.
+
+Correct @emph{re}highlighting of multiline elements can be done in the
+following ways:
+@itemize
+@item
+Apply the @code{font-lock-multiline} property to the element.
+This will ensure that the whole element will always be immediately
+rehighlighted if any part of it is changed.  This can sometimes be
+done automatically by setting the @code{font-lock-multiline} variable.
+@item
+Rely on @code{jit-lock-contextually}.  This will only rehighlight the
+part of the element that follows the actual change, and will do it
+after a short delay.  This only works if the highlighting of the
+various parts of your multiline element never depends on text in
+subsequent lines.  Since @code{jit-lock-contextually} is activated by
+default, this can be an attractive solution.
+@item
+Apply the @code{jit-lock-defer-multiline} property to the element.
+This works only if @code{jit-lock-contextually} is used and allows it
+to also work when highlighting does depend on subsequent lines.
+@item
+@end itemize
+
+Discovery of new multiline elements can be done in the following ways:
+@itemize
+@item
+Manually placing a @code{font-lock-multiline} or
+@code{jit-lock-defer-multiline} property on the element when it is
+added to the buffer.
+@item
+Using the @code{font-lock-fontify-region-function} hook to extend the
+highlighted chunks so that they never start or end in the middle of
+multiline element.
+@end itemize
 
 @menu
 * Font Lock Multiline::         Marking multiline chunks with a text property
@@ -3040,24 +3084,24 @@ To work around this limitations, a few tools are provided.
 @node Font Lock Multiline
 @subsubsection Font Lock Multiline
 
-In order to make it possible to properly highlight elements that span
-multiple lines, Font Lock obeys a special text property
+In order to make it possible to properly @emph{re}highlight elements that
+span multiple lines, Font Lock obeys a special text property
 @code{font-lock-multiline} which if non-@code{nil} indicates that this
-piece of text is part of a multiline construct.  So when Font Lock is
-asked to highlight a region, it first verifies the two boundaries and
-extends them as needed so they do not fall in the middle of a piece of
-text marked with the @code{font-lock-multiline} property.
-Immediately after that, it also erases all @code{font-lock-multiline}
-properties from the region it is about to highlight, so it is the
-responsability of the highlighting specification (mostly
-@code{font-lock-keywords}) to make sure that this property is re-added
-where needed so as to inform the next round of Font Locking of the
-presence of a multiline construct.
+piece of text was highlighted as part of a multiline construct.
+So when Font Lock is asked to rehighlight a region, it first verifies
+the two boundaries and extends them as needed so they do not fall in
+the middle of a piece of text marked with the
+@code{font-lock-multiline} property.  Immediately after that, it also
+erases all @code{font-lock-multiline} properties from the region it is
+about to highlight, so it is the responsability of the highlighting
+specification (mostly @code{font-lock-keywords}) to make sure that
+this property is re-added where needed so as to inform the next round
+of Font Locking of the presence of a multiline construct.
 
 It is important to understand that the @code{font-lock-multiline}
 property should preferably only be used on Font Lock elements of
-moderate size: every time that text is modified within the multiline
-elements (or nearby), the whole multiline element will be completely
+moderate size: every time that text is modified within a multiline
+element (or nearby), the whole multiline element will be completely
 re-highlighted, so if its size is large, the time to font-lock may
 render editing painfully slow.
 
@@ -3065,10 +3109,30 @@ render editing painfully slow.
 If the @code{font-lock-multiline} variable is set to @code{t}, Font
 Lock will try to automatically add the @code{font-lock-multiline}
 property on the keywords that span several lines.  This is no silver
-bullet however since it slows down Font Lock somewhat, and still does
-not always find all multiline constructs, especially when used with
-Jit Lock, which is enabled by default.
+bullet however since it slows down Font Lock somewhat, and may miss
+some cases or make the property larger or smaller than necessary,
+especially for keywords whose @var{MATCHER} is a function, in which
+case the function needs to make sure that the submatch 0 covers the
+whole relevant multiline entity even if only a small subpart will
+be highlighted.  It is often just as easy to add the
+@code{font-lock-multiline} property by hand.
 @end defvar
+
+As mentioned, this property is mostly intended to ensure proper
+@emph{re}fontification.  It does not magically discover new
+multiline elements.  To discover new multiline elements, all that is
+required is that font-lock operate on large enough chunks at a time.
+This will happen by accident on many cases, which may give the
+impression that multiline elements magically work.  If you set the
+@code{font-lock-multiline} variable, this impression will be even
+stronger since the highlighting of those found elements will be
+properly preserved from then on.  But for such multiline elements to
+be found reliably, you will need to either manually put the
+@code{font-lock-multiline} property from some appropriate piece of
+code run before Font Lock, or hook into
+@code{font-lock-fontify-region-function} to manually extend the chunks
+of text that Font Lock highlights so they never start or stop in the
+middle of a multiline element.
 
 @node Region to Fontify
 @subsubsection Region to Fontify after a Buffer Change
