@@ -1,5 +1,7 @@
 2006-04-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* sorted-doc.c (main): Initialize docs to NULL.
+
 	* yow.c (yow): Free buf.
 
 	* etags.c: Delete c-indentation-style local variable.

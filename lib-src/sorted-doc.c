@@ -131,7 +131,7 @@ main ()
   register enum state state = WAITING; /* state at start */
   int cnt = 0;			/* number of DOCSTRs read */
 
-  DOCSTR *docs;			/* chain of allocated DOCSTRS */
+  DOCSTR *docs = NULL;          /* chain of allocated DOCSTRS */
   char buf[512];		/* line buffer */
 
   while (1)			/* process one char at a time */
