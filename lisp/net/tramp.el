@@ -1822,7 +1822,7 @@ Escape sequence %s is replaced with name of Perl binary.
 This string is passed to `format', so percent characters need to be doubled.")
 
 ; These values conform to `file-attributes' from XEmacs 21.2.
-; GNU Emacs and other tools not checked.
+; Emacs and other tools not checked.
 (defconst tramp-file-mode-type-map '((0  . "-")  ; Normal file (SVID-v2 and XPG2)
 				     (1  . "p")  ; fifo
 				     (2  . "c")  ; character device
@@ -1927,17 +1927,13 @@ on the FILENAME argument, even if VISIT was a string.")
   "Alist of handler functions.
 Operations not mentioned here will be handled by the normal Emacs functions.")
 
-;; Handlers for partial tramp file names. For GNU Emacs just
-;; `file-name-all-completions' is needed. The other ones are necessary
-;; for XEmacs.
+
+;; Handlers for partial tramp file names.  For Emacs just
+;; `file-name-all-completions' is needed.
 (defconst tramp-completion-file-name-handler-alist
   '(
-    (file-name-directory . tramp-completion-handle-file-name-directory)
-    (file-name-nondirectory . tramp-completion-handle-file-name-nondirectory)
-    (file-exists-p . tramp-completion-handle-file-exists-p)
     (file-name-all-completions . tramp-completion-handle-file-name-all-completions)
-    (file-name-completion . tramp-completion-handle-file-name-completion)
-    (expand-file-name . tramp-completion-handle-expand-file-name))
+    (file-name-completion . tramp-completion-handle-file-name-completion))
   "Alist of completion handler functions.
 Used for file names matching `tramp-file-name-regexp'. Operations not
 mentioned here will be handled by `tramp-file-name-handler-alist' or the
