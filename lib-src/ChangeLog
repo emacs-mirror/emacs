@@ -1,5 +1,7 @@
 2006-04-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* yow.c (yow): Free buf.
+
 	* etags.c: Delete c-indentation-style local variable.
 
 2006-04-29  Richard Stallman  <rms@gnu.org>
