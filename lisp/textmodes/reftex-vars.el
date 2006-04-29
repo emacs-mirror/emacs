@@ -975,7 +975,7 @@ immediately offer the correct label menu - otherwise it will prompt you for
 a label type.  If you set this variable to nil, RefTeX will always prompt."
   :group 'reftex-referencing-labels
   :type 'boolean)
-;;;###autoload(put 'reftex-guess-label-type 'safe-local-variable 'symbolp)
+;;;###autoload(put 'reftex-guess-label-type 'safe-local-variable (lambda (x) (memq x '(nil t))))
 
 (defcustom reftex-format-ref-function nil
   "Function which produces the string to insert as a reference.
