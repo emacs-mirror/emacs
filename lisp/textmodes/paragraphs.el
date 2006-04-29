@@ -81,7 +81,7 @@ to paragraphs.  The fill functions insert and delete only soft newlines."
 		  (set-hard-newline-properties (point) (1+ (point)))))))))))
 
 (defcustom paragraph-start "\f\\|[ \t]*$" "\
-*Regexp for beginning of a line that starts OR separates paragraphs.
+Regexp for beginning of a line that starts OR separates paragraphs.
 This regexp should match lines that separate paragraphs
 and should also match lines that start a paragraph
 \(and are part of that paragraph).
@@ -107,7 +107,7 @@ hard newline are considered to match."
 ;; start a new paragraph).
 
 (defcustom paragraph-separate "[ \t\f]*$"
-  "*Regexp for beginning of a line that separates paragraphs.
+  "Regexp for beginning of a line that separates paragraphs.
 If you change this, you may have to change `paragraph-start' also.
 
 This is matched against the text at the left margin, which is not necessarily
@@ -119,7 +119,7 @@ text indented by a margin setting."
 ;;;###autoload(put 'paragraph-separate 'safe-local-variable 'stringp)
 
 (defcustom sentence-end-double-space t
-  "*Non-nil means a single space does not end a sentence.
+  "Non-nil means a single space does not end a sentence.
 This is relevant for filling.  See also `sentence-end-without-period'
 and `colon-double-space'.
 
@@ -128,10 +128,10 @@ regexp describing the end of a sentence, when the value of the variable
 `sentence-end' is nil.  See Info node `(elisp)Standard Regexps'."
   :type 'boolean
   :group 'fill)
-;;;###autoload(put 'sentence-end-double-space 'safe-local-variable 'symbolp)
+;;;###autoload(put 'sentence-end-double-space 'safe-local-variable 'booleanp)
 
 (defcustom sentence-end-without-period nil
-  "*Non-nil means a sentence will end without a period.
+  "Non-nil means a sentence will end without a period.
 For example, a sentence in Thai text ends with double space but
 without a period.
 
@@ -140,21 +140,21 @@ regexp describing the end of a sentence, when the value of the variable
 `sentence-end' is nil.  See Info node `(elisp)Standard Regexps'."
   :type 'boolean
   :group 'fill)
-;;;###autoload(put 'sentence-end-without-period 'safe-local-variable 'symbolp)
+;;;###autoload(put 'sentence-end-without-period 'safe-local-variable 'booleanp)
 
 (defcustom sentence-end-without-space
   "$B!#!%!)!*$A!##.#?#!$(0!$!%!)!*$(G!$!%!)!*(B"
-  "*String of characters that end sentence without following spaces.
+  "String of characters that end sentence without following spaces.
 
 This value is used by the function `sentence-end' to construct the
 regexp describing the end of a sentence, when the value of the variable
 `sentence-end' is nil.  See Info node `(elisp)Standard Regexps'."
   :group 'paragraphs
   :type 'string)
-;;;###autoload(put 'sentence-end-without-space 'safe-local-variable 'symbolp)
+;;;###autoload(put 'sentence-end-without-space 'safe-local-variable 'stringp)
 
 (defcustom sentence-end nil
-  "*Regexp describing the end of a sentence.
+  "Regexp describing the end of a sentence.
 The value includes the whitespace following the sentence.
 All paragraph boundaries also end sentences, regardless.
 
@@ -166,7 +166,7 @@ to obtain the value of this variable."
 ;;;###autoload(put 'sentence-end 'safe-local-variable 'string-or-null-p)
 
 (defcustom sentence-end-base "[.?!][]\"'$B!I$,1r}(B)}]*"
-  "*Regexp matching the basic end of a sentence, not including following space."
+  "Regexp matching the basic end of a sentence, not including following space."
   :group 'paragraphs
   :type 'string
   :version "22.1")
@@ -195,17 +195,17 @@ in between.  See Info node `(elisp)Standard Regexps'."
               "[ \t\n]*")))
 
 (defcustom page-delimiter "^\014"
-  "*Regexp describing line-beginnings that separate pages."
+  "Regexp describing line-beginnings that separate pages."
   :group 'paragraphs
   :type 'regexp)
 ;;;###autoload(put 'page-delimiter 'safe-local-variable 'stringp)
 
 (defcustom paragraph-ignore-fill-prefix nil
-  "*Non-nil means the paragraph commands are not affected by `fill-prefix'.
+  "Non-nil means the paragraph commands are not affected by `fill-prefix'.
 This is desirable in modes where blank lines are the paragraph delimiters."
   :group 'paragraphs
   :type 'boolean)
-;;;###autoload(put 'paragraph-ignore-fill-prefix 'safe-local-variable 'symbolp)
+;;;###autoload(put 'paragraph-ignore-fill-prefix 'safe-local-variable 'booleanp)
 
 (defun forward-paragraph (&optional arg)
   "Move forward to end of paragraph.
