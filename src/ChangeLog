@@ -1,3 +1,8 @@
+2006-04-30  Richard Stallman  <rms@gnu.org>
+
+	* keymap.c (Fdefine_key): Improve error message
+	when KEY begins with a non-prefix key.
+
 2006-04-30  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
 
 	* syntax.c (Fforward_comment): Don't forget to break out of the loop
