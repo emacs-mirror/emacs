@@ -4,6 +4,10 @@
 
 2006-04-29  Richard Stallman  <rms@gnu.org>
 
+	* bindings.el (mode-line-major-mode-keymap): Move the major mode menu
+	to Mouse-3.
+	(help-echo): help-echo doc fixes.
+
 	* net/tramp.el (tramp-file-name-handler-alist): Delete
 	expand-file-name and other operations that can cause spurious loading.
 
