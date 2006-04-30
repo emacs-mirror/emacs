@@ -1,3 +1,9 @@
+2006-04-29  Richard Stallman  <rms@gnu.org>
+
+	* modes.texi (Multiline Font Lock): Renamed from 
+	Multi line Font Lock Elements.  Much clarification.
+	(Font Lock Multiline, Region to Fontify): Much clarification.
+
 2006-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* variables.texi (File Local Variables): Remove the special case t for
