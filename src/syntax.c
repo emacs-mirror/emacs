@@ -2140,6 +2140,9 @@ between them, return t; otherwise return nil.  */)
 		  from_byte = ini_byte;
 		  goto leave;
 		}
+ 	      else
+		/* We have skipped one comment.  */
+		break;
 	    }
 	  else if (code == Sendcomment)
 	    {

@@ -1,3 +1,8 @@
+2006-04-30  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* syntax.c (Fforward_comment): Don't forget to break out of the loop
+	when we skipped backward over a generic comment.
+
 2006-04-27  Nick Roberts  <nickrob@snap.net.nz>
 
 	* .gdbinit (pp1, pv1): Only print value as expression is now
