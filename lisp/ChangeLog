@@ -1,3 +1,9 @@
+2006-05-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-def): Add %c case.
+	(gud-speedbar-buttons): Don'bind case-fold-search unnecessarily.
+	(gud-format-command): Make match case sensitive.  Match on %F.
+
 2006-04-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* help-fns.el (describe-variable): Add info about safe local variables.
