@@ -267,8 +267,9 @@ buffer size, the line number and the column number.")
 
 (defvar mode-line-major-mode-keymap
   (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line down-mouse-1] 'mouse-major-mode-menu)
     (define-key map [mode-line mouse-2] 'describe-mode)
-    (define-key map [mode-line down-mouse-3] 'mouse-major-mode-menu)
+    (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
     map) "\
 Keymap to display on major mode.")
 
@@ -309,13 +310,13 @@ Keymap to display on minor modes.")
     (list
      (propertize "%[(" 'help-echo help-echo)
      `(:propertize ("" mode-name)
-		   help-echo "mouse-2: help for major mode, mouse-3: major mode menu"
+		   help-echo "mouse-1: major mode, mouse-2: major mode help, mouse-3: toggle minor modes"
 		   mouse-face mode-line-highlight
 		   local-map ,mode-line-major-mode-keymap)
      '("" mode-line-process)
      `(:propertize ("" minor-mode-alist)
 		   mouse-face mode-line-highlight
-		   help-echo "mouse-2: help for minor mode, mouse-3: toggle minor modes"
+		   help-echo "mouse-2: minor mode help, mouse-3: toggle minor modes"
 		   local-map ,mode-line-minor-mode-keymap)
      (propertize "%n" 'help-echo "mouse-2: widen"
 		 'mouse-face 'mode-line-highlight
