@@ -766,8 +766,6 @@ the command to @kbd{C-c @var{binding}} in the GUD buffer's mode and to
 The name of the current source file.  If the current buffer is the GUD
 buffer, then the ``current source file'' is the file that the program
 stopped in.
-@c This said, ``the name of the file the program counter was in at the last breakpoint.''
-@c But I suspect it is really the last stop file.
 
 @item %l
 The number of the current source line.  If the current buffer is the GUD
@@ -775,7 +773,9 @@ buffer, then the ``current source line'' is the line that the program
 stopped in.
 
 @item %e
-The text of the C lvalue or function-call expression at or adjacent to point.
+In transient-mark-mode the text in the region, if it is active.
+Otherwise the text of the C lvalue or function-call expression at or
+adjacent to point.
 
 @item %a
 The text of the hexadecimal address at or adjacent to point.
@@ -787,6 +787,13 @@ empty string.
 
 If you don't use @samp{%p} in the command string, the command you define
 ignores any numeric argument.
+
+@item %d
+The name of the directory of the current source file.
+
+@item %c
+Fully qualified class name derived from the expression surrounding point
+(jdb only).
 @end table
 
 @node GDB Graphical Interface
