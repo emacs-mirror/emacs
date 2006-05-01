@@ -1,3 +1,16 @@
+2006-05-01  Richard Stallman  <rms@gnu.org>
+
+	* help-mode.el (help-mode): view-exit-action calls delete-window
+	only when it is safe and possible.
+
+	* simple.el (undo-outer-limit-truncate): Put quotes around buffer name
+	in messages.
+
+	* emacs-lisp/warnings.el (display-warning, lwarn): Doc fixes.
+
+	* tool-bar.el (tool-bar-setup): Put Help and Preferences items
+	in the default tool-bar-map.
+
 2006-05-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-completion-file-name-handler-alist)
@@ -16,7 +29,7 @@
 	2006-04-28.
 	(tramp-register-file-name-handlers): Register
 	`tramp-completion-file-name-handler' only when
-	`partial-completion-mode´ is enabled.
+	`partial-completion-mode is enabled.
 	(tramp-completion-handle-file-name-all-completions): Delete
 	directory part from results.
 	(tramp-get-completion-methods, tramp-get-completion-user-host):
