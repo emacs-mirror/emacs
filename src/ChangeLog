@@ -1,19 +1,24 @@
+2006-05-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* syntax.c (Fforward_comment): Detect generic comment at beginning of
+	buffer when moving backwards.
+
 2006-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dispnew.c (update_window): Don't set changed_p when mode/header
 	line is updated.
 
 	* xdisp.c (prepare_menu_bars) [MAC_OS]: Call mac_update_title_bar.
-	(get_glyph_face_and_encoding, get_char_face_and_encoding): Don't
-	distinguish known faces from others.
+	(get_glyph_face_and_encoding, get_char_face_and_encoding):
+	Don't distinguish known faces from others.
 
 	* mac.c (mac_coerce_file_name_ptr): Try typeFSRef if coercion
 	through typeFileURL failed.
 
 	* macfns.c (mac_update_title_bar): New function.
 	[TARGET_API_MAC_CARBON] (mac_update_proxy_icon): New function.
-	(show_hourglass, hide_hourglass) [USE_CG_DRAWING]: Call
-	mac_prepare_for_quickdraw.
+	(show_hourglass, hide_hourglass) [USE_CG_DRAWING]:
+	Call mac_prepare_for_quickdraw.
 
 	* macgui.h (USE_ATSUI): Set default to 1 if MAC_OSX is defined.
 	(USE_CG_DRAWING): Don't define if compiled on Mac OS X 10.1.
@@ -24,8 +29,8 @@
 	(struct MacFontStruct): Change type of member `rows'.
 	(struct _XGC) [USE_CG_DRAWING]: Add member `clip_rects'.
 
-	* macterm.c (mac_draw_line, mac_draw_line_to_pixmap): Adjust
-	endpoints of strictly horizontal/vertical lines.
+	* macterm.c (mac_draw_line, mac_draw_line_to_pixmap):
+	Adjust endpoints of strictly horizontal/vertical lines.
 	(mac_set_clip_rectangles) [USE_CG_DRAWING]: Set clip_rects.
 	(pcm_init, pcm_get_status): New functions.
 	(x_per_char_metric, XLoadQueryFont): Use them instead of
