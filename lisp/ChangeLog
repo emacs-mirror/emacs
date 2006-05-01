@@ -1,3 +1,10 @@
+2006-04-30  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-preamble-extra): New variable.
+	(cal-tex-preamble): Use cal-tex-preamble-extra.
+	(cal-tex-list-diary-entries): Refer to `diary-list-entries' rather
+	than alias `list-diary-entries'.
+
 2006-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-ae-open-documents, mac-drag-n-drop): Use
