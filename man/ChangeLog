@@ -9,6 +9,10 @@
 	* building.texi (GUD Customization): Describe cases %d and %c.
 	Update description for %e.
 
+2006-04-30  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (LaTeX Calendar): Mention cal-tex-preamble-extra.
+
 2006-04-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* custom.texi (Examining): Update C-h v output example.
