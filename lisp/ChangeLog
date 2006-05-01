@@ -1,3 +1,28 @@
+2006-05-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-completion-file-name-handler-alist)
+	(tramp-run-real-handler, tramp-completion-run-real-handler)
+	(tramp-completion-handle-file-name-all-completions)
+	(tramp-completion-handle-file-name-completion): Autoload them.
+	(tramp-completion-handle-file-exists-p)
+	(tramp-completion-handle-file-name-directory)
+	(tramp-completion-handle-file-name-nondirectory)
+	(tramp-completion-handle-expand-file-name): Remove them.
+	(tramp-handle-file-name-directory): Return the real directory
+	name.  Returning "/" only doesn't need to be necessary any longer.
+	(tramp-file-name-handler): Make special attention when in hostname
+	completion mode.
+	(tramp-completion-file-name-handler): Revert patch from
+	2006-04-28.
+	(tramp-register-file-name-handlers): Register
+	`tramp-completion-file-name-handler' only when
+	`partial-completion-mode´ is enabled.
+	(tramp-completion-handle-file-name-all-completions): Delete
+	directory part from results.
+	(tramp-get-completion-methods, tramp-get-completion-user-host):
+	Discard deleting "/", it doesn't work after the change of
+	`tramp-handle-file-name-directory' above.
+
 2006-05-01  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/grep.el (grep-expand-template): Use save-match-data.
