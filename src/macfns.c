@@ -1985,7 +1985,8 @@ mac_update_proxy_icon (f)
 }
 #endif
 
-void mac_update_title_bar (f, save_match_data)
+void
+mac_update_title_bar (f, save_match_data)
      struct frame *f;
      int save_match_data;
 {
