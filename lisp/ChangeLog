@@ -2689,7 +2689,7 @@
 	(describe-key-briefly-internal, describe-key-internal):
 	Functions merged back into their callers.
 
-2006-02-13  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2006-02-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* info.el (info-xref-visited): Inherit from info-xref too.
 	(Info-set-mode-line): Replace occurrences of `%' by `%%'
@@ -3837,7 +3837,7 @@
 	* add-log.el (add-change-log-entry, change-log-merge):
 	Conditionally use `hard-newline'.
 
-2006-01-13  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2006-01-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* wid-edit.el (widget-field-end): If the overlay is no longer
 	associated with a buffer, behave as if the overlay didn't exist.
@@ -4927,7 +4927,7 @@
 	* emacs-lisp/edebug.el (edebug-safe-prin1-to-string):
 	Capture error from printing circular structures.
 
-2005-12-17  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2005-12-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* wid-edit.el (widget-checkbox-action): Clear undo info.
 
@@ -6910,7 +6910,7 @@
 	scrolling the help window.  Doc fix.
 	(help-return-method): Doc fix.
 
-2005-12-03  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2005-12-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression): Fix bug
 	whereby names of length one or names starting with a
@@ -7464,7 +7464,7 @@
 
 	* custom.el (defcustom): Update link types in docstring.
 
-2005-11-20  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2005-11-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* custom.el (defgroup): Add doc-string-elt info.
 
@@ -7737,7 +7737,7 @@
 
 	* apropos.el (apropos-calc-scores): Use apropos-pattern.
 
-2005-11-16  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2005-11-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* wid-edit.el (color): Enclose %t in %{...%}.
 
@@ -14668,7 +14668,7 @@
 	* emulation/edt-mapper.el (edt-save-function-key-map)
 	(EDT-key-name): `defvar' to silence the byte-compiler.
 
-2005-07-02  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2005-07-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* font-lock.el (font-lock-regexp-grouping-backslash): Rename from
 	font-lock-regexp-backslash.  Doc fix.

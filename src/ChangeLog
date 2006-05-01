@@ -47,7 +47,7 @@
 	* keymap.c (Fdefine_key): Improve error message
 	when KEY begins with a non-prefix key.
 
-2006-04-30  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2006-04-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* syntax.c (Fforward_comment): Don't forget to break out of the loop
 	when we skipped backward over a generic comment.
@@ -85,7 +85,7 @@
 	* xdisp.c (fill_stretch_glyph_string): Set s->nchars = 1 for code which
 	does last_glyph=s->first_glyph+s->nchars-1, e.g. if stretch has relief.
 	(produce_stretch_glyph): Assume that face box height and width is
-	already	included in in stretch glyph size so caller doesn't have to
+	already	included in stretch glyph size so caller doesn't have to
 	consider the extra space otherwise added (fixes problem in ses.el).
 
 	* frame.c (x_set_font): Clear f->n_tool_bar_rows and current frame
@@ -1732,7 +1732,7 @@
 
 	* image.c [MAC_OS] (find_image_fsspec): Likewise.
 
-2005-12-23  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2005-12-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* insdel.c (insert, insert_and_inherit, insert_before_markers)
 	(insert_before_markers_and_inherit): Make sure FROM is correct
