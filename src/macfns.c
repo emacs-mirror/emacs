@@ -1919,6 +1919,99 @@ mac_set_scroll_bar_width (f, arg, oldval)
   x_set_scroll_bar_width (f, arg, oldval);
 }
 
+#if TARGET_API_MAC_CARBON
+static void
+mac_update_proxy_icon (f)
+     struct frame *f;
+{
+  Lisp_Object file_name =
+    XBUFFER (XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer)->filename;
+  Window w = FRAME_MAC_WINDOW (f);
+
+  if (FRAME_FILE_NAME (f) == NULL && !STRINGP (file_name))
+    return;
+  if (FRAME_FILE_NAME (f) && STRINGP (file_name)
+      && strcmp (FRAME_FILE_NAME (f), SDATA (file_name)) == 0)
+    return;
+
+  if (FRAME_FILE_NAME (f))
+    {
+      xfree (FRAME_FILE_NAME (f));
+      FRAME_FILE_NAME (f) = NULL;
+    }
+
+  BLOCK_INPUT;
+
+  if (STRINGP (file_name))
+    {
+      OSStatus err;
+      AEDesc desc;
+      Lisp_Object encoded_file_name = ENCODE_FILE (file_name);
+
+#ifdef MAC_OS8
+      SetPortWindowPort (w);
+#endif
+      err = AECoercePtr (TYPE_FILE_NAME, SDATA (encoded_file_name),
+			 SBYTES (encoded_file_name), typeAlias, &desc);
+      if (err == noErr)
+	{
+	  Size size = AEGetDescDataSize (&desc);
+	  AliasHandle alias = (AliasHandle) NewHandle (size);
+
+	  if (alias == NULL)
+	    err = memFullErr;
+	  else
+	    {
+	      HLock ((Handle) alias);
+	      err = AEGetDescData (&desc, *alias, size);
+	      HUnlock ((Handle) alias);
+	      if (err == noErr)
+		err = SetWindowProxyAlias (w, alias);
+	      DisposeHandle ((Handle) alias);
+	    }
+	  AEDisposeDesc (&desc);
+	}
+      if (err == noErr)
+	{
+	  FRAME_FILE_NAME (f) = xmalloc (SBYTES (file_name) + 1);
+	  strcpy (FRAME_FILE_NAME (f), SDATA (file_name));
+	}
+    }
+
+  if (FRAME_FILE_NAME (f) == NULL)
+    RemoveWindowProxy (w);
+
+  UNBLOCK_INPUT;
+}
+#endif
+
+void mac_update_title_bar (f, save_match_data)
+     struct frame *f;
+     int save_match_data;
+{
+#if TARGET_API_MAC_CARBON
+  struct window *w;
+  int modified_p;
+
+  if (!FRAME_MAC_P (f))
+    return;
+
+  w = XWINDOW (FRAME_SELECTED_WINDOW (f));
+  modified_p = (BUF_SAVE_MODIFF (XBUFFER (w->buffer))
+		< BUF_MODIFF (XBUFFER (w->buffer)));
+  if (windows_or_buffers_changed
+      /* Minibuffer modification status shown in the close button is
+	 confusing.  */
+      || (!MINI_WINDOW_P (w)
+	  && (modified_p != !NILP (w->last_had_star))))
+    SetWindowModified (FRAME_MAC_WINDOW (f),
+		       !MINI_WINDOW_P (w) && modified_p);
+
+  if (windows_or_buffers_changed)
+    mac_update_proxy_icon (f);
+#endif
+}
+
 
 /* Subroutines of creating a frame.  */
 
@@ -3470,6 +3563,9 @@ show_hourglass (timer)
 	  if (FRAME_LIVE_P (f) && FRAME_MAC_P (f)
 	      && FRAME_MAC_WINDOW (f) != tip_window)
 	    {
+#if USE_CG_DRAWING
+	      mac_prepare_for_quickdraw (f);
+#endif
 	      if (!f->output_data.mac->hourglass_control)
 		{
 		  Window w = FRAME_MAC_WINDOW (f);
@@ -3514,7 +3610,12 @@ hide_hourglass ()
 	  if (FRAME_MAC_P (f)
 	      /* Watch out for newly created frames.  */
 	      && f->output_data.mac->hourglass_control)
-	    HideControl (f->output_data.mac->hourglass_control);
+	    {
+#if USE_CG_DRAWING
+	      mac_prepare_for_quickdraw (f);
+#endif
+	      HideControl (f->output_data.mac->hourglass_control);
+	    }
 	}
 
       hourglass_shown_p = 0;
