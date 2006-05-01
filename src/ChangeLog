@@ -1,3 +1,47 @@
+2006-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (update_window): Don't set changed_p when mode/header
+	line is updated.
+
+	* xdisp.c (prepare_menu_bars) [MAC_OS]: Call mac_update_title_bar.
+	(get_glyph_face_and_encoding, get_char_face_and_encoding): Don't
+	distinguish known faces from others.
+
+	* mac.c (mac_coerce_file_name_ptr): Try typeFSRef if coercion
+	through typeFileURL failed.
+
+	* macfns.c (mac_update_title_bar): New function.
+	[TARGET_API_MAC_CARBON] (mac_update_proxy_icon): New function.
+	(show_hourglass, hide_hourglass) [USE_CG_DRAWING]: Call
+	mac_prepare_for_quickdraw.
+
+	* macgui.h (USE_ATSUI): Set default to 1 if MAC_OSX is defined.
+	(USE_CG_DRAWING): Don't define if compiled on Mac OS X 10.1.
+	(enum pcm_status): New enum.
+	(XCHARSTRUCTROW_CHAR_VALID_P, XCHARSTRUCTROW_SET_CHAR_VALID)
+	(XCharStructRow): Remove.  Now validity is represented by
+	non-negativeness of sum of ascent and descent.
+	(struct MacFontStruct): Change type of member `rows'.
+	(struct _XGC) [USE_CG_DRAWING]: Add member `clip_rects'.
+
+	* macterm.c (mac_draw_line, mac_draw_line_to_pixmap): Adjust
+	endpoints of strictly horizontal/vertical lines.
+	(mac_set_clip_rectangles) [USE_CG_DRAWING]: Set clip_rects.
+	(pcm_init, pcm_get_status): New functions.
+	(x_per_char_metric, XLoadQueryFont): Use them instead of
+	XCharStructRow and related macros.
+	(x_draw_relief_rect): Don't adjust arguments of mac_draw_line.
+	(x_free_frame_resources) [TARGET_API_MAC_CARBON]: Free FRAME_FILE_NAME.
+	(XTread_socket) [TARGET_API_MAC_CARBON]: Handle proxy icon drag
+	and window path pop-up menu on title bar.
+	(mac_use_core_graphics) [USE_CG_DRAWING]: Set default to 1.
+
+	* macterm.h (mac_update_title_bar): Add extern.
+	(struct mac_output) [TARGET_API_MAC_CARBON]: New member `file_name'.
+	(FRAME_FILE_NAME): New macro.
+
+	* unexmacosx.c (unexec): Error if trying unexec from dumped executable.
+
 2006-04-30  Richard Stallman  <rms@gnu.org>
 
 	* keymap.c (Fdefine_key): Improve error message

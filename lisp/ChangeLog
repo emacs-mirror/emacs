@@ -1,3 +1,9 @@
+2006-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ae-open-documents, mac-drag-n-drop): Use
+	select-frame-set-input-focus instead of raise-frame.
+	(global-map): Bind M-drag-n-drop to mac-drag-n-drop.
+
 2006-05-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-def): Add %c case.
