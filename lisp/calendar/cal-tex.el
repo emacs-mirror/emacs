@@ -45,7 +45,7 @@
 
 (require 'calendar)
 
-(autoload 'list-diary-entries "diary-lib" nil t)
+(autoload 'diary-list-entries "diary-lib" nil t)
 (autoload 'calendar-holiday-list "holidays" nil t)
 (autoload 'calendar-iso-from-absolute "cal-iso" nil t)
 
@@ -120,6 +120,14 @@ will put the Hebrew date at the bottom of each day."
   "*The last hour of the daily calendar page."
   :type 'integer
   :group 'calendar-tex)
+
+(defcustom cal-tex-preamble-extra nil
+  "A string giving extra LaTeX commands to insert in the calendar preamble.
+For example, to include extra packages:
+\"\\\\usepackage{foo}\\n\\\\usepackage{bar}\\n\"."
+  :type 'string
+  :group 'calendar-tex
+  :version "22.1")
 
 (defcustom cal-tex-hook nil
   "*List of functions called after any LaTeX calendar buffer is generated.
@@ -240,7 +248,7 @@ This definition is the heart of the calendar!")
   "Generate a list of all diary-entries from absolute date D1 to D2."
   (let ((diary-list-include-blanks nil)
         (diary-display-hook 'ignore))
-    (list-diary-entries
+    (diary-list-entries
      (calendar-gregorian-from-absolute d1)
      (1+ (- d2 d1)))))
 
@@ -253,8 +261,10 @@ Optional ARGS are included."
   (insert "\\documentclass")
   (if args
       (insert "[" args "]"))
-  (insert "{article}\n"
-          "\\hbadness 20000
+  (insert "{article}\n")
+  (if (stringp cal-tex-preamble-extra)
+      (insert cal-tex-preamble-extra "\n"))
+  (insert "\\hbadness 20000
 \\hfuzz=1000pt
 \\vbadness 20000
 \\lineskip 0pt
@@ -357,6 +367,8 @@ Optional parameter specifies number of years."
        (cal-tex-noindent)
        (cal-tex-nl)
        (let ((month-names; don't use default in case user changed it
+              ;; These are only used to define the command names, not
+              ;; the names of the months they insert.
               ["January" "February" "March" "April" "May" "June"
                "July" "August" "September" "October" "November" "December"]))
          (calendar-for-loop i from 1 to 12 do
