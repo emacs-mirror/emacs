@@ -581,8 +581,13 @@ substitution string.  Note dynamic scoping of variables.")
 	(case-fold-search nil))
     (dolist (kw grep-expand-keywords command)
       (if (string-match (car kw) command)
-	  (setq command (replace-match (or (eval (cdr kw)) "")
-				       t t command))))))
+	  (setq command
+		(replace-match
+		 (or (if (symbolp (cdr kw))
+			 (eval (cdr kw))
+		       (save-match-data (eval (cdr kw))))
+		     "")
+		 t t command))))))
 
 (defun grep-read-regexp ()
   "Read regexp arg for interactive grep."
