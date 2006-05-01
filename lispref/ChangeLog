@@ -1,6 +1,13 @@
+2006-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intro.texi (nil and t): Add booleanp.
+
+	* objects.texi (Type Predicates): Add links for booleanp and
+	string-or-null-p.
+
 2006-04-29  Richard Stallman  <rms@gnu.org>
 
-	* modes.texi (Multiline Font Lock): Renamed from 
+	* modes.texi (Multiline Font Lock): Rename from
 	Multi line Font Lock Elements.  Much clarification.
 	(Font Lock Multiline, Region to Fontify): Much clarification.
 
