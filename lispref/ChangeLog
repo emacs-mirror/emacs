@@ -1,3 +1,7 @@
+2006-05-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* objects.texi (Type Predicates): Fix typos.
+
 2006-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* intro.texi (nil and t): Add booleanp.
@@ -82,7 +86,7 @@
 
 2006-03-25  Karl Berry  <karl@gnu.org>
 
-	* elisp.texi: use @copyright{} instead of (C), and do not indent
+	* elisp.texi: Use @copyright{} instead of (C), and do not indent
 	the year list.
 
 2006-03-21  Nick Roberts  <nickrob@snap.net.nz>
@@ -116,7 +120,7 @@
 
 	* display.texi (Defining Images): Fix example in
 	image-load-path-for-library by not recommending that one binds
-	image-load-path. Just defvar it to placate compiler and only use
+	image-load-path.  Just defvar it to placate compiler and only use
 	it if previously defined.
 
 2006-03-14  Bill Wohler  <wohler@newt.com>
@@ -588,11 +592,11 @@
 
 2005-09-26  Chong Yidong  <cyd@stupidchicken.com>
 
-	* errors.texi (Standard Errors): Corrected xrefs.
+	* errors.texi (Standard Errors): Correct xrefs.
 
 2005-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
-	* display.texi (Defining Images): Updated documentation for
+	* display.texi (Defining Images): Update documentation for
 	`image-load-path'.
 
 2005-09-17  Richard M. Stallman  <rms@gnu.org>
