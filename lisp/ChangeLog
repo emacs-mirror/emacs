@@ -1,5 +1,10 @@
 2006-05-01  Richard Stallman  <rms@gnu.org>
 
+	* diff-mode.el (diff-mode-shared-map): Don't bind M-W, M-U, M-C,
+	M-r, M-R, M-A, M-SPC or M-DEL.
+	(diff-mode-map): diff-refine-hunk now on C-c C-w
+	(diff-mode-map): Bind C-c C-e, C-c C-n, C-c C-r, C-c C-u.
+
 	* help-mode.el (help-mode): view-exit-action calls delete-window
 	only when it is safe and possible.
 

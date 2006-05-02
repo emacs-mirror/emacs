@@ -1,3 +1,7 @@
+2006-05-01  Richard Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Add Diff Mode to menu.
+
 2006-05-01  Aaron S. Hawley  <Aaron.Hawley@uvm.edu>
 
 	* misc.texi (Diff Mode): New node.

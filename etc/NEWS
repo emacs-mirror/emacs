@@ -1967,6 +1967,21 @@ run most curses applications now.
 ** M-x diff uses Diff mode instead of Compilation mode.
 
 +++
+** Diff mode key bindings changed.
+
+These are the new bindings:
+
+C-c C-e   diff-ediff-patch  (old M-A)
+C-c C-n   diff-restrict-view   (old M-r)
+C-c C-r   diff-reverse-direction  (old M-R)
+C-c C-u   diff-context->unified   (old M-U)
+C-c C-w   diff-refine-hunk  (old C-c C-r)
+
+To convert unified to context format, use C-u C-c C-u.
+In addition, C-c C-u now operates on the region
+in Transient Mark mode when the mark is active.
+
++++
 ** You can now customize `fill-nobreak-predicate' to control where
 filling can break lines.  The value is now normally a list of
 functions, but it can also be a single function, for compatibility.
@@ -5892,6 +5907,8 @@ Currently, the following actions have been defined:
 
 - Mouse-2 on the read-only or modified status in the mode line (`%' or
 `*') toggles the status.
+
+- Mouse-3 on the major mode name displays a major mode menu.
 
 - Mouse-3 on the mode name displays a minor-mode menu.
 
