@@ -3258,9 +3258,9 @@ int main(void)
 
 <h4>Description</h4>
 
-<p>This function is used to get hold of the virtual memory arena class, for the purpose ofpassing it to <code><a href="#mps_arena_create">mps_arena_create</a></code>. The VM arenas use the OS virtual memory interfaces toallocate memory. The chief consequence of this is that the arena can manage many more virtualaddresses than it needs to commit memory to. This gives it flexibility as to where to place objects,which reduces fragmentation and helps make garbage collection more efficient.</p>
+<p>This function is used to get hold of the virtual memory arena class, for the purpose of passing it to <code><a href="#mps_arena_create">mps_arena_create</a></code>. The VM arenas use the OS virtual memory interfaces toallocate memory. The chief consequence of this is that the arena can manage many more virtual addresses than it needs to commit memory to. This gives it flexibility as to where to place objects, which reduces fragmentation and helps make garbage collection more efficient.</p>
 
-<p>This class is similar to <code><a href="#mps_arena_class_vmnz">mps_arena_class_vmnz</a></code> but uses a more complex placementpolicy, which is more suited to copying garbage collection.</p>
+<p>This class is similar to <code><a href="#mps_arena_class_vmnz">mps_arena_class_vmnz</a></code> but uses a more complex placement policy, which is more suited to copying garbage collection.</p>
 
 
 <h4>Example</h4>
