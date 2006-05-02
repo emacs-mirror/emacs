@@ -1479,20 +1479,35 @@ changes.
 There's a new separate package grep.el, with its own submenu and
 customization group.
 
----
-*** M-x grep provides highlighting support.
-
-Hits are fontified in green, and hits in binary files in orange.  Grep buffers
-can be saved and automatically revisited.
-
 +++
 *** `grep-find' is now also available under the name `find-grep' where
 people knowing `find-grep-dired' would probably expect it.
 
++++
+*** New commands `lgrep' (local grep) and `rgrep' (recursive grep) are
+more user-friendly versions of `grep' and `grep-find', which prompt
+separately for the regular expression to match, the files to search,
+and the base directory for the search (rgrep only).  Case sensitivitivy
+of the search is controlled by the current value of `case-fold-search'.
+
+These commands build the shell commands based on the new variables
+`grep-template' (lgrep) and `grep-find-template' (rgrep).
+
+The files to search can use aliases defined in `grep-files-aliases'.
+
+Subdirectories listed in `grep-find-ignored-directories' such as those
+typically used by various version control systems, like CVS and arch,
+are automatically skipped by `rgrep'.
+
 ---
-*** The new variables `grep-window-height', `grep-auto-highlight', and
-`grep-scroll-output' override the corresponding compilation mode
-settings, for grep commands only.
+*** The grep commands provide highlighting support.
+
+Hits are fontified in green, and hits in binary files in orange.  Grep buffers
+can be saved and automatically revisited.
+
+---
+*** The new variables `grep-window-height' and `grep-scroll-output' override
+the corresponding compilation mode settings, for grep commands only.
 
 +++
 *** New option `grep-highlight-matches' highlights matches in *grep*
@@ -2025,6 +2040,21 @@ run most curses applications now.
 
 +++
 ** M-x diff uses Diff mode instead of Compilation mode.
+
++++
+** Diff mode key bindings changed.
+
+These are the new bindings:
+
+C-c C-e   diff-ediff-patch  (old M-A)
+C-c C-n   diff-restrict-view   (old M-r)
+C-c C-r   diff-reverse-direction  (old M-R)
+C-c C-u   diff-context->unified   (old M-U)
+C-c C-w   diff-refine-hunk  (old C-c C-r)
+
+To convert unified to context format, use C-u C-c C-u.
+In addition, C-c C-u now operates on the region
+in Transient Mark mode when the mark is active.
 
 +++
 ** You can now customize `fill-nobreak-predicate' to control where
@@ -3100,7 +3130,7 @@ See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 ---
 ** MH-E changes.
 
-Upgraded to MH-E version 7.93. There have been major changes since
+Upgraded to MH-E version 7.95. There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 ** Calendar changes:
@@ -3705,9 +3735,10 @@ This is useful in packages that can be preloaded.
 If it is non-nil, the function lists only faces matching this regexp.
 
 +++
-*** New function `string-or-null-p'.
+*** New functions `string-or-null-p' and `booleanp'.
 
-Return t if OBJECT is a string or nil.  Otherwise, return nil.
+`string-or-null-p' returns non-nil iff OBJECT is a string or nil.
+`booleanp' returns non-nil iff OBJECT is a t or nil.
 
 ** Lisp code indentation features:
 
@@ -5951,6 +5982,8 @@ Currently, the following actions have been defined:
 
 - Mouse-2 on the read-only or modified status in the mode line (`%' or
 `*') toggles the status.
+
+- Mouse-3 on the major mode name displays a major mode menu.
 
 - Mouse-3 on the mode name displays a minor-mode menu.
 

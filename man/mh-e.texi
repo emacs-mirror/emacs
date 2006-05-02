@@ -8,11 +8,11 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 7.93
+@set VERSION 7.94
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
-@set EDITION , 7th Edition
-@set UPDATED 2006-04-17
+@set EDITION , 2nd Edition
+@set UPDATED 2006-04-24
 @set UPDATE-MONTH April, 2006
 
 @c Other variables.
@@ -245,6 +245,8 @@ If more information is needed, you can go to the Unix manual pages of
 the individual MH commands. When the name is not obvious, I'll guide
 you to a relevant MH manual page that describes the action more fully.
 
+@cindex @cite{MH & nmh: Email for Users & Programmers}
+@cindex MH book
 @cindex info
 @kindex C-h i
 
@@ -536,12 +538,49 @@ quite easy. @xref{Getting MH-E}, for instructions for getting and
 installing MH-E.
 
 If the @code{mh-version} command displays @samp{No MH variant
-detected}, then you need to install MH or tell MH-E where to find
-MH@footnote{In very old versions of MH-E, you may get the error
+detected}@footnote{In very old versions of MH-E, you may get the error
 message, @samp{Cannot find the commands `inc' and `mhl' and the file
 `components'} if MH-E can't find MH. In this case, you need to update
 MH-E, and you may need to install MH too. However, newer versions of
-MH-E are better at finding MH if it is on your system.}.
+MH-E are better at finding MH if it is on your system.}, then you need
+to install MH or tell MH-E where to find MH.
+
+@cindex Debian
+@cindex nmh
+@cindex GNU mailutils
+
+If you don't have MH on your system already, you must install a
+variant of MH. The Debian mh-e package does this for you automatically
+(@pxref{Getting MH-E}). Most people use
+@uref{http://www.nongnu.org/nmh/, nmh}, but you may be interested in
+trying out @uref{http://www.gnu.org/software/mailutils/, GNU
+mailutils}, which supports IMAP. Your GNU/Linux distribution probably
+has packages for both of these.
+
+@cindex @command{install-mh}
+@cindex MH commands, @command{install-mh}
+@cindex MH book
+
+If you've never run MH before, you need to run @command{install-mh}
+from the shell before you continue. This sets up your personal MH
+environment@footnote{See the section
+@uref{@value{MH-BOOK-HOME}/../overall/setup.htm, Setting Up MH} in the
+MH book.}. If you don't, you'll be greeted with the error message:
+@samp{Install MH and run install-mh before running MH-E}. This is all
+you need to know about MH to use MH-E, but the more you know about MH,
+the more you can leverage its power. See the
+@uref{@value{MH-BOOK-HOME}, MH book} to learn more about MH.
+
+@cindex @samp{Path:} MH profile component
+@cindex MH profile
+@cindex MH profile component
+@cindex MH profile component, @samp{Path:}
+
+Your MH environment includes your @dfn{MH profile} which is found in
+the file @file{~/.mh_profile}. This file contains a number of @dfn{MH
+profile components}. For example, the @samp{Path:} MH profile
+component contains the path to your mail directory, which is
+@file{~/Mail} by default.
 
 @cindex @command{mhparam}
 @cindex MH commands, @command{mhparam}
@@ -551,8 +590,9 @@ MH-E are better at finding MH if it is on your system.}.
 @vindex mh-variant
 @vindex mh-variant-in-use
 
-The option @code{mh-variant} specifies the variant used by MH-E
-(@pxref{Options}). The default setting of this option is
+There are several options MH-E uses to interact with your MH
+installation. The option @code{mh-variant} specifies the variant used
+by MH-E (@pxref{Options}). The default setting of this option is
 @samp{Auto-detect} which means that MH-E will automatically choose the
 first of nmh, MH, or GNU mailutils that it finds in the directories
 listed in @code{mh-path} (which you can customize),
@@ -584,27 +624,6 @@ variables in @file{~/.emacs}; now it is no longer necessary and can
 actually cause problems.
 @end quotation
 @sp 1
-
-@cindex @command{install-mh}
-@cindex MH commands, @command{install-mh}
-
-If you've never run MH before, you need to run @command{install-mh}
-from the shell before you continue. This sets up your personal MH
-environment@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/../overall/setup.htm, Setting Up MH} in the
-MH book.}. If you don't, you'll be greeted with the error message:
-@samp{Install MH and run install-mh before running MH-E}.
-
-@cindex @samp{Path:} MH profile component
-@cindex MH profile
-@cindex MH profile component
-@cindex MH profile component, @samp{Path:}
-
-Your MH environment includes your @dfn{MH profile} which is found in
-the file @file{~/.mh_profile}. This file contains a number of @dfn{MH
-profile components}. For example, the @samp{Path:} MH profile
-component contains the path to your mail directory, which is
-@file{~/Mail} by default.
 
 @cindex MH profile component, @samp{Draft-Folder:}
 @cindex MH profile component, @samp{Path:}
@@ -8608,6 +8627,12 @@ is already installed in your version of Emacs. You can also read the
 change log to see if you are interested in what the given release of
 MH-E has to offer (although we have no doubt that you will be
 extremely interested in all new releases).
+
+@cindex Debian
+
+If you use Debian, you can install the Debian
+@uref{http://packages.debian.org/unstable/mail/mh-e, mh-e package}
+instead.
 
 @cindex files, @samp{MH-E-NEWS}
 @cindex files, @samp{README}

@@ -104,13 +104,6 @@ character codes in the range 128-159.  The coding systems
 @code{mac-roman}, @code{mac-centraleurroman}, and @code{mac-cyrillic}
 are used to represent these Mac encodings.
 
-  The fontset @code{fontset-standard} is created automatically when
-Emacs is run on Mac, and used by default.  It displays as many kinds
-of characters as possible using 12-point Monaco as a base font.  If
-you see some character as a hollow box with this fontset, then it's
-almost impossible to display it only by customizing font settings
-(@pxref{Mac Font Specs}).
-
   You can use input methods provided either by LEIM (@pxref{Input
 Methods}) or Mac OS to enter international characters.  To use the
 former, see the International Character Set Support section of the
@@ -195,7 +188,7 @@ invoked from the Finder or the @command{open} command.
   Command line arguments are specified like
 
 @example
-/Applications/Emacs.app/Contents/MacOS/Emacs -geometry 80x25 &
+/Applications/Emacs.app/Contents/MacOS/Emacs -g 80x25 &
 @end example
 
 @noindent
@@ -295,7 +288,8 @@ you specify face attributes instead.  For example, you can use 14pt
 Courier by customizing the default face attributes for all frames:
 
 @lisp
-(set-face-attribute 'default nil :family "courier" :height 140)
+(set-face-attribute 'default nil
+                    :family "courier" :height 140)
 @end lisp
 
 @noindent
@@ -313,21 +307,30 @@ standard X font name:
 @noindent
 @xref{Font X}.  Wildcards are supported as they are on X.
 
-  Native Apple fonts in Mac Roman encoding has maker name @code{apple}
-and charset @code{mac-roman}.  For example 12-point Monaco can be
-specified by the name @samp{-apple-monaco-*-12-*-mac-roman}.  When
-using a particular size of scalable fonts, it must be specified in a
-format containing 14 @samp{-}s like
-@samp{-apple-monaco-medium-r-normal--13-*-*-*-*-*-mac-roman}.
+  Emacs on Mac OS Classic uses QuickDraw Text routines for drawing texts
+by default.  Emacs on Mac OS X uses @acronym{ATSUI, Apple Type Services
+for Unicode Imaging} as well as QuickDraw Text, and most of the
+characters other than Chinese, Japanese, and Korean ones are drawn using
+the former by default.
 
-  You can specify a @code{mac-roman} font for @acronym{ASCII}
-characters like
+  @acronym{ATSUI}-compatible fonts have maker name @code{apple} and
+charset @code{iso10646-1}.  For example 12-point Monaco can be specified
+by the name
+@samp{-apple-monaco-medium-r-normal--12-*-*-*-*-*-iso10646-1}.  Note
+that it must be specified in a format containing 14 @samp{-}s (i.e., not
+by @samp{-apple-monaco-medium-r-normal-12-*-iso10646-1}) because every
+@acronym{ATSUI}-compatible font is a scalable one.
 
-@lisp
+  QuickDraw Text fonts have maker name @code{apple} and various charset
+names other than @code{iso10646-1}.  Native Apple fonts in Mac Roman
+encoding has charset @code{mac-roman}.  You can specify a
+@code{mac-roman} font for @acronym{ASCII} characters like
+
+@smalllisp
 (add-to-list
  'default-frame-alist
  '(font . "-apple-monaco-medium-r-normal--13-*-*-*-*-*-mac-roman"))
-@end lisp
+@end smalllisp
 
 @noindent
 but that does not extend to ISO-8859-1: specifying a @code{mac-roman}
@@ -341,16 +344,11 @@ charsets @samp{big5-0}, @samp{gb2312.1980-0},
 @samp{mac-cyrillic}, @samp{mac-symbol}, and @samp{mac-dingbats},
 respectively.
 
-  Since Emacs as of the current version uses QuickDraw Text routines
-for drawing texts, only characters in the charsets listed above can be
-displayed with the OS-bundled fonts, even if other applications that
-use @acronym{ATSUI} or Cocoa can display variety of characters with
-them.
-
   The use of @code{create-fontset-from-fontset-spec} (@pxref{Defining
-Fontsets}) for defining fontsets often results in wrong ones
-especially when using only OS-bundled fonts.  The recommended way is
-to create a fontset using @code{create-fontset-from-mac-roman-font}:
+Fontsets}) for defining fontsets often results in wrong ones especially
+when using only OS-bundled QuickDraw Text fonts.  The recommended way to
+use them is to create a fontset using
+@code{create-fontset-from-mac-roman-font}:
 
 @lisp
 (create-fontset-from-mac-roman-font
@@ -374,11 +372,13 @@ encoded in the names of their font suitcases.  E.g., the font suitcase
 the name @samp{-ETL-fixed-*-iso8859-1}.
 
 @vindex mac-allow-anti-aliasing
-  Emacs uses the QuickDraw text rendering by default.  On Mac OS X
-10.2 and later, it can be changed so that it uses the Quartz 2D text
-rendering (aka CG text rendering) by setting
-@code{mac-allow-anti-aliasing} to @code{t}.  However, it is reported
-to sometimes leave some garbages.
+  Mac OS X 10.2 or later can use two types of text renderings: Quartz 2D
+(aka Core Graphics) and QuickDraw.  By default, Emacs uses the former on
+such versions.  It can be changed by setting
+@code{mac-allow-anti-aliasing} to @code{t} (Quartz 2D) or @code{nil}
+(QuickDraw).  Both @acronym{ATSUI} and QuickDraw Text drawings are
+affected by the value of this variable.
+
 
 @node Mac Functions
 @section Mac-Specific Lisp Functions

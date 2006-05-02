@@ -209,6 +209,7 @@ only, and you can use whatever symbols you like.)
 
 LEVEL should be either :debug, :warning, :error, or :emergency
 \(but see `warning-minimum-level' and `warning-minimum-log-level').
+Default is :warning.
 
 :emergency -- a problem that will seriously impair Emacs operation soon
 	      if you do not attend to it promptly.
@@ -292,7 +293,7 @@ See also `warning-series', `warning-prefix-function' and
 Aside from generating the message with `format',
 this is equivalent to `display-warning'.
 
-TYPE is the warning type: either a custom group name (a symbol).
+TYPE is the warning type: either a custom group name (a symbol),
 or a list of symbols whose first element is a custom group name.
 \(The rest of the symbols represent subcategories and
 can be whatever you like.)

@@ -84,8 +84,6 @@
                           (require 'pgg-gpg)
                           (require 'overlay)
 			  ))
-(autoload 'pgg-gpg-symmetric-key-p "pgg-gpg"
-  "True if decoded armor MESSAGE-KEYS has symmetric encryption indicator.")
 
 ;;;_* USER CUSTOMIZATION VARIABLES:
 
@@ -199,6 +197,9 @@ just the header."
   :type 'boolean
   :group 'allout)
 (make-variable-buffer-local 'allout-show-bodies)
+;;;###autoload
+(put 'allout-show-bodies 'safe-local-variable
+     (lambda (x) (member x '(t nil))))
 
 ;;;_  = allout-header-prefix
 (defcustom allout-header-prefix "."
@@ -212,6 +213,8 @@ outlines start at level 2 to avoid this discrepancy."
   :type 'string
   :group 'allout)
 (make-variable-buffer-local 'allout-header-prefix)
+;;;###autoload
+(put 'allout-header-prefix 'safe-local-variable 'stringp)
 ;;;_  = allout-primary-bullet
 (defcustom allout-primary-bullet "*"
   "Bullet used for top-level outline topics.
@@ -227,6 +230,8 @@ bullets."
   :type 'string
   :group 'allout)
 (make-variable-buffer-local 'allout-primary-bullet)
+;;;###autoload
+(put 'allout-primary-bullet 'safe-local-variable 'stringp)
 ;;;_  = allout-plain-bullets-string
 (defcustom allout-plain-bullets-string ".,"
   "*The bullets normally used in outline topic prefixes.
@@ -241,6 +246,8 @@ of this var to take effect."
   :type 'string
   :group 'allout)
 (make-variable-buffer-local 'allout-plain-bullets-string)
+;;;###autoload
+(put 'allout-plain-bullets-string 'safe-local-variable 'stringp)
 ;;;_  = allout-distinctive-bullets-string
 (defcustom allout-distinctive-bullets-string "*+-=>()[{}&!?#%\"X@$~_\\:;^"
   "*Persistent outline header bullets used to distinguish special topics.
@@ -274,6 +281,8 @@ strings."
   :type 'string
   :group 'allout)
 (make-variable-buffer-local 'allout-distinctive-bullets-string)
+;;;###autoload
+(put 'allout-distinctive-bullets-string 'safe-local-variable 'stringp)
 
 ;;;_  = allout-use-mode-specific-leader
 (defcustom allout-use-mode-specific-leader t
@@ -305,6 +314,9 @@ incorrect.]"
 		 (const allout-mode-leaders)
 		 (const comment-start))
   :group 'allout)
+;;;###autoload
+(put 'allout-use-mode-specific-leader 'safe-local-variable
+     (lambda (x) (or (member x '(t nil)) (stringp x))))
 ;;;_  = allout-mode-leaders
 (defvar allout-mode-leaders '()
   "Specific allout-prefix leading strings per major modes.
@@ -330,6 +342,9 @@ are always respected by the topic maneuvering functions."
   :type 'boolean
   :group 'allout)
 (make-variable-buffer-local 'allout-old-style-prefixes)
+;;;###autoload
+(put 'allout-old-style-prefixes 'safe-local-variable
+     (lambda (x) (member x '(t nil))))
 ;;;_  = allout-stylish-prefixes - alternating bullets
 (defcustom allout-stylish-prefixes t
   "*Do fancy stuff with topic prefix bullets according to level, etc.
@@ -376,6 +391,9 @@ is non-nil."
   :type 'boolean
   :group 'allout)
 (make-variable-buffer-local 'allout-stylish-prefixes)
+;;;###autoload
+(put 'allout-stylish-prefixes 'safe-local-variable
+     (lambda (x) (member x '(t nil))))
 
 ;;;_  = allout-numbered-bullet
 (defcustom allout-numbered-bullet "#"
@@ -388,6 +406,9 @@ disables numbering maintenance."
   :type '(choice (const nil) string)
   :group 'allout)
 (make-variable-buffer-local 'allout-numbered-bullet)
+;;;###autoload
+(put 'allout-numbered-bullet 'safe-local-variable
+     (lambda (x) (or (not x) (stringp x))))
 ;;;_  = allout-file-xref-bullet
 (defcustom allout-file-xref-bullet "@"
   "*Bullet signifying file cross-references, for `allout-resolve-xref'.
@@ -395,6 +416,9 @@ disables numbering maintenance."
 Set this var to the bullet you want to use for file cross-references."
   :type '(choice (const nil) string)
   :group 'allout)
+;;;###autoload
+(put 'allout-file-xref-bullet 'safe-local-variable
+     (lambda (x) (or (not x) (stringp x))))
 ;;;_  = allout-presentation-padding
 (defcustom allout-presentation-padding 2
   "*Presentation-format white-space padding factor, for greater indent."
@@ -402,6 +426,8 @@ Set this var to the bullet you want to use for file cross-references."
   :group 'allout)
 
 (make-variable-buffer-local 'allout-presentation-padding)
+;;;###autoload
+(put 'allout-presentation-padding 'safe-local-variable 'integerp)
 
 ;;;_  = allout-abbreviate-flattened-numbering
 (defcustom allout-abbreviate-flattened-numbering nil
@@ -455,11 +481,16 @@ formatted copy."
   :group 'allout)
 
 ;;;_ + Topic encryption
+;;;_  = allout-encryption group
+(defgroup allout-encryption nil
+  "Settings for topic encryption features of allout outliner."
+  :group 'allout)
 ;;;_  = allout-topic-encryption-bullet
 (defcustom allout-topic-encryption-bullet "~"
   "*Bullet signifying encryption of the entry's body."
   :type '(choice (const nil) string)
-  :group 'allout)
+  :version "22.0"
+  :group 'allout-encryption)
 ;;;_  = allout-passphrase-verifier-handling
 (defcustom allout-passphrase-verifier-handling t
   "*Enable use of symmetric encryption passphrase verifier if non-nil.
@@ -467,7 +498,8 @@ formatted copy."
 See the docstring for the `allout-enable-file-variable-adjustment'
 variable for details about allout ajustment of file variables."
   :type 'boolean
-  :group 'allout)
+  :version "22.0"
+  :group 'allout-encryption)
 (make-variable-buffer-local 'allout-passphrase-verifier-handling)
 ;;;_  = allout-passphrase-hint-handling
 (defcustom allout-passphrase-hint-handling 'always
@@ -482,7 +514,8 @@ variable for details about allout ajustment of file variables."
   :type '(choice (const always)
                  (const needed)
                  (const disabled))
-  :group 'allout)
+  :version "22.0"
+  :group 'allout-encryption)
 (make-variable-buffer-local 'allout-passphrase-hint-handling)
 ;;;_  = allout-encrypt-unencrypted-on-saves
 (defcustom allout-encrypt-unencrypted-on-saves t
@@ -514,7 +547,8 @@ disable auto-saves for that file."
   :type '(choice (const :tag "Yes" t)
                  (const :tag "All except current topic" except-current)
                  (const :tag "No" nil))
-  :group 'allout)
+  :version "22.0"
+  :group 'allout-encryption)
 (make-variable-buffer-local 'allout-encrypt-unencrypted-on-saves)
 
 ;;;_ + Miscellaneous customization
@@ -585,6 +619,9 @@ where auto-fill occurs."
   :type 'boolean
   :group 'allout)
 (make-variable-buffer-local 'allout-use-hanging-indents)
+;;;###autoload
+(put 'allout-use-hanging-indents 'safe-local-variable
+     (lambda (x) (member x '(t nil))))
 
 ;;;_  = allout-reindent-bodies
 (defcustom allout-reindent-bodies (if allout-use-hanging-indents
@@ -602,6 +639,9 @@ those that do not have the variable `comment-start' set.  A value of
   :group 'allout)
 
 (make-variable-buffer-local 'allout-reindent-bodies)
+;;;###autoload
+(put 'allout-reindent-bodies 'safe-local-variable
+     (lambda (x) (member x '(nil t text force))))
 
 ;;;_  = allout-enable-file-variable-adjustment
 (defcustom allout-enable-file-variable-adjustment t
@@ -667,7 +707,9 @@ the layout used for the allout.el source file.)
 case the value of `allout-default-layout' is used.")
 (make-variable-buffer-local 'allout-layout)
 ;;;###autoload
-(put 'allout-layout 'safe-local-variable t)
+(put 'allout-layout 'safe-local-variable
+     (lambda (x) (or (numberp x) (listp x) (integerp x)
+                     (member x '(: * + -)))))
 
 ;;;_  : Topic header format
 ;;;_   = allout-regexp
@@ -1053,7 +1095,8 @@ The verifier string is retained as an Emacs file variable, as well as in
 the emacs buffer state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-verifier-string)
-(put 'allout-passphrase-verifier-string 'safe-local-variable t)
+;;;###autoload
+(put 'allout-passphrase-verifier-string 'safe-local-variable 'stringp)
 ;;;_   = allout-passphrase-hint-string
 (defvar allout-passphrase-hint-string ""
   "Variable used to retain reminder string for file's encryption passphrase.
@@ -1065,8 +1108,9 @@ The hint is retained as an Emacs file variable, as well as in the emacs buffer
 state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-hint-string)
-(put 'allout-passphrase-hint-string 'safe-local-variable t)
 (setq-default allout-passphrase-hint-string "")
+;;;###autoload
+(put 'allout-passphrase-hint-string 'safe-local-variable 'stringp)
 ;;;_   = allout-after-save-decrypt
 (defvar allout-after-save-decrypt nil
   "Internal variable, is nil or has the value of two points:
@@ -1573,6 +1617,12 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
 				       ; epoch, minor-mode key bindings:
 	   (setq allout-mode-map
 		 (produce-allout-mode-map allout-keybindings-list))
+           (substitute-key-definition 'beginning-of-line
+                                      'move-beginning-of-line
+                                      allout-mode-map global-map)
+           (substitute-key-definition 'end-of-line
+                                      'move-end-of-line
+                                      allout-mode-map global-map)
 	   (produce-allout-mode-menubar-entries)
 	   (fset 'allout-mode-map allout-mode-map)
 				       ; Include on minor-mode-map-alist,
@@ -5778,17 +5828,14 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
       (if (/= arg 1)
           (condition-case nil (line-move (1- arg)) (error nil)))
 
-      (let ((orig (point)))
-        ;; Move to beginning-of-line, ignoring fields and invisibles.
-        (skip-chars-backward "^\n")
-        (while (and (not (bobp)) (line-move-invisible-p (1- (point))))
-          (goto-char (if (featurep 'xemacs)
-                         (previous-property-change (point))
-                       (previous-char-property-change (point))))
-          (skip-chars-backward "^\n"))
-        (vertical-motion 0)
-        (if (/= orig (point))
-            (goto-char orig))))
+      ;; Move to beginning-of-line, ignoring fields and invisibles.
+      (skip-chars-backward "^\n")
+      (while (and (not (bobp)) (line-move-invisible-p (1- (point))))
+        (goto-char (if (featurep 'xemacs)
+                       (previous-property-change (point))
+                     (previous-char-property-change (point))))
+        (skip-chars-backward "^\n"))
+      (vertical-motion 0))
 )
 ;;;_  > move-end-of-line if necessary - older emacs, xemacs
 (if (not (fboundp 'move-end-of-line))
@@ -5802,8 +5849,7 @@ If point reaches the beginning or end of buffer, it stops there.
 To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
       (interactive "p")
       (or arg (setq arg 1))
-      (let ((orig (point))
-            done)
+      (let (done)
         (while (not done)
           (let ((newpos
                  (save-excursion
@@ -5813,8 +5859,10 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
                             (error nil))
                           (not (bobp))
                           (progn
-                            (while (and (not (bobp)) (line-move-invisible-p (1- (point))))
-                              (goto-char (previous-char-property-change (point))))
+                            (while (and (not (bobp))
+                                        (line-move-invisible-p (1- (point))))
+                              (goto-char
+                               (previous-char-property-change (point))))
                             (backward-char 1)))
                      (point)))))
             (goto-char newpos)
@@ -5827,9 +5875,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
                   ;; and now we're not really at eol,
                   ;; keep going.
                   (setq arg 1)
-                (setq done t)))))
-        (if (/= orig (point))
-            (goto-char orig))))
+                (setq done t)))))))
   )
 ;;;_  > line-move-invisible-p if necessary
 (if (not (fboundp 'line-move-invisible-p))

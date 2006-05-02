@@ -1,5 +1,5 @@
 /* Generic frame functions.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
+   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003, 2006,
                  2004, 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3093,8 +3093,14 @@ x_set_font (f, arg, oldval)
 	    return;
 	}
       store_frame_param (f, Qfont, result);
+
       if (!NILP (Fequal (result, oldval)))
         return;
+
+      /* Recalculate toolbar height.  */
+      f->n_tool_bar_rows = 0;
+      /* Ensure we redraw it.  */
+      clear_current_matrices (f);
 
       recompute_basic_faces (f);
     }

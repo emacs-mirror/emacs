@@ -1,3 +1,40 @@
+2006-04-28  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 7.95.
+
+	* mh-e.el (Version, mh-version): Update for release 7.95.
+
+2006-04-26  Eric Ding  <ericding@alum.mit.edu>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Add entry
+	"X-Provags-ID:"
+
+2006-04-25  Bill Wohler  <wohler@newt.com>
+
+	* mh-letter.el (mh-folder-expand-at-point): Fix folder completion.
+	Folders returned by mh-folder-completion-function no longer need
+	adornment (closes SF #1476270).
+
+2006-04-21  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (Version, mh-version): Add +cvs to version.
+
+2006-04-21  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 7.94.
+
+	* mh-e.el (Version, mh-version): Update for release 7.94.
+
+2006-04-21  Bill Wohler  <wohler@newt.com>
+
+	* mh-letter.el (mh-insert-letter): If a message number isn't
+	given, throw an error rather than using a potentially incorrect
+	message number (closes SF #1473729). In addition, use the cur
+	message if mh-sent-from-msg is nil (when sending a message, in
+	contrast to replying). Move conversion of int to string into
+	interactive stanza so body can assume variables are of proper
+	type.
+
 2006-04-20  Bill Wohler  <wohler@newt.com>
 
 	* mh-tool-bar.el (image-load-path): Define to shush compiler.

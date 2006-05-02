@@ -1265,15 +1265,15 @@ or by the previous use of this command."
   "Specify coding system for keyboard input.
 If you set this on a terminal which can't distinguish Meta keys from
 8-bit characters, you will have to use ESC to type Meta characters.
-See Info node `Specify Coding' and Info node `Single-Byte Character Support'.
+See Info node `Terminal Coding' and Info node `Unibyte Mode'.
 
 On non-windowing terminals, this is set from the locale by default.
 
 Setting this variable directly does not take effect;
 use either \\[customize] or \\[set-keyboard-coding-system]."
   :type '(coding-system :tag "Coding system")
-  :link '(info-link "(emacs)Specify Coding")
-  :link '(info-link "(emacs)Single-Byte Character Support")
+  :link '(info-link "(emacs)Terminal Coding")
+  :link '(info-link "(emacs)Unibyte Mode")
   :set (lambda (symbol value)
 	 ;; Don't load encoded-kbd-mode unnecessarily.
 	 (if (or value (boundp 'encoded-kbd-mode))

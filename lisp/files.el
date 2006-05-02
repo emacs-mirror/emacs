@@ -2652,15 +2652,11 @@ It is safe if any of these conditions are met:
  * There is a matching entry (SYM . VAL) in the
    `safe-local-variable-values' user option.
 
- * The `safe-local-variable' property of SYM is t.
-
  * The `safe-local-variable' property of SYM is a function that
    evaluates to a non-nil value with VAL as an argument."
   (or (member (cons sym val) safe-local-variable-values)
       (let ((safep (get sym 'safe-local-variable)))
-	(or (eq safep t)
-	    (and (functionp safep)
-		 (funcall safep val))))))
+        (and (functionp safep) (funcall safep val)))))
 
 (defun risky-local-variable-p (sym &optional ignored)
   "Non-nil if SYM could be dangerous as a file-local variable.

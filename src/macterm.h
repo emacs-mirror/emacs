@@ -335,6 +335,11 @@ struct mac_output {
   /* Hints for the size and the position of a window.  */
   XSizeHints *size_hints;
 
+#if TARGET_API_MAC_CARBON
+  /* File name for the proxy icon of this frame.  Might be NULL.  */
+  char *file_name;
+#endif
+
 #if USE_CG_DRAWING
   /* Quartz 2D graphics context.  */
   CGContextRef cg_context;
@@ -359,6 +364,8 @@ typedef struct mac_output mac_output;
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.mac->baseline_offset)
 
 #define FRAME_SIZE_HINTS(f) ((f)->output_data.mac->size_hints)
+
+#define FRAME_FILE_NAME(f) ((f)->output_data.mac->file_name)
 
 /* This gives the mac_display_info structure for the display F is on.  */
 #define FRAME_MAC_DISPLAY_INFO(f) (&one_mac_display_info)
@@ -606,6 +613,7 @@ extern int x_char_width P_ ((struct frame *));
 extern int x_char_height P_ ((struct frame *));
 extern void x_sync P_ ((struct frame *));
 extern void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void mac_update_title_bar P_ ((struct frame *, int));
 
 /* Defined in macmenu.c */
 

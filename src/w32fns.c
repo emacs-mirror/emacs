@@ -3191,6 +3191,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	      }
 	    wmsg.dwModifiers = w32_get_modifiers ();
 	    my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+	    signal_user_input ();
 
 	    /* Clear message buffer. */
 	    saved_mouse_button_msg.msg.hwnd = 0;
@@ -3248,6 +3249,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	  }
 	wmsg.dwModifiers = w32_get_modifiers ();
 	my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+	signal_user_input ();
 
 	/* Always clear message buffer and cancel timer. */
 	saved_mouse_button_msg.msg.hwnd = 0;

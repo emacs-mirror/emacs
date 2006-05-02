@@ -841,7 +841,7 @@ static Lisp_Object
 store_in_keymap (keymap, idx, def)
      Lisp_Object keymap;
      register Lisp_Object idx;
-     register Lisp_Object def;
+     Lisp_Object def;
 {
   /* Flush any reverse-map cache.  */
   where_is_cache = Qnil;
@@ -1226,8 +1226,11 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
       if (!CONSP (keymap))
 	/* We must use Fkey_description rather than just passing key to
 	   error; key might be a vector, not a string.  */
-	error ("Key sequence %s uses invalid prefix characters",
-	       SDATA (Fkey_description (key, Qnil)));
+	error ("Key sequence %s starts with non-prefix key %s",
+	       SDATA (Fkey_description (key, Qnil)),
+	       SDATA (Fkey_description (Fsubstring (key, make_number (0),
+						    make_number (idx)),
+					Qnil)));
     }
 }
 

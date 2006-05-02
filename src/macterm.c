@@ -391,16 +391,37 @@ mac_draw_line (f, gc, x1, y1, x2, y2)
 {
 #if USE_CG_DRAWING
   CGContextRef context;
+  float gx1 = x1, gy1 = y1, gx2 = x2, gy2 = y2;
+
+  if (y1 != y2)
+    gx1 += 0.5f, gx2 += 0.5f;
+  if (x1 != x2)
+    gy1 += 0.5f, gy2 += 0.5f;
 
   context = mac_begin_cg_clip (f, gc);
   CG_SET_STROKE_COLOR (context, gc->xgcv.foreground);
   CGContextBeginPath (context);
-  CGContextMoveToPoint (context, x1 + 0.5f, y1 + 0.5f);
-  CGContextAddLineToPoint (context, x2 + 0.5f, y2 + 0.5f);
+  CGContextMoveToPoint (context, gx1, gy1);
+  CGContextAddLineToPoint (context, gx2, gy2);
   CGContextClosePath (context);
   CGContextStrokePath (context);
   mac_end_cg_clip (f);
 #else
+  if (x1 == x2)
+    {
+      if (y1 > y2)
+	y1--;
+      else if (y2 > y1)
+	y2--;
+    }
+  else if (y1 == y2)
+    {
+      if (x1 > x2)
+	x1--;
+      else
+	x2--;
+    }
+
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   RGBForeColor (GC_FORE_COLOR (gc));
@@ -421,6 +442,21 @@ mac_draw_line_to_pixmap (display, p, gc, x1, y1, x2, y2)
 {
   CGrafPtr old_port;
   GDHandle old_gdh;
+
+  if (x1 == x2)
+    {
+      if (y1 > y2)
+	y1--;
+      else if (y2 > y1)
+	y2--;
+    }
+  else if (y1 == y2)
+    {
+      if (x1 > x2)
+	x1--;
+      else
+	x2--;
+    }
 
   GetGWorld (&old_port, &old_gdh);
   SetGWorld (p, NULL);
@@ -1627,7 +1663,7 @@ mac_set_clip_rectangles (display, gc, rectangles, n)
 	  DisposeRgn (region);
 	}
     }
-#if defined (MAC_OSX) && USE_ATSUI
+#if defined (MAC_OSX) && (USE_ATSUI || USE_CG_DRAWING)
   for (i = 0; i < n; i++)
     {
       Rect *rect = rectangles + i;
@@ -2139,6 +2175,29 @@ static int mac_encode_char P_ ((int, XChar2b *, struct font_info *,
 				struct charset *, int *));
 
 
+static void
+pcm_init (pcm, count)
+     XCharStruct *pcm;
+     int count;
+{
+  bzero (pcm, sizeof (XCharStruct) * count);
+  while (--count >= 0)
+    {
+      pcm->descent = PCM_INVALID;
+      pcm++;
+    }
+}
+
+static enum pcm_status
+pcm_get_status (pcm)
+     XCharStruct *pcm;
+{
+  int height = pcm->ascent + pcm->descent;
+
+  /* Negative height means some special status.  */
+  return height >= 0 ? PCM_VALID : height;
+}
+
 /* Get metrics of character CHAR2B in FONT.  Value is null if CHAR2B
    is not contained in the font.  */
 
@@ -2155,22 +2214,21 @@ x_per_char_metric (font, char2b)
 #if USE_ATSUI
   if (font->mac_style)
     {
-      XCharStructRow **row = font->bounds.rows + char2b->byte1;
+      XCharStruct **row = font->bounds.rows + char2b->byte1;
 
       if (*row == NULL)
 	{
-	  *row = xmalloc (sizeof (XCharStructRow));
-	  bzero (*row, sizeof (XCharStructRow));
+	  *row = xmalloc (sizeof (XCharStruct) * 0x100);
+	  pcm_init (*row, 0x100);
 	}
-      pcm = (*row)->per_char + char2b->byte2;
-      if (!XCHARSTRUCTROW_CHAR_VALID_P (*row, char2b->byte2))
+      pcm = *row + char2b->byte2;
+      if (pcm_get_status (pcm) != PCM_VALID)
 	{
 	  BLOCK_INPUT;
 	  mac_query_char_extents (font->mac_style,
 				  (char2b->byte1 << 8) + char2b->byte2,
 				  NULL, NULL, pcm, NULL);
 	  UNBLOCK_INPUT;
-	  XCHARSTRUCTROW_SET_CHAR_VALID (*row, char2b->byte2);
 	}
     }
   else
@@ -2233,7 +2291,11 @@ x_per_char_metric (font, char2b)
 #endif
 
   return ((pcm == NULL
-	   || (pcm->width == 0 && (pcm->rbearing - pcm->lbearing) == 0))
+	   || (pcm->width == 0
+#if 0 /* Show hollow boxes for zero-width glyphs such as combining diacritics.  */
+	       && (pcm->rbearing - pcm->lbearing) == 0
+#endif
+	       ))
 	  ? NULL : pcm);
 }
 
@@ -3120,13 +3182,13 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
     for (i = 0; i < width; ++i)
       mac_draw_line (f, gc,
 		     left_x + i * left_p, top_y + i,
-		     right_x - i * right_p, top_y + i);
+		     right_x + 1 - i * right_p, top_y + i);
 
   /* Left.  */
   if (left_p)
     for (i = 0; i < width; ++i)
       mac_draw_line (f, gc,
-		     left_x + i, top_y + i, left_x + i, bottom_y - i);
+		     left_x + i, top_y + i, left_x + i, bottom_y - i + 1);
 
   mac_reset_clip_rectangles (dpy, gc);
   if (raised_p)
@@ -3140,13 +3202,13 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
     for (i = 0; i < width; ++i)
       mac_draw_line (f, gc,
 		     left_x + i * left_p, bottom_y - i,
-		     right_x - i * right_p, bottom_y - i);
+		     right_x + 1 - i * right_p, bottom_y - i);
 
   /* Right.  */
   if (right_p)
     for (i = 0; i < width; ++i)
       mac_draw_line (f, gc,
-		     right_x - i, top_y + i + 1, right_x - i, bottom_y - i - 1);
+		     right_x - i, top_y + i + 1, right_x - i, bottom_y - i);
 
   mac_reset_clip_rectangles (dpy, gc);
 }
@@ -6315,6 +6377,11 @@ x_free_frame_resources (f)
   if (FRAME_SIZE_HINTS (f))
     xfree (FRAME_SIZE_HINTS (f));
 
+#if TARGET_API_MAC_CARBON
+  if (FRAME_FILE_NAME (f))
+    xfree (FRAME_FILE_NAME (f));
+#endif
+
   xfree (f->output_data.mac);
   f->output_data.mac = NULL;
 
@@ -7061,6 +7128,25 @@ add_font_name_table_entry (char *font_name)
   font_name_table[font_name_count++] = font_name;
 }
 
+static void
+add_mac_font_name (name, size, style, charset)
+     char *name;
+     int size;
+     Style style;
+     char *charset;
+{
+  if (size > 0)
+    add_font_name_table_entry (mac_to_x_fontname (name, size, style, charset));
+  else
+    {
+      add_font_name_table_entry (mac_to_x_fontname (name, 0, style, charset));
+      add_font_name_table_entry (mac_to_x_fontname (name, 0, italic, charset));
+      add_font_name_table_entry (mac_to_x_fontname (name, 0, bold, charset));
+      add_font_name_table_entry (mac_to_x_fontname (name, 0, italic | bold,
+						    charset));
+    }
+}
+
 /* Sets up the table font_name_table to contain the list of all fonts
    in the system the first time the table is used so that the Resource
    Manager need not be accessed every time this information is
@@ -7086,16 +7172,21 @@ init_font_name_table ()
 			   text_encoding_info_alist)))
     {
       OSErr err;
+      struct Lisp_Hash_Table *h;
+      unsigned hash_code;
       ItemCount nfonts, i;
       ATSUFontID *font_ids = NULL;
-      Ptr name, prev_name = NULL;
+      Ptr name;
       ByteCount name_len;
+      Lisp_Object family;
 
       atsu_font_id_hash =
 	make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
 			 make_float (DEFAULT_REHASH_SIZE),
 			 make_float (DEFAULT_REHASH_THRESHOLD),
 			 Qnil, Qnil, Qnil);;
+      h = XHASH_TABLE (atsu_font_id_hash);
+
       err = ATSUFontCount (&nfonts);
       if (err == noErr)
 	{
@@ -7117,32 +7208,19 @@ init_font_name_table ()
 				    kFontNoLanguage, name_len, name,
 				    NULL, NULL);
 	    if (err == noErr)
-	      decode_mac_font_name (name, name_len + 1, Qnil);
-	    if (err == noErr
-		&& *name != '.'
-		&& (prev_name == NULL
-		    || strcmp (name, prev_name) != 0))
 	      {
-		static char *cs = "iso10646-1";
-
-		add_font_name_table_entry (mac_to_x_fontname (name, 0,
-							      normal, cs));
-		add_font_name_table_entry (mac_to_x_fontname (name, 0,
-							      italic, cs));
-		add_font_name_table_entry (mac_to_x_fontname (name, 0,
-							      bold, cs));
-		add_font_name_table_entry (mac_to_x_fontname (name, 0,
-							      italic | bold, cs));
-		Fputhash (make_unibyte_string (name, name_len),
-			  long_to_cons (font_ids[i]), atsu_font_id_hash);
-		xfree (prev_name);
-		prev_name = name;
+		decode_mac_font_name (name, name_len + 1, Qnil);
+		family = make_unibyte_string (name, name_len);
+		if (*name != '.'
+		    && hash_lookup (h, family, &hash_code) < 0)
+		  {
+		    add_mac_font_name (name, 0, normal, "iso10646-1");
+		    hash_put (h, family, long_to_cons (font_ids[i]),
+			      hash_code);
+		  }
 	      }
-	    else
-	      xfree (name);
+	    xfree (name);
 	  }
-      if (prev_name)
-	xfree (prev_name);
       if (font_ids)
 	xfree (font_ids);
     }
@@ -7170,16 +7248,16 @@ init_font_name_table ()
       FMFontSize size;
       TextEncoding encoding;
       TextEncodingBase sc;
-      Lisp_Object text_encoding_info;
+      Lisp_Object text_encoding_info, family;
 
       if (FMGetFontFamilyName (ff, name) != noErr)
-	break;
+	continue;
       p2cstr (name);
       if (*name == '.')
 	continue;
 
       if (FMGetFontFamilyTextEncoding (ff, &encoding) != noErr)
-	break;
+	continue;
       sc = GetTextEncodingBase (encoding);
       text_encoding_info = assq_no_quit (make_number (sc),
 					 text_encoding_info_alist);
@@ -7188,13 +7266,15 @@ init_font_name_table ()
 					   text_encoding_info_alist);
       decode_mac_font_name (name, sizeof (name),
 			    XCAR (XCDR (text_encoding_info)));
-      fm_font_family_alist = Fcons (Fcons (build_string (name),
-					   make_number (ff)),
+      family = build_string (name);
+      if (!NILP (Fassoc (family, fm_font_family_alist)))
+	continue;
+      fm_font_family_alist = Fcons (Fcons (family, make_number (ff)),
 				    fm_font_family_alist);
 
       /* Point the instance iterator at the current font family.  */
       if (FMResetFontFamilyInstanceIterator (ff, &ffii) != noErr)
-	break;
+	continue;
 
       while (FMGetNextFontFamilyInstance (&ffii, &font, &style, &size)
 	     == noErr)
@@ -7203,27 +7283,7 @@ init_font_name_table ()
 
 	  if (size > 0 || style == normal)
 	    for (; !NILP (rest); rest = XCDR (rest))
-	      {
-		char *cs = SDATA (XCAR (rest));
-
-		if (size == 0)
-		  {
-		    add_font_name_table_entry (mac_to_x_fontname (name, size,
-								  style, cs));
-		    add_font_name_table_entry (mac_to_x_fontname (name, size,
-								  italic, cs));
-		    add_font_name_table_entry (mac_to_x_fontname (name, size,
-								  bold, cs));
-		    add_font_name_table_entry (mac_to_x_fontname (name, size,
-								  italic | bold,
-								  cs));
-		  }
-		else
-		  {
-		    add_font_name_table_entry (mac_to_x_fontname (name, size,
-								  style, cs));
-		  }
-	      }
+	      add_mac_font_name (name, size, style, SDATA (XCAR (rest)));
 	}
     }
 
@@ -7243,7 +7303,7 @@ init_font_name_table ()
   Str255 name;
   struct FontAssoc *fat;
   struct AsscEntry *assc_entry;
-  Lisp_Object text_encoding_info_alist, text_encoding_info;
+  Lisp_Object text_encoding_info_alist, text_encoding_info, family;
   struct gcpro gcpro1;
 
   GetPort (&port);  /* save the current font number used */
@@ -7262,7 +7322,7 @@ init_font_name_table ()
       GetResInfo (font_handle, &id, &type, name);
       GetFNum (name, &fontnum);
       p2cstr (name);
-      if (fontnum == 0)
+      if (fontnum == 0 || *name == '.')
 	continue;
 
       TextFont (fontnum);
@@ -7274,8 +7334,10 @@ init_font_name_table ()
 					   text_encoding_info_alist);
       decode_mac_font_name (name, sizeof (name),
 			    XCAR (XCDR (text_encoding_info)));
-      fm_font_family_alist = Fcons (Fcons (build_string (name),
-					   make_number (fontnum)),
+      family = build_string (name);
+      if (!NILP (Fassoc (family, fm_font_family_alist)))
+	continue;
+      fm_font_family_alist = Fcons (Fcons (family, make_number (fontnum)),
 				    fm_font_family_alist);
       do
 	{
@@ -7296,14 +7358,9 @@ init_font_name_table ()
 		  Lisp_Object rest = XCDR (XCDR (text_encoding_info));
 
 		  for (; !NILP (rest); rest = XCDR (rest))
-		    {
-		      char *cs = SDATA (XCAR (rest));
-
-		      add_font_name_table_entry (mac_to_x_fontname (name,
-								    assc_entry->fontSize,
-								    assc_entry->fontStyle,
-								    cs));
-		    }
+		    add_mac_font_name (name, assc_entry->fontSize,
+				       assc_entry->fontStyle,
+				       SDATA (XCAR (rest)));
 		}
 	    }
 
@@ -7771,10 +7828,10 @@ XLoadQueryFont (Display *dpy, char *fontname)
       font->min_char_or_byte2 = 0;
       font->max_char_or_byte2 = 0xff;
 
-      font->bounds.rows = xmalloc (sizeof (XCharStructRow *) * 0x100);
-      bzero (font->bounds.rows, sizeof (XCharStructRow *) * 0x100);
-      font->bounds.rows[0] = xmalloc (sizeof (XCharStructRow));
-      bzero (font->bounds.rows[0], sizeof (XCharStructRow));
+      font->bounds.rows = xmalloc (sizeof (XCharStruct *) * 0x100);
+      bzero (font->bounds.rows, sizeof (XCharStruct *) * 0x100);
+      font->bounds.rows[0] = xmalloc (sizeof (XCharStruct) * 0x100);
+      pcm_init (font->bounds.rows[0], 0x100);
 
 #if USE_CG_TEXT_DRAWING
       {
@@ -7800,7 +7857,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	  bzero (font->cg_glyphs, sizeof (CGGlyph) * 0x100);
 	}
 #endif
-      space_bounds = font->bounds.rows[0]->per_char + 0x20;
+      space_bounds = font->bounds.rows[0] + 0x20;
       err = mac_query_char_extents (font->mac_style, 0x20,
 				    &font->ascent, &font->descent,
 				    space_bounds,
@@ -7816,9 +7873,8 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	  mac_unload_font (&one_mac_display_info, font);
 	  return NULL;
 	}
-      XCHARSTRUCTROW_SET_CHAR_VALID (font->bounds.rows[0], 0x20);
 
-      pcm = font->bounds.rows[0]->per_char;
+      pcm = font->bounds.rows[0];
       for (c = 0x21; c <= 0xff; c++)
 	{
 	  if (c == 0xad)
@@ -7838,7 +7894,6 @@ XLoadQueryFont (Display *dpy, char *fontname)
 				    NULL
 #endif
 				  );
-	  XCHARSTRUCTROW_SET_CHAR_VALID (font->bounds.rows[0], c);
 
 #if USE_CG_TEXT_DRAWING
 	  if (font->cg_glyphs && font->cg_glyphs[c] == 0)
@@ -10024,8 +10079,20 @@ XTread_socket (sd, expected, hold_quit)
 		  }
 		break;
 
+#if TARGET_API_MAC_CARBON
+	      case inProxyIcon:
+		if (TrackWindowProxyDrag (window_ptr, er.where)
+		    != errUserWantsToDragWindow)
+		  break;
+		/* fall through */
+#endif
 	      case inDrag:
 #if TARGET_API_MAC_CARBON
+		if (IsWindowPathSelectClick (window_ptr, &er))
+		  {
+		    WindowPathSelect (window_ptr, NULL, NULL);
+		    break;
+		  }
 		DragWindow (window_ptr, er.where, NULL);
 #else /* not TARGET_API_MAC_CARBON */
 		DragWindow (window_ptr, er.where, &qd.screenBits.bounds);
@@ -11076,7 +11143,11 @@ button will be mouse-3.  */);
    doc: /* *If non-nil, allow anti-aliasing.
 The text will be rendered using Core Graphics text rendering which
 may anti-alias the text.  */);
+#if USE_CG_DRAWING
+  mac_use_core_graphics = 1;
+#else
   mac_use_core_graphics = 0;
+#endif
 
   /* Register an entry for `mac-roman' so that it can be used when
      creating the terminal frame on Mac OS 9 before loading

@@ -932,7 +932,9 @@ The command \\[yank] can retrieve it from there."
 			     (substring str pref-len suff-pos)))
 		(if (string-match "[^ \t\n]" str)
 		    (setq pref-len 0
-			  val (math-read-big-expr str))
+			  val (condition-case nil
+                                  (math-read-big-expr str)
+                                (error (math-read-expr str))))
 		  (setq val nil))))
 	    (if (eq (car-safe val) 'error)
 		(setq val (list 'error

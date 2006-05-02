@@ -1586,11 +1586,16 @@ functionality to work."
 (defcustom message-valid-fqdn-regexp
   (concat "[a-z0-9][-.a-z0-9]+\\." ;; [hostname.subdomain.]domain.
 	  ;; valid TLDs:
-	  "\\([a-z][a-z]" ;; two letter country TDLs
-	  "\\|biz\\|com\\|edu\\|gov\\|int\\|mil\\|net\\|org"
-	  "\\|aero\\|coop\\|info\\|name\\|museum"
-	  "\\|arpa\\|pro\\|uucp\\|bitnet\\|bofh" ;; old style?
-	  "\\)")
+	  "\\([a-z][a-z]\\|" ;; two letter country TDLs
+	  "aero\\|arpa\\|bitnet\\|biz\\|bofh\\|"
+	  "cat\\|com\\|coop\\|edu\\|gov\\|"
+	  "info\\|int\\|jobs\\|"
+	  "mil\\|mobi\\|museum\\|name\\|net\\|"
+	  "org\\|pro\\|travel\\|uucp\\)")
+  ;; http://en.wikipedia.org/wiki/List_of_Internet_top-level_domains
+  ;; http://en.wikipedia.org/wiki/GTLD
+  ;; `in the process of being approved': .asia .post .tel .sex
+  ;; "dead" nato bitnet uucp
   "Regular expression that matches a valid FQDN."
   ;; see also: gnus-button-valid-fqdn-regexp
   :version "22.1"
@@ -2678,6 +2683,11 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   (goto-char (point-min))
   (or (search-forward (concat "\n" mail-header-separator "\n") nil t)
       (search-forward-regexp "[^:]+:\\([^\n]\\|\n[ \t]\\)+\n\n" nil t)))
+
+(defun message-in-body-p ()
+  "Return t if point is in the message body."
+  (let ((body (save-excursion (message-goto-body) (point))))
+    (>= (point) body)))
 
 (defun message-goto-eoh ()
   "Move point to the end of the headers."

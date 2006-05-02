@@ -6887,7 +6887,6 @@ xrealloc (ptr, size)
 
 /*
  * Local Variables:
- * c-indentation-style: gnu
  * indent-tabs-mode: t
  * tab-width: 8
  * fill-column: 79

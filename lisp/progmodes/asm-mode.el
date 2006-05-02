@@ -62,9 +62,9 @@
 
 (defvar asm-mode-syntax-table
   (let ((st (make-syntax-table)))
-    (modify-syntax-entry ?\n ">" st)
-    (modify-syntax-entry ?/  ". 14b" st)
-    (modify-syntax-entry ?*  ". 23b" st)
+    (modify-syntax-entry ?\n "> b" st)
+    (modify-syntax-entry ?/  ". 124b" st)
+    (modify-syntax-entry ?*  ". 23" st)
     st)
   "Syntax table used while in Asm mode.")
 
@@ -136,14 +136,14 @@ Special commands:
   (use-local-map (nconc (make-sparse-keymap) asm-mode-map))
   (local-set-key (vector asm-comment-char) 'asm-comment)
   (set-syntax-table (make-syntax-table asm-mode-syntax-table))
-  (modify-syntax-entry	asm-comment-char "<")
+  (modify-syntax-entry	asm-comment-char "< b")
 
   (make-local-variable 'comment-start)
   (setq comment-start (string asm-comment-char))
   (make-local-variable 'comment-add)
   (setq comment-add 1)
   (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "\\(?:\\s<+\\|/\\*+\\)[ \t]*")
+  (setq comment-start-skip "\\(?:\\s<+\\|/[/*]+\\)[ \t]*")
   (make-local-variable 'comment-end-skip)
   (setq comment-end-skip "[ \t]*\\(\\s>\\|\\*+/\\)")
   (make-local-variable 'comment-end)

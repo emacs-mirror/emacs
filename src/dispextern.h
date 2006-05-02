@@ -2417,6 +2417,15 @@ struct image
 #define DEFAULT_IMAGE_WIDTH 30
 #define DEFAULT_IMAGE_HEIGHT 30
 
+  /* Top/left and bottom/right corner pixel of actual image data.
+     Used by four_corners_best to consider the real image data,
+     rather than looking at the optional image margin.  */
+  int corners[4];
+#define TOP_CORNER 0
+#define LEFT_CORNER 1
+#define BOT_CORNER 2
+#define RIGHT_CORNER 3
+
   /* Percent of image height used as ascent.  A value of
      CENTERED_IMAGE_ASCENT means draw the image centered on the
      line.  */

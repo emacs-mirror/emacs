@@ -851,19 +851,23 @@ and `event-end' functions."
   (nth 3 position))
 
 (defsubst posn-string (position)
-  "Return the string object of POSITION, or nil if a buffer position.
+  "Return the string object of POSITION.
+Value is a cons (STRING . STRING-POS), or nil if not a string.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (nth 4 position))
 
 (defsubst posn-image (position)
-  "Return the image object of POSITION, or nil if a not an image.
+  "Return the image object of POSITION.
+Value is an list (image ...), or nil if not an image.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (nth 7 position))
 
 (defsubst posn-object (position)
   "Return the object (image or string) of POSITION.
+Value is a list (image ...) for an image object, a cons cell
+\(STRING . STRING-POS) for a string object, and nil for a buffer position.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (or (posn-image position) (posn-string position)))
@@ -1258,25 +1262,25 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 
 ;;; Load history
 
-;;; (defvar symbol-file-load-history-loaded nil
-;;;   "Non-nil means we have loaded the file `fns-VERSION.el' in `exec-directory'.
-;;; That file records the part of `load-history' for preloaded files,
-;;; which is cleared out before dumping to make Emacs smaller.")
+;; (defvar symbol-file-load-history-loaded nil
+;;   "Non-nil means we have loaded the file `fns-VERSION.el' in `exec-directory'.
+;; That file records the part of `load-history' for preloaded files,
+;; which is cleared out before dumping to make Emacs smaller.")
 
-;;; (defun load-symbol-file-load-history ()
-;;;   "Load the file `fns-VERSION.el' in `exec-directory' if not already done.
-;;; That file records the part of `load-history' for preloaded files,
-;;; which is cleared out before dumping to make Emacs smaller."
-;;;   (unless symbol-file-load-history-loaded
-;;;     (load (expand-file-name
-;;; 	   ;; fns-XX.YY.ZZ.el does not work on DOS filesystem.
-;;; 	   (if (eq system-type 'ms-dos)
-;;; 	       "fns.el"
-;;; 	     (format "fns-%s.el" emacs-version))
-;;; 	   exec-directory)
-;;; 	  ;; The file name fns-%s.el already has a .el extension.
-;;; 	  nil nil t)
-;;;     (setq symbol-file-load-history-loaded t)))
+;; (defun load-symbol-file-load-history ()
+;;   "Load the file `fns-VERSION.el' in `exec-directory' if not already done.
+;; That file records the part of `load-history' for preloaded files,
+;; which is cleared out before dumping to make Emacs smaller."
+;;   (unless symbol-file-load-history-loaded
+;;     (load (expand-file-name
+;; 	   ;; fns-XX.YY.ZZ.el does not work on DOS filesystem.
+;; 	   (if (eq system-type 'ms-dos)
+;; 	       "fns.el"
+;; 	     (format "fns-%s.el" emacs-version))
+;; 	   exec-directory)
+;; 	  ;; The file name fns-%s.el already has a .el extension.
+;; 	  nil nil t)
+;;     (setq symbol-file-load-history-loaded t)))
 
 (defun symbol-file (symbol &optional type)
   "Return the input source in which SYMBOL was defined.
@@ -1922,6 +1926,10 @@ a system-dependent default device name is used."
   "Return t if OBJECT is a string or nil.
 Otherwise, return nil."
   (or (stringp object) (null object)))
+
+(defun booleanp (object)
+  "Return non-nil if OBJECT is one of the two canonical boolean values: t or nil."
+  (memq object '(nil t)))
 
 
 ;;;; Support for yanking and text properties.

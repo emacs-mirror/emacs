@@ -9060,6 +9060,9 @@ prepare_menu_bars ()
 	  update_menu_bar (f, 0);
 #ifdef HAVE_WINDOW_SYSTEM
 	  update_tool_bar (f, 0);
+#ifdef MAC_OS
+	  mac_update_title_bar (f, 0);
+#endif
 #endif
 	  UNGCPRO;
 	}
@@ -9072,6 +9075,9 @@ prepare_menu_bars ()
       update_menu_bar (sf, 1);
 #ifdef HAVE_WINDOW_SYSTEM
       update_tool_bar (sf, 1);
+#ifdef MAC_OS
+      mac_update_title_bar (sf, 1);
+#endif
 #endif
     }
 
@@ -9668,20 +9674,22 @@ tool_bar_lines_needed (f, n_rows)
 {
   struct window *w = XWINDOW (f->tool_bar_window);
   struct it it;
+  struct glyph_row *temp_row = w->desired_matrix->rows;
 
   /* Initialize an iterator for iteration over
      F->desired_tool_bar_string in the tool-bar window of frame F.  */
-  init_iterator (&it, w, -1, -1, w->desired_matrix->rows, TOOL_BAR_FACE_ID);
+  init_iterator (&it, w, -1, -1, temp_row, TOOL_BAR_FACE_ID);
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_TOTAL_COLS (f) * FRAME_COLUMN_WIDTH (f);
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
 
   while (!ITERATOR_AT_END_P (&it))
     {
-      it.glyph_row = w->desired_matrix->rows;
-      clear_glyph_row (it.glyph_row);
+      clear_glyph_row (temp_row);
+      it.glyph_row = temp_row;
       display_tool_bar_line (&it, -1);
     }
+  clear_glyph_row (temp_row);
 
   /* f->n_tool_bar_rows == 0 means "unknown"; -1 means no tool-bar.  */
   if (n_rows)
@@ -9761,7 +9769,29 @@ redisplay_tool_bar (f)
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
 
   if (f->n_tool_bar_rows == 0)
-    (void)tool_bar_lines_needed (f, &f->n_tool_bar_rows);
+    {
+      int nlines;
+
+      if ((nlines = tool_bar_lines_needed (f, &f->n_tool_bar_rows),
+	   nlines != WINDOW_TOTAL_LINES (w)))
+	{
+	  extern Lisp_Object Qtool_bar_lines;
+	  Lisp_Object frame;
+	  int old_height = WINDOW_TOTAL_LINES (w);
+
+	  XSETFRAME (frame, f);
+	  clear_glyph_matrix (w->desired_matrix);
+	  Fmodify_frame_parameters (frame,
+				    Fcons (Fcons (Qtool_bar_lines,
+						  make_number (nlines)),
+					   Qnil));
+	  if (WINDOW_TOTAL_LINES (w) != old_height)
+	    {
+	      fonts_changed_p = 1;
+	      return 1;
+	    }
+	}
+    }
 
   /* Display as many lines as needed to display all tool-bar items.  */
 
@@ -12957,7 +12987,8 @@ redisplay_window (window, just_this_one_p)
       /* If first window line is a continuation line, and window start
 	 is inside the modified region, but the first change is before
 	 current window start, we must select a new window start.*/
-      if (NILP (w->start_at_line_beg))
+      if (NILP (w->start_at_line_beg)
+	  && CHARPOS (startp) > BEGV)
 	{
 	  /* Make sure beg_unchanged and end_unchanged are up to date.
 	     Do it only if buffer has really changed.  This may or may
@@ -18593,8 +18624,7 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
 	 sure to use a face suitable for unibyte.  */
       STORE_XCHAR2B (char2b, 0, glyph->u.ch);
     }
-  else if (glyph->u.ch < 128
-	   && glyph->face_id < BASIC_FACE_ID_SENTINEL)
+  else if (glyph->u.ch < 128)
     {
       /* Case of ASCII in a face known to fit ASCII.  */
       STORE_XCHAR2B (char2b, 0, glyph->u.ch);
@@ -18814,6 +18844,7 @@ fill_stretch_glyph_string (s, row, area, start, end)
   s->font = s->face->font;
   s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
   s->width = glyph->pixel_width;
+  s->nchars = 1;
   voffset = glyph->voffset;
 
   for (++glyph;
@@ -19011,7 +19042,7 @@ get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
       face_id = FACE_FOR_CHAR (f, face, c, -1, Qnil);
       face = FACE_FROM_ID (f, face_id);
     }
-  else if (c < 128 && face_id < BASIC_FACE_ID_SENTINEL)
+  else if (c < 128)
     {
       /* Case of ASCII in a face known to fit ASCII.  */
       STORE_XCHAR2B (char2b, 0, c);
@@ -19967,20 +19998,6 @@ produce_stretch_glyph (it)
   it->ascent = it->phys_ascent = ascent;
   it->descent = it->phys_descent = height - it->ascent;
   it->nglyphs = width > 0 && height > 0 ? 1 : 0;
-
-  if (width > 0 && height > 0 && face->box != FACE_NO_BOX)
-    {
-      if (face->box_line_width > 0)
-	{
-	  it->ascent += face->box_line_width;
-	  it->descent += face->box_line_width;
-	}
-
-      if (it->start_of_box_run_p)
-	it->pixel_width += abs (face->box_line_width);
-      if (it->end_of_box_run_p)
-	it->pixel_width += abs (face->box_line_width);
-    }
 
   take_vertical_position_into_account (it);
 }

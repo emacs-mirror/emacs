@@ -280,6 +280,35 @@ be determined."
 
 
 ;;;###autoload
+(defun image-type (file-or-data &optional type data-p)
+  "Determine and return image type.
+FILE-OR-DATA is an image file name or image data.
+Optional TYPE is a symbol describing the image type.  If TYPE is omitted
+or nil, try to determine the image type from its first few bytes
+of image data.  If that doesn't work, and FILE-OR-DATA is a file name,
+use its file extension as image type.
+Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data."
+  (when (and (not data-p) (not (stringp file-or-data)))
+    (error "Invalid image file name `%s'" file-or-data))
+  (cond ((null data-p)
+	 ;; FILE-OR-DATA is a file name.
+	 (unless (or type
+		     (setq type (image-type-from-file-header file-or-data)))
+	   (let ((extension (file-name-extension file-or-data)))
+	     (unless extension
+	       (error "Cannot determine image type"))
+	     (setq type (intern extension)))))
+	(t
+	 ;; FILE-OR-DATA contains image data.
+	 (unless type
+	   (setq type (image-type-from-data file-or-data)))))
+  (unless type
+    (error "Cannot determine image type"))
+  (unless (symbolp type)
+    (error "Invalid image type `%s'" type))
+  type)
+
+;;;###autoload
 (defun image-type-available-p (type)
   "Return non-nil if image type TYPE is available.
 Image types are symbols like `xbm' or `jpeg'."
@@ -301,24 +330,7 @@ like, e.g. `:mask MASK'.
 Value is the image created, or nil if images of type TYPE are not supported.
 
 Images should not be larger than specified by `max-image-size'."
-  (when (and (not data-p) (not (stringp file-or-data)))
-    (error "Invalid image file name `%s'" file-or-data))
-  (cond ((null data-p)
-	 ;; FILE-OR-DATA is a file name.
-	 (unless (or type
-		     (setq type (image-type-from-file-header file-or-data)))
-	   (let ((extension (file-name-extension file-or-data)))
-	     (unless extension
-	       (error "Cannot determine image type"))
-	     (setq type (intern extension)))))
-	(t
-	 ;; FILE-OR-DATA contains image data.
-	 (unless type
-	   (setq type (image-type-from-data file-or-data)))))
-  (unless type
-    (error "Cannot determine image type"))
-  (unless (symbolp type)
-    (error "Invalid image type `%s'" type))
+  (setq type (image-type file-or-data type data-p))
   (when (image-type-available-p type)
     (append (list 'image :type type (if data-p :data :file) file-or-data)
 	    props)))

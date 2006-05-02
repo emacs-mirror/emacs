@@ -72,7 +72,7 @@ This defaults to the value returned by the function `user-full-name'."
 
 ;;;###autoload
 (defcustom add-log-mailing-address nil
-  "*Email addresses of user, for inclusion in ChangeLog headers.
+  "Email addresses of user, for inclusion in ChangeLog headers.
 This defaults to the value of `user-mail-address'.  In addition to
 being a simple string, this value can also be a list.  All elements
 will be recognized as referring to the same user; when creating a new
@@ -83,7 +83,7 @@ ChangeLog entry, one element will be chosen at random."
   :group 'change-log)
 
 (defcustom add-log-time-format 'add-log-iso8601-time-string
-  "*Function that defines the time format.
+  "Function that defines the time format.
 For example, `add-log-iso8601-time-string', which gives the
 date in international ISO 8601 format,
 and `current-time-string' are two valid values."
@@ -95,7 +95,7 @@ and `current-time-string' are two valid values."
   :group 'change-log)
 
 (defcustom add-log-keep-changes-together nil
-  "*If non-nil, normally keep day's log entries for one file together.
+  "If non-nil, normally keep day's log entries for one file together.
 
 Log entries for a given file made with \\[add-change-log-entry] or
 \\[add-change-log-entry-other-window] will only be added to others \
@@ -127,20 +127,20 @@ this variable."
   :group 'change-log)
 
 (defcustom add-log-always-start-new-record nil
-  "*If non-nil, `add-change-log-entry' will always start a new record."
+  "If non-nil, `add-change-log-entry' will always start a new record."
   :version "22.1"
   :type 'boolean
   :group 'change-log)
 
 (defcustom add-log-buffer-file-name-function nil
-  "*If non-nil, function to call to identify the full filename of a buffer.
+  "If non-nil, function to call to identify the full filename of a buffer.
 This function is called with no argument.  If this is nil, the default is to
 use `buffer-file-name'."
   :type '(choice (const nil) function)
   :group 'change-log)
 
 (defcustom add-log-file-name-function nil
-  "*If non-nil, function to call to identify the filename for a ChangeLog entry.
+  "If non-nil, function to call to identify the filename for a ChangeLog entry.
 This function is called with one argument, the value of variable
 `buffer-file-name' in that buffer.  If this is nil, the default is to
 use the file's name relative to the directory of the change log file."
@@ -286,12 +286,16 @@ Note: The search is conducted only within 10%, at the beginning of the file."
     map)
   "Keymap for Change Log major mode.")
 
-(defvar change-log-time-zone-rule nil
+;; It used to be called change-log-time-zone-rule but really should be
+;; called add-log-time-zone-rule since it's only used from add-log-* code.
+(defvaralias 'change-log-time-zone-rule 'add-log-time-zone-rule)
+(defvar add-log-time-zone-rule nil
   "Time zone used for calculating change log time stamps.
 It takes the same format as the TZ argument of `set-time-zone-rule'.
-If nil, use local time.")
+If nil, use local time.
+If t, use universal time.")
 
-(defun add-log-iso8601-time-zone (time)
+(defun add-log-iso8601-time-zone (&optional time)
   (let* ((utc-offset (or (car (current-time-zone time)) 0))
 	 (sign (if (< utc-offset 0) ?- ?+))
 	 (sec (abs utc-offset))
@@ -304,18 +308,14 @@ If nil, use local time.")
 		  (t "%c%02d"))
 	    sign hh mm ss)))
 
+(defvar add-log-iso8601-with-time-zone nil)
+
 (defun add-log-iso8601-time-string ()
-  (if change-log-time-zone-rule
-      (let ((tz (getenv "TZ"))
-	    (now (current-time)))
-	(unwind-protect
-	    (progn
-	      (set-time-zone-rule change-log-time-zone-rule)
-	      (concat
-	       (format-time-string "%Y-%m-%d " now)
-	       (add-log-iso8601-time-zone now)))
-	  (set-time-zone-rule tz)))
-    (format-time-string "%Y-%m-%d")))
+  (let ((time (format-time-string "%Y-%m-%d"
+                                  nil (eq t add-log-time-zone-rule))))
+    (if add-log-iso8601-with-time-zone
+        (concat time " " (add-log-iso8601-time-zone))
+      time)))
 
 (defun change-log-name ()
   "Return (system-dependent) default name for a change log file."
@@ -494,7 +494,7 @@ The change log file can start with a copyright notice and a copying
 permission notice.  The first blank line indicates the end of these
 notices.
 
-Today's date is calculated according to `change-log-time-zone-rule' if
+Today's date is calculated according to `add-log-time-zone-rule' if
 non-nil, otherwise in local time."
   (interactive (list current-prefix-arg
 		     (prompt-for-change-log-name)))
@@ -538,13 +538,22 @@ non-nil, otherwise in local time."
       (skip-chars-forward "\n"))
 
     ;; Advance into first entry if it is usable; else make new one.
-    (let ((new-entries (mapcar (lambda (addr)
-				 (concat (funcall add-log-time-format)
-					 "  " full-name
-					 "  <" addr ">"))
-			       (if (consp mailing-address)
-				   mailing-address
-				 (list mailing-address)))))
+    (let ((new-entries
+           (mapcar (lambda (addr)
+                     (concat
+                      (if (stringp add-log-time-zone-rule)
+                          (let ((tz (getenv "TZ")))
+                            (unwind-protect
+                                (progn
+                                  (set-time-zone-rule add-log-time-zone-rule)
+                                  (funcall add-log-time-format))
+                              (set-time-zone-rule tz)))
+                        (funcall add-log-time-format))
+                      "  " full-name
+                      "  <" addr ">"))
+                   (if (consp mailing-address)
+                       mailing-address
+                     (list mailing-address)))))
       (if (and (not add-log-always-start-new-record)
                (let ((hit nil))
 		 (dolist (entry new-entries hit)
@@ -652,21 +661,21 @@ the change log file in another window."
   (add-change-log-entry whoami file-name t))
 ;;;###autoload (define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
 
-(defvar add-log-indent-text 0)
+(defvar change-log-indent-text 0)
 
-(defun add-log-indent ()
+(defun change-log-indent ()
   (let* ((indent
 	  (save-excursion
 	    (beginning-of-line)
 	    (skip-chars-forward " \t")
 	    (cond
-	     ((and (looking-at "\\(.*\\)  [^ \n].*[^ \n]  <.*>$")
+	     ((and (looking-at "\\(.*\\)  [^ \n].*[^ \n]  <.*>\\(?: +(.*)\\)? *$")
 		   ;; Matching the output of add-log-time-format is difficult,
 		   ;; but I'll get it has at least two adjacent digits.
 		   (string-match "[[:digit:]][[:digit:]]" (match-string 1)))
 	      0)
 	     ((looking-at "[^*(]")
-	      (+ (current-left-margin) add-log-indent-text))
+	      (+ (current-left-margin) change-log-indent-text))
 	     (t (current-left-margin)))))
 	 (pos (save-excursion (indent-line-to indent) (point))))
     (if (> pos (point)) (goto-char pos))))
@@ -688,7 +697,7 @@ Runs `change-log-mode-hook'.
 	tab-width 8)
   (set (make-local-variable 'fill-paragraph-function)
        'change-log-fill-paragraph)
-  (set (make-local-variable 'indent-line-function) 'add-log-indent)
+  (set (make-local-variable 'indent-line-function) 'change-log-indent)
   (set (make-local-variable 'tab-always-indent) nil)
   ;; We really do want "^" in paragraph-start below: it is only the
   ;; lines that begin at column 0 (despite the left-margin of 8) that
@@ -722,23 +731,23 @@ Prefix arg means justify as well."
 
 (defcustom add-log-current-defun-header-regexp
   "^\\([[:upper:]][[:upper:]_ ]*[[:upper:]_]\\|[-_[:alpha:]]+\\)[ \t]*[:=]"
-  "*Heuristic regexp used by `add-log-current-defun' for unknown major modes."
+  "Heuristic regexp used by `add-log-current-defun' for unknown major modes."
   :type 'regexp
   :group 'change-log)
 
 ;;;###autoload
 (defvar add-log-lisp-like-modes
-    '(emacs-lisp-mode lisp-mode scheme-mode dsssl-mode lisp-interaction-mode)
+  '(emacs-lisp-mode lisp-mode scheme-mode dsssl-mode lisp-interaction-mode)
   "*Modes that look like Lisp to `add-log-current-defun'.")
 
 ;;;###autoload
 (defvar add-log-c-like-modes
-    '(c-mode c++-mode c++-c-mode objc-mode)
+  '(c-mode c++-mode c++-c-mode objc-mode)
   "*Modes that look like C to `add-log-current-defun'.")
 
 ;;;###autoload
 (defvar add-log-tex-like-modes
-    '(TeX-mode plain-TeX-mode LaTeX-mode plain-tex-mode latex-mode)
+  '(TeX-mode plain-TeX-mode LaTeX-mode plain-tex-mode latex-mode)
   "*Modes that look like TeX to `add-log-current-defun'.")
 
 ;;;###autoload
@@ -1103,5 +1112,5 @@ old-style time formats for entries are supported."
 
 (provide 'add-log)
 
-;;; arch-tag: 81eee6fc-088f-4372-a37f-80ad9620e762
+;; arch-tag: 81eee6fc-088f-4372-a37f-80ad9620e762
 ;;; add-log.el ends here

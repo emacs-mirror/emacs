@@ -1480,7 +1480,7 @@ in `selection-converter-alist', which see."
 	     (re-search-forward
 	      (mapconcat 'regexp-quote (split-string search-text) "\\|")
 	      nil t)))))
-  (raise-frame))
+  (select-frame-set-input-focus (selected-frame)))
 
 (defun mac-ae-text (ae)
   (or (cdr (mac-ae-parameter ae nil "TEXT"))
@@ -1911,9 +1911,10 @@ Switch to a buffer editing the last file dropped."
     (dolist (file-name (nth 2 event))
       (dnd-handle-one-url window 'private
 			  (concat "file:" file-name))))
-  (raise-frame))
+  (select-frame-set-input-focus (selected-frame)))
 
 (global-set-key [drag-n-drop] 'mac-drag-n-drop)
+(global-set-key [M-drag-n-drop] 'mac-drag-n-drop)
 
 ;;;; Non-toolkit Scroll bars
 

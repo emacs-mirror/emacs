@@ -829,7 +829,7 @@ in the grammar's actions and semantic predicates, see
 `antlr-font-lock-maximum-decoration'.")
 
 (defvar antlr-default-face 'antlr-default)
-(defface antlr-default nil
+(defface antlr-default '((t nil))
   "Face to prevent strings from language dependent highlighting.
 Do not change."
   :group 'antlr)
