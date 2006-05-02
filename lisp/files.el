@@ -2353,27 +2353,27 @@ asking you for confirmation."
   (eval
    `(mapc (lambda (pair)
 	    (put (car pair) 'safe-local-variable (cdr pair)))
-	  '((byte-compile-dynamic . t)
-	    (byte-compile-dynamic-docstrings . t)
-	    (byte-compile-warnings . t)
+	  '((byte-compile-dynamic . booleanp)
+	    (byte-compile-dynamic-docstrings . booleanp)
+	    (byte-compile-warnings . booleanp)
 	    (c-basic-offset     .  integerp)
 	    (c-file-style       .  stringp)
 	    (c-indent-level     .  integerp)
 	    (comment-column     .  integerp)
 	    (compile-command    .  string-or-null-p)
-	    (find-file-visit-truename . t)
+	    (find-file-visit-truename . booleanp)
 	    (fill-column        .  integerp)
 	    (fill-prefix        .  string-or-null-p)
-	    (indent-tabs-mode   .  t)
+	    (indent-tabs-mode   .  booleanp) ;; C source code
 	    (kept-old-versions  .  integerp)
 	    (kept-new-versions  .  integerp)
-	    (left-margin        .  t)
-	    (no-byte-compile    .  t)
-	    (no-update-autoloads . t)
+	    (left-margin        .  integerp)
+	    (no-byte-compile    .  booleanp)
+	    (no-update-autoloads . booleanp)
 	    (outline-regexp     .  string-or-null-p)
 	    (tab-width          .  integerp) ;; C source code
-	    (truncate-lines     .  t) ;; C source code
-	    (version-control    .  t)))))
+	    (truncate-lines     .  booleanp) ;; C source code
+	    (version-control    .  symbolp)))))
 
 (put 'c-set-style 'safe-local-eval-function t)
 

@@ -1,3 +1,12 @@
+2006-05-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* files.el (byte-compile-dynamic)
+	(byte-compile-dynamic-docstrings, byte-compile-warnings)
+	(find-file-visit-truename, indent-tabs-mode, left-margin)
+	(no-byte-compile no-update-autoloads, truncate-lines)
+	(version-control): Don't use `t' for safe-local-variable
+	declarations.
+
 2006-05-01  Richard Stallman  <rms@gnu.org>
 
 	* diff-mode.el (diff-mode-shared-map): Don't bind M-W, M-U, M-C,
