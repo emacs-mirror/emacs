@@ -584,7 +584,7 @@ substitution string.  Note dynamic scoping of variables.")
 	  (setq command
 		(replace-match
 		 (or (if (symbolp (cdr kw))
-			 (eval (cdr kw))
+			 (symbol-value (cdr kw))
 		       (save-match-data (eval (cdr kw))))
 		     "")
 		 t t command))))))
