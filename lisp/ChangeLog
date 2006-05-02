@@ -1,5 +1,8 @@
 2006-05-02  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* startup.el (command-line-1): Refer to Lisp manual when
+	pure-space-overflow occurs.
+
 	* files.el (byte-compile-dynamic)
 	(byte-compile-dynamic-docstrings, byte-compile-warnings)
 	(find-file-visit-truename, indent-tabs-mode, left-margin)
