@@ -26,24 +26,24 @@
 	(tramp-completion-handle-file-name-directory)
 	(tramp-completion-handle-file-name-nondirectory)
 	(tramp-completion-handle-expand-file-name): Remove them.
-	(tramp-handle-file-name-directory): Return the real directory
-	name.  Returning "/" only doesn't need to be necessary any longer.
+	(tramp-handle-file-name-directory): Return the real directory name.
+	Returning "/" only doesn't need to be necessary any longer.
 	(tramp-file-name-handler): Make special attention when in hostname
 	completion mode.
-	(tramp-completion-file-name-handler): Revert patch from
-	2006-04-28.
+	(tramp-completion-file-name-handler): Revert patch from	2006-04-28.
 	(tramp-register-file-name-handlers): Register
 	`tramp-completion-file-name-handler' only when
 	`partial-completion-mode is enabled.
-	(tramp-completion-handle-file-name-all-completions): Delete
-	directory part from results.
+	(tramp-completion-handle-file-name-all-completions):
+	Delete directory part from results.
 	(tramp-get-completion-methods, tramp-get-completion-user-host):
 	Discard deleting "/", it doesn't work after the change of
 	`tramp-handle-file-name-directory' above.
 
 2006-05-01  Kim F. Storm  <storm@cua.dk>
 
-	* progmodes/grep.el (grep-expand-template): Use save-match-data.
+	* progmodes/grep.el (grep-expand-template): Use save-match-data
+	and symbol-value.
 
 2006-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -121,7 +121,7 @@
 	(grep-read-regexp, grep-read-files): New helper functions.
 	(rgrep): Rename from grep-tree.  Rework to use proper histories.
 	Adapt to changes in defcustoms and functions above.
-	(lgrep): New command, as grep, but using same interactive api as rgrep.
+	(lgrep): New command, as grep, but using same interactive UI as rgrep.
 
 2006-04-28  Michael Albinus  <michael.albinus@gmx.de>
 
