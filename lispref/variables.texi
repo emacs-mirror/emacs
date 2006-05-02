@@ -1783,7 +1783,8 @@ a function of one argument; any value is safe if the function
 returns non-@code{nil} given that value.  Many commonly encountered
 file variables standardly have @code{safe-local-variable} properties,
 including @code{fill-column}, @code{fill-prefix}, and
-@code{indent-tabs-mode}.
+@code{indent-tabs-mode}.  For boolean-valued variables that are safe,
+use @code{booleanp} as the property value.
 
 @defopt safe-local-variable-values
 This variable provides another way to mark some variable values as
