@@ -118,7 +118,8 @@ when editing big diffs)."
     ("\C-m" . diff-goto-source)
     ([mouse-2] . diff-goto-source)
     ;; From XEmacs' diff-mode.
-    ("W" . widen)
+;; Standard M-w is useful, so don't change M-W.
+;;    ("W" . widen)
     ;;("." . diff-goto-source)		;display-buffer
     ;;("f" . diff-goto-source)		;find-file
     ("o" . diff-goto-source)		;other-window
@@ -127,14 +128,14 @@ when editing big diffs)."
     ;;("h" . diff-show-header)
     ;;("j" . diff-show-difference)	;jump to Nth diff
     ;;("q" . diff-quit)
-    (" " . scroll-up)
-    ("\177" . scroll-down)
-    ;; Our very own bindings.
-    ("A" . diff-ediff-patch)
-    ("r" . diff-restrict-view)
-    ("R" . diff-reverse-direction)
-    ("U" . diff-context->unified)
-    ("C" . diff-unified->context)
+;; Not useful if you have to metafy them.
+;;    (" " . scroll-up)
+;;    ("\177" . scroll-down)
+;; Standard M-a is useful, so don't change M-A.
+;;    ("A" . diff-ediff-patch)
+;; Standard M-r is useful, so don't change M-r or M-R.
+;;    ("r" . diff-restrict-view)
+;;    ("R" . diff-reverse-direction)
     ("q" . quit-window))
   "Basic keymap for `diff-mode', bound to various prefix keys.")
 
@@ -143,10 +144,14 @@ when editing big diffs)."
     ;; From compilation-minor-mode.
     ("\C-c\C-c" . diff-goto-source)
     ;; Misc operations.
-    ("\C-c\C-r" . diff-refine-hunk)
-    ("\C-c\C-s" . diff-split-hunk)
     ("\C-c\C-a" . diff-apply-hunk)
+    ("\C-c\C-e" . diff-ediff-patch)
+    ("\C-c\C-n" . diff-restrict-view)
+    ("\C-c\C-r" . diff-reverse-direction)
+    ("\C-c\C-s" . diff-split-hunk)
     ("\C-c\C-t" . diff-test-hunk)
+    ("\C-c\C-u" . diff-context->unified)
+    ("\C-c\C-w" . diff-refine-hunk)
     ("\C-c\C-f" . next-error-follow-minor-mode))
   "Keymap for `diff-mode'.  See also `diff-mode-shared-map'.")
 
@@ -711,77 +716,80 @@ else cover the whole bufer."
 			    (delete-region last-pt (point))
 			    (setq delete nil)))))))))))))))
 
-(defun diff-context->unified (start end)
+(defun diff-context->unified (start end &optional to-context)
   "Convert context diffs to unified diffs.
-START and END are either taken from the region (if a prefix arg is given) or
-else cover the whole bufer."
-  (interactive (if current-prefix-arg
-		   (list (mark) (point))
-		 (list (point-min) (point-max))))
-  (unless (markerp end) (setq end (copy-marker end)))
-  (let (;;(diff-inhibit-after-change t)
-	(inhibit-read-only t))
-    (save-excursion
-      (goto-char start)
-      (while (and (re-search-forward "^\\(\\(\\*\\*\\*\\) .+\n\\(---\\) .+\\|\\*\\{15\\}.*\n\\*\\*\\* \\([0-9]+\\),\\(-?[0-9]+\\) \\*\\*\\*\\*\\)$" nil t)
-		  (< (point) end))
-	(combine-after-change-calls
-	  (if (match-beginning 2)
-	      ;; we matched a file header
-	      (progn
-		;; use reverse order to make sure the indices are kept valid
-		(replace-match "+++" t t nil 3)
-		(replace-match "---" t t nil 2))
-	    ;; we matched a hunk header
-	    (let ((line1s (match-string 4))
-		  (line1e (match-string 5))
-		  (pt1 (match-beginning 0)))
-	      (replace-match "")
-	      (unless (re-search-forward
-		       "^--- \\([0-9]+\\),\\(-?[0-9]+\\) ----$" nil t)
-		(error "Can't find matching `--- n1,n2 ----' line"))
-	      (let ((line2s (match-string 1))
-		    (line2e (match-string 2))
-		    (pt2 (progn
-			   (delete-region (progn (beginning-of-line) (point))
-					  (progn (forward-line 1) (point)))
-			   (point-marker))))
-		(goto-char pt1)
-		(forward-line 1)
-		(while (< (point) pt2)
-		  (case (char-after)
-		    ((?! ?-) (delete-char 2) (insert "-") (forward-line 1))
-		    (?\s		;merge with the other half of the chunk
-		     (let* ((endline2
-			     (save-excursion
-			       (goto-char pt2) (forward-line 1) (point)))
-			    (c (char-after pt2)))
-		       (case c
-			 ((?! ?+)
-			  (insert "+"
-				  (prog1 (buffer-substring (+ pt2 2) endline2)
-				    (delete-region pt2 endline2))))
-			 (?\s		;FIXME: check consistency
-			  (delete-region pt2 endline2)
-			  (delete-char 1)
-			  (forward-line 1))
-			 (?\\ (forward-line 1))
-			 (t (delete-char 1) (forward-line 1)))))
-		    (t (forward-line 1))))
-		(while (looking-at "[+! ] ")
-		  (if (/= (char-after) ?!) (forward-char 1)
-		    (delete-char 1) (insert "+"))
-		  (delete-char 1) (forward-line 1))
-		(save-excursion
+START and END are either taken from the region
+\(when it is highlighted) or else cover the whole buffer.
+With a prefix argument, convert unified format to context format."
+  (interactive (if (and transient-mark-mode mark-active)
+		   (list (mark) (point) current-prefix-arg)
+		 (list (point-min) (point-max) current-prefix-arg)))
+  (if to-context
+      (diff-unified->context start end)
+    (unless (markerp end) (setq end (copy-marker end)))
+    (let ( ;;(diff-inhibit-after-change t)
+	  (inhibit-read-only t))
+      (save-excursion
+	(goto-char start)
+	(while (and (re-search-forward "^\\(\\(\\*\\*\\*\\) .+\n\\(---\\) .+\\|\\*\\{15\\}.*\n\\*\\*\\* \\([0-9]+\\),\\(-?[0-9]+\\) \\*\\*\\*\\*\\)$" nil t)
+		    (< (point) end))
+	  (combine-after-change-calls
+	    (if (match-beginning 2)
+		;; we matched a file header
+		(progn
+		  ;; use reverse order to make sure the indices are kept valid
+		  (replace-match "+++" t t nil 3)
+		  (replace-match "---" t t nil 2))
+	      ;; we matched a hunk header
+	      (let ((line1s (match-string 4))
+		    (line1e (match-string 5))
+		    (pt1 (match-beginning 0)))
+		(replace-match "")
+		(unless (re-search-forward
+			 "^--- \\([0-9]+\\),\\(-?[0-9]+\\) ----$" nil t)
+		  (error "Can't find matching `--- n1,n2 ----' line"))
+		(let ((line2s (match-string 1))
+		      (line2e (match-string 2))
+		      (pt2 (progn
+			     (delete-region (progn (beginning-of-line) (point))
+					    (progn (forward-line 1) (point)))
+			     (point-marker))))
 		  (goto-char pt1)
-		  (insert "@@ -" line1s ","
-			  (number-to-string (- (string-to-number line1e)
-					       (string-to-number line1s)
-					       -1))
-			  " +" line2s ","
-			  (number-to-string (- (string-to-number line2e)
-					       (string-to-number line2s)
-					       -1)) " @@"))))))))))
+		  (forward-line 1)
+		  (while (< (point) pt2)
+		    (case (char-after)
+		      ((?! ?-) (delete-char 2) (insert "-") (forward-line 1))
+		      (?\s     ;merge with the other half of the chunk
+		       (let* ((endline2
+			       (save-excursion
+				 (goto-char pt2) (forward-line 1) (point)))
+			      (c (char-after pt2)))
+			 (case c
+			   ((?! ?+)
+			    (insert "+"
+				    (prog1 (buffer-substring (+ pt2 2) endline2)
+				      (delete-region pt2 endline2))))
+			   (?\s		;FIXME: check consistency
+			    (delete-region pt2 endline2)
+			    (delete-char 1)
+			    (forward-line 1))
+			   (?\\ (forward-line 1))
+			   (t (delete-char 1) (forward-line 1)))))
+		      (t (forward-line 1))))
+		  (while (looking-at "[+! ] ")
+		    (if (/= (char-after) ?!) (forward-char 1)
+		      (delete-char 1) (insert "+"))
+		    (delete-char 1) (forward-line 1))
+		  (save-excursion
+		    (goto-char pt1)
+		    (insert "@@ -" line1s ","
+			    (number-to-string (- (string-to-number line1e)
+						 (string-to-number line1s)
+						 -1))
+			    " +" line2s ","
+			    (number-to-string (- (string-to-number line2e)
+						 (string-to-number line2s)
+						 -1)) " @@")))))))))))
 
 (defun diff-reverse-direction (start end)
   "Reverse the direction of the diffs.
