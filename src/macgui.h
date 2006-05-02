@@ -81,9 +81,11 @@ typedef unsigned long Time;
 
 /* Whether to use ATSUI (Apple Type Services for Unicode Imaging) for
    text drawing.  */
+#if 0 /* Don't enable by default on the emacs-unicode-2 branch.  */
 #ifndef USE_ATSUI
 #ifdef MAC_OSX
 #define USE_ATSUI 1
+#endif
 #endif
 #endif
 
