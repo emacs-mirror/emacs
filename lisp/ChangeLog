@@ -1,3 +1,8 @@
+2006-05-02  Chong Yidong  <cyd@mit.edu>
+
+	* msb.el (msb): If EVENT is a down event, read and discard the up
+	event.
+
 2006-05-02  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* startup.el (command-line-1): Refer to Lisp manual when
