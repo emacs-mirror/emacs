@@ -1,3 +1,11 @@
+2006-04-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-uu.el (mm-uu-pgp-encrypted-extract-1): Assume buffer is made
+	unibyte after clear-decrypt function runs.
+
+	* mml2015.el (mml2015-pgg-clear-decrypt): Treat data which pgg
+	returns as a unibyte string.
+
 2006-04-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* lpath.el: Don't fbind string-as-multibyte for XEmacs.
