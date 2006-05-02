@@ -89,9 +89,9 @@ some of how to customize it; it corresponds to GNU Emacs version
 @value{EMACSVER}.
 
 @ifinfo
-If you never before used the Info documentation system, type @kbd{h},
-and Emacs will take you to a programmed instruction sequence for the
-Info commands.
+To learn more about the Info documentation system, type @kbd{h}, and
+Emacs will take you to a programmed instruction sequence for the Info
+commands.
 @end ifinfo
 
 For information on extending Emacs, see @ref{Top, Emacs Lisp,, elisp, The
@@ -197,6 +197,7 @@ Advanced Features
 * Sorting::	        Sorting lines, paragraphs or pages within Emacs.
 * Narrowing::	        Restricting display and editing to a portion
 		          of the buffer.
+* Diff Mode::           Editing diff output.
 * Two-Column::	        Splitting apart columns to edit them
 		          in side-by-side windows.
 * Editing Binary Files::Using Hexl mode to edit binary files.
@@ -286,7 +287,7 @@ Killing and Moving Text
 * Killing by Lines::	How to kill entire lines of text at one time.
 * Other Kill Commands:: Commands to kill large regions of text and
 			  syntactic units such as words and sentences.
-* Graphical Kill::      The kill ring on graphical terminals:
+* Graphical Kill::      The kill ring on graphical displays:
                           yanking between applications.
 * CUA Bindings::        Using @kbd{C-x}, @kbd{C-c}, @kbd{C-v} for copy
                           and paste, with enhanced rectangle support.
@@ -867,47 +868,47 @@ Emacs and Microsoft Windows
 @unnumbered Preface
 
   This manual documents the use and simple customization of the Emacs
-editor.  The reader is not expected to be a programmer; simple
-customizations do not require programming skill.  The user who is not
-interested in customizing can ignore the scattered customization hints.
+editor.  Simple Emacs customizations do not require you to be a
+programmer, but if you are not interested in customizing, you can
+ignore the customization hints.
 
   This is primarily a reference manual, but can also be used as a
-primer.  For complete beginners, it is a good idea to start with the
-on-line, learn-by-doing tutorial, before reading the manual.  To run the
-tutorial, start Emacs and type @kbd{C-h t}.  This way you can learn
-Emacs by using Emacs on a specially designed file which describes
-commands, tells you when to try them, and then explains the results you
-see.
+primer.  If you are a complete beginner, we recommend you start with
+the on-line, learn-by-doing tutorial, before reading the manual.  To
+run the tutorial, start Emacs and type @kbd{C-h t}.  The tutorial
+describes commands, tells you when to try them, and explains the
+results.
 
   On first reading, just skim chapters 1 and 2, which describe the
 notational conventions of the manual and the general appearance of the
 Emacs display screen.  Note which questions are answered in these
 chapters, so you can refer back later.  After reading chapter 4, you
-should practice the commands there.  The next few chapters describe
-fundamental techniques and concepts that are used constantly.  You need
-to understand them thoroughly, experimenting with them if necessary.
+should practice the commands shown there.  The next few chapters
+describe fundamental techniques and concepts that are used constantly.
+You need to understand them thoroughly, so experiment with them
+until you are fluent.
 
   Chapters 14 through 19 describe intermediate-level features that are
-useful for all kinds of editing.  Chapter 20 and following chapters
-describe features that you may or may not want to use; read those
-chapters when you need them.
+useful for many kinds of editing.  Chapter 20 and following chapters
+describe optional but useful features; read those chapters when you
+need them.
 
   Read the Trouble chapter if Emacs does not seem to be working
-properly.  It explains how to cope with some common problems
+properly.  It explains how to cope with several common problems
 (@pxref{Lossage}), as well as when and how to report Emacs bugs
 (@pxref{Bugs}).
 
-  To find the documentation on a particular command, look in the index.
-Keys (character commands) and command names have separate indexes.  There
-is also a glossary, with a cross reference for each term.
+  To find the documentation of a particular command, look in the index.
+Keys (character commands) and command names have separate indexes.
+There is also a glossary, with a cross reference for each term.
 
   This manual is available as a printed book and also as an Info file.
-The Info file is for on-line perusal with the Info program, which will
-be the principal way of viewing documentation on-line in the GNU system.
-Both the Info file and the Info program itself are distributed along
-with GNU Emacs.  The Info file and the printed book contain
-substantially the same text and are generated from the same source
-files, which are also distributed along with GNU Emacs.
+The Info file is for on-line perusal with the Info program, which is
+the principal means of accessing on-line documentation in the GNU
+system.  Both the Emacs Info file and an Info reader are included with
+GNU Emacs.  The Info file and the printed book contain substantially
+the same text and are generated from the same source files, which are
+also distributed with GNU Emacs.
 
   GNU Emacs is a member of the Emacs editor family.  There are many
 Emacs editors, all sharing common principles of organization.  For
@@ -1058,59 +1059,51 @@ T.@: Zimmermann, Reto Zimmermann, Neal Ziring, and Detlev Zundel.
 @node Intro, Glossary, Distrib, Top
 @unnumbered Introduction
 
-  You are reading about GNU Emacs, the GNU incarnation of the advanced,
-self-documenting, customizable, extensible real-time display editor Emacs.
+  You are reading about GNU Emacs, the GNU incarnation of the
+advanced, self-documenting, customizable, extensible editor Emacs.
 (The `G' in `GNU' is not silent.)
 
-  We say that Emacs is a @dfn{display} editor because normally the text
-being edited is visible on the screen and is updated automatically as you
-type your commands.  @xref{Screen,Display}.
-
-  We call it a @dfn{real-time} editor because the display is updated very
-frequently, usually after each character or pair of characters you
-type.  This minimizes the amount of information you must keep in your
-head as you edit.  @xref{Basic,Real-time,Basic Editing}.
-
-  We call Emacs advanced because it provides facilities that go beyond
-simple insertion and deletion: controlling subprocesses; automatic
-indentation of programs; viewing two or more files at once; editing
-formatted text; and dealing in terms of characters, words, lines,
-sentences, paragraphs, and pages, as well as expressions and comments in
-several different programming languages.
+  We call Emacs advanced because it provides much more than simple
+insertion and deletion.  It can control subprocesses, indent programs
+automatically, show two or more files at once, and edit formatted
+text.  Emacs editing commands operate in terms of characters, words,
+lines, sentences, paragraphs, and pages, as well as expressions and
+comments in various programming languages.
 
   @dfn{Self-documenting} means that at any time you can type a special
 character, @kbd{Control-h}, to find out what your options are.  You can
 also use it to find out what any command does, or to find all the commands
 that pertain to a topic.  @xref{Help}.
 
-  @dfn{Customizable} means that you can change the definitions of Emacs
-commands in little ways.  For example, if you use a programming language in
-which comments start with @samp{<**} and end with @samp{**>}, you can tell
-the Emacs comment manipulation commands to use those strings
-(@pxref{Comments}).  Another sort of customization is rearrangement of the
-command set.  For example, if you prefer the four basic cursor motion
-commands (up, down, left and right) on keys in a diamond pattern on the
-keyboard, you can rebind the keys that way.  @xref{Customization}.
+  @dfn{Customizable} means that you can alter Emacs commands' behavior
+in simple ways.  For example, if you use a programming language in
+which comments start with @samp{<**} and end with @samp{**>}, you can
+tell the Emacs comment manipulation commands to use those strings
+(@pxref{Comments}).  Another sort of customization is rearrangement of
+the command set.  For example, you can rebind the basic cursor motion
+commands (up, down, left and right) to any keys on the keyboard that
+you find comfortable.  @xref{Customization}.
 
-  @dfn{Extensible} means that you can go beyond simple customization and
-write entirely new commands, programs in the Lisp language to be run by
-Emacs's own Lisp interpreter.  Emacs is an ``on-line extensible''
-system, which means that it is divided into many functions that call
-each other, any of which can be redefined in the middle of an editing
-session.  Almost any part of Emacs can be replaced without making a
-separate copy of all of Emacs.  Most of the editing commands of Emacs
-are written in Lisp; the few exceptions could have been written
-in Lisp but are written in C for efficiency.  Although only a programmer
-can write an extension, anybody can use it afterward.  @xref{Top,
-Emacs Lisp Intro, Preface, eintr, An Introduction to Programming in
-Emacs Lisp}, if you want to learn Emacs Lisp programming.
+  @dfn{Extensible} means that you can go beyond simple customization
+and write entirely new commands---programs in the Lisp language to be
+run by Emacs's own Lisp interpreter.  Emacs is an ``on-line
+extensible'' system, which means that it is divided into many
+functions that call each other, any of which can be redefined in the
+middle of an editing session.  Almost any part of Emacs can be
+replaced without making a separate copy of all of Emacs.  Most of the
+editing commands of Emacs are written in Lisp; the few exceptions
+could have been written in Lisp but use C instead for efficiency.
+Writing an extension is programming, but non-programmers can use it
+afterwards.  @xref{Top, Emacs Lisp Intro, Preface, eintr, An
+Introduction to Programming in Emacs Lisp}, if you want to learn Emacs
+Lisp programming.
 
    When running on a graphical display, Emacs provides its own menus
-and convenient handling of mouse buttons.  But Emacs provides many of
-the benefits of a graphical display even on a text-only terminal.  For
-instance, it can highlight parts of a file, display and edit several
-files at once, move text between files, and edit files while running
-shell commands.
+and convenient handling of mouse buttons.  In addition, Emacs provides
+many of the benefits of a graphical display even on a text-only
+terminal.  For instance, it can highlight parts of a file, display and
+edit several files at once, move text between files, and edit files
+while running shell commands.
 
 @include screen.texi
 @include commands.texi
