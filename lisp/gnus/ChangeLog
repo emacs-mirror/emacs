@@ -8,39 +8,9 @@
 
 2006-04-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* lpath.el: Don't fbind string-as-multibyte for XEmacs.
-
-	* pgg-gpg.el (pgg-string-to-multibyte): Remove.
-	(pgg-gpg-process-region): Revert.
-
-	* pgg-pgp.el (pgg-pgp-process-region): Revert.
-	(pgg-pgp-lookup-key): Revert.
-
-	* pgg-pgp5.el (pgg-pgp5-process-region): Revert.
-	(pgg-pgp5-lookup-key): Revert.
-
-	* pgg.el (pgg-fetch-key): Revert.
-
-2006-04-27  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* lpath.el: Fbind make-network-process for both Emacs and XEmacs;
-	fbind string-as-multibyte for XEmacs.
-
 	* mml1991.el (mml1991-pgg-sign): No need to load pgg.el, which is
 	always loaded by way of gnus-art.el -> mm-uu.el -> mml2015.el.
 	(mml1991-pgg-encrypt): Ditto.
-
-	* pgg-gpg.el (pgg-string-to-multibyte): New function.
-	(pgg-gpg-process-region): Make sure pgg-output-buffer is always
-	a multibyte buffer.
-
-	* pgg-pgp.el (pgg-pgp-process-region): Ditto.
-	(pgg-pgp-lookup-key): Ditto.
-
-	* pgg-pgp5.el (pgg-pgp5-process-region): Ditto.
-	(pgg-pgp5-lookup-key): Ditto.
-
-	* pgg.el (pgg-fetch-key): Ditto.
 
 2006-04-26  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -513,13 +483,6 @@
 	* gnus.el: Remove bogus comment.
 
 2006-02-09  Daiki Ueno  <ueno@unixuser.org>
-
-	* pgg-gpg.el (pgg-gpg-encrypt-region): Don't convert line-endings
-	in elisp.
-	(pgg-gpg-encrypt-symmetric-region): Ditto.
-	(pgg-gpg-sign-region): Ditto.
-
-	* pgg-def.el (pgg-text-mode): New variable.
 
 	* mml2015.el (mml2015-pgg-sign): Enable pgg-text-mode.
 	(mml2015-pgg-encrypt): Ditto.
