@@ -1,3 +1,10 @@
+2006-05-02  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el: (calc-override-minor-modes-map)
+	(calc-override-minor-modes): New variables.
+	(calc-do-embedded): Make sure that Calc keystrokes aren't
+	overwritten by minor modes.
+
 2006-05-02  Chong Yidong  <cyd@mit.edu>
 
 	* msb.el (msb): If EVENT is a down event, read and discard the up
