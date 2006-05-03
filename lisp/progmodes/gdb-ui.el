@@ -690,10 +690,13 @@ With arg, enter name of variable to be watched in the minibuffer."
 	  (if event (posn-set-point (event-end event)))
 	  (require 'tooltip)
 	  (save-selected-window
-	    (let ((expr (if arg
-			    (completing-read "Name of variable: "
-					     'gud-gdb-complete-command)
-			  (tooltip-identifier-from-point (point)))))
+	    (let ((expr
+		   (if arg
+		       (completing-read "Name of variable: "
+					'gud-gdb-complete-command)
+		     (if (and transient-mark-mode mark-active)
+			 (buffer-substring (region-beginning) (region-end))
+		       (tooltip-identifier-from-point (point))))))
 	      (catch 'already-watched
 		(dolist (var gdb-var-list)
 		  (unless (string-match "\\." (car var))
@@ -2691,7 +2694,7 @@ corresponding to the mode line clicked."
     '(menu-item "Inferior IO" gdb-frame-separate-io-buffer
 		:enable gdb-use-separate-io-buffer))
   (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
-  (define-key menu [disassembly] '("Disassembiy" . gdb-frame-assembler-buffer))
+  (define-key menu [disassembly] '("Disassembly" . gdb-frame-assembler-buffer))
   (define-key menu [breakpoints]
     '("Breakpoints" . gdb-frame-breakpoints-buffer))
   (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
