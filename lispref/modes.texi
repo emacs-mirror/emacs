@@ -2345,8 +2345,8 @@ Search-based fontification happens second.
 * Syntactic Font Lock::         Fontification based on syntax tables.
 * Setting Syntax Properties::   Defining character syntax based on context
                                   using the Font Lock mechanism.
-* Multi line Font Lock Elements:: How to coerce Font Lock into properly
-                                  highlighting multiline elements.
+* Multiline Font Lock::         How to coerce Font Lock into properly
+                                  highlighting multiline constructs.
 @end menu
 
 @node Font Lock Basics
@@ -2625,7 +2625,7 @@ Its value should have one of the forms described in this table.
 
 @strong{Warning:} Do not design an element of @code{font-lock-keywords}
 to match text which spans lines; this does not work reliably.
-For details, see @xref{Multi line Font Lock Elements}.
+For details, see @xref{Multiline Font Lock}.
 
 You can use @var{case-fold} in @code{font-lock-defaults} to specify
 the value of @code{font-lock-keywords-case-fold-search} which says
@@ -2944,8 +2944,8 @@ value returns @code{font-lock-comment-face} for comments and
 
 This can be used to highlighting different kinds of strings or
 comments differently.  It is also sometimes abused together with
-@code{font-lock-syntactic-keywords} to highlight elements that span
-multiple lines, but this is too obscure to document in this manual.
+@code{font-lock-syntactic-keywords} to highlight constructs that span
+multiple lines, but this is too esoteric to document here.
 
 Specify this variable using @var{other-vars} in
 @code{font-lock-defaults}.
@@ -3015,21 +3015,61 @@ Major modes normally set this variable with @var{other-vars} in
 @code{font-lock-defaults}.
 @end defvar
 
-@node Multi line Font Lock Elements
-@subsection Multi line Font Lock Elements
-@cindex multi line font lock
+@node Multiline Font Lock
+@subsection Multiline Font Lock Constructs
+@cindex multiline font lock
 
-Normally, Font Lock elements specified via @code{font-lock-keywords}
-should not match across multiple lines.  If they do, Font Lock may
-fail to highlight them properly.  This is fundamentally due to the
-fact that Font Lock does not always look at the whole buffer at
-a time, for obvious performance reasons, and instead only looks
-at a small chunk at a time.  In order for the highlight to be correct,
-a chunk should not straddle an element matched by
-@code{font-lock-keywords}.  The default heuristic used for this is to
-start and end chunks at the beginning resp. end of a line.
+  Normally, elements of @code{font-lock-keywords} should not match
+across multiple lines; that doesn't work reliably, because Font Lock
+usually scans just part of the buffer, and it can miss a multi-line
+construct that crosses the line boundary where the scan starts.  (The
+scan normally starts at the beginning of a line.)
 
-To work around this limitations, a few tools are provided.
+  Making elements that match multiline constructs work properly has
+two aspects: correct @emph{identification} and correct
+@emph{rehighlighting}.  The first means that Font Lock finds all
+multiline constructs.  The second means that Font Lock will correctly
+rehighlight all the relevant text when a multiline construct is
+changed---for example, if some of the text that was previously part of
+a multiline construct ceases to be part of it.  The two aspects are
+closely related, and often getting one of them to work will appear to
+make the other also work.  However, for reliable results you must
+attend explicitly to both aspects.
+
+  There are two ways to ensure correct identification of multiline
+constructs:
+
+@itemize
+@item
+Place a @code{font-lock-multiline} or @code{jit-lock-defer-multiline}
+property on the construct when it is added to the buffer.
+@item
+Use @code{font-lock-fontify-region-function} hook to extend the scan
+so that the scanned text never starts or ends in the middle of a
+multiline construct.
+@end itemize
+
+  There are three ways to do rehighlighting of multiline constructs:
+
+@itemize
+@item
+Place a @code{font-lock-multiline} property on the construct.  This
+will rehighlight the whole construct if any part of it is changed.  In
+some cases you can do this automatically by setting the
+@code{font-lock-multiline} variable.
+@item
+Use @code{jit-lock-contextually}.  This will only rehighlight the part
+of the construct that follows the actual change, and will do it after
+a short delay.  This only works if the highlighting of the various
+parts of your multiline construct never depends on text in subsequent
+lines.  Since @code{jit-lock-contextually} is activated by default,
+this can be an attractive solution.
+@item
+Place a @code{jit-lock-defer-multiline} property on the construct.
+This works only if @code{jit-lock-contextually} is used, but it can
+handle the case where highlighting depends on subsequent lines.
+@item
+@end itemize
 
 @menu
 * Font Lock Multiline::         Marking multiline chunks with a text property
@@ -3040,60 +3080,75 @@ To work around this limitations, a few tools are provided.
 @node Font Lock Multiline
 @subsubsection Font Lock Multiline
 
-In order to make it possible to properly highlight elements that span
-multiple lines, Font Lock obeys a special text property
-@code{font-lock-multiline} which if non-@code{nil} indicates that this
-piece of text is part of a multiline construct.  So when Font Lock is
-asked to highlight a region, it first verifies the two boundaries and
-extends them as needed so they do not fall in the middle of a piece of
-text marked with the @code{font-lock-multiline} property.
-Immediately after that, it also erases all @code{font-lock-multiline}
-properties from the region it is about to highlight, so it is the
-responsability of the highlighting specification (mostly
-@code{font-lock-keywords}) to make sure that this property is re-added
-where needed so as to inform the next round of Font Locking of the
-presence of a multiline construct.
+  One way to ensure reliable rehighlighting of multiline Font Lock
+constructs is to put on the text property @code{font-lock-multiline}.
+It should be present and non-@code{nil} for text that is part of a
+multiline construct.
 
-It is important to understand that the @code{font-lock-multiline}
-property should preferably only be used on Font Lock elements of
-moderate size: every time that text is modified within the multiline
-elements (or nearby), the whole multiline element will be completely
-re-highlighted, so if its size is large, the time to font-lock may
-render editing painfully slow.
+  When Font Lock is about to highlight a range of text, it first
+extends the boundaries of the range as necessary so that they do not
+fall within text marked with the @code{font-lock-multiline} property.
+Then it removes any @code{font-lock-multiline} properties from the
+range, and highlights it.  The highlighting specification (mostly
+@code{font-lock-keywords}) must reinstall this property each time,
+whenever it is appropriate.
+
+  @strong{Warning:} don't use the @code{font-lock-multiline} property
+on large ranges of text, because that will make rehighlighting slow.
 
 @defvar font-lock-multiline
 If the @code{font-lock-multiline} variable is set to @code{t}, Font
-Lock will try to automatically add the @code{font-lock-multiline}
-property on the keywords that span several lines.  This is no silver
-bullet however since it slows down Font Lock somewhat, and still does
-not always find all multiline constructs, especially when used with
-Jit Lock, which is enabled by default.
+Lock will try to add the @code{font-lock-multiline} property
+automatically on multiline constructs.  This is not a universal
+solution, however, since it slows down Font Lock somewhat.  It can
+miss some multiline constructs, or make the property larger or smaller
+than necessary.
+
+For elements whose @var{matcher} is a function, the function should
+ensure that submatch 0 covers the whole relevant multiline construct,
+even if only a small subpart will be highlighted.  It is often just as
+easy to add the @code{font-lock-multiline} property by hand.
 @end defvar
+
+  The @code{font-lock-multiline} property is meant to ensure proper
+refontification; it does not automatically identify new multiline
+constructs.  Identifying the requires that Font-Lock operate on large
+enough chunks at a time.  This will happen by accident on many cases,
+which may give the impression that multiline constructs magically work.
+If you set the @code{font-lock-multiline} variable non-@code{nil},
+this impression will be even stronger, since the highlighting of those
+constructs which are found will be properly updated from then on.
+But that does not work reliably.
+
+  To find multiline constructs reliably, you must either manually
+place the @code{font-lock-multiline} property on the text before
+Font-Lock looks at it, or use
+@code{font-lock-fontify-region-function}.
 
 @node Region to Fontify
 @subsubsection Region to Fontify after a Buffer Change
 
-  When a buffer is changed, the region that Font Lock refontifies is by
-default the smallest sequence of whole lines that spans the change.
+  When a buffer is changed, the region that Font Lock refontifies is
+by default the smallest sequence of whole lines that spans the change.
 While this works well most of the time, sometimes it doesn't---for
-example, when a buffer change has changed the syntactic meaning of text
-on an earlier line.
+example, when a change alters the syntactic meaning of text on an
+earlier line.
 
-You can enlarge (or even reduce) the region to fontify by setting @c either of
-the following variables:
+  You can enlarge (or even reduce) the region to fontify by setting
+one the following variables:
 
 @defvar font-lock-extend-region-function
-This buffer-local variable is either @code{nil} or is a function that
-determines the region to fontify, which Emacs then calls after each
-buffer change.
+This buffer-local variable is either @code{nil} or a function for
+Font-Lock to call to determine the region to scan and fontify.
 
 The function is given three parameters, the standard @var{beg},
-@var{end}, and @var{old-len} from after-change-functions (@pxref{Change
-Hooks}).  It should return either a cons of the beginning and end buffer
-positions (in that order) of the region to fontify, or @code{nil} (which
-directs the caller to fontify the default region).  This function needs
-to preserve point, the match-data, and the current restriction.
-The region it returns may start or end in the middle of a line.
+@var{end}, and @var{old-len} from after-change-functions
+(@pxref{Change Hooks}).  It should return either a cons of the
+beginning and end buffer positions (in that order) of the region to
+fontify, or @code{nil} (which means choose the region in the standard
+way).  This function needs to preserve point, the match-data, and the
+current restriction.  The region it returns may start or end in the
+middle of a line.
 
 Since this function is called after every buffer change, it should be
 reasonably fast.

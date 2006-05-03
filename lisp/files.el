@@ -2354,27 +2354,27 @@ asking you for confirmation."
   (eval
    `(mapc (lambda (pair)
 	    (put (car pair) 'safe-local-variable (cdr pair)))
-	  '((byte-compile-dynamic . t)
-	    (byte-compile-dynamic-docstrings . t)
-	    (byte-compile-warnings . t)
+	  '((byte-compile-dynamic . booleanp)
+	    (byte-compile-dynamic-docstrings . booleanp)
+	    (byte-compile-warnings . booleanp)
 	    (c-basic-offset     .  integerp)
 	    (c-file-style       .  stringp)
 	    (c-indent-level     .  integerp)
 	    (comment-column     .  integerp)
 	    (compile-command    .  string-or-null-p)
-	    (find-file-visit-truename . t)
+	    (find-file-visit-truename . booleanp)
 	    (fill-column        .  integerp)
 	    (fill-prefix        .  string-or-null-p)
-	    (indent-tabs-mode   .  t)
+	    (indent-tabs-mode   .  booleanp) ;; C source code
 	    (kept-old-versions  .  integerp)
 	    (kept-new-versions  .  integerp)
-	    (left-margin        .  t)
-	    (no-byte-compile    .  t)
-	    (no-update-autoloads . t)
+	    (left-margin        .  integerp)
+	    (no-byte-compile    .  booleanp)
+	    (no-update-autoloads . booleanp)
 	    (outline-regexp     .  string-or-null-p)
 	    (tab-width          .  integerp) ;; C source code
-	    (truncate-lines     .  t) ;; C source code
-	    (version-control    .  t)))))
+	    (truncate-lines     .  booleanp) ;; C source code
+	    (version-control    .  symbolp)))))
 
 (put 'c-set-style 'safe-local-eval-function t)
 
@@ -2653,15 +2653,11 @@ It is safe if any of these conditions are met:
  * There is a matching entry (SYM . VAL) in the
    `safe-local-variable-values' user option.
 
- * The `safe-local-variable' property of SYM is t.
-
  * The `safe-local-variable' property of SYM is a function that
    evaluates to a non-nil value with VAL as an argument."
   (or (member (cons sym val) safe-local-variable-values)
       (let ((safep (get sym 'safe-local-variable)))
-	(or (eq safep t)
-	    (and (functionp safep)
-		 (funcall safep val))))))
+        (and (functionp safep) (funcall safep val)))))
 
 (defun risky-local-variable-p (sym &optional ignored)
   "Non-nil if SYM could be dangerous as a file-local variable.

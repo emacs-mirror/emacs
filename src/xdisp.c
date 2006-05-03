@@ -8955,6 +8955,9 @@ prepare_menu_bars ()
 	  update_menu_bar (f, 0);
 #ifdef HAVE_WINDOW_SYSTEM
 	  update_tool_bar (f, 0);
+#ifdef MAC_OS
+	  mac_update_title_bar (f, 0);
+#endif
 #endif
 	  UNGCPRO;
 	}
@@ -8967,6 +8970,9 @@ prepare_menu_bars ()
       update_menu_bar (sf, 1);
 #ifdef HAVE_WINDOW_SYSTEM
       update_tool_bar (sf, 1);
+#ifdef MAC_OS
+      mac_update_title_bar (sf, 1);
+#endif
 #endif
     }
 
@@ -18534,8 +18540,7 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
 	 sure to use a face suitable for unibyte.  */
       STORE_XCHAR2B (char2b, 0, glyph->u.ch);
     }
-  else if (glyph->u.ch < 128
-	   && glyph->face_id < BASIC_FACE_ID_SENTINEL)
+  else if (glyph->u.ch < 128)
     {
       /* Case of ASCII in a face known to fit ASCII.  */
       STORE_XCHAR2B (char2b, 0, glyph->u.ch);
@@ -18937,7 +18942,7 @@ get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
       face_id = FACE_FOR_CHAR (f, face, c);
       face = FACE_FROM_ID (f, face_id);
     }
-  else if (c < 128 && face_id < BASIC_FACE_ID_SENTINEL)
+  else if (c < 128)
     {
       /* Case of ASCII in a face known to fit ASCII.  */
       STORE_XCHAR2B (char2b, 0, c);

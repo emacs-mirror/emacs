@@ -1,3 +1,170 @@
+2006-05-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gud-watch): Let user select an expression.
+	(menu): Fix typo.
+
+2006-05-02  Miles Bader  <miles@gnu.org>
+
+	* replace.el (occur-engine): Bind `inhibit-field-text-motion' to t.
+
+2006-05-02  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el: (calc-override-minor-modes-map)
+	(calc-override-minor-modes): New variables.
+	(calc-do-embedded): Make sure that Calc keystrokes aren't
+	overwritten by minor modes.
+
+2006-05-02  Chong Yidong  <cyd@mit.edu>
+
+	* msb.el (msb): If EVENT is a down event, read and discard the up
+	event.
+
+2006-05-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* startup.el (command-line-1): Refer to Lisp manual when
+	pure-space-overflow occurs.
+
+	* files.el (byte-compile-dynamic)
+	(byte-compile-dynamic-docstrings, byte-compile-warnings)
+	(find-file-visit-truename, indent-tabs-mode, left-margin)
+	(no-byte-compile no-update-autoloads, truncate-lines)
+	(version-control): Don't use `t' for safe-local-variable
+	declarations.
+
+2006-05-01  Richard Stallman  <rms@gnu.org>
+
+	* diff-mode.el (diff-mode-shared-map): Don't bind M-W, M-U, M-C,
+	M-r, M-R, M-A, M-SPC or M-DEL.
+	(diff-mode-map): diff-refine-hunk now on C-c C-w
+	(diff-mode-map): Bind C-c C-e, C-c C-n, C-c C-r, C-c C-u.
+
+	* help-mode.el (help-mode): view-exit-action calls delete-window
+	only when it is safe and possible.
+
+	* simple.el (undo-outer-limit-truncate): Put quotes around buffer name
+	in messages.
+
+	* emacs-lisp/warnings.el (display-warning, lwarn): Doc fixes.
+
+	* tool-bar.el (tool-bar-setup): Put Help and Preferences items
+	in the default tool-bar-map.
+
+2006-05-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-completion-file-name-handler-alist)
+	(tramp-run-real-handler, tramp-completion-run-real-handler)
+	(tramp-completion-handle-file-name-all-completions)
+	(tramp-completion-handle-file-name-completion): Autoload them.
+	(tramp-completion-handle-file-exists-p)
+	(tramp-completion-handle-file-name-directory)
+	(tramp-completion-handle-file-name-nondirectory)
+	(tramp-completion-handle-expand-file-name): Remove them.
+	(tramp-handle-file-name-directory): Return the real directory name.
+	Returning "/" only doesn't need to be necessary any longer.
+	(tramp-file-name-handler): Make special attention when in hostname
+	completion mode.
+	(tramp-completion-file-name-handler): Revert patch from	2006-04-28.
+	(tramp-register-file-name-handlers): Register
+	`tramp-completion-file-name-handler' only when
+	`partial-completion-mode is enabled.
+	(tramp-completion-handle-file-name-all-completions):
+	Delete directory part from results.
+	(tramp-get-completion-methods, tramp-get-completion-user-host):
+	Discard deleting "/", it doesn't work after the change of
+	`tramp-handle-file-name-directory' above.
+
+2006-05-01  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (grep-expand-template): Use save-match-data
+	and symbol-value.
+
+2006-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ae-open-documents, mac-drag-n-drop): Use
+	select-frame-set-input-focus instead of raise-frame.
+	(global-map): Bind M-drag-n-drop to mac-drag-n-drop.
+
+2006-05-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-def): Add %c case.
+	(gud-speedbar-buttons): Don't bind case-fold-search unnecessarily.
+	(gud-format-command): Make match case sensitive.  Match on %F.
+
+2006-04-30  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-preamble-extra): New variable.
+	(cal-tex-preamble): Use cal-tex-preamble-extra.
+	(cal-tex-list-diary-entries): Refer to `diary-list-entries' rather
+	than alias `list-diary-entries'.
+
+2006-04-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* help-fns.el (describe-variable): Add info about safe local variables.
+
+2006-04-29  Richard Stallman  <rms@gnu.org>
+
+	* bindings.el (mode-line-format): help-echo doc fixes.
+
+	* net/tramp.el (tramp-file-name-handler-alist): Delete
+	expand-file-name and other operations that can cause spurious loading.
+
+2006-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (safe-local-variable-p): Remove support for the special
+	value t.
+
+	* textmodes/paragraphs.el (sentence-end-without-space):
+	Fix safety predicate.
+	(sentence-end-double-space, sentence-end-without-period)
+	(paragraph-ignore-fill-prefix):
+	* textmodes/fill.el (colon-double-space):
+	* abbrev.el (abbrev-mode): Tighten the safety predicate.
+
+	* subr.el (booleanp): New fun.
+
+	* textmodes/reftex-vars.el (reftex-guess-label-type):
+	Tighten the safety predicate.
+
+2006-04-28  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (defgroup grep): Doc fix.
+	(grep-auto-highlight): Remove.
+	(grep-template): New defcustom.
+	(grep-find-template): Rename from grep-tree-template.
+	(grep-files-aliases): Rename from grep-tree-files-aliases.
+	Remove "all" alias, add "l" alias.
+	(grep-tree-ignore-case, grep-tree-ignore-CVS-directories): Remove.
+	(grep-find-ignored-directories): New defcustom to replace
+	grep-tree-ignore-CVS-directories, to facilitate ignoring
+	subdirectories for multiple version control systems.
+	(grep-mode-map): Add Recursive grep item to GREP menu.
+	(grep-regexp-history, grep-files-history): New defvars.
+	(grep-probe): New helper function.
+	(grep-compute-defaults): Use it to simplify code.
+	Adapt to name changes.
+	Use `.' as base in grep-find-template rather than <D>.
+	(grep): Remove superfluous highlight-regexp arg.  Fix doc.
+	Call grep-compute-defaults unconditionally.
+	(grep-expand-keywords): New defconst.
+	(grep-expand-template): Rename from grep-expand-command-macros.
+	Simplify via grep-expand-keywords.  Look at case-fold-search instead
+	of grep-tree-ignore-case to add -i option.
+	Bind case-fold-search to nil while matching keywords.
+	(grep-tree-last-regexp, grep-tree-last-files): Remove.
+	(grep-read-regexp, grep-read-files): New helper functions.
+	(rgrep): Rename from grep-tree.  Rework to use proper histories.
+	Adapt to changes in defcustoms and functions above.
+	(lgrep): New command, as grep, but using same interactive UI as rgrep.
+
+2006-04-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-completion-file-name-handler):
+	Disable Tramp's functionality while loading Tramp itself.
+	(tramp-register-file-name-handlers): That's a defsubst now.
+	Code from `tramp-repair-jka-compr' moved here.  Apply it via
+	`after-init-hook'.
+	(tramp-repair-jka-compr): Remove.
+
 2006-04-27  Jay Belanger  <belanger@truman.edu>
 
 	* calc-embed.el (calc-embedded-make-info): Use `math-read-expr' to
@@ -2598,7 +2765,7 @@
 	(describe-key-briefly-internal, describe-key-internal):
 	Functions merged back into their callers.
 
-2006-02-13  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2006-02-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* info.el (info-xref-visited): Inherit from info-xref too.
 	(Info-set-mode-line): Replace occurrences of `%' by `%%'
@@ -3746,7 +3913,7 @@
 	* add-log.el (add-change-log-entry, change-log-merge):
 	Conditionally use `hard-newline'.
 
-2006-01-13  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2006-01-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* wid-edit.el (widget-field-end): If the overlay is no longer
 	associated with a buffer, behave as if the overlay didn't exist.
@@ -4836,7 +5003,7 @@
 	* emacs-lisp/edebug.el (edebug-safe-prin1-to-string):
 	Capture error from printing circular structures.
 
-2005-12-17  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2005-12-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* wid-edit.el (widget-checkbox-action): Clear undo info.
 
@@ -6819,7 +6986,7 @@
 	scrolling the help window.  Doc fix.
 	(help-return-method): Doc fix.
 
-2005-12-03  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2005-12-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression): Fix bug
 	whereby names of length one or names starting with a
@@ -7373,7 +7540,7 @@
 
 	* custom.el (defcustom): Update link types in docstring.
 
-2005-11-20  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2005-11-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* custom.el (defgroup): Add doc-string-elt info.
 
@@ -7646,7 +7813,7 @@
 
 	* apropos.el (apropos-calc-scores): Use apropos-pattern.
 
-2005-11-16  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2005-11-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* wid-edit.el (color): Enclose %t in %{...%}.
 
@@ -14577,7 +14744,7 @@
 	* emulation/edt-mapper.el (edt-save-function-key-map)
 	(EDT-key-name): `defvar' to silence the byte-compiler.
 
-2005-07-02  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2005-07-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* font-lock.el (font-lock-regexp-grouping-backslash): Rename from
 	font-lock-regexp-backslash.  Doc fix.

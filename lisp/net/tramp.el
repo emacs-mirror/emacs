@@ -1821,8 +1821,6 @@ while (my $data = <STDIN>) {
 Escape sequence %s is replaced with name of Perl binary.
 This string is passed to `format', so percent characters need to be doubled.")
 
-; These values conform to `file-attributes' from XEmacs 21.2.
-; GNU Emacs and other tools not checked.
 (defconst tramp-file-mode-type-map '((0  . "-")  ; Normal file (SVID-v2 and XPG2)
 				     (1  . "p")  ; fifo
 				     (2  . "c")  ; character device
@@ -1927,17 +1925,12 @@ on the FILENAME argument, even if VISIT was a string.")
   "Alist of handler functions.
 Operations not mentioned here will be handled by the normal Emacs functions.")
 
-;; Handlers for partial tramp file names. For GNU Emacs just
-;; `file-name-all-completions' is needed. The other ones are necessary
-;; for XEmacs.
+;; Handlers for partial tramp file names.  For Emacs just
+;; `file-name-all-completions' is needed.
+;;;###autoload
 (defconst tramp-completion-file-name-handler-alist
-  '(
-    (file-name-directory . tramp-completion-handle-file-name-directory)
-    (file-name-nondirectory . tramp-completion-handle-file-name-nondirectory)
-    (file-exists-p . tramp-completion-handle-file-exists-p)
-    (file-name-all-completions . tramp-completion-handle-file-name-all-completions)
-    (file-name-completion . tramp-completion-handle-file-name-completion)
-    (expand-file-name . tramp-completion-handle-expand-file-name))
+  '((file-name-all-completions . tramp-completion-handle-file-name-all-completions)
+    (file-name-completion . tramp-completion-handle-file-name-completion))
   "Alist of completion handler functions.
 Used for file names matching `tramp-file-name-regexp'. Operations not
 mentioned here will be handled by `tramp-file-name-handler-alist' or the
@@ -2172,28 +2165,11 @@ target of the symlink differ."
 ;; Localname manipulation functions that grok TRAMP localnames...
 (defun tramp-handle-file-name-directory (file)
   "Like `file-name-directory' but aware of TRAMP files."
-  ;; everything except the last filename thing is the directory
+  ;; Everything except the last filename thing is the directory.
   (with-parsed-tramp-file-name file nil
-    ;; For the following condition, two possibilities should be tried:
-    ;; (1) (string= localname "")
-    ;; (2) (or (string= localname "") (string= localname "/"))
-    ;; The second variant fails when completing a "/" directory on
-    ;; the remote host, that is a filename which looks like
-    ;; "/user@host:/".  But maybe wildcards fail with the first variant.
-    ;; We should do some investigation.
-    (if (string= localname "")
-	;; For a filename like "/[foo]", we return "/".  The `else'
-	;; case would return "/[foo]" unchanged.  But if we do that,
-	;; then `file-expand-wildcards' ceases to work.  It's not
-	;; quite clear to me what's the intuition that tells that this
-	;; behavior is the right behavior, but oh, well.
-	"/"
-      ;; run the command on the localname portion only
-      ;; CCC: This should take into account the remote machine type, no?
-      ;;  --daniel <daniel@danann.net>
-      (tramp-make-tramp-file-name multi-method method user host
-				  ;; This will not recurse...
-				  (or (file-name-directory localname) "")))))
+    ;; Run the command on the localname portion only.
+    (tramp-make-tramp-file-name
+     multi-method method user host (file-name-directory (or localname "")))))
 
 (defun tramp-handle-file-name-nondirectory (file)
   "Like `file-name-nondirectory' but aware of TRAMP files."
@@ -4144,7 +4120,8 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 ;;         (inhibit-file-name-operation operation))
 ;;     (apply operation args)))
 
-(defun tramp-run-real-handler (operation args)
+;;;###autoload
+(progn (defun tramp-run-real-handler (operation args)
   "Invoke normal file name handler for OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
@@ -4157,13 +4134,14 @@ pass to the OPERATION."
 	    ,(and (eq inhibit-file-name-operation operation)
 		  inhibit-file-name-handlers)))
 	 (inhibit-file-name-operation operation))
-    (apply operation args)))
+    (apply operation args))))
 
 ;; This function is used from `tramp-completion-file-name-handler' functions
 ;; only, if `tramp-completion-mode' is true. But this cannot be checked here
 ;; because the check is based on a full filename, not available for all
 ;; basic I/O operations.
-(defun tramp-completion-run-real-handler (operation args)
+;;;###autoload
+(progn (defun tramp-completion-run-real-handler (operation args)
   "Invoke `tramp-file-name-handler' for OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
@@ -4175,7 +4153,7 @@ pass to the OPERATION."
 	    ,(and (eq inhibit-file-name-operation operation)
 		  inhibit-file-name-handlers)))
 	 (inhibit-file-name-operation operation))
-    (apply operation args)))
+    (apply operation args))))
 
 ;; We handle here all file primitives.  Most of them have the file
 ;; name as first parameter; nevertheless we check for them explicitly
@@ -4272,12 +4250,25 @@ ARGS are the arguments OPERATION has been called with."
 (defun tramp-file-name-handler (operation &rest args)
   "Invoke Tramp file name handler.
 Falls back to normal file name handler if no tramp file name handler exists."
+;;  (setq edebug-trace t)
+;;  (edebug-trace "%s" (with-output-to-string (backtrace)))
   (save-match-data
     (let* ((filename (apply 'tramp-file-name-for-operation operation args))
+	   (completion (tramp-completion-mode filename))
 	   (foreign (tramp-find-foreign-file-name-handler filename)))
-      (cond
-       (foreign (apply foreign operation args))
-       (t (tramp-run-real-handler operation args))))))
+      (with-parsed-tramp-file-name filename nil
+	(cond
+	 ;; When we are in completion mode, some operations shouldn' be
+	 ;; handled by backend.
+	 ((and completion (memq operation '(expand-file-name)))
+	  (tramp-run-real-handler operation args))
+	 ((and completion (zerop (length localname))
+	       (memq operation '(file-exists-p file-directory-p)))
+	  t)
+	 ;; Call the backend function.
+	 (foreign (apply foreign operation args))
+	 ;; Nothing to do for us.
+	 (t (tramp-run-real-handler operation args)))))))
 
 
 ;; In Emacs, there is some concurrency due to timers.  If a timer
@@ -4325,42 +4316,39 @@ Fall back to normal file name handler if no Tramp handler exists."
       (setq tramp-locked tl))))
 
 ;;;###autoload
-(defun tramp-completion-file-name-handler (operation &rest args)
+(progn (defun tramp-completion-file-name-handler (operation &rest args)
   "Invoke tramp file name completion handler.
 Falls back to normal file name handler if no tramp file name handler exists."
-;;   (setq tramp-debug-buffer t)
-;;   (tramp-message 1 "%s %s" operation args)
-;;   (tramp-message 1 "%s %s\n%s"
-;; 		 operation args (with-output-to-string (backtrace)))
+;;  (setq edebug-trace t)
+;;  (edebug-trace "%s" (with-output-to-string (backtrace)))
   (let ((fn (assoc operation tramp-completion-file-name-handler-alist)))
     (if fn
 	(save-match-data (apply (cdr fn) args))
-      (tramp-completion-run-real-handler operation args))))
+      (tramp-completion-run-real-handler operation args)))))
 
-;; Register in `file-name-handler-alist'.
-;; `tramp-completion-file-name-handler' must not be active when temacs
-;; dumps.  And it makes no sense in batch mode anyway.
 ;;;###autoload
-(defun tramp-register-file-name-handlers ()
+(defsubst tramp-register-file-name-handlers ()
   "Add tramp file name handlers to `file-name-handler-alist'."
-  (unless noninteractive
-    (add-to-list 'file-name-handler-alist
-		 (cons tramp-file-name-regexp 'tramp-file-name-handler))
+  (add-to-list 'file-name-handler-alist
+	       (cons tramp-file-name-regexp 'tramp-file-name-handler))
+  (when partial-completion-mode
     (add-to-list 'file-name-handler-alist
 		 (cons tramp-completion-file-name-regexp
 		       'tramp-completion-file-name-handler))
-    (put 'tramp-completion-file-name-handler 'safe-magic t)))
+    (put 'tramp-completion-file-name-handler 'safe-magic t))
+  ;; If jka-compr is already loaded, move it to the front of
+  ;; `file-name-handler-alist'.
+  (let ((jka (rassoc 'jka-compr-handler file-name-handler-alist)))
+    (when jka
+      (setq file-name-handler-alist
+	    (cons jka (delete jka file-name-handler-alist))))))
 
-;; LAMBDA function used temporarily, because older/other versions of
-;; Tramp don't know of `tramp-register-file-name-handlers'.  Can be
-;; replaced once that DEFUN is established.  Relevant for Emacs 22 only.
-;;;###;autoload(add-hook 'emacs-startup-hook 'tramp-register-file-name-handlers)
+;; During autoload, it shall be checked whether
+;; `partial-completion-mode' is active.  Therefore registering will be
+;; delayed.
 ;;;###autoload(add-hook
-;;;###autoload 'emacs-startup-hook
-;;;###autoload '(lambda ()
-;;;###autoload    (condition-case nil
-;;;###autoload        (funcall 'tramp-register-file-name-handlers)
-;;;###autoload      (error nil))))
+;;;###autoload 'after-init-hook
+;;;###autoload '(lambda () (tramp-register-file-name-handlers)))
 (tramp-register-file-name-handlers)
 
 ;;;###autoload
@@ -4373,16 +4361,6 @@ Falls back to normal file name handler if no tramp file name handler exists."
 			file-name-handler-alist))))
 
 (add-hook 'tramp-unload-hook 'tramp-unload-file-name-handlers)
-
-(defun tramp-repair-jka-compr ()
-  "If jka-compr is already loaded, move it to the front of
-`file-name-handler-alist'.  On Emacs 22 or so this will not be
-necessary anymore."
-  (let ((jka (rassoc 'jka-compr-handler file-name-handler-alist)))
-    (when jka
-      (setq file-name-handler-alist
-	    (cons jka (delete jka file-name-handler-alist))))))
-(tramp-repair-jka-compr)
 
 
 ;;; Interactions with other packages:
@@ -4497,31 +4475,10 @@ necessary anymore."
 				 last-input-event) ?\ ))))))
     t)))
 
-(defun tramp-completion-handle-file-exists-p (filename)
-  "Like `file-exists-p' for tramp files."
-  (if (tramp-completion-mode filename)
-      (tramp-run-real-handler
-       'file-exists-p (list filename))
-    (tramp-completion-run-real-handler
-     'file-exists-p (list filename))))
-
-;; Localname manipulation in case of partial TRAMP file names.
-(defun tramp-completion-handle-file-name-directory (file)
-  "Like `file-name-directory' but aware of TRAMP files."
-  (if (tramp-completion-mode file)
-      "/"
-    (tramp-completion-run-real-handler
-     'file-name-directory (list file))))
-
-;; Localname manipulation in case of partial TRAMP file names.
-(defun tramp-completion-handle-file-name-nondirectory (file)
-  "Like `file-name-nondirectory' but aware of TRAMP files."
-  (substring
-   file (length (tramp-completion-handle-file-name-directory file))))
-
 ;; Method, host name and user name completion.
 ;; `tramp-completion-dissect-file-name' returns a list of
 ;; tramp-file-name structures. For all of them we return possible completions.
+;;;###autoload
 (defun tramp-completion-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for partial tramp files."
 
@@ -4576,7 +4533,8 @@ necessary anymore."
 	  ;; unify list, remove nil elements
 	  (while result
 	    (let ((car (car result)))
-	      (when car (add-to-list 'result1 car))
+	      (when car (add-to-list
+			 'result1 (substring car (length directory))))
 	      (setq result (cdr result))))
 
 	  ;; Complete local parts
@@ -4595,6 +4553,7 @@ necessary anymore."
     (setq tramp-completion-mode nil)))
 
 ;; Method, host name and user name completion for a file.
+;;;###autoload
 (defun tramp-completion-handle-file-name-completion (filename directory)
   "Like `file-name-completion' for tramp files."
   (try-completion filename
@@ -4721,8 +4680,7 @@ remote host and localname (filename on remote host)."
    (lambda (method)
      (and method
 	  (string-match (concat "^" (regexp-quote partial-method)) method)
-	  ;; we must remove leading "/".
-	  (substring (tramp-make-tramp-file-name nil method nil nil nil) 1)))
+	  (tramp-make-tramp-file-name nil method nil nil nil)))
    (delete "multi" (mapcar 'car tramp-methods))))
 
 ;; Compares partial user and host names with possible completions.
@@ -4755,8 +4713,7 @@ PARTIAL-USER must match USER, PARTIAL-HOST must match HOST."
 	    host nil)))
 
   (unless (zerop (+ (length user) (length host)))
-    ;; we must remove leading "/".
-    (substring (tramp-make-tramp-file-name nil method user host nil) 1)))
+    (tramp-make-tramp-file-name nil method user host nil)))
 
 (defun tramp-parse-rhosts (filename)
   "Return a list of (user host) tuples allowed to access.
@@ -4974,15 +4931,6 @@ User may be nil."
      (widen)
      (forward-line 1)
      result))
-
-(defun tramp-completion-handle-expand-file-name (name &optional dir)
-  "Like `expand-file-name' for tramp files."
-  (let ((fullname (concat (or dir default-directory) name)))
-    (if (tramp-completion-mode fullname)
-	(tramp-run-real-handler
-	 'expand-file-name (list name dir))
-      (tramp-completion-run-real-handler
-       'expand-file-name (list name dir)))))
 
 ;;; Internal Functions:
 

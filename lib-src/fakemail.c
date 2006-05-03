@@ -694,6 +694,8 @@ read_header ()
 
     } while (true);
 
+  if (! the_header)
+    fatal ("input message has no header");
   return the_header->next;
 }
 

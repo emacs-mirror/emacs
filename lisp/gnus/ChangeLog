@@ -1,3 +1,17 @@
+2006-04-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-uu.el (mm-uu-pgp-encrypted-extract-1): Assume buffer is made
+	unibyte after clear-decrypt function runs.
+
+	* mml2015.el (mml2015-pgg-clear-decrypt): Treat data which pgg
+	returns as a unibyte string.
+
+2006-04-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml1991.el (mml1991-pgg-sign): No need to load pgg.el, which is
+	always loaded by way of gnus-art.el -> mm-uu.el -> mml2015.el.
+	(mml1991-pgg-encrypt): Ditto.
+
 2006-04-26  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* deuglify.el (gnus-outlook-deuglify-unwrap-min)
@@ -20,6 +34,18 @@
 	(mml-dnd-attach-options, mml-dnd-attach-file)
 	(mml-attach-file, mml-attach-buffer, mml-attach-external): Sync
 	DND support and use of message-in-body-p from the trunk.
+
+2006-04-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml1991.el (mml1991-pgg-sign): Make sure to load pgg.el before
+	binding pgg-* variables; reimplement the section which prevents
+	MIME header from being signed.
+	(mml1991-pgg-encrypt): Make sure to load pgg.el before binding
+	pgg-text-mode; remove a blank line at the top of body.
+
+	* mm-uu.el (mm-uu-pgp-encrypted-extract-1): Don't remove blank
+	lines at the top of body; use gnus-newsgroup-charset if there's no
+	Charset header.
 
 2006-04-25  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
@@ -457,13 +483,6 @@
 	* gnus.el: Remove bogus comment.
 
 2006-02-09  Daiki Ueno  <ueno@unixuser.org>
-
-	* pgg-gpg.el (pgg-gpg-encrypt-region): Don't convert line-endings
-	in elisp.
-	(pgg-gpg-encrypt-symmetric-region): Ditto.
-	(pgg-gpg-sign-region): Ditto.
-
-	* pgg-def.el (pgg-text-mode): New variable.
 
 	* mml2015.el (mml2015-pgg-sign): Enable pgg-text-mode.
 	(mml2015-pgg-encrypt): Ditto.

@@ -1186,8 +1186,11 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
       if (!CONSP (keymap))
 	/* We must use Fkey_description rather than just passing key to
 	   error; key might be a vector, not a string.  */
-	error ("Key sequence %s uses invalid prefix characters",
-	       SDATA (Fkey_description (key, Qnil)));
+	error ("Key sequence %s starts with non-prefix key %s",
+	       SDATA (Fkey_description (key, Qnil)),
+	       SDATA (Fkey_description (Fsubstring (key, make_number (0),
+						    make_number (idx)),
+					Qnil)));
     }
 }
 

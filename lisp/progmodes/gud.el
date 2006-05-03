@@ -303,13 +303,15 @@ Uses `gud-<MINOR-MODE>-directories' to find the source files."
 optional doc string DOC.  Certain %-escapes in the string arguments
 are interpreted specially if present.  These are:
 
-  %f    name (without directory) of current source file.
-  %F    name (without directory or extension) of current source file.
-  %d    directory of current source file.
-  %l    number of current source line
-  %e    text of the C lvalue or function-call expression surrounding point.
-  %a    text of the hexadecimal address surrounding point
-  %p    prefix argument to the command (if any) as a number
+  %f -- Name (without directory) of current source file.
+  %F -- Name (without directory or extension) of current source file.
+  %d -- Directory of current source file.
+  %l -- Number of current source line.
+  %e -- Text of the C lvalue or function-call expression surrounding point.
+  %a -- Text of the hexadecimal address surrounding point.
+  %p -- Prefix argument to the command (if any) as a number.
+  %c -- Fully qualified class name derived from the expression
+        surrounding point (jdb only).
 
   The `current' source file is the file of the current buffer (if
 we're in a C file) or the source file current at the last break or
@@ -446,8 +448,7 @@ required by the caller."
 	(when (or gdb-force-update
 		  (not (save-excursion
 			 (goto-char (point-min))
-			 (let ((case-fold-search t))
-			   (looking-at "Watch Expressions:")))))
+			 (looking-at "Watch Expressions:"))))
 	  (erase-buffer)
 	  (insert "Watch Expressions:\n")
 	  (if gdb-speedbar-auto-raise
@@ -2804,7 +2805,9 @@ Obeying it means displaying in another window the specified file and line."
   (let ((insource (not (eq (current-buffer) gud-comint-buffer)))
 	(frame (or gud-last-frame gud-last-last-frame))
 	result)
-    (while (and str (string-match "\\([^%]*\\)%\\([adeflpc]\\)" str))
+    (while (and str
+		(let ((case-fold-search nil))
+		  (string-match "\\([^%]*\\)%\\([adefFlpc]\\)" str)))
       (let ((key (string-to-char (match-string 2 str)))
 	    subst)
 	(cond

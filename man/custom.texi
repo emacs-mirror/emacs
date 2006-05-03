@@ -822,6 +822,9 @@ fill-column's value is 70
 Local in buffer custom.texi; global value is 70
 Automatically becomes buffer-local when set in any fashion.
 
+This variable is safe to use as a file local variable only if its value
+satisfies the predicate `integerp'.
+
 Documentation:
 *Column beyond which automatic line-wrapping should happen.
 Interactively, you can set the buffer local value using C-x f.

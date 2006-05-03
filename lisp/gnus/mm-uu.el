@@ -436,11 +436,18 @@ Return that buffer."
 			"OK")))
 	  (progn
 	    ;; Decode charset.
-	    (when (and (or charset
-			   (setq charset gnus-newsgroup-charset))
-		       (setq charset (mm-charset-to-coding-system charset))
-		       (not (eq charset 'ascii)))
-	      (mm-decode-coding-region (point-min) (point-max) charset))
+	    (if (and (or charset
+			 (setq charset gnus-newsgroup-charset))
+		     (setq charset (mm-charset-to-coding-system charset))
+		     (not (eq charset 'ascii)))
+		;; Assume that buffer's multibyteness is turned off.
+		;; See `mml2015-pgg-clear-decrypt'.
+		(insert (mm-decode-coding-string (prog1
+						     (buffer-string)
+						   (erase-buffer)
+						   (mm-enable-multibyte))
+						 charset))
+	      (mm-enable-multibyte))
 	    (list (mm-make-handle buf mm-uu-text-plain-type)))
 	(list (mm-make-handle buf '("application/pgp-encrypted")))))))
 

@@ -1021,6 +1021,9 @@ void
 unexec (char *outfile, char *infile, void *start_data, void *start_bss,
         void *entry_address)
 {
+  if (in_dumped_exec)
+    unexec_error ("Unexec from a dumped executable is not supported.");
+
   infd = open (infile, O_RDONLY, 0);
   if (infd < 0)
     {

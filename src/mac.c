@@ -448,6 +448,22 @@ mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
 	}
       else
 	err = memFullErr;
+
+      if (err != noErr)
+	{
+	  /* Just to be paranoid ...  */
+	  FSRef fref;
+	  char *buf;
+
+	  buf = xmalloc (data_size + 1);
+	  memcpy (buf, data_ptr, data_size);
+	  buf[data_size] = '\0';
+	  err = FSPathMakeRef (buf, &fref, NULL);
+	  xfree (buf);
+	  if (err == noErr)
+	    err = AECoercePtr (typeFSRef, &fref, sizeof (FSRef),
+			       to_type, result);
+	}
 #else
       FSSpec fs;
       char *buf;
@@ -510,6 +526,34 @@ mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
 			      CFDataGetLength (data), result);
 	  CFRelease (data);
 	}
+
+      if (err != noErr)
+	{
+	  /* Coercion from typeAlias to typeFileURL fails on Mac OS X
+	     10.2.  In such cases, try typeFSRef as a target type.  */
+	  char file_name[MAXPATHLEN];
+
+	  if (type_code == typeFSRef && data_size == sizeof (FSRef))
+	    err = FSRefMakePath (data_ptr, file_name, sizeof (file_name));
+	  else
+	    {
+	      AEDesc desc;
+	      FSRef fref;
+
+	      err = AECoercePtr (type_code, data_ptr, data_size,
+				 typeFSRef, &desc);
+	      if (err == noErr)
+		{
+		  err = AEGetDescData (&desc, &fref, sizeof (FSRef));
+		  AEDisposeDesc (&desc);
+		}
+	      if (err == noErr)
+		err = FSRefMakePath (&fref, file_name, sizeof (file_name));
+	    }
+	  if (err == noErr)
+	    err = AECreateDesc (TYPE_FILE_NAME, file_name,
+				strlen (file_name), result);
+	}
 #else
       char file_name[MAXPATHLEN];
 
@@ -529,11 +573,11 @@ mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
 #else
 	      fs = *(FSSpec *)(*(desc.dataHandle));
 #endif
-	      if (err == noErr)
-		err = fsspec_to_posix_pathname (&fs, file_name,
-						sizeof (file_name) - 1);
 	      AEDisposeDesc (&desc);
 	    }
+	  if (err == noErr)
+	    err = fsspec_to_posix_pathname (&fs, file_name,
+					    sizeof (file_name) - 1);
 	}
       if (err == noErr)
 	err = AECreateDesc (TYPE_FILE_NAME, file_name,

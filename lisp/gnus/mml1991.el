@@ -229,8 +229,6 @@
   (defvar pgg-output-buffer))
 
 (defun mml1991-pgg-sign (cont)
-  ;; Make sure to load pgg.el before binding pgg-* variables.
-  (require 'pgg)
   (let ((pgg-text-mode t)
 	(pgg-default-user-id (or (message-options-get 'mml-sender)
 				 pgg-default-user-id))
@@ -275,19 +273,16 @@
       (delete-region (point-min) (point))
       (when cte
 	(mm-decode-content-transfer-encoding (intern (downcase cte))))))
-  (unless (progn
-	    ;; Make sure to load pgg.el before binding `pgg-text-mode'.
-	    (require 'pgg)
-	    (let ((pgg-text-mode t))
-	      (pgg-encrypt-region
-	       (point-min) (point-max)
-	       (split-string
-		(or
-		 (message-options-get 'message-recipients)
-		 (message-options-set 'message-recipients
-				      (read-string "Recipients: ")))
-		"[ \f\t\n\r\v,]+")
-	       sign)))
+  (unless (let ((pgg-text-mode t))
+	    (pgg-encrypt-region
+	     (point-min) (point-max)
+	     (split-string
+	      (or
+	       (message-options-get 'message-recipients)
+	       (message-options-set 'message-recipients
+				    (read-string "Recipients: ")))
+	      "[ \f\t\n\r\v,]+")
+	     sign))
     (pop-to-buffer pgg-errors-buffer)
     (error "Encrypt error"))
   (delete-region (point-min) (point-max))

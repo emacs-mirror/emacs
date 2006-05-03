@@ -79,14 +79,26 @@ typedef unsigned long Time;
 #include <Gestalt.h>
 #endif /* not HAVE_CARBON */
 
+/* Whether to use ATSUI (Apple Type Services for Unicode Imaging) for
+   text drawing.  */
+#ifndef USE_ATSUI
+#ifdef MAC_OSX
+#define USE_ATSUI 1
+#endif
+#endif
+
+/* Whether to use low-level Quartz 2D (aka Core Graphics) text drawing
+   in preference to ATSUI for ASCII and Latin-1 characters.  */
 #ifndef USE_CG_TEXT_DRAWING
 #if USE_ATSUI && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
 #define USE_CG_TEXT_DRAWING 1
 #endif
 #endif
 
+/* Whether to use Quartz 2D routines for drawing operations other than
+   texts.  */
 #ifndef USE_CG_DRAWING
-#if USE_ATSUI && defined (MAC_OSX)
+#if USE_ATSUI && MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
 #define USE_CG_DRAWING 1
 #endif
 #endif
@@ -105,6 +117,8 @@ typedef GWorldPtr Pixmap;
 
 
 /* Emulate XCharStruct.  */
+/* If the sum of ascent and descent is negative, that means some
+   special status specified by enum pcm_status.  */
 typedef struct _XCharStruct
 {
   short	lbearing;		/* origin to left edge of raster */
@@ -117,24 +131,18 @@ typedef struct _XCharStruct
 #endif
 } XCharStruct;
 
+enum pcm_status
+  {
+    PCM_VALID = 0,		/* pcm data is valid */
+    PCM_INVALID = -1,		/* pcm data is invalid */
+  };
+
 #define STORE_XCHARSTRUCT(xcs, w, bds)			\
   ((xcs).width = (w),					\
    (xcs).lbearing = (bds).left,				\
    (xcs).rbearing = (bds).right,			\
    (xcs).ascent = -(bds).top,				\
    (xcs).descent = (bds).bottom)
-
-typedef struct
-{
-  char valid_bits[0x100 / 8];
-  XCharStruct per_char[0x100];
-} XCharStructRow;
-
-#define XCHARSTRUCTROW_CHAR_VALID_P(row, byte2) \
-  ((row)->valid_bits[(byte2) / 8] & (1 << (byte2) % 8))
-
-#define XCHARSTRUCTROW_SET_CHAR_VALID(row, byte2) \
-  ((row)->valid_bits[(byte2) / 8] |= (1 << (byte2) % 8))
 
 struct MacFontStruct {
   char *full_name;
@@ -175,7 +183,7 @@ struct MacFontStruct {
   XCharStruct max_bounds;  /* maximum bounds over all existing char */
   union {
     XCharStruct *per_char; /* first_char to last_char information */
-    XCharStructRow **rows; /* first row to last row information */
+    XCharStruct **rows;    /* first row to last row information */
   } bounds;
   int ascent;              /* logical extent above baseline for spacing */
   int descent;             /* logical decent below baseline for spacing */
@@ -229,7 +237,7 @@ typedef struct _XGC
   /* QuickDraw clipping region.  Ignored if n_clip_rects == 0.  */
   RgnHandle clip_region;
 
-#if defined (MAC_OSX) && USE_ATSUI
+#if defined (MAC_OSX) && (USE_ATSUI || USE_CG_DRAWING)
   /* Clipping rectangles used in Quartz 2D drawing.  The y-coordinate
      is in QuickDraw's.  */
   CGRect clip_rects[MAX_CLIP_RECTS];

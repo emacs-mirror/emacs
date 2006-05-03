@@ -1697,7 +1697,7 @@ This variable only matters if `undo-ask-before-discard' is non-nil.")
 	;; but we don't want to ask the question again.
 	(setq undo-extra-outer-limit (+ size 50000))
 	(if (let (use-dialog-box track-mouse executing-kbd-macro )
-	      (yes-or-no-p (format "Buffer %s undo info is %d bytes long; discard it? "
+	      (yes-or-no-p (format "Buffer `%s' undo info is %d bytes long; discard it? "
 				   (buffer-name) size)))
 	    (progn (setq buffer-undo-list nil)
 		   (setq undo-extra-outer-limit nil)
@@ -1705,7 +1705,7 @@ This variable only matters if `undo-ask-before-discard' is non-nil.")
 	  nil))
     (display-warning '(undo discard-info)
 		     (concat
-		      (format "Buffer %s undo info was %d bytes long.\n"
+		      (format "Buffer `%s' undo info was %d bytes long.\n"
 			      (buffer-name) size)
 		      "The undo info was discarded because it exceeded \
 `undo-outer-limit'.

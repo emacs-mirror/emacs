@@ -269,21 +269,26 @@ holds a keymap."
 
       ;; There's no icon appropriate for News and we need a command rather
       ;; than a lambda for Read Mail.
-      ;;(tool-bar-add-item-from-menu 'compose-mail "mail/compose")
+  ;;(tool-bar-add-item-from-menu 'compose-mail "mail/compose")
 
-      (tool-bar-add-item-from-menu 'print-buffer "print")
-      (tool-bar-add-item "preferences" 'customize 'customize
-			 :help "Edit preferences (customize)")
+  (tool-bar-add-item-from-menu 'print-buffer "print")
 
-      (tool-bar-add-item "help" (lambda ()
-				  (interactive)
-				  (popup-menu menu-bar-help-menu))
-			 'help
-			 :help "Pop up the Help menu")
+  ;; tool-bar-add-item-from-menu itself operates on
+  ;; (default-value 'tool-bar-map), but when we don't use that function,
+  ;; we must explicitly operate on the default value.
 
-      (setq tool-bar-setup t))))
+  (let ((tool-bar-map (default-value 'tool-bar-map)))
+    (tool-bar-add-item "preferences" 'customize 'customize
+		       :help "Edit preferences (customize)")
+
+    (tool-bar-add-item "help" (lambda ()
+				(interactive)
+				(popup-menu menu-bar-help-menu))
+		       'help
+		       :help "Pop up the Help menu"))
+  (setq tool-bar-setup t))))
+
 
 (provide 'tool-bar)
-
 ;;; arch-tag: 15f30f0a-d0d7-4d50-bbb7-f48fd0c8582f
 ;;; tool-bar.el ends here

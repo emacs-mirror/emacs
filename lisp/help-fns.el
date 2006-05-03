@@ -638,6 +638,7 @@ it is displayed along with the global value."
                              (indirect-variable variable)
                            (error variable)))
                    (obsolete (get variable 'byte-obsolete-variable))
+		   (safe-var (get variable 'safe-local-variable))
                    (doc (or (documentation-property variable 'variable-documentation)
                             (documentation-property alias 'variable-documentation))))
               (unless (eq alias variable)
@@ -649,6 +650,11 @@ it is displayed along with the global value."
                 (princ (if (stringp (car obsolete)) (car obsolete)
                          (format "use `%s' instead." (car obsolete))))
                 (terpri))
+	      (when safe-var 
+		(princ "This variable is safe to use as a file local variable")
+		(princ (format " only if its value\nsatisfies the predicate `%s'.\n"
+			       safe-var))
+		(terpri))
 	      (princ "Documentation:\n")
               (princ (or doc "Not documented as a variable.")))
 	    ;; Make a link to customize if this variable can be customized.

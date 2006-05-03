@@ -1098,6 +1098,7 @@ See also `multi-occur'."
 		(endpt nil)
 		(marker nil)
 		(curstring "")
+		(inhibit-field-text-motion t)
 		(headerpt (with-current-buffer out-buf (point))))
 	    (with-current-buffer buf
 	      (or coding

@@ -1623,7 +1623,7 @@ normal otherwise."
 	     (not noninteractive))
     (display-warning
      'initialization
-     "Building Emacs overflowed pure space."
+     "Building Emacs overflowed pure space.  See \"(elisp)Building Emacs\" for more information."
      ;; FIXME: Tell the user what kind of problems are possible and how to fix
      ;; the overflow.
      :warning))

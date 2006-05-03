@@ -206,6 +206,18 @@
 (defvar calc-embedded-firsttime-buf)
 (defvar calc-embedded-firsttime-formula)
 
+;; The following is to take care of any minor modes which override
+;; a Calc command.
+(defvar calc-override-minor-modes-map 
+  (make-sparse-keymap)
+  "A list of keybindings that might be overwritten by minor modes.")
+
+;; Add any keys that might be overwritten here.
+(define-key calc-override-minor-modes-map "`" 'calc-edit)
+
+(defvar calc-override-minor-modes 
+  (cons t calc-override-minor-modes-map))
+
 (defun calc-do-embedded (calc-embed-arg end obeg oend)
   (if calc-embedded-info
 
@@ -237,6 +249,8 @@
 		     truncate-lines (nth 2 mode)
 		     buffer-read-only nil)
 	       (use-local-map (nth 1 mode))
+               (setq minor-mode-overriding-map-alist
+                     (remq calc-override-minor-modes minor-mode-overriding-map-alist))
 	       (set-buffer-modified-p (buffer-modified-p))
                (calc-embedded-restore-original-modes)
 	       (or calc-embedded-quiet
@@ -297,6 +311,9 @@
 	    buffer-read-only t)
       (set-buffer-modified-p (buffer-modified-p))
       (use-local-map calc-mode-map)
+      (setq minor-mode-overriding-map-alist
+            (cons calc-override-minor-modes
+                  minor-mode-overriding-map-alist))
       (setq calc-no-refresh-evaltos nil)
       (and chg calc-any-evaltos (calc-wrapper (calc-refresh-evaltos)))
       (let (str)

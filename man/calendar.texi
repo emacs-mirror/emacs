@@ -395,7 +395,9 @@ If the variable @code{cal-tex-diary} is non-@code{nil} (the default is
 @code{nil}), diary entries are included also (in weekly and monthly
 calendars only).  If the variable @code{cal-tex-rules} is non-@code{nil}
 (the default is @code{nil}), the calendar displays ruled pages
-in styles that have sufficient room.
+in styles that have sufficient room.  You can use the variable
+@code{cal-tex-preamble-extra} to insert extra LaTeX commands in the
+preamble of the generated document if you need to.
 
 @node Holidays
 @section Holidays
