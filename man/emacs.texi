@@ -873,7 +873,7 @@ programmer, but if you are not interested in customizing, you can
 ignore the customization hints.
 
   This is primarily a reference manual, but can also be used as a
-primer.  If you are a complete beginner, we recommend you start with
+primer.  If you are new to Emacs, we recommend you start with
 the on-line, learn-by-doing tutorial, before reading the manual.  To
 run the tutorial, start Emacs and type @kbd{C-h t}.  The tutorial
 describes commands, tells you when to try them, and explains the
