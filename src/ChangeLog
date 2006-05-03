@@ -1,5 +1,9 @@
 2006-05-03  Richard Stallman  <rms@gnu.org>
 
+	* sound.c (Fplay_sound_internal): Dynamically allocate
+	current_sound_device and current_sound.
+	(sound_cleanup): Free them.
+
 	* minibuf.c (read_minibuf): Don't use read_minibuf_noninteractive
 	when inside a keyboard macro.
 
