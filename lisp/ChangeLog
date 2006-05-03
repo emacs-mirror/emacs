@@ -1,3 +1,8 @@
+2006-05-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gud-watch): Let user select an expression.
+	(menu): Fix typo.
+
 2006-05-02  Miles Bader  <miles@gnu.org>
 
 	* replace.el (occur-engine): Bind `inhibit-field-text-motion' to t.
@@ -82,7 +87,7 @@
 2006-05-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-def): Add %c case.
-	(gud-speedbar-buttons): Don'bind case-fold-search unnecessarily.
+	(gud-speedbar-buttons): Don't bind case-fold-search unnecessarily.
 	(gud-format-command): Make match case sensitive.  Match on %F.
 
 2006-04-30  Glenn Morris  <rgm@gnu.org>
