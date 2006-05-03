@@ -381,9 +381,9 @@ subsequent @kbd{C-g} invokes emergency escape again.
 answer @kbd{n} to both questions, and you will get back to the former
 state.  The quit you requested will happen by and by.
 
-  Emergency escape is active only for text terminals.  On a graphical
-display that supports multiple windows, you can use the window manager
-to kill Emacs, or to switch to some other program.
+  Emergency escape is active only for text terminals.  On graphical
+displays, you can use the mouse to kill Emacs or switch to another
+program.
 
   On MS-DOS, you must type @kbd{C-@key{BREAK}} (twice) to cause
 emergency escape---but there are cases where it won't work, when
