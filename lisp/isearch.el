@@ -832,19 +832,20 @@ NOPUSH is t and EDIT is t."
   "Add STRING to the beginning of the search ring.
 REGEXP says which ring to use."
   (if regexp
-      (if (or (null regexp-search-ring)
-	      (not (string= string (car regexp-search-ring))))
-	  (progn
-	    (push string regexp-search-ring)
-	    (if (> (length regexp-search-ring) regexp-search-ring-max)
-		(setcdr (nthcdr (1- search-ring-max) regexp-search-ring)
-			nil))))
-    (if (or (null search-ring)
-	    (not (string= string (car search-ring))))
-	(progn
-	  (push string search-ring)
-	  (if (> (length search-ring) search-ring-max)
-	      (setcdr (nthcdr (1- search-ring-max) search-ring) nil))))))
+      (when (or (null regexp-search-ring)
+		(not (string= string (car regexp-search-ring))))
+	(when history-delete-duplicates
+	  (setq regexp-search-ring (delete string regexp-search-ring)))
+	(push string regexp-search-ring)
+	(when (> (length regexp-search-ring) regexp-search-ring-max)
+	  (setcdr (nthcdr (1- search-ring-max) regexp-search-ring) nil)))
+    (when (or (null search-ring)
+	      (not (string= string (car search-ring))))
+      (when history-delete-duplicates
+	(setq search-ring (delete string search-ring)))
+      (push string search-ring)
+      (when (> (length search-ring) search-ring-max)
+	(setcdr (nthcdr (1- search-ring-max) search-ring) nil)))))
 
 ;; Switching buffers should first terminate isearch-mode.
 ;; ;; For Emacs 19, the frame switch event is handled.

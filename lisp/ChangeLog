@@ -1,3 +1,8 @@
+2006-05-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* isearch.el (isearch-update-ring): Take history-delete-duplicates
+	into consideration. Replace one arm ifs with whens.
+
 2006-05-03  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gud-watch): Let user select an expression.
