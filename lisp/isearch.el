@@ -830,7 +830,7 @@ NOPUSH is t and EDIT is t."
 
 (defun isearch-update-ring (string &optional regexp)
   "Add STRING to the beginning of the search ring.
-REGEXP says which ring to use."
+REGEXP if non-nil says use the regexp search ring."
   (if regexp
       (when (or (null regexp-search-ring)
 		(not (string= string (car regexp-search-ring))))
