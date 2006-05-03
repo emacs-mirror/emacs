@@ -523,7 +523,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 		build_string ("Command attempted to use minibuffer while in minibuffer"));
     }
 
-  if (noninteractive)
+  if (noninteractive && NILP (Vexecuting_kbd_macro))
     {
       val = read_minibuf_noninteractive (map, initial, prompt,
 					 make_number (pos),
