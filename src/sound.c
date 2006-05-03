@@ -452,13 +452,12 @@ static Lisp_Object
 sound_cleanup (arg)
      Lisp_Object arg;
 {
-  if (current_sound_device)
-    {
-      if (current_sound_device->close)
-	current_sound_device->close (current_sound_device);
-      if (current_sound->fd > 0)
-	emacs_close (current_sound->fd);
-    }
+  if (current_sound_device->close)
+    current_sound_device->close (current_sound_device);
+  if (current_sound->fd > 0)
+    emacs_close (current_sound->fd);
+  free (current_sound_device);
+  free (current_sound);
 
   return Qnil;
 }
@@ -991,8 +990,6 @@ Internal use only, use `play-sound' instead.\n  */)
 #ifndef WINDOWSNT
   Lisp_Object file;
   struct gcpro gcpro1, gcpro2;
-  struct sound_device sd;
-  struct sound s;
   Lisp_Object args[2];
 #else /* WINDOWSNT */
   int len = 0;
@@ -1010,48 +1007,50 @@ Internal use only, use `play-sound' instead.\n  */)
 #ifndef WINDOWSNT
   file = Qnil;
   GCPRO2 (sound, file);
-  bzero (&sd, sizeof sd);
-  bzero (&s, sizeof s);
-  current_sound_device = &sd;
-  current_sound = &s;
+  current_sound_device = (struct sound_device *) xmalloc (sizeof (struct sound_device));
+  bzero (current_sound_device, sizeof (struct sound_device));
+  current_sound = (struct sound *) xmalloc (sizeof (struct sound));
+  bzero (current_sound, sizeof (struct sound));
   record_unwind_protect (sound_cleanup, Qnil);
-  s.header = (char *) alloca (MAX_SOUND_HEADER_BYTES);
+  current_sound->header = (char *) alloca (MAX_SOUND_HEADER_BYTES);
 
   if (STRINGP (attrs[SOUND_FILE]))
     {
       /* Open the sound file.  */
-      s.fd = openp (Fcons (Vdata_directory, Qnil),
-		    attrs[SOUND_FILE], Qnil, &file, Qnil);
-      if (s.fd < 0)
+      current_sound->fd = openp (Fcons (Vdata_directory, Qnil),
+				 attrs[SOUND_FILE], Qnil, &file, Qnil);
+      if (current_sound->fd < 0)
 	sound_perror ("Could not open sound file");
 
       /* Read the first bytes from the file.  */
-      s.header_size = emacs_read (s.fd, s.header, MAX_SOUND_HEADER_BYTES);
-      if (s.header_size < 0)
+      current_sound->header_size
+	= emacs_read (current_sound->fd, current_sound->header,
+		      MAX_SOUND_HEADER_BYTES);
+      if (current_sound->header_size < 0)
 	sound_perror ("Invalid sound file header");
     }
   else
     {
-      s.data = attrs[SOUND_DATA];
-      s.header_size = min (MAX_SOUND_HEADER_BYTES, SBYTES (s.data));
-      bcopy (SDATA (s.data), s.header, s.header_size);
+      current_sound->data = attrs[SOUND_DATA];
+      current_sound->header_size = min (MAX_SOUND_HEADER_BYTES, SBYTES (current_sound->data));
+      bcopy (SDATA (current_sound->data), current_sound->header, current_sound->header_size);
     }
 
   /* Find out the type of sound.  Give up if we can't tell.  */
-  find_sound_type (&s);
+  find_sound_type (current_sound);
 
   /* Set up a device.  */
   if (STRINGP (attrs[SOUND_DEVICE]))
     {
       int len = SCHARS (attrs[SOUND_DEVICE]);
-      sd.file = (char *) alloca (len + 1);
-      strcpy (sd.file, SDATA (attrs[SOUND_DEVICE]));
+      current_sound_device->file = (char *) alloca (len + 1);
+      strcpy (current_sound_device->file, SDATA (attrs[SOUND_DEVICE]));
     }
 
   if (INTEGERP (attrs[SOUND_VOLUME]))
-    sd.volume = XFASTINT (attrs[SOUND_VOLUME]);
+    current_sound_device->volume = XFASTINT (attrs[SOUND_VOLUME]);
   else if (FLOATP (attrs[SOUND_VOLUME]))
-    sd.volume = XFLOAT_DATA (attrs[SOUND_VOLUME]) * 100;
+    current_sound_device->volume = XFLOAT_DATA (attrs[SOUND_VOLUME]) * 100;
 
   args[0] = Qplay_sound_functions;
   args[1] = sound;
@@ -1060,27 +1059,15 @@ Internal use only, use `play-sound' instead.\n  */)
   /* There is only one type of device we currently support, the VOX
      sound driver.  Set up the device interface functions for that
      device.  */
-  vox_init (&sd);
+  vox_init (current_sound_device);
 
   /* Open the device.  */
-  sd.open (&sd);
+  current_sound_device->open (current_sound_device);
 
   /* Play the sound.  */
-  s.play (&s, &sd);
-
-  /* Close the input file, if any.  */
-  if (!STRINGP (s.data))
-    {
-      emacs_close (s.fd);
-      s.fd = -1;
-    }
-
-  /* Close the device.  */
-  sd.close (&sd);
+  current_sound->play (current_sound, current_sound_device);
 
   /* Clean up.  */
-  current_sound_device = NULL;
-  current_sound = NULL;
   UNGCPRO;
 
 #else /* WINDOWSNT */
