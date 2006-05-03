@@ -1,3 +1,8 @@
+2006-05-03  Richard Stallman  <rms@gnu.org>
+
+	* minibuf.c (read_minibuf): Don't use read_minibuf_noninteractive
+	when inside a keyboard macro.
+
 2006-05-02  Andreas Schwab  <schwab@suse.de>
 
 	* xmenu.c (restore_menu_items): Return a value.
