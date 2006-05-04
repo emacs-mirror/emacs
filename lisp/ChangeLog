@@ -1,3 +1,7 @@
+2006-05-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-handle-ansi-escape): Fix off by one error.
+
 2006-05-04  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-force-update): Delete variable...
