@@ -1,5 +1,7 @@
 2006-05-03  Richard Stallman  <rms@gnu.org>
 
+	* simple.el (next-history-element, previous-history-element): Doc fix.
+
 	* isearch.el (isearch-update-ring): Doc fix.
 
 2006-05-03  Dan Nicolaescu  <dann@ics.uci.edu>
