@@ -49,7 +49,6 @@
 (defvar gdb-macro-info)
 (defvar gdb-server-prefix)
 (defvar gdb-show-changed-values)
-(defvar gdb-force-update)
 (defvar gdb-var-list)
 (defvar gdb-speedbar-auto-raise)
 (defvar tool-bar-map)
@@ -442,37 +441,55 @@ required by the caller."
 	     (buffer-name gud-comint-buffer))
     (let* ((minor-mode (with-current-buffer buffer gud-minor-mode))
 	  (window (get-buffer-window (current-buffer) 0))
+	  (start (window-start window))
 	  (p (window-point window)))
       (cond
        ((memq minor-mode '(gdbmi gdba))
-	(when (or gdb-force-update
-		  (not (save-excursion
-			 (goto-char (point-min))
-			 (looking-at "Watch Expressions:"))))
-	  (erase-buffer)
-	  (insert "Watch Expressions:\n")
-	  (if gdb-speedbar-auto-raise
-	      (raise-frame speedbar-frame))
-	  (let ((var-list gdb-var-list) parent)
-	    (while var-list
-	      (let* (char (depth 0) (start 0) (var (car var-list))
-			  (varnum (car var)) (expr (nth 1 var))
-			  (type (nth 3 var)) (value (nth 4 var))
-			  (status (nth 5 var)))
-		(put-text-property
-		 0 (length expr) 'face font-lock-variable-name-face expr)
-		(put-text-property
-		 0 (length type) 'face font-lock-type-face type)
-		(while (string-match "\\." varnum start)
-		  (setq depth (1+ depth)
-			start (1+ (match-beginning 0))))
-		(if (eq depth 0) (setq parent nil))
-		(if (or (equal (nth 2 var) "0")
-			(and (equal (nth 2 var) "1")
-			     (string-match "char \\*$" type)))
+	(erase-buffer)
+	(insert "Watch Expressions:\n")
+	(if gdb-speedbar-auto-raise
+	    (raise-frame speedbar-frame))
+	(let ((var-list gdb-var-list) parent)
+	  (while var-list
+	    (let* (char (depth 0) (start 0) (var (car var-list))
+			(varnum (car var)) (expr (nth 1 var))
+			(type (nth 3 var)) (value (nth 4 var))
+			(status (nth 5 var)))
+	      (put-text-property
+	       0 (length expr) 'face font-lock-variable-name-face expr)
+	      (put-text-property
+	       0 (length type) 'face font-lock-type-face type)
+	      (while (string-match "\\." varnum start)
+		(setq depth (1+ depth)
+		      start (1+ (match-beginning 0))))
+	      (if (eq depth 0) (setq parent nil))
+	      (if (or (equal (nth 2 var) "0")
+		      (and (equal (nth 2 var) "1")
+			   (string-match "char \\*$" type)))
+		  (speedbar-make-tag-line
+		   'bracket ?? nil nil
+		   (concat expr "\t" value)
+		   (if (or parent (eq status 'out-of-scope))
+		       nil 'gdb-edit-value)
+		   nil
+		   (if gdb-show-changed-values
+		       (or parent (case status
+				    (changed 'font-lock-warning-face)
+				    (out-of-scope 'shadow)
+				    (t t)))
+		     t)
+		   depth)
+		(if (eq status 'out-of-scope) (setq parent 'shadow))
+		(if (and (nth 1 var-list)
+			 (string-match (concat varnum "\\.")
+				       (car (nth 1 var-list))))
+		    (setq char ?-)
+		  (setq char ?+))
+		(if (string-match "\\*$" type)
 		    (speedbar-make-tag-line
-		     'bracket ?? nil nil
-		     (concat expr "\t" value)
+		     'bracket char
+		     'gdb-speedbar-expand-node varnum
+		     (concat expr "\t" type "\t" value)
 		     (if (or parent (eq status 'out-of-scope))
 			 nil 'gdb-edit-value)
 		     nil
@@ -483,37 +500,15 @@ required by the caller."
 				      (t t)))
 		       t)
 		     depth)
-		  (if (eq status 'out-of-scope) (setq parent 'shadow))
-		  (if (and (nth 1 var-list)
-			   (string-match (concat varnum "\\.")
-					 (car (nth 1 var-list))))
-		      (setq char ?-)
-		    (setq char ?+))
-		  (if (string-match "\\*$" type)
-		      (speedbar-make-tag-line
-		       'bracket char
-		       'gdb-speedbar-expand-node varnum
-		       (concat expr "\t" type "\t" value)
-		       (if (or parent (eq status 'out-of-scope))
-			 nil 'gdb-edit-value)
-		       nil
-		       (if gdb-show-changed-values
-			   (or parent (case status
-					    (changed 'font-lock-warning-face)
-					    (out-of-scope 'shadow)
-					    (t t)))
-			 t)
-		       depth)
-		    (speedbar-make-tag-line
-		     'bracket char
-		     'gdb-speedbar-expand-node varnum
-		     (concat expr "\t" type)
-		     nil nil
-		     (if (and (or parent status) gdb-show-changed-values)
-			 'shadow t)
-		     depth))))
-	      (setq var-list (cdr var-list))))
-	  (setq gdb-force-update nil)))
+		  (speedbar-make-tag-line
+		   'bracket char
+		   'gdb-speedbar-expand-node varnum
+		   (concat expr "\t" type)
+		   nil nil
+		   (if (and (or parent status) gdb-show-changed-values)
+		       'shadow t)
+		   depth))))
+	    (setq var-list (cdr var-list)))))
        (t (unless (and (save-excursion
 			 (goto-char (point-min))
 			 (looking-at "Current Stack:"))
@@ -544,6 +539,7 @@ required by the caller."
 		       (t (error "Should never be here")))
 		 frame t))))
 	    (setq gud-last-speedbar-stackframe gud-last-last-frame))))
+      (set-window-start window start)
       (set-window-point window p))))
 
 
