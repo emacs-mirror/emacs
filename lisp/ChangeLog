@@ -1,3 +1,13 @@
+2006-05-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-force-update): Delete variable...
+	(gdb-init-1, gdb-post-prompt): ...and references to it.
+	(gdb-frame-handler): Strip directory name from filename if present.
+
+	* progmodes/gud.el (gdb-force-update): Delete defvar
+	(gud-speedbar-buttons): ...and references to it.  Use window-start
+	to try to keep positon in watch expression.
+
 2006-05-03  Richard Stallman  <rms@gnu.org>
 
 	* simple.el (next-history-element, previous-history-element): Doc fix.
