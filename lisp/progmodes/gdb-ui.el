@@ -114,8 +114,6 @@ Set to \"main\" at start if gdb-show-main is t.")
 Each element has the form (VARNUM EXPRESSION NUMCHILD TYPE VALUE STATUS FP)
 where STATUS is nil (unchanged), `changed' or `out-of-scope', FP the frame
 address for root variables.")
-(defvar gdb-force-update t
- "Non-nil means that view of watch expressions will be updated in the speedbar.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-server-prefix nil)
@@ -527,7 +525,6 @@ With arg, use separate IO iff arg is positive."
 	gdb-current-language nil
 	gdb-frame-number nil
 	gdb-var-list nil
-	gdb-force-update t
 	gdb-main-file nil
 	gdb-first-post-prompt t
 	gdb-prompting nil
@@ -1381,7 +1378,6 @@ happens to be appropriate."
       ;; FIXME: with GDB-6 on Darwin, this might very well work.
       ;; Only needed/used with speedbar/watch expressions.
       (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-	(setq gdb-force-update t)
 	(if (string-equal gdb-version "pre-6.4")
 	    (gdb-var-update)
 	  (gdb-var-update-1)))))
@@ -3166,7 +3162,9 @@ BUFFER nil or omitted means use the current buffer."
     (if (and (match-string 3) gud-overlay-arrow-position)
       (let ((buffer (marker-buffer gud-overlay-arrow-position))
 	    (position (marker-position gud-overlay-arrow-position)))
-	(when (and buffer (string-equal (buffer-name buffer) (match-string 3)))
+	(when (and buffer
+		   (string-equal (buffer-name buffer)
+				 (file-name-nondirectory (match-string 3))))
 	  (with-current-buffer buffer
 	    (setq fringe-indicator-alist
 		  (if (string-equal gdb-frame-number "0")
