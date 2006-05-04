@@ -1,5 +1,8 @@
 2006-05-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* ibuffer.el (ibuffer-compressed-file-name-regexp): Avoid loading
+	regexp-opt at run time.
+
 	* term.el (term-handle-ansi-escape): Fix off by one error.
 
 2006-05-04  Nick Roberts  <nickrob@snap.net.nz>
