@@ -1,3 +1,10 @@
+2006-05-06  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (xframe): Print frame name.
+	(xlist): New command to print a list (max 10 elements).
+	(xpr): Print lisp object of any type.
+	(pitx): Print it->pixel_width.
+
 2006-05-05  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (handle_composition_prop): Fix for the case of empty

@@ -1,3 +1,21 @@
+2006-05-06  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (add-to-history): New function.
+
+	* ediff.el (ediff-files, ediff-files3, ediff-merge-files)
+	(ediff-merge-files-with-ancestor):
+	* env.el (setenv):
+	* isearch.el (isearch-update-ring):
+	* server.el (server-visit-files):
+	* progmodes/grep.el (lgrep, rgrep):
+	* progmodes/vhdl-mode.el (vhdl-generate-makefile-1):
+	* progmodes/xscheme.el (xscheme-insert-expression):
+	Use add-to-history.
+
+	* kmacro.el (kmacro-push-ring): Use add-to-history.
+	(kmacro-ring-length): Remove unused defun.
+	(kmacro-start-macro): Use kmacro-push-ring.
+
 2006-05-06  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/ewoc.el (ewoc-create, ewoc-set-hf): Use `insert'
