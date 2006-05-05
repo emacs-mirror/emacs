@@ -386,6 +386,10 @@ should be shown to the user."
   (url-http-parse-response)
   (mail-narrow-to-head)
   ;;(narrow-to-region (point-min) url-http-end-of-headers)
+  (let ((connection (mail-fetch-field "Connection")))
+    (if (and connection
+	     (string= (downcase connection) "close"))
+	(delete-process url-http-process)))
   (let ((class nil)
 	(success nil))
     (setq class (/ url-http-response-status 100))
