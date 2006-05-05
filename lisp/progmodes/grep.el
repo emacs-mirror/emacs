@@ -676,7 +676,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	      (setq command
 		    (read-from-minibuffer "Confirm: "
 					  command nil nil 'grep-history))
-	    (push command grep-history))))
+	    (add-to-history 'grep-history command))))
       (when command
 	;; Setting process-setup-function makes exit-message-function work
 	;; even when async processes aren't supported.
@@ -742,7 +742,7 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 	      (setq command
 		    (read-from-minibuffer "Confirm: "
 					  command nil nil 'grep-find-history))
-	    (push command grep-find-history))
+	    (add-to-history 'grep-find-history command))
 	  (compilation-start command 'grep-mode))))))
 
 
