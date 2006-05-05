@@ -318,6 +318,7 @@ restore_menu_items (saved)
   menu_items_n_panes = XINT (XCAR (saved));
   saved = XCDR (saved);  
   menu_items_submenu_depth = XINT (XCAR (saved));
+  return Qnil;
 }
 
 /* Push the whole state of menu_items processing onto the specpdl.
@@ -634,6 +635,7 @@ cleanup_popup_menu (arg)
      Lisp_Object arg;
 {
   discard_menu_items ();
+  return Qnil;
 }
 
 DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
