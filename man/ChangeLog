@@ -1,3 +1,13 @@
+2006-05-05  Karl Berry  <karl@gnu.org>
+
+	* texinfo.tex (\definetextfonsizexi, \definetextfonsizex): new cmds.
+	(\fonttextsize): new user-level command to change text font size.
+	* emacs.texi: call  @fonttextsize 10, inside @tex to avoid
+	errors from the current release of makeinfo (4.8).
+	* help.texi (Library Keywords): change widest word in multitable
+	template from `emulations' to `convenience'.  (Not sure if this is
+	related to the font change.)
+
 2006-05-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.texi (File Names): Add a footnote about limited support of

@@ -42,7 +42,13 @@ Software Foundation raise funds for GNU development.''
 
 @smallbook
 
-@setchapternewpage odd
+@c per rms and peterb, use 10pt fonts for the main text, mostly to
+@c save on paper cost.  Also do not declare @setchapternewpage odd.
+@c Do this inside @tex for now, so current makeinfo does not complain.
+@tex
+@fonttextsize 10
+@end tex
+
 @defcodeindex op
 @synindex pg cp
 
