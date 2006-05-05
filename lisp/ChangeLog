@@ -1,3 +1,8 @@
+2006-05-06  Kim F. Storm  <storm@cua.dk>
+
+	* avoid.el (mouse-avoidance-point-position): Use posn-at-point
+	instead of compute-motion.
+
 2006-05-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ibuffer.el (ibuffer-compressed-file-name-regexp): Undo previous
