@@ -324,14 +324,13 @@ directory, like `default-directory'."
   :type '(repeat function)
   :group 'ibuffer)
 
-(eval-when-compile 
 (defcustom ibuffer-compressed-file-name-regexp
     (concat "\\.\\("
 	    (regexp-opt '("arj" "bgz" "bz2" "gz" "lzh" "taz" "tgz" "zip" "z"))
 	    "\\)$")
   "Regexp to match compressed file names."
   :type 'regexp
-  :group 'ibuffer))
+  :group 'ibuffer)
 
 (defcustom ibuffer-hook nil
   "Hook run when `ibuffer' is called."
