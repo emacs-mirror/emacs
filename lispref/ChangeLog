@@ -1,3 +1,9 @@
+2006-05-05  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* keymaps.texi (Active Keymaps): Fix pseudo-Lisp syntax.
+	(Searching Keymaps): Fix pseudo-Lisp description of keymap
+	search.
+
 2006-05-01  Richard Stallman  <rms@gnu.org>
 
 	* intro.texi (nil and t): Clarify.

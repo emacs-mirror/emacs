@@ -1,3 +1,9 @@
+2006-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (normal-splash-screen, fancy-splash-screens-1): Add a
+	reference to the Lisp manual to the warning about pure space
+	overflow.
+
 2006-05-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* textmodes/ispell.el (ispell-buffer-local-dict): Add a `no-reload'

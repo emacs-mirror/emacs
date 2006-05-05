@@ -69,7 +69,7 @@
 
 	* pgg.texi (Caching passphrase): Fix markup and typos.  Simplify.
 
-2006-04-26  Sascha Wilde  <wilde@sha-bang.de>
+2006-04-26  Sascha Wilde  <wilde@sha-bang.de>  (tiny change)
 
 	* pgg.texi (Caching passphrase): Add pgg-gpg-use-agent.
 
