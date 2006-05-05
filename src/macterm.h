@@ -586,8 +586,8 @@ extern void mac_clear_area P_ ((struct frame *, int, int,
 extern void mac_unload_font P_ ((struct mac_display_info *, XFontStruct *));
 extern OSErr install_window_handler P_ ((WindowPtr));
 extern void remove_window_handler P_ ((WindowPtr));
-extern Lisp_Object mac_make_lispy_event_code P_ ((int));
 extern void do_menu_choice P_ ((SInt32));
+extern OSStatus mac_post_mouse_moved_event P_ ((void));
 #if USE_CG_DRAWING
 extern void mac_prepare_for_quickdraw P_ ((struct frame *));
 #endif
@@ -623,12 +623,15 @@ extern void free_frame_menubar P_ ((struct frame *));
 /* Defined in mac.c.  */
 
 extern void mac_clear_font_name_table P_ ((void));
-extern Lisp_Object mac_aedesc_to_lisp P_ ((AEDesc *));
+extern Lisp_Object mac_aedesc_to_lisp P_ ((const AEDesc *));
 #if TARGET_API_MAC_CARBON
 extern OSErr create_apple_event_from_event_ref P_ ((EventRef, UInt32,
 						    EventParamName *,
 						    EventParamType *,
 						    AppleEvent *));
+extern OSErr create_apple_event_from_drag_ref P_ ((DragRef, UInt32,
+						   FlavorType *,
+						   AppleEvent *));
 extern CFStringRef cfstring_create_with_utf8_cstring P_ ((const char *));
 extern CFStringRef cfstring_create_with_string P_ ((Lisp_Object));
 extern Lisp_Object cfdata_to_lisp P_ ((CFDataRef));
