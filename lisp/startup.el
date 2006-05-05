@@ -1307,7 +1307,9 @@ where FACE is a valid face specification, as it can be used with
     (set-buffer buffer)
     (erase-buffer)
     (if pure-space-overflow
-	(insert "Warning Warning  Pure space overflow   Warning Warning\n"))
+	(insert "\
+Warning Warning!!!  Pure space overflow    !!!Warning Warning
+\(See the node Building Emacs in the Lisp manual for details.)\n"))
     (fancy-splash-head)
     (apply #'fancy-splash-insert text)
     (fancy-splash-tail)
@@ -1416,7 +1418,9 @@ we put it on this frame."
                (propertize "---- %b %-" 'face '(:weight bold)))
 
           (if pure-space-overflow
-              (insert "Warning Warning  Pure space overflow   Warning Warning\n"))
+              (insert "\
+Warning Warning!!!  Pure space overflow    !!!Warning Warning
+\(See the node Building Emacs in the Lisp manual for details.)\n"))
 
           ;; The convention for this piece of code is that
           ;; each piece of output starts with one or two newlines
