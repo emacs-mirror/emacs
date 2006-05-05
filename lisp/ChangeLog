@@ -1,3 +1,12 @@
+2006-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* arc-mode.el (archive-l-e): New optional argument `float' means
+	generate a float value.
+	(archive-arc-summarize, archive-lzh-summarize)
+	(archive-zip-summarize, archive-zoo-summarize): Invoke archive-l-e
+	with 3rd argument non-nil when file's size is being computed.
+	Format the file sizes with %8.0f instead of %8d.
+
 2006-05-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* cus-start.el (all): Add mac-dnd-known-types.
