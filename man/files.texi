@@ -107,10 +107,13 @@ first slash in the double slash; the result is @samp{/x1/rms/foo}.
 @cindex home directory shorthand
   You can use @file{~/} in a file name to mean your home directory,
 or @file{~@var{user-id}/} to mean the home directory of a user whose
-login name is @code{user-id}.  (On DOS and Windows systems, where a user
-doesn't have a home directory, Emacs substitutes @file{~/} with the
-value of the environment variable @code{HOME}; see @ref{General
-Variables}.)
+login name is @code{user-id}@footnote{
+On MS-Windows and MS-DOS systems, where a user doesn't have a home
+directory, Emacs substitutes @file{~/} with the value of the
+environment variable @code{HOME}; see @ref{General Variables}.  The
+@file{~@var{user-id}/} construct is supported on those systems only
+for the current user, i.e., only if @var{user-id} is the current
+user's login name.}.
 
 @cindex environment variables in file names
 @cindex expansion of environment variables
