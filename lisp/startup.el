@@ -820,7 +820,16 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			   (format "Invalid user name %s"
 				   init-file-user)
 			   :error)
-	(if (file-directory-p (expand-file-name (concat "~" init-file-user)))
+	(if (file-directory-p (expand-file-name
+			       ;; We don't support ~USER on MS-Windows except
+			       ;; for the current user, and always load .emacs
+			       ;; from the current user's home directory (see
+			       ;; below).  So always check "~", even if invoked
+			       ;; with "-u USER", or if $USER or $LOGNAME are
+			       ;; set to something different.
+			       (if (eq system-type 'windows-nt)
+				   "~"
+				 (concat "~" init-file-user))))
 	    nil
 	  (display-warning 'initialization
 			   (format "User %s has no home directory"
