@@ -1,5 +1,8 @@
 2006-05-05  Eli Zaretskii  <eliz@gnu.org>
 
+	* startup.el (command-line): On MS-Windows, probe "~", not
+	"~USER", for warning about non-existent home directory
+
 	* arc-mode.el (archive-l-e): New optional argument `float' means
 	generate a float value.
 	(archive-arc-summarize, archive-lzh-summarize)
