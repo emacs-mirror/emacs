@@ -1,3 +1,8 @@
+2006-05-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/re-builder.el (reb-update-overlays): Cycle through
+	provided faces once they all have been used up.
+
 2006-05-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* startup.el (normal-splash-screen, fancy-splash-screens-1): Add a
