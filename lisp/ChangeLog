@@ -1,3 +1,16 @@
+2006-05-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* textmodes/ispell.el (ispell-buffer-local-dict): Add a `no-reload'
+	argument to avoid the call to `ispell-internal-change-dictionary'
+	when not needed.
+	(ispell-change-dictionary): Use this argument and call
+	`ispell-internal-change-dictionary' after the possible change
+	to `ispell-local-dictionary'.
+	(ispell-internal-change-dictionary): Check for a change in
+	personal dictionary use too.
+	Cosmetic changes from Agustin Martin
+	<agustin.martin@hispalinux.es>.
+
 2006-05-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* startup.el (command-line): On MS-Windows, probe "~", not

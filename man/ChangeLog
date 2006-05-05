@@ -1,3 +1,11 @@
+2006-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (File Names): Add a footnote about limited support of
+	~USER on MS-Windows.
+
+	* cmdargs.texi (Initial Options): Add a footnote about limited
+	support of ~USER on MS-Windows.
+
 2006-05-03  Richard Stallman  <rms@gnu.org>
 
 	* files.texi (Diff Mode): Node moved here.
