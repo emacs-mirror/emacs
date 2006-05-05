@@ -4454,35 +4454,11 @@ scroll_bar_timer_callback (timer, data)
      EventLoopTimerRef timer;
      void *data;
 {
-  EventRef event = NULL;
-  OSErr err;
+  OSStatus err;
 
-  err = CreateEvent (NULL, kEventClassMouse, kEventMouseMoved, 0,
-		     kEventAttributeNone, &event);
-  if (err == noErr)
-    {
-      Point mouse_pos;
-
-      GetMouse (&mouse_pos);
-      LocalToGlobal (&mouse_pos);
-      err = SetEventParameter (event, kEventParamMouseLocation, typeQDPoint,
-			       sizeof (Point), &mouse_pos);
-    }
-  if (err == noErr)
-    {
-      UInt32 modifiers = GetCurrentKeyModifiers ();
-
-      err = SetEventParameter (event, kEventParamKeyModifiers, typeUInt32,
-			       sizeof (UInt32), &modifiers);
-    }
-  if (err == noErr)
-    err = PostEventToQueue (GetCurrentEventQueue (), event,
-			    kEventPriorityStandard);
+  err = mac_post_mouse_moved_event ();
   if (err == noErr)
     scroll_bar_timer_event_posted_p = 1;
-
-  if (event)
-    ReleaseEvent (event);
 }
 
 static OSStatus
@@ -6723,10 +6699,6 @@ xlfdpat_create (pattern)
       }
 
   return pat;
-
- error:
-  xlfdpat_destroy (pat);
-  return NULL;
 }
 
 static INLINE int
@@ -8415,13 +8387,9 @@ extern void mac_find_apple_event_spec P_ ((AEEventClass, AEEventID,
 					   Lisp_Object *));
 extern OSErr init_coercion_handler P_ ((void));
 
-#if TARGET_API_MAC_CARBON
 /* Drag and Drop */
-static pascal OSErr mac_do_track_drag (DragTrackingMessage, WindowPtr, void*, DragReference);
-static pascal OSErr mac_do_receive_drag (WindowPtr, void*, DragReference);
-static DragTrackingHandlerUPP mac_do_track_dragUPP = NULL;
-static DragReceiveHandlerUPP mac_do_receive_dragUPP = NULL;
-#endif
+OSErr install_drag_handler P_ ((WindowRef));
+void remove_drag_handler P_ ((WindowRef));
 
 #if USE_CARBON_EVENTS
 #ifdef MAC_OSX
@@ -8977,47 +8945,48 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
   x_real_positions (f, &f->left_pos, &f->top_pos);
 }
 
-OSErr
+void
 mac_store_apple_event (class, id, desc)
      Lisp_Object class, id;
      const AEDesc *desc;
 {
-  OSErr err;
   struct input_event buf;
-  AEDesc *desc_copy;
 
-  desc_copy = xmalloc (sizeof (AEDesc));
-  err = AEDuplicateDesc (desc, desc_copy);
-  if (err == noErr)
-    {
-      EVENT_INIT (buf);
+  EVENT_INIT (buf);
 
-      buf.kind = MAC_APPLE_EVENT;
-      buf.x = class;
-      buf.y = id;
-      buf.code = (int)desc_copy;
-      XSETFRAME (buf.frame_or_window,
-		 mac_focus_frame (&one_mac_display_info));
-      buf.arg = Qnil;
-      kbd_buffer_store_event (&buf);
-    }
-
-  return err;
+  buf.kind = MAC_APPLE_EVENT;
+  buf.x = class;
+  buf.y = id;
+  XSETFRAME (buf.frame_or_window,
+	     mac_focus_frame (&one_mac_display_info));
+  /* Now that Lisp object allocations are protected by BLOCK_INPUT, it
+     is safe to use them during read_socket_hook.  */
+  buf.arg = mac_aedesc_to_lisp (desc);
+  kbd_buffer_store_event (&buf);
 }
 
-Lisp_Object
-mac_make_lispy_event_code (code)
-     int code;
+#if TARGET_API_MAC_CARBON
+void
+mac_store_drag_event (window, mouse_pos, modifiers, desc)
+     WindowRef window;
+     Point mouse_pos;
+     SInt16 modifiers;
+     const AEDesc *desc;
 {
-  AEDesc *desc = (AEDesc *)code;
-  Lisp_Object obj;
+  struct input_event buf;
 
-  obj = mac_aedesc_to_lisp (desc);
-  AEDisposeDesc (desc);
-  xfree (desc);
+  EVENT_INIT (buf);
 
-  return obj;
+  buf.kind = DRAG_N_DROP_EVENT;
+  buf.modifiers = mac_to_emacs_modifiers (modifiers);
+  buf.timestamp = TickCount () * (1000 / 60);
+  XSETINT (buf.x, mouse_pos.h);
+  XSETINT (buf.y, mouse_pos.v);
+  XSETFRAME (buf.frame_or_window, mac_window_to_frame (window));
+  buf.arg = mac_aedesc_to_lisp (desc);
+  kbd_buffer_store_event (&buf);
 }
+#endif
 
 #if USE_CARBON_EVENTS
 static pascal OSStatus
@@ -9060,11 +9029,10 @@ mac_handle_command_event (next_handler, event, data)
 						   &apple_event);
 	  if (err == noErr)
 	    {
-	      err = mac_store_apple_event (class_key, id_key, &apple_event);
+	      mac_store_apple_event (class_key, id_key, &apple_event);
 	      AEDisposeDesc (&apple_event);
+	      return noErr;
 	    }
-	  if (err == noErr)
-	    return noErr;
 	}
     }
 
@@ -9281,7 +9249,7 @@ mac_store_services_event (event)
 
   if (err == noErr)
     {
-      err = mac_store_apple_event (Qservices, id_key, &apple_event);
+      mac_store_apple_event (Qservices, id_key, &apple_event);
       AEDisposeDesc (&apple_event);
     }
 
@@ -9320,17 +9288,9 @@ install_window_handler (window)
 				     GetEventTypeCount (specs_mouse),
 				     specs_mouse, NULL, NULL);
 #endif
-#if TARGET_API_MAC_CARBON
-  if (mac_do_track_dragUPP == NULL)
-    mac_do_track_dragUPP = NewDragTrackingHandlerUPP (mac_do_track_drag);
-  if (mac_do_receive_dragUPP == NULL)
-    mac_do_receive_dragUPP = NewDragReceiveHandlerUPP (mac_do_receive_drag);
+  if (err == noErr)
+    err = install_drag_handler (window);
 
-  if (err == noErr)
-    err = InstallTrackingHandler (mac_do_track_dragUPP, window, NULL);
-  if (err == noErr)
-    err = InstallReceiveHandler (mac_do_receive_dragUPP, window, NULL);
-#endif
   return err;
 }
 
@@ -9338,166 +9298,8 @@ void
 remove_window_handler (window)
      WindowPtr window;
 {
-#if TARGET_API_MAC_CARBON
-  if (mac_do_track_dragUPP)
-    RemoveTrackingHandler (mac_do_track_dragUPP, window);
-  if (mac_do_receive_dragUPP)
-    RemoveReceiveHandler (mac_do_receive_dragUPP, window);
-#endif
+  remove_drag_handler (window);
 }
-
-#if TARGET_API_MAC_CARBON
-static pascal OSErr
-mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
-		   void *handlerRefCon, DragReference theDrag)
-{
-  static int can_accept;
-  short items;
-  short index;
-  ItemReference theItem;
-  FlavorFlags theFlags;
-  OSErr result;
-
-  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
-    return dragNotAcceptedErr;
-
-  switch (message)
-    {
-    case kDragTrackingEnterHandler:
-      CountDragItems (theDrag, &items);
-      can_accept = 0;
-      for (index = 1; index <= items; index++)
-	{
-	  GetDragItemReferenceNumber (theDrag, index, &theItem);
-	  result = GetFlavorFlags (theDrag, theItem, flavorTypeHFS, &theFlags);
-	  if (result == noErr)
-	    {
-	      can_accept = 1;
-	      break;
-	    }
-	}
-      break;
-
-    case kDragTrackingEnterWindow:
-      if (can_accept)
-	{
-	  RgnHandle hilite_rgn = NewRgn ();
-	  Rect r;
-	  struct frame *f = mac_window_to_frame (window);
-
-	  GetWindowPortBounds (window, &r);
-	  OffsetRect (&r, -r.left, -r.top);
-	  RectRgn (hilite_rgn, &r);
-	  ShowDragHilite (theDrag, hilite_rgn, true);
-	  DisposeRgn (hilite_rgn);
-	  SetThemeCursor (kThemeCopyArrowCursor);
-	}
-      break;
-
-    case kDragTrackingInWindow:
-      break;
-
-    case kDragTrackingLeaveWindow:
-      if (can_accept)
-	{
-	  struct frame *f = mac_window_to_frame (window);
-
-	  HideDragHilite (theDrag);
-	  SetThemeCursor (kThemeArrowCursor);
-	}
-      break;
-
-    case kDragTrackingLeaveHandler:
-      break;
-    }
-
-  return noErr;
-}
-
-static pascal OSErr
-mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
-		     DragReference theDrag)
-{
-  short items;
-  short index;
-  FlavorFlags theFlags;
-  Point mouse;
-  OSErr result;
-  ItemReference theItem;
-  HFSFlavor data;
-  Size size = sizeof (HFSFlavor);
-  Lisp_Object file_list;
-
-  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
-    return dragNotAcceptedErr;
-
-  file_list = Qnil;
-  GetDragMouse (theDrag, &mouse, 0L);
-  CountDragItems (theDrag, &items);
-  for (index = 1; index <= items; index++)
-    {
-      /* Only handle file references.  */
-      GetDragItemReferenceNumber (theDrag, index, &theItem);
-      result = GetFlavorFlags (theDrag, theItem, flavorTypeHFS, &theFlags);
-      if (result == noErr)
-	{
-	  OSErr err;
-	  AEDesc desc;
-
-	  err = GetFlavorData (theDrag, theItem, flavorTypeHFS,
-			       &data, &size, 0L);
-	  if (err == noErr)
-	    err = AECoercePtr (typeFSS, &data.fileSpec, sizeof (FSSpec),
-			       TYPE_FILE_NAME, &desc);
-	  if (err == noErr)
-	    {
-	      Lisp_Object file;
-
-	      /* x-dnd functions expect undecoded filenames.  */
-	      file = make_uninit_string (AEGetDescDataSize (&desc));
-	      err = AEGetDescData (&desc, SDATA (file), SBYTES (file));
-	      if (err == noErr)
-		file_list = Fcons (file, file_list);
-	      AEDisposeDesc (&desc);
-	    }
-	}
-    }
-  /* If there are items in the list, construct an event and post it to
-     the queue like an interrupt using kbd_buffer_store_event.  */
-  if (!NILP (file_list))
-    {
-      struct input_event event;
-      Lisp_Object frame;
-      struct frame *f = mac_window_to_frame (window);
-      SInt16 modifiers;
-
-      GlobalToLocal (&mouse);
-      GetDragModifiers (theDrag, NULL, NULL, &modifiers);
-
-      event.kind = DRAG_N_DROP_EVENT;
-      event.code = 0;
-      event.modifiers = mac_to_emacs_modifiers (modifiers);
-      event.timestamp = TickCount () * (1000 / 60);
-      XSETINT (event.x, mouse.h);
-      XSETINT (event.y, mouse.v);
-      XSETFRAME (frame, f);
-      event.frame_or_window = frame;
-      event.arg = file_list;
-      /* Post to the interrupt queue */
-      kbd_buffer_store_event (&event);
-      /* MAC_TODO: Mimic behavior of windows by switching contexts to Emacs */
-      {
-	ProcessSerialNumber psn;
-	GetCurrentProcess (&psn);
-	SetFrontProcess (&psn);
-      }
-
-      return noErr;
-    }
-  else
-    return dragNotAcceptedErr;
-}
-#endif
 
 
 #if __profile__
@@ -9784,6 +9586,41 @@ mac_wait_next_event (er, sleep_time, dequeue)
 }
 #endif /* not USE_CARBON_EVENTS */
 
+#if TARGET_API_MAC_CARBON
+OSStatus
+mac_post_mouse_moved_event ()
+{
+  EventRef event = NULL;
+  OSStatus err;
+
+  err = CreateEvent (NULL, kEventClassMouse, kEventMouseMoved, 0,
+		     kEventAttributeNone, &event);
+  if (err == noErr)
+    {
+      Point mouse_pos;
+
+      GetMouse (&mouse_pos);
+      LocalToGlobal (&mouse_pos);
+      err = SetEventParameter (event, kEventParamMouseLocation, typeQDPoint,
+			       sizeof (Point), &mouse_pos);
+    }
+  if (err == noErr)
+    {
+      UInt32 modifiers = GetCurrentKeyModifiers ();
+
+      err = SetEventParameter (event, kEventParamKeyModifiers, typeUInt32,
+			       sizeof (UInt32), &modifiers);
+    }
+  if (err == noErr)
+    err = PostEventToQueue (GetCurrentEventQueue (), event,
+			    kEventPriorityStandard);
+  if (event)
+    ReleaseEvent (event);
+
+  return err;
+}
+#endif
+
 /* Emacs calls this whenever it wants to read an input event from the
    user. */
 int
@@ -10058,20 +9895,18 @@ XTread_socket (sd, expected, hold_quit)
 		  }
 		break;
 
-#if TARGET_API_MAC_CARBON
-	      case inProxyIcon:
-		if (TrackWindowProxyDrag (window_ptr, er.where)
-		    != errUserWantsToDragWindow)
-		  break;
-		/* fall through */
-#endif
 	      case inDrag:
 #if TARGET_API_MAC_CARBON
+	      case inProxyIcon:
 		if (IsWindowPathSelectClick (window_ptr, &er))
 		  {
 		    WindowPathSelect (window_ptr, NULL, NULL);
 		    break;
 		  }
+		if (part_code == inProxyIcon
+		    && (TrackWindowProxyDrag (window_ptr, er.where)
+			!= errUserWantsToDragWindow))
+		  break;
 		DragWindow (window_ptr, er.where, NULL);
 #else /* not TARGET_API_MAC_CARBON */
 		DragWindow (window_ptr, er.where, &qd.screenBits.bounds);
