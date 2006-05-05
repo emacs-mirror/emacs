@@ -2217,10 +2217,10 @@ provides a powerful interface for merging files.
 @findex diff-mode
 @cindex patches, editing
 
-  The @samp{*diff*} buffer uses Diff mode (@pxref{Diff Mode}).  Diff
-mode is also useful for editing patches and comparisons produced by
-the @command{diff} program.  To select Diff mode manually, type
-@kbd{M-x diff-mode}.
+  Diff mode is used for the output of @kbd{M-x diff}; it is also
+useful for editing patches and comparisons produced by the
+@command{diff} program.  To select Diff mode manually, type @kbd{M-x
+diff-mode}.
 
   One general feature of Diff mode is that manual edits to the patch
 automatically correct line numbers, including those in the hunk
