@@ -1128,6 +1128,107 @@ correspoinding TextEncodingBase value."
 (mac-add-charset-info "mac-dingbats" 34)
 (mac-add-charset-info "iso10646-1" 126) ; for ATSUI
 
+(cp-make-coding-system
+ mac-centraleurroman
+ [?\,AD(B ?\$,1  (B ?\$,1 !(B ?\,AI(B ?\$,1 $(B ?\,AV(B ?\,A\(B ?\,Aa(B ?\$,1 %(B ?\$,1 ,(B ?\,Ad(B ?\$,1 -(B ?\$,1 &(B ?\$,1 '(B ?\,Ai(B ?\$,1!9(B
+  ?\$,1!:(B ?\$,1 .(B ?\,Am(B ?\$,1 /(B ?\$,1 2(B ?\$,1 3(B ?\$,1 6(B ?\,As(B ?\$,1 7(B ?\,At(B ?\,Av(B ?\,Au(B ?\,Az(B ?\$,1 :(B ?\$,1 ;(B ?\,A|(B
+  ?\$,1s (B ?\,A0(B ?\$,1 8(B ?\,A#(B ?\,A'(B ?\$,1s"(B ?\,A6(B ?\,A_(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1 9(B ?\,A((B ?\$,1y (B ?\$,1 C(B ?\$,1 N(B
+  ?\$,1 O(B ?\$,1 J(B ?\$,1y$(B ?\$,1y%(B ?\$,1 K(B ?\$,1 V(B ?\$,1x"(B ?\$,1x1(B ?\$,1 b(B ?\$,1 [(B ?\$,1 \(B ?\$,1 ](B ?\$,1 ^(B ?\$,1 Y(B ?\$,1 Z(B ?\$,1 e(B
+  ?\$,1 f(B ?\$,1 c(B ?\,A,(B ?\$,1x:(B ?\$,1 d(B ?\$,1 g(B ?\$,1x&(B ?\,A+(B ?\,A;(B ?\$,1s&(B ?\,A (B ?\$,1 h(B ?\$,1 p(B ?\,AU(B ?\$,1 q(B ?\$,1 l(B
+  ?\$,1rs(B ?\$,1rt(B ?\$,1r|(B ?\$,1r}(B ?\$,1rx(B ?\$,1ry(B ?\,Aw(B ?\$,2"*(B ?\$,1 m(B ?\$,1 t(B ?\$,1 u(B ?\$,1 x(B ?\$,1s9(B ?\$,1s:(B ?\$,1 y(B ?\$,1 v(B
+  ?\$,1 w(B ?\$,1! (B ?\$,1rz(B ?\$,1r~(B ?\$,1!!(B ?\$,1 z(B ?\$,1 {(B ?\,AA(B ?\$,1!$(B ?\$,1!%(B ?\,AM(B ?\$,1!=(B ?\$,1!>(B ?\$,1!*(B ?\,AS(B ?\,AT(B
+  ?\$,1!+(B ?\$,1!.(B ?\,AZ(B ?\$,1!/(B ?\$,1!0(B ?\$,1!1(B ?\$,1!2(B ?\$,1!3(B ?\,A](B ?\,A}(B ?\$,1 W(B ?\$,1!;(B ?\$,1 a(B ?\$,1!<(B ?\$,1 B(B ?\$,1$g(B]
+ "Mac Central European Roman Encoding (MIME:x-mac-centraleurroman).")
+(coding-system-put 'mac-centraleurroman 'mime-charset 'x-mac-centraleurroman)
+
+(cp-make-coding-system
+ mac-cyrillic
+ [?\$,1(0(B ?\$,1(1(B ?\$,1(2(B ?\$,1(3(B ?\$,1(4(B ?\$,1(5(B ?\$,1(6(B ?\$,1(7(B ?\$,1(8(B ?\$,1(9(B ?\$,1(:(B ?\$,1(;(B ?\$,1(<(B ?\$,1(=(B ?\$,1(>(B ?\$,1(?(B
+  ?\$,1(@(B ?\$,1(A(B ?\$,1(B(B ?\$,1(C(B ?\$,1(D(B ?\$,1(E(B ?\$,1(F(B ?\$,1(G(B ?\$,1(H(B ?\$,1(I(B ?\$,1(J(B ?\$,1(K(B ?\$,1(L(B ?\$,1(M(B ?\$,1(N(B ?\$,1(O(B
+  ?\$,1s (B ?\,A0(B ?\$,1)P(B ?\,A#(B ?\,A'(B ?\$,1s"(B ?\,A6(B ?\$,1(&(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1("(B ?\$,1(r(B ?\$,1y (B ?\$,1(#(B ?\$,1(s(B
+  ?\$,1x>(B ?\,A1(B ?\$,1y$(B ?\$,1y%(B ?\$,1(v(B ?\,A5(B ?\$,1)Q(B ?\$,1(((B ?\$,1($(B ?\$,1(t(B ?\$,1('(B ?\$,1(w(B ?\$,1()(B ?\$,1(y(B ?\$,1(*(B ?\$,1(z(B
+  ?\$,1(x(B ?\$,1(%(B ?\,A,(B ?\$,1x:(B ?\$,1!R(B ?\$,1xh(B ?\$,1x&(B ?\,A+(B ?\,A;(B ?\$,1s&(B ?\,A (B ?\$,1(+(B ?\$,1({(B ?\$,1(,(B ?\$,1(|(B ?\$,1(u(B
+  ?\$,1rs(B ?\$,1rt(B ?\$,1r|(B ?\$,1r}(B ?\$,1rx(B ?\$,1ry(B ?\,Aw(B ?\$,1r~(B ?\$,1(.(B ?\$,1(~(B ?\$,1(/(B ?\$,1((B ?\$,1uV(B ?\$,1(!(B ?\$,1(q(B ?\$,1(o(B
+  ?\$,1(P(B ?\$,1(Q(B ?\$,1(R(B ?\$,1(S(B ?\$,1(T(B ?\$,1(U(B ?\$,1(V(B ?\$,1(W(B ?\$,1(X(B ?\$,1(Y(B ?\$,1(Z(B ?\$,1([(B ?\$,1(\(B ?\$,1(](B ?\$,1(^(B ?\$,1(_(B
+  ?\$,1(`(B ?\$,1(a(B ?\$,1(b(B ?\$,1(c(B ?\$,1(d(B ?\$,1(e(B ?\$,1(f(B ?\$,1(g(B ?\$,1(h(B ?\$,1(i(B ?\$,1(j(B ?\$,1(k(B ?\$,1(l(B ?\$,1(m(B ?\$,1(n(B ?\$,1tL(B]
+ "Mac Cyrillic Encoding (MIME:x-mac-cyrillic).")
+(coding-system-put 'mac-cyrillic 'mime-charset 'x-mac-cyrillic)
+
+(let
+    ((encoding-vector
+      (vconcat
+       (make-vector 32 nil)
+       ;; mac-symbol (32..126) -> emacs-mule mapping
+       [?\  ?\! ?\$,1x (B ?\# ?\$,1x#(B ?\% ?\& ?\$,1x-(B ?\( ?\) ?\$,1x7(B ?\+ ?\, ?\$,1x2(B ?\. ?\/
+	?\0 ?\1 ?\2 ?\3 ?\4 ?\5 ?\6 ?\7 ?\8 ?\9 ?\: ?\; ?\< ?\= ?\> ?\?
+	?\$,1xe(B ?\$,1&q(B ?\$,1&r(B ?\$,1''(B ?\$,1&t(B ?\$,1&u(B ?\$,1'&(B ?\$,1&s(B ?\$,1&w(B ?\$,1&y(B ?\$,1'Q(B ?\$,1&z(B ?\$,1&{(B ?\$,1&|(B ?\$,1&}(B ?\$,1&(B
+	?\$,1' (B ?\$,1&x(B ?\$,1'!(B ?\$,1'#(B ?\$,1'$(B ?\$,1'%(B ?\$,1'B(B ?\$,1')(B ?\$,1&~(B ?\$,1'((B ?\$,1&v(B ?\[ ?\$,1xT(B ?\] ?\$,1ye(B ?\_
+	?\$,3bE(B ?\$,1'1(B ?\$,1'2(B ?\$,1'G(B ?\$,1'4(B ?\$,1'5(B ?\$,1'F(B ?\$,1'3(B ?\$,1'7(B ?\$,1'9(B ?\$,1'U(B ?\$,1':(B ?\$,1';(B ?\$,1'<(B ?\$,1'=(B ?\$,1'?(B
+	?\$,1'@(B ?\$,1'8(B ?\$,1'A(B ?\$,1'C(B ?\$,1'D(B ?\$,1'E(B ?\$,1'V(B ?\$,1'I(B ?\$,1'>(B ?\$,1'H(B ?\$,1'6(B ?\{ ?\| ?\} ?\$,1x\(B]
+       (make-vector (- 160 127) nil)
+       ;; mac-symbol (160..254) -> emacs-mule mapping
+       ;; Mapping of the following characters are changed from the
+       ;; original one:
+       ;; 0xE2	0x00AE+0xF87F -> 0x00AE # REGISTERED SIGN, alternate: sans serif
+       ;; 0xE3	0x00A9+0xF87F -> 0x00A9	# COPYRIGHT SIGN, alternate: sans serif
+       ;; 0xE4	0x2122+0xF87F -> 0x2122	# TRADE MARK SIGN, alternate: sans serif
+       [?\$,1tL(B ?\$,1'R(B ?\$,1s2(B ?\$,1y$(B ?\$,1sD(B ?\$,1x>(B ?\$,1!R(B ?\$,2#c(B ?\$,2#f(B ?\$,2#e(B ?\$,2#`(B ?\$,1vt(B ?\$,1vp(B ?\$,1vq(B ?\$,1vr(B ?\$,1vs(B
+	?\,A0(B ?\,A1(B ?\$,1s3(B ?\$,1y%(B ?\,AW(B ?\$,1x=(B ?\$,1x"(B ?\$,1s"(B ?\,Aw(B ?\$,1y (B ?\$,1y!(B ?\$,1xh(B ?\$,1s&(B ?\$,1|p(B ?\$,1|O(B ?\$,1w5(B
+	?\$,1uu(B ?\$,1uQ(B ?\$,1u\(B ?\$,1uX(B ?\$,1yW(B ?\$,1yU(B ?\$,1x%(B ?\$,1xI(B ?\$,1xJ(B ?\$,1yC(B ?\$,1yG(B ?\$,1yD(B ?\$,1yB(B ?\$,1yF(B ?\$,1x((B ?\$,1x)(B
+	?\$,1x@(B ?\$,1x'(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1x/(B ?\$,1x:(B ?\$,1z%(B ?\,A,(B ?\$,1xG(B ?\$,1xH(B ?\$,1wT(B ?\$,1wP(B ?\$,1wQ(B ?\$,1wR(B ?\$,1wS(B
+	?\$,2"*(B ?\$,2=H(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1x1(B ?\$,1|;(B ?\$,1|<(B ?\$,1|=(B ?\$,1|A(B ?\$,1|B(B ?\$,1|C(B ?\$,1|G(B ?\$,1|H(B ?\$,1|I(B ?\$,1|J(B
+	?\$,3b_(B ?\$,2=I(B ?\$,1xK(B ?\$,1{ (B ?\$,1|N(B ?\$,1{!(B ?\$,1|>(B ?\$,1|?(B ?\$,1|@(B ?\$,1|D(B ?\$,1|E(B ?\$,1|F(B ?\$,1|K(B ?\$,1|L(B ?\$,1|M(B
+	nil]))
+     translation-table)
+  (setq translation-table
+	(make-translation-table-from-vector encoding-vector))
+;;  (define-translation-table 'mac-symbol-decoder translation-table)
+  (define-translation-table 'mac-symbol-encoder
+    (char-table-extra-slot translation-table 0)))
+
+(let
+    ((encoding-vector
+      (vconcat
+       (make-vector 32 nil)
+       ;; mac-dingbats (32..126) -> emacs-mule mapping
+       [?\  ?\$,2%A(B ?\$,2%B(B ?\$,2%C(B ?\$,2%D(B ?\$,2"n(B ?\$,2%F(B ?\$,2%G(B ?\$,2%H(B ?\$,2%I(B ?\$,2"{(B ?\$,2"~(B ?\$,2%L(B ?\$,2%M(B ?\$,2%N(B ?\$,2%O(B
+	?\$,2%P(B ?\$,2%Q(B ?\$,2%R(B ?\$,2%S(B ?\$,2%T(B ?\$,2%U(B ?\$,2%V(B ?\$,2%W(B ?\$,2%X(B ?\$,2%Y(B ?\$,2%Z(B ?\$,2%[(B ?\$,2%\(B ?\$,2%](B ?\$,2%^(B ?\$,2%_(B
+	?\$,2%`(B ?\$,2%a(B ?\$,2%b(B ?\$,2%c(B ?\$,2%d(B ?\$,2%e(B ?\$,2%f(B ?\$,2%g(B ?\$,2"e(B ?\$,2%i(B ?\$,2%j(B ?\$,2%k(B ?\$,2%l(B ?\$,2%m(B ?\$,2%n(B ?\$,2%o(B
+	?\$,2%p(B ?\$,2%q(B ?\$,2%r(B ?\$,2%s(B ?\$,2%t(B ?\$,2%u(B ?\$,2%v(B ?\$,2%w(B ?\$,2%x(B ?\$,2%y(B ?\$,2%z(B ?\$,2%{(B ?\$,2%|(B ?\$,2%}(B ?\$,2%~(B ?\$,2%(B
+	?\$,2& (B ?\$,2&!(B ?\$,2&"(B ?\$,2&#(B ?\$,2&$(B ?\$,2&%(B ?\$,2&&(B ?\$,2&'(B ?\$,2&((B ?\$,2&)(B ?\$,2&*(B ?\$,2&+(B ?\$,2"/(B ?\$,2&-(B ?\$,2!`(B ?\$,2&/(B
+	?\$,2&0(B ?\$,2&1(B ?\$,2&2(B ?\$,2!r(B ?\$,2!|(B ?\$,2"&(B ?\$,2&6(B ?\$,2"7(B ?\$,2&8(B ?\$,2&9(B ?\$,2&:(B ?\$,2&;(B ?\$,2&<(B ?\$,2&=(B ?\$,2&>(B
+       nil
+       ;; mac-dingbats (128..141) -> emacs-mule mapping
+       ?\$,2&H(B ?\$,2&I(B ?\$,2&J(B ?\$,2&K(B ?\$,2&L(B ?\$,2&M(B ?\$,2&N(B ?\$,2&O(B ?\$,2&P(B ?\$,2&Q(B ?\$,2&R(B ?\$,2&S(B ?\$,2&T(B ?\$,2&U(B]
+       (make-vector (- 161 142) nil)
+       ;; mac-dingbats (161..239) -> emacs-mule mapping
+       [?\$,2&A(B ?\$,2&B(B ?\$,2&C(B ?\$,2&D(B ?\$,2&E(B ?\$,2&F(B ?\$,2&G(B ?\$,2#c(B ?\$,2#f(B ?\$,2#e(B ?\$,2#`(B ?\$,1~@(B ?\$,1~A(B ?\$,1~B(B ?\$,1~C(B
+	?\$,1~D(B ?\$,1~E(B ?\$,1~F(B ?\$,1~G(B ?\$,1~H(B ?\$,1~I(B ?\$,2&V(B ?\$,2&W(B ?\$,2&X(B ?\$,2&Y(B ?\$,2&Z(B ?\$,2&[(B ?\$,2&\(B ?\$,2&](B ?\$,2&^(B ?\$,2&_(B
+	?\$,2&`(B ?\$,2&a(B ?\$,2&b(B ?\$,2&c(B ?\$,2&d(B ?\$,2&e(B ?\$,2&f(B ?\$,2&g(B ?\$,2&h(B ?\$,2&i(B ?\$,2&j(B ?\$,2&k(B ?\$,2&l(B ?\$,2&m(B ?\$,2&n(B ?\$,2&o(B
+	?\$,2&p(B ?\$,2&q(B ?\$,2&r(B ?\$,2&s(B ?\$,2&t(B ?\$,1vr(B ?\$,1vt(B ?\$,1vu(B ?\$,2&x(B ?\$,2&y(B ?\$,2&z(B ?\$,2&{(B ?\$,2&|(B ?\$,2&}(B ?\$,2&~(B ?\$,2&(B
+	?\$,2' (B ?\$,2'!(B ?\$,2'"(B ?\$,2'#(B ?\$,2'$(B ?\$,2'%(B ?\$,2'&(B ?\$,2''(B ?\$,2'((B ?\$,2')(B ?\$,2'*(B ?\$,2'+(B ?\$,2',(B ?\$,2'-(B ?\$,2'.(B ?\$,2'/(B
+	nil
+       ;; mac-dingbats (241..254) -> emacs-mule mapping
+	?\$,2'1(B ?\$,2'2(B ?\$,2'3(B ?\$,2'4(B ?\$,2'5(B ?\$,2'6(B ?\$,2'7(B ?\$,2'8(B ?\$,2'9(B ?\$,2':(B ?\$,2';(B ?\$,2'<(B ?\$,2'=(B ?\$,2'>(B
+	nil]))
+     translation-table)
+  (setq translation-table
+	(make-translation-table-from-vector encoding-vector))
+;;  (define-translation-table 'mac-dingbats-decoder translation-table)
+  (define-translation-table 'mac-dingbats-encoder
+    (char-table-extra-slot translation-table 0)))
+
+(defconst mac-system-coding-system
+  (let ((base (or (cdr (assq mac-system-script-code
+			     mac-script-code-coding-systems))
+		  'mac-roman)))
+    (if (eq system-type 'darwin)
+	base
+      (coding-system-change-eol-conversion base 'mac)))
+  "Coding system derived from the system script code.")
+
+(set-selection-coding-system mac-system-coding-system)
+
 
 ;;;; Keyboard layout/language change events
 (defun mac-handle-language-change (event)
@@ -1141,6 +1242,89 @@ correspoinding TextEncodingBase value."
 	(define-key key-translation-map [?\x80] "\\"))))
 
 (define-key special-event-map [language-change] 'mac-handle-language-change)
+
+
+;;;; Conversion between common flavors and Lisp string.
+
+(defconst mac-text-encoding-mac-japanese-basic-variant #x20001
+  "MacJapanese text encoding without Apple double-byte extensions.")
+
+(defun mac-utxt-to-string (data &optional coding-system)
+  (or coding-system (setq coding-system mac-system-coding-system))
+  (let* ((encoding
+	  (and (eq system-type 'darwin)
+	       (eq (coding-system-base coding-system) 'japanese-shift-jis)
+	       mac-text-encoding-mac-japanese-basic-variant))
+	 (str (and (fboundp 'mac-code-convert-string)
+		   (mac-code-convert-string data nil
+					    (or encoding coding-system)))))
+    (when str
+      (setq str (decode-coding-string str coding-system))
+      (if (= encoding mac-text-encoding-mac-japanese-basic-variant)
+	  ;; Does it contain Apple one-byte extensions other than
+	  ;; reverse solidus?
+	  (if (string-match "[\xa0\xfd-\xff]" str)
+	      (setq str nil)
+	    (subst-char-in-string ?\x5c ?\(J\(B str t)
+	    (subst-char-in-string ?\x80 ?\\ str t))))
+    (or str
+	(decode-coding-string data
+			      (if (eq (byteorder) ?B) 'utf-16be 'utf-16le)))))
+
+(defun mac-string-to-utxt (string &optional coding-system)
+  (or coding-system (setq coding-system mac-system-coding-system))
+  (let (data encoding)
+    (when (and (fboundp 'mac-code-convert-string)
+	       (memq (coding-system-base coding-system)
+		     (find-coding-systems-string string)))
+      (setq coding-system
+	    (coding-system-change-eol-conversion coding-system 'mac))
+      (when (and (eq system-type 'darwin)
+		 (eq coding-system 'japanese-shift-jis-mac))
+	(setq encoding mac-text-encoding-mac-japanese-basic-variant)
+	(setq string (subst-char-in-string ?\\ ?\x80 string))
+	(subst-char-in-string ?\(J\(B ?\x5c string t))
+      (setq data (mac-code-convert-string
+		  (encode-coding-string string coding-system)
+		  (or encoding coding-system) nil)))
+    (or data (encode-coding-string string (if (eq (byteorder) ?B)
+					      'utf-16be-mac
+					    'utf-16le-mac)))))
+
+(defun mac-TEXT-to-string (data &optional coding-system)
+  (or coding-system (setq coding-system mac-system-coding-system))
+  (prog1 (setq data (decode-coding-string data coding-system))
+    (when (eq (coding-system-base coding-system) 'japanese-shift-jis)
+      ;; (subst-char-in-string ?\x5c ?\(J\(B data t)
+      (subst-char-in-string ?\x80 ?\\ data t))))
+
+(defun mac-string-to-TEXT (string &optional coding-system)
+  (or coding-system (setq coding-system mac-system-coding-system))
+  (let ((encodables (find-coding-systems-string string))
+	(rest mac-script-code-coding-systems))
+    (unless (memq (coding-system-base coding-system) encodables)
+      (while (and rest (not (memq (cdar rest) encodables)))
+	(setq rest (cdr rest)))
+      (if rest
+	  (setq coding-system (cdar rest)))))
+  (setq coding-system
+	(coding-system-change-eol-conversion coding-system 'mac))
+  (when (eq coding-system 'japanese-shift-jis-mac)
+    ;; (setq string (subst-char-in-string ?\\ ?\x80 string))
+    (setq string (subst-char-in-string ?\(J\(B ?\x5c string)))
+  (encode-coding-string string coding-system))
+
+(defun mac-furl-to-string (data)
+  ;; Remove a trailing nul character.
+  (let ((len (length data)))
+    (if (and (> len 0) (= (aref data (1- len)) ?\0))
+	(substring data 0 (1- len))
+      data)))
+
+(defun mac-TIFF-to-string (data &optional text)
+  (prog1 (or text (setq text (copy-sequence " ")))
+    (put-text-property 0 (length text) 'display (create-image data 'tiff t)
+		       text)))
 
 ;;;; Selections
 
@@ -1190,22 +1374,11 @@ in `selection-converter-alist', which see."
     (when (and (stringp data)
 	       (setq data-type (get-text-property 0 'foreign-selection data)))
       (cond ((eq data-type 'public.utf16-plain-text)
-	     (let ((encoded (and (fboundp 'mac-code-convert-string)
-				 (mac-code-convert-string data nil coding))))
-	       (if encoded
-		   (setq data (decode-coding-string encoded coding))
-		 (setq data
-		       (decode-coding-string data
-					     (if (eq (byteorder) ?B)
-						 'utf-16be 'utf-16le))))))
+	     (setq data (mac-utxt-to-string data coding)))
 	    ((eq data-type 'com.apple.traditional-mac-plain-text)
-	     (setq data (decode-coding-string data coding)))
+	     (setq data (mac-TEXT-to-string data coding)))
 	    ((eq data-type 'public.file-url)
-	     (setq data (decode-coding-string data 'utf-8))
-	     ;; Remove a trailing nul character.
-	     (let ((len (length data)))
-	       (if (and (> len 0) (= (aref data (1- len)) ?\0))
-		   (setq data (substring data 0 (1- len)))))))
+	     (setq data (mac-furl-to-string data))))
       (put-text-property 0 (length data) 'foreign-selection data-type data))
     data))
 
@@ -1227,9 +1400,7 @@ in `selection-converter-alist', which see."
     (when tiff-image
       (remove-text-properties 0 (length tiff-image)
 			      '(foreign-selection nil) tiff-image)
-      (setq tiff-image (create-image tiff-image 'tiff t))
-      (or text (setq text " "))
-      (put-text-property 0 (length text) 'display tiff-image text))
+      (setq text (mac-TIFF-to-string tiff-image text)))
     text))
 
 ;;; Return the value of the current selection.
@@ -1300,11 +1471,7 @@ in `selection-converter-alist', which see."
 
 (defun mac-select-convert-to-string (selection type value)
   (let ((str (cdr (xselect-convert-to-string selection nil value)))
-	coding)
-    (setq coding (or next-selection-coding-system selection-coding-system))
-    (if coding
-	(setq coding (coding-system-base coding))
-      (setq coding 'raw-text))
+	(coding (or next-selection-coding-system selection-coding-system)))
     (when str
       ;; If TYPE is nil, this is a local request, thus return STR as
       ;; is.  Otherwise, encode STR.
@@ -1314,28 +1481,9 @@ in `selection-converter-alist', which see."
 	  (remove-text-properties 0 (length str) '(composition nil) str)
 	  (cond
 	   ((eq type 'public.utf16-plain-text)
-	    (let (s)
-	      (when (and (fboundp 'mac-code-convert-string)
-			 (memq coding (find-coding-systems-string str)))
-		(setq coding (coding-system-change-eol-conversion coding 'mac))
-		(setq s (mac-code-convert-string
-			 (encode-coding-string str coding)
-			 coding nil)))
-	      (setq str (or s
-			    (encode-coding-string str
-						  (if (eq (byteorder) ?B)
-						      'utf-16be-mac
-						    'utf-16le-mac))))))
+	    (setq str (mac-string-to-utxt str coding)))
 	   ((eq type 'com.apple.traditional-mac-plain-text)
-	    (let ((encodables (find-coding-systems-string str))
-		  (rest mac-script-code-coding-systems))
-	      (unless (memq coding encodables)
-		(while (and rest (not (memq (cdar rest) encodables)))
-		  (setq rest (cdr rest)))
-		(if rest
-		    (setq coding (cdar rest)))))
-	    (setq coding (coding-system-change-eol-conversion coding 'mac))
-	    (setq str (encode-coding-string str coding)))
+	    (setq str (mac-string-to-TEXT str coding)))
 	   (t
 	    (error "Unknown selection type: %S" type))
 	   )))
@@ -1589,6 +1737,83 @@ Currently the `mailto' scheme is supported."
 ;; processed when the initial frame has been created: this is where
 ;; the files should be opened.
 (add-hook 'after-init-hook 'mac-process-deferred-apple-events)
+
+
+;;;; Drag and drop
+
+(defcustom mac-dnd-types-alist
+  '(("furl" . mac-dnd-handle-furl)
+    ("hfs " . mac-dnd-handle-hfs)
+    ("utxt" . mac-dnd-insert-utxt)
+    ("TEXT" . mac-dnd-insert-TEXT)
+    ("TIFF" . mac-dnd-insert-TIFF))
+  "Which function to call to handle a drop of that type.
+The function takes three arguments, WINDOW, ACTION and DATA.
+WINDOW is where the drop occured, ACTION is always `private' on
+Mac.  DATA is the drop data.  Unlike the x-dnd counterpart, the
+return value of the function is not significant.
+
+See also `mac-dnd-known-types'."
+  :version "22.1"
+  :type 'alist
+  :group 'mac)
+
+(defun mac-dnd-handle-furl (window action data)
+  (dnd-handle-one-url window action (mac-furl-to-string data)))
+
+(defun mac-dnd-handle-hfs (window action data)
+;; struct HFSFlavor {
+;;   OSType fileType;
+;;   OSType fileCreator;
+;;   UInt16 fdFlags;
+;;   FSSpec fileSpec;
+;; };
+  (let* ((file-name (mac-coerce-ae-data "fss " (substring data 10)
+					'undecoded-file-name))
+	 (url (concat "file://"
+		      (mapconcat 'url-hexify-string
+				 (split-string file-name "/") "/"))))
+    (dnd-handle-one-url window action url)))
+
+(defun mac-dnd-insert-utxt (window action data)
+  (dnd-insert-text window action (mac-utxt-to-string data)))
+
+(defun mac-dnd-insert-TEXT (window action data)
+  (dnd-insert-text window action (mac-TEXT-to-string data)))
+
+(defun mac-dnd-insert-TIFF (window action data)
+  (dnd-insert-text window action (mac-TIFF-to-string data)))
+
+(defun mac-dnd-drop-data (event frame window data type)
+  (let* ((type-info (assoc type mac-dnd-types-alist))
+	 (handler (cdr type-info))
+	 (action 'private)
+	 (w (posn-window (event-start event))))
+    (when handler
+      (if (and (windowp w) (window-live-p w)
+	       (not (window-minibuffer-p w))
+	       (not (window-dedicated-p w)))
+	  ;; If dropping in an ordinary window which we could use,
+	  ;; let dnd-open-file-other-window specify what to do.
+	  (progn
+	    (goto-char (posn-point (event-start event)))
+	    (funcall handler window action data))
+	;; If we can't display the file here,
+	;; make a new window for it.
+	(let ((dnd-open-file-other-window t))
+	  (select-frame frame)
+	  (funcall handler window action data))))))
+
+(defun mac-dnd-handle-drag-n-drop-event (event)
+  "Receive drag and drop events."
+  (interactive "e")
+  (let ((window (posn-window (event-start event))))
+    (when (windowp window) (select-window window))
+    (dolist (item (mac-ae-list (mac-event-ae event)))
+      (if (not (equal (car item) "null"))
+	  (mac-dnd-drop-data event (selected-frame) window
+			     (cdr item) (car item)))))
+  (select-frame-set-input-focus (selected-frame)))
 
 ;;; Do the actual Windows setup here; the above code just defines
 ;;; functions and variables that we use now.
@@ -1617,96 +1842,6 @@ Currently the `mailto' scheme is supported."
 		     t))
 
 (setq frame-creation-function 'x-create-frame-with-faces)
-
-(cp-make-coding-system
- mac-centraleurroman
- [?\,AD(B ?\$,1  (B ?\$,1 !(B ?\,AI(B ?\$,1 $(B ?\,AV(B ?\,A\(B ?\,Aa(B ?\$,1 %(B ?\$,1 ,(B ?\,Ad(B ?\$,1 -(B ?\$,1 &(B ?\$,1 '(B ?\,Ai(B ?\$,1!9(B
-  ?\$,1!:(B ?\$,1 .(B ?\,Am(B ?\$,1 /(B ?\$,1 2(B ?\$,1 3(B ?\$,1 6(B ?\,As(B ?\$,1 7(B ?\,At(B ?\,Av(B ?\,Au(B ?\,Az(B ?\$,1 :(B ?\$,1 ;(B ?\,A|(B
-  ?\$,1s (B ?\,A0(B ?\$,1 8(B ?\,A#(B ?\,A'(B ?\$,1s"(B ?\,A6(B ?\,A_(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1 9(B ?\,A((B ?\$,1y (B ?\$,1 C(B ?\$,1 N(B
-  ?\$,1 O(B ?\$,1 J(B ?\$,1y$(B ?\$,1y%(B ?\$,1 K(B ?\$,1 V(B ?\$,1x"(B ?\$,1x1(B ?\$,1 b(B ?\$,1 [(B ?\$,1 \(B ?\$,1 ](B ?\$,1 ^(B ?\$,1 Y(B ?\$,1 Z(B ?\$,1 e(B
-  ?\$,1 f(B ?\$,1 c(B ?\,A,(B ?\$,1x:(B ?\$,1 d(B ?\$,1 g(B ?\$,1x&(B ?\,A+(B ?\,A;(B ?\$,1s&(B ?\,A (B ?\$,1 h(B ?\$,1 p(B ?\,AU(B ?\$,1 q(B ?\$,1 l(B
-  ?\$,1rs(B ?\$,1rt(B ?\$,1r|(B ?\$,1r}(B ?\$,1rx(B ?\$,1ry(B ?\,Aw(B ?\$,2"*(B ?\$,1 m(B ?\$,1 t(B ?\$,1 u(B ?\$,1 x(B ?\$,1s9(B ?\$,1s:(B ?\$,1 y(B ?\$,1 v(B
-  ?\$,1 w(B ?\$,1! (B ?\$,1rz(B ?\$,1r~(B ?\$,1!!(B ?\$,1 z(B ?\$,1 {(B ?\,AA(B ?\$,1!$(B ?\$,1!%(B ?\,AM(B ?\$,1!=(B ?\$,1!>(B ?\$,1!*(B ?\,AS(B ?\,AT(B
-  ?\$,1!+(B ?\$,1!.(B ?\,AZ(B ?\$,1!/(B ?\$,1!0(B ?\$,1!1(B ?\$,1!2(B ?\$,1!3(B ?\,A](B ?\,A}(B ?\$,1 W(B ?\$,1!;(B ?\$,1 a(B ?\$,1!<(B ?\$,1 B(B ?\$,1$g(B]
- "Mac Central European Roman Encoding (MIME:x-mac-centraleurroman).")
-(coding-system-put 'mac-centraleurroman 'mime-charset 'x-mac-centraleurroman)
-
-(cp-make-coding-system
- mac-cyrillic
- [?\$,1(0(B ?\$,1(1(B ?\$,1(2(B ?\$,1(3(B ?\$,1(4(B ?\$,1(5(B ?\$,1(6(B ?\$,1(7(B ?\$,1(8(B ?\$,1(9(B ?\$,1(:(B ?\$,1(;(B ?\$,1(<(B ?\$,1(=(B ?\$,1(>(B ?\$,1(?(B
-  ?\$,1(@(B ?\$,1(A(B ?\$,1(B(B ?\$,1(C(B ?\$,1(D(B ?\$,1(E(B ?\$,1(F(B ?\$,1(G(B ?\$,1(H(B ?\$,1(I(B ?\$,1(J(B ?\$,1(K(B ?\$,1(L(B ?\$,1(M(B ?\$,1(N(B ?\$,1(O(B
-  ?\$,1s (B ?\,A0(B ?\$,1)P(B ?\,A#(B ?\,A'(B ?\$,1s"(B ?\,A6(B ?\$,1(&(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1("(B ?\$,1(r(B ?\$,1y (B ?\$,1(#(B ?\$,1(s(B
-  ?\$,1x>(B ?\,A1(B ?\$,1y$(B ?\$,1y%(B ?\$,1(v(B ?\,A5(B ?\$,1)Q(B ?\$,1(((B ?\$,1($(B ?\$,1(t(B ?\$,1('(B ?\$,1(w(B ?\$,1()(B ?\$,1(y(B ?\$,1(*(B ?\$,1(z(B
-  ?\$,1(x(B ?\$,1(%(B ?\,A,(B ?\$,1x:(B ?\$,1!R(B ?\$,1xh(B ?\$,1x&(B ?\,A+(B ?\,A;(B ?\$,1s&(B ?\,A (B ?\$,1(+(B ?\$,1({(B ?\$,1(,(B ?\$,1(|(B ?\$,1(u(B
-  ?\$,1rs(B ?\$,1rt(B ?\$,1r|(B ?\$,1r}(B ?\$,1rx(B ?\$,1ry(B ?\,Aw(B ?\$,1r~(B ?\$,1(.(B ?\$,1(~(B ?\$,1(/(B ?\$,1((B ?\$,1uV(B ?\$,1(!(B ?\$,1(q(B ?\$,1(o(B
-  ?\$,1(P(B ?\$,1(Q(B ?\$,1(R(B ?\$,1(S(B ?\$,1(T(B ?\$,1(U(B ?\$,1(V(B ?\$,1(W(B ?\$,1(X(B ?\$,1(Y(B ?\$,1(Z(B ?\$,1([(B ?\$,1(\(B ?\$,1(](B ?\$,1(^(B ?\$,1(_(B
-  ?\$,1(`(B ?\$,1(a(B ?\$,1(b(B ?\$,1(c(B ?\$,1(d(B ?\$,1(e(B ?\$,1(f(B ?\$,1(g(B ?\$,1(h(B ?\$,1(i(B ?\$,1(j(B ?\$,1(k(B ?\$,1(l(B ?\$,1(m(B ?\$,1(n(B ?\$,1tL(B]
- "Mac Cyrillic Encoding (MIME:x-mac-cyrillic).")
-(coding-system-put 'mac-cyrillic 'mime-charset 'x-mac-cyrillic)
-
-(let
-    ((encoding-vector
-      (vconcat
-       (make-vector 32 nil)
-       ;; mac-symbol (32..126) -> emacs-mule mapping
-       [?\  ?\! ?\$,1x (B ?\# ?\$,1x#(B ?\% ?\& ?\$,1x-(B ?\( ?\) ?\$,1x7(B ?\+ ?\, ?\$,1x2(B ?\. ?\/
-	?\0 ?\1 ?\2 ?\3 ?\4 ?\5 ?\6 ?\7 ?\8 ?\9 ?\: ?\; ?\< ?\= ?\> ?\?
-	?\$,1xe(B ?\$,1&q(B ?\$,1&r(B ?\$,1''(B ?\$,1&t(B ?\$,1&u(B ?\$,1'&(B ?\$,1&s(B ?\$,1&w(B ?\$,1&y(B ?\$,1'Q(B ?\$,1&z(B ?\$,1&{(B ?\$,1&|(B ?\$,1&}(B ?\$,1&(B
-	?\$,1' (B ?\$,1&x(B ?\$,1'!(B ?\$,1'#(B ?\$,1'$(B ?\$,1'%(B ?\$,1'B(B ?\$,1')(B ?\$,1&~(B ?\$,1'((B ?\$,1&v(B ?\[ ?\$,1xT(B ?\] ?\$,1ye(B ?\_
-	?\$,3bE(B ?\$,1'1(B ?\$,1'2(B ?\$,1'G(B ?\$,1'4(B ?\$,1'5(B ?\$,1'F(B ?\$,1'3(B ?\$,1'7(B ?\$,1'9(B ?\$,1'U(B ?\$,1':(B ?\$,1';(B ?\$,1'<(B ?\$,1'=(B ?\$,1'?(B
-	?\$,1'@(B ?\$,1'8(B ?\$,1'A(B ?\$,1'C(B ?\$,1'D(B ?\$,1'E(B ?\$,1'V(B ?\$,1'I(B ?\$,1'>(B ?\$,1'H(B ?\$,1'6(B ?\{ ?\| ?\} ?\$,1x\(B]
-       (make-vector (- 160 127) nil)
-       ;; mac-symbol (160..254) -> emacs-mule mapping
-       ;; Mapping of the following characters are changed from the
-       ;; original one:
-       ;; 0xE2	0x00AE+0xF87F -> 0x00AE # REGISTERED SIGN, alternate: sans serif
-       ;; 0xE3	0x00A9+0xF87F -> 0x00A9	# COPYRIGHT SIGN, alternate: sans serif
-       ;; 0xE4	0x2122+0xF87F -> 0x2122	# TRADE MARK SIGN, alternate: sans serif
-       [?\$,1tL(B ?\$,1'R(B ?\$,1s2(B ?\$,1y$(B ?\$,1sD(B ?\$,1x>(B ?\$,1!R(B ?\$,2#c(B ?\$,2#f(B ?\$,2#e(B ?\$,2#`(B ?\$,1vt(B ?\$,1vp(B ?\$,1vq(B ?\$,1vr(B ?\$,1vs(B
-	?\,A0(B ?\,A1(B ?\$,1s3(B ?\$,1y%(B ?\,AW(B ?\$,1x=(B ?\$,1x"(B ?\$,1s"(B ?\,Aw(B ?\$,1y (B ?\$,1y!(B ?\$,1xh(B ?\$,1s&(B ?\$,1|p(B ?\$,1|O(B ?\$,1w5(B
-	?\$,1uu(B ?\$,1uQ(B ?\$,1u\(B ?\$,1uX(B ?\$,1yW(B ?\$,1yU(B ?\$,1x%(B ?\$,1xI(B ?\$,1xJ(B ?\$,1yC(B ?\$,1yG(B ?\$,1yD(B ?\$,1yB(B ?\$,1yF(B ?\$,1x((B ?\$,1x)(B
-	?\$,1x@(B ?\$,1x'(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1x/(B ?\$,1x:(B ?\$,1z%(B ?\,A,(B ?\$,1xG(B ?\$,1xH(B ?\$,1wT(B ?\$,1wP(B ?\$,1wQ(B ?\$,1wR(B ?\$,1wS(B
-	?\$,2"*(B ?\$,2=H(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1x1(B ?\$,1|;(B ?\$,1|<(B ?\$,1|=(B ?\$,1|A(B ?\$,1|B(B ?\$,1|C(B ?\$,1|G(B ?\$,1|H(B ?\$,1|I(B ?\$,1|J(B
-	?\$,3b_(B ?\$,2=I(B ?\$,1xK(B ?\$,1{ (B ?\$,1|N(B ?\$,1{!(B ?\$,1|>(B ?\$,1|?(B ?\$,1|@(B ?\$,1|D(B ?\$,1|E(B ?\$,1|F(B ?\$,1|K(B ?\$,1|L(B ?\$,1|M(B
-	nil]))
-     translation-table)
-  (setq translation-table
-	(make-translation-table-from-vector encoding-vector))
-;;  (define-translation-table 'mac-symbol-decoder translation-table)
-  (define-translation-table 'mac-symbol-encoder
-    (char-table-extra-slot translation-table 0)))
-
-(let
-    ((encoding-vector
-      (vconcat
-       (make-vector 32 nil)
-       ;; mac-dingbats (32..126) -> emacs-mule mapping
-       [?\  ?\$,2%A(B ?\$,2%B(B ?\$,2%C(B ?\$,2%D(B ?\$,2"n(B ?\$,2%F(B ?\$,2%G(B ?\$,2%H(B ?\$,2%I(B ?\$,2"{(B ?\$,2"~(B ?\$,2%L(B ?\$,2%M(B ?\$,2%N(B ?\$,2%O(B
-	?\$,2%P(B ?\$,2%Q(B ?\$,2%R(B ?\$,2%S(B ?\$,2%T(B ?\$,2%U(B ?\$,2%V(B ?\$,2%W(B ?\$,2%X(B ?\$,2%Y(B ?\$,2%Z(B ?\$,2%[(B ?\$,2%\(B ?\$,2%](B ?\$,2%^(B ?\$,2%_(B
-	?\$,2%`(B ?\$,2%a(B ?\$,2%b(B ?\$,2%c(B ?\$,2%d(B ?\$,2%e(B ?\$,2%f(B ?\$,2%g(B ?\$,2"e(B ?\$,2%i(B ?\$,2%j(B ?\$,2%k(B ?\$,2%l(B ?\$,2%m(B ?\$,2%n(B ?\$,2%o(B
-	?\$,2%p(B ?\$,2%q(B ?\$,2%r(B ?\$,2%s(B ?\$,2%t(B ?\$,2%u(B ?\$,2%v(B ?\$,2%w(B ?\$,2%x(B ?\$,2%y(B ?\$,2%z(B ?\$,2%{(B ?\$,2%|(B ?\$,2%}(B ?\$,2%~(B ?\$,2%(B
-	?\$,2& (B ?\$,2&!(B ?\$,2&"(B ?\$,2&#(B ?\$,2&$(B ?\$,2&%(B ?\$,2&&(B ?\$,2&'(B ?\$,2&((B ?\$,2&)(B ?\$,2&*(B ?\$,2&+(B ?\$,2"/(B ?\$,2&-(B ?\$,2!`(B ?\$,2&/(B
-	?\$,2&0(B ?\$,2&1(B ?\$,2&2(B ?\$,2!r(B ?\$,2!|(B ?\$,2"&(B ?\$,2&6(B ?\$,2"7(B ?\$,2&8(B ?\$,2&9(B ?\$,2&:(B ?\$,2&;(B ?\$,2&<(B ?\$,2&=(B ?\$,2&>(B
-       nil
-       ;; mac-dingbats (128..141) -> emacs-mule mapping
-       ?\$,2&H(B ?\$,2&I(B ?\$,2&J(B ?\$,2&K(B ?\$,2&L(B ?\$,2&M(B ?\$,2&N(B ?\$,2&O(B ?\$,2&P(B ?\$,2&Q(B ?\$,2&R(B ?\$,2&S(B ?\$,2&T(B ?\$,2&U(B]
-       (make-vector (- 161 142) nil)
-       ;; mac-dingbats (161..239) -> emacs-mule mapping
-       [?\$,2&A(B ?\$,2&B(B ?\$,2&C(B ?\$,2&D(B ?\$,2&E(B ?\$,2&F(B ?\$,2&G(B ?\$,2#c(B ?\$,2#f(B ?\$,2#e(B ?\$,2#`(B ?\$,1~@(B ?\$,1~A(B ?\$,1~B(B ?\$,1~C(B
-	?\$,1~D(B ?\$,1~E(B ?\$,1~F(B ?\$,1~G(B ?\$,1~H(B ?\$,1~I(B ?\$,2&V(B ?\$,2&W(B ?\$,2&X(B ?\$,2&Y(B ?\$,2&Z(B ?\$,2&[(B ?\$,2&\(B ?\$,2&](B ?\$,2&^(B ?\$,2&_(B
-	?\$,2&`(B ?\$,2&a(B ?\$,2&b(B ?\$,2&c(B ?\$,2&d(B ?\$,2&e(B ?\$,2&f(B ?\$,2&g(B ?\$,2&h(B ?\$,2&i(B ?\$,2&j(B ?\$,2&k(B ?\$,2&l(B ?\$,2&m(B ?\$,2&n(B ?\$,2&o(B
-	?\$,2&p(B ?\$,2&q(B ?\$,2&r(B ?\$,2&s(B ?\$,2&t(B ?\$,1vr(B ?\$,1vt(B ?\$,1vu(B ?\$,2&x(B ?\$,2&y(B ?\$,2&z(B ?\$,2&{(B ?\$,2&|(B ?\$,2&}(B ?\$,2&~(B ?\$,2&(B
-	?\$,2' (B ?\$,2'!(B ?\$,2'"(B ?\$,2'#(B ?\$,2'$(B ?\$,2'%(B ?\$,2'&(B ?\$,2''(B ?\$,2'((B ?\$,2')(B ?\$,2'*(B ?\$,2'+(B ?\$,2',(B ?\$,2'-(B ?\$,2'.(B ?\$,2'/(B
-	nil
-       ;; mac-dingbats (241..254) -> emacs-mule mapping
-	?\$,2'1(B ?\$,2'2(B ?\$,2'3(B ?\$,2'4(B ?\$,2'5(B ?\$,2'6(B ?\$,2'7(B ?\$,2'8(B ?\$,2'9(B ?\$,2':(B ?\$,2';(B ?\$,2'<(B ?\$,2'=(B ?\$,2'>(B
-	nil]))
-     translation-table)
-  (setq translation-table
-	(make-translation-table-from-vector encoding-vector))
-;;  (define-translation-table 'mac-dingbats-decoder translation-table)
-  (define-translation-table 'mac-dingbats-encoder
-    (char-table-extra-slot translation-table 0)))
 
 (defvar mac-font-encoder-list
   '(("mac-roman" mac-roman-encoder
@@ -2012,37 +2147,11 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 ;; Enable CLIPBOARD copy/paste through menu bar commands.
 (menu-bar-enable-clipboard)
 
-(defconst mac-system-coding-system
-  (let ((base (or (cdr (assq mac-system-script-code
-			     mac-script-code-coding-systems))
-		  'mac-roman)))
-    (if (eq system-type 'darwin)
-	base
-      (coding-system-change-eol-conversion base 'mac)))
-  "Coding system derived from the system script code.")
+;; Initiate drag and drop
 
-(set-selection-coding-system mac-system-coding-system)
+(global-set-key [drag-n-drop] 'mac-dnd-handle-drag-n-drop-event)
+(global-set-key [M-drag-n-drop] 'mac-dnd-handle-drag-n-drop-event)
 
-(defun mac-drag-n-drop (event)
-  "Edit the files listed in the drag-n-drop EVENT.
-Switch to a buffer editing the last file dropped."
-  (interactive "e")
-  ;; Make sure the drop target has positive co-ords
-  ;; before setting the selected frame - otherwise it
-  ;; won't work.  <skx@tardis.ed.ac.uk>
-  (let* ((window (posn-window (event-start event)))
-	 (coords (posn-x-y (event-start event)))
-	 (x (car coords))
-	 (y (cdr coords)))
-    (if (and (> x 0) (> y 0))
-	(set-frame-selected-window nil window))
-    (dolist (file-name (nth 2 event))
-      (dnd-handle-one-url window 'private
-			  (concat "file:" file-name))))
-  (select-frame-set-input-focus (selected-frame)))
-
-(global-set-key [drag-n-drop] 'mac-drag-n-drop)
-(global-set-key [M-drag-n-drop] 'mac-drag-n-drop)
 
 ;;;; Non-toolkit Scroll bars
 
@@ -2107,6 +2216,7 @@ Switch to a buffer editing the last file dropped."
     (scroll-up 1)))
 
 )
+
 
 ;;;; Others
 
