@@ -1633,9 +1633,7 @@ normal otherwise."
 	     (not noninteractive))
     (display-warning
      'initialization
-     "Building Emacs overflowed pure space.  See \"(elisp)Building Emacs\" for more information."
-     ;; FIXME: Tell the user what kind of problems are possible and how to fix
-     ;; the overflow.
+     "Building Emacs overflowed pure space.  (See the node Pure Storage in the Lisp manual for details.)"
      :warning))
 
   (when command-line-args-left
