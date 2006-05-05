@@ -1122,6 +1122,32 @@ The return value is the new value of LIST-VAR."
 			    (if (and oa ob)
 				(< oa ob)
 			      oa)))))))
+
+(defun add-to-history (history-var newelt &optional maxelt keep-dups)
+  "Add NEWELT to the history list stored in the variable HISTORY-VAR.
+Return the new history list.
+If MAXELT is non-nil, it specifies the maximum length of the history.
+Otherwise, the maximum history length is the value of the `history-length'
+property on symbol HISTORY-VAR, if set, or the value of the `history-length'
+variable.
+Remove duplicates of NEWELT unless `history-delete-duplicates' is nil
+or KEEP-DUPS is non-nil."
+  (unless maxelt
+    (setq maxelt (or (get history-var 'history-length)
+		     history-length)))
+  (let ((history (symbol-value history-var))
+	tail)
+    (if (and history-delete-duplicates (not keep-dups))
+	(setq history (delete newelt history)))
+    (setq history (cons newelt history))
+    (when (integerp maxelt)
+      (if (= 0 maxelt)
+	  (setq history nil)
+	(setq tail (nthcdr (1- maxelt) history))
+	(when (consp tail)
+	  (setcdr tail nil))))
+    (set history-var history)))
+
 
 ;;;; Mode hooks.
 
