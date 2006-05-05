@@ -322,8 +322,8 @@ be inserted at the bottom of the ewoc."
       (unless header (setq header ""))
       (unless footer (setq footer ""))
       (setf (ewoc--node-start-marker dll) (copy-marker pos))
-      (let ((foot (ewoc--create-node footer (lambda (x) (insert footer)) pos))
-	    (head (ewoc--create-node header (lambda (x) (insert header)) pos)))
+      (let ((foot (ewoc--create-node footer 'insert pos))
+	    (head (ewoc--create-node header 'insert pos)))
 	(ewoc--node-enter-first dll head)
 	(ewoc--node-enter-last  dll foot)
 	(setf (ewoc--header new-ewoc) head)
@@ -601,8 +601,8 @@ Return nil if the buffer has been deleted."
   "Set the HEADER and FOOTER of EWOC."
   (setf (ewoc--node-data (ewoc--header ewoc)) header)
   (setf (ewoc--node-data (ewoc--footer ewoc)) footer)
-  (ewoc--refresh-node (lambda (x) (insert header)) (ewoc--header ewoc))
-  (ewoc--refresh-node (lambda (x) (insert footer)) (ewoc--footer ewoc)))
+  (ewoc--refresh-node 'insert (ewoc--header ewoc))
+  (ewoc--refresh-node 'insert (ewoc--footer ewoc)))
 
 
 (provide 'ewoc)
