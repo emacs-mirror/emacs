@@ -1,3 +1,21 @@
+2006-05-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* cus-start.el (all): Add mac-dnd-known-types.
+
+	* term/mac-win.el: (mac-utxt-to-string, mac-string-to-utxt)
+	(mac-TEXT-to-string, mac-string-to-TEXT, mac-furl-to-string)
+	(mac-TIFF-to-string): New functions.
+	(mac-text-encoding-mac-japanese-basic-variant):	New constant.
+	(x-get-selection, x-selection-value)
+	(mac-select-convert-to-string): Use them.
+	(mac-dnd-types-alist): New customization variable.
+	(mac-dnd-handle-furl, mac-dnd-handle-hfs, mac-dnd-insert-utxt)
+	(mac-dnd-insert-TEXT, mac-dnd-insert-TIFF, mac-dnd-drop-data)
+	(mac-dnd-handle-drag-n-drop-event): New functions.
+	(mac-drag-n-drop): Remove function.
+	(global-map): Bind drag-n-drop and M-drag-n-drop to
+	mac-dnd-handle-drag-n-drop-event.
+
 2006-05-04  Karl Chen  <quarl@NOSPAM.quarl.org>
 
 	* progmodes/perl-mode.el (perl-beginning-of-function):

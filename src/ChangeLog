@@ -1,3 +1,57 @@
+2006-05-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (make_lispy_event) [MAC_OS]: Get Apple event info
+	from event->arg.
+
+	* termhooks.h (enum event_kind) [MAC_OS]: Update comment for
+	MAC_APPLE_EVENT.
+
+	* macterm.h (mac_make_lispy_event_code): Remove extern.
+	(mac_post_mouse_moved_event): Add extern.
+	(mac_aelist_to_lisp, mac_aedesc_to_lisp): Change arg 1 to
+	`const AEDesc *' in externs.
+	(create_apple_event_from_drag_ref) [TARGET_API_MAC_CARBON]: New extern.
+
+	* mac.c (mac_aelist_to_lisp, mac_aedesc_to_lisp): Change arg 1 to
+	`const AEDesc *'.
+	[TARGET_API_MAC_CARBON] (create_apple_event): New function.
+	[TARGET_API_MAC_CARBON] (create_apple_event_from_event_ref): Use it.
+	Use xrealloc instead of repeated xmalloc/xfree.
+	[TARGET_API_MAC_CARBON] (create_apple_event_from_drag_ref): New
+	function.
+
+	* macmenu.c (restore_menu_items, cleanup_popup_menu): Return a value.
+
+	* macselect.c: Update copyright year.
+	(mac_store_apple_event): Change return type to void in extern.
+	(mac_handle_apple_event): Don't get return value from
+	mac_store_apple_event.
+	[TARGET_API_MAC_CARBON] (Vmac_dnd_known_types): New variable.
+	(syms_of_macselect) [TARGET_API_MAC_CARBON]: Defvar it.
+	[TARGET_API_MAC_CARBON] (mac_do_track_drag): Move function from
+	macterm.c.  Use Vmac_dnd_known_types as acceptable flavors.
+	[TARGET_API_MAC_CARBON] (mac_do_receive_drag): Likewise.  New
+	implementation using create_apple_event_from_drag_ref.
+	[TARGET_API_MAC_CARBON] (mac_do_track_dragUPP)
+	(mac_do_receive_dragUPP): Move variables from macterm.c.
+	(install_drag_handler, remove_drag_handler): New functions.
+
+	* macterm.c (XTread_socket) [TARGET_API_MAC_CARBON]: Try window
+	path select also for proxy icon click.
+	[TARGET_API_MAC_CARBON] (mac_post_mouse_moved_event): New function.
+	[USE_TOOLKIT_SCROLL_BARS] (scroll_bar_timer_callback): Use it.
+	(xlfdpat_create): Remove unused label `error' and trailing sentences.
+	(mac_do_track_drag, mac_do_receive_drag): Move functions to macselect.c.
+	(mac_do_track_dragUPP, mac_do_receive_dragUPP): Move variables to
+	macselect.c.
+	(install_drag_handler, remove_drag_handler): Add extern.
+	(mac_store_apple_event): Change return type to void.  All uses changed.
+	Create Lisp object from Apple event and store it into input event.
+	(mac_make_lispy_event_code): Remove function.
+	[TARGET_API_MAC_CARBON] (mac_store_drag_event): New function.
+	(install_window_handler): Call install_drag_handler.
+	(remove_window_handler): Call remove_drag_handler.
+
 2006-05-03  Richard Stallman  <rms@gnu.org>
 
 	* sound.c (Fplay_sound_internal): Dynamically allocate
