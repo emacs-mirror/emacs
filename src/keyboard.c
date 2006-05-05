@@ -5881,8 +5881,7 @@ make_lispy_event (event)
 	spec[1] = event->y;
 	return Fcons (Qmac_apple_event,
 		      Fcons (Fvector (2, spec),
-			     Fcons (mac_make_lispy_event_code (event->code),
-				    Qnil)));
+			     Fcons (event->arg, Qnil)));
       }
 #endif
 
