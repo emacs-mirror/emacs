@@ -197,7 +197,6 @@ Advanced Features
 * Sorting::	        Sorting lines, paragraphs or pages within Emacs.
 * Narrowing::	        Restricting display and editing to a portion
 		          of the buffer.
-* Diff Mode::           Editing diff output.
 * Two-Column::	        Splitting apart columns to edit them
 		          in side-by-side windows.
 * Editing Binary Files::Using Hexl mode to edit binary files.
@@ -373,6 +372,7 @@ File Handling
 * Version Control::     Version control systems (RCS, CVS and SCCS).
 * Directories::         Creating, deleting, and listing file directories.
 * Comparing Files::     Finding where two files differ.
+* Diff Mode::           Editing diff output.
 * Misc File Ops::       Other things you can do on files.
 * Compressed Files::    Accessing compressed files.
 * File Archives::       Operating on tar, zip, jar etc. archive files.
@@ -873,7 +873,7 @@ programmer, but if you are not interested in customizing, you can
 ignore the customization hints.
 
   This is primarily a reference manual, but can also be used as a
-primer.  If you are a complete beginner, we recommend you start with
+primer.  If you are new to Emacs, we recommend you start with
 the on-line, learn-by-doing tutorial, before reading the manual.  To
 run the tutorial, start Emacs and type @kbd{C-h t}.  The tutorial
 describes commands, tells you when to try them, and explains the

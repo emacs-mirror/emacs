@@ -62,7 +62,7 @@ message in the echo area to explain why the text has not been erased.
 * Killing by Lines::    How to kill entire lines of text at one time.
 * Other Kill Commands:: Commands to kill large regions of text and
                           syntactic units such as words and sentences.
-* Graphical Kill::      The kill ring on graphical terminals:
+* Graphical Kill::      The kill ring on graphical displays:
                           yanking between applications.
 @end menu
 

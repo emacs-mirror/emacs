@@ -1227,7 +1227,7 @@ Specify @var{pixels} as additional space to put between lines, in pixels.
 @itemx --no-blinking-cursor
 @opindex --no-blinking-cursor
 @cindex blinking cursor disable, command-line argument
-Disable the blinking cursor on graphical terminals.
+Disable the blinking cursor on graphical displays.
 
 @item -D
 @opindex -D

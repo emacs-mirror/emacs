@@ -1,3 +1,36 @@
+2006-05-04  Karl Chen  <quarl@NOSPAM.quarl.org>
+
+	* progmodes/perl-mode.el (perl-beginning-of-function):
+	Skip anonymous subs.
+
+2006-05-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ibuffer.el (ibuffer-compressed-file-name-regexp): Avoid loading
+	regexp-opt at run time.
+
+	* term.el (term-handle-ansi-escape): Fix off by one error.
+
+2006-05-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-force-update): Delete variable...
+	(gdb-init-1, gdb-post-prompt): ...and references to it.
+	(gdb-frame-handler): Strip directory name from filename if present.
+
+	* progmodes/gud.el (gdb-force-update): Delete defvar
+	(gud-speedbar-buttons): ...and references to it.  Use window-start
+	to try to keep positon in watch expression.
+
+2006-05-03  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (next-history-element, previous-history-element): Doc fix.
+
+	* isearch.el (isearch-update-ring): Doc fix.
+
+2006-05-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* isearch.el (isearch-update-ring): Take history-delete-duplicates
+	into consideration. Replace one arm ifs with whens.
+
 2006-05-03  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gud-watch): Let user select an expression.
@@ -16,20 +49,17 @@
 
 2006-05-02  Chong Yidong  <cyd@mit.edu>
 
-	* msb.el (msb): If EVENT is a down event, read and discard the up
-	event.
+	* msb.el (msb): If EVENT is a down event, read and discard the up event.
 
 2006-05-02  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* startup.el (command-line-1): Refer to Lisp manual when
 	pure-space-overflow occurs.
 
-	* files.el (byte-compile-dynamic)
-	(byte-compile-dynamic-docstrings, byte-compile-warnings)
-	(find-file-visit-truename, indent-tabs-mode, left-margin)
-	(no-byte-compile no-update-autoloads, truncate-lines)
-	(version-control): Don't use `t' for safe-local-variable
-	declarations.
+	* files.el (byte-compile-dynamic, byte-compile-dynamic-docstrings)
+	(byte-compile-warnings, find-file-visit-truename, indent-tabs-mode)
+	(left-margin, no-byte-compile, no-update-autoloads, truncate-lines)
+	(version-control): Don't use `t' for safe-local-variable declarations.
 
 2006-05-01  Richard Stallman  <rms@gnu.org>
 
@@ -63,10 +93,10 @@
 	Returning "/" only doesn't need to be necessary any longer.
 	(tramp-file-name-handler): Make special attention when in hostname
 	completion mode.
-	(tramp-completion-file-name-handler): Revert patch from	2006-04-28.
-	(tramp-register-file-name-handlers): Register
-	`tramp-completion-file-name-handler' only when
-	`partial-completion-mode is enabled.
+	(tramp-completion-file-name-handler): Revert patch from 2006-04-28.
+	(tramp-register-file-name-handlers):
+	Register `tramp-completion-file-name-handler' only when
+	`partial-completion-mode' is enabled.
 	(tramp-completion-handle-file-name-all-completions):
 	Delete directory part from results.
 	(tramp-get-completion-methods, tramp-get-completion-user-host):
@@ -80,8 +110,8 @@
 
 2006-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* term/mac-win.el (mac-ae-open-documents, mac-drag-n-drop): Use
-	select-frame-set-input-focus instead of raise-frame.
+	* term/mac-win.el (mac-ae-open-documents, mac-drag-n-drop):
+	Use select-frame-set-input-focus instead of raise-frame.
 	(global-map): Bind M-drag-n-drop to mac-drag-n-drop.
 
 2006-05-01  Nick Roberts  <nickrob@snap.net.nz>

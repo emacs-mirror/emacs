@@ -1,3 +1,31 @@
+2006-05-03  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (Diff Mode): Node moved here.
+	(Comparing Files): Delete what duplicates new node.
+	(Files): Put Diff Mode in menu.
+
+	* misc.texi (Diff Mode): Moved to files.texi.
+
+	* emacs.texi (Top): Update menu for Diff Mode.
+
+	* trouble.texi (Emergency Escape): Simplify.
+
+	* emacs.texi (Top): Minor clarification.
+
+2006-05-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* commands.texi, entering.texi, screen.texi: Many simplifications.
+
+2006-05-03  Richard Stallman  <rms@gnu.org>
+
+	* commands.texi (Text Characters): Delete paragraph about unibyte
+	non-ASCII printing chars.
+
+	* killing.texi (Killing): Say "graphical displays".
+	* display.texi: Say "graphical displays".
+	
+	* cmdargs.texi (Misc X): Say "graphical displays".
+
 2006-05-01  Richard Stallman  <rms@gnu.org>
 
 	* emacs.texi (Top): Add Diff Mode to menu.
