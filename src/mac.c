@@ -272,7 +272,7 @@ static Lisp_Object Qundecoded_file_name;
 
 static Lisp_Object
 mac_aelist_to_lisp (desc_list)
-     AEDescList *desc_list;
+     const AEDescList *desc_list;
 {
   OSErr err;
   long count;
@@ -337,7 +337,7 @@ mac_aelist_to_lisp (desc_list)
 
 Lisp_Object
 mac_aedesc_to_lisp (desc)
-     AEDesc *desc;
+     const AEDesc *desc;
 {
   OSErr err = noErr;
   DescType desc_type = desc->descriptorType;
@@ -665,6 +665,31 @@ init_coercion_handler ()
 }
 
 #if TARGET_API_MAC_CARBON
+static OSErr
+create_apple_event (class, id, result)
+     AEEventClass class;
+     AEEventID id;
+     AppleEvent *result;
+{
+  OSErr err;
+  static const ProcessSerialNumber psn = {0, kCurrentProcess};
+  AEAddressDesc address_desc;
+
+  err = AECreateDesc (typeProcessSerialNumber, &psn,
+		      sizeof (ProcessSerialNumber), &address_desc);
+  if (err == noErr)
+    {
+      err = AECreateAppleEvent (class, id,
+				&address_desc, /* NULL is not allowed
+						  on Mac OS Classic. */
+				kAutoGenerateReturnID,
+				kAnyTransactionID, result);
+      AEDisposeDesc (&address_desc);
+    }
+
+  return err;
+}
+
 OSErr
 create_apple_event_from_event_ref (event, num_params, names, types, result)
      EventRef event;
@@ -674,24 +699,12 @@ create_apple_event_from_event_ref (event, num_params, names, types, result)
      AppleEvent *result;
 {
   OSErr err;
-  static const ProcessSerialNumber psn = {0, kCurrentProcess};
-  AEAddressDesc address_desc;
   UInt32 i, size;
   CFStringRef string;
   CFDataRef data;
-  char *buf;
+  char *buf = NULL;
 
-  err = AECreateDesc (typeProcessSerialNumber, &psn,
-		      sizeof (ProcessSerialNumber), &address_desc);
-  if (err == noErr)
-    {
-      err = AECreateAppleEvent (0, 0, /* Dummy class and ID.   */
-				&address_desc, /* NULL is not allowed
-						  on Mac OS Classic. */
-				kAutoGenerateReturnID,
-				kAnyTransactionID, result);
-      AEDisposeDesc (&address_desc);
-    }
+  err = create_apple_event (0, 0, result); /* Dummy class and ID.  */
   if (err != noErr)
     return err;
 
@@ -721,19 +734,88 @@ create_apple_event_from_event_ref (event, num_params, names, types, result)
 				 0, &size, NULL);
 	if (err != noErr)
 	  break;
-	buf = xmalloc (size);
+	buf = xrealloc (buf, size);
 	err = GetEventParameter (event, names[i], types[i], NULL,
 				 size, NULL, buf);
 	if (err == noErr)
 	  AEPutParamPtr (result, names[i], types[i], buf, size);
-	xfree (buf);
 	break;
       }
+  if (buf)
+    xfree (buf);
 
   return noErr;
 }
-#endif
 
+OSErr
+create_apple_event_from_drag_ref (drag, num_types, types, result)
+     DragRef drag;
+     UInt32 num_types;
+     FlavorType *types;
+     AppleEvent *result;
+{
+  OSErr err;
+  UInt16 num_items;
+  AppleEvent items;
+  long index;
+  char *buf = NULL;
+
+  err = CountDragItems (drag, &num_items);
+  if (err != noErr)
+    return err;
+  err = AECreateList (NULL, 0, false, &items);
+  if (err != noErr)
+    return err;
+
+  for (index = 1; index <= num_items; index++)
+    {
+      ItemReference item;
+      DescType desc_type = typeNull;
+      Size size;
+
+      err = GetDragItemReferenceNumber (drag, index, &item);
+      if (err == noErr)
+	{
+	  int i;
+
+	  for (i = 0; i < num_types; i++)
+	    {
+	      err = GetFlavorDataSize (drag, item, types[i], &size);
+	      if (err == noErr)
+		{
+		  buf = xrealloc (buf, size);
+		  err = GetFlavorData (drag, item, types[i], buf, &size, 0);
+		}
+	      if (err == noErr)
+		{
+		  desc_type = types[i];
+		  break;
+		}
+	    }
+	}
+      err = AEPutPtr (&items, index, desc_type,
+		      desc_type != typeNull ? buf : NULL,
+		      desc_type != typeNull ? size : 0);
+      if (err != noErr)
+	break;
+    }
+  if (buf)
+    xfree (buf);
+
+  if (err == noErr)
+    {
+      err = create_apple_event (0, 0, result); /* Dummy class and ID.  */
+      if (err == noErr)
+	err = AEPutParamDesc (result, keyDirectObject, &items);
+      if (err != noErr)
+	AEDisposeDesc (result);
+    }
+
+  AEDisposeDesc (&items);
+
+  return err;
+}
+#endif	/* TARGET_API_MAC_CARBON */
 
 /***********************************************************************
 	 Conversion between Lisp and Core Foundation objects
