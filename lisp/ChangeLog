@@ -1,3 +1,8 @@
+2006-05-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc-create, ewoc-set-hf): Use `insert'
+	directly instead of a lambda expression that calls it.
+
 2006-05-06  Kim F. Storm  <storm@cua.dk>
 
 	* avoid.el (mouse-avoidance-point-position): Use posn-at-point
