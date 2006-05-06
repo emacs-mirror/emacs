@@ -28,6 +28,20 @@
 
 ;;; Commentary:
 
+;; MH-E is an Emacs interface to the MH mail system.
+
+;; MH-E is supported by GNU Emacs 21 and 22, as well as XEmacs 21
+;; (except for versions 21.5.9-21.5.16). It is compatible with MH
+;; versions 6.8.4 and higher, all versions of nmh, and GNU mailutils
+;; 0.4 and higher.
+
+;; MH (Message Handler) is a powerful mail reader. See
+;; http://rand-mh.sourceforge.net/.
+
+;; N.B. MH must have been compiled with the MHE compiler flag or several
+;; features necessary for MH-E will be missing from MH commands, specifically
+;; the -build switch to repl and forw.
+
 ;; How to use:
 ;;   M-x mh-rmail to read mail.  Type C-h m there for a list of commands.
 ;;   C-u M-x mh-rmail to visit any folder.
@@ -43,23 +57,6 @@
 
 ;; If you want to customize MH-E before explicitly loading it, add this:
 ;;   (require 'mh-cus-load)
-
-;; MH (Message Handler) is a powerful mail reader.
-
-;; The MH newsgroup is comp.mail.mh; the mailing list is mh-users@ics.uci.edu
-;; (send to mh-users-request to be added). See the monthly Frequently Asked
-;; Questions posting there for information on getting MH and MH-E:
-;;   http://www.faqs.org/faqs/mail/mh-faq/part1/preamble.html
-
-;; N.B. MH must have been compiled with the MHE compiler flag or several
-;; features necessary for MH-E will be missing from MH commands, specifically
-;; the -build switch to repl and forw.
-
-;; MH-E is an Emacs interface to the MH mail system.
-
-;; MH-E is supported in GNU Emacs 21 and 22 as well as XEmacs 21
-;; (except for versions 21.5.9-21.5.16), with MH 6.8.4 on, nmh 1.0.4
-;; on, and GNU mailutils 0.4 on.
 
 ;; Mailing Lists:
 ;;   mh-e-users@lists.sourceforge.net
