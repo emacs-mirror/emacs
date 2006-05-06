@@ -20,8 +20,13 @@ are unlike those of other languages.  Built-in abbrevs optionally save
 typing when you insert Fortran keywords.
 
   Use @kbd{M-x fortran-mode} to switch to this major mode.  This
-command runs the hook @code{fortran-mode-hook}.  @xref{Hooks,,, emacs,
-the Emacs Manual}.
+command runs the hook @code{fortran-mode-hook}.
+@iftex
+@xref{Hooks,,, emacs, the Emacs Manual}.
+@end iftex
+@ifnottex
+@xref{Hooks}.
+@end ifnottex
 
 @cindex Fortran77 and Fortran90
 @findex f90-mode
@@ -424,7 +429,13 @@ continuation lines using @code{fortran-continuation-string}
 (@pxref{ForIndent Cont}).  This splitting happens when you type
 @key{SPC}, @key{RET}, or @key{TAB}, and also in the Fortran
 indentation commands.  You activate Auto Fill in Fortran mode in the
-normal way.  @xref{Auto Fill,,, emacs, the Emacs Manual}.
+normal way.
+@iftex
+@xref{Auto Fill,,, emacs, the Emacs Manual}.
+@end iftex
+@ifnottex
+@xref{Auto Fill}.
+@end ifnottex
 
 @vindex fortran-break-before-delimiters
    Auto Fill breaks lines at spaces or delimiters when the lines get
@@ -436,8 +447,13 @@ variable @code{fortran-break-before-delimiters} is @code{nil}.
 Otherwise (and by default), the break comes before the delimiter.
 
   To enable Auto Fill in all Fortran buffers, add
-@code{turn-on-auto-fill} to @code{fortran-mode-hook}.  @xref{Hooks,,,
-emacs, the Emacs Manual}.
+@code{turn-on-auto-fill} to @code{fortran-mode-hook}.
+@iftex
+@xref{Hooks,,, emacs, the Emacs Manual}.
+@end iftex
+@ifnottex
+@xref{Hooks}.
+@end ifnottex
 
 @node Fortran Columns
 @subsection Checking Columns in Fortran
@@ -507,7 +523,12 @@ easiest way to get rid of old sequence numbers.
   Fortran mode provides many built-in abbrevs for common keywords and
 declarations.  These are the same sort of abbrev that you can define
 yourself.  To use them, you must turn on Abbrev mode.
+@iftex
 @xref{Abbrevs,,, emacs, the Emacs Manual}.
+@end iftex
+@ifnottex
+@xref{Abbrevs}.
+@end ifnottex
 
   The built-in abbrevs are unusual in one way: they all start with a
 semicolon.  You cannot normally use semicolon in an abbrev, but Fortran
