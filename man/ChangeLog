@@ -1,5 +1,8 @@
 2006-05-06  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in (emacs.dvi): 
+	* Makefile.in (emacs.dvi): Add xresmini.texi
+
 	* xresmini.texi (Table of Resources): Remove xref to non-existent
 	node "LessTif Resources".
 
