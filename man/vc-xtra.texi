@@ -26,3 +26,7 @@ the Emacs Manual}).  This chapter describes more advanced VC usage.
 @include vc1-xtra.texi
 @include vc2-xtra.texi
 @end iftex
+
+@ignore
+   arch-tag: 11a18d0e-1baf-49da-8e38-f61195ae4dc3
+@end ignore

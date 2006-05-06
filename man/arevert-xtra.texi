@@ -185,3 +185,7 @@ should at the very least make clear whether enabling auto-reverting
 for the buffer reliably assures that all information in the buffer is
 completely up to date (or will be after @code{auto-revert-interval}
 seconds).
+
+@ignore
+   arch-tag: 2983e613-a272-45f6-9593-3010ad7f865e
+@end ignore

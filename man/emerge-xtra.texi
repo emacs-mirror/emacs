@@ -392,3 +392,7 @@ commands.
 @vindex emerge-startup-hook
   After setting up the merge, Emerge runs the hook
 @code{emerge-startup-hook}.  @xref{Hooks,,, emacs, the Emacs Manual}.
+
+@ignore
+   arch-tag: cda63f09-9c5f-4ea1-adb9-4a820fdfb24e
+@end ignore

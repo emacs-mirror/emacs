@@ -43,3 +43,7 @@ explicitly assigned switches, however.)
 You can make Dired forget about all subdirectory switches and relist
 all subdirectories with the buffer's default switches using
 @kbd{M-x dired-reset-subdir-switches}.  This also reverts the Dired buffer.
+
+@ignore
+   arch-tag: e3865701-9179-4ffb-bc34-d321111c688d
+@end ignore

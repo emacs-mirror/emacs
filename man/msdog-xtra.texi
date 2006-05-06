@@ -552,3 +552,7 @@ MS-DOS supports only some of the possible options you can mention in
 the @code{dired-listing-switches} variable.  The options that work are
 @samp{-A}, @samp{-a}, @samp{-c}, @samp{-i}, @samp{-r}, @samp{-S},
 @samp{-s}, @samp{-t}, and @samp{-u}.
+
+@ignore
+   arch-tag: 868d50ff-07f8-4a13-a807-dab6f1cdb431
+@end ignore

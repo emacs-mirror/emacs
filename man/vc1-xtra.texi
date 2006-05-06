@@ -139,3 +139,7 @@ up-to-date) and full display at any time by typing @kbd{v t}
 locked (or, with CVS, all files not up-to-date).  Thus, typing @kbd{* l
 t k} is another way to delete from the buffer all files except those
 currently locked.
+
+@ignore
+   arch-tag: 8e8c2a01-ad41-4e61-a89a-60131ad67263
+@end ignore

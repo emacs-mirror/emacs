@@ -521,3 +521,7 @@ to @samp{continue}, provided Abbrev mode is enabled.@refill
 
   Type @samp{;?} or @samp{;C-h} to display a list of all the built-in
 Fortran abbrevs and what they stand for.
+
+@ignore
+   arch-tag: 23ed7c36-1517-4646-9235-2d5ade5f06f6
+@end ignore

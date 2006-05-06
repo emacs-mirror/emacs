@@ -731,3 +731,7 @@ only for repositories from hosts that match the pattern.
 operations in the variable @code{vc-cvs-global-switches}.  These
 switches are inserted immediately after the @code{cvs} command, before
 the name of the operation to invoke.
+
+@ignore
+   arch-tag: 140b8629-4339-4b5e-9e50-72453e51615e
+@end ignore
