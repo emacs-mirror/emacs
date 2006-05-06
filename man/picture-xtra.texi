@@ -84,12 +84,17 @@ lines.
 
 @findex picture-newline
   Insertion of text is adapted to the quarter-plane screen model
-through the use of Overwrite mode (@pxref{Minor Modes,,, emacs, the
-Emacs Manual}.)  Self-inserting characters replace existing text,
-column by column, rather than pushing existing text to the right.
-@key{RET} runs @code{picture-newline}, which just moves to the
-beginning of the following line so that new text will replace that
-line.
+through the use of Overwrite mode
+@iftex
+(@pxref{Minor Modes,,, emacs, the Emacs Manual}.)
+@end iftex
+@ifnottex
+(@pxref{Minor Modes}.)
+@end ifnottex
+Self-inserting characters replace existing text, column by column,
+rather than pushing existing text to the right.  @key{RET} runs
+@code{picture-newline}, which just moves to the beginning of the
+following line so that new text will replace that line.
 
 @findex picture-backward-clear-column
 @findex picture-clear-column
@@ -229,8 +234,13 @@ up the picture.  You can do this by setting the variable
 
   Picture mode defines commands for working on rectangular pieces of
 the text in ways that fit with the quarter-plane model.  The standard
-rectangle commands may also be useful.  @xref{Rectangles,,, emacs, the
-Emacs Manual}.
+rectangle commands may also be useful.
+@iftex
+@xref{Rectangles,,, emacs, the Emacs Manual}.
+@end iftex
+@ifnottex
+@xref{Rectangles}.
+@end ifnottex
 
 @table @kbd
 @item C-c C-k
