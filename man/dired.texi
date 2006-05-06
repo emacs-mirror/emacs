@@ -36,6 +36,9 @@ on all of them with on command.
 * Transforming File Names::   Using patterns to rename multiple files.
 * Comparison in Dired::	      Running `diff' by way of Dired.
 * Subdirectories in Dired::   Adding subdirectories to the Dired buffer.
+@ifnottex
+* Subdir Switches::           Subdirectory switches in Dired.
+@end ifnottex
 * Subdirectory Motion::	      Moving across subdirectories, and up and down.
 * Hiding Subdirectories::     Making subdirectories visible or invisible.
 * Updating: Dired Updating.   Discarding lines for files of no interest.
@@ -905,6 +908,10 @@ describing that subdirectory).
 Use the @kbd{l} command (@code{dired-do-redisplay}) to update the
 subdirectory's contents.  Use @kbd{C-u k} on the subdirectory header
 line to delete the subdirectory.  @xref{Dired Updating}.
+
+@ifnottex
+@include dired-xtra.texi
+@end ifnottex
 
 @node Subdirectory Motion
 @section Moving Over Subdirectories
