@@ -3558,6 +3558,17 @@ occurrences of an element in the list, the one that's kept is the
 first one.
 
 +++
+*** New function `add-to-history' adds an element to a history list.
+
+By default it removes duplicate elements from the history list it
+updates, but if `history-delete-duplicates' is nil or the function's
+optional argument KEEP-DUPS is non-nil, duplicate elements are not
+removed.
+
+Lisp packages should use this function to add elements to their
+history lists.
+
++++
 *** New function `rassq-delete-all'.
 
 (rassq-delete-all VALUE ALIST) deletes, from ALIST, each element whose
