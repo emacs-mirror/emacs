@@ -5,6 +5,16 @@
 	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
 	release 8.0.
 
+2006-05-06  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (MH-BOOK-HOME): Change from
+	http://www.ics.uci.edu/~mh/book/mh to
+	http://rand-mh.sourceforge.net/book/mh.
+	Replace .htm suffix with .html for MH book files.
+	(Using This Manual): Update key binding for getting relevant
+	chapter in Info from command key.
+	(Ranges): Fix itemx.
+
 2006-05-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (emacs.dvi): 
