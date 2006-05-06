@@ -192,6 +192,10 @@ Advanced Features
 * Maintaining::         Features for maintaining large programs.
 * Abbrevs::	        How to define text abbreviations to reduce
 			  the number of characters you must type.
+@ifnottex
+* Picture Mode::        Editing pictures made up of characters using
+                          the quarter-plane screen model.
+@end ifnottex
 * Sending Mail::        Sending mail in Emacs.
 * Rmail::	        Reading mail in Emacs.
 * Dired::	        You can ``edit'' a directory to manage files in it.
@@ -631,6 +635,16 @@ Abbrevs
 * Saving Abbrevs::      Saving the entire list of abbrevs for another session.
 * Dynamic Abbrevs::     Abbreviations for words already in the buffer.
 * Dabbrev Customization:: What is a word, for dynamic abbrevs.  Case handling.
+
+@ifnottex
+Editing Pictures
+
+* Basic Picture::         Basic concepts and simple commands of Picture Mode.
+* Insert in Picture::     Controlling direction of cursor motion
+                            after "self-inserting" characters.
+* Tabs in Picture::       Various features for tab stops and indentation.
+* Rectangles in Picture:: Clearing and superimposing rectangles.
+@end ifnottex
 
 Sending Mail
 
@@ -1137,6 +1151,9 @@ while running shell commands.
 @include building.texi
 @include maintaining.texi
 @include abbrevs.texi
+@ifnottex
+@include picture-xtra.texi
+@end ifnottex
 @include sending.texi
 @include rmail.texi
 @include dired.texi
