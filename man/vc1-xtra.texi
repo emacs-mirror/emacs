@@ -26,14 +26,20 @@ that includes only files relevant for version control.
 
 @vindex vc-dired-terse-display
   @kbd{C-x v d} creates a buffer which uses VC Dired Mode.  This looks
-much like an ordinary Dired buffer (@pxref{Dired,,,emacs, the
-Emacs Manual}); however, normally it shows only the noteworthy files
-(those locked or not up-to-date).  This is called @dfn{terse display}.
-If you set the variable @code{vc-dired-terse-display} to @code{nil},
-then VC Dired shows all relevant files---those managed under version
-control, plus all subdirectories (@dfn{full display}).  The command
-@kbd{v t} in a VC Dired buffer toggles between terse display and full
-display (@pxref{VC Dired Commands}).
+much like an ordinary Dired buffer
+@iftex
+(@pxref{Dired,,,emacs, the Emacs Manual});
+@end iftex
+@ifnottex
+(@pxref{Dired});
+@end ifnottex
+however, normally it shows only the noteworthy files (those locked or
+not up-to-date).  This is called @dfn{terse display}.  If you set the
+variable @code{vc-dired-terse-display} to @code{nil}, then VC Dired
+shows all relevant files---those managed under version control, plus
+all subdirectories (@dfn{full display}).  The command @kbd{v t} in a
+VC Dired buffer toggles between terse display and full display
+(@pxref{VC Dired Commands}).
 
 @vindex vc-dired-recurse
   By default, VC Dired produces a recursive listing of noteworthy or
