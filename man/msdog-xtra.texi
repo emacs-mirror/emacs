@@ -23,7 +23,7 @@ current operating systems Windows (also known as ``Losedows) is in
 @end ifnottex
 
   If you build Emacs for MS-DOS, the binary will also run on Windows
-3.X, Windows NT, Windows 9X/ME, Windows 2000, or OS/2 as a DOS
+3.X, Windows NT, Windows 9X/ME, Windows 2000/XP, or OS/2 as a DOS
 application; all of this chapter applies for all of those systems, if
 you use an Emacs that was built for MS-DOS.
 
@@ -344,7 +344,7 @@ example, the name of a backup file for @file{docs.txt} is
 @cindex file names under Windows 95/NT
 @cindex long file names in DOS box under Windows 95/NT
   If you run Emacs as a DOS application under Windows 9X, Windows ME, or
-Windows 2000, you can turn on support for long file names.  If you do
+Windows 2000/XP, you can turn on support for long file names.  If you do
 that, Emacs doesn't truncate file names or convert them to lower case;
 instead, it uses the file names that you specify, verbatim.  To enable
 long file name support, set the environment variable @env{LFN} to
