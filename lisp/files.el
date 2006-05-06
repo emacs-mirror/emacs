@@ -3931,7 +3931,7 @@ user.  In such situations, one has to be careful with potentially
 time consuming operations.
 
 For more information on how this variable is used by Auto Revert mode,
-see Info node `(emacs-xtra)Supporting additional buffers'.")
+see Info node `(emacs)Supporting additional buffers'.")
 
 (defvar before-revert-hook nil
   "Normal hook for `revert-buffer' to run before reverting.
