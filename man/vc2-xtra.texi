@@ -38,8 +38,14 @@ interactions.
   The local copy of the unmodified file is called a @dfn{version
 backup} to indicate that it corresponds exactly to a version that is
 stored in the repository.  Note that version backups are not the same
-as ordinary Emacs backup files (@pxref{Backup,,,emacs, the Emacs
-Manual}).  But they follow a similar naming convention.
+as ordinary Emacs backup files
+@iftex
+(@pxref{Backup,,,emacs, the Emacs Manual}).
+@end iftex
+@ifnottex
+(@pxref{Backup}).
+@end ifnottex
+But they follow a similar naming convention.
 
   For a file that comes from a remote CVS repository, VC makes a
 version backup whenever you save the first changes to the file, and
@@ -50,12 +56,17 @@ setting @code{vc-cvs-stay-local} to @code{nil} (@pxref{CVS Options}).
 @cindex manual version backups
   The name of the automatic version backup for version @var{version}
 of file @var{file} is @code{@var{file}.~@var{version}.~}.  This is
-almost the same as the name used by @kbd{C-x v ~} (@pxref{Old
-Versions,,,emacs, the Emacs Manual}), the only difference being
-the additional dot (@samp{.})  after the version number.  This
-similarity is intentional, because both kinds of files store the same
-kind of information.  The file made by @kbd{C-x v ~} acts as a
-@dfn{manual version backup}.
+almost the same as the name used by @kbd{C-x v ~}
+@iftex
+(@pxref{Old Versions,,,emacs, the Emacs Manual}),
+@end iftex
+@ifnottex
+(@pxref{Old Versions}),
+@end ifnottex
+the only difference being the additional dot (@samp{.})  after the
+version number.  This similarity is intentional, because both kinds of
+files store the same kind of information.  The file made by @kbd{C-x v
+~} acts as a @dfn{manual version backup}.
 
   All the VC commands that operate on old versions of a file can use
 both kinds of version backups.  For instance, @kbd{C-x v ~} uses
@@ -127,10 +138,16 @@ CVS.
 
 When you are done with local editing, you can commit the final version
 back to the CVS repository by typing @kbd{C-u C-x v v cvs @key{RET}}.
-This initializes the log entry buffer (@pxref{Log Buffer,,,emacs, the
-Emacs Manual}) to contain all the log entries you have recorded in the
-RCS master; you can edit them as you wish, and then commit in CVS by
-typing @kbd{C-c C-c}.  If the commit is successful, VC removes the RCS
+This initializes the log entry buffer
+@iftex
+(@pxref{Log Buffer,,,emacs, the Emacs Manual})
+@end iftex
+@ifnottex
+(@pxref{Log Buffer})
+@end ifnottex
+to contain all the log entries you have recorded in the RCS master;
+you can edit them as you wish, and then commit in CVS by typing
+@kbd{C-c C-c}.  If the commit is successful, VC removes the RCS
 master, so that the file is once again registered under CVS only.
 (The RCS master is not actually deleted, just renamed by appending
 @samp{~} to the name, so that you can refer to it later if you wish.)
@@ -163,9 +180,15 @@ prefix argument, it asks for the back end to use in the minibuffer.
 Thus, if you are using local RCS, and you want to pick up some recent
 changes in the file from remote CVS, first visit the file, then type
 @kbd{C-x v b} to switch to CVS, and finally use @kbd{C-x v m
-@key{RET}} to merge the news (@pxref{Merging,,,emacs, the Emacs
-Manual}).  You can then switch back to RCS by typing @kbd{C-x v b}
-again, and continue to edit locally.
+@key{RET}} to merge the news
+@iftex
+(@pxref{Merging,,,emacs, the Emacs Manual}).
+@end iftex
+@ifnottex
+(@pxref{Merging}).
+@end ifnottex
+You can then switch back to RCS by typing @kbd{C-x v b} again, and
+continue to edit locally.
 
 But if you do this, the revision numbers in the RCS master no longer
 correspond to those of CVS.  Technically, this is not a problem, but
@@ -219,7 +242,13 @@ the list of file names and which version belongs to the snapshot.  Thus,
 you need not hesitate to create snapshots whenever they are useful.
 
   You can give a snapshot name as an argument to @kbd{C-x v =} or
-@kbd{C-x v ~} (@pxref{Old Versions,,,emacs, the Emacs Manual}).
+@kbd{C-x v ~}
+@iftex
+(@pxref{Old Versions,,,emacs, the Emacs Manual}).
+@end iftex
+@ifnottex
+(@pxref{Old Versions}).
+@end ifnottex
 Thus, you can use it to compare a snapshot against the current files,
 or two snapshots against each other, or a snapshot against a named
 version.
@@ -283,9 +312,15 @@ won't really work as retrieved.
 @subsubsection Change Logs and VC
 
   If you use RCS or CVS for a program and also maintain a change log
-file for it (@pxref{Change Log,,,emacs, the Emacs Manual}), you
-can generate change log entries automatically from the version control
-log entries:
+file for it
+@iftex
+(@pxref{Change Log,,,emacs, the Emacs Manual}),
+@end iftex
+@ifnottex
+(@pxref{Change Log}),
+@end ifnottex
+you can generate change log entries automatically from the version
+control log entries:
 
 @table @kbd
 @item C-x v a
@@ -458,8 +493,13 @@ a mechanism, except GNU Arch.
 The exception is RCS---with RCS, version headers are sometimes more
 reliable than the master file to determine which version of the file
 you are editing.  Note that in a multi-branch environment, version
-headers are necessary to make VC behave correctly (@pxref{Multi-User
-Branching,,,emacs, the Emacs Manual}).
+headers are necessary to make VC behave correctly
+@iftex
+(@pxref{Multi-User Branching,,,emacs, the Emacs Manual}).
+@end iftex
+@ifnottex
+(@pxref{Multi-User Branching}).
+@end ifnottex
 
   Searching for RCS version headers is controlled by the variable
 @code{vc-consult-headers}.  If it is non-@code{nil} (the default),
@@ -559,8 +599,14 @@ The order of systems in the list is significant: when you visit a file
 registered in more than one system (@pxref{Local Version Control}), VC
 uses the system that comes first in @code{vc-handled-backends} by
 default.  The order is also significant when you register a file for
-the first time, @pxref{Registering,,,emacs, the Emacs Manual} for
-details.
+the first time, see
+@iftex
+@ref{Registering,,,emacs, the Emacs Manual},
+@end iftex
+@ifnottex
+@ref{Registering},
+@end ifnottex
+for details.
 
 @menu
 * General VC Options::  Options that apply to multiple back ends.
@@ -711,7 +757,13 @@ One consequence of this is that when you have modified a file, and
 somebody else has already checked in other changes to the file, you
 are not notified of it until you actually try to commit.  (But you can
 try to pick up any recent changes from the repository first, using
-@kbd{C-x v m @key{RET}}, @pxref{Merging,,,emacs, the Emacs Manual}).
+@kbd{C-x v m @key{RET}},
+@iftex
+@pxref{Merging,,,emacs, the Emacs Manual}).
+@end iftex
+@ifnottex
+@pxref{Merging}).
+@end ifnottex
 
   When @code{vc-cvs-stay-local} is @code{t}, VC also makes local
 version backups, so that simple diff and revert operations are
