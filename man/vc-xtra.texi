@@ -1,0 +1,24 @@
+@c This file is included in emacs-xtra.texi when producing the printed
+@c version.
+@iftex
+@node Advanced VC Usage
+@section Advanced VC Usage
+
+  Commonly used features of Emacs' version control (VC) support are
+described in the main Emacs manual (@pxref{Version Control,,,emacs,
+the Emacs Manual}).  This chapter describes more advanced VC usage.
+
+@menu
+* VC Dired Mode::       Listing files managed by version control.
+* VC Dired Commands::   Commands to use in a VC Dired buffer.
+* Remote Repositories:: Efficient access to remote CVS servers.
+* Snapshots::           Sets of file versions treated as a unit.
+* Miscellaneous VC::    Various other commands and features of VC.
+* Customizing VC::      Variables that change VC's behavior.
+@end menu
+@end iftex
+
+@iftex
+@include vc1-xtra.texi
+@include vc2-xtra.texi
+@end iftex
