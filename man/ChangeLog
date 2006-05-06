@@ -1,7 +1,14 @@
+2006-05-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* mini.texi (Completion Options):
+	* tramp.texi (Filename completion): Completion of remote files'
+	method, user name and host name is active only in partial
+	completion mode.
+
 2006-05-06  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E manual version 8.0.
-	
+
 	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
 	release 8.0.
 
@@ -17,18 +24,18 @@
 
 2006-05-06  Eli Zaretskii  <eliz@gnu.org>
 
-	* makefile.w32-in (emacs.dvi): 
+	* makefile.w32-in (emacs.dvi):
 	* Makefile.in (emacs.dvi): Add xresmini.texi
 
 	* xresmini.texi (Table of Resources): Remove xref to non-existent
 	node "LessTif Resources".
 
-	* msdog.texi (Microsoft Windows): 
+	* msdog.texi (Microsoft Windows):
 	* calendar.texi (Calendar/Diary, Displaying the Diary)
-	(Special Diary Entries, Importing Diary, Holidays): 
-	* programs.texi (Program Modes): 
-	* text.texi (Text): 
-	* buffers.texi (Several Buffers): 
+	(Special Diary Entries, Importing Diary, Holidays):
+	* programs.texi (Program Modes):
+	* text.texi (Text):
+	* buffers.texi (Several Buffers):
 	* files.texi (Comparing Files): Fix cross-references to emacs-xtra.
 
 2006-05-06  Eli Zaretskii  <eliz@gnu.org>
@@ -72,17 +79,17 @@
 	($(infodir)/emacs-xtra): Remove.
 	(emacs-xtra.dvi): Add EMACS_XTRA to prerequisites.
 
-	* trouble.texi (Quitting): 
-	* text.texi (Text): 
-	* programs.texi (Program Modes): 
-	* msdog.texi (Microsoft Windows): 
-	* frames.texi (Frames): 
+	* trouble.texi (Quitting):
+	* text.texi (Text):
+	* programs.texi (Program Modes):
+	* msdog.texi (Microsoft Windows):
+	* frames.texi (Frames):
 	* files.texi (Backup, Version Control, VC Concepts)
 	(Types of Log File, Advanced C-x v v, Log Buffer, Old Versions)
 	(Registering, VC Status, VC Undo, Multi-User Branching)
-	(Comparing Files): 
+	(Comparing Files):
 	* calendar.texi (Calendar/Diary, Holidays, Displaying the Diary)
-	(Displaying the Diary, Special Diary Entries, Importing Diary): 
+	(Displaying the Diary, Special Diary Entries, Importing Diary):
 	* buffers.texi (Several Buffers): Replace inforef to emacs-xtra by
 	conditional xref's, depending on @iftex/@ifnottex.
 
@@ -130,14 +137,14 @@
 	new *-xtra.texi files.  Use @raisesections and @lowersections to
 	convert sections to chapters etc.
 
-	* msdog-xtra.texi: 
-	* fortran-xtra.texi: 
-	* vc-xtra.texi: 
-	* vc1-xtra.texi: 
-	* vc2-xtra.texi: 
-	* emerge-xtra.texi: 
-	* cal-xtra.texi: 
-	* dired-xtra.texi: 
+	* msdog-xtra.texi:
+	* fortran-xtra.texi:
+	* vc-xtra.texi:
+	* vc1-xtra.texi:
+	* vc2-xtra.texi:
+	* emerge-xtra.texi:
+	* cal-xtra.texi:
+	* dired-xtra.texi:
 	* arevert-xtra.texi: New files, with text from respective chapters
 	of emacs-xtra.texi.  Convert each @chapter into @section, @section
 	into @subsection, etc.
@@ -200,7 +207,7 @@
 
 	* killing.texi (Killing): Say "graphical displays".
 	* display.texi: Say "graphical displays".
-	
+
 	* cmdargs.texi (Misc X): Say "graphical displays".
 
 2006-05-01  Richard Stallman  <rms@gnu.org>
