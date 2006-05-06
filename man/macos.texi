@@ -67,7 +67,8 @@ Classic) or the International system preference pane (Mac OS X) and
 supports international and alternative keyboard layouts (e.g., Dvorak)
 if its script is either Roman, Japanese, Traditional Chinese, Korean,
 Cyrillic, Simplified Chinese, or Central European.  Keyboard layouts
-based on Unicode may not work properly.  Selecting one of the layouts
+based on Unicode may not work properly.  (Try drag-and-drop if input
+from the Character Palette does not work.)  Selecting one of the layouts
 from the keyboard layout pull-down menu will affect how the keys typed
 on the keyboard are interpreted.
 
@@ -318,7 +319,7 @@ charset @code{iso10646-1}.  For example 12-point Monaco can be specified
 by the name
 @samp{-apple-monaco-medium-r-normal--12-*-*-*-*-*-iso10646-1}.  Note
 that it must be specified in a format containing 14 @samp{-}s (i.e., not
-by @samp{-apple-monaco-medium-r-normal-12-*-iso10646-1}) because every
+by @samp{-apple-monaco-medium-r-normal--12-*-iso10646-1}) because every
 @acronym{ATSUI}-compatible font is a scalable one.
 
   QuickDraw Text fonts have maker name @code{apple} and various charset
