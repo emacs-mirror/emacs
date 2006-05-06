@@ -1,5 +1,8 @@
 2006-05-06  Eli Zaretskii  <eliz@gnu.org>
 
+	* xresmini.texi (Table of Resources): Remove xref to non-existent
+	node "LessTif Resources".
+
 	* msdog.texi (Microsoft Windows): 
 	* calendar.texi (Calendar/Diary, Displaying the Diary)
 	(Special Diary Entries, Importing Diary, Holidays): 
