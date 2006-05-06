@@ -56,7 +56,7 @@ Then the formatting appears on the screen in Emacs while you edit.
 referred to as ``ASCII art''), use @kbd{M-x edit-picture} to enter
 Picture mode, a special major mode for editing such pictures.
 @iftex
-@xref{Picture Mode,,, emacs-xtra}.
+@xref{Picture Mode,,, emacs-xtra, Specialized Emacs Features}.
 @end iftex
 @ifnottex
 @xref{Picture Mode}.

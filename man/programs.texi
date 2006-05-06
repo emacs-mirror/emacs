@@ -114,7 +114,7 @@ Mode, ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba IDL/Pike/AWK
 (@pxref{Top, , IDLWAVE, idlwave, IDLWAVE User Manual}).  For Fortran
 mode, see
 @iftex
-@ref{Fortran,,, emacs-xtra}.
+@ref{Fortran,,, emacs-xtra, Specialized Emacs Features}.
 @end iftex
 @ifnottex
 @ref{Fortran}.

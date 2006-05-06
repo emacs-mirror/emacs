@@ -26,8 +26,8 @@ the calendar, type @kbd{q}.
 
 @iftex
   This chapter describes the basic calendar features.
-@xref{Advanced Calendar/Diary Usage,,, emacs-xtra}, for information
-about more specialized features.
+@xref{Advanced Calendar/Diary Usage,,, emacs-xtra, Specialized Emacs
+Features}, for information about more specialized features.
 @end iftex
 
 @menu
@@ -1072,7 +1072,7 @@ date, independently of the calendar display, and optionally for the next
 few days as well; the variable @code{number-of-diary-entries} specifies
 how many days to include.
 @iftex
-@xref{Diary Customizing,,, emacs-xtra}.
+@xref{Diary Customizing,,, emacs-xtra, Specialized Emacs Features}.
 @end iftex
 @ifnottex
 @xref{Diary Customizing, number-of-diary-entries}.
@@ -1382,7 +1382,7 @@ specifying the name of a face or a single-character string to use when
 marking the entry in the calendar.  Most generally, sexp diary entries
 can perform arbitrary computations to determine when they apply.
 @iftex
-@xref{Sexp Diary Entries,,, emacs-xtra}.
+@xref{Sexp Diary Entries,,, emacs-xtra, Specialized Emacs Features}.
 @end iftex
 @ifnottex
 @inforef{Sexp Diary Entries}.
@@ -1507,7 +1507,7 @@ and adds the results to an Emacs diary file.  For example:
 You can use an @code{#include} directive to add the import file contents
 to the main diary file, if these are different files.
 @iftex
-@xref{Fancy Diary Display,,, emacs-xtra}.
+@xref{Fancy Diary Display,,, emacs-xtra, Specialized Emacs Features}.
 @end iftex
 @ifnottex
 @xref{Fancy Diary Display}.

@@ -13,7 +13,7 @@ older MS-DOS ``operating system'' (also known as ``MS-DOG'').
 However, Emacs features that are relevant @emph{only} to MS-DOS are
 described in a separate
 @iftex
-manual (@pxref{MS-DOS,,, emacs-xtra}).
+manual (@pxref{MS-DOS,,, emacs-xtra, Specialized Emacs Features}).
 @end iftex
 @ifnottex
 section (@pxref{MS-DOS}).

@@ -2311,7 +2311,7 @@ mode provides commands to resolve conflicts by selecting specific
 changes.
 
 @iftex
-@xref{Emerge,,, emacs-xtra},
+@xref{Emerge,,, emacs-xtra, Specialized Emacs Features},
 @end iftex
 @ifnottex
 @xref{Emerge},
