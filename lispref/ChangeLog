@@ -1,3 +1,7 @@
+2006-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuf.texi (Minibuffer History): Document add-to-history.
+
 2006-05-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* internals.texi (Pure Storage): Mention the pure overflow message
