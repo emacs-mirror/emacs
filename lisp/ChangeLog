@@ -1,3 +1,11 @@
+2006-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* ldefs-boot.el (dired-do-redisplay, dired-maybe-insert-subdir): 
+	* files.el (buffer-stale-function): 
+	* dired-aux.el (dired-do-redisplay, dired-maybe-insert-subdir): 
+	* autorevert.el (global-auto-revert-non-file-buffers): Point Info
+	links to the main manual, not to emacs-xtra.
+
 2006-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: (mac-utxt-to-string): Don't make adjustment for

@@ -1,5 +1,15 @@
 2006-05-06  Eli Zaretskii  <eliz@gnu.org>
 
+	* msdog.texi (Microsoft Windows): 
+	* calendar.texi (Calendar/Diary, Displaying the Diary)
+	(Special Diary Entries, Importing Diary, Holidays): 
+	* programs.texi (Program Modes): 
+	* text.texi (Text): 
+	* buffers.texi (Several Buffers): 
+	* files.texi (Comparing Files): Fix cross-references to emacs-xtra.
+
+2006-05-06  Eli Zaretskii  <eliz@gnu.org>
+
 	The following changes merge the emacs-xtra manual into the main
 	manual, but only for on-line version of the manual.
 
