@@ -1,3 +1,9 @@
+2006-05-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-goto-breakpoint): Use or instead of
+	unless so nil isn't returned.
+	(gdb-setup-windows, gdb-restore-windows): Reset gdb-source-window.
+
 2006-05-06  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (add-to-history): New function.
