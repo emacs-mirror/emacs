@@ -1,3 +1,8 @@
+2006-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: (mac-utxt-to-string): Don't make adjustment for
+	MacJapanese if text is ASCII-only.
+
 2006-05-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-goto-breakpoint): Use or instead of
@@ -85,9 +90,9 @@
 	* term/mac-win.el: (mac-utxt-to-string, mac-string-to-utxt)
 	(mac-TEXT-to-string, mac-string-to-TEXT, mac-furl-to-string)
 	(mac-TIFF-to-string): New functions.
-	(mac-text-encoding-mac-japanese-basic-variant):	New constant.
 	(x-get-selection, x-selection-value)
 	(mac-select-convert-to-string): Use them.
+	(mac-text-encoding-mac-japanese-basic-variant):	New constant.
 	(mac-dnd-types-alist): New customization variable.
 	(mac-dnd-handle-furl, mac-dnd-handle-hfs, mac-dnd-insert-utxt)
 	(mac-dnd-insert-TEXT, mac-dnd-insert-TIFF, mac-dnd-drop-data)

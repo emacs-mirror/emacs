@@ -1,3 +1,11 @@
+2006-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c (Qduration) [MAC_OS]: New variable.
+	(syms_of_image) [MAC_OS]: Intern and staticpro it.
+	[MAC_OS] (gif_load): Save image extension data in img->data.lisp_val.
+	[MAC_OSX] (image_load_quartz2d): Use cfstring_create_with_utf8_cstring
+	instead of cfstring_create_with_string.
+
 2006-05-06  Kim F. Storm  <storm@cua.dk>
 
 	* .gdbinit (xframe): Print frame name.
