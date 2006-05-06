@@ -451,7 +451,8 @@ calendar, use the @kbd{x} command.  This displays the dates that are
 holidays in a different face (or places a @samp{*} after these dates, if
 display with multiple faces is not available).
 @iftex
-@xref{Calendar Customizing, calendar-holiday-marker,, emacs-xtra}.
+@xref{Calendar Customizing, calendar-holiday-marker,, emacs-xtra,
+Specialized Emacs Features}.
 @end iftex
 @ifnottex
 @xref{Calendar Customizing, calendar-holiday-marker}.
@@ -1041,7 +1042,8 @@ the @kbd{m} command.  This displays the dates that have diary entries in
 a different face (or places a @samp{+} after these dates, if display
 with multiple faces is not available).
 @iftex
-@xref{Calendar Customizing, diary-entry-marker,, emacs-xtra}.
+@xref{Calendar Customizing, diary-entry-marker,, emacs-xtra,
+Specialized Emacs Features}.
 @end iftex
 @ifnottex
 @xref{Calendar Customizing, diary-entry-marker}.
