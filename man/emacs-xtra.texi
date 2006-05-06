@@ -55,18 +55,17 @@ license to the document, as described in section 6 of the license.
 @end ifnottex
 
 @menu
-* Introduction::                  What documentation belongs here?
-* Autorevert::                    Auto Reverting non-file buffers.
-* Subdir Switches::               Subdirectory switches in Dired.
+* Introduction::        What documentation belongs here?
+* Autorevert::          Auto Reverting non-file buffers.
+* Subdir Switches::     Subdirectory switches in Dired.
 * Advanced Calendar/Diary Usage:: Advanced Calendar/Diary customization.
-* Emerge::                        A convenient way of merging two versions
-                                    of a program.
-* Picture Mode::                  Editing pictures made up of characters
-                                    using the quarter-plane screen model.
+* Emerge::              A convenient way of merging two versions of a program.
+* Picture Mode::        Editing pictures made up of characters using 
+                         the quarter-plane screen model.
 
-* Advanced VC Usage::             Advanced VC (version control) features.
-* Fortran::                       Fortran mode and its special features.
-* MS-DOG::                        
+* Advanced VC Usage::   Advanced VC (version control) features.
+* Fortran::             Fortran mode and its special features.
+* MS-DOS::              Using Emacs on MS-DOS (otherwise known as "MS-DOG").
 * Index::
 @end menu
 
@@ -3291,7 +3290,7 @@ to @samp{continue}, provided Abbrev mode is enabled.@refill
 Fortran abbrevs and what they stand for.
 
 
-@node MS-DOG
+@node MS-DOS
 @chapter Emacs and MS-DOS
 @cindex MS-DOG
 @cindex MS-DOS peculiarities
@@ -3300,7 +3299,7 @@ Fortran abbrevs and what they stand for.
 the MS-DOS ``operating system'' (also known as ``MS-DOG'').
 Information about Emacs and Microsoft's current operating system
 Windows (also known as ``Losedows) is in the main Emacs manual
-(@pxref{Emacs and Microsoft Systems,,, emacs, the Emacs Manual}).
+(@pxref{Microsoft Systems,,, emacs, the Emacs Manual}).
 
   If you build Emacs for MS-DOS, the binary will also run on Windows
 3.X, Windows NT, Windows 9X/ME, Windows 2000, or OS/2 as a DOS
