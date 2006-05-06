@@ -87,7 +87,13 @@ or their values are used). The variables whose names end in
 @xref{Lazy Properties}.
 
 @item calendar-load-hook
-@inforef{Calendar Customizing,, emacs-xtra}.
+@iftex
+@xref{Calendar Customizing,,, emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{Calendar Customizing,,, emacs}.
+@end ifnottex
+
 
 @item change-major-mode-hook
 @xref{Creating Buffer-Local}.
@@ -124,7 +130,12 @@ is useful for truncating history lists, for example.  @xref{Saving
 Emacs Sessions,, Saving Emacs Sessions, emacs, the GNU Emacs Manual}.
 
 @item diary-display-hook
-@inforef{Fancy Diary Display,, emacs-xtra}.
+@iftex
+@xref{Fancy Diary Display,,, emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{Fancy Diary Display,,, emacs}.
+@end ifnottex
 
 @item diary-hook
 List of functions called after the display of the diary.  Can be used
@@ -170,7 +181,12 @@ for appointment notification.
 @xref{Other Font Lock Variables}.
 
 @item initial-calendar-window-hook
-@inforef{Calendar Customizing,, emacs-xtra}.
+@iftex
+@xref{Calendar Customizing,,, emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{Calendar Customizing,,, emacs}.
+@end ifnottex
 
 @item kbd-macro-termination-hook
 @xref{Keyboard Macros}.
@@ -190,14 +206,24 @@ for appointment notification.
 @item lisp-indent-function
 
 @item list-diary-entries-hook
-@inforef{Fancy Diary Display,, emacs-xtra}.
+@iftex
+@xref{Fancy Diary Display,,, emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{Fancy Diary Display,,, emacs}.
+@end ifnottex
 
 @item mail-setup-hook
 @xref{Mail Mode Misc,, Mail Mode Miscellany, emacs, the GNU Emacs
 Manual}.
 
 @item mark-diary-entries-hook
-@inforef{Fancy Diary Display,, emacs-xtra}.
+@iftex
+@xref{Fancy Diary Display,,, emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{Fancy Diary Display,,, emacs}.
+@end ifnottex
 
 @item menu-bar-update-hook
 @xref{Menu Bar}.
@@ -212,10 +238,20 @@ Manual}.
 @xref{Mouse Position}.
 
 @item nongregorian-diary-listing-hook
-@inforef{Hebrew/Islamic Entries,, emacs-xtra}.
+@iftex
+@xref{Hebrew/Islamic Entries,,, emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{Hebrew/Islamic Entries,,, emacs}.
+@end ifnottex
 
 @item nongregorian-diary-marking-hook
-@inforef{Hebrew/Islamic Entries,, emacs-xtra}.
+@iftex
+@xref{Hebrew/Islamic Entries,,, emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{Hebrew/Islamic Entries,,, emacs}.
+@end ifnottex
 
 @item occur-hook
 
@@ -229,7 +265,12 @@ Manual}.
 @xref{Command Overview}.
 
 @item print-diary-entries-hook
-@inforef{Diary Customizing,, emacs-xtra}.
+@iftex
+@xref{Diary Customizing,,, emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{Diary Customizing,,, emacs}.
+@end ifnottex
 
 @item redisplay-end-trigger-functions
 @xref{Window Hooks}.
@@ -255,10 +296,20 @@ Manual}.
 @xref{Terminal-Specific}.
 
 @item today-visible-calendar-hook
-@inforef{Calendar Customizing,, emacs-xtra}.
+@iftex
+@xref{Calendar Customizing,,, emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{Calendar Customizing,,, emacs}.
+@end ifnottex
 
 @item today-invisible-calendar-hook
-@inforef{Calendar Customizing,, emacs-xtra}.
+@iftex
+@xref{Calendar Customizing,,, emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{Calendar Customizing,,, emacs}.
+@end ifnottex
 
 @item window-configuration-change-hook
 @xref{Window Hooks}.
