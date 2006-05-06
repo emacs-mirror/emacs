@@ -2,7 +2,31 @@
 
 	The following changes merge the emacs-xtra manual into the main
 	manual, but only for on-line version of the manual.
-	
+
+	* vc2-xtra.texi (Version Backups, Local Version Control)
+	(Making Snapshots, Change Logs and VC, Version Headers)
+	(Customizing VC, CVS Options) [ifnottex]: Conditional xref's for
+	on-line manual.
+
+	* vc1-xtra.texi (VC Dired Mode) [ifnottex]: Conditional xref's
+	for on-line manual.
+
+	* msdog-xtra.texi (MS-DOS, MS-DOS Keyboard, MS-DOS Mouse)
+	(MS-DOS Display, MS-DOS File Names, MS-DOS Printing)
+	(MS-DOS and MULE, MS-DOS Processes) [ifnottex]: Conditional xref's
+	for on-line manual.
+
+	* fortran-xtra.texi (Fortran, Fortran Autofill)
+	(Fortran Autofill, Fortran Abbrev) [ifnottex]: Conditional xref's
+	for on-line manual.
+
+	* picture-xtra.texi (Basic Picture, Rectangles in Picture) [ifnottex]:
+	Conditional xref's for on-line manual.
+
+	* emerge-xtra.texi (Emerge, Overview of Emerge)
+	(Fine Points of Emerge) [ifnottex]: Conditional xref's for on-line
+	manual.
+
 	* Makefile.in (INFO_TARGETS): Remove ../info/emacs-xtra.
 	(EMACS_XTRA): New variable, lists the new *-xtra.texi files.
 	(EMACSSOURCES): Use EMACS_XTRA.
