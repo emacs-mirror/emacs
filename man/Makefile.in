@@ -33,7 +33,7 @@ VPATH=@srcdir@
 # The makeinfo program is part of the Texinfo distribution.
 # Use --force so that it generates output even if there are errors.
 MAKEINFO = makeinfo --force
-INFO_TARGETS = ../info/emacs ../info/emacs-xtra ../info/ccmode ../info/cl \
+INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl \
 	        ../info/dired-x ../info/ediff ../info/forms ../info/gnus \
 		../info/message ../info/sieve ../info/pgg ../info/emacs-mime \
 		../info/info ../info/mh-e ../info/reftex \
@@ -60,6 +60,18 @@ INFOSOURCES = info.texi
 
 TEXI2DVI = texi2dvi
 ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
+
+EMACS_XTRA=\
+	$(srcdir)/arevert-xtra.texi \
+	$(srcdir)/cal-xtra.texi \
+	$(srcdir)/dired-xtra.texi \
+	$(srcdir)/picture-xtra.texi \
+	$(srcdir)/emerge-xtra.texi \
+	$(srcdir)/vc-xtra.texi \
+	$(srcdir)/vc1-xtra.texi \
+	$(srcdir)/vc2-xtra.texi \
+	$(srcdir)/fortran-xtra.texi \
+	$(srcdir)/msdog-xtra.texi
 
 EMACSSOURCES= \
 	${srcdir}/emacs.texi \
@@ -104,7 +116,8 @@ EMACSSOURCES= \
 	${srcdir}/gnu.texi \
 	${srcdir}/glossary.texi \
 	${srcdir}/ack.texi \
-	${srcdir}/kmacro.texi
+	${srcdir}/kmacro.texi \
+	$(EMACS_XTRA)
 
 info: $(top_srcdir)/info $(INFO_TARGETS)
 
@@ -176,9 +189,7 @@ dired-x.dvi: dired-x.texi
 ediff.dvi: ediff.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ediff.texi
 
-../info/emacs-xtra: emacs-xtra.texi
-	cd $(srcdir); $(MAKEINFO) emacs-xtra.texi
-emacs-xtra.dvi: emacs-xtra.texi
+emacs-xtra.dvi: emacs-xtra.texi $(EMACS_XTRA)
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-xtra.texi
 
 ../info/forms: forms.texi
