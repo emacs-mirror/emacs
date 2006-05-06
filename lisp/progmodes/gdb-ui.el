@@ -1912,7 +1912,7 @@ static char *magick[] = {
 	    (let* ((buffer (find-file-noselect
 			 (if (file-exists-p file) file
 			   (cdr (assoc bptno gdb-location-alist)))))
-		   (window (unless (gdb-display-source-buffer buffer)
+		   (window (or (gdb-display-source-buffer buffer)
 			       (display-buffer buffer))))
 	      (setq gdb-source-window window)
 	      (with-current-buffer buffer
@@ -2754,6 +2754,7 @@ corresponding to the mode line clicked."
 	   ;; Put buffer list in window if we
 	   ;; can't find a source file.
 	   (list-buffers-noselect))))
+  (setq gdb-source-window (selected-window))
   (when gdb-use-separate-io-buffer
     (split-window-horizontally)
     (other-window 1)
@@ -2781,6 +2782,7 @@ This arrangement depends on the value of `gdb-many-windows'."
        (if gud-last-last-frame
 	   (gud-find-file (car gud-last-last-frame))
 	 (gud-find-file gdb-main-file)))
+      (setq gdb-source-window (selected-window))
       (other-window 1))))
 
 (defun gdb-reset ()
