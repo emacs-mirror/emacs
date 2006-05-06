@@ -2628,7 +2628,7 @@ image_load_quartz2d (f, img, png_p)
 	  UNGCPRO;
 	  return 0;
 	}
-      path = cfstring_create_with_string (file);
+      path = cfstring_create_with_utf8_cstring (SDATA (file));
       url = CFURLCreateWithFileSystemPath (NULL, path,
 					   kCFURLPOSIXPathStyle, 0);
       CFRelease (path);
@@ -7899,6 +7899,8 @@ gif_load (f, img)
 #else  /* !HAVE_GIF */
 
 #ifdef MAC_OS
+static Lisp_Object Qduration;
+
 static int
 gif_load (f, img)
      struct frame *f;
@@ -7920,7 +7922,8 @@ gif_load (f, img)
   RGBColor bg_color;
   int width, height;
   XImagePtr ximg;
-  TimeValue time;
+  TimeScale time_scale;
+  TimeValue time, duration;
   int ino;
   CGrafPtr old_port;
   GDHandle old_gdh;
@@ -8028,6 +8031,7 @@ gif_load (f, img)
 		   image, img->spec);
       goto error;
     }
+  time_scale = GetMediaTimeScale (media);
 
   specified_bg = image_spec_value (img->spec, QCbackground, NULL);
   if (!STRINGP (specified_bg) ||
@@ -8053,7 +8057,7 @@ gif_load (f, img)
   SetGWorld (old_port, old_gdh);
   SetMovieActive (movie, 1);
   SetMovieGWorld (movie, ximg, NULL);
-  SampleNumToMediaTime (media, ino + 1, &time, NULL);
+  SampleNumToMediaTime (media, ino + 1, &time, &duration);
   SetMovieTimeValue (movie, time);
   MoviesTask (movie, 0L);
   DisposeTrackMedia (media);
@@ -8061,6 +8065,12 @@ gif_load (f, img)
   DisposeMovie (movie);
   if (dh)
     DisposeHandle (dh);
+
+  /* Save GIF image extension data for `image-extension-data'.
+     Format is (count IMAGES duration DURATION).  */
+  img->data.lisp_val = list4 (Qcount, make_number (nsamples), Qduration,
+			      make_float ((double)duration / time_scale));
+
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
     IMAGE_BACKGROUND (img, f, ximg);
@@ -8614,6 +8624,11 @@ non-numeric, there is no explicit limit on the size of images.  */);
   Qgif = intern ("gif");
   staticpro (&Qgif);
   ADD_IMAGE_TYPE(Qgif);
+#endif
+
+#ifdef MAC_OS
+  Qduration = intern ("duration");
+  staticpro (&Qduration);
 #endif
 
 #if defined (HAVE_PNG) || defined (MAC_OS)
