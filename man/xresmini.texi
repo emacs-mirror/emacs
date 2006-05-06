@@ -131,8 +131,8 @@ Additional space (@dfn{leading}) between lines, in pixels.
 @item @code{menuBar} (class @code{MenuBar})
 @cindex menu bar
 Give frames menu bars if @samp{on}; don't have menu bars if
-@samp{off}.  @xref{Lucid Resources}, and @ref{LessTif Resources}, for
-how to control the appearance of the menu bar if you have one.
+@samp{off}.  @xref{Lucid Resources}, for how to control the appearance
+of the menu bar if you have one.
 
 @item @code{pointerColor} (class @code{Foreground})
 Color of the mouse cursor.
