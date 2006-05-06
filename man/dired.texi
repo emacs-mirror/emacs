@@ -1205,7 +1205,7 @@ not appear in the other directory is ``different''.  You can specify
 more stringent comparisons by entering a Lisp expression, which can
 refer to the variables @code{size1} and @code{size2}, the respective
 file sizes; @code{mtime1} and @code{mtime2}, the last modification
-times in seconds, as floating point numers; and @code{fa1} and
+times in seconds, as floating point numbers; and @code{fa1} and
 @code{fa2}, the respective file attribute lists (as returned by the
 function @code{file-attributes}).  This expression is evaluated for
 each pair of like-named files, and if the expression's value is

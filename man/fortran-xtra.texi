@@ -94,7 +94,7 @@ moves backwards.
 @item C-M-n
 Move to the end of the current code block
 (@code{fortran-end-of-block}/@code{f90-end-of-block}).  With a numeric
-agument, move forward that number of blocks.  The mark is set before
+argument, move forward that number of blocks.  The mark is set before
 moving point.  The F90 mode version of this command checks for
 consistency of block types and labels (if present), but it does not
 check the outermost block since that may be incomplete.

@@ -1977,9 +1977,9 @@ usual to do so.
 @subsection Disabling Commands
 @cindex disabled command
 
-  Disabling a command menas it requires confirmation before it can be
-executed.  The purpose of disabling a command is to prevent users from
-executing it by accident and being confused.
+  Disabling a command means causing it to require a confirmation
+before it can be executed.  The purpose of disabling a command is to
+prevent users from executing it by accident and being confused.
 
   An attempt to invoke a disabled command interactively in Emacs
 displays a window containing the command's name, its documentation,

@@ -1601,7 +1601,7 @@ hungry-delete feature is enabled.
 @itemx M-x c-subword-mode
 @findex c-subword-mode
 Enable (or disable) @dfn{subword mode}.  In subword mode, Emacs's word
-commands then recognize upper case letters in
+commands recognize upper case letters in
 @samp{StudlyCapsIdentifiers} as word boundaries.  This is indicated by
 the flag @samp{/w} on the mode line after the mode name
 (e.g. @samp{C/law}).  You can even use @kbd{M-x c-subword-mode} in
