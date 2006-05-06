@@ -2508,7 +2508,7 @@ compiling it.
 @findex auto-compression-mode
 @vindex auto-compression-mode
   To disable this feature, type the command @kbd{M-x
-auto-compression-mode}.  You can disenable it permanently by
+auto-compression-mode}.  You can disable it permanently by
 customizing the variable @code{auto-compression-mode}.
 
 @node File Archives

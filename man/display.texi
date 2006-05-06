@@ -1127,7 +1127,7 @@ fringe when positioned on that newline.
 
 @vindex indicate-buffer-boundaries
   On a graphical display, Emacs can indicate the buffer boundaries in
-the fringes.  It inddicates the first line and the last line with
+the fringes.  It indicates the first line and the last line with
 angle images in the fringes.  This can be combined with up and down
 arrow images which say whether it is possible to scroll the window up
 and down.
