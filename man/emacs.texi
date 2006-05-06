@@ -133,7 +133,7 @@ and Sending Mail and Registers and Minibuffer.
 * Glossary::	        The glossary.
 * Antinews::	        Information about Emacs version 21.
 * Mac OS::              Using Emacs in the Mac.
-* Emacs and Microsoft Windows::  Using Emacs on Microsoft Windows.
+* Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
 * Manifesto::	        What's GNU?  Gnu's Not Unix!
 * Acknowledgments::     Major contributors to GNU Emacs.
 
@@ -927,8 +927,8 @@ This edition of the manual is intended for use with GNU Emacs
 installed on GNU and Unix systems.  GNU Emacs can also be used on VMS,
 MS-DOS (also called MS-DOG), Microsoft Windows, and Macintosh systems.
 Those systems use different file name syntax; in addition, VMS and
-MS-DOS do not support all GNU Emacs features.  @xref{Emacs and
-Microsoft Windows}, for information about using Emacs on Windows.
+MS-DOS do not support all GNU Emacs features.  @xref{Microsoft
+Windows}, for information about using Emacs on Windows.
 @xref{Mac OS}, for information about using Emacs on Macintosh.  We
 don't try to describe VMS usage in this manual.
 @end iftex
