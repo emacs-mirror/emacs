@@ -12,9 +12,14 @@
   It's not unusual for programmers to get their signals crossed and
 modify the same program in two different directions.  To recover from
 this confusion, you need to merge the two versions.  Emerge makes this
-easier.  For other ways to compare files, see @ref{Comparing Files,,,
-emacs, the Emacs Manual} and @ref{Top, Ediff,, ediff, The Ediff
-Manual}.
+easier.  For other ways to compare files, see
+@iftex
+@ref{Comparing Files,,, emacs, the Emacs Manual},
+@end iftex
+@ifnottex
+@ref{Comparing Files},
+@end ifnottex
+and @ref{Top, Ediff,, ediff, The Ediff Manual}.
 
 @menu
 * Overview of Emerge::	How to start Emerge.  Basic concepts.
@@ -64,7 +69,12 @@ one of them to include in the merge buffer.
 
   The Emerge commands that take input from existing buffers use only
 the accessible portions of those buffers, if they are narrowed.
+@iftex
 @xref{Narrowing,,, emacs, the Emacs Manual}.
+@end iftex
+@ifnottex
+@xref{Narrowing}.
+@end ifnottex
 
 
   If a common ancestor version is available, from which the two texts to
@@ -391,7 +401,13 @@ commands.
 
 @vindex emerge-startup-hook
   After setting up the merge, Emerge runs the hook
-@code{emerge-startup-hook}.  @xref{Hooks,,, emacs, the Emacs Manual}.
+@code{emerge-startup-hook}.
+@iftex
+@xref{Hooks,,, emacs, the Emacs Manual}.
+@end iftex
+@ifnottex
+@xref{Hooks}.
+@end ifnottex
 
 @ignore
    arch-tag: cda63f09-9c5f-4ea1-adb9-4a820fdfb24e
