@@ -1,5 +1,90 @@
 2006-05-06  Eli Zaretskii  <eliz@gnu.org>
 
+	The following changes merge the emacs-xtra manual into the main
+	manual, but only for on-line version of the manual.
+	
+	* Makefile.in (INFO_TARGETS): Remove ../info/emacs-xtra.
+	(EMACS_XTRA): New variable, lists the new *-xtra.texi files.
+	(EMACSSOURCES): Use EMACS_XTRA.
+	(../info/emacs-xtra): Remove.
+	(emacs-xtra.dvi): Add EMACS_XTRA to prerequisites.
+
+	* makefile.w32-in (INFO_TARGETS): Remove $(infodir)/emacs-xtra.
+	(EMACS_XTRA): New variable, lists the new *-xtra.texi files.
+	(EMACSSOURCES): Use EMACS_XTRA.
+	($(infodir)/emacs-xtra): Remove.
+	(emacs-xtra.dvi): Add EMACS_XTRA to prerequisites.
+
+	* trouble.texi (Quitting): 
+	* text.texi (Text): 
+	* programs.texi (Program Modes): 
+	* msdog.texi (Microsoft Windows): 
+	* frames.texi (Frames): 
+	* files.texi (Backup, Version Control, VC Concepts)
+	(Types of Log File, Advanced C-x v v, Log Buffer, Old Versions)
+	(Registering, VC Status, VC Undo, Multi-User Branching)
+	(Comparing Files): 
+	* calendar.texi (Calendar/Diary, Holidays, Displaying the Diary)
+	(Displaying the Diary, Special Diary Entries, Importing Diary): 
+	* buffers.texi (Several Buffers): Replace inforef to emacs-xtra by
+	conditional xref's, depending on @iftex/@ifnottex.
+
+	* msdog.texi (Microsoft Windows) [ifnottex]: Add menu entry for
+	"MS-DOS".  @include msdog-xtra.texi.
+
+	* programs.texi (Programs) [ifnottex]: Add menu entry for "Fortran".
+	<Top Level> [ifnottex]: @include fortran-xtra.texi.
+
+	* files.texi (Secondary VC Commands) [ifnottex]: Add menu entries
+	for vc-xtra.texi subsections.
+	(VC Undo) [ifnottex]: @include vc1-xtra.texi and @lowersections it.
+	(Multi-User Branching) [ifnottex]: @include vc2-xtra.texi.
+
+	* sending.texi (Sending Mail): A @node line without explicit Prev,
+	Next, and Up links.
+
+	* abbrevs.texi (Abbrevs): A @node line without explicit Prev,
+	Next, and Up links.
+
+	* emacs.texi (Top) [ifnottex]: Add menu entries for "Picture Mode"
+	and its sections.  @include picture-xtra.texi
+
+	* maintaining.texi (Maintaining) [ifnottex]: Add menu entry for
+	"Emerge".
+	(List Tags) [ifnottex]: @include emerge-xtra.texi.
+
+	* cal-xtra.texi (Daylight Savings): Remove this node: it is an
+	exact duplicate of its name-sake in calendar.texi.
+
+	* calendar.texi (Calendar/Diary) [ifnottex]: Add menu item for
+	"Advanced Calendar/Diary Usage".
+	(Time Intervals) [ifnottex]: @include cal-xtra.texi.
+
+	* dired.texi (Subdirectories in Dired) [ifnottex]: @include
+	dired-xtra.texi.
+	(Dired) [ifnottex]: Add menu entry for "Subdir Switches".
+
+	* files.texi (Reverting) [ifnottex]: @include arevert-xtra.texi.
+	(Files) [ifnottex]: Add menu entry for Autorevert.
+
+	* emacs-xtra.texi (Introduction): Reword to make consistent with
+	printed version only.
+	<Top level>: Remove the body of all chapters and move them to the
+	new *-xtra.texi files.  Use @raisesections and @lowersections to
+	convert sections to chapters etc.
+
+	* msdog-xtra.texi: 
+	* fortran-xtra.texi: 
+	* vc-xtra.texi: 
+	* vc1-xtra.texi: 
+	* vc2-xtra.texi: 
+	* emerge-xtra.texi: 
+	* cal-xtra.texi: 
+	* dired-xtra.texi: 
+	* arevert-xtra.texi: New files, with text from respective chapters
+	of emacs-xtra.texi.  Convert each @chapter into @section, @section
+	into @subsection, etc.
+
 	* emacs-xtra.texi (MS-DOS): Renamed from "MS-DOG".  All references
 	updated.
 

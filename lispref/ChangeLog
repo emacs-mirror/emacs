@@ -1,5 +1,9 @@
 2006-05-06  Eli Zaretskii  <eliz@gnu.org>
 
+	* hooks.texi (Standard Hooks): Replace inforef to emacs-xtra by
+	conditional xref's to either emacs or emacs-xtra, depending on
+	@iftex/@ifnottex.
+
 	* minibuf.texi (Minibuffer History): Document add-to-history.
 
 2006-05-05  Eli Zaretskii  <eliz@gnu.org>
