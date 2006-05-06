@@ -1265,8 +1265,10 @@ correspoinding TextEncodingBase value."
 	  ;; reverse solidus?
 	  (if (string-match "[\xa0\xfd-\xff]" str)
 	      (setq str nil)
-	    (subst-char-in-string ?\x5c ?\(J\(B str t)
-	    (subst-char-in-string ?\x80 ?\\ str t))))
+	    ;; ASCII-only?
+	    (unless (string-match "\\`[[:ascii:]]*\\'" str)
+	      (subst-char-in-string ?\x5c ?\(J\(B str t)
+	      (subst-char-in-string ?\x80 ?\\ str t)))))
     (or str
 	(decode-coding-string data
 			      (if (eq (byteorder) ?B) 'utf-16be 'utf-16le)))))
