@@ -1,3 +1,8 @@
+2006-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Microsoft Windows): Rename from "Emacs and Microsoft
+	Windows".  All references updated.
+
 2006-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macos.texi (Mac Input): Mention input from Character Palette.
