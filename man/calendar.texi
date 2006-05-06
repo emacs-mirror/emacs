@@ -24,9 +24,11 @@ particular date; @kbd{Mouse-3} brings up a menu of commonly used
 calendar features that are independent of any particular date.  To exit
 the calendar, type @kbd{q}.
 
+@iftex
   This chapter describes the basic calendar features.
-@inforef{Advanced Calendar/Diary Usage,, emacs-xtra}, for information
+@xref{Advanced Calendar/Diary Usage,,, emacs-xtra}, for information
 about more specialized features.
+@end iftex
 
 @menu
 * Calendar Motion::     Moving through the calendar; selecting a date.
@@ -43,6 +45,9 @@ about more specialized features.
 * Importing Diary::     Converting diary events to/from other formats.
 * Daylight Savings::    How to specify when daylight savings time is active.
 * Time Intervals::      Keeping track of time intervals.
+@ifnottex
+* Advanced Calendar/Diary Usage:: Advanced Calendar/Diary customization.
+@end ifnottex
 @end menu
 
 @node Calendar Motion
@@ -444,14 +449,19 @@ window.
   To view the distribution of holidays for all the dates shown in the
 calendar, use the @kbd{x} command.  This displays the dates that are
 holidays in a different face (or places a @samp{*} after these dates, if
-display with multiple faces is not available).  @inforef{Calendar
-Customizing, calendar-holiday-marker, emacs-xtra}.  The command applies
-both to the currently visible months and to other months that
-subsequently become visible by scrolling.  To turn marking off and erase
-the current marks, type @kbd{u}, which also erases any diary marks
-(@pxref{Diary}).  If the variable @code{mark-holidays-in-calendar} is
-non-@code{nil}, creating or updating the calendar marks holidays
-automatically.
+display with multiple faces is not available).
+@iftex
+@xref{Calendar Customizing, calendar-holiday-marker,, emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{Calendar Customizing, calendar-holiday-marker}.
+@end ifnottex
+  The command applies both to the currently visible months and to
+other months that subsequently become visible by scrolling.  To turn
+marking off and erase the current marks, type @kbd{u}, which also
+erases any diary marks (@pxref{Diary}).  If the variable
+@code{mark-holidays-in-calendar} is non-@code{nil}, creating or
+updating the calendar marks holidays automatically.
 
 @kindex a @r{(Calendar mode)}
 @findex list-calendar-holidays
@@ -1029,14 +1039,19 @@ current date is visible).
   To get a broader view of which days are mentioned in the diary, use
 the @kbd{m} command.  This displays the dates that have diary entries in
 a different face (or places a @samp{+} after these dates, if display
-with multiple faces is not available).  @inforef{Calendar Customizing,
-diary-entry-marker, emacs-xtra}.  The command applies both to the
-currently visible months and to other months that subsequently become
-visible by scrolling.  To turn marking off and erase the current marks,
-type @kbd{u}, which also turns off holiday marks (@pxref{Holidays}).
-If the variable @code{mark-diary-entries-in-calendar} is
-non-@code{nil}, creating or updating the calendar marks diary dates
-automatically.
+with multiple faces is not available).
+@iftex
+@xref{Calendar Customizing, diary-entry-marker,, emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{Calendar Customizing, diary-entry-marker}.
+@end ifnottex
+  The command applies both to the currently visible months and to
+other months that subsequently become visible by scrolling.  To turn
+marking off and erase the current marks, type @kbd{u}, which also
+turns off holiday marks (@pxref{Holidays}).  If the variable
+@code{mark-diary-entries-in-calendar} is non-@code{nil}, creating or
+updating the calendar marks diary dates automatically.
 
 @kindex s @r{(Calendar mode)}
 @findex show-all-diary-entries
@@ -1055,7 +1070,13 @@ can customize it like @code{lpr-region} (@pxref{Printing}).
   The command @kbd{M-x diary} displays the diary entries for the current
 date, independently of the calendar display, and optionally for the next
 few days as well; the variable @code{number-of-diary-entries} specifies
-how many days to include.  @inforef{Diary Customizing,, emacs-xtra}.
+how many days to include.
+@iftex
+@xref{Diary Customizing,,, emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{Diary Customizing, number-of-diary-entries}.
+@end ifnottex
 
   If you put @code{(diary)} in your @file{.emacs} file, this
 automatically displays a window with the day's diary entries, when you
@@ -1360,7 +1381,12 @@ entry applies to all months of the year.@refill
 specifying the name of a face or a single-character string to use when
 marking the entry in the calendar.  Most generally, sexp diary entries
 can perform arbitrary computations to determine when they apply.
-@inforef{Sexp Diary Entries,, emacs-xtra}.
+@iftex
+@xref{Sexp Diary Entries,,, emacs-xtra}.
+@end iftex
+@ifnottex
+@inforef{Sexp Diary Entries}.
+@end ifnottex
 
 @node Appointments
 @section Appointments
@@ -1479,8 +1505,14 @@ and adds the results to an Emacs diary file.  For example:
 
 @noindent
 You can use an @code{#include} directive to add the import file contents
-to the main diary file, if these are different files.  @inforef{Fancy Diary
-Display,, emacs-xtra}.
+to the main diary file, if these are different files.
+@iftex
+@xref{Fancy Diary Display,,, emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{Fancy Diary Display}.
+@end ifnottex
+
 
 @findex icalendar-export-file, icalendar-export-region
   Use @code{icalendar-export-file} to interactively export an entire
@@ -1607,6 +1639,10 @@ different name for this file by customizing the variable
 you change the value of any of timeclock's customizable variables, you
 should run the command @kbd{M-x timeclock-reread-log} to update the
 data in Emacs from the file.
+
+@ifnottex
+@include cal-xtra.texi
+@end ifnottex
 
 @ignore
    arch-tag: 4531ef09-9df3-449d-9c52-2b5a4a337f92
