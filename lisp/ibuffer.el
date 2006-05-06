@@ -325,9 +325,7 @@ directory, like `default-directory'."
   :group 'ibuffer)
 
 (defcustom ibuffer-compressed-file-name-regexp
-    (concat "\\.\\("
-	    (regexp-opt '("arj" "bgz" "bz2" "gz" "lzh" "taz" "tgz" "zip" "z"))
-	    "\\)$")
+  "\\.\\(arj\\|bgz\\|bz2\\|gz\\|lzh\\|taz\\|tgz\\|zip\\|z\\)$"
   "Regexp to match compressed file names."
   :type 'regexp
   :group 'ibuffer)
