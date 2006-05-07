@@ -296,7 +296,136 @@ The margin of the menu bar, in characters.  Default is 1.
 @node GTK resources
 @appendixsec GTK resources
 
-@c  Waiting for contents
+  The most common way to customize the GTK widgets Emacs uses (menus, dialogs
+tool bars and scroll bars) is by choosing an appropriate theme, for example
+with the GNOME theme selector.  You can also do Emacs specific customization
+by inserting GTK style directives in the file @file{~/.emacs.d/gtkrc}.  Some GTK
+themes ignore customizations in @file{~/.emacs.d/gtkrc} so not everything
+works with all themes.  To customize Emacs font, background, faces, etc., use
+the normal X resources (@pxref{Resources}).  We will present some examples of
+customizations here, but for a more detailed description, see the online manual.
+
+  The first example is just one line.  It changes the font on all GTK widgets
+to courier with size 12:
+
+@smallexample
+gtk-font-name = "courier 12"
+@end smallexample
+
+  The thing to note is that the font name is not an X font name, like
+-*-helvetica-medium-r-*--*-120-*-*-*-*-*-*, but a Pango font name.  A Pango
+font name is basically of the format "family style size", where the style
+is optional as in the case above.  A name with a style could be for example:
+
+@smallexample
+gtk-font-name = "helvetica bold 10"
+@end smallexample
+
+  To customize widgets you first define a style and then apply the style to
+the widgets.  Here is an example that sets the font for menus, but not
+for other widgets:
+
+@smallexample
+# @r{Define the style @samp{menufont}.}
+style "menufont"
+@{
+  font_name = "helvetica bold 14"  # This is a Pango font name
+@}
+
+# @r{Specify that widget type @samp{*emacs-menuitem*} uses @samp{menufont}.}
+widget "*emacs-menuitem*" style "menufont"
+@end smallexample
+
+The widget name in this example contains wildcards, so the style will be
+applied to all widgets that match "*emacs-menuitem*".  The widgets are
+named by the way they are contained, from the outer widget to the inner widget.
+So to apply the style "my_style" (not shown) with the full, absolute name, for
+the menubar and the scroll bar in Emacs we use:
+
+@smallexample
+widget "Emacs.pane.menubar" style "my_style"
+widget "Emacs.pane.emacs.verticalScrollBar" style "my_style"
+@end smallexample
+ 
+But to aoid having to type it all, wildcards are often used.  @samp{*}
+matches zero or more characters and @samp{?} matches one character.  So "*"
+matches all widgets.
+
+  Each widget has a class (for example GtkMenuItem) and a name (emacs-menuitem).
+You can assign styles by name or by class.  In this example we have used the
+class:
+
+@smallexample
+style "menufont"
+@{
+  font_name = "helvetica bold 14"
+@}
+
+widget_class "*GtkMenuBar" style "menufont"
+@end smallexample
+
+@noindent
+The names and classes for the GTK widgets Emacs uses are:
+
+@multitable {@code{verticalScrollbar plus}} {@code{GtkFileSelection} and some}
+@item @code{emacs-filedialog}
+@tab @code{GtkFileSelection}
+@item @code{emacs-dialog}
+@tab @code{GtkDialog}
+@item @code{Emacs}
+@tab @code{GtkWindow}
+@item @code{pane}
+@tab @code{GtkVHbox}
+@item @code{emacs}
+@tab @code{GtkFixed}
+@item @code{verticalScrollBar}
+@tab @code{GtkVScrollbar}
+@item @code{emacs-toolbar}
+@tab @code{GtkToolbar}
+@item @code{menubar}
+@tab @code{GtkMenuBar}
+@item @code{emacs-menuitem}
+@tab anything in menus
+@end multitable
+
+  GTK absolute names are quite strange when it comes to menus
+and dialogs.  The names do not start with @samp{Emacs}, as they are
+free-standing windows and not contained (in the GTK sense) by the
+Emacs GtkWindow.  To customize the dialogs and menus, use wildcards like this:
+
+@smallexample
+widget "*emacs-dialog*" style "my_dialog_style"
+widget "*emacs-filedialog* style "my_file_style"
+widget "*emacs-menuitem* style "my_menu_style"
+@end smallexample
+
+  If you specify a customization in @file{~/.emacs.d/gtkrc}, then it
+automatically applies only to Emacs, since other programs don't read
+that file.  For example, the drop down menu in the file dialog can not
+be customized by any absolute widget name, only by an absolute class
+name.  This is because the widgets in the drop down menu do not
+have names and the menu is not contained in the Emacs GtkWindow.  To
+have all menus in Emacs look the same, use this in
+@file{~/.emacs.d/gtkrc}:
+
+@smallexample
+widget_class "*Menu*" style "my_menu_style"
+@end smallexample
+
+  Here is a more elaborate example, showing how to change the parts of
+the scroll bar:
+
+@smallexample
+style "scroll"
+@{
+  fg[NORMAL] = "red"@ @ @ @ @ # @r{The arrow color.}
+  bg[NORMAL] = "yellow"@ @ # @r{The thumb and background around the arrow.}
+  bg[ACTIVE] = "blue"@ @ @ @ # @r{The trough color.}
+  bg[PRELIGHT] = "white"@ # @r{The thumb color when the mouse is over it.}
+@}
+
+widget "*verticalScrollBar*" style "scroll"
+@end smallexample
 
 @ignore
    arch-tag: e1856f29-2482-42c0-a990-233cdccd1f21
