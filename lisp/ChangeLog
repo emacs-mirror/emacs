@@ -1,3 +1,10 @@
+2006-05-07  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (add-to-history): Remove keep-dups arg.
+
+	* kmacro.el (kmacro-push-ring): Let-bind history-delete-duplicates
+	to nil around call to add-to-history.
+
 2006-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/syntax.el (syntax-ppss): Flush the cache before rather

@@ -3560,13 +3560,11 @@ first one.
 +++
 *** New function `add-to-history' adds an element to a history list.
 
-By default it removes duplicate elements from the history list it
-updates, but if `history-delete-duplicates' is nil or the function's
-optional argument KEEP-DUPS is non-nil, duplicate elements are not
-removed.
-
 Lisp packages should use this function to add elements to their
 history lists.
+
+If `history-delete-duplicates' is non-nil, it removes duplicates of
+the new element from the history list it updates.
 
 +++
 *** New function `rassq-delete-all'.
