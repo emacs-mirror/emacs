@@ -2229,7 +2229,7 @@ otherwise.  @inforef{Frame Commands, Frame Commands, emacs}.
 @cindex Regexps
 @cindex Regular expressions
 @cindex Differences between Unix and Emacs regexps
-@cindex Unix regeps, differences from Emacs
+@cindex Unix regexps, differences from Emacs
 @cindex Text strings, putting regexps in
 
 @inforef{Regexp Backslash, Regexp Backslash, emacs}.
@@ -3474,7 +3474,7 @@ see @ref{Packages that do not come with Emacs}.
 @uref{http://www.anc.ed.ac.uk/~stephen/emacs/ell.html, The Emacs Lisp
 List (ELL)}, maintained by @email{stephen@@anc.ed.ac.uk, Stephen Eglen},
 aims to provide one compact list with links to all of the current Emacs
-Lisp files on the internet.  The ELL can be browsed over the web, or
+Lisp files on the Internet.  The ELL can be browsed over the web, or
 from Emacs with @uref{http://www.anc.ed.ac.uk/~stephen/emacs/ell.el,
 the @file{ell} package}.
 
@@ -4878,7 +4878,7 @@ Emacs 18.  Write to Joel if you want the patches or package.
 @file{hebrew.el} requires a Hebrew screen font, but no other hardware support.
 Joel has a screen font for PCs running MS-DOS or GNU/Linux.
 
-You might also try to query archie for files named with @file{hebrew};
+You might also try to query Archie for files named with @file{hebrew};
 several ftp sites in Israel may also have the necessary files.
 
 @c ------------------------------------------------------------
