@@ -1,8 +1,10 @@
 2006-05-07  Romain Francoise  <romain@orebokech.com>
 
 	* faq.texi (Using regular expressions): Fix typo.
-	(Packages that do not come with Emacs, Right-to-left alphabets):
-	Fix capitalization.
+	(Packages that do not come with Emacs): Fix capitalization.
+	(Replacing text across multiple files): Expand node to explain how
+	to use `dired-do-query-replace-regexp' in more detail, based on
+	suggestion by Eric Hanchrow <offby1@blarg.net>.
 
 2006-05-06  Michael Albinus  <michael.albinus@gmx.de>
 

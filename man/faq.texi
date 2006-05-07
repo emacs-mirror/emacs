@@ -2261,15 +2261,35 @@ is actually typical for regexp syntax.)
 @cindex Replacing strings across files
 @cindex Multiple files, replacing across
 @cindex Files, replacing strings across multiple
+@cindex Recursive search/replace operations
 
-The ``tags'' feature of Emacs includes the command
-@code{tags-query-replace} which performs a query-replace across all the
-files mentioned in the @file{TAGS} file.  @inforef{Tags Search, Tags Search,
-emacs}.
+As of Emacs 19.29, Dired mode (@kbd{M-x dired @key{RET}}, or @kbd{C-x
+d}) supports the command @code{dired-do-query-replace} (@kbd{Q}), which
+allows users to replace regular expressions in multiple files.
 
-As of Emacs 19.29, Dired mode (@kbd{M-x dired @key{RET}}, or @kbd{C-x d})
-supports the command @code{dired-do-query-replace} (@kbd{Q}), which allows
-users to replace regular expressions in multiple files.
+You can use this command to perform search/replace operations on
+multiple files by following the following steps:
+
+@itemize @bullet
+@item
+Assemble a list of files you want to operate on with either
+@code{find-dired}, @code{find-name-dired} or @code{find-grep-dired}.
+
+@item
+Mark all files in the resulting Dired buffer using @kbd{t}.
+
+@item
+Use @kbd{Q} to start a @code{query-replace-regexp} session on the marked
+files.
+
+@item
+To accept all replacements in each file, hit @kbd{!}.
+@end itemize
+
+Another way to do the same thing is to use the ``tags'' feature of
+Emacs: it includes the command @code{tags-query-replace} which performs
+a query-replace across all the files mentioned in the @file{TAGS} file.
+@inforef{Tags Search, Tags Search, emacs}.
 
 @node Documentation for etags, Disabling backups, Replacing text across multiple files, Common requests
 @section Where is the documentation for @code{etags}?
@@ -4878,7 +4898,7 @@ Emacs 18.  Write to Joel if you want the patches or package.
 @file{hebrew.el} requires a Hebrew screen font, but no other hardware support.
 Joel has a screen font for PCs running MS-DOS or GNU/Linux.
 
-You might also try to query Archie for files named with @file{hebrew};
+You might also try to query archie for files named with @file{hebrew};
 several ftp sites in Israel may also have the necessary files.
 
 @c ------------------------------------------------------------
