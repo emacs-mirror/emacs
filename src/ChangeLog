@@ -1,3 +1,50 @@
+2006-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (Fmac_clear_font_name_table): Move defun to macfns.c.
+	(syms_of_mac): Likewise for defsubr.
+
+	* macfns.c (mac_set_font): New function.
+	(mac_frame_parm_handlers, syms_of_macfns): Replace x_set_font with it.
+	(mac_window) [TARGET_API_MAC_CARBON && MAC_OSX]: Specify
+	kWindowToolbarButtonAttribute when creating window.
+	(Fmac_clear_font_name_table): Move from macfns.c.
+	(syms_of_macfns): Likewise for defsubr.
+	[USE_MAC_FONT_PANEL] (Fmac_set_font_panel_visibility): New defun.
+	(syms_of_macfns) [USE_MAC_FONT_PANEL]: Defsubr it.
+
+	* macgui.h (USE_MAC_FONT_PANEL): Define to 1 if USE_ATSUI is set
+	and build is done on Mac OS X 10.2 and later.
+
+	* macselect.c (mac_do_receive_drag): Remove unused variable `index'.
+	(mac_store_services_event): Change return type in extern.
+
+	* macterm.c (XLoadQueryFont) [USE_ATSUI]: Set FMFontFamily value
+	to font->mac_fontnum.
+	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection): New function.
+	(x_new_focus_frame) [USE_MAC_FONT_PANEL]: Use it.
+	(QCfamily, QCweight, QCslant, Qnormal, Qbold, Qitalic): Add extern.
+	(QWindow) [MAC_OSX]: Likewise.
+	(Qfont) [USE_MAC_FONT_PANEL]: Likewise.
+	(Vmac_atsu_font_table) [USE_ATSUI]: New variable.
+	(syms_of_macterm) [USE_ATSUI]: Defvar it.
+	(Qtoolbar_switch_mode) [MAC_OSX]: New variable.
+	(Qpanel_closed, Qselection) [USE_MAC_FONT_PANEL]: Likewise.
+	(syms_of_macterm): Intern and staticpro them.
+	(init_font_name_table) [USE_ATSUI]: Set data to Vmac_atsu_font_table.
+	[TARGET_API_MAC_CARBON] (mac_store_event_ref_as_apple_event): New
+	function.
+	[USE_CARBON_EVENTS] (mac_handle_command_event): Use it.
+	[MAC_OSX] (mac_store_services_event): Likewise.
+	[USE_CARBON_EVENTS] (mac_handle_window_event) [MAC_OSX]: Handle
+	kEventWindowToolbarSwitchMode event.
+	(install_window_handler) [USE_CARBON_EVENTS && MAC_OSX]: Register it.
+	[MAC_OSX] (mac_store_services_event): Change return type to OSStatus.
+	[USE_MAC_FONT_PANEL] (mac_handle_font_event): New function.
+	(install_window_handler) [USE_MAC_FONT_PANEL]: Install it.
+	(XTread_socket): Select window on mouse click if x_focus_frame is NULL.
+
+	* macterm.h (mac_set_font_info_for_selection): Add extern.
+
 2006-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* image.c (Qduration) [MAC_OS]: New variable.

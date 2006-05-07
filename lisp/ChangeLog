@@ -1,3 +1,15 @@
+2006-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-utxt-to-string): Use `eq' instead of `='.
+	(mac-atsu-font-table, mac-font-panel-mode): Add defvars.
+	(mac-bytes-to-digits, mac-handle-toolbar-switch-mode)
+	(mac-handle-font-panel-closed, mac-handle-font-selection):
+	New functions.
+	(mac-font-panel-mode): New minor mode.
+	(mac-apple-event-map): Add bindings for toolbar toggle button and
+	font panel.
+	(menu-bar-showhide-menu): Add mac-font-panel-mode.
+
 2006-05-07  John Paul Wallington  <jpw@pobox.com>
 
 	* ibuffer.el (ibuffer-compressed-file-name-regexp): Avoid
