@@ -1,3 +1,20 @@
+2006-05-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler): Move speedbar
+	call to...
+	(gud-watch): ...here so speedbar is raised for already watched
+	expressions.
+	(gdb-speedbar-refresh): Delete function.
+	(gdb-speedbar-update, gdb-speedbar-timer-fn): New functions.
+	Use speedbar-timer-fn instead of speedbar-refresh (reverting
+	earlier change).
+	(gdb-var-evaluate-expression-handler) 
+	(gdb-var-list-children-handler-1, gdb-var-update-handler-1): 
+	Use it.
+
+	* speedbar.el (speedbar-timer-fn): Remove save-window-excursion.
+	Update localized contents for all buffers except ignored modes.
+
 2006-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-utxt-to-string): Use `eq' instead of `='.
