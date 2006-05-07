@@ -1019,7 +1019,7 @@ Mode line element that controls the format of the mode line.  If this
 is @code{nil}, no mode line will be displayed.
 
 @item header_line_format
-This field is analoguous to @code{mode_line_format} for the mode
+This field is analogous to @code{mode_line_format} for the mode
 line displayed at the top of windows.
 
 @item keymap

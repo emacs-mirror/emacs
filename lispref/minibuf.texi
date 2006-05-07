@@ -517,7 +517,7 @@ A history list for arguments that are Lisp expressions to evaluate.
 
 Several of the functions for minibuffer input have an argument called
 @var{initial} or @var{initial-contents}.  This is a mostly-deprecated
-feature for specifiying that the minibuffer should start out with
+feature for specifying that the minibuffer should start out with
 certain text, instead of empty as usual.
 
 If @var{initial} is a string, the minibuffer starts out containing the
