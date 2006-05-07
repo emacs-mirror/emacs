@@ -1,3 +1,8 @@
+2006-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/syntax.el (syntax-ppss): Flush the cache before rather
+	than after a buffer modification.
+
 2006-05-08  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-create-handler): Move speedbar
@@ -8,9 +13,8 @@
 	(gdb-speedbar-update, gdb-speedbar-timer-fn): New functions.
 	Use speedbar-timer-fn instead of speedbar-refresh (reverting
 	earlier change).
-	(gdb-var-evaluate-expression-handler) 
-	(gdb-var-list-children-handler-1, gdb-var-update-handler-1): 
-	Use it.
+	(gdb-var-evaluate-expression-handler)
+	(gdb-var-list-children-handler-1, gdb-var-update-handler-1): Use it.
 
 	* speedbar.el (speedbar-timer-fn): Remove save-window-excursion.
 	Update localized contents for all buffers except ignored modes.
@@ -29,14 +33,14 @@
 
 2006-05-07  John Paul Wallington  <jpw@pobox.com>
 
-	* ibuffer.el (ibuffer-compressed-file-name-regexp): Avoid
-	`regexp-opt'; simplify regexp for readability.
+	* ibuffer.el (ibuffer-compressed-file-name-regexp):
+	Avoid `regexp-opt'; simplify regexp for readability.
 
 2006-05-06  Eli Zaretskii  <eliz@gnu.org>
 
-	* ldefs-boot.el (dired-do-redisplay, dired-maybe-insert-subdir): 
-	* files.el (buffer-stale-function): 
-	* dired-aux.el (dired-do-redisplay, dired-maybe-insert-subdir): 
+	* ldefs-boot.el (dired-do-redisplay, dired-maybe-insert-subdir):
+	* files.el (buffer-stale-function):
+	* dired-aux.el (dired-do-redisplay, dired-maybe-insert-subdir):
 	* autorevert.el (global-auto-revert-non-file-buffers): Point Info
 	links to the main manual, not to emacs-xtra.
 

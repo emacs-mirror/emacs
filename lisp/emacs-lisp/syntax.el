@@ -27,9 +27,9 @@
 
 ;; The main exported function is `syntax-ppss'.  You might also need
 ;; to call `syntax-ppss-flush-cache' or to add it to
-;; after-change-functions'(although this is automatically done by
+;; before-change-functions'(although this is automatically done by
 ;; syntax-ppss when needed, but that might fail if syntax-ppss is
-;; called in a context where after-change-functions is temporarily
+;; called in a context where before-change-functions is temporarily
 ;; let-bound to nil).
 
 ;;; Todo:
@@ -94,10 +94,9 @@ point (where the PPSS is equivalent to nil).")
 	(setq syntax-ppss-last nil)
       (setcar syntax-ppss-last nil)))
   ;; Unregister if there's no cache left.  Sadly this doesn't work
-  ;; because `after-change-functions' is temporarily bound to nil here.
+  ;; because `before-change-functions' is temporarily bound to nil here.
   ;; (unless syntax-ppss-cache
-  ;;   (remove-hook 'after-change-functions
-  ;; 		 'syntax-ppss-after-change-function t))
+  ;;   (remove-hook 'before-change-functions 'syntax-ppss-flush-cache t))
   )
 
 (defvar syntax-ppss-stats
@@ -148,7 +147,7 @@ Point is at POS when this function returns."
 		 ;; too far from `pos', we could try to use other positions
 		 ;; in (nth 9 old-ppss), but that doesn't seem to happen in
 		 ;; practice and it would complicate this code (and the
-		 ;; after-change-function code even more).  But maybe it
+		 ;; before-change-function code even more).  But maybe it
 		 ;; would be useful in "degenerate" cases such as when the
 		 ;; whole file is wrapped in a set of parenthesis.
 		 (setq pt-min (or (car (nth 9 old-ppss))
@@ -176,10 +175,10 @@ Point is at POS when this function returns."
 		(setq cache (cdr cache)))
 	      (if cache (setq pt-min (caar cache) ppss (cdar cache)))
 
-	      ;; Setup the after-change function if necessary.
+	      ;; Setup the before-change function if necessary.
 	      (unless (or syntax-ppss-cache syntax-ppss-last)
-		(add-hook 'after-change-functions
-			  'syntax-ppss-flush-cache nil t))
+		(add-hook 'before-change-functions
+			  'syntax-ppss-flush-cache t t))
 
 	      ;; Use the best of OLD-POS and CACHE.
 	      (if (or (not old-pos) (< old-pos pt-min))
