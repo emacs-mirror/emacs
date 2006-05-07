@@ -449,7 +449,7 @@ list, put the length in the @code{history-length} property of the
 history list symbol.  The variable @code{history-delete-duplicates}
 specifies whether to delete duplicates in history.
 
-@defun add-to-history history-var newelt &optional maxelt keep-dups
+@defun add-to-history history-var newelt &optional maxelt
 This function adds a new element @var{newelt} to the history list
 stored in the variable @var{history-var}, and returns the updated
 history list.  By default, the list length is limited by the value
@@ -459,8 +459,7 @@ argument @var{maxelt} overrides that.  The possible values of
 @code{history-length}.
 
 Duplicate members are removed from the history list, unless
-@code{history-delete-duplicates} is @code{nil} or the second optional
-argument of this function @var{keep-dups} is non-@code{nil}.
+@code{history-delete-duplicates} is @code{nil}.
 @end defun
 
 @defvar history-length
