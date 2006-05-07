@@ -1252,7 +1252,6 @@ mac_do_receive_drag (window, refcon, drag)
      DragRef drag;
 {
   OSErr err;
-  UInt16 index;
   int num_types, i;
   Lisp_Object rest, str;
   FlavorType *types;
@@ -1350,7 +1349,7 @@ init_service_handler ()
 				  GetEventTypeCount (specs), specs, NULL, NULL);
 }
 
-extern OSErr mac_store_services_event P_ ((EventRef));
+extern OSStatus mac_store_services_event P_ ((EventRef));
 
 static OSStatus
 copy_scrap_flavor_data (from_scrap, to_scrap, flavor_type)
