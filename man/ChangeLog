@@ -1,5 +1,7 @@
 2006-05-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xresmini.texi (GTK resources): Inserted GTK description.
+
 	* xresources.texi (GTK resources): metafont should be menufont.
 
 2006-05-07  Romain Francoise  <romain@orebokech.com>
