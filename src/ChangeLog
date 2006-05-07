@@ -1,3 +1,7 @@
+2006-05-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (syms_of_minibuf) <history-length>: Fix typo in doc.
+
 2006-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (Fmac_clear_font_name_table): Move defun to macfns.c.
