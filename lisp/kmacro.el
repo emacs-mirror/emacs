@@ -349,7 +349,8 @@ and `kmacro-counter-format'.")
 (defun kmacro-push-ring (&optional elt)
   "Push ELT or current macro onto `kmacro-ring'."
   (when (setq elt (or elt (kmacro-ring-head)))
-    (add-to-history 'kmacro-ring elt kmacro-ring-max t)))
+    (let ((history-delete-duplicates nil))
+      (add-to-history 'kmacro-ring elt kmacro-ring-max))))
 
 
 (defun kmacro-split-ring-element (elt)
