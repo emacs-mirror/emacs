@@ -4768,16 +4768,6 @@ On successful conversion, return the result string, else return nil.  */)
 #endif	/* TARGET_API_MAC_CARBON */
 
 
-DEFUN ("mac-clear-font-name-table", Fmac_clear_font_name_table, Smac_clear_font_name_table, 0, 0, 0,
-       doc: /* Clear the font name table.  */)
-     ()
-{
-  check_mac ();
-  mac_clear_font_name_table ();
-  return Qnil;
-}
-
-
 static Lisp_Object
 mac_get_system_locale ()
 {
@@ -5249,7 +5239,6 @@ syms_of_mac ()
   defsubr (&Smac_get_preference);
   defsubr (&Smac_code_convert_string);
 #endif
-  defsubr (&Smac_clear_font_name_table);
 
   defsubr (&Smac_set_file_creator);
   defsubr (&Smac_set_file_type);
