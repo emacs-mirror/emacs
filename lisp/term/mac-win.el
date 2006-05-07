@@ -82,6 +82,8 @@
 (defvar mac-services-selection)
 (defvar mac-system-script-code)
 (defvar mac-apple-event-map)
+(defvar mac-atsu-font-table)
+(defvar mac-font-panel-mode)
 (defvar x-invocation-args)
 
 (defvar x-command-line-resources nil)
@@ -1260,7 +1262,7 @@ correspoinding TextEncodingBase value."
 					    (or encoding coding-system)))))
     (when str
       (setq str (decode-coding-string str coding-system))
-      (if (= encoding mac-text-encoding-mac-japanese-basic-variant)
+      (if (eq encoding mac-text-encoding-mac-japanese-basic-variant)
 	  ;; Does it contain Apple one-byte extensions other than
 	  ;; reverse solidus?
 	  (if (string-match "[\xa0\xfd-\xff]" str)
@@ -1583,6 +1585,17 @@ in `selection-converter-alist', which see."
 	(ash (lsh result extended-sign-len) (- extended-sign-len))
       result)))
 
+(defun mac-bytes-to-digits (bytes &optional from to)
+  (or from (setq from 0))
+  (or to (setq to (length bytes)))
+  (let ((len (- to from))
+	(val 0.0))
+    (dotimes (i len)
+      (setq val (+ (* val 256.0)
+		   (aref bytes (+ from (if (eq (byteorder) ?B) i
+					 (- len i 1)))))))
+    (format "%.0f" val)))
+
 (defun mac-ae-selection-range (ae)
 ;; #pragma options align=mac68k
 ;; typedef struct SelectionRange {
@@ -1668,6 +1681,78 @@ Currently the `mailto' scheme is supported."
 
 (define-key mac-apple-event-map [hicommand about] 'display-splash-screen)
 
+;;; Converted Carbon Events
+(defun mac-handle-toolbar-switch-mode (event)
+  "Toggle visibility of tool-bars in response to EVENT.
+With no keyboard modifiers, it toggles the visibility of the
+frame where the tool-bar toggle button was pressed.  With some
+modifiers, it changes global tool-bar visibility setting."
+  (interactive "e")
+  (let* ((ae (mac-event-ae event))
+	 (modifiers (cdr (mac-ae-parameter ae "kmod"))))
+    (if (and modifiers (not (string= modifiers "\000\000\000\000")))
+	;; Globally toggle tool-bar-mode if some modifier key is pressed.
+	(tool-bar-mode)
+      (let ((window-id (mac-bytes-to-digits (cdr (mac-ae-parameter ae))))
+	    (rest (frame-list))
+	    frame)
+	(while (and (null frame) rest)
+	  (if (string= (frame-parameter (car rest) 'window-id) window-id)
+	      (setq frame (car rest)))
+	  (setq rest (cdr rest)))
+	(set-frame-parameter frame 'tool-bar-lines
+			     (if (= (frame-parameter frame 'tool-bar-lines) 0)
+				 1 0))))))
+
+;; kEventClassWindow/kEventWindowToolbarSwitchMode
+(define-key mac-apple-event-map [window toolbar-switch-mode]
+  'mac-handle-toolbar-switch-mode)
+
+;;; Font panel
+(when (fboundp 'mac-set-font-panel-visibility)
+
+(define-minor-mode mac-font-panel-mode
+  "Toggle use of the font panel.
+With numeric ARG, display the panel bar if and only if ARG is positive."
+  :init-value nil
+  :global t
+  :group 'mac
+  (mac-set-font-panel-visibility mac-font-panel-mode))
+
+(defun mac-handle-font-panel-closed (event)
+  "Update internal status in response to font panel closed EVENT."
+  (interactive "e")
+  ;; Synchronize with the minor mode variable.
+  (mac-font-panel-mode 0))
+
+(defun mac-handle-font-selection (event)
+  "Change default face attributes according to font selection EVENT."
+  (interactive "e")
+  (let* ((ae (mac-event-ae event))
+	 (fm-font-size (cdr (mac-ae-parameter ae "fmsz")))
+	 (atsu-font-id (cdr (mac-ae-parameter ae "auid")))
+	 (attribute-values (gethash atsu-font-id mac-atsu-font-table)))
+    (if fm-font-size
+	(setq attribute-values
+	      `(:height ,(* 10 (mac-bytes-to-integer fm-font-size))
+			,@attribute-values)))
+    (apply 'set-face-attribute 'default (selected-frame) attribute-values)))
+
+;; kEventClassFont/kEventFontPanelClosed
+(define-key mac-apple-event-map [font panel-closed]
+  'mac-handle-font-panel-closed)
+;; kEventClassFont/kEventFontSelection
+(define-key mac-apple-event-map [font selection] 'mac-handle-font-selection)
+
+(define-key-after menu-bar-showhide-menu [mac-font-panel-mode]
+  (menu-bar-make-mm-toggle mac-font-panel-mode
+			   "Font Panel"
+			   "Show the font panel as a floating dialog")
+  'showhide-speedbar)
+
+) ;; (fboundp 'mac-set-font-panel-visibility)
+
+;;; Services
 (defun mac-services-open-file ()
   "Open the file specified by the selection value for Services."
   (interactive)
