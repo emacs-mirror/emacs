@@ -585,7 +585,7 @@ The color for the border shadow, on the top and the left.
 @cindex @file{~/.gtkrc-2.0} file
 @cindex @file{~/.emacs.d/gtkrc} file
 
-  If Emacs was built to use the GTK widget set, then the menu bar,
+  If Emacs was built to use the GTK widget set, then the menu bar, tool bar,
 scroll bar and the dialogs are customized with the standard GTK
 customization file, @file{~/.gtkrc-2.0}, or with the Emacs specific
 file @file{~/.emacs.d/gtkrc}.  We recommend that you use
@@ -603,13 +603,13 @@ widget names}).  Here is an example of how to change the font for
 Emacs menus:
 
 @smallexample
-# @r{Define the style @samp{metafont}.}
+# @r{Define the style @samp{menufont}.}
 style "menufont"
 @{
   font_name = "helvetica bold 14"  # This is a Pango font name
 @}
 
-# @r{Specify that widget type @samp{*emacs-menuitem*} uses @samp{metafont}.}
+# @r{Specify that widget type @samp{*emacs-menuitem*} uses @samp{menufont}.}
 widget "*emacs-menuitem*" style "menufont"
 @end smallexample
 
