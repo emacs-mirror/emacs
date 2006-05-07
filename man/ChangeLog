@@ -1,3 +1,7 @@
+2006-05-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (GTK resources): metafont should be menufont.
+
 2006-05-07  Romain Francoise  <romain@orebokech.com>
 
 	* faq.texi (Using regular expressions): Fix typo.
