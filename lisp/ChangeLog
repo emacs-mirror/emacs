@@ -1,3 +1,8 @@
+2006-05-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc--set-buffer-bind-dll-let*):
+	Use with-current-buffer.
+
 2006-05-07  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (add-to-history): Remove keep-dups arg.
