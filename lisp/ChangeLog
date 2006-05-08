@@ -1,3 +1,7 @@
+2006-05-08  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (lgrep, rgrep): Doc fixes.
+
 2006-05-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/ewoc.el (ewoc--set-buffer-bind-dll-let*):
