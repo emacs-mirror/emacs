@@ -4938,6 +4938,8 @@ choose_write_coding_system (start, end, filename,
   setup_coding_system (Fcheck_coding_system (val), coding);
 
  done_setup_coding:
+  if (coding->eol_type == CODING_EOL_UNDECIDED)
+    coding->eol_type = system_eol_type;
   if (!STRINGP (start) && !NILP (current_buffer->selective_display))
     coding->mode |= CODING_MODE_SELECTIVE_DISPLAY;
 }
