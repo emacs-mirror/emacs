@@ -666,6 +666,9 @@ extern Lisp_Object eol_mnemonic_unix, eol_mnemonic_dos, eol_mnemonic_mac;
 /* Mnemonic string to indicate type of end-of-line is not yet decided.  */
 extern Lisp_Object eol_mnemonic_undecided;
 
+/* Format of end-of-line decided by system.  */
+extern int system_eol_type;
+
 #ifdef emacs
 extern Lisp_Object Qfile_coding_system;
 extern Lisp_Object Qcall_process, Qcall_process_region;
