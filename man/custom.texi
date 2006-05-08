@@ -1977,11 +1977,12 @@ usual to do so.
 @subsection Disabling Commands
 @cindex disabled command
 
-  Disabling a command means causing it to require a confirmation
-before it can be executed.  The purpose of disabling a command is to
-prevent users from executing it by accident and being confused.
+  Disabling a command means that invoking it interactively asks for
+confirmation from the user.  The purpose of disabling a command is to
+prevent users from executing it by accident; we do this for commands
+that might be confusing to the uninitiated.
 
-  An attempt to invoke a disabled command interactively in Emacs
+  Attempting to invoke a disabled command interactively in Emacs
 displays a window containing the command's name, its documentation,
 and some instructions on what to do immediately; then Emacs asks for
 input saying whether to execute the command as requested, enable it
@@ -2021,8 +2022,8 @@ because Emacs has not read your init file.
 
   Whether a command is disabled is independent of what key is used to
 invoke it; disabling also applies if the command is invoked using
-@kbd{M-x}.  Disabling a command has no effect on calling it as a
-function from Lisp programs.
+@kbd{M-x}.  However, disabling a command has no effect on calling it
+as a function from Lisp programs.
 
 @node Syntax
 @section The Syntax Table
