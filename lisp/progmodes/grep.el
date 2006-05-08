@@ -639,9 +639,9 @@ The search is limited to file names matching shell pattern FILES.
 FILES may use abbreviations defined in `grep-files-aliases', e.g.
 entering `ch' is equivalent to `*.[ch]'.
 
-With \\[universal-argument] prefix, allow user to edit the constructed
-shell command line before it is executed.
-With two \\[universal-argument] prefixes, edit and run grep shell command.
+With \\[universal-argument] prefix, you can edit the constructed shell command line
+before it is executed.
+With two \\[universal-argument] prefixes, directly edit and run `grep-command'.
 
 Collect output in a buffer.  While grep runs asynchronously, you
 can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error]
@@ -687,14 +687,14 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 
 ;;;###autoload
 (defun rgrep (regexp &optional files dir)
-  "Recusively grep for REGEXP in FILES in directory tree rooted at DIR.
+  "Recursively grep for REGEXP in FILES in directory tree rooted at DIR.
 The search is limited to file names matching shell pattern FILES.
 FILES may use abbreviations defined in `grep-files-aliases', e.g.
 entering `ch' is equivalent to `*.[ch]'.
 
-With \\[universal-argument] prefix, allow user to edit the constructed
-shell command line before it is executed.
-With two \\[universal-argument] prefixes, edit and run grep-find shell command.
+With \\[universal-argument] prefix, you can edit the constructed shell command line
+before it is executed.
+With two \\[universal-argument] prefixes, directly edit and run `grep-find-command'.
 
 Collect output in a buffer.  While find runs asynchronously, you
 can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error]
