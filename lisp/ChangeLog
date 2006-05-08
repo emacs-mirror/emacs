@@ -1,3 +1,13 @@
+2006-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mwheel.el (mwheel-scroll): Make sure that when scrolling multiple
+	pages at a time, if we signal the end, we should indeed reach that end.
+
+2006-05-08  David Reitter  <david.reitter@gmail.com>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Only preserve messages
+	output during execution of the body.
+
 2006-05-08  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/grep.el (lgrep, rgrep): Doc fixes.
