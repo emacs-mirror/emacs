@@ -1366,7 +1366,7 @@ mouse."
 		    emulation-mode-map-alists nil
 		    buffer-undo-list t
 		    mode-line-format (propertize "---- %b %-"
-						 'face '(:weight bold))
+						 'face 'mode-line-buffer-id)
 		    fancy-splash-stop-time (+ (float-time)
 					      fancy-splash-max-time)
 		    timer (run-with-timer 0 fancy-splash-delay
@@ -1415,7 +1415,7 @@ we put it on this frame."
 	(with-current-buffer (get-buffer-create "GNU Emacs")
 	  (set (make-local-variable 'tab-width) 8)
           (set (make-local-variable 'mode-line-format)
-               (propertize "---- %b %-" 'face '(:weight bold)))
+               (propertize "---- %b %-" 'face 'mode-line-buffer-id))
 
           (if pure-space-overflow
               (insert "\
