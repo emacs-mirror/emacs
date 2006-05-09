@@ -863,7 +863,8 @@ using `make-temp-file', and the generated name is returned."
   "Set the current buffer as if it were visiting FILENAME."
   (save-excursion
     (goto-char (point-min))
-    (let ((coding
+    (let ((buffer-undo-list t)
+	  (coding
 	   (or coding-system-for-read
 	       (and set-auto-coding-function
 		    (save-excursion
