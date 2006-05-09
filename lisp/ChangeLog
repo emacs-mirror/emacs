@@ -1,3 +1,9 @@
+2006-05-09  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (rgrep): Set default directory of *grep*
+	buffer if we start M-x rgrep in the *grep* buffer and choose
+	a different base directory.
+
 2006-05-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-register-file-name-handlers): Enable Tramp
