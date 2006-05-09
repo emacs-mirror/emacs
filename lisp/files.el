@@ -2349,31 +2349,29 @@ asking you for confirmation."
 ;; For variables defined in the C source code the declaration should go here:
 
 ;; FIXME: Some variables should be moved according to the rules above.
-(let ((string-or-null (lambda (a) (or (stringp a) (null a)))))
-  (eval
-   `(mapc (lambda (pair)
-	    (put (car pair) 'safe-local-variable (cdr pair)))
-	  '((byte-compile-dynamic . booleanp)
-	    (byte-compile-dynamic-docstrings . booleanp)
-	    (byte-compile-warnings . booleanp)
-	    (c-basic-offset     .  integerp)
-	    (c-file-style       .  stringp)
-	    (c-indent-level     .  integerp)
-	    (comment-column     .  integerp)
-	    (compile-command    .  string-or-null-p)
-	    (find-file-visit-truename . booleanp)
-	    (fill-column        .  integerp)
-	    (fill-prefix        .  string-or-null-p)
-	    (indent-tabs-mode   .  booleanp) ;; C source code
-	    (kept-old-versions  .  integerp)
-	    (kept-new-versions  .  integerp)
-	    (left-margin        .  integerp)
-	    (no-byte-compile    .  booleanp)
-	    (no-update-autoloads . booleanp)
-	    (outline-regexp     .  string-or-null-p)
-	    (tab-width          .  integerp) ;; C source code
-	    (truncate-lines     .  booleanp) ;; C source code
-	    (version-control    .  symbolp)))))
+(mapc (lambda (pair)
+	(put (car pair) 'safe-local-variable (cdr pair)))
+      '((byte-compile-dynamic            . booleanp)
+	(byte-compile-dynamic-docstrings . booleanp)
+	(byte-compile-warnings           . booleanp)
+	(c-basic-offset                  . integerp)
+	(c-file-style                    . stringp)
+	(c-indent-level                  . integerp)
+	(comment-column                  . integerp)
+	(compile-command                 . string-or-null-p)
+	(find-file-visit-truename        . booleanp)
+	(fill-column                     . integerp)
+	(fill-prefix                     . string-or-null-p)
+	(indent-tabs-mode                . booleanp) ;; C source code
+	(kept-old-versions               . integerp)
+	(kept-new-versions               . integerp)
+	(left-margin                     . integerp)
+	(no-byte-compile                 . booleanp)
+	(no-update-autoloads             . booleanp)
+	(outline-regexp                  . string-or-null-p)
+	(tab-width                       . integerp) ;; C source code
+	(truncate-lines                  . booleanp) ;; C source code
+	(version-control                 . symbolp)))
 
 (put 'c-set-style 'safe-local-eval-function t)
 
