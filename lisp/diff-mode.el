@@ -633,8 +633,8 @@ Non-nil OLD means that we want the old file."
   "Convert unified diffs to context diffs.
 START and END are either taken from the region (if a prefix arg is given) or
 else cover the whole bufer."
-  (interactive (if current-prefix-arg
-		   (list (mark) (point))
+  (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
+		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
   (unless (markerp end) (setq end (copy-marker end)))
   (let (;;(diff-inhibit-after-change t)
@@ -722,7 +722,7 @@ START and END are either taken from the region
 \(when it is highlighted) or else cover the whole buffer.
 With a prefix argument, convert unified format to context format."
   (interactive (if (and transient-mark-mode mark-active)
-		   (list (mark) (point) current-prefix-arg)
+		   (list (region-beginning) (region-end) current-prefix-arg)
 		 (list (point-min) (point-max) current-prefix-arg)))
   (if to-context
       (diff-unified->context start end)
@@ -795,8 +795,8 @@ With a prefix argument, convert unified format to context format."
   "Reverse the direction of the diffs.
 START and END are either taken from the region (if a prefix arg is given) or
 else cover the whole bufer."
-  (interactive (if current-prefix-arg
-		   (list (mark) (point))
+  (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
+		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
   (unless (markerp end) (setq end (copy-marker end)))
   (let (;;(diff-inhibit-after-change t)
@@ -857,8 +857,8 @@ else cover the whole bufer."
   "Fixup the hunk headers (in case the buffer was modified).
 START and END are either taken from the region (if a prefix arg is given) or
 else cover the whole bufer."
-  (interactive (if current-prefix-arg
-		   (list (mark) (point))
+  (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
+		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
   (let ((inhibit-read-only t))
     (save-excursion
@@ -1069,7 +1069,7 @@ Only works for unified diffs."
 
 (defun diff-hunk-text (hunk destp char-offset)
   "Return the literal source text from HUNK as (TEXT . OFFSET).
-if DESTP is nil TEXT is the source, otherwise the destination text.
+If DESTP is nil, TEXT is the source, otherwise the destination text.
 CHAR-OFFSET is a char-offset in HUNK, and OFFSET is the corresponding
 char-offset in TEXT."
   (with-temp-buffer
@@ -1302,7 +1302,7 @@ With a prefix argument, try to REVERSE the hunk."
 `diff-jump-to-old-file' (or its opposite if the OTHER-FILE prefix arg
 is given) determines whether to jump to the old or the new file.
 If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[universal-argument])
-  then `diff-jump-to-old-file' is also set, for the next invocations."
+then `diff-jump-to-old-file' is also set, for the next invocations."
   (interactive (list current-prefix-arg last-input-event))
   ;; When pointing at a removal line, we probably want to jump to
   ;; the old location, and else to the new (i.e. as if reverting).
