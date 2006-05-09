@@ -1,3 +1,30 @@
+2006-05-09  Juri Linkov  <juri@jurta.org>
+
+	* battery.el (battery-linux-proc-acpi): Also try
+	`/proc/acpi/thermal_zone/THR2/temperature'.
+
+	* files.el <safe-local-variable>: Remove `eval' and `let' binding
+	for now unused lambda `string-or-null'.
+
+	* add-log.el (change-log-default-name): Put `string-or-null-p'
+	instead of lambda on `safe-local-variable' property.
+
+	* diff-mode.el (diff-context->unified): Use `region-beginning' and
+	`region-end' instead of `mark' and `point'.
+	(diff-unified->context, diff-reverse-direction, diff-fixup-modifs):
+	Operate on region in Transient Mark mode when the mark is active.
+	Use `region-beginning' and `region-end' instead of `mark' and
+	`point'.
+	(diff-hunk-text, diff-goto-source): Doc fix.
+
+	* startup.el (fancy-splash-screens, normal-splash-screen): Use
+	face `mode-line-buffer-id' for mode-line buffer face instead of
+	hard-coded `(:weight bold)'.
+
+	* arc-mode.el (archive-set-buffer-as-visiting-file): Bind
+	buffer-undo-list to t (undo-ask is reproducible by visiting
+	nested archives).
+
 2006-05-09  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/grep.el (rgrep): Set default directory of *grep*
