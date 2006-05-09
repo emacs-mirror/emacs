@@ -2097,7 +2097,7 @@ push_key_description (c, p, force_multibyte)
   c2 = c & ~(alt_modifier | ctrl_modifier | hyper_modifier
 	     | meta_modifier | shift_modifier | super_modifier);
 
-  valid_p = SINGLE_BYTE_CHAR_P (c) || char_valid_p (c, 0);
+  valid_p = SINGLE_BYTE_CHAR_P (c2) || char_valid_p (c2, 0);
   if (! valid_p)
     {
       /* KEY_DESCRIPTION_SIZE is large enough for this.  */
