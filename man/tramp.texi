@@ -1831,9 +1831,9 @@ should you want to add your own.
 @section Filename completion
 @cindex filename completion
 
-Filename completion works with @value{tramp} for both completing
-methods, user names and machine names (except multi hop methods) as
-well as for files on remote machines.
+Filename completion works with @value{tramp} for completion of method
+names, of user names and of machine names (except multi-hop methods)
+as well as for completion of file names on remote machines.
 @ifset emacs
 In order to enable this, Partial Completion mode must be set on.
 @ifinfo

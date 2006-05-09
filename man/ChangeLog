@@ -1,3 +1,7 @@
+2006-05-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Filename completion): Improve wording.
+
 2006-05-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xresmini.texi (GTK resources): Inserted GTK description.
