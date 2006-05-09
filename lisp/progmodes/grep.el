@@ -721,16 +721,16 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
     (if (null files)
 	(if (not (string= regexp grep-find-command))
 	    (compilation-start regexp 'grep-mode))
-      (let* ((default-directory (file-name-as-directory (expand-file-name dir)))
-	     (command (grep-expand-template
-		       grep-find-template
-		       regexp
-		       (concat "\\( -name "
-			       (mapconcat #'shell-quote-argument
-					  (split-string files)
-					  " -o -name ")
-			       " \\)")
-		       default-directory
+      (setq dir (file-name-as-directory (expand-file-name dir)))
+      (let ((command (grep-expand-template
+		      grep-find-template
+		      regexp
+		      (concat "\\( -name "
+			      (mapconcat #'shell-quote-argument
+					 (split-string files)
+					 " -o -name ")
+			      " \\)")
+		       dir
 		       (and grep-find-ignored-directories
 			    (concat "\\( -path '*/"
 				    (mapconcat #'identity
@@ -743,7 +743,11 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 		    (read-from-minibuffer "Confirm: "
 					  command nil nil 'grep-find-history))
 	    (add-to-history 'grep-find-history command))
-	  (compilation-start command 'grep-mode))))))
+	  (let ((default-directory dir))
+	    (compilation-start command 'grep-mode))
+	  ;; Set default-directory if we started rgrep in the *grep* buffer.
+	  (if (eq next-error-last-buffer (current-buffer))
+	      (setq default-directory dir)))))))
 
 
 (provide 'grep)
