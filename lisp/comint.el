@@ -817,9 +817,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	  (let* ((keys (this-command-keys))
 		 (last-key (and (vectorp keys) (aref keys (1- (length keys)))))
 		 (fun (and last-key (lookup-key global-map (vector last-key)))))
-	    (goto-char pos)
 	    (and fun (call-interactively fun)))
-	(setq pos (point))
 	;; There's previous input at POS, insert it at the end of the buffer.
 	(goto-char (point-max))
 	;; First delete any old unsent input at the end
@@ -829,6 +827,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	 (point))
 	;; Insert the input at point
 	(insert (field-string-no-properties pos))))))
+
 
 ;; Input history processing in a buffer
 ;; ===========================================================================
