@@ -458,7 +458,7 @@ executed once when the buffer is created."
     (define-key map "\C-c\C-c" 	  'comint-interrupt-subjob)
     (define-key map "\C-c\C-z" 	  'comint-stop-subjob)
     (define-key map "\C-c\C-\\"   'comint-quit-subjob)
-    (define-key map "\C-c\C-m" 	  'comint-insert-input)
+    (define-key map "\C-c\C-m" 	  'comint-copy-old-input)
     (define-key map "\C-c\C-o" 	  'comint-delete-output)
     (define-key map "\C-c\C-r" 	  'comint-show-output)
     (define-key map "\C-c\C-e" 	  'comint-show-maximum-output)
@@ -502,7 +502,7 @@ executed once when the buffer is created."
     (define-key map [menu-bar inout kill-input]
       '("Kill Current Input" . comint-kill-input))
     (define-key map [menu-bar inout copy-input]
-      '("Copy Old Input" . comint-insert-input))
+      '("Copy Old Input" . comint-copy-old-input))
     (define-key map [menu-bar inout forward-matching-history]
       '("Forward Matching Input..." . comint-forward-matching-input))
     (define-key map [menu-bar inout backward-matching-history]
@@ -797,36 +797,28 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	(set-process-coding-system proc decoding encoding))
     proc))
 
-(defun comint-insert-input (&optional event)
+(defun comint-insert-input (event)
   "In a Comint buffer, set the current input to the previous input at point."
   ;; This doesn't use "e" because it is supposed to work
   ;; for events without parameters.
-  (interactive (list last-input-event))
-  (when event
-    (posn-set-point (event-end event)))
-  (if comint-use-prompt-regexp
-      (let ((input (funcall comint-get-old-input))
-	    (process (get-buffer-process (current-buffer))))
-	(if (not process)
-	    (error "Current buffer has no process")
-	  (goto-char (process-mark process))
-	  (insert input)))
-    (let ((pos (point)))
-      (if (not (eq (field-at-pos pos) 'input))
-	  ;; No input at POS, fall back to the global definition.
-	  (let* ((keys (this-command-keys))
-		 (last-key (and (vectorp keys) (aref keys (1- (length keys)))))
-		 (fun (and last-key (lookup-key global-map (vector last-key)))))
-	    (and fun (call-interactively fun)))
-	;; There's previous input at POS, insert it at the end of the buffer.
-	(goto-char (point-max))
-	;; First delete any old unsent input at the end
-	(delete-region
-	 (or (marker-position comint-accum-marker)
-	     (process-mark (get-buffer-process (current-buffer))))
-	 (point))
-	;; Insert the input at point
-	(insert (field-string-no-properties pos))))))
+  (interactive "e")
+  (mouse-set-point event)
+  (let ((pos (point)))
+    (if (not (eq (field-at-pos pos) 'input))
+	;; No input at POS, fall back to the global definition.
+	(let* ((keys (this-command-keys))
+	       (last-key (and (vectorp keys) (aref keys (1- (length keys)))))
+	       (fun (and last-key (lookup-key global-map (vector last-key)))))
+	  (and fun (call-interactively fun)))
+      ;; There's previous input at POS, insert it at the end of the buffer.
+      (goto-char (point-max))
+      ;; First delete any old unsent input at the end
+      (delete-region
+       (or (marker-position comint-accum-marker)
+	   (process-mark (get-buffer-process (current-buffer))))
+       (point))
+      ;; Insert the input at point
+      (insert (field-string-no-properties pos)))))
 
 
 ;; Input history processing in a buffer
@@ -1904,6 +1896,17 @@ the current line with any initial string matching the regexp
 	(field-string-no-properties bof)
       (comint-bol)
       (buffer-substring-no-properties (point) (line-end-position)))))
+
+(defun comint-copy-old-input ()
+  "Insert after prompt old input at point as new input to be edited.
+Calls `comint-get-old-input' to get old input."
+  (interactive)
+  (let ((input (funcall comint-get-old-input))
+	(process (get-buffer-process (current-buffer))))
+    (if (not process)
+	(error "Current buffer has no process")
+      (goto-char (process-mark process))
+      (insert input))))
 
 (defun comint-skip-prompt ()
   "Skip past the text matching regexp `comint-prompt-regexp'.
