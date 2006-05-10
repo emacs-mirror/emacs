@@ -4100,7 +4100,7 @@ x_new_focus_frame (dpyinfo, frame)
 
 #if USE_MAC_FONT_PANEL
       if (frame)
-	mac_set_font_info_for_selection (frame);
+	mac_set_font_info_for_selection (frame, DEFAULT_FACE_ID, 0);
 #endif
     }
 
@@ -6348,7 +6348,12 @@ x_free_frame_resources (f)
   f->output_data.mac = NULL;
 
   if (f == dpyinfo->x_focus_frame)
-    dpyinfo->x_focus_frame = 0;
+    {
+      dpyinfo->x_focus_frame = 0;
+#if USE_MAC_FONT_PANEL
+      mac_set_font_info_for_selection (NULL, DEFAULT_FACE_ID, 0);
+#endif
+    }
   if (f == dpyinfo->x_focus_event_frame)
     dpyinfo->x_focus_event_frame = 0;
   if (f == dpyinfo->x_highlight_frame)
@@ -8316,27 +8321,40 @@ x_find_ccl_program (fontp)
 
 #if USE_MAC_FONT_PANEL
 OSStatus
-mac_set_font_info_for_selection (f)
+mac_set_font_info_for_selection (f, face_id, c)
      struct frame *f;
+     int face_id, c;
 {
   OSStatus err;
+  EventTargetRef target = NULL;
+  XFontStruct *font = NULL;
 
-  if (f == NULL)
-    err = SetFontInfoForSelection (kFontSelectionATSUIType, 0, NULL, NULL);
+  if (f)
+    {
+      target = GetWindowEventTarget (FRAME_MAC_WINDOW (f));
+
+      if (FRAME_FACE_CACHE (f) && CHAR_VALID_P (c, 0))
+	{
+	  struct face *face;
+
+	  face_id = FACE_FOR_CHAR (f, FACE_FROM_ID (f, face_id), c);
+	  face = FACE_FROM_ID (f, face_id);
+	  font = face->font;
+	}
+    }
+
+  if (font == NULL)
+    err = SetFontInfoForSelection (kFontSelectionATSUIType, 0, NULL, target);
   else
     {
-      struct face *default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-      XFontStruct *ascii_font = default_face->ascii_face->font;
-      EventTargetRef target = GetWindowEventTarget (FRAME_MAC_WINDOW (f));
-
-      if (ascii_font->mac_fontnum != -1)
+      if (font->mac_fontnum != -1)
 	{
 	  FontSelectionQDStyle qd_style;
 
 	  qd_style.version = kFontSelectionQDStyleVersionZero;
-	  qd_style.instance.fontFamily = ascii_font->mac_fontnum;
-	  qd_style.instance.fontStyle = ascii_font->mac_fontface;
-	  qd_style.size = ascii_font->mac_fontsize;
+	  qd_style.instance.fontFamily = font->mac_fontnum;
+	  qd_style.instance.fontStyle = font->mac_fontface;
+	  qd_style.size = font->mac_fontsize;
 	  qd_style.hasColor = false;
 
 	  err = SetFontInfoForSelection (kFontSelectionQDType,
@@ -8344,7 +8362,7 @@ mac_set_font_info_for_selection (f)
 	}
       else
 	err = SetFontInfoForSelection (kFontSelectionATSUIType,
-				       1, &ascii_font->mac_style, target);
+				       1, &font->mac_style, target);
     }
 
   return err;
@@ -8461,7 +8479,7 @@ void remove_drag_handler P_ ((WindowRef));
 #if USE_CARBON_EVENTS
 #ifdef MAC_OSX
 extern void init_service_handler ();
-static Lisp_Object Qservices, Qpaste, Qperform;
+static Lisp_Object Qservice, Qpaste, Qperform;
 #endif
 /* Window Event Handler */
 static pascal OSStatus mac_handle_window_event (EventHandlerCallRef,
@@ -9379,7 +9397,7 @@ mac_handle_font_event (next_handler, event, data)
 
 #ifdef MAC_OSX
 OSStatus
-mac_store_services_event (event)
+mac_store_service_event (event)
      EventRef event;
 {
   OSStatus err;
@@ -9412,7 +9430,7 @@ mac_store_services_event (event)
       abort ();
     }
 
-  err = mac_store_event_ref_as_apple_event (0, 0, Qservices, id_key,
+  err = mac_store_event_ref_as_apple_event (0, 0, Qservice, id_key,
 					    event, num_params,
 					    names, types);
 
@@ -9930,8 +9948,13 @@ XTread_socket (sd, expected, hold_quit)
 		break;
 
 	      case inContent:
-		if (dpyinfo->x_focus_frame == NULL
-		    || window_ptr != FRAME_MAC_WINDOW (dpyinfo->x_focus_frame))
+		if (
+#if TARGET_API_MAC_CARBON
+		    FrontNonFloatingWindow ()
+#else
+		    FrontWindow ()
+#endif
+		    != window_ptr)
 		  SelectWindow (window_ptr);
 		else
 		  {
@@ -11034,7 +11057,7 @@ syms_of_macterm ()
   Qselection    = intern ("selection");     staticpro (&Qselection);
 #endif
 
-  Qservices    = intern ("services");	  staticpro (&Qservices);
+  Qservice     = intern ("service");	  staticpro (&Qservice);
   Qpaste       = intern ("paste");	  staticpro (&Qpaste);
   Qperform     = intern ("perform");	  staticpro (&Qperform);
 #endif
