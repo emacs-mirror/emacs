@@ -1844,6 +1844,19 @@ unconditionally; @code{nil} means ignore them; anything else means ask
 the user what to do for each file.  The default value is @code{maybe}.
 @end defopt
 
+@defopt safe-local-eval-forms
+This variable holds a list of expressions that are safe to
+evaluate when found in the @samp{Eval:} ``variable'' in a file
+local variables list.
+@end defopt
+
+  If the expression is a function call and the function has a
+@code{safe-local-eval-function} property, the property value
+determines whether the expression is safe to evaluate.  The property
+value can be a predicate to call to test the expression, a list of
+such predicates (it's safe if any predicate succeeds), or @code{t}
+(always safe provided the arguments are constant).
+
   Text properties are also potential loopholes, since their values
 could include functions to call.  So Emacs discards all text
 properties from string values specified for file local variables.
