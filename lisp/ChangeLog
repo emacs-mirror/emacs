@@ -1,3 +1,8 @@
+2006-05-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/crm.el (completing-read-multiple): Properly handle
+	return value of read-from-minibuffer for empty input.
+
 2006-05-09  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-insert-input): Remove redundant calls to setq
