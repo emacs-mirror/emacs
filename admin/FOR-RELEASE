@@ -36,8 +36,6 @@ point-left text properties.
 
 ** Is there a basic problem with cl-byte-compile-compiler-macro?
 
-** Cursor position display bug from Yamamoto Mistuharu, 11 Apr 2006.
-
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
 .emacs file, and then reduce Emacs frame width to "something quite narrow":
 	(setq-default truncate-lines t)
