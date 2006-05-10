@@ -7899,8 +7899,6 @@ gif_load (f, img)
 #else  /* !HAVE_GIF */
 
 #ifdef MAC_OS
-static Lisp_Object Qduration;
-
 static int
 gif_load (f, img)
      struct frame *f;
@@ -8067,9 +8065,21 @@ gif_load (f, img)
     DisposeHandle (dh);
 
   /* Save GIF image extension data for `image-extension-data'.
-     Format is (count IMAGES duration DURATION).  */
-  img->data.lisp_val = list4 (Qcount, make_number (nsamples), Qduration,
-			      make_float ((double)duration / time_scale));
+     Format is (count IMAGES 0xf9 GRAPHIC_CONTROL_EXTENSION_BLOCK).  */
+  {
+    unsigned char gce[4];
+    int centisec = ((float)duration / time_scale) * 100.0f + 0.5f;
+
+    /* Fill the delay time field.  */
+    gce[1] = centisec & 0xff;
+    gce[2] = (centisec >> 8) & 0xff;
+    /* We don't know about other fields.  */
+    gce[0] = gce[3] = 0;
+
+    img->data.lisp_val = list4 (Qcount, make_number (nsamples),
+				make_number (0xf9),
+				make_unibyte_string (gce, 4));
+  }
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
@@ -8624,11 +8634,6 @@ non-numeric, there is no explicit limit on the size of images.  */);
   Qgif = intern ("gif");
   staticpro (&Qgif);
   ADD_IMAGE_TYPE(Qgif);
-#endif
-
-#ifdef MAC_OS
-  Qduration = intern ("duration");
-  staticpro (&Qduration);
 #endif
 
 #if defined (HAVE_PNG) || defined (MAC_OS)
