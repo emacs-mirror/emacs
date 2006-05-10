@@ -812,7 +812,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	  (goto-char (process-mark process))
 	  (insert input)))
     (let ((pos (point)))
-      (if (not (eq (field-at-point pos) 'input))
+      (if (not (eq (field-at-pos pos) 'input))
 	  ;; No input at POS, fall back to the global definition.
 	  (let* ((keys (this-command-keys))
 		 (last-key (and (vectorp keys) (aref keys (1- (length keys)))))

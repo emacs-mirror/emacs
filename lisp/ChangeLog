@@ -5,7 +5,7 @@
 
 2006-05-10  Miles Bader  <miles@gnu.org>
 
-	* subr.el (field-at-point): New function.
+	* subr.el (field-at-pos): New function.
 
 	* comint.el (comint-insert-input): Use it.
 
