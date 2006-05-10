@@ -79,7 +79,7 @@
 (eval-when-compile (require 'url))
 
 (defvar mac-charset-info-alist)
-(defvar mac-services-selection)
+(defvar mac-service-selection)
 (defvar mac-system-script-code)
 (defvar mac-apple-event-map)
 (defvar mac-atsu-font-table)
@@ -1713,7 +1713,7 @@ modifiers, it changes global tool-bar visibility setting."
 
 (define-minor-mode mac-font-panel-mode
   "Toggle use of the font panel.
-With numeric ARG, display the panel bar if and only if ARG is positive."
+With numeric ARG, display the font panel if and only if ARG is positive."
   :init-value nil
   :global t
   :group 'mac
@@ -1753,37 +1753,37 @@ With numeric ARG, display the panel bar if and only if ARG is positive."
 ) ;; (fboundp 'mac-set-font-panel-visibility)
 
 ;;; Services
-(defun mac-services-open-file ()
+(defun mac-service-open-file ()
   "Open the file specified by the selection value for Services."
   (interactive)
-  (find-file-existing (x-selection-value mac-services-selection)))
+  (find-file-existing (x-selection-value mac-service-selection)))
 
-(defun mac-services-open-selection ()
+(defun mac-service-open-selection ()
   "Create a new buffer containing the selection value for Services."
   (interactive)
   (switch-to-buffer (generate-new-buffer "*untitled*"))
-  (insert (x-selection-value mac-services-selection))
+  (insert (x-selection-value mac-service-selection))
   (sit-for 0)
   (save-buffer) ; It pops up the save dialog.
   )
 
-(defun mac-services-mail-selection ()
+(defun mac-service-mail-selection ()
   "Prepare a mail buffer containing the selection value for Services."
   (interactive)
   (compose-mail)
   (rfc822-goto-eoh)
   (forward-line 1)
-  (insert (x-selection-value mac-services-selection) "\n"))
+  (insert (x-selection-value mac-service-selection) "\n"))
 
-(defun mac-services-mail-to ()
+(defun mac-service-mail-to ()
   "Prepare a mail buffer to be sent to the selection value for Services."
   (interactive)
-  (compose-mail (x-selection-value mac-services-selection)))
+  (compose-mail (x-selection-value mac-service-selection)))
 
-(defun mac-services-insert-text ()
+(defun mac-service-insert-text ()
   "Insert the selection value for Services."
   (interactive)
-  (let ((text (x-selection-value mac-services-selection)))
+  (let ((text (x-selection-value mac-service-selection)))
     (if (not buffer-read-only)
 	(insert text)
       (kill-new text)
@@ -1791,15 +1791,17 @@ With numeric ARG, display the panel bar if and only if ARG is positive."
        (substitute-command-keys
 	"The text from the Services menu can be accessed with \\[yank]")))))
 
-(define-key mac-apple-event-map [services paste] 'mac-services-insert-text)
-(define-key mac-apple-event-map [services perform open-file]
-  'mac-services-open-file)
-(define-key mac-apple-event-map [services perform open-selection]
-  'mac-services-open-selection)
-(define-key mac-apple-event-map [services perform mail-selection]
-  'mac-services-mail-selection)
-(define-key mac-apple-event-map [services perform mail-to]
-  'mac-services-mail-to)
+;; kEventClassService/kEventServicePaste
+(define-key mac-apple-event-map [service paste] 'mac-service-insert-text)
+;; kEventClassService/kEventServicePerform
+(define-key mac-apple-event-map [service perform open-file]
+  'mac-service-open-file)
+(define-key mac-apple-event-map [service perform open-selection]
+  'mac-service-open-selection)
+(define-key mac-apple-event-map [service perform mail-selection]
+  'mac-service-mail-selection)
+(define-key mac-apple-event-map [service perform mail-to]
+  'mac-service-mail-to)
 
 (defun mac-dispatch-apple-event (event)
   "Dispatch EVENT according to the keymap `mac-apple-event-map'."
