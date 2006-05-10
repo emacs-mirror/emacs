@@ -1956,6 +1956,13 @@ Otherwise, return nil."
   "Return non-nil if OBJECT is one of the two canonical boolean values: t or nil."
   (memq object '(nil t)))
 
+(defun field-at-point (pos)
+  "Return the field at position POS, taking stickiness etc into account"
+  (let ((raw-field (get-char-property (field-beginning pos) 'field)))
+    (if (eq raw-field 'boundary)
+	(get-char-property (1- (field-end pos)) 'field)
+      raw-field)))
+
 
 ;;;; Support for yanking and text properties.
 
