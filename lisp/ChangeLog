@@ -1,3 +1,14 @@
+2006-05-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* comint.el (comint-insert-input): Make it work when
+	comint-use-prompt-regexp is t.
+
+2006-05-10  Miles Bader  <miles@gnu.org>
+
+	* subr.el (field-at-point): New function.
+
+	* comint.el (comint-insert-input): Use it.
+
 2006-05-09  Juri Linkov  <juri@jurta.org>
 
 	* battery.el (battery-linux-proc-acpi): Also try
