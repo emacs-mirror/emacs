@@ -1,3 +1,9 @@
+2006-05-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc--dll-create, ewoc--node-delete)
+	(ewoc--node-enter-first, ewoc--node-enter-last)
+	(ewoc--delete-node-internal): Merge funcs into unique callers.
+
 2006-05-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/crm.el (completing-read-multiple): Properly handle
