@@ -1,3 +1,17 @@
+2006-05-10  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlw-shell.el (idlwave-shell-move-or-history):
+	Remove spurious move to point-max (new comint behavior fixes).
+
+	* progmodes/idlwave.el (idlwave-push-mark): Removed obsolete
+	compatibility function (Emacs 18/19).
+	(idlwave-is-continuation-line): Always return point at start of
+	previous non-blank continuation line.  
+	`keyword-parameters': Fix continued comment font-lock matcher.
+	(idlwave-font-lock-fontify-region): Written, use as
+	font-lock-fontify-region-function, to fix continued keyword
+	fontification issues.
+
 2006-05-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-font-panel-mode): Doc fix.
