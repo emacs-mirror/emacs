@@ -1,3 +1,8 @@
+2006-05-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* variables.texi (File Local Variables): Recommend to quote lambda
+	expressions in safe-local-variable property.
+
 2006-05-09  Richard Stallman  <rms@gnu.org>
 
 	* variables.texi (File Local Variables): Document
