@@ -1144,7 +1144,7 @@ they are expressions; otherwise they are strings.
 \(That convention is designed to do the right thing for
 recursive uses of the minibuffer.)")
 (setq minibuffer-history-variable 'minibuffer-history)
-(setq minibuffer-history-position nil)
+(setq minibuffer-history-position nil)  ;; Defvar is in C code.
 (defvar minibuffer-history-search-history nil)
 
 (defvar minibuffer-text-before-history nil

@@ -221,16 +221,12 @@ dll bound to ewoc--dll, and VARLIST bound as in a let*.
 dll will be bound when VARLIST is initialized, but the current
 buffer will *not* have been changed.
 Return value of last form in FORMS."
-  (let ((old-buffer (make-symbol "old-buffer"))
-	(hnd (make-symbol "ewoc")))
-    `(let* ((,old-buffer (current-buffer))
-            (,hnd ,ewoc)
+  (let ((hnd (make-symbol "ewoc")))
+    `(let* ((,hnd ,ewoc)
             (dll (ewoc--dll ,hnd))
             ,@varlist)
-      (set-buffer (ewoc--buffer ,hnd))
-      (unwind-protect
-           (progn ,@forms)
-        (set-buffer ,old-buffer)))))
+       (with-current-buffer (ewoc--buffer ,hnd)
+         ,@forms))))
 
 (defmacro ewoc--set-buffer-bind-dll (ewoc &rest forms)
   `(ewoc--set-buffer-bind-dll-let* ,ewoc nil ,@forms))
@@ -322,8 +318,8 @@ be inserted at the bottom of the ewoc."
       (unless header (setq header ""))
       (unless footer (setq footer ""))
       (setf (ewoc--node-start-marker dll) (copy-marker pos))
-      (let ((foot (ewoc--create-node footer (lambda (x) (insert footer)) pos))
-	    (head (ewoc--create-node header (lambda (x) (insert header)) pos)))
+      (let ((foot (ewoc--create-node footer 'insert pos))
+	    (head (ewoc--create-node header 'insert pos)))
 	(ewoc--node-enter-first dll head)
 	(ewoc--node-enter-last  dll foot)
 	(setf (ewoc--header new-ewoc) head)
@@ -601,8 +597,8 @@ Return nil if the buffer has been deleted."
   "Set the HEADER and FOOTER of EWOC."
   (setf (ewoc--node-data (ewoc--header ewoc)) header)
   (setf (ewoc--node-data (ewoc--footer ewoc)) footer)
-  (ewoc--refresh-node (lambda (x) (insert header)) (ewoc--header ewoc))
-  (ewoc--refresh-node (lambda (x) (insert footer)) (ewoc--footer ewoc)))
+  (ewoc--refresh-node 'insert (ewoc--header ewoc))
+  (ewoc--refresh-node 'insert (ewoc--footer ewoc)))
 
 
 (provide 'ewoc)

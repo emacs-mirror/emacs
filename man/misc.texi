@@ -2383,7 +2383,7 @@ a buffer containing thumbnails, corresponding to the marked files.
 (@code{tumme-display-thumbnail-original-image}) to display a sized
 version of it in another window.  This sizes the image to fit the
 window.  Use the arrow keys to move around in the buffer.  For easy
-browing, type @kbd{SPC} (@code{tumme-display-next-thumbnail-original})
+browsing, type @kbd{SPC} (@code{tumme-display-next-thumbnail-original})
 to advance and display the next image.  Typing @kbd{DEL}
 (@code{tumme-display-previous-thumbnail-original}) backs up to the
 previous thumbnail and displays that instead.

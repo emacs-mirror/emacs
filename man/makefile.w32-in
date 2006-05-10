@@ -30,7 +30,7 @@ infodir = $(srcdir)/../info
 # The makeinfo program is part of the Texinfo distribution.
 MAKEINFO = makeinfo --force
 MULTI_INSTALL_INFO = $(srcdir)\..\nt\multi-install-info.bat
-INFO_TARGETS = $(infodir)/emacs $(infodir)/emacs-xtra $(infodir)/ccmode \
+INFO_TARGETS = $(infodir)/emacs $(infodir)/ccmode \
 		$(infodir)/cl $(infodir)/dired-x $(infodir)/ediff \
 		$(infodir)/forms $(infodir)/gnus $(infodir)/message \
 		$(infodir)/sieve $(infodir)/pgg $(infodir)/emacs-mime \
@@ -61,6 +61,18 @@ INFOSOURCES = info.texi
 TEXI2DVI = texi2dvi
 ENVADD = $(srcdir)\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
 	 "MAKEINFO=$(MAKEINFO) -I$(srcdir)" /C
+
+EMACS_XTRA=\
+	$(srcdir)/arevert-xtra.texi \
+	$(srcdir)/cal-xtra.texi \
+	$(srcdir)/dired-xtra.texi \
+	$(srcdir)/picture-xtra.texi \
+	$(srcdir)/emerge-xtra.texi \
+	$(srcdir)/vc-xtra.texi \
+	$(srcdir)/vc1-xtra.texi \
+	$(srcdir)/vc2-xtra.texi \
+	$(srcdir)/fortran-xtra.texi \
+	$(srcdir)/msdog-xtra.texi
 
 EMACSSOURCES= \
 	$(srcdir)/emacs.texi \
@@ -105,7 +117,8 @@ EMACSSOURCES= \
 	$(srcdir)/gnu.texi \
 	$(srcdir)/glossary.texi \
 	$(srcdir)/ack.texi \
-	$(srcdir)/kmacro.texi
+	$(srcdir)/kmacro.texi \
+	$(EMACS_XTRA)
 
 info: $(INFO_TARGETS)
 
@@ -134,7 +147,7 @@ info.dvi: $(INFOSOURCES)
 $(infodir)/emacs: $(EMACSSOURCES)
 	$(MAKEINFO) emacs.texi
 
-emacs.dvi: $(EMACSSOURCES)
+emacs.dvi: $(EMACSSOURCES) $(srcdir)/xresmini.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs.texi
 
 # This target is here so you could easily get the list of the *.texi
@@ -309,10 +322,7 @@ $(infodir)/smtpmail: smtpmail.texi
 smtpmail.dvi: smtpmail.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/smtpmail.texi
 
-$(infodir)/emacs-xtra: emacs-xtra.texi
-	$(MAKEINFO) emacs-xtra.texi
-
-emacs-xtra.dvi: emacs-xtra.texi
+emacs-xtra.dvi: emacs-xtra.texi $(EMACS_XTRA)
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-xtra.texi
 
 $(infodir)/org: org.texi

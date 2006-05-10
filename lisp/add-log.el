@@ -45,8 +45,7 @@
   :type '(choice (const :tag "default" nil)
 		 string)
   :group 'change-log)
-(put 'change-log-default-name 'safe-local-variable
-     (lambda (a) (or (stringp a) (null a))))
+(put 'change-log-default-name 'safe-local-variable 'string-or-null-p)
 
 (defcustom change-log-mode-hook nil
   "Normal hook run by `change-log-mode'."

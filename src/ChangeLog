@@ -1,3 +1,155 @@
+2006-05-09  Kenichi Handa  <handa@m17n.org>
+
+	* keymap.c (push_key_description): Handle invalid character key.
+
+2006-05-08  Kenichi Handa  <handa@m17n.org>
+
+	* callproc.c (Fcall_process): Use system_eol_type for encoding
+	arguments if eol_type is not yet decided.
+
+	* coding.h (system_eol_type): Extern it.
+
+	* coding.c (setup_coding_system): For invalid coding-system, set
+	coding->eol_type to CODING_EOL_UNDECIDED.
+	(encode_coding): Cancel previous change.
+	(shrink_encoding_region): Likewise.
+	(code_convert_region1): Likewise.
+	(code_convert_string1): Likewise.
+	(code_convert_string_norecord): Likewise.
+
+	* fileio.c (choose_write_coding_system): Use system_eol_type for
+	encoding if eol_type is not yet decided.
+
+	* process.c (setup_process_coding_systems): Use system_eol_type
+	for encoding if eol_type is not yet decided.
+	(read_process_output): Likewise.
+	(send_process): Likewise.
+
+2006-05-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (syms_of_minibuf) <history-length>: Fix typo in doc.
+
+2006-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (Fmac_clear_font_name_table): Move defun to macfns.c.
+	(syms_of_mac): Likewise for defsubr.
+
+	* macfns.c (mac_set_font): New function.
+	(mac_frame_parm_handlers, syms_of_macfns): Replace x_set_font with it.
+	(mac_window) [TARGET_API_MAC_CARBON && MAC_OSX]: Specify
+	kWindowToolbarButtonAttribute when creating window.
+	(Fmac_clear_font_name_table): Move from macfns.c.
+	(syms_of_macfns): Likewise for defsubr.
+	[USE_MAC_FONT_PANEL] (Fmac_set_font_panel_visibility): New defun.
+	(syms_of_macfns) [USE_MAC_FONT_PANEL]: Defsubr it.
+
+	* macgui.h (USE_MAC_FONT_PANEL): Define to 1 if USE_ATSUI is set
+	and build is done on Mac OS X 10.2 and later.
+
+	* macselect.c (mac_do_receive_drag): Remove unused variable `index'.
+	(mac_store_services_event): Change return type in extern.
+
+	* macterm.c (XLoadQueryFont) [USE_ATSUI]: Set FMFontFamily value
+	to font->mac_fontnum.
+	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection): New function.
+	(x_new_focus_frame) [USE_MAC_FONT_PANEL]: Use it.
+	(QCfamily, QCweight, QCslant, Qnormal, Qbold, Qitalic): Add extern.
+	(QWindow) [MAC_OSX]: Likewise.
+	(Qfont) [USE_MAC_FONT_PANEL]: Likewise.
+	(Vmac_atsu_font_table) [USE_ATSUI]: New variable.
+	(syms_of_macterm) [USE_ATSUI]: Defvar it.
+	(Qtoolbar_switch_mode) [MAC_OSX]: New variable.
+	(Qpanel_closed, Qselection) [USE_MAC_FONT_PANEL]: Likewise.
+	(syms_of_macterm): Intern and staticpro them.
+	(init_font_name_table) [USE_ATSUI]: Set data to Vmac_atsu_font_table.
+	[TARGET_API_MAC_CARBON] (mac_store_event_ref_as_apple_event): New
+	function.
+	[USE_CARBON_EVENTS] (mac_handle_command_event): Use it.
+	[MAC_OSX] (mac_store_services_event): Likewise.
+	[USE_CARBON_EVENTS] (mac_handle_window_event) [MAC_OSX]: Handle
+	kEventWindowToolbarSwitchMode event.
+	(install_window_handler) [USE_CARBON_EVENTS && MAC_OSX]: Register it.
+	[MAC_OSX] (mac_store_services_event): Change return type to OSStatus.
+	[USE_MAC_FONT_PANEL] (mac_handle_font_event): New function.
+	(install_window_handler) [USE_MAC_FONT_PANEL]: Install it.
+	(XTread_socket): Select window on mouse click if x_focus_frame is NULL.
+
+	* macterm.h (mac_set_font_info_for_selection): Add extern.
+
+2006-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c (Qduration) [MAC_OS]: New variable.
+	(syms_of_image) [MAC_OS]: Intern and staticpro it.
+	[MAC_OS] (gif_load): Save image extension data in img->data.lisp_val.
+	[MAC_OSX] (image_load_quartz2d): Use cfstring_create_with_utf8_cstring
+	instead of cfstring_create_with_string.
+
+2006-05-06  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (xframe): Print frame name.
+	(xlist): New command to print a list (max 10 elements).
+	(xpr): Print lisp object of any type.
+	(pitx): Print it->pixel_width.
+
+2006-05-05  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (handle_composition_prop): Fix for the case of empty
+	composition component.
+
+2006-05-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (make_lispy_event) [MAC_OS]: Get Apple event info
+	from event->arg.
+
+	* termhooks.h (enum event_kind) [MAC_OS]: Update comment for
+	MAC_APPLE_EVENT.
+
+	* macterm.h (mac_make_lispy_event_code): Remove extern.
+	(mac_post_mouse_moved_event): Add extern.
+	(mac_aelist_to_lisp, mac_aedesc_to_lisp): Change arg 1 to
+	`const AEDesc *' in externs.
+	(create_apple_event_from_drag_ref) [TARGET_API_MAC_CARBON]: New extern.
+
+	* mac.c (mac_aelist_to_lisp, mac_aedesc_to_lisp): Change arg 1 to
+	`const AEDesc *'.
+	[TARGET_API_MAC_CARBON] (create_apple_event): New function.
+	[TARGET_API_MAC_CARBON] (create_apple_event_from_event_ref): Use it.
+	Use xrealloc instead of repeated xmalloc/xfree.
+	[TARGET_API_MAC_CARBON] (create_apple_event_from_drag_ref): New
+	function.
+
+	* macmenu.c (restore_menu_items, cleanup_popup_menu): Return a value.
+
+	* macselect.c: Update copyright year.
+	(mac_store_apple_event): Change return type to void in extern.
+	(mac_handle_apple_event): Don't get return value from
+	mac_store_apple_event.
+	[TARGET_API_MAC_CARBON] (Vmac_dnd_known_types): New variable.
+	(syms_of_macselect) [TARGET_API_MAC_CARBON]: Defvar it.
+	[TARGET_API_MAC_CARBON] (mac_do_track_drag): Move function from
+	macterm.c.  Use Vmac_dnd_known_types as acceptable flavors.
+	[TARGET_API_MAC_CARBON] (mac_do_receive_drag): Likewise.  New
+	implementation using create_apple_event_from_drag_ref.
+	[TARGET_API_MAC_CARBON] (mac_do_track_dragUPP)
+	(mac_do_receive_dragUPP): Move variables from macterm.c.
+	(install_drag_handler, remove_drag_handler): New functions.
+
+	* macterm.c (XTread_socket) [TARGET_API_MAC_CARBON]: Try window
+	path select also for proxy icon click.
+	[TARGET_API_MAC_CARBON] (mac_post_mouse_moved_event): New function.
+	[USE_TOOLKIT_SCROLL_BARS] (scroll_bar_timer_callback): Use it.
+	(xlfdpat_create): Remove unused label `error' and trailing sentences.
+	(mac_do_track_drag, mac_do_receive_drag): Move functions to macselect.c.
+	(mac_do_track_dragUPP, mac_do_receive_dragUPP): Move variables to
+	macselect.c.
+	(install_drag_handler, remove_drag_handler): Add extern.
+	(mac_store_apple_event): Change return type to void.  All uses changed.
+	Create Lisp object from Apple event and store it into input event.
+	(mac_make_lispy_event_code): Remove function.
+	[TARGET_API_MAC_CARBON] (mac_store_drag_event): New function.
+	(install_window_handler): Call install_drag_handler.
+	(remove_window_handler): Call remove_drag_handler.
+
 2006-05-03  Richard Stallman  <rms@gnu.org>
 
 	* sound.c (Fplay_sound_internal): Dynamically allocate

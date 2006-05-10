@@ -42,7 +42,13 @@ Software Foundation raise funds for GNU development.''
 
 @smallbook
 
-@setchapternewpage odd
+@c per rms and peterb, use 10pt fonts for the main text, mostly to
+@c save on paper cost.  Also do not declare @setchapternewpage odd.
+@c Do this inside @tex for now, so current makeinfo does not complain.
+@tex
+@fonttextsize 10
+@end tex
+
 @defcodeindex op
 @synindex pg cp
 
@@ -127,7 +133,7 @@ and Sending Mail and Registers and Minibuffer.
 * Glossary::	        The glossary.
 * Antinews::	        Information about Emacs version 21.
 * Mac OS::              Using Emacs in the Mac.
-* Emacs and Microsoft Windows::  Using Emacs on Microsoft Windows.
+* Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
 * Manifesto::	        What's GNU?  Gnu's Not Unix!
 * Acknowledgments::     Major contributors to GNU Emacs.
 
@@ -186,6 +192,10 @@ Advanced Features
 * Maintaining::         Features for maintaining large programs.
 * Abbrevs::	        How to define text abbreviations to reduce
 			  the number of characters you must type.
+@ifnottex
+* Picture Mode::        Editing pictures made up of characters using
+                          the quarter-plane screen model.
+@end ifnottex
 * Sending Mail::        Sending mail in Emacs.
 * Rmail::	        Reading mail in Emacs.
 * Dired::	        You can ``edit'' a directory to manage files in it.
@@ -626,6 +636,16 @@ Abbrevs
 * Dynamic Abbrevs::     Abbreviations for words already in the buffer.
 * Dabbrev Customization:: What is a word, for dynamic abbrevs.  Case handling.
 
+@ifnottex
+Editing Pictures
+
+* Basic Picture::         Basic concepts and simple commands of Picture Mode.
+* Insert in Picture::     Controlling direction of cursor motion
+                            after "self-inserting" characters.
+* Tabs in Picture::       Various features for tab stops and indentation.
+* Rectangles in Picture:: Clearing and superimposing rectangles.
+@end ifnottex
+
 Sending Mail
 
 * Mail Format:: 	Format of the mail being composed.
@@ -921,8 +941,8 @@ This edition of the manual is intended for use with GNU Emacs
 installed on GNU and Unix systems.  GNU Emacs can also be used on VMS,
 MS-DOS (also called MS-DOG), Microsoft Windows, and Macintosh systems.
 Those systems use different file name syntax; in addition, VMS and
-MS-DOS do not support all GNU Emacs features.  @xref{Emacs and
-Microsoft Windows}, for information about using Emacs on Windows.
+MS-DOS do not support all GNU Emacs features.  @xref{Microsoft
+Windows}, for information about using Emacs on Windows.
 @xref{Mac OS}, for information about using Emacs on Macintosh.  We
 don't try to describe VMS usage in this manual.
 @end iftex
@@ -1131,6 +1151,9 @@ while running shell commands.
 @include building.texi
 @include maintaining.texi
 @include abbrevs.texi
+@ifnottex
+@include picture-xtra.texi
+@end ifnottex
 @include sending.texi
 @include rmail.texi
 @include dired.texi

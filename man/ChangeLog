@@ -1,3 +1,205 @@
+2006-05-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Filename completion): Improve wording.
+
+2006-05-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xresmini.texi (GTK resources): Inserted GTK description.
+
+	* xresources.texi (GTK resources): metafont should be menufont.
+
+2006-05-07  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (Using regular expressions): Fix typo.
+	(Packages that do not come with Emacs): Fix capitalization.
+	(Replacing text across multiple files): Expand node to explain how
+	to use `dired-do-query-replace-regexp' in more detail, based on
+	suggestion by Eric Hanchrow <offby1@blarg.net>.
+
+2006-05-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* mini.texi (Completion Options):
+	* tramp.texi (Filename completion): Completion of remote files'
+	method, user name and host name is active only in partial
+	completion mode.
+
+2006-05-06  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.0.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.0.
+
+2006-05-06  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (MH-BOOK-HOME): Change from
+	http://www.ics.uci.edu/~mh/book/mh to
+	http://rand-mh.sourceforge.net/book/mh.
+	Replace .htm suffix with .html for MH book files.
+	(Using This Manual): Update key binding for getting relevant
+	chapter in Info from command key.
+	(Ranges): Fix itemx.
+
+2006-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (emacs.dvi):
+	* Makefile.in (emacs.dvi): Add xresmini.texi
+
+	* xresmini.texi (Table of Resources): Remove xref to non-existent
+	node "LessTif Resources".
+
+	* msdog.texi (Microsoft Windows):
+	* calendar.texi (Calendar/Diary, Displaying the Diary)
+	(Special Diary Entries, Importing Diary, Holidays):
+	* programs.texi (Program Modes):
+	* text.texi (Text):
+	* buffers.texi (Several Buffers):
+	* files.texi (Comparing Files): Fix cross-references to emacs-xtra.
+
+2006-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	The following changes merge the emacs-xtra manual into the main
+	manual, but only for on-line version of the manual.
+
+	* vc2-xtra.texi (Version Backups, Local Version Control)
+	(Making Snapshots, Change Logs and VC, Version Headers)
+	(Customizing VC, CVS Options) [ifnottex]: Conditional xref's for
+	on-line manual.
+
+	* vc1-xtra.texi (VC Dired Mode) [ifnottex]: Conditional xref's
+	for on-line manual.
+
+	* msdog-xtra.texi (MS-DOS, MS-DOS Keyboard, MS-DOS Mouse)
+	(MS-DOS Display, MS-DOS File Names, MS-DOS Printing)
+	(MS-DOS and MULE, MS-DOS Processes) [ifnottex]: Conditional xref's
+	for on-line manual.
+
+	* fortran-xtra.texi (Fortran, Fortran Autofill)
+	(Fortran Autofill, Fortran Abbrev) [ifnottex]: Conditional xref's
+	for on-line manual.
+
+	* picture-xtra.texi (Basic Picture, Rectangles in Picture) [ifnottex]:
+	Conditional xref's for on-line manual.
+
+	* emerge-xtra.texi (Emerge, Overview of Emerge)
+	(Fine Points of Emerge) [ifnottex]: Conditional xref's for on-line
+	manual.
+
+	* Makefile.in (INFO_TARGETS): Remove ../info/emacs-xtra.
+	(EMACS_XTRA): New variable, lists the new *-xtra.texi files.
+	(EMACSSOURCES): Use EMACS_XTRA.
+	(../info/emacs-xtra): Remove.
+	(emacs-xtra.dvi): Add EMACS_XTRA to prerequisites.
+
+	* makefile.w32-in (INFO_TARGETS): Remove $(infodir)/emacs-xtra.
+	(EMACS_XTRA): New variable, lists the new *-xtra.texi files.
+	(EMACSSOURCES): Use EMACS_XTRA.
+	($(infodir)/emacs-xtra): Remove.
+	(emacs-xtra.dvi): Add EMACS_XTRA to prerequisites.
+
+	* trouble.texi (Quitting):
+	* text.texi (Text):
+	* programs.texi (Program Modes):
+	* msdog.texi (Microsoft Windows):
+	* frames.texi (Frames):
+	* files.texi (Backup, Version Control, VC Concepts)
+	(Types of Log File, Advanced C-x v v, Log Buffer, Old Versions)
+	(Registering, VC Status, VC Undo, Multi-User Branching)
+	(Comparing Files):
+	* calendar.texi (Calendar/Diary, Holidays, Displaying the Diary)
+	(Displaying the Diary, Special Diary Entries, Importing Diary):
+	* buffers.texi (Several Buffers): Replace inforef to emacs-xtra by
+	conditional xref's, depending on @iftex/@ifnottex.
+
+	* msdog.texi (Microsoft Windows) [ifnottex]: Add menu entry for
+	"MS-DOS".  @include msdog-xtra.texi.
+
+	* programs.texi (Programs) [ifnottex]: Add menu entry for "Fortran".
+	<Top Level> [ifnottex]: @include fortran-xtra.texi.
+
+	* files.texi (Secondary VC Commands) [ifnottex]: Add menu entries
+	for vc-xtra.texi subsections.
+	(VC Undo) [ifnottex]: @include vc1-xtra.texi and @lowersections it.
+	(Multi-User Branching) [ifnottex]: @include vc2-xtra.texi.
+
+	* sending.texi (Sending Mail): A @node line without explicit Prev,
+	Next, and Up links.
+
+	* abbrevs.texi (Abbrevs): A @node line without explicit Prev,
+	Next, and Up links.
+
+	* emacs.texi (Top) [ifnottex]: Add menu entries for "Picture Mode"
+	and its sections.  @include picture-xtra.texi
+
+	* maintaining.texi (Maintaining) [ifnottex]: Add menu entry for
+	"Emerge".
+	(List Tags) [ifnottex]: @include emerge-xtra.texi.
+
+	* cal-xtra.texi (Daylight Savings): Remove this node: it is an
+	exact duplicate of its name-sake in calendar.texi.
+
+	* calendar.texi (Calendar/Diary) [ifnottex]: Add menu item for
+	"Advanced Calendar/Diary Usage".
+	(Time Intervals) [ifnottex]: @include cal-xtra.texi.
+
+	* dired.texi (Subdirectories in Dired) [ifnottex]: @include
+	dired-xtra.texi.
+	(Dired) [ifnottex]: Add menu entry for "Subdir Switches".
+
+	* files.texi (Reverting) [ifnottex]: @include arevert-xtra.texi.
+	(Files) [ifnottex]: Add menu entry for Autorevert.
+
+	* emacs-xtra.texi (Introduction): Reword to make consistent with
+	printed version only.
+	<Top level>: Remove the body of all chapters and move them to the
+	new *-xtra.texi files.  Use @raisesections and @lowersections to
+	convert sections to chapters etc.
+
+	* msdog-xtra.texi:
+	* fortran-xtra.texi:
+	* vc-xtra.texi:
+	* vc1-xtra.texi:
+	* vc2-xtra.texi:
+	* emerge-xtra.texi:
+	* cal-xtra.texi:
+	* dired-xtra.texi:
+	* arevert-xtra.texi: New files, with text from respective chapters
+	of emacs-xtra.texi.  Convert each @chapter into @section, @section
+	into @subsection, etc.
+
+	* emacs-xtra.texi (MS-DOS): Renamed from "MS-DOG".  All references
+	updated.
+
+	* msdog.texi (Microsoft Windows): Rename from "Emacs and Microsoft
+	Windows".  All references updated.
+
+2006-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macos.texi (Mac Input): Mention input from Character Palette.
+	(Mac Font Specs): Fix typo.
+
+2006-05-05  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (Diff Mode): Minor cleanup.
+
+2006-05-05  Karl Berry  <karl@gnu.org>
+
+	* texinfo.tex (\definetextfonsizexi, \definetextfonsizex): new cmds.
+	(\fonttextsize): new user-level command to change text font size.
+	* emacs.texi: call  @fonttextsize 10, inside @tex to avoid
+	errors from the current release of makeinfo (4.8).
+	* help.texi (Library Keywords): change widest word in multitable
+	template from `emulations' to `convenience'.  (Not sure if this is
+	related to the font change.)
+
+2006-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (File Names): Add a footnote about limited support of
+	~USER on MS-Windows.
+
+	* cmdargs.texi (Initial Options): Add a footnote about limited
+	support of ~USER on MS-Windows.
+
 2006-05-03  Richard Stallman  <rms@gnu.org>
 
 	* files.texi (Diff Mode): Node moved here.
@@ -23,7 +225,7 @@
 
 	* killing.texi (Killing): Say "graphical displays".
 	* display.texi: Say "graphical displays".
-	
+
 	* cmdargs.texi (Misc X): Say "graphical displays".
 
 2006-05-01  Richard Stallman  <rms@gnu.org>
@@ -61,7 +263,7 @@
 
 	* pgg.texi (Caching passphrase): Fix markup and typos.  Simplify.
 
-2006-04-26  Sascha Wilde  <wilde@sha-bang.de>
+2006-04-26  Sascha Wilde  <wilde@sha-bang.de>  (tiny change)
 
 	* pgg.texi (Caching passphrase): Add pgg-gpg-use-agent.
 

@@ -293,7 +293,8 @@ Do not reload any saved desktop.  @xref{Saving Emacs Sessions}.
 @opindex --user
 @cindex load init file of another user
 Load @var{user}'s Emacs init file @file{~@var{user}/.emacs} instead of
-your own.
+your own@footnote{
+This option has no effect on MS-Windows.}.
 
 @item --debug-init
 @opindex --debug-init

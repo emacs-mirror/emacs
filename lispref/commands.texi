@@ -2451,7 +2451,7 @@ If a part of @var{body} binds @code{inhibit-quit} to non-@code{nil},
 arrival of input during those parts won't cause an abort until
 the end of that part.
 
-If you want to be able to distingish all possible values computed
+If you want to be able to distinguish all possible values computed
 by @var{body} from both kinds of abort conditions, write the code
 like this:
 

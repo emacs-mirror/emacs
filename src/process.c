@@ -695,6 +695,8 @@ setup_process_coding_systems (process)
       = (struct coding_system *) xmalloc (sizeof (struct coding_system));
   setup_coding_system (p->encode_coding_system,
 		       proc_encode_coding_system[outch]);
+  if (proc_encode_coding_system[outch]->eol_type == CODING_EOL_UNDECIDED)
+    proc_encode_coding_system[outch]->eol_type = system_eol_type;
 }
 
 DEFUN ("processp", Fprocessp, Sprocessp, 1, 1, 0,
@@ -5071,6 +5073,10 @@ read_process_output (proc, channel)
 	      p->encode_coding_system = coding->symbol;
 	      setup_coding_system (coding->symbol,
 				   proc_encode_coding_system[XINT (p->outfd)]);
+	      if (proc_encode_coding_system[XINT (p->outfd)]->eol_type
+		  == CODING_EOL_UNDECIDED)
+		proc_encode_coding_system[XINT (p->outfd)]->eol_type
+		  = system_eol_type;
 	    }
 	}
 
@@ -5178,6 +5184,10 @@ read_process_output (proc, channel)
 	      p->encode_coding_system = coding->symbol;
 	      setup_coding_system (coding->symbol,
 				   proc_encode_coding_system[XINT (p->outfd)]);
+	      if (proc_encode_coding_system[XINT (p->outfd)]->eol_type
+		  == CODING_EOL_UNDECIDED)
+		proc_encode_coding_system[XINT (p->outfd)]->eol_type
+		  = system_eol_type;
 	    }
 	}
       carryover = nbytes - coding->consumed;
@@ -5320,6 +5330,8 @@ send_process (proc, buf, len, object)
 	   sending a multibyte text, thus we must encode it by the
 	   original coding system specified for the current process.  */
 	setup_coding_system (p->encode_coding_system, coding);
+      if (coding->eol_type == CODING_EOL_UNDECIDED)
+	coding->eol_type = system_eol_type;
       /* src_multibyte should be set to 1 _after_ a call to
 	 setup_coding_system, since it resets src_multibyte to
 	 zero.  */

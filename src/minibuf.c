@@ -2805,7 +2805,7 @@ syms_of_minibuf ()
   DEFVAR_LISP ("history-length", &Vhistory_length,
 	       doc: /* *Maximum length for history lists before truncation takes place.
 A number means that length; t means infinite.  Truncation takes place
-just after a new element is inserted.  Setting the history-length
+just after a new element is inserted.  Setting the `history-length'
 property of a history variable overrides this default.  */);
   XSETFASTINT (Vhistory_length, 30);
 

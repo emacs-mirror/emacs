@@ -2083,11 +2083,20 @@ push_key_description (c, p, force_multibyte)
      int force_multibyte;
 {
   unsigned c2;
+  int valid_p;
 
   /* Clear all the meaningless bits above the meta bit.  */
   c &= meta_modifier | ~ - meta_modifier;
   c2 = c & ~(alt_modifier | ctrl_modifier | hyper_modifier
 	     | meta_modifier | shift_modifier | super_modifier);
+
+  valid_p = SINGLE_BYTE_CHAR_P (c2) || char_valid_p (c2, 0);
+  if (! valid_p)
+    {
+      /* KEY_DESCRIPTION_SIZE is large enough for this.  */
+      p += sprintf (p, "[%d]", c);
+      return p;
+    }
 
   if (c & alt_modifier)
     {
@@ -2176,16 +2185,13 @@ push_key_description (c, p, force_multibyte)
     }
   else
     {
-      int valid_p = SINGLE_BYTE_CHAR_P (c) || char_valid_p (c, 0);
-
-      if (force_multibyte && valid_p)
+      if (force_multibyte)
 	{
 	  if (SINGLE_BYTE_CHAR_P (c))
 	    c = unibyte_char_to_multibyte (c);
 	  p += CHAR_STRING (c, p);
 	}
-      else if (NILP (current_buffer->enable_multibyte_characters)
-	       || valid_p)
+      else if (NILP (current_buffer->enable_multibyte_characters))
 	{
 	  int bit_offset;
 	  *p++ = '\\';

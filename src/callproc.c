@@ -302,6 +302,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	      val = Qnil;
 	  }
 	setup_coding_system (Fcheck_coding_system (val), &argument_coding);
+	if (argument_coding.eol_type == CODING_EOL_UNDECIDED)
+	  argument_coding.eol_type = system_eol_type;
       }
   }
 

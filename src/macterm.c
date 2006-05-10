@@ -4097,6 +4097,11 @@ x_new_focus_frame (dpyinfo, frame)
 	pending_autoraise_frame = dpyinfo->x_focus_frame;
       else
 	pending_autoraise_frame = 0;
+
+#if USE_MAC_FONT_PANEL
+      if (frame)
+	mac_set_font_info_for_selection (frame);
+#endif
     }
 
   x_frame_rehighlight (dpyinfo);
@@ -4454,35 +4459,11 @@ scroll_bar_timer_callback (timer, data)
      EventLoopTimerRef timer;
      void *data;
 {
-  EventRef event = NULL;
-  OSErr err;
+  OSStatus err;
 
-  err = CreateEvent (NULL, kEventClassMouse, kEventMouseMoved, 0,
-		     kEventAttributeNone, &event);
-  if (err == noErr)
-    {
-      Point mouse_pos;
-
-      GetMouse (&mouse_pos);
-      LocalToGlobal (&mouse_pos);
-      err = SetEventParameter (event, kEventParamMouseLocation, typeQDPoint,
-			       sizeof (Point), &mouse_pos);
-    }
-  if (err == noErr)
-    {
-      UInt32 modifiers = GetCurrentKeyModifiers ();
-
-      err = SetEventParameter (event, kEventParamKeyModifiers, typeUInt32,
-			       sizeof (UInt32), &modifiers);
-    }
-  if (err == noErr)
-    err = PostEventToQueue (GetCurrentEventQueue (), event,
-			    kEventPriorityStandard);
+  err = mac_post_mouse_moved_event ();
   if (err == noErr)
     scroll_bar_timer_event_posted_p = 1;
-
-  if (event)
-    ReleaseEvent (event);
 }
 
 static OSStatus
@@ -6723,10 +6704,6 @@ xlfdpat_create (pattern)
       }
 
   return pat;
-
- error:
-  xlfdpat_destroy (pat);
-  return NULL;
 }
 
 static INLINE int
@@ -6895,6 +6872,8 @@ static Lisp_Object fm_font_family_alist;
 #if USE_ATSUI
 /* Hash table linking font family names to ATSU font IDs.  */
 static Lisp_Object atsu_font_id_hash;
+static Lisp_Object Vmac_atsu_font_table;
+extern Lisp_Object QCfamily, QCweight, QCslant, Qnormal, Qbold, Qitalic;
 #endif
 
 /* Alist linking character set strings to Mac text encoding and Emacs
@@ -7190,8 +7169,21 @@ init_font_name_table ()
 				    NULL, NULL);
 	    if (err == noErr)
 	      {
+		FMFontFamily ff;
+		FMFontStyle style = normal;
+
 		decode_mac_font_name (name, name_len + 1, Qnil);
 		family = make_unibyte_string (name, name_len);
+		FMGetFontFamilyInstanceFromFont (font_ids[i], &ff, &style);
+		Fputhash (make_unibyte_string ((char *)(font_ids + i),
+					       sizeof (ATSUFontID)),
+			  Fcons (QCfamily,
+				 list5 (family,
+					QCweight,
+					style & bold ? Qbold : Qnormal,
+					QCslant,
+					style & italic ? Qitalic : Qnormal)),
+			  Vmac_atsu_font_table);
 		if (*name != '.'
 		    && hash_lookup (h, family, &hash_code) < 0)
 		  {
@@ -7737,6 +7729,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
       ATSUFontFeatureSelector selectors[] = {kAllTypeFeaturesOffSelector,
 					     kDecomposeDiacriticsSelector};
       Lisp_Object font_id_cons;
+      FMFontStyle style;
 
       font_id_cons = Fgethash (make_unibyte_string (family, strlen (family)),
 			       atsu_font_id_hash, Qnil);
@@ -7755,7 +7748,11 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	return NULL;
       err = ATSUSetAttributes (mac_style, sizeof (tags) / sizeof (tags[0]),
 			       tags, sizes, values);
-      fontnum = -1;
+      if (err != noErr)
+	return NULL;
+      err = FMGetFontFamilyInstanceFromFont (font_id, &fontnum, &style);
+      if (err != noErr)
+	fontnum = -1;
       scriptcode = kTextEncodingMacUnicode;
     }
   else
@@ -7815,22 +7812,20 @@ XLoadQueryFont (Display *dpy, char *fontname)
       pcm_init (font->bounds.rows[0], 0x100);
 
 #if USE_CG_TEXT_DRAWING
-      {
-	FMFontFamily font_family;
-	FMFontStyle style;
-	ATSFontRef ats_font;
+      if (fontnum != -1)
+	{
+	  FMFontStyle style;
+	  ATSFontRef ats_font;
 
-	err = FMGetFontFamilyInstanceFromFont (font_id, &font_family, &style);
-	if (err == noErr)
-	  err = FMGetFontFromFontFamilyInstance (font_family, fontface,
+	  err = FMGetFontFromFontFamilyInstance (fontnum, fontface,
 						 &font_id, &style);
-	/* Use CG text drawing if italic/bold is not synthesized.  */
-	if (err == noErr && style == fontface)
-	  {
-	    ats_font = FMGetATSFontRefFromFont (font_id);
-	    font->cg_font = CGFontCreateWithPlatformFont (&ats_font);
-	  }
-      }
+	  /* Use CG text drawing if italic/bold is not synthesized.  */
+	  if (err == noErr && style == fontface)
+	    {
+	      ats_font = FMGetATSFontRefFromFont (font_id);
+	      font->cg_font = CGFontCreateWithPlatformFont (&ats_font);
+	    }
+	}
 
       if (font->cg_font)
 	{
@@ -8319,6 +8314,42 @@ x_find_ccl_program (fontp)
     }
 }
 
+#if USE_MAC_FONT_PANEL
+OSStatus
+mac_set_font_info_for_selection (f)
+     struct frame *f;
+{
+  OSStatus err;
+
+  if (f == NULL)
+    err = SetFontInfoForSelection (kFontSelectionATSUIType, 0, NULL, NULL);
+  else
+    {
+      struct face *default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+      XFontStruct *ascii_font = default_face->ascii_face->font;
+      EventTargetRef target = GetWindowEventTarget (FRAME_MAC_WINDOW (f));
+
+      if (ascii_font->mac_fontnum != -1)
+	{
+	  FontSelectionQDStyle qd_style;
+
+	  qd_style.version = kFontSelectionQDStyleVersionZero;
+	  qd_style.instance.fontFamily = ascii_font->mac_fontnum;
+	  qd_style.instance.fontStyle = ascii_font->mac_fontface;
+	  qd_style.size = ascii_font->mac_fontsize;
+	  qd_style.hasColor = false;
+
+	  err = SetFontInfoForSelection (kFontSelectionQDType,
+					 1, &qd_style, target);
+	}
+      else
+	err = SetFontInfoForSelection (kFontSelectionATSUIType,
+				       1, &ascii_font->mac_style, target);
+    }
+
+  return err;
+}
+#endif
 
 
 /* The Mac Event loop code */
@@ -8406,6 +8437,14 @@ Point saved_menu_event_location;
 /* Apple Events */
 #if USE_CARBON_EVENTS
 static Lisp_Object Qhicommand;
+#ifdef MAC_OSX
+extern Lisp_Object Qwindow;
+static Lisp_Object Qtoolbar_switch_mode;
+#endif
+#if USE_MAC_FONT_PANEL
+extern Lisp_Object Qfont;
+static Lisp_Object Qpanel_closed, Qselection;
+#endif
 #endif
 extern int mac_ready_for_apple_events;
 extern Lisp_Object Qundefined;
@@ -8415,13 +8454,9 @@ extern void mac_find_apple_event_spec P_ ((AEEventClass, AEEventID,
 					   Lisp_Object *));
 extern OSErr init_coercion_handler P_ ((void));
 
-#if TARGET_API_MAC_CARBON
 /* Drag and Drop */
-static pascal OSErr mac_do_track_drag (DragTrackingMessage, WindowPtr, void*, DragReference);
-static pascal OSErr mac_do_receive_drag (WindowPtr, void*, DragReference);
-static DragTrackingHandlerUPP mac_do_track_dragUPP = NULL;
-static DragReceiveHandlerUPP mac_do_receive_dragUPP = NULL;
-#endif
+OSErr install_drag_handler P_ ((WindowRef));
+void remove_drag_handler P_ ((WindowRef));
 
 #if USE_CARBON_EVENTS
 #ifdef MAC_OSX
@@ -8977,47 +9012,84 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
   x_real_positions (f, &f->left_pos, &f->top_pos);
 }
 
-OSErr
+void
 mac_store_apple_event (class, id, desc)
      Lisp_Object class, id;
      const AEDesc *desc;
 {
-  OSErr err;
   struct input_event buf;
-  AEDesc *desc_copy;
 
-  desc_copy = xmalloc (sizeof (AEDesc));
-  err = AEDuplicateDesc (desc, desc_copy);
-  if (err == noErr)
+  EVENT_INIT (buf);
+
+  buf.kind = MAC_APPLE_EVENT;
+  buf.x = class;
+  buf.y = id;
+  XSETFRAME (buf.frame_or_window,
+	     mac_focus_frame (&one_mac_display_info));
+  /* Now that Lisp object allocations are protected by BLOCK_INPUT, it
+     is safe to use them during read_socket_hook.  */
+  buf.arg = mac_aedesc_to_lisp (desc);
+  kbd_buffer_store_event (&buf);
+}
+
+#if TARGET_API_MAC_CARBON
+static OSStatus
+mac_store_event_ref_as_apple_event (class, id, class_key, id_key,
+				    event, num_params, names, types)
+     AEEventClass class;
+     AEEventID id;
+     Lisp_Object class_key, id_key;
+     EventRef event;
+     UInt32 num_params;
+     EventParamName *names;
+     EventParamType *types;
+{
+  OSStatus err = eventNotHandledErr;
+  Lisp_Object binding;
+
+  mac_find_apple_event_spec (class, id, &class_key, &id_key, &binding);
+  if (!NILP (binding) && !EQ (binding, Qundefined))
     {
-      EVENT_INIT (buf);
-
-      buf.kind = MAC_APPLE_EVENT;
-      buf.x = class;
-      buf.y = id;
-      buf.code = (int)desc_copy;
-      XSETFRAME (buf.frame_or_window,
-		 mac_focus_frame (&one_mac_display_info));
-      buf.arg = Qnil;
-      kbd_buffer_store_event (&buf);
+      if (INTEGERP (binding))
+	err = XINT (binding);
+      else
+	{
+	  AppleEvent apple_event;
+	  err = create_apple_event_from_event_ref (event, num_params,
+						   names, types,
+						   &apple_event);
+	  if (err == noErr)
+	    {
+	      mac_store_apple_event (class_key, id_key, &apple_event);
+	      AEDisposeDesc (&apple_event);
+	    }
+	}
     }
 
   return err;
 }
 
-Lisp_Object
-mac_make_lispy_event_code (code)
-     int code;
+void
+mac_store_drag_event (window, mouse_pos, modifiers, desc)
+     WindowRef window;
+     Point mouse_pos;
+     SInt16 modifiers;
+     const AEDesc *desc;
 {
-  AEDesc *desc = (AEDesc *)code;
-  Lisp_Object obj;
+  struct input_event buf;
 
-  obj = mac_aedesc_to_lisp (desc);
-  AEDisposeDesc (desc);
-  xfree (desc);
+  EVENT_INIT (buf);
 
-  return obj;
+  buf.kind = DRAG_N_DROP_EVENT;
+  buf.modifiers = mac_to_emacs_modifiers (modifiers);
+  buf.timestamp = TickCount () * (1000 / 60);
+  XSETINT (buf.x, mouse_pos.h);
+  XSETINT (buf.y, mouse_pos.v);
+  XSETFRAME (buf.frame_or_window, mac_window_to_frame (window));
+  buf.arg = mac_aedesc_to_lisp (desc);
+  kbd_buffer_store_event (&buf);
 }
+#endif
 
 #if USE_CARBON_EVENTS
 static pascal OSStatus
@@ -9028,7 +9100,11 @@ mac_handle_command_event (next_handler, event, data)
 {
   OSStatus result, err;
   HICommand command;
-  Lisp_Object class_key, id_key, binding;
+  static EventParamName names[] = {kEventParamDirectObject,
+				   kEventParamKeyModifiers};
+  static EventParamType types[] = {typeHICommand,
+				   typeUInt32};
+  int num_params = sizeof (names) / sizeof (names[0]);
 
   result = CallNextEventHandler (next_handler, event);
   if (result != eventNotHandledErr)
@@ -9042,33 +9118,10 @@ mac_handle_command_event (next_handler, event, data)
 
   /* A HICommand event is mapped to an Apple event whose event class
      symbol is `hicommand' and event ID is its command ID.  */
-  class_key = Qhicommand;
-  mac_find_apple_event_spec (0, command.commandID,
-			     &class_key, &id_key, &binding);
-  if (!NILP (binding) && !EQ (binding, Qundefined))
-    {
-      if (INTEGERP (binding))
-	return XINT (binding);
-      else
-	{
-	  AppleEvent apple_event;
-	  static EventParamName names[] = {kEventParamDirectObject,
-					   kEventParamKeyModifiers};
-	  static EventParamType types[] = {typeHICommand,
-					   typeUInt32};
-	  err = create_apple_event_from_event_ref (event, 2, names, types,
-						   &apple_event);
-	  if (err == noErr)
-	    {
-	      err = mac_store_apple_event (class_key, id_key, &apple_event);
-	      AEDisposeDesc (&apple_event);
-	    }
-	  if (err == noErr)
-	    return noErr;
-	}
-    }
-
-  return eventNotHandledErr;
+  err = mac_store_event_ref_as_apple_event (0, command.commandID,
+					    Qhicommand, Qnil,
+					    event, num_params, names, types);
+  return err == noErr ? noErr : eventNotHandledErr;
 }
 
 static OSErr
@@ -9171,6 +9224,33 @@ mac_handle_window_event (next_handler, event, data)
       return noErr;
 
       break;
+
+#ifdef MAC_OSX
+    case kEventWindowToolbarSwitchMode:
+      result = CallNextEventHandler (next_handler, event);
+      {
+	static EventParamName names[] = {kEventParamDirectObject,
+					 kEventParamWindowMouseLocation,
+					 kEventParamKeyModifiers,
+					 kEventParamMouseButton,
+					 kEventParamClickCount,
+					 kEventParamMouseChord};
+	static EventParamType types[] = {typeWindowRef,
+					 typeQDPoint,
+					 typeUInt32,
+					 typeMouseButton,
+					 typeUInt32,
+					 typeUInt32};
+	int num_params = sizeof (names) / sizeof (names[0]);
+
+	err = mac_store_event_ref_as_apple_event (0, 0,
+						  Qwindow,
+						  Qtoolbar_switch_mode,
+						  event, num_params,
+						  names, types);
+      }
+      return err == noErr ? noErr : result;
+#endif
     }
 
   return eventNotHandledErr;
@@ -9245,45 +9325,96 @@ mac_handle_mouse_event (next_handler, event, data)
   return eventNotHandledErr;
 }
 
+#if USE_MAC_FONT_PANEL
+static pascal OSStatus
+mac_handle_font_event (next_handler, event, data)
+     EventHandlerCallRef next_handler;
+     EventRef event;
+     void *data;
+{
+  OSStatus result, err;
+  Lisp_Object id_key;
+  int num_params;
+  EventParamName *names;
+  EventParamType *types;
+  static EventParamName names_sel[] = {kEventParamATSUFontID,
+				       kEventParamATSUFontSize,
+				       kEventParamFMFontFamily,
+				       kEventParamFMFontSize,
+				       kEventParamFontColor};
+  static EventParamType types_sel[] = {typeATSUFontID,
+				       typeATSUSize,
+				       typeFMFontFamily,
+				       typeFMFontSize,
+				       typeFontColor};
+
+  result = CallNextEventHandler (next_handler, event);
+  if (result != eventNotHandledErr)
+    return result;
+
+  switch (GetEventKind (event))
+    {
+    case kEventFontPanelClosed:
+      id_key = Qpanel_closed;
+      num_params = 0;
+      names = NULL;
+      types = NULL;
+      break;
+
+    case kEventFontSelection:
+      id_key = Qselection;
+      num_params = sizeof (names_sel) / sizeof (names_sel[0]);
+      names = names_sel;
+      types = types_sel;
+      break;
+    }
+
+  err = mac_store_event_ref_as_apple_event (0, 0, Qfont, id_key,
+					    event, num_params,
+					    names, types);
+
+  return err == noErr ? noErr : eventNotHandledErr;
+}
+#endif
+
 #ifdef MAC_OSX
-OSErr
+OSStatus
 mac_store_services_event (event)
      EventRef event;
 {
-  OSErr err;
-  AppleEvent apple_event;
+  OSStatus err;
   Lisp_Object id_key;
+  int num_params;
+  EventParamName *names;
+  EventParamType *types;
+  static EventParamName names_pfm[] = {kEventParamServiceMessageName,
+				       kEventParamServiceUserData};
+  static EventParamType types_pfm[] = {typeCFStringRef,
+				       typeCFStringRef};
 
   switch (GetEventKind (event))
     {
     case kEventServicePaste:
       id_key = Qpaste;
-      err = create_apple_event_from_event_ref (event, 0, NULL, NULL,
-					       &apple_event);
+      num_params = 0;
+      names = NULL;
+      types = NULL;
       break;
 
     case kEventServicePerform:
-      {
-	static EventParamName names[] = {kEventParamServiceMessageName,
-					 kEventParamServiceUserData};
-	static EventParamType types[] = {typeCFStringRef,
-					 typeCFStringRef};
-
-	id_key = Qperform;
-	err = create_apple_event_from_event_ref (event, 2, names, types,
-						 &apple_event);
-      }
+      id_key = Qperform;
+      num_params = sizeof (names_pfm) / sizeof (names_pfm[0]);
+      names = names_pfm;
+      types = types_pfm;
       break;
 
     default:
       abort ();
     }
 
-  if (err == noErr)
-    {
-      err = mac_store_apple_event (Qservices, id_key, &apple_event);
-      AEDisposeDesc (&apple_event);
-    }
+  err = mac_store_event_ref_as_apple_event (0, 0, Qservices, id_key,
+					    event, num_params,
+					    names, types);
 
   return err;
 }
@@ -9303,15 +9434,28 @@ install_window_handler (window)
      {kEventClassWindow, kEventWindowShown},
      {kEventClassWindow, kEventWindowHidden},
      {kEventClassWindow, kEventWindowExpanded},
-     {kEventClassWindow, kEventWindowCollapsed}};
+     {kEventClassWindow, kEventWindowCollapsed},
+#ifdef MAC_OSX
+     {kEventClassWindow, kEventWindowToolbarSwitchMode},
+#endif
+  };
   EventTypeSpec specs_mouse[] = {{kEventClassMouse, kEventMouseWheelMoved}};
   static EventHandlerUPP handle_window_eventUPP = NULL;
   static EventHandlerUPP handle_mouse_eventUPP = NULL;
+#if USE_MAC_FONT_PANEL
+  EventTypeSpec specs_font[] = {{kEventClassFont, kEventFontPanelClosed},
+				{kEventClassFont, kEventFontSelection}};
+  static EventHandlerUPP handle_font_eventUPP = NULL;
+#endif
 
   if (handle_window_eventUPP == NULL)
     handle_window_eventUPP = NewEventHandlerUPP (mac_handle_window_event);
   if (handle_mouse_eventUPP == NULL)
     handle_mouse_eventUPP = NewEventHandlerUPP (mac_handle_mouse_event);
+#if USE_MAC_FONT_PANEL
+  if (handle_font_eventUPP == NULL)
+    handle_font_eventUPP = NewEventHandlerUPP (mac_handle_font_event);
+#endif
   err = InstallWindowEventHandler (window, handle_window_eventUPP,
 				   GetEventTypeCount (specs_window),
 				   specs_window, NULL, NULL);
@@ -9319,18 +9463,16 @@ install_window_handler (window)
     err = InstallWindowEventHandler (window, handle_mouse_eventUPP,
 				     GetEventTypeCount (specs_mouse),
 				     specs_mouse, NULL, NULL);
+#if USE_MAC_FONT_PANEL
+  if (err == noErr)
+    err = InstallWindowEventHandler (window, handle_font_eventUPP,
+				     GetEventTypeCount (specs_font),
+				     specs_font, NULL, NULL);
 #endif
-#if TARGET_API_MAC_CARBON
-  if (mac_do_track_dragUPP == NULL)
-    mac_do_track_dragUPP = NewDragTrackingHandlerUPP (mac_do_track_drag);
-  if (mac_do_receive_dragUPP == NULL)
-    mac_do_receive_dragUPP = NewDragReceiveHandlerUPP (mac_do_receive_drag);
+#endif
+  if (err == noErr)
+    err = install_drag_handler (window);
 
-  if (err == noErr)
-    err = InstallTrackingHandler (mac_do_track_dragUPP, window, NULL);
-  if (err == noErr)
-    err = InstallReceiveHandler (mac_do_receive_dragUPP, window, NULL);
-#endif
   return err;
 }
 
@@ -9338,166 +9480,8 @@ void
 remove_window_handler (window)
      WindowPtr window;
 {
-#if TARGET_API_MAC_CARBON
-  if (mac_do_track_dragUPP)
-    RemoveTrackingHandler (mac_do_track_dragUPP, window);
-  if (mac_do_receive_dragUPP)
-    RemoveReceiveHandler (mac_do_receive_dragUPP, window);
-#endif
+  remove_drag_handler (window);
 }
-
-#if TARGET_API_MAC_CARBON
-static pascal OSErr
-mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
-		   void *handlerRefCon, DragReference theDrag)
-{
-  static int can_accept;
-  short items;
-  short index;
-  ItemReference theItem;
-  FlavorFlags theFlags;
-  OSErr result;
-
-  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
-    return dragNotAcceptedErr;
-
-  switch (message)
-    {
-    case kDragTrackingEnterHandler:
-      CountDragItems (theDrag, &items);
-      can_accept = 0;
-      for (index = 1; index <= items; index++)
-	{
-	  GetDragItemReferenceNumber (theDrag, index, &theItem);
-	  result = GetFlavorFlags (theDrag, theItem, flavorTypeHFS, &theFlags);
-	  if (result == noErr)
-	    {
-	      can_accept = 1;
-	      break;
-	    }
-	}
-      break;
-
-    case kDragTrackingEnterWindow:
-      if (can_accept)
-	{
-	  RgnHandle hilite_rgn = NewRgn ();
-	  Rect r;
-	  struct frame *f = mac_window_to_frame (window);
-
-	  GetWindowPortBounds (window, &r);
-	  OffsetRect (&r, -r.left, -r.top);
-	  RectRgn (hilite_rgn, &r);
-	  ShowDragHilite (theDrag, hilite_rgn, true);
-	  DisposeRgn (hilite_rgn);
-	  SetThemeCursor (kThemeCopyArrowCursor);
-	}
-      break;
-
-    case kDragTrackingInWindow:
-      break;
-
-    case kDragTrackingLeaveWindow:
-      if (can_accept)
-	{
-	  struct frame *f = mac_window_to_frame (window);
-
-	  HideDragHilite (theDrag);
-	  SetThemeCursor (kThemeArrowCursor);
-	}
-      break;
-
-    case kDragTrackingLeaveHandler:
-      break;
-    }
-
-  return noErr;
-}
-
-static pascal OSErr
-mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
-		     DragReference theDrag)
-{
-  short items;
-  short index;
-  FlavorFlags theFlags;
-  Point mouse;
-  OSErr result;
-  ItemReference theItem;
-  HFSFlavor data;
-  Size size = sizeof (HFSFlavor);
-  Lisp_Object file_list;
-
-  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
-    return dragNotAcceptedErr;
-
-  file_list = Qnil;
-  GetDragMouse (theDrag, &mouse, 0L);
-  CountDragItems (theDrag, &items);
-  for (index = 1; index <= items; index++)
-    {
-      /* Only handle file references.  */
-      GetDragItemReferenceNumber (theDrag, index, &theItem);
-      result = GetFlavorFlags (theDrag, theItem, flavorTypeHFS, &theFlags);
-      if (result == noErr)
-	{
-	  OSErr err;
-	  AEDesc desc;
-
-	  err = GetFlavorData (theDrag, theItem, flavorTypeHFS,
-			       &data, &size, 0L);
-	  if (err == noErr)
-	    err = AECoercePtr (typeFSS, &data.fileSpec, sizeof (FSSpec),
-			       TYPE_FILE_NAME, &desc);
-	  if (err == noErr)
-	    {
-	      Lisp_Object file;
-
-	      /* x-dnd functions expect undecoded filenames.  */
-	      file = make_uninit_string (AEGetDescDataSize (&desc));
-	      err = AEGetDescData (&desc, SDATA (file), SBYTES (file));
-	      if (err == noErr)
-		file_list = Fcons (file, file_list);
-	      AEDisposeDesc (&desc);
-	    }
-	}
-    }
-  /* If there are items in the list, construct an event and post it to
-     the queue like an interrupt using kbd_buffer_store_event.  */
-  if (!NILP (file_list))
-    {
-      struct input_event event;
-      Lisp_Object frame;
-      struct frame *f = mac_window_to_frame (window);
-      SInt16 modifiers;
-
-      GlobalToLocal (&mouse);
-      GetDragModifiers (theDrag, NULL, NULL, &modifiers);
-
-      event.kind = DRAG_N_DROP_EVENT;
-      event.code = 0;
-      event.modifiers = mac_to_emacs_modifiers (modifiers);
-      event.timestamp = TickCount () * (1000 / 60);
-      XSETINT (event.x, mouse.h);
-      XSETINT (event.y, mouse.v);
-      XSETFRAME (frame, f);
-      event.frame_or_window = frame;
-      event.arg = file_list;
-      /* Post to the interrupt queue */
-      kbd_buffer_store_event (&event);
-      /* MAC_TODO: Mimic behavior of windows by switching contexts to Emacs */
-      {
-	ProcessSerialNumber psn;
-	GetCurrentProcess (&psn);
-	SetFrontProcess (&psn);
-      }
-
-      return noErr;
-    }
-  else
-    return dragNotAcceptedErr;
-}
-#endif
 
 
 #if __profile__
@@ -9784,6 +9768,41 @@ mac_wait_next_event (er, sleep_time, dequeue)
 }
 #endif /* not USE_CARBON_EVENTS */
 
+#if TARGET_API_MAC_CARBON
+OSStatus
+mac_post_mouse_moved_event ()
+{
+  EventRef event = NULL;
+  OSStatus err;
+
+  err = CreateEvent (NULL, kEventClassMouse, kEventMouseMoved, 0,
+		     kEventAttributeNone, &event);
+  if (err == noErr)
+    {
+      Point mouse_pos;
+
+      GetMouse (&mouse_pos);
+      LocalToGlobal (&mouse_pos);
+      err = SetEventParameter (event, kEventParamMouseLocation, typeQDPoint,
+			       sizeof (Point), &mouse_pos);
+    }
+  if (err == noErr)
+    {
+      UInt32 modifiers = GetCurrentKeyModifiers ();
+
+      err = SetEventParameter (event, kEventParamKeyModifiers, typeUInt32,
+			       sizeof (UInt32), &modifiers);
+    }
+  if (err == noErr)
+    err = PostEventToQueue (GetCurrentEventQueue (), event,
+			    kEventPriorityStandard);
+  if (event)
+    ReleaseEvent (event);
+
+  return err;
+}
+#endif
+
 /* Emacs calls this whenever it wants to read an input event from the
    user. */
 int
@@ -9911,7 +9930,8 @@ XTread_socket (sd, expected, hold_quit)
 		break;
 
 	      case inContent:
-		if (window_ptr != FRAME_MAC_WINDOW (mac_focus_frame (dpyinfo)))
+		if (dpyinfo->x_focus_frame == NULL
+		    || window_ptr != FRAME_MAC_WINDOW (dpyinfo->x_focus_frame))
 		  SelectWindow (window_ptr);
 		else
 		  {
@@ -10058,20 +10078,18 @@ XTread_socket (sd, expected, hold_quit)
 		  }
 		break;
 
-#if TARGET_API_MAC_CARBON
-	      case inProxyIcon:
-		if (TrackWindowProxyDrag (window_ptr, er.where)
-		    != errUserWantsToDragWindow)
-		  break;
-		/* fall through */
-#endif
 	      case inDrag:
 #if TARGET_API_MAC_CARBON
+	      case inProxyIcon:
 		if (IsWindowPathSelectClick (window_ptr, &er))
 		  {
 		    WindowPathSelect (window_ptr, NULL, NULL);
 		    break;
 		  }
+		if (part_code == inProxyIcon
+		    && (TrackWindowProxyDrag (window_ptr, er.where)
+			!= errUserWantsToDragWindow))
+		  break;
 		DragWindow (window_ptr, er.where, NULL);
 #else /* not TARGET_API_MAC_CARBON */
 		DragWindow (window_ptr, er.where, &qd.screenBits.bounds);
@@ -11010,6 +11028,13 @@ syms_of_macterm ()
 #if USE_CARBON_EVENTS
   Qhicommand   = intern ("hicommand");    staticpro (&Qhicommand);
 #ifdef MAC_OSX
+  Qtoolbar_switch_mode = intern ("toolbar-switch-mode");
+  staticpro (&Qtoolbar_switch_mode);
+#if USE_MAC_FONT_PANEL
+  Qpanel_closed = intern ("panel-closed");  staticpro (&Qpanel_closed);
+  Qselection    = intern ("selection");     staticpro (&Qselection);
+#endif
+
   Qservices    = intern ("services");	  staticpro (&Qservices);
   Qpaste       = intern ("paste");	  staticpro (&Qpaste);
   Qperform     = intern ("perform");	  staticpro (&Qperform);
@@ -11050,7 +11075,7 @@ NOTE: Not supported on Mac yet.  */);
   x_use_underline_position_properties = 0;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
-	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
+    doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
 #ifdef USE_TOOLKIT_SCROLL_BARS
   Vx_toolkit_scroll_bars = Qt;
 #else
@@ -11104,23 +11129,23 @@ mouse-3 and the command-key will register for mouse-2.  */);
 
 #if USE_CARBON_EVENTS
   DEFVAR_BOOL ("mac-wheel-button-is-mouse-2", &mac_wheel_button_is_mouse_2,
-   doc: /* *Non-nil if the wheel button is mouse-2 and the right click mouse-3.
+    doc: /* *Non-nil if the wheel button is mouse-2 and the right click mouse-3.
 Otherwise, the right click will be treated as mouse-2 and the wheel
 button will be mouse-3.  */);
   mac_wheel_button_is_mouse_2 = 1;
 
   DEFVAR_BOOL ("mac-pass-command-to-system", &mac_pass_command_to_system,
-   doc: /* *Non-nil if command key presses are passed on to the Mac Toolbox.  */);
+    doc: /* *Non-nil if command key presses are passed on to the Mac Toolbox.  */);
   mac_pass_command_to_system = 1;
 
   DEFVAR_BOOL ("mac-pass-control-to-system", &mac_pass_control_to_system,
-   doc: /* *Non-nil if control key presses are passed on to the Mac Toolbox.  */);
+    doc: /* *Non-nil if control key presses are passed on to the Mac Toolbox.  */);
   mac_pass_control_to_system = 1;
 
 #endif
 
   DEFVAR_BOOL ("mac-allow-anti-aliasing", &mac_use_core_graphics,
-   doc: /* *If non-nil, allow anti-aliasing.
+    doc: /* *If non-nil, allow anti-aliasing.
 The text will be rendered using Core Graphics text rendering which
 may anti-alias the text.  */);
 #if USE_CG_DRAWING
@@ -11133,7 +11158,7 @@ may anti-alias the text.  */);
      creating the terminal frame on Mac OS 9 before loading
      term/mac-win.elc.  */
   DEFVAR_LISP ("mac-charset-info-alist", &Vmac_charset_info_alist,
-               doc: /* Alist of Emacs character sets vs text encodings and coding systems.
+    doc: /* Alist of Emacs character sets vs text encodings and coding systems.
 Each entry should be of the form:
 
    (CHARSET-NAME TEXT-ENCODING CODING-SYSTEM)
@@ -11144,6 +11169,18 @@ CODING_SYSTEM is a coding system corresponding to TEXT-ENCODING.  */);
   Vmac_charset_info_alist =
     Fcons (list3 (build_string ("mac-roman"),
 		  make_number (smRoman), Qnil), Qnil);
+
+#if USE_ATSUI
+  DEFVAR_LISP ("mac-atsu-font-table", &Vmac_atsu_font_table,
+    doc: /* Hash table of ATSU font IDs vs plist of attributes and values.
+Each font ID is represented as a four-byte string in native byte
+order.  */);
+  Vmac_atsu_font_table =
+    make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+		     make_float (DEFAULT_REHASH_SIZE),
+		     make_float (DEFAULT_REHASH_THRESHOLD),
+		     Qnil, Qnil, Qnil);
+#endif
 }
 
 /* arch-tag: f2259165-4454-4c04-a029-a133c8af7b5b

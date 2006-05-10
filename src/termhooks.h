@@ -183,9 +183,9 @@ enum event_kind
   /* Generated when an Apple event, a HICommand event, or a Services
      menu event is received and the corresponding handler is
      registered.  Members `x' and `y' are for the event class and ID
-     symbols, respectively.  Member `code' points to the Apple event
-     descriptor.  Parameters for Non-Apple events are converted to
-     those in Apple events.  */
+     symbols, respectively.  Member `arg' is a Lisp object converted
+     from the received Apple event.  Parameters for non-Apple events
+     are converted to those in Apple events.  */
   MAC_APPLE_EVENT
 #endif
 };

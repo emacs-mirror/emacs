@@ -694,6 +694,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 		     (if (and transient-mark-mode mark-active)
 			 (buffer-substring (region-beginning) (region-end))
 		       (tooltip-identifier-from-point (point))))))
+	      (speedbar 1)
 	      (catch 'already-watched
 		(dolist (var gdb-var-list)
 		  (unless (string-match "\\." (car var))
@@ -725,7 +726,6 @@ With arg, enter name of variable to be watched in the minibuffer."
 		  (match-string 3)
 		  nil nil gdb-frame-address)))
 	(push var gdb-var-list)
-	(speedbar 1)
 	(unless (string-equal
 		 speedbar-initial-expansion-list-name "GUD")
 	  (speedbar-change-initial-expansion-list "GUD"))
@@ -741,13 +741,26 @@ With arg, enter name of variable to be watched in the minibuffer."
 	(message-box "Watching expressions requires gdb 6.0 onwards")
       (message-box "No symbol \"%s\" in current context." expr))))
 
+(defun gdb-speedbar-update ()
+  (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
+    ;; Dummy command to update speedbar even when idle.
+    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-timer-fn))
+    ;; Keep gdb-pending-triggers non-nil till end.
+    (push 'gdb-speedbar-timer gdb-pending-triggers)))
+
+(defun gdb-speedbar-timer-fn ()
+  (setq gdb-pending-triggers
+	(delq 'gdb-speedbar-timer gdb-pending-triggers))
+  (speedbar-timer-fn))
+
 (defun gdb-var-evaluate-expression-handler (varnum changed)
   (goto-char (point-min))
   (re-search-forward ".*value=\\(\".*\"\\)" nil t)
   (let ((var (assoc varnum gdb-var-list)))
     (when var
       (if changed (setcar (nthcdr 5 var) 'changed))
-      (setcar (nthcdr 4 var) (read (match-string 1))))))
+      (setcar (nthcdr 4 var) (read (match-string 1)))))
+  (gdb-speedbar-update))
 
 (defun gdb-var-list-children (varnum)
   (gdb-enqueue-input
@@ -811,21 +824,7 @@ type_changed=\".*?\".*?}")
 		  varnum "\"\n")
 	  `(lambda () (gdb-var-evaluate-expression-handler ,varnum t)))))))
   (setq gdb-pending-triggers
-	(delq 'gdb-var-update gdb-pending-triggers))
-  (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-    ;; Dummy command to update speedbar at right time.
-    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-refresh))
-    ;; Keep gdb-pending-triggers non-nil till end.
-    (push 'gdb-speedbar-refresh gdb-pending-triggers)))
-
-(defun gdb-speedbar-refresh ()
-  (setq gdb-pending-triggers
-	(delq 'gdb-speedbar-refresh gdb-pending-triggers))
-  (with-current-buffer gud-comint-buffer
-    (let ((speedbar-verbosity-level 0)
-	  (speedbar-shown-directories nil))
-      (save-excursion
-	(speedbar-refresh)))))
+	(delq 'gdb-var-update gdb-pending-triggers)))
 
 (defun gdb-var-delete ()
   "Delete watch expression at point from the speedbar."
@@ -1912,7 +1911,7 @@ static char *magick[] = {
 	    (let* ((buffer (find-file-noselect
 			 (if (file-exists-p file) file
 			   (cdr (assoc bptno gdb-location-alist)))))
-		   (window (unless (gdb-display-source-buffer buffer)
+		   (window (or (gdb-display-source-buffer buffer)
 			       (display-buffer buffer))))
 	      (setq gdb-source-window window)
 	      (with-current-buffer buffer
@@ -2754,6 +2753,7 @@ corresponding to the mode line clicked."
 	   ;; Put buffer list in window if we
 	   ;; can't find a source file.
 	   (list-buffers-noselect))))
+  (setq gdb-source-window (selected-window))
   (when gdb-use-separate-io-buffer
     (split-window-horizontally)
     (other-window 1)
@@ -2781,6 +2781,7 @@ This arrangement depends on the value of `gdb-many-windows'."
        (if gud-last-last-frame
 	   (gud-find-file (car gud-last-last-frame))
 	 (gud-find-file gdb-main-file)))
+      (setq gdb-source-window (selected-window))
       (other-window 1))))
 
 (defun gdb-reset ()
@@ -2802,8 +2803,6 @@ Kills the gdb buffers, and resets variables and the source buffers."
   (setq overlay-arrow-variable-list
 	(delq 'gdb-overlay-arrow-position overlay-arrow-variable-list))
   (setq fringe-indicator-alist '((overlay-arrow . right-triangle)))
-  (if (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-      (speedbar-refresh))
   (setq gud-running nil)
   (setq gdb-active-process nil)
   (setq gdb-var-list nil)
@@ -3231,7 +3230,8 @@ numchild=\"\\(.+?\\)\",.*?value=\\(\".*?\"\\),.*?type=\"\\(.+?\\)\".*?}")
 		      (throw 'child-already-watched nil))
 		  (push varchild var-list))))
 	  (push var var-list)))
-      (setq gdb-var-list (nreverse var-list)))))
+      (setq gdb-var-list (nreverse var-list))))
+  (gdb-speedbar-update))
 
 ; Uses "-var-update --all-values".  Needs GDB 6.4 onwards.
 (defun gdb-var-update-1 ()
@@ -3264,11 +3264,7 @@ in_scope=\"\\(.*?\\)\".*?}")
 		  (read (match-string 2)))))))
   (setq gdb-pending-triggers
    (delq 'gdb-var-update gdb-pending-triggers))
-  (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-    ;; dummy command to update speedbar at right time
-    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-refresh))
-    ;; keep gdb-pending-triggers non-nil till end
-    (push 'gdb-speedbar-refresh gdb-pending-triggers)))
+  (gdb-speedbar-update))
 
 ;; Registers buffer.
 ;;

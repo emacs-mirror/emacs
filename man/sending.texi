@@ -2,7 +2,7 @@
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001, 2002,
 @c   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Sending Mail, Rmail, Abbrevs, Top
+@node Sending Mail
 @chapter Sending Mail
 @cindex sending mail
 @cindex mail

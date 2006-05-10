@@ -639,9 +639,9 @@ The search is limited to file names matching shell pattern FILES.
 FILES may use abbreviations defined in `grep-files-aliases', e.g.
 entering `ch' is equivalent to `*.[ch]'.
 
-With \\[universal-argument] prefix, allow user to edit the constructed
-shell command line before it is executed.
-With two \\[universal-argument] prefixes, edit and run grep shell command.
+With \\[universal-argument] prefix, you can edit the constructed shell command line
+before it is executed.
+With two \\[universal-argument] prefixes, directly edit and run `grep-command'.
 
 Collect output in a buffer.  While grep runs asynchronously, you
 can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error]
@@ -676,7 +676,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	      (setq command
 		    (read-from-minibuffer "Confirm: "
 					  command nil nil 'grep-history))
-	    (push command grep-history))))
+	    (add-to-history 'grep-history command))))
       (when command
 	;; Setting process-setup-function makes exit-message-function work
 	;; even when async processes aren't supported.
@@ -687,14 +687,14 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 
 ;;;###autoload
 (defun rgrep (regexp &optional files dir)
-  "Recusively grep for REGEXP in FILES in directory tree rooted at DIR.
+  "Recursively grep for REGEXP in FILES in directory tree rooted at DIR.
 The search is limited to file names matching shell pattern FILES.
 FILES may use abbreviations defined in `grep-files-aliases', e.g.
 entering `ch' is equivalent to `*.[ch]'.
 
-With \\[universal-argument] prefix, allow user to edit the constructed
-shell command line before it is executed.
-With two \\[universal-argument] prefixes, edit and run grep-find shell command.
+With \\[universal-argument] prefix, you can edit the constructed shell command line
+before it is executed.
+With two \\[universal-argument] prefixes, directly edit and run `grep-find-command'.
 
 Collect output in a buffer.  While find runs asynchronously, you
 can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error]
@@ -721,16 +721,16 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
     (if (null files)
 	(if (not (string= regexp grep-find-command))
 	    (compilation-start regexp 'grep-mode))
-      (let* ((default-directory (file-name-as-directory (expand-file-name dir)))
-	     (command (grep-expand-template
-		       grep-find-template
-		       regexp
-		       (concat "\\( -name "
-			       (mapconcat #'shell-quote-argument
-					  (split-string files)
-					  " -o -name ")
-			       " \\)")
-		       default-directory
+      (setq dir (file-name-as-directory (expand-file-name dir)))
+      (let ((command (grep-expand-template
+		      grep-find-template
+		      regexp
+		      (concat "\\( -name "
+			      (mapconcat #'shell-quote-argument
+					 (split-string files)
+					 " -o -name ")
+			      " \\)")
+		       dir
 		       (and grep-find-ignored-directories
 			    (concat "\\( -path '*/"
 				    (mapconcat #'identity
@@ -742,8 +742,12 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 	      (setq command
 		    (read-from-minibuffer "Confirm: "
 					  command nil nil 'grep-find-history))
-	    (push command grep-find-history))
-	  (compilation-start command 'grep-mode))))))
+	    (add-to-history 'grep-find-history command))
+	  (let ((default-directory dir))
+	    (compilation-start command 'grep-mode))
+	  ;; Set default-directory if we started rgrep in the *grep* buffer.
+	  (if (eq next-error-last-buffer (current-buffer))
+	      (setq default-directory dir)))))))
 
 
 (provide 'grep)

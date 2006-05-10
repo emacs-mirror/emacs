@@ -1,3 +1,242 @@
+2006-05-09  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-insert-input): Remove redundant calls to setq
+	and goto-char.
+
+2006-05-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* comint.el (comint-insert-input): Make it work when
+	comint-use-prompt-regexp is t.
+
+2006-05-10  Miles Bader  <miles@gnu.org>
+
+	* subr.el (field-at-pos): New function.
+
+	* comint.el (comint-insert-input): Use it.
+
+2006-05-09  Juri Linkov  <juri@jurta.org>
+
+	* battery.el (battery-linux-proc-acpi): Also try
+	`/proc/acpi/thermal_zone/THR2/temperature'.
+
+	* files.el <safe-local-variable>: Remove `eval' and `let' binding
+	for now unused lambda `string-or-null'.
+
+	* add-log.el (change-log-default-name): Put `string-or-null-p'
+	instead of lambda on `safe-local-variable' property.
+
+	* diff-mode.el (diff-context->unified): Use `region-beginning' and
+	`region-end' instead of `mark' and `point'.
+	(diff-unified->context, diff-reverse-direction, diff-fixup-modifs):
+	Operate on region in Transient Mark mode when the mark is active.
+	Use `region-beginning' and `region-end' instead of `mark' and
+	`point'.
+	(diff-hunk-text, diff-goto-source): Doc fix.
+
+	* startup.el (fancy-splash-screens, normal-splash-screen): Use
+	face `mode-line-buffer-id' for mode-line buffer face instead of
+	hard-coded `(:weight bold)'.
+
+	* arc-mode.el (archive-set-buffer-as-visiting-file): Bind
+	buffer-undo-list to t (undo-ask is reproducible by visiting
+	nested archives).
+
+2006-05-09  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (rgrep): Set default directory of *grep*
+	buffer if we start M-x rgrep in the *grep* buffer and choose
+	a different base directory.
+
+2006-05-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-register-file-name-handlers): Enable Tramp
+	completion also when ido is loaded.
+
+2006-05-09  Masatake YAMATO  <jet@gyve.org>
+
+	* font-lock.el (cpp-font-lock-keywords-source-directives): Addded
+	"warning" and "import".
+	(cpp-font-lock-keywords): Added "warning".
+
+2006-05-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Add more key bindings.
+
+2006-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mwheel.el (mwheel-scroll): Make sure that when scrolling multiple
+	pages at a time, if we signal the end, we should indeed reach that end.
+
+2006-05-08  David Reitter  <david.reitter@gmail.com>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Only preserve messages
+	output during execution of the body.
+
+2006-05-08  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (lgrep, rgrep): Doc fixes.
+
+2006-05-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc--set-buffer-bind-dll-let*):
+	Use with-current-buffer.
+
+2006-05-07  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (add-to-history): Remove keep-dups arg.
+
+	* kmacro.el (kmacro-push-ring): Let-bind history-delete-duplicates
+	to nil around call to add-to-history.
+
+2006-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/syntax.el (syntax-ppss): Flush the cache before rather
+	than after a buffer modification.
+
+2006-05-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler): Move speedbar
+	call to...
+	(gud-watch): ...here so speedbar is raised for already watched
+	expressions.
+	(gdb-speedbar-refresh): Delete function.
+	(gdb-speedbar-update, gdb-speedbar-timer-fn): New functions.
+	Use speedbar-timer-fn instead of speedbar-refresh (reverting
+	earlier change).
+	(gdb-var-evaluate-expression-handler)
+	(gdb-var-list-children-handler-1, gdb-var-update-handler-1): Use it.
+
+	* speedbar.el (speedbar-timer-fn): Remove save-window-excursion.
+	Update localized contents for all buffers except ignored modes.
+
+2006-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-utxt-to-string): Use `eq' instead of `='.
+	(mac-atsu-font-table, mac-font-panel-mode): Add defvars.
+	(mac-bytes-to-digits, mac-handle-toolbar-switch-mode)
+	(mac-handle-font-panel-closed, mac-handle-font-selection):
+	New functions.
+	(mac-font-panel-mode): New minor mode.
+	(mac-apple-event-map): Add bindings for toolbar toggle button and
+	font panel.
+	(menu-bar-showhide-menu): Add mac-font-panel-mode.
+
+2006-05-07  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuffer.el (ibuffer-compressed-file-name-regexp):
+	Avoid `regexp-opt'; simplify regexp for readability.
+
+2006-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* ldefs-boot.el (dired-do-redisplay, dired-maybe-insert-subdir):
+	* files.el (buffer-stale-function):
+	* dired-aux.el (dired-do-redisplay, dired-maybe-insert-subdir):
+	* autorevert.el (global-auto-revert-non-file-buffers): Point Info
+	links to the main manual, not to emacs-xtra.
+
+2006-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: (mac-utxt-to-string): Don't make adjustment for
+	MacJapanese if text is ASCII-only.
+
+2006-05-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-goto-breakpoint): Use or instead of
+	unless so nil isn't returned.
+	(gdb-setup-windows, gdb-restore-windows): Reset gdb-source-window.
+
+2006-05-06  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (add-to-history): New function.
+
+	* ediff.el (ediff-files, ediff-files3, ediff-merge-files)
+	(ediff-merge-files-with-ancestor):
+	* env.el (setenv):
+	* isearch.el (isearch-update-ring):
+	* server.el (server-visit-files):
+	* progmodes/grep.el (lgrep, rgrep):
+	* progmodes/vhdl-mode.el (vhdl-generate-makefile-1):
+	* progmodes/xscheme.el (xscheme-insert-expression):
+	Use add-to-history.
+
+	* kmacro.el (kmacro-push-ring): Use add-to-history.
+	(kmacro-ring-length): Remove unused defun.
+	(kmacro-start-macro): Use kmacro-push-ring.
+
+2006-05-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc-create, ewoc-set-hf): Use `insert'
+	directly instead of a lambda expression that calls it.
+
+2006-05-06  Kim F. Storm  <storm@cua.dk>
+
+	* avoid.el (mouse-avoidance-point-position): Use posn-at-point
+	instead of compute-motion.
+
+2006-05-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ibuffer.el (ibuffer-compressed-file-name-regexp): Undo previous
+	change.
+
+2006-05-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* startup.el (command-line-1): Refer to "Pure Storage" on
+	pure-space-overflow.
+
+2006-05-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/re-builder.el (reb-update-overlays): Cycle through
+	provided faces once they all have been used up.
+
+2006-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (normal-splash-screen, fancy-splash-screens-1): Add a
+	reference to the Lisp manual to the warning about pure space
+	overflow.
+
+2006-05-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* textmodes/ispell.el (ispell-buffer-local-dict): Add a `no-reload'
+	argument to avoid the call to `ispell-internal-change-dictionary'
+	when not needed.
+	(ispell-change-dictionary): Use this argument and call
+	`ispell-internal-change-dictionary' after the possible change
+	to `ispell-local-dictionary'.
+	(ispell-internal-change-dictionary): Check for a change in
+	personal dictionary use too.
+	Cosmetic changes from Agustin Martin
+	<agustin.martin@hispalinux.es>.
+
+2006-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (command-line): On MS-Windows, probe "~", not
+	"~USER", for warning about non-existent home directory
+
+	* arc-mode.el (archive-l-e): New optional argument `float' means
+	generate a float value.
+	(archive-arc-summarize, archive-lzh-summarize)
+	(archive-zip-summarize, archive-zoo-summarize): Invoke archive-l-e
+	with 3rd argument non-nil when file's size is being computed.
+	Format the file sizes with %8.0f instead of %8d.
+
+2006-05-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* cus-start.el (all): Add mac-dnd-known-types.
+
+	* term/mac-win.el: (mac-utxt-to-string, mac-string-to-utxt)
+	(mac-TEXT-to-string, mac-string-to-TEXT, mac-furl-to-string)
+	(mac-TIFF-to-string): New functions.
+	(x-get-selection, x-selection-value)
+	(mac-select-convert-to-string): Use them.
+	(mac-text-encoding-mac-japanese-basic-variant):	New constant.
+	(mac-dnd-types-alist): New customization variable.
+	(mac-dnd-handle-furl, mac-dnd-handle-hfs, mac-dnd-insert-utxt)
+	(mac-dnd-insert-TEXT, mac-dnd-insert-TIFF, mac-dnd-drop-data)
+	(mac-dnd-handle-drag-n-drop-event): New functions.
+	(mac-drag-n-drop): Remove function.
+	(global-map): Bind drag-n-drop and M-drag-n-drop to
+	mac-dnd-handle-drag-n-drop-event.
+
 2006-05-04  Karl Chen  <quarl@NOSPAM.quarl.org>
 
 	* progmodes/perl-mode.el (perl-beginning-of-function):

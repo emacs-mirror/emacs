@@ -322,7 +322,7 @@ returns @code{t} if so, @code{nil} otherwise.
 
 @defun eql value1 value2
 This function acts like @code{eq} except when both arguments are
-numbers.  It compares numbers by type and numberic value, so that
+numbers.  It compares numbers by type and numeric value, so that
 @code{(eql 1.0 1)} returns @code{nil}, but @code{(eql 1.0 1.0)} and
 @code{(eql 1 1)} both return @code{t}.
 @end defun

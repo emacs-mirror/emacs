@@ -8,15 +8,15 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 7.94
+@set VERSION 8.0
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
-@set EDITION , 2nd Edition
-@set UPDATED 2006-04-24
-@set UPDATE-MONTH April, 2006
+@set EDITION 
+@set UPDATED 2006-05-06
+@set UPDATE-MONTH May, 2006
 
 @c Other variables.
-@set MH-BOOK-HOME http://www.ics.uci.edu/~mh/book/mh
+@set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
 @set MH-E-HOME http://mh-e.sourceforge.net/
 
 @c Copyright
@@ -564,12 +564,12 @@ has packages for both of these.
 If you've never run MH before, you need to run @command{install-mh}
 from the shell before you continue. This sets up your personal MH
 environment@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/../overall/setup.htm, Setting Up MH} in the
+@uref{@value{MH-BOOK-HOME}/../overall/setup.html, Setting Up MH} in the
 MH book.}. If you don't, you'll be greeted with the error message:
 @samp{Install MH and run install-mh before running MH-E}. This is all
 you need to know about MH to use MH-E, but the more you know about MH,
 the more you can leverage its power. See the
-@uref{@value{MH-BOOK-HOME}, MH book} to learn more about MH.
+@uref{@value{MH-BOOK-HOME}/../, MH book} to learn more about MH.
 
 @cindex @samp{Path:} MH profile component
 @cindex MH profile
@@ -763,10 +763,10 @@ message. Type @kbd{C-c C-c} now. That's all there is to it!
 To read the mail you've just sent yourself, enter @kbd{M-x mh-rmail}.
 This incorporates the new mail and puts the output from
 @command{inc}@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/reapre.htm, Reading Mail: inc show next
+@uref{@value{MH-BOOK-HOME}/reapre.html, Reading Mail: inc show next
 prev} in the MH book.} (called @dfn{scan lines} after the MH program
 @command{scan}@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/faswsprs.htm, Find and Specify with scan
+@uref{@value{MH-BOOK-HOME}/faswsprs.html, Find and Specify with scan
 pick Ranges Sequences} in the MH book.} which prints a one-line
 summary of each message) into a buffer called @samp{+inbox} whose
 major mode is MH-Folder.
@@ -1088,7 +1088,7 @@ i} to read this manual via Info. The online help is quite good; try
 running @kbd{C-h C-h}. This brings up a list of available help topics,
 one of which displays the documentation for a given key (like @kbd{C-h
 k C-n}). Another useful help feature is to view the manual section
-that describes a given key (such as @kbd{C-h C-k i}). In addition,
+that describes a given key (such as @kbd{C-h K i}). In addition,
 review @ref{Conventions}, if any of the GNU Emacs conventions are
 strange to you.
 
@@ -1158,7 +1158,7 @@ mh-execute-commands @key{RET}}. If you write your own functions,
 please do not prefix your symbols (variables and functions) with
 @samp{mh-}. This prefix is reserved for the MH-E package. To avoid
 conflicts with existing MH-E symbols, use a prefix like @samp{my-} or
-your initials.
+your initials. (Unless, of course, your initials happen to be @emph{mh}!)
 
 @menu
 * Options::                     
@@ -1252,7 +1252,7 @@ Indicates all messages in the range <num1> to <num2>, inclusive. The
 range must be nonempty.
 @c -------------------------
 @item <num>:N
-@item <num>:+N
+@itemx <num>:+N
 @itemx <num>:-N
 Up to N messages beginning with (or ending with) message num. Num may
 be any of the predefined symbols: first, prev, cur, next or last.
@@ -1459,8 +1459,8 @@ is an absolute pathname, the file is assumed to be in the
 @code{mh-progs} directory (@pxref{Getting Started}). You may also link
 a file to @command{inc} that uses a different format (see
 @samp{mh-profile}(5), and sections
-@uref{@value{MH-BOOK-HOME}/reapre.htm, Reading Mail: inc show next
-prev} and @uref{@value{MH-BOOK-HOME}/mhstr.htm, MH Format Strings} in
+@uref{@value{MH-BOOK-HOME}/reapre.html, Reading Mail: inc show next
+prev} and @uref{@value{MH-BOOK-HOME}/mhstr.html, MH Format Strings} in
 the MH book). You'll then need to modify several variables
 appropriately (@pxref{Scan Line Formats}).
 
@@ -2169,7 +2169,7 @@ Default mhl Format} to get the same output as you would get if you ran
 @command{mhl} from the shell. If you have a format file that you want
 MH-E to use, you can set this option to @samp{Specify an mhl Format
 File} and enter the name of your format file (@command{mhl}(1) or
-section @uref{@value{MH-BOOK-HOME}/shomes.htm#Usisho, Using mhl} in
+section @uref{@value{MH-BOOK-HOME}/shomes.html#Usisho, Using mhl} in
 the MH book tells you how to write one). Your format file should
 specify a non-zero value for @samp{overflowoffset} to allow MH-E to
 parse the header. Note that @command{mhl} is always used for printing
@@ -2291,9 +2291,9 @@ MH has the ability to display @dfn{@sc{mime}} (Multipurpose Internet
 Mail Extensions) messages which are simply messages with additional
 @dfn{body parts} or @dfn{attachments}. You can use the MH commands
 @command{show}@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/reapre.htm, Reading Mail: inc show next
+@uref{@value{MH-BOOK-HOME}/reapre.html, Reading Mail: inc show next
 prev} in the MH book.} or @command{mhshow}@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/usimim.htm#ReMIMa, Reading MIME Mail} in
+@uref{@value{MH-BOOK-HOME}/usimim.html#ReMIMa, Reading MIME Mail} in
 the MH book.} from the shell to read @sc{mime} messages@footnote{You
 can call them directly from Emacs if you're running the X Window
 System: type @kbd{M-! xterm -e mhshow @var{message-number}}. You can
@@ -2656,7 +2656,7 @@ use @kbd{D @key{BS}} (@code{mh-page-digest-backwards}).
 
 Another handy command is @kbd{D b} (@code{mh-burst-digest}). This
 command uses the MH command @command{burst}@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/burdig.htm, Bursting Messages} in the MH
+@uref{@value{MH-BOOK-HOME}/burdig.html, Bursting Messages} in the MH
 book.} to break out each message in the digest into its own message.
 Using this command, you can quickly delete unwanted messages, like
 this: Once the digest is split up, toggle out of MH-Folder Show mode
@@ -2867,7 +2867,7 @@ An alternative to using the @samp{ps-print} package is the command
 @kbd{P l} (@code{mh-print-msg}) (the @i{l} is for @i{l}ine printer or
 @i{l}pr). You can print all the messages in a range. The message is
 formatted with @command{mhl}@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/shomes.htm#Usisho, Using mhl} in the MH
+@uref{@value{MH-BOOK-HOME}/shomes.html#Usisho, Using mhl} in the MH
 book.} and printed with the @command{lpr} command.
 
 @kindex P f
@@ -3471,8 +3471,8 @@ bindings, for example:
 
 MH-E has analogies for each of the MH @command{folder} and
 @command{refile} commands@footnote{See the sections
-@uref{@value{MH-BOOK-HOME}/fol.htm#Youfol, Your Current Folder:
-folder} and @uref{@value{MH-BOOK-HOME}/fol.htm#Movref, Moving and
+@uref{@value{MH-BOOK-HOME}/fol.html#Youfol, Your Current Folder:
+folder} and @uref{@value{MH-BOOK-HOME}/fol.html#Movref, Moving and
 Linking Messages: refile} in the MH book.}. To refile a message in
 another folder, use the command @kbd{o} (@code{mh-refile-msg})
 (mnemonic: ``output''). You are prompted for the folder name
@@ -3720,7 +3720,7 @@ Use this hook with care. If there is a bug in your hook which returns
 
 The option @code{mh-sortm-args} holds extra arguments to pass on to
 the command @command{sortm}@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/sorsor.htm, Sorting Messages: sortm} in the
+@uref{@value{MH-BOOK-HOME}/sorsor.html, Sorting Messages: sortm} in the
 MH book.} when a prefix argument is used with @kbd{F S}. Normally
 default arguments to @command{sortm} are specified in the MH profile.
 This option may be used to provide an alternate view. For example,
@@ -4103,7 +4103,7 @@ recipients.
 @vindex mh-reply-default-reply-to
 
 Depending on your answer, @command{repl}@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/reprep.htm, Replying to Messages: repl} in
+@uref{@value{MH-BOOK-HOME}/reprep.html, Replying to Messages: repl} in
 the MH book.} is given a different argument to form your reply.
 Specifically, a choice of @kbd{from} or none at all runs @samp{repl
 -nocc all}, and a choice of @kbd{to} runs @samp{repl -cc to}. Finally,
@@ -4133,7 +4133,7 @@ If you supply a prefix argument (as in @kbd{C-u r}), the message you
 are replying to is inserted in your reply after having first been run
 through @command{mhl} with the format file @file{mhl.reply}. See
 @command{mhl}(1) or the section
-@uref{@value{MH-BOOK-HOME}/shomes.htm#Usisho, Using mhl} in the MH
+@uref{@value{MH-BOOK-HOME}/shomes.html#Usisho, Using mhl} in the MH
 book to see how you can modify the default @file{mhl.reply} file.
 
 @vindex mh-yank-behavior
@@ -4169,7 +4169,7 @@ To forward a message, use the @kbd{f} (@code{mh-forward}) command. You
 are prompted for the @samp{To:} and @samp{cc:} recipients. You are
 given a draft to edit that looks like it would if you had run the MH
 command @command{forw}@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/forfor.htm, Forwarding Messages: forw} in
+@uref{@value{MH-BOOK-HOME}/forfor.html, Forwarding Messages: forw} in
 the MH book.}. You can then add some text (@pxref{Editing Drafts}).
 You can forward several messages by using a range (@pxref{Ranges}).
 All of the messages in the range are inserted into your draft. The
@@ -4243,10 +4243,10 @@ For more information on redistributing messages, see
 
 The option @code{mh-redist-full-contents-flag} must be turned on if
 @command{dist}@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/disdis.htm, Distributing Messages with
+@uref{@value{MH-BOOK-HOME}/disdis.html, Distributing Messages with
 dist} in the MH book.} requires the whole letter for redistribution,
 which is the case if @command{send}@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/sensen.htm, Sending Some Mail: comp send}
+@uref{@value{MH-BOOK-HOME}/sensen.html, Sending Some Mail: comp send}
 in the MH book.} is compiled with the @sc{berk} option (which many
 people abhor). If you find that MH will not allow you to redistribute
 a message that has been redistributed before, turn off this option.
@@ -5143,7 +5143,7 @@ although it provides a handful of commands prefixed with @kbd{C-c C-m}
 to insert the directives so you don't need to remember the syntax of
 them. Remember: you can always add MH-style directives by
 hand@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/usimim.htm#SeMIMa, Sending MIME Mail} in
+@uref{@value{MH-BOOK-HOME}/usimim.html#SeMIMa, Sending MIME Mail} in
 the MH book.}.
 
 @cindex MIME Meta Language (MML)
@@ -5432,7 +5432,7 @@ If you're using MH-style directives, use @kbd{C-c C-e}
 (@code{mh-mh-to-mime}) instead of @kbd{C-c C-m C-m}. This runs the
 command @command{mhbuild} (@command{mhn}) on the message which expands
 the tags@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/usimim.htm#SeMIMa, Sending MIME Mail} in
+@uref{@value{MH-BOOK-HOME}/usimim.html#SeMIMa, Sending MIME Mail} in
 the MH book.}. This action can be undone by running @kbd{C-c C-m C-u}
 (@code{mh-mh-to-mime-undo}), which works by reverting to a backup
 file. You are prompted to confirm this action, but you can avoid the
@@ -5565,7 +5565,7 @@ The command @kbd{C-c C-w} (@code{mh-check-whom}) expands aliases so
 you can check the actual address(es) in the alias. A new buffer named
 @samp{*MH-E Recipients*} is created with the output of @command{whom}
 (@pxref{Miscellaneous})@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/senove.htm#WhaPro, What now? -- and the
+@uref{@value{MH-BOOK-HOME}/senove.html#WhaPro, What now? -- and the
 whatnow Program} in the MH book.}.
 
 @node Sending Message, Killing Draft, Checking Recipients, Editing Drafts
@@ -5599,7 +5599,7 @@ spelling in your message before sending, add the function
 @vindex mh-send-prog
 
 In case the MH @command{send} program@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/sensen.htm, Sending Some Mail: comp send}
+@uref{@value{MH-BOOK-HOME}/sensen.html, Sending Some Mail: comp send}
 in the MH book.} is installed under a different name, use
 @code{mh-send-prog} to tell MH-E the name.
 
@@ -5780,7 +5780,7 @@ Recipients}.
 
 MH-E loads aliases for completion and folder name hints from various
 places. It uses the MH command @command{ali}@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/mh.htm, MH Aliases} in the MH book.} to
+@uref{@value{MH-BOOK-HOME}/mh.html, MH Aliases} in the MH book.} to
 read aliases from the files listed in the profile component
 @samp{Aliasfile:} as well as system-wide aliases (for example,
 @file{/etc/nmh/MailAliases}).
@@ -6253,7 +6253,7 @@ contains these items. Dismiss the speedbar with @kbd{C-x 5 0}
 @cindex customization group, @samp{mh-speedbar}
 
 The MH-E speedbar uses the MH command @command{flists}@footnote{See
-the section @uref{@value{MH-BOOK-HOME}/morseq.htm#flist, Searching for
+the section @uref{@value{MH-BOOK-HOME}/morseq.html#flist, Searching for
 Sequences with flist} in the MH book.} to generate the list of
 folders. The @samp{mh-speedbar} customization group contains the
 following option which controls how often the speedbar calls
@@ -6951,7 +6951,7 @@ mknmz -f /home/user/Mail/.namazu/mknmzrc -O /home/user/Mail/.namazu \
 This search method does not require any setup.
 
 Read @command{pick}(1) or the section
-@uref{@value{MH-BOOK-HOME}/finpic.htm, Finding Messages with pick} in
+@uref{@value{MH-BOOK-HOME}/finpic.html, Finding Messages with pick} in
 the MH book to find out more about how to enter the criteria.
 
 @subsection grep
@@ -7180,7 +7180,7 @@ messages matching the content of the respective field in the current
 message. However, you can give any of these a prefix argument to edit
 the @command{pick} expression used to narrow the view@footnote{See
 @command{pick}(1) or the section
-@uref{@value{MH-BOOK-HOME}/finpic.htm, Finding Messages with pick} in
+@uref{@value{MH-BOOK-HOME}/finpic.html, Finding Messages with pick} in
 the MH book.}.
 
 @cindex @samp{tick} sequence
@@ -7212,7 +7212,7 @@ command. Give this command a prefix argument to remove all limits.
 
 For the whole scoop on MH sequences, refer to
 @samp{mh-sequence}(5)@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/morseq.htm, More About Sequences} in the MH
+@uref{@value{MH-BOOK-HOME}/morseq.html, More About Sequences} in the MH
 book.}. As you've read, several of the MH-E commands can operate on a
 sequence, which is a shorthand for a range or group of messages. For
 example, you might want to forward several messages to a friend or
@@ -7452,7 +7452,7 @@ from the unseen sequence.
 
 With the exceptions of @kbd{S n} and @kbd{S w}, the underlying MH
 command dealing with sequences is @command{mark}@footnote{See the
-section @uref{@value{MH-BOOK-HOME}/mmbwm.htm, Make Message Bookmarks
+section @uref{@value{MH-BOOK-HOME}/mmbwm.html, Make Message Bookmarks
 with mark} in the MH book.}.
 
 @node Junk, Miscellaneous, Sequences, Top
@@ -8050,7 +8050,7 @@ Unless this variable contains an absolute pathname, it is assumed to
 be in the @code{mh-progs} directory (@pxref{Getting Started}). You may
 link another program to @command{scan} (see @samp{mh-profile}(5)) to
 produce a different type of listing@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/faswsprs.htm, Find and Specify with scan
+@uref{@value{MH-BOOK-HOME}/faswsprs.html, Find and Specify with scan
 pick Ranges Sequences} in the MH book.}.
 
 @cindex regular expressions, scan line formats
@@ -8087,7 +8087,7 @@ The first variable has to do with pruning out garbage.
 This regular expression describes a valid scan line. This is used to
 eliminate error messages that are occasionally produced by
 @command{inc}@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/reapre.htm, Reading Mail: inc show next
+@uref{@value{MH-BOOK-HOME}/reapre.html, Reading Mail: inc show next
 prev} in the MH book.} or @command{scan} (default: @code{"^ *[0-9]"}).
 @end vtable
 

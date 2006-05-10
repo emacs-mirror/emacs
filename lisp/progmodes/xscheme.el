@@ -580,12 +580,9 @@ The strings are concatenated and terminated by a newline."
 ;;;; Scheme expressions ring
 
 (defun xscheme-insert-expression (string)
-  (setq xscheme-expressions-ring (cons string xscheme-expressions-ring))
-  (if (> (length xscheme-expressions-ring) xscheme-expressions-ring-max)
-      (setcdr (nthcdr (1- xscheme-expressions-ring-max)
-		      xscheme-expressions-ring)
-	      nil))
-  (setq xscheme-expressions-ring-yank-pointer xscheme-expressions-ring))
+  (setq xscheme-expressions-ring-yank-pointer
+	(add-to-history 'xscheme-expressions-ring string
+			xscheme-expressions-ring-max)))
 
 (defun xscheme-rotate-yank-pointer (arg)
   "Rotate the yanking point in the kill ring."

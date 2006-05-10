@@ -1,5 +1,5 @@
 /* Selection processing for Emacs on Mac OS.
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -918,8 +918,8 @@ static struct
   int size, count;
 } deferred_apple_events;
 extern Lisp_Object Qundefined;
-extern OSErr mac_store_apple_event P_ ((Lisp_Object, Lisp_Object,
-					const AEDesc *));
+extern void mac_store_apple_event P_ ((Lisp_Object, Lisp_Object,
+				       const AEDesc *));
 
 struct apple_event_binding
 {
@@ -1079,9 +1079,8 @@ mac_handle_apple_event (apple_event, reply, refcon)
 	{
 	  if (INTEGERP (binding))
 	    return XINT (binding);
-	  err = mac_store_apple_event (class_key, id_key, apple_event);
-	  if (err == noErr)
-	    return noErr;
+	  mac_store_apple_event (class_key, id_key, apple_event);
+	  return noErr;
 	}
     }
   return errAEEventNotHandled;
@@ -1146,6 +1145,198 @@ DEFUN ("mac-process-deferred-apple-events", Fmac_process_deferred_apple_events, 
 }
 
 
+#if TARGET_API_MAC_CARBON
+static Lisp_Object Vmac_dnd_known_types;
+static pascal OSErr mac_do_track_drag P_ ((DragTrackingMessage, WindowRef,
+					   void *, DragRef));
+static pascal OSErr mac_do_receive_drag P_ ((WindowRef, void *, DragRef));
+static DragTrackingHandlerUPP mac_do_track_dragUPP = NULL;
+static DragReceiveHandlerUPP mac_do_receive_dragUPP = NULL;
+
+extern void mac_store_drag_event P_ ((WindowRef, Point, SInt16,
+				      const AEDesc *));
+
+static pascal OSErr
+mac_do_track_drag (message, window, refcon, drag)
+     DragTrackingMessage message;
+     WindowRef window;
+     void *refcon;
+     DragRef drag;
+{
+  OSErr err = noErr;
+  static int can_accept;
+  UInt16 num_items, index;
+
+  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
+    return dragNotAcceptedErr;
+
+  switch (message)
+    {
+    case kDragTrackingEnterHandler:
+      err = CountDragItems (drag, &num_items);
+      if (err != noErr)
+	break;
+      can_accept = 0;
+      for (index = 1; index <= num_items; index++)
+	{
+	  ItemReference item;
+	  FlavorFlags flags;
+	  Lisp_Object rest;
+
+	  err = GetDragItemReferenceNumber (drag, index, &item);
+	  if (err != noErr)
+	    continue;
+	  for (rest = Vmac_dnd_known_types; CONSP (rest); rest = XCDR (rest))
+	    {
+	      Lisp_Object str;
+	      FlavorType type;
+
+	      str = XCAR (rest);
+	      if (!(STRINGP (str) && SBYTES (str) == 4))
+		continue;
+	      type = EndianU32_BtoN (*((UInt32 *) SDATA (str)));
+
+	      err = GetFlavorFlags (drag, item, type, &flags);
+	      if (err == noErr)
+		{
+		  can_accept = 1;
+		  break;
+		}
+	    }
+	}
+      break;
+
+    case kDragTrackingEnterWindow:
+      if (can_accept)
+	{
+	  RgnHandle hilite_rgn = NewRgn ();
+
+	  if (hilite_rgn)
+	    {
+	      Rect r;
+
+	      GetWindowPortBounds (window, &r);
+	      OffsetRect (&r, -r.left, -r.top);
+	      RectRgn (hilite_rgn, &r);
+	      ShowDragHilite (drag, hilite_rgn, true);
+	      DisposeRgn (hilite_rgn);
+	    }
+	  SetThemeCursor (kThemeCopyArrowCursor);
+	}
+      break;
+
+    case kDragTrackingInWindow:
+      break;
+
+    case kDragTrackingLeaveWindow:
+      if (can_accept)
+	{
+	  HideDragHilite (drag);
+	  SetThemeCursor (kThemeArrowCursor);
+	}
+      break;
+
+    case kDragTrackingLeaveHandler:
+      break;
+    }
+
+  if (err != noErr)
+    return dragNotAcceptedErr;
+  return noErr;
+}
+
+static pascal OSErr
+mac_do_receive_drag (window, refcon, drag)
+     WindowRef window;
+     void *refcon;
+     DragRef drag;
+{
+  OSErr err;
+  int num_types, i;
+  Lisp_Object rest, str;
+  FlavorType *types;
+  AppleEvent apple_event;
+  Point mouse_pos;
+  SInt16 modifiers;
+
+  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
+    return dragNotAcceptedErr;
+
+  num_types = 0;
+  for (rest = Vmac_dnd_known_types; CONSP (rest); rest = XCDR (rest))
+    {
+      str = XCAR (rest);
+      if (STRINGP (str) && SBYTES (str) == 4)
+	num_types++;
+    }
+
+  types = xmalloc (sizeof (FlavorType) * num_types);
+  i = 0;
+  for (rest = Vmac_dnd_known_types; CONSP (rest); rest = XCDR (rest))
+    {
+      str = XCAR (rest);
+      if (STRINGP (str) && SBYTES (str) == 4)
+	types[i++] = EndianU32_BtoN (*((UInt32 *) SDATA (str)));
+    }
+
+  err = create_apple_event_from_drag_ref (drag, num_types, types,
+					  &apple_event);
+  xfree (types);
+
+  if (err == noErr)
+    err = GetDragMouse (drag, &mouse_pos, NULL);
+  if (err == noErr)
+    {
+      GlobalToLocal (&mouse_pos);
+      err = GetDragModifiers (drag, NULL, NULL, &modifiers);
+    }
+
+  if (err == noErr)
+    {
+      mac_store_drag_event (window, mouse_pos, modifiers, &apple_event);
+      AEDisposeDesc (&apple_event);
+      /* Post a harmless event so as to wake up from ReceiveNextEvent.  */
+      mac_post_mouse_moved_event ();
+      return noErr;
+    }
+  else
+    return dragNotAcceptedErr;
+}
+#endif	/* TARGET_API_MAC_CARBON */
+
+OSErr
+install_drag_handler (window)
+     WindowRef window;
+{
+  OSErr err = noErr;
+
+#if TARGET_API_MAC_CARBON
+  if (mac_do_track_dragUPP == NULL)
+    mac_do_track_dragUPP = NewDragTrackingHandlerUPP (mac_do_track_drag);
+  if (mac_do_receive_dragUPP == NULL)
+    mac_do_receive_dragUPP = NewDragReceiveHandlerUPP (mac_do_receive_drag);
+
+  err = InstallTrackingHandler (mac_do_track_dragUPP, window, NULL);
+  if (err == noErr)
+    err = InstallReceiveHandler (mac_do_receive_dragUPP, window, NULL);
+#endif
+
+  return err;
+}
+
+void
+remove_drag_handler (window)
+     WindowRef window;
+{
+#if TARGET_API_MAC_CARBON
+  if (mac_do_track_dragUPP)
+    RemoveTrackingHandler (mac_do_track_dragUPP, window);
+  if (mac_do_receive_dragUPP)
+    RemoveReceiveHandler (mac_do_receive_dragUPP, window);
+#endif
+}
+
+
 #ifdef MAC_OSX
 void
 init_service_handler ()
@@ -1158,7 +1349,7 @@ init_service_handler ()
 				  GetEventTypeCount (specs), specs, NULL, NULL);
 }
 
-extern OSErr mac_store_services_event P_ ((EventRef));
+extern OSStatus mac_store_services_event P_ ((EventRef));
 
 static OSStatus
 copy_scrap_flavor_data (from_scrap, to_scrap, flavor_type)
@@ -1407,6 +1598,17 @@ set to nil.  */);
   DEFVAR_LISP ("mac-apple-event-map", &Vmac_apple_event_map,
 	       doc: /* Keymap for Apple events handled by Emacs.  */);
   Vmac_apple_event_map = Qnil;
+
+#if TARGET_API_MAC_CARBON
+  DEFVAR_LISP ("mac-dnd-known-types", &Vmac_dnd_known_types,
+	       doc: /* The types accepted by default for dropped data.
+The types are chosen in the order they appear in the list.  */);
+  Vmac_dnd_known_types = list4 (build_string ("hfs "), build_string ("utxt"),
+				build_string ("TEXT"), build_string ("TIFF"));
+#ifdef MAC_OSX
+  Vmac_dnd_known_types = Fcons (build_string ("furl"), Vmac_dnd_known_types);
+#endif
+#endif
 
 #ifdef MAC_OSX
   DEFVAR_LISP ("mac-services-selection", &Vmac_services_selection,
