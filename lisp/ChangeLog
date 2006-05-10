@@ -1,3 +1,10 @@
+2006-05-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* comint.el (comint-insert-input): Just make it when
+	comint-use-prompt regexp is nil (default) and with the mouse.
+	(comint-copy-old-input): Reinstate from 2004-06-23.
+	(comint-mode-map): Bind C-c C-m to it.
+
 2006-05-10  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* progmodes/idlw-shell.el (idlwave-shell-move-or-history):
