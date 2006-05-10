@@ -3297,7 +3297,9 @@ describe_map (map, prefix, elt_describer, partial, shadow,
 	      tem = shadow_lookup (shadow, kludge, Qt);
 	      if (!NILP (tem))
 		{
-		  if (mention_shadow)
+		  /* Avoid generating duplicate entries if the
+		     shadowed binding has the same definition. */
+		  if (mention_shadow && !EQ (tem, definition))
 		    this_shadowed = 1;
 		  else
 		    continue;
