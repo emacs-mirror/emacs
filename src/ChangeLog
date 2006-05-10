@@ -1,3 +1,31 @@
+2006-05-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c (Qduration) [MAC_OS]: Undo previous change.
+	(syms_of_image) [MAC_OS]: Likewise.
+	[MAC_OS] (gif_load): Emulate Graphic Control Extension block.
+
+	* macfns.c (x_to_mac_color): Fix shift amount change.
+	[USE_MAC_FONT_PANEL] (mac_set_font): Use x_get_focus_frame.
+	[USE_MAC_FONT_PANEL] (Fmac_set_font_panel_visibility): Doc fix.
+
+	* macselect.c (Vmac_service_selection) [MAC_OSX]: Rename from
+	Vmac_services_selection.  All uses changed.
+	(mac_store_service_event): Rename from mac_store_services_event in
+	extern and calls.
+
+	* macterm.c (Qservice) [MAC_OSX]: Rename from Qservices.  All uses
+	changed.
+	[MAC_OSX] (mac_store_service_event): Rename from
+	mac_store_services_event.  All callers changed.
+	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection): Add args
+	FACE_ID and C.  All callers changed.
+	(x_free_frame_resources) [USE_MAC_FONT_PANEL]: Call
+	mac_set_font_info_for_selection when focus frame is destroyed.
+	(XTread_socket): Revert to FrontNonFloatingWindow/FrontWindow.
+
+	* macterm.h (mac_set_font_info_for_selection): Add 2nd and 3rd
+	args in extern.
+
 2006-05-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keymap.c (describe_map): Avoid generating duplicate entries if
@@ -54,8 +82,8 @@
 	* macselect.c (mac_do_receive_drag): Remove unused variable `index'.
 	(mac_store_services_event): Change return type in extern.
 
-	* macterm.c (XLoadQueryFont) [USE_ATSUI]: Set FMFontFamily value
-	to font->mac_fontnum.
+	* macterm.c (XLoadQueryFont) [USE_ATSUI]: Set font->mac_fontnum to
+	FMFontFamily value.
 	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection): New function.
 	(x_new_focus_frame) [USE_MAC_FONT_PANEL]: Use it.
 	(QCfamily, QCweight, QCslant, Qnormal, Qbold, Qitalic): Add extern.
@@ -66,7 +94,7 @@
 	(Qtoolbar_switch_mode) [MAC_OSX]: New variable.
 	(Qpanel_closed, Qselection) [USE_MAC_FONT_PANEL]: Likewise.
 	(syms_of_macterm): Intern and staticpro them.
-	(init_font_name_table) [USE_ATSUI]: Set data to Vmac_atsu_font_table.
+	(init_font_name_table) [USE_ATSUI]: Add data to Vmac_atsu_font_table.
 	[TARGET_API_MAC_CARBON] (mac_store_event_ref_as_apple_event): New
 	function.
 	[USE_CARBON_EVENTS] (mac_handle_command_event): Use it.

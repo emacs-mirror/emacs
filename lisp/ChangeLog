@@ -1,3 +1,12 @@
+2006-05-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-font-panel-mode): Doc fix.
+	(mac-service-selection, mac-service-open-file)
+	(mac-service-open-selection, mac-service-mail-selection)
+	(mac-service-mail-to, mac-service-insert-text): Rename from
+	mac-services-*.  All uses changed.
+	(mac-apple-event-map): Rename event symbol `services' to `service'.
+
 2006-05-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/ewoc.el (ewoc--dll-create, ewoc--node-delete)
