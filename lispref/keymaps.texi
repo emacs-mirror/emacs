@@ -561,7 +561,7 @@ pseudo-Lisp description of how this process works:
             (@var{find-in-any} emulation-mode-map-alists)
             (@var{find-in-any} minor-mode-overriding-map-alist)
             (@var{find-in-any} minor-mode-map-alist)
-            (if (get-text-property (point) 'local-map))
+            (if (get-text-property (point) 'local-map)
                 (@var{find-in} (get-text-property (point) 'local-map))
               (@var{find-in} (current-local-map))))))
     (@var{find-in} (current-global-map)))
@@ -670,14 +670,15 @@ description of the order in which the active keymaps are searched:
             (@var{find-in-any} emulation-mode-map-alists)
             (@var{find-in-any} minor-mode-overriding-map-alist)
             (@var{find-in-any} minor-mode-map-alist)
-            (@var{find-in} (get-text-property (point) 'local-map))
-            (@var{find-in} (current-local-map)))))
+            (if (get-text-property (point) 'local-map)
+                (@var{find-in} (get-text-property (point) 'local-map))
+              (@var{find-in} (current-local-map))))))
     (@var{find-in} (current-global-map)))
 @end lisp
 
 @noindent
 The @var{find-in} and @var{find-in-any} are pseudo functions that
-searches in one keymap respectively an alist of keymaps.
+search in one keymap and in an alist of keymaps, respectively.
 
 @enumerate
 @item

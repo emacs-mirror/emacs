@@ -25,11 +25,15 @@ on file directories.
 * Visiting::            Visiting a file prepares Emacs to edit the file.
 * Saving::              Saving makes your changes permanent.
 * Reverting::           Reverting cancels all the changes not saved.
+@ifnottex
+* Autorevert::          Auto Reverting non-file buffers.
+@end ifnottex
 * Auto Save::           Auto Save periodically protects against loss of data.
 * File Aliases::        Handling multiple names for one file.
 * Version Control::     Version control systems (RCS, CVS and SCCS).
 * Directories::         Creating, deleting, and listing file directories.
 * Comparing Files::     Finding where two files differ.
+* Diff Mode::           Mode for editing file differences.
 * Misc File Ops::       Other things you can do on files.
 * Compressed Files::    Accessing compressed files.
 * File Archives::       Operating on tar, zip, jar etc. archive files.
@@ -106,10 +110,13 @@ first slash in the double slash; the result is @samp{/x1/rms/foo}.
 @cindex home directory shorthand
   You can use @file{~/} in a file name to mean your home directory,
 or @file{~@var{user-id}/} to mean the home directory of a user whose
-login name is @code{user-id}.  (On DOS and Windows systems, where a user
-doesn't have a home directory, Emacs substitutes @file{~/} with the
-value of the environment variable @code{HOME}; see @ref{General
-Variables}.)
+login name is @code{user-id}@footnote{
+On MS-Windows and MS-DOS systems, where a user doesn't have a home
+directory, Emacs substitutes @file{~/} with the value of the
+environment variable @code{HOME}; see @ref{General Variables}.  The
+@file{~@var{user-id}/} construct is supported on those systems only
+for the current user, i.e., only if @var{user-id} is the current
+user's login name.}.
 
 @cindex environment variables in file names
 @cindex expansion of environment variables
@@ -517,8 +524,14 @@ value is @code{t}, so that Emacs does write backup files.
 Control}), the variable @code{vc-make-backup-files} determines whether
 to make backup files.  By default it is @code{nil}, since backup files
 are redundant when you store all the previous versions in a version
-control system.  @xref{General VC Options,,,emacs-xtra, Specialized
-Emacs Features}.
+control system.
+@iftex
+@xref{General VC Options,,,emacs-xtra, Specialized Emacs Features}.
+@end iftex
+@ifnottex
+@xref{General VC Options}.
+@end ifnottex
+
 
   At your option, Emacs can keep either a single backup for each file,
 or make a series of numbered backup files for each file that you edit.
@@ -972,6 +985,10 @@ modes do not check or revert remote files.
   @xref{VC Mode Line}, for Auto Revert peculiarities in buffers that
 visit files under version control.
 
+@ifnottex
+@include arevert-xtra.texi
+@end ifnottex
+
 @node Auto Save
 @section Auto-Saving: Protection Against Disasters
 @cindex Auto Save mode
@@ -1201,7 +1218,13 @@ RCS or CVS, you can switch to CSSC.
 
   VC is enabled by default in Emacs.  To disable it, set the
 customizable variable @code{vc-handled-backends} to @code{nil}
+@iftex
 (@pxref{Customizing VC,,,emacs-xtra, Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{Customizing VC}).
+@end ifnottex
+
 
 @menu
 * Introduction to VC::  How version control works in general.
@@ -1210,6 +1233,12 @@ customizable variable @code{vc-handled-backends} to @code{nil}
 * Old Versions::        Examining and comparing old versions.
 * Secondary VC Commands::    The commands used a little less frequently.
 * Branches::            Multiple lines of development.
+@ifnottex
+* Remote Repositories:: Efficient access to remote CVS servers.
+* Snapshots::           Sets of file versions treated as a unit.
+* Miscellaneous VC::    Various other commands and features of VC.
+* Customizing VC::      Variables that change VC's behavior.
+@end ifnottex
 @end menu
 
 @node Introduction to VC
@@ -1347,7 +1376,13 @@ permitted; check-in is still the way to record a new version.
   CVS normally allows each user to modify his own copy of the work file
 at any time, but requires merging with changes from other users at
 check-in time.  However, CVS can also be set up to require locking.
+@iftex
 (@pxref{CVS Options,,,emacs-xtra, Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{CVS Options}).
+@end ifnottex
+
 
 @node Types of Log File
 @subsubsection Types of Log File
@@ -1379,8 +1414,14 @@ for each change just once, then put it into both logs.  You can write
 the entry in @file{ChangeLog}, then copy it to the log buffer when you
 check in the change.  Or you can write the entry in the log buffer
 while checking in the change, and later use the @kbd{C-x v a} command
-to copy it to @file{ChangeLog} (@pxref{Change Logs and
-VC,,,emacs-xtra, Specialized Emacs Features}).
+to copy it to @file{ChangeLog}
+@iftex
+(@pxref{Change Logs and VC,,,emacs-xtra, Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{Change Logs and VC}).
+@end ifnottex
+
 
 @node VC Mode Line
 @subsection Version Control and the Mode Line
@@ -1544,8 +1585,15 @@ the repository.
 @cindex specific version control system
 Instead of the version number, you can also specify the name of a
 version control system.  This is useful when one file is being managed
-with two version control systems at the same time (@pxref{Local
-Version Control,,,emacs-xtra, Specialized Emacs Features}).
+with two version control systems at the same time
+@iftex
+(@pxref{Local Version Control,,,emacs-xtra, Specialized Emacs
+Features}).
+@end iftex
+@ifnottex
+(@pxref{Local Version Control}).
+@end ifnottex
+
 @end itemize
 
 @node Log Buffer
@@ -1567,16 +1615,27 @@ control, you can generate the Log Edit text from the ChangeLog using
 entries for the file(s) concerned in the top entry in the ChangeLog
 and uses those paragraphs as the log text.  This text is only inserted
 if the top entry was made under your user name on the current date.
+@iftex
 @xref{Change Logs and VC,,,emacs-xtra, Specialized Emacs Features},
+@end iftex
+@ifnottex
+@xref{Change Logs and VC},
+@end ifnottex
 for the opposite way of working---generating ChangeLog entries from
 the revision control log.
 
   In the @samp{*VC-Log*} buffer, @kbd{C-c C-f} (@kbd{M-x
 log-edit-show-files}) shows the list of files to be committed in case
 you need to check that.  (This can be a list of more than one file if
-you use VC Dired mode or PCL-CVS.  @xref{VC Dired Mode,,,emacs-xtra,
-Specialized Emacs Features}, and @ref{Top, , About PCL-CVS, pcl-cvs,
-PCL-CVS --- The Emacs Front-End to CVS}.)
+you use VC Dired mode or PCL-CVS.
+@iftex
+@xref{VC Dired Mode,,,emacs-xtra, Specialized Emacs Features},
+@end iftex
+@ifnottex
+@xref{VC Dired Mode},
+@end ifnottex
+and @ref{Top, , About PCL-CVS, pcl-cvs, PCL-CVS --- The Emacs
+Front-End to CVS}.)
 
   When you have finished editing the log message, type @kbd{C-c C-c} to
 exit the buffer and commit the change.
@@ -1644,7 +1703,13 @@ Both forms display the output in a special buffer in another window.
   You can specify a checked-in version by its number; an empty input
 specifies the current contents of the work file (which may be different
 from all the checked-in versions).  You can also specify a snapshot name
-(@pxref{Snapshots,,,emacs-xtra, Specialized Emacs Features}) instead of one or both version numbers.
+@iftex
+(@pxref{Snapshots,,,emacs-xtra, Specialized Emacs Features})
+@end iftex
+@ifnottex
+(@pxref{Snapshots})
+@end ifnottex
+instead of one or both version numbers.
 
   If you supply a directory name instead of the name of a registered
 file, this command compares the two specified versions of all registered
@@ -1733,6 +1798,10 @@ use once a day.
 * Registering::         Putting a file under version control.
 * VC Status::           Viewing the VC status of files.
 * VC Undo::             Canceling changes before or after check-in.
+@ifnottex
+* VC Dired Mode::       Listing files managed by version control.
+* VC Dired Commands::   Commands to use in a VC Dired buffer.
+@end ifnottex
 @end menu
 
 @node Registering
@@ -1753,8 +1822,13 @@ to use for it.  If the file's directory already contains files
 registered in a version control system, Emacs uses that system.  If
 there is more than one system in use for a directory, Emacs uses the
 one that appears first in @code{vc-handled-backends}
-(@pxref{Customizing VC,,,emacs-xtra, Specialized Emacs Features}).  On
-the other hand, if there are no files already registered, Emacs uses
+@iftex
+(@pxref{Customizing VC,,,emacs-xtra, Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{Customizing VC}).
+@end ifnottex
+On the other hand, if there are no files already registered, Emacs uses
 the first system from @code{vc-handled-backends} that could register
 the file (for example, you cannot register a file under CVS if its
 directory is not already part of a CVS tree); with the default value
@@ -1814,16 +1888,27 @@ count.
 
 @item P
 Move to the log of the previous file, when the logs of multiple files
-are in the log buffer (@pxref{VC Dired Mode,,,emacs-xtra, Specialized
-Emacs Features}).  Otherwise, just move to the beginning of the log.  A
-numeric prefix argument is a repeat count, so @kbd{C-u 10 P} would
-move backward 10 files.
+are in the log buffer
+@iftex
+(@pxref{VC Dired Mode,,,emacs-xtra, Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{VC Dired Mode}).
+@end ifnottex
+Otherwise, just move to the beginning of the log.  A numeric prefix
+argument is a repeat count, so @kbd{C-u 10 P} would move backward 10
+files.
 
 @item N
 Move to the log of the next file, when the logs of multiple files are
-in the log buffer (@pxref{VC Dired Mode,,,emacs-xtra, Specialized
-Emacs Features}).  It also takes a numeric prefix argument as a repeat
-count.
+in the log buffer
+@iftex
+(@pxref{VC Dired Mode,,,emacs-xtra, Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{VC Dired Mode}).
+@end ifnottex
+It also takes a numeric prefix argument as a repeat count.
 
 @item f
 Visit the revision indicated at the current line, like typing @kbd{C-x
@@ -1877,11 +1962,16 @@ change and then discover a trivial error in it; you can cancel the
 erroneous check-in, fix the error, and check the file in again.
 
   When @kbd{C-x v c} does not revert the buffer, it unexpands all
-version control headers in the buffer instead (@pxref{Version
-Headers,,,emacs-xtra, Specialized Emacs Features}).  This is because
-the buffer no longer corresponds to any existing version.  If you
-check it in again, the check-in process will expand the headers
-properly for the new version number.
+version control headers in the buffer instead
+@iftex
+(@pxref{Version Headers,,,emacs-xtra, Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{Version Headers}).
+@end ifnottex
+This is because the buffer no longer corresponds to any existing
+version.  If you check it in again, the check-in process will expand
+the headers properly for the new version number.
 
   However, it is impossible to unexpand the RCS @samp{@w{$}Log$} header
 automatically.  If you use that header feature, you have to unexpand it
@@ -1892,6 +1982,13 @@ work with it.  To help you be careful, this command always requires
 confirmation with @kbd{yes}.  Note also that this command is disabled
 under CVS, because canceling versions is very dangerous and discouraged
 with CVS.
+
+@ifnottex
+@c vc1-xtra.texi needs extra level of lowering.
+@lowersections
+@include vc1-xtra.texi
+@raisesections
+@end ifnottex
 
 @node Branches
 @subsection Multiple Branches of a File
@@ -2071,16 +2168,25 @@ own choice of selected versions, but all share the same common RCS
 records.
 
   This technique works reliably and automatically, provided that the
-source files contain RCS version headers (@pxref{Version
-Headers,,,emacs-xtra, Specialized Emacs Features}).  The headers enable
-Emacs to be sure, at all times, which version number is present in the
-work file.
+source files contain RCS version headers
+@iftex
+(@pxref{Version Headers,,,emacs-xtra, Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{Version Headers}).
+@end ifnottex
+The headers enable Emacs to be sure, at all times, which version
+number is present in the work file.
 
   If the files do not have version headers, you must instead tell Emacs
 explicitly in each session which branch you are working on.  To do this,
 first find the file, then type @kbd{C-u C-x v v} and specify the correct
 branch number.  This ensures that Emacs knows which branch it is using
 during this particular editing session.
+
+@ifnottex
+@include vc2-xtra.texi
+@end ifnottex
 
 @node Directories
 @section File Directories
@@ -2159,26 +2265,14 @@ differences in an Emacs buffer named @samp{*diff*}.  It works by
 running the @code{diff} program, using options taken from the variable
 @code{diff-switches}.  The value of @code{diff-switches} should be a
 string; the default is @code{"-c"} to specify a context diff.
+@xref{Top,, Diff, diff, Comparing and Merging Files}, for more
+information about @command{diff} output formats.
 
 @findex diff-backup
   The command @kbd{M-x diff-backup} compares a specified file with its most
 recent backup.  If you specify the name of a backup file,
 @code{diff-backup} compares it with the source file that it is a backup
 of.
-
-@findex diff-goto-source
-@findex diff-mode
-@cindex Diff mode
-  The @samp{*diff*} buffer uses Diff mode, which enables you to use
-@kbd{C-x `} to visit successive changed locations in the two source
-files, as in Compilation mode (@pxref{Compilation Mode}.)  You can
-also move to a particular hunk of changes and type @kbd{C-c C-c}
-(@code{diff-goto-source}) to visit the corresponding source location.
-
-@cindex patches
-  Differences between versions of files are often distributed as
-patches, which are the output from the @command{diff} program.  You
-can use Diff mode to operate on a patch by typing @kbd{M-x diff-mode}.
 
 @findex compare-windows
   The command @kbd{M-x compare-windows} compares the text in the
@@ -2216,8 +2310,94 @@ typically the result of a failed merge from a version control system
 mode provides commands to resolve conflicts by selecting specific
 changes.
 
-  @inforef{Emerge,, emacs-xtra} for the Emerge facility, which
-provides a powerful interface for merging files.
+@iftex
+@xref{Emerge,,, emacs-xtra, Specialized Emacs Features},
+@end iftex
+@ifnottex
+@xref{Emerge},
+@end ifnottex
+for the Emerge facility, which provides a powerful interface for
+merging files.
+
+@node Diff Mode
+@section Diff Mode
+@cindex Diff mode
+@findex diff-mode
+@cindex patches, editing
+
+  Diff mode is used for the output of @kbd{M-x diff}; it is also
+useful for editing patches and comparisons produced by the
+@command{diff} program.  To select Diff mode manually, type @kbd{M-x
+diff-mode}.
+
+  One general feature of Diff mode is that manual edits to the patch
+automatically correct line numbers, including those in the hunk
+header, so that you can actually apply the edited patch.  Diff mode
+also provides the following commands to navigate, manipulate and apply
+parts of patches:
+
+@table @kbd
+@item M-n
+Move to the next hunk-start (@code{diff-hunk-next}).
+
+@item M-p
+Move to the previous hunk-start (@code{diff-hunk-prev}).
+
+@item M-@}
+Move to the next file-start, in a multi-file patch
+(@code{diff-file-next}).
+
+@item M-@{
+Move to the previous file-start, in a multi-file patch
+(@code{diff-file-prev}).
+
+@item M-k
+Kill the hunk at point (@code{diff-hunk-kill}).
+
+@item M-K
+In a multi-file patch, kill the current file part.
+(@code{diff-file-kill}).
+
+@item C-c C-a
+Apply this hunk to its target file (@code{diff-apply-hunk}).  With a
+prefix argument of @kbd{C-u}, revert this hunk.
+
+@item C-c C-c
+Go to the source corresponding to this hunk (@code{diff-goto-source}).
+
+@item C-c C-e
+Start an Ediff session with the patch (@code{diff-ediff-patch}).
+@xref{Top, Ediff, Ediff, ediff, The Ediff Manual}.
+
+@item C-c C-n
+Restrict the view to the current hunk (@code{diff-restrict-view}).
+@xref{Narrowing}.  With a prefix argument of @kbd{C-u}, restrict the
+view to the current patch of a multiple file patch.  To widen again,
+use @kbd{C-x n w}.
+
+@item C-c C-r
+Reverse the direction of comparison for the entire buffer
+(@code{diff-reverse-direction}).
+
+@item C-c C-s
+Split the hunk at point (@code{diff-split-hunk}).  This is for
+manually editing patches, and only works with the unified diff format.
+
+@item C-c C-u
+Convert the entire buffer to unified format
+(@code{diff-context->unified}).  With a prefix argument, convert
+unified format to context format.  In Transient Mark mode, when the
+mark is active, this command operates only on the region.
+
+@item C-c C-w
+Refine the current hunk so that it disregards changes in whitespace
+(@code{diff-refine-hunk}).
+@end table
+
+  @kbd{C-x 4 a} in Diff mode operates on behalf of the target file,
+but gets the function name from the patch itself.  @xref{Change Log}.
+This is useful for making log entries for functions that are deleted
+by the patch.
 
 @node Misc File Ops
 @section Miscellaneous File Operations
@@ -2328,7 +2508,7 @@ compiling it.
 @findex auto-compression-mode
 @vindex auto-compression-mode
   To disable this feature, type the command @kbd{M-x
-auto-compression-mode}.  You can disenable it permanently by
+auto-compression-mode}.  You can disable it permanently by
 customizing the variable @code{auto-compression-mode}.
 
 @node File Archives

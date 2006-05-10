@@ -1091,7 +1091,7 @@ x_to_mac_color (colorname)
       char *color;
       unsigned long colorval;
       int i, pos;
-      pos = 0;
+      pos = 16;
 
       colorval = 0;
       color = colorname + 4;
@@ -1127,7 +1127,7 @@ x_to_mac_color (colorname)
 	  if (value == ULONG_MAX)
 	    break;
 	  colorval |= (value << pos);
-	  pos += 0x8;
+	  pos -= 0x8;
 	  if (i == 2)
 	    {
 	      if (*end != '\0')
@@ -1146,7 +1146,7 @@ x_to_mac_color (colorname)
       char *color;
       unsigned long colorval;
       int i, pos;
-      pos = 0;
+      pos = 16;
 
       colorval = 0;
       color = colorname + 5;
@@ -1168,7 +1168,7 @@ x_to_mac_color (colorname)
 	  if (val == 0x100)
 	    val = 0xFF;
 	  colorval |= (val << pos);
-	  pos += 0x8;
+	  pos -= 0x8;
 	  if (i == 2)
 	    {
 	      if (*end != '\0')
@@ -1919,6 +1919,27 @@ mac_set_scroll_bar_width (f, arg, oldval)
   x_set_scroll_bar_width (f, arg, oldval);
 }
 
+static void
+mac_set_font (f, arg, oldval)
+     struct frame *f;
+     Lisp_Object arg, oldval;
+{
+  x_set_font (f, arg, oldval);
+#if USE_MAC_FONT_PANEL
+  {
+    Lisp_Object focus_frame = x_get_focus_frame (f);
+
+    if ((NILP (focus_frame) && f == SELECTED_FRAME ())
+	|| XFRAME (focus_frame) == f)
+      {
+	BLOCK_INPUT;
+	mac_set_font_info_for_selection (f, DEFAULT_FACE_ID, 0);
+	UNBLOCK_INPUT;
+      }
+  }
+#endif
+}
+
 #if TARGET_API_MAC_CARBON
 static void
 mac_update_proxy_icon (f)
@@ -2213,8 +2234,10 @@ mac_window (f)
 #if TARGET_API_MAC_CARBON
   CreateNewWindow (kDocumentWindowClass,
 		   kWindowStandardDocumentAttributes
-		   /* | kWindowToolbarButtonAttribute */,
-		   &r, &FRAME_MAC_WINDOW (f));
+#ifdef MAC_OSX
+		   | kWindowToolbarButtonAttribute
+#endif
+		   , &r, &FRAME_MAC_WINDOW (f));
   if (FRAME_MAC_WINDOW (f))
     {
       SetWRefCon (FRAME_MAC_WINDOW (f), (long) f->output_data.mac);
@@ -4469,6 +4492,43 @@ mac_nav_event_callback (selector, parms, data)
 #endif
 
 /***********************************************************************
+				Fonts
+ ***********************************************************************/
+
+DEFUN ("mac-clear-font-name-table", Fmac_clear_font_name_table,
+       Smac_clear_font_name_table, 0, 0, 0,
+       doc: /* Clear the font name table.  */)
+     ()
+{
+  check_mac ();
+  mac_clear_font_name_table ();
+  return Qnil;
+}
+
+#if USE_MAC_FONT_PANEL
+DEFUN ("mac-set-font-panel-visibility", Fmac_set_font_panel_visibility,
+       Smac_set_font_panel_visibility, 1, 1, 0,
+  doc: /* Make the font panel visible if and only if VISIBLE is non-nil.
+This is for internal use only.  Use `mac-font-panel-mode' instead.  */)
+     (visible)
+     Lisp_Object visible;
+{
+  OSStatus err = noErr;
+
+  check_mac ();
+
+  BLOCK_INPUT;
+  if (NILP (visible) == (FPIsFontPanelVisible () == true))
+    err = FPShowHideFontPanel ();
+  UNBLOCK_INPUT;
+
+  if (err != noErr)
+    error ("Cannot change visibility of the font panel");
+  return Qnil;
+}
+#endif
+
+/***********************************************************************
 			    Initialization
  ***********************************************************************/
 
@@ -4484,7 +4544,7 @@ frame_parm_handler mac_frame_parm_handlers[] =
   x_set_border_width,
   x_set_cursor_color,
   x_set_cursor_type,
-  x_set_font,
+  mac_set_font,
   x_set_foreground_color,
   x_set_icon_name,
   0, /* MAC_TODO: x_set_icon_type, */
@@ -4660,7 +4720,7 @@ Chinese, Japanese, and Korean.  */);
   load_font_func = x_load_font;
   find_ccl_program_func = x_find_ccl_program;
   query_font_func = x_query_font;
-  set_frame_fontset_func = x_set_font;
+  set_frame_fontset_func = mac_set_font;
   check_window_system_func = check_mac;
 
   hourglass_atimer = NULL;
@@ -4678,6 +4738,10 @@ Chinese, Japanese, and Korean.  */);
 
 #if TARGET_API_MAC_CARBON
   defsubr (&Sx_file_dialog);
+#endif
+  defsubr (&Smac_clear_font_name_table);
+#if USE_MAC_FONT_PANEL
+  defsubr (&Smac_set_font_panel_visibility);
 #endif
 }
 

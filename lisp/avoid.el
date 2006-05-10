@@ -139,23 +139,13 @@ Only applies in mouse-avoidance-modes `animate' and `jump'."
 (defun mouse-avoidance-point-position ()
   "Return the position of point as (FRAME X . Y).
 Analogous to `mouse-position'."
-  (let* ((w (selected-window))
-	 (edges (window-inside-edges w))
-	 (list
-	  (compute-motion (max (window-start w) (point-min))   ; start pos
-			  ;; window-start can be < point-min if the
-			  ;; latter has changed since the last redisplay
-			  '(0 . 0)	                       ; start XY
-			  (point)	                       ; stop pos
-			  nil				       ; stop XY: none
-			  nil				       ; width
-			  (cons (window-hscroll w) 0)          ; 0 may not be right?
-			  (selected-window))))
-    ;; compute-motion returns (pos HPOS VPOS prevhpos contin)
-    ;; we want:               (frame hpos . vpos)
+  (let ((edges (window-inside-edges))
+	(x-y (posn-x-y (posn-at-point))))
     (cons (selected-frame)
-	  (cons (+ (car edges)       (car (cdr list)))
-		(+ (car (cdr edges)) (car (cdr (cdr list))))))))
+	  (cons (+ (car edges)
+		   (/ (car x-y) (frame-char-width)))
+		(+ (car (cdr edges))
+		   (/ (cdr x-y) (frame-char-height)))))))
 
 ;(defun mouse-avoidance-point-position-test ()
 ;  (interactive)

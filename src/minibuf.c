@@ -523,7 +523,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 		build_string ("Command attempted to use minibuffer while in minibuffer"));
     }
 
-  if (noninteractive)
+  if (noninteractive && NILP (Vexecuting_kbd_macro))
     {
       val = read_minibuf_noninteractive (map, initial, prompt,
 					 make_number (pos),
@@ -2790,7 +2790,7 @@ syms_of_minibuf ()
   DEFVAR_LISP ("history-length", &Vhistory_length,
 	       doc: /* *Maximum length for history lists before truncation takes place.
 A number means that length; t means infinite.  Truncation takes place
-just after a new element is inserted.  Setting the history-length
+just after a new element is inserted.  Setting the `history-length'
 property of a history variable overrides this default.  */);
   XSETFASTINT (Vhistory_length, 30);
 

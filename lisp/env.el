@@ -117,7 +117,7 @@ a side-effect."
      (let* ((var (read-envvar-name "Set environment variable: " nil))
 	    (value (getenv var)))
        (when value
-	 (push value setenv-history))
+	 (add-to-history 'setenv-history value))
        ;; Here finally we specify the args to give call setenv with.
        (list var
 	     (read-from-minibuffer (format "Set %s to value: " var)

@@ -105,6 +105,13 @@ typedef unsigned long Time;
 #endif
 #endif
 
+/* Whether to use the standard Font Panel floating dialog.  */
+#ifndef USE_MAC_FONT_PANEL
+#if USE_ATSUI && MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+#define USE_MAC_FONT_PANEL 1
+#endif
+#endif
+
 typedef WindowPtr Window;
 typedef GWorldPtr Pixmap;
 

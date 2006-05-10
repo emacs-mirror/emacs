@@ -1602,7 +1602,7 @@ directory name (@pxref{Directory Names}), or @code{nil} if
 @var{filename} does not include a directory part.
 
 On GNU and Unix systems, a string returned by this function always
-ends in a slash.  On MSDOS it can also end in a colon.  On VMS, it
+ends in a slash.  On MS-DOS it can also end in a colon.  On VMS, it
 returns a string ending in one of the three characters @samp{:},
 @samp{]}, or @samp{>}.
 
@@ -1809,7 +1809,7 @@ the directory name but not identical to it.  (This is not quite the
 same as the usual Unix terminology.)  These two different names for
 the same entity are related by a syntactic transformation.  On GNU and
 Unix systems, this is simple: a directory name ends in a slash,
-whereas the directory's name as a file lacks that slash.  On MSDOS and
+whereas the directory's name as a file lacks that slash.  On MS-DOS and
 VMS, the relationship is more complicated.
 
   The difference between a directory name and its name as a file is

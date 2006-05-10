@@ -155,11 +155,15 @@ standard preloaded Lisp libraries.  In the file @file{emacs}, it is
 marked as read-only (on operating systems that permit this), so that
 the memory space can be shared by all the Emacs jobs running on the
 machine at once.  Pure storage is not expandable; a fixed amount is
-allocated when Emacs is compiled, and if that is not sufficient for the
-preloaded libraries, @file{temacs} crashes.  If that happens, you must
-increase the compilation parameter @code{PURESIZE} in the file
-@file{src/puresize.h}.  This normally won't happen unless you try to
-preload additional libraries or add features to the standard ones.
+allocated when Emacs is compiled, and if that is not sufficient for
+the preloaded libraries, @file{temacs} allocates dynamic memory for
+the part that didn't fit.  If that happens, you should increase the
+compilation parameter @code{PURESIZE} in the file
+@file{src/puresize.h} and rebuild Emacs, even though the resulting
+image will work.  Such an overflow normally won't happen unless you
+try to preload additional libraries or add features to the standard
+ones.  Emacs will display a warning about the overflow when it
+starts.
 
 @defun purecopy object
 This function makes a copy in pure storage of @var{object}, and returns
@@ -1015,7 +1019,7 @@ Mode line element that controls the format of the mode line.  If this
 is @code{nil}, no mode line will be displayed.
 
 @item header_line_format
-This field is analoguous to @code{mode_line_format} for the mode
+This field is analogous to @code{mode_line_format} for the mode
 line displayed at the top of windows.
 
 @item keymap

@@ -646,17 +646,17 @@ can be edited for each replacement.
 *** The current match in query-replace is highlighted in new face
 `query-replace' which by default inherits from isearch face.
 
-** File operation changes:
-
-+++
-*** Unquoted `$' in file names do not signal an error any more when
-the corresponding environment variable does not exist.
-Instead, the `$ENVVAR' text is left as is, so that `$$' quoting
-is only rarely needed.
+** Local variables lists:
 
 +++
 *** In processing a local variables list, Emacs strips the prefix and
 suffix from every line before processing all the lines.
+
++++
+*** Text properties in local variables.
+
+A file local variables list cannot specify a string with text
+properties--any specified text properties are discarded.
 
 +++
 *** If the local variables list contains any variable-value pairs that
@@ -665,13 +665,45 @@ the local variables list as a whole.  In earlier versions, a prompt
 was only issued for variables explicitly marked as risky (for the
 definition of risky variables, see `risky-local-variable-p').
 
-At the prompt, the user can choose to save the contents of this local
+At the prompt, you can choose to save the contents of this local
 variables list to `safe-local-variable-values'.  This new customizable
 option is a list of variable-value pairs that are known to be safe.
 Variables can also be marked as safe with the existing
 `safe-local-variable' property (see `safe-local-variable-p').
 However, risky variables will not be added to
 `safe-local-variable-values' in this way.
+
++++
+*** The variable `enable-local-variables' controls how local variable
+lists are handled.  t, the default, specifies the standard querying
+behavior.  :safe means use only safe values, and ignore the rest.
+nil means ignore them all.  Anything else means always query.
+
++++
+*** The variable `safe-local-eval-forms' specifies a list of forms that
+are ok to evaluate when they appear in an `eval' local variables
+specification.  Normally Emacs asks for confirmation before evaluating
+such a form, but if the form appears in this list, no confirmation is
+needed.
+
++++
+*** If a function has a non-nil `safe-local-eval-function' property,
+that means it is ok to evaluate some calls to that function when it
+appears in an `eval' local variables specification.  If the property
+is t, then any form calling that function with constant arguments is
+ok.  If the property is a function or list of functions, they are called
+with the form as argument, and if any returns t, the form is ok to call.
+
+If the form is not "ok to call", that means Emacs asks for
+confirmation as before.
+
+** File operation changes:
+
++++
+*** Unquoted `$' in file names do not signal an error any more when
+the corresponding environment variable does not exist.
+Instead, the `$ENVVAR' text is left as is, so that `$$' quoting
+is only rarely needed.
 
 +++
 *** find-file-read-only visits multiple files in read-only mode,
@@ -3130,7 +3162,7 @@ See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 ---
 ** MH-E changes.
 
-Upgraded to MH-E version 7.95. There have been major changes since
+Upgraded to MH-E version 8.0.  There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 ** Calendar changes:
@@ -3633,6 +3665,15 @@ occurrences of an element in the list, the one that's kept is the
 first one.
 
 +++
+*** New function `add-to-history' adds an element to a history list.
+
+Lisp packages should use this function to add elements to their
+history lists.
+
+If `history-delete-duplicates' is non-nil, it removes duplicates of
+the new element from the history list it updates.
+
++++
 *** New function `rassq-delete-all'.
 
 (rassq-delete-all VALUE ALIST) deletes, from ALIST, each element whose
@@ -4068,38 +4109,6 @@ purpose.
 the minibuffer with a default value: if DEF is non-nil, the minibuffer
 prompt provided in PROMPT is edited to show the default value provided
 in DEF before the terminal colon and space.
-
-** Local variables lists:
-
-+++
-*** Text properties in local variables.
-
-A file local variables list cannot specify a string with text
-properties--any specified text properties are discarded.
-
-+++
-*** The variable `enable-local-variables' controls how local variable
-lists are handled.  t, the default, specifies the standard querying
-behavior.  :safe means use only safe values, and ignore the rest.
-nil means ignore them all.  Anything else means always query.
-
-+++
-*** The variable `safe-local-eval-forms' specifies a list of forms that
-are ok to evaluate when they appear in an `eval' local variables
-specification.  Normally Emacs asks for confirmation before evaluating
-such a form, but if the form appears in this list, no confirmation is
-needed.
-
----
-*** If a function has a non-nil `safe-local-eval-function' property,
-that means it is ok to evaluate some calls to that function when it
-appears in an `eval' local variables specification.  If the property
-is t, then any form calling that function with constant arguments is
-ok.  If the property is a function or list of functions, they are called
-with the form as argument, and if any returns t, the form is ok to call.
-
-If the form is not "ok to call", that means Emacs asks for
-confirmation as before.
 
 ** Searching and matching changes:
 

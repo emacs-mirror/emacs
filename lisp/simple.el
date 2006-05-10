@@ -1156,7 +1156,7 @@ they are expressions; otherwise they are strings.
 \(That convention is designed to do the right thing for
 recursive uses of the minibuffer.)")
 (setq minibuffer-history-variable 'minibuffer-history)
-(setq minibuffer-history-position nil)
+(setq minibuffer-history-position nil)  ;; Defvar is in C code.
 (defvar minibuffer-history-search-history nil)
 
 (defvar minibuffer-text-before-history nil
@@ -1281,7 +1281,8 @@ makes the search case-sensitive."
 (defvar minibuffer-temporary-goal-position nil)
 
 (defun next-history-element (n)
-  "Insert the next element of the minibuffer history into the minibuffer."
+  "Puts next element of the minibuffer history in the minibuffer.
+With argument N, it uses the Nth following element."
   (interactive "p")
   (or (zerop n)
       (let ((narg (- minibuffer-history-position n))
@@ -1324,7 +1325,8 @@ makes the search case-sensitive."
 	(goto-char (or minibuffer-temporary-goal-position (point-max))))))
 
 (defun previous-history-element (n)
-  "Inserts the previous element of the minibuffer history into the minibuffer."
+  "Puts previous element of the minibuffer history in the minibuffer.
+With argument N, it uses the Nth previous element."
   (interactive "p")
   (next-history-element (- n)))
 

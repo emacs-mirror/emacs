@@ -210,12 +210,11 @@
 					   ediff-last-dir-B
 					 (file-name-directory f)))
 				 (progn
-				   (setq file-name-history
-					 (cons (ediff-abbreviate-file-name
-						(expand-file-name
-						 (file-name-nondirectory f)
-						 dir-B))
-					       file-name-history))
+				   (add-to-history 'file-name-history
+						   (ediff-abbreviate-file-name
+						    (expand-file-name
+						     (file-name-nondirectory f)
+						     dir-B)))
 				   (ediff-get-default-file-name f 1)))
 	   )))
   (ediff-files-internal file-A
@@ -246,25 +245,22 @@
 						    ediff-last-dir-B
 						  (file-name-directory f)))
 					  (progn
-					    (setq file-name-history
-						  (cons
-						   (ediff-abbreviate-file-name
-						    (expand-file-name
-						     (file-name-nondirectory f)
-						     dir-B))
-						   file-name-history))
+					    (add-to-history 'file-name-history
+							    (ediff-abbreviate-file-name
+							     (expand-file-name
+							      (file-name-nondirectory f)
+							      dir-B)))
 					    (ediff-get-default-file-name f 1))))
 	   (ediff-read-file-name "File C to compare"
 				 (setq dir-C (if ediff-use-last-dir
 						 ediff-last-dir-C
 					       (file-name-directory ff)))
 				 (progn
-				   (setq file-name-history
-					 (cons (ediff-abbreviate-file-name
-						(expand-file-name
-						 (file-name-nondirectory ff)
-						 dir-C))
-					       file-name-history))
+				   (add-to-history 'file-name-history
+						   (ediff-abbreviate-file-name
+						    (expand-file-name
+						     (file-name-nondirectory ff)
+						     dir-C)))
 				   (ediff-get-default-file-name ff 2)))
 	   )))
   (ediff-files-internal file-A
@@ -1109,12 +1105,11 @@ lines.  For small regions, use `ediff-regions-wordwise'."
 					   ediff-last-dir-B
 					 (file-name-directory f)))
 				 (progn
-				   (setq file-name-history
-					 (cons (ediff-abbreviate-file-name
-						(expand-file-name
-						 (file-name-nondirectory f)
-						 dir-B))
-					       file-name-history))
+				   (add-to-history 'file-name-history
+						   (ediff-abbreviate-file-name
+						    (expand-file-name
+						     (file-name-nondirectory f)
+						     dir-B)))
 				   (ediff-get-default-file-name f 1)))
 	   )))
   (setq startup-hooks (cons 'ediff-merge-on-startup startup-hooks))
@@ -1153,13 +1148,11 @@ lines.  For small regions, use `ediff-regions-wordwise'."
 						    ediff-last-dir-B
 						  (file-name-directory f)))
 					  (progn
-					    (setq file-name-history
-						  (cons
-						   (ediff-abbreviate-file-name
-						    (expand-file-name
-						     (file-name-nondirectory f)
-						     dir-B))
-						   file-name-history))
+					    (add-to-history 'file-name-history
+							    (ediff-abbreviate-file-name
+							     (expand-file-name
+							      (file-name-nondirectory f)
+							      dir-B)))
 					    (ediff-get-default-file-name f 1))))
 	   (ediff-read-file-name "Ancestor file"
 				 (setq dir-ancestor
@@ -1167,12 +1160,11 @@ lines.  For small regions, use `ediff-regions-wordwise'."
 					   ediff-last-dir-ancestor
 					 (file-name-directory ff)))
 				 (progn
-				   (setq file-name-history
-					 (cons (ediff-abbreviate-file-name
-						(expand-file-name
-						 (file-name-nondirectory ff)
-						 dir-ancestor))
-					       file-name-history))
+				   (add-to-history 'file-name-history
+						   (ediff-abbreviate-file-name
+						    (expand-file-name
+						     (file-name-nondirectory ff)
+						     dir-ancestor)))
 				   (ediff-get-default-file-name ff 2)))
 	   )))
   (setq startup-hooks (cons 'ediff-merge-on-startup startup-hooks))

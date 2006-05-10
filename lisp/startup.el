@@ -821,7 +821,16 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			   (format "Invalid user name %s"
 				   init-file-user)
 			   :error)
-	(if (file-directory-p (expand-file-name (concat "~" init-file-user)))
+	(if (file-directory-p (expand-file-name
+			       ;; We don't support ~USER on MS-Windows except
+			       ;; for the current user, and always load .emacs
+			       ;; from the current user's home directory (see
+			       ;; below).  So always check "~", even if invoked
+			       ;; with "-u USER", or if $USER or $LOGNAME are
+			       ;; set to something different.
+			       (if (eq system-type 'windows-nt)
+				   "~"
+				 (concat "~" init-file-user))))
 	    nil
 	  (display-warning 'initialization
 			   (format "User %s has no home directory"
@@ -1302,7 +1311,9 @@ where FACE is a valid face specification, as it can be used with
     (set-buffer buffer)
     (erase-buffer)
     (if pure-space-overflow
-	(insert "Warning Warning  Pure space overflow   Warning Warning\n"))
+	(insert "\
+Warning Warning!!!  Pure space overflow    !!!Warning Warning
+\(See the node Pure Storage in the Lisp manual for details.)\n"))
     (fancy-splash-head)
     (apply #'fancy-splash-insert text)
     (fancy-splash-tail)
@@ -1359,7 +1370,7 @@ mouse."
 		    emulation-mode-map-alists nil
 		    buffer-undo-list t
 		    mode-line-format (propertize "---- %b %-"
-						 'face '(:weight bold))
+						 'face 'mode-line-buffer-id)
 		    fancy-splash-stop-time (+ (float-time)
 					      fancy-splash-max-time)
 		    timer (run-with-timer 0 fancy-splash-delay
@@ -1408,10 +1419,12 @@ we put it on this frame."
 	(with-current-buffer (get-buffer-create "GNU Emacs")
 	  (set (make-local-variable 'tab-width) 8)
           (set (make-local-variable 'mode-line-format)
-               (propertize "---- %b %-" 'face '(:weight bold)))
+               (propertize "---- %b %-" 'face 'mode-line-buffer-id))
 
           (if pure-space-overflow
-              (insert "Warning Warning  Pure space overflow   Warning Warning\n"))
+              (insert "\
+Warning Warning!!!  Pure space overflow    !!!Warning Warning
+\(See the node Pure Storage in the Lisp manual for details.)\n"))
 
           ;; The convention for this piece of code is that
           ;; each piece of output starts with one or two newlines
@@ -1624,9 +1637,7 @@ normal otherwise."
 	     (not noninteractive))
     (display-warning
      'initialization
-     "Building Emacs overflowed pure space."
-     ;; FIXME: Tell the user what kind of problems are possible and how to fix
-     ;; the overflow.
+     "Building Emacs overflowed pure space.  (See the node Pure Storage in the Lisp manual for details.)"
      :warning))
 
   (when command-line-args-left

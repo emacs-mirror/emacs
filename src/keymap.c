@@ -2120,11 +2120,20 @@ push_key_description (c, p, force_multibyte)
      int force_multibyte;
 {
   unsigned c2;
+  int valid_p;
 
   /* Clear all the meaningless bits above the meta bit.  */
   c &= meta_modifier | ~ - meta_modifier;
   c2 = c & ~(alt_modifier | ctrl_modifier | hyper_modifier
 	     | meta_modifier | shift_modifier | super_modifier);
+
+  valid_p = SINGLE_BYTE_CHAR_P (c2) || char_valid_p (c2, 0);
+  if (! valid_p)
+    {
+      /* KEY_DESCRIPTION_SIZE is large enough for this.  */
+      p += sprintf (p, "[%d]", c);
+      return p;
+    }
 
   if (c & alt_modifier)
     {
@@ -3310,7 +3319,9 @@ describe_map (map, prefix, elt_describer, partial, shadow,
 	      tem = shadow_lookup (shadow, kludge, Qt);
 	      if (!NILP (tem))
 		{
-		  if (mention_shadow)
+		  /* Avoid generating duplicate entries if the
+		     shadowed binding has the same definition. */
+		  if (mention_shadow && !EQ (tem, definition))
 		    this_shadowed = 1;
 		  else
 		    continue;

@@ -802,27 +802,31 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
   ;; This doesn't use "e" because it is supposed to work
   ;; for events without parameters.
   (interactive (list last-input-event))
-  (let ((pos (point)))
-    (if event (posn-set-point (event-end event)))
-    (if (not (eq (get-char-property (point) 'field) 'input))
-	;; No input at POS, fall back to the global definition.
-	(let* ((keys (this-command-keys))
-	       (last-key (and (vectorp keys) (aref keys (1- (length keys)))))
-	       (fun (and last-key (lookup-key global-map (vector last-key)))))
-	  (goto-char pos)
-	  (and fun (call-interactively fun)))
-      (setq pos (point))
-      ;; There's previous input at POS, insert it at the end of the buffer.
-      (goto-char (point-max))
-      ;; First delete any old unsent input at the end
-      (delete-region
-       (or (marker-position comint-accum-marker)
-	   (process-mark (get-buffer-process (current-buffer))))
-       (point))
-      ;; Insert the input at point
-      (insert (buffer-substring-no-properties
-	       (previous-single-char-property-change (1+ pos) 'field)
-	       (next-single-char-property-change pos 'field))))))
+  (when event
+    (posn-set-point (event-end event)))
+  (if comint-use-prompt-regexp
+      (let ((input (funcall comint-get-old-input))
+	    (process (get-buffer-process (current-buffer))))
+	(if (not process)
+	    (error "Current buffer has no process")
+	  (goto-char (process-mark process))
+	  (insert input)))
+    (let ((pos (point)))
+      (if (not (eq (field-at-pos pos) 'input))
+	  ;; No input at POS, fall back to the global definition.
+	  (let* ((keys (this-command-keys))
+		 (last-key (and (vectorp keys) (aref keys (1- (length keys)))))
+		 (fun (and last-key (lookup-key global-map (vector last-key)))))
+	    (and fun (call-interactively fun)))
+	;; There's previous input at POS, insert it at the end of the buffer.
+	(goto-char (point-max))
+	;; First delete any old unsent input at the end
+	(delete-region
+	 (or (marker-position comint-accum-marker)
+	     (process-mark (get-buffer-process (current-buffer))))
+	 (point))
+	;; Insert the input at point
+	(insert (field-string-no-properties pos))))))
 
 
 ;; Input history processing in a buffer

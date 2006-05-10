@@ -23,22 +23,18 @@ face name prefixes should be in it for good results.
 
 ** Ask maintainers of refcard translations to update them.
 
-** Check what should be deleted or updated in MORE.STUFF.
-
 ** Send an email to the various distributions, including the GNOME
 and KDE projects, to use the new Emacs icons in etc/images/icons.
 
-** Ensure MH-E 8.0 has been released.
-Assigned to Bill Wohler <wohler@newt.com>.
-
 * BUGS
 
-** Stefan Monnier's March 20 bug report about 3d boxes in header line.
+** JD Smith's 17 Apr 2006 bug report that CVS operations
+get mysterious unreproducible failures.
+
+** David Hansen's bug report on 16 Apr 2006 about point-entered and
+point-left text properties.
 
 ** Is there a basic problem with cl-byte-compile-compiler-macro?
-
-** Recalculate the tool bar height after changing the default font.
-(Bug report by Yamamoto Mistuharu, 31 Mar 2006)
 
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
 .emacs file, and then reduce Emacs frame width to "something quite narrow":
@@ -70,97 +66,6 @@ It seems that to fix this, w32 server sockets must use WSAAsyncSelect
 Lisp point of view.
 
 ** Check man/info.texi.
-
-** Add missing years in copyright notices of all files.
-
-Please record your name here and say which part of the distribution
-you're going to handle.
-
-DIRECTORY		STATUS		IN CHARGE
----------		------		---------
-etc (and subdirs)	done		Thien-Thi Nguyen (ttn(@gnu.org))
-leim			done		Kenichi Handa
-lib-src			done		ttn
-lisp			done		ttn
-lisp/calc		done		Jay Belanger
-lisp/calendar		done		Glenn Morris
-lisp/emacs-lisp		done		ttn
-lisp/emulation		done		ttn
-lisp/eshell		done		ttn
-lisp/gnus		done		Romain Francoise
-lisp/international	done		Kenichi Handa
-lisp/language		done		Kenichi Handa
-lisp/mail		done		ttn
-lisp/mh-e		done		Bill Wohler
-lisp/net		done		ttn
-lisp/obsolete		done		ttn
-lisp/play		done		Romain Francoise
-lisp/progmodes		done		Nick Roberts
-lisp/term		done		ttn
-lisp/textmodes		done		ttn
-lisp/url		done		ttn
-lispintro		done		ttn
-lispref			done		ttn
-lwlib			done		ttn
-m4			done		ttn
-mac (and subdirs)	done		ttn
-man			done		ttn
-msdos			done		ttn
-nt (and subdirs)	done		ttn
-oldXMenu		done		ttn
-src (and subdirs)	done		ttn
-vms			done		ttn
-
-** Check the Emacs manual.
-
-Each manual section should be checked for factual correctness
-regarding recent changes by at least two people.  After each file
-name, on the same line or the following line, come the names of the
-people who have checked it.
-
-SECTION             READERS
------------------------------
-man/abbrevs.texi    Chong Yidong    Joakim Verona
-man/anti.texi       Chong Yidong
-man/basic.texi      "Luc Teirlinck"  Chong Yidong
-man/buffers.texi    "Luc Teirlinck"  Chong Yidong
-man/building.texi   "Ted Zlatanov" <tzz@lifelogs.com>
-man/calendar.texi   joakim@verona.se  Chong Yidong
-man/cmdargs.texi    Chong Yidong     "Luc Teirlinck"
-man/commands.texi   "Luc Teirlinck"  Chong Yidong
-man/custom.texi     Chong Yidong     "Luc Teirlinck"
-man/dired.texi      Chong Yidong     joakim@verona.se
-man/display.texi    "Luc Teirlinck"  Chong Yidong
-man/emacs.texi      "Luc Teirlinck"  Lute Kamstra
-man/entering.texi   "Luc Teirlinck"  Chong Yidong
-man/files.texi      "Luc Teirlinck"  Chong Yidong
-man/fixit.texi      "Luc Teirlinck"  Chong Yidong
-man/frames.texi     "Luc Teirlinck"  Chong Yidong
-man/glossary.texi   Chong Yidong
-man/help.texi       "Luc Teirlinck"  Chong Yidong
-man/indent.texi     "Luc Teirlinck"  Chong Yidong
-man/killing.texi    "Luc Teirlinck"  Chong Yidong
-man/kmacro.texi     "Luc Teirlinck"  Chong Yidong
-man/macos.texi      Chong Yidong
-man/maintaining.texi Chong Yidong
-man/major.texi      "Luc Teirlinck"  Chong Yidong
-man/mark.texi       "Luc Teirlinck"  Chong Yidong
-man/mini.texi       "Luc Teirlinck"  Chong Yidong
-man/misc.texi       Chong Yidong
-man/msdog.texi      Chong Yidong
-man/mule.texi       "Luc Teirlinck"  Kenichi Handa
-man/m-x.texi        "Luc Teirlinck"  Chong Yidong
-man/picture.texi    Joakim Verona <joakim@verona.se>   Chong Yidong
-man/programs.texi   "Stephen Eglen"  Chong Yidong
-man/regs.texi       "Luc Teirlinck"   Chong Yidong
-man/rmail.texi      Chong Yidong      "Luc Teirlinck"
-man/screen.texi     "Luc Teirlinck"   Chong Yidong
-man/search.texi     "Luc Teirlinck"   Chong Yidong
-man/sending.texi    Chong Yidong      "Luc Teirlinck"
-man/text.texi       "Luc Teirlinck"   Chong Yidong
-man/trouble.texi    Chong Yidong
-man/windows.texi    "Luc Teirlinck"   Chong Yidong
-man/xresources.texi
 
 ** Check the Emacs Lisp manual.
 

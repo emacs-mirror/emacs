@@ -1471,11 +1471,7 @@ Otherwise just move the line.  Move down unless UP is non-nil."
     (if (eq t idlwave-shell-arrows-do-history) (goto-char proc-pos))
     (if (and idlwave-shell-arrows-do-history
 	     (>= (1+ (save-excursion (end-of-line) (point))) proc-pos))
-	(progn
-	  ;;(goto-char proc-pos)
-	  (goto-char (point-max))
-	  ;;(and (not (eolp)) (kill-line nil))
-	  (comint-previous-input arg))
+	(comint-previous-input arg)
       (previous-line arg))))
 
 (defun idlwave-shell-up-or-history (&optional arg)

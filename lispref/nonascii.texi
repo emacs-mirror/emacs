@@ -484,7 +484,7 @@ of the text in question.
 @defun charset-after &optional pos
 This function return the charset of a character in the current buffer
 at position @var{pos}.  If @var{pos} is omitted or @code{nil}, it
-defauls to the current value of point.  If @var{pos} is out of range,
+defaults to the current value of point.  If @var{pos} is out of range,
 the value is @code{nil}.
 @end defun
 

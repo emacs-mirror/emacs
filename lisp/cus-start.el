@@ -196,6 +196,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (suggest-key-bindings keyboard (choice (const :tag "off" nil)
 						    (integer :tag "time" 2)
 						    (other :tag "on")))
+	     ;; macselect.c
+	     (mac-dnd-known-types mac (repeat string) "22.1")
 	     ;; macterm.c
 	     (mac-control-modifier mac (choice (const :tag "No modifier" nil)
 					       (const control) (const meta)

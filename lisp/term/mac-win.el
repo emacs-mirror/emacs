@@ -79,9 +79,11 @@
 (eval-when-compile (require 'url))
 
 (defvar mac-charset-info-alist)
-(defvar mac-services-selection)
+(defvar mac-service-selection)
 (defvar mac-system-script-code)
 (defvar mac-apple-event-map)
+(defvar mac-atsu-font-table)
+(defvar mac-font-panel-mode)
 (defvar x-invocation-args)
 
 (defvar x-command-line-resources nil)
@@ -1128,6 +1130,17 @@ correspoinding TextEncodingBase value."
 (mac-add-charset-info "mac-dingbats" 34)
 (mac-add-charset-info "iso10646-1" 126) ; for ATSUI
 
+(defconst mac-system-coding-system
+  (let ((base (or (cdr (assq mac-system-script-code
+			     mac-script-code-coding-systems))
+		  'mac-roman)))
+    (if (eq system-type 'darwin)
+	base
+      (coding-system-change-eol-conversion base 'mac)))
+  "Coding system derived from the system script code.")
+
+(set-selection-coding-system mac-system-coding-system)
+
 
 ;;;; Keyboard layout/language change events
 (defun mac-handle-language-change (event)
@@ -1141,6 +1154,91 @@ correspoinding TextEncodingBase value."
 	(define-key key-translation-map [?\x80] "\\"))))
 
 (define-key special-event-map [language-change] 'mac-handle-language-change)
+
+
+;;;; Conversion between common flavors and Lisp string.
+
+(defconst mac-text-encoding-mac-japanese-basic-variant #x20001
+  "MacJapanese text encoding without Apple double-byte extensions.")
+
+(defun mac-utxt-to-string (data &optional coding-system)
+  (or coding-system (setq coding-system mac-system-coding-system))
+  (let* ((encoding
+	  (and (eq system-type 'darwin)
+	       (eq (coding-system-base coding-system) 'japanese-shift-jis)
+	       mac-text-encoding-mac-japanese-basic-variant))
+	 (str (and (fboundp 'mac-code-convert-string)
+		   (mac-code-convert-string data nil
+					    (or encoding coding-system)))))
+    (when str
+      (setq str (decode-coding-string str coding-system))
+      (if (eq encoding mac-text-encoding-mac-japanese-basic-variant)
+	  ;; Does it contain Apple one-byte extensions other than
+	  ;; reverse solidus?
+	  (if (string-match "[\xa0\xfd-\xff]" str)
+	      (setq str nil)
+	    ;; ASCII-only?
+	    (unless (string-match "\\`[[:ascii:]]*\\'" str)
+	      (subst-char-in-string ?\x5c ?\(J\(B str t)
+	      (subst-char-in-string ?\x80 ?\\ str t)))))
+    (or str
+	(decode-coding-string data
+			      (if (eq (byteorder) ?B) 'utf-16be 'utf-16le)))))
+
+(defun mac-string-to-utxt (string &optional coding-system)
+  (or coding-system (setq coding-system mac-system-coding-system))
+  (let (data encoding)
+    (when (and (fboundp 'mac-code-convert-string)
+	       (memq (coding-system-base coding-system)
+		     (find-coding-systems-string string)))
+      (setq coding-system
+	    (coding-system-change-eol-conversion coding-system 'mac))
+      (when (and (eq system-type 'darwin)
+		 (eq coding-system 'japanese-shift-jis-mac))
+	(setq encoding mac-text-encoding-mac-japanese-basic-variant)
+	(setq string (subst-char-in-string ?\\ ?\x80 string))
+	(subst-char-in-string ?\(J\(B ?\x5c string t))
+      (setq data (mac-code-convert-string
+		  (encode-coding-string string coding-system)
+		  (or encoding coding-system) nil)))
+    (or data (encode-coding-string string (if (eq (byteorder) ?B)
+					      'utf-16be-mac
+					    'utf-16le-mac)))))
+
+(defun mac-TEXT-to-string (data &optional coding-system)
+  (or coding-system (setq coding-system mac-system-coding-system))
+  (prog1 (setq data (decode-coding-string data coding-system))
+    (when (eq (coding-system-base coding-system) 'japanese-shift-jis)
+      ;; (subst-char-in-string ?\x5c ?\(J\(B data t)
+      (subst-char-in-string ?\x80 ?\\ data t))))
+
+(defun mac-string-to-TEXT (string &optional coding-system)
+  (or coding-system (setq coding-system mac-system-coding-system))
+  (let ((encodables (find-coding-systems-string string))
+	(rest mac-script-code-coding-systems))
+    (unless (memq (coding-system-base coding-system) encodables)
+      (while (and rest (not (memq (cdar rest) encodables)))
+	(setq rest (cdr rest)))
+      (if rest
+	  (setq coding-system (cdar rest)))))
+  (setq coding-system
+	(coding-system-change-eol-conversion coding-system 'mac))
+  (when (eq coding-system 'japanese-shift-jis-mac)
+    ;; (setq string (subst-char-in-string ?\\ ?\x80 string))
+    (setq string (subst-char-in-string ?\(J\(B ?\x5c string)))
+  (encode-coding-string string coding-system))
+
+(defun mac-furl-to-string (data)
+  ;; Remove a trailing nul character.
+  (let ((len (length data)))
+    (if (and (> len 0) (= (aref data (1- len)) ?\0))
+	(substring data 0 (1- len))
+      data)))
+
+(defun mac-TIFF-to-string (data &optional text)
+  (prog1 (or text (setq text (copy-sequence " ")))
+    (put-text-property 0 (length text) 'display (create-image data 'tiff t)
+		       text)))
 
 ;;;; Selections
 
@@ -1190,22 +1288,11 @@ in `selection-converter-alist', which see."
     (when (and (stringp data)
 	       (setq data-type (get-text-property 0 'foreign-selection data)))
       (cond ((eq data-type 'public.utf16-plain-text)
-	     (let ((encoded (and (fboundp 'mac-code-convert-string)
-				 (mac-code-convert-string data nil coding))))
-	       (if encoded
-		   (setq data (decode-coding-string encoded coding))
-		 (setq data
-		       (decode-coding-string data
-					     (if (eq (byteorder) ?B)
-						 'utf-16be 'utf-16le))))))
+	     (setq data (mac-utxt-to-string data coding)))
 	    ((eq data-type 'com.apple.traditional-mac-plain-text)
-	     (setq data (decode-coding-string data coding)))
+	     (setq data (mac-TEXT-to-string data coding)))
 	    ((eq data-type 'public.file-url)
-	     (setq data (decode-coding-string data 'utf-8))
-	     ;; Remove a trailing nul character.
-	     (let ((len (length data)))
-	       (if (and (> len 0) (= (aref data (1- len)) ?\0))
-		   (setq data (substring data 0 (1- len)))))))
+	     (setq data (mac-furl-to-string data))))
       (put-text-property 0 (length data) 'foreign-selection data-type data))
     data))
 
@@ -1227,9 +1314,7 @@ in `selection-converter-alist', which see."
     (when tiff-image
       (remove-text-properties 0 (length tiff-image)
 			      '(foreign-selection nil) tiff-image)
-      (setq tiff-image (create-image tiff-image 'tiff t))
-      (or text (setq text " "))
-      (put-text-property 0 (length text) 'display tiff-image text))
+      (setq text (mac-TIFF-to-string tiff-image text)))
     text))
 
 ;;; Return the value of the current selection.
@@ -1300,11 +1385,7 @@ in `selection-converter-alist', which see."
 
 (defun mac-select-convert-to-string (selection type value)
   (let ((str (cdr (xselect-convert-to-string selection nil value)))
-	coding)
-    (setq coding (or next-selection-coding-system selection-coding-system))
-    (if coding
-	(setq coding (coding-system-base coding))
-      (setq coding 'raw-text))
+	(coding (or next-selection-coding-system selection-coding-system)))
     (when str
       ;; If TYPE is nil, this is a local request, thus return STR as
       ;; is.  Otherwise, encode STR.
@@ -1314,28 +1395,9 @@ in `selection-converter-alist', which see."
 	  (remove-text-properties 0 (length str) '(composition nil) str)
 	  (cond
 	   ((eq type 'public.utf16-plain-text)
-	    (let (s)
-	      (when (and (fboundp 'mac-code-convert-string)
-			 (memq coding (find-coding-systems-string str)))
-		(setq coding (coding-system-change-eol-conversion coding 'mac))
-		(setq s (mac-code-convert-string
-			 (encode-coding-string str coding)
-			 coding nil)))
-	      (setq str (or s
-			    (encode-coding-string str
-						  (if (eq (byteorder) ?B)
-						      'utf-16be-mac
-						    'utf-16le-mac))))))
+	    (setq str (mac-string-to-utxt str coding)))
 	   ((eq type 'com.apple.traditional-mac-plain-text)
-	    (let ((encodables (find-coding-systems-string str))
-		  (rest mac-script-code-coding-systems))
-	      (unless (memq coding encodables)
-		(while (and rest (not (memq (cdar rest) encodables)))
-		  (setq rest (cdr rest)))
-		(if rest
-		    (setq coding (cdar rest)))))
-	    (setq coding (coding-system-change-eol-conversion coding 'mac))
-	    (setq str (encode-coding-string str coding)))
+	    (setq str (mac-string-to-TEXT str coding)))
 	   (t
 	    (error "Unknown selection type: %S" type))
 	   )))
@@ -1433,6 +1495,17 @@ in `selection-converter-alist', which see."
 	(ash (lsh result extended-sign-len) (- extended-sign-len))
       result)))
 
+(defun mac-bytes-to-digits (bytes &optional from to)
+  (or from (setq from 0))
+  (or to (setq to (length bytes)))
+  (let ((len (- to from))
+	(val 0.0))
+    (dotimes (i len)
+      (setq val (+ (* val 256.0)
+		   (aref bytes (+ from (if (eq (byteorder) ?B) i
+					 (- len i 1)))))))
+    (format "%.0f" val)))
+
 (defun mac-ae-selection-range (ae)
 ;; #pragma options align=mac68k
 ;; typedef struct SelectionRange {
@@ -1518,37 +1591,109 @@ Currently the `mailto' scheme is supported."
 
 (define-key mac-apple-event-map [hicommand about] 'display-splash-screen)
 
-(defun mac-services-open-file ()
+;;; Converted Carbon Events
+(defun mac-handle-toolbar-switch-mode (event)
+  "Toggle visibility of tool-bars in response to EVENT.
+With no keyboard modifiers, it toggles the visibility of the
+frame where the tool-bar toggle button was pressed.  With some
+modifiers, it changes global tool-bar visibility setting."
+  (interactive "e")
+  (let* ((ae (mac-event-ae event))
+	 (modifiers (cdr (mac-ae-parameter ae "kmod"))))
+    (if (and modifiers (not (string= modifiers "\000\000\000\000")))
+	;; Globally toggle tool-bar-mode if some modifier key is pressed.
+	(tool-bar-mode)
+      (let ((window-id (mac-bytes-to-digits (cdr (mac-ae-parameter ae))))
+	    (rest (frame-list))
+	    frame)
+	(while (and (null frame) rest)
+	  (if (string= (frame-parameter (car rest) 'window-id) window-id)
+	      (setq frame (car rest)))
+	  (setq rest (cdr rest)))
+	(set-frame-parameter frame 'tool-bar-lines
+			     (if (= (frame-parameter frame 'tool-bar-lines) 0)
+				 1 0))))))
+
+;; kEventClassWindow/kEventWindowToolbarSwitchMode
+(define-key mac-apple-event-map [window toolbar-switch-mode]
+  'mac-handle-toolbar-switch-mode)
+
+;;; Font panel
+(when (fboundp 'mac-set-font-panel-visibility)
+
+(define-minor-mode mac-font-panel-mode
+  "Toggle use of the font panel.
+With numeric ARG, display the font panel if and only if ARG is positive."
+  :init-value nil
+  :global t
+  :group 'mac
+  (mac-set-font-panel-visibility mac-font-panel-mode))
+
+(defun mac-handle-font-panel-closed (event)
+  "Update internal status in response to font panel closed EVENT."
+  (interactive "e")
+  ;; Synchronize with the minor mode variable.
+  (mac-font-panel-mode 0))
+
+(defun mac-handle-font-selection (event)
+  "Change default face attributes according to font selection EVENT."
+  (interactive "e")
+  (let* ((ae (mac-event-ae event))
+	 (fm-font-size (cdr (mac-ae-parameter ae "fmsz")))
+	 (atsu-font-id (cdr (mac-ae-parameter ae "auid")))
+	 (attribute-values (gethash atsu-font-id mac-atsu-font-table)))
+    (if fm-font-size
+	(setq attribute-values
+	      `(:height ,(* 10 (mac-bytes-to-integer fm-font-size))
+			,@attribute-values)))
+    (apply 'set-face-attribute 'default (selected-frame) attribute-values)))
+
+;; kEventClassFont/kEventFontPanelClosed
+(define-key mac-apple-event-map [font panel-closed]
+  'mac-handle-font-panel-closed)
+;; kEventClassFont/kEventFontSelection
+(define-key mac-apple-event-map [font selection] 'mac-handle-font-selection)
+
+(define-key-after menu-bar-showhide-menu [mac-font-panel-mode]
+  (menu-bar-make-mm-toggle mac-font-panel-mode
+			   "Font Panel"
+			   "Show the font panel as a floating dialog")
+  'showhide-speedbar)
+
+) ;; (fboundp 'mac-set-font-panel-visibility)
+
+;;; Services
+(defun mac-service-open-file ()
   "Open the file specified by the selection value for Services."
   (interactive)
-  (find-file-existing (x-selection-value mac-services-selection)))
+  (find-file-existing (x-selection-value mac-service-selection)))
 
-(defun mac-services-open-selection ()
+(defun mac-service-open-selection ()
   "Create a new buffer containing the selection value for Services."
   (interactive)
   (switch-to-buffer (generate-new-buffer "*untitled*"))
-  (insert (x-selection-value mac-services-selection))
+  (insert (x-selection-value mac-service-selection))
   (sit-for 0)
   (save-buffer) ; It pops up the save dialog.
   )
 
-(defun mac-services-mail-selection ()
+(defun mac-service-mail-selection ()
   "Prepare a mail buffer containing the selection value for Services."
   (interactive)
   (compose-mail)
   (rfc822-goto-eoh)
   (forward-line 1)
-  (insert (x-selection-value mac-services-selection) "\n"))
+  (insert (x-selection-value mac-service-selection) "\n"))
 
-(defun mac-services-mail-to ()
+(defun mac-service-mail-to ()
   "Prepare a mail buffer to be sent to the selection value for Services."
   (interactive)
-  (compose-mail (x-selection-value mac-services-selection)))
+  (compose-mail (x-selection-value mac-service-selection)))
 
-(defun mac-services-insert-text ()
+(defun mac-service-insert-text ()
   "Insert the selection value for Services."
   (interactive)
-  (let ((text (x-selection-value mac-services-selection)))
+  (let ((text (x-selection-value mac-service-selection)))
     (if (not buffer-read-only)
 	(insert text)
       (kill-new text)
@@ -1556,15 +1701,17 @@ Currently the `mailto' scheme is supported."
        (substitute-command-keys
 	"The text from the Services menu can be accessed with \\[yank]")))))
 
-(define-key mac-apple-event-map [services paste] 'mac-services-insert-text)
-(define-key mac-apple-event-map [services perform open-file]
-  'mac-services-open-file)
-(define-key mac-apple-event-map [services perform open-selection]
-  'mac-services-open-selection)
-(define-key mac-apple-event-map [services perform mail-selection]
-  'mac-services-mail-selection)
-(define-key mac-apple-event-map [services perform mail-to]
-  'mac-services-mail-to)
+;; kEventClassService/kEventServicePaste
+(define-key mac-apple-event-map [service paste] 'mac-service-insert-text)
+;; kEventClassService/kEventServicePerform
+(define-key mac-apple-event-map [service perform open-file]
+  'mac-service-open-file)
+(define-key mac-apple-event-map [service perform open-selection]
+  'mac-service-open-selection)
+(define-key mac-apple-event-map [service perform mail-selection]
+  'mac-service-mail-selection)
+(define-key mac-apple-event-map [service perform mail-to]
+  'mac-service-mail-to)
 
 (defun mac-dispatch-apple-event (event)
   "Dispatch EVENT according to the keymap `mac-apple-event-map'."
@@ -1589,6 +1736,83 @@ Currently the `mailto' scheme is supported."
 ;; processed when the initial frame has been created: this is where
 ;; the files should be opened.
 (add-hook 'after-init-hook 'mac-process-deferred-apple-events)
+
+
+;;;; Drag and drop
+
+(defcustom mac-dnd-types-alist
+  '(("furl" . mac-dnd-handle-furl)
+    ("hfs " . mac-dnd-handle-hfs)
+    ("utxt" . mac-dnd-insert-utxt)
+    ("TEXT" . mac-dnd-insert-TEXT)
+    ("TIFF" . mac-dnd-insert-TIFF))
+  "Which function to call to handle a drop of that type.
+The function takes three arguments, WINDOW, ACTION and DATA.
+WINDOW is where the drop occured, ACTION is always `private' on
+Mac.  DATA is the drop data.  Unlike the x-dnd counterpart, the
+return value of the function is not significant.
+
+See also `mac-dnd-known-types'."
+  :version "22.1"
+  :type 'alist
+  :group 'mac)
+
+(defun mac-dnd-handle-furl (window action data)
+  (dnd-handle-one-url window action (mac-furl-to-string data)))
+
+(defun mac-dnd-handle-hfs (window action data)
+;; struct HFSFlavor {
+;;   OSType fileType;
+;;   OSType fileCreator;
+;;   UInt16 fdFlags;
+;;   FSSpec fileSpec;
+;; };
+  (let* ((file-name (mac-coerce-ae-data "fss " (substring data 10)
+					'undecoded-file-name))
+	 (url (concat "file://"
+		      (mapconcat 'url-hexify-string
+				 (split-string file-name "/") "/"))))
+    (dnd-handle-one-url window action url)))
+
+(defun mac-dnd-insert-utxt (window action data)
+  (dnd-insert-text window action (mac-utxt-to-string data)))
+
+(defun mac-dnd-insert-TEXT (window action data)
+  (dnd-insert-text window action (mac-TEXT-to-string data)))
+
+(defun mac-dnd-insert-TIFF (window action data)
+  (dnd-insert-text window action (mac-TIFF-to-string data)))
+
+(defun mac-dnd-drop-data (event frame window data type)
+  (let* ((type-info (assoc type mac-dnd-types-alist))
+	 (handler (cdr type-info))
+	 (action 'private)
+	 (w (posn-window (event-start event))))
+    (when handler
+      (if (and (windowp w) (window-live-p w)
+	       (not (window-minibuffer-p w))
+	       (not (window-dedicated-p w)))
+	  ;; If dropping in an ordinary window which we could use,
+	  ;; let dnd-open-file-other-window specify what to do.
+	  (progn
+	    (goto-char (posn-point (event-start event)))
+	    (funcall handler window action data))
+	;; If we can't display the file here,
+	;; make a new window for it.
+	(let ((dnd-open-file-other-window t))
+	  (select-frame frame)
+	  (funcall handler window action data))))))
+
+(defun mac-dnd-handle-drag-n-drop-event (event)
+  "Receive drag and drop events."
+  (interactive "e")
+  (let ((window (posn-window (event-start event))))
+    (when (windowp window) (select-window window))
+    (dolist (item (mac-ae-list (mac-event-ae event)))
+      (if (not (equal (car item) "null"))
+	  (mac-dnd-drop-data event (selected-frame) window
+			     (cdr item) (car item)))))
+  (select-frame-set-input-focus (selected-frame)))
 
 ;;; Do the actual Windows setup here; the above code just defines
 ;;; functions and variables that we use now.
@@ -1884,37 +2108,11 @@ It returns a name of the created fontset."
 ;; Enable CLIPBOARD copy/paste through menu bar commands.
 (menu-bar-enable-clipboard)
 
-(defconst mac-system-coding-system
-  (let ((base (or (cdr (assq mac-system-script-code
-			     mac-script-code-coding-systems))
-		  'mac-roman)))
-    (if (eq system-type 'darwin)
-	base
-      (coding-system-change-eol-conversion base 'mac)))
-  "Coding system derived from the system script code.")
+;; Initiate drag and drop
 
-(set-selection-coding-system mac-system-coding-system)
+(global-set-key [drag-n-drop] 'mac-dnd-handle-drag-n-drop-event)
+(global-set-key [M-drag-n-drop] 'mac-dnd-handle-drag-n-drop-event)
 
-(defun mac-drag-n-drop (event)
-  "Edit the files listed in the drag-n-drop EVENT.
-Switch to a buffer editing the last file dropped."
-  (interactive "e")
-  ;; Make sure the drop target has positive co-ords
-  ;; before setting the selected frame - otherwise it
-  ;; won't work.  <skx@tardis.ed.ac.uk>
-  (let* ((window (posn-window (event-start event)))
-	 (coords (posn-x-y (event-start event)))
-	 (x (car coords))
-	 (y (cdr coords)))
-    (if (and (> x 0) (> y 0))
-	(set-frame-selected-window nil window))
-    (dolist (file-name (nth 2 event))
-      (dnd-handle-one-url window 'private
-			  (concat "file:" file-name))))
-  (select-frame-set-input-focus (selected-frame)))
-
-(global-set-key [drag-n-drop] 'mac-drag-n-drop)
-(global-set-key [M-drag-n-drop] 'mac-drag-n-drop)
 
 ;;;; Non-toolkit Scroll bars
 
@@ -1979,6 +2177,7 @@ Switch to a buffer editing the last file dropped."
     (scroll-up 1)))
 
 )
+
 
 ;;;; Others
 

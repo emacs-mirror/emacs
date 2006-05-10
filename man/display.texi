@@ -1026,7 +1026,7 @@ elisp, The Emacs Lisp Reference Manual}.
 @cindex cursor, blinking
   You can customize the cursor's color, and whether it blinks, using
 the @code{cursor} Custom group (@pxref{Easy Customization}).  On
-graphical terminals, the command @kbd{M-x blink-cursor-mode} enables
+a graphical display, the command @kbd{M-x blink-cursor-mode} enables
 or disables the blinking of the cursor.  (On text terminals, the
 terminal itself blinks the cursor, and Emacs has no control over it.)
 You can control how the cursor appears when it blinks off by setting
@@ -1050,7 +1050,7 @@ it a @code{nil} value.
 
 @vindex x-stretch-cursor
 @cindex wide block cursor
-  On graphical terminals, Emacs can optionally draw the block cursor
+  On graphical displays, Emacs can optionally draw the block cursor
 as wide as the character under the cursor---for example, if the cursor
 is on a tab character, it would cover the full width occupied by that
 tab character.  To enable this feature, set the variable
@@ -1127,7 +1127,7 @@ fringe when positioned on that newline.
 
 @vindex indicate-buffer-boundaries
   On a graphical display, Emacs can indicate the buffer boundaries in
-the fringes.  It inddicates the first line and the last line with
+the fringes.  It indicates the first line and the last line with
 angle images in the fringes.  This can be combined with up and down
 arrow images which say whether it is possible to scroll the window up
 and down.

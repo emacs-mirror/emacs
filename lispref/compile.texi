@@ -412,7 +412,7 @@ automatically @code{eval-and-compile}, the package is loaded both when
 compiling and executing.
 
 @code{autoload} is also effectively @code{eval-and-compile} too.  It's
-recognised when compiling, so uses of such a function don't produce
+recognized when compiling, so uses of such a function don't produce
 ``not known to be defined'' warnings.
 
 Most uses of @code{eval-and-compile} are fairly sophisticated.
@@ -456,7 +456,7 @@ used to load it for compiling, but not executing.  For example,
 The same sort of thing goes for macros or @code{defalias}es defined
 locally and only for use within the file.  They can be defined while
 compiling, but then not needed when executing.  This is good for code
-that's only a fallback for compability with other versions of Emacs.
+that's only a fallback for compatibility with other versions of Emacs.
 For example.
 
 @lisp

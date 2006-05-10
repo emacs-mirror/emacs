@@ -204,8 +204,25 @@ This should only be bound to mouse buttons 4 and 5."
       (setq amt (* amt (event-click-count event))))
     (unwind-protect
 	(let ((button (mwheel-event-button event)))
-	  (cond ((eq button mouse-wheel-down-event) (scroll-down amt))
-		((eq button mouse-wheel-up-event) (scroll-up amt))
+	  (cond ((eq button mouse-wheel-down-event)
+                 (condition-case nil (scroll-down amt)
+                   ;; Make sure we do indeed scroll to the beginning of
+                   ;; the buffer.
+                   (beginning-of-buffer
+                    (unwind-protect
+                        (scroll-down)
+                      ;; If the first scroll succeeded, then some scrolling
+                      ;; is possible: keep scrolling til the beginning but
+                      ;; do not signal an error.  For some reason, we have
+                      ;; to do it even if the first scroll signalled an
+                      ;; error, because otherwise the window is recentered
+                      ;; for a reason that escapes me.  This problem seems
+                      ;; to only affect scroll-down.  --Stef
+                      (set-window-start (selected-window) (point-min))))))
+		((eq button mouse-wheel-up-event)
+                 (condition-case nil (scroll-up amt)
+                   ;; Make sure we do indeed scroll to the end of the buffer.
+                   (end-of-buffer (while t (scroll-up)))))
 		(t (error "Bad binding in mwheel-scroll"))))
       (if curwin (select-window curwin))))
   (when (and mouse-wheel-click-event mouse-wheel-inhibit-click-time)

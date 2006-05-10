@@ -42,6 +42,9 @@ Highlight program syntax (@pxref{Font Lock}).
 * C Modes::             Special commands of C, C++, Objective-C,
                           Java, and Pike modes.
 * Asm Mode::            Asm mode and its special features.
+@ifnottex
+* Fortran::             Fortran mode and its special features.
+@end ifnottex
 @end menu
 
 @node Program Modes
@@ -109,7 +112,14 @@ tab character before point, in these modes.
 Mode, ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba IDL/Pike/AWK
 (@pxref{Top, , CC Mode, ccmode, CC Mode}) and the IDLWAVE modes
 (@pxref{Top, , IDLWAVE, idlwave, IDLWAVE User Manual}).  For Fortran
-mode, @inforef{Fortran,, emacs-xtra}.
+mode, see
+@iftex
+@ref{Fortran,,, emacs-xtra, Specialized Emacs Features}.
+@end iftex
+@ifnottex
+@ref{Fortran}.
+@end ifnottex
+
 
 @cindex mode hook
 @vindex c-mode-hook
@@ -1591,7 +1601,7 @@ hungry-delete feature is enabled.
 @itemx M-x c-subword-mode
 @findex c-subword-mode
 Enable (or disable) @dfn{subword mode}.  In subword mode, Emacs's word
-commands then recognize upper case letters in
+commands recognize upper case letters in
 @samp{StudlyCapsIdentifiers} as word boundaries.  This is indicated by
 the flag @samp{/w} on the mode line after the mode name
 (e.g. @samp{C/law}).  You can even use @kbd{M-x c-subword-mode} in
@@ -1741,6 +1751,10 @@ Insert or align a comment.
 
   The variable @code{asm-comment-char} specifies which character
 starts comments in assembler syntax.
+
+@ifnottex
+@include fortran-xtra.texi
+@end ifnottex
 
 @ignore
    arch-tag: c7ee7409-40a4-45c7-bfb7-ae7f2c74d0c0

@@ -293,7 +293,8 @@ Do not reload any saved desktop.  @xref{Saving Emacs Sessions}.
 @opindex --user
 @cindex load init file of another user
 Load @var{user}'s Emacs init file @file{~@var{user}/.emacs} instead of
-your own.
+your own@footnote{
+This option has no effect on MS-Windows.}.
 
 @item --debug-init
 @opindex --debug-init
@@ -1227,7 +1228,7 @@ Specify @var{pixels} as additional space to put between lines, in pixels.
 @itemx --no-blinking-cursor
 @opindex --no-blinking-cursor
 @cindex blinking cursor disable, command-line argument
-Disable the blinking cursor on graphical terminals.
+Disable the blinking cursor on graphical displays.
 
 @item -D
 @opindex -D
