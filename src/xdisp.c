@@ -9723,7 +9723,7 @@ redisplay_tool_bar (f)
 	border = 0;
 
       rows = f->n_tool_bar_rows;
-      height = (it.last_visible_y - border) / rows;
+      height = max (1, (it.last_visible_y - border) / rows);
       extra = it.last_visible_y - border - height * rows;
 
       while (it.current_y < it.last_visible_y)
