@@ -1,3 +1,7 @@
+2006-05-11  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_tool_bar): Handle large tool-bar-border values.
+
 2006-05-11  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents): Fix for the case of IO error
