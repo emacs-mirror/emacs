@@ -642,10 +642,12 @@ it is displayed along with the global value."
                 (princ (if (stringp (car obsolete)) (car obsolete)
                          (format "use `%s' instead." (car obsolete))))
                 (terpri))
-	      (when safe-var 
-		(princ "This variable is safe to use as a file local variable")
-		(princ (format " only if its value\nsatisfies the predicate `%s'.\n"
-			       safe-var))
+	      (when safe-var
+		(princ "\n\nThis variable is safe as a file local variable ")
+		(princ "if its value\nsatisfies the predicate ")
+		(princ (if (byte-code-function-p safe-var)
+			   "which is byte-compiled expression.\n"
+			 (format "`%s'.\n" safe-var)))
 		(terpri))
 	      (princ "Documentation:\n")
               (princ (or doc "Not documented as a variable.")))

@@ -1,3 +1,9 @@
+2006-05-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* help-fns.el (describe-variable): Don't print safe-var if it is
+	byte-code.  Improve wording as suggested by Luc Teirlinck
+	<teirllm@auburn.edu>.
+
 2006-05-11  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-reset): Update speedbar if necessary.
