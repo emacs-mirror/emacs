@@ -1,3 +1,8 @@
+2006-05-11  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc--refresh-node): No longer save-excursion.
+	Update all callers to do it there, instead.
+
 2006-05-10  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-basic-setup): Set day to 1 in
@@ -20,7 +25,7 @@
 	* progmodes/idlwave.el (idlwave-push-mark): Removed obsolete
 	compatibility function (Emacs 18/19).
 	(idlwave-is-continuation-line): Always return point at start of
-	previous non-blank continuation line.  
+	previous non-blank continuation line.
 	`keyword-parameters': Fix continued comment font-lock matcher.
 	(idlwave-font-lock-fontify-region): Written, use as
 	font-lock-fontify-region-function, to fix continued keyword
