@@ -235,14 +235,13 @@ start position and the element DATA."
 (defun ewoc--refresh-node (pp node)
   "Redisplay the element represented by NODE using the pretty-printer PP."
   (let ((inhibit-read-only t))
-    (save-excursion
-      ;; First, remove the string from the buffer:
-      (delete-region (ewoc--node-start-marker node)
-		     (1- (marker-position
-			  (ewoc--node-start-marker (ewoc--node-right node)))))
-      ;; Calculate and insert the string.
-      (goto-char (ewoc--node-start-marker node))
-      (funcall pp (ewoc--node-data node)))))
+    ;; First, remove the string from the buffer:
+    (delete-region (ewoc--node-start-marker node)
+                   (1- (marker-position
+                        (ewoc--node-start-marker (ewoc--node-right node)))))
+    ;; Calculate and insert the string.
+    (goto-char (ewoc--node-start-marker node))
+    (funcall pp (ewoc--node-data node))))
 
 ;;; ===========================================================================
 ;;;                  Public members of the Ewoc package
@@ -361,10 +360,11 @@ arguments will be passed to MAP-FUNCTION."
   (ewoc--set-buffer-bind-dll-let* ewoc
       ((footer (ewoc--footer ewoc))
        (node (ewoc--node-nth dll 1)))
-    (while (not (eq node footer))
-      (if (apply map-function (ewoc--node-data node) args)
-	  (ewoc--refresh-node (ewoc--pretty-printer ewoc) node))
-      (setq node (ewoc--node-next dll node)))))
+    (save-excursion
+      (while (not (eq node footer))
+        (if (apply map-function (ewoc--node-data node) args)
+            (ewoc--refresh-node (ewoc--pretty-printer ewoc) node))
+        (setq node (ewoc--node-next dll node))))))
 
 (defun ewoc-filter (ewoc predicate &rest args)
   "Remove all elements in EWOC for which PREDICATE returns nil.
@@ -473,8 +473,9 @@ If the EWOC is empty, nil is returned."
   "Call EWOC's pretty-printer for each element in NODES.
 Delete current text first, thus effecting a \"refresh\"."
   (ewoc--set-buffer-bind-dll ewoc
-    (dolist (node nodes)
-      (ewoc--refresh-node (ewoc--pretty-printer ewoc) node))))
+    (save-excursion
+      (dolist (node nodes)
+        (ewoc--refresh-node (ewoc--pretty-printer ewoc) node)))))
 
 (defun ewoc-goto-prev (ewoc arg)
   "Move point to the ARGth previous element in EWOC.
@@ -572,8 +573,9 @@ Return nil if the buffer has been deleted."
   "Set the HEADER and FOOTER of EWOC."
   (setf (ewoc--node-data (ewoc--header ewoc)) header)
   (setf (ewoc--node-data (ewoc--footer ewoc)) footer)
-  (ewoc--refresh-node 'insert (ewoc--header ewoc))
-  (ewoc--refresh-node 'insert (ewoc--footer ewoc)))
+  (save-excursion
+    (ewoc--refresh-node 'insert (ewoc--header ewoc))
+    (ewoc--refresh-node 'insert (ewoc--footer ewoc))))
 
 
 (provide 'ewoc)
