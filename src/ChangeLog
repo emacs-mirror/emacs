@@ -1,3 +1,8 @@
+2006-05-11  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents): Fix for the case of IO error
+	while handling replace operation.
+
 2006-05-10  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (realize_default_face) [HAVE_X_WINDOWS]: If the font
