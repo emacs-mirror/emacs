@@ -615,31 +615,36 @@ arguments, and the second is the address of a block containing their
 values.  They have types @code{int} and @w{@code{Lisp_Object *}}.
 
   Within the function @code{For} itself, note the use of the macros
-@code{GCPRO1} and @code{UNGCPRO}.  @code{GCPRO1} is used to ``protect''
-a variable from garbage collection---to inform the garbage collector that
-it must look in that variable and regard its contents as an accessible
-object.  This is necessary whenever you call @code{Feval} or anything
-that can directly or indirectly call @code{Feval}.  At such a time, any
-Lisp object that you intend to refer to again must be protected somehow.
-@code{UNGCPRO} cancels the protection of the variables that are
-protected in the current function.  It is necessary to do this explicitly.
+@code{GCPRO1} and @code{UNGCPRO}.  @code{GCPRO1} is used to
+``protect'' a variable from garbage collection---to inform the garbage
+collector that it must look in that variable and regard its contents
+as an accessible object.  GC protection is necessary whenever you call
+@code{Feval} or anything that can directly or indirectly call
+@code{Feval}.  At such a time, any Lisp object that this function may
+refer to again must be protected somehow.
 
   It suffices to ensure that at least one pointer to each object is
-GC-protected; as long as the object is not recycled, all pointers to
-it remain valid.  So if you are sure that a local variable points to
-an object that will be preserved by some other pointer, that local
-variable does not need a @code{GCPRO}.  (Formerly, strings were an
-exception to this rule; in older Emacs versions, every pointer to a
-string needed to be marked by GC.)
+GC-protected; that way, the object cannot be recycled, so all pointers
+to it remain valid.  Thus, a particular local variable can do without
+protection if it is certain that the object it points to will be
+preserved by some other pointer (such as another local variable which
+has a @code{GCPRO})@footnote{Formerly, strings were a special
+exception; in older Emacs versions, every local variable that might
+point to a string needed a @code{GCPRO}.}.  Otherwise, the local
+variable needs a @code{GCPRO}.
 
   The macro @code{GCPRO1} protects just one local variable.  If you
-want to protect two, use @code{GCPRO2} instead; repeating
-@code{GCPRO1} will not work.  Macros, @code{GCPRO3}, @code{GCPRO4},
-@code{GCPRO5}, and @code{GCPRO6} also exist.  These macros implicitly
-use local variables such as @code{gcpro1}; you must declare these
-explicitly, with type @code{struct gcpro}.  Thus, if you use
+want to protect two variables, use @code{GCPRO2} instead; repeating
+@code{GCPRO1} will not work.  Macros @code{GCPRO3}, @code{GCPRO4},
+@code{GCPRO5}, and @code{GCPRO6} also exist.  All these macros
+implicitly use local variables such as @code{gcpro1}; you must declare
+these explicitly, with type @code{struct gcpro}.  Thus, if you use
 @code{GCPRO2}, you must declare @code{gcpro1} and @code{gcpro2}.
 Alas, we can't explain all the tricky details here.
+
+  @code{UNGCPRO} cancels the protection of the variables that are
+protected in the current function.  It is necessary to do this
+explicitly.
 
   Built-in functions that take a variable number of arguments actually
 accept two arguments at the C level: the number of Lisp arguments, and
