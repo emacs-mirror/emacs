@@ -4325,11 +4325,8 @@ actually used.  */)
 	{
 	  xfree (conversion_buffer);
 	  coding_free_composition_data (&coding);
-	  if (how_much == -1)
-	    error ("IO error reading %s: %s",
-		   SDATA (orig_filename), emacs_strerror (errno));
-	  else if (how_much == -2)
-	    error ("maximum buffer size exceeded");
+	  error ("IO error reading %s: %s",
+		 SDATA (orig_filename), emacs_strerror (errno));
 	}
 
       /* Compare the beginning of the converted file
