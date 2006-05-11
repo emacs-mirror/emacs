@@ -293,6 +293,7 @@ For example, add  -*-byte-compile-dynamic: t;-*- on the first line.
 
 When this option is true, if you load the compiled file and then move it,
 the functions you loaded will not be able to run.")
+;;;###autoload(put 'byte-compile-dynamic 'safe-local-variable 'booleanp)
 
 (defcustom byte-compile-dynamic-docstrings t
   "*If non-nil, compile doc strings for lazy access.
@@ -311,6 +312,7 @@ You can also set the variable globally.
 This option is enabled by default because it reduces Emacs memory usage."
   :group 'bytecomp
   :type 'boolean)
+;;;###autoload(put 'byte-compile-dynamic-docstrings 'safe-local-variable 'booleanp)
 
 (defcustom byte-optimize-log nil
   "*If true, the byte-compiler will log its optimizations into *Compile-Log*.
@@ -355,6 +357,7 @@ Elements of the list may be be:
 		      (const callargs) (const redefine)
 		      (const obsolete) (const noruntime)
 		      (const cl-functions) (const interactive-only))))
+;;;###autoload(put 'byte-compile-warnings 'safe-local-variable 'booleanp)
 
 (defvar byte-compile-interactive-only-functions
   '(beginning-of-buffer end-of-buffer replace-string replace-regexp
@@ -1589,6 +1592,7 @@ recompile every `.el' file that already has a `.elc' file."
 This is normally set in local file variables at the end of the elisp file:
 
 ;; Local Variables:\n;; no-byte-compile: t\n;; End: ")
+;;;###autoload(put 'no-byte-compile 'safe-local-variable 'booleanp)
 
 ;;;###autoload
 (defun byte-compile-file (filename &optional load)

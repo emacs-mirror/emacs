@@ -162,6 +162,7 @@ The truename of a file is found by chasing all links
 both at the file level and at the levels of the containing directories."
   :type 'boolean
   :group 'find-file)
+(put 'find-file-visit-truename 'safe-local-variable 'boolean)
 
 (defcustom revert-without-query nil
   "*Specify which files should be reverted without query.
@@ -249,6 +250,7 @@ nil means make them for files that have some already.
 		 (other :tag "Always" t))
   :group 'backup
   :group 'vc)
+(put 'version-control 'safe-local-variable 'symbolp)
 
 (defcustom dired-kept-versions 2
   "*When cleaning directory, number of versions to keep."
@@ -268,12 +270,14 @@ If nil, ask confirmation.  Any other value prevents any trimming."
   "*Number of oldest versions to keep when a new numbered backup is made."
   :type 'integer
   :group 'backup)
+(put 'kept-old-versions 'safe-local-variable 'integerp)
 
 (defcustom kept-new-versions 2
   "*Number of newest versions to keep when a new numbered backup is made.
 Includes the new backup.  Must be > 0"
   :type 'integer
   :group 'backup)
+(put 'kept-new-versions 'safe-local-variable 'integerp)
 
 (defcustom require-final-newline nil
   "*Whether to add a newline automatically at the end of the file.
@@ -2351,27 +2355,12 @@ asking you for confirmation."
 ;; FIXME: Some variables should be moved according to the rules above.
 (mapc (lambda (pair)
 	(put (car pair) 'safe-local-variable (cdr pair)))
-      '((byte-compile-dynamic            . booleanp)
-	(byte-compile-dynamic-docstrings . booleanp)
-	(byte-compile-warnings           . booleanp)
-	(c-basic-offset                  . integerp)
-	(c-file-style                    . stringp)
-	(c-indent-level                  . integerp)
-	(comment-column                  . integerp)
-	(compile-command                 . string-or-null-p)
-	(find-file-visit-truename        . booleanp)
-	(fill-column                     . integerp)
-	(fill-prefix                     . string-or-null-p)
+      '((fill-column                     . integerp) ;; C source code
 	(indent-tabs-mode                . booleanp) ;; C source code
-	(kept-old-versions               . integerp)
-	(kept-new-versions               . integerp)
-	(left-margin                     . integerp)
-	(no-byte-compile                 . booleanp)
+	(left-margin                     . integerp) ;; C source code
 	(no-update-autoloads             . booleanp)
-	(outline-regexp                  . string-or-null-p)
 	(tab-width                       . integerp) ;; C source code
-	(truncate-lines                  . booleanp) ;; C source code
-	(version-control                 . symbolp)))
+	(truncate-lines                  . booleanp));; C source code
 
 (put 'c-set-style 'safe-local-eval-function t)
 

@@ -54,6 +54,7 @@ The recommended way to set this is with a Local Variables: list
 in the file it applies to.  See also `outline-heading-end-regexp'."
   :type '(choice regexp (const nil))
   :group 'outlines)
+;;;###autoload(put 'outline-regexp 'safe-local-variable 'string-or-null-p)
 
 (defcustom outline-heading-end-regexp "\n"
   "Regular expression to match the end of a heading line.
