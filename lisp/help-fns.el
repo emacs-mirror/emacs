@@ -643,7 +643,7 @@ it is displayed along with the global value."
                          (format "use `%s' instead." (car obsolete))))
                 (terpri))
 	      (when safe-var
-		(princ "\n\nThis variable is safe as a file local variable ")
+		(princ "This variable is safe as a file local variable ")
 		(princ "if its value\nsatisfies the predicate ")
 		(princ (if (byte-code-function-p safe-var)
 			   "which is byte-compiled expression.\n"
