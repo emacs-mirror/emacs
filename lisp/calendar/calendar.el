@@ -1374,6 +1374,7 @@ MON defaults to `displayed-month'.  YR defaults to `displayed-year'."
   "Extract the month part of DATE which has the form (month day year)."
   (car date))
 
+;; Note gives wrong answer for result of (calendar-read-date 'noday).
 (defsubst extract-calendar-day (date)
   "Extract the day part of DATE which has the form (month day year)."
   (car (cdr date)))
@@ -1639,6 +1640,9 @@ to be replaced by asterisks to highlight it whenever it is in the window."
                  (calendar-current-date)))
          (month (extract-calendar-month date))
          (year (extract-calendar-year date)))
+    ;; (calendar-read-date t) returns a date with day = nil, which is
+    ;; not a legal date for the visible test in the diary section.
+    (if arg (setcar (cdr date) 1))
     (pop-to-buffer calendar-buffer)
     (increment-calendar-month month year (- calendar-offset))
     (generate-calendar-window month year)
@@ -2897,7 +2901,11 @@ interpreted as BC; -1 being 1 BC, and so on."
         (day (extract-calendar-day date))
         (year (extract-calendar-year date)))
     (and (<= 1 month) (<= month 12)
-         (<= 1 day) (<= day (calendar-last-day-of-month month year))
+         ;; (calendar-read-date t) returns a date with day = nil.
+         ;; Should not be valid (?), since many funcs prob assume integer.
+         ;; (calendar-read-date 'noday) returns (month year), which
+         ;; currently results in extract-calendar-year returning nil.
+         day year (<= 1 day) (<= day (calendar-last-day-of-month month year))
          ;; BC dates left as non-valid, to suppress errors from
          ;; complex holiday algorithms not suitable for years BC.
          ;; Note there are side effects on calendar navigation.
