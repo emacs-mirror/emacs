@@ -1,3 +1,7 @@
+2006-05-10  Richard Stallman  <rms@gnu.org>
+
+	* internals.texi (Writing Emacs Primitives): Clarify GCPRO rules.
+
 2006-05-10  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* variables.texi (File Local Variables): Recommend to quote lambda
