@@ -1,3 +1,13 @@
+2006-05-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-reset): Update speedbar if necessary.
+	(gdb-var-evaluate-expression-handler, gdb-var-update-handler): 
+	Use a token for pending-triggers to ensure gdb-var-update
+	gets called once per user input again for pre-GDB 6.4.
+	(gdb-var-delete): Match on more complex expressions.
+	(gdb-var-list-children-handler, gdb-var-create-handler): 
+	Use a token for consistency.
+
 2006-05-11  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-read-date, org-goto-calendar) 
