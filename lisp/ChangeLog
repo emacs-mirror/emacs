@@ -1,3 +1,10 @@
+2006-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-basic-setup): Set day to 1 in
+	prefix arg case, to avoid view-diary-entries-initially error.
+	Reported by Stephen Berman <Stephen.Berman at gmx.net>.
+	(calendar-date-is-legal-p): Handle dates with no day part.
+
 2006-05-11  Nick Roberts  <nickrob@snap.net.nz>
 
 	* comint.el (comint-insert-input): Just make it when
