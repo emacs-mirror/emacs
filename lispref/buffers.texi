@@ -257,6 +257,8 @@ sort, and an error is signaled if it is neither a string nor a buffer.
 Any argument called @var{buffer} must be an actual buffer
 object, not a name.
 
+@cindex hidden buffers
+@cindex buffers without undo information
   Buffers that are ephemeral and generally uninteresting to the user
 have names starting with a space, so that the @code{list-buffers} and
 @code{buffer-menu} commands don't mention them (but if such a buffer
@@ -910,6 +912,9 @@ nor a buffer.
 The major mode for a newly created buffer is set to Fundamental mode.
 The variable @code{default-major-mode} is handled at a higher level.
 @xref{Auto Major Mode}.
+
+If the buffer's name begins with a space, the buffer has its undo
+information recording (@pxref{Undo}) turned off by default.
 @end defun
 
 @defun generate-new-buffer name
