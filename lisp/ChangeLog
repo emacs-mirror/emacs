@@ -1,3 +1,26 @@
+2006-05-12  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: (allout-view-change-hook): Marked as being deprecated,
+	to be replaced by `allout-exposure-change-hook'.
+	(allout-exposure-change-hook): New, replacing
+	`allout-view-change-hook'.
+	(allout-flag-region): Run new hook `allout-exposure-change-hook',
+	in addition to `allout-view-change-hook'.
+        (allout-show-bodies, allout-old-style-prefixes)
+	(allout-stylish-prefixes, allout-use-hanging-indents): Quote the
+	lambda forms to prevent their showing up in variable help
+	presentations as inscrutable byte-compiled code.
+	(allout-numbered-bullet, allout-file-xref-bullet, allout-layout):
+	Use string-or-null-p to qualify safe-local-variable values.
+	(allout-reindent-bodies): Use memq to qualify matches against
+	valid safe-local-variable values.  Also, quote the lambda as above.
+	(allout-use-mode-specific-leader): Add missing candidate-value
+	symbols, use memq, and quote the lambda.
+	(allout-overlay-interior-modification-handler): Remove unused
+	variables `msg' and 'opened'.
+	(allout-hidden-p): Constrain invisibility consideration to allout's
+	invisibility spec, disregarding invisibility for other reasons.
+
 2006-05-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* files.el (version-control): Correct safe values.

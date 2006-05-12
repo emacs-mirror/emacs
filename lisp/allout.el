@@ -199,7 +199,7 @@ just the header."
 (make-variable-buffer-local 'allout-show-bodies)
 ;;;###autoload
 (put 'allout-show-bodies 'safe-local-variable
-     (lambda (x) (member x '(t nil))))
+     '(lambda (x) (member x '(t nil))))
 
 ;;;_  = allout-header-prefix
 (defcustom allout-header-prefix "."
@@ -316,7 +316,8 @@ incorrect.]"
   :group 'allout)
 ;;;###autoload
 (put 'allout-use-mode-specific-leader 'safe-local-variable
-     (lambda (x) (or (member x '(t nil)) (stringp x))))
+     '(lambda (x) (or (memq x '(t nil allout-mode-leaders comment-start))
+                      (stringp x))))
 ;;;_  = allout-mode-leaders
 (defvar allout-mode-leaders '()
   "Specific allout-prefix leading strings per major modes.
@@ -344,7 +345,7 @@ are always respected by the topic maneuvering functions."
 (make-variable-buffer-local 'allout-old-style-prefixes)
 ;;;###autoload
 (put 'allout-old-style-prefixes 'safe-local-variable
-     (lambda (x) (member x '(t nil))))
+     '(lambda (x) (member x '(t nil))))
 ;;;_  = allout-stylish-prefixes - alternating bullets
 (defcustom allout-stylish-prefixes t
   "*Do fancy stuff with topic prefix bullets according to level, etc.
@@ -393,7 +394,7 @@ is non-nil."
 (make-variable-buffer-local 'allout-stylish-prefixes)
 ;;;###autoload
 (put 'allout-stylish-prefixes 'safe-local-variable
-     (lambda (x) (member x '(t nil))))
+     '(lambda (x) (member x '(t nil))))
 
 ;;;_  = allout-numbered-bullet
 (defcustom allout-numbered-bullet "#"
@@ -407,8 +408,7 @@ disables numbering maintenance."
   :group 'allout)
 (make-variable-buffer-local 'allout-numbered-bullet)
 ;;;###autoload
-(put 'allout-numbered-bullet 'safe-local-variable
-     (lambda (x) (or (not x) (stringp x))))
+(put 'allout-numbered-bullet 'safe-local-variable 'string-or-null-p)
 ;;;_  = allout-file-xref-bullet
 (defcustom allout-file-xref-bullet "@"
   "*Bullet signifying file cross-references, for `allout-resolve-xref'.
@@ -417,8 +417,7 @@ Set this var to the bullet you want to use for file cross-references."
   :type '(choice (const nil) string)
   :group 'allout)
 ;;;###autoload
-(put 'allout-file-xref-bullet 'safe-local-variable
-     (lambda (x) (or (not x) (stringp x))))
+(put 'allout-file-xref-bullet 'safe-local-variable 'string-or-null-p)
 ;;;_  = allout-presentation-padding
 (defcustom allout-presentation-padding 2
   "*Presentation-format white-space padding factor, for greater indent."
@@ -621,7 +620,7 @@ where auto-fill occurs."
 (make-variable-buffer-local 'allout-use-hanging-indents)
 ;;;###autoload
 (put 'allout-use-hanging-indents 'safe-local-variable
-     (lambda (x) (member x '(t nil))))
+     '(lambda (x) (member x '(t nil))))
 
 ;;;_  = allout-reindent-bodies
 (defcustom allout-reindent-bodies (if allout-use-hanging-indents
@@ -641,7 +640,7 @@ those that do not have the variable `comment-start' set.  A value of
 (make-variable-buffer-local 'allout-reindent-bodies)
 ;;;###autoload
 (put 'allout-reindent-bodies 'safe-local-variable
-     (lambda (x) (member x '(nil t text force))))
+     '(lambda (x) (memq x '(nil t text force))))
 
 ;;;_  = allout-enable-file-variable-adjustment
 (defcustom allout-enable-file-variable-adjustment t
@@ -708,8 +707,7 @@ case the value of `allout-default-layout' is used.")
 (make-variable-buffer-local 'allout-layout)
 ;;;###autoload
 (put 'allout-layout 'safe-local-variable
-     (lambda (x) (or (numberp x) (listp x) (integerp x)
-                     (member x '(: * + -)))))
+     '(lambda (x) (or (numberp x) (listp x) (memq x '(: * + -)))))
 
 ;;;_  : Topic header format
 ;;;_   = allout-regexp
@@ -1064,9 +1062,19 @@ from the list."
 ;;;_   = allout-overlay-category
 (defvar allout-overlay-category nil
   "Symbol for use in allout invisible-text overlays as the category.")
-;;;_   = allout-view-change-hook
+;;;_   x allout-view-change-hook
 (defvar allout-view-change-hook nil
-  "*Hook that's run after allout outline visibility changes.")
+  "*\(Deprecated\)  Hook that's run after allout outline exposure changes.
+
+Switch to using `allout-exposure-change-hook' instead.  Both
+variables are currently used if populated, but this one will be
+ignored in a subsequent allout version.")
+;;;_   = allout-exposure-change-hook
+(defvar allout-exposure-change-hook nil
+  "*Hook that's run after allout outline exposure changes.
+
+This variable will replace `allout-view-change-hook' in a subsequent allout
+version, though both are currently checked and used, if populated.")
 
 ;;;_   = allout-outside-normal-auto-fill-function
 (defvar allout-outside-normal-auto-fill-function nil
@@ -1727,7 +1735,7 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
 ;;;_   > allout-hidden-p (&optional pos)
 (defsubst allout-hidden-p (&optional pos)
   "Non-nil if the character after point is invisible."
-  (get-char-property (or pos (point)) 'invisible))
+  (eq (get-char-property (or pos (point)) 'invisible) 'allout))
 
 ;;;_  > allout-overlay-insert-in-front-handler (ol after beg end
 ;;;                                                &optional prelen)
@@ -3831,7 +3839,8 @@ Text is shown if flag is nil and hidden otherwise."
         (let ((props (symbol-plist 'allout-overlay-category)))
           (while props
             (overlay-put o (pop props) (pop props)))))))
-  (run-hooks 'allout-view-change-hook))
+  (run-hooks 'allout-view-change-hook)
+  (run-hooks 'allout-exposure-change-hook))
 ;;;_   > allout-flag-current-subtree (flag)
 (defun allout-flag-current-subtree (flag)
   "Conceal currently-visible topic's subtree if FLAG non-nil, else reveal it."
@@ -5887,7 +5896,6 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
             prop
           (or (memq prop buffer-invisibility-spec)
               (assq prop buffer-invisibility-spec))))))
-
 
 ;;;_ #10 Unfinished
 ;;;_  > allout-bullet-isearch (&optional bullet)
