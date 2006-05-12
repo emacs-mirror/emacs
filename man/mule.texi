@@ -626,7 +626,8 @@ Display a list of all the supported coding systems.
 @kindex C-h C
 @findex describe-coding-system
   The command @kbd{C-h C} (@code{describe-coding-system}) displays
-information about particular coding systems.  You can specify a coding
+information about particular coding systems, including the end-of-line
+conversion specified by those coding systems.  You can specify a coding
 system name as the argument; alternatively, with an empty argument, it
 describes the coding systems currently selected for various purposes,
 both in the current buffer and as the defaults, and the priority list
