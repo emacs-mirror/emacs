@@ -17100,7 +17100,7 @@ Set the shape and color of the mouse cursor:
 @item
 Convert @kbd{@key{CTL}-h} into @key{DEL} and @key{DEL}
 into @kbd{@key{CTL}-h}.@*
-(Some olders keyboards needed this, although I have not seen the
+(Some older keyboards needed this, although I have not seen the
 problem recently.)
 
 @smallexample
@@ -19489,7 +19489,7 @@ in this case would end up as 15.)
 @cindex Print horizontal axis
 @cindex Horizontal axis printing
 
-X axis labels are much like Y axis labels, except that the tics are on a
+X axis labels are much like Y axis labels, except that the ticks are on a
 line above the numbers.  Labels should look like this:
 
 @smallexample
@@ -19501,7 +19501,7 @@ line above the numbers.  Labels should look like this:
 
 The first tic is under the first column of the graph and is preceded by
 several blank spaces.  These spaces provide room in rows above for the Y
-axis labels.  The second, third, fourth, and subsequent tics are all
+axis labels.  The second, third, fourth, and subsequent ticks are all
 spaced equally, according to the value of @code{X-axis-label-spacing}.
 
 The second row of the X axis consists of numbers, preceded by several
@@ -19629,7 +19629,7 @@ looks like this:
 @end smallexample
 
 We also need to determine the length of the horizontal axis, which is
-the length of the numbers list, and the number of tics in the horizontal
+the length of the numbers list, and the number of ticks in the horizontal
 axis:
 
 @smallexample
@@ -19646,7 +19646,7 @@ axis:
 @end group
 
 @group
-;; number-of-X-tics
+;; number-of-X-ticks
 (if (zerop (% (X-length tic-width)))
     (/ (X-length tic-width))
   (1+ (/ (X-length tic-width))))
@@ -19661,7 +19661,7 @@ All this leads us directly to the function for printing the X axis tic line:
 @group
 (defun print-X-axis-tic-line
   (number-of-X-tics X-axis-leading-spaces X-axis-tic-element)
-  "Print tics for X axis."
+  "Print ticks for X axis."
     (insert X-axis-leading-spaces)
     (insert X-axis-tic-symbol)  ; @r{Under first column.}
 @end group
@@ -19676,7 +19676,7 @@ All this leads us directly to the function for printing the X axis tic line:
              X-axis-tic-symbol))
 @end group
 @group
-    ;; @r{Insert remaining tics.}
+    ;; @r{Insert remaining ticks.}
     (while (> number-of-X-tics 1)
       (insert X-axis-tic-element)
       (setq number-of-X-tics (1- number-of-X-tics))))
@@ -20905,7 +20905,7 @@ Optionally, print according to VERTICAL-STEP."
 @group
 (defun print-X-axis-tic-line
   (number-of-X-tics X-axis-leading-spaces X-axis-tic-element)
-  "Print tics for X axis."
+  "Print ticks for X axis."
     (insert X-axis-leading-spaces)
     (insert X-axis-tic-symbol)  ; @r{Under first column.}
 @end group
@@ -20920,7 +20920,7 @@ Optionally, print according to VERTICAL-STEP."
              X-axis-tic-symbol))
 @end group
 @group
-    ;; @r{Insert remaining tics.}
+    ;; @r{Insert remaining ticks.}
     (while (> number-of-X-tics 1)
       (insert X-axis-tic-element)
       (setq number-of-X-tics (1- number-of-X-tics))))
