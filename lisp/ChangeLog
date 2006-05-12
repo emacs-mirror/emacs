@@ -6,6 +6,10 @@
 
 	* emacs-lisp/ewoc.el (ewoc-refresh): Compute PP once before looping.
 
+	(ewoc--node-enter-before, ewoc--create-node): Delete funcs.
+	(ewoc--insert-new-node): New func.
+	Update callers of deleted funcs to use it, instead.
+
 2006-05-11  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (diary-show-all-entries): Do not refer to
