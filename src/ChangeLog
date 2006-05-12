@@ -1,3 +1,7 @@
+2006-05-11  Richard Stallman  <rms@gnu.org>
+
+	* lread.c (readevalloop): Abort if START non-nil for non-buffer input.
+
 2006-05-11  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (redisplay_tool_bar): Handle large tool-bar-border values.
