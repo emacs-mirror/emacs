@@ -1,5 +1,9 @@
 2006-05-12  Eli Zaretskii  <eliz@gnu.org>
 
+	* files.texi (Visiting Functions, Reading from Files)
+	(Saving Buffers): Mention code and EOL conversions by file I/O
+	primitives and subroutines.
+
 	* nonascii.texi (Lisp and Coding Systems): Document
 	coding-system-eol-type.  Add index entries for eol conversion.
 
