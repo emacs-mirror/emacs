@@ -136,6 +136,10 @@ example, if it needs to create a buffer, and there is no file named
 @var{filename}, it displays the message @samp{(New file)} in the echo
 area, and leaves the buffer empty.
 
+Reading the file(s) into their respective buffers involves decoding
+the files' contents (@pxref{Coding Systems}), including end-of-line
+conversion.
+
 The @code{find-file-noselect} function normally calls
 @code{after-find-file} after reading the file (@pxref{Subroutines of
 Visiting}).  That function sets the buffer major mode, parses local
@@ -395,11 +399,12 @@ You might wish to save the file modes value returned by
 bits of the file that you write.  This is what @code{save-buffer}
 normally does. @xref{Making Backups,, Making Backup Files}.
 
-The hook functions in @code{write-file-functions} are also responsible for
-encoding the data (if desired): they must choose a suitable coding
-system (@pxref{Lisp and Coding Systems}), perform the encoding
-(@pxref{Explicit Encoding}), and set @code{last-coding-system-used} to
-the coding system that was used (@pxref{Encoding and I/O}).
+The hook functions in @code{write-file-functions} are also responsible
+for encoding the data (if desired): they must choose a suitable coding
+system and end-of-line conversion (@pxref{Lisp and Coding Systems}),
+perform the encoding (@pxref{Explicit Encoding}), and set
+@code{last-coding-system-used} to the coding system that was used
+(@pxref{Encoding and I/O}).
 
 If you set this hook locally in a buffer, it is assumed to be
 associated with the file or the way the contents of the buffer were
@@ -496,7 +501,8 @@ appropriate.  @xref{Format Conversion}.  It also calls the functions in
 the list @code{after-insert-file-functions}; see @ref{Saving
 Properties}.  Normally, one of the functions in the
 @code{after-insert-file-functions} list determines the coding system
-(@pxref{Coding Systems}) used for decoding the file's contents.
+(@pxref{Coding Systems}) used for decoding the file's contents,
+including end-of-line conversion.
 
 If @var{visit} is non-@code{nil}, this function additionally marks the
 buffer as unmodified and sets up various fields in the buffer so that it
