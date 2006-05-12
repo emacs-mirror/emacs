@@ -1766,7 +1766,7 @@ connections to the server.  The default queue length is 5.
 
 @item :host @var{host}
 Specify the host to connect to.  @var{host} should be a host name or
-internet address, as a string, or the symbol @code{local} to specify
+Internet address, as a string, or the symbol @code{local} to specify
 the local host.  If you specify @var{host} for a server, it must
 specify a valid address for the local host, and only clients
 connecting to that address will be accepted.
@@ -1988,7 +1988,7 @@ Non-@code{nil} if non-blocking connect is supported.
 @item (:type datagram)
 Non-@code{nil} if datagrams are supported.
 @item (:family local)
-Non-@code{nil} if local (aka ``UNIX domain'') sockets are supported.
+Non-@code{nil} if local (a.k.a.@: ``UNIX domain'') sockets are supported.
 @item (:family ipv6)
 Non-@code{nil} if IPv6 is supported.
 @item (:service t)
@@ -2039,7 +2039,7 @@ This function returns information about the network interface named
 
 @table @var
 @item addr
-The internet protocol address.
+The Internet protocol address.
 @item bcast
 The broadcast address.
 @item netmask
