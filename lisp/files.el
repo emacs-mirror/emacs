@@ -2360,7 +2360,7 @@ asking you for confirmation."
 	(left-margin                     . integerp) ;; C source code
 	(no-update-autoloads             . booleanp)
 	(tab-width                       . integerp) ;; C source code
-	(truncate-lines                  . booleanp));; C source code
+	(truncate-lines                  . booleanp))) ;; C source code
 
 (put 'c-set-style 'safe-local-eval-function t)
 
