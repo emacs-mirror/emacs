@@ -1934,13 +1934,17 @@ symmetric key hinting and consistency verification, auto-encryption of
 pending topics on save, and more, make it easy to use encryption in
 powerful ways.
 
+*** `allout-view-change-hook' marked as being deprecated - use
+`allout-exposure-change-hook' instead.  Both are currently being used, but
+`allout-view-change-hook' will be ignored in a subsequent allout version.
+
 *** Default command prefix changed to "\C-c " (control-c space), to avoid
 intruding on user's keybinding space.  Customize the
 `allout-command-prefix' variable to your preference.
 
 *** Allout now uses text overlay's `invisible' property (and others) for
 concealed text, instead of selective-display.  This simplifies the code, in
-particularly avoiding the need for kludges for isearch dynamic-display,
+particular avoiding the need for kludges for isearch dynamic-display,
 discretionary handling of edits of concealed text, undo concerns, etc.
 
 *** Many substantial fixes and refinements, including:
