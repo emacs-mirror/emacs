@@ -1,3 +1,13 @@
+2006-05-11  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* calendar/calendar.el (calendar-french-date-string)
+	(calendar-mayan-date-string, calendar-chinese-date-string)
+	(calendar-astro-date-string, calendar-iso-date-string)
+	(calendar-islamic-date-string, calendar-bahai-date-string)
+	(calendar-hebrew-date-string, calendar-coptic-date-string)
+	(calendar-ethiopic-date-string, calendar-persian-date-string):
+	These functions are not interactive.
+
 2006-05-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.el: Balance parentheses.
