@@ -3645,29 +3645,25 @@ Outline mode sets this."
 	;; Process intangibility within a line.
 	;; Move to the chosen destination position from above,
 	;; with intangibility processing enabled.
-
-	(goto-char (point-min))
-	(let ((inhibit-point-motion-hooks nil))
-	  (goto-char new)
-
-	  ;; If intangibility moves us to a different (later) place
-	  ;; in the same line, use that as the destination.
-	  (if (<= (point) line-end)
+	(goto-char new)
+	;; If intangibility moves us to a different (later) place
+	;; in the same line, use that as the destination.
+	(if (<= (point) line-end)
+	    (setq new (point))
+	  ;; If that position is "too late",
+	  ;; try the previous allowable position.
+	  ;; See if it is ok.
+	  (backward-char)
+	  (if (if forward
+		  ;; If going forward, don't accept the previous
+		  ;; allowable position if it is before the target line.
+		  (< line-beg (point))
+		;; If going backward, don't accept the previous
+		;; allowable position if it is still after the target line.
+		(<= (point) line-end))
 	      (setq new (point))
-	    ;; If that position is "too late",
-	    ;; try the previous allowable position.
-	    ;; See if it is ok.
-	    (backward-char)
-	    (if (if forward
-		    ;; If going forward, don't accept the previous
-		    ;; allowable position if it is before the target line.
-		    (< line-beg (point))
-		  ;; If going backward, don't accept the previous
-		  ;; allowable position if it is still after the target line.
-		  (<= (point) line-end))
-		(setq new (point))
-	      ;; As a last resort, use the end of the line.
-	      (setq new line-end))))
+	    ;; As a last resort, use the end of the line.
+	    (setq new line-end)))
 
 	;; Now move to the updated destination, processing fields
 	;; as well as intangibility.
