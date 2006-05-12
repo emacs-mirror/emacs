@@ -1686,12 +1686,10 @@ D-FILE specifies the file to use as the diary file."
   t)
 
 (autoload 'calendar-french-date-string "cal-french"
-  "String of French Revolutionary date of Gregorian date."
-  t)
+  "String of French Revolutionary date of Gregorian date.")
 
 (autoload 'calendar-mayan-date-string "cal-mayan"
-  "String of Mayan date of Gregorian date."
-  t)
+  "String of Mayan date of Gregorian date.")
 
 (autoload 'calendar-print-mayan-date "cal-mayan"
   "Show the Mayan long count, Tzolkin, and Haab equivalents of the date under the cursor."
@@ -1734,8 +1732,7 @@ D-FILE specifies the file to use as the diary file."
  t)
 
 (autoload 'calendar-chinese-date-string "cal-china"
-  "String of Chinese date of Gregorian date."
-  t)
+  "String of Chinese date of Gregorian date.")
 
 (autoload 'calendar-absolute-from-astro  "cal-julian"
   "Absolute date of astronomical (Julian) day number D."
@@ -1745,8 +1742,7 @@ D-FILE specifies the file to use as the diary file."
   "Astronomical (Julian) day number of absolute date D.")
 
 (autoload 'calendar-astro-date-string "cal-julian"
-  "String of astronomical (Julian) day number of Gregorian date."
-  t)
+  "String of astronomical (Julian) day number of Gregorian date.")
 
 (autoload 'calendar-goto-astro-day-number "cal-julian"
    "Move cursor to astronomical (Julian) day number."
@@ -1787,8 +1783,7 @@ Driven by the variable `calendar-date-display-form'.")
   t)
 
 (autoload 'calendar-iso-date-string "cal-iso"
-  "String of ISO date of Gregorian date."
-  t)
+  "String of ISO date of Gregorian date.")
 
 (autoload 'calendar-goto-islamic-date "cal-islam"
   "Move cursor to Islamic date."
@@ -1799,16 +1794,14 @@ Driven by the variable `calendar-date-display-form'.")
   t)
 
 (autoload 'calendar-islamic-date-string "cal-islam"
-  "String of Islamic date of Gregorian date."
-  t)
+  "String of Islamic date of Gregorian date.")
 
 (autoload 'calendar-print-bahai-date "cal-bahai"
   "Show the Baha'i date equivalents of date."
   t)
 
 (autoload 'calendar-bahai-date-string "cal-bahai"
-  "String of Baha'i date of Gregorian date."
-  t)
+  "String of Baha'i date of Gregorian date.")
 
 (autoload 'calendar-goto-hebrew-date "cal-hebrew"
   "Move cursor to Hebrew date."
@@ -1819,8 +1812,7 @@ Driven by the variable `calendar-date-display-form'.")
   t)
 
 (autoload 'calendar-hebrew-date-string "cal-hebrew"
-  "String of Hebrew date of Gregorian date."
-  t)
+  "String of Hebrew date of Gregorian date.")
 
 (autoload 'calendar-goto-coptic-date "cal-coptic"
    "Move cursor to Coptic date."
@@ -1831,8 +1823,7 @@ Driven by the variable `calendar-date-display-form'.")
  t)
 
 (autoload 'calendar-coptic-date-string "cal-coptic"
-  "String of Coptic date of Gregorian date."
-  t)
+  "String of Coptic date of Gregorian date.")
 
 (autoload 'calendar-goto-ethiopic-date "cal-coptic"
    "Move cursor to Ethiopic date."
@@ -1843,8 +1834,7 @@ Driven by the variable `calendar-date-display-form'.")
  t)
 
 (autoload 'calendar-ethiopic-date-string "cal-coptic"
-  "String of Ethiopic date of Gregorian date."
-  t)
+  "String of Ethiopic date of Gregorian date.")
 
 (autoload 'calendar-goto-persian-date "cal-persia"
    "Move cursor to Persian date."
@@ -1855,8 +1845,7 @@ Driven by the variable `calendar-date-display-form'.")
  t)
 
 (autoload 'calendar-persian-date-string "cal-persia"
-  "String of Persian date of Gregorian date."
-  t)
+  "String of Persian date of Gregorian date.")
 
 (autoload 'show-all-diary-entries "diary-lib"
   "Show all of the diary entries in the diary file.
