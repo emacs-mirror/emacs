@@ -177,7 +177,7 @@ Visit a file with no conversion of the contents.
 
 @cindex files, visiting and saving
 @cindex saving files
-  @dfn{Visiting} a file means copying its contents into an Emacs
+  @dfn{Visiting} a file means reading its contents into an Emacs
 buffer so you can edit them.  Emacs makes a new buffer for each file
 that you visit.  We often say that this buffer ``is visiting'' that
 file, or that the buffer's ``visited file'' is that file.  Emacs
