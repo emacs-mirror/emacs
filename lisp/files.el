@@ -250,7 +250,8 @@ nil means make them for files that have some already.
 		 (other :tag "Always" t))
   :group 'backup
   :group 'vc)
-(put 'version-control 'safe-local-variable 'symbolp)
+(put 'version-control 'safe-local-variable
+     '(lambda (x) (or (booleanp x) (equal x 'never))))
 
 (defcustom dired-kept-versions 2
   "*When cleaning directory, number of versions to keep."
