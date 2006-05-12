@@ -1,5 +1,8 @@
 2006-05-12  Eli Zaretskii  <eliz@gnu.org>
 
+	* nonascii.texi (Lisp and Coding Systems): Document
+	coding-system-eol-type.  Add index entries for eol conversion.
+
 	* display.texi (Defining Faces): Mention `mac', and add an xref to
 	where window-system is described.
 
