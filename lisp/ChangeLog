@@ -1,3 +1,16 @@
+2006-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary-show-all-entries): Do not refer to
+	obsolete alias `show-all-diary-entries'.
+	(make-diary-entry): Not interactive.
+	(cal-tex-cursor-month, cal-tex-cursor-month-landscape)
+	(cal-tex-cursor-day, cal-tex-cursor-week, cal-tex-cursor-week2)
+	(cal-tex-cursor-week-iso, cal-tex-cursor-week-monday)
+	(cal-tex-cursor-filofax-2week, cal-tex-cursor-filofax-week)
+	(cal-tex-cursor-filofax-daily, cal-tex-cursor-year)
+	(cal-tex-cursor-year-landscape, cal-tex-cursor-filofax-year):
+	Interactive.
+
 2006-05-11  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* calendar/calendar.el (calendar-french-date-string)
