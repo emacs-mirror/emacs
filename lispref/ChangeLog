@@ -1,3 +1,126 @@
+2006-05-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* variables.texi (File Local Variables): Recommend to quote lambda
+	expressions in safe-local-variable property.
+
+2006-05-09  Richard Stallman  <rms@gnu.org>
+
+	* variables.texi (File Local Variables): Document
+	safe-local-eval-forms and safe-local-eval-function.
+
+2006-05-07  Kim F. Storm  <storm@cua.dk>
+
+	* minibuf.texi (Minibuffer History): Remove keep-dups arg
+	from add-to-history.
+
+2006-05-07  Romain Francoise  <romain@orebokech.com>
+
+	* commands.texi (Event Input Misc):
+	* compile.texi (Eval During Compile):
+	* internals.texi (Buffer Internals):
+	* minibuf.texi (Initial Input):
+	* nonascii.texi (Scanning Charsets):
+	* numbers.texi (Comparison of Numbers):
+	* windows.texi (Textual Scrolling, Vertical Scrolling):
+	Fix various typos.
+
+2006-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* hooks.texi (Standard Hooks): Replace inforef to emacs-xtra by
+	conditional xref's to either emacs or emacs-xtra, depending on
+	@iftex/@ifnottex.
+
+	* minibuf.texi (Minibuffer History): Document add-to-history.
+
+2006-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* internals.texi (Pure Storage): Mention the pure overflow message
+	at startup.
+
+2006-05-05  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* keymaps.texi (Active Keymaps): Fix pseudo-Lisp syntax.
+	(Searching Keymaps): Fix pseudo-Lisp description of keymap
+	search.
+
+2006-05-01  Richard Stallman  <rms@gnu.org>
+
+	* intro.texi (nil and t): Clarify.
+
+	* variables.texi (File Local Variables): Suggest using booleanp.
+
+2006-05-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* objects.texi (Type Predicates): Fix typos.
+
+2006-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intro.texi (nil and t): Add booleanp.
+
+	* objects.texi (Type Predicates): Add links for booleanp and
+	string-or-null-p.
+
+2006-04-29  Richard Stallman  <rms@gnu.org>
+
+	* modes.texi (Multiline Font Lock): Rename from
+	Multi line Font Lock Elements.  Much clarification.
+	(Font Lock Multiline, Region to Fontify): Much clarification.
+
+2006-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* variables.texi (File Local Variables): Remove the special case t for
+	safe-local-variable.
+
+2006-04-26  Richard Stallman  <rms@gnu.org>
+
+	* syntax.texi (Parsing Expressions): Minor cleanup.
+
+2006-04-18  Richard Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Explain when the package's
+	prefix should appear later on (not at the start of the name).
+
+	* searching.texi (String Search): Clarify effect of NOERROR.
+
+	* modes.texi (Imenu): Clarify what special items do.
+
+	* hooks.texi (Standard Hooks): Delete text about old hook names.
+
+2006-04-17  Romain Francoise  <romain@orebokech.com>
+
+	* variables.texi (Local Variables): Update the default value of
+	`max-specpdl-size'.
+
+2006-04-15  Michael Olson  <mwolson@gnu.org>
+
+	* processes.texi (Transaction Queues): Mention the new optional
+	`delay-question' argument for `tq-enqueue'.
+
+2006-04-13  Bill Wohler  <wohler@newt.com>
+
+	* customize.texi (Common Keywords): Use dotted notation for
+	:package-version value. Specify its values. Improve documentation
+	for customize-package-emacs-version-alist.
+
+2006-04-12  Bill Wohler  <wohler@newt.com>
+
+	* customize.texi (Common Keywords): Move description of
+	customize-package-emacs-version-alist to @defvar.
+
+2006-04-10  Bill Wohler  <wohler@newt.com>
+
+	* customize.texi (Common Keywords): Add :package-version.
+
+2006-04-10  Kim F. Storm  <storm@cua.dk>
+
+	* text.texi (Buffer Contents): Add NOPROPS arg to
+	filter-buffer-substring.
+
+2006-04-08  Kevin Ryde  <user42@zip.com.au>
+
+	* os.texi (Command-Line Arguments): Update xref to emacs manual
+	"Command Arguments" -> "Emacs Invocation", per change there.
+
 2006-04-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* display.texi (Other Display Specs): Arrange a @code{DOTTED-LIST} to
@@ -14,7 +137,7 @@
 
 2006-03-25  Karl Berry  <karl@gnu.org>
 
-	* elisp.texi: use @copyright{} instead of (C), and do not indent
+	* elisp.texi: Use @copyright{} instead of (C), and do not indent
 	the year list.
 
 2006-03-21  Nick Roberts  <nickrob@snap.net.nz>
@@ -29,8 +152,7 @@
 
 2006-03-19  Alan Mackenzie  <acm@muc.de>
 
-	* text.texi (Special Properties): Clarify the definition of
-	'fontified.
+	* text.texi (Special Properties): Clarify `fontified' property.
 
 2006-03-16  Richard Stallman  <rms@gnu.org>
 
@@ -49,7 +171,7 @@
 
 	* display.texi (Defining Images): Fix example in
 	image-load-path-for-library by not recommending that one binds
-	image-load-path. Just defvar it to placate compiler and only use
+	image-load-path.  Just defvar it to placate compiler and only use
 	it if previously defined.
 
 2006-03-14  Bill Wohler  <wohler@newt.com>
@@ -521,11 +643,11 @@
 
 2005-09-26  Chong Yidong  <cyd@stupidchicken.com>
 
-	* errors.texi (Standard Errors): Corrected xrefs.
+	* errors.texi (Standard Errors): Correct xrefs.
 
 2005-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
-	* display.texi (Defining Images): Updated documentation for
+	* display.texi (Defining Images): Update documentation for
 	`image-load-path'.
 
 2005-09-17  Richard M. Stallman  <rms@gnu.org>

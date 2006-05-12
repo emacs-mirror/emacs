@@ -841,7 +841,7 @@ static Lisp_Object
 store_in_keymap (keymap, idx, def)
      Lisp_Object keymap;
      register Lisp_Object idx;
-     register Lisp_Object def;
+     Lisp_Object def;
 {
   /* Flush any reverse-map cache.  */
   where_is_cache = Qnil;
@@ -1226,8 +1226,11 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
       if (!CONSP (keymap))
 	/* We must use Fkey_description rather than just passing key to
 	   error; key might be a vector, not a string.  */
-	error ("Key sequence %s uses invalid prefix characters",
-	       SDATA (Fkey_description (key, Qnil)));
+	error ("Key sequence %s starts with non-prefix key %s",
+	       SDATA (Fkey_description (key, Qnil)),
+	       SDATA (Fkey_description (Fsubstring (key, make_number (0),
+						    make_number (idx)),
+					Qnil)));
     }
 }
 
@@ -2117,11 +2120,20 @@ push_key_description (c, p, force_multibyte)
      int force_multibyte;
 {
   unsigned c2;
+  int valid_p;
 
   /* Clear all the meaningless bits above the meta bit.  */
   c &= meta_modifier | ~ - meta_modifier;
   c2 = c & ~(alt_modifier | ctrl_modifier | hyper_modifier
 	     | meta_modifier | shift_modifier | super_modifier);
+
+  valid_p = SINGLE_BYTE_CHAR_P (c2) || char_valid_p (c2, 0);
+  if (! valid_p)
+    {
+      /* KEY_DESCRIPTION_SIZE is large enough for this.  */
+      p += sprintf (p, "[%d]", c);
+      return p;
+    }
 
   if (c & alt_modifier)
     {
@@ -3307,7 +3319,9 @@ describe_map (map, prefix, elt_describer, partial, shadow,
 	      tem = shadow_lookup (shadow, kludge, Qt);
 	      if (!NILP (tem))
 		{
-		  if (mention_shadow)
+		  /* Avoid generating duplicate entries if the
+		     shadowed binding has the same definition. */
+		  if (mention_shadow && !EQ (tem, definition))
 		    this_shadowed = 1;
 		  else
 		    continue;
@@ -3391,7 +3405,7 @@ describe_map (map, prefix, elt_describer, partial, shadow,
       if (vect[i].shadowed)
 	{
 	  SET_PT (PT - 1);
-	  insert_string ("  (shadowed)");
+	  insert_string ("\n  (that binding is currently shadowed by another mode)");
 	  SET_PT (PT + 1);
 	}
     }

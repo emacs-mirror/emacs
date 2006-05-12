@@ -103,6 +103,7 @@ CROSSREF-OPTIONAL lists in `bibtex-entry-field-alist' (which see)."
                                        (choice :tag "Init" :value ""
                                                string
                                                function))))))
+(put 'bibtex-user-optional-fields 'risky-local-variable t)
 
 (defcustom bibtex-entry-format
   '(opts-or-alts required-fields numerical-fields)
@@ -2856,25 +2857,45 @@ is non-nil."
 	(bibtex-autofill-entry))
     (run-hooks 'bibtex-add-entry-hook)))
 
-(defun bibtex-entry-update ()
+(defun bibtex-entry-update (&optional entry-type)
   "Update an existing BibTeX entry.
 In the BibTeX entry at point, make new fields for those items that may occur
-according to `bibtex-field-list', but are not yet present."
-  (interactive)
+according to `bibtex-field-list', but are not yet present.
+Also, add field delimiters to numerical fields if they are not present.
+If ENTRY-TYPE is non-nil, change first the entry type to ENTRY-TYPE.
+When called interactively with a prefix arg, query for a value of ENTRY-TYPE."
+  (interactive
+   (list (if current-prefix-arg
+             (let ((completion-ignore-case t))
+               (completing-read "New entry type: " bibtex-entry-field-alist
+                                nil t nil 'bibtex-entry-type-history)))))
   (save-excursion
     (bibtex-beginning-of-entry)
-    ;; For inserting new fields, we use the fact that
-    ;; `bibtex-parse-entry' moves point to the end of the last field.
-    (let* ((fields-alist (bibtex-parse-entry))
-           (field-list (bibtex-field-list
-                        (cdr (assoc "=type=" fields-alist)))))
-      (skip-chars-backward " \t\n")
-      (dolist (field (car field-list))
-        (unless (assoc-string (car field) fields-alist t)
-          (bibtex-make-field field)))
-      (dolist (field (cdr field-list))
-        (unless (assoc-string (car field) fields-alist t)
-          (bibtex-make-optional-field field))))))
+    (when (looking-at bibtex-entry-maybe-empty-head)
+      (goto-char (match-end 0))
+      (if entry-type
+          (save-excursion
+            (replace-match (concat "@" entry-type) nil nil nil 1))
+        (setq entry-type (bibtex-type-in-head)))
+      (let* ((field-list (bibtex-field-list entry-type))
+             (required (copy-tree (car field-list)))
+             (optional (copy-tree (cdr field-list)))
+             bounds)
+        (while (setq bounds (bibtex-parse-field))
+          (let ((fname (bibtex-name-in-field bounds t))
+                (end (copy-marker (bibtex-end-of-field bounds) t)))
+            (setq required (delete (assoc-string fname required t) required)
+                  optional (delete (assoc-string fname optional t) optional))
+            (when (string-match "\\`[0-9]+\\'"
+                                (bibtex-text-in-field-bounds bounds))
+              (goto-char (bibtex-end-of-text-in-field bounds))
+              (insert (bibtex-field-right-delimiter))
+              (goto-char (bibtex-start-of-text-in-field bounds))
+              (insert (bibtex-field-left-delimiter)))
+            (goto-char end)))
+        (skip-chars-backward " \t\n")
+        (dolist (field required) (bibtex-make-field field))
+        (dolist (field optional) (bibtex-make-optional-field field))))))
 
 (defun bibtex-parse-entry (&optional content)
   "Parse entry at point, return an alist.
@@ -3283,7 +3304,7 @@ Otherwise, use `set-buffer'.  DISPLAY is t when called interactively."
               (display (message "Key `%s' not found" key)))
         found)
 
-    (let* (case-fold-search
+    (let* ((case-fold-search t)
            (pnt (save-excursion
                   (goto-char (or start (point-min)))
                   (if (re-search-forward (concat "^[ \t]*\\("
@@ -3613,17 +3634,20 @@ interactive calls."
 
 (defun bibtex-find-text-internal (&optional noerror subfield comma)
   "Find text part of current BibTeX field or entry head.
-Return list (NAME START-TEXT END-TEXT END) with field or entry name,
-start and end of text and end of field or entry head, or nil if not found.
-If optional arg NOERROR is non-nil, an error message is suppressed if text
-is not found.  If optional arg SUBFIELD is non-nil START-TEXT and END-TEXT
-correspond to the current subfield delimited by #.
+Return list (NAME START-TEXT END-TEXT END STRING-CONST) with field
+or entry name, start and end of text, and end of field or entry head.
+STRING-CONST is a flag which is non-nil if current subfield delimited by #
+is a BibTeX string constant.  Return value is nil if field or entry head
+are not found.
+If optional arg NOERROR is non-nil, an error message is suppressed
+if text is not found.  If optional arg SUBFIELD is non-nil START-TEXT
+and END-TEXT correspond to the current subfield delimited by #.
 Optional arg COMMA is as in `bibtex-enclosing-field'."
   (save-excursion
     (let ((pnt (point))
           (bounds (bibtex-enclosing-field comma t))
           (case-fold-search t)
-          name start-text end-text end failure done no-sub)
+          name start-text end-text end failure done no-sub string-const)
       (bibtex-beginning-of-entry)
       (cond (bounds
              (setq name (bibtex-name-in-field bounds t)
@@ -3667,9 +3691,11 @@ Optional arg COMMA is as in `bibtex-enclosing-field'."
           (goto-char start-text)
           (while (not done)
             (if (or (prog1 (looking-at bibtex-field-const)
-                      (setq end-text (match-end 0)))
+                      (setq end-text (match-end 0)
+                            string-const t))
                     (prog1 (setq bounds (bibtex-parse-field-string))
-                      (setq end-text (cdr bounds))))
+                      (setq end-text (cdr bounds)
+                            string-const nil)))
                 (progn
                   (if (and (<= start-text pnt) (<= pnt end-text))
                       (setq done t)
@@ -3678,7 +3704,7 @@ Optional arg COMMA is as in `bibtex-enclosing-field'."
                       (setq start-text (goto-char (match-end 0)))))
               (setq done t failure t)))))
       (cond ((not failure)
-             (list name start-text end-text end))
+             (list name start-text end-text end string-const))
             ((and no-sub (not noerror))
              (error "Not on text part of BibTeX field"))
             ((not noerror) (error "Not on BibTeX field"))))))
@@ -3712,13 +3738,10 @@ is as in `bibtex-enclosing-field'.  It is t for interactive calls."
 Optional arg COMMA is as in `bibtex-enclosing-field'.  It is t for
 interactive calls."
   (interactive (list t))
-  (let* ((bounds (bibtex-find-text-internal nil t comma))
-         (start (nth 1 bounds))
-         (end (nth 2 bounds)))
-    (if (memq (char-before end) '(?\} ?\"))
-        (delete-region (1- end) end))
-    (if (memq (char-after start) '(?\{ ?\"))
-        (delete-region start (1+ start)))))
+  (let ((bounds (bibtex-find-text-internal nil t comma)))
+    (unless (nth 4 bounds)
+      (delete-region (1- (nth 2 bounds)) (nth 2 bounds))
+      (delete-region (nth 1 bounds) (1+ (nth 1 bounds))))))
 
 (defun bibtex-kill-field (&optional copy-only comma)
   "Kill the entire enclosing BibTeX field.
@@ -4308,11 +4331,12 @@ An error is signaled if point is outside key or BibTeX field."
             "\n")
     (goto-char endpos)))
 
-(defun bibtex-url (&optional pos)
+(defun bibtex-url (&optional pos no-browse)
   "Browse a URL for the BibTeX entry at point.
 Optional POS is the location of the BibTeX entry.
 The URL is generated using the schemes defined in `bibtex-generate-url-list'
-\(see there\).  Then the URL is passed to `browse-url'."
+\(see there\).  Then the URL is passed to `browse-url' unless NO-BROWSE is nil.
+Return the URL or nil if none can be generated."
   (interactive)
   (save-excursion
     (if pos (goto-char pos))
@@ -4347,8 +4371,10 @@ The URL is generated using the schemes defined in `bibtex-generate-url-list'
                           (error "Match failed: %s" field)))
                       (if fmt (apply 'format fmt (nreverse obj))
                         (apply 'concat (nreverse obj)))))
-          (browse-url (message "%s" url))))
-      (unless url (message "No URL known.")))))
+          (if (interactive-p) (message "%s" url))
+          (unless no-browse (browse-url url))))
+      (if (and (not url) (interactive-p)) (message "No URL known."))
+      url)))
 
 
 ;; Make BibTeX a Feature

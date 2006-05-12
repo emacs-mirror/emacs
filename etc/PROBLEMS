@@ -995,7 +995,7 @@ xmodmap command to the xdm setup script for that display.
 
 Use the shell command `xset bc' to make the old X Menu package work.
 
-*** C-SPC fails to work on Fedora GNU/Linux.
+*** C-SPC fails to work on Fedora GNU/Linux (or with fcitx input method).
 
 Fedora Core 4 steals the C-SPC key by default for the `iiimx' program
 which is the input method for some languages.  It blocks Emacs users
@@ -1008,6 +1008,12 @@ However, that requires root access.
 Another is to specify `Emacs*useXIM: false' in your X resources.
 
 Another is to build Emacs with the `--without-xim' configure option.
+
+The same problem happens on any other system if you are using fcitx
+(Chinese input method) which by default use C-SPC for toggling.  If
+you want to use fcitx with Emacs, you have two choices.  Toggle fcitx
+by another key (e.g. C-\) by modifying ~/.fcitx/config, or be
+accustomed to use C-@ for `set-mark-command'.
 
 *** M-SPC seems to be ignored as input.
 

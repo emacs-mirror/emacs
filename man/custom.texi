@@ -822,6 +822,9 @@ fill-column's value is 70
 Local in buffer custom.texi; global value is 70
 Automatically becomes buffer-local when set in any fashion.
 
+This variable is safe to use as a file local variable only if its value
+satisfies the predicate `integerp'.
+
 Documentation:
 *Column beyond which automatic line-wrapping should happen.
 Interactively, you can set the buffer local value using C-x f.
@@ -1227,9 +1230,10 @@ values for these variables, do it directly by customizing
   The variable @code{enable-local-variables} allows you to change the
 way Emacs processes local variables.  Its default value is @code{t},
 which specifies the behavior described above.  If it is @code{nil},
-Emacs simply ignores all file local variables.  Any other value says
-to query you about each file that has local variables, without trying
-to determine whether the values are known to be safe.
+Emacs simply ignores all file local variables.  @code{:safe} means use
+only the safe values and ignore the rest.  Any other value says to
+query you about each file that has local variables, without trying to
+determine whether the values are known to be safe.
 
 @vindex enable-local-eval
   The variable @code{enable-local-eval} controls whether Emacs
@@ -1973,11 +1977,12 @@ usual to do so.
 @subsection Disabling Commands
 @cindex disabled command
 
-  Disabling a command menas it requires confirmation before it can be
-executed.  The purpose of disabling a command is to prevent users from
-executing it by accident and being confused.
+  Disabling a command means that invoking it interactively asks for
+confirmation from the user.  The purpose of disabling a command is to
+prevent users from executing it by accident; we do this for commands
+that might be confusing to the uninitiated.
 
-  An attempt to invoke a disabled command interactively in Emacs
+  Attempting to invoke a disabled command interactively in Emacs
 displays a window containing the command's name, its documentation,
 and some instructions on what to do immediately; then Emacs asks for
 input saying whether to execute the command as requested, enable it
@@ -2017,8 +2022,8 @@ because Emacs has not read your init file.
 
   Whether a command is disabled is independent of what key is used to
 invoke it; disabling also applies if the command is invoked using
-@kbd{M-x}.  Disabling a command has no effect on calling it as a
-function from Lisp programs.
+@kbd{M-x}.  However, disabling a command has no effect on calling it
+as a function from Lisp programs.
 
 @node Syntax
 @section The Syntax Table

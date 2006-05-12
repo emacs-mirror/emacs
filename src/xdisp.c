@@ -1913,7 +1913,7 @@ get_glyph_string_clip_rects (s, rects, n)
     }
 
   if ((s->for_overlaps & OVERLAPS_BOTH) == 0
-      || (s->for_overlaps & OVERLAPS_BOTH) == OVERLAPS_BOTH && n == 1)
+      || ((s->for_overlaps & OVERLAPS_BOTH) == OVERLAPS_BOTH && n == 1))
     {
 #ifdef CONVERT_FROM_XRECT
       CONVERT_FROM_XRECT (r, *rects);
@@ -1939,23 +1939,27 @@ get_glyph_string_clip_rects (s, rects, n)
 	{
 	  rs[i] = r;
 	  if (r.y + r.height > row_y)
-	    if (r.y < row_y)
-	      rs[i].height = row_y - r.y;
-	    else
-	      rs[i].height = 0;
+	    {
+	      if (r.y < row_y)
+		rs[i].height = row_y - r.y;
+	      else
+		rs[i].height = 0;
+	    }
 	  i++;
 	}
       if (s->for_overlaps & OVERLAPS_SUCC)
 	{
 	  rs[i] = r;
 	  if (r.y < row_y + s->row->visible_height)
-	    if (r.y + r.height > row_y + s->row->visible_height)
-	      {
-		rs[i].y = row_y + s->row->visible_height;
-		rs[i].height = r.y + r.height - rs[i].y;
-	      }
-	    else
-	      rs[i].height = 0;
+	    {
+	      if (r.y + r.height > row_y + s->row->visible_height)
+		{
+		  rs[i].y = row_y + s->row->visible_height;
+		  rs[i].height = r.y + r.height - rs[i].y;
+		}
+	      else
+		rs[i].height = 0;
+	    }
 	  i++;
 	}
 
@@ -4539,6 +4543,24 @@ handle_composition_prop (it)
 
       if (id >= 0)
 	{
+	  struct composition *cmp = composition_table[id];
+
+	  if (cmp->glyph_len == 0)
+	    {
+	      /* No glyph.  */
+	      if (STRINGP (it->string))
+		{
+		  IT_STRING_CHARPOS (*it) = end;
+		  IT_STRING_BYTEPOS (*it) = string_char_to_byte (it->string,
+								 end);
+		}
+	      else
+		{
+		  IT_CHARPOS (*it) = end;
+		  IT_BYTEPOS (*it) = CHAR_TO_BYTE (end);
+		}
+	      return HANDLED_RECOMPUTE_PROPS;
+	    }
 	  it->method = GET_FROM_COMPOSITION;
 	  it->cmp_id = id;
 	  it->cmp_len = COMPOSITION_LENGTH (prop);
@@ -9056,6 +9078,9 @@ prepare_menu_bars ()
 	  update_menu_bar (f, 0);
 #ifdef HAVE_WINDOW_SYSTEM
 	  update_tool_bar (f, 0);
+#ifdef MAC_OS
+	  mac_update_title_bar (f, 0);
+#endif
 #endif
 	  UNGCPRO;
 	}
@@ -9068,6 +9093,9 @@ prepare_menu_bars ()
       update_menu_bar (sf, 1);
 #ifdef HAVE_WINDOW_SYSTEM
       update_tool_bar (sf, 1);
+#ifdef MAC_OS
+      mac_update_title_bar (sf, 1);
+#endif
 #endif
     }
 
@@ -9664,20 +9692,22 @@ tool_bar_lines_needed (f, n_rows)
 {
   struct window *w = XWINDOW (f->tool_bar_window);
   struct it it;
+  struct glyph_row *temp_row = w->desired_matrix->rows;
 
   /* Initialize an iterator for iteration over
      F->desired_tool_bar_string in the tool-bar window of frame F.  */
-  init_iterator (&it, w, -1, -1, w->desired_matrix->rows, TOOL_BAR_FACE_ID);
+  init_iterator (&it, w, -1, -1, temp_row, TOOL_BAR_FACE_ID);
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_TOTAL_COLS (f) * FRAME_COLUMN_WIDTH (f);
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
 
   while (!ITERATOR_AT_END_P (&it))
     {
-      it.glyph_row = w->desired_matrix->rows;
-      clear_glyph_row (it.glyph_row);
+      clear_glyph_row (temp_row);
+      it.glyph_row = temp_row;
       display_tool_bar_line (&it, -1);
     }
+  clear_glyph_row (temp_row);
 
   /* f->n_tool_bar_rows == 0 means "unknown"; -1 means no tool-bar.  */
   if (n_rows)
@@ -9757,7 +9787,29 @@ redisplay_tool_bar (f)
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
 
   if (f->n_tool_bar_rows == 0)
-    (void)tool_bar_lines_needed (f, &f->n_tool_bar_rows);
+    {
+      int nlines;
+
+      if ((nlines = tool_bar_lines_needed (f, &f->n_tool_bar_rows),
+	   nlines != WINDOW_TOTAL_LINES (w)))
+	{
+	  extern Lisp_Object Qtool_bar_lines;
+	  Lisp_Object frame;
+	  int old_height = WINDOW_TOTAL_LINES (w);
+
+	  XSETFRAME (frame, f);
+	  clear_glyph_matrix (w->desired_matrix);
+	  Fmodify_frame_parameters (frame,
+				    Fcons (Fcons (Qtool_bar_lines,
+						  make_number (nlines)),
+					   Qnil));
+	  if (WINDOW_TOTAL_LINES (w) != old_height)
+	    {
+	      fonts_changed_p = 1;
+	      return 1;
+	    }
+	}
+    }
 
   /* Display as many lines as needed to display all tool-bar items.  */
 
@@ -12780,8 +12832,6 @@ redisplay_window (window, just_this_one_p)
       /* IT may overshoot PT if text at PT is invisible.  */
       else if (IT_CHARPOS (it) > PT && CHARPOS (startp) <= PT)
 	w->force_start = Qt;
-
-
     }
 
   /* Handle case where place to start displaying has been specified,
@@ -12951,6 +13001,36 @@ redisplay_window (window, just_this_one_p)
 	       || (XFASTINT (w->last_modified) >= MODIFF
 		   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)))
     {
+
+      /* If first window line is a continuation line, and window start
+	 is inside the modified region, but the first change is before
+	 current window start, we must select a new window start.*/
+      if (NILP (w->start_at_line_beg)
+	  && CHARPOS (startp) > BEGV)
+	{
+	  /* Make sure beg_unchanged and end_unchanged are up to date.
+	     Do it only if buffer has really changed.  This may or may
+	     not have been done by try_window_id (see which) already. */
+	  if (MODIFF > SAVE_MODIFF
+	      /* This seems to happen sometimes after saving a buffer.  */
+	      || BEG_UNCHANGED + END_UNCHANGED > Z_BYTE)
+	    {
+	      if (GPT - BEG < BEG_UNCHANGED)
+		BEG_UNCHANGED = GPT - BEG;
+	      if (Z - GPT < END_UNCHANGED)
+		END_UNCHANGED = Z - GPT;
+	    }
+
+	  if (CHARPOS (startp) > BEG + BEG_UNCHANGED
+	      && CHARPOS (startp) <= Z - END_UNCHANGED)
+	    {
+	      /* There doesn't seems to be a simple way to find a new
+		 window start that is near the old window start, so
+		 we just recenter.  */
+	      goto recenter;
+	    }
+	}
+
 #if GLYPH_DEBUG
       debug_method_add (w, "same window start");
 #endif
@@ -14959,7 +15039,7 @@ dump_glyph_row (row, vpos, glyphs)
 {
   if (glyphs != 1)
     {
-      fprintf (stderr, "Row Start   End Used oEI><\\CTZFesm     X    Y    W    H    V    A    P\n");
+      fprintf (stderr, "Row Start   End Used oE><\\CTZFesm     X    Y    W    H    V    A    P\n");
       fprintf (stderr, "======================================================================\n");
 
       fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d\
@@ -18562,8 +18642,7 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
 	 sure to use a face suitable for unibyte.  */
       STORE_XCHAR2B (char2b, 0, glyph->u.ch);
     }
-  else if (glyph->u.ch < 128
-	   && glyph->face_id < BASIC_FACE_ID_SENTINEL)
+  else if (glyph->u.ch < 128)
     {
       /* Case of ASCII in a face known to fit ASCII.  */
       STORE_XCHAR2B (char2b, 0, glyph->u.ch);
@@ -18783,6 +18862,7 @@ fill_stretch_glyph_string (s, row, area, start, end)
   s->font = s->face->font;
   s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
   s->width = glyph->pixel_width;
+  s->nchars = 1;
   voffset = glyph->voffset;
 
   for (++glyph;
@@ -18980,7 +19060,7 @@ get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
       face_id = FACE_FOR_CHAR (f, face, c, -1, Qnil);
       face = FACE_FROM_ID (f, face_id);
     }
-  else if (c < 128 && face_id < BASIC_FACE_ID_SENTINEL)
+  else if (c < 128)
     {
       /* Case of ASCII in a face known to fit ASCII.  */
       STORE_XCHAR2B (char2b, 0, c);
@@ -19936,20 +20016,6 @@ produce_stretch_glyph (it)
   it->ascent = it->phys_ascent = ascent;
   it->descent = it->phys_descent = height - it->ascent;
   it->nglyphs = width > 0 && height > 0 ? 1 : 0;
-
-  if (width > 0 && height > 0 && face->box != FACE_NO_BOX)
-    {
-      if (face->box_line_width > 0)
-	{
-	  it->ascent += face->box_line_width;
-	  it->descent += face->box_line_width;
-	}
-
-      if (it->start_of_box_run_p)
-	it->pixel_width += abs (face->box_line_width);
-      if (it->end_of_box_run_p)
-	it->pixel_width += abs (face->box_line_width);
-    }
 
   take_vertical_position_into_account (it);
 }
@@ -22531,7 +22597,10 @@ note_mouse_highlight (f, x, y)
     }
 
   if (part == ON_VERTICAL_BORDER)
-    cursor = FRAME_X_OUTPUT (f)->horizontal_drag_cursor;
+    {
+      cursor = FRAME_X_OUTPUT (f)->horizontal_drag_cursor;
+      help_echo_string = build_string ("drag-mouse-1: resize");
+    }
   else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE
 	   || part == ON_SCROLL_BAR)
     cursor = FRAME_X_OUTPUT (f)->nontext_cursor;

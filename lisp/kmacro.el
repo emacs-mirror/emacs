@@ -349,10 +349,8 @@ and `kmacro-counter-format'.")
 (defun kmacro-push-ring (&optional elt)
   "Push ELT or current macro onto `kmacro-ring'."
   (when (setq elt (or elt (kmacro-ring-head)))
-    (let ((len (length kmacro-ring)))
-      (setq kmacro-ring (cons elt kmacro-ring))
-      (if (>= len kmacro-ring-max)
-	  (setcdr (nthcdr len kmacro-ring) nil)))))
+    (let ((history-delete-duplicates nil))
+      (add-to-history 'kmacro-ring elt kmacro-ring-max))))
 
 
 (defun kmacro-split-ring-element (elt)
@@ -375,11 +373,6 @@ Non-nil arg RAW means just return raw first element."
 Non-nil arg RAW means just return raw first element."
   (unless (kmacro-ring-empty-p)
     (kmacro-pop-ring1 raw)))
-
-
-(defun kmacro-ring-length ()
-  "Return length of macro ring, including pseudo head."
-  (+ (if last-kbd-macro 1 0) (length kmacro-ring)))
 
 
 (defun kmacro-ring-empty-p (&optional none)
@@ -577,13 +570,8 @@ Use \\[kmacro-bind-to-key] to bind it to a key sequence."
     (let ((append (and arg (listp arg))))
       (unless append
 	(if last-kbd-macro
-	    (let ((len (length kmacro-ring)))
-	      (setq kmacro-ring
-		    (cons
-		     (list last-kbd-macro kmacro-counter kmacro-counter-format-start)
-		     kmacro-ring))
-	      (if (>= len kmacro-ring-max)
-		  (setcdr (nthcdr len kmacro-ring) nil))))
+	    (kmacro-push-ring
+	     (list last-kbd-macro kmacro-counter kmacro-counter-format-start)))
 	(setq kmacro-counter (or (if arg (prefix-numeric-value arg))
 				 kmacro-initial-counter-value
 				 0)

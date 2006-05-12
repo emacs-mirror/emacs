@@ -49,7 +49,6 @@
 (defvar gdb-macro-info)
 (defvar gdb-server-prefix)
 (defvar gdb-show-changed-values)
-(defvar gdb-force-update)
 (defvar gdb-var-list)
 (defvar gdb-speedbar-auto-raise)
 (defvar tool-bar-map)
@@ -82,6 +81,8 @@ Supported debuggers include gdb, sdb, dbx, xdb, perldb, pdb (Python), jdb, and b
 
 (defvar gud-minor-mode nil)
 (put 'gud-minor-mode 'permanent-local t)
+
+(defvar gud-comint-buffer nil)
 
 (defvar gud-keep-buffer nil)
 
@@ -301,13 +302,15 @@ Uses `gud-<MINOR-MODE>-directories' to find the source files."
 optional doc string DOC.  Certain %-escapes in the string arguments
 are interpreted specially if present.  These are:
 
-  %f    name (without directory) of current source file.
-  %F    name (without directory or extension) of current source file.
-  %d    directory of current source file.
-  %l    number of current source line
-  %e    text of the C lvalue or function-call expression surrounding point.
-  %a    text of the hexadecimal address surrounding point
-  %p    prefix argument to the command (if any) as a number
+  %f -- Name (without directory) of current source file.
+  %F -- Name (without directory or extension) of current source file.
+  %d -- Directory of current source file.
+  %l -- Number of current source line.
+  %e -- Text of the C lvalue or function-call expression surrounding point.
+  %a -- Text of the hexadecimal address surrounding point.
+  %p -- Prefix argument to the command (if any) as a number.
+  %c -- Fully qualified class name derived from the expression
+        surrounding point (jdb only).
 
   The `current' source file is the file of the current buffer (if
 we're in a C file) or the source file current at the last break or
@@ -374,8 +377,9 @@ t means that there is no stack, and we are in display-file mode.")
 (defun gud-speedbar-item-info ()
   "Display the data type of the watch expression element."
   (let ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list)))
-    (if (nth 4 var)
-	(speedbar-message "%s" (nth 3 var)))))
+    (if (nth 6 var)
+	(speedbar-message "%s: %s" (nth 6 var) (nth 3 var))
+      (speedbar-message "%s" (nth 3 var)))))
 
 (defun gud-install-speedbar-variables ()
   "Install those variables used by speedbar to enhance gud/gdb."
@@ -437,38 +441,55 @@ required by the caller."
 	     (buffer-name gud-comint-buffer))
     (let* ((minor-mode (with-current-buffer buffer gud-minor-mode))
 	  (window (get-buffer-window (current-buffer) 0))
+	  (start (window-start window))
 	  (p (window-point window)))
       (cond
        ((memq minor-mode '(gdbmi gdba))
-	(when (or gdb-force-update
-		  (not (save-excursion
-			 (goto-char (point-min))
-			 (let ((case-fold-search t))
-			   (looking-at "Watch Expressions:")))))
-	  (erase-buffer)
-	  (insert "Watch Expressions:\n")
-	  (if gdb-speedbar-auto-raise
-	      (raise-frame speedbar-frame))
-	  (let ((var-list gdb-var-list) parent)
-	    (while var-list
-	      (let* (char (depth 0) (start 0) (var (car var-list))
-			  (varnum (car var)) (expr (nth 1 var))
-			  (type (nth 3 var)) (value (nth 4 var))
-			  (status (nth 5 var)))
-		(put-text-property
-		 0 (length expr) 'face font-lock-variable-name-face expr)
-		(put-text-property
-		 0 (length type) 'face font-lock-type-face type)
-		(while (string-match "\\." varnum start)
-		  (setq depth (1+ depth)
-			start (1+ (match-beginning 0))))
-		(if (eq depth 0) (setq parent nil))
-		(if (or (equal (nth 2 var) "0")
-			(and (equal (nth 2 var) "1")
-			     (string-match "char \\*$" type)))
+	(erase-buffer)
+	(insert "Watch Expressions:\n")
+	(if gdb-speedbar-auto-raise
+	    (raise-frame speedbar-frame))
+	(let ((var-list gdb-var-list) parent)
+	  (while var-list
+	    (let* (char (depth 0) (start 0) (var (car var-list))
+			(varnum (car var)) (expr (nth 1 var))
+			(type (nth 3 var)) (value (nth 4 var))
+			(status (nth 5 var)))
+	      (put-text-property
+	       0 (length expr) 'face font-lock-variable-name-face expr)
+	      (put-text-property
+	       0 (length type) 'face font-lock-type-face type)
+	      (while (string-match "\\." varnum start)
+		(setq depth (1+ depth)
+		      start (1+ (match-beginning 0))))
+	      (if (eq depth 0) (setq parent nil))
+	      (if (or (equal (nth 2 var) "0")
+		      (and (equal (nth 2 var) "1")
+			   (string-match "char \\*$" type)))
+		  (speedbar-make-tag-line
+		   'bracket ?? nil nil
+		   (concat expr "\t" value)
+		   (if (or parent (eq status 'out-of-scope))
+		       nil 'gdb-edit-value)
+		   nil
+		   (if gdb-show-changed-values
+		       (or parent (case status
+				    (changed 'font-lock-warning-face)
+				    (out-of-scope 'shadow)
+				    (t t)))
+		     t)
+		   depth)
+		(if (eq status 'out-of-scope) (setq parent 'shadow))
+		(if (and (nth 1 var-list)
+			 (string-match (concat varnum "\\.")
+				       (car (nth 1 var-list))))
+		    (setq char ?-)
+		  (setq char ?+))
+		(if (string-match "\\*$" type)
 		    (speedbar-make-tag-line
-		     'bracket ?? nil nil
-		     (concat expr "\t" value)
+		     'bracket char
+		     'gdb-speedbar-expand-node varnum
+		     (concat expr "\t" type "\t" value)
 		     (if (or parent (eq status 'out-of-scope))
 			 nil 'gdb-edit-value)
 		     nil
@@ -479,37 +500,15 @@ required by the caller."
 				      (t t)))
 		       t)
 		     depth)
-		  (if (eq status 'out-of-scope) (setq parent 'shadow))
-		  (if (and (nth 1 var-list)
-			   (string-match (concat varnum "\\.")
-					 (car (nth 1 var-list))))
-		      (setq char ?-)
-		    (setq char ?+))
-		  (if (string-match "\\*$" type)
-		      (speedbar-make-tag-line
-		       'bracket char
-		       'gdb-speedbar-expand-node varnum
-		       (concat expr "\t" type "\t" value)
-		       (if (or parent (eq status 'out-of-scope))
-			 nil 'gdb-edit-value)
-		       nil
-		       (if gdb-show-changed-values
-			   (or parent (case status
-					    (changed 'font-lock-warning-face)
-					    (out-of-scope 'shadow)
-					    (t t)))
-			 t)
-		       depth)
-		    (speedbar-make-tag-line
-		     'bracket char
-		     'gdb-speedbar-expand-node varnum
-		     (concat expr "\t" type)
-		     nil nil
-		     (if (and (or parent status) gdb-show-changed-values)
-			 'shadow t)
-		     depth))))
-	      (setq var-list (cdr var-list))))
-	  (setq gdb-force-update nil)))
+		  (speedbar-make-tag-line
+		   'bracket char
+		   'gdb-speedbar-expand-node varnum
+		   (concat expr "\t" type)
+		   nil nil
+		   (if (and (or parent status) gdb-show-changed-values)
+		       'shadow t)
+		   depth))))
+	    (setq var-list (cdr var-list)))))
        (t (unless (and (save-excursion
 			 (goto-char (point-min))
 			 (looking-at "Current Stack:"))
@@ -540,6 +539,7 @@ required by the caller."
 		       (t (error "Should never be here")))
 		 frame t))))
 	    (setq gud-last-speedbar-stackframe gud-last-last-frame))))
+      (set-window-start window start)
       (set-window-point window p))))
 
 
@@ -738,8 +738,6 @@ To run GDB in text command mode, set `gud-gdb-command-name' to
 
 ;; The completion list is constructed by the process filter.
 (defvar gud-gdb-fetched-lines)
-
-(defvar gud-comint-buffer nil)
 
 (defun gud-gdb-complete-command (&optional command a b)
   "Perform completion on the GDB command preceding point.
@@ -2803,7 +2801,9 @@ Obeying it means displaying in another window the specified file and line."
   (let ((insource (not (eq (current-buffer) gud-comint-buffer)))
 	(frame (or gud-last-frame gud-last-last-frame))
 	result)
-    (while (and str (string-match "\\([^%]*\\)%\\([adeflpc]\\)" str))
+    (while (and str
+		(let ((case-fold-search nil))
+		  (string-match "\\([^%]*\\)%\\([adefFlpc]\\)" str)))
       (let ((key (string-to-char (match-string 2 str)))
 	    subst)
 	(cond
@@ -2888,8 +2888,11 @@ Obeying it means displaying in another window the specified file and line."
       (set-buffer gud-comint-buffer)
       (save-restriction
 	(widen)
-	(goto-char (process-mark proc))
-	(forward-line 0)
+	(if (marker-position gud-delete-prompt-marker)
+	    ;; We get here when printing an expression.
+	    (goto-char gud-delete-prompt-marker)
+	  (goto-char (process-mark proc))
+	  (forward-line 0))
 	(if (looking-at comint-prompt-regexp)
 	    (set-marker gud-delete-prompt-marker (point)))
 	(if (memq gud-minor-mode '(gdbmi gdba))
@@ -2910,7 +2913,21 @@ Obeying it means displaying in another window the specified file and line."
 (defvar gud-find-expr-function 'gud-find-c-expr)
 
 (defun gud-find-expr (&rest args)
-  (apply gud-find-expr-function args))
+  (let ((expr (if (and transient-mark-mode mark-active)
+		  (buffer-substring (region-beginning) (region-end))
+		(apply gud-find-expr-function args))))
+    (save-match-data
+      (if (string-match "\n" expr)
+	  (error "Expression must not include a newline"))
+      (with-current-buffer gud-comint-buffer
+	(save-excursion
+	  (goto-char (process-mark (get-buffer-process gud-comint-buffer)))
+	  (forward-line 0)
+	  (when (looking-at comint-prompt-regexp)
+	    (set-marker gud-delete-prompt-marker (point))
+	    (set-marker-insertion-type gud-delete-prompt-marker t))
+	  (insert (concat  expr " = ")))))
+    expr))
 
 ;; The next eight functions are hacked from gdbsrc.el by
 ;; Debby Ayers <ayers@asc.slb.com>,

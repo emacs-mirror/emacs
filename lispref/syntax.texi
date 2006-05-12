@@ -672,7 +672,9 @@ the parse:
 
 @enumerate 0
 @item
-The depth in parentheses, counting from 0.
+The depth in parentheses, counting from 0.  @strong{Warning:} this can
+be negative if there are more close parens than open parens between
+the start of the defun and point.
 
 @item
 @cindex innermost containing parentheses

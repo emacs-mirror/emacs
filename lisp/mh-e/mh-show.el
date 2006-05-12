@@ -815,7 +815,7 @@ operation."
 (put 'mh-show-mode 'mode-class 'special)
 
 ;; Shush compiler.
-(eval-when-compile (defvar font-lock-auto-fontify))
+(defvar font-lock-auto-fontify)
 
 ;;;###mh-autoload
 (define-derived-mode mh-show-mode text-mode "MH-Show"

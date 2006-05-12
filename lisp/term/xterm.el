@@ -227,6 +227,14 @@
 
       (define-key map "\e[4~" [select])
       (define-key map "\e[29~" [print])
+      
+      ;; These keys will be available xterm starting probably from
+      ;; version 214.
+      (define-key map "\e[27;5;8~"  [(control ?\t)])
+      (define-key map "\e[27;5;44~" [(control ?\,)])
+      (define-key map "\e[27;5;46~" [(control ?\.)])
+      (define-key map "\e[27;5;47~" [(control ?\/)])
+      (define-key map "\e[27;5;92~" [(control ?\\)])
 
       ;; Other versions of xterm might emit these.
       (define-key map "\e[A" [up])

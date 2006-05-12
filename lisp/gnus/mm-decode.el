@@ -307,7 +307,7 @@ when selecting a different article."
     "application/pkcs7-signature" "application/x-pkcs7-mime"
     "application/pkcs7-mime"
     ;; Mutt still uses this even though it has already been withdrawn.
-    "application/pgp")
+    "application/pgp\\'")
   "A list of MIME types to be displayed automatically."
   :type '(repeat regexp)
   :group 'mime-display)
@@ -562,7 +562,7 @@ Postpone undisplaying of viewers for types in
 	   description)
 	(setq type (split-string (car ctl) "/"))
 	(setq subtype (cadr type)
-	      type (pop type))
+	      type (car type))
 	(setq
 	 result
 	 (cond
@@ -641,16 +641,15 @@ Postpone undisplaying of viewers for types in
 
 (defun mm-copy-to-buffer ()
   "Copy the contents of the current buffer to a fresh buffer."
-  (save-excursion
     (let ((obuf (current-buffer))
 	  beg)
       (goto-char (point-min))
       (search-forward-regexp "^\n" nil t)
       (setq beg (point))
-      (set-buffer
+    (with-current-buffer
        ;; Preserve the data's unibyteness (for url-insert-file-contents).
        (let ((default-enable-multibyte-characters (mm-multibyte-p)))
-	 (generate-new-buffer " *mm*")))
+          (generate-new-buffer " *mm*"))
       (insert-buffer-substring obuf beg)
       (current-buffer))))
 
@@ -672,7 +671,14 @@ external if displayed external."
     (mailcap-parse-mailcaps)
     (if (mm-handle-displayed-p handle)
 	(mm-remove-part handle)
-      (let* ((type (mm-handle-media-type handle))
+      (let* ((ehandle (if (equal (mm-handle-media-type handle)
+				 "message/external-body")
+			  (progn
+			    (unless (mm-handle-cache handle)
+			      (mm-extern-cache-contents handle))
+			    (mm-handle-cache handle))
+			handle))
+	     (type (mm-handle-media-type ehandle))
 	     (method (mailcap-mime-info type))
 	     (filename (or (mail-content-type-get
 			    (mm-handle-disposition handle) 'filename)
@@ -680,8 +686,8 @@ external if displayed external."
 			    (mm-handle-type handle) 'name)
 			   "<file>"))
 	     (external mm-enable-external))
-	(if (and (mm-inlinable-p handle)
-		 (mm-inlined-p handle))
+	(if (and (mm-inlinable-p ehandle)
+		 (mm-inlined-p ehandle))
 	    (progn
 	      (forward-line 1)
 	      (mm-display-inline handle)
@@ -689,12 +695,13 @@ external if displayed external."
 	  (when (or method
 		    (not no-default))
 	    (if (and (not method)
-		     (equal "text" (car (split-string type))))
+		     (equal "text" (car (split-string type "/"))))
 		(progn
 		  (forward-line 1)
 		  (mm-insert-inline handle (mm-get-part handle))
 		  'inline)
-	      (if (and method ;; If nil, we always use "save".
+	      (setq external
+                    (and method ;; If nil, we always use "save".
 		       (stringp method) ;; 'mailcap-save-binary-file
 		       (or (eq mm-enable-external t)
 			   (and (eq mm-enable-external 'ask)
@@ -707,9 +714,7 @@ external if displayed external."
 				      (concat
 				       " \"" (format method filename) "\"")
 				    "")
-				  "? ")))))
-		  (setq external t)
-		(setq external nil))
+                                    "? "))))))
 	      (if external
 		  (mm-display-external
 		   handle (or method 'mailcap-save-binary-file))
@@ -1012,10 +1017,12 @@ external if displayed external."
 	      methods nil)))
     result))
 
-(defun mm-inlinable-p (handle)
-  "Say whether HANDLE can be displayed inline."
+(defun mm-inlinable-p (handle &optional type)
+  "Say whether HANDLE can be displayed inline.
+TYPE is the mime-type of the object; it defaults to the one given
+in HANDLE."
+  (unless type (setq type (mm-handle-media-type handle)))
   (let ((alist mm-inline-media-tests)
-	(type (mm-handle-media-type handle))
 	test)
     (while alist
       (when (string-match (caar alist) type)

@@ -1699,7 +1699,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 		ch = -1;
 	    }
 
-	  if (ch > 0400)
+	  if (ch >= 0400)
 	    j = (ch & 0x3F) | 0200;
 	  else
 	    j = *ptr;
@@ -1718,7 +1718,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      while (1)
 		{
 		  TRANSLATE (ch, inverse_trt, ch);
-		  if (ch > 0400)
+		  if (ch >= 0400)
 		    j = (ch & 0x3F) | 0200;
 		  else
 		    j = ch;

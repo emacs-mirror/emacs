@@ -592,25 +592,28 @@ The return value of this function is a list of the read strings.
 See the documentation for `completing-read' for details on the arguments:
 PROMPT, TABLE, PREDICATE, REQUIRE-MATCH, INITIAL-INPUT, HIST, DEF, and
 INHERIT-INPUT-METHOD."
-  (let ((minibuffer-completion-table (function crm-collection-fn))
-	(minibuffer-completion-predicate predicate)
-	;; see completing_read in src/minibuf.c
-	(minibuffer-completion-confirm
-	 (unless (eq require-match t) require-match))
-	(crm-completion-table table)
-	crm-last-exact-completion
-	crm-current-element
-	crm-left-of-element
-	crm-right-of-element
-	crm-beginning-of-element
-	crm-end-of-element
-	(map (if require-match
-		 crm-local-must-match-map
-	       crm-local-completion-map)))
-    (split-string (read-from-minibuffer
-		   prompt initial-input map
-		   nil hist def inherit-input-method)
-		  crm-separator)))
+  (let* ((minibuffer-completion-table (function crm-collection-fn))
+	 (minibuffer-completion-predicate predicate)
+	 ;; see completing_read in src/minibuf.c
+	 (minibuffer-completion-confirm
+	  (unless (eq require-match t) require-match))
+	 (crm-completion-table table)
+	 crm-last-exact-completion
+	 crm-current-element
+	 crm-left-of-element
+	 crm-right-of-element
+	 crm-beginning-of-element
+	 crm-end-of-element
+	 (map (if require-match
+		  crm-local-must-match-map
+		crm-local-completion-map))
+	 ;; If the user enters empty input, read-from-minibuffer returns
+	 ;; the empty string, not DEF.
+	 (input (read-from-minibuffer
+		 prompt initial-input map
+		 nil hist def inherit-input-method)))
+    (and def (string-equal input "") (setq input def))
+    (split-string input crm-separator)))
 
 ;; testing and debugging
 ;; (defun crm-init-test-environ ()

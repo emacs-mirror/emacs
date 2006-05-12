@@ -1,3 +1,23 @@
+2006-04-05  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc.el (erc-cmd-SV): Removed the exclamation point.  Show the
+	build date as it's shown in `emacs-version'.
+
+	* erc-capab.el (erc-capab-identify-add-prefix): Insert the prefix
+	with the same face property as the previous character.
+
+2006-04-02  Michael Olson  <mwolson@gnu.org>
+
+	* erc-backend.el, erc-ezbounce.el, erc-join.el, erc-netsplit.el,
+	erc.el: Make sure to include a newline inside of negated classes,
+	so that a newline is not matched.
+
+2006-04-01  Michael Olson  <mwolson@gnu.org>
+
+	* erc-backend.el (erc-server-connect-function): Don't try to
+	detect the existence of the `open-network-stream-nowait' function,
+	since I can't find it in Emacs21, XEmacs21, or Emacs22.
+
 2006-03-26  Michael Olson  <mwolson@gnu.org>
 
 	* erc.el (erc-header-line): New face that will be used to colorize

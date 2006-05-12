@@ -176,6 +176,7 @@ yow (fp)
   }
   buf[i++] = 0;
   printf("%s\n", buf);
+  free (buf);
 }
 
 /* arch-tag: e40fc0df-bafb-4001-af24-5c883d1c685e

@@ -444,14 +444,21 @@ use `before-save-hook'.")
 
 (defcustom enable-local-variables t
   "*Control use of local variables in files you visit.
-The value can be t, nil or something else.
+The value can be t, nil, :safe, or something else.
 
 A value of t means file local variables specifications are obeyed
 if all the specified variable values are safe; if any values are
 not safe, Emacs queries you, once, whether to set them all.
+\(When you say yes to certain values, they are remembered as safe.)
 
-A value of nil means always ignore the file local variables.
+:safe means set the safe variables, and ignore the rest.
+:all means set all variables, whether safe or not.
+ (Don't set it permanently to :all.)
+nil means always ignore the file local variables.
+
 Any other value means always query you once whether to set them all.
+\(When you say yes to certain values, they are remembered as safe, but
+this has no effect when `enable-local-variables' is \"something else\".)
 
 This variable also controls use of major modes specified in
 a -*- line.
@@ -459,7 +466,9 @@ a -*- line.
 The command \\[normal-mode], when used interactively,
 always obeys file local variable specifications and the -*- line,
 and ignores this variable."
-  :type '(choice (const :tag "Obey" t)
+  :type '(choice (const :tag "Query Unsafe" t)
+		 (const :tag "Safe Only" :safe)
+		 (const :tag "Do all" :all)
 		 (const :tag "Ignore" nil)
 		 (other :tag "Query" other))
   :group 'find-file)
@@ -1779,8 +1788,7 @@ Uses the visited file name, the -*- line, and the local variables spec.
 
 This function is called automatically from `find-file'.  In that case,
 we may set up the file-specified mode and local variables,
-depending on the value of `enable-local-variables': if it is t, we do;
-if it is nil, we don't; otherwise, we query.
+depending on the value of `enable-local-variables'.
 In addition, if `local-enable-local-variables' is nil, we do
 not set local variables (though we do notice a mode specified with -*-.)
 
@@ -2278,6 +2286,7 @@ asking you for confirmation."
 	default-text-properties
 	display-time-string
 	enable-local-eval
+	enable-local-variables
 	eval
 	exec-directory
 	exec-path
@@ -2313,6 +2322,8 @@ asking you for confirmation."
 	parse-time-rules
 	process-environment
 	rmail-output-file-alist
+	safe-local-variable-values
+	safe-local-eval-forms
 	save-some-buffers-action-alist
 	special-display-buffer-names
 	standard-input
@@ -2338,29 +2349,29 @@ asking you for confirmation."
 ;; For variables defined in the C source code the declaration should go here:
 
 ;; FIXME: Some variables should be moved according to the rules above.
-(let ((string-or-null (lambda (a) (or (stringp a) (null a)))))
-  (eval
-   `(mapc (lambda (pair)
-	    (put (car pair) 'safe-local-variable (cdr pair)))
-	  '((byte-compile-dynamic . t)
-	    (byte-compile-dynamic-docstrings . t)
-	    (byte-compile-warnings . t)
-	    (c-basic-offset     .  integerp)
-	    (c-file-style       .  stringp)
-	    (c-indent-level     .  integerp)
-	    (comment-column     .  integerp)
-	    (compile-command    .  string-or-null-p)
-	    (fill-column        .  integerp)
-	    (fill-prefix        .  string-or-null-p)
-	    (indent-tabs-mode   .  t)
-	    (kept-new-versions  .  integerp)
-	    (left-margin        .  t)
-	    (no-byte-compile    .  t)
-	    (no-update-autoloads . t)
-	    (outline-regexp     .  string-or-null-p)
-	    (tab-width          .  integerp) ;; C source code
-	    (truncate-lines     .  t) ;; C source code
-	    (version-control    .  t)))))
+(mapc (lambda (pair)
+	(put (car pair) 'safe-local-variable (cdr pair)))
+      '((byte-compile-dynamic            . booleanp)
+	(byte-compile-dynamic-docstrings . booleanp)
+	(byte-compile-warnings           . booleanp)
+	(c-basic-offset                  . integerp)
+	(c-file-style                    . stringp)
+	(c-indent-level                  . integerp)
+	(comment-column                  . integerp)
+	(compile-command                 . string-or-null-p)
+	(find-file-visit-truename        . booleanp)
+	(fill-column                     . integerp)
+	(fill-prefix                     . string-or-null-p)
+	(indent-tabs-mode                . booleanp) ;; C source code
+	(kept-old-versions               . integerp)
+	(kept-new-versions               . integerp)
+	(left-margin                     . integerp)
+	(no-byte-compile                 . booleanp)
+	(no-update-autoloads             . booleanp)
+	(outline-regexp                  . string-or-null-p)
+	(tab-width                       . integerp) ;; C source code
+	(truncate-lines                  . booleanp) ;; C source code
+	(version-control                 . symbolp)))
 
 (put 'c-set-style 'safe-local-eval-function t)
 
@@ -2413,8 +2424,7 @@ n  -- to ignore the local variables list.")
 			    ""
 			  ", or C-v to scroll")))
 	  (goto-char (point-min))
-	  (let ((inhibit-quit t)
-		(cursor-in-echo-area t)
+	  (let ((cursor-in-echo-area t)
 		(exit-chars
 		 (if offer-save '(?! ?y ?n ?\s ?\C-g) '(?y ?n ?\s ?\C-g)))
 		done)
@@ -2426,9 +2436,7 @@ n  -- to ignore the local variables list.")
 		      (condition-case nil
 			  (scroll-up)
 			(error (goto-char (point-min))))
-		    (setq done (memq (downcase char) exit-chars)))))
-	    (if (= char ?\C-g)
-		(setq quit-flag nil)))
+		    (setq done (memq (downcase char) exit-chars))))))
 	  (setq char (downcase char))
 	  (when (and offer-save (= char ?!) unsafe-vars)
 	    (dolist (elt unsafe-vars)
@@ -2616,13 +2624,23 @@ is specified, returning t if it is specified."
 		    (and (risky-local-variable-p var val)
 			 (push elt risky-vars))
 		    (push elt unsafe-vars))))
-	    (if (or (and (eq enable-local-variables t)
-			 (null unsafe-vars)
-			 (null risky-vars))
-		    (hack-local-variables-confirm
-		     result unsafe-vars risky-vars))
+	    (if (eq enable-local-variables :safe)
+		;; If caller wants only the safe variables,
+		;; install only them.
 		(dolist (elt result)
-		  (hack-one-local-variable (car elt) (cdr elt)))))
+		  (unless (or (memq (car elt) unsafe-vars)
+			      (memq (car elt) risky-vars))
+		    (hack-one-local-variable (car elt) (cdr elt))))
+	      ;; Query, except in the case where all are known safe
+	      ;; if the user wants no quuery in that case.
+	      (if (or (and (eq enable-local-variables t)
+			   (null unsafe-vars)
+			   (null risky-vars))
+		      (eq enable-local-variables :all)
+		      (hack-local-variables-confirm
+		       result unsafe-vars risky-vars))
+		  (dolist (elt result)
+		    (hack-one-local-variable (car elt) (cdr elt))))))
 	  (run-hooks 'hack-local-variables-hook))))))
 
 (defun safe-local-variable-p (sym val)
@@ -2632,15 +2650,11 @@ It is safe if any of these conditions are met:
  * There is a matching entry (SYM . VAL) in the
    `safe-local-variable-values' user option.
 
- * The `safe-local-variable' property of SYM is t.
-
  * The `safe-local-variable' property of SYM is a function that
    evaluates to a non-nil value with VAL as an argument."
   (or (member (cons sym val) safe-local-variable-values)
       (let ((safep (get sym 'safe-local-variable)))
-	(or (eq safep t)
-	    (and (functionp safep)
-		 (funcall safep val))))))
+        (and (functionp safep) (funcall safep val)))))
 
 (defun risky-local-variable-p (sym &optional ignored)
   "Non-nil if SYM could be dangerous as a file-local variable.
@@ -2678,12 +2692,14 @@ It is dangerous if either of these conditions are met:
       (and (eq (car exp) 'put)
 	   (hack-one-local-variable-quotep (nth 1 exp))
 	   (hack-one-local-variable-quotep (nth 2 exp))
-	   (memq (nth 1 (nth 2 exp))
-		 '(lisp-indent-hook))
-	   ;; Only allow safe values of lisp-indent-hook;
-	   ;; not functions.
-	   (or (numberp (nth 3 exp))
-	       (equal (nth 3 exp) ''defun)))
+	   (let ((prop (nth 1 (nth 2 exp))) (val (nth 3 exp)))
+	     (cond ((eq prop 'lisp-indent-hook)
+		    ;; Only allow safe values of lisp-indent-hook;
+		    ;; not functions.
+		    (or (numberp val) (equal val ''defun)))
+		   ((eq prop 'edebug-form-spec)
+		    ;; Only allow indirect form specs.
+		    (edebug-basic-spec val)))))
       ;; Allow expressions that the user requested.
       (member exp safe-local-eval-forms)
       ;; Certain functions can be allowed with safe arguments
@@ -3913,7 +3929,7 @@ user.  In such situations, one has to be careful with potentially
 time consuming operations.
 
 For more information on how this variable is used by Auto Revert mode,
-see Info node `(emacs-xtra)Supporting additional buffers'.")
+see Info node `(emacs)Supporting additional buffers'.")
 
 (defvar before-revert-hook nil
   "Normal hook for `revert-buffer' to run before reverting.

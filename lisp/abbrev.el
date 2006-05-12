@@ -58,7 +58,7 @@ Interactively, use the command `abbrev-mode'
 to enable or disable Abbrev mode in the current buffer."
   :type 'boolean
   :group 'abbrev-mode)
-;;;###autoload(put 'abbrev-mode 'safe-local-variable t)
+;;;###autoload(put 'abbrev-mode 'safe-local-variable 'booleanp)
 
 
 (defvar edit-abbrevs-map
@@ -160,8 +160,10 @@ or may be omitted (it is usually omitted)."
 (defun edit-abbrevs-redefine ()
   "Redefine abbrevs according to current buffer contents."
   (interactive)
-  (define-abbrevs t)
-  (set-buffer-modified-p nil))
+  (save-restriction
+    (widen)
+    (define-abbrevs t)
+    (set-buffer-modified-p nil)))
 
 (defun define-abbrevs (&optional arg)
   "Define abbrevs according to current visible buffer contents.
@@ -195,9 +197,12 @@ the ones defined from the buffer now."
 Optional argument FILE is the name of the file to read;
 it defaults to the value of `abbrev-file-name'.
 Optional second argument QUIETLY non-nil means don't display a message."
-  (interactive "fRead abbrev file: ")
-  (load (if (and file (> (length file) 0)) file abbrev-file-name)
-	nil quietly)
+  (interactive
+   (list
+    (read-file-name (format "Read abbrev file (default %s): "
+			    abbrev-file-name)
+		    nil abbrev-file-name t)))
+  (load (or file abbrev-file-name) nil quietly)
   (setq abbrevs-changed nil))
 
 (defun quietly-read-abbrev-file (&optional file)
@@ -358,5 +363,5 @@ A prefix argument means don't query; expand all abbrevs."
 	    (if (or noquery (y-or-n-p (format "Expand `%s'? " string)))
 		(expand-abbrev)))))))
 
-;;; arch-tag: dbd6f3ae-dfe3-40ba-b00f-f9e3ff960df5
+;; arch-tag: dbd6f3ae-dfe3-40ba-b00f-f9e3ff960df5
 ;;; abbrev.el ends here

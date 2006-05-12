@@ -16723,8 +16723,7 @@ specified by a target."
 	  (progn (save-buffer)
 		 (kill-buffer (current-buffer))
 		 (set-buffer orig-buffer)
-		 (setq file-name-history
-		       (cons makefile-path-name file-name-history)))
+		 (add-to-history 'file-name-history makefile-path-name))
 	(vhdl-warning-when-idle
 	 (format "File not writable: \"%s\""
 		 (abbreviate-file-name makefile-path-name)))

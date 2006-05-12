@@ -558,6 +558,9 @@ This is to support the command \\[comint-get-next-from-history].")
   "Non-nil if you are accumulating input lines to send as input together.
 The command \\[comint-accumulate] sets this.")
 
+(defvar comint-stored-incomplete-input nil
+  "Stored input for history cycling.")
+
 (put 'comint-replace-by-expanded-history 'menu-enable 'comint-input-autoexpand)
 (put 'comint-input-ring 'permanent-local t)
 (put 'comint-input-ring-index 'permanent-local t)
@@ -638,6 +641,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-scroll-to-bottom-on-input)
   (make-local-variable 'comint-move-point-for-output)
   (make-local-variable 'comint-scroll-show-maximum-output)
+  (make-local-variable 'comint-stored-incomplete-input)
   ;; This makes it really work to keep point at the bottom.
   (make-local-variable 'scroll-conservatively)
   (setq scroll-conservatively 10000)
@@ -798,27 +802,31 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
   ;; This doesn't use "e" because it is supposed to work
   ;; for events without parameters.
   (interactive (list last-input-event))
-  (let ((pos (point)))
-    (if event (posn-set-point (event-end event)))
-    (if (not (eq (get-char-property (point) 'field) 'input))
-	;; No input at POS, fall back to the global definition.
-	(let* ((keys (this-command-keys))
-	       (last-key (and (vectorp keys) (aref keys (1- (length keys)))))
-	       (fun (and last-key (lookup-key global-map (vector last-key)))))
-	  (goto-char pos)
-	  (and fun (call-interactively fun)))
-      (setq pos (point))
-      ;; There's previous input at POS, insert it at the end of the buffer.
-      (goto-char (point-max))
-      ;; First delete any old unsent input at the end
-      (delete-region
-       (or (marker-position comint-accum-marker)
-	   (process-mark (get-buffer-process (current-buffer))))
-       (point))
-      ;; Insert the input at point
-      (insert (buffer-substring-no-properties
-	       (previous-single-char-property-change (1+ pos) 'field)
-	       (next-single-char-property-change pos 'field))))))
+  (when event
+    (posn-set-point (event-end event)))
+  (if comint-use-prompt-regexp
+      (let ((input (funcall comint-get-old-input))
+	    (process (get-buffer-process (current-buffer))))
+	(if (not process)
+	    (error "Current buffer has no process")
+	  (goto-char (process-mark process))
+	  (insert input)))
+    (let ((pos (point)))
+      (if (not (eq (field-at-pos pos) 'input))
+	  ;; No input at POS, fall back to the global definition.
+	  (let* ((keys (this-command-keys))
+		 (last-key (and (vectorp keys) (aref keys (1- (length keys)))))
+		 (fun (and last-key (lookup-key global-map (vector last-key)))))
+	    (and fun (call-interactively fun)))
+	;; There's previous input at POS, insert it at the end of the buffer.
+	(goto-char (point-max))
+	;; First delete any old unsent input at the end
+	(delete-region
+	 (or (marker-position comint-accum-marker)
+	     (process-mark (get-buffer-process (current-buffer))))
+	 (point))
+	;; Insert the input at point
+	(insert (field-string-no-properties pos))))))
 
 
 ;; Input history processing in a buffer
@@ -1015,6 +1023,16 @@ See also `comint-read-input-ring'."
 	(t
 	 arg)))
 
+(defun comint-restore-input ()
+  "Restore unfinished input."
+  (interactive)
+  (when comint-input-ring-index
+    (comint-delete-input)
+    (when (> (length comint-stored-incomplete-input) 0)
+      (insert comint-stored-incomplete-input)
+      (message "Input restored"))
+    (setq comint-input-ring-index nil)))
+
 (defun comint-search-start (arg)
   "Index to start a directional search, starting at `comint-input-ring-index'."
   (if comint-input-ring-index
@@ -1035,9 +1053,18 @@ Moves relative to `comint-input-ring-index'."
 				arg)))
 
 (defun comint-previous-input (arg)
-  "Cycle backwards through input history."
+  "Cycle backwards through input history, saving input."
   (interactive "*p")
-  (comint-previous-matching-input "." arg))
+  (if (and comint-input-ring-index 
+	   (or		       ;; leaving the "end" of the ring
+	    (and (< arg 0)		; going down
+		 (eq comint-input-ring-index 0))
+	    (and (> arg 0)		; going up
+		 (eq comint-input-ring-index 
+		     (1- (ring-length comint-input-ring)))))
+	   comint-stored-incomplete-input)
+      (comint-restore-input)
+    (comint-previous-matching-input "." arg)))
 
 (defun comint-next-input (arg)
   "Cycle forwards through input history."
@@ -1077,6 +1104,14 @@ Moves relative to START, or `comint-input-ring-index'."
     (if (string-match regexp (ring-ref comint-input-ring n))
 	n)))
 
+(defun comint-delete-input ()
+  "Delete all input between accumulation or process mark and point."
+  (delete-region
+   ;; Can't use kill-region as it sets this-command
+   (or  (marker-position comint-accum-marker)
+	(process-mark (get-buffer-process (current-buffer))))
+   (point-max)))
+
 (defun comint-previous-matching-input (regexp n)
   "Search backwards through input history for match for REGEXP.
 \(Previous history elements are earlier commands.)
@@ -1088,13 +1123,13 @@ If N is negative, find the next or Nth next match."
     ;; Has a match been found?
     (if (null pos)
 	(error "Not found")
+      ;; If leaving the edit line, save partial input
+      (if (null comint-input-ring-index)	;not yet on ring
+	  (setq comint-stored-incomplete-input
+		(funcall comint-get-old-input)))
       (setq comint-input-ring-index pos)
       (message "History item: %d" (1+ pos))
-      (delete-region
-       ;; Can't use kill-region as it sets this-command
-       (or  (marker-position comint-accum-marker)
-	    (process-mark (get-buffer-process (current-buffer))))
-       (point))
+      (comint-delete-input)
       (insert (ring-ref comint-input-ring pos)))))
 
 (defun comint-next-matching-input (regexp n)
@@ -2672,7 +2707,7 @@ interpreter (e.g., the percent notation of cmd.exe on NT)."
     name))
 
 (defun comint-match-partial-filename ()
-  "Return the filename at point, or nil if non is found.
+  "Return the filename at point, or nil if none is found.
 Environment variables are substituted.  See `comint-word'."
   (let ((filename (comint-word comint-file-name-chars)))
     (and filename (comint-substitute-in-file-name

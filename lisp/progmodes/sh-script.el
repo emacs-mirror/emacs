@@ -356,6 +356,7 @@ the car and cdr are the same symbol.")
 
 (defvar sh-shell (sh-canonicalize-shell (file-name-nondirectory sh-shell-file))
   "The shell being programmed.  This is set by \\[sh-set-shell].")
+;;;###autoload(put 'sh-shell 'safe-local-variable 'symbolp)
 
 (defvar sh-mode-abbrev-table nil)
 

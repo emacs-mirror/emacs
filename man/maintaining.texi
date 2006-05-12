@@ -14,6 +14,9 @@ also particularly useful for this purpose.
 * Format of ChangeLog:: What the change log file looks like.
 * Tags::	        Go direct to any function in your program in one
 			  command.  Tags remembers which file it is in.
+@ifnottex
+* Emerge::              A convenient way of merging two versions of a program.
+@end ifnottex
 @end menu
 
 @node Change Log
@@ -844,6 +847,10 @@ details.
 
   You can also use the collection of tag names to complete a symbol
 name in the buffer.  @xref{Symbol Completion}.
+
+@ifnottex
+@include emerge-xtra.texi
+@end ifnottex
 
 @ignore
    arch-tag: b9d83dfb-82ea-4ff6-bab5-05a3617091fb

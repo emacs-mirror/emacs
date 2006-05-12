@@ -851,11 +851,8 @@ ENCODED-WORD)."
   (let (word charset cs encoding text rest)
     (while words
       (setq word (pop words))
-      (if (and (or (setq cs (rfc2047-charset-to-coding-system
-			     (setq charset (car word))))
-		   (progn
-		     (message "Unknown charset: %s" charset)
-		     nil))
+      (if (and (setq cs (rfc2047-charset-to-coding-system
+			 (setq charset (car word))))
 	       (condition-case code
 		   (cond ((char-equal ?B (nth 1 word))
 			  (setq text (base64-decode-string

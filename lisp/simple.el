@@ -1156,7 +1156,7 @@ they are expressions; otherwise they are strings.
 \(That convention is designed to do the right thing for
 recursive uses of the minibuffer.)")
 (setq minibuffer-history-variable 'minibuffer-history)
-(setq minibuffer-history-position nil)
+(setq minibuffer-history-position nil)  ;; Defvar is in C code.
 (defvar minibuffer-history-search-history nil)
 
 (defvar minibuffer-text-before-history nil
@@ -1281,7 +1281,8 @@ makes the search case-sensitive."
 (defvar minibuffer-temporary-goal-position nil)
 
 (defun next-history-element (n)
-  "Insert the next element of the minibuffer history into the minibuffer."
+  "Puts next element of the minibuffer history in the minibuffer.
+With argument N, it uses the Nth following element."
   (interactive "p")
   (or (zerop n)
       (let ((narg (- minibuffer-history-position n))
@@ -1324,7 +1325,8 @@ makes the search case-sensitive."
 	(goto-char (or minibuffer-temporary-goal-position (point-max))))))
 
 (defun previous-history-element (n)
-  "Inserts the previous element of the minibuffer history into the minibuffer."
+  "Puts previous element of the minibuffer history in the minibuffer.
+With argument N, it uses the Nth previous element."
   (interactive "p")
   (next-history-element (- n)))
 
@@ -1709,7 +1711,7 @@ This variable only matters if `undo-ask-before-discard' is non-nil.")
 	;; but we don't want to ask the question again.
 	(setq undo-extra-outer-limit (+ size 50000))
 	(if (let (use-dialog-box track-mouse executing-kbd-macro )
-	      (yes-or-no-p (format "Buffer %s undo info is %d bytes long; discard it? "
+	      (yes-or-no-p (format "Buffer `%s' undo info is %d bytes long; discard it? "
 				   (buffer-name) size)))
 	    (progn (setq buffer-undo-list nil)
 		   (setq undo-extra-outer-limit nil)
@@ -1717,7 +1719,7 @@ This variable only matters if `undo-ask-before-discard' is non-nil.")
 	  nil))
     (display-warning '(undo discard-info)
 		     (concat
-		      (format "Buffer %s undo info was %d bytes long.\n"
+		      (format "Buffer `%s' undo info was %d bytes long.\n"
 			      (buffer-name) size)
 		      "The undo info was discarded because it exceeded \
 `undo-outer-limit'.
@@ -2332,7 +2334,7 @@ return value of `filter-buffer-substring'.
 
 If this variable is nil, no filtering is performed.")
 
-(defun filter-buffer-substring (beg end &optional delete)
+(defun filter-buffer-substring (beg end &optional delete noprops)
   "Return the buffer substring between BEG and END, after filtering.
 The buffer substring is passed through each of the filter
 functions in `buffer-substring-filters', and the value from the
@@ -2342,21 +2344,36 @@ is nil, the buffer substring is returned unaltered.
 If DELETE is non-nil, the text between BEG and END is deleted
 from the buffer.
 
+If NOPROPS is non-nil, final string returned does not include
+text properties, while the string passed to the filters still
+includes text properties from the buffer text.
+
 Point is temporarily set to BEG before calling
 `buffer-substring-filters', in case the functions need to know
 where the text came from.
 
-This function should be used instead of `buffer-substring' or
-`delete-and-extract-region' when you want to allow filtering to
-take place.  For example, major or minor modes can use
-`buffer-substring-filters' to extract characters that are special
-to a buffer, and should not be copied into other buffers."
-  (save-excursion
-    (goto-char beg)
-    (let ((string (if delete (delete-and-extract-region beg end)
-                    (buffer-substring beg end))))
-      (dolist (filter buffer-substring-filters string)
-        (setq string (funcall filter string))))))
+This function should be used instead of `buffer-substring',
+`buffer-substring-no-properties', or `delete-and-extract-region'
+when you want to allow filtering to take place.  For example,
+major or minor modes can use `buffer-substring-filters' to
+extract characters that are special to a buffer, and should not
+be copied into other buffers."
+  (cond
+   ((or delete buffer-substring-filters)
+    (save-excursion
+      (goto-char beg)
+      (let ((string (if delete (delete-and-extract-region beg end)
+		      (buffer-substring beg end))))
+	(dolist (filter buffer-substring-filters)
+	  (setq string (funcall filter string)))
+	(if noprops
+	    (set-text-properties 0 (length string) nil string))
+	string)))
+   (noprops
+    (buffer-substring-no-properties beg end))
+   (t
+    (buffer-substring beg end))))
+
 
 ;;;; Window system cut and paste hooks.
 
@@ -3742,7 +3759,7 @@ If point reaches the beginning or end of buffer, it stops there.
 To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (interactive "p")
   (or arg (setq arg 1))
-  
+
   (let ((orig (point)))
 
     ;; Move by lines, if ARG is not 1 (the default).

@@ -522,13 +522,9 @@ font-lock is done highlighting.")
   (add-to-list 'which-func-modes 'mh-folder-mode))
 
 ;; Shush compiler.
-(eval-when-compile
-  (defvar desktop-save-buffer)
-  (defvar font-lock-auto-fontify)
-  (defvar image-load-path)
-  (mh-do-in-xemacs (defvar font-lock-defaults)))
-
-(defvar mh-folder-buttons-init-flag nil)
+(defvar desktop-save-buffer)
+(defvar font-lock-auto-fontify)
+(defvar font-lock-defaults)             ; XEmacs
 
 ;; Ensure new buffers won't get this mode if default-major-mode is nil.
 (put 'mh-folder-mode 'mode-class 'special)
@@ -591,13 +587,8 @@ perform the operation on all messages in that region.
 
 \\{mh-folder-mode-map}"
   (mh-do-in-gnu-emacs
-    (unless mh-folder-buttons-init-flag
-      (let* ((load-path (mh-image-load-path-for-library "mh-e" "mh-logo.xpm"))
-             (image-load-path (cons (car load-path)
-                                    (when (boundp 'image-load-path)
-                                      image-load-path))))
-        (mh-tool-bar-folder-buttons-init)
-        (setq mh-folder-buttons-init-flag t)))
+    (unless mh-folder-tool-bar-map
+        (mh-tool-bar-folder-buttons-init))
     (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map))
   (mh-do-in-xemacs
     (mh-tool-bar-init :folder))

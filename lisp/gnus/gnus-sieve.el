@@ -107,7 +107,7 @@ See the documentation for these variables and functions for details."
   (find-file gnus-sieve-file)
   (goto-char (point-min))
   (if (re-search-forward (regexp-quote gnus-sieve-region-start) nil t)
-      (delete-region (match-end 0)
+      (delete-region (match-beginning 0)
 		     (or (re-search-forward (regexp-quote
 					     gnus-sieve-region-end) nil t)
 			 (point)))

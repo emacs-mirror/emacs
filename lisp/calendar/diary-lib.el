@@ -79,7 +79,7 @@ D-FILE specifies the file to use as the diary file."
    (list (prefix-numeric-value current-prefix-arg)
          (read-file-name "Enter diary file name: " default-directory nil t)))
   (let ((diary-file d-file))
-    (view-diary-entries arg)))
+    (diary-view-entries arg)))
 
 (autoload 'check-calendar-holidays "holidays"
   "Check the list of holidays for any that occur on DATE.

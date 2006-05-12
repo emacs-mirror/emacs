@@ -623,7 +623,9 @@ the variable `rmail-mime-feature'.")
 
 ;;;###autoload
 (defvar rmail-mime-charset-pattern
-  "^content-type:[ ]*text/plain;[ \t\n]*charset=\"?\\([^ \t\n\";]+\\)\"?"
+  (concat "^content-type:[ ]*text/plain;"
+	  "\\(?:[ \t\n]*\\(format\\|delsp\\)=\"?[-a-z0-9]+\"?;\\)*"
+	  "[ \t\n]*charset=\"?\\([^ \t\n\";]+\\)\"?")
   "Regexp to match MIME-charset specification in a header of message.
 The first parenthesized expression should match the MIME-charset name.")
 
@@ -1992,7 +1994,7 @@ is non-nil if the user has supplied the password interactively.
 					   (re-search-backward
 					    rmail-mime-charset-pattern
 					    start t))))
-				  (intern (downcase (match-string 1))))))
+				  (intern (downcase (match-string 2))))))
 			 (rmail-decode-region start (point) mime-charset)))))
 	       ;; Add an X-Coding-System: header if we don't have one.
 	       (save-excursion
@@ -2153,7 +2155,7 @@ is non-nil if the user has supplied the password interactively.
 				       (re-search-backward
 					rmail-mime-charset-pattern
 					start t))))
-			      (intern (downcase (match-string 1))))))
+			      (intern (downcase (match-string 2))))))
 		     (rmail-decode-region start (point) mime-charset)))
 	       (save-excursion
 		 (goto-char start)

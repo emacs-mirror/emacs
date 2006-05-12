@@ -82,7 +82,7 @@ loads \"cl\" appropriately."
        (funcall ',function ,@args))))
 
 ;;;###mh-autoload
-(defmacro mh-defun-compat (name function arg-list &rest body)
+(defmacro defun-mh (name function arg-list &rest body)
   "Create function NAME.
 If FUNCTION exists, then NAME becomes an alias for FUNCTION.
 Otherwise, create function NAME with ARG-LIST and BODY."
@@ -90,10 +90,10 @@ Otherwise, create function NAME with ARG-LIST and BODY."
     (if defined-p
         `(defalias ',name ',function)
       `(defun ,name ,arg-list ,@body))))
-(put 'mh-defun-compat 'lisp-indent-function 'defun)
+(put 'defun-mh 'lisp-indent-function 'defun)
 
 ;;;###mh-autoload
-(defmacro mh-defmacro-compat (name macro arg-list &rest body)
+(defmacro defmacro-mh (name macro arg-list &rest body)
   "Create macro NAME.
 If MACRO exists, then NAME becomes an alias for MACRO.
 Otherwise, create macro NAME with ARG-LIST and BODY."
@@ -101,7 +101,7 @@ Otherwise, create macro NAME with ARG-LIST and BODY."
     (if defined-p
         `(defalias ',name ',macro)
       `(defmacro ,name ,arg-list ,@body))))
-(put 'mh-defmacro-compat 'lisp-indent-function 'defun)
+(put 'defmacro-mh 'lisp-indent-function 'defun)
 
 
 
@@ -130,7 +130,9 @@ check if variable `transient-mark-mode' is active."
                (boundp 'mark-active) mark-active))))
 
 ;; Shush compiler.
-(eval-when-compile (mh-do-in-xemacs (defvar struct) (defvar x) (defvar y)))
+(defvar struct)                         ; XEmacs
+(defvar x)                              ; XEmacs
+(defvar y)                              ; XEmacs
 
 ;;;###mh-autoload
 (defmacro mh-defstruct (name-spec &rest fields)

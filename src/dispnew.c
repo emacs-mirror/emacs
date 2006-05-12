@@ -4142,7 +4142,6 @@ update_window (w, force_p)
 	  update_window_line (w, MATRIX_ROW_VPOS (mode_line_row,
 						  desired_matrix),
 			      &mouse_face_overwritten_p);
-	  changed_p = 1;
 	}
 
       /* Find first enabled row.  Optimizations in redisplay_internal
@@ -4212,7 +4211,6 @@ update_window (w, force_p)
 	{
 	  header_line_row->y = 0;
 	  update_window_line (w, 0, &mouse_face_overwritten_p);
-	  changed_p = 1;
 	}
 
       /* Fix the appearance of overlapping/overlapped rows.  */
@@ -6640,7 +6638,7 @@ init_display ()
      try to use X, and die with an error message if that doesn't work.  */
 
 #ifdef HAVE_X_WINDOWS
-  if (! display_arg)
+  if (! inhibit_window_system && ! display_arg)
     {
       char *display;
 #ifdef VMS

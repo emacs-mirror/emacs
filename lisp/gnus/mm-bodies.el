@@ -56,6 +56,8 @@
     ;; known to break servers.
     ;; Note: UTF-16 variants are invalid for text parts [RFC 2781],
     ;; so this can't happen :-/.
+    ;; PPS: Yes, it can happen if the user specifies UTF-16 in the MML
+    ;; markup. - jh.
     (utf-16 . base64)
     (utf-16be . base64)
     (utf-16le . base64))
@@ -250,7 +252,10 @@ decoding.  If it is nil, default to `mail-parse-charset'."
       (mm-decode-content-transfer-encoding encoding type))
     (when (and (featurep 'mule) ;; Fixme: Wrong test for unibyte session.
 	       (not (eq charset 'gnus-decoded)))
-      (let ((coding-system (mm-charset-to-coding-system charset)))
+      (let ((coding-system (mm-charset-to-coding-system
+			    ;; Allow overwrite using
+			    ;; `mm-charset-override-alist'.
+			    charset nil t)))
 	(if (and (not coding-system)
 		 (listp mail-parse-ignored-charsets)
 		 (memq 'gnus-unknown mail-parse-ignored-charsets))
@@ -281,7 +286,11 @@ decoding.  If it is nil, default to `mail-parse-charset'."
     (setq charset mail-parse-charset))
   (or
    (when (featurep 'mule)
-     (let ((coding-system (mm-charset-to-coding-system charset)))
+     (let ((coding-system (mm-charset-to-coding-system
+			   charset
+			   ;; Allow overwrite using
+			   ;; `mm-charset-override-alist'.
+			   nil t)))
        (if (and (not coding-system)
 		(listp mail-parse-ignored-charsets)
 		(memq 'gnus-unknown mail-parse-ignored-charsets))

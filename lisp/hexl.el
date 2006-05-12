@@ -38,7 +38,7 @@
 ;; grouping.
 ;;
 ;; -iso in `hexl-options' will allow iso characters to display in the
-;; ASCII region of the screen (if your emacs supports this) instead of
+;; ASCII region of the screen (if your Emacs supports this) instead of
 ;; changing them to dots.
 
 ;;; Code:
@@ -62,7 +62,7 @@ and \"-de\" when dehexlifying a buffer."
   :group 'hexl)
 
 (defcustom hexl-iso ""
-  "If your emacs can handle ISO characters, this should be set to
+  "If your Emacs can handle ISO characters, this should be set to
 \"-iso\" otherwise it should be \"\"."
   :type 'string
   :group 'hexl)
@@ -229,7 +229,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 				  original-point))
 	  (or (bolp) (setq original-point (1- original-point))))
         (hexlify-buffer)
-        (set-buffer-modified-p modified))
+        (restore-buffer-modified-p modified))
       (make-local-variable 'hexl-max-address)
       (setq hexl-max-address max-address)
       (condition-case nil
@@ -300,9 +300,16 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
       (lambda (string &optional bound noerror count)
 	(funcall
 	 (if isearch-forward 're-search-forward 're-search-backward)
-	 (if (> (length string) 80)
-	     (regexp-quote string)
-	   (mapconcat 'string string "\\(?:\n\\(?:[:a-f0-9]+ \\)+ \\)?"))
+         (let ((textre
+                (if (> (length string) 80)
+                    (regexp-quote string)
+                  (mapconcat (lambda (c) (regexp-quote (string c))) string
+                             "\\(?:\n\\(?:[:a-f0-9]+ \\)+ \\)?"))))
+           (if (string-match "\\` ?\\([a-f0-9]+ \\)*[a-f0-9]+ ?\\'" string)
+               (concat textre "\\|"
+                       (mapconcat 'regexp-quote (split-string string " ")
+                                  " \\(?: .+\n[a-f0-9]+: \\)?"))
+             textre))
 	 bound noerror count))
     (let ((isearch-search-fun-function nil))
       (isearch-search-fun))))
@@ -318,34 +325,33 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
   "Save a hexl format buffer as binary in visited file if modified."
   (interactive)
   (if hexl-in-save-buffer nil
-    (set-buffer-modified-p (if (buffer-modified-p)
-			       (save-excursion
-				 (let ((buf (generate-new-buffer " hexl"))
-				       (name (buffer-name))
-				       (file-name (buffer-file-name))
-				       (start (point-min))
-				       (end (point-max))
-				       modified)
-				   (set-buffer buf)
-				   (insert-buffer-substring name start end)
-				   (set-buffer name)
-				   (dehexlify-buffer)
-				   ;; Prevent infinite recursion.
-				   (let ((hexl-in-save-buffer t))
-				     (save-buffer))
-				   (setq modified (buffer-modified-p))
-				   (delete-region (point-min) (point-max))
-				   (insert-buffer-substring buf start end)
-				   (kill-buffer buf)
-				   modified))
-			     (message "(No changes need to be saved)")
-			     nil))
+    (restore-buffer-modified-p
+     (if (buffer-modified-p)
+         (let ((buf (generate-new-buffer " hexl"))
+               (name (buffer-name))
+               (start (point-min))
+               (end (point-max))
+               modified)
+           (with-current-buffer buf
+             (insert-buffer-substring name start end)
+             (set-buffer name)
+             (dehexlify-buffer)
+             ;; Prevent infinite recursion.
+             (let ((hexl-in-save-buffer t))
+               (save-buffer))
+             (setq modified (buffer-modified-p))
+             (delete-region (point-min) (point-max))
+             (insert-buffer-substring buf start end)
+             (kill-buffer buf)
+             modified))
+       (message "(No changes need to be saved)")
+       nil))
     ;; Return t to indicate we have saved t
     t))
 
 ;;;###autoload
 (defun hexl-find-file (filename)
-  "Edit file FILENAME in hexl-mode.
+  "Edit file FILENAME in `hexl-mode'.
 Switch to a buffer visiting file FILENAME, creating one in none exists."
   (interactive
    (list
@@ -367,7 +373,7 @@ With arg, don't unhexlify buffer."
 	    (original-point (1+ (hexl-current-address))))
 	(dehexlify-buffer)
 	(remove-hook 'write-contents-functions 'hexl-save-buffer t)
-	(set-buffer-modified-p modified)
+	(restore-buffer-modified-p modified)
 	(goto-char original-point)
 	;; Maybe adjust point for the removed CR characters.
 	(when (eq (coding-system-eol-type buffer-file-coding-system) 1)
@@ -403,7 +409,7 @@ Ask the user for confirmation."
 	    (original-point (1+ (hexl-current-address))))
 	(dehexlify-buffer)
 	(remove-hook 'write-contents-functions 'hexl-save-buffer t)
-	(set-buffer-modified-p modified)
+	(restore-buffer-modified-p modified)
 	(goto-char original-point))))
 
 (defun hexl-current-address (&optional validate)
@@ -917,14 +923,14 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
 	    )))))
 
 (defun hexl-activate-ruler ()
-  "Activate `ruler-mode'"
+  "Activate `ruler-mode'."
   (require 'ruler-mode)
   (set (make-local-variable 'ruler-mode-ruler-function)
        'hexl-mode-ruler)
   (ruler-mode 1))
 
 (defun hexl-follow-line ()
-  "Activate `hl-line-mode'"
+  "Activate `hl-line-mode'."
   (require 'frame)
   (require 'hl-line)
   (with-no-warnings
@@ -1071,5 +1077,5 @@ This function is assumed to be used as call back function for `hl-line-mode'."
 
 (provide 'hexl)
 
-;;; arch-tag: d5a7aa8a-9bce-480b-bcff-6c4c7ca5ea4a
+;; arch-tag: d5a7aa8a-9bce-480b-bcff-6c4c7ca5ea4a
 ;;; hexl.el ends here

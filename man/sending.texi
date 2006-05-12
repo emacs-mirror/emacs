@@ -2,7 +2,7 @@
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001, 2002,
 @c   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Sending Mail, Rmail, Abbrevs, Top
+@node Sending Mail
 @chapter Sending Mail
 @cindex sending mail
 @cindex mail
@@ -459,7 +459,7 @@ user agent sends mail.  It should be set to a function.  The default
 is @code{sendmail-send-it}, which delivers mail using the Sendmail
 installation on the local host.  To send mail through a SMTP server,
 set it to @code{smtpmail-send-it} and set up the Emacs SMTP library
-(@pxref{Top,,Emacs SMTP Library, Sending mail via SMTP,smtpmail}).  A
+(@pxref{Top,,Emacs SMTP Library, smtpmail, Sending mail via SMTP}).  A
 third option is @code{feedmail-send-it}, see the commentary section of
 the @file{feedmail.el} package for more information.
 

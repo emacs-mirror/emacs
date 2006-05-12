@@ -1,6 +1,6 @@
 ;;; greek.el --- Quail package for inputting Greek -*-coding: iso-2022-7bit-*-
 
-;; Copyright (C) 2001, 2002, 2003, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2006  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 2001
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021

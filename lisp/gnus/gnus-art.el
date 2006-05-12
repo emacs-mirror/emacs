@@ -3809,6 +3809,7 @@ commands:
   (make-local-variable 'gnus-article-ignored-charsets)
   ;; Prevent recent Emacsen from displaying non-break space as "\ ".
   (set (make-local-variable 'nobreak-char-display) nil)
+  (setq cursor-in-non-selected-windows nil)
   (gnus-set-default-directory)
   (buffer-disable-undo)
   (setq buffer-read-only t)
@@ -4316,21 +4317,29 @@ Deleting parts may malfunction or destroy the article; continue? ")
 
 (defun gnus-mime-view-part-as-type-internal ()
   (gnus-article-check-buffer)
-  (let* ((name (mail-content-type-get
-		(mm-handle-type (get-text-property (point) 'gnus-data))
-		'name))
+  (let* ((handle (get-text-property (point) 'gnus-data))
+	 (name (or
+		;; Content-Type: foo/bar; name=...
+		(mail-content-type-get (mm-handle-type handle) 'name)
+		;; Content-Disposition: attachment; filename=...
+		(cdr (assq 'filename (cdr (mm-handle-disposition handle))))))
 	 (def-type (and name (mm-default-file-encoding name))))
     (and def-type (cons def-type 0))))
 
-(defun gnus-mime-view-part-as-type (&optional mime-type)
-  "Choose a MIME media type, and view the part as such."
+(defun gnus-mime-view-part-as-type (&optional mime-type pred)
+  "Choose a MIME media type, and view the part as such.
+If non-nil, PRED is a predicate to use during completion to limit the
+available media-types."
   (interactive)
   (unless mime-type
-    (setq mime-type (completing-read
-		     "View as MIME type: "
-		     (mapcar #'list (mailcap-mime-types))
-		     nil nil
-		     (gnus-mime-view-part-as-type-internal))))
+    (setq mime-type
+	  (let ((default (gnus-mime-view-part-as-type-internal)))
+	    (completing-read
+	     (format "View as MIME type (default %s): "
+		     (car default))
+	     (mapcar #'list (mailcap-mime-types))
+	     pred nil nil nil
+	     (car default)))))
   (gnus-article-check-buffer)
   (let ((handle (get-text-property (point) 'gnus-data)))
     (when handle
@@ -4477,19 +4486,29 @@ are decompressed."
 specified charset."
   (interactive (list nil current-prefix-arg))
   (gnus-article-check-buffer)
-  (let* ((handle (or handle (get-text-property (point) 'gnus-data)))
-	 contents charset
-	 (b (point))
-	 (inhibit-read-only t))
+  (let ((handle (or handle (get-text-property (point) 'gnus-data)))
+	(fun (get-text-property (point) 'gnus-callback))
+	(gnus-newsgroup-ignored-charsets 'gnus-all)
+	gnus-newsgroup-charset type charset)
     (when handle
       (if (mm-handle-undisplayer handle)
 	  (mm-remove-part handle))
-      (let ((gnus-newsgroup-charset
-	     (or (cdr (assq arg
-			    gnus-summary-show-article-charset-alist))
-		 (mm-read-coding-system "Charset: ")))
-	  (gnus-newsgroup-ignored-charsets 'gnus-all))
-	(gnus-article-press-button)))))
+      (when fun
+	(setq gnus-newsgroup-charset
+	      (or (cdr (assq arg gnus-summary-show-article-charset-alist))
+		  (mm-read-coding-system "Charset: ")))
+	;; Strip the charset parameter from `handle'.
+	(setq type (mm-handle-type
+		    (if (equal (mm-handle-media-type handle)
+			       "message/external-body")
+			(progn
+			  (unless (mm-handle-cache handle)
+			    (mm-extern-cache-contents handle))
+			  (mm-handle-cache handle))
+		      handle))
+	      charset (assq 'charset (cdr type)))
+	(delq charset type)
+	(funcall fun handle)))))
 
 (defun gnus-mime-view-part-externally (&optional handle)
   "View the MIME part under point with an external viewer."
@@ -4500,12 +4519,18 @@ specified charset."
 	 (mm-inlined-types nil)
 	 (mail-parse-charset gnus-newsgroup-charset)
 	 (mail-parse-ignored-charsets
-	  (save-excursion (set-buffer gnus-summary-buffer)
-			  gnus-newsgroup-ignored-charsets)))
-    (when handle
-      (if (mm-handle-undisplayer handle)
-	  (mm-remove-part handle)
-	(mm-display-part handle)))))
+          (with-current-buffer gnus-summary-buffer
+            gnus-newsgroup-ignored-charsets))
+         (type (mm-handle-media-type handle))
+         (method (mailcap-mime-info type))
+         (mm-enable-external t))
+    (if (not (stringp method))
+	(gnus-mime-view-part-as-type
+	 nil (lambda (type) (stringp (mailcap-mime-info type))))
+      (when handle
+	(if (mm-handle-undisplayer handle)
+	    (mm-remove-part handle)
+	  (mm-display-part handle))))))
 
 (defun gnus-mime-view-part-internally (&optional handle)
   "View the MIME part under point with an internal viewer.
@@ -4517,13 +4542,16 @@ If no internal viewer is available, use an external viewer."
 	 (mm-inline-large-images t)
 	 (mail-parse-charset gnus-newsgroup-charset)
 	 (mail-parse-ignored-charsets
-	  (save-excursion (set-buffer gnus-summary-buffer)
-			  gnus-newsgroup-ignored-charsets))
+	  (with-current-buffer gnus-summary-buffer
+	    gnus-newsgroup-ignored-charsets))
 	 (inhibit-read-only t))
-    (when handle
-      (if (mm-handle-undisplayer handle)
-	  (mm-remove-part handle)
-	(mm-display-part handle)))))
+    (if (not (mm-inlinable-p handle))
+        (gnus-mime-view-part-as-type
+         nil (lambda (type) (mm-inlinable-p handle type)))
+      (when handle
+	(if (mm-handle-undisplayer handle)
+	    (mm-remove-part handle)
+	  (mm-display-part handle))))))
 
 (defun gnus-mime-action-on-part (&optional action)
   "Do something with the MIME attachment at \(point\)."
@@ -5972,7 +6000,7 @@ groups."
 
 ;; Regexp suggested by Felix Wiemann in <87oeuomcz9.fsf@news2.ososo.de>
 (defcustom gnus-button-valid-localpart-regexp
-  "[a-z0-9$%(*-=?[_][^<>\")!;:,{}\n\t ]*"
+  "[a-z0-9$%(*-=?[_][^<>\")!;:,{}\n\t @]*"
   "Regular expression that matches a localpart of mail addresses or MIDs."
   :version "22.1"
   :group 'gnus-article-buttons

@@ -28,7 +28,9 @@ Boston, MA 02110-1301, USA.  */
 
 #include "lisp.h"
 #include "process.h"
-#undef init_process
+#ifdef MAC_OSX
+#undef select
+#endif
 #include "systime.h"
 #include "sysselect.h"
 #include "blockinput.h"
@@ -79,8 +81,10 @@ static ComponentInstance as_scripting_component;
 /* The single script context used for all script executions.  */
 static OSAID as_script_context;
 
+#ifndef MAC_OSX
 static OSErr posix_pathname_to_fsspec P_ ((const char *, FSSpec *));
 static OSErr fsspec_to_posix_pathname P_ ((const FSSpec *, char *, int));
+#endif
 
 /* When converting from Mac to Unix pathnames, /'s in folder names are
    converted to :'s.  This function, used in copying folder names,
@@ -268,7 +272,7 @@ static Lisp_Object Qundecoded_file_name;
 
 static Lisp_Object
 mac_aelist_to_lisp (desc_list)
-     AEDescList *desc_list;
+     const AEDescList *desc_list;
 {
   OSErr err;
   long count;
@@ -333,7 +337,7 @@ mac_aelist_to_lisp (desc_list)
 
 Lisp_Object
 mac_aedesc_to_lisp (desc)
-     AEDesc *desc;
+     const AEDesc *desc;
 {
   OSErr err = noErr;
   DescType desc_type = desc->descriptorType;
@@ -444,20 +448,31 @@ mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
 	}
       else
 	err = memFullErr;
+
+      if (err != noErr)
+	{
+	  /* Just to be paranoid ...  */
+	  FSRef fref;
+	  char *buf;
+
+	  buf = xmalloc (data_size + 1);
+	  memcpy (buf, data_ptr, data_size);
+	  buf[data_size] = '\0';
+	  err = FSPathMakeRef (buf, &fref, NULL);
+	  xfree (buf);
+	  if (err == noErr)
+	    err = AECoercePtr (typeFSRef, &fref, sizeof (FSRef),
+			       to_type, result);
+	}
 #else
       FSSpec fs;
       char *buf;
 
       buf = xmalloc (data_size + 1);
-      if (buf)
-	{
-	  memcpy (buf, data_ptr, data_size);
-	  buf[data_size] = '\0';
-	  err = posix_pathname_to_fsspec (buf, &fs);
-	  xfree (buf);
-	}
-      else
-	err = memFullErr;
+      memcpy (buf, data_ptr, data_size);
+      buf[data_size] = '\0';
+      err = posix_pathname_to_fsspec (buf, &fs);
+      xfree (buf);
       if (err == noErr)
 	err = AECoercePtr (typeFSS, &fs, sizeof (FSSpec), to_type, result);
 #endif
@@ -485,14 +500,11 @@ mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
 	    {
 	      size = AEGetDescDataSize (&desc);
 	      buf = xmalloc (size);
-	      if (buf)
-		{
-		  err = AEGetDescData (&desc, buf, size);
-		  if (err == noErr)
-		    url = CFURLCreateWithBytes (NULL, buf, size,
-						kCFStringEncodingUTF8, NULL);
-		  xfree (buf);
-		}
+	      err = AEGetDescData (&desc, buf, size);
+	      if (err == noErr)
+		url = CFURLCreateWithBytes (NULL, buf, size,
+					    kCFStringEncodingUTF8, NULL);
+	      xfree (buf);
 	      AEDisposeDesc (&desc);
 	    }
 	}
@@ -514,6 +526,34 @@ mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
 			      CFDataGetLength (data), result);
 	  CFRelease (data);
 	}
+
+      if (err != noErr)
+	{
+	  /* Coercion from typeAlias to typeFileURL fails on Mac OS X
+	     10.2.  In such cases, try typeFSRef as a target type.  */
+	  char file_name[MAXPATHLEN];
+
+	  if (type_code == typeFSRef && data_size == sizeof (FSRef))
+	    err = FSRefMakePath (data_ptr, file_name, sizeof (file_name));
+	  else
+	    {
+	      AEDesc desc;
+	      FSRef fref;
+
+	      err = AECoercePtr (type_code, data_ptr, data_size,
+				 typeFSRef, &desc);
+	      if (err == noErr)
+		{
+		  err = AEGetDescData (&desc, &fref, sizeof (FSRef));
+		  AEDisposeDesc (&desc);
+		}
+	      if (err == noErr)
+		err = FSRefMakePath (&fref, file_name, sizeof (file_name));
+	    }
+	  if (err == noErr)
+	    err = AECreateDesc (TYPE_FILE_NAME, file_name,
+				strlen (file_name), result);
+	}
 #else
       char file_name[MAXPATHLEN];
 
@@ -533,11 +573,11 @@ mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
 #else
 	      fs = *(FSSpec *)(*(desc.dataHandle));
 #endif
-	      if (err == noErr)
-		err = fsspec_to_posix_pathname (&fs, file_name,
-						sizeof (file_name) - 1);
 	      AEDisposeDesc (&desc);
 	    }
+	  if (err == noErr)
+	    err = fsspec_to_posix_pathname (&fs, file_name,
+					    sizeof (file_name) - 1);
 	}
       if (err == noErr)
 	err = AECreateDesc (TYPE_FILE_NAME, file_name,
@@ -577,21 +617,16 @@ mac_coerce_file_name_desc (from_desc, to_type, handler_refcon, result)
       data_size = GetHandleSize (from_desc->dataHandle);
 #endif
       data_ptr = xmalloc (data_size);
-      if (data_ptr)
-	{
 #if TARGET_API_MAC_CARBON
-	  err = AEGetDescData (from_desc, data_ptr, data_size);
+      err = AEGetDescData (from_desc, data_ptr, data_size);
 #else
-	  memcpy (data_ptr, *(from_desc->dataHandle), data_size);
+      memcpy (data_ptr, *(from_desc->dataHandle), data_size);
 #endif
-	  if (err == noErr)
-	    err = mac_coerce_file_name_ptr (from_type, data_ptr,
-					    data_size, to_type,
-					    handler_refcon, result);
-	  xfree (data_ptr);
-	}
-      else
-	err = memFullErr;
+      if (err == noErr)
+	err = mac_coerce_file_name_ptr (from_type, data_ptr,
+					data_size, to_type,
+					handler_refcon, result);
+      xfree (data_ptr);
     }
 
   if (err != noErr)
@@ -630,6 +665,31 @@ init_coercion_handler ()
 }
 
 #if TARGET_API_MAC_CARBON
+static OSErr
+create_apple_event (class, id, result)
+     AEEventClass class;
+     AEEventID id;
+     AppleEvent *result;
+{
+  OSErr err;
+  static const ProcessSerialNumber psn = {0, kCurrentProcess};
+  AEAddressDesc address_desc;
+
+  err = AECreateDesc (typeProcessSerialNumber, &psn,
+		      sizeof (ProcessSerialNumber), &address_desc);
+  if (err == noErr)
+    {
+      err = AECreateAppleEvent (class, id,
+				&address_desc, /* NULL is not allowed
+						  on Mac OS Classic. */
+				kAutoGenerateReturnID,
+				kAnyTransactionID, result);
+      AEDisposeDesc (&address_desc);
+    }
+
+  return err;
+}
+
 OSErr
 create_apple_event_from_event_ref (event, num_params, names, types, result)
      EventRef event;
@@ -639,24 +699,12 @@ create_apple_event_from_event_ref (event, num_params, names, types, result)
      AppleEvent *result;
 {
   OSErr err;
-  static const ProcessSerialNumber psn = {0, kCurrentProcess};
-  AEAddressDesc address_desc;
   UInt32 i, size;
   CFStringRef string;
   CFDataRef data;
-  char *buf;
+  char *buf = NULL;
 
-  err = AECreateDesc (typeProcessSerialNumber, &psn,
-		      sizeof (ProcessSerialNumber), &address_desc);
-  if (err == noErr)
-    {
-      err = AECreateAppleEvent (0, 0, /* Dummy class and ID.   */
-				&address_desc, /* NULL is not allowed
-						  on Mac OS Classic. */
-				kAutoGenerateReturnID,
-				kAnyTransactionID, result);
-      AEDisposeDesc (&address_desc);
-    }
+  err = create_apple_event (0, 0, result); /* Dummy class and ID.  */
   if (err != noErr)
     return err;
 
@@ -686,21 +734,88 @@ create_apple_event_from_event_ref (event, num_params, names, types, result)
 				 0, &size, NULL);
 	if (err != noErr)
 	  break;
-	buf = xmalloc (size);
-	if (buf == NULL)
-	  break;
+	buf = xrealloc (buf, size);
 	err = GetEventParameter (event, names[i], types[i], NULL,
 				 size, NULL, buf);
 	if (err == noErr)
 	  AEPutParamPtr (result, names[i], types[i], buf, size);
-	xfree (buf);
 	break;
       }
+  if (buf)
+    xfree (buf);
 
   return noErr;
 }
-#endif
 
+OSErr
+create_apple_event_from_drag_ref (drag, num_types, types, result)
+     DragRef drag;
+     UInt32 num_types;
+     FlavorType *types;
+     AppleEvent *result;
+{
+  OSErr err;
+  UInt16 num_items;
+  AppleEvent items;
+  long index;
+  char *buf = NULL;
+
+  err = CountDragItems (drag, &num_items);
+  if (err != noErr)
+    return err;
+  err = AECreateList (NULL, 0, false, &items);
+  if (err != noErr)
+    return err;
+
+  for (index = 1; index <= num_items; index++)
+    {
+      ItemReference item;
+      DescType desc_type = typeNull;
+      Size size;
+
+      err = GetDragItemReferenceNumber (drag, index, &item);
+      if (err == noErr)
+	{
+	  int i;
+
+	  for (i = 0; i < num_types; i++)
+	    {
+	      err = GetFlavorDataSize (drag, item, types[i], &size);
+	      if (err == noErr)
+		{
+		  buf = xrealloc (buf, size);
+		  err = GetFlavorData (drag, item, types[i], buf, &size, 0);
+		}
+	      if (err == noErr)
+		{
+		  desc_type = types[i];
+		  break;
+		}
+	    }
+	}
+      err = AEPutPtr (&items, index, desc_type,
+		      desc_type != typeNull ? buf : NULL,
+		      desc_type != typeNull ? size : 0);
+      if (err != noErr)
+	break;
+    }
+  if (buf)
+    xfree (buf);
+
+  if (err == noErr)
+    {
+      err = create_apple_event (0, 0, result); /* Dummy class and ID.  */
+      if (err == noErr)
+	err = AEPutParamDesc (result, keyDirectObject, &items);
+      if (err != noErr)
+	AEDisposeDesc (result);
+    }
+
+  AEDisposeDesc (&items);
+
+  return err;
+}
+#endif	/* TARGET_API_MAC_CARBON */
 
 /***********************************************************************
 	 Conversion between Lisp and Core Foundation objects
@@ -1222,7 +1337,7 @@ parse_value (p)
 		       && '0' <= P[1] && P[1] <= '7'
 		       && '0' <= P[2] && P[2] <= '7')
 		{
-		  *q++ = (P[0] - '0' << 6) + (P[1] - '0' << 3) + (P[2] - '0');
+		  *q++ = ((P[0] - '0') << 6) + ((P[1] - '0') << 3) + (P[2] - '0');
 		  P += 3;
 		}
 	      else
@@ -1592,8 +1707,6 @@ xrm_get_preference_database (application)
 
   count = CFSetGetCount (key_set);
   keys = xmalloc (sizeof (CFStringRef) * count);
-  if (keys == NULL)
-    goto out;
   CFSetGetValues (key_set, (const void **)keys);
   for (index = 0; index < count; index++)
     {
@@ -2789,7 +2902,7 @@ link (const char *name1, const char *name2)
 /* Determine the path name of the file specified by VREFNUM, DIRID,
    and NAME and place that in the buffer PATH of length
    MAXPATHLEN.  */
-int
+static int
 path_from_vol_dir_name (char *path, int man_path_len, short vol_ref_num,
 			long dir_id, ConstStr255Param name)
 {
@@ -2834,6 +2947,8 @@ path_from_vol_dir_name (char *path, int man_path_len, short vol_ref_num,
 }
 
 
+#ifndef MAC_OSX
+
 static OSErr
 posix_pathname_to_fsspec (ufn, fs)
      const char *ufn;
@@ -2865,8 +2980,6 @@ fsspec_to_posix_pathname (fs, ufn, ufnbuflen)
   else
     return fnfErr;
 }
-
-#ifndef MAC_OSX
 
 int
 readlink (const char *path, char *buf, int bufsiz)
@@ -3124,8 +3237,7 @@ get_temp_dir_name ()
   short vol_ref_num;
   long dir_id;
   OSErr err;
-  Str255 dir_name, full_path;
-  CInfoPBRec cpb;
+  Str255 full_path;
   char unix_dir_name[MAXPATHLEN+1];
   DIR *dir;
 
@@ -3217,8 +3329,7 @@ get_path_to_system_folder ()
   short vol_ref_num;
   long dir_id;
   OSErr err;
-  Str255 dir_name, full_path;
-  CInfoPBRec cpb;
+  Str255 full_path;
   static char system_folder_unix_name[MAXPATHLEN+1];
   DIR *dir;
 
@@ -3947,7 +4058,6 @@ DEFUN ("mac-get-file-creator", Fmac_get_file_creator, Smac_get_file_creator, 1, 
 #else
   FSSpec fss;
 #endif
-  OSType cCode;
   Lisp_Object result = Qnil;
   CHECK_STRING (filename);
 
@@ -4002,7 +4112,6 @@ DEFUN ("mac-get-file-type", Fmac_get_file_type, Smac_get_file_type, 1, 1, 0,
 #else
   FSSpec fss;
 #endif
-  OSType cCode;
   Lisp_Object result = Qnil;
   CHECK_STRING (filename);
 
@@ -4296,11 +4405,6 @@ Each type should be a string of length 4 or the symbol
   Lisp_Object result = Qnil;
   DescType src_desc_type, dst_desc_type;
   AEDesc dst_desc;
-#ifdef MAC_OSX
-  FSRef fref;
-#else
-  FSSpec fs;
-#endif
 
   CHECK_STRING (src_data);
   if (EQ (src_type, Qundecoded_file_name))
@@ -4422,18 +4526,20 @@ otherwise.  */)
     }
 
   if (NILP (key))
-    if (EQ (format, Qxml))
-      {
-	CFDataRef data = CFPropertyListCreateXMLData (NULL, plist);
-	if (data == NULL)
-	  goto out;
-	result = cfdata_to_lisp (data);
-	CFRelease (data);
-      }
-    else
-      result =
-	cfproperty_list_to_lisp (plist, EQ (format, Qt),
-				 NILP (hash_bound) ? -1 : XINT (hash_bound));
+    {
+      if (EQ (format, Qxml))
+	{
+	  CFDataRef data = CFPropertyListCreateXMLData (NULL, plist);
+	  if (data == NULL)
+	    goto out;
+	  result = cfdata_to_lisp (data);
+	  CFRelease (data);
+	}
+      else
+	result =
+	  cfproperty_list_to_lisp (plist, EQ (format, Qt),
+				   NILP (hash_bound) ? -1 : XINT (hash_bound));
+    }
 
  out:
   if (app_plist)
@@ -4550,11 +4656,8 @@ cfstring_create_normalized (str, symbol)
       if (in_text == NULL)
 	{
 	  buffer = xmalloc (sizeof (UniChar) * length);
-	  if (buffer)
-	    {
-	      CFStringGetCharacters (str, CFRangeMake (0, length), buffer);
-	      in_text = buffer;
-	    }
+	  CFStringGetCharacters (str, CFRangeMake (0, length), buffer);
+	  in_text = buffer;
 	}
 
       if (in_text)
@@ -4562,15 +4665,12 @@ cfstring_create_normalized (str, symbol)
       while (err == noErr)
 	{
 	  out_buf = xmalloc (out_size);
-	  if (out_buf == NULL)
-	    err = mFulErr;
-	  else
-	    err = ConvertFromUnicodeToText (uni, length * sizeof (UniChar),
-					    in_text,
-					    kUnicodeDefaultDirectionMask,
-					    0, NULL, NULL, NULL,
-					    out_size, &out_read, &out_len,
-					    out_buf);
+	  err = ConvertFromUnicodeToText (uni, length * sizeof (UniChar),
+					  in_text,
+					  kUnicodeDefaultDirectionMask,
+					  0, NULL, NULL, NULL,
+					  out_size, &out_read, &out_len,
+					  out_buf);
 	  if (err == noErr && out_read < length * sizeof (UniChar))
 	    {
 	      xfree (out_buf);
@@ -4668,16 +4768,6 @@ On successful conversion, return the result string, else return nil.  */)
 #endif	/* TARGET_API_MAC_CARBON */
 
 
-DEFUN ("mac-clear-font-name-table", Fmac_clear_font_name_table, Smac_clear_font_name_table, 0, 0, 0,
-       doc: /* Clear the font name table.  */)
-     ()
-{
-  check_mac ();
-  mac_clear_font_name_table ();
-  return Qnil;
-}
-
-
 static Lisp_Object
 mac_get_system_locale ()
 {
@@ -4701,7 +4791,6 @@ mac_get_system_locale ()
 
 
 #ifdef MAC_OSX
-#undef select
 
 extern int inhibit_window_system;
 extern int noninteractive;
@@ -5150,7 +5239,6 @@ syms_of_mac ()
   defsubr (&Smac_get_preference);
   defsubr (&Smac_code_convert_string);
 #endif
-  defsubr (&Smac_clear_font_name_table);
 
   defsubr (&Smac_set_file_creator);
   defsubr (&Smac_set_file_type);

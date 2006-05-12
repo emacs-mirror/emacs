@@ -88,15 +88,13 @@ end
 # Print out s-expressions from tool bar
 define pp1
   set $tmp = $arg0
-  echo $arg0
-  printf " = "
   set $output_debug = print_output_debug_flag
   set print_output_debug_flag = 0
   set safe_debug_print ($tmp)
   set print_output_debug_flag = $output_debug
 end
 document pp1
-Print the argument as an emacs s-expression
+Print the argument as an emacs s-expression.
 Works only when an inferior emacs is executing.
 For use on tool bar when debugging in Emacs
 where the variable name would not otherwise
@@ -119,8 +117,6 @@ end
 # Print value of lisp variable
 define pv1
   set $tmp = "$arg0"
-  echo $arg0
-  printf " = "
   set $output_debug = print_output_debug_flag
   set print_output_debug_flag = 0
   set safe_debug_print (find_symbol_value (intern ($tmp)))
@@ -129,9 +125,8 @@ end
 document pv1
 Print the value of the lisp variable given as argument.
 Works only when an inferior emacs is executing.
-For use on tool bar when debugging in Emacs
-where the variable name would not otherwise
-be recorded in the GUD buffer.
+For use when debugging in Emacs where the variable
+name would not otherwise be recorded in the GUD buffer.
 end
 
 # Print out current buffer point and boundaries
@@ -216,6 +211,7 @@ define pitx
   printf "vpos=%d hpos=%d", $it->vpos, $it->hpos,
   printf " y=%d lvy=%d", $it->current_y, $it->last_visible_y
   printf " x=%d vx=%d-%d", $it->current_x, $it->first_visible_x, $it->last_visible_x
+  printf " w=%d", $it->pixel_width
   printf " a+d=%d+%d=%d", $it->ascent, $it->descent, $it->ascent+$it->descent
   printf " max=%d+%d=%d", $it->max_ascent, $it->max_descent, $it->max_ascent+$it->max_descent
   printf "\n"
@@ -549,6 +545,10 @@ end
 define xframe
   xgetptr $
   print (struct frame *) $ptr
+  xgetptr $->name
+  set $ptr = (struct Lisp_String *) $ptr
+  xprintstr $ptr
+  echo \n
 end
 document xframe
 Print $ as a frame pointer, assuming it is an Emacs Lisp frame value.
@@ -681,6 +681,31 @@ document xcdr
 Print the cdr of $, assuming it is an Emacs Lisp pair.
 end
 
+define xlist
+  xgetptr $
+  set $cons = (struct Lisp_Cons *) $ptr
+  xgetptr Qnil
+  set $nil = $ptr
+  set $i = 0
+  while $cons != $nil && $i < 10
+    p/x $cons->car
+    xpr
+    xgetptr $cons->u.cdr
+    set $cons = (struct Lisp_Cons *) $ptr
+    set $i = $i + 1
+    printf "---\n"
+  end
+  if $cons == $nil
+    printf "nil\n"
+  else
+    printf "...\n"
+    p $ptr
+  end
+end
+document xlist
+Print $ assuming it is a list.
+end
+
 define xfloat
   xgetptr $
   print ((struct Lisp_Float *) $ptr)->u.data
@@ -697,6 +722,108 @@ echo \n
 end
 document xscrollbar
 Print $ as a scrollbar pointer.
+end
+
+define xpr
+  xtype
+  if $type == Lisp_Int
+    xint
+  end
+  if $type == Lisp_Symbol
+    xsymbol
+  end
+  if $type == Lisp_String
+    xstring
+  end
+  if $type == Lisp_Cons
+    xcons
+  end
+  if $type == Lisp_Float
+    xfloat
+  end
+  if $type == Lisp_Misc
+    set $misc = (enum Lisp_Misc_Type) (((struct Lisp_Free *) $ptr)->type)
+    if $misc == Lisp_Misc_Free
+      xmiscfree
+    end
+    if $misc == Lisp_Misc_Boolfwd
+      xboolfwd
+    end
+    if $misc == Lisp_Misc_Marker
+      xmarker
+    end
+    if $misc == Lisp_Misc_Intfwd
+      xintfwd
+    end
+    if $misc == Lisp_Misc_Boolfwd
+      xboolfwd
+    end
+    if $misc == Lisp_Misc_Objfwd
+      xobjfwd
+    end
+    if $misc == Lisp_Misc_Buffer_Objfwd
+      xbufobjfwd
+    end
+    if $misc == Lisp_Misc_Buffer_Local_Value
+      xbuflocal
+    end
+#    if $misc == Lisp_Misc_Some_Buffer_Local_Value
+#      xvalue
+#    end
+    if $misc == Lisp_Misc_Overlay
+      xoverlay
+    end
+    if $misc == Lisp_Misc_Kboard_Objfwd
+      xkbobjfwd
+    end
+#    if $misc == Lisp_Misc_Save_Value
+#      xsavevalue
+#    end
+  end
+  if $type == Lisp_Vectorlike
+    set $size = ((struct Lisp_Vector *) $ptr)->size
+    if ($size & PVEC_FLAG)
+      set $vec = (enum pvec_type) ($size & PVEC_TYPE_MASK)
+      if $vec == PVEC_NORMAL_VECTOR
+	xvector
+      end
+      if $vec == PVEC_PROCESS
+	xprocess
+      end
+      if $vec == PVEC_FRAME
+	xframe
+      end
+      if $vec == PVEC_COMPILED
+	xcompiled
+      end
+      if $vec == PVEC_WINDOW
+	xwindow
+      end
+      if $vec == PVEC_WINDOW_CONFIGURATION
+	xwinconfig
+      end
+      if $vec == PVEC_SUBR
+	xsubr
+      end
+      if $vec == PVEC_CHAR_TABLE
+	xchartable
+      end
+      if $vec == PVEC_BOOL_VECTOR
+	xboolvector
+      end
+      if $vec == PVEC_BUFFER
+	xbuffer
+      end
+      if $vec == PVEC_HASH_TABLE
+	xhashtable
+      end
+    else
+      xvector
+    end
+  end
+end
+document xpr
+Print $ as a lisp object of any type.
 end
 
 define xprintstr
@@ -744,7 +871,7 @@ define xbacktrace
     xgettype (*$bt->function)
     if $type == Lisp_Symbol
       xprintsym (*$bt->function)
-      echo \n
+      printf " (0x%x)\n", *$bt->args
     else
       printf "0x%x ", *$bt->function
       if $type == Lisp_Vectorlike
@@ -763,6 +890,27 @@ document xbacktrace
   Print a backtrace of Lisp function calls from backtrace_list.
   Set a breakpoint at Fsignal and call this to see from where
   an error was signaled.
+end
+
+define which
+  set debug_print (which_symbols ($arg0))
+end
+document which
+  Print symbols which references a given lisp object,
+  either as its symbol value or symbol function.
+end
+
+define xbytecode
+  set $bt = byte_stack_list
+  while $bt
+    xgettype ($bt->byte_string)
+    printf "0x%x => ", $bt->byte_string
+    which $bt->byte_string
+    set $bt = $bt->next
+  end
+end
+document xbytecode
+  Print a backtrace of the byte code stack.
 end
 
 # Show Lisp backtrace after normal backtrace.

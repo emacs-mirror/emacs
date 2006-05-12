@@ -411,7 +411,7 @@ so don't mark these buffers specially, just visit them normally."
 	;; deleted file, offer to write it.
 	(let* ((filen (car file))
 	       (obuf (get-file-buffer filen)))
-	  (push filen file-name-history)
+	  (add-to-history 'file-name-history filen)
 	  (if (and obuf (set-buffer obuf))
 	      (progn
 		(cond ((file-exists-p filen)

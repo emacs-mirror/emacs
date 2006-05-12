@@ -208,18 +208,13 @@ during matching.")
 
 ;;;###autoload
 (defvar imenu-create-index-function 'imenu-default-create-index-function
-  "The function to use for creating a buffer index.
+  "The function to use for creating an index alist of the current buffer.
 
-It should be a function that takes no arguments and returns an index
-of the current buffer as an alist.
+It should be a function that takes no arguments and returns
+an index alist of the current buffer.  The function is
+called within a `save-excursion'.
 
-Simple elements in the alist look like (INDEX-NAME . INDEX-POSITION).
-Special elements look like (INDEX-NAME INDEX-POSITION FUNCTION ARGUMENTS...).
-A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).
-The function `imenu--subalist-p' tests an element and returns t
-if it is a sub-alist.
-
-This function is called within a `save-excursion'.")
+See `imenu--index-alist' for the format of the buffer index alist.")
 ;;;###autoload
 (make-variable-buffer-local 'imenu-create-index-function)
 
@@ -431,15 +426,27 @@ Don't move point."
 ;; The latest buffer index.
 ;; Buffer local.
 (defvar imenu--index-alist nil
-  "The buffer index computed for this buffer in Imenu.
-Simple elements in the alist look like (INDEX-NAME . INDEX-POSITION).
-Special elements look like (INDEX-NAME INDEX-POSITION FUNCTION ARGUMENTS...).
-A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).")
+  "The buffer index alist computed for this buffer in Imenu.
+
+Simple elements in the alist look like (INDEX-NAME . POSITION).
+POSITION is the buffer position of the item; to go to the item
+is simply to move point to that position.
+
+Special elements look like (INDEX-NAME POSITION FUNCTION ARGUMENTS...).
+To \"go to\" a special element means applying FUNCTION
+to INDEX-NAME, POSITION, and the ARGUMENTS.
+
+A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).
+The function `imenu--subalist-p' tests an element and returns t
+if it is a sub-alist.
+
+There is one simple element with negative POSITION; selecting that
+element recalculates the buffer's index alist.")
 
 (make-variable-buffer-local 'imenu--index-alist)
 
 (defvar imenu--last-menubar-index-alist nil
-  "The latest buffer index used to update the menu bar menu.")
+  "The latest buffer index alist used to update the menu bar menu.")
 
 (make-variable-buffer-local 'imenu--last-menubar-index-alist)
 
@@ -547,19 +554,12 @@ A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).")
 
 
 (defun imenu--make-index-alist (&optional noerror)
-  "Create an index-alist for the definitions in the current buffer.
-
+  "Create an index alist for the definitions in the current buffer.
+This works by using the hook function `imenu-create-index-function'.
 Report an error if the list is empty unless NOERROR is supplied and
 non-nil.
 
-Simple elements in the alist look like (INDEX-NAME . INDEX-POSITION).
-Special elements look like (INDEX-NAME FUNCTION ARGUMENTS...).
-A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).
-The function `imenu--subalist-p' tests an element and returns t
-if it is a sub-alist.
-
-There is one simple element with negative POSITION; that's intended
-as a way for the user to ask to recalculate the buffer's index alist."
+See `imenu--index-alist' for the format of the index alist."
   (or (and imenu--index-alist
 	   (or (not imenu-auto-rescan)
 	       (and imenu-auto-rescan
@@ -657,11 +657,15 @@ and speed-up matching.")
 (make-variable-buffer-local 'imenu-syntax-alist)
 
 (defun imenu-default-create-index-function ()
-  "*Wrapper for index searching functions.
+  "*Default function to create an index alist of the current buffer.
 
-Moves point to end of buffer and then repeatedly calls
+The most general method is to move point to end of buffer, then repeatedly call
 `imenu-prev-index-position-function' and `imenu-extract-index-name-function'.
-Their results are gathered into an index alist."
+All the results returned by the latter are gathered into an index alist.
+This method is used if those two variables are non-nil.
+
+The alternate method, which is the one most often used, is to call
+`imenu--generic-function' with `imenu-generic-expression' as argument."
   ;; These should really be done by setting imenu-create-index-function
   ;; in these major modes.  But save that change for later.
   (cond ((and imenu-prev-index-position-function
@@ -687,27 +691,6 @@ Their results are gathered into an index alist."
 	(t
 	 (error "This buffer cannot use `imenu-default-create-index-function'"))))
 
-;; Not used and would require cl at run time
-;; (defun imenu--flatten-index-alist (index-alist &optional concat-names prefix)
-;;   ;; Takes a nested INDEX-ALIST and returns a flat index alist.
-;;   ;; If optional CONCAT-NAMES is non-nil, then a nested index has its
-;;   ;; name and a space concatenated to the names of the children.
-;;   ;; Third argument PREFIX is for internal use only.
-;;   (mapcan
-;;    (lambda (item)
-;;      (let* ((name (car item))
-;; 	    (pos (cdr item))
-;; 	    (new-prefix (and concat-names
-;; 			     (if prefix
-;; 				 (concat prefix imenu-level-separator name)
-;; 			       name))))
-;;        (cond
-;; 	((or (markerp pos) (numberp pos))
-;; 	 (list (cons new-prefix pos)))
-;; 	(t
-;; 	 (imenu--flatten-index-alist pos new-prefix)))))
-;;    index-alist))
-
 ;;;
 ;;; Generic index gathering function.
 ;;;
@@ -724,7 +707,7 @@ for modes which use `imenu--generic-function'.  If it is not set, but
 ;; This function can be called with quitting disabled,
 ;; so it needs to be careful never to loop!
 (defun imenu--generic-function (patterns)
-  "Return an index of the current buffer as an alist.
+  "Return an index alist of the current buffer based on PATTERNS.
 
 PATTERNS is an alist with elements that look like this:
  (MENU-TITLE REGEXP INDEX)
@@ -732,9 +715,8 @@ or like this:
  (MENU-TITLE REGEXP INDEX FUNCTION ARGUMENTS...)
 with zero or more ARGUMENTS.  The former format creates a simple
 element in the index alist when it matches; the latter creates a
-special element of the form (NAME POSITION-MARKER FUNCTION
-ARGUMENTS...)  with FUNCTION and ARGUMENTS copied from
-`imenu-generic-expression'.
+special element of the form (INDEX-NAME POSITION-MARKER FUNCTION
+ARGUMENTS...) with FUNCTION and ARGUMENTS copied from PATTERNS.
 
 MENU-TITLE is a string used as the title for the submenu or nil
 if the entries are not nested.

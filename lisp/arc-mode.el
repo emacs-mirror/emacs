@@ -480,10 +480,12 @@ Each descriptor is a vector of the form
 (defsubst archive-name (suffix)
   (intern (concat "archive-" (symbol-name archive-subtype) "-" suffix)))
 
-(defun archive-l-e (str &optional len)
+(defun archive-l-e (str &optional len float)
   "Convert little endian string/vector STR to integer.
 Alternatively, STR may be a buffer position in the current buffer
-in which case a second argument, length LEN, should be supplied."
+in which case a second argument, length LEN, should be supplied.
+FLOAT, if non-nil, means generate and return a float instead of an integer
+\(use this for numbers that can overflow the Emacs integer)."
   (if (stringp str)
       (setq len (length str))
     (setq str (buffer-substring str (+ str len))))
@@ -492,7 +494,8 @@ in which case a second argument, length LEN, should be supplied."
         (i 0))
     (while (< i len)
       (setq i (1+ i)
-            result (+ (ash result 8) (aref str (- len i)))))
+            result (+ (if float (* result 256.0) (ash result 8))
+		      (aref str (- len i)))))
     result))
 
 (defun archive-int-to-mode (mode)
@@ -882,7 +885,8 @@ using `make-temp-file', and the generated name is returned."
   "Set the current buffer as if it were visiting FILENAME."
   (save-excursion
     (goto-char (point-min))
-    (let ((coding
+    (let ((buffer-undo-list t)
+	  (coding
 	   (or coding-system-for-read
 	       (and set-auto-coding-function
 		    (save-excursion
@@ -1355,13 +1359,14 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (fnlen   (or (string-match "\0" namefld) 13))
 	     (efnname (decode-coding-string (substring namefld 0 fnlen)
 					    archive-file-name-coding-system))
-             (csize   (archive-l-e (+ p 15) 4))
+	     ;; Convert to float to avoid overflow for very large files.
+             (csize   (archive-l-e (+ p 15) 4 'float))
              (moddate (archive-l-e (+ p 19) 2))
              (modtime (archive-l-e (+ p 21) 2))
-             (ucsize  (archive-l-e (+ p 25) 4))
+             (ucsize  (archive-l-e (+ p 25) 4 'float))
 	     (fiddle  (string= efnname (upcase efnname)))
              (ifnname (if fiddle (downcase efnname) efnname))
-             (text    (format "  %8d  %-11s  %-8s  %s"
+             (text    (format "  %8.0f  %-11s  %-8s  %s"
                               ucsize
                               (archive-dosdate moddate)
                               (archive-dostime modtime)
@@ -1383,7 +1388,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	      dash)
       (archive-summarize-files (nreverse visual))
       (insert dash
-	      (format "  %8d                         %d file%s"
+	      (format "  %8.0f                         %d file%s"
 		      totalsize
 		      (length files)
 		      (if (= 1 (length files)) "" "s"))
@@ -1416,9 +1421,10 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (while (progn (goto-char p)		;beginning of a base header.
 		  (looking-at "\\(.\\|\n\\)\\(.\\|\n\\)-l[hz][0-9ds]-"))
       (let* ((hsize   (byte-after p))	;size of the base header (level 0 and 1)
-	     (csize   (archive-l-e (+ p 7) 4)) ;size of a compressed file to follow (level 0 and 2),
+	     ;; Convert to float to avoid overflow for very large files.
+	     (csize   (archive-l-e (+ p 7) 4 'float)) ;size of a compressed file to follow (level 0 and 2),
 					;size of extended headers + the compressed file to follow (level 1).
-             (ucsize  (archive-l-e (+ p 11) 4))	;size of an uncompressed file.
+             (ucsize  (archive-l-e (+ p 11) 4 'float))	;size of an uncompressed file.
 	     (time1   (archive-l-e (+ p 15) 2))	;date/time (MSDOS format in level 0, 1 headers
 	     (time2   (archive-l-e (+ p 17) 2))	;and UNIX format in level 2 header.)
 	     (hdrlvl  (byte-after (+ p 20))) ;header level
@@ -1493,12 +1499,12 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			  (archive-unixtime time1 time2)
 			(archive-dostime time1)))
 	(setq text    (if archive-alternate-display
-			  (format "  %8d  %5S  %5S  %s"
+			  (format "  %8.0f  %5S  %5S  %s"
 				  ucsize
 				  (or uid "?")
 				  (or gid "?")
 				  ifnname)
-			(format "  %10s  %8d  %-11s  %-8s  %s"
+			(format "  %10s  %8.0f  %-11s  %-8s  %s"
 				modestr
 				ucsize
 				moddate
@@ -1527,8 +1533,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		       "M   Length    Uid    Gid  File\n"
 		    "M   Filemode    Length  Date         Time      File\n"))
 	  (sumline (if archive-alternate-display
-		       "  %8d                %d file%s"
-		     "              %8d                         %d file%s")))
+		       "  %8.0f                %d file%s"
+		     "              %8.0f                         %d file%s")))
       (insert header dash)
       (archive-summarize-files (nreverse visual))
       (insert dash
@@ -1622,7 +1628,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     ;; (method  (archive-l-e (+ p 10) 2))
              (modtime (archive-l-e (+ p 12) 2))
              (moddate (archive-l-e (+ p 14) 2))
-             (ucsize  (archive-l-e (+ p 24) 4))
+	     ;; Convert to float to avoid overflow for very large files.
+             (ucsize  (archive-l-e (+ p 24) 4 'float))
              (fnlen   (archive-l-e (+ p 28) 2))
              (exlen   (archive-l-e (+ p 30) 2))
              (fclen   (archive-l-e (+ p 32) 2))
@@ -1647,7 +1654,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			   (string= (upcase efnname) efnname)))
              (ifnname (if fiddle (downcase efnname) efnname))
 	     (width (string-width ifnname))
-             (text    (format "  %10s  %8d  %-11s  %-8s  %s"
+             (text    (format "  %10s  %8.0f  %-11s  %-8s  %s"
 			      modestr
                               ucsize
                               (archive-dosdate moddate)
@@ -1673,7 +1680,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	      dash)
       (archive-summarize-files (nreverse visual))
       (insert dash
-	      (format "              %8d                         %d file%s"
+	      (format "              %8.0f                         %d file%s"
 		      totalsize
 		      (length files)
 		      (if (= 1 (length files)) "" "s"))
@@ -1726,7 +1733,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (let* ((next    (1+ (archive-l-e (+ p 6) 4)))
              (moddate (archive-l-e (+ p 14) 2))
              (modtime (archive-l-e (+ p 16) 2))
-             (ucsize  (archive-l-e (+ p 20) 4))
+	     ;; Convert to float to avoid overflow for very large files.
+             (ucsize  (archive-l-e (+ p 20) 4 'float))
 	     (namefld (buffer-substring (+ p 38) (+ p 38 13)))
 	     (dirtype (byte-after (+ p 4)))
 	     (lfnlen  (if (= dirtype 2) (byte-after (+ p 56)) 0))
@@ -1749,7 +1757,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (fiddle  (and (= lfnlen 0) (string= efnname (upcase efnname))))
              (ifnname (if fiddle (downcase efnname) efnname))
 	     (width (string-width ifnname))
-             (text    (format "  %8d  %-11s  %-8s  %s"
+             (text    (format "  %8.0f  %-11s  %-8s  %s"
                               ucsize
                               (archive-dosdate moddate)
                               (archive-dostime modtime)
@@ -1771,7 +1779,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	      dash)
       (archive-summarize-files (nreverse visual))
       (insert dash
-	      (format "  %8d                         %d file%s"
+	      (format "  %8.0f                         %d file%s"
 		      totalsize
 		      (length files)
 		      (if (= 1 (length files)) "" "s"))

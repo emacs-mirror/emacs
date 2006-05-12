@@ -3318,7 +3318,7 @@ See `term-prompt-regexp'."
    ((eq char ?r)
     (term-set-scroll-region
      (1- term-terminal-previous-parameter)
-     term-terminal-parameter))
+     (1- term-terminal-parameter)))
    (t)))
 
 (defun term-set-scroll-region (top bottom)

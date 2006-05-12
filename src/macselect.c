@@ -1,5 +1,5 @@
 /* Selection processing for Emacs on Mac OS.
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -101,7 +101,7 @@ static Lisp_Object Qmac_scrap_name, Qmac_ostype;
 
 #ifdef MAC_OSX
 /* Selection name for communication via Services menu.  */
-static Lisp_Object Vmac_services_selection;
+static Lisp_Object Vmac_service_selection;
 #endif
 
 /* Get a reference to the scrap corresponding to the symbol SYM.  The
@@ -153,7 +153,6 @@ static ScrapFlavorType
 get_flavor_type_from_symbol (sym)
      Lisp_Object sym;
 {
-  ScrapFlavorType val;
   Lisp_Object str = Fget (sym, Qmac_ostype);
 
   if (STRINGP (str) && SBYTES (str) == 4)
@@ -322,17 +321,19 @@ get_scrap_private_timestamp (scrap, timestamp)
 
   err = GetScrapFlavorFlags (scrap, SCRAP_FLAVOR_TYPE_EMACS_TIMESTAMP, &flags);
   if (err == noErr)
-    if (!(flags & kScrapFlavorMaskSenderOnly))
-      err = noTypeErr;
-    else
-      {
-	Size size = sizeof (*timestamp);
+    {
+      if (!(flags & kScrapFlavorMaskSenderOnly))
+	err = noTypeErr;
+      else
+	{
+	  Size size = sizeof (*timestamp);
 
-	err = GetScrapFlavorData (scrap, SCRAP_FLAVOR_TYPE_EMACS_TIMESTAMP,
-				  &size, timestamp);
-	if (err == noErr && size != sizeof (*timestamp))
-	  err = noTypeErr;
-      }
+	  err = GetScrapFlavorData (scrap, SCRAP_FLAVOR_TYPE_EMACS_TIMESTAMP,
+				    &size, timestamp);
+	  if (err == noErr && size != sizeof (*timestamp))
+	    err = noTypeErr;
+	}
+    }
 #else  /* !TARGET_API_MAC_CARBON */
   Handle handle;
   SInt32 size, offset;
@@ -372,14 +373,11 @@ get_scrap_target_type_list (scrap)
   err = GetScrapFlavorCount (scrap, &count);
   if (err == noErr)
     flavor_info = xmalloc (sizeof (ScrapFlavorInfo) * count);
-  if (flavor_info)
+  err = GetScrapFlavorInfoList (scrap, &count, flavor_info);
+  if (err != noErr)
     {
-      err = GetScrapFlavorInfoList (scrap, &count, flavor_info);
-      if (err != noErr)
-	{
-	  xfree (flavor_info);
-	  flavor_info = NULL;
-	}
+      xfree (flavor_info);
+      flavor_info = NULL;
     }
   if (flavor_info == NULL)
     count = 0;
@@ -683,18 +681,20 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
 
   err = get_scrap_from_symbol (selection_symbol, 0, &scrap);
   if (err == noErr && scrap)
-    if (EQ (target_type, QTARGETS))
-      {
-	result = get_scrap_target_type_list (scrap);
-	result = Fvconcat (1, &result);
-      }
-    else
-      {
-	result = get_scrap_string (scrap, target_type);
-	if (STRINGP (result))
-	  Fput_text_property (make_number (0), make_number (SBYTES (result)),
-			      Qforeign_selection, target_type, result);
-      }
+    {
+      if (EQ (target_type, QTARGETS))
+	{
+	  result = get_scrap_target_type_list (scrap);
+	  result = Fvconcat (1, &result);
+	}
+      else
+	{
+	  result = get_scrap_string (scrap, target_type);
+	  if (STRINGP (result))
+	    Fput_text_property (make_number (0), make_number (SBYTES (result)),
+				Qforeign_selection, target_type, result);
+	}
+    }
 
   UNBLOCK_INPUT;
 
@@ -918,8 +918,8 @@ static struct
   int size, count;
 } deferred_apple_events;
 extern Lisp_Object Qundefined;
-extern OSErr mac_store_apple_event P_ ((Lisp_Object, Lisp_Object,
-					const AEDesc *));
+extern void mac_store_apple_event P_ ((Lisp_Object, Lisp_Object,
+				       const AEDesc *));
 
 struct apple_event_binding
 {
@@ -1009,7 +1009,7 @@ defer_apple_events (apple_event, reply)
   /* Mac OS 10.3 Xcode manual says AESuspendTheCurrentEvent makes
      copies of the Apple event and the reply, but Mac OS 10.4 Xcode
      manual says it doesn't.  Anyway we create copies of them and save
-     it in `deferred_apple_events'.  */
+     them in `deferred_apple_events'.  */
   if (err == noErr)
     {
       if (deferred_apple_events.buf == NULL)
@@ -1018,20 +1018,13 @@ defer_apple_events (apple_event, reply)
 	  deferred_apple_events.count = 0;
 	  deferred_apple_events.buf =
 	    xmalloc (sizeof (AppleEvent) * deferred_apple_events.size);
-	  if (deferred_apple_events.buf == NULL)
-	    err = memFullErr;
 	}
       else if (deferred_apple_events.count == deferred_apple_events.size)
 	{
-	  AppleEvent *newbuf;
-
 	  deferred_apple_events.size *= 2;
-	  newbuf = xrealloc (deferred_apple_events.buf,
-			     sizeof (AppleEvent) * deferred_apple_events.size);
-	  if (newbuf)
-	    deferred_apple_events.buf = newbuf;
-	  else
-	    err = memFullErr;
+	  deferred_apple_events.buf
+	    = xrealloc (deferred_apple_events.buf,
+			sizeof (AppleEvent) * deferred_apple_events.size);
 	}
     }
 
@@ -1086,9 +1079,8 @@ mac_handle_apple_event (apple_event, reply, refcon)
 	{
 	  if (INTEGERP (binding))
 	    return XINT (binding);
-	  err = mac_store_apple_event (class_key, id_key, apple_event);
-	  if (err == noErr)
-	    return noErr;
+	  mac_store_apple_event (class_key, id_key, apple_event);
+	  return noErr;
 	}
     }
   return errAEEventNotHandled;
@@ -1123,11 +1115,8 @@ DEFUN ("mac-process-deferred-apple-events", Fmac_process_deferred_apple_events, 
        doc: /* Process Apple events that are deferred at the startup time.  */)
   ()
 {
-  OSErr err;
   Lisp_Object result = Qnil;
-  long i, count;
-  AppleEvent apple_event, reply;
-  AEKeyword keyword;
+  long i;
 
   if (mac_ready_for_apple_events)
     return Qnil;
@@ -1156,6 +1145,198 @@ DEFUN ("mac-process-deferred-apple-events", Fmac_process_deferred_apple_events, 
 }
 
 
+#if TARGET_API_MAC_CARBON
+static Lisp_Object Vmac_dnd_known_types;
+static pascal OSErr mac_do_track_drag P_ ((DragTrackingMessage, WindowRef,
+					   void *, DragRef));
+static pascal OSErr mac_do_receive_drag P_ ((WindowRef, void *, DragRef));
+static DragTrackingHandlerUPP mac_do_track_dragUPP = NULL;
+static DragReceiveHandlerUPP mac_do_receive_dragUPP = NULL;
+
+extern void mac_store_drag_event P_ ((WindowRef, Point, SInt16,
+				      const AEDesc *));
+
+static pascal OSErr
+mac_do_track_drag (message, window, refcon, drag)
+     DragTrackingMessage message;
+     WindowRef window;
+     void *refcon;
+     DragRef drag;
+{
+  OSErr err = noErr;
+  static int can_accept;
+  UInt16 num_items, index;
+
+  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
+    return dragNotAcceptedErr;
+
+  switch (message)
+    {
+    case kDragTrackingEnterHandler:
+      err = CountDragItems (drag, &num_items);
+      if (err != noErr)
+	break;
+      can_accept = 0;
+      for (index = 1; index <= num_items; index++)
+	{
+	  ItemReference item;
+	  FlavorFlags flags;
+	  Lisp_Object rest;
+
+	  err = GetDragItemReferenceNumber (drag, index, &item);
+	  if (err != noErr)
+	    continue;
+	  for (rest = Vmac_dnd_known_types; CONSP (rest); rest = XCDR (rest))
+	    {
+	      Lisp_Object str;
+	      FlavorType type;
+
+	      str = XCAR (rest);
+	      if (!(STRINGP (str) && SBYTES (str) == 4))
+		continue;
+	      type = EndianU32_BtoN (*((UInt32 *) SDATA (str)));
+
+	      err = GetFlavorFlags (drag, item, type, &flags);
+	      if (err == noErr)
+		{
+		  can_accept = 1;
+		  break;
+		}
+	    }
+	}
+      break;
+
+    case kDragTrackingEnterWindow:
+      if (can_accept)
+	{
+	  RgnHandle hilite_rgn = NewRgn ();
+
+	  if (hilite_rgn)
+	    {
+	      Rect r;
+
+	      GetWindowPortBounds (window, &r);
+	      OffsetRect (&r, -r.left, -r.top);
+	      RectRgn (hilite_rgn, &r);
+	      ShowDragHilite (drag, hilite_rgn, true);
+	      DisposeRgn (hilite_rgn);
+	    }
+	  SetThemeCursor (kThemeCopyArrowCursor);
+	}
+      break;
+
+    case kDragTrackingInWindow:
+      break;
+
+    case kDragTrackingLeaveWindow:
+      if (can_accept)
+	{
+	  HideDragHilite (drag);
+	  SetThemeCursor (kThemeArrowCursor);
+	}
+      break;
+
+    case kDragTrackingLeaveHandler:
+      break;
+    }
+
+  if (err != noErr)
+    return dragNotAcceptedErr;
+  return noErr;
+}
+
+static pascal OSErr
+mac_do_receive_drag (window, refcon, drag)
+     WindowRef window;
+     void *refcon;
+     DragRef drag;
+{
+  OSErr err;
+  int num_types, i;
+  Lisp_Object rest, str;
+  FlavorType *types;
+  AppleEvent apple_event;
+  Point mouse_pos;
+  SInt16 modifiers;
+
+  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
+    return dragNotAcceptedErr;
+
+  num_types = 0;
+  for (rest = Vmac_dnd_known_types; CONSP (rest); rest = XCDR (rest))
+    {
+      str = XCAR (rest);
+      if (STRINGP (str) && SBYTES (str) == 4)
+	num_types++;
+    }
+
+  types = xmalloc (sizeof (FlavorType) * num_types);
+  i = 0;
+  for (rest = Vmac_dnd_known_types; CONSP (rest); rest = XCDR (rest))
+    {
+      str = XCAR (rest);
+      if (STRINGP (str) && SBYTES (str) == 4)
+	types[i++] = EndianU32_BtoN (*((UInt32 *) SDATA (str)));
+    }
+
+  err = create_apple_event_from_drag_ref (drag, num_types, types,
+					  &apple_event);
+  xfree (types);
+
+  if (err == noErr)
+    err = GetDragMouse (drag, &mouse_pos, NULL);
+  if (err == noErr)
+    {
+      GlobalToLocal (&mouse_pos);
+      err = GetDragModifiers (drag, NULL, NULL, &modifiers);
+    }
+
+  if (err == noErr)
+    {
+      mac_store_drag_event (window, mouse_pos, modifiers, &apple_event);
+      AEDisposeDesc (&apple_event);
+      /* Post a harmless event so as to wake up from ReceiveNextEvent.  */
+      mac_post_mouse_moved_event ();
+      return noErr;
+    }
+  else
+    return dragNotAcceptedErr;
+}
+#endif	/* TARGET_API_MAC_CARBON */
+
+OSErr
+install_drag_handler (window)
+     WindowRef window;
+{
+  OSErr err = noErr;
+
+#if TARGET_API_MAC_CARBON
+  if (mac_do_track_dragUPP == NULL)
+    mac_do_track_dragUPP = NewDragTrackingHandlerUPP (mac_do_track_drag);
+  if (mac_do_receive_dragUPP == NULL)
+    mac_do_receive_dragUPP = NewDragReceiveHandlerUPP (mac_do_receive_drag);
+
+  err = InstallTrackingHandler (mac_do_track_dragUPP, window, NULL);
+  if (err == noErr)
+    err = InstallReceiveHandler (mac_do_receive_dragUPP, window, NULL);
+#endif
+
+  return err;
+}
+
+void
+remove_drag_handler (window)
+     WindowRef window;
+{
+#if TARGET_API_MAC_CARBON
+  if (mac_do_track_dragUPP)
+    RemoveTrackingHandler (mac_do_track_dragUPP, window);
+  if (mac_do_receive_dragUPP)
+    RemoveReceiveHandler (mac_do_receive_dragUPP, window);
+#endif
+}
+
+
 #ifdef MAC_OSX
 void
 init_service_handler ()
@@ -1168,7 +1349,7 @@ init_service_handler ()
 				  GetEventTypeCount (specs), specs, NULL, NULL);
 }
 
-extern OSErr mac_store_services_event P_ ((EventRef));
+extern OSStatus mac_store_service_event P_ ((EventRef));
 
 static OSStatus
 copy_scrap_flavor_data (from_scrap, to_scrap, flavor_type)
@@ -1192,29 +1373,21 @@ copy_scrap_flavor_data (from_scrap, to_scrap, flavor_type)
 	  buf = NULL;
 	}
       else if (size_allocated < size)
-	{
-	  char *newbuf = xrealloc (buf, size);
-
-	  if (newbuf)
-	    buf = newbuf;
-	  else
-	    {
-	      xfree (buf);
-	      buf = NULL;
-	    }
-	}
+	buf = xrealloc (buf, size);
       else
 	break;
     }
   if (err == noErr)
-    if (buf == NULL)
-      err = memFullErr;
-    else
-      {
-	err = PutScrapFlavor (to_scrap, flavor_type, kScrapFlavorMaskNone,
-			      size, buf);
-	xfree (buf);
-      }
+    {
+      if (buf == NULL)
+	err = memFullErr;
+      else
+	{
+	  err = PutScrapFlavor (to_scrap, flavor_type, kScrapFlavorMaskNone,
+				size, buf);
+	  xfree (buf);
+	}
+    }
 
   return err;
 }
@@ -1233,12 +1406,12 @@ mac_handle_service_event (call_ref, event, data)
   Lisp_Object rest;
   ScrapFlavorType flavor_type;
 
-  /* Check if Vmac_services_selection is a valid selection that has a
+  /* Check if Vmac_service_selection is a valid selection that has a
      corresponding scrap.  */
-  if (!SYMBOLP (Vmac_services_selection))
+  if (!SYMBOLP (Vmac_service_selection))
     err = eventNotHandledErr;
   else
-    err = get_scrap_from_symbol (Vmac_services_selection, 0, &cur_scrap);
+    err = get_scrap_from_symbol (Vmac_service_selection, 0, &cur_scrap);
   if (!(err == noErr && cur_scrap))
     return eventNotHandledErr;
 
@@ -1275,7 +1448,7 @@ mac_handle_service_event (call_ref, event, data)
       if (err != noErr)
 	break;
 
-      if (NILP (Fx_selection_owner_p (Vmac_services_selection)))
+      if (NILP (Fx_selection_owner_p (Vmac_service_selection)))
 	break;
       else
 	goto copy_all_flavors;
@@ -1285,7 +1458,7 @@ mac_handle_service_event (call_ref, event, data)
 			       typeScrapRef, NULL,
 			       sizeof (ScrapRef), NULL, &specific_scrap);
       if (err != noErr
-	  || NILP (Fx_selection_owner_p (Vmac_services_selection)))
+	  || NILP (Fx_selection_owner_p (Vmac_service_selection)))
 	{
 	  err = eventNotHandledErr;
 	  break;
@@ -1300,14 +1473,11 @@ mac_handle_service_event (call_ref, event, data)
 	err = GetScrapFlavorCount (cur_scrap, &count);
 	if (err == noErr)
 	  flavor_info = xmalloc (sizeof (ScrapFlavorInfo) * count);
-	if (flavor_info)
+	err = GetScrapFlavorInfoList (cur_scrap, &count, flavor_info);
+	if (err != noErr)
 	  {
-	    err = GetScrapFlavorInfoList (cur_scrap, &count, flavor_info);
-	    if (err != noErr)
-	      {
-		xfree (flavor_info);
-		flavor_info = NULL;
-	      }
+	    xfree (flavor_info);
+	    flavor_info = NULL;
 	  }
 	if (flavor_info == NULL)
 	  break;
@@ -1363,7 +1533,7 @@ mac_handle_service_event (call_ref, event, data)
 	if (!data_exists_p)
 	  err = eventNotHandledErr;
 	else
-	  err = mac_store_services_event (event);
+	  err = mac_store_service_event (event);
       }
       break;
     }
@@ -1429,10 +1599,21 @@ set to nil.  */);
 	       doc: /* Keymap for Apple events handled by Emacs.  */);
   Vmac_apple_event_map = Qnil;
 
+#if TARGET_API_MAC_CARBON
+  DEFVAR_LISP ("mac-dnd-known-types", &Vmac_dnd_known_types,
+	       doc: /* The types accepted by default for dropped data.
+The types are chosen in the order they appear in the list.  */);
+  Vmac_dnd_known_types = list4 (build_string ("hfs "), build_string ("utxt"),
+				build_string ("TEXT"), build_string ("TIFF"));
 #ifdef MAC_OSX
-  DEFVAR_LISP ("mac-services-selection", &Vmac_services_selection,
+  Vmac_dnd_known_types = Fcons (build_string ("furl"), Vmac_dnd_known_types);
+#endif
+#endif
+
+#ifdef MAC_OSX
+  DEFVAR_LISP ("mac-service-selection", &Vmac_service_selection,
 	       doc: /* Selection name for communication via Services menu.  */);
-  Vmac_services_selection = intern ("PRIMARY");
+  Vmac_service_selection = intern ("PRIMARY");
 #endif
 
   QPRIMARY   = intern ("PRIMARY");	staticpro (&QPRIMARY);

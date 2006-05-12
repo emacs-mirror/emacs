@@ -139,7 +139,8 @@ For example, you could write
     (setq body (list* lighter keymap body) lighter nil keymap nil))
    ((keywordp keymap) (push keymap body) (setq keymap nil)))
 
-  (let* ((mode-name (symbol-name mode))
+  (let* ((last-message (current-message))
+	 (mode-name (symbol-name mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode lighter))
 	 (globalp nil)
 	 (set nil)
@@ -236,7 +237,10 @@ With zero or negative ARG turn mode off.
 	 (if (called-interactively-p)
 	     (progn
 	       ,(if globalp `(customize-mark-as-set ',mode))
-	       (unless (current-message)
+	       ;; Avoid overwriting a message shown by the body,
+               ;; but do overwrite previous messages.
+	       (unless  ,(and (current-message)
+                              (not (equal last-message (current-message))))
 		 (message ,(format "%s %%sabled" pretty-name)
 			  (if ,mode "en" "dis")))))
 	 (force-mode-line-update)

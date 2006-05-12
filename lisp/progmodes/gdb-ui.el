@@ -100,7 +100,9 @@
 (defvar tool-bar-map)
 (defvar speedbar-initial-expansion-list-name)
 
-(defvar gdb-frame-address "main" "Initialization for Assembler buffer.")
+(defvar gdb-pc-address nil "Initialization for Assembler buffer.
+Set to \"main\" at start if gdb-show-main is t.")
+(defvar gdb-frame-address nil "Identity of frame for watch expression.")
 (defvar gdb-previous-frame-address nil)
 (defvar gdb-memory-address "main")
 (defvar gdb-previous-frame nil)
@@ -109,10 +111,9 @@
 (defvar gdb-current-language nil)
 (defvar gdb-var-list nil
  "List of variables in watch window.
-Each element has the form (VARNUM EXPRESSION NUMCHILD TYPE VALUE STATUS) where
-STATUS is nil (unchanged), `changed' or `out-of-scope'.")
-(defvar gdb-force-update t
- "Non-nil means that view of watch expressions will be updated in the speedbar.")
+Each element has the form (VARNUM EXPRESSION NUMCHILD TYPE VALUE STATUS FP)
+where STATUS is nil (unchanged), `changed' or `out-of-scope', FP the frame
+address for root variables.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-server-prefix nil)
@@ -417,7 +418,8 @@ With arg, use separate IO iff arg is positive."
   (goto-char (point-min))
   (when (search-forward "read in on demand:" nil t)
     (while (re-search-forward gdb-source-file-regexp nil t)
-      (push (or (match-string 1) (match-string 2)) gdb-source-file-list))
+      (push (file-name-nondirectory (or (match-string 1) (match-string 2)))
+	    gdb-source-file-list))
     (dolist (buffer (buffer-list))
       (with-current-buffer buffer
 	(when (and buffer-file-name
@@ -515,7 +517,7 @@ With arg, use separate IO iff arg is positive."
   (setq comint-input-sender 'gdb-send)
 
   ;; (re-)initialize
-  (setq gdb-frame-address (if gdb-show-main "main" nil))
+  (setq gdb-pc-address (if gdb-show-main "main" nil))
   (setq gdb-previous-frame-address nil
 	gdb-memory-address "main"
 	gdb-previous-frame nil
@@ -523,7 +525,7 @@ With arg, use separate IO iff arg is positive."
 	gdb-current-language nil
 	gdb-frame-number nil
 	gdb-var-list nil
-	gdb-force-update t
+	gdb-main-file nil
 	gdb-first-post-prompt t
 	gdb-prompting nil
 	gdb-input-queue nil
@@ -580,8 +582,7 @@ With arg, use separate IO iff arg is positive."
 
 (defun gdb-get-version ()
   (goto-char (point-min))
-  (if (and (re-search-forward gdb-error-regexp nil t)
-	   (string-match ".*(missing implementation)" (match-string 1)))
+  (if (re-search-forward "Undefined\\( mi\\)* command:" nil t)
       (setq gdb-version "pre-6.4")
     (setq gdb-version "6.4+"))
   (gdb-init-2))
@@ -686,10 +687,14 @@ With arg, enter name of variable to be watched in the minibuffer."
 	  (if event (posn-set-point (event-end event)))
 	  (require 'tooltip)
 	  (save-selected-window
-	    (let ((expr (if arg
-			    (completing-read "Name of variable: "
-					     'gud-gdb-complete-command)
-			  (tooltip-identifier-from-point (point)))))
+	    (let ((expr
+		   (if arg
+		       (completing-read "Name of variable: "
+					'gud-gdb-complete-command)
+		     (if (and transient-mark-mode mark-active)
+			 (buffer-substring (region-beginning) (region-end))
+		       (tooltip-identifier-from-point (point))))))
+	      (speedbar 1)
 	      (catch 'already-watched
 		(dolist (var gdb-var-list)
 		  (unless (string-match "\\." (car var))
@@ -719,9 +724,8 @@ With arg, enter name of variable to be watched in the minibuffer."
 		    expr)
 		  (match-string 2)
 		  (match-string 3)
-		  nil nil)))
+		  nil nil gdb-frame-address)))
 	(push var gdb-var-list)
-	(speedbar 1)
 	(unless (string-equal
 		 speedbar-initial-expansion-list-name "GUD")
 	  (speedbar-change-initial-expansion-list "GUD"))
@@ -737,13 +741,26 @@ With arg, enter name of variable to be watched in the minibuffer."
 	(message-box "Watching expressions requires gdb 6.0 onwards")
       (message-box "No symbol \"%s\" in current context." expr))))
 
+(defun gdb-speedbar-update ()
+  (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
+    ;; Dummy command to update speedbar even when idle.
+    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-timer-fn))
+    ;; Keep gdb-pending-triggers non-nil till end.
+    (push 'gdb-speedbar-timer gdb-pending-triggers)))
+
+(defun gdb-speedbar-timer-fn ()
+  (setq gdb-pending-triggers
+	(delq 'gdb-speedbar-timer gdb-pending-triggers))
+  (speedbar-timer-fn))
+
 (defun gdb-var-evaluate-expression-handler (varnum changed)
   (goto-char (point-min))
   (re-search-forward ".*value=\\(\".*\"\\)" nil t)
   (let ((var (assoc varnum gdb-var-list)))
     (when var
       (if changed (setcar (nthcdr 5 var) 'changed))
-      (setcar (nthcdr 4 var) (read (match-string 1))))))
+      (setcar (nthcdr 4 var) (read (match-string 1)))))
+  (gdb-speedbar-update))
 
 (defun gdb-var-list-children (varnum)
   (gdb-enqueue-input
@@ -807,21 +824,7 @@ type_changed=\".*?\".*?}")
 		  varnum "\"\n")
 	  `(lambda () (gdb-var-evaluate-expression-handler ,varnum t)))))))
   (setq gdb-pending-triggers
-	(delq 'gdb-var-update gdb-pending-triggers))
-  (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-    ;; Dummy command to update speedbar at right time.
-    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-refresh))
-    ;; Keep gdb-pending-triggers non-nil till end.
-    (push 'gdb-speedbar-refresh gdb-pending-triggers)))
-
-(defun gdb-speedbar-refresh ()
-  (setq gdb-pending-triggers
-	(delq 'gdb-speedbar-refresh gdb-pending-triggers))
-  (with-current-buffer gud-comint-buffer
-    (let ((speedbar-verbosity-level 0)
-	  (speedbar-shown-directories nil))
-      (save-excursion
-	(speedbar-refresh)))))
+	(delq 'gdb-var-update gdb-pending-triggers)))
 
 (defun gdb-var-delete ()
   "Delete watch expression at point from the speedbar."
@@ -1205,7 +1208,7 @@ This filter may simply queue input for a later time."
 	(cons
 	 (match-string 1 args)
 	 (string-to-number (match-string 2 args))))
-  (setq gdb-frame-address (match-string 3 args))
+  (setq gdb-pc-address (match-string 3 args))
   ;; cover for auto-display output which comes *before*
   ;; stopped annotation
   (if (eq gdb-output-sink 'inferior) (setq gdb-output-sink 'user)))
@@ -1356,7 +1359,7 @@ happens to be appropriate."
     (gdb-get-buffer-create 'gdb-breakpoints-buffer)
     (gdb-invalidate-breakpoints)
     ;; Do this through gdb-get-selected-frame -> gdb-frame-handler
-    ;; so gdb-frame-address is updated.
+    ;; so gdb-pc-address is updated.
     ;; (gdb-invalidate-assembler)
 
     (if (string-equal gdb-version "pre-6.4")
@@ -1374,7 +1377,6 @@ happens to be appropriate."
       ;; FIXME: with GDB-6 on Darwin, this might very well work.
       ;; Only needed/used with speedbar/watch expressions.
       (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-	(setq gdb-force-update t)
 	(if (string-equal gdb-version "pre-6.4")
 	    (gdb-var-update)
 	  (gdb-var-update-1)))))
@@ -1909,7 +1911,7 @@ static char *magick[] = {
 	    (let* ((buffer (find-file-noselect
 			 (if (file-exists-p file) file
 			   (cdr (assoc bptno gdb-location-alist)))))
-		   (window (unless (gdb-display-source-buffer buffer)
+		   (window (or (gdb-display-source-buffer buffer)
 			       (display-buffer buffer))))
 	      (setq gdb-source-window window)
 	      (with-current-buffer buffer
@@ -2687,7 +2689,7 @@ corresponding to the mode line clicked."
     '(menu-item "Inferior IO" gdb-frame-separate-io-buffer
 		:enable gdb-use-separate-io-buffer))
   (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
-  (define-key menu [disassembly] '("Disassembiy" . gdb-frame-assembler-buffer))
+  (define-key menu [disassembly] '("Disassembly" . gdb-frame-assembler-buffer))
   (define-key menu [breakpoints]
     '("Breakpoints" . gdb-frame-breakpoints-buffer))
   (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
@@ -2746,7 +2748,12 @@ corresponding to the mode line clicked."
   (switch-to-buffer
        (if gud-last-last-frame
 	   (gud-find-file (car gud-last-last-frame))
-	 (gud-find-file gdb-main-file)))
+	 (if gdb-main-file
+	     (gud-find-file gdb-main-file)
+	   ;; Put buffer list in window if we
+	   ;; can't find a source file.
+	   (list-buffers-noselect))))
+  (setq gdb-source-window (selected-window))
   (when gdb-use-separate-io-buffer
     (split-window-horizontally)
     (other-window 1)
@@ -2774,6 +2781,7 @@ This arrangement depends on the value of `gdb-many-windows'."
        (if gud-last-last-frame
 	   (gud-find-file (car gud-last-last-frame))
 	 (gud-find-file gdb-main-file)))
+      (setq gdb-source-window (selected-window))
       (other-window 1))))
 
 (defun gdb-reset ()
@@ -2795,8 +2803,6 @@ Kills the gdb buffers, and resets variables and the source buffers."
   (setq overlay-arrow-variable-list
 	(delq 'gdb-overlay-arrow-position overlay-arrow-variable-list))
   (setq fringe-indicator-alist '((overlay-arrow . right-triangle)))
-  (if (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-      (speedbar-refresh))
   (setq gud-running nil)
   (setq gdb-active-process nil)
   (setq gdb-var-list nil)
@@ -2999,11 +3005,11 @@ BUFFER nil or omitted means use the current buffer."
 	(pos 1) (address) (flag) (bptno))
     (with-current-buffer buffer
       (save-excursion
-	(if (not (equal gdb-frame-address "main"))
+	(if (not (equal gdb-pc-address "main"))
 	    (progn
 	      (goto-char (point-min))
-	      (if (and gdb-frame-address
-		       (search-forward gdb-frame-address nil t))
+	      (if (and gdb-pc-address
+		       (search-forward gdb-pc-address nil t))
 		  (progn
 		    (setq pos (point))
 		    (beginning-of-line)
@@ -3033,7 +3039,7 @@ BUFFER nil or omitted means use the current buffer."
 		  (goto-char (point-min))
 		  (if (search-forward address nil t)
 		      (gdb-put-breakpoint-icon (eq flag ?y) bptno))))))))
-    (if (not (equal gdb-frame-address "main"))
+    (if (not (equal gdb-pc-address "main"))
 	(with-current-buffer buffer
 	  (set-window-point (get-buffer-window buffer 0) pos)))))
 
@@ -3095,7 +3101,7 @@ BUFFER nil or omitted means use the current buffer."
 	(special-display-frame-alist gdb-frame-parameters))
     (display-buffer (gdb-get-buffer-create 'gdb-assembler-buffer))))
 
-;; modified because if gdb-frame-address has changed value a new command
+;; modified because if gdb-pc-address has changed value a new command
 ;; must be enqueued to update the buffer with the new output
 (defun gdb-invalidate-assembler (&optional ignored)
   (if (gdb-get-buffer 'gdb-assembler-buffer)
@@ -3104,7 +3110,7 @@ BUFFER nil or omitted means use the current buffer."
 		     (string-equal gdb-selected-frame gdb-previous-frame))
 	  (if (or (not (member 'gdb-invalidate-assembler
 			       gdb-pending-triggers))
-		  (not (string-equal gdb-frame-address
+		  (not (string-equal gdb-pc-address
 				     gdb-previous-frame-address)))
 	  (progn
 	    ;; take previous disassemble command, if any, off the queue
@@ -3117,11 +3123,11 @@ BUFFER nil or omitted means use the current buffer."
 	    (gdb-enqueue-input
 	     (list
 	      (concat gdb-server-prefix "disassemble "
-		      (if (member gdb-frame-address '(nil "main")) nil "0x")
-			   gdb-frame-address "\n")
+		      (if (member gdb-pc-address '(nil "main")) nil "0x")
+			   gdb-pc-address "\n")
 		   'gdb-assembler-handler))
 	    (push 'gdb-invalidate-assembler gdb-pending-triggers)
-	    (setq gdb-previous-frame-address gdb-frame-address)
+	    (setq gdb-previous-frame-address gdb-pc-address)
 	    (setq gdb-previous-frame gdb-selected-frame)))))))
 
 (defun gdb-get-selected-frame ()
@@ -3136,33 +3142,36 @@ BUFFER nil or omitted means use the current buffer."
   (setq gdb-pending-triggers
 	(delq 'gdb-get-selected-frame gdb-pending-triggers))
   (goto-char (point-min))
-  (if (re-search-forward  "Stack level \\([0-9]+\\)" nil t)
-      (setq gdb-frame-number (match-string 1)))
+  (when (re-search-forward
+       "Stack level \\([0-9]+\\), frame at \\(0x[[:xdigit:]]+\\)" nil t)
+    (setq gdb-frame-number (match-string 1))
+    (setq gdb-frame-address (match-string 2)))
   (goto-char (point-min))
-  (if (re-search-forward
-    ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*?\\) (\\(\\S-*?\\):[0-9]+?);? "
-       nil t)
-      (progn
-	(setq gdb-selected-frame (match-string 2))
-	(if (gdb-get-buffer 'gdb-locals-buffer)
-	    (with-current-buffer (gdb-get-buffer 'gdb-locals-buffer)
-	      (setq mode-name (concat "Locals:" gdb-selected-frame))))
-	(if (gdb-get-buffer 'gdb-assembler-buffer)
-	    (with-current-buffer (gdb-get-buffer 'gdb-assembler-buffer)
-	      (setq mode-name (concat "Machine:" gdb-selected-frame))))
-	(setq gdb-frame-address (match-string 1))))
-  (if gud-overlay-arrow-position
+  (when (re-search-forward ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(\\S-+?\\)\
+\\(?: (\\(\\S-+?\\):[0-9]+?)\\)*;? "
+     nil t)
+    (setq gdb-selected-frame (match-string 2))
+    (if (gdb-get-buffer 'gdb-locals-buffer)
+	(with-current-buffer (gdb-get-buffer 'gdb-locals-buffer)
+	  (setq mode-name (concat "Locals:" gdb-selected-frame))))
+    (if (gdb-get-buffer 'gdb-assembler-buffer)
+	(with-current-buffer (gdb-get-buffer 'gdb-assembler-buffer)
+	  (setq mode-name (concat "Machine:" gdb-selected-frame))))
+    (setq gdb-pc-address (match-string 1))
+    (if (and (match-string 3) gud-overlay-arrow-position)
       (let ((buffer (marker-buffer gud-overlay-arrow-position))
 	    (position (marker-position gud-overlay-arrow-position)))
-	(when (and buffer (string-equal (buffer-name buffer) (match-string 3)))
+	(when (and buffer
+		   (string-equal (buffer-name buffer)
+				 (file-name-nondirectory (match-string 3))))
 	  (with-current-buffer buffer
 	    (setq fringe-indicator-alist
 		  (if (string-equal gdb-frame-number "0")
 		      nil
 		    '((overlay-arrow . hollow-right-triangle))))
-	    (set-marker gud-overlay-arrow-position position)))))
+	    (set-marker gud-overlay-arrow-position position))))))
   (goto-char (point-min))
-  (if (re-search-forward " source language \\(\\S-*\\)\." nil t)
+  (if (re-search-forward " source language \\(\\S-+\\)\." nil t)
       (setq gdb-current-language (match-string 1)))
   (gdb-invalidate-assembler))
 
@@ -3221,7 +3230,8 @@ numchild=\"\\(.+?\\)\",.*?value=\\(\".*?\"\\),.*?type=\"\\(.+?\\)\".*?}")
 		      (throw 'child-already-watched nil))
 		  (push varchild var-list))))
 	  (push var var-list)))
-      (setq gdb-var-list (nreverse var-list)))))
+      (setq gdb-var-list (nreverse var-list))))
+  (gdb-speedbar-update))
 
 ; Uses "-var-update --all-values".  Needs GDB 6.4 onwards.
 (defun gdb-var-update-1 ()
@@ -3254,11 +3264,7 @@ in_scope=\"\\(.*?\\)\".*?}")
 		  (read (match-string 2)))))))
   (setq gdb-pending-triggers
    (delq 'gdb-var-update gdb-pending-triggers))
-  (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-    ;; dummy command to update speedbar at right time
-    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-refresh))
-    ;; keep gdb-pending-triggers non-nil till end
-    (push 'gdb-speedbar-refresh gdb-pending-triggers)))
+  (gdb-speedbar-update))
 
 ;; Registers buffer.
 ;;
@@ -3281,11 +3287,13 @@ in_scope=\"\\(.*?\\)\".*?}")
 				   gdb-pending-triggers))
   (goto-char (point-min))
   (if (re-search-forward gdb-error-regexp nil t)
-      (with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
-	(let ((buffer-read-only nil))
-	  (erase-buffer)
-	  (insert (match-string 1))
-	  (goto-char (point-min))))
+      (let ((err (match-string 1)))
+	(with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
+	  (let ((buffer-read-only nil))
+	    (erase-buffer)
+	    (put-text-property 0 (length err) 'face font-lock-warning-face err)
+	    (insert err)
+	    (goto-char (point-min)))))
     (let ((register-list (reverse gdb-register-names))
 	  (register nil) (register-string nil) (register-values nil))
       (goto-char (point-min))
@@ -3380,36 +3388,44 @@ in_scope=\"\\(.*?\\)\".*?}")
 (defun gdb-stack-list-locals-handler ()
   (setq gdb-pending-triggers (delq 'gdb-invalidate-locals-1
 				  gdb-pending-triggers))
-  (let (local locals-list)
-    (goto-char (point-min))
-    (while (re-search-forward gdb-stack-list-locals-regexp nil t)
-      (let ((local (list (match-string 1)
-			 (match-string 2)
-			 nil)))
-	(if (looking-at ",value=\\(\".*\"\\).*?}")
-	    (setcar (nthcdr 2 local) (read (match-string 1))))
-	(push local locals-list)))
-    (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
-      (and buf (with-current-buffer buf
-		 (let* ((window (get-buffer-window buf 0))
-			(start (window-start window))
-			(p (window-point window))
-			(buffer-read-only nil))
-		   (erase-buffer)
-		   (dolist (local locals-list)
-		     (setq name (car local))
-		     (if (or (not (nth 2 local))
-			     (string-match "\\0x" (nth 2 local)))
-		       (add-text-properties 0 (length name)
-			    `(mouse-face highlight
-			      help-echo "mouse-2: create watch expression"
-			      local-map ,gdb-locals-watch-map-1)
-			    name))
+  (goto-char (point-min))
+  (if (re-search-forward gdb-error-regexp nil t)
+      (let ((err (match-string 1)))
+	(with-current-buffer (gdb-get-buffer 'gdb-locals-buffer)
+	  (let ((buffer-read-only nil))
+	    (erase-buffer)
+	    (insert err)
+	    (goto-char (point-min)))))
+    (let (local locals-list)
+      (goto-char (point-min))
+      (while (re-search-forward gdb-stack-list-locals-regexp nil t)
+	(let ((local (list (match-string 1)
+			   (match-string 2)
+			   nil)))
+	  (if (looking-at ",value=\\(\".*\"\\).*?}")
+	      (setcar (nthcdr 2 local) (read (match-string 1))))
+	  (push local locals-list)))
+      (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
+	(and buf (with-current-buffer buf
+		   (let* ((window (get-buffer-window buf 0))
+			  (start (window-start window))
+			  (p (window-point window))
+			  (buffer-read-only nil))
+		     (erase-buffer)
+		     (dolist (local locals-list)
+		       (setq name (car local))
+		       (if (or (not (nth 2 local))
+			       (string-match "^\\0x" (nth 2 local)))
+			   (add-text-properties 0 (length name)
+			        `(mouse-face highlight
+			          help-echo "mouse-2: create watch expression"
+			          local-map ,gdb-locals-watch-map-1)
+				name))
 		       (insert
 			(concat name "\t" (nth 1 local)
 				"\t" (nth 2 local) "\n")))
-		   (set-window-start window start)
-		   (set-window-point window p)))))))
+		     (set-window-start window start)
+		     (set-window-point window p))))))))
 
 (defun gdb-get-register-names ()
   "Create a list of register names."

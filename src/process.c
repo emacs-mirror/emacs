@@ -696,6 +696,8 @@ setup_process_coding_systems (process)
       = (struct coding_system *) xmalloc (sizeof (struct coding_system));
   setup_coding_system (p->encode_coding_system,
 		       proc_encode_coding_system[outch]);
+  if (proc_encode_coding_system[outch]->eol_type == CODING_EOL_UNDECIDED)
+    proc_encode_coding_system[outch]->eol_type = system_eol_type;
 }
 
 DEFUN ("processp", Fprocessp, Sprocessp, 1, 1, 0,
@@ -2323,7 +2325,11 @@ get_lisp_to_sockaddr_size (address, familyp)
 }
 
 /* Convert an address object (vector or string) to an internal sockaddr.
-   Format of address has already been validated by size_lisp_to_sockaddr.  */
+
+   The address format has been basically validated by
+   get_lisp_to_sockaddr_size, but this does not mean FAMILY is valid;
+   it could have come from user data.  So if FAMILY is not valid,
+   we return after zeroing *SA.  */
 
 static void
 conv_lisp_to_sockaddr (family, address, sa, len)
@@ -2337,7 +2343,6 @@ conv_lisp_to_sockaddr (family, address, sa, len)
   register int i;
 
   bzero (sa, len);
-  sa->sa_family = family;
 
   if (VECTORP (address))
     {
@@ -2349,6 +2354,7 @@ conv_lisp_to_sockaddr (family, address, sa, len)
 	  i = XINT (p->contents[--len]);
 	  sin->sin_port = htons (i);
 	  cp = (unsigned char *)&sin->sin_addr;
+	  sa->sa_family = family;
 	}
 #ifdef AF_INET6
       else if (family == AF_INET6)
@@ -2364,9 +2370,10 @@ conv_lisp_to_sockaddr (family, address, sa, len)
 		int j = XFASTINT (p->contents[i]) & 0xffff;
 		ip6[i] = ntohs (j);
 	      }
-	  return;
+	  sa->sa_family = family;
 	}
 #endif
+      return;
     }
   else if (STRINGP (address))
     {
@@ -2377,6 +2384,7 @@ conv_lisp_to_sockaddr (family, address, sa, len)
 	  cp = SDATA (address);
 	  for (i = 0; i < sizeof (sockun->sun_path) && *cp; i++)
 	    sockun->sun_path[i] = *cp++;
+	  sa->sa_family = family;
 	}
 #endif
       return;
@@ -5061,6 +5069,10 @@ read_process_output (proc, channel)
 	      p->encode_coding_system = Vlast_coding_system_used;
 	      setup_coding_system (p->encode_coding_system,
 				   proc_encode_coding_system[XINT (p->outfd)]);
+	      if (proc_encode_coding_system[XINT (p->outfd)]->eol_type
+		  == CODING_EOL_UNDECIDED)
+		proc_encode_coding_system[XINT (p->outfd)]->eol_type
+		  = system_eol_type;
 	    }
 	}
 
@@ -5170,6 +5182,10 @@ read_process_output (proc, channel)
 	      p->encode_coding_system = Vlast_coding_system_used;
 	      setup_coding_system (p->encode_coding_system,
 				   proc_encode_coding_system[XINT (p->outfd)]);
+	      if (proc_encode_coding_system[XINT (p->outfd)]->eol_type
+		  == CODING_EOL_UNDECIDED)
+		proc_encode_coding_system[XINT (p->outfd)]->eol_type
+		  = system_eol_type;
 	    }
 	}
       if (coding->carryover_bytes > 0)
@@ -6229,6 +6245,8 @@ text to PROCESS after you call this function.  */)
       emacs_close (XINT (XPROCESS (proc)->outfd));
 #endif /* not HAVE_SHUTDOWN */
       new_outfd = emacs_open (NULL_DEVICE, O_WRONLY, 0);
+      if (new_outfd < 0)
+	abort ();
       old_outfd = XINT (XPROCESS (proc)->outfd);
 
       if (!proc_encode_coding_system[new_outfd])

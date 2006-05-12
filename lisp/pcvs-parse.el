@@ -3,7 +3,7 @@
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
 ;;   2000, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
-;; Author: Stefan Monnier <monnier@cs.yale.edu>
+;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
 
 ;; This file is part of GNU Emacs.
@@ -271,8 +271,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 	;; on the current branch (either because it only exists in other
 	;; branches, or because it's been removed).
 	(if (ignore-errors
-	      (with-current-buffer
-		  (find-file-noselect (expand-file-name
+	      (with-temp-buffer
+		(insert-file-contents (expand-file-name
 				       ".cvsignore" (file-name-directory dir)))
 		(goto-char (point-min))
 		(re-search-forward

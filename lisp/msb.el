@@ -473,6 +473,11 @@ selects that window.
 See the function `mouse-select-buffer' and the variable
 `msb-menu-cond' for more information about how the menus are split."
   (interactive "e")
+  ;; If EVENT is a down-event, read and discard the
+  ;; corresponding up-event.
+  (and (eventp event)
+       (memq 'down (event-modifiers event))
+       (read-event))
   (let ((old-window (selected-window))
 	(window (posn-window (event-start event))))
     (unless (framep window) (select-window window))

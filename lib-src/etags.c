@@ -41,7 +41,7 @@
  * configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.15";
+char pot_etags_version[] = "@(#) pot revision number is 17.17";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -4543,6 +4543,7 @@ Perl_functions (inf)
 		    lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	}
     }
+  free (package);
 }
 
 
@@ -5441,6 +5442,8 @@ Prolog_functions (inf)
 	  last[len] = '\0';
 	}
     }
+  if (last != NULL)
+    free (last);
 }
 
 
@@ -5597,7 +5600,11 @@ Erlang_functions (inf)
       else if (cp[0] == '-') 	/* attribute, e.g. "-define" */
 	{
 	  erlang_attribute (cp);
-	  last = NULL;
+	  if (last != NULL)
+	    {
+	      free (last);
+	      last = NULL;
+	    }
 	}
       else if ((len = erlang_func (cp, last)) > 0)
 	{
@@ -5614,6 +5621,8 @@ Erlang_functions (inf)
 	  last[len] = '\0';
 	}
     }
+  if (last != NULL)
+    free (last);
 }
 
 
@@ -6887,7 +6896,6 @@ xrealloc (ptr, size)
 
 /*
  * Local Variables:
- * c-indentation-style: gnu
  * indent-tabs-mode: t
  * tab-width: 8
  * fill-column: 79

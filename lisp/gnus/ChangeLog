@@ -1,3 +1,199 @@
+2006-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-decode.el (mm-dissect-buffer): Remove spurious double assignment.
+	(mm-copy-to-buffer): Use with-current-buffer.
+	(mm-display-part): Simplify.
+	(mm-inlinable-p): Add optional arg `type'.
+
+	* gnus-art.el (gnus-mime-view-part-as-type): Add optional PRED
+	argument.
+	(gnus-mime-view-part-externally, gnus-mime-view-part-internally):
+	Try harder to show the attachment internally or externally using
+	gnus-mime-view-part-as-type.
+
+2006-05-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-mime-view-part-as-type-internal): Try to fetch
+	`filename' from Content-Disposition if Content-Type doesn't
+	provide `name'.
+	(gnus-mime-view-part-as-type): Set default instead of
+	initial-input.
+
+2006-04-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-uu.el (mm-uu-pgp-encrypted-extract-1): Assume buffer is made
+	unibyte after clear-decrypt function runs.
+
+	* mml2015.el (mml2015-pgg-clear-decrypt): Treat data which pgg
+	returns as a unibyte string.
+
+2006-04-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml1991.el (mml1991-pgg-sign): No need to load pgg.el, which is
+	always loaded by way of gnus-art.el -> mm-uu.el -> mml2015.el.
+	(mml1991-pgg-encrypt): Ditto.
+
+2006-04-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* deuglify.el (gnus-outlook-deuglify-unwrap-min)
+	(gnus-outlook-deuglify-unwrap-max): Remove autoload.
+
+	* mml-sec.el (mml-secure-method): New internal variable.
+	(mml-secure-sign, mml-secure-encrypt, mml-secure-message-sign)
+	(mml-secure-message-sign-encrypt, mml-secure-message-encrypt): New
+	functions using mml-secure-method.  Sync from the trunk.
+
+	* mml.el (mml-mode-map): Add key bindings for those functions.
+	(mml-menu): Simplify security menu entries.  Suggested by Jesper
+	Harder <harder@myrealbox.com>.  Sync from the trunk.
+
+	* message.el (message-valid-fqdn-regexp): Add TLDs .cat, jobs,
+	.mobi and .travel.  Remove .nato, .bitnet and .uucp.
+	(message-in-body-p): New function.  Sync from the trunk.
+
+	* mml.el (mml-mode, mml-dnd-protocol-alist)
+	(mml-dnd-attach-options, mml-dnd-attach-file)
+	(mml-attach-file, mml-attach-buffer, mml-attach-external): Sync
+	DND support and use of message-in-body-p from the trunk.
+
+2006-04-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml1991.el (mml1991-pgg-sign): Make sure to load pgg.el before
+	binding pgg-* variables; reimplement the section which prevents
+	MIME header from being signed.
+	(mml1991-pgg-encrypt): Make sure to load pgg.el before binding
+	pgg-text-mode; remove a blank line at the top of body.
+
+	* mm-uu.el (mm-uu-pgp-encrypted-extract-1): Don't remove blank
+	lines at the top of body; use gnus-newsgroup-charset if there's no
+	Charset header.
+
+2006-04-25  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-google-wash-article): Sync up to new Google
+	HTML.
+
+2006-04-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-uu.el (mm-uu-pgp-signed-test): Erase prompt.
+	(mm-uu-pgp-encrypted-test): Ditto.
+	(mm-uu-pgp-encrypted-extract-1): Make sure there's a blank line
+	between header and body; return application/pgp-encrypted handle
+	if decryption failed; decode decrypted body by charset.
+
+	* mm-decode.el (mm-automatic-display): Don't make application/pgp
+	element match to application/pgp-*.
+
+2006-04-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-util.el (gnus-replace-in-string): Prefer
+	replace-regexp-in-string over of replace-in-string.
+
+2006-04-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el: Bind tool-bar-mode instead of tool-bar-map.
+
+	* gnus-sum.el: Ditto.
+
+	* gnus-util.el (gnus-select-frame-set-input-focus): Use
+	select-frame-set-input-focus if it is available in XEmacs; use
+	definition defined in Emacs 22 for old Emacsen.
+
+2006-04-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	[ Merge from Gnus trunk. ]
+
+	* mm-util.el (mm-charset-synonym-alist): Improve doc string.
+	(mm-charset-override-alist): New variable.
+	(mm-charset-to-coding-system): Use it.
+	(mm-codepage-setup): New helper function.
+	(mm-charset-eval-alist): New variable.
+	(mm-charset-to-coding-system): Use mm-charset-eval-alist.  Warn
+	about unknown charsets.  Add allow-override.  Use
+	`mm-charset-override-alist' only when decoding.
+	(mm-detect-mime-charset-region): Use :mime-charset.
+
+	* mm-bodies.el (mm-decode-body, mm-decode-string): Call
+	`mm-charset-to-coding-system' with allow-override argument.
+
+	* message.el (message-tool-bar-zap-list, message-tool-bar)
+	(message-tool-bar-gnome, message-tool-bar-retro): New variables.
+	(message-tool-bar-local-item-from-menu): Remove.
+	(message-tool-bar-map): Replace by `message-make-tool-bar'.
+	(message-make-tool-bar): New function.
+	(message-mode): Use `message-make-tool-bar'.
+
+	* gnus-sum.el (gnus-summary-tool-bar)
+	(gnus-summary-tool-bar-gnome, gnus-summary-tool-bar-retro)
+	(gnus-summary-tool-bar-zap-list): New variables.
+	(gnus-summary-make-tool-bar): Complete rewrite using
+	`gmm-tool-bar-from-list'.
+
+	* gnus-group.el (gnus-group-tool-bar, gnus-group-tool-bar-gnome)
+	(gnus-group-tool-bar-retro, gnus-group-tool-bar-zap-list): New
+	variables.
+	(gnus-group-make-tool-bar): Complete rewrite using
+	`gmm-tool-bar-from-list'.
+	(gnus-group-tool-bar-update): New function.
+
+	* gmm-utils.el: New file.
+
+2006-04-12  Ralf Angeli  <angeli@iwi.uni-sb.de>
+
+	* flow-fill.el (fill-flowed): Remove trailing space from blank
+	quoted lines.
+
+2006-04-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-article-mode): Set
+	cursor-in-non-selected-windows to nil.
+
+2006-04-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-view-part-as-charset): Ignore charset
+	that the part specifies.
+
+	* mm-decode.el (mm-display-part): Work with external parts and
+	usual parts similarly.
+
+	* mm-extern.el (mm-inline-external-body): Use mm-display-part
+	instead of gnus-display-mime.
+
+	* gnus-uu.el (gnus-uu-save-article): Put mml tags instead of part
+	tag to summarized topics part in order to encode non-ASCII text.
+
+2006-04-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-button-valid-localpart-regexp): Exclude `@'.
+
+2006-04-11  Arne J,Ax(Brgensen  <arne@arnested.dk>
+
+	* gnus-sieve.el (gnus-sieve-generate): Delete from the start of
+	the sieve region.
+
+2006-04-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.el: Gnus v5.10.8 is released.
+
+2006-04-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnslashdot.el (nnslashdot-retrieve-headers-1): Fix up to new
+	layout.
+
+	* rfc2047.el (rfc2047-decode-encoded-words): Don't message about
+	unknown charset.
+
+	* message.el (message-header-synonyms): Add Original-To to the
+	default.
+
+	* gnus-sum.el (gnus-get-newsgroup-headers-xover): group is an
+	optional parameter.
+
+2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pgg-gpg.el: Revert to revision 7.15 to allow the use of
+	gpg-agent.
+
 2006-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-fun.el (gnus): Require it for gnus-directory.
@@ -308,13 +504,6 @@
 	* gnus.el: Remove bogus comment.
 
 2006-02-09  Daiki Ueno  <ueno@unixuser.org>
-
-	* pgg-gpg.el (pgg-gpg-encrypt-region): Don't convert line-endings
-	in elisp.
-	(pgg-gpg-encrypt-symmetric-region): Ditto.
-	(pgg-gpg-sign-region): Ditto.
-
-	* pgg-def.el (pgg-text-mode): New variable.
 
 	* mml2015.el (mml2015-pgg-sign): Enable pgg-text-mode.
 	(mml2015-pgg-encrypt): Ditto.

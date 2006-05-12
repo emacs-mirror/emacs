@@ -6978,7 +6978,7 @@ or delete subdirectories can bypass this machinery.  Hence, you sometimes
 may have to reset some subdirectory switches after a `dired-undo'.
 You can reset all subdirectory switches to the default using
 \\<dired-mode-map>\\[dired-reset-subdir-switches].
-See Info node `(emacs-xtra)Subdir switches' for more details.
+See Info node `(emacs)Subdir switches' for more details.
 
 \(fn &optional ARG TEST-FOR-SUBDIR)" t nil)
 
@@ -7116,7 +7116,7 @@ or delete subdirectories can bypass this machinery.  Hence, you sometimes
 may have to reset some subdirectory switches after a `dired-undo'.
 You can reset all subdirectory switches to the default using
 \\<dired-mode-map>\\[dired-reset-subdir-switches].
-See Info node `(emacs-xtra)Subdir switches' for more details.
+See Info node `(emacs)Subdir switches' for more details.
 
 \(fn DIRNAME &optional SWITCHES NO-ERROR-IF-NOT-DIR-P)" t nil)
 

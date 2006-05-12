@@ -851,19 +851,23 @@ and `event-end' functions."
   (nth 3 position))
 
 (defsubst posn-string (position)
-  "Return the string object of POSITION, or nil if a buffer position.
+  "Return the string object of POSITION.
+Value is a cons (STRING . STRING-POS), or nil if not a string.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (nth 4 position))
 
 (defsubst posn-image (position)
-  "Return the image object of POSITION, or nil if a not an image.
+  "Return the image object of POSITION.
+Value is an list (image ...), or nil if not an image.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (nth 7 position))
 
 (defsubst posn-object (position)
   "Return the object (image or string) of POSITION.
+Value is a list (image ...) for an image object, a cons cell
+\(STRING . STRING-POS) for a string object, and nil for a buffer position.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (or (posn-image position) (posn-string position)))
@@ -1118,6 +1122,31 @@ The return value is the new value of LIST-VAR."
 			    (if (and oa ob)
 				(< oa ob)
 			      oa)))))))
+
+(defun add-to-history (history-var newelt &optional maxelt)
+  "Add NEWELT to the history list stored in the variable HISTORY-VAR.
+Return the new history list.
+If MAXELT is non-nil, it specifies the maximum length of the history.
+Otherwise, the maximum history length is the value of the `history-length'
+property on symbol HISTORY-VAR, if set, or the value of the `history-length'
+variable.
+Remove duplicates of NEWELT unless `history-delete-duplicates' is nil."
+  (unless maxelt
+    (setq maxelt (or (get history-var 'history-length)
+		     history-length)))
+  (let ((history (symbol-value history-var))
+	tail)
+    (if history-delete-duplicates
+	(setq history (delete newelt history)))
+    (setq history (cons newelt history))
+    (when (integerp maxelt)
+      (if (= 0 maxelt)
+	  (setq history nil)
+	(setq tail (nthcdr (1- maxelt) history))
+	(when (consp tail)
+	  (setcdr tail nil))))
+    (set history-var history)))
+
 
 ;;;; Mode hooks.
 
@@ -1258,25 +1287,25 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 
 ;;; Load history
 
-;;; (defvar symbol-file-load-history-loaded nil
-;;;   "Non-nil means we have loaded the file `fns-VERSION.el' in `exec-directory'.
-;;; That file records the part of `load-history' for preloaded files,
-;;; which is cleared out before dumping to make Emacs smaller.")
+;; (defvar symbol-file-load-history-loaded nil
+;;   "Non-nil means we have loaded the file `fns-VERSION.el' in `exec-directory'.
+;; That file records the part of `load-history' for preloaded files,
+;; which is cleared out before dumping to make Emacs smaller.")
 
-;;; (defun load-symbol-file-load-history ()
-;;;   "Load the file `fns-VERSION.el' in `exec-directory' if not already done.
-;;; That file records the part of `load-history' for preloaded files,
-;;; which is cleared out before dumping to make Emacs smaller."
-;;;   (unless symbol-file-load-history-loaded
-;;;     (load (expand-file-name
-;;; 	   ;; fns-XX.YY.ZZ.el does not work on DOS filesystem.
-;;; 	   (if (eq system-type 'ms-dos)
-;;; 	       "fns.el"
-;;; 	     (format "fns-%s.el" emacs-version))
-;;; 	   exec-directory)
-;;; 	  ;; The file name fns-%s.el already has a .el extension.
-;;; 	  nil nil t)
-;;;     (setq symbol-file-load-history-loaded t)))
+;; (defun load-symbol-file-load-history ()
+;;   "Load the file `fns-VERSION.el' in `exec-directory' if not already done.
+;; That file records the part of `load-history' for preloaded files,
+;; which is cleared out before dumping to make Emacs smaller."
+;;   (unless symbol-file-load-history-loaded
+;;     (load (expand-file-name
+;; 	   ;; fns-XX.YY.ZZ.el does not work on DOS filesystem.
+;; 	   (if (eq system-type 'ms-dos)
+;; 	       "fns.el"
+;; 	     (format "fns-%s.el" emacs-version))
+;; 	   exec-directory)
+;; 	  ;; The file name fns-%s.el already has a .el extension.
+;; 	  nil nil t)
+;;     (setq symbol-file-load-history-loaded t)))
 
 (defun symbol-file (symbol &optional type)
   "Return the input source in which SYMBOL was defined.
@@ -1540,7 +1569,8 @@ by doing (clear-string STRING)."
       (let ((pass nil)
 	    (c 0)
 	    (echo-keystrokes 0)
-	    (cursor-in-echo-area t))
+	    (cursor-in-echo-area t)
+	    (message-log-max nil))
 	(add-text-properties 0 (length prompt)
 			     minibuffer-prompt-properties prompt)
 	(while (progn (message "%s%s"
@@ -1921,6 +1951,17 @@ a system-dependent default device name is used."
   "Return t if OBJECT is a string or nil.
 Otherwise, return nil."
   (or (stringp object) (null object)))
+
+(defun booleanp (object)
+  "Return non-nil if OBJECT is one of the two canonical boolean values: t or nil."
+  (memq object '(nil t)))
+
+(defun field-at-pos (pos)
+  "Return the field at position POS, taking stickiness etc into account"
+  (let ((raw-field (get-char-property (field-beginning pos) 'field)))
+    (if (eq raw-field 'boundary)
+	(get-char-property (1- (field-end pos)) 'field)
+      raw-field)))
 
 
 ;;;; Support for yanking and text properties.

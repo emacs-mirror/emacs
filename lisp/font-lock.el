@@ -1975,17 +1975,17 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 ;;
 ;;	    (regexp-opt
 ;;	     '("define"  "elif" "else" "endif" "error" "file" "if" "ifdef"
-;;	       "ifndef" "include" "line" "pragma" "undef"))
+;;	       "ifndef" "import" "include" "line" "pragma" "undef" "warning"))
 ;;
 (defconst cpp-font-lock-keywords-source-directives
-  "define\\|e\\(?:l\\(?:if\\|se\\)\\|ndif\\|rror\\)\\|file\\|i\\(?:f\\(?:n?def\\)?\\|nclude\\)\\|line\\|pragma\\|undef"
+  "define\\|e\\(?:l\\(?:if\\|se\\)\\|ndif\\|rror\\)\\|file\\|i\\(?:f\\(?:n?def\\)?\\|mport\\|nclude\\)\\|line\\|pragma\\|undef\\|warning"
   "Regular expressoin used in `cpp-font-lock-keywords'.")
 
 ;; `cpp-font-lock-keywords-source-depth' is calculated from:
 ;;
 ;;          (regexp-opt-depth (regexp-opt
 ;;		       '("define"  "elif" "else" "endif" "error" "file" "if" "ifdef"
-;;			 "ifndef" "include" "line" "pragma" "undef")))
+;;			 "ifndef" "import" "include" "line" "pragma" "undef" "warning")))
 ;;
 (defconst cpp-font-lock-keywords-source-depth 0
   "An integer representing regular expression depth of `cpp-font-lock-keywords-source-directives'.
@@ -1997,7 +1997,7 @@ Used in `cpp-font-lock-keywords'.")
     (list
      ;;
      ;; Fontify error directives.
-     '("^#[ \t]*error[ \t]+\\(.+\\)" 1 font-lock-warning-face prepend)
+     '("^#[ \t]*\\(?:error\\|warning\\)[ \t]+\\(.+\\)" 1 font-lock-warning-face prepend)
      ;;
      ;; Fontify filenames in #include <...> preprocessor directives as strings.
      '("^#[ \t]*\\(?:import\\|include\\)[ \t]*\\(<[^>\"\n]*>?\\)"

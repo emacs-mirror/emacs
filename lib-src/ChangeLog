@@ -1,3 +1,23 @@
+2006-05-02  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c (Perl_functions): Free space allocated for var package.
+	(Erlang_functions): Possibly free space allocated for var last.
+	(Prolog_functions): Possibly free space allocated for var last.
+
+2006-04-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sorted-doc.c (main): Initialize docs to NULL.
+
+	* yow.c (yow): Free buf.
+
+	* etags.c: Delete c-indentation-style local variable.
+
+2006-04-29  Richard Stallman  <rms@gnu.org>
+
+	* movemail.c (main): Check for negative value from `read'.
+
+	* fakemail.c (read_header): Give fatal error if input has no header.
+
 2006-04-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* b2m.c (main): Don't include <limits.h>.

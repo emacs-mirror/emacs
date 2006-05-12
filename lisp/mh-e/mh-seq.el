@@ -134,7 +134,7 @@ you want to delete the messages, use \"\\[universal-argument]
       (apply #'mh-speed-flists t folders-changed))))
 
 ;; Shush compiler.
-(eval-when-compile (defvar view-exit-action))
+(defvar view-exit-action)
 
 ;;;###mh-autoload
 (defun mh-list-sequences ()
@@ -202,7 +202,7 @@ MESSAGE appears."
                         " "))))
 
 ;; Shush compiler.
-(eval-when-compile (mh-do-in-xemacs (defvar tool-bar-mode)))
+(defvar tool-bar-mode)                  ; XEmacs
 
 ;;;###mh-autoload
 (defun mh-narrow-to-seq (sequence)
@@ -238,8 +238,7 @@ When you want to widen the view to all your messages again, use
                (set (make-local-variable 'tool-bar-map)
                     mh-folder-seq-tool-bar-map)
                (when (buffer-live-p (get-buffer mh-show-buffer))
-                 (save-excursion
-                   (set-buffer (get-buffer mh-show-buffer))
+                 (with-current-buffer mh-show-buffer
                    (set (make-local-variable 'tool-bar-map)
                         mh-show-seq-tool-bar-map))))
              (push 'widen mh-view-ops)))
@@ -371,8 +370,7 @@ remove all limits and sequence restrictions."
   (when (and (null mh-folder-view-stack) (boundp 'tool-bar-mode) tool-bar-mode)
     (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map)
     (when (buffer-live-p (get-buffer mh-show-buffer))
-      (save-excursion
-        (set-buffer (get-buffer mh-show-buffer))
+      (with-current-buffer mh-show-buffer
         (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map)))))
 
 

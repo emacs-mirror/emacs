@@ -1,3 +1,7 @@
+2006-05-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h (USE_ATSUI): Don't enable on emacs-unicode-2 branch.
+
 2006-04-07  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_eol): Pay attention to buffer relocation in

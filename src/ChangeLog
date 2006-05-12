@@ -1,3 +1,609 @@
+2006-05-10  Kenichi Handa  <handa@m17n.org>
+
+	* xfaces.c (realize_default_face) [HAVE_X_WINDOWS]: If the font
+	chosen for the default face was different from the frame font,
+	adjust the frame font.
+
+2006-05-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c (Qduration) [MAC_OS]: Undo previous change.
+	(syms_of_image) [MAC_OS]: Likewise.
+	[MAC_OS] (gif_load): Emulate Graphic Control Extension block.
+
+	* macfns.c (x_to_mac_color): Fix shift amount change.
+	[USE_MAC_FONT_PANEL] (mac_set_font): Use x_get_focus_frame.
+	[USE_MAC_FONT_PANEL] (Fmac_set_font_panel_visibility): Doc fix.
+
+	* macselect.c (Vmac_service_selection) [MAC_OSX]: Rename from
+	Vmac_services_selection.  All uses changed.
+	(mac_store_service_event): Rename from mac_store_services_event in
+	extern and calls.
+
+	* macterm.c (Qservice) [MAC_OSX]: Rename from Qservices.  All uses
+	changed.
+	[MAC_OSX] (mac_store_service_event): Rename from
+	mac_store_services_event.  All callers changed.
+	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection): Add args
+	FACE_ID and C.  All callers changed.
+	(x_free_frame_resources) [USE_MAC_FONT_PANEL]: Call
+	mac_set_font_info_for_selection when focus frame is destroyed.
+	(XTread_socket): Revert to FrontNonFloatingWindow/FrontWindow.
+
+	* macterm.h (mac_set_font_info_for_selection): Add 2nd and 3rd
+	args in extern.
+
+2006-05-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymap.c (describe_map): Avoid generating duplicate entries if
+	the shadowed binding has the same definition.
+
+2006-05-09  Kenichi Handa  <handa@m17n.org>
+
+	* keymap.c (push_key_description): Handle invalid character key.
+
+2006-05-08  Kenichi Handa  <handa@m17n.org>
+
+	* callproc.c (Fcall_process): Use system_eol_type for encoding
+	arguments if eol_type is not yet decided.
+
+	* coding.h (system_eol_type): Extern it.
+
+	* coding.c (setup_coding_system): For invalid coding-system, set
+	coding->eol_type to CODING_EOL_UNDECIDED.
+	(encode_coding): Cancel previous change.
+	(shrink_encoding_region): Likewise.
+	(code_convert_region1): Likewise.
+	(code_convert_string1): Likewise.
+	(code_convert_string_norecord): Likewise.
+
+	* fileio.c (choose_write_coding_system): Use system_eol_type for
+	encoding if eol_type is not yet decided.
+
+	* process.c (setup_process_coding_systems): Use system_eol_type
+	for encoding if eol_type is not yet decided.
+	(read_process_output): Likewise.
+	(send_process): Likewise.
+
+2006-05-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (syms_of_minibuf) <history-length>: Fix typo in doc.
+
+2006-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (Fmac_clear_font_name_table): Move defun to macfns.c.
+	(syms_of_mac): Likewise for defsubr.
+
+	* macfns.c (mac_set_font): New function.
+	(mac_frame_parm_handlers, syms_of_macfns): Replace x_set_font with it.
+	(mac_window) [TARGET_API_MAC_CARBON && MAC_OSX]: Specify
+	kWindowToolbarButtonAttribute when creating window.
+	(Fmac_clear_font_name_table): Move from macfns.c.
+	(syms_of_macfns): Likewise for defsubr.
+	[USE_MAC_FONT_PANEL] (Fmac_set_font_panel_visibility): New defun.
+	(syms_of_macfns) [USE_MAC_FONT_PANEL]: Defsubr it.
+
+	* macgui.h (USE_MAC_FONT_PANEL): Define to 1 if USE_ATSUI is set
+	and build is done on Mac OS X 10.2 and later.
+
+	* macselect.c (mac_do_receive_drag): Remove unused variable `index'.
+	(mac_store_services_event): Change return type in extern.
+
+	* macterm.c (XLoadQueryFont) [USE_ATSUI]: Set font->mac_fontnum to
+	FMFontFamily value.
+	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection): New function.
+	(x_new_focus_frame) [USE_MAC_FONT_PANEL]: Use it.
+	(QCfamily, QCweight, QCslant, Qnormal, Qbold, Qitalic): Add extern.
+	(QWindow) [MAC_OSX]: Likewise.
+	(Qfont) [USE_MAC_FONT_PANEL]: Likewise.
+	(Vmac_atsu_font_table) [USE_ATSUI]: New variable.
+	(syms_of_macterm) [USE_ATSUI]: Defvar it.
+	(Qtoolbar_switch_mode) [MAC_OSX]: New variable.
+	(Qpanel_closed, Qselection) [USE_MAC_FONT_PANEL]: Likewise.
+	(syms_of_macterm): Intern and staticpro them.
+	(init_font_name_table) [USE_ATSUI]: Add data to Vmac_atsu_font_table.
+	[TARGET_API_MAC_CARBON] (mac_store_event_ref_as_apple_event): New
+	function.
+	[USE_CARBON_EVENTS] (mac_handle_command_event): Use it.
+	[MAC_OSX] (mac_store_services_event): Likewise.
+	[USE_CARBON_EVENTS] (mac_handle_window_event) [MAC_OSX]: Handle
+	kEventWindowToolbarSwitchMode event.
+	(install_window_handler) [USE_CARBON_EVENTS && MAC_OSX]: Register it.
+	[MAC_OSX] (mac_store_services_event): Change return type to OSStatus.
+	[USE_MAC_FONT_PANEL] (mac_handle_font_event): New function.
+	(install_window_handler) [USE_MAC_FONT_PANEL]: Install it.
+	(XTread_socket): Select window on mouse click if x_focus_frame is NULL.
+
+	* macterm.h (mac_set_font_info_for_selection): Add extern.
+
+2006-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c (Qduration) [MAC_OS]: New variable.
+	(syms_of_image) [MAC_OS]: Intern and staticpro it.
+	[MAC_OS] (gif_load): Save image extension data in img->data.lisp_val.
+	[MAC_OSX] (image_load_quartz2d): Use cfstring_create_with_utf8_cstring
+	instead of cfstring_create_with_string.
+
+2006-05-06  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (xframe): Print frame name.
+	(xlist): New command to print a list (max 10 elements).
+	(xpr): Print lisp object of any type.
+	(pitx): Print it->pixel_width.
+
+2006-05-05  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (handle_composition_prop): Fix for the case of empty
+	composition component.
+
+2006-05-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (make_lispy_event) [MAC_OS]: Get Apple event info
+	from event->arg.
+
+	* termhooks.h (enum event_kind) [MAC_OS]: Update comment for
+	MAC_APPLE_EVENT.
+
+	* macterm.h (mac_make_lispy_event_code): Remove extern.
+	(mac_post_mouse_moved_event): Add extern.
+	(mac_aelist_to_lisp, mac_aedesc_to_lisp): Change arg 1 to
+	`const AEDesc *' in externs.
+	(create_apple_event_from_drag_ref) [TARGET_API_MAC_CARBON]: New extern.
+
+	* mac.c (mac_aelist_to_lisp, mac_aedesc_to_lisp): Change arg 1 to
+	`const AEDesc *'.
+	[TARGET_API_MAC_CARBON] (create_apple_event): New function.
+	[TARGET_API_MAC_CARBON] (create_apple_event_from_event_ref): Use it.
+	Use xrealloc instead of repeated xmalloc/xfree.
+	[TARGET_API_MAC_CARBON] (create_apple_event_from_drag_ref): New
+	function.
+
+	* macmenu.c (restore_menu_items, cleanup_popup_menu): Return a value.
+
+	* macselect.c: Update copyright year.
+	(mac_store_apple_event): Change return type to void in extern.
+	(mac_handle_apple_event): Don't get return value from
+	mac_store_apple_event.
+	[TARGET_API_MAC_CARBON] (Vmac_dnd_known_types): New variable.
+	(syms_of_macselect) [TARGET_API_MAC_CARBON]: Defvar it.
+	[TARGET_API_MAC_CARBON] (mac_do_track_drag): Move function from
+	macterm.c.  Use Vmac_dnd_known_types as acceptable flavors.
+	[TARGET_API_MAC_CARBON] (mac_do_receive_drag): Likewise.  New
+	implementation using create_apple_event_from_drag_ref.
+	[TARGET_API_MAC_CARBON] (mac_do_track_dragUPP)
+	(mac_do_receive_dragUPP): Move variables from macterm.c.
+	(install_drag_handler, remove_drag_handler): New functions.
+
+	* macterm.c (XTread_socket) [TARGET_API_MAC_CARBON]: Try window
+	path select also for proxy icon click.
+	[TARGET_API_MAC_CARBON] (mac_post_mouse_moved_event): New function.
+	[USE_TOOLKIT_SCROLL_BARS] (scroll_bar_timer_callback): Use it.
+	(xlfdpat_create): Remove unused label `error' and trailing sentences.
+	(mac_do_track_drag, mac_do_receive_drag): Move functions to macselect.c.
+	(mac_do_track_dragUPP, mac_do_receive_dragUPP): Move variables to
+	macselect.c.
+	(install_drag_handler, remove_drag_handler): Add extern.
+	(mac_store_apple_event): Change return type to void.  All uses changed.
+	Create Lisp object from Apple event and store it into input event.
+	(mac_make_lispy_event_code): Remove function.
+	[TARGET_API_MAC_CARBON] (mac_store_drag_event): New function.
+	(install_window_handler): Call install_drag_handler.
+	(remove_window_handler): Call remove_drag_handler.
+
+2006-05-03  Richard Stallman  <rms@gnu.org>
+
+	* sound.c (Fplay_sound_internal): Dynamically allocate
+	current_sound_device and current_sound.
+	(sound_cleanup): Free them.
+
+	* minibuf.c (read_minibuf): Don't use read_minibuf_noninteractive
+	when inside a keyboard macro.
+
+2006-05-02  Andreas Schwab  <schwab@suse.de>
+
+	* xmenu.c (restore_menu_items): Return a value.
+
+2006-05-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* syntax.c (Fforward_comment): Detect generic comment at beginning of
+	buffer when moving backwards.
+
+2006-05-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (update_window): Don't set changed_p when mode/header
+	line is updated.
+
+	* xdisp.c (prepare_menu_bars) [MAC_OS]: Call mac_update_title_bar.
+	(get_glyph_face_and_encoding, get_char_face_and_encoding):
+	Don't distinguish known faces from others.
+
+	* mac.c (mac_coerce_file_name_ptr): Try typeFSRef if coercion
+	through typeFileURL failed.
+
+	* macfns.c (mac_update_title_bar): New function.
+	[TARGET_API_MAC_CARBON] (mac_update_proxy_icon): New function.
+	(show_hourglass, hide_hourglass) [USE_CG_DRAWING]:
+	Call mac_prepare_for_quickdraw.
+
+	* macgui.h (USE_ATSUI): Set default to 1 if MAC_OSX is defined.
+	(USE_CG_DRAWING): Don't define if compiled on Mac OS X 10.1.
+	(enum pcm_status): New enum.
+	(XCHARSTRUCTROW_CHAR_VALID_P, XCHARSTRUCTROW_SET_CHAR_VALID)
+	(XCharStructRow): Remove.  Now validity is represented by
+	non-negativeness of sum of ascent and descent.
+	(struct MacFontStruct): Change type of member `rows'.
+	(struct _XGC) [USE_CG_DRAWING]: Add member `clip_rects'.
+
+	* macterm.c (mac_draw_line, mac_draw_line_to_pixmap):
+	Adjust endpoints of strictly horizontal/vertical lines.
+	(mac_set_clip_rectangles) [USE_CG_DRAWING]: Set clip_rects.
+	(pcm_init, pcm_get_status): New functions.
+	(x_per_char_metric, XLoadQueryFont): Use them instead of
+	XCharStructRow and related macros.
+	(x_draw_relief_rect): Don't adjust arguments of mac_draw_line.
+	(x_free_frame_resources) [TARGET_API_MAC_CARBON]: Free FRAME_FILE_NAME.
+	(XTread_socket) [TARGET_API_MAC_CARBON]: Handle proxy icon drag
+	and window path pop-up menu on title bar.
+	(mac_use_core_graphics) [USE_CG_DRAWING]: Set default to 1.
+
+	* macterm.h (mac_update_title_bar): Add extern.
+	(struct mac_output) [TARGET_API_MAC_CARBON]: New member `file_name'.
+	(FRAME_FILE_NAME): New macro.
+
+	* unexmacosx.c (unexec): Error if trying unexec from dumped executable.
+
+2006-04-30  Richard Stallman  <rms@gnu.org>
+
+	* keymap.c (Fdefine_key): Improve error message
+	when KEY begins with a non-prefix key.
+
+2006-04-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* syntax.c (Fforward_comment): Don't forget to break out of the loop
+	when we skipped backward over a generic comment.
+
+2006-04-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* .gdbinit (pp1, pv1): Only print value as expression is now
+	printed out by gud-print.
+	(pv1): Correct doc string.
+
+2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (store_in_keymap): Change `def' arg to not be `register'.
+	Seems to trigger a bug in gcc-amd64 4.0.2 20051125 (Red Hat 4.0.2-8):
+	keymap.c:895: error: address of register variable `def' requested.
+
+2006-04-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (construct_mouse_wheel): Handle negative coordinates.
+
+	* w32fns.c (w32_wnd_proc) <WM_LBUTTONDOWN, WM_RBUTTONDOWN>:
+	<WM_LBUTTONUP, WM_RBUTTONUP>: Call signal_user_input in the cases
+	where we preempt mouse_button_timer.
+
+2006-04-25  Miles Bader  <miles@gnu.org>
+
+	* editfns.c (Ffield_beginning, find_field): Undo change of 2006-04-23.
+
+2006-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.h: Include headers for pid_t.
+
+2006-04-24  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (fill_stretch_glyph_string): Set s->nchars = 1 for code which
+	does last_glyph=s->first_glyph+s->nchars-1, e.g. if stretch has relief.
+	(produce_stretch_glyph): Assume that face box height and width is
+	already	included in stretch glyph size so caller doesn't have to
+	consider the extra space otherwise added (fixes problem in ses.el).
+
+	* frame.c (x_set_font): Clear f->n_tool_bar_rows and current frame
+	matrices to force recalculation of tool-bar height after font change.
+
+	* xdisp.c (tool_bar_lines_needed): New local `temp_row' for clarity.
+	Clear it when done, so we don't accidentally draw a second copy of
+	the tool-bar after resetting f->n_tool_bar_rows.
+	(redisplay_tool_bar): Update tool-bar-lines frame parameter whenever
+	we recalculate f->n_tool_bar_rows.
+
+2006-04-23  Lars Hansen  <larsh@soem.dk>
+
+	* editfns.c (find_field): Fix comment.
+	(Ffield_beginning): Fix bug when POS is at field beginning.
+
+2006-04-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1205000.
+
+2006-04-21  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): Fix last change.  Don't recenter if
+	window start is at BEGV.
+
+	* dispextern.h (struct image): New member `corners'.
+	(TOP_CORNER, LEFT_CORNER, BOT_CORNER, RIGHT_CORNER): New macros.
+
+	* image.c (four_corners_best): New arg CORNERS specifies what pixels
+	to look at in case image has margin.
+	(x_create_bitmap_mask): Pass NULL for CORNERS to four_corners_best.
+	(image_background, image_background_transparent)
+	(x_build_heuristic_mask): Pass img->corners to four_corners_best.
+	(gif_load): Set img->corners according to image's margin spec.
+	Use img->corners values directly where applicable.
+	Save image extension data in img->data.lisp_val.
+	(gif_clear_image): New function to free img->data.lisp_val.
+	(gif_type): Use it instead of generic x_clear_image.
+	(Fimage_extension_data): New defun.
+	(syms_of_image): Defsubr it.
+
+2006-04-21  John Sullivan  <john@wjsullivan.net>  (tiny change)
+
+	* window.c (Fdisplay_buffer): Doc fix.
+
+2006-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (SYSTEM_PURESIZE_EXTRA): Increase to 25000.
+
+2006-04-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [MAC_OS] (xpm_load_image): Fill in background field
+	while we have ximg handy.
+
+	* macmenu.c (restore_menu_items, save_menu_items): New functions
+	from xmenu.c.
+	(set_frame_menubar, digest_single_submenu): Apply 2006-04-18
+	changes for xmenu.c.
+
+	* macterm.c (x_per_char_metric): Return NULL if glyph width is 0.
+	(add_mac_font_name): New function.
+	(init_font_name_table): Use it.  Adopt the first found font from
+	those having the same family name.
+
+2006-04-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xdisp.c (note_mouse_highlight): Use build_string.
+
+2006-04-20  Lars Hansen  <larsh@soem.dk>
+
+	* textprop.c (Fremove_list_of_text_properties):
+	Ensure modify_region is called only when buffer is modified and that
+	signal_after_change is allways called in that case.
+
+	* print.c (PRINTFINISH): Call signal_after_change.
+
+2006-04-20  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): Fix last change.
+
+	* xdisp.c (redisplay_window): If current window start is not at	the
+	beginning of a line, select a new window start if buffer is modified
+	and window start is in the modified region, but the first change is
+	before window start.
+
+2006-04-18  Richard Stallman  <rms@gnu.org>
+
+	* xmenu.c (restore_menu_items, save_menu_items): New fns.
+	(set_frame_menubar): Use save_menu_items.  Save updated vector in
+	the frame before unwinding it.  Don't use unuse_menu_items.
+	Don't use discard_menu_items.
+	(digest_single_submenu): Abort if an item is not in a pane.
+	(init_menu_items): Put the error check at the top.
+
+	* keymap.c (describe_map): Make "shadowed" warning more verbose.
+
+	* window.c (adjust_window_trailing_edge): Correctly distinguish
+	series vs parallel cases, even when window has no parent.
+
+	* abbrev.c (record_symbol): New function.
+	(Finsert_abbrev_table_description): Sort the abbrevs alphabetically.
+
+2006-04-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c (x_create_bitmap_from_data) [MAC_OS]: Don't check return
+	value of xmalloc.
+
+	* mac.c (mac_coerce_file_name_ptr, mac_coerce_file_name_desc)
+	(create_apple_event_from_event_ref, xrm_get_preference_database)
+	(cfstring_create_normalized): Don't check return value of xmalloc.
+
+	* macselect.c (get_scrap_target_type_list, defer_apple_events)
+	(copy_scrap_flavor_data, mac_handle_service_event): Don't check
+	return value of xmalloc/xrealloc.
+
+	* macterm.c (XCreateGC, x_per_char_metric, xlfdpat_create)
+	(init_font_name_table, init_font_name_table, mac_do_list_fonts)
+	(XLoadQueryFont, mac_store_apple_event): Don't check return value
+	of xmalloc.
+
+2006-04-17  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (coordinates_in_window): On the vertical border,
+	calculate the row number measured from the top of the window, not
+	the top of the frame.
+	(window_loop): Test w->dedicated with !NILP instead of EQ Qt.
+	(window_scroll_pixel_based): Fix off-by-one bug in 2002-12-23 change.
+
+2006-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (SYSTEM_PURESIZE_EXTRA): Reduce to 24000.
+
+2006-04-16  Romain Francoise  <romain@orebokech.com>
+
+	* puresize.h (BASE_PURESIZE): Decrement back to 1200000.
+
+2006-04-16  Andreas Schwab  <schwab@suse.de>
+
+	* puresize.h (PURESIZE_RATIO): Reduce to 10/6.
+
+2006-04-15  Romain Francoise  <romain@orebokech.com>
+
+	* puresize.h (BASE_PURESIZE): Increment to 1210000.
+
+2006-04-13  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+
+	* print.c (Fprin1_to_string): Mention in the `doc' that the
+	behavior is modified by `print-level' and `print-length'.
+
+2006-04-13  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (setup_coding_system): If eol-type is not yet decided
+	and system_eol_type is not LF, set CODING_REQUIRE_ENCODING_MASK.
+	If coding_system is nil, return 0.
+	(code_convert_region1): Even if coding_system is nil, don't skip
+	conversion if system_eol_type is not LF.
+	(code_convert_string1): Likewise.
+	(code_convert_string_norecord): Likewise.
+
+2006-04-13  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (setup_coding_system): Fix previous change.
+	(encode_coding): If eol_type is not yet decided, use system_eol_type.
+	(shrink_encoding_region): If eol_type is not yet decided and
+	system_eol_type is not LF, don't shrink.
+
+2006-04-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xdisp.c (note_mouse_highlight): Add help echo for dragging vertical
+	line.
+
+2006-04-12  Richard Stallman  <rms@gnu.org>
+
+	* keyboard.c (read_key_sequence): Explicitly avoid keybuf[-1].
+
+	* process.c (conv_lisp_to_sockaddr): If FAMILY unknown, just return.
+	(Fprocess_send_eof): Abort if fail to open null device.
+
+2006-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* fns.c [HAVE_MENUS && MAC_OS]: Include macterm.h.
+
+	* image.c [MAC_OS] (xpm_load_image): Add parentheses around
+	assignment used as truth value.  Add explicit braces to avoid
+	ambiguous `else'.
+	[MAC_OS] (gif_load): Remove unused variable `gcpro1'.
+
+	* lisp.h (syms_of_fontset, Fset_fontset_font): Put extern and
+	EXFUN in #ifdef HAVE_WINDOW_SYSTEM.
+	(syms_of_xfns, syms_of_xsmfns, syms_of_xselect, syms_of_xterm):
+	Put externs in #ifdef HAVE_X_WINDOWS.
+	(syms_of_macfns, syms_of_macselect, syms_of_macterm)
+	(syms_of_macmenu, syms_of_mac) [MAC_OS]: Add externs.
+	(init_mac_osx_environment) [MAC_OSX]: Add extern.
+
+	* mac.c (init_process): Remove undef.
+	(select) [MAC_OSX]: Undefine before including sysselect.h.
+	(posix_pathname_to_fsspec, fsspec_to_posix_pathname) [MAC_OSX]:
+	Remove functions and prototypes.
+	(parse_value): Add parentheses around + inside shift.
+	(path_from_vol_dir_name): Make static.
+	(get_temp_dir_name): Remove unused variables `cpb' and `dir_name'.
+	[!MAC_OSX] (get_path_to_system_folder): Likewise.
+	(Fmac_get_file_creator, Fmac_get_file_type): Remove unused
+	variable `cCode'.
+	(Fmac_coerce_ae_data): Remove unused variables `fref' and `fs'.
+	(Fmac_get_preference): Add explicit braces to avoid ambiguous `else'.
+
+	* macfns.c (x_to_mac_color): Remove unused variable `tail'.
+	(x_set_mouse_color): Remove unused variable `dpy'.
+	(Fx_create_frame): Remove unused variable `x_frame_count'.
+	(Fx_server_version): Add explicit braces to avoid ambiguous `else'.
+	(x_sync): Move from macterm.c.
+	(Fx_file_dialog): Remove unused variable `default_filter_index'.
+
+	* macmenu.c (min_menu_id): Make element type explicit.
+
+	* macselect.c (get_flavor_type_from_symbol): Remove unused
+	variable `val'.
+	(get_scrap_private_timestamp, x_get_foreign_selection)
+	(copy_scrap_flavor_data): Add explicit braces to avoid ambiguous `else'.
+	(Fmac_process_deferred_apple_events): Remove unused variables
+	`keyword', `reply', `apple_event', `count', and `err'.
+
+	* macterm.c: Don't include gnu.h.
+	(x_io_error_quitter, x_draw_image_foreground_1): Remove prototypes.
+	(x_sync): Move to macfns.c.
+	[USE_CG_DRAWING] (mac_define_fringe_bitmap): Remove unused
+	variable `mask_bits'.
+	(mac_compute_glyph_string_overhangs): Avoid ambiguous `else'.
+	(x_draw_image_glyph_string): Remove unused variable `pixmap'.
+	(x_mac_to_emacs_modifiers): Remove function.
+	(XTset_vertical_scroll_bar, mac_handle_visibility_change)
+	(x_make_frame_visible, xlfdpat_create, mac_handle_command_event):
+	Add explicit braces to avoid ambiguous `else'.
+	(x_make_frame_visible): Remove unused variables `type',
+	`original_top', and `original_left'.
+	(mac_do_list_fonts, XTread_socket): Add parentheses around && within ||.
+	(x_load_font): Remove unused variables `full_name', and `value'.
+	(do_get_menus, do_init_managers, do_check_ram_size) [!MAC_OS8]:
+	Remove functions.
+	(do_zoom_window): Reorganize variables with respect to conditionals.
+	(init_command_handler): Remove unused variable `err'.
+	[MAC_OSX] (mac_check_bundle): Remove unused variable `child'.
+
+	* macterm.h (x_set_mouse_position, x_set_mouse_pixel_position)
+	(x_make_frame_invisible, x_iconify_frame, x_free_frame_resources)
+	(x_destroy_window, x_wm_set_size_hint, x_delete_display, XFreeGC)
+	(do_menu_choice, have_menus_p, x_real_positions)
+	(x_set_menu_bar_lines, x_pixel_width, x_pixel_height, x_char_width)
+	(x_char_height, x_sync, x_set_tool_bar_lines, x_activate_menubar)
+	(free_frame_menubar): Add externs.
+
+	* unexmacosx.c: Include config.h before using HAVE_MALLOC_MALLOC_H.
+	(malloc, realloc, free): Add undefs.
+	(read_load_commands): Remove unused variable `n' and `j'.
+	(copy_data_segment): Remove unused variable `r'.
+
+	* xdisp.c (get_glyph_string_clip_rects): Add parentheses around &&
+	within ||.  Add explicit braces to avoid ambiguous `else'.
+	(dump_glyph_row): Remove label for `inverse_p' from legend.
+
+	* xfaces.c (Finternal_merge_in_global_face, try_font_list):
+	Add explicit braces to avoid ambiguous `else'.
+
+2006-04-11  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+
+	* dispnew.c (init_display): Don't init X display if the user asked
+	for a non-X display.
+
+2006-04-12  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (setup_coding_system): Use system_eol_type for default
+	coding->eol_type.
+
+2006-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h (wrong_type_argument): Mark as NO_RETURN.
+
+	* data.c (wrong_type_argument): Try to avoid compiler warnings due
+	to the fact the function is now marked as NO_RETURN.
+
+2006-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (pid_t) [_MSC_VER]: New typedef.
+
+2006-04-10  Romain Francoise  <romain@orebokech.com>
+
+	* xrdb.c (gethomedir): Use xstrdup.
+
+2006-04-10  Andreas Schwab  <schwab@suse.de>
+
+	* xrdb.c (gethomedir): Make sure to always return a pointer that
+	can be passed to free.
+
+2006-04-09  Richard Stallman  <rms@gnu.org>
+
+	* lisp.h (Fkill_emacs): Undo previous change.
+
+2006-04-08  Richard Stallman  <rms@gnu.org>
+
+	* search.c (boyer_moore): Test ch >= 0400, not >.
+
+2006-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* puresize.h (pure_write_error): Mark as NO_RETURN.
+
+	* lisp.h (args_out_of_range, args_out_of_range_3)
+
 2006-04-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_wnd_proc) <WM_MOUSEMOVE>: Ignore mouse movements
@@ -660,11 +1266,6 @@
 	(mac_begin_clip, mac_end_clip): Check if region is empty.
 	(mac_set_clip_rectangles): When resetting clip region, make it
 	empty instead of disposing of it.
-
-2006-02-20  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* keymap.c (store_in_keymap): Change `def' arg to not be `register'.
-	Seems to trigger a bug in gcc-amd64 4.0.2 20051125 (Red Hat 4.0.2-8).
 
 2006-02-20  Kim F. Storm  <storm@cua.dk>
 
@@ -1340,7 +1941,7 @@
 
 	* image.c [MAC_OS] (find_image_fsspec): Likewise.
 
-2005-12-23  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+2005-12-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* insdel.c (insert, insert_and_inherit, insert_before_markers)
 	(insert_before_markers_and_inherit): Make sure FROM is correct

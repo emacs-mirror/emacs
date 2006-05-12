@@ -335,6 +335,11 @@ struct mac_output {
   /* Hints for the size and the position of a window.  */
   XSizeHints *size_hints;
 
+#if TARGET_API_MAC_CARBON
+  /* File name for the proxy icon of this frame.  Might be NULL.  */
+  char *file_name;
+#endif
+
 #if USE_CG_DRAWING
   /* Quartz 2D graphics context.  */
   CGContextRef cg_context;
@@ -359,6 +364,8 @@ typedef struct mac_output mac_output;
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.mac->baseline_offset)
 
 #define FRAME_SIZE_HINTS(f) ((f)->output_data.mac->size_hints)
+
+#define FRAME_FILE_NAME(f) ((f)->output_data.mac->file_name)
 
 /* This gives the mac_display_info structure for the display F is on.  */
 #define FRAME_MAC_DISPLAY_INFO(f) (&one_mac_display_info)
@@ -550,7 +557,15 @@ extern int XParseGeometry P_ ((char *, int *, int *, unsigned int *,
 /* Defined in macterm.c.  */
 
 extern void x_set_window_size P_ ((struct frame *, int, int, int));
+extern void x_set_mouse_position P_ ((struct frame *, int, int));
+extern void x_set_mouse_pixel_position P_ ((struct frame *, int, int));
 extern void x_make_frame_visible P_ ((struct frame *));
+extern void x_make_frame_invisible P_ ((struct frame *));
+extern void x_iconify_frame P_ ((struct frame *));
+extern void x_free_frame_resources P_ ((struct frame *));
+extern void x_destroy_window P_ ((struct frame *));
+extern void x_wm_set_size_hint P_ ((struct frame *, long, int));
+extern void x_delete_display P_ ((struct x_display_info *));
 extern void mac_initialize P_ ((void));
 extern Pixmap XCreatePixmap P_ ((Display *, WindowPtr, unsigned int,
 				 unsigned int, unsigned int));
@@ -560,6 +575,7 @@ extern Pixmap XCreatePixmapFromBitmapData P_ ((Display *, WindowPtr, char *,
 					       unsigned int));
 extern void XFreePixmap P_ ((Display *, Pixmap));
 extern GC XCreateGC P_ ((Display *, Window, unsigned long, XGCValues *));
+extern void XFreeGC P_ ((Display *, GC));
 extern void XSetForeground P_ ((Display *, GC, unsigned long));
 extern void XSetBackground P_ ((Display *, GC, unsigned long));
 extern void XSetWindowBackground P_ ((Display *, WindowPtr, unsigned long));
@@ -568,9 +584,11 @@ extern void mac_draw_line_to_pixmap P_ ((Display *, Pixmap, GC, int, int,
 extern void mac_clear_area P_ ((struct frame *, int, int,
 				unsigned int, unsigned int));
 extern void mac_unload_font P_ ((struct mac_display_info *, XFontStruct *));
+extern OSStatus mac_set_font_info_for_selection P_ ((struct frame *, int, int));
 extern OSErr install_window_handler P_ ((WindowPtr));
 extern void remove_window_handler P_ ((WindowPtr));
-extern Lisp_Object mac_make_lispy_event_code P_ ((int));
+extern void do_menu_choice P_ ((SInt32));
+extern OSStatus mac_post_mouse_moved_event P_ ((void));
 #if USE_CG_DRAWING
 extern void mac_prepare_for_quickdraw P_ ((struct frame *));
 #endif
@@ -584,15 +602,37 @@ extern void mac_prepare_for_quickdraw P_ ((struct frame *));
 
 extern void x_clear_frame_selections P_ ((struct frame *));
 
+/* Defined in macfns.c */
+
+extern int have_menus_p P_ ((void));
+
+extern void x_real_positions P_ ((struct frame *, int *, int *));
+extern void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern int x_pixel_width P_ ((struct frame *));
+extern int x_pixel_height P_ ((struct frame *));
+extern int x_char_width P_ ((struct frame *));
+extern int x_char_height P_ ((struct frame *));
+extern void x_sync P_ ((struct frame *));
+extern void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void mac_update_title_bar P_ ((struct frame *, int));
+
+/* Defined in macmenu.c */
+
+extern void x_activate_menubar P_ ((struct frame *));
+extern void free_frame_menubar P_ ((struct frame *));
+
 /* Defined in mac.c.  */
 
 extern void mac_clear_font_name_table P_ ((void));
-extern Lisp_Object mac_aedesc_to_lisp P_ ((AEDesc *));
+extern Lisp_Object mac_aedesc_to_lisp P_ ((const AEDesc *));
 #if TARGET_API_MAC_CARBON
 extern OSErr create_apple_event_from_event_ref P_ ((EventRef, UInt32,
 						    EventParamName *,
 						    EventParamType *,
 						    AppleEvent *));
+extern OSErr create_apple_event_from_drag_ref P_ ((DragRef, UInt32,
+						   FlavorType *,
+						   AppleEvent *));
 extern CFStringRef cfstring_create_with_utf8_cstring P_ ((const char *));
 extern CFStringRef cfstring_create_with_string P_ ((Lisp_Object));
 extern Lisp_Object cfdata_to_lisp P_ ((CFDataRef));

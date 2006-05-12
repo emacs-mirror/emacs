@@ -449,11 +449,26 @@ list, put the length in the @code{history-length} property of the
 history list symbol.  The variable @code{history-delete-duplicates}
 specifies whether to delete duplicates in history.
 
+@defun add-to-history history-var newelt &optional maxelt
+This function adds a new element @var{newelt} to the history list
+stored in the variable @var{history-var}, and returns the updated
+history list.  By default, the list length is limited by the value
+specified by @code{history-length} (described below), but the optional
+argument @var{maxelt} overrides that.  The possible values of
+@var{maxelt} have the same meaning as the values of
+@code{history-length}.
+
+Duplicate members are removed from the history list, unless
+@code{history-delete-duplicates} is @code{nil}.
+@end defun
+
 @defvar history-length
 The value of this variable specifies the maximum length for all
 history lists that don't specify their own maximum lengths.  If the
 value is @code{t}, that means there no maximum (don't delete old
-elements).
+elements).  The value of @code{history-length} property of the history
+list variable's symbol, if set, overrides this variable for that
+particular history list.
 @end defvar
 
 @defvar history-delete-duplicates
@@ -501,7 +516,7 @@ A history list for arguments that are Lisp expressions to evaluate.
 
 Several of the functions for minibuffer input have an argument called
 @var{initial} or @var{initial-contents}.  This is a mostly-deprecated
-feature for specifiying that the minibuffer should start out with
+feature for specifying that the minibuffer should start out with
 certain text, instead of empty as usual.
 
 If @var{initial} is a string, the minibuffer starts out containing the

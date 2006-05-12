@@ -2529,8 +2529,7 @@ name will have the function FIND-FUN and not token."
 				  default-directory)
 		(speedbar-message nil))))
       ;; Else, we can do a short cut.  No text cache.
-      (let ((cbd (expand-file-name default-directory))
-	    )
+      (let ((cbd (expand-file-name default-directory)))
 	(set-buffer speedbar-buffer)
 	(speedbar-with-writable
 	  (let* ((window (get-buffer-window speedbar-buffer 0))
@@ -2542,8 +2541,7 @@ name will have the function FIND-FUN and not token."
 	      (funcall func cbd 0))
 	    (speedbar-reconfigure-keymaps)
 	    (set-window-point window p)
-	    (set-window-start window start)))
-	))))
+	    (set-window-start window start)))))))
 
 (defun speedbar-update-directory-contents ()
   "Update the contents of the speedbar buffer based on the current directory."
@@ -2677,7 +2675,6 @@ Also resets scanner functions."
 	       (frame-visible-p (speedbar-current-frame))
 	       (not (eq (frame-visible-p (speedbar-current-frame)) 'icon)))
 	  (let ((af (selected-frame)))
-	    (save-window-excursion
 	      (dframe-select-attached-frame speedbar-frame)
 	      ;; make sure we at least choose a window to
 	      ;; get a good directory from
@@ -2704,14 +2701,8 @@ Also resets scanner functions."
 			     "Updating speedbar to special mode: %s...done"
 			     major-mode)
 			    (speedbar-message nil))))
-		  ;; Update all the contents if directories change!
-		  (if (or (member major-mode speedbar-ignored-modes)
-			  (eq af (speedbar-current-frame))
-			  (not (buffer-file-name)))
-		      nil
-		    (speedbar-update-localized-contents)
-		    ))
-		(select-frame af)))
+		    (speedbar-update-localized-contents))
+		(select-frame af))
 	    ;; Now run stealthy updates of time-consuming items
 	    (speedbar-stealthy-updates)))))
   (run-hooks 'speedbar-timer-hook))

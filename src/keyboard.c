@@ -1418,7 +1418,7 @@ command_loop_1 ()
   Lisp_Object keybuf[30];
   int i;
   int no_direct;
-  int prev_modiff;
+  int prev_modiff = 0;
   struct buffer *prev_buffer = NULL;
 #ifdef MULTI_KBOARD
   int was_locked = single_kboard;
@@ -5881,8 +5881,7 @@ make_lispy_event (event)
 	spec[1] = event->y;
 	return Fcons (Qmac_apple_event,
 		      Fcons (Fvector (2, spec),
-			     Fcons (mac_make_lispy_event_code (event->code),
-				    Qnil)));
+			     Fcons (event->arg, Qnil)));
       }
 #endif
 
@@ -9478,6 +9477,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   /* Don't downcase the last character if the caller says don't.
      Don't downcase it if the result is undefined, either.  */
   if ((dont_downcase_last || first_binding >= nmaps)
+      && t > 0
       && t - 1 == original_uppercase_position)
     keybuf[t - 1] = original_uppercase;
 
