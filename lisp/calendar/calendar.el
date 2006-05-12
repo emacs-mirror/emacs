@@ -1847,7 +1847,7 @@ Driven by the variable `calendar-date-display-form'.")
 (autoload 'calendar-persian-date-string "cal-persia"
   "String of Persian date of Gregorian date.")
 
-(autoload 'show-all-diary-entries "diary-lib"
+(autoload 'diary-show-all-entries "diary-lib"
   "Show all of the diary entries in the diary file.
 This function gets rid of the selective display of the diary file so that
 all entries, not just some, are visible.  If there is no diary buffer, one
@@ -1860,8 +1860,7 @@ Each entry in diary file visible in the calendar window is marked."
   t)
 
 (autoload 'make-diary-entry "diary-lib"
-  "Insert a diary entry STRING which may be NONMARKING in FILE."
-  t)
+  "Insert a diary entry STRING which may be NONMARKING in FILE.")
 
 (autoload 'insert-diary-entry "diary-lib"
   "Insert a diary entry for the date indicated by point."
@@ -1946,69 +1945,69 @@ holidays are found, nil if not."
 (autoload 'cal-tex-cursor-month "cal-tex"
   "Make a buffer with LaTeX commands for the month cursor is on.
 Optional prefix argument specifies number of months to be produced.
-Calendar is condensed onto one page.")
+Calendar is condensed onto one page." t)
 
 (autoload 'cal-tex-cursor-month-landscape "cal-tex"
   "Make a buffer with LaTeX commands for the month cursor is on.
-Optional prefix argument specifies number of months to be produced.")
+Optional prefix argument specifies number of months to be produced." t)
 
 (autoload 'cal-tex-cursor-day "cal-tex"
-  "Make a buffer with LaTeX commands for the day cursor is on.")
+  "Make a buffer with LaTeX commands for the day cursor is on." t)
 
 (autoload 'cal-tex-cursor-week "cal-tex"
   "Make a buffer with LaTeX commands for a two-page one-week calendar.
 It applies to the week that point is in.
 Optional prefix argument specifies number of weeks.
-Holidays are included if `cal-tex-holidays' is t.")
+Holidays are included if `cal-tex-holidays' is t." t)
 
 (autoload 'cal-tex-cursor-week2 "cal-tex"
   "Make a buffer with LaTeX commands for a two-page one-week calendar.
 It applies to the week that point is in.
 Optional prefix argument specifies number of weeks.
-Holidays are included if `cal-tex-holidays' is t.")
+Holidays are included if `cal-tex-holidays' is t." t)
 
 (autoload 'cal-tex-cursor-week-iso "cal-tex"
   "Make a buffer with LaTeX commands for a one page ISO-style weekly calendar.
 Optional prefix argument specifies number of weeks.
 Diary entries are included if `cal-tex-diary' is t.
-Holidays are included if `cal-tex-holidays' is t.")
+Holidays are included if `cal-tex-holidays' is t." t)
 
 (autoload 'cal-tex-cursor-week-monday "cal-tex"
   "Make a buffer with LaTeX commands for a two-page one-week calendar.
 It applies to the week that point is in, and starts on Monday.
 Optional prefix argument specifies number of weeks.
-Holidays are included if `cal-tex-holidays' is t.")
+Holidays are included if `cal-tex-holidays' is t." t)
 
 (autoload 'cal-tex-cursor-filofax-2week "cal-tex"
   "Two-weeks-at-a-glance Filofax style calendar for week indicated by cursor.
 Optional prefix argument specifies number of weeks.
 Diary entries are included if cal-tex-diary is t.
-Holidays are included if `cal-tex-holidays' is t.")
+Holidays are included if `cal-tex-holidays' is t." t)
 
 (autoload 'cal-tex-cursor-filofax-week "cal-tex"
   "One-week-at-a-glance Filofax style calendar for week indicated by cursor.
 Optional prefix argument specifies number of weeks.
 Weeks start on Monday.
 Diary entries are included if cal-tex-diary is t.
-Holidays are included if `cal-tex-holidays' is t.")
+Holidays are included if `cal-tex-holidays' is t." t)
 
 (autoload 'cal-tex-cursor-filofax-daily "cal-tex"
   "Day-per-page Filofax style calendar for week indicated by cursor.
 Optional prefix argument specifies number of weeks.  Weeks start on Monday.
 Diary entries are included if `cal-tex-diary' is t.
-Holidays are included if `cal-tex-holidays' is t.")
+Holidays are included if `cal-tex-holidays' is t." t)
 
 (autoload 'cal-tex-cursor-year "cal-tex"
   "Make a buffer with LaTeX commands for a year's calendar.
-Optional prefix argument specifies number of years.")
+Optional prefix argument specifies number of years." t)
 
 (autoload 'cal-tex-cursor-year-landscape "cal-tex"
   "Make a buffer with LaTeX commands for a year's calendar (landscape).
-Optional prefix argument specifies number of years.")
+Optional prefix argument specifies number of years." t)
 
 (autoload 'cal-tex-cursor-filofax-year "cal-tex"
   "Make a buffer with LaTeX commands for a year's calendar (Filofax).
-Optional prefix argument specifies number of years.")
+Optional prefix argument specifies number of years." t)
 
 (autoload 'mark-calendar-holidays "holidays"
   "Mark notable days in the calendar window."
