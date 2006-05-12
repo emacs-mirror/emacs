@@ -1,3 +1,7 @@
+2006-05-12  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc-refresh): Compute PP once before looping.
+
 2006-05-11  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (diary-show-all-entries): Do not refer to
