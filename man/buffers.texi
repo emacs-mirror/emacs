@@ -481,7 +481,7 @@ mode in this buffer, as long as it is not marked modified.  Global
 Auto Revert mode applies to the @samp{*Buffer List*} buffer only if
 @code{global-auto-revert-non-file-buffers} is non-@code{nil}.
 @iftex
-@xref{Autorevert,,, emacs-xtra, Specialized Emacs Features}, for details.
+@inforef{Autorevert,, emacs-xtra}, for details.
 @end iftex
 @ifnottex
 @xref{Autorevert, global-auto-revert-non-file-buffers}, for details.
