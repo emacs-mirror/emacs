@@ -2196,36 +2196,38 @@ set_point_both (buffer, charpos, bytepos)
       Lisp_Object leave_after, leave_before, enter_after, enter_before;
 
       if (fromprev)
-	leave_after = textget (fromprev->plist, Qpoint_left);
-      else
-	leave_after = Qnil;
-      if (from)
-	leave_before = textget (from->plist, Qpoint_left);
+	leave_before = textget (fromprev->plist, Qpoint_left);
       else
 	leave_before = Qnil;
 
-      if (toprev)
-	enter_after = textget (toprev->plist, Qpoint_entered);
+      if (from)
+	leave_after = textget (from->plist, Qpoint_left);
       else
-	enter_after = Qnil;
-      if (to)
-	enter_before = textget (to->plist, Qpoint_entered);
+	leave_after = Qnil;
+
+      if (toprev)
+	enter_before = textget (toprev->plist, Qpoint_entered);
       else
 	enter_before = Qnil;
 
+      if (to)
+	enter_after = textget (to->plist, Qpoint_entered);
+      else
+	enter_after = Qnil;
+
       if (! EQ (leave_before, enter_before) && !NILP (leave_before))
-	call2 (leave_before, make_number (old_position),
-	       make_number (charpos));
+      	call2 (leave_before, make_number (old_position),
+      	       make_number (charpos));
       if (! EQ (leave_after, enter_after) && !NILP (leave_after))
-	call2 (leave_after, make_number (old_position),
-	       make_number (charpos));
+      	call2 (leave_after, make_number (old_position),
+      	       make_number (charpos));
 
       if (! EQ (enter_before, leave_before) && !NILP (enter_before))
-	call2 (enter_before, make_number (old_position),
-	       make_number (charpos));
+      	call2 (enter_before, make_number (old_position),
+      	       make_number (charpos));
       if (! EQ (enter_after, leave_after) && !NILP (enter_after))
-	call2 (enter_after, make_number (old_position),
-	       make_number (charpos));
+      	call2 (enter_after, make_number (old_position),
+      	       make_number (charpos));
     }
 }
 

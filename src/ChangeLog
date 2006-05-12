@@ -1,3 +1,11 @@
+2006-05-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* intervals.c (set_point_both): Fix mixup before before and after
+	in variable names.
+
+	* editfns.c (Fline_beginning_position): Inhibit point-motion hooks
+	while setting point temporarily.
+
 2006-05-11  Richard Stallman  <rms@gnu.org>
 
 	* lread.c (readevalloop): Abort if START non-nil for non-buffer input.
