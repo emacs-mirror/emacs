@@ -1,4 +1,10 @@
+2006-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-push-theme): Load the variable before checking
+	its `standard-value'.
+
 2006-05-13 Lars Hansen <larsh@soem.dk>
+
 	* desktop.el (desktop-save): Use with-temp-buffer.
 
 2006-05-12  Glenn Morris  <rgm@gnu.org>
