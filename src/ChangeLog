@@ -1,5 +1,8 @@
 2006-05-13  Eli Zaretskii  <eliz@gnu.org>
 
+	* frame.c (x_set_border_width): Fix error message to say "frame",
+	not "window".
+
 	* Makefile.in (SOME_MACHINE_LISP): Add fringe.elc.
 
 2006-05-12  Chong Yidong  <cyd@stupidchicken.com>
