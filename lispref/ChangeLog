@@ -1,3 +1,8 @@
+2006-05-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* os.texi (Terminal-Specific): More accurate description of how
+	Emacs searches for the terminal-specific libraries.
+
 2006-05-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* hooks.texi (Standard Hooks) [iftex]: Convert @xref's to
