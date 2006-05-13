@@ -1,3 +1,7 @@
+2006-05-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (lisp1): Add fringe.elc.
+
 2006-05-02  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.c (Perl_functions): Free space allocated for var package.

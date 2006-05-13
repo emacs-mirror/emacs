@@ -1,3 +1,7 @@
+2006-05-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (SOME_MACHINE_LISP): Add fringe.elc.
+
 2006-05-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* intervals.c (set_point_both): Fix mixup before before and after

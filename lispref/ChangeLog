@@ -1,5 +1,8 @@
 2006-05-13  Eli Zaretskii  <eliz@gnu.org>
 
+	* buffers.texi (Current Buffer): Document that with-temp-buffer
+	disables undo.
+
 	* os.texi (Terminal-Specific): More accurate description of how
 	Emacs searches for the terminal-specific libraries.
 
