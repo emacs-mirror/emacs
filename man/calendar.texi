@@ -997,11 +997,11 @@ it.  You can also view today's events outside of Calendar mode.
 @table @kbd
 @item d
 Display all diary entries for the selected date
-(@code{view-diary-entries}).
+(@code{diary-view-entries}).
 @item Mouse-2 Diary
 Display all diary entries for the date you click on.
 @item s
-Display the entire diary file (@code{show-all-diary-entries}).
+Display the entire diary file (@code{diary-show-all-entries}).
 @item m
 Mark all visible dates that have diary entries
 (@code{mark-diary-entries}).
@@ -1016,7 +1016,7 @@ Mail yourself email reminders about upcoming diary entries.
 @end table
 
 @kindex d @r{(Calendar mode)}
-@findex view-diary-entries
+@findex diary-view-entries
 @vindex view-diary-entries-initially
   Displaying the diary entries with @kbd{d} shows in a separate window
 the diary entries for the selected date in the calendar.  The mode line
@@ -1054,7 +1054,7 @@ turns off holiday marks (@pxref{Holidays}).  If the variable
 updating the calendar marks diary dates automatically.
 
 @kindex s @r{(Calendar mode)}
-@findex show-all-diary-entries
+@findex diary-show-all-entries
   To see the full diary file, rather than just some of the entries, use
 the @kbd{s} command.
 
@@ -1152,7 +1152,7 @@ additional lines or adding/deleting characters in the middle of a
 visible line cannot cause problems, but editing at the end of a line may
 not do what you expect.  Deleting a line may delete other invisible
 entries that follow it.  Before editing the diary, it is best to display
-the entire file with @kbd{s} (@code{show-all-diary-entries}).
+the entire file with @kbd{s} (@code{diary-show-all-entries}).
 
 @node Date Formats
 @subsection Date Formats
