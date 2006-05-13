@@ -1,3 +1,6 @@
+2006-05-13 Lars Hansen <larsh@soem.dk>
+	* desktop.el (desktop-save): Use with-temp-buffer.
+
 2006-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el (appt-check, appt-make-list): Refer to
