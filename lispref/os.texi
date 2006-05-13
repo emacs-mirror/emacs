@@ -271,18 +271,24 @@ Normally, @code{term-file-prefix} has the value
 in the normal manner, by searching the @code{load-path} directories, and
 trying the @samp{.elc} and @samp{.el} suffixes.
 
-  The usual function of a terminal-specific library is to enable special
-keys to send sequences that Emacs can recognize.  It may also need to
-set or add to @code{function-key-map} if the Termcap entry does not
-specify all the terminal's function keys.  @xref{Terminal Input}.
-
 @cindex Termcap
-  When the name of the terminal type contains a hyphen, only the part of
-the name before the first hyphen is significant in choosing the library
-name.  Thus, terminal types @samp{aaa-48} and @samp{aaa-30-rv} both use
-the @file{term/aaa} library.  If necessary, the library can evaluate
-@code{(getenv "TERM")} to find the full name of the terminal
-type.@refill
+  The usual function of a terminal-specific library is to enable
+special keys to send sequences that Emacs can recognize.  It may also
+need to set or add to @code{function-key-map} if the Termcap or
+Terminfo entry does not specify all the terminal's function keys.
+@xref{Terminal Input}.
+
+  When the name of the terminal type contains a hyphen, and no library
+is found whose name is identical to the terminal's name, Emacs strips
+from the terminal's name the last hyphen and everything that follows
+it, and tries again.  This process is repeated until Emacs finds a
+matching library or until there are no more hyphens in the name (the
+latter means the terminal doesn't have any library specific to it).
+Thus, for example, if there are no @samp{aaa-48} and @samp{aaa-30}
+libraries, Emacs will try the same library @file{term/aaa.el} for
+terminal types @samp{aaa-48} and @samp{aaa-30-rv}.  If necessary, the
+library can evaluate @code{(getenv "TERM")} to find the full name of
+the terminal type.@refill
 
   Your init file can prevent the loading of the
 terminal-specific library by setting the variable
