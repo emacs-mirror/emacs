@@ -1,3 +1,9 @@
+2006-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Displaying the Diary, Format of Diary File):
+	Refer to diary-view-entries, diary-list-entries,
+	diary-show-all-entries rather than obsolete aliases.
+
 2006-05-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* calendar.texi (Calendar/Diary, Holidays, Displaying the Diary)
