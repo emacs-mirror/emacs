@@ -763,45 +763,42 @@ See also `desktop-base-file-name'."
                         (setq locals (cdr locals)))
                       ll)))
               (buffer-list)))
-          (eager desktop-restore-eager)
-          (buf (get-buffer-create "*desktop*")))
-      (set-buffer buf)
-      (erase-buffer)
-
-      (insert
-        ";; -*- mode: emacs-lisp; coding: emacs-mule; -*-\n"
-        desktop-header
-        ";; Created " (current-time-string) "\n"
-        ";; Desktop file format version " desktop-file-version "\n"
-        ";; Emacs version " emacs-version "\n\n"
-        ";; Global section:\n")
-      (mapc (function desktop-outvar) desktop-globals-to-save)
-      (if (memq 'kill-ring desktop-globals-to-save)
+          (eager desktop-restore-eager))
+      (with-temp-buffer
         (insert
-          "(setq kill-ring-yank-pointer (nthcdr "
-          (int-to-string (- (length kill-ring) (length kill-ring-yank-pointer)))
-          " kill-ring))\n"))
+         ";; -*- mode: emacs-lisp; coding: emacs-mule; -*-\n"
+         desktop-header
+         ";; Created " (current-time-string) "\n"
+         ";; Desktop file format version " desktop-file-version "\n"
+         ";; Emacs version " emacs-version "\n\n"
+         ";; Global section:\n")
+        (mapc (function desktop-outvar) desktop-globals-to-save)
+        (if (memq 'kill-ring desktop-globals-to-save)
+            (insert
+             "(setq kill-ring-yank-pointer (nthcdr "
+             (int-to-string (- (length kill-ring) (length kill-ring-yank-pointer)))
+             " kill-ring))\n"))
 
-      (insert "\n;; Buffer section -- buffers listed in same order as in buffer list:\n")
-      (mapc #'(lambda (l)
-                (when (apply 'desktop-save-buffer-p l)
-                  (insert "("
-                          (if (or (not (integerp eager))
-                                  (unless (zerop eager)
-                                    (setq eager (1- eager))
-                                    t))
-                              "desktop-create-buffer"
-                            "desktop-append-buffer-args")
-                          " "
-                          desktop-file-version)
-                  (mapc #'(lambda (e)
-                            (insert "\n  " (desktop-value-to-string e)))
-                        l)
-                  (insert ")\n\n")))
-            info)
-      (setq default-directory dirname)
-      (let ((coding-system-for-write 'emacs-mule))
-        (write-region (point-min) (point-max) filename nil 'nomessage))))
+        (insert "\n;; Buffer section -- buffers listed in same order as in buffer list:\n")
+        (mapc #'(lambda (l)
+                  (when (apply 'desktop-save-buffer-p l)
+                    (insert "("
+                            (if (or (not (integerp eager))
+                                    (unless (zerop eager)
+                                      (setq eager (1- eager))
+                                      t))
+                                "desktop-create-buffer"
+                              "desktop-append-buffer-args")
+                            " "
+                            desktop-file-version)
+                    (mapc #'(lambda (e)
+                              (insert "\n  " (desktop-value-to-string e)))
+                          l)
+                    (insert ")\n\n")))
+              info)
+        (setq default-directory dirname)
+        (let ((coding-system-for-write 'emacs-mule))
+          (write-region (point-min) (point-max) filename nil 'nomessage)))))
   (setq desktop-dirname dirname))
 
 ;; ----------------------------------------------------------------------------
