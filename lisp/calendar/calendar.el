@@ -2253,7 +2253,7 @@ movement commands will not work correctly."
     (define-key map "m"   'mark-diary-entries)
     (define-key map "d"   'diary-view-entries)
     (define-key map "D"   'view-other-diary-entries)
-    (define-key map "s"   'show-all-diary-entries)
+    (define-key map "s"   'diary-show-all-entries)
     (define-key map "pd"  'calendar-print-day-of-year)
     (define-key map "pC"  'calendar-print-chinese-date)
     (define-key map "pk"  'calendar-print-coptic-date)
