@@ -114,31 +114,30 @@ When @code{find-file} is called interactively, it prompts for
 @end deffn
 
 @defun find-file-noselect filename &optional nowarn rawfile wildcards
-This function is the guts of all the file-visiting functions.  It finds
-or creates a buffer visiting the file @var{filename}, and returns it.
-It uses an existing buffer if there is one, and otherwise creates a new
-buffer and reads the file into it.  You may make the buffer current or
-display it in a window if you wish, but this function does not do so.
+This function is the guts of all the file-visiting functions.  It
+returns a buffer visiting the file @var{filename}.  You may make the
+buffer current or display it in a window if you wish, but this
+function does not do so.
 
-If @var{wildcards} is non-@code{nil},
-then @code{find-file-noselect} expands wildcard
-characters in @var{filename} and visits all the matching files.
+The function returns an existing buffer if there is one; otherwise it
+creates a new buffer and reads the file into it.  When
+@code{find-file-noselect} uses an existing buffer, it first verifies
+that the file has not changed since it was last visited or saved in
+that buffer.  If the file has changed, this function asks the user
+whether to reread the changed file.  If the user says @samp{yes}, any
+edits previously made in the buffer are lost.
 
-When @code{find-file-noselect} uses an existing buffer, it first
-verifies that the file has not changed since it was last visited or
-saved in that buffer.  If the file has changed, then this function asks
-the user whether to reread the changed file.  If the user says
-@samp{yes}, any changes previously made in the buffer are lost.
+Reading the file involves decoding the file's contents (@pxref{Coding
+Systems}), including end-of-line conversion, and format conversion
+(@pxref{Format Conversion}).  If @var{wildcards} is non-@code{nil},
+then @code{find-file-noselect} expands wildcard characters in
+@var{filename} and visits all the matching files.
 
 This function displays warning or advisory messages in various peculiar
 cases, unless the optional argument @var{nowarn} is non-@code{nil}.  For
 example, if it needs to create a buffer, and there is no file named
 @var{filename}, it displays the message @samp{(New file)} in the echo
 area, and leaves the buffer empty.
-
-Reading the file(s) into their respective buffers involves decoding
-the files' contents (@pxref{Coding Systems}), including end-of-line
-conversion.
 
 The @code{find-file-noselect} function normally calls
 @code{after-find-file} after reading the file (@pxref{Subroutines of
@@ -149,10 +148,9 @@ than the file just visited, and finishes by running the functions in
 
 If the optional argument @var{rawfile} is non-@code{nil}, then
 @code{after-find-file} is not called, and the
-@code{find-file-not-found-functions} are not run in case of failure.  What's
-more, a non-@code{nil} @var{rawfile} value suppresses coding system
-conversion (@pxref{Coding Systems}) and format conversion (@pxref{Format
-Conversion}).
+@code{find-file-not-found-functions} are not run in case of failure.
+What's more, a non-@code{nil} @var{rawfile} value suppresses coding
+system conversion and format conversion.
 
 The @code{find-file-noselect} function usually returns the buffer that
 is visiting the file @var{filename}.  But, if wildcards are actually
