@@ -1,3 +1,7 @@
+2006-05-14  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (handle_one_xevent): Fix crash in 2006-03-24 change.
+
 2006-05-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.c (x_set_border_width): Fix error message to say "frame",

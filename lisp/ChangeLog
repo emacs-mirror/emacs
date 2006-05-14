@@ -1,3 +1,8 @@
+2006-05-14  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/cc-subword.el (c-forward-subword, c-backward-subword):
+	Add CUA move property.
+
 2006-05-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.el (custom-push-theme): Load the variable before checking
