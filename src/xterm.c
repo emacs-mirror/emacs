@@ -5803,8 +5803,9 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	    == dpyinfo->Xatom_editres)
           {
 	    f = x_any_window_to_frame (dpyinfo, event.xclient.window);
-            _XEditResCheckMessages (f->output_data.x->widget, NULL,
-                                    &event, NULL);
+	    if (f)
+              _XEditResCheckMessages (f->output_data.x->widget, NULL,
+                                      &event, NULL);
 	    goto done;
           }
 #endif /* HACK_EDITRES */
