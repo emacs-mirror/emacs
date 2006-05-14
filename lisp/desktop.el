@@ -201,7 +201,7 @@ The base name of the file is specified in `desktop-base-file-name'."
   :version "22.1")
 
 (defcustom desktop-missing-file-warning nil
-  "*If non-nil then `desktop-read' asks if a non-existent file should be recreated.
+  "If non-nil, offer to recreate the buffer of a deleted file.
 Also pause for a moment to display message about errors signaled in
 `desktop-buffer-mode-handlers'.
 
@@ -943,7 +943,7 @@ directory DIRNAME."
               (let ((msg (format "Desktop: File \"%s\" no longer exists."
                                  desktop-buffer-file-name)))
                  (if desktop-missing-file-warning
-		     (y-or-n-p (concat msg " Re-create? "))
+		     (y-or-n-p (concat msg " Re-create buffer? "))
                    (message "%s" msg)
                    nil)))
 	  (let* ((auto-insert nil) ; Disable auto insertion
