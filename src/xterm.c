@@ -6084,7 +6084,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       f = x_any_window_to_frame (dpyinfo, event.xkey.window);
 
       if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
-	  && !EQ (f->tool_bar_window, dpyinfo->mouse_face_window))
+	  && (f == 0
+	      || !EQ (f->tool_bar_window, dpyinfo->mouse_face_window)))
         {
           clear_mouse_face (dpyinfo);
           dpyinfo->mouse_face_hidden = 1;
