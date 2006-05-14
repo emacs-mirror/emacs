@@ -1,3 +1,8 @@
+2006-05-14 Lars Hansen <larsh@soem.dk>
+	* desktop.el (desktop-missing-file-warning): Fix docstring.
+	(desktop-restore-file-buffer): Correct question asked on missing
+	file.
+
 2006-05-14  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/cc-subword.el (c-forward-subword, c-backward-subword):
