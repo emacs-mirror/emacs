@@ -2341,7 +2341,9 @@ get_property_and_range (pos, prop, val, start, end, object)
 /* Return the proper local keymap TYPE for position POSITION in
    BUFFER; TYPE should be one of `keymap' or `local-map'.  Use the map
    specified by the PROP property, if any.  Otherwise, if TYPE is
-   `local-map' use BUFFER's local map.  */
+   `local-map' use BUFFER's local map.
+
+   POSITION must be in the accessible part of BUFFER.  */
 
 Lisp_Object
 get_local_map (position, buffer, type)
@@ -2353,7 +2355,7 @@ get_local_map (position, buffer, type)
   int old_begv, old_zv, old_begv_byte, old_zv_byte;
 
   /* Perhaps we should just change `position' to the limit.  */
-  if (position > BUF_Z (buffer) || position < BUF_BEG (buffer))
+  if (position > BUF_ZV (buffer) || position < BUF_BEGV (buffer))
     abort ();
 
   /* Ignore narrowing, so that a local map continues to be valid even if
