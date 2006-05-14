@@ -912,11 +912,9 @@ nor a buffer.
 @end example
 
 The major mode for a newly created buffer is set to Fundamental mode.
-The variable @code{default-major-mode} is handled at a higher level.
-@xref{Auto Major Mode}.
-
-If the buffer's name begins with a space, the buffer has its undo
-information recording (@pxref{Undo}) turned off by default.
+(The variable @code{default-major-mode} is handled at a higher level;
+see @ref{Auto Major Mode}.)  If the name begins with a space, the
+buffer initially disables undo information recording (@pxref{Undo}).
 @end defun
 
 @defun generate-new-buffer name
