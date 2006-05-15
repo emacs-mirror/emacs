@@ -1,3 +1,9 @@
+2006-05-15  Romain Francoise  <romain@orebokech.com>
+
+	* dired-x.el (dired-guess-shell-gnutar): On GNU and GNU/Linux
+	systems, default to "tar" since those systems probably have GNU
+	tar.
+
 2006-05-14  Lars Hansen  <larsh@soem.dk>
 
 	* desktop.el (desktop-missing-file-warning): Fix docstring.

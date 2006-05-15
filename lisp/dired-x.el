@@ -215,7 +215,9 @@ a directory.  See also `dired-local-variables-file'."
   :type 'boolean
   :group 'dired-x)
 
-(defcustom dired-guess-shell-gnutar nil
+(defcustom dired-guess-shell-gnutar (when (or (eq system-type 'gnu)
+					      (eq system-type 'gnu/linux))
+				      "tar")
   "*If non-nil, name of GNU tar executable.
 \(E.g., \"tar\" or \"gtar\").  The `z' switch will be used with it for
 compressed or gzip'ed tar files.  If you don't have GNU tar, set this
