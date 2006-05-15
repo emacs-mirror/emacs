@@ -2120,15 +2120,13 @@ push_key_description (c, p, force_multibyte)
      int force_multibyte;
 {
   unsigned c2;
-  int valid_p;
 
   /* Clear all the meaningless bits above the meta bit.  */
   c &= meta_modifier | ~ - meta_modifier;
   c2 = c & ~(alt_modifier | ctrl_modifier | hyper_modifier
 	     | meta_modifier | shift_modifier | super_modifier);
 
-  valid_p = SINGLE_BYTE_CHAR_P (c2) || char_valid_p (c2, 0);
-  if (! valid_p)
+  if (! CHARACTERP (make_number (c2)))
     {
       /* KEY_DESCRIPTION_SIZE is large enough for this.  */
       p += sprintf (p, "[%d]", c);
@@ -2220,24 +2218,14 @@ push_key_description (c, p, force_multibyte)
     {
       *p++ = c;
     }
-  else if (CHARACTERP (make_number (c)))
+  else
     {
+      /* Now we are sure that C is a valid character code.  */
       if (NILP (current_buffer->enable_multibyte_characters)
 	  && ! force_multibyte)
 	*p++ = multibyte_char_to_unibyte (c, Qnil);
       else
 	p += CHAR_STRING (c, (unsigned char *) p);
-    }
-  else
-    {
-      int bit_offset;
-      *p++ = '\\';
-      /* The biggest character code uses 22 bits.  */
-      for (bit_offset = 21; bit_offset >= 0; bit_offset -= 3)
-	{
-	  if (c >= (1 << bit_offset))
-	    *p++ = ((c & (7 << bit_offset)) >> bit_offset) + '0';
-	}
     }
 
   return p;
