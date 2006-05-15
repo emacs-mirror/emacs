@@ -1,3 +1,7 @@
+2006-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hexl.el (hexlify-buffer): Encode process arguments manually.
+
 2006-05-16  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-tooltip-tips): Add missing argument to
@@ -6,14 +10,12 @@
 2006-05-15  Romain Francoise  <romain@orebokech.com>
 
 	* dired-x.el (dired-guess-shell-gnutar): On GNU and GNU/Linux
-	systems, default to "tar" since those systems probably have GNU
-	tar.
+	systems, default to "tar" since those systems probably have GNU tar.
 
 2006-05-14  Lars Hansen  <larsh@soem.dk>
 
 	* desktop.el (desktop-missing-file-warning): Fix docstring.
-	(desktop-restore-file-buffer): Correct question asked on missing
-	file.
+	(desktop-restore-file-buffer): Correct question asked on missing file.
 
 2006-05-14  Kim F. Storm  <storm@cua.dk>
 
@@ -31,14 +33,12 @@
 
 2006-05-12  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-menu.el (calendar-mode-map, calendar-mouse-3-map):
+	* calendar/calendar.el (calendar-mode-map):
+	* calendar/diary-lib.el (include-other-diary-files,diary-mail-entries):
 	* calendar/appt.el (appt-check, appt-make-list): Refer to
 	diary-view-entries, diary-list-entries, diary-show-all-entries
 	rather than obsolete aliases.
-	* calendar/cal-menu.el (calendar-mode-map, calendar-mouse-3-map):
-	Ditto.
-	* calendar/calendar.el (calendar-mode-map): Ditto.
-	* calendar/diary-lib.el (include-other-diary-files)
-	(diary-mail-entries): Ditto.
 
 2006-05-12  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -51,7 +51,7 @@
 
 2006-05-12  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el: (allout-view-change-hook): Marked as being deprecated,
+	* allout.el: (allout-view-change-hook): Mark as being deprecated,
 	to be replaced by `allout-exposure-change-hook'.
 	(allout-exposure-change-hook): New, replacing
 	`allout-view-change-hook'.
@@ -93,9 +93,8 @@
 	(cal-tex-cursor-day, cal-tex-cursor-week, cal-tex-cursor-week2)
 	(cal-tex-cursor-week-iso, cal-tex-cursor-week-monday)
 	(cal-tex-cursor-filofax-2week, cal-tex-cursor-filofax-week)
-	(cal-tex-cursor-filofax-daily, cal-tex-cursor-year)
-	(cal-tex-cursor-year-landscape, cal-tex-cursor-filofax-year):
-	Interactive.
+	(cal-tex-cursor-year-landscape, cal-tex-cursor-filofax-year)
+	(cal-tex-cursor-filofax-daily, cal-tex-cursor-year): Interactive.
 
 2006-05-11  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
@@ -115,8 +114,8 @@
 
 	* files.el, newcomment.el, outline.el, simple.el,
 	emacs-lisp/bytecomp.el, progmodes/cc-compat.el,
-	progmodes/cc-vars.el, progmodes/compile.el: Move
-	`safe-local-variable' declarations to the respective files.
+	progmodes/cc-vars.el, progmodes/compile.el:
+	Move `safe-local-variable' declarations to the respective files.
 
 	* help-fns.el (describe-variable): Don't print safe-var if it is
 	byte-code.  Improve wording as suggested by Luc Teirlinck
@@ -135,8 +134,8 @@
 2006-05-11  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-read-date, org-goto-calendar)
-	(org-agenda-goto-calendar): Bind
-	`view-calendar-holidays-initially' to nil.
+	(org-agenda-goto-calendar):
+	Bind `view-calendar-holidays-initially' to nil.
 
 2006-05-11  Thien-Thi Nguyen  <ttn@gnu.org>
 

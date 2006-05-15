@@ -704,7 +704,12 @@ This discards the buffer's undo information."
 	(buffer-undo-list t))
     (apply 'call-process-region (point-min) (point-max)
 	   (expand-file-name hexl-program exec-directory)
-	   t t nil (split-string hexl-options))
+	   t t nil
+           ;; Manually encode the args, otherwise they're encoded using
+           ;; coding-system-for-write (i.e. buffer-file-coding-system) which
+           ;; may not be what we want (e.g. utf-16 on a non-utf-16 system).
+           (mapcar (lambda (s) (encode-coding-string s locale-coding-system))
+                   (split-string hexl-options)))
     (if (> (point) (hexl-address-to-marker hexl-max-address))
 	(hexl-goto-address hexl-max-address))))
 
