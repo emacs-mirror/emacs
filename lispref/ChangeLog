@@ -1,3 +1,8 @@
+2006-05-15  Oliver Scholz  <epameinondas@gmx.de>  (tiny change)
+
+	* nonascii.texi (Explicit Encoding): Fix
+	typo (encoding<->decoding).
+
 2006-05-14  Richard Stallman  <rms@gnu.org>
 
 	* buffers.texi (Creating Buffers): Cleanup.
