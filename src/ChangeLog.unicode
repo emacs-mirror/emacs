@@ -1,3 +1,24 @@
+2006-05-15  Kenichi Handa  <handa@m17n.org>
+
+	* coding.h (system_eol_type): Fix synching with HEAD.
+
+	* coding.c (system_eol_type): Sync with HEAD.
+	(coding_inherit_eol_type): If PARENT is nil, inherit from
+	system_eol_type.
+	(syms_of_coding): Initialize system_eol_type.
+
+	* callproc.c (Fcall_process): Sync with HEAD.
+
+	* process.c (setup_process_coding_systems): Fix synching with
+	HEAD.
+	(read_process_output): Likewise.
+	(Fset_process_coding_system): Inherit system's eol format if
+	necessary.
+
+	* fileio.c (choose_write_coding_system): Fix synching with HEAD.
+
+	* keymap.c (push_key_description): Fix synching with HEAD.
+
 2006-05-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macgui.h (USE_ATSUI): Don't enable on emacs-unicode-2 branch.

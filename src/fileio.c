@@ -4898,10 +4898,8 @@ choose_write_coding_system (start, end, filename,
 	val = raw_text_coding_system (val);
     }
 
+  val = coding_inherit_eol_type (val, Qnil);
   setup_coding_system (val, coding);
-  if (! NILP (val)
-      && VECTORP (CODING_ID_EOL_TYPE (coding->id)))
-    val = AREF (CODING_ID_EOL_TYPE (coding->id), 0);
 
   if (!STRINGP (start) && !NILP (current_buffer->selective_display))
     coding->mode |= CODING_MODE_SELECTIVE_DISPLAY;
