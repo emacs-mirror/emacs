@@ -1,4 +1,5 @@
-2006-05-14 Lars Hansen <larsh@soem.dk>
+2006-05-14  Lars Hansen  <larsh@soem.dk>
+
 	* desktop.el (desktop-missing-file-warning): Fix docstring.
 	(desktop-restore-file-buffer): Correct question asked on missing
 	file.
@@ -13,7 +14,7 @@
 	* custom.el (custom-push-theme): Load the variable before checking
 	its `standard-value'.
 
-2006-05-13 Lars Hansen <larsh@soem.dk>
+2006-05-13  Lars Hansen  <larsh@soem.dk>
 
 	* desktop.el (desktop-save): Use with-temp-buffer.
 
@@ -45,7 +46,7 @@
 	`allout-view-change-hook'.
 	(allout-flag-region): Run new hook `allout-exposure-change-hook',
 	in addition to `allout-view-change-hook'.
-        (allout-show-bodies, allout-old-style-prefixes)
+	(allout-show-bodies, allout-old-style-prefixes)
 	(allout-stylish-prefixes, allout-use-hanging-indents): Quote the
 	lambda forms to prevent their showing up in variable help
 	presentations as inscrutable byte-compiled code.
