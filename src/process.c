@@ -696,8 +696,6 @@ setup_process_coding_systems (process)
       = (struct coding_system *) xmalloc (sizeof (struct coding_system));
   setup_coding_system (p->encode_coding_system,
 		       proc_encode_coding_system[outch]);
-  if (proc_encode_coding_system[outch]->eol_type == CODING_EOL_UNDECIDED)
-    proc_encode_coding_system[outch]->eol_type = system_eol_type;
 }
 
 DEFUN ("processp", Fprocessp, Sprocessp, 1, 1, 0,
@@ -5066,13 +5064,10 @@ read_process_output (proc, channel)
 	  if (NILP (p->encode_coding_system)
 	      && proc_encode_coding_system[XINT (p->outfd)])
 	    {
-	      p->encode_coding_system = Vlast_coding_system_used;
+	      p->encode_coding_system
+		= coding_inherit_eol_type (Vlast_coding_system_used, Qnil);
 	      setup_coding_system (p->encode_coding_system,
 				   proc_encode_coding_system[XINT (p->outfd)]);
-	      if (proc_encode_coding_system[XINT (p->outfd)]->eol_type
-		  == CODING_EOL_UNDECIDED)
-		proc_encode_coding_system[XINT (p->outfd)]->eol_type
-		  = system_eol_type;
 	    }
 	}
 
@@ -5179,13 +5174,10 @@ read_process_output (proc, channel)
 	  if (NILP (p->encode_coding_system)
 	      && proc_encode_coding_system[XINT (p->outfd)])
 	    {
-	      p->encode_coding_system = Vlast_coding_system_used;
+	      p->encode_coding_system
+		= coding_inherit_eol_type (Vlast_coding_system_used, Qnil);
 	      setup_coding_system (p->encode_coding_system,
 				   proc_encode_coding_system[XINT (p->outfd)]);
-	      if (proc_encode_coding_system[XINT (p->outfd)]->eol_type
-		  == CODING_EOL_UNDECIDED)
-		proc_encode_coding_system[XINT (p->outfd)]->eol_type
-		  = system_eol_type;
 	    }
 	}
       if (coding->carryover_bytes > 0)
@@ -6698,7 +6690,7 @@ encode subprocess input.  */)
     error ("Output file descriptor of %s closed", SDATA (p->name));
   Fcheck_coding_system (decoding);
   Fcheck_coding_system (encoding);
-
+  encoding = coding_inherit_eol_type (encoding, Qnil);
   p->decode_coding_system = decoding;
   p->encode_coding_system = encoding;
   setup_process_coding_systems (process);
