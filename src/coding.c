@@ -340,6 +340,12 @@ Lisp_Object eol_mnemonic_unix, eol_mnemonic_dos, eol_mnemonic_mac;
    decided.  */
 Lisp_Object eol_mnemonic_undecided;
 
+/* Format of end-of-line decided by system.  This is Qunix on
+   Unix and Mac, Qdos on DOS/Windows.
+   This has an effect only for external encoding (i.e. for output to
+   file and process), not for in-buffer or Lisp string encoding.  */
+static Lisp_Object system_eol_type;
+
 #ifdef emacs
 
 Lisp_Object Vcoding_system_list, Vcoding_system_alist;
@@ -5174,7 +5180,9 @@ raw_text_coding_system (coding_system)
 
 /* If CODING_SYSTEM doesn't specify end-of-line format but PARENT
    does, return one of the subsidiary that has the same eol-spec as
-   PARENT.  Otherwise, return CODING_SYSTEM.  */
+   PARENT.  Otherwise, return CODING_SYSTEM.  If PARENT is nil,
+   inherit end-of-line format from the system's setting
+   (system_eol_type).  */
 
 Lisp_Object
 coding_inherit_eol_type (coding_system, parent)
@@ -5186,15 +5194,20 @@ coding_inherit_eol_type (coding_system, parent)
     coding_system = Qraw_text;
   spec = CODING_SYSTEM_SPEC (coding_system);
   eol_type = AREF (spec, 2);
-  if (VECTORP (eol_type)
-      && ! NILP (parent))
+  if (VECTORP (eol_type))
     {
-      Lisp_Object parent_spec;
       Lisp_Object parent_eol_type;
 
-      parent_spec
-	= CODING_SYSTEM_SPEC (buffer_defaults.buffer_file_coding_system);
-      parent_eol_type = AREF (parent_spec, 2);
+      if (! NILP (parent))
+	{
+	  Lisp_Object parent_spec;
+
+	  parent_spec
+	    = CODING_SYSTEM_SPEC (buffer_defaults.buffer_file_coding_system);
+	  parent_eol_type = AREF (parent_spec, 2);
+	}
+      else
+	parent_eol_type = system_eol_type;
       if (EQ (parent_eol_type, Qunix))
 	coding_system = AREF (eol_type, 0);
       else if (EQ (parent_eol_type, Qdos))
@@ -9739,6 +9752,12 @@ character.");
     for (i = 0; i < coding_category_max; i++)
       Fset (AREF (Vcoding_category_table, i), Qno_conversion);
   }
+#if defined (MSDOS) || defined (WINDOWSNT)
+  system_eol_type = Qdos;
+#else
+  system_eol_type = Qunix;
+#endif
+  staticpro (&system_eol_type);
 }
 
 char *
