@@ -1203,7 +1203,7 @@ encoding by binding @code{coding-system-for-write} to
 @code{no-conversion}.
 
   Here are the functions to perform explicit encoding or decoding.  The
-decoding functions produce sequences of bytes; the encoding functions
+encoding functions produce sequences of bytes; the decoding functions
 are meant to operate on sequences of bytes.  All of these functions
 discard text properties.
 
