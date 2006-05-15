@@ -1130,6 +1130,146 @@ correspoinding TextEncodingBase value."
 (mac-add-charset-info "mac-dingbats" 34)
 (mac-add-charset-info "iso10646-1" 126) ; for ATSUI
 
+(define-charset 'mac-centraleurroman
+  "Mac Central European Roman"
+  :short-name "Mac CE"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map
+  (let ((tbl
+	 [?\Ä ?\Ā ?\ā ?\É ?\Ą ?\Ö ?\Ü ?\á ?\ą ?\Č ?\ä ?\č ?\Ć ?\ć ?\é ?\Ź
+	  ?\ź ?\Ď ?\í ?\ď ?\Ē ?\ē ?\Ė ?\ó ?\ė ?\ô ?\ö ?\õ ?\ú ?\Ě ?\ě ?\ü
+	  ?\† ?\° ?\Ę ?\£ ?\§ ?\• ?\¶ ?\ß ?\® ?\© ?\™ ?\ę ?\¨ ?\≠ ?\ģ ?\Į
+	  ?\į ?\Ī ?\≤ ?\≥ ?\ī ?\Ķ ?\∂ ?\∑ ?\ł ?\Ļ ?\ļ ?\Ľ ?\ľ ?\Ĺ ?\ĺ ?\Ņ
+	  ?\ņ ?\Ń ?\¬ ?\√ ?\ń ?\Ň ?\∆ ?\« ?\» ?\… ?\  ?\ň ?\Ő ?\Õ ?\ő ?\Ō
+	  ?\– ?\— ?\“ ?\” ?\‘ ?\’ ?\÷ ?\◊ ?\ō ?\Ŕ ?\ŕ ?\Ř ?\‹ ?\› ?\ř ?\Ŗ
+	  ?\ŗ ?\Š ?\‚ ?\„ ?\š ?\Ś ?\ś ?\Á ?\Ť ?\ť ?\Í ?\Ž ?\ž ?\Ū ?\Ó ?\Ô
+	  ?\ū ?\Ů ?\Ú ?\ů ?\Ű ?\ű ?\Ų ?\ų ?\Ý ?\ý ?\ķ ?\Ż ?\Ł ?\ż ?\Ģ ?\ˇ])
+	(map (make-vector 512 nil)))
+    (or (= (length tbl) 128)
+	(error "Invalid vector length: %d" (length tbl)))
+    (dotimes (i 128)
+      (aset map (* i 2) i)
+      (aset map (1+ (* i 2)) i))
+    (dotimes (i 128)
+      (aset map (+ 256 (* i 2)) (+ 128 i))
+      (aset map (+ 256 (1+ (* i 2))) (aref tbl i)))
+    map))
+
+(define-coding-system 'mac-centraleurroman
+  "Mac Central European Roman Encoding (MIME:x-mac-centraleurroman)."
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(mac-centraleurroman)
+  :mime-charset 'x-mac-centraleurroman)
+
+(define-charset 'mac-cyrillic
+  "Mac Cyrillic"
+  :short-name "Mac CYRILLIC"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map
+  (let ((tbl
+	 [?\А ?\Б ?\В ?\Г ?\Д ?\Е ?\Ж ?\З ?\И ?\Й ?\К ?\Л ?\М ?\Н ?\О ?\П
+	  ?\Р ?\С ?\Т ?\У ?\Ф ?\Х ?\Ц ?\Ч ?\Ш ?\Щ ?\Ъ ?\Ы ?\Ь ?\Э ?\Ю ?\Я
+	  ?\† ?\° ?\Ґ ?\£ ?\§ ?\• ?\¶ ?\І ?\® ?\© ?\™ ?\Ђ ?\ђ ?\≠ ?\Ѓ ?\ѓ
+	  ?\∞ ?\± ?\≤ ?\≥ ?\і ?\µ ?\ґ ?\Ј ?\Є ?\є ?\Ї ?\ї ?\Љ ?\љ ?\Њ ?\њ
+	  ?\ј ?\Ѕ ?\¬ ?\√ ?\ƒ ?\≈ ?\∆ ?\« ?\» ?\… ?\  ?\Ћ ?\ћ ?\Ќ ?\ќ ?\ѕ
+	  ?\– ?\— ?\“ ?\” ?\‘ ?\’ ?\÷ ?\„ ?\Ў ?\ў ?\Џ ?\џ ?\№ ?\Ё ?\ё ?\я
+	  ?\а ?\б ?\в ?\г ?\д ?\е ?\ж ?\з ?\и ?\й ?\к ?\л ?\м ?\н ?\о ?\п
+	  ?\р ?\с ?\т ?\у ?\ф ?\х ?\ц ?\ч ?\ш ?\щ ?\ъ ?\ы ?\ь ?\э ?\ю ?\€])
+	(map (make-vector 512 nil)))
+    (or (= (length tbl) 128)
+	(error "Invalid vector length: %d" (length tbl)))
+    (dotimes (i 128)
+      (aset map (* i 2) i)
+      (aset map (1+ (* i 2)) i))
+    (dotimes (i 128)
+      (aset map (+ 256 (* i 2)) (+ 128 i))
+      (aset map (+ 256 (1+ (* i 2))) (aref tbl i)))
+    map))
+
+(define-coding-system 'mac-cyrillic
+  "Mac Cyrillic Encoding (MIME:x-mac-cyrillic)."
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(mac-cyrillic)
+  :mime-charset 'x-mac-cyrillic)
+
+(define-charset 'mac-symbol
+  "Mac Symbol"
+  :short-name "Mac SYMBOL"
+  :code-space [32 254]
+  :map
+  (let ((tbl-32-126
+	 [?\  ?\! ?\∀ ?\# ?\∃ ?\% ?\& ?\∍ ?\( ?\) ?\∗ ?\+ ?\, ?\− ?\. ?\/
+	  ?\0 ?\1 ?\2 ?\3 ?\4 ?\5 ?\6 ?\7 ?\8 ?\9 ?\: ?\; ?\< ?\= ?\> ?\?
+	  ?\≅ ?\Α ?\Β ?\Χ ?\Δ ?\Ε ?\Φ ?\Γ ?\Η ?\Ι ?\ϑ ?\Κ ?\Λ ?\Μ ?\Ν ?\Ο
+	  ?\Π ?\Θ ?\Ρ ?\Σ ?\Τ ?\Υ ?\ς ?\Ω ?\Ξ ?\Ψ ?\Ζ ?\[ ?\∴ ?\] ?\⊥ ?\_
+	  ?\ ?\α ?\β ?\χ ?\δ ?\ε ?\φ ?\γ ?\η ?\ι ?\ϕ ?\κ ?\λ ?\μ ?\ν ?\ο
+	  ?\π ?\θ ?\ρ ?\σ ?\τ ?\υ ?\ϖ ?\ω ?\ξ ?\ψ ?\ζ ?\{ ?\| ?\} ?\∼])
+	(map-32-126 (make-vector (* (1+ (- 126 32)) 2) nil))
+	(tbl-160-254
+	 ;; Mapping of the following characters are changed from the
+	 ;; original one:
+	 ;; 0xE2 0x00AE+0xF87F->0x00AE # REGISTERED SIGN, alternate: sans serif
+	 ;; 0xE3 0x00A9+0xF87F->0x00A9 # COPYRIGHT SIGN, alternate: sans serif
+	 ;; 0xE4 0x2122+0xF87F->0x2122 # TRADE MARK SIGN, alternate: sans serif
+	 [?\€ ?\ϒ ?\′ ?\≤ ?\⁄ ?\∞ ?\ƒ ?\♣ ?\♦ ?\♥ ?\♠ ?\↔ ?\← ?\↑ ?\→ ?\↓
+	  ?\° ?\± ?\″ ?\≥ ?\× ?\∝ ?\∂ ?\• ?\÷ ?\≠ ?\≡ ?\≈ ?\… ?\⏐ ?\⎯ ?\↵
+	  ?\ℵ ?\ℑ ?\ℜ ?\℘ ?\⊗ ?\⊕ ?\∅ ?\∩ ?\∪ ?\⊃ ?\⊇ ?\⊄ ?\⊂ ?\⊆ ?\∈ ?\∉
+	  ?\∠ ?\∇ ?\® ?\© ?\™ ?\∏ ?\√ ?\⋅ ?\¬ ?\∧ ?\∨ ?\⇔ ?\⇐ ?\⇑ ?\⇒ ?\⇓
+	  ?\◊ ?\〈 ?\® ?\© ?\™ ?\∑ ?\⎛ ?\⎜ ?\⎝ ?\⎡ ?\⎢ ?\⎣ ?\⎧ ?\⎨ ?\⎩ ?\⎪
+	  ?\ ?\〉 ?\∫ ?\⌠ ?\⎮ ?\⌡ ?\⎞ ?\⎟ ?\⎠ ?\⎤ ?\⎥ ?\⎦ ?\⎫ ?\⎬ ?\⎭])
+	(map-160-254 (make-vector (* (1+ (- 254 160)) 2) nil)))
+    (dotimes (i (1+ (- 126 32)))
+      (aset map-32-126 (* i 2) (+ 32 i))
+      (aset map-32-126 (1+ (* i 2)) (aref tbl-32-126 i)))
+    (dotimes (i (1+ (- 254 160)))
+      (aset map-160-254 (* i 2) (+ 160 i))
+      (aset map-160-254 (1+ (* i 2)) (aref tbl-160-254 i)))
+    (vconcat map-32-126 map-160-254)))
+
+(define-charset 'mac-dingbats
+  "Mac Dingbats"
+  :short-name "Mac Dingbats"
+  :code-space [32 254]
+  :map
+  (let ((tbl-32-126
+	 [?\  ?\✁ ?\✂ ?\✃ ?\✄ ?\☎ ?\✆ ?\✇ ?\✈ ?\✉ ?\☛ ?\☞ ?\✌ ?\✍ ?\✎ ?\✏
+	  ?\✐ ?\✑ ?\✒ ?\✓ ?\✔ ?\✕ ?\✖ ?\✗ ?\✘ ?\✙ ?\✚ ?\✛ ?\✜ ?\✝ ?\✞ ?\✟
+	  ?\✠ ?\✡ ?\✢ ?\✣ ?\✤ ?\✥ ?\✦ ?\✧ ?\★ ?\✩ ?\✪ ?\✫ ?\✬ ?\✭ ?\✮ ?\✯
+	  ?\✰ ?\✱ ?\✲ ?\✳ ?\✴ ?\✵ ?\✶ ?\✷ ?\✸ ?\✹ ?\✺ ?\✻ ?\✼ ?\✽ ?\✾ ?\✿
+	  ?\❀ ?\❁ ?\❂ ?\❃ ?\❄ ?\❅ ?\❆ ?\❇ ?\❈ ?\❉ ?\❊ ?\❋ ?\● ?\❍ ?\■ ?\❏
+	  ?\❐ ?\❑ ?\❒ ?\▲ ?\▼ ?\◆ ?\❖ ?\◗ ?\❘ ?\❙ ?\❚ ?\❛ ?\❜ ?\❝ ?\❞])
+	(map-32-126 (make-vector (* (1+ (- 126 32)) 2) nil))
+	(tbl-128-141
+	 [?\❨ ?\❩ ?\❪ ?\❫ ?\❬ ?\❭ ?\❮ ?\❯ ?\❰ ?\❱ ?\❲ ?\❳ ?\❴ ?\❵])
+	(map-128-141 (make-vector (* (1+ (- 141 128)) 2) nil))
+	(tbl-161-239
+	 [?\❡ ?\❢ ?\❣ ?\❤ ?\❥ ?\❦ ?\❧ ?\♣ ?\♦ ?\♥ ?\♠ ?\① ?\② ?\③ ?\④
+	  ?\⑤ ?\⑥ ?\⑦ ?\⑧ ?\⑨ ?\⑩ ?\❶ ?\❷ ?\❸ ?\❹ ?\❺ ?\❻ ?\❼ ?\❽ ?\❾ ?\❿
+	  ?\➀ ?\➁ ?\➂ ?\➃ ?\➄ ?\➅ ?\➆ ?\➇ ?\➈ ?\➉ ?\➊ ?\➋ ?\➌ ?\➍ ?\➎ ?\➏
+	  ?\➐ ?\➑ ?\➒ ?\➓ ?\➔ ?\→ ?\↔ ?\↕ ?\➘ ?\➙ ?\➚ ?\➛ ?\➜ ?\➝ ?\➞ ?\➟
+	  ?\➠ ?\➡ ?\➢ ?\➣ ?\➤ ?\➥ ?\➦ ?\➧ ?\➨ ?\➩ ?\➪ ?\➫ ?\➬ ?\➭ ?\➮ ?\➯])
+	(map-161-239 (make-vector (* (1+ (- 239 161)) 2) nil))
+	(tbl-241-254
+	 [?\➱ ?\➲ ?\➳ ?\➴ ?\➵ ?\➶ ?\➷ ?\➸ ?\➹ ?\➺ ?\➻ ?\➼ ?\➽ ?\➾])
+	(map-241-254 (make-vector (* (1+ (- 254 241)) 2) nil)))
+    (dotimes (i (1+ (- 126 32)))
+      (aset map-32-126 (* i 2) (+ 32 i))
+      (aset map-32-126 (1+ (* i 2)) (aref tbl-32-126 i)))
+    (dotimes (i (1+ (- 141 128)))
+      (aset map-128-141 (* i 2) (+ 128 i))
+      (aset map-128-141 (1+ (* i 2)) (aref tbl-128-141 i)))
+    (dotimes (i (1+ (- 239 161)))
+      (aset map-161-239 (* i 2) (+ 161 i))
+      (aset map-161-239 (1+ (* i 2)) (aref tbl-161-239 i)))
+    (dotimes (i (1+ (- 254 241)))
+      (aset map-241-254 (* i 2) (+ 241 i))
+      (aset map-241-254 (1+ (* i 2)) (aref tbl-241-254 i)))
+    (vconcat map-32-126 map-128-141 map-161-239 map-241-254)))
+
 (defconst mac-system-coding-system
   (let ((base (or (cdr (assq mac-system-script-code
 			     mac-script-code-coding-systems))
@@ -1179,7 +1319,7 @@ correspoinding TextEncodingBase value."
 	      (setq str nil)
 	    ;; ASCII-only?
 	    (unless (string-match "\\`[[:ascii:]]*\\'" str)
-	      (subst-char-in-string ?\x5c ?\(J\(B str t)
+	      (subst-char-in-string ?\x5c ?\¥ str t)
 	      (subst-char-in-string ?\x80 ?\\ str t)))))
     (or str
 	(decode-coding-string data
@@ -1197,7 +1337,7 @@ correspoinding TextEncodingBase value."
 		 (eq coding-system 'japanese-shift-jis-mac))
 	(setq encoding mac-text-encoding-mac-japanese-basic-variant)
 	(setq string (subst-char-in-string ?\\ ?\x80 string))
-	(subst-char-in-string ?\(J\(B ?\x5c string t))
+	(subst-char-in-string ?\¥ ?\x5c string t))
       (setq data (mac-code-convert-string
 		  (encode-coding-string string coding-system)
 		  (or encoding coding-system) nil)))
@@ -1209,7 +1349,7 @@ correspoinding TextEncodingBase value."
   (or coding-system (setq coding-system mac-system-coding-system))
   (prog1 (setq data (decode-coding-string data coding-system))
     (when (eq (coding-system-base coding-system) 'japanese-shift-jis)
-      ;; (subst-char-in-string ?\x5c ?\(J\(B data t)
+      ;; (subst-char-in-string ?\x5c ?\¥ data t)
       (subst-char-in-string ?\x80 ?\\ data t))))
 
 (defun mac-string-to-TEXT (string &optional coding-system)
@@ -1225,7 +1365,7 @@ correspoinding TextEncodingBase value."
 	(coding-system-change-eol-conversion coding-system 'mac))
   (when (eq coding-system 'japanese-shift-jis-mac)
     ;; (setq string (subst-char-in-string ?\\ ?\x80 string))
-    (setq string (subst-char-in-string ?\(J\(B ?\x5c string)))
+    (setq string (subst-char-in-string ?\¥ ?\x5c string)))
   (encode-coding-string string coding-system))
 
 (defun mac-furl-to-string (data)
@@ -1841,146 +1981,6 @@ See also `mac-dnd-known-types'."
 		     t))
 
 (setq frame-creation-function 'x-create-frame-with-faces)
-
-(define-charset 'mac-centraleurroman
-  "Mac Central European Roman"
-  :short-name "Mac CE"
-  :ascii-compatible-p t
-  :code-space [0 255]
-  :map
-  (let ((tbl
-	 [?\Ä ?\Ā ?\ā ?\É ?\Ą ?\Ö ?\Ü ?\á ?\ą ?\Č ?\ä ?\č ?\Ć ?\ć ?\é ?\Ź
-	  ?\ź ?\Ď ?\í ?\ď ?\Ē ?\ē ?\Ė ?\ó ?\ė ?\ô ?\ö ?\õ ?\ú ?\Ě ?\ě ?\ü
-	  ?\† ?\° ?\Ę ?\£ ?\§ ?\• ?\¶ ?\ß ?\® ?\© ?\™ ?\ę ?\¨ ?\≠ ?\ģ ?\Į
-	  ?\į ?\Ī ?\≤ ?\≥ ?\ī ?\Ķ ?\∂ ?\∑ ?\ł ?\Ļ ?\ļ ?\Ľ ?\ľ ?\Ĺ ?\ĺ ?\Ņ
-	  ?\ņ ?\Ń ?\¬ ?\√ ?\ń ?\Ň ?\∆ ?\« ?\» ?\… ?\  ?\ň ?\Ő ?\Õ ?\ő ?\Ō
-	  ?\– ?\— ?\“ ?\” ?\‘ ?\’ ?\÷ ?\◊ ?\ō ?\Ŕ ?\ŕ ?\Ř ?\‹ ?\› ?\ř ?\Ŗ
-	  ?\ŗ ?\Š ?\‚ ?\„ ?\š ?\Ś ?\ś ?\Á ?\Ť ?\ť ?\Í ?\Ž ?\ž ?\Ū ?\Ó ?\Ô
-	  ?\ū ?\Ů ?\Ú ?\ů ?\Ű ?\ű ?\Ų ?\ų ?\Ý ?\ý ?\ķ ?\Ż ?\Ł ?\ż ?\Ģ ?\ˇ])
-	(map (make-vector 512 nil)))
-    (or (= (length tbl) 128)
-	(error "Invalid vector length: %d" (length tbl)))
-    (dotimes (i 128)
-      (aset map (* i 2) i)
-      (aset map (1+ (* i 2)) i))
-    (dotimes (i 128)
-      (aset map (+ 256 (* i 2)) (+ 128 i))
-      (aset map (+ 256 (1+ (* i 2))) (aref tbl i)))
-    map))
-
-(define-coding-system 'mac-centraleurroman
-  "Mac Central European Roman Encoding (MIME:x-mac-centraleurroman)."
-  :coding-type 'charset
-  :mnemonic ?*
-  :charset-list '(mac-centraleurroman)
-  :mime-charset 'x-mac-centraleurroman)
-
-(define-charset 'mac-cyrillic
-  "Mac Cyrillic"
-  :short-name "Mac CYRILLIC"
-  :ascii-compatible-p t
-  :code-space [0 255]
-  :map
-  (let ((tbl
-	 [?\А ?\Б ?\В ?\Г ?\Д ?\Е ?\Ж ?\З ?\И ?\Й ?\К ?\Л ?\М ?\Н ?\О ?\П
-	  ?\Р ?\С ?\Т ?\У ?\Ф ?\Х ?\Ц ?\Ч ?\Ш ?\Щ ?\Ъ ?\Ы ?\Ь ?\Э ?\Ю ?\Я
-	  ?\† ?\° ?\Ґ ?\£ ?\§ ?\• ?\¶ ?\І ?\® ?\© ?\™ ?\Ђ ?\ђ ?\≠ ?\Ѓ ?\ѓ
-	  ?\∞ ?\± ?\≤ ?\≥ ?\і ?\µ ?\ґ ?\Ј ?\Є ?\є ?\Ї ?\ї ?\Љ ?\љ ?\Њ ?\њ
-	  ?\ј ?\Ѕ ?\¬ ?\√ ?\ƒ ?\≈ ?\∆ ?\« ?\» ?\… ?\  ?\Ћ ?\ћ ?\Ќ ?\ќ ?\ѕ
-	  ?\– ?\— ?\“ ?\” ?\‘ ?\’ ?\÷ ?\„ ?\Ў ?\ў ?\Џ ?\џ ?\№ ?\Ё ?\ё ?\я
-	  ?\а ?\б ?\в ?\г ?\д ?\е ?\ж ?\з ?\и ?\й ?\к ?\л ?\м ?\н ?\о ?\п
-	  ?\р ?\с ?\т ?\у ?\ф ?\х ?\ц ?\ч ?\ш ?\щ ?\ъ ?\ы ?\ь ?\э ?\ю ?\€])
-	(map (make-vector 512 nil)))
-    (or (= (length tbl) 128)
-	(error "Invalid vector length: %d" (length tbl)))
-    (dotimes (i 128)
-      (aset map (* i 2) i)
-      (aset map (1+ (* i 2)) i))
-    (dotimes (i 128)
-      (aset map (+ 256 (* i 2)) (+ 128 i))
-      (aset map (+ 256 (1+ (* i 2))) (aref tbl i)))
-    map))
-
-(define-coding-system 'mac-cyrillic
-  "Mac Cyrillic Encoding (MIME:x-mac-cyrillic)."
-  :coding-type 'charset
-  :mnemonic ?*
-  :charset-list '(mac-cyrillic)
-  :mime-charset 'x-mac-cyrillic)
-
-(define-charset 'mac-symbol
-  "Mac Symbol"
-  :short-name "Mac SYMBOL"
-  :code-space [32 254]
-  :map
-  (let ((tbl-32-126
-	 [?\  ?\! ?\∀ ?\# ?\∃ ?\% ?\& ?\∍ ?\( ?\) ?\∗ ?\+ ?\, ?\− ?\. ?\/
-	  ?\0 ?\1 ?\2 ?\3 ?\4 ?\5 ?\6 ?\7 ?\8 ?\9 ?\: ?\; ?\< ?\= ?\> ?\?
-	  ?\≅ ?\Α ?\Β ?\Χ ?\Δ ?\Ε ?\Φ ?\Γ ?\Η ?\Ι ?\ϑ ?\Κ ?\Λ ?\Μ ?\Ν ?\Ο
-	  ?\Π ?\Θ ?\Ρ ?\Σ ?\Τ ?\Υ ?\ς ?\Ω ?\Ξ ?\Ψ ?\Ζ ?\[ ?\∴ ?\] ?\⊥ ?\_
-	  ?\ ?\α ?\β ?\χ ?\δ ?\ε ?\φ ?\γ ?\η ?\ι ?\ϕ ?\κ ?\λ ?\μ ?\ν ?\ο
-	  ?\π ?\θ ?\ρ ?\σ ?\τ ?\υ ?\ϖ ?\ω ?\ξ ?\ψ ?\ζ ?\{ ?\| ?\} ?\∼])
-	(map-32-126 (make-vector (* (1+ (- 126 32)) 2) nil))
-	(tbl-160-254
-	 ;; Mapping of the following characters are changed from the
-	 ;; original one:
-	 ;; 0xE2 0x00AE+0xF87F->0x00AE # REGISTERED SIGN, alternate: sans serif
-	 ;; 0xE3 0x00A9+0xF87F->0x00A9 # COPYRIGHT SIGN, alternate: sans serif
-	 ;; 0xE4 0x2122+0xF87F->0x2122 # TRADE MARK SIGN, alternate: sans serif
-	 [?\€ ?\ϒ ?\′ ?\≤ ?\⁄ ?\∞ ?\ƒ ?\♣ ?\♦ ?\♥ ?\♠ ?\↔ ?\← ?\↑ ?\→ ?\↓
-	  ?\° ?\± ?\″ ?\≥ ?\× ?\∝ ?\∂ ?\• ?\÷ ?\≠ ?\≡ ?\≈ ?\… ?\⏐ ?\⎯ ?\↵
-	  ?\ℵ ?\ℑ ?\ℜ ?\℘ ?\⊗ ?\⊕ ?\∅ ?\∩ ?\∪ ?\⊃ ?\⊇ ?\⊄ ?\⊂ ?\⊆ ?\∈ ?\∉
-	  ?\∠ ?\∇ ?\® ?\© ?\™ ?\∏ ?\√ ?\⋅ ?\¬ ?\∧ ?\∨ ?\⇔ ?\⇐ ?\⇑ ?\⇒ ?\⇓
-	  ?\◊ ?\〈 ?\® ?\© ?\™ ?\∑ ?\⎛ ?\⎜ ?\⎝ ?\⎡ ?\⎢ ?\⎣ ?\⎧ ?\⎨ ?\⎩ ?\⎪
-	  ?\ ?\〉 ?\∫ ?\⌠ ?\⎮ ?\⌡ ?\⎞ ?\⎟ ?\⎠ ?\⎤ ?\⎥ ?\⎦ ?\⎫ ?\⎬ ?\⎭])
-	(map-160-254 (make-vector (* (1+ (- 254 160)) 2) nil)))
-    (dotimes (i (1+ (- 126 32)))
-      (aset map-32-126 (* i 2) (+ 32 i))
-      (aset map-32-126 (1+ (* i 2)) (aref tbl-32-126 i)))
-    (dotimes (i (1+ (- 254 160)))
-      (aset map-160-254 (* i 2) (+ 160 i))
-      (aset map-160-254 (1+ (* i 2)) (aref tbl-160-254 i)))
-    (vconcat map-32-126 map-160-254)))
-
-(define-charset 'mac-dingbats
-  "Mac Dingbats"
-  :short-name "Mac Dingbats"
-  :code-space [32 254]
-  :map
-  (let ((tbl-32-126
-	 [?\  ?\✁ ?\✂ ?\✃ ?\✄ ?\☎ ?\✆ ?\✇ ?\✈ ?\✉ ?\☛ ?\☞ ?\✌ ?\✍ ?\✎ ?\✏
-	  ?\✐ ?\✑ ?\✒ ?\✓ ?\✔ ?\✕ ?\✖ ?\✗ ?\✘ ?\✙ ?\✚ ?\✛ ?\✜ ?\✝ ?\✞ ?\✟
-	  ?\✠ ?\✡ ?\✢ ?\✣ ?\✤ ?\✥ ?\✦ ?\✧ ?\★ ?\✩ ?\✪ ?\✫ ?\✬ ?\✭ ?\✮ ?\✯
-	  ?\✰ ?\✱ ?\✲ ?\✳ ?\✴ ?\✵ ?\✶ ?\✷ ?\✸ ?\✹ ?\✺ ?\✻ ?\✼ ?\✽ ?\✾ ?\✿
-	  ?\❀ ?\❁ ?\❂ ?\❃ ?\❄ ?\❅ ?\❆ ?\❇ ?\❈ ?\❉ ?\❊ ?\❋ ?\● ?\❍ ?\■ ?\❏
-	  ?\❐ ?\❑ ?\❒ ?\▲ ?\▼ ?\◆ ?\❖ ?\◗ ?\❘ ?\❙ ?\❚ ?\❛ ?\❜ ?\❝ ?\❞])
-	(map-32-126 (make-vector (* (1+ (- 126 32)) 2) nil))
-	(tbl-128-141
-	 [?\❨ ?\❩ ?\❪ ?\❫ ?\❬ ?\❭ ?\❮ ?\❯ ?\❰ ?\❱ ?\❲ ?\❳ ?\❴ ?\❵])
-	(map-128-141 (make-vector (* (1+ (- 141 128)) 2) nil))
-	(tbl-161-239
-	 [?\❡ ?\❢ ?\❣ ?\❤ ?\❥ ?\❦ ?\❧ ?\♣ ?\♦ ?\♥ ?\♠ ?\① ?\② ?\③ ?\④
-	  ?\⑤ ?\⑥ ?\⑦ ?\⑧ ?\⑨ ?\⑩ ?\❶ ?\❷ ?\❸ ?\❹ ?\❺ ?\❻ ?\❼ ?\❽ ?\❾ ?\❿
-	  ?\➀ ?\➁ ?\➂ ?\➃ ?\➄ ?\➅ ?\➆ ?\➇ ?\➈ ?\➉ ?\➊ ?\➋ ?\➌ ?\➍ ?\➎ ?\➏
-	  ?\➐ ?\➑ ?\➒ ?\➓ ?\➔ ?\→ ?\↔ ?\↕ ?\➘ ?\➙ ?\➚ ?\➛ ?\➜ ?\➝ ?\➞ ?\➟
-	  ?\➠ ?\➡ ?\➢ ?\➣ ?\➤ ?\➥ ?\➦ ?\➧ ?\➨ ?\➩ ?\➪ ?\➫ ?\➬ ?\➭ ?\➮ ?\➯])
-	(map-161-239 (make-vector (* (1+ (- 239 161)) 2) nil))
-	(tbl-241-254
-	 [?\➱ ?\➲ ?\➳ ?\➴ ?\➵ ?\➶ ?\➷ ?\➸ ?\➹ ?\➺ ?\➻ ?\➼ ?\➽ ?\➾])
-	(map-241-254 (make-vector (* (1+ (- 254 241)) 2) nil)))
-    (dotimes (i (1+ (- 126 32)))
-      (aset map-32-126 (* i 2) (+ 32 i))
-      (aset map-32-126 (1+ (* i 2)) (aref tbl-32-126 i)))
-    (dotimes (i (1+ (- 141 128)))
-      (aset map-128-141 (* i 2) (+ 128 i))
-      (aset map-128-141 (1+ (* i 2)) (aref tbl-128-141 i)))
-    (dotimes (i (1+ (- 239 161)))
-      (aset map-161-239 (* i 2) (+ 161 i))
-      (aset map-161-239 (1+ (* i 2)) (aref tbl-161-239 i)))
-    (dotimes (i (1+ (- 254 241)))
-      (aset map-241-254 (* i 2) (+ 241 i))
-      (aset map-241-254 (1+ (* i 2)) (aref tbl-241-254 i)))
-    (vconcat map-32-126 map-128-141 map-161-239 map-241-254)))
 
 (setq font-encoding-alist
       (append
