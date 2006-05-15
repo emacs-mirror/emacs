@@ -1,3 +1,8 @@
+2006-05-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-utxt-to-string, mac-string-to-utxt)
+	(mac-TEXT-to-string, mac-string-to-TEXT): Sync with HEAD.
+
 2006-04-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Cancel unnecessary sync code for
