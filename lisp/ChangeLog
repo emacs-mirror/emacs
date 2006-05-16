@@ -1,3 +1,9 @@
+2006-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* arc-mode.el (archive-arc-summarize, archive-lzh-summarize):
+	Convert csize to integer when computing offsets within the
+	compressed archive file.
+
 2006-05-16  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (add-to-history): Add KEEP-ALL arg and align functionality
