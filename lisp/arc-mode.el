@@ -1355,7 +1355,11 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			   visual)
 	      files (cons (vector efnname ifnname fiddle nil (1- p))
                           files)
-              p (+ p 29 csize))))
+	      ;; p needs to stay an integer, since we use it in char-after
+	      ;; above.  Passing through `round' limits the compressed size
+	      ;; to most-positive-fixnum, but if the compressed size exceeds
+	      ;; that, we cannot visit the archive anyway.
+              p (+ p 29 (round csize)))))
     (goto-char (point-min))
     (let ((dash (concat "- --------  -----------  --------  "
 			(make-string maxlen ?-)
@@ -1497,9 +1501,13 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	      files (cons (vector prname ifnname fiddle mode (1- p))
                           files))
 	(cond ((= hdrlvl 1)
-	       (setq p (+ p hsize 2 csize)))
+	       ;; p needs to stay an integer, since we use it in goto-char
+	       ;; above.  Passing through `round' limits the compressed size
+	       ;; to most-positive-fixnum, but if the compressed size exceeds
+	       ;; that, we cannot visit the archive anyway.
+	       (setq p (+ p hsize 2 (round csize))))
 	      ((or (= hdrlvl 2) (= hdrlvl 0))
-	       (setq p (+ p thsize 2 csize))))
+	       (setq p (+ p thsize 2 (round csize)))))
 	))
     (goto-char (point-min))
     (set-buffer-multibyte default-enable-multibyte-characters)
