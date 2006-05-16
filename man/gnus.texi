@@ -926,11 +926,17 @@ Emacs for Heathens
 @chapter Starting Gnus
 @cindex starting up
 
+If you are haven't used Emacs much before using Gnus, read @ref{Emacs
+for Heathens} first.
+
 @kindex M-x gnus
 @findex gnus
 If your system administrator has set things up properly, starting Gnus
 and reading news is extremely easy---you just type @kbd{M-x gnus} in
-your Emacs.
+your Emacs.  If not, you should customize the variable
+@code{gnus-select-method} as described in @ref{Finding the News}.  For a
+minimal setup for posting should also customize the variables
+@code{user-full-name} and @code{user-mail-address}.
 
 @findex gnus-other-frame
 @kindex M-x gnus-other-frame
@@ -1704,6 +1710,15 @@ long as Gnus is active.
 * Group Highlighting::          Having nice colors in the group buffer.
 @end menu
 
+You can customize the Group Mode tool bar, see @kbd{M-x
+customize-apropos RET gnus-group-tool-bar}.  This feature is only
+available in Emacs.
+
+The tool bar icons are now (de)activated correctly depending on the
+cursor position.  Therefore, moving around in the Group Buffer is
+slower.  You can disable this via the variable
+@code{gnus-group-update-tool-bar}.  Its default value depends on your
+Emacs version.
 
 @node Group Line Specification
 @subsection Group Line Specification
@@ -4446,6 +4461,10 @@ The most common way to a summary buffer is to select a group from the
 group buffer (@pxref{Selecting a Group}).
 
 You can have as many summary buffers open as you wish.
+
+You can customize the Summary Mode tool bar, see @kbd{M-x
+customize-apropos RET gnus-summary-tool-bar}.  This feature is only
+available in Emacs.
 
 @kindex v (Summary)
 @cindex keys, reserved for users (Summary)
@@ -11986,7 +12005,8 @@ So here's a new example:
 The @samp{nnml:.*} rule means that you use the @code{To} address as the
 @code{From} address in all your outgoing replies, which might be handy
 if you fill many roles.
-
+You may also use @code{message-alternative-emails} instead.
+@xref{Message Headers, ,Message Headers, message, Message Manual}.
 
 @node Drafts
 @section Drafts
@@ -26006,23 +26026,10 @@ New features in Gnus 5.10:
 
 @itemize @bullet
 
-@item
-@kbd{F} (@code{gnus-article-followup-with-original}) and @kbd{R}
-(@code{gnus-article-reply-with-original}) only yank the text in the
-region if the region is active.
+@item Installation changes
+@c ***********************
 
-@item
-@code{gnus-group-read-ephemeral-group} can be called interactively,
-using @kbd{G M}.
-
-@item
-In draft groups, @kbd{e} is now bound to @code{gnus-draft-edit-message}.
-Use @kbd{B w} for @code{gnus-summary-edit-article} instead.
-
-@item
-The revised Gnus @acronym{FAQ} is included in the manual,
-@xref{Frequently Asked Questions}.
-
+@itemize @bullet
 @item
 Upgrading from previous (stable) version if you have used Oort.
 
@@ -26036,23 +26043,173 @@ later entry for more information about marks.  Note that downgrading
 isn't save in general.
 
 @item
+New @file{make.bat} for compiling and installing Gnus under MS Windows
+
+Use @file{make.bat} if you want to install Gnus under MS Windows, the
+first argument to the batch-program should be the directory where
+@file{xemacs.exe} respectively @file{emacs.exe} is located, iff you want
+to install Gnus after compiling it, give @file{make.bat} @code{/copy} as
+the second parameter.
+
+@file{make.bat} has been rewritten from scratch, it now features
+automatic recognition of XEmacs and GNU Emacs, generates
+@file{gnus-load.el}, checks if errors occur while compilation and
+generation of info files and reports them at the end of the build
+process.  It now uses @code{makeinfo} if it is available and falls
+back to @file{infohack.el} otherwise.  @file{make.bat} should now
+install all files which are necessary to run Gnus and be generally a
+complete replacement for the @code{configure; make; make install}
+cycle used under Unix systems.
+
+The new @file{make.bat} makes @file{make-x.bat} and @file{xemacs.mak}
+superfluous, so they have been removed.
+
+@item
+@file{~/News/overview/} not used.
+
+As a result of the following change, the @file{~/News/overview/}
+directory is not used any more.  You can safely delete the entire
+hierarchy.
+
+@c FIXME: `gnus-load' is mentioned in README, which is not included in
+@c CVS.  We should find a better place for this item.
+@item
+@code{(require 'gnus-load)}
+
+If you use a stand-alone Gnus distribution, you'd better add
+@code{(require 'gnus-load)} into your @file{~/.emacs} after adding the Gnus
+lisp directory into load-path.
+
+File @file{gnus-load.el} contains autoload commands, functions and variables,
+some of which may not be included in distributions of Emacsen.
+
+@end itemize
+
+@item New packages and libraries within Gnus
+@c *****************************************
+
+@itemize @bullet
+
+@item
+The revised Gnus @acronym{FAQ} is included in the manual,
+@xref{Frequently Asked Questions}.
+
+@item
+@acronym{TLS} wrapper shipped with Gnus
+
+@acronym{TLS}/@acronym{SSL} is now supported in @acronym{IMAP} and
+@acronym{NNTP} via @file{tls.el} and GNUTLS.  The old
+@acronym{TLS}/@acronym{SSL} support via (external third party)
+@file{ssl.el} and OpenSSL still works.
+
+@item
+Improved anti-spam features.
+
+Gnus is now able to take out spam from your mail and news streams
+using a wide variety of programs and filter rules.  Among the supported
+methods are RBL blocklists, bogofilter and white/blacklists.  Hooks
+for easy use of external packages such as SpamAssassin and Hashcash
+are also new.  @xref{Thwarting Email Spam}.
+@c FIXME: @xref{Spam Package}?.  Should this be under Misc?
+
+@item
+Gnus supports server-side mail filtering using Sieve.
+
+Sieve rules can be added as Group Parameters for groups, and the
+complete Sieve script is generated using @kbd{D g} from the Group
+buffer, and then uploaded to the server using @kbd{C-c C-l} in the
+generated Sieve buffer.  @xref{Sieve Commands}, and the new Sieve
+manual @ref{Top, , Top, sieve, Emacs Sieve}.
+
+@end itemize
+
+@item Changes in group mode
+@c ************************
+
+@itemize @bullet
+
+@item
+@code{gnus-group-read-ephemeral-group} can be called interactively,
+using @kbd{G M}.
+
+@item
+Retrieval of charters and control messages
+
+There are new commands for fetching newsgroup charters (@kbd{H c}) and
+control messages (@kbd{H C}).
+
+@item
+The new variable @code{gnus-parameters} can be used to set group parameters.
+
+Earlier this was done only via @kbd{G p} (or @kbd{G c}), which stored
+the parameters in @file{~/.newsrc.eld}, but via this variable you can
+enjoy the powers of customize, and simplified backups since you set the
+variable in @file{~/.gnus.el} instead of @file{~/.newsrc.eld}.  The
+variable maps regular expressions matching group names to group
+parameters, a'la:
+@lisp
+(setq gnus-parameters
+      '(("mail\\..*"
+         (gnus-show-threads nil)
+         (gnus-use-scoring nil))
+        ("^nnimap:\\(foo.bar\\)$"
+         (to-group . "\\1"))))
+@end lisp
+
+@item
+Unread count correct in nnimap groups.
+
+The estimated number of unread articles in the group buffer should now
+be correct for nnimap groups.  This is achieved by calling
+@code{nnimap-fixup-unread-after-getting-new-news} from the
+@code{gnus-setup-news-hook} (called on startup) and
+@code{gnus-after-getting-new-news-hook}. (called after getting new
+mail).  If you have modified those variables from the default, you may
+want to add @code{nnimap-fixup-unread-after-getting-new-news} again.  If
+you were happy with the estimate and want to save some (minimal) time
+when getting new mail, remove the function.
+
+@item
+Group names are treated as UTF-8 by default.
+
+This is supposedly what USEFOR wanted to migrate to.  See
+@code{gnus-group-name-charset-group-alist} and
+@code{gnus-group-name-charset-method-alist} for customization.
+
+@item
+@code{gnus-group-charset-alist} and
+@code{gnus-group-ignored-charsets-alist}.
+
+The regexps in these variables are compared with full group names
+instead of real group names in 5.8.  Users who customize these
+variables should change those regexps accordingly.  For example:
+@lisp
+("^han\\>" euc-kr) -> ("\\(^\\|:\\)han\\>" euc-kr)
+@end lisp
+
+@end itemize
+
+@item Changes in summary and article mode
+@c **************************************
+
+@itemize @bullet
+
+@item
+@kbd{F} (@code{gnus-article-followup-with-original}) and @kbd{R}
+(@code{gnus-article-reply-with-original}) only yank the text in the
+region if the region is active.
+
+@item
+In draft groups, @kbd{e} is now bound to @code{gnus-draft-edit-message}.
+Use @kbd{B w} for @code{gnus-summary-edit-article} instead.
+
+@item
 Article Buttons
 
 More buttons for URLs, mail addresses, Message-IDs, Info links, man
 pages and Emacs or Gnus related references.  @xref{Article Buttons}.  The
 variables @code{gnus-button-@var{*}-level} can be used to control the
 appearance of all article buttons.  @xref{Article Button Levels}.
-
-@item
-Dired integration
-
-@code{gnus-dired-minor-mode} (see @ref{Other modes}) installs key
-bindings in dired buffers to send a file as an attachment, open a file
-using the appropriate mailcap entry, and print a file using the mailcap
-entry.
-
-@item
-Gnus can display RSS newsfeeds as a newsgroup.  @xref{RSS}.
 
 @item
 Single-part yenc encoded attachments can be decoded.
@@ -26070,27 +26227,6 @@ newsgroups, which can be displayed in the Article buffer.
 @item
 If the new option @code{gnus-treat-body-boundary} is non-@code{nil}, a
 boundary line is drawn at the end of the headers.
-
-@item
-Retrieval of charters and control messages
-
-There are new commands for fetching newsgroup charters (@kbd{H c}) and
-control messages (@kbd{H C}).
-
-@item
-Delayed articles
-
-You can delay the sending of a message with @kbd{C-c C-j} in the Message
-buffer.  The messages are delivered at specified time.  This is useful
-for sending yourself reminders.  @xref{Delayed Articles}.
-
-@item
-If @code{auto-compression-mode} is enabled, attachments are automatically
-decompressed when activated.
-
-@item
-If the new option @code{nnml-use-compressed-files} is non-@code{nil},
-the nnml back end allows compressed message files.
 
 @item
 Signed article headers (X-PGP-Sig) can be verified with @kbd{W p}.
@@ -26116,13 +26252,6 @@ The new @code{recent} mark @samp{.} indicates newly arrived messages (as
 opposed to old but unread messages).
 
 @item
-The new option @code{gnus-gcc-mark-as-read} automatically marks
-Gcc articles as read.
-
-@item
-The nndoc back end now supports mailman digests and exim bounces.
-
-@item
 Gnus supports RFC 2369 mailing list headers, and adds a number of
 related commands in mailing list groups.  @xref{Mailing List}.
 
@@ -26131,52 +26260,8 @@ The Date header can be displayed in a format that can be read aloud
 in English.  @xref{Article Date}.
 
 @item
-The envelope sender address can be customized when using Sendmail.
-@xref{Mail Variables, Mail Variables,, message, Message Manual}.
-
-@item
 diffs are automatically highlighted in groups matching
 @code{mm-uu-diff-groups-regexp}
-
-@item
-@acronym{TLS} wrapper shipped with Gnus
-
-@acronym{TLS}/@acronym{SSL} is now supported in @acronym{IMAP} and
-@acronym{NNTP} via @file{tls.el} and GNUTLS.  The old
-@acronym{TLS}/@acronym{SSL} support via (external third party)
-@file{ssl.el} and OpenSSL still works.
-
-@item
-New @file{make.bat} for compiling and installing Gnus under MS Windows
-
-Use @file{make.bat} if you want to install Gnus under MS Windows, the
-first argument to the batch-program should be the directory where
-@file{xemacs.exe} respectively @file{emacs.exe} is located, iff you want
-to install Gnus after compiling it, give @file{make.bat} @code{/copy} as
-the second parameter.
-
-@file{make.bat} has been rewritten from scratch, it now features
-automatic recognition of XEmacs and GNU Emacs, generates
-@file{gnus-load.el}, checks if errors occur while compilation and
-generation of info files and reports them at the end of the build
-process.  It now uses @code{makeinfo} if it is available and falls
-back to @file{infohack.el} otherwise.  @file{make.bat} should now
-install all files which are necessary to run Gnus and be generally a
-complete replacement for the @code{configure; make; make install}
-cycle used under Unix systems.
-
-The new @file{make.bat} makes @file{make-x.bat} superfluous, so it has
-been removed.
-
-@item
-Support for non-@acronym{ASCII} domain names
-
-Message supports non-@acronym{ASCII} domain names in From:, To: and
-Cc: and will query you whether to perform encoding when you try to
-send a message.  The variable @code{message-use-idna} controls this.
-Gnus will also decode non-@acronym{ASCII} domain names in From:, To:
-and Cc: when you view a message.  The variable @code{gnus-use-idna}
-controls this.
 
 @item
 Better handling of Microsoft citation styles
@@ -26186,6 +26271,10 @@ mailers use to indicate that the rest of the message is a citation, even
 though it is not quoted in any way.  The variable
 @code{gnus-cite-unsightly-citation-regexp} matches the start of these
 citations.
+
+The new command @kbd{W Y f}
+(@code{gnus-article-outlook-deuglify-article}) allows deuglifying broken
+Outlook (Express) articles.
 
 @item
 @code{gnus-article-skip-boring}
@@ -26200,31 +26289,117 @@ consist of a little new content at the top with a long, untrimmed
 message cited below.
 
 @item
-The format spec @code{%C} for positioning point has changed to @code{%*}.
-
-@item
-The new variable @code{gnus-parameters} can be used to set group parameters.
-
-Earlier this was done only via @kbd{G p} (or @kbd{G c}), which stored
-the parameters in @file{~/.newsrc.eld}, but via this variable you can
-enjoy the powers of customize, and simplified backups since you set the
-variable in @file{~/.gnus.el} instead of @file{~/.newsrc.eld}.  The
-variable maps regular expressions matching group names to group
-parameters, a'la:
-@lisp
-(setq gnus-parameters
-      '(("mail\\..*"
-         (gnus-show-threads nil)
-         (gnus-use-scoring nil))
-        ("^nnimap:\\(foo.bar\\)$"
-         (to-group . "\\1"))))
-@end lisp
-
-@item
-Smileys (@samp{:-)}, @samp{;-)} etc) are now iconized for Emacs too.
+Smileys (@samp{:-)}, @samp{;-)} etc) are now displayed graphically in
+Emacs too.
 
 Put @code{(setq gnus-treat-display-smileys nil)} in @file{~/.gnus.el} to
 disable it.
+
+@item
+Face headers handling.  @xref{Face}.
+
+@item
+In the summary buffer, the new command @kbd{/ N} inserts new messages
+and @kbd{/ o} inserts old messages.
+
+@item
+Gnus decodes morse encoded messages if you press @kbd{W m}.
+
+@item
+@code{gnus-summary-line-format}
+
+The default value changed to @samp{%U%R%z%I%(%[%4L: %-23,23f%]%)
+%s\n}.  Moreover @code{gnus-extra-headers},
+@code{nnmail-extra-headers} and @code{gnus-ignored-from-addresses}
+changed their default so that the users name will be replaced by the
+recipient's name or the group name posting to for @acronym{NNTP}
+groups.
+
+@item
+Deleting of attachments.
+
+The command @code{gnus-mime-save-part-and-strip} (bound to @kbd{C-o}
+on @acronym{MIME} buttons) saves a part and replaces the part with an
+external one.  @code{gnus-mime-delete-part} (bound to @kbd{d} on
+@acronym{MIME} buttons) removes a part.  It works only on back ends
+that support editing.
+
+@item
+@code{gnus-default-charset}
+
+The default value is determined from the
+@code{current-language-environment} variable, instead of
+@code{iso-8859-1}.  Also the @samp{.*} item in
+@code{gnus-group-charset-alist} is removed.
+
+@item
+Printing capabilities are enhanced.
+
+Gnus supports Muttprint natively with @kbd{O P} from the Summary and
+Article buffers.  Also, each individual @acronym{MIME} part can be
+printed using @kbd{p} on the @acronym{MIME} button.
+
+@item
+Extended format specs.
+
+Format spec @samp{%&user-date;} is added into
+@code{gnus-summary-line-format-alist}.  Also, user defined extended
+format specs are supported.  The extended format specs look like
+@samp{%u&foo;}, which invokes function
+@code{gnus-user-format-function-@var{foo}}.  Because @samp{&} is used as the
+escape character, old user defined format @samp{%u&} is no longer supported.
+
+@item
+@kbd{/ *} (@code{gnus-summary-limit-include-cached}) is rewritten.
+@c FIXME: Was this a user-visible change?
+
+It was aliased to @kbd{Y c}
+(@code{gnus-summary-insert-cached-articles}).  The new function filters
+out other articles.
+
+@item
+Some limiting commands accept a @kbd{C-u} prefix to negate the match.
+
+If @kbd{C-u} is used on subject, author or extra headers, i.e., @kbd{/
+s}, @kbd{/ a}, and @kbd{/ x}
+(@code{gnus-summary-limit-to-@{subject,author,extra@}}) respectively, the
+result will be to display all articles that do not match the expression.
+
+@item
+Gnus inlines external parts (message/external).
+
+@end itemize
+
+@item Changes in Message mode and related Gnus features
+@c ****************************************************
+
+@itemize @bullet
+
+@item
+Delayed articles
+
+You can delay the sending of a message with @kbd{C-c C-j} in the Message
+buffer.  The messages are delivered at specified time.  This is useful
+for sending yourself reminders.  @xref{Delayed Articles}.
+
+@item
+If the new option @code{nnml-use-compressed-files} is non-@code{nil},
+the nnml back end allows compressed message files.
+
+@item
+The new option @code{gnus-gcc-mark-as-read} automatically marks
+Gcc articles as read.
+
+@item
+Externalizing of attachments
+
+If @code{gnus-gcc-externalize-attachments} or
+@code{message-fcc-externalize-attachments} is non-@code{nil}, attach
+local files as external parts.
+
+@item
+The envelope sender address can be customized when using Sendmail.
+@xref{Mail Variables, Mail Variables,, message, Message Manual}.
 
 @item
 Gnus no longer generate the Sender: header automatically.
@@ -26255,39 +26430,7 @@ start composing messages and @code{message-generate-headers-first} is
 @code{nil}.
 
 @item
-Improved anti-spam features.
-
-Gnus is now able to take out spam from your mail and news streams
-using a wide variety of programs and filter rules.  Among the supported
-methods are RBL blocklists, bogofilter and white/blacklists.  Hooks
-for easy use of external packages such as SpamAssassin and Hashcash
-are also new.  @xref{Thwarting Email Spam}.
-
-@item
-Easy inclusion of X-Faces headers.
-
-@item
-Face headers handling.
-
-@item
-In the summary buffer, the new command @kbd{/ N} inserts new messages
-and @kbd{/ o} inserts old messages.
-
-@item
-Gnus decodes morse encoded messages if you press @kbd{W m}.
-
-@item
-Unread count correct in nnimap groups.
-
-The estimated number of unread articles in the group buffer should now
-be correct for nnimap groups.  This is achieved by calling
-@code{nnimap-fixup-unread-after-getting-new-news} from the
-@code{gnus-setup-news-hook} (called on startup) and
-@code{gnus-after-getting-new-news-hook}. (called after getting new
-mail).  If you have modified those variables from the default, you may
-want to add @code{nnimap-fixup-unread-after-getting-new-news} again.  If
-you were happy with the estimate and want to save some (minimal) time
-when getting new mail, remove the function.
+Easy inclusion of X-Faces headers.  @xref{X-Face}.
 
 @item
 Group Carbon Copy (GCC) quoting
@@ -26302,64 +26445,6 @@ into two groups) you must change it to return the list
 incorrectly.  Note that returning the string @samp{nnml:foo, nnml:bar}
 was incorrect earlier, it just didn't generate any problems since it
 was inserted directly.
-
-@item
-@file{~/News/overview/} not used.
-
-As a result of the following change, the @file{~/News/overview/}
-directory is not used any more.  You can safely delete the entire
-hierarchy.
-
-@item
-@code{gnus-agent}
-
-The Gnus Agent has seen a major updated and is now enabled by default,
-and all nntp and nnimap servers from @code{gnus-select-method} and
-@code{gnus-secondary-select-method} are agentized by default.  Earlier
-only the server in @code{gnus-select-method} was agentized by the
-default, and the agent was disabled by default.  When the agent is
-enabled, headers are now also retrieved from the Agent cache instead
-of the back ends when possible.  Earlier this only happened in the
-unplugged state.  You can enroll or remove servers with @kbd{J a} and
-@kbd{J r} in the server buffer.  Gnus will not download articles into
-the Agent cache, unless you instruct it to do so, though, by using
-@kbd{J u} or @kbd{J s} from the Group buffer.  You revert to the old
-behavior of having the Agent disabled with @code{(setq gnus-agent
-nil)}.  Note that putting @code{(gnus-agentize)} in @file{~/.gnus.el}
-is not needed any more.
-
-@item
-@code{gnus-summary-line-format}
-
-The default value changed to @samp{%U%R%z%I%(%[%4L: %-23,23f%]%)
-%s\n}.  Moreover @code{gnus-extra-headers},
-@code{nnmail-extra-headers} and @code{gnus-ignored-from-addresses}
-changed their default so that the users name will be replaced by the
-recipient's name or the group name posting to for @acronym{NNTP}
-groups.
-
-@item
-@file{deuglify.el} (@code{gnus-article-outlook-deuglify-article})
-
-A new file from Raymond Scholz @email{rscholz@@zonix.de} for deuglifying
-broken Outlook (Express) articles.
-
-@c FIXME: `gnus-load' is mentioned in README, which is not included in
-@c CVS.  We should find a better place for this item.
-@item
-@code{(require 'gnus-load)}
-
-If you use a stand-alone Gnus distribution, you'd better add
-@code{(require 'gnus-load)} into your @file{~/.emacs} after adding the Gnus
-lisp directory into load-path.
-
-File @file{gnus-load.el} contains autoload commands, functions and variables,
-some of which may not be included in distributions of Emacsen.
-
-@item
-@code{gnus-slave-unplugged}
-
-A new command which starts Gnus offline in slave mode.
 
 @item
 @code{message-insinuate-rmail}
@@ -26377,27 +26462,6 @@ The line below enables BBDB in resending a message:
 (define-key message-minibuffer-local-map [(tab)]
   'bbdb-complete-name)
 @end lisp
-
-@item
-Externalizing and deleting of attachments.
-
-If @code{gnus-gcc-externalize-attachments} or
-@code{message-fcc-externalize-attachments} is non-@code{nil}, attach
-local files as external parts.
-
-The command @code{gnus-mime-save-part-and-strip} (bound to @kbd{C-o}
-on @acronym{MIME} buttons) saves a part and replaces the part with an
-external one.  @code{gnus-mime-delete-part} (bound to @kbd{d} on
-@acronym{MIME} buttons) removes a part.  It works only on back ends
-that support editing.
-
-@item
-@code{gnus-default-charset}
-
-The default value is determined from the
-@code{current-language-environment} variable, instead of
-@code{iso-8859-1}.  Also the @samp{.*} item in
-@code{gnus-group-charset-alist} is removed.
 
 @item
 @code{gnus-posting-styles}
@@ -26421,13 +26485,6 @@ added into these two variables.  If you customized those, perhaps you
 need add those two headers too.
 
 @item
-Gnus reads the @acronym{NOV} and articles in the Agent if plugged.
-
-If one reads an article while plugged, and the article already exists
-in the Agent, it won't get downloaded once more.  @code{(setq
-gnus-agent-cache nil)} reverts to the old behavior.
-
-@item
 Gnus supports the ``format=flowed'' (RFC 2646) parameter.  On
 composing messages, it is enabled by @code{use-hard-newlines}.
 Decoding format=flowed was present but not documented in earlier
@@ -26442,18 +26499,6 @@ inline PGP signed messages.  (New in Gnus 5.10.7)
 Gnus supports the generation of RFC 2298 Disposition Notification requests.
 
 This is invoked with the @kbd{C-c M-n} key binding from message mode.
-
-@item
-Gnus supports Maildir groups.
-
-Gnus includes a new back end @file{nnmaildir.el}.  @xref{Maildir}.
-
-@item
-Printing capabilities are enhanced.
-
-Gnus supports Muttprint natively with @kbd{O P} from the Summary and
-Article buffers.  Also, each individual @acronym{MIME} part can be
-printed using @kbd{p} on the @acronym{MIME} button.
 
 @item
 Message supports the Importance: (RFC 2156) header.
@@ -26474,45 +26519,66 @@ will not allow anyone to be able to anything she could not already do.
 The behavior can be changed by customizing @code{message-insert-canlock}.
 
 @item
-Gnus supports server-side mail filtering using Sieve.
+Gnus supports @acronym{PGP} (RFC 1991/2440), @acronym{PGP/MIME} (RFC
+2015/3156) and @acronym{S/MIME} (RFC 2630-2633).
 
-Sieve rules can be added as Group Parameters for groups, and the
-complete Sieve script is generated using @kbd{D g} from the Group
-buffer, and then uploaded to the server using @kbd{C-c C-l} in the
-generated Sieve buffer.  @xref{Sieve Commands}, and the new Sieve
-manual @ref{Top, , Top, sieve, Emacs Sieve}.
-
-@item
-Extended format specs.
-
-Format spec @samp{%&user-date;} is added into
-@code{gnus-summary-line-format-alist}.  Also, user defined extended
-format specs are supported.  The extended format specs look like
-@samp{%u&foo;}, which invokes function
-@code{gnus-user-format-function-@var{foo}}.  Because @samp{&} is used as the
-escape character, old user defined format @samp{%u&} is no longer supported.
+It needs an external @acronym{S/MIME} and OpenPGP implementation, but no
+additional Lisp libraries.  This add several menu items to the
+Attachments menu, and @kbd{C-c RET} key bindings, when composing
+messages.  This also obsoletes @code{gnus-article-hide-pgp-hook}.
 
 @item
-@kbd{/ *} (@code{gnus-summary-limit-include-cached}) is rewritten.
+@acronym{MML} (Mime compose) prefix changed from @kbd{M-m} to @kbd{C-c
+C-m}.
 
-It was aliased to @kbd{Y c}
-(@code{gnus-summary-insert-cached-articles}).  The new function filters
-out other articles.
-
-@item
-Some limiting commands accept a @kbd{C-u} prefix to negate the match.
-
-If @kbd{C-u} is used on subject, author or extra headers, i.e., @kbd{/
-s}, @kbd{/ a}, and @kbd{/ x}
-(@code{gnus-summary-limit-to-@{subject,author,extra@}}) respectively, the
-result will be to display all articles that do not match the expression.
+This change was made to avoid conflict with the standard binding of
+@code{back-to-indentation}, which is also useful in message mode.
 
 @item
-Group names are treated as UTF-8 by default.
+The default for @code{message-forward-show-mml} changed to the symbol
+@code{best}.
 
-This is supposedly what USEFOR wanted to migrate to.  See
-@code{gnus-group-name-charset-group-alist} and
-@code{gnus-group-name-charset-method-alist} for customization.
+The behavior for the @code{best} value is to show @acronym{MML} (i.e.,
+convert to @acronym{MIME}) when appropriate.  @acronym{MML} will not be
+used when forwarding signed or encrypted messages, as the conversion
+invalidate the digital signature.
+
+@item
+If @code{auto-compression-mode} is enabled, attachments are automatically
+decompressed when activated.
+@c FIXME: Does this affect article or message mode?
+
+@item
+Support for non-@acronym{ASCII} domain names
+
+Message supports non-@acronym{ASCII} domain names in From:, To: and
+Cc: and will query you whether to perform encoding when you try to
+send a message.  The variable @code{message-use-idna} controls this.
+Gnus will also decode non-@acronym{ASCII} domain names in From:, To:
+and Cc: when you view a message.  The variable @code{gnus-use-idna}
+controls this.
+
+@item You can now drag and drop attachments to the Message buffer.
+See @code{mml-dnd-protocol-alist} and @code{mml-dnd-attach-options}.
+@xref{MIME, ,MIME, message, Message Manual}.
+@c New in 5.10.9 / 5.11
+
+@end itemize
+
+@item Changes in back ends
+@c ***********************
+
+@itemize @bullet
+@item
+Gnus can display RSS newsfeeds as a newsgroup.  @xref{RSS}.
+
+@item
+The nndoc back end now supports mailman digests and exim bounces.
+
+@item
+Gnus supports Maildir groups.
+
+Gnus includes a new back end @file{nnmaildir.el}.  @xref{Maildir}.
 
 @item
 The nnml and nnfolder back ends store marks for each groups.
@@ -26529,6 +26595,13 @@ another machine, Gnus will automatically use the @file{.marks} or
 The new server variables @code{nnml-marks-is-evil} and
 @code{nnfolder-marks-is-evil} can be used to disable this feature.
 
+@end itemize
+
+@item Appearance
+@c *************
+
+@itemize @bullet
+
 @item
 The menu bar item (in Group and Summary buffer) named ``Misc'' has
 been renamed to ``Gnus''.
@@ -26540,42 +26613,65 @@ related stuff, like signing and encryption (@pxref{Security, Security,,
 message, Message Manual}).
 
 @item
-@code{gnus-group-charset-alist} and
-@code{gnus-group-ignored-charsets-alist}.
+The tool bars have been updated to use GNOME icons in Group, Summary and
+Message mode.  You can also customize the tool bars.  This is a new
+feature in Gnus 5.10.9.  (Only for Emacs, not in XEmacs.)
 
-The regexps in these variables are compared with full group names
-instead of real group names in 5.8.  Users who customize these
-variables should change those regexps accordingly.  For example:
-@lisp
-("^han\\>" euc-kr) -> ("\\(^\\|:\\)han\\>" euc-kr)
-@end lisp
+@item The tool bar icons are now (de)activated correctly
+in the group buffer, see the variable @code{gnus-group-update-tool-bar}.
+Its default value depends on your Emacs version.  This is a new feature
+in Gnus 5.10.9.
+@end itemize
 
-@item
-Gnus supports @acronym{PGP} (RFC 1991/2440), @acronym{PGP/MIME} (RFC
-2015/3156) and @acronym{S/MIME} (RFC 2630-2633).
 
-It needs an external @acronym{S/MIME} and OpenPGP implementation, but no
-additional Lisp libraries.  This add several menu items to the
-Attachments menu, and @kbd{C-c RET} key bindings, when composing
-messages.  This also obsoletes @code{gnus-article-hide-pgp-hook}.
+@item Miscellaneous changes
+@c ************************
+
+@itemize @bullet
 
 @item
-Gnus inlines external parts (message/external).
+@code{gnus-agent}
+
+The Gnus Agent has seen a major updated and is now enabled by default,
+and all nntp and nnimap servers from @code{gnus-select-method} and
+@code{gnus-secondary-select-method} are agentized by default.  Earlier
+only the server in @code{gnus-select-method} was agentized by the
+default, and the agent was disabled by default.  When the agent is
+enabled, headers are now also retrieved from the Agent cache instead
+of the back ends when possible.  Earlier this only happened in the
+unplugged state.  You can enroll or remove servers with @kbd{J a} and
+@kbd{J r} in the server buffer.  Gnus will not download articles into
+the Agent cache, unless you instruct it to do so, though, by using
+@kbd{J u} or @kbd{J s} from the Group buffer.  You revert to the old
+behavior of having the Agent disabled with @code{(setq gnus-agent
+nil)}.  Note that putting @code{(gnus-agentize)} in @file{~/.gnus.el}
+is not needed any more.
 
 @item
-@acronym{MML} (Mime compose) prefix changed from @kbd{M-m} to @kbd{C-c
-C-m}.
+Gnus reads the @acronym{NOV} and articles in the Agent if plugged.
 
-This change was made to avoid conflict with the standard binding of
-@code{back-to-indentation}, which is also useful in message mode.
+If one reads an article while plugged, and the article already exists
+in the Agent, it won't get downloaded once more.  @code{(setq
+gnus-agent-cache nil)} reverts to the old behavior.
 
 @item
-The default for @code{message-forward-show-mml} changed to symbol @code{best}.
+Dired integration
 
-The behavior for the @code{best} value is to show @acronym{MML} (i.e.,
-convert to @acronym{MIME}) when appropriate.  @acronym{MML} will not be
-used when forwarding signed or encrypted messages, as the conversion
-invalidate the digital signature.
+@code{gnus-dired-minor-mode} (see @ref{Other modes}) installs key
+bindings in dired buffers to send a file as an attachment, open a file
+using the appropriate mailcap entry, and print a file using the mailcap
+entry.
+
+@item
+The format spec @code{%C} for positioning point has changed to @code{%*}.
+
+@item
+@code{gnus-slave-unplugged}
+
+A new command which starts Gnus offline in slave mode.
+
+@end itemize
+
 @end itemize
 
 @iftex
