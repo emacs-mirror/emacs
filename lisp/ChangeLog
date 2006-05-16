@@ -1,5 +1,11 @@
 2006-05-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* international/mule.el (auto-coding-alist): Add .lha to files
+	read with no-conversion.
+
+	* files.el (auto-mode-alist): Add .lha files to archive file
+	extensions. 
+
 	* arc-mode.el (archive-arc-summarize, archive-lzh-summarize):
 	Convert csize to integer when computing offsets within the
 	compressed archive file.
