@@ -4104,7 +4104,7 @@ non-nil, it is called instead of rereading visited file contents."
 	   (let ((inhibit-read-only t)
 		 ;; Keep the current buffer-file-coding-system.
 		 (coding-system buffer-file-coding-system)
-		 ;; Auto-saved file shoule be read with special coding.
+		 ;; Auto-saved file should be read with special coding.
 		 (coding-system-for-read 'auto-save-coding))
 	     (erase-buffer)
 	     (insert-file-contents file-name nil)
