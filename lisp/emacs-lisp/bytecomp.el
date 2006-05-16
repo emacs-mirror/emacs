@@ -357,7 +357,20 @@ Elements of the list may be be:
 		      (const callargs) (const redefine)
 		      (const obsolete) (const noruntime)
 		      (const cl-functions) (const interactive-only))))
-;;;###autoload(put 'byte-compile-warnings 'safe-local-variable 'booleanp)
+(put 'byte-compile-warnings 'safe-local-variable 'byte-compile-warnings-safe-p)
+;;;###autoload
+(defun byte-compile-warnings-safe-p (x)
+  (or (booleanp x)
+      (and (listp x)
+	   (equal (mapcar
+		   (lambda (e)
+		     (when (memq e '(free-vars unresolved
+				     callargs redefine
+				     obsolete noruntime
+				     cl-functions interactive-only))
+		       e))
+		   x)
+		  x))))
 
 (defvar byte-compile-interactive-only-functions
   '(beginning-of-buffer end-of-buffer replace-string replace-regexp

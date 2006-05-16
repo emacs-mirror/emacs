@@ -1,3 +1,9 @@
+2006-05-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warnings-safe-p): New
+	function.
+	(byte-compile-warnings): Fix safe-local-variable property.
+
 2006-05-16  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-show-bodies, allout-old-style-prefixes)
