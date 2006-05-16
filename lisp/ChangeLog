@@ -1,3 +1,9 @@
+2006-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-start): Only create a directory if needed.
+	(server-edit, server-unload-hook): server-start => server-mode.
+	(kill-emacs-hook): Cleanup upon exit.
+
 2006-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* hexl.el (hexlify-buffer): Encode process arguments manually.
