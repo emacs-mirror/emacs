@@ -5821,6 +5821,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                images, only, which should have 1 page.  */
             Pixmap pixmap = (Pixmap) event.xclient.data.l[1];
 	    f = x_window_to_frame (dpyinfo, event.xclient.window);
+	    if (!f)
+	      goto OTHER;
             x_kill_gs_process (pixmap, f);
             expose_frame (f, 0, 0, 0, 0);
 	    goto done;
@@ -5839,10 +5841,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 #endif /* USE_TOOLKIT_SCROLL_BARS */
 
 	f = x_any_window_to_frame (dpyinfo, event.xclient.window);
-
 	if (!f)
 	  goto OTHER;
-
 	if (x_handle_dnd_message (f, &event.xclient, dpyinfo, &inev.ie))
 	  *finish = X_EVENT_DROP;
       }
