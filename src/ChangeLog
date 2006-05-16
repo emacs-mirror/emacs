@@ -1,10 +1,15 @@
+2006-05-16  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (handle_one_xevent): Check that f is not NULL before
+	calling x_kill_gs_process.
+
 2006-05-14  Richard Stallman  <rms@gnu.org>
 
 	* textprop.c (Fnext_single_char_property_change)
 	(Fprevious_single_char_property_change): Don't allow returning
 	value beyond LIMIT in any cases.
 	(Fnext_char_property_change, Fprevious_char_property_change): Doc fix.
-	
+
 	* intervals.c (get_local_map): Abort if POSITION outside BEGV, ZV.
 
 2006-05-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>

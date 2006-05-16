@@ -1,3 +1,7 @@
+2006-05-16  Kim F. Storm  <storm@cua.dk>
+
+	* minibuf.texi (Minibuffer History): Update add-to-history.
+
 2006-05-15  Oliver Scholz  <epameinondas@gmx.de>  (tiny change)
 
 	* nonascii.texi (Explicit Encoding): Fix

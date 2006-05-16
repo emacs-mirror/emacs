@@ -1,7 +1,11 @@
+2006-05-16  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (add-to-history): Add KEEP-ALL arg and align functionality
+	with read-from-minibuffer.
+
 2006-05-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* emacs-lisp/bytecomp.el (byte-compile-warnings-safe-p): New
-	function.
+	* emacs-lisp/bytecomp.el (byte-compile-warnings-safe-p): New function.
 	(byte-compile-warnings): Fix safe-local-variable property.
 
 2006-05-16  Ken Manheimer  <ken.manheimer@gmail.com>
