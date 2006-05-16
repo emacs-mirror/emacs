@@ -1,3 +1,13 @@
+2006-05-16  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-show-bodies, allout-old-style-prefixes)
+	(allout-stylish-prefixes, allout-numbered-bullet)
+	(allout-file-xref-bullet, allout-use-hanging-indents): Use simple
+	predicates to qualify `safe-local-variable' property, when
+	available, else use equivalent lambda.
+	(allout-current-topic-collapsed-p): Do the right thing regarding
+	trailing blank lines.
+
 2006-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-start): Only create a directory if needed.

@@ -199,7 +199,7 @@ just the header."
 (make-variable-buffer-local 'allout-show-bodies)
 ;;;###autoload
 (put 'allout-show-bodies 'safe-local-variable
-     '(lambda (x) (member x '(t nil))))
+     (if (fboundp 'booleanp) 'booleanp '(lambda (x) (member x '(t nil)))))
 
 ;;;_  = allout-header-prefix
 (defcustom allout-header-prefix "."
@@ -345,7 +345,7 @@ are always respected by the topic maneuvering functions."
 (make-variable-buffer-local 'allout-old-style-prefixes)
 ;;;###autoload
 (put 'allout-old-style-prefixes 'safe-local-variable
-     '(lambda (x) (member x '(t nil))))
+     (if (fboundp 'booleanp) 'booleanp '(lambda (x) (member x '(t nil)))))
 ;;;_  = allout-stylish-prefixes - alternating bullets
 (defcustom allout-stylish-prefixes t
   "*Do fancy stuff with topic prefix bullets according to level, etc.
@@ -394,7 +394,7 @@ is non-nil."
 (make-variable-buffer-local 'allout-stylish-prefixes)
 ;;;###autoload
 (put 'allout-stylish-prefixes 'safe-local-variable
-     '(lambda (x) (member x '(t nil))))
+     (if (fboundp 'booleanp) 'booleanp '(lambda (x) (member x '(t nil)))))
 
 ;;;_  = allout-numbered-bullet
 (defcustom allout-numbered-bullet "#"
@@ -408,7 +408,10 @@ disables numbering maintenance."
   :group 'allout)
 (make-variable-buffer-local 'allout-numbered-bullet)
 ;;;###autoload
-(put 'allout-numbered-bullet 'safe-local-variable 'string-or-null-p)
+(put 'allout-numbered-bullet 'safe-local-variable
+     (if (fboundp 'string-or-null-p)
+         'string-or-null-p
+       '(lambda (x) (or (stringp x) (null x)))))
 ;;;_  = allout-file-xref-bullet
 (defcustom allout-file-xref-bullet "@"
   "*Bullet signifying file cross-references, for `allout-resolve-xref'.
@@ -417,7 +420,10 @@ Set this var to the bullet you want to use for file cross-references."
   :type '(choice (const nil) string)
   :group 'allout)
 ;;;###autoload
-(put 'allout-file-xref-bullet 'safe-local-variable 'string-or-null-p)
+(put 'allout-file-xref-bullet 'safe-local-variable
+     (if (fboundp 'string-or-null-p)
+         'string-or-null-p
+       '(lambda (x) (or (stringp x) (null x)))))
 ;;;_  = allout-presentation-padding
 (defcustom allout-presentation-padding 2
   "*Presentation-format white-space padding factor, for greater indent."
@@ -620,7 +626,7 @@ where auto-fill occurs."
 (make-variable-buffer-local 'allout-use-hanging-indents)
 ;;;###autoload
 (put 'allout-use-hanging-indents 'safe-local-variable
-     '(lambda (x) (member x '(t nil))))
+     (if (fboundp 'booleanp) 'booleanp '(lambda (x) (member x '(t nil)))))
 
 ;;;_  = allout-reindent-bodies
 (defcustom allout-reindent-bodies (if allout-use-hanging-indents
@@ -1067,14 +1073,14 @@ from the list."
   "*\(Deprecated\)  Hook that's run after allout outline exposure changes.
 
 Switch to using `allout-exposure-change-hook' instead.  Both
-variables are currently used if populated, but this one will be
-ignored in a subsequent allout version.")
+variables are currently respected, but this one will be ignored
+in a subsequent allout version.")
 ;;;_   = allout-exposure-change-hook
 (defvar allout-exposure-change-hook nil
   "*Hook that's run after allout outline exposure changes.
 
 This variable will replace `allout-view-change-hook' in a subsequent allout
-version, though both are currently checked and used, if populated.")
+version, though both are currently respected.")
 
 ;;;_   = allout-outside-normal-auto-fill-function
 (defvar allout-outside-normal-auto-fill-function nil
@@ -1761,8 +1767,6 @@ internal functions use this feature cohesively bunch changes."
     (let ((start (point))
           (ol-start (overlay-start ol))
           (ol-end (overlay-end ol))
-          (msg "Change within concealed text disallowed.")
-          opened
           first)
       (goto-char beg)
       (while (< (point) end)
@@ -1772,7 +1776,6 @@ internal functions use this feature cohesively bunch changes."
               (save-excursion (forward-char 1)
                               (allout-show-to-offshoot)))
           (when (not first)
-            (setq opened t)
             (setq first (point))))
         (goto-char (if (featurep 'xemacs)
                        (next-property-change (1+ (point)) nil end)
@@ -4008,17 +4011,18 @@ expose this topic and its siblings."
 (defun allout-current-topic-collapsed-p (&optional include-single-liners)
   "True if the currently visible containing topic is already collapsed.
 
-If optional INCLUDE-SINGLE-LINERS is true, then include single-line
-topics \(which intrinsically can be considered both collapsed and
-not\), as collapsed.  Otherwise they are considered uncollapsed."
+Single line topics intrinsically can be considered as being both
+collapsed and uncollapsed.  If optional INCLUDE-SINGLE-LINERS is
+true, then single-line topics are considered to be collapsed.  By
+default, they are treated as being uncollapsed."
   (save-excursion
-      (and
-       (= (progn (allout-back-to-current-heading)
-                 (move-end-of-line 1)
-                 (point))
-          (allout-end-of-current-subtree))
-       (or include-single-liners
-           (progn (backward-char 1) (allout-hidden-p))))))
+    (and
+     (= (progn (allout-back-to-current-heading)
+               (move-end-of-line 1)
+               (point))
+        (allout-end-of-current-subtree (not (looking-at "\n\n"))))
+     (or include-single-liners
+         (progn (backward-char 1) (allout-hidden-p))))))
 ;;;_   > allout-hide-current-subtree (&optional just-close)
 (defun allout-hide-current-subtree (&optional just-close)
   "Close the current topic, or containing topic if this one is already closed.
