@@ -897,7 +897,7 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 The variable `quail-keyboard-layout-type' holds the currently selected
 keyboard type."
   (interactive
-   (list (completing-read "Keyboard type (default, current choice): "
+   (list (completing-read "Keyboard type (default current choice): "
 			  quail-keyboard-layout-alist
 			  nil t)))
   (or (and keyboard-type (> (length keyboard-type) 0))

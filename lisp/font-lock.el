@@ -1061,7 +1061,8 @@ a very meaningful entity to highlight.")
 					     'font-lock-multiline nil)
 			  (point-max))))
 	  (goto-char end)
-	  (setq end (line-beginning-position 2))
+	  ;; Round up to a whole line.
+          (unless (bolp) (setq end (line-beginning-position 2)))
 	  ;; Now do the fontification.
 	  (font-lock-unfontify-region beg end)
 	  (when font-lock-syntactic-keywords
@@ -1073,12 +1074,12 @@ a very meaningful entity to highlight.")
       (set-syntax-table old-syntax-table))))
 
 ;; The following must be rethought, since keywords can override fontification.
-;      ;; Now scan for keywords, but not if we are inside a comment now.
-;      (or (and (not font-lock-keywords-only)
-;	       (let ((state (parse-partial-sexp beg end nil nil
-;						font-lock-cache-state)))
-;		 (or (nth 4 state) (nth 7 state))))
-;	  (font-lock-fontify-keywords-region beg end))
+;;    ;; Now scan for keywords, but not if we are inside a comment now.
+;;    (or (and (not font-lock-keywords-only)
+;;             (let ((state (parse-partial-sexp beg end nil nil
+;;                                              font-lock-cache-state)))
+;;               (or (nth 4 state) (nth 7 state))))
+;;        (font-lock-fontify-keywords-region beg end))
 
 (defvar font-lock-extra-managed-props nil
   "Additional text properties managed by font-lock.

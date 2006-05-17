@@ -2863,9 +2863,9 @@ Returns a list of strings."
   "Read any extra arguments for figlet."
   (interactive)
   (let* ((avail-fonts  (artist-figlet-get-font-list))
-	 (font (completing-read (concat "Select font: (default "
+	 (font (completing-read (concat "Select font (default "
 					artist-figlet-default-font
-					") ")
+					"): ")
 				(mapcar
 				 (lambda (font) (cons font font))
 				 avail-fonts))))

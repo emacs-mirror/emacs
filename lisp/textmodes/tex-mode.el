@@ -472,7 +472,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	   (arg "{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)"))
       (list
        ;; font-lock-syntactic-keywords causes the \ of \end{verbatim} to be
-       ;; highlighted as tex-verbatim-face.  Let's undo that.
+       ;; highlighted as tex-verbatim face.  Let's undo that.
        ;; This is ugly and brittle :-(  --Stef
        '("^\\(\\\\\\)end" (1 (get-text-property (match-end 1) 'face) t))
        ;; display $$ math $$
@@ -509,7 +509,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 
 (defun tex-font-lock-append-prop (prop)
   (unless (memq (get-text-property (match-end 1) 'face)
-		'(font-lock-comment-face tex-verbatim-face))
+		'(font-lock-comment-face tex-verbatim))
     prop))
 
 (defconst tex-font-lock-keywords-2
@@ -583,7 +583,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 (defun tex-font-lock-suscript (pos)
   (unless (or (memq (get-text-property pos 'face)
 		    '(font-lock-constant-face font-lock-builtin-face
-		      font-lock-comment-face tex-verbatim-face))
+		      font-lock-comment-face tex-verbatim))
 	      ;; Check for backslash quoting
 	      (let ((odd nil)
 		    (pos pos))
@@ -1109,7 +1109,7 @@ Inserts the value of `tex-open-quote' (normally ``) or `tex-close-quote'
 inserts \" characters."
   (interactive "*P")
   (if (or arg (memq (char-syntax (preceding-char)) '(?/ ?\\))
-	  (eq (get-text-property (point) 'face) tex-verbatim-face)
+	  (eq (get-text-property (point) 'face) tex-verbatim)
 	  (save-excursion
 	    (backward-char (length tex-open-quote))
 	    (when (or (looking-at (regexp-quote tex-open-quote))
@@ -2341,7 +2341,7 @@ Runs the shell command defined by `tex-show-queue-command'."
 
 (defun latex-indent (&optional arg)
   (if (and (eq (get-text-property (line-beginning-position) 'face)
-	       tex-verbatim-face))
+	       tex-verbatim))
       'noindent
     (with-syntax-table tex-latex-indent-syntax-table
       ;; TODO: Rather than ignore $, we should try to be more clever about it.

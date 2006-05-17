@@ -156,7 +156,7 @@ Strings will be separated from each other by SPACE lines."
 (defun animate-birthday-present (&optional name)
   "Display one's birthday present in a new buffer.
 You can specify the one's name by NAME; the default value is \"Sarah\"."
-  (interactive (list (read-string "Name (default \"Sarah\"): "
+  (interactive (list (read-string "Name (default Sarah): "
 				  nil nil "Sarah")))
   ;; Make a suitable buffer to display the birthday present in.
   (switch-to-buffer (get-buffer-create (format "*%s*" name)))

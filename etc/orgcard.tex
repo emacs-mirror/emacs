@@ -1,4 +1,4 @@
-% Reference Card for Org Mode 3.15
+% Reference Card for Org Mode 3.16
 %
 %**start of header
 \newcount\columnsperpage
@@ -58,7 +58,7 @@
 % Thanks to Paul Rubin, Bob Chassell, Len Tower, and Richard Mlynarik
 % for their many good ideas.
 
-\def\orgversionnumber{3.15}
+\def\orgversionnumber{3.16}
 \def\year{2005}
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
@@ -315,9 +315,9 @@ Put the following in your \kbd{~/.emacs}$^1$
 
 \key{move subtree up}{M-S-UP}
 \key{move subtree down}{M-S-DOWN}
-\key{kill subtree}{C-c C-h C-w}
-\key{copy subtree}{C-c C-h M-w}
-\key{yank subtree}{C-c C-h C-y}
+\key{kill subtree}{C-c C-x C-w}
+\key{copy subtree}{C-c C-x M-w}
+\key{yank subtree}{C-c C-x C-y}
 
 \key{archive subtree}{C-c \$}
 To set archive location for current file, add a line like$^3$:
@@ -362,20 +362,18 @@ per-file TODO keywords: add line(s) like$^3$:
 
 \key{prompt for date and insert timestamp}{C-c .}
 \key{like \kbd{C-c} . but insert date and time format}{C-u C-c .}
+\key{Like \kbd{C-c .} but make stamp inactive}{C-c !} % FIXME
 \key{insert DEADLINE timestamp}{C-c C-d}
 \key{insert SCHEDULED timestamp}{C-c C-s}
 \key{create sparse tree with all deadlines due}{C-c C-w}
 \key{the time between 2 dates in a time range}{C-c C-y}
-
 \key{change timestamp at cursor by $-1$ day}{S-LEFT$^4$}
 \key{change timestamp at cursor by $+1$ day}{S-RIGHT$^4$}
 \key{change year/month/day at cursor by $-1$}{S-DOWN$^4$}
 \key{change year/month/day at cursor by $+1$}{S-UP$^4$}
-
 \key{access the calendar for the current date}{C-c >}
 \key{insert timestamp matching date in calendar}{C-c <}
 \key{access agenda for current date}{C-c C-o}
-
 \key{While prompted for a date:}{}
 \key{... select date in calendar}{mouse-1/RET}
 \key{... scroll calendar back/forward one month}{< / >}
@@ -457,9 +455,9 @@ Outside of tables, the same keys may have other functionality.
 
 {\bf Regions}
 
-\key{cut rectangular region}{C-c C-h C-w}
-\key{copy rectangular region}{C-c C-h M-w}
-\key{paste rectangular region}{C-c C-h C-y}
+\key{cut rectangular region}{C-c C-x C-w}
+\key{copy rectangular region}{C-c C-x M-w}
+\key{paste rectangular region}{C-c C-x C-y}
 \key{fill paragraph across selected cells}{C-c C-q}
 
 {\bf Calculations}
@@ -589,7 +587,7 @@ in the current directory.
 \key{export as ASCII file}{C-c C-x a}
 \key{export visible text only (e.g. for printing)}{C-c C-x v}
 \key{export as HTML file}{C-c C-x h}
-\key{export as HTML and open in browser}{C-c C-x C-h}
+\key{export as HTML and open in browser}{C-c C-x b}
 \key{prefix arg sets nb. of headline levels, e.g.}{C-3 C-c C-x h}
 
 \key{insert template of export options}{C-c C-x t}
@@ -730,9 +728,6 @@ $^4$ Keybinding affected by {\tt org-CUA-compatibility}.
 
 \bye
 
-% Local variables:
-% compile-command: "tex ord-mode-ref"
-% TeX-master: t
-% End:
 
 % arch-tag: 139f6750-5cfc-49ca-92b5-237fe5795290
+

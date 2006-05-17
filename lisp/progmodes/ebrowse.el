@@ -1798,7 +1798,7 @@ INFO is a list (TREE-HEADER TREE-OR-MEMBER MEMBER-LIST)."
       ;; START will be 0.
       (when (and (boundp 'ebrowse-debug)
 		 (symbol-value 'ebrowse-debug))
-	(y-or-n-p (format "start = %d" start))
+	(y-or-n-p (format "start = %d? " start))
 	(y-or-n-p pattern))
       (setf found
 	    (loop do (goto-char (max (point-min) (- start offset)))

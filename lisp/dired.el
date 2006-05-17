@@ -2379,7 +2379,7 @@ Anything else, ask for each sub-directory."
 	       (setq files
 		     (directory-files file t dired-re-no-dot)) ; Not empty.
 	       (or (eq recursive 'always)
-		   (yes-or-no-p (format "Recursive delete of %s "
+		   (yes-or-no-p (format "Recursive delete of %s? "
 					(dired-make-relative file)))))
 	(if (eq recursive 'top) (setq recursive 'always)) ; Don't ask again.
 	(while files		; Recursively delete (possibly asking).

@@ -671,11 +671,11 @@ that DVAL has been added on SQUARE."
      (cond ((< gomoku-number-of-moves 20)
 	    "This was a REALLY QUICK win.")
 	   (gomoku-human-refused-draw
-	    "I won... Too bad you refused my offer of a draw !")
+	    "I won... Too bad you refused my offer of a draw!")
 	   (gomoku-human-took-back
-	    "I won... Taking moves back will not help you !")
+	    "I won... Taking moves back will not help you!")
 	   ((not gomoku-emacs-played-first)
-	    "I won... Playing first did not help you much !")
+	    "I won... Playing first did not help you much!")
 	   ((and (zerop gomoku-number-of-human-wins)
 		 (zerop gomoku-number-of-draws)
 		 (> gomoku-number-of-emacs-wins 1))
@@ -688,7 +688,7 @@ that DVAL has been added on SQUARE."
 	      (gomoku-human-took-back
 	       "  I, for one, never take my moves back...")
 	      (gomoku-emacs-played-first
-	       ".. so what ?")
+	       ".. so what?")
 	      ("  Now, let me play first just once."))))
     ((eq result 'human-resigned)
      (setq gomoku-number-of-emacs-wins (1+ gomoku-number-of-emacs-wins))
@@ -758,7 +758,7 @@ Use \\[describe-mode] for more info."
       (setq gomoku-emacs-is-computing nil)
       (gomoku-terminate-game 'crash-game)
       (sit-for 4)
-      (or (y-or-n-p "Another game ") (error "Chicken !")))
+      (or (y-or-n-p "Another game? ") (error "Chicken!")))
     (switch-to-buffer gomoku-buffer-name)
     (gomoku-mode))
   (cond
@@ -779,14 +779,14 @@ Use \\[describe-mode] for more info."
       (if (and (> m max-height)
 	       (not (eq m gomoku-saved-board-height))
 	       ;; Use EQ because SAVED-BOARD-HEIGHT may be nil
-	       (not (y-or-n-p (format "Do you really want %d rows " m))))
+	       (not (y-or-n-p (format "Do you really want %d rows? " m))))
 	  (setq m max-height)))
     (message "One moment, please...")
     (gomoku-start-game n m)
-    (if (y-or-n-p "Do you allow me to play first ")
+    (if (y-or-n-p "Do you allow me to play first? ")
 	(gomoku-emacs-plays)
 	(gomoku-prompt-for-move)))
-   ((y-or-n-p "Shall we continue our game ")
+   ((y-or-n-p "Shall we continue our game? ")
     (gomoku-prompt-for-move))
    (t
     (gomoku-human-resigns))))
@@ -875,9 +875,9 @@ If the game is finished, this command requests for another game."
     (let (square score)
       (setq square (gomoku-point-square))
       (cond ((null square)
-	     (error "Your point is not on a square. Retry !"))
+	     (error "Your point is not on a square. Retry!"))
 	    ((not (zerop (aref gomoku-board square)))
-	     (error "Your point is not on a free square. Retry !"))
+	     (error "Your point is not on a free square. Retry!"))
 	    (t
 	     (setq score (aref gomoku-score-table square))
 	     (gomoku-play-move square 1)
@@ -902,7 +902,7 @@ If the game is finished, this command requests for another game."
     (sit-for 4)
     (gomoku-prompt-for-other-game))
    ((zerop gomoku-number-of-human-moves)
-    (message "You have not played yet... Your move ?"))
+    (message "You have not played yet... Your move?"))
    (t
     (message "One moment, please...")
     ;; It is possible for the user to let Emacs play several consecutive
@@ -923,9 +923,9 @@ If the game is finished, this command requests for another game."
     (gomoku-crash-game))
    ((not gomoku-game-in-progress)
     (message "There is no game in progress"))
-   ((y-or-n-p "You mean, you resign ")
+   ((y-or-n-p "You mean, you resign? ")
     (gomoku-terminate-game 'human-resigned))
-   ((y-or-n-p "You mean, we continue ")
+   ((y-or-n-p "You mean, we continue? ")
     (gomoku-prompt-for-move))
    (t
     (gomoku-terminate-game 'human-resigned)))) ; OK. Accept it
@@ -937,21 +937,21 @@ If the game is finished, this command requests for another game."
 (defun gomoku-prompt-for-move ()
   "Display a message asking for Human's move."
   (message (if (zerop gomoku-number-of-human-moves)
-	       "Your move ? (move to a free square and hit X, RET ...)"
-	       "Your move ?"))
+	       "Your move? (move to a free square and hit X, RET ...)"
+	       "Your move?"))
   ;; This may seem silly, but if one omits the following line (or a similar
   ;; one), the cursor may very well go to some place where POINT is not.
   (save-excursion (set-buffer (other-buffer))))
 
 (defun gomoku-prompt-for-other-game ()
   "Ask for another game, and start it."
-  (if (y-or-n-p "Another game ")
+  (if (y-or-n-p "Another game? ")
       (gomoku gomoku-board-width gomoku-board-height)
-    (error "Chicken !")))
+    (error "Chicken!")))
 
 (defun gomoku-offer-a-draw ()
   "Offer a draw and return t if Human accepted it."
-  (or (y-or-n-p "I offer you a draw. Do you accept it ")
+  (or (y-or-n-p "I offer you a draw. Do you accept it? ")
       (not (setq gomoku-human-refused-draw t))))
 
 ;;;

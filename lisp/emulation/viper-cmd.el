@@ -358,7 +358,7 @@
 					  'viper-insertion-ring))
 
 		(if viper-ESC-moves-cursor-back
-		    (or (bolp) (backward-char 1))))
+		    (or (bolp) (viper-beginning-of-field) (backward-char 1))))
 	       ))
 
 	;; insert or replace
@@ -1996,7 +1996,8 @@ Undo previous insertion and inserts new."
 ;;; Minibuffer business
 
 (defsubst viper-set-minibuffer-style ()
-  (add-hook 'minibuffer-setup-hook 'viper-minibuffer-setup-sentinel))
+  (add-hook 'minibuffer-setup-hook 'viper-minibuffer-setup-sentinel)
+  (add-hook 'post-command-hook 'viper-minibuffer-post-command-hook))
 
 
 (defun viper-minibuffer-setup-sentinel ()
@@ -2038,6 +2039,11 @@ Undo previous insertion and inserts new."
   (if (fboundp 'minibuffer-prompt-end)
       (minibuffer-prompt-end)
     (point-min)))
+
+(defun viper-minibuffer-post-command-hook()
+  (when (active-minibuffer-window)
+    (when (< (point) (viper-minibuffer-real-start))
+      (goto-char (viper-minibuffer-real-start)))))
 
 
 ;; Interpret last event in the local map first; if fails, use exit-minibuffer.
@@ -2154,7 +2160,7 @@ problems."
     (setq keymap (or keymap minibuffer-local-map)
 	  initial (or initial "")
 	  temp-msg (if default
-		       (format "(default: %s) " default)
+		       (format "(default %s) " default)
 		     ""))
 
     (setq viper-incomplete-ex-cmd nil)
@@ -2570,7 +2576,7 @@ These keys are ESC, RET, and LineFeed"
     ;; last line of buffer when this line has no \n.
     (viper-add-newline-at-eob-if-necessary)
     (viper-execute-com 'viper-line val com))
-  (if (and (eobp) (not (bobp))) (forward-line -1))
+  (if (and (eobp) (bolp) (not (bobp))) (forward-line -1))
   )
 
 (defun viper-yank-line (arg)

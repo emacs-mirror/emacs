@@ -115,6 +115,11 @@ In all likelihood, you don't need to bother with this setting."
 
 ;;; Macros
 
+;; Fool the compiler to avoid warnings.
+;; Viper calls make-variable-buffer-local from within other functions, which
+;; triggers compiler warnings.
+(defalias 'viper-make-variable-buffer-local 'make-variable-buffer-local)
+
 (defmacro viper-deflocalvar (var default-value &optional documentation)
   `(progn
     (defvar ,var ,default-value

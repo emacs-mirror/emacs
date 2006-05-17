@@ -1346,13 +1346,14 @@ Interactively, empty argument means use same regexp used last time."
   (interactive
     (let* ((reversep (>= (prefix-numeric-value current-prefix-arg) 0))
 	   (prompt
-	    (concat (if reversep "Reverse " "") "Rmail search (regexp): "))
+	    (concat (if reversep "Reverse " "") "Rmail search (regexp"))
 	   regexp)
-      (if rmail-search-last-regexp
-	  (setq prompt (concat prompt
-			       "(default "
-			       rmail-search-last-regexp
-			       ") ")))
+      (setq prompt
+	    (concat prompt
+		    (if rmail-search-last-regexp
+			(concat ", default "
+				rmail-search-last-regexp "): ")
+		      "): ")))
       (setq regexp (read-string prompt))
       (cond ((not (equal regexp ""))
 	     (setq rmail-search-last-regexp regexp))
@@ -1377,13 +1378,14 @@ Interactively, empty argument means use same regexp used last time."
   (interactive
     (let* ((reversep (< (prefix-numeric-value current-prefix-arg) 0))
 	   (prompt
-	    (concat (if reversep "Reverse " "") "Rmail search (regexp): "))
+	    (concat (if reversep "Reverse " "") "Rmail search (regexp"))
 	   regexp)
-      (if rmail-search-last-regexp
-	  (setq prompt (concat prompt
-			       "(default "
-			       rmail-search-last-regexp
-			       ") ")))
+      (setq prompt
+	    (concat prompt
+		    (if rmail-search-last-regexp
+			(concat ", default "
+				rmail-search-last-regexp "): ")
+		      "): ")))
       (setq regexp (read-string prompt))
       (cond ((not (equal regexp ""))
 	     (setq rmail-search-last-regexp regexp))

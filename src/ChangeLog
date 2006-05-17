@@ -1,3 +1,42 @@
+2005-09-23  Richard M. Stallman  <rms@gnu.org>
+
+	* editfns.c (Fformat): Explicitly test for end of format string
+	and don't use `index'.
+
+2005-09-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/aix4-2.h (BROKEN_GET_CURRENT_DIR_NAME): Define
+	BROKEN_GET_CURRENT_DIR_NAME.
+
+	* sysdep.c (get_current_dir_name): Also define if
+	BROKEN_GET_CURRENT_DIR_NAME. 
+
+	* m/ibmrs6000.h: Test for USG5, not USG5_4.
+
+2005-09-22  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (message_dolog): Add warning about GC and Lisp strings.
+	(message2): Fix commentary.  Ok to use alloca'ed memory.
+	Still not ok to use Lisp string data (because of GC).
+	(set_message): Add comment why GC cannot happen.
+
+2005-09-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (xlfdpat_block_match_1): Fix assertion.
+	(init_font_name_table) [TARGET_API_MAC_CARBON]: Don't add style
+	variants for a scalable font multiple times.
+
+2005-09-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* process.c (create_process) [RTU || UNIPLUS || DONT_REOPEN_PTY]:
+	Setup slave tty options before forking.
+
+2005-09-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_set_geometry): Do a gtk_window_move if program
+	positions have been set for the frame (as is done for frames in
+	special-display-buffer-names).
+
 2005-09-19  Kim F. Storm  <storm@cua.dk>
 
 	* editfns.c (Fformat): Don't scan past end of format string that

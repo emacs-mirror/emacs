@@ -554,6 +554,9 @@ xg_set_geometry (f)
     if (!gtk_window_parse_geometry (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
                                     geom_str))
       fprintf (stderr, "Failed to parse: '%s'\n", geom_str);
+  } else if (f->size_hint_flags & PPosition) {
+    gtk_window_move (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+                     f->left_pos, f->top_pos);
   }
 }
 

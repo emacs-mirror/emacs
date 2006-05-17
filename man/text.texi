@@ -266,10 +266,11 @@ Put point and mark around this or next paragraph (@code{mark-paragraph}).
   @kbd{M-@{} moves to the beginning of the current or previous
 paragraph, while @kbd{M-@}} moves to the end of the current or next
 paragraph.  Blank lines and text-formatter command lines separate
-paragraphs and are not considered part of any paragraph.  In Indented
-Text mode, but not in Text mode, an indented line also starts a new
-paragraph.  If there is a blank line before the paragraph, @kbd{M-@{}
-moves to the blank line, because that is convenient in practice.
+paragraphs and are not considered part of any paragraph.  In
+Paragraph-Indent Text mode, but not in Text mode, an indented line
+also starts a new paragraph.  If there is a blank line before the
+paragraph, @kbd{M-@{} moves to the blank line, because that is
+convenient in practice.
 
   In major modes for programs, paragraphs begin and end only at blank
 lines.  This makes the paragraph commands continue to be useful even

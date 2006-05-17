@@ -9,7 +9,7 @@
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
 
-(defconst viper-version "3.11.5 of August 6, 2005"
+(defconst viper-version "3.11.5 of September 19, 2005"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -606,7 +606,7 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 	      (viper-set-expert-level 'dont-change-unless)))
 
 	(if viper-xemacs-p
-	    (make-variable-buffer-local 'bar-cursor))
+	    (viper-make-variable-buffer-local 'bar-cursor))
 	(if (eq major-mode 'viper-mode)
 	    (setq major-mode 'fundamental-mode))
 
@@ -769,6 +769,7 @@ It also can't undo some Viper settings."
   (remove-hook 'comint-mode-hook 'viper-comint-mode-hook)
   (remove-hook 'minibuffer-setup-hook 'viper-minibuffer-setup-sentinel)
   (remove-hook 'change-major-mode-hook 'viper-major-mode-change-sentinel)
+  (remove-hook 'post-command-hook 'viper-minibuffer-post-command-hook)
 
   ;; unbind Viper mouse bindings
   (viper-unbind-mouse-search-key)
@@ -1008,7 +1009,7 @@ It also can't undo some Viper settings."
   ;; ***This is needed only in case emulation-mode-map-alists is not defined
   (unless
       (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
-    (make-variable-buffer-local 'minor-mode-map-alist))
+    (viper-make-variable-buffer-local 'minor-mode-map-alist))
 
   ;; Viper changes the default mode-line-buffer-identification
   (setq-default mode-line-buffer-identification '(" %b"))
@@ -1017,7 +1018,7 @@ It also can't undo some Viper settings."
   (setq next-line-add-newlines nil
 	require-final-newline t)
 
-  (make-variable-buffer-local 'require-final-newline)
+  (viper-make-variable-buffer-local 'require-final-newline)
 
   ;; don't bark when mark is inactive
   (if viper-emacs-p

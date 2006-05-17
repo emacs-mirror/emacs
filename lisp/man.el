@@ -663,10 +663,10 @@ all sections related to a subject, put something appropriate into the
   (interactive
    (list (let* ((default-entry (Man-default-man-entry))
 		(input (read-string
-			(format "Manual entry%s: "
+			(format "Manual entry%s"
 				(if (string= default-entry "")
-				    ""
-				  (format " (default %s)" default-entry)))
+				    ": "
+				  (format " (default %s): " default-entry)))
 			nil nil default-entry)))
 	   (if (string= input "")
 	       (error "No man args given")
@@ -1273,7 +1273,7 @@ Returns t if section is found, nil otherwise."
 	(let* ((default (aheadsym Man-sections-alist))
 	       (completion-ignore-case t)
 	       chosen
-	       (prompt (concat "Go to section: (default " default ") ")))
+	       (prompt (concat "Go to section (default " default "): ")))
 	  (setq chosen (completing-read prompt Man-sections-alist))
 	  (if (or (not chosen)
 		  (string= chosen ""))
@@ -1328,7 +1328,7 @@ Specify which REFERENCE to use; default is based on word at point."
 				  Man-refpages-alist))
 			    (aheadsym Man-refpages-alist)))
 		   chosen
-		   (prompt (concat "Refer to: (default " default ") ")))
+		   (prompt (concat "Refer to (default " default "): ")))
 	      (setq chosen (completing-read prompt Man-refpages-alist))
 	      (if (or (not chosen)
 		      (string= chosen ""))

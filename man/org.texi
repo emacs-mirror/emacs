@@ -4,7 +4,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 3.15
+@set VERSION 3.16
 @set DATE September 2005
 
 @dircategory Emacs
@@ -39,7 +39,7 @@ Copyright @copyright{} 2004, 2005 Free Software Foundation
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.2 or
+under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
 and with the Back-Cover Texts as in (a) below.  A copy of the
@@ -100,7 +100,7 @@ Document Structure
 
 * Outlines::                    Org-mode is based on outline-mode
 * Headlines::                   How to typeset org-tree headlines
-* Visibility cycling::          Show ad hide, much simplified
+* Visibility cycling::          Show and hide, much simplified
 * Motion::                      Jumping to other headlines
 * Structure editing::           Changing sequence and level of headlines
 * Archiving::                   Move done task trees to a different place
@@ -120,7 +120,7 @@ Calculations in tables
 * Advanced features::           Field names, parameters and automatic recalc
 * Named-field formulas::        Formulas valid in single fields
 * Editing/debugging formulas::  Changing a stored formula
-* Appetizer::                   
+* Appetizer::                   Taste the power of calc
 
 Hyperlinks
 
@@ -169,6 +169,7 @@ Miscellaneous
 * Customization::               Adapting Org-mode to your taste
 * FAQ::                         Frequently asked questions
 * Interaction::                 Other Emacs packages
+* TTY keys::                    Using Org-mode on a tty
 * Bugs::                        Things which do not work perfectly
 * Acknowledgments::             These people provided feedback and more
 
@@ -312,7 +313,7 @@ edit the structure of the document.
 @menu
 * Outlines::                    Org-mode is based on outline-mode
 * Headlines::                   How to typeset org-tree headlines
-* Visibility cycling::          Show ad hide, much simplified
+* Visibility cycling::          Show and hide, much simplified
 * Motion::                      Jumping to other headlines
 * Structure editing::           Changing sequence and level of headlines
 * Archiving::                   Move done task trees to a different place
@@ -475,14 +476,14 @@ Move subtree up (swap with previous subtree of same level)
 @kindex M-S-@key{down}
 @item M-S-@key{down}
 Move subtree down (swap with next subtree of same level)
-@kindex C-c C-h C-w
-@item C-c C-h C-w
+@kindex C-c C-x C-w
+@item C-c C-x C-w
 Kill subtree, i.e. remove it from buffer but save in kill ring.
-@kindex C-c C-h M-w
-@item C-c C-h M-w
+@kindex C-c C-x M-w
+@item C-c C-x M-w
 Copy subtree to kill ring.
-@kindex C-c C-h C-y
-@item C-c C-h C-y
+@kindex C-c C-x C-y
+@item C-c C-x C-y
 Yank subtree from kill ring.  This does modify the level of the subtree to
 make sure the tree fits in nicely at the yank position.  The yank
 level can also be specified with a prefix arg, or by yanking after a
@@ -610,9 +611,17 @@ create the above table, you would only type
 |Name|Phone|Age
 |-
 @end example
-
 @noindent and then press @key{TAB} to align the table and start filling in
 fields.
+
+When typing text into a field, Org-mode treats @key{DEL},
+@key{Backspace}, and all character keys in a special way, so that
+inserting and deleting avoids shifting other fields.  Also, when
+typing @emph{immediately after the cursor was moved into a new field
+with @kbd{@key{TAB}}, @kbd{S-@key{TAB}} or @kbd{@key{RET}}}, the
+field is automatically made blank.  If this behavior is too
+unpredictable for you, configure the variables
+@code{org-enable-table-editor} and @code{org-table-auto-blank-field}.
 
 @table @kbd
 @tsubheading{Creation and conversion}
@@ -684,17 +693,17 @@ Insert a horizontal line below current row. With prefix arg, the line
 is created above the current line.
 
 @tsubheading{Regions}
-@kindex C-c C-h M-w
-@item C-c C-h M-w
+@kindex C-c C-x M-w
+@item C-c C-x M-w
 Copy a rectangular region from a table to a special clipboard.  Point
 and mark determine edge fields of the rectangle.  The process ignores
 horizontal separator lines.
-@kindex C-c C-h C-w
-@item C-c C-h C-w
+@kindex C-c C-x C-w
+@item C-c C-x C-w
 Copy a rectangular region from a table to a special clipboard, and
 blank all fields in the rectangle.  So this is the ``cut'' operation.
-@kindex C-c C-h C-y
-@item C-c C-h C-y
+@kindex C-c C-x C-y
+@item C-c C-x C-y
 Paste a rectangular region into a table.
 The upper right corner ends up in the current field.  All involved fields
 will be overwritten.  If the rectangle does not fit into the present table,
@@ -802,16 +811,16 @@ it off with
 @section Calculations in tables
 @cindex calculations, in tables
 
-The table editor has some spreadsheet-like capabilities.  The Emacs
-@file{calc} package is required for this feature to work.  There are
-basically two levels of complexity for table calculations in Org-mode.
-On the basic level, tables do only horizontal computations, so a field
-can be computed from other fields @emph{in the same row}, and Org-mode
-assumes that there is only one formula for each column.  This is very
-efficient to work with and enough for many tasks.  On the complex
-level, columns and individual fields can be named for easier
-referencing in formulas, individual named fields can have their own
-formula associated with them, and recalculation can be automated.
+The table editor makes use of the Emacs @file{calc} package to
+implement spreadsheet-like capabilities.  Org-mode has two levels of
+complexity for table calculations.  On the basic level, tables do only
+horizontal computations, so a field can be computed from other fields
+@emph{in the same row}, and Org-mode assumes that there is only one
+formula for each column.  This is very efficient to work with and
+enough for many tasks.  On the complex level, columns and individual
+fields can be named for easier referencing in formulas, individual
+named fields can have their own formula associated with them, and
+recalculation can be automated.
 
 @menu
 * Formula syntax::              How to write a formula
@@ -859,8 +868,8 @@ A formula can contain an optional mode string after a semicolon.  This
 string consists of flags to influence calc's modes@footnote{By
 default, Org-mode uses the standard calc modes (precision 12, angular
 units degrees, fraction and symbolic modes off).  However, the display
-format which has been changed to @code{(float 5)} to keep tables
-compact.  The default settings can be configured using the variable
+format has been changed to @code{(float 5)} to keep tables compact.
+The default settings can be configured using the variable
 @code{org-calc-default-modes}.} during execution, e.g.  @samp{p20} to
 switch the internal precision to 20 digits, @samp{n3}, @samp{s3},
 @samp{e2} or @samp{f4} to switch to normal, scientific, engineering,
@@ -1357,8 +1366,9 @@ of working on an item, for example
 @end lisp
 
 @cindex completion, of TODO keywords
+Changing these variables becomes only effective in a new Emacs session.
 With this setup, the command @kbd{C-c C-t} will cycle an entry from
-TODO to FEEDBACK, then to VERIFY, and finally too DONE.  You may also
+TODO to FEEDBACK, then to VERIFY, and finally to DONE.  You may also
 use a prefix argument to quickly select a specific state.  For example
 @kbd{C-3 C-c C-t} will change the state immediately to VERIFY.
 If you define many keywords, you can use in-buffer completion (see
@@ -1388,7 +1398,7 @@ one type to another.  Therefore, in this case the behavior of the
 command @kbd{C-c C-t} is changed slightly@footnote{This is also true
 for the @kbd{t} command in the timeline and agenda buffers.}.  When
 used several times in succession, it will still cycle through all
-names.  But when when you return to the item after some time and
+names.  But when you return to the item after some time and
 execute @kbd{C-c C-t} again, it will switch from each name directly to
 DONE.  Use prefix arguments or completion to quickly select a specific
 name.
@@ -1423,7 +1433,7 @@ only one of the two aspects of TODO keywords can be used.  After
 changing one of these lines, use @kbd{C-c C-c} with the cursor still
 in the line to make the changes known to Org-mode@footnote{Org-mode
 parses these lines only when Org-mode is activated after visiting a
-file.  @kbd{C-c C-c} with the cursor in a line starting with @samp{#-}
+file.  @kbd{C-c C-c} with the cursor in a line starting with @samp{#+}
 is simply restarting Org-mode, making sure that these changes will be
 respected.}.
 
@@ -1564,6 +1574,11 @@ this command is used twice in succession, a time range is inserted.
 @item C-u C-c .
 Like @kbd{C-c .}, but use the alternative format which contains date
 and time.
+
+@kindex C-c !
+@item C-c !
+Like @kbd{C-c .}, but insert an inactive time stamp not triggering the
+agenda. 
 
 @kindex C-c <
 @item C-c <
@@ -2171,15 +2186,15 @@ warning.
 @kindex C-c C-x h
 @item C-c C-x h
 Export as HTML file @file{myfile.html}.
-@kindex C-c C-x C-h
-@item C-c C-x C-h
+@kindex C-c C-x b
+@item C-c C-x b
 Export as HTML file and open it with a browser.
 @kindex C-c C-x t
 @item C-c C-x t
 Insert template with export options, see below.
 @kindex C-c :
 @item C-c :
-Toggle fixed-width for line or region, see below.
+Toggle fixed-width for entry (QUOTE) or region, see below.
 @end table
 
 @node HTML formatting, Export options, Export commands, Exporting
@@ -2242,7 +2257,7 @@ The exporter recognizes special lines in the buffer which provide
 additional information.  These lines may be put anywhere in the file.
 The whole set of lines can be inserted into the buffer with @kbd{C-c
 C-x t}.  For individual lines, a good way to make sure the keyword is
-correct it to type @samp{#+} and then use @kbd{M-@key{TAB}} completion
+correct is to type @samp{#+} and then use @kbd{M-@key{TAB}} completion
 (@pxref{Completion}).
 
 @example
@@ -2304,6 +2319,7 @@ Toggle the COMMENT keyword at the beginning of an entry.
 * Customization::               Adapting Org-mode to your taste
 * FAQ::                         Frequently asked questions
 * Interaction::                 Other Emacs packages
+* TTY keys::                    Using Org-mode on a tty
 * Bugs::                        Things which do not work perfectly
 * Acknowledgments::             These people provided feedback and more
 @end menu
@@ -2436,7 +2452,7 @@ indentation of the first line and realign with @key{TAB}.
 @end enumerate
 
 
-@node Interaction, Bugs, FAQ, Miscellaneous
+@node Interaction, TTY keys, FAQ, Miscellaneous
 @section Interaction with other packages
 @cindex packages, interaction with other
 Org-mode can cooperate with the following packages:
@@ -2498,7 +2514,44 @@ Integrate org files into the diary as described above, and then turn
 on the diary support of planner.
 @end table
 
-@node Bugs, Acknowledgments, Interaction, Miscellaneous
+@node TTY keys, Bugs, Interaction, Miscellaneous
+@section Using org-mode on a tty
+
+Org-mode uses a number of keys that are not accessible on a tty.  This
+applies to most special keys like cursor keys, @key{TAB} and
+@key{RET}, when these are combined with modifier keys like @key{Meta}
+and/or @key{Shift}.  Org-mode uses these bindings because it needs to
+provide keys for a large number of commands, and because these keys
+appeared particularly easy to remember.  In order to still be able to
+access the core functionality of Org-mode on a tty, alternative
+bindings are provided.  Here is a complete list of these bindings,
+which are obviously more cumbersome to use.  Note that sometimes a
+work-around can be better.  For example changing a time stamp is
+really only fun with @kbd{S-@key{cursor}} keys.  On a tty you would
+rather use @kbd{C-c .}  to re-insert the timestamp.
+
+@page
+@multitable @columnfractions 0.15 0.2 0.2
+@item @b{Default} @tab @b{Alternative 1} @tab @b{Alternative 2}
+@item @kbd{S-@key{TAB}}     @tab @kbd{C-u @key{TAB}}       @tab
+@item @kbd{M-@key{left}}    @tab @kbd{C-c C-x l}           @tab @kbd{@key{Esc} @key{left}}
+@item @kbd{M-S-@key{left}}  @tab @kbd{C-c C-x L}           @tab
+@item @kbd{M-@key{right}}   @tab @kbd{C-c C-x r}           @tab @kbd{@key{Esc} @key{right}}
+@item @kbd{M-S-@key{right}} @tab @kbd{C-c C-x R}           @tab
+@item @kbd{M-@key{up}}      @tab @kbd{C-c C-x u}           @tab @kbd{@key{Esc} @key{up}}
+@item @kbd{M-S-@key{up}}    @tab @kbd{C-c C-x U}           @tab
+@item @kbd{M-@key{down}}    @tab @kbd{C-c C-x d}           @tab @kbd{@key{Esc} @key{down}}
+@item @kbd{M-S-@key{down}}  @tab @kbd{C-c C-x D}           @tab
+@item @kbd{S-@key{RET}}     @tab @kbd{C-c C-x c}           @tab
+@item @kbd{M-@key{RET}}     @tab @kbd{C-c C-x m}           @tab @kbd{@key{Esc} @key{RET}}
+@item @kbd{M-S-@key{RET}}   @tab @kbd{C-c C-x M}           @tab
+@item @kbd{S-@key{left}}    @tab @kbd{C-c C-x @key{left}}  @tab
+@item @kbd{S-@key{right}}   @tab @kbd{C-c C-x @key{right}} @tab
+@item @kbd{S-@key{up}}      @tab @kbd{C-c C-x @key{up}}    @tab
+@item @kbd{S-@key{down}}    @tab @kbd{C-c C-x @key{down}}  @tab
+@end multitable
+
+@node Bugs, Acknowledgments, TTY keys, Miscellaneous
 @section Bugs
 @cindex bugs
 
@@ -2514,13 +2567,21 @@ filling is correctly disabled.  However, if some text directly
 normal text.  Also, @code{fill-region} does bypass the
 @code{fill-paragraph} code and will fill tables like normal text.
 @item
+Text in an entry protected with the @samp{QUOTE} keyword should not
+autowrap.
+@item
 When the application called by @kbd{C-c C-o} to open a file link fails
 (for example because the application does not exits or refuses to open
 the file), it does so silently.  No error message is displayed.
 @item
+The remote-editing commands in the agenda buffer cannot be undone with
+@code{undo} called from within the agenda buffer.  But you can go to
+the corresponding buffer (using @key{TAB} or @key{RET} and execute
+@code{undo} there.
+@item
 Recalculating a table line applies the formulas from left to right.
-If a formula calculated fields further down the row, multiple
-recalculation may be needed to get all fields consistent.
+If a formula uses @emph{calculated} fields further down the row,
+multiple recalculation may be needed to get all fields consistent.
 @item
 Under XEmacs, if Org-mode entries are included into the diary, it is
 not possible to jump back from the diary to the org file.  Apparently,
@@ -2592,6 +2653,9 @@ Emacs-Lisp compiler happy.
 @item
 Kai Grossjohann pointed out that a number of key bindings in Org-mode
 conflict with other packages.
+@item 
+Roland Winkler pointed out that additional keybindings are need to use
+Org-mode on a tty.
 @end itemize
 
 @node Index, Key Index, Miscellaneous, Top

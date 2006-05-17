@@ -2462,7 +2462,7 @@ the problem with not being able to set the breakpoint."
               (beep)
               (y-or-n-p 
                (concat "Okay to recompile file "
-                       (idlwave-shell-bp-get bp 'file) " ")))
+                       (idlwave-shell-bp-get bp 'file) "? ")))
             ;; Recompile
             (progn
               ;; Clean up before retrying

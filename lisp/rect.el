@@ -332,7 +332,7 @@ Called from a program, takes three args; START, END and STRING."
 	  (list
 	   (region-beginning)
 	   (region-end)
-	   (read-string (format "String rectangle (default `%s'): "
+	   (read-string (format "String rectangle (default %s): "
 				(or (car string-rectangle-history) ""))
 			nil 'string-rectangle-history
 			(car string-rectangle-history)))))
@@ -353,7 +353,7 @@ This command does not delete or overwrite any existing text."
 	  (list
 	   (region-beginning)
 	   (region-end)
-	   (read-string (format "String insert rectangle (default `%s'): "
+	   (read-string (format "String insert rectangle (default %s): "
 				(or (car string-rectangle-history) ""))
 			nil 'string-rectangle-history
 			(car string-rectangle-history)))))

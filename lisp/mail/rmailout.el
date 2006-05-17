@@ -63,9 +63,9 @@ Set `rmail-default-rmail-file' to this name as well as returning it."
     (let ((read-file
 	   (expand-file-name
 	    (read-file-name
-	     (concat "Output message to Rmail file: (default "
+	     (concat "Output message to Rmail file (default "
 		     (file-name-nondirectory default-file)
-		     ") ")
+		     "): ")
 	     (file-name-directory default-file)
 	     (abbreviate-file-name default-file))
 	    (file-name-directory default-file))))
@@ -95,9 +95,9 @@ Set `rmail-default-file' to this name as well as returning it."
     (let ((read-file
 	   (expand-file-name
 	    (read-file-name
-	     (concat "Output message to Unix mail file: (default "
+	     (concat "Output message to Unix mail file (default "
 		     (file-name-nondirectory default-file)
-		     ") ")
+		     "): ")
 	     (file-name-directory default-file)
 	     (abbreviate-file-name default-file))
 	    (file-name-directory default-file))))

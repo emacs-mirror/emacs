@@ -1707,7 +1707,7 @@ versions of all registered files in or below it."
   (interactive
    (let ((file (expand-file-name
                 (read-file-name (if buffer-file-name
-                                    "File or dir to diff: (default visited file) "
+                                    "File or dir to diff (default visited file): "
                                   "File or dir to diff: ")
                                 default-directory buffer-file-name t)))
          (rev1-default nil) (rev2-default nil))
@@ -1728,14 +1728,14 @@ versions of all registered files in or below it."
      ;; construct argument list
      (list file
            (read-string (if rev1-default
-			    (concat "Older version: (default "
-				    rev1-default ") ")
+			    (concat "Older version (default "
+				    rev1-default "): ")
 			  "Older version: ")
 			nil nil rev1-default)
            (read-string (if rev2-default
-			    (concat "Newer version: (default "
-				    rev2-default ") ")
-			  "Newer version (default: current source): ")
+			    (concat "Newer version (default "
+				    rev2-default "): ")
+			  "Newer version (default current source): ")
 			nil nil rev2-default))))
   (if (file-directory-p file)
       ;; recursive directory diff
@@ -1998,7 +1998,7 @@ See Info node `Merging'."
 	(error "Merge aborted"))))
     (setq first-version
 	  (read-string (concat "Branch or version to merge from "
-			       "(default: news on current branch): ")))
+			       "(default news on current branch): ")))
     (if (string= first-version "")
 	(if (not (vc-find-backend-function backend 'merge-news))
 	    (error "Sorry, merging news is not implemented for %s" backend)
@@ -2727,7 +2727,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
       (error "Deleting files under %s is not supported in VC" backend))
     (if (and buf (buffer-modified-p buf))
 	(error "Please save files before deleting them"))
-    (unless (y-or-n-p (format "Really want to delete %s ? "
+    (unless (y-or-n-p (format "Really want to delete %s? "
 			      (file-name-nondirectory file)))
       (error "Abort!"))
     (unless (or (file-directory-p file) (null make-backup-files))
@@ -3080,7 +3080,7 @@ colors. `vc-annotate-background' specifies the background color."
 	 (bfn buffer-file-name)
          (vc-annotate-version
 	  (if prefix (read-string
-		      (format "Annotate from version: (default %s) " rev)
+		      (format "Annotate from version (default %s): " rev)
 		      nil nil rev)
 	    rev)))
     (if display-mode
@@ -3088,7 +3088,7 @@ colors. `vc-annotate-background' specifies the background color."
       (if prefix
 	  (setq vc-annotate-display-mode
 		(float (string-to-number
-			(read-string "Annotate span days: (default 20) "
+			(read-string "Annotate span days (default 20): "
 				     nil nil "20"))))))
     (setq temp-buffer-name (format "*Annotate %s (rev %s)*"
 				   (buffer-name) vc-annotate-version))

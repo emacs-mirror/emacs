@@ -206,7 +206,7 @@ dialog and include the Profiler PPC.Lib library.
 
 * NOTES
 
-Emacs should build and run on a PowerMac running Mac OS 8.6 - 10.3.
+Emacs should build and run on a PowerMac running Mac OS 8.6 - 10.4.
 
 You will need around 100 MB of disk space for the source files and
 intermediate files.

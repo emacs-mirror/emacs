@@ -112,7 +112,7 @@ Boston, MA 02110-1301, USA.  */
 #define OBJECTS_MACHINE hftctl.o
 #endif
 
-#ifndef USG5_4
+#ifndef USG5
 #define C_SWITCH_MACHINE -D_BSD
 #endif
 

@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 3.15
+;; Version: 3.16
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
@@ -80,6 +80,17 @@
 ;;
 ;; Changes:
 ;; -------
+;; Version 3.16
+;;    - In tables, directly after the field motion commands like TAB and RET,
+;;      typing a character will blank the field.  Can be turned off with
+;;      variable `org-table-auto-blank-field'.
+;;    - Inactive timestamps with `C-c !'.  These do not trigger the agenda
+;;      and are not linked to the calendar.
+;;    - Additional key bindings to allow Org-mode to function on a tty emacs.
+;;    - `C-c C-h' prefix key replaced by `C-c C-x', and `C-c C-x C-h' replaced
+;;      by `C-c C-x b' (b=Browser).  This was necessary to recover the
+;;      standard meaning of C-h after a prefix key (show prefix bindings).
+;;
 ;; Version 3.15
 ;;    - QUOTE keyword at the beginning of an entry causes fixed-width export
 ;;      of unmodified entry text. `C-c :' toggles this keyword.
@@ -199,7 +210,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "3.15"
+(defvar org-version "3.16"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -843,12 +854,27 @@ as possible."
   :group 'org-structure
   :type 'hook)
 
+(defcustom org-level-color-stars-only nil
+  "Non-nil means fontify only the stars in each headline.
+When nil, the entire headline is fontified.
+After changin this, requires restart of Emacs to become effective."
+  :group 'org-structure
+  :type 'boolean)
+
 (defcustom org-adapt-indentation t
   "Non-nil means, adapt indentation when promoting and demoting.
 When this is set and the *entire* text in an entry is indented, the
 indentation is increased by one space in a demotion command, and
 decreased by one in a promotion command.  If any line in the entry
 body starts at column 0, indentation is not changed at all."
+  :group 'org-structure
+  :type 'boolean)
+
+(defcustom org-enable-fixed-width-editor t
+  "Non-nil means, lines starting with \":\" are treated as fixed-width.
+This currently only means, they are never auto-wrapped.
+When nil, such lines will be treated like ordinary lines.
+See also the QUOTE keyword."
   :group 'org-structure
   :type 'boolean)
 
@@ -1155,23 +1181,33 @@ do the following
   field does not exceed the column width.
 - Minimize the number of realigns.  Normally, the table is aligned each time
   TAB or RET are pressed to move to another field.  With optimization this
-  happens only if changes to a field might have  changed the column width.
+  happens only if changes to a field might have changed the column width.
 Optimization requires replacing the functions `self-insert-command',
 `delete-char', and `backward-delete-char' in Org-mode buffers, with a
 slight (in fact: unnoticeable) speed impact for normal typing.  Org-mode is
 very good at guessing when a re-align will be necessary, but you can always
-force one with `C-c C-c'.
+force one with \\[org-ctrl-c-ctrl-c].
 
 If you would like to use the optimized version in Org-mode, but the
 un-optimized version in OrgTbl-mode, see the variable `orgtbl-optimized'.
 
 This variable can be used to turn on and off the table editor during a session,
-but in order to toggle optimization, a restart is required."
+but in order to toggle optimization, a restart is required.
+
+See also the variable `org-table-auto-blank-field'."
   :group 'org-table
   :type '(choice
 	  (const :tag "off" nil)
 	  (const :tag "on" t)
 	  (const :tag "on, optimized" optimized)))
+
+(defcustom org-table-auto-blank-field t
+  "Non-nil means, automatically blank table field when starting to type into it.
+This only happens when typing immediately after a field motion
+command (TAB, S-TAB or RET).
+Only relevant when `org-enable-table-editor' is equal to `optimized'."
+  :group 'org-table
+  :type 'boolean)
 
 (defcustom org-table-default-size "5x2"
   "The default size for newly created tables, Columns x Rows."
@@ -1245,14 +1281,6 @@ line will be formatted with <th> tags."
   "Non-nil means, TAB will automatically notice a table.el table.
 When it sees such a table, it moves point into it and - if necessary -
 calls `table-recognize-table'."
-  :group 'org-table
-  :type 'boolean)
-
-;; FIXME: Should this one be in another group?  Which one?
-(defcustom org-enable-fixed-width-editor t
-  "Non-nil means, lines starting with \":\" are treated as fixed-width.
-This currently only means, they are never auto-wrapped.
-When nil, such lines will be treated like ordinary lines."
   :group 'org-table
   :type 'boolean)
 
@@ -1978,17 +2006,19 @@ The following commands are available:
 	 (append
 	  (if org-noutline-p     ; FIXME:  I am not sure if eval will work
 				 ; on XEmacs if noutline is ever ported
-	      '((eval . (list "^\\(\\*+\\).*"
-			      0 '(nth
+	      `((eval . (list "^\\(\\*+\\).*"
+			      ,(if org-level-color-stars-only 1 0)
+			      '(nth   ;; FIXME:  1<->0 ????
 				  (% (- (match-end 1) (match-beginning 1) 1)
 				     org-n-levels)
 				  org-level-faces)
 			      nil t)))
-	    '(("^\\(\\(\\*+\\)[^\r\n]*\\)[\n\r]"
-	       (1 (nth (% (- (match-end 2) (match-beginning 2) 1)
-			  org-n-levels)
-		       org-level-faces)
-		  nil t))))
+	    `(("^\\(\\(\\*+\\)[^\r\n]*\\)[\n\r]"
+	       (,(if org-level-color-stars-only 2 0)
+	        (nth (% (- (match-end 2) (match-beginning 2) 1)
+			org-n-levels)
+		     org-level-faces)
+		nil t))))
 	  org-font-lock-extra-keywords))
     (set (make-local-variable 'font-lock-defaults)
 	 '(org-font-lock-keywords t nil nil backward-paragraph))
@@ -2806,7 +2836,7 @@ At all other locations, this simply calls `ispell-complete-word'."
 		 (insert " "))
 	     (if (and (equal type :opt) (assoc completion table))
 		 (message "%s" (substitute-command-keys
-			   "Press \\[org-complete] again to insert example settings"))))
+				"Press \\[org-complete] again to insert example settings"))))
 	    (t
 	     (message "Making completion list...")
 	     (let ((list (sort (all-completions pattern table) 'string<)))
@@ -2913,7 +2943,7 @@ to modify it to the correct date."
    (format-time-string (car org-time-stamp-formats)
 		       (org-read-date nil 'to-time)))
   (message "%s" (substitute-command-keys
-	    "Use \\[org-timestamp-up-day] and \\[org-timestamp-down-day] to change the date.")))
+		 "Use \\[org-timestamp-up-day] and \\[org-timestamp-down-day] to change the date.")))
 
 (defun org-schedule ()
   "Insert the SCHEDULED: string to schedule a TODO item.
@@ -2925,7 +2955,7 @@ to modify it to the correct date."
    (format-time-string (car org-time-stamp-formats)
 		       (org-read-date nil 'to-time)))
   (message "%s" (substitute-command-keys
-	    "Use \\[org-timestamp-up-day] and \\[org-timestamp-down-day] to change the date.")))
+		 "Use \\[org-timestamp-up-day] and \\[org-timestamp-down-day] to change the date.")))
 
 
 (defun org-occur (regexp &optional callback)
@@ -3076,6 +3106,21 @@ at the cursor, it will be modified."
 		  (org-read-date arg 'totime)))
       (if org-time-was-given (setq fmt (cdr org-time-stamp-formats)))
       (insert (format-time-string fmt time))))))
+
+(defun org-time-stamp-inactive (&optional arg)
+  "Insert an inactive time stamp.
+An inactive time stamp is enclosed in square brackets instead of angle
+brackets.  It is inactive in the sense that it does not trigger agenda entries,
+does not link to the calendar and cannot be changed with the S-cursor keys."
+  (interactive "P")
+  (let ((fmt (if arg (cdr org-time-stamp-formats)
+	       (car org-time-stamp-formats)))
+	(org-time-was-given nil)
+	time)
+    (setq time (org-read-date arg 'totime))
+    (if org-time-was-given (setq fmt (cdr org-time-stamp-formats)))
+    (setq fmt (concat "[" (substring fmt 1 -1) "]"))
+    (insert (format-time-string fmt time))))
 
 ;;; FIXME: Make the function take "Fri" as "next friday"
 (defun org-read-date (&optional with-time to-time)
@@ -3539,6 +3584,8 @@ The following commands are available:
 (define-key org-agenda-mode-map "w"        'org-agenda-week-view)
 (define-key org-agenda-mode-map (org-key 'S-right) 'org-agenda-date-later)
 (define-key org-agenda-mode-map (org-key 'S-left) 'org-agenda-date-earlier)
+(define-key org-agenda-mode-map [?\C-c ?\C-x (right)] 'org-agenda-date-later)
+(define-key org-agenda-mode-map [?\C-c ?\C-x (left)] 'org-agenda-date-earlier)
 
 (define-key org-agenda-mode-map ">" 'org-agenda-date-prompt)
 (let ((l '(1 2 3 4 5 6 7 8 9 0)))
@@ -3574,6 +3621,8 @@ The following commands are available:
 (define-key org-agenda-mode-map "-" 'org-agenda-priority-down)
 (define-key org-agenda-mode-map (org-key 'S-up) 'org-agenda-priority-up)
 (define-key org-agenda-mode-map (org-key 'S-down) 'org-agenda-priority-down)
+(define-key org-agenda-mode-map [?\C-c ?\C-x (up)] 'org-agenda-priority-up)
+(define-key org-agenda-mode-map [?\C-c ?\C-x (down)] 'org-agenda-priority-down)
 (define-key org-agenda-mode-map [(right)] 'org-agenda-later)
 (define-key org-agenda-mode-map [(left)] 'org-agenda-earlier)
 
@@ -6321,7 +6370,8 @@ integer, it will be incremented while copying."
 
 (defun org-table-check-inside-data-field ()
   "Is point inside a table data field?
-I.e. not on a hline or before the first or after the last column?"
+I.e. not on a hline or before the first or after the last column?
+This actually throws an error, so it aborts the current command."
   (if (or (not (org-at-table-p))
 	  (= (org-table-current-column) 0)
 	  (org-at-table-hline-p)
@@ -7014,13 +7064,10 @@ If NLAST is a number, only the NLAST fields will actually be summed."
 		     (format "%d:%02d:%02d" h m s))))
 	(kill-new sres)
 	(if (interactive-p)
-	    (message "%s"
-		     (concat
-		      (format "Sum of %d items: %-20s     "  (length numbers) sres)
-		      (substitute-command-keys
-		       "(\\[yank] will insert result into buffer)")
-		      ))
-	  )
+	    (message "s"
+		     (substitute-command-keys
+		      (format "Sum of %d items: %-20s     (\\[yank] will insert result into buffer)"
+			      (length numbers) sres))))
 	sres))))
 
 (defun org-table-get-number-for-summing (s)
@@ -7126,7 +7173,7 @@ the current column, to avoid unnecessary parsing."
 	 (stored-list (org-table-get-stored-formulas))
 	 (stored (cdr (assoc scol stored-list)))
 	 (eq (cond
-	      ((and stored equation (string-match "^ *= *$" equation))
+	      ((and stored equation (string-match "^ *=? *$" equation))
 	       stored)
 	      ((stringp equation)
 	       equation)
@@ -7294,7 +7341,7 @@ If yes, store the formula and apply it."
   (when org-table-formula-evaluate-inline
     (let* ((field (org-trim (or (org-table-get-field) "")))
 	   named eq)
-      (when (string-match "^:?=\\(.+\\)" field)
+      (when (string-match "^:?=\\(.*\\)" field)
 	(setq named (equal (string-to-char field) ?:)
 	      eq (match-string 1 field))
 	(if (fboundp 'calc-eval)
@@ -7916,8 +7963,7 @@ to execute outside of tables."
 	  '("\C-c\M-w"           org-table-copy-region)
 	  '("\C-c\C-y"           org-table-paste-rectangle)
 	  '("\C-c-"              org-table-insert-hline)
-	  '([(shift tab)]        org-table-previous-field)
-	  '("\C-c\C-c"           org-ctrl-c-ctrl-c)
+;	  '([(shift tab)]        org-table-previous-field)
 	  '("\C-m"               org-table-next-row)
 	  (list (org-key 'S-return) 'org-table-copy-down)
 	  '([(meta return)]      org-table-wrap-region)
@@ -7946,16 +7992,18 @@ to execute outside of tables."
       (orgtbl-make-binding 'orgtbl-tab 102 [(tab)] "\C-i"))
     (define-key orgtbl-mode-map "\C-i"
       (orgtbl-make-binding 'orgtbl-tab 103 "\C-i" [(tab)])))
+    (define-key orgtbl-mode-map "\C-i"
+      (orgtbl-make-binding 'orgtbl-tab 104 [(shift tab)]))
+    (define-key orgtbl-mode-map "\C-c\C-c"
+      (orgtbl-make-binding 'org-ctrl-c-ctrl-c 105 "\C-c\C-c"))
     (when orgtbl-optimized
       ;; If the user wants maximum table support, we need to hijack
       ;; some standard editing functions
-      (substitute-key-definition 'self-insert-command 'orgtbl-self-insert-command
-				 orgtbl-mode-map global-map)
-      (substitute-key-definition 'delete-char 'orgtbl-delete-char
-				 orgtbl-mode-map global-map)
-      (substitute-key-definition 'delete-backward-char 'orgtbl-delete-backward-char
-				 orgtbl-mode-map global-map)
-      (define-key org-mode-map "|" 'self-insert-command))
+      (org-remap orgtbl-mode-map
+		 'self-insert-command 'orgtbl-self-insert-command
+		 'delete-char 'orgtbl-delete-char
+		 'delete-backward-char 'orgtbl-delete-backward-char)
+      (define-key orgtbl-mode-map "|" 'org-force-self-insert))
     (easy-menu-define orgtbl-mode-menu orgtbl-mode-map "OrgTbl menu"
       '("OrgTbl"
 	["Align" org-ctrl-c-ctrl-c :active (org-at-table-p) :keys "C-c C-c"]
@@ -7980,9 +8028,9 @@ to execute outside of tables."
 	 "--"
 	 ["Insert Hline" org-table-insert-hline :active (org-at-table-p) :keys "C-c -"])
 	("Rectangle"
-	 ["Copy Rectangle" org-copy-special :active (org-at-table-p) :keys "C-c M-w"]
-	 ["Cut Rectangle" org-cut-special :active (org-at-table-p) :keys "C-c C-w"]
-	 ["Paste Rectangle" org-paste-special :active (org-at-table-p) :keys "C-c C-y"]
+	 ["Copy Rectangle" org-copy-special :active (org-at-table-p) :keys "C-c C-x M-w"]
+	 ["Cut Rectangle" org-cut-special :active (org-at-table-p) :keys "C-c C-x C-w"]
+	 ["Paste Rectangle" org-paste-special :active (org-at-table-p) :keys "C-c C-x C-y"]
 	 ["Fill Rectangle" org-table-wrap-region :active (org-at-table-p) :keys "C-c C-q"])
 	"--"
 	["Set Column Formula" org-table-eval-formula :active (org-at-table-p) :keys "C-c ="]
@@ -8018,6 +8066,17 @@ If the cursor is in a table looking at whitespace, the whitespace is
 overwritten, and the table is not marked as requiring realignment."
   (interactive "p")
   (if (and (org-at-table-p)
+	   (or
+	    (and org-table-auto-blank-field
+		 (member last-command
+			 '(orgtbl-hijacker-command-100
+			   orgtbl-hijacker-command-101
+			   orgtbl-hijacker-command-102
+			   orgtbl-hijacker-command-103
+			   orgtbl-hijacker-command-104
+			   orgtbl-hijacker-command-105))
+		 (org-table-blank-field))
+	    t)
 	   (eq N 1)
 	   (looking-at "[^|\n]*  +|"))
       (let (org-table-may-need-update)
@@ -8028,6 +8087,11 @@ overwritten, and the table is not marked as requiring realignment."
     (setq org-table-may-need-update t)
     (let (orgtbl-mode)
       (call-interactively (key-binding (vector last-input-event))))))
+
+(defun org-force-self-insert (N)
+  "Needed to enforce self-insert under remapping."
+  (interactive "p")
+  (self-insert-command N))
 
 (defun orgtbl-delete-backward-char (N)
   "Like `delete-backward-char', insert whitespace at field end in tables.
@@ -9344,23 +9408,55 @@ When LEVEL is non-nil, increase section numbers on that level."
 ;;                     i k                 @                                expendable from outline-mode
 ;;   0123456789                          !    %^&     ()_{}    "      `'    free
 
-(define-key org-mode-map "\C-i" 'org-cycle)
+;; TAB key with modifiers
+(define-key org-mode-map "\C-i"       'org-cycle)
 (define-key org-mode-map [(meta tab)] 'org-complete)
-(define-key org-mode-map "\M-\C-i" 'org-complete)
-(define-key org-mode-map [(meta shift left)] 'org-shiftmetaleft)
-(define-key org-mode-map [(meta left)] 'org-metaleft)
-(define-key org-mode-map [(meta shift right)] 'org-shiftmetaright)
-(define-key org-mode-map [(meta shift up)] 'org-shiftmetaup)
-(define-key org-mode-map [(meta shift down)] 'org-shiftmetadown)
+(define-key org-mode-map "\M-\C-i"    'org-complete)            ; for tty emacs
+;; The following line is necessary under Suse GNU/Linux
+(unless org-xemacs-p
+  (define-key org-mode-map [S-iso-lefttab]  'org-shifttab))
+(define-key org-mode-map [(shift tab)]    'org-shifttab)
+
+(define-key org-mode-map (org-key 'S-return)   'org-table-copy-down)
+(define-key org-mode-map "\C-c\C-xc"           'org-table-copy-down)     ; tty
+(define-key org-mode-map [(meta shift return)] 'org-insert-todo-heading)
+(define-key org-mode-map "\C-c\C-xM"           'org-insert-todo-heading) ; tty
+(define-key org-mode-map [(meta return)]       'org-meta-return)
+(define-key org-mode-map "\C-c\C-xm"           'org-meta-return)  ; tty emacs
+(define-key org-mode-map [?\e (return)]        'org-meta-return)   ; tty emacs
+
+;; Cursor keys with modifiers
+(define-key org-mode-map [(meta left)]  'org-metaleft)
+(define-key org-mode-map [?\e (left)]   'org-metaleft)          ; for tty emacs
+(define-key org-mode-map "\C-c\C-xl"    'org-metaleft)          ; for tty emacs
 (define-key org-mode-map [(meta right)] 'org-metaright)
-(define-key org-mode-map [(meta up)] 'org-metaup)
-(define-key org-mode-map [(meta down)] 'org-metadown)
-;(define-key org-mode-map "\C-c\C-h\C-w" 'org-cut-subtree)
-;(define-key org-mode-map "\C-c\C-h\M-w" 'org-copy-subtree)
-;(define-key org-mode-map "\C-c\C-h\C-y" 'org-paste-subtree)
-(define-key org-mode-map "\C-c\C-h\C-w" 'org-cut-special)
-(define-key org-mode-map "\C-c\C-h\M-w" 'org-copy-special)
-(define-key org-mode-map "\C-c\C-h\C-y" 'org-paste-special)
+(define-key org-mode-map [?\e (right)]  'org-metaright)         ; for tty emacs
+(define-key org-mode-map "\C-c\C-xr"    'org-metaright)         ; for tty emacs
+(define-key org-mode-map [(meta up)]    'org-metaup)
+(define-key org-mode-map [?\e (up)]     'org-metaup)            ; for tty emacs
+(define-key org-mode-map "\C-c\C-xu"    'org-metaup)            ; for tty emacs
+(define-key org-mode-map [(meta down)]  'org-metadown)
+(define-key org-mode-map [?\e (down)]   'org-metadown)          ; for tty emacs
+(define-key org-mode-map "\C-c\C-xd"    'org-metadown)          ; for tty emacs
+
+(define-key org-mode-map [(meta shift left)]       'org-shiftmetaleft)
+(define-key org-mode-map "\C-c\C-xL"               'org-shiftmetaleft)  ; tty
+(define-key org-mode-map [(meta shift right)]      'org-shiftmetaright)
+(define-key org-mode-map "\C-c\C-xR"               'org-shiftmetaright) ; tty
+(define-key org-mode-map [(meta shift up)]         'org-shiftmetaup)
+(define-key org-mode-map "\C-c\C-xU"               'org-shiftmetaup)    ; tty
+(define-key org-mode-map [(meta shift down)]       'org-shiftmetadown)
+(define-key org-mode-map "\C-c\C-xD"               'org-shiftmetadown)  ; tty
+(define-key org-mode-map (org-key 'S-up)       'org-shiftup)
+(define-key org-mode-map [?\C-c ?\C-x (up)]    'org-shiftup)
+(define-key org-mode-map (org-key 'S-down)     'org-shiftdown)
+(define-key org-mode-map [?\C-c ?\C-x (down)]  'org-shiftdown)
+(define-key org-mode-map (org-key 'S-left)     'org-timestamp-down-day)
+(define-key org-mode-map [?\C-c ?\C-x (left)]  'org-timestamp-down-day)
+(define-key org-mode-map (org-key 'S-right)    'org-timestamp-up-day)
+(define-key org-mode-map [?\C-c ?\C-x (right)] 'org-timestamp-up-day)
+
+;; All the other keys
 (define-key org-mode-map "\C-c$"    'org-archive-subtree)
 (define-key org-mode-map "\C-c\C-j" 'org-goto)
 (define-key org-mode-map "\C-c\C-t" 'org-todo)
@@ -9372,11 +9468,11 @@ When LEVEL is non-nil, increase section numbers on that level."
 (define-key org-mode-map "\C-c/"    'org-occur)   ; Minor-mode reserved
 (define-key org-mode-map "\C-c\C-m" 'org-insert-heading)
 (define-key org-mode-map "\M-\C-m"  'org-insert-heading)
-(define-key org-mode-map [(meta shift return)] 'org-insert-todo-heading)
 (define-key org-mode-map "\C-c\C-l" 'org-insert-link)
 (define-key org-mode-map "\C-c\C-o" 'org-open-at-point)
 (define-key org-mode-map "\C-c\C-z" 'org-time-stamp)  ; Alternative binding
 (define-key org-mode-map "\C-c."    'org-time-stamp)  ; Minor-mode reserved
+(define-key org-mode-map "\C-c!"    'org-time-stamp-inactive) ; Minor-mode r.
 (define-key org-mode-map "\C-c,"    'org-priority)    ; Minor-mode reserved
 (define-key org-mode-map "\C-c\C-y" 'org-evaluate-time-range)
 (define-key org-mode-map "\C-c>"    'org-goto-calendar)
@@ -9384,19 +9480,9 @@ When LEVEL is non-nil, increase section numbers on that level."
 (define-key org-mode-map "\C-c["    'org-add-file)
 (define-key org-mode-map "\C-c]"    'org-remove-file)
 (define-key org-mode-map "\C-c\C-r"       'org-timeline)
-(define-key org-mode-map (org-key 'S-up)    'org-shiftup)
-(define-key org-mode-map (org-key 'S-down)  'org-shiftdown)
-(define-key org-mode-map (org-key 'S-left)  'org-timestamp-down-day)
-(define-key org-mode-map (org-key 'S-right) 'org-timestamp-up-day)
 (define-key org-mode-map "\C-c-"          'org-table-insert-hline)
-;; The following line is necessary for German keyboards under Suse GNU/Linux
-(unless org-xemacs-p
-  (define-key org-mode-map [S-iso-lefttab]  'org-shifttab))
-(define-key org-mode-map [(shift tab)]    'org-shifttab)
 (define-key org-mode-map "\C-c\C-c"       'org-ctrl-c-ctrl-c)
 (define-key org-mode-map "\C-m"           'org-return)
-(define-key org-mode-map (org-key 'S-return) 'org-table-copy-down)
-(define-key org-mode-map [(meta return)]  'org-meta-return)
 (define-key org-mode-map "\C-c?"          'org-table-current-column)
 (define-key org-mode-map "\C-c "          'org-table-blank-field)
 (define-key org-mode-map "\C-c+"          'org-table-sum)
@@ -9411,12 +9497,18 @@ When LEVEL is non-nil, increase section numbers on that level."
 (define-key org-mode-map "\C-c\C-x\C-a"   'org-export-as-ascii)
 (define-key org-mode-map "\C-c\C-xv"      'org-export-copy-visible)
 (define-key org-mode-map "\C-c\C-x\C-v"   'org-export-copy-visible)
+;; OPML support is only planned
 ;(define-key org-mode-map "\C-c\C-xo"      'org-export-as-opml)
 ;(define-key org-mode-map "\C-c\C-x\C-o"   'org-export-as-opml)
 (define-key org-mode-map "\C-c\C-xt"      'org-insert-export-options-template)
 (define-key org-mode-map "\C-c:"          'org-toggle-fixed-width-section)
 (define-key org-mode-map "\C-c\C-xh"      'org-export-as-html)
-(define-key org-mode-map "\C-c\C-x\C-h"   'org-export-as-html-and-open)
+(define-key org-mode-map "\C-c\C-xb"      'org-export-as-html-and-open)
+(define-key org-mode-map "\C-c\C-x\C-b"   'org-export-as-html-and-open)
+
+(define-key org-mode-map "\C-c\C-x\C-w"   'org-cut-special)
+(define-key org-mode-map "\C-c\C-x\M-w"   'org-copy-special)
+(define-key org-mode-map "\C-c\C-x\C-y"   'org-paste-special)
 
 (defsubst org-table-p () (org-at-table-p))
 
@@ -9426,6 +9518,12 @@ If the cursor is in a table looking at whitespace, the whitespace is
 overwritten, and the table is not marked as requiring realignment."
   (interactive "p")
   (if (and (org-table-p)
+	   (or
+	    (and org-table-auto-blank-field
+		 (member last-command
+			 '(org-cycle org-return org-shifttab org-ctrl-c-ctrl-c))
+		 (org-table-blank-field))
+	    t)
 	   (eq N 1)
 	   (looking-at "[^|\n]*  +|"))
       (let (org-table-may-need-update)
@@ -9480,30 +9578,42 @@ a reduced column width."
 ;; How to do this: Measure non-white length of current string
 ;; If equal to column width, we should realign.
 
+(defun org-remap (map &rest commands)
+  "In MAP, remap the functions given in COMMANDS.
+COMMANDS is a list of alternating OLDDEF NEWDEF command names."
+  (let (new old)
+    (while commands
+      (setq old (pop commands) new (pop commands))
+      (if (fboundp 'command-remapping)
+	  (define-key map (vector 'remap old) new)
+	(substitute-key-definition old new map global-map)))))
+  
 (when (eq org-enable-table-editor 'optimized)
   ;; If the user wants maximum table support, we need to hijack
   ;; some standard editing functions
-  (substitute-key-definition 'self-insert-command 'org-self-insert-command
-			     org-mode-map global-map)
-  (substitute-key-definition 'delete-char 'org-delete-char
-			     org-mode-map global-map)
-  (substitute-key-definition 'delete-backward-char 'org-delete-backward-char
-			     org-mode-map global-map)
-  (define-key org-mode-map "|" 'self-insert-command))
+  (org-remap org-mode-map
+	     'self-insert-command 'org-self-insert-command
+	     'delete-char 'org-delete-char
+	     'delete-backward-char 'org-delete-backward-char)
+  (define-key org-mode-map "|" 'org-force-self-insert))
 
 (defun org-shiftcursor-error ()
   "Throw an error because Shift-Cursor command was applied in wrong context."
   (error "This command is only active in tables and on headlines"))
 
 (defun org-shifttab ()
-  "Call `(org-cycle t)' or `org-table-previous-field'."
+  "Global visibility cycling or move to previous table field.
+Calls `(org-cycle t)' or `org-table-previous-field', depending on context.
+See the individual commands for more information."
   (interactive)
   (cond
    ((org-at-table-p) (org-table-previous-field))
    (t (org-cycle '(4)))))
 
 (defun org-shiftmetaleft ()
-  "Call `org-promote-subtree' or `org-table-delete-column'."
+  "Promote subtree or delete table column.
+Calls `org-promote-subtree' or `org-table-delete-column', depending on context.
+See the individual commands for more information."
   (interactive)
   (cond
    ((org-at-table-p) (org-table-delete-column))
@@ -9511,7 +9621,9 @@ a reduced column width."
    (t (org-shiftcursor-error))))
 
 (defun org-shiftmetaright ()
-  "Call `org-demote-subtree' or `org-table-insert-column'."
+  "Demote subtree or insert table column.
+Calls `org-demote-subtree' or `org-table-insert-column', depending on context.
+See the individual commands for more information."
   (interactive)
   (cond
    ((org-at-table-p) (org-table-insert-column))
@@ -9519,14 +9631,18 @@ a reduced column width."
    (t (org-shiftcursor-error))))
 
 (defun org-shiftmetaup (&optional arg)
-  "Call `org-move-subtree-up' or `org-table-kill-row'."
+  "Move subtree up or kill table row.
+Calls `org-move-subtree-up' or `org-table-kill-row', depending on context.
+See the individual commands for more information."
   (interactive "P")
   (cond
    ((org-at-table-p) (org-table-kill-row))
    ((org-on-heading-p) (org-move-subtree-up arg))
    (t (org-shiftcursor-error))))
 (defun org-shiftmetadown (&optional arg)
-  "Call `org-move-subtree-down' or `org-table-insert-row'."
+  "Move subtree down or insert table row.
+Calls `org-move-subtree-down' or `org-table-insert-row', depending on context.
+See the individual commands for more information."
   (interactive "P")
   (cond
    ((org-at-table-p) (org-table-insert-row arg))
@@ -9534,7 +9650,9 @@ a reduced column width."
    (t (org-shiftcursor-error))))
 
 (defun org-metaleft (&optional arg)
-  "Call `org-do-promote' or `org-table-move-column' to left."
+  "Promote heading or move table column to left.
+Calls `org-do-promote' or `org-table-move-column', depending on context.
+See the individual commands for more information."
   (interactive "P")
   (cond
    ((org-at-table-p) (org-table-move-column 'left))
@@ -9542,7 +9660,9 @@ a reduced column width."
    (t (backward-word (prefix-numeric-value arg)))))
 
 (defun org-metaright (&optional arg)
-  "Call `org-do-demote' or `org-table-move-column' to right."
+  "Demote subtree or move table column to right.
+Calls `org-do-demote' or `org-table-move-column', depending on context.
+See the individual commands for more information."
   (interactive "P")
   (cond
    ((org-at-table-p) (org-table-move-column nil))
@@ -9550,7 +9670,9 @@ a reduced column width."
    (t (forward-word (prefix-numeric-value arg)))))
 
 (defun org-metaup (&optional arg)
-  "Call `org-move-subtree-up' or `org-table-move-row' up."
+  "Move subtree up or move table row up.
+Calls `org-move-subtree-up' or `org-table-move-row', depending on context.
+See the individual commands for more information."
   (interactive "P")
   (cond
    ((org-at-table-p) (org-table-move-row 'up))
@@ -9558,7 +9680,9 @@ a reduced column width."
    (t (org-shiftcursor-error))))
 
 (defun org-metadown (&optional arg)
-  "Call `org-move-subtree-down' or `org-table-move-row' down."
+  "Move subtree down or move table row down.
+Calls `org-move-subtree-down' or `org-table-move-row', depending on context.
+See the individual commands for more information."
   (interactive "P")
   (cond
    ((org-at-table-p) (org-table-move-row nil))
@@ -9566,33 +9690,43 @@ a reduced column width."
    (t (org-shiftcursor-error))))
 
 (defun org-shiftup (&optional arg)
-  "Call `org-timestamp-up' or `org-priority-up'."
+  "Increase item in timestamp or increase priority of current item.
+Calls `org-timestamp-up' or `org-priority-up', depending on context.
+See the individual commands for more information."
   (interactive "P")
   (cond
    ((org-at-timestamp-p) (org-timestamp-up arg))
    (t (org-priority-up))))
 
 (defun org-shiftdown (&optional arg)
-  "Call `org-timestamp-down' or `org-priority-down'."
+  "Decrease item in timestamp or decrease priority of current item.
+Calls `org-timestamp-down' or `org-priority-down', depending on context.
+See the individual commands for more information."
   (interactive "P")
   (cond
    ((org-at-timestamp-p) (org-timestamp-down arg))
    (t (org-priority-down))))
 
 (defun org-copy-special ()
-  "Call either `org-table-copy' or `org-copy-subtree'."
+  "Copy region in table or copy current subtree.
+Calls `org-table-copy' or `org-copy-subtree', depending on context.
+See the individual commands for more information."
   (interactive)
   (call-interactively
    (if (org-at-table-p) 'org-table-copy-region 'org-copy-subtree)))
 
 (defun org-cut-special ()
-  "Call either `org-table-copy' or `org-cut-subtree'."
+  "Cut region in table or cut current subtree.
+Calls `org-table-copy' or `org-cut-subtree', depending on context.
+See the individual commands for more information."
   (interactive)
   (call-interactively
    (if (org-at-table-p) 'org-table-cut-region 'org-cut-subtree)))
 
 (defun org-paste-special (arg)
-  "Call either `org-table-paste-rectangle' or `org-paste-subtree'."
+  "Paste rectangular region into table, or past subtree relative to level.
+Calls `org-table-paste-rectangle' or `org-paste-subtree', depending on context.
+See the individual commands for more information."
   (interactive "P")
   (if (org-at-table-p)
       (org-table-paste-rectangle)
@@ -9605,7 +9739,8 @@ activate that table.  Otherwise, if the cursor is at a normal table
 created with org.el, re-align that table.  This command works even if
 the automatic table editor has been turned off.
 If the cursor is in one of the special #+KEYWORD lines, this triggers
-scanning the buffer for these lines and updating the information."
+scanning the buffer for these lines and updating the information.
+If the cursor is on a #+TBLFM line, re-apply the formulae to the table."
   (interactive "P")
   (let  ((org-enable-table-editor t))
     (cond
@@ -9629,7 +9764,7 @@ scanning the buffer for these lines and updating the information."
 	  (skip-chars-backward " \r\n\t")
 	  (if (org-at-table-p) (org-table-recalculate t))))
        (t
-	(let ((org-inhibit-startup t)) (org-mode)))))
+	(org-mode-restart))))
      ((org-region-active-p)
       (org-table-convert-region (region-beginning) (region-end) arg))
      ((and (region-beginning) (region-end))
@@ -9638,8 +9773,17 @@ scanning the buffer for these lines and updating the information."
 	(error "Abort")))
      (t (error "No table at point, and no region to make one")))))
 
+(defun org-mode-restart ()
+  "Restart Org-mode, to scan again for special lines.
+Also updates the keyword regular expressions."
+  (interactive)
+  (let ((org-inhibit-startup t)) (org-mode))
+  (message "Org-mode restarted to refresh keyword and special line setup"))
+
 (defun org-return ()
-  "Call `org-table-next-row' or `newline'."
+  "Goto next table row or insert a newline.
+Calls `org-table-next-row' or `newline', depending on context.
+See the individual commands for more information."
   (interactive)
   (cond
    ((org-at-table-p)
@@ -9648,7 +9792,9 @@ scanning the buffer for these lines and updating the information."
    (t (newline))))
 
 (defun org-meta-return (&optional arg)
-  "Call `org-insert-heading' or `org-table-wrap-region'."
+  "Insert a new heading or wrap a region in a table.
+Calls `org-insert-heading' or `org-table-wrap-region', depending on context.
+See the individual commands for more information."
   (interactive "P")
   (cond
    ((org-at-table-p)
@@ -9716,6 +9862,7 @@ scanning the buffer for these lines and updating the information."
 (easy-menu-define org-org-menu org-mode-map "Org menu"
   '("Org"
     ["Cycle Visibility" org-cycle (or (bobp) (outline-on-heading-p))]
+    ["Cycle Global Visibility" org-shifttab (not (org-at-table-p))]
     ["Sparse Tree" org-occur t]
     ["Show All" show-all t]
     "--"
@@ -9752,6 +9899,7 @@ scanning the buffer for these lines and updating the information."
      ["Priority Down" org-shiftdown t])
     ("Dates and Scheduling"
      ["Timestamp" org-time-stamp t]
+     ["Timestamp (inactive)" org-time-stamp-inactive t]
      ("Change Date"
       ["1 Day Later" org-timestamp-up-day t]
       ["1 Day Earlier" org-timestamp-down-day t]
@@ -9795,6 +9943,8 @@ scanning the buffer for these lines and updating the information."
      "--"
      ["Build Full Customize Menu" org-create-customize-menu
       (fboundp 'customize-menu-create)])
+    "--"
+    ["Refresh setup" org-mode-restart t]
     ))
 
 (defun org-info (&optional node)

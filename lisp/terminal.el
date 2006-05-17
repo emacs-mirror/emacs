@@ -1115,7 +1115,7 @@ subprocess started."
 			 (getenv "SHELL")
 			 "/bin/sh"))
 		   (s (read-string
-		       (format "Run program in emulator: (default %s) "
+		       (format "Run program in emulator (default %s): "
 			       default-s))))
 	      (if (equal s "")
 		  (list default-s '())

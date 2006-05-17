@@ -3,48 +3,47 @@
 @c   2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mac OS, MS-DOS, Antinews, Top
-@appendix Emacs and the Mac OS
+@appendix Emacs and Mac OS
 @cindex Mac OS
 @cindex Macintosh
 
-  Emacs built on Mac OS X supports most of its major features:
-multiple frames, colors, scroll bars, menu bars, use of the mouse,
-fontsets, international characters, input methods, coding systems,
-asynchronous and synchronous subprocesses, unexec (@code{dump-emacs}),
-and networking (@code{open-network-stream}).  Support for various
-image file formats has not been implemented yet.
+  This section briefly describes the peculiarities of using Emacs
+under Mac OS with native window system support.  For Mac OS X, Emacs
+can be built either without window system support, with X11, or with
+Carbon API.  This section only applies to the Carbon build.  For Mac
+OS Classic, Emacs can be built with or without Carbon API, and this
+section applies to either of them because they run on the native
+window system.
 
-  The following features of Emacs are not yet supported on the Mac OS
-8 or 9: unexec (@code{dump-emacs}), asynchronous subprocesses
-(@code{start-process}), and networking (@code{open-network-stream}).
-As a result, packages such as Gnus, GUD, and Comint do not work.
-However, synchronous subprocesses (@code{call-process}) are supported.
-Since external programs to handle commands such as @code{print-buffer}
-and @code{diff} are not available on Mac OS 8 or 9, they are not
-supported.
-
-  Most of the features that are supported work in the same way as on
-other platforms and are therefore documented in the rest of this
-manual.  This section describes the peculiarities of using Emacs under
-the Mac OS.
+  Emacs built on Mac OS X supports most of its major features except
+display support of PostScript images.  The following features of Emacs
+are not supported on Mac OS Classic: unexec (@code{dump-emacs}),
+asynchronous subprocesses (@code{start-process}), and networking
+(@code{open-network-stream}).  As a result, packages such as Gnus,
+GUD, and Comint do not work.  Synchronous subprocesses
+(@code{call-process}) are supported on non-Carbon build, but
+specially-crafted external programs are needed.  Since external
+programs to handle commands such as @code{print-buffer} and
+@code{diff} are not available on Mac OS Classic, they are not
+supported.  Non-Carbon build on Mac OS Classic does not support some
+features such as file dialogs, drag-and-drop, and Unicode menus.
 
 @menu
-* Input: Mac Input.                Keyboard input on the Mac.
-* Intl: Mac International.         International character sets on the Mac.
+* Input: Mac Input.                Keyboard and mouse input on Mac.
+* Intl: Mac International.         International character sets on Mac.
 * Env: Mac Environment Variables.  Setting environment variables for Emacs.
-* Directories: Mac Directories.    Volumes and directories on the Mac.
-* Font: Mac Font Specs.            Specifying fonts on the Mac.
+* Directories: Mac Directories.    Volumes and directories on Mac.
+* Font: Mac Font Specs.            Specifying fonts on Mac.
 * Functions: Mac Functions.        Mac-specific Lisp functions.
 @end menu
 
 @node Mac Input
-@section Keyboard Input on the Mac
+@section Keyboard and Mouse Input on Mac
 @cindex Meta (Mac OS)
 @cindex keyboard coding (Mac OS)
-@vindex mac-command-key-is-meta
-@vindex mac-keyboard-text-encoding
 
-  On the Mac, Emacs can use either the @key{option} key or the
+@vindex mac-command-key-is-meta
+  On Mac, Emacs can use either the @key{option} key or the
 @key{command} key as the @key{META} key.  If the value of the variable
 @code{mac-command-key-is-meta} is non-@code{nil} (its default value),
 Emacs uses the @key{command} key as the @key{META} key.  Otherwise it
@@ -55,89 +54,124 @@ so that dead-key processing with the @key{option} key will still work.  This is
 useful for entering non-@acronym{ASCII} Latin characters directly from the Mac
 keyboard, for example.
 
-  Emacs recognizes the setting in the Keyboard control panel and
-supports international and alternative keyboard layouts (e.g., Dvorak).
-Selecting one of the layouts from the keyboard layout pull-down menu
-will affect how the keys typed on the keyboard are interpreted.
+  Emacs recognizes the setting in the Keyboard control panel (Mac OS
+Classic) or the International system preference pane (Mac OS X) and
+supports international and alternative keyboard layouts (e.g., Dvorak)
+if its script is either Roman, Japanese, Traditional Chinese, Korean,
+Cyrillic, Simplified Chinese, or Central European.  Keyboard layouts
+based on Unicode may not work properly.  Selecting one of the layouts
+from the keyboard layout pull-down menu will affect how the keys typed
+on the keyboard are interpreted.
 
-  The Mac OS intercepts and handles certain key combinations (e.g.,
+@vindex mac-pass-command-to-system
+@vindex mac-pass-control-to-system
+  Mac OS intercepts and handles certain key combinations (e.g.,
 @key{command}-@key{SPC} for switching input languages).  These will not
-be passed to Emacs.
+be passed to Emacs.  One can disable this interception by setting
+@code{mac-pass-command-to-system} or @code{mac-pass-control-to-system}
+to @code{nil}.
 
-  The Mac keyboard ordinarily generates characters in the Mac Roman
-encoding.  To use it for entering ISO Latin-1 characters directly, set
-the value of the variable @code{mac-keyboard-text-encoding} to
-@code{kTextEncodingISOLatin1}.  Note that not all Mac Roman characters
-that can be entered at the keyboard can be converted to ISO Latin-1
-characters.
+@vindex mac-emulate-three-button-mouse
+  Especially for one-button mice, the multiple button feature can be
+emulated by setting @code{mac-emulate-three-button-mouse} to @code{t}
+or @code{reverse}.  If set to @code{t} (@code{reverse}, respectively),
+pressing the mouse button with the @key{option} key is recognized as
+the second (third) button, and that with the @key{command} key is
+recognized as the third (second) button.
 
-  To enter ISO Latin-2 characters directly from the Mac keyboard, set
-the value of @code{mac-keyboard-text-encoding} to
-@code{kTextEncodingISOLatin2}.  Then let Emacs know that the keyboard
-generates Latin-2 codes, by typing @kbd{C-x @key{RET} k iso-latin-2
-@key{RET}}.  To make this setting permanent, put this in your
-@file{.emacs} init file:
-
-@lisp
-(set-keyboard-coding-system 'iso-latin-2)
-@end lisp
+@vindex mac-wheel-button-is-mouse-2
+  For multi-button mice, the wheel button and the secondary button are
+recognized as the second and the third button, respectively.  If
+@code{mac-wheel-button-is-mouse-2} is set to @code{nil}, their roles
+are exchanged.
 
 @node Mac International
-@section International Character Set Support on the Mac
+@section International Character Set Support on Mac
 @cindex Mac Roman coding system
 @cindex clipboard support (Mac OS)
 
-  The Mac uses a non-standard encoding for the upper 128 single-byte
-characters.  It also deviates from the ISO 2022 standard by using
-character codes in the range 128-159.  The coding system
-@code{mac-roman} is used to represent this Mac encoding.  It is used
-for editing files stored in this native encoding, and for displaying
-file names in Dired mode.
-
-  Any native (non-symbol) Mac font can be used to correctly display
-characters in the @code{mac-roman} coding system.
+  Mac uses non-standard encodings for the upper 128 single-byte
+characters.  They also deviate from the ISO 2022 standard by using
+character codes in the range 128-159.  The coding systems
+@code{mac-roman}, @code{mac-centraleurroman}, and @code{mac-cyrillic}
+are used to represent these Mac encodings.
 
   The fontset @code{fontset-mac} is created automatically when Emacs
-is run on the Mac.  It displays characters in the @code{mac-roman}
-coding system using 12-point Monaco.
-
-  To insert characters directly in the @code{mac-roman} coding system,
-type @kbd{C-x @key{RET} k mac-roman @key{RET}}, customize the variable
-@code{keyboard-coding-system}, or put this in your init file:
-
-@lisp
-(set-keyboard-coding-system 'mac-roman)
-@end lisp
-
-@noindent
-This is useful for editing documents in native Mac encoding.
+is run on Mac, and used by default.  It displays as many kinds of
+characters as possible using 12-point Monaco as a base font.  If you
+see some character as a hollow box with this fontset, then it's almost
+impossible to display it only by customizing font settings (@pxref{Mac
+Font Specs}).
 
   You can use input methods provided either by LEIM (@pxref{Input
-Methods}) or the Mac OS to enter international characters.
+Methods}) or Mac OS to enter international characters.  To use the
+former, see the International Character Set Support section of the
+manual (@pxref{International}).
 
-  To use the former, see the International Character Set Support section
-of the manual (@pxref{International}).
-
-  To use input methods provided by the Mac OS, set the keyboard coding
-system accordingly using the @kbd{C-x @key{RET} k} command
-(@code{set-keyboard-coding-system}).  For example, for Traditional
-Chinese, use @samp{chinese-big5} as keyboard coding system; for
-Japanese, use @samp{sjis}, etc.  Then select the desired input method in
-the keyboard layout pull-down menu.
+  Emacs on Mac OS automatically changes the value of
+@code{keyboard-coding-system} according to the current keyboard
+layout.  So users don't need to set it manually, and even if set, it
+will be changed when the keyboard layout change is detected next time.
 
   The Mac clipboard and the Emacs kill ring (@pxref{Killing}) are
-connected as follows: the most recent kill is copied to the clipboard
-when Emacs is suspended and the contents of the clipboard is inserted
-into the kill ring when Emacs resumes.  The result is that you can yank
-a piece of text and paste it into another Mac application, or cut or copy
-one in another Mac application and yank it into a Emacs buffer.
+synchronized by default: you can yank a piece of text and paste it
+into another Mac application, or cut or copy one in another Mac
+application and yank it into a Emacs buffer.  This feature can be
+disabled by setting @code{x-select-enable-clipboard} to @code{nil}.
+One can still do copy and paste with another application from the Edit
+menu.
 
-  The encoding of text selections must be specified using the commands
-@kbd{C-x @key{RET} x} (@code{set-selection-coding-system}) or @kbd{C-x
-@key{RET} X} (@code{set-next-selection-coding-system}) (e.g., for
-Traditional Chinese, use @samp{chinese-big5-mac} and for Japanese,
-@samp{sjis-mac}).  @xref{Specify Coding}, for more details.
+  On Mac, the role of the coding system for selection that is set by
+@code{set-selection-coding-system} (@pxref{Specify Coding}) is
+two-fold.  First, it is used as a preferred coding system for the
+traditional text flavor that does not specify any particular encodings
+and is mainly used by applications on Mac OS Classic.  Second, it
+specifies the intermediate encoding for the UTF-16 text flavor that is
+mainly used by applications on Mac OS X.
 
+  When pasting UTF-16 text data from the clipboard, it is first
+converted to the encoding specified by the selection coding system
+using the converter in the Mac OS system, and then decoded into the
+Emacs internal encoding using the converter in Emacs.  If the first
+conversion failed, then the UTF-16 data is directly converted to Emacs
+internal encoding using the converter in Emacs.  Copying UTF-16 text
+to the clipboard goes through the inverse path.  The reason for this
+two-path decoding is to avoid subtle differences in Unicode mappings
+between the Mac OS system and Emacs such as various kinds of hyphens,
+and to minimize users' customization.  For example, users that mainly
+use Latin characters would prefer Greek characters to be decoded into
+the @code{mule-unicode-0100-24ff} charset, but Japanese users would
+prefer them to be decoded into the @code{japanese-jisx0208} charset.
+Since the coding system for selection is automatically set according
+to the system locale setting, users usually don't have to set it
+manually.
+
+  The default language environment (@pxref{Language Environments}) is
+set according to the locale setting at the startup time.  On Mac OS,
+the locale setting is consulted in the following order:
+
+@enumerate
+@item
+Environment variables @env{LC_ALL}, @env{LC_CTYPE} and @env{LANG} as
+in other systems.
+
+@item
+Preference @code{AppleLocale} that is set by default on Mac OS X 10.3
+and later.
+
+@item
+Preference @code{AppleLanguages} that is set by default on Mac OS X
+10.1 and later.
+
+@item
+Variable @code{mac-system-locale} that is derived from the system
+language and region codes.  This variable is available on all
+supported Mac OS versions including Mac OS Classic.
+@end enumerate
+
+  The default values of almost all variables about coding systems are
+also set according to the language environment.  So usually you don't
+have to customize these variables manually.
 
 @node Mac Environment Variables
 @section Environment Variables and Command Line Arguments.
@@ -145,10 +179,23 @@ Traditional Chinese, use @samp{chinese-big5-mac} and for Japanese,
 
   On Mac OS X, when Emacs is run in a terminal, it inherits the values
 of environment variables from the shell from which it is invoked.
-However, when it is run from the Finder as a GUI application, it
-inherits no environment variable values.
+However, when it is run from the Finder as a GUI application, it only
+inherits environment variable values defined in the file
+@file{~/.MacOSX/environment.plist} that affects all the applications
+invoked from the Finder or the @command{open} command.
 
-  On Mac OS 8 or 9, environment variables and command line arguments
+  Command line arguments are specified like
+
+@example
+/Applications/Emacs.app/Contents/MacOS/Emacs -geometry 80x25 &
+@end example
+
+@noindent
+if Emacs is installed at @file{/Applications/Emacs.app}.  If Emacs is
+invoked like this, then it also inherits the values of environment
+variables from the shell from which it is invoked.
+
+  On Mac OS Classic, environment variables and command line arguments
 for Emacs can be set by modifying the @samp{STR#} resources 128 and
 129, respectively.  A common environment variable that one may want to
 set is @samp{HOME}.
@@ -169,12 +216,45 @@ string
 EMACS_UNIBYTE=1
 @end example
 
+@cindex Mac Preferences
+  Although Emacs on Mac does not support X resources (@pxref{X
+Resources}) directly, one can use the Preferences system in place of X
+resources.  For example, adding the line
+
+@example
+Emacs.cursorType: bar
+@end example
+
+@noindent
+to @file{~/.Xresources} in X11 corresponds to the execution of
+
+@example
+defaults write org.gnu.Emacs Emacs.cursorType bar
+@end example
+
+@noindent
+on Mac OS X.  One can use boolean or numeric values as well as string
+values as follows:
+
+@example
+defaults write org.gnu.Emacs Emacs.toolBar -bool false
+defaults write org.gnu.Emacs Emacs.lineSpacing -int 3
+@end example
+
+@noindent
+Try @kbd{M-x man RET defaults RET} for the usage of the
+@command{defaults} command.  Alternatively, if you have Developer
+Tools installed on Mac OS X, you can use Property List Editor to edit
+the file @file{~/Library/Preferences/org.gnu.Emacs.plist}.
+
 
 @node Mac Directories
-@section Volumes and Directories on the Mac
+@section Volumes and Directories on Mac
 @cindex file names (Mac OS)
 
-  The directory structure in the Mac OS is seen by Emacs as
+  This node applies to Mac OS Classic only.
+
+  The directory structure in Mac OS Classic is seen by Emacs as
 
 @example
 /@var{volumename}/@var{filename}
@@ -184,11 +264,11 @@ So when Emacs requests a file name, doing file name completion on
 @file{/} will display all volumes on the system.  You can use @file{..}
 to go up a directory level.
 
-  On Mac OS 8 or 9, to access files and folders on the desktop, look
+  On Mac OS Classic, to access files and folders on the desktop, look
 in the folder @file{Desktop Folder} in your boot volume (this folder
 is usually invisible in the Mac @code{Finder}).
 
-  On Mac OS 8 or 9, Emacs creates the Mac folder
+  On Mac OS Classic, Emacs creates the Mac folder
 @file{:Preferences:Emacs:} in the @file{System Folder} and uses it as
 the temporary directory.  Emacs maps the directory name @file{/tmp/}
 to that.  Therefore it is best to avoid naming a volume @file{tmp}.
@@ -199,12 +279,12 @@ created.
 
 
 @node Mac Font Specs
-@section Specifying Fonts on the Mac
+@section Specifying Fonts on Mac
 @cindex font names (Mac OS)
 
   It is rare that you need to specify a font name in Emacs; usually
 you specify face attributes instead.  But when you do need to specify
-a font name in Emacs on the Mac, use a standard X font name:
+a font name in Emacs on Mac, use a standard X font name:
 
 @smallexample
 -@var{maker}-@var{family}-@var{weight}-@var{slant}-@var{widthtype}-@var{style}@dots{}
@@ -216,11 +296,57 @@ a font name in Emacs on the Mac, use a standard X font name:
 
   Native Apple fonts in Mac Roman encoding has maker name @code{apple}
 and charset @code{mac-roman}.  For example 12-point Monaco can be
-specified by the name @samp{-apple-monaco-*-12-*-mac-roman}.
+specified by the name @samp{-apple-monaco-*-12-*-mac-roman}.  When
+using a particular size of scalable fonts, it must be specified in a
+format containing 14 @samp{-}s like
+@samp{-apple-monaco-medium-r-normal--13-*-*-*-*-*-mac-roman}.
 
-  Native Apple Traditional Chinese, Simplified Chinese, Japanese, and
-Korean fonts have charsets @samp{big5-0}, @samp{gb2312.1980-0},
-@samp{jisx0208.1983-sjis}, and @samp{ksc5601.1989-0}, respectively.
+  You can specify a @code{mac-roman} font for @acronym{ASCII}
+characters like
+
+@lisp
+(add-to-list
+ 'default-frame-alist
+ '(font . "-apple-monaco-medium-r-normal--13-*-*-*-*-*-mac-roman"))
+@end lisp
+
+@noindent
+but that does not extend to ISO-8859-1: specifying a @code{mac-roman}
+font for Latin-1 characters introduces wrong glyphs.
+
+  Native Apple Traditional Chinese, Simplified Chinese, Japanese,
+Korean, Central European, Cyrillic, Symbol, and Dingbats fonts have
+charsets @samp{big5-0}, @samp{gb2312.1980-0},
+@samp{jisx0208.1983-sjis} and @samp{jisx0201.1976-0},
+@samp{ksc5601.1989-0}, @samp{mac-centraleurroman},
+@samp{mac-cyrillic}, @samp{mac-symbol}, and @samp{mac-dingbats},
+respectively.
+
+  Since Emacs as of the current version uses QuickDraw Text routines
+for drawing texts, only characters in the charsets listed above can be
+displayed with the OS-bundled fonts, even if other applications that
+use @acronym{ATSUI} or Cocoa can display variety of characters with
+them.
+
+  The use of @code{create-fontset-from-fontset-spec} (@pxref{Defining
+Fontsets}) for defining fontsets often results in wrong ones
+especially when using only OS-bundled fonts.  The recommended way is
+to create a fontset using @code{create-fontset-from-mac-roman-font}:
+
+@lisp
+(create-fontset-from-mac-roman-font
+ "-apple-courier-medium-r-normal--13-*-*-*-*-*-mac-roman"
+ nil "foo")
+@end lisp
+
+@noindent
+and then optionally specifying Chinese, Japanese, or Korean font
+families using @code{set-fontset-font}:
+
+@lisp
+(set-fontset-font "fontset-foo"
+		  'chinese-gb2312 '("song" . "gb2312.1980-0"))
+@end lisp
 
   Single-byte fonts converted from GNU fonts in BDF format, which are not
 in the Mac Roman encoding, have foundry, family, and character sets
@@ -228,6 +354,12 @@ encoded in the names of their font suitcases.  E.g., the font suitcase
 @samp{ETL-Fixed-ISO8859-1} contains fonts which can be referred to by
 the name @samp{-ETL-fixed-*-iso8859-1}.
 
+@vindex mac-allow-anti-aliasing
+  Emacs uses the QuickDraw text rendering by default.  On Mac OS X
+10.2 and later, it can be changed so that it uses the Quartz 2D text
+rendering (aka CG text rendering) by setting
+@code{mac-allow-anti-aliasing} to @code{t}.  However, it is reported
+to sometimes leave some garbages.
 
 @node Mac Functions
 @section Mac-Specific Lisp Functions
@@ -245,6 +377,19 @@ returns the GNU or Unix equivalent.  The function
 @code{posix-file-name-to-mac} performs the opposite conversion.  They
 are useful for constructing AppleScript commands to be passed to
 @code{do-applescript}.
+
+@findex mac-set-file-creator
+@findex mac-get-file-creator
+@findex mac-set-file-type
+@findex mac-get-file-type
+  The functions @code{mac-set-file-creator},
+@code{mac-get-file-creator}, @code{mac-set-file-type}, and
+@code{mac-get-file-type} can be used to set and get creator and file
+codes.
+
+@findex mac-get-preference
+  The function @code{mac-get-preference} returns the preferences value
+converted to a Lisp object for a specified key and application.
 
 @ignore
    arch-tag: a822c2ab-4273-4997-927e-c153bb71dcf6

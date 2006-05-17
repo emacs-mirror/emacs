@@ -335,7 +335,17 @@ according to `smerge-match-conflict'.")
 
 (defun smerge-remove-props (beg end)
   (remove-overlays beg end 'smerge 'refine)
-  (remove-overlays beg end 'smerge 'conflict))
+  (remove-overlays beg end 'smerge 'conflict)
+  ;; Now that we use overlays rather than text-properties, this function
+  ;; does not cause refontification any more.  It can be seen very clearly
+  ;; in buffers where jit-lock-contextually is not t, in which case deleting
+  ;; the "<<<<<<< foobar" leading line leaves the rest of the conflict
+  ;; highlighted as if it were still a valid conflict.  Note that in many
+  ;; important cases (such as the previous example) we're actually called
+  ;; during font-locking so inhibit-modification-hooks is non-nil, so we
+  ;; can't just modify the buffer and expect font-lock to be triggered as in:
+  ;; (put-text-property beg end 'smerge-force-highlighting nil)
+  (remove-text-properties beg end '(fontified nil)))
 
 (defun smerge-popup-context-menu (event)
   "Pop up the Smerge mode context menu under mouse."

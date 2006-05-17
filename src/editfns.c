@@ -3424,7 +3424,9 @@ usage: (format STRING &rest OBJECTS)  */)
 	   digits to print after the '.' for floats, or the max.
 	   number of chars to print from a string.  */
 
-	while (*format && index ("-0# ", *format))
+	while (format != end
+	       && (*format == '-' || *format == '0' || *format == '#'
+		   || * format == ' '))
 	  ++format;
 
 	if (*format >= '0' && *format <= '9')

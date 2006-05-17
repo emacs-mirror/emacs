@@ -519,7 +519,7 @@ Commands:                        Equivalent keys in read-only mode:
 	(if (or (eq enable-local-eval t)
 		(yes-or-no-p
 		 (concat "Evaluate lisp code in buffer "
-			 (buffer-name) " to display forms ")))
+			 (buffer-name) " to display forms? ")))
 	    (eval-buffer)
 	  (error "`enable-local-eval' inhibits buffer evaluation"))
 

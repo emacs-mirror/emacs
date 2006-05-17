@@ -341,9 +341,10 @@ KEYFILE should contain a PEM encoded key and certificate."
 		 keyfile
 	       (smime-get-key-with-certs-by-email
 		(completing-read
-		 (concat "Sign using which key? "
-			 (if smime-keys (concat "(default " (caar smime-keys) ") ")
-			   ""))
+		 (concat "Sign using key"
+			 (if smime-keys
+			     (concat " (default " (caar smime-keys) "): ")
+			   ": "))
 		 smime-keys nil nil (car-safe (car-safe smime-keys))))))
       (error "Signing failed"))))
 
@@ -472,9 +473,9 @@ in the buffer specified by `smime-details-buffer'."
       (or keyfile
 	  (smime-get-key-by-email
 	   (completing-read
-	    (concat "Decipher using which key? "
-		    (if smime-keys (concat "(default " (caar smime-keys) ") ")
-		      ""))
+	    (concat "Decipher using key"
+		    (if smime-keys (concat " (default " (caar smime-keys) "): ")
+		      ": "))
 	    smime-keys nil nil (car-safe (car-safe smime-keys)))))))))
 
 ;; Various operations

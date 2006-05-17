@@ -284,7 +284,7 @@ With a prefix arg, set the buffer-local value instead.
 When you find a tag with \\[find-tag], the buffer it finds the tag
 in is given a local value of this variable which is the name of the tags
 file the tag was in."
-  (interactive (list (read-file-name "Visit tags table: (default TAGS) "
+  (interactive (list (read-file-name "Visit tags table (default TAGS): "
 				     default-directory
 				     (expand-file-name "TAGS"
 						       default-directory)
@@ -590,7 +590,7 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 		  (car list))
 		;; Finally, prompt the user for a file name.
 		(expand-file-name
-		 (read-file-name "Visit tags table: (default TAGS) "
+		 (read-file-name "Visit tags table (default TAGS): "
 				 default-directory
 				 "TAGS"
 				 t))))))

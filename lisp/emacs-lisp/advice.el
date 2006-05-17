@@ -2218,7 +2218,7 @@ which PREDICATE returns non-nil)."
   (let* ((ad-pReDiCaTe predicate)
 	 (function
 	  (completing-read
-	   (format "%s(default %s) " (or prompt "Function: ") default)
+	   (format "%s (default %s): " (or prompt "Function") default)
 	   ad-advised-functions
 	   (if predicate
 	       (function
@@ -2250,7 +2250,7 @@ class of FUNCTION)."
 		  (ad-do-return class)))
 	    (error "ad-read-advice-class: `%s' has no advices" function)))
   (let ((class (completing-read
-		(format "%s(default %s) " (or prompt "Class: ") default)
+		(format "%s (default %s): " (or prompt "Class") default)
 		ad-advice-class-completion-table nil t)))
     (if (equal class "")
 	default
@@ -2268,7 +2268,7 @@ An optional PROMPT is used to prompt for the name."
 	       (error "ad-read-advice-name: `%s' has no %s advice"
 		      function class)
 	     (car (car name-completion-table))))
-	 (prompt (format "%s(default %s) " (or prompt "Name: ") default))
+	 (prompt (format "%s (default %s): " (or prompt "Name") default))
 	 (name (completing-read prompt name-completion-table nil t)))
     (if (equal name "")
 	(intern default)
@@ -2289,9 +2289,9 @@ be used to prompt for the function."
 (defun ad-read-regexp (&optional prompt)
   "Read a regular expression from the minibuffer."
   (let ((regexp (read-from-minibuffer
-		 (concat (or prompt "Regular expression: ")
-			 (if (equal ad-last-regexp "") ""
-			   (format "(default \"%s\") " ad-last-regexp))))))
+		 (concat (or prompt "Regular expression")
+			 (if (equal ad-last-regexp "") ": "
+			   (format " (default %s): " ad-last-regexp))))))
     (setq ad-last-regexp
 	  (if (equal regexp "") ad-last-regexp regexp))))
 
@@ -2352,7 +2352,7 @@ FUNCTION was not advised)."
 
 (defun ad-enable-advice (function class name)
   "Enables the advice of FUNCTION with CLASS and NAME."
-  (interactive (ad-read-advice-specification "Enable advice of: "))
+  (interactive (ad-read-advice-specification "Enable advice of"))
   (if (ad-is-advised function)
       (if (eq (ad-enable-advice-internal function class name t) 0)
 	  (error "ad-enable-advice: `%s' has no %s advice matching `%s'"
@@ -2361,7 +2361,7 @@ FUNCTION was not advised)."
 
 (defun ad-disable-advice (function class name)
   "Disable the advice of FUNCTION with CLASS and NAME."
-  (interactive (ad-read-advice-specification "Disable advice of: "))
+  (interactive (ad-read-advice-specification "Disable advice of"))
   (if (ad-is-advised function)
       (if (eq (ad-enable-advice-internal function class name nil) 0)
 	  (error "ad-disable-advice: `%s' has no %s advice matching `%s'"
@@ -2385,7 +2385,7 @@ affected advices will be returned."
   "Enables all advices with names that contain a match for REGEXP.
 All currently advised functions will be considered."
   (interactive
-   (list (ad-read-regexp "Enable advices via regexp: ")))
+   (list (ad-read-regexp "Enable advices via regexp")))
   (let ((matched-advices (ad-enable-regexp-internal regexp 'any t)))
     (if (interactive-p)
 	(message "%d matching advices enabled" matched-advices))
@@ -2395,7 +2395,7 @@ All currently advised functions will be considered."
   "Disable all advices with names that contain a match for REGEXP.
 All currently advised functions will be considered."
   (interactive
-   (list (ad-read-regexp "Disable advices via regexp: ")))
+   (list (ad-read-regexp "Disable advices via regexp")))
   (let ((matched-advices (ad-enable-regexp-internal regexp 'any nil)))
     (if (interactive-p)
 	(message "%d matching advices disabled" matched-advices))
@@ -2405,7 +2405,7 @@ All currently advised functions will be considered."
   "Remove FUNCTION's advice with NAME from its advices in CLASS.
 If such an advice was found it will be removed from the list of advices
 in that CLASS."
-  (interactive (ad-read-advice-specification "Remove advice of: "))
+  (interactive (ad-read-advice-specification "Remove advice of"))
   (if (ad-is-advised function)
       (let* ((advice-to-remove (ad-find-advice function class name)))
 	(if advice-to-remove
@@ -3285,7 +3285,7 @@ should be modified.  The assembled function will be returned."
 Clear the cache if you want to force `ad-activate' to construct a new
 advised definition from scratch."
   (interactive
-   (list (ad-read-advised-function "Clear cached definition of: ")))
+   (list (ad-read-advised-function "Clear cached definition of")))
   (ad-set-advice-info-field function 'cache nil))
 
 (defun ad-make-cache-id (function)
@@ -3602,7 +3602,7 @@ an advised function that has actual pieces of advice but none of them are
 enabled is equivalent to a call to `ad-deactivate'.  The current advised
 definition will always be cached for later usage."
   (interactive
-   (list (ad-read-advised-function "Activate advice of: ")
+   (list (ad-read-advised-function "Activate advice of")
 	 current-prefix-arg))
   (if ad-activate-on-top-level
       ;; avoid recursive calls to `ad-activate':
@@ -3632,7 +3632,7 @@ definition of FUNCTION will be replaced with it.  All the advice
 information will still be available so it can be activated again with
 a call to `ad-activate'."
   (interactive
-   (list (ad-read-advised-function "Deactivate advice of: " 'ad-is-active)))
+   (list (ad-read-advised-function "Deactivate advice of" 'ad-is-active)))
   (if (not (ad-is-advised function))
       (error "ad-deactivate: `%s' is not advised" function)
     (cond ((ad-is-active function)
@@ -3650,7 +3650,7 @@ a call to `ad-activate'."
 See `ad-activate' for documentation on the optional COMPILE argument."
   (interactive
    (list (ad-read-advised-function
-	  "Update advised definition of: " 'ad-is-active)))
+	  "Update advised definition of" 'ad-is-active)))
   (if (ad-is-active function)
       (ad-activate function compile)))
 
@@ -3658,7 +3658,7 @@ See `ad-activate' for documentation on the optional COMPILE argument."
   "Deactivate FUNCTION and then remove all its advice information.
 If FUNCTION was not advised this will be a noop."
   (interactive
-   (list (ad-read-advised-function "Unadvise function: ")))
+   (list (ad-read-advised-function "Unadvise function")))
   (cond ((ad-is-advised function)
 	 (if (ad-is-active function)
 	     (ad-deactivate function))
@@ -3689,7 +3689,7 @@ This activates the advice for each function
 that has at least one piece of advice whose name includes a match for REGEXP.
 See `ad-activate' for documentation on the optional COMPILE argument."
   (interactive
-   (list (ad-read-regexp "Activate via advice regexp: ")
+   (list (ad-read-regexp "Activate via advice regexp")
 	 current-prefix-arg))
   (ad-do-advised-functions (function)
     (if (ad-find-some-advice function 'any regexp)
@@ -3700,7 +3700,7 @@ See `ad-activate' for documentation on the optional COMPILE argument."
 This deactivates the advice for each function
 that has at least one piece of advice whose name includes a match for REGEXP."
   (interactive
-   (list (ad-read-regexp "Deactivate via advice regexp: ")))
+   (list (ad-read-regexp "Deactivate via advice regexp")))
   (ad-do-advised-functions (function)
     (if (ad-find-some-advice function 'any regexp)
 	(ad-deactivate function))))
@@ -3711,7 +3711,7 @@ This reactivates the advice for each function
 that has at least one piece of advice whose name includes a match for REGEXP.
 See `ad-activate' for documentation on the optional COMPILE argument."
   (interactive
-   (list (ad-read-regexp "Update via advice regexp: ")
+   (list (ad-read-regexp "Update via advice regexp")
 	 current-prefix-arg))
   (ad-do-advised-functions (function)
     (if (ad-find-some-advice function 'any regexp)

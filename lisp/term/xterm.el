@@ -34,7 +34,7 @@
   (if (and (getenv "COLORTERM")
 	   (string-match "\\`rxvt" (getenv "COLORTERM")))
       (progn 
-	(eval-when-compile (load "term/rxvt"))
+	(eval-and-compile (load "term/rxvt"))
 	(terminal-init-rxvt))
 
     ;; The terminal intialization C code file might have initialized

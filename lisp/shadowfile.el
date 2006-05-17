@@ -438,7 +438,7 @@ in the cluster."
 		       (sit-for 2))
 		     try-regexp))
 ;	 (username (read-no-blanks-input
-;		    (format "Username [default: %s]: "
+;		    (format "Username (default %s): "
 ;			    (shadow-get-user primary))
 ;		    (if old (or (shadow-cluster-username old) "")
 ;		      (user-login-name))))
@@ -458,7 +458,7 @@ specific hostnames, or names of clusters \(see `shadow-define-cluster')."
 	 (name (nth 2 hup))
 	 user site group)
     (while (setq site (shadow-read-site))
-      (setq user (read-string (format "Username [default %s]: "
+      (setq user (read-string (format "Username (default %s): "
 				      (shadow-get-user site)))
 	    name (read-string "Filename: " name))
       (setq group (cons (shadow-make-fullname site

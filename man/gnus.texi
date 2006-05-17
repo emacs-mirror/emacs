@@ -11431,13 +11431,15 @@ that have none when you do a @kbd{a}.
 
 @item gnus-confirm-mail-reply-to-news
 @vindex gnus-confirm-mail-reply-to-news
-This can also be a function receiving the group name as the only
-parameter which should return non-@code{nil} if a confirmation is
-needed, or a regular expression matching group names, where
-confirmation is should be asked for.
+If non-@code{nil}, Gnus will ask you for a confirmation when you are
+about to reply to news articles by mail.  If it is @code{nil}, nothing
+interferes in what you want to do.  This can also be a function
+receiving the group name as the only parameter which should return
+non-@code{nil} if a confirmation is needed, or a regular expression
+matching group names, where confirmation should be asked for.
 
 If you find yourself never wanting to reply to mail, but occasionally
-press R anyway, this variable might be for you.
+press @kbd{R} anyway, this variable might be for you.
 
 @item gnus-confirm-treat-mail-like-news
 @vindex gnus-confirm-treat-mail-like-news

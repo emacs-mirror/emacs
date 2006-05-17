@@ -5704,7 +5704,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 (defun pr-interactive-n-up (mess)
   (or (stringp mess) (setq mess "*"))
   (save-match-data
-    (let* ((fmt-prompt "%s[%s] N-up printing: (default 1) ")
+    (let* ((fmt-prompt "%s[%s] N-up printing (default 1): ")
 	   (prompt "")
 	   (str (pr-f-read-string (format fmt-prompt prompt mess) "1" nil "1"))
 	   int)

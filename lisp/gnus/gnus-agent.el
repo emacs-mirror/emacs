@@ -118,6 +118,8 @@ If nil, only read articles will be expired."
 (defcustom gnus-agent-synchronize-flags t
   "Indicate if flags are synchronized when you plug in.
 If this is `ask' the hook will query the user."
+  ;; If the default switches to something else than nil, then the function
+  ;; should be fixed not be exceedingly slow.  See 2005-09-20 ChangeLog entry.
   :version "21.1"
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Never" nil)
@@ -2934,7 +2936,7 @@ FORCE is equivalent to setting the expiration predicates to true."
       (if (or (not (eq articles t))
               (yes-or-no-p
                (concat "Are you sure that you want to "
-                       "expire all articles in " group ".")))
+                       "expire all articles in " group "? ")))
           (let ((gnus-command-method (gnus-find-method-for-group group))
                 (overview (gnus-get-buffer-create " *expire overview*"))
                 orig)
@@ -3308,7 +3310,7 @@ FORCE is equivalent to setting the expiration predicates to true."
       (gnus-agent-expire-group group articles force)
     (if (or (not (eq articles t))
             (yes-or-no-p "Are you sure that you want to expire all \
-articles in every agentized group."))
+articles in every agentized group? "))
         (let ((methods (gnus-agent-covered-methods))
               ;; Bind gnus-agent-expire-current-dirs to enable tracking
               ;; of agent directories.

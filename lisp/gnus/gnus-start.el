@@ -606,7 +606,7 @@ Can be used to turn version control on or off."
   "Subscribe the new GROUP interactively.
 It is inserted in hierarchical newsgroup order if subscribed.  If not,
 it is killed."
-  (if (gnus-y-or-n-p (format "Subscribe new newsgroup: %s " group))
+  (if (gnus-y-or-n-p (format "Subscribe new newsgroup %s? " group))
       (gnus-subscribe-hierarchically group)
     (push group gnus-killed-list)))
 

@@ -1569,11 +1569,11 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
 If DIRECTION is `backward', search in the reverse direction."
   (interactive (list (read-string
 		      (if Info-search-history
-			  (format "Regexp search%s (default `%s'): "
-                                  (if case-fold-search "" " case-sensitively")
+			  (format "Regexp search%s (default %s): "
+				  (if case-fold-search "" " case-sensitively")
 				  (car Info-search-history))
 			(format "Regexp search%s: "
-                                (if case-fold-search "" " case-sensitively")))
+				(if case-fold-search "" " case-sensitively")))
 		      nil 'Info-search-history)))
   (when transient-mark-mode
     (deactivate-mark))
@@ -1757,11 +1757,11 @@ If DIRECTION is `backward', search in the reverse direction."
   "Search for REGEXP in the reverse direction."
   (interactive (list (read-string
 		      (if Info-search-history
-			  (format "Regexp search%s backward (default `%s'): "
-                                  (if case-fold-search "" " case-sensitively")
+			  (format "Regexp search%s backward (default %s): "
+				  (if case-fold-search "" " case-sensitively")
 				  (car Info-search-history))
 			(format "Regexp search%s backward: "
-                                (if case-fold-search "" " case-sensitively")))
+				(if case-fold-search "" " case-sensitively")))
 		      nil 'Info-search-history)))
   (Info-search regexp bound noerror count 'backward))
 
@@ -2107,8 +2107,8 @@ new buffer."
      (if completions
 	 (let ((input (completing-read (if default
 					   (concat
-					    "Follow reference named: (default "
-					    default ") ")
+					    "Follow reference named (default "
+					    default "): ")
 					 "Follow reference named: ")
 				       completions nil t)))
 	   (list (if (equal input "")

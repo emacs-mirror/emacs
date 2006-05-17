@@ -2900,43 +2900,50 @@ interpreted as BC; -1 being 1 BC, and so on."
 MARK is a single-character string, a list of face attributes/values, or a face.
 MARK defaults to `diary-entry-marker'."
   (if (calendar-date-is-legal-p date)
-      (save-excursion
-        (set-buffer calendar-buffer)
-        (calendar-cursor-to-visible-date date)
-        (let ((mark (or (and (stringp mark) (= (length mark) 1) mark) ; single-char
-                        (and (listp mark) (> (length mark) 0) mark) ; attr list
-                        (and (facep mark) mark) ; face-name
-                        diary-entry-marker)))
-          (if (facep mark)
-              (progn      ; face or an attr-list that contained a face
-                (overlay-put
-                 (make-overlay (1- (point)) (1+ (point))) 'face mark))
-            (if (and (stringp mark)
-                     (= (length mark) 1)) ; single-char
-                (let ((buffer-read-only nil))
-                  (forward-char 1)
-                  (delete-char 1)
-                  (insert mark)
-                  (forward-char -2))
-              (let                      ; attr list
-                  ((temp-face
-                    (make-symbol (apply 'concat "temp-"
-                                        (mapcar '(lambda (sym)
-                                                   (cond ((symbolp sym) (symbol-name sym))
-                                                         ((numberp sym) (int-to-string sym))
-                                                         (t sym))) mark))))
-                   (faceinfo mark))
-                (make-face temp-face)
-                ;; Remove :face info from the mark, copy the face info into temp-face
-                (while (setq faceinfo (memq :face faceinfo))
-                  (copy-face (read (nth 1 faceinfo)) temp-face)
-                  (setcar faceinfo nil)
-                  (setcar (cdr faceinfo) nil))
-                (setq mark (delq nil mark))
-                ;; Apply the font aspects
-                (apply 'set-face-attribute temp-face nil mark)
-                (overlay-put
-                 (make-overlay (1- (point)) (1+ (point))) 'face temp-face))))))))
+      (with-current-buffer calendar-buffer
+        (save-excursion
+          (calendar-cursor-to-visible-date date)
+          (setq mark
+                (or (and (stringp mark) (= (length mark) 1) mark) ; single-char
+                    (and (listp mark) (> (length mark) 0) mark)   ; attr list
+                    (and (facep mark) mark)                       ; face-name
+                    diary-entry-marker))
+          (cond
+           ;; face or an attr-list that contained a face
+           ((facep mark)
+            (overlay-put
+             (make-overlay (1- (point)) (1+ (point))) 'face mark))
+           ;; single-char
+           ((and (stringp mark) (= (length mark) 1))
+            (let ((inhibit-read-only t))
+              (forward-char 1)
+              ;; Insert before delete so as to better preserve markers.
+              (insert mark)
+              (delete-char 1)
+              (forward-char -2)))
+           (t ;; attr list
+            (let ((temp-face
+                   (make-symbol
+                    (apply 'concat "temp-"
+                           (mapcar (lambda (sym)
+                                     (cond
+                                      ((symbolp sym) (symbol-name sym))
+                                      ((numberp sym) (number-to-string sym))
+                                      (t sym)))
+                                   mark))))
+                  (faceinfo mark))
+              (make-face temp-face)
+              ;; Remove :face info from the mark, copy the face info into
+              ;; temp-face
+              (while (setq faceinfo (memq :face faceinfo))
+                (copy-face (read (nth 1 faceinfo)) temp-face)
+                (setcar faceinfo nil)
+                (setcar (cdr faceinfo) nil))
+              (setq mark (delq nil mark))
+              ;; Apply the font aspects
+              (apply 'set-face-attribute temp-face nil mark)
+              (overlay-put
+               (make-overlay (1- (point)) (1+ (point))) 'face temp-face))))))))
 
 (defun calendar-star-date ()
   "Replace the date under the cursor in the calendar window with asterisks.

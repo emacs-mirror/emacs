@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -166,13 +166,20 @@ will prompt for other arguments."
   ;; OPT-ARGS is a list of optional argument indices, as given by
   ;; `reftex-parse-args'.
   (let* ((opt (and (integerp itag) (member itag opt-args)))
-         (index-tags (cdr (assq 'index-tags 
-                                (symbol-value reftex-docstruct-symbol))))
-         (default (reftex-default-index))
-         (prompt (concat "Index tag"
-                         (if default (format " (default: %s)" default) "")
-                         (if opt " (optional)" "") ": "))
-         (tag (completing-read prompt (mapcar 'list index-tags))))
+	 (index-tags (cdr (assq 'index-tags
+				(symbol-value reftex-docstruct-symbol))))
+	 (default (reftex-default-index))
+	 (prompt (concat "Index tag"
+			 (if (or opt default)
+			     (format " (%s): "
+				     (concat
+				      (if opt "optional" "")
+				      (if default
+					  (concat (if opt ", " "")
+						  (format "default %s" default))
+					"")))
+			   ": ")))
+	 (tag (completing-read prompt (mapcar 'list index-tags))))
     (if (and default (equal tag "")) (setq tag default))
     (reftex-update-default-index tag)
     tag))
@@ -1232,7 +1239,7 @@ If the buffer is non-empty, delete the old header first."
           (beginning-of-line 2))          
       (cond ((fboundp 'zmacs-activate-region) (zmacs-activate-region))
             ((boundp 'make-active) (setq mark-active t)))
-      (if (yes-or-no-p "Delete and rebuilt header ")
+      (if (yes-or-no-p "Delete and rebuild header? ")
           (delete-region (point-min) (point))))
 
     ;; Insert the mode line

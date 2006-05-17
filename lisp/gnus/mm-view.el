@@ -576,9 +576,10 @@
        (cadar smime-keys)
      (smime-get-key-by-email
       (gnus-completing-read-maybe-default
-       (concat "Decipher using which key? "
-	       (if smime-keys (concat "(default " (caar smime-keys) ") ")
-		 ""))
+       (concat "Decipher using key"
+	       (if smime-keys
+		   (concat " (default " (caar smime-keys) "): ")
+		 ": "))
        smime-keys nil nil nil nil (car-safe (car-safe smime-keys))))))
   (goto-char (point-min))
   (while (search-forward "\r\n" nil t)

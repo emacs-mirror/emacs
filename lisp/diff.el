@@ -83,15 +83,15 @@ With prefix arg, prompt for diff switches."
      (setq newf (buffer-file-name)
 	   newf (if (and newf (file-exists-p newf))
 		    (read-file-name
-		     (concat "Diff new file: (default "
-			     (file-name-nondirectory newf) ") ")
+		     (concat "Diff new file (default "
+			     (file-name-nondirectory newf) "): ")
 		     nil newf t)
 		  (read-file-name "Diff new file: " nil nil t)))
      (setq oldf (file-newest-backup newf)
 	   oldf (if (and oldf (file-exists-p oldf))
 		    (read-file-name
-		     (concat "Diff original file: (default "
-			     (file-name-nondirectory oldf) ") ")
+		     (concat "Diff original file (default "
+			     (file-name-nondirectory oldf) "): ")
 		     (file-name-directory oldf) oldf t)
 		  (read-file-name "Diff original file: "
 				  (file-name-directory newf) nil t)))

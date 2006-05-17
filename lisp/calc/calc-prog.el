@@ -197,7 +197,7 @@
 	 (progn
 	   (setq cmd-base-default (concat "User-" keyname))
            (setq cmd (completing-read 
-                      (concat "Define M-x command name (default: calc-"
+                      (concat "Define M-x command name (default calc-"
                               cmd-base-default
                               "): ")
                       obarray 'commandp nil
@@ -233,7 +233,7 @@
 	   (setq func 
                  (concat "calcFunc-"
                          (completing-read 
-                          (concat "Define algebraic function name (default: "
+                          (concat "Define algebraic function name (default "
                                   cmd-base-default "): ")
                           (mapcar (lambda (x) (substring x 9))
                                   (all-completions "calcFunc-"

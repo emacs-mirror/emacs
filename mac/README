@@ -36,10 +36,6 @@ build Emacs on the Mac OS 8/9.  On Mac OS X, Emacs can be built using
 the Developer Tools.  See the INSTALL file in this directory for
 instructions on building Emacs.
 
-Binary distributions will be available in
-
-  ftp://ftp.gnu.org/gnu/mac/emacs/
-
 Read the Mac OS section of the on-line help to find out about how to
 use Emacs on the Mac.
 
