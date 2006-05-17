@@ -1,7 +1,7 @@
 ;;; doctor.el --- psychological help for frustrated users
 
 ;; Copyright (C) 1985, 1987, 1994, 1996, 2000, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: games
@@ -46,35 +46,34 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (defvar **mad**)        (defvar *debug*)      (defvar *print-space*)
-  (defvar *print-upcase*) (defvar abuselst)     (defvar abusewords)
-  (defvar account)        (defvar afraidof)     (defvar arerelated)
-  (defvar areyou)         (defvar bak)          (defvar beclst)
-  (defvar bother)         (defvar bye)          (defvar canyou)
-  (defvar chatlst)        (defvar continue)     (defvar deathlst)
-  (defvar describe)       (defvar drnk)         (defvar drugs)
-  (defvar eliza-flag)     (defvar elizalst)     (defvar famlst)
-  (defvar feared)         (defvar fears)        (defvar feelings-about)
-  (defvar foullst)        (defvar found)        (defvar hello)
-  (defvar history)        (defvar howareyoulst) (defvar howdyflag)
-  (defvar huhlst)         (defvar ibelieve)     (defvar improve)
-  (defvar inter)          (defvar isee)         (defvar isrelated)
-  (defvar lincount)       (defvar longhuhlst)   (defvar lover)
-  (defvar machlst)        (defvar mathlst)      (defvar maybe)
-  (defvar moods)          (defvar neglst)       (defvar obj)
-  (defvar object)         (defvar owner)        (defvar please)
-  (defvar problems)       (defvar qlist)        (defvar random-adjective)
-  (defvar relation)       (defvar remlst)       (defvar repetitive-shortness)
-  (defvar replist)        (defvar rms-flag)     (defvar schoollst)
-  (defvar sent)           (defvar sexlst)       (defvar shortbeclst)
-  (defvar shortlst)       (defvar something)    (defvar sportslst)
-  (defvar stallmanlst)    (defvar states)       (defvar subj)
-  (defvar suicide-flag)   (defvar sure)         (defvar things)
-  (defvar thlst)          (defvar toklst)       (defvar typos)
-  (defvar verb)           (defvar want)         (defvar whatwhen)
-  (defvar whereoutp)      (defvar whysay)       (defvar whywant)
-  (defvar zippy-flag)     (defvar zippylst))
+(defvar **mad**)        (defvar *debug*)      (defvar *print-space*)
+(defvar *print-upcase*) (defvar abuselst)     (defvar abusewords)
+(defvar account)        (defvar afraidof)     (defvar arerelated)
+(defvar areyou)         (defvar bak)          (defvar beclst)
+(defvar bother)         (defvar bye)          (defvar canyou)
+(defvar chatlst)        (defvar continue)     (defvar deathlst)
+(defvar describe)       (defvar drnk)         (defvar drugs)
+(defvar eliza-flag)     (defvar elizalst)     (defvar famlst)
+(defvar feared)         (defvar fears)        (defvar feelings-about)
+(defvar foullst)        (defvar found)        (defvar hello)
+(defvar history)        (defvar howareyoulst) (defvar howdyflag)
+(defvar huhlst)         (defvar ibelieve)     (defvar improve)
+(defvar inter)          (defvar isee)         (defvar isrelated)
+(defvar lincount)       (defvar longhuhlst)   (defvar lover)
+(defvar machlst)        (defvar mathlst)      (defvar maybe)
+(defvar moods)          (defvar neglst)       (defvar obj)
+(defvar object)         (defvar owner)        (defvar please)
+(defvar problems)       (defvar qlist)        (defvar random-adjective)
+(defvar relation)       (defvar remlst)       (defvar repetitive-shortness)
+(defvar replist)        (defvar rms-flag)     (defvar schoollst)
+(defvar sent)           (defvar sexlst)       (defvar shortbeclst)
+(defvar shortlst)       (defvar something)    (defvar sportslst)
+(defvar stallmanlst)    (defvar states)       (defvar subj)
+(defvar suicide-flag)   (defvar sure)         (defvar things)
+(defvar thlst)          (defvar toklst)       (defvar typos)
+(defvar verb)           (defvar want)         (defvar whatwhen)
+(defvar whereoutp)      (defvar whysay)       (defvar whywant)
+(defvar zippy-flag)     (defvar zippylst)
 
 (defun doc// (x) x)
 
@@ -90,6 +89,12 @@
     (set what ww)
     first))
 
+(defvar doc-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\n" 'doctor-read-print)
+    (define-key map "\r" 'doctor-ret-or-read)
+    map))
+
 (define-derived-mode doctor-mode text-mode "Doctor"
   "Major mode for running the Doctor (Eliza) program.
 Like Text mode with Auto Fill mode
@@ -101,9 +106,6 @@ reads the sentence before point, and prints the Doctor's answer."
 		 (doc$ please) (doc$ describe) your (doc$ problems) \.
 		 each time you are finished talking, type \R\E\T twice \.))
   (insert "\n"))
-
-(define-key doctor-mode-map "\n" 'doctor-read-print)
-(define-key doctor-mode-map "\r" 'doctor-ret-or-read)
 
 (defun make-doctor-variables ()
   (make-local-variable 'typos)
@@ -1078,65 +1080,66 @@ the subject noun, and return the portion of the sentence following it."
 	anyone everyone someone
 	anything something everything)))
 
-(mapcar (function (lambda (x) (put x 'doctor-sentence-type 'verb)))
-	'(abort aborted aborts ask asked asks am
-		applied applies apply are associate
-		associated ate
-		be became become becomes becoming
-		been being believe believed believes
-		bit bite bites bore bored bores boring bought buy buys buying
-		call called calling calls came can caught catch come
-		contract contracted contracts control controlled controls
-		could croak croaks croaked cut cuts
-		dare dared define defines dial dialed dials did die died dies
-		dislike disliked
-		dislikes do does drank drink drinks drinking
-		drive drives driving drove dying
-		eat eating eats expand expanded expands
-		expect expected expects expel expels expelled
-		explain explained explains
-		fart farts feel feels felt fight fights find finds finding
-		forget forgets forgot fought found
-		fuck fucked fucking fucks
-		gave get gets getting give gives go goes going gone got gotten
-		had harm harms has hate hated hates have having
-		hear heard hears hearing help helped helping helps
-		hit hits hope hoped hopes hurt hurts
-		implies imply is
-		join joined joins jump jumped jumps
-		keep keeping keeps kept
-		kill killed killing kills kiss kissed kisses kissing
-		knew know knows
-		laid lay lays let lets lie lied lies like liked likes
-		liking listen listens
-		login look looked looking looks
-		lose losing lost
-		love loved loves loving
-		luse lusing lust lusts
-		made make makes making may mean means meant might
-		move moved moves moving must
-		need needed needs
-		order ordered orders ought
-		paid pay pays pick picked picking picks
-		placed placing prefer prefers put puts
-		ran rape raped rapes
-		read reading reads recall receive received receives
-		refer refered referred refers
-		relate related relates remember remembered remembers
-		romp romped romps run running runs
-		said sang sat saw say says
-		screw screwed screwing screws scrod see sees seem seemed
-		seems seen sell selling sells
-		send sendind sends sent shall shoot shot should
-		sing sings sit sits sitting sold studied study
-		take takes taking talk talked talking talks tell tells telling
-		think thinks
-		thought told took tooled touch touched touches touching
-		transfer transferred transfers transmit transmits transmitted
-		type types types typing
-		walk walked walking walks want wanted wants was watch
-		watched watching went were will wish would work worked works
-		write writes writing wrote use used uses using))
+(dolist (x
+         '(abort aborted aborts ask asked asks am
+           applied applies apply are associate
+           associated ate
+           be became become becomes becoming
+           been being believe believed believes
+           bit bite bites bore bored bores boring bought buy buys buying
+           call called calling calls came can caught catch come
+           contract contracted contracts control controlled controls
+           could croak croaks croaked cut cuts
+           dare dared define defines dial dialed dials did die died dies
+           dislike disliked
+           dislikes do does drank drink drinks drinking
+           drive drives driving drove dying
+           eat eating eats expand expanded expands
+           expect expected expects expel expels expelled
+           explain explained explains
+           fart farts feel feels felt fight fights find finds finding
+           forget forgets forgot fought found
+           fuck fucked fucking fucks
+           gave get gets getting give gives go goes going gone got gotten
+           had harm harms has hate hated hates have having
+           hear heard hears hearing help helped helping helps
+           hit hits hope hoped hopes hurt hurts
+           implies imply is
+           join joined joins jump jumped jumps
+           keep keeping keeps kept
+           kill killed killing kills kiss kissed kisses kissing
+           knew know knows
+           laid lay lays let lets lie lied lies like liked likes
+           liking listen listens
+           login look looked looking looks
+           lose losing lost
+           love loved loves loving
+           luse lusing lust lusts
+           made make makes making may mean means meant might
+           move moved moves moving must
+           need needed needs
+           order ordered orders ought
+           paid pay pays pick picked picking picks
+           placed placing prefer prefers put puts
+           ran rape raped rapes
+           read reading reads recall receive received receives
+           refer refered referred refers
+           relate related relates remember remembered remembers
+           romp romped romps run running runs
+           said sang sat saw say says
+           screw screwed screwing screws scrod see sees seem seemed
+           seems seen sell selling sells
+           send sendind sends sent shall shoot shot should
+           sing sings sit sits sitting sold studied study
+           take takes taking talk talked talking talks tell tells telling
+           think thinks
+           thought told took tooled touch touched touches touching
+           transfer transferred transfers transmit transmits transmitted
+           type types types typing
+           walk walked walking walks want wanted wants was watch
+           watched watching went were will wish would work worked works
+           write writes writing wrote use used uses using))
+  (put x 'doctor-sentence-type 'verb))
 
 (defun doctor-verbp (x) (if (symbolp x)
 			    (eq (get x 'doctor-sentence-type) 'verb)))
@@ -1385,7 +1388,7 @@ Hack on previous word, setting global variable OWNER to correct result."
 (defun doctor-txtype (ans)
   "Output to buffer a list of symbols or strings as a sentence."
   (setq *print-upcase* t *print-space* nil)
-  (mapcar 'doctor-type-symbol ans)
+  (mapc 'doctor-type-symbol ans)
   (insert "\n"))
 
 (defun doctor-type-symbol (word)
@@ -1656,5 +1659,5 @@ Hack on previous word, setting global variable OWNER to correct result."
 
 (provide 'doctor)
 
-;;; arch-tag: 579380f6-4902-4ea5-bccb-6339e30e1257
+;; arch-tag: 579380f6-4902-4ea5-bccb-6339e30e1257
 ;;; doctor.el ends here

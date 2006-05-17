@@ -1372,13 +1372,13 @@ folders whose names end with a '+' character."
     (goto-char (point-max))
     (let (folder unseen total p)
       (when (search-backward " out of " (point-min) t)
-        (setq total (read-from-string
+        (setq total (string-to-number
                      (buffer-substring-no-properties
                       (match-end 0) (line-end-position))))
         (when (search-backward " in sequence " (point-min) t)
           (setq p (point))
           (when (search-backward " has " (point-min) t)
-            (setq unseen (read-from-string (buffer-substring-no-properties
+            (setq unseen (string-to-number (buffer-substring-no-properties
                                             (match-end 0) p)))
             (while (eq (char-after) ? )
               (backward-char))
@@ -1387,7 +1387,7 @@ folders whose names end with a '+' character."
             (when (and (equal (aref folder (1- (length folder))) ?+)
                        (equal current-folder folder))
               (setq folder (substring folder 0 (1- (length folder)))))
-            (values (format "+%s" folder) (car unseen) (car total))))))))
+            (values (format "+%s" folder) unseen total)))))))
 
 (defun mh-folder-size-folder (folder)
   "Find size of FOLDER using \"folder\"."
@@ -1398,7 +1398,7 @@ folders whose names end with a '+' character."
                     "-norecurse" folder)
       (goto-char (point-min))
       (if (re-search-forward " has \\([0-9]+\\) " nil t)
-          (values (car (read-from-string (match-string 1))) u folder)
+          (values (string-to-number (match-string 1)) u folder)
         (values 0 u folder)))))
 
 (defun mh-folder-size-flist (folder)
@@ -2756,8 +2756,8 @@ in list."
   "'"           mh-narrow-to-tick
   "?"           mh-prefix-help
   "c"           mh-narrow-to-cc
-  "f"           mh-narrow-to-from
-  "r"           mh-narrow-to-range
+  "g"           mh-narrow-to-range
+  "m"           mh-narrow-to-from
   "s"           mh-narrow-to-subject
   "t"           mh-narrow-to-to
   "w"           mh-widen)
@@ -2815,7 +2815,7 @@ in list."
          "\n [T]hread, [/]limit, e[X]tract, [D]igest, [I]nc spools.")
 
     (?F "[l]ist; [v]isit folder;\n"
-        "[n]ew messages; [']ticked messages; [s]earch; [i]ndexed search;\n"
+        "[n]ew messages; [']ticked messages; [s]earch;\n"
         "[p]ack; [S]ort; [r]escan; [k]ill")
     (?P "[p]rint message to [f]ile; old-style [l]pr printing;\n"
         "Toggle printing of [C]olors, [F]aces")
@@ -2823,7 +2823,7 @@ in list."
         "[s]equences, [l]ist,\n"
         "[d]elete message from sequence, [k]ill sequence")
     (?T "[t]oggle, [d]elete, [o]refile thread")
-    (?/ "Limit to [c]c, [f]rom, [r]ange, [s]ubject, [t]o; [w]iden")
+    (?/ "Limit to [c]c, ran[g]e, fro[m], [s]ubject, [t]o; [w]iden")
     (?X "un[s]har, [u]udecode message")
     (?D "[b]urst digest")
     (?K "[v]iew, [i]nline, [o]utput/save MIME part; save [a]ll parts; \n"

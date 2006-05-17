@@ -8,7 +8,7 @@
 
 @copying
 Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -8571,7 +8571,9 @@ Treat @acronym{HTML} (@code{gnus-article-wash-html}).  Note that this is
 usually done automatically by Gnus if the message in question has a
 @code{Content-Type} header that says that the message is @acronym{HTML}.
 
-If a prefix is given, a charset will be asked for.
+If a prefix is given, a charset will be asked for.  If it is a number,
+the charset defined in @code{gnus-summary-show-article-charset-alist}
+(@pxref{Paging the Article}) will be used.
 
 @vindex gnus-article-wash-function
 The default is to use the function specified by
@@ -8582,11 +8584,14 @@ Customization, emacs-mime, The Emacs MIME Manual}) to convert the
 can use include:
 
 @table @code
-@item W3
+@item w3
 Use Emacs/W3.
 
 @item w3m
 Use @uref{http://emacs-w3m.namazu.org/, emacs-w3m}.
+
+@item w3m-standalone
+Use @uref{http://w3m.sourceforge.net/, w3m}.
 
 @item links
 Use @uref{http://links.sf.net/, Links}.

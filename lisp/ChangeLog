@@ -1,3 +1,98 @@
+2006-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (auto-coding-regexp-alist-lookup): New
+	function.
+	(find-auto-coding): Use auto-coding-regexp-alist-lookup.
+
+2006-01-18  Jesper Harder  <harder@phys.au.dk>
+
+	* mail/smtpmail.el (smtpmail-send-it): Use insert-buffer-substring.
+
+2006-01-18  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/make-mode.el (makefile-imake-mode): New mode
+	derived from maiefile-mode.
+	(makefile-imake-mode-syntax-table): New syntax table
+	derived from makefile-mode-syntax-table.
+	(makefile-mode): Write about makefile-imake-mode in 
+	doc string.
+	(makefile-mode-map): Bind "\C-c\C-m\C-i" to makefile-imake-mode.
+	(makefile-imake-font-lock-keywords): New font lock keywords.
+
+	* files.el (auto-mode-alist): Added Imakefile.
+
+2006-01-17  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (ispell-kill-ispell-hook): Add to the hook when
+	loading the file rather than when turning on flyspell-mode.
+
+2006-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* font-lock.el (lisp-font-lock-keywords-1): Minor rearrangement.
+
+2006-01-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (customize-rogue): Minor doc fix.
+
+2006-01-17  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-diff): Use dired-dwim-target-directory
+	instead of the file at the mark as default if the file at the mark
+	is the same as the file at point or if dired-dwim-target-directory
+	is not the same as the current directory and the mark is not active.
+
+	* log-view.el (log-view-minor-wrap): Use the same logic to get
+	revisions as `log-view-diff'.
+
+	* info.el (Info-revert-find-node): Check for Info-current-file
+	before preserving new-history.
+
+	* man.el (Man-heading-regexp): Add `/'.
+
+	* textmodes/sgml-mode.el: Add `coding: iso-2022-7bit' cookie.
+	(html-mode): Set `sentence-end-base' instead of `sentence-end'.
+
+2006-01-16  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (mode-line-faces): New defgroup.
+	(mode-line-highlight): Move definition after new defgroup.
+	(mode-line, mode-line-inactive, mode-line-highlight):
+	Replace :group `modeline' with `mode-line-faces'.
+	(mode-line-buffer-id): New face.
+	(modeline-buffer-id): New face alias.
+	(vertical-border): Remove :group `modeline'.
+
+	* bindings.el (propertized-buffer-identification): Use face
+	`mode-line-buffer-id' instead of `Buffer-menu-buffer'.
+	(mode-line-next-buffer, mode-line-previous-buffer): New functions.
+	(mode-line-buffer-identification-keymap): For mouse-1 replace
+	`mode-line-unbury-buffer' with `mode-line-previous-buffer'.
+	Replace `mode-line-bury-buffer' with `mode-line-next-buffer' for
+	mouse-3.
+
+	* buff-menu.el (buffer-menu-buffer) <defface>: Renamed from
+	Buffer-menu-buffer.  Doc fix.
+	(Buffer-menu-buffer): Face alias to buffer-menu-buffer.
+	(list-buffers-noselect): Use `buffer-menu-buffer' face instead of
+	`Buffer-menu-buffer'.
+
+	* info.el (Info-mode-line-node-keymap): New defvar.
+	(Info-set-mode-line): Use `stringp' to check Info-current-file.
+	Propertize Info-current-node with `mode-line-buffer-id' and
+	`mode-line-highlight' faces and `Info-mode-line-node-keymap'.
+
+	* time.el (display-time-mail-face): Replace :group `faces' with
+	`mode-line-faces'.
+
+2006-01-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el: Add autoload cookies for cp125[0345678].
+
+	* language/european.el (cp1252): New alias for windows-1252.
+
+	* international/mule.el (autoload-coding-system): Prepare for EOL
+	variants.
+
 2006-01-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (term-raw-map): Add mapping for insert.
@@ -11,8 +106,8 @@
 	(term-reset-terminal): Reset the scroll region.
 	(term-handle-ansi-escape): Cursor up and down should take into
 	account the scroll region.
-	(term-set-scroll-region): Renamed from `term-scroll-region'.  Move
-	to 0,0 after setting the region.
+	(term-set-scroll-region): Rename from `term-scroll-region'.
+	Move to 0,0 after setting the region.
 	(term-handle-scroll): Handle scroll up.
 	(term-down): Fix off by one error.
 	(term-delete-lines): Do not delete outside the scroll region.
@@ -57,7 +152,7 @@
 
 2006-01-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-open-file): Use mailcap for selecting an
+	* textmodes/org.el (org-open-file): Use mailcap for selecting an
 	application.
 	(org-file-apps-defaults-gnu): Use mailcap as the default for
 	selecting an application on a UNIX system.
@@ -343,7 +438,7 @@
 
 2006-01-05  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-end-of-subtree): New function.
+	* textmodes/org.el (org-end-of-subtree): New function.
 	(org-cycle, org-subtree-end-visible-p, org-scan-tags):
 	Use `org-end-of-subtree'.
 	(org-agenda, org-agenda-convert-date): Protect calls to
@@ -1064,7 +1159,7 @@
 
 2005-12-20  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-agenda-custom-commands): New option.
+	* textmodes/org.el (org-agenda-custom-commands): New option.
 	(org-agenda): Offer custom commands on splash screen.
 	(org-make-tags-matcher): Parser for Boolean logic added.
 	(org-agenda-set-tags): New command.
@@ -1180,7 +1275,7 @@
 
 2005-12-16  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-tags-match-list-sublevels): New option.
+	* textmodes/org.el (org-tags-match-list-sublevels): New option.
 	(org-open-at-point): Implement tag searches as links.
 	(org-fit-agenda-window, org-get-buffer-tags, org-get-tags)
 	(org-make-tags-matcher, org-scan-tags, org-activate-tags): New funs.
@@ -1402,7 +1497,7 @@
 
 2005-12-12  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-agenda, org-timeline, org-todo):
+	* textmodes/org.el (org-agenda, org-timeline, org-todo):
 	Implement Logging and the keep-modes setting.
 	(org-get-category): Make sure a string is returned.
 	(org-log-done): New function.

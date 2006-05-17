@@ -489,6 +489,19 @@ not be enclosed in { } or ( )."
    "^\\(?: [ \t]*\\)?\\.\\(?:el\\)?if\\(n?\\)\\(?:def\\|make\\)?\\>[ \t]*\\(!?\\)"
    '("^[ \t]*\\.for[ \t].+[ \t]\\(in\\)\\>" 1 font-lock-keyword-face)))
 
+(defconst makefile-imake-font-lock-keywords
+  (append 
+   (makefile-make-font-lock-keywords
+    makefile-var-use-regex
+    makefile-statements
+    t
+    nil
+    '("^XCOMM.*$" . font-lock-comment-face)
+    '("XVAR\\(?:use\\|def\\)[0-9]" 0 font-lock-keyword-face prepend)
+    '("@@" . font-lock-preprocessor-face)
+    )
+   cpp-font-lock-keywords))
+
 
 (defconst makefile-font-lock-syntactic-keywords
   ;; From sh-script.el.
@@ -581,6 +594,7 @@ The function must satisfy this calling convention:
     (define-key map "\C-c\C-m\C-a" 'makefile-automake-mode)
     (define-key map "\C-c\C-m\C-b" 'makefile-bsdmake-mode)
     (define-key map "\C-c\C-m\C-g" 'makefile-gmake-mode)
+    (define-key map "\C-c\C-m\C-i" 'makefile-imake-mode)
     (define-key map "\C-c\C-m\C-m" 'makefile-mode)
     (define-key map "\C-c\C-m\C-p" 'makefile-makepp-mode)
     (define-key map "\M-p"     'makefile-previous-dependency)
@@ -638,6 +652,15 @@ The function must satisfy this calling convention:
   (modify-syntax-entry ?\` "\"     " makefile-mode-syntax-table)
   (modify-syntax-entry ?#  "<     " makefile-mode-syntax-table)
   (modify-syntax-entry ?\n ">     " makefile-mode-syntax-table))
+
+(defvar makefile-imake-mode-syntax-table (copy-syntax-table
+					  makefile-mode-syntax-table))
+(if makefile-imake-mode-syntax-table
+    ()
+  (modify-syntax-entry ?/  ". 14" makefile-imake-mode-syntax-table)
+  (modify-syntax-entry ?*  ". 23" makefile-imake-mode-syntax-table)
+  (modify-syntax-entry ?#  "'" makefile-imake-mode-syntax-table)
+  (modify-syntax-entry ?\n ". b" makefile-imake-mode-syntax-table))
 
 
 ;;; ------------------------------------------------------------
@@ -701,7 +724,8 @@ The function must satisfy this calling convention:
 
 If you are editing a file for a different make, try one of the
 variants `makefile-automake-mode', `makefile-gmake-mode',
-`makefile-makepp-mode' or `makefile-bsdmake-mode'.  All but the
+`makefile-makepp-mode', `makefile-bsdmake-mode' or, 
+`makefile-imake-mode'All but the
 last should be correctly chosen based on the file name, except if
 it is *.mk.  This function ends by invoking the function(s)
 `makefile-mode-hook'.
@@ -884,6 +908,20 @@ Makefile mode can be configured by modifying the following variables:
        makefile-bsdmake-rule-action-regex)
   (setq font-lock-defaults
 	`(makefile-bsdmake-font-lock-keywords ,@(cdr font-lock-defaults))))
+
+;;;###autoload
+(define-derived-mode makefile-imake-mode makefile-mode "Imakefile"
+  "An adapted `makefile-mode' that knows about imake."
+  :syntax-table makefile-imake-mode-syntax-table
+  (let ((base `(makefile-imake-font-lock-keywords ,@(cdr font-lock-defaults)))
+	new)
+    ;; Remove `font-lock-syntactic-keywords' entry from font-lock-defaults.
+    (mapc (lambda (elt)
+	    (unless (and (consp elt)
+			 (eq (car elt) 'font-lock-syntactic-keywords))
+	      (setq new (cons elt new))))
+	  base)
+    (setq font-lock-defaults (nreverse new))))
 
 
 

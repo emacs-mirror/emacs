@@ -1105,10 +1105,8 @@ is used to search."
                               (substring s (match-end 0) (1- (length s))))
                     (return 'error)))
                 (let* ((s (buffer-substring-no-properties (1+ (point)) end))
-                       (val (ignore-errors (read-from-string s))))
-                  (if (and (consp val) (numberp (car val)))
-                      (car val)
-                    (return 'error)))
+                       (n (ignore-errors (string-to-number s))))
+                  (if n n (return 'error)))
                 nil)))
     (forward-line)))
 
@@ -1184,8 +1182,8 @@ SEARCH-REGEXP-LIST is used to search."
             (return 'error))
           (list (format "+%s" (buffer-substring-no-properties
                                (point) (1- msg-start)))
-                (car (read-from-string
-                      (buffer-substring-no-properties msg-start end)))
+                (string-to-number
+                 (buffer-substring-no-properties msg-start end))
                 nil)))
     (forward-line)))
 
@@ -1313,11 +1311,9 @@ is used to search."
                  (mark (mh-search-from-end ?/ folder/msg)))
             (unless mark (return 'error))
             (list (format "+%s" (substring folder/msg 0 mark))
-                  (let ((n (ignore-errors (read-from-string
+                  (let ((n (ignore-errors (string-to-number
                                            (substring folder/msg (1+ mark))))))
-                    (if (and (consp n) (numberp (car n)))
-                        (car n)
-                      (return 'error)))
+                    (if n n (return 'error)))
                   nil))))
     (forward-line)))
 
@@ -1458,12 +1454,10 @@ record is invalid return 'error."
               (return 'error))
             (list (format "+%s" (buffer-substring-no-properties
                                  folder-start (point)))
-                  (let ((val (ignore-errors (read-from-string
-                                             (buffer-substring-no-properties
-                                              (1+ (point)) msg-end)))))
-                    (if (and (consp val) (integerp (car val)))
-                        (car val)
-                      (return 'error)))
+                  (let ((n (ignore-errors (string-to-number
+                                           (buffer-substring-no-properties
+                                            (1+ (point)) msg-end)))))
+                    (if n n (return 'error)))
                   match))))
     (forward-line)))
 
@@ -1804,8 +1798,8 @@ PROC is used to convert the value to actual data."
     (goto-char end)
     (setq last-slash (search-backward "/" begin t))
     (cond ((and first-space last-slash)
-           (cons (car (read-from-string (buffer-substring-no-properties
-                                         (1+ last-slash) end)))
+           (cons (string-to-number (buffer-substring-no-properties
+                                    (1+ last-slash) end))
                  (buffer-substring-no-properties begin (1- first-space))))
           (t (cons nil nil)))))
 
@@ -1818,8 +1812,8 @@ PROC is used to convert the value to actual data."
     (setq last-space (search-backward " " begin t))
     (setq last-slash (search-backward "/" begin t))
     (cond ((and last-slash last-space)
-           (cons (car (read-from-string (buffer-substring-no-properties
-                                         (1+ last-slash) (1- last-space))))
+           (cons (string-to-number (buffer-substring-no-properties
+                                    (1+ last-slash) (1- last-space)))
                  (buffer-substring-no-properties (1+ last-space) end))))))
 
 (defalias 'mh-md5-parser 'mh-openssl-parser)
@@ -1858,7 +1852,7 @@ origin-index) map is updated too."
                    ;; update maps
                    (setq checksum (buffer-substring-no-properties
                                    (point) (line-end-position)))
-                   (let ((msg (car (read-from-string msg))))
+                   (let ((msg (string-to-number msg)))
                      (set-buffer folder)
                      (mh-index-update-single-msg msg checksum origin-map)))))
           (forward-line))))

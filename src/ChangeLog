@@ -1,3 +1,12 @@
+2006-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (handle_one_xevent): Handle keysyms 0x1000000..0x10000FF.
+
+2006-01-17  Richard M. Stallman  <rms@gnu.org>
+
+	* frame.c (x_frame_get_and_record_arg): Don't record Qunbound
+	value in f->param_alist.
+
 2006-01-15  Andreas Schwab  <schwab@suse.de>
 
 	* search.c (Freplace_match): Use UPPERCASEP instead of !NOCASEP.

@@ -560,7 +560,7 @@ should be replaced with:
         (set-buffer mh-temp-buffer)
         (goto-char (point-min))
         (while (re-search-forward "/\\([0-9]*\\)$" nil t)
-          (push (car (read-from-string (match-string 1))) result))
+          (push (string-to-number (match-string 1)) result))
         (nreverse result)))))
 
 (defun mh-seq-names (seq-list)
@@ -928,9 +928,10 @@ The MH command pick is used to do the match."
              (append original (list "-list") pick-expr))
       (goto-char (point-min))
       (while (not (eobp))
-        (let ((num (read-from-string
-                    (buffer-substring (point) (line-end-position)))))
-          (when (numberp (car num)) (push (car num) msg-list))
+        (let ((num (ignore-errors
+                     (string-to-number
+                      (buffer-substring (point) (line-end-position))))))
+          (when num (push num msg-list))
           (forward-line))))
     (if (null msg-list)
         (message "No matches")
@@ -1350,7 +1351,7 @@ Only information about messages in MSG-LIST are added to the tree."
             (let* ((index-line
                     (prog1 (buffer-substring (point) (line-end-position))
                       (forward-line)))
-                   (index (car (read-from-string index-line)))
+                   (index (string-to-number index-line))
                    (id (prog1 (buffer-substring (point) (line-end-position))
                          (forward-line)))
                    (refs (prog1 (buffer-substring (point) (line-end-position))

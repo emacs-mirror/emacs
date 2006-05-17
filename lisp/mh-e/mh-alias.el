@@ -179,7 +179,7 @@ Exclude all aliases already in `mh-alias-alist' from \"ali\""
                     (if (string-equal username realname)
                         (concat "<" username ">")
                       (concat realname " <" username ">"))))
-              (when (not (mh-assoc-ignore-case alias-name mh-alias-alist))
+              (when (not (assoc-string alias-name mh-alias-alist t))
                 (setq passwd-alist (cons (list alias-name alias-translation)
                                          passwd-alist)))))))
         (forward-line 1)))
@@ -209,12 +209,12 @@ been loaded."
       (cond
        ((looking-at "^[ \t]"))          ;Continuation line
        ((looking-at "\\(.+\\): .+: .*$") ; A new -blind- MH alias
-        (when (not (mh-assoc-ignore-case (match-string 1) mh-alias-blind-alist))
+        (when (not (assoc-string (match-string 1) mh-alias-blind-alist t))
           (setq mh-alias-blind-alist
                 (cons (list (match-string 1)) mh-alias-blind-alist))
           (setq mh-alias-alist (cons (list (match-string 1)) mh-alias-alist))))
        ((looking-at "\\(.+\\): .*$")    ; A new MH alias
-        (when (not (mh-assoc-ignore-case (match-string 1) mh-alias-alist))
+        (when (not (assoc-string (match-string 1) mh-alias-alist t))
           (setq mh-alias-alist
                 (cons (list (match-string 1)) mh-alias-alist)))))
       (forward-line 1)))
@@ -225,7 +225,7 @@ been loaded."
           user)
       (while local-users
         (setq user (car local-users))
-        (if (not (mh-assoc-ignore-case (car user) mh-alias-alist))
+        (if (not (assoc-string (car user) mh-alias-alist t))
             (setq mh-alias-alist (append mh-alias-alist (list user))))
         (setq local-users (cdr local-users)))))
   (run-hooks 'mh-alias-reloaded-hook)
@@ -262,10 +262,10 @@ returns the string unchanged if not defined. The same is done here."
   "Return expansion for ALIAS.
 Blind aliases or users from /etc/passwd are not expanded."
   (cond
-   ((mh-assoc-ignore-case alias mh-alias-blind-alist)
+   ((assoc-string alias mh-alias-blind-alist t)
     alias)                              ; Don't expand a blind alias
-   ((mh-assoc-ignore-case alias mh-alias-passwd-alist)
-    (cadr (mh-assoc-ignore-case alias mh-alias-passwd-alist)))
+   ((assoc-string alias mh-alias-passwd-alist t)
+    (cadr (assoc-string alias mh-alias-passwd-alist t)))
    (t
     (mh-alias-ali alias))))
 
@@ -300,7 +300,7 @@ Blind aliases or users from /etc/passwd are not expanded."
       (let* ((case-fold-search t)
              (beg (mh-beginning-of-word))
              (the-name (buffer-substring-no-properties beg (point))))
-        (if (mh-assoc-ignore-case the-name mh-alias-alist)
+        (if (assoc-string the-name mh-alias-alist t)
             (message "%s -> %s" the-name (mh-alias-expand the-name))
           ;; Check if if was a single word likely to be an alias
           (if (and (equal mh-alias-flash-on-comma 1)

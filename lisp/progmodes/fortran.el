@@ -1,7 +1,7 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
 ;; Copyright (C) 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
-;;               2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+;;               2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -53,12 +53,12 @@
 ;;   second in column 6.
 ;; * Support any other extensions to f77 grokked by GNU Fortran I've missed.
 
-(eval-when-compile			; silence compiler
-  (defvar dabbrev-case-fold-search)
-  (defvar font-lock-syntactic-keywords)
-  (defvar gud-find-expr-function)
-  (defvar imenu-case-fold-search)
-  (defvar imenu-syntax-alist))
+;; silence compiler
+(defvar dabbrev-case-fold-search)
+(defvar font-lock-syntactic-keywords)
+(defvar gud-find-expr-function)
+(defvar imenu-case-fold-search)
+(defvar imenu-syntax-alist)
 
 
 (defgroup fortran nil
@@ -891,16 +891,16 @@ With non-nil ARG, uncomments the region."
 Any other key combination is executed normally."
   (interactive "*")
   (insert last-command-char)
-  (let (char event)
-    (if (fboundp 'next-command-event) ; XEmacs
-        (setq event (next-command-event)
-              char (event-to-character event))
-      (setq event (read-event)
-            char event))
+  (let* ((event (if (fboundp 'next-command-event) ; XEmacs
+                    (next-command-event)
+                  (read-event)))
+         (char (if (fboundp 'event-to-character)
+                   (event-to-character event) event)))
     ;; Insert char if not equal to `?', or if abbrev-mode is off.
-    (if (and abbrev-mode (or (eq char ??) (eq char help-char)))
+    (if (and abbrev-mode (or (eq char ??) (eq char help-char)
+                             (memq event help-event-list)))
 	(fortran-abbrev-help)
-      (setq unread-command-events (list event)))))
+      (push event unread-command-events))))
 
 (defun fortran-abbrev-help ()
   "List the currently defined abbrevs in Fortran mode."
@@ -911,8 +911,7 @@ Any other key combination is executed normally."
 
 (defun fortran-prepare-abbrev-list-buffer ()
   "Create a buffer listing the Fortran mode abbreviations."
-  (save-excursion
-    (set-buffer (get-buffer-create "*Abbrevs*"))
+  (with-current-buffer (get-buffer-create "*Abbrevs*")
     (erase-buffer)
     (insert-abbrev-table-description 'fortran-mode-abbrev-table t)
     (goto-char (point-min))
@@ -1917,8 +1916,7 @@ If ALL is nil, only match comments that start in column > 0."
 
 (defun fortran-break-line ()
   "Call `fortran-split-line'.  Joins continuation lines first, then refills."
-  (let ((opoint (point))
-	(bol (line-beginning-position))
+  (let ((bol (line-beginning-position))
 	(comment-string
 	 (save-excursion
 	   (if (fortran-find-comment-start-skip)
@@ -2036,5 +2034,5 @@ Supplying prefix arg DO-SPACE prevents stripping the whitespace."
 
 (provide 'fortran)
 
-;;; arch-tag: 74935096-21c4-4cab-8ee5-6ef16090dc04
+;; arch-tag: 74935096-21c4-4cab-8ee5-6ef16090dc04
 ;;; fortran.el ends here

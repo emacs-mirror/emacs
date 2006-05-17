@@ -1,7 +1,7 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -2467,25 +2467,36 @@ If READ-CHARSET, ask for a coding system."
 
 (defun article-wash-html (&optional read-charset)
   "Format an HTML article.
-If READ-CHARSET, ask for a coding system."
+If READ-CHARSET, ask for a coding system.  If it is a number, the
+charset defined in `gnus-summary-show-article-charset-alist' is used."
   (interactive "P")
   (save-excursion
     (let ((inhibit-read-only t)
 	  charset)
-      (when (gnus-buffer-live-p gnus-original-article-buffer)
-	(with-current-buffer gnus-original-article-buffer
-	  (let* ((ct (gnus-fetch-field "content-type"))
-		 (ctl (and ct
-			   (ignore-errors
-			     (mail-header-parse-content-type ct)))))
-	    (setq charset (and ctl
-			       (mail-content-type-get ctl 'charset)))
-	    (when (stringp charset)
-	      (setq charset (intern (downcase charset)))))))
-      (when read-charset
-	(setq charset (mm-read-coding-system "Charset: " charset)))
-      (unless charset
-	(setq charset gnus-newsgroup-charset))
+      (if read-charset
+	  (if (or (and (numberp read-charset)
+		       (setq charset
+			     (cdr
+			      (assq read-charset
+				    gnus-summary-show-article-charset-alist))))
+		  (setq charset (mm-read-coding-system "Charset: ")))
+	      (let ((gnus-summary-show-article-charset-alist
+		     (list (cons 1 charset))))
+		(with-current-buffer gnus-summary-buffer
+		  (gnus-summary-show-article 1)))
+	    (error "No charset is given"))
+	(when (gnus-buffer-live-p gnus-original-article-buffer)
+	  (with-current-buffer gnus-original-article-buffer
+	    (let* ((ct (gnus-fetch-field "content-type"))
+		   (ctl (and ct
+			     (ignore-errors
+			       (mail-header-parse-content-type ct)))))
+	      (setq charset (and ctl
+				 (mail-content-type-get ctl 'charset)))
+	      (when (stringp charset)
+		(setq charset (intern (downcase charset)))))))
+	(unless charset
+	  (setq charset gnus-newsgroup-charset)))
       (article-goto-body)
       (save-window-excursion
 	(save-restriction
@@ -2525,6 +2536,20 @@ If READ-CHARSET, ask for a coding system."
      (list 'keymap w3m-minor-mode-map
 	   ;; Put the mark meaning this part was rendered by emacs-w3m.
 	   'mm-inline-text-html-with-w3m t))))
+
+(eval-when-compile (defvar charset)) ;; Bound by `article-wash-html'.
+
+(defun gnus-article-wash-html-with-w3m-standalone ()
+  "Wash the current buffer with w3m."
+  (unless (mm-coding-system-p charset)
+    ;; The default.
+    (setq charset 'iso-8859-1))
+  (let ((coding-system-for-write charset)
+	(coding-system-for-read charset))
+    (call-process-region
+     (point-min) (point-max)
+     "w3m" t t nil "-dump" "-T" "text/html"
+     "-I" (symbol-name charset) "-O" (symbol-name charset))))
 
 (defun article-hide-list-identifiers ()
   "Remove list identifies from the Subject header.
@@ -4718,11 +4743,15 @@ N is the numerical prefix."
 	  ;; We have to do this since selecting the window
 	  ;; may change the point.  So we set the window point.
 	  (set-window-point window point)))
-      (let* ((handles (or ihandles
-			  (mm-dissect-buffer nil gnus-article-loose-mime)
-			  (and gnus-article-emulate-mime
-			       (mm-uu-dissect))))
-	     (inhibit-read-only t) handle name type b e display)
+      (let ((handles ihandles)
+	    (inhibit-read-only t)
+	    handle)
+	(cond (handles)
+	      ((setq handles (mm-dissect-buffer nil gnus-article-loose-mime))
+	       (when gnus-article-emulate-mime
+		 (mm-uu-dissect-text-parts handles)))
+	      (gnus-article-emulate-mime
+	       (setq handles (mm-uu-dissect))))
 	(when (and (not ihandles)
 		   (not gnus-displaying-mime))
 	  ;; Top-level call; we clean up.

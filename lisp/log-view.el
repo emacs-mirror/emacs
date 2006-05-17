@@ -225,14 +225,18 @@
 
 (defun log-view-minor-wrap (buf f)
   (let ((data (with-current-buffer buf
-		(cons
-		 (cons (log-view-current-file)
-		       (log-view-current-tag))
-		 (when mark-active
-		   (save-excursion
-		     (goto-char (mark))
-		     (cons (log-view-current-file)
-			   (log-view-current-tag))))))))
+		(let* ((beg (if mark-active (region-beginning) (point)))
+		       (end (if mark-active (region-end) (point)))
+		       (fr (log-view-current-tag beg))
+		       (to (log-view-current-tag end)))
+		  (when (string-equal fr to)
+		    (save-excursion
+		      (goto-char end)
+		      (log-view-msg-next)
+		      (setq to (log-view-current-tag))))
+		  (cons
+		   (cons (log-view-current-file) to)
+		   (cons (log-view-current-file) fr))))))
     (let ((cvs-branch-prefix (cdar data))
 	  (cvs-secondary-branch-prefix (and (cdar data) (cddr data)))
 	  (cvs-minor-current-files

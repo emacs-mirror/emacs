@@ -731,7 +731,8 @@ is preserved, if possible."
 	(pline        (count-lines (point-min) (line-beginning-position)))
 	(wline        (count-lines (point-min) (window-start)))
 	(old-history  Info-history)
-	(new-history  (list Info-current-file Info-current-node (point))))
+	(new-history  (and Info-current-file
+			   (list Info-current-file Info-current-node (point)))))
     (kill-buffer (current-buffer))
     (Info-find-node filename nodename)
     (setq Info-history old-history)
@@ -1399,15 +1400,31 @@ any double quotes or backslashes must be escaped (\\\",\\\\)."
 	(Info-hide-cookies-node)
 	(run-hooks 'Info-selection-hook)))))
 
+(defvar Info-mode-line-node-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-1] 'Info-scroll-up)
+    (define-key map [mode-line mouse-3] 'Info-scroll-down)
+    map)
+  "Keymap to put on the Info node name in the mode line.")
+
 (defun Info-set-mode-line ()
   (setq mode-line-buffer-identification
 	(nconc (propertized-buffer-identification "%b")
 	       (list
-		(concat " ("
-			(if Info-current-file
-			    (file-name-nondirectory Info-current-file)
-			  " ")
-			") " (or Info-current-node ""))))))
+		(concat
+		 " ("
+		 (if (stringp Info-current-file)
+		     (file-name-nondirectory Info-current-file)
+		   "")
+		 ") "
+		 (if Info-current-node
+		     (propertize Info-current-node
+				 'face 'mode-line-buffer-id
+				 'help-echo
+				 "mouse-1: scroll forward, mouse-3: scroll back"
+				 'mouse-face 'mode-line-highlight
+				 'local-map Info-mode-line-node-keymap)
+		   ""))))))
 
 ;; Go to an Info node specified with a filename-and-nodename string
 ;; of the sort that is found in pointers in nodes.

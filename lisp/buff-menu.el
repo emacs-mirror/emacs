@@ -74,10 +74,11 @@
   :type 'boolean
   :group 'Buffer-menu)
 
-(defface Buffer-menu-buffer
+(defface buffer-menu-buffer
   '((t (:weight bold)))
-  "Face used to highlight buffer name."
+  "Face used to highlight buffer names in the buffer menu."
   :group 'Buffer-menu)
+(put 'Buffer-menu-buffer 'face-alias 'buffer-menu-buffer)
 
 (defcustom Buffer-menu-buffer+size-width 26
   "*How wide to jointly make the buffer name and size columns."
@@ -795,7 +796,7 @@ For more information, see the function `buffer-menu'."
 					 (int-to-string (nth 3 buffer))
 					 `(buffer-name ,(nth 2 buffer)
 					   buffer ,(car buffer)
-					   font-lock-face Buffer-menu-buffer
+					   font-lock-face buffer-menu-buffer
 					   mouse-face highlight
 					   help-echo "mouse-2: select this buffer"))
 		"  "

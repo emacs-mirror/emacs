@@ -1,7 +1,7 @@
 ;;; table.el --- create and edit WYSIWYG text based embedded tables
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006  Free Software Foundation, Inc.
 
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
@@ -621,17 +621,18 @@
 ;;;
 
 ;; hush up the byte-compiler
-(eval-when-compile
-  (defvar quail-translating)
-  (defvar quail-converting)
-  (defvar flyspell-mode)
-  (defvar real-last-command)
-  (defvar delete-selection-mode)
-  (unless (fboundp 'set-face-property)
-    (defun set-face-property (face prop value)))
-  (unless (fboundp 'unibyte-char-to-multibyte)
-    (defun unibyte-char-to-multibyte (char)))
-  (defun table--point-in-cell-p (&optional location)))
+(defvar quail-translating)
+(defvar quail-converting)
+(defvar flyspell-mode)
+(defvar real-last-command)
+(defvar delete-selection-mode)
+;; This is evil!!
+;; (eval-when-compile
+;;   (unless (fboundp 'set-face-property)
+;;     (defun set-face-property (face prop value)))
+;;   (unless (fboundp 'unibyte-char-to-multibyte)
+;;     (defun unibyte-char-to-multibyte (char)))
+;;   (defun table--point-in-cell-p (&optional location)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -910,21 +911,18 @@ It inhibits `table-with-cache-buffer' to update data in both direction, cell to 
 This is always set to nil at the entry to `table-with-cache-buffer' before executing body forms.")
 (defvar table-mode-indicator nil
   "For mode line indicator")
-(defvar table-fixed-mode-indicator nil
-  "For mode line indicator")
+;; This is not a real minor-mode but placed in the minor-mode-alist
+;; so that we can show the indicator on the mode line handy.
+(make-variable-buffer-local table-mode-indicator)
+(unless (assq table-mode-indicator minor-mode-alist)
+  (push '(table-mode-indicator (table-fixed-width-mode " Fixed-Table" " Table"))
+        minor-mode-alist))
+
 (defconst table-source-languages '(html latex cals)
   "Supported source languages.")
 (defvar table-source-info-plist nil
   "General storage for temporary information used while generating source.")
-;;; These are not real minor-mode but placed in the minor-mode-alist
-;;; so that we can show the indicator on the mode line handy.
-(mapcar (lambda (indicator)
-	  (make-variable-buffer-local (car indicator))
-	  (unless (assq (car indicator) minor-mode-alist)
-	    (setq minor-mode-alist
-		  (cons indicator minor-mode-alist))))
-	'((table-mode-indicator " Table")
-	  (table-fixed-mode-indicator " Fixed-Table")))
+
 ;;; The following history containers not only keep the history of user
 ;;; entries but also serve as the default value providers.  When an
 ;;; interactive command is invoked it offers a user the latest entry
@@ -2000,7 +1998,7 @@ specific features."
 			  (table--detect-cell-alignment cell)))
 		    (unless (re-search-forward border end t)
 		      (goto-char end))))))))))
-    (set-buffer-modified-p modified-flag)))
+    (restore-buffer-modified-p modified-flag)))
 
 ;;;###autoload
 (defun table-unrecognize-region (beg end)
@@ -2090,7 +2088,7 @@ plain text and loses all the table specific features."
 		    (set-buffer cache-buffer)
 		    (erase-buffer)
 		    (table--insert-rectangle rectangle)))))
-	  (set-buffer-modified-p modified-flag))
+	  (restore-buffer-modified-p modified-flag))
 	(if (featurep 'xemacs)
 	    (table--warn-incompatibility))
 	cell)))
@@ -2929,12 +2927,6 @@ order to prevent a word being folded into multiple lines."
 	(if (null arg)
 	    (not table-fixed-width-mode)
 	  (> (prefix-numeric-value arg) 0)))
-  (save-excursion
-    (mapcar (lambda (buf)
-	      (set-buffer buf)
-	      (if (table--point-in-cell-p)
-		  (table--point-entered-cell-function)))
-	    (buffer-list)))
   (table--update-cell-face))
 
 ;;;###autoload
@@ -4084,7 +4076,7 @@ fit in the cell width the word is folded into the next line.  The
 folded location is marked by a continuation character which is
 specified in the variable `table-word-continuation-char'.
 ")
-      (print-help-return-message))))
+      (help-print-return-message))))
 
 (defun *table--cell-describe-bindings ()
   "Table cell version of `describe-bindings'."
@@ -4102,7 +4094,7 @@ key             binding
 			       (key-description (car binding))
 			       (cdr binding))))
 	      table-cell-bindings)
-      (print-help-return-message))))
+      (help-print-return-message))))
 
 (defun *table--cell-dabbrev-expand (arg)
   "Table cell version of `dabbrev-expand'."
@@ -4897,8 +4889,7 @@ in the list."
 
 (defmacro table--log (&rest body)
   "Debug logging macro."
-  `(save-excursion
-     (set-buffer (get-buffer-create "log"))
+  `(with-current-buffer (get-buffer-create "log")
      (goto-char (point-min))
      (let ((standard-output (current-buffer)))
        ,@body)))
@@ -4958,7 +4949,8 @@ cell."
 	     (dig1-str (format "%1d" (prog1 (% count 10) (setq count (1+ count))))))
 	(goto-char (car cell))
 	(table-with-cache-buffer
-	  (replace-regexp "." dig1-str)
+          (while (re-search-forward "." nil t)
+            (replace-match dig1-str nil nil))
 	  (setq table-inhibit-auto-fill-paragraph t))
 	(table--finish-delayed-tasks)))
     (table--goto-coordinate current-coordinate)))
@@ -5340,9 +5332,8 @@ instead of the current buffer and returns the OBJECT."
 Refresh the menu bar."
   (unless table-cell-entered-state
     (setq table-cell-entered-state t)
-    (setq table-mode-indicator (not table-fixed-width-mode))
-    (setq table-fixed-mode-indicator table-fixed-width-mode)
-    (set-buffer-modified-p (buffer-modified-p))
+    (setq table-mode-indicator t)
+    (force-mode-line-update)
     (table--warn-incompatibility)
     (run-hooks 'table-point-entered-cell-hook)))
 
@@ -5352,8 +5343,7 @@ Refresh the menu bar."
   (when table-cell-entered-state
     (setq table-cell-entered-state nil)
     (setq table-mode-indicator nil)
-    (setq table-fixed-mode-indicator nil)
-    (set-buffer-modified-p (buffer-modified-p))
+    (force-mode-line-update)
     (run-hooks 'table-point-left-cell-hook)))
 
 (defun table--warn-incompatibility ()

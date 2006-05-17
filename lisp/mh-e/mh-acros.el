@@ -26,14 +26,14 @@
 
 ;;; Commentary:
 
-;; This file contains macros that would normally be in mh-utils.el except that
-;; their presence there would cause a dependency loop with mh-customize.el.
+;; This file contains most, if not all, macros. It is so named with a
+;; silent "m" so that it is compiled first. Otherwise, "make
+;; recompile" in CVS Emacs may use compiled files with stale macro
+;; definitions.
+
 ;; This file must always be included like this:
 ;;
 ;;   (eval-when-compile (require 'mh-acros))
-;;
-;; It is so named with a silent "m" so that it is compiled first. Otherwise,
-;; "make recompile" in Emacs 21.4 fails.
 
 ;;; Change Log:
 
@@ -150,23 +150,15 @@ more details."
                           (list 'nth ,x z)))
        (quote ,struct-name))))
 
-;; A better solution would be to use Stefan's change in bytecomp.el.
-;; If it were checked in, we can drop the advice to require and it
-;; will make things nicer elsewhere too.
-(defadvice require (around mh-prefer-el activate)
-  "Modify `require' to load uncompiled MH-E files."
-  (or (featurep (ad-get-arg 0))
-      (and (string-match "^mh-" (symbol-name (ad-get-arg 0)))
-           (load (format "%s.el" (ad-get-arg 0)) t t))
-      ad-do-it))
-
-(defmacro mh-assoc-ignore-case (key alist)
-  "Check if KEY is present in ALIST while ignoring case to do the comparison.
-Compatibility macro for Emacs versions that lack `assoc-string',
-introduced in Emacs 22."
-  (if (fboundp 'assoc-string)
-      `(assoc-string ,key ,alist t)
-    `(assoc-ignore-case ,key ,alist)))
+(unless (fboundp 'assoc-string)
+  (defsubst assoc-string (key list case-fold)
+    "Like `assoc' but specifically for strings.
+Case is ignored if CASE-FOLD is non-nil.
+This function added by MH-E for Emacs versions that lack
+`assoc-string', introduced in Emacs 22."
+    (if case-fold
+        (assoc-ignore-case key list)
+      (assoc key list))))
 
 (provide 'mh-acros)
 

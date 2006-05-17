@@ -1,3 +1,50 @@
+2006-01-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnrss.el: Update copyright.
+	(nnrss-opml-import): Query whether to subscribe to each entry.
+
+	* gnus-art.el:
+	* gnus-cus.el:
+	* gnus-group.el:
+	* gnus-start.el:
+	* gnus-sum.el:
+	* mm-uu.el:
+	* mm-view.el: Update copyright.
+
+2006-01-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-info): New function.
+	(message-mode-menu): Add it.
+	Update copyright.
+
+	* ChangeLog: Fix and update copyright.
+
+2006-01-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-uu.el (mm-uu-text-plain-type): New variable.
+	(mm-uu-pgp-signed-extract-1): Use it.
+	(mm-uu-pgp-encrypted-extract-1): Use it.
+	(mm-uu-dissect): Use it; allow two optional arguments; one is a
+	flag specifying whether there's no message header; the other is
+	for a MIME type and parameters; bind mm-uu-text-plain-type with
+	the later one.
+	(mm-uu-dissect-text-parts): New function.
+
+	* gnus-art.el (gnus-display-mime): Use mm-uu-dissect-text-parts to
+	dissect text parts.
+
+2006-01-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-wash-html): Use
+	gnus-summary-show-article-charset-alist if a numeric arg is given.
+	(gnus-article-wash-html-with-w3m-standalone): New function.
+
+	* mm-view.el (mm-text-html-renderer-alist): Map w3m-standalone to
+	mm-inline-text-html-render-with-w3m-standalone.
+	(mm-text-html-washer-alist): Map w3m-standalone to
+	gnus-article-wash-html-with-w3m-standalone.
+	(mm-inline-text-html-render-with-w3m-standalone): New function.
+
 2006-01-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnrss.el (nnrss-wash-html-in-text-plain-parts): New variable.
@@ -26,12 +73,6 @@
 	(nnrss-normalize-date): New function converts ISO 8601 date into
 	RFC822 style.  Suggested by Mark Plaksin <happy@mcplaksin.org>.
 	(nnrss-check-group): Use it.
-
-2006-01-03  Rodrigo Ventura <yoda@isr.ist.utl.pt>  (tiny change)
-
-	* gnus-xmas.el (gnus-xmas-group-startup-message): Typo
-	gnus-splash-face -> gnus-splash.  Fixes starting from a TTY in
-	XEmacs.
 
 2006-01-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -3248,7 +3289,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-    Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+    Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

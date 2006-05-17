@@ -522,8 +522,8 @@ Optional argument BUFFER can be used to specify the buffer."
         (set-buffer buffer))
     (cond ((eq major-mode 'mh-show-mode)
            (let ((number-start (mh-search-from-end ?/ buffer-file-name)))
-             (car (read-from-string (substring buffer-file-name
-                                               (1+ number-start))))))
+             (string-to-number (substring buffer-file-name
+                                          (1+ number-start)))))
           ((and (eq major-mode 'mh-folder-mode)
                 mh-show-buffer
                 (get-buffer mh-show-buffer))

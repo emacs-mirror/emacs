@@ -1146,7 +1146,11 @@ Return the resulting coding system."
 FROM is a form to evaluate to define the coding-system."
   (put symbol 'coding-system-define-form form)
   (setq coding-system-alist (cons (list (symbol-name symbol))
-				  coding-system-alist)))
+				  coding-system-alist))
+  (dolist (elt '("-unix" "-dos" "-mac"))
+    (let ((name (concat (symbol-name symbol) elt)))
+      (put (intern name) 'coding-system-define-form form)
+      (setq coding-system-alist (cons (list name) coding-system-alist)))))
 
 (defun set-buffer-file-coding-system (coding-system &optional force nomodify)
   "Set the file coding-system of the current buffer to CODING-SYSTEM.
@@ -1591,6 +1595,23 @@ and the contents of `file-coding-system-alist'."
   :type '(repeat (cons (regexp :tag "Regexp")
 		       (symbol :tag "Coding system"))))
 
+(defun auto-coding-regexp-alist-lookup (from to)
+  "Lookup `auto-coding-regexp-alist' for the contents of the current buffer.
+The value is a coding system is specified for the region FROM and TO,
+or nil."
+  (save-excursion
+    (goto-char from)
+    (let ((alist auto-coding-regexp-alist)
+	  coding-system)
+      (while (and alist (not coding-system))
+	(let ((regexp (car (car alist))))
+	  (if enable-multibyte-characters
+	      (setq regexp (string-to-multibyte regexp)))
+	  (if (re-search-forward regexp to t)
+	      (setq coding-system (cdr (car alist)))
+	    (setq alist (cdr alist)))))
+      coding-system)))
+
 ;; See the bottom of this file for built-in auto coding functions.
 (defcustom auto-coding-functions '(sgml-xml-auto-coding-function
 				   sgml-html-meta-auto-coding-function)
@@ -1650,24 +1671,15 @@ indicating by what CODING is specified.  Note that the validity
 of CODING is not checked; it's callers responsibility to check
 it.
 
-If nothing is specified, the return value is nil.
-
-The variable `set-auto-coding-function' (which see) is set to this
-function by default."
+If nothing is specified, the return value is nil."
   (or (let ((coding-system (auto-coding-alist-lookup filename)))
 	(if coding-system
 	    (cons coding-system 'auto-coding-alist)))
       ;; Try using `auto-coding-regexp-alist'.
-      (save-excursion
-	(let ((alist auto-coding-regexp-alist)
-	      coding-system)
-	  (while (and alist (not coding-system))
-	    (let ((regexp (car (car alist))))
-	      (when (re-search-forward regexp (+ (point) size) t)
-		(setq coding-system (cdr (car alist)))))
-	    (setq alist (cdr alist)))
-	  (if coding-system
-	      (cons coding-system 'auto-coding-regexp-alist))))
+      (let ((coding-system (auto-coding-regexp-alist-lookup (point)
+							    (+ (point) size))))
+	(if coding-system
+	    (cons coding-system 'auto-coding-regexp-alist)))
       (let* ((case-fold-search t)
 	     (head-start (point))
 	     (head-end (+ head-start (min size 1024)))
@@ -1760,7 +1772,10 @@ function by default."
 (defun set-auto-coding (filename size)
   "Return coding system for a file FILENAME of which SIZE bytes follow point.
 See `find-auto-coding' for how the coding system is found.
-Return nil if an invalid coding system is found."
+Return nil if an invalid coding system is found.
+
+The variable `set-auto-coding-function' (which see) is set to this
+function by default."
   (let ((found (find-auto-coding filename size)))
     (if (and found (coding-system-p (car found)))
 	(car found))))

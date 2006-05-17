@@ -1,4 +1,48 @@
+2006-01-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-acros.el (assoc-string): Fix typo in argument.
+
+2006-01-16  Bill Wohler  <wohler@newt.com>
+
+	* mh-acros.el (require): Remove defadvice of require as defadvice
+	is verboten within Emacs and our implementation was returning the
+	wrong value from require. Upcoming restructuring should make this
+	unnecessary.
+	(mh-assoc-ignore-case): Replace with defsubst assoc-string.
+
+	* mh-alias.el (mh-alias-local-users, mh-alias-reload,
+	mh-alias-expand, mh-alias-minibuffer-confirm-address): Use it.
+
+	* mh-identity.el (mh-identity-field-handler): Use it.
+
+	* mh-comp.el (mh-show-buffer-message-number): Replace (car
+	(read-from-string string) with (string-to-number string).
+
+	* mh-e.el (mh-parse-flist-output-line, mh-folder-size-folder):
+	Ditto.
+
+	* mh-mime.el (mh-mml-forward-message): Ditto.
+
+	* mh-search.el (mh-swish-next-result, mh-mairix-next-result)
+	(mh-namazu-next-result, mh-grep-next-result, mh-md5sum-parser)
+	(mh-openssl-parser, mh-index-update-maps): Ditto.
+
+	* mh-seq.el (mh-translate-range, mh-narrow-to-header-field)
+	(mh-thread-generate): Ditto.
+
+2006-01-16  Katsumi Yamaoka <yamaoka@jpl.org>
+
+	* mh-mime.el (mh-mime-display, mh-mm-inline-message): Fix use of
+	mm- functions for proper text=flowed handling (addresses SF
+	#1273521).
+
 2006-01-15  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-limit-map, mh-help-messages): Change keybinding of
+	mh-narrow-to-from from / f to / m; mh-narrow-to-range from / r to
+	/ g.
+
+	* mh-utils.el (mh-show-limit-map): Ditto.
 
 	* mh-exec.el: Require mh-acros, mh-buffers, and mh-utils for
 	standalone compile.

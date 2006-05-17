@@ -53,14 +53,20 @@ FILE defaults to the file at the mark.  (That's the mark set by
 \\[set-mark-command], not by Dired's \\[dired-mark] command.)
 The prompted-for file is the first file given to `diff'.
 With prefix arg, prompt for second argument SWITCHES,
- which is options for `diff'."
+which is options for `diff'."
   (interactive
-   (let ((default (if (mark t)
+   (let ((current (dired-get-filename t))
+	 (default (if (mark t)
 		      (save-excursion (goto-char (mark t))
 				      (dired-get-filename t t)))))
+     (if (or (equal default current)
+	     (and (not (equal (dired-dwim-target-directory)
+			      (dired-current-directory)))
+		  (not mark-active)))
+	 (setq default nil))
      (require 'diff)
      (list (read-file-name (format "Diff %s with%s: "
-				   (dired-get-filename t)
+				   current
 				   (if default
 				       (concat " (default " default ")")
 				     ""))

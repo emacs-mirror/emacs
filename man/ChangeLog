@@ -1,3 +1,20 @@
+2006-01-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi: Update copyright.
+
+2006-01-16  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Standard Faces): Add `mode-line-buffer-id'.
+	Move `mode-line-highlight' before `mode-line-buffer-id'.
+
+2006-01-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Article Washing): Additions.
+
+2006-01-08  Alex Schroeder  <alex@gnu.org>
+
+	* pgg.texi (Caching passphrase): Rewording.
+
 2006-01-14  Richard M. Stallman  <rms@gnu.org>
 
 	* basic.texi (Inserting Text): Minor cleanup.

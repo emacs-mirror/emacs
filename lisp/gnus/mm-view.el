@@ -1,7 +1,7 @@
 ;;; mm-view.el --- functions for viewing MIME objects
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -51,8 +51,7 @@
 (defvar mm-text-html-renderer-alist
   '((w3  . mm-inline-text-html-render-with-w3)
     (w3m . mm-inline-text-html-render-with-w3m)
-    (w3m-standalone mm-inline-render-with-stdin nil
-		    "w3m" "-dump" "-T" "text/html")
+    (w3m-standalone . mm-inline-text-html-render-with-w3m-standalone)
     (links mm-inline-render-with-file
 	   mm-links-remove-leading-blank
 	   "links" "-dump" file)
@@ -64,8 +63,7 @@
 (defvar mm-text-html-washer-alist
   '((w3  . gnus-article-wash-html-with-w3)
     (w3m . gnus-article-wash-html-with-w3m)
-    (w3m-standalone mm-inline-wash-with-stdin nil
-		    "w3m" "-dump" "-T" "text/html")
+    (w3m-standalone . gnus-article-wash-html-with-w3m-standalone)
     (links mm-inline-wash-with-file
 	   mm-links-remove-leading-blank
 	   "links" "-dump" file)
@@ -263,6 +261,30 @@
 			  '(background background-pixmap foreground)))
 	      (delete-region ,(point-min-marker)
 			     ,(point-max-marker)))))))))
+
+(defun mm-inline-text-html-render-with-w3m-standalone (handle)
+  "Render a text/html part using w3m."
+  (let ((source (mm-get-part handle))
+	(charset (mail-content-type-get (mm-handle-type handle) 'charset))
+	cs)
+    (unless (and charset
+		 (setq cs (mm-charset-to-coding-system charset))
+		 (not (eq cs 'ascii)))
+      ;; The default.
+      (setq charset "iso-8859-1"
+	    cs 'iso-8859-1))
+    (mm-insert-inline
+     handle
+     (mm-with-unibyte-buffer
+       (insert source)
+       (mm-enable-multibyte)
+       (let ((coding-system-for-write 'binary)
+	     (coding-system-for-read cs))
+	 (call-process-region
+	  (point-min) (point-max)
+	  "w3m" t t nil "-dump" "-T" "text/html"
+	  "-I" charset "-O" charset))
+       (buffer-string)))))
 
 (defun mm-links-remove-leading-blank ()
   ;; Delete the annoying three spaces preceding each line of links

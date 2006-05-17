@@ -1000,8 +1000,8 @@ still visible.\n")
   "'"    mh-show-narrow-to-tick
   "?"    mh-prefix-help
   "c"    mh-show-narrow-to-cc
-  "f"    mh-show-narrow-to-from
-  "r"    mh-show-narrow-to-range
+  "g"    mh-show-narrow-to-range
+  "m"    mh-show-narrow-to-from
   "s"    mh-show-narrow-to-subject
   "t"    mh-show-narrow-to-to
   "w"    mh-show-widen)
