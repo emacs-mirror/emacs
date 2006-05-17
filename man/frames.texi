@@ -293,7 +293,7 @@ names, all use the clipboard.
 the Emacs yank functions consult the clipboard before the primary
 selection, and to make the kill functions to store in the clipboard as
 well as the primary selection.  Otherwise they do not access the
-clipboard at all.  Using the clipboard is the default on MS-Windows,
+clipboard at all.  Using the clipboard is the default on MS-Windows and Mac,
 but not on other systems.
 
 @node Mouse References

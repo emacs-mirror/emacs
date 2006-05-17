@@ -27,7 +27,7 @@ installed programs.
 
 ---
 ** You can build Emacs with Gtk+ widgets by specifying `--with-x-toolkit=gtk'
-when you run configure.  This requires Gtk+ 2.0 or newer.  This port
+when you run configure.  This requires Gtk+ 2.4 or newer.  This port
 provides a way to display multilingual text in menus (with some caveats).
 
 ---
@@ -575,6 +575,21 @@ is only rarely needed.
 suffix from every line before processing all the lines.
 
 +++
+*** If the local variables list contains any variable-value pairs that
+are not known to be safe, Emacs shows a prompt asking whether to apply
+the local variables list as a whole.  In earlier versions, a prompt
+was only issued for variables explicitly marked as risky (for the
+definition of risky variables, see `risky-local-variable-p').
+
+At the prompt, the user can choose to save the contents of this local
+variables list to `safe-local-variable-values'.  This new customizable
+option is a list of variable-value pairs that are known to be safe.
+Variables can also be marked as safe with the existing
+`safe-local-variable' property (see `safe-local-variable-p').
+However, risky variables will not be added to
+`safe-local-variable-values' in this way.
+
++++
 *** find-file-read-only visits multiple files in read-only mode,
 when the file name contains wildcard characters.
 
@@ -942,7 +957,7 @@ to explicitly specify a fontSet resource for this to work, for example
 ESC, like they do for Gtk+, Mac and W32.
 
 +++
-*** For Gtk+ version 2.4, you can make Emacs use the old file dialog
+*** For the Gtk+ version, you can make Emacs use the old file dialog
 by setting the variable `x-use-old-gtk-file-dialog' to t.  Default is to use
 the new dialog.
 

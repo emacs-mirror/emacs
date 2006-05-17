@@ -1,3 +1,39 @@
+2006-02-16  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-inherit-face-flag): New variable. Non-nil means that
+	the defface :inherit keyword is available.
+	(mh-face-data): New variable (contains all face specs) and
+	function (accessor).
+	(mh-folder-address, mh-folder-body, mh-folder-cur-msg-number)
+	(mh-folder-date, mh-folder-deleted, mh-folder-followup)
+	(mh-folder-msg-number, mh-folder-refiled)
+	(mh-folder-sent-to-me-hint, mh-folder-sent-to-me-sender)
+	(mh-folder-subject, mh-folder-tick, mh-folder-to)
+	(mh-search-folder, mh-letter-header-field, mh-show-cc)
+	(mh-show-date, mh-show-from)
+	(mh-show-header, mh-show-pgg-bad, mh-show-pgg-good)
+	(mh-show-pgg-unknown, mh-show-signature, mh-show-subject)
+	(mh-show-to, mh-show-xface, mh-speedbar-folder)
+	(mh-speedbar-folder-with-unseen-messages)
+	(mh-speedbar-selected-folder)
+	(mh-speedbar-selected-folder-with-unseen-messages): Use
+	mh-face-data.
+
+	* mh-utils.el (mh-image-load-path): The variables image-load-path
+	or load-path would not get updated if user set mh-image-load-path.
+	Moved tests and add-to-list calls outside of cond so they are
+	applied consistently, even if they are redundant in some
+	circumstances. Efficiency isn't a concern here. Made error
+	messages more user-friendly.
+
+2006-02-15  Peter S Galbraith  <psg@debian.org>
+
+	* mh-compat.el (mh-image-search-load-path): Compatibility code.
+	Emacs 21 and XEmacs don't have `image-search-load-path'.
+
+	* mh-utils.el (mh-image-load-path): Don't bail out on error if the
+	images are already found.
+
 2006-02-10  Bill Wohler  <wohler@newt.com>
 
 	* mh-search.el (mh-search): Wrap code in (block mh-search ...)

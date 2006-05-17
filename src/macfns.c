@@ -1647,36 +1647,15 @@ x_set_menu_bar_lines (f, value, oldval)
      struct frame *f;
      Lisp_Object value, oldval;
 {
-  int nlines;
-  int olines = FRAME_MENU_BAR_LINES (f);
-
-  /* Right now, menu bars don't work properly in minibuf-only frames;
-     most of the commands try to apply themselves to the minibuffer
-     frame itself, and get an error because you can't switch buffers
-     in or split the minibuffer window.  */
-  if (FRAME_MINIBUF_ONLY_P (f))
-    return;
-
-  if (INTEGERP (value))
-    nlines = XINT (value);
-  else
-    nlines = 0;
+  /* Make sure we redisplay all windows in this frame.  */
+  windows_or_buffers_changed++;
 
   FRAME_MENU_BAR_LINES (f) = 0;
-  if (nlines)
-    FRAME_EXTERNAL_MENU_BAR (f) = 1;
-  else
-    {
-      if (FRAME_EXTERNAL_MENU_BAR (f) == 1)
-	free_frame_menubar (f);
-      FRAME_EXTERNAL_MENU_BAR (f) = 0;
-
-      /* Adjust the frame size so that the client (text) dimensions
-	 remain the same.  This depends on FRAME_EXTERNAL_MENU_BAR being
-	 set correctly.  */
-      x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
-      do_pending_window_change (0);
-    }
+  /* The menu bar is always shown.  */
+  FRAME_EXTERNAL_MENU_BAR (f) = 1;
+  if (FRAME_MAC_P (f) && f->output_data.mac->menubar_widget == 0)
+    /* Make sure next redisplay shows the menu bar.  */
+    XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = Qt;
   adjust_glyphs (f);
 }
 

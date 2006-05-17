@@ -1,3 +1,11 @@
+2006-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* NEWS: Changes in handling of file local variables.
+
+2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* NEWS: Gtk+ 2.4 is required.
+
 2006-02-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* PROBLEMS (Mac OS X): Add QuickTime 7.0.4 / Mac OS X 10.3.9 breakage.

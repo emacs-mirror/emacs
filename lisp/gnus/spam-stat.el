@@ -323,7 +323,7 @@ Use `spam-stat-ngood', `spam-stat-nbad', `spam-stat-good',
      ,@body))
 
 (defun spam-stat-buffer-words ()
-  "Return a hash table of words and number of occurences in the buffer."
+  "Return a hash table of words and number of occurrences in the buffer."
   (with-spam-stat-max-buffer-size
    (with-syntax-table spam-stat-syntax-table
      (goto-char (point-min))

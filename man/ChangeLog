@@ -1,3 +1,43 @@
+2006-02-15  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* maintaining.texi (Create Tags Table): Explain why the
+	exception when etags writes to files under the /dev tree.
+
+2006-02-14  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Safe File Variables): Lots of clarification.
+	Renamed from Unsafe File Variables.
+
+2006-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Unsafe File Variables): File variable confirmation
+	assumed denied in batch mode.
+
+2006-02-14  Richard M. Stallman  <rms@gnu.org>
+
+	* building.texi (GDB User Interface Layout): Don't say `inferior'
+	for program being debugged.
+
+2006-02-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Replace
+	gdb-use-inferior-io-buffer with gdb-use-separate-io-buffer.
+
+2006-02-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Specifying File Variables, Unsafe File Variables):
+	New nodes, split from File Variables.  Document new file local
+	variable behavior.
+
+2006-02-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* display.texi (Standard Faces):
+	* faq.texi (Colors on a TTY):
+	* files.texi (Visiting):
+	* frames.texi (Clipboard):
+	* glossary.texi (Glossary) <Clipboard>:
+	* xresources.texi (X Resources): Mention Mac OS port.
+
 2006-02-12  Karl Berry  <karl@gnu.org>
 
 	* faq.texi (Emacs for Atari ST): use Sch@"auble instead of the

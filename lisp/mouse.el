@@ -481,21 +481,8 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 
 		 ;; grow/shrink minibuffer?
 		 (if should-enlarge-minibuffer
-		     (progn
-		       ;; yes.  briefly select minibuffer so
-		       ;; enlarge-window will affect the
-		       ;; correct window.
-		       (select-window minibuffer)
-		       ;; scale back shrinkage if it would
-		       ;; make the minibuffer less than 1
-		       ;; line tall.
-		       (if (and (> growth 0)
-				(< (- (window-height minibuffer)
-				      growth)
-				   1))
-			   (setq growth (1- (window-height minibuffer))))
-		       (enlarge-window (- growth))
-		       (select-window start-event-window))
+		     (unless resize-mini-windows
+		       (mouse-drag-move-window-bottom start-event-window growth))
 		   ;; no.  grow/shrink the selected window
 		   ;(message "growth = %d" growth)
 		   (if mode-line-p

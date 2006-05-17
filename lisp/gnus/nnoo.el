@@ -61,12 +61,16 @@
 
 (defmacro nnoo-declare (backend &rest parents)
   `(eval-and-compile
-     (push (list ',backend
-		 (mapcar (lambda (p) (list p)) ',parents)
-		 nil nil)
-	   nnoo-definition-alist)
-     (push (list ',backend "*internal-non-initialized-backend*")
-	   nnoo-state-alist)))
+     (if (assq ',backend nnoo-definition-alist)
+	 (setcar (cdr (assq ',backend nnoo-definition-alist))
+		 (mapcar 'list ',parents))
+       (push (list ',backend
+		   (mapcar 'list ',parents)
+		   nil nil)
+	     nnoo-definition-alist))
+     (unless (assq ',backend nnoo-state-alist)
+       (push (list ',backend "*internal-non-initialized-backend*")
+	     nnoo-state-alist))))
 (put 'nnoo-declare 'lisp-indent-function 1)
 
 (defun nnoo-parents (backend)

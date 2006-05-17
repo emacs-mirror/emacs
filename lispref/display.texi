@@ -3280,7 +3280,7 @@ Display @var{string} instead of the text that has this property.
 Recursive display specifications are not supported---@var{string}'s
 @code{display} properties, if any, are not used.
 
-@item (image @var{image-props})
+@item (image . @var{image-props})
 This kind of display specification is an image descriptor (@pxref{Images}).
 When used as a display specification, it means to display the image
 instead of the text that has the display specification.
@@ -3507,12 +3507,11 @@ function always returns @code{t}; for other image types, it returns
 @subsection Image Descriptors
 @cindex image descriptor
 
-  An image description is a list of the form @code{(image
-@var{props})}, where @var{props} is a property list containing
-alternating keyword symbols (symbols whose names start with a colon) and
-their values.  You can use any Lisp object as a property, but the only
-properties that have any special meaning are certain symbols, all of
-them keywords.
+  An image description is a list of the form @code{(image . @var{props})},
+where @var{props} is a property list containing alternating keyword
+symbols (symbols whose names start with a colon) and their values.
+You can use any Lisp object as a property, but the only properties
+that have any special meaning are certain symbols, all of them keywords.
 
   Every image descriptor must contain the property @code{:type
 @var{type}} to specify the format of the image.  The value of @var{type}

@@ -510,7 +510,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 		(if (> (length keys) 0)
 		    (if remapped
 			(format "%s is remapped to %s which is on %s"
-				definition symbol keys)
+				symbol remapped keys)
 		      (format "%s is on %s" symbol keys))
 		  ;; If this is the command the user asked about,
 		  ;; and it is not on any key, say so.
@@ -565,31 +565,30 @@ the last key hit are used.
 
 If KEY is a menu item or a tool-bar button that is disabled, this command
 temporarily enables it to allow getting help on disabled items and buttons."
-  (interactive)
-  (let ((enable-disabled-menus-and-buttons t)
-	(save-yank-menu))
-    (if key
-	;; Non-interactive invocation
-	(describe-key-briefly-internal key insert untranslated)
-      ;; If yank-menu is empty, populate it temporarily, so that
-      ;; "Select and Paste" menu can generate a complete event
-      (if (null (cdr yank-menu))
-	  (unwind-protect
-	      (progn
-		(setq save-yank-menu (copy-sequence yank-menu))
-		(menu-bar-update-yank-menu "(any string)" nil)
-		(call-interactively 'describe-key-briefly-internal))
-	    (progn (setq yank-menu (copy-sequence save-yank-menu))
-		   (fset 'yank-menu (cons 'keymap yank-menu))))
-	(call-interactively 'describe-key-briefly-internal)))))
-
-(defun describe-key-briefly-internal (key &optional insert untranslated)
-  "Print the name of the function KEY invokes.  KEY is a string.
-If INSERT (the prefix arg) is non-nil, insert the message in the buffer.
-If non-nil UNTRANSLATED is a vector of the untranslated events.
-It can also be a number in which case the untranslated events from
-the last key hit are used."
-  (interactive "kDescribe key briefly: \nP\np")
+  (interactive
+   (let ((enable-disabled-menus-and-buttons t)
+	 (cursor-in-echo-area t)
+	 saved-yank-menu)
+     (unwind-protect
+	 (let (key)
+	   ;; If yank-menu is empty, populate it temporarily, so that
+	   ;; "Select and Paste" menu can generate a complete event.
+	   (when (null (cdr yank-menu))
+	     (setq saved-yank-menu (copy-sequence yank-menu))
+	     (menu-bar-update-yank-menu "(any string)" nil))
+	   (setq key (read-key-sequence "Describe key (or click or menu item): "))
+	   (list
+	    key
+	    (prefix-numeric-value current-prefix-arg)
+	    ;; If KEY is a down-event, read the corresponding up-event
+	    ;; and use it as the third argument.
+	    (if (and (consp key) (symbolp (car key))
+		     (memq 'down (cdr (get (car key) 'event-symbol-elements))))
+		(read-event))))
+       ;; Put yank-menu back as it was, if we changed it.
+       (when saved-yank-menu
+	 (setq yank-menu (copy-sequence saved-yank-menu))
+	 (fset 'yank-menu (cons 'keymap yank-menu))))))
   (if (numberp untranslated)
       (setq untranslated (this-single-command-raw-keys)))
   (save-excursion
@@ -611,6 +610,11 @@ the last key hit are used."
       (let ((defn (or (string-key-binding key)
 		      (key-binding key t)))
 	    key-desc)
+	;; Handle the case where we faked an entry in "Select and Paste" menu.
+	(if (and (eq defn nil)
+		 (stringp (aref key (1- (length key))))
+		 (eq (key-binding (substring key 0 -1)) 'yank-menu))
+	    (setq defn 'menu-bar-select-yank))
 	;; Don't bother user with strings from (e.g.) the select-paste menu.
 	(if (stringp (aref key (1- (length key))))
 	    (aset key (1- (length key)) "(any string)"))
@@ -641,35 +645,30 @@ UP-EVENT is the up-event that was discarded by reading KEY, or nil.
 
 If KEY is a menu item or a tool-bar button that is disabled, this command
 temporarily enables it to allow getting help on disabled items and buttons."
-  (interactive)
-  (let ((enable-disabled-menus-and-buttons t)
-	(save-yank-menu))
-    (if key
-	;; Non-interactive invocation
-	(describe-key-internal key untranslated up-event)
-      ;; If yank-menu is empty, populate it temporarily, so that
-      ;; "Select and Paste" menu can generate a complete event
-      (if (null (cdr yank-menu))
-	  (unwind-protect
-	      (progn
-		(setq save-yank-menu (copy-sequence yank-menu))
-		(menu-bar-update-yank-menu "(any string)" nil)
-		(call-interactively 'describe-key-internal))
-	    (progn (setq yank-menu (copy-sequence save-yank-menu))
-		   (fset 'yank-menu (cons 'keymap yank-menu))))
-	(call-interactively 'describe-key-internal)))))
-
-(defun describe-key-internal (key &optional untranslated up-event)
-  "Display documentation of the function invoked by KEY.
-KEY can be any kind of a key sequence; it can include keyboard events,
-mouse events, and/or menu events.  When calling from a program,
-pass KEY as a string or a vector.
-
-If non-nil, UNTRANSLATED is a vector of the corresponding untranslated events.
-It can also be a number, in which case the untranslated events from
-the last key sequence entered are used.
-UP-EVENT is the up-event that was discarded by reading KEY, or nil."
-  (interactive "kDescribe key (or click or menu item): \np\nU")
+  (interactive
+   (let ((enable-disabled-menus-and-buttons t)
+	 (cursor-in-echo-area t)
+	 saved-yank-menu)
+     (unwind-protect
+	 (let (key)
+	   ;; If yank-menu is empty, populate it temporarily, so that
+	   ;; "Select and Paste" menu can generate a complete event.
+	   (when (null (cdr yank-menu))
+	     (setq saved-yank-menu (copy-sequence yank-menu))
+	     (menu-bar-update-yank-menu "(any string)" nil))
+	   (setq key (read-key-sequence "Describe key (or click or menu item): "))
+	   (list
+	    key
+	    (prefix-numeric-value current-prefix-arg)
+	    ;; If KEY is a down-event, read the corresponding up-event
+	    ;; and use it as the third argument.
+	    (if (and (consp key) (symbolp (car key))
+		     (memq 'down (cdr (get (car key) 'event-symbol-elements))))
+		(read-event))))
+       ;; Put yank-menu back as it was, if we changed it.
+       (when saved-yank-menu
+	 (setq yank-menu (copy-sequence saved-yank-menu))
+	 (fset 'yank-menu (cons 'keymap yank-menu))))))
   (if (numberp untranslated)
       (setq untranslated (this-single-command-raw-keys)))
   (save-excursion
@@ -686,6 +685,11 @@ UP-EVENT is the up-event that was discarded by reading KEY, or nil."
 	    (set-buffer (window-buffer window))
 	(goto-char position))
       (let ((defn (or (string-key-binding key) (key-binding key t))))
+	;; Handle the case where we faked an entry in "Select and Paste" menu.
+	(if (and (eq defn nil)
+		 (stringp (aref key (1- (length key))))
+		 (eq (key-binding (substring key 0 -1)) 'yank-menu))
+	    (setq defn 'menu-bar-select-yank))
 	(if (or (null defn) (integerp defn) (equal defn 'undefined))
 	    (message "%s is undefined" (help-key-description key untranslated))
 	  (help-setup-xref (list #'describe-function defn) (interactive-p))

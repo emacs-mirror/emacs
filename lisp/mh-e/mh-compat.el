@@ -115,6 +115,12 @@ introduced in Emacs 22."
       `(face-background ,face ,frame)
     `(face-background ,face ,frame ,inherit)))
 
+(mh-defun-compat mh-image-search-load-path
+  image-search-load-path (file &optional path)
+  "Emacs 21 and XEmacs don't have `image-search-load-path'.
+This function returns nil on those systems."
+  nil)
+
 ;; For XEmacs.
 (defalias 'mh-line-beginning-position
   (if (fboundp 'line-beginning-position)
@@ -131,7 +137,7 @@ introduced in Emacs 22."
 (mh-defun-compat mh-mail-abbrev-make-syntax-table
   mail-abbrev-make-syntax-table ()
   "Emacs 21 and XEmacs don't have `mail-abbrev-make-syntax-table'.
-This function does nothing on those systems."
+This function returns nil on those systems."
   nil)
 
 (mh-defun-compat mh-match-string-no-properties

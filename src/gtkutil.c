@@ -3242,10 +3242,27 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
    the GtkImage with a new image.  */
 #define XG_TOOL_BAR_IMAGE_DATA "emacs-tool-bar-image"
 
+/* The key for storing the latest modifiers so the activate callback can
+   get them.  */
+#define XG_TOOL_BAR_LAST_MODIFIER "emacs-tool-bar-modifier"
+
+
 /* Callback function invoked when a tool bar item is pressed.
    W is the button widget in the tool bar that got pressed,
    CLIENT_DATA is an integer that is the index of the button in the
    tool bar.  0 is the first button.  */
+
+static gboolean
+xg_tool_bar_button_cb (widget, event, user_data)
+    GtkWidget      *widget;
+    GdkEventButton *event;
+    gpointer        user_data;
+{
+  g_object_set_data (G_OBJECT (user_data), XG_TOOL_BAR_LAST_MODIFIER,
+                     (gpointer) event->state);
+  return FALSE;
+}
+
 
 static void
 xg_tool_bar_callback (w, client_data)
@@ -3254,6 +3271,8 @@ xg_tool_bar_callback (w, client_data)
 {
   /* The EMACS_INT cast avoids a warning. */
   int idx = (int) (EMACS_INT) client_data;
+  int mod = (int) g_object_get_data (G_OBJECT (w), XG_TOOL_BAR_LAST_MODIFIER);
+
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object key, frame;
   struct input_event event;
@@ -3274,7 +3293,10 @@ xg_tool_bar_callback (w, client_data)
   event.kind = TOOL_BAR_EVENT;
   event.frame_or_window = frame;
   event.arg = key;
-  event.modifiers = 0;  /* These are not available.  */
+  /* Convert between the modifier bits GDK uses and the modifier bits
+     Emacs uses.  This assumes GDK an X masks are the same, which they are when
+     this is written.  */
+  event.modifiers = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f), mod);
   kbd_buffer_store_event (&event);
 }
 
@@ -3292,6 +3314,10 @@ xg_tool_bar_detach_callback (wbox, w, client_data)
      gpointer client_data;
 {
   FRAME_PTR f = (FRAME_PTR) client_data;
+  extern int x_gtk_whole_detached_tool_bar;
+
+  g_object_set (G_OBJECT (w), "show-arrow", !x_gtk_whole_detached_tool_bar,
+		NULL);
 
   if (f)
     {
@@ -3322,6 +3348,7 @@ xg_tool_bar_attach_callback (wbox, w, client_data)
      gpointer client_data;
 {
   FRAME_PTR f = (FRAME_PTR) client_data;
+  g_object_set (G_OBJECT (w), "show-arrow", TRUE, NULL);
 
   if (f)
     {
@@ -3628,6 +3655,13 @@ update_frame_tool_bar (f)
           
           while (! GTK_IS_BUTTON (w))
             w = gtk_widget_get_parent (w);
+
+          /* Callback to save modifyer mask (Shift/Control, etc).  GTK makes
+             no distinction based on modifiers in the activate callback,
+             so we have to do it ourselves.  */
+          g_signal_connect (w, "button-release-event",
+                            GTK_SIGNAL_FUNC (xg_tool_bar_button_cb),
+                            ti);
 
           g_object_set_data (G_OBJECT (w), XG_FRAME_DATA, (gpointer)f);
 

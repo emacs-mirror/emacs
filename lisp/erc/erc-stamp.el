@@ -240,19 +240,18 @@ be printed just before the window-width."
     (goto-char (point-max))
     (forward-char -1);; before the last newline
     (let* ((current-window (get-buffer-window (current-buffer)))
+	   (str-width (string-width string))
 	   (pos (cond
 		 (erc-timestamp-right-column erc-timestamp-right-column)
 		 ((and (boundp 'erc-fill-mode)
 		       erc-fill-mode
 		       (boundp 'erc-fill-column)
 		       erc-fill-column)
-		  (1+ erc-fill-column))
+		  (1+ (- erc-fill-column str-width)))
 		 (fill-column
-		  (1+ fill-column))
+		  (1+ (- fill-column str-width)))
 		 (t
-		  (- (window-width)
-		     (string-width string)
-		     1))))
+		  (- (window-width) str-width 1))))
 	   (from (point))
 	   (col (current-column))
 	   indent)

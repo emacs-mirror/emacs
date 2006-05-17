@@ -8,7 +8,8 @@
   You can customize some X-related aspects of Emacs behavior using X
 resources, as is usual for programs that use X.  On MS-Windows, you
 can customize some of the same aspects using the system registry.
-@xref{MS-Windows Registry}.
+@xref{MS-Windows Registry}.  Likewise, the Mac Carbon port emulates X
+resources using the Preferences system.  @xref{Mac Environment Variables}.
 
   When Emacs is built using an `X toolkit', such as Lucid or LessTif,
 you need to use X resources to customize the appearance of the

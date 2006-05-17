@@ -769,19 +769,18 @@ external if displayed external."
 			  (gnus-map-function mm-file-name-rewrite-functions
 					     (file-name-nondirectory filename))
 			  dir))
-	    (setq file (mm-make-temp-file (expand-file-name "mm." dir)))
-	    (let ((newname
-		   ;; Use nametemplate (defined in RFC1524) if it is
-		   ;; specified in mailcap.
-		   (if (assoc "nametemplate" mime-info)
-		       (format (cdr (assoc "nametemplate" mime-info)) file)
-		     ;; Add a suffix according to `mailcap-mime-extensions'.
-		     (concat file (car (rassoc (mm-handle-media-type handle)
-					       mailcap-mime-extensions))))))
-	      (unless (string-equal file newname)
-		(when (file-exists-p file)
-		  (rename-file file newname))
-		(setq file newname))))
+	    ;; Use nametemplate (defined in RFC1524) if it is specified
+	    ;; in mailcap.
+	    (let ((suffix (cdr (assoc "nametemplate" mime-info))))
+	      (if (and suffix
+		       (string-match "\\`%s\\(\\..+\\)\\'" suffix))
+		  (setq suffix (match-string 1 suffix))
+		;; Otherwise, use a suffix according to
+		;; `mailcap-mime-extensions'.
+		(setq suffix (car (rassoc (mm-handle-media-type handle)
+					  mailcap-mime-extensions))))
+	      (setq file (mm-make-temp-file (expand-file-name "mm." dir)
+					    nil suffix))))
 	  (let ((coding-system-for-write mm-binary-coding-system))
 	    (write-region (point-min) (point-max) file nil 'nomesg))
 	  (message "Viewing with %s" method)
@@ -1312,8 +1311,8 @@ be determined."
     ;; out to a file, and then create a file
     ;; specifier.
     (let ((file (mm-make-temp-file
-		 (expand-file-name "emm.xbm"
-				   mm-tmp-directory))))
+		 (expand-file-name "emm" mm-tmp-directory)
+		 nil ".xbm")))
       (unwind-protect
 	  (progn
 	    (write-region (point-min) (point-max) file)

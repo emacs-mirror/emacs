@@ -175,7 +175,7 @@ mouse button and release it without moving the mouse.  @xref{Mouse Buttons}.
 @item Clipboard
 A clipboard is a buffer provided by the window system for transferring
 text between applications.  On the X Window system, the clipboard is
-provided in addition to the primary selection (q.v.@:); on MS-Windows,
+provided in addition to the primary selection (q.v.@:); on MS-Windows and Mac,
 the clipboard is used @emph{instead} of the primary selection.
 @xref{Clipboard}.
 

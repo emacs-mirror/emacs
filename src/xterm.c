@@ -322,8 +322,7 @@ static void x_set_window_size_1 P_ ((struct frame *, int, int, int));
 static const XColor *x_color_cells P_ ((Display *, int *));
 static void x_update_window_end P_ ((struct window *, int, int));
 void x_delete_display P_ ((struct x_display_info *));
-static unsigned int x_x_to_emacs_modifiers P_ ((struct x_display_info *,
-						unsigned));
+
 static int x_io_error_quitter P_ ((Display *));
 int x_catch_errors P_ ((Display *));
 void x_uncatch_errors P_ ((Display *, int));
@@ -3464,7 +3463,7 @@ x_find_modifier_meanings (dpyinfo)
 /* Convert between the modifier bits X uses and the modifier bits
    Emacs uses.  */
 
-static unsigned int
+unsigned int
 x_x_to_emacs_modifiers (dpyinfo, state)
      struct x_display_info *dpyinfo;
      unsigned int state;
@@ -3591,6 +3590,9 @@ note_mouse_movement (frame, event)
   last_mouse_movement_time = event->time;
   last_mouse_motion_event = *event;
   XSETFRAME (last_mouse_motion_frame, frame);
+
+  if (!FRAME_X_OUTPUT (frame))
+    return 0;
 
   if (event->window != FRAME_X_WINDOW (frame))
     {

@@ -1253,9 +1253,11 @@
 			(calcFunc-expand temp)
 		      (setq v (list 'var 'PARTS math-cur-record)
 			    temp (let (calc-next-why)
-				   (math-solve-for (math-sub v temp) 0 v nil)))
-		      (and temp (not (integerp temp))
-			   (math-simplify-extended temp)))))
+                                   (math-simplify-extended
+                                    (math-solve-for (math-sub v temp) 0 v nil)))
+                            temp (if (and (eq (car-safe temp) '/) 
+                                          (math-zerop (nth 2 temp))) 
+                                     nil temp)))))
 	   (setcar (cdr math-cur-record) 'busy)))))
 
 ;;; This tries two different formulations, hoping the algebraic simplifier

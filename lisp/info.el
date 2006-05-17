@@ -134,7 +134,7 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defface info-xref-visited
-  '((t :inherit link-visited))
+  '((t :inherit (link-visited info-xref)))
   "Face for visited Info cross-references."
   :version "22.1"
   :group 'info)
@@ -1407,11 +1407,13 @@ any double quotes or backslashes must be escaped (\\\",\\\\)."
 		(concat
 		 " ("
 		 (if (stringp Info-current-file)
-		     (file-name-nondirectory Info-current-file)
+		     (replace-regexp-in-string
+		      "%" "%%" (file-name-nondirectory Info-current-file))
 		   "")
 		 ") "
 		 (if Info-current-node
-		     (propertize Info-current-node
+		     (propertize (replace-regexp-in-string
+				  "%" "%%" Info-current-node)
 				 'face 'mode-line-buffer-id
 				 'help-echo
 				 "mouse-1: scroll forward, mouse-3: scroll back"

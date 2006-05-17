@@ -96,10 +96,11 @@ This variable is used by that function to avoid doing the work repeatedly.")
   "Ensure that the MH-E images are accessible by `find-image'.
 
 Images for MH-E are found in \"../../etc/images\" relative to the
-files in \"lisp/mh-e\". This function saves the actual location
-found in the variable `mh-image-load-path'. If the images on your
-system are actually located elsewhere, then set the variable
-`mh-image-load-path' before starting MH-E.
+files in \"lisp/mh-e\", in `image-load-path', or in `load-path'.
+This function saves the actual location found in the variable
+`mh-image-load-path'. If the images on your system are actually
+located elsewhere, then set the variable `mh-image-load-path'
+before starting MH-E.
 
 If `image-load-path' exists (since Emacs 22), then the contents
 of the variable `mh-image-load-path' is added to it if isn't
@@ -109,21 +110,39 @@ already there.
 
 See also variable `mh-image-load-path-called-flag'."
   (unless mh-image-load-path-called-flag
-    (if (or (not mh-image-load-path)
-            (not (file-exists-p mh-image-load-path)))
-        (let (mh-library-name)
-          ;; First, find mh-e in the load-path.
-          (setq mh-library-name (locate-library "mh-e"))
-          (if (not mh-library-name)
-              (error "Can not find MH-E in load-path"))
-          (setq mh-image-load-path
-                (expand-file-name (concat (file-name-directory mh-library-name)
-                                          "../../etc/images")))))
+    (cond
+     (mh-image-load-path)            ; user setting exists; we're done
+     ((mh-image-search-load-path "mh-logo.xpm")
+      ;; Images already in image-load-path.
+      (setq mh-image-load-path
+	    (file-name-directory (mh-image-search-load-path "mh-logo.xpm"))))
+     ((locate-library "mh-logo.xpm")
+      ;; Images already in load-path.
+      (setq mh-image-load-path
+	    (file-name-directory (locate-library "mh-logo.xpm"))))
+     (t
+      ;; Guess `mh-image-load-path' if it wasn't provided by the user.
+      (let (mh-library-name)
+        ;; First, find mh-e in the load-path.
+        (setq mh-library-name (locate-library "mh-e"))
+        (if (not mh-library-name)
+            (error "Can not find MH-E in load-path"))
+        ;; And then set mh-image-load-path relative to that.
+        (setq mh-image-load-path
+              (expand-file-name (concat
+                                 (file-name-directory mh-library-name)
+                                 "../../etc/images"))))))
     (if (not (file-exists-p mh-image-load-path))
-        (error "Can not find image directory %s" mh-image-load-path))
+        (error "Directory %s in mh-image-load-path does not exist"
+               mh-image-load-path))
+    (if (not (file-exists-p
+              (expand-file-name "mh-logo.xpm" mh-image-load-path)))
+      (error "Directory %s in mh-image-load-path does not contain MH-E images"
+             mh-image-load-path))
     (if (boundp 'image-load-path)
         (add-to-list 'image-load-path mh-image-load-path)
       (add-to-list 'load-path mh-image-load-path))
+
     (setq mh-image-load-path-called-flag t)))
 
 ;;;###mh-autoload

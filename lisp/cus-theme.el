@@ -38,7 +38,6 @@
     (suppress-keymap map)
     (define-key map "n" 'widget-forward)
     (define-key map "p" 'widget-backward)
-    (define-key map [mouse-1] 'widget-move-and-invoke)
     map)
   "Keymap for `custom-new-theme-mode'.")
 

@@ -1272,7 +1272,7 @@ customize, with completion.
 
 In Emacs 21.1 and later, colors and faces are supported in non-windowed mode,
 i.e.@: on Unix and GNU/Linux text-only terminals and consoles, and when
-invoked as @samp{emacs -nw} on X and MS-Windows.  (Colors and faces were
+invoked as @samp{emacs -nw} on X, MS-Windows, and Mac.  (Colors and faces were
 supported in the MS-DOS port since Emacs 19.29.)  Emacs automatically
 detects color support at startup and uses it if available.  If you think
 that your terminal supports colors, but Emacs won't use them, check the

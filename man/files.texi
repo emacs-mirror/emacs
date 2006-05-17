@@ -239,7 +239,7 @@ toolkit, commands invoked with the mouse (by clicking on the menu bar
 or tool bar) use the toolkit's standard File Selection dialog instead
 of prompting for the file name in the minibuffer.  On Unix and
 GNU/Linux platforms, Emacs does that when built with GTK, LessTif, and
-Motif toolkits; on MS-Windows, the GUI version does that by default.
+Motif toolkits; on MS-Windows and Mac, the GUI version does that by default.
 For information on how to customize this, see @ref{Dialog Boxes}.
 
   Secondly, Emacs supports ``drag and drop''; dropping a file into an

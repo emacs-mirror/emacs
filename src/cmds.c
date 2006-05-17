@@ -528,7 +528,8 @@ internal_self_insert (c, noautofill)
 	   justification, if any, know where the end is going to be.  */
 	SET_PT_BOTH (PT - 1, PT_BYTE - 1);
       tem = call0 (current_buffer->auto_fill_function);
-      if (c == '\n')
+      /* Test PT < ZV in case the auto-fill-function is strange.  */
+      if (c == '\n' && PT < ZV)
 	SET_PT_BOTH (PT + 1, PT_BYTE + 1);
       if (!NILP (tem))
 	hairy = 2;

@@ -1,3 +1,23 @@
+2006-02-16 Johan Bockg,AC%(Brd <bojohan+mail@dd.chalmers.se> (tiny change)
+
+	* display.texi (Other Display Specs, Image Descriptors): Revert
+	erroneous changes.  The previous description of image-descriptors
+	as `(image . PROPS)' was correct.
+
+2006-02-14  Richard M. Stallman  <rms@gnu.org>
+
+	* variables.texi (File Local Variables): Clarifications.
+
+2006-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* variables.texi (File Local Variables): Use @code for a cons
+	cell, not @var.
+
+2006-02-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* variables.texi (File Local Variables): Document new file local
+	variable behavior.
+
 2006-02-10  Kim F. Storm  <storm@cua.dk>
 
 	* eval.texi (Function Indirection): Add NOERROR to indirect-function.

@@ -59,7 +59,7 @@ completely verbatim - without any use of REGEXP.")
 
 This is a list of tags which should be removed, without any
 formatting.  Note that tags in the list are presented *without*
-any \"<\" or \">\".  All occurences of a tag appearing in this
+any \"<\" or \">\".  All occurrences of a tag appearing in this
 list are removed, irrespective of whether it is a closing or
 opening tag, or if the tag has additional attributes.  The
 deletion is done by the function `html2text-remove-tags'.
