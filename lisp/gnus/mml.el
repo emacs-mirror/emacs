@@ -1102,7 +1102,7 @@ Should be adopted if code in `message-send-mail' is changed."
 
 (defun mml-preview (&optional raw)
   "Display current buffer with Gnus, in a new buffer.
-If RAW, don't highlight the article."
+If RAW, display a raw encoded MIME message."
   (interactive "P")
   (save-excursion
     (let* ((buf (current-buffer))

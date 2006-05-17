@@ -1,3 +1,63 @@
+2005-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (XVarious): Fix description of gnus-use-toolbar; add
+	new variable gnus-toolbar-thickness.
+
+2005-11-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (XVarious): Revert description of gnus-use-toolbar.
+
+2005-11-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (X-Face): Fix description.
+	(XVarious): Remove gnus-xmas-logo-color-alist and
+	gnus-xmas-logo-color-style; fix description of gnus-use-toolbar.
+
+2005-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Group Parameters): Mention new varable
+	gnus-parameters-case-fold-search.
+	(Home Score File): Addition.
+
+2005-11-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* killing.texi (CUA Bindings): Add @section.
+
+2005-11-10  Kim F. Storm  <storm@cua.dk>
+
+	* emacs.texi (Top): Add CUA Bindings entry to menu.
+
+	* killing.texi (CUA Bindings): New node.  Moved here from
+	misc.texi and extended with info on rectangle commands and
+	rectangle highlighting, interface to registers, and the global
+	mark feature.
+
+	* misc.texi (Emulation): Move CUA bindings item to killing.texi.
+
+	* regs.texi: Prev link points to CUA Bindings node.
+
+2005-11-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help.texi (Help Echo): By default, help echos are only shown on
+	mouse-over, not on point-over.
+
+2005-11-04  J,bi(Br,bt(Bme Marant  <jerome@marant.org>
+
+	* misc.texi (Shell Mode): Describe how to activate password echoing.
+
+2005-11-04  Ulf Jasper  <ulf.jasper@web.de>
+
+	* newsticker.texi: VERSION changed to 1.9.  Updated UPDATED.
+	(Overview): List supported feed types.
+	(Installation): No installation necessary when using autoload.
+	(Configuration): Rename "RSS" to "news".
+
+2005-11-04 Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* pgg.texi (User Commands): Document additional passphrase
+	argument for pgg-encrypt-*, pgg-decrypt-*, and pgg-sign-* functions.
+	(Backend methods): Likewise for corresponding pgg-scheme-* functions.
+
 2005-11-04  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Version number changed to 3.19

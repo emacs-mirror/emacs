@@ -129,7 +129,7 @@ signer's public key, for example, the function @code{pgg-verify-region}
 fails immediately, but if the function had been called interactively, it
 would ask you to retrieve the signer's public key from the server.
 
-@deffn Command pgg-encrypt-region start end recipients &optional sign
+@deffn Command pgg-encrypt-region start end recipients &optional sign passphrase
 Encrypt the current region between @var{start} and @var{end} for
 @var{recipients}.  When the function were called interactively, you
 would be asked about the recipients.
@@ -138,29 +138,41 @@ If encryption is successful, it replaces the current region contents (in
 the accessible portion) with the resulting data.
 
 If optional argument @var{sign} is non-@code{nil}, the function is
-request to do a combined sign and encrypt.  This currently only work
-with GnuPG.
+request to do a combined sign and encrypt.  This currently is
+confirmed to work with GnuPG, but might not work with PGP or PGP5.
+
+If optional @var{passphrase} is @code{nil}, the passphrase will be
+obtained from the passphrase cache or user.
 @end deffn
 
-@deffn Command pgg-encrypt-symmetric-region start end
+@deffn Command pgg-encrypt-symmetric-region &optional start end passphrase
 Encrypt the current region between @var{start} and @var{end} using a
 symmetric cipher.  After invocation you are asked for a passphrase.
 
-This is currently only implemented for GnuPG.
+If optional @var{passphrase} is @code{nil}, the passphrase will be
+obtained from the passphrase cache or user.
+
+symmetric-cipher encryption is currently only implemented for GnuPG.
 @end deffn
 
-@deffn Command pgg-decrypt-region start end
+@deffn Command pgg-decrypt-region start end &optional passphrase
 Decrypt the current region between @var{start} and @var{end}.  If
 decryption is successful, it replaces the current region contents (in
 the accessible portion) with the resulting data.
+
+If optional @var{passphrase} is @code{nil}, the passphrase will be
+obtained from the passphrase cache or user.
 @end deffn
 
-@deffn Command pgg-sign-region start end &optional cleartext
+@deffn Command pgg-sign-region start end &optional cleartext passphrase
 Make the signature from text between @var{start} and @var{end}.  If the
 optional third argument @var{cleartext} is non-@code{nil}, or the
 function is called interactively, it does not create a detached
 signature.  In such a case, it replaces the current region contents (in
 the accessible portion) with the resulting data.
+
+If optional @var{passphrase} is @code{nil}, the passphrase will be
+obtained from the passphrase cache or user.
 @end deffn
 
 @deffn Command pgg-verify-region start end &optional signature fetch
@@ -309,26 +321,26 @@ argument @var{type} is non-@code{nil}, it searches from the secret
 keyrings.
 @end deffn
 
-@deffn Method pgg-scheme-encrypt-region scheme start end recipients &optional sign
+@deffn Method pgg-scheme-encrypt-region scheme start end recipients &optional sign passphrase
 Encrypt the current region between @var{start} and @var{end} for
 @var{recipients}.  If @var{sign} is non-@code{nil}, do a combined sign
 and encrypt.  If encryption is successful, it returns @code{t},
 otherwise @code{nil}.
 @end deffn
 
-@deffn Method pgg-scheme-encrypt-symmetric-region scheme start end
+@deffn Method pgg-scheme-encrypt-symmetric-region scheme start end &optional passphrase
 Encrypt the current region between @var{start} and @var{end} using a
 symmetric cipher and a passphrases.  If encryption is successful, it
 returns @code{t}, otherwise @code{nil}.  This function is currently only
 implemented for GnuPG.
 @end deffn
 
-@deffn Method pgg-scheme-decrypt-region scheme start end
+@deffn Method pgg-scheme-decrypt-region scheme start end &optional passphrase
 Decrypt the current region between @var{start} and @var{end}.  If
 decryption is successful, it returns @code{t}, otherwise @code{nil}.
 @end deffn
 
-@deffn Method pgg-scheme-sign-region scheme start end &optional cleartext
+@deffn Method pgg-scheme-sign-region scheme start end &optional cleartext passphrase
 Make the signature from text between @var{start} and @var{end}.  If the
 optional third argument @var{cleartext} is non-@code{nil}, it does not
 create a detached signature.  If signing is successful, it returns

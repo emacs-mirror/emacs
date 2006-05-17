@@ -105,12 +105,18 @@ A value of t means there is no limit--fontify regardless of the size."
   "A regular expression probably matching an e-mail address.")
 
 (defvar goto-address-url-regexp
-  (concat "\\<\\("
-	  (mapconcat 'identity
-		     (delete "mailto:" (copy-sequence thing-at-point-uri-schemes))
-		     "\\|")
-	  "\\)"
-          thing-at-point-url-path-regexp)
+  (concat
+   "\\<\\("
+   (mapconcat 'identity
+              (delete "mailto:"
+		      ;; Remove `data:', as it's not terribly useful to follow
+		      ;; those.  Leaving them causes `use Data::Dumper;' to be
+		      ;; fontified oddly in Perl files.
+                      (delete "data:"
+                              (copy-sequence thing-at-point-uri-schemes)))
+              "\\|")
+   "\\)"
+   thing-at-point-url-path-regexp)
   ;; (concat "\\b\\(s?https?\\|ftp\\|file\\|gopher\\|news\\|"
   ;; 	  "telnet\\|wais\\):\\(//[-a-zA-Z0-9_.]+:"
   ;; 	  "[0-9]*\\)?[-a-zA-Z0-9_=?#$@~`%&*+|\\/.,]*"

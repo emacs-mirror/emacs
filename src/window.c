@@ -1996,11 +1996,13 @@ window_loop (type, obj, mini, frames)
 	    break;
 
 	  case GET_LRU_WINDOW:
-	    /* t as arg means consider only full-width windows */
-	    if (!NILP (obj) && !WINDOW_FULL_WIDTH_P (w))
-	      break;
-	    /* Ignore dedicated windows and minibuffers.  */
-	    if (MINI_WINDOW_P (w) || (!mini && EQ (w->dedicated, Qt)))
+	    /* `obj' is an integer encoding a bitvector.
+	       `obj & 1' means consider only full-width windows.
+	       `obj & 2' means consider also dedicated windows. */
+	    if (((XINT (obj) & 1) && !WINDOW_FULL_WIDTH_P (w))
+		|| (!(XINT (obj) & 2) && EQ (w->dedicated, Qt))
+		/* Minibuffer windows are always ignored.  */
+		|| MINI_WINDOW_P (w))
 	      break;
 	    if (NILP (best_window)
 		|| (XFASTINT (XWINDOW (best_window)->use_time)
@@ -2051,9 +2053,9 @@ window_loop (type, obj, mini, frames)
 	    break;
 
 	  case GET_LARGEST_WINDOW:
-	    {
+	    { /* nil `obj' means to ignore dedicated windows.  */
 	      /* Ignore dedicated windows and minibuffers.  */
-	      if (MINI_WINDOW_P (w) || (!mini && EQ (w->dedicated, Qt)))
+	      if (MINI_WINDOW_P (w) || (NILP (obj) && EQ (w->dedicated, Qt)))
 		break;
 
 	      if (NILP (best_window))
@@ -2163,11 +2165,15 @@ If FRAME is a frame, search only that frame.  */)
 {
   register Lisp_Object w;
   /* First try for a window that is full-width */
-  w = window_loop (GET_LRU_WINDOW, Qt, !NILP (dedicated), frame);
+  w = window_loop (GET_LRU_WINDOW,
+		   NILP (dedicated) ? make_number (1) : make_number (3),
+		   0, frame);
   if (!NILP (w) && !EQ (w, selected_window))
     return w;
   /* If none of them, try the rest */
-  return window_loop (GET_LRU_WINDOW, Qnil, !NILP (dedicated), frame);
+  return window_loop (GET_LRU_WINDOW,
+		      NILP (dedicated) ? make_number (0) : make_number (2),
+		      0, frame);
 }
 
 DEFUN ("get-largest-window", Fget_largest_window, Sget_largest_window, 0, 2, 0,
@@ -2183,7 +2189,7 @@ If FRAME is a frame, search only that frame.  */)
     (frame, dedicated)
      Lisp_Object frame, dedicated;
 {
-  return window_loop (GET_LARGEST_WINDOW, Qnil, !NILP (dedicated),
+  return window_loop (GET_LARGEST_WINDOW, dedicated, 0,
 		      frame);
 }
 

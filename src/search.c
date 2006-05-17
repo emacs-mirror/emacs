@@ -1174,7 +1174,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       int raw_pattern_size_byte;
       unsigned char *patbuf;
       int multibyte = !NILP (current_buffer->enable_multibyte_characters);
-      unsigned char *base_pat = SDATA (string);
+      unsigned char *base_pat;
       /* Set to positive if we find a non-ASCII char that need
 	 translation.  Otherwise set to zero later.  */
       int charset_base = -1;

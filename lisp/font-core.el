@@ -293,7 +293,9 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
 
 (easy-mmode-define-global-mode
  global-font-lock-mode font-lock-mode turn-on-font-lock-if-enabled
- :extra-args (dummy))
+ :extra-args (dummy)
+ :initialize 'custom-initialize-safe-default
+ :init-value (not (or noninteractive emacs-basic-display)))
 
 ;;; End of Global Font Lock mode.
 

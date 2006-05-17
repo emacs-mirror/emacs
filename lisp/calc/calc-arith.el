@@ -374,6 +374,13 @@
          t)
         ((eq (car-safe a) '^)
          (math-check-known-square-matrixp (nth 1 a)))
+        ((or
+          (eq (car-safe a) '*)
+          (eq (car-safe a) '+)
+          (eq (car-safe a) '-))
+         (and
+          (math-check-known-square-matrixp (nth 1 a))
+          (math-check-known-square-matrixp (nth 2 a))))
         (t
          (let ((decl (if (eq (car a) 'var)
                          (or (assq (nth 2 a) math-decls-cache)
@@ -1960,7 +1967,8 @@
                   (if (and (= b -1)
                            (math-known-square-matrixp (nth 1 a))
                            (math-known-square-matrixp (nth 2 a)))
-                      (list '* (list '^ (nth 2 a) -1) (list '^ (nth 1 a) -1))
+                      (math-mul (math-pow-fancy (nth 2 a) -1) 
+                                (math-pow-fancy (nth 1 a) -1))
                     (list '^ a b)))
 		 ((and (eq (car-safe a) '*)
 		       (or (math-known-num-integerp b)

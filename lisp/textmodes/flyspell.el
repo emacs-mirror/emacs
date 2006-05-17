@@ -1362,7 +1362,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 			  ;; Detect when WORD can't be checked properly
 			  ;; because flyspell-get-word finds
 			  ;; just part of it, and treat that as ok.
-			  (if (< (length (flyspell-get-word nil))
+			  (if (< (length (car (flyspell-get-word nil)))
 				 (length word))
 			      nil
 			    (flyspell-word))))

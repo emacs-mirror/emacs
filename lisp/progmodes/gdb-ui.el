@@ -241,7 +241,6 @@ Also display the main routine in the disassembly buffer if present."
   :group 'gud
   :version "22.1")
 
-
 (defcustom gdb-use-inferior-io-buffer nil
   "Non-nil means display output from the inferior in a separate buffer."
   :type 'boolean
@@ -495,8 +494,8 @@ With arg, use separate IO iff arg is positive."
 	  (if (equal (nth 2 var) "0")
 	      (gdb-enqueue-input
 	       (list
-		(if (with-current-buffer
-			gud-comint-buffer (eq gud-minor-mode 'gdba))
+		(if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+			'gdba)
 		    (concat "server interpreter mi \"-var-evaluate-expression "
 			    (nth 1 var) "\"\n")
 		  (concat "-var-evaluate-expression " (nth 1 var) "\n"))
@@ -598,8 +597,8 @@ With arg, use separate IO iff arg is positive."
 (defun gdb-var-delete ()
   "Delete watch expression at point from the speedbar."
   (interactive)
-  (if (with-current-buffer
-	  gud-comint-buffer (memq gud-minor-mode '(gdbmi gdba)))
+  (if (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+	    '(gdbmi gdba))
       (let ((text (speedbar-line-text)))
 	(string-match "\\(\\S-+\\)" text)
 	(let* ((expr (match-string 1 text))
@@ -608,8 +607,8 @@ With arg, use separate IO iff arg is positive."
 	  (unless (string-match "\\." varnum)
 	    (gdb-enqueue-input
 	     (list
-	      (if (with-current-buffer gud-comint-buffer
-		    (eq gud-minor-mode 'gdba))
+	      (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		      'gdba)
 		  (concat "server interpreter mi \"-var-delete " varnum "\"\n")
 		(concat "-var-delete " varnum "\n"))
 		   'ignore))
@@ -626,8 +625,7 @@ With arg, use separate IO iff arg is positive."
     (setq value (read-string "New value: "))
     (gdb-enqueue-input
      (list
-      (if (with-current-buffer gud-comint-buffer
-	    (eq gud-minor-mode 'gdba))
+      (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
 	  (concat "server interpreter mi \"-var-assign "
 		  varnum " " value "\"\n")
 	(concat "-var-assign " varnum " " value "\n"))
@@ -646,7 +644,7 @@ TEXT is the text of the button we clicked on, a + or - item.
 TOKEN is data related to this node.
 INDENT is the current indentation depth."
   (cond ((string-match "+" text)        ;expand this node
-	 (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+	 (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
 	     (gdb-var-list-children token)
 	   (progn
 	     (gdbmi-var-update)
@@ -697,7 +695,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 		(setq trigger (funcall (car (cdr (cdr rules))))))
 	    (setq gdb-buffer-type key)
 	    (set (make-local-variable 'gud-minor-mode)
-		 (with-current-buffer gud-comint-buffer gud-minor-mode))
+		 (buffer-local-value 'gud-minor-mode gud-comint-buffer))
 	    (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
 	    (if trigger (funcall trigger)))
 	  new))))
@@ -884,22 +882,21 @@ This filter may simply queue input for a later time."
   (setq gdb-flush-pending-output nil)
   (if gdb-enable-debug-log (push (cons 'send-item item) gdb-debug-log))
   (setq gdb-current-item item)
-  (with-current-buffer gud-comint-buffer
-    (if (eq gud-minor-mode 'gdba)
+  (let ((process (get-buffer-process gud-comint-buffer)))
+    (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
 	(if (stringp item)
 	    (progn
 	      (setq gdb-output-sink 'user)
-	      (process-send-string (get-buffer-process gud-comint-buffer) item))
+	      (process-send-string process item))
 	  (progn
 	    (gdb-clear-partial-output)
 	    (setq gdb-output-sink 'pre-emacs)
-	    (process-send-string (get-buffer-process gud-comint-buffer)
+	    (process-send-string process
 				 (car item))))
       ;; case: eq gud-minor-mode 'gdbmi
       (gdb-clear-partial-output)
       (setq gdb-output-sink 'emacs)
-      (process-send-string (get-buffer-process gud-comint-buffer)
-			   (car item)))))
+      (process-send-string process (car item)))))
 
 ;;
 ;; output -- things gdb prints to emacs
@@ -1545,7 +1542,7 @@ static char *magick[] = {
   (use-local-map gdb-breakpoints-mode-map)
   (setq buffer-read-only t)
   (run-mode-hooks 'gdb-breakpoints-mode-hook)
-  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+  (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
       'gdb-invalidate-breakpoints
     'gdbmi-invalidate-breakpoints))
 
@@ -1554,7 +1551,7 @@ static char *magick[] = {
   (interactive)
   (save-excursion
     (beginning-of-line 1)
-    (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+    (if (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
 	    (looking-at "\\([0-9]+\\).*?point\\s-+\\S-+\\s-+\\(.\\)\\s-+")
 	  (looking-at
      "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\(.\\)\\s-+\\S-+\\s-+\\S-+:[0-9]+"))
@@ -1571,7 +1568,7 @@ static char *magick[] = {
   "Delete the breakpoint at current line."
   (interactive)
   (beginning-of-line 1)
-  (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+  (if (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
 	  (looking-at "\\([0-9]+\\).*?point\\s-+\\S-+\\s-+\\(.\\)")
 	(looking-at
 	 "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\s-+\\S-+\\s-+\\S-+:[0-9]+"))
@@ -1589,7 +1586,7 @@ static char *magick[] = {
     (if window (save-selected-window  (select-window window))))
   (save-excursion
     (beginning-of-line 1)
-    (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+    (if (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
 	    (looking-at "\\([0-9]+\\) .+ in .+ at\\s-+\\(\\S-+\\):\\([0-9]+\\)")
 	  (looking-at
 	   "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+.\\s-+\\S-+\\s-+\
@@ -1694,7 +1691,7 @@ static char *magick[] = {
   (use-local-map gdb-frames-mode-map)
   (font-lock-mode -1)
   (run-mode-hooks 'gdb-frames-mode-hook)
-  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+  (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
       'gdb-invalidate-frames
     'gdbmi-invalidate-frames))
 
@@ -1849,7 +1846,7 @@ static char *magick[] = {
   (setq buffer-read-only t)
   (use-local-map gdb-registers-mode-map)
   (run-mode-hooks 'gdb-registers-mode-hook)
-  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+  (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
       'gdb-invalidate-registers
     'gdbmi-invalidate-registers))
 
@@ -2266,7 +2263,7 @@ corresponding to the mode line clicked."
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-locals-font-lock-keywords))
   (run-mode-hooks 'gdb-locals-mode-hook)
-  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+  (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
       'gdb-invalidate-locals
     'gdbmi-invalidate-locals))
 
@@ -2528,8 +2525,8 @@ of the current session."
 	   ;; in case gud or gdb-ui is just loaded
 	   gud-comint-buffer
 	   (buffer-name gud-comint-buffer)
-	   (with-current-buffer gud-comint-buffer
-	     (eq gud-minor-mode 'gdba)))
+	   (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+	       'gdba))
       (condition-case nil
 	(gdb-enqueue-input
 	 (list (concat gdb-server-prefix "list "

@@ -1076,6 +1076,9 @@ shortlisp = ¶
 	{Lisp}subr.elc ¶
 	{Lisp}term:tty-colors.elc ¶
 	{Lisp}font-core.elc ¶
+	{Lisp}emacs-lisp:syntax.elc ¶
+	{Lisp}font-lock.elc ¶
+	{Lisp}jit-lock.elc ¶
 	{Lisp}textmodes:fill.elc ¶
 	{Lisp}textmodes:page.elc ¶
 	{Lisp}textmodes:paragraphs.elc ¶

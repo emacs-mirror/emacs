@@ -568,6 +568,9 @@ directory or directories specified."
 
       (save-buffer))))
 
+(define-obsolete-function-alias 'update-autoloads-from-directories
+    'update-directory-autoloads "22.1")
+
 ;;;###autoload
 (defun batch-update-autoloads ()
   "Update loaddefs.el autoloads in batch mode.

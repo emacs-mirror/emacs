@@ -488,7 +488,7 @@ selected window and current buffer.  It is just like
   The following functions choose one of the windows on the screen,
 offering various criteria for the choice.
 
-@defun get-lru-window &optional frame
+@defun get-lru-window &optional frame dedicated
 This function returns the window least recently ``used'' (that is,
 selected).  If any full-width windows are present, it only considers
 these.  The selected window is always the most recently used window.
@@ -496,7 +496,8 @@ these.  The selected window is always the most recently used window.
 The selected window can be the least recently used window if it is the
 only window.  A newly created window becomes the least recently used
 window until it is selected.  A minibuffer window is never a
-candidate.  Dedicated windows are never candidates, and if all
+candidate.  Dedicated windows are never candidates unless the
+@var{dedicated} argument is non-@code{nil}, so if all
 existing windows are dedicated, the value is @code{nil}.
 
 The argument @var{frame} controls which windows are considered.
@@ -515,11 +516,12 @@ If it is a frame, consider windows on that frame.
 @end itemize
 @end defun
 
-@defun get-largest-window &optional frame
+@defun get-largest-window &optional frame dedicated
 This function returns the window with the largest area (height times
 width).  If there are no side-by-side windows, then this is the window
 with the most lines.  A minibuffer window is never a candidate.
-Dedicated windows are never candidates, and if all existing windows
+Dedicated windows are never candidates unless the
+@var{dedicated} argument is non-@code{nil}, so if all existing windows
 are dedicated, the value is @code{nil}.
 
 If there are two candidate windows of the same size, this function

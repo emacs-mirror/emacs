@@ -285,6 +285,8 @@ Killing and Moving Text
 			  syntactic units such as words and sentences.
 * Graphical Kill::      The kill ring on graphical terminals:
                           yanking between applications.
+* CUA Bindings::        Using @kbd{C-x}, @kbd{C-c}, @kbd{C-v} for copy
+                          and paste, with enhanced rectangle support.
 
 Yanking
 

@@ -3060,6 +3060,19 @@ example:
 String value of parameters will be subjected to regexp substitution, as
 the @code{to-group} example shows.
 
+@vindex gnus-parameters-case-fold-search
+By default, whether comparing the group name and one of those regexps
+specified in @code{gnus-parameters} is done in a case-sensitive manner
+or a case-insensitive manner depends on the value of
+@code{case-fold-search} at the time when the comparison is done.  The
+value of @code{case-fold-search} is typically @code{t}; it means, for
+example, the element @code{("INBOX\\.FOO" (total-expire . t))} might be
+applied to both the @samp{INBOX.FOO} group and the @samp{INBOX.foo}
+group.  If you want to make those regexps always case-sensitive, set the
+value of the @code{gnus-parameters-case-fold-search} variable to
+@code{nil}.  Otherwise, set it to @code{t} if you want to compare them
+always in a case-insensitive manner.
+
 
 @node Listing Groups
 @section Listing Groups
@@ -19755,7 +19768,8 @@ group name, the @var{file-name} will be used as the home score file.
 
 @item
 A function.  If the function returns non-@code{nil}, the result will
-be used as the home score file.
+be used as the home score file.  The function will be called with the
+name of the group as the parameter.
 
 @item
 A string.  Use the string as the home score file.
@@ -21967,11 +21981,11 @@ function, this function will be called with the face as the argument.
 If the @code{gnus-article-x-face-too-ugly} (which is a regexp) matches
 the @code{From} header, the face will not be shown.
 
-The default action under Emacs 20 is to fork off the @code{display}
-program@footnote{@code{display} is from the ImageMagick package.  For
-the @code{uncompface} and @code{icontopbm} programs look for a package
-like @code{compface} or @code{faces-xface} on a GNU/Linux system.}  to
-view the face.
+The default action under Emacs without image support is to fork off the
+@code{display} program@footnote{@code{display} is from the ImageMagick
+package.  For the @code{uncompface} and @code{icontopbm} programs look
+for a package like @code{compface} or @code{faces-xface} on a GNU/Linux
+system.} to view the face.
 
 Under XEmacs or Emacs 21+ with suitable image support, the default
 action is to display the face before the @code{From} header.  (It's
@@ -22217,18 +22231,6 @@ This is where Gnus will look for pictures.  Gnus will normally
 auto-detect this directory, but you may set it manually if you have an
 unusual directory structure.
 
-@item gnus-xmas-logo-color-alist
-@vindex gnus-xmas-logo-color-alist
-This is an alist where the key is a type symbol and the values are the
-foreground and background color of the splash page glyph.
-
-@item gnus-xmas-logo-color-style
-@vindex gnus-xmas-logo-color-style
-This is the key used to look up the color in the alist described above.
-Valid values include @code{flame}, @code{pine}, @code{moss},
-@code{irish}, @code{sky}, @code{tin}, @code{velvet}, @code{grape},
-@code{labia}, @code{berry}, @code{neutral}, and @code{september}.
-
 @item gnus-xmas-modeline-glyph
 @vindex gnus-xmas-modeline-glyph
 A glyph displayed in all Gnus mode lines.  It is a tiny gnu head by
@@ -22242,9 +22244,19 @@ default.
 
 @item gnus-use-toolbar
 @vindex gnus-use-toolbar
-If @code{nil}, don't display toolbars.  If non-@code{nil}, it should be
-one of @code{default-toolbar}, @code{top-toolbar}, @code{bottom-toolbar},
-@code{right-toolbar}, or @code{left-toolbar}.
+This variable specifies the position to display the toolbar.  If
+@code{nil}, don't display toolbars.  If it is non-nil, it should be one
+of the symbols @code{default}, @code{top}, @code{bottom}, @code{right},
+and @code{left}.  @code{default} means to use the default toolbar, the
+rest mean to display the toolbar on the place which those names show.
+The default is @code{default}.
+
+@item gnus-toolbar-thickness
+@vindex gnus-toolbar-thickness
+Cons of the height and the width specifying the thickness of a toolbar.
+The height is used for the toolbar displayed on the top or the bottom,
+the width is used for the toolbar displayed on the right or the left.
+The default is that of the default toolbar.
 
 @item gnus-group-toolbar
 @vindex gnus-group-toolbar

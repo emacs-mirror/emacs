@@ -2549,6 +2549,7 @@ image_load_quartz2d (f, img, png_p)
 
   if (!check_image_size (f, width, height))
     {
+      CGImageRelease (image);
       UNGCPRO;
       image_error ("Invalid image size", Qnil, Qnil);
       return 0;

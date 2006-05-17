@@ -1104,6 +1104,17 @@ For example:
   :type '(repeat (cons regexp
 		       (repeat sexp))))
 
+(defcustom gnus-parameters-case-fold-search 'default
+  "If it is t, ignore case of group names specified in `gnus-parameters'.
+If it is nil, don't ignore case.  If it is `default', which is for the
+backward compatibility, use the value of `case-fold-search'."
+  :version "22.1"
+  :group 'gnus-group-various
+  :type '(choice :format "%{%t%}:\n %[Value Menu%] %v"
+		 (const :tag "Use `case-fold-search'" default)
+		 (const nil)
+		 (const t)))
+
 (defvar gnus-group-parameters-more nil)
 
 (defmacro gnus-define-group-parameter (param &rest rest)
@@ -3722,7 +3733,10 @@ You should probably use `gnus-find-method-for-group' instead."
 
 (defun gnus-parameters-get-parameter (group)
   "Return the group parameters for GROUP from `gnus-parameters'."
-  (let (params-list)
+  (let ((case-fold-search (if (eq gnus-parameters-case-fold-search 'default)
+			      case-fold-search
+			    gnus-parameters-case-fold-search))
+	params-list)
     (dolist (elem gnus-parameters)
       (when (string-match (car elem) group)
 	(setq params-list

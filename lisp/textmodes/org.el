@@ -9103,7 +9103,6 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 	(if org-export-html-with-timestamp
 	    (insert org-export-html-html-helper-timestamp))
 	(insert "</body>\n</html>\n")
-	(debug)
 	(normal-mode)
 	(save-buffer)
 	(goto-char (point-min)))))

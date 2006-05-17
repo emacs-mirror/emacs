@@ -613,8 +613,10 @@ Emacs (@code{describe-no-warranty}).
 the mouse or a key like @kbd{RET}, it often has associated help text.
 Areas of the mode line are examples.  On most window systems, the help
 text is displayed as a ``tooltip'' (sometimes known as ``balloon
-help'').  @xref{Tooltips}.  Otherwise, it is shown in the echo area
-when you move point into the active text.
+help''), when you move the mouse over the active text.  @xref{Tooltips}.
+On some systems, it is shown in the echo area.  On text-only
+terminals, Emacs may not be able to follow the mouse and hence will
+not show the help text on mouse-over.
 
 @kindex C-h .
 @findex display-local-help

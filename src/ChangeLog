@@ -1,3 +1,56 @@
+2005-11-10  Lars Hansen <larsh@soem.dk>
+
+	* fileio.c (file-regular-p): Doc fix.
+
+2005-11-10  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (valid_lisp_object_p): New function to validate that
+	an object is really a valid Lisp_Object.
+
+	* lisp.h (valid_lisp_object_p): Add prototype.
+
+	* print.c (safe_debug_print): New function to be called from gdb
+	to print Lisp objects; use valid_lisp_object_p to avoid crashing
+	if user tries to print something which is not a Lisp object.
+
+	* .gdbinit (pp, pp1): Use safe_debug_print.
+	(pv, pv1): New commands to print value of a lisp variable.
+
+2005-11-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* .gdbinit (pp1): New user-defined function.
+
+2005-11-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [MAC_OSX] (image_load_quartz2d): Fix memory leak.
+
+	* mac.c [MAC_OSX] (init_mac_osx_environment): Reinitialize locale
+	related variables for dumped executable.
+
+	* unexmacosx.c (unexec_write_zero): New function.
+	(copy_data_segment): Clear uninitialized local variables in
+	statically linked libraries.
+
+	* s/darwin.h (C_SWITCH_SYSTEM): Remove -fno-common.
+
+2005-11-09  Juri Linkov  <juri@jurta.org>
+
+	* keymap.c (shadow_lookup): If Flookup_key returns a number,
+	call it again with a sub-key-sequence, and if its return value
+	is non-nil (sub-key is bound), return nil.
+
+2005-11-08  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Fsignal_process): Recognize signal names with and
+	without SIG prefix, e.g. SIGHUP and HUP.
+
+	* search.c (search_buffer): No need to initialize base_pat.
+
+2005-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fget_lru_window, Fget_largest_window, window_loop):
+	Don't abuse the `mini' arg.  Use the `obj' arg instead.
+
 2005-11-04  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (show_mouse_face): Clear mouse face to eol.
@@ -251,8 +304,7 @@
 
 2005-10-20  Aubrey Jaffer  <agj@alum.mit.edu>  (tiny change)
 
-	* unexelf.c (unexec): Fix calls to `fatal' with less than 3
-	arguments.
+	* unexelf.c (unexec): Fix calls to `fatal' with less than 3 arguments.
 
 2005-10-20  Olli Savia  <ops@iki.fi>  (tiny change)
 

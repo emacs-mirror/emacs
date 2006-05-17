@@ -1,21 +1,426 @@
+2005-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* jka-cmpr-hook.el (jka-compr-install): Use push and dolist.
+	Add jka-compr-load-suffixes to load-suffixes.
+
+	* jka-compr.el: Require 'jka-cmpr-hook.
+	(jka-compr-info-compress-message, jka-compr-info-compress-program)
+	(jka-compr-info-compress-args, jka-compr-info-uncompress-message)
+	(jka-compr-info-uncompress-program, jka-compr-info-uncompress-args)
+	(jka-compr-info-can-append, jka-compr-info-strip-extension)
+	(jka-compr-info-file-magic-bytes, jka-compr-get-compression-info)
+	(jka-compr-info-regexp): Remove.  Provided by jka-cmpr-hook.
+	(jka-compr-uninstall): Remove entries from
+	jka-compr-added-to-file-coding-system-alist after they are used.
+	(jka-compr-error): Remove unused var `curbuf'.
+	(jka-compr-file-local-copy): Remove unused var `notfound'.
+
+2005-11-10  Romain Francoise  <romain@orebokech.com>
+
+	* apropos.el (apropos-calc-scores): Use `apropos-pattern'.
+
+2005-11-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Move parentheses.
+	(gdb): New command gud-pv.
+
+2005-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el: Remove spurious or unnecessary leading stars
+	in docstrings.
+	(tar-header-block-tokenize): Also obey default-file-name-coding-system.
+	(tar-parse-octal-integer-safe): Use mapc.
+	(tar-header-block-summarize): Remove unused var `ck'.
+	(tar-summarize-buffer): Don't clear the modified-p bit if it wasn't
+	cleared before.  Obey default-enable-multibyte-characters.
+	Use mapconcat.  Simplify setting of tar-header-offset.
+	(tar-mode-map): Move initialization inside delcaration.
+	(tar-flag-deleted): Use `abs'.
+	(tar-expunge-internal): Remove unused var `line'.
+	(tar-expunge-internal): Don't hardcode point-min==1.
+	(tar-expunge): Widen while doing set-buffer-multibyte.
+	(tar-rename-entry): Use file-name-coding-system.
+	(tar-alter-one-field): Don't hardcode point-min==1.
+	(tar-subfile-save-buffer): string-as-unibyte works on unibyte strings.
+	(tar-pad-to-blocksize): Don't hardcode point-min==1.  Clarify the code.
+
+2005-11-10  Masatake YAMATO  <jet@gyve.org>
+
+	* add-log.el (add-log-current-defun): Handle class::method
+	notation of c++. Fix incorrect comment.
+
+2005-11-10  Alan Mackenzie  <acm@muc.de>
+
+	* help-fns.el (describe-variable): Make C-h v work when a variable
+	has variable documentation yet is unbound.
+
+2005-11-10  Masatake YAMATO  <jet@gyve.org>
+
+	* man.el (Man-highlight-references): Set an empty
+	string to `Man-arguments' if it is nil.
+	Suggested by Reiner Steib <Reiner.Steib@gmx.de>.
+
+2005-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (mh-loaddefs.el, loaddefs.el): Better follow the
+	commenting conventions.
+
+	* cus-dep.el (custom-make-dependencies): Simplify.
+	Better follow the commenting conventions.
+
+2005-11-09  Richard M. Stallman  <rms@gnu.org>
+
+	* apropos.el (apropos-pattern): Rename from apropos-regexp.
+	(apropos-orig-pattern): Rename from apropos-orig-regexp.
+	All uses changed.
+	(apropos-rewrite-regexp): Doc fix.
+	(apropos-variable, apropos-command, apropos, apropos-value):
+	Change prompt; carry through the argument renaming.
+
+2005-11-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* find-lisp.el: Require dired.
+	(find-lisp-find-dired-internal): Do not call
+	`abbreviate-file-name' on DIR.
+
+2005-11-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gdb): Make gud-pp use user-defined command pp1.
+
+2005-11-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Ensure tool-bar is constant
+	when using the speedbar.
+	(gdb): New command gud-pp.
+	(gud-menu-map, gud-tool-bar-map): Put it on the tool bar.
+
+2005-11-09  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (occur-excluded-properties): New defcustom.
+	(occur-1, occur-engine, occur-accumulate-lines): Use it.
+
+2005-11-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-units.el (math-convert-units): Replace any composite
+	unit by its definition.
+
+2005-11-08 Lars Hansen <larsh@soem.dk>
+
+	* emacs-lisp/autoload.el (update-directory-autoloads):
+	Add obsolete function alias.
+
+2005-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Don't set
+	comment-indent-function.
+	(lisp-comment-indent): Replace by an alias for comment-indent-default.
+
+	* reveal.el (reveal-post-command): Rework the handling of
+	reveal-open-spots, so as to be more reliable.  There were several
+	tricky corner cases where an open spot might be lost, or where
+	a closed spot might end up on the list of open spots.
+	Only reveal text that's ellipsised.
+
+2005-11-07  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-export-as-html): Remove bogus (debug) form.
+
+2005-11-06  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compilation-internal-error-properties):
+	save-excursion around the computation of MARKER.
+
+2005-11-06  Piet van Oostrum  <piet@cs.uu.nl>
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	flyspell-get-word returns a list, not just a string.
+
+2005-11-06  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuffer.el (ibuffer): Search all visible frames when getting
+	Ibuffer buffer's window.
+
+2005-11-07  Masatake YAMATO  <jet@gyve.org>
+
+	* man.el (Man-reference-regexp): Accept spaces between
+	`Man-name-regexp' and `Man-section-regexp'.
+	(Man-apropos-regexp): New variable.
+	(Man-abstract-xref-man-page): Use value for `Man-target-string'
+	if available.
+	(Man-highlight-references, Man-highlight-references0):
+	Handle the case when `Man-arguments' includes "-k".
+	(Man-highlight-references0): Rename the argument `TARGET-POS' to
+	`TARGET'. `TARGET' can be a number, function or nil.
+
+2005-11-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler, gdb-var-delete)
+	(gdb-edit-value, gdb-speedbar-expand-node, gdb-get-create-buffer)
+	(gdb-breakpoints-mode, gdb-toggle-breakpoint, gdb-delete-breakpoint)
+	(gdb-goto-breakpoint, gdb-frames-mode, gdb-registers-mode)
+	(gdb-locals-mode, gdb-find-file-hook): Use buffer-local-value.
+	(gdb-send-item): Use buffer-local-value and simplify.
+
+2005-11-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* startup.el (command-line): Use `custom-reevaluate-setting' for
+	`global-font-lock-mode'.
+
+	* font-core.el (global-font-lock-mode): Enable `global-font-lock-mode'
+	by default, except in batch mode or when the -D option is given.
+
+	* emacs-lisp/easy-mmode.el (define-global-minor-mode): Pass all
+	specified keyword args on to `define-minor-mode'.  Update docstring.
+
+2005-11-05  Romain Francoise  <romain@orebokech.com>
+
+	* replace.el (occur-engine): Add marker at end of line, too.
+
+2005-11-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* font-lock.el: Don't deal with font-lock-face-attributes here,
+	move the code ...
+
+	* startup.el (command-line): ... here. Use face-spec-set instead
+	of custom-declare-face.
+
+	* faces.el (face-spec-set): Reset the face if spec is not nil.
+
+2005-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-region-internal): Box more tightly in the
+	common case where there's no TAB in the boxed text.
+
+2005-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* info.el (info-tool-bar-map): Use images prev-node, next-node and
+	up-node.
+
+2005-11-04  Ulf Jasper  <ulf.jasper@web.de>
+
+	* newsticker.el: Commentary updated. Code formatting changed.
+	(newsticker-version): Change to "1.9".
+	(newsticker, newsticker-feed): Doc fix.
+	(newsticker-url-list): Doc fix.  Add option "Weekly".
+	(newsticker-retrieval-interval): Add option "Weekly".
+	(newsticker-headline-processing): Doc fix.
+	(newsticker-auto-mark-filter): Remove.
+	(newsticker-auto-mark-filter-list): New.
+	(newsticker-layout, newsticker-sort-method): Doc fix.
+	(newsticker-hide-old-items-in-newsticker-buffer)
+	(newsticker-heading-format, newsticker-item-format)
+	(newsticker-desc-format): Doc fix.
+	(newsticker-show-all-rss-elements): Remove.
+	(newsticker-show-all-news-elements): New.
+	(newsticker-faces, newsticker-ticker): Doc fix.
+	(remove-from-invisibility-spec): Code formatting.
+	(newsticker--process-ids): New.
+	(newsticker-mode): Doc fix.
+	(newsticker-mode): Change mode-line-format.
+	(newsticker-start): Remove debug output.
+	(newsticker-start-ticker): Doc fix.  Add Autoload cookie.
+	(newsticker-w3m-show-inline-images): Code formatting.
+	(newsticker-next-item): Call `force-mode-line-update'.
+	(newsticker-previous-item): Call `force-mode-line-update'.
+	(newsticker-next-feed): Call `force-mode-line-update'.
+	(newsticker-previous-feed): Call `force-mode-line-update'.
+	(newsticker-mark-all-items-at-point-as-read): Code formatting.
+	(newsticker-show-old-items): Do not show descs.
+	(newsticker-hide-entry): Hide too much.
+	(newsticker-hide-entry, newsticker-show-entry)
+	(newsticker-toggle-auto-narrow-to-feed): Code formatting.
+	(newsticker-set-auto-narrow-to-feed): Update buffer immediately.
+	(newsticker-toggle-auto-narrow-to-item): Code formatting.
+	(newsticker-set-auto-narrow-to-item): Update buffer immediately.
+	(newsticker-running-p, newsticker-ticker-running-p): Autoload cookie.
+	(newsticker-get-news): Call `force-mode-line-update'.
+	Collect process ids.
+	(newsticker--sentinel): Change coding system handling.
+	Move image retrieval to new functions newsticker--get-logo-url-*.
+	Move feed parsing to new functions newsticker--parse-*.
+	Update list of process ids.
+	(newsticker--get-logo-url-atom-1.0, newsticker--get-logo-url-atom-0.3)
+	(newsticker--get-logo-url-rss-2.0, newsticker--get-logo-url-rss-1.0)
+	(newsticker--get-logo-url-rss-0.92, newsticker--get-logo-url-rss-0.91)
+	(newsticker--parse-atom-0.3, newsticker--parse-atom-1.0)
+	(newsticker--parse-rss-0.91, newsticker--parse-rss-0.92)
+	(newsticker--parse-rss-1.0, newsticker--parse-rss-2.0)
+	(newsticker--parse-generic-feed, newsticker--parse-generic-items): New.
+	(newsticker--decode-coding-string): Remove.
+	(newsticker--decode-numeric-entities): Check input.  Format code.
+	(newsticker--remove-whitespace): Check input.
+	(newsticker--do-forget-preformatted): Doc fix.
+	(newsticker--decode-rfc822-date): Allow for missing time.
+	(newsticker--update-process-ids): New.
+	(newsticker--image-sentinel): Change comment.
+	(newsticker--image-read): Change error message.
+	(newsticker--imenu-goto): Doc fix.  Show headline title.
+	(newsticker--buffer-set-uptodate): Call `force-mode-line-update'.
+	(newsticker--buffer-do-insert-text): Clean whitespace in
+	html-rendered headline title.  Code formatting.
+	Call `newsticker--buffer-print-extra-elements'.
+	(newsticker--buffer-print-extra-element): Remove.
+	(newsticker--buffer-print-extra-elements): New.
+	(newsticker--buffer-do-print-extra-element): New.
+	(newsticker--buffer-insert-enclosure): Doc fix.  Use MBytes for
+	large sizes.
+	(newsticker--run-auto-mark-filter)
+	(newsticker--do-run-auto-mark-filter):
+	Use `newsticker-auto-mark-filter-list'.
+
+2005-11-04  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el: Use split-string OMIT-NULLS argument.
+	(rcirc-print): Force redisplay before running hooks.  Do long
+	buffer truncation after making new text read-only.  Deal with nil
+	text when decoding strings.  If TARGET is nil, use either the
+	currently selected buffer, if it is an rcirc buffer and of the
+	same process or the process buffer.
+	(rcirc-mode): Remove header-line.  Recompute short buffer names.
+	Initialize rcirc-buffer-alist here instead of rcirc-get-buffer-create.
+	(rcirc-short-buffer-name): Add variable.
+	(rcirc-kill-buffer-hook): Recompute short buffer names.
+	Remove nick from private channel.
+	(rcirc-send-input): Send command text to current-buffer.
+	Don't clear overlay arrow here.
+	(rcirc-short-buffer-name): Return a short buffer name.
+	(rcirc-update-short-buffer-names, rcirc-abbreviate)
+	(rcirc-rebuild-tree, rcirc-make-trees): Add functions to generate
+	buffer-name abbreviations.
+	(rcirc-kill-buffer-hook-1): Split to make debugging easier.
+	Do not touch nick-table when killing a parted channel.
+	(rcirc-window-configuration-change): Rename from rcirc-update-activity.
+	Clear arrow from current buffer if it is now hidden.
+	(rcirc-current-buffer): Add variable.
+	(rcirc-my-nick, rcirc-other-nick, rcirc-server)
+	(rcirc-nick-in-message, rcirc-prompt, rcirc-mode-line-nick):
+	Remove -face from names.
+	(rcirc-update-activity-string): Print "DND" when globally ignoring
+	activity.
+	(rcirc-ignore-buffer-activity-flag): Rename from
+	rcirc-ignore-channel-activity.
+	(rcirc-ignore-all-activity-flag): Doc fix.
+	(rcirc-channels): Remove variable.
+	(rcirc-kill-buffer-hook):
+	(rcirc-get-buffer-create): Add nick to private channel.
+	(rcirc-multiline-edit-submit): Remove tabs.
+	(rcirc-put-nick-channel, rcirc-channel-nicks): Look up nicks case
+	folded.
+	(rcirc-remove-nick-channel): Bug fix.
+	(rcirc-toggle-ignore-buffer-activity): Rename from
+	rcirc-toggle-ignore-channel-activity.
+	(rcirc-record-activity): Add buffers to the front of the list.
+	(rcirc-update-activity): Remove killed buffers from list.
+	(rcirc-process-server-response-1): Remove last argument if it is
+	null before calling handler.
+	(rcirc): Add "rcirc" defcustom prefix.
+	(rcirc-prompt): Simplify default prompt.
+	Use custom-initialize-default.
+	(rcirc-private-chats): Remove variable.
+	(rcirc-prompt): Change initialization.
+	(rcirc-version): Remove function.
+	(rcirc-id-string): Add constant.
+	(rcirc-last-buffer): Remove variable.
+	(rcirc-buffer-alist): Add variable.
+	(rcirc-connect): Update variable setup.
+	(rcirc-sentinel, rcirc-update-prompt): Use `rcirc-buffer-alist'.
+	(rcirc-trap-errors-flag): Rename from `rcirc-trap-errors' change
+	default.
+	(rcirc-handler-generic): Trigger activity.
+	(rcirc-send-message): Create the buffor of the target.
+	(rcirc-generate-new-buffer-name): Rename from `rcirc-get-buffer-name'.
+	(rcirc-get-buffer): Just return nil if there is no matching buffer.
+	(rcirc-multiline-edit-cancel): Remove function.
+	(rcirc-set-last-buffer): Remove function.
+	(rcirc-get-any-buffer): Add function.
+	(rcirc-join-channels): Don't print /join text.
+	(rcirc-toggle-ignore-channel-activity): Add and update echo area
+	messages.
+	(rcirc-cmd-ctcp): Use rcirc-send-string to send request.
+	(rcirc-handler-NOTICE): Recognize CTCP responses.
+	(rcirc-handler-332, rcirc-handler-332): Use a temp buffer for
+	constructing TOPIC string for buffers we are not JOINed.
+	(rcirc-handler-CTCP-response): Add handler.
+	(rcirc-multiline-edit-submit): Restore the window-configuration
+	before adjusting point.
+	(rcirc): Add customization group.
+	(rcirc-server, rcirc-port, rcirc-nick, rcirc-user-name)
+	(rcirc-user-full-name, rcirc-startup-channels-alist)
+	(rcirc-fill-flag, rcirc-fill-column, rcirc-fill-prefix)
+	(rcirc-ignore-all-activity-flag, rcirc-time-format)
+	(rcirc-input-ring-size, rcirc-read-only-flag)
+	(rcirc-buffer-maximum-lines, rcirc-authinfo-file-name)
+	(rcirc-auto-authenticate-flag, rcirc-prompt, rcirc-print-hooks):
+	Change defvar to defcustom.
+	(rcirc-update-prompt): Add optional ALL arg, which will update
+	prompts in all rcirc buffers.  Regexp quote replacement text.
+	(rcirc-fill-column): Accept 'frame-width as a value.
+	(rcirc-set-changed): Add function.
+	(rcirc-next-active-buffer): Write more meaningful messages.
+	(rcirc-faces): Add customization group.
+	(rcirc-my-nick-face, rcirc-other-nick-face, rcirc-server-face)
+	(rcirc-nick-in-message-face, rcirc-prompt-face)
+	(rcirc-mode-line-nick-face): Move into rcirc-faces group.
+	(with-rcirc-process-buffer): Move before first usage.
+	(rcirc-debug-buffer): Rename from `rcirc-log-buffer'.
+	(rcirc-debug-flag): Rename from `rcirc-log-p'.
+	(rcirc-debug): Rename from `rcirc-log'.
+	(rcirc-format-response-string): Do not print '-' chars for a
+	NOTICE with no sender.  Simplify output of server responses.
+
+2005-11-04  Henrik Enberg  <henrik.enberg@telia.com>
+
+	(rcirc-browse-url-map, rcirc-browse-url-at-point)
+	(rcirc-browse-url-at-mouse, rcirc-mangle-text): Make urls
+	mouse and RET clickable.
+
+2005-11-04  Henrik Enberg  <henrik.enberg@telia.com>
+
+	* mail/rmailout.el (rmail-output-to-rmail-file, rmail-output): Doc fix.
+
+2005-11-04 Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* pgg-pgp.el (pgg-pgp-encrypt-region, pgg-pgp-decrypt-region)
+	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
+	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+	(pgg-pgp-decrypt-region, pgg-pgp-sign-region): Use new name for
+	pgg-add-passphrase-to-cache function.
+
+	* pgg-pgp5.el (pgg-pgp5-encrypt-region, pgg-pgp5-decrypt-region)
+	(pgg-pgp5-encrypt-symmetric-region, pgg-pgp5-encrypt-symmetric)
+	(pgg-pgp5-encrypt, pgg-pgp5-decrypt-region, pgg-pgp5-decrypt)
+	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+	(pgg-pgp5-sign-region): Use new name of	pgg-add-passphrase-to-cache
+	function.
+
+2005-11-04  Edward O'Connor  <hober0@gmail.com>  (tiny change)
+
+	* net/goto-addr.el (goto-address-url-regexp): Remove `data:' URLs
+	from goto-address-url-regexp.
+
 2005-11-04  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-read-date, org-goto-calendar)
-	(org-recenter-calendar, org-agenda-goto-calendar): Temporarily
-	clear 'calendar-move-hook'.
+	* textmodes/org.el (org-read-date, org-goto-calendar)
+	(org-recenter-calendar, org-agenda-goto-calendar):
+	Temporarily clear 'calendar-move-hook'.
 
 2005-11-04  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* ediff-merge.el (ediff-merge-region-is-non-clash): return t, if not
+
+	* ediff-merge.el (ediff-merge-region-is-non-clash): Return t, if not
 	merging.
-	
-	* ediff-util.el (ediff-previous-difference): don't skip regions that
+
+	* ediff-util.el (ediff-previous-difference): Don't skip regions that
 	have merge clashes.
-	
+
 2005-11-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event): Undo
-	previous change.
+	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event):
+	Undo previous change.
 
 	* startup.el (command-line): Use `custom-reevaluate-setting' for
 	mouse-wheel-down-event and mouse-wheel-up-event.  Don't call
@@ -23,8 +428,7 @@
 
 2005-11-04  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-buffer-type): Remove duplicate
-	declaration.
+	* progmodes/gdb-ui.el (gdb-buffer-type): Remove duplicate declaration.
 	(gdb-buffer-type): Make it automatically buffer local...
 	(gdb-get-create-buffer): ...and set it accordingly.
 	(gdb-frame-gdb-buffer, gdb-display-gdb-buffer): Make these

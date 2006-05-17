@@ -5944,97 +5944,100 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
       CHECK_SYMBOL (sigcode);
       name = SDATA (SYMBOL_NAME (sigcode));
 
+      if (!strncmp(name, "SIG", 3))
+	name += 3;
+
       if (0)
 	;
 #ifdef SIGHUP
-      handle_signal ("SIGHUP", SIGHUP);
+      handle_signal ("HUP", SIGHUP);
 #endif
 #ifdef SIGINT
-      handle_signal ("SIGINT", SIGINT);
+      handle_signal ("INT", SIGINT);
 #endif
 #ifdef SIGQUIT
-      handle_signal ("SIGQUIT", SIGQUIT);
+      handle_signal ("QUIT", SIGQUIT);
 #endif
 #ifdef SIGILL
-      handle_signal ("SIGILL", SIGILL);
+      handle_signal ("ILL", SIGILL);
 #endif
 #ifdef SIGABRT
-      handle_signal ("SIGABRT", SIGABRT);
+      handle_signal ("ABRT", SIGABRT);
 #endif
 #ifdef SIGEMT
-      handle_signal ("SIGEMT", SIGEMT);
+      handle_signal ("EMT", SIGEMT);
 #endif
 #ifdef SIGKILL
-      handle_signal ("SIGKILL", SIGKILL);
+      handle_signal ("KILL", SIGKILL);
 #endif
 #ifdef SIGFPE
-      handle_signal ("SIGFPE", SIGFPE);
+      handle_signal ("FPE", SIGFPE);
 #endif
 #ifdef SIGBUS
-      handle_signal ("SIGBUS", SIGBUS);
+      handle_signal ("BUS", SIGBUS);
 #endif
 #ifdef SIGSEGV
-      handle_signal ("SIGSEGV", SIGSEGV);
+      handle_signal ("SEGV", SIGSEGV);
 #endif
 #ifdef SIGSYS
-      handle_signal ("SIGSYS", SIGSYS);
+      handle_signal ("SYS", SIGSYS);
 #endif
 #ifdef SIGPIPE
-      handle_signal ("SIGPIPE", SIGPIPE);
+      handle_signal ("PIPE", SIGPIPE);
 #endif
 #ifdef SIGALRM
-      handle_signal ("SIGALRM", SIGALRM);
+      handle_signal ("ALRM", SIGALRM);
 #endif
 #ifdef SIGTERM
-      handle_signal ("SIGTERM", SIGTERM);
+      handle_signal ("TERM", SIGTERM);
 #endif
 #ifdef SIGURG
-      handle_signal ("SIGURG", SIGURG);
+      handle_signal ("URG", SIGURG);
 #endif
 #ifdef SIGSTOP
-      handle_signal ("SIGSTOP", SIGSTOP);
+      handle_signal ("STOP", SIGSTOP);
 #endif
 #ifdef SIGTSTP
-      handle_signal ("SIGTSTP", SIGTSTP);
+      handle_signal ("TSTP", SIGTSTP);
 #endif
 #ifdef SIGCONT
-      handle_signal ("SIGCONT", SIGCONT);
+      handle_signal ("CONT", SIGCONT);
 #endif
 #ifdef SIGCHLD
-      handle_signal ("SIGCHLD", SIGCHLD);
+      handle_signal ("CHLD", SIGCHLD);
 #endif
 #ifdef SIGTTIN
-      handle_signal ("SIGTTIN", SIGTTIN);
+      handle_signal ("TTIN", SIGTTIN);
 #endif
 #ifdef SIGTTOU
-      handle_signal ("SIGTTOU", SIGTTOU);
+      handle_signal ("TTOU", SIGTTOU);
 #endif
 #ifdef SIGIO
-      handle_signal ("SIGIO", SIGIO);
+      handle_signal ("IO", SIGIO);
 #endif
 #ifdef SIGXCPU
-      handle_signal ("SIGXCPU", SIGXCPU);
+      handle_signal ("XCPU", SIGXCPU);
 #endif
 #ifdef SIGXFSZ
-      handle_signal ("SIGXFSZ", SIGXFSZ);
+      handle_signal ("XFSZ", SIGXFSZ);
 #endif
 #ifdef SIGVTALRM
-      handle_signal ("SIGVTALRM", SIGVTALRM);
+      handle_signal ("VTALRM", SIGVTALRM);
 #endif
 #ifdef SIGPROF
-      handle_signal ("SIGPROF", SIGPROF);
+      handle_signal ("PROF", SIGPROF);
 #endif
 #ifdef SIGWINCH
-      handle_signal ("SIGWINCH", SIGWINCH);
+      handle_signal ("WINCH", SIGWINCH);
 #endif
 #ifdef SIGINFO
-      handle_signal ("SIGINFO", SIGINFO);
+      handle_signal ("INFO", SIGINFO);
 #endif
 #ifdef SIGUSR1
-      handle_signal ("SIGUSR1", SIGUSR1);
+      handle_signal ("USR1", SIGUSR1);
 #endif
 #ifdef SIGUSR2
-      handle_signal ("SIGUSR2", SIGUSR2);
+      handle_signal ("USR2", SIGUSR2);
 #endif
       else
 	error ("Undefined signal name %s", name);

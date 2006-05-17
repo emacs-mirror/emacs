@@ -860,7 +860,7 @@ Has a preference of looking backwards."
                                    (skip-syntax-backward " ")
 				   (point))))
 		       (if (looking-at "^[+-]")
-			   ;; C++.
+			   ;; Objective-C
 			   (change-log-get-method-definition)
 			 ;; Ordinary C function syntax.
 			 (setq beg (point))
@@ -901,6 +901,13 @@ Has a preference of looking backwards."
 			       ;; precede the name.
 			       (setq middle (point))
 			       (forward-word -1)
+			       ;; Is this C++ method?
+			       (when (and (< 2 middle)
+					  (string= (buffer-substring (- middle 2)
+								     middle)
+						   "::"))
+				 ;; Include "classname::".
+				 (setq middle (point)))
 			       ;; Ignore these subparts of a class decl
 			       ;; and move back to the class name itself.
 			       (while (looking-at "public \\|private ")

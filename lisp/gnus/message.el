@@ -5077,7 +5077,8 @@ Headers already prepared in the buffer are not modified."
 		  ;; The element is a symbol.  We insert the value
 		  ;; of this symbol, if any.
 		  (symbol-value header))
-		 ((not (message-check-element header))
+		 ((not (message-check-element
+			(intern (downcase (symbol-name header)))))
 		  ;; We couldn't generate a value for this header,
 		  ;; so we just ask the user.
 		  (read-from-minibuffer
