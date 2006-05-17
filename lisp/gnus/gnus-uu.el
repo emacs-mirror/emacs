@@ -839,7 +839,9 @@ When called interactively, prompt for REGEXP."
 		       "Date: %s\nFrom: %s\nSubject: %s Digest\n\n"
 		       (message-make-date) name name))
 	      (when (and message-forward-as-mime gnus-uu-digest-buffer)
-		(insert "<#part type=message/rfc822>\nSubject: Topics\n\n"))
+		(insert
+		 "<#mml type=message/rfc822>\nSubject: Topics\n\n<#/mml>\n")
+		(forward-line -1))
 	      (insert "Topics:\n")))
 	(when (not (eq in-state 'end))
 	  (setq state (list 'middle))))

@@ -139,7 +139,7 @@ in the alist is `nil', prompt for the appropriate values."
 (defun erc-ezb-add-session (message)
   "Add an EZBounce session to the session list."
   (when (and erc-ezb-inside-session-listing
-	     (string-match "^\\([^ ]+\\) +\\([^ ]+\\) +\\([^ ]+\\) +\\([^ ]+\\)$" message))
+	     (string-match "^\\([^ \n]+\\) +\\([^ \n]+\\) +\\([^ \n]+\\) +\\([^ \n]+\\)$" message))
     (let ((id (match-string 1 message))
 	  (nick (match-string 2 message))
 	  (to   (match-string 3 message)))

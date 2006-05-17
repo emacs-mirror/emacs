@@ -1,3 +1,7 @@
+2006-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* inc/config.h (pid_t): Define to int.
+
 2006-02-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* makefile.MPW (shortlisp, SOME_MACHINE_LISP): Sync with

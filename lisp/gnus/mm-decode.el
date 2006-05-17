@@ -672,7 +672,14 @@ external if displayed external."
     (mailcap-parse-mailcaps)
     (if (mm-handle-displayed-p handle)
 	(mm-remove-part handle)
-      (let* ((type (mm-handle-media-type handle))
+      (let* ((ehandle (if (equal (mm-handle-media-type handle)
+				 "message/external-body")
+			  (progn
+			    (unless (mm-handle-cache handle)
+			      (mm-extern-cache-contents handle))
+			    (mm-handle-cache handle))
+			handle))
+	     (type (mm-handle-media-type ehandle))
 	     (method (mailcap-mime-info type))
 	     (filename (or (mail-content-type-get
 			    (mm-handle-disposition handle) 'filename)
@@ -680,8 +687,8 @@ external if displayed external."
 			    (mm-handle-type handle) 'name)
 			   "<file>"))
 	     (external mm-enable-external))
-	(if (and (mm-inlinable-p handle)
-		 (mm-inlined-p handle))
+	(if (and (mm-inlinable-p ehandle)
+		 (mm-inlined-p ehandle))
 	    (progn
 	      (forward-line 1)
 	      (mm-display-inline handle)
@@ -689,7 +696,7 @@ external if displayed external."
 	  (when (or method
 		    (not no-default))
 	    (if (and (not method)
-		     (equal "text" (car (split-string type))))
+		     (equal "text" (car (split-string type "/"))))
 		(progn
 		  (forward-line 1)
 		  (mm-insert-inline handle (mm-get-part handle))

@@ -114,7 +114,7 @@ RFC 2646 suggests 66 characters for readability."
     (set-buffer (or (current-buffer) buffer))
     (goto-char (point-min))
     ;; Remove space stuffing.
-    (while (re-search-forward "^ " nil t)
+    (while (re-search-forward "^\\( \\|>+ $\\)" nil t)
       (delete-char -1)
       (forward-line 1))
     (goto-char (point-min))

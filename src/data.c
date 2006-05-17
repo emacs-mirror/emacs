@@ -125,7 +125,14 @@ wrong_type_argument (predicate, value)
       tem = call1 (predicate, value);
     }
   while (NILP (tem));
+  /* This function is marked as NO_RETURN, gcc would warn if it has a
+     return statement or if falls off the function.  Other compilers
+     warn if no return statement is present.  */
+#ifndef __GNUC__
   return value;
+#else
+  abort ();
+#endif
 }
 
 void

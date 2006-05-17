@@ -138,7 +138,7 @@ Display the results only if something went wrong."
     (display-buffer mh-temp-buffer)))
 
 ;; Shush compiler.
-(eval-when-compile (defvar view-exit-action))
+(defvar view-exit-action)
 
 ;;;###mh-autoload
 (defun mh-list-folders ()

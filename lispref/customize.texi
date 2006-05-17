@@ -130,7 +130,48 @@ any effect unless the code which implements the mode is loaded.
 This option specifies that the item was first introduced in Emacs
 version @var{version}, or that its default value was changed in that
 version.  The value @var{version} must be a string.
+
+@item :package-version '(@var{package} . @var{version})
+This option specifies that the item was first introduced in
+@var{package} version @var{version}, or that its default value was
+changed in that version.  This keyword takes priority over :version.
+The value of @var{package} is a symbol and @var{version} is a string.
+The @var{package} and @var{version} must appear in the alist
+@code{customize-package-emacs-version-alist}.  Since @var{package} must
+be unique and the user might see it in an error message, a good choice
+is the official name of the package, such as MH-E or Gnus.
+
 @end table
+
+Packages that use the @code{:package-version} keyword must also update
+the @code{customize-package-emacs-version-alist} variable.
+
+@defvar customize-package-emacs-version-alist
+This alist provides a mapping for the versions of Emacs that are
+associated with versions of a package listed in the
+@code{:package-version} keyword.  Its elements look like this:
+
+@example
+(@var{package} (@var{pversion} . @var{eversion})@dots{})
+@end example
+
+For each @var{package}, which is a symbol, there are one or more
+elements that contain a package version @var{pversion} with an
+associated Emacs version @var{eversion}.  These versions are strings.
+For example, the MH-E package updates this alist with the following:
+
+@smallexample
+(add-to-list 'customize-package-emacs-version-alist
+             '(MH-E ("6.0" . "22.1") ("6.1" . "22.1") ("7.0" . "22.1")
+                    ("7.1" . "22.1") ("7.2" . "22.1") ("7.3" . "22.1")
+                    ("7.4" . "22.1") ("8.0" . "22.1")))
+@end smallexample
+
+The value of @var{package} needs to be unique and it needs to match
+the @var{package} value appearing in the @code{:package-version}
+keyword.  Since the user might see the value in a error message, a good
+choice is the official name of the package, such as MH-E or Gnus.
+@end defvar
 
 @node Group Definitions
 @section Defining Custom Groups

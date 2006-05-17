@@ -2272,7 +2272,7 @@ extern unsigned long cons_to_long P_ ((Lisp_Object));
 extern void args_out_of_range P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;
 extern void args_out_of_range_3 P_ ((Lisp_Object, Lisp_Object,
 				     Lisp_Object)) NO_RETURN;
-extern Lisp_Object wrong_type_argument P_ ((Lisp_Object, Lisp_Object));
+extern Lisp_Object wrong_type_argument P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;
 extern void store_symval_forwarding P_ ((Lisp_Object, Lisp_Object,
 					 Lisp_Object, struct buffer *));
 extern Lisp_Object do_symval_forwarding P_ ((Lisp_Object));
@@ -3228,10 +3228,14 @@ extern void syms_of_dired P_ ((void));
 extern void syms_of_term P_ ((void));
 extern void fatal () NO_RETURN;
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 /* Defined in fontset.c */
 extern void syms_of_fontset P_ ((void));
 EXFUN (Fset_fontset_font, 4);
+
+/* Defined in xfns.c, w32fns.c, or macfns.c */
+EXFUN (Fxw_display_color_p, 1);
+EXFUN (Fx_file_dialog, 5);
 #endif
 
 /* Defined in xfaces.c */
@@ -3245,12 +3249,6 @@ extern int getloadavg P_ ((double *, int));
 #ifdef HAVE_X_WINDOWS
 /* Defined in xfns.c */
 extern void syms_of_xfns P_ ((void));
-#endif /* HAVE_X_WINDOWS */
-#ifdef HAVE_WINDOW_SYSTEM
-/* Defined in xfns.c, w32fns.c, or macfns.c */
-EXFUN (Fxw_display_color_p, 1);
-EXFUN (Fx_file_dialog, 5);
-#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Defined in xsmfns.c */
 extern void syms_of_xsmfns P_ ((void));
@@ -3260,11 +3258,32 @@ extern void syms_of_xselect P_ ((void));
 
 /* Defined in xterm.c */
 extern void syms_of_xterm P_ ((void));
+#endif /* HAVE_X_WINDOWS */
 
 #ifdef MSDOS
 /* Defined in msdos.c */
 EXFUN (Fmsdos_downcase_filename, 1);
 #endif
+
+#ifdef MAC_OS
+/* Defined in macfns.c */
+extern void syms_of_macfns P_ ((void));
+
+/* Defined in macselect.c */
+extern void syms_of_macselect P_ ((void));
+
+/* Defined in macterm.c */
+extern void syms_of_macterm P_ ((void));
+
+/* Defined in macmenu.c */
+extern void syms_of_macmenu P_ ((void));
+
+/* Defined in mac.c */
+extern void syms_of_mac P_ ((void));
+#ifdef MAC_OSX
+extern void init_mac_osx_environment P_ ((void));
+#endif /* MAC_OSX */
+#endif /* MAC_OS */
 
 /* Nonzero means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */

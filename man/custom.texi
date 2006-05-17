@@ -1227,9 +1227,10 @@ values for these variables, do it directly by customizing
   The variable @code{enable-local-variables} allows you to change the
 way Emacs processes local variables.  Its default value is @code{t},
 which specifies the behavior described above.  If it is @code{nil},
-Emacs simply ignores all file local variables.  Any other value says
-to query you about each file that has local variables, without trying
-to determine whether the values are known to be safe.
+Emacs simply ignores all file local variables.  @code{:safe} means use
+only the safe values and ignore the rest.  Any other value says to
+query you about each file that has local variables, without trying to
+determine whether the values are known to be safe.
 
 @vindex enable-local-eval
   The variable @code{enable-local-eval} controls whether Emacs

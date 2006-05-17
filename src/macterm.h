@@ -550,7 +550,15 @@ extern int XParseGeometry P_ ((char *, int *, int *, unsigned int *,
 /* Defined in macterm.c.  */
 
 extern void x_set_window_size P_ ((struct frame *, int, int, int));
+extern void x_set_mouse_position P_ ((struct frame *, int, int));
+extern void x_set_mouse_pixel_position P_ ((struct frame *, int, int));
 extern void x_make_frame_visible P_ ((struct frame *));
+extern void x_make_frame_invisible P_ ((struct frame *));
+extern void x_iconify_frame P_ ((struct frame *));
+extern void x_free_frame_resources P_ ((struct frame *));
+extern void x_destroy_window P_ ((struct frame *));
+extern void x_wm_set_size_hint P_ ((struct frame *, long, int));
+extern void x_delete_display P_ ((struct x_display_info *));
 extern void mac_initialize P_ ((void));
 extern Pixmap XCreatePixmap P_ ((Display *, WindowPtr, unsigned int,
 				 unsigned int, unsigned int));
@@ -560,6 +568,7 @@ extern Pixmap XCreatePixmapFromBitmapData P_ ((Display *, WindowPtr, char *,
 					       unsigned int));
 extern void XFreePixmap P_ ((Display *, Pixmap));
 extern GC XCreateGC P_ ((Display *, Window, unsigned long, XGCValues *));
+extern void XFreeGC P_ ((Display *, GC));
 extern void XSetForeground P_ ((Display *, GC, unsigned long));
 extern void XSetBackground P_ ((Display *, GC, unsigned long));
 extern void XSetWindowBackground P_ ((Display *, WindowPtr, unsigned long));
@@ -571,6 +580,7 @@ extern void mac_unload_font P_ ((struct mac_display_info *, XFontStruct *));
 extern OSErr install_window_handler P_ ((WindowPtr));
 extern void remove_window_handler P_ ((WindowPtr));
 extern Lisp_Object mac_make_lispy_event_code P_ ((int));
+extern void do_menu_choice P_ ((SInt32));
 #if USE_CG_DRAWING
 extern void mac_prepare_for_quickdraw P_ ((struct frame *));
 #endif
@@ -583,6 +593,24 @@ extern void mac_prepare_for_quickdraw P_ ((struct frame *));
 /* Defined in macselect.c */
 
 extern void x_clear_frame_selections P_ ((struct frame *));
+
+/* Defined in macfns.c */
+
+extern int have_menus_p P_ ((void));
+
+extern void x_real_positions P_ ((struct frame *, int *, int *));
+extern void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern int x_pixel_width P_ ((struct frame *));
+extern int x_pixel_height P_ ((struct frame *));
+extern int x_char_width P_ ((struct frame *));
+extern int x_char_height P_ ((struct frame *));
+extern void x_sync P_ ((struct frame *));
+extern void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
+
+/* Defined in macmenu.c */
+
+extern void x_activate_menubar P_ ((struct frame *));
+extern void free_frame_menubar P_ ((struct frame *));
 
 /* Defined in mac.c.  */
 

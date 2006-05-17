@@ -895,6 +895,11 @@ indentation to be kept as it was before narrowing."
 		   (delete-char n)
 		   (setq ,bindent (- ,bindent n)))))))))))
 
+(defun comment-add (arg)
+  (if (and (null arg) (= (string-match "[ \t]*\\'" comment-start) 1))
+      comment-add
+    (1- (prefix-numeric-value arg))))
+
 (defun comment-region-internal (beg end cs ce
                                 &optional ccs cce block lines indent)
   "Comment region BEG .. END.
@@ -999,7 +1004,6 @@ The strings used as comment starts are built from
 
 (defun comment-region-default (beg end &optional arg)
   (let* ((numarg (prefix-numeric-value arg))
-	 (add comment-add)
 	 (style (cdr (assoc comment-style comment-styles)))
 	 (lines (nth 2 style))
 	 (block (nth 1 style))
@@ -1032,8 +1036,7 @@ The strings used as comment starts are built from
      ((consp arg) (uncomment-region beg end))
      ((< numarg 0) (uncomment-region beg end (- numarg)))
      (t
-      (setq numarg (if (and (null arg) (= (length comment-start) 1))
-		       add (1- numarg)))
+      (setq numarg (comment-add arg))
       (comment-region-internal
        beg end
        (let ((s (comment-padright comment-start numarg)))
@@ -1091,9 +1094,8 @@ You can configure `comment-style' to change the way regions are commented."
 	;; FIXME: If there's no comment to kill on this line and ARG is
 	;; specified, calling comment-kill is not very clever.
 	(if arg (comment-kill (and (integerp arg) arg)) (comment-indent))
-      (let ((add (if arg (prefix-numeric-value arg)
-		   (if (= (length comment-start) 1) comment-add 0))))
-	;; Some modes insist on keeping column 0 comment in column 0
+      (let ((add (comment-add arg)))
+        ;; Some modes insist on keeping column 0 comment in column 0
 	;; so we need to move away from it before inserting the comment.
 	(indent-according-to-mode)
 	(insert (comment-padright comment-start add))

@@ -40,7 +40,7 @@
 ;; versions of Gnus.
 
 ;; Items are listed alphabetically (except for mh-require which is
-;; needed by a lesser character).
+;; needed sooner it would normally appear).
 
 (require 'mh-acros)
 
@@ -114,6 +114,11 @@ introduced in Emacs 22."
   (if (< emacs-major-version 22)
       `(face-background ,face ,frame)
     `(face-background ,face ,frame ,inherit)))
+
+(mh-defun-compat mh-font-lock-add-keywords font-lock-add-keywords
+  (mode keywords &optional how)
+  "XEmacs does not have `font-lock-add-keywords'.
+This function returns nil on that system.")
 
 (mh-defun-compat mh-image-load-path-for-library
   image-load-path-for-library (library image &optional path no-error)

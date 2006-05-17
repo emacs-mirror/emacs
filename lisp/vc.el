@@ -584,9 +584,9 @@ See `run-hooks'."
   :group 'vc
   :version "21.1")
 
-(defcustom vc-annotate-display-mode nil
+(defcustom vc-annotate-display-mode 'fullscale
   "Which mode to color the output of \\[vc-annotate] with by default."
-  :type '(choice (const :tag "Default" nil)
+  :type '(choice (const :tag "By Color Map Range" nil)
 		 (const :tag "Scale to Oldest" scale)
 		 (const :tag "Scale Oldest->Newest" fullscale)
 		 (number :tag "Specify Fractional Number of Days"
@@ -617,30 +617,64 @@ version control backend imposes itself."
 
 ;; Annotate customization
 (defcustom vc-annotate-color-map
-  '(( 20. . "#FFCC00")
-    ( 40. . "#FF6666")
-    ( 60. . "#FF6600")
-    ( 80. . "#FF3300")
-    (100. . "#FF00FF")
-    (120. . "#FF0000")
-    (140. . "#CCCC00")
-    (160. . "#CC00CC")
-    (180. . "#BC8F8F")
-    (200. . "#99CC00")
-    (220. . "#999900")
-    (240. . "#7AC5CD")
-    (260. . "#66CC00")
-    (280. . "#33CC33")
-    (300. . "#00CCFF")
-    (320. . "#00CC99")
-    (340. . "#0099FF"))
+  (if (and (tty-display-color-p) (<= (display-color-cells) 8))
+      ;; A custom sorted TTY colormap
+      (let* ((colors
+	      (sort
+	       (delq nil
+		     (mapcar (lambda (x)
+			       (if (not (or
+					 (string-equal (car x) "white")
+					 (string-equal (car x) "black") ))
+				   (car x)))
+			     (tty-color-alist)))
+	       (lambda (a b)
+		 (cond
+		  ((or (string-equal a "red") (string-equal b "blue")) t)
+		  ((or (string-equal b "red") (string-equal a "blue")) nil)
+		  ((string-equal a "yellow") t)
+		  ((string-equal b "yellow") nil)
+		  ((string-equal a "cyan") t)
+		  ((string-equal b "cyan") nil)
+		  ((string-equal a "green") t)
+		  ((string-equal b "green") nil)
+		  ((string-equal a "magenta") t)
+		  ((string-equal b "magenta") nil)
+		  (t (string< a b))))))
+	     (date 20.)
+	     (delta (/ (- 360. date) (1- (length colors)))))
+	(mapcar (lambda (x)
+		  (prog1
+		      (cons date x)
+		    (setq date (+ date delta)))) colors))
+    ;; Normal colormap: hue stepped from 0-240deg, value=1., saturation=0.75
+    '(( 20. . "#FF3F3F")
+      ( 40. . "#FF6C3F")
+      ( 60. . "#FF993F")
+      ( 80. . "#FFC63F")
+      (100. . "#FFF33F")
+      (120. . "#DDFF3F")
+      (140. . "#B0FF3F")
+      (160. . "#83FF3F")
+      (180. . "#56FF3F")
+      (200. . "#3FFF56")
+      (220. . "#3FFF83")
+      (240. . "#3FFFB0")
+      (260. . "#3FFFDD")
+      (280. . "#3FF3FF")
+      (300. . "#3FC6FF")
+      (320. . "#3F99FF")
+      (340. . "#3F6CFF")
+      (360. . "#3F3FFF")))
   "Association list of age versus color, for \\[vc-annotate].
-Ages are given in units of fractional days.  Default is eighteen steps
-using a twenty day increment."
+Ages are given in units of fractional days.  Default is eighteen
+steps using a twenty day increment, from red to blue.  For TTY
+displays with 8 or fewer colors, the default is red to blue with
+all other colors between (excluding black and white)."
   :type 'alist
   :group 'vc)
 
-(defcustom vc-annotate-very-old-color "#0046FF"
+(defcustom vc-annotate-very-old-color "#3F3FFF"
   "Color for lines older than the current color range in \\[vc-annotate]]."
   :type 'string
   :group 'vc)
@@ -852,7 +886,7 @@ However, before executing BODY, find FILE, and after BODY, save buffer."
   (if vc-dired-mode
       (set-buffer (find-file-noselect (dired-get-filename)))
     (while vc-parent-buffer
-      (pop-to-buffer vc-parent-buffer))
+      (set-buffer vc-parent-buffer))
     (if (not buffer-file-name)
 	(error "Buffer %s is not associated with a file" (buffer-name))
       (if (not (vc-backend buffer-file-name))
@@ -2971,7 +3005,7 @@ cover the range from the oldest annotation to the newest."
 (easy-menu-define vc-annotate-mode-menu vc-annotate-mode-map
   "VC Annotate Display Menu"
   `("VC-Annotate"
-    ["Default" (unless (null vc-annotate-display-mode)
+    ["By Color Map Range" (unless (null vc-annotate-display-mode)
                  (setq vc-annotate-display-mode nil)
                  (vc-annotate-display-select))
      :style toggle :selected (null vc-annotate-display-mode)]
@@ -3013,11 +3047,7 @@ BUFFER.  `vc-annotate-display-mode' specifies the highlighting mode to
 use; you may override this using the second optional arg MODE."
   (interactive)
   (if mode (setq vc-annotate-display-mode mode))
-  (when buffer
-    (set-buffer buffer)
-    (display-buffer buffer))
-  (if (not vc-annotate-parent-rev)
-      (vc-annotate-mode))
+  (pop-to-buffer (or buffer (current-buffer)))
   (cond ((null vc-annotate-display-mode)
          ;; The ratio is global, thus relative to the global color-map.
          (kill-local-variable 'vc-annotate-color-map)
@@ -3077,7 +3107,11 @@ colors. `vc-annotate-background' specifies the background color."
   (vc-ensure-vc-buffer)
   (setq vc-annotate-display-mode display-mode) ;Not sure why.  --Stef
   (let* ((temp-buffer-name (format "*Annotate %s (rev %s)*" (buffer-name) rev))
-         (temp-buffer-show-function 'vc-annotate-display-select))
+         (temp-buffer-show-function 'vc-annotate-display-select)
+         ;; If BUF is specified, we presume the caller maintains current line,
+         ;; so we don't need to do it here.  This implementation may give
+         ;; strange results occasionally in the case of REV != WORKFILE-REV.
+         (current-line (unless buf (line-number-at-pos))))
     (message "Annotating...")
     ;; If BUF is specified it tells in which buffer we should put the
     ;; annotations.  This is used when switching annotations to another
@@ -3087,15 +3121,21 @@ colors. `vc-annotate-background' specifies the background color."
 	      ;; In case it had to be uniquified.
 	      (setq temp-buffer-name (buffer-name))))
     (with-output-to-temp-buffer temp-buffer-name
-      (vc-call annotate-command file (get-buffer temp-buffer-name) rev))
-    (with-current-buffer temp-buffer-name
-      (set (make-local-variable 'vc-annotate-backend) (vc-backend file))
-      (set (make-local-variable 'vc-annotate-parent-file) file)
-      (set (make-local-variable 'vc-annotate-parent-rev) rev)
-      (set (make-local-variable 'vc-annotate-parent-display-mode)
-	   display-mode))
-
-  (message "Annotating... done")))
+      (vc-call annotate-command file (get-buffer temp-buffer-name) rev)
+      ;; we must setup the mode first, and then set our local
+      ;; variables before the show-function is called at the exit of
+      ;; with-output-to-temp-buffer
+      (with-current-buffer temp-buffer-name
+        (if (not (equal major-mode 'vc-annotate-mode))
+            (vc-annotate-mode))
+        (set (make-local-variable 'vc-annotate-backend) (vc-backend file))
+        (set (make-local-variable 'vc-annotate-parent-file) file)
+        (set (make-local-variable 'vc-annotate-parent-rev) rev)
+        (set (make-local-variable 'vc-annotate-parent-display-mode)
+             display-mode)))
+    (when current-line
+      (goto-line current-line temp-buffer-name))
+    (message "Annotating... done")))
 
 (defun vc-annotate-prev-version (prefix)
   "Visit the annotation of the version previous to this one.
@@ -3191,7 +3231,8 @@ string, then it describes a revision number, so warp to that
 revision."
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
-    (let* ((oldline (line-number-at-pos))
+    (let* ((buf (current-buffer))
+	   (oldline (line-number-at-pos))
 	   (revspeccopy revspec)
 	   (newrev nil))
       (cond
@@ -3218,10 +3259,10 @@ revision."
       (when newrev
 	(vc-annotate vc-annotate-parent-file newrev
                      vc-annotate-parent-display-mode
-                     (current-buffer))
+                     buf)
 	(goto-line (min oldline (progn (goto-char (point-max))
 				       (previous-line)
-				       (line-number-at-pos))))))))
+				       (line-number-at-pos))) buf)))))
 
 (defun vc-annotate-compcar (threshold a-list)
   "Test successive cons cells of A-LIST against THRESHOLD.
@@ -3275,7 +3316,11 @@ The annotations are relative to the current time, unless overridden by OFFSET."
       (let* ((color (or (vc-annotate-compcar difference vc-annotate-color-map)
 			(cons nil vc-annotate-very-old-color)))
 	     ;; substring from index 1 to remove any leading `#' in the name
-	     (face-name (concat "vc-annotate-face-" (substring (cdr color) 1)))
+	     (face-name (concat "vc-annotate-face-"
+				(if (string-equal
+				     (substring (cdr color) 0 1) "#")
+				    (substring (cdr color) 1)
+				  (cdr color))))
 	     ;; Make the face if not done.
 	     (face (or (intern-soft face-name)
 		       (let ((tmp-face (make-face (intern face-name))))

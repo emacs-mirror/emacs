@@ -657,7 +657,7 @@ See `expand-file-name' for description of DEFAULT."
 (defvar mh-folder-hist nil)
 
 ;; Shush compiler.
-(eval-when-compile (defvar mh-speed-flists-cache))
+(defvar mh-speed-flists-cache)
 
 (defvar mh-allow-root-folder-flag nil
   "Non-nil means \"+\" is an acceptable folder name.
@@ -718,10 +718,8 @@ and FLAG determines whether the completion is over."
                    (t (file-exists-p path))))))))
 
 ;; Shush compiler.
-(eval-when-compile
-  (mh-do-in-xemacs
-    (defvar completion-root-regexp)
-    (defvar minibuffer-completing-file-name)))
+(defvar completion-root-regexp)          ; XEmacs
+(defvar minibuffer-completing-file-name) ; XEmacs
 
 (defun mh-folder-completing-read (prompt default allow-root-folder-flag)
   "Read folder name with PROMPT and default result DEFAULT.

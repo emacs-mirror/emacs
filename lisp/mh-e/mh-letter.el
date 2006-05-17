@@ -278,9 +278,8 @@ searching for `mh-mail-header-separator' in the buffer."
 (defvar mh-letter-buttons-init-flag nil)
 
 ;; Shush compiler.
-(eval-when-compile
-  (defvar image-load-path)
-  (mh-do-in-xemacs (defvar font-lock-defaults)))
+(defvar image-load-path)
+(defvar font-lock-defaults)             ; XEmacs
 
 ;; Ensure new buffers won't get this mode if default-major-mode is nil.
 (put 'mh-letter-mode 'mode-class 'special)

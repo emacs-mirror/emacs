@@ -215,7 +215,7 @@ ignored."
       (setq other-headers (cdr other-headers)))))
 
 ;; Shush compiler.
-(eval-when-compile (mh-do-in-xemacs (defvar sendmail-coding-system)))
+(defvar sendmail-coding-system)         ; XEmacs
 
 ;;;###autoload
 (defun mh-send-letter (&optional arg)

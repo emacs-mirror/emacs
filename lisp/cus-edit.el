@@ -786,7 +786,7 @@ when the action is chosen.")
     (if (or (and (= 1 (length children))
 		 (memq (widget-type (car children))
 		       '(custom-variable custom-face)))
-	    (y-or-n-p "Reset all settings' buffer text to show current values?  "))
+	    (y-or-n-p "Reset all settings' buffer text to show current values? "))
 	(mapc (lambda (widget)
 		(if (memq (widget-get widget :custom-state)
 			  '(modified changed))
@@ -1079,6 +1079,33 @@ Show the buffer in another window, but don't select it."
 (defvar customize-changed-options-previous-release "21.1"
   "Version for `customize-changed-options' to refer back to by default.")
 
+;; Packages will update this variable, so make it available.
+;;;###autoload
+(defvar customize-package-emacs-version-alist nil
+  "Alist mapping versions of Emacs to versions of a package.
+These package versions are listed in the :package-version
+keyword used in `defcustom', `defgroup', and `defface'. Its
+elements look like this:
+
+     (PACKAGE (PVERSION . EVERSION)...)
+
+For each PACKAGE, which is a symbol, there are one or more
+elements that contain a package version PVERSION with an
+associated Emacs version EVERSION.  These versions are strings.
+For example, the MH-E package updates this alist with the
+following:
+
+     (add-to-list 'customize-package-emacs-version-alist
+                  '(MH-E (\"6.0\" . \"22.1\") (\"6.1\" . \"22.1\")
+                         (\"7.0\" . \"22.1\") (\"7.1\" . \"22.1\")
+                         (\"7.2\" . \"22.1\") (\"7.3\" . \"22.1\")
+                         (\"7.4\" . \"22.1\") (\"8.0\" . \"22.1\")))
+
+The value of PACKAGE needs to be unique and it needs to match the
+PACKAGE value appearing in the :package-version keyword.  Since
+the user might see the value in a error message, a good choice is
+the official name of the package, such as MH-E or Gnus.")
+
 ;;;###autoload
 (defalias 'customize-changed 'customize-changed-options)
 
@@ -1119,7 +1146,12 @@ that were added or redefined since that version."
   (let (found)
     (mapatoms
      (lambda (symbol)
-       (let ((version (get symbol 'custom-version)))
+        (let* ((package-version (get symbol 'custom-package-version))
+               (version
+                (or (and package-version
+                         (customize-package-emacs-version symbol
+                                                          package-version))
+                    (get symbol 'custom-version))))
 	 (if version
 	     (when (customize-version-lessp since-version version)
 	       (if (or (get symbol 'custom-group)
@@ -1134,6 +1166,32 @@ that were added or redefined since that version."
 			      "*Customize Changed Options*")
       (error "No user option defaults have been changed since Emacs %s"
 	     since-version))))
+
+(defun customize-package-emacs-version (symbol package-version)
+  "Return Emacs version of SYMBOL.
+PACKAGE-VERSION has the form (PACKAGE . VERSION).  The VERSION of
+PACKAGE is looked up in the associated list
+`customize-package-emacs-version-alist' to find the version of
+Emacs that is associated with it."
+  (let (package-versions emacs-version)
+    ;; Use message instead of error since we want user to be able to
+    ;; see the rest of the symbols even if a package author has
+    ;; botched things up.
+    (cond ((not (listp package-version))
+           (message "Invalid package-version value for %s" symbol))
+          ((setq package-versions (assq (car package-version)
+                                        customize-package-emacs-version-alist))
+           (setq emacs-version
+                 (cdr (assoc (cdr package-version) package-versions)))
+           (unless emacs-version
+             (message "%s version %s not found in %s" symbol
+                      (cdr package-version)
+                      "customize-package-emacs-version-alist")))
+          (t
+           (message "Package %s neglected to update %s"
+                    (car package-version)
+                    "customize-package-emacs-version-alist")))
+    emacs-version))
 
 (defun customize-version-lessp (version1 version2)
   ;; Why are the versions strings, and given that they are, why aren't

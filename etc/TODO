@@ -9,10 +9,13 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
+** Distribute a bar cursor of width > 1 evenly between the two glyphs
+   on each side of the bar (what to do at the edges?).
+
 ** Make vc-checkin avoid reverting the buffer if has not changed after
    the checkin. Comparing (md5 BUFFER) to (md5 FILE) should be enough.
 
-** Make vc-annotate show place the cursor in the annotate buffer at the 
+** Make vc-annotate show place the cursor in the annotate buffer at the
    same line as the current buffer.
 
 ** buffer-offer-save should be a permanent local.
@@ -69,7 +72,7 @@ to the FSF.
 ** Redesign the load-history data structure so it can cope better
   with evaluating definitions of the same function from different files,
   recording which file the latest definition came from.
-  
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,
@@ -158,7 +161,7 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 ** Emacs Lisp mode could put an overlay on the defun for every
   function that has advice.  The overlay could have `after-text' like "
   [Function has advice]".  It might look like
-     (defun foo [Function has advice] (x y) 
+     (defun foo [Function has advice] (x y)
   The overlay could also be a button that you could use to view the advice.
 
 ** ange-ftp
@@ -261,7 +264,7 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 ** Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
   but it's a valuable feature worth making more general.
 
-** Support simultaneous tty and X frames.  [See the multi-tty branch of Emacs 
+** Support simultaneous tty and X frames.  [See the multi-tty branch of Emacs
   at http://lorentey.hu/project/emacs.]
 
 ** Provide MIME support for Rmail using the Gnus MIME library.  [Maybe
