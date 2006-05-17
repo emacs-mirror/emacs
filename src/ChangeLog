@@ -1,3 +1,13 @@
+2006-05-18  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (display_tool_bar_line): Restore entire tool-bar geometry when
+	backtracking in case last image doesn't fit on line.
+
+2006-05-18  MIYOSHI Masanori <miyoshi@meadowy.org>  (tiny change)
+
+	* xdisp.c (display_tool_bar_line): Don't adjust tool-bar height by more than
+	height of one frame default line.
+
 2006-05-16  Kim F. Storm  <storm@cua.dk>
 
 	* xterm.c (handle_one_xevent): Check that f is not NULL before
@@ -17012,8 +17022,7 @@
 	(Fapropos_internal): Initialize them and clear them out.
 	Don't GCPRO them.
 
-	* buffer.c (syms_of_buffer) <scroll-up-aggressively, scroll-down-aggressively>:
-	Doc fixes.
+	* buffer.c (syms_of_buffer) <scroll-up|down-aggressively>: Doc fixes.
 
 	* lisp.h: New misc type Lisp_Save_Value.
 	(enum Lisp_Misc_Type): Add Lisp_Misc_Save_Value.
