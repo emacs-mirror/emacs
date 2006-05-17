@@ -433,7 +433,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
 (define-generic-mode reg-generic-mode
   '(?\;)
   '("key" "classes_root" "REGEDIT" "REGEDIT4")
-  '(("\\(\\[.*]\\)"          1 font-lock-constant-face)
+  '(("\\(\\[.*\\]\\)"        1 font-lock-constant-face)
     ("^\\([^\n\r]*\\)\\s-*=" 1 font-lock-variable-name-face))
   '("\\.[rR][eE][gG]\\'")
   (list

@@ -2404,9 +2404,13 @@ n  -- to ignore the local variables list.
 	  (when (and (= char ?!) unsafe-vars)
 	    (dolist (elt unsafe-vars)
 	      (add-to-list 'safe-local-variable-values elt))
-	    (customize-save-variable
-	     'safe-local-variable-values
-	     safe-local-variable-values))
+	    ;; When this is called from desktop-restore-file-buffer,
+	    ;; coding-system-for-read may be non-nil.  Reset it before
+	    ;; writing to .emacs.
+	    (let ((coding-system-for-read nil))
+	      (customize-save-variable
+	       'safe-local-variable-values
+	       safe-local-variable-values)))
 	  (kill-buffer buf)
 	  (or (= char ?!)
 	      (= char ?\s)

@@ -1459,6 +1459,23 @@ Return nil otherwise."
 				 display))
 	      display)))))
 
+(defun gnus-tool-bar-update (&rest ignore)
+  "Update the tool bar."
+  (when (and (boundp 'tool-bar-mode)
+	     tool-bar-mode)
+    (let* ((args nil)
+	   (func (cond ((featurep 'xemacs)
+			'ignore)
+		       ((fboundp 'tool-bar-update)
+			'tool-bar-update)
+		       ((fboundp 'force-window-update)
+			'force-window-update)
+		       ((fboundp 'redraw-frame)
+			(setq args (list (selected-frame)))
+			'redraw-frame)
+		       (t 'ignore))))
+      (apply func args))))
+
 ;; Fixme: This has only one use (in gnus-agent), which isn't worthwhile.
 (defmacro gnus-mapcar (function seq1 &rest seqs2_n)
   "Apply FUNCTION to each element of the sequences, and make a list of the results.

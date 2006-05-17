@@ -285,11 +285,11 @@ blessmail:
 maybe-blessmail: BLESSMAIL
 #ifdef MOVEMAIL_NEEDS_BLESSING
 /* Don\'t charge ahead and do it!  Let the installer decide.
-	  ./blessmail ${archlibdir}/movemail${EXEEXT}  */
+	  ./blessmail $(DESTDIR)${archlibdir}/movemail${EXEEXT}  */
 	@if [ `wc -l <blessmail` != 2 ] ; then \
 	  dir=`sed -n -e 's/echo mail directory = \(.*\)/\1/p' blessmail`; \
 	  echo Assuming $$dir is really the mail spool directory, you should; \
-	  echo run  lib-src/blessmail ${archlibdir}/movemail${EXEEXT}; \
+	  echo run  lib-src/blessmail $(DESTDIR)${archlibdir}/movemail${EXEEXT}; \
 	  echo as root, to give  movemail${EXEEXT}  appropriate permissions.; \
 	  echo Do that after running  make install.; \
 	fi
@@ -297,50 +297,50 @@ maybe-blessmail: BLESSMAIL
 
 /* Install the internal utilities.  Until they are installed, we can
    just run them directly from lib-src.  */
-${archlibdir}: all
+$(DESTDIR)${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
-	$(top_srcdir)/mkinstalldirs ${archlibdir}
-	if [ `(cd ${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
+	$(top_srcdir)/mkinstalldirs $(DESTDIR)${archlibdir}
+	if [ `(cd $(DESTDIR)${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
 	  for file in ${UTILITIES}; do \
-	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file ${archlibdir}/$$file ; \
+	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file $(DESTDIR)${archlibdir}/$$file ; \
 	  done ; \
         fi
-	$(top_srcdir)/mkinstalldirs ${gamedir}
-	touch ${gamedir}/snake-scores
-	touch ${gamedir}/tetris-scores
+	$(top_srcdir)/mkinstalldirs $(DESTDIR)${gamedir}
+	touch $(DESTDIR)${gamedir}/snake-scores
+	touch $(DESTDIR)${gamedir}/tetris-scores
 /* If the following commands fail, that is not a big deal.
    update-game-score will detect at runtime that it is not setuid,
    and handle things accordingly. */
-	-if chown ${gameuser} ${archlibdir}/update-game-score && chmod u+s ${archlibdir}/update-game-score; then \
-	  chown ${gameuser} ${gamedir}; \
-	  chmod u=rwx,g=rwx,o=rx ${gamedir}; \
+	-if chown ${gameuser} $(DESTDIR)${archlibdir}/update-game-score && chmod u+s $(DESTDIR)${archlibdir}/update-game-score; then \
+	  chown ${gameuser} $(DESTDIR)${gamedir}; \
+	  chmod u=rwx,g=rwx,o=rx $(DESTDIR)${gamedir}; \
 	fi
-        if [ `(cd ${archlibdir} && /bin/pwd)` \
+        if [ `(cd $(DESTDIR)${archlibdir} && /bin/pwd)` \
              != `(cd ${srcdir} && /bin/pwd)` ]; then \
 	  for file in ${SCRIPTS}; do \
-	    $(INSTALL_PROGRAM) ${srcdir}/$$file ${archlibdir}/$$file; \
+	    $(INSTALL_PROGRAM) ${srcdir}/$$file $(DESTDIR)${archlibdir}/$$file; \
 	  done ; \
 	fi
 
-install: ${archlibdir}
+install: $(DESTDIR)${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
 	for file in ${INSTALLABLES} ; do \
-	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} ${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
-	  chmod a+rx ${bindir}/`echo $${file} | sed '$(TRANSFORM)'`; \
+	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
+	  chmod a+rx $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS} ; do \
-	  $(INSTALL_PROGRAM) ${srcdir}/$${file} ${bindir}/`echo $${file} | sed '$(TRANSFORM)'`  ; \
-	  chmod a+rx ${bindir}/`echo $${file} | sed '$(TRANSFORM)'`; \
+	  $(INSTALL_PROGRAM) ${srcdir}/$${file} $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`  ; \
+	  chmod a+rx $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`; \
 	done
 
 uninstall:
-	(cd ${bindir}; \
+	(cd $(DESTDIR)${bindir}; \
 	for file in ${INSTALLABLES} ${INSTALLABLE_SCRIPTS}; do \
-	  rm -f ${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
+	  rm -f $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
 	done)
-	(cd ${archlibdir}; \
+	(cd $(DESTDIR)${archlibdir}; \
 	 rm -f ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS})
 
 mostlyclean:

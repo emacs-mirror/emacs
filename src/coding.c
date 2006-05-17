@@ -735,7 +735,7 @@ detect_coding_emacs_mule (src, src_end, multibytep)
 	  c = -1;						\
 	else							\
 	  {							\
-	    c -= 0xA0;						\
+	    c -= 0x80;						\
 	    *p++ = c;						\
 	  }							\
       }								\

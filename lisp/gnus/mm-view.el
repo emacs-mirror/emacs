@@ -213,21 +213,25 @@
 
 (defun mm-w3m-cid-retrieve-1 (url handle)
   (dolist (elem handle)
-    (when (listp elem)
-      (if (equal url (mm-handle-id elem))
-	  (progn
-	    (mm-insert-part elem)
-	    (throw 'found-handle (mm-handle-media-type elem))))
-      (if (equal "multipart" (mm-handle-media-supertype elem))
-	  (mm-w3m-cid-retrieve-1 url elem)))))
+    (when (consp elem)
+      (when (equal url (mm-handle-id elem))
+	(mm-insert-part elem)
+	(throw 'found-handle (mm-handle-media-type elem)))
+      (when (and (stringp (car elem))
+		 (equal "multipart" (mm-handle-media-supertype elem)))
+	(mm-w3m-cid-retrieve-1 url elem)))))
 
 (defun mm-w3m-cid-retrieve (url &rest args)
   "Insert a content pointed by URL if it has the cid: scheme."
   (when (string-match "\\`cid:" url)
-    (catch 'found-handle
-      (mm-w3m-cid-retrieve-1 (concat "<" (substring url (match-end 0)) ">")
-			     (with-current-buffer w3m-current-buffer
-			       gnus-article-mime-handles)))))
+    (or (catch 'found-handle
+	  (mm-w3m-cid-retrieve-1
+	   (setq url (concat "<" (substring url (match-end 0)) ">"))
+	   (with-current-buffer w3m-current-buffer
+	     gnus-article-mime-handles)))
+	(prog1
+	    nil
+	  (message "Failed to find \"Content-ID: %s\"" url)))))
 
 (defun mm-inline-text-html-render-with-w3m (handle)
   "Render a text/html part using emacs-w3m."

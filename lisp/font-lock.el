@@ -2120,7 +2120,7 @@ other modes in which C preprocessor directives are used. e.g. `asm-mode' and
        ;; Erroneous structures.
        ("(\\(abort\\|assert\\|warn\\|check-type\\|cerror\\|error\\|signal\\)\\>" 1 font-lock-warning-face)
        ;; Words inside \\[] tend to be for `substitute-command-keys'.
-       ("\\\\\\\\\\[\\(\\sw+\\)]" 1 font-lock-constant-face prepend)
+       ("\\\\\\\\\\[\\(\\sw+\\)\\]" 1 font-lock-constant-face prepend)
        ;; Words inside `' tend to be symbol names.
        ("`\\(\\sw\\sw+\\)'" 1 font-lock-constant-face prepend)
        ;; Constant values.

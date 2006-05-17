@@ -542,7 +542,8 @@ It returns a name of the created fontset."
 	  (error "Fontset \"%s\" not conforming to XLFD" name))
 
       ;; At first, extract pairs of charset and fontname from FONTSET-SPEC.
-      (while (string-match "[, \t\n]*\\([^:]+\\):\\([^,]+\\)" fontset-spec idx)
+      (while (string-match "[, \t\n]*\\([^:]+\\):[ \t]*\\([^,]+\\)"
+			   fontset-spec idx)
 	(setq idx (match-end 0))
 	(setq charset (intern (match-string 1 fontset-spec)))
 	(if (charsetp charset)

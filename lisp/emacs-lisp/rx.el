@@ -372,8 +372,8 @@ FORM is of the form `(and FORM1 ...)'."
      (if (eq ?^ (aref arg 0))
 	 (setq arg (concat "\\" arg)))
      ;; Remove ] and set flag for adding it to start of overall result.
-     (when (string-match "]" arg)
-       (setq arg (replace-regexp-in-string "]" "" arg)
+     (when (string-match "\\]" arg)
+       (setq arg (replace-regexp-in-string "\\]" "" arg)
 	     rx-bracket "]")))
    (when (symbolp arg)
      (let ((translation (condition-case nil
@@ -405,7 +405,7 @@ ARG is optional."
 (defun rx-check-not (arg)
   "Check arg ARG for Rx `not'."
   (unless (or (and (symbolp arg)
-		   (string-match "\\`\\[\\[:[-a-z]:]]\\'"
+		   (string-match "\\`\\[\\[:[-a-z]:\\]\\]\\'"
 				 (condition-case nil
 				     (rx-to-string arg 'no-group)
 				   (error ""))))

@@ -1219,12 +1219,12 @@ prompted for a comment.  Comments can also be added from Dired, and
 then also to multiple files at once, by typing @kbd{C-t c}
 (@code{tumme-dired-comment-files}).
 
-  Tumme also provide simple image manipulation commands, like rotating
-thumbnails and original image files.  In the thumbnail buffer, type
-@kbd{L} to rotate the original image 90 degrees anti clockwise, and
-@kbd{R} to rotate it 90 degrees clockwise.  This rotation will be done
-lossless (the image quality will not be reduced) and needs an external
-utility called JpegTRAN to work.
+  Tumme also provides simple image manipulation commands, like
+rotating thumbnails and original image files.  In the thumbnail
+buffer, type @kbd{L} to rotate the original image 90 degrees anti
+clockwise, and @kbd{R} to rotate it 90 degrees clockwise.  This
+rotation will be done lossless (the image quality will not be reduced)
+and needs an external utility called JpegTRAN to work.
 
 @node Misc Dired Features
 @section Other Dired Features

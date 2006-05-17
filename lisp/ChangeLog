@@ -1,26 +1,206 @@
+2006-03-10  Bill Wohler  <wohler@newt.com>
+
+	* image.el (image-load-path-for-library): Merge at least three
+	functions from Gnus and MH-E into this one function that can now
+	be shared.
+
+2006-03-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-remove-text-properties): Rename from
+	gdb-remove-mouse-face and remove help-echo too.
+	(gdb-enqueue-input): Correct conditional clause.
+	
+2006-03-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-holidays): Doc fix.
+	* calendar/holidays.el (list-holidays): Doc fix.
+
+2006-03-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdba): Don't call gdb-init-1 explicitly as
+	it gets called in gdb-prompt anyway.
+	(gdb-use-separate-io-buffer): Only restore window arrangement for
+	gdb-many-windows.
+	(gdb-enqueue-input): Make it harder to send GDB input when program
+	is running.
+	(gdb-buffer-list): New variable.
+	(gdb-remove-mouse-face): New function.
+	(gdb-starting): Use it when GDB input won't get sent.
+
+2006-03-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (view-lossage): Remove trailing whitespace before
+	inserting "\n".
+
+2006-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (hack-local-variables-confirm): Set
+	coding-system-for-read to nil before writing to .emacs.
+
+	* arc-mode.el (archive-extract): Check if an existing buffer name
+	comes from a different archive.
+
+	* help.el (describe-key-briefly): If KEY is a down event, read and
+	discard the up event.
+
+2006-03-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-buttons): Allow pointers to
+	be edited and use font-lock-warning-face for any changes.
+
+	* progmodes/gdb-ui.el (gdb-edit-value-handler): New function.
+	(gdb-edit-value): Use it to report any errors.
+
+2006-03-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (describe-key): Remove leftover test code.
+
+2006-03-07  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: Move defvars out of eval-when-compile.  Use
+	buffer-file-name variable.
+	(org-agenda-file-to-end, org-agenda-file-to-front): Remove unused
+	arg `file'.
+	(org-level-faces): Remove startup dependency.
+	(org-cycle, org-map-tree, org-scan-tags)
+	(org-remember-handler): Don't call `outline-level' directly.
+	(org-mhe-search-all-folders): New option.
+	(org-mhe-get-message-folder-from-index)
+	(org-mhe-get-message-folder): Fix indexing search.
+	(org-format-agenda-item): Handle nil TAGS argument.
+	(org-cleaned-string-for-export, org-activate-target-links)
+	(org-make-target-link-regexp): Deal with empty radio target list.
+	(org-tag): New face.
+	(org-get-level-face): New function.
+	(org-set-font-lock-defaults): Simplify setup for headlines.
+	(org-complete): Pass common substring to
+	`display-completion-list'.
+
+2006-03-06  David Ponce  <david@dponce.com>
+
+	* tree-widget.el: Update Commentary header.
+	(tree-widget-theme-name): Ignore parent themes.
+	(tree-widget-set-parent-theme): New function.
+	(tree-widget-set-theme): Use it.
+	(tree-widget-set-image-properties): Move definition.  Does nothing
+	if image properties have already been set.
+	(tree-widget-image-properties): Move definition.  Receive an image
+	name.  Set the :pointer property.
+	(tree-widget-lookup-image): Doc fix.  Search in parent themes.
+	Don't set the :pointer image property.
+	(tree-widget-convert-widget): New function.  Handle :dynargs
+	compatibility here.
+	(tree-widget): Use it to :convert-widget.  Add the :expander-p
+	predicate to control when the :expander function is entered.
+	Thanks to Ken Manheimer <ken.manheimer@gmail.com> for the idea.
+	(tree-widget-value-create): Handle :expander-p.  widget-apply
+	:expander.
+	(tree-widget-expander-p): New function.  Default value of the
+	:expander-p property.
+
+2006-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.el (describe-key): Properly handle the return value of
+	read-key-sequence when grabbing an up-event.  Cleanup mouse-1
+	remaps.  Handle string and vector `follow-link' values.
+
+2006-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* complete.el (PC-expand-many-files): Try be more careful when parsing
+	the shell's output.
+
+2006-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* outline.el (hide-sublevels): Provide better interactive default.
+
+2006-03-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (create-fontset-from-fontset-spec):
+	Fix regexp for paring FONTSET-SPEC (allow spaces after `:').
+
+2006-03-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/gud.el (gud-jdb-marker-filter): Quote `[' with two
+	backslashes instead of one in regexp.
+	(gud-tooltip-dereference): Add missing optional argument.
+
+2006-03-04  John Paul Wallington  <jpw@pobox.com>
+
+	* wdired.el (toplevel): Require `cl' at compile-time.
+
+2006-03-04  Andreas Schwab  <schwab@suse.de>
+
+	* server.el (server-process-filter): Handle errors during
+	evaluation of the argument.
+
+2006-03-03  John Paul Wallington  <jpw@pobox.com>
+
+	* t-mouse.el (t-mouse-drag-start, t-mouse-swap-alt-keys): Doc fix;
+	escape parentheses at beginning of line.
+	(t-mouse-tty, t-mouse-make-event): Doc fix; use imperative.
+	(t-mouse-mode): Remove period from end of error message.
+
+2006-03-03  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-process-localwords):
+	Be case-sensitive.
+
+2006-03-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-edit.el (custom-quote): Remove function, since it has been
+	moved to custom.el.
+
+	* font-lock.el (lisp-font-lock-keywords-2)
+	* emacs-lisp/rx.el (rx-check-any, rx-check-not)
+	* generic-x.el (reg-generic-mode): Quote "]"s in regexps when
+	they have no special meaning.
+
+	* midnight.el (clean-buffer-list): Handle case where base-buffer of
+	indirect buffer gets killed before indirect buffer.  Use dolist.
+
+2006-03-03  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* emacs-lisp/edebug.el (edebug-display): Use `edebug-sit-for-seconds'
+	value instead of a literal constant (1) on more pauses.
+
+2006-03-03  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Be case-sensitive.
+
+2006-03-03  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-url-regexp): Match entire url when it starts
+	with "www".
+
+2006-03-03  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Restablish intermediate missing comment header to
+	preserve outline structure.
+	(allout-beginning-of-current-entry): Skip invisible text.
+	(allout-open-topic): Fix opening a topic at end-of-buffer.
+	(allout-minor-mode): Move nearer to allout-mode function.
+
 2006-03-02  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-paste-subtree): Removed forgotten (debug)
-	form.
+	* textmodes/org.el (org-paste-subtree): Remove (debug) form.
 
 2006-03-02  Nick Roberts  <nickrob@snap.net.nz>
 
 	* dframe.el (dframe-frame-mode): Don't burp when menu-bar-lines
 	is nil.
 
-	* progmodes/gud.el (gud-speedbar-menu-items): Use
-	buffer-local-value and add missing :visible keyword.
+	* progmodes/gud.el (gud-speedbar-menu-items):
+	Use buffer-local-value and add missing :visible keyword.
 
-	* progmodes/gdb-ui.el (gdb-speedbar-refresh): Quieten
-	speedbar-refresh.
+	* progmodes/gdb-ui.el (gdb-speedbar-refresh): Quieten speedbar-refresh.
 
 2006-03-01  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/reftex-index.el (reftex-index-map): `follow-mouse'
 	must be `follow-link'.
 
-	* textmodes/reftex-toc.el (reftex-toc-map): `follow-mouse' must be
-	`follow-link'.
+	* textmodes/reftex-toc.el (reftex-toc-map): Likewise.
 
 	* textmodes/org.el (org-export-as-html): Fix bugs in HTML
 	formatting: No nested anchors.
@@ -28,8 +208,7 @@
 	(org-read-date): Add (require 'parse-time).
 	(org-set-tags): Fix bug with extra inserted space.
 	(org-export-html-style): Define a style class for targets.
-	(org-agenda-keymap, org-mouse-map): Add a binding for
-	`follow-link'.
+	(org-agenda-keymap, org-mouse-map): Add a binding for `follow-link'.
 	(org-hide-leading-stars): New option.
 	(org-hide): New face.
 	(org-set-font-lock-defaults): Allow to hide leading stars.
@@ -45,12 +224,11 @@
 	preserve window-start.
 	(speedbar-update-directory-contents): Try to preserve window-start
 	and window-point.
-	(speedbar-update-special-contents): Don't move back to start of
-	window.
+	(speedbar-update-special-contents): Don't move back to start of	window.
 
 	* progmodes/gdb-ui.el (gdb-speedbar-refresh): Rename from
 	gdb-speedbar-timer-fn.  Use speedbar-refresh instead of
-	speedbar-timer-fn
+	speedbar-timer-fn.
 	(gdb-var-update-handler, gdb-var-update-handler-1): Use it.
 	(gdb-speedbar-expand-node): Use speedbar-delete-subblock
 	instead of gdb-speedbar-timer-fn.
@@ -137,17 +315,17 @@
 	* startup.el (command-line):
 	* subr.el (locate-library):
 	* emacs-lisp/autoload.el (update-directory-autoloads):
-	* emacs-lisp/find-func.el (find-library-suffixes): Use
-	`get-load-suffixes' instead of `load-suffixes'.
+	* emacs-lisp/find-func.el (find-library-suffixes):
+	Use `get-load-suffixes' instead of `load-suffixes'.
 
 	* subr.el (locate-library):
-	* emacs-lisp/find-func.el (find-library-name): Use
-	`load-file-rep-suffixes' instead of '("").
+	* emacs-lisp/find-func.el (find-library-name):
+	Use `load-file-rep-suffixes' instead of '("").
 
 2006-02-26  Kim F. Storm  <storm@cua.dk>
 
-	* ido.el (ido-save-history, ido-load-history): Simplify.  Don't
-	use find-file-noselect to avoid interference from other modes.
+	* ido.el (ido-save-history, ido-load-history): Simplify.
+	Don't use find-file-noselect to avoid interference from other modes.
 
 2006-02-25  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -166,8 +344,8 @@
 
 2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-mode.el (c-postprocess-file-styles): Bind
-	inhibit-read-only to t, around the call to
+	* progmodes/cc-mode.el (c-postprocess-file-styles):
+	Bind inhibit-read-only to t, around the call to
 	c-remove-any-local-eval-or-mode-variables, so that it works on a
 	RO file.
 
@@ -208,13 +386,12 @@
 
 	* progmodes/cc-mode.el:
 	[Supersedes patch to cc-engine.el 2005-12-16T20:07:49Z!monnier@iro.umontreal.ca]
-	(c-after-change): Protect the match data with save-match-data.  It
-	was getting corrupted by c-after-change-check-<>-operators.
+	(c-after-change): Protect the match data with save-match-data.
+	It was getting corrupted by c-after-change-check-<>-operators.
 
 	* cc-defs.el: [Supersedes patch V1.38]:
 	(top level): Check for a buggy font-lock-compile-keywords ONLY in
-	XEmacs.  GNU Emacs 22 now has a check which would throw an error
-	here.
+	XEmacs.  GNU Emacs 22 now has a check which would throw an error here.
 
 	* progmodes/cc-awk.el (c-awk-after-change): Protect the match data
 	with save-match-data.  It was being corrupted when Font Lock was
@@ -230,14 +407,12 @@
 	(c-forward-objc-directive): Replace c-forward-token-2 with crude
 	coding; c-f-t-2 doesn't move over a token at EOB.
 
-	* progmodes/cc-defs.el (c-version): Update version number to
-	5.31.2
+	* progmodes/cc-defs.el (c-version): Update version number to 5.31.2.
 
 	* progmodes/cc-cmds.el, cc-mode.el, cc-engine.el
 	(c-update-modeline): Concatenate the minor mode indicators
 	directly onto mode-name, removing c-submode-indicators.
-	Sometimes, c-s-i got separated from the mode name on the mode
-	line.
+	Sometimes, c-s-i got separated from the mode name on the mode line.
 
 	* progmodes/cc-cmds.el (c-electric-brace, c-electric-semi&comma)
 	(c-electric-colon): Correct doc-strings: "/ln" -> "/la".

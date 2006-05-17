@@ -1090,9 +1090,9 @@ als ein Fenster zur gleichen Zeit auf dem Bildschirm darzustellen.
 
 >> Bewegen Sie den Cursor zu dieser Zeile und geben Sie C-u 0 C-l ein.
 
->> Schreiben Sie nun C-x 2, um den Bildschirm in zwei Fenster zu
-   teilen.  Beide Fenster zeigen diese Einführung an, und der Cursor
-   bleibt im oberen.
+>> Drücken Sie nun C-x 2, um den Bildschirm in zwei Fenster zu teilen.
+   Beide Fenster zeigen diese Einführung an, und der Cursor bleibt im
+   oberen.
 
 >> Verwenden Sie C-M-v, um im unteren Fenster zu blättern (Sie können
    statt dessen auch ESC C-v verwenden, falls Sie keine META-Taste
@@ -1355,8 +1355,8 @@ Emacs-Befehle ist, haben Sie einen wirklichen Grund, sich in diesem
 Fall beim Systemadministrator zu beschweren.  Alternativen zu C-h sind
 die F1-Taste und der lange Befehl M-x help <Return>.)
 
-Die elementarste Hilfestellung gibt C-h c.  Schreiben Sie C-h, dann
-das Zeichen c, und dann einen Befehl: Emacs zeigt daraufhin eine kurze
+Die elementarste Hilfestellung gibt C-h c.  Drücken Sie C-h, dann das
+Zeichen c, und dann einen Befehl: Emacs zeigt daraufhin eine kurze
 Beschreibung des Befehls an.
 
 >> Geben Sie C-h c C-p ein.

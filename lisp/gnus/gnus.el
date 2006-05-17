@@ -1580,9 +1580,23 @@ articles.  This is not a good idea."
 		       :value t)))
 
 (defcustom gnus-use-nocem nil
-  "*If non-nil, Gnus will read NoCeM cancel messages."
+  "*If non-nil, Gnus will read NoCeM cancel messages.
+You can also set this variable to a positive number as a group level.
+In that case, Gnus scans NoCeM messages when checking new news if this
+value is not exceeding a group level that you specify as the prefix
+argument to some commands, e.g. `gnus', `gnus-group-get-new-news', etc.
+Otherwise, Gnus does not scan NoCeM messages if you specify a group
+level to those commands."
   :group 'gnus-meta
-  :type 'boolean)
+  :type '(choice
+	  (const :tag "off" nil)
+	  (const :tag "on" t)
+	  (list :convert-widget
+		(lambda (widget)
+		  (list 'integer :tag "group level"
+			:value (if (boundp 'gnus-level-default-subscribed)
+				   gnus-level-default-subscribed
+				 3))))))
 
 (defcustom gnus-suppress-duplicates nil
   "*If non-nil, Gnus will mark duplicate copies of the same article as read."

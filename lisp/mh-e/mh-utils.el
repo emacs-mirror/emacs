@@ -82,78 +82,6 @@ used in lieu of `search' in the CL package."
   (delete-region (point) (progn (forward-line lines) (point))))
 
 ;;;###mh-autoload
-(defun mh-image-load-path (library image &optional path)
-  "Return a suitable search path for images of LIBRARY.
-
-Images for LIBRARY are searched for in \"../../etc/images\" and
-\"../etc/images\" relative to the files in \"lisp/LIBRARY\", in
-`image-load-path', or in `load-path'.
-
-This function returns value of `load-path' augmented with the
-path to IMAGE.  If PATH is given, it is used instead of
-`load-path'."
-  (unless library (error "No library specified"))
-  (unless image   (error "No image specified"))
-  (let ((mh-image-directory))
-    (cond
-     ;; Try relative setting.
-     ((let (mh-library-name d1ei d2ei)
-        ;; First, find library in the load-path.
-        (setq mh-library-name (locate-library library))
-        (if (not mh-library-name)
-            (error "Cannot find library %s in load-path" library))
-        ;; And then set mh-image-directory relative to that.
-        (setq
-         ;; Go down 2 levels.
-         d2ei (expand-file-name
-               (concat (file-name-directory mh-library-name)
-                       "../../etc/images"))
-         ;; Go down 1 level.
-         d1ei (expand-file-name
-               (concat (file-name-directory mh-library-name)
-                       "../etc/images")))
-        (setq mh-image-directory
-              ;; Set it to nil if image is not found.
-              (cond ((file-exists-p (expand-file-name image d2ei)) d2ei)
-                    ((file-exists-p (expand-file-name image d1ei)) d1ei)))))
-     ;; Check for images in image-load-path or load-path.
-     ((let ((img image)
-            (dir (or
-                  ;; Images in image-load-path.
-                  (mh-image-search-load-path image)
-                  ;; Images in load-path.
-                  (locate-library image)))
-            parent)
-        ;; Since the image might be in a nested directory
-        ;; (for example, mail/attach.pbm), adjust `mh-image-directory'
-        ;; accordingly.
-        (and dir
-             (setq dir (file-name-directory dir))
-             (progn
-               (while (setq parent (file-name-directory img))
-                 (setq img (directory-file-name parent)
-                       dir (expand-file-name "../" dir)))
-               (setq mh-image-directory dir))))))
-    ;;
-    (unless (file-exists-p mh-image-directory)
-      (error "Directory %s in mh-image-directory does not exist"
-	     mh-image-directory))
-    (unless (file-exists-p (expand-file-name image mh-image-directory))
-      (error "Directory %s in mh-image-directory does not contain image %s"
-             mh-image-directory image))
-    ;; Return augmented `image-load-path' or `load-path'.
-    (cond ((and path (symbolp path))
-           (nconc (list mh-image-directory)
-                  (delete mh-image-directory
-                          (if (boundp path)
-                              (copy-sequence (symbol-value path))
-                            nil))))
-          (t
-           (nconc (list mh-image-directory)
-                  (delete mh-image-directory
-                          (copy-sequence load-path)))))))
-
-;;;###mh-autoload
 (defun mh-make-local-vars (&rest pairs)
   "Initialize local variables according to the variable-value PAIRS."
   (while pairs
@@ -203,10 +131,9 @@ Ignores case when searching for OLD."
 (defun mh-logo-display ()
   "Modify mode line to display MH-E logo."
   (mh-do-in-gnu-emacs
-    (let ((load-path
-           (mh-image-load-path "mh-e" "mh-logo.xpm" 'load-path))
-          (image-load-path
-           (mh-image-load-path "mh-e" "mh-logo.xpm" 'image-load-path)))
+    (let ((load-path (mh-image-load-path-for-library "mh-e" "mh-logo.xpm"))
+          (image-load-path (mh-image-load-path-for-library
+                            "mh-e" "mh-logo.xpm" 'image-load-path)))
       (add-text-properties
        0 2
        `(display ,(or mh-logo-cache
@@ -487,7 +414,8 @@ names and the function is called when OUTPUT is available."
               do (progn (setf (cdr x) t) (return)))))))
 
 (defun mh-normalize-folder-name (folder &optional empty-string-okay
-                                        dont-remove-trailing-slash)
+                                        dont-remove-trailing-slash
+                                        return-nil-if-folder-empty)
   "Normalizes FOLDER name.
 
 Makes sure that two '/' characters never occur next to each
@@ -500,8 +428,19 @@ empty string then nothing is added.
 
 If optional argument DONT-REMOVE-TRAILING-SLASH is non-nil then a
 trailing '/' if present is retained (if present), otherwise it is
-removed."
-  (when (stringp folder)
+removed.
+
+If optional argument RETURN-NIL-IF-FOLDER-EMPTY is non-nil, then
+return nil if FOLDER is \"\" or \"+\". This is useful when
+normalizing the folder for the \"folders\" command which displays
+the directories in / if passed \"+\". This is usually not
+desired. If this argument is non-nil, then EMPTY-STRING-OKAY has
+no effect."
+  (cond
+   ((if (and (or (equal folder "+") (equal folder ""))
+             return-nil-if-folder-empty)
+        (setq folder nil)))
+   ((stringp folder)
     ;; Replace two or more consecutive '/' characters with a single '/'
     (while (string-match "//" folder)
       (setq folder (replace-match "/" nil t folder)))
@@ -514,10 +453,11 @@ removed."
                  (stringp mh-current-folder-name))
         (setq folder (format "%s/%s/" mh-current-folder-name
                              (substring folder 1))))
-      ;; XXX: Purge empty strings from the list that split-string returns. In
-      ;;  XEmacs, (split-string "+foo/" "/") returns ("+foo" "") while in GNU
-      ;;  Emacs it returns ("+foo"). In the code it is assumed that the
-      ;; components list has no empty strings.
+      ;; XXX: Purge empty strings from the list that split-string
+      ;; returns. In XEmacs, (split-string "+foo/" "/") returns
+      ;; ("+foo" "") while in GNU Emacs it returns ("+foo"). In the
+      ;; code it is assumed that the components list has no empty
+      ;; strings.
       (let ((components (delete "" (split-string folder "/")))
             (result ()))
         ;; Remove .. and . from the pathname.
@@ -537,8 +477,10 @@ removed."
         (when leading-slash-present
           (setq folder (concat "/" folder)))))
     (cond ((and empty-string-okay (equal folder "")))
-          ((equal folder "") (setq folder "+"))
-          ((not (equal (aref folder 0) ?+)) (setq folder (concat "+" folder)))))
+          ((equal folder "")
+           (setq folder "+"))
+          ((not (equal (aref folder 0) ?+))
+           (setq folder (concat "+" folder))))))
   folder)
 
 (defmacro mh-children-p (folder)
@@ -568,23 +510,25 @@ Respects the value of `mh-recursive-folders-flag'. If this flag
 is nil, and the sub-folders have not been explicitly viewed, then
 they will not be returned."
   (let ((folder-list))
-    ;; Normalize folder. Strip leading +. Add trailing slash (done in
-    ;; two steps to avoid infinite loops when replacing "/*$" with "/"
-    ;; in XEmacs). If no folder is specified, ensure it is nil to
-    ;; ensure we get the top-level folders; otherwise mh-sub-folders
-    ;; returns all the files in / if given an empty string or +.
+    ;; Normalize folder. Strip leading + and trailing slash(es). If no
+    ;; folder is specified, ensure it is nil to avoid adding the
+    ;; folder to the folder-list and adding a slash to it.
     (when folder
       (setq folder (mh-replace-regexp-in-string "^\+" "" folder))
-      (setq folder (mh-replace-regexp-in-string "/+$" "" folder)))
+      (setq folder (mh-replace-regexp-in-string "/+$" "" folder))
+      (if (equal folder "")
+          (setq folder nil)))
     ;; Add provided folder to list, unless all folders are asked for.
+    ;; Then append slash to separate sub-folders.
     (unless (null folder)
-      (setq folder-list (list folder)))
+      (setq folder-list (list folder))
+      (setq folder (concat folder "/")))
     (loop for f in (mh-sub-folders folder) do
           (setq folder-list
                 (append folder-list
                         (if (mh-children-p f)
-                            (mh-folder-list (concat folder "/" (car f)))
-                          (list (concat folder "/" (car f)))))))
+                            (mh-folder-list (concat folder (car f)))
+                          (list (concat folder (car f)))))))
     folder-list))
 
 ;;;###mh-autoload
@@ -596,7 +540,7 @@ results of the actual folders call.
 If optional argument ADD-TRAILING-SLASH-FLAG is non-nil then a
 slash is added to each of the sub-folder names that may have
 nested folders within them."
-  (let* ((folder (mh-normalize-folder-name folder))
+  (let* ((folder (mh-normalize-folder-name folder nil nil t))
          (match (gethash folder mh-sub-folders-cache 'no-result))
          (sub-folders (cond ((eq match 'no-result)
                              (setf (gethash folder mh-sub-folders-cache)

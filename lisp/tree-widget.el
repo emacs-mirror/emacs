@@ -50,14 +50,16 @@
 ;;    Specify a function to be called to dynamically provide the
 ;;    tree's children in response to an expand request.  This function
 ;;    will be passed the tree widget and must return a list of child
-;;    widgets.
+;;    widgets.  Child widgets returned by the :expander function are
+;;    stored in the :args property of the tree widget.
 ;;
-;;    *Please note:* Child widgets returned by the :expander function
-;;    are stored in the :args property of the tree widget.  To speed
-;;    up successive expand requests, the :expander function is not
-;;    called again when the :args value is non-nil.  To refresh child
-;;    values, it is necessary to set the :args property to nil, then
-;;    redraw the tree.
+;; :expander-p
+;;    Specify a predicate which must return non-nil to indicate that
+;;    the :expander function above has to be called.  By default, to
+;;    speed up successive expand requests, the :expander-p predicate
+;;    return non-nil when the :args value is nil.  So, by default, to
+;;    refresh child values, it is necessary to set the :args property
+;;    to nil, then redraw the tree.
 ;;
 ;; :open-icon  (default `tree-widget-open-icon')
 ;; :close-icon (default `tree-widget-close-icon')
@@ -265,19 +267,42 @@ See also the option `widget-image-conversion'."
 
 (defsubst tree-widget-theme-name ()
   "Return the current theme name, or nil if no theme is active."
-  (and tree-widget--theme (aref tree-widget--theme 0)))
+  (and tree-widget--theme (car (aref tree-widget--theme 0))))
 
-(defsubst tree-widget-set-theme (&optional name)
+(defsubst tree-widget-set-parent-theme (name)
+  "Set to NAME the parent theme of the current theme.
+The default parent theme is the \"default\" theme."
+  (unless (member name (aref tree-widget--theme 0))
+    (aset tree-widget--theme 0
+          (append (aref tree-widget--theme 0) (list name)))
+    ;; Load the theme setup
+    (let ((default-directory (tree-widget-themes-directory)))
+      (when default-directory
+        (load (expand-file-name "tree-widget-theme-setup" name) t)))))
+
+(defun tree-widget-set-theme (&optional name)
   "In the current buffer, set the theme to use for images.
 The current buffer must be where the tree widget is drawn.
 Optional argument NAME is the name of the theme to use.  It defaults
 to the value of the variable `tree-widget-theme'.
-Does nothing if NAME is already the current theme."
+Does nothing if NAME is already the current theme.
+
+If there is a \"tree-widget-theme-setup\" library in the theme
+directory, load it to setup a parent theme or the images properties.
+Typically it should contain something like this:
+
+  (tree-widget-set-parent-theme \"my-parent-theme\")
+  (tree-widget-set-image-properties
+   (if (featurep 'xemacs)
+       '(:ascent center)
+     '(:ascent center :mask (heuristic t))
+     ))"
   (or name (setq name (or tree-widget-theme "default")))
   (unless (string-equal name (tree-widget-theme-name))
     (set (make-local-variable 'tree-widget--theme)
          (make-vector 4 nil))
-    (aset tree-widget--theme 0 name)))
+      (tree-widget-set-parent-theme name)
+      (tree-widget-set-parent-theme "default")))
 
 (defun tree-widget--locate-sub-directory (name path)
   "Locate the sub-directory NAME in PATH.
@@ -328,50 +353,6 @@ specified directory is not accessible."
     (aset tree-widget--theme 1 (or found 'void))
     found))
 
-(defsubst tree-widget-set-image-properties (props)
-  "In current theme, set images properties to PROPS."
-  (aset tree-widget--theme 2 props))
-
-(defun tree-widget-image-properties (file)
-  "Return the properties of an image in current theme.
-FILE is the absolute file name of an image.
-
-If there is a \"tree-widget-theme-setup\" library in the theme
-directory, where is located FILE, load it to setup theme images
-properties.  Typically it should contain something like this:
-
-  (tree-widget-set-image-properties
-   (if (featurep 'xemacs)
-       '(:ascent center)
-     '(:ascent center :mask (heuristic t))
-     ))
-
-When there is no \"tree-widget-theme-setup\" library in the current
-theme directory, load the one from the default theme, if available.
-Default global properties are provided for respectively Emacs and
-XEmacs in the variables `tree-widget-image-properties-emacs', and
-`tree-widget-image-properties-xemacs'."
-  ;; If properties are in the cache, use them.
-  (let ((plist (aref tree-widget--theme 2)))
-    (unless plist
-      ;; Load tree-widget-theme-setup if available.
-      (load (expand-file-name "tree-widget-theme-setup"
-                              (file-name-directory file)) t t)
-      ;; If properties have been setup, use them.
-      (unless (setq plist (aref tree-widget--theme 2))
-        ;; Try from the default theme.
-        (load (expand-file-name "../default/tree-widget-theme-setup"
-                                (file-name-directory file)) t t)
-        ;; If properties have been setup, use them.
-        (unless (setq plist (aref tree-widget--theme 2))
-          ;; By default, use supplied global properties.
-          (setq plist (if (featurep 'xemacs)
-                          tree-widget-image-properties-xemacs
-                        tree-widget-image-properties-emacs))
-          ;; Setup the cache.
-          (tree-widget-set-image-properties plist))))
-    plist))
-
 (defconst tree-widget--cursors
   ;; Pointer shapes when the mouse pointer is over inactive
   ;; tree-widget images.  This feature works since Emacs 22, and
@@ -384,35 +365,46 @@ XEmacs in the variables `tree-widget-image-properties-emacs', and
     ("no-handle" . arrow)
     ))
 
+(defsubst tree-widget-set-image-properties (props)
+  "In current theme, set images properties to PROPS.
+Does nothing if images properties have already been set for that
+theme."
+  (or (aref tree-widget--theme 2)
+      (aset tree-widget--theme 2 props)))
+
+(defsubst tree-widget-image-properties (name)
+  "Return the properties of image NAME in current theme.
+Default global properties are provided for respectively Emacs and
+XEmacs in the variables `tree-widget-image-properties-emacs', and
+`tree-widget-image-properties-xemacs'."
+  ;; Add the pointer shape
+  (cons :pointer
+        (cons (or (cdr (assoc name tree-widget--cursors)) 'hand)
+              (tree-widget-set-image-properties
+               (if (featurep 'xemacs)
+                   tree-widget-image-properties-xemacs
+                 tree-widget-image-properties-emacs)))))
+
 (defun tree-widget-lookup-image (name)
   "Look up in current theme for an image with NAME.
-Search first in current theme, then in default theme (see also the
-variable `tree-widget-theme').
+Search first in current theme, then in parent themes (see also the
+function `tree-widget-set-parent-theme').
 Return the first image found having a supported format, or nil if not
 found."
-  (let ((default-directory (tree-widget-themes-directory)))
+  (let ((default-directory (tree-widget-themes-directory)) file)
     (when default-directory
-      (let (file (theme (tree-widget-theme-name)))
-        (catch 'found
-          (dolist (dir (if (string-equal theme "default")
-                           '("default") (list theme "default")))
-            (dolist (fmt (tree-widget-image-formats))
-              (dolist (ext (cdr fmt))
-                (setq file (expand-file-name (concat name ext) dir))
-                (and
-                 (file-readable-p file)
-                 (file-regular-p file)
-                 (throw
-                  'found
-                  (tree-widget-create-image
-                   (car fmt) file
-                   ;; Add the pointer shape
-                   (cons :pointer
-                         (cons
-                          (or (cdr (assoc name tree-widget--cursors))
-                              'hand)
-                          (tree-widget-image-properties file)))))))))
-          nil)))))
+      (catch 'found
+        (dolist (dir (aref tree-widget--theme 0))
+          (dolist (fmt (tree-widget-image-formats))
+            (dolist (ext (cdr fmt))
+              (setq file (expand-file-name (concat name ext) dir))
+              (and (file-readable-p file)
+                   (file-regular-p file)
+                   (throw 'found
+                          (tree-widget-create-image
+                           (car fmt) file
+                           (tree-widget-image-properties name)))))))
+        nil))))
 
 (defun tree-widget-find-image (name)
   "Find the image with NAME in current theme.
@@ -530,12 +522,13 @@ Handle mouse button 1 click on buttons.")
 (define-widget 'tree-widget 'default
   "Tree widget."
   :format         "%v"
-  :convert-widget 'widget-types-convert-widget
+  :convert-widget 'tree-widget-convert-widget
   :value-get      'widget-value-value-get
   :value-delete   'widget-children-value-delete
   :value-create   'tree-widget-value-create
   :action         'tree-widget-action
   :help-echo      'tree-widget-help-echo
+  :expander-p     'tree-widget-expander-p
   :open-icon      'tree-widget-open-icon
   :close-icon     'tree-widget-close-icon
   :empty-icon     'tree-widget-empty-icon
@@ -646,6 +639,14 @@ This hook should be local in the buffer setup to display widgets.")
    (1- (point)) (point)
    'display (list 'space :width tree-widget-space-width)))
 
+(defun tree-widget-convert-widget (widget)
+  "Convert :args as widget types in WIDGET."
+  (let ((tree (widget-types-convert-widget widget)))
+    ;; Compatibility
+    (widget-put tree :expander (or (widget-get tree :expander)
+                                   (widget-get tree :dynargs)))
+    tree))
+
 (defun tree-widget-value-create (tree)
   "Create the TREE tree-widget."
   (let* ((node   (tree-widget-node tree))
@@ -662,8 +663,6 @@ This hook should be local in the buffer setup to display widgets.")
     (if (widget-get tree :open)
 ;;;; Expanded node.
         (let ((args     (widget-get tree :args))
-              (xpandr   (or (widget-get tree :expander)
-                            (widget-get tree :dynargs)))
               (guide    (widget-get tree :guide))
               (noguide  (widget-get tree :no-guide))
               (endguide (widget-get tree :end-guide))
@@ -674,9 +673,11 @@ This hook should be local in the buffer setup to display widgets.")
               (endguidi (tree-widget-find-image "end-guide"))
               (handli   (tree-widget-find-image "handle"))
               (nohandli (tree-widget-find-image "no-handle")))
-          ;; Request children at run time, when not already done.
-          (when (and (not args) xpandr)
-            (setq args (mapcar 'widget-convert (funcall xpandr tree)))
+          ;; Request children at run time, when requested.
+          (when (and (widget-get tree :expander)
+                     (widget-apply tree :expander-p))
+            (setq args (mapcar 'widget-convert
+                               (widget-apply tree :expander)))
             (widget-put tree :args args))
           ;; Defer the node widget creation after icon creation.
           (widget-put tree :node (widget-convert node))
@@ -799,6 +800,11 @@ Ignore the EVENT argument."
   (if (widget-get tree :open)
       "Collapse node"
     "Expand node"))
+
+(defun tree-widget-expander-p (tree)
+  "Return non-nil if the TREE tree-widget :expander has to be called.
+That is, if TREE :args is nil."
+  (null (widget-get tree :args)))
 
 (provide 'tree-widget)
 

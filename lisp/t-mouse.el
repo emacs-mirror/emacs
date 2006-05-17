@@ -6,7 +6,7 @@
 
 ;; Copyright (C) 1994,1995 Alessandro Rubini <rubini@linux.it>
 ;;               parts are by Ian T Zimmermann <itz@rahul.net>, 1995,1998
-;; Copyright (C) 2006 
+;; Copyright (C) 2006
 ;; Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -29,15 +29,15 @@
 ;;; Commentary:
 
 ;; This package provides access to mouse event as reported by the
-;; gpm-Linux package. It uses the program "mev" to get mouse events.
-;; It tries to reproduce the functionality offered by emacs under X.
+;; gpm-Linux package.  It uses the program "mev" to get mouse events.
+;; It tries to reproduce the functionality offered by Emacs under X.
 ;; The "gpm" server runs under Linux, so this package is rather
 ;; Linux-dependent.
 
 ;; Modified by Nick Roberts for Emacs 22.  In particular, the mode-line is
 ;; now position sensitive.
 
-(defvar t-mouse-process nil 
+(defvar t-mouse-process nil
   "Embeds the process which passes mouse events to emacs.
 It is used by the program t-mouse.")
 
@@ -53,7 +53,7 @@ See `t-mouse-start-debug'.")
 
 (defvar t-mouse-drag-start nil
   "Whenever a drag starts in a special part of a window
-(not the text), the `translated' starting coordinates including the
+\(not the text), the `translated' starting coordinates including the
 window and part involved are saved here.  This is necessary lest they
 get re-translated when the button goes up, at which time window
 configuration may have changed.")
@@ -63,10 +63,10 @@ configuration may have changed.")
 
 (defvar t-mouse-swap-alt-keys nil
   "When set, Emacs will handle mouse events with the right Alt
-(a.k.a. Alt-Ger) modifier, not with the regular left Alt modifier.
+\(a.k.a.  Alt-Ger) modifier, not with the regular left Alt modifier.
 Useful for people who play strange games with their keyboard tables.")
 
-(defvar t-mouse-fix-21 nil 
+(defvar t-mouse-fix-21 nil
   "Enable brain-dead chords for 2 button mice.")
 
 
@@ -75,7 +75,7 @@ Useful for people who play strange games with their keyboard tables.")
 ;; get the number of the current virtual console
 
 (defun t-mouse-tty ()
-  "Returns number of virtual terminal Emacs is running on, as a string.
+  "Return number of virtual terminal Emacs is running on, as a string.
 For example, \"2\" for /dev/tty2."
   (with-temp-buffer
     (call-process "ps" nil t nil "h" (format "%s" (emacs-pid)))
@@ -148,8 +148,8 @@ For example, \"2\" for /dev/tty2."
 
 ;;; This fun is partly Copyright (C) 1994 Per Abrahamsen <abraham@iesd.auc.dk>
 (defun t-mouse-make-event ()
-  "Makes a Lisp style event from the contents of mouse input accumulator.
-Also trims the accumulator by all the data used to build the event."
+  "Make a Lisp style event from the contents of mouse input accumulator.
+Also trim the accumulator by all the data used to build the event."
   (let (ob (ob-pos (condition-case nil
 		       (progn
 			 ;; this test is just needed for Fedora Core 3
@@ -185,13 +185,13 @@ Also trims the accumulator by all the data used to build the event."
                   (progn
                     (setq end-of-root-event-name (match-beginning 0))
                     (setq new-event-name-string
-                          (concat (substring  
+                          (concat (substring
                                    event-name-string 0
                                    end-of-root-event-name) "-3"))
  	      
                     ;;Change the event to the symbol that corresponds to the
                     ;;name we made. The proper symbol already exists.
-                    (setq event-type 
+                    (setq event-type
                           (intern new-event-name-string))))))
  	
         ;;store current position for mouse-position
@@ -231,7 +231,7 @@ Also trims the accumulator by all the data used to build the event."
         (concat t-mouse-filter-accumulator string))
   (let ((event (t-mouse-make-event)))
     (while event
-      (if (or track-mouse 
+      (if (or track-mouse
               (not (eq 'mouse-movement (event-basic-type event))))
           (setq unread-command-events
                 (nconc unread-command-events (list event))))
@@ -249,7 +249,7 @@ The (secret) scrollbar interface is not implemented yet."
 ;; stop-process.  That doesn't work; mev receives the signal fine but
 ;; is not really stopped: instead it returns from
 ;; kill(getpid(), SIGTSTP) immediately.  I don't understand what's up
-;; itz Tue Mar 24 14:27:38 PST 1998. 
+;; itz Tue Mar 24 14:27:38 PST 1998.
 
 (add-hook 'suspend-hook
           (function (lambda ()
@@ -281,8 +281,8 @@ Turn it on to use emacs mouse commands, and off to use t-mouse commands."
 	 (let ((tty (t-mouse-tty))
 	       (process-connection-type t))
 	   (if (not (stringp tty))
-	       (error "Cannot find a virtual terminal."))
-	   (setq t-mouse-process 
+	       (error "Cannot find a virtual terminal"))
+	   (setq t-mouse-process
 		 (start-process "t-mouse" nil
 				"mev" "-i" "-E" "-C" tty
 				(if t-mouse-swap-alt-keys

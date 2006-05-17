@@ -322,13 +322,14 @@ you could say something like:
       (remove "text/html" mm-automatic-display))
 @end lisp
 
-Adding @code{"image/.*"} might also be useful.  Spammers use it as the
-prefered part of @samp{multipart/alternative} messages, and you might
+Adding @code{"image/.*"} might also be useful.  Spammers use images as
+the prefered part of @samp{multipart/alternative} messages, so you might
 not notice there are other parts.  See also
-@code{gnus-buttonized-mime-types} (@pxref{MIME Commands, ,MIME Commands,
-gnus, Gnus Manual}), to which adding @code{"multipart/alternative"}
-enables you to choose manually one of two types those mails include.
-For example, you can set those variables like:
+@code{gnus-buttonized-mime-types}, @ref{MIME Commands, ,MIME Commands,
+gnus, Gnus Manual}.  After adding @code{"multipart/alternative"} to
+@code{gnus-buttonized-mime-types} you can choose manually which
+alternative you'd like to view.  For example, you can set those
+variables like:
 
 @lisp
 (setq gnus-buttonized-mime-types

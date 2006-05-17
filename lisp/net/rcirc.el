@@ -1635,12 +1635,13 @@ ones added to the list automatically are marked with an asterisk."
 (defvar rcirc-url-regexp
   (rx-to-string
    `(and word-boundary
-	 (or "www."
-	     (and (or "http" "https" "ftp" "file" "gopher" "news" "telnet" 
-		      "wais" "mailto")
-		  "://"
-		  (1+ (char "-a-zA-Z0-9_."))
-		  (optional ":" (1+ (char "0-9"))))
+	 (or (and 
+	      (or (and (or "http" "https" "ftp" "file" "gopher" "news" 
+			   "telnet" "wais" "mailto")
+		       "://")
+		  "www.")
+	      (1+ (char "-a-zA-Z0-9_."))
+	      (optional ":" (1+ (char "0-9"))))
 	     (and (1+ (char "-a-zA-Z0-9_."))
 		  (or ".com" ".net" ".org")
 		  word-boundary))

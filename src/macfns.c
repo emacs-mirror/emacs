@@ -210,15 +210,6 @@ void x_explicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_title P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_scroll_bar_foreground P_ ((struct frame *, Lisp_Object,
-				      Lisp_Object));
-void x_set_scroll_bar_background P_ ((struct frame *, Lisp_Object,
-				      Lisp_Object));
-static Lisp_Object x_default_scroll_bar_color_parameter P_ ((struct frame *,
-							     Lisp_Object,
-							     Lisp_Object,
-							     char *, char *,
-							     int));
 
 extern void mac_get_window_bounds P_ ((struct frame *, Rect *, Rect *));
 
@@ -1897,7 +1888,7 @@ x_set_scroll_bar_default_width (f)
   int wid = FRAME_COLUMN_WIDTH (f);
 
 #ifdef MAC_OSX
-  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = 16;  /* Aqua scroll bars.  */
+  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = MAC_AQUA_VERTICAL_SCROLL_BAR_WIDTH;
   FRAME_CONFIG_SCROLL_BAR_COLS (f) = (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) +
 				      wid - 1) / wid;
 #else /* not MAC_OSX */
@@ -1909,6 +1900,24 @@ x_set_scroll_bar_default_width (f)
      scroll bar.  */
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = 0;
 #endif /* not MAC_OSX */
+}
+
+void
+mac_set_scroll_bar_width (f, arg, oldval)
+     struct frame *f;
+     Lisp_Object arg, oldval;
+{
+#ifdef MAC_OSX
+  if (INTEGERP (arg) && XINT (arg) > 0)
+    {
+      if (XINT (arg) < (MAC_AQUA_SMALL_VERTICAL_SCROLL_BAR_WIDTH
+			+ MAC_AQUA_VERTICAL_SCROLL_BAR_WIDTH) / 2)
+	XSETINT (arg, MAC_AQUA_SMALL_VERTICAL_SCROLL_BAR_WIDTH);
+      else
+	XSETINT (arg, MAC_AQUA_VERTICAL_SCROLL_BAR_WIDTH);
+    }
+#endif
+  x_set_scroll_bar_width (f, arg, oldval);
 }
 
 
@@ -4373,7 +4382,7 @@ frame_parm_handler mac_frame_parm_handlers[] =
   x_set_menu_bar_lines,
   x_set_mouse_color,
   x_explicitly_set_name,
-  x_set_scroll_bar_width,
+  mac_set_scroll_bar_width,
   x_set_title,
   x_set_unsplittable,
   x_set_vertical_scroll_bars,

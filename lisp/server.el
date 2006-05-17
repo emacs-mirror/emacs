@@ -343,10 +343,14 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	    (if coding-system
 		(setq arg (decode-coding-string arg coding-system)))
 	    (if eval
-		(let ((v (eval (car (read-from-string arg)))))
+		(let* (errorp
+		       (v (condition-case errobj
+			     (eval (car (read-from-string arg)))
+			   (error (setq errorp t) errobj))))
 		  (when v
 		    (with-temp-buffer
 		      (let ((standard-output (current-buffer)))
+			(if errorp (princ "error: "))
 			(pp v)
 			;; Suppress the error rose when the pipe to PROC is closed.
 			(condition-case err

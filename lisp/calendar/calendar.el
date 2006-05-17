@@ -1192,10 +1192,14 @@ of `general-holidays', `local-holidays' `christian-holidays',
 `oriental-holidays', or `solar-holidays' to nil in your .emacs file,
 you can eliminate unwanted categories of holidays.
 
-Note that these variables are only used to initialize the default
-value of `calendar-holidays'.  In other words, they only have an
-effect on the displayed holidays if set before the calendar is
-loaded.  After the calendar has been loaded, you must customize
+The aforementioned variables control the holiday choices offered
+by the function `list-holidays' when it is called interactively.
+
+They also initialize the default value of `calendar-holidays',
+which is the default list of holidays used by the function
+`list-holidays' in the non-interactive case.  Note that these
+variables have no effect on `calendar-holidays' after it has been
+set (e.g. after the calendar is loaded).  In that case, customize
 `calendar-holidays' directly.
 
 The intention is that (in the US) `local-holidays' be set in

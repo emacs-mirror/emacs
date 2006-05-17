@@ -6,7 +6,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 7.92+cvs
+;; Version: 7.93+cvs
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -116,7 +116,7 @@
 ;; Try to keep variables local to a single file. Provide accessors if
 ;; variables are shared. Use this section as a last resort.
 
-(defconst mh-version "7.92+cvs" "Version number of MH-E.")
+(defconst mh-version "7.93+cvs" "Version number of MH-E.")
 
 ;; Variants
 
@@ -808,7 +808,9 @@ Currently known variants are 'MH, 'nmh, and 'mu-mh."
 (defun mh-profile-component (component)
   "Return COMPONENT value from mhparam, or nil if unset."
   (save-excursion
-    (mh-exec-cmd-quiet nil "mhparam" "-components" component)
+    ;; MH and nmh use -components, Mailutils uses -component. Since MH
+    ;; and nmh work with an unambiguous prefix, the `s' is dropped here.
+    (mh-exec-cmd-quiet nil "mhparam" "-component" component)
     (mh-profile-component-value component)))
 
 (defun mh-profile-component-value (component)

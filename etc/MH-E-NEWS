@@ -6,6 +6,46 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 
+* Changes in MH-E 7.93
+
+Version 7.93, the fourth 8.0 beta release, fixes a handful of bugs in
+searching and limiting exposed during continued beta testing.
+
+** Variables Deleted in MH-E 7.93
+
+*** mh-show-use-goto-addr-flag
+
+This flag was redundant and inconsistent with
+`goto-address-highlight-p' at the same time, so we removed it. Please
+customize `goto-address-highlight-p' if you wish to turn off email
+address and URL highlighting.
+
+** Bug Fixes in MH-E 7.93
+
+*** `/ s' Can Miss the Original Mail
+
+The command `/ s' failed to include the message with the "Re:" in the
+Subject. This has been fixed (closes SF #1438369).
+
+*** XEmacs -nw Fails with number-char-or-marker-p Error
+
+Hopefully, this is the last we'll hear of problems associated with
+XEmacs' incompatible `device-color-cells' function (closes SF
+#1436924).
+
+*** Pick-based Searches Fail
+
+The command `C-c C-p' failed to find any matches. This has been fixed
+(closes SF #1435381).
+
+*** Can't Narrow to Subject with Regexp Chars
+
+The command `/ s' could not limit subjects that had special pick
+characters (such as [, *, $, .). This has been fixed (closes SF
+#1432548).
+
+
+
 * Changes in MH-E 7.92
 
 Version 7.92, the third 8.0 beta release, removes the "sed -i" in the

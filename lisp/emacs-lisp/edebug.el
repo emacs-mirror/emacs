@@ -2660,13 +2660,14 @@ MSG is printed after `::::} '."
 		;; Display result of previous evaluation.
 		(if (and edebug-break
 			 (not (eq edebug-execution-mode 'Continue-fast)))
-		    (sit-for 1))	; Show break message.
+                    (edebug-sit-for edebug-sit-for-seconds)) ; Show message.
 		(edebug-previous-result)))
 
 	  (cond
 	   (edebug-break
 	    (cond
-	     ((eq edebug-execution-mode 'continue) (edebug-sit-for 1))
+	     ((eq edebug-execution-mode 'continue)
+              (edebug-sit-for edebug-sit-for-seconds))
 	     ((eq edebug-execution-mode 'Continue-fast) (edebug-sit-for 0))
 	     (t (setq edebug-stop t))))
 	   ;; not edebug-break

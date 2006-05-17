@@ -230,6 +230,13 @@ The hook `mh-before-send-letter-hook' is run at the beginning of
 this command. For example, if you want to check your spelling in
 your message before sending, add the function `ispell-message'.
 
+Unless `mh-insert-auto-fields' had previously been called
+manually, the function `mh-insert-auto-fields' is called to
+insert fields based upon the recipients. If fields are added, you
+are given a chance to see and to confirm these fields before the
+message is actually sent. You can do away with this confirmation
+by turning off the option `mh-auto-fields-prompt-flag'.
+
 In case the MH \"send\" program is installed under a different name,
 use `mh-send-prog' to tell MH-E the name."
   (interactive "P")
@@ -979,14 +986,16 @@ sequence."
 (defun mh-insert-auto-fields (&optional non-interactive)
   "Insert custom fields if recipient is found in `mh-auto-fields-list'.
 
-Sets buffer-local `mh-insert-auto-fields-done-local' if header
-fields were added. If NON-INTERACTIVE is non-nil, perform actions
-quietly and only if `mh-insert-auto-fields-done-local' is nil.
+Once the header contains one or more recipients, you may run this
+command to insert these fields manually. However, if you use this
+command, the automatic insertion when the message is sent is
+disabled.
 
-An `identity' entry is skipped if one was already entered
-manually.
-
-Return t if fields added; otherwise return nil."
+In a program, set buffer-local `mh-insert-auto-fields-done-local'
+if header fields were added. If NON-INTERACTIVE is non-nil,
+perform actions quietly and only if
+`mh-insert-auto-fields-done-local' is nil. Return t if fields
+added; otherwise return nil."
   (interactive)
   (when (or (not non-interactive)
             (not mh-insert-auto-fields-done-local))

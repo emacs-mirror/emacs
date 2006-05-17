@@ -136,6 +136,7 @@ valid issuer, which is much faster if you are selective about the issuers."
 	    (gnus-sethash group t gnus-nocem-real-group-hashtb))
 	  gnus-newsrc-alist))
 
+;;;###autoload
 (defun gnus-nocem-scan-groups ()
   "Scan all NoCeM groups for new NoCeM messages."
   (interactive)
@@ -206,10 +207,10 @@ valid issuer, which is much faster if you are selective about the issuers."
 				(not (member (mail-header-message-id header)
 					     gnus-nocem-seen-message-ids))))
 		       (push header check-headers)))
-		(let* ((i 0)
-		       (check-headers
-			(last check-headers gnus-nocem-check-article-limit))
-		       (len (length check-headers)))
+		(setq check-headers (last (nreverse check-headers)
+					  gnus-nocem-check-article-limit))
+		(let ((i 0)
+		      (len (length check-headers)))
 		  (dolist (h check-headers)
 		    (gnus-message
 		     7 "Checking article %d in %s for NoCeM (%d of %d)..."
@@ -235,9 +236,13 @@ valid issuer, which is much faster if you are selective about the issuers."
 	       (days-to-time gnus-nocem-expiry-wait)))
       (gnus-request-article-this-buffer (mail-header-number header) group)
       (goto-char (point-min))
-      (when (re-search-forward "-----BEGIN PGP MESSAGE-----" nil t)
+      (when (re-search-forward
+	     "-----BEGIN PGP\\( SIGNED\\)? MESSAGE-----"
+	     nil t)
 	(delete-region (point-min) (match-beginning 0)))
-      (when (re-search-forward "-----END PGP MESSAGE-----\n?" nil t)
+      (when (re-search-forward
+	     "-----END PGP \\(MESSAGE\\|SIGNATURE\\)-----\n?"
+	     nil t)
 	(delete-region (match-end 0) (point-max)))
       (goto-char (point-min))
       ;; The article has to have proper NoCeM headers.
@@ -334,6 +339,7 @@ valid issuer, which is much faster if you are selective about the issuers."
 	      gnus-nocem-alist))
       t)))
 
+;;;###autoload
 (defun gnus-nocem-load-cache ()
   "Load the NoCeM cache."
   (interactive)

@@ -907,16 +907,18 @@ using `make-temp-file', and the generated name is returned."
          (read-only-p (or archive-read-only
 			  view-p
 			  (string-match file-name-invalid-regexp ename)))
+	 (arcfilename (expand-file-name (concat arcname ":" iname)))
          (buffer (get-buffer bufname))
          (just-created nil))
-      (if buffer
+      (if (and buffer
+	       (string= (buffer-file-name buffer) arcfilename))
           nil
 	(setq archive (archive-maybe-copy archive))
+	(setq bufname (generate-new-buffer-name bufname))
         (setq buffer (get-buffer-create bufname))
         (setq just-created t)
         (with-current-buffer buffer
-          (setq buffer-file-name
-                (expand-file-name (concat arcname ":" iname)))
+          (setq buffer-file-name arcfilename)
           (setq buffer-file-truename
                 (abbreviate-file-name buffer-file-name))
           ;; Set the default-directory to the dir of the superior buffer.

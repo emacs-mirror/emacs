@@ -46,7 +46,7 @@
   :group 'editing)
 
 (defcustom outline-regexp "[*\^L]+"
-  "*Regular expression to match the beginning of a heading.
+  "Regular expression to match the beginning of a heading.
 Any line whose beginning matches this regexp is considered to start a heading.
 Note that Outline mode only checks this regexp at the start of a line,
 so the regexp need not (and usually does not) start with `^'.
@@ -56,7 +56,7 @@ in the file it applies to.  See also `outline-heading-end-regexp'."
   :group 'outlines)
 
 (defcustom outline-heading-end-regexp "\n"
-  "*Regular expression to match the end of a heading line.
+  "Regular expression to match the end of a heading line.
 You can assume that point is at the beginning of a heading when this
 regexp is searched for.  The heading ends at the end of the match.
 The recommended way to set this is with a `Local Variables:' list
@@ -828,7 +828,13 @@ Show the heading too, if it is currently invisible."
 
 (defun hide-sublevels (levels)
   "Hide everything but the top LEVELS levels of headers, in whole buffer."
-  (interactive "p")
+  (interactive (list
+		(cond
+		 (current-prefix-arg (prefix-numeric-value current-prefix-arg))
+		 ((save-excursion (beginning-of-line)
+				  (looking-at outline-regexp))
+		  (funcall outline-level))
+		 (t 1))))
   (if (< levels 1)
       (error "Must keep at least one level of headers"))
   (let (outline-view-change-hook)

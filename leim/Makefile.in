@@ -33,7 +33,7 @@ datadir=@datadir@
 srcdir=@srcdir@
 
 # Where to install LEIM files.
-INSTALLDIR=${datadir}/emacs/${version}/leim
+INSTALLDIR=$(DESTDIR)${datadir}/emacs/${version}/leim
 
 GZIP_PROG = @GZIP_PROG@
 
